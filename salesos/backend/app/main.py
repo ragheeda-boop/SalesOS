@@ -92,10 +92,10 @@ async def lifespan(app: FastAPI):
         )
         app.state.work_intelligence_engine = work_intelligence_engine
 
-        # ── Timeline Recorder (legacy, kept for backward compat) ──
+        # ── Timeline Recorder (PostgreSQL-backed) ──
         from domains.timeline.engine.recorder import TimelineRecorder
-        from domains.timeline.engine.in_memory_repo import InMemoryTimelineRepository
-        timeline_repo = InMemoryTimelineRepository()
+        from domains.timeline.engine.postgres_repo import PostgresTimelineRepository
+        timeline_repo = PostgresTimelineRepository(async_session())
         timeline_recorder = TimelineRecorder(timeline_repo)
         app.state.timeline_repo = timeline_repo
         app.state.timeline_recorder = timeline_recorder
@@ -107,6 +107,11 @@ async def lifespan(app: FastAPI):
             logger=app.state.logger,
         )
         app.state.data_fabric = data_fabric
+
+        # ── PgVectorStore (production vector search) ──
+        from domains.search.engine.vector_store import PgVectorStore
+        vector_store = PgVectorStore(session_factory=async_session, collection="vectors")
+        app.state.vector_store = vector_store
 
         # ── Feature Store ──
         feature_store = FeatureStore(

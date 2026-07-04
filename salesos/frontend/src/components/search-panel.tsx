@@ -6,6 +6,7 @@ import { cn } from "@salesos/ui"
 import { useDebounce } from "@salesos/hooks"
 import Link from "next/link"
 import api from "@/lib/api"
+import { getTenantId } from "@/lib/hooks/useTenant"
 
 interface SearchResult {
   id: string
@@ -58,6 +59,7 @@ export function SearchPanel({ open, onClose }: SearchPanelProps) {
     api
       .get("/api/v1/search", {
         params: { q: debouncedQuery, limit: 10, strategy: "hybrid" },
+        headers: { "X-Tenant-Id": getTenantId() },
       })
       .then((res) => {
         const data = res.data

@@ -1,7 +1,8 @@
 import uuid
 from datetime import date
 
-from sqlalchemy import select
+import sqlalchemy as sa
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -208,6 +209,54 @@ class CompanyService:
             )
 
         return contact
+
+    async def delete_company(self, company_id: str) -> None:
+        company = await self.get_company(company_id)
+        await self.db.delete(company)
+        await self.db.flush()
+
+        audit = AuditTrail(self.db)
+        await audit.record(
+            tenant_id=str(company.tenant_id),
+            entity_type="company",
+            entity_id=company_id,
+            action="deleted",
+        )
+        if self.event_bus:
+            from sdk.events.domain_events import CompanyUpdated
+            await self.event_bus.publish(
+                CompanyUpdated(
+                    tenant_id=str(company.tenant_id),
+                    aggregate_id=company_id,
+                    aggregate_type="company",
+                    data={"status": "deleted"},
+                )
+            )
+
+    async def search_companies(
+        self, tenant_id: str, query: str | None = None,
+        page: int = 1, page_size: int = 20,
+    ) -> tuple[list[Company], int]:
+        base = select(Company).where(Company.tenant_id == uuid.UUID(tenant_id))
+        count_base = select(sa.func.count()).select_from(Company).where(
+            Company.tenant_id == uuid.UUID(tenant_id)
+        )
+
+        if query:
+            like = f"%{query}%"
+            condition = or_(
+                Company.name_ar.ilike(like),
+                Company.name_en.ilike(like),
+                Company.cr_number.ilike(like),
+                Company.city.ilike(like),
+            )
+            base = base.where(condition)
+            count_base = count_base.where(condition)
+
+        total = await self.db.scalar(count_base) or 0
+        base = base.offset((page - 1) * page_size).limit(page_size)
+        result = await self.db.execute(base)
+        return list(result.scalars().all()), total
 
     async def ingest_from_source(
         self, tenant_id: str, source_slug: str, records: list[dict]

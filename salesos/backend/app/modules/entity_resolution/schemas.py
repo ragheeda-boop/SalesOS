@@ -68,6 +68,7 @@ class ConflictResolveRequest(BaseModel):
 class ResolutionRunRequest(BaseModel):
     source_slug: str | None = Field(None, description="Source to resolve (None = all sources)")
     confidence_threshold: float = Field(0.7, ge=0.0, le=1.0)
+    records: list[dict] = Field(default_factory=list, description="List of records to resolve (each must contain 'cr_number')")
 
 
 class ResolutionRunResponse(BaseModel):
@@ -89,7 +90,8 @@ class ResolutionLogResponse(BaseModel):
     records_matched: int
     records_created: int
     records_merged: int
-    performed_at: datetime
+    performed_at: datetime = Field(alias="created_at")
 
     class Config:
         from_attributes = True
+        populate_by_name = True

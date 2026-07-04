@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { cn } from "@salesos/ui"
 import { Bot, Send, X, User, Sparkles, Loader2 } from "lucide-react"
 import api from "@/lib/api"
+import { getTenantId } from "@/lib/hooks/useTenant"
 
 interface Message {
   id: string
@@ -61,6 +62,8 @@ export function CopilotPanel({ open, onClose, entityType, entityId, context }: C
         cr_number: context?.cr_number || undefined,
         city: context?.city || undefined,
         goal: context?.goal || undefined,
+      }, {
+        headers: { "X-Tenant-Id": getTenantId() },
       })
 
       const data = res.data

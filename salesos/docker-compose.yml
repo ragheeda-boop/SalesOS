@@ -42,8 +42,8 @@ services:
     environment:
       NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-salesos_neo4j_dev}
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "7475:7474"
+      - "7688:7687"
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
@@ -95,8 +95,6 @@ services:
       dockerfile: Dockerfile
     depends_on:
       postgres:
-        condition: service_healthy
-      neo4j:
         condition: service_healthy
       redis:
         condition: service_healthy

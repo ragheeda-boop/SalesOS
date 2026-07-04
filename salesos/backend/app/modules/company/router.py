@@ -231,6 +231,14 @@ async def add_contact(
     return contact
 
 
+@router.delete("/{company_id}", status_code=204)
+async def delete_company(
+    company_id: str,
+    service: CompanyService = Depends(get_service),
+):
+    await service.delete_company(company_id)
+
+
 @router.get("/{company_id}/360", response_model=Company360Response)
 async def company_360(
     company_id: str,

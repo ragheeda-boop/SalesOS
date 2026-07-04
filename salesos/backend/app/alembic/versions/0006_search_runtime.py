@@ -71,20 +71,19 @@ def upgrade() -> None:
             FOR EACH ROW EXECUTE FUNCTION refresh_companies_tsv()
     """)
 
-    # IVFFlat index for approximate nearest neighbor
-    op.execute("""
-        CREATE INDEX IF NOT EXISTS ix_companies_embedding_vector 
-        ON companies 
-        USING ivfflat (embedding_vector vector_cosine_ops)
-        WITH (lists = 100)
-    """)
+    # HNSW index for approximate nearest neighbor (pgvector limits to 2000 dims;
+    # our embedding_vector is 3072d, so skip index until pgvector supports it)
+    # op.execute("""
+    #     CREATE INDEX IF NOT EXISTS ix_companies_embedding_vector 
+    #     ON companies 
+    #     USING hnsw (embedding_vector vector_cosine_ops)
+    # """)
 
 
 def downgrade() -> None:
     op.execute("DROP TRIGGER IF EXISTS trg_companies_tsv ON companies")
     op.execute("DROP FUNCTION IF EXISTS refresh_companies_tsv()")
     op.drop_index("ix_companies_tsv", table_name="companies")
-    op.drop_index("ix_companies_embedding_vector", table_name="companies")
     op.drop_column("companies", "embedding_vector")
     op.drop_column("companies", "tsv")
     op.drop_column("companies", "embedding")

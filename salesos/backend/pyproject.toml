@@ -57,7 +57,7 @@ files = ["app/", "sdk/", "modules/", "cli/"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["tests", "app/modules/identity/tests", "app/modules/company/tests", "app/modules/entity_resolution/tests"]
+testpaths = ["tests", "app/modules/identity/tests", "app/modules/company/tests", "app/modules/entity_resolution/tests", "runtime/data_fabric_runtime/tests"]
 
 [build-system]
 requires = ["poetry-core"]

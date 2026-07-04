@@ -81,15 +81,166 @@ export interface License {
 export interface Contact {
   id: string;
   name: string;
-  position: string | null;
-  phone: string | null;
+  name_ar?: string | null;
   email: string | null;
+  phone: string | null;
+  mobile?: string | null;
+  position: string | null;
+  position_ar?: string | null;
+  department?: string | null;
+  company_id?: string | null;
+  company_name?: string;
+  is_primary?: boolean;
+  source?: string | null;
+  confidence_score?: number | null;
+  tags?: string[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ContactCreateRequest {
+  name: string;
+  name_ar?: string;
+  email?: string;
+  phone?: string;
+  mobile?: string;
+  position?: string;
+  position_ar?: string;
+  department?: string;
+  company_id?: string;
+  is_primary?: boolean;
+  source?: string;
+  tags?: string[];
+}
+
+export interface ContactUpdateRequest {
+  name?: string;
+  name_ar?: string;
+  email?: string;
+  phone?: string;
+  mobile?: string;
+  position?: string;
+  position_ar?: string;
+  department?: string;
+  is_primary?: boolean;
+  tags?: string[];
+}
+
+export interface ContactSearchParams {
+  q?: string;
+  company_id?: string;
+  email?: string;
+  source?: string;
+  page?: number;
+  page_size?: number;
+  sort_by?: string;
+  sort_order?: string;
+}
+
+export async function searchContacts(
+  params: ContactSearchParams,
+  tenantId: string
+): Promise<PaginatedResponse<Contact>> {
+  const response = await api.get("/api/v1/contacts", {
+    params,
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function getContact(id: string, tenantId: string): Promise<Contact> {
+  const response = await api.get(`/api/v1/contacts/${id}`, {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function createContact(
+  data: ContactCreateRequest,
+  tenantId: string
+): Promise<Contact> {
+  const response = await api.post("/api/v1/contacts", data, {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function updateContact(
+  id: string,
+  data: ContactUpdateRequest,
+  tenantId: string
+): Promise<Contact> {
+  const response = await api.patch(`/api/v1/contacts/${id}`, data, {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function deleteContact(id: string, tenantId: string): Promise<void> {
+  await api.delete(`/api/v1/contacts/${id}`, {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+}
+
+export async function getContactsByCompany(
+  companyId: string,
+  tenantId: string
+): Promise<Contact[]> {
+  const response = await api.get(`/api/v1/contacts/by-company/${companyId}`, {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
 }
 
 export interface CompanyDetail extends Company {
   branches: Branch[];
   licenses: License[];
   contacts: Contact[];
+}
+
+export async function createCompany(
+  data: {
+    name_ar: string;
+    cr_number: string;
+    name_en?: string;
+    status?: string;
+    city?: string;
+    region?: string;
+  },
+  tenantId: string
+): Promise<Company> {
+  const response = await api.post("/api/v1/companies", data, {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function updateCompany(
+  id: string,
+  data: Record<string, unknown>,
+  tenantId: string
+): Promise<Company> {
+  const response = await api.patch(`/api/v1/companies/${id}`, data, {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function deleteCompany(id: string, tenantId: string): Promise<void> {
+  await api.delete(`/api/v1/companies/${id}`, {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+}
+
+export async function addCompanyContact(
+  companyId: string,
+  data: { name: string; position?: string; email?: string; phone?: string },
+  tenantId: string
+): Promise<Contact> {
+  const response = await api.post(`/api/v1/companies/${companyId}/contacts`, data, {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
 }
 
 export async function searchCompanies(
@@ -326,6 +477,85 @@ export interface ExecutiveDashboardResponse {
 
 export async function getExecutiveDashboard(tenantId: string): Promise<ExecutiveDashboardResponse> {
   const response = await api.get("/api/v1/executive/dashboard", {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+// ─── Opportunities / Pipeline ────────────────────────────────
+export interface Opportunity {
+  id: string;
+  name: string;
+  stage: string;
+  value: number;
+  company_id: string;
+  company_name?: string;
+  probability?: number;
+  expected_close_date?: string;
+  owner_id?: string;
+  status?: string;
+  won_amount?: number;
+  loss_reason?: string;
+}
+
+export interface OpportunityListResponse {
+  items: Opportunity[];
+  total: number;
+}
+
+export async function listOpportunities(tenantId: string): Promise<OpportunityListResponse> {
+  const response = await api.get("/api/v1/opportunities", {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function createOpportunity(
+  tenantId: string,
+  companyId: string,
+  name: string,
+  value = 0
+) {
+  const response = await api.post("/api/v1/opportunities", null, {
+    params: { company_id: companyId, name, value },
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function advanceOpportunity(opportunityId: string, toStage: string) {
+  const response = await api.post(`/api/v1/opportunities/${opportunityId}/advance`, null, {
+    params: { to_stage: toStage },
+  });
+  return response.data;
+}
+
+export async function closeWon(opportunityId: string, amount?: number) {
+  const response = await api.post(`/api/v1/opportunities/${opportunityId}/won`, null, {
+    params: amount ? { amount } : undefined,
+  });
+  return response.data;
+}
+
+export async function closeLost(opportunityId: string, reason = "") {
+  const response = await api.post(`/api/v1/opportunities/${opportunityId}/lost`, null, {
+    params: reason ? { reason } : undefined,
+  });
+  return response.data;
+}
+
+export interface Pipeline {
+  id: string;
+  name: string;
+  stages: number;
+}
+
+export interface PipelineListResponse {
+  items: Pipeline[];
+}
+
+export async function listPipelines(tenantId: string): Promise<PipelineListResponse> {
+  const response = await api.get("/api/v1/pipelines", {
     headers: { "X-Tenant-Id": tenantId },
   });
   return response.data;

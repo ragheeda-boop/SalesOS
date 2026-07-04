@@ -34,7 +34,29 @@ export const employeeKeys = {
   me: () => [...employeeKeys.all, "me"] as const,
 };
 
+export const contactKeys = {
+  all: ["contacts"] as const,
+  lists: () => [...contactKeys.all, "list"] as const,
+  list: (filters: Record<string, unknown>) => [...contactKeys.lists(), filters] as const,
+  details: () => [...contactKeys.all, "detail"] as const,
+  detail: (id: string) => [...contactKeys.details(), id] as const,
+};
+
 export const activityKeys = {
   entity: (entityType: string, entityId: string) =>
     ["activities", entityType, entityId] as const,
+};
+
+export const opportunityKeys = {
+  all: ["opportunities"] as const,
+  lists: () => [...opportunityKeys.all, "list"] as const,
+  list: () => [...opportunityKeys.lists()] as const,
+  details: () => [...opportunityKeys.all, "detail"] as const,
+  detail: (id: string) => [...opportunityKeys.details(), id] as const,
+};
+
+export const pipelineKeys = {
+  all: ["pipelines"] as const,
+  lists: () => [...pipelineKeys.all, "list"] as const,
+  list: () => [...pipelineKeys.lists()] as const,
 };

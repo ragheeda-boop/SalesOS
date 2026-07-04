@@ -383,18 +383,45 @@ class EntityResolutionService:
         elif strategy == "use_source_b":
             golden = await self.golden_repo.get(conflict.golden_record_id)
             if conflict.field_name in golden.data:
-                golden.data[conflict.field_name]["value"] = conflict.source_b_value
-                golden.data[conflict.field_name]["source"] = conflict.source_b_source
-                golden.data[conflict.field_name]["verified_by"] = resolved_by
-                golden.data[conflict.field_name]["timestamp"] = datetime.now(timezone.utc).isoformat()
+                golden.data = {
+                    **golden.data,
+                    conflict.field_name: {
+                        **golden.data[conflict.field_name],
+                        "value": conflict.source_b_value,
+                        "source": conflict.source_b_source,
+                        "verified_by": resolved_by,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    },
+                }
                 golden.confidence_score = self._compute_overall_confidence(golden.data)
         elif strategy == "merge" and custom_value:
             golden = await self.golden_repo.get(conflict.golden_record_id)
             if conflict.field_name in golden.data:
-                golden.data[conflict.field_name]["value"] = custom_value
-                golden.data[conflict.field_name]["source"] = "manual_merge"
-                golden.data[conflict.field_name]["verified_by"] = resolved_by
-                golden.data[conflict.field_name]["timestamp"] = datetime.now(timezone.utc).isoformat()
+                golden.data = {
+                    **golden.data,
+                    conflict.field_name: {
+                        **golden.data[conflict.field_name],
+                        "value": custom_value,
+                        "source": "manual_merge",
+                        "verified_by": resolved_by,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    },
+                }
+                golden.confidence_score = self._compute_overall_confidence(golden.data)
+        elif strategy == "custom" and custom_value:
+            golden = await self.golden_repo.get(conflict.golden_record_id)
+            if conflict.field_name in golden.data:
+                golden.data = {
+                    **golden.data,
+                    conflict.field_name: {
+                        **golden.data[conflict.field_name],
+                        "value": custom_value,
+                        "source": "manual_custom",
+                        "verified_by": resolved_by,
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    },
+                }
+                golden.confidence_score = self._compute_overall_confidence(golden.data)
 
         conflict.resolution_strategy = strategy
         conflict.resolved_by = uuid.UUID(resolved_by) if resolved_by else None

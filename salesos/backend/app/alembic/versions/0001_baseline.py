@@ -125,7 +125,6 @@ def upgrade() -> None:
                   server_default=sa.text("now()"), nullable=False),
     )
     op.create_index("ix_users_email", "users", ["email"])
-    op.create_index("ix_users_tenant_id", "users", ["tenant_id"])
 
     # ── Sources ─────────────────────────────────────────────────────
     op.create_table(

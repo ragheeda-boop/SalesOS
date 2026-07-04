@@ -96,3 +96,42 @@ export function useUpdateCompany() {
     },
   });
 }
+
+export function useDeleteCompany() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      await api.delete(`/api/v1/companies/${id}`, {
+        headers: { "X-Tenant-Id": getTenantId() },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: companyKeys.lists() });
+    },
+  });
+}
+
+export function useAddContact() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      companyId,
+      ...data
+    }: {
+      companyId: string;
+      name: string;
+      position?: string;
+      email?: string;
+      phone?: string;
+    }) => {
+      const response = await api.post(`/api/v1/companies/${companyId}/contacts`, data, {
+        headers: { "X-Tenant-Id": getTenantId() },
+      });
+      return response.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: companyKeys.detail(variables.companyId) });
+      queryClient.invalidateQueries({ queryKey: companyKeys.lists() });
+    },
+  });
+}

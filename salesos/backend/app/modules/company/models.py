@@ -76,6 +76,7 @@ class Company(BaseModel):
 
     branches: Mapped[list["Branch"]] = relationship("Branch", back_populates="company", lazy="selectin")
     licenses: Mapped[list["License"]] = relationship("License", back_populates="company", lazy="selectin")
+    contacts: Mapped[list["Contact"]] = relationship("app.modules.company.models.Contact", back_populates="company", lazy="selectin")
 
     def __repr__(self) -> str:
         return f"<Company {self.cr_number}: {self.name_ar}>"
@@ -142,6 +143,8 @@ class Contact(BaseModel):
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False)
     source: Mapped[str | None] = mapped_column(String(100))
     confidence_score: Mapped[float | None] = mapped_column(Float, default=0.0)
+
+    company: Mapped["Company"] = relationship("app.modules.company.models.Company", back_populates="contacts")
 
     def __repr__(self) -> str:
         return f"<Contact {self.name}: {self.email}>"
