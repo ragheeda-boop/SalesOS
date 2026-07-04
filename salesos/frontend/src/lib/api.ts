@@ -614,6 +614,49 @@ export async function queryActivities(
   return response.data;
 }
 
+// ─── Unified Search ───────────────────────────────────────────
+export interface SearchResultItem {
+  id: string;
+  type: string;
+  score: number;
+  data: Record<string, unknown>;
+  matched_fields?: string[];
+  explanation?: string;
+}
+
+export interface SearchResponse {
+  query: string;
+  strategy: string;
+  total: number;
+  took_ms: number;
+  items: SearchResultItem[];
+  facets?: Record<string, Record<string, number>>;
+  suggestions?: string[];
+}
+
+export interface SearchParams {
+  q: string;
+  strategy?: "fulltext" | "semantic" | "graph" | "hybrid";
+  limit?: number;
+  offset?: number;
+  include_facets?: boolean;
+  city?: string;
+  region?: string;
+  industry?: string;
+  status?: string;
+}
+
+export async function unifiedSearch(
+  params: SearchParams,
+  tenantId: string
+): Promise<SearchResponse> {
+  const response = await api.get("/api/v1/search", {
+    params,
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
 export async function login(email: string, password: string) {
   const response = await api.post("/api/v1/identity/login", { email, password });
   const { access_token, refresh_token } = response.data;

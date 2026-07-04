@@ -227,24 +227,34 @@ class DataFabricPipeline:
         })
         self.normalizer.register_mapping("taqeem", {
             "company_name": "name_ar",
+            "company_name_ar": "name_ar",
+            "company_name_en": "name_en",
             "cr_number": "cr_number",
-            "city": "city",
+            "city_ar": "city",
+            "city_en": "city",
             "employee_count": "employees_count",
+            "employees_count": "employees_count",
             "capital": "capital",
             "status": "status",
             "establishment_date": "incorporation_date",
+            "incorporation_date": "incorporation_date",
         })
         self.normalizer.register_mapping("ncnp", {
             "establishment_name": "name_ar",
             "cr": "cr_number",
-            "city": "city",
+            "cr_number": "cr_number",
+            "city_ar": "city",
+            "city_en": "city",
             "employees_total": "employees_count",
         })
         self.normalizer.register_mapping("rega", {
             "company_name": "name_ar",
+            "company_name_ar": "name_ar",
             "cr_number": "cr_number",
             "license_type": "cr_type",
             "license_status": "status",
+            "city_ar": "city",
+            "city_en": "city",
         })
         self.normalizer.register_mapping("najiz", {
             "case_number": "__case_number",

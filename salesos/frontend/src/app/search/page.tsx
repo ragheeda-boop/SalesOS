@@ -1,13 +1,196 @@
-"use client"
+"use client";
 
-import { Search } from "lucide-react"
+import { useState } from "react";
+import { useSearch } from "@/lib/hooks/searchQueries";
+import { useRouter } from "next/navigation";
+import { Search, Loader2, Building2, FileText, Users, Hash, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { Input } from "@salesos/ui";
+import { Badge, cn } from "@salesos/ui";
+
+type Strategy = "fulltext" | "semantic" | "hybrid";
+
+const STRATEGY_LABELS: Record<Strategy, string> = {
+  fulltext: "نص كامل",
+  semantic: "دلالي",
+  hybrid: "مختلط",
+};
 
 export default function SearchPage() {
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [strategy, setStrategy] = useState<Strategy>("hybrid");
+  const [page, setPage] = useState(0);
+  const pageSize = 20;
+
+  const { data, isLoading, error } = useSearch(
+    searchQuery ? { q: searchQuery, strategy, limit: pageSize, offset: page * pageSize, include_facets: true } : { q: "", strategy }
+  );
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchQuery(query);
+    setPage(0);
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-gray-500 dark:text-gray-400">
-      <Search className="mb-4 h-16 w-16" />
-      <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">البحث المتقدم</h2>
-      <p className="mt-2 text-sm">قريبًا — هذه الصفحة قيد التطوير.</p>
+    <div className="mx-auto max-w-5xl space-y-6 p-6" dir="rtl">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">البحث المتقدم</h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">ابحث في الشركات والسجلات التجارية</p>
+      </div>
+
+      {/* Search bar */}
+      <form onSubmit={handleSearch} className="flex gap-3">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="ابحث باسم الشركة، رقم السجل، النشاط..."
+            className="pr-10 text-base"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={!query.trim() || isLoading}
+          className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+        >
+          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "بحث"}
+        </button>
+      </form>
+
+      {/* Strategy toggle */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-medium text-gray-500">استراتيجية البحث:</span>
+        <div className="flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
+          {(["fulltext", "semantic", "hybrid"] as Strategy[]).map((s) => (
+            <button
+              key={s}
+              onClick={() => { setStrategy(s); setPage(0); }}
+              className={cn(
+                "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                strategy === s
+                  ? "bg-white text-blue-700 shadow-sm dark:bg-gray-700 dark:text-blue-300"
+                  : "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+              )}
+            >
+              {STRATEGY_LABELS[s]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Results */}
+      {error && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+          حدث خطأ أثناء البحث
+        </div>
+      )}
+
+      {searchQuery && !isLoading && data && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {data.total} نتيجة ({(data.took_ms / 1000).toFixed(2)} ثانية)
+              {data.strategy && <> — استراتيجية: {STRATEGY_LABELS[data.strategy as Strategy] || data.strategy}</>}
+            </p>
+          </div>
+
+          {data.items.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-gray-300 p-12 text-center dark:border-gray-600">
+              <Search className="mx-auto mb-3 h-10 w-10 text-gray-300 dark:text-gray-600" />
+              <p className="text-gray-500 dark:text-gray-400">لا توجد نتائج</p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-3">
+                {data.items.map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => router.push(`/companies/${item.id}`)}
+                    className="cursor-pointer rounded-lg border border-gray-200 bg-white p-4 transition-colors hover:border-blue-300 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                          {String(item.data?.name_ar || item.data?.name_en || "—")}
+                        </h3>
+                        {item.data?.cr_number && (
+                          <p className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                            <Hash className="h-3 w-3" />
+                            {String(item.data.cr_number)}
+                          </p>
+                        )}
+                        <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
+                          {item.data?.city && <span>{String(item.data.city)}</span>}
+                          {item.data?.industry && <span>{String(item.data.industry)}</span>}
+                          {item.data?.status && (
+                            <Badge variant={item.data.status === "active" ? "success" : "secondary"}>
+                              {String(item.data.status)}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400 dark:text-gray-500">
+                          {Math.round(item.score * 100)}%
+                        </span>
+                        <ChevronLeft className="h-4 w-4 text-gray-300 dark:text-gray-600" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {data.total > pageSize && (
+                <div className="flex items-center justify-center gap-2">
+                  <button
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={page === 0}
+                    className="rounded-lg border p-2 hover:bg-gray-50 disabled:opacity-30 dark:border-gray-700 dark:hover:bg-gray-800"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    الصفحة {page + 1} من {Math.ceil(data.total / pageSize)}
+                  </span>
+                  <button
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={(page + 1) * pageSize >= data.total}
+                    className="rounded-lg border p-2 hover:bg-gray-50 disabled:opacity-30 dark:border-gray-700 dark:hover:bg-gray-800"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Facets sidebar */}
+      {data?.facets && Object.keys(data.facets).length > 0 && (
+        <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+          <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">تصفية حسب</h3>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {Object.entries(data.facets).map(([field, values]) => (
+              <div key={field}>
+                <p className="mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">{field}</p>
+                <div className="space-y-1">
+                  {Object.entries(values).slice(0, 5).map(([value, count]) => (
+                    <div key={value} className="flex items-center justify-between text-xs text-gray-700 dark:text-gray-300">
+                      <span>{value}</span>
+                      <span className="text-gray-400">({count})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }
