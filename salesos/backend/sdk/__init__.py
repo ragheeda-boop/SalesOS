@@ -1,0 +1,107 @@
+"""SalesOS Platform SDK — foundational layer for all modules."""
+
+from sdk.audit import AuditTrail
+from sdk.cache import CacheService
+from sdk.config import SdkSettings, sdk_settings
+from sdk.database import (
+    Entity,
+    Repository,
+    Specification,
+    SqlAlchemyRepository,
+    UnitOfWork,
+)
+from sdk.events import (
+    DomainEvent,
+    EVENT_REGISTRY,
+    EventBus,
+    EventStore,
+    InMemoryEventBus,
+    KafkaEventBus,
+    PostgresEventStore,
+)
+from sdk.exceptions import (
+    ConfigurationError,
+    DuplicateObjectError,
+    InvalidStateTransitionError,
+    ObjectNotFoundError,
+    PermissionDeniedError,
+    SalesOsError,
+    ValidationError,
+)
+from sdk.feature_registry import FeatureModule, FeatureRegistry, ModuleStatus
+from sdk.graph import GraphService
+from sdk.metadata import EntityMetadata, FieldMetadata, FieldType, MetadataRegistry, UiWidget
+from sdk.permissions import Permission, PermissionAction, PermissionEnforcer, PermissionRegistry, Role
+from sdk.queue import TaskQueue, RedisTaskQueue
+from sdk.search import FullTextSearch, PgVectorSearch, SearchQuery, SearchResult, VectorSearch
+from sdk.security import (
+    create_jwt,
+    decode_jwt,
+    generate_api_key,
+    hash_password,
+    verify_api_key,
+    verify_password,
+)
+from sdk.telemetry import StructuredLogger, get_meter, get_tracer, record_metric, setup_telemetry, trace_span
+from sdk.vector import EmbeddingService, OpenAIEmbeddingService
+
+__all__ = [
+    "AuditTrail",
+    "CacheService",
+    "ConfigurationError",
+    "create_jwt",
+    "decode_jwt",
+    "DomainEvent",
+    "DuplicateObjectError",
+    "EmbeddingService",
+    "Entity",
+    "EntityMetadata",
+    "EVENT_REGISTRY",
+    "EventBus",
+    "EventStore",
+    "FeatureModule",
+    "FeatureRegistry",
+    "FieldMetadata",
+    "FieldType",
+    "FullTextSearch",
+    "generate_api_key",
+    "get_meter",
+    "get_tracer",
+    "GraphService",
+    "hash_password",
+    "InMemoryEventBus",
+    "InvalidStateTransitionError",
+    "KafkaEventBus",
+    "MetadataRegistry",
+    "ModuleStatus",
+    "ObjectNotFoundError",
+    "OpenAIEmbeddingService",
+    "Permission",
+    "PermissionAction",
+    "PermissionDeniedError",
+    "PermissionEnforcer",
+    "PermissionRegistry",
+    "PgVectorSearch",
+    "PostgresEventStore",
+    "record_metric",
+    "RedisTaskQueue",
+    "Repository",
+    "Role",
+    "SalesOsError",
+    "SearchQuery",
+    "SearchResult",
+    "setup_telemetry",
+    "SdkSettings",
+    "sdk_settings",
+    "Specification",
+    "SqlAlchemyRepository",
+    "StructuredLogger",
+    "TaskQueue",
+    "trace_span",
+    "UiWidget",
+    "UnitOfWork",
+    "ValidationError",
+    "VectorSearch",
+    "verify_api_key",
+    "verify_password",
+]

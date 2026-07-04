@@ -1,0 +1,7 @@
+export { generateWorkspace, type WorkspaceConfig, type CapabilityDefinition, type EntityType } from './generator'
+export { WORKSPACE_PRESETS, getPreset, getAllPresets, type WorkspaceRole, type WorkspacePreset, type WidgetPreset } from './presets'
+export { WorkspaceRenderer, type WorkspaceRendererProps } from './renderer'
+export { GlobalActivityFeed, type ActivityEvent, type ActivityType, type ActivityEntity } from './global-activity-feed'
+export { UniversalInbox, type InboxItem, type InboxItemType } from './universal-inbox'
+export { RevenueCommandCenter, type RevenueMetrics } from './revenue-command-center'
+export { AIOperatingAssistant, type WorkflowExecution, type WorkflowStep, type QuickAction } from './ai-operating-assistant'

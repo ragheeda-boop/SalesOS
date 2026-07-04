@@ -1,0 +1,65 @@
+# SalesOS Root .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+*.egg
+dist/
+build/
+*.pyc
+
+# Node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# PostgreSQL
+pgdata/
+
+# Coverage
+htmlcov/
+.coverage
+coverage/
+
+# Uploads
+uploads/
+
+# Large data files (keep small samples only)
+*.xlsx
+*.csv
+*.pptx
+
+# Docker
+.docker/
+
+# reports
+scrubbing_report.txt
+scraper.log
+
+# Output
+output/

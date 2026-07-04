@@ -1,0 +1,20 @@
+{
+  "name": "@salesos/workspace",
+  "version": "5.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "react": "^19.0",
+    "@salesos/ui": "*",
+    "@salesos/icons": "*",
+    "@salesos/charts": "*",
+    "@salesos/runtime": "*",
+    "@salesos/hooks": "*",
+    "@salesos/design-language": "*",
+    "@salesos/renderer": "*"
+  },
+  "peerDependencies": {
+    "react": "^19.0"
+  }
+}

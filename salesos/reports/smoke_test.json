@@ -1,0 +1,385 @@
+{
+  "generated_at": "2026-06-29T13:59:02.782990+00:00",
+  "datasets": {
+    "100": [
+      {
+        "name": "exact_search_by_cr",
+        "description": "Exact match on cr_number (unique, indexed)",
+        "category": "exact",
+        "dataset_size": 100,
+        "row_count": 0,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE cr_number = ? AND tenant_id = ?]\n[parameters: ('1012345678', '11111111-1111-1111-1111-111111111111')]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "exact_search_by_name_ar",
+        "description": "Exact match on name_ar (indexed)",
+        "category": "exact",
+        "dataset_size": 100,
+        "row_count": 0,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE name_ar = ? AND tenant_id = ?]\n[parameters: ('شركة الأمل للتجارة', '11111111-1111-1111-1111-111111111111')]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "partial_search_name_ar",
+        "description": "ILIKE on name_ar (prefix match)",
+        "category": "partial",
+        "dataset_size": 100,
+        "row_count": 54,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE name_ar LIKE ? AND tenant_id = ?]\n[parameters: ('شركة%', '11111111-1111-1111-1111-111111111111')]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "partial_search_name_ar_middle",
+        "description": "ILIKE on name_ar (middle match — worst case)",
+        "category": "partial",
+        "dataset_size": 100,
+        "row_count": 10,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 8.0,
+        "max_ms": 16.0,
+        "durations_ms": [
+          0.0,
+          16.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE name_ar LIKE ? AND tenant_id = ?]\n[parameters: ('%تجارة%', '11111111-1111-1111-1111-111111111111')]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "partial_search_cr_number",
+        "description": "ILIKE on cr_number",
+        "category": "partial",
+        "dataset_size": 100,
+        "row_count": 18,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE cr_number LIKE ? AND tenant_id = ?]\n[parameters: ('10%', '11111111-1111-1111-1111-111111111111')]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "partial_search_city",
+        "description": "ILIKE on city",
+        "category": "partial",
+        "dataset_size": 100,
+        "row_count": 5,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE city LIKE ? AND tenant_id = ?]\n[parameters: ('الرياض%', '11111111-1111-1111-1111-111111111111')]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "multi_filter_status_city",
+        "description": "Status (exact) + City (prefix)",
+        "category": "filter",
+        "dataset_size": 100,
+        "row_count": 1,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE status = ? AND city LIKE ? AND tenant_id = ?]\n[parameters: ('active', 'الرياض%', '11111111-1111-1111-1111-111111111111')]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "multi_filter_status_region_activity",
+        "description": "Status + Region + Activity (3 filters)",
+        "category": "filter",
+        "dataset_size": 100,
+        "row_count": 1,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 7.5,
+        "max_ms": 15.0,
+        "durations_ms": [
+          0.0,
+          15.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE status = ? AND region = ? AND activity_description LIKE ? AND tenant_id = ?]\n[parameters: ('active', 'الرياض', '%تجارة%', '11111111-1111-1111-1111-111111111111')]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "multi_filter_legal_form_status",
+        "description": "Legal form + Status + City",
+        "category": "filter",
+        "dataset_size": 100,
+        "row_count": 0,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE legal_form = ? AND status = ? AND city = ? AND tenant_id = ?]\n[parameters: ('شركة ذات مسؤولية محدودة', 'active', 'جدة', '11111111-1111-1111-1111-111111111111')]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "sort_by_created_at_asc",
+        "description": "Sort by created_at ASC",
+        "category": "sort",
+        "dataset_size": 100,
+        "row_count": 20,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE tenant_id = ? ORDER BY created_at ASC NULLS LAST LIMIT 20]\n[parameters: ('11111111-1111-1111-1111-111111111111',)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "sort_by_name_ar_asc",
+        "description": "Sort by name_ar ASC",
+        "category": "sort",
+        "dataset_size": 100,
+        "row_count": 20,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE tenant_id = ? ORDER BY name_ar ASC NULLS LAST LIMIT 20]\n[parameters: ('11111111-1111-1111-1111-111111111111',)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "sort_by_confidence_score_asc",
+        "description": "Sort by confidence_score ASC",
+        "category": "sort",
+        "dataset_size": 100,
+        "row_count": 20,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 8.0,
+        "max_ms": 16.0,
+        "durations_ms": [
+          0.0,
+          16.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE tenant_id = ? ORDER BY confidence_score ASC NULLS LAST LIMIT 20]\n[parameters: ('11111111-1111-1111-1111-111111111111',)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "sort_by_created_at_desc",
+        "description": "Sort by created_at DESC",
+        "category": "sort",
+        "dataset_size": 100,
+        "row_count": 20,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE tenant_id = ? ORDER BY created_at DESC NULLS LAST LIMIT 20]\n[parameters: ('11111111-1111-1111-1111-111111111111',)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "sort_by_name_ar_desc",
+        "description": "Sort by name_ar DESC",
+        "category": "sort",
+        "dataset_size": 100,
+        "row_count": 20,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE tenant_id = ? ORDER BY name_ar DESC NULLS LAST LIMIT 20]\n[parameters: ('11111111-1111-1111-1111-111111111111',)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "sort_by_confidence_score_desc",
+        "description": "Sort by confidence_score DESC",
+        "category": "sort",
+        "dataset_size": 100,
+        "row_count": 20,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE tenant_id = ? ORDER BY confidence_score DESC NULLS LAST LIMIT 20]\n[parameters: ('11111111-1111-1111-1111-111111111111',)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "pagination_page_1",
+        "description": "LIMIT 20 OFFSET 0",
+        "category": "pagination",
+        "dataset_size": 100,
+        "row_count": 20,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 20 OFFSET 0]\n[parameters: ('11111111-1111-1111-1111-111111111111',)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "pagination_page_mid",
+        "description": "LIMIT 20 OFFSET 500 (deep pagination)",
+        "category": "pagination",
+        "dataset_size": 100,
+        "row_count": 20,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 8.0,
+        "max_ms": 16.0,
+        "durations_ms": [
+          0.0,
+          16.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 20 OFFSET 20]\n[parameters: ('11111111-1111-1111-1111-111111111111',)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "pagination_page_deep",
+        "description": "LIMIT 20 OFFSET 5000 (very deep pagination)",
+        "category": "pagination",
+        "dataset_size": 100,
+        "row_count": 20,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 20 OFFSET 50]\n[parameters: ('11111111-1111-1111-1111-111111111111',)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "pagination_page_large_size",
+        "description": "LIMIT 100 OFFSET 0 (large page size)",
+        "category": "pagination",
+        "dataset_size": 100,
+        "row_count": 100,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT * FROM companies WHERE tenant_id = ? ORDER BY created_at DESC LIMIT 100 OFFSET 0]\n[parameters: ('11111111-1111-1111-1111-111111111111',)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "count_all",
+        "description": "COUNT(*) with tenant filter",
+        "category": "count",
+        "dataset_size": 100,
+        "row_count": 1,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 7.5,
+        "max_ms": 15.0,
+        "durations_ms": [
+          0.0,
+          15.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT COUNT(*) FROM companies WHERE tenant_id = ?]\n[parameters: ('11111111-1111-1111-1111-111111111111',)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      },
+      {
+        "name": "count_with_filter",
+        "description": "COUNT(*) with status + city filter",
+        "category": "count",
+        "dataset_size": 100,
+        "row_count": 1,
+        "min_ms": 0.0,
+        "p50_ms": 0.0,
+        "p95_ms": 0.0,
+        "p99_ms": 0.0,
+        "avg_ms": 0.0,
+        "max_ms": 0.0,
+        "durations_ms": [
+          0.0,
+          0.0
+        ],
+        "explain_output": "(EXPLAIN ANALYZE not supported: (sqlite3.OperationalError) near \"SELECT\": syntax error\n[SQL: EXPLAIN ANALYZE SELECT COUNT(*) FROM companies WHERE tenant_id = ? AND status = ? AND city = ?]\n[parameters: ('11111111-1111-1111-1111-111111111111', 'active', 'الرياض')]\n(Background on this error at: https://sqlalche.me/e/20/e3q8))"
+      }
+    ]
+  }
+}

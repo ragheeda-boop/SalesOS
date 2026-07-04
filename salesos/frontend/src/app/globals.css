@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #F9FAFB;
+    --foreground: #111827;
+    --card: #FFFFFF;
+    --card-foreground: #111827;
+    --border: #E5E7EB;
+    --muted: #F3F4F6;
+    --muted-foreground: #6B7280;
+  }
+
+  .dark {
+    --background: #111827;
+    --foreground: #F9FAFB;
+    --card: #1F2937;
+    --card-foreground: #F9FAFB;
+    --border: #374151;
+    --muted: #374151;
+    --muted-foreground: #9CA3AF;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--background)] text-[var(--foreground)];
+    font-family: 'Inter', 'Noto Sans Arabic', sans-serif;
+  }
+}

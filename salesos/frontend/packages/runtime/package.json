@@ -1,0 +1,16 @@
+{
+  "name": "@salesos/runtime",
+  "version": "5.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "react": "^19.0",
+    "@tanstack/react-query": "^5.60",
+    "axios": "^1.7",
+    "zod": "^3.23"
+  },
+  "peerDependencies": {
+    "react": "^19.0"
+  }
+}

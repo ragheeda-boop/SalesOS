@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: salesos-frontend
+  labels:
+    app: salesos-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: salesos-frontend
+  template:
+    metadata:
+      labels:
+        app: salesos-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: salesos/frontend:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NEXT_PUBLIC_API_URL
+              value: "https://api.salesos.com"
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: salesos-frontend
+spec:
+  selector:
+    app: salesos-frontend
+  ports:
+    - port: 3000
+      targetPort: 3000
+  type: ClusterIP

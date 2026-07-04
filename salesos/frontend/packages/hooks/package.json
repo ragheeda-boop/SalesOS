@@ -1,0 +1,15 @@
+{
+  "name": "@salesos/hooks",
+  "version": "5.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "react": "^19.0",
+    "axios": "^1.7",
+    "@tanstack/react-query": "^5.60"
+  },
+  "peerDependencies": {
+    "react": "^19.0"
+  }
+}
