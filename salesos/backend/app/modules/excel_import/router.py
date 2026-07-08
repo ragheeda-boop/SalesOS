@@ -6,7 +6,8 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Uplo
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_db_session
+from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from sdk.permissions import PermissionAction
 
 from .schemas import ImportPreview, ImportPreviewRow, ImportResult
 from .service import ExcelImportService
@@ -14,7 +15,7 @@ from .service import ExcelImportService
 router = APIRouter()
 
 
-@router.post("/import/excel/preview", response_model=ImportPreview)
+@router.post("/import/excel/preview", response_model=ImportPreview, dependencies=[Depends(require_permission_dep("company", PermissionAction.IMPORT))])
 async def preview_excel(
     file: UploadFile = File(...),
     tenant_id: str = Depends(get_current_tenant_id),
@@ -29,7 +30,7 @@ async def preview_excel(
     return ImportPreview(**result)
 
 
-@router.post("/import/excel/companies", response_model=ImportResult)
+@router.post("/import/excel/companies", response_model=ImportResult, dependencies=[Depends(require_permission_dep("company", PermissionAction.IMPORT))])
 async def import_companies_from_excel(
     file: UploadFile = File(...),
     column_mapping: Optional[str] = Form(None, description="JSON string of column mapping"),

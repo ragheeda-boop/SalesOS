@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
 from app.config import settings
-from app.dependencies import get_current_tenant_id, get_current_user_id
+from app.dependencies import get_current_tenant_id, get_current_user_id, require_permission_dep
+from sdk.permissions import PermissionAction
 from intelligence.agents import AgentCoordinator, AgentTask
 from intelligence.agents.llm import LLMService
 from intelligence.agents.research import ResearchAgent
@@ -66,6 +67,7 @@ async def copilot_query(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
     user_id: str = Depends(get_current_user_id),
+    _rbac=Depends(require_permission_dep(PermissionAction.READ, "copilot")),
 ):
     logger: StructuredLogger = getattr(request.app.state, "logger", None)
 

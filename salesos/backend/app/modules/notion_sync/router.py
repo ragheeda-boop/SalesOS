@@ -4,7 +4,8 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_db_session
+from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from sdk.permissions import PermissionAction
 
 from .schemas import SyncRequest, SyncResult, SyncStatus
 from .service import NotionSyncService
@@ -12,7 +13,7 @@ from .service import NotionSyncService
 router = APIRouter()
 
 
-@router.post("/notion/sync", response_model=SyncResult)
+@router.post("/notion/sync", response_model=SyncResult, dependencies=[Depends(require_permission_dep("company", PermissionAction.IMPORT))])
 async def trigger_sync(
     body: SyncRequest,
     request: Request,

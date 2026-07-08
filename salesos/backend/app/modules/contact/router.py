@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.schemas import PaginatedResponse
-from app.dependencies import get_current_tenant_id, get_db_session
+from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from sdk.permissions import PermissionAction
 
 from .schemas import (
     ContactCreate,
@@ -19,7 +20,7 @@ def get_service(db: AsyncSession = Depends(get_db_session)) -> ContactService:
     return ContactService(db=db)
 
 
-@router.post("", response_model=ContactResponse, status_code=201)
+@router.post("", response_model=ContactResponse, status_code=201, dependencies=[Depends(require_permission_dep("contact", PermissionAction.CREATE))])
 async def create_contact(
     body: ContactCreate,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -28,7 +29,7 @@ async def create_contact(
     return await service.create(tenant_id, body.model_dump())
 
 
-@router.get("/{contact_id}", response_model=ContactResponse)
+@router.get("/{contact_id}", response_model=ContactResponse, dependencies=[Depends(require_permission_dep("contact", PermissionAction.READ))])
 async def get_contact(
     contact_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -37,7 +38,7 @@ async def get_contact(
     return await service.get(contact_id)
 
 
-@router.patch("/{contact_id}", response_model=ContactResponse)
+@router.patch("/{contact_id}", response_model=ContactResponse, dependencies=[Depends(require_permission_dep("contact", PermissionAction.UPDATE))])
 async def update_contact(
     contact_id: str,
     body: ContactUpdate,
@@ -47,7 +48,7 @@ async def update_contact(
     return await service.update(contact_id, body.model_dump(exclude_unset=True))
 
 
-@router.delete("/{contact_id}", status_code=204)
+@router.delete("/{contact_id}", status_code=204, dependencies=[Depends(require_permission_dep("contact", PermissionAction.DELETE))])
 async def delete_contact(
     contact_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -56,7 +57,7 @@ async def delete_contact(
     await service.delete(contact_id)
 
 
-@router.get("", response_model=PaginatedResponse)
+@router.get("", response_model=PaginatedResponse, dependencies=[Depends(require_permission_dep("contact", PermissionAction.READ))])
 async def list_contacts(
     tenant_id: str = Depends(get_current_tenant_id),
     q: str = Query(None),
@@ -94,7 +95,7 @@ async def list_contacts(
     )
 
 
-@router.get("/by-company/{company_id}", response_model=list[ContactResponse])
+@router.get("/by-company/{company_id}", response_model=list[ContactResponse], dependencies=[Depends(require_permission_dep("contact", PermissionAction.READ))])
 async def get_contacts_by_company(
     company_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -103,7 +104,7 @@ async def get_contacts_by_company(
     return await service.find_by_company(tenant_id, company_id)
 
 
-@router.post("/bulk-upsert", status_code=200)
+@router.post("/bulk-upsert", status_code=200, dependencies=[Depends(require_permission_dep("contact", PermissionAction.CREATE))])
 async def bulk_upsert_contacts(
     records: list[dict],
     tenant_id: str = Depends(get_current_tenant_id),

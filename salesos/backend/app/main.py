@@ -263,8 +263,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Tenant-Id", "X-Request-ID", "X-CSRF-Token"],
 )
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(TimingMiddleware)
@@ -319,7 +319,21 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
         checks["cache"] = "unavailable"
 
     kg = getattr(request.app.state, "kg_engine", None)
-    checks["graph"] = "connected" if kg is not None else "not_configured"
+    if kg is None:
+        from app.database import async_session
+        try:
+            kg = KnowledgeGraphEngine(
+                session_factory=async_session,
+                neo4j_uri=os.environ.get("NEO4J_URI", "bolt://localhost:7687"),
+                neo4j_user=os.environ.get("NEO4J_USER", "neo4j"),
+                neo4j_password=os.environ["NEO4J_PASSWORD"],
+            )
+            if kg.metrics.neo4j_available:
+                request.app.state.kg_engine = kg
+        except Exception:
+            pass
+        kg = getattr(request.app.state, "kg_engine", None)
+    checks["graph"] = "connected" if kg is not None and kg.metrics.neo4j_available else "not_configured"
 
     return HealthResponse(
         status=status,

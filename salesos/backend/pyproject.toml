@@ -28,6 +28,7 @@ openai = "^1.30"
 opentelemetry-api = "^1.25"
 opentelemetry-sdk = "^1.25"
 opentelemetry-exporter-otlp-proto-http = "^1.25"
+celery = "^5.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2"
