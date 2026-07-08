@@ -1,0 +1,44 @@
+name: MUHIDE Sales OS — Automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: Script to run (leave empty for all)
+        required: false
+        type: choice
+        options:
+          - all
+          - dedup_scanner
+          - completeness_scorer
+          - priority_assigner
+          - stale_detector
+          - sfda_sync_checker
+  schedule:
+    - cron: "0 6 */3 * *"   # every 3 days at 06:00 UTC
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Create .env from GitHub Secret
+        run: echo "NOTION_TOKEN=${{ secrets.NOTION_TOKEN }}" > .env
+
+      - name: Run selected script
+        run: |
+          SCRIPT="${{ inputs.script || 'all' }}"
+          if [ "$SCRIPT" = "all" ]; then
+            python -c "from config import NOTION_TOKEN; from notion_api import MuhideNotion; n = MuhideNotion(NOTION_TOKEN); import dedup_scanner; import completeness_scorer; import priority_assigner; import stale_detector; import sfda_sync_checker; dedup_scanner.run(n); completeness_scorer.run(n); priority_assigner.run(n); stale_detector.run(n); sfda_sync_checker.run(n)"
+          else
+            python -c "from config import NOTION_TOKEN; from notion_api import MuhideNotion; n = MuhideNotion(NOTION_TOKEN); import $SCRIPT; $SCRIPT.run(n)"
+          fi

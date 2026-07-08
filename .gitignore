@@ -66,3 +66,14 @@ output/
 
 # Engineering OS platform source (now a submodule in engineering-os/)
 salesos-engineering-os/
+
+# Temp data / generated
+notion_push_state.json
+recovered_contacts.json
+audit_api_raw.json
+tier1_status.json
+tier1_status.txt
+companies_list.txt
+batch_list.txt
+batches.txt
+output_check.txt

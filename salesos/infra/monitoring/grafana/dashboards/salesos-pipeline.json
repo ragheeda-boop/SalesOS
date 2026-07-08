@@ -1,0 +1,186 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "title": "SalesOS Pipeline & System",
+  "version": 1,
+  "timezone": "browser",
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "panels": [
+    {
+      "title": "Records Ingested",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "targets": [{
+        "expr": "salesos_pipeline_records_ingested_total",
+        "legendFormat": "total"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "green" }] }
+        }
+      }
+    },
+    {
+      "title": "Errors by Stage",
+      "type": "bargauge",
+      "gridPos": { "h": 4, "w": 8, "x": 4, "y": 0 },
+      "targets": [{
+        "expr": "salesos_pipeline_errors_total",
+        "legendFormat": "{{stage}}"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "displayName": "{{stage}}"
+        }
+      }
+    },
+    {
+      "title": "Companies Total",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "targets": [{
+        "expr": "salesos_companies_total",
+        "legendFormat": "companies"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "blue" }] }
+        }
+      }
+    },
+    {
+      "title": "Golden Records Total",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "targets": [{
+        "expr": "salesos_golden_records_total",
+        "legendFormat": "golden"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "purple" }] }
+        }
+      }
+    },
+    {
+      "title": "Open Conflicts",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "targets": [{
+        "expr": "salesos_open_conflicts_total",
+        "legendFormat": "conflicts"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 10 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "DLQ Failed Records",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 4 },
+      "targets": [{
+        "expr": "salesos_dlq_failed_total",
+        "legendFormat": "dlq"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Feature Computations",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 4 },
+      "targets": [{
+        "expr": "salesos_feature_computations_total",
+        "legendFormat": "computations"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "orange" }] }
+        }
+      }
+    },
+    {
+      "title": "Feature Cache Hit Rate",
+      "type": "gauge",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 4 },
+      "targets": [{
+        "expr": "rate(salesos_feature_cache_hits_total[5m]) / (rate(salesos_feature_cache_hits_total[5m]) + 0.001) * 100",
+        "legendFormat": "hit rate"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "thresholds",
+            "thresholds": {
+              "steps": [
+                { "color": "red", "value": 0 },
+                { "color": "orange", "value": 50 },
+                { "color": "green", "value": 80 }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "Pipeline Error Rate (5m)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [{
+        "expr": "rate(salesos_pipeline_errors_total[5m])",
+        "legendFormat": "{{stage}}"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cps",
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "title": "Stage Duration (avg ms)",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [{
+        "expr": "salesos_pipeline_stage_duration_ms_avg",
+        "legendFormat": "{{stage}}"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    }
+  ],
+  "schemaVersion": 35,
+  "refresh": "15s"
+}
