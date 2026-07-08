@@ -47,7 +47,7 @@
     "@salesos/runtime": "*",
     "@salesos/renderer": "*",
     "@salesos/hooks": "*",
-    "@salesos/config": "*",
+    "@salesos/config": "workspace:*",
     "@salesos/workspace": "*",
     "@salesos/design-language": "*",
     "@salesos/workspace-generator": "*"

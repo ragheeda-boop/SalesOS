@@ -158,7 +158,8 @@ async def update_company(
     return await service.update_company(company_id, updates)
 
 
-@router.post("/{company_id}/branches", response_model=BranchResponse, status_code=201)
+@router.post("/{company_id}/branches", response_model=BranchResponse, status_code=201,
+             dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))])
 async def add_branch(
     company_id: str,
     body: BranchCreate,
@@ -169,7 +170,8 @@ async def add_branch(
     return branch
 
 
-@router.post("/{company_id}/licenses", response_model=LicenseResponse, status_code=201)
+@router.post("/{company_id}/licenses", response_model=LicenseResponse, status_code=201,
+             dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))])
 async def add_license(
     company_id: str,
     body: LicenseCreate,
@@ -180,7 +182,8 @@ async def add_license(
     return license
 
 
-@router.post("/{company_id}/contacts", response_model=ContactResponse, status_code=201)
+@router.post("/{company_id}/contacts", response_model=ContactResponse, status_code=201,
+             dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))])
 async def add_contact(
     company_id: str,
     body: ContactCreate,
@@ -201,7 +204,8 @@ async def delete_company(
     await service.delete_company(company_id)
 
 
-@router.get("/{company_id}/360", response_model=Company360Response)
+@router.get("/{company_id}/360", response_model=Company360Response,
+            dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))])
 async def company_360(
     company_id: str,
     request: Request,
@@ -222,7 +226,8 @@ async def company_360(
     return Company360Response(**result)
 
 
-@router.post("/ingest", status_code=201)
+@router.post("/ingest", status_code=201,
+             dependencies=[Depends(require_permission_dep("company", PermissionAction.CREATE))])
 async def ingest_companies(
     body: CompanyIngestRequest,
     tenant_id: str = Depends(get_current_tenant_id),

@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import uuid4
 
 from app.config import settings
-from app.dependencies import get_current_tenant_id, get_current_user_id, get_db_session
+from app.dependencies import get_current_tenant_id, get_current_user_id, get_db_session, require_permission_dep
+from sdk.permissions import PermissionAction
 
 from pydantic import BaseModel, Field
 
@@ -115,6 +116,7 @@ async def create_tenant(
     body: TenantCreate,
     service: IdentityService = Depends(get_service),
     db: AsyncSession = Depends(get_db_session),
+    _: None = Depends(require_permission_dep(PermissionAction.ADMIN, "tenant")),
 ):
     tenant = await service.create_tenant(
         name=body.name,
@@ -137,6 +139,7 @@ async def create_tenant(
 async def get_tenant(
     tenant_id: str,
     service: IdentityService = Depends(get_service),
+    _: None = Depends(require_permission_dep(PermissionAction.READ, "tenant")),
 ):
     tenant = await service.get_tenant(tenant_id)
     return TenantResponse(
@@ -247,6 +250,7 @@ async def list_users(
     tenant_id: str = Depends(get_current_tenant_id),
     service: IdentityService = Depends(get_service),
     db: AsyncSession = Depends(get_db_session),
+    _: None = Depends(require_permission_dep(PermissionAction.READ, "user")),
 ):
     users = await service.get_users_by_tenant(tenant_id)
     return [
@@ -272,6 +276,7 @@ async def invite_user(
     tenant_id: str = Depends(get_current_tenant_id),
     service: IdentityService = Depends(get_service),
     db: AsyncSession = Depends(get_db_session),
+    _: None = Depends(require_permission_dep(PermissionAction.CREATE, "user")),
 ):
     import secrets
     temp_password = secrets.token_urlsafe(12)

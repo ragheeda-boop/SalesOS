@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_current_user_id, get_db_session
+from app.dependencies import get_current_tenant_id, get_current_user_id, get_db_session, require_permission_dep
+from sdk.permissions import PermissionAction
 
 from .schemas import Employee360Response
 from .service import Employee360Service
@@ -9,7 +10,7 @@ from .service import Employee360Service
 router = APIRouter()
 
 
-@router.get("/employees/me/360", response_model=Employee360Response)
+@router.get("/employees/me/360", response_model=Employee360Response, dependencies=[Depends(require_permission_dep("employee", PermissionAction.READ))])
 async def my_employee_360(
     request: Request,
     user_id: str = Depends(get_current_user_id),
@@ -21,7 +22,7 @@ async def my_employee_360(
     return await service.get_360(user_id, tenant_id)
 
 
-@router.get("/employees/{employee_id}/360", response_model=Employee360Response)
+@router.get("/employees/{employee_id}/360", response_model=Employee360Response, dependencies=[Depends(require_permission_dep("employee", PermissionAction.READ))])
 async def employee_360(
     employee_id: str,
     request: Request,

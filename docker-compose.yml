@@ -1,4 +1,5 @@
 services:
+  # ── Data Layer ──────────────────────────────────────────────
   postgres:
     image: pgvector/pgvector:pg16
     environment:
@@ -14,6 +15,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - salesos
 
   neo4j:
     image: neo4j:5
@@ -24,13 +27,85 @@ services:
       - "7474:7474"
     volumes:
       - neo4jdata:/data
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p salesos_neo4j_dev 'RETURN 1'"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - salesos
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - salesos
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    environment:
+      MEILI_MASTER_KEY: salesos_meili_master_key_dev
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_ENV: development
+    ports:
+      - "7700:7700"
+    volumes:
+      - meilidata:/meili_data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - salesos
+
+  # ── Background Workers ──────────────────────────────────────
+  worker:
+    build:
+      context: ./salesos/backend
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ENV: development
+      DEBUG: "true"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: salesos
+      POSTGRES_PASSWORD: salesos_dev_password
+      POSTGRES_DB: salesos
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: salesos_neo4j_dev
+      SECRET_KEY: salesos-jwt-dev-key-change-in-production
+      JWT_SECRET_KEY: salesos-jwt-dev-key-change-in-production
+      REDIS_URL: redis://redis:6379/0
+      LOG_LEVEL: DEBUG
+    command: >
+      sh -c "celery -A app.celery_app worker --loglevel=info --concurrency=4 -E"
+    networks:
+      - salesos
+
+  # ── API Service ─────────────────────────────────────────────
   api:
     build:
       context: ./salesos/backend
       dockerfile: Dockerfile
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     environment:
       ENV: development
@@ -47,11 +122,97 @@ services:
       JWT_SECRET_KEY: salesos-jwt-dev-key-change-in-production
       SALESOS_TESTING: "false"
       LOG_LEVEL: DEBUG
+      REDIS_URL: redis://redis:6379/0
     ports:
       - "8000:8000"
     command: >
       sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    networks:
+      - salesos
+
+  # ── Monitoring & Observability ──────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./salesos/infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./salesos/infra/monitoring/alerts.yml:/etc/prometheus/alerts.yml
+      - promdata:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--web.enable-lifecycle"
+    ports:
+      - "9090:9090"
+    networks:
+      - salesos
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: salesos_grafana_dev
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+    volumes:
+      - ./salesos/infra/monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./salesos/infra/monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./salesos/infra/monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - grafanadata:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    networks:
+      - salesos
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - salesos
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    volumes:
+      - ./salesos/infra/monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "9093:9093"
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+    networks:
+      - salesos
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    environment:
+      DATA_SOURCE_NAME: "postgresql://salesos:salesos_dev_password@postgres:5432/salesos?sslmode=disable"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - salesos
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - salesos
 
 volumes:
   pgdata:
   neo4jdata:
+  redisdata:
+  meilidata:
+  promdata:
+  grafanadata:
+
+networks:
+  salesos:
+    driver: bridge

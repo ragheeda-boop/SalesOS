@@ -52,6 +52,8 @@ uploads/
 # Large data files (keep small samples only)
 *.xlsx
 *.csv
+/output/
+*.csv
 *.pptx
 
 # Docker
