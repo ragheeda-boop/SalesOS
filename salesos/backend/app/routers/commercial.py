@@ -92,21 +92,21 @@ async def list_opportunities(tenant_id: str = Depends(get_current_tenant_id), db
 
 
 @router.post("/opportunities/{opportunity_id}/advance", tags=["Opportunities"])
-async def advance_opportunity(opportunity_id: str, to_stage: str = Query(...), db: AsyncSession = Depends(get_db_session)):
+async def advance_opportunity(opportunity_id: str, to_stage: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     svc = _get_opp(db)
     opp = await svc.advance_stage(opportunity_id, to_stage)
     return {"id": opp.id, "stage": opp.stage, "status": opp.status.value}
 
 
 @router.post("/opportunities/{opportunity_id}/won", tags=["Opportunities"])
-async def close_won(opportunity_id: str, amount: float = Query(None), db: AsyncSession = Depends(get_db_session)):
+async def close_won(opportunity_id: str, amount: float = Query(None), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     svc = _get_opp(db)
     opp = await svc.close_won(opportunity_id, amount)
     return {"id": opp.id, "status": "won", "won_amount": opp.won_amount}
 
 
 @router.post("/opportunities/{opportunity_id}/lost", tags=["Opportunities"])
-async def close_lost(opportunity_id: str, reason: str = Query(""), db: AsyncSession = Depends(get_db_session)):
+async def close_lost(opportunity_id: str, reason: str = Query(""), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     svc = _get_opp(db)
     opp = await svc.close_lost(opportunity_id, reason)
     return {"id": opp.id, "status": "lost", "loss_reason": opp.loss_reason}
@@ -133,7 +133,7 @@ async def list_pipelines(tenant_id: str = Depends(get_current_tenant_id), db: As
 
 
 @router.get("/pipelines/{pipeline_id}/kpis", tags=["Pipelines"])
-async def pipeline_kpis(pipeline_id: str, db: AsyncSession = Depends(get_db_session)):
+async def pipeline_kpis(pipeline_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     svc = _get_pipe(db)
     kpis = await svc.compute_kpis(pipeline_id, [])
     return {"pipeline_value": kpis.pipeline_value, "weighted": kpis.weighted_pipeline, "win_rate": kpis.win_rate}
@@ -151,7 +151,7 @@ async def create_session(target_id: str = Query(...), title: str = "Session", te
 
 
 @router.post("/activity-sessions/{session_id}/activities", tags=["Activities"])
-async def add_activity(session_id: str, activity_type: str = Query(...), owner_id: str = Query(...), db: AsyncSession = Depends(get_db_session)):
+async def add_activity(session_id: str, activity_type: str = Query(...), owner_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     from domains.commercial.activity.contracts.models import ActivityType
     svc = _get_act(db)
     atype = ActivityType(activity_type)
@@ -160,7 +160,7 @@ async def add_activity(session_id: str, activity_type: str = Query(...), owner_i
 
 
 @router.post("/activities/{activity_id}/complete", tags=["Activities"])
-async def complete_activity(activity_id: str, session_id: str = Query(...), outcome_id: str = Query(...), db: AsyncSession = Depends(get_db_session)):
+async def complete_activity(activity_id: str, session_id: str = Query(...), outcome_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     svc = _get_act(db)
     result = await svc.complete_activity(session_id, activity_id, outcome_id)
     return {"activity_id": result.activity_id, "outcome": result.outcome_label, "business_action": result.business_action}
@@ -178,35 +178,35 @@ async def create_quote(opportunity_id: str = Query(...), title: str = "Quote", t
 
 
 @router.post("/quotes/{quote_id}/lines", tags=["Quotes"])
-async def add_quote_line(quote_id: str, description: str = Query(...), quantity: int = Query(1), unit_price: float = Query(0), db: AsyncSession = Depends(get_db_session)):
+async def add_quote_line(quote_id: str, description: str = Query(...), quantity: int = Query(1), unit_price: float = Query(0), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     svc = _get_quote(db)
     line = await svc.add_line(quote_id, description, quantity=quantity, unit_price=unit_price)
     return {"id": line.id, "description": line.description, "line_total": line.line_total}
 
 
 @router.post("/quotes/{quote_id}/submit", tags=["Quotes"])
-async def submit_quote(quote_id: str, db: AsyncSession = Depends(get_db_session)):
+async def submit_quote(quote_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     svc = _get_quote(db)
     q = await svc.submit_for_approval(quote_id)
     return {"id": q.id, "status": q.status.value, "grand_total": q.grand_total}
 
 
 @router.post("/quotes/{quote_id}/approve", tags=["Quotes"])
-async def approve_quote(quote_id: str, approved_by: str = Query("manager"), db: AsyncSession = Depends(get_db_session)):
+async def approve_quote(quote_id: str, approved_by: str = Query("manager"), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     svc = _get_quote(db)
     q = await svc.approve(quote_id, approved_by)
     return {"id": q.id, "status": q.status.value, "approved": q.approval.is_approved}
 
 
 @router.post("/quotes/{quote_id}/send", tags=["Quotes"])
-async def send_quote(quote_id: str, db: AsyncSession = Depends(get_db_session)):
+async def send_quote(quote_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     svc = _get_quote(db)
     q = await svc.send(quote_id)
     return {"id": q.id, "status": q.status.value}
 
 
 @router.post("/quotes/{quote_id}/accept", tags=["Quotes"])
-async def accept_quote(quote_id: str, db: AsyncSession = Depends(get_db_session)):
+async def accept_quote(quote_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     svc = _get_quote(db)
     q = await svc.accept(quote_id)
     return {"id": q.id, "status": q.status.value, "grand_total": q.grand_total}
@@ -224,7 +224,7 @@ async def create_proposal(opportunity_id: str = Query(...), quote_id: str = Quer
 
 
 @router.post("/proposals/{proposal_id}/deliver", tags=["Proposals"])
-async def deliver_proposal(proposal_id: str, method: str = Query("email"), db: AsyncSession = Depends(get_db_session)):
+async def deliver_proposal(proposal_id: str, method: str = Query("email"), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     svc = _get_proposal(db)
     p = await svc.approve(proposal_id, "auto")
     p = await svc.deliver(proposal_id, method=method)
@@ -232,7 +232,7 @@ async def deliver_proposal(proposal_id: str, method: str = Query("email"), db: A
 
 
 @router.post("/proposals/{proposal_id}/accept", tags=["Proposals"])
-async def accept_proposal(proposal_id: str, db: AsyncSession = Depends(get_db_session)):
+async def accept_proposal(proposal_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     svc = _get_proposal(db)
     p = await svc.approve(proposal_id, "auto")
     p = await svc.deliver(proposal_id)
@@ -253,7 +253,7 @@ async def create_contract(opportunity_id: str = Query(...), quote_id: str = Quer
 
 
 @router.post("/contracts/{contract_id}/sign", tags=["Contracts"])
-async def sign_contract(contract_id: str, db: AsyncSession = Depends(get_db_session)):
+async def sign_contract(contract_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     svc = _get_contract(db)
     c = await svc.sign(contract_id)
     c = await svc.activate(contract_id)
@@ -312,7 +312,7 @@ async def generate_analytics(tenant_id: str = Depends(get_current_tenant_id), db
 
 
 @router.get("/analytics/kpis", tags=["Analytics"])
-async def analytics_kpis():
+async def analytics_kpis(tenant_id: str = Depends(get_current_tenant_id)):
     from domains.revenue.analytics.registry import KPIRegistry
     KPIRegistry.load_defaults()
     return {"kpis": [{"id": k.id, "name": k.name, "category": k.category.value, "formula": k.formula} for k in KPIRegistry.all().values()]}
@@ -340,7 +340,7 @@ async def build_context(target_id: str = Query(...), target_type: str = Query("o
 
 
 @router.post("/recommendations/evaluate", tags=["Decisions"])
-async def evaluate_recommendation(context_id: str = Query(...), db: AsyncSession = Depends(get_db_session)):
+async def evaluate_recommendation(context_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session)):
     ctx_svc = _get_context(db)
     context = await ctx_svc.get_context(context_id)
     if not context:

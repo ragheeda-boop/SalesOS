@@ -41,6 +41,15 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   })
 
   registerCommand({
+    id: "go.admin",
+    label: "الإدارة",
+    description: "الانتقال إلى لوحة الإدارة",
+    category: "تنقل",
+    shortcut: "G A",
+    handler: () => router.push("/admin"),
+  })
+
+  registerCommand({
     id: "action.copilot",
     label: "فتح المساعد الذكي",
     description: "تشغيل المساعد الذكي AI",

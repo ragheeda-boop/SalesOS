@@ -1,14 +1,16 @@
 import os
+import time
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.common.middleware import RequestIDMiddleware, TimingMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
 from app.config import settings
+from app.database import get_db
 from sdk.events.base import DomainEvent
-from sdk.events.store import PostgresEventStore
 from sdk.telemetry import StructuredLogger, setup_telemetry
 from sdk.vector import OpenAIEmbeddingService
 from runtime import (
@@ -40,14 +42,6 @@ from runtime.feature_store.features import (
 async def lifespan(app: FastAPI):
     from app.database import async_session, close_db, init_db
     from modules.registry import register_modules
-    from sdk.events.domain_events import (
-        BranchCreated, CompanyCreated, CompanyEnriched, CompanyIngested,
-        CompanyMerged, CompanyUpdated, ContactCreated, ContactUpdated,
-        GoldenRecordCreated, GoldenRecordUpdated,
-        EntityResolutionCompleted, EntityResolutionMatchFound,
-        LicenseCreated, LicenseUpdated,
-        TenantCreated, UserLoggedIn, UserPasswordChanged, UserRegistered, UserRoleChanged,
-    )
 
     if os.environ.get("SALESOS_TESTING"):
         yield
@@ -100,14 +94,6 @@ async def lifespan(app: FastAPI):
         app.state.timeline_repo = timeline_repo
         app.state.timeline_recorder = timeline_recorder
 
-        # ── Data Fabric Runtime ──
-        data_fabric = DataFabricPipeline(
-            session_factory=async_session,
-            event_runtime=event_runtime,
-            logger=app.state.logger,
-        )
-        app.state.data_fabric = data_fabric
-
         # ── PgVectorStore (production vector search) ──
         from domains.search.engine.vector_store import PgVectorStore
         vector_store = PgVectorStore(session_factory=async_session, collection="vectors")
@@ -129,6 +115,33 @@ async def lifespan(app: FastAPI):
             logger=app.state.logger,
         )
         app.state.feature_store = feature_store
+
+        # ── Knowledge Graph Runtime ──
+        try:
+            kg_engine = KnowledgeGraphEngine(
+                session_factory=async_session,
+                neo4j_uri=os.environ.get("NEO4J_URI", "bolt://localhost:7687"),
+                neo4j_user=os.environ.get("NEO4J_USER", "neo4j"),
+                neo4j_password=os.environ["NEO4J_PASSWORD"],
+                logger=app.state.logger,
+            )
+            app.state.kg_engine = kg_engine
+        except Exception:
+            app.state.logger.warning("Neo4j unavailable — KG engine disabled")
+            kg_engine = None
+            app.state.kg_engine = None
+
+        # ── Data Fabric Runtime ──
+        data_fabric = DataFabricPipeline(
+            session_factory=async_session,
+            event_runtime=event_runtime,
+            feature_store=feature_store,
+            vector_store=vector_store,
+            embedding_service=OpenAIEmbeddingService(),
+            kg_engine=kg_engine,
+            logger=app.state.logger,
+        )
+        app.state.data_fabric = data_fabric
 
         # ── Decision Intelligence Engine (DIE) ──
         context_builder = ContextBuilder(
@@ -163,16 +176,6 @@ async def lifespan(app: FastAPI):
             logger=app.state.logger,
         )
         app.state.feedback_loop = feedback_loop
-
-        # ── Knowledge Graph Runtime ──
-        kg_engine = KnowledgeGraphEngine(
-            session_factory=async_session,
-            neo4j_uri=os.environ.get("NEO4J_URI", "bolt://localhost:7687"),
-            neo4j_user=os.environ.get("NEO4J_USER", "neo4j"),
-            neo4j_password=os.environ.get("NEO4J_PASSWORD", "salesos_secret"),
-            logger=app.state.logger,
-        )
-        app.state.kg_engine = kg_engine
 
         # ── Universal Timeline Runtime ──
         timeline_runtime = TimelineRuntime(
@@ -245,6 +248,8 @@ async def lifespan(app: FastAPI):
         await close_db()
 
 
+_start_time = time.time()
+
 app = FastAPI(
     title="SalesOS API",
     description="Enterprise Company Intelligence Platform",
@@ -264,7 +269,15 @@ app.add_middleware(
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(TimingMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
-app.add_middleware(RateLimitMiddleware, rate=60, window=60)
+
+# Redis-backed rate limiter (falls back to in-memory if Redis unavailable)
+_redis = None
+try:
+    import redis.asyncio as aioredis
+    _redis = aioredis.Redis.from_url(settings.redis_url)
+except Exception:
+    pass
+app.add_middleware(RateLimitMiddleware, rate=60, window=60, redis_client=_redis)
 
 
 @app.exception_handler(Exception)
@@ -277,16 +290,44 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
+@app.get("/ping")
+async def ping():
+    return {"ping": "pong"}
+
 @app.get("/health")
-async def health():
+async def health(request: Request, db: AsyncSession = Depends(get_db)):
     from app.common.schemas import HealthResponse
+    from sqlalchemy import text
+
+    status = "ok"
+    checks = {}
+
+    try:
+        await db.execute(text("SELECT 1"))
+        checks["database"] = "connected"
+    except Exception as e:
+        checks["database"] = f"error: {e}"
+        status = "degraded"
+
+    try:
+        import redis.asyncio as aioredis
+        r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=1, socket_timeout=1)
+        await r.ping()
+        await r.aclose()
+        checks["cache"] = "connected"
+    except Exception:
+        checks["cache"] = "unavailable"
+
+    kg = getattr(request.app.state, "kg_engine", None)
+    checks["graph"] = "connected" if kg is not None else "not_configured"
 
     return HealthResponse(
-        status="ok",
+        status=status,
         version="0.1.0",
-        database="connected",
-        cache="connected",
-        kafka="not_configured",
+        database=checks.get("database", "unknown"),
+        cache=checks.get("cache", "unknown"),
+        graph=checks.get("graph", "not_configured"),
+        uptime_seconds=time.time() - _start_time,
     )
 
 
@@ -301,6 +342,14 @@ async def root():
 
 
 def register_routers():
+    from app.dependencies import verify_token
+    from fastapi import Depends
+
+    _auth = [Depends(verify_token)]
+
+    from runtime.admin_router import router as admin_router
+    app.include_router(admin_router, tags=["Admin"])
+
     from app.modules.company.router import router as company_router
     from app.modules.contact.router import router as contact_router
     from app.modules.entity_resolution.router import router as entity_resolution_router
@@ -323,25 +372,27 @@ def register_routers():
     from runtime.timeline_runtime.router import router as timeline_router
     from runtime.ux_runtime.router import router as ux_router
 
-    app.include_router(notion_sync_router, prefix="/api/v1", tags=["Notion Sync"])
-    app.include_router(excel_import_router, prefix="/api/v1", tags=["Excel Import"])
-    app.include_router(employee_360_router, prefix="/api/v1", tags=["Employee 360"])
-    app.include_router(executive_router, prefix="/api/v1", tags=["Executive"])
-    app.include_router(work_intelligence_router, prefix="/api/v1", tags=["Work Intelligence"])
     app.include_router(identity_router, prefix="/api/v1/identity", tags=["Identity"])
-    app.include_router(company_router, prefix="/api/v1/companies", tags=["Companies"])
-    app.include_router(contact_router, prefix="/api/v1/contacts", tags=["Contacts"])
-    app.include_router(activity_router, prefix="/api/v1", tags=["Activity"])
-    app.include_router(entity_resolution_router, prefix="/api/v1/entity-resolution", tags=["Entity Resolution"])
-    app.include_router(event_runtime_router, prefix="/api/v1", tags=["Event Runtime"])
-    app.include_router(data_fabric_router, prefix="/api/v1", tags=["Data Fabric"])
-    app.include_router(feature_store_router, prefix="/api/v1", tags=["Feature Store"])
-    app.include_router(decision_router, prefix="/api/v1", tags=["Decision Engine"])
-    app.include_router(graph_router, prefix="/api/v1", tags=["Knowledge Graph"])
-    app.include_router(timeline_router, prefix="/api/v1", tags=["Timeline"])
-    app.include_router(search_router, prefix="/api/v1", tags=["Search"])
-    app.include_router(capability_router, prefix="/api/v1", tags=["Capability Framework"])
-    app.include_router(ux_router, prefix="/api/v1", tags=["Experience Layer"])
+    app.include_router(notion_sync_router, prefix="/api/v1", tags=["Notion Sync"], dependencies=_auth)
+    app.include_router(excel_import_router, prefix="/api/v1", tags=["Excel Import"], dependencies=_auth)
+    app.include_router(employee_360_router, prefix="/api/v1", tags=["Employee 360"], dependencies=_auth)
+    app.include_router(executive_router, prefix="/api/v1", tags=["Executive"], dependencies=_auth)
+    app.include_router(work_intelligence_router, prefix="/api/v1", tags=["Work Intelligence"], dependencies=_auth)
+    app.include_router(company_router, prefix="/api/v1/companies", tags=["Companies"], dependencies=_auth)
+    app.include_router(contact_router, prefix="/api/v1/contacts", tags=["Contacts"], dependencies=_auth)
+    app.include_router(activity_router, prefix="/api/v1", tags=["Activity"], dependencies=_auth)
+    app.include_router(entity_resolution_router, prefix="/api/v1/entity-resolution", tags=["Entity Resolution"], dependencies=_auth)
+    app.include_router(event_runtime_router, prefix="/api/v1", tags=["Event Runtime"], dependencies=_auth)
+    app.include_router(data_fabric_router, prefix="/api/v1", tags=["Data Fabric"], dependencies=_auth)
+    app.include_router(feature_store_router, prefix="/api/v1", tags=["Feature Store"], dependencies=_auth)
+    app.include_router(decision_router, prefix="/api/v1", tags=["Decision Engine"], dependencies=_auth)
+    app.include_router(graph_router, prefix="/api/v1", tags=["Knowledge Graph"], dependencies=_auth)
+    app.include_router(timeline_router, prefix="/api/v1", tags=["Timeline"], dependencies=_auth)
+    app.include_router(search_router, prefix="/api/v1", tags=["Search"], dependencies=_auth)
+    from app.routers.search import router as search_api_router
+    app.include_router(search_api_router, prefix="/api/v1", tags=["Search"], dependencies=_auth)
+    app.include_router(capability_router, dependencies=_auth)
+    app.include_router(ux_router, dependencies=_auth)
 
     # XP1 — Schema-Driven UI
     from runtime.ui_schema_engine.router import router as schema_router
@@ -349,14 +400,14 @@ def register_routers():
     from runtime.action_engine.router import router as action_router
     from runtime.extension_api.router import router as extension_router
     from runtime.plugin_sandbox.router import router as plugin_router
-    app.include_router(schema_router, prefix="/api/v1", tags=["UI Schema"])
-    app.include_router(form_router, prefix="/api/v1", tags=["Form Engine"])
-    app.include_router(action_router, prefix="/api/v1", tags=["Action Engine"])
-    app.include_router(extension_router, prefix="/api/v1", tags=["Extension API"])
-    app.include_router(plugin_router, prefix="/api/v1", tags=["Plugin Sandbox"])
+    app.include_router(schema_router, dependencies=_auth)
+    app.include_router(form_router, dependencies=_auth)
+    app.include_router(action_router, dependencies=_auth)
+    app.include_router(extension_router, dependencies=_auth)
+    app.include_router(plugin_router, dependencies=_auth)
 
-    app.include_router(copilot_router, prefix="/api/v1", tags=["Copilot"])
-    app.include_router(commercial_router, prefix="/api/v1", tags=["Commercial"])
+    app.include_router(copilot_router, prefix="/api/v1", tags=["Copilot"], dependencies=_auth)
+    app.include_router(commercial_router, prefix="/api/v1", tags=["Commercial"], dependencies=_auth)
 
 
 register_routers()

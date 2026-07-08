@@ -271,6 +271,12 @@ export interface Company360Overview {
   upcoming_meetings: number;
   last_activity: string | null;
   signal_count: number;
+  contacts_page: number;
+  contacts_total: number;
+  opportunities_page: number;
+  opportunities_total: number;
+  timeline_page: number;
+  timeline_total: number;
 }
 
 export interface Company360Organization {
@@ -290,6 +296,11 @@ export interface Company360Response {
   company: CompanyDetail;
   overview: Company360Overview;
   organization: Company360Organization;
+  enrichment?: { sources: string[]; is_golden_record: boolean; confidence_score: number; last_enriched_at: string | null };
+  golden_record_id?: string | null;
+  golden_record_data?: Record<string, any> | null;
+  related_entities?: any[];
+  decision_makers?: any[];
   contacts: Record<string, unknown>[];
   assigned_employees: Record<string, unknown>[];
   opportunities: Record<string, unknown>[];
@@ -678,5 +689,162 @@ export async function register(
   const { access_token, refresh_token } = response.data;
   localStorage.setItem("access_token", access_token);
   localStorage.setItem("refresh_token", refresh_token);
+  return response.data;
+}
+
+// ─── Admin / Monitoring ──────────────────────────────────────
+export interface PipelineMetrics {
+  records_ingested: number;
+  total_valid: number;
+  total_errors: number;
+  errors_by_stage: Record<string, number>;
+  golden_records_created: number;
+  golden_records_merged: number;
+  companies_synced: number;
+  embeddings_stored: number;
+  kg_triples_created: number;
+  features_computed: number;
+  stage_durations_ms: Record<string, number>;
+  total_duration_ms: number;
+  last_run_at: string | null;
+}
+
+export interface FeatureStoreMetrics {
+  computations: number;
+  errors: number;
+  cache_hits: number;
+  cache_misses: number;
+  total_compute_ms: number;
+}
+
+export interface FullHealthResponse {
+  status: string;
+  checks: Record<string, string>;
+  pipeline: PipelineMetrics | { status: string };
+}
+
+export interface GoldenRecordAdmin {
+  id: string;
+  tenant_id: string;
+  cr_number: string | null;
+  company_name_ar: string | null;
+  status: string;
+  confidence_score: number | null;
+  source_records: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EntityResolutionConflict {
+  id: string;
+  tenant_id: string;
+  cr_number_a: string;
+  cr_number_b: string;
+  status: string;
+  reason: string;
+  created_at: string;
+}
+
+export async function getAdminHealth(
+  tenantId: string
+): Promise<FullHealthResponse> {
+  const response = await api.get("/api/v1/admin/health/full", {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function getAdminMetrics(
+  tenantId: string
+): Promise<string> {
+  const response = await api.get("/api/v1/admin/metrics", {
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function listGoldenRecords(
+  tenantId: string,
+  params: { page?: number; page_size?: number; status?: string } = {}
+): Promise<PaginatedResponse<GoldenRecordAdmin>> {
+  const response = await api.get("/api/v1/entity-resolution/golden-records", {
+    params,
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function listConflicts(
+  tenantId: string,
+  params: { page?: number; page_size?: number; status?: string } = {}
+): Promise<PaginatedResponse<EntityResolutionConflict>> {
+  const response = await api.get("/api/v1/entity-resolution/conflicts", {
+    params,
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+// ─── Dead Letter Queue ──────────────────────────────────────
+export interface DlqEntry {
+  id: number;
+  source_slug: string;
+  cr_number: string | null;
+  stage: string;
+  error_message: string;
+  error_type: string | null;
+  retry_count: number;
+  max_retries: number;
+  status: string;
+  created_at: string;
+  last_retry_at: string | null;
+}
+
+export interface DlqRetryResponse {
+  processed: number;
+  retried: number;
+  resolved: number;
+  still_failed: number;
+}
+
+export async function listDlq(
+  tenantId: string,
+  params: { page?: number; page_size?: number; status?: string; stage?: string } = {}
+): Promise<PaginatedResponse<DlqEntry>> {
+  const response = await api.get("/api/v1/admin/dlq", {
+    params,
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function retryDlq(
+  tenantId: string,
+  limit = 50
+): Promise<DlqRetryResponse> {
+  const response = await api.post("/api/v1/admin/dlq/retry", null, {
+    params: { limit },
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function purgeDlq(
+  tenantId: string,
+  status?: string
+): Promise<{ purged: number }> {
+  const response = await api.delete("/api/v1/admin/dlq", {
+    params: status ? { status } : undefined,
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function getDlqStats(
+  tenantId: string
+): Promise<{ failed_by_stage: Record<string, number> }> {
+  const response = await api.get("/api/v1/admin/dlq/stats", {
+    headers: { "X-Tenant-Id": tenantId },
+  });
   return response.data;
 }

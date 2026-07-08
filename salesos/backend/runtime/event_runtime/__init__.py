@@ -352,6 +352,7 @@ class EventRuntime(EventBus):
                             event_id=event.event_id,
                             error=str(e),
                         )
+                    return lifecycle
 
             # 2. Collect subscribers
             handlers = list(self._subscribers.get(event.event_type, []))

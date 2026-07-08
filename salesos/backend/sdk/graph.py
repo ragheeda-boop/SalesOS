@@ -21,6 +21,14 @@ class GraphService:
         self._driver = driver
 
     @asynccontextmanager
+    async def _session(self):
+        async with self._driver.session(
+            database="neo4j",
+            max_transaction_retry_time=10,
+        ) as session:
+            yield session
+
+    @asynccontextmanager
     async def _transaction(self):
         async with self._driver.session() as session:
             async with await session.begin_transaction() as tx:

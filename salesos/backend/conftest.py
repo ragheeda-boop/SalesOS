@@ -12,6 +12,11 @@ from sqlalchemy.pool import NullPool
 os.environ["SALESOS_TESTING"] = "true"
 
 from app.database import Base
+from sdk.permissions import PermissionRegistry, Role
+
+# Register default roles (skipped in production when SALESOS_TESTING is set)
+for role_name, perms in PermissionRegistry.default_roles().items():
+    PermissionRegistry.register_role(Role(name=role_name, permissions=set(perms)))
 
 
 def _db_url():

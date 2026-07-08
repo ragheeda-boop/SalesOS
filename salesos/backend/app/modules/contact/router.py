@@ -31,6 +31,7 @@ async def create_contact(
 @router.get("/{contact_id}", response_model=ContactResponse)
 async def get_contact(
     contact_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
     service: ContactService = Depends(get_service),
 ):
     return await service.get(contact_id)
@@ -40,6 +41,7 @@ async def get_contact(
 async def update_contact(
     contact_id: str,
     body: ContactUpdate,
+    tenant_id: str = Depends(get_current_tenant_id),
     service: ContactService = Depends(get_service),
 ):
     return await service.update(contact_id, body.model_dump(exclude_unset=True))
@@ -48,6 +50,7 @@ async def update_contact(
 @router.delete("/{contact_id}", status_code=204)
 async def delete_contact(
     contact_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
     service: ContactService = Depends(get_service),
 ):
     await service.delete(contact_id)

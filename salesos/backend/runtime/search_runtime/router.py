@@ -22,7 +22,7 @@ async def search(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
     q: str = Query(..., min_length=1, description="Search query"),
-    strategy: str = Query("hybrid", regex="^(fulltext|semantic|graph|hybrid)$"),
+    strategy: str = Query("hybrid", pattern="^(fulltext|semantic|graph|hybrid)$"),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
     include_facets: bool = Query(False),
@@ -99,7 +99,7 @@ async def similar_to(
 
 
 @router.get("/search/metrics")
-async def search_metrics(request: Request):
+async def search_metrics(request: Request, tenant_id: str = Depends(get_current_tenant_id)):
     sr = getattr(request.app.state, "search_runtime", None)
     if not sr:
         return {"status": "not_initialized"}

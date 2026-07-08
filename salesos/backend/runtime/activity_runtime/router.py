@@ -170,7 +170,7 @@ async def activity_stats(
 
 
 @router.get("/activities/metrics")
-async def activity_metrics(request: Request):
+async def activity_metrics(request: Request, tenant_id: str = Depends(get_current_tenant_id)):
     rt = getattr(request.app.state, "activity_runtime", None)
     if not rt:
         return {"status": "not_initialized"}

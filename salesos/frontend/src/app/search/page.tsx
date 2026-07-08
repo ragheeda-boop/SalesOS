@@ -116,18 +116,18 @@ export default function SearchPage() {
                         <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                           {String(item.data?.name_ar || item.data?.name_en || "—")}
                         </h3>
-                        {item.data?.cr_number && (
+                        {!!item.data?.cr_number && (
                           <p className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                             <Hash className="h-3 w-3" />
-                            {String(item.data.cr_number)}
+                            {String(item.data.cr_number as string)}
                           </p>
                         )}
                         <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
-                          {item.data?.city && <span>{String(item.data.city)}</span>}
-                          {item.data?.industry && <span>{String(item.data.industry)}</span>}
-                          {item.data?.status && (
-                            <Badge variant={item.data.status === "active" ? "success" : "secondary"}>
-                              {String(item.data.status)}
+                          {!!item.data?.city && <span>{String(item.data.city as string)}</span>}
+                          {!!item.data?.industry && <span>{String(item.data.industry as string)}</span>}
+                          {!!item.data?.status && (
+                            <Badge variant={item.data.status === "active" ? "success" : "default"}>
+                              {String((item.data as Record<string, unknown>).status as string)}
                             </Badge>
                           )}
                         </div>

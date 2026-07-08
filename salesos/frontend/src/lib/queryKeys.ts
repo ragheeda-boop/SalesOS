@@ -60,3 +60,12 @@ export const pipelineKeys = {
   lists: () => [...pipelineKeys.all, "list"] as const,
   list: () => [...pipelineKeys.lists()] as const,
 };
+
+export const adminKeys = {
+  metrics: () => ["admin", "metrics"] as const,
+  health: () => ["admin", "health"] as const,
+  goldenRecords: (filters: Record<string, unknown>) => ["admin", "golden-records", filters] as const,
+  conflicts: (filters: Record<string, unknown>) => ["admin", "conflicts", filters] as const,
+  dlq: (filters: Record<string, unknown>) => ["admin", "dlq", filters] as const,
+  dlqStats: () => ["admin", "dlq", "stats"] as const,
+};

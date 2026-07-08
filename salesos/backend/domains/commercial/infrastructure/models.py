@@ -12,7 +12,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 import uuid
 
-from app.common.models import Base
+from sdk.database import Base
 
 
 class TimestampMixin:

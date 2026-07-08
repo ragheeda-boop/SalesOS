@@ -133,7 +133,7 @@ async def scrape_and_ingest(
 
 
 @router.get("/data-fabric/metrics")
-async def data_fabric_metrics(request: Request):
+async def data_fabric_metrics(request: Request, tenant_id: str = Depends(get_current_tenant_id)):
     pipeline = getattr(request.app.state, "data_fabric", None)
     if not pipeline:
         return {"status": "not_initialized"}

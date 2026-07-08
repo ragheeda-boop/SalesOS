@@ -1,31 +1,38 @@
 """Data Fabric Runtime — ingestion pipeline from source to golden record.
 
 Pipeline stages:
-  1. Collector — ingest raw records from any source (CSV, API, scraper, webhook)
-  2. Normalizer — map source fields to canonical schema per data contract
-  3. Validator — validate records against schema rules, reject invalid
-  4. Entity Resolution — match by CR number, create/merge golden records
-  5. Golden Record — provenance-tracked merged entity
-  6. Knowledge Graph — populate Neo4j graph relationships
-  7. Search Index — update pgvector embeddings and full-text search
-  8. Feature Store — trigger feature recomputation (P0.3)
+   1. Collector — ingest raw records from any source (CSV, API, scraper, webhook)
+   2. Normalizer — map source fields to canonical schema per data contract
+   3. Validator — validate records against schema rules, reject invalid
+   4. Entity Resolution — match by CR number, create/merge golden records
+   5. Golden Record — provenance-tracked merged entity
+   6. Knowledge Graph — populate Neo4j graph relationships
+   7. Search Index — update pgvector embeddings and full-text search
+   8. Feature Store — trigger feature recomputation (P0.3)
 
 Each stage emits events, metrics, and audit trail entries.
 Failed records go to dead letter queue configurable per-stage.
 """
 
+from __future__ import annotations
+
 import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from enum import Enum
-from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.modules.company.repositories import SourceRepository
+from app.modules.company.repositories import CompanyRepository
+from app.modules.entity_resolution.models import GoldenRecord
+from app.modules.entity_resolution.repositories import DeadLetterRepository, GoldenRecordRepository
 from app.modules.entity_resolution.service import EntityResolutionService
+from typing import TYPE_CHECKING
+from sdk.vector import VectorRecord
+
+if TYPE_CHECKING:
+    from domains.search.engine.vector_store import PgVectorStore
 from sdk.audit import AuditTrail
 from sdk.telemetry import StructuredLogger, get_tracer
 
@@ -102,17 +109,23 @@ class PipelineMetrics:
         self._errors_by_stage[stage] = self._errors_by_stage.get(stage, 0) + 1
 
     def snapshot(self) -> dict:
+        avg_durations = {
+            stage: round(sum(durs) / len(durs), 2) if durs else 0
+            for stage, durs in self._stage_durations.items()
+        }
         return {
             "records_ingested": self._records_ingested,
             "records_valid": self._records_valid,
             "records_invalid": self._records_invalid,
             "records_golden_created": self._records_golden_created,
             "records_golden_merged": self._records_golden_merged,
-            "stage_avg_durations_ms": {
-                stage: round(sum(durs) / len(durs), 2) if durs else 0
-                for stage, durs in self._stage_durations.items()
-            },
+            "stage_avg_durations_ms": avg_durations,
             "errors_by_stage": dict(self._errors_by_stage),
+            "total_errors": sum(self._errors_by_stage.values()),
+            "companies_synced": getattr(self, "_companies_synced", 0),
+            "embeddings_stored": getattr(self, "_embeddings_stored", 0),
+            "kg_triples_created": getattr(self, "_kg_triples_created", 0),
+            "features_computed": getattr(self, "_features_computed", 0),
         }
 
 
@@ -193,10 +206,18 @@ class DataFabricPipeline:
         self,
         session_factory: async_sessionmaker[AsyncSession],
         event_runtime=None,
+        feature_store=None,
+        vector_store: PgVectorStore | None = None,
+        embedding_service=None,
+        kg_engine=None,
         logger: StructuredLogger | None = None,
     ):
         self._session_factory = session_factory
         self._event_runtime = event_runtime
+        self._feature_store = feature_store
+        self._vector_store = vector_store
+        self._embedding_service = embedding_service
+        self._kg_engine = kg_engine
         self._logger = logger
         self._tracer = get_tracer("data_fabric_runtime")
 
@@ -314,7 +335,11 @@ class DataFabricPipeline:
                 try:
                     # Stage 1: Normalizer
                     stage_start = time.monotonic()
-                    normalized = self.normalizer.normalize(source_slug, record)
+                    try:
+                        normalized = self.normalizer.normalize(source_slug, record)
+                    except Exception as ne:
+                        await self._dlq(tenant_id, source_slug, "normalizer", record, ne)
+                        raise
                     pipeline_record.normalized_data = normalized
                     result.stages_completed.append("normalizer")
                     dur = (time.monotonic() - stage_start) * 1000
@@ -322,7 +347,11 @@ class DataFabricPipeline:
 
                     # Stage 2: Validator
                     stage_start = time.monotonic()
-                    validation_errors = self.validator.validate(source_slug, normalized)
+                    try:
+                        validation_errors = self.validator.validate(source_slug, normalized)
+                    except Exception as ve:
+                        await self._dlq(tenant_id, source_slug, "validator", normalized, ve)
+                        raise
                     pipeline_record.validation_errors = validation_errors
                     pipeline_record.is_valid = len(validation_errors) == 0
                     result.stages_completed.append("validator")
@@ -341,6 +370,9 @@ class DataFabricPipeline:
                         })
                         results.append(result)
                         continue
+                    else:
+                        total_valid += 1
+                        self.metrics.record_valid()
 
                     # Stage 3: Entity Resolution
                     cr_number = normalized.get("cr_number") or normalized.get("CR_number")
@@ -351,7 +383,7 @@ class DataFabricPipeline:
                     error_msg = str(e)
                     pipeline_record.stage_errors["pipeline"] = error_msg
                     result.stages_failed.append("pipeline")
-                    errors.append({"index": i, "stage": "pipeline", "error": error_msg})
+                    errors.append({"index": i, "stage": error_msg, "error": error_msg})
                     if self._logger:
                         self._logger.error("data_fabric.record_error", index=i, error=error_msg)
 
@@ -382,16 +414,92 @@ class DataFabricPipeline:
                     )
                     total_golden_created = resolution_result["records_created"]
                     total_golden_merged = resolution_result["records_merged"]
-                    total_valid = resolution_result["records_processed"]
-                    self.metrics.record_golden_created()
-                    self.metrics.record_golden_merged()
+                    for _ in range(total_golden_created):
+                        self.metrics.record_golden_created()
+                    for _ in range(total_golden_merged):
+                        self.metrics.record_golden_merged()
+
+                    # Stage 5: Sync golden records → companies table
+                    company_repo = CompanyRepository(session)
+                    golden_repo = GoldenRecordRepository(session)
+                    companies_created = 0
+                    companies_updated = 0
+                    for rec in valid_records:
+                        cr_number = rec.get("cr_number") or rec.get("CR_number")
+                        if not cr_number:
+                            continue
+                        golden = await golden_repo.get_by_cr_number(uuid.UUID(tenant_id), cr_number)
+                        if not golden:
+                            continue
+
+                        # Stage 5a: Company sync
+                        try:
+                            company_id = await self._sync_golden_to_company(
+                                session, company_repo, golden, tenant_id,
+                            )
+                        except Exception as ce:
+                            await self._send_to_dlq(session, tenant_id, source_slug, "company_sync", rec, ce, cr_number)
+                            continue
+
+                        if golden.company_id is None:
+                            golden.company_id = company_id
+                            companies_created += 1
+                        else:
+                            companies_updated += 1
+                        self.metrics._companies_synced = getattr(self.metrics, "_companies_synced", 0) + 1
+
+                        # Stage 6: Compute embedding + store in companies.embedding + vectors table
+                        try:
+                            await self._compute_and_store_embedding(
+                                session, company_id, golden, tenant_id,
+                            )
+                            self.metrics._embeddings_stored = getattr(self.metrics, "_embeddings_stored", 0) + 1
+                        except Exception as ee:
+                            await self._send_to_dlq(session, tenant_id, source_slug, "embedding", rec, ee, cr_number)
+
+                        # Stage 7: Knowledge Graph — populate Neo4j
+                        if self._kg_engine:
+                            try:
+                                golden_dict = {
+                                    "id": str(golden.id),
+                                    "company_id": str(company_id),
+                                    "cr_number": golden.cr_number,
+                                    "data": golden.data,
+                                    "tenant_id": tenant_id,
+                                }
+                                await self._kg_engine.populate_from_golden_record(
+                                    golden_dict, tenant_id,
+                                )
+                                self.metrics._kg_triples_created = getattr(self.metrics, "_kg_triples_created", 0) + 1
+                            except Exception as ke:
+                                await self._send_to_dlq(session, tenant_id, source_slug, "knowledge_graph", rec, ke, cr_number)
+
                     await session.commit()
+
+                    # Stage 8: Feature store recompute (separate session to avoid long tx)
+                    if self._feature_store and companies_created > 0:
+                        try:
+                            cr_list = [r.get("cr_number") or r.get("CR_number") for r in valid_records if r.get("cr_number") or r.get("CR_number")]
+                            async with self._session_factory():
+                                for cr in cr_list:
+                                    gr = await golden_repo.get_by_cr_number(uuid.UUID(tenant_id), cr)
+                                    if gr and gr.company_id:
+                                        await self._feature_store.recompute(
+                                            company_id=str(gr.company_id),
+                                            tenant_id=tenant_id,
+                                        )
+                                        self.metrics._features_computed = getattr(self.metrics, "_features_computed", 0) + 1
+                        except Exception as fe:
+                            if self._logger:
+                                self._logger.error("data_fabric.feature_store_error", error=str(fe))
+                            errors.append({"stage": "feature_store", "error": str(fe)})
+
             except Exception as e:
                 if self._logger:
                     self._logger.error("data_fabric.entity_resolution_error", error=str(e))
                 errors.append({"stage": "entity_resolution", "error": str(e)})
 
-        self.metrics.records_ingested = total_processed
+        self.metrics._records_ingested = total_processed
 
         # Audit trail
         try:
@@ -426,6 +534,239 @@ class DataFabricPipeline:
             "golden_records_merged": total_golden_merged,
             "errors": errors,
             "duration_seconds": round(duration, 3),
+        }
+
+    async def _sync_golden_to_company(
+        self,
+        session: AsyncSession,
+        company_repo: CompanyRepository,
+        golden: GoldenRecord,
+        tenant_id: str,
+    ) -> uuid.UUID:
+        """Create or update a Company record from a golden record.
+
+        Returns the company UUID.
+        """
+        from app.modules.company.models import Company
+        from sqlalchemy import select
+
+        data = golden.data or {}
+        company_id = golden.company_id
+
+        if company_id:
+            stmt = select(Company).where(Company.id == company_id)
+            result = await session.execute(stmt)
+            company = result.scalar_one_or_none()
+            if company:
+                self._apply_golden_data(company, data, golden)
+                return company.id
+
+        stmt = select(Company).where(
+            Company.tenant_id == uuid.UUID(tenant_id),
+            Company.cr_number == golden.cr_number,
+        )
+        result = await session.execute(stmt)
+        company = result.scalar_one_or_none()
+
+        if company:
+            self._apply_golden_data(company, data, golden)
+            golden.company_id = company.id
+            return company.id
+
+        company = Company(
+            tenant_id=uuid.UUID(tenant_id),
+            cr_number=golden.cr_number,
+            name_ar=data.get("name_ar", {}).get("value", ""),
+            name_en=data.get("name_en", {}).get("value", None),
+            city=data.get("city", {}).get("value", None),
+            region=data.get("region", {}).get("value", None),
+            status=data.get("status", {}).get("value", "active"),
+            activity_description=data.get("activity_description", {}).get("value", None),
+            phone=data.get("phone", {}).get("value", None),
+            email=data.get("email", {}).get("value", None),
+            website=data.get("website", {}).get("value", None),
+            capital=data.get("capital", {}).get("value", None),
+            employees_count=data.get("employees_count", {}).get("value", None),
+            is_golden_record=True,
+            confidence_score=golden.confidence_score or 0.0,
+            source_ids=golden.source_ids or [],
+        )
+        session.add(company)
+        await session.flush()
+        golden.company_id = company.id
+        return company.id
+
+    def _apply_golden_data(self, company, data: dict, golden: GoldenRecord) -> None:
+        """Apply golden record data to an existing Company record."""
+        field_map = {
+            "name_ar": "name_ar",
+            "name_en": "name_en",
+            "city": "city",
+            "region": "region",
+            "status": "status",
+            "activity_description": "activity_description",
+            "phone": "phone",
+            "email": "email",
+            "website": "website",
+            "capital": "capital",
+            "employees_count": "employees_count",
+            "industry": "industry",
+        }
+        for gr_field, company_field in field_map.items():
+            entry = data.get(gr_field)
+            if entry and entry.get("value") is not None:
+                setattr(company, company_field, entry["value"])
+        company.is_golden_record = True
+        company.confidence_score = golden.confidence_score or 0.0
+        company.source_ids = golden.source_ids or []
+
+    async def _compute_and_store_embedding(
+        self,
+        session: AsyncSession,
+        company_id: uuid.UUID,
+        golden: GoldenRecord,
+        tenant_id: str,
+    ) -> None:
+        """Compute embedding for a company and store in companies.embedding + vectors table."""
+        from sqlalchemy import text
+
+        text_to_embed = " ".join(filter(None, [
+            golden.data.get("name_ar", {}).get("value", ""),
+            golden.data.get("name_en", {}).get("value", ""),
+            golden.data.get("activity_description", {}).get("value", ""),
+            golden.data.get("city", {}).get("value", ""),
+            golden.data.get("industry", {}).get("value", ""),
+        ]))
+        if not text_to_embed.strip():
+            return
+
+        if self._embedding_service:
+            try:
+                embedding = await self._embedding_service.embed(text_to_embed)
+                await session.execute(
+                    text("UPDATE companies SET embedding = :emb WHERE id = :cid"),
+                    {"emb": embedding, "cid": company_id},
+                )
+                if self._vector_store:
+                    await self._vector_store.upsert(VectorRecord(
+                        id=str(company_id),
+                        vector=embedding,
+                        metadata={
+                            "name_ar": golden.data.get("name_ar", {}).get("value"),
+                            "name_en": golden.data.get("name_en", {}).get("value"),
+                            "cr_number": golden.cr_number,
+                            "tenant_id": tenant_id,
+                        },
+                    ))
+            except Exception as e:
+                if self._logger:
+                    self._logger.warning("data_fabric.embedding_error", company_id=str(company_id), error=str(e))
+
+    async def _send_to_dlq(
+        self,
+        session: AsyncSession,
+        tenant_id: str,
+        source_slug: str,
+        stage: str,
+        record_data: dict,
+        error: Exception,
+        cr_number: str | None = None,
+    ) -> None:
+        """Send a failed record to the dead letter queue."""
+        try:
+            repo = DeadLetterRepository(session)
+            await repo.add(
+                tenant_id=tenant_id,
+                source_slug=source_slug,
+                stage=stage,
+                record_data=record_data,
+                error_message=str(error),
+                error_type=type(error).__name__,
+                cr_number=cr_number,
+            )
+            self.metrics.record_stage_error(stage)
+        except Exception as dlq_err:
+            if self._logger:
+                self._logger.error("data_fabric.dlq_error", stage=stage, error=str(dlq_err))
+
+    async def _dlq(
+        self,
+        tenant_id: str,
+        source_slug: str,
+        stage: str,
+        record_data: dict,
+        error: Exception,
+    ) -> None:
+        """Standalone DLQ writer — opens its own session."""
+        try:
+            async with self._session_factory() as s:
+                repo = DeadLetterRepository(s)
+                await repo.add(
+                    tenant_id=tenant_id,
+                    source_slug=source_slug,
+                    stage=stage,
+                    record_data=record_data,
+                    error_message=str(error),
+                    error_type=type(error).__name__,
+                    cr_number=record_data.get("cr_number"),
+                )
+                await s.commit()
+                self.metrics.record_stage_error(stage)
+        except Exception as dlq_err:
+            if self._logger:
+                self._logger.error("data_fabric.dlq_error", stage=stage, error=str(dlq_err))
+
+    async def retry_dlq(self, tenant_id: str, limit: int = 50) -> dict:
+        """Retry failed records from the dead letter queue."""
+        async with self._session_factory() as session:
+            repo = DeadLetterRepository(session)
+            pending = await repo.get_pending_retries(tenant_id, limit=limit)
+
+            retried = 0
+            resolved = 0
+            still_failed = 0
+
+            for entry in pending:
+                try:
+                    normalized = self.normalizer.normalize(entry.source_slug, entry.record_data)
+                    validation_errors = self.validator.validate(entry.source_slug, normalized)
+                    if validation_errors:
+                        await repo.mark_failed(entry.id, f"Validation: {', '.join(validation_errors)}")
+                        still_failed += 1
+                        continue
+
+                    async with self._session_factory() as inner_session:
+                        resolution = EntityResolutionService(
+                            db=inner_session,
+                            event_bus=self._event_runtime,
+                            logger=self._logger,
+                        )
+                        result = await resolution.resolve_records(
+                            tenant_id=tenant_id,
+                            source_slug=entry.source_slug,
+                            records=[normalized],
+                        )
+                        if result.get("errors"):
+                            await repo.mark_failed(entry.id, str(result["errors"][0]))
+                            still_failed += 1
+                        else:
+                            await repo.mark_resolved(entry.id)
+                            resolved += 1
+
+                    await repo.mark_retried(entry.id)
+                    retried += 1
+
+                except Exception as e:
+                    await repo.mark_failed(entry.id, str(e))
+                    still_failed += 1
+
+            await session.commit()
+
+        return {
+            "processed": len(pending),
+            "retried": retried,
+            "resolved": resolved,
+            "still_failed": still_failed,
         }
 
     async def run_single(

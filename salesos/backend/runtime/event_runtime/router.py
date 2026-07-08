@@ -2,13 +2,14 @@
 
 from fastapi import APIRouter, Depends, Request
 
+from app.dependencies import get_current_tenant_id
 from runtime.event_runtime import EventRuntime
 
 router = APIRouter()
 
 
 @router.get("/event-runtime/stats")
-async def event_runtime_stats(request: Request):
+async def event_runtime_stats(request: Request, tenant_id: str = Depends(get_current_tenant_id)):
     runtime: EventRuntime | None = getattr(request.app.state, "event_runtime", None)
     if not runtime:
         return {"status": "not_initialized"}
@@ -22,7 +23,7 @@ async def event_runtime_stats(request: Request):
 
 
 @router.get("/event-runtime/dead-letters")
-async def list_dead_letters(request: Request):
+async def list_dead_letters(request: Request, tenant_id: str = Depends(get_current_tenant_id)):
     runtime: EventRuntime | None = getattr(request.app.state, "event_runtime", None)
     if not runtime:
         return {"items": [], "total": 0}
@@ -34,7 +35,7 @@ async def list_dead_letters(request: Request):
 
 
 @router.post("/event-runtime/dead-letters/{entry_id}/replay")
-async def replay_dead_letter(entry_id: str, request: Request):
+async def replay_dead_letter(entry_id: str, request: Request, tenant_id: str = Depends(get_current_tenant_id)):
     runtime: EventRuntime | None = getattr(request.app.state, "event_runtime", None)
     if not runtime:
         return {"message": "Runtime not initialized"}
@@ -43,7 +44,7 @@ async def replay_dead_letter(entry_id: str, request: Request):
 
 
 @router.post("/event-runtime/dead-letters/replay-all")
-async def replay_all_dead_letters(request: Request):
+async def replay_all_dead_letters(request: Request, tenant_id: str = Depends(get_current_tenant_id)):
     runtime: EventRuntime | None = getattr(request.app.state, "event_runtime", None)
     if not runtime:
         return {"message": "Runtime not initialized"}
@@ -52,7 +53,7 @@ async def replay_all_dead_letters(request: Request):
 
 
 @router.get("/event-runtime/metrics")
-async def event_runtime_metrics(request: Request):
+async def event_runtime_metrics(request: Request, tenant_id: str = Depends(get_current_tenant_id)):
     runtime: EventRuntime | None = getattr(request.app.state, "event_runtime", None)
     if not runtime:
         return {}

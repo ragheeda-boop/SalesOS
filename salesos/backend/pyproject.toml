@@ -57,7 +57,30 @@ files = ["app/", "sdk/", "modules/", "cli/"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = ["tests", "app/modules/identity/tests", "app/modules/company/tests", "app/modules/entity_resolution/tests", "runtime/data_fabric_runtime/tests"]
+testpaths = [
+    "tests",
+    "app/modules/identity/tests",
+    "app/modules/company/tests",
+    "app/modules/entity_resolution/tests",
+    "app/modules/excel_import/tests",
+    "app/modules/notion_sync/tests",
+    "domains/search/tests",
+    "domains/commercial/activity/tests",
+    "domains/commercial/contract/tests",
+    "domains/commercial/opportunity/tests",
+    "domains/commercial/pipeline/tests",
+    "domains/commercial/proposal/tests",
+    "domains/commercial/quote/tests",
+    "domains/decision/context/tests",
+    "domains/decision/recommendation/tests",
+    "domains/revenue/analytics/tests",
+    "domains/revenue/forecast/tests",
+    "domains/timeline/tests",
+    "runtime/data_fabric_runtime/tests",
+]
+
+[tool.coverage.report]
+fail_under = 30
 
 [build-system]
 requires = ["poetry-core"]

@@ -1,3 +1,5 @@
+import uuid
+import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
 
@@ -19,7 +21,7 @@ from sdk.events.domain_events import (
 )
 from sdk.telemetry import StructuredLogger
 
-from .models import Tenant, User
+from .models import DeviceSession, PasswordResetToken, RefreshTokenFamily, Tenant, TokenBlacklist, User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -32,16 +34,26 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def create_access_token(user_id: str, tenant_id: str) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(
-        minutes=settings.jwt_access_token_expire_minutes
-    )
+def _hash_jti(jti: str) -> str:
+    return hashlib.sha256(jti.encode()).hexdigest()
+
+
+def _now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _generate_id() -> str:
+    return secrets.token_urlsafe(16)
+
+
+def create_access_token(user_id: str, tenant_id: str, jti: str | None = None) -> str:
+    expire = _now() + timedelta(minutes=settings.jwt_access_token_expire_minutes)
     payload = {
         "sub": user_id,
         "tenant_id": tenant_id,
-        "jti": secrets.token_urlsafe(16),
+        "jti": jti or secrets.token_urlsafe(16),
         "exp": expire,
-        "iat": datetime.now(timezone.utc),
+        "iat": _now(),
         "type": "access",
         "iss": "salesos",
         "aud": "salesos-api",
@@ -49,16 +61,14 @@ def create_access_token(user_id: str, tenant_id: str) -> str:
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
-def create_refresh_token(user_id: str, tenant_id: str) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(
-        days=settings.jwt_refresh_token_expire_days
-    )
+def create_refresh_token(user_id: str, tenant_id: str, jti: str | None = None) -> str:
+    expire = _now() + timedelta(days=settings.jwt_refresh_token_expire_days)
     payload = {
         "sub": user_id,
         "tenant_id": tenant_id,
-        "jti": secrets.token_urlsafe(16),
+        "jti": jti or secrets.token_urlsafe(16),
         "exp": expire,
-        "iat": datetime.now(timezone.utc),
+        "iat": _now(),
         "type": "refresh",
         "iss": "salesos",
         "aud": "salesos-api",
@@ -92,9 +102,6 @@ def decode_refresh_token(token: str) -> dict:
         raise UnauthorizedError("Invalid or expired refresh token")
 
 
-RESET_TOKEN_STORE: dict[str, dict] = {}
-
-
 class IdentityService:
     def __init__(
         self,
@@ -105,6 +112,172 @@ class IdentityService:
         self.db = db
         self.event_bus = event_bus
         self.logger = logger
+
+    # ── Refresh Token Family Management ──────────────────────────────────
+
+    async def create_token_family(
+        self, user_id: str, tenant_id: str,
+    ) -> tuple[str, str, str, str]:
+        family_id = _generate_id()
+        jti = secrets.token_urlsafe(16)
+        refresh_token = create_refresh_token(user_id, tenant_id, jti=jti)
+        token_hash = _hash_jti(jti)
+        family = RefreshTokenFamily(
+            id=_generate_id(),
+            user_id=uuid.UUID(user_id),
+            family_id=family_id,
+            token_hash=token_hash,
+            expires_at=_now() + timedelta(days=settings.jwt_refresh_token_expire_days),
+        )
+        self.db.add(family)
+        await self.db.flush()
+        return refresh_token, family_id, family.id, jti
+
+    async def rotate_refresh_token(
+        self, refresh_token_jti: str, user_id: str, tenant_id: str,
+    ) -> tuple[str, str]:
+        token_hash = _hash_jti(refresh_token_jti)
+        result = await self.db.execute(
+            select(RefreshTokenFamily).where(
+                RefreshTokenFamily.token_hash == token_hash,
+                RefreshTokenFamily.is_compromised.is_(False),
+            )
+        )
+        family = result.scalar_one_or_none()
+        if not family:
+            raise UnauthorizedError("Invalid or expired refresh token")
+        if family.used_at is not None:
+            family.is_compromised = True
+            await self.db.flush()
+            await self._revoke_family_sessions(family.family_id)
+            if self.logger:
+                self.logger.warn(
+                    "refresh.reuse_detected",
+                    user_id=user_id,
+                    family_id=family.family_id,
+                )
+            raise UnauthorizedError("Refresh token reuse detected — session revoked")
+        if family.expires_at < _now():
+            raise UnauthorizedError("Refresh token expired")
+        family.used_at = _now()
+        new_jti = secrets.token_urlsafe(16)
+        new_refresh = create_refresh_token(user_id, tenant_id, jti=new_jti)
+        new_family = RefreshTokenFamily(
+            id=_generate_id(),
+            user_id=uuid.UUID(user_id),
+            family_id=family.family_id,
+            token_hash=_hash_jti(new_jti),
+            expires_at=_now() + timedelta(days=settings.jwt_refresh_token_expire_days),
+        )
+        self.db.add(new_family)
+        new_access = create_access_token(user_id, tenant_id)
+        await self.db.flush()
+        return new_access, new_refresh
+
+    async def _revoke_family_sessions(self, family_id: str) -> None:
+        result = await self.db.execute(
+            select(DeviceSession).where(
+                DeviceSession.refresh_family_id == family_id,
+                DeviceSession.is_revoked.is_(False),
+            )
+        )
+        sessions = list(result.scalars().all())
+        for s in sessions:
+            s.is_revoked = True
+        await self.db.flush()
+
+    # ── Device Session Management ────────────────────────────────────────
+
+    async def create_device_session(
+        self,
+        user_id: str,
+        tenant_id: str,
+        refresh_family_id: str,
+        device_name: str = "",
+        device_type: str = "unknown",
+        ip_address: str = "",
+    ) -> DeviceSession:
+        session = DeviceSession(
+            id=_generate_id(),
+            user_id=uuid.UUID(user_id),
+            tenant_id=uuid.UUID(tenant_id),
+            refresh_family_id=refresh_family_id,
+            device_name=device_name,
+            device_type=device_type,
+            ip_address=ip_address,
+            expires_at=_now() + timedelta(days=settings.jwt_refresh_token_expire_days),
+        )
+        self.db.add(session)
+        await self.db.flush()
+        return session
+
+    async def get_user_sessions(self, user_id: str) -> list[DeviceSession]:
+        result = await self.db.execute(
+            select(DeviceSession).where(
+                DeviceSession.user_id == user_id,
+                DeviceSession.is_revoked.is_(False),
+                DeviceSession.expires_at > _now(),
+            ).order_by(DeviceSession.last_used_at.desc())
+        )
+        return list(result.scalars().all())
+
+    async def revoke_session(self, session_id: str, user_id: str) -> int:
+        result = await self.db.execute(
+            select(DeviceSession).where(
+                DeviceSession.id == session_id,
+                DeviceSession.user_id == user_id,
+                DeviceSession.is_revoked.is_(False),
+            )
+        )
+        session = result.scalar_one_or_none()
+        if not session:
+            return 0
+        session.is_revoked = True
+        await self._revoke_family_sessions(session.refresh_family_id)
+        await self.db.flush()
+        return 1
+
+    async def revoke_all_user_sessions(self, user_id: str) -> int:
+        result = await self.db.execute(
+            select(DeviceSession).where(
+                DeviceSession.user_id == user_id,
+                DeviceSession.is_revoked.is_(False),
+            )
+        )
+        sessions = list(result.scalars().all())
+        family_ids = {s.refresh_family_id for s in sessions}
+        for s in sessions:
+            s.is_revoked = True
+        result2 = await self.db.execute(
+            select(RefreshTokenFamily).where(
+                RefreshTokenFamily.family_id.in_(family_ids),
+                RefreshTokenFamily.is_compromised.is_(False),
+            )
+        )
+        families = list(result2.scalars().all())
+        for f in families:
+            f.is_compromised = True
+        await self.db.flush()
+        return len(sessions)
+
+    # ── Token Blacklist ──────────────────────────────────────────────────
+
+    async def blacklist_token(self, jti: str, token_type: str, expires_at: datetime) -> None:
+        entry = TokenBlacklist(
+            jti=jti,
+            token_type=token_type,
+            expires_at=expires_at,
+        )
+        self.db.add(entry)
+
+    async def is_token_blacklisted(self, jti: str) -> bool:
+        result = await self.db.execute(
+            select(TokenBlacklist).where(
+                TokenBlacklist.jti == jti,
+                TokenBlacklist.expires_at > _now(),
+            )
+        )
+        return result.scalar_one_or_none() is not None
 
     async def create_tenant(self, name: str, slug: str, domain: str | None = None) -> Tenant:
         existing = await self.db.execute(select(Tenant).where(Tenant.slug == slug))
@@ -123,14 +296,18 @@ class IdentityService:
             action="created",
         )
         if self.event_bus:
-            await self.event_bus.publish(
-                TenantCreated(
-                    tenant_id=str(tenant.id),
-                    aggregate_id=str(tenant.id),
-                    aggregate_type="tenant",
-                    data={"name": name, "slug": slug, "domain": domain},
+            try:
+                await self.event_bus.publish(
+                    TenantCreated(
+                        tenant_id=str(tenant.id),
+                        aggregate_id=str(tenant.id),
+                        aggregate_type="tenant",
+                        data={"name": name, "slug": slug, "domain": domain},
+                    )
                 )
-            )
+            except Exception:
+                if self.logger:
+                    self.logger.warn("event.publish_failed", entity_type="tenant", aggregate_id=str(tenant.id))
 
         return tenant
 
@@ -175,14 +352,18 @@ class IdentityService:
             action="created",
         )
         if self.event_bus:
-            await self.event_bus.publish(
-                UserRegistered(
-                    tenant_id=str(user.tenant_id) if user.tenant_id else "",
-                    aggregate_id=str(user.id),
-                    aggregate_type="user",
-                    data={"email": email, "full_name": full_name},
+            try:
+                await self.event_bus.publish(
+                    UserRegistered(
+                        tenant_id=str(user.tenant_id) if user.tenant_id else "",
+                        aggregate_id=str(user.id),
+                        aggregate_type="user",
+                        data={"email": email, "full_name": full_name},
+                    )
                 )
-            )
+            except Exception:
+                if self.logger:
+                    self.logger.warn("event.publish_failed", entity_type="user", aggregate_id=str(user.id))
 
         return user
 
@@ -193,14 +374,18 @@ class IdentityService:
             raise UnauthorizedError("Invalid email or password")
 
         if self.event_bus:
-            await self.event_bus.publish(
-                UserLoggedIn(
-                    tenant_id=str(user.tenant_id) if user.tenant_id else "",
-                    aggregate_id=str(user.id),
-                    aggregate_type="user",
-                    data={"email": email},
+            try:
+                await self.event_bus.publish(
+                    UserLoggedIn(
+                        tenant_id=str(user.tenant_id) if user.tenant_id else "",
+                        aggregate_id=str(user.id),
+                        aggregate_type="user",
+                        data={"email": email},
+                    )
                 )
-            )
+            except Exception:
+                if self.logger:
+                    self.logger.warn("event.publish_failed", entity_type="user", aggregate_id=str(user.id))
 
         return user
 
@@ -224,14 +409,18 @@ class IdentityService:
         await self.db.flush()
 
         if self.event_bus:
-            await self.event_bus.publish(
-                UserRoleChanged(
-                    tenant_id=str(user.tenant_id) if user.tenant_id else "",
-                    aggregate_id=str(user.id),
-                    aggregate_type="user",
-                    data={"old_role": old_role, "new_role": role},
+            try:
+                await self.event_bus.publish(
+                    UserRoleChanged(
+                        tenant_id=str(user.tenant_id) if user.tenant_id else "",
+                        aggregate_id=str(user.id),
+                        aggregate_type="user",
+                        data={"old_role": old_role, "new_role": role},
+                    )
                 )
-            )
+            except Exception:
+                if self.logger:
+                    self.logger.warn("event.publish_failed", entity_type="user", aggregate_id=str(user.id))
 
         return user
 
@@ -243,37 +432,56 @@ class IdentityService:
         await self.db.flush()
 
         if self.event_bus:
-            await self.event_bus.publish(
-                UserPasswordChanged(
-                    tenant_id=str(user.tenant_id) if user.tenant_id else "",
-                    aggregate_id=str(user.id),
-                    aggregate_type="user",
+            try:
+                await self.event_bus.publish(
+                    UserPasswordChanged(
+                        tenant_id=str(user.tenant_id) if user.tenant_id else "",
+                        aggregate_id=str(user.id),
+                        aggregate_type="user",
+                    )
                 )
-            )
+            except Exception:
+                if self.logger:
+                    self.logger.warn("event.publish_failed", entity_type="user", aggregate_id=str(user.id))
 
         return user
 
-    async def forgot_password(self, email: str) -> str:
+    async def forgot_password(self, email: str) -> None:
         result = await self.db.execute(select(User).where(User.email == email))
         user = result.scalar_one_or_none()
         if not user:
-            return "sent"
-        token = secrets.token_urlsafe(32)
-        RESET_TOKEN_STORE[token] = {
-            "user_id": str(user.id),
-            "expires": datetime.now(timezone.utc) + timedelta(hours=1),
-        }
+            if self.logger:
+                self.logger.info("Password reset requested for unknown email=%s", email)
+            return
+        raw_token = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        now = datetime.now(timezone.utc)
+        reset = PasswordResetToken(
+            id=secrets.token_urlsafe(16),
+            user_id=str(user.id),
+            token_hash=token_hash,
+            expires_at=now + timedelta(hours=1),
+        )
+        self.db.add(reset)
+        await self.db.flush()
         if self.logger:
             self.logger.info("Password reset token generated for user=%s", email)
-        return token
 
     async def reset_password(self, token: str, new_password: str) -> User:
-        data = RESET_TOKEN_STORE.pop(token, None)
-        if not data:
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        now = datetime.now(timezone.utc)
+        result = await self.db.execute(
+            select(PasswordResetToken).where(
+                PasswordResetToken.token_hash == token_hash,
+                PasswordResetToken.used_at.is_(None),
+                PasswordResetToken.expires_at > now,
+            )
+        )
+        reset = result.scalar_one_or_none()
+        if not reset:
             raise UnauthorizedError("Invalid or expired reset token")
-        if datetime.now(timezone.utc) > data["expires"]:
-            raise UnauthorizedError("Reset token has expired")
-        user = await self.get_user(data["user_id"])
+        user = await self.get_user(reset.user_id)
         user.password_hash = hash_password(new_password)
+        reset.used_at = now
         await self.db.flush()
         return user

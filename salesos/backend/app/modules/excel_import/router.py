@@ -17,6 +17,7 @@ router = APIRouter()
 @router.post("/import/excel/preview", response_model=ImportPreview)
 async def preview_excel(
     file: UploadFile = File(...),
+    tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
 ):
     if not file.filename or not file.filename.endswith((".xlsx", ".xls")):

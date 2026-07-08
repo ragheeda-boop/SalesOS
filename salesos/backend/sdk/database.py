@@ -1,4 +1,4 @@
-"""Database abstractions: Repository base, UnitOfWork, and query helpers."""
+"""Database abstractions: SQLAlchemy Base, Repository, UnitOfWork, and query helpers."""
 
 import uuid
 from abc import ABC, abstractmethod
@@ -8,10 +8,40 @@ from datetime import datetime
 from typing import Any, Generic, TypeVar
 from uuid import UUID
 
-from sqlalchemy import Select, select, func
+from sqlalchemy import DateTime, Select, String, func, select
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from sdk.events.base import DomainEvent
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+class TimestampMixin:
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+
+class BaseModel(Base, TimestampMixin):
+    __abstract__ = True
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
 
 T = TypeVar("T")
 TId = TypeVar("TId")
