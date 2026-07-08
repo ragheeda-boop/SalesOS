@@ -1,0 +1,2477 @@
+<!DOCTYPE html><html lang="en-US" data-website-id="1" data-main-object="ir.ui.view(1400,)" data-uw-w-loader="" data-logged="false" data-browser="chrome,148.0.7778.96"><head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="generator" content="Odoo">
+            
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="Facility valuation | Taqeem">
+        <meta property="og:site_name" content="Taqeem">
+        <meta property="og:url" content="http://www.taqeem.gov.sa/en/facilities">
+        <meta property="og:image" content="http://www.taqeem.gov.sa/web/image/website/1/logo?unique=91dc96c">
+            
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="Facility valuation | Taqeem">
+        <meta name="twitter:image" content="http://www.taqeem.gov.sa/web/image/website/1/logo/300x300?unique=91dc96c">
+        <meta name="twitter:site" content="@taqeem_gov_sa">
+        
+        <link rel="canonical" href="https://taqeem.gov.sa/en/facilities">
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+        <title>Facility valuation | Taqeem</title>
+        <link type="image/x-icon" rel="shortcut icon" href="/web/image/website/1/favicon?unique=91dc96c">
+        <link rel="preload" href="/web/static/src/libs/fontawesome/fonts/fontawesome-webfont.woff2?v=4.7.0" as="font" crossorigin="">
+        <link type="text/css" rel="stylesheet" href="/web/assets/313415-dd63706/1/web.assets_frontend.min.css" data-asset-bundle="web.assets_frontend" data-asset-version="dd63706">
+        <script id="web.layout.odooscript" type="text/javascript">
+            var odoo = {
+                csrf_token: "04a373a8e87b8699511126b1c1c6162f9ee198eao1814100527",
+                debug: "",
+            };
+        </script>
+        <script type="text/javascript">
+            odoo.__session_info__ = {"is_admin": false, "is_system": false, "is_website_user": true, "user_id": false, "is_frontend": true, "profile_session": null, "profile_collectors": null, "profile_params": null, "show_effect": true, "bundle_params": {"lang": "en_US", "website_id": 1}, "translationURL": "/website/translations", "cache_hashes": {"translations": "475bbe27a0e36f368a0588d4f58450ed24de0ab4"}, "geoip_country_code": null, "geoip_phone_code": null, "lang_url_code": "en"};
+            if (!/(^|;\s)tz=/.test(document.cookie)) {
+                const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                document.cookie = `tz=${userTZ}; path=/`;
+            }
+        </script>
+        <script defer="defer" type="text/javascript" src="/web/assets/24725-d5cfc33/1/web.assets_frontend_minimal.min.js" data-asset-bundle="web.assets_frontend_minimal" data-asset-version="d5cfc33"></script>
+        <script defer="defer" type="text/javascript" data-asset-bundle="web.assets_frontend_lazy" data-asset-version="27d9d6f" src="/web/assets/313416-27d9d6f/1/web.assets_frontend_lazy.min.js"></script>
+        
+        
+    <style id="conditional_visibility"></style><link href="https://cdn.userway.org/styles/2026-06-09-08-22-25/widget_base.css?v=1780993345047" type="text/css" rel="stylesheet"></head>
+    <body class="" style="overflow: hidden; padding-right: 0px;" data-uw-rm-skl=""><div class="uw-sl" role="region" data-uw-rm-ignore="true" data-uw-ignore-translate="true" aria-label="Quick Accessibility Options"><button class="uw-sl__item" data-uw-rm-ignore="true" data-uw-ignore-translate="true" lang="en-US" id="uw-skip-to-main"><span class="uw-sl__item__left" data-uw-ignore-translate="true"><span class="uw-sl__item__img"><svg focusable="false" width="26" height="24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation"><g stroke="#000" stroke-width="1.5" fill="none" fill-rule="evenodd"><rect class="no-fill" fill="none" x=".75" y=".75" width="24.5" height="22.5" rx="3"></rect><path class="no-fill" fill="none" d="M1 7h24M9.5 7v17"></path></g></svg></span><span class="uw-sl__item__title" data-uw-ignore-s17="" data-uw-rm-ignore="true" data-uw-ignore-translate="true">Skip to main content</span></span><span class="uw-sl__e-icon"><svg width="26" height="27" role="presentation" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><g class="no-fill" fill="none" fill-rule="evenodd"><path d="M4.498 24.3v-.872H1.5v-1.37h2.716v-.872H1.5v-1.27h3v-.872H.542V24.3h3.955zm1.909 0v-3.695L9.183 24.3h.95v-5.256h-.95v3.695l-2.776-3.695H5.45V24.3h.957zm7.21 0v-4.383h1.682v-.873h-4.314v.873h1.683V24.3h.948zm6.421 0v-.872H17.04v-1.37h2.716v-.872H17.04v-1.27h3v-.872h-3.956V24.3h3.955zm1.84 0v-1.767h1.017l1.24 1.767h1.086l-1.316-1.867c.757-.237 1.27-.849 1.27-1.644 0-1.025-.842-1.745-1.966-1.745H20.92V24.3h.957zm1.224-2.647h-1.224v-1.729h1.224c.65 0 1.101.33 1.101.865 0 .535-.451.864-1.101.864z" fill="#000" fill-rule="nonzero"></path><path class="no-fill" fill="none" d="M18.9 1v6.3a2.7 2.7 0 01-2.7 2.7H5.4h0" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M8.1 12.7L5.4 10l2.7-2.7"></path></g></svg></span></button><button class="uw-sl__item" data-uw-rm-ignore="true" data-uw-ignore-translate="true" lang="en-US" id="uw-enable-visibility"><span class="uw-sl__item__left" data-uw-ignore-translate="true"><span class="uw-sl__item__img"><svg focusable="false" width="28" height="26" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation"><g class="no-fill" fill="none" fill-rule="evenodd"><path d="M13.808 6.019C8.625 6.019 4.01 9.197 1 14.148c3.01 4.951 7.625 8.129 12.808 8.129s9.797-3.178 12.807-8.129c-3.01-4.951-7.624-8.13-12.807-8.13" stroke="#000" class="no-fill" stroke-width="1.5" fill="none"></path><path d="M13.813 11.124c1.704 0 3.086 1.368 3.086 3.055 0 1.688-1.382 3.055-3.086 3.055s-3.086-1.367-3.086-3.055c0-1.687 1.382-3.055 3.086-3.055m0-3.055c-3.408 0-6.172 2.735-6.172 6.11 0 3.375 2.764 6.11 6.172 6.11s6.172-2.735 6.172-6.11c0-3.375-2.764-6.11-6.172-6.11" class="fill-white" fill="#FFF" fill-rule="nonzero"></path><path d="M17.913 14.18c0 2.244-1.839 4.064-4.105 4.064-2.268 0-4.106-1.82-4.106-4.065s1.838-4.064 4.106-4.064c2.266 0 4.105 1.82 4.105 4.064" stroke="#000" stroke-width="1.5" class="no-fill" fill="none"></path><path class="no-fill" stroke="#FFF" stroke-width="3" stroke-linecap="round" d="M2.872 22.306L22.03 3.339" fill="none"></path><path stroke="#000" stroke-width="1.5" stroke-linecap="round" d="M4.24 23.661L23.398 4.694" class="no-fill" fill="none"></path></g></svg></span><span class="uw-sl__item__title" data-uw-ignore-s17="" data-uw-rm-ignore="true" data-uw-ignore-translate="true">Enable accessibility for low vision</span></span><span class="uw-sl__e-icon"><svg width="26" height="27" role="presentation" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><g class="no-fill" fill="none" fill-rule="evenodd"><path d="M4.498 24.3v-.872H1.5v-1.37h2.716v-.872H1.5v-1.27h3v-.872H.542V24.3h3.955zm1.909 0v-3.695L9.183 24.3h.95v-5.256h-.95v3.695l-2.776-3.695H5.45V24.3h.957zm7.21 0v-4.383h1.682v-.873h-4.314v.873h1.683V24.3h.948zm6.421 0v-.872H17.04v-1.37h2.716v-.872H17.04v-1.27h3v-.872h-3.956V24.3h3.955zm1.84 0v-1.767h1.017l1.24 1.767h1.086l-1.316-1.867c.757-.237 1.27-.849 1.27-1.644 0-1.025-.842-1.745-1.966-1.745H20.92V24.3h.957zm1.224-2.647h-1.224v-1.729h1.224c.65 0 1.101.33 1.101.865 0 .535-.451.864-1.101.864z" fill="#000" fill-rule="nonzero"></path><path class="no-fill" fill="none" d="M18.9 1v6.3a2.7 2.7 0 01-2.7 2.7H5.4h0" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M8.1 12.7L5.4 10l2.7-2.7"></path></g></svg></span></button><button class="uw-sl__item" data-uw-rm-ignore="true" data-uw-ignore-translate="true" lang="en-US" id="uw-open-accessibility"><span class="uw-sl__item__left" data-uw-ignore-translate="true"><span class="uw-sl__item__img"><svg focusable="false" width="23" height="28" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="presentation"><path d="M.018 8.639c.105-.595.65-.991 1.223-.877a53.94 53.94 0 0020.517 0c.625-.125 1.228.366 1.242 1.06.01.544-.402 1.003-.915 1.102-2.289.44-4.589.727-6.893.877-.948.063-1.647.948-1.54 1.932l.202 1.84c.314 2.87.958 5.69 1.919 8.399l1.26 3.553c.202.568-.076 1.197-.62 1.407a.994.994 0 01-.364.068c-.4 0-.768-.245-.944-.638l-.007.007-.325-.724a110.53 110.53 0 01-2.83-6.926.462.462 0 00-.878 0 105.146 105.146 0 01-2.832 6.917l-.308.68.005-.021a1.05 1.05 0 01-.98.705.994.994 0 01-.364-.068c-.544-.21-.821-.839-.62-1.407l1.26-3.553a37.235 37.235 0 001.92-8.403l.2-1.824c.107-.986-.59-1.881-1.54-1.943A55.94 55.94 0 01.86 9.914c-.57-.11-.947-.68-.841-1.275zM11.5 0c1.934 0 3.502 1.634 3.502 3.651 0 2.016-1.568 3.65-3.502 3.65-1.934 0-3.502-1.634-3.502-3.65C7.998 1.634 9.566 0 11.5 0z" fill="#000" fill-rule="evenodd"></path></svg></span><span class="uw-sl__item__title" data-uw-ignore-s17="" data-uw-rm-ignore="true" data-uw-ignore-translate="true">Open the accessibility menu</span></span><span class="uw-sl__e-icon"><svg width="26" height="27" role="presentation" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><g class="no-fill" fill="none" fill-rule="evenodd"><path d="M4.498 24.3v-.872H1.5v-1.37h2.716v-.872H1.5v-1.27h3v-.872H.542V24.3h3.955zm1.909 0v-3.695L9.183 24.3h.95v-5.256h-.95v3.695l-2.776-3.695H5.45V24.3h.957zm7.21 0v-4.383h1.682v-.873h-4.314v.873h1.683V24.3h.948zm6.421 0v-.872H17.04v-1.37h2.716v-.872H17.04v-1.27h3v-.872h-3.956V24.3h3.955zm1.84 0v-1.767h1.017l1.24 1.767h1.086l-1.316-1.867c.757-.237 1.27-.849 1.27-1.644 0-1.025-.842-1.745-1.966-1.745H20.92V24.3h.957zm1.224-2.647h-1.224v-1.729h1.224c.65 0 1.101.33 1.101.865 0 .535-.451.864-1.101.864z" fill="#000" fill-rule="nonzero"></path><path class="no-fill" fill="none" d="M18.9 1v6.3a2.7 2.7 0 01-2.7 2.7H5.4h0" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M8.1 12.7L5.4 10l2.7-2.7"></path></g></svg></span></button></div>
+            <div class="uwy userway_p1 utb" data-uw-feature-ignore="true" data-uw-rm-ignore="true" title="Accessibility Menu" style="background-color: transparent !important; overflow: initial !important;"><div class="userway_buttons_wrapper"><div class="ulsti hidden userway_dark" id="userwayLstIcon" aria-label="Translations Menu" role="button" tabindex="0" aria-haspopup="dialog" data-uw-s19-ignore="" title="Translations Menu" style="background: rgb(27, 131, 84) !important;"><span class="uiiw"></span><div class="ups"><img width="43" height="43" data-uw-rm-ignore="" class="si_w" aria-hidden="true" alt="Spinner: White decorative" src="https://cdn.userway.org/widgetapp/images/spin_wh.svg"></div><span class="usr lst-spacer"></span></div><div class="uai userway_dark" id="userwayAccessibilityIcon" aria-label="Accessibility Menu" role="button" tabindex="0" aria-haspopup="dialog" title="Accessibility Menu" style="background: rgb(27, 131, 84) !important;"><span class="uiiw"><img data-uw-rm-ignore="" class="ui_w" role="presentation" alt="" src="https://cdn.userway.org/widgetapp/images/body_wh.svg"></span><div class="ups"><img width="43" height="43" data-uw-rm-ignore="" class="si_w" aria-hidden="true" alt="Spinner: White decorative" src="https://cdn.userway.org/widgetapp/images/spin_wh.svg"></div><span class="usr"></span></div><div class="uwaw-dictionary-tooltip"></div></div><iframe class="uwif userway_p1" data-uw-ignore-translate="true" name="userway" title="Accessibility Menu" allow="clipboard-write" style="max-width: 100vw !important; visibility: visible !important; opacity: 1 !important; color-scheme: light !important;"></iframe></div><div class="uw-s10-bottom-ruler-guide"></div><div class="uw-s10-right-ruler-guide"></div><div class="uw-s10-left-ruler-guide"></div><div class="uw-s10-reading-guide"><div class="uw-s10-reading-guide__arrow"></div></div><div class="uw-s12-tooltip" aria-hidden="true"></div><meta name="description" content="Discover Taqeem's facilities list">
+        <div id="wrapwrap" class="   " style="">
+            <div id="website-verification" class="bg-card">
+                <div class="container">
+                    <div class="d-lg-flex d-md-flex d-block align-items-center gap-10">
+                        <div class="align-items-center gap-10 text-sm-medium text-black d-flex">
+                            <img width="20" height="20" src="/website_base/static/src/img/new_theme/common/ksa-flag.svg" loading="lazy" style="" role="presentation" data-uw-rm-alt-original="null" alt="" data-uw-rm-alt-hash="3338908027751811" data-uw-rm-alt="SVG">
+                            Official website of the Kingdom of Saudi Arabia
+                        </div>
+                        <span id="verification_btn" class="ow-btn-verification text-sm-regular text-primary p-0 " type="button" data-toggle="collapse" data-target="#verificationDiv" aria-expanded="false" aria-controls="verificationDiv">
+                            how to verify
+                            <i class="fa fa-solid fa-angle-down"></i>
+                        </span>
+                    </div>
+                    <div class="container collapse" id="verificationDiv">
+                        <div class="row mt-4">
+                            <div class="col-lg-6 col-md-6 col-12 d-flex">
+                                <div class="pe-3">
+                                    <img alt="lock icon" loading="lazy" class="" src="/website_base/static/src/img/new_theme/common/link-icon.svg" data-lazy-loading-initial-min-height="" style="min-height: 1px;" role="img" data-uw-rm-alt="ALT">
+                                </div>
+                                <div>
+                                    <div class="text-lg-semibold text-black mb-2">
+                                        Links to official Saudi websites end with
+                                        <span class="text-lg-semibold text-primary">.gov.sa</span>
+                                    </div>
+                                    <div class="text-md-regular text-gray-800">
+                                        All links to official websites of government agencies in the Kingdom of Saudi
+                                        Arabia
+                                        end
+                                        with .gov.sa
+                                    </div>
+                                </div>
+
+
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-12 d-flex">
+                                <div class="pe-3">
+                                    <img alt="lock icon" loading="lazy" class="" src="/website_base/static/src/img/new_theme/common/square-lock-password.svg" data-lazy-loading-initial-min-height="" style="min-height: 1px;" role="img" data-uw-rm-alt="ALT">
+                                </div>
+                                <div>
+                                    <div class="text-lg-semibold text-black mb-2">
+                                        Government websites use the
+                                        <span class="text-lg-semibold text-primary">HTTPS</span>
+                                        protocol for encryption and security.
+                                    </div>
+                                    <div class="text-md-regular text-gray-800">
+                                        Secure websites in the Kingdom of Saudi Arabia use the HTTPS protocol for
+                                        encryption.
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="bg-white rounded d-flex o-stamp-link-box my-4">
+                            <img class="" width="21" height="31" src="/website_base/static/src/img/new_theme/common/dga_logo.svg" loading="lazy" data-lazy-loading-initial-min-height="" style="min-height: 1px;" role="presentation" data-uw-rm-alt-original="null" alt="" data-uw-rm-alt-hash="3338908027751811" data-uw-rm-alt="SVG">
+                            <div class="text-md-regular text-black mb-0 mx-2">
+                                Registered with the Digital Government Authority under number :
+                                <a class="text-decoration-underline text-md-regular text-primary p-1" target="_blank" href="https://raqmi.dga.gov.sa/platforms/platforms/23cc8076-0a15-4a9b-7980-08de03d10f1b/platform-license" data-uw-rm-brl="PR" data-uw-original-href="https://raqmi.dga.gov.sa/platforms/platforms/23cc8076-0a15-4a9b-7980-08de03d10f1b/platform-license" aria-label="20251123260 - open in a new tab" data-uw-rm-ext-link="" uw-rm-external-link-id="https://raqmi.dga.gov.sa/platforms/platforms/23cc8076-0a15-4a9b-7980-08de03d10f1b/platform-license$20251123260">
+                                    20251123260
+                                    <img class="ms-2" src="/website_base/static/src/img/new_theme/common/redirect_gr_icon.svg" loading="lazy" data-lazy-loading-initial-min-height="" style="min-height: 1px;" role="presentation" data-uw-rm-alt-original="null" alt="" data-uw-rm-alt-hash="3338908027751811" data-uw-rm-alt="SVG">
+
+
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                <header id="top" data-anchor="true" data-name="Header" class="o_header_standard o_top_fixed_element">
+                    
+    <nav data-name="Navbar" class="navbar navbar-expand-lg navbar-light o_colored_level o_cc shadow-sm py-0">
+        
+        <div id="top_menu_container" class="container justify-content-start justify-content-lg-between justify-content-between">
+                
+    <a href="/en/" class="navbar-brand logo me-4 me-0" data-uw-rm-brl="PR" data-uw-original-href="/en/">
+            
+            <span role="img" aria-label="Logo of Taqeem" title="Taqeem"><img src="/web/image/website/1/logo/Taqeem?unique=91dc96c" class="img img-fluid" width="95" height="40" alt="Taqeem" loading="lazy" style="" data-uw-rm-alt="ALT"></span>
+        </a>
+    
+                
+                <div id="top_menu_collapse" class="collapse navbar-collapse order-last order-lg-0">
+                    
+        <ul id="top_menu" class="menu menu-bar align-items-center" role="menu" data-uw-rm-broken-menu="" data-uw-rm-sr="">
+            
+                
+        <li class="nav-item dropdown position-static me-1" role="menuitem" data-uw-rm-broken-menu="menuitem" data-uw-rm-sr="menuitem">
+            <a data-bs-toggle="dropdown" href="#" aria-expanded="false" class="align-items-center d-flex nav-link dropdown-toggle o_mega_menu_toggle " data-uw-rm-brl="PR" data-uw-original-href="#">
+                <span class="text-md-medium">About Taqeem</span>
+                <i class="fa fa-angle-down text-dark"></i>
+
+            </a>
+            <div data-name="Mega Menu" class="border-top rounded-bottom dropdown-menu o_mega_menu dropdown-menu-start">
+                <section class="border-top s_mega_menu_odoo_menu pt16 o_colored_level o_cc o_cc1">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6 col-lg pt16 pb24">
+                                <div class="o_default_snippet_text text-uppercase text-lg-semibold  text-primary">About Taqeem</div>
+
+                                <div class="row mb-2 mt16">
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/about-us" data-uw-rm-brl="PR" data-uw-original-href="/en/about-us" aria-label="Who are we" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Who are we</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/board-director" data-uw-rm-brl="PR" data-uw-original-href="/en/board-director" aria-label="Board of Directors" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Board of Directors</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/ceo-speech" data-uw-rm-brl="PR" data-uw-original-href="/en/ceo-speech" aria-label="CEO's speech" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">CEO's speech</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/rules" data-uw-rm-brl="PR" data-uw-original-href="/en/rules" aria-label="Laws and regulations" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Laws and regulations</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/strategy" data-uw-rm-brl="PR" data-uw-original-href="/en/strategy" aria-label="Taqeem strategy" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Taqeem strategy</span>
+
+                                            </a>
+                                        </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </li>
+
+
+        <li class="nav-item dropdown position-static me-1" role="menuitem" data-uw-rm-broken-menu="menuitem" data-uw-rm-sr="menuitem">
+            <a data-bs-toggle="dropdown" href="#" aria-expanded="false" class="align-items-center d-flex nav-link dropdown-toggle o_mega_menu_toggle " data-uw-rm-brl="PR" data-uw-original-href="#">
+                <span class="text-md-medium">Valuation Sectors</span>
+                <i class="fa fa-angle-down text-dark"></i>
+
+            </a>
+            <div data-name="Mega Menu" class="border-top rounded-bottom dropdown-menu o_mega_menu dropdown-menu-start">
+                <section class="border-top s_mega_menu_odoo_menu pt16 o_colored_level o_cc o_cc1">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6 col-lg pt16 pb24">
+                                <div class="o_default_snippet_text text-uppercase text-lg-semibold  text-primary">Valuation Sectors</div>
+
+                                <div class="row mb-2 mt16">
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/sector/realEstate" data-uw-rm-brl="PR" data-uw-original-href="/en/sector/realEstate" aria-label="Real estate valuation" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Real estate valuation</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/sector/business" data-uw-rm-brl="PR" data-uw-original-href="/en/sector/business" aria-label="Business valuation" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Business valuation</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/sector/equipment" data-uw-rm-brl="PR" data-uw-original-href="/en/sector/equipment" aria-label="Machinery &amp; Equipment valuation" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Machinery &amp; Equipment valuation</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/sector/vehicle" data-uw-rm-brl="PR" data-uw-original-href="/en/sector/vehicle" aria-label="Vehicle Damage assessment valuation" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Vehicle Damage assessment valuation</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/sector/metals" data-uw-rm-brl="PR" data-uw-original-href="/en/sector/metals" aria-label="Precious metals &amp; gemstones valuation" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Precious metals &amp; gemstones valuation</span>
+
+                                            </a>
+                                        </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </li>
+
+
+        <li class="nav-item dropdown position-static me-1" role="menuitem" data-uw-rm-broken-menu="menuitem" data-uw-rm-sr="menuitem">
+            <a data-bs-toggle="dropdown" href="#" aria-expanded="false" class="align-items-center d-flex nav-link dropdown-toggle o_mega_menu_toggle " data-uw-rm-brl="PR" data-uw-original-href="#">
+                <span class="text-md-medium">Taqeem academy</span>
+                <i class="fa fa-angle-down text-dark"></i>
+
+            </a>
+            <div data-name="Mega Menu" class="border-top rounded-bottom dropdown-menu o_mega_menu dropdown-menu-start">
+                <section class="border-top s_mega_menu_odoo_menu pt16 o_colored_level o_cc o_cc1">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6 col-lg pt16 pb24">
+                                <div class="o_default_snippet_text text-uppercase text-lg-semibold  text-primary">Taqeem academy</div>
+
+                                <div class="row mb-2 mt16">
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/training-prg" data-uw-rm-brl="PR" data-uw-original-href="/en/training-prg" aria-label="Training Courses" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Training Courses</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/training-prg?tab=service" data-uw-rm-brl="PR" data-uw-original-href="/en/training-prg?tab=service" aria-label="Training Services" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Training Services</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/training-prg?tab=policy" data-uw-rm-brl="PR" data-uw-original-href="/en/training-prg?tab=policy" aria-label="Training Courses Policies" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Training Courses Policies</span>
+
+                                            </a>
+                                        </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </li>
+
+
+        <li class="nav-item dropdown position-static me-1" role="menuitem" data-uw-rm-broken-menu="menuitem" data-uw-rm-sr="menuitem">
+            <a data-bs-toggle="dropdown" href="#" aria-expanded="false" class="align-items-center d-flex nav-link dropdown-toggle o_mega_menu_toggle active" data-uw-rm-brl="PR" data-uw-original-href="#">
+                <span class="text-md-medium">Membership and facilities</span>
+                <i class="fa fa-angle-down text-dark"></i>
+
+            </a>
+            <div data-name="Mega Menu" class="border-top rounded-bottom dropdown-menu o_mega_menu dropdown-menu-start">
+                <section class="border-top s_mega_menu_odoo_menu pt16 o_colored_level o_cc o_cc1">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6 col-lg pt16 pb24">
+                                <div class="o_default_snippet_text text-uppercase text-lg-semibold  text-primary">Membership and facilities</div>
+
+                                <div class="row mb-2 mt16">
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/authority-members" data-uw-rm-brl="PR" data-uw-original-href="/en/authority-members" aria-label="Members of the authority" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Members of the authority</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/facilities" data-uw-rm-brl="PR" data-uw-original-href="/en/facilities" aria-label="Taqeem facilities" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Taqeem facilities</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/inspectors-guide" data-uw-rm-brl="PR" data-uw-original-href="/en/inspectors-guide" aria-label="Inspectors guide" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Inspectors guide</span>
+
+                                            </a>
+                                        </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </li>
+
+
+        
+
+
+        
+
+
+        
+
+
+
+
+            
+        <div class="nav-item dropdown o_extra_menu_items"><a role="button" href="#" class="nav-link dropdown-toggle o-no-caret" data-bs-toggle="dropdown" aria-expanded="false" data-uw-rm-brl="PR" data-uw-original-href="#" aria-label="plus" data-uw-rm-empty-ctrl=""><i class="fa fa-plus"></i></a><div class="dropdown-menu"><li class="dropdown position-static me-1">
+            <a data-bs-toggle="dropdown" href="#" aria-expanded="false" class="align-items-center d-flex dropdown-toggle o_mega_menu_toggle dropdown-item" data-uw-rm-brl="PR" data-uw-original-href="#" aria-label="angle-down" data-uw-rm-empty-ctrl="">
+                <span class="text-md-medium">Media center</span>
+                <i class="fa fa-angle-down text-dark"></i>
+
+            </a>
+            <div data-name="Mega Menu" class="border-top rounded-bottom dropdown-menu o_mega_menu dropdown-menu-start">
+                <section class="border-top s_mega_menu_odoo_menu pt16 o_colored_level o_cc o_cc1">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6 col-lg pt16 pb24">
+                                <div class="o_default_snippet_text text-uppercase text-lg-semibold  text-primary">Media center</div>
+
+                                <div class="row mb-2 mt16">
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/news" data-uw-rm-brl="PR" data-uw-original-href="/en/news" aria-label="Taqeem news" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Taqeem news</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/event" data-uw-rm-brl="PR" data-uw-original-href="/en/event" aria-label="Events" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Events</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/digital-lib" data-uw-rm-brl="PR" data-uw-original-href="/en/digital-lib" aria-label="The digital library" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">The digital library</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/visual-identity" data-uw-rm-brl="PR" data-uw-original-href="/en/visual-identity" aria-label="Visual identity" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Visual identity</span>
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/portal-survey" data-uw-rm-brl="PR" data-uw-original-href="/en/portal-survey" aria-label="Surveys" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Surveys</span>
+
+                                            </a>
+                                        </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </li><li class="dropdown position-static me-1">
+            <a data-bs-toggle="dropdown" href="#" aria-expanded="false" class="align-items-center d-flex dropdown-toggle o_mega_menu_toggle dropdown-item" data-uw-rm-brl="PR" data-uw-original-href="#" aria-label="angle-down" data-uw-rm-empty-ctrl="">
+                <span class="text-md-medium">E-services</span>
+                <i class="fa fa-angle-down text-dark"></i>
+
+            </a>
+            <div data-name="Mega Menu" class="border-top rounded-bottom dropdown-menu o_mega_menu dropdown-menu-start">
+                <section class="border-top s_mega_menu_odoo_menu pt16 o_colored_level o_cc o_cc1">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6 col-lg pt16 pb24">
+                                <div class="o_default_snippet_text text-uppercase text-lg-semibold  text-primary">E-services</div>
+
+                                <div class="row mb-2 mt16">
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="https://eqaym.taqeem.gov.sa/" target="_blank" data-uw-rm-brl="PR" data-uw-original-href="https://eqaym.taqeem.gov.sa/" aria-label="Qaym system - open in a new tab" data-uw-rm-empty-ctrl="" data-uw-rm-ext-link="" uw-rm-external-link-id="https://eqaym.taqeem.gov.sa/$qaymsystem">
+                                                <span class="text-md-medium">Qaym system</span>
+                                                <img class="ms-2" src="/website_base/static/src/img/new_theme/common/redirect_icon.svg" loading="lazy" data-lazy-loading-initial-min-height="" style="min-height: 1px;" role="presentation" data-uw-rm-alt-original="null" alt="" data-uw-rm-alt-hash="3338908027751811" data-uw-rm-alt="SVG">
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="https://qima.taqeem.gov.sa/valuer/login" target="_blank" data-uw-rm-brl="PR" data-uw-original-href="https://qima.taqeem.gov.sa/valuer/login" aria-label="E-services portal - open in a new tab" data-uw-rm-empty-ctrl="" data-uw-rm-ext-link="" uw-rm-external-link-id="https://qima.taqeem.gov.sa/valuer/login$e-servicesportal">
+                                                <span class="text-md-medium">E-services portal</span>
+                                                <img class="ms-2" src="/website_base/static/src/img/new_theme/common/redirect_icon.svg" loading="lazy" data-lazy-loading-initial-min-height="" style="min-height: 1px;" role="presentation" data-uw-rm-alt-original="null" alt="" data-uw-rm-alt-hash="3338908027751811" data-uw-rm-alt="SVG">
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="https://taqdeer.sa/" target="_blank" data-uw-rm-brl="PR" data-uw-original-href="https://taqdeer.sa/" aria-label="Taqdeer organization - open in a new tab" data-uw-rm-empty-ctrl="" data-uw-rm-ext-link="" uw-rm-external-link-id="https://taqdeer.sa/$taqdeerorganization">
+                                                <span class="text-md-medium">Taqdeer organization</span>
+                                                <img class="ms-2" src="/website_base/static/src/img/new_theme/common/redirect_icon.svg" loading="lazy" data-lazy-loading-initial-min-height="" style="min-height: 1px;" role="presentation" data-uw-rm-alt-original="null" alt="" data-uw-rm-alt-hash="3338908027751811" data-uw-rm-alt="SVG">
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="https://marjea.taqeem.gov.sa" target="_blank" data-uw-rm-brl="PR" data-uw-original-href="https://marjea.taqeem.gov.sa" aria-label="Marjea Platform - open in a new tab" data-uw-rm-empty-ctrl="" data-uw-rm-ext-link="" uw-rm-external-link-id="https://marjea.taqeem.gov.sa/$marjeaplatform">
+                                                <span class="text-md-medium">Marjea Platform</span>
+                                                <img class="ms-2" src="/website_base/static/src/img/new_theme/common/redirect_icon.svg" loading="lazy" data-lazy-loading-initial-min-height="" style="min-height: 1px;" role="presentation" data-uw-rm-alt-original="null" alt="" data-uw-rm-alt-hash="3338908027751811" data-uw-rm-alt="SVG">
+
+                                            </a>
+                                        </div>
+                                        <div class="col me-2">
+                                            <a class="text-dark mb-2 d-flex align-items-center py-1" href="/en/tenders" data-uw-rm-brl="PR" data-uw-original-href="/en/tenders" aria-label="Tenders" data-uw-rm-empty-ctrl="">
+                                                <span class="text-md-medium">Tenders</span>
+
+                                            </a>
+                                        </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </li><li class="me-1" role="presentation">
+            <a href="/en/contactus" class="align-items-center d-flex nav-item dropdown-item" data-uw-rm-brl="PR" data-uw-original-href="/en/contactus" aria-label="Support" data-uw-rm-empty-ctrl="">
+                <span class="text-md-medium">Support</span>
+            </a>
+        </li></div></div></ul>
+        <div class="d-none d-lg-flex d-md-none ms-auto">
+            <div class="align-items-center d-flex nav-link dropdown-toggle ">
+                <a id="search-redirect" class=" ow-btn-search ow-btn-search-shown me-2 ms-2 d-none d-md-none d-lg-flex text-dark" data-toggle="collapse" data-target="#searchDiv" aria-expanded="false" aria-controls="searchDiv">
+                    <img width="24" title="Search" src="/website_base/static/src/img/new_theme/common/search_icon.svg" loading="lazy" style="">
+                </a>
+            </div>
+        <div id="lang-switcher" class="align-items-center d-flex nav-link dropdown-toggle ms-auto d-flex">
+            <a id="lang-switch-e" class="text-dark my-auto text-decoration-none text-reset ow-lang-ar" href="/website/lang/ar?r=https://www.taqeem.gov.sa//facilities?sector=all">
+                <img src="/website_base/static/src/img/new_theme/common/lang_icon_dark.svg" width="20" loading="lazy" style="">
+                <span class="text-md-medium mx-1">
+                    Arabic
+                </span>
+            </a>
+        </div>
+        </div>
+            
+            
+        
+        
+
+
+            
+    <ul id="top_menu" role="menu" class="nav navbar-nav o_menu_loading d-block d-md-block d-lg-none flex-grow-1 o-header-mobile mt-2">
+        
+                
+        <li class="nav-item mt-2 dropdown  ">
+            <a data-bs-toggle="collapse" href="#" aria-expanded="false" class="text-lg-semibold my-0 nav-link  navbar-toggler collapsed  d-flex submenu-toggler " data-bs-target="#submenu_7">
+                <i class="dropdown-toggle hide"></i>
+                <span class="w-75">About Taqeem</span>
+                <i class="fa fa-angle-down w-25 text-end text-dark "></i>
+
+            </a>
+            <ul class="ps-3 submenu-collapse collapse" id="submenu_7">
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/about-us" class="'d-flex align-items-center' ">
+            <span>Who are we</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/board-director" class="'d-flex align-items-center' ">
+            <span>Board of Directors</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/ceo-speech" class="'d-flex align-items-center' ">
+            <span>CEO's speech</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/rules" class="'d-flex align-items-center' ">
+            <span>Laws and regulations</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/strategy" class="'d-flex align-items-center' ">
+            <span>Taqeem strategy</span>
+        </a>
+    </li>
+            </ul>
+        </li>
+        <li class="nav-item mt-2 dropdown  ">
+            <a data-bs-toggle="collapse" href="#" aria-expanded="false" class="text-lg-semibold my-0 nav-link  navbar-toggler collapsed  d-flex submenu-toggler " data-bs-target="#submenu_13">
+                <i class="dropdown-toggle hide"></i>
+                <span class="w-75">Valuation Sectors</span>
+                <i class="fa fa-angle-down w-25 text-end text-dark "></i>
+
+            </a>
+            <ul class="ps-3 submenu-collapse collapse" id="submenu_13">
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/sector/realEstate" class="'d-flex align-items-center' ">
+            <span>Real estate valuation</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/sector/business" class="'d-flex align-items-center' ">
+            <span>Business valuation</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/sector/equipment" class="'d-flex align-items-center' ">
+            <span>Machinery &amp; Equipment valuation</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/sector/vehicle" class="'d-flex align-items-center' ">
+            <span>Vehicle Damage assessment valuation</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/sector/metals" class="'d-flex align-items-center' ">
+            <span>Precious metals &amp; gemstones valuation</span>
+        </a>
+    </li>
+            </ul>
+        </li>
+        <li class="nav-item mt-2 dropdown  ">
+            <a data-bs-toggle="collapse" href="#" aria-expanded="false" class="text-lg-semibold my-0 nav-link  navbar-toggler collapsed  d-flex submenu-toggler " data-bs-target="#submenu_20">
+                <i class="dropdown-toggle hide"></i>
+                <span class="w-75">Taqeem academy</span>
+                <i class="fa fa-angle-down w-25 text-end text-dark "></i>
+
+            </a>
+            <ul class="ps-3 submenu-collapse collapse" id="submenu_20">
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/training-prg" class="'d-flex align-items-center' ">
+            <span>Training Courses</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/training-prg?tab=service" class="'d-flex align-items-center' ">
+            <span>Training Services</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/training-prg?tab=policy" class="'d-flex align-items-center' ">
+            <span>Training Courses Policies</span>
+        </a>
+    </li>
+            </ul>
+        </li>
+        <li class="nav-item mt-2 dropdown active ">
+            <a data-bs-toggle="collapse" href="#" aria-expanded="false" class="text-lg-semibold my-0 nav-link  navbar-toggler collapsed  d-flex submenu-toggler " data-bs-target="#submenu_37">
+                <i class="dropdown-toggle hide"></i>
+                <span class="w-75">Membership and facilities</span>
+                <i class="fa fa-angle-down w-25 text-end text-dark "></i>
+
+            </a>
+            <ul class="ps-3 submenu-collapse collapse" id="submenu_37">
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/authority-members" class="'d-flex align-items-center' ">
+            <span>Members of the authority</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/facilities" class="'d-flex align-items-center' active">
+            <span>Taqeem facilities</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/inspectors-guide" class="'d-flex align-items-center' ">
+            <span>Inspectors guide</span>
+        </a>
+    </li>
+            </ul>
+        </li>
+        <li class="nav-item mt-2 dropdown  ">
+            <a data-bs-toggle="collapse" href="#" aria-expanded="false" class="text-lg-semibold my-0 nav-link  navbar-toggler collapsed  d-flex submenu-toggler " data-bs-target="#submenu_28">
+                <i class="dropdown-toggle hide"></i>
+                <span class="w-75">Media center</span>
+                <i class="fa fa-angle-down w-25 text-end text-dark "></i>
+
+            </a>
+            <ul class="ps-3 submenu-collapse collapse" id="submenu_28">
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/news" class="'d-flex align-items-center' ">
+            <span>Taqeem news</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/event" class="'d-flex align-items-center' ">
+            <span>Events</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/digital-lib" class="'d-flex align-items-center' ">
+            <span>The digital library</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/visual-identity" class="'d-flex align-items-center' ">
+            <span>Visual identity</span>
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/portal-survey" class="'d-flex align-items-center' ">
+            <span>Surveys</span>
+        </a>
+    </li>
+            </ul>
+        </li>
+        <li class="nav-item mt-2 dropdown  ">
+            <a data-bs-toggle="collapse" href="#" aria-expanded="false" class="text-lg-semibold my-0 nav-link  navbar-toggler collapsed  d-flex submenu-toggler " data-bs-target="#submenu_35">
+                <i class="dropdown-toggle hide"></i>
+                <span class="w-75">E-services</span>
+                <i class="fa fa-angle-down w-25 text-end text-dark "></i>
+
+            </a>
+            <ul class="ps-3 submenu-collapse collapse" id="submenu_35">
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="https://eqaym.taqeem.gov.sa/" class="'d-flex align-items-center' " target="_blank">
+            <span>Qaym system</span>
+            <img class="ms-2" src="/website_base/static/src/img/new_theme/common/redirect_icon.svg" loading="lazy" data-lazy-loading-initial-min-height="" style="min-height: 1px;">
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="https://qima.taqeem.gov.sa/valuer/login" class="'d-flex align-items-center' " target="_blank">
+            <span>E-services portal</span>
+            <img class="ms-2" src="/website_base/static/src/img/new_theme/common/redirect_icon.svg" loading="lazy" data-lazy-loading-initial-min-height="" style="min-height: 1px;">
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="https://taqdeer.sa/" class="'d-flex align-items-center' " target="_blank">
+            <span>Taqdeer organization</span>
+            <img class="ms-2" src="/website_base/static/src/img/new_theme/common/redirect_icon.svg" loading="lazy" data-lazy-loading-initial-min-height="" style="min-height: 1px;">
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="https://marjea.taqeem.gov.sa" class="'d-flex align-items-center' " target="_blank">
+            <span>Marjea Platform</span>
+            <img class="ms-2" src="/website_base/static/src/img/new_theme/common/redirect_icon.svg" loading="lazy" data-lazy-loading-initial-min-height="" style="min-height: 1px;">
+        </a>
+    </li>
+    <li role="presentation" class="text-md-medium pb8">
+        <a role="menuitem" href="/en/tenders" class="'d-flex align-items-center' ">
+            <span>Tenders</span>
+        </a>
+    </li>
+            </ul>
+        </li>
+        <li role="presentation" class="nav-item">
+            <a role="menuitem" href="/en/contactus" class="text-lg-semibold nav-link ">
+                <span>Support</span>
+            </a>
+        </li>
+
+                
+                
+        
+        
+            
+    </ul>
+
+
+        
+                </div>
+                
+        <div class="oe_structure oe_structure_solo ms-lg-4">
+            <section class="s_text_block" data-snippet="s_text_block" data-name="Text">
+                <div class="container">
+                    </div>
+            </section>
+        </div>
+                
+             <a id="search-redirect" class=" ow-btn-search ow-btn-search-shown align-items-center ms-0 mt-n2 d-flex d-md-flex d-lg-none" data-toggle="collapse" data-target="#searchDiv" aria-expanded="false" aria-controls="searchDiv">
+                 <img src="/website_base/static/src/img/new_theme/common/search_icon.svg" width="24" loading="lazy" data-lazy-loading-initial-min-height="" style="min-height: 1px;">
+
+                </a>
+        <div id="lang-switcher" class="align-items-center d-flex nav-link dropdown-toggle ms-3 mt-n2 d-lg-none d-md-flex d-flex">
+            <a id="lang-switch-e" class="text-dark my-auto text-decoration-none text-reset ow-lang-ar" href="/website/lang/ar?r=https://www.taqeem.gov.sa//facilities?sector=all">
+                <img src="/website_base/static/src/img/new_theme/common/lang_icon_dark.svg" width="20" loading="lazy" data-lazy-loading-initial-min-height="" style="min-height: 1px;">
+                <span class="text-md-medium mx-1">
+                    Arabic
+                </span>
+            </a>
+        </div>
+    <button type="button" data-bs-toggle="collapse" data-bs-target="#top_menu_collapse" class="navbar-toggler ">
+        <input type="checkbox" id="toggleCheckbox" data-uw-rm-form="fx" aria-label="hidden-control-element" data-uw-hidden-control="hidden-control-element">
+            <label for="toggleCheckbox" class="navbar-toggler ms-auto collapsed" data-bs-toggle="collapse" data-bs-target="#top_menu_collapse" aria-expanded="false">
+                <div class="navbar-toggler-icon o_not_editable text-end"></div>
+            <span class="" data-uw-reader-element="" data-uw-rm-ignore="" style="color: rgb(255, 255, 255) !important; background: rgb(0, 0, 0) !important; clip: rect(1px, 1px, 1px, 1px) !important; clip-path: inset(50%) !important; height: 1px !important; width: 1px !important; margin: -1px !important; overflow: hidden !important; padding: 0px !important; position: absolute !important;">Checkbox field</span></label>
+        </button>
+        </div>
+        
+    </nav>
+            <div id="searchDiv" class="ow-global-search collapse text-pb40 pt16 border-top border-bottom">
+                <div class="container ">
+                    
+                    <div class="row col-12 justify-content-end text-pb40">
+
+                        <button id="header_search_close" type="button" class="btn-close opacity-100 " aria-label="Close search">
+                        </button>
+                    </div>
+                    <div class="row align-items-center">
+                        <div class="col-lg-11 col-md-10 col-9 ps-3">
+                            <div class="ow-global-search-input form-control-wrapper position-relative">
+                                <i class="fa fa-search"></i>
+                                <input id="header_search_input" type="text" placeholder="What are you looking for?" class="form-control ow-search-input" required="" data-uw-rm-form="fx" aria-label="What are you looking for?" data-uw-hidden-control="hidden-control-element" aria-required="true">
+                                
+                                <span id="globalSearchClear" class="cursor-pointer d-none">
+                                    <i class="fa fa-close"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-lg-1 col-md-2 col-3 text-end">
+                            <button id="header_btn_submit_search" type="button" class="border-none btn-primary py-2 px-md-4 px-1 mt-2">Search
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row col-12 ps-3">
+        
+        <div class="row ow-quick-search">
+            <div class="col-12 mt-3 ps-0">
+                <div class="text-lg-semibold text-primary">
+                    Most used interests
+                </div>
+            </div>
+            <div class="col-12 mt-2 p-0">
+                <div class="d-flex flex-wrap gap-8">
+                        <a class="bg-card border rounded-sm text-md-medium text-dark px-2 py-1 text-dark d-inline-flex align-items-center" style="white-space: nowrap;" href="/en/search?search=Membership renewal">
+                            <i class="fa fa-plus me-1"></i>
+                            Membership renewal
+                        </a>
+                        <a class="bg-card border rounded-sm text-md-medium text-dark px-2 py-1 text-dark d-inline-flex align-items-center" style="white-space: nowrap;" href="/en/search?search=Get a membership">
+                            <i class="fa fa-plus me-1"></i>
+                            Get a membership
+                        </a>
+                        <a class="bg-card border rounded-sm text-md-medium text-dark px-2 py-1 text-dark d-inline-flex align-items-center" style="white-space: nowrap;" href="/en/search?search=License renewal">
+                            <i class="fa fa-plus me-1"></i>
+                            License renewal
+                        </a>
+                        <a class="bg-card border rounded-sm text-md-medium text-dark px-2 py-1 text-dark d-inline-flex align-items-center" style="white-space: nowrap;" href="/en/search?search=Inssuance of license">
+                            <i class="fa fa-plus me-1"></i>
+                            Inssuance of license
+                        </a>
+                        <a class="bg-card border rounded-sm text-md-medium text-dark px-2 py-1 text-dark d-inline-flex align-items-center" style="white-space: nowrap;" href="/en/search?search=Financial compensation">
+                            <i class="fa fa-plus me-1"></i>
+                            Financial compensation
+                        </a>
+                        <a class="bg-card border rounded-sm text-md-medium text-dark px-2 py-1 text-dark d-inline-flex align-items-center" style="white-space: nowrap;" href="/en/search?search=Membership card">
+                            <i class="fa fa-plus me-1"></i>
+                            Membership card
+                        </a>
+                        <a class="bg-card border rounded-sm text-md-medium text-dark px-2 py-1 text-dark d-inline-flex align-items-center" style="white-space: nowrap;" href="/en/search?search=Fellowship certificate">
+                            <i class="fa fa-plus me-1"></i>
+                            Fellowship certificate
+                        </a>
+                        <a class="bg-card border rounded-sm text-md-medium text-dark px-2 py-1 text-dark d-inline-flex align-items-center" style="white-space: nowrap;" href="/en/search?search=Register for the course or test">
+                            <i class="fa fa-plus me-1"></i>
+                            Register for the course or test
+                        </a>
+                        <a class="bg-card border rounded-sm text-md-medium text-dark px-2 py-1 text-dark d-inline-flex align-items-center" style="white-space: nowrap;" href="/en/search?search=Refund of the course or test amount">
+                            <i class="fa fa-plus me-1"></i>
+                            Refund of the course or test amount
+                        </a>
+                        <a class="bg-card border rounded-sm text-md-medium text-dark px-2 py-1 text-dark d-inline-flex align-items-center" style="white-space: nowrap;" href="/en/search?search=Canceling a course or test">
+                            <i class="fa fa-plus me-1"></i>
+                            Canceling a course or test
+                        </a>
+                        <a class="bg-card border rounded-sm text-md-medium text-dark px-2 py-1 text-dark d-inline-flex align-items-center" style="white-space: nowrap;" href="/en/search?search=Modify personal data">
+                            <i class="fa fa-plus me-1"></i>
+                            Modify personal data
+                        </a>
+                        <a class="bg-card border rounded-sm text-md-medium text-dark px-2 py-1 text-dark d-inline-flex align-items-center" style="white-space: nowrap;" href="/en/search?search=Create new account in the electronic services portal">
+                            <i class="fa fa-plus me-1"></i>
+                            Create new account in the electronic services portal
+                        </a>
+                        <a class="bg-card border rounded-sm text-md-medium text-dark px-2 py-1 text-dark d-inline-flex align-items-center" style="white-space: nowrap;" href="/en/search?search=Licensed evaluation facilities">
+                            <i class="fa fa-plus me-1"></i>
+                            Licensed evaluation facilities
+                        </a>
+                </div>
+            </div>
+        </div>
+        <div class="row text-center my-4 ms-1 py-4 ot-light-bg d-none" id="search-loader">
+            <div class="col-12 text-center my-4 py-4">
+                <div class="loader mx-auto"></div>
+            </div>
+            <div class="col-12 my-4 py-4">
+                Searching for available
+                <span>results</span>
+            </div>
+
+        </div>
+
+
+                    </div>
+
+                </div>
+            </div>
+    
+        </header>
+                <main>
+                    
+            <div id="wrap" class="ow-facility">
+                
+        <section id="header_section" class="bg-light">
+            <div class="container text-pt40 pb64">
+                <div class="row">
+                    <div class="col-lg-7 col-md-7 col-12 ">
+                        <a href="/en/" class="my-0 me-1 text-gray-800">
+                            <span class="text-sm-regular text-gray-800">Home</span>
+                        </a>
+                        <i class="fa fa-angle-right text-gray-400"></i>
+                        <span class="text-sm-regular text-gray-800 me-1 ms-n2">Membership and facilities</span>
+                        <i class="fa fa-angle-right text-gray-400"></i>
+                        <span class="text-sm-regular text-gray-400  ms-n2">List of valuation facilities</span>
+                    </div>
+                    <div class="col-lg-5 col-md-5 col-12 ps-md-0 ps-3 mt-md-0 mt-3">
+        <div class="d-flex justify-content-md-end justify-content-start">
+            <div class="text-md-medium my-auto pe-3">
+                Share the page :
+            </div>
+            <div class="d-inline-flex">
+
+                <div class="">
+                    <a class="p-1 me-2 btn-default" target="_blank" href="https://twitter.com/intent/tweet?text=List of valuation facilities+http://www.taqeem.gov.sa/facilities?sector=all">
+                        <img src="/website_base/static/src/img/new_theme/common/x_dark_icon.svg" loading="lazy" style="">
+                    </a>
+                </div>
+                <div class="">
+
+                    <a class="p-1 me-2 btn-default" target="_blank" href="https://www.linkedin.com/sharing/share-offsite/?url=http://www.taqeem.gov.sa/facilities?sector=all">
+                        <img src="/website_base/static/src/img/new_theme/common/linkedin_dark_icon.svg" loading="lazy" style="">
+                    </a>
+                </div>
+                <div class="">
+
+                    <a class="p-1 me-2 btn-default" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://www.taqeem.gov.sa/facilities?sector=all">
+                        <img src="/website_base/static/src/img/new_theme/common/facebook_dark_icon.svg" loading="lazy" style="">
+                    </a>
+                </div>
+                <div class="">
+                    <a class="p-1 me-2 btn-default" target="_blank" href="https://wa.me/?text=List of valuation facilities%20http://www.taqeem.gov.sa/facilities?sector=all">
+                        <img src="/website_base/static/src/img/new_theme/common/whatsapp_dark_icon.svg" loading="lazy" style="">
+                    </a>
+
+
+                </div>
+            </div>
+
+
+        </div>
+                    </div>
+                </div>
+                <div class="row mt-2 mb-4">
+                    <div class="col-12 my-auto">
+                        <div class="text-l-bold text-dark mt-0">
+                            List of valuation facilities
+                        </div>
+                    </div>
+
+
+                </div>
+
+
+            </div>
+        </section>
+
+
+                <section id="facilities_content">
+                    <div class="container text-pt40 text-pb40">
+
+                        <div class="row">
+                            <div class="text-l-bold text-dark mt-0 mb-4">
+                                Search for valuation facilities
+                            </div>
+
+                            <div class="col-12">
+        <nav class="py-0 mb-2 ow-navbar-custom o_portal_navbar  border-top-0">
+                
+                <div id="o_portal_navbar_content" class="row d-flex">
+                    
+
+                    <form class="o_portal_search_panel btn-group  col-lg-6 col-md-5 ">
+                        <div class=" mt-2 p-0 pe-md-0 pe-3 col-lg-12 col-md-12">
+                            <label for="search" class="mb-2">
+                                <span class="text-sm-regular text-dark">Facility name</span>
+                            </label>
+                            <div id="searchbar_input_id" class="op-search-input form-control-wrapper position-relative">
+                                
+
+                                <i class="fa fa-search"></i>
+
+                                
+                                <input type="text" class="form-control form-control-sm border-0 me-1 ms-1 mt-0 ow-search-input" placeholder="Search ..." name="search" id="searchInput">
+
+                                
+                                <span id="searchClear" class="cursor-pointer d-none">
+                                    <i class="fa fa-close"></i>
+                                </span>
+                            </div>
+
+                        </div>
+
+
+                    </form>
+
+                    <form class="ow-search-panel-custom d-contents">
+                            
+                            
+                            
+                            <div class="col-lg-6 col-md-5 col-11 mt-2 ps-3 pe-lg-3 pe-md-3 pe-0">
+                                <label class="mb-2" for="crNumber">
+                                    <span class="text-sm-regular text-dark">Commercial registration/Cr entity number</span>
+
+                                </label>
+                                
+                                <div id="searchbar_input_id" class="op-searchbar-custom  form-control-wrapper position-relative">
+
+
+                                        <i class="fa fa-search"></i>
+
+                                        <input class="form-control form-control-sm border-0 me-1 ms-1 mt-0 ow-custom-search-input" placeholder="Select.." type="text" name="crNumber">
+                                        
+                                        <span id="customSearchClear" class="cursor-pointer d-none">
+                                            <i class="fa fa-close"></i>
+                                        </span>
+
+                                    
+                                    
+                                    
+                                </div>
+
+                            </div>
+                            
+                            
+                            
+                            <div class="col-lg-6 col-md-5 col-11 mt-2 ps-3 pe-lg-3 pe-md-3 pe-0">
+                                <label class="mb-2" for="license">
+                                    <span class="text-sm-regular text-dark">License number</span>
+
+                                </label>
+                                
+                                <div id="searchbar_input_id" class="op-searchbar-custom  form-control-wrapper position-relative">
+
+
+                                        <i class="fa fa-search"></i>
+
+                                        <input class="form-control form-control-sm border-0 me-1 ms-1 mt-0 ow-custom-search-input" placeholder="Select.." type="text" name="license">
+                                        
+                                        <span id="customSearchClear" class="cursor-pointer d-none">
+                                            <i class="fa fa-close"></i>
+                                        </span>
+
+                                    
+                                    
+                                    
+                                </div>
+
+                            </div>
+                        <button type="submit" class="d-none"></button>
+
+                    </form>
+
+
+
+
+
+        <div class="btn-group ow-filter-panel d-block col-lg-6 col-md-5 col-11 pe-lg-3 pe-md-3 pe-0">
+            <label class="mb-2 text-sm-regular text-dark">
+                Classification
+            </label>
+            <button id="portal_searchbar_filters" data-bs-toggle="dropdown" class="btn btn-secondary btn-sm w-100 form-control-wrapper">
+                <div class="w-75" data-filter-tag="classification">
+                    Select ...
+                </div>
+                <div class="w-25">
+                    <img src="/website_base/static/src/img/expand_more.png" class="o-expand-more" loading="lazy" style="">
+
+                </div>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="portal_searchbar_filters">
+                <div class="px-2 mb-2 form-control-wrapper">
+                    <input type="text" id="dropdown-search-input" class="form-control form-control-sm ow-input-search-dropdown" placeholder="Search filters...">
+                </div>
+                <div class="dropdown-items-container" style="max-height: 300px; overflow-y: auto">
+                        
+                        
+                        <a href="/en/facilities?classification=all&amp;sector=all" class="dropdown-item">
+                            <span id="all">All</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?classification=1&amp;sector=all" class="dropdown-item">
+                            <span id="1">VFR1</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?classification=2&amp;sector=all" class="dropdown-item">
+                            <span id="2">VFR2</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?classification=3&amp;sector=all" class="dropdown-item">
+                            <span id="3">VFR3</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?classification=4&amp;sector=all" class="dropdown-item">
+                            <span id="4">VFR4</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?classification=5&amp;sector=all" class="dropdown-item">
+                            <span id="5">VFR5</span>
+                        </a>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+        <div class="btn-group ow-filter-panel d-block col-lg-6 col-md-5 col-11 pe-lg-3 pe-md-3 pe-0">
+            <label class="mb-2 text-sm-regular text-dark">
+                Sector
+            </label>
+            <button id="portal_searchbar_filters" data-bs-toggle="dropdown" class="btn btn-secondary btn-sm w-100 form-control-wrapper">
+                <div class="w-75" data-filter-tag="sector">All</div>
+                <div class="w-25">
+                    <img src="/website_base/static/src/img/expand_more.png" class="o-expand-more" loading="lazy" style="">
+
+                </div>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="portal_searchbar_filters">
+                <div class="px-2 mb-2 form-control-wrapper">
+                    <input type="text" id="dropdown-search-input" class="form-control form-control-sm ow-input-search-dropdown" placeholder="Search filters...">
+                </div>
+                <div class="dropdown-items-container" style="max-height: 300px; overflow-y: auto">
+                        
+                        
+                        <a href="/en/facilities?sector=all&amp;" class="dropdown-item">
+                            <span id="all">All</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?sector=real_estate&amp;" class="dropdown-item">
+                            <span id="real_estate">Real estate</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?sector=business&amp;" class="dropdown-item">
+                            <span id="business">Business valuation</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?sector=vehicle&amp;" class="dropdown-item">
+                            <span id="vehicle">Vehicle damage</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?sector=machinery&amp;" class="dropdown-item">
+                            <span id="machinery">Machinery and equipment</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?sector=metals&amp;" class="dropdown-item">
+                            <span id="metals">Metals</span>
+                        </a>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+        <div class="btn-group ow-filter-panel d-block col-lg-6 col-md-5 col-11 pe-lg-3 pe-md-3 pe-0">
+            <label class="mb-2 text-sm-regular text-dark">
+                Region
+            </label>
+            <button id="portal_searchbar_filters" data-bs-toggle="dropdown" class="btn btn-secondary btn-sm w-100 form-control-wrapper">
+                <div class="w-75" data-filter-tag="region">
+                    Select ...
+                </div>
+                <div class="w-25">
+                    <img src="/website_base/static/src/img/expand_more.png" class="o-expand-more" loading="lazy" style="">
+
+                </div>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="portal_searchbar_filters">
+                <div class="px-2 mb-2 form-control-wrapper">
+                    <input type="text" id="dropdown-search-input" class="form-control form-control-sm ow-input-search-dropdown" placeholder="Search filters...">
+                </div>
+                <div class="dropdown-items-container" style="max-height: 300px; overflow-y: auto">
+                        
+                        
+                        <a href="/en/facilities?region=all&amp;sector=all" class="dropdown-item">
+                            <span id="all">All</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?region=1670&amp;sector=all" class="dropdown-item">
+                            <span id="1670">منطقة الرياض</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?region=1776&amp;sector=all" class="dropdown-item">
+                            <span id="1776">المنطقة الشرقية</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?region=1888&amp;sector=all" class="dropdown-item">
+                            <span id="1888">مكة المكرمة</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?region=1677&amp;sector=all" class="dropdown-item">
+                            <span id="1677">منطقة الجوف</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?region=1890&amp;sector=all" class="dropdown-item">
+                            <span id="1890">القصيم</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?region=1679&amp;sector=all" class="dropdown-item">
+                            <span id="1679">منطقة جازان</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?region=1672&amp;sector=all" class="dropdown-item">
+                            <span id="1672">منطقة عسير</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?region=1671&amp;sector=all" class="dropdown-item">
+                            <span id="1671">منطقة حائل</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?region=1889&amp;sector=all" class="dropdown-item">
+                            <span id="1889">منطقة المدينة</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?region=1676&amp;sector=all" class="dropdown-item">
+                            <span id="1676">منطقة تبوك</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?region=1683&amp;sector=all" class="dropdown-item">
+                            <span id="1683">منطقة نجران</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?region=1682&amp;sector=all" class="dropdown-item">
+                            <span id="1682">منطقة الحدود الشمالية</span>
+                        </a>
+                        
+                        
+                        <a href="/en/facilities?region=1678&amp;sector=all" class="dropdown-item">
+                            <span id="1678">منطقة الباحة</span>
+                        </a>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+                        <div class="col-12 pt-3 d-grid justify-content-end">
+                            <button class="btn-default ow-reset-filter">
+                                Reset
+                            </button>
+
+                        </div>
+
+
+                    
+                                
+
+                </div>
+            </nav>
+
+
+                            </div>
+                        </div>
+                        <div class="row mt-5 ">
+                            <div class="col-md-12">
+                                    <hr class="mt40 mb40">
+                                    <div class="row mx-2">
+                                        <div class="text-l-bold text-dark mt-0 mb-4">
+                                            Result for search of "Valuation facilities"
+                                        </div>
+                                    </div>
+                                    <div class="row ps-3 mt-2 mx-2">
+                                                <div class="col-lg-4 col-md-6 col-12 mb-lg-4 mb-md-3 mb-3 ps-0 pe-lg-4 pe-md-3 pe-3">
+                                                    <div class="border rounded p-3 h-100 d-flex flex-column">
+                                                        <div class="d-flex justify-content-between align-items-center">
+
+                                                            <div class="d-grid">
+
+                                                                <img src="/website_base/static/src/img/new_theme/common/org-avatar.svg" width="48" loading="lazy" style="">
+
+                                                                <span class="text-lg-bold text-gray-800">شركة إجادة السعودية وشريكه للتقييم العقاري</span>
+
+
+                                                            </div>
+                                                            <div class="d-flex">
+                                                                    <span class="ot-rec-active border-active ow-hint-container">
+                                                                        VFR3
+                                                                        <span class="ow-hint-text">
+                                                                            The agency considers the governance practices, administrative practices and technical expertise of resident entities to be of average standards
+                                                                        </span>
+                                                                    </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row pb-3">
+                                                             <div class="col-12 mt-2 d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    State:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="ot-rec-active border-active text-s-medium">
+                                                                        Active
+                                                                    </span>
+
+
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-12 mt-2  d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    Region:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="text-dark">منطقة الرياض</span>
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-2 d-flex text-md-regular">
+
+                                                                <div class=" text-gray-700">
+                                                                    Commercial number / Cr entity nb:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                        1010582096
+
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-3 ">
+                                                                <span class="ot-rec-muted border-muted">Real estate</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mt-auto align-content-end">
+                                                            <a class="btn-primary" href="/en/authority-partner/2122240">
+                                                                Show details
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-4 col-md-6 col-12 mb-lg-4 mb-md-3 mb-3 ps-0 pe-lg-4 pe-md-3 pe-3">
+                                                    <div class="border rounded p-3 h-100 d-flex flex-column">
+                                                        <div class="d-flex justify-content-between align-items-center">
+
+                                                            <div class="d-grid">
+
+                                                                <img src="/website_base/static/src/img/new_theme/common/org-avatar.svg" width="48" loading="lazy" style="">
+
+                                                                <span class="text-lg-bold text-gray-800">شركة اجادة المهنية للتقييم شركة شخص واحد</span>
+
+
+                                                            </div>
+                                                            <div class="d-flex">
+                                                                    <span class="ot-rec-active border-active ow-hint-container">
+                                                                        VFR3
+                                                                        <span class="ow-hint-text">
+                                                                            The agency considers the governance practices, administrative practices and technical expertise of resident entities to be of average standards
+                                                                        </span>
+                                                                    </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row pb-3">
+                                                             <div class="col-12 mt-2 d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    State:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="ot-rec-active border-active text-s-medium">
+                                                                        Active
+                                                                    </span>
+
+
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-12 mt-2  d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    Region:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="text-dark">مكة المكرمة</span>
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-2 d-flex text-md-regular">
+
+                                                                <div class=" text-gray-700">
+                                                                    Commercial number / Cr entity nb:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                        4030297680
+
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-3 ">
+                                                                <span class="ot-rec-muted border-muted">Real estate</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mt-auto align-content-end">
+                                                            <a class="btn-primary" href="/en/authority-partner/2122241">
+                                                                Show details
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-4 col-md-6 col-12 mb-lg-4 mb-md-3 mb-3 ps-0 pe-lg-4 pe-md-3 pe-3">
+                                                    <div class="border rounded p-3 h-100 d-flex flex-column">
+                                                        <div class="d-flex justify-content-between align-items-center">
+
+                                                            <div class="d-grid">
+
+                                                                <img src="/website_base/static/src/img/new_theme/common/org-avatar.svg" width="48" loading="lazy" style="">
+
+                                                                <span class="text-lg-bold text-gray-800">شركة دورشستر وشركاؤه للتقييم العقاري</span>
+
+
+                                                            </div>
+                                                            <div class="d-flex">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row pb-3">
+                                                             <div class="col-12 mt-2 d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    State:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="ot-rec-active border-active text-s-medium">
+                                                                        Active
+                                                                    </span>
+
+
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-12 mt-2  d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    Region:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="text-dark">مكة المكرمة</span>
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-2 d-flex text-md-regular">
+
+                                                                <div class=" text-gray-700">
+                                                                    Commercial number / Cr entity nb:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                        4030309572
+
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-3 ">
+                                                                <span class="ot-rec-muted border-muted">Real estate</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mt-auto align-content-end">
+                                                            <a class="btn-primary" href="/en/authority-partner/2122242">
+                                                                Show details
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-4 col-md-6 col-12 mb-lg-4 mb-md-3 mb-3 ps-0 pe-lg-4 pe-md-3 pe-3">
+                                                    <div class="border rounded p-3 h-100 d-flex flex-column">
+                                                        <div class="d-flex justify-content-between align-items-center">
+
+                                                            <div class="d-grid">
+
+                                                                <img src="/website_base/static/src/img/new_theme/common/org-avatar.svg" width="48" loading="lazy" style="">
+
+                                                                <span class="text-lg-bold text-gray-800">شركة مكتب مهد التنمية للتقييم العقاري</span>
+
+
+                                                            </div>
+                                                            <div class="d-flex">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row pb-3">
+                                                             <div class="col-12 mt-2 d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    State:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="ot-rec-active border-active text-s-medium">
+                                                                        Active
+                                                                    </span>
+
+
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-12 mt-2  d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    Region:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="text-dark">مكة المكرمة</span>
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-2 d-flex text-md-regular">
+
+                                                                <div class=" text-gray-700">
+                                                                    Commercial number / Cr entity nb:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                        4030286659
+
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-3 ">
+                                                                <span class="ot-rec-muted border-muted">Real estate</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mt-auto align-content-end">
+                                                            <a class="btn-primary" href="/en/authority-partner/2122243">
+                                                                Show details
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-4 col-md-6 col-12 mb-lg-4 mb-md-3 mb-3 ps-0 pe-lg-4 pe-md-3 pe-3">
+                                                    <div class="border rounded p-3 h-100 d-flex flex-column">
+                                                        <div class="d-flex justify-content-between align-items-center">
+
+                                                            <div class="d-grid">
+
+                                                                <img src="/website_base/static/src/img/new_theme/common/org-avatar.svg" width="48" loading="lazy" style="">
+
+                                                                <span class="text-lg-bold text-gray-800">مكتب حسين بن محمد بن سعيد العمرى للتقييم العقاري</span>
+
+
+                                                            </div>
+                                                            <div class="d-flex">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row pb-3">
+                                                             <div class="col-12 mt-2 d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    State:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="ot-rec-active border-active text-s-medium">
+                                                                        Active
+                                                                    </span>
+
+
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-12 mt-2  d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    Region:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="text-dark">مكة المكرمة</span>
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-2 d-flex text-md-regular">
+
+                                                                <div class=" text-gray-700">
+                                                                    Commercial number / Cr entity nb:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                        4031223952
+
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-3 ">
+                                                                <span class="ot-rec-muted border-muted">Real estate</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mt-auto align-content-end">
+                                                            <a class="btn-primary" href="/en/authority-partner/2122246">
+                                                                Show details
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-4 col-md-6 col-12 mb-lg-4 mb-md-3 mb-3 ps-0 pe-lg-4 pe-md-3 pe-3">
+                                                    <div class="border rounded p-3 h-100 d-flex flex-column">
+                                                        <div class="d-flex justify-content-between align-items-center">
+
+                                                            <div class="d-grid">
+
+                                                                <img src="/website_base/static/src/img/new_theme/common/org-avatar.svg" width="48" loading="lazy" style="">
+
+                                                                <span class="text-lg-bold text-gray-800">شركة قيم للتقيم</span>
+
+
+                                                            </div>
+                                                            <div class="d-flex">
+                                                                    <span class="ot-rec-active border-active ow-hint-container">
+                                                                        VFR2
+                                                                        <span class="ow-hint-text">
+                                                                            The agency considers the governance practices, administrative practices and technical expertise of resident entities to be of high standards
+                                                                        </span>
+                                                                    </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row pb-3">
+                                                             <div class="col-12 mt-2 d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    State:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="ot-rec-active border-active text-s-medium">
+                                                                        Active
+                                                                    </span>
+
+
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-12 mt-2  d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    Region:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="text-dark">منطقة الرياض</span>
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-2 d-flex text-md-regular">
+
+                                                                <div class=" text-gray-700">
+                                                                    Commercial number / Cr entity nb:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                        1010927632
+
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-3 ">
+                                                                <span class="ot-rec-muted border-muted">Real estate</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mt-auto align-content-end">
+                                                            <a class="btn-primary" href="/en/authority-partner/2122247">
+                                                                Show details
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-4 col-md-6 col-12 mb-lg-4 mb-md-3 mb-3 ps-0 pe-lg-4 pe-md-3 pe-3">
+                                                    <div class="border rounded p-3 h-100 d-flex flex-column">
+                                                        <div class="d-flex justify-content-between align-items-center">
+
+                                                            <div class="d-grid">
+
+                                                                <img src="/website_base/static/src/img/new_theme/common/org-avatar.svg" width="48" loading="lazy" style="">
+
+                                                                <span class="text-lg-bold text-gray-800">شركة صالح علي الغفيص للتقييم العقاري مهنية شركة شخص واحد</span>
+
+
+                                                            </div>
+                                                            <div class="d-flex">
+                                                                    <span class="ot-rec-active border-active ow-hint-container">
+                                                                        VFR4
+                                                                        <span class="ow-hint-text">
+                                                                            The agency considers the governance practices, administrative practices and technical expertise of resident entities to be of low standards
+                                                                        </span>
+                                                                    </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row pb-3">
+                                                             <div class="col-12 mt-2 d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    State:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="ot-rec-active border-active text-s-medium">
+                                                                        Active
+                                                                    </span>
+
+
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-12 mt-2  d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    Region:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="text-dark">منطقة الرياض</span>
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-2 d-flex text-md-regular">
+
+                                                                <div class=" text-gray-700">
+                                                                    Commercial number / Cr entity nb:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                        1010721458
+
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-3 ">
+                                                                <span class="ot-rec-muted border-muted">Real estate</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mt-auto align-content-end">
+                                                            <a class="btn-primary" href="/en/authority-partner/2122250">
+                                                                Show details
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-4 col-md-6 col-12 mb-lg-4 mb-md-3 mb-3 ps-0 pe-lg-4 pe-md-3 pe-3">
+                                                    <div class="border rounded p-3 h-100 d-flex flex-column">
+                                                        <div class="d-flex justify-content-between align-items-center">
+
+                                                            <div class="d-grid">
+
+                                                                <img src="/website_base/static/src/img/new_theme/common/org-avatar.svg" width="48" loading="lazy" style="">
+
+                                                                <span class="text-lg-bold text-gray-800">شركة صالح علي الغفيص للتقييم العقاري</span>
+
+
+                                                            </div>
+                                                            <div class="d-flex">
+                                                                    <span class="ot-rec-active border-active ow-hint-container">
+                                                                        VFR4
+                                                                        <span class="ow-hint-text">
+                                                                            The agency considers the governance practices, administrative practices and technical expertise of resident entities to be of low standards
+                                                                        </span>
+                                                                    </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row pb-3">
+                                                             <div class="col-12 mt-2 d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    State:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="ot-rec-active border-active text-s-medium">
+                                                                        Active
+                                                                    </span>
+
+
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-12 mt-2  d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    Region:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="text-dark">القصيم</span>
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-2 d-flex text-md-regular">
+
+                                                                <div class=" text-gray-700">
+                                                                    Commercial number / Cr entity nb:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                        1131056566
+
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-3 ">
+                                                                <span class="ot-rec-muted border-muted">Real estate</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mt-auto align-content-end">
+                                                            <a class="btn-primary" href="/en/authority-partner/2122251">
+                                                                Show details
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-lg-4 col-md-6 col-12 mb-lg-4 mb-md-3 mb-3 ps-0 pe-lg-4 pe-md-3 pe-3">
+                                                    <div class="border rounded p-3 h-100 d-flex flex-column">
+                                                        <div class="d-flex justify-content-between align-items-center">
+
+                                                            <div class="d-grid">
+
+                                                                <img src="/website_base/static/src/img/new_theme/common/org-avatar.svg" width="48" loading="lazy" style="">
+
+                                                                <span class="text-lg-bold text-gray-800">شركة واحد الراي للتقييم العقاري مهنية شخص واحد</span>
+
+
+                                                            </div>
+                                                            <div class="d-flex">
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row pb-3">
+                                                             <div class="col-12 mt-2 d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    State:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="ot-rec-active border-active text-s-medium">
+                                                                        Active
+                                                                    </span>
+
+
+                                                                </div>
+                                                            </div>
+
+                                                            <div class="col-12 mt-2  d-flex text-md-regular">
+                                                                <div class=" text-gray-700">
+                                                                    Region:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                    <span class="text-dark">المنطقة الشرقية</span>
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-2 d-flex text-md-regular">
+
+                                                                <div class=" text-gray-700">
+                                                                    Commercial number / Cr entity nb:
+                                                                </div>
+                                                                <div class="text-medium text-dark ms-2">
+                                                                        2051224470
+
+
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-12 mt-3 ">
+                                                                <span class="ot-rec-muted border-muted">Real estate</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="mt-auto align-content-end">
+                                                            <a class="btn-primary" href="/en/authority-partner/2122252">
+                                                                Show details
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                    </div>
+
+
+                            </div>
+
+                                <div class="col-lg-9 col-md-9 d-none d-md-block d-lg-block mb-2">
+                                    <div class="text-start d-flex mt-2">
+
+                                        <form method="get" class="d-flex text-sm-regular text-dark " action="/en/facilities">
+                                            <span class="my-auto">Show</span>
+                                            
+                                            <input type="hidden" name="classification" value="all">
+                                            <input type="hidden" name="sector" value="all">
+                                            <input type="hidden" name="region" value="all">
+                                            <input type="hidden" name="search">
+                                            <input type="hidden" name="search_in" value="all">
+                                            <input type="text" class="form-control form-control-sm w-25 ms-2 me-2 p-1" placeholder="Step.." name="step" value="9">
+                                            <span class="my-auto">from
+                                                438
+                                            </span>
+
+                                        </form>
+
+                                    </div>
+
+                                </div>
+                                <div class="col-lg3 col-md-3 d-none d-md-block d-lg-block ps-1">
+                                    <div class="d-flex justify-content-end ps-0">
+        <ul class=" pagination m-0 ">
+            <li class="page-item disabled">
+                <a href="" class="page-link  border-none">
+                <i class="fa fa-lg fa-angle-left text-dark"></i>
+            </a>
+
+
+        </li>
+                <li class="page-item active border-none"> <a href="/en/facilities?classification=all&amp;sector=all&amp;region=all&amp;search_in=all&amp;step=9" class="page-link  border-none text-dark">1</a></li>
+                <li class="page-item  border-none"> <a href="/en/facilities/page/2?classification=all&amp;sector=all&amp;region=all&amp;search_in=all&amp;step=9" class="page-link  border-none text-dark">2</a></li>
+                <li class="page-item  border-none"> <a href="/en/facilities/page/3?classification=all&amp;sector=all&amp;region=all&amp;search_in=all&amp;step=9" class="page-link  border-none text-dark">3</a></li>
+                <li class="page-item  border-none"> <a href="/en/facilities/page/4?classification=all&amp;sector=all&amp;region=all&amp;search_in=all&amp;step=9" class="page-link  border-none text-dark">4</a></li>
+                <li class="page-item  border-none"> <a href="/en/facilities/page/5?classification=all&amp;sector=all&amp;region=all&amp;search_in=all&amp;step=9" class="page-link  border-none text-dark">5</a></li>
+            <li class="page-item ">
+                <a href="/en/facilities/page/2?classification=all&amp;sector=all&amp;region=all&amp;search_in=all&amp;step=9" class="page-link  border-none">
+                <i class="fa fa-lg fa-angle-right text-dark"></i>
+            </a>
+
+
+        </li>
+        </ul>
+                                    </div>
+                                </div>
+                                <div class="col-12 d-block d-md-none d-lg-none ps-1">
+                                    <div class="d-flex justify-content-center ps-0">
+        <ul class=" pagination m-0 ">
+            <li class="page-item disabled">
+                <a href="" class="page-link  border-none">
+                <i class="fa fa-lg fa-angle-left text-dark"></i>
+            </a>
+
+
+        </li>
+                <li class="page-item active border-none"> <a href="/en/facilities?classification=all&amp;sector=all&amp;region=all&amp;search_in=all&amp;step=9" class="page-link  border-none text-dark">1</a></li>
+                <li class="page-item  border-none"> <a href="/en/facilities/page/2?classification=all&amp;sector=all&amp;region=all&amp;search_in=all&amp;step=9" class="page-link  border-none text-dark">2</a></li>
+                <li class="page-item  border-none"> <a href="/en/facilities/page/3?classification=all&amp;sector=all&amp;region=all&amp;search_in=all&amp;step=9" class="page-link  border-none text-dark">3</a></li>
+                <li class="page-item  border-none"> <a href="/en/facilities/page/4?classification=all&amp;sector=all&amp;region=all&amp;search_in=all&amp;step=9" class="page-link  border-none text-dark">4</a></li>
+                <li class="page-item  border-none"> <a href="/en/facilities/page/5?classification=all&amp;sector=all&amp;region=all&amp;search_in=all&amp;step=9" class="page-link  border-none text-dark">5</a></li>
+            <li class="page-item ">
+                <a href="/en/facilities/page/2?classification=all&amp;sector=all&amp;region=all&amp;search_in=all&amp;step=9" class="page-link  border-none">
+                <i class="fa fa-lg fa-angle-right text-dark"></i>
+            </a>
+
+
+        </li>
+        </ul>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                </section>
+
+        <section class="text-pb40 text-pt40 px-3">
+            <div class="container rounded border bg-white p-3">
+                <div class="d-md-flex d-grid justify-content-between">
+                    <div class="d-md-flex d-grid justify-content-start">
+
+                        <div class="my-auto">
+                            <img class="" src="/website_base/static/src/img/new_theme/common/contact_icon.svg" loading="lazy" style="">
+                        </div>
+                        <div class="d-content">
+                            <div class="text-md-semibold text-primary my-auto px-2">
+                                Comments &amp; Suggestions
+                            </div>
+                            <div class="my-auto text-md-semibold text-gray-800 px-2">
+                                For any inquiries or comments, please contact us.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-2">
+                        <a href="/en/contactus" class="btn-primary">
+                            Contact taqeem
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+        <section class="mb32">
+            <div class="container mt-4 pt-2 text-end">
+                <span class="text-sm-regular text-dark mt-4">
+                    Last modified date :
+                        <span class="text-sm-regular text-dark mx-2">
+                            <span class="text-sm-regular text-dark">14/09/2025</span>
+
+                            <span class="text-sm-regular text-dark"> - 13:02 </span>
+
+                        </span>
+                    Saudi Arabia Time
+                </span>
+            </div>
+
+        </section>
+
+
+        <section class="ow-feedback-widget py-4 px-3 border-green-top">
+        
+        <div class="container ow-feedback-section">
+            <form class="" id="visitor_feedback_form" action="/en/" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="8b7f576f179b217fcc617abaf4f1998463e1945do1814100529">
+                <div class="row col-12 mb-3 hide" id="feedback_form_error">
+                    <div class="col-11 mx-auto d-flex o-global-message-error alert alert-danger ms-0 gap-2 align-items-center" role="alert">
+                        <i class="fa fa-exclamation-circle"></i>
+                        <div id="error_msg"></div>
+                    </div>
+                </div>
+                <div class="d-lg-flex d-md-flex d-grid gap-8 justify-content-between">
+                    <div class="d-lg-flex d-md-flex d-grid gap-8">
+                        <div class="text-md-regular text-black my-auto me-2">
+                            Was this page useful ?
+                        </div>
+                        <div class="d-flex">
+                                <button name="yes_no" class="btn-primary ms-2 me-2 ow-question-input" required="1" value="12" id="12" data-id="12">
+                                    Yes
+                                </button>
+                                <button name="yes_no" class="btn-primary ms-2 me-2 ow-question-input" required="1" value="13" id="13" data-id="13">
+                                    No
+                                </button>
+                        </div>
+                    </div>
+                    <div class="text-end my-auto ow-feedback-statistic show">
+                        <span class="text-sm-regular text-black ms-lg-4 ms-md-4 ms-0">
+                            0
+                            visitors said Yes from
+                            0
+                        </span>
+                    </div>
+                    <div class="of-cancel-btn hide">
+                        <a id="btn_cancel_feedback" type="button" name="btnCancelFeedback" class="btn-black-default border-none me-2"><img src="/website_base/static/src/img/new_theme/common/cancel-icon.svg" loading="lazy">Close
+                        </a>
+
+                    </div>
+                </div>
+
+                <div class="ow-feedback-body hide">
+                    <div class="row my-4 ms-lg-3 ms-md-0">
+                        <div class="col-lg-6 col-md-12">
+                            <label class="text-md-semibold text-dark">Please tell us why
+                                <span class="text-md-regular text-gray-500">(you can select multiple options)</span>
+                            </label>
+
+
+                                <div class="ow-answer-list pt-3 hide" id="choice_12">
+
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input ow-feedback-checkbox" id="option_31" name="choice_31" value="31">
+                                            <label class="form-check-label text-md-regular text-gray-800 ms-2 mt-1" for="option_31">
+                                                It was helpful
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input ow-feedback-checkbox" id="option_32" name="choice_32" value="32">
+                                            <label class="form-check-label text-md-regular text-gray-800 ms-2 mt-1" for="option_32">
+                                                The answers were relevant
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input ow-feedback-checkbox" id="option_33" name="choice_33" value="33">
+                                            <label class="form-check-label text-md-regular text-gray-800 ms-2 mt-1" for="option_33">
+                                                It was well written
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input ow-feedback-checkbox" id="option_34" name="choice_34" value="34">
+                                            <label class="form-check-label text-md-regular text-gray-800 ms-2 mt-1" for="option_34">
+                                                The layout made it easy to read
+                                            </label>
+                                        </div>
+                                </div>
+
+
+
+                                <div class="ow-answer-list pt-3 hide" id="choice_13">
+
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input ow-feedback-checkbox" id="option_35" name="choice_35" value="35">
+                                            <label class="form-check-label text-md-regular text-gray-800 ms-2 mt-1" for="option_35">
+                                                It was poorly written
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input ow-feedback-checkbox" id="option_36" name="choice_36" value="36">
+                                            <label class="form-check-label text-md-regular text-gray-800 ms-2 mt-1" for="option_36">
+                                                I could not find a relevant answer
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input ow-feedback-checkbox" id="option_37" name="choice_37" value="37">
+                                            <label class="form-check-label text-md-regular text-gray-800 ms-2 mt-1" for="option_37">
+                                                There was a technical problem
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-2">
+                                            <input type="checkbox" class="form-check-input ow-feedback-checkbox" id="option_38" name="choice_38" value="38">
+                                            <label class="form-check-label text-md-regular text-gray-800 ms-2 mt-1" for="option_38">
+                                                The layout made it difficult to read
+                                            </label>
+                                        </div>
+                                </div>
+
+
+                        </div>
+                        <div class="col-lg-6 col-md-12">
+                            <label for="message" class="text-sm-regular text-black">
+                                Feedback
+                            </label>
+                            <div class="mt-0 form-control-wrapper">
+
+                                <textarea rows="4" name="feedback_message" class="form-control mt-3" required="1" placeholder="Write here..."></textarea>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12 d-flex gap-3 mt-3">
+                            <div class="text-md-medium text-black">
+                                I'm
+                            </div>
+                                <div class="mx-1 ">
+                                    <input type="radio" name="gender_response" class="ow-gender-input" required="1" value="39" id="39" data-id="39">
+                                    <label class=" text-md-medium text-gray-800" for="Male">
+                                        Male
+                                    </label>
+
+                                </div>
+                                <div class="mx-1 ">
+                                    <input type="radio" name="gender_response" class="ow-gender-input" required="1" value="40" id="40" data-id="40">
+                                    <label class=" text-md-medium text-gray-800" for="Female">
+                                        Female
+                                    </label>
+
+                                </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col-lg-5 col-md-11 form-group my-4 ms-lg-4 ms-md-0 d-flex">
+                        <img alt="CAPTCHA" id="o-captcha-image" src="/feedback/captcha/image" loading="lazy">
+                        <div class="cursor-pointer ms-3 my-auto" id="ow-refresh-captcha" type="btn">
+                            <i class="fa fa-refresh fa-2x"></i>
+                        </div>
+                    </div>
+
+                    
+                    <div class="row ms-lg-4 m-md-0">
+                        <div class=" form-group col-lg-3 col-md-6 col-10 mt-2 form-control-wrapper px-0">
+
+                            <input type="text" name="feedback_captcha_input" class="form-control" placeholder="Enter the characters shown above">
+                        </div>
+                    </div>
+                    <div class="row ms-lg-4 m-md-0">
+                        <div class=" form-group mt-2 ow-captcha-error hide">
+                            <p class="text-danger">CAPTCHA does not match</p>
+                        </div>
+                    </div>
+
+
+                    <div class="justify-content-between d-lg-flex d-md-grid mt-3">
+                        <div class="text-md-regular text-black">
+                            For more information you may review <a href="https://my.gov.sa/ar/content/e-participation#section-1" class="text-primary text-underline">
+                            e-participation statement
+                        </a> and <a href="https://my.gov.sa/ar/content/subscribe#section-1" class="text-primary text-underline">rules of engagement</a>.
+                        </div>
+                        <button id="btn_submit_feedback" name="btnSubmitFeedback" type="submit" class="btn btn-primary mt-2">Submit
+                        </button>
+                    </div>
+
+                </div>
+
+            </form>
+            <div id="feedback_success_msg" class="d-lg-flex d-md-grid d-grid gap-3 justify-content-between ms-4 my-auto hide">
+                <div class="text-md-regular text-black d-flex my-auto">
+                    <img class="me-2" src="/website_base/static/src/img/new_theme/common/checkmark-circle.svg" loading="lazy">
+                    Your feedback is submitted!
+                </div>
+                <div>
+                    <span class="text-sm-regular text-black ms-lg-4 m-md-1 m-1">
+                        0
+                        visitors said Yes from
+                        0
+                    </span>
+                </div>
+            </div>
+        </div>
+
+
+
+        </section>
+
+
+            </div>
+        
+                </main>
+                <footer id="bottom" data-anchor="true" data-name="Footer" class="o_footer o_colored_level o_cc ">
+                    <div id="footer" class="oe_structure oe_structure_solo ">
+                <section class="s_text_block" data-snippet="s_text_block" data-name="Text">
+
+                    <div class="container py-5 col-md-10  col-sm-8 col-xs-8">
+                        <div class="row">
+                            
+                            
+                            
+                            
+                            <div class="col-lg-3 col-md-6 col-12 mt-3">
+                                <span class="text-md-medium">Overview</span>
+                                <hr class="my-2">
+                                <ul class="list-unstyled">
+                                    <li class="my-2">
+                                        <a href="/en/about-us">
+                                            <span class="text-md-regular">About Taqeem</span>
+                                        </a>
+                                    </li>
+                                    <li class="my-2">
+                                        <a href="/en/visual-identity">
+                                            <span class="text-md-regular">Visual identity</span>
+                                        </a>
+                                    </li>
+                                    <li class="my-2">
+                                        <a href="/en/rules">
+                                            <span class="text-md-regular">Rules and Regulations</span>
+                                        </a>
+                                    </li>
+                                    <li class="my-2">
+                                        <a href="/en/strategy">
+                                            <span class="text-md-regular">Taqeem strategy</span>
+                                        </a>
+                                    </li>
+                                    <li class="my-2">
+                                        <a href="/en/board-director">
+                                            <span class="text-md-regular">Board of Directors</span>
+                                        </a>
+                                    </li>
+
+
+                                </ul>
+                            </div>
+                            <div class="col-lg-3 col-md-6 col-12 mt-3">
+                                <span class="text-md-medium">Important links</span>
+                                <hr class="my-2">
+                                <ul class="list-unstyled">
+                                    <li class="my-2">
+                                        <a href="https://eqaym.taqeem.gov.sa/" target="_blank">
+                                            <span class="text-md-regular">Qaym system</span>
+                                            <img class="ms-2" src="/website_base/static/src/img/new_theme/common/white_redirect_icon.svg" loading="lazy" style="">
+
+                                        </a>
+                                    </li>
+                                    <li class="my-2">
+                                        <a href="https://qima.taqeem.gov.sa/valuer/login" target="_blank">
+                                            <span class="text-md-regular">E-services portal</span>
+                                            <img class="ms-2" src="/website_base/static/src/img/new_theme/common/white_redirect_icon.svg" loading="lazy" style="">
+
+                                        </a>
+                                    </li>
+                                    <li class="my-2">
+                                        <a href="https://taqdeer.sa" target="_blank">
+                                            <span class="text-md-regular">Taqdeer organization</span>
+                                            <img class="ms-2" src="/website_base/static/src/img/new_theme/common/white_redirect_icon.svg" loading="lazy" style="">
+                                        </a>
+                                    </li>
+                                    <li class="my-2">
+                                        <a href="/en/tenders">
+                                            <span class="text-md-regular">Tenders</span>
+                                        </a>
+                                    </li>
+                                    <li class="my-2">
+                                        <a href="https://marjea.taqeem.gov.sa" target="_blank">
+                                            <span class="text-md-regular">Marjea Platform</span>
+                                            <img class="ms-2" src="/website_base/static/src/img/new_theme/common/white_redirect_icon.svg" loading="lazy" style="">
+                                        </a>
+                                    </li>
+
+
+                                </ul>
+                            </div>
+                            <div class="col-lg-3 col-md-6 col-12 mt-3">
+                                <span class="text-md-medium">Contact and support</span>
+                                <hr class="my-2">
+                                <ul class="list-unstyled">
+                                    <li class="my-2">
+                                        <a href="/en/contactus">
+                                            <span class="text-md-regular">Contact us</span>
+                                        </a>
+                                    </li>
+                                    <li class="my-2">
+                                        <a href="/en/jobs">
+                                            <span class="text-md-regular">Careers</span>
+                                        </a>
+                                    </li>
+                                    <li class="my-2">
+                                        <a href="/en/faq">
+                                            <span class="text-md-regular">FAQs</span>
+                                        </a>
+                                    </li>
+                                    <li class="my-2">
+                                        <a href="/en/new/complaint?create_complaint=true">
+                                            <span class="text-md-regular">Register a regulatory report</span>
+                                        </a>
+                                    </li>
+                                    <li class="my-2">
+                                        <a href="/en/e-participation">
+                                            <span class="text-md-regular">E-participation</span>
+                                        </a>
+                                    </li>
+
+                                </ul>
+                            </div>
+        <div class="col-lg-3 col-md-6 col-12 mt-3">
+            <span class="text-md-medium">Contact us</span>
+            <hr class="my-2">
+            <ul class="ps-0 d-flex gap-2">
+                <li class="d-contents">
+                    <a class="btn-white p-1" target="_blank" href="https://www.linkedin.com/company/taqeemsa/mycompany/">
+                        <img src="/website_base/static/src/img/new_theme/common/linkedin_icon.svg" loading="lazy" style="">
+                    </a>
+                </li>
+                <li class="d-contents">
+                    <a class="btn-white p-1 mx-n1" target="_blank" href="https://twitter.com/taqeem_gov_sa">
+                        <img src="/website_base/static/src/img/new_theme/common/x_icon.svg" loading="lazy" style="">
+                    </a>
+                </li>
+                <li class="d-contents">
+                    <a class="btn-white p-1" target="_blank" href="https://www.youtube.com/user/taqeem1">
+                        <img src="/website_base/static/src/img/new_theme/common/youtube_icon.svg" loading="lazy" style="">
+
+                    </a>
+                </li>
+            </ul>
+        </div>
+                        </div>
+                        <div class="row pt32 pb32">
+                            <div class="col-lg-9 col-md-12 text-lg-start text-md-center text-center">
+                                <div class="row col-12">
+                                    <span class="o_footer_copyright_name text-md-medium me-2">All right reserved for
+                                            Saudi Authority for Accredited Valuers (TAQEEM)
+                                        ©
+                                        <span class="text-md-medium">2026</span>
+                                    </span>
+                                </div>
+                                <div class="d-flex">
+                                    <div class="me-3">
+                                        <a href="/en/privacy-policy">
+                                            <span>Privacy policy</span>
+                                        </a>
+                                    </div>
+                                    <div class="me-3">
+                                        <a href="/en/terms-service">
+                                            <span>Terms of Use</span>
+                                        </a>
+                                    </div>
+                                    <div class="me-3">
+                                        <a href="/en/sitemap" class="text-md-regular">
+                                            <span>Sitemap</span>
+                                        </a>
+                                    </div>
+
+                                </div>
+
+
+                            </div>
+                            <div class="col-lg-3 d-none d-md-none d-lg-block text-end">
+                                <ul class="pe-0">
+                                    <li class="d-inline pe-1">
+                                        <img src="/website_base/static/src/img/new_theme/common/AiLogo.svg" loading="lazy" style="">
+                                    </li>
+                                    <li class="d-inline ps-1">
+                                        <img src="/website_base/static/src/img/new_theme/common/taqeem_icon.svg" loading="lazy" style="">
+                                    </li>
+                                </ul>
+
+                            </div>
+
+                            <div class="col-6 text-start d-block d-md-block d-lg-none mt-5">
+                                <img src="/website_base/static/src/img/new_theme/common/AiLogo.svg" loading="lazy" data-lazy-loading-initial-min-height="" style="min-height: 1px;">
+                            </div>
+                            <div class="col-6 text-end d-block d-md-block d-lg-none mt-5">
+                                
+                                <img src="/website_base/static/src/img/new_theme/common/taqeem_icon.svg" loading="lazy" data-lazy-loading-initial-min-height="" style="min-height: 1px;">
+
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        <div class="o_footer_copyright o_colored_level o_cc" data-name="Copyright">
+                        </div>
+                </footer>
+        <div id="website_cookies_bar" class="s_popup o_snippet_invisible o_no_save" data-name="Cookies Bar" data-vcss="001" data-invisible="1">
+                <div class="modal s_popup_bottom s_popup_no_backdrop o_cookies_discrete show modal_shown" data-show-after="500" data-display="afterDelay" data-consents-duration="999" data-bs-focus="false" data-bs-backdrop="false" data-bs-keyboard="false" tabindex="-1" role="dialog" aria-modal="true" style="display: block;">
+                    <div class="modal-dialog d-flex s_popup_size_full">
+                        <div class="modal-content oe_structure">
+                            
+                            <section class="o_colored_level o_cc o_cc1">
+                                <div class="container text-pt40 text-pb40 ">
+                                    <div class="row">
+                                        <div class="col-12 text-dark text-lg-bold d-flex justify-content-between my-0">
+                                            <div class="d-flex align-items-center my-0 gap-3">
+                                                <img src="/website_base/static/src/img/new_theme/common/cookies_icon.svg" loading="lazy" style="">
+                                                <div>
+                                                    Cookies
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn-close o_cookies_close opacity-100" aria-label="Close"></button>
+
+
+                                        </div>
+                                        <div class="col-12 pt16 pb16">
+                                            <div class="text-md-regular text-gray-700">
+                                                Use of cookies by this site is just to guarantee Ease of access and
+                                                better
+                                                user experience while browsing. Continuation of your browsing
+                                                acknowledges
+                                                your approval for Terms and Conditions of this site and its use of
+                                                Cookies.
+
+                                            </div>
+                                            <a href="/en/privacy-policy" class="o_cookies_bar_text_policy text-primary px-0">Privacy Policy
+                                            </a>
+                                        </div>
+                                        <div class="col-12 ">
+                                            <a href="#" id="cookies-consent-all" role="button" class="js_close_popup btn btn-primary justify-content-center w-100">I
+                                                agree
+                                            </a>
+                                            <a href="#" id="cookies-consent-essential" role="button" class="js_close_popup btn btn-default text-dark mt-2 justify-content-center w-100">
+                                                Only essentials
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div role="dialog" class="modal o_legacy_dialog o_technical_modal hide custom-popup" tabindex="-1" data-bs-backdrop="static" id="ok-modal-alert" open="open" aria-modal="true" style="display: block;">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content w-75 mx-auto mt-4">
+                        <div class="modal-header border-0 py-0">
+                            <div class="modal-title text-lg-semibold text-gray-800 text-start ms-2" id="alert-title"></div>
+                        </div>
+                        <div class="modal-body  py-0 ms-2">
+                            <div id="alert-msg" class="text-sm-regular text-gray-700 text-start">
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 justify-content-end">
+                            <button id="alert-btn-cancel" type="button" class="btn-black-default justify-content-center me-1 mb-1" data-dismiss="modal">
+                                Cancel
+                            </button>
+                            <button id="alert-btn-confirm" type="button" class="btn-primary justify-content-center hide me-1 mb-1" data-dismiss="modal">
+                                Sent
+                            </button>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div role="dialog" class="modal o_legacy_dialog o_technical_modal hide custom-popup" tabindex="-1" data-bs-backdrop="static" id="error-modal-alert" open="open" aria-modal="true" style="display: block;">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content w-75 mx-auto mt-4">
+                        <div class="modal-header border-0 py-0">
+                            <div class="modal-title text-lg-semibold text-gray-800 text-start ms-2" id="alert-title"></div>
+                        </div>
+                        <div class="modal-body  py-0 ms-2">
+                            <div id="alert-msg" class="text-sm-regular text-gray-700 text-start">
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 justify-content-end">
+                            <button id="alert-btn-cancel" type="button" class="btn-black-default justify-content-center w-lg-25 w-md-25 w-100 me-1 mb-1" data-dismiss="modal">
+                                Cancel
+                            </button>
+                            <button id="alert-btn-confirm" type="button" class="btn-primary justify-content-center hide w-lg-25 w-md-25 w-100 me-1 mb-1" data-dismiss="modal">
+                                Sent
+                            </button>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="tq-popup-tab bg-primary" id="tqPopupTab">
+                <span>Rate the Digital Experience</span>
+            </div>
+            
+            <div class="tq-popup-overlay active" id="tqPopupOverlay">
+                <div class="tq-popup-modal p-4">
+                    <button class="tq-popup-close text-end" id="tqPopupClose">×</button>
+                        <img src="/website_base/static/src/img/new_theme/common/file-icon.svg" loading="lazy" style="">
+                    <h3 class="tq-popup-title">
+                        <span>Rate Your Digital Experience</span>
+                    </h3>
+                    <div class="btn-primary mt-auto w-100 justify-content-center">
+                        <a class="cursor-pointer ms-2" href="https://dxmisurvey.my.gov.sa/survey/p/steps/1/bdba8f8e-f896-4fea-83e0-350e8a97ac99/register" target="_blank">
+                            <span>Start Rating</span>
+                            <img class="text-right" src="/website_base/static/src/img/new_theme/common/white_redirect_icon.svg" loading="lazy" style="">
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+            <script id="tracking_code" async="1" src="https://www.googletagmanager.com/gtag/js?id=G-9JBCBTEN1G"></script>
+            <script id="tracking_code_config">
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('consent', 'default', {
+                    'ad_storage': 'denied',
+                    'ad_user_data': 'denied',
+                    'ad_personalization': 'denied',
+                    'analytics_storage': 'denied',
+                });
+                gtag('js', new Date());
+                gtag('config', 'G-9JBCBTEN1G');
+                function allConsentsGranted() {
+                    gtag('consent', 'update', {
+                        'ad_storage': 'granted',
+                        'ad_user_data': 'granted',
+                        'ad_personalization': 'granted',
+                        'analytics_storage': 'granted',
+                    });
+                }
+                    document.addEventListener(
+                        "optionalCookiesAccepted",
+                        allConsentsGranted,
+                        {once: true}
+                    );
+            </script>
+            <script src="https://cdn.userway.org/widget.js" data-account="0UYGxnoXJv"></script>
+            <noscript>
+                Please ensure Javascript is enabled for purposes of
+                <a href="https://userway.org">website accessibility</a>
+            </noscript>
+        
+        <script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;369a9ed13e454384a0164dfb29579dcf&quot;,&quot;server_timing&quot;:{&quot;name&quot;:{&quot;cfCacheStatus&quot;:true,&quot;cfEdge&quot;:true,&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfOrigin&quot;:true,&quot;cfSpeedBrain&quot;:true},&quot;location_startswith&quot;:null}}" crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a12491687ab52cf2',t:'MTc4MjU2NDUyNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; visibility: hidden;"></iframe>
+<script src="https://cdn.userway.org/widgetapp/2026-06-09-08-22-25/widget_app_base_1780993345047.js" async="" id="a11yWidgetSrc" crossorigin="anonymous" integrity="sha256-elUiDlZQ7KB3gzFxrCiA2ABCTDxwVC55nwiRzU3Ugkc="></script><div id="scroll-top-btn" class="hide"><div class="row cursor-pointer position-fixed d-lg-flex d-md-flex d-none" id="scroll-top-btn" data-back="Back to top"><div class="p-2"><img src="/website_base/static/src/img/new_theme/common/up_btn.svg"></div></div></div><div class="o-main-components-container"><div class="o_effects_manager"></div><div class="o_dialog_container"><div></div></div><div class="o_notification_manager"></div><div></div><div class="o_notification_manager o_upload_progress_toast"></div><div class="o_popover_container"></div></div><script crossorigin="anonymous" integrity="sha256-D54btnHmAP+zTQ3UmPIA6BqfpsrDqwlmcYrqprO//iU=" src="https://cdn.userway.org/widgetapp/2026-06-09-08-22-25/remediation/remediation_1780993345047.js"></script><script crossorigin="anonymous" integrity="sha256-OyfTS4m8Xu62Q0eEuO2u5XSaL0ML+Hxk/dBfITvlrzw=" src="https://cdn.userway.org/remediation/2026-06-09-08-22-25/paid/remediation-tool.js?ts=1780993345047"></script></body></html>

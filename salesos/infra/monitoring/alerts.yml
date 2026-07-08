@@ -1,0 +1,83 @@
+groups:
+  - name: salesos
+    interval: 30s
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High HTTP 5xx error rate ({{ $value | humanizePercentage }})"
+
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "P95 latency is {{ $value }}s"
+
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is unreachable"
+
+      - alert: PostgresHighConnections
+        expr: pg_stat_database_numbackends > 50
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL has {{ $value }} active connections"
+
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is unreachable"
+
+      - alert: Neo4jDown
+        expr: neo4j_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Neo4j is unreachable"
+
+      - alert: ServiceDown
+        expr: up{job="salesos-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend service is down"
+
+      - alert: QueueDepthHigh
+        expr: kafka_consumer_lag > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kafka consumer lag is {{ $value }}"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk space below 10% on {{ $labels.mountpoint }}"
+
+      - alert: MemoryUsageHigh
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Memory usage above 90%"

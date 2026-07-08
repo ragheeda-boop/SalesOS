@@ -1,0 +1,19 @@
+==================================================
+SOCPA Licensed Offices - Scraping Report
+==================================================
+
+Execution time: 0:00:10
+Total pages scraped: 5
+Failed pages: None
+Total records (all pages, deduplicated): 1641
+Failed records: 0
+
+Records per worksheet:
+  Page_1 (Accounting & Auditing Practice License): 465 records
+  Page_2 (VAT Services Practice License): 193 records
+  Page_3 (Zakat & Tax Accounting Services Practice License): 176 records
+  Page_4 (Accounting Services Practice License): 65 records
+  Page_5 (Financial Consulting Services Practice License): 742 records
+  All_Data: 1641 records (merged, deduplicated)
+
+--------------------------------------------------
