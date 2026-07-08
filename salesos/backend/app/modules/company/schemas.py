@@ -53,8 +53,16 @@ class CompanyResponse(BaseModel):
     capital: float | None
     activity_description: str | None
     activity_code: str | None
+    industry: str | None
+    isic_code: str | None
+    isic_description: str | None
     legal_form: str | None
+    employees_count: int | None
+    incorporation_date: date | None
+    expiry_date: date | None
+    is_golden_record: bool | None
     confidence_score: float | None
+    source_ids: list | None
     tags: list | None
     created_at: datetime
     updated_at: datetime
@@ -173,6 +181,12 @@ class CompanyOverview(BaseModel):
     upcoming_meetings: int = 0
     last_activity: str | None = None
     signal_count: int = 0
+    contacts_page: int = 1
+    contacts_total: int = 0
+    opportunities_page: int = 1
+    opportunities_total: int = 0
+    timeline_page: int = 1
+    timeline_total: int = 0
 
 
 class CompanyOrganization(BaseModel):
@@ -208,3 +222,14 @@ class Company360Response(BaseModel):
     contact_count: int = 0
     opportunity_count: int = 0
     total_revenue: float = 0.0
+    contacts_page: int = 1
+    contacts_total: int = 0
+    opportunities_page: int = 1
+    opportunities_total: int = 0
+    timeline_page: int = 1
+    timeline_total: int = 0
+    enrichment: dict = {}
+    golden_record_id: str | None = None
+    golden_record_data: dict | None = None
+    related_entities: list[dict] = []
+    decision_makers: list[dict] = []

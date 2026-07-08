@@ -88,19 +88,35 @@ def _validate_collection(name: str) -> None:
 class PgVectorSearch(VectorSearch):
     """pgvector-based vector search implementation."""
 
+    _TABLE_MAP: dict[str, str] = {
+        "company_embeddings": "company_embeddings",
+        "contact_embeddings": "contact_embeddings",
+        "document_embeddings": "document_embeddings",
+        "companies": "companies",
+        "contacts": "contacts",
+        "licenses": "licenses",
+        "branches": "branches",
+        "opportunities": "opportunities",
+    }
+
     def __init__(self, session_factory):
         self._session_factory = session_factory
+
+    def _safe_table(self, collection: str) -> str:
+        if collection not in self._TABLE_MAP:
+            raise ValueError(f"Unknown collection: {collection}")
+        return self._TABLE_MAP[collection]
 
     async def search(
         self, collection: str, vector: list[float], top_k: int = 10
     ) -> list[SearchResult]:
-        _validate_collection(collection)
+        tbl = self._safe_table(collection)
         from sqlalchemy import text
 
         async with self._session_factory() as session:
             stmt = text(f"""
                 SELECT id, metadata, 1 - (embedding <=> :vector::vector) AS score
-                FROM {collection}
+                FROM {tbl}
                 ORDER BY embedding <=> :vector::vector
                 LIMIT :top_k
             """)
@@ -116,12 +132,12 @@ class PgVectorSearch(VectorSearch):
     async def upsert(
         self, collection: str, document_id: str, vector: list[float], metadata: dict
     ) -> None:
-        _validate_collection(collection)
+        tbl = self._safe_table(collection)
         from sqlalchemy import text
 
         async with self._session_factory() as session:
             stmt = text(f"""
-                INSERT INTO {collection} (id, embedding, metadata)
+                INSERT INTO {tbl} (id, embedding, metadata)
                 VALUES (:id, :vector::vector, :metadata::jsonb)
                 ON CONFLICT (id)
                 DO UPDATE SET embedding = :vector::vector, metadata = :metadata::jsonb
@@ -132,12 +148,12 @@ class PgVectorSearch(VectorSearch):
             await session.commit()
 
     async def delete(self, collection: str, document_id: str) -> None:
-        _validate_collection(collection)
+        tbl = self._safe_table(collection)
         from sqlalchemy import text
 
         async with self._session_factory() as session:
             await session.execute(
-                text(f"DELETE FROM {collection} WHERE id = :id"),
+                text(f"DELETE FROM {tbl} WHERE id = :id"),
                 {"id": document_id},
             )
             await session.commit()

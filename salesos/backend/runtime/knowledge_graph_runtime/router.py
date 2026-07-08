@@ -68,6 +68,7 @@ async def find_path(
     target: str = Query(..., description="Target entity ID"),
     request: Request = None,
     max_depth: int = Query(6, ge=1, le=10),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     kg = getattr(request.app.state, "kg_engine", None)
     if not kg:
@@ -83,6 +84,7 @@ async def ego_network(
     company_id: str,
     request: Request,
     depth: int = Query(2, ge=1, le=4),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     kg = getattr(request.app.state, "kg_engine", None)
     if not kg:
@@ -95,6 +97,7 @@ async def ego_network(
 async def decision_makers(
     company_id: str,
     request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     kg = getattr(request.app.state, "kg_engine", None)
     if not kg:
@@ -108,6 +111,7 @@ async def graph_search(
     q: str = Query(..., description="Search query"),
     request: Request = None,
     limit: int = Query(20, ge=1, le=100),
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     kg = getattr(request.app.state, "kg_engine", None)
     if not kg:
@@ -251,7 +255,7 @@ async def employees_with_most_meetings(
 
 
 @router.get("/graph/metrics")
-async def graph_metrics(request: Request):
+async def graph_metrics(request: Request, tenant_id: str = Depends(get_current_tenant_id)):
     kg = getattr(request.app.state, "kg_engine", None)
     if not kg:
         return {"status": "not_initialized"}

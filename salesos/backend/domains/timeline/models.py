@@ -5,7 +5,7 @@ from typing import Any
 from sqlalchemy import Column, Integer, String, DateTime, func
 from sqlalchemy.dialects.postgresql import JSONB
 
-from app.common.models import Base
+from sdk.database import Base
 
 
 class TimelineEventModel(Base):

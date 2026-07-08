@@ -1,8 +1,19 @@
-"""Embedding service for text vectorization."""
+"""Embedding service and vector store abstractions for text vectorization."""
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from typing import Any
 
 from sdk.config import sdk_settings
+
+
+@dataclass
+class VectorRecord:
+    """A record with a vector embedding and associated metadata."""
+    id: str
+    vector: list[float]
+    metadata: dict[str, Any] = field(default_factory=dict)
+    score: float = 0.0
 
 
 class EmbeddingService(ABC):

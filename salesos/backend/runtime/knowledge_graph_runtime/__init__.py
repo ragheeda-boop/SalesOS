@@ -135,7 +135,13 @@ class KnowledgeGraphEngine:
         if neo4j_uri and neo4j_user and neo4j_password:
             try:
                 from neo4j import AsyncGraphDatabase
-                self._driver = AsyncGraphDatabase.driver(neo4j_uri, auth=(neo4j_user, neo4j_password))
+                self._driver = AsyncGraphDatabase.driver(
+                    neo4j_uri,
+                    auth=(neo4j_user, neo4j_password),
+                    max_connection_pool_size=50,
+                    connection_acquisition_timeout=30,
+                    max_transaction_retry_time=10,
+                )
                 self.metrics.neo4j_available = True
             except Exception as exc:
                 if self._logger:

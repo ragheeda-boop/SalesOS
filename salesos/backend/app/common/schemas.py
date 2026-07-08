@@ -40,7 +40,9 @@ class HealthResponse(BaseModel):
     version: str
     database: str
     cache: str
-    kafka: str
+    graph: str = "not_configured"
+    kafka: str = "not_configured"
+    uptime_seconds: float = 0.0
 
 
 class AuditLogEntry(BaseModel):

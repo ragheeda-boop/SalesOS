@@ -78,6 +78,7 @@ async def list_golden_records(
 @router.get("/golden-records/{golden_id}", response_model=GoldenRecordResponse)
 async def get_golden_record(
     golden_id: str = Path(...),
+    tenant_id: str = Depends(get_current_tenant_id),
     service: EntityResolutionService = Depends(get_service),
 ):
     return await service.get_golden_record(golden_id)

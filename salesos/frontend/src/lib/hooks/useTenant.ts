@@ -22,3 +22,7 @@ export function getTenantId(): string {
   }
   return "default";
 }
+
+export function useTenant(): { tenantId: string } {
+  return { tenantId: getTenantId() };
+}

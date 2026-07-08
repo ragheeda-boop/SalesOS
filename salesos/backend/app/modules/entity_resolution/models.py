@@ -1,4 +1,4 @@
-"""Entity Resolution models: GoldenRecord, conflicts, and resolution log."""
+"""Entity Resolution models: GoldenRecord, conflicts, resolution log, and dead letter queue."""
 
 import uuid
 from datetime import datetime
@@ -14,7 +14,7 @@ class GoldenRecord(BaseModel):
     __tablename__ = "golden_records"
 
     tenant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False, index=True
+        UUID(as_uuid=True), nullable=False, index=True
     )
     cr_number: Mapped[str] = mapped_column(String(50), nullable=False)
     company_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -36,7 +36,7 @@ class EntityResolutionConflict(BaseModel):
     __tablename__ = "entity_resolution_conflicts"
 
     tenant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False, index=True
+        UUID(as_uuid=True), nullable=False, index=True
     )
     golden_record_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("golden_records.id"), nullable=False
@@ -59,7 +59,7 @@ class EntityResolutionLog(BaseModel):
     __tablename__ = "entity_resolution_log"
 
     tenant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False, index=True
+        UUID(as_uuid=True), nullable=False, index=True
     )
     operation: Mapped[str] = mapped_column(String(50), nullable=False)
     source_slug: Mapped[str | None] = mapped_column(String(100), nullable=True)
@@ -72,3 +72,19 @@ class EntityResolutionLog(BaseModel):
 
     def __repr__(self) -> str:
         return f"<ResolutionLog {self.operation}: {self.records_processed} records>"
+
+
+class DeadLetterRecord(BaseModel):
+    __tablename__ = "dead_letter_queue"
+
+    tenant_id: Mapped[uuid.UUID] = mapped_column(nullable=False, index=True)
+    source_slug: Mapped[str] = mapped_column(String(100), nullable=False)
+    cr_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    stage: Mapped[str] = mapped_column(String(50), nullable=False)
+    record_data: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    error_message: Mapped[str] = mapped_column(Text, nullable=False)
+    error_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    max_retries: Mapped[int] = mapped_column(Integer, nullable=False, default=3)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="failed")
+    last_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

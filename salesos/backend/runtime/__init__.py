@@ -9,14 +9,19 @@ Directory structure:
   policy_runtime/           — Business policy evaluation (DNC, VIP, Government, etc.)
   recommendation_runtime/   — Recommendation generation from templates
   knowledge_graph_runtime/  — Graph engine (Neo4j + SQL fallback)
-  timeline_runtime/         — Universal Timeline for every object (planned)
-  search_runtime/           — Semantic + Hybrid + Ranking search (planned)
-  workflow_runtime/         — Workflow execution engine (planned)
-  agent_runtime/            — AI agent execution (planned for P1)
-  execution_runtime/        — Sync/async execution models (planned)
-  memory_runtime/           — Agent memory management (planned)
-  simulation_runtime/       — Scenario simulation (planned)
-  scheduler_runtime/        — Scheduled/cron task execution (planned)
+  timeline_runtime/         — Universal Timeline for every object
+  search_runtime/           — Semantic + Hybrid + Ranking search
+  activity_runtime/         — Activity records spine table
+  ux_runtime/               — Experience layer (Navigation, Layout, Widget, Theme, Command, Notification)
+  widget_engine/            — Widget registry and built-in widgets
+  capability_framework/     — Self-describing capabilities
+  ui_schema_engine/         — Dynamic UI schema generation
+  form_engine/              — Dynamic form generation from JSON Schema
+  action_engine/            — Action registry and execution
+  extension_api/            — Hook point registry
+  plugin_sandbox/           — Isolated plugin execution
+  admin_router/             — Admin-only endpoints
+  object_viewer/            — Universal object viewer
 """
 
 from runtime.event_runtime import EventRuntime, DeadLetterQueue, RetryPolicy, EventMetrics, SubscriberPriority
@@ -30,6 +35,8 @@ from runtime.recommendation_runtime import RecommendationEngine, Recommendation
 from runtime.knowledge_graph_runtime import KnowledgeGraphEngine, GraphNode, GraphEdge, GraphPath, NodeLabel, EdgeType
 from runtime.timeline_runtime import TimelineRuntime, TimelineEntry
 from runtime.search_runtime import SearchRuntime, SearchResult, SearchResultItem, SearchStrategy
+from runtime.activity_runtime import ActivityRuntime
+from runtime.ux_runtime import UXRuntime
 
 __all__ = [
     "EventRuntime",
@@ -65,4 +72,6 @@ __all__ = [
     "SearchResult",
     "SearchResultItem",
     "SearchStrategy",
+    "ActivityRuntime",
+    "UXRuntime",
 ]

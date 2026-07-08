@@ -153,16 +153,20 @@ class SearchRuntime:
 
         return result
 
+    def _safe_col(self, field: str, allowed: frozenset[str]) -> str:
+        if field not in allowed:
+            raise ValueError(f"Field not allowed: {field}")
+        return field
+
     async def suggest(self, query: str, tenant_id: str, field: str = "name_ar", limit: int = 10) -> list[str]:
         """Auto-complete suggestions for a field."""
-        if field not in self.ALLOWED_SUGGEST_FIELDS:
-            raise ValueError(f"Suggest field not allowed: {field}")
+        col = self._safe_col(field, self.ALLOWED_SUGGEST_FIELDS)
         self.metrics.searches += 1
         async with self._session_factory() as session:
             rows = await session.execute(
                 sa_text(f"""
-                    SELECT DISTINCT {field} FROM companies
-                    WHERE tenant_id = :tid AND {field} ILIKE :prefix
+                    SELECT DISTINCT c.{col} FROM companies c
+                    WHERE c.tenant_id = :tid AND c.{col} ILIKE :prefix
                     LIMIT :lim
                 """),
                 {"tid": tenant_id, "prefix": f"{query}%", "lim": limit},
@@ -234,10 +238,9 @@ class SearchRuntime:
 
             if filters:
                 for field, value in filters.items():
-                    if field not in self.ALLOWED_FILTER_FIELDS:
-                        raise ValueError(f"Filter field not allowed: {field}")
-                    conditions.append(f"c.{field} = :{field}")
-                    params[field] = value
+                    col = self._safe_col(field, self.ALLOWED_FILTER_FIELDS)
+                    conditions.append(f"c.{col} = :{col}")
+                    params[col] = value
 
             where_clause = " AND ".join(conditions)
 
@@ -375,14 +378,15 @@ class SearchRuntime:
         async with self._session_factory() as session:
             facets = {}
             for field in self.ALLOWED_FACET_FIELDS:
+                col = self._safe_col(field, self.ALLOWED_FACET_FIELDS)
                 rows = await session.execute(
                     sa_text(f"""
-                        SELECT {field}, COUNT(*) as cnt
-                        FROM companies
-                        WHERE tenant_id = :tid
-                          AND (name_ar ILIKE :q OR name_en ILIKE :q OR cr_number ILIKE :q)
-                          AND {field} IS NOT NULL
-                        GROUP BY {field}
+                        SELECT c.{col}, COUNT(*) as cnt
+                        FROM companies c
+                        WHERE c.tenant_id = :tid
+                          AND (c.name_ar ILIKE :q OR c.name_en ILIKE :q OR c.cr_number ILIKE :q)
+                          AND c.{col} IS NOT NULL
+                        GROUP BY c.{col}
                         ORDER BY cnt DESC
                         LIMIT 20
                     """),

@@ -1,13 +1,16 @@
 """PostgreSQL repositories for Entity Resolution module."""
 
-import uuid
+from __future__ import annotations
 
-from sqlalchemy import select, func
+import uuid
+from datetime import datetime, timezone
+
+from sqlalchemy import select, func, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from sdk.database import SqlAlchemyRepository
 
-from .models import EntityResolutionConflict, EntityResolutionLog, GoldenRecord
+from .models import DeadLetterRecord, EntityResolutionConflict, EntityResolutionLog, GoldenRecord
 
 
 class GoldenRecordRepository(SqlAlchemyRepository[GoldenRecord, uuid.UUID]):
@@ -107,3 +110,138 @@ class ConflictRepository(SqlAlchemyRepository[EntityResolutionConflict, uuid.UUI
                 EntityResolutionConflict.status == "open",
             )
         ) or 0
+
+
+class DeadLetterRepository:
+    """Persistence layer for the dead letter queue."""
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    async def add(
+        self,
+        tenant_id: str | uuid.UUID,
+        source_slug: str,
+        stage: str,
+        record_data: dict,
+        error_message: str,
+        error_type: str | None = None,
+        cr_number: str | None = None,
+    ) -> DeadLetterRecord:
+        entry = DeadLetterRecord(
+            tenant_id=uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id,
+            source_slug=source_slug,
+            cr_number=cr_number,
+            stage=stage,
+            record_data=record_data,
+            error_message=error_message,
+            error_type=error_type or type(error_message).__name__,
+            retry_count=0,
+            max_retries=3,
+            status="failed",
+        )
+        self._session.add(entry)
+        await self._session.flush()
+        return entry
+
+    async def list(
+        self,
+        tenant_id: str | uuid.UUID,
+        status: str | None = None,
+        stage: str | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> tuple[list[DeadLetterRecord], int]:
+        tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
+        query = select(DeadLetterRecord).where(DeadLetterRecord.tenant_id == tid)
+        count_query = select(func.count()).select_from(DeadLetterRecord).where(DeadLetterRecord.tenant_id == tid)
+
+        if status:
+            query = query.where(DeadLetterRecord.status == status)
+            count_query = count_query.where(DeadLetterRecord.status == status)
+        if stage:
+            query = query.where(DeadLetterRecord.stage == stage)
+            count_query = count_query.where(DeadLetterRecord.stage == stage)
+
+        total_result = await self._session.execute(count_query)
+        total = total_result.scalar() or 0
+
+        query = query.order_by(DeadLetterRecord.created_at.desc())
+        query = query.offset((page - 1) * page_size).limit(page_size)
+        result = await self._session.execute(query)
+        records = list(result.scalars().all())
+
+        return records, total
+
+    async def get_pending_retries(
+        self,
+        tenant_id: str | uuid.UUID,
+        limit: int = 50,
+    ) -> list[DeadLetterRecord]:
+        tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
+        query = (
+            select(DeadLetterRecord)
+            .where(
+                DeadLetterRecord.tenant_id == tid,
+                DeadLetterRecord.status == "failed",
+                DeadLetterRecord.retry_count < DeadLetterRecord.max_retries,
+            )
+            .order_by(DeadLetterRecord.created_at.asc())
+            .limit(limit)
+        )
+        result = await self._session.execute(query)
+        return list(result.scalars().all())
+
+    async def mark_retried(self, entry_id: int) -> None:
+        stmt = (
+            update(DeadLetterRecord)
+            .where(DeadLetterRecord.id == entry_id)
+            .values(
+                retry_count=DeadLetterRecord.retry_count + 1,
+                last_retry_at=datetime.now(timezone.utc),
+            )
+        )
+        await self._session.execute(stmt)
+
+    async def mark_resolved(self, entry_id: int) -> None:
+        stmt = (
+            update(DeadLetterRecord)
+            .where(DeadLetterRecord.id == entry_id)
+            .values(status="resolved")
+        )
+        await self._session.execute(stmt)
+
+    async def mark_failed(self, entry_id: int, error_message: str) -> None:
+        stmt = (
+            update(DeadLetterRecord)
+            .where(DeadLetterRecord.id == entry_id)
+            .values(
+                status="failed",
+                error_message=error_message,
+                retry_count=DeadLetterRecord.retry_count + 1,
+                last_retry_at=datetime.now(timezone.utc),
+            )
+        )
+        await self._session.execute(stmt)
+
+    async def purge(
+        self,
+        tenant_id: str | uuid.UUID,
+        status: str | None = None,
+    ) -> int:
+        tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
+        stmt = delete(DeadLetterRecord).where(DeadLetterRecord.tenant_id == tid)
+        if status:
+            stmt = stmt.where(DeadLetterRecord.status == status)
+        result = await self._session.execute(stmt)
+        return result.rowcount
+
+    async def count_by_stage(self, tenant_id: str | uuid.UUID) -> dict[str, int]:
+        tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
+        query = (
+            select(DeadLetterRecord.stage, func.count())
+            .where(DeadLetterRecord.tenant_id == tid, DeadLetterRecord.status == "failed")
+            .group_by(DeadLetterRecord.stage)
+        )
+        result = await self._session.execute(query)
+        return dict(result.all())

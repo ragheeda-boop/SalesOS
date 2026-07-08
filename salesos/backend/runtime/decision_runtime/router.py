@@ -76,6 +76,7 @@ async def decision_history(
 async def get_decision(
     decision_id: str,
     request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     engine = getattr(request.app.state, "decision_engine", None)
     if not engine:
@@ -90,6 +91,7 @@ async def get_decision(
 async def get_reasoning(
     decision_id: str,
     request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     engine = getattr(request.app.state, "decision_engine", None)
     if not engine:
@@ -104,6 +106,7 @@ async def get_reasoning(
 async def accept_decision(
     decision_id: str,
     request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     engine = getattr(request.app.state, "decision_engine", None)
     if not engine:
@@ -118,6 +121,7 @@ async def accept_decision(
 async def execute_decision(
     decision_id: str,
     request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     engine = getattr(request.app.state, "decision_engine", None)
     if not engine:
@@ -133,6 +137,7 @@ async def submit_feedback(
     decision_id: str,
     body: FeedbackRequest,
     request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
 ):
     engine = getattr(request.app.state, "decision_engine", None)
     if not engine:
@@ -151,7 +156,7 @@ async def submit_feedback(
 
 
 @router.get("/decision/metrics")
-async def decision_metrics(request: Request):
+async def decision_metrics(request: Request, tenant_id: str = Depends(get_current_tenant_id)):
     engine = getattr(request.app.state, "decision_engine", None)
     if not engine:
         return {"status": "not_initialized"}

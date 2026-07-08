@@ -29,7 +29,7 @@ class PostgresEventStore(EventStore):
             ) VALUES (
                 :event_id, :event_type, :event_version,
                 :aggregate_id, :aggregate_type, :tenant_id,
-                :occurred_at, :data::jsonb, :metadata::jsonb
+                :occurred_at, :data, :metadata
             )
         """)
         await self._session.execute(

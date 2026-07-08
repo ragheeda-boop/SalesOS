@@ -59,6 +59,7 @@ class Company(BaseModel):
 
     activity_description: Mapped[str | None] = mapped_column(Text)
     activity_code: Mapped[str | None] = mapped_column(String(50))
+    industry: Mapped[str | None] = mapped_column(String(200), index=True)
     isic_code: Mapped[str | None] = mapped_column(String(20))
     isic_description: Mapped[str | None] = mapped_column(String(500))
 
@@ -74,9 +75,9 @@ class Company(BaseModel):
     tags: Mapped[list | None] = mapped_column(JSONB, default=list)
     extra_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB, default=dict)
 
-    branches: Mapped[list["Branch"]] = relationship("Branch", back_populates="company", lazy="selectin")
-    licenses: Mapped[list["License"]] = relationship("License", back_populates="company", lazy="selectin")
-    contacts: Mapped[list["Contact"]] = relationship("app.modules.company.models.Contact", back_populates="company", lazy="selectin")
+    branches: Mapped[list["Branch"]] = relationship("Branch", back_populates="company", lazy="selectin", cascade="all, delete-orphan")
+    licenses: Mapped[list["License"]] = relationship("License", back_populates="company", lazy="selectin", cascade="all, delete-orphan")
+    contacts: Mapped[list["Contact"]] = relationship("app.modules.company.models.Contact", back_populates="company", lazy="selectin", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<Company {self.cr_number}: {self.name_ar}>"

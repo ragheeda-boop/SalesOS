@@ -14,6 +14,8 @@ ROOT = Path(__file__).resolve().parent.parent
 DOMAINS = ROOT / "domains"
 SDK = ROOT / "sdk"
 COMMERCIAL = DOMAINS / "commercial"
+REVENUE = DOMAINS / "revenue"
+DECISION = DOMAINS / "decision"
 
 
 # ─────────────────────────────────────────────
@@ -21,7 +23,6 @@ COMMERCIAL = DOMAINS / "commercial"
 # ─────────────────────────────────────────────
 
 BANNED_UI_IMPORTS = {"flask", "fastapi", "jinja2", "django", "streamlit", "gradio"}
-_ALLOWED_API_PATTERNS = ("/api.py",)  # domain api.py files are the allowed FastAPI boundary
 
 
 def _get_imports(filepath: Path) -> set[str]:
@@ -50,9 +51,7 @@ def test_domain_does_not_import_ui(domain_dir):
     """No domain module should import UI frameworks."""
     violations: list[str] = []
     for pyfile in domain_dir.rglob("*.py"):
-        if pyfile.name.startswith("__"):
-            continue
-        if any(str(pyfile).endswith(p) for p in _ALLOWED_API_PATTERNS):
+        if pyfile.name.startswith("__") or pyfile.name == "api.py":
             continue
         imports = _get_imports(pyfile)
         banned = BANNED_UI_IMPORTS & imports
@@ -178,10 +177,10 @@ def test_commercial_modules_registered():
     _register_platform_capabilities()
     registered = set(CapabilityRegistry.all().keys())
 
-    for domain_dir in COMMERCIAL.iterdir():
+    for domain_dir in list(COMMERCIAL.iterdir()) + list(REVENUE.iterdir()) + list(DECISION.iterdir()):
         if not domain_dir.is_dir() or domain_dir.name.startswith("_"):
             continue
         assert domain_dir.name in registered, (
-            f"Commercial domain '{domain_dir.name}' not registered in CapabilityRegistry. "
+            f"Domain '{domain_dir.name}' not registered in CapabilityRegistry. "
             f"Add it to modules/registry.py:_register_platform_capabilities()"
         )

@@ -9,7 +9,7 @@ router = APIRouter(prefix="/api/v1/forms", tags=["Form Engine"])
 class FormGenerateRequest(BaseModel):
     form_id: str
     title: str
-    schema: dict
+    json_schema: dict
     ui_schema: dict = {}
 
 
@@ -18,7 +18,7 @@ async def generate_form(req: FormGenerateRequest):
     """Generate a form definition from JSON Schema."""
     from runtime.form_engine import FormEngine
     engine = FormEngine()
-    form = engine.generate_from_schema(req.form_id, req.title, req.schema, req.ui_schema)
+    form = engine.generate_from_schema(req.form_id, req.title, req.json_schema, req.ui_schema)
     return form.to_dict()
 
 

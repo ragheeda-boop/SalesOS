@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, type ReactNode } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Layout, LayoutSidebar, LayoutContent, LayoutHeader, cn } from "@salesos/ui"
-import { Building2, Users, DollarSign, Search, Settings, LayoutDashboard, Bell, Menu, Bot, User } from "lucide-react"
+import { Building2, Users, DollarSign, Search, Settings, LayoutDashboard, Bell, Menu, Bot, User, Shield } from "lucide-react"
 import { CommandBar } from "@/components/command-bar"
 import { SearchPanel } from "@/components/search-panel"
 import { CopilotPanel } from "@/components/copilot-panel"
@@ -19,6 +19,7 @@ const navItems = [
   { href: "/opportunities", label: "الفرص", icon: DollarSign },
   { href: "/search", label: "البحث", icon: Search },
   { href: "/settings", icon: Settings },
+  { href: "/admin", label: "الإدارة", icon: Shield },
 ]
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {

@@ -55,8 +55,39 @@ class TokenResponse(BaseModel):
     tenant_id: str | None = None
 
 
-class RefreshTokenRequest(BaseModel):
+class TokenCookies(BaseModel):
     refresh_token: str
+    csrf_token: str | None = None
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str | None = None
+
+
+class LogoutRequest(BaseModel):
+    refresh_token: str | None = None
+    session_id: str | None = None
+    all_sessions: bool = False
+
+
+class SessionResponse(BaseModel):
+    id: str
+    device_name: str
+    device_type: str
+    ip_address: str
+    last_used_at: datetime
+    created_at: datetime
+    expires_at: datetime
+    is_active: bool
+
+
+class LogoutResponse(BaseModel):
+    message: str
+    sessions_revoked: int = 0
+
+
+class CsrfTokenResponse(BaseModel):
+    csrf_token: str
 
 
 class PasswordChangeRequest(BaseModel):

@@ -79,7 +79,7 @@ async def get_entity_timelines(
 
 
 @router.get("/timeline/metrics")
-async def timeline_metrics(request: Request):
+async def timeline_metrics(request: Request, tenant_id: str = Depends(get_current_tenant_id)):
     tl = getattr(request.app.state, "timeline_runtime", None)
     if not tl:
         return {"status": "not_initialized"}

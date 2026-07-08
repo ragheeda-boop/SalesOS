@@ -6,15 +6,16 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
+        extra="ignore",
     )
 
     env: str = "development"
     debug: bool = True
-    secret_key: str = "change-me-in-production"
+    secret_key: str  # Must be set via SECRET_KEY environment variable
     allowed_hosts: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     postgres_user: str = "salesos"
-    postgres_password: str = "salesos_dev_password"
+    postgres_password: str  # Must be set via POSTGRES_PASSWORD
     postgres_db: str = "salesos"
     postgres_host: str = "postgres"
     postgres_port: int = 6432
@@ -25,7 +26,7 @@ class Settings(BaseSettings):
 
     neo4j_uri: str = "bolt://neo4j:7687"
     neo4j_user: str = "neo4j"
-    neo4j_password: str = "salesos_neo4j_dev"
+    neo4j_password: str  # Must be set via NEO4J_PASSWORD
 
     kafka_bootstrap_servers: str = "kafka:9092"
     kafka_group_id: str = "salesos-group"

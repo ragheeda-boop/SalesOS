@@ -119,6 +119,91 @@ services:
     env_file:
       - .env
 
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--web.enable-lifecycle"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "http://localhost:9090/-/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./infra/monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./infra/monitoring/grafana/provisioning:/etc/grafana/provisioning/dashboards
+      - ./infra/monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards/salesos
+      - grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD", "wget", "-q", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    ports:
+      - "9187:9187"
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER:-salesos}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-salesos}?sslmode=disable"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    ports:
+      - "9121:9121"
+    environment:
+      REDIS_ADDR: "redis:6379"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  backup:
+    build:
+      context: ./infra/docker/backup
+      dockerfile: Dockerfile
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB:-salesos}
+      DB_USER: ${POSTGRES_USER:-salesos}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      BACKUP_DIR: /backups
+      RETENTION_DAYS: "7"
+      HEALTHCHECK_URL: ""
+      NOTIFY_WEBHOOK: ""
+      S3_BUCKET: ""
+    volumes:
+      - backup_data:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Runs daily at 02:00 by default; can be triggered manually:
+    # docker compose run --rm backup backup-db
+    profiles:
+      - backup
+
 volumes:
   pgdata:
   neo4j_data:
@@ -126,3 +211,6 @@ volumes:
   zoo_data:
   zoo_logs:
   kafka_data:
+  prometheus_data:
+  grafana_data:
+  backup_data:
