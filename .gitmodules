@@ -1,0 +1,3 @@
+[submodule "engineering-os"]
+	path = engineering-os
+	url = https://github.com/ragheeda-boop/salesos-engineering-os.git
