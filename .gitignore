@@ -63,3 +63,6 @@ scraper.log
 
 # Output
 output/
+
+# Engineering OS platform source (now a submodule in engineering-os/)
+salesos-engineering-os/

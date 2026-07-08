@@ -1,0 +1,11 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "name": "SalesOS Product",
+  "description": "SalesOS product source — CRM, Search, Enrichment platform",
+  "instructions": [
+    "./engineering-os/ENGINEERING_CONSTITUTION.md",
+    "./engineering-os/ENGINEERING_DASHBOARD.md",
+    "./engineering-os/REFERENCES.md"
+  ],
+  "extensions": ["./engineering-os/opencode.json"]
+}
