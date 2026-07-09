@@ -1,0 +1,8 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "./engineering-os/ENGINEERING_CONSTITUTION.md",
+    "./engineering-os/ENGINEERING_DASHBOARD.md",
+    "./engineering-os/REFERENCES.md"
+  ]
+}
