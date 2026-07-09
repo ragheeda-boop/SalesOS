@@ -1,11 +1,276 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "name": "SalesOS Product",
-  "description": "SalesOS product source — CRM, Search, Enrichment platform",
+
   "instructions": [
     "./engineering-os/ENGINEERING_CONSTITUTION.md",
     "./engineering-os/ENGINEERING_DASHBOARD.md",
     "./engineering-os/REFERENCES.md"
   ],
-  "extensions": ["./engineering-os/opencode.json"]
+
+  "references": {
+    "engineering-os": {
+      "path": "./engineering-os",
+      "description": "SalesOS Engineering OS — governance docs, agent registry, kernel specs, memory, rules, and skills"
+    }
+  },
+
+  "skills": {
+    "paths": ["./engineering-os/.opencode/skills"]
+  },
+
+  "agent": {
+    "decision-engine": {
+      "description": "العقل التنفيذي — يقرر ماذا يعمل كل Agent بناءً على حالة المشروع",
+      "mode": "subagent",
+      "color": "#ff0000"
+    },
+    "resource-allocator": {
+      "description": "يوزع الـ Agents على المجالات حسب الأولويات والحالة",
+      "mode": "subagent",
+      "color": "#ff4500"
+    },
+    "sprint-planner": {
+      "description": "يولد الـ Sprint تلقائياً بناءً على الرودماب والوضع الحالي",
+      "mode": "subagent",
+      "color": "#ff8c00"
+    },
+    "risk-engine": {
+      "description": "يحسب احتمالية فشل الإصدار يومياً ويولد توصيات",
+      "mode": "subagent",
+      "color": "#dc143c"
+    },
+    "kpi-engine": {
+      "description": "محرك حساب مؤشرات الأداء الهندسية",
+      "mode": "subagent",
+      "color": "#006400"
+    },
+    "governance-reviewer": {
+      "description": "مراجعة دورية لنظام الحوكمة — هل يعمل كما يجب؟",
+      "mode": "subagent",
+      "color": "#4b0082"
+    },
+    "compliance-checker": {
+      "description": "التحقق من الامتثال للسياسات والقواعد في كل PR و Release",
+      "mode": "subagent",
+      "color": "#800080"
+    },
+    "executive-dashboard": {
+      "description": "Generate executive reports, business health dashboards, and strategic recommendations",
+      "mode": "subagent",
+      "color": "#1a1a2e"
+    },
+    "ceo-advisor": {
+      "description": "Strategic advisor for CEO-level decisions and business direction",
+      "mode": "subagent",
+      "color": "#e94560"
+    },
+    "cto": {
+      "description": "Technical leadership, technology strategy, and engineering excellence",
+      "mode": "subagent",
+      "color": "#16213e"
+    },
+    "product-director": {
+      "description": "Product strategy, roadmap prioritization, and feature definition",
+      "mode": "subagent",
+      "color": "#0f3460"
+    },
+    "strategy-advisor": {
+      "description": "Long-term strategic planning, market positioning, and growth strategy",
+      "mode": "subagent",
+      "color": "#533483"
+    },
+    "chief-architect": {
+      "description": "Architecture governance — final authority on all architecture decisions",
+      "mode": "subagent",
+      "color": "#e94560"
+    },
+    "backend-architect": {
+      "description": "Backend architecture — services, events, databases, and integration patterns",
+      "mode": "subagent",
+      "color": "#1a1a2e"
+    },
+    "frontend-architect": {
+      "description": "Frontend architecture — components, state, and design system",
+      "mode": "subagent",
+      "color": "#0f3460"
+    },
+    "ai-architect": {
+      "description": "AI architecture governance — LLM pipelines, agents, RAG, and AI infrastructure",
+      "mode": "subagent",
+      "color": "#533483"
+    },
+    "data-architect": {
+      "description": "Data architecture — models, storage, caching, and data flow",
+      "mode": "subagent",
+      "color": "#16213e"
+    },
+    "search-architect": {
+      "description": "Search architecture — full-text, semantic, hybrid search, and ranking",
+      "mode": "subagent",
+      "color": "#0f3460"
+    },
+    "sdk-architect": {
+      "description": "SDK governance — API contracts, versioning, and developer experience",
+      "mode": "subagent",
+      "color": "#1a1a2e"
+    },
+    "backend-engineer": {
+      "description": "Build APIs, repositories, services, and workers following DDD",
+      "mode": "subagent",
+      "color": "#0f3460"
+    },
+    "frontend-engineer": {
+      "description": "Build UI components, pages, and design system following RTL-first",
+      "mode": "subagent",
+      "color": "#16213e"
+    },
+    "ai-engineer": {
+      "description": "Build AI features — LLM pipelines, agents, RAG, embeddings, evaluations",
+      "mode": "subagent",
+      "color": "#533483"
+    },
+    "database-engineer": {
+      "description": "Build database schemas, migrations, indexes, and queries",
+      "mode": "subagent",
+      "color": "#1a1a2e"
+    },
+    "search-engineer": {
+      "description": "Build search features — full-text, semantic, vector search, ranking",
+      "mode": "subagent",
+      "color": "#0f3460"
+    },
+    "integration-engineer": {
+      "description": "Build integrations — APIs, webhooks, data sync, third-party connectors",
+      "mode": "subagent",
+      "color": "#16213e"
+    },
+    "workflow-engineer": {
+      "description": "Build workflow automation — business rules, pipelines, event-driven flows",
+      "mode": "subagent",
+      "color": "#533483"
+    },
+    "devops-engineer": {
+      "description": "Build infrastructure, CI/CD, monitoring, and deployment",
+      "mode": "subagent",
+      "color": "#1a1a2e"
+    },
+    "code-reviewer": {
+      "description": "Review every PR for code quality, standards compliance, and correctness",
+      "mode": "subagent",
+      "color": "#e94560"
+    },
+    "security-reviewer": {
+      "description": "Review all code for security vulnerabilities and compliance",
+      "mode": "subagent",
+      "color": "#e94560"
+    },
+    "performance-reviewer": {
+      "description": "Review performance, optimize queries, and enforce budgets",
+      "mode": "subagent",
+      "color": "#0f3460"
+    },
+    "qa-engineer": {
+      "description": "Comprehensive quality assurance — test planning, execution, reporting",
+      "mode": "subagent",
+      "color": "#16213e"
+    },
+    "refactoring-engineer": {
+      "description": "Identify and eliminate technical debt, improve code structure",
+      "mode": "subagent",
+      "color": "#533483"
+    },
+    "accessibility-reviewer": {
+      "description": "Accessibility compliance — WCAG, screen readers, keyboard navigation",
+      "mode": "subagent",
+      "color": "#0f3460"
+    },
+    "company-intelligence": {
+      "description": "Deep company research — firmographics, hierarchy, financial health",
+      "mode": "subagent",
+      "color": "#1a1a2e"
+    },
+    "employee-intelligence": {
+      "description": "Employee intelligence — career history, skills, org insights",
+      "mode": "subagent",
+      "color": "#16213e"
+    },
+    "revenue-intelligence": {
+      "description": "Revenue analysis — pipeline, deals, win/loss, forecasting",
+      "mode": "subagent",
+      "color": "#0f3460"
+    },
+    "pricing-advisor": {
+      "description": "Pricing strategy — packaging, tiering, discounting, monetization",
+      "mode": "subagent",
+      "color": "#533483"
+    },
+    "market-intelligence": {
+      "description": "Market research — trends, segments, positioning, opportunities",
+      "mode": "subagent",
+      "color": "#1a1a2e"
+    },
+    "sales-director": {
+      "description": "Sales strategy — pipeline management, team performance, revenue targets",
+      "mode": "subagent",
+      "color": "#e94560"
+    },
+    "release-manager": {
+      "description": "Orchestrate releases from staging to production",
+      "mode": "subagent",
+      "color": "#e94560"
+    },
+    "migration-engineer": {
+      "description": "Plan and execute database and data migrations",
+      "mode": "subagent",
+      "color": "#16213e"
+    },
+    "documentation-engineer": {
+      "description": "Create and maintain technical documentation",
+      "mode": "subagent",
+      "color": "#0f3460"
+    },
+    "changelog-manager": {
+      "description": "Track changes, manage changelog, and maintain release history",
+      "mode": "subagent",
+      "color": "#533483"
+    }
+  },
+
+  "mcp": {
+    "notion": {
+      "type": "local",
+      "command": ["npx", "-y", "@ramidecodes/mcp-server-notion@latest", "--api-key=NOTION_API_KEY"],
+      "enabled": true
+    },
+    "google-drive": {
+      "type": "local",
+      "command": ["npx", "-y", "@piotr-agier/google-drive-mcp"],
+      "enabled": true
+    },
+    "gmail": {
+      "type": "local",
+      "command": ["npx", "-y", "@node2flow/gmail-mcp"],
+      "enabled": true,
+      "environment": {
+        "GOOGLE_CLIENT_ID": "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET": "GOOGLE_CLIENT_SECRET",
+        "GOOGLE_REFRESH_TOKEN": "GOOGLE_REFRESH_TOKEN"
+      }
+    },
+    "google-tasks": {
+      "type": "local",
+      "command": ["powershell", "-ExecutionPolicy", "Bypass", "-File", "C:\\Users\\raghe\\.opencode\\scripts\\gtasks-wrapper.ps1"],
+      "enabled": true
+    },
+    "notebooklm": {
+      "type": "local",
+      "command": ["npx", "-y", "notebooklm-mcp-server", "start"],
+      "enabled": true
+    },
+    "odoo": {
+      "type": "local",
+      "command": ["powershell", "-ExecutionPolicy", "Bypass", "-File", "C:\\Users\\raghe\\.opencode\\scripts\\odoo-wrapper.ps1"],
+      "enabled": true
+    }
+  }
 }
