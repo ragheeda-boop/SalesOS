@@ -82,7 +82,9 @@ export class RenderingRuntime {
     if (entry) {
       try {
         await entry.loader()
-      } catch {}
+      } catch (e) {
+        console.warn(`[RenderingRuntime] Failed to preload component "${name}":`, e)
+      }
     }
   }
 
