@@ -212,7 +212,8 @@ class CityLookup:
         """Normalize a city name to canonical Arabic form."""
         if not city_name:
             return None
-        cleaned = city_name.strip()
+        from runtime.data_fabric_runtime.master_data.normalizers import normalize_arabic_text
+        cleaned = normalize_arabic_text(city_name) or city_name.strip()
         info = self._city_map.get(cleaned)
         if info:
             return info.canonical_ar
