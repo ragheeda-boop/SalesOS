@@ -64,10 +64,11 @@ def grep_dir(directory, text):
 
 
 def table_count(table, where="tenant_id"):
-    import asyncpg, asyncio
+    import asyncpg, asyncio, os
     TID = "d1e2f3a4-5678-90ab-cdef-1234567890ab"
     async def go():
-        conn = await asyncpg.connect("postgresql://salesos:salesos_dev_password@postgres:5432/salesos")
+        dsn = os.environ.get("DATABASE_URL") or "postgresql://salesos:salesos_dev_password@postgres:5432/salesos"
+        conn = await asyncpg.connect(dsn)
         if where == "company":
             r = await conn.fetchval(f"SELECT COUNT(*) FROM {table} WHERE company_id IN (SELECT id FROM companies WHERE tenant_id = $1)", TID)
         else:
@@ -199,9 +200,10 @@ def _rbac():
 
 
 def _db_has_col(data_type):
-    import asyncpg, asyncio
+    import asyncpg, asyncio, os
     async def go():
-        conn = await asyncpg.connect("postgresql://salesos:salesos_dev_password@postgres:5432/salesos")
+        dsn = os.environ.get("DATABASE_URL") or "postgresql://salesos:salesos_dev_password@postgres:5432/salesos"
+        conn = await asyncpg.connect(dsn)
         r = await conn.fetchval("SELECT COUNT(*) FROM information_schema.columns WHERE data_type=$1", data_type)
         await conn.close()
         return r > 0, f"{r} columns"
