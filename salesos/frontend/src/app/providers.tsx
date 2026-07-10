@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useState, useEffect, useMemo, type ReactNode } from "react"
 import { createFrontendRuntime, type FrontendRuntime } from "@salesos/runtime"
 import { RuntimeContext } from "@salesos/hooks"
+import { ToastViewport } from "@salesos/ui"
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -40,8 +41,10 @@ export function Providers({ children }: { children: ReactNode }) {
   if (!ready) return null
 
   return (
-    <RuntimeContext.Provider value={runtime}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </RuntimeContext.Provider>
+    <ToastViewport>
+      <RuntimeContext.Provider value={runtime}>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      </RuntimeContext.Provider>
+    </ToastViewport>
   )
 }
