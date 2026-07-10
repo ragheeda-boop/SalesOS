@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional, Any, Callable
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 from enum import Enum
@@ -75,12 +75,16 @@ class RevenueBrain:
                  signal_engine: SignalEngine,
                  market_engine: MarketIntelligenceEngine,
                  graph_service: RelationshipGraphService,
-                 enrichment_service: EnrichmentService):
+                 enrichment_service: EnrichmentService,
+                 db_session_factory: Optional[Callable] = None,
+                 feature_store: Any = None):
         self.company_engine = company_engine
         self.signal_engine = signal_engine
         self.market_engine = market_engine
         self.graph_service = graph_service
         self.enrichment_service = enrichment_service
+        self._db_session_factory = db_session_factory
+        self._feature_store = feature_store
         self._decisions: list[ExecutiveDecision] = []
         self._forecasts: dict[ForecastHorizon, list[Forecast]] = {
             h: [] for h in ForecastHorizon
@@ -172,7 +176,7 @@ class RevenueBrain:
         return decisions
 
     async def _generate_forecasts(self) -> dict[ForecastHorizon, Forecast]:
-        """Generate revenue forecasts from signals and pipeline data."""
+        """Generate revenue forecasts from signals, FeatureStore, and pipeline data."""
         now = datetime.utcnow()
 
         recent_signals = self.signal_engine.get_signals(days_back=30)
@@ -181,10 +185,40 @@ class RevenueBrain:
         signal_momentum = len(recent_signals) / 30.0 if recent_signals else 0
         hot_momentum = len(hot_companies) / 30.0 if hot_companies else 0
 
+        # Try to get real revenue base from DB + FeatureStore
         base_revenue = 1000000.0
+        revenue_companies = 0
+        if self._db_session_factory:
+            from sqlalchemy import text
+            try:
+                async with self._db_session_factory() as session:
+                    rows = await session.execute(
+                        text("SELECT COUNT(*) as cnt, COALESCE(SUM(annual_revenue), 0) as total FROM companies WHERE annual_revenue IS NOT NULL")
+                    )
+                    r = rows.mappings().one()
+                    if r["total"] > 0:
+                        base_revenue = float(r["total"])
+                        revenue_companies = r["cnt"]
+            except Exception:
+                pass
+
+        # Use FeatureStore scores to adjust growth factor
+        growth_multiplier = 1.0
+        if self._feature_store and revenue_companies > 0:
+            try:
+                for ci in self.company_engine.get_all()[:10]:
+                    tenant_id = ci.business_object.profile.data.get("tenant_id", "default")
+                    features = await self._feature_store.get_features(company_id=ci.id, tenant_id=tenant_id)
+                    if features:
+                        growth = features.get("growth_score")
+                        if growth and growth.score > 0.6:
+                            growth_multiplier += 0.05
+            except Exception:
+                pass
+
         signal_factor = 1 + (signal_momentum * 0.02)
         hot_factor = 1 + (hot_momentum * 0.05)
-        growth_factor = min(signal_factor * hot_factor, 1.5)
+        growth_factor = min(signal_factor * hot_factor * growth_multiplier, 1.5)
 
         monthly_forecast = base_revenue * growth_factor
         confidence = min(0.5 + (len(recent_signals) * 0.005), 0.9)
