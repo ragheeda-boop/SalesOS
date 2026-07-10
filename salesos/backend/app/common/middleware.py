@@ -7,6 +7,18 @@ from starlette.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 
+
+def _get_client_ip(scope: dict) -> str:
+    """Extract client IP from request scope, handling proxies."""
+    headers = dict(scope.get("headers", []))
+    for header_name, header_bytes in [(b"x-forwarded-for", b"x-forwarded-for"), (b"x-real-ip", b"x-real-ip")]:
+        if header_bytes in headers:
+            val = headers[header_bytes].decode().split(",")[0].strip()
+            if val:
+                return val
+    client = scope.get("client")
+    return client[0] if client else "unknown"
+
 class RateLimitMiddleware:
     """Rate limiter — Redis-backed in production, in-memory fallback for dev."""
 
@@ -157,7 +169,9 @@ class RequestIDMiddleware:
         await self.app(scope, receive, send_wrapper)
 
 
-class TimingMiddleware:
+class RequestLoggingMiddleware:
+    """Log every request with method, path, status, duration, and client IP."""
+
     def __init__(self, app):
         self.app = app
 
@@ -167,11 +181,30 @@ class TimingMiddleware:
 
         path = scope.get("path", "/")
         method = scope.get("method", "GET")
+        client_ip = _get_client_ip(scope)
+        request_id = scope.get("request_id", "")
         start = time.time()
+        status_code = 0
+
+        async def send_wrapper(message):
+            nonlocal status_code
+            if message["type"] == "http.response.start":
+                status_code = message.get("status", 0)
+            await send(message)
 
         try:
-            await self.app(scope, receive, send)
+            await self.app(scope, receive, send_wrapper)
         finally:
             elapsed = time.time() - start
-            if elapsed > 1.0:
-                logger.warning("Slow request: %s %s took %.2fs", method, path, elapsed)
+            extra = {
+                "http_method": method,
+                "path": path,
+                "status": status_code,
+                "duration_ms": round(elapsed * 1000, 1),
+                "client_ip": client_ip,
+            }
+            log_level = "warning" if elapsed > 1.0 else "info" if status_code < 500 else "error"
+            getattr(logger, log_level)(
+                "%s %s %d (%.1fms)" % (method, path, status_code, elapsed * 1000),
+                extra={"request_id": request_id, **extra},
+            )
