@@ -96,8 +96,9 @@ def pick(items):
 
 async def seed_database(counts: dict):
     import asyncpg
+    import os
 
-    dsn = "postgresql://salesos:salesos_dev_password@postgres:5432/salesos"
+    dsn = os.environ.get("DATABASE_URL") or "postgresql://salesos:salesos_dev_password@postgres:5432/salesos"
     conn = await asyncpg.connect(dsn)
 
     TID = "d1e2f3a4-5678-90ab-cdef-1234567890ab"
@@ -304,8 +305,9 @@ async def seed_database(counts: dict):
 
 async def clear_database():
     import asyncpg
+    import os
 
-    dsn = "postgresql://salesos:salesos_dev_password@postgres:5432/salesos"
+    dsn = os.environ.get("DATABASE_URL") or "postgresql://salesos:salesos_dev_password@postgres:5432/salesos"
     conn = await asyncpg.connect(dsn)
     TID = "d1e2f3a4-5678-90ab-cdef-1234567890ab"
     TID_UUID = uuid_mod.UUID(TID)
