@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, Any
+from typing import Optional, Any, Callable
+from sqlalchemy.ext.asyncio import AsyncSession
 from ..business_objects import BusinessObject, EntityType
 from .twin import DigitalTwin, TwinState, TwinMetrics
 
@@ -25,8 +26,12 @@ class CompanyTwin(DigitalTwin):
     Adds company-specific intelligence layers.
     """
 
-    def __init__(self, business_object: BusinessObject):
+    def __init__(self, business_object: BusinessObject,
+                 db_session_factory: Optional[Callable[[], AsyncSession]] = None,
+                 feature_store: Any = None):
         super().__init__(business_object)
+        self._db_session_factory = db_session_factory
+        self._feature_store = feature_store
         self.company_state = CompanyState()
 
     def analyze_performance(self) -> dict[str, Any]:
@@ -59,10 +64,24 @@ class CompanyTwin(DigitalTwin):
             "signals_breakdown": {"hiring": hiring, "funding": funding, "expansion": expansion},
         }
 
-    def predict_next_quarter(self) -> dict[str, Any]:
-        """Predict next quarter performance."""
+    async def predict_next_quarter(self) -> dict[str, Any]:
+        """Predict next quarter performance using signal data + FeatureStore."""
         growth = self.company_state.growth_potential
-        hiring = self.company_state.hiring_activity
+
+        # Try to use real FeatureStore scores
+        feature_scores = {}
+        if self._feature_store:
+            try:
+                tenant_id = self.business_object.profile.data.get("tenant_id", "default")
+                features = await self._feature_store.get_features(
+                    company_id=self.business_object.id,
+                    tenant_id=tenant_id,
+                )
+                if features:
+                    feature_scores = {k: v.score for k, v in features.items()}
+                    growth = feature_scores.get("growth_score", growth)
+            except Exception:
+                pass
 
         revenue_change = 0
         if growth > 0.7:
@@ -78,9 +97,9 @@ class CompanyTwin(DigitalTwin):
             "predicted_revenue_change_pct": revenue_change,
             "predicted_growth": growth,
             "confidence": round(0.3 + growth * 0.5, 2),
+            "feature_scores": feature_scores,
             "key_assumptions": [
-                f"نشاط توظيف: {hiring}",
+                f"معدل النمو: {growth:.0%}",
                 f"إشارات توسع: {self.company_state.expansion_signals}",
-                f"إشارات تمويل: {sum(1 for s in self.business_object.signals if s.type.value == 'funding')}",
             ],
         }

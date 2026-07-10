@@ -1,6 +1,7 @@
-from typing import Optional, Any
+from typing import Optional, Any, Callable
 from datetime import datetime
 from dataclasses import dataclass, field
+from sqlalchemy.ext.asyncio import AsyncSession
 from ..business_objects import (
     BusinessObject, BusinessObjectRegistry, ObjectIdentity,
     ObjectProfile, ObjectSignal, ObjectKnowledge, ObjectAI,
@@ -40,8 +41,12 @@ class CompanyIntelligenceEngine:
     Each company is a BusinessObject with intelligence layered on top.
     """
 
-    def __init__(self, registry: Optional[BusinessObjectRegistry] = None):
+    def __init__(self, registry: Optional[BusinessObjectRegistry] = None,
+                 db_session_factory: Optional[Callable[[], AsyncSession]] = None,
+                 feature_store: Any = None):
         self.registry = registry or BusinessObjectRegistry()
+        self._db_session_factory = db_session_factory
+        self._feature_store = feature_store
         self._companies: dict[str, CompanyIntelligence] = {}
 
     def get_or_create(self, company_id: str, name_ar: Optional[str] = None, name_en: Optional[str] = None) -> CompanyIntelligence:
@@ -136,6 +141,43 @@ class CompanyIntelligenceEngine:
             if ci:
                 cis.append(ci)
         return cis
+
+    async def search_from_db(self, query: str, tenant_id: str, limit: int = 20) -> list[CompanyIntelligence]:
+        """Search for companies from the real PostgreSQL database and hydrate into CompanyIntelligence."""
+        if not self._db_session_factory:
+            return self.search(query)
+        from sqlalchemy import text
+        async with self._db_session_factory() as session:
+            rows = await session.execute(
+                text("""
+                    SELECT id::text, name_ar, name_en, cr_number, city, region, industry,
+                           status, activity_description, employees_count, annual_revenue
+                    FROM companies
+                    WHERE tenant_id = :tid
+                      AND (name_ar ILIKE :q OR name_en ILIKE :q OR cr_number ILIKE :q)
+                    LIMIT :lim
+                """),
+                {"tid": tenant_id, "q": f"%{query}%", "lim": limit},
+            )
+            cis = []
+            for row in rows.mappings().all():
+                bo = self.registry.get_or_create(row["id"], EntityType.COMPANY)
+                bo.profile.name_ar = row.get("name_ar") or ""
+                bo.profile.name_en = row.get("name_en") or ""
+                ci = self.get_or_create(row["id"], bo.profile.name_ar, bo.profile.name_en)
+                ci.business_object.profile.data.update({
+                    "cr_number": row.get("cr_number"),
+                    "city": row.get("city"),
+                    "region": row.get("region"),
+                    "industry": row.get("industry"),
+                    "status": row.get("status"),
+                    "activity_description": row.get("activity_description"),
+                    "employees_count": row.get("employees_count"),
+                    "annual_revenue": row.get("annual_revenue"),
+                    "tenant_id": tenant_id,
+                })
+                cis.append(ci)
+            return cis
 
     def _recalculate_completeness(self, ci: CompanyIntelligence) -> None:
         """Calculate data completeness score for a company."""
