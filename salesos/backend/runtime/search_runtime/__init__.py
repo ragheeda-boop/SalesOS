@@ -9,6 +9,7 @@ Search strategies:
 
 from __future__ import annotations
 
+import asyncio
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -117,6 +118,8 @@ class SearchRuntime:
         self._logger = logger
         self.metrics = SearchMetrics()
 
+    SEARCH_TIMEOUT: float = 30.0
+
     async def search(
         self,
         query: str,
@@ -132,18 +135,34 @@ class SearchRuntime:
         t0 = time.monotonic()
         self.metrics.searches += 1
 
-        if strategy == SearchStrategy.FULLTEXT:
-            self.metrics.fulltext_searches += 1
-            result = await self._fulltext_search(query, tenant_id, filters, limit, offset, entity_types)
-        elif strategy == SearchStrategy.SEMANTIC:
-            self.metrics.semantic_searches += 1
-            result = await self._semantic_search(query, tenant_id, limit, offset)
-        elif strategy == SearchStrategy.GRAPH:
-            self.metrics.graph_searches += 1
-            result = await self._graph_search(query, tenant_id, limit)
-        else:
-            self.metrics.hybrid_searches += 1
-            result = await self._hybrid_search(query, tenant_id, filters, limit, offset, entity_types)
+        try:
+            if strategy == SearchStrategy.FULLTEXT:
+                self.metrics.fulltext_searches += 1
+                result = await asyncio.wait_for(
+                    self._fulltext_search(query, tenant_id, filters, limit, offset, entity_types),
+                    timeout=self.SEARCH_TIMEOUT,
+                )
+            elif strategy == SearchStrategy.SEMANTIC:
+                self.metrics.semantic_searches += 1
+                result = await asyncio.wait_for(
+                    self._semantic_search(query, tenant_id, limit, offset),
+                    timeout=self.SEARCH_TIMEOUT,
+                )
+            elif strategy == SearchStrategy.GRAPH:
+                self.metrics.graph_searches += 1
+                result = await asyncio.wait_for(
+                    self._graph_search(query, tenant_id, limit),
+                    timeout=self.SEARCH_TIMEOUT,
+                )
+            else:
+                self.metrics.hybrid_searches += 1
+                result = await asyncio.wait_for(
+                    self._hybrid_search(query, tenant_id, filters, limit, offset, entity_types),
+                    timeout=self.SEARCH_TIMEOUT,
+                )
+        except asyncio.TimeoutError:
+            self.metrics.errors += 1
+            return SearchResult(items=[], total=0, query=query, strategy=strategy, took_ms=(time.monotonic() - t0) * 1000)
 
         result.took_ms = (time.monotonic() - t0) * 1000
         self.metrics.total_search_ms += result.took_ms
@@ -227,14 +246,15 @@ class SearchRuntime:
         filters: Optional[dict], limit: int, offset: int,
         entity_types: Optional[list[str]],
     ) -> SearchResult:
-        like = f"%{query}%"
         async with self._session_factory() as session:
+            await session.execute(sa_text("SET statement_timeout = '30s'"))
+
+            tsq = f"plainto_tsquery('arabic', :q)"
             conditions = [
                 "c.tenant_id = :tid",
-                "(c.name_ar ILIKE :q OR c.name_en ILIKE :q OR c.cr_number ILIKE :q "
-                "OR c.city ILIKE :q OR c.activity_description ILIKE :q)",
+                f"c.tsv @@ {tsq}",
             ]
-            params: dict = {"tid": tenant_id, "q": like, "lim": limit, "off": offset}
+            params: dict = {"tid": tenant_id, "q": query, "lim": limit, "off": offset}
 
             if filters:
                 for field, value in filters.items():
@@ -254,26 +274,26 @@ class SearchRuntime:
             rows = await session.execute(
                 sa_text(f"""
                     SELECT c.id, c.name_ar, c.name_en, c.cr_number, c.city,
-                           c.region, c.industry, c.status, c.activity_description
+                           c.region, c.industry, c.status, c.activity_description,
+                           ts_rank(c.tsv, {tsq}) AS relevance
                     FROM companies c
                     WHERE {where_clause}
                     ORDER BY
                         CASE
-                            WHEN c.name_ar ILIKE :exact THEN 10
-                            WHEN c.name_ar ILIKE :q THEN 5
-                            WHEN c.cr_number ILIKE :exact THEN 8
-                            ELSE 1
-                        END DESC,
+                            WHEN c.name_ar = :q THEN 10
+                            WHEN c.cr_number = :q THEN 8
+                            ELSE 5
+                        END + COALESCE(ts_rank(c.tsv, {tsq}), 0) DESC,
                         c.updated_at DESC
                     LIMIT :lim OFFSET :off
                 """),
-                {**params, "exact": query},
+                params,
             )
 
             items = [
                 SearchResultItem(
                     id=r["id"], type="company",
-                    score=5.0 if r["name_ar"] == query else 1.0,
+                    score=float(r["relevance"]) if r["relevance"] else 1.0,
                     data={"name_ar": r["name_ar"], "name_en": r["name_en"],
                           "cr_number": r["cr_number"], "city": r["city"],
                           "region": r["region"], "industry": r["industry"],
@@ -339,14 +359,30 @@ class SearchRuntime:
         filters: Optional[dict], limit: int, offset: int,
         entity_types: Optional[list[str]],
     ) -> SearchResult:
-        # Full-text base
-        ft_result = await self._fulltext_search(query, tenant_id, filters, limit, offset, entity_types)
+        # Full-text base + semantic boost — run concurrently
+        ft_coro = self._fulltext_search(query, tenant_id, filters, limit, offset, entity_types)
+        sem_coro = self._semantic_search(query, tenant_id, limit, 0) if self._embedding_service else None
+
+        if sem_coro:
+            ft_result, sem_result = await asyncio.gather(
+                asyncio.wait_for(ft_coro, timeout=self.SEARCH_TIMEOUT * 0.8),
+                asyncio.wait_for(sem_coro, timeout=self.SEARCH_TIMEOUT * 0.8),
+                return_exceptions=True,
+            )
+            if isinstance(ft_result, Exception):
+                self.metrics.errors += 1
+                ft_result = SearchResult(items=[], total=0, query=query, strategy=SearchStrategy.FULLTEXT, took_ms=0)
+            if isinstance(sem_result, Exception):
+                self.metrics.errors += 1
+                sem_result = None
+        else:
+            ft_result = await asyncio.wait_for(ft_coro, timeout=self.SEARCH_TIMEOUT * 0.8)
+            sem_result = None
 
         # Semantic boost
         semantic_items: dict[str, float] = {}
-        if self._embedding_service:
+        if sem_result:
             try:
-                sem_result = await self._semantic_search(query, tenant_id, limit, 0)
                 for item in sem_result.items:
                     semantic_items[item.id] = item.score
             except Exception as exc:
@@ -384,13 +420,13 @@ class SearchRuntime:
                         SELECT c.{col}, COUNT(*) as cnt
                         FROM companies c
                         WHERE c.tenant_id = :tid
-                          AND (c.name_ar ILIKE :q OR c.name_en ILIKE :q OR c.cr_number ILIKE :q)
+                          AND c.tsv @@ plainto_tsquery('arabic', :q)
                           AND c.{col} IS NOT NULL
                         GROUP BY c.{col}
                         ORDER BY cnt DESC
                         LIMIT 20
                     """),
-                    {"tid": tenant_id, "q": f"%{query}%"},
+                    {"tid": tenant_id, "q": query},
                 )
                 facet_data = {str(r[0]): r[1] for r in rows}
                 if facet_data:
