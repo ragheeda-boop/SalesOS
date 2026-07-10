@@ -245,6 +245,9 @@ async def lifespan(app: FastAPI):
         app.state.plugin_sandbox = plugin_sandbox
 
         yield
+        kg = getattr(app.state, "kg_engine", None)
+        if kg is not None:
+            await kg.close()
         await close_db()
 
 
@@ -319,20 +322,6 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
         checks["cache"] = "unavailable"
 
     kg = getattr(request.app.state, "kg_engine", None)
-    if kg is None:
-        from app.database import async_session
-        try:
-            kg = KnowledgeGraphEngine(
-                session_factory=async_session,
-                neo4j_uri=os.environ.get("NEO4J_URI", "bolt://localhost:7687"),
-                neo4j_user=os.environ.get("NEO4J_USER", "neo4j"),
-                neo4j_password=os.environ["NEO4J_PASSWORD"],
-            )
-            if kg.metrics.neo4j_available:
-                request.app.state.kg_engine = kg
-        except Exception:
-            pass
-        kg = getattr(request.app.state, "kg_engine", None)
     checks["graph"] = "connected" if kg is not None and kg.metrics.neo4j_available else "not_configured"
 
     return HealthResponse(
@@ -372,6 +361,7 @@ def register_routers():
     from app.modules.excel_import.router import router as excel_import_router
     from app.modules.employee_360.router import router as employee_360_router
     from app.modules.executive.router import router as executive_router
+    from app.application.dashboard.router import router as dashboard_router
     from app.modules.work_intelligence.router import router as work_intelligence_router
     from app.routers.commercial import router as commercial_router
     from app.routers.copilot import router as copilot_router
@@ -391,6 +381,7 @@ def register_routers():
     app.include_router(excel_import_router, prefix="/api/v1", tags=["Excel Import"], dependencies=_auth)
     app.include_router(employee_360_router, prefix="/api/v1", tags=["Employee 360"], dependencies=_auth)
     app.include_router(executive_router, prefix="/api/v1", tags=["Executive"], dependencies=_auth)
+    app.include_router(dashboard_router, prefix="/api/v1", tags=["Dashboard"], dependencies=_auth)
     app.include_router(work_intelligence_router, prefix="/api/v1", tags=["Work Intelligence"], dependencies=_auth)
     app.include_router(company_router, prefix="/api/v1/companies", tags=["Companies"], dependencies=_auth)
     app.include_router(contact_router, prefix="/api/v1/contacts", tags=["Contacts"], dependencies=_auth)

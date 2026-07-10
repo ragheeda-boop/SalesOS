@@ -154,6 +154,12 @@ class KnowledgeGraphEngine:
         if self._driver:
             await self._driver.close()
 
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
+
     # ── Node CRUD ───────────────────────────────────────────────
 
     async def upsert_company(self, company: dict, tenant_id: str) -> GraphNode:

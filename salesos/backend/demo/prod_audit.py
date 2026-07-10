@@ -213,15 +213,18 @@ def _graph_nodes():
     uri = os.getenv("NEO4J_URI", "bolt://neo4j:7687")
     user = os.getenv("NEO4J_USER", "neo4j")
     pw = os.getenv("NEO4J_PASSWORD", "neo4j_dev_password")
+    driver = None
     try:
         driver = GraphDatabase.driver(uri, auth=(user, pw))
         with driver.session() as s:
             r = s.run("MATCH (n) RETURN count(n) AS c")
             c = r.single()["c"]
-        driver.close()
         return c
     except Exception:
         return 0
+    finally:
+        if driver:
+            driver.close()
 
 
 # ─── Main ──────────────────────────────────────────────
