@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.common.middleware import RequestIDMiddleware, TimingMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
+from app.common.middleware import RequestIDMiddleware, RequestLoggingMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
 from app.config import settings
 from app.database import get_db
 from sdk.events.base import DomainEvent
@@ -46,6 +46,10 @@ async def lifespan(app: FastAPI):
     if os.environ.get("SALESOS_TESTING"):
         yield
     else:
+        # Configure JSON logging before anything else
+        from app.common.logging_config import configure_logging
+        configure_logging(settings.log_level)
+
         await init_db()
         register_modules()
         setup_telemetry("salesos")
@@ -270,7 +274,7 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "X-Tenant-Id", "X-Request-ID", "X-CSRF-Token"],
 )
 app.add_middleware(RequestIDMiddleware)
-app.add_middleware(TimingMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 
 # Redis-backed rate limiter (falls back to in-memory if Redis unavailable)
@@ -286,7 +290,11 @@ app.add_middleware(RateLimitMiddleware, rate=60, window=60, redis_client=_redis)
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     import traceback
-    traceback.print_exc()
+    logger = getattr(request.app.state, "logger", None)
+    if logger:
+        logger.exception("Unhandled exception: %s %s", request.method, request.url.path)
+    else:
+        traceback.print_exc()
     return JSONResponse(
         status_code=500,
         content={"detail": f"Internal server error: {str(exc)}"},
@@ -296,6 +304,34 @@ async def global_exception_handler(request: Request, exc: Exception):
 @app.get("/ping")
 async def ping():
     return {"ping": "pong"}
+
+@app.get("/health/live")
+async def health_live():
+    """Kubernetes liveness probe — simple process health."""
+    return {"status": "alive", "uptime_seconds": time.time() - _start_time}
+
+@app.get("/health/ready")
+async def health_ready(request: Request):
+    """Kubernetes readiness probe — checks critical dependencies."""
+    from sqlalchemy import text
+    from app.database import async_session
+
+    checks = {}
+    try:
+        async with async_session() as session:
+            await session.execute(text("SELECT 1"))
+        checks["database"] = "connected"
+    except Exception as e:
+        checks["database"] = f"error: {e}"
+
+    kg = getattr(request.app.state, "kg_engine", None)
+    checks["graph"] = "connected" if kg is not None and kg.metrics.neo4j_available else "not_configured"
+
+    all_ready = checks.get("database") == "connected"
+    return {
+        "status": "ready" if all_ready else "not_ready",
+        "checks": checks,
+    }
 
 @app.get("/health")
 async def health(request: Request, db: AsyncSession = Depends(get_db)):
