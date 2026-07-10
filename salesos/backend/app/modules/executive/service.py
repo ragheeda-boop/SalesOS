@@ -40,7 +40,18 @@ class ExecutiveService:
         )
         total = r.get("total_pipeline", 0.0)
         won = r.get("won_value", 0.0)
-        return RevenueKPI(total_booked=won, total_pipeline=total)
+        prev = await self._fetch_one(
+            "SELECT COALESCE(SUM(value), 0) as prev_value FROM commercial_opportunities "
+            "WHERE tenant_id = :tid AND created_at < :d30",
+            {"tid": self.tenant_id, "d30": self.days_30},
+        )
+        prev_val = prev.get("prev_value", 0.0) or 0.0
+        growth_pct = round(((total - prev_val) / prev_val * 100), 1) if prev_val > 0 else 0.0
+        return RevenueKPI(
+            total_booked=won,
+            total_pipeline=total,
+            growth_percent=growth_pct,
+        )
 
     async def get_team(self) -> TeamKPI:
         r = await self._fetch_one(
@@ -121,12 +132,60 @@ class ExecutiveService:
         r = await self._fetch_one(
             "SELECT "
             "(SELECT COUNT(*) FROM companies WHERE tenant_id = :tid AND created_at >= :d30) as new_companies, "
-            "(SELECT COUNT(*) FROM commercial_opportunities WHERE tenant_id = :tid AND created_at >= :d30) as new_opps",
+            "(SELECT COUNT(*) FROM contacts_standalone WHERE tenant_id = :tid AND created_at >= :d30) as new_contacts, "
+            "(SELECT COUNT(*) FROM commercial_opportunities WHERE tenant_id = :tid AND created_at >= :d30) as new_opps, "
+            "(SELECT COUNT(*) FROM commercial_contracts WHERE tenant_id = :tid AND created_at >= :d30) as new_contracts",
             {"tid": self.tenant_id, "d30": self.days_30},
         )
         return GrowthKPI(
             new_companies_30d=r.get("new_companies", 0),
+            new_contacts_30d=r.get("new_contacts", 0),
             new_opportunities_30d=r.get("new_opps", 0),
+            new_contracts_30d=r.get("new_contracts", 0),
+        )
+
+    async def get_health(self) -> HealthKPI:
+        completeness = await self._fetch_one(
+            "SELECT "
+            "COUNT(*) as total, "
+            "SUM(CASE WHEN name_ar IS NOT NULL AND name_ar != '' THEN 1 ELSE 0 END) as has_name, "
+            "SUM(CASE WHEN email IS NOT NULL AND email != '' THEN 1 ELSE 0 END) as has_email, "
+            "SUM(CASE WHEN phone IS NOT NULL AND phone != '' THEN 1 ELSE 0 END) as has_phone, "
+            "SUM(CASE WHEN city IS NOT NULL THEN 1 ELSE 0 END) as has_city, "
+            "SUM(CASE WHEN industry IS NOT NULL THEN 1 ELSE 0 END) as has_industry "
+            "FROM companies WHERE tenant_id = :tid",
+            {"tid": self.tenant_id},
+        )
+        total = completeness.get("total", 0) or 1
+        filled = sum([
+            completeness.get("has_name", 0) or 0,
+            completeness.get("has_email", 0) or 0,
+            completeness.get("has_phone", 0) or 0,
+            completeness.get("has_city", 0) or 0,
+            completeness.get("has_industry", 0) or 0,
+        ])
+        max_fill = total * 5
+        data_completeness = round(filled / max_fill, 2) if max_fill > 0 else 0.0
+
+        sync = await self._fetch_one(
+            "SELECT COUNT(*) as cnt FROM entity_resolution_log "
+            "WHERE tenant_id = :tid AND created_at >= :d1",
+            {"tid": self.tenant_id, "d1": datetime.now(timezone.utc) - timedelta(days=1)},
+        )
+        has_recent_sync = sync.get("cnt", 0) > 0
+
+        if data_completeness > 0.8 and has_recent_sync:
+            overall = "good"
+        elif data_completeness > 0.5:
+            overall = "fair"
+        else:
+            overall = "needs_attention"
+
+        return HealthKPI(
+            overall_health=overall,
+            data_completeness=data_completeness,
+            sync_status="synced" if has_recent_sync else "pending",
+            last_activity=self.now.isoformat(),
         )
 
     async def get_dashboard(self) -> ExecutiveDashboard:
@@ -136,13 +195,15 @@ class ExecutiveService:
         risks = await self.get_risks()
         renewals = await self.get_renewals()
         growth = await self.get_growth()
+        health = await self.get_health()
 
         return ExecutiveDashboard(
             revenue=RevenueKPI(
                 total_booked=revenue.total_booked,
                 total_pipeline=revenue.total_pipeline,
-                weighted_pipeline=revenue.total_pipeline * win_rate,
-                forecast=revenue.total_pipeline * win_rate,
+                weighted_pipeline=revenue.total_pipeline * max(win_rate, 0.1),
+                forecast=revenue.total_pipeline * max(win_rate, 0.1),
+                growth_percent=revenue.growth_percent,
             ),
             team=TeamKPI(
                 total_employees=team.total_employees,
@@ -156,10 +217,5 @@ class ExecutiveService:
             pipeline=pipeline,
             renewals=renewals,
             growth=growth,
-            health=HealthKPI(
-                overall_health="good",
-                data_completeness=0.85,
-                sync_status="synced",
-                last_activity=self.now.isoformat(),
-            ),
+            health=health,
         )
