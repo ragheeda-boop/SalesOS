@@ -59,7 +59,9 @@ export class RealtimeRuntime {
           if (subs) {
             subs.filter((s) => s.event === evt).forEach((s) => s.callback(data))
           }
-        } catch {}
+        } catch (e) {
+          console.warn('[RealtimeRuntime] Failed to process WebSocket message:', e)
+        }
       }
       this.ws.onclose = () => {
         this.setStatus('disconnected')

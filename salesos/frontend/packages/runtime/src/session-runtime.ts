@@ -54,7 +54,9 @@ export class SessionRuntime {
     if (typeof window === 'undefined') return
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.session))
-    } catch {}
+    } catch (e) {
+      console.warn('[SessionRuntime] Failed to persist session:', e)
+    }
   }
 
   private notify() {
@@ -110,7 +112,9 @@ export class SessionRuntime {
     if (typeof window !== 'undefined') {
       try {
         localStorage.removeItem(this.storageKey)
-      } catch {}
+      } catch (e) {
+        console.warn('[SessionRuntime] Failed to clear session on logout:', e)
+      }
     }
     this.notify()
   }

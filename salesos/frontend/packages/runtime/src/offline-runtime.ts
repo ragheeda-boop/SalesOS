@@ -61,7 +61,9 @@ export class OfflineRuntime {
   private persistQueue() {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.queue))
-    } catch {}
+    } catch (e) {
+      console.warn('[OfflineRuntime] Failed to persist offline queue:', e)
+    }
   }
 
   isOnline(): boolean {
