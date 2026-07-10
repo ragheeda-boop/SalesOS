@@ -7,6 +7,7 @@ automatically populate the graph when golden records are created/updated.
 
 from __future__ import annotations
 
+import asyncio
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -143,6 +144,8 @@ class KnowledgeGraphEngine:
                     max_transaction_retry_time=10,
                 )
                 self.metrics.neo4j_available = True
+                # Create full-text indexes for search
+                asyncio.ensure_future(self._ensure_indexes())
             except Exception as exc:
                 if self._logger:
                     self._logger.warning("Neo4j connection failed, using SQL fallback: %s", exc)
@@ -153,6 +156,24 @@ class KnowledgeGraphEngine:
     async def close(self):
         if self._driver:
             await self._driver.close()
+
+    async def _ensure_indexes(self):
+        """Create full-text search indexes on Neo4j for fast search."""
+        try:
+            async with self._driver.session(database="neo4j") as session:
+                await session.run("""
+                    CREATE FULLTEXT INDEX company_fulltext IF NOT EXISTS
+                    FOR (n:COMPANY) ON EACH [n.name_ar, n.name_en, n.cr_number]
+                """)
+                await session.run("""
+                    CREATE FULLTEXT INDEX person_fulltext IF NOT EXISTS
+                    FOR (n:PERSON) ON EACH [n.name_ar, n.name_en, n.position, n.email]
+                """)
+                if self._logger:
+                    self._logger.info("Neo4j full-text indexes created / verified")
+        except Exception as exc:
+            if self._logger:
+                self._logger.warning("Failed to create Neo4j full-text index (fallback to CONTAINS): %s", exc)
 
     async def __aenter__(self):
         return self
@@ -511,23 +532,45 @@ class KnowledgeGraphEngine:
 
     async def _search_neo4j(self, query: str, labels: Optional[list[NodeLabel]], limit: int = 20) -> list[GraphNode]:
         async with self._driver.session(database="neo4j") as session:
-            label_filter = ":" + "|".join(l.value for l in labels) if labels else ""
-            result = await session.run(
-                f"""
-                MATCH (n{label_filter})
-                WHERE n.name_ar CONTAINS $query OR n.name_en CONTAINS $query
-                   OR n.cr_number CONTAINS $query
-                RETURN n
-                LIMIT $limit
-                """,
-                query=query,
-                limit=limit,
-            )
-            nodes = []
-            async for record in result:
-                n = record["n"]
-                nodes.append(GraphNode(id=n["id"], labels=[NodeLabel.COMPANY], properties=dict(n)))
-            return nodes
+            try:
+                label_filter = ":" + "|".join(l.value for l in labels) if labels else ""
+                index_name = "company_fulltext" if (not labels or NodeLabel.COMPANY in labels) else "person_fulltext"
+                result = await session.run(
+                    f"""
+                    CALL db.index.fulltext.queryNodes($index, $query)
+                    YIELD node, score
+                    RETURN node
+                    ORDER BY score DESC
+                    LIMIT $limit
+                    """,
+                    index=index_name,
+                    query=f"{query}~",
+                    limit=limit,
+                )
+                nodes = []
+                async for record in result:
+                    n = record["node"]
+                    nodes.append(GraphNode(id=n["id"], labels=list(n.labels), properties=dict(n)))
+                return nodes
+            except Exception:
+                # Fallback to CONTAINS if full-text index doesn't exist
+                label_filter = ":" + "|".join(l.value for l in labels) if labels else ""
+                result = await session.run(
+                    f"""
+                    MATCH (n{label_filter})
+                    WHERE n.name_ar CONTAINS $query OR n.name_en CONTAINS $query
+                       OR n.cr_number CONTAINS $query
+                    RETURN n
+                    LIMIT $limit
+                    """,
+                    query=query,
+                    limit=limit,
+                )
+                nodes = []
+                async for record in result:
+                    n = record["n"]
+                    nodes.append(GraphNode(id=n["id"], labels=[NodeLabel.COMPANY], properties=dict(n)))
+                return nodes
 
     async def _get_node_neo4j(self, node_id: str, labels: Optional[list[NodeLabel]] = None) -> Optional[GraphNode]:
         async with self._driver.session(database="neo4j") as session:
