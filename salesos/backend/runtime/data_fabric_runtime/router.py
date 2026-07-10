@@ -17,7 +17,7 @@ class IngestRequest(BaseModel):
 
 class ScrapeAndIngestRequest(BaseModel):
     source_slug: str = Field(..., description="Source identifier")
-    use_mock: bool = Field(True, description="Use mock data instead of live API")
+    use_mock: bool = Field(False, description="Use mock data instead of live API")
     api_key: str | None = Field(None, description="API key for live access")
 
 
