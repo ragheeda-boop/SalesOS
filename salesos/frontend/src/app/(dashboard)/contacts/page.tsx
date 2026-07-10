@@ -4,11 +4,12 @@ import { useState, useCallback } from "react"
 import { useContactSearch, useCreateContact, useUpdateContact, useDeleteContact } from "@/lib/hooks/contactQueries"
 import { useCompanySearch } from "@/lib/hooks/companyQueries"
 import { useDebounce } from "@salesos/hooks"
-import { Input, Badge, Button, Spinner, Modal, ModalTrigger, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@salesos/ui"
+import { Input, Badge, Button, Spinner, Modal, ModalTrigger, ModalContent, ModalHeader, ModalBody, ModalFooter, useToast } from "@salesos/ui"
 import { Search, Plus, Users, ChevronLeft, ChevronRight, Pencil, Trash2, X, Loader2, Building2 } from "lucide-react"
 import Link from "next/link"
 
 export default function ContactsPage() {
+  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState("")
   const [page, setPage] = useState(1)
   const [createOpen, setCreateOpen] = useState(false)
@@ -61,8 +62,11 @@ export default function ContactsPage() {
       setCreateOpen(false)
       resetForm()
       setPage(1)
-    } catch {}
-  }, [formData, selectedCompany, createContact])
+      toast({ variant: "success", title: "تمت الإضافة", description: "تم إضافة جهة الاتصال بنجاح" })
+    } catch (err: any) {
+      toast({ variant: "error", title: "فشل الإضافة", description: err?.response?.data?.detail || "حدث خطأ أثناء إضافة جهة الاتصال" })
+    }
+  }, [formData, selectedCompany, createContact, toast])
 
   const handleEdit = useCallback(async () => {
     if (!selectedContact || !formData.name.trim()) return
@@ -78,8 +82,11 @@ export default function ContactsPage() {
       })
       setEditOpen(false)
       setSelectedContact(null)
-    } catch {}
-  }, [selectedContact, formData, updateContact])
+      toast({ variant: "success", title: "تم التعديل", description: "تم تعديل جهة الاتصال بنجاح" })
+    } catch (err: any) {
+      toast({ variant: "error", title: "فشل التعديل", description: err?.response?.data?.detail || "حدث خطأ أثناء تعديل جهة الاتصال" })
+    }
+  }, [selectedContact, formData, updateContact, toast])
 
   const handleDelete = useCallback(async () => {
     if (!selectedContact) return
@@ -87,8 +94,11 @@ export default function ContactsPage() {
       await deleteContact.mutateAsync({ id: selectedContact.id })
       setDeleteOpen(false)
       setSelectedContact(null)
-    } catch {}
-  }, [selectedContact, deleteContact])
+      toast({ variant: "success", title: "تم الحذف", description: "تم حذف جهة الاتصال بنجاح" })
+    } catch (err: any) {
+      toast({ variant: "error", title: "فشل الحذف", description: err?.response?.data?.detail || "حدث خطأ أثناء حذف جهة الاتصال" })
+    }
+  }, [selectedContact, deleteContact, toast])
 
   const openEdit = (contact: Record<string, any>) => {
     const c = contact
@@ -109,8 +119,8 @@ export default function ContactsPage() {
     <div className="mx-auto max-w-7xl px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">جهات الاتصال</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-xl font-bold text-neutral-900">جهات الاتصال</h1>
+          <p className="text-sm text-neutral-500">
             {data ? `إجمالي ${data.total} جهة اتصال` : ""}
           </p>
         </div>
@@ -126,45 +136,45 @@ export default function ContactsPage() {
             <ModalBody>
               <div className="flex flex-col gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">الاسم *</label>
+                  <label className="mb-1 block text-xs font-medium text-neutral-600">الاسم *</label>
                   <Input value={formData.name} onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))} placeholder="الاسم الكامل" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">البريد الإلكتروني</label>
+                    <label className="mb-1 block text-xs font-medium text-neutral-600">البريد الإلكتروني</label>
                     <Input value={formData.email} onChange={(e) => setFormData(p => ({ ...p, email: e.target.value }))} placeholder="email@example.com" />
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">رقم الجوال</label>
+                    <label className="mb-1 block text-xs font-medium text-neutral-600">رقم الجوال</label>
                     <Input value={formData.phone} onChange={(e) => setFormData(p => ({ ...p, phone: e.target.value }))} placeholder="05xxxxxxxx" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">المنصب</label>
+                    <label className="mb-1 block text-xs font-medium text-neutral-600">المنصب</label>
                     <Input value={formData.position} onChange={(e) => setFormData(p => ({ ...p, position: e.target.value }))} placeholder="المسمى الوظيفي" />
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">القسم</label>
+                    <label className="mb-1 block text-xs font-medium text-neutral-600">القسم</label>
                     <Input value={formData.department} onChange={(e) => setFormData(p => ({ ...p, department: e.target.value }))} placeholder="القسم" />
                   </div>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">الشركة</label>
+                  <label className="mb-1 block text-xs font-medium text-neutral-600">الشركة</label>
                   {selectedCompany ? (
-                    <div className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-sm">
+                    <div className="flex items-center justify-between rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm">
                       <span>{selectedCompany.name}</span>
-                      <button onClick={() => { setSelectedCompany(null); setCompanySearch("") }} className="text-gray-400 hover:text-red-500"><X className="h-4 w-4" /></button>
+                      <button onClick={() => { setSelectedCompany(null); setCompanySearch("") }} className="text-neutral-400 hover:text-danger-500"><X className="h-4 w-4" /></button>
                     </div>
                   ) : (
                     <>
                       <Input placeholder="ابحث عن شركة..." value={companySearch} onChange={(e) => setCompanySearch(e.target.value)} className="mb-1" />
                       {companyResults?.items && companyResults.items.length > 0 && (
-                        <div className="max-h-40 overflow-y-auto rounded-md border border-gray-200 bg-white">
+                        <div className="max-h-40 overflow-y-auto rounded-md border border-neutral-200 bg-white">
                           {companyResults.items.slice(0, 6).map((c: any) => (
-                            <button key={c.id} onClick={() => setSelectedCompany({ id: c.id, name: c.name_ar })} className="w-full px-3 py-1.5 text-right text-sm hover:bg-gray-100">
+                            <button key={c.id} onClick={() => setSelectedCompany({ id: c.id, name: c.name_ar })} className="w-full px-3 py-1.5 text-right text-sm hover:bg-neutral-100">
                               {c.name_ar}
-                              {c.cr_number && <span className="mr-2 text-xs text-gray-400">{c.cr_number}</span>}
+                              {c.cr_number && <span className="mr-2 text-xs text-neutral-400">{c.cr_number}</span>}
                             </button>
                           ))}
                         </div>
@@ -173,7 +183,7 @@ export default function ContactsPage() {
                   )}
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">المصدر</label>
+                  <label className="mb-1 block text-xs font-medium text-neutral-600">المصدر</label>
                   <Input value={formData.source} onChange={(e) => setFormData(p => ({ ...p, source: e.target.value }))} placeholder="مصدر جهة الاتصال" />
                 </div>
               </div>
@@ -191,7 +201,7 @@ export default function ContactsPage() {
 
       <div className="mb-4 flex items-center gap-3">
         <div className="relative flex-1">
-          <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
           <Input
             placeholder="بحث عن جهة اتصال..."
             value={searchQuery}
@@ -201,19 +211,19 @@ export default function ContactsPage() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
         {isLoading ? (
           <div className="flex items-center justify-center py-20"><Spinner className="h-8 w-8" /></div>
         ) : isError ? (
-          <div className="py-20 text-center text-red-500">فشل تحميل جهات الاتصال</div>
+          <div className="py-20 text-center text-danger-500">فشل تحميل جهات الاتصال</div>
         ) : !data?.items.length ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+          <div className="flex flex-col items-center justify-center py-20 text-neutral-400">
             <Users className="mb-3 h-12 w-12" />
             <p>لا توجد جهات اتصال</p>
           </div>
         ) : (
           <table className="w-full text-right">
-            <thead className="border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500">
+            <thead className="border-b border-neutral-200 bg-neutral-50 text-xs font-medium text-neutral-500">
               <tr>
                 <th className="px-4 py-3">الاسم</th>
                 <th className="px-4 py-3">البريد الإلكتروني</th>
@@ -225,29 +235,29 @@ export default function ContactsPage() {
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-neutral-100">
               {data.items.map((contact: any) => (
-                <tr key={contact.id} className="text-sm text-gray-700 hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">{contact.name}</td>
-                  <td className="px-4 py-3">{contact.email || <span className="text-gray-400">—</span>}</td>
-                  <td className="px-4 py-3">{contact.phone || <span className="text-gray-400">—</span>}</td>
-                  <td className="px-4 py-3">{contact.position || <span className="text-gray-400">—</span>}</td>
-                  <td className="px-4 py-3">{contact.department || <span className="text-gray-400">—</span>}</td>
+                <tr key={contact.id} className="text-sm text-neutral-700 hover:bg-neutral-50">
+                  <td className="px-4 py-3 font-medium text-neutral-900">{contact.name}</td>
+                  <td className="px-4 py-3">{contact.email || <span className="text-neutral-400">—</span>}</td>
+                  <td className="px-4 py-3">{contact.phone || <span className="text-neutral-400">—</span>}</td>
+                  <td className="px-4 py-3">{contact.position || <span className="text-neutral-400">—</span>}</td>
+                  <td className="px-4 py-3">{contact.department || <span className="text-neutral-400">—</span>}</td>
                   <td className="px-4 py-3">
                     {contact.company_id ? (
-                      <Link href={`/companies/${contact.company_id}`} className="flex items-center gap-1 text-blue-600 hover:underline">
+                      <Link href={`/companies/${contact.company_id}`} className="flex items-center gap-1 text-[var(--muhide-orange)] hover:underline">
                         <Building2 className="h-3 w-3" />
                         <span>{contact.company_name || ""}</span>
                       </Link>
-                    ) : <span className="text-gray-400">—</span>}
+                    ) : <span className="text-neutral-400">—</span>}
                   </td>
-                  <td className="px-4 py-3">{contact.source || <span className="text-gray-400">—</span>}</td>
+                  <td className="px-4 py-3">{contact.source || <span className="text-neutral-400">—</span>}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => openEdit(contact)} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-blue-600" title="تعديل">
+                      <button onClick={() => openEdit(contact)} className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-[var(--muhide-orange)]" title="تعديل">
                         <Pencil className="h-4 w-4" />
                       </button>
-                      <button onClick={() => { setSelectedContact(contact as any); setDeleteOpen(true) }} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-red-600" title="حذف">
+                      <button onClick={() => { setSelectedContact(contact as any); setDeleteOpen(true) }} className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-danger-600" title="حذف">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
@@ -260,7 +270,7 @@ export default function ContactsPage() {
       </div>
 
       {data && data.total > 20 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
+        <div className="mt-4 flex items-center justify-between text-sm text-neutral-500">
           <span>صفحة {page} من {totalPages}</span>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
@@ -271,7 +281,7 @@ export default function ContactsPage() {
               const p = start + i
               if (p > totalPages) return null
               return (
-                <button key={p} onClick={() => setPage(p)} className={`h-8 w-8 rounded-md text-sm ${p === page ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"}`}>
+                <button key={p} onClick={() => setPage(p)} className={`h-8 w-8 rounded-md text-sm ${p === page ? "bg-[var(--muhide-orange)] text-white" : "text-neutral-600 hover:bg-neutral-100"}`}>
                   {p}
                 </button>
               )
@@ -290,26 +300,26 @@ export default function ContactsPage() {
           <ModalBody>
             <div className="flex flex-col gap-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">الاسم *</label>
+                <label className="mb-1 block text-xs font-medium text-neutral-600">الاسم *</label>
                 <Input value={formData.name} onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">البريد الإلكتروني</label>
+                  <label className="mb-1 block text-xs font-medium text-neutral-600">البريد الإلكتروني</label>
                   <Input value={formData.email} onChange={(e) => setFormData(p => ({ ...p, email: e.target.value }))} />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">رقم الجوال</label>
+                  <label className="mb-1 block text-xs font-medium text-neutral-600">رقم الجوال</label>
                   <Input value={formData.phone} onChange={(e) => setFormData(p => ({ ...p, phone: e.target.value }))} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">المنصب</label>
+                  <label className="mb-1 block text-xs font-medium text-neutral-600">المنصب</label>
                   <Input value={formData.position} onChange={(e) => setFormData(p => ({ ...p, position: e.target.value }))} />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">القسم</label>
+                  <label className="mb-1 block text-xs font-medium text-neutral-600">القسم</label>
                   <Input value={formData.department} onChange={(e) => setFormData(p => ({ ...p, department: e.target.value }))} />
                 </div>
               </div>
@@ -330,13 +340,13 @@ export default function ContactsPage() {
         <ModalContent>
           <ModalHeader>تأكيد الحذف</ModalHeader>
           <ModalBody>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-neutral-600">
               هل أنت متأكد من حذف <strong>{selectedContact?.name}</strong>؟
             </p>
           </ModalBody>
           <ModalFooter>
             <Button variant="ghost" onClick={() => setDeleteOpen(false)}>إلغاء</Button>
-            <Button onClick={handleDelete} disabled={deleteContact.isPending} className="bg-red-600 hover:bg-red-700">
+            <Button onClick={handleDelete} disabled={deleteContact.isPending} className="bg-danger-600 hover:bg-danger-700">
               {deleteContact.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               حذف
             </Button>
