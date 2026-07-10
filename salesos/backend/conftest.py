@@ -28,7 +28,7 @@ def _db_url():
     )
 
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
+@pytest_asyncio.fixture(scope="session")
 async def setup_database():
     engine = create_async_engine(_db_url(), echo=False)
     async with engine.begin() as conn:
@@ -60,7 +60,7 @@ async def setup_database():
 
 
 @pytest_asyncio.fixture
-async def db_session() -> AsyncGenerator[AsyncSession, None]:
+async def db_session(setup_database) -> AsyncGenerator[AsyncSession, None]:
     engine = create_async_engine(_db_url(), echo=False, poolclass=NullPool)
     session_maker = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     session = session_maker()
