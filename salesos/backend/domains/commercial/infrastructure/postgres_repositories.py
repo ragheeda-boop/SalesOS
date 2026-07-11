@@ -33,6 +33,11 @@ from domains.decision.context.repo import DecisionRepository
 from domains.decision.recommendation.models import Recommendation, RecommendationStatus
 from domains.decision.recommendation.repo import RecommendationRepository
 
+from domains.commercial.meeting import Meeting
+from domains.commercial.meeting.repository import MeetingRepository
+from domains.commercial.email import Email
+from domains.commercial.email.repository import EmailRepository
+
 from .models import (
     ActivityModel, ActivitySessionModel, AnalyticsSnapshotModel,
     ContractModel, DecisionContextModel, EmailModel, ForecastSnapshotModel,
@@ -849,7 +854,7 @@ class PostgresRecommendationRepository(RecommendationRepository):
         )
 
 
-class MeetingRepository:
+class PostgresMeetingRepository(MeetingRepository):
     """PostgreSQL repository for Meeting records."""
 
     def __init__(self, session: AsyncSession):
@@ -890,8 +895,37 @@ class MeetingRepository:
             return True
         return False
 
+    async def get_domain(self, meeting_id: str) -> Optional[Meeting]:
+        model = await self.get(meeting_id)
+        if not model:
+            return None
+        return Meeting(
+            id=model.id, tenant_id=model.tenant_id,
+            opportunity_id=model.opportunity_id,
+            title=model.title, date=model.meeting_date,
+            duration_minutes=model.duration_minutes or 60,
+            notes=model.notes, status=model.status,
+            created_at=model.created_at, updated_at=model.updated_at,
+        )
 
-class EmailRepository:
+    async def list_domain_by_opportunity(
+        self, opportunity_id: str, tenant_id: str, limit: int = 50,
+    ) -> list[Meeting]:
+        models = await self.list_by_opportunity(opportunity_id, tenant_id, limit)
+        return [
+            Meeting(
+                id=m.id, tenant_id=m.tenant_id,
+                opportunity_id=m.opportunity_id,
+                title=m.title, date=m.meeting_date,
+                duration_minutes=m.duration_minutes or 60,
+                notes=m.notes, status=m.status,
+                created_at=m.created_at, updated_at=m.updated_at,
+            )
+            for m in models
+        ]
+
+
+class PostgresEmailRepository(EmailRepository):
     """PostgreSQL repository for Email records."""
 
     def __init__(self, session: AsyncSession):

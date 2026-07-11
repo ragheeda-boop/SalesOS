@@ -68,11 +68,19 @@ async def lifespan(app: FastAPI):
 
         app.state.logger = StructuredLogger("salesos.api")
 
-        # ── Event Runtime (replaces InMemoryEventBus) ──
-        event_runtime = EventRuntime(
-            session_factory=async_session,
-            logger=app.state.logger,
-        )
+        # ── Event Runtime ──
+        if settings.event_bus_type == "kafka":
+            from sdk.events.kafka_bus import KafkaEventBus
+            event_runtime = KafkaEventBus(
+                bootstrap_servers=settings.kafka_bootstrap_servers,
+                group_id=settings.kafka_group_id,
+                auto_offset_reset=settings.kafka_auto_offset_reset,
+            )
+        else:
+            event_runtime = EventRuntime(
+                session_factory=async_session,
+                logger=app.state.logger,
+            )
         app.state.event_runtime = event_runtime
         # Backward compat: services expect app.state.event_bus
         app.state.event_bus = event_runtime
@@ -355,8 +363,18 @@ async def health_ready(request: Request):
         checks["cache"] = "unavailable"
 
     # Kafka
+    from sdk.events.kafka_bus import KafkaEventBus
     event_runtime = getattr(request.app.state, "event_runtime", None)
-    checks["kafka"] = "active" if event_runtime else "not_configured"
+    if isinstance(event_runtime, KafkaEventBus):
+        kafka_ok = event_runtime.is_kafka_available
+        if kafka_ok is True:
+            checks["kafka"] = "connected"
+        elif kafka_ok is False:
+            checks["kafka"] = "fallback_in_memory"
+        else:
+            checks["kafka"] = "not_attempted"
+    else:
+        checks["kafka"] = "active" if event_runtime else "not_configured"
 
     # Neo4j / KG
     kg = getattr(request.app.state, "kg_engine", None)
@@ -425,8 +443,18 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
     checks["graph"] = "connected" if kg is not None and kg.metrics.neo4j_available else "not_configured"
 
     # Kafka connectivity check
-    kafka = getattr(request.app.state, "event_runtime", None)
-    checks["kafka"] = "active" if kafka else "not_configured"
+    from sdk.events.kafka_bus import KafkaEventBus
+    kafka_bus = getattr(request.app.state, "event_runtime", None)
+    if isinstance(kafka_bus, KafkaEventBus):
+        kafka_ok = kafka_bus.is_kafka_available
+        if kafka_ok is True:
+            checks["kafka"] = "connected"
+        elif kafka_ok is False:
+            checks["kafka"] = "fallback_in_memory"
+        else:
+            checks["kafka"] = "not_attempted"
+    else:
+        checks["kafka"] = "active" if kafka_bus else "not_configured"
 
     # Uptime
     checks["uptime_seconds"] = time.time() - _start_time
@@ -478,6 +506,7 @@ def register_routers():
     from app.modules.work_intelligence.router import router as work_intelligence_router
     from app.modules.decision.router import router as decision_platform_router
     from app.modules.revenue_execution.router import router as revenue_execution_router
+    from app.modules.monitoring.router import router as monitoring_router
     from app.routers.commercial import router as commercial_router
     from app.routers.copilot import router as copilot_router
     from runtime.capability_framework.router import router as capability_router
@@ -528,8 +557,13 @@ def register_routers():
     app.include_router(extension_router, dependencies=_auth)
     app.include_router(plugin_router, dependencies=_auth)
 
+    app.include_router(monitoring_router, tags=["Monitoring"])
     app.include_router(copilot_router, prefix="/api/v1", tags=["Copilot"], dependencies=_auth)
     app.include_router(commercial_router, prefix="/api/v1", tags=["Commercial"], dependencies=_auth)
+
+    # Wave 3 — Workflow Engine
+    from app.routers.workflows import router as workflow_router
+    app.include_router(workflow_router, prefix="/api/v1", tags=["Workflow Engine"], dependencies=_auth)
 
     # Wave 2 — Revenue Execution Platform
     from app.routers.opportunities import router as opportunities_router
@@ -543,6 +577,10 @@ def register_routers():
     app.include_router(revenue_router, prefix="/api/v1", tags=["Revenue"], dependencies=_auth)
     app.include_router(nba_router, prefix="/api/v1", tags=["NBA Engine"], dependencies=_auth)
     app.include_router(pipeline_analytics_router, prefix="/api/v1", tags=["Pipeline Analytics"], dependencies=_auth)
+
+    # Wave 3 — RAG Pipeline
+    from app.routers.rag import router as rag_router
+    app.include_router(rag_router, prefix="/api/v1", tags=["RAG"], dependencies=_auth)
 
 
 register_routers()

@@ -1,9 +1,11 @@
 """Extension API REST API."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/v1/extensions", tags=["Extension API"])
+from app.dependencies import verify_token
+
+router = APIRouter(prefix="/api/v1/extensions", tags=["Extension API"], dependencies=[Depends(verify_token)])
 
 
 @router.get("/hooks")

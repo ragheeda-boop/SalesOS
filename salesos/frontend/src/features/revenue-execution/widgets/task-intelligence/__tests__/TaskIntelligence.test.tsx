@@ -28,4 +28,51 @@ describe('TaskView', () => {
   it('shows empty state', () => { renderView([]); expect(screen.getByText('لا توجد مهام')).toBeInTheDocument() })
   it('has role="region"', () => { renderView(); expect(screen.getByRole('region', { name: 'المهام' })).toBeInTheDocument() })
 })
+
+describe('TaskView interactions', () => {
+  it('calls onComplete when clicking circle button', () => {
+    const onComplete = jest.fn()
+    render(<TaskView tasks={sample} onComplete={onComplete} />)
+    const circles = screen.getAllByRole('button')
+    fireEvent.click(circles[0])
+    expect(onComplete).toHaveBeenCalledWith('t1')
+  })
+
+  it('switches to completed filter showing no tasks', () => {
+    renderView()
+    fireEvent.click(screen.getByText('مكتملة'))
+    expect(screen.getByText('لا توجد مهام')).toBeInTheDocument()
+  })
+
+  it('switches to all filter showing all tasks', () => {
+    renderView()
+    fireEvent.click(screen.getByText('الكل'))
+    expect(screen.getByText('متابعة شركة الطاقة')).toBeInTheDocument()
+    expect(screen.getByText('تجهيز عرض STC')).toBeInTheDocument()
+  })
+
+  it('switches back to active filter after viewing all', () => {
+    renderView()
+    fireEvent.click(screen.getByText('الكل'))
+    fireEvent.click(screen.getByText('نشطة'))
+    expect(screen.getByText('2 نشطة')).toBeInTheDocument()
+  })
+
+  it('shows active count reflecting completed tasks', () => {
+    const withCompleted: RevenueTask[] = [
+      ...sample,
+      { id: 't3', title: 'مهمة مكتملة', priority: 'medium', source: 'manual', completed: true, createdAt: '2026-07-10' },
+    ]
+    render(<TaskView tasks={withCompleted} />)
+    expect(screen.getByText('2 نشطة')).toBeInTheDocument()
+  })
+
+  it('renders AI source icon for nba-sourced tasks', () => {
+    renderView(); expect(screen.getAllByText('AI').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('renders due date when present', () => {
+    renderView(); expect(document.body.textContent).toContain('١٤')
+  })
+})
 describe('TaskIntelligenceWidget', () => { it('is a valid widget', () => { expect(TaskIntelligenceWidget).toBeDefined() }) })

@@ -1,9 +1,11 @@
 """Form Engine REST API."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/v1/forms", tags=["Form Engine"])
+from app.dependencies import verify_token
+
+router = APIRouter(prefix="/api/v1/forms", tags=["Form Engine"], dependencies=[Depends(verify_token)])
 
 
 class FormGenerateRequest(BaseModel):

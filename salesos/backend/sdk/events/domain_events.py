@@ -12,6 +12,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from sdk.events.base import DomainEvent
+from sdk.events.schemas import (
+    EmailAnalyzed,
+    MeetingBriefGenerated,
+    MeetingCompleted,
+    NBAActionTaken,
+    NBAGenerated,
+    OpportunityDeleted,
+    OpportunityUpdated,
+    PipelineStageChanged,
+)
 
 
 # ── Identity & Tenant ─────────────────────────────────────────────────────
@@ -260,6 +270,11 @@ EVENT_REGISTRY: dict[str, type[DomainEvent]] = {
         GoldenRecordCreated, GoldenRecordUpdated,
         ActivityLogged, TimelineUpdated,
         OpportunityCreated, OpportunityStageChanged, OpportunityWon, OpportunityLost,
+        OpportunityUpdated, OpportunityDeleted,
+        PipelineStageChanged,
+        NBAGenerated, NBAActionTaken,
+        MeetingBriefGenerated, MeetingCompleted,
+        EmailAnalyzed,
         CompanyScored, LeadScored, RecommendationGenerated, EmbeddingGenerated,
         IntegrationConnected, IntegrationDisconnected,
         DataImportCompleted, DataExportCompleted,

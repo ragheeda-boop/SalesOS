@@ -1,11 +1,12 @@
 """UX Runtime REST API — navigation, layout, widgets, commands, notifications, themes."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from app.dependencies import verify_token
 from runtime.ux_runtime import UXRuntime, NavItem, Notification, NotificationPriority
 
-router = APIRouter(prefix="/api/v1/ux", tags=["Experience Layer"])
+router = APIRouter(prefix="/api/v1/ux", tags=["Experience Layer"], dependencies=[Depends(verify_token)])
 
 # Reference to the global UX runtime (set at startup)
 ux_runtime: UXRuntime = None  # type: ignore

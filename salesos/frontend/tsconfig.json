@@ -24,6 +24,12 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@salesos/decision-platform": [
+        "packages/platform/decision/index.ts"
+      ],
+      "@salesos/decision-platform/*": [
+        "packages/platform/decision/*"
       ]
     },
     "target": "ES2017"

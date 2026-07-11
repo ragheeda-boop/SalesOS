@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     neo4j_user: str = "neo4j"
     neo4j_password: str  # Must be set via NEO4J_PASSWORD
 
+    event_bus_type: str = "in_memory"
     kafka_bootstrap_servers: str = "kafka:9092"
     kafka_group_id: str = "salesos-group"
     kafka_auto_offset_reset: str = "earliest"
