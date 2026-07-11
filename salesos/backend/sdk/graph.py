@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from neo4j import AsyncDriver, AsyncManagedTransaction, Record
 
+from sdk.config import sdk_settings
+
 
 class GraphService:
     """Neo4j graph database service for knowledge graph operations.
@@ -23,8 +25,8 @@ class GraphService:
     @asynccontextmanager
     async def _session(self):
         async with self._driver.session(
-            database="neo4j",
-            max_transaction_retry_time=10,
+            database=sdk_settings.neo4j_database,
+            max_transaction_retry_time=sdk_settings.neo4j_max_transaction_retry_time,
         ) as session:
             yield session
 

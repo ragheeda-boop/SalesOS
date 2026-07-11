@@ -5,6 +5,7 @@ import logging
 from typing import Any
 
 from app.celery_app import celery_app
+from app.config import settings
 
 logger = logging.getLogger("salesos.tasks")
 
@@ -221,14 +222,14 @@ def _recompute_features(company_id: str):
 # ── Celery Tasks ────────────────────────────────────────────────
 
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=60)
+@celery_app.task(bind=True, max_retries=settings.celery_max_retries, default_retry_delay=settings.celery_default_retry_delay)
 def ping(self):
     """Simple heartbeat task to verify worker health."""
     logger.info("Worker ping OK")
     return "pong"
 
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=30)
+@celery_app.task(bind=True, max_retries=settings.celery_max_retries, default_retry_delay=settings.celery_process_entity_delay)
 def process_entity(self, entity_id: str, entity_type: str):
     """Background entity processing (vector embedding, graph sync, enrichment)."""
     logger.info("Processing entity %s (type=%s)", entity_id, entity_type)
@@ -241,14 +242,13 @@ def process_entity(self, entity_id: str, entity_type: str):
         raise self.retry(exc=exc)
 
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=30)
+@celery_app.task(bind=True, max_retries=settings.celery_max_retries, default_retry_delay=settings.celery_index_delay)
 def index_for_search(self, entity_id: str, entity_type: str, payload: dict):
     """Index an entity in Meilisearch."""
     import httpx
-    import os
 
-    meili_url = os.environ.get("MEILI_URL", "http://meilisearch:7700")
-    api_key = os.environ.get("MEILI_MASTER_KEY", "")
+    meili_url = settings.meili_url
+    api_key = settings.meili_master_key
 
     if not api_key:
         logger.warning("Meilisearch indexing skipped: MEILI_MASTER_KEY not set")
@@ -269,7 +269,7 @@ def index_for_search(self, entity_id: str, entity_type: str, payload: dict):
         raise self.retry(exc=exc)
 
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=120)
+@celery_app.task(bind=True, max_retries=settings.celery_max_retries, default_retry_delay=settings.celery_enrich_delay)
 def enrich_company(self, company_id: str, cr_number: str):
     """Background company enrichment pipeline."""
     logger.info("Enriching company %s (CR: %s)", company_id, cr_number)
@@ -281,7 +281,7 @@ def enrich_company(self, company_id: str, cr_number: str):
         raise self.retry(exc=exc)
 
 
-@celery_app.task(bind=True, max_retries=2, default_retry_delay=300)
+@celery_app.task(bind=True, max_retries=settings.celery_max_retries - 1, default_retry_delay=settings.celery_sync_notion_delay)
 def sync_notion_database(self, database_id: str, tenant_id: str):
     """Sync a Notion database into the pipeline."""
     logger.info("Syncing Notion database %s for tenant %s", database_id, tenant_id)

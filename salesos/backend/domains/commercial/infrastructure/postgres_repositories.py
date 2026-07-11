@@ -13,16 +13,17 @@ from domains.commercial.activity.contracts.models import (
     Activity, ActivityOutcome, ActivitySession, ActivityStatus, ActivityType, OutcomeDefinition,
 )
 from domains.commercial.activity.contracts.repository import ActivityRepository
-from domains.commercial.contract.models import Contract, ContractKPIs, ContractParty, ContractObligation, ContractStatus, RenewalRule
+from domains.commercial.contract.models import Contract, ContractParty, ContractObligation, ContractStatus, RenewalRule
+from domains.commercial.contract.repo import ContractKPIs
 from domains.commercial.contract.repo import ContractRepository
 from domains.commercial.opportunity.contracts.models import Opportunity, OpportunityStage, OpportunityStatus, PipelineDefinition
 from domains.commercial.opportunity.contracts.repository import OpportunityRepository
-from domains.commercial.pipeline.contracts.models import PipelineDefinition as PipelineDef, StageEntry, PipelineKPIs
-from domains.commercial.pipeline.contracts.repository import PipelineRepository
-from domains.commercial.proposal.contracts.models import Proposal, ProposalKPIs, ProposalStatus
-from domains.commercial.proposal.contracts.repository import ProposalRepository
-from domains.commercial.quote.contracts.models import Quote, QuoteLine, QuoteRevenueKPIs, QuoteStatus
-from domains.commercial.quote.contracts.repository import QuoteRepository
+from domains.commercial.pipeline.contracts.models import PipelineDefinition as PipelineDef, StageEntry
+from domains.commercial.pipeline.contracts.repository import PipelineKPIs, PipelineRepository
+from domains.commercial.proposal.contracts.models import Proposal, ProposalStatus
+from domains.commercial.proposal.contracts.repository import ProposalKPIs, ProposalRepository
+from domains.commercial.quote.contracts.models import Quote, QuoteLine, QuoteStatus
+from domains.commercial.quote.contracts.repository import QuoteRepository, QuoteRevenueKPIs
 from domains.revenue.analytics.models import AnalyticsSnapshot, KPI, KPIValue, MetricCategory
 from domains.revenue.analytics.repo import AnalyticsRepository
 from domains.revenue.forecast.models import ForecastExplanation, ForecastLine, ForecastScenario, ForecastSnapshot, ForecastSnapshotStatus
@@ -34,8 +35,8 @@ from domains.decision.recommendation.repo import RecommendationRepository
 
 from .models import (
     ActivityModel, ActivitySessionModel, AnalyticsSnapshotModel,
-    ContractModel, DecisionContextModel, ForecastSnapshotModel,
-    OpportunityModel, PipelineDefinitionModel, PolicyModel,
+    ContractModel, DecisionContextModel, EmailModel, ForecastSnapshotModel,
+    MeetingModel, OpportunityModel, PipelineDefinitionModel, PolicyModel,
     ProposalModel, QuoteLineModel, QuoteModel, RecommendationModel,
     StageEntryModel,
 )
@@ -846,3 +847,87 @@ class PostgresRecommendationRepository(RecommendationRepository):
             created_at=model.created_at,
             applied_at=model.applied_at, dismissed_at=model.dismissed_at,
         )
+
+
+class MeetingRepository:
+    """PostgreSQL repository for Meeting records."""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def get(self, meeting_id: str) -> Optional[MeetingModel]:
+        stmt = select(MeetingModel).where(MeetingModel.id == meeting_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def list_by_opportunity(
+        self, opportunity_id: str, tenant_id: str, limit: int = 50,
+    ) -> list[MeetingModel]:
+        stmt = (
+            select(MeetingModel)
+            .where(
+                MeetingModel.opportunity_id == opportunity_id,
+                MeetingModel.tenant_id == tenant_id,
+            )
+            .order_by(MeetingModel.meeting_date.desc())
+            .limit(limit)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def save(self, meeting: MeetingModel) -> MeetingModel:
+        self.session.add(meeting)
+        await self.session.flush()
+        return meeting
+
+    async def delete(self, meeting_id: str) -> bool:
+        stmt = select(MeetingModel).where(MeetingModel.id == meeting_id)
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        if model:
+            await self.session.delete(model)
+            await self.session.flush()
+            return True
+        return False
+
+
+class EmailRepository:
+    """PostgreSQL repository for Email records."""
+
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def get(self, email_id: str) -> Optional[EmailModel]:
+        stmt = select(EmailModel).where(EmailModel.id == email_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def list_by_opportunity(
+        self, opportunity_id: str, tenant_id: str, limit: int = 20,
+    ) -> list[EmailModel]:
+        stmt = (
+            select(EmailModel)
+            .where(
+                EmailModel.opportunity_id == opportunity_id,
+                EmailModel.tenant_id == tenant_id,
+            )
+            .order_by(EmailModel.sent_at.desc())
+            .limit(limit)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def save(self, email: EmailModel) -> EmailModel:
+        self.session.add(email)
+        await self.session.flush()
+        return email
+
+    async def delete(self, email_id: str) -> bool:
+        stmt = select(EmailModel).where(EmailModel.id == email_id)
+        result = await self.session.execute(stmt)
+        model = result.scalar_one_or_none()
+        if model:
+            await self.session.delete(model)
+            await self.session.flush()
+            return True
+        return False

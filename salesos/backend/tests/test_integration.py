@@ -14,11 +14,13 @@ from app.main import app
 
 
 def _test_db_url():
+    from app.config import settings
     host = os.environ.get("TEST_POSTGRES_HOST") or os.environ.get("POSTGRES_HOST", "localhost")
-    password = os.environ.get("POSTGRES_PASSWORD", "salesos_dev_password")
+    password = os.environ.get("POSTGRES_PASSWORD", settings.postgres_password if settings.postgres_password else "test")
+    port = os.environ.get("TEST_POSTGRES_PORT") or os.environ.get("POSTGRES_PORT", "5432")
     return os.environ.get(
         "TEST_DATABASE_URL",
-        f"postgresql+asyncpg://salesos:{password}@{host}:5432/salesos_test",
+        f"postgresql+asyncpg://{settings.postgres_user}:{password}@{host}:{port}/salesos_test",
     )
 
 

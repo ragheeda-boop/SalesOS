@@ -1,4 +1,11 @@
-"""Structured JSON logging configuration for SalesOS."""
+"""Structured JSON logging configuration for SalesOS.
+
+Produces newline-delimited JSON with structured fields:
+  - timestamp, level, logger, message (standard)
+  - request_id, tenant_id, user_id (request context)
+  - resource, latency_ms, http_method, path, status, client_ip (HTTP request context)
+"""
+
 import json
 import logging
 import sys
@@ -6,7 +13,7 @@ from datetime import datetime, timezone
 
 
 class JSONFormatter(logging.Formatter):
-    """Output logs as newline-delimited JSON."""
+    """Output logs as newline-delimited JSON with structured fields."""
 
     def format(self, record: logging.LogRecord) -> str:
         log = {
@@ -19,6 +26,12 @@ class JSONFormatter(logging.Formatter):
             log["request_id"] = record.request_id
         if hasattr(record, "tenant_id") and record.tenant_id:
             log["tenant_id"] = record.tenant_id
+        if hasattr(record, "user_id") and record.user_id:
+            log["user_id"] = record.user_id
+        if hasattr(record, "resource") and record.resource:
+            log["resource"] = record.resource
+        if hasattr(record, "latency_ms") and record.latency_ms is not None:
+            log["latency_ms"] = record.latency_ms
         if record.exc_info and record.exc_info[0]:
             log["exception"] = self.formatException(record.exc_info)
         if hasattr(record, "extra") and isinstance(record.extra, dict):

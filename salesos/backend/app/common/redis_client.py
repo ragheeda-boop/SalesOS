@@ -31,8 +31,8 @@ class AsyncRedisClient:
             self._redis = Redis.from_url(
                 settings.redis_url,
                 decode_responses=True,
-                socket_connect_timeout=2,
-                socket_timeout=2,
+                socket_connect_timeout=settings.redis_socket_connect_timeout,
+                socket_timeout=settings.redis_socket_timeout,
             )
             logger.info("Redis client connected to %s", settings.redis_url)
         except Exception as exc:

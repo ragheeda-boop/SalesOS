@@ -8,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.common.middleware import RequestIDMiddleware, RequestLoggingMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
+from app.common.metrics import metrics
+from app.routers.metrics import MetricsMiddleware
 from app.config import settings
 from app.database import get_db
 from sdk.events.base import DomainEvent
@@ -59,7 +61,7 @@ async def lifespan(app: FastAPI):
             sentry_sdk.init(
                 dsn=settings.sentry_dsn,
                 environment=settings.env,
-                traces_sample_rate=0.1,
+                traces_sample_rate=settings.sentry_traces_sample_rate,
             )
             if app.state.logger:
                 app.state.logger.info("Sentry initialized: dsn=%s env=%s", settings.sentry_dsn[:20] + "...", settings.env)
@@ -98,6 +100,16 @@ async def lifespan(app: FastAPI):
         app.state.timeline_repo = timeline_repo
         app.state.timeline_recorder = timeline_recorder
 
+        # ── Opportunity Service (PostgreSQL-backed, used by opportunities router) ──
+        from domains.commercial.opportunity.engine.service import OpportunityService
+        from domains.commercial.infrastructure.postgres_repositories import PostgresOpportunityRepository
+        opp_session = async_session()
+        opp_repo = PostgresOpportunityRepository(opp_session)
+        app.state.opportunity_service = OpportunityService(
+            repository=opp_repo,
+            event_bus=event_runtime,
+        )
+
         # ── PgVectorStore (production vector search) ──
         from domains.search.engine.vector_store import PgVectorStore
         vector_store = PgVectorStore(session_factory=async_session, collection="vectors")
@@ -124,9 +136,9 @@ async def lifespan(app: FastAPI):
         try:
             kg_engine = KnowledgeGraphEngine(
                 session_factory=async_session,
-                neo4j_uri=os.environ.get("NEO4J_URI", "bolt://localhost:7687"),
-                neo4j_user=os.environ.get("NEO4J_USER", "neo4j"),
-                neo4j_password=os.environ["NEO4J_PASSWORD"],
+                neo4j_uri=settings.neo4j_uri,
+                neo4j_user=settings.neo4j_user,
+                neo4j_password=settings.neo4j_password,
                 logger=app.state.logger,
             )
             app.state.kg_engine = kg_engine
@@ -264,7 +276,7 @@ _start_time = time.time()
 app = FastAPI(
     title="SalesOS API",
     description="Enterprise Company Intelligence Platform",
-    version="0.1.0",
+    version=settings.service_version,
     lifespan=lifespan,
     docs_url="/docs" if settings.debug else None,
     redoc_url="/redoc" if settings.debug else None,
@@ -272,14 +284,15 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[o.strip() for o in settings.allowed_hosts.split(",") if o.strip()],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Tenant-Id", "X-Request-ID", "X-CSRF-Token"],
+    allow_methods=[m.strip() for m in settings.cors_allow_methods.split(",") if m.strip()],
+    allow_headers=[h.strip() for h in settings.cors_allow_headers.split(",") if h.strip()],
 )
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(MetricsMiddleware)
 
 # Redis-backed rate limiter (falls back to in-memory if Redis unavailable)
 _redis = None
@@ -288,7 +301,7 @@ try:
     _redis = aioredis.Redis.from_url(settings.redis_url)
 except Exception:
     pass
-app.add_middleware(RateLimitMiddleware, rate=60, window=60, redis_client=_redis)
+app.add_middleware(RateLimitMiddleware, rate=settings.rate_limit_default, window=settings.rate_limit_window, redis_client=_redis)
 
 
 @app.exception_handler(Exception)
@@ -319,8 +332,11 @@ async def health_ready(request: Request):
     """Kubernetes readiness probe — checks critical dependencies."""
     from sqlalchemy import text
     from app.database import async_session
+    from app.config import settings
 
     checks = {}
+
+    # Database
     try:
         async with async_session() as session:
             await session.execute(text("SELECT 1"))
@@ -328,10 +344,33 @@ async def health_ready(request: Request):
     except Exception as e:
         checks["database"] = f"error: {e}"
 
+    # Redis / Cache
+    try:
+        import redis.asyncio as aioredis
+        r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=settings.redis_health_socket_connect_timeout, socket_timeout=settings.redis_health_socket_timeout)
+        await r.ping()
+        await r.aclose()
+        checks["cache"] = "connected"
+    except Exception:
+        checks["cache"] = "unavailable"
+
+    # Kafka
+    event_runtime = getattr(request.app.state, "event_runtime", None)
+    checks["kafka"] = "active" if event_runtime else "not_configured"
+
+    # Neo4j / KG
     kg = getattr(request.app.state, "kg_engine", None)
     checks["graph"] = "connected" if kg is not None and kg.metrics.neo4j_available else "not_configured"
 
-    all_ready = checks.get("database") == "connected"
+    # Rate limiter
+    rate_limiter = any(
+        "RateLimitMiddleware" in str(m.cls)
+        for m in request.app.user_middleware
+        if m.cls is not None
+    )
+    checks["rate_limiter"] = "active" if rate_limiter else "not_configured"
+
+    all_ready = checks.get("database") == "connected" and checks.get("cache") != "unavailable"
     return {
         "status": "ready" if all_ready else "not_ready",
         "checks": checks,
@@ -345,6 +384,7 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
     status = "ok"
     checks = {}
 
+    # PostgreSQL
     try:
         await db.execute(text("SELECT 1"))
         checks["database"] = "connected"
@@ -352,25 +392,55 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
         checks["database"] = f"error: {e}"
         status = "degraded"
 
+    # Redis / Cache
     try:
         import redis.asyncio as aioredis
-        r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=1, socket_timeout=1)
+        r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=settings.redis_health_socket_connect_timeout, socket_timeout=settings.redis_health_socket_timeout)
         await r.ping()
         await r.aclose()
         checks["cache"] = "connected"
     except Exception:
         checks["cache"] = "unavailable"
 
+    # Redis connectivity (reuses same connection)
+    try:
+        import redis.asyncio as aioredis
+        r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=settings.redis_health_socket_connect_timeout, socket_timeout=settings.redis_health_socket_timeout)
+        await r.ping()
+        await r.aclose()
+        checks["redis"] = "connected"
+    except Exception:
+        checks["redis"] = "unavailable"
+
+    # Rate limiter health
+    rate_limiter = None
+    for m in request.app.user_middleware:
+        if m.cls is not None and "RateLimitMiddleware" in m.cls.__name__:
+            rate_limiter = m
+            break
+    checks["rate_limiter"] = "active" if rate_limiter else "not_configured"
+
+    # Neo4j / Knowledge Graph
     kg = getattr(request.app.state, "kg_engine", None)
     checks["graph"] = "connected" if kg is not None and kg.metrics.neo4j_available else "not_configured"
 
+    # Kafka connectivity check
+    kafka = getattr(request.app.state, "event_runtime", None)
+    checks["kafka"] = "active" if kafka else "not_configured"
+
+    # Uptime
+    checks["uptime_seconds"] = time.time() - _start_time
+
     return HealthResponse(
         status=status,
-        version="0.1.0",
+        version=settings.service_version,
         database=checks.get("database", "unknown"),
         cache=checks.get("cache", "unknown"),
         graph=checks.get("graph", "not_configured"),
-        uptime_seconds=time.time() - _start_time,
+        kafka=checks.get("kafka", "not_configured"),
+        redis=checks.get("redis", "unknown"),
+        rate_limiter=checks.get("rate_limiter", "unknown"),
+        uptime_seconds=checks["uptime_seconds"],
     )
 
 
@@ -378,7 +448,7 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
 async def root():
     return {
         "name": "SalesOS API",
-        "version": "0.1.0",
+        "version": settings.service_version,
         "docs": "/docs",
         "health": "/health",
     }
@@ -389,6 +459,9 @@ def register_routers():
     from fastapi import Depends
 
     _auth = [Depends(verify_token)]
+
+    from app.routers.metrics import router as metrics_router
+    app.include_router(metrics_router, tags=["Metrics"])
 
     from runtime.admin_router import router as admin_router
     app.include_router(admin_router, tags=["Admin"])

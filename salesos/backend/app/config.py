@@ -52,6 +52,60 @@ class Settings(BaseSettings):
 
     log_level: str = "DEBUG"
     sentry_dsn: str = ""
+    service_version: str = "0.1.0"
+    sentry_traces_sample_rate: float = 0.1
+
+    # Neo4j connection details
+    neo4j_database: str = "neo4j"
+    neo4j_max_connection_pool_size: int = 50
+    neo4j_connection_acquisition_timeout: int = 30
+    neo4j_max_transaction_retry_time: int = 10
+
+    # Rate limiting
+    rate_limit_default: int = 60
+    rate_limit_window: int = 60
+    rate_limit_health: int = 120
+    rate_limit_identity: int = 10
+    rate_limit_authenticated: int = 60
+    rate_limit_anonymous: int = 20
+
+    # CORS
+    cors_allow_methods: str = "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+    cors_allow_headers: str = "Authorization,Content-Type,X-Tenant-Id,X-Request-ID,X-CSRF-Token"
+
+    # Redis timeouts
+    redis_socket_connect_timeout: int = 2
+    redis_socket_timeout: int = 2
+    redis_health_socket_connect_timeout: int = 1
+    redis_health_socket_timeout: int = 1
+
+    # Meilisearch
+    meili_url: str = "http://meilisearch:7700"
+    meili_master_key: str = ""
+
+    # Celery
+    celery_task_time_limit: int = 600
+    celery_task_soft_time_limit: int = 300
+    celery_worker_max_tasks_per_child: int = 1000
+    celery_result_expires: int = 86400
+    celery_worker_prefetch_multiplier: int = 1
+    celery_max_retries: int = 3
+    celery_default_retry_delay: int = 60
+    celery_process_entity_delay: int = 30
+    celery_index_delay: int = 30
+    celery_enrich_delay: int = 120
+    celery_sync_notion_delay: int = 300
+
+    # Rate limiter cleanup
+    rate_limit_cleanup_interval: int = 300
+
+    # Notion
+    notion_request_timeout: int = 60
+
+    # LLM defaults
+    llm_temperature: float = 0.7
+    llm_max_tokens: int = 1024
+    llm_research_max_tokens: int = 2048
 
 
 settings = Settings()

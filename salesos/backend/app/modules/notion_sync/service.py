@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import NotFoundError
+from app.config import settings
 from app.modules.company.models import Company
 from app.modules.contact.models import Contact
 from app.modules.identity.models import User
@@ -50,7 +51,7 @@ class NotionSyncService:
                     f"{self.NOTION_API}/databases/{database_id}/query",
                     headers=headers,
                     json=payload,
-                    timeout=60,
+                    timeout=settings.notion_request_timeout,
                 )
 
             if r.status_code != 200:

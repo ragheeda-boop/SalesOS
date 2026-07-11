@@ -5,7 +5,7 @@ import random
 
 URI = os.getenv("NEO4J_URI", "bolt://neo4j:7687")
 USER = os.getenv("NEO4J_USER", "neo4j")
-PASS = os.getenv("NEO4J_PASSWORD", "neo4j_dev_password")
+PASS = os.getenv("NEO4J_PASSWORD", "salesos_neo4j_dev")
 
 INDUSTRIES = ["Construction", "Healthcare", "Manufacturing", "Technology", "Real Estate",
               "Energy", "Logistics", "Food & Beverage", "Retail", "Telecom"]

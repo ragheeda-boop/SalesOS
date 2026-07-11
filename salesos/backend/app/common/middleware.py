@@ -5,6 +5,8 @@ import uuid
 from fastapi import Request
 from starlette.responses import JSONResponse
 
+from app.config import settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -38,14 +40,14 @@ class RateLimitMiddleware:
         path = request.url.path
 
         if path == "/health" or path.startswith("/docs") or path.startswith("/redoc"):
-            tier_rate = 120
+            tier_rate = settings.rate_limit_health
         elif path.startswith("/api/v1/identity"):
-            tier_rate = 10
+            tier_rate = settings.rate_limit_identity
         elif path.startswith("/api/v1/"):
             auth = request.headers.get("authorization", "")
-            tier_rate = 60 if auth.startswith("Bearer ") else 20
+            tier_rate = settings.rate_limit_authenticated if auth.startswith("Bearer ") else settings.rate_limit_anonymous
         else:
-            tier_rate = 60
+            tier_rate = settings.rate_limit_default
 
         key = f"ratelimit:{client_ip}:{path}"
         now = time.time()
@@ -170,7 +172,7 @@ class RequestIDMiddleware:
 
 
 class RequestLoggingMiddleware:
-    """Log every request with method, path, status, duration, and client IP."""
+    """Log every request with method, path, status, duration, client IP, and structured fields."""
 
     def __init__(self, app):
         self.app = app
@@ -186,6 +188,24 @@ class RequestLoggingMiddleware:
         start = time.time()
         status_code = 0
 
+        # Extract user_id from Authorization header if available
+        headers = dict(scope.get("headers", []))
+        user_id = ""
+        auth_header = headers.get(b"authorization", b"").decode()
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+            try:
+                import json as _json
+                import base64
+                payload_b64 = token.split(".")[1]
+                payload_b64 += "=" * (4 - len(payload_b64) % 4)
+                payload = _json.loads(base64.urlsafe_b64decode(payload_b64))
+                user_id = payload.get("sub", "")
+            except Exception:
+                pass
+
+        tenant_id = headers.get(b"x-tenant-id", b"").decode()
+
         async def send_wrapper(message):
             nonlocal status_code
             if message["type"] == "http.response.start":
@@ -196,15 +216,23 @@ class RequestLoggingMiddleware:
             await self.app(scope, receive, send_wrapper)
         finally:
             elapsed = time.time() - start
+            latency_ms = round(elapsed * 1000, 1)
             extra = {
                 "http_method": method,
                 "path": path,
                 "status": status_code,
-                "duration_ms": round(elapsed * 1000, 1),
+                "duration_ms": latency_ms,
+                "latency_ms": latency_ms,
                 "client_ip": client_ip,
+                "resource": path,
             }
+            extra.update({
+                "request_id": request_id,
+                "tenant_id": tenant_id,
+                "user_id": user_id,
+            })
             log_level = "warning" if elapsed > 1.0 else "info" if status_code < 500 else "error"
             getattr(logger, log_level)(
                 "%s %s %d (%.1fms)" % (method, path, status_code, elapsed * 1000),
-                extra={"request_id": request_id, **extra},
+                extra=extra,
             )

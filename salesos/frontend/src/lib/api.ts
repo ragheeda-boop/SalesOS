@@ -848,3 +848,42 @@ export async function getDlqStats(
   });
   return response.data;
 }
+
+// ─── Tasks ────────────────────────────────────────────────────
+export interface TaskResponse {
+  id: string;
+  title: string;
+  priority: string;
+  source: string;
+  company_id?: string | null;
+  completed: boolean;
+  created_at?: string | null;
+}
+
+export async function listTasks(tenantId: string, priority?: string): Promise<TaskResponse[]> {
+  const response = await api.get("/api/v1/tasks", {
+    params: priority ? { priority } : undefined,
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function completeTask(taskId: string): Promise<TaskResponse> {
+  const response = await api.put(`/api/v1/tasks/${taskId}/complete`);
+  return response.data;
+}
+
+export async function createTask(
+  tenantId: string,
+  title: string,
+  priority?: string,
+  companyId?: string,
+  source?: string
+): Promise<TaskResponse> {
+  const response = await api.post(
+    "/api/v1/tasks",
+    { title, priority, company_id: companyId, source },
+    { headers: { "X-Tenant-Id": tenantId } }
+  );
+  return response.data;
+}

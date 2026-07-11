@@ -1,7 +1,7 @@
 'use client'
 
 import { createWidget } from '@salesos/workspace'
-import { loadOpportunities } from '@/application/revenue-execution/opportunity.store'
+import { useOpportunities } from '@/lib/hooks/opportunityQueries'
 import type { RevenueOpportunity } from '@/application/revenue-execution/opportunity.dto'
 import { OpportunityListView } from './OpportunityListView'
 
@@ -16,13 +16,13 @@ export const OpportunityListWidget = createWidget({
     minHeight: '420px',
   },
   useData: () => {
-    const opportunities = loadOpportunities()
+    const { data, isLoading, error, refetch } = useOpportunities()
     return {
-      data: opportunities,
-      status: 'ready',
-      lastUpdated: new Date().toISOString(),
-      error: null,
-      refetch: () => {},
+      data: (data?.items ?? []) as RevenueOpportunity[],
+      status: isLoading ? 'loading' as const : error ? 'error' as const : 'ready' as const,
+      lastUpdated: data ? new Date().toISOString() : null,
+      error: error ?? null,
+      refetch,
     }
   },
   render: ({ data }) => <OpportunityListView opportunities={data} />,
