@@ -136,8 +136,11 @@ async def full_health(
     kg = getattr(request.app.state, "kg_engine", None)
     if kg:
         try:
-            await kg._driver.verify_connectivity()
-            result["checks"]["neo4j"] = "connected"
+            is_healthy = await kg.health_check()
+            result["checks"]["neo4j"] = "connected" if is_healthy else "unhealthy"
+            result["checks"]["neo4j_metrics"] = kg.metrics.snapshot()
+            if not is_healthy:
+                result["status"] = "degraded"
         except Exception as e:
             result["checks"]["neo4j"] = f"error: {e}"
             result["status"] = "degraded"

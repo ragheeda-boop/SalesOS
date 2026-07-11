@@ -17,23 +17,23 @@ describe('Button', () => {
   it('renders with primary variant by default', () => {
     render(<Button>Primary</Button>)
     const btn = screen.getByText('Primary')
-    expect(btn.className).toContain('primary')
+    expect(btn.className).toContain('bg-[var(--muhide-orange)]')
   })
 
   it('renders with different variants', () => {
     const { rerender } = render(<Button variant="danger">Danger</Button>)
-    expect(screen.getByText('Danger').className).toContain('danger')
+    expect(screen.getByText('Danger').className).toContain('bg-danger-600')
 
     rerender(<Button variant="outline">Outline</Button>)
-    expect(screen.getByText('Outline').className).toContain('outline')
+    expect(screen.getByText('Outline').className).toContain('border')
   })
 
   it('renders with different sizes', () => {
     const { rerender } = render(<Button size="sm">Small</Button>)
-    expect(screen.getByText('Small').className).toContain('sm')
+    expect(screen.getByText('Small').className).toContain('h-8')
 
     rerender(<Button size="lg">Large</Button>)
-    expect(screen.getByText('Large').className).toContain('lg')
+    expect(screen.getByText('Large').className).toContain('h-12')
   })
 
   it('shows loading state', () => {

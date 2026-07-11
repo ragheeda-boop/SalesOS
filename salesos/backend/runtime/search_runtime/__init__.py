@@ -10,6 +10,8 @@ Search strategies:
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -83,6 +85,47 @@ class SearchMetrics:
         }
 
 
+class SearchCache:
+    """In-memory search result cache with TTL eviction."""
+
+    def __init__(self, ttl_seconds: float = 60.0, max_entries: int = 256):
+        self._ttl = ttl_seconds
+        self._max = max_entries
+        self._data: dict[str, tuple[float, Any]] = {}
+
+    def _key(self, **kwargs) -> str:
+        raw = json.dumps(kwargs, sort_keys=True, default=str)
+        return hashlib.md5(raw.encode()).hexdigest()
+
+    def get(self, **kwargs) -> Any | None:
+        k = self._key(**kwargs)
+        entry = self._data.get(k)
+        if entry is None:
+            return None
+        ts, val = entry
+        if time.monotonic() - ts > self._ttl:
+            del self._data[k]
+            return None
+        return val
+
+    def set(self, value: Any, **kwargs) -> None:
+        if len(self._data) >= self._max:
+            self._evict_oldest()
+        k = self._key(**kwargs)
+        self._data[k] = (time.monotonic(), value)
+
+    def _evict_oldest(self) -> None:
+        oldest = min(self._data.keys(), key=lambda k: self._data[k][0])
+        del self._data[oldest]
+
+    def clear(self) -> None:
+        self._data.clear()
+
+    @property
+    def size(self) -> int:
+        return len(self._data)
+
+
 class SearchRuntime:
     """Unified search engine — coordinates full-text, semantic, and graph search.
 
@@ -117,8 +160,9 @@ class SearchRuntime:
         self._kg_engine = kg_engine
         self._logger = logger
         self.metrics = SearchMetrics()
+        self._cache = SearchCache(ttl_seconds=60.0, max_entries=256)
 
-    SEARCH_TIMEOUT: float = 30.0
+    SEARCH_TIMEOUT: float = 5.0
 
     async def search(
         self,
@@ -134,6 +178,17 @@ class SearchRuntime:
         """Main search entry point — dispatches to the appropriate strategy."""
         t0 = time.monotonic()
         self.metrics.searches += 1
+
+        # Check cache for non-offset queries (most dashboard queries are page 1)
+        if offset == 0:
+            cached = self._cache.get(
+                query=query, tenant_id=tenant_id, strategy=strategy.value,
+                filters=filters, limit=limit, include_facets=include_facets,
+                entity_types=entity_types,
+            )
+            if cached is not None:
+                cached.took_ms = (time.monotonic() - t0) * 1000
+                return cached
 
         try:
             if strategy == SearchStrategy.FULLTEXT:
@@ -169,6 +224,12 @@ class SearchRuntime:
 
         if include_facets and result.items:
             result.facets = await self._get_facets(query, tenant_id)
+
+        # Cache result (only page 1, non-offset queries)
+        if offset == 0:
+            self._cache.set(result, query=query, tenant_id=tenant_id, strategy=strategy.value,
+                            filters=filters, limit=limit, include_facets=include_facets,
+                            entity_types=entity_types)
 
         return result
 
@@ -247,7 +308,7 @@ class SearchRuntime:
         entity_types: Optional[list[str]],
     ) -> SearchResult:
         async with self._session_factory() as session:
-            await session.execute(sa_text("SET statement_timeout = '30s'"))
+            await session.execute(sa_text("SET statement_timeout = '5s'"))
 
             tsq = f"plainto_tsquery('arabic', :q)"
             conditions = [
@@ -303,8 +364,7 @@ class SearchRuntime:
             ]
 
         return SearchResult(items=items, total=total, query=query,
-                           strategy=SearchStrategy.FULLTEXT, took_ms=0,
-                           suggestions=await self.suggest(query, tenant_id))
+                           strategy=SearchStrategy.FULLTEXT, took_ms=0)
 
     async def _semantic_search(self, query: str, tenant_id: str, limit: int, offset: int) -> SearchResult:
         if not self._embedding_service:
@@ -359,36 +419,45 @@ class SearchRuntime:
         filters: Optional[dict], limit: int, offset: int,
         entity_types: Optional[list[str]],
     ) -> SearchResult:
-        # Full-text base + semantic boost — run concurrently
-        ft_coro = self._fulltext_search(query, tenant_id, filters, limit, offset, entity_types)
-        sem_coro = self._semantic_search(query, tenant_id, limit, 0) if self._embedding_service else None
-
-        if sem_coro:
-            ft_result, sem_result = await asyncio.gather(
-                asyncio.wait_for(ft_coro, timeout=self.SEARCH_TIMEOUT * 0.8),
-                asyncio.wait_for(sem_coro, timeout=self.SEARCH_TIMEOUT * 0.8),
-                return_exceptions=True,
+        # Early termination: run full-text first with a short timeout.
+        # If it yields enough high-confidence results, skip semantic search
+        # (which is the dominant cost at ~150-400ms per embedding call).
+        try:
+            ft_result = await asyncio.wait_for(
+                self._fulltext_search(query, tenant_id, filters, limit, offset, entity_types),
+                timeout=self.SEARCH_TIMEOUT * 0.5,
             )
-            if isinstance(ft_result, Exception):
-                self.metrics.errors += 1
-                ft_result = SearchResult(items=[], total=0, query=query, strategy=SearchStrategy.FULLTEXT, took_ms=0)
-            if isinstance(sem_result, Exception):
-                self.metrics.errors += 1
-                sem_result = None
-        else:
-            ft_result = await asyncio.wait_for(ft_coro, timeout=self.SEARCH_TIMEOUT * 0.8)
-            sem_result = None
+        except asyncio.TimeoutError:
+            ft_result = SearchResult(items=[], total=0, query=query, strategy=SearchStrategy.FULLTEXT, took_ms=0)
 
-        # Semantic boost
-        semantic_items: dict[str, float] = {}
-        if sem_result:
+        # Early exit: full-text results are good enough — skip semantic
+        enough_results = len(ft_result.items) >= limit
+        high_confidence = any(item.score >= 0.5 for item in ft_result.items[:3])
+        if enough_results and high_confidence and not filters:
+            ft_result.strategy = SearchStrategy.HYBRID
+            return ft_result
+
+        # Semantic boost — only if embedding service is available and we
+        # actually need the extra signal
+        sem_result = None
+        if self._embedding_service and ft_result.total > 0:
             try:
-                for item in sem_result.items:
-                    semantic_items[item.id] = item.score
+                sem_result = await asyncio.wait_for(
+                    self._semantic_search(query, tenant_id, limit, 0),
+                    timeout=self.SEARCH_TIMEOUT * 0.4,
+                )
+            except asyncio.TimeoutError:
+                self.metrics.errors += 1
             except Exception as exc:
                 self.metrics.errors += 1
                 if self._logger:
                     self._logger.warning("Semantic search error (fallback to fulltext): %s", exc)
+
+        # Semantic boost
+        semantic_items: dict[str, float] = {}
+        if sem_result:
+            for item in sem_result.items:
+                semantic_items[item.id] = item.score
 
         # Combine with weighted scoring
         for item in ft_result.items:
@@ -411,10 +480,9 @@ class SearchRuntime:
         return fields
 
     async def _get_facets(self, query: str, tenant_id: str) -> dict[str, dict[str, int]]:
-        async with self._session_factory() as session:
-            facets = {}
-            for field in self.ALLOWED_FACET_FIELDS:
-                col = self._safe_col(field, self.ALLOWED_FACET_FIELDS)
+        async def _facet_for_field(field: str) -> tuple[str, dict[str, int]]:
+            col = self._safe_col(field, self.ALLOWED_FACET_FIELDS)
+            async with self._session_factory() as session:
                 rows = await session.execute(
                     sa_text(f"""
                         SELECT c.{col}, COUNT(*) as cnt
@@ -428,7 +496,18 @@ class SearchRuntime:
                     """),
                     {"tid": tenant_id, "q": query},
                 )
-                facet_data = {str(r[0]): r[1] for r in rows}
-                if facet_data:
-                    facets[field] = facet_data
-            return facets
+                data = {str(r[0]): r[1] for r in rows}
+                return field, data
+
+        results = await asyncio.gather(
+            *[_facet_for_field(f) for f in self.ALLOWED_FACET_FIELDS],
+            return_exceptions=True,
+        )
+        facets: dict[str, dict[str, int]] = {}
+        for r in results:
+            if isinstance(r, Exception):
+                continue
+            field, data = r
+            if data:
+                facets[field] = data
+        return facets

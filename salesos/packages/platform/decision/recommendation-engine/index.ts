@@ -22,7 +22,7 @@ interface ActionDefinition {
 
 interface ActionArgs {
   context: DecisionContext
-  scores: Score[]
+  scoreMap: Map<ScoreType, Score>
   rulesApplied: DecisionRule[]
   evidence: EvidenceItem[]
 }
@@ -31,16 +31,12 @@ function generateId(): string {
   return 'rec_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9)
 }
 
-function getScore(scores: Score[], type: ScoreType): Score | undefined {
-  return scores.find(s => s.type === type)
+function getScoreValue(scoreMap: Map<ScoreType, Score>, type: ScoreType): number {
+  return scoreMap.get(type)?.value ?? 0
 }
 
-function getScoreValue(scores: Score[], type: ScoreType): number {
-  return getScore(scores, type)?.value ?? 0
-}
-
-function getScoreConfidence(scores: Score[], type: ScoreType): number {
-  return getScore(scores, type)?.confidence ?? 0
+function getScoreConfidence(scoreMap: Map<ScoreType, Score>, type: ScoreType): number {
+  return scoreMap.get(type)?.confidence ?? 0
 }
 
 function relevantEvidence(evidence: EvidenceItem[], keywords: string[]): EvidenceItem[] {
@@ -60,10 +56,10 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
   {
     action: 'meeting',
     actionLabel: 'Arrange Meeting',
-    evaluate({ scores, rulesApplied }) {
-      const intent = getScoreValue(scores, 'intent')
-      const relationship = getScoreValue(scores, 'relationship')
-      const revenue = getScoreValue(scores, 'revenue')
+    evaluate({ scoreMap, rulesApplied }) {
+      const intent = getScoreValue(scoreMap, 'intent')
+      const relationship = getScoreValue(scoreMap, 'relationship')
+      const revenue = getScoreValue(scoreMap, 'revenue')
       if (intent < 0.6 || relationship < 0.5) return 0
 
       let score = intent * 0.4 + relationship * 0.35 + revenue * 0.25
@@ -71,8 +67,8 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
       if (meetingRule) score += meetingRule.weight * 0.15
       return Math.min(score, 0.95)
     },
-    risks({ scores }) {
-      const dataQuality = getScoreValue(scores, 'data_quality')
+    risks({ scoreMap }) {
+      const dataQuality = getScoreValue(scoreMap, 'data_quality')
       const risks: Risk[] = []
       if (dataQuality < 0.4) {
         risks.push({
@@ -84,8 +80,8 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
       }
       return risks
     },
-    impact({ scores, context }) {
-      const revenue = getScoreValue(scores, 'revenue')
+    impact({ scoreMap, context }) {
+      const revenue = getScoreValue(scoreMap, 'revenue')
       const opportunityValue = context.metadata?.opportunityValue as number | undefined
       const expectedRevenue = opportunityValue ? opportunityValue * 0.2 : revenue * 50000
       return {
@@ -99,10 +95,10 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
   {
     action: 'send_proposal',
     actionLabel: 'Send Proposal',
-    evaluate({ scores, rulesApplied }) {
-      const relationship = getScoreValue(scores, 'relationship')
-      const intent = getScoreValue(scores, 'intent')
-      const revenue = getScoreValue(scores, 'revenue')
+    evaluate({ scoreMap, rulesApplied }) {
+      const relationship = getScoreValue(scoreMap, 'relationship')
+      const intent = getScoreValue(scoreMap, 'intent')
+      const revenue = getScoreValue(scoreMap, 'revenue')
       if (relationship < 0.6 || intent < 0.5) return 0
 
       let score = relationship * 0.45 + intent * 0.3 + revenue * 0.25
@@ -110,8 +106,8 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
       if (proposalRule) score += proposalRule.weight * 0.12
       return Math.min(score, 0.95)
     },
-    risks({ scores }) {
-      const company = getScoreValue(scores, 'company')
+    risks({ scoreMap }) {
+      const company = getScoreValue(scoreMap, 'company')
       const risks: Risk[] = []
       if (company < 0.4) {
         risks.push({
@@ -121,7 +117,7 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
           mitigation: 'Validate company requirements before sending proposal',
         })
       }
-      if (getScoreValue(scores, 'risk') > 0.6) {
+      if (getScoreValue(scoreMap, 'risk') > 0.6) {
         risks.push({
           type: 'financial_risk',
           level: 'medium',
@@ -131,8 +127,8 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
       }
       return risks
     },
-    impact({ scores, context }) {
-      const revenue = getScoreValue(scores, 'revenue')
+    impact({ scoreMap, context }) {
+      const revenue = getScoreValue(scoreMap, 'revenue')
       const opportunityValue = context.metadata?.opportunityValue as number | undefined
       const expectedRevenue = opportunityValue ? opportunityValue * 0.5 : revenue * 80000
       return {
@@ -146,9 +142,9 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
   {
     action: 'call',
     actionLabel: 'Make Call',
-    evaluate({ scores, rulesApplied }) {
-      const intent = getScoreValue(scores, 'intent')
-      const relationship = getScoreValue(scores, 'relationship')
+    evaluate({ scoreMap, rulesApplied }) {
+      const intent = getScoreValue(scoreMap, 'intent')
+      const relationship = getScoreValue(scoreMap, 'relationship')
       if (intent < 0.3 || intent > 0.75) return 0
 
       let score = intent * 0.4 + relationship * 0.35
@@ -166,8 +162,8 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
         mitigation: 'Schedule call through calendar or email confirmation',
       }]
     },
-    impact({ scores }) {
-      const revenue = getScoreValue(scores, 'revenue')
+    impact({ scoreMap }) {
+      const revenue = getScoreValue(scoreMap, 'revenue')
       return {
         revenue: revenue * 20000,
         effort: 'low',
@@ -179,9 +175,9 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
   {
     action: 'follow_up',
     actionLabel: 'Follow Up',
-    evaluate({ scores, rulesApplied }) {
-      const intent = getScoreValue(scores, 'intent')
-      const dataQuality = getScoreValue(scores, 'data_quality')
+    evaluate({ scoreMap, rulesApplied }) {
+      const intent = getScoreValue(scoreMap, 'intent')
+      const dataQuality = getScoreValue(scoreMap, 'data_quality')
       if (intent < 0.2) return 0
 
       let score = intent * 0.3 + dataQuality * 0.2 + 0.25
@@ -197,8 +193,8 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
         mitigation: 'Space follow-ups at least 5 business days apart',
       }]
     },
-    impact({ scores }) {
-      const revenue = getScoreValue(scores, 'revenue')
+    impact({ scoreMap }) {
+      const revenue = getScoreValue(scoreMap, 'revenue')
       return {
         revenue: revenue * 15000,
         effort: 'low',
@@ -210,21 +206,21 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
   {
     action: 'demo',
     actionLabel: 'Product Demo',
-    evaluate({ scores, rulesApplied }) {
-      const intent = getScoreValue(scores, 'intent')
-      const company = getScoreValue(scores, 'company')
-      const relationship = getScoreValue(scores, 'relationship')
+    evaluate({ scoreMap, rulesApplied }) {
+      const intent = getScoreValue(scoreMap, 'intent')
+      const company = getScoreValue(scoreMap, 'company')
+      const relationship = getScoreValue(scoreMap, 'relationship')
       if (intent < 0.4 || company < 0.4) return 0
 
       let score = intent * 0.35 + company * 0.35 + relationship * 0.2
       const demoRule = rulesApplied.find(r => r.action === 'demo')
       if (demoRule) score += demoRule.weight * 0.1
-      if (getScoreValue(scores, 'revenue') > 0.6) score += 0.05
+      if (getScoreValue(scoreMap, 'revenue') > 0.6) score += 0.05
       return Math.min(score, 0.9)
     },
-    risks({ scores }) {
+    risks({ scoreMap }) {
       const risks: Risk[] = []
-      if (getScoreValue(scores, 'data_quality') < 0.3) {
+      if (getScoreValue(scoreMap, 'data_quality') < 0.3) {
         risks.push({
           type: 'mismatched_expectations',
           level: 'medium',
@@ -234,8 +230,8 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
       }
       return risks
     },
-    impact({ scores, context }) {
-      const revenue = getScoreValue(scores, 'revenue')
+    impact({ scoreMap, context }) {
+      const revenue = getScoreValue(scoreMap, 'revenue')
       const opportunityValue = context.metadata?.opportunityValue as number | undefined
       const expectedRevenue = opportunityValue ? opportunityValue * 0.35 : revenue * 65000
       return {
@@ -249,9 +245,9 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
   {
     action: 'nurture',
     actionLabel: 'Nurture',
-    evaluate({ scores }) {
-      const intent = getScoreValue(scores, 'intent')
-      const relationship = getScoreValue(scores, 'relationship')
+    evaluate({ scoreMap }) {
+      const intent = getScoreValue(scoreMap, 'intent')
+      const relationship = getScoreValue(scoreMap, 'relationship')
       if (intent > 0.5 || relationship > 0.6) return 0
 
       const score = (1 - intent) * 0.4 + (1 - relationship) * 0.3 + 0.15
@@ -276,10 +272,10 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
   {
     action: 'escalate',
     actionLabel: 'Escalate',
-    evaluate({ scores, rulesApplied }) {
-      const revenue = getScoreValue(scores, 'revenue')
-      const risk = getScoreValue(scores, 'risk')
-      const intent = getScoreValue(scores, 'intent')
+    evaluate({ scoreMap, rulesApplied }) {
+      const revenue = getScoreValue(scoreMap, 'revenue')
+      const risk = getScoreValue(scoreMap, 'risk')
+      const intent = getScoreValue(scoreMap, 'intent')
       if (revenue < 0.6 || risk < 0.4) return 0
 
       let score = revenue * 0.45 + risk * 0.35 + intent * 0.2
@@ -295,8 +291,8 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
         mitigation: 'Notify affected parties before escalation',
       }]
     },
-    impact({ scores, context }) {
-      const revenue = getScoreValue(scores, 'revenue')
+    impact({ scoreMap, context }) {
+      const revenue = getScoreValue(scoreMap, 'revenue')
       const opportunityValue = context.metadata?.opportunityValue as number | undefined
       const expectedRevenue = opportunityValue ?? revenue * 120000
       return {
@@ -310,8 +306,8 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
   {
     action: 'research',
     actionLabel: 'Research',
-    evaluate({ scores }) {
-      const dataQuality = getScoreValue(scores, 'data_quality')
+    evaluate({ scoreMap }) {
+      const dataQuality = getScoreValue(scoreMap, 'data_quality')
       if (dataQuality > 0.6) return 0
 
       const score = (1 - dataQuality) * 0.6 + 0.2
@@ -325,7 +321,7 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
         mitigation: 'Limit research to 48 hours, proceed with available data',
       }]
     },
-    impact({ scores }) {
+    impact() {
       return {
         effort: 'medium',
         time: '2 days',
@@ -337,13 +333,13 @@ const ACTION_DEFINITIONS: ActionDefinition[] = [
 
 function assessRisks(
   context: DecisionContext,
-  scores: Score[],
+  scoreMap: Map<ScoreType, Score>,
   rulesApplied: DecisionRule[],
   evidence: EvidenceItem[],
 ): Risk[] {
   const risks: Risk[] = []
 
-  const riskScore = getScoreValue(scores, 'risk')
+  const riskScore = getScoreValue(scoreMap, 'risk')
   if (riskScore > 0.7) {
     risks.push({
       type: 'overall_risk',
@@ -372,7 +368,7 @@ function assessRisks(
     })
   }
 
-  const dataQuality = getScoreValue(scores, 'data_quality')
+  const dataQuality = getScoreValue(scoreMap, 'data_quality')
   if (dataQuality < 0.3) {
     risks.push({
       type: 'data_quality',
@@ -382,8 +378,8 @@ function assessRisks(
     })
   }
 
-  const intent = getScoreValue(scores, 'intent')
-  const relationship = getScoreValue(scores, 'relationship')
+  const intent = getScoreValue(scoreMap, 'intent')
+  const relationship = getScoreValue(scoreMap, 'relationship')
   if (intent > 0.7 && relationship < 0.3) {
     risks.push({
       type: 'readiness_mismatch',
@@ -416,8 +412,8 @@ function buildSource(
   return 'ai'
 }
 
-function estimateRevenue(scores: Score[], context: DecisionContext): number | undefined {
-  const revenueScore = getScoreValue(scores, 'revenue')
+function estimateRevenue(scoreMap: Map<ScoreType, Score>, context: DecisionContext): number | undefined {
+  const revenueScore = getScoreValue(scoreMap, 'revenue')
   const opportunityValue = context.metadata?.opportunityValue as number | undefined
   if (opportunityValue) return opportunityValue
   if (revenueScore > 0) return revenueScore * 100000
@@ -472,14 +468,15 @@ export class RecommendationEngine {
     rulesApplied: DecisionRule[],
     evidence: EvidenceItem[],
   ): Promise<Recommendation> {
-    const intent = getScoreValue(scores, 'intent')
-    const revenue = getScoreValue(scores, 'revenue')
+    const scoreMap = new Map<ScoreType, Score>(scores.map(s => [s.type, s]))
+    const intent = getScoreValue(scoreMap, 'intent')
+    const revenue = getScoreValue(scoreMap, 'revenue')
 
     const scoredActions = ACTION_DEFINITIONS
       .map(def => {
-        const score = def.evaluate({ context, scores, rulesApplied, evidence })
-        const risks = def.risks({ context, scores, rulesApplied, evidence })
-        const impact = def.impact({ context, scores, rulesApplied, evidence })
+        const score = def.evaluate({ context, scoreMap, rulesApplied, evidence })
+        const risks = def.risks({ context, scoreMap, rulesApplied, evidence })
+        const impact = def.impact({ context, scoreMap, rulesApplied, evidence })
         const source = buildSource(rulesApplied, def.action, score)
         const matchedEvidence = selectEvidence(evidence, def.action)
 
@@ -530,7 +527,7 @@ export class RecommendationEngine {
     }))
 
     const allRisks = [
-      ...assessRisks(context, scores, rulesApplied, evidence),
+      ...assessRisks(context, scoreMap, rulesApplied, evidence),
       ...primary.risks,
     ]
 
@@ -540,7 +537,7 @@ export class RecommendationEngine {
       id: generateId(),
       action: primary.def.action,
       actionLabel: primary.def.actionLabel,
-      reason: buildReason(primary.def.action, scores, rulesApplied, intent),
+      reason: buildReason(primary.def.action, scoreMap, rulesApplied, intent),
       confidence: Math.round(primary.score * 100) / 100,
       confidenceLabel: confidenceLabel(primary.score),
       source: primary.source,
@@ -563,7 +560,7 @@ export class RecommendationEngine {
 
 function buildReason(
   action: string,
-  scores: Score[],
+  scoreMap: Map<ScoreType, Score>,
   rulesApplied: DecisionRule[],
   intent: number,
 ): string {

@@ -582,5 +582,9 @@ def register_routers():
     from app.routers.rag import router as rag_router
     app.include_router(rag_router, prefix="/api/v1", tags=["RAG"], dependencies=_auth)
 
+    # Wave 3 — Analytics & Reporting
+    from app.routers.analytics import router as analytics_router
+    app.include_router(analytics_router, prefix="/api/v1", tags=["Analytics"], dependencies=_auth)
+
 
 register_routers()

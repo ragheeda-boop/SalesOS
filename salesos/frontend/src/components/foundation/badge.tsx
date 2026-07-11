@@ -111,6 +111,7 @@ export function Badge({ variant = 'default', size = 'md', dot, value, className,
 
   return (
     <span className={cn(baseClasses, 'bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)]', className)} {...props}>
+      {dot && <span className="h-1.5 w-1.5 rounded-full bg-[var(--muhide-orange)]" aria-hidden="true" />}
       {label}
     </span>
   )

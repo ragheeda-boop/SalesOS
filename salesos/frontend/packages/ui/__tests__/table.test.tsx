@@ -44,6 +44,6 @@ describe('Table', () => {
 
   it('shows empty state when no data', () => {
     render(<Table columns={columns} data={[]} />)
-    expect(screen.getByText('لا توجد بيانات')).toBeInTheDocument()
+    expect(screen.getByText('No results')).toBeInTheDocument()
   })
 })

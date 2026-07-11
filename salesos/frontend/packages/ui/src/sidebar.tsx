@@ -28,6 +28,7 @@ export function Sidebar({ items, collapsed = false, onToggle, className }: Sideb
     >
       <div className="flex h-14 items-center justify-end px-4">
         <button
+          aria-label="Toggle sidebar"
           onClick={onToggle}
           className="rounded-md p-1 text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
         >

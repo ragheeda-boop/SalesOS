@@ -20,13 +20,13 @@ describe('Sidebar', () => {
 
   it('renders toggle button', () => {
     render(<Sidebar items={items} />)
-    expect(screen.getByRole('button')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /toggle/i })).toBeInTheDocument()
   })
 
   it('calls onToggle when toggle button clicked', () => {
     const onToggle = jest.fn()
     render(<Sidebar items={items} onToggle={onToggle} />)
-    fireEvent.click(screen.getByRole('button'))
+    fireEvent.click(screen.getByRole('button', { name: /toggle/i }))
     expect(onToggle).toHaveBeenCalledTimes(1)
   })
 

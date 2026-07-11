@@ -144,6 +144,14 @@ function collectEvidence(context: DecisionContext): EvidenceItem[] {
 function applyRules(context: DecisionContext, evidence: EvidenceItem[]): DecisionRule[] {
   const applied: DecisionRule[] = []
 
+  const hasHighIntent = evidence.some(
+    (e) =>
+      e.data &&
+      typeof e.data === 'object' &&
+      'strength' in (e.data as Record<string, unknown>) &&
+      (e.data as Record<string, unknown>).strength === 'high'
+  )
+
   for (const rule of BASE_RULES) {
     if (rule.category === 'quality') {
       applied.push(rule)
@@ -151,13 +159,6 @@ function applyRules(context: DecisionContext, evidence: EvidenceItem[]): Decisio
     }
 
     if (rule.category === 'intent') {
-      const hasHighIntent = evidence.some(
-        (e) =>
-          e.data &&
-          typeof e.data === 'object' &&
-          'strength' in (e.data as Record<string, unknown>) &&
-          (e.data as Record<string, unknown>).strength === 'high'
-      )
       if (hasHighIntent || evidence.length > 3) {
         applied.push(rule)
       }
@@ -495,11 +496,7 @@ export class DecisionEngine {
   }
 
   async evaluateBatch(contexts: DecisionContext[]): Promise<DecisionResult[]> {
-    const results: DecisionResult[] = []
-    for (const context of contexts) {
-      results.push(await this.evaluate(context))
-    }
-    return results
+    return Promise.all(contexts.map(c => this.evaluate(c)))
   }
 
   async explain(decisionId: string): Promise<Explainability | null> {

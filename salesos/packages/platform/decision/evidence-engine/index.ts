@@ -43,6 +43,14 @@ const EVIDENCE_TYPE_PROVIDER_MAP: Record<EvidenceType, string> = {
   government: 'signals',
 }
 
+const PROVIDER_TO_TYPES: Record<string, EvidenceType[]> = {}
+for (const [evidenceType, providerKey] of Object.entries(EVIDENCE_TYPE_PROVIDER_MAP)) {
+  if (!PROVIDER_TO_TYPES[providerKey]) {
+    PROVIDER_TO_TYPES[providerKey] = []
+  }
+  PROVIDER_TO_TYPES[providerKey].push(evidenceType as EvidenceType)
+}
+
 function generateId(): string {
   return 'evt_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9)
 }
@@ -217,9 +225,7 @@ export class EvidenceEngine {
       }
     } else {
       for (const [providerKey, provider] of Object.entries(BUILTIN_PROVIDERS)) {
-        const matchingTypes = Object.entries(EVIDENCE_TYPE_PROVIDER_MAP)
-          .filter(([, p]) => p === providerKey)
-          .map(([t]) => t as EvidenceType)
+        const matchingTypes = PROVIDER_TO_TYPES[providerKey] ?? []
 
         for (const evidenceType of matchingTypes) {
           const sourceRecord: Record<string, unknown> = {

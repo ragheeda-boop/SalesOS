@@ -8,6 +8,7 @@ automatically populate the graph when golden records are created/updated.
 from __future__ import annotations
 
 import asyncio
+import random
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -18,6 +19,10 @@ from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+
+# Max retries for transient Neo4j connection failures
+_NEO4J_MAX_RETRIES = 3
+_NEO4J_RETRY_BASE_DELAY = 0.1  # 100ms initial, doubles each retry
 
 
 class NodeLabel(str, Enum):
@@ -144,7 +149,10 @@ class KnowledgeGraphEngine:
                     max_connection_pool_size=settings.neo4j_max_connection_pool_size,
                     connection_acquisition_timeout=settings.neo4j_connection_acquisition_timeout,
                     max_transaction_retry_time=settings.neo4j_max_transaction_retry_time,
+                    max_connection_lifetime=1800,
                 )
+                # Verify the connection is actually live
+                asyncio.ensure_future(self._verify_driver_connectivity())
                 self.metrics.neo4j_available = True
                 # Create full-text indexes for search
                 asyncio.ensure_future(self._ensure_indexes())
@@ -157,7 +165,41 @@ class KnowledgeGraphEngine:
 
     async def close(self):
         if self._driver:
-            await self._driver.close()
+            try:
+                await self._driver.close()
+            except Exception:
+                pass
+            self._driver = None
+
+    async def _verify_driver_connectivity(self):
+        """Verify driver connectivity asynchronously after init."""
+        try:
+            async with self._driver.session(database=settings.neo4j_database) as session:
+                await session.run("RETURN 1")
+            self.metrics.neo4j_available = True
+        except Exception:
+            self.metrics.neo4j_available = False
+            if self._logger:
+                self._logger.warning("Neo4j connectivity verification failed, using SQL fallback")
+
+    async def health_check(self) -> bool:
+        """Check if Neo4j connection pool is healthy and responsive."""
+        if not self._driver:
+            self.metrics.neo4j_available = False
+            return False
+        try:
+            await self._driver.verify_connectivity()
+            if not self.metrics.neo4j_available:
+                if self._logger:
+                    self._logger.info("Neo4j connection pool restored")
+            self.metrics.neo4j_available = True
+            return True
+        except Exception as exc:
+            if self.metrics.neo4j_available:
+                if self._logger:
+                    self._logger.warning("Neo4j health check failed: %s", exc)
+            self.metrics.neo4j_available = False
+            return False
 
     async def _ensure_indexes(self):
         """Create full-text search indexes on Neo4j for fast search."""
@@ -356,12 +398,48 @@ class KnowledgeGraphEngine:
     async def _run(self, op_name: str, neo4j_fn, sql_fn, **kwargs):
         self.metrics.queries_executed += 1
         t0 = time.monotonic()
-        try:
-            if self.metrics.neo4j_available and self._driver:
-                result = await neo4j_fn(**kwargs)
+        if self.metrics.neo4j_available and self._driver:
+            last_error = None
+            for attempt in range(1, _NEO4J_MAX_RETRIES + 1):
+                try:
+                    result = await neo4j_fn(**kwargs)
+                    # Success on Neo4j — ensure availability flag is correct
+                    if not self.metrics.neo4j_available:
+                        self.metrics.neo4j_available = True
+                    elapsed = (time.monotonic() - t0) * 1000
+                    self.metrics.total_query_ms += elapsed
+                    return result
+                except Exception as exc:
+                    last_error = exc
+                    elapsed = (time.monotonic() - t0) * 1000
+                    if attempt < _NEO4J_MAX_RETRIES:
+                        delay = _NEO4J_RETRY_BASE_DELAY * (2 ** (attempt - 1)) * (1 + random.random() * 0.1)
+                        if self._logger:
+                            self._logger.warning(
+                                "Graph %s Neo4j attempt %d/%d failed (%.0fms), retrying in %.0fms: %s",
+                                op_name, attempt, _NEO4J_MAX_RETRIES, elapsed, delay * 1000, exc,
+                            )
+                        await asyncio.sleep(delay)
+                    else:
+                        self.metrics.errors += 1
+                        if self._logger:
+                            self._logger.error(
+                                "Graph %s Neo4j failed after %d retries (%.0fms): %s",
+                                op_name, _NEO4J_MAX_RETRIES, elapsed, exc,
+                            )
+            # All Neo4j retries exhausted — mark degraded and fall to SQL
+            self.metrics.neo4j_available = False
+            try:
+                result = await sql_fn(**kwargs)
                 elapsed = (time.monotonic() - t0) * 1000
                 self.metrics.total_query_ms += elapsed
                 return result
+            except Exception as sql_exc:
+                self.metrics.errors += 1
+                raise sql_exc from last_error
+
+        # Neo4j not available — go straight to SQL
+        try:
             result = await sql_fn(**kwargs)
             elapsed = (time.monotonic() - t0) * 1000
             self.metrics.total_query_ms += elapsed
@@ -370,13 +448,7 @@ class KnowledgeGraphEngine:
             elapsed = (time.monotonic() - t0) * 1000
             self.metrics.errors += 1
             if self._logger:
-                self._logger.error("Graph %s error (%.0fms): %s", op_name, elapsed, exc)
-            # Fallback to SQL on Neo4j failure
-            if self.metrics.neo4j_available:
-                try:
-                    return await sql_fn(**kwargs)
-                except Exception:
-                    pass
+                self._logger.error("Graph %s SQL fallback error (%.0fms): %s", op_name, elapsed, exc)
             raise
 
     # ── Neo4j implementations ───────────────────────────────────
