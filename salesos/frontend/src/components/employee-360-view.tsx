@@ -58,7 +58,7 @@ export function Employee360View({ employeeId }: Employee360ViewProps) {
           <div className="flex flex-wrap items-end gap-4 -mt-12">
             <div className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-info-100 text-xl font-bold text-info-700 shadow-muhide-3 dark:border-neutral-900 dark:bg-info-900 dark:text-info-300">
               {d.profile.avatar_url ? (
-                <img src={d.profile.avatar_url} alt="" className="h-full w-full rounded-full object-cover" />
+                <img src={d.profile.avatar_url} alt="" loading="lazy" className="h-full w-full rounded-full object-cover" />
               ) : initials}
             </div>
             <div className="flex-1 pt-2">

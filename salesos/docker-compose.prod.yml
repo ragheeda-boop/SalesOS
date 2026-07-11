@@ -1,7 +1,14 @@
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+    tag: "{{.Name}}/{{.ID}}"
+
 services:
   postgres:
     image: pgvector/pgvector:pg16
-    restart: unless-stopped
+    restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-salesos}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
@@ -15,16 +22,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     deploy:
       resources:
         limits:
+          cpus: "2"
           memory: 2G
         reservations:
+          cpus: "0.5"
           memory: 1G
+    logging: *default-logging
 
   pgbouncer:
     image: edoburu/pgbouncer:latest
-    restart: unless-stopped
+    restart: always
+    ports:
+      - "6432:6432"
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -39,14 +52,23 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h postgres -U ${POSTGRES_USER:-salesos} -p 5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     deploy:
       resources:
         limits:
+          cpus: "0.5"
           memory: 256M
+        reservations:
+          memory: 128M
+    logging: *default-logging
 
   neo4j:
     image: neo4j:5-community
-    restart: unless-stopped
+    restart: always
     environment:
       NEO4J_AUTH: ${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:?Set NEO4J_PASSWORD}
     volumes:
@@ -57,16 +79,20 @@ services:
       interval: 15s
       timeout: 10s
       retries: 10
+      start_period: 30s
     deploy:
       resources:
         limits:
+          cpus: "2"
           memory: 4G
         reservations:
+          cpus: "1"
           memory: 2G
+    logging: *default-logging
 
   redis:
     image: redis:7-alpine
-    restart: unless-stopped
+    restart: always
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -75,16 +101,38 @@ services:
     deploy:
       resources:
         limits:
+          cpus: "0.5"
           memory: 256M
+        reservations:
+          memory: 128M
+    logging: *default-logging
+
+  migrations:
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-ragheeda-boop/salesos}/backend:${IMAGE_TAG:-latest}
+    restart: on-failure
+    entrypoint: ["sh", "-c", "alembic upgrade head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env.production
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    logging: *default-logging
 
   backend:
     image: ${REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-ragheeda-boop/salesos}/backend:${IMAGE_TAG:-latest}
-    restart: unless-stopped
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
     env_file:
       - .env.production
     environment:
@@ -95,18 +143,21 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 5s
-      start_period: 15s
+      start_period: 30s
       retries: 3
     deploy:
       resources:
         limits:
+          cpus: "2"
           memory: 1G
         reservations:
+          cpus: "0.5"
           memory: 512M
+    logging: *default-logging
 
   frontend:
     image: ${REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-ragheeda-boop/salesos}/frontend:${IMAGE_TAG:-latest}
-    restart: unless-stopped
+    restart: always
     depends_on:
       backend:
         condition: service_healthy
@@ -118,16 +169,21 @@ services:
       test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
       interval: 30s
       timeout: 5s
-      start_period: 10s
+      start_period: 15s
       retries: 3
     deploy:
       resources:
         limits:
+          cpus: "1"
           memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+    logging: *default-logging
 
   caddy:
     image: caddy:2-alpine
-    restart: unless-stopped
+    restart: always
     ports:
       - "80:80"
       - "443:443"
@@ -142,22 +198,33 @@ services:
         condition: service_healthy
       frontend:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
     deploy:
       resources:
         limits:
+          cpus: "0.25"
           memory: 128M
+        reservations:
+          memory: 64M
+    logging: *default-logging
 
   backup:
-    image: pgvector/pgvector:pg16
-    restart: unless-stopped
-    entrypoint: |
-      sh -c '
-        apk add --no-cache postgresql-client
-        echo "0 3 * * * /scripts/backup-db.sh" | crontab -
+    build:
+      context: ./infra
+      dockerfile: docker/backup/Dockerfile
+    restart: on-failure
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "0 3 * * * /usr/local/bin/backup-db" | crontab -
         crond -f -l 2
-      '
     volumes:
-      - ./infra/scripts/backup-db.sh:/scripts/backup-db.sh
+      - ./infra/scripts/backup-db.sh:/usr/local/bin/backup-db
       - backups:/backups
     environment:
       PGHOST: postgres
@@ -168,6 +235,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "test -d /backups || exit 1"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    logging: *default-logging
 
 volumes:
   pgdata:

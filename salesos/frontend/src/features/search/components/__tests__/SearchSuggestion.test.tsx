@@ -2,20 +2,17 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { SearchSuggestion } from '../SearchSuggestion'
 
 describe('SearchSuggestion', () => {
-  const defaultProps = {
-    suggestions: [{ text: 'شركة', type: 'company' as const }, { text: 'اتصال', type: 'contact' as const }],
-    onSelect: jest.fn(),
-  }
+  const suggestion = { text: 'شركة', type: 'query' as const }
 
-  it('renders suggestions', () => {
-    render(<SearchSuggestion {...defaultProps} />)
+  it('renders suggestion text', () => {
+    render(<SearchSuggestion suggestion={suggestion as any} onClick={jest.fn()} />)
     expect(screen.getByText('شركة')).toBeInTheDocument()
-    expect(screen.getByText('اتصال')).toBeInTheDocument()
   })
 
-  it('calls onSelect when clicked', () => {
-    render(<SearchSuggestion {...defaultProps} />)
+  it('calls onClick with suggestion', () => {
+    const onClick = jest.fn()
+    render(<SearchSuggestion suggestion={suggestion as any} onClick={onClick} />)
     fireEvent.click(screen.getByText('شركة'))
-    expect(defaultProps.onSelect).toHaveBeenCalledWith('شركة')
+    expect(onClick).toHaveBeenCalledWith(suggestion)
   })
 })

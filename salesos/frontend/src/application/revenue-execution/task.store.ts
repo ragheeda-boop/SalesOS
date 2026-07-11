@@ -1,33 +1,38 @@
+import api from '@/lib/api'
 import type { RevenueTask } from './task.dto'
-import { createOpportunity, loadOpportunities } from './opportunity.store'
 
-const TASK_KEY = 'salesos_tasks'
-
-export function loadTasks(): RevenueTask[] {
-  try { const s = localStorage.getItem(TASK_KEY); return s ? JSON.parse(s) : [] } catch { return [] }
+export async function loadTasks(): Promise<RevenueTask[]> {
+  try {
+    const response = await api.get('/api/v1/revenue-execution/tasks')
+    return response.data.items ?? response.data ?? []
+  } catch {
+    return []
+  }
 }
 
-export function saveTasks(tasks: RevenueTask[]): void {
-  try { localStorage.setItem(TASK_KEY, JSON.stringify(tasks)) } catch { /* ignore */ }
+export async function saveTasks(tasks: RevenueTask[]): Promise<void> {
+  try {
+    await api.put('/api/v1/revenue-execution/tasks', tasks)
+  } catch { /* ignore */ }
 }
 
-export function addTask(task: Omit<RevenueTask, 'id' | 'createdAt'>): RevenueTask[] {
-  const newTask: RevenueTask = { ...task, id: `task_${Date.now()}`, createdAt: new Date().toISOString() }
-  const tasks = [newTask, ...loadTasks()]
-  saveTasks(tasks)
+export async function addTask(task: Omit<RevenueTask, 'id' | 'createdAt'>): Promise<RevenueTask[]> {
+  const response = await api.post('/api/v1/revenue-execution/tasks', task)
+  const tasks = await loadTasks()
   return tasks
 }
 
-export function completeTask(id: string): RevenueTask[] {
-  const tasks = loadTasks().map((t) => t.id === id ? { ...t, completed: true } : t)
-  saveTasks(tasks)
-  return tasks
+export async function completeTask(id: string): Promise<RevenueTask[]> {
+  await api.patch(`/api/v1/revenue-execution/tasks/${id}/complete`)
+  return loadTasks()
 }
 
-export function getOverdueTasks(): RevenueTask[] {
-  return loadTasks().filter((t) => !t.completed && t.dueDate && new Date(t.dueDate) < new Date())
+export async function getOverdueTasks(): Promise<RevenueTask[]> {
+  const tasks = await loadTasks()
+  return tasks.filter((t) => !t.completed && t.dueDate && new Date(t.dueDate) < new Date())
 }
 
-export function getTasksByPriority(priority: string): RevenueTask[] {
-  return loadTasks().filter((t) => t.priority === priority && !t.completed)
+export async function getTasksByPriority(priority: string): Promise<RevenueTask[]> {
+  const tasks = await loadTasks()
+  return tasks.filter((t) => t.priority === priority && !t.completed)
 }

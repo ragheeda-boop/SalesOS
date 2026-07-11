@@ -1,14 +1,16 @@
 import { render, screen } from '@testing-library/react'
-import { AIAnswer } from '../AIAnswer'
+import { AIAnswerCard } from '../AIAnswer'
 
-describe('AIAnswer', () => {
-  it('renders answer text', () => {
-    render(<AIAnswer answer="This is the AI answer" />)
-    expect(screen.getByText('This is the AI answer')).toBeInTheDocument()
+describe('AIAnswerCard', () => {
+  it('renders answer summary', () => {
+    const answer = { summary: 'AI response', confidence: 0.85, explanation: '', recommendations: [], risks: [], sources: [] }
+    render(<AIAnswerCard answer={answer as any} />)
+    expect(screen.getByText('AI response')).toBeInTheDocument()
   })
 
-  it('renders with confidence', () => {
-    render(<AIAnswer answer="Answer" confidence={0.85} />)
-    expect(screen.getByText('Answer')).toBeInTheDocument()
+  it('shows confidence percentage', () => {
+    const answer = { summary: 'Test', confidence: 0.85, explanation: '', recommendations: [], risks: [], sources: [] }
+    render(<AIAnswerCard answer={answer as any} />)
+    expect(screen.getByText('%85 ثقة')).toBeInTheDocument()
   })
 })

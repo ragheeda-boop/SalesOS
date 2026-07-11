@@ -120,7 +120,7 @@ export default function CompaniesPage() {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
-        <table className="w-full">
+        <table className="w-full responsive-table">
           <thead>
             <tr className="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800/50">
               <th className="px-4 py-3 text-right text-sm font-medium text-neutral-700 dark:text-neutral-300">اسم الشركة</th>
@@ -153,18 +153,18 @@ export default function CompaniesPage() {
             ) : (
               data.items.map((company) => (
                 <tr key={company.id} className="border-b border-neutral-100 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50">
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" data-label="اسم الشركة">
                     <Link href={`/companies/${company.id}`} className="flex items-center gap-2 font-medium text-[var(--muhide-orange)] hover:underline dark:text-orange-400">
                       <Building2 className="h-4 w-4" />
                       {company.name_ar || company.name_en}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-sm text-neutral-500 dark:text-neutral-400">{company.cr_number}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-sm text-neutral-500 dark:text-neutral-400" data-label="رقم السجل">{company.cr_number}</td>
+                  <td className="px-4 py-3" data-label="الحالة">
                     <Badge variant="primary">{company.status}</Badge>
                   </td>
-                  <td className="px-4 py-3 text-sm text-neutral-500 dark:text-neutral-400">{company.city || "-"}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-sm text-neutral-500 dark:text-neutral-400" data-label="المدينة">{company.city || "-"}</td>
+                  <td className="px-4 py-3" data-label="">
                     <Link
                       href={`/companies/${company.id}`}
                       className="inline-flex items-center gap-1 text-sm text-[var(--muhide-orange)] hover:underline dark:text-orange-400"

@@ -94,7 +94,7 @@ export function CopilotPanel({ open, onClose, entityType, entityId, context }: C
   if (!open) return null
 
   return (
-    <div className="fixed inset-y-0 left-0 z-40 flex w-96 flex-col border-l bg-white shadow-muhide-6 dark:border-neutral-700 dark:bg-neutral-900">
+    <div className="fixed inset-y-0 left-0 z-40 flex w-96 max-sm:w-full max-sm:inset-x-0 flex-col border-l bg-white shadow-muhide-6 dark:border-neutral-700 dark:bg-neutral-900">
       <div className="flex h-14 items-center justify-between border-b px-4 dark:border-neutral-700">
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5 text-[var(--muhide-orange)]" />

@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family:sans-serif;padding:20px">
+<h2>New NBA Recommendation</h2>
+<p><strong>{{ action }}</strong></p>
+<p>{{ reason }}</p>
+<p>Confidence: {{ confidence_label }} ({{ "%.0f"|format(confidence * 100) }}%)</p>
+<p>Opportunity: {{ opportunity_name }}</p>
+</body>
+</html>

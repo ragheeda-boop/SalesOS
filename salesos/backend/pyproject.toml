@@ -4,6 +4,15 @@ version = "0.1.0"
 description = "SalesOS Enterprise Company Intelligence Platform - Backend"
 authors = ["SalesOS Team"]
 
+packages = [
+    { include = "app" },
+    { include = "sdk" },
+    { include = "domains" },
+    { include = "runtime" },
+    { include = "modules" },
+    { include = "intelligence" },
+]
+
 [tool.poetry.dependencies]
 python = "^3.12"
 fastapi = "^0.111"

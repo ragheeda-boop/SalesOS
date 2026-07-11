@@ -5,9 +5,9 @@ export function useCache<T = unknown>(key: string, fetcher?: () => Promise<T>) {
   const runtime = useRuntime()
   const [loading, setLoading] = useState(false)
 
-  const get = useCallback(() => {
-    const { value } = runtime.cache.get<T>(key)
-    return value
+  const get = useCallback((): T | null => {
+    const result = runtime.cache.get<T>(key)
+    return result ?? null
   }, [key, runtime])
 
   const set = useCallback((value: T) => {

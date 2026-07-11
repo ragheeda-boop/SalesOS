@@ -13,7 +13,7 @@ export function Dropdown({ children }: DropdownProps) {
 export const DropdownTrigger = forwardRef<HTMLButtonElement, ComponentPropsWithoutRef<typeof DropdownMenu.Trigger>>(
   ({ className, children, ...props }, ref) => {
     return (
-      <DropdownMenu.Trigger ref={ref} className={cn(className)} {...props} asChild>
+      <DropdownMenu.Trigger ref={ref} className={cn(className)} {...props}>
         {children}
       </DropdownMenu.Trigger>
     )

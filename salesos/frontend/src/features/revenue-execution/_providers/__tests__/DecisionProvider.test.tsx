@@ -51,9 +51,6 @@ function renderWithProvider(children: ReactNode) {
 }
 
 describe('DecisionProvider', () => {
-  beforeEach(() => {
-    jest.clearAllMocks()
-  })
 
   it('renders children', () => {
     renderWithProvider(<div data-testid="child">Hello</div>)

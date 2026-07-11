@@ -127,7 +127,7 @@ export function PipelineWorkspace() {
 
       {/* Forecast Cards */}
       {forecast && (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
             <p className="text-xs text-[var(--text-muted)]">أفضل سيناريو</p>
             <p className="text-lg font-display text-success-600">{forecast.best_case.toLocaleString()} SAR</p>
@@ -165,7 +165,7 @@ export function PipelineWorkspace() {
 
       {/* Kanban / List View */}
       {view === 'kanban' ? (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stageTotals.filter(s => !s.stage.includes('closed')).map((stage) => (
             <div key={stage.stage} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-3">
               <div className="flex items-center justify-between mb-3">

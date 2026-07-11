@@ -362,7 +362,7 @@ export function PipelineKanban() {
       </div>
 
       {/* Kanban columns */}
-      <div className="flex gap-3 overflow-x-auto pb-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:overflow-x-auto pb-4">
         {STAGES.map((stage) => (
           <PipelineColumn
             key={stage.key}
@@ -385,7 +385,7 @@ export function PipelineKanban() {
               setCloseMode("won");
             }
           }}
-          className="flex w-[260px] shrink-0 flex-col rounded-xl border border-emerald-200 bg-emerald-50/50"
+          className="flex w-full sm:w-[260px] shrink-0 flex-col rounded-xl border border-emerald-200 bg-emerald-50/50"
         >
           <div className="flex items-center gap-2 border-b border-emerald-200 px-3 py-2.5">
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
@@ -421,7 +421,7 @@ export function PipelineKanban() {
               setCloseMode("lost");
             }
           }}
-          className="flex w-[260px] shrink-0 flex-col rounded-xl border border-danger-200 bg-danger-50/50"
+          className="flex w-full sm:w-[260px] shrink-0 flex-col rounded-xl border border-danger-200 bg-danger-50/50"
         >
           <div className="flex items-center gap-2 border-b border-danger-200 px-3 py-2.5">
             <span className="h-2.5 w-2.5 rounded-full bg-danger-500" />

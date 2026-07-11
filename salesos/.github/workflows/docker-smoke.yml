@@ -1,0 +1,92 @@
+name: Docker Smoke Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  POSTGRES_PASSWORD: salesos_smoke_test
+  NEO4J_PASSWORD: salesos_smoke_test
+  JWT_SECRET: smoke-test-secret-do-not-use-in-prod
+  SECRET_KEY: smoke-test-secret-do-not-use-in-prod
+  OPENAI_API_KEY: ""
+
+jobs:
+  smoke:
+    name: Docker E2E Smoke Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .env
+        run: |
+          cat > .env << 'EOF'
+          POSTGRES_USER=salesos
+          POSTGRES_PASSWORD=salesos_smoke_test
+          POSTGRES_DB=salesos
+
+          NEO4J_URI=bolt://neo4j:7687
+          NEO4J_USER=neo4j
+          NEO4J_PASSWORD=salesos_smoke_test
+
+          REDIS_URL=redis://redis:6379/0
+
+          KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+
+          NEXT_PUBLIC_API_URL=http://localhost:8000
+          API_URL=http://backend:8000
+
+          JWT_SECRET=smoke-test-secret-do-not-use-in-prod
+          SECRET_KEY=smoke-test-secret-do-not-use-in-prod
+          JWT_SECRET_KEY=smoke-test-secret-do-not-use-in-prod
+
+          OPENAI_API_KEY=
+          NOTION_TOKEN=
+
+          LOG_LEVEL=DEBUG
+          SENTRY_DSN=
+          EOF
+
+      - name: Validate Compose File
+        run: docker compose config --quiet
+
+      - name: Build Services
+        run: docker compose build --parallel
+        timeout-minutes: 15
+
+      - name: Start Services
+        run: docker compose up -d
+
+      - name: Run Smoke Tests
+        run: pwsh -File ./scripts/docker-smoke.ps1
+        timeout-minutes: 10
+        env:
+          POSTGRES_PASSWORD: salesos_smoke_test
+          NEO4J_PASSWORD: salesos_smoke_test
+          JWT_SECRET: smoke-test-secret-do-not-use-in-prod
+          SECRET_KEY: smoke-test-secret-do-not-use-in-prod
+
+      - name: Collect Docker Logs on Failure
+        if: failure()
+        run: |
+          mkdir -p ./artifacts/logs
+          docker compose logs --no-color > ./artifacts/logs/docker-compose.log 2>&1
+          docker compose ps > ./artifacts/logs/docker-ps.log 2>&1
+          echo "=== Docker Disk Usage ===" >> ./artifacts/logs/docker-ps.log
+          docker system df >> ./artifacts/logs/docker-ps.log 2>&1
+
+      - name: Upload Log Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-smoke-logs
+          path: ./artifacts/logs/
+          retention-days: 7
+
+      - name: Stop Services
+        if: always()
+        run: docker compose down -v --remove-orphans

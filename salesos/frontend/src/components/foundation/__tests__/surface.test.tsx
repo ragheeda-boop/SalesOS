@@ -14,7 +14,7 @@ describe('Surface', () => {
 
   it('renders with elevated variant', () => {
     const { container } = render(<Surface variant="elevated">Elevated</Surface>)
-    expect(container.firstChild).toHaveClass('shadow-[')
+    expect(container.firstChild).toHaveClass('shadow-[var(--shadow-card)]')
   })
 
   it('renders with dark variant', () => {

@@ -29,10 +29,16 @@ function flush() {
   }
 }
 
-// Flush every 10 seconds or 50 events
-setInterval(flush, 10_000)
+let _interval: ReturnType<typeof setInterval> | null = null
+
+function ensureInterval() {
+  if (!_interval) {
+    _interval = setInterval(flush, 10_000)
+  }
+}
 
 export function track(event: Omit<AnalyticsEvent, 'timestamp'>) {
+  ensureInterval()
   queue.push({ ...event, timestamp: new Date().toISOString() })
   if (queue.length >= 50) flush()
 }

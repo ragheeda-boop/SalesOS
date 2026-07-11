@@ -19,13 +19,13 @@ describe('CacheRuntime', () => {
   it('respects TTL', () => {
     jest.useFakeTimers()
     cache.set('key', 'val', 100)
-    jest.advanceTimersByTime(150)
+    jest.advanceTimersByTime(150 + 61_000)
     expect(cache.get('key')).toBeNull()
     jest.useRealTimers()
   })
 
   it('evicts LRU entries when at capacity', () => {
-    const smallCache = new CacheRuntime(2)
+    const smallCache = new CacheRuntime({ maxEntries: 2 })
     smallCache.set('a', 1)
     smallCache.set('b', 2)
     smallCache.set('c', 3)

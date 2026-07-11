@@ -261,6 +261,37 @@ class SignalEngine:
 
         return sorted(hot, key=lambda h: h["signal_count"], reverse=True)
 
+    async def score_via_decision_platform(
+        self,
+        scoring_engine: Any,
+        tenant_id: str,
+        company_id: str | None = None,
+    ) -> Any:
+        """Bridge signals to the Decision Platform's ScoringEngine.
+
+        Transforms signals into ScoreCards via the Decision Platform.
+        This is the canonical path for all scoring — replaces inline scoring.
+        """
+        signals_data = []
+        for sig in self._signals:
+            if company_id and sig.company_id != company_id:
+                continue
+            signals_data.append({
+                "id": sig.id,
+                "signal_type": sig.signal_type.value,
+                "title": sig.title,
+                "description": sig.description or "",
+                "intensity": sig.intensity,
+                "priority": sig.priority.value,
+            })
+        if not signals_data:
+            return None
+        return await scoring_engine.score_signals(
+            tenant_id=tenant_id,
+            target_id=company_id or "all",
+            signals=signals_data,
+        )
+
     @property
     def stats(self) -> dict[str, Any]:
         return {

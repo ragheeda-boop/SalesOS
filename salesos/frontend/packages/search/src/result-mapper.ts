@@ -24,7 +24,7 @@ function sanitizeVariant(v: string): SearchResult['badges'][number]['variant'] {
   return VALID_VARIANTS.includes(v as any) ? (v as any) : 'neutral'
 }
 
-function sanitizeDirection(d: string): SearchResult['relationships'][number]['direction'] {
+function sanitizeDirection(d: string): NonNullable<SearchResult['relationships']>[number]['direction'] {
   return VALID_DIRECTIONS.includes(d as any) ? (d as any) : 'bidirectional'
 }
 

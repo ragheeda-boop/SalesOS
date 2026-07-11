@@ -222,7 +222,7 @@ export default function ContactsPage() {
             <p>لا توجد جهات اتصال</p>
           </div>
         ) : (
-          <table className="w-full text-right">
+          <table className="w-full text-right responsive-table">
             <thead className="border-b border-neutral-200 bg-neutral-50 text-xs font-medium text-neutral-500">
               <tr>
                 <th className="px-4 py-3">الاسم</th>
@@ -238,12 +238,12 @@ export default function ContactsPage() {
             <tbody className="divide-y divide-neutral-100">
               {data.items.map((contact: any) => (
                 <tr key={contact.id} className="text-sm text-neutral-700 hover:bg-neutral-50">
-                  <td className="px-4 py-3 font-medium text-neutral-900">{contact.name}</td>
-                  <td className="px-4 py-3">{contact.email || <span className="text-neutral-400">—</span>}</td>
-                  <td className="px-4 py-3">{contact.phone || <span className="text-neutral-400">—</span>}</td>
-                  <td className="px-4 py-3">{contact.position || <span className="text-neutral-400">—</span>}</td>
-                  <td className="px-4 py-3">{contact.department || <span className="text-neutral-400">—</span>}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 font-medium text-neutral-900" data-label="الاسم">{contact.name}</td>
+                  <td className="px-4 py-3" data-label="البريد الإلكتروني">{contact.email || <span className="text-neutral-400">—</span>}</td>
+                  <td className="px-4 py-3" data-label="رقم الجوال">{contact.phone || <span className="text-neutral-400">—</span>}</td>
+                  <td className="px-4 py-3" data-label="المنصب">{contact.position || <span className="text-neutral-400">—</span>}</td>
+                  <td className="px-4 py-3" data-label="القسم">{contact.department || <span className="text-neutral-400">—</span>}</td>
+                  <td className="px-4 py-3" data-label="الشركة">
                     {contact.company_id ? (
                       <Link href={`/companies/${contact.company_id}`} className="flex items-center gap-1 text-[var(--muhide-orange)] hover:underline">
                         <Building2 className="h-3 w-3" />
@@ -251,8 +251,8 @@ export default function ContactsPage() {
                       </Link>
                     ) : <span className="text-neutral-400">—</span>}
                   </td>
-                  <td className="px-4 py-3">{contact.source || <span className="text-neutral-400">—</span>}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" data-label="المصدر">{contact.source || <span className="text-neutral-400">—</span>}</td>
+                  <td className="px-4 py-3" data-label="">
                     <div className="flex items-center gap-1">
                       <button onClick={() => openEdit(contact)} className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-[var(--muhide-orange)]" title="تعديل">
                         <Pencil className="h-4 w-4" />

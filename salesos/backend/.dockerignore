@@ -16,6 +16,5 @@ benchmark/
 conftest.py
 test_*.py
 alembic.ini
-migrations/
 *.md
 LICENSE

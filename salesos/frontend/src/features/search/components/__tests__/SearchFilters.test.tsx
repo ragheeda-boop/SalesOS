@@ -2,20 +2,18 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { SearchFilters } from '../SearchFilters'
 
 describe('SearchFilters', () => {
-  const filters = [
-    { id: 'type', label: 'Type', options: [{ value: 'company', label: 'Company' }, { value: 'contact', label: 'Contact' }] },
-  ]
+  const facets = [{ field: 'type', label: 'Type', values: [{ value: 'company', count: 10 }, { value: 'contact', count: 5 }] }]
 
-  it('renders filter options', () => {
-    render(<SearchFilters filters={filters} activeFilters={{}} onChange={jest.fn()} />)
-    expect(screen.getByText('Company')).toBeInTheDocument()
-    expect(screen.getByText('Contact')).toBeInTheDocument()
+  it('renders facet values', () => {
+    render(<SearchFilters facets={facets as any} selectedFilters={{}} onToggle={jest.fn()} />)
+    expect(screen.getByText('company')).toBeInTheDocument()
+    expect(screen.getByText('contact')).toBeInTheDocument()
   })
 
-  it('calls onChange when filter is selected', () => {
-    const onChange = jest.fn()
-    render(<SearchFilters filters={filters} activeFilters={{}} onChange={onChange} />)
-    fireEvent.click(screen.getByText('Company'))
-    expect(onChange).toHaveBeenCalled()
+  it('calls onToggle when value is clicked', () => {
+    const onToggle = jest.fn()
+    render(<SearchFilters facets={facets as any} selectedFilters={{}} onToggle={onToggle} />)
+    fireEvent.click(screen.getByText('company'))
+    expect(onToggle).toHaveBeenCalledWith('type', 'company')
   })
 })

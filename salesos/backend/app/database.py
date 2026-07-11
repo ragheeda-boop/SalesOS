@@ -23,6 +23,9 @@ import app.modules.company.models  # noqa: F401
 import app.modules.entity_resolution.models  # noqa: F401
 import domains.timeline.models  # noqa: F401
 import domains.analytics.infrastructure.models  # noqa: F401
+import app.modules.sso.models  # noqa: F401
+import app.modules.audit.models  # noqa: F401
+import app.modules.api_keys.models  # noqa: F401
 
 
 async def get_db() -> AsyncSession:
@@ -101,6 +104,63 @@ async def init_db():
         await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_activity_tenant_action ON activity_records(tenant_id, action, timestamp DESC)"))
         await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_activity_actor ON activity_records(actor, timestamp DESC)"))
         await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_activity_action ON activity_records(action, timestamp DESC)"))
+        # Create sso_connections table (managed via ORM, but ensure schema)
+        await conn.execute(sa_text("""
+            CREATE TABLE IF NOT EXISTS sso_connections (
+                id VARCHAR(64) PRIMARY KEY,
+                user_id UUID NOT NULL REFERENCES users(id),
+                provider VARCHAR(50) NOT NULL,
+                provider_user_id VARCHAR(255) NOT NULL,
+                provider_email VARCHAR(255),
+                access_token TEXT,
+                refresh_token TEXT,
+                expires_at TIMESTAMPTZ,
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMPTZ DEFAULT now(),
+                updated_at TIMESTAMPTZ DEFAULT now()
+            )
+        """))
+        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_sso_user_provider ON sso_connections(user_id, provider)"))
+        # Create audit_logs table
+        await conn.execute(sa_text("""
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                id BIGSERIAL PRIMARY KEY,
+                tenant_id VARCHAR(64) NOT NULL,
+                user_id VARCHAR(64),
+                action VARCHAR(100) NOT NULL,
+                resource_type VARCHAR(100) NOT NULL,
+                resource_id VARCHAR(255),
+                details JSONB DEFAULT '{}',
+                ip_address VARCHAR(45),
+                user_agent TEXT,
+                request_id VARCHAR(100),
+                created_at TIMESTAMPTZ DEFAULT now()
+            )
+        """))
+        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_audit_logs_tenant_action ON audit_logs(tenant_id, action, created_at DESC)"))
+        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_audit_logs_tenant_resource ON audit_logs(tenant_id, resource_type, created_at DESC)"))
+        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_audit_logs_created_at ON audit_logs(created_at DESC)"))
+        # Create api_keys table
+        await conn.execute(sa_text("""
+            CREATE TABLE IF NOT EXISTS api_keys (
+                id VARCHAR(64) PRIMARY KEY,
+                tenant_id UUID NOT NULL REFERENCES tenants(id),
+                user_id UUID NOT NULL REFERENCES users(id),
+                name VARCHAR(255) NOT NULL,
+                key_prefix VARCHAR(10) NOT NULL,
+                key_hash VARCHAR(255) NOT NULL,
+                permissions JSONB DEFAULT '{}',
+                scopes TEXT,
+                expires_at TIMESTAMPTZ,
+                is_revoked BOOLEAN DEFAULT FALSE,
+                revoked_at TIMESTAMPTZ,
+                last_used_at TIMESTAMPTZ,
+                created_at TIMESTAMPTZ DEFAULT now(),
+                updated_at TIMESTAMPTZ DEFAULT now()
+            )
+        """))
+        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_api_keys_prefix ON api_keys(key_prefix)"))
+        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_api_keys_user ON api_keys(user_id)"))
 
 
 async def close_db():
