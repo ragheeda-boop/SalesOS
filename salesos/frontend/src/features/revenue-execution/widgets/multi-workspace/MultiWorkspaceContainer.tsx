@@ -1,13 +1,56 @@
 'use client'
 
+import { useState, useEffect, useCallback } from 'react'
 import { createWidget } from '@salesos/workspace'
+import { useDecision } from '../../_providers/DecisionProvider'
 import type { WorkspaceData } from './types'
+import type { DecisionHistoryItem } from '@salesos/decision-platform'
 import { MultiWorkspaceView } from './MultiWorkspaceView'
 
-const sample: WorkspaceData = { workspaces: [{ id: 'w1', name: 'لوحة القيادة', type: 'dashboard', active: true, lastAccessed: '2026-07-10' }, { id: 'w2', name: 'شركة الطاقة', type: 'company', active: false, lastAccessed: '2026-07-09' }, { id: 'w3', name: 'الفرص', type: 'crm', active: false, lastAccessed: '2026-07-08' }], total: 3, active: 1 }
+function mapHistoryToWorkspaces(history: DecisionHistoryItem[]): WorkspaceData {
+  const workspaces = history.slice(0, 5).map((h, i) => ({
+    id: `ws-${i}`,
+    name: h.context?.entityId ?? `مساحة ${i + 1}`,
+    type: h.context?.entityType ?? 'dashboard',
+    active: i === 0,
+    lastAccessed: h.timestamp?.split('T')[0] ?? new Date().toISOString().split('T')[0],
+  }))
+
+  if (workspaces.length === 0) {
+    workspaces.push(
+      { id: 'ws-default', name: 'لوحة القيادة', type: 'dashboard', active: true, lastAccessed: new Date().toISOString().split('T')[0] },
+    )
+  }
+
+  return { workspaces, total: workspaces.length, active: workspaces.filter(w => w.active).length }
+}
 
 export const MultiWorkspaceWidget = createWidget({
   metadata: { id: 'multiWorkspace', title: 'مساحات العمل', category: 'enterprise', priority: 'high', permissions: ['workspace:read'], featureFlag: { enabled: true }, minHeight: '320px' },
-  useData: () => ({ data: sample, status: 'ready' as const, lastUpdated: null, error: null, refetch: () => {} }),
+  useData: () => {
+    const decision = useDecision()
+    const [state, setState] = useState<{ data: WorkspaceData | null; status: 'loading' | 'ready' | 'error'; lastUpdated: string | null; error: Error | null }>({ data: null, status: 'loading', lastUpdated: null, error: null })
+
+    const fetchData = useCallback(async () => {
+      setState(prev => ({ ...prev, status: 'loading', error: null }))
+      try {
+        const history = await decision.getHistory('', 5)
+        const data = mapHistoryToWorkspaces(history)
+        setState({ data, status: 'ready', lastUpdated: new Date().toISOString(), error: null })
+      } catch (err) {
+        setState(prev => ({ ...prev, status: 'error', error: err instanceof Error ? err : new Error(String(err)) }))
+      }
+    }, [decision])
+
+    useEffect(() => { fetchData() }, [fetchData])
+
+    return {
+      data: state.data,
+      status: state.status,
+      lastUpdated: state.lastUpdated,
+      error: state.error,
+      refetch: fetchData,
+    }
+  },
   render: ({ data }) => <MultiWorkspaceView data={data} />,
 })

@@ -4,12 +4,13 @@ Company360, Dynamic Navigation, Dynamic Search, Dynamic Permissions, AI — all 
 No capability is hardcoded anywhere; everything is discovered through this API.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from app.dependencies import verify_token
 from runtime.capability_framework import Capability, CapabilityStatus
 
-router = APIRouter(prefix="/api/v1/capabilities", tags=["Capability Framework"])
+router = APIRouter(prefix="/api/v1/capabilities", tags=["Capability Framework"], dependencies=[Depends(verify_token)])
 
 
 class CapabilityResponse(BaseModel):

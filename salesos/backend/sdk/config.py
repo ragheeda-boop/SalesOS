@@ -27,6 +27,7 @@ class SdkSettings(BaseSettings):
     neo4j_max_transaction_retry_time: int = 10
 
     # Kafka
+    event_bus_type: str = "in_memory"
     kafka_bootstrap_servers: str = "kafka:9092"
     kafka_group_id: str = "salesos-group"
     kafka_auto_offset_reset: str = "earliest"

@@ -1,8 +1,10 @@
 """UI Schema Engine REST API."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends
 
-router = APIRouter(prefix="/api/v1/schema", tags=["UI Schema"])
+from app.dependencies import verify_token
+
+router = APIRouter(prefix="/api/v1/schema", tags=["UI Schema"], dependencies=[Depends(verify_token)])
 
 
 @router.get("/viewer/{entity_type}/{entity_id}")

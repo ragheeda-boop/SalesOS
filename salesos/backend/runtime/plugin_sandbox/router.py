@@ -1,9 +1,11 @@
 """Plugin Sandbox REST API."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/v1/plugins", tags=["Plugin Sandbox"])
+from app.dependencies import verify_token
+
+router = APIRouter(prefix="/api/v1/plugins", tags=["Plugin Sandbox"], dependencies=[Depends(verify_token)])
 
 
 class InstallRequest(BaseModel):

@@ -3,7 +3,6 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
-from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
@@ -11,6 +10,9 @@ from app.common.rate_limit import rate_limit_dep
 from sdk.permissions import PermissionAction
 from domains.commercial.meeting.intelligence import MeetingIntelligenceService
 from domains.commercial.email import EmailIntelligence, Email
+from domains.commercial.infrastructure.postgres_repositories import (
+    PostgresMeetingRepository, PostgresEmailRepository,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +34,16 @@ class MeetingSummaryRequest(BaseModel):
     meeting_id: str | None = Field(None, max_length=100)
 
 
+# ── Repository factories ──
+
+def _get_meeting_repo(db: AsyncSession) -> PostgresMeetingRepository:
+    return PostgresMeetingRepository(db)
+
+
+def _get_email_repo(db: AsyncSession) -> PostgresEmailRepository:
+    return PostgresEmailRepository(db)
+
+
 # ── Meetings ──
 
 @router.get("/meetings/{opportunity_id}")
@@ -42,15 +54,17 @@ async def get_meetings(
     _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "meeting")),
 ):
     try:
-        result = await db.execute(
-            sa_text("""
-                SELECT id, title, meeting_date, duration_minutes, notes, status
-                FROM meetings WHERE opportunity_id = :oid AND tenant_id = :tid
-                ORDER BY meeting_date DESC LIMIT 50
-            """),
-            {"oid": opportunity_id, "tid": tenant_id},
-        )
-        return [dict(r) for r in result.mappings().all()]
+        repo = _get_meeting_repo(db)
+        meetings = await repo.list_by_opportunity(opportunity_id, tenant_id)
+        return [
+            {
+                "id": m.id, "title": m.title,
+                "meeting_date": m.meeting_date.isoformat() if m.meeting_date else None,
+                "duration_minutes": m.duration_minutes,
+                "notes": m.notes, "status": m.status,
+            }
+            for m in meetings
+        ]
     except Exception as exc:
         logger.error("get_meetings failed: %s", exc)
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -66,16 +80,14 @@ async def get_meeting_brief(
     _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "meeting")),
 ):
     try:
-        opp = await db.execute(
-            sa_text("SELECT company_id FROM commercial_opportunities WHERE id = :oid AND tenant_id = :tid"),
-            {"oid": opportunity_id, "tid": tenant_id},
-        )
-        op = opp.mappings().one_or_none()
-        if not op:
+        from domains.commercial.infrastructure.postgres_repositories import PostgresOpportunityRepository
+        opp_repo = PostgresOpportunityRepository(db)
+        opp = await opp_repo.get(opportunity_id)
+        if not opp:
             raise HTTPException(status_code=404, detail="Opportunity not found")
 
         service = MeetingIntelligenceService(db, tenant_id)
-        return await service.generate_brief(opportunity_id, str(op["company_id"]))
+        return await service.generate_brief(opportunity_id, opp.company_id)
     except HTTPException:
         raise
     except Exception as exc:
@@ -110,16 +122,20 @@ async def get_emails(
     _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "email")),
 ):
     try:
-        result = await db.execute(
-            sa_text("""
-                SELECT id, subject, from_address, to_addresses, direction, email_type, sent_at,
-                       LEFT(body, 200) as body_preview
-                FROM emails WHERE opportunity_id = :oid AND tenant_id = :tid
-                ORDER BY sent_at DESC LIMIT 20
-            """),
-            {"oid": opportunity_id, "tid": tenant_id},
-        )
-        return [dict(r) for r in result.mappings().all()]
+        repo = _get_email_repo(db)
+        emails = await repo.list_by_opportunity(opportunity_id, tenant_id)
+        return [
+            {
+                "id": e.id, "subject": e.subject,
+                "from_address": e.from_address,
+                "to_addresses": e.to_addresses,
+                "direction": e.direction,
+                "email_type": e.email_type,
+                "sent_at": e.sent_at.isoformat() if e.sent_at else None,
+                "body_preview": (e.body or "")[:200],
+            }
+            for e in emails
+        ]
     except Exception as exc:
         logger.error("get_emails failed: %s", exc)
         raise HTTPException(status_code=500, detail="Internal server error")
