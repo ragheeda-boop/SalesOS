@@ -108,11 +108,18 @@ services:
     image: ${REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-ragheeda-boop/salesos}/frontend:${IMAGE_TAG:-latest}
     restart: unless-stopped
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     env_file:
       - .env.production
     environment:
       - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
     deploy:
       resources:
         limits:
@@ -131,8 +138,10 @@ services:
     environment:
       - DOMAIN=${DOMAIN:?Set DOMAIN for SSL}
     depends_on:
-      - backend
-      - frontend
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -157,7 +166,8 @@ services:
       PGDATABASE: ${POSTGRES_DB:-salesos}
       BACKUP_DIR: /backups/postgres
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
 volumes:
   pgdata:

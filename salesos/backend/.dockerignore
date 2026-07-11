@@ -5,3 +5,17 @@ __pycache__
 .gitignore
 .venv
 *.egg-info
+.pytest_cache
+.ruff_cache
+tests/
+demo/
+docs/
+design_tokens/
+pipeline/
+benchmark/
+conftest.py
+test_*.py
+alembic.ini
+migrations/
+*.md
+LICENSE

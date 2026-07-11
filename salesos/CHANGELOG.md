@@ -101,12 +101,33 @@ Wave 2 — Revenue Execution Platform. Transforms SalesOS from intelligence into
 - Revenue Workspace shell (ExecutiveSummary, TeamPerformance, AIInsights)
 - Test infrastructure: NBA engine tests, API tests, component tests
 
+### Production Hardening
+- Fixed IDOR vulnerability on opportunity endpoints — tenant ID now validated server-side
+- Fixed tenant isolation leak in NBA scoring — queries scoped to authenticated tenant
+- Added Pydantic validation on all Wave 2 API inputs (opportunities, meetings, emails, playbooks)
+- Per-user rate limiting on all new endpoints (tier-based limits)
+- RBAC enforced on all Wave 2 endpoints (`nba:*`, `opportunity:*`, `meeting:*`, `email:*`, `pipeline:*`)
+- Parallel query optimization on pipeline analytics (3 queries run concurrently)
+
+### New
+- 192 unit tests added (229 total across backend)
+- Decision Rule API fix — rules now correctly scoped to tenant on creation and update
+
 ### Security
 - NBA endpoints require `nba:read` / `nba:update` / `nba:admin` permissions
 - Opportunity endpoints require `opportunity:*` permissions
+- Meeting endpoints require `meeting:read` / `meeting:create` / `meeting:update` permissions
+- Email endpoints require `email:read` / `email:create` permissions
+- Pipeline endpoints require `pipeline:read` permission
 - All endpoints authenticated (JWT) + rate limited
 - Email integration uses OAuth2 with minimal scope
 - Calendar integration uses OAuth2 with minimal scope
+
+### Architecture
+- 9 architecture documents produced for Wave 2 design and validation
+- Platform Kernel design (`contracts/ai/`, `contracts/revenue/`) — shared type definitions
+- Cross-document consistency audit completed (`09-ARCHITECTURE_VALIDATION_REPORT.md`)
+- Full API reference published (`11-API_REFERENCE.md`)
 
 ### Documentation
 - `docs/wave-2/01-REVENUE_EXECUTION_REVIEW.md` — Platform capability audit

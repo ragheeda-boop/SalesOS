@@ -6,7 +6,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_db_session
+from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from app.common.rate_limit import rate_limit_dep
+from sdk.permissions import PermissionAction
 from domains.commercial.meeting.intelligence import MeetingIntelligenceService
 from domains.commercial.email import EmailIntelligence, Email
 
@@ -37,6 +39,7 @@ async def get_meetings(
     opportunity_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "meeting")),
 ):
     try:
         result = await db.execute(
@@ -53,12 +56,14 @@ async def get_meetings(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.post("/meetings/{opportunity_id}/brief")
+@router.post("/meetings/{opportunity_id}/brief",
+             dependencies=[Depends(rate_limit_dep("meeting_brief", 10, 60))])
 async def get_meeting_brief(
     opportunity_id: str,
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "meeting")),
 ):
     try:
         opp = await db.execute(
@@ -78,12 +83,14 @@ async def get_meeting_brief(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.post("/meetings/{opportunity_id}/summary")
+@router.post("/meetings/{opportunity_id}/summary",
+             dependencies=[Depends(rate_limit_dep("meeting_summary", 10, 60))])
 async def get_meeting_summary(
     opportunity_id: str,
     body: MeetingSummaryRequest,
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "meeting")),
 ):
     try:
         service = MeetingIntelligenceService(db, tenant_id)
@@ -100,6 +107,7 @@ async def get_emails(
     opportunity_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "email")),
 ):
     try:
         result = await db.execute(
@@ -117,10 +125,12 @@ async def get_emails(
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@router.post("/emails/analyze")
+@router.post("/emails/analyze",
+             dependencies=[Depends(rate_limit_dep("email_analyze", 20, 60))])
 async def analyze_email(
     email_req: EmailRequest,
     tenant_id: str = Depends(get_current_tenant_id),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "email")),
 ):
     email = Email(
         id="preview",
