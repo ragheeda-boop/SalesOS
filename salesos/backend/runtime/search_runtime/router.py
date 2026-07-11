@@ -23,7 +23,7 @@ async def search(
     tenant_id: str = Depends(get_current_tenant_id),
     q: str = Query(..., min_length=1, description="Search query"),
     strategy: str = Query("hybrid", pattern="^(fulltext|semantic|graph|hybrid)$"),
-    limit: int = Query(20, ge=1, le=100),
+    limit: int = Query(20, ge=1, le=50),
     offset: int = Query(0, ge=0),
     include_facets: bool = Query(False),
     city: Optional[str] = None,

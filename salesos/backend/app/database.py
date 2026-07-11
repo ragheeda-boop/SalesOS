@@ -22,6 +22,7 @@ import app.modules.identity.models  # noqa: F401
 import app.modules.company.models  # noqa: F401
 import app.modules.entity_resolution.models  # noqa: F401
 import domains.timeline.models  # noqa: F401
+import domains.analytics.infrastructure.models  # noqa: F401
 
 
 async def get_db() -> AsyncSession:

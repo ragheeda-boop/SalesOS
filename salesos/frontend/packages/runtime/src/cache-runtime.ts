@@ -24,7 +24,19 @@ export class CacheRuntime {
     this.maxEntries = options?.maxEntries ?? 500
   }
 
-  get<T>(key: string): { value: T | undefined; stale: boolean } {
+  get<T>(key: string): T | null {
+    const entry = this.cache.get(key)
+    if (!entry) return null
+    if (Date.now() > entry.expiresAt) {
+      if (Date.now() > entry.expiresAt + this.staleWhileRevalidateMs) {
+        this.cache.delete(key)
+        return null
+      }
+    }
+    return entry.value as T
+  }
+
+  private getEntry<T>(key: string): { value: T | undefined; stale: boolean } {
     const entry = this.cache.get(key)
     if (!entry) return { value: undefined, stale: false }
     if (Date.now() > entry.expiresAt) {
@@ -51,7 +63,7 @@ export class CacheRuntime {
   }
 
   async getOrFetch<T>(key: string, fetcher: () => Promise<T>, customTtlMs?: number): Promise<T> {
-    const { value, stale } = this.get<T>(key)
+    const { value, stale } = this.getEntry<T>(key)
     if (value !== undefined && !stale) return value
     if (stale) {
       this.revalidate(key, fetcher, customTtlMs)

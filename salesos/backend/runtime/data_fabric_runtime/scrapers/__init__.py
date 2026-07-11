@@ -45,7 +45,7 @@ class BaseScraper(ABC):
         self._tracer = get_tracer(f"scraper.{self.source_slug}")
         self._last_request_time: float = 0.0
         self._client = AsyncClient(
-            timeout=Timeout(30.0),
+            timeout=Timeout(15.0),
             limits=Limits(max_keepalive_connections=5, max_connections=10),
         )
 

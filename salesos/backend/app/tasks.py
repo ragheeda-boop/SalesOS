@@ -149,34 +149,45 @@ def _generate_embedding(entity_id: str, entity_type: str):
     _run_async(_do_embed())
 
 
-def _scrape_external_sources(company_id: str, cr_number: str):
-    """Enrich company by scraping Balady and Taqeem APIs via Data Fabric scrapers."""
+async def _parallel_enrich(company_id: str, cr_number: str):
+    """Run scraping and feature recomputation in parallel."""
+    await asyncio.gather(
+        _do_scrape(company_id, cr_number),
+        _do_recompute(company_id),
+        return_exceptions=True,
+    )
+
+
+async def _do_scrape(company_id: str, cr_number: str):
+    """Enrich company by scraping Balady and Taqeem APIs in parallel."""
     from runtime.data_fabric_runtime.scrapers.balady import BaladyScraper
     from runtime.data_fabric_runtime.scrapers.taqeem import TaqeemScraper
 
-    async def _do_scrape():
-        scrapers = [
-            ("balady", BaladyScraper(use_mock=False)),
-            ("taqeem", TaqeemScraper(use_mock=False)),
-        ]
-        for slug, scraper in scrapers:
-            try:
+    scrapers = [
+        ("balady", BaladyScraper(use_mock=False)),
+        ("taqeem", TaqeemScraper(use_mock=False)),
+    ]
+
+    async def _scrape_one(slug: str, scraper):
+        try:
+            async with asyncio.timeout(10):
                 result = await scraper.fetch_all()
                 if result.records:
                     logger.info("Scraped %d records from %s for company %s", len(result.records), slug, company_id)
                 else:
                     logger.debug("No records from %s for company %s (errors: %s)", slug, company_id, result.errors)
-            except Exception as e:
-                logger.warning("Scraper %s failed for company %s: %s", slug, company_id, e)
-            finally:
-                await scraper.close()
+        except TimeoutError:
+            logger.warning("Scraper %s timed out for company %s", slug, company_id)
+        except Exception as e:
+            logger.warning("Scraper %s failed for company %s: %s", slug, company_id, e)
+        finally:
+            await scraper.close()
 
-    _run_async(_do_scrape())
+    await asyncio.gather(*[_scrape_one(slug, s) for slug, s in scrapers], return_exceptions=True)
 
 
-def _recompute_features(company_id: str):
+async def _do_recompute(company_id: str):
     """Recompute all feature scores for a company via the Feature Store."""
-    from app.config import settings
     from app.database import async_session
     from runtime.event_runtime import EventRuntime
     from runtime.feature_store import FeatureStore
@@ -190,33 +201,30 @@ def _recompute_features(company_id: str):
         RevenueScoreComputer,
     )
 
-    async def _do_recompute():
-        tenant_id = await _get_entity_tenant(company_id, "company")
-        if not tenant_id:
-            logger.warning("Feature recompute skipped: no tenant found for company %s", company_id)
-            return
+    tenant_id = await _get_entity_tenant(company_id, "company")
+    if not tenant_id:
+        logger.warning("Feature recompute skipped: no tenant found for company %s", company_id)
+        return
 
-        event_runtime = EventRuntime()
-        computers = [
-            IcpComputer(),
-            FundingScoreComputer(),
-            HiringScoreComputer(),
-            GrowthScoreComputer(),
-            IntentScoreComputer(),
-            ExpansionScoreComputer(),
-            RevenueScoreComputer(),
-        ]
-        store = FeatureStore(
-            session_factory=async_session,
-            event_runtime=event_runtime,
-            computers=computers,
-            logger=logger,
-        )
-        results = await store.recompute(company_id, tenant_id)
-        feature_scores = {name: r.score for name, r in results.items()}
-        logger.info("Feature recompute complete for company %s: %s", company_id, feature_scores)
-
-    _run_async(_do_recompute())
+    event_runtime = EventRuntime()
+    computers = [
+        IcpComputer(),
+        FundingScoreComputer(),
+        HiringScoreComputer(),
+        GrowthScoreComputer(),
+        IntentScoreComputer(),
+        ExpansionScoreComputer(),
+        RevenueScoreComputer(),
+    ]
+    store = FeatureStore(
+        session_factory=async_session,
+        event_runtime=event_runtime,
+        computers=computers,
+        logger=logger,
+    )
+    results = await store.recompute(company_id, tenant_id)
+    feature_scores = {name: r.score for name, r in results.items()}
+    logger.info("Feature recompute complete for company %s: %s", company_id, feature_scores)
 
 
 # ── Celery Tasks ────────────────────────────────────────────────
@@ -271,11 +279,13 @@ def index_for_search(self, entity_id: str, entity_type: str, payload: dict):
 
 @celery_app.task(bind=True, max_retries=settings.celery_max_retries, default_retry_delay=settings.celery_enrich_delay)
 def enrich_company(self, company_id: str, cr_number: str):
-    """Background company enrichment pipeline."""
+    """Background company enrichment pipeline.
+
+    Scraping and feature recomputation run in parallel since they are independent.
+    """
     logger.info("Enriching company %s (CR: %s)", company_id, cr_number)
     try:
-        _scrape_external_sources(company_id, cr_number)
-        _recompute_features(company_id)
+        _run_async(_parallel_enrich(company_id, cr_number))
     except Exception as exc:
         logger.error("Failed to enrich company %s: %s", company_id, exc)
         raise self.retry(exc=exc)

@@ -5,7 +5,7 @@ export interface StateRuntimeOptions {
   debug?: boolean
 }
 
-type Listener = () => void
+type Listener = (value?: unknown) => void
 
 export class StateRuntime {
   private store: Record<string, unknown> = {}
@@ -18,14 +18,14 @@ export class StateRuntime {
     this.debug = options?.debug || false
   }
 
-  private notify(path: string) {
+  private notify(path: string, value?: unknown) {
     const deps = this.listeners.get(path)
-    if (deps) deps.forEach((fn) => fn())
+    if (deps) deps.forEach((fn) => fn(value))
     const parts = path.split('.')
     while (parts.length > 1) {
       parts.pop()
       const parent = this.listeners.get(parts.join('.'))
-      if (parent) parent.forEach((fn) => fn())
+      if (parent) parent.forEach((fn) => fn(value))
     }
   }
 
@@ -44,7 +44,7 @@ export class StateRuntime {
       current = current[keys[i]] as Record<string, unknown>
     }
     current[keys[keys.length - 1]] = value
-    this.notify(path)
+    this.notify(path, value)
   }
 
   update<T = unknown>(path: string, updater: (prev: T | undefined) => T): void {

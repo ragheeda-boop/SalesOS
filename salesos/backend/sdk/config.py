@@ -24,6 +24,8 @@ class SdkSettings(BaseSettings):
 
     # Neo4j
     neo4j_database: str = "neo4j"
+    neo4j_max_connection_pool_size: int = 50
+    neo4j_connection_acquisition_timeout: int = 30
     neo4j_max_transaction_retry_time: int = 10
 
     # Kafka

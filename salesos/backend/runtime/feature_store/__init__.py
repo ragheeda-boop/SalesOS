@@ -122,9 +122,13 @@ class FeatureStore:
     async def get_features(
         self, company_id: str, tenant_id: str, feature_names: Optional[list[str]] = None
     ) -> dict[str, FeatureResult]:
-        """Return multiple features for a company."""
+        """Return multiple features for a company.
+
+        Cached features load instantly; uncached features are computed in parallel.
+        """
         names = feature_names or list(self._computers.keys())
         results: dict[str, FeatureResult] = {}
+        needs_compute: list[str] = []
         async with self._session_factory() as session:
             company = await self._load_company(session, tenant_id, company_id)
             for name in names:
@@ -143,18 +147,45 @@ class FeatureStore:
                 computer = self._computers.get(name)
                 if not computer:
                     continue
-                result = await self._compute_and_store(session, computer, company, tenant_id, company_id)
-                results[name] = result
+                needs_compute.append(name)
+
+            if needs_compute:
+                import asyncio
+                async def _compute_one(feature_name: str):
+                    computer = self._computers[feature_name]
+                    return feature_name, await self._compute_and_store(
+                        session, computer, company, tenant_id, company_id,
+                    )
+                tasks = [_compute_one(n) for n in needs_compute]
+                computed = await asyncio.gather(*tasks, return_exceptions=True)
+                for item in computed:
+                    if isinstance(item, Exception):
+                        continue
+                    fname, fresult = item
+                    results[fname] = fresult
         return results
 
     async def recompute(self, company_id: str, tenant_id: str) -> dict[str, FeatureResult]:
-        """Force recompute ALL features for a company."""
+        """Force recompute ALL features for a company.
+
+        All feature computers run in parallel since they are independent.
+        """
+        import asyncio
         results: dict[str, FeatureResult] = {}
         async with self._session_factory() as session:
             company = await self._load_company(session, tenant_id, company_id)
-            for name, computer in self._computers.items():
-                result = await self._compute_and_store(session, computer, company, tenant_id, company_id)
-                results[name] = result
+            async def _recompute_one(feature_name: str):
+                computer = self._computers[feature_name]
+                return feature_name, await self._compute_and_store(
+                    session, computer, company, tenant_id, company_id,
+                )
+            tasks = [_recompute_one(n) for n in self._computers]
+            computed = await asyncio.gather(*tasks, return_exceptions=True)
+            for item in computed:
+                if isinstance(item, Exception):
+                    continue
+                fname, fresult = item
+                results[fname] = fresult
         return results
 
     async def _compute_and_store(
