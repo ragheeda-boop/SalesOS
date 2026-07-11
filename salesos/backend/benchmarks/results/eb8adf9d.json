@@ -1,0 +1,43 @@
+{
+  "run_id": "eb8adf9d",
+  "timestamp": "2026-07-11T19:27:45.298766+00:00",
+  "version": "test",
+  "results": [
+    {
+      "name": "slow",
+      "domain": "test",
+      "p50_ms": 100,
+      "p95_ms": 200,
+      "p99_ms": 300,
+      "avg_ms": 150,
+      "min_ms": 100,
+      "max_ms": 300,
+      "samples": 5,
+      "unit": "ms",
+      "metadata": {},
+      "budget_p95_ms": 50
+    }
+  ],
+  "summary": {
+    "total_benchmarks": 1,
+    "domains": [
+      "test"
+    ],
+    "violations": [
+      {
+        "name": "slow",
+        "domain": "test",
+        "p50_ms": 100,
+        "p95_ms": 200,
+        "p99_ms": 300,
+        "avg_ms": 150,
+        "min_ms": 100,
+        "max_ms": 300,
+        "samples": 5,
+        "unit": "ms",
+        "metadata": {},
+        "budget_p95_ms": 50
+      }
+    ]
+  }
+}

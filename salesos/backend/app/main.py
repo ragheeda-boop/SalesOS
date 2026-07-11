@@ -546,8 +546,11 @@ def register_routers():
     from app.modules.sso.router import router as sso_router
     from app.modules.audit.router import router as audit_router
     from app.modules.api_keys.router import router as api_keys_router
+    from app.modules.admin.router import router as admin_router
     from app.routers.commercial import router as commercial_router
     from app.routers.copilot import router as copilot_router
+    from app.routers.demo import router as demo_router
+    from app.routers.admin_demo import router as admin_demo_router
     from runtime.capability_framework.router import router as capability_router
     from runtime.data_fabric_runtime.router import router as data_fabric_router
     from runtime.decision_runtime.router import router as decision_router
@@ -599,10 +602,15 @@ def register_routers():
     app.include_router(sso_router, prefix="/api/v1", tags=["SSO"])
     app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
     app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
+    app.include_router(admin_router)
     app.include_router(monitoring_router, tags=["Monitoring"])
     app.include_router(cache_router, tags=["Cache"], dependencies=_auth)
     app.include_router(copilot_router, prefix="/api/v1", tags=["Copilot"], dependencies=_auth)
     app.include_router(commercial_router, prefix="/api/v1", tags=["Commercial"], dependencies=_auth)
+
+    # Demo Environment (some endpoints public, reset requires admin)
+    app.include_router(demo_router, tags=["Demo"])
+    app.include_router(admin_demo_router, tags=["Admin"], dependencies=_auth)
 
     # Wave 3 — Workflow Engine
     from app.routers.workflows import router as workflow_router
@@ -628,6 +636,10 @@ def register_routers():
     # Wave 3 — Analytics & Reporting
     from app.routers.analytics import router as analytics_router
     app.include_router(analytics_router, prefix="/api/v1", tags=["Analytics"], dependencies=_auth)
+
+    # Customer Telemetry
+    from app.modules.telemetry.router import router as telemetry_router
+    app.include_router(telemetry_router, tags=["Telemetry"], dependencies=_auth)
 
     # Notifications — WebSocket (no auth dep, handled inside WS) + REST
     from app.routers.notifications import router as notifications_router

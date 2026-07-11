@@ -1,18 +1,15 @@
+jest.useFakeTimers()
+
 import { renderHook, act } from '@testing-library/react'
 import { track, usePageTracking, useWidgetTracking } from '../analytics'
 
 beforeEach(() => {
   jest.clearAllMocks()
-  jest.useFakeTimers()
   Object.defineProperty(navigator, 'sendBeacon', {
     value: jest.fn().mockReturnValue(true),
     configurable: true,
     writable: true,
   })
-})
-
-afterEach(() => {
-  jest.useRealTimers()
 })
 
 describe('track', () => {

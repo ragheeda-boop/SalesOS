@@ -15,6 +15,11 @@ describe('monitoring-init interceptor registration', () => {
   beforeEach(() => {
     jest.resetModules()
     jest.clearAllMocks()
+    process.env.NODE_ENV = 'production'
+  })
+
+  afterEach(() => {
+    process.env.NODE_ENV = 'test'
   })
 
   it('registers axios interceptors on init', () => {

@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@salesos/ui"
 import { AppShell, useAppShell } from "@/components/foundation/app-shell"
-import { Building2, Users, DollarSign, Search, Settings, LayoutDashboard, Bell, Menu, Bot, User, Shield, Workflow, MessageSquareText, Activity, X } from "lucide-react"
+import { Building2, Users, DollarSign, Search, Settings, LayoutDashboard, Bell, Menu, Bot, User, Shield, Workflow, MessageSquareText, Activity, HeartHandshake, X } from "lucide-react"
 import { CommandBar } from "@/components/command-bar"
 import { SearchPanel } from "@/components/search-panel"
 import { CopilotPanel } from "@/components/copilot-panel"
@@ -26,6 +26,7 @@ const NAV_KEYS = [
   { href: "/rag", key: "nav.rag", icon: MessageSquareText },
   { href: "/monitoring", key: "nav.monitoring", icon: Activity },
   { href: "/settings", key: "nav.settings", icon: Settings },
+  { href: "/customer-success", key: "nav.customer_success", icon: HeartHandshake },
   { href: "/admin", key: "nav.admin", icon: Shield },
 ]
 

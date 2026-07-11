@@ -32,9 +32,8 @@ function flush() {
 let _interval: ReturnType<typeof setInterval> | null = null
 
 function ensureInterval() {
-  if (!_interval) {
-    _interval = setInterval(flush, 10_000)
-  }
+  if (_interval) clearInterval(_interval)
+  _interval = setInterval(flush, 10_000)
 }
 
 export function track(event: Omit<AnalyticsEvent, 'timestamp'>) {

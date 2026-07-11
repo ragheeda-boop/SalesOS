@@ -1,31 +1,29 @@
 import { render, screen, renderHook, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 
-jest.mock('@salesos/decision-platform', () => {
-  const mockEvaluate = jest.fn()
-  const mockEvaluateBatch = jest.fn()
-  const mockExplain = jest.fn()
-  const mockGetHistory = jest.fn()
-  const mockSubmit = jest.fn()
-  const mockGetStats = jest.fn()
-  const mockScore = jest.fn()
+const _mockEvaluate = jest.fn()
+const _mockEvaluateBatch = jest.fn()
+const _mockExplain = jest.fn()
+const _mockGetHistory = jest.fn()
+const _mockSubmit = jest.fn()
+const _mockGetStats = jest.fn()
+const _mockScore = jest.fn()
 
-  return {
-    decisionEngine: {
-      evaluate: mockEvaluate,
-      evaluateBatch: mockEvaluateBatch,
-      explain: mockExplain,
-      getHistory: mockGetHistory,
-    },
-    FeedbackEngine: jest.fn().mockImplementation(() => ({
-      submit: mockSubmit,
-      getStats: mockGetStats,
-    })),
-    ScoringEngine: jest.fn().mockImplementation(() => ({
-      score: mockScore,
-    })),
-  }
-})
+jest.mock('@salesos/decision-platform', () => ({
+  decisionEngine: {
+    evaluate: _mockEvaluate,
+    evaluateBatch: _mockEvaluateBatch,
+    explain: _mockExplain,
+    getHistory: _mockGetHistory,
+  },
+  FeedbackEngine: jest.fn(() => ({
+    submit: _mockSubmit,
+    getStats: _mockGetStats,
+  })),
+  ScoringEngine: jest.fn(() => ({
+    score: _mockScore,
+  })),
+}))
 
 import { DecisionProvider, useDecision } from '../DecisionProvider'
 
@@ -129,43 +127,37 @@ describe('DecisionProvider', () => {
   })
 
   it('provides submitFeedback function', async () => {
-    const { FeedbackEngine } = require('@salesos/decision-platform')
     const feedbackResponse = { id: 'fb-1', accepted: true }
-    const mockInstance = FeedbackEngine.mock.instances[0]
-    mockInstance.submit.mockResolvedValue(feedbackResponse)
+    _mockSubmit.mockResolvedValue(feedbackResponse)
 
     const { result } = renderHook(() => useDecision(), { wrapper: DecisionProvider })
     const feedback = { id: 'fb-1', decisionId: 'dec-1', outcome: 'accepted' as const, revenueImpact: 50000, createdAt: '2026-07-10T10:00:00Z' }
     const output = await result.current.submitFeedback(feedback)
 
     expect(output).toEqual(feedbackResponse)
-    expect(mockInstance.submit).toHaveBeenCalledWith(feedback)
+    expect(_mockSubmit).toHaveBeenCalledWith(feedback)
   })
 
   it('provides getFeedbackStats function', async () => {
-    const { FeedbackEngine } = require('@salesos/decision-platform')
     const stats = { total: 10, accepted: 7, rejected: 2, ignored: 1, acceptanceRate: 0.7, totalRevenueImpact: 350000, averageTimeToExecution: null }
-    const mockInstance = FeedbackEngine.mock.instances[0]
-    mockInstance.getStats.mockResolvedValue(stats)
+    _mockGetStats.mockResolvedValue(stats)
 
     const { result } = renderHook(() => useDecision(), { wrapper: DecisionProvider })
     const output = await result.current.getFeedbackStats('tenant-1')
 
     expect(output).toEqual(stats)
-    expect(mockInstance.getStats).toHaveBeenCalledWith('tenant-1')
+    expect(_mockGetStats).toHaveBeenCalledWith('tenant-1')
   })
 
   it('provides score function', async () => {
-    const { ScoringEngine } = require('@salesos/decision-platform')
     const scoreResult = { name: 'custom', value: 0.75, label: 'مخصص', weight: 1 }
-    const mockInstance = ScoringEngine.mock.instances[0]
-    mockInstance.score.mockReturnValue(scoreResult)
+    _mockScore.mockReturnValue(scoreResult)
 
     const { result } = renderHook(() => useDecision(), { wrapper: DecisionProvider })
     const output = result.current.score('buying_intent' as any, { signal: 0.8, engagement: 0.7 }, { source: 'test' })
 
     expect(output).toEqual(scoreResult)
-    expect(mockInstance.score).toHaveBeenCalledWith('buying_intent', { signal: 0.8, engagement: 0.7 }, { source: 'test' })
+    expect(_mockScore).toHaveBeenCalledWith('buying_intent', { signal: 0.8, engagement: 0.7 }, { source: 'test' })
   })
 
   it('provides evaluate without tenant context', async () => {

@@ -873,6 +873,356 @@ export async function completeTask(taskId: string): Promise<TaskResponse> {
   return response.data;
 }
 
+// ─── Admin Portal API ──────────────────────────────────────────
+export interface AdminTenantListItem {
+  id: string;
+  name: string;
+  slug: string;
+  domain: string | null;
+  plan: string;
+  is_active: boolean;
+  user_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminTenantDetail {
+  id: string;
+  name: string;
+  slug: string;
+  domain: string | null;
+  plan: string;
+  is_active: boolean;
+  settings: Record<string, unknown>;
+  features: Record<string, unknown>;
+  user_count: number;
+  subscription_ends_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminTenantUsage {
+  tenant_id: string;
+  tenant_name: string;
+  api_calls: number;
+  storage_mb: number;
+  active_users: number;
+  total_users: number;
+  period_start: string;
+  period_end: string;
+}
+
+export interface AdminPlan {
+  id: string;
+  name: string;
+  tier: string;
+  price_monthly: number;
+  price_yearly: number;
+  max_users: number;
+  max_storage_mb: number;
+  max_api_calls: number;
+  features: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminLicense {
+  id: string;
+  tenant_id: string;
+  tenant_name: string;
+  plan_id: string;
+  plan_name: string;
+  tier: string;
+  is_active: boolean;
+  starts_at: string | null;
+  ends_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  full_name: string;
+  full_name_ar: string | null;
+  role: string;
+  is_active: boolean;
+  is_verified: boolean;
+  tenant_id: string;
+  tenant_name: string;
+  created_at: string;
+  last_login_at: string | null;
+}
+
+export interface AdminUserDetail extends AdminUser {
+  permissions: string[];
+  updated_at: string;
+}
+
+export interface AdminInvoice {
+  id: string;
+  tenant_id: string;
+  tenant_name: string;
+  amount: number;
+  currency: string;
+  status: string;
+  description: string;
+  due_date: string | null;
+  paid_at: string | null;
+  created_at: string;
+}
+
+export interface AdminTransaction {
+  id: string;
+  tenant_id: string;
+  tenant_name: string;
+  amount: number;
+  currency: string;
+  status: string;
+  method: string;
+  description: string;
+  reference: string | null;
+  created_at: string;
+}
+
+export interface AdminFeatureFlag {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  enabled: boolean;
+  is_global: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminFlagTenant {
+  flag_id: string;
+  flag_key: string;
+  tenant_id: string;
+  tenant_name: string;
+  enabled: boolean;
+}
+
+export interface AdminJob {
+  id: string;
+  type: string;
+  status: string;
+  progress: number;
+  tenant_id: string | null;
+  created_by: string | null;
+  payload: Record<string, unknown>;
+  result: Record<string, unknown> | null;
+  error_message: string | null;
+  retry_count: number;
+  max_retries: number;
+  scheduled_at: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminJobDetail extends AdminJob {
+  logs: { level: string; message: string; timestamp: string }[];
+}
+
+export interface AdminAICost {
+  id: string;
+  model: string;
+  tenant_id: string | null;
+  tenant_name: string | null;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  cost: number;
+  operation: string;
+  created_at: string;
+}
+
+export interface AdminAICostSummary {
+  total_cost: number;
+  total_tokens: number;
+  by_model: { model: string; cost: number; tokens: number }[];
+  by_tenant: { tenant_id: string; cost: number; tokens: number }[];
+  by_operation: { operation: string; cost: number; tokens: number }[];
+}
+
+export interface AdminAIUsage {
+  total_prompt_tokens: number;
+  total_completion_tokens: number;
+  total_tokens: number;
+  by_model: { model: string; prompt_tokens: number; completion_tokens: number; total_tokens: number }[];
+  by_tenant: { tenant_id: string; prompt_tokens: number; completion_tokens: number; total_tokens: number }[];
+}
+
+export interface AdminHealthComponent {
+  component: string;
+  status: string;
+  latency_ms: number | null;
+  last_check: string | null;
+  details: string | null;
+}
+
+export interface AdminDetailedHealth {
+  overall_status: string;
+  uptime_seconds: number;
+  components: AdminHealthComponent[];
+}
+
+export interface AdminHealthHistoryEntry {
+  timestamp: string;
+  overall_status: string;
+  components: Record<string, string>;
+}
+
+export async function listAdminTenants(params?: Record<string, string | undefined>): Promise<AdminTenantListItem[]> {
+  const resp = await api.get("/api/v1/admin/tenants", { params });
+  return resp.data;
+}
+
+export async function createAdminTenant(data: { name: string; slug: string; domain?: string }): Promise<AdminTenantDetail> {
+  const resp = await api.post("/api/v1/admin/tenants", data);
+  return resp.data;
+}
+
+export async function getAdminTenant(id: string): Promise<AdminTenantDetail> {
+  const resp = await api.get(`/api/v1/admin/tenants/${id}`);
+  return resp.data;
+}
+
+export async function updateAdminTenant(id: string, data: Record<string, unknown>): Promise<AdminTenantDetail> {
+  const resp = await api.put(`/api/v1/admin/tenants/${id}`, data);
+  return resp.data;
+}
+
+export async function deleteAdminTenant(id: string): Promise<void> {
+  await api.delete(`/api/v1/admin/tenants/${id}`);
+}
+
+export async function getAdminTenantUsage(id: string): Promise<AdminTenantUsage> {
+  const resp = await api.get(`/api/v1/admin/tenants/${id}/usage`);
+  return resp.data;
+}
+
+export async function listAdminPlans(): Promise<AdminPlan[]> {
+  const resp = await api.get("/api/v1/admin/plans");
+  return resp.data;
+}
+
+export async function createAdminPlan(data: Record<string, unknown>): Promise<AdminPlan> {
+  const resp = await api.post("/api/v1/admin/plans", data);
+  return resp.data;
+}
+
+export async function updateAdminPlan(id: string, data: Record<string, unknown>): Promise<AdminPlan> {
+  const resp = await api.put(`/api/v1/admin/plans/${id}`, data);
+  return resp.data;
+}
+
+export async function listAdminLicenses(): Promise<AdminLicense[]> {
+  const resp = await api.get("/api/v1/admin/licenses");
+  return resp.data;
+}
+
+export async function createAdminLicense(data: { tenant_id: string; plan_id: string }): Promise<AdminLicense> {
+  const resp = await api.post("/api/v1/admin/licenses", data);
+  return resp.data;
+}
+
+export async function listAdminUsers(params?: Record<string, string | undefined>): Promise<AdminUser[]> {
+  const resp = await api.get("/api/v1/admin/users", { params });
+  return resp.data;
+}
+
+export async function getAdminUser(id: string): Promise<AdminUserDetail> {
+  const resp = await api.get(`/api/v1/admin/users/${id}`);
+  return resp.data;
+}
+
+export async function updateAdminUser(id: string, data: Record<string, unknown>): Promise<AdminUserDetail> {
+  const resp = await api.put(`/api/v1/admin/users/${id}`, data);
+  return resp.data;
+}
+
+export async function deactivateAdminUser(id: string): Promise<void> {
+  await api.delete(`/api/v1/admin/users/${id}`);
+}
+
+export async function listAdminInvoices(tenantId?: string): Promise<AdminInvoice[]> {
+  const resp = await api.get("/api/v1/admin/billing/invoices", { params: tenantId ? { tenant_id: tenantId } : undefined });
+  return resp.data;
+}
+
+export async function listAdminTransactions(tenantId?: string): Promise<AdminTransaction[]> {
+  const resp = await api.get("/api/v1/admin/billing/transactions", { params: tenantId ? { tenant_id: tenantId } : undefined });
+  return resp.data;
+}
+
+export async function listAdminFeatureFlags(): Promise<AdminFeatureFlag[]> {
+  const resp = await api.get("/api/v1/admin/feature-flags");
+  return resp.data;
+}
+
+export async function createAdminFeatureFlag(data: { key: string; name: string; description?: string; enabled?: boolean }): Promise<AdminFeatureFlag> {
+  const resp = await api.post("/api/v1/admin/feature-flags", data);
+  return resp.data;
+}
+
+export async function updateAdminFeatureFlag(id: string, data: Record<string, unknown>): Promise<AdminFeatureFlag> {
+  const resp = await api.put(`/api/v1/admin/feature-flags/${id}`, data);
+  return resp.data;
+}
+
+export async function getAdminFlagTenants(id: string): Promise<AdminFlagTenant[]> {
+  const resp = await api.get(`/api/v1/admin/feature-flags/${id}/tenants`);
+  return resp.data;
+}
+
+export async function toggleAdminFlagForTenant(flagId: string, tenantId: string, enabled: boolean): Promise<void> {
+  await api.put(`/api/v1/admin/feature-flags/${flagId}/tenants/${tenantId}`, { enabled });
+}
+
+export async function listAdminJobs(params?: Record<string, string | number | undefined>): Promise<AdminJob[]> {
+  const resp = await api.get("/api/v1/admin/jobs", { params });
+  return resp.data;
+}
+
+export async function getAdminJob(id: string): Promise<AdminJobDetail> {
+  const resp = await api.get(`/api/v1/admin/jobs/${id}`);
+  return resp.data;
+}
+
+export async function retryAdminJob(id: string): Promise<void> {
+  await api.post(`/api/v1/admin/jobs/${id}/retry`);
+}
+
+export async function listAdminAICosts(params?: Record<string, string | number | undefined>): Promise<AdminAICost[]> {
+  const resp = await api.get("/api/v1/admin/ai/costs", { params });
+  return resp.data;
+}
+
+export async function getAdminAICostSummary(days?: number): Promise<AdminAICostSummary> {
+  const resp = await api.get("/api/v1/admin/ai/summary", { params: days ? { days } : undefined });
+  return resp.data;
+}
+
+export async function getAdminAIUsage(days?: number): Promise<AdminAIUsage> {
+  const resp = await api.get("/api/v1/admin/ai/usage", { params: days ? { days } : undefined });
+  return resp.data;
+}
+
+export async function getAdminDetailedHealth(): Promise<AdminDetailedHealth> {
+  const resp = await api.get("/api/v1/admin/health/detailed");
+  return resp.data;
+}
+
+export async function getAdminHealthHistory(hours?: number): Promise<AdminHealthHistoryEntry[]> {
+  const resp = await api.get("/api/v1/admin/health/history", { params: hours ? { hours } : undefined });
+  return resp.data;
+}
+
 export async function createTask(
   tenantId: string,
   title: string,
