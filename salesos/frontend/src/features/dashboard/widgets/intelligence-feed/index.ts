@@ -1,0 +1,1 @@
+export { IntelligenceFeedWidget } from './IntelligenceFeedContainer'

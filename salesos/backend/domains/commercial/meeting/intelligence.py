@@ -1,12 +1,15 @@
 """Meeting Intelligence — pre-meeting brief, post-meeting summary, action extraction."""
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text as sa_text
+
+logger = logging.getLogger(__name__)
 
 
 class MeetingIntelligenceService:
@@ -77,8 +80,8 @@ class MeetingIntelligenceService:
                     "content": f"Company: {company_name}, Opportunity: {brief['opportunity_name']}, Stage: {brief['opportunity_stage']}",
                 }])
                 brief["ai_summary"] = ai_brief
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("AI brief generation failed: %s", exc)
 
         return brief
 
@@ -101,8 +104,8 @@ class MeetingIntelligenceService:
                     "role": "user", "content": notes,
                 }])
                 summary["ai_summary"] = ai_summary
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("AI summary generation failed: %s", exc)
 
         return summary
 

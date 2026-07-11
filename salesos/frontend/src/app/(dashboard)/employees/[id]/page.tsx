@@ -12,7 +12,7 @@ export default function EmployeePage() {
     <div>
       <Link
         href="/dashboard"
-        className="mb-4 inline-flex items-center text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+        className="mb-4 inline-flex items-center text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
       >
         العودة إلى لوحة المعلومات
       </Link>

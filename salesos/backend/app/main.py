@@ -399,6 +399,7 @@ def register_routers():
     from app.modules.executive.router import router as executive_router
     from app.application.dashboard.router import router as dashboard_router
     from app.modules.work_intelligence.router import router as work_intelligence_router
+    from app.modules.revenue_execution.router import router as revenue_execution_router
     from app.routers.commercial import router as commercial_router
     from app.routers.copilot import router as copilot_router
     from runtime.capability_framework.router import router as capability_router
@@ -419,6 +420,7 @@ def register_routers():
     app.include_router(executive_router, prefix="/api/v1", tags=["Executive"], dependencies=_auth)
     app.include_router(dashboard_router, prefix="/api/v1", tags=["Dashboard"], dependencies=_auth)
     app.include_router(work_intelligence_router, prefix="/api/v1", tags=["Work Intelligence"], dependencies=_auth)
+    app.include_router(revenue_execution_router, prefix="", tags=["Revenue Execution"], dependencies=_auth)
     app.include_router(company_router, prefix="/api/v1/companies", tags=["Companies"], dependencies=_auth)
     app.include_router(contact_router, prefix="/api/v1/contacts", tags=["Contacts"], dependencies=_auth)
     app.include_router(activity_router, prefix="/api/v1", tags=["Activity"], dependencies=_auth)

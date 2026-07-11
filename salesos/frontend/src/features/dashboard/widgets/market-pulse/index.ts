@@ -1,0 +1,1 @@
+export { MarketPulseWidget } from './MarketPulseContainer'

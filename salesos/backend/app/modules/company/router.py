@@ -225,6 +225,20 @@ async def company_360(
     )
     return Company360Response(**result)
 
+# Alias: /intelligence → /360 (للتطابق مع frontend)
+@router.get("/{company_id}/intelligence", response_model=Company360Response,
+            dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))])
+async def company_intelligence(
+    company_id: str,
+    request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
+    service: CompanyService = Depends(get_service),
+    db: AsyncSession = Depends(get_db_session),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100),
+):
+    return await company_360(company_id, request, tenant_id, service, db, page, page_size)
+
 
 @router.post("/ingest", status_code=201,
              dependencies=[Depends(require_permission_dep("company", PermissionAction.CREATE))])

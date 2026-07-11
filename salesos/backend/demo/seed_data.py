@@ -1,358 +1,177 @@
-"""SalesOS Demo Dataset Generator.
-
-Generates bilingual (Arabic/English) demo data matching the actual DB schema:
-- 1000+ companies, 5000+ contacts, 3000+ deals, 10000+ activities, 100+ users
-- 10 sectors (مقاولات, صحة, تصنيع, تقنية, عقارات, طاقة, لوجستيك, غذاء, تجارة, اتصالات)
-- Saudi cities, realistic names
-- Licenses, timeline entries, golden_records
-- Fully re-generatable (idempotent)
-
-Usage:
-    docker cp demo/seed_data.py muhide-api-1:/app/demo/
-    docker exec muhide-api-1 python -m demo.seed_data --clear
-    docker exec muhide-api-1 python -m demo.seed_data
+"""SalesOS — Seed data generator
+Generates realistic Saudi companies, opportunities, signals, and decision makers.
+Run: python -m demo.seed_data
 """
 
-import argparse
-import asyncio
 import json
 import random
-import uuid as uuid_mod
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
-SECTORS = [
-    ("مقاولات", "Construction", ["مكتب هندسي", "مقاول عام", "مقاول كهرباء", "مقاول سباكة"]),
-    ("صحة", "Healthcare", ["مستشفى", "مركز طبي", "عيادة", "مختبر"]),
-    ("تصنيع", "Manufacturing", ["مصنع", "منتج", "ورشة صناعية"]),
-    ("تقنية", "Technology", ["برمجيات", "حلول تقنية", "استضافة", "تطوير تطبيقات"]),
-    ("عقارات", "Real Estate", ["تطوير عقاري", "وساطة عقارية", "إدارة أملاك"]),
-    ("طاقة", "Energy", ["نفط وغاز", "طاقة متجددة", "بتروكيماويات"]),
-    ("لوجستيك", "Logistics", ["نقل", "شحن", "تخزين", "توزيع"]),
-    ("غذاء", "Food & Beverage", ["مطعم", "منتج غذائي", "مشروبات"]),
-    ("تجارة", "Retail & Trade", ["تجزئة", "جملة", "استيراد وتصدير"]),
-    ("اتصالات", "Telecom", ["اتصالات", "بنية تحتية", "خدمات رقمية"]),
+COMPANIES = [
+    {"name_ar": "أرامكو السعودية", "name_en": "Saudi Aramco", "cr_number": "1010000001", "city": "الظهران", "region": "المنطقة الشرقية", "industry": "energy", "employees": 70000, "status": "نشط"},
+    {"name_ar": "شركة الاتصالات السعودية STC", "name_en": "Saudi Telecom Company", "cr_number": "1010000002", "city": "الرياض", "region": "منطقة الرياض", "industry": "telecom", "employees": 22000, "status": "نشط"},
+    {"name_ar": "البنك الأهلي السعودي", "name_en": "SNB", "cr_number": "1010000003", "city": "الرياض", "region": "منطقة الرياض", "industry": "financial", "employees": 18000, "status": "نشط"},
+    {"name_ar": "شركة الزامل للاستثمار الصناعي", "name_en": "Zamil Industrial", "cr_number": "1010000004", "city": "الدمام", "region": "المنطقة الشرقية", "industry": "industrial", "employees": 4500, "status": "نشط"},
+    {"name_ar": "مجموعة سامبا المالية", "name_en": "Samba Financial Group", "cr_number": "1010000005", "city": "الرياض", "region": "منطقة الرياض", "industry": "financial", "employees": 3200, "status": "نشط"},
+    {"name_ar": "شركة المراعي", "name_en": "Almarai", "cr_number": "1010000006", "city": "الرياض", "region": "منطقة الرياض", "industry": "food", "employees": 28000, "status": "نشط"},
+    {"name_ar": "شركة سابك", "name_en": "SABIC", "cr_number": "1010000007", "city": "الرياض", "region": "منطقة الرياض", "industry": "petrochemical", "employees": 33000, "status": "نشط"},
+    {"name_ar": "مجموعة الطيار للسفر", "name_en": "Al Tayyar Travel", "cr_number": "1010000008", "city": "الرياض", "region": "منطقة الرياض", "industry": "travel", "employees": 2500, "status": "نشط"},
+    {"name_ar": "شركة الجرير للتسويق", "name_en": "Jarir Marketing", "cr_number": "1010000009", "city": "الرياض", "region": "منطقة الرياض", "industry": "retail", "employees": 4000, "status": "نشط"},
+    {"name_ar": "شركة الكهرباء السعودية", "name_en": "Saudi Electricity", "cr_number": "1010000010", "city": "الرياض", "region": "منطقة الرياض", "industry": "energy", "employees": 35000, "status": "نشط"},
+    {"name_ar": "شركة مياهنا", "name_en": "Miahona", "cr_number": "1010000011", "city": "الخبر", "region": "المنطقة الشرقية", "industry": "water", "employees": 800, "status": "نشط"},
+    {"name_ar": "مجموعة الحكير", "name_en": "Al Hokair Group", "cr_number": "1010000012", "city": "الرياض", "region": "منطقة الرياض", "industry": "hospitality", "employees": 6500, "status": "نشط"},
+    {"name_ar": "شركة تطوير التعليم القابضة", "name_en": "Tatweer Education", "cr_number": "1010000013", "city": "الرياض", "region": "منطقة الرياض", "industry": "education", "employees": 3000, "status": "نشط"},
+    {"name_ar": "مجموعة إثراء", "name_en": "Ithra Group", "cr_number": "1010000014", "city": "الظهران", "region": "المنطقة الشرقية", "industry": "energy", "employees": 500, "status": "نشط"},
+    {"name_ar": "شركة علم", "name_en": "Alam", "cr_number": "1010000015", "city": "الرياض", "region": "منطقة الرياض", "industry": "technology", "employees": 1800, "status": "نشط"},
+    {"name_ar": "شركة أكوا باور", "name_en": "ACWA Power", "cr_number": "1010000016", "city": "الرياض", "region": "منطقة الرياض", "industry": "energy", "employees": 4000, "status": "نشط"},
+    {"name_ar": "مجموعة الدكتور سليمان الحبيب", "name_en": "Sulaiman Al Habib Medical", "cr_number": "1010000017", "city": "الرياض", "region": "منطقة الرياض", "industry": "healthcare", "employees": 12000, "status": "نشط"},
+    {"name_ar": "شركة أسمنت السعودية", "name_en": "Saudi Cement", "cr_number": "1010000018", "city": "الدمام", "region": "المنطقة الشرقية", "industry": "construction", "employees": 2000, "status": "نشط"},
+    {"name_ar": "شركة نماء للكيماويات", "name_en": "Nama Chemicals", "cr_number": "1010000019", "city": "الجبيل", "region": "المنطقة الشرقية", "industry": "petrochemical", "employees": 1200, "status": "نشط"},
+    {"name_ar": "شركة هرفي للخدمات الغذائية", "name_en": "Herfy Food Services", "cr_number": "1010000020", "city": "الرياض", "region": "منطقة الرياض", "industry": "food", "employees": 6000, "status": "نشط"},
+    {"name_ar": "شركة بحر العرب لتقنية المعلومات", "name_en": "Arabian Sea IT", "cr_number": "1010000021", "city": "جدة", "region": "منطقة مكة المكرمة", "industry": "technology", "employees": 150, "status": "نشط"},
+    {"name_ar": "مؤسسة الرواد للتجارة", "name_en": "Al Rawad Trading", "cr_number": "1010000022", "city": "جدة", "region": "منطقة مكة المكرمة", "industry": "retail", "employees": 200, "status": "نشط"},
+    {"name_ar": "شركة الخليج للتدريب", "name_en": "Gulf Training", "cr_number": "1010000023", "city": "الخبر", "region": "المنطقة الشرقية", "industry": "education", "employees": 300, "status": "نشط"},
+    {"name_ar": "مجموعة المسافة للسياحة", "name_en": "Distance Tourism", "cr_number": "1010000024", "city": "مكة المكرمة", "region": "منطقة مكة المكرمة", "industry": "travel", "employees": 400, "status": "نشط"},
+    {"name_ar": "شركة الابتكار للاتصالات", "name_en": "Innovation Telecom", "cr_number": "1010000025", "city": "الرياض", "region": "منطقة الرياض", "industry": "telecom", "employees": 600, "status": "نشط"},
+    {"name_ar": "مستشفى الملك فيصل التخصصي", "name_en": "King Faisal Specialist Hospital", "cr_number": "1010000026", "city": "الرياض", "region": "منطقة الرياض", "industry": "healthcare", "employees": 9000, "status": "نشط"},
+    {"name_ar": "شركة السيف للهندسة", "name_en": "Al Saif Engineering", "cr_number": "1010000027", "city": "الدمام", "region": "المنطقة الشرقية", "industry": "construction", "employees": 3500, "status": "نشط"},
+    {"name_ar": "شركة رؤية المدينة القابضة", "name_en": "Vision City Holding", "cr_number": "1010000028", "city": "المدينة المنورة", "region": "منطقة المدينة المنورة", "industry": "real_estate", "employees": 1000, "status": "نشط"},
+    {"name_ar": "مؤسسة الباحة للتجارة", "name_en": "Al Baha Trading", "cr_number": "1010000029", "city": "الباحة", "region": "منطقة الباحة", "industry": "retail", "employees": 120, "status": "نشط"},
+    {"name_ar": "شركة تبوك للتنمية الزراعية", "name_en": "Tabuk Agricultural", "cr_number": "1010000030", "city": "تبوك", "region": "منطقة تبوك", "industry": "agriculture", "employees": 800, "status": "نشط"},
+    {"name_ar": "شركة الجوف للطاقة المتجددة", "name_en": "Al Jouf Renewable Energy", "cr_number": "1010000031", "city": "سكاكا", "region": "منطقة الجوف", "industry": "energy", "employees": 350, "status": "نشط"},
+    {"name_ar": "شركة نجران للصناعات الغذائية", "name_en": "Najran Food Industries", "cr_number": "1010000032", "city": "نجران", "region": "منطقة نجران", "industry": "food", "employees": 500, "status": "نشط"},
+    {"name_ar": "مجموعة عسير القابضة", "name_en": "Asir Holding", "cr_number": "1010000033", "city": "أبها", "region": "منطقة عسير", "industry": "hospitality", "employees": 2000, "status": "نشط"},
+    {"name_ar": "شركة حائل للتنمية", "name_en": "Hail Development", "cr_number": "1010000034", "city": "حائل", "region": "منطقة حائل", "industry": "real_estate", "employees": 250, "status": "نشط"},
+    {"name_ar": "شركة الحدود الشمالية للتعدين", "name_en": "Northern Borders Mining", "cr_number": "1010000035", "city": "عرعر", "region": "المنطقة الشمالية", "industry": "mining", "employees": 450, "status": "نشط"},
+    {"name_ar": "مجموعة جازان الاقتصادية", "name_en": "Jazan Economic Group", "cr_number": "1010000036", "city": "جازان", "region": "منطقة جازان", "industry": "industrial", "employees": 700, "status": "نشط"},
+    {"name_ar": "شركة القصيم القابضة", "name_en": "Qassim Holding", "cr_number": "1010000037", "city": "بريدة", "region": "منطقة القصيم", "industry": "agriculture", "employees": 600, "status": "نشط"},
 ]
 
-CITIES = [
-    ("الرياض", "Riyadh"), ("جدة", "Jeddah"), ("الدمام", "Dammam"),
-    ("مكة", "Makkah"), ("المدينة", "Madinah"), ("الخبر", "Al Khobar"),
-    ("الظهران", "Dhahran"), ("ينبع", "Yanbu"), ("تبوك", "Tabuk"),
-    ("أبها", "Abha"), ("حائل", "Hail"), ("القصيم", "Qassim"),
-    ("الجبيل", "Jubail"), ("القطيف", "Qatif"), ("الأحساء", "Ahsa"),
+SIGNAL_TYPES = ['hiring', 'expansion', 'partnership', 'contract', 'regulation', 'market', 'financial', 'news']
+SIGNAL_TITLES = {
+    'hiring': ['توظيف {count} موظف جديد', 'فتح {count} وظيفة في التقنية', 'استقطاب كفاءات'],
+    'expansion': ['افتتاح فرع جديد في {city}', 'التوسع في {region}', 'خطة توسعية في قطاع {industry}'],
+    'partnership': ['شراكة استراتيجية مع {partner}', 'اتفاقية تعاون مع {partner}', 'تحالف استراتيجي'],
+    'contract': ['فوز بعقد حكومي بقيمة {value}', 'توقيع عقد مع {partner}', 'تجديد عقد استراتيجي'],
+    'regulation': ['امتثال للوائح الجديدة', 'تحديث التراخيص', 'موافقة تنظيمية جديدة'],
+    'market': ['ارتفاع الطلب على منتجات {industry}', 'توسع حصة سوقية', 'دخول سوق جديد'],
+    'financial': ['نتائج مالية قياسية', 'ارتفاع الأرباح {percent}%', 'توزيع أرباح على المساهمين'],
+    'news': ['إعلان مهم من {company}', 'جولة تمويلية جديدة', 'تغيير في الإدارة التنفيذية'],
+}
+
+PARTNERS = ['أرامكو', 'STC', 'وزارة الاستثمار', 'صندوق الاستثمارات العامة', 'الهيئة الملكية', 'شركة مباني', 'مجموعة السريع']
+USERS = [
+    {"name": "أحمد السلمي", "role": "مدير المبيعات", "email": "a@salesos.com"},
+    {"name": "نورة القحطاني", "role": "مدير الحسابات", "email": "n@salesos.com"},
+    {"name": "فهد العتيبي", "role": "مندوب مبيعات", "email": "f@salesos.com"},
+    {"name": "سارة الدوسري", "role": "مدير التسويق", "email": "s@salesos.com"},
 ]
 
-FIRST_NAMES_AR = [
-    "محمد", "أحمد", "علي", "عمر", "خالد", "عبدالله", "فيصل", "سعود",
-    "فهد", "ناصر", "سلمان", "بدر", "تركي", "ماجد", "حسن", "حسين",
-    "إبراهيم", "يوسف", "سعد", "مشعل", "عزام", "نايف", "سلطان", "بندر",
-]
+def seed_data():
+    """Generate seed data as JSON files."""
+    print("🌱 Seeding SalesOS data...")
+    
+    now = datetime.now()
+    signals = []
+    decision_makers = []
+    opportunities = []
+    tasks = []
+    
+    for i, company in enumerate(COMPANIES):
+        # Signals per company (1-3)
+        for _ in range(random.randint(1, 3)):
+            sig_type = random.choice(SIGNAL_TYPES)
+            days_ago = random.randint(0, 30)
+            titles = SIGNAL_TITLES[sig_type]
+            title = random.choice(titles).format(
+                count=random.randint(10, 500),
+                city=company["city"],
+                region=company["region"],
+                industry=company["industry"],
+                partner=random.choice(PARTNERS),
+                company=company["name_ar"],
+                value=f"{random.randint(500, 5000)}K",
+                percent=random.randint(10, 50),
+            )
+            signals.append({
+                "company_id": i + 1,
+                "type": sig_type,
+                "title": title,
+                "severity": random.choices(['low', 'medium', 'high', 'critical'], weights=[30, 40, 25, 5])[0],
+                "ai_confidence": round(random.uniform(0.6, 0.98), 2),
+                "timestamp": (now - timedelta(days=days_ago)).isoformat(),
+            })
+        
+        # Decision makers (1-3 per company)
+        for _ in range(random.randint(1, 3)):
+            decision_makers.append({
+                "company_id": i + 1,
+                "name": f"شخص {random.randint(100, 999)}",
+                "role": random.choice(["CEO", "CTO", "CFO", "مدير المشتريات", "مدير التقنية", "نائب الرئيس"]),
+                "influence": random.choice(["low", "medium", "high"]),
+                "connected": random.choice([True, False]),
+            })
+        
+        # Opportunities (30 companies have active opps)
+        if i < 30:
+            stage = random.choices(
+                ['identified', 'qualifying', 'developing', 'proposing', 'negotiating'],
+                weights=[15, 25, 30, 20, 10]
+            )[0]
+            value = random.randint(200000, 5000000)
+            opportunities.append({
+                "company_id": i + 1,
+                "company_name": company["name_ar"],
+                "title": f"فرصة {company['industry']} — {company['name_ar'][:20]}",
+                "stage": stage,
+                "estimated_value": value,
+                "confidence": round(random.uniform(0.3, 0.95), 2),
+                "buying_intent": round(random.uniform(0.3, 0.95), 2),
+                "relationship_strength": round(random.uniform(0.3, 0.95), 2),
+                "created_at": (now - timedelta(days=random.randint(1, 90))).isoformat(),
+            })
+        
+        # Tasks (some companies have tasks)
+        if random.random() < 0.4:
+            tasks.append({
+                "company_id": i + 1,
+                "company_name": company["name_ar"],
+                "title": f"متابعة {company['name_ar'][:15]}",
+                "priority": random.choice(['critical', 'high', 'medium', 'low']),
+                "source": random.choice(['nba', 'manual', 'meeting']),
+            })
 
-FIRST_NAMES_AR_F = [
-    "نورة", "سارة", "فاطمة", "مريم", "هدى", "أمل", "رنا", "لمى",
-    "دلال", "منى", "هيفاء", "عزة", "ليلى", "رؤى", "حصة", "الجوهرة",
-]
-
-LAST_NAMES_AR = [
-    "آل سعود", "القحطاني", "العتيبي", "الغامدي", "المطيري", "الدوسري",
-    "الزهراني", "الشمري", "العنزي", "الحربي", "الجهني", "البلوي",
-    "الشهري", "الثقفي", "المالكي", "البقمي", "السبيعي", "الرشيدي",
-]
-
-COMPANY_PREFIXES = ["شركة", "مؤسسة", "مجموعة", "مكتب"]
-
-COMPANY_NAMES_AR = [
-    "الجزيرة", "الوادي", "النخيل", "الساحل", "القمة", "الهدف",
-    "البرج", "السهم", "النور", "الأفق", "البيان", "الصفوة",
-    "الخليج", "الربيع", "الإتقان", "الريادة", "التقدم", "الإبداع",
-]
-
-POSITIONS = [
-    ("الرئيس التنفيذي", "CEO"), ("المدير المالي", "CFO"),
-    ("المدير التقني", "CTO"), ("مدير المبيعات", "Sales Director"),
-    ("مدير التسويق", "Marketing Director"), ("مدير العمليات", "COO"),
-    ("نائب الرئيس", "VP"), ("مدير مشاريع", "Project Manager"),
-    ("رئيس قسم", "Department Head"),
-    ("مدير تطوير الأعمال", "Business Development Manager"),
-]
-
-DEAL_STAGES = [
-    ("تأهيل", "Qualification"), ("تحليل", "Analysis"),
-    ("عرض", "Proposal"), ("تفاوض", "Negotiation"), ("إغلاق", "Closing"),
-]
-
-LICENSE_TYPES = ["بلدي", "تجاري", "صناعي", "مهني", "مقاولات"]
-LICENSE_TYPE_EN = ["Municipal", "Commercial", "Industrial", "Professional", "Contracting"]
-
-
-def rdate(start_year=2020, end_year=2025):
-    s = datetime(start_year, 1, 1, tzinfo=timezone.utc)
-    e = datetime(end_year, 12, 31, tzinfo=timezone.utc)
-    return s + timedelta(seconds=random.randint(0, int((e - s).total_seconds())))
-
-
-def pick(items):
-    return random.choice(items)
-
-
-async def seed_database(counts: dict):
-    import asyncpg
+    # Write seed files
+    output = {
+        "companies": COMPANIES,
+        "signals": signals,
+        "decision_makers": decision_makers,
+        "opportunities": opportunities,
+        "tasks": tasks,
+        "generated_at": now.isoformat(),
+        "total": {
+            "companies": len(COMPANIES),
+            "signals": len(signals),
+            "decision_makers": len(decision_makers),
+            "opportunities": len(opportunities),
+            "tasks": len(tasks),
+        }
+    }
+    
+    print(f"  ✓ {len(COMPANIES)} companies")
+    print(f"  ✓ {len(signals)} signals")
+    print(f"  ✓ {len(decision_makers)} decision makers")
+    print(f"  ✓ {len(opportunities)} opportunities")
+    print(f"  ✓ {len(tasks)} tasks")
+    print(f"\n📁 Written to demo/data.json")
+    
     import os
-
-    dsn = os.environ.get("DATABASE_URL") or "postgresql://salesos:salesos_dev_password@postgres:5432/salesos"
-    conn = await asyncpg.connect(dsn)
-
-    TID = "d1e2f3a4-5678-90ab-cdef-1234567890ab"
-    TID_UUID = uuid_mod.UUID(TID)
-
-    n_users = n_companies_actual = n_contacts = n_deals = n_activities = 0
-
-    try:
-        # Create tenant
-        existing = await conn.fetchval("SELECT COUNT(*) FROM tenants WHERE id = $1", TID_UUID)
-        if existing == 0:
-            await conn.execute(
-                "INSERT INTO tenants (id, name, slug, plan, is_active, created_at) VALUES ($1,$2,$3,$4,true,NOW())",
-                TID_UUID, "Demo Tenant", "demo", "enterprise",
-            )
-            print("Created demo tenant")
-
-        # Create users
-        n_users = counts.get("users", 100)
-        user_ids = []
-        for i in range(n_users):
-            uid = uuid_mod.uuid4()
-            user_ids.append(uid)
-            email = f"user{i+1}@salesos.demo"
-            existing_u = await conn.fetchval("SELECT COUNT(*) FROM users WHERE email = $1", email)
-            if existing_u == 0:
-                await conn.execute(
-                    """INSERT INTO users (id, tenant_id, email, password_hash, full_name, role, is_active, created_at)
-                       VALUES ($1,$2,$3,$4,$5,$6,true,NOW())""",
-                    uid, TID_UUID, email, "$2b$12$demo_password_hash", f"User {i+1}", pick(["admin", "manager", "user"]),
-                )
-        print(f"Created {n_users} users")
-
-        # Create companies
-        n_companies = counts.get("companies", 1000)
-        company_ids = []
-        for i in range(n_companies):
-            sector_ar, sector_en, subs = pick(SECTORS)
-            city_ar, city_en = pick(CITIES)
-            prefix = pick(COMPANY_PREFIXES)
-            name_ar = pick(COMPANY_NAMES_AR)
-            status = pick(["active", "active", "active", "inactive"])
-            industry = sector_ar
-            cr = f"{random.randint(1000000000, 9999999999)}"
-
-            existing_c = await conn.fetchval("SELECT COUNT(*) FROM companies WHERE cr_number = $1", cr)
-            if existing_c > 0:
-                continue
-
-            cid = uuid_mod.uuid4()
-            company_ids.append(cid)
-            capital = random.choice([500000, 1000000, 5000000, 10000000, 50000000, 100000000])
-            created = rdate(2020, 2023)
-
-            await conn.execute(
-                """INSERT INTO companies
-                   (id, tenant_id, name_ar, name_en, cr_number, status, city, region,
-                    industry, phone, email, website, capital, currency, employees_count,
-                    is_active, is_golden_record, legal_form, incorporation_date, created_at)
-                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,
-                           true, false, $16, $17, $18)""",
-                cid, TID_UUID,
-                f"{prefix} {name_ar} {sector_ar}",
-                f"{name_ar} {sector_en} Co.",
-                cr, status, city_ar,
-                "المنطقة الوسطى" if city_ar in ("الرياض", "القصيم") else "المنطقة الغربية" if city_ar in ("جدة", "مكة", "المدينة", "ينبع") else "المنطقة الشرقية",
-                industry, f"+9665{random.randint(0,9)}{random.randint(10000000, 99999999)}",
-                f"info@{name_ar.lower()}.com.sa",
-                f"www.{name_ar.lower()}.com.sa",
-                capital, "SAR",
-                random.choice([10, 25, 50, 100, 200, 500]),
-                pick(["مؤسسة فردية", "شركة ذات مسؤولية محدودة", "شركة مساهمة"]),
-                created.date(), created,
-            )
-
-            # License per company
-            lic_type_idx = random.randint(0, len(LICENSE_TYPES) - 1)
-            issue = rdate(2018, 2024)
-            expiry = rdate(2025, 2028)
-            await conn.execute(
-                """INSERT INTO licenses (id, company_id, license_number, license_type, license_type_ar,
-                   status, issue_date, expiry_date, created_at)
-                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NOW())""",
-                uuid_mod.uuid4(), cid,
-                f"{random.randint(100000, 999999)}",
-                LICENSE_TYPE_EN[lic_type_idx], LICENSE_TYPES[lic_type_idx],
-                pick(["active", "active", "active", "expired", "suspended"]),
-                issue.date(), expiry.date(),
-            )
-
-            # Golden record per company
-            await conn.execute(
-                """INSERT INTO golden_records (id, tenant_id, cr_number, company_id, data, confidence_score, is_active, created_at)
-                   VALUES ($1,$2,$3,$4,$5,$6,true,NOW())""",
-                uuid_mod.uuid4(), TID_UUID, cr, cid,
-                json.dumps({"name_ar": f"{prefix} {name_ar} {sector_ar}", "industry": industry, "city": city_ar}),
-                random.uniform(0.7, 0.99),
-            )
-
-        n_companies_actual = len(company_ids)
-        print(f"Created {n_companies_actual} companies with licenses and golden records")
-
-        # Create contacts (no tenant_id column)
-        n_contacts = counts.get("contacts", 5000)
-        contact_ids = []
-        for i in range(n_contacts):
-            cid = company_ids[i % n_companies_actual]
-            is_male = random.random() > 0.4
-            first_ar = pick(FIRST_NAMES_AR if is_male else FIRST_NAMES_AR_F)
-            last_ar = pick(LAST_NAMES_AR)
-            pos_ar, pos_en = pick(POSITIONS)
-            en_first = ["Mohamed","Ahmed","Ali","Omar","Khaled","Abdullah","Faisal","Saud","Fahad","Naser"][i % 10]
-
-            ctc_id = uuid_mod.uuid4()
-            contact_ids.append(ctc_id)
-            await conn.execute(
-                """INSERT INTO contacts (id, company_id, name, name_ar, email, phone, mobile,
-                   position, position_ar, is_primary, created_at)
-                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,NOW())""",
-                ctc_id, cid,
-                f"{en_first} {last_ar}",
-                f"{first_ar} {last_ar}",
-                f"{first_ar.lower()}@company{i}.com.sa",
-                f"+9665{random.randint(0,9)}{random.randint(10000000, 99999999)}",
-                f"+9665{random.randint(0,9)}{random.randint(10000000, 99999999)}",
-                pos_en, pos_ar,
-                random.random() > 0.7,
-            )
-        print(f"Created {n_contacts} contacts")
-
-        # Create company_deals (tenant_id=VARCHAR, company_id=VARCHAR)
-        n_deals = counts.get("deals", 3000)
-        for i in range(n_deals):
-            cid = company_ids[i % n_companies_actual]
-            ctc_id = contact_ids[i % n_contacts]
-            stage_ar, stage_en = pick(DEAL_STAGES)
-            amount = random.choice([50000, 100000, 250000, 500000, 1000000, 2500000, 5000000])
-            created = rdate(2023, 2025)
-            close = created + timedelta(days=random.randint(30, 180))
-
-            await conn.execute(
-                """INSERT INTO company_deals (id, tenant_id, company_id, deal_name, amount,
-                   currency, status, stage, probability, expected_close_date, created_at)
-                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)""",
-                str(uuid_mod.uuid4()), TID, str(cid),
-                f"Opportunity {i+1} - {stage_en}",
-                amount, "SAR",
-                pick(["open", "open", "open", "won", "lost"]),
-                stage_en, random.choice([10, 25, 50, 75, 90]),
-                close.date(), created,
-            )
-        print(f"Created {n_deals} deals")
-
-        # Create activity_records (id=VARCHAR, tenant_id=VARCHAR)
-        n_activities = counts.get("activities", 10000)
-        company_id_set = set(company_ids)
-        activity_types = [
-            ("اجتماع", "Meeting"), ("مكالمة", "Call"), ("بريد إلكتروني", "Email"),
-            ("عرض تجاري", "Demo"), ("متابعة", "Follow-up"),
-            ("مفاوضات", "Negotiation"), ("توقيع عقد", "Contract Signing"),
-            ("زيارة ميدانية", "Site Visit"),
-        ]
-        for i in range(n_activities):
-            entity = random.choice(company_ids + contact_ids)
-            entity_type = "company" if entity in company_id_set else "contact"
-            act_ar, act_en = pick(activity_types)
-            ts = rdate(2024, 2025)
-
-            await conn.execute(
-                """INSERT INTO activity_records (id, actor, action, entity_type, entity_id, metadata, tenant_id, timestamp)
-                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8)""",
-                str(uuid_mod.uuid4()),
-                f"user-{random.randint(1, n_users)}",
-                act_en.lower().replace(" ", "_"),
-                entity_type, str(entity),
-                json.dumps({"description_ar": act_ar, "description_en": act_en}),
-                TID, ts,
-            )
-        print(f"Created {n_activities} activities")
-
-        # Timeline entries (1 per company)
-        for cid in company_ids:
-            await conn.execute(
-                """INSERT INTO timeline_entries (entity_type, entity_id, event_type, data, tenant_id, importance, created_at)
-                   VALUES ($1,$2,$3,$4,$5,$6,NOW())""",
-                "company", str(cid),
-                pick(["company_created", "company_updated", "license_renewed", "contact_added"]),
-                json.dumps({"note": f"Demo seed timeline entry for {cid}"}),
-                TID, random.randint(1, 5),
-            )
-        print(f"Created timeline entries for {len(company_ids)} companies")
-
-    finally:
-        await conn.close()
-
-    print()
-    print("Demo dataset seeded successfully!")
-    print(f"  Users:      {n_users}")
-    print(f"  Companies:  {n_companies_actual}")
-    print(f"  Contacts:   {n_contacts}")
-    print(f"  Deals:      {n_deals}")
-    print(f"  Activities: {n_activities}")
-
-
-async def clear_database():
-    import asyncpg
-    import os
-
-    dsn = os.environ.get("DATABASE_URL") or "postgresql://salesos:salesos_dev_password@postgres:5432/salesos"
-    conn = await asyncpg.connect(dsn)
-    TID = "d1e2f3a4-5678-90ab-cdef-1234567890ab"
-    TID_UUID = uuid_mod.UUID(TID)
-
-    try:
-        tables_varchar = [
-            "activity_records", "timeline_entries", "company_deals",
-        ]
-        tables_uuid = [
-            "licenses", "golden_records",
-        ]
-        for tbl in tables_varchar:
-            await conn.execute(f"DELETE FROM {tbl} WHERE tenant_id = $1", TID)
-        # contacts has no tenant_id, delete via join
-        await conn.execute("DELETE FROM contacts WHERE company_id IN (SELECT id FROM companies WHERE tenant_id = $1)", TID_UUID)
-        await conn.execute("DELETE FROM licenses WHERE company_id IN (SELECT id FROM companies WHERE tenant_id = $1)", TID_UUID)
-        for tbl in tables_uuid:
-            await conn.execute(f"DELETE FROM {tbl} WHERE tenant_id = $1", TID_UUID)
-        await conn.execute("DELETE FROM companies WHERE tenant_id = $1", TID_UUID)
-        await conn.execute("DELETE FROM users WHERE tenant_id = $1", TID_UUID)
-        await conn.execute("DELETE FROM tenants WHERE id = $1", TID_UUID)
-        print("Cleared all demo data")
-    finally:
-        await conn.close()
-
+    os.makedirs("demo", exist_ok=True)
+    with open("demo/data.json", "w", encoding="utf-8") as f:
+        json.dump(output, f, ensure_ascii=False, indent=2)
+    
+    return output
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="SalesOS Demo Data Seeder")
-    parser.add_argument("--users", type=int, default=100)
-    parser.add_argument("--companies", type=int, default=1000)
-    parser.add_argument("--contacts", type=int, default=5000)
-    parser.add_argument("--deals", type=int, default=3000)
-    parser.add_argument("--activities", type=int, default=10000)
-    parser.add_argument("--clear", action="store_true", help="Clear all demo data first")
-    args = parser.parse_args()
-
-    counts = {
-        "users": args.users,
-        "companies": args.companies,
-        "contacts": args.contacts,
-        "deals": args.deals,
-        "activities": args.activities,
-    }
-
-    if args.clear:
-        asyncio.run(clear_database())
-
-    asyncio.run(seed_database(counts))
+    data = seed_data()
+    print(f"\n✅ Done! {data['total']['companies']} companies, {data['total']['signals']} signals, {data['total']['opportunities']} opportunities")

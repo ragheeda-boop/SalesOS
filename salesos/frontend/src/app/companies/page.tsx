@@ -54,8 +54,8 @@ export default function CompaniesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">الشركات</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">الشركات</h1>
+          <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
             إدارة ومراقبة الشركات المسجلة في المنصة
           </p>
         </div>
@@ -68,24 +68,24 @@ export default function CompaniesPage() {
             <ModalBody>
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">اسم الشركة (عربي) *</label>
+                  <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">اسم الشركة (عربي) *</label>
                   <Input value={formData.name_ar} onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })} placeholder="شركة الأمل للتجارة" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">رقم السجل التجاري *</label>
+                  <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">رقم السجل التجاري *</label>
                   <Input value={formData.cr_number} onChange={(e) => setFormData({ ...formData, cr_number: e.target.value })} placeholder="١٢٣٤٥٦٧٨٩٠" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">اسم الشركة (إنجليزي)</label>
+                  <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">اسم الشركة (إنجليزي)</label>
                   <Input value={formData.name_en} onChange={(e) => setFormData({ ...formData, name_en: e.target.value })} placeholder="Al Amal Trading Co." />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">المدينة</label>
+                    <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">المدينة</label>
                     <Input value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} placeholder="الرياض" />
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">المنطقة</label>
+                    <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">المنطقة</label>
                     <Input value={formData.region} onChange={(e) => setFormData({ ...formData, region: e.target.value })} placeholder="منطقة الرياض" />
                   </div>
                 </div>
@@ -119,21 +119,21 @@ export default function CompaniesPage() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
+      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50">
-              <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">اسم الشركة</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">رقم السجل</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">الحالة</th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-gray-700 dark:text-gray-300">المدينة</th>
+            <tr className="border-b border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800/50">
+              <th className="px-4 py-3 text-right text-sm font-medium text-neutral-700 dark:text-neutral-300">اسم الشركة</th>
+              <th className="px-4 py-3 text-right text-sm font-medium text-neutral-700 dark:text-neutral-300">رقم السجل</th>
+              <th className="px-4 py-3 text-right text-sm font-medium text-neutral-700 dark:text-neutral-300">الحالة</th>
+              <th className="px-4 py-3 text-right text-sm font-medium text-neutral-700 dark:text-neutral-300">المدينة</th>
               <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                <td colSpan={5} className="px-4 py-12 text-center text-neutral-500 dark:text-neutral-400">
                   <div className="flex items-center justify-center gap-2">
                     <Spinner className="h-5 w-5" />
                     <span>جاري التحميل...</span>
@@ -142,32 +142,32 @@ export default function CompaniesPage() {
               </tr>
             ) : isError ? (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-red-500">فشل تحميل البيانات</td>
+                <td colSpan={5} className="px-4 py-12 text-center text-danger-500">فشل تحميل البيانات</td>
               </tr>
             ) : !data || data.items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
+                <td colSpan={5} className="px-4 py-12 text-center text-neutral-500 dark:text-neutral-400">
                   {searchQuery || statusFilter ? "لا توجد نتائج للبحث" : "لا توجد شركات. قم بإضافة أول شركة للبدء."}
                 </td>
               </tr>
             ) : (
               data.items.map((company) => (
-                <tr key={company.id} className="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50">
+                <tr key={company.id} className="border-b border-neutral-100 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800/50">
                   <td className="px-4 py-3">
-                    <Link href={`/companies/${company.id}`} className="flex items-center gap-2 font-medium text-blue-600 hover:underline dark:text-blue-400">
+                    <Link href={`/companies/${company.id}`} className="flex items-center gap-2 font-medium text-[var(--muhide-orange)] hover:underline dark:text-orange-400">
                       <Building2 className="h-4 w-4" />
                       {company.name_ar || company.name_en}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{company.cr_number}</td>
+                  <td className="px-4 py-3 text-sm text-neutral-500 dark:text-neutral-400">{company.cr_number}</td>
                   <td className="px-4 py-3">
                     <Badge variant="primary">{company.status}</Badge>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">{company.city || "-"}</td>
+                  <td className="px-4 py-3 text-sm text-neutral-500 dark:text-neutral-400">{company.city || "-"}</td>
                   <td className="px-4 py-3">
                     <Link
                       href={`/companies/${company.id}`}
-                      className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline dark:text-blue-400"
+                      className="inline-flex items-center gap-1 text-sm text-[var(--muhide-orange)] hover:underline dark:text-orange-400"
                     >
                       عرض التفاصيل
                       <ArrowLeft className="h-3 w-3" />
@@ -182,7 +182,7 @@ export default function CompaniesPage() {
 
       {data && data.total > 0 && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
             إجمالي {data.total} شركة — صفحة {page} من {totalPages}
           </p>
           <div className="flex items-center gap-2">

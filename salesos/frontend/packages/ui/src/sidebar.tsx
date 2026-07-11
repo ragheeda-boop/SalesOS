@@ -21,7 +21,7 @@ export function Sidebar({ items, collapsed = false, onToggle, className }: Sideb
   return (
     <aside
       className={cn(
-        'flex flex-col border-r bg-white transition-all duration-300 dark:border-gray-700 dark:bg-gray-900',
+        'flex flex-col border-r border-[var(--border-default)] bg-[var(--bg-primary)] transition-all duration-300',
         collapsed ? 'w-16' : 'w-64',
         className
       )}
@@ -29,7 +29,7 @@ export function Sidebar({ items, collapsed = false, onToggle, className }: Sideb
       <div className="flex h-14 items-center justify-end px-4">
         <button
           onClick={onToggle}
-          className="rounded-md p-1 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+          className="rounded-md p-1 text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
         >
           <svg
             className={cn('h-5 w-5 transition-transform', collapsed && 'rotate-180')}
@@ -66,8 +66,8 @@ function SidebarItemComponent({ item, collapsed }: { item: SidebarItem; collapse
         className={cn(
           'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
           item.active
-            ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400'
-            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+            ? 'bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)]'
+            : 'text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]'
         )}
       >
         <span className="shrink-0">{item.icon}</span>
@@ -75,7 +75,7 @@ function SidebarItemComponent({ item, collapsed }: { item: SidebarItem; collapse
           <>
             <span className="flex-1 truncate text-left">{item.label}</span>
             {item.badge !== undefined && (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-xs font-medium text-white">
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--muhide-orange)] px-1.5 text-xs font-medium text-white">
                 {item.badge}
               </span>
             )}
@@ -83,10 +83,10 @@ function SidebarItemComponent({ item, collapsed }: { item: SidebarItem; collapse
         )}
       </button>
       {collapsed && (
-        <div className="absolute left-full top-0 z-50 ml-2 hidden rounded-md bg-gray-900 px-3 py-1.5 text-xs text-white shadow-lg group-hover:block dark:bg-gray-700">
+        <div className="absolute left-full top-0 z-dropdown ml-2 hidden rounded-md bg-[var(--muhide-ink)] px-3 py-1.5 text-xs text-white shadow-muhide-4 group-hover:block">
           {item.label}
           {item.badge !== undefined && (
-            <span className="ml-2 rounded-full bg-blue-600 px-1.5 text-xs text-white">
+            <span className="ml-2 rounded-full bg-[var(--muhide-orange)] px-1.5 text-xs text-white">
               {item.badge}
             </span>
           )}

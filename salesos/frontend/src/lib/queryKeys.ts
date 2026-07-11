@@ -22,6 +22,7 @@ export const tenantKeys = {
 export const dashboardKeys = {
   stats: () => ["dashboard", "stats"] as const,
   exec: () => ["dashboard", "executive"] as const,
+  main: () => ["dashboard", "main"] as const,
 };
 
 export const company360Keys = {

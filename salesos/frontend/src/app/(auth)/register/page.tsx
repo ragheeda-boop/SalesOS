@@ -51,7 +51,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-      <div className="w-full max-w-md p-8 bg-[var(--card)] rounded-xl shadow-sm border border-[var(--border)]">
+      <div className="w-full max-w-md p-8 bg-[var(--card)] rounded-xl shadow-muhide-1 border border-[var(--border)]">
         <h1 className="text-2xl font-bold mb-6 text-center">إنشاء حساب جديد</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -60,7 +60,7 @@ export default function RegisterPage() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--muhide-orange)]"
               required
             />
           </div>
@@ -70,7 +70,7 @@ export default function RegisterPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--muhide-orange)]"
               required
             />
           </div>
@@ -80,7 +80,7 @@ export default function RegisterPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--muhide-orange)]"
               required
             />
           </div>
@@ -90,22 +90,22 @@ export default function RegisterPage() {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--muhide-orange)]"
               required
             />
           </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && <p className="text-danger-500 text-sm">{error}</p>}
           <button
             type="submit"
             disabled={registerMutation.isPending}
-            className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 font-medium"
+            className="w-full py-3 bg-[var(--muhide-orange)] text-white rounded-lg hover:bg-orange-700 transition disabled:opacity-50 font-medium"
           >
             {registerMutation.isPending ? "جاري إنشاء الحساب..." : "إنشاء حساب"}
           </button>
         </form>
         <p className="mt-4 text-sm text-center text-[var(--muted-foreground)]">
           لديك حساب بالفعل؟{" "}
-          <Link href="/login" className="text-blue-600 hover:underline">
+          <Link href="/login" className="text-[var(--muhide-orange)] hover:underline">
             تسجيل الدخول
           </Link>
         </p>

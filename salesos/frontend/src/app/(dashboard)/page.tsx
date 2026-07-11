@@ -1,7 +1,7 @@
 "use client";
 
-import { ExecutiveDashboard } from "@/components/executive-dashboard";
+import { DashboardPage } from "@/features/dashboard/_layout/dashboard-page";
 
-export default function DashboardPage() {
-  return <ExecutiveDashboard />;
+export default function Page() {
+  return <DashboardPage />;
 }
