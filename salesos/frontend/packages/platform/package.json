@@ -1,0 +1,12 @@
+{
+  "name": "@salesos/platform",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./kernel/platform.ts",
+  "types": "./kernel/platform.ts",
+  "exports": {
+    "./kernel": "./kernel/platform.ts",
+    "./contracts/ai": "./contracts/ai/recommendation.ts",
+    "./contracts/revenue": "./contracts/revenue/opportunity.ts"
+  }
+}

@@ -66,6 +66,12 @@ class PipelineDefinition:
         return to_idx >= from_idx or to_idx == 0
 
 
+class OpportunityHealth(Enum):
+    HEALTHY = "healthy"
+    AT_RISK = "at_risk"
+    CRITICAL = "critical"
+
+
 @dataclass
 class Opportunity:
     """A sales opportunity — a potential deal in the pipeline."""
@@ -86,6 +92,8 @@ class Opportunity:
     description: str = ""
     tags: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
+    health: OpportunityHealth = OpportunityHealth.HEALTHY
+    playbook_id: str | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
