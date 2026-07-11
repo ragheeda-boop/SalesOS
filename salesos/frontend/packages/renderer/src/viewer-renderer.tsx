@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Tabs, TabsList, Tab, TabsPanel, Button, LayoutContent } from '@salesos/ui'
+import { Tabs, TabsList, Tab, TabsPanel, Button } from '@salesos/ui'
 import { TabRenderer } from './tab-renderer'
 import type { UISchemaTab, UIAction } from './types'
 import { cn } from '../../ui/src/utils'

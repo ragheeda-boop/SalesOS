@@ -1,13 +1,13 @@
 """Celery application configuration for background task processing."""
 
-import os
-
 from celery import Celery
+
+from app.config import settings
 
 celery_app = Celery(
     "salesos",
-    broker=os.environ.get("REDIS_URL", "redis://redis:6379/0"),
-    backend=os.environ.get("REDIS_URL", "redis://redis:6379/0"),
+    broker=settings.redis_url,
+    backend=settings.redis_url,
     include=["app.tasks"],
 )
 
@@ -18,10 +18,10 @@ celery_app.conf.update(
     timezone="UTC",
     enable_utc=True,
     task_track_started=True,
-    task_time_limit=600,
-    task_soft_time_limit=300,
-    worker_max_tasks_per_child=1000,
+    task_time_limit=settings.celery_task_time_limit,
+    task_soft_time_limit=settings.celery_task_soft_time_limit,
+    worker_max_tasks_per_child=settings.celery_worker_max_tasks_per_child,
     task_acks_late=True,
-    worker_prefetch_multiplier=1,
-    result_expires=3600 * 24,
+    worker_prefetch_multiplier=settings.celery_worker_prefetch_multiplier,
+    result_expires=settings.celery_result_expires,
 )

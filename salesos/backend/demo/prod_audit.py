@@ -63,11 +63,20 @@ def grep_dir(directory, text):
     return sum(1 for f in d.rglob("*.py") if text in f.read_text())
 
 
+def _get_dsn():
+    import os
+    pg_user = os.environ.get("POSTGRES_USER", "salesos")
+    pg_pass = os.environ.get("POSTGRES_PASSWORD", "test")
+    pg_host = os.environ.get("POSTGRES_HOST", "postgres")
+    pg_port = os.environ.get("POSTGRES_PORT", "5432")
+    pg_db = os.environ.get("POSTGRES_DB", "salesos")
+    return os.environ.get("DATABASE_URL") or f"postgresql://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}"
+
 def table_count(table, where="tenant_id"):
     import asyncpg, asyncio, os
     TID = "d1e2f3a4-5678-90ab-cdef-1234567890ab"
     async def go():
-        dsn = os.environ.get("DATABASE_URL") or "postgresql://salesos:salesos_dev_password@postgres:5432/salesos"
+        dsn = _get_dsn()
         conn = await asyncpg.connect(dsn)
         if where == "company":
             r = await conn.fetchval(f"SELECT COUNT(*) FROM {table} WHERE company_id IN (SELECT id FROM companies WHERE tenant_id = $1)", TID)
@@ -202,7 +211,7 @@ def _rbac():
 def _db_has_col(data_type):
     import asyncpg, asyncio, os
     async def go():
-        dsn = os.environ.get("DATABASE_URL") or "postgresql://salesos:salesos_dev_password@postgres:5432/salesos"
+        dsn = _get_dsn()
         conn = await asyncpg.connect(dsn)
         r = await conn.fetchval("SELECT COUNT(*) FROM information_schema.columns WHERE data_type=$1", data_type)
         await conn.close()

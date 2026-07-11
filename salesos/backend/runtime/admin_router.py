@@ -1,12 +1,13 @@
 """Admin routes for system monitoring and management."""
 
-import os
 import time
 
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.config import settings
 
 from app.common.schemas import PaginatedResponse
 from app.dependencies import get_current_tenant_id, get_db_session, require_role_dep
@@ -24,7 +25,7 @@ async def system_metrics(
     lines = [
         "# HELP salesos_info SalesOS application info",
         "# TYPE salesos_info gauge",
-        f'salesos_info{{version="0.1.0",env="{os.environ.get("SALESOS_ENV", "development")}"}} 1',
+        f'salesos_info{{version="{settings.service_version}",env="{settings.env}"}} 1',
     ]
 
     try:
@@ -90,6 +91,14 @@ async def system_metrics(
         lines.append("# HELP salesos_feature_compute_ms_total Total compute ms")
         lines.append("# TYPE salesos_feature_compute_ms_total gauge")
         lines.append(f"salesos_feature_compute_ms_total {fm.get('total_compute_ms', 0)}")
+
+    # Include system/performance metrics from in-memory tracker
+    try:
+        from app.common.metrics import metrics as sys_metrics
+        lines.append("")
+        lines.extend(sys_metrics.generate().split("\n")[1:-1])
+    except Exception:
+        pass
 
     lines.append(f"# EOF {time.time()}")
     from fastapi.responses import PlainTextResponse

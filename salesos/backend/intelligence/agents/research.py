@@ -1,5 +1,6 @@
 from .base import BaseAgent, AgentTask, AgentResult
 from .llm import LLMService
+from sdk.config import sdk_settings
 
 
 class ResearchAgent(BaseAgent):
@@ -32,8 +33,8 @@ class ResearchAgent(BaseAgent):
             response = await self._llm.chat(
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_prompt}],
-                temperature=0.7,
-                max_tokens=2048,
+                temperature=sdk_settings.llm_temperature,
+                max_tokens=sdk_settings.llm_research_max_tokens,
             )
             return AgentResult(
                 task_id=task.id, agent_type="research",

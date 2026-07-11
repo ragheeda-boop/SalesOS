@@ -48,6 +48,14 @@ export const activityKeys = {
     ["activities", entityType, entityId] as const,
 };
 
+export const taskKeys = {
+  all: ["tasks"] as const,
+  lists: () => [...taskKeys.all, "list"] as const,
+  list: (filters?: Record<string, unknown>) => [...taskKeys.lists(), filters] as const,
+  details: () => [...taskKeys.all, "detail"] as const,
+  detail: (id: string) => [...taskKeys.details(), id] as const,
+};
+
 export const opportunityKeys = {
   all: ["opportunities"] as const,
   lists: () => [...opportunityKeys.all, "list"] as const,
@@ -69,4 +77,15 @@ export const adminKeys = {
   conflicts: (filters: Record<string, unknown>) => ["admin", "conflicts", filters] as const,
   dlq: (filters: Record<string, unknown>) => ["admin", "dlq", filters] as const,
   dlqStats: () => ["admin", "dlq", "stats"] as const,
+};
+
+export const decisionKeys = {
+  all: ["decisions"] as const,
+  evaluate: () => [...decisionKeys.all, "evaluate"] as const,
+  explain: (id: string) => [...decisionKeys.all, "explain", id] as const,
+  history: (tenantId: string) => [...decisionKeys.all, "history", tenantId] as const,
+  recommendations: (entityId?: string) => [...decisionKeys.all, "recommendations", entityId] as const,
+  scores: (entityId: string) => [...decisionKeys.all, "scores", entityId] as const,
+  evidence: (entityId: string) => [...decisionKeys.all, "evidence", entityId] as const,
+  feedback: (tenantId: string) => [...decisionKeys.all, "feedback", tenantId] as const,
 };

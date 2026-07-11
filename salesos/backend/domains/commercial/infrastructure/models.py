@@ -220,6 +220,34 @@ class PolicyModel(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
 
+class MeetingModel(Base, TimestampMixin):
+    __tablename__ = "meetings"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(36), index=True)
+    opportunity_id: Mapped[str] = mapped_column(String(36), index=True)
+    title: Mapped[str] = mapped_column(String(500))
+    meeting_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    duration_minutes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    notes: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(20), default="scheduled")
+
+
+class EmailModel(Base, TimestampMixin):
+    __tablename__ = "emails"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(36), index=True)
+    opportunity_id: Mapped[str] = mapped_column(String(36), index=True)
+    subject: Mapped[str] = mapped_column(String(500))
+    from_address: Mapped[str] = mapped_column(String(254))
+    to_addresses: Mapped[Any] = mapped_column(JSON, default=list)
+    direction: Mapped[str] = mapped_column(String(10), default="outbound")
+    email_type: Mapped[str] = mapped_column(String(50), default="general")
+    body: Mapped[str] = mapped_column(Text, default="")
+    sent_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
 class RecommendationModel(Base, TimestampMixin):
     __tablename__ = "commercial_recommendations"
 

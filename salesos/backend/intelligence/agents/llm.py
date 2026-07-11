@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 from typing import Any
 
+from sdk.config import sdk_settings
+
 
 @dataclass
 class LLMResponse:
@@ -19,9 +21,9 @@ class LLMService:
     without changing agent code.
     """
 
-    def __init__(self, api_key: str | None = None, model: str = "gpt-4o-mini"):
+    def __init__(self, api_key: str | None = None, model: str | None = None):
         self.api_key = api_key
-        self.model = model
+        self.model = model or sdk_settings.openai_model
         self._client = None
 
     @property
@@ -35,8 +37,8 @@ class LLMService:
         self,
         system: str | None = None,
         messages: list[dict[str, str]] | None = None,
-        temperature: float = 0.7,
-        max_tokens: int = 1024,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
     ) -> LLMResponse:
         if not self.client:
             return LLMResponse(content="", model=self.model, finish_reason="error")
@@ -50,8 +52,8 @@ class LLMService:
         response = await self.client.chat.completions.create(
             model=self.model,
             messages=msgs,
-            temperature=temperature,
-            max_tokens=max_tokens,
+            temperature=temperature if temperature is not None else sdk_settings.llm_temperature,
+            max_tokens=max_tokens if max_tokens is not None else sdk_settings.llm_max_tokens,
         )
         choice = response.choices[0]
         return LLMResponse(

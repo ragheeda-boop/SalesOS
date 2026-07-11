@@ -17,6 +17,8 @@ from typing import Any, Callable, Optional
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
+
 
 class NodeLabel(str, Enum):
     COMPANY = "Company"
@@ -139,9 +141,9 @@ class KnowledgeGraphEngine:
                 self._driver = AsyncGraphDatabase.driver(
                     neo4j_uri,
                     auth=(neo4j_user, neo4j_password),
-                    max_connection_pool_size=50,
-                    connection_acquisition_timeout=30,
-                    max_transaction_retry_time=10,
+                    max_connection_pool_size=settings.neo4j_max_connection_pool_size,
+                    connection_acquisition_timeout=settings.neo4j_connection_acquisition_timeout,
+                    max_transaction_retry_time=settings.neo4j_max_transaction_retry_time,
                 )
                 self.metrics.neo4j_available = True
                 # Create full-text indexes for search
@@ -160,7 +162,7 @@ class KnowledgeGraphEngine:
     async def _ensure_indexes(self):
         """Create full-text search indexes on Neo4j for fast search."""
         try:
-            async with self._driver.session(database="neo4j") as session:
+            async with self._driver.session(database=settings.neo4j_database) as session:
                 await session.run("""
                     CREATE FULLTEXT INDEX company_fulltext IF NOT EXISTS
                     FOR (n:COMPANY) ON EACH [n.name_ar, n.name_en, n.cr_number]
@@ -380,7 +382,7 @@ class KnowledgeGraphEngine:
     # ── Neo4j implementations ───────────────────────────────────
 
     async def _upsert_company_neo4j(self, company: dict, tenant_id: str) -> GraphNode:
-        async with self._driver.session(database="neo4j") as session:
+        async with self._driver.session(database=settings.neo4j_database) as session:
             cid = company.get("company_id") or company.get("id") or str(company.get("cr_number", ""))
             result = await session.run(
                 """
@@ -411,7 +413,7 @@ class KnowledgeGraphEngine:
             return GraphNode(id=cid, labels=[NodeLabel.COMPANY], properties=company)
 
     async def _upsert_person_neo4j(self, person: dict, tenant_id: str) -> GraphNode:
-        async with self._driver.session(database="neo4j") as session:
+        async with self._driver.session(database=settings.neo4j_database) as session:
             pid = person.get("id") or person.get("email", "")
             result = await session.run(
                 """
@@ -436,7 +438,7 @@ class KnowledgeGraphEngine:
             return GraphNode(id=pid, labels=[NodeLabel.PERSON], properties=person)
 
     async def _create_edge_neo4j(self, source_id: str, target_id: str, edge_type: EdgeType, properties: dict) -> GraphEdge:
-        async with self._driver.session(database="neo4j") as session:
+        async with self._driver.session(database=settings.neo4j_database) as session:
             type_name = edge_type.value
             props_str = ", ".join(f"{k}: ${k}" for k in properties)
             query = f"""
@@ -450,7 +452,7 @@ class KnowledgeGraphEngine:
             return GraphEdge(source_id=source_id, target_id=target_id, type=edge_type, properties=properties)
 
     async def _find_competitors_neo4j(self, company_id: str, tenant_id: str, limit: int = 10) -> list[GraphNode]:
-        async with self._driver.session(database="neo4j") as session:
+        async with self._driver.session(database=settings.neo4j_database) as session:
             result = await session.run(
                 """
                 MATCH (c:Company {id: $id})
@@ -471,7 +473,7 @@ class KnowledgeGraphEngine:
             return nodes
 
     async def _find_path_neo4j(self, source_id: str, target_id: str, max_depth: int = 6) -> Optional[GraphPath]:
-        async with self._driver.session(database="neo4j") as session:
+        async with self._driver.session(database=settings.neo4j_database) as session:
             result = await session.run(
                 """
                 MATCH p = shortestPath((a {id: $source_id})-[*..$max_depth]-(b {id: $target_id}))
@@ -494,7 +496,7 @@ class KnowledgeGraphEngine:
             return GraphPath(nodes=nodes, edges=edges, length=len(edges))
 
     async def _get_ego_network_neo4j(self, company_id: str, depth: int = 2) -> list[dict]:
-        async with self._driver.session(database="neo4j") as session:
+        async with self._driver.session(database=settings.neo4j_database) as session:
             result = await session.run(
                 """
                 MATCH (c:Company {id: $id})-[r:*1..$depth]-(neighbor)
@@ -513,7 +515,7 @@ class KnowledgeGraphEngine:
             return items
 
     async def _get_decision_makers_neo4j(self, company_id: str) -> list[GraphNode]:
-        async with self._driver.session(database="neo4j") as session:
+        async with self._driver.session(database=settings.neo4j_database) as session:
             result = await session.run(
                 """
                 MATCH (c:Company {id: $id})-[:EMPLOYS]->(p:Person)
@@ -531,7 +533,7 @@ class KnowledgeGraphEngine:
             return nodes
 
     async def _search_neo4j(self, query: str, labels: Optional[list[NodeLabel]], limit: int = 20) -> list[GraphNode]:
-        async with self._driver.session(database="neo4j") as session:
+        async with self._driver.session(database=settings.neo4j_database) as session:
             try:
                 label_filter = ":" + "|".join(l.value for l in labels) if labels else ""
                 index_name = "company_fulltext" if (not labels or NodeLabel.COMPANY in labels) else "person_fulltext"
@@ -573,7 +575,7 @@ class KnowledgeGraphEngine:
                 return nodes
 
     async def _get_node_neo4j(self, node_id: str, labels: Optional[list[NodeLabel]] = None) -> Optional[GraphNode]:
-        async with self._driver.session(database="neo4j") as session:
+        async with self._driver.session(database=settings.neo4j_database) as session:
             label_filter = ":" + "|".join(l.value for l in labels) if labels else ""
             result = await session.run(
                 f"MATCH (n{label_filter} {{id: $id}}) RETURN n",
@@ -591,7 +593,7 @@ class KnowledgeGraphEngine:
         lid = lic.get("id") or lic.get("license_number", "")
         async with self._session_factory() as session:
             if self.metrics.neo4j_available and self._driver:
-                async with self._driver.session(database="neo4j") as neo4j_session:
+                async with self._driver.session(database=settings.neo4j_database) as neo4j_session:
                     await neo4j_session.run(
                         """
                         MERGE (l:License {id: $id})
@@ -613,7 +615,7 @@ class KnowledgeGraphEngine:
         bid = branch.get("id", "")
         async with self._session_factory() as session:
             if self.metrics.neo4j_available and self._driver:
-                async with self._driver.session(database="neo4j") as neo4j_session:
+                async with self._driver.session(database=settings.neo4j_database) as neo4j_session:
                     await neo4j_session.run(
                         """
                         MERGE (b:Branch {id: $id})

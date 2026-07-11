@@ -1,11 +1,16 @@
 """Test event store and audit store directly."""
-import asyncio, json, uuid
+import asyncio, json, os, uuid
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy import text
 
 async def test():
-    engine = create_async_engine('postgresql+asyncpg://salesos:salesos_dev_password@postgres:5432/salesos')
+    pg_user = os.environ.get("POSTGRES_USER", "salesos")
+    pg_pass = os.environ.get("POSTGRES_PASSWORD", "test")
+    pg_host = os.environ.get("POSTGRES_HOST", "postgres")
+    pg_port = os.environ.get("POSTGRES_PORT", "5432")
+    pg_db = os.environ.get("POSTGRES_DB", "salesos")
+    engine = create_async_engine(f'postgresql+asyncpg://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}')
     factory = async_sessionmaker(engine, class_=AsyncSession)
 
     # Test domain_events INSERT (the fixed version without ::jsonb)

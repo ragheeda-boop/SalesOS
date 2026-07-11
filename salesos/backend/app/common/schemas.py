@@ -42,6 +42,8 @@ class HealthResponse(BaseModel):
     cache: str
     graph: str = "not_configured"
     kafka: str = "not_configured"
+    redis: str = "unknown"
+    rate_limiter: str = "unknown"
     uptime_seconds: float = 0.0
 
 

@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from typing import Any
 
+from sdk.config import sdk_settings
 from sdk.events.base import DomainEvent
 
 logger = logging.getLogger(__name__)
@@ -68,8 +69,8 @@ class KafkaEventBus(EventBus):
     Requires aiokafka client. Handlers run in separate consumer processes.
     """
 
-    def __init__(self, bootstrap_servers: str = "kafka:9092"):
-        self._bootstrap_servers = bootstrap_servers
+    def __init__(self, bootstrap_servers: str | None = None):
+        self._bootstrap_servers = bootstrap_servers or sdk_settings.kafka_bootstrap_servers
         self._producer = None
 
     async def _get_producer(self):

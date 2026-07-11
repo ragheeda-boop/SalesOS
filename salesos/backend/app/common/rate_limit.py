@@ -5,12 +5,13 @@ from typing import Callable
 
 from fastapi import Depends, HTTPException, Request
 
+from app.config import settings
 from app.dependencies import get_current_tenant_id
 
 
 _store: dict[str, list[float]] = {}
 _lock = threading.Lock()
-_CLEANUP_INTERVAL = 300  # 5 minutes
+_CLEANUP_INTERVAL = settings.rate_limit_cleanup_interval
 _last_cleanup = time.time()
 
 

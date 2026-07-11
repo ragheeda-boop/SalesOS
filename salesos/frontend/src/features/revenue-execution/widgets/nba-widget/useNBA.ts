@@ -1,55 +1,65 @@
-import { useCallback } from 'react'
-import axios from 'axios'
+import { useCallback } from "react";
+import {
+  useDecisionEvaluate,
+  useDecisionFeedback,
+} from "@/lib/decisionQueries";
+import type {
+  DecisionContext,
+  DecisionResult,
+} from "@salesos/platform/decision/contracts";
 
-export interface NBARecommendation {
-  id: string
-  opportunityId: string
-  action: string
-  reason: string
-  confidence: number
-  confidenceLabel: 'high' | 'medium' | 'low'
-  source: 'rule' | 'ai' | 'hybrid'
-  alternatives: { action: string; reason: string; confidence: number }[]
-  evidence: { type: string; description: string; source: string; confidence: number }[]
-  potentialRisks: { type: string; level: string; description: string }[]
-  status: 'pending' | 'accepted' | 'dismissed' | 'completed'
-  createdAt: string
-  updatedAt: string
-}
+export type NBARecommendation = DecisionResult;
 
 export function useNBA(opportunityId: string) {
+  const evaluateMutation = useDecisionEvaluate();
+  const feedbackMutation = useDecisionFeedback();
+
   const getNBA = useCallback(async (): Promise<NBARecommendation | null> => {
     try {
-      const { data } = await axios.get(`/api/v1/revenue/opportunities/${opportunityId}/nba`)
-      return data
+      const result = await evaluateMutation.mutateAsync({
+        context: {
+          tenantId: "",
+          actorId: "",
+          opportunityId,
+          entityType: "opportunity",
+        } as DecisionContext,
+      });
+      return result;
     } catch {
-      return null
+      return null;
     }
-  }, [opportunityId])
+  }, [opportunityId, evaluateMutation]);
 
   const refreshNBA = useCallback(async (): Promise<NBARecommendation | null> => {
     try {
-      const { data } = await axios.post(`/api/v1/revenue/opportunities/${opportunityId}/nba/refresh`)
-      return data
+      const result = await evaluateMutation.mutateAsync({
+        context: {
+          tenantId: "",
+          actorId: "",
+          opportunityId,
+          entityType: "opportunity",
+        } as DecisionContext,
+      });
+      return result;
     } catch {
-      return null
+      return null;
     }
-  }, [opportunityId])
+  }, [opportunityId, evaluateMutation]);
 
   const acceptNBA = useCallback(async (nbaId: string) => {
-    await axios.post(`/api/v1/revenue/opportunities/${opportunityId}/nba/feedback`, {
-      nba_id: nbaId,
-      action: 'accepted',
-    })
-  }, [opportunityId])
+    await feedbackMutation.mutateAsync({
+      decisionId: nbaId,
+      outcome: "accepted",
+    });
+  }, [feedbackMutation]);
 
   const dismissNBA = useCallback(async (nbaId: string, reason?: string) => {
-    await axios.post(`/api/v1/revenue/opportunities/${opportunityId}/nba/feedback`, {
-      nba_id: nbaId,
-      action: 'dismissed',
+    await feedbackMutation.mutateAsync({
+      decisionId: nbaId,
+      outcome: "rejected",
       reason,
-    })
-  }, [opportunityId])
+    });
+  }, [feedbackMutation]);
 
-  return { getNBA, refreshNBA, acceptNBA, dismissNBA }
+  return { getNBA, refreshNBA, acceptNBA, dismissNBA };
 }

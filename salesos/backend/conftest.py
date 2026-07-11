@@ -20,11 +20,13 @@ for role_name, perms in PermissionRegistry.default_roles().items():
 
 
 def _db_url():
+    from app.config import settings
     _host = os.environ.get("TEST_POSTGRES_HOST") or os.environ.get("POSTGRES_HOST", "localhost")
-    _password = os.environ.get("POSTGRES_PASSWORD", "salesos_dev_password")
+    _password = os.environ.get("POSTGRES_PASSWORD", settings.postgres_password if settings.postgres_password else "test")
+    _port = os.environ.get("TEST_POSTGRES_PORT") or os.environ.get("POSTGRES_PORT", "5432")
     return os.environ.get(
         "TEST_DATABASE_URL",
-        f"postgresql+asyncpg://salesos:{_password}@{_host}:5432/salesos_test",
+        f"postgresql+asyncpg://{settings.postgres_user}:{_password}@{_host}:{_port}/salesos_test",
     )
 
 
