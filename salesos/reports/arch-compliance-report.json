@@ -1,0 +1,964 @@
+﻿{
+    "violations":  [
+                       {
+                           "domain":  "feature-automation",
+                           "id":  "VIO-1",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "ARC-9.1",
+                           "message":  "Missing Container/View pattern - must have both *Container* and *View* files",
+                           "file":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\frontend\\src\\features\\automation\\widgets\\workflow-builder"
+                       },
+                       {
+                           "domain":  "feature-rag",
+                           "id":  "VIO-2",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "ARC-9.1",
+                           "message":  "Missing Container/View pattern - must have both *Container* and *View* files",
+                           "file":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\frontend\\src\\features\\rag\\widgets\\rag-chat"
+                       },
+                       {
+                           "domain":  "feature-rag",
+                           "id":  "VIO-3",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "ARC-9.1",
+                           "message":  "Missing Container/View pattern - must have both *Container* and *View* files",
+                           "file":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\frontend\\src\\features\\rag\\widgets\\rag-documents"
+                       },
+                       {
+                           "domain":  "feature-revenue-execution",
+                           "id":  "VIO-4",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "ARC-9.1",
+                           "message":  "Missing Container/View pattern - must have both *Container* and *View* files",
+                           "file":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\frontend\\src\\features\\revenue-execution\\widgets\\nba-widget"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-5",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\app\\(dashboard)\\admin\\page.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-6",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\app\\search\\page.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-7",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\application\\revenue-execution\\opportunity.store.ts"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-8",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\analytics\\AnalyticsView.tsx"
+                       },
+                       {
+                           "domain":  "feature-company-intelligence",
+                           "id":  "VIO-9",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget uses CompanyIntelligenceContext directly - should use useDecision() from Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\ai-recommendation\\AIRecommendationContainer.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-10",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\ai-recommendation\\AIRecommendationView.tsx"
+                       },
+                       {
+                           "domain":  "feature-company-intelligence",
+                           "id":  "VIO-11",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget uses CompanyIntelligenceContext directly - should use useDecision() from Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\buying-journey\\BuyingJourneyContainer.tsx"
+                       },
+                       {
+                           "domain":  "feature-company-intelligence",
+                           "id":  "VIO-12",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget uses CompanyIntelligenceContext directly - should use useDecision() from Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\company-dna\\CompanyDNAContainer.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-13",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\company-dna\\CompanyDNAView.tsx"
+                       },
+                       {
+                           "domain":  "feature-company-intelligence",
+                           "id":  "VIO-14",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget uses CompanyIntelligenceContext directly - should use useDecision() from Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\decision-makers\\DecisionMakersContainer.tsx"
+                       },
+                       {
+                           "domain":  "feature-company-intelligence",
+                           "id":  "VIO-15",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget uses CompanyIntelligenceContext directly - should use useDecision() from Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\document-intelligence\\DocumentIntelligenceContainer.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-16",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\document-intelligence\\DocumentIntelligenceView.tsx"
+                       },
+                       {
+                           "domain":  "feature-company-intelligence",
+                           "id":  "VIO-17",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget uses CompanyIntelligenceContext directly - should use useDecision() from Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\golden-record\\GoldenRecordContainer.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-18",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\golden-record\\GoldenRecordView.tsx"
+                       },
+                       {
+                           "domain":  "feature-company-intelligence",
+                           "id":  "VIO-19",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget uses CompanyIntelligenceContext directly - should use useDecision() from Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\government-intelligence\\GovernmentIntelligenceContainer.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-20",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\government-intelligence\\GovernmentIntelligenceView.tsx"
+                       },
+                       {
+                           "domain":  "feature-company-intelligence",
+                           "id":  "VIO-21",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget uses CompanyIntelligenceContext directly - should use useDecision() from Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\relationship-graph\\RelationshipGraphContainer.tsx"
+                       },
+                       {
+                           "domain":  "feature-company-intelligence",
+                           "id":  "VIO-22",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget uses CompanyIntelligenceContext directly - should use useDecision() from Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\signals-feed\\SignalsFeedContainer.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-23",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\signals-feed\\SignalsFeedView.tsx"
+                       },
+                       {
+                           "domain":  "feature-company-intelligence",
+                           "id":  "VIO-24",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget uses CompanyIntelligenceContext directly - should use useDecision() from Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\smart-timeline\\SmartTimelineContainer.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-25",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\widgets\\smart-timeline\\SmartTimelineView.tsx"
+                       },
+                       {
+                           "domain":  "feature-company-intelligence",
+                           "id":  "VIO-26",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget uses CompanyIntelligenceContext directly - should use useDecision() from Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\_providers\\company-intelligence-provider.tsx"
+                       },
+                       {
+                           "domain":  "feature-company-intelligence",
+                           "id":  "VIO-27",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget uses CompanyIntelligenceContext directly - should use useDecision() from Decision Platform",
+                           "file":  "frontend\\src\\features\\company-intelligence\\index.ts"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-28",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\dashboard\\widgets\\market-pulse\\MarketPulseView.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-29",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\revenue-execution\\widgets\\churn-intelligence\\ChurnView.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-30",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\revenue-execution\\widgets\\expansion-intelligence\\ExpansionView.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-31",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\revenue-execution\\widgets\\forecast-intelligence\\ForecastContainer.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-32",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\revenue-execution\\widgets\\forecast-intelligence\\ForecastView.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-33",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\revenue-execution\\widgets\\nba-widget\\RecommendationCard.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-34",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\revenue-execution\\widgets\\next-best-action\\NBAView.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-35",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\revenue-execution\\widgets\\opportunity-detail\\OpportunityDetailView.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-36",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\revenue-execution\\widgets\\opportunity-list\\OpportunityListView.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-37",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\revenue-execution\\widgets\\pipeline-intelligence\\PipelineContainer.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-38",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\revenue-execution\\widgets\\pipeline-intelligence\\PipelineView.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-39",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\revenue-execution\\workspace\\pipeline\\PipelineWorkspace.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-40",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\search\\ai-search\\AIAnswer.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-41",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\features\\search\\components\\SearchResultCard.tsx"
+                       },
+                       {
+                           "domain":  "feature-unknown",
+                           "id":  "VIO-42",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DP-5.1",
+                           "message":  "Widget contains scoring/reasoning logic but doesn\u0027t use Decision Platform",
+                           "file":  "frontend\\src\\mocks\\handlers.ts"
+                       },
+                       {
+                           "domain":  "domain-cross-cutting",
+                           "id":  "VIO-43",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DF-4.2",
+                           "message":  "Direct fetch() call - should use centralized api client",
+                           "file":  "frontend\\src\\application\\company-intelligence\\useCompanyIntelligence.ts"
+                       },
+                       {
+                           "domain":  "domain-cross-cutting",
+                           "id":  "VIO-44",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DF-4.2",
+                           "message":  "Direct fetch() call - should use centralized api client",
+                           "file":  "frontend\\src\\application\\search\\search.hooks.ts"
+                       },
+                       {
+                           "domain":  "domain-cross-cutting",
+                           "id":  "VIO-45",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DF-4.2",
+                           "message":  "Direct fetch() call - should use centralized api client",
+                           "file":  "frontend\\src\\features\\dashboard\\sdk\\create-widget.tsx"
+                       },
+                       {
+                           "domain":  "domain-cross-cutting",
+                           "id":  "VIO-46",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DF-4.2",
+                           "message":  "Direct fetch() call - should use centralized api client",
+                           "file":  "frontend\\src\\features\\dashboard\\_layout\\dashboard-page.tsx"
+                       },
+                       {
+                           "domain":  "domain-cross-cutting",
+                           "id":  "VIO-47",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DF-4.2",
+                           "message":  "Direct axios call - should use centralized api client from lib/api.ts",
+                           "file":  "frontend\\src\\features\\revenue-execution\\widgets\\email-intelligence\\EmailIntelligenceWidget.tsx"
+                       },
+                       {
+                           "domain":  "domain-cross-cutting",
+                           "id":  "VIO-48",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DF-4.2",
+                           "message":  "Direct axios call - should use centralized api client from lib/api.ts",
+                           "file":  "frontend\\src\\features\\revenue-execution\\widgets\\meeting-intelligence\\MeetingIntelligenceWidget.tsx"
+                       },
+                       {
+                           "domain":  "domain-cross-cutting",
+                           "id":  "VIO-49",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DF-4.2",
+                           "message":  "Direct axios call - should use centralized api client from lib/api.ts",
+                           "file":  "frontend\\src\\features\\revenue-execution\\workspace\\pipeline\\PipelineWorkspace.tsx"
+                       },
+                       {
+                           "domain":  "domain-cross-cutting",
+                           "id":  "VIO-50",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DF-4.2",
+                           "message":  "Direct axios call - should use centralized api client from lib/api.ts",
+                           "file":  "frontend\\src\\features\\revenue-execution\\workspace\\revenue\\RevenueWorkspace.tsx"
+                       },
+                       {
+                           "domain":  "domain-cross-cutting",
+                           "id":  "VIO-51",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DF-4.2",
+                           "message":  "Direct axios call - should use centralized api client from lib/api.ts",
+                           "file":  "frontend\\src\\features\\revenue-execution\\workspace\\OpportunityWorkspace.tsx"
+                       },
+                       {
+                           "domain":  "domain-cross-cutting",
+                           "id":  "VIO-52",
+                           "severity":  "medium",
+                           "line":  0,
+                           "rule":  "DF-4.2",
+                           "message":  "Direct fetch() call - should use centralized api client",
+                           "file":  "frontend\\src\\lib\\monitoring.ts"
+                       },
+                       {
+                           "domain":  "domain-decision-platform",
+                           "id":  "VIO-53",
+                           "severity":  "high",
+                           "line":  0,
+                           "rule":  "DP-5.2",
+                           "message":  "DecisionProvider not wrapping revenue-execution layout",
+                           "file":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\frontend\\src\\features\\revenue-execution\\_layout"
+                       }
+                   ],
+    "summary":  {
+                    "total_violations":  53,
+                    "target_compliance":  95,
+                    "medium_violations":  31,
+                    "high_violations":  22,
+                    "passes":  false,
+                    "checks_total":  95,
+                    "overall_compliance":  84.8,
+                    "checks_passed":  42,
+                    "total_files_scanned":  993,
+                    "critical_violations":  0,
+                    "low_violations":  0
+                },
+    "domain_scores":  {
+                          "AI":  75,
+                          "Company":  95,
+                          "Workflow":  40,
+                          "Widget SDK":  100,
+                          "Search":  93,
+                          "CRM":  90,
+                          "Identity":  100,
+                          "Scoring":  95,
+                          "Timeline":  75
+                      },
+    "overall_compliance":  84.8,
+    "domains":  {
+                    "feature-revenue-execution":  {
+                                                      "passed":  19,
+                                                      "checks":  [
+                                                                     {
+                                                                         "message":  "api-platform has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "churn-intelligence has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "email-intelligence has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "enterprise-security has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "expansion-intelligence has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "forecast-intelligence has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "marketplace has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "mcp-integration has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "meeting-intelligence has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "multi-workspace has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "nba-widget missing Container/View pattern",
+                                                                         "passed":  false
+                                                                     },
+                                                                     {
+                                                                         "message":  "next-best-action has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "opportunity-detail has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "opportunity-list has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "pipeline-intelligence has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "playbook-engine has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "revenue-health has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "revenue-timeline has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "task-intelligence has Container+View",
+                                                                         "passed":  true
+                                                                     },
+                                                                     {
+                                                                         "message":  "territory-intelligence has Container+View",
+                                                                         "passed":  true
+                                                                     }
+                                                                 ],
+                                                      "violations":  1
+                                                  },
+                    "feature-company-intelligence":  {
+                                                         "passed":  10,
+                                                         "checks":  [
+                                                                        {
+                                                                            "message":  "ai-recommendation has Container+View",
+                                                                            "passed":  true
+                                                                        },
+                                                                        {
+                                                                            "message":  "buying-journey has Container+View",
+                                                                            "passed":  true
+                                                                        },
+                                                                        {
+                                                                            "message":  "company-dna has Container+View",
+                                                                            "passed":  true
+                                                                        },
+                                                                        {
+                                                                            "message":  "decision-makers has Container+View",
+                                                                            "passed":  true
+                                                                        },
+                                                                        {
+                                                                            "message":  "document-intelligence has Container+View",
+                                                                            "passed":  true
+                                                                        },
+                                                                        {
+                                                                            "message":  "golden-record has Container+View",
+                                                                            "passed":  true
+                                                                        },
+                                                                        {
+                                                                            "message":  "government-intelligence has Container+View",
+                                                                            "passed":  true
+                                                                        },
+                                                                        {
+                                                                            "message":  "relationship-graph has Container+View",
+                                                                            "passed":  true
+                                                                        },
+                                                                        {
+                                                                            "message":  "signals-feed has Container+View",
+                                                                            "passed":  true
+                                                                        },
+                                                                        {
+                                                                            "message":  "smart-timeline has Container+View",
+                                                                            "passed":  true
+                                                                        },
+                                                                        {
+                                                                            "message":  "frontend\\src\\features\\company-intelligence\\widgets\\ai-recommendation\\AIRecommendationContainer.tsx uses useCompanyIntelligenceContext instead of Decision Platform",
+                                                                            "passed":  false
+                                                                        },
+                                                                        {
+                                                                            "message":  "frontend\\src\\features\\company-intelligence\\widgets\\buying-journey\\BuyingJourneyContainer.tsx uses useCompanyIntelligenceContext instead of Decision Platform",
+                                                                            "passed":  false
+                                                                        },
+                                                                        {
+                                                                            "message":  "frontend\\src\\features\\company-intelligence\\widgets\\company-dna\\CompanyDNAContainer.tsx uses useCompanyIntelligenceContext instead of Decision Platform",
+                                                                            "passed":  false
+                                                                        },
+                                                                        {
+                                                                            "message":  "frontend\\src\\features\\company-intelligence\\widgets\\decision-makers\\DecisionMakersContainer.tsx uses useCompanyIntelligenceContext instead of Decision Platform",
+                                                                            "passed":  false
+                                                                        },
+                                                                        {
+                                                                            "message":  "frontend\\src\\features\\company-intelligence\\widgets\\document-intelligence\\DocumentIntelligenceContainer.tsx uses useCompanyIntelligenceContext instead of Decision Platform",
+                                                                            "passed":  false
+                                                                        },
+                                                                        {
+                                                                            "message":  "frontend\\src\\features\\company-intelligence\\widgets\\golden-record\\GoldenRecordContainer.tsx uses useCompanyIntelligenceContext instead of Decision Platform",
+                                                                            "passed":  false
+                                                                        },
+                                                                        {
+                                                                            "message":  "frontend\\src\\features\\company-intelligence\\widgets\\government-intelligence\\GovernmentIntelligenceContainer.tsx uses useCompanyIntelligenceContext instead of Decision Platform",
+                                                                            "passed":  false
+                                                                        },
+                                                                        {
+                                                                            "message":  "frontend\\src\\features\\company-intelligence\\widgets\\relationship-graph\\RelationshipGraphContainer.tsx uses useCompanyIntelligenceContext instead of Decision Platform",
+                                                                            "passed":  false
+                                                                        },
+                                                                        {
+                                                                            "message":  "frontend\\src\\features\\company-intelligence\\widgets\\signals-feed\\SignalsFeedContainer.tsx uses useCompanyIntelligenceContext instead of Decision Platform",
+                                                                            "passed":  false
+                                                                        },
+                                                                        {
+                                                                            "message":  "frontend\\src\\features\\company-intelligence\\widgets\\smart-timeline\\SmartTimelineContainer.tsx uses useCompanyIntelligenceContext instead of Decision Platform",
+                                                                            "passed":  false
+                                                                        },
+                                                                        {
+                                                                            "message":  "frontend\\src\\features\\company-intelligence\\_providers\\company-intelligence-provider.tsx uses useCompanyIntelligenceContext instead of Decision Platform",
+                                                                            "passed":  false
+                                                                        },
+                                                                        {
+                                                                            "message":  "frontend\\src\\features\\company-intelligence\\index.ts uses useCompanyIntelligenceContext instead of Decision Platform",
+                                                                            "passed":  false
+                                                                        }
+                                                                    ],
+                                                         "violations":  12
+                                                     },
+                    "domain-cross-cutting":  {
+                                                 "passed":  3,
+                                                 "checks":  [
+                                                                {
+                                                                    "message":  "frontend\\src\\lib\\hooks\\mutationHooks.ts uses localStorage for auth tokens (acceptable)",
+                                                                    "passed":  true
+                                                                },
+                                                                {
+                                                                    "message":  "frontend\\src\\lib\\hooks\\useTenant.ts uses localStorage for auth tokens (acceptable)",
+                                                                    "passed":  true
+                                                                },
+                                                                {
+                                                                    "message":  "frontend\\src\\lib\\api.ts uses localStorage for auth tokens (acceptable)",
+                                                                    "passed":  true
+                                                                },
+                                                                {
+                                                                    "message":  "frontend\\src\\application\\company-intelligence\\useCompanyIntelligence.ts uses fetch() directly",
+                                                                    "passed":  false
+                                                                },
+                                                                {
+                                                                    "message":  "frontend\\src\\application\\search\\search.hooks.ts uses fetch() directly",
+                                                                    "passed":  false
+                                                                },
+                                                                {
+                                                                    "message":  "frontend\\src\\features\\dashboard\\sdk\\create-widget.tsx uses fetch() directly",
+                                                                    "passed":  false
+                                                                },
+                                                                {
+                                                                    "message":  "frontend\\src\\features\\dashboard\\_layout\\dashboard-page.tsx uses fetch() directly",
+                                                                    "passed":  false
+                                                                },
+                                                                {
+                                                                    "message":  "frontend\\src\\features\\revenue-execution\\widgets\\email-intelligence\\EmailIntelligenceWidget.tsx uses axios directly (not through lib/api.ts)",
+                                                                    "passed":  false
+                                                                },
+                                                                {
+                                                                    "message":  "frontend\\src\\features\\revenue-execution\\widgets\\meeting-intelligence\\MeetingIntelligenceWidget.tsx uses axios directly (not through lib/api.ts)",
+                                                                    "passed":  false
+                                                                },
+                                                                {
+                                                                    "message":  "frontend\\src\\features\\revenue-execution\\workspace\\pipeline\\PipelineWorkspace.tsx uses axios directly (not through lib/api.ts)",
+                                                                    "passed":  false
+                                                                },
+                                                                {
+                                                                    "message":  "frontend\\src\\features\\revenue-execution\\workspace\\revenue\\RevenueWorkspace.tsx uses axios directly (not through lib/api.ts)",
+                                                                    "passed":  false
+                                                                },
+                                                                {
+                                                                    "message":  "frontend\\src\\features\\revenue-execution\\workspace\\OpportunityWorkspace.tsx uses axios directly (not through lib/api.ts)",
+                                                                    "passed":  false
+                                                                },
+                                                                {
+                                                                    "message":  "frontend\\src\\lib\\monitoring.ts uses fetch() directly",
+                                                                    "passed":  false
+                                                                }
+                                                            ],
+                                                 "violations":  10
+                                             },
+                    "feature-monitoring":  {
+                                               "passed":  1,
+                                               "checks":  [
+                                                              {
+                                                                  "message":  "monitoring uses different pattern (provider-based)",
+                                                                  "passed":  true
+                                                              }
+                                                          ],
+                                               "violations":  0
+                                           },
+                    "feature-unknown":  {
+                                            "passed":  0,
+                                            "checks":  [
+                                                           {
+                                                               "message":  "frontend\\src\\app\\(dashboard)\\admin\\page.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\app\\search\\page.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\application\\revenue-execution\\opportunity.store.ts has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\analytics\\AnalyticsView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\company-intelligence\\widgets\\ai-recommendation\\AIRecommendationView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\company-intelligence\\widgets\\company-dna\\CompanyDNAView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\company-intelligence\\widgets\\document-intelligence\\DocumentIntelligenceView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\company-intelligence\\widgets\\golden-record\\GoldenRecordView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\company-intelligence\\widgets\\government-intelligence\\GovernmentIntelligenceView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\company-intelligence\\widgets\\signals-feed\\SignalsFeedView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\company-intelligence\\widgets\\smart-timeline\\SmartTimelineView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\dashboard\\widgets\\market-pulse\\MarketPulseView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\revenue-execution\\widgets\\churn-intelligence\\ChurnView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\revenue-execution\\widgets\\expansion-intelligence\\ExpansionView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\revenue-execution\\widgets\\forecast-intelligence\\ForecastContainer.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\revenue-execution\\widgets\\forecast-intelligence\\ForecastView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\revenue-execution\\widgets\\nba-widget\\RecommendationCard.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\revenue-execution\\widgets\\next-best-action\\NBAView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\revenue-execution\\widgets\\opportunity-detail\\OpportunityDetailView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\revenue-execution\\widgets\\opportunity-list\\OpportunityListView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\revenue-execution\\widgets\\pipeline-intelligence\\PipelineContainer.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\revenue-execution\\widgets\\pipeline-intelligence\\PipelineView.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\revenue-execution\\workspace\\pipeline\\PipelineWorkspace.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\search\\ai-search\\AIAnswer.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\features\\search\\components\\SearchResultCard.tsx has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           },
+                                                           {
+                                                               "message":  "frontend\\src\\mocks\\handlers.ts has scoring logic without Decision Platform",
+                                                               "passed":  false
+                                                           }
+                                                       ],
+                                            "violations":  26
+                                        },
+                    "feature-analytics":  {
+                                              "passed":  1,
+                                              "checks":  [
+                                                             {
+                                                                 "message":  "analytics has Container/View at feature level",
+                                                                 "passed":  true
+                                                             }
+                                                         ],
+                                              "violations":  0
+                                          },
+                    "feature-search":  {
+                                           "passed":  1,
+                                           "checks":  [
+                                                          {
+                                                              "message":  "search uses different pattern (provider-based)",
+                                                              "passed":  true
+                                                          }
+                                                      ],
+                                           "violations":  0
+                                       },
+                    "feature-automation":  {
+                                               "passed":  0,
+                                               "checks":  [
+                                                              {
+                                                                  "message":  "workflow-builder missing Container/View pattern",
+                                                                  "passed":  false
+                                                              }
+                                                          ],
+                                               "violations":  1
+                                           },
+                    "feature-rag":  {
+                                        "passed":  0,
+                                        "checks":  [
+                                                       {
+                                                           "message":  "rag-chat missing Container/View pattern",
+                                                           "passed":  false
+                                                       },
+                                                       {
+                                                           "message":  "rag-documents missing Container/View pattern",
+                                                           "passed":  false
+                                                       }
+                                                   ],
+                                        "violations":  2
+                                    },
+                    "feature-dashboard":  {
+                                              "passed":  6,
+                                              "checks":  [
+                                                             {
+                                                                 "message":  "ai-brief has Container+View",
+                                                                 "passed":  true
+                                                             },
+                                                             {
+                                                                 "message":  "decision-queue has Container+View",
+                                                                 "passed":  true
+                                                             },
+                                                             {
+                                                                 "message":  "intelligence-feed has Container+View",
+                                                                 "passed":  true
+                                                             },
+                                                             {
+                                                                 "message":  "market-pulse has Container+View",
+                                                                 "passed":  true
+                                                             },
+                                                             {
+                                                                 "message":  "mission-center has Container+View",
+                                                                 "passed":  true
+                                                             },
+                                                             {
+                                                                 "message":  "recent-activity has Container+View",
+                                                                 "passed":  true
+                                                             }
+                                                         ],
+                                              "violations":  0
+                                          },
+                    "domain-decision-platform":  {
+                                                     "passed":  1,
+                                                     "checks":  [
+                                                                    {
+                                                                        "message":  "DecisionProvider exists",
+                                                                        "passed":  true
+                                                                    },
+                                                                    {
+                                                                        "message":  "DecisionProvider wraps revenue-execution",
+                                                                        "passed":  false
+                                                                    }
+                                                                ],
+                                                     "violations":  1
+                                                 }
+                },
+    "scanned_files":  993,
+    "took_ms":  3237,
+    "total_checks":  95,
+    "duration":  "3.237s",
+    "total_files":  324,
+    "script":  "arch-compliance.ps1",
+    "target_compliance":  95,
+    "repo_root":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos",
+    "passed_checks":  42,
+    "timestamp":  "2026-07-11T20:59:12Z"
+}

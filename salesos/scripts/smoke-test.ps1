@@ -36,7 +36,7 @@ function Test-Endpoint {
 }
 
 Write-Host "╔════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║       SalesOS v0.7 — Staging Smoke Tests          ║" -ForegroundColor Cyan
+Write-Host "║       SalesOS v0.8 — Production Smoke Tests        ║" -ForegroundColor Cyan
 Write-Host "╚════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host "Target: $BaseUrl"
 Write-Host ""
@@ -75,7 +75,7 @@ $endpoints = @(
     @{Name="RAG Documents"; Url="$BaseUrl/api/v1/rag/documents"; ValidStatuses=@(200, 401)}
     @{Name="Revenue Dashboard"; Url="$BaseUrl/api/v1/revenue/dashboard"; ValidStatuses=@(200, 401)}
     @{Name="Pipeline Summary"; Url="$BaseUrl/api/v1/pipeline/summary"; ValidStatuses=@(200, 401)}
-    @{Name="NBA Recommendations"; Url="$BaseUrl/api/v1/nba/recommendations/test-opp"; ValidStatuses=@(200, 401)}
+    @{Name="NBA Recommendations"; Url="$BaseUrl/api/v1/opportunities/test-opp/nba"; ValidStatuses=@(200, 401)}
 )
 
 foreach ($ep in $endpoints) {
@@ -99,7 +99,7 @@ if ($failed -gt 0) {
 }
 
 # ─── Write results to file ───
-$reportPath = Join-Path $PSScriptRoot "..\docs\SMOKE_TEST_RESULTS_v0.7.json"
+$reportPath = Join-Path $PSScriptRoot "..\docs\SMOKE_TEST_RESULTS_v0.8.json"
 Write-Host "Full results:"
 $results | Format-Table -AutoSize -Property Name, Result, Status, Url
 $results | ConvertTo-Json | Set-Content -Path $reportPath -Encoding UTF8

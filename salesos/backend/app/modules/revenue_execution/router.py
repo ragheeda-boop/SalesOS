@@ -39,7 +39,8 @@ async def update_opportunity_stage(opportunity_id: str, body: OpportunityStageUp
         raise HTTPException(404, "Opportunity not found")
     return result
 
-@router.post("/tasks", response_model=TaskResponse, status_code=201)
+@router.post("/tasks", response_model=TaskResponse, status_code=201,
+             dependencies=[Depends(require_permission_dep("task", PermissionAction.CREATE))])
 async def create_task(body: TaskCreate, tenant_id: str = Depends(get_current_tenant_id), service: RevenueService = Depends(get_service)):
     return await service.create_task(
         tenant_id=tenant_id, title=body.title, priority=body.priority,
@@ -54,7 +55,7 @@ async def list_tasks(
 ):
     return await service.list_tasks(tenant_id, priority)
 
-@router.put("/tasks/{task_id}/complete")
+@router.put("/tasks/{task_id}/complete", dependencies=[Depends(require_permission_dep("task", PermissionAction.UPDATE))])
 async def complete_task(task_id: str, tenant_id: str = Depends(get_current_tenant_id), service: RevenueService = Depends(get_service)):
     result = await service.complete_task(task_id, tenant_id)
     if not result:

@@ -195,7 +195,7 @@ function GoldenRecordsView() {
         </Card>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm responsive-table">
             <thead>
               <tr className="border-b dark:border-neutral-700 text-right">
                 <th className="p-2 font-medium">رقم السجل</th>
@@ -210,17 +210,17 @@ function GoldenRecordsView() {
             <tbody>
               {data.items.map((record) => (
                 <tr key={record.id} className="border-b dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900">
-                  <td className="p-2 font-mono text-xs">{record.id.slice(0, 8)}...</td>
-                  <td className="p-2">{record.company_name_ar || "-"}</td>
-                  <td className="p-2 font-mono">{record.cr_number || "-"}</td>
-                  <td className="p-2">
+                  <td className="p-2 font-mono text-xs" data-label="رقم السجل">{record.id.slice(0, 8)}...</td>
+                  <td className="p-2" data-label="اسم الشركة">{record.company_name_ar || "-"}</td>
+                  <td className="p-2 font-mono" data-label="رقم CR">{record.cr_number || "-"}</td>
+                  <td className="p-2" data-label="الحالة">
                     <Badge variant={record.status === "active" ? "success" : record.status === "merged" ? "warning" : "default"}>
                       {record.status}
                     </Badge>
                   </td>
-                  <td className="p-2">{record.confidence_score?.toFixed(2) || "-"}</td>
-                  <td className="p-2">{record.source_records}</td>
-                  <td className="p-2 text-xs text-neutral-500">{new Date(record.created_at).toLocaleDateString("ar-SA")}</td>
+                  <td className="p-2" data-label="درجة الثقة">{record.confidence_score?.toFixed(2) || "-"}</td>
+                  <td className="p-2" data-label="المصادر">{record.source_records}</td>
+                  <td className="p-2 text-xs text-neutral-500" data-label="تاريخ الإنشاء">{new Date(record.created_at).toLocaleDateString("ar-SA")}</td>
                 </tr>
               ))}
             </tbody>
@@ -262,7 +262,7 @@ function ConflictsView() {
         </Card>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm responsive-table">
             <thead>
               <tr className="border-b dark:border-neutral-700 text-right">
                 <th className="p-2 font-medium">رقم CR (أ)</th>
@@ -275,15 +275,15 @@ function ConflictsView() {
             <tbody>
               {data.items.map((conflict) => (
                 <tr key={conflict.id} className="border-b dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900">
-                  <td className="p-2 font-mono">{conflict.cr_number_a}</td>
-                  <td className="p-2 font-mono">{conflict.cr_number_b}</td>
-                  <td className="p-2">
+                  <td className="p-2 font-mono" data-label="رقم CR (أ)">{conflict.cr_number_a}</td>
+                  <td className="p-2 font-mono" data-label="رقم CR (ب)">{conflict.cr_number_b}</td>
+                  <td className="p-2" data-label="الحالة">
                     <Badge variant={conflict.status === "open" ? "danger" : conflict.status === "resolved" ? "success" : "default"}>
                       {conflict.status}
                     </Badge>
                   </td>
-                  <td className="p-2 text-xs">{conflict.reason}</td>
-                  <td className="p-2 text-xs text-neutral-500">{new Date(conflict.created_at).toLocaleDateString("ar-SA")}</td>
+                  <td className="p-2 text-xs" data-label="السبب">{conflict.reason}</td>
+                  <td className="p-2 text-xs text-neutral-500" data-label="تاريخ الإنشاء">{new Date(conflict.created_at).toLocaleDateString("ar-SA")}</td>
                 </tr>
               ))}
             </tbody>
@@ -335,7 +335,7 @@ function DlqView() {
               <RefreshCw className={cn("h-4 w-4", retryMutation.isPending && "animate-spin")} />
               إعادة محاولة ({Object.values(failedByStage).reduce((a, b) => a + b, 0)})
             </Button>
-            <Button onClick={() => purgeMutation.mutate("failed")} variant="destructive" className="gap-2" disabled={purgeMutation.isPending}>
+            <Button onClick={() => purgeMutation.mutate("failed")} variant="danger" className="gap-2" disabled={purgeMutation.isPending}>
               <XCircle className="h-4 w-4" />
               مسح الفاشل
             </Button>
@@ -374,7 +374,7 @@ function DlqView() {
         </Card>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm responsive-table">
             <thead>
               <tr className="border-b dark:border-neutral-700 text-right">
                 <th className="p-2 font-medium">#</th>
@@ -390,22 +390,22 @@ function DlqView() {
             <tbody>
               {data?.items?.map((entry) => (
                 <tr key={entry.id} className="border-b dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900">
-                  <td className="p-2 text-xs font-mono">{entry.id}</td>
-                  <td className="p-2">{entry.source_slug}</td>
-                  <td className="p-2 font-mono">{entry.cr_number || "-"}</td>
-                  <td className="p-2">
+                  <td className="p-2 text-xs font-mono" data-label="#">{entry.id}</td>
+                  <td className="p-2" data-label="المصدر">{entry.source_slug}</td>
+                  <td className="p-2 font-mono" data-label="رقم CR">{entry.cr_number || "-"}</td>
+                  <td className="p-2" data-label="المرحلة">
                     <Badge variant="warning">{entry.stage}</Badge>
                   </td>
-                  <td className="p-2 max-w-xs truncate text-xs" title={entry.error_message}>
+                  <td className="p-2 text-xs" data-label="الخطأ" title={entry.error_message}>
                     {entry.error_message.slice(0, 80)}...
                   </td>
-                  <td className="p-2">{entry.retry_count}/{entry.max_retries}</td>
-                  <td className="p-2">
+                  <td className="p-2" data-label="المحاولات">{entry.retry_count}/{entry.max_retries}</td>
+                  <td className="p-2" data-label="الحالة">
                     <Badge variant={entry.status === "failed" ? "danger" : "success"}>
                       {entry.status}
                     </Badge>
                   </td>
-                  <td className="p-2 text-xs text-neutral-500">{new Date(entry.created_at).toLocaleString("ar-SA")}</td>
+                  <td className="p-2 text-xs text-neutral-500" data-label="التاريخ">{new Date(entry.created_at).toLocaleString("ar-SA")}</td>
                 </tr>
               ))}
             </tbody>

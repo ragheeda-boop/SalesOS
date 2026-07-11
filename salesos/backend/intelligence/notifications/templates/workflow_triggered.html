@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family:sans-serif;padding:20px">
+<h2>Workflow Executed</h2>
+<p>The workflow <strong>{{ workflow_name }}</strong> has been executed.</p>
+<p>Status: {{ status }}</p>
+{% if error %}
+<p style="color:red">Error: {{ error }}</p>
+{% endif %}
+<p>Triggered at: {{ triggered_at }}</p>
+</body>
+</html>

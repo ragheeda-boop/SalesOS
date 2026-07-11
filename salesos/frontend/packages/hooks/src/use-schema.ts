@@ -13,10 +13,10 @@ export function useSchema(entityType: string, entityId: string) {
     let cancelled = false
     const cacheKey = `schema:${entityType}:${entityId}`
     const cached = runtime.cache.get<UISchema>(cacheKey)
-    if (cached.value) {
-      setSchema(cached.value)
+    if (cached !== null) {
+      setSchema(cached)
       setLoading(false)
-      if (!cached.stale) return
+      return
     }
 
     setLoading(true)

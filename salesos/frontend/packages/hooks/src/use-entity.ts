@@ -25,8 +25,8 @@ export function useEntity<T = Record<string, unknown>>(
     }
     const cacheKey = `entity:${entityType}:${entityId}`
     const cached = runtime.cache.get<T>(cacheKey)
-    if (cached.value && !cached.stale) {
-      setData(cached.value)
+    if (cached !== null) {
+      setData(cached)
       return
     }
     setLoading(true)

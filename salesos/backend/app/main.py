@@ -68,6 +68,18 @@ async def lifespan(app: FastAPI):
 
         app.state.logger = StructuredLogger("salesos.api")
 
+        # ── Cache Service (Redis) ──
+        from app.cache import CacheService
+        cache_service = CacheService(
+            redis_url=settings.redis_url,
+            socket_connect_timeout=settings.redis_socket_connect_timeout,
+            socket_timeout=settings.redis_socket_timeout,
+        )
+        cache_ok = await cache_service.health()
+        app.state.cache = cache_service
+        if app.state.logger:
+            app.state.logger.info("Cache service %s", "connected" if cache_ok else "unavailable")
+
         # ── Event Runtime ──
         if settings.event_bus_type == "kafka":
             from sdk.events.kafka_bus import KafkaEventBus
@@ -276,6 +288,9 @@ async def lifespan(app: FastAPI):
         kg = getattr(app.state, "kg_engine", None)
         if kg is not None:
             await kg.close()
+        cache = getattr(app.state, "cache", None)
+        if cache is not None:
+            await cache.close()
         await close_db()
 
 
@@ -310,6 +325,14 @@ try:
 except Exception:
     pass
 app.add_middleware(RateLimitMiddleware, rate=settings.rate_limit_default, window=settings.rate_limit_window, redis_client=_redis)
+
+# Audit middleware
+from app.modules.audit.middleware import AuditMiddleware
+app.add_middleware(AuditMiddleware)
+
+# Api key middleware
+from app.modules.api_keys.middleware import ApiKeyMiddleware
+app.add_middleware(ApiKeyMiddleware)
 
 
 @app.exception_handler(Exception)
@@ -353,14 +376,18 @@ async def health_ready(request: Request):
         checks["database"] = f"error: {e}"
 
     # Redis / Cache
-    try:
-        import redis.asyncio as aioredis
-        r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=settings.redis_health_socket_connect_timeout, socket_timeout=settings.redis_health_socket_timeout)
-        await r.ping()
-        await r.aclose()
-        checks["cache"] = "connected"
-    except Exception:
-        checks["cache"] = "unavailable"
+    cache = getattr(request.app.state, "cache", None)
+    if cache is not None:
+        checks["cache"] = "connected" if await cache.health() else "unavailable"
+    else:
+        try:
+            import redis.asyncio as aioredis
+            r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=settings.redis_health_socket_connect_timeout, socket_timeout=settings.redis_health_socket_timeout)
+            await r.ping()
+            await r.aclose()
+            checks["cache"] = "connected"
+        except Exception:
+            checks["cache"] = "unavailable"
 
     # Kafka
     from sdk.events.kafka_bus import KafkaEventBus
@@ -411,24 +438,32 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
         status = "degraded"
 
     # Redis / Cache
-    try:
-        import redis.asyncio as aioredis
-        r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=settings.redis_health_socket_connect_timeout, socket_timeout=settings.redis_health_socket_timeout)
-        await r.ping()
-        await r.aclose()
-        checks["cache"] = "connected"
-    except Exception:
-        checks["cache"] = "unavailable"
+    cache = getattr(request.app.state, "cache", None)
+    if cache is not None:
+        checks["cache"] = "connected" if await cache.health() else "unavailable"
+    else:
+        try:
+            import redis.asyncio as aioredis
+            r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=settings.redis_health_socket_connect_timeout, socket_timeout=settings.redis_health_socket_timeout)
+            await r.ping()
+            await r.aclose()
+            checks["cache"] = "connected"
+        except Exception:
+            checks["cache"] = "unavailable"
 
     # Redis connectivity (reuses same connection)
-    try:
-        import redis.asyncio as aioredis
-        r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=settings.redis_health_socket_connect_timeout, socket_timeout=settings.redis_health_socket_timeout)
-        await r.ping()
-        await r.aclose()
-        checks["redis"] = "connected"
-    except Exception:
-        checks["redis"] = "unavailable"
+    cache = getattr(request.app.state, "cache", None)
+    if cache is not None:
+        checks["redis"] = "connected" if await cache.health() else "unavailable"
+    else:
+        try:
+            import redis.asyncio as aioredis
+            r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=settings.redis_health_socket_connect_timeout, socket_timeout=settings.redis_health_socket_timeout)
+            await r.ping()
+            await r.aclose()
+            checks["redis"] = "connected"
+        except Exception:
+            checks["redis"] = "unavailable"
 
     # Rate limiter health
     rate_limiter = None
@@ -507,6 +542,10 @@ def register_routers():
     from app.modules.decision.router import router as decision_platform_router
     from app.modules.revenue_execution.router import router as revenue_execution_router
     from app.modules.monitoring.router import router as monitoring_router
+    from app.modules.cache.router import router as cache_router
+    from app.modules.sso.router import router as sso_router
+    from app.modules.audit.router import router as audit_router
+    from app.modules.api_keys.router import router as api_keys_router
     from app.routers.commercial import router as commercial_router
     from app.routers.copilot import router as copilot_router
     from runtime.capability_framework.router import router as capability_router
@@ -557,7 +596,11 @@ def register_routers():
     app.include_router(extension_router, dependencies=_auth)
     app.include_router(plugin_router, dependencies=_auth)
 
+    app.include_router(sso_router, prefix="/api/v1", tags=["SSO"])
+    app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
+    app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
     app.include_router(monitoring_router, tags=["Monitoring"])
+    app.include_router(cache_router, tags=["Cache"], dependencies=_auth)
     app.include_router(copilot_router, prefix="/api/v1", tags=["Copilot"], dependencies=_auth)
     app.include_router(commercial_router, prefix="/api/v1", tags=["Commercial"], dependencies=_auth)
 
@@ -585,6 +628,10 @@ def register_routers():
     # Wave 3 — Analytics & Reporting
     from app.routers.analytics import router as analytics_router
     app.include_router(analytics_router, prefix="/api/v1", tags=["Analytics"], dependencies=_auth)
+
+    # Notifications — WebSocket (no auth dep, handled inside WS) + REST
+    from app.routers.notifications import router as notifications_router
+    app.include_router(notifications_router, prefix="/api/v1", tags=["Notifications"])
 
 
 register_routers()

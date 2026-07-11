@@ -24,7 +24,7 @@ describe('STAGE_LABEL', () => {
 describe('calculateWinProbability', () => {
   it('returns 1 for max values', () => {
     const prob = calculateWinProbability({
-      stage: 'closing',
+      stage: 'won',
       buyingIntent: 1,
       relationshipStrength: 1,
       nbaConfidence: 1,

@@ -108,5 +108,27 @@ class Settings(BaseSettings):
     llm_max_tokens: int = 1024
     llm_research_max_tokens: int = 2048
 
+    # SMTP
+    smtp_host: str = ""
+    smtp_port: int = 465
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = "noreply@salesos.io"
+
+    # SSO / OAuth
+    sso_google_client_id: str = ""
+    sso_google_client_secret: str = ""
+    sso_microsoft_client_id: str = ""
+    sso_microsoft_client_secret: str = ""
+    sso_github_client_id: str = ""
+    sso_github_client_secret: str = ""
+
+    # Audit
+    audit_retention_days: int = 90
+    audit_excluded_paths: list[str] = ["/health", "/metrics", "/docs", "/redoc", "/ping", "/openapi.json"]
+
+    # API Keys
+    api_key_expiry_days: int = 365
+
 
 settings = Settings()

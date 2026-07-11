@@ -1,14 +1,10 @@
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import { SearchHeader } from '../SearchHeader'
 
 describe('SearchHeader', () => {
-  it('renders title', () => {
-    render(<SearchHeader title="Search Results" total={42} />)
-    expect(screen.getByText('Search Results')).toBeInTheDocument()
-  })
-
-  it('displays total count', () => {
-    render(<SearchHeader title="Results" total={100} />)
-    expect(screen.getByText('100')).toBeInTheDocument()
+  it('renders with total and query', () => {
+    const { container } = render(<SearchHeader total={42} query="test" />)
+    expect(container.textContent).toContain('42')
+    expect(container.textContent).toContain('test')
   })
 })

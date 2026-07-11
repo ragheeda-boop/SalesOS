@@ -18,7 +18,7 @@ export function mapDashboard(raw: unknown): DashboardDTO {
   return {
     generatedAt: data.generatedAt ? String(data.generatedAt) : null,
     period: (data.period as DashboardDTO["period"]) ?? "today",
-    totalTracked: Number(data.totalTracked ?? 0),
+    totalTracked: Number(data.totalTracked) || 0,
     missionCenter: parseWidget<MissionCenterData>(data.missionCenter as Record<string, unknown> | null | undefined),
     decisionQueue: parseWidget<DecisionQueueData>(data.decisionQueue as Record<string, unknown> | null | undefined),
     intelligenceFeed: parseWidget<IntelligenceFeedData>(data.intelligenceFeed as Record<string, unknown> | null | undefined),

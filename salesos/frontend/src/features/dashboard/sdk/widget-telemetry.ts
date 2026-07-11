@@ -52,4 +52,8 @@ export const widgetTelemetry = {
   getAll(): TelemetryEvent[] {
     return [...log]
   },
+
+  clear() {
+    log.length = 0
+  },
 }

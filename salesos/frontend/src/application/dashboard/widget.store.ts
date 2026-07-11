@@ -29,7 +29,7 @@ export type WidgetMap = {
   recentActivity: DashboardWidget<RecentActivityData>
 }
 
-function deriveStatus(data: unknown, isLoading: boolean, isError: boolean): WidgetStatus {
+export function deriveStatus(data: unknown, isLoading: boolean, isError: boolean): WidgetStatus {
   if (isLoading && !data) return 'loading'
   if (isLoading && data) return 'degraded'
   if (isError && !data) return 'error'

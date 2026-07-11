@@ -3,10 +3,12 @@ import statistics
 from collections import defaultdict
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
-router = APIRouter()
+from app.dependencies import verify_token
+
+router = APIRouter(dependencies=[Depends(verify_token)])
 
 
 # ─── Schemas ───────────────────────────────────────────────────

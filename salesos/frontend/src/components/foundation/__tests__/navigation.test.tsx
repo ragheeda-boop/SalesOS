@@ -28,7 +28,7 @@ describe('Navigation', () => {
 
   it('disables disabled items', () => {
     render(<Navigation sections={sections} />)
-    const disabledBtn = screen.getByText('Disabled')
+    const disabledBtn = screen.getByText('Disabled').closest('button')!
     expect(disabledBtn).toHaveAttribute('aria-disabled', 'true')
     expect(disabledBtn).toHaveAttribute('tabindex', '-1')
   })

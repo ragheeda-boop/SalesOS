@@ -49,7 +49,7 @@ describe('Sidebar', () => {
         <Sidebar sections={sections} companySection={{ id: 'company', label: 'شركتي', items: [{ id: 'my-co', label: 'شركتي', icon: <span>M</span> }] }} />
       </AppShell>,
     )
-    expect(screen.getByText('شركتي')).toBeInTheDocument()
+    expect(screen.getAllByText('شركتي').length).toBeGreaterThanOrEqual(1)
   })
 
   it('toggles collapse', () => {

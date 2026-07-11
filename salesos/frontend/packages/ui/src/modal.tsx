@@ -20,7 +20,7 @@ export function Modal({ open, onOpenChange, children }: ModalProps) {
 export const ModalTrigger = forwardRef<HTMLButtonElement, ComponentPropsWithoutRef<typeof Dialog.Trigger>>(
   ({ className, children, ...props }, ref) => {
     return (
-      <Dialog.Trigger ref={ref} className={cn(className)} {...props} asChild>
+      <Dialog.Trigger ref={ref} className={cn(className)} {...props}>
         {children}
       </Dialog.Trigger>
     )

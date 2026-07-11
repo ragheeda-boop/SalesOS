@@ -1,9 +1,10 @@
 FROM node:22-alpine AS build
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --ignore-scripts
+COPY package.json package-lock.json ./
+COPY packages packages/
+RUN npm install --no-audit --no-fund --workspaces --include-workspace-root
 COPY . .
-RUN npm run build
+RUN NODE_ENV=production ./node_modules/.bin/next build
 
 FROM node:22-alpine AS production
 

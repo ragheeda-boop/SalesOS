@@ -2,18 +2,20 @@ import { Monitor, monitor } from '../monitoring'
 
 jest.useFakeTimers()
 
+beforeEach(() => {
+  jest.clearAllMocks()
+  Object.defineProperty(navigator, 'sendBeacon', {
+    value: jest.fn().mockReturnValue(true),
+    configurable: true,
+    writable: true,
+  })
+})
+
 describe('Monitor', () => {
   let m: Monitor
 
-  beforeEach(() => {
-    jest.clearAllMocks()
-    jest.spyOn(navigator, 'sendBeacon').mockReturnValue(true)
-    m = new Monitor(true)
-    m.enable()
-  })
-
   afterEach(() => {
-    m.disable()
+    m?.disable()
   })
 
   describe('enable/disable', () => {
@@ -33,6 +35,8 @@ describe('Monitor', () => {
     })
 
     it('disable() stops the flush timer', () => {
+      m = new Monitor(true)
+      m.enable()
       m.disable()
       m.trackApiCall('GET', '/test', 100, 200)
       jest.advanceTimersByTime(60_000)
@@ -41,6 +45,8 @@ describe('Monitor', () => {
   })
 
   describe('trackApiCall', () => {
+    beforeEach(() => { m = new Monitor(true); m.enable() })
+
     it('records API call events', () => {
       m.trackApiCall('POST', '/api/test', 150, 201)
       jest.advanceTimersByTime(60_000)
@@ -55,6 +61,8 @@ describe('Monitor', () => {
   })
 
   describe('trackError', () => {
+    beforeEach(() => { m = new Monitor(true); m.enable() })
+
     it('records error events', () => {
       const error = new Error('Something broke')
       m.trackError(error, 'test-context')
@@ -68,6 +76,8 @@ describe('Monitor', () => {
   })
 
   describe('trackRender', () => {
+    beforeEach(() => { m = new Monitor(true); m.enable() })
+
     it('records render events', () => {
       m.trackRender('TestComponent', 42)
       jest.advanceTimersByTime(60_000)
@@ -80,6 +90,8 @@ describe('Monitor', () => {
   })
 
   describe('trackMetric', () => {
+    beforeEach(() => { m = new Monitor(true); m.enable() })
+
     it('records metric events with tags', () => {
       m.trackMetric('lcp', 2500, { type: 'web_vital' })
       jest.advanceTimersByTime(60_000)
@@ -93,6 +105,8 @@ describe('Monitor', () => {
   })
 
   describe('flush', () => {
+    beforeEach(() => { m = new Monitor(true); m.enable() })
+
     it('flushes buffer via sendBeacon', () => {
       m.trackMetric('test', 1)
       m.flush()

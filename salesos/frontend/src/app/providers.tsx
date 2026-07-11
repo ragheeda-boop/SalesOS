@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo, type ReactNode } from "react"
 import { createFrontendRuntime, type FrontendRuntime } from "@salesos/runtime"
 import { RuntimeContext } from "@salesos/hooks"
 import { ToastViewport } from "@salesos/ui"
+import { I18nProvider } from "@/lib/i18n"
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -42,9 +43,11 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <ToastViewport>
-      <RuntimeContext.Provider value={runtime}>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      </RuntimeContext.Provider>
+      <I18nProvider>
+        <RuntimeContext.Provider value={runtime}>
+          <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        </RuntimeContext.Provider>
+      </I18nProvider>
     </ToastViewport>
   )
 }

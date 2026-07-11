@@ -97,7 +97,7 @@ export function RevenueWorkspace() {
       {activeView === "overview" && (
         <>
           {/* KPI Row */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
               <p className="text-xs text-[var(--text-muted)]">قيمة Pipeline</p>
               <p className="text-lg font-display text-[var(--text-primary)]">{data.total_value.toLocaleString()} SAR</p>
@@ -112,7 +112,7 @@ export function RevenueWorkspace() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* NBA Widget */}
             {selectedOppId && (
               <div className="col-span-1">
@@ -173,7 +173,7 @@ export function RevenueWorkspace() {
 
       {/* Opportunity Detail View */}
       {activeView === "opportunity" && selectedOppId && (
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <MeetingIntelligenceWidget opportunityId={selectedOppId} />
           <EmailIntelligenceWidget opportunityId={selectedOppId} />
         </div>

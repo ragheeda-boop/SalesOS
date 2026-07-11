@@ -13,7 +13,7 @@ interface DashboardGridProps {
 export function DashboardGrid({ children, columns = 6, gap = '1rem', className, style }: DashboardGridProps) {
   return (
     <div
-      className={className}
+      className={`dashboard-grid ${className || ''}`}
       style={{
         display: 'grid',
         gridTemplateColumns: `repeat(${columns}, 1fr)`,
@@ -22,6 +22,21 @@ export function DashboardGrid({ children, columns = 6, gap = '1rem', className, 
         ...style,
       }}
     >
+      <style>{`
+        .dashboard-grid {
+          grid-template-columns: 1fr !important;
+        }
+        @media (min-width: 640px) {
+          .dashboard-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+        @media (min-width: 1024px) {
+          .dashboard-grid {
+            grid-template-columns: repeat(${columns}, 1fr) !important;
+          }
+        }
+      `}</style>
       {children}
     </div>
   )

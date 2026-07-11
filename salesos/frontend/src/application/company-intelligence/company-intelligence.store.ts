@@ -12,14 +12,14 @@ export type CompanyWidgetId =
 export interface CompanyWidgetMap {
   companyDNA: { data: CompanyDNA | null; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
   aiRecommendation: { data: AIRecommendation | null; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
-  decisionMakers: { data: DecisionMaker[]; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
+  decisionMakers: { data: DecisionMaker[] | null; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
   relationshipGraph: { data: { nodes: CompanyIntelligenceDTO['relationships']['nodes']; edges: CompanyIntelligenceDTO['relationships']['edges'] } | null; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
-  smartTimeline: { data: TimelineEvent[]; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
-  signalsFeed: { data: SignalItem[]; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
-  governmentIntelligence: { data: GovernmentRecord[]; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
-  documentIntelligence: { data: DocumentItem[]; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
+  smartTimeline: { data: TimelineEvent[] | null; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
+  signalsFeed: { data: SignalItem[] | null; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
+  governmentIntelligence: { data: GovernmentRecord[] | null; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
+  documentIntelligence: { data: DocumentItem[] | null; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
   buyingJourney: { data: BuyingJourney | null; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
-  goldenRecord: { data: GoldenRecordEntry[]; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
+  goldenRecord: { data: GoldenRecordEntry[] | null; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
 }
 
 function w<T>(data: T | null | undefined, isLoading: boolean, isError: boolean, lastUpdated: string | null): { data: T | null; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void } {
