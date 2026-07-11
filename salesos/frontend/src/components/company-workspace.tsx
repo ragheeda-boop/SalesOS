@@ -66,19 +66,19 @@ export function CompanyWorkspace({ companyId, preset = 'sales' }: CompanyWorkspa
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
+      <div className="rounded-xl border bg-white shadow-muhide-1 dark:border-neutral-700 dark:bg-neutral-900">
         <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-info-100 text-info-700 dark:bg-info-900 dark:text-info-300">
               <Building2 className="h-6 w-6" />
             </div>
             <div>
               {company && (
                 <>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                  <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
                     {company.name_ar || company.name_en}
                   </h1>
-                  <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-neutral-500 dark:text-neutral-400">
                     {company.name_en && company.name_ar !== company.name_en && (
                       <span>{company.name_en}</span>
                     )}
@@ -95,7 +95,7 @@ export function CompanyWorkspace({ companyId, preset = 'sales' }: CompanyWorkspa
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex gap-1 rounded-lg border border-gray-200 p-0.5 dark:border-gray-700">
+            <div className="flex gap-1 rounded-lg border border-neutral-200 p-0.5 dark:border-neutral-700">
               {presets.map((p) => (
                 <button
                   key={p.id}
@@ -103,8 +103,8 @@ export function CompanyWorkspace({ companyId, preset = 'sales' }: CompanyWorkspa
                   className={cn(
                     'rounded-md px-2.5 py-1 text-xs transition',
                     activePreset === p.id
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+                      ? 'bg-[var(--muhide-orange)] text-white'
+                      : 'text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200'
                   )}
                 >
                   {p.label}
@@ -113,8 +113,8 @@ export function CompanyWorkspace({ companyId, preset = 'sales' }: CompanyWorkspa
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1 border-t border-gray-100 px-6 py-2 dark:border-gray-800">
-          <span className="text-[10px] font-medium text-gray-400">AI:</span>
+        <div className="flex items-center gap-1 border-t border-neutral-100 px-6 py-2 dark:border-neutral-800">
+          <span className="text-[10px] font-medium text-neutral-400">AI:</span>
           {(['explain', 'analyze', 'predict', 'summarize', 'recommend'] as AIAction[]).map((actionId) => {
             const action = AI_ACTIONS[actionId]
             return (

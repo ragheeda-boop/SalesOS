@@ -28,7 +28,7 @@ export const TabsList = forwardRef<HTMLDivElement, ComponentPropsWithoutRef<type
     return (
       <TabsPrimitive.List
         ref={ref}
-        className={cn('inline-flex items-center border-b gap-0 dark:border-gray-700', className)}
+        className={cn('inline-flex items-center border-b border-[var(--border-default)] gap-0', className)}
         {...props}
       />
     )
@@ -42,7 +42,7 @@ export const Tab = forwardRef<HTMLButtonElement, ComponentPropsWithoutRef<typeof
       <TabsPrimitive.Trigger
         ref={ref}
         className={cn(
-          'px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 dark:text-gray-400 dark:hover:text-gray-200 dark:data-[state=active]:text-blue-400',
+          'px-4 py-2 text-sm font-medium border-b-2 border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)] data-[state=active]:border-[var(--muhide-orange)] data-[state=active]:text-[var(--text-primary)]',
           className
         )}
         {...props}

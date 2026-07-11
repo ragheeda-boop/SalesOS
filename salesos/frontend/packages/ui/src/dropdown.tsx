@@ -28,7 +28,7 @@ export const DropdownContent = forwardRef<HTMLDivElement, ComponentPropsWithoutR
         <DropdownMenu.Content
           ref={ref}
           className={cn(
-            'z-50 min-w-[200px] rounded-lg border bg-white p-1 shadow-lg data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 dark:border-gray-700 dark:bg-gray-900',
+            'z-dropdown min-w-[200px] rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] p-1 shadow-muhide-4 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
             className
           )}
           {...props}
@@ -52,7 +52,7 @@ export const DropdownItem = forwardRef<HTMLDivElement, DropdownItemProps>(
         ref={ref}
         disabled={disabled}
         className={cn(
-          'flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm outline-none hover:bg-gray-100 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:hover:bg-gray-800',
+          'flex cursor-pointer items-center gap-2 rounded-md px-3 py-2 text-sm text-[var(--text-primary)] outline-none hover:bg-[var(--bg-secondary)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
           className
         )}
         {...props}

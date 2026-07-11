@@ -1,0 +1,14 @@
+{
+  "name": "@salesos/decision-platform",
+  "version": "1.0.0",
+  "description": "Decision Intelligence Platform — centralized commercial reasoning engine for SalesOS",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "test": "jest --config jest.config.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  }
+}

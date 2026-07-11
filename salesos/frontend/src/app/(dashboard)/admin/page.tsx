@@ -52,7 +52,7 @@ function PipelineMonitor() {
   }, [])
 
   if (healthLoading || metricsLoading) {
-    return <div className="py-20 text-center text-gray-500"><Spinner /> جاري التحميل...</div>
+    return <div className="py-20 text-center text-neutral-500"><Spinner /> جاري التحميل...</div>
   }
 
   const pipeline = health?.pipeline
@@ -68,7 +68,7 @@ function PipelineMonitor() {
       </div>
 
       {pipeline && "status" in pipeline && pipeline.status === "not_initialized" ? (
-        <Card className="p-6 text-center text-gray-500">
+        <Card className="p-6 text-center text-neutral-500">
           <Database className="h-8 w-8 mx-auto mb-2 opacity-50" />
           <p>خط أنابيب البيانات غير مهيأ</p>
         </Card>
@@ -136,10 +136,10 @@ function PipelineMonitor() {
               <div className="space-y-2">
                 {Object.entries(pipeline.stage_durations_ms).map(([stage, ms]) => (
                   <div key={stage} className="flex items-center gap-3">
-                    <span className="w-36 text-sm text-gray-600 dark:text-gray-400">{stage}</span>
-                    <div className="flex-1 h-4 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                    <span className="w-36 text-sm text-neutral-600 dark:text-neutral-400">{stage}</span>
+                    <div className="flex-1 h-4 bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-blue-500 rounded-full transition-all"
+                        className="h-full bg-[var(--muhide-orange)] rounded-full transition-all"
                         style={{ width: `${Math.min(100, (ms as number) / 100)}%` }}
                       />
                     </div>
@@ -156,12 +156,12 @@ function PipelineMonitor() {
               {Object.entries(health?.checks || {}).map(([service, status]) => (
                 <div key={service} className="flex items-center gap-2 text-sm">
                   {status === "connected" ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckCircle className="h-4 w-4 text-success-500" />
                   ) : (
-                    <XCircle className="h-4 w-4 text-red-500" />
+                    <XCircle className="h-4 w-4 text-danger-500" />
                   )}
-                  <span className="text-gray-600 dark:text-gray-400">{service}</span>
-                  <span className={cn("font-mono text-xs", status === "connected" ? "text-green-600" : "text-red-600")}>
+                  <span className="text-neutral-600 dark:text-neutral-400">{service}</span>
+                  <span className={cn("font-mono text-xs", status === "connected" ? "text-success-600" : "text-danger-600")}>
                     {status}
                   </span>
                 </div>
@@ -179,17 +179,17 @@ function GoldenRecordsView() {
   const { data, isLoading } = useGoldenRecords({ page, page_size: 20 })
 
   if (isLoading) {
-    return <div className="py-20 text-center text-gray-500"><Spinner /> جاري التحميل...</div>
+    return <div className="py-20 text-center text-neutral-500"><Spinner /> جاري التحميل...</div>
   }
 
   return (
     <div className="space-y-4 mt-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">إجمالي: {data?.total || 0}</p>
+        <p className="text-sm text-neutral-500">إجمالي: {data?.total || 0}</p>
       </div>
 
       {!data?.items?.length ? (
-        <Card className="p-6 text-center text-gray-500">
+        <Card className="p-6 text-center text-neutral-500">
           <Database className="h-8 w-8 mx-auto mb-2 opacity-50" />
           <p>لا توجد سجلات ذهبية بعد</p>
         </Card>
@@ -197,7 +197,7 @@ function GoldenRecordsView() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b dark:border-gray-700 text-right">
+              <tr className="border-b dark:border-neutral-700 text-right">
                 <th className="p-2 font-medium">رقم السجل</th>
                 <th className="p-2 font-medium">اسم الشركة</th>
                 <th className="p-2 font-medium">رقم CR</th>
@@ -209,7 +209,7 @@ function GoldenRecordsView() {
             </thead>
             <tbody>
               {data.items.map((record) => (
-                <tr key={record.id} className="border-b dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900">
+                <tr key={record.id} className="border-b dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900">
                   <td className="p-2 font-mono text-xs">{record.id.slice(0, 8)}...</td>
                   <td className="p-2">{record.company_name_ar || "-"}</td>
                   <td className="p-2 font-mono">{record.cr_number || "-"}</td>
@@ -220,7 +220,7 @@ function GoldenRecordsView() {
                   </td>
                   <td className="p-2">{record.confidence_score?.toFixed(2) || "-"}</td>
                   <td className="p-2">{record.source_records}</td>
-                  <td className="p-2 text-xs text-gray-500">{new Date(record.created_at).toLocaleDateString("ar-SA")}</td>
+                  <td className="p-2 text-xs text-neutral-500">{new Date(record.created_at).toLocaleDateString("ar-SA")}</td>
                 </tr>
               ))}
             </tbody>
@@ -246,17 +246,17 @@ function ConflictsView() {
   const { data, isLoading } = useConflicts({ page, page_size: 20 })
 
   if (isLoading) {
-    return <div className="py-20 text-center text-gray-500"><Spinner /> جاري التحميل...</div>
+    return <div className="py-20 text-center text-neutral-500"><Spinner /> جاري التحميل...</div>
   }
 
   return (
     <div className="space-y-4 mt-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">إجمالي: {data?.total || 0}</p>
+        <p className="text-sm text-neutral-500">إجمالي: {data?.total || 0}</p>
       </div>
 
       {!data?.items?.length ? (
-        <Card className="p-6 text-center text-gray-500">
+        <Card className="p-6 text-center text-neutral-500">
           <GitMerge className="h-8 w-8 mx-auto mb-2 opacity-50" />
           <p>لا توجد تضاربات — جميع السجلات متناسقة</p>
         </Card>
@@ -264,7 +264,7 @@ function ConflictsView() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b dark:border-gray-700 text-right">
+              <tr className="border-b dark:border-neutral-700 text-right">
                 <th className="p-2 font-medium">رقم CR (أ)</th>
                 <th className="p-2 font-medium">رقم CR (ب)</th>
                 <th className="p-2 font-medium">الحالة</th>
@@ -274,7 +274,7 @@ function ConflictsView() {
             </thead>
             <tbody>
               {data.items.map((conflict) => (
-                <tr key={conflict.id} className="border-b dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900">
+                <tr key={conflict.id} className="border-b dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900">
                   <td className="p-2 font-mono">{conflict.cr_number_a}</td>
                   <td className="p-2 font-mono">{conflict.cr_number_b}</td>
                   <td className="p-2">
@@ -283,7 +283,7 @@ function ConflictsView() {
                     </Badge>
                   </td>
                   <td className="p-2 text-xs">{conflict.reason}</td>
-                  <td className="p-2 text-xs text-gray-500">{new Date(conflict.created_at).toLocaleDateString("ar-SA")}</td>
+                  <td className="p-2 text-xs text-neutral-500">{new Date(conflict.created_at).toLocaleDateString("ar-SA")}</td>
                 </tr>
               ))}
             </tbody>
@@ -320,7 +320,7 @@ function DlqView() {
   }
 
   if (isLoading) {
-    return <div className="py-20 text-center text-gray-500"><Spinner /> جاري التحميل...</div>
+    return <div className="py-20 text-center text-neutral-500"><Spinner /> جاري التحميل...</div>
   }
 
   const failedByStage = stats?.failed_by_stage || {}
@@ -344,7 +344,7 @@ function DlqView() {
         <select
           value={stageFilter}
           onChange={(e) => { setStageFilter(e.target.value); setPage(1) }}
-          className="border rounded px-2 py-1 text-sm dark:bg-gray-800 dark:border-gray-700"
+          className="border rounded px-2 py-1 text-sm dark:bg-neutral-800 dark:border-neutral-700"
         >
           <option value="">كل المراحل</option>
           {Object.keys(failedByStage).map((s) => (
@@ -354,7 +354,7 @@ function DlqView() {
       </div>
 
       {retryResult && (
-        <div className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 p-3 rounded-lg text-sm">
+        <div className="bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-300 p-3 rounded-lg text-sm">
           {retryResult}
         </div>
       )}
@@ -368,7 +368,7 @@ function DlqView() {
       )}
 
       {!hasFailedEntries && (!data?.items?.length) ? (
-        <Card className="p-6 text-center text-gray-500">
+        <Card className="p-6 text-center text-neutral-500">
           <CheckCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
           <p>قائمة الانتظار الميتة فارغة — لا توجد سجلات فاشلة</p>
         </Card>
@@ -376,7 +376,7 @@ function DlqView() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b dark:border-gray-700 text-right">
+              <tr className="border-b dark:border-neutral-700 text-right">
                 <th className="p-2 font-medium">#</th>
                 <th className="p-2 font-medium">المصدر</th>
                 <th className="p-2 font-medium">رقم CR</th>
@@ -389,7 +389,7 @@ function DlqView() {
             </thead>
             <tbody>
               {data?.items?.map((entry) => (
-                <tr key={entry.id} className="border-b dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900">
+                <tr key={entry.id} className="border-b dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900">
                   <td className="p-2 text-xs font-mono">{entry.id}</td>
                   <td className="p-2">{entry.source_slug}</td>
                   <td className="p-2 font-mono">{entry.cr_number || "-"}</td>
@@ -405,7 +405,7 @@ function DlqView() {
                       {entry.status}
                     </Badge>
                   </td>
-                  <td className="p-2 text-xs text-gray-500">{new Date(entry.created_at).toLocaleString("ar-SA")}</td>
+                  <td className="p-2 text-xs text-neutral-500">{new Date(entry.created_at).toLocaleString("ar-SA")}</td>
                 </tr>
               ))}
             </tbody>
@@ -429,18 +429,18 @@ function DlqView() {
 function DlqStatCard({ stage, count }: { stage: string; count: number }) {
   return (
     <Card className="px-3 py-2 flex items-center gap-2">
-      <AlertTriangle className="h-4 w-4 text-red-500" />
+      <AlertTriangle className="h-4 w-4 text-danger-500" />
       <span className="text-sm">{stage}</span>
-      <span className="text-sm font-bold text-red-600">{count}</span>
+      <span className="text-sm font-bold text-danger-600">{count}</span>
     </Card>
   )
 }
 
 function StatCard({ icon: Icon, label, value, color }: { icon: any; label: string; value: number; color: string }) {
   const colorMap: Record<string, string> = {
-    blue: "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
-    green: "bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400",
-    red: "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400",
+    blue: "bg-info-50 text-info-600 dark:bg-info-900/30 dark:text-info-400",
+    green: "bg-success-50 text-success-600 dark:bg-success-900/30 dark:text-success-400",
+    red: "bg-danger-50 text-danger-600 dark:bg-danger-900/30 dark:text-danger-400",
     purple: "bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400",
     indigo: "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400",
     teal: "bg-teal-50 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400",
@@ -455,7 +455,7 @@ function StatCard({ icon: Icon, label, value, color }: { icon: any; label: strin
           <Icon className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">{label}</p>
           <p className="text-xl font-bold">{value}</p>
         </div>
       </div>

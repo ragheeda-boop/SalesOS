@@ -93,30 +93,30 @@ export function SearchPanel({ open, onClose }: SearchPanelProps) {
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]" onClick={onClose}>
       <div className="fixed inset-0 bg-black/50" />
       <div
-        className="relative w-full max-w-2xl rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900"
+        className="relative w-full max-w-2xl rounded-xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3 border-b border-gray-200 px-4 dark:border-gray-700">
-          <Search className="h-5 w-5 text-gray-400" />
+        <div className="flex items-center gap-3 border-b border-neutral-200 px-4 dark:border-neutral-700">
+          <Search className="h-5 w-5 text-neutral-400" />
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="ابحث في الشركات، جهات الاتصال، الفرص..."
-            className="h-12 flex-1 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400 dark:text-gray-100"
+            className="h-12 flex-1 bg-transparent text-sm text-neutral-900 outline-none placeholder:text-neutral-400 dark:text-neutral-100"
           />
-          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800">
+          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800">
             <X className="h-4 w-4" />
           </button>
         </div>
         <div className="max-h-96 overflow-y-auto p-2">
           {loading && (
             <div className="flex items-center justify-center py-8">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--muhide-orange)] border-t-transparent" />
             </div>
           )}
           {!loading && query && results.length === 0 && (
-            <p className="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p className="px-3 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
               لا توجد نتائج لـ &ldquo;{query}&rdquo;
             </p>
           )}
@@ -125,10 +125,10 @@ export function SearchPanel({ open, onClose }: SearchPanelProps) {
               <div key={type}>
                 <div className="flex items-center gap-2 px-3 py-2">
                   {typeIcons[type]}
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                     {typeLabels[type] || type}
                   </span>
-                  <span className="text-[10px] text-gray-400">({items.length})</span>
+                  <span className="text-[10px] text-neutral-400">({items.length})</span>
                 </div>
                 {items.map((item) => (
                   <Link
@@ -137,19 +137,19 @@ export function SearchPanel({ open, onClose }: SearchPanelProps) {
                     onClick={onClose}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition",
-                      "hover:bg-gray-50 dark:hover:bg-gray-800"
+                      "hover:bg-neutral-50 dark:hover:bg-neutral-800"
                     )}
                   >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
                       {typeIcons[item.type]}
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900 dark:text-gray-100">{item.title}</p>
+                      <p className="font-medium text-neutral-900 dark:text-neutral-100">{item.title}</p>
                       {item.subtitle && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{item.subtitle}</p>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">{item.subtitle}</p>
                       )}
                     </div>
-                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                    <ArrowRight className="h-4 w-4 text-neutral-400" />
                   </Link>
                 ))}
               </div>

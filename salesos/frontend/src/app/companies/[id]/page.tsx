@@ -61,7 +61,7 @@ export default function CompanyPage() {
       <div className="mb-4 flex items-center justify-between">
         <Link
           href="/companies"
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
         >
           <ArrowLeft className="h-4 w-4" />
           العودة إلى الشركات
@@ -76,20 +76,20 @@ export default function CompanyPage() {
               <ModalBody>
                 <div className="space-y-4">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">الاسم *</label>
+                    <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">الاسم *</label>
                     <Input value={contactForm.name} onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })} placeholder="أحمد محمد" />
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">المسمى الوظيفي</label>
+                    <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">المسمى الوظيفي</label>
                     <Input value={contactForm.position} onChange={(e) => setContactForm({ ...contactForm, position: e.target.value })} placeholder="مدير مبيعات" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">البريد الإلكتروني</label>
+                      <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">البريد الإلكتروني</label>
                       <Input value={contactForm.email} onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })} placeholder="ahmed@example.com" />
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">رقم الجوال</label>
+                      <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">رقم الجوال</label>
                       <Input value={contactForm.phone} onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })} placeholder="0512345678" />
                     </div>
                   </div>
@@ -122,20 +122,20 @@ export default function CompanyPage() {
           <ModalBody>
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">اسم الشركة (عربي)</label>
+                <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">اسم الشركة (عربي)</label>
                 <Input value={editForm.name_ar} onChange={(e) => setEditForm({ ...editForm, name_ar: e.target.value })} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">اسم الشركة (إنجليزي)</label>
+                <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">اسم الشركة (إنجليزي)</label>
                 <Input value={editForm.name_en} onChange={(e) => setEditForm({ ...editForm, name_en: e.target.value })} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">المدينة</label>
+                  <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">المدينة</label>
                   <Input value={editForm.city} onChange={(e) => setEditForm({ ...editForm, city: e.target.value })} />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">المنطقة</label>
+                  <label className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">المنطقة</label>
                   <Input value={editForm.region} onChange={(e) => setEditForm({ ...editForm, region: e.target.value })} />
                 </div>
               </div>
@@ -154,7 +154,7 @@ export default function CompanyPage() {
         <ModalContent>
           <ModalHeader>تأكيد الحذف</ModalHeader>
           <ModalBody>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-sm text-neutral-600 dark:text-neutral-400">
               هل أنت متأكد من حذف شركة <strong>{company?.name_ar || company?.name_en}</strong>؟
               هذا الإجراء لا يمكن التراجع عنه.
             </p>

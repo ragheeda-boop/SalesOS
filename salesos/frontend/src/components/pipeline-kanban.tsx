@@ -15,9 +15,9 @@ import {
 import { useCompanySearch } from "@/lib/hooks/companyQueries";
 
 const STAGES = [
-  { key: "prospecting", label: "استكشاف", color: "bg-blue-500" },
+  { key: "prospecting", label: "استكشاف", color: "bg-info-500" },
   { key: "qualification", label: "تأهيل", color: "bg-indigo-500" },
-  { key: "proposal", label: "عرض", color: "bg-amber-500" },
+  { key: "proposal", label: "عرض", color: "bg-warning-500" },
   { key: "negotiation", label: "تفاوض", color: "bg-orange-500" },
 ];
 
@@ -47,20 +47,20 @@ function OpportunityCard({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       className={cn(
-        "cursor-grab rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-all hover:shadow-md active:cursor-grabbing",
-        dragging && "opacity-50 ring-2 ring-blue-400"
+        "cursor-grab rounded-lg border border-neutral-200 bg-white p-3 shadow-muhide-1 transition-all hover:shadow-muhide-3 active:cursor-grabbing",
+        dragging && "opacity-50 ring-2 ring-[var(--muhide-orange)]/50"
       )}
     >
       <div className="mb-1 flex items-start justify-between gap-2">
-        <h4 className="text-sm font-medium text-gray-900 leading-snug">
+        <h4 className="text-sm font-medium text-neutral-900 leading-snug">
           {opportunity.name}
         </h4>
-        <span className="shrink-0 text-sm font-semibold text-gray-700">
+        <span className="shrink-0 text-sm font-semibold text-neutral-700">
           {formatCurrency(opportunity.value)} SAR
         </span>
       </div>
       {opportunity.company_name && (
-        <div className="flex items-center gap-1 text-xs text-gray-500">
+        <div className="flex items-center gap-1 text-xs text-neutral-500">
           <Building2 className="h-3 w-3" />
           <span>{opportunity.company_name}</span>
         </div>
@@ -71,7 +71,7 @@ function OpportunityCard({
         </Badge>
       )}
       {opportunity.status === "lost" && opportunity.loss_reason && (
-        <p className="mt-1 text-xs text-red-500">{opportunity.loss_reason}</p>
+        <p className="mt-1 text-xs text-danger-500">{opportunity.loss_reason}</p>
       )}
     </div>
   );
@@ -108,13 +108,13 @@ function PipelineColumn({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       className={cn(
-        "flex w-[260px] shrink-0 flex-col rounded-xl border border-gray-200 bg-gray-50/80",
-        dragOver && "border-blue-400 bg-blue-50"
+        "flex w-[260px] shrink-0 flex-col rounded-xl border border-neutral-200 bg-neutral-50/80",
+        dragOver && "border-[var(--muhide-orange)]/50 bg-[var(--muhide-orange)]/10"
       )}
     >
-      <div className="flex items-center gap-2 border-b border-gray-200 px-3 py-2.5">
+      <div className="flex items-center gap-2 border-b border-neutral-200 px-3 py-2.5">
         <span className={cn("h-2.5 w-2.5 rounded-full", stage.color)} />
-        <span className="text-sm font-semibold text-gray-800">{stage.label}</span>
+        <span className="text-sm font-semibold text-neutral-800">{stage.label}</span>
         <Badge variant="outline" className="mr-auto text-xs">
           {opportunities.length}
         </Badge>
@@ -124,7 +124,7 @@ function PipelineColumn({
           <OpportunityCard key={opp.id} opportunity={opp} />
         ))}
         {opportunities.length === 0 && (
-          <p className="py-8 text-center text-xs text-gray-400">
+          <p className="py-8 text-center text-xs text-neutral-400">
             اسحب الفرصة هنا
           </p>
         )}
@@ -171,18 +171,18 @@ function CreateOpportunityModal() {
       <ModalContent title="إنشاء فرصة جديدة">
         <div className="flex flex-col gap-4 pt-2">
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">
+            <label className="mb-1 block text-xs font-medium text-neutral-600">
               الشركة
             </label>
             {selectedCompany ? (
-              <div className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-sm">
+              <div className="flex items-center justify-between rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm">
                 <span>{selectedCompany.name}</span>
                 <button
                   onClick={() => {
                     setSelectedCompany(null);
                     setCompanySearch("");
                   }}
-                  className="text-gray-400 hover:text-red-500"
+                  className="text-neutral-400 hover:text-danger-500"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -196,18 +196,18 @@ function CreateOpportunityModal() {
                   className="mb-1"
                 />
                 {searchResults?.items && searchResults.items.length > 0 && (
-                  <div className="max-h-40 overflow-y-auto rounded-md border border-gray-200 bg-white">
+                  <div className="max-h-40 overflow-y-auto rounded-md border border-neutral-200 bg-white">
                     {searchResults.items.slice(0, 6).map((c) => (
                       <button
                         key={c.id}
                         onClick={() =>
                           setSelectedCompany({ id: c.id, name: c.name_ar })
                         }
-                        className="w-full px-3 py-1.5 text-right text-sm hover:bg-gray-100"
+                        className="w-full px-3 py-1.5 text-right text-sm hover:bg-neutral-100"
                       >
                         {c.name_ar}
                         {c.cr_number && (
-                          <span className="mr-2 text-xs text-gray-400">
+                          <span className="mr-2 text-xs text-neutral-400">
                             {c.cr_number}
                           </span>
                         )}
@@ -219,7 +219,7 @@ function CreateOpportunityModal() {
             )}
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">
+            <label className="mb-1 block text-xs font-medium text-neutral-600">
               اسم الفرصة
             </label>
             <Input
@@ -229,7 +229,7 @@ function CreateOpportunityModal() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-600">
+            <label className="mb-1 block text-xs font-medium text-neutral-600">
               القيمة (SAR)
             </label>
             <Input
@@ -311,7 +311,7 @@ export function PipelineKanban() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center py-20 text-red-500">
+      <div className="flex items-center justify-center py-20 text-danger-500">
         فشل تحميل الفرص. {error.message}
       </div>
     );
@@ -319,7 +319,7 @@ export function PipelineKanban() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20 text-gray-400">
+      <div className="flex items-center justify-center py-20 text-neutral-400">
         جاري التحميل...
       </div>
     );
@@ -350,10 +350,10 @@ export function PipelineKanban() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">خط أنابيب المبيعات</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-xl font-bold text-neutral-900">خط أنابيب المبيعات</h1>
+          <p className="text-sm text-neutral-500">
             {openOpportunities.length} فرصة مفتوحة بقيمة{" "}
-            <span className="font-semibold text-gray-700">
+            <span className="font-semibold text-neutral-700">
               {formatCurrency(totalPipeline)} SAR
             </span>
           </p>
@@ -401,7 +401,7 @@ export function PipelineKanban() {
               <OpportunityCard key={opp.id} opportunity={opp} />
             ))}
             {wonOpportunities.length === 0 && (
-              <p className="py-8 text-center text-xs text-gray-400">
+              <p className="py-8 text-center text-xs text-neutral-400">
                 اسحب الفرصة هنا للإغلاق بالفوز
               </p>
             )}
@@ -421,11 +421,11 @@ export function PipelineKanban() {
               setCloseMode("lost");
             }
           }}
-          className="flex w-[260px] shrink-0 flex-col rounded-xl border border-red-200 bg-red-50/50"
+          className="flex w-[260px] shrink-0 flex-col rounded-xl border border-danger-200 bg-danger-50/50"
         >
-          <div className="flex items-center gap-2 border-b border-red-200 px-3 py-2.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
-            <span className="text-sm font-semibold text-red-800">
+          <div className="flex items-center gap-2 border-b border-danger-200 px-3 py-2.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-danger-500" />
+            <span className="text-sm font-semibold text-danger-800">
               مغلقة (خسارة)
             </span>
             <Badge variant="outline" className="mr-auto text-xs">
@@ -437,7 +437,7 @@ export function PipelineKanban() {
               <OpportunityCard key={opp.id} opportunity={opp} />
             ))}
             {lostOpportunities.length === 0 && (
-              <p className="py-8 text-center text-xs text-gray-400">
+              <p className="py-8 text-center text-xs text-neutral-400">
                 اسحب الفرصة هنا للإغلاق بالخسارة
               </p>
             )}
@@ -454,16 +454,16 @@ export function PipelineKanban() {
       >
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-0 shadow-xl">
-            <div className="border-b border-gray-200 px-4 py-3">
-              <Dialog.Title className="text-base font-semibold text-gray-900">
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-0 shadow-muhide-6">
+            <div className="border-b border-neutral-200 px-4 py-3">
+              <Dialog.Title className="text-base font-semibold text-neutral-900">
                 إغلاق بالفوز
               </Dialog.Title>
             </div>
             <div className="flex flex-col gap-3 p-4">
-              <p className="text-sm text-gray-600">{selectedOpp?.name}</p>
+              <p className="text-sm text-neutral-600">{selectedOpp?.name}</p>
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1 block text-xs font-medium text-neutral-600">
                   قيمة الصفقة (SAR)
                 </label>
                 <Input
@@ -501,16 +501,16 @@ export function PipelineKanban() {
       >
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-0 shadow-xl">
-            <div className="border-b border-gray-200 px-4 py-3">
-              <Dialog.Title className="text-base font-semibold text-gray-900">
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-0 shadow-muhide-6">
+            <div className="border-b border-neutral-200 px-4 py-3">
+              <Dialog.Title className="text-base font-semibold text-neutral-900">
                 إغلاق بخسارة
               </Dialog.Title>
             </div>
             <div className="flex flex-col gap-3 p-4">
-              <p className="text-sm text-gray-600">{selectedOpp?.name}</p>
+              <p className="text-sm text-neutral-600">{selectedOpp?.name}</p>
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1 block text-xs font-medium text-neutral-600">
                   سبب الخسارة
                 </label>
                 <Input
@@ -523,7 +523,7 @@ export function PipelineKanban() {
                 <Button
                   onClick={handleCloseLost}
                   disabled={closeLost.isPending}
-                  className="flex-1 bg-red-600 hover:bg-red-700"
+                  className="flex-1 bg-danger-600 hover:bg-danger-700"
                 >
                   {closeLost.isPending ? "..." : "تأكيد الخسارة"}
                 </Button>

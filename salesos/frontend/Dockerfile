@@ -1,31 +1,20 @@
-FROM node:20-alpine AS base
-
-FROM base AS deps
+FROM node:22-alpine AS build
 WORKDIR /app
-COPY package.json package-lock.json ./
-COPY packages/ packages/
-RUN npm install
-
-FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+COPY package*.json ./
+RUN npm ci --ignore-scripts
 COPY . .
 RUN npm run build
 
-FROM base AS runner
+FROM node:22-alpine AS production
 WORKDIR /app
-ENV NODE_ENV=production
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-USER nextjs
+# Copy standalone build (Next.js output: 'standalone')
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
+COPY --from=build /app/public ./public
 
 EXPOSE 3000
+ENV NODE_ENV=production
+ENV NEXT_PUBLIC_API_URL=http://backend:8000
 
-ENV HOSTNAME="0.0.0.0"
 CMD ["node", "server.js"]

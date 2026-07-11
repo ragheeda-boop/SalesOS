@@ -1,19 +1,24 @@
-export type Easing = 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'spring' | 'bounce'
+export type EasingName = 'ease-standard' | 'ease-out' | 'ease-in'
 
-export type MotionDuration = 50 | 100 | 150 | 200 | 250 | 300 | 400 | 500 | 700 | 1000
+export type MotionDuration = 120 | 200 | 400 | 600
 
 export interface MotionToken {
   duration: MotionDuration
-  easing: Easing
+  easing: string
   delay?: number
 }
 
+export const EASING = {
+  standard: 'cubic-bezier(0.2, 0, 0, 1)',
+  out: 'cubic-bezier(0, 0, 0.2, 1)',
+  in: 'cubic-bezier(0.4, 0, 1, 1)',
+} as const
+
 export const MOTION = {
-  instant: { duration: 50, easing: 'ease-out' } as MotionToken,
-  fast: { duration: 100, easing: 'ease-out' } as MotionToken,
-  normal: { duration: 200, easing: 'ease-in-out' } as MotionToken,
-  slow: { duration: 400, easing: 'ease' } as MotionToken,
-  expressive: { duration: 700, easing: 'spring' } as MotionToken,
+  fast: { duration: 120, easing: EASING.out } as MotionToken,
+  base: { duration: 200, easing: EASING.standard } as MotionToken,
+  slow: { duration: 400, easing: EASING.standard } as MotionToken,
+  xslow: { duration: 600, easing: EASING.standard } as MotionToken,
 
   transitions: {
     fade: 'opacity',
@@ -24,13 +29,13 @@ export const MOTION = {
   },
 
   presets: {
-    modalEnter: { duration: 200, easing: 'ease-out' } as MotionToken,
-    modalExit: { duration: 150, easing: 'ease-in' } as MotionToken,
-    cardHover: { duration: 150, easing: 'ease-out' } as MotionToken,
-    sidebarExpand: { duration: 250, easing: 'ease-in-out' } as MotionToken,
-    notificationEnter: { duration: 300, easing: 'spring' } as MotionToken,
-    pageTransition: { duration: 200, easing: 'ease-in-out' } as MotionToken,
-    tooltipShow: { duration: 100, easing: 'ease-out' } as MotionToken,
-    dropdownShow: { duration: 150, easing: 'ease-out' } as MotionToken,
+    modalEnter: { duration: 200, easing: EASING.out } as MotionToken,
+    modalExit: { duration: 120, easing: EASING.in } as MotionToken,
+    cardHover: { duration: 120, easing: EASING.out } as MotionToken,
+    sidebarExpand: { duration: 200, easing: EASING.standard } as MotionToken,
+    notificationEnter: { duration: 400, easing: EASING.out } as MotionToken,
+    pageTransition: { duration: 200, easing: EASING.standard } as MotionToken,
+    tooltipShow: { duration: 120, easing: EASING.out } as MotionToken,
+    dropdownShow: { duration: 200, easing: EASING.out } as MotionToken,
   },
 } as const

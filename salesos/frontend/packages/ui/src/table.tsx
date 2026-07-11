@@ -26,7 +26,7 @@ export function Table<TData>({ columns, data, loading, onRowClick, className }: 
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="sticky top-0 border-b bg-gray-50 px-4 py-3 text-left font-medium text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+                  className="sticky top-0 border-b border-[var(--border-default)] bg-[var(--bg-secondary)] px-4 py-3 text-left font-medium text-[var(--text-secondary)]"
                 >
                   {header.isPlaceholder
                     ? null
@@ -42,14 +42,14 @@ export function Table<TData>({ columns, data, loading, onRowClick, className }: 
               <tr key={i}>
                 {columns.map((_, j) => (
                   <td key={j} className="px-4 py-3">
-                    <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                    <div className="h-4 w-full animate-pulse rounded bg-[var(--bg-tertiary)]" />
                   </td>
                 ))}
               </tr>
             ))
           ) : table.getRowModel().rows.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+              <td colSpan={columns.length} className="px-4 py-8 text-center text-[var(--text-muted)]">
                 <div className="flex flex-col items-center gap-2">
                   <Loader2 className="h-5 w-5 animate-spin" />
                   <span>No results</span>
@@ -62,8 +62,8 @@ export function Table<TData>({ columns, data, loading, onRowClick, className }: 
                 key={row.id}
                 onClick={() => onRowClick?.(row.original)}
                 className={cn(
-                  'border-b transition-colors dark:border-gray-700',
-                  onRowClick && 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800'
+                  'border-b border-[var(--border-default)] transition-colors',
+                  onRowClick && 'cursor-pointer hover:bg-[var(--bg-secondary)]'
                 )}
               >
                 {row.getVisibleCells().map((cell) => (

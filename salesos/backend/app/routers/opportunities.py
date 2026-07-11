@@ -1,5 +1,5 @@
 """Opportunity REST API — CRUD, stage management, pipeline analytics."""
-
+import logging
 from datetime import date
 from typing import Optional
 
@@ -7,6 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from app.dependencies import get_current_tenant_id
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -50,12 +52,6 @@ class OpportunityResponse(BaseModel):
     updated_at: str
 
 
-class PipelineSummaryResponse(BaseModel):
-    stages: dict
-    win_rate: float
-    total_pipeline_value: float
-
-
 def _to_response(opp) -> OpportunityResponse:
     return OpportunityResponse(
         id=opp.id,
@@ -87,21 +83,27 @@ async def list_opportunities(
     offset: int = Query(0, ge=0),
 ):
     """List opportunities with optional filters."""
-    svc = getattr(request.app.state, "opportunity_service", None)
-    if not svc:
-        raise HTTPException(status_code=503, detail="Opportunity service not initialized")
-    from domains.commercial.opportunity.contracts.repository import OpportunityQuery
-    query = OpportunityQuery(
-        tenant_id=tenant_id,
-        stage=stage,
-        status=status,
-        company_id=company_id,
-        owner_id=owner_id,
-        limit=limit,
-        offset=offset,
-    )
-    result = await svc.query(query)
-    return [_to_response(o) for o in result.items]
+    try:
+        svc = getattr(request.app.state, "opportunity_service", None)
+        if not svc:
+            raise HTTPException(status_code=503, detail="Opportunity service not initialized")
+        from domains.commercial.opportunity.contracts.repository import OpportunityQuery
+        query = OpportunityQuery(
+            tenant_id=tenant_id,
+            stage=stage,
+            status=status,
+            company_id=company_id,
+            owner_id=owner_id,
+            limit=limit,
+            offset=offset,
+        )
+        result = await svc.query(query)
+        return [_to_response(o) for o in result.items]
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("list_opportunities failed: %s", exc)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/opportunities/{opportunity_id}", response_model=OpportunityResponse)
@@ -110,13 +112,21 @@ async def get_opportunity(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
 ):
-    svc = getattr(request.app.state, "opportunity_service", None)
-    if not svc:
-        raise HTTPException(status_code=503, detail="Opportunity service not initialized")
-    opp = await svc.get(opportunity_id)
-    if not opp:
-        raise HTTPException(status_code=404, detail="Opportunity not found")
-    return _to_response(opp)
+    try:
+        svc = getattr(request.app.state, "opportunity_service", None)
+        if not svc:
+            raise HTTPException(status_code=503, detail="Opportunity service not initialized")
+        opp = await svc.get(opportunity_id)
+        if not opp:
+            raise HTTPException(status_code=404, detail="Opportunity not found")
+        if getattr(opp, "tenant_id", None) != tenant_id:
+            raise HTTPException(status_code=404, detail="Opportunity not found")
+        return _to_response(opp)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("get_opportunity failed: %s", exc)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/opportunities", response_model=OpportunityResponse, status_code=201)
@@ -147,21 +157,29 @@ async def update_opportunity(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
 ):
-    svc = getattr(request.app.state, "opportunity_service", None)
-    if not svc:
-        raise HTTPException(status_code=503, detail="Opportunity service not initialized")
-    opp = await svc.get(opportunity_id)
-    if not opp:
-        raise HTTPException(status_code=404, detail="Opportunity not found")
-    if body.name is not None:
-        opp.name = body.name
-    if body.value is not None:
-        opp = await svc.update_value(opportunity_id, body.value)
-    if body.expected_close_date is not None:
-        opp.expected_close_date = body.expected_close_date
-    if body.description is not None:
-        opp.description = body.description
-    return _to_response(opp)
+    try:
+        svc = getattr(request.app.state, "opportunity_service", None)
+        if not svc:
+            raise HTTPException(status_code=503, detail="Opportunity service not initialized")
+        opp = await svc.get(opportunity_id)
+        if not opp:
+            raise HTTPException(status_code=404, detail="Opportunity not found")
+        if getattr(opp, "tenant_id", None) != tenant_id:
+            raise HTTPException(status_code=404, detail="Opportunity not found")
+        if body.name is not None:
+            opp.name = body.name
+        if body.value is not None:
+            opp = await svc.update_value(opportunity_id, body.value)
+        if body.expected_close_date is not None:
+            opp.expected_close_date = body.expected_close_date
+        if body.description is not None:
+            opp.description = body.description
+        return _to_response(opp)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("update_opportunity failed: %s", exc)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.patch("/opportunities/{opportunity_id}/stage", response_model=OpportunityResponse)
@@ -171,14 +189,22 @@ async def advance_stage(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
 ):
-    svc = getattr(request.app.state, "opportunity_service", None)
-    if not svc:
-        raise HTTPException(status_code=503, detail="Opportunity service not initialized")
     try:
+        svc = getattr(request.app.state, "opportunity_service", None)
+        if not svc:
+            raise HTTPException(status_code=503, detail="Opportunity service not initialized")
+        opp = await svc.get(opportunity_id)
+        if not opp or getattr(opp, "tenant_id", None) != tenant_id:
+            raise HTTPException(status_code=404, detail="Opportunity not found")
         opp = await svc.advance_stage(opportunity_id, body.stage)
         return _to_response(opp)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid stage transition")
+    except Exception as exc:
+        logger.error("advance_stage failed: %s", exc)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/opportunities/{opportunity_id}/close-won", response_model=OpportunityResponse)
@@ -188,14 +214,22 @@ async def close_won(
     won_amount: Optional[float] = None,
     tenant_id: str = Depends(get_current_tenant_id),
 ):
-    svc = getattr(request.app.state, "opportunity_service", None)
-    if not svc:
-        raise HTTPException(status_code=503, detail="Opportunity service not initialized")
     try:
+        svc = getattr(request.app.state, "opportunity_service", None)
+        if not svc:
+            raise HTTPException(status_code=503, detail="Opportunity service not initialized")
+        opp = await svc.get(opportunity_id)
+        if not opp or getattr(opp, "tenant_id", None) != tenant_id:
+            raise HTTPException(status_code=404, detail="Opportunity not found")
         opp = await svc.close_won(opportunity_id, won_amount)
         return _to_response(opp)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    except HTTPException:
+        raise
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid close operation")
+    except Exception as exc:
+        logger.error("close_won failed: %s", exc)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.post("/opportunities/{opportunity_id}/close-lost", response_model=OpportunityResponse)
@@ -205,22 +239,19 @@ async def close_lost(
     loss_reason: str = "",
     tenant_id: str = Depends(get_current_tenant_id),
 ):
-    svc = getattr(request.app.state, "opportunity_service", None)
-    if not svc:
-        raise HTTPException(status_code=503, detail="Opportunity service not initialized")
     try:
+        svc = getattr(request.app.state, "opportunity_service", None)
+        if not svc:
+            raise HTTPException(status_code=503, detail="Opportunity service not initialized")
+        opp = await svc.get(opportunity_id)
+        if not opp or getattr(opp, "tenant_id", None) != tenant_id:
+            raise HTTPException(status_code=404, detail="Opportunity not found")
         opp = await svc.close_lost(opportunity_id, loss_reason)
         return _to_response(opp)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@router.get("/pipeline/summary", response_model=PipelineSummaryResponse)
-async def pipeline_summary(
-    request: Request,
-    tenant_id: str = Depends(get_current_tenant_id),
-):
-    svc = getattr(request.app.state, "opportunity_service", None)
-    if not svc:
-        raise HTTPException(status_code=503, detail="Opportunity service not initialized")
-    return await svc.pipeline_summary(tenant_id)
+    except HTTPException:
+        raise
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid close operation")
+    except Exception as exc:
+        logger.error("close_lost failed: %s", exc)
+        raise HTTPException(status_code=500, detail="Internal server error")

@@ -1,5 +1,128 @@
 # Changelog
 
+## SalesOS Product v0.6 — Revenue Execution Platform (2026-07-11)
+
+### Release Tag: `v0.6.0`
+
+Wave 2 — Revenue Execution Platform. Transforms SalesOS from intelligence into commercial execution.
+
+### What's Included
+
+**Wave 2 Complete:**
+- **NBA Engine** — Decision pipeline with AI reasoning, feedback loop, explainable recommendations
+- **Opportunity Workspace** — Full lifecycle management with playbooks, deal health tracking
+- **Pipeline Intelligence** — Velocity, conversion rates, health map, forecast engine
+- **Meeting Intelligence** — Pre-meeting briefs, post-meeting summaries, sentiment analysis
+- **Email Intelligence** — Sentiment analysis, topic extraction, urgency detection
+- **Revenue Workspace** — Unified shell combining all Wave 2 components
+
+### Architecture Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Opportunity storage | First-class `opportunities` table | Opportunity is a first-class entity with its own lifecycle |
+| NBA storage | `opportunity_features` table | Reuses Feature Store caching, versioning, and confidence tracking |
+| NBA computation | Event-driven + Scheduled | Stage changes trigger immediate recompute; idle detection on schedule |
+| Activity model | Reuse Activity Runtime (`entity_type='opportunity'`) | Zero new infrastructure; all queries work out of box |
+| Workspace architecture | `createWorkspaceProvider` per workspace | Consistent with Wave 1 pattern |
+| Permissions | Extended `opportunity.*` + `nba:*` resources | No new permission framework needed |
+| AI reasoning | Hybrid rule + AI scoring | AI runs when rules < 0.7 or conflict; graceful degradation without AI key |
+
+### NBA Engine
+
+- **Decision Pipeline:** Signal → Normalization → Business Rules → Scoring → AI Reasoning → Risk Assessment → Confidence → Ranking → Recommendation → Feedback → Learning
+- **12 pipeline stages** with full trace on every NBA generation
+- **10+ business rules:** Stage-based, time-based, signal-triggered, health-based
+- **3 scoring models:** OpportunityScorer (7 weighted factors), UrgencyScorer, EffortEstimator
+- **6 risk detectors:** Stagnation, competition, engagement drop, stakeholder change, budget concern, timeline slip
+- **Explainability:** Every recommendation includes evidence trail, alternatives, confidence breakdown
+- **Feedback loop:** Accept/Dismiss/Complete with automatic rule weight adjustment
+- **Performance:** < 200ms rule-only, < 3s with AI (timeout + fallback)
+
+### Opportunity Workspace
+
+- Opportunity CRUD (list, create, update, delete, stage management)
+- NBA widget embedded in workspace context
+- Timeline widget (activities for this opportunity)
+- Company Snapshot (from Wave 1 Company Intelligence)
+- Deal Health indicators (healthy / at_risk / critical)
+- Playbook Engine — CRUD + assignment to opportunities
+
+### Pipeline Intelligence
+
+- Kanban view (drag & drop stage changes)
+- List view (sortable, filterable table)
+- Pipeline Analytics: Velocity, Win Rate, Conversion Rate per stage
+- Health Map: Traffic light visualization for all open opportunities
+- Forecast Engine: Best Case, Commit, Pipeline forecasts
+- Pipeline export (CSV, PDF)
+
+### Meeting Intelligence
+
+- Pre-Meeting Intelligence: Company Brief, Talking Points
+- During/Post-Meeting: Notes, Action Items
+- AI Meeting Intelligence: AI brief generation, Action Item extraction
+- Meeting data model + CRUD API
+- Integration with Activity Runtime
+
+### Email Intelligence
+
+- Sentiment analysis on inbound/outbound emails
+- Topic extraction and classification
+- Urgency detection and prioritization
+- Email data model + CRUD API
+- Gmail API connector + Outlook API connector
+
+### Revenue Workspace
+
+- Executive Summary: Target vs Forecast
+- Team Performance dashboard
+- AI Insights: At-Risk Deals, Coaching Recommendations
+- Unified shell combining NBA, Pipeline, Meeting, Email, Revenue Goals
+
+### Added
+- `opportunities` table with full lifecycle support
+- `opportunity_features` table for NBA scoring
+- `playbooks` table for playbook engine
+- `meetings` and `meeting_action_items` tables
+- `emails` and `email_intelligence` tables
+- `revenue_goals` table for target tracking
+- Platform Kernel: `contracts/ai/` and `contracts/revenue/` type definitions
+- 12 NBA API endpoints (GET/POST /opportunities/*, /nba/*, /pipeline/*)
+- Meeting Intelligence API (GET/POST /meetings/*)
+- Email Intelligence API (GET/POST /emails/*)
+- Revenue Dashboard API (GET /revenue/dashboard)
+- NBA Event Subscribers (opportunity events, time triggers)
+- Email Integration connectors (Gmail API, Outlook API)
+- 9 NBA frontend components (RecommendationCard, EvidencePanel, ConfidenceBadge, ImpactMeter, RiskPanel, AlternativeActions, FeedbackDialog, ActionLauncher, DecisionTimeline)
+- Pipeline Workspace components (KanbanBoard, ListView, HealthMap, ForecastPanel)
+- Meeting Workspace components (PreMeetingBrief, PostMeetingSummary, ActionItemTracker)
+- Email Workspace components (SentimentBadge, TopicTag, UrgencyIndicator)
+- Revenue Workspace shell (ExecutiveSummary, TeamPerformance, AIInsights)
+- Test infrastructure: NBA engine tests, API tests, component tests
+
+### Security
+- NBA endpoints require `nba:read` / `nba:update` / `nba:admin` permissions
+- Opportunity endpoints require `opportunity:*` permissions
+- All endpoints authenticated (JWT) + rate limited
+- Email integration uses OAuth2 with minimal scope
+- Calendar integration uses OAuth2 with minimal scope
+
+### Documentation
+- `docs/wave-2/01-REVENUE_EXECUTION_REVIEW.md` — Platform capability audit
+- `docs/wave-2/02-PLATFORM_KERNEL_DESIGN.md` — Platform Kernel architecture
+- `docs/wave-2/03-NBA_ARCHITECTURE.md` — NBA decision pipeline design
+- `docs/wave-2/04-NBA_BLUEPRINT.md` — NBA implementation blueprint
+- `docs/wave-2/05-NBA_CONTRACTS.md` — TypeScript/Pydantic contracts
+- `docs/wave-2/06-NBA_API_MAPPING.md` — REST API endpoint mapping
+- `docs/wave-2/07-NBA_COMPONENT_CATALOG.md` — Frontend component catalog
+- `docs/wave-2/08-NBA_IMPLEMENTATION_PLAN.md` — Sprint breakdown and risk analysis
+- `docs/wave-2/09-ARCHITECTURE_VALIDATION_REPORT.md` — Cross-document consistency audit
+- `docs/wave-2/10-WAVE2_RELEASE_NOTES.md` — Detailed release notes
+- `docs/wave-2/11-API_REFERENCE.md` — Full API documentation
+
+---
+
 ## SalesOS Product v0.5 — Execution Intelligence (2026-07-10)
 
 ### Release Tag: `v0.5.0`

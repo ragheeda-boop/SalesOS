@@ -18,7 +18,7 @@ export const LayoutHeader = forwardRef<HTMLElement, LayoutHeaderProps>(
       <header
         ref={ref}
         className={cn(
-          'sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-white px-4 dark:border-gray-700 dark:bg-gray-900',
+          'sticky top-0 z-sticky flex h-14 items-center gap-4 border-b border-[var(--border-default)] bg-[var(--bg-primary)] px-4',
           className
         )}
         {...props}
@@ -37,7 +37,7 @@ export const LayoutSidebar = forwardRef<HTMLDivElement, LayoutSidebarProps>(
     return (
       <div
         ref={ref}
-        className={cn('border-r bg-white dark:border-gray-700 dark:bg-gray-900', className)}
+        className={cn('border-r border-[var(--border-default)] bg-[var(--bg-primary)]', className)}
         {...props}
       >
         {children}

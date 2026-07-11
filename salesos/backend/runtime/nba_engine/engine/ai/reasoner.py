@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 logger = logging.getLogger("salesos.nba.ai")
@@ -42,22 +43,22 @@ class NBAReasoner:
         candidates: list[dict[str, Any]],
     ) -> list[dict[str, str]]:
         now = datetime.now(timezone.utc)
-        opp_name = opportunity.get("name", "")
-        stage = opportunity.get("stage", "")
+        opp_name = str(opportunity.get("name", ""))[:200]
+        stage = str(opportunity.get("stage", ""))
         value = opportunity.get("value", 0)
-        health = opportunity.get("health", "healthy")
-        company_name = company.get("name_ar") or company.get("name_en", "")
-        industry = company.get("industry", "")
+        health = str(opportunity.get("health", "healthy"))
+        company_name = str(company.get("name_ar") or company.get("name_en", ""))[:200]
+        industry = str(company.get("industry", ""))[:100]
         days_since = 0
         if activities:
             last_ts = activities[0].get("timestamp")
             if last_ts and isinstance(last_ts, datetime):
                 days_since = (now - last_ts).days
 
-        candidates_text = "\n".join(
-            f"{i+1}. {c['action']} — {c['reason']} (confidence: {c.get('score', 0):.0%})"
-            for i, c in enumerate(candidates)
-        )
+        safe_candidates = [
+            {k: str(v)[:200] for k, v in c.items() if k in ("action", "reason", "score")}
+            for c in candidates[:10]
+        ]
 
         return [
             {
@@ -72,7 +73,7 @@ class NBAReasoner:
                     "opportunity": {"name": opp_name, "stage": stage, "value": value, "health": health},
                     "company": {"name": company_name, "industry": industry},
                     "days_since_last_activity": days_since,
-                    "candidate_actions": candidates,
+                    "candidate_actions": safe_candidates,
                     "task": (
                         "1. Evaluate each candidate's relevance to this specific opportunity\n"
                         "2. Rank candidates by expected revenue impact\n"
@@ -86,18 +87,28 @@ class NBAReasoner:
         ]
 
     def _parse_response(self, response: Any) -> dict[str, Any]:
-        """Parse LLM response JSON."""
+        """Parse and validate LLM response JSON."""
         content = response
         if hasattr(response, "choices"):
             content = response.choices[0].message.content
         if isinstance(content, str):
             content = json.loads(content)
+
+        ranking = content.get("ranking", [])
+        if isinstance(ranking, list):
+            ranking = [r for r in ranking if isinstance(r, dict) and "action" in r][:10]
+
+        confidence = float(content.get("confidence", 0.5))
+        confidence = max(0.0, min(1.0, confidence))
+
+        explanation = str(content.get("explanation", ""))[:2000]
+        risks = content.get("risks", [])
+        if isinstance(risks, list):
+            risks = [str(r)[:200] for r in risks[:10]]
+
         return {
-            "ranking": content.get("ranking", []),
-            "explanation": content.get("explanation", ""),
-            "confidence": float(content.get("confidence", 0.5)),
-            "risks": content.get("risks", []),
+            "ranking": ranking,
+            "explanation": explanation,
+            "confidence": confidence,
+            "risks": risks,
         }
-
-
-from datetime import datetime, timezone

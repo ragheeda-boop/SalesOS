@@ -94,16 +94,16 @@ export function CopilotPanel({ open, onClose, entityType, entityId, context }: C
   if (!open) return null
 
   return (
-    <div className="fixed inset-y-0 left-0 z-40 flex w-96 flex-col border-l bg-white shadow-xl dark:border-gray-700 dark:bg-gray-900">
-      <div className="flex h-14 items-center justify-between border-b px-4 dark:border-gray-700">
+    <div className="fixed inset-y-0 left-0 z-40 flex w-96 flex-col border-l bg-white shadow-muhide-6 dark:border-neutral-700 dark:bg-neutral-900">
+      <div className="flex h-14 items-center justify-between border-b px-4 dark:border-neutral-700">
         <div className="flex items-center gap-2">
-          <Bot className="h-5 w-5 text-blue-600" />
-          <span className="font-semibold text-gray-900 dark:text-gray-100">المساعد الذكي</span>
-          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+          <Bot className="h-5 w-5 text-[var(--muhide-orange)]" />
+          <span className="font-semibold text-neutral-900 dark:text-neutral-100">المساعد الذكي</span>
+          <span className="rounded-full bg-info-100 px-2 py-0.5 text-[10px] font-medium text-info-700 dark:bg-info-900 dark:text-info-300">
             AI
           </span>
         </div>
-        <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800">
+        <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800">
           <X className="h-5 w-5" />
         </button>
       </div>
@@ -120,8 +120,8 @@ export function CopilotPanel({ open, onClose, entityType, entityId, context }: C
               className={cn(
                 "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
                 msg.role === "user"
-                  ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-                  : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                  ? "bg-info-100 text-info-700 dark:bg-info-900 dark:text-info-300"
+                  : "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300"
               )}
             >
               {msg.role === "user" ? <User className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
@@ -130,8 +130,8 @@ export function CopilotPanel({ open, onClose, entityType, entityId, context }: C
               className={cn(
                 "max-w-[80%] rounded-xl px-4 py-2.5 text-sm leading-relaxed",
                 msg.role === "user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-gray-100"
+                  ? "bg-[var(--muhide-orange)] text-white"
+                  : "bg-neutral-100 text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100"
               )}
             >
               {msg.content}
@@ -140,19 +140,19 @@ export function CopilotPanel({ open, onClose, entityType, entityId, context }: C
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <div className="border-t p-4 dark:border-gray-700">
+      <div className="border-t p-4 dark:border-neutral-700">
         <div className="flex gap-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
             placeholder="اسأل المساعد الذكي..."
-            className="flex-1 rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+            className="flex-1 rounded-lg border border-neutral-300 bg-neutral-50 px-4 py-2.5 text-sm outline-none focus:border-[var(--muhide-orange)] focus:ring-1 focus:ring-[var(--muhide-orange)] dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100"
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || loading}
-            className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--muhide-orange)] text-white hover:bg-orange-700 disabled:opacity-50"
           >
             <Send className="h-4 w-4" />
           </button>

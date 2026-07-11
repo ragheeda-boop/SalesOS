@@ -128,11 +128,11 @@ class PipelineAnalytics:
         }
 
     async def summary(self) -> dict[str, Any]:
-        """Combined pipeline summary."""
-        velocity = await self.velocity()
-        conversion = await self.conversion_rates()
-        health = await self.health_map()
-        forecast = await self.forecast()
+        """Combined pipeline summary with parallel queries."""
+        from asyncio import gather
+        velocity, conversion, health, forecast = await gather(
+            self.velocity(), self.conversion_rates(), self.health_map(), self.forecast()
+        )
 
         healthy_count = sum(1 for h in health if h["health"] == "healthy")
         at_risk_count = sum(1 for h in health if h["health"] == "at_risk")

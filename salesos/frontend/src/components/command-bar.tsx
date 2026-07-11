@@ -65,11 +65,11 @@ export function CommandBar({ open, onClose }: CommandBarProps) {
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]" onClick={onClose}>
       <div className="fixed inset-0 bg-black/50" />
       <div
-        className="relative w-full max-w-xl rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900"
+        className="relative w-full max-w-xl rounded-xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-3 border-b border-gray-200 px-4 dark:border-gray-700">
-          <Search className="h-5 w-5 text-gray-400" />
+        <div className="flex items-center gap-3 border-b border-neutral-200 px-4 dark:border-neutral-700">
+          <Search className="h-5 w-5 text-neutral-400" />
           <input
             ref={inputRef}
             value={query}
@@ -79,15 +79,15 @@ export function CommandBar({ open, onClose }: CommandBarProps) {
             }}
             onKeyDown={handleKeyDown}
             placeholder="اكتب أمر أو ابحث..."
-            className="h-12 flex-1 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400 dark:text-gray-100"
+            className="h-12 flex-1 bg-transparent text-sm text-neutral-900 outline-none placeholder:text-neutral-400 dark:text-neutral-100"
           />
-          <kbd className="rounded border border-gray-300 px-1.5 py-0.5 text-[10px] text-gray-500 dark:border-gray-600 dark:text-gray-400">
+          <kbd className="rounded border border-neutral-300 px-1.5 py-0.5 text-[10px] text-neutral-500 dark:border-neutral-600 dark:text-neutral-400">
             ESC
           </kbd>
         </div>
         <div className="max-h-80 overflow-y-auto p-2">
           {filteredCommands.length === 0 && (
-            <p className="px-3 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p className="px-3 py-8 text-center text-sm text-neutral-500 dark:text-neutral-400">
               لا توجد نتائج
             </p>
           )}
@@ -95,7 +95,7 @@ export function CommandBar({ open, onClose }: CommandBarProps) {
             const catCommands = filteredCommands.filter((c: Command) => (c.category || "عام") === category)
             return (
               <div key={category}>
-                <p className="px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <p className="px-3 py-2 text-[10px] font-medium uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
                   {category}
                 </p>
                 {catCommands.map((cmd: Command, i: number) => {
@@ -106,8 +106,8 @@ export function CommandBar({ open, onClose }: CommandBarProps) {
                       className={cn(
                         "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-right text-sm transition",
                         globalIndex === selectedIndex
-                          ? "bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
-                          : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800"
+                          ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)] dark:bg-[var(--muhide-orange)]/20 dark:text-orange-300"
+                          : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-800"
                       )}
                       onClick={() => {
                         execute(cmd.id)
@@ -118,11 +118,11 @@ export function CommandBar({ open, onClose }: CommandBarProps) {
                       <div className="flex-1 text-right">
                         <p>{cmd.label}</p>
                         {cmd.description && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{cmd.description}</p>
+                          <p className="text-xs text-neutral-500 dark:text-neutral-400">{cmd.description}</p>
                         )}
                       </div>
                       {cmd.shortcut && (
-                        <kbd className="rounded border border-gray-300 px-1.5 py-0.5 text-[10px] dark:border-gray-600">
+                        <kbd className="rounded border border-neutral-300 px-1.5 py-0.5 text-[10px] dark:border-neutral-600">
                           {cmd.shortcut}
                         </kbd>
                       )}

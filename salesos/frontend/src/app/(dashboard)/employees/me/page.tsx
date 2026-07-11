@@ -7,11 +7,11 @@ export default function MyEmployeePage() {
   const { data, isLoading } = useMy360();
 
   if (isLoading) {
-    return <div className="py-20 text-center text-gray-500">جاري التحميل...</div>;
+    return <div className="py-20 text-center text-neutral-500">جاري التحميل...</div>;
   }
 
   if (!data) {
-    return <div className="py-20 text-center text-gray-500">فشل تحميل البيانات</div>;
+    return <div className="py-20 text-center text-neutral-500">فشل تحميل البيانات</div>;
   }
 
   return <Employee360View employeeId={data.profile.id} />;

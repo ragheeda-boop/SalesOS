@@ -12,6 +12,10 @@
                        ├──────────────────────┤
                        │   Workflow Engine     │
                        ├──────────────────────┤
+                       │  Revenue Workspace    │  ← Wave 2: Unified shell
+                       ├──────────────────────┤
+                       │  NBA  │ Pipeline │ AI │  ← Wave 2: Decision + Intelligence
+                       ├──────────────────────┤
                        │  CRM  │  Search  │ AI │
                        ├──────────────────────┤
                        │  Company  │  Contact  │
@@ -47,6 +51,67 @@ docker compose up --build -d
 # Frontend:     http://localhost:3000
 ```
 
+## Wave 2 — Revenue Execution Platform
+
+SalesOS v0.6.0 introduces the **Revenue Execution Platform**, transforming intelligence into commercial action.
+
+### Wave 2 Components
+
+| Component | Description | API Prefix |
+|-----------|-------------|------------|
+| **NBA Engine** | Decision pipeline with AI reasoning, explainable recommendations, feedback loop | `/opportunities/{id}/nba` |
+| **Opportunity Workspace** | Full lifecycle management with playbooks, deal health tracking | `/opportunities` |
+| **Pipeline Intelligence** | Velocity, conversion rates, health map, forecast engine | `/pipeline` |
+| **Meeting Intelligence** | Pre-meeting briefs, post-meeting summaries, sentiment analysis | `/meetings` |
+| **Email Intelligence** | Sentiment analysis, topic extraction, urgency detection | `/emails` |
+| **Revenue Workspace** | Unified executive shell combining all Wave 2 components | `/revenue/dashboard` |
+
+### Key Features
+
+- **Explainable AI** — Every NBA recommendation includes evidence trail, confidence breakdown, and alternatives
+- **Hybrid Scoring** — Business rules + LLM reasoning; works without AI key (rule-only fallback)
+- **Feedback Loop** — Accept/dismiss recommendations; automatic rule weight adjustment weekly
+- **Performance** — NBA < 200ms rule-only, < 3s with AI; all pipeline metrics real-time
+- **Health Map** — Traffic light visualization across all open opportunities
+- **Meeting Intelligence** — AI-generated briefs and summaries in < 3s
+- **Email Intelligence** — Sentiment, topics, urgency from Gmail/Outlook integration
+
+### API Overview
+
+```
+GET  /api/v1/revenue/opportunities              — List opportunities
+GET  /api/v1/revenue/opportunities/{id}         — Get opportunity detail
+POST /api/v1/revenue/opportunities              — Create opportunity
+PUT  /api/v1/revenue/opportunities/{id}         — Update opportunity
+PATCH /api/v1/revenue/opportunities/{id}/stage  — Advance/revert stage
+
+GET  /api/v1/revenue/opportunities/{id}/nba     — Get NBA recommendation
+POST /api/v1/revenue/opportunities/{id}/nba/refresh — Force recompute
+POST /api/v1/revenue/opportunities/{id}/nba/accept  — Accept recommendation
+POST /api/v1/revenue/opportunities/{id}/nba/dismiss — Dismiss recommendation
+GET  /api/v1/revenue/opportunities/{id}/nba/history — NBA history
+
+GET  /api/v1/revenue/pipeline                  — Pipeline summary
+GET  /api/v1/revenue/pipeline/stages           — Stage metrics
+GET  /api/v1/revenue/pipeline/health           — Health map
+GET  /api/v1/revenue/pipeline/velocity         — Velocity metrics
+
+GET  /api/v1/revenue/meetings                  — List meetings
+POST /api/v1/revenue/meetings                  — Create meeting
+POST /api/v1/revenue/meetings/{id}/brief       — Generate pre-meeting brief
+POST /api/v1/revenue/meetings/{id}/summary     — Generate post-meeting summary
+
+GET  /api/v1/revenue/emails                    — List emails
+POST /api/v1/revenue/emails                    — Log email
+GET  /api/v1/revenue/emails/{id}/intelligence  — Get email intelligence
+
+GET  /api/v1/revenue/dashboard                 — Revenue dashboard
+```
+
+Full API documentation: [`docs/wave-2/11-API_REFERENCE.md`](docs/wave-2/11-API_REFERENCE.md)
+
+---
+
 ## Project Structure
 
 ```
@@ -58,7 +123,10 @@ salesos/
 │   │   │   ├── identity/   # Auth, users, tenants
 │   │   │   ├── company/    # Companies, branches, licenses, contacts
 │   │   │   ├── contact/
-│   │   │   └── search/
+│   │   │   ├── search/
+│   │   │   ├── revenue/    # ← Wave 2: Opportunities, Pipeline, NBA, Goals
+│   │   │   ├── meeting/    # ← Wave 2: Meeting Intelligence
+│   │   │   └── email/      # ← Wave 2: Email Intelligence
 │   │   └── alembic/        # Database migrations
 │   └── tests/
 ├── frontend/
@@ -70,7 +138,21 @@ salesos/
 │   ├── docker/             # Docker configs
 │   ├── k8s/                # Kubernetes manifests
 │   └── terraform/          # Infrastructure as Code
-└── docs/
+├── docs/
+│   └── wave-2/             # ← Wave 2 architecture + release docs
+│       ├── 01-REVENUE_EXECUTION_REVIEW.md
+│       ├── 02-PLATFORM_KERNEL_DESIGN.md
+│       ├── 03-NBA_ARCHITECTURE.md
+│       ├── 04-NBA_BLUEPRINT.md
+│       ├── 05-NBA_CONTRACTS.md
+│       ├── 06-NBA_API_MAPPING.md
+│       ├── 07-NBA_COMPONENT_CATALOG.md
+│       ├── 08-NBA_IMPLEMENTATION_PLAN.md
+│       ├── 09-ARCHITECTURE_VALIDATION_REPORT.md
+│       ├── 10-WAVE2_RELEASE_NOTES.md
+│       └── 11-API_REFERENCE.md
+└── packages/
+    └── platform/           # ← Platform Kernel: contracts, testing, shared
 ```
 
 ## Development
@@ -86,7 +168,7 @@ make reset      # Full environment reset
 
 ## Documentation
 
-Full architecture, implementation blueprint, and operations manuals are in `output/`:
+Full architecture, implementation blueprint, and operations manuals are in `output/` and `docs/`:
 
 | Document | Description |
 |----------|-------------|
@@ -94,6 +176,9 @@ Full architecture, implementation blueprint, and operations manuals are in `outp
 | `SALESOS_IMPLEMENTATION_BLUEPRINT.md` | Implementation specs, 15 CTO layers, ERD, API, sprint plan |
 | `SALESOS_ENGINEERING_OPERATIONS_MANUAL.md` | ADRs, engineering standards, PRDs, Sprint 1 checklist |
 | `SALESOS_PRODUCT_DELIVERY_PLAYBOOK.md` | Roadmap, pricing, DevOps, SRE, onboarding, metrics |
+| `docs/wave-2/10-WAVE2_RELEASE_NOTES.md` | Wave 2 detailed release notes |
+| `docs/wave-2/11-API_REFERENCE.md` | Wave 2 full API documentation |
+| `CHANGELOG.md` | Version history and release notes |
 
 ## License
 

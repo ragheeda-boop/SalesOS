@@ -2,31 +2,118 @@
 @tailwind components;
 @tailwind utilities;
 
+@import '@fontsource/viga/400.css';
+@import '@fontsource/ibm-plex-sans/400.css';
+@import '@fontsource/ibm-plex-sans/500.css';
+@import '@fontsource/ibm-plex-sans/600.css';
+@import '@fontsource/ibm-plex-sans/700.css';
+@import '@fontsource/ibm-plex-sans-arabic/400.css';
+@import '@fontsource/ibm-plex-sans-arabic/500.css';
+@import '@fontsource/ibm-plex-sans-arabic/600.css';
+@import '@fontsource/ibm-plex-sans-arabic/700.css';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/600.css';
+
 @layer base {
   :root {
-    --background: #F9FAFB;
-    --foreground: #111827;
-    --card: #FFFFFF;
-    --card-foreground: #111827;
-    --border: #E5E7EB;
-    --muted: #F3F4F6;
-    --muted-foreground: #6B7280;
+    --muhide-orange: #F57C1E;
+    --muhide-ink: #151214;
+    --muhide-espresso: #403D38;
+    --muhide-sand: #CCC6BA;
+    --muhide-paper: #FAFAFA;
+
+    --orange-50: #FFF3E6;
+    --orange-100: #FFE2BF;
+    --orange-200: #FFCE99;
+    --orange-300: #FFB870;
+    --orange-400: #FFA04A;
+    --orange-500: #F57C1E;
+    --orange-600: #D4660F;
+    --orange-700: #B35009;
+    --orange-800: #8F3C06;
+    --orange-900: #6E2A03;
+
+    --neutral-50: #F7F6F4;
+    --neutral-100: #EDEBE6;
+    --neutral-200: #D9D5CD;
+    --neutral-300: #BFB9AD;
+    --neutral-400: #A59E90;
+    --neutral-500: #8B8475;
+    --neutral-600: #706A5D;
+    --neutral-700: #565147;
+    --neutral-800: #3D3932;
+    --neutral-900: #26231E;
+
+    --text-primary: #26231E;
+    --text-secondary: #706A5D;
+    --text-muted: #A59E90;
+    --text-disabled: #BFB9AD;
+    --bg-primary: #FFFFFF;
+    --bg-secondary: #F7F6F4;
+    --bg-tertiary: #EDEBE6;
+    --border-default: #D9D5CD;
+    --border-hover: #BFB9AD;
+    --border-active: #F57C1E;
+    --border-disabled: #EDEBE6;
+
+    --font-display: 'Viga';
+    --font-ui: 'IBM Plex Sans';
+    --font-ui-arabic: 'IBM Plex Sans Arabic';
+    --font-mono: 'IBM Plex Mono';
+
+    --radius-sm: 2px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+    --radius-2xl: 16px;
+    --radius-full: 9999px;
+
+    --z-dropdown: 10;
+    --z-sticky: 20;
+    --z-banner: 30;
+    --z-overlay: 40;
+    --z-modal: 50;
+    --z-toast: 60;
   }
 
   .dark {
-    --background: #111827;
-    --foreground: #F9FAFB;
-    --card: #1F2937;
-    --card-foreground: #F9FAFB;
-    --border: #374151;
-    --muted: #374151;
-    --muted-foreground: #9CA3AF;
+    --text-primary: #EDEBE6;
+    --text-secondary: #A59E90;
+    --text-muted: #706A5D;
+    --text-disabled: #565147;
+    --bg-primary: #151214;
+    --bg-secondary: #26231E;
+    --bg-tertiary: #3D3932;
+    --border-default: #3D3932;
+    --border-hover: #565147;
+    --border-active: #F57C1E;
+    --border-disabled: #26231E;
   }
 }
 
 @layer base {
   body {
-    @apply bg-[var(--background)] text-[var(--foreground)];
-    font-family: 'Inter', 'Noto Sans Arabic', sans-serif;
+    @apply bg-[var(--bg-primary)] text-[var(--text-primary)];
+    font-family: var(--font-ui), var(--font-ui-arabic), sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display), var(--font-ui-arabic), sans-serif;
+  }
+
+  code, pre, kbd {
+    font-family: var(--font-mono), monospace;
+  }
+
+  [dir="rtl"] body {
+    font-family: var(--font-ui-arabic), var(--font-ui), sans-serif;
+  }
+
+  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3,
+  [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
+    font-family: var(--font-ui-arabic), var(--font-display), sans-serif;
   }
 }

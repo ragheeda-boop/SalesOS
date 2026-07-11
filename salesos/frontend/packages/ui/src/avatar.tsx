@@ -22,7 +22,7 @@ export const Avatar = forwardRef<HTMLSpanElement, AvatarProps>(
       <AvatarPrimitive.Root
         ref={ref}
         className={cn(
-          'relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700',
+          'relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--bg-secondary)]',
           avatarSizes[size],
           className
         )}
@@ -34,8 +34,8 @@ export const Avatar = forwardRef<HTMLSpanElement, AvatarProps>(
         />
         <AvatarPrimitive.Fallback
           className={cn(
-            'flex h-full w-full items-center justify-center font-medium text-gray-600 dark:text-gray-300',
-            !src && 'bg-gray-200 dark:bg-gray-700'
+            'flex h-full w-full items-center justify-center font-medium text-[var(--text-muted)]',
+            !src && 'bg-[var(--bg-secondary)]'
           )}
         >
           {fallback}

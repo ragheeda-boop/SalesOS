@@ -1,0 +1,1 @@
+export { RecentActivityWidget } from './RecentActivityContainer'
