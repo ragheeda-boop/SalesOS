@@ -1,6 +1,16 @@
 node_modules
 .next
 .env
+.env.*
 .git
 .gitignore
 *.local
+docs/
+PRODUCT_*.md
+README.md
+nginx.conf
+docker-compose.yml
+tsconfig.test.json
+tsconfig.tsbuildinfo
+jest.config.js
+jest.setup.ts

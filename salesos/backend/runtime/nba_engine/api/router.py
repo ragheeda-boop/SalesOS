@@ -4,12 +4,18 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
-from app.dependencies import get_current_tenant_id
+from app.dependencies import get_current_tenant_id, require_permission_dep
+from app.common.cache import cached, make_cache_key
+from app.common.rate_limit import rate_limit_dep
+from app.common.redis_client import AsyncRedisClient
+from sdk.permissions import PermissionAction
 from runtime.nba_engine import NBAEngine
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(rate_limit_dep("nba", 30, 60))]
+)
 
 
 def _to_nba_response(nba) -> dict:
@@ -55,10 +61,12 @@ class NBAFeedbackRequest(BaseModel):
 
 
 @router.get("/opportunities/{opportunity_id}/nba", response_model=NBAResponse)
+@cached("nba:recommendations", ttl=120)
 async def get_nba(
     opportunity_id: str,
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "nba")),
 ):
     """Get the current Next Best Action for an opportunity."""
     try:
@@ -81,6 +89,7 @@ async def refresh_nba(
     opportunity_id: str,
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "nba")),
 ):
     """Force recompute the Next Best Action for an opportunity."""
     try:
@@ -90,6 +99,12 @@ async def refresh_nba(
         nba = await engine.recompute(opportunity_id, tenant_id)
         if not nba:
             raise HTTPException(status_code=404, detail="Opportunity not found")
+        _redis = AsyncRedisClient()
+        stale_key = make_cache_key(tenant_id, "nba:recommendations", {
+            "opportunity_id": opportunity_id,
+            "tenant_id": tenant_id,
+        })
+        await _redis.delete(stale_key)
         return _to_nba_response(nba)
     except HTTPException:
         raise
@@ -104,6 +119,7 @@ async def record_nba_feedback(
     body: NBAFeedbackRequest,
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "nba")),
 ):
     """Record user feedback on an NBA recommendation."""
     try:

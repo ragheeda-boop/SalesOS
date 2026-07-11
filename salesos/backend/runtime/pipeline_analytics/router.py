@@ -4,18 +4,23 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_db_session
+from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from app.common.rate_limit import rate_limit_dep
+from sdk.permissions import PermissionAction
 from runtime.pipeline_analytics import PipelineAnalytics
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(rate_limit_dep("pipeline", 20, 60))]
+)
 
 
 @router.get("/pipeline/summary")
 async def get_pipeline_summary(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "pipeline")),
 ):
     try:
         analytics = PipelineAnalytics(db, tenant_id)
@@ -29,6 +34,7 @@ async def get_pipeline_summary(
 async def get_pipeline_velocity(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "pipeline")),
 ):
     try:
         analytics = PipelineAnalytics(db, tenant_id)
@@ -42,6 +48,7 @@ async def get_pipeline_velocity(
 async def get_pipeline_conversion(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "pipeline")),
 ):
     try:
         analytics = PipelineAnalytics(db, tenant_id)
@@ -55,6 +62,7 @@ async def get_pipeline_conversion(
 async def get_pipeline_health(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "pipeline")),
 ):
     try:
         analytics = PipelineAnalytics(db, tenant_id)
@@ -68,6 +76,7 @@ async def get_pipeline_health(
 async def get_pipeline_forecast(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "pipeline")),
 ):
     try:
         analytics = PipelineAnalytics(db, tenant_id)

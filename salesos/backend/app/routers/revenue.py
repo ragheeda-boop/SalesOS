@@ -6,18 +6,25 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_db_session
+from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from app.common.cache import cached
+from app.common.rate_limit import rate_limit_dep
+from sdk.permissions import PermissionAction
 from runtime.pipeline_analytics import PipelineAnalytics
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(rate_limit_dep("revenue", 15, 60))]
+)
 
 
 @router.get("/revenue/dashboard")
+@cached("revenue:dashboard", ttl=60)
 async def revenue_dashboard(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "revenue")),
 ):
     """Unified revenue dashboard: pipeline summary, active opportunities, recent activity."""
     try:

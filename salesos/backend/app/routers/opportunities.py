@@ -6,11 +6,15 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
-from app.dependencies import get_current_tenant_id
+from app.dependencies import get_current_tenant_id, require_permission_dep
+from app.common.rate_limit import rate_limit_dep
+from sdk.permissions import PermissionAction
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(
+    dependencies=[Depends(rate_limit_dep("opportunity", 60, 60))]
+)
 
 
 class OpportunityCreateRequest(BaseModel):
@@ -81,6 +85,7 @@ async def list_opportunities(
     owner_id: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "opportunity")),
 ):
     """List opportunities with optional filters."""
     try:
@@ -111,6 +116,7 @@ async def get_opportunity(
     opportunity_id: str,
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "opportunity")),
 ):
     try:
         svc = getattr(request.app.state, "opportunity_service", None)
@@ -134,6 +140,7 @@ async def create_opportunity(
     body: OpportunityCreateRequest,
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "opportunity")),
 ):
     svc = getattr(request.app.state, "opportunity_service", None)
     if not svc:
@@ -156,6 +163,7 @@ async def update_opportunity(
     body: OpportunityUpdateRequest,
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "opportunity")),
 ):
     try:
         svc = getattr(request.app.state, "opportunity_service", None)
@@ -188,6 +196,7 @@ async def advance_stage(
     body: OpportunityStageChangeRequest,
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "opportunity")),
 ):
     try:
         svc = getattr(request.app.state, "opportunity_service", None)
@@ -213,6 +222,7 @@ async def close_won(
     request: Request,
     won_amount: Optional[float] = None,
     tenant_id: str = Depends(get_current_tenant_id),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "opportunity")),
 ):
     try:
         svc = getattr(request.app.state, "opportunity_service", None)
@@ -238,6 +248,7 @@ async def close_lost(
     request: Request,
     loss_reason: str = "",
     tenant_id: str = Depends(get_current_tenant_id),
+    _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "opportunity")),
 ):
     try:
         svc = getattr(request.app.state, "opportunity_service", None)
