@@ -130,5 +130,8 @@ class Settings(BaseSettings):
     # API Keys
     api_key_expiry_days: int = 365
 
+    # Demo Mode
+    demo_mode: bool = False
+
 
 settings = Settings()

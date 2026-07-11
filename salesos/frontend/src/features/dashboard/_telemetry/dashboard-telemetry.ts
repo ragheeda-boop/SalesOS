@@ -12,7 +12,7 @@ const events: TelemetryEvent[] = []
 
 export const dashboardTelemetry = {
   start(measure: Measure, widgetId?: string) {
-    if (typeof performance === 'undefined') return { end: () => {} }
+    if (typeof performance === 'undefined' || typeof performance.mark !== 'function') return { end: () => {} }
     const start = performance.now()
     const label = widgetId ? `${measure}:${widgetId}` : measure
     performance.mark(`${label}:start`)

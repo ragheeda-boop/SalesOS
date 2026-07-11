@@ -26,7 +26,7 @@ describe('monitoring-init', () => {
 
   it('registers axios interceptors', () => {
     const originalNodeEnv = process.env.NODE_ENV
-    Object.defineProperty(process.env, 'NODE_ENV', { value: 'production', configurable: true })
+    process.env.NODE_ENV = 'production'
 
     const { initMonitoring } = require('../monitoring-init')
     const api = require('../api').default
@@ -35,12 +35,12 @@ describe('monitoring-init', () => {
 
     expect(api.interceptors.request.use).toHaveBeenCalled()
     expect(api.interceptors.response.use).toHaveBeenCalled()
-    Object.defineProperty(process.env, 'NODE_ENV', { value: originalNodeEnv, configurable: true })
+    process.env.NODE_ENV = originalNodeEnv
   })
 
   it('only initializes once', () => {
     const originalNodeEnv = process.env.NODE_ENV
-    Object.defineProperty(process.env, 'NODE_ENV', { value: 'production', configurable: true })
+    process.env.NODE_ENV = 'production'
 
     const { initMonitoring } = require('../monitoring-init')
     const api = require('../api').default
@@ -49,12 +49,12 @@ describe('monitoring-init', () => {
     initMonitoring()
 
     expect(api.interceptors.request.use).toHaveBeenCalledTimes(1)
-    Object.defineProperty(process.env, 'NODE_ENV', { value: originalNodeEnv, configurable: true })
+    process.env.NODE_ENV = originalNodeEnv
   })
 
   it('does not initialize in non-production', () => {
     const originalNodeEnv = process.env.NODE_ENV
-    Object.defineProperty(process.env, 'NODE_ENV', { value: 'development', configurable: true })
+    process.env.NODE_ENV = 'development'
 
     const { initMonitoring } = require('../monitoring-init')
     const api = require('../api').default
@@ -63,6 +63,6 @@ describe('monitoring-init', () => {
 
     expect(api.interceptors.request.use).not.toHaveBeenCalled()
 
-    Object.defineProperty(process.env, 'NODE_ENV', { value: originalNodeEnv, configurable: true })
+    process.env.NODE_ENV = originalNodeEnv
   })
 })
