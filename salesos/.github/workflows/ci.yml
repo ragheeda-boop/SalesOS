@@ -99,9 +99,76 @@ jobs:
       - name: Run tests
         run: cd frontend && npm run test
 
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Check for forbidden files
+        run: |
+          forbidden=0
+          for pattern in '*.env' '*.key' '*.pem' 'secrets.*' 'credentials*' '*.p12'; do
+            files=$(git ls-files -- "$pattern" 2>/dev/null || true)
+            if [ -n "$files" ]; then
+              echo "::error::Forbidden pattern '$pattern' found: $files"
+              forbidden=1
+            fi
+          done
+          if [ "$forbidden" = "1" ]; then
+            echo "Forbidden files detected — these must not be committed."
+            exit 1
+          fi
+          echo "No forbidden files detected."
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+      - name: npm audit
+        run: |
+          cd frontend
+          npm audit --audit-level=moderate || true
+      - name: Upload npm audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: frontend/npm-audit-report.txt
+
+  arch-compliance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run architecture compliance check
+        shell: pwsh
+        run: |
+          $result = & "${{ github.workspace }}/scripts/arch-compliance.ps1" -JsonOnly
+          $report = $result | ConvertFrom-Json
+          Write-Host "Overall Compliance: $($report.overall_compliance)%"
+          Write-Host "Target: $($report.summary.target_compliance)%"
+          if ($report.overall_compliance -lt $report.summary.target_compliance) {
+            Write-Host "::error::Architecture compliance $($report.overall_compliance)% is below target $($report.summary.target_compliance)%"
+            exit 1
+          }
+          Write-Host "::notice::Architecture compliance $($report.overall_compliance)% meets target"
+      - name: Upload compliance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arch-compliance-report
+          path: reports/arch-compliance-report.json
+
   build-and-push:
     if: github.ref == 'refs/heads/main'
-    needs: [lint-backend, lint-frontend, test-backend, test-frontend]
+    needs: [lint-backend, lint-frontend, test-backend, test-frontend, security-scan, arch-compliance]
     runs-on: ubuntu-latest
     permissions:
       contents: read

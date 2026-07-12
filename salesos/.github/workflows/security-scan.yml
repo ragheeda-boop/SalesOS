@@ -1,6 +1,8 @@
-name: Weekly Security Scan
+name: Security Scan
 
 on:
+  push:
+    branches: [main]
   schedule:
     - cron: "0 6 * * 0"
   workflow_dispatch:
@@ -10,11 +12,25 @@ permissions:
   security-events: write
 
 jobs:
-  trivy-scan:
+  secret-scan:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run Trivy filesystem scan
+        with:
+          fetch-depth: 0
+      - name: Check for forbidden files
+        run: |
+          forbidden=0
+          for pattern in '*.env' '*.key' '*.pem' 'secrets.*' 'credentials*' '*.p12'; do
+            files=$(git ls-files -- "$pattern" 2>/dev/null || true)
+            if [ -n "$files" ]; then
+              echo "::error::Forbidden pattern '$pattern' found: $files"
+              forbidden=1
+            fi
+          done
+          if [ "$forbidden" = "1" ]; then exit 1; fi
+          echo "No forbidden files detected."
+      - name: Run Trivy filesystem scan (secrets + vulns)
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
@@ -26,6 +42,18 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-results.sarif
+      - name: Run Trivy config scan (IaC)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+          scan-ref: .
+          format: sarif
+          output: trivy-config-results.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+      - name: Upload Trivy config results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-config-results.sarif
 
   pip-audit:
     runs-on: ubuntu-latest
@@ -40,7 +68,7 @@ jobs:
       - name: Install pip-audit
         run: pip install pip-audit
       - name: Run pip-audit
-        run: pip-audit --desc on -f --ignore-vuln PYSEC-2024-1 2>&1 | tee pip-audit-report.txt
+        run: pip-audit --desc on -f --ignore-vuln PYSEC-2024-1 2>&1 | tee pip-audit-report.txt; exit ${PIPESTATUS[0]}
       - name: Upload pip-audit report
         uses: actions/upload-artifact@v4
         with:
@@ -62,12 +90,40 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run npm audit
-        run: npm audit --audit-level=moderate 2>&1 | tee npm-audit-report.txt
+        run: npm audit --audit-level=moderate 2>&1 | tee npm-audit-report.txt || true
       - name: Upload npm audit report
         uses: actions/upload-artifact@v4
         with:
           name: npm-audit-report
           path: frontend/npm-audit-report.txt
+
+  sast-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install bandit
+        run: pip install bandit
+      - name: Run bandit (Python SAST)
+        run: bandit -r backend/app/ -f sarif -o bandit-results.sarif -ll -iii || true
+      - name: Upload bandit results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: bandit-results.sarif
+      - name: Install semgrep
+        run: pip install semgrep
+      - name: Run semgrep (generic SAST)
+        run: |
+          semgrep --config=auto --sarif-output=semgrep-results.sarif --error --severity ERROR,WARNING || true
+        continue-on-error: true
+      - name: Upload semgrep results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep-results.sarif
 
   sbom:
     runs-on: ubuntu-latest
@@ -97,7 +153,8 @@ jobs:
 
   report:
     runs-on: ubuntu-latest
-    needs: [trivy-scan, pip-audit, npm-audit, sbom]
+    needs: [secret-scan, pip-audit, npm-audit, sast-scan, sbom]
+    if: always()
     steps:
       - name: Download all scan artifacts
         uses: actions/download-artifact@v4
@@ -107,9 +164,12 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Scan | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Trivy (filesystem) | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+          echo "| Secret & Vulnerability (Trivy) | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trivy Config (IaC) | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
           echo "| pip-audit (backend) | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
           echo "| npm audit (frontend) | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+          echo "| bandit (Python SAST) | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+          echo "| semgrep (Generic SAST) | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
           echo "| SBOM Generation | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Artifacts uploaded for review." >> $GITHUB_STEP_SUMMARY

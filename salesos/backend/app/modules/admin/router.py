@@ -3,18 +3,21 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import require_role_dep
+from app.dependencies import get_db_session, require_role_dep
 
-from .repositories import (
-    InMemoryAICostRepository,
-    InMemoryFeatureFlagRepository,
-    InMemoryHealthRepository,
-    InMemoryInvoiceRepository,
-    InMemoryJobRepository,
-    InMemoryLicenseRepository,
-    InMemoryPlanRepository,
+from .db_models import FeatureFlagModel, LicenseModel, PlanModel
+
+from .pg_repositories import (
+    PostgresAICostRepository,
+    PostgresFeatureFlagRepository,
+    PostgresHealthRepository,
+    PostgresInvoiceRepository,
+    PostgresJobRepository,
+    PostgresLicenseRepository,
+    PostgresPlanRepository,
 )
 from .schemas import (
     AICostResponse,
@@ -52,13 +55,20 @@ router = APIRouter(
     dependencies=[Depends(require_role_dep("admin"))],
 )
 
-_plan_repo = InMemoryPlanRepository()
-_license_repo = InMemoryLicenseRepository()
-_invoice_repo = InMemoryInvoiceRepository()
-_flag_repo = InMemoryFeatureFlagRepository()
-_job_repo = InMemoryJobRepository()
-_ai_repo = InMemoryAICostRepository()
-_health_repo = InMemoryHealthRepository()
+
+class AdminRepositories:
+    def __init__(self, db: AsyncSession):
+        self.plans = PostgresPlanRepository(db)
+        self.licenses = PostgresLicenseRepository(db)
+        self.invoices = PostgresInvoiceRepository(db)
+        self.flags = PostgresFeatureFlagRepository(db)
+        self.jobs = PostgresJobRepository(db)
+        self.ai = PostgresAICostRepository(db)
+        self.health = PostgresHealthRepository(db)
+
+
+async def get_admin_repos(db: AsyncSession = Depends(get_db_session)) -> AdminRepositories:
+    return AdminRepositories(db)
 
 
 # ─── Internal state ──────────────────────────────────────────────
@@ -272,8 +282,8 @@ async def get_tenant_usage(tenant_id: str):
 
 
 @router.get("/plans", response_model=list[PlanResponse])
-async def list_plans():
-    plans = await _plan_repo.list()
+async def list_plans(repos: AdminRepositories = Depends(get_admin_repos)):
+    plans = await repos.plans.list()
     return [PlanResponse(
         id=p.id, name=p.name, tier=p.tier,
         price_monthly=p.price_monthly, price_yearly=p.price_yearly,
@@ -284,13 +294,12 @@ async def list_plans():
 
 
 @router.post("/plans", response_model=PlanResponse, status_code=201)
-async def create_plan(body: PlanCreate):
-    from .models import Plan
-    plan = Plan(id=uuid.uuid4(), name=body.name, tier=body.tier.value,
-                price_monthly=body.price_monthly, price_yearly=body.price_yearly,
-                max_users=body.max_users, max_storage_mb=body.max_storage_mb,
-                max_api_calls=body.max_api_calls, features=body.features)
-    created = await _plan_repo.create(plan)
+async def create_plan(body: PlanCreate, repos: AdminRepositories = Depends(get_admin_repos)):
+    plan = PlanModel(id=uuid.uuid4(), name=body.name, tier=body.tier.value,
+                     price_monthly=body.price_monthly, price_yearly=body.price_yearly,
+                     max_users=body.max_users, max_storage_mb=body.max_storage_mb,
+                     max_api_calls=body.max_api_calls, features=body.features)
+    created = await repos.plans.create(plan)
     return PlanResponse(
         id=created.id, name=created.name, tier=created.tier,
         price_monthly=created.price_monthly, price_yearly=created.price_yearly,
@@ -301,9 +310,9 @@ async def create_plan(body: PlanCreate):
 
 
 @router.put("/plans/{plan_id}", response_model=PlanResponse)
-async def update_plan(plan_id: uuid.UUID, body: PlanUpdate):
+async def update_plan(plan_id: uuid.UUID, body: PlanUpdate, repos: AdminRepositories = Depends(get_admin_repos)):
     data = body.model_dump(exclude_none=True)
-    plan = await _plan_repo.update(plan_id, data)
+    plan = await repos.plans.update(plan_id, data)
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
     return PlanResponse(
@@ -319,11 +328,11 @@ async def update_plan(plan_id: uuid.UUID, body: PlanUpdate):
 
 
 @router.get("/licenses", response_model=list[LicenseResponse])
-async def list_licenses():
-    licenses = await _license_repo.list()
+async def list_licenses(repos: AdminRepositories = Depends(get_admin_repos)):
+    licenses = await repos.licenses.list()
     result = []
     for lic in licenses:
-        plan = await _plan_repo.get(lic.plan_id)
+        plan = await repos.plans.get(lic.plan_id)
         result.append(LicenseResponse(
             id=lic.id, tenant_id=lic.tenant_id,
             tenant_name=_resolve_tenant_name(str(lic.tenant_id)),
@@ -336,16 +345,15 @@ async def list_licenses():
 
 
 @router.post("/licenses", response_model=LicenseResponse, status_code=201)
-async def create_license(body: LicenseCreate):
-    from .models import License
+async def create_license(body: LicenseCreate, repos: AdminRepositories = Depends(get_admin_repos)):
     now = datetime.now(timezone.utc)
-    lic = License(
+    lic = LicenseModel(
         id=uuid.uuid4(), tenant_id=body.tenant_id, plan_id=body.plan_id,
         starts_at=body.starts_at or now,
         ends_at=body.ends_at,
     )
-    created = await _license_repo.create(lic)
-    plan = await _plan_repo.get(created.plan_id)
+    created = await repos.licenses.create(lic)
+    plan = await repos.plans.get(created.plan_id)
     return LicenseResponse(
         id=created.id, tenant_id=created.tenant_id,
         tenant_name=_resolve_tenant_name(str(created.tenant_id)),
@@ -415,8 +423,8 @@ async def deactivate_admin_user(user_id: str):
 
 
 @router.get("/billing/invoices", response_model=list[InvoiceResponse])
-async def list_invoices(tenant_id: str | None = Query(None)):
-    invoices = await _invoice_repo.list_invoices(tenant_id)
+async def list_invoices(tenant_id: str | None = Query(None), repos: AdminRepositories = Depends(get_admin_repos)):
+    invoices = await repos.invoices.list_invoices(tenant_id)
     return [InvoiceResponse(
         id=inv.id, tenant_id=inv.tenant_id,
         tenant_name=_resolve_tenant_name(str(inv.tenant_id)),
@@ -428,8 +436,8 @@ async def list_invoices(tenant_id: str | None = Query(None)):
 
 
 @router.get("/billing/transactions", response_model=list[TransactionResponse])
-async def list_transactions(tenant_id: str | None = Query(None)):
-    txs = await _invoice_repo.list_transactions(tenant_id)
+async def list_transactions(tenant_id: str | None = Query(None), repos: AdminRepositories = Depends(get_admin_repos)):
+    txs = await repos.invoices.list_transactions(tenant_id)
     return [TransactionResponse(
         id=tx.id, tenant_id=tx.tenant_id,
         tenant_name=_resolve_tenant_name(str(tx.tenant_id)),
@@ -444,8 +452,8 @@ async def list_transactions(tenant_id: str | None = Query(None)):
 
 
 @router.get("/feature-flags", response_model=list[FeatureFlagResponse])
-async def list_feature_flags():
-    flags = await _flag_repo.list()
+async def list_feature_flags(repos: AdminRepositories = Depends(get_admin_repos)):
+    flags = await repos.flags.list()
     return [FeatureFlagResponse(
         id=f.id, key=f.key, name=f.name, description=f.description,
         enabled=f.enabled, is_global=f.is_global,
@@ -454,14 +462,13 @@ async def list_feature_flags():
 
 
 @router.post("/feature-flags", response_model=FeatureFlagResponse, status_code=201)
-async def create_feature_flag(body: FeatureFlagCreate):
-    from .models import FeatureFlag
-    existing = await _flag_repo.get_by_key(body.key)
+async def create_feature_flag(body: FeatureFlagCreate, repos: AdminRepositories = Depends(get_admin_repos)):
+    existing = await repos.flags.get_by_key(body.key)
     if existing:
         raise HTTPException(status_code=409, detail=f"Flag with key '{body.key}' already exists")
-    flag = FeatureFlag(id=uuid.uuid4(), key=body.key, name=body.name,
+    flag = FeatureFlagModel(id=uuid.uuid4(), key=body.key, name=body.name,
                        description=body.description, enabled=body.enabled)
-    created = await _flag_repo.create(flag)
+    created = await repos.flags.create(flag)
     return FeatureFlagResponse(
         id=created.id, key=created.key, name=created.name,
         description=created.description, enabled=created.enabled,
@@ -471,9 +478,9 @@ async def create_feature_flag(body: FeatureFlagCreate):
 
 
 @router.put("/feature-flags/{flag_id}", response_model=FeatureFlagResponse)
-async def update_feature_flag(flag_id: uuid.UUID, body: FeatureFlagUpdate):
+async def update_feature_flag(flag_id: uuid.UUID, body: FeatureFlagUpdate, repos: AdminRepositories = Depends(get_admin_repos)):
     data = body.model_dump(exclude_none=True)
-    flag = await _flag_repo.update(flag_id, data)
+    flag = await repos.flags.update(flag_id, data)
     if not flag:
         raise HTTPException(status_code=404, detail="Feature flag not found")
     return FeatureFlagResponse(
@@ -484,8 +491,8 @@ async def update_feature_flag(flag_id: uuid.UUID, body: FeatureFlagUpdate):
 
 
 @router.get("/feature-flags/{flag_id}/tenants", response_model=list[FeatureFlagTenantResponse])
-async def get_feature_flag_tenants(flag_id: uuid.UUID):
-    tenants = await _flag_repo.get_tenants_for_flag(flag_id)
+async def get_feature_flag_tenants(flag_id: uuid.UUID, repos: AdminRepositories = Depends(get_admin_repos)):
+    tenants = await repos.flags.get_tenants_for_flag(flag_id)
     result = []
     for t in tenants:
         tid_str = str(t["tenant_id"])
@@ -499,10 +506,10 @@ async def get_feature_flag_tenants(flag_id: uuid.UUID):
 
 
 @router.put("/feature-flags/{flag_id}/tenants/{tenant_id}")
-async def toggle_flag_for_tenant(flag_id: uuid.UUID, tenant_id: str, body: FeatureFlagUpdate):
+async def toggle_flag_for_tenant(flag_id: uuid.UUID, tenant_id: str, body: FeatureFlagUpdate, repos: AdminRepositories = Depends(get_admin_repos)):
     if body.enabled is None:
         raise HTTPException(status_code=400, detail="enabled field required")
-    flag = await _flag_repo.set_tenant_override(flag_id, tenant_id, body.enabled)
+    flag = await repos.flags.set_tenant_override(flag_id, tenant_id, body.enabled)
     if not flag:
         raise HTTPException(status_code=404, detail="Feature flag not found")
     return {"message": f"Flag {'enabled' if body.enabled else 'disabled'} for tenant {tenant_id}"}
@@ -517,8 +524,9 @@ async def list_jobs(
     job_type: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
+    repos: AdminRepositories = Depends(get_admin_repos),
 ):
-    jobs, total = await _job_repo.list(status=status, job_type=job_type, page=page, page_size=page_size)
+    jobs, total = await repos.jobs.list(status=status, job_type=job_type, page=page, page_size=page_size)
     return [JobResponse(
         id=j.id, type=j.type, status=j.status, progress=j.progress,
         tenant_id=j.tenant_id, created_by=j.created_by, payload=j.payload,
@@ -530,8 +538,8 @@ async def list_jobs(
 
 
 @router.get("/jobs/{job_id}", response_model=JobDetailResponse)
-async def get_job(job_id: str):
-    job = await _job_repo.get(job_id)
+async def get_job(job_id: str, repos: AdminRepositories = Depends(get_admin_repos)):
+    job = await repos.jobs.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return JobDetailResponse(
@@ -546,8 +554,8 @@ async def get_job(job_id: str):
 
 
 @router.post("/jobs/{job_id}/retry")
-async def retry_job(job_id: str):
-    job = await _job_repo.retry(job_id)
+async def retry_job(job_id: str, repos: AdminRepositories = Depends(get_admin_repos)):
+    job = await repos.jobs.retry(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found or not in failed state")
     return {"message": "Job queued for retry", "job_id": job_id}
@@ -563,8 +571,9 @@ async def list_ai_costs(
     days: int = Query(30, ge=1, le=365),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
+    repos: AdminRepositories = Depends(get_admin_repos),
 ):
-    records, total = await _ai_repo.list(model=model, tenant_id=tenant_id, days=days, page=page, page_size=page_size)
+    records, total = await repos.ai.list(model=model, tenant_id=tenant_id, days=days, page=page, page_size=page_size)
     return [AICostResponse(
         id=r.id, model=r.model, tenant_id=r.tenant_id,
         tenant_name=_resolve_tenant_name(str(r.tenant_id)) if r.tenant_id else "System",
@@ -575,14 +584,14 @@ async def list_ai_costs(
 
 
 @router.get("/ai/summary", response_model=AICostSummary)
-async def get_ai_cost_summary(days: int = Query(30, ge=1, le=365)):
-    summary = await _ai_repo.get_summary(days=days)
+async def get_ai_cost_summary(days: int = Query(30, ge=1, le=365), repos: AdminRepositories = Depends(get_admin_repos)):
+    summary = await repos.ai.get_summary(days=days)
     return AICostSummary(**summary)
 
 
 @router.get("/ai/usage", response_model=AIUsageResponse)
-async def get_ai_usage(days: int = Query(30, ge=1, le=365)):
-    usage = await _ai_repo.get_usage(days=days)
+async def get_ai_usage(days: int = Query(30, ge=1, le=365), repos: AdminRepositories = Depends(get_admin_repos)):
+    usage = await repos.ai.get_usage(days=days)
     return AIUsageResponse(**usage)
 
 
@@ -590,8 +599,8 @@ async def get_ai_usage(days: int = Query(30, ge=1, le=365)):
 
 
 @router.get("/health/detailed", response_model=DetailedHealthResponse)
-async def get_detailed_health():
-    health = await _health_repo.get_detailed_health()
+async def get_detailed_health(repos: AdminRepositories = Depends(get_admin_repos)):
+    health = await repos.health.get_detailed_health()
     return DetailedHealthResponse(
         overall_status=health["overall_status"],
         uptime_seconds=health["uptime_seconds"],
@@ -600,8 +609,8 @@ async def get_detailed_health():
 
 
 @router.get("/health/history", response_model=list[HealthHistoryEntry])
-async def get_health_history(hours: int = Query(24, ge=1, le=168)):
-    history = await _health_repo.get_history(hours=hours)
+async def get_health_history(hours: int = Query(24, ge=1, le=168), repos: AdminRepositories = Depends(get_admin_repos)):
+    history = await repos.health.get_history(hours=hours)
     return [HealthHistoryEntry(
         timestamp=h.timestamp,
         overall_status=h.overall_status,
