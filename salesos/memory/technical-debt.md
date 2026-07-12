@@ -9,7 +9,7 @@
 
 | ID | Area | Description | Impact | Severity | Effort | Owner | Status | Resolution Plan |
 |----|------|-------------|--------|----------|--------|-------|--------|-----------------|
-| TD-001 | Data Layer | In-memory repositories → PostgreSQL | Some repos (Company, Scoring, Workflow, Timeline) already on PostgreSQL; Contact still in-memory | High | 2 sprints | Backend | Partially Complete | Contact PostgreSQL repo implemented — `app/modules/contact/repositories.py` + `search_repository.py` |
+| TD-001 | Data Layer | In-memory repositories → PostgreSQL | All domain repos migrated: Company, Scoring, Workflow, Timeline, Contact, Admin (7 entities), Audit, Telemetry | High | 2 sprints | Backend | Resolved ✅ 2026-07-12 | Contact repos + Admin PostgreSQL (Plan, License, Invoice, FeatureFlag, Job, AICost, Health) + Telemetry switched from InMemory to PostgresTelemetryRepository + Audit already on PostgresAuditRepository |
 | TD-002 | Infrastructure | Event bus → Kafka | No durable event streaming; limited scalability for cross-domain events | Medium | 2 sprints | Architecture | Open | Migrate event bus to Kafka with dead-letter queues and event replay |
 | TD-003 | Quality | Test coverage at ~93% (target 85%) | Coverage target exceeded; monitoring and customer-success now covered | Medium | Ongoing | QA | Resolved ✅ 2026-07-12 | Coverage reached 93% — 207 suites, 2054 tests, 0 failures, 101 new tests in this session |
 | TD-004 | Config | Hardcoded configurations | Environment-specific values embedded in source; difficult to manage per-env | Low | 3 days | Backend | Open | Extract all hardcoded values to environment variables or config files |
@@ -34,6 +34,8 @@
 | TD-R7 | Frontend | `any` types in production code (29 remaining) | 2026-07-12 | Replaced all 29 `any` types with specific types across 13 files |
 | TD-R8 | Quality | Unit test coverage (93%, exceeded 85%) | 2026-07-12 | 207 suites, 2054 tests, 0 failures — 101 new tests in session |
 | TD-R9 | Data Layer | Contact domain PostgreSQL repos | 2026-07-12 | ContactRepository + ContactSearchRepository implemented for standalone Contact module |
+| TD-R10 | Data Layer | Admin module PostgreSQL repos | 2026-07-12 | 7 Postgres repos (Plan, License, Invoice, FeatureFlag, Job, AICost, Health) with SQLAlchemy ORM models |
+| TD-R11 | Data Layer | Telemetry PostgreSQL migration | 2026-07-12 | Router switched from InMemoryTelemetryRepository to PostgresTelemetryRepository; fixed active_users() to use proper repository method |
 
 ---
 

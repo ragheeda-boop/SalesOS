@@ -64,7 +64,7 @@ async def lifespan(app: FastAPI):
                 traces_sample_rate=settings.sentry_traces_sample_rate,
             )
             if app.state.logger:
-                app.state.logger.info("Sentry initialized: dsn=%s env=%s", settings.sentry_dsn[:20] + "...", settings.env)
+                app.state.logger.info(f"Sentry initialized: dsn={settings.sentry_dsn[:20]}... env={settings.env}")
 
         app.state.logger = StructuredLogger("salesos.api")
 
@@ -78,7 +78,7 @@ async def lifespan(app: FastAPI):
         cache_ok = await cache_service.health()
         app.state.cache = cache_service
         if app.state.logger:
-            app.state.logger.info("Cache service %s", "connected" if cache_ok else "unavailable")
+            app.state.logger.info(f"Cache service {'connected' if cache_ok else 'unavailable'}")
 
         # ── Event Runtime ──
         if settings.event_bus_type == "kafka":

@@ -35,6 +35,7 @@ secrets.yaml
 secrets.*
 *.key
 *.pem
+credentials*
 
 # Docker
 .docker/
