@@ -335,7 +335,7 @@ try:
     _redis = aioredis.Redis.from_url(settings.redis_url)
 except Exception:
     pass
-app.add_middleware(RateLimitMiddleware, rate=settings.rate_limit_default, window=settings.rate_limit_window, redis_client=_redis)
+app.add_middleware(RateLimitMiddleware, window=settings.rate_limit_window, redis_client=_redis)
 
 # Audit middleware
 from app.modules.audit.middleware import AuditMiddleware

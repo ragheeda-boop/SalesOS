@@ -11,10 +11,10 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from app.dependencies import get_current_tenant_id
+from app.dependencies import get_current_tenant_id, verify_token
 from runtime.search_runtime import SearchStrategy
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(verify_token)])
 
 
 @router.get("/search")

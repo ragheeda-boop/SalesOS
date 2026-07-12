@@ -13,13 +13,14 @@ Endpoints:
   GET  /api/v1/decision/metrics          — Decision engine metrics
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from pydantic import BaseModel, Field
 from typing import Optional
 
-from app.dependencies import get_current_tenant_id
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from pydantic import BaseModel, Field
 
-router = APIRouter()
+from app.dependencies import get_current_tenant_id, verify_token
+
+router = APIRouter(dependencies=[Depends(verify_token)])
 
 
 class EvaluateRequest(BaseModel):

@@ -21,15 +21,50 @@ def _get_client_ip(scope: dict) -> str:
     client = scope.get("client")
     return client[0] if client else "unknown"
 
-class RateLimitMiddleware:
-    """Rate limiter — Redis-backed in production, in-memory fallback for dev."""
 
-    def __init__(self, app, rate: int = 60, window: int = 60, redis_client=None):
+_SEARCH_ENRICH_PREFIXES = ("/api/v1/search", "/api/v1/entity-resolution", "/api/v1/data-fabric")
+
+
+class RateLimitMiddleware:
+    """Per-IP sliding-window rate limiter with tiered limits.
+
+    Redis-backed when available, in-memory fallback for dev/staging.
+    Enforces global per-IP limits with different tiers for path categories.
+    """
+
+    _CLEANUP_INTERVAL = 300  # seconds between stale-entry sweeps
+
+    def __init__(self, app, window: int = 60, redis_client=None):
         self.app = app
-        self.rate = rate
         self.window = window
         self._redis = redis_client
         self._local: dict[str, list[float]] = {}
+        self._last_cleanup: float = time.time()
+
+    def _cleanup_local(self, now: float) -> None:
+        """Remove entries older than 1 hour to prevent memory leaks."""
+        if now - self._last_cleanup < self._CLEANUP_INTERVAL:
+            return
+        cutoff = now - 3600
+        stale_keys = [k for k, v in self._local.items() if not v or v[-1] < cutoff]
+        for k in stale_keys:
+            del self._local[k]
+        self._last_cleanup = now
+
+    def _select_tier(self, path: str, auth_header: str) -> int:
+        """Return the per-minute rate limit for the given request path."""
+        health_paths = ("/health", "/health/live", "/health/ready")
+        if path in health_paths or path.startswith(("/docs", "/redoc")):
+            return settings.rate_limit_health
+        if path.startswith("/api/v1/identity"):
+            return settings.rate_limit_identity
+        if any(path.startswith(p) for p in _SEARCH_ENRICH_PREFIXES):
+            return settings.rate_limit_search
+        if path.startswith("/api/v1/"):
+            if auth_header.startswith("Bearer "):
+                return settings.rate_limit_authenticated
+            return settings.rate_limit_anonymous
+        return settings.rate_limit_default
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
@@ -38,45 +73,45 @@ class RateLimitMiddleware:
         request = Request(scope, receive)
         client_ip = request.client.host if request.client else "unknown"
         path = request.url.path
-
-        if path == "/health" or path.startswith("/docs") or path.startswith("/redoc"):
-            tier_rate = settings.rate_limit_health
-        elif path.startswith("/api/v1/identity"):
-            tier_rate = settings.rate_limit_identity
-        elif path.startswith("/api/v1/"):
-            auth = request.headers.get("authorization", "")
-            tier_rate = settings.rate_limit_authenticated if auth.startswith("Bearer ") else settings.rate_limit_anonymous
-        else:
-            tier_rate = settings.rate_limit_default
-
-        key = f"ratelimit:{client_ip}:{path}"
+        auth_header = request.headers.get("authorization", "")
+        tier_rate = self._select_tier(path, auth_header)
         now = time.time()
 
+        # Key by IP only — prevents bypass via path variation
+        key = f"ratelimit:{client_ip}"
+
+        # --- Redis path ---
         if self._redis:
             try:
                 count = await self._redis.incr(key)
                 if count == 1:
                     await self._redis.expire(key, self.window)
                 if count > tier_rate:
+                    retry_after = self.window
                     response = JSONResponse(
                         status_code=429,
-                        content={"detail": "Too many requests", "retry_after": self.window},
+                        content={"detail": "Too many requests", "retry_after": retry_after},
+                        headers={"Retry-After": str(retry_after)},
                     )
                     await response(scope, receive, send)
                     return
                 await self.app(scope, receive, send)
                 return
             except Exception:
-                pass
+                pass  # fall through to in-memory
 
+        # --- In-memory sliding window path ---
+        self._cleanup_local(now)
         window_start = now - self.window
         timestamps = self._local.get(key, [])
         timestamps = [t for t in timestamps if t > window_start]
 
         if len(timestamps) >= tier_rate:
+            retry_after = max(int(self.window - (now - timestamps[0])), 1)
             response = JSONResponse(
                 status_code=429,
-                content={"detail": "Too many requests", "retry_after": self.window},
+                content={"detail": "Too many requests", "retry_after": retry_after},
+                headers={"Retry-After": str(retry_after)},
             )
             await response(scope, receive, send)
             return

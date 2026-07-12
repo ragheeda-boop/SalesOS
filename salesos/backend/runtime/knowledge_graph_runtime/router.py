@@ -12,13 +12,14 @@ Endpoints:
   GET  /api/v1/graph/metrics                  — Graph engine metrics
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from pydantic import BaseModel
 from typing import Optional
 
-from app.dependencies import get_current_tenant_id, get_db_session
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from pydantic import BaseModel
 
-router = APIRouter()
+from app.dependencies import get_current_tenant_id, get_db_session, verify_token
+
+router = APIRouter(dependencies=[Depends(verify_token)])
 
 
 @router.post("/graph/populate/{company_id}")
@@ -131,6 +132,7 @@ async def custom_graph_query(
 ):
     """General-purpose graph query returning connected entities."""
     import uuid
+
     from sqlalchemy import text as sa_text
 
     result = {"entity_type": entity_type, "items": [], "total": 0}
@@ -194,8 +196,9 @@ async def companies_without_activity(
     db=Depends(get_db_session),
 ):
     """Find companies with no activity in N days."""
+    from datetime import datetime, timedelta, timezone
+
     from sqlalchemy import text as sa_text
-    from datetime import datetime, timezone, timedelta
 
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 

@@ -1,11 +1,12 @@
 """Seed Neo4j graph with demo companies and relationships."""
-from neo4j import GraphDatabase
 import os
 import random
 
+from neo4j import GraphDatabase
+
 URI = os.getenv("NEO4J_URI", "bolt://neo4j:7687")
 USER = os.getenv("NEO4J_USER", "neo4j")
-PASS = os.getenv("NEO4J_PASSWORD", "salesos_neo4j_dev")
+PASS = os.environ["NEO4J_PASSWORD"]
 
 INDUSTRIES = ["Construction", "Healthcare", "Manufacturing", "Technology", "Real Estate",
               "Energy", "Logistics", "Food & Beverage", "Retail", "Telecom"]

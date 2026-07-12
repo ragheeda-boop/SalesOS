@@ -26,6 +26,15 @@ out/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
+.env.staging.local
+
+# Secrets & Keys
+secrets.yaml
+secrets.*
+*.key
+*.pem
 
 # Docker
 .docker/
