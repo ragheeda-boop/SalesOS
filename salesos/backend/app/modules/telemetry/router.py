@@ -6,13 +6,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_tenant_id, get_current_user_id, get_db_session, verify_token
 
-from .service import TelemetryService, InMemoryTelemetryRepository
+from .repository import PostgresTelemetryRepository
+from .service import TelemetryService
 
 router = APIRouter()
 
 
-def get_service(request: Request) -> TelemetryService:
-    repo = InMemoryTelemetryRepository()
+async def get_service(request: Request, db: AsyncSession = Depends(get_db_session)) -> TelemetryService:
+    repo = PostgresTelemetryRepository(db)
     return TelemetryService(repository=repo)
 
 

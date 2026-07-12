@@ -43,6 +43,14 @@ class TelemetryRepository(ABC):
     @abstractmethod
     async def get_all_events(self, tenant_id: str) -> list[TelemetryEvent]: ...
 
+    @abstractmethod
+    async def get_all_events_in_range(
+        self,
+        tenant_id: str | None = None,
+        from_date: datetime | None = None,
+        to_date: datetime | None = None,
+    ) -> list[TelemetryEvent]: ...
+
 
 class InMemoryTelemetryRepository(TelemetryRepository):
     def __init__(self):
@@ -114,6 +122,21 @@ class InMemoryTelemetryRepository(TelemetryRepository):
 
     async def get_all_events(self, tenant_id: str) -> list[TelemetryEvent]:
         return [e for e in self._events if e.tenant_id == tenant_id]
+
+    async def get_all_events_in_range(
+        self,
+        tenant_id: str | None = None,
+        from_date: datetime | None = None,
+        to_date: datetime | None = None,
+    ) -> list[TelemetryEvent]:
+        filtered = self._events
+        if tenant_id is not None:
+            filtered = [e for e in filtered if e.tenant_id == tenant_id]
+        if from_date:
+            filtered = [e for e in filtered if e.timestamp and e.timestamp >= from_date]
+        if to_date:
+            filtered = [e for e in filtered if e.timestamp and e.timestamp <= to_date]
+        return filtered
 
 
 class TelemetryService:
@@ -287,7 +310,10 @@ class TelemetryService:
         weekly: set[str] = set()
         monthly: set[str] = set()
 
-        for e in self._all_events():
+        all_events = await self.repository.get_all_events_in_range(
+            to_date=now,
+        )
+        for e in all_events:
             if not e.timestamp:
                 continue
             if e.timestamp >= dau_cutoff:
@@ -303,9 +329,6 @@ class TelemetryService:
             "mau": len(monthly),
             "period_days": days,
         }
-
-    def _all_events(self) -> list[TelemetryEvent]:
-        return getattr(self.repository, "_events", [])
 
     @staticmethod
     def _format_duration(seconds: float) -> str:
