@@ -2,11 +2,11 @@
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from app.dependencies import get_current_tenant_id
+from app.dependencies import get_current_tenant_id, verify_token
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(verify_token)])
 
 
 @router.get("/features/{company_id}")

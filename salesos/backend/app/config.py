@@ -62,13 +62,14 @@ class Settings(BaseSettings):
     neo4j_connection_acquisition_timeout: int = 30
     neo4j_max_transaction_retry_time: int = 10
 
-    # Rate limiting
+    # Rate limiting (requests per window)
     rate_limit_default: int = 60
     rate_limit_window: int = 60
     rate_limit_health: int = 120
     rate_limit_identity: int = 10
-    rate_limit_authenticated: int = 60
+    rate_limit_authenticated: int = 100
     rate_limit_anonymous: int = 20
+    rate_limit_search: int = 30
 
     # CORS
     cors_allow_methods: str = "GET,POST,PUT,PATCH,DELETE,OPTIONS"

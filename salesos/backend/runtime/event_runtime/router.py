@@ -2,10 +2,10 @@
 
 from fastapi import APIRouter, Depends, Request
 
-from app.dependencies import get_current_tenant_id
+from app.dependencies import get_current_tenant_id, verify_token
 from runtime.event_runtime import EventRuntime
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(verify_token)])
 
 
 @router.get("/event-runtime/stats")

@@ -5,9 +5,9 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from app.dependencies import get_current_tenant_id
+from app.dependencies import get_current_tenant_id, verify_token
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(verify_token)])
 
 
 class IngestRequest(BaseModel):
@@ -33,10 +33,10 @@ def _import_scrapers() -> None:
     if SCRAPER_REGISTRY:
         return
     from runtime.data_fabric_runtime.scrapers.balady import BaladyScraper
-    from runtime.data_fabric_runtime.scrapers.taqeem import TaqeemScraper
-    from runtime.data_fabric_runtime.scrapers.ncnp import NcnpScraper
     from runtime.data_fabric_runtime.scrapers.najiz import NajizScraper
+    from runtime.data_fabric_runtime.scrapers.ncnp import NcnpScraper
     from runtime.data_fabric_runtime.scrapers.rega import RegaScraper
+    from runtime.data_fabric_runtime.scrapers.taqeem import TaqeemScraper
     register_scraper("balady", BaladyScraper)
     register_scraper("taqeem", TaqeemScraper)
     register_scraper("ncnp", NcnpScraper)

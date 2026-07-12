@@ -7,9 +7,9 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from app.dependencies import get_current_tenant_id
+from app.dependencies import get_current_tenant_id, verify_token
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(verify_token)])
 
 
 # ── Request / Response schemas ───────────────────────────────────
