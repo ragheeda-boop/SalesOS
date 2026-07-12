@@ -7,6 +7,7 @@ import { useCreateCompany } from "@/lib/hooks/mutationHooks"
 import { useDebounce } from "@salesos/hooks"
 import { Input, Badge, Button, Spinner, Select, Modal, ModalTrigger, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@salesos/ui"
 import { Search, Plus, Building2, ArrowLeft, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
+import { ErrorFallback } from "@/components/foundation/error-boundary"
 
 const STATUS_OPTIONS = [
   { label: "الكل", value: "" },
@@ -28,7 +29,7 @@ export default function CompaniesPage() {
   if (debouncedQuery) params.q = debouncedQuery
   if (statusFilter) params.status = statusFilter
 
-  const { data, isLoading, isError } = useCompanySearch(params)
+  const { data, isLoading, isError, error, refetch } = useCompanySearch(params)
   const createCompany = useCreateCompany()
 
   const totalPages = data ? Math.max(1, Math.ceil(data.total / 20)) : 1
@@ -142,7 +143,15 @@ export default function CompaniesPage() {
               </tr>
             ) : isError ? (
               <tr>
-                <td colSpan={5} className="px-4 py-12 text-center text-danger-500">فشل تحميل البيانات</td>
+                <td colSpan={5} className="px-4 py-12">
+                  <ErrorFallback
+                    title="فشل تحميل البيانات"
+                    message={(error as Error)?.message || "تأكد من تشغيل الخادم الخلفي"}
+                    onRetry={() => refetch()}
+                    showDetails={process.env.NODE_ENV === "development"}
+                    errorDetails={String(error)}
+                  />
+                </td>
               </tr>
             ) : !data || data.items.length === 0 ? (
               <tr>

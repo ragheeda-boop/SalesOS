@@ -5,25 +5,27 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@salesos/ui"
 import { Menu, X, LayoutDashboard, Building2, Users, DollarSign, Search, Settings, Workflow, MessageSquareText, Activity, Shield, User } from "lucide-react"
-
-const navItems = [
-  { href: "/dashboard", label: "لوحة المعلومات", icon: LayoutDashboard },
-  { href: "/companies", label: "الشركات", icon: Building2 },
-  { href: "/contacts", label: "جهات الاتصال", icon: Users },
-  { href: "/opportunities", label: "الفرص", icon: DollarSign },
-  { href: "/search", label: "البحث", icon: Search },
-  { href: "/automation", label: "الأتمتة", icon: Workflow },
-  { href: "/rag", label: "المساعد الذكي", icon: MessageSquareText },
-  { href: "/monitoring", label: "المراقبة", icon: Activity },
-  { href: "/settings", label: "الإعدادات", icon: Settings },
-  { href: "/admin", label: "الإدارة", icon: Shield },
-]
+import { useTranslation } from "@/lib/i18n"
 
 export function MobileNav() {
   const [open, setOpen] = useState(false)
   const pathname = usePathname()
+  const { t, dir } = useTranslation()
 
   const close = useCallback(() => setOpen(false), [])
+
+  const navItems = [
+    { href: "/dashboard", key: "nav.dashboard", icon: LayoutDashboard },
+    { href: "/companies", key: "nav.companies", icon: Building2 },
+    { href: "/contacts", key: "nav.contacts", icon: Users },
+    { href: "/opportunities", key: "nav.opportunities", icon: DollarSign },
+    { href: "/search", key: "nav.search", icon: Search },
+    { href: "/automation", key: "nav.workflows", icon: Workflow },
+    { href: "/rag", key: "nav.rag", icon: MessageSquareText },
+    { href: "/monitoring", key: "nav.monitoring", icon: Activity },
+    { href: "/settings", key: "nav.settings", icon: Settings },
+    { href: "/admin", key: "nav.admin", icon: Shield },
+  ]
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -41,11 +43,17 @@ export function MobileNav() {
 
   useEffect(() => { close() }, [pathname, close])
 
+  const slideAnim = dir === "rtl" ? "animate-slide-in-right" : "animate-slide-in-left"
+  const fabPosition = dir === "rtl" ? "start-4" : "end-4"
+
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--muhide-orange)] text-white shadow-muhide-4 md:hidden"
+        className={cn(
+          "fixed bottom-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--muhide-orange)] text-white shadow-muhide-4 md:hidden",
+          fabPosition
+        )}
         aria-label="فتح القائمة"
         aria-expanded={open}
       >
@@ -60,7 +68,11 @@ export function MobileNav() {
             aria-hidden="true"
           />
           <aside
-            className="absolute left-0 top-0 bottom-0 w-72 max-w-[80vw] bg-[var(--bg-primary)] shadow-muhide-6 animate-slide-in-right overflow-y-auto"
+            className={cn(
+              "absolute top-0 bottom-0 w-72 max-w-[80vw] bg-[var(--bg-primary)] shadow-muhide-6 overflow-y-auto",
+              "start-0",
+              slideAnim
+            )}
             role="dialog"
             aria-modal="true"
             aria-label="قائمة التنقل"
@@ -79,6 +91,7 @@ export function MobileNav() {
               {navItems.map((item) => {
                 const Icon = item.icon
                 const active = pathname.startsWith(item.href)
+                const label = t(item.key)
                 return (
                   <Link
                     key={item.href}
@@ -91,7 +104,7 @@ export function MobileNav() {
                     )}
                   >
                     <Icon className="h-5 w-5 shrink-0" />
-                    <span>{item.label}</span>
+                    <span>{label}</span>
                   </Link>
                 )
               })}

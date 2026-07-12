@@ -9,6 +9,7 @@ import { Search, Plus, Users, ChevronLeft, ChevronRight, Pencil, Trash2, X, Load
 import Link from "next/link"
 import type { Contact, Company } from "@/lib/api"
 import type { AxiosError } from "axios"
+import { ErrorFallback } from "@/components/foundation/error-boundary"
 
 export default function ContactsPage() {
   const { toast } = useToast()
@@ -29,7 +30,7 @@ export default function ContactsPage() {
   const params: Record<string, unknown> = { page, page_size: 20 }
   if (debouncedQuery) params.q = debouncedQuery
 
-  const { data, isLoading, isError } = useContactSearch(params)
+  const { data, isLoading, isError, error, refetch } = useContactSearch(params)
   const createContact = useCreateContact()
   const updateContact = useUpdateContact()
   const deleteContact = useDeleteContact()
@@ -117,7 +118,7 @@ export default function ContactsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
+    <div className="mx-auto max-w-7xl">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-neutral-900">جهات الاتصال</h1>
@@ -216,7 +217,13 @@ export default function ContactsPage() {
         {isLoading ? (
           <div className="flex items-center justify-center py-20"><Spinner className="h-8 w-8" /></div>
         ) : isError ? (
-          <div className="py-20 text-center text-danger-500">فشل تحميل جهات الاتصال</div>
+          <ErrorFallback
+            title="فشل تحميل جهات الاتصال"
+            message={(error as Error)?.message || "تأكد من تشغيل الخادم الخلفي"}
+            onRetry={() => refetch()}
+            showDetails={process.env.NODE_ENV === "development"}
+            errorDetails={String(error)}
+          />
         ) : !data?.items.length ? (
           <div className="flex flex-col items-center justify-center py-20 text-neutral-400">
             <Users className="mb-3 h-12 w-12" />
