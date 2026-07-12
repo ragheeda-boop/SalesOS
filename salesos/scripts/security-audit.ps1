@@ -45,14 +45,14 @@ if (Test-Path "$frontendDir/package.json") {
         $npmAuditDetail = "No critical/high vulnerabilities ($moderate moderate)"
       }
     } else {
-      $npmAuditDetail = "npm audit completed — no vulnerabilities found"
+      $npmAuditDetail = "npm audit completed - no vulnerabilities found"
     }
   } catch {
     $npmAuditPassed = $false
     $npmAuditDetail = "npm audit failed to run: $($_.Exception.Message)"
   }
 } else {
-  $npmAuditDetail = "frontend/package.json not found — skipped"
+  $npmAuditDetail = "frontend/package.json not found - skipped"
 }
 
 $results += @{ check = "npm_audit"; passed = $npmAuditPassed; detail = $npmAuditDetail }
@@ -190,7 +190,7 @@ foreach ($file in $k8sSecretFiles) {
 
   if ($content -match 'CHANGE_ME') {
     $relPath = $file.FullName.Replace("$RepoRoot\", "").Replace("$RepoRoot/", "")
-    $k8sFindings += "$relPath contains CHANGE_ME placeholder values — not production-ready"
+    $k8sFindings += "$relPath contains CHANGE_ME placeholder values - not production-ready"
   }
 }
 
