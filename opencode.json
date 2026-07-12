@@ -239,7 +239,7 @@
   "mcp": {
     "notion": {
       "type": "local",
-      "command": ["npx", "-y", "@ramidecodes/mcp-server-notion@latest", "--api-key=NOTION_API_KEY"],
+      "command": ["npx", "-y", "@ramidecodes/mcp-server-notion@latest", "--api-key=${NOTION_API_KEY}"],
       "enabled": true
     },
     "google-drive": {
@@ -252,9 +252,9 @@
       "command": ["npx", "-y", "@node2flow/gmail-mcp"],
       "enabled": true,
       "environment": {
-        "GOOGLE_CLIENT_ID": "GOOGLE_CLIENT_ID",
-        "GOOGLE_CLIENT_SECRET": "GOOGLE_CLIENT_SECRET",
-        "GOOGLE_REFRESH_TOKEN": "GOOGLE_REFRESH_TOKEN"
+        "GOOGLE_CLIENT_ID": "",
+        "GOOGLE_CLIENT_SECRET": "",
+        "GOOGLE_REFRESH_TOKEN": ""
       }
     },
     "google-tasks": {
