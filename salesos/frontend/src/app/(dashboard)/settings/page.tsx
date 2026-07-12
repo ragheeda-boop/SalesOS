@@ -22,7 +22,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 p-6" dir="rtl">
+    <div className="mx-auto max-w-4xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">الإعدادات</h1>
         <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">إعدادات الحساب والنظام</p>

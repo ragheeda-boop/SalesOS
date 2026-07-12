@@ -12,6 +12,7 @@
   "nav.contacts": "جهات الاتصال",
   "nav.search": "البحث",
   "nav.profile": "ملفي",
+  "nav.customer_success": "نجاح العملاء",
 
   "common.create": "إنشاء",
   "common.edit": "تعديل",
@@ -143,6 +144,10 @@
   "error.validation": "خطأ في التحقق. يرجى التحقق من المدخلات.",
   "error.timeout": "انتهت مهلة الطلب",
   "error.generic": "حدث خطأ ما",
+  "error.default_title": "حدث خطأ ما",
+  "error.default_message": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+  "error.show_details": "عرض التفاصيل",
+  "error.retry": "حاول مرة أخرى",
 
   "time.today": "اليوم",
   "time.yesterday": "أمس",

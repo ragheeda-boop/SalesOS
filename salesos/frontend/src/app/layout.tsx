@@ -13,10 +13,23 @@ export const metadata: Metadata = {
   },
 }
 
+const localeScript = `
+(function() {
+  try {
+    var stored = localStorage.getItem('salesos-locale');
+    var locale = stored || (navigator.language && navigator.language.toLowerCase().startsWith('ar') ? 'ar' : 'en');
+    var dir = locale === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.setAttribute('lang', locale);
+    document.documentElement.setAttribute('dir', dir);
+  } catch(e) {}
+})()
+`
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: localeScript }} />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0a0a0a" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

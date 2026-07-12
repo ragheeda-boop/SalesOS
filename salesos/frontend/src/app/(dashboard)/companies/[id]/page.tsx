@@ -8,13 +8,14 @@ import { useCompany } from "@/lib/hooks/companyQueries"
 import { useUpdateCompany, useDeleteCompany, useAddContact } from "@/lib/hooks/mutationHooks"
 import { Button, Modal, ModalTrigger, ModalContent, ModalHeader, ModalBody, ModalFooter, Input, Spinner } from "@salesos/ui"
 import { Pencil, Trash2, UserPlus, Loader2, ArrowLeft } from "lucide-react"
+import { ErrorFallback } from "@/components/foundation/error-boundary"
 
 export default function CompanyPage() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
 
-  const { data: company, isLoading } = useCompany(id)
+  const { data: company, isLoading, isError, error, refetch } = useCompany(id)
   const updateCompany = useUpdateCompany()
   const deleteCompany = useDeleteCompany()
   const addContact = useAddContact()
@@ -112,6 +113,14 @@ export default function CompanyPage() {
 
       {isLoading ? (
         <div className="flex justify-center py-12"><Spinner className="h-6 w-6" /></div>
+      ) : isError ? (
+        <ErrorFallback
+          title="فشل تحميل بيانات الشركة"
+          message={(error as Error)?.message || "تعذر تحميل بيانات الشركة. تأكد من اتصال الخادم."}
+          onRetry={() => refetch()}
+          showDetails={process.env.NODE_ENV === "development"}
+          errorDetails={String(error)}
+        />
       ) : (
         <CompanyWorkspace companyId={id} />
       )}

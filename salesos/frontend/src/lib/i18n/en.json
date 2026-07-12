@@ -12,6 +12,7 @@
   "nav.contacts": "Contacts",
   "nav.search": "Search",
   "nav.profile": "Profile",
+  "nav.customer_success": "Customer Success",
 
   "common.create": "Create",
   "common.edit": "Edit",
@@ -142,6 +143,10 @@
   "error.server_error": "Server error. Please try again.",
   "error.validation": "Validation error. Please check your input.",
   "error.timeout": "Request timed out",
+  "error.default_title": "Something went wrong",
+  "error.default_message": "An unexpected error occurred. Please try again.",
+  "error.show_details": "Show details",
+  "error.retry": "Try again",
   "error.generic": "Something went wrong",
 
   "time.today": "Today",

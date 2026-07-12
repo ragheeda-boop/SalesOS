@@ -20,11 +20,40 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem("access_token");
-      window.location.href = "/login";
+    if (typeof window === "undefined") return Promise.reject(error)
+
+    const status = error.response?.status
+
+    // 401: token expired or invalid
+    if (status === 401) {
+      localStorage.removeItem("access_token")
+      localStorage.removeItem("refresh_token")
+      window.location.href = "/login"
+      return Promise.reject(error)
     }
-    return Promise.reject(error);
+
+    // 422 with missing auth header: redirect to login
+    if (status === 422) {
+      const detail = error.response?.data?.detail
+      if (Array.isArray(detail)) {
+        const hasAuthError = detail.some(
+          (d: { loc?: string[] }) => d.loc?.includes("header") && d.loc?.includes("authorization")
+        )
+        if (hasAuthError) {
+          localStorage.removeItem("access_token")
+          localStorage.removeItem("refresh_token")
+          window.location.href = "/login"
+          return Promise.reject(error)
+        }
+      }
+    }
+
+    // 403: forbidden
+    if (status === 403) {
+      console.warn("[API] 403 Forbidden:", error.response?.data)
+    }
+
+    return Promise.reject(error)
   }
 );
 

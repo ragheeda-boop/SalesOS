@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Search, Loader2, Building2, FileText, Users, Hash, ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import { Input } from "@salesos/ui";
 import { Badge, cn } from "@salesos/ui";
+import { ErrorFallback } from "@/components/foundation/error-boundary";
 
 type Strategy = "fulltext" | "semantic" | "hybrid";
 
@@ -23,7 +24,7 @@ export default function SearchPage() {
   const [page, setPage] = useState(0);
   const pageSize = 20;
 
-  const { data, isLoading, error } = useSearch(
+  const { data, isLoading, error, refetch } = useSearch(
     searchQuery ? { q: searchQuery, strategy, limit: pageSize, offset: page * pageSize, include_facets: true } : { q: "", strategy }
   );
 
@@ -34,7 +35,7 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6" dir="rtl">
+    <div className="mx-auto max-w-5xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">البحث المتقدم</h1>
         <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">ابحث في الشركات والسجلات التجارية</p>
@@ -83,9 +84,13 @@ export default function SearchPage() {
 
       {/* Results */}
       {error && (
-        <div className="rounded-lg border border-danger-200 bg-danger-50 p-4 text-sm text-danger-700 dark:border-danger-800 dark:bg-danger-900/20 dark:text-danger-400">
-          حدث خطأ أثناء البحث
-        </div>
+        <ErrorFallback
+          title="حدث خطأ أثناء البحث"
+          message={(error as Error)?.message || "تأكد من تشغيل الخادم الخلفي للبحث"}
+          onRetry={() => refetch()}
+          showDetails={process.env.NODE_ENV === "development"}
+          errorDetails={String(error)}
+        />
       )}
 
       {searchQuery && !isLoading && data && (

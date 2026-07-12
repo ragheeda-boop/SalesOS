@@ -38,7 +38,17 @@ function DashboardContent({ children }: { children: ReactNode }) {
   const [copilotOpen, setCopilotOpen] = React.useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const { toggle: toggleTheme } = useTheme()
-  const { t } = useTranslation()
+  const { t, dir } = useTranslation()
+
+  const slideAnim = dir === "rtl" ? "animate-slide-in-right" : "animate-slide-in-left"
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const token = localStorage.getItem("access_token")
+    if (!token) {
+      router.replace("/login")
+    }
+  }, [router])
 
   useEffect(() => {
     registerBuiltinCommands(router)
@@ -94,7 +104,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
         >
           <Search className="h-4 w-4" />
           <span>البحث السريع...</span>
-          <kbd className="mr-auto rounded border border-neutral-300 px-1.5 py-0.5 text-[10px] dark:border-neutral-600">⌘K</kbd>
+          <kbd className="ms-auto rounded border border-neutral-300 px-1.5 py-0.5 text-[10px] dark:border-neutral-600">⌘K</kbd>
         </button>
         <button
           onClick={() => setCopilotOpen(!copilotOpen)}
@@ -112,7 +122,11 @@ function DashboardContent({ children }: { children: ReactNode }) {
       {mobileSidebarOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={closeMobileSidebar} aria-hidden="true" />
-          <aside className="absolute left-0 top-0 bottom-0 w-72 max-w-[80vw] bg-white dark:bg-neutral-900 shadow-muhide-6 overflow-y-auto animate-slide-in-left">
+          <aside className={cn(
+            "absolute top-0 bottom-0 w-72 max-w-[80vw] bg-white dark:bg-neutral-900 shadow-muhide-6 overflow-y-auto",
+            "start-0",
+            slideAnim
+          )}>
             <div className="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-700 px-4 h-14">
               <span className="text-lg font-bold text-neutral-900 dark:text-neutral-100">SalesOS</span>
               <button
@@ -152,7 +166,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
       <div className="flex flex-1 overflow-hidden">
         <aside
           className={cn(
-            "hidden md:flex h-full flex-col border-l bg-white transition-all dark:border-neutral-700 dark:bg-neutral-900",
+            "hidden md:flex flex-col h-full border-e bg-white transition-all dark:border-neutral-700 dark:bg-neutral-900",
             sidebarCollapsed ? "w-16" : "w-64"
           )}
         >
@@ -195,7 +209,6 @@ function DashboardContent({ children }: { children: ReactNode }) {
       <CommandBar open={commandOpen} onClose={() => setCommandOpen(false)} />
       <SearchPanel open={searchOpen} onClose={() => setSearchOpen(false)} />
       <CopilotPanel open={copilotOpen} onClose={() => setCopilotOpen(false)} entityType="company" />
-
     </>
   )
 }
