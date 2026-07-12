@@ -97,3 +97,6 @@ class DashboardDTO(BaseModel):
     aiBrief: DashboardWidget | None = None
     marketPulse: DashboardWidget | None = None
     recentActivity: DashboardWidget | None = None
+
+    scoredDecisions: list[dict] = []
+    overallHealth: float = 1.0

@@ -4,6 +4,7 @@ import { useState } from "react"
 import { WorkflowBuilderWidget } from "../../widgets/workflow-builder/WorkflowBuilderWidget"
 import { WorkflowTemplates } from "../../widgets/workflow-builder/WorkflowTemplates"
 import { useWorkflows, useWorkflowExecutions } from "@/lib/workflowQueries"
+import type { Workflow, WorkflowExecution } from "@/lib/workflowQueries"
 
 type AutomationTab = "workflows" | "templates" | "history"
 
@@ -59,7 +60,7 @@ function WorkflowExecutionHistory() {
           className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-1.5 text-sm text-[var(--text-primary)]"
         >
           <option value="">اختر سير عمل</option>
-          {workflows?.map((w: any) => (
+          {workflows?.map((w: Workflow) => (
             <option key={w.id} value={w.id}>{w.name}</option>
           ))}
         </select>
@@ -79,7 +80,7 @@ function WorkflowExecutionHistory() {
         </div>
       )}
 
-      {executions?.map((ex: any) => (
+      {executions?.map((ex: WorkflowExecution) => (
         <div key={ex.id} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-3 space-y-1">
           <div className="flex items-center justify-between">
             <span className={`text-xs font-medium ${

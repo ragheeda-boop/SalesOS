@@ -233,3 +233,4 @@ class Company360Response(BaseModel):
     golden_record_data: dict | None = None
     related_entities: list[dict] = []
     decision_makers: list[dict] = []
+    health_score: float = 0.0

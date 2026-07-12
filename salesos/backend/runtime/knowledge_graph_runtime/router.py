@@ -254,6 +254,57 @@ async def employees_with_most_meetings(
     return {"items": items, "total": len(items)}
 
 
+@router.get("/graph/subgraph/{entity_id}")
+async def get_entity_subgraph(
+    entity_id: str,
+    request: Request,
+    depth: int = Query(2, ge=1, le=4),
+    tenant_id: str = Depends(get_current_tenant_id),
+):
+    """Return all nodes and edges connected to an entity up to `depth` hops."""
+    kg = getattr(request.app.state, "kg_engine", None)
+    if not kg:
+        raise HTTPException(status_code=503, detail="Knowledge Graph not initialized")
+    subgraph = await kg.get_entity_subgraph(entity_id, depth)
+    return {
+        "entity_id": entity_id,
+        "depth": depth,
+        "node_count": len(subgraph["nodes"]),
+        "edge_count": len(subgraph["edges"]),
+        "nodes": subgraph["nodes"],
+        "edges": subgraph["edges"],
+    }
+
+
+@router.post("/graph/enrich/{company_id}")
+async def enrich_company_relationships(
+    company_id: str,
+    request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
+):
+    """Discover and create relationship edges (competitors, partners, subsidiaries)."""
+    kg = getattr(request.app.state, "kg_engine", None)
+    if not kg:
+        raise HTTPException(status_code=503, detail="Knowledge Graph not initialized")
+    stats = await kg.enrich_company_relationships(company_id, tenant_id)
+    return {"status": "ok", "company_id": company_id, "stats": stats}
+
+
+@router.post("/graph/merge-nodes")
+async def merge_graph_nodes(
+    request: Request,
+    surviving_id: str = Query(..., description="ID of the surviving company"),
+    absorbed_id: str = Query(..., description="ID of the absorbed company"),
+    tenant_id: str = Depends(get_current_tenant_id),
+):
+    """Merge two graph nodes during entity resolution. Rewires edges from absorbed to surviving."""
+    kg = getattr(request.app.state, "kg_engine", None)
+    if not kg:
+        raise HTTPException(status_code=503, detail="Knowledge Graph not initialized")
+    stats = await kg.merge_graph_nodes(surviving_id, absorbed_id)
+    return {"status": "ok", "surviving_id": surviving_id, "absorbed_id": absorbed_id, "stats": stats}
+
+
 @router.get("/graph/metrics")
 async def graph_metrics(request: Request, tenant_id: str = Depends(get_current_tenant_id)):
     kg = getattr(request.app.state, "kg_engine", None)

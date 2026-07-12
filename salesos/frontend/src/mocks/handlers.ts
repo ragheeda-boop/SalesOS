@@ -73,7 +73,7 @@ export const handlers = [
 
   // ─── Search ────────────────────────────────────────
   http.post('/api/v1/search', async ({ request }) => {
-    const body: any = await request.json()
+    const body = await request.json() as { text?: string }
     const results = Array.from({ length: 5 }, (_, i) => ({
       id: `result_${i + 1}`,
       entity_type: i === 0 ? 'company' : i === 1 ? 'person' : 'signal',
@@ -97,7 +97,7 @@ export const handlers = [
   }),
 
   http.post('/api/v1/search/suggest', async ({ request }) => {
-    const body: any = await request.json()
+    const body = await request.json() as { prefix?: string }
     return HttpResponse.json({
       suggestions: [
         { text: `${body.prefix ?? ''} في قطاع الطاقة`, type: 'query', score: 0.95 },
@@ -107,7 +107,7 @@ export const handlers = [
   }),
 
   http.post('/api/v1/search/ai', async ({ request }) => {
-    const body: any = await request.json()
+    const body = await request.json() as { text?: string }
     return HttpResponse.json({
       summary: `تحليل شامل للاستعلام: "${body.text ?? ''}"`,
       recommendations: ['مراجعة الفرص الحالية', 'التواصل مع صناع القرار'],

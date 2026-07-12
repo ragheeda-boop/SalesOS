@@ -6,6 +6,7 @@ import { cn } from "@salesos/ui"
 import { useDebounce } from "@salesos/hooks"
 import Link from "next/link"
 import api from "@/lib/api"
+import type { SearchResultItem } from "@/lib/api"
 import { getTenantId } from "@/lib/hooks/useTenant"
 
 interface SearchResult {
@@ -63,7 +64,7 @@ export function SearchPanel({ open, onClose }: SearchPanelProps) {
       })
       .then((res) => {
         const data = res.data
-        const items: SearchResult[] = (data.items || []).map((item: any) => ({
+        const items: SearchResult[] = (data.items || []).map((item: SearchResultItem) => ({
           id: item.id,
           type: "company",
           title: item.data?.name_ar || item.data?.name_en || item.id,

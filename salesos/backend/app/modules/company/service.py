@@ -32,6 +32,91 @@ class CompanyService:
         self.event_bus = event_bus
         self.logger = logger
 
+    # ── Health Scoring ───────────────────────────────────────────────
+
+    @staticmethod
+    def _heuristic_health_score(
+        contacts: list[dict],
+        opportunities: list[dict],
+        signals: list[dict],
+    ) -> float:
+        """Compute a 0–1 health score for a company from contacts, opportunities, and signals.
+
+        Baseline 0.5 (neutral). Positive factors raise, negative factors lower.
+        """
+        score = 0.5
+
+        if contacts:
+            score += 0.1
+        if opportunities:
+            score += 0.15
+
+        for sig in signals:
+            sev = sig.get("severity", "")
+            if sev == "critical":
+                score -= 0.10
+            elif sev == "high":
+                score -= 0.05
+            elif sev == "positive":
+                score += 0.05
+            elif sev == "info":
+                score -= 0.05
+
+        return round(max(0.0, min(1.0, score)), 4)
+
+    # ── User helpers ─────────────────────────────────────────────────
+
+    async def _get_users(self, db: AsyncSession, owner_ids: list[str]) -> list[dict]:
+        """Fetch users by IDs, returning empty list on failure or empty input."""
+        if not owner_ids:
+            return []
+        try:
+            from app.modules.identity.models import User
+            result = await db.execute(select(User).where(User.id.in_(owner_ids)))
+            return [
+                {"id": str(u.id), "full_name": u.full_name, "email": u.email, "role": u.role}
+                for u in result.scalars().all()
+            ]
+        except Exception as e:
+            if self.logger:
+                self.logger.warn("company.get_users_failed", error=str(e))
+            return []
+
+    # ── Intelligence endpoint ────────────────────────────────────────
+
+    async def get_company_intelligence(
+        self, company: Company, company_id: str, tenant_id: str, db: AsyncSession,
+    ) -> dict:
+        """Return intelligence-layer data: golden record, enrichment, confidence."""
+        golden_record_id = None
+        golden_record_data = None
+        try:
+            from app.modules.entity_resolution.models import GoldenRecord
+            uid = uuid.UUID(company_id) if isinstance(company_id, str) else company_id
+            gr_result = await db.execute(
+                select(GoldenRecord).where(GoldenRecord.company_id == uid, GoldenRecord.is_active == True)
+            )
+            golden_record = gr_result.scalar_one_or_none()
+            if golden_record:
+                golden_record_id = str(golden_record.id)
+                golden_record_data = golden_record.data
+        except Exception as e:
+            if self.logger:
+                self.logger.warn("company_360.golden_record_failed", company_id=company_id, error=str(e))
+
+        enrichment = {
+            "sources": company.source_ids or [],
+            "is_golden_record": company.is_golden_record or False,
+            "confidence_score": company.confidence_score or 0.0,
+            "last_enriched_at": company.updated_at.isoformat() if company.updated_at else None,
+        }
+
+        return {
+            "enrichment": enrichment,
+            "golden_record_id": golden_record_id,
+            "golden_record_data": golden_record_data,
+        }
+
     async def create_company(
         self,
         tenant_id: str,
@@ -414,10 +499,13 @@ class CompanyService:
                 if self.logger:
                     self.logger.warn("company_360.decision_makers_failed", company_id=company_id, error=str(e))
 
+        health_score = self._heuristic_health_score(contacts, opportunities, signals["items"])
+
         return {
             "company": company,
             "related_entities": related_entities,
             "decision_makers": decision_makers,
+            "health_score": health_score,
             "overview": {
                 "total_contacts": len(contacts),
                 "total_opportunities": len(opportunities),

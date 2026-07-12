@@ -45,7 +45,7 @@ export function PlanManager() {
           <h3 className="font-semibold">باقة جديدة</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <input className="border rounded px-3 py-2 text-sm dark:bg-neutral-800 dark:border-neutral-700" placeholder="الاسم" value={planForm.name} onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })} />
-            <select className="border rounded px-3 py-2 text-sm dark:bg-neutral-800 dark:border-neutral-700" value={planForm.tier} onChange={(e) => setPlanForm({ ...planForm, tier: e.target.value as any })}>
+            <select className="border rounded px-3 py-2 text-sm dark:bg-neutral-800 dark:border-neutral-700" value={planForm.tier} onChange={(e) => setPlanForm({ ...planForm, tier: e.target.value as "free" | "starter" | "growth" | "enterprise" })}>
               <option value="free">Free</option>
               <option value="starter">Starter</option>
               <option value="growth">Growth</option>

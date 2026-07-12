@@ -1,0 +1,32 @@
+input:
+  company_id: "comp-002"
+  company_name: "مجموعة الخليج للتجارة"
+  goal: "مناقشة توسع الأعمال"
+
+expected:
+  analysis_contains:
+    - "جدول"
+    - "نقاش"
+  confidence_min: 0.5
+  has_agenda: true
+  has_talking_points: true
+
+context_data:
+  company_info:
+    name_ar: "مجموعة الخليج للتجارة"
+    industry: "تجارة"
+    annual_revenue: 120000000
+  contacts:
+    - name: "خالد العنزي"
+      position: "مدير المشتريات"
+      is_decision_maker: true
+    - name: "سارة الدوسري"
+      position: "مدير العمليات"
+      is_decision_maker: false
+  opportunities:
+    - title: "تزويد معدات لوجستية"
+      amount: 3000000
+      stage: "proposal"
+  recent_activity:
+    - description: "طلب عرض سعر للمعدات اللوجستية"
+      event_type: "inquiry"

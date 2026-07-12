@@ -52,7 +52,7 @@ export function WorkflowBuilderWidget() {
   const handleSave = async () => {
     if (!editing) return
     if (editing.id) {
-      await updateWorkflow.mutateAsync(editing as any)
+      await updateWorkflow.mutateAsync(editing as Workflow)
     } else {
       await createWorkflow.mutateAsync(editing)
     }

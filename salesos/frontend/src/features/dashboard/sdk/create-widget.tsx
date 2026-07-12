@@ -25,12 +25,14 @@ function WidgetCardFrame({
   title,
   status,
   minHeight,
+  gridColumn,
   onRefresh,
   children,
 }: {
   title: string
   status: WidgetStatus
   minHeight: string
+  gridColumn?: string
   onRefresh?: () => void
   children: ReactNode
 }) {
@@ -38,10 +40,11 @@ function WidgetCardFrame({
   return (
     <div
       style={{
+        gridColumn,
         minHeight,
         borderRadius: '0.75rem',
-        border: '1px solid #e5e7eb',
-        background: '#fff',
+        border: '1px solid var(--border-default, #e5e7eb)',
+        background: 'var(--bg-primary, #fff)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
@@ -54,7 +57,7 @@ function WidgetCardFrame({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '0.75rem 1rem',
-          borderBottom: '1px solid #f3f4f6',
+          borderBottom: '1px solid var(--border-secondary, #f3f4f6)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -231,6 +234,7 @@ export function createWidget<T>(config: WidgetConfig<T>) {
         title={config.metadata.title}
         status={status}
         minHeight={minHeight}
+        gridColumn={config.metadata.gridColumn}
         onRefresh={handleRefresh}
       >
         {status === 'loading' && <LoadingState minHeight={minHeight} />}

@@ -152,6 +152,14 @@ async def lifespan(app: FastAPI):
         )
         app.state.feature_store = feature_store
 
+        # Feature Store Domain Service (for REST API)
+        from domains.feature_store import FeatureStoreService as FeatureStoreDomainService
+        from domains.feature_store.repository import PostgresFeatureStoreRepository
+        from app.database import async_session
+        fs_repo = PostgresFeatureStoreRepository(async_session)
+        fs_domain_service = FeatureStoreDomainService(repository=fs_repo)
+        app.state.feature_store_domain_service = fs_domain_service
+
         # ── Knowledge Graph Runtime ──
         try:
             kg_engine = KnowledgeGraphEngine(
@@ -232,11 +240,14 @@ async def lifespan(app: FastAPI):
         event_runtime.subscribe("*", _on_timeline_event)
 
         # ── Search Runtime ──
+        from domains.search.engine.postgres_repo import PostgresSearchRepository
+        search_repo = PostgresSearchRepository(session_factory=async_session)
         search_runtime = SearchRuntime(
             session_factory=async_session,
             embedding_service=OpenAIEmbeddingService(),
             kg_engine=kg_engine,
             logger=app.state.logger,
+            search_repo=search_repo,
         )
         app.state.search_runtime = search_runtime
 
@@ -556,6 +567,7 @@ def register_routers():
     from runtime.decision_runtime.router import router as decision_router
     from runtime.event_runtime.router import router as event_runtime_router
     from runtime.feature_store.router import router as feature_store_router
+    from domains.feature_store.router import router as feature_store_domain_router
     from runtime.knowledge_graph_runtime.router import router as graph_router
     from runtime.search_runtime.router import router as search_router
     from runtime.activity_runtime.router import router as activity_router
@@ -578,6 +590,7 @@ def register_routers():
     app.include_router(event_runtime_router, prefix="/api/v1", tags=["Event Runtime"], dependencies=_auth)
     app.include_router(data_fabric_router, prefix="/api/v1", tags=["Data Fabric"], dependencies=_auth)
     app.include_router(feature_store_router, prefix="/api/v1", tags=["Feature Store"], dependencies=_auth)
+    app.include_router(feature_store_domain_router, prefix="/api/v1", tags=["Feature Store Domain"], dependencies=_auth)
     app.include_router(decision_router, prefix="/api/v1", tags=["Decision Engine"], dependencies=_auth)
     app.include_router(graph_router, prefix="/api/v1", tags=["Knowledge Graph"], dependencies=_auth)
     app.include_router(timeline_router, prefix="/api/v1", tags=["Timeline"], dependencies=_auth)

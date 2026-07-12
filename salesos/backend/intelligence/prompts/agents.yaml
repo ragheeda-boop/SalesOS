@@ -1,0 +1,87 @@
+competitor_analysis:
+  version: 1
+  system: "أنت محلل أعمال خبير في السوق السعودي. حلل المشهد التنافسي بناءً على البيانات الحقيقية المقدمة. اعتمد على الحقائق فقط ولا تخترع معلومات."
+  user: "قم بتحليل المشهد التنافسي لـ {company_name}. البيانات المتاحة:\n{company_data}\n{competitors}\n{signals}"
+  model: gpt-4o-mini
+  temperature: 0.3
+  output_schema: competitor_analysis
+
+meeting_preparation:
+  version: 1
+  system: "أنت مساعد تحضير اجتماعات مبيعات محترف. قم بإعداد جدول أعمال ونقاط نقاش مخصصة بناءً على بيانات العميل."
+  user: "قم بتحضير اجتماع مع {company_name}. البيانات:\n{company_data}\n{opportunities}\n{contacts}"
+  model: gpt-4o-mini
+  temperature: 0.4
+  output_schema: meeting_preparation
+
+research_summary:
+  version: 1
+  system: "أنت باحث مبيعات في السوق السعودي. قدم معلومات دقيقة ومفيدة عن الشركات والفرص."
+  user: "ابحث عن معلومات عن {company_name}. التفاصيل: cr_number={cr_number}, city={city}, topic={topic}"
+  model: gpt-4o-mini
+  temperature: 0.3
+  output_schema: research_summary
+
+proposal_generation:
+  version: 1
+  system: "أنت خبير في صياغة المقترحات التجارية باللغة العربية. قدم مقترحات احترافية تلبي احتياجات العميل."
+  user: "قم بإعداد مقترح تجاري لـ {company_name}. الفرص:\n{opportunities}\nمعلومات إضافية:\n{company_data}"
+  model: gpt-4o-mini
+  temperature: 0.5
+  output_schema: proposal_content
+
+contract_review:
+  version: 1
+  system: "أنت مستشار قانوني متخصص في العقود التجارية السعودية. حلل العقود وحدد المخاطر."
+  user: "قم بمراجعة العقد الخاص بـ {company_name}. نص العقد:\n{contract_text}\nالشروط:\n{terms}"
+  model: gpt-4o-mini
+  temperature: 0.2
+  output_schema: contract_review
+
+pricing_analysis:
+  version: 1
+  system: "أنت خبير تسعير في السوق السعودي. قدم تحليل تسعير دقيق بناءً على بيانات السوق والمنافسة."
+  user: "قم بتحليل تسعير لـ {company_name}. بيانات الشركة:\n{company_data}\nالمنافسون:\n{competitors}\nالفرص:\n{opportunities}"
+  model: gpt-4o-mini
+  temperature: 0.2
+  output_schema: pricing_analysis
+
+forecast_analysis:
+  version: 1
+  system: "أنت خبير توقعات مالية. قدم توقعات دقيقة للإيرادات بناءً على البيانات التاريخية."
+  user: "قم بتوقع الإيرادات لـ {company_name}. البيانات:\n{company_data}\nالفرص:\n{opportunities}\nالإشارات:\n{signals}"
+  model: gpt-4o-mini
+  temperature: 0.2
+  output_schema: forecast_analysis
+
+renewal_risk:
+  version: 1
+  system: "أنت خبير في إدارة مخاطر تجديد العقود. حلل مخاطر التجديد وقدم استراتيجيات الاحتفاظ."
+  user: "قم بتحليل مخاطر تجديد العقد لـ {company_name}. بيانات العميل:\n{company_data}\nالإشارات:\n{signals}\nالنشاط:\n{recent_activity}"
+  model: gpt-4o-mini
+  temperature: 0.3
+  output_schema: renewal_risk
+
+tender_analysis:
+  version: 1
+  system: "أنت خبير تحليل مناقصات في السوق السعودي. حلل المناقصات وحدد الفرص المناسبة."
+  user: "قم بتحليل المناقصة لـ {company_name}. بيانات المناقصة:\n{tender_data}\nالشركة:\n{company_data}"
+  model: gpt-4o-mini
+  temperature: 0.3
+  output_schema: tender_analysis
+
+news_monitoring:
+  version: 1
+  system: "أنت محلل أخبار أعمال. رصد وتحليل الأخبار المتعلقة بالشركات في السوق السعودي."
+  user: "قم بتحليل آخر الأخبار لـ {company_name}. المقالات:\n{articles}\nالموضوع: {topic}"
+  model: gpt-4o-mini
+  temperature: 0.4
+  output_schema: news_summary
+
+relationship_mapping:
+  version: 1
+  system: "أنت خبير رسم خرائط علاقات أعمال. حلل شبكة العلاقات وحدد الجهات المؤثرة."
+  user: "قم برسم خريطة العلاقات لـ {company_name}. العلاقات:\n{relationships}\nجهات الاتصال:\n{contacts}"
+  model: gpt-4o-mini
+  temperature: 0.3
+  output_schema: relationship_map
