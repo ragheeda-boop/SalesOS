@@ -3,6 +3,7 @@
 import { createWorkspaceProvider } from '@salesos/workspace'
 import { useCompanyIntelligence } from '@/application/company-intelligence/useCompanyIntelligence'
 import { deriveCompanyIntelligenceWidgets, type CompanyWidgetMap } from '@/application/company-intelligence/company-intelligence.store'
+import type { CompanyIntelligenceDTO } from '@/application/company-intelligence/company-intelligence.dto'
 
 export const { WorkspaceProvider: CompanyIntelligenceProvider, useWorkspaceContext: useCompanyIntelligenceContext } =
   createWorkspaceProvider<CompanyWidgetMap, { companyId: string }>(
@@ -11,5 +12,5 @@ export const { WorkspaceProvider: CompanyIntelligenceProvider, useWorkspaceConte
       return { data, isLoading, isError, error, refetch }
     },
     (data, isLoading, isError) =>
-      deriveCompanyIntelligenceWidgets(data as any, isLoading, isError),
+      deriveCompanyIntelligenceWidgets(data as CompanyIntelligenceDTO | undefined, isLoading, isError),
   )

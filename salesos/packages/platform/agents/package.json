@@ -1,0 +1,17 @@
+{
+  "name": "@salesos/agents",
+  "version": "1.0.0",
+  "description": "AI Agents Engine — infrastructure for autonomous AI agents that consume decisions from the Decision Intelligence Platform",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "test": "jest --config jest.config.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "dependencies": {
+    "@salesos/decision-platform": "1.0.0"
+  }
+}

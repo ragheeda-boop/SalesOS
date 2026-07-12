@@ -4,6 +4,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getTenantId } from '@/lib/hooks/useTenant'
 import type { RevenueOpportunity, OpportunityStage } from '../revenue-execution/opportunity.dto'
 
+interface CreateOpportunityInput {
+  name: string
+  companyId: string
+  companyName: string
+  source?: string
+  estimatedValue: number
+  confidence?: number
+  stage?: OpportunityStage
+}
+
+interface CreateTaskInput {
+  title: string
+  priority?: string
+  company_id?: string
+  assignee_id?: string
+}
+
 const API = '/api/v1'
 
 export function useOpportunities(stage?: string) {
@@ -22,7 +39,7 @@ export function useOpportunities(stage?: string) {
 export function useCreateOpportunity() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: CreateOpportunityInput) => {
       const res = await fetch(`${API}/opportunities`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': getTenantId() },
         body: JSON.stringify(data),
@@ -65,7 +82,7 @@ export function useTasks(priority?: string) {
 export function useCreateTask() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: CreateTaskInput) => {
       const res = await fetch(`${API}/tasks`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': getTenantId() },
         body: JSON.stringify(data),

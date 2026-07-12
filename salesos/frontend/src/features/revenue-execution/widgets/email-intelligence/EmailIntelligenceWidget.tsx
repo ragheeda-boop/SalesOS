@@ -29,12 +29,21 @@ interface Props {
   emails?: { id: string; subject: string; from_address: string; body: string; sent_at: string; direction: string }[]
 }
 
+interface EmailMessage {
+  id: string
+  subject: string
+  from_address: string
+  body: string
+  sent_at: string
+  direction: string
+}
+
 export function EmailIntelligenceWidget({ opportunityId, emails = [] }: Props) {
   const [analysis, setAnalysis] = useState<EmailAnalysis | null>(null)
-  const [selectedEmail, setSelectedEmail] = useState<any>(null)
+  const [selectedEmail, setSelectedEmail] = useState<EmailMessage | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const analyzeEmail = async (email: any) => {
+  const analyzeEmail = async (email: EmailMessage) => {
     setSelectedEmail(email)
     setLoading(true)
     try {

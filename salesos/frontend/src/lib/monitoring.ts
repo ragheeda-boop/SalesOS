@@ -104,7 +104,8 @@ export class Monitor {
     const perf = window.performance
     if (!perf) return
     const nav = perf.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined
-    const mem = (performance as any).memory as { usedJSHeapSize: number } | undefined
+    const perfWithMemory = performance as Performance & { memory?: { usedJSHeapSize: number } }
+    const mem = perfWithMemory.memory
     if (nav) {
       this.push({
         type: 'page_load',

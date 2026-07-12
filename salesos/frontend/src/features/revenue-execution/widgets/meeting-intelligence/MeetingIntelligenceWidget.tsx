@@ -23,6 +23,15 @@ interface MeetingSummary {
   ai_summary?: string
 }
 
+interface Meeting {
+  id: string
+  title: string
+  status: string
+  meeting_date: string
+  duration_minutes: number
+  notes?: string
+}
+
 const SENTIMENT_MAP: Record<string, { label: string; color: string }> = {
   positive: { label: "إيجابي", color: "text-success-600" },
   neutral: { label: "محايد", color: "text-[var(--text-secondary)]" },
@@ -35,7 +44,7 @@ interface Props {
 
 export function MeetingIntelligenceWidget({ opportunityId }: Props) {
   const [brief, setBrief] = useState<Brief | null>(null)
-  const [meetings, setMeetings] = useState<any[]>([])
+  const [meetings, setMeetings] = useState<Meeting[]>([])
   const [activeTab, setActiveTab] = useState<"brief" | "meetings">("brief")
   const [loading, setLoading] = useState(true)
 

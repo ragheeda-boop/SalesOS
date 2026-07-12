@@ -298,9 +298,9 @@ export interface Company360Response {
   organization: Company360Organization;
   enrichment?: { sources: string[]; is_golden_record: boolean; confidence_score: number; last_enriched_at: string | null };
   golden_record_id?: string | null;
-  golden_record_data?: Record<string, any> | null;
-  related_entities?: any[];
-  decision_makers?: any[];
+  golden_record_data?: Record<string, unknown> | null;
+  related_entities?: Record<string, unknown>[];
+  decision_makers?: Record<string, unknown>[];
   contacts: Record<string, unknown>[];
   assigned_employees: Record<string, unknown>[];
   opportunities: Record<string, unknown>[];

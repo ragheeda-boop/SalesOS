@@ -14,7 +14,7 @@ interface StepResult {
   step: number
   action: string
   label: string
-  data: Record<string, any>
+  data: Record<string, string>
 }
 
 export function ScenarioLauncher() {

@@ -21,8 +21,9 @@ export function DemoResetButton() {
       setMessage(
         `Demo reset complete: ${data.companies} companies, ${data.opportunities} opportunities, ${data.meetings} meetings`
       )
-    } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || "Reset failed")
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Reset failed"
+      setError(message)
     } finally {
       setResetting(false)
     }

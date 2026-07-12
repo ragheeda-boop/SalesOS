@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "declaration": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "rootDir": "..",
+    "baseUrl": ".",
+    "paths": {
+      "@salesos/decision-platform": ["./index.ts"],
+      "@salesos/decision-platform/*": ["./*"],
+      "@salesos/*": ["../../*/src"]
+    }
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}

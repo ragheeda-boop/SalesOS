@@ -2,6 +2,11 @@
 
 import { monitor } from './monitoring'
 import api from './api'
+import type { InternalAxiosRequestConfig } from 'axios'
+
+interface MonitorStartConfig extends InternalAxiosRequestConfig {
+  _monitorStart?: { start: number }
+}
 
 let initialized = false
 
@@ -15,13 +20,13 @@ export function initMonitoring(): void {
 
   api.interceptors.request.use((config) => {
     const ctx = { start: performance.now() }
-    ;(config as any)._monitorStart = ctx
+    ;(config as MonitorStartConfig)._monitorStart = ctx
     return config
   })
 
   api.interceptors.response.use(
     (response) => {
-      const ctx = (response.config as any)._monitorStart
+      const ctx = (response.config as MonitorStartConfig)._monitorStart
       if (ctx) {
         const duration = performance.now() - ctx.start
         monitor.trackApiCall(
@@ -34,7 +39,7 @@ export function initMonitoring(): void {
       return response
     },
     (error) => {
-      const ctx = (error.config as any)?._monitorStart
+      const ctx = (error.config as MonitorStartConfig | undefined)?._monitorStart
       if (ctx && error.config) {
         const duration = performance.now() - ctx.start
         monitor.trackApiCall(

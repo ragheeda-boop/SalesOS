@@ -1,0 +1,115 @@
+name: Weekly Security Scan
+
+on:
+  schedule:
+    - cron: "0 6 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  trivy-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
+  pip-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pip-audit
+        run: pip install pip-audit
+      - name: Run pip-audit
+        run: pip-audit --desc on -f --ignore-vuln PYSEC-2024-1 2>&1 | tee pip-audit-report.txt
+      - name: Upload pip-audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: backend/pip-audit-report.txt
+
+  npm-audit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate 2>&1 | tee npm-audit-report.txt
+      - name: Upload npm audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: frontend/npm-audit-report.txt
+
+  sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate SBOM (backend)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: ./backend
+          format: spdx-json
+          output: sbom-backend.spdx.json
+      - name: Generate SBOM (frontend)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: ./frontend
+          format: spdx-json
+          output: sbom-frontend.spdx.json
+      - name: Upload SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: |
+            sbom-backend.spdx.json
+            sbom-frontend.spdx.json
+
+  report:
+    runs-on: ubuntu-latest
+    needs: [trivy-scan, pip-audit, npm-audit, sbom]
+    steps:
+      - name: Download all scan artifacts
+        uses: actions/download-artifact@v4
+      - name: Summarize security findings
+        run: |
+          echo "## Security Scan Results" > $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Scan | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Trivy (filesystem) | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+          echo "| pip-audit (backend) | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+          echo "| npm audit (frontend) | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+          echo "| SBOM Generation | ✅ Completed |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Artifacts uploaded for review." >> $GITHUB_STEP_SUMMARY

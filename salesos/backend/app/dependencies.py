@@ -3,7 +3,7 @@ from collections.abc import Callable
 from fastapi import Depends, Header, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_db
+from app.database import async_session, get_db
 from sdk.permissions import PermissionAction, PermissionEnforcer
 from sdk.exceptions import PermissionDeniedError
 
@@ -105,3 +105,25 @@ def require_permission_dep(resource: str, action: PermissionAction) -> Callable:
     ) -> bool:
         return await require_permission(resource, action, token_payload=token_payload, db=db)
     return _require_permission
+
+
+# ── Search Repository Dependency ────────────────────────────────
+
+
+def get_search_repository():
+    """Provide a PostgresSearchRepository wired to the async session factory.
+
+    Used by SearchRuntime and FastAPI dependency injection.
+    """
+    from domains.search.engine.postgres_repo import PostgresSearchRepository
+    return PostgresSearchRepository(session_factory=async_session)
+
+
+async def get_feature_store_service(
+    db: AsyncSession = Depends(get_db_session),
+):
+    from domains.feature_store.service import FeatureStoreService
+    from domains.feature_store.postgres_repo import PostgresFeatureStoreRepository
+
+    repo = PostgresFeatureStoreRepository(session=db)
+    return FeatureStoreService(repository=repo)

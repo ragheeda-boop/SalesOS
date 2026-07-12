@@ -375,6 +375,54 @@ class KnowledgeGraphEngine:
             limit=limit,
         )
 
+    # ── Relationship Enrichment ─────────────────────────────────
+
+    async def enrich_company_relationships(self, company_id: str, tenant_id: str) -> dict:
+        """Discover and create relationship edges for a company.
+
+        Enriches the graph by finding:
+        - Competitors (same industry or city)
+        - Subsidiaries (parent_company_id)
+        - Partners (complementary industries, same city)
+
+        Returns stats dict with counts of each edge type created.
+        """
+        return await self._run(
+            "enrich_company_relationships",
+            self._enrich_company_relationships_neo4j,
+            self._enrich_company_relationships_sql,
+            company_id=company_id,
+            tenant_id=tenant_id,
+        )
+
+    async def get_entity_subgraph(self, entity_id: str, depth: int = 2) -> dict:
+        """Return all nodes and edges connected to an entity up to `depth` hops.
+
+        Returns dict with 'nodes' (list of GraphNode.to_dict()) and
+        'edges' (list of GraphEdge.to_dict()).
+        """
+        return await self._run(
+            "get_entity_subgraph",
+            self._get_entity_subgraph_neo4j,
+            self._get_entity_subgraph_sql,
+            entity_id=entity_id,
+            depth=depth,
+        )
+
+    async def merge_graph_nodes(self, surviving_id: str, absorbed_id: str) -> dict:
+        """Merge two graph nodes during entity resolution.
+
+        Rewires all edges from absorbed_id to surviving_id, then deletes
+        the absorbed node. Used when entity resolution merges two companies.
+        """
+        return await self._run(
+            "merge_graph_nodes",
+            self._merge_graph_nodes_neo4j,
+            self._merge_graph_nodes_sql,
+            surviving_id=surviving_id,
+            absorbed_id=absorbed_id,
+        )
+
     # ── Maintenance ─────────────────────────────────────────────
 
     async def rebuild(self, tenant_id: str) -> dict:
@@ -707,6 +755,160 @@ class KnowledgeGraphEngine:
         pid = contact.get("id") or contact.get("email", "")
         return await self._upsert_person_neo4j(contact, tenant_id)
 
+    async def _enrich_company_relationships_neo4j(self, company_id: str, tenant_id: str) -> dict:
+        stats = {"competitors": 0, "partners": 0, "subsidiaries": 0}
+        async with self._session_factory() as session:
+            row = await session.execute(
+                sa_text("SELECT industry, city, activity_description FROM companies WHERE id = :cid AND tenant_id = :tid"),
+                {"cid": company_id, "tid": tenant_id},
+            )
+            company = row.mappings().one_or_none()
+            if not company:
+                return stats
+
+            industry = company.get("industry") or ""
+            city = company.get("city") or ""
+
+            # Competitors: same industry OR same city
+            if industry or city:
+                conditions = []
+                params: dict = {"cid": company_id, "tid": tenant_id}
+                if industry:
+                    conditions.append("c.industry = :industry")
+                    params["industry"] = industry
+                if city:
+                    conditions.append("c.city = :city")
+                    params["city"] = city
+                where_clause = " OR ".join(conditions)
+                comp_rows = await session.execute(
+                    sa_text(f"""
+                        SELECT id, name_en, industry, city FROM companies c
+                        WHERE c.id != :cid AND c.tenant_id = :tid
+                          AND ({where_clause})
+                        LIMIT 30
+                    """),
+                    params,
+                )
+                for comp in comp_rows.mappings().all():
+                    await self.create_edge(company_id, comp["id"], EdgeType.COMPETITOR_OF, {
+                        "reason": "same_industry" if comp.get("industry") == industry else "same_city",
+                    })
+                    stats["competitors"] += 1
+
+            # Subsidiaries: parent_company_id
+            sub_rows = await session.execute(
+                sa_text("SELECT id FROM companies WHERE parent_company_id = :cid AND tenant_id = :tid"),
+                {"cid": company_id, "tid": tenant_id},
+            )
+            for sub in sub_rows.mappings().all():
+                await self.create_edge(company_id, sub["id"], EdgeType.SUBSIDIARY_OF)
+                stats["subsidiaries"] += 1
+
+            # Partners: same city, different industry, complementary activities
+            if city:
+                partner_rows = await session.execute(
+                    sa_text("""
+                        SELECT id, name_en, industry FROM companies c
+                        WHERE c.id != :cid AND c.tenant_id = :tid
+                          AND c.city = :city
+                          AND c.industry != :industry
+                          AND c.industry IS NOT NULL AND c.industry != ''
+                        LIMIT 15
+                    """),
+                    {"cid": company_id, "tid": tenant_id, "city": city, "industry": industry},
+                )
+                for partner in partner_rows.mappings().all():
+                    await self.create_edge(company_id, partner["id"], EdgeType.PARTNER_WITH, {
+                        "reason": "same_city_different_industry",
+                    })
+                    stats["partners"] += 1
+
+        return stats
+
+    async def _get_entity_subgraph_neo4j(self, entity_id: str, depth: int = 2) -> dict:
+        async with self._driver.session(database=settings.neo4j_database) as session:
+            result = await session.run(
+                """
+                MATCH (center {id: $id})-[r*1..$depth]-(neighbor)
+                WITH center, r, neighbor
+                RETURN DISTINCT neighbor AS node,
+                       [rel IN r | {type: type(rel), source: startNode(rel).id, target: endNode(rel).id}] AS rels
+                UNION
+                MATCH (center {id: $id})
+                RETURN center AS node, [] AS rels
+                """,
+                id=entity_id,
+                depth=depth,
+            )
+            seen_nodes: dict[str, dict] = {}
+            seen_edges: dict[str, dict] = {}
+            async for record in result:
+                n = record["node"]
+                nid = n.get("id", "")
+                if nid not in seen_nodes:
+                    seen_nodes[nid] = {
+                        "id": nid,
+                        "labels": list(n.labels),
+                        "properties": dict(n),
+                    }
+                for rel in record.get("rels", []):
+                    edge_key = f"{rel['source']}->{rel['target']}:{rel['type']}"
+                    if edge_key not in seen_edges:
+                        seen_edges[edge_key] = {
+                            "source": rel["source"],
+                            "target": rel["target"],
+                            "type": rel["type"],
+                        }
+            return {
+                "nodes": list(seen_nodes.values()),
+                "edges": list(seen_edges.values()),
+            }
+
+    async def _merge_graph_nodes_neo4j(self, surviving_id: str, absorbed_id: str) -> dict:
+        """Rewire all edges from absorbed node to surviving node, then delete absorbed."""
+        stats = {"edges_rewired": 0, "node_deleted": False}
+        async with self._driver.session(database=settings.neo4j_database) as session:
+            # Rewire outgoing edges
+            result = await session.run(
+                """
+                MATCH (a {id: $absorbed})-[r]->(b)
+                WHERE NOT (a {id: $surviving})-[]->(b)
+                MERGE (s {id: $surviving})-[r2:REWIRED]->(b)
+                DELETE r
+                RETURN count(r2) AS rewired
+                """,
+                surviving_id=surviving_id,
+                absorbed_id=absorbed_id,
+            )
+            record = await result.single()
+            stats["edges_rewired"] = record["rewired"] if record else 0
+
+            # Rewire incoming edges
+            result2 = await session.run(
+                """
+                MATCH (a)-[r]->(b {id: $absorbed})
+                WHERE NOT (a)-[]->(s {id: $surviving})
+                MERGE (a)-[r2:REWIRED]->(s {id: $surviving})
+                DELETE r
+                RETURN count(r2) AS rewired
+                """,
+                surviving_id=surviving_id,
+                absorbed_id=absorbed_id,
+            )
+            record2 = await result2.single()
+            stats["edges_rewired"] += record2["rewired"] if record2 else 0
+
+            # Delete absorbed node
+            result3 = await session.run(
+                "MATCH (n {id: $id}) DETACH DELETE n RETURN count(n) AS deleted",
+                id=absorbed_id,
+            )
+            record3 = await result3.single()
+            stats["node_deleted"] = (record3["deleted"] if record3 else 0) > 0
+
+            self.metrics.nodes_created -= 1
+        return stats
+
     # ── Relationship inference ──────────────────────────────────
 
     async def _infer_relationships(self, company_id: str, tenant_id: str) -> int:
@@ -881,3 +1083,122 @@ class KnowledgeGraphEngine:
             if not r:
                 return None
             return GraphNode(id=r["id"], labels=[NodeLabel.COMPANY], properties=dict(r))
+
+    async def _enrich_company_relationships_sql(self, company_id: str, tenant_id: str) -> dict:
+        stats = {"competitors": 0, "partners": 0, "subsidiaries": 0}
+        async with self._session_factory() as session:
+            row = await session.execute(
+                sa_text("SELECT industry, city FROM companies WHERE id = :cid AND tenant_id = :tid"),
+                {"cid": company_id, "tid": tenant_id},
+            )
+            company = row.mappings().one_or_none()
+            if not company:
+                return stats
+
+            industry = company.get("industry") or ""
+            city = company.get("city") or ""
+
+            if industry or city:
+                conditions = ["c.id != :cid", "c.tenant_id = :tid"]
+                params: dict = {"cid": company_id, "tid": tenant_id}
+                if industry:
+                    conditions.append("c.industry = :industry")
+                    params["industry"] = industry
+                if city:
+                    conditions.append("c.city = :city")
+                    params["city"] = city
+                where_clause = " AND ".join(conditions)
+                comp_rows = await session.execute(
+                    sa_text(f"""
+                        SELECT id, industry, city FROM companies c
+                        WHERE {where_clause}
+                        LIMIT 30
+                    """),
+                    params,
+                )
+                for comp in comp_rows.mappings().all():
+                    reason = "same_industry" if comp.get("industry") == industry else "same_city"
+                    await self._create_edge_sql(company_id, comp["id"], EdgeType.COMPETITOR_OF, {"reason": reason})
+                    stats["competitors"] += 1
+
+            sub_rows = await session.execute(
+                sa_text("SELECT id FROM companies WHERE parent_company_id = :cid AND tenant_id = :tid"),
+                {"cid": company_id, "tid": tenant_id},
+            )
+            for sub in sub_rows.mappings().all():
+                await self._create_edge_sql(company_id, sub["id"], EdgeType.SUBSIDIARY_OF)
+                stats["subsidiaries"] += 1
+
+            if city:
+                partner_rows = await session.execute(
+                    sa_text("""
+                        SELECT id, industry FROM companies c
+                        WHERE c.id != :cid AND c.tenant_id = :tid
+                          AND c.city = :city
+                          AND c.industry != :industry
+                          AND c.industry IS NOT NULL AND c.industry != ''
+                        LIMIT 15
+                    """),
+                    {"cid": company_id, "tid": tenant_id, "city": city, "industry": industry},
+                )
+                for partner in partner_rows.mappings().all():
+                    await self._create_edge_sql(company_id, partner["id"], EdgeType.PARTNER_WITH, {
+                        "reason": "same_city_different_industry",
+                    })
+                    stats["partners"] += 1
+
+        return stats
+
+    async def _get_entity_subgraph_sql(self, entity_id: str, depth: int = 2) -> dict:
+        async with self._session_factory() as session:
+            rows = await session.execute(
+                sa_text("""
+                    SELECT * FROM graph_edges
+                    WHERE (source_id = :eid OR target_id = :eid)
+                    LIMIT :lim
+                """),
+                {"eid": entity_id, "lim": 50 * depth},
+            )
+            nodes: dict[str, dict] = {}
+            edges: list[dict] = []
+            for row in rows.mappings().all():
+                src = row["source_id"]
+                tgt = row["target_id"]
+                if src not in nodes:
+                    nodes[src] = GraphNode(id=src, labels=[NodeLabel.COMPANY], properties={}).to_dict()
+                if tgt not in nodes:
+                    nodes[tgt] = GraphNode(id=tgt, labels=[NodeLabel.COMPANY], properties={}).to_dict()
+                edges.append({"source": src, "target": tgt, "type": row["edge_type"]})
+            return {"nodes": list(nodes.values()), "edges": edges}
+
+    async def _merge_graph_nodes_sql(self, surviving_id: str, absorbed_id: str) -> dict:
+        stats = {"edges_rewired": 0, "node_deleted": False}
+        async with self._session_factory() as session:
+            await session.execute(
+                sa_text("""
+                    UPDATE graph_edges SET source_id = :surviving
+                    WHERE source_id = :absorbed AND NOT EXISTS (
+                        SELECT 1 FROM graph_edges e2
+                        WHERE e2.source_id = :surviving AND e2.target_id = graph_edges.target_id
+                    )
+                """),
+                {"surviving": surviving_id, "absorbed": absorbed_id},
+            )
+            await session.execute(
+                sa_text("""
+                    UPDATE graph_edges SET target_id = :surviving
+                    WHERE target_id = :absorbed AND NOT EXISTS (
+                        SELECT 1 FROM graph_edges e2
+                        WHERE e2.source_id = graph_edges.source_id AND e2.target_id = :surviving
+                    )
+                """),
+                {"surviving": surviving_id, "absorbed": absorbed_id},
+            )
+            result = await session.execute(
+                sa_text("DELETE FROM graph_edges WHERE source_id = :absorbed OR target_id = :absorbed"),
+                {"absorbed": absorbed_id},
+            )
+            stats["edges_rewired"] = result.rowcount if result.rowcount else 0
+            stats["node_deleted"] = True
+            await session.commit()
+        return stats

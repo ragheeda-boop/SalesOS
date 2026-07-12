@@ -7,6 +7,8 @@ import { useDebounce } from "@salesos/hooks"
 import { Input, Badge, Button, Spinner, Modal, ModalTrigger, ModalContent, ModalHeader, ModalBody, ModalFooter, useToast } from "@salesos/ui"
 import { Search, Plus, Users, ChevronLeft, ChevronRight, Pencil, Trash2, X, Loader2, Building2 } from "lucide-react"
 import Link from "next/link"
+import type { Contact, Company } from "@/lib/api"
+import type { AxiosError } from "axios"
 
 export default function ContactsPage() {
   const { toast } = useToast()
@@ -15,11 +17,7 @@ export default function ContactsPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [selectedContact, setSelectedContact] = useState<{
-    id: string; name: string; email: string | null; phone: string | null;
-    position: string | null; mobile: string | null; department: string | null;
-    company_id: string | null; source: string | null; tags: string[];
-  } | null>(null)
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [formData, setFormData] = useState({
     name: "", email: "", phone: "", mobile: "", position: "", department: "", source: "", company_id: "", tags: "",
   })
@@ -63,8 +61,9 @@ export default function ContactsPage() {
       resetForm()
       setPage(1)
       toast({ variant: "success", title: "تمت الإضافة", description: "تم إضافة جهة الاتصال بنجاح" })
-    } catch (err: any) {
-      toast({ variant: "error", title: "فشل الإضافة", description: err?.response?.data?.detail || "حدث خطأ أثناء إضافة جهة الاتصال" })
+    } catch (err: unknown) {
+      const detail = (err as AxiosError<{ detail?: string }>)?.response?.data?.detail
+      toast({ variant: "error", title: "فشل الإضافة", description: detail || "حدث خطأ أثناء إضافة جهة الاتصال" })
     }
   }, [formData, selectedCompany, createContact, toast])
 
@@ -83,8 +82,9 @@ export default function ContactsPage() {
       setEditOpen(false)
       setSelectedContact(null)
       toast({ variant: "success", title: "تم التعديل", description: "تم تعديل جهة الاتصال بنجاح" })
-    } catch (err: any) {
-      toast({ variant: "error", title: "فشل التعديل", description: err?.response?.data?.detail || "حدث خطأ أثناء تعديل جهة الاتصال" })
+    } catch (err: unknown) {
+      const detail = (err as AxiosError<{ detail?: string }>)?.response?.data?.detail
+      toast({ variant: "error", title: "فشل التعديل", description: detail || "حدث خطأ أثناء تعديل جهة الاتصال" })
     }
   }, [selectedContact, formData, updateContact, toast])
 
@@ -95,12 +95,13 @@ export default function ContactsPage() {
       setDeleteOpen(false)
       setSelectedContact(null)
       toast({ variant: "success", title: "تم الحذف", description: "تم حذف جهة الاتصال بنجاح" })
-    } catch (err: any) {
-      toast({ variant: "error", title: "فشل الحذف", description: err?.response?.data?.detail || "حدث خطأ أثناء حذف جهة الاتصال" })
+    } catch (err: unknown) {
+      const detail = (err as AxiosError<{ detail?: string }>)?.response?.data?.detail
+      toast({ variant: "error", title: "فشل الحذف", description: detail || "حدث خطأ أثناء حذف جهة الاتصال" })
     }
   }, [selectedContact, deleteContact, toast])
 
-  const openEdit = (contact: Record<string, any>) => {
+  const openEdit = (contact: Contact) => {
     const c = contact
     setSelectedContact({
       id: c.id, name: c.name, email: c.email ?? null, phone: c.phone ?? null,
@@ -171,7 +172,7 @@ export default function ContactsPage() {
                       <Input placeholder="ابحث عن شركة..." value={companySearch} onChange={(e) => setCompanySearch(e.target.value)} className="mb-1" />
                       {companyResults?.items && companyResults.items.length > 0 && (
                         <div className="max-h-40 overflow-y-auto rounded-md border border-neutral-200 bg-white">
-                          {companyResults.items.slice(0, 6).map((c: any) => (
+                          {companyResults.items.slice(0, 6).map((c: Company) => (
                             <button key={c.id} onClick={() => setSelectedCompany({ id: c.id, name: c.name_ar })} className="w-full px-3 py-1.5 text-right text-sm hover:bg-neutral-100">
                               {c.name_ar}
                               {c.cr_number && <span className="mr-2 text-xs text-neutral-400">{c.cr_number}</span>}
@@ -236,7 +237,7 @@ export default function ContactsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
-              {data.items.map((contact: any) => (
+              {data.items.map((contact: Contact) => (
                 <tr key={contact.id} className="text-sm text-neutral-700 hover:bg-neutral-50">
                   <td className="px-4 py-3 font-medium text-neutral-900" data-label="الاسم">{contact.name}</td>
                   <td className="px-4 py-3" data-label="البريد الإلكتروني">{contact.email || <span className="text-neutral-400">—</span>}</td>
@@ -257,7 +258,7 @@ export default function ContactsPage() {
                       <button onClick={() => openEdit(contact)} className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-[var(--muhide-orange)]" title="تعديل">
                         <Pencil className="h-4 w-4" />
                       </button>
-                      <button onClick={() => { setSelectedContact(contact as any); setDeleteOpen(true) }} className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-danger-600" title="حذف">
+                      <button onClick={() => { setSelectedContact(contact); setDeleteOpen(true) }} className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-danger-600" title="حذف">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>

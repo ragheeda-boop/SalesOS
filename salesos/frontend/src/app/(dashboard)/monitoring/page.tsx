@@ -136,7 +136,7 @@ export default function MonitoringPage() {
   )
 }
 
-function StatCard({ icon: Icon, label, value, color }: { icon: any; label: string; value: string | number; color: string }) {
+function StatCard({ icon: Icon, label, value, color }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string | number; color: string }) {
   const colorMap: Record<string, string> = {
     blue: "bg-info-50 text-info-600 dark:bg-info-900/30 dark:text-info-400",
     green: "bg-success-50 text-success-600 dark:bg-success-900/30 dark:text-success-400",

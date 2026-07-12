@@ -1,5 +1,53 @@
 # Changelog
 
+## SalesOS Product v0.2.0 — Data Fabric (2026-07-12)
+
+### Release Tag: `v0.2.0`
+
+Data Fabric release — Entity Resolution, Hybrid Search, Feature Store, Knowledge Graph, and production hardening.
+
+### What's Included
+
+**Data Fabric Core:**
+- **Entity Resolution** — pg_trgm fuzzy matching + merge strategy for deduplication
+- **Hybrid Search** — Full-text (tsvector) + semantic (pgvector) with Reciprocal Rank Fusion (RRF) scoring
+- **Feature Store** — Centralized feature computation and caching
+- **Knowledge Graph** — Neo4j graph integration with SQL fallback for resilience
+
+**Infrastructure:**
+- **Contact PostgreSQL Repositories** — ContactRepository, ContactSearchRepository
+- **57 RBAC argument-reversal fixes** — Security-critical permission corrections
+- **CSRF protection middleware** — Cross-site request forgery defense
+- **WebSocket auth hardening** — Moved to message body for security
+- **Search timeout fix** — Timeout guard + statement_timeout prevents long-running queries
+- **Neo4j connection leak fix** — Context managers enforced everywhere
+
+**Production Hardening:**
+- Auth on demo/metrics endpoints
+- K8s secrets template
+- Security audit script
+
+### What's Changed
+
+- Test coverage: 207 suites, 2054 tests, 93% unit coverage (up from 74%)
+- Eliminated all `any` types in production code (29 instances fixed)
+- api.ts split 1320 → 629 lines (types + client extraction)
+- pipeline-kanban.tsx split 543 → 411 lines (3 files)
+
+### New Tests
+
+- Admin tests: 79
+- RAG tests: 23
+- Decision Platform tests: 52
+- Customer Success tests: 7
+- Monitoring tests: 8
+
+### Documentation
+
+- Pilot prep docs: onboarding guide, synthetic data guide, secrets guide
+
+---
+
 ## SalesOS Product v0.6 — Revenue Execution Platform (2026-07-11)
 
 ### Release Tag: `v0.6.0`

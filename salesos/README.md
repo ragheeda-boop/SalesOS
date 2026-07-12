@@ -20,6 +20,8 @@
                        ├──────────────────────┤
                        │  Company  │  Contact  │
                        ├──────────────────────┤
+                       │ Entity Resolution │ Feature Store │ Knowledge Graph │
+                       ├──────────────────────┤
                        │     Data Lake         │
                        ├──────────────────────┤
                        │  PostgreSQL  │  Neo4j │
@@ -32,8 +34,8 @@
 |-------|-----------|
 | Backend | Python 3.12, FastAPI, SQLAlchemy 2.0 |
 | Frontend | Next.js 15, React 19, Tailwind CSS 4 |
-| Database | PostgreSQL 16 + pgvector |
-| Graph | Neo4j 5.x |
+| Database | PostgreSQL 16 + pgvector + pg_trgm |
+| Graph | Neo4j 5.x (with SQL fallback) |
 | Stream | Apache Kafka |
 | Cache | Redis 7 |
 | Infra | Docker, Kubernetes, Terraform (AWS) |
@@ -50,6 +52,28 @@ docker compose up --build -d
 # Backend API: http://localhost:8000/docs
 # Frontend:     http://localhost:3000
 ```
+
+## Data Fabric — v0.2.0
+
+SalesOS v0.2.0 introduces the **Data Fabric** layer — Entity Resolution, Hybrid Search, Feature Store, and Knowledge Graph.
+
+### Data Fabric Components
+
+| Component | Description | Tech |
+|-----------|-------------|------|
+| **Entity Resolution** | Fuzzy matching + merge strategy for contact/company deduplication | pg_trgm, SQLAlchemy |
+| **Hybrid Search** | Full-text (tsvector) + semantic (pgvector) with RRF fusion scoring | PostgreSQL, pgvector |
+| **Feature Store** | Centralized feature computation, caching, and versioning | PostgreSQL |
+| **Knowledge Graph** | Graph relationships for company/contact networks | Neo4j + SQL fallback |
+
+### Data Fabric Features
+
+- **Entity Resolution** — pg_trgm fuzzy matching with configurable similarity threshold; merge strategy for duplicate records
+- **Hybrid Search** — Full-text (GIN-indexed tsvector) + semantic (pgvector embeddings) fused via Reciprocal Rank Fusion (RRF)
+- **Feature Store** — 7 feature computers powering scoring, NBA, and analytics
+- **Knowledge Graph** — Neo4j graph traversal with SQL fallback for resilience; full-text indexes via `~` operator
+
+---
 
 ## Wave 2 — Revenue Execution Platform
 
@@ -75,6 +99,9 @@ SalesOS v0.6.0 introduces the **Revenue Execution Platform**, transforming intel
 - **Health Map** — Traffic light visualization across all open opportunities
 - **Meeting Intelligence** — AI-generated briefs and summaries in < 3s
 - **Email Intelligence** — Sentiment, topics, urgency from Gmail/Outlook integration
+- **Hybrid Search (RRF)** — Full-text + semantic fusion scoring via Reciprocal Rank Fusion
+- **Entity Resolution (pg_trgm)** — Fuzzy matching for contact/company deduplication
+- **Feature Store** — Centralized feature computation and caching (7 computers)
 
 ### API Overview
 
@@ -122,8 +149,11 @@ salesos/
 │   │   ├── modules/        # Feature modules
 │   │   │   ├── identity/   # Auth, users, tenants
 │   │   │   ├── company/    # Companies, branches, licenses, contacts
-│   │   │   ├── contact/
-│   │   │   ├── search/
+│   │   │   ├── contact/    # Contact management
+│   │   │   ├── search/     # Hybrid Search (full-text + semantic + RRF)
+│   │   │   ├── entity_resolution/  # ← NEW: Fuzzy matching + merge (pg_trgm)
+│   │   │   ├── feature_store/      # ← NEW: Feature computation + caching
+│   │   │   ├── data_fabric_runtime/ # ← NEW: Pipeline orchestration + graph sync
 │   │   │   ├── revenue/    # ← Wave 2: Opportunities, Pipeline, NBA, Goals
 │   │   │   ├── meeting/    # ← Wave 2: Meeting Intelligence
 │   │   │   └── email/      # ← Wave 2: Email Intelligence

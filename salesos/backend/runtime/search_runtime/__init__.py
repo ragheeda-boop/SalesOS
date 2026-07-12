@@ -129,8 +129,11 @@ class SearchCache:
 class SearchRuntime:
     """Unified search engine — coordinates full-text, semantic, and graph search.
 
+    When a PostgresSearchRepository is provided, full-text search delegates
+    to it instead of embedding raw SQL (architecture compliance — VIO-103).
+
     Usage:
-        rt = SearchRuntime(session_factory, kg_engine)
+        rt = SearchRuntime(session_factory, kg_engine, search_repo=repo)
         results = await rt.search("شركة عبد اللطيف", tenant_id="...")
     """
 
@@ -154,11 +157,13 @@ class SearchRuntime:
         embedding_service: Any = None,
         kg_engine: Any = None,
         logger: Any = None,
+        search_repo: Any = None,
     ):
         self._session_factory = session_factory
         self._embedding_service = embedding_service
         self._kg_engine = kg_engine
         self._logger = logger
+        self._search_repo = search_repo
         self.metrics = SearchMetrics()
         self._cache = SearchCache(ttl_seconds=60.0, max_entries=256)
 
@@ -242,6 +247,13 @@ class SearchRuntime:
         """Auto-complete suggestions for a field."""
         col = self._safe_col(field, self.ALLOWED_SUGGEST_FIELDS)
         self.metrics.searches += 1
+
+        # Delegate to PostgresSearchRepository when available (VIO-103 compliance)
+        if self._search_repo is not None:
+            return await self._search_repo.suggest_raw(
+                prefix=query, tenant_id=tenant_id, field=field, limit=limit,
+            )
+
         async with self._session_factory() as session:
             rows = await session.execute(
                 sa_text(f"""
@@ -307,6 +319,30 @@ class SearchRuntime:
         filters: Optional[dict], limit: int, offset: int,
         entity_types: Optional[list[str]],
     ) -> SearchResult:
+        # Delegate to PostgresSearchRepository when available (VIO-103 compliance)
+        if self._search_repo is not None:
+            rows, total = await self._search_repo.search_by_filters(
+                query=query,
+                tenant_id=tenant_id,
+                filters=filters,
+                limit=limit,
+                offset=offset,
+            )
+            items = [
+                SearchResultItem(
+                    id=r["id"], type="company",
+                    score=float(r.get("rank", 0)) or 1.0,
+                    data={"name_ar": r.get("name_ar", ""), "name_en": r.get("name_en", ""),
+                          "cr_number": r.get("cr_number", ""), "city": r.get("city", ""),
+                          "region": r.get("region", ""), "industry": r.get("industry", ""),
+                          "status": r.get("status", "")},
+                    matched_fields=self._find_matched(query, r),
+                ) for r in rows
+            ]
+            return SearchResult(items=items, total=total, query=query,
+                               strategy=SearchStrategy.FULLTEXT, took_ms=0)
+
+        # Fallback: inline SQL (legacy path)
         async with self._session_factory() as session:
             await session.execute(sa_text("SET statement_timeout = '5s'"))
 
