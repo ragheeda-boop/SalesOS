@@ -88,3 +88,20 @@ class PostgresTelemetryRepository(TelemetryRepository):
         stmt = select(TelemetryEvent).where(TelemetryEvent.tenant_id == tenant_id).order_by(TelemetryEvent.timestamp)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
+
+    async def get_all_events_in_range(
+        self,
+        tenant_id: str | None = None,
+        from_date: datetime | None = None,
+        to_date: datetime | None = None,
+    ) -> list[TelemetryEvent]:
+        stmt = select(TelemetryEvent)
+        if tenant_id is not None:
+            stmt = stmt.where(TelemetryEvent.tenant_id == tenant_id)
+        if from_date:
+            stmt = stmt.where(TelemetryEvent.timestamp >= from_date)
+        if to_date:
+            stmt = stmt.where(TelemetryEvent.timestamp <= to_date)
+        stmt = stmt.order_by(TelemetryEvent.timestamp)
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
