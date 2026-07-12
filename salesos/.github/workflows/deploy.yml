@@ -48,8 +48,59 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v3
 
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for forbidden files
+        run: |
+          forbidden=0
+          for pattern in '*.env' '*.key' '*.pem' 'secrets.*' 'credentials*' '*.p12'; do
+            files=$(git ls-files -- "$pattern" 2>/dev/null || true)
+            if [ -n "$files" ]; then
+              echo "::error::Forbidden pattern '$pattern' found: $files"
+              forbidden=1
+            fi
+          done
+          if [ "$forbidden" = "1" ]; then exit 1; fi
+          echo "No forbidden files detected."
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
+  arch-compliance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run architecture compliance check
+        shell: pwsh
+        run: |
+          $result = & "${{ github.workspace }}/scripts/arch-compliance.ps1" -JsonOnly
+          $report = $result | ConvertFrom-Json
+          Write-Host "Overall Compliance: $($report.overall_compliance)%"
+          if ($report.overall_compliance -lt $report.summary.target_compliance) {
+            Write-Host "::error::Architecture compliance $($report.overall_compliance)% is below target $($report.summary.target_compliance)%"
+            exit 1
+          }
+          Write-Host "::notice::Architecture compliance $($report.overall_compliance)% meets target"
+      - name: Upload compliance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arch-compliance-report
+          path: reports/arch-compliance-report.json
+
   build:
-    needs: test
+    needs: [test, security-scan, arch-compliance]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -62,7 +113,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set image tag
+      - name: Set image tag (pinned to git tag)
         id: meta
         run: echo "tag=$(echo ${{ github.ref_name }} | sed 's/^v//')" >> $GITHUB_OUTPUT
       - name: Build and push backend
@@ -71,23 +122,33 @@ jobs:
           context: ./backend
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:latest
       - name: Build and push frontend
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:${{ steps.meta.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:latest
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    outputs:
+      deploy_status: ${{ steps.deploy.outputs.status }}
+      previous_tag: ${{ steps.get-previous-tag.outputs.previous_tag }}
     steps:
       - uses: actions/checkout@v4
+      - name: Get previous image tag for rollback
+        id: get-previous-tag
+        run: |
+          IMAGE_TAG=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "previous_tag=latest" >> $GITHUB_OUTPUT
       - name: Deploy to VPS
+        id: deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -96,9 +157,108 @@ jobs:
           script: |
             set -e
             cd /opt/salesos
-            export IMAGE_TAG=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+            IMAGE_TAG=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+            export IMAGE_TAG
+            echo "Deploying tag: $IMAGE_TAG"
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d migrations
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
-            docker image prune -f
             echo "Deploy complete — tag: $IMAGE_TAG"
+
+  health-check:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health check verification
+        id: health
+        run: |
+          endpoint="${{ secrets.VPS_HEALTH_ENDPOINT || 'http://localhost:8000/health' }}"
+          echo "Checking $endpoint..."
+          for i in $(seq 1 5); do
+            status=$(curl -s -o /dev/null -w "%{http_code}" "$endpoint" 2>/dev/null || echo "000")
+            echo "Attempt $i: HTTP $status"
+            if [ "$status" = "200" ]; then
+              echo "health_ok=true" >> $GITHUB_OUTPUT
+              echo "::notice::Health check passed"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "health_ok=false" >> $GITHUB_OUTPUT
+          echo "::error::Health check failed after 5 retries"
+          exit 1
+
+  smoke-test:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post-deploy smoke tests
+        run: |
+          base="${{ secrets.VPS_HEALTH_ENDPOINT || 'http://localhost:8000' }}"
+          endpoints="/health /health/ready /ping"
+          failures=0
+          for ep in $endpoints; do
+            url="${base}${ep}"
+            status=$(curl -s -o /dev/null -w "%{http_code}" "$url" 2>/dev/null || echo "000")
+            if [ "$status" = "200" ]; then
+              echo "✅ $url -> $status"
+            else
+              echo "❌ $url -> $status"
+              failures=$((failures + 1))
+            fi
+          done
+          if [ "$failures" -gt 0 ]; then
+            echo "::error::$failures smoke test(s) failed"
+            exit 1
+          fi
+          echo "::notice::All smoke tests passed"
+
+  rollback:
+    if: failure()
+    needs: [deploy, health-check]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rollback to previous Docker image tag
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/salesos
+            PREVIOUS_TAG="${{ needs.deploy.outputs.previous_tag || 'latest' }}"
+            echo "Rolling back to tag: $PREVIOUS_TAG"
+            export IMAGE_TAG=$PREVIOUS_TAG
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            echo "Rollback complete — tag: $PREVIOUS_TAG"
+      - name: Log rollback reason
+        run: |
+          echo "::error::Rollback triggered — deploy or health check failed"
+          echo "REF: ${{ github.ref_name }}"
+          echo "COMMIT: ${{ github.sha }}"
+          echo "WORKFLOW: ${{ github.workflow }}"
+          echo "RUN: ${{ github.run_id }}"
+
+  notify:
+    if: always()
+    needs: [deploy, health-check, smoke-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify deploy status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ needs.health-check.result }}' === 'success' && '${{ needs.smoke-test.result }}' === 'success' ? 'success' : 'failure';
+            const ref = '${{ github.ref_name }}';
+            const runId = '${{ github.run_id }}';
+            const repo = context.repo;
+            const emoji = status === 'success' ? '✅' : '❌';
+            const message = `${emoji} Deploy **${status}** — ${ref}\nRun: https://github.com/${repo.owner}/${repo.repo}/actions/runs/${runId}`;
+            await github.rest.repos.createCommitComment({
+              owner: repo.owner,
+              repo: repo.repo,
+              commit_sha: context.sha,
+              body: message
+            });

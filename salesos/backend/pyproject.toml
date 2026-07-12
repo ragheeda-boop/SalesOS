@@ -68,6 +68,9 @@ files = ["app/", "sdk/", "modules/", "cli/"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+markers = [
+    "e2e: end-to-end tests requiring a live database and full application stack",
+]
 testpaths = [
     "tests",
     "app/modules/identity/tests",
