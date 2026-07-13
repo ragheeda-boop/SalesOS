@@ -99,31 +99,7 @@ class TimelineService:
         entity_id: str,
         tenant_id: str = "",
     ) -> dict[str, Any]:
-        events, _ = await self.get_entity_timeline(entity_type, entity_id, tenant_id, page=1, page_size=10000)
-
-        total_events = len(events)
-        unique_types = len({e.activity.value for e in events})
-        event_breakdown: dict[str, int] = {}
-        first_event = None
-        last_event = None
-
-        for e in events:
-            act = e.activity.value
-            event_breakdown[act] = event_breakdown.get(act, 0) + 1
-            if first_event is None or e.timestamp < first_event:
-                first_event = e.timestamp
-            if last_event is None or e.timestamp > last_event:
-                last_event = e.timestamp
-
-        return {
-            "entity_type": entity_type,
-            "entity_id": entity_id,
-            "total_events": total_events,
-            "unique_event_types": unique_types,
-            "first_event": first_event.isoformat() if first_event else None,
-            "last_event": last_event.isoformat() if last_event else None,
-            "event_breakdown": event_breakdown,
-        }
+        return await self._repo.get_summary(entity_type, entity_id, tenant_id)
 
     async def delete_events_for_entity(
         self,

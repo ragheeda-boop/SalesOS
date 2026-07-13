@@ -62,3 +62,9 @@ class TimelineRepository(ABC):
     @abstractmethod
     async def count(self, tenant_id: str) -> int:
         """Total number of events for a tenant."""
+
+    @abstractmethod
+    async def get_summary(
+        self, entity_type: str, entity_id: str, tenant_id: str = ""
+    ) -> dict:
+        """Return aggregated summary (total_events, unique_types, first/last timestamp, breakdown) without loading all rows."""

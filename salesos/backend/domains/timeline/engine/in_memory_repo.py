@@ -50,3 +50,26 @@ class InMemoryTimelineRepository(TimelineRepository):
 
     async def count(self, tenant_id: str) -> int:
         return len([e for e in self._events if e.tenant_id == tenant_id])
+
+    async def get_summary(self, entity_type: str, entity_id: str, tenant_id: str = "") -> dict:
+        filtered = [e for e in self._events if e.target.type == entity_type and e.target.id == entity_id]
+        if tenant_id:
+            filtered = [e for e in filtered if e.tenant_id == tenant_id]
+        if not filtered:
+            return {"entity_type": entity_type, "entity_id": entity_id, "total_events": 0, "unique_event_types": 0, "first_event": None, "last_event": None, "event_breakdown": {}}
+        types = set(e.activity.value for e in filtered)
+        breakdown = {}
+        for e in filtered:
+            act = e.activity.value
+            breakdown[act] = breakdown.get(act, 0) + 1
+        first = min(e.timestamp for e in filtered)
+        last = max(e.timestamp for e in filtered)
+        return {
+            "entity_type": entity_type,
+            "entity_id": entity_id,
+            "total_events": len(filtered),
+            "unique_event_types": len(types),
+            "first_event": first.isoformat(),
+            "last_event": last.isoformat(),
+            "event_breakdown": breakdown,
+        }

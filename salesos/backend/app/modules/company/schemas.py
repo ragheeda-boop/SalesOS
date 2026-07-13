@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CompanyCreate(BaseModel):
@@ -67,8 +67,7 @@ class CompanyResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CompanyListResponse(BaseModel):
@@ -116,8 +115,7 @@ class BranchResponse(BaseModel):
     company_id: UUID
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class LicenseCreate(BaseModel):
@@ -139,8 +137,7 @@ class LicenseResponse(BaseModel):
     expiry_date: date | None
     company_id: UUID
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ContactCreate(BaseModel):
@@ -163,8 +160,7 @@ class ContactResponse(BaseModel):
     company_id: UUID
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CompanyIngestRequest(BaseModel):

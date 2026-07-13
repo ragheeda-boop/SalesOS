@@ -353,60 +353,67 @@ async def _run_enrichment_pipeline(company_id: str, tenant_id: str) -> dict:
         if not company:
             return {"error": "company_not_found", "company_id": company_id}
 
-    try:
-        from runtime.data_fabric_runtime.scrapers.balady import BaladyScraper
-        from runtime.data_fabric_runtime.scrapers.taqeem import TaqeemScraper
-        scrapers = [
-            ("balady", BaladyScraper(use_mock=False)),
-            ("taqeem", TaqeemScraper(use_mock=False)),
-        ]
+    async def _run_scrapers():
+        try:
+            from runtime.data_fabric_runtime.scrapers.balady import BaladyScraper
+            from runtime.data_fabric_runtime.scrapers.taqeem import TaqeemScraper
+            scrapers = [
+                ("balady", BaladyScraper(use_mock=False)),
+                ("taqeem", TaqeemScraper(use_mock=False)),
+            ]
 
-        async def _scrape(slug, scraper):
-            try:
-                async with asyncio.timeout(10):
-                    return await scraper.fetch_all()
-            except Exception:
-                return None
-            finally:
-                await scraper.close()
+            async def _scrape_one(slug, scraper):
+                try:
+                    async with asyncio.timeout(10):
+                        return await scraper.fetch_all()
+                except Exception:
+                    return None
+                finally:
+                    await scraper.close()
 
-        scrape_results = await asyncio.gather(
-            *[_scrape_one(slug, s) for slug, s in scrapers],
-            return_exceptions=True,
-        )
+            scrape_results = await asyncio.gather(
+                *[_scrape_one(slug, s) for slug, s in scrapers],
+                return_exceptions=True,
+            )
 
-        for slug, res in zip(["balady", "taqeem"], scrape_results):
-            if isinstance(res, Exception):
-                logger.warning("Scraper %s failed for %s: %s", slug, company_id, res)
+            for slug, res in zip(["balady", "taqeem"], scrape_results):
+                if isinstance(res, Exception):
+                    logger.warning("Scraper %s failed for %s: %s", slug, company_id, res)
+        except Exception as e:
+            logger.warning("Scrapers unavailable for %s: %s", company_id, e)
 
-    except Exception as e:
-        logger.warning("Scrapers unavailable for %s: %s", company_id, e)
+    async def _run_features():
+        try:
+            from app.database import async_session
+            from runtime.feature_store import FeatureStore
+            from runtime.event_runtime import EventRuntime
+            from runtime.feature_store.features import (
+                IcpComputer, FundingScoreComputer, HiringScoreComputer,
+                GrowthScoreComputer, IntentScoreComputer, ExpansionScoreComputer,
+                RevenueScoreComputer,
+            )
+            event_runtime = EventRuntime()
+            store = FeatureStore(
+                session_factory=async_session,
+                event_runtime=event_runtime,
+                computers=[
+                    IcpComputer(), FundingScoreComputer(), HiringScoreComputer(),
+                    GrowthScoreComputer(), IntentScoreComputer(), ExpansionScoreComputer(),
+                    RevenueScoreComputer(),
+                ],
+                logger=logger,
+            )
+            feature_results = await store.recompute(company_id, tenant_id)
+            return {name: r.score for name, r in feature_results.items()}
+        except Exception as e:
+            logger.warning("Feature store unavailable for %s: %s", company_id, e)
+            return {}
 
-    try:
-        from app.database import async_session
-        from runtime.feature_store import FeatureStore
-        from runtime.event_runtime import EventRuntime
-        from runtime.feature_store.features import (
-            IcpComputer, FundingScoreComputer, HiringScoreComputer,
-            GrowthScoreComputer, IntentScoreComputer, ExpansionScoreComputer,
-            RevenueScoreComputer,
-        )
-        event_runtime = EventRuntime()
-        store = FeatureStore(
-            session_factory=async_session,
-            event_runtime=event_runtime,
-            computers=[
-                IcpComputer(), FundingScoreComputer(), HiringScoreComputer(),
-                GrowthScoreComputer(), IntentScoreComputer(), ExpansionScoreComputer(),
-                RevenueScoreComputer(),
-            ],
-            logger=logger,
-        )
-        feature_results = await store.recompute(company_id, tenant_id)
-        features = {name: r.score for name, r in feature_results.items()}
-    except Exception as e:
-        features = {}
-        logger.warning("Feature store unavailable for %s: %s", company_id, e)
+    scrape_result, feature_result = await asyncio.gather(
+        _run_scrapers(), _run_features(), return_exceptions=True,
+    )
+
+    features = feature_result if isinstance(feature_result, dict) else {}
 
     return {
         "company_id": company_id,

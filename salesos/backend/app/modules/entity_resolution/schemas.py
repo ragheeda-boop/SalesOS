@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProvenanceField(BaseModel):
@@ -27,8 +27,7 @@ class GoldenRecordResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class GoldenRecordListResponse(BaseModel):
@@ -52,8 +51,7 @@ class ConflictResponse(BaseModel):
     status: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ConflictResolveRequest(BaseModel):
@@ -92,6 +90,4 @@ class ResolutionLogResponse(BaseModel):
     records_merged: int
     performed_at: datetime = Field(alias="created_at")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
