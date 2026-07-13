@@ -8,6 +8,7 @@ Endpoints:
 """
 
 from datetime import datetime
+import os
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -15,6 +16,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from app.dependencies import get_current_tenant_id, verify_token
 
 router = APIRouter(dependencies=[Depends(verify_token)])
+
+
+def _get_runtime(request: Request):
+    tl = getattr(request.app.state, "timeline_runtime", None)
+    if not tl:
+        raise HTTPException(status_code=503, detail="Timeline Runtime not initialized")
+    return tl
 
 
 @router.get("/timeline/{entity_type}/{entity_id}")
@@ -33,7 +41,7 @@ async def get_timeline(
     if not tl:
         raise HTTPException(status_code=503, detail="Timeline Runtime not initialized")
 
-    types_list = [t.strip() for t in event_types.split(",")] if event_types else None
+    types_list: list[str] = [t.strip() for t in event_types.split(",") if t.strip()] if event_types else []
     entries = await tl.get_timeline(
         entity_type=entity_type,
         entity_id=entity_id,
@@ -58,9 +66,7 @@ async def timeline_summary(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
 ):
-    tl = getattr(request.app.state, "timeline_runtime", None)
-    if not tl:
-        raise HTTPException(status_code=503, detail="Timeline Runtime not initialized")
+    tl = _get_runtime(request)
     return await tl.get_timeline_summary(entity_type, entity_id)
 
 
@@ -71,9 +77,7 @@ async def get_entity_timelines(
     tenant_id: str = Depends(get_current_tenant_id),
     limit: int = Query(20, ge=1, le=100),
 ):
-    tl = getattr(request.app.state, "timeline_runtime", None)
-    if not tl:
-        raise HTTPException(status_code=503, detail="Timeline Runtime not initialized")
+    tl = _get_runtime(request)
     entries = await tl.get_entity_timelines(tenant_id, entity_type, limit)
     return {"entity_type": entity_type, "entries": entries}
 

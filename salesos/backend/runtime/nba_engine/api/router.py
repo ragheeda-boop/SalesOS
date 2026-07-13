@@ -66,7 +66,7 @@ async def get_nba(
     opportunity_id: str,
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "nba")),
+    _rbac: None = Depends(require_permission_dep("nba", PermissionAction.READ)),
 ):
     """Get the current Next Best Action for an opportunity."""
     try:
@@ -89,7 +89,7 @@ async def refresh_nba(
     opportunity_id: str,
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "nba")),
+    _rbac: None = Depends(require_permission_dep("nba", PermissionAction.CREATE)),
 ):
     """Force recompute the Next Best Action for an opportunity."""
     try:
@@ -119,7 +119,7 @@ async def record_nba_feedback(
     body: NBAFeedbackRequest,
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "nba")),
+    _rbac: None = Depends(require_permission_dep("nba", PermissionAction.UPDATE)),
 ):
     """Record user feedback on an NBA recommendation."""
     try:

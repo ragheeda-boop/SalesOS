@@ -202,6 +202,7 @@ class CompanyService:
             if value is not None and hasattr(company, key):
                 setattr(company, key, value)
         await self.db.flush()
+        await self.db.refresh(company)
 
         audit = AuditTrail(self.db)
         await audit.record(

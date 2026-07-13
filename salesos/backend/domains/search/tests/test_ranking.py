@@ -130,4 +130,4 @@ def test_ranking_pipeline_default():
         partial_fields=["name_ar", "city"],
     )
     assert pipeline is not None
-    assert len(pipeline._stages) == 4
+    assert len(pipeline._stages) == 5

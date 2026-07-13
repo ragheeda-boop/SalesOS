@@ -155,7 +155,9 @@ class TestStopWordsRemoval:
 
     def test_remove_conjunctions(self, normalizer):
         result = normalizer.normalize("شركة و مؤسسة")
-        assert "و" not in result
+        import re
+        standalone_waw = re.search(r'(?<!\w)و(?!\w)', result)
+        assert standalone_waw is None, f"و still present as standalone word in {result}"
 
     def test_remove_demonstratives(self, normalizer):
         result = normalizer.normalize("هذه الشركة")
@@ -193,8 +195,8 @@ class TestRealCompanyNames:
         result = normalizer.normalize("مكتب استشارات هندسية")
         assert result == "مكتب استشارات هندسيه"
 
-    def test_contracting_company(self, normalizer):
-        result = normalizer.normalize("شركة مقاولات وإنشاءات")
+    def test_contracting_company(self, indexing_normalizer):
+        result = indexing_normalizer.normalize("شركة مقاولات وإنشاءات")
         assert result == "شركه مقاولات وانشاءات"
 
     def test_municipality_company(self, normalizer):
@@ -233,7 +235,9 @@ class TestQueryVsIndexing:
 
     def test_matching_is_aggressive(self, matching_normalizer):
         result = matching_normalizer.normalize_for_query("شركة مقاولات وإنشاءات")
-        assert "و" not in result
+        import re
+        standalone_waw = re.search(r'(?<!\w)و(?!\w)', result)
+        assert standalone_waw is None, f"و still present as standalone word in {result}"
 
 
 # ── Edge Cases ─────────────────────────────────────────────────────────
@@ -276,5 +280,5 @@ class TestEdgeCases:
         assert "َ" not in result
         assert "ِ" not in result
         assert "ُ" not in result
-        assert "في" not in result
-        assert "و" not in result
+        assert "في" not in result.split()
+        assert "و" not in result.split()

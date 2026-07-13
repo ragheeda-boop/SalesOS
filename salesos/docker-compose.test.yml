@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: salesos
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: salesos
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U salesos"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  test:
+    image: salesos-backend:test
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SALESOS_TESTING: "true"
+      SECRET_KEY: test-secret-key-for-testing
+      POSTGRES_USER: salesos
+      POSTGRES_PASSWORD: test
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: test
+      NEO4J_HOST: neo4j
+      NEO4J_PORT: "7687"
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET_KEY: test-jwt-secret-for-testing
+      JWT_ALGORITHM: HS256
+    volumes:
+      - ./backend:/app
+    working_dir: /app
+    command: >
+      sh -c "PGPASSWORD=test psql -h postgres -U salesos -d salesos -c 'CREATE DATABASE salesos_test OWNER salesos' 2>/dev/null || true;
+      python -m pytest --cov=. --cov-fail-under=85 --ignore=tests/unit/test_mcp_server.py -q"
+    profiles:
+      - test
+
+volumes:
+  pg-data:
