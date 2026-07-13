@@ -260,6 +260,7 @@ class TestRetrievalService:
     async def test_retrieve_hybrid_without_pgvector(self, retrieval_service):
         results = await retrieval_service.retrieve_hybrid(
             query_embedding=[0.1, 0.2],
+            query_text="test query",
             tenant_id="t1",
         )
         assert isinstance(results, list)

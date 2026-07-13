@@ -57,6 +57,13 @@ class InMemoryPlanRepository:
         return self._plans.get(plan_id)
 
     async def create(self, plan: Plan) -> Plan:
+        now = datetime.now(timezone.utc)
+        if plan.is_active is None:
+            plan.is_active = True
+        if plan.created_at is None:
+            plan.created_at = now
+        if plan.updated_at is None:
+            plan.updated_at = now
         self._plans[plan.id] = plan
         return plan
 
@@ -82,6 +89,13 @@ class InMemoryLicenseRepository:
         return self._licenses.get(license_id)
 
     async def create(self, license: License) -> License:
+        now = datetime.now(timezone.utc)
+        if license.is_active is None:
+            license.is_active = True
+        if license.created_at is None:
+            license.created_at = now
+        if license.updated_at is None:
+            license.updated_at = now
         self._licenses[license.id] = license
         return license
 
@@ -172,6 +186,13 @@ class InMemoryFeatureFlagRepository:
         return None
 
     async def create(self, flag: FeatureFlag) -> FeatureFlag:
+        now = datetime.now(timezone.utc)
+        if flag.is_global is None:
+            flag.is_global = True
+        if flag.created_at is None:
+            flag.created_at = now
+        if flag.updated_at is None:
+            flag.updated_at = now
         self._flags[flag.id] = flag
         return flag
 

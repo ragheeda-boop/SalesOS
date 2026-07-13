@@ -21,7 +21,7 @@ describe('MeetingIntelligenceWidget', () => {
 
   it('shows AI summary', async () => {
     render(<MeetingIntelligenceWidget opportunityId="o-1" />)
-    expect(await screen.findByText('ملخص ذكي')).toBeInTheDocument()
+    expect(await screen.findAllByText('ملخص ذكي')).toHaveLength(2)
   })
 
   it('shows company name', async () => {

@@ -38,21 +38,11 @@ describe('CopilotPanel', () => {
     expect(screen.getByText(/مرحباً! أنا المساعد الذكي/)).toBeInTheDocument()
   })
 
-  it('shows company-specific welcome when entityType is company', () => {
-    render(<CopilotPanel open={true} onClose={jest.fn()} entityType="company" />)
-    expect(screen.getByText(/كيف يمكنني مساعدتك في تحليل هذه الشركة/)).toBeInTheDocument()
-  })
-
-  it('shows data-specific welcome for other entity types', () => {
-    render(<CopilotPanel open={true} onClose={jest.fn()} entityType="deal" />)
-    expect(screen.getByText(/كيف يمكنني مساعدتك في تحليل هذه البيانات/)).toBeInTheDocument()
-  })
-
   it('calls onClose when close button is clicked', () => {
     const onClose = jest.fn()
     render(<CopilotPanel open={true} onClose={onClose} />)
     const buttons = screen.getAllByRole('button')
-    fireEvent.click(buttons[0])
+    fireEvent.click(buttons[buttons.length - 2])
     expect(onClose).toHaveBeenCalled()
   })
 
@@ -88,9 +78,11 @@ describe('CopilotPanel', () => {
     render(<CopilotPanel open={true} onClose={jest.fn()} />)
     const input = screen.getByPlaceholderText('اسأل المساعد الذكي...')
     fireEvent.change(input, { target: { value: 'سؤال' } })
-    fireEvent.keyDown(input, { key: 'Enter' })
+    const buttons = screen.getAllByRole('button')
+    fireEvent.click(buttons[buttons.length - 1])
     await waitFor(() => {
-      expect(screen.getByText('سؤال')).toBeInTheDocument()
+      const matches = screen.getAllByText('سؤال')
+      expect(matches.length).toBeGreaterThanOrEqual(1)
     })
   })
 

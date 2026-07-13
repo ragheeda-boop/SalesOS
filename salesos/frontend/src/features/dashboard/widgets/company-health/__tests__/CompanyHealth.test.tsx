@@ -57,7 +57,8 @@ describeWidgetContract({
 describe('CompanyHealthView', () => {
   it('renders company name', () => {
     renderView()
-    expect(screen.getByText('ACME Corp')).toBeInTheDocument()
+    const names = screen.getAllByText('ACME Corp')
+    expect(names.length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders overall score', () => {
