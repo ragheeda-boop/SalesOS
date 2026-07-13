@@ -62,5 +62,14 @@ def test_output_schema_requires_confidence_range():
         schema_fields = schema.model_fields
         if "confidence" in schema_fields:
             field_info = schema_fields["confidence"]
-            assert field_info.ge == 0
-            assert field_info.le == 1
+            assert field_info.metadata is not None
+            from pydantic import Field
+            has_ge = False
+            has_le = False
+            for meta in field_info.metadata:
+                if hasattr(meta, 'ge'):
+                    has_ge = meta.ge == 0
+                if hasattr(meta, 'le'):
+                    has_le = meta.le == 1
+            assert has_ge, f"{schema.__name__}.confidence missing ge>=0 constraint"
+            assert has_le, f"{schema.__name__}.confidence missing le<=1 constraint"

@@ -20,8 +20,8 @@ def test_output_mentions_provided_data():
 
 def test_confidence_derived_from_evidence():
     """Confidence should be derived from actual evidence quality."""
-    rich_evidence = {"contacts": 5, "opportunities": 3, "signals": 2}
-    poor_evidence = {"contacts": 0, "opportunities": 0, "signals": 0}
+    rich_evidence = {"contacts": [1, 2, 3, 4, 5], "opportunities": [1, 2, 3], "signals": [1, 2]}
+    poor_evidence = {"contacts": [], "opportunities": [], "signals": []}
 
     def derive_confidence(evidence: dict) -> float:
         score = 0.1

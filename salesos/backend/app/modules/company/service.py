@@ -673,7 +673,7 @@ class CompanyService:
                             setattr(existing_company, key, value)
                     if existing_company.source_ids:
                         if source_slug not in existing_company.source_ids:
-                            existing_company.source_ids.append(source_slug)
+                            existing_company.source_ids = existing_company.source_ids + [source_slug]
                     else:
                         existing_company.source_ids = [source_slug]
                     updated += 1
