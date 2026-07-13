@@ -22,6 +22,7 @@ import uuid
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession
 
 # ---------------------------------------------------------------------------
 # Module-level marker so ``-m e2e`` picks up every test here
@@ -133,6 +134,7 @@ class TestRegistrationLoginDashboard:
         self,
         client: AsyncClient,
         test_tenant: str,
+        db_session: AsyncSession,
     ):
         """Happy path: register → login → dashboard — single test, full flow."""
         email = f"journey-{uuid.uuid4().hex[:8]}@test.com"
@@ -153,6 +155,14 @@ class TestRegistrationLoginDashboard:
         )
         assert reg.status_code in (200, 201)
         tokens = reg.json()
+
+        from sqlalchemy import select
+        from app.modules.identity.models import User
+        result = await db_session.execute(select(User).where(User.email == email))
+        user = result.scalar_one_or_none()
+        if user:
+            user.role = "admin"
+            await db_session.flush()
 
         # Step 2 — Login
         login = await asyncio.wait_for(

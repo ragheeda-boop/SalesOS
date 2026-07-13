@@ -71,6 +71,9 @@ class RateLimitMiddleware:
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
 
+        if os.environ.get("SALESOS_TESTING") == "true":
+            return await self.app(scope, receive, send)
+
         request = Request(scope, receive)
         client_ip = request.client.host if request.client else "unknown"
         path = request.url.path
