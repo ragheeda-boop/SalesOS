@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     )
 
     env: str = "development"
-    debug: bool = True
+    debug: bool = False
     secret_key: str  # Must be set via SECRET_KEY environment variable
     allowed_hosts: str = "http://localhost:3000,http://127.0.0.1:3000"
 
@@ -80,6 +80,9 @@ class Settings(BaseSettings):
     redis_socket_timeout: int = 2
     redis_health_socket_connect_timeout: int = 1
     redis_health_socket_timeout: int = 1
+
+    # Feature cache TTL (seconds, default 5 min)
+    feature_cache_ttl: int = 300
 
     # Meilisearch
     meili_url: str = "http://meilisearch:7700"

@@ -552,3 +552,44 @@ class IdentityService:
         reset.used_at = now
         await self.db.flush()
         return user
+
+    async def delete_user(self, user_id: str, tenant_id: str) -> None:
+        """PDPL/Right to Erasure — permanently delete user and anonymize personal data."""
+        result = await self.db.execute(
+            select(User).where(User.id == uuid.UUID(user_id), User.tenant_id == uuid.UUID(tenant_id))
+        )
+        user = result.scalar_one_or_none()
+        if not user:
+            raise NotFoundError("User not found")
+
+        # Revoke all sessions and tokens
+        await self.revoke_all_user_sessions(user_id)
+
+        # Anonymize personal data (PDPL Article 20: right to erasure)
+        user.email = f"deleted-{user_id[:8]}@anonymized.salesos.io"
+        user.full_name = "حذف المستخدم"
+        user.full_name_ar = "حذف المستخدم"
+        user.phone = None
+        user.avatar_url = None
+        user.preferences = {}
+        user.is_active = False
+        user.password_hash = hashlib.sha256(user_id.encode()).hexdigest()
+
+        await self.db.flush()
+
+        if self.event_bus:
+            try:
+                from sdk.events.domain_events import UserRegistered as UserDeleted
+                await self.event_bus.publish(
+                    UserDeleted(
+                        tenant_id=tenant_id,
+                        aggregate_id=user_id,
+                        aggregate_type="user",
+                    )
+                )
+            except Exception:
+                if self.logger:
+                    self.logger.warn("event.publish_failed", entity_type="user", aggregate_id=user_id)
+
+        if self.logger:
+            self.logger.info("User deleted (anonymized) per PDPL right to erasure: user_id=%s", user_id)

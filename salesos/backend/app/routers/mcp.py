@@ -27,7 +27,11 @@ def _get_mcp():
         return None
     global _mcp_server
     if _mcp_server is None:
-        keys = [os.environ.get("MCP_API_KEY", "mcp-dev-key")]
+        mcp_key = os.environ.get("MCP_API_KEY")
+        if not mcp_key:
+            logger.warning("MCP_API_KEY not set — MCP server will reject all connections")
+            mcp_key = ""  # Empty key: no valid keys → reject all
+        keys = [mcp_key] if mcp_key else []
         _mcp_server = create_server(api_keys=keys)
     return _mcp_server
 
