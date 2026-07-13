@@ -54,7 +54,7 @@ describe('CommandBar', () => {
     fireEvent.keyDown(screen.getByPlaceholderText(/Search commands/), { key: 'ArrowDown' })
     fireEvent.keyDown(screen.getByPlaceholderText(/Search commands/), { key: 'Enter' })
 
-    expect(groups[0].items[0].onSelect).toHaveBeenCalled()
+    expect(groups[0].items[1].onSelect).toHaveBeenCalled()
   })
 
   it('displays loading state', () => {

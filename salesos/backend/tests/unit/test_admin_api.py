@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from uuid import uuid4
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -11,22 +10,44 @@ os.environ.setdefault("JWT_SECRET_KEY", "test")
 from app.dependencies import get_current_user_role, get_current_user_id, verify_token
 from app.main import app
 import app.modules.admin.router as admin_router
+from app.modules.admin.repositories import (
+    InMemoryAICostRepository,
+    InMemoryFeatureFlagRepository,
+    InMemoryHealthRepository,
+    InMemoryInvoiceRepository,
+    InMemoryJobRepository,
+    InMemoryLicenseRepository,
+    InMemoryPlanRepository,
+)
+
+
+class InMemoryAdminRepositories:
+    def __init__(self):
+        self.plans = InMemoryPlanRepository()
+        self.licenses = InMemoryLicenseRepository()
+        self.invoices = InMemoryInvoiceRepository()
+        self.flags = InMemoryFeatureFlagRepository()
+        self.jobs = InMemoryJobRepository()
+        self.ai = InMemoryAICostRepository()
+        self.health = InMemoryHealthRepository()
+
+
+_test_repos = InMemoryAdminRepositories()
+
+
+async def _override_get_admin_repos():
+    return _test_repos
 
 
 @pytest.fixture(autouse=True)
 def _reset_state():
+    global _test_repos
     admin_router._tenants_store.clear()
     admin_router._users_store.clear()
     admin_router._seed_done = False
     admin_router._users_seeded = False
     admin_router._TENANT_UUIDS.clear()
-    admin_router._plan_repo = admin_router.InMemoryPlanRepository()
-    admin_router._license_repo = admin_router.InMemoryLicenseRepository()
-    admin_router._invoice_repo = admin_router.InMemoryInvoiceRepository()
-    admin_router._flag_repo = admin_router.InMemoryFeatureFlagRepository()
-    admin_router._job_repo = admin_router.InMemoryJobRepository()
-    admin_router._ai_repo = admin_router.InMemoryAICostRepository()
-    admin_router._health_repo = admin_router.InMemoryHealthRepository()
+    _test_repos = InMemoryAdminRepositories()
     admin_router._seed_state()
 
 
@@ -44,13 +65,14 @@ def _override_deps():
     app.dependency_overrides[verify_token] = override_verify_token
     app.dependency_overrides[get_current_user_role] = override_get_current_user_role
     app.dependency_overrides[get_current_user_id] = override_get_current_user_id
+    app.dependency_overrides[admin_router.get_admin_repos] = _override_get_admin_repos
     yield
     app.dependency_overrides.clear()
 
 
 @pytest.fixture
 def admin_headers():
-    return {"Authorization": "Bearer test-token", "X-Tenant-Id": admin_router._TENANT_UUIDS["techpro"]}
+    return {"Authorization": "Bearer test-token", "X-Tenant-Id": admin_router._TENANT_UUIDS["techpro"], "X-API-Key": "test"}
 
 
 @pytest.mark.asyncio
@@ -164,7 +186,7 @@ async def test_create_plan(admin_headers):
 
 @pytest.mark.asyncio
 async def test_update_plan(admin_headers):
-    plans = await admin_router._plan_repo.list()
+    plans = await _test_repos.plans.list()
     plan_id = str(plans[0].id)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
@@ -187,7 +209,7 @@ async def test_list_licenses(admin_headers):
 
 @pytest.mark.asyncio
 async def test_create_license(admin_headers):
-    plans = await admin_router._plan_repo.list()
+    plans = await _test_repos.plans.list()
     plan_id = plans[1].id
     tid = admin_router._TENANT_UUIDS["techpro"]
     transport = ASGITransport(app=app)
@@ -292,7 +314,7 @@ async def test_create_feature_flag(admin_headers):
 
 @pytest.mark.asyncio
 async def test_toggle_feature_flag(admin_headers):
-    flags = await admin_router._flag_repo.list()
+    flags = await _test_repos.flags.list()
     flag_id = str(flags[0].id)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
@@ -305,7 +327,7 @@ async def test_toggle_feature_flag(admin_headers):
 
 @pytest.mark.asyncio
 async def test_feature_flag_tenants(admin_headers):
-    flags = await admin_router._flag_repo.list()
+    flags = await _test_repos.flags.list()
     flag_id = str(flags[0].id)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:

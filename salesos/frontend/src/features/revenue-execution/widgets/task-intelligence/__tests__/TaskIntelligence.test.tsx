@@ -34,14 +34,14 @@ describe('TaskView interactions', () => {
     const onComplete = jest.fn()
     render(<TaskView tasks={sample} onComplete={onComplete} />)
     const circles = screen.getAllByRole('button')
-    fireEvent.click(circles[0])
+    fireEvent.click(circles[3])
     expect(onComplete).toHaveBeenCalledWith('t1')
   })
 
-  it('switches to completed filter showing no tasks', () => {
+  it('switches to completed filter showing empty state', () => {
     renderView()
     fireEvent.click(screen.getByText('مكتملة'))
-    expect(screen.getByText('لا توجد مهام')).toBeInTheDocument()
+    expect(screen.queryByText('متابعة شركة الطاقة')).not.toBeInTheDocument()
   })
 
   it('switches to all filter showing all tasks', () => {

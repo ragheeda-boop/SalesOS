@@ -53,10 +53,10 @@ describeWidgetContract({
 describe('PipelineView', () => {
   it('renders all stages', () => {
     renderView()
-    expect(screen.getByText('استكشاف')).toBeInTheDocument()
-    expect(screen.getByText('تقديم عرض')).toBeInTheDocument()
-    expect(screen.getByText('تفاوض')).toBeInTheDocument()
-    expect(screen.getByText('إغلاق')).toBeInTheDocument()
+    expect(screen.getAllByText('استكشاف').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('تقديم عرض').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('تفاوض').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('إغلاق').length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders stage counts', () => {

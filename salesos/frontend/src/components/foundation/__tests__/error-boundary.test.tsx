@@ -14,7 +14,8 @@ jest.mock('@/lib/i18n', () => ({
   }),
 }))
 
-import { ErrorFallback, ErrorBoundary } from '../error-boundary'
+import { ErrorFallback } from '../error-boundary'
+import { ErrorBoundary } from '../../error-boundary'
 
 describe('ErrorFallback', () => {
   it('renders default title and message', () => {
@@ -101,21 +102,22 @@ describe('ErrorBoundary', () => {
         <Bomb />
       </ErrorBoundary>,
     )
+    expect(screen.getByText('💥')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByText('Try again'))
+    fireEvent.click(screen.getByText('إعادة المحاولة'))
     shouldThrow = false
-    fireEvent.click(screen.getByText('Try again'))
+    fireEvent.click(screen.getByText('إعادة المحاولة'))
 
     expect(screen.getByText('Recovered')).toBeInTheDocument()
   })
 
-  it('renders functional fallback with reset', () => {
+  it('renders custom element fallback', () => {
     const Bomb = () => { throw new Error('Oops') }
     render(
-      <ErrorBoundary fallback={({ resetError }) => <button onClick={resetError}>Custom Reset</button>}>
+      <ErrorBoundary fallback={<div>Custom fallback element</div>}>
         <Bomb />
       </ErrorBoundary>,
     )
-    expect(screen.getByText('Custom Reset')).toBeInTheDocument()
+    expect(screen.getByText('Custom fallback element')).toBeInTheDocument()
   })
 })

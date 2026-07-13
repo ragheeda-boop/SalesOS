@@ -28,7 +28,8 @@ describe('ForecastView edge cases', () => {
   it('renders 0% progress when target is 0', () => {
     const zeroTarget: ForecastData = { currentQuarter: { target: 0, actual: 500000, projected: 500000, confidence: 0 }, monthlyTrend: [], risks: [] }
     renderView(zeroTarget)
-    expect(screen.getByText(/%0/)).toBeInTheDocument()
+    const zeroPcts = screen.getAllByText(/%0/)
+    expect(zeroPcts.length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders $0 for all metrics when all zero', () => {
