@@ -8,6 +8,8 @@ env/
 *.egg
 dist/
 build/
+.local/
+.cache/
 
 # Node
 node_modules/

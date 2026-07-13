@@ -259,11 +259,13 @@ class EntityResolutionService:
         """Merge a source record into an existing golden record.
 
         Returns dict with 'merged' (bool) and 'conflicts' (int).
+        Batches DB writes and event publishing for efficiency.
         """
         merged = False
         conflict_count = 0
         now = datetime.now(timezone.utc)
         incoming_priority = SOURCE_PRIORITY.get(source_slug, 0)
+        pending_conflicts: list[EntityResolutionConflict] = []
 
         for field, value in record.items():
             if value is None or field.startswith("_"):
@@ -287,11 +289,20 @@ class EntityResolutionService:
                 existing_priority = SOURCE_PRIORITY.get(existing.get("source", "").lower(), 0)
 
                 if existing["value"] != value:
+                    conflict_count += 1
+                    conflict = EntityResolutionConflict(
+                        tenant_id=golden.tenant_id,
+                        golden_record_id=golden.id,
+                        field_name=field,
+                        source_a_value=str(existing.get("value", "")),
+                        source_a_source=existing.get("source", "unknown"),
+                        source_b_value=str(value),
+                        source_b_source=source_slug.upper(),
+                        status="open",
+                    )
+                    pending_conflicts.append(conflict)
+
                     if incoming_priority > existing_priority:
-                        conflict_count += 1
-                        await self._record_conflict(
-                            golden, field, existing, source_slug, value, tenant_id
-                        )
                         golden.data = {
                             **golden.data,
                             field: {
@@ -303,16 +314,6 @@ class EntityResolutionService:
                             },
                         }
                         merged = True
-                    elif incoming_priority < existing_priority:
-                        conflict_count += 1
-                        await self._record_conflict(
-                            golden, field, existing, source_slug, value, tenant_id
-                        )
-                    else:
-                        conflict_count += 1
-                        await self._record_conflict(
-                            golden, field, existing, source_slug, value, tenant_id
-                        )
 
         if merged:
             golden.confidence_score = self._compute_overall_confidence(golden.data)
@@ -322,22 +323,27 @@ class EntityResolutionService:
                 else:
                     golden.source_ids = [source_slug]
             golden.updated_at = now
-            await self.db.flush()
 
-            if self.event_bus:
-                await self.event_bus.publish(
-                    GoldenRecordUpdated(
-                        tenant_id=tenant_id,
-                        aggregate_id=str(golden.id),
-                        aggregate_type="golden_record",
-                        data={
-                            "cr_number": golden.cr_number,
-                            "source": source_slug,
-                            "confidence": golden.confidence_score,
-                            "conflicts": conflict_count,
-                        },
-                    )
+        if pending_conflicts:
+            for pc in pending_conflicts:
+                self.db.add(pc)
+
+        await self.db.flush()
+
+        if merged and self.event_bus:
+            await self.event_bus.publish(
+                GoldenRecordUpdated(
+                    tenant_id=tenant_id,
+                    aggregate_id=str(golden.id),
+                    aggregate_type="golden_record",
+                    data={
+                        "cr_number": golden.cr_number,
+                        "source": source_slug,
+                        "confidence": golden.confidence_score,
+                        "conflicts": conflict_count,
+                    },
                 )
+            )
 
         return {"merged": merged, "conflicts": conflict_count}
 

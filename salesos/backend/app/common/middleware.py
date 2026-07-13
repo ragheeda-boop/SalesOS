@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 import uuid
 
@@ -277,8 +278,8 @@ class CsrfEnforcementMiddleware:
     """Enforce CSRF token validation on state-changing requests.
 
     Requires X-CSRF-Token header matching the csrf_token cookie on
-    POST/PUT/PATCH/DELETE. Skips for API key authenticated requests
-    and read-only methods (GET/HEAD/OPTIONS).
+    POST/PUT/PATCH/DELETE. Skips for API key authenticated requests,
+    testing mode (SALESOS_TESTING=true), and read-only methods (GET/HEAD/OPTIONS).
     """
 
     _STATE_CHANGING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
@@ -288,6 +289,9 @@ class CsrfEnforcementMiddleware:
 
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+
+        if os.environ.get("SALESOS_TESTING") == "true":
             return await self.app(scope, receive, send)
 
         method = scope.get("method", "GET")

@@ -117,6 +117,53 @@ class PostgresTimelineRepository(TimelineRepository):
         )
         return result.scalar() or 0
 
+    async def get_summary(
+        self, entity_type: str, entity_id: str, tenant_id: str = ""
+    ) -> dict:
+        from sqlalchemy import and_, func as f
+
+        filters = [
+            TimelineEventModel.entity_type == entity_type,
+            TimelineEventModel.entity_id == entity_id,
+        ]
+        if tenant_id:
+            filters.append(TimelineEventModel.tenant_id == tenant_id)
+
+        where = and_(*filters)
+
+        total = await self._session.scalar(
+            select(f.count()).select_from(TimelineEventModel).where(where)
+        ) or 0
+
+        unique_types = await self._session.scalar(
+            select(f.count(TimelineEventModel.event_type.distinct())).select_from(TimelineEventModel).where(where)
+        ) or 0
+
+        first = await self._session.execute(
+            select(TimelineEventModel.created_at).where(where).order_by(TimelineEventModel.created_at.asc()).limit(1)
+        )
+        first_row = first.scalar_one_or_none()
+
+        last = await self._session.execute(
+            select(TimelineEventModel.created_at).where(where).order_by(TimelineEventModel.created_at.desc()).limit(1)
+        )
+        last_row = last.scalar_one_or_none()
+
+        breakdown_rows = await self._session.execute(
+            select(TimelineEventModel.event_type, f.count()).where(where).group_by(TimelineEventModel.event_type)
+        )
+        event_breakdown = dict(breakdown_rows.all())
+
+        return {
+            "entity_type": entity_type,
+            "entity_id": entity_id,
+            "total_events": total,
+            "unique_event_types": unique_types,
+            "first_event": first_row.isoformat() if first_row else None,
+            "last_event": last_row.isoformat() if last_row else None,
+            "event_breakdown": event_breakdown,
+        }
+
 
 def _row_to_event(row: TimelineEventModel) -> TimelineEvent:
     data = row.data or {}

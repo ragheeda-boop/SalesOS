@@ -142,12 +142,31 @@ class CompanyRepository(SqlAlchemyRepository[Company, uuid.UUID]):
         created = []
         updated = []
 
+        cr_numbers = []
+        cr_map: dict[str, dict] = {}
         for record in records:
             cr_number = record.get("cr_number") or record.get("CR_number")
             if not cr_number:
                 continue
+            cr_numbers.append(cr_number)
+            cr_map.setdefault(cr_number, record)
 
-            existing = await self.get_by_cr_number(tenant_id, cr_number)
+        if not cr_numbers:
+            return created, updated
+
+        tid = uuid.UUID(tenant_id)
+        existing_result = await self._session.execute(
+            select(Company).where(
+                Company.tenant_id == tid,
+                Company.cr_number.in_(cr_numbers),
+            )
+        )
+        existing_by_cr: dict[str, Company] = {
+            c.cr_number: c for c in existing_result.scalars().all()
+        }
+
+        for cr_number, record in cr_map.items():
+            existing = existing_by_cr.get(cr_number)
             if existing:
                 for key, value in record.items():
                     if value is not None and hasattr(existing, key):
@@ -155,7 +174,7 @@ class CompanyRepository(SqlAlchemyRepository[Company, uuid.UUID]):
                 updated.append(existing)
             else:
                 company = Company(
-                    tenant_id=uuid.UUID(tenant_id),
+                    tenant_id=tid,
                     **{k: v for k, v in record.items()
                        if hasattr(Company, k) and v is not None},
                 )
