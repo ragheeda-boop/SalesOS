@@ -8,7 +8,12 @@ import os
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
-from mcp_server.server import create_server
+try:
+    from mcp_server.server import create_server
+    _mcp_available = True
+except ImportError:
+    _mcp_available = False
+    create_server = None
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +23,8 @@ _mcp_server = None
 
 
 def _get_mcp():
+    if not _mcp_available:
+        return None
     global _mcp_server
     if _mcp_server is None:
         keys = [os.environ.get("MCP_API_KEY", "mcp-dev-key")]
