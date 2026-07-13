@@ -52,10 +52,23 @@ async def auth_headers(test_tenant: str, db_session: AsyncSession) -> dict:
     """Register a tenant admin via the API, login, and return auth headers."""
     import jwt as pyjwt
     from app.config import settings
+    from app.modules.identity.models import User
+
+    user_id = str(uuid.uuid4())
+    user = User(
+        id=user_id,
+        email=f"admin-{user_id[:8]}@test.com",
+        full_name="E2E Admin",
+        tenant_id=test_tenant,
+        role="admin",
+        password_hash="$2b$12$LJ3m4ys3Lz9k7C5xp.JzUuQWBxGYNkYACRFwHB7RiG4D8xK2HMJXu",
+    )
+    db_session.add(user)
+    await db_session.flush()
 
     token = pyjwt.encode(
         {
-            "sub": str(uuid.uuid4()),
+            "sub": user_id,
             "tenant_id": test_tenant,
             "role": "admin",
             "type": "access",

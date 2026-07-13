@@ -74,7 +74,7 @@ class InMemoryVectorStore(VectorStore):
             scored.append(VectorRecord(id=r.id, vector=r.vector, metadata=r.metadata, score=score))
 
         scored.sort(key=lambda x: x.score, reverse=True)
-        return scored[:top_k]
+        return [r for r in scored[:top_k] if r.score > 0]
 
     async def upsert(self, record: VectorRecord) -> None:
         self._records[record.id] = record
