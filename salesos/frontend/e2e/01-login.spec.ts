@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test'
 
-const VALID_EMAIL = process.env.E2E_USER_EMAIL || 'admin@test.com'
-const VALID_PASSWORD = process.env.E2E_USER_PASSWORD || 'password'
+const VALID_EMAIL = process.env.E2E_USER_EMAIL!
+const VALID_PASSWORD = process.env.E2E_USER_PASSWORD!
 
 test.describe('Critical Path 1: Login Flow', () => {
+  test.skip(!process.env.E2E_USER_PASSWORD || !process.env.E2E_USER_EMAIL, 'E2E_USER_EMAIL/E2E_USER_PASSWORD env vars not set')
   test.beforeEach(async ({ page }) => {
     await page.goto('/login')
   })

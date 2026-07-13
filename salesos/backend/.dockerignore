@@ -15,6 +15,5 @@ pipeline/
 benchmark/
 conftest.py
 test_*.py
-alembic.ini
 *.md
 LICENSE
