@@ -56,6 +56,20 @@
     --border-hover: #BFB9AD;
     --border-active: #F57C1E;
     --border-disabled: #EDEBE6;
+    --border-subtle: #D9D5CD;
+    --border-muted: #EDEBE6;
+    --border-strong: #706A5D;
+    --border: #D9D5CD;
+
+    --surface-default: #FFFFFF;
+    --surface-dark: #151214;
+    --surface-glass: rgba(255, 255, 255, 0.8);
+
+    --shadow-card: 0 1px 3px rgba(21,18,20,0.08), 0 1px 2px rgba(21,18,20,0.04);
+
+    --sidebar-width: 256px;
+
+    --focus-ring: #2196F3;
 
     --font-display: 'Viga';
     --font-ui: 'IBM Plex Sans';
@@ -79,8 +93,8 @@
 
   .dark {
     --text-primary: #EDEBE6;
-    --text-secondary: #A59E90;
-    --text-muted: #706A5D;
+    --text-secondary: #8B8475;
+    --text-muted: #565147;
     --text-disabled: #565147;
     --bg-primary: #151214;
     --bg-secondary: #26231E;
@@ -89,6 +103,15 @@
     --border-hover: #565147;
     --border-active: #F57C1E;
     --border-disabled: #26231E;
+    --border-subtle: #3D3932;
+    --border-muted: #26231E;
+    --border-strong: #8B8475;
+    --border: #3D3932;
+    --surface-default: #151214;
+    --surface-dark: #26231E;
+    --surface-glass: rgba(21, 18, 20, 0.8);
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.30), 0 1px 2px rgba(0,0,0,0.15);
+    --focus-ring: #64B5F6;
   }
 }
 
@@ -102,6 +125,12 @@
     font-family: var(--font-ui), var(--font-ui-arabic), sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--focus-ring, #2196F3);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -129,82 +158,33 @@
   button, a, input, select, textarea {
     touch-action: manipulation;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    .animate-pulse,
+    .animate-spin,
+    .animate-slide-in-left,
+    .animate-slide-in-right {
+      animation: none !important;
+    }
+  }
 }
 
 @layer components {
-  /* App Shell — stack sidebar below content on mobile */
+  /* App Shell — flex layout */
   .app-shell {
     display: flex;
     height: 100vh;
     overflow: hidden;
   }
 
-  @media (max-width: 767px) {
-    .app-shell {
-      flex-direction: column;
-    }
-
-    .app-shell > aside {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: var(--z-sticky);
-      width: 100% !important;
-      height: auto !important;
-      flex-direction: row !important;
-      border-top: 1px solid var(--border-default);
-      background: var(--bg-primary);
-      padding: 0;
-      overflow-x: auto;
-    }
-
-    .app-shell > aside nav {
-      display: flex;
-      flex-direction: row !important;
-      padding: 0 !important;
-      gap: 0 !important;
-    }
-
-    .app-shell > aside nav a,
-    .app-shell > aside nav button {
-      flex: 1;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      padding: 6px 4px !important;
-      height: 56px !important;
-      font-size: 10px !important;
-      border-radius: 0 !important;
-    }
-
-    .app-shell > aside nav a svg,
-    .app-shell > aside nav button svg {
-      width: 20px;
-      height: 20px;
-    }
-
-    .app-shell > aside nav a span,
-    .app-shell > aside nav button span {
-      font-size: 9px !important;
-      line-height: 1;
-      display: block !important;
-    }
-
-    .app-shell > aside > div:first-child,
-    .app-shell > aside > div:last-child {
-      display: none !important;
-    }
-
-    .app-shell > main {
-      flex: 1;
-      overflow-y: auto;
-      padding-bottom: 64px !important;
-    }
-  }
-
-  /* Sidebar — transforms to bottom tab bar on mobile */
+  /* Sidebar — hidden on mobile, FAB+drawer handles mobile nav */
   .sidebar {
     display: flex;
     flex-direction: column;

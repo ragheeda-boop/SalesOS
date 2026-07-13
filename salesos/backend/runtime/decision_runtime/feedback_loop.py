@@ -8,13 +8,20 @@ This data becomes the foundation for future ML/AI models.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 from typing import Any, Optional
 
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
+
+
+logger = logging.getLogger(__name__)
+
+_DEFAULT_MAX_ENTRIES = 10000
+_DEFAULT_ENTRY_TTL_SECONDS = 3600
 
 
 class FeedbackOutcome(str, Enum):
@@ -67,6 +74,8 @@ class DecisionFeedbackLoop:
         self._session_factory = session_factory
         self._logger = logger
         self._entries: list[FeedbackLoopEntry] = []
+        self._max_entries = _DEFAULT_MAX_ENTRIES
+        self._entry_ttl = _DEFAULT_ENTRY_TTL_SECONDS
 
     async def record_feedback(
         self,
@@ -89,6 +98,7 @@ class DecisionFeedbackLoop:
             outcome_value=outcome_value,
             learning=learning,
         )
+        self._evict_entries()
         self._entries.append(entry)
 
         async with self._session_factory() as session:
@@ -138,3 +148,31 @@ class DecisionFeedbackLoop:
             "win_rate": round(won / max(total, 1), 2),
             "outcome_value_total": sum(e.outcome_value or 0 for e in self._entries),
         }
+
+    def _evict_entries(self) -> int:
+        """Evict expired and overflow entries. Returns number evicted."""
+        evicted = 0
+        now = datetime.now(timezone.utc)
+        cutoff = now - timedelta(seconds=self._entry_ttl)
+
+        kept = []
+        for e in self._entries:
+            if e.created_at and e.created_at >= cutoff:
+                kept.append(e)
+            else:
+                evicted += 1
+
+        overflow = len(kept) - self._max_entries
+        if overflow > 0:
+            kept = kept[overflow:]
+            evicted += overflow
+
+        self._entries = kept
+
+        if evicted > 0 and self._logger:
+            self._logger.warning(
+                "Feedback loop evicted %d entries (current=%d, max=%d, ttl=%ds)",
+                evicted, len(self._entries), self._max_entries, self._entry_ttl,
+            )
+
+        return evicted

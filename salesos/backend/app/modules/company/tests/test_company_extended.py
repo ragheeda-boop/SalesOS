@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from sqlalchemy import select as sa_select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import DuplicateError, NotFoundError
@@ -137,7 +138,7 @@ async def test_ingest_source_ids_appended(db_session: AsyncSession, test_tenant:
     )
 
     company = (await db_session.execute(
-        __import__("sqlalchemy").select(Company).where(Company.cr_number == "CR-SRC-001")
+        sa_select(Company).where(Company.cr_number == "CR-SRC-001")
     )).scalar_one()
     assert "src-a" in company.source_ids
     assert "src-b" in company.source_ids

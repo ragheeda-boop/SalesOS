@@ -46,6 +46,10 @@ def _generate_id() -> str:
     return secrets.token_urlsafe(16)
 
 
+def _current_key_id() -> str:
+    return "v1-hs256"
+
+
 def create_access_token(user_id: str, tenant_id: str, jti: str | None = None) -> str:
     expire = _now() + timedelta(minutes=settings.jwt_access_token_expire_minutes)
     payload = {
@@ -57,6 +61,7 @@ def create_access_token(user_id: str, tenant_id: str, jti: str | None = None) ->
         "type": "access",
         "iss": "salesos",
         "aud": "salesos-api",
+        "kid": _current_key_id(),
     }
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
@@ -72,6 +77,7 @@ def create_refresh_token(user_id: str, tenant_id: str, jti: str | None = None) -
         "type": "refresh",
         "iss": "salesos",
         "aud": "salesos-api",
+        "kid": _current_key_id(),
     }
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
@@ -370,8 +376,69 @@ class IdentityService:
     async def authenticate(self, email: str, password: str) -> User:
         result = await self.db.execute(select(User).where(User.email == email))
         user = result.scalar_one_or_none()
+
+        _MAX_FAILED_ATTEMPTS = 5
+        _LOCK_DURATION_MINUTES = 15
+
+        if user and user.is_locked:
+            remaining = int((user.locked_until - _now()).total_seconds() / 60)
+            audit = AuditTrail(self.db)
+            await audit.record(
+                tenant_id=str(user.tenant_id) if user.tenant_id else "",
+                entity_type="user",
+                entity_id=str(user.id),
+                action="login_blocked_locked",
+                metadata={"email": email, "locked_remaining_minutes": remaining},
+            )
+            if self.logger:
+                self.logger.warn(
+                    "auth.account_locked",
+                    user_id=str(user.id),
+                    email=email,
+                    locked_until=str(user.locked_until),
+                )
+            raise UnauthorizedError(
+                f"Account locked. Try again in {remaining} minutes. | "
+                f"الحساب مقفل. حاول مرة أخرى بعد {remaining} دقيقة."
+            )
+
         if not user or not verify_password(password, user.password_hash):
-            raise UnauthorizedError("Invalid email or password")
+            if user:
+                user.failed_attempts += 1
+                if user.failed_attempts >= _MAX_FAILED_ATTEMPTS:
+                    user.locked_until = _now() + timedelta(minutes=_LOCK_DURATION_MINUTES)
+                    user.failed_attempts = 0
+                    audit = AuditTrail(self.db)
+                    await audit.record(
+                        tenant_id=str(user.tenant_id) if user.tenant_id else "",
+                        entity_type="user",
+                        entity_id=str(user.id),
+                        action="account_locked",
+                        metadata={
+                            "email": email,
+                            "failed_attempts": _MAX_FAILED_ATTEMPTS,
+                            "lock_duration_minutes": _LOCK_DURATION_MINUTES,
+                        },
+                    )
+                    if self.logger:
+                        self.logger.warn(
+                            "auth.account_locked_after_failures",
+                            user_id=str(user.id),
+                            email=email,
+                            failed_attempts=_MAX_FAILED_ATTEMPTS,
+                        )
+                    await self.db.flush()
+                    raise UnauthorizedError(
+                        "Account locked after 5 failed attempts. Try again in 15 minutes. | "
+                        "تم قفل الحساب بعد 5 محاولات فاشلة. حاول مرة أخرى بعد 15 دقيقة."
+                    )
+                await self.db.flush()
+            raise UnauthorizedError("Invalid email or password | البريد الإلكتروني أو كلمة المرور غير صحيحة")
+
+        user.failed_attempts = 0
+        user.locked_until = None
+        user.last_login_at = _now()
+        await self.db.flush()
 
         if self.event_bus:
             try:

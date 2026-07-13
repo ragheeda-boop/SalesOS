@@ -10,13 +10,13 @@ import { EmailView } from './EmailView'
 function mapToEmails(result: DecisionResult): EmailSummary[] {
   return result.evidence.map((e, i) => ({
     threadId: `email-${i}`,
-    subject: e.description?.split('.')[0] ?? `البريد ${i + 1}`,
-    summary: e.description ?? '',
-    sender: e.source ?? 'المرسل',
+    subject: (e.description as string)?.split('.')[0] ?? `البريد ${i + 1}`,
+    summary: (e.description as string) ?? '',
+    sender: (e.source as string) ?? 'المرسل',
     date: new Date().toISOString().split('T')[0],
     priority: (i === 0 ? 'high' : i === 1 ? 'medium' : 'low') as 'high' | 'medium' | 'low',
-    ...(i === 0 ? { suggestedReply: result.recommendation.actionLabel } : {}),
-    actionItems: [result.recommendation.actionLabel],
+    ...(i === 0 ? { suggestedReply: result.recommendation?.actionLabel ?? '' } : {}),
+    actionItems: [result.recommendation?.actionLabel ?? ''],
   }))
 }
 

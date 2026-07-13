@@ -11,7 +11,7 @@ function mapScoresToAPI(scores: Score[]): APIData {
   const endpoints = scores.map((s, i) => ({
     method: (s.metadata?.method as string) ?? (i % 2 === 0 ? 'GET' : 'POST'),
     path: (s.metadata?.path as string) ?? '/api/v1/' + s.type,
-    description: s.type,
+    description: s.type ?? '',
     calls: (s.metadata?.calls as number) ?? Math.round(s.value * 50000),
     avgLatency: (s.metadata?.latency as number) ?? Math.round((1 - s.value) * 200),
   }))

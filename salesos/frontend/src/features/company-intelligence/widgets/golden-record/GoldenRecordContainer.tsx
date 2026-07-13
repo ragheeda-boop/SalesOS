@@ -20,5 +20,5 @@ export const GoldenRecordWidget = createWidget({
       refetch: ctx.widgets.goldenRecord.refetch,
     }
   },
-  render: ({ data }) => <GoldenRecordView entries={data.entries} dna={data.dna} />,
+  render: ({ data }) => <GoldenRecordView entries={data.entries ?? []} dna={data.dna} />,
 })

@@ -20,6 +20,17 @@ from pathlib import Path
 BASE = Path("/app")
 API = "http://localhost:8000"
 
+_ALLOWED_AUDIT_TABLES = frozenset({
+    "companies", "contacts", "company_deals", "activity_records",
+    "golden_records", "opportunities", "tasks",
+})
+
+
+def _validate_audit_table(name: str) -> str:
+    if name not in _ALLOWED_AUDIT_TABLES:
+        raise ValueError(f"Invalid audit table: {name}")
+    return name
+
 results = []
 weight_total = 0
 
@@ -75,13 +86,14 @@ def _get_dsn():
 def table_count(table, where="tenant_id"):
     import asyncpg, asyncio, os
     TID = "d1e2f3a4-5678-90ab-cdef-1234567890ab"
+    validated_table = _validate_audit_table(table)
     async def go():
         dsn = _get_dsn()
         conn = await asyncpg.connect(dsn)
         if where == "company":
-            r = await conn.fetchval(f"SELECT COUNT(*) FROM {table} WHERE company_id IN (SELECT id FROM companies WHERE tenant_id = $1)", TID)
+            r = await conn.fetchval(f"SELECT COUNT(*) FROM {validated_table} WHERE company_id IN (SELECT id FROM companies WHERE tenant_id = $1)", TID)
         else:
-            r = await conn.fetchval(f"SELECT COUNT(*) FROM {table} WHERE tenant_id = $1", TID)
+            r = await conn.fetchval(f"SELECT COUNT(*) FROM {validated_table} WHERE tenant_id = $1", TID)
         await conn.close()
         return r
     return asyncio.run(go())

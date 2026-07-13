@@ -1,18 +1,23 @@
-jest.mock('../api', () => {
-  const interceptors = { request: { use: jest.fn() }, response: { use: jest.fn() } }
-  return {
-    default: {
-      interceptors,
-      get: jest.fn(),
-      post: jest.fn(),
-    },
-  }
-})
-
-jest.useFakeTimers()
-
 describe('monitoring-init interceptor registration', () => {
   beforeEach(() => {
+    jest.doMock('../api', () => {
+      const interceptors = { request: { use: jest.fn() }, response: { use: jest.fn() } }
+      return {
+        default: {
+          interceptors,
+          get: jest.fn(),
+          post: jest.fn(),
+        },
+      }
+    })
+    jest.doMock('../monitoring', () => ({
+      monitor: {
+        trackApiCall: jest.fn(),
+        trackError: jest.fn(),
+        trackMetric: jest.fn(),
+        trackPageLoad: jest.fn(),
+      },
+    }))
     jest.resetModules()
     jest.clearAllMocks()
     process.env.NODE_ENV = 'production'

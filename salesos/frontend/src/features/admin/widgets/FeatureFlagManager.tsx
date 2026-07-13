@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Button, Badge, Card, Spinner, Toggle } from "@salesos/ui"
+import { Button, Badge, Card, Spinner } from "@salesos/ui"
 import { Plus, ToggleLeft, ToggleRight } from "lucide-react"
 import { useAdminFeatureFlags, useCreateAdminFeatureFlag, useAdminFlagTenants, useToggleAdminFlagForTenant } from "@/lib/hooks/adminQueries"
 import { AdminFeatureFlag } from "@/lib/api"

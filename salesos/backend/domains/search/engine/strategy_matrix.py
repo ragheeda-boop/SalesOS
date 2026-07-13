@@ -162,12 +162,25 @@ def detect_intent(query: str, field_filters: dict[str, str] | None = None) -> In
 
 
 def normalize_query(query: str) -> str:
-    """Normalize query by stripping legal prefixes for better matching.
+    """Normalize query by stripping legal prefixes and Arabic variants for better matching.
+
+    Uses ArabicSearchNormalizer for comprehensive normalization and
+    legal prefix stripping for better trigram matching.
 
     "شركة الكهرباء" → "الكهرباء"
-    "مؤسسة أحمد للتجارة" → "أحمد للتجارة"
+    "مؤسسة أحمد للتجارة" → "احمد للتجاره"
+    "شَرِكَةُ المقاولات" → "المقاولات"
     """
     q = query.strip()
+    # First normalize Arabic (diacritics, alef, yeh, teh marbuta)
+    try:
+        from ..normalization import ArabicSearchNormalizer
+        normalizer = ArabicSearchNormalizer.default()
+        q = normalizer.normalize(q)
+    except ImportError:
+        pass
+
+    # Then strip legal prefixes
     for prefix in LEGAL_PREFIXES:
         if q.startswith(prefix):
             q = q[len(prefix):].strip()

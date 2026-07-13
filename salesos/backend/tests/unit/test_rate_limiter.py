@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException, Request
 
-from app.common.rate_limit import _check_rate_limit, _cleanup, rate_limit_dep, _store
+from app.common.rate_limit import _check_rate_limit_in_memory as _check_rate_limit, _cleanup, rate_limit_dep, _store
 
 
 @pytest.fixture(autouse=True)

@@ -16,6 +16,7 @@ from app.modules.identity.service import (
     create_access_token,
     hash_password,
 )
+from sdk.security import decrypt_token, encrypt_token
 
 from .models import SSOConnection
 
@@ -51,6 +52,22 @@ class OAuthService:
     def __init__(self, db: AsyncSession, logger: Any = None):
         self.db = db
         self.logger = logger
+        self._encryption_secret = settings.secret_key
+
+    def _encrypt(self, plaintext: str | None) -> str | None:
+        if not plaintext:
+            return plaintext
+        return encrypt_token(plaintext, self._encryption_secret)
+
+    def _decrypt(self, ciphertext: str | None) -> str | None:
+        if not ciphertext:
+            return ciphertext
+        try:
+            return decrypt_token(ciphertext, self._encryption_secret)
+        except Exception:
+            if self.logger:
+                self.logger.warn("sso.token_decrypt_failed")
+            return None
 
     def _get_provider_config(self, provider: str) -> dict[str, Any]:
         config = PROVIDER_CONFIGS.get(provider)
@@ -104,8 +121,12 @@ class OAuthService:
             user = user_result.scalar_one_or_none()
             if not user:
                 raise UnauthorizedError("Linked user not found")
-            connection.access_token = token_data["access_token"]
-            connection.refresh_token = token_data.get("refresh_token", connection.refresh_token)
+            connection.access_token = self._encrypt(token_data["access_token"])
+            refresh = token_data.get("refresh_token")
+            if refresh:
+                connection.refresh_token = self._encrypt(refresh)
+            elif connection.refresh_token:
+                pass  # keep existing
             if "expires_in" in token_data:
                 connection.expires_at = datetime.now(timezone.utc) + timedelta(seconds=token_data["expires_in"])
             await self.db.flush()
@@ -138,8 +159,8 @@ class OAuthService:
                 provider=provider,
                 provider_user_id=provider_user_id,
                 provider_email=email,
-                access_token=token_data["access_token"],
-                refresh_token=token_data.get("refresh_token"),
+                access_token=self._encrypt(token_data["access_token"]),
+                refresh_token=self._encrypt(token_data.get("refresh_token")),
                 expires_at=datetime.now(timezone.utc) + timedelta(seconds=token_data.get("expires_in", 3600)) if "expires_in" in token_data else None,
             )
             self.db.add(connection)

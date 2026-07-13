@@ -129,4 +129,5 @@ class BaseScraper(ABC):
 
     @staticmethod
     async def _sleep(seconds: float) -> None:
-        await __import__("asyncio").sleep(seconds)
+        import asyncio
+        await asyncio.sleep(seconds)

@@ -10,21 +10,21 @@ import { MeetingView } from './MeetingView'
 function mapToMeetingBrief(result: DecisionResult): MeetingBrief {
   return {
     companyName: result.explainability?.why?.split(' ')[0] ?? 'الشركة',
-    meetingTitle: result.recommendation.actionLabel,
+    meetingTitle: result.recommendation?.actionLabel ?? result.action,
     date: new Date().toISOString().split('T')[0],
     attendees: result.evidence.slice(0, 3).map((e, i) => ({
-      name: e.source ?? `حضور ${i + 1}`,
+      name: (e.source as string) ?? `حضور ${i + 1}`,
       role: e.type === 'contact' ? 'صاحب قرار' : 'حاضر',
       influence: i === 0 ? 'عالي' : 'متوسط' as const,
     })),
-    recentSignals: result.evidence.filter(e => e.type === 'signal').map(e => e.description).filter(Boolean),
-    risks: result.recommendation.risks?.map(r => r.description) ?? [],
-    opportunities: result.recommendation.alternatives?.map(a => a.actionLabel) ?? [],
+    recentSignals: result.evidence.filter(e => e.type === 'signal').map(e => e.description as string).filter(Boolean),
+    risks: result.recommendation?.risks?.map(r => r.description) ?? [],
+    opportunities: result.recommendation?.alternatives?.map(a => a.actionLabel ?? '') ?? [],
     talkingPoints: [
-      result.recommendation.reason,
-      ...(result.evidence.slice(0, 2).map(e => e.description)),
+      result.recommendation?.reason ?? '',
+      ...(result.evidence.slice(0, 2).map(e => e.description as string)),
     ].filter(Boolean),
-    recommendedAction: result.recommendation.actionLabel,
+    recommendedAction: result.recommendation?.actionLabel ?? result.action,
   }
 }
 

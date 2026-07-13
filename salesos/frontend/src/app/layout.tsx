@@ -37,6 +37,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"} crossOrigin="anonymous" />
       </head>
       <body className="min-h-screen">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:start-2 focus:z-[9999] focus:rounded-lg focus:bg-[var(--muhide-orange)] focus:px-4 focus:py-2 focus:text-sm focus:text-white focus:shadow-lg"
+        >
+          تخطي إلى المحتوى الرئيسي
+        </a>
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { DecisionQueueView } from '../DecisionQueueView'
 import { DecisionQueueWidget } from '../DecisionQueueContainer'
 import { describeWidgetContract } from '../../../sdk/testing'
-import type { DecisionQueueViewProps, } from '../types'
+import type { DecisionQueueViewProps } from '../types'
 import type { DecisionItem } from '@/application/dashboard/dashboard.dto'
 
 const sampleItems: DecisionItem[] = [
@@ -15,6 +15,9 @@ const sampleItems: DecisionItem[] = [
 const defaultProps: DecisionQueueViewProps = {
   items: sampleItems,
   total: sampleItems.length,
+  decision: null,
+  nbaItems: [],
+  isDecisionLoading: false,
 }
 
 function renderView(overrides?: Partial<DecisionQueueViewProps>) {
@@ -168,5 +171,60 @@ describe('DecisionQueueWidget (SDK integration)', () => {
   it('is a valid React component', () => {
     expect(DecisionQueueWidget).toBeDefined()
     expect(typeof DecisionQueueWidget === 'function' || typeof DecisionQueueWidget === 'object').toBe(true)
+  })
+})
+
+// ─── DecisionProvider Integration ─────────────────────────────
+
+describe('DecisionQueueView — DecisionProvider', () => {
+  it('shows skeleton when isDecisionLoading with empty items', () => {
+    renderView({ isDecisionLoading: true, items: [], total: 0 })
+    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(screen.getByLabelText('جاري تحميل القرارات')).toBeInTheDocument()
+  })
+
+  it('renders decision summary when decision is provided', () => {
+    renderView({
+      decision: {
+        context_type: 'dashboard',
+        factors: [],
+        confidence: 0.85,
+        summary: 'توصية بتحسين أداء الأنبوب',
+        generated_at: '2026-07-13T00:00:00Z',
+      },
+    })
+    expect(screen.getByText(/ملخص القرارات/)).toBeInTheDocument()
+    expect(screen.getByText(/توصية بتحسين أداء الأنبوب/)).toBeInTheDocument()
+  })
+
+  it('renders NBA items when provided', () => {
+    renderView({
+      nbaItems: [
+        {
+          id: 'nba1',
+          company_id: 'c1',
+          company_name: 'ACME Corp',
+          action: 'متابعة الصفقة',
+          reason: 'احتمالية عالية',
+          confidence: 0.9,
+          confidence_label: 'high',
+          priority: 1,
+          source: 'ai',
+          status: 'active',
+          created_at: '2026-07-13T00:00:00Z',
+        },
+      ],
+    })
+    expect(screen.getByText('توصيات AI')).toBeInTheDocument()
+    const acmeCorps = screen.getAllByText('ACME Corp')
+    expect(acmeCorps.length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText(/متابعة الصفقة/)).toBeInTheDocument()
+  })
+
+  it('announces item count via aria-live', () => {
+    renderView()
+    const live = document.querySelector('[aria-live="polite"][aria-atomic="true"].sr-only')
+    expect(live).toBeInTheDocument()
+    expect(live).toHaveTextContent('4 قرار معلق')
   })
 })

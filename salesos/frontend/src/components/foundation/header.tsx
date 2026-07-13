@@ -32,7 +32,7 @@ export function Header({
 
   return (
     <header className={cn(
-      'flex items-center h-topbar px-4 bg-white border-b border-[var(--border-default)] flex-shrink-0',
+      'flex items-center h-topbar px-4 bg-[var(--bg-primary)] border-b border-[var(--border-default)] flex-shrink-0',
       className
     )}>
       <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -69,7 +69,7 @@ export function Header({
             <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
           </svg>
           <span className="flex-1 text-left truncate">{searchPlaceholder}</span>
-          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium bg-white border border-[var(--border-default)] rounded-sm text-[var(--text-muted)]">
+          <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-medium bg-[var(--bg-primary)] border border-[var(--border-default)] rounded-sm text-[var(--text-muted)]">
             <span className="text-[9px]">&#8984;</span>K
           </kbd>
         </button>

@@ -13,6 +13,7 @@ interface Opportunity {
   probability: number
   health: string
   ownerId: string
+  status?: string
 }
 
 interface HealthMapItem {

@@ -11,11 +11,12 @@
 1. [Incident Response Overview](#1-incident-response-overview)
 2. [Service Recovery Procedures](#2-service-recovery-procedures)
 3. [Database Recovery](#3-database-recovery)
-4. [Common Issues](#4-common-issues)
-5. [Database Maintenance](#5-database-maintenance)
-6. [On-Call Procedures](#6-on-call-procedures)
-7. [Deployment Procedure](#7-deployment-procedure)
-8. [Emergency Procedures](#8-emergency-procedures)
+4. [Backup Verification & DR](#4-backup-verification--dr)
+5. [Common Issues](#5-common-issues)
+6. [Database Maintenance](#6-database-maintenance)
+7. [On-Call Procedures](#7-on-call-procedures)
+8. [Deployment Procedure](#8-deployment-procedure)
+9. [Emergency Procedures](#9-emergency-procedures)
 
 ---
 
@@ -637,7 +638,181 @@ curl -s https://api.salesos.com/health | jq .
 
 ---
 
-## 4. Common Issues
+## 4. Backup Verification & Disaster Recovery
+
+### 4.1 Recovery Time & Point Objectives
+
+| Metric | Target | Rationale |
+|--------|--------|-----------|
+| **RPO** (Recovery Point Objective) | 1 hour | PostgreSQL backups run hourly via cron; WAL archiving provides point-in-time recovery |
+| **RTO** (Recovery Time Objective) | 30 minutes | Full restore + migration + service restart within budget |
+| **Backup Retention** | 7 days local, 30 days S3 | Local for quick restore, S3 for compliance and disaster recovery |
+| **Verification Frequency** | Weekly | Automated verification script runs every Sunday at 03:00 UTC |
+
+### 4.2 Backup Verification Schedule
+
+| Day | Time (UTC) | Action | Script |
+|-----|------------|--------|--------|
+| **Daily** | 02:00 | pg_dump to local + S3 upload | `backup-db.sh` (cron) |
+| **Sunday** | 03:00 | Full backup verification | `scripts/verify-backup.ps1` |
+| **Monthly** | 04:00 1st of month | Cross-region S3 copy | Manual / Lambda |
+
+**Crontab entry (production server):**
+
+```bash
+# Daily backup at 02:00 UTC
+0 2 * * * docker compose -f /opt/salesos/docker-compose.prod.yml run --rm backup /usr/local/bin/backup-db >> /var/log/salesos-backup.log 2>&1
+
+# Weekly backup verification at 03:00 UTC on Sundays
+0 3 * * 0 cd /opt/salesos && docker compose -f docker-compose.prod.yml exec -T backend python /app/scripts/verify-backup-ps1-wrapper.py >> /var/log/salesos-backup-verify.log 2>&1
+```
+
+### 4.3 Running verify-backup.ps1
+
+The verification script performs an end-to-end backup validation cycle:
+
+```powershell
+# Set required environment variables
+$env:DB_NAME = "salesos"
+$env:DB_HOST = "localhost"       # or postgres container hostname
+$env:DB_PORT = "5432"
+$env:DB_USER = "salesos"
+$env:DB_PASSWORD = "your-password-here"
+
+# Run verification
+.\salesos\scripts\verify-backup.ps1
+```
+
+**What it does:**
+1. **pg_dump** — Dumps the full database to a temporary file (compressed, custom format)
+2. **pg_restore** — Creates a temporary database (`salesos_verify_tmp`) and restores the dump
+3. **Row count verification** — Queries every user table in both source and restored databases, compares counts
+4. **Index verification** — Checks all indexes exist and are valid (`indisvalid`) in the restored database
+5. **Cleanup** — Drops the temp database and removes the dump file
+6. **Report** — Prints pass/fail summary with detailed findings
+
+**Expected output (success):**
+```
+============================================
+  VERIFICATION SUMMARY
+============================================
+  Pass: 15
+  Fail: 0
+  Status: ALL PASSED
+
+All backup verification checks passed.
+```
+
+**Docker-based verification (production):**
+
+```bash
+# From the production server
+docker compose -f docker-compose.prod.yml exec -T backend \
+  psql -U salesos -d salesos -t -c "SELECT count(*) FROM pg_stat_user_tables;"
+```
+
+### 4.4 PostgreSQL WAL Archiving Setup
+
+WAL (Write-Ahead Log) archiving enables point-in-time recovery (PTR) — restore to any moment, not just the last backup.
+
+**Step 1: Enable archive_mode in postgresql.conf**
+
+```bash
+# Inside the postgres container
+$COMPOSE exec postgres psql -U salesos -d salesos -c \
+  "ALTER SYSTEM SET archive_mode = on;
+   ALTER SYSTEM SET archive_command = 'test ! -f /archive/%f && cp %p /archive/%f';
+   ALTER SYSTEM SET max_wal_senders = 3;
+   ALTER SYSTEM SET wal_keep_size = '1GB';"
+```
+
+**Step 2: Create archive directory**
+
+```bash
+# On the host
+mkdir -p /opt/salesos/wal-archive
+chmod 700 /opt/salesos/wal-archive
+
+# Mount in docker-compose.prod.yml:
+# volumes:
+#   - /opt/salesos/wal-archive:/archive
+```
+
+**Step 3: Add to docker-compose.prod.yml postgres service**
+
+```yaml
+postgres:
+  image: postgres:16-alpine
+  volumes:
+    - pgdata:/var/lib/postgresql/data
+    - /opt/salesos/wal-archive:/archive    # WAL archiving
+    - ./infra/postgres/postgresql.conf:/etc/postgresql/postgresql.conf  # custom config
+  command: postgres -c config_file=/etc/postgresql/postgresql.conf
+```
+
+**Step 4: Restart PostgreSQL to apply**
+
+```bash
+$COMPOSE restart postgres
+# Verify archive_mode is on
+$COMPOSE exec postgres psql -U salesos -d salesos -c "SHOW archive_mode;"
+# Expected: on
+```
+
+**Step 5: Point-in-time recovery procedure**
+
+```bash
+# 1. Stop writes
+$COMPOSE stop backend frontend
+
+# 2. Archive current WAL
+$COMPOSE exec postgres psql -U salesos -d salesos -c "SELECT pg_switch_wal();"
+
+# 3. Restore base backup
+pg_restore -h postgres -p 5432 -U salesos -d salesos \
+  --clean --if-exists --no-owner --no-acl /backups/postgres/salesos_LATEST.dump
+
+# 4. Create recovery signal file and configure recovery
+# Edit postgresql.conf:
+#   restore_command = 'cp /archive/%f %p'
+#   recovery_target_time = '2026-07-12 14:30:00+00'
+#   recovery_target_action = 'promote'
+
+# 5. Create recovery.signal
+$COMPOSE exec postgres touch /var/lib/postgresql/data/recovery.signal
+
+# 6. Restart PostgreSQL
+$COMPOSE restart postgres
+
+# 7. Verify data up to recovery point
+$COMPOSE exec postgres psql -U salesos -d salesos -c \
+  "SELECT max(created_at) FROM domain_events;"
+```
+
+### 4.5 Backup Integrity Checklist
+
+Run after any backup or restore operation:
+
+```bash
+# 1. Verify backup file exists and is non-empty
+ls -lh /backups/postgres/salesos_*.dump | tail -1
+
+# 2. Verify pg_dump can read the backup file
+pg_restore --list /backups/postgres/salesos_LATEST.dump | head -20
+
+# 3. Verify database is accessible
+$COMPOSE exec postgres pg_isready -U salesos -d salesos
+
+# 4. Run row count verification
+.\salesos\scripts\verify-backup.ps1
+
+# 5. Check backup logs
+tail -50 /var/log/salesos-backup.log
+```
+
+---
+
+## 5. Common Issues
 
 | # | Issue | Symptoms | Root Cause | Resolution Steps |
 |---|-------|----------|------------|-----------------|
@@ -654,7 +829,7 @@ curl -s https://api.salesos.com/health | jq .
 
 ---
 
-## 5. Database Maintenance
+## 6. Database Maintenance
 
 ### 5.1 VACUUM / ANALYZE Schedule
 
@@ -804,7 +979,7 @@ $COMPOSE restart postgres
 
 ---
 
-## 6. On-Call Procedures
+## 7. On-Call Procedures
 
 ### 6.1 Shift Handover Checklist
 
@@ -984,7 +1159,7 @@ One-paragraph summary of what happened, the impact, and resolution.
 
 ---
 
-## 7. Deployment Procedure
+## 8. Deployment Procedure
 
 ### 7.1 Step-by-Step Deploy
 
@@ -1161,7 +1336,7 @@ curl -sf https://api.salesos.com/health | jq .version
 
 ---
 
-## 8. Emergency Procedures
+## 9. Emergency Procedures
 
 ### 8.1 Emergency Database Restore
 

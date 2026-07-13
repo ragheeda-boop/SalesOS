@@ -64,14 +64,14 @@ export function CalendarIntelligenceView({ data }: { data: CalendarIntelligence 
         <div>
           <p className="text-xs font-medium text-[var(--text-muted)] mb-2">الاجتماعات القادمة</p>
           <div className="space-y-1.5 max-h-28 overflow-y-auto">
-            {data.upcoming.slice(0, 5).map((meeting: Record<string, string | undefined>, i: number) => (
-              <div key={meeting.id || i} className="flex items-center gap-2 text-xs py-1.5 px-2 rounded-lg hover:bg-[var(--bg-secondary)]">
+            {data.upcoming.slice(0, 5).map((meeting: Record<string, unknown>, i: number) => (
+              <div key={(meeting.id as string) || i} className="flex items-center gap-2 text-xs py-1.5 px-2 rounded-lg hover:bg-[var(--bg-secondary)]">
                 <Calendar className="h-3 w-3 text-[var(--muhide-orange)] shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[var(--text-secondary)]">{meeting.title || meeting.summary || 'اجتماع'}</p>
+                  <p className="truncate text-[var(--text-secondary)]">{(meeting.title as string) || (meeting.summary as string) || 'اجتماع'}</p>
                   <p className="text-[9px] text-[var(--text-muted)]">
-                    {formatDate(meeting.start_time || meeting.date)}
-                    {meeting.start_time ? ` · ${formatTime(meeting.start_time)}` : ''}
+                    {formatDate((meeting.start_time as string) || (meeting.date as string) || '')}
+                    {meeting.start_time ? ` · ${formatTime(meeting.start_time as string)}` : ''}
                   </p>
                 </div>
                 <ChevronLeft className="h-3 w-3 text-[var(--text-muted)] shrink-0" />

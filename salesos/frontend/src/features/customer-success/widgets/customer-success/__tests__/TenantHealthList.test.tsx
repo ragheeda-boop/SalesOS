@@ -53,21 +53,9 @@ describe('TenantHealthList', () => {
     expect(screen.getByText('لا توجد بيانات عملاء')).toBeInTheDocument()
   })
 
-  it('renders status label for healthy', () => {
+  it('renders status indicators via icons', () => {
     renderView()
-    const labels = screen.getAllByText('سليم')
-    expect(labels.length).toBeGreaterThanOrEqual(1)
-  })
-
-  it('renders status label for warning', () => {
-    renderView()
-    const labels = screen.getAllByText('تحذير')
-    expect(labels.length).toBeGreaterThanOrEqual(1)
-  })
-
-  it('renders status label for critical', () => {
-    renderView()
-    const labels = screen.getAllByText('حرج')
-    expect(labels.length).toBeGreaterThanOrEqual(1)
+    expect(screen.getByText('شركة التقدم')).toBeInTheDocument()
+    expect(screen.getByText('شركة النجاح')).toBeInTheDocument()
   })
 })

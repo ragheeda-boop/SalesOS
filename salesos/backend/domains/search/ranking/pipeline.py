@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Generic, TypeVar
+from typing import Any, ClassVar, Generic, TypeVar
 
 from ..contracts.models import SearchQuery, SearchResult
 
@@ -124,6 +124,132 @@ class TenantWeightStage(RankingStage[T]):
         return items
 
 
+class ArabicNameMatchStage(RankingStage[T]):
+    """Boost exact Arabic name matches and handle transliteration.
+
+    - Boosts exact Arabic name matches significantly
+    - Handles transliteration (Arabic ↔ English name variants)
+    - Applies fuzzy matching for common misspellings
+    - Weights city/region matches higher for local businesses
+    """
+
+    name = "arabic_name_match"
+
+    # Common Arabic-English transliteration pairs for company names
+    TRANSLITERATION_MAP: ClassVar[dict[str, set[str]]] = {
+        "شركة": {"sharika", "company", "co"},
+        "مؤسسة": {"muassasa", "foundation", "establishment"},
+        "مصنع": {"masna", "factory", "manufacturing"},
+        "مجموعة": {"majmua", "group"},
+        "الرياض": {"riyadh", "riyad"},
+        "جدة": {"jeddah", "jaddah", "jedda"},
+        "الدمام": {"dammam", "dammam"},
+        "مكة": {"makkah", "makkah"},
+        "المدينة": {"madinah", "medina"},
+        "أرامكو": {"aramco", "aramco"},
+        "المراعي": {"almarai", "al-marai"},
+        "جرير": {"jarir", "jarir"},
+        "البنك": {"bank", "bank"},
+        "السعودي": {"saudi", "saudia"},
+    }
+
+    # Common Arabic misspellings
+    MISSPELLING_MAP: ClassVar[dict[str, str]] = {
+        "شركه": "شركة",
+        "مؤسسه": "مؤسسة",
+        "مصنعه": "مصنع",
+        "مجوعة": "مجموعة",
+        "الرياضه": "الرياض",
+        "جده": "جدة",
+        "الدمامه": "الدمام",
+        "الرسيم": "الرسمي",
+        "التجاري": "التجاري",
+    }
+
+    CITY_BOOST: ClassVar[float] = 3.0
+    REGION_BOOST: ClassVar[float] = 2.0
+    ARABIC_NAME_EXACT_BOOST: ClassVar[float] = 15.0
+    ARABIC_NAME_PARTIAL_BOOST: ClassVar[float] = 8.0
+    TRANSLITERATION_BOOST: ClassVar[float] = 5.0
+    FUZZY_BOOST: ClassVar[float] = 3.0
+
+    def __init__(self, arabic_fields: list[str] | None = None, english_fields: list[str] | None = None):
+        self.arabic_fields = arabic_fields or ["name_ar"]
+        self.english_fields = english_fields or ["name_en"]
+        self._normalizer = None
+
+    @property
+    def normalizer(self):
+        if self._normalizer is None:
+            from ..normalization import ArabicSearchNormalizer
+            self._normalizer = ArabicSearchNormalizer.for_matching()
+        return self._normalizer
+
+    async def score(self, items: list[ScoredItem[T]], query: SearchQuery) -> list[ScoredItem[T]]:
+        q_raw = query.query.strip()
+        if not q_raw:
+            return items
+
+        q_normalized = self.normalizer.normalize(q_raw)
+        q_lower = q_raw.lower().strip()
+
+        for si in items:
+            # 1. Exact Arabic name match
+            for field in self.arabic_fields:
+                val = str(getattr(si.item, field, "")).strip()
+                val_normalized = self.normalizer.normalize(val)
+                if val_normalized and q_normalized == val_normalized:
+                    si.score += self.ARABIC_NAME_EXACT_BOOST
+                    si.details["arabic_exact"] = self.ARABIC_NAME_EXACT_BOOST
+                    break
+                elif val_normalized and q_normalized in val_normalized:
+                    si.score += self.ARABIC_NAME_PARTIAL_BOOST
+                    si.details["arabic_partial"] = self.ARABIC_NAME_PARTIAL_BOOST
+                    break
+
+            # 2. Transliteration match (Arabic query vs English name or vice versa)
+            for eng_field in self.english_fields:
+                eng_val = str(getattr(si.item, eng_field, "")).lower().strip()
+                if not eng_val:
+                    continue
+
+                # Check if query or any query token matches transliteration
+                query_tokens = q_lower.split()
+                for token in query_tokens:
+                    for arabic_key, english_variants in self.TRANSLITERATION_MAP.items():
+                        if token in english_variants or eng_val in english_variants:
+                            val_ar = str(getattr(si.item, "name_ar", "")).lower()
+                            if arabic_key in val_ar or arabic_key in q_lower:
+                                si.score += self.TRANSLITERATION_BOOST
+                                si.details["transliteration"] = self.TRANSLITERATION_BOOST
+                                break
+
+            # 3. Fuzzy match for common misspellings
+            for misspell, correct in self.MISSPELLING_MAP.items():
+                if misspell in q_lower or q_lower in misspell:
+                    for field in self.arabic_fields + self.english_fields:
+                        val = str(getattr(si.item, field, "")).lower()
+                        if correct in val:
+                            si.score += self.FUZZY_BOOST
+                            si.details["fuzzy_match"] = self.FUZZY_BOOST
+                            break
+
+            # 4. City/Region boost for local businesses
+            city = str(getattr(si.item, "city", "")).strip()
+            region = str(getattr(si.item, "region", "")).strip()
+            city_lower = city.lower()
+            region_lower = region.lower()
+
+            if city and (city_lower in q_lower or q_lower in city_lower):
+                si.score += self.CITY_BOOST
+                si.details["city_match"] = self.CITY_BOOST
+            if region and (region_lower in q_lower or q_lower in region_lower):
+                si.score += self.REGION_BOOST
+                si.details["region_match"] = self.REGION_BOOST
+
+        return items
+
+
 class RankingPipeline(Generic[T]):
     """Composable ranking pipeline.
 
@@ -162,6 +288,7 @@ class RankingPipeline(Generic[T]):
         return RankingPipeline([
             ExactMatchStage(fields=exact_fields or ["name_ar", "name_en", "cr_number"]),
             PartialMatchStage(fields=partial_fields or ["name_ar", "name_en", "cr_number", "city"]),
+            ArabicNameMatchStage(),
             FreshnessStage(field="created_at"),
             TenantWeightStage(),
         ])

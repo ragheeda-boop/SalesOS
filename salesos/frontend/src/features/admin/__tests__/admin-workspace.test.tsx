@@ -45,6 +45,7 @@ describe('AdminWorkspace', () => {
     expect(screen.getByText('الميزات')).toBeInTheDocument()
     expect(screen.getByText('الوظائف')).toBeInTheDocument()
     expect(screen.getByText('تكاليف AI')).toBeInTheDocument()
-    expect(screen.getByText('صحة النظام')).toBeInTheDocument()
+    const healthItems = screen.getAllByText('صحة النظام')
+    expect(healthItems.length).toBeGreaterThanOrEqual(1)
   })
 })

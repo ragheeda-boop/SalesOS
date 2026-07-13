@@ -2,7 +2,7 @@
 const nextConfig = {
   output: "standalone",
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true,  // TODO: fix all TS errors incrementally, then set to false
   },
   images: {
     domains: ["localhost"],

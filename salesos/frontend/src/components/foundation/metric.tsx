@@ -42,7 +42,7 @@ const SIZE_VALUES = {
 export function Metric({ value, label, trend, trendValue, icon, color = 'default', size = 'md', loading, className }: MetricProps) {
   if (loading) {
     return (
-      <div className={cn('flex flex-col gap-1 p-4 rounded-lg bg-white border border-[var(--border-default)]', className)} aria-busy="true" role="status">
+      <div className={cn('flex flex-col gap-1 p-4 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-default)]', className)} aria-busy="true" role="status">
         <div className="h-3 w-20 bg-neutral-200 rounded animate-pulse" aria-hidden="true" />
         <div className="h-8 w-24 bg-neutral-200 rounded animate-pulse" aria-hidden="true" />
         {trend && <div className="h-3 w-16 bg-neutral-200 rounded animate-pulse" aria-hidden="true" />}
@@ -53,7 +53,7 @@ export function Metric({ value, label, trend, trendValue, icon, color = 'default
   const trendLabel = trend === 'up' ? 'Increased' : trend === 'down' ? 'Decreased' : 'No change'
 
   return (
-    <div className={cn('flex flex-col gap-1 p-4 rounded-lg bg-white border border-[var(--border-default)]', className)}>
+    <div className={cn('flex flex-col gap-1 p-4 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-default)]', className)}>
       <div className="flex items-center justify-between">
         <Typography variant="caption" color="muted">{label}</Typography>
         {icon && <span className="text-[var(--text-muted)]">{icon}</span>}

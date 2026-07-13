@@ -11,7 +11,7 @@ export function PlanManager() {
   const { data: licenses, isLoading: licensesLoading } = useAdminLicenses()
   const [showCreatePlan, setShowCreatePlan] = useState(false)
   const [showCreateLicense, setShowCreateLicense] = useState(false)
-  const [planForm, setPlanForm] = useState({ name: "", tier: "free" as const, price_monthly: 0, max_users: 1, max_storage_mb: 100, max_api_calls: 1000, features: "" })
+  const [planForm, setPlanForm] = useState({ name: "", tier: "free" as "free" | "starter" | "growth" | "enterprise", price_monthly: 0, max_users: 1, max_storage_mb: 100, max_api_calls: 1000, features: "" })
   const [licenseForm, setLicenseForm] = useState({ tenant_id: "", plan_id: "" })
 
   const createPlanMutation = useCreateAdminPlan()

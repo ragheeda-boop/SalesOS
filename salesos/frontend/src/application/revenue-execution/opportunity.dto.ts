@@ -1,6 +1,8 @@
 export type OpportunityStage = 'identified' | 'qualifying' | 'developing' | 'proposing' | 'negotiating' | 'closing' | 'won' | 'lost'
 export type OpportunitySource = 'nba' | 'manual' | 'import' | 'signal'
 
+export const STAGES: OpportunityStage[] = ['identified', 'qualifying', 'developing', 'proposing', 'negotiating', 'closing', 'won', 'lost']
+
 export const STAGE_LABEL: Record<OpportunityStage, string> = {
   identified: 'تم التحديد', qualifying: 'قيد التأهيل', developing: 'قيد التطوير',
   proposing: 'قيد العرض', negotiating: 'قيد التفاوض', closing: 'قيد الإغلاق', won: 'فوز', lost: 'خسارة',

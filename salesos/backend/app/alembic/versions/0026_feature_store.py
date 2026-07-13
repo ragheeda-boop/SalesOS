@@ -4,8 +4,8 @@ Generic feature store tables that feed the ScoringEngine and Decision Platform.
 Unlike company_features (runtime-level, company-only), these tables are entity-
 agnostic and support arbitrary feature definitions with TTL-based expiry.
 
-Revision ID: 0025
-Revises: 0024
+Revision ID: 0026
+Revises: 0025
 Create Date: 2026-07-12
 """
 from typing import Sequence, Union
@@ -14,8 +14,8 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import func
 
-revision: str = "0025"
-down_revision: Union[str, None] = "0024"
+revision: str = "0026"
+down_revision: Union[str, None] = "0025"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

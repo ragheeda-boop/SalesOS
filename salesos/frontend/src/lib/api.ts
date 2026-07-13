@@ -1266,3 +1266,69 @@ export async function createTask(
   );
   return response.data;
 }
+
+export interface AuditLogEntry {
+  id: string;
+  action: string;
+  action_type: string;
+  actor_id: string;
+  actor_name: string;
+  actor_email: string;
+  resource: string;
+  resource_type: string;
+  resource_id: string;
+  tenant_id: string | null;
+  tenant_name: string | null;
+  details: Record<string, unknown> | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: string;
+}
+
+export interface AdminPermission {
+  id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  group: string;
+}
+
+export interface AdminRole {
+  id: string;
+  name: string;
+  description: string | null;
+  permissions: string[];
+  is_system: boolean;
+  user_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function listAdminAuditLogs(params?: Record<string, string | number | undefined>): Promise<PaginatedResponse<AuditLogEntry>> {
+  const resp = await api.get("/api/v1/admin/audit/logs", { params });
+  return resp.data;
+}
+
+export async function listAdminRoles(): Promise<AdminRole[]> {
+  const resp = await api.get("/api/v1/admin/roles");
+  return resp.data;
+}
+
+export async function listAdminPermissions(): Promise<AdminPermission[]> {
+  const resp = await api.get("/api/v1/admin/permissions");
+  return resp.data;
+}
+
+export async function createAdminRole(data: { name: string; description?: string; permissions: string[] }): Promise<AdminRole> {
+  const resp = await api.post("/api/v1/admin/roles", data);
+  return resp.data;
+}
+
+export async function updateAdminRole(id: string, data: Record<string, unknown>): Promise<AdminRole> {
+  const resp = await api.put(`/api/v1/admin/roles/${id}`, data);
+  return resp.data;
+}
+
+export async function deleteAdminRole(id: string): Promise<void> {
+  await api.delete(`/api/v1/admin/roles/${id}`);
+}

@@ -2,9 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   PYTHON_VERSION: "3.12"
@@ -12,49 +16,109 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAMESPACE: ragheeda-boop/salesos
 
+permissions:
+  contents: read
+  security-events: write
+  packages: write
+
 jobs:
+  # ──────────────────────────────────────────────
+  # Stage 1: Lint & Format
+  # ──────────────────────────────────────────────
   lint-backend:
+    name: "Stage 1: Backend Lint"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
       - name: Install Poetry
-        run: pip install poetry
+        run: pipx install poetry
+      - name: Cache Poetry deps
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+          restore-keys: poetry-${{ runner.os }}-
       - name: Install dependencies
-        run: |
-          cd backend
-          poetry install
+        run: cd backend && poetry install --no-interaction
       - name: Ruff lint
-        run: cd backend && poetry run ruff check app/ tests/ sdk/ modules/ cli/
-      - name: MyPy type check
-        run: cd backend && poetry run mypy app/ sdk/ modules/ cli/
+        run: cd backend && poetry run ruff check app/ tests/ sdk/ modules/ cli/ --output-format=github
+      - name: Ruff format check
+        run: cd backend && poetry run ruff format --check app/ tests/ sdk/ modules/ cli/
 
   lint-frontend:
+    name: "Stage 1: Frontend Lint"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
       - name: Install dependencies
-        run: |
-          cd frontend
-          npm ci
+        run: cd frontend && npm ci --no-audit --no-fund
       - name: ESLint
         run: cd frontend && npm run lint
+      - name: Prettier check
+        run: cd frontend && npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}"
+
+  # ──────────────────────────────────────────────
+  # Stage 2: Type Check
+  # ──────────────────────────────────────────────
+  typecheck-backend:
+    name: "Stage 2: Backend Types"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Cache Poetry deps
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+          restore-keys: poetry-${{ runner.os }}-
+      - name: Install dependencies
+        run: cd backend && poetry install --no-interaction
+      - name: MyPy type check
+        run: cd backend && poetry run mypy app/ sdk/ modules/ cli/ --no-error-summary
+
+  typecheck-frontend:
+    name: "Stage 2: Frontend Types"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: cd frontend && npm ci --no-audit --no-fund
       - name: TypeScript check
         run: cd frontend && npx tsc --noEmit
 
+  # ──────────────────────────────────────────────
+  # Stage 3: Unit Tests
+  # ──────────────────────────────────────────────
   test-backend:
+    name: "Stage 3: Backend Unit Tests"
     runs-on: ubuntu-latest
+    needs: [lint-backend, typecheck-backend]
     services:
       postgres:
         image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: salesos
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'salesos_test' }}
+          POSTGRES_PASSWORD: salesos_test
           POSTGRES_DB: salesos_test
         options: >-
           --health-cmd pg_isready
@@ -68,48 +132,220 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
       - name: Install Poetry
-        run: pip install poetry
+        run: pipx install poetry
+      - name: Cache Poetry deps
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+          restore-keys: poetry-${{ runner.os }}-
       - name: Install dependencies
-        run: |
-          cd backend
-          poetry install
+        run: cd backend && poetry install --no-interaction
       - name: Run migrations
         run: |
           cd backend
-          DATABASE_URL=postgresql+asyncpg://salesos:${{ secrets.POSTGRES_PASSWORD || 'salesos_test' }}@localhost:5432/salesos_test poetry run alembic upgrade head
-      - name: Run tests
+          DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
+          poetry run alembic upgrade head
+      - name: Run unit tests with coverage gate
         run: |
           cd backend
-          TEST_DATABASE_URL=postgresql+asyncpg://salesos:${{ secrets.POSTGRES_PASSWORD || 'salesos_test' }}@localhost:5432/salesos_test poetry run pytest -v --cov=app --cov-report=term-missing --cov-report=xml
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
+          TEST_DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
+          poetry run pytest -v \
+            --cov=app --cov=domains --cov=sdk --cov=runtime --cov=intelligence \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --cov-report=html:htmlcov \
+            --cov-fail-under=85 \
+            -m "not e2e"
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: |
+            backend/coverage.xml
+            backend/htmlcov/
 
   test-frontend:
+    name: "Stage 3: Frontend Unit Tests"
     runs-on: ubuntu-latest
+    needs: [lint-frontend, typecheck-frontend]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
       - name: Install dependencies
-        run: |
-          cd frontend
-          npm ci
+        run: cd frontend && npm ci --no-audit --no-fund
       - name: Run tests
-        run: cd frontend && npm run test
+        run: cd frontend && npm run test -- --coverage --forceExit
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
 
-  security-scan:
+  # ──────────────────────────────────────────────
+  # Stage 4: Integration Tests
+  # ──────────────────────────────────────────────
+  integration-backend:
+    name: "Stage 4: Integration Tests"
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: salesos
+          POSTGRES_PASSWORD: salesos_test
+          POSTGRES_DB: salesos_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Cache Poetry deps
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+          restore-keys: poetry-${{ runner.os }}-
+      - name: Install dependencies
+        run: cd backend && poetry install --no-interaction
+      - name: Run migrations
+        run: |
+          cd backend
+          DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
+          poetry run alembic upgrade head
+      - name: Run integration tests
+        run: |
+          cd backend
+          TEST_DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
+          REDIS_URL=redis://localhost:6379/0 \
+          poetry run pytest -v \
+            --cov=app --cov=domains \
+            --cov-report=term-missing \
+            --cov-report=xml:integration-coverage.xml \
+            -m "not e2e" \
+            -n auto
+      - name: Upload integration coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-coverage
+          path: backend/integration-coverage.xml
+
+  # ──────────────────────────────────────────────
+  # Stage 5: Security Scan
+  # ──────────────────────────────────────────────
+  security-pip-audit:
+    name: "Stage 5: pip-audit"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install pip-audit
+        run: pip install pip-audit
+      - name: Run pip-audit
+        run: |
+          cd backend
+          poetry export -f requirements.txt --without-hashes -o /tmp/requirements.txt
+          pip-audit -r /tmp/requirements.txt --desc on -f json -o pip-audit-report.json || true
+          pip-audit -r /tmp/requirements.txt --desc on --strict
+      - name: Upload pip-audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report
+          path: backend/pip-audit-report.json
+
+  security-npm-audit:
+    name: "Stage 5: npm audit"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: cd frontend && npm ci --no-audit --no-fund
+      - name: Run npm audit
+        run: |
+          cd frontend
+          npm audit --audit-level=high --json > npm-audit-report.json || true
+          npm audit --audit-level=high
+
+  security-bandit:
+    name: "Stage 5: Bandit SAST"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install bandit
+        run: pip install bandit[toml]
+      - name: Run bandit
+        run: |
+          bandit -r backend/app/ backend/domains/ backend/sdk/ backend/modules/ \
+            -f sarif -o bandit-results.sarif \
+            --severity-level medium --confidence-level medium \
+            -x backend/app/tests,backend/domains/*/tests || true
+      - name: Upload bandit results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: bandit-results.sarif
+      - name: Run bandit (fail on high)
+        run: |
+          bandit -r backend/app/ backend/domains/ backend/sdk/ backend/modules/ \
+            -f json -o bandit-report.json \
+            --severity-level high --confidence-level high \
+            -x backend/app/tests,backend/domains/*/tests || exit_code=$?
+          if [ "${exit_code:-0}" -gt 0 ]; then
+            echo "::error::Bandit found high-severity security issues"
+            exit 1
+          fi
+
+  security-secrets-scan:
+    name: "Stage 5: Secrets Scan"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Check for forbidden files
         run: |
           forbidden=0
-          for pattern in '*.env' '*.key' '*.pem' 'secrets.*' 'credentials*' '*.p12'; do
+          for pattern in '*.env' '*.key' '*.pem' 'secrets.*' 'credentials*' '*.p12' '*.pfx' '*.jks'; do
             files=$(git ls-files -- "$pattern" 2>/dev/null || true)
             if [ -n "$files" ]; then
               echo "::error::Forbidden pattern '$pattern' found: $files"
@@ -128,22 +364,16 @@ jobs:
           scan-ref: .
           format: sarif
           output: trivy-results.sarif
-          severity: CRITICAL,HIGH,MEDIUM
+          severity: CRITICAL,HIGH
+          exit-code: 1
       - name: Upload Trivy results
+        if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-results.sarif
-      - name: npm audit
-        run: |
-          cd frontend
-          npm audit --audit-level=moderate || true
-      - name: Upload npm audit report
-        uses: actions/upload-artifact@v4
-        with:
-          name: npm-audit-report
-          path: frontend/npm-audit-report.txt
 
   arch-compliance:
+    name: "Stage 5: Arch Compliance"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -166,9 +396,21 @@ jobs:
           name: arch-compliance-report
           path: reports/arch-compliance-report.json
 
-  build-and-push:
+  # ──────────────────────────────────────────────
+  # Stage 6: Build
+  # ──────────────────────────────────────────────
+  build-backend:
+    name: "Stage 6: Build Backend"
     if: github.ref == 'refs/heads/main'
-    needs: [lint-backend, lint-frontend, test-backend, test-frontend, security-scan, arch-compliance]
+    needs:
+      - test-backend
+      - test-frontend
+      - integration-backend
+      - security-pip-audit
+      - security-npm-audit
+      - security-bandit
+      - security-secrets-scan
+      - arch-compliance
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -184,19 +426,172 @@ jobs:
       - name: Set image tag
         id: meta
         run: echo "tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+      - name: Docker layer caching
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: docker-backend-${{ runner.os }}-${{ hashFiles('backend/Dockerfile') }}
+          restore-keys: docker-backend-${{ runner.os }}-
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Build and push backend
         uses: docker/build-push-action@v5
         with:
           context: ./backend
+          file: ./backend/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:${{ steps.meta.outputs.tag }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          platforms: linux/amd64
+          provenance: true
+          sbom: true
+
+  build-frontend:
+    name: "Stage 6: Build Frontend"
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - test-backend
+      - test-frontend
+      - integration-backend
+      - security-pip-audit
+      - security-npm-audit
+      - security-bandit
+      - security-secrets-scan
+      - arch-compliance
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set image tag
+        id: meta
+        run: echo "tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+      - name: Docker layer caching
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: docker-frontend-${{ runner.os }}-${{ hashFiles('frontend/Dockerfile') }}
+          restore-keys: docker-frontend-${{ runner.os }}-
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Build and push frontend
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
+          file: ./frontend/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:${{ steps.meta.outputs.tag }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          platforms: linux/amd64
+          provenance: true
+          sbom: true
+
+  # ──────────────────────────────────────────────
+  # Stage 7: E2E Tests
+  # ──────────────────────────────────────────────
+  e2e:
+    name: "Stage 7: E2E Tests"
+    if: github.ref == 'refs/heads/main'
+    needs: [build-backend, build-frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install Playwright
+        run: |
+          cd frontend
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Setup .env for E2E
+        run: |
+          cat > frontend/.env.test << 'EOF'
+          NEXT_PUBLIC_API_URL=http://localhost:8000
+          API_URL=http://localhost:8000
+          EOF
+      - name: Run E2E tests
+        run: |
+          cd frontend
+          npx playwright test --config playwright.config.ts --project=chromium
+      - name: Upload E2E results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results
+          path: |
+            frontend/test-results/
+            frontend/playwright-report/
+          retention-days: 7
+
+  # ──────────────────────────────────────────────
+  # CI Summary
+  # ──────────────────────────────────────────────
+  ci-summary:
+    name: CI Summary
+    if: always()
+    needs:
+      - lint-backend
+      - lint-frontend
+      - typecheck-backend
+      - typecheck-frontend
+      - test-backend
+      - test-frontend
+      - integration-backend
+      - security-pip-audit
+      - security-npm-audit
+      - security-bandit
+      - security-secrets-scan
+      - arch-compliance
+      - build-backend
+      - build-frontend
+      - e2e
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate CI summary
+        run: |
+          echo "## CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 1 Lint | lint-backend | ${{ needs.lint-backend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 1 Lint | lint-frontend | ${{ needs.lint-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 2 Types | typecheck-backend | ${{ needs.typecheck-backend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 2 Types | typecheck-frontend | ${{ needs.typecheck-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 3 Unit Tests | test-backend | ${{ needs.test-backend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 3 Unit Tests | test-frontend | ${{ needs.test-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 4 Integration | integration-backend | ${{ needs.integration-backend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 5 Security | pip-audit | ${{ needs.security-pip-audit.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 5 Security | npm-audit | ${{ needs.security-npm-audit.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 5 Security | bandit | ${{ needs.security-bandit.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 5 Security | secrets-scan | ${{ needs.security-secrets-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 5 Security | arch-compliance | ${{ needs.arch-compliance.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 6 Build | build-backend | ${{ needs.build-backend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 6 Build | build-frontend | ${{ needs.build-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 7 E2E | e2e | ${{ needs.e2e.result }} |" >> $GITHUB_STEP_SUMMARY
+      - name: Fail if any critical job failed
+        if: |
+          needs.lint-backend.result == 'failure' ||
+          needs.typecheck-backend.result == 'failure' ||
+          needs.test-backend.result == 'failure' ||
+          needs.integration-backend.result == 'failure' ||
+          needs.security-secrets-scan.result == 'failure' ||
+          needs.arch-compliance.result == 'failure'
+        run: |
+          echo "::error::One or more critical CI jobs failed"
+          exit 1

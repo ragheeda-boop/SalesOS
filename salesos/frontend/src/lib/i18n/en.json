@@ -13,6 +13,12 @@
   "nav.search": "Search",
   "nav.profile": "Profile",
   "nav.customer_success": "Customer Success",
+  "nav.revenue": "Revenue",
+  "nav.forecast": "Forecast",
+  "nav.decisions": "Decisions",
+  "nav.meetings": "Meetings",
+  "nav.ai": "AI",
+  "nav.graph": "Knowledge Graph",
 
   "common.create": "Create",
   "common.edit": "Edit",
@@ -176,5 +182,42 @@
   "labels.role": "Role",
   "labels.notes": "Notes",
   "labels.assigned_to": "Assigned To",
-  "labels.priority": "Priority"
+  "labels.priority": "Priority",
+
+  "forecast.title": "Revenue Forecast",
+  "forecast.total_expected": "Total Expected",
+  "forecast.weighted": "Weighted Average",
+  "forecast.confidence": "Confidence Level",
+  "forecast.pessimistic": "Pessimistic Scenario",
+  "forecast.baseline": "Baseline Scenario",
+  "forecast.optimistic": "Optimistic Scenario",
+
+  "decisions.title": "Decision Center",
+  "decisions.score": "Score",
+  "decisions.accept": "Accept",
+  "decisions.dismiss": "Dismiss",
+
+  "ai.title": "AI Prompt Registry",
+  "ai.new_prompt": "New Prompt",
+  "ai.system_prompt": "System Prompt",
+  "ai.user_template": "User Template",
+  "ai.test_prompt": "Test Prompt",
+  "ai.test_placeholder": "Enter test variables...",
+  "ai.run_test": "Run Test",
+  "ai.activate": "Activate",
+  "ai.active": "Active",
+  "ai.accuracy": "Accuracy",
+
+  "graph.title": "Knowledge Graph",
+  "graph.search_placeholder": "Search for an entity or relationship...",
+
+  "meetings.title": "Meeting Intelligence",
+  "meetings.select_opportunity": "Select an opportunity...",
+  "meetings.select_prompt": "Select an opportunity to view meeting intelligence",
+  "meetings.brief": "Meeting Brief",
+  "meetings.recommended_action": "Recommended Action",
+  "meetings.talking_points": "Talking Points",
+  "meetings.risks": "Risks",
+  "meetings.past_meetings": "Past Meetings",
+  "meetings.attendees": "Attendees"
 }

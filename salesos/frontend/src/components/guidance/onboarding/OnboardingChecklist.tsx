@@ -75,7 +75,7 @@ export function OnboardingChecklist() {
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        if (TOUR_REGISTRY[item.tourId]) {
+                        if (item.tourId && TOUR_REGISTRY[item.tourId]) {
                           startTour(item.tourId, TOUR_REGISTRY[item.tourId])
                         }
                       }}

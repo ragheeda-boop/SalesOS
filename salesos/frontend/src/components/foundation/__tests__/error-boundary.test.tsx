@@ -1,4 +1,19 @@
 import { render, screen, fireEvent } from '@testing-library/react'
+
+jest.mock('@/lib/i18n', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        'error.default_title': 'Something went wrong',
+        'error.default_message': '',
+        'error.retry': 'Try again',
+        'error.show_details': 'Show details',
+      }
+      return map[key] || key
+    },
+  }),
+}))
+
 import { ErrorFallback, ErrorBoundary } from '../error-boundary'
 
 describe('ErrorFallback', () => {

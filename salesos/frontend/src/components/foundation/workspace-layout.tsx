@@ -17,7 +17,7 @@ export function WorkspaceLayout({ sidebar, header, tabs, children, className }: 
         {header}
 
         {tabs && (
-          <div className="flex-shrink-0 border-b border-[var(--border-default)] bg-white px-4" role="tablist">
+          <div className="flex-shrink-0 border-b border-[var(--border-default)] bg-[var(--bg-primary)] px-4" role="tablist">
             {tabs}
           </div>
         )}

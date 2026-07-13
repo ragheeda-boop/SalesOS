@@ -6,7 +6,7 @@ import {
 import type {
   DecisionContext,
   DecisionResult,
-} from "@salesos/platform/decision/contracts";
+} from "@salesos/decision-platform";
 
 export type NBARecommendation = DecisionResult;
 

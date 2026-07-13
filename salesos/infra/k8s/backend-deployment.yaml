@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: salesos/backend:latest
+          image: salesos/backend:v1.0.0
           ports:
             - containerPort: 8000
           env:
@@ -30,6 +30,11 @@ spec:
                 secretKeyRef:
                   name: salesos-secrets
                   key: jwt_secret_key
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: salesos-secrets
+                  key: redis_url
             - name: ENV
               value: "production"
             - name: DEBUG
@@ -47,12 +52,17 @@ spec:
               port: 8000
             initialDelaySeconds: 30
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /health
               port: 8000
             initialDelaySeconds: 5
             periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
@@ -65,3 +75,45 @@ spec:
     - port: 8000
       targetPort: 8000
   type: ClusterIP
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: salesos-backend-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: salesos-backend
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 120
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 60
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+      selectPolicy: Max

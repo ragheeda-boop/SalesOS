@@ -86,11 +86,17 @@ class NBAEngine:
         feature_store: Any = None,
         event_runtime: Any = None,
         logger: Any = None,
+        llm_service: Any = None,
     ):
         self._session_factory = session_factory
         self._feature_store = feature_store
         self._event_runtime = event_runtime
         self._logger = logger
+        self._llm_service = llm_service
+        self._reasoner = None
+        if llm_service:
+            from runtime.nba_engine.engine.ai.reasoner import NBAReasoner
+            self._reasoner = NBAReasoner(llm_service=llm_service)
 
     async def get_or_compute(self, opportunity_id: str, tenant_id: str) -> NBAResult | None:
         """Return cached NBA if fresh, otherwise compute."""
@@ -270,8 +276,35 @@ class NBAEngine:
         return candidates
 
     async def _ai_evaluate(self, signal: NormalizedSignal, candidates: list[dict]) -> list[str] | None:
-        """Optional AI reasoning. Falls back to None if unavailable."""
-        return None  # AI integration in Sprint 5
+        """AI reasoning via LLM. Falls back to None if reasoner not configured or on error."""
+        if not self._reasoner:
+            return None
+
+        from intelligence.guardrails import add_input_moderation, sanitize_input
+
+        try:
+            opp = signal.data
+            company = signal.context.get("company", {})
+            activities = signal.context.get("recent_activities", [])
+
+            opp_name = sanitize_input(str(opp.get("name", "")))
+            if add_input_moderation(opp_name):
+                return None
+
+            result = await self._reasoner.evaluate(
+                opportunity=opp,
+                company=company,
+                signals=[],
+                activities=activities,
+                candidates=candidates,
+            )
+            if result and result.get("ranking"):
+                return [r.get("action", "") for r in result["ranking"]]
+            return None
+        except Exception:
+            if self._logger:
+                self._logger.warning("AI evaluation failed — falling back to rule-only")
+            return None
 
     async def _assess_risk(self, signal: NormalizedSignal) -> list[RiskFactor]:
         """Detect risk factors: stagnation, competition, engagement drop."""

@@ -10,7 +10,14 @@ jest.mock('axios', () => ({
     return Promise.resolve({ data: task })
   }),
   put: jest.fn(),
-  patch: jest.fn(() => Promise.resolve({ data: {} })),
+  patch: jest.fn((url: string) => {
+    const id = url.match(/\/tasks\/([^/]+)\/complete/)?.[1]
+    if (id) {
+      const entry = _taskStore.find((t: any) => t.id === id)
+      if (entry) entry.completed = true
+    }
+    return Promise.resolve({ data: {} })
+  }),
   delete: jest.fn(),
   interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } },
   create() { return this },
@@ -28,7 +35,8 @@ describe('task store', () => {
 
     it('saves and loads tasks', async () => {
       const tasks = [{ id: 't-1', title: 'Test', priority: 'high' as const, source: 'manual' as const, completed: false, createdAt: '2026-07-10T10:00:00Z' }]
-      mockTaskData.tasks = tasks
+      _taskStore.length = 0
+      _taskStore.push(...tasks)
       expect(await loadTasks()).toEqual(tasks)
     })
 

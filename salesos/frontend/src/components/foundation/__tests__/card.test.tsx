@@ -9,7 +9,7 @@ describe('Card', () => {
 
   it('applies default variant classes', () => {
     const { container } = render(<Card>Content</Card>)
-    expect(container.firstChild).toHaveClass('bg-white', 'border', 'shadow-muhide-1')
+    expect(container.firstChild).toHaveClass('bg-[var(--bg-primary)]', 'border', 'shadow-muhide-1')
   })
 
   it('applies dark variant', () => {
@@ -19,7 +19,7 @@ describe('Card', () => {
 
   it('applies bordered variant', () => {
     const { container } = render(<Card variant="bordered">Content</Card>)
-    expect(container.firstChild).toHaveClass('bg-white', 'border')
+    expect(container.firstChild).toHaveClass('bg-[var(--bg-primary)]', 'border')
     expect(container.firstChild).not.toHaveClass('shadow-muhide-1')
   })
 

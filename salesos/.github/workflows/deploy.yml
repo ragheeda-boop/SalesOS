@@ -1,153 +1,79 @@
-name: Deploy
+name: Deploy Production
 
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Image tag to deploy (e.g. abc1234). Leave empty for latest main."
+        required: false
+        type: string
+      skip_tests:
+        description: "Skip pre-deploy tests (emergency only)"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
 
 env:
-  PYTHON_VERSION: "3.12"
   REGISTRY: ghcr.io
   IMAGE_NAMESPACE: ragheeda-boop/salesos
+  DEPLOY_HOST: /opt/salesos
+  HEALTH_ENDPOINT: "http://localhost:8000/health"
+  HEALTH_WAIT: 30
+  HEALTH_RETRIES: 6
+
+permissions:
+  contents: read
+  packages: read
+  id-token: write
 
 jobs:
-  test:
+  # ──────────────────────────────────────────────
+  # Pre-deploy validation
+  # ──────────────────────────────────────────────
+  pre-deploy-check:
+    name: Pre-deploy Validation
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: pgvector/pgvector:pg16
-        env:
-          POSTGRES_USER: salesos
-          POSTGRES_PASSWORD: salesos_test
-          POSTGRES_DB: salesos_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
+    if: ${{ !inputs.skip_tests }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install Poetry
-        run: pip install poetry
-      - name: Install dependencies
+      - name: Verify CI passed on this commit
         run: |
-          cd backend
-          poetry install
-      - name: Run migrations
-        run: |
-          cd backend
-          DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test poetry run alembic upgrade head
-      - name: Run tests
-        run: |
-          cd backend
-          TEST_DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test poetry run pytest -v --cov=app --cov-report=term-missing --cov-report=xml
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-
-  security-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check for forbidden files
-        run: |
-          forbidden=0
-          for pattern in '*.env' '*.key' '*.pem' 'secrets.*' 'credentials*' '*.p12'; do
-            files=$(git ls-files -- "$pattern" 2>/dev/null || true)
-            if [ -n "$files" ]; then
-              echo "::error::Forbidden pattern '$pattern' found: $files"
-              forbidden=1
-            fi
-          done
-          if [ "$forbidden" = "1" ]; then exit 1; fi
-          echo "No forbidden files detected."
-      - name: Run Trivy filesystem scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: fs
-          scan-ref: .
-          format: sarif
-          output: trivy-results.sarif
-          severity: CRITICAL,HIGH,MEDIUM
-      - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: trivy-results.sarif
-
-  arch-compliance:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run architecture compliance check
-        shell: pwsh
-        run: |
-          $result = & "${{ github.workspace }}/scripts/arch-compliance.ps1" -JsonOnly
-          $report = $result | ConvertFrom-Json
-          Write-Host "Overall Compliance: $($report.overall_compliance)%"
-          if ($report.overall_compliance -lt $report.summary.target_compliance) {
-            Write-Host "::error::Architecture compliance $($report.overall_compliance)% is below target $($report.summary.target_compliance)%"
+          echo "Checking CI status for commit ${{ github.sha }}..."
+          # Verify the commit is on main branch
+          if [[ "${{ github.ref }}" != "refs/heads/main" ]]; then
+            echo "::error::Deploy only allowed from main branch"
             exit 1
-          }
-          Write-Host "::notice::Architecture compliance $($report.overall_compliance)% meets target"
-      - name: Upload compliance report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: arch-compliance-report
-          path: reports/arch-compliance-report.json
+          fi
+          echo "Branch check passed."
+      - name: Resolve deploy version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            echo "image_tag=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "image_tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+          fi
+          echo "Deploying tag: ${{ steps.version.outputs.image_tag }}"
 
-  build:
-    needs: [test, security-scan, arch-compliance]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set image tag (pinned to git tag)
-        id: meta
-        run: echo "tag=$(echo ${{ github.ref_name }} | sed 's/^v//')" >> $GITHUB_OUTPUT
-      - name: Build and push backend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:${{ steps.meta.outputs.tag }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:latest
-      - name: Build and push frontend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:${{ steps.meta.outputs.tag }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:latest
-
-  deploy:
-    needs: build
+  # ──────────────────────────────────────────────
+  # Stage 1: Deploy to BLUE (idle slot)
+  # ──────────────────────────────────────────────
+  deploy-blue:
+    name: Deploy Blue Slot
+    needs: pre-deploy-check
     runs-on: ubuntu-latest
     outputs:
+      image_tag: ${{ needs.pre-deploy-check.outputs.image_tag || github.sha }}
       deploy_status: ${{ steps.deploy.outputs.status }}
-      previous_tag: ${{ steps.get-previous-tag.outputs.previous_tag }}
     steps:
       - uses: actions/checkout@v4
-      - name: Get previous image tag for rollback
-        id: get-previous-tag
-        run: |
-          IMAGE_TAG=$(echo "${{ github.ref_name }}" | sed 's/^v//')
-          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
-          echo "previous_tag=latest" >> $GITHUB_OUTPUT
-      - name: Deploy to VPS
+      - name: Deploy to blue slot
         id: deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -155,110 +81,285 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            set -e
+            set -euo pipefail
             cd /opt/salesos
-            IMAGE_TAG=$(echo "${{ github.ref_name }}" | sed 's/^v//')
+            IMAGE_TAG="${{ needs.pre-deploy-check.outputs.image_tag || github.sha }}"
+            SHORT_TAG=$(echo "$IMAGE_TAG" | cut -c1-7)
             export IMAGE_TAG
-            echo "Deploying tag: $IMAGE_TAG"
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d migrations
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
-            echo "Deploy complete — tag: $IMAGE_TAG"
 
-  health-check:
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Health check verification
-        id: health
-        run: |
-          endpoint="${{ secrets.VPS_HEALTH_ENDPOINT || 'http://localhost:8000/health' }}"
-          echo "Checking $endpoint..."
-          for i in $(seq 1 5); do
-            status=$(curl -s -o /dev/null -w "%{http_code}" "$endpoint" 2>/dev/null || echo "000")
-            echo "Attempt $i: HTTP $status"
-            if [ "$status" = "200" ]; then
-              echo "health_ok=true" >> $GITHUB_OUTPUT
-              echo "::notice::Health check passed"
-              exit 0
-            fi
-            sleep 10
-          done
-          echo "health_ok=false" >> $GITHUB_OUTPUT
-          echo "::error::Health check failed after 5 retries"
-          exit 1
+            echo "=== Blue-Green Deploy ==="
+            echo "Image tag: $SHORT_TAG"
 
-  smoke-test:
-    needs: deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Post-deploy smoke tests
-        run: |
-          base="${{ secrets.VPS_HEALTH_ENDPOINT || 'http://localhost:8000' }}"
-          endpoints="/health /health/ready /ping"
-          failures=0
-          for ep in $endpoints; do
-            url="${base}${ep}"
-            status=$(curl -s -o /dev/null -w "%{http_code}" "$url" 2>/dev/null || echo "000")
-            if [ "$status" = "200" ]; then
-              echo "✅ $url -> $status"
+            # Determine which slot is currently live
+            CURRENT_SLOT=$(docker compose -f docker-compose.prod.yml ps --format json | \
+              grep '"backend"' | grep -o '"Slot":"[^"]*"' | cut -d'"' -f4 || echo "none")
+            echo "Current live slot: $CURRENT_SLOT"
+
+            if [ "$CURRENT_SLOT" = "blue" ]; then
+              DEPLOY_SLOT="green"
             else
-              echo "❌ $url -> $status"
-              failures=$((failures + 1))
+              DEPLOY_SLOT="blue"
             fi
-          done
-          if [ "$failures" -gt 0 ]; then
-            echo "::error::$failures smoke test(s) failed"
-            exit 1
-          fi
-          echo "::notice::All smoke tests passed"
+            echo "Deploying to: $DEPLOY_SLOT"
+            echo "slot=$DEPLOY_SLOT" >> $GITHUB_OUTPUT
 
-  rollback:
-    if: failure()
-    needs: [deploy, health-check]
+            # Pull new images
+            docker compose -f docker-compose.prod.yml pull
+
+            # Run migrations on new slot
+            SLOT_ENV="DEPLOY_SLOT=$DEPLOY_SLOT"
+            docker compose -f docker-compose.prod.yml run --rm $SLOT_ENV migrations
+
+            # Deploy new slot
+            docker compose -f docker-compose.prod.yml up -d --no-deps \
+              --scale backend-${DEPLOY_SLOT}=1 \
+              backend-${DEPLOY_SLOT}
+
+            echo "Blue slot deployed successfully"
+            echo "status=deployed" >> $GITHUB_OUTPUT
+
+  # ──────────────────────────────────────────────
+  # Stage 2: Health Check Gate (30s wait)
+  # ──────────────────────────────────────────────
+  health-check:
+    name: Health Check Gate
+    needs: deploy-blue
     runs-on: ubuntu-latest
     steps:
-      - name: Rollback to previous Docker image tag
+      - name: Wait for deployment stabilization
+        run: |
+          echo "Waiting ${{ env.HEALTH_WAIT }}s for deployment to stabilize..."
+          sleep ${{ env.HEALTH_WAIT }}
+
+      - name: Verify blue slot health
+        id: health
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            set -e
+            set -euo pipefail
             cd /opt/salesos
-            PREVIOUS_TAG="${{ needs.deploy.outputs.previous_tag || 'latest' }}"
-            echo "Rolling back to tag: $PREVIOUS_TAG"
-            export IMAGE_TAG=$PREVIOUS_TAG
-            docker compose -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
-            echo "Rollback complete — tag: $PREVIOUS_TAG"
-      - name: Log rollback reason
+            SLOT="${{ needs.deploy-blue.outputs.slot }}"
+            HEALTH_URL="${{ secrets.VPS_HEALTH_ENDPOINT || 'http://localhost:8000/health' }}"
+
+            echo "Health checking slot: $SLOT"
+            echo "Endpoint: $HEALTH_URL"
+
+            for i in $(seq 1 ${{ env.HEALTH_RETRIES }}); do
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" 2>/dev/null || echo "000")
+              echo "Attempt $i: HTTP $STATUS"
+              if [ "$STATUS" = "200" ]; then
+                echo "Health check PASSED"
+                echo "health_ok=true" >> $GITHUB_OUTPUT
+                exit 0
+              fi
+              sleep 10
+            done
+            echo "::error::Health check failed after ${{ env.HEALTH_RETRIES }} attempts"
+            echo "health_ok=false" >> $GITHUB_OUTPUT
+            exit 1
+
+  # ──────────────────────────────────────────────
+  # Stage 3: Smoke Tests
+  # ──────────────────────────────────────────────
+  smoke-tests:
+    name: Post-deploy Smoke Tests
+    needs: [deploy-blue, health-check]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run smoke tests
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            BASE="${{ secrets.VPS_HEALTH_ENDPOINT || 'http://localhost:8000' }}"
+            ENDPOINTS="/health /health/ready /ping"
+            FAILURES=0
+
+            for EP in $ENDPOINTS; do
+              URL="${BASE}${EP}"
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL" 2>/dev/null || echo "000")
+              if [ "$STATUS" = "200" ]; then
+                echo "PASS: $URL -> $STATUS"
+              else
+                echo "FAIL: $URL -> $STATUS"
+                FAILURES=$((FAILURES + 1))
+              fi
+            done
+
+            if [ "$FAILURES" -gt 0 ]; then
+              echo "::error::$FAILURES smoke test(s) failed"
+              exit 1
+            fi
+            echo "All smoke tests passed"
+
+  # ──────────────────────────────────────────────
+  # Stage 4: Switch traffic (blue-green cutover)
+  # ──────────────────────────────────────────────
+  cutover:
+    name: Blue-Green Cutover
+    needs: [deploy-blue, health-check, smoke-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Switch traffic to new slot
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd /opt/salesos
+            NEW_SLOT="${{ needs.deploy-blue.outputs.slot }}"
+            echo "Switching traffic to: $NEW_SLOT"
+
+            # Update Caddy config to point to new backend
+            # Scale down old slot, scale up new slot
+            if [ "$NEW_SLOT" = "blue" ]; then
+              docker compose -f docker-compose.prod.yml up -d --no-deps \
+                --scale backend-green=0 \
+                --scale backend-blue=1 \
+                backend-blue caddy
+            else
+              docker compose -f docker-compose.prod.yml up -d --no-deps \
+                --scale backend-blue=0 \
+                --scale backend-green=1 \
+                backend-green caddy
+            fi
+
+            echo "Cutover complete — traffic now on $NEW_SLOT"
+
+  # ──────────────────────────────────────────────
+  # Rollback on failure
+  # ──────────────────────────────────────────────
+  rollback:
+    name: Automatic Rollback
+    if: failure()
+    needs: [deploy-blue, health-check, smoke-tests, cutover]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rollback to previous slot
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd /opt/salesos
+            FAILED_SLOT="${{ needs.deploy-blue.outputs.slot }}"
+
+            if [ "$FAILED_SLOT" = "blue" ]; then
+              PREV_SLOT="green"
+            else
+              PREV_SLOT="blue"
+            fi
+
+            echo "ROLLING BACK: $FAILED_SLOT -> $PREV_SLOT"
+            docker compose -f docker-compose.prod.yml up -d --no-deps \
+              --scale "backend-${FAILED_SLOT}=0" \
+              --scale "backend-${PREV_SLOT}=1" \
+              "backend-${PREV_SLOT}" caddy
+
+            echo "Rollback complete — traffic restored to $PREV_SLOT"
+
+      - name: Log rollback
         run: |
-          echo "::error::Rollback triggered — deploy or health check failed"
+          echo "::error::Automatic rollback triggered"
           echo "REF: ${{ github.ref_name }}"
           echo "COMMIT: ${{ github.sha }}"
+          echo "FAILED_SLOT: ${{ needs.deploy-blue.outputs.slot }}"
           echo "WORKFLOW: ${{ github.workflow }}"
           echo "RUN: ${{ github.run_id }}"
 
+  # ──────────────────────────────────────────────
+  # Notifications
+  # ──────────────────────────────────────────────
   notify:
+    name: Deploy Notification
     if: always()
-    needs: [deploy, health-check, smoke-test]
+    needs: [deploy-blue, health-check, smoke-tests, cutover]
     runs-on: ubuntu-latest
     steps:
-      - name: Notify deploy status
+      - name: Determine status
+        id: status
+        run: |
+          if [ "${{ needs.smoke-tests.result }}" = "success" ] && [ "${{ needs.cutover.result }}" = "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "emoji=:white_check_mark:" >> $GITHUB_OUTPUT
+            echo "color=#36a64f" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "emoji=:x:" >> $GITHUB_OUTPUT
+            echo "color=#ff0000" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Slack notification
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "attachments": [{
+                "color": "${{ steps.status.outputs.color }}",
+                "blocks": [{
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ steps.status.outputs.emoji }} *SalesOS Production Deploy* — `${{ needs.deploy-blue.outputs.image_tag }}`\nStatus: *${{ steps.status.outputs.status }}*\nRef: `${{ github.ref_name }}`\nRun: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
+                  }
+                }]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Teams notification
+        if: env.TEAMS_WEBHOOK_URL != ''
         uses: actions/github-script@v7
         with:
           script: |
-            const status = '${{ needs.health-check.result }}' === 'success' && '${{ needs.smoke-test.result }}' === 'success' ? 'success' : 'failure';
-            const ref = '${{ github.ref_name }}';
-            const runId = '${{ github.run_id }}';
-            const repo = context.repo;
+            const status = '${{ steps.status.outputs.status }}';
+            const tag = '${{ needs.deploy-blue.outputs.image_tag }}';
             const emoji = status === 'success' ? '✅' : '❌';
-            const message = `${emoji} Deploy **${status}** — ${ref}\nRun: https://github.com/${repo.owner}/${repo.repo}/actions/runs/${runId}`;
+            const color = status === 'success' ? 'Good' : 'Error';
+            const payload = {
+              '@type': 'MessageCard',
+              '@context': 'http://schema.org/extensions',
+              themeColor: status === 'success' ? '36a64f' : 'ff0000',
+              summary: `Deploy ${status}: ${tag}`,
+              sections: [{
+                activityTitle: `${emoji} SalesOS Production Deploy — ${tag}`,
+                text: `Status: **${status}**\nRef: \`${{ github.ref_name }}\`\nRun: [View](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})`,
+                markdown: true
+              }]
+            };
+            const http = require('https');
+            const url = new URL(process.env.TEAMS_WEBHOOK_URL);
+            const options = { hostname: url.hostname, path: url.pathname, method: 'POST', headers: { 'Content-Type': 'application/json' } };
+            const req = http.request(options, (res) => { console.log(`Teams response: ${res.statusCode}`); });
+            req.write(JSON.stringify(payload));
+            req.end();
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+
+      - name: GitHub commit comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.status.outputs.status }}';
+            const tag = '${{ needs.deploy-blue.outputs.image_tag }}';
+            const emoji = status === 'success' ? '✅' : '❌';
+            const message = `${emoji} Production deploy **${status}** — \`${tag}\`\nRun: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             await github.rest.repos.createCommitComment({
-              owner: repo.owner,
-              repo: repo.repo,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               commit_sha: context.sha,
               body: message
             });

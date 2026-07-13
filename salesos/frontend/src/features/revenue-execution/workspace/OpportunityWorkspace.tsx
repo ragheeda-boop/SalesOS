@@ -1,7 +1,8 @@
 "use client"
 
-import { useCallback } from "react"
+import { useState, useEffect } from "react"
 import axios from "axios"
+import { cn } from "@salesos/ui"
 import { NBAWidget } from "../widgets/nba-widget/NBAWidget"
 
 interface Opportunity {
@@ -120,6 +121,3 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
     </div>
   )
 }
-
-import { useState, useEffect } from "react"
-import { cn } from "@salesos/ui"

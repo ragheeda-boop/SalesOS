@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@salesos/ui"
 import { AppShell, useAppShell } from "@/components/foundation/app-shell"
-import { Building2, Users, DollarSign, Search, Settings, LayoutDashboard, Bell, Menu, Bot, User, Shield, Workflow, MessageSquareText, Activity, HeartHandshake, X } from "lucide-react"
+import { Building2, Users, DollarSign, Search, Settings, LayoutDashboard, Bell, Menu, Bot, User, Shield, Workflow, MessageSquareText, Activity, HeartHandshake, X, TrendingUp, BarChart3, Brain, CalendarClock, Sparkles, GitGraph, Video } from "lucide-react"
 import { CommandBar } from "@/components/command-bar"
 import { SearchPanel } from "@/components/search-panel"
 import { CopilotPanel } from "@/components/copilot-panel"
@@ -21,12 +21,19 @@ const NAV_KEYS = [
   { href: "/employees/me", key: "nav.profile", icon: User },
   { href: "/contacts", key: "nav.contacts", icon: Users },
   { href: "/opportunities", key: "nav.opportunities", icon: DollarSign },
+  { href: "/revenue", key: "nav.revenue", icon: TrendingUp },
+  { href: "/pipeline", key: "nav.pipeline", icon: BarChart3 },
+  { href: "/forecast", key: "nav.forecast", icon: CalendarClock },
   { href: "/search", key: "nav.search", icon: Search },
-  { href: "/automation", key: "nav.workflows", icon: Workflow },
+  { href: "/decisions", key: "nav.decisions", icon: Brain },
+  { href: "/meetings", key: "nav.meetings", icon: Video },
   { href: "/rag", key: "nav.rag", icon: MessageSquareText },
+  { href: "/ai", key: "nav.ai", icon: Sparkles },
+  { href: "/graph", key: "nav.graph", icon: GitGraph },
+  { href: "/automation", key: "nav.workflows", icon: Workflow },
   { href: "/monitoring", key: "nav.monitoring", icon: Activity },
-  { href: "/settings", key: "nav.settings", icon: Settings },
   { href: "/customer-success", key: "nav.customer_success", icon: HeartHandshake },
+  { href: "/settings", key: "nav.settings", icon: Settings },
   { href: "/admin", key: "nav.admin", icon: Shield },
 ]
 
@@ -203,7 +210,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
             })}
           </nav>
         </aside>
-        <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6">{children}</main>
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6">{children}</main>
       </div>
       <MobileNav />
       <CommandBar open={commandOpen} onClose={() => setCommandOpen(false)} />

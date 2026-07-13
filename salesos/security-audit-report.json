@@ -1,0 +1,711 @@
+﻿{
+    "summary":  {
+                    "high":  null,
+                    "low":  0,
+                    "warnings":  null,
+                    "passed":  20,
+                    "critical":  47,
+                    "score":  29,
+                    "medium":  0,
+                    "total_checks":  69,
+                    "failed":  47
+                },
+    "findings":  [
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Hardcoded Secrets",
+                         "Details":  "No hardcoded secrets found in codebase",
+                         "Category":  "Secrets",
+                         "Status":  "Pass",
+                         "Severity":  "Critical",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  ".env Gitignore",
+                         "Details":  "All .env files are properly gitignored",
+                         "Category":  "Secrets",
+                         "Status":  "Pass",
+                         "Severity":  "Critical",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Debug Mode in Production",
+                         "Details":  "Debug mode is disabled in production compose",
+                         "Category":  "Configuration",
+                         "Status":  "Pass",
+                         "Severity":  "High",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Debug Default",
+                         "Details":  "debug=True is the default in config.py",
+                         "Category":  "Configuration",
+                         "Status":  "Warn",
+                         "Severity":  "Medium",
+                         "Remediation":  "Consider defaulting to False and requiring explicit opt-in"
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "CORS Restrictive",
+                         "Details":  "CORS origins are configurable and not wildcarded by default",
+                         "Category":  "Configuration",
+                         "Status":  "Pass",
+                         "Severity":  "High",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Rate Limiting Identity",
+                         "Details":  "Identity endpoints have dedicated rate limit tier",
+                         "Category":  "Authentication",
+                         "Status":  "Pass",
+                         "Severity":  "High",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Retry-After Header",
+                         "Details":  "429 responses include Retry-After header",
+                         "Category":  "Authentication",
+                         "Status":  "Pass",
+                         "Severity":  "Medium",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  214,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\application\\admin\\data_quality.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sql = sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  230,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\application\\admin\\data_quality.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sql = sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  260,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\application\\admin\\data_quality.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sql = sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  286,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\application\\admin\\data_quality.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sql = sa_text(f\"SELECT COUNT(*) FROM companies c {tenant_filter}\")",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  298,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\application\\admin\\data_quality.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sql = sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  317,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\application\\admin\\data_quality.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sql = sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  374,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\application\\admin\\data_quality.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sql = sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  420,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\application\\admin\\data_quality.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sql = sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  82,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\modules\\revenue_execution\\service.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: text(f\"SELECT id, company_id, title, stage, estimated_value, confidence, win_probability, source, risk_level, created_at, last_activity_at FROM opportunities {where} ORDER BY created_at DESC LIMIT :li...",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  86,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\modules\\revenue_execution\\service.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: count_result = await self.db.execute(text(f\"SELECT COUNT(*) FROM opportunities {where}\"), params)",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  97,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\modules\\revenue_execution\\service.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: text(f\"SELECT id, title, priority, source, completed, created_at FROM tasks {where} ORDER BY created_at DESC\"),",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  34,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\tasks.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: text(f\"SELECT tenant_id FROM {table} WHERE id = :id LIMIT 1\"),",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  114,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\tasks.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: text(f\"SELECT * FROM {table} WHERE id = :id LIMIT 1\"),",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  143,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\tasks.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: text(f\"UPDATE {table} SET embedding = :emb WHERE id = :id\"),",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  47,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\benchmark\\run.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: await db.execute(text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  240,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\domains\\search\\engine\\hybrid_search.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  162,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\domains\\search\\engine\\postgres_repo.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sa_text(f\"SET LOCAL statement_timeout = \u0027{int(self._timeout * 1000)}\u0027\")",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  165,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\domains\\search\\engine\\postgres_repo.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sql = sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  233,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\domains\\search\\engine\\postgres_repo.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sa_text(f\"SET LOCAL statement_timeout = \u0027{int(self._timeout * 1000)}\u0027\")",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  237,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\domains\\search\\engine\\postgres_repo.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: count_sql = sa_text(f\"SELECT count(*) FROM companies c WHERE {where_clause}\")",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  242,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\domains\\search\\engine\\postgres_repo.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sql = sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  282,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\domains\\search\\engine\\postgres_repo.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sa_text(f\"SELECT count(*) FROM companies c WHERE {where_clause}\"),",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  350,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\domains\\search\\engine\\postgres_repo.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sql = sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  94,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\domains\\search\\engine\\vector_store.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: stmt = text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  111,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\domains\\search\\engine\\vector_store.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  126,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\domains\\search\\engine\\vector_store.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: text(f\"DELETE FROM {self._collection} WHERE id = :id\"),",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  135,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\domains\\search\\engine\\vector_store.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: result = await session.execute(text(f\"SELECT COUNT(*) FROM {self._collection}\"))",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  319,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\runtime\\activity_runtime\\__init__.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sa_text(f\"SELECT COUNT(*) FROM activity_records WHERE {where}\"), params",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  325,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\runtime\\activity_runtime\\__init__.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  336,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\runtime\\activity_runtime\\__init__.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  347,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\runtime\\activity_runtime\\__init__.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  784,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\runtime\\knowledge_graph_runtime\\__init__.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  1112,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\runtime\\knowledge_graph_runtime\\__init__.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  259,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\runtime\\search_runtime\\__init__.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  366,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\runtime\\search_runtime\\__init__.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sa_text(f\"SELECT COUNT(*) FROM companies c WHERE {where_clause}\"), params",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  372,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\runtime\\search_runtime\\__init__.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  523,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\runtime\\search_runtime\\__init__.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: sa_text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  75,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\sdk\\events\\store.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: stmt = text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  84,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\sdk\\audit.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: stmt = text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  117,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\sdk\\search.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: stmt = text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  139,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\sdk\\search.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: stmt = text(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  156,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\sdk\\search.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: text(f\"DELETE FROM {tbl} WHERE id = :id\"),",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  44,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\alembic\\versions\\0018_add_feature_store_fks.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: op.execute(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  50,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\alembic\\versions\\0018_add_feature_store_fks.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: op.execute(f\"\"\"",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  60,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\alembic\\versions\\0018_add_feature_store_fks.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: op.execute(f\"ALTER TABLE {table} DROP CONSTRAINT IF EXISTS fk_{table}_company\")",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  61,
+                         "File":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos\\backend\\app\\alembic\\versions\\0018_add_feature_store_fks.py",
+                         "Check":  "SQL Injection Risk",
+                         "Details":  "Potential SQL injection: op.execute(f\"ALTER TABLE {table} DROP CONSTRAINT IF EXISTS fk_{table}_tenant\")",
+                         "Category":  "Injection",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Use parameterized queries with named bind params"
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "JWT Secret Length",
+                         "Details":  "JWT secret is 336 bits which is \u003e= 256 required",
+                         "Category":  "Cryptography",
+                         "Status":  "Pass",
+                         "Severity":  "Critical",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "JWT Secret Length",
+                         "Details":  "JWT secret is only 72 bits minimum is 256 bits",
+                         "Category":  "Cryptography",
+                         "Status":  "Fail",
+                         "Severity":  "Critical",
+                         "Remediation":  "Generate a 256-bit random secret"
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Stack Trace in Errors",
+                         "Details":  "Exception details exposed in 500 error responses via str(exc)",
+                         "Category":  "Information Disclosure",
+                         "Status":  "Fail",
+                         "Severity":  "High",
+                         "Remediation":  "Return generic error message in production; log details server-side only"
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Header: HSTS",
+                         "Details":  "HSTS header is set in SecurityHeadersMiddleware",
+                         "Category":  "Headers",
+                         "Status":  "Pass",
+                         "Severity":  "Medium",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Header: X-Content-Type-Options",
+                         "Details":  "X-Content-Type-Options header is set in SecurityHeadersMiddleware",
+                         "Category":  "Headers",
+                         "Status":  "Pass",
+                         "Severity":  "Medium",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Header: X-Frame-Options",
+                         "Details":  "X-Frame-Options header is set in SecurityHeadersMiddleware",
+                         "Category":  "Headers",
+                         "Status":  "Pass",
+                         "Severity":  "Medium",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Header: Referrer-Policy",
+                         "Details":  "Referrer-Policy header is set in SecurityHeadersMiddleware",
+                         "Category":  "Headers",
+                         "Status":  "Pass",
+                         "Severity":  "Medium",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Header: Permissions-Policy",
+                         "Details":  "Permissions-Policy header is set in SecurityHeadersMiddleware",
+                         "Category":  "Headers",
+                         "Status":  "Pass",
+                         "Severity":  "Medium",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Header: Content-Security-Policy",
+                         "Details":  "Content-Security-Policy header is set in SecurityHeadersMiddleware",
+                         "Category":  "Headers",
+                         "Status":  "Pass",
+                         "Severity":  "Medium",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "CSRF Protection",
+                         "Details":  "CSRF enforcement middleware is active",
+                         "Category":  "Authentication",
+                         "Status":  "Pass",
+                         "Severity":  "High",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Password Min Length",
+                         "Details":  "Minimum password length is 12 characters",
+                         "Category":  "Authentication",
+                         "Status":  "Pass",
+                         "Severity":  "Medium",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Password Complexity",
+                         "Details":  "Password complexity validation is enforced",
+                         "Category":  "Authentication",
+                         "Status":  "Pass",
+                         "Severity":  "Medium",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Account Lockout",
+                         "Details":  "Account lockout after failed attempts is implemented",
+                         "Category":  "Authentication",
+                         "Status":  "Pass",
+                         "Severity":  "Medium",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Cookie HttpOnly",
+                         "Details":  "Refresh token cookie has HttpOnly flag",
+                         "Category":  "Authentication",
+                         "Status":  "Pass",
+                         "Severity":  "Medium",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Cookie Secure",
+                         "Details":  "Refresh token cookie has Secure flag",
+                         "Category":  "Authentication",
+                         "Status":  "Pass",
+                         "Severity":  "Medium",
+                         "Remediation":  ""
+                     },
+                     {
+                         "Line":  0,
+                         "File":  "",
+                         "Check":  "Cookie SameSite",
+                         "Details":  "Refresh token cookie has SameSite=Strict",
+                         "Category":  "Authentication",
+                         "Status":  "Pass",
+                         "Severity":  "Medium",
+                         "Remediation":  ""
+                     }
+                 ],
+    "metadata":  {
+                     "duration_s":  4.23,
+                     "timestamp":  "2026-07-13T03:21:32.7224001+03:00",
+                     "tool":  "salesos-security-audit",
+                     "version":  "1.0.0"
+                 }
+}

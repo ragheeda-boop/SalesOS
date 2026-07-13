@@ -130,7 +130,7 @@ export function CommandBar({
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       <div className={cn(
-        'relative w-command bg-white rounded-xl shadow-muhide-6 border border-[var(--border-default)] overflow-hidden flex flex-col max-h-[60vh]',
+        'relative w-command bg-[var(--bg-primary)] rounded-xl shadow-muhide-6 border border-[var(--border-default)] overflow-hidden flex flex-col max-h-[60vh]',
         className
       )}>
         <div className="flex items-center gap-3 px-4 h-14 border-b border-[var(--border-default)]">

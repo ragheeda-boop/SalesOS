@@ -34,6 +34,8 @@ SEARCH_TIMEOUT_SECONDS = 10.0
 MAX_PAGE_SIZE = 50
 FTS_LANGUAGE = "arabic"
 
+ALLOWED_FTS_LANGUAGES = frozenset({"arabic", "english", "simple"})
+
 ALLOWED_FILTER_FIELDS = frozenset({
     "city", "region", "industry", "status", "legal_form",
     "activity", "is_active", "created_at", "updated_at",
@@ -70,6 +72,8 @@ class PostgresSearchRepository(SearchRepository[Any]):
         timeout_seconds: float = SEARCH_TIMEOUT_SECONDS,
     ):
         self._session_factory = session_factory
+        if fts_language not in ALLOWED_FTS_LANGUAGES:
+            raise ValueError(f"Invalid FTS language: {fts_language}")
         self._fts_language = fts_language
         self._timeout = timeout_seconds
 
@@ -290,7 +294,10 @@ class PostgresSearchRepository(SearchRepository[Any]):
         tenant_id: str,
         fields: list[str] | None = None,
     ) -> dict[str, dict[str, int]]:
-        """Aggregate facet counts for the given fields.
+        """Aggregate facet counts for the given fields in a single round-trip.
+
+        Uses UNION ALL across all requested facet fields to execute one
+        SQL statement instead of N sequential queries (N+1 fix).
 
         Returns:
             {field_name: {value: count, ...}, ...}
@@ -299,24 +306,36 @@ class PostgresSearchRepository(SearchRepository[Any]):
         if not target_fields or not query or not query.strip():
             return {}
 
+        union_parts = []
+        for field in target_fields:
+            union_parts.append(
+                f"SELECT '{field}' AS facet_field, c.{field} AS facet_value, COUNT(*) AS facet_count "
+                f"FROM companies c "
+                f"WHERE c.tenant_id = :tid "
+                f"AND c.search_vector @@ plainto_tsquery('{self._fts_language}', :q) "
+                f"AND c.{field} IS NOT NULL "
+                f"GROUP BY c.{field} "
+                f"ORDER BY facet_count DESC "
+                f"LIMIT 20"
+            )
+
+        combined_sql = " UNION ALL ".join(union_parts)
+
         results: dict[str, dict[str, int]] = {}
 
         async with self._session_factory() as session:
-            for field in target_fields:
-                sql = sa_text(f"""
-                    SELECT c.{field}, COUNT(*) AS cnt
-                    FROM companies c
-                    WHERE c.tenant_id = :tid
-                      AND c.search_vector @@ plainto_tsquery('{self._fts_language}', :q)
-                      AND c.{field} IS NOT NULL
-                    GROUP BY c.{field}
-                    ORDER BY cnt DESC
-                    LIMIT 20
-                """)
-                rows = await session.execute(sql, {"tid": tenant_id, "q": query.strip()})
-                facet_data = {str(r[0]): r[1] for r in rows if r[0] is not None}
-                if facet_data:
-                    results[field] = facet_data
+            rows = await session.execute(
+                sa_text(combined_sql),
+                {"tid": tenant_id, "q": query.strip()},
+            )
+            for row in rows:
+                field_name = row[0]
+                value = str(row[1])
+                count = row[2]
+                if field_name and value:
+                    if field_name not in results:
+                        results[field_name] = {}
+                    results[field_name][value] = count
 
         return results
 

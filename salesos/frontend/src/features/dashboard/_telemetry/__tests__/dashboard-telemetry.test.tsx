@@ -1,5 +1,16 @@
 import { dashboardTelemetry } from '../dashboard-telemetry'
 
+beforeAll(() => {
+  if (typeof performance !== 'undefined') {
+    if (typeof performance.mark !== 'function') {
+      (performance as any).mark = jest.fn()
+    }
+    if (typeof performance.measure !== 'function') {
+      (performance as any).measure = jest.fn()
+    }
+  }
+})
+
 describe('dashboard-telemetry', () => {
   beforeEach(() => {
     jest.clearAllMocks()

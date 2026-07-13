@@ -65,12 +65,12 @@ export function ActivityIntelligenceView({ data }: { data: ActivityIntelligence 
         <div>
           <p className="text-xs font-medium text-[var(--text-muted)] mb-2">آخر النشاطات</p>
           <div className="space-y-1 max-h-32 overflow-y-auto">
-            {data.recent.slice(0, 10).map((item: Record<string, string | undefined>, i: number) => (
-              <div key={item.id || i} className="flex items-start gap-2 text-xs py-1">
+            {data.recent.slice(0, 10).map((item: Record<string, unknown>, i: number) => (
+              <div key={(item.id as string) || i} className="flex items-start gap-2 text-xs py-1">
                 <Activity className="h-3 w-3 text-[var(--text-muted)] mt-0.5 shrink-0" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[var(--text-secondary)]">{item.description || item.action || 'نشاط'}</p>
-                  <p className="text-[9px] text-[var(--text-muted)]">{item.timestamp ? formatTime(item.timestamp) : ''}</p>
+                  <p className="truncate text-[var(--text-secondary)]">{(item.description as string) || (item.action as string) || 'نشاط'}</p>
+                  <p className="text-[9px] text-[var(--text-muted)]">{item.timestamp ? formatTime(item.timestamp as string) : ''}</p>
                 </div>
               </div>
             ))}

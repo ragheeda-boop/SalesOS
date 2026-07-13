@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.common.models import Base
@@ -9,8 +11,21 @@ engine = create_async_engine(
     pool_size=20,
     max_overflow=10,
     pool_pre_ping=True,
-    pool_recycle=3600,
+    pool_recycle=1800,
+    pool_timeout=30,
 )
+
+
+def get_pool_metrics() -> dict[str, Any]:
+    """Return live connection pool metrics for the metrics endpoint."""
+    pool = engine.pool
+    return {
+        "pool_size": pool.size(),
+        "checked_in": pool.checkedin(),
+        "checked_out": pool.checkedout(),
+        "overflow": pool.overflow(),
+        "total_open": pool.open_connections(),
+    }
 
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 

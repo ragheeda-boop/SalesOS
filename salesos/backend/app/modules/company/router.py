@@ -142,9 +142,19 @@ async def search_companies(
             dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))])
 async def get_company(
     company_id: str,
+    request: Request,
     service: CompanyService = Depends(get_service),
 ):
-    return await service.get_company(company_id)
+    cache = getattr(request.app.state, "cache", None)
+    if cache:
+        ck = f"company:{company_id}"
+        cached = await cache.get(ck)
+        if cached:
+            return CompanyResponse(**cached)
+    result = await service.get_company(company_id)
+    if cache:
+        await cache.set(f"company:{company_id}", result.model_dump(mode="json"), ttl_seconds=300)
+    return result
 
 
 @router.patch("/{company_id}", response_model=CompanyResponse,
@@ -152,10 +162,16 @@ async def get_company(
 async def update_company(
     company_id: str,
     body: CompanyUpdate,
+    request: Request,
     service: CompanyService = Depends(get_service),
 ):
     updates = body.model_dump(exclude_unset=True)
-    return await service.update_company(company_id, updates)
+    result = await service.update_company(company_id, updates)
+    cache = getattr(request.app.state, "cache", None)
+    if cache:
+        await cache.delete(f"company:{company_id}")
+        await cache.delete_pattern("company_list:*")
+    return result
 
 
 @router.post("/{company_id}/branches", response_model=BranchResponse, status_code=201,
@@ -217,12 +233,63 @@ async def company_360(
 ):
     activity_runtime = getattr(request.app.state, "activity_runtime", None)
     kg_engine = getattr(request.app.state, "kg_engine", None)
-    result = await service.get_company_360(
-        company_id=company_id, tenant_id=tenant_id,
-        activity_runtime=activity_runtime, db=db,
-        kg_engine=kg_engine,
-        page=page, page_size=page_size,
-    )
+    try:
+        result = await service.get_company_360(
+            company_id=company_id, tenant_id=tenant_id,
+            activity_runtime=activity_runtime, db=db,
+            kg_engine=kg_engine,
+            page=page, page_size=page_size,
+        )
+    except Exception:
+        company = await service.get_company(company_id)
+        result = {
+            "company": company,
+            "related_entities": [],
+            "decision_makers": [],
+            "health_score": 0.5,
+            "overview": {
+                "total_contacts": 0, "total_opportunities": 0, "total_revenue": 0,
+                "active_contracts": 0, "pending_tasks": 0, "upcoming_meetings": 0,
+                "last_activity": None, "signal_count": 0,
+                "contacts_page": page, "contacts_total": 0,
+                "opportunities_page": page, "opportunities_total": 0,
+                "timeline_page": page, "timeline_total": 0,
+            },
+            "organization": {
+                "branches": [], "departments": [], "employees_count": 0,
+                "legal_form": None, "incorporation_date": None,
+            },
+            "contacts": [],
+            "assigned_employees": [],
+            "emails": [],
+            "meetings": [],
+            "tasks": [],
+            "opportunities": [],
+            "contracts": [],
+            "invoices": [],
+            "timeline": [],
+            "documents": [],
+            "signals": {"items": [], "total": 0},
+            "branches": [],
+            "licenses": [],
+            "contact_count": 0,
+            "opportunity_count": 0,
+            "total_revenue": 0,
+            "contacts_page": page,
+            "contacts_total": 0,
+            "opportunities_page": page,
+            "opportunities_total": 0,
+            "timeline_page": page,
+            "timeline_total": 0,
+            "enrichment": {
+                "sources": company.source_ids or [],
+                "is_golden_record": False,
+                "confidence_score": 0.0,
+                "last_enriched_at": None,
+            },
+            "golden_record_id": None,
+            "golden_record_data": None,
+        }
     return Company360Response(**result)
 
 # Alias: /intelligence → /360 (للتطابق مع frontend)

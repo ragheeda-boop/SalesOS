@@ -1,5 +1,15 @@
 import { cn } from "@salesos/ui"
 
+/**
+ * @deprecated Use {@link @salesos/ui#Card} from the canonical UI kit instead.
+ * The @salesos/ui package provides Card, CardHeader, CardContent, and CardFooter
+ * components with consistent styling across the application.
+ *
+ * Migration: Replace `@/components/foundation` imports with `@salesos/ui`.
+ *   - Card variant="dark" → use className="bg-[var(--muhide-ink)] text-white"
+ *   - Card accent → use className with border-l-[var(--muhide-orange)] etc.
+ */
+
 type CardVariant = 'default' | 'dark' | 'bordered'
 type CardPadding = 'sm' | 'md' | 'lg'
 
@@ -10,9 +20,9 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const VARIANT_CLASSES = {
-  default: 'bg-white border border-[var(--border-default)] shadow-muhide-1',
+  default: 'bg-[var(--bg-primary)] border border-[var(--border-default)] shadow-muhide-1',
   dark: 'bg-[var(--muhide-ink)] text-white',
-  bordered: 'bg-white border border-[var(--border-default)]',
+  bordered: 'bg-[var(--bg-primary)] border border-[var(--border-default)]',
 }
 
 const PADDING_CLASSES = { sm: 'p-3', md: 'p-4', lg: 'p-5' }

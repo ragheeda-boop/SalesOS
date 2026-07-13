@@ -1,5 +1,15 @@
 import { cn } from "@salesos/ui"
 
+/**
+ * @deprecated Use {@link @salesos/ui#Badge} from the canonical UI kit instead.
+ * The @salesos/ui package provides a Badge component with consistent variants
+ * (default, primary, success, warning, danger, outline) across the application.
+ *
+ * Migration: Replace `@/components/foundation` imports with `@salesos/ui`.
+ * Domain-specific variants (status, tier, source, doc-status, intelligence-score)
+ * should be built as consumers using the canonical Badge with custom className.
+ */
+
 type BadgeVariant = 'status' | 'tier' | 'source' | 'doc-status' | 'intelligence-score' | 'default' | 'outline'
 type BadgeSize = 'sm' | 'md'
 

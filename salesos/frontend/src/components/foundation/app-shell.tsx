@@ -1,5 +1,6 @@
 import { cn } from "@salesos/ui"
-import { useState, createContext, useContext, useEffect, useCallback } from "react"
+import { useState, createContext, useContext, useEffect, useCallback, useRef } from "react"
+import { usePathname } from "next/navigation"
 
 interface SidebarSection {
   id: string
@@ -35,6 +36,20 @@ export function useAppShell() {
   return useContext(AppShellContext)
 }
 
+function RouteAnnouncer() {
+  const pathname = usePathname()
+  const isFirst = useRef(true)
+  useEffect(() => {
+    if (isFirst.current) { isFirst.current = false; return }
+    const announcement = `Navigated to ${pathname}`
+    const el = document.getElementById("route-announcer")
+    if (el) el.textContent = announcement
+  }, [pathname])
+  return (
+    <div id="route-announcer" aria-live="assertive" aria-atomic="true" className="sr-only" role="alert" />
+  )
+}
+
 interface AppShellProps {
   children: React.ReactNode
   defaultSidebarCollapsed?: boolean
@@ -62,6 +77,7 @@ export function AppShell({ children, defaultSidebarCollapsed = false }: AppShell
   return (
     <AppShellContext.Provider value={{ sidebarCollapsed, setSidebarCollapsed, commandOpen, setCommandOpen }}>
         <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)] text-[var(--text-primary)]" aria-label="Application shell">
+        <RouteAnnouncer />
         <div aria-live="polite" aria-atomic="true" className="sr-only" role="status">
           {commandOpen ? 'Command palette opened. Press Escape to close.' : ''}
         </div>

@@ -1,0 +1,43 @@
+{
+  "run_id": "f5251278",
+  "timestamp": "2026-07-13T01:34:11.016299+00:00",
+  "version": "test",
+  "results": [
+    {
+      "name": "slow",
+      "domain": "test",
+      "p50_ms": 100,
+      "p95_ms": 200,
+      "p99_ms": 300,
+      "avg_ms": 150,
+      "min_ms": 100,
+      "max_ms": 300,
+      "samples": 5,
+      "unit": "ms",
+      "metadata": {},
+      "budget_p95_ms": 50
+    }
+  ],
+  "summary": {
+    "total_benchmarks": 1,
+    "domains": [
+      "test"
+    ],
+    "violations": [
+      {
+        "name": "slow",
+        "domain": "test",
+        "p50_ms": 100,
+        "p95_ms": 200,
+        "p99_ms": 300,
+        "avg_ms": 150,
+        "min_ms": 100,
+        "max_ms": 300,
+        "samples": 5,
+        "unit": "ms",
+        "metadata": {},
+        "budget_p95_ms": 50
+      }
+    ]
+  }
+}

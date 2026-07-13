@@ -13,14 +13,30 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "salesos-terraform-state"
-    key    = "infra/terraform.tfstate"
-    region = "me-south-1"
+    bucket         = "salesos-terraform-state"
+    key            = "infra/terraform.tfstate"
+    region         = "me-south-1"
+    encrypt        = true
+    dynamodb_table = "salesos-terraform-locks"
   }
 }
 
 provider "aws" {
   region = var.aws_region
+}
+
+# DynamoDB table for Terraform state locking
+resource "aws_dynamodb_table" "terraform_locks" {
+  name         = "salesos-terraform-locks"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "LockID"
+
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+
+  tags = local.common_tags
 }
 
 locals {
@@ -109,6 +125,37 @@ module "rds" {
   tags = local.common_tags
 }
 
+# ElastiCache Redis for caching and session storage
+resource "aws_elasticache_subnet_group" "redis" {
+  name       = "${local.name_prefix}-redis-subnet"
+  subnet_ids = module.vpc.private_subnets
+}
+
+resource "aws_elasticache_replication_group" "redis" {
+  replication_group_id  = "${local.name_prefix}-redis"
+  description           = "SalesOS Redis cache cluster"
+  node_type             = var.redis_node_type
+  port                  = 6379
+  parameter_group_name  = "default.redis7"
+  engine_version        = "7.1"
+  automatic_failover_enabled = var.environment == "production"
+  multi_az_enabled      = var.environment == "production"
+  num_cache_clusters    = var.environment == "production" ? var.redis_num_cache_clusters : 1
+
+  subnet_group_name          = aws_elasticache_subnet_group.redis.name
+  vpc_security_group_ids     = [module.vpc.default_security_group_id]
+  at_rest_encryption_enabled = true
+  transit_encryption_enabled = true
+
+  snapshot_retention_limit = var.environment == "production" ? 7 : 0
+  snapshot_window          = "03:00-04:00"
+  maintenance_window       = "sun:04:00-sun:05:00"
+
+  apply_immediately = var.environment != "production"
+
+  tags = local.common_tags
+}
+
 resource "random_password" "rds_password" {
   length  = 24
   special = false
@@ -123,6 +170,8 @@ resource "aws_secretsmanager_secret_version" "salesos" {
   secret_string = jsonencode({
     database_url     = "postgresql+asyncpg://salesos:${random_password.rds_password.result}@${module.rds.db_instance_address}:5432/salesos"
     jwt_secret_key   = random_password.jwt_secret.result
+    redis_endpoint   = aws_elasticache_replication_group.redis.primary_endpoint_address
+    redis_port       = aws_elasticache_replication_group.redis.port
   })
 }
 

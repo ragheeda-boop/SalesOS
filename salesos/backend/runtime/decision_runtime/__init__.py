@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta
 from typing import Any, Callable, Optional
+
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from runtime.context_runtime import ContextBuilder, CompanyContext
 from runtime.policy_runtime import PolicyEngine, PolicyResult
@@ -22,6 +25,12 @@ from runtime.decision_runtime.models import (
 )
 from runtime.decision_runtime.events import DecisionEvent, DecisionEventType
 from runtime.event_runtime import EventRuntime
+
+
+logger = logging.getLogger(__name__)
+
+_DEFAULT_MAX_DECISIONS = 10000
+_DEFAULT_DECISION_TTL_SECONDS = 3600
 
 
 @dataclass
@@ -79,8 +88,10 @@ class DecisionEngine:
         self._logger = logger
         self.metrics = DecisionEngineMetrics()
 
-        # In-memory decision store (also persisted to DB)
+        # In-memory decision store with eviction
         self._decisions: dict[str, DecisionObject] = {}
+        self._max_decisions = _DEFAULT_MAX_DECISIONS
+        self._decision_ttl = _DEFAULT_DECISION_TTL_SECONDS
 
     async def evaluate(self, company_id: str, tenant_id: str) -> Optional[dict]:
         """Evaluate company and return Next Best Action."""
@@ -132,6 +143,7 @@ class DecisionEngine:
 
         # 7. Persist
         await self._save_decision(decision)
+        self._evict_decisions()
         self._decisions[decision.decision_id] = decision
         self.metrics.decisions_created += 1
 
@@ -288,6 +300,38 @@ class DecisionEngine:
         return self.metrics.snapshot()
 
     # ── Private helpers ────────────────────────────────────────
+
+    def _evict_decisions(self) -> int:
+        """Evict expired and overflow decisions. Returns number evicted."""
+        evicted = 0
+        now = datetime.now(timezone.utc)
+        cutoff = now - timedelta(seconds=self._decision_ttl)
+
+        expired = [
+            did for did, d in self._decisions.items()
+            if d.created_at and d.created_at < cutoff
+        ]
+        for did in expired:
+            del self._decisions[did]
+            evicted += 1
+
+        overflow = len(self._decisions) - self._max_decisions
+        if overflow > 0:
+            oldest = sorted(
+                self._decisions.items(),
+                key=lambda x: x[1].created_at or datetime.min.replace(tzinfo=timezone.utc),
+            )[:overflow]
+            for did, _ in oldest:
+                del self._decisions[did]
+                evicted += 1
+
+        if evicted > 0 and self._logger:
+            self._logger.warning(
+                "Decision store evicted %d entries (expired=%d, overflow=%d). Current size: %d",
+                evicted, len(expired), max(0, overflow), len(self._decisions),
+            )
+
+        return evicted
 
     async def _score_decision(self, context: CompanyContext, tenant_id: str) -> tuple[DecisionType, float, str]:
         features = context.features

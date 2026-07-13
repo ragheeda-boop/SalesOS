@@ -13,6 +13,12 @@
   "nav.search": "البحث",
   "nav.profile": "ملفي",
   "nav.customer_success": "نجاح العملاء",
+  "nav.revenue": "الإيرادات",
+  "nav.forecast": "التوقعات",
+  "nav.decisions": "مركز القرارات",
+  "nav.meetings": "الاجتماعات",
+  "nav.ai": "الذكاء الاصطناعي",
+  "nav.graph": "الرسم البياني",
 
   "common.create": "إنشاء",
   "common.edit": "تعديل",
@@ -176,5 +182,42 @@
   "labels.role": "الدور",
   "labels.notes": "ملاحظات",
   "labels.assigned_to": "مسند إلى",
-  "labels.priority": "الأولوية"
+  "labels.priority": "الأولوية",
+
+  "forecast.title": "توقعات الإيرادات",
+  "forecast.total_expected": "الإجمالي المتوقع",
+  "forecast.weighted": "المتوسط المرجح",
+  "forecast.confidence": "مستوى الثقة",
+  "forecast.pessimistic": "السيناريو المتشائم",
+  "forecast.baseline": "السيناريو الأساسي",
+  "forecast.optimistic": "السيناريو المتفائل",
+
+  "decisions.title": "مركز القرارات",
+  "decisions.score": "الدرجة",
+  "decisions.accept": "قبول",
+  "decisions.dismiss": "رفض",
+
+  "ai.title": "سجل الأوامر الذكية",
+  "ai.new_prompt": "أمر جديد",
+  "ai.system_prompt": "النظام (System)",
+  "ai.user_template": "القالب (Template)",
+  "ai.test_prompt": "تجربة الأمر",
+  "ai.test_placeholder": "أدخل متغيرات الاختبار...",
+  "ai.run_test": "تشغيل الاختبار",
+  "ai.activate": "تفعيل",
+  "ai.active": "نشط",
+  "ai.accuracy": "الدقة",
+
+  "graph.title": "الرسم البياني المعرفي",
+  "graph.search_placeholder": "ابحث عن كيان أو علاقة...",
+
+  "meetings.title": "ذكاء الاجتماعات",
+  "meetings.select_opportunity": "اختر فرصة...",
+  "meetings.select_prompt": "اختر فرصة لعرض معلومات الاجتماع",
+  "meetings.brief": "إيجاز الاجتماع",
+  "meetings.recommended_action": "الإجراء الموصى به",
+  "meetings.talking_points": "نقاط النقاش",
+  "meetings.risks": "المخاطر",
+  "meetings.past_meetings": "الاجتماعات السابقة",
+  "meetings.attendees": "الحضور"
 }

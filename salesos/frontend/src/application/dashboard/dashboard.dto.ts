@@ -11,6 +11,8 @@ export interface DashboardDTO {
   aiBrief: DashboardWidget<AIBriefData> | null
   marketPulse: DashboardWidget<MarketPulseData> | null
   recentActivity: DashboardWidget<RecentActivityData> | null
+  pipeline: DashboardWidget<PipelineDTOData> | null
+  companyHealth: DashboardWidget<CompanyHealthDTOData> | null
 }
 
 export interface MissionCenterData {
@@ -93,4 +95,57 @@ export interface ActivityItem {
 export interface RecentActivityData {
   items: ActivityItem[]
   total: number
+}
+
+export interface PipelineStageDTO {
+  id: string
+  name: string
+  count: number
+  value: number
+  color: string
+}
+
+export interface PipelineDealDTO {
+  id: string
+  companyId: string
+  companyName: string
+  title: string
+  stage: string
+  value: number
+  probability: number
+  daysInStage: number
+}
+
+export interface PipelineDTOData {
+  stages: PipelineStageDTO[]
+  deals: PipelineDealDTO[]
+  totalValue: number
+  dealCount: number
+}
+
+export interface HealthMetricDTO {
+  id: string
+  label: string
+  value: number
+  previousValue?: number
+  unit: string
+  trend: 'up' | 'down' | 'stable'
+  trendValue: number
+  color: string
+}
+
+export interface HealthAlertDTO {
+  id: string
+  type: 'warning' | 'critical' | 'info'
+  message: string
+  companyId: string
+  companyName: string
+  timestamp: string
+}
+
+export interface CompanyHealthDTOData {
+  overallScore: number
+  metrics: HealthMetricDTO[]
+  alerts: HealthAlertDTO[]
+  companyName: string
 }

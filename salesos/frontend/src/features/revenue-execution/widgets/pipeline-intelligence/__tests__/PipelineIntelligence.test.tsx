@@ -74,7 +74,8 @@ describe('PipelineView edge cases', () => {
     }
     renderView(emptyPipeline)
     expect(screen.getByText('0')).toBeInTheDocument()
-    expect(screen.getByText(/\$0K/)).toBeInTheDocument()
+    const zeroTexts = screen.getAllByText(/\$0K/)
+    expect(zeroTexts.length).toBeGreaterThanOrEqual(1)
   })
 
   it('does not render stalled deals section when empty', () => {

@@ -1,6 +1,7 @@
 """Background task definitions for SalesOS workers."""
 
 import asyncio
+import datetime as _datetime
 import logging
 from typing import Any
 
@@ -8,6 +9,14 @@ from app.celery_app import celery_app
 from app.config import settings
 
 logger = logging.getLogger("salesos.tasks")
+
+_ALLOWED_TABLES = frozenset({"companies", "contacts"})
+
+
+def _validate_table(name: str) -> str:
+    if name not in _ALLOWED_TABLES:
+        raise ValueError(f"Invalid table name: {name}")
+    return name
 
 
 def _run_async(coro):
@@ -28,7 +37,7 @@ async def _get_entity_tenant(entity_id: str, entity_type: str) -> str | None:
         "person": "contacts",
         "contact": "contacts",
     }
-    table = table_map.get(entity_type.lower(), "companies")
+    table = _validate_table(table_map.get(entity_type.lower(), "companies"))
     async with async_session() as session:
         result = await session.execute(
             text(f"SELECT tenant_id FROM {table} WHERE id = :id LIMIT 1"),
@@ -109,7 +118,7 @@ def _generate_embedding(entity_id: str, entity_type: str):
 
         async with async_session() as session:
             # Load entity text fields for embedding
-            table = "companies" if entity_type.lower() == "company" else "contacts"
+            table = _validate_table("companies" if entity_type.lower() == "company" else "contacts")
             result = await session.execute(
                 text(f"SELECT * FROM {table} WHERE id = :id LIMIT 1"),
                 {"id": entity_id},
@@ -289,6 +298,121 @@ def enrich_company(self, company_id: str, cr_number: str):
     except Exception as exc:
         logger.error("Failed to enrich company %s: %s", company_id, exc)
         raise self.retry(exc=exc)
+
+
+@celery_app.task(bind=True, max_retries=3, default_retry_delay=60)
+def enrich_company_task(self, company_id: str, tenant_id: str) -> dict:
+    """Async enrichment task for POST /enrich endpoint.
+
+    Runs enrichment pipeline (DB, scrapers, feature store) with Redis caching.
+    Returns task metadata for status polling.
+    """
+    import json as _json
+
+    logger.info("Enrichment task started for company %s", company_id)
+
+    try:
+        cache_key = f"enrich:company:{company_id}"
+
+        result = _run_async(_run_enrichment_pipeline(company_id, tenant_id))
+
+        try:
+            from app.common.redis_client import AsyncRedisClient
+            client = AsyncRedisClient()
+            _run_async(client.set(
+                cache_key,
+                _json.dumps(result, default=str),
+                ttl=86400,
+            ))
+        except Exception:
+            pass
+
+        return {
+            "task_id": self.request.id,
+            "status": "completed",
+            "company_id": company_id,
+            "result": result,
+        }
+
+    except Exception as exc:
+        logger.error("Enrichment task failed for %s: %s", company_id, exc)
+        raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
+
+
+async def _run_enrichment_pipeline(company_id: str, tenant_id: str) -> dict:
+    """Run the full enrichment pipeline for a company."""
+    from sqlalchemy import text
+    from app.database import async_session
+
+    async with async_session() as session:
+        row = await session.execute(
+            text("SELECT * FROM companies WHERE id = :id AND tenant_id = :tid LIMIT 1"),
+            {"id": company_id, "tid": tenant_id},
+        )
+        company = row.mappings().one_or_none()
+        if not company:
+            return {"error": "company_not_found", "company_id": company_id}
+
+    try:
+        from runtime.data_fabric_runtime.scrapers.balady import BaladyScraper
+        from runtime.data_fabric_runtime.scrapers.taqeem import TaqeemScraper
+        scrapers = [
+            ("balady", BaladyScraper(use_mock=False)),
+            ("taqeem", TaqeemScraper(use_mock=False)),
+        ]
+
+        async def _scrape(slug, scraper):
+            try:
+                async with asyncio.timeout(10):
+                    return await scraper.fetch_all()
+            except Exception:
+                return None
+            finally:
+                await scraper.close()
+
+        scrape_results = await asyncio.gather(
+            *[_scrape_one(slug, s) for slug, s in scrapers],
+            return_exceptions=True,
+        )
+
+        for slug, res in zip(["balady", "taqeem"], scrape_results):
+            if isinstance(res, Exception):
+                logger.warning("Scraper %s failed for %s: %s", slug, company_id, res)
+
+    except Exception as e:
+        logger.warning("Scrapers unavailable for %s: %s", company_id, e)
+
+    try:
+        from app.database import async_session
+        from runtime.feature_store import FeatureStore
+        from runtime.event_runtime import EventRuntime
+        from runtime.feature_store.features import (
+            IcpComputer, FundingScoreComputer, HiringScoreComputer,
+            GrowthScoreComputer, IntentScoreComputer, ExpansionScoreComputer,
+            RevenueScoreComputer,
+        )
+        event_runtime = EventRuntime()
+        store = FeatureStore(
+            session_factory=async_session,
+            event_runtime=event_runtime,
+            computers=[
+                IcpComputer(), FundingScoreComputer(), HiringScoreComputer(),
+                GrowthScoreComputer(), IntentScoreComputer(), ExpansionScoreComputer(),
+                RevenueScoreComputer(),
+            ],
+            logger=logger,
+        )
+        feature_results = await store.recompute(company_id, tenant_id)
+        features = {name: r.score for name, r in feature_results.items()}
+    except Exception as e:
+        features = {}
+        logger.warning("Feature store unavailable for %s: %s", company_id, e)
+
+    return {
+        "company_id": company_id,
+        "features": features,
+        "enriched_at": str(_datetime.datetime.utcnow()),
+    }
 
 
 @celery_app.task(bind=True, max_retries=settings.celery_max_retries - 1, default_retry_delay=settings.celery_sync_notion_delay)

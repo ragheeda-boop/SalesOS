@@ -1,25 +1,23 @@
-jest.mock('../monitoring', () => ({
-  monitor: {
-    trackApiCall: jest.fn(),
-    trackError: jest.fn(),
-    trackMetric: jest.fn(),
-    trackPageLoad: jest.fn(),
-  },
-}))
-
-jest.mock('../api', () => {
-  const interceptors = { request: { use: jest.fn() }, response: { use: jest.fn() } }
-  return {
-    default: {
-      interceptors,
-      get: jest.fn(),
-      post: jest.fn(),
-    },
-  }
-})
-
 describe('monitoring-init', () => {
   beforeEach(() => {
+    jest.doMock('../monitoring', () => ({
+      monitor: {
+        trackApiCall: jest.fn(),
+        trackError: jest.fn(),
+        trackMetric: jest.fn(),
+        trackPageLoad: jest.fn(),
+      },
+    }))
+    jest.doMock('../api', () => {
+      const interceptors = { request: { use: jest.fn() }, response: { use: jest.fn() } }
+      return {
+        default: {
+          interceptors,
+          get: jest.fn(),
+          post: jest.fn(),
+        },
+      }
+    })
     jest.resetModules()
     jest.clearAllMocks()
   })

@@ -1,4 +1,4 @@
-import type { DashboardDTO, MissionCenterData, DecisionQueueData, IntelligenceFeedData, AIBriefData, MarketPulseData, RecentActivityData } from "./dashboard.dto"
+import type { DashboardDTO, MissionCenterData, DecisionQueueData, IntelligenceFeedData, AIBriefData, MarketPulseData, RecentActivityData, PipelineDTOData, CompanyHealthDTOData } from "./dashboard.dto"
 import type { DashboardWidget, WidgetStatus } from "./widget.contract"
 
 function parseWidget<T>(raw: Record<string, unknown> | null | undefined): DashboardWidget<T> | null {
@@ -25,5 +25,7 @@ export function mapDashboard(raw: unknown): DashboardDTO {
     aiBrief: parseWidget<AIBriefData>(data.aiBrief as Record<string, unknown> | null | undefined),
     marketPulse: parseWidget<MarketPulseData>(data.marketPulse as Record<string, unknown> | null | undefined),
     recentActivity: parseWidget<RecentActivityData>(data.recentActivity as Record<string, unknown> | null | undefined),
+    pipeline: parseWidget<PipelineDTOData>(data.pipeline as Record<string, unknown> | null | undefined),
+    companyHealth: parseWidget<CompanyHealthDTOData>(data.companyHealth as Record<string, unknown> | null | undefined),
   }
 }

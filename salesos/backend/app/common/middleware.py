@@ -271,3 +271,63 @@ class RequestLoggingMiddleware:
                 "%s %s %d (%.1fms)" % (method, path, status_code, elapsed * 1000),
                 extra=extra,
             )
+
+
+class CsrfEnforcementMiddleware:
+    """Enforce CSRF token validation on state-changing requests.
+
+    Requires X-CSRF-Token header matching the csrf_token cookie on
+    POST/PUT/PATCH/DELETE. Skips for API key authenticated requests
+    and read-only methods (GET/HEAD/OPTIONS).
+    """
+
+    _STATE_CHANGING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+
+        method = scope.get("method", "GET")
+        if method not in self._STATE_CHANGING_METHODS:
+            return await self.app(scope, receive, send)
+
+        headers = dict(scope.get("headers", []))
+        cookie_header = headers.get(b"cookie", b"").decode()
+        csrf_header = headers.get(b"x-csrf-token", b"").decode()
+        api_key_header = headers.get(b"x-api-key", b"").decode()
+
+        if api_key_header:
+            return await self.app(scope, receive, send)
+
+        cookie_csrf = ""
+        for part in cookie_header.split("; "):
+            if part.startswith("csrf_token="):
+                cookie_csrf = part[len("csrf_token="):]
+                break
+
+        if not csrf_header:
+            response = JSONResponse(
+                status_code=403,
+                content={
+                    "detail": "CSRF token missing. Include X-CSRF-Token header.",
+                    "detail_ar": "رمز CSRF مطلوب. يرجى تضمين X-CSRF-Token في الترويسة."
+                },
+            )
+            await response(scope, receive, send)
+            return
+
+        if not cookie_csrf or csrf_header != cookie_csrf:
+            response = JSONResponse(
+                status_code=403,
+                content={
+                    "detail": "CSRF token mismatch. Obtain a fresh token from GET /csrf-token.",
+                    "detail_ar": "رمز CSRF غير متطابق. احصل على رمز جديد من GET /csrf-token."
+                },
+            )
+            await response(scope, receive, send)
+            return
+
+        await self.app(scope, receive, send)

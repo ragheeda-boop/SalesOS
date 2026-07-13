@@ -23,44 +23,44 @@ from typing import Any, Optional
 
 @dataclass
 class ColorPalette:
-    primary: str = "#2563EB"       # blue-600
-    primary_light: str = "#3B82F6" # blue-500
-    primary_dark: str = "#1D4ED8"  # blue-700
+    primary: str = "#F57C1E"       # muhide-orange (was #2563EB blue-600)
+    primary_light: str = "#FFA04A" # orange-400 (was #3B82F6 blue-500)
+    primary_dark: str = "#D4660F"  # orange-600 (was #1D4ED8 blue-700)
     primary_contrast: str = "#FFFFFF"
 
-    neutral_50: str = "#FAFAFA"
-    neutral_100: str = "#F4F4F5"
-    neutral_200: str = "#E4E4E7"
-    neutral_300: str = "#D4D4D8"
-    neutral_400: str = "#A1A1AA"
-    neutral_500: str = "#71717A"
-    neutral_600: str = "#52525B"
-    neutral_700: str = "#3F3F46"
-    neutral_800: str = "#27272A"
-    neutral_900: str = "#18181B"
-    neutral_950: str = "#09090B"
+    neutral_50: str = "#F7F6F4"
+    neutral_100: str = "#EDEBE6"
+    neutral_200: str = "#D9D5CD"
+    neutral_300: str = "#BFB9AD"
+    neutral_400: str = "#A59E90"
+    neutral_500: str = "#8B8475"
+    neutral_600: str = "#706A5D"
+    neutral_700: str = "#565147"
+    neutral_800: str = "#3D3932"
+    neutral_900: str = "#26231E"
+    neutral_950: str = "#1A1714"
 
-    success: str = "#22C55E"       # green-500
-    warning: str = "#F59E0B"       # amber-500
-    error: str = "#EF4444"         # red-500
-    info: str = "#3B82F6"          # blue-500
+    success: str = "#4CAF50"       # green-500
+    warning: str = "#FFC107"       # amber-500
+    error: str = "#F44336"         # red-500
+    info: str = "#2196F3"          # blue-500 (reserved for focus rings, links)
 
-    chart_1: str = "#2563EB"
-    chart_2: str = "#10B981"
-    chart_3: str = "#F59E0B"
-    chart_4: str = "#EF4444"
+    chart_1: str = "#F57C1E"
+    chart_2: str = "#4CAF50"
+    chart_3: str = "#FFC107"
+    chart_4: str = "#F44336"
     chart_5: str = "#8B5CF6"
-    chart_6: str = "#EC4899"
+    chart_6: str = "#2196F3"
 
     surface: str = "#FFFFFF"
-    surface_secondary: str = "#F4F4F5"
-    surface_tertiary: str = "#E4E4E7"
-    border: str = "#E4E4E7"
-    border_strong: str = "#D4D4D8"
-    text_primary: str = "#09090B"
-    text_secondary: str = "#52525B"
-    text_tertiary: str = "#A1A1AA"
-    text_disabled: str = "#D4D4D8"
+    surface_secondary: str = "#F7F6F4"
+    surface_tertiary: str = "#EDEBE6"
+    border: str = "#D9D5CD"
+    border_strong: str = "#BFB9AD"
+    text_primary: str = "#26231E"
+    text_secondary: str = "#706A5D"
+    text_tertiary: str = "#A59E90"
+    text_disabled: str = "#BFB9AD"
     text_inverse: str = "#FFFFFF"
 
     def to_dict(self) -> dict:
@@ -71,20 +71,21 @@ class ColorPalette:
 
 @dataclass
 class TypographyTokens:
-    font_family_arabic: str = "'Noto Sans Arabic', 'Tahoma', sans-serif"
-    font_family_english: str = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
-    font_family_mono: str = "'JetBrains Mono', 'Cairo', monospace"
+    font_family_arabic: str = "'IBM Plex Sans Arabic', sans-serif"
+    font_family_english: str = "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif"
+    font_family_display: str = "'Viga', 'IBM Plex Sans Arabic', sans-serif"
+    font_family_mono: str = "'IBM Plex Mono', monospace"
 
     # Font sizes (rem)
     scale: dict = field(default_factory=lambda: {
-        "xs": "0.75rem",     # 12px
-        "sm": "0.875rem",    # 14px
-        "base": "1rem",      # 16px
-        "lg": "1.125rem",    # 18px
-        "xl": "1.25rem",     # 20px
-        "2xl": "1.5rem",     # 24px
-        "3xl": "1.875rem",   # 30px
-        "4xl": "2.25rem",    # 36px
+        "xs": "0.6875rem",   # 11px
+        "sm": "0.75rem",     # 12px
+        "base": "0.875rem",  # 14px
+        "lg": "1rem",        # 16px
+        "xl": "1.125rem",    # 18px
+        "2xl": "1.25rem",    # 20px
+        "3xl": "1.5rem",     # 24px
+        "4xl": "2rem",       # 32px
     })
 
     font_weight: dict = field(default_factory=lambda: {
@@ -123,10 +124,10 @@ class TypographyTokens:
 @dataclass
 class RadiusTokens:
     none: str = "0"
-    sm: str = "4px"
-    md: str = "8px"
-    lg: str = "12px"
-    xl: str = "16px"
+    sm: str = "2px"
+    md: str = "6px"
+    lg: str = "8px"
+    xl: str = "12px"
     full: str = "9999px"
     pill: str = "9999px"
 
@@ -138,12 +139,12 @@ class RadiusTokens:
 
 @dataclass
 class ElevationTokens:
-    sm: str = "0 1px 2px 0 rgb(0 0 0 / 0.05)"
-    md: str = "0 4px 6px -1px rgb(0 0 0 / 0.1)"
-    lg: str = "0 10px 15px -3px rgb(0 0 0 / 0.1)"
-    xl: str = "0 20px 25px -5px rgb(0 0 0 / 0.1)"
-    drawer: str = "-8px 0 20px rgb(0 0 0 / 0.15)"
-    modal: str = "0 25px 50px -12px rgb(0 0 0 / 0.25)"
+    sm: str = "0 1px 2px rgba(21,18,20,0.06)"
+    md: str = "0 1px 3px rgba(21,18,20,0.08), 0 1px 2px rgba(21,18,20,0.04)"
+    lg: str = "0 4px 6px rgba(21,18,20,0.07), 0 2px 4px rgba(21,18,20,0.04)"
+    xl: str = "0 10px 15px rgba(21,18,20,0.08), 0 4px 6px rgba(21,18,20,0.04)"
+    drawer: str = "-8px 0 20px rgba(21,18,20,0.15)"
+    modal: str = "0 25px 50px rgba(21,18,20,0.16)"
 
     def to_dict(self) -> dict:
         return {k: v for k, v in self.__dict__.items()}
