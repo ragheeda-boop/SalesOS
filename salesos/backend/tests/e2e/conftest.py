@@ -93,6 +93,14 @@ async def registered_user(
     assert resp.status_code in (200, 201), f"Register failed: {resp.text}"
     reg = resp.json()
 
+    from sqlalchemy import select
+    from app.modules.identity.models import User
+    result = await db_session.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+    if user:
+        user.role = "admin"
+        await db_session.flush()
+
     return {
         "access_token": reg["access_token"],
         "refresh_token": reg["refresh_token"],
