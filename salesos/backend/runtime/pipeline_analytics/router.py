@@ -20,7 +20,7 @@ router = APIRouter(
 async def get_pipeline_summary(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "pipeline")),
+    _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.READ)),
 ):
     try:
         analytics = PipelineAnalytics(db, tenant_id)
@@ -34,7 +34,7 @@ async def get_pipeline_summary(
 async def get_pipeline_velocity(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "pipeline")),
+    _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.READ)),
 ):
     try:
         analytics = PipelineAnalytics(db, tenant_id)
@@ -48,7 +48,7 @@ async def get_pipeline_velocity(
 async def get_pipeline_conversion(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "pipeline")),
+    _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.READ)),
 ):
     try:
         analytics = PipelineAnalytics(db, tenant_id)
@@ -62,7 +62,7 @@ async def get_pipeline_conversion(
 async def get_pipeline_health(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "pipeline")),
+    _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.READ)),
 ):
     try:
         analytics = PipelineAnalytics(db, tenant_id)
@@ -76,7 +76,7 @@ async def get_pipeline_health(
 async def get_pipeline_forecast(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "pipeline")),
+    _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.READ)),
 ):
     try:
         analytics = PipelineAnalytics(db, tenant_id)

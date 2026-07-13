@@ -30,7 +30,7 @@ def get_service(
     )
 
 
-@router.post("/resolve", response_model=ResolutionRunResponse, status_code=201, dependencies=[Depends(require_permission_dep(PermissionAction.ADMIN, "entity-resolution"))])
+@router.post("/resolve", response_model=ResolutionRunResponse, status_code=201, dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.ADMIN))])
 async def resolve_batch(
     body: ResolutionRunRequest,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -54,7 +54,7 @@ async def resolve_batch(
     )
 
 
-@router.get("/golden-records", response_model=PaginatedResponse, dependencies=[Depends(require_permission_dep(PermissionAction.READ, "entity-resolution"))])
+@router.get("/golden-records", response_model=PaginatedResponse, dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))])
 async def list_golden_records(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
@@ -76,7 +76,7 @@ async def list_golden_records(
     return PaginatedResponse(total=total, page=page, page_size=page_size, items=items)
 
 
-@router.get("/golden-records/{golden_id}", response_model=GoldenRecordResponse, dependencies=[Depends(require_permission_dep(PermissionAction.READ, "entity-resolution"))])
+@router.get("/golden-records/{golden_id}", response_model=GoldenRecordResponse, dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))])
 async def get_golden_record(
     golden_id: str = Path(...),
     tenant_id: str = Depends(get_current_tenant_id),
@@ -85,7 +85,7 @@ async def get_golden_record(
     return await service.get_golden_record(golden_id)
 
 
-@router.get("/golden-records/by-cr/{cr_number}", response_model=GoldenRecordResponse | None, dependencies=[Depends(require_permission_dep(PermissionAction.READ, "entity-resolution"))])
+@router.get("/golden-records/by-cr/{cr_number}", response_model=GoldenRecordResponse | None, dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))])
 async def get_golden_by_cr(
     cr_number: str = Path(...),
     tenant_id: str = Depends(get_current_tenant_id),
@@ -94,7 +94,7 @@ async def get_golden_by_cr(
     return await service.get_golden_by_cr(tenant_id, cr_number)
 
 
-@router.get("/conflicts", response_model=PaginatedResponse, dependencies=[Depends(require_permission_dep(PermissionAction.READ, "entity-resolution"))])
+@router.get("/conflicts", response_model=PaginatedResponse, dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))])
 async def list_conflicts(
     status: str | None = Query(None),
     page: int = Query(1, ge=1),
@@ -125,7 +125,7 @@ async def list_conflicts(
     return PaginatedResponse(total=total, page=page, page_size=page_size, items=items)
 
 
-@router.post("/conflicts/{conflict_id}/resolve", dependencies=[Depends(require_permission_dep(PermissionAction.UPDATE, "entity-resolution"))])
+@router.post("/conflicts/{conflict_id}/resolve", dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.UPDATE))])
 async def resolve_conflict(
     conflict_id: str = Path(...),
     body: ConflictResolveRequest = ...,
@@ -141,7 +141,7 @@ async def resolve_conflict(
     return {"message": f"Conflict {conflict_id} resolved with strategy: {body.resolution_strategy}"}
 
 
-@router.get("/stats", dependencies=[Depends(require_permission_dep(PermissionAction.READ, "entity-resolution"))])
+@router.get("/stats", dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))])
 async def get_resolution_stats(
     tenant_id: str = Depends(get_current_tenant_id),
     service: EntityResolutionService = Depends(get_service),

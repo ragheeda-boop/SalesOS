@@ -73,3 +73,8 @@ ARABIC_STOP_WORDS: set[str] = {
 STOP_WORDS_RE = re.compile(
     r'\b(?:' + '|'.join(re.escape(w) for w in sorted(ARABIC_STOP_WORDS, key=len, reverse=True)) + r')\b'
 )
+
+# Additional regex for Arabic prefixed و (conjunction "and")
+# Matches و attached to the start of a word: "والشركة" → "الشركة"
+# Keeps the preceding space/start boundary to avoid merging words
+_PREFIXED_WAW_RE = re.compile(r'(^|\s)و(?=[\u0621-\u064A\u0660-\u0669])')

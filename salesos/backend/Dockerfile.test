@@ -1,0 +1,14 @@
+FROM salesos-backend:latest
+
+USER root
+
+RUN apt-get update && apt-get install -y --no-install-recommends postgresql-client && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir --no-deps \
+    "pytest>=7" \
+    "pytest-asyncio>=0.23" \
+    "pytest-cov>=5" \
+    "pytest-env" \
+    httpx
+
+USER salesos

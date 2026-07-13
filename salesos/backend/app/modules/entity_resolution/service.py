@@ -449,11 +449,17 @@ class EntityResolutionService:
 
         return conflict
 
+    async def get_golden_record(self, golden_record_id: str) -> GoldenRecord:
+        return await self.golden_repo.get(uuid.UUID(golden_record_id))
+
+    async def get_golden_by_cr(self, tenant_id: str, cr_number: str) -> GoldenRecord | None:
+        return await self.golden_repo.get_by_cr_number(uuid.UUID(tenant_id), cr_number)
+
     async def find_duplicates(
         self,
         tenant_id: str,
         domain: str | None = None,
-        cr: str | None = None,
+        cr_number: str | None = None,
         name: str | None = None,
     ) -> list[dict]:
         """Find potential duplicate companies by domain, CR, or name."""
@@ -466,8 +472,8 @@ class EntityResolutionService:
         if domain:
             domain_like = f"%@{domain}"
             stmt = stmt.where(Company.email.ilike(domain_like))
-        elif cr:
-            stmt = stmt.where(Company.cr_number == cr)
+        elif cr_number:
+            stmt = stmt.where(Company.cr_number == cr_number)
         elif name:
             from sqlalchemy import func
             stmt = stmt.where(
@@ -485,27 +491,33 @@ class EntityResolutionService:
         candidates = []
         for company in companies:
             match_fields = []
+            score = 0.5
             if domain and company.email and domain in company.email:
                 match_fields.append("domain_match")
-            if cr and company.cr_number == cr:
+                score = max(score, 0.8)
+            if cr_number and company.cr_number == cr_number:
                 match_fields.append("cr_match")
+                score = max(score, 1.0)
             if name:
                 match_fields.append("name_match")
+                score = max(score, 0.6)
             candidates.append({
                 "company_id": str(company.id),
                 "cr_number": company.cr_number,
+                "company_name": company.name_ar or company.name_en,
                 "name_ar": company.name_ar,
                 "name_en": company.name_en,
                 "email": company.email,
                 "match_fields": match_fields,
+                "match_score": score,
             })
 
         return candidates
 
     async def find_duplicates_for_company(
-        self, tenant_id: str, company_id: str
+        self, company_id: str, tenant_id: str
     ) -> list[dict]:
-        """Find potential duplicates for a specific company."""
+        """Find potential duplicates for a specific company, excluding itself."""
         from sqlalchemy import select
         from app.modules.company.models import Company
 
@@ -513,16 +525,18 @@ class EntityResolutionService:
         if not company:
             raise NotFoundError("Company", company_id)
 
-        return await self.find_duplicates(
+        candidates = await self.find_duplicates(
             tenant_id=tenant_id,
             name=company.name_ar or company.name_en,
         )
+        return [c for c in candidates if c["company_id"] != company_id]
 
     async def merge_companies(
         self,
-        tenant_id: str,
         source_id: str,
         target_id: str,
+        tenant_id: str,
+        reason: str | None = None,
     ) -> dict:
         """Merge source company into target company, archiving the source."""
         from sqlalchemy import select, update
@@ -536,14 +550,38 @@ class EntityResolutionService:
         if not target:
             raise NotFoundError("Company", target_id)
 
-        # Move opportunities from source to target
-        from app.modules.opportunity.models import Opportunity
-        stmt = select(Opportunity).where(Opportunity.company_id == source.id)
-        opps = (await self.db.execute(stmt)).scalars().all()
-        for opp in opps:
-            opp.company_id = target.id
+        # Move relations from source to target
+        from app.modules.company.models import Contact, Branch, License
+        for model_cls, _ in [(Contact, "contacts"), (Branch, "branches"), (License, "licenses")]:
+            stmt = select(model_cls).where(model_cls.company_id == source.id)
+            rels = (await self.db.execute(stmt)).scalars().all()
+            for rel in rels:
+                rel.company_id = target.id
 
-        # Mark source as merged/archived
+        # Move opportunities
+        opps_moved = False
+        try:
+            from app.modules.revenue_execution.models import Opportunity
+            async with self.db.begin_nested():
+                stmt = select(Opportunity).where(Opportunity.company_id == source.id)
+                opps = (await self.db.execute(stmt)).scalars().all()
+                for opp in opps:
+                    opp.company_id = target.id
+                opps_moved = len(opps) > 0
+        except Exception:
+            opps_moved = False
+
+        # Merge source IDs
+        if source.source_ids:
+            for sid in source.source_ids:
+                if sid not in (target.source_ids or []):
+                    if target.source_ids:
+                        target.source_ids = target.source_ids + [sid]
+                    else:
+                        target.source_ids = [sid]
+
+        # Archive source
+        source.is_active = False
         source.status = "merged"
         source.merged_into_id = target.id
         await self.db.flush()
@@ -554,13 +592,29 @@ class EntityResolutionService:
             entity_type="company",
             entity_id=source_id,
             action="merged",
-            changes={"target_id": target_id},
+            changes={"target_id": target_id, "reason": reason},
         )
 
+        if self.event_bus:
+            await self.event_bus.publish(
+                EntityResolutionCompleted(
+                    tenant_id=tenant_id,
+                    aggregate_id=source_id,
+                    aggregate_type="company_merge",
+                    data={"source_id": source_id, "target_id": target_id},
+                )
+            )
+
         return {
-            "source_id": source_id,
-            "target_id": target_id,
-            "opportunities_moved": len(opps),
+            "merged_id": str(target.id),
+            "archived_id": str(source.id),
+            "merged_fields": {
+                "contacts": True,
+                "branches": True,
+                "licenses": True,
+                "opportunities": opps_moved,
+                "source_ids": True,
+            },
         }
         return await self.golden_repo.get(uuid.UUID(golden_record_id))
 

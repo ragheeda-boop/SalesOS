@@ -125,8 +125,14 @@ class PermissionEnforcer:
     """Middleware-friendly permission enforcer."""
 
     @staticmethod
-    def check(user_role: str, resource: str, action: PermissionAction) -> None:
-        if not PermissionRegistry.has_permission(user_role, resource, action):
-            from sdk.exceptions import PermissionDeniedError
+    def check(user_role: str, resource: str, action: PermissionAction | str) -> None:
+        from sdk.exceptions import PermissionDeniedError
 
-            raise PermissionDeniedError(user_role, f"{resource}.{action.value}")
+        action_str = action.value if hasattr(action, "value") else action
+        if isinstance(action, str):
+            try:
+                action = PermissionAction(action)
+            except ValueError:
+                pass
+        if not PermissionRegistry.has_permission(user_role, resource, action):
+            raise PermissionDeniedError(user_role, f"{resource}.{action_str}")

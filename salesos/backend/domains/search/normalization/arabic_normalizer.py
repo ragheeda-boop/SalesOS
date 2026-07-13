@@ -228,11 +228,14 @@ class ArabicSearchNormalizer:
         semantically meaningful standalone words that happen to
         match stop words (e.g. 'من' as a word vs stop word).
         """
-        from .stop_words import STOP_WORDS_RE
+        from .stop_words import STOP_WORDS_RE, _PREFIXED_WAW_RE
         words = text.split()
         if len(words) <= 1:
             return text
+        # Remove standalone stop words
         text = STOP_WORDS_RE.sub('', text).strip()
+        # Remove prefixed و (conjunction "and") attached to words
+        text = _PREFIXED_WAW_RE.sub(r'\1', text).strip()
         text = self._WHITESPACE_RE.sub(' ', text).strip()
         return text
 
