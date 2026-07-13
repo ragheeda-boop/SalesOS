@@ -404,6 +404,32 @@ def _register_platform_capabilities() -> None:
         permissions=["infrastructure.*"],
     ))
 
+    # ── Meeting Domain ──
+    CapabilityRegistry.register(Capability(
+        name="meeting",
+        label="Meeting Intelligence",
+        label_ar="ذكاء الاجتماعات",
+        description="Meeting scheduling, notes, action items, and outcome tracking",
+        type=CapabilityType.DOMAIN,
+        events=EventDeclaration(
+            produces=["meeting.scheduled", "meeting.completed", "meeting.action_item_created"],
+        ),
+        permissions=["meeting.*"],
+    ))
+
+    # ── Playbook Domain ──
+    CapabilityRegistry.register(Capability(
+        name="playbook",
+        label="Sales Playbook",
+        label_ar="دليل المبيعات",
+        description="Reusable sales playbooks, best practices, and playbook-driven workflows",
+        type=CapabilityType.DOMAIN,
+        events=EventDeclaration(
+            produces=["playbook.activated", "playbook.completed"],
+        ),
+        permissions=["playbook.*"],
+    ))
+
     # ── AI Copilot (future) ──
     CapabilityRegistry.register(Capability(
         name="ai_copilot",

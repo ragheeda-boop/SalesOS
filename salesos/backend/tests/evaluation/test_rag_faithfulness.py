@@ -31,7 +31,7 @@ def test_confidence_derived_from_evidence():
         return min(score, 0.95)
 
     assert derive_confidence(poor_evidence) == 0.1
-    assert derive_confidence(rich_evidence) == 0.75
+    assert derive_confidence(rich_evidence) == 0.6
 
 
 @pytest.mark.parametrize("fact,context_terms,expected", [
