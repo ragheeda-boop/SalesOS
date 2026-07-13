@@ -434,6 +434,18 @@ async def reset_password(
     return {"message": "Password reset successfully"}
 
 
+@router.delete("/users/me", status_code=200)
+async def delete_my_account(
+    user_id: str = Depends(get_current_user_id),
+    tenant_id: str = Depends(get_current_tenant_id),
+    service: IdentityService = Depends(get_service),
+    db: AsyncSession = Depends(get_db_session),
+):
+    """PDPL Right to Erasure — permanently delete my account and anonymize personal data."""
+    await service.delete_user(user_id, tenant_id)
+    return {"message": "تم حذف الحساب بنجاح", "detail": "Account deleted per PDPL right to erasure"}
+
+
 @router.get("/.well-known/jwks.json")
 async def jwks():
     """JWKS endpoint for JWT key discovery.

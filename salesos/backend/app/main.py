@@ -143,6 +143,14 @@ async def lifespan(app: FastAPI):
         vector_store = PgVectorStore(session_factory=async_session, collection="vectors")
         app.state.vector_store = vector_store
 
+        # ── Redis Cache (optional — graceful degrade if unavailable) ──
+        from app.common.redis_client import AsyncRedisClient
+        from sdk.cache import CacheService
+        _redis_client = AsyncRedisClient()
+        _cache_service: Any = None
+        if _redis_client.available:
+            _cache_service = CacheService(_redis_client._redis)
+
         # ── Feature Store ──
         feature_store = FeatureStore(
             session_factory=async_session,
@@ -157,6 +165,8 @@ async def lifespan(app: FastAPI):
                 RevenueScoreComputer(),
             ],
             logger=app.state.logger,
+            cache_service=_cache_service,
+            cache_ttl=settings.feature_cache_ttl,
         )
         app.state.feature_store = feature_store
 
@@ -377,9 +387,10 @@ async def global_exception_handler(request: Request, exc: Exception):
         logger.exception("Unhandled exception: %s %s", request.method, request.url.path)
     else:
         traceback.print_exc()
+    detail = "An unexpected error occurred" if settings.env == "production" else str(exc)
     return JSONResponse(
         status_code=500,
-        content={"detail": f"Internal server error: {str(exc)}"},
+        content={"detail": detail},
     )
 
 
@@ -419,7 +430,7 @@ async def health_detailed(request: Request):
         checks["database"] = pool_info
         app_collector.track_db_pool(pool.checkedout(), pool.checkedin(), pool.overflow(), pool.open_connections())
     except Exception as e:
-        checks["database"] = {"status": "error", "message": str(e)}
+        checks["database"] = {"status": "error", "message": str(e) if settings.env != "production" else "unavailable"}
         overall = "degraded"
 
     # ── Cache / Redis ──
@@ -482,8 +493,8 @@ async def health_ready(request: Request):
         async with async_session() as session:
             await session.execute(text("SELECT 1"))
         checks["database"] = "connected"
-    except Exception as e:
-        checks["database"] = f"error: {e}"
+    except Exception:
+        checks["database"] = "unavailable"
 
     # Redis / Cache
     cache = getattr(request.app.state, "cache", None)
@@ -530,8 +541,8 @@ async def health_ready(request: Request):
         from runtime.data_fabric_runtime.scrapers.scraper_config import get_scraper_health
         scraper_health = get_scraper_health()
         checks["scrapers"] = scraper_health
-    except Exception as e:
-        checks["scrapers"] = f"error: {e}"
+    except Exception:
+        checks["scrapers"] = "unavailable"
 
     all_ready = checks.get("database") == "connected" and checks.get("cache") != "unavailable"
     return {
@@ -551,8 +562,8 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
     try:
         await db.execute(text("SELECT 1"))
         checks["database"] = "connected"
-    except Exception as e:
-        checks["database"] = f"error: {e}"
+    except Exception:
+        checks["database"] = "unavailable"
         status = "degraded"
 
     # Redis / Cache
@@ -744,6 +755,10 @@ def register_routers():
     from app.routers.workflows import router as workflow_router
     app.include_router(workflow_router, prefix="/api/v1", tags=["Workflow Engine"], dependencies=_auth)
 
+    # Wave 3 — Business Rules Engine
+    from app.modules.rules_engine.router import router as rules_engine_router
+    app.include_router(rules_engine_router, tags=["Rules Engine"], dependencies=_auth)
+
     # Wave 2 — Revenue Execution Platform
     from app.routers.opportunities import router as opportunities_router
     from app.routers.meetings import router as meetings_router
@@ -788,6 +803,11 @@ def register_routers():
     # MCP Server (SSE transport for AI agents)
     from app.routers.mcp import router as mcp_router
     app.include_router(mcp_router)
+
+    # GraphQL API (Strawberry)
+    from strawberry.fastapi import GraphQLRouter
+    from app.graphql.schema import graphql_router
+    app.include_router(graphql_router, prefix="/graphql")
 
 
 register_routers()
