@@ -221,7 +221,7 @@ class CityLookup:
         info = self._city_map.get(cleaned.lower())
         if info:
             return info.canonical_ar
-        return cleaned
+        return city_name.strip()
 
     def get_region(self, city_name: str | None) -> str | None:
         """Get the region for a city name."""

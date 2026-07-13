@@ -777,9 +777,17 @@ def register_routers():
     from app.routers.notifications import router as notifications_router
     app.include_router(notifications_router, prefix="/api/v1", tags=["Notifications"])
 
+    # Webhooks
+    from app.modules.webhooks.router import router as webhooks_router
+    app.include_router(webhooks_router)
+
     # Enrichment API (async via Celery)
     from app.routers.enrichment import router as enrichment_router
     app.include_router(enrichment_router, prefix="/api/v1", tags=["Enrichment"], dependencies=_auth)
+
+    # MCP Server (SSE transport for AI agents)
+    from app.routers.mcp import router as mcp_router
+    app.include_router(mcp_router)
 
 
 register_routers()
