@@ -449,7 +449,119 @@ class EntityResolutionService:
 
         return conflict
 
-    async def get_golden_record(self, golden_record_id: str) -> GoldenRecord:
+    async def find_duplicates(
+        self,
+        tenant_id: str,
+        domain: str | None = None,
+        cr: str | None = None,
+        name: str | None = None,
+    ) -> list[dict]:
+        """Find potential duplicate companies by domain, CR, or name."""
+        from sqlalchemy import or_, select
+        from app.modules.company.models import Company
+
+        tenant_uuid = uuid.UUID(tenant_id)
+        stmt = select(Company).where(Company.tenant_id == tenant_uuid)
+
+        if domain:
+            domain_like = f"%@{domain}"
+            stmt = stmt.where(Company.email.ilike(domain_like))
+        elif cr:
+            stmt = stmt.where(Company.cr_number == cr)
+        elif name:
+            from sqlalchemy import func
+            stmt = stmt.where(
+                or_(
+                    Company.name_ar.ilike(f"%{name}%"),
+                    Company.name_en.ilike(f"%{name}%"),
+                )
+            )
+        else:
+            return []
+
+        result = await self.db.execute(stmt)
+        companies = result.scalars().all()
+
+        candidates = []
+        for company in companies:
+            match_fields = []
+            if domain and company.email and domain in company.email:
+                match_fields.append("domain_match")
+            if cr and company.cr_number == cr:
+                match_fields.append("cr_match")
+            if name:
+                match_fields.append("name_match")
+            candidates.append({
+                "company_id": str(company.id),
+                "cr_number": company.cr_number,
+                "name_ar": company.name_ar,
+                "name_en": company.name_en,
+                "email": company.email,
+                "match_fields": match_fields,
+            })
+
+        return candidates
+
+    async def find_duplicates_for_company(
+        self, tenant_id: str, company_id: str
+    ) -> list[dict]:
+        """Find potential duplicates for a specific company."""
+        from sqlalchemy import select
+        from app.modules.company.models import Company
+
+        company = await self.db.get(Company, uuid.UUID(company_id))
+        if not company:
+            raise NotFoundError("Company", company_id)
+
+        return await self.find_duplicates(
+            tenant_id=tenant_id,
+            name=company.name_ar or company.name_en,
+        )
+
+    async def merge_companies(
+        self,
+        tenant_id: str,
+        source_id: str,
+        target_id: str,
+    ) -> dict:
+        """Merge source company into target company, archiving the source."""
+        from sqlalchemy import select, update
+        from app.modules.company.models import Company
+
+        source = await self.db.get(Company, uuid.UUID(source_id))
+        target = await self.db.get(Company, uuid.UUID(target_id))
+
+        if not source:
+            raise NotFoundError("Company", source_id)
+        if not target:
+            raise NotFoundError("Company", target_id)
+
+        # Move opportunities from source to target
+        from app.modules.opportunity.models import Opportunity
+        stmt = select(Opportunity).where(Opportunity.company_id == source.id)
+        opps = (await self.db.execute(stmt)).scalars().all()
+        for opp in opps:
+            opp.company_id = target.id
+
+        # Mark source as merged/archived
+        source.status = "merged"
+        source.merged_into_id = target.id
+        await self.db.flush()
+
+        audit = AuditTrail(self.db)
+        await audit.record(
+            tenant_id=tenant_id,
+            entity_type="company",
+            entity_id=source_id,
+            action="merged",
+            changes={"target_id": target_id},
+        )
+
+        return {
+            "source_id": source_id,
+            "target_id": target_id,
+            "opportunities_moved": len(opps),
+        }
         return await self.golden_repo.get(uuid.UUID(golden_record_id))
 
     async def get_golden_by_cr(self, tenant_id: str, cr_number: str) -> GoldenRecord | None:

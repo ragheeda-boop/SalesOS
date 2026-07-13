@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import HTTPException, Request
@@ -93,6 +93,11 @@ class TestCleanup:
 # ── Tests: rate_limit_dep ────────────────────────────────────────────────────
 
 class TestRateLimitDep:
+    @pytest.fixture(autouse=True)
+    def _no_redis(self):
+        with patch("app.common.rate_limit._get_redis", return_value=None):
+            yield
+
     @pytest.fixture
     def mock_request(self):
         req = MagicMock(spec=Request)

@@ -222,8 +222,16 @@ class ArabicSearchNormalizer:
         return result
 
     def _remove_stop_words(self, text: str) -> str:
-        """Remove Arabic stop words from the text."""
+        """Remove Arabic stop words from the text.
+
+        Single-word texts are preserved as-is to avoid removing
+        semantically meaningful standalone words that happen to
+        match stop words (e.g. 'من' as a word vs stop word).
+        """
         from .stop_words import STOP_WORDS_RE
+        words = text.split()
+        if len(words) <= 1:
+            return text
         text = STOP_WORDS_RE.sub('', text).strip()
         text = self._WHITESPACE_RE.sub(' ', text).strip()
         return text

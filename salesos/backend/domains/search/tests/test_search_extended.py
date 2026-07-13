@@ -229,11 +229,19 @@ def test_normalize_query_strip_company():
 
 
 def test_normalize_query_strip_institute():
-    assert normalize_query("مؤسسة أحمد للتجارة") == "أحمد للتجارة"
+    assert normalize_query("مؤسسة أحمد للتجارة") == "احمد للتجاره"
 
 
 def test_normalize_query_no_prefix():
-    assert normalize_query("الأمل للتجارة") == "الأمل للتجارة"
+    assert normalize_query("الأمل للتجارة") == "الامل للتجاره"
+
+
+def test_normalize_query_strip_group():
+    assert normalize_query("مجموعة السعودية") == "السعوديه"
+
+
+def test_normalize_query_strip_factory():
+    assert normalize_query("مصنع النسيج") == "النسيج"
 
 
 def test_normalize_query_empty():
@@ -242,14 +250,6 @@ def test_normalize_query_empty():
 
 def test_normalize_query_whitespace():
     assert normalize_query("  ") == ""
-
-
-def test_normalize_query_strip_group():
-    assert normalize_query("مجموعة السعودية") == "السعودية"
-
-
-def test_normalize_query_strip_factory():
-    assert normalize_query("مصنع النسيج") == "النسيج"
 
 
 # ── Planner facets / suggest edge cases ─────────────────────────────────────

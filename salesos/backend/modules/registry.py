@@ -318,6 +318,19 @@ def _register_platform_capabilities() -> None:
         permissions=["opportunity.*"],
     ))
 
+    # ── Email Domain ──
+    CapabilityRegistry.register(Capability(
+        name="email",
+        label="Email Intelligence",
+        label_ar="ذكاء البريد الإلكتروني",
+        description="Email communication analysis, tracking, and intelligence",
+        type=CapabilityType.DOMAIN,
+        events=EventDeclaration(
+            produces=["email.received", "email.sent", "email.tracked", "email.analyzed"],
+        ),
+        permissions=["email.*"],
+    ))
+
     # ── Revenue Analytics Domain ──
     CapabilityRegistry.register(Capability(
         name="analytics",
