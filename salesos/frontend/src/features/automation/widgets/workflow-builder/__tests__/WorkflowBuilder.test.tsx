@@ -10,10 +10,11 @@ jest.mock("@/lib/workflowQueries", () => ({
   useWorkflowExecutions: jest.fn(),
 }))
 
-import { useWorkflows, useCreateWorkflow, useExecuteWorkflow, useDeleteWorkflow } from "@/lib/workflowQueries"
+import { useWorkflows, useCreateWorkflow, useUpdateWorkflow, useExecuteWorkflow, useDeleteWorkflow } from "@/lib/workflowQueries"
 
 const mockUseWorkflows = useWorkflows as jest.MockedFunction<typeof useWorkflows>
 const mockUseCreateWorkflow = useCreateWorkflow as jest.MockedFunction<typeof useCreateWorkflow>
+const mockUseUpdateWorkflow = useUpdateWorkflow as jest.MockedFunction<typeof useUpdateWorkflow>
 const mockUseExecuteWorkflow = useExecuteWorkflow as jest.MockedFunction<typeof useExecuteWorkflow>
 const mockUseDeleteWorkflow = useDeleteWorkflow as jest.MockedFunction<typeof useDeleteWorkflow>
 
@@ -24,15 +25,17 @@ const sampleWorkflows = [
 
 function setupMocks(overrides = {}) {
   const mockCreateMutate = jest.fn()
+  const mockUpdateMutate = jest.fn()
   const mockExecuteMutate = jest.fn()
   const mockDeleteMutate = jest.fn()
 
   mockUseWorkflows.mockReturnValue({ data: sampleWorkflows, isLoading: false, error: null, ...overrides } as any)
   mockUseCreateWorkflow.mockReturnValue({ mutateAsync: mockCreateMutate, isPending: false } as any)
+  mockUseUpdateWorkflow.mockReturnValue({ mutateAsync: mockUpdateMutate, isPending: false } as any)
   mockUseExecuteWorkflow.mockReturnValue({ mutateAsync: mockExecuteMutate, isPending: false } as any)
   mockUseDeleteWorkflow.mockReturnValue({ mutateAsync: mockDeleteMutate, isPending: false } as any)
 
-  return { mockCreateMutate, mockExecuteMutate, mockDeleteMutate }
+  return { mockCreateMutate, mockUpdateMutate, mockExecuteMutate, mockDeleteMutate }
 }
 
 describe("WorkflowBuilderWidget", () => {

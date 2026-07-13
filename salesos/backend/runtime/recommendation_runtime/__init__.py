@@ -11,10 +11,17 @@ Turns a DecisionObject into concrete recommendations with:
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 from typing import Any, Optional
+
+
+logger = logging.getLogger(__name__)
+
+_DEFAULT_MAX_RECS = 10000
+_DEFAULT_REC_TTL_SECONDS = 3600
 
 
 class RecommendationStatus(str, Enum):
@@ -163,6 +170,9 @@ class RecommendationEngine:
     def __init__(self, logger: Any = None):
         self._logger = logger
         self._generated = 0
+        self._recommendations: dict[str, Recommendation] = {}
+        self._max_recommendations = _DEFAULT_MAX_RECS
+        self._rec_ttl = _DEFAULT_REC_TTL_SECONDS
 
     async def generate(
         self,
@@ -185,8 +195,9 @@ class RecommendationEngine:
                 description=a["description"],
             ))
 
+        self._evict_recommendations()
         self._generated += 1
-        return Recommendation(
+        rec = Recommendation(
             recommendation_id=f"rec_{decision_id}",
             decision_id=decision_id,
             company_id=company_id,
@@ -200,6 +211,8 @@ class RecommendationEngine:
             actions=actions,
             suggested_workflow=template.get("suggested_workflow"),
         )
+        self._recommendations[rec.recommendation_id] = rec
+        return rec
 
     def _match_template(self, decision_type: str, context: dict) -> dict:
         features = context.get("features", {})
@@ -231,3 +244,35 @@ class RecommendationEngine:
 
     def metrics(self) -> dict:
         return {"recommendations_generated": self._generated}
+
+    def _evict_recommendations(self) -> int:
+        """Evict expired and overflow recommendations. Returns number evicted."""
+        evicted = 0
+        now = datetime.now(timezone.utc)
+        cutoff = now - timedelta(seconds=self._rec_ttl)
+
+        expired = [
+            rid for rid, r in self._recommendations.items()
+            if r.created_at < cutoff
+        ]
+        for rid in expired:
+            del self._recommendations[rid]
+            evicted += 1
+
+        overflow = len(self._recommendations) - self._max_recommendations
+        if overflow > 0:
+            oldest = sorted(
+                self._recommendations.items(),
+                key=lambda x: x[1].created_at,
+            )[:overflow]
+            for rid, _ in oldest:
+                del self._recommendations[rid]
+                evicted += 1
+
+        if evicted > 0 and self._logger:
+            self._logger.warning(
+                "Recommendation store evicted %d entries. Current: %d",
+                evicted, len(self._recommendations),
+            )
+
+        return evicted

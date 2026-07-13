@@ -16,6 +16,7 @@ const mockPost = api.post as jest.Mock
 
 beforeAll(() => {
   HTMLElement.prototype.scrollIntoView = jest.fn()
+  Element.prototype.scrollTo = jest.fn()
 })
 
 describe('CopilotPanel', () => {
@@ -70,7 +71,7 @@ describe('CopilotPanel', () => {
     const input = screen.getByPlaceholderText('اسأل المساعد الذكي...')
     fireEvent.change(input, { target: { value: 'سؤال' } })
     const buttons = screen.getAllByRole('button')
-    fireEvent.click(buttons[1])
+    fireEvent.click(buttons[buttons.length - 1])
     await waitFor(() => expect(mockPost).toHaveBeenCalled())
   })
 
@@ -152,6 +153,6 @@ describe('CopilotPanel', () => {
   it('disables send button when input is empty', () => {
     render(<CopilotPanel open={true} onClose={jest.fn()} />)
     const buttons = screen.getAllByRole('button')
-    expect(buttons[1]).toBeDisabled()
+    expect(buttons[buttons.length - 1]).toBeDisabled()
   })
 })

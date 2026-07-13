@@ -11,7 +11,6 @@ packages = [
     { include = "runtime" },
     { include = "modules" },
     { include = "intelligence" },
-    { include = "demo" },
 ]
 
 [tool.poetry.dependencies]
@@ -94,7 +93,12 @@ testpaths = [
 ]
 
 [tool.coverage.report]
-fail_under = 30
+fail_under = 85
+source = ["app", "domains", "sdk", "runtime", "intelligence"]
+
+# ── Per-Domain Coverage Minimums (enforced by scripts/check-coverage.ps1) ──
+# Identity: 88%  |  Company: 80%  |  Search: 93%   |  Timeline: 82%
+# CRM: 80%       |  Scoring: 78%  |  AI: 92%       |  Workflow: 95%
 
 [build-system]
 requires = ["poetry-core"]

@@ -3,6 +3,16 @@
  * Tests that all modules work together: Search → Company Intelligence → NBA → Opportunity → Pipeline → Task
  */
 
+jest.mock('axios', () => ({
+  get: jest.fn(() => Promise.resolve({ data: { items: [] } })),
+  post: jest.fn(() => Promise.resolve({ data: { id: 'test_123' } })),
+  put: jest.fn(),
+  patch: jest.fn(() => Promise.resolve({ data: {} })),
+  delete: jest.fn(),
+  interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } },
+  create() { return this },
+}))
+
 import { SearchQueryBuilder, queryToKey } from '@salesos/search'
 import { deriveStatus } from '@salesos/workspace'
 import { deriveNextBestAction } from '@/application/revenue-execution/nba.engine'

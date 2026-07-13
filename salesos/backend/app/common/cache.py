@@ -1,9 +1,14 @@
-"""Redis-backed caching decorator for FastAPI dependencies."""
+"""Redis-backed caching decorator for FastAPI dependencies.
+
+Key format and TTL are aligned with the canonical sdk.cache.CacheService.
+"""
+
 import functools
-import hashlib
 import json
 import logging
 from typing import Any, Callable
+
+from sdk.cache import cache_key as build_cache_key
 
 from app.common.redis_client import AsyncRedisClient
 
@@ -15,13 +20,15 @@ EXCLUDE_KEYS = {"db", "request", "_rbac"}
 
 
 def make_cache_key(tenant_id: str, resource: str, kwargs: dict) -> str:
-    """Build a deterministic Redis cache key from a tenant, resource name, and kwargs."""
+    """Build a deterministic cache key from a tenant, resource name, and kwargs."""
+    parts = [tenant_id, resource]
     payload = {k: v for k, v in kwargs.items() if k not in EXCLUDE_KEYS and not k.startswith("_")}
-    digest = hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest()[:16]
-    return f"{tenant_id}:{resource}:{digest}"
+    digest = json.dumps(payload, sort_keys=True, default=str)
+    parts.append(digest)
+    return build_cache_key(*parts)
 
 
-def cached(resource: str, ttl: int = 60) -> Callable:
+def cached(resource: str, ttl: int = 300) -> Callable:
     """Cache FastAPI dependency results in Redis.
 
     The decorated function must accept ``tenant_id`` as a keyword argument
@@ -29,6 +36,7 @@ def cached(resource: str, ttl: int = 60) -> Callable:
 
     Falls back to executing the function normally when Redis is unavailable.
     """
+
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -36,9 +44,9 @@ def cached(resource: str, ttl: int = 60) -> Callable:
             if not tenant_id:
                 return await func(*args, **kwargs)
 
-            cache_key = make_cache_key(tenant_id, resource, kwargs)
+            _key = make_cache_key(tenant_id, resource, kwargs)
 
-            cached_str = await _cache_client.get(cache_key)
+            cached_str = await _cache_client.get(_key)
             if cached_str is not None:
                 try:
                     return json.loads(cached_str)
@@ -48,10 +56,12 @@ def cached(resource: str, ttl: int = 60) -> Callable:
             result = await func(*args, **kwargs)
 
             try:
-                await _cache_client.set(cache_key, json.dumps(result, default=str), ttl=ttl)
+                await _cache_client.set(_key, json.dumps(result, default=str), ttl=ttl)
             except Exception:
                 pass
 
             return result
+
         return wrapper
+
     return decorator

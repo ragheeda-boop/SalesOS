@@ -1,6 +1,6 @@
 export type WidgetStatus = 'ready' | 'loading' | 'degraded' | 'error'
 export type WidgetPriority = 'low' | 'medium' | 'high' | 'critical'
-export type WidgetCategory = 'metrics' | 'signals' | 'decisions' | 'intelligence' | 'activity'
+export type WidgetCategory = 'metrics' | 'signals' | 'decisions' | 'intelligence' | 'activity' | 'enterprise'
 export type WidgetFeatureTier = 'enabled' | 'beta' | 'internal' | 'enterprise'
 
 export interface WidgetFeatureFlag {

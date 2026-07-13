@@ -14,6 +14,7 @@ import type { Employee360Response } from '@/lib/api'
 import type { WidgetData, WidgetStatus } from '@salesos/workspace'
 
 interface EmployeeIntelligenceWidgets {
+  [key: string]: WidgetData<unknown>
   profile: WidgetData<Employee360Response['profile']>
   portfolio: WidgetData<Employee360Response['portfolio']>
   activity: WidgetData<Employee360Response['activity_intelligence']>
@@ -63,7 +64,7 @@ function useDataHook() {
 
 const { WorkspaceProvider, useWorkspaceContext } = createWorkspaceProvider<EmployeeIntelligenceWidgets>(
   useDataHook,
-  (data) => data,
+  (data) => data as EmployeeIntelligenceWidgets,
 )
 
 function WorkspaceGridContent() {

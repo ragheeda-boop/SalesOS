@@ -43,7 +43,8 @@ describe('ActiveUsersWidget', () => {
 
   it('displays zero values correctly', () => {
     renderView(0, 0, 0)
-    expect(screen.getByText('0')).toBeInTheDocument()
+    const zeros = screen.getAllByText('0')
+    expect(zeros.length).toBeGreaterThanOrEqual(3)
   })
 
   it('displays large values correctly', () => {

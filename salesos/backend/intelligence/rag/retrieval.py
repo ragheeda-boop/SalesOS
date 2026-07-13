@@ -103,6 +103,7 @@ class RetrievalService:
     async def retrieve_hybrid(
         self,
         query_embedding: list[float],
+        query_text: str,
         tenant_id: str,
         top_k: int = 5,
     ) -> list[RetrievalResult]:
@@ -132,7 +133,7 @@ class RetrievalService:
                 sql,
                 {
                     "vector": vector_str,
-                    "query_text": "",
+                    "query_text": query_text,
                     "tenant_id": tenant_id,
                     "top_k": top_k,
                 },

@@ -12,9 +12,9 @@ function mapToOpportunity(result: DecisionResult): RevenueOpportunity {
 
   return {
     id: result.decisionId ?? 'opp-1',
-    companyId: result.evidence[0]?.id ?? 'c1',
+    companyId: (result.evidence[0]?.id as string) ?? 'c1',
     companyName: result.explainability?.why?.split(' ')[0] ?? 'الشركة',
-    title: result.recommendation.actionLabel,
+    title: result.recommendation?.actionLabel ?? result.action,
     source: 'nba' as const,
     estimatedValue: revenueScore?.value != null ? Math.round(revenueScore.value * 1000000) : 500000,
     confidence: confidenceScore,

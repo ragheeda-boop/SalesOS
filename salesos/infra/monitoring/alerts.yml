@@ -76,6 +76,16 @@ groups:
         annotations:
           summary: "PostgreSQL has {{ $value }} active connections"
 
+      # ── DB Pool Saturation ──
+      - alert: DBPoolSaturated
+        expr: salesos_db_pool_checkedout / (salesos_db_pool_checkedout + salesos_db_pool_checkedin + 0.001) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "DB connection pool > 90% utilized"
+          description: "Database connection pool is near saturation — risk of request timeouts"
+
       # ── Redis ──
       - alert: RedisDown
         expr: redis_up == 0
@@ -84,6 +94,15 @@ groups:
           severity: critical
         annotations:
           summary: "Redis is unreachable"
+
+      - alert: RedisHighMemory
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage > 90%"
+          description: "Redis approaching maxmemory — eviction may be active"
 
       # ── Neo4j ──
       - alert: Neo4jDown
@@ -113,6 +132,16 @@ groups:
         annotations:
           summary: "P95 AI inference time is {{ $value }}s"
           description: "AI model inference exceeding 10s P95"
+
+      # ── WebSocket ──
+      - alert: WebSocketConnectionsHigh
+        expr: salesos_websocket_active > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "WebSocket connections: {{ $value }}"
+          description: "Approaching per-tenant WebSocket connection limit (100)"
 
       # ── Zero Requests (possible routing issue) ──
       - alert: NoTraffic
@@ -148,3 +177,22 @@ groups:
           severity: warning
         annotations:
           summary: "Memory usage above 90%"
+
+      # ── SLA Violation ──
+      - alert: SLACriticalPathBreach
+        expr: histogram_quantile(0.99, rate(salesos_http_request_duration_seconds_bucket{path=~"/api/v1/companies.*|/api/v1/search.*|/api/v1/dashboard.*"}[5m])) > 0.7
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical path SLA breached: P99 > 700ms"
+          description: "P99 latency for critical endpoints exceeds 700ms SLA threshold"
+
+      - alert: SLAAuthBreach
+        expr: histogram_quantile(0.99, rate(salesos_http_request_duration_seconds_bucket{path=~"/api/v1/identity.*|/api/v1/sso.*"}[5m])) > 0.8
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Auth SLA breached: P99 > 800ms"
+          description: "P99 latency for auth endpoints exceeds 800ms SLA threshold"

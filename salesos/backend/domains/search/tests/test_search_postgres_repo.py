@@ -228,7 +228,7 @@ class TestFacetsRaw:
     async def test_facets_raw_returns_data(self):
         facet_result = MagicMock()
         facet_result.__iter__ = lambda self: iter(
-            [("الرياض", 5), ("جدة", 3)]
+            [("city", "الرياض", 5), ("city", "جدة", 3)]
         )
 
         session = AsyncMock()

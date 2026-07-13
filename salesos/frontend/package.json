@@ -11,6 +11,9 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest --config jest.config.js --passWithNoTests",
+    "test:e2e": "playwright test --config playwright.config.ts",
+    "test:e2e:ui": "playwright test --ui --config playwright.config.ts",
+    "test:e2e:chromium": "playwright test --project=chromium --config playwright.config.ts",
     "typecheck": "tsc --noEmit",
     "dev:company": "cd apps/company-workspace && next dev",
     "dev:search": "cd apps/search && next dev",
@@ -57,6 +60,7 @@
     "zod": "^3.23"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49",
     "@storybook/react": "^8.0",
     "@testing-library/jest-dom": "^6.6",
     "@testing-library/react": "^16.1",

@@ -4,6 +4,20 @@ from dataclasses import dataclass, field
 from ..business_objects import EntityType
 
 
+# ── Arabic normalization map ────────────────────────────────────────
+
+_ARABIC_NORMALIZE_TABLE: dict[int, str] = {
+    ord('\u0622'): '\u0627', ord('\u0623'): '\u0627', ord('\u0625'): '\u0627',
+    ord('\u0649'): '\u064A', ord('\u0629'): '\u0647', ord('\u0626'): '\u064A',
+    ord('\u0624'): '\u0648', ord('\u0671'): '\u0627',
+}
+
+_COMMON_MISSPELLINGS: dict[str, str] = {
+    "شركه": "شركة", "مؤسسه": "مؤسسة", "مصنعه": "مصنع",
+    "مجوعة": "مجموعة", "جده": "جدة", "الرياضه": "الرياض",
+}
+
+
 @dataclass
 class IdentityFragment:
     """A partial identity from a single source."""
@@ -17,6 +31,9 @@ class IdentityFragment:
     vat_number: Optional[str] = None
     duns_number: Optional[str] = None
     external_id: Optional[str] = None
+    city: Optional[str] = None
+    region: Optional[str] = None
+    industry: Optional[str] = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -34,25 +51,36 @@ class ResolvedIdentity:
 
 
 class IdentityResolver:
-    """
-    Resolves identities across sources.
+    """Resolves identities across sources with Arabic-aware matching.
     ABC Co, ABC Construction, ABC Ltd → same company.
-    Uses multiple matching strategies.
+    Uses multiple matching strategies including Arabic transliteration.
+
+    Enhanced with:
+    - Arabic transliteration matching
+    - CR number as primary deduplication key
+    - Tunable fuzzy thresholds
+    - Confidence scoring with multi-signal fusion
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        fuzzy_threshold: float = 0.6,
+        auto_merge_threshold: float = 0.95,
+    ):
         self._resolved: dict[str, ResolvedIdentity] = {}
+        self._fuzzy_threshold = fuzzy_threshold
+        self._auto_merge_threshold = auto_merge_threshold
 
     def resolve(self, fragment: IdentityFragment) -> ResolvedIdentity:
-        """
-        Try to resolve a fragment to an existing identity.
+        """Try to resolve a fragment to an existing identity.
         Returns existing match or creates new.
         """
         candidates = self._find_candidates(fragment)
         if candidates:
             best = candidates[0]
             best.fragments.append(fragment)
-            best.aliases.append(fragment.name or "")
+            if fragment.name and fragment.name not in best.aliases:
+                best.aliases.append(fragment.name)
             best.confidence = self._calculate_confidence(best)
             return best
 
@@ -73,7 +101,7 @@ class IdentityResolver:
 
         for identity in self._resolved.values():
             score = self._match_score(identity, fragment)
-            if score >= 0.6:
+            if score >= self._fuzzy_threshold:
                 identity.matched_by.append(f"score_{score:.2f}")
                 candidates.append((identity, score))
 
@@ -81,17 +109,26 @@ class IdentityResolver:
 
     def _match_score(self, identity: ResolvedIdentity,
                      fragment: IdentityFragment) -> float:
-        """Calculate match score between resolved identity and fragment."""
+        """Calculate match score between resolved identity and fragment.
+        Enhanced with Arabic-aware matching.
+        """
         scores = []
 
         for existing in identity.fragments:
-            # CR number match (exact)
-            if fragment.cr_number and existing.cr_number == fragment.cr_number:
-                scores.append(1.0)
-            if fragment.vat_number and existing.vat_number == fragment.vat_number:
-                scores.append(0.95)
-            if fragment.duns_number and existing.duns_number == fragment.duns_number:
-                scores.append(0.95)
+            # CR number match (exact — highest priority dedup key)
+            if fragment.cr_number and existing.cr_number:
+                if fragment.cr_number.strip() == existing.cr_number.strip():
+                    scores.append(1.0)
+
+            # VAT Number match
+            if fragment.vat_number and existing.vat_number:
+                if fragment.vat_number.strip() == existing.vat_number.strip():
+                    scores.append(0.95)
+
+            # DUNS Number match
+            if fragment.duns_number and existing.duns_number:
+                if fragment.duns_number.strip() == existing.duns_number.strip():
+                    scores.append(0.95)
 
             # Domain match
             if fragment.domain and existing.domain:
@@ -100,35 +137,117 @@ class IdentityResolver:
                 elif fragment.domain.split(".")[0] == existing.domain.split(".")[0]:
                     scores.append(0.6)
 
-            # Name fuzzy match
-            if fragment.name and existing.name:
-                if fragment.name == existing.name:
-                    scores.append(0.8)
-                elif self._fuzzy_match(fragment.name, existing.name):
-                    scores.append(0.5)
+            # Name matching — Arabic-aware
+            name_score = self._match_names_arabic(fragment, existing)
+            if name_score > 0:
+                scores.append(name_score)
 
             # Email domain match
             if fragment.email and existing.email:
                 if fragment.email.split("@")[-1] == existing.email.split("@")[-1]:
                     scores.append(0.7)
-
-            # Phone match
-            if fragment.phone and existing.phone:
-                if fragment.phone[-8:] == existing.phone[-8:]:
+                if fragment.email.lower() == existing.email.lower():
                     scores.append(0.85)
+
+            # Phone match (last 8 digits)
+            if fragment.phone and existing.phone:
+                fp = fragment.phone.replace(" ", "").replace("-", "")
+                ep = existing.phone.replace(" ", "").replace("-", "")
+                if fp[-8:] == ep[-8:]:
+                    scores.append(0.85)
+
+            # City match (Arabic-aware)
+            if fragment.city and existing.city:
+                fc = self._normalize_arabic_name(fragment.city)
+                ec = self._normalize_arabic_name(existing.city)
+                if fc and ec and fc == ec:
+                    scores.append(0.4)
 
         if not scores:
             return 0.0
         return sum(scores) / len(scores)
 
-    def _fuzzy_match(self, a: str, b: str) -> bool:
-        """Simple fuzzy name matching."""
-        a_clean = a.lower().replace(" co", "").replace(" ltd", "").replace(" inc", "").replace(" llc", "").replace("شركة ", "").strip()
-        b_clean = b.lower().replace(" co", "").replace(" ltd", "").replace(" inc", "").replace(" llc", "").replace("شركة ", "").strip()
-        return a_clean == b_clean or a_clean in b_clean or b_clean in a_clean
+    def _match_names_arabic(
+        self, fragment: IdentityFragment, existing: IdentityFragment
+    ) -> float:
+        """Match names with Arabic normalization and transliteration."""
+        # Arabic name matching
+        fn = fragment.name
+        en_name = existing.name
+        if fn and en_name:
+            fn_norm = self._normalize_arabic_name(fn)
+            en_norm = self._normalize_arabic_name(en_name)
+
+            if fn_norm == en_norm:
+                return 0.85
+            if fn_norm in en_norm or en_norm in fn_norm:
+                return 0.7
+            if self._fuzzy_arabic_match(fn_norm, en_norm):
+                return 0.55
+
+        # English name matching
+        fn_en = fragment.name_en
+        en_en = existing.name_en
+        if fn_en and en_en:
+            fn_clean = fn_en.lower()
+            en_clean = en_en.lower()
+            for suffix in [" co", " ltd", " inc", " llc", " corp"]:
+                fn_clean = fn_clean.replace(suffix, "")
+                en_clean = en_clean.replace(suffix, "")
+            if fn_clean == en_clean:
+                return 0.85
+            if fn_clean in en_clean or en_clean in fn_clean:
+                return 0.7
+
+        return 0.0
+
+    def _normalize_arabic_name(self, text: str) -> str:
+        """Normalize Arabic name for matching."""
+        if not text:
+            return ""
+        text = text.strip().lower()
+        for misspell, correct in _COMMON_MISSPELLINGS.items():
+            text = text.replace(misspell, correct)
+        text = text.translate(_ARABIC_NORMALIZE_TABLE)
+        # Remove company type prefixes
+        for prefix in ["شركة ", "مؤسسة ", "مصنع ", "مجموعة "]:
+            text = text.replace(prefix, "")
+        return text.strip()
+
+    def _fuzzy_arabic_match(self, a: str, b: str) -> bool:
+        """Levenshtein-based fuzzy matching."""
+        if not a or not b:
+            return False
+        if abs(len(a) - len(b)) > 3:
+            return False
+        dist = self._levenshtein(a, b)
+        max_len = max(len(a), len(b))
+        sim = 1.0 - (dist / max(max_len, 1))
+        return sim >= 0.75
+
+    @staticmethod
+    def _levenshtein(a: str, b: str) -> int:
+        if not a:
+            return len(b)
+        if not b:
+            return len(a)
+        a_len, b_len = len(a), len(b)
+        matrix = [[0] * (b_len + 1) for _ in range(a_len + 1)]
+        for i in range(a_len + 1):
+            matrix[i][0] = i
+        for j in range(b_len + 1):
+            matrix[0][j] = j
+        for i in range(1, a_len + 1):
+            for j in range(1, b_len + 1):
+                cost = 0 if a[i - 1] == b[j - 1] else 1
+                matrix[i][j] = min(
+                    matrix[i - 1][j] + 1,
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j - 1] + cost,
+                )
+        return matrix[a_len][b_len]
 
     def _infer_type(self, fragment: IdentityFragment) -> EntityType:
-        """Infer entity type from fragment data."""
         if fragment.cr_number or fragment.vat_number or fragment.duns_number:
             return EntityType.COMPANY
         if fragment.email:
@@ -136,12 +255,17 @@ class IdentityResolver:
         return EntityType.COMPANY
 
     def _calculate_confidence(self, identity: ResolvedIdentity) -> float:
-        """Calculate overall confidence score."""
         if not identity.fragments:
             return 0.0
         source_count = len(set(f.source for f in identity.fragments))
         fragment_count = len(identity.fragments)
-        return min(0.3 + (source_count * 0.15) + (fragment_count * 0.05), 0.99)
+        # Boost for CR number presence
+        has_cr = any(f.cr_number for f in identity.fragments)
+        cr_boost = 0.1 if has_cr else 0.0
+        return min(
+            0.3 + (source_count * 0.15) + (fragment_count * 0.05) + cr_boost,
+            0.99,
+        )
 
     def get_resolved(self, identity_id: str) -> Optional[ResolvedIdentity]:
         return self._resolved.get(identity_id)
@@ -163,5 +287,9 @@ class IdentityResolver:
             ),
             "total_fragments": sum(
                 len(i.fragments) for i in self._resolved.values()
+            ),
+            "identities_with_cr": sum(
+                1 for i in self._resolved.values()
+                if any(f.cr_number for f in i.fragments)
             ),
         }

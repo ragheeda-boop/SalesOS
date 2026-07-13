@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2026-07-13
+
+### Added
+
+- Engineering Dashboard confidence column and audit markers ([A]) for metrics verification
+- Architecture Decision Framework (`engineering-os/ARCHITECTURE_DECISION_FRAMEWORK.md`) — ADR process, template, review workflow
+- Incident Response Plan (`docs/INCIDENT_RESPONSE_PLAN.md`) — S1-S5 severity levels, escalation paths, communication templates, post-mortem template
+- Team hiring documents — backend, frontend, DevOps, QA job descriptions in `docs/hiring/`
+- Makefile targets: `verify-backup`, `security-audit`, `perf-test`, `e2e`, `health`, `deploy-staging`, `deploy-prod`
+
+### Changed
+
+- Technical Debt register updated: TD-001 through TD-009 all resolved; TD-002 (Kafka), TD-004 (hardcoded configs), TD-005 (auth review) remain open
+- Engineering Dashboard: all production readiness scores now include Confidence column explaining verification method
+- CHANGELOG format alignment with keepachangelog.com specification
+
+### Fixed
+
+- Dashboard metrics accuracy: added [A] markers to audited values, flagged self-reported estimates
+- Technical debt count corrected from 2 active to 3 active (TD-002, TD-004, TD-005)
+
+---
+
 ## [1.2.0] - 2026-07-12
 
 ### Added

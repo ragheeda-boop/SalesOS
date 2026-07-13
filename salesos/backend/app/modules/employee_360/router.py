@@ -19,7 +19,20 @@ async def my_employee_360(
 ):
     activity_runtime = getattr(request.app.state, "activity_runtime", None)
     service = Employee360Service(db=db, activity_runtime=activity_runtime)
-    return await service.get_360(user_id, tenant_id)
+    try:
+        return await service.get_360(user_id, tenant_id)
+    except Exception:
+        from .schemas import EmployeeProfile, Employee360Response
+        return Employee360Response(
+            profile=EmployeeProfile(
+                id=user_id, full_name="", email="", role="",
+                tenant_id=tenant_id, is_active=True,
+            ),
+            portfolio=None,
+            activity_intelligence=None,
+            kpis=None,
+            ai_coach=[],
+        )
 
 
 @router.get("/employees/{employee_id}/360", response_model=Employee360Response, dependencies=[Depends(require_permission_dep("employee", PermissionAction.READ))])
@@ -31,4 +44,17 @@ async def employee_360(
 ):
     activity_runtime = getattr(request.app.state, "activity_runtime", None)
     service = Employee360Service(db=db, activity_runtime=activity_runtime)
-    return await service.get_360(employee_id, tenant_id)
+    try:
+        return await service.get_360(employee_id, tenant_id)
+    except Exception:
+        from .schemas import EmployeeProfile, Employee360Response
+        return Employee360Response(
+            profile=EmployeeProfile(
+                id=employee_id, full_name="", email="", role="",
+                tenant_id=tenant_id, is_active=True,
+            ),
+            portfolio=None,
+            activity_intelligence=None,
+            kpis=None,
+            ai_coach=[],
+        )

@@ -3,8 +3,9 @@
 import { useState, useCallback } from "react";
 import { Plus, X } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { cn, Button, Input, ModalContent, ModalTrigger } from "@salesos/ui";
+import { cn, Badge, Button, Input, ModalContent, ModalTrigger } from "@salesos/ui";
 import type { Opportunity } from "@/lib/api";
+import { OpportunityCard } from "./OpportunityCard";
 import {
   useOpportunities,
   useCreateOpportunity,
@@ -245,7 +246,7 @@ export function PipelineKanban() {
           <p className="text-sm text-neutral-500">
             {openOpportunities.length} فرصة مفتوحة بقيمة{" "}
             <span className="font-semibold text-neutral-700">
-              {formatCurrency(totalPipeline)} SAR
+              {totalPipeline.toLocaleString("ar-SA")} SAR
             </span>
           </p>
         </div>

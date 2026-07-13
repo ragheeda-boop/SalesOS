@@ -1,4 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react'
+
+beforeAll(() => {
+  Element.prototype.scrollIntoView = jest.fn()
+})
+
 import { CommandBar } from '../command-bar'
 
 const groups = [

@@ -40,14 +40,26 @@ async def notifications_ws(websocket: WebSocket):
         return
 
     await websocket.accept()
-    await _ws_manager.connect(websocket, tenant_id, user_id)
+
+    connected = await _ws_manager.connect(websocket, tenant_id, user_id)
+    if not connected:
+        await websocket.send_text(json.dumps({
+            "type": "error",
+            "code": "TENANT_LIMIT",
+            "message": "Maximum connections per tenant reached",
+        }))
+        await websocket.close(code=4002)
+        return
 
     try:
         while True:
             data = await websocket.receive_text()
             try:
                 msg = json.loads(data)
-                if msg.get("type") == "ping":
+                msg_type = msg.get("type")
+                if msg_type == "pong":
+                    await _ws_manager.handle_pong(websocket)
+                elif msg_type == "ping":
                     await websocket.send_text(json.dumps({"type": "pong"}))
             except (json.JSONDecodeError, KeyError):
                 pass
@@ -111,6 +123,12 @@ async def unread_count(
 ):
     count = await _repo.count_unread(tenant_id, user_id)
     return {"unread_count": count}
+
+
+@router.get("/notifications/ws/metrics")
+async def websocket_metrics():
+    """Return WebSocket connection metrics for monitoring."""
+    return await _ws_manager.get_metrics()
 
 
 async def create_and_notify(

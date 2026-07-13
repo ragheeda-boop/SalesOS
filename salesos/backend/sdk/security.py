@@ -1,11 +1,13 @@
 """Security utilities: hashing, encryption, token management."""
 
+import base64
 import hashlib
 import hmac
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+from cryptography.fernet import Fernet
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
@@ -71,3 +73,41 @@ def mask_pii(value: str, visible_chars: int = 3) -> str:
 def generate_csrf_token() -> str:
     """Generate a cryptographically secure CSRF token."""
     return secrets.token_urlsafe(32)
+
+
+def _derive_fernet_key(secret: str) -> bytes:
+    """Derive a 32-byte Fernet key from the application secret via SHA-256."""
+    digest = hashlib.sha256(secret.encode()).digest()
+    return base64.urlsafe_b64encode(digest)
+
+
+_fernet: Fernet | None = None
+
+
+def _get_fernet(secret: str) -> Fernet:
+    global _fernet
+    if _fernet is None:
+        _fernet = Fernet(_derive_fernet_key(secret))
+    return _fernet
+
+
+def encrypt_token(plaintext: str, secret: str) -> str:
+    """Encrypt a token string using Fernet (AES-128-CBC + HMAC-SHA256).
+
+    Use for protecting SSO access/refresh tokens stored in DB.
+    """
+    if not plaintext:
+        return plaintext
+    f = _get_fernet(secret)
+    return f.encrypt(plaintext.encode()).decode()
+
+
+def decrypt_token(ciphertext: str, secret: str) -> str:
+    """Decrypt a Fernet-encrypted token string.
+
+    Returns the original plaintext. Raises InvalidToken on tampering.
+    """
+    if not ciphertext:
+        return ciphertext
+    f = _get_fernet(secret)
+    return f.decrypt(ciphertext.encode()).decode()

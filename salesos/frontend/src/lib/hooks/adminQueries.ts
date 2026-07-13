@@ -12,6 +12,8 @@ import {
   listAdminJobs, getAdminJob, retryAdminJob,
   listAdminAICosts, getAdminAICostSummary, getAdminAIUsage,
   getAdminDetailedHealth, getAdminHealthHistory,
+  listAdminAuditLogs, listAdminRoles, listAdminPermissions,
+  createAdminRole, updateAdminRole, deleteAdminRole,
 } from "@/lib/api"
 import { adminKeys } from "@/lib/queryKeys"
 import { useTenant } from "./useTenant"
@@ -343,5 +345,48 @@ export function useRetryAdminJob() {
       qc.invalidateQueries({ queryKey: adminKeys.jobs({}) })
       qc.invalidateQueries({ queryKey: adminKeys.jobDetail("") })
     },
+  })
+}
+
+export function useAdminAuditLogs(params?: Record<string, string | number | undefined>) {
+  const { tenantId } = useTenant()
+  return useQuery({
+    queryKey: adminKeys.auditLogs(params),
+    queryFn: () => listAdminAuditLogs({ ...params, tenant_id: tenantId } as Record<string, string | number | undefined>),
+    enabled: !!tenantId,
+  })
+}
+
+export function useAdminRoles() {
+  const { tenantId } = useTenant()
+  return useQuery({
+    queryKey: adminKeys.roles(),
+    queryFn: () => listAdminRoles(),
+    enabled: !!tenantId,
+  })
+}
+
+export function useAdminPermissions() {
+  const { tenantId } = useTenant()
+  return useQuery({
+    queryKey: adminKeys.permissions(),
+    queryFn: () => listAdminPermissions(),
+    enabled: !!tenantId,
+  })
+}
+
+export function useCreateAdminRole() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: { name: string; description?: string; permissions: string[] }) => createAdminRole(data),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: adminKeys.roles() }) },
+  })
+}
+
+export function useDeleteAdminRole() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => deleteAdminRole(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: adminKeys.roles() }) },
   })
 }

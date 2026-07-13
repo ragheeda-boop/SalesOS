@@ -12,7 +12,7 @@ import type {
   Score,
   EvidenceItem,
   Feedback,
-} from "@salesos/platform/decision/contracts";
+} from "@salesos/decision-platform";
 
 // ─── Types ────────────────────────────────────────────────────
 export interface DecisionEvaluateRequest {

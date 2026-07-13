@@ -1,6 +1,6 @@
 import type { DashboardWidget } from "@/application/dashboard/widget.contract"
 
-export type WidgetId = 'missionCenter' | 'decisionQueue' | 'intelligenceFeed' | 'aiBrief' | 'marketPulse' | 'recentActivity'
+export type WidgetId = 'missionCenter' | 'decisionQueue' | 'intelligenceFeed' | 'aiBrief' | 'marketPulse' | 'recentActivity' | 'pipeline' | 'companyHealth'
 
 export interface WidgetConfig {
   id: WidgetId
@@ -52,6 +52,20 @@ export const WIDGET_CONFIG: Record<WidgetId, WidgetConfig> = {
     minHeight: '300px',
     refreshIntervalMs: 30_000,
     staleThresholdMs: 60_000,
+  },
+  pipeline: {
+    id: 'pipeline',
+    gridColumn: 'span 4',
+    minHeight: '350px',
+    refreshIntervalMs: 60_000,
+    staleThresholdMs: 120_000,
+  },
+  companyHealth: {
+    id: 'companyHealth',
+    gridColumn: 'span 3',
+    minHeight: '300px',
+    refreshIntervalMs: 60_000,
+    staleThresholdMs: 120_000,
   },
 }
 

@@ -1,5 +1,8 @@
 """Commercial Platform API — all business domain endpoints."""
 
+import logging
+import os
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -7,6 +10,7 @@ from app.dependencies import get_current_tenant_id, get_db_session, require_perm
 from sdk.permissions import PermissionAction
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 # ── PostgreSQL-backed service factories ──
@@ -269,7 +273,19 @@ async def sign_contract(contract_id: str, tenant_id: str = Depends(get_current_t
 @router.post("/forecast/run", tags=["Forecast"])
 async def run_forecast(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "forecast"))):
     from domains.revenue.forecast.engine import CommercialInput
+    import os
+
     svc = _get_forecast(db)
+
+    # TODO(D-005): Replace hardcoded demo input with real pipeline data.
+    # The demo input below uses a static opportunity_id="demo-1". In production,
+    # this must be replaced by reading actual commercial_opportunities for the
+    # tenant and feeding them as CommercialInput instances.
+    # Tracked in: memory/technical-debt.md (TD-005)
+    is_demo = os.getenv("DEMO_MODE", "false").lower() == "true"
+    if is_demo:
+        logger.warning("Forecast running with DEMO MODE data for tenant=%s", tenant_id)
+
     inputs = [CommercialInput(opportunity_id="demo-1", opportunity_value=100000, opportunity_probability=0.5, historical_win_rate=0.7)]
     snap = await svc.create_forecast(tenant_id, inputs)
     return {
@@ -308,6 +324,16 @@ async def generate_analytics(tenant_id: str = Depends(get_current_tenant_id), db
     from domains.revenue.analytics.service import AnalyticsInput
     svc = _get_analytics(db)
     now = datetime.now(timezone.utc)
+
+    # TODO(D-005): Replace hardcoded demo analytics input with real data pipeline.
+    # The AnalyticsInput below uses static values (500000, 650000, 400000).
+    # In production, this must be computed from actual booked/expected revenue
+    # data in the database (commercial_opportunities, contracts, etc.).
+    # Tracked in: memory/technical-debt.md (TD-005)
+    is_demo = os.getenv("DEMO_MODE", "false").lower() == "true"
+    if is_demo:
+        logger.warning("Analytics generating with DEMO MODE data for tenant=%s", tenant_id)
+
     inputs = AnalyticsInput(total_booked_revenue=500000, total_expected_revenue=650000, previous_booked_revenue=400000)
     snap = await svc.generate_snapshot(tenant_id, inputs, now - timedelta(days=30), now)
     return {"snapshot_id": snap.id, "kpi_count": snap.total_kpis, "values": [{"kpi": v.kpi_id, "value": v.value, "change": v.change_percent} for v in snap.values]}
@@ -421,9 +447,14 @@ async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSe
         result["pipelines"] = []
 
     # Analytics KPIs
+    # TODO(D-005): Replace hardcoded demo analytics input with real pipeline data.
+    # The AnalyticsInput uses static values (500000, 650000, 400000, 0.82).
+    # Production must compute these from actual revenue/opportunity data.
+    # See also: POST /analytics/generate endpoint.
     try:
+        from domains.revenue.analytics.service import AnalyticsInput
         asvc = _get_analytics(db)
-        await asvc.generate_snapshot(tenant_id, __import__('domains.revenue.analytics.service', fromlist=['AnalyticsInput']).AnalyticsInput(
+        await asvc.generate_snapshot(tenant_id, AnalyticsInput(
             total_booked_revenue=500000, total_expected_revenue=650000,
             previous_booked_revenue=400000, forecast_accuracy=0.82,
         ), datetime.now(timezone.utc).replace(day=1), datetime.now(timezone.utc))
@@ -447,7 +478,8 @@ async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSe
                 DecisionFactor(source_layer="fact", source_domain="pipeline", key="stage_aging",
                                value=7, severity="info", label="Opportunity in stage"),
             ])
-            eng = __import__('domains.decision.recommendation.engine', fromlist=['RecommendationEngine']).RecommendationEngine()
+            from domains.decision.recommendation.engine import RecommendationEngine
+            eng = RecommendationEngine()
             rec = await eng.evaluate(ctx)
             if rec:
                 recs.append({"id": rec.id, "title": rec.title, "confidence": rec.confidence, "reasoning": rec.reasoning, "target_id": opp.id})
@@ -457,6 +489,10 @@ async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSe
         result["recommendations"] = []
 
     # Today overview
+    # TODO(D-005): Replace hardcoded "Today" summary values (12.4M, 89%, "Healthy")
+    # with real-time computed metrics from the data pipeline.
+    # Production should aggregate from: commercial_opportunities, company_signals,
+    # forecast snapshots, and analytics service.
     today_str = datetime.now(timezone.utc).strftime("%A, %Y-%m-%d")
     result["today"] = {"date": today_str, "revenue_today": "12.4M SAR", "forecast_accuracy": "89%", "pipeline_health": "Healthy", "companies_at_risk": result.get("recommendations_count", 0)}
 

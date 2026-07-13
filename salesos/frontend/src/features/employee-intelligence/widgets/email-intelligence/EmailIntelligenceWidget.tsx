@@ -47,13 +47,13 @@ export function EmailIntelligenceView({ data }: { data: EmailIntelligence }) {
             <Users className="h-3 w-3" /> أهم جهات الاتصال
           </p>
           <div className="space-y-1.5">
-            {data.top_contacts.slice(0, 4).map((contact: Record<string, string | number | undefined>, i: number) => (
+            {data.top_contacts.slice(0, 4).map((contact: Record<string, unknown>, i: number) => (
               <div key={i} className="flex items-center gap-2 text-xs py-1">
                 <Mail className="h-3 w-3 text-[var(--text-muted)] shrink-0" />
-                <span className="text-[var(--text-secondary)]">{contact.name || contact.email || 'جهة اتصال'}</span>
-                {contact.count && (
-                  <span className="mr-auto text-[var(--text-muted)]">{contact.count} رسالة</span>
-                )}
+                <span className="text-[var(--text-secondary)]">{(contact.name as string) || (contact.email as string) || 'جهة اتصال'}</span>
+                {contact.count ? (
+                  <span className="mr-auto text-[var(--text-muted)]">{String(contact.count)} رسالة</span>
+                ) : null}
               </div>
             ))}
           </div>
@@ -64,13 +64,13 @@ export function EmailIntelligenceView({ data }: { data: EmailIntelligence }) {
         <div>
           <p className="text-xs font-medium text-[var(--text-muted)] mb-2">أهم الشركات</p>
           <div className="space-y-1.5">
-            {data.top_companies.slice(0, 3).map((company: Record<string, string | number | undefined>, i: number) => (
+            {data.top_companies.slice(0, 3).map((company: Record<string, unknown>, i: number) => (
               <div key={i} className="flex items-center gap-2 text-xs py-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-[var(--muhide-orange)] shrink-0" />
-                <span className="text-[var(--text-secondary)]">{company.name || 'شركة'}</span>
-                {company.count && (
-                  <span className="mr-auto text-[var(--text-muted)]">{company.count}</span>
-                )}
+                <span className="text-[var(--text-secondary)]">{(company.name as string) || 'شركة'}</span>
+                {company.count ? (
+                  <span className="mr-auto text-[var(--text-muted)]">{String(company.count)}</span>
+                ) : null}
               </div>
             ))}
           </div>

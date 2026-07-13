@@ -3,6 +3,9 @@ export interface Score {
   value: number
   label: string
   weight: number
+  type?: string
+  metadata?: Record<string, unknown>
+  factors?: Array<{ name: string; value: number; weight: number; description: string }>
 }
 
 export type ScoreType = 'buying_intent' | 'engagement' | 'fit_score' | 'custom'
@@ -13,21 +16,58 @@ export interface DecisionContext {
   opportunityId?: string
   entityId?: string
   entityType: string
+  companyId?: string
+  signalId?: string
+  metadata?: Record<string, unknown>
+}
+
+export interface Recommendation {
+  id?: string
+  decisionId?: string
+  actionLabel?: string
+  action?: string
+  reason?: string
+  confidence?: number
+  priority?: 'high' | 'medium' | 'low'
+  entityType?: string
+  entityId?: string
+  scores?: Score[]
+  explainability?: Explainability
+  risks?: Array<{ description: string; level?: string }>
+  alternatives?: Array<{ actionLabel?: string; reason?: string; confidence?: number }>
+  createdAt?: string
+}
+
+export interface EvidenceItem {
+  id?: string
+  decisionId?: string
+  type?: string
+  source?: string
+  description?: string
+  data?: Record<string, unknown>
+  confidence?: number
+  timestamp?: string
+  [key: string]: unknown
 }
 
 export interface DecisionResult {
   id: string
-  recommendation: string
+  decisionId?: string
+  recommendation: Recommendation
   confidence: number
   action: string
   reasoning: string
   scores: Score[]
   explainability: Explainability
+  evidence: EvidenceItem[]
 }
 
 export interface Explainability {
   factors: Array<{ name: string; value: number; description: string; impact: 'high' | 'medium' | 'low' }>
   summary: string
+  why?: string
+  expectedImpact?: string
+  expectedTime?: string
 }
 
 export interface DecisionHistoryItem {
@@ -36,6 +76,7 @@ export interface DecisionHistoryItem {
   action: string
   outcome: string
   timestamp: string
+  context?: Record<string, unknown>
 }
 
 export interface Feedback {
@@ -44,6 +85,7 @@ export interface Feedback {
   outcome: 'accepted' | 'rejected' | 'ignored'
   revenueImpact?: number
   createdAt: string
+  tenantId?: string
 }
 
 export const decisionEngine = {

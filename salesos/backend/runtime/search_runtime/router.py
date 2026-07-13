@@ -31,6 +31,8 @@ async def search(
     industry: Optional[str] = None,
     status: Optional[str] = None,
 ):
+    import hashlib, json as _json
+
     sr = getattr(request.app.state, "search_runtime", None)
     if not sr:
         raise HTTPException(status_code=503, detail="Search Runtime not initialized")
@@ -45,6 +47,14 @@ async def search(
     if status:
         filters["status"] = status
 
+    cache = getattr(request.app.state, "cache", None)
+    if cache:
+        cache_payload = _json.dumps({"q": q, "strategy": strategy, "limit": limit, "offset": offset, "filters": filters, "facets": include_facets}, sort_keys=True)
+        ck = f"search:{hashlib.md5(cache_payload.encode()).hexdigest()}"
+        cached = await cache.get(ck)
+        if cached:
+            return cached
+
     result = await sr.search(
         query=q,
         tenant_id=tenant_id,
@@ -54,7 +64,7 @@ async def search(
         offset=offset,
         include_facets=include_facets,
     )
-    return {
+    response = {
         "query": q,
         "strategy": strategy,
         "total": result.total,
@@ -63,6 +73,11 @@ async def search(
         "facets": result.facets,
         "suggestions": result.suggestions,
     }
+
+    if cache:
+        await cache.set(ck, response, ttl_seconds=30)
+
+    return response
 
 
 @router.get("/search/suggest")

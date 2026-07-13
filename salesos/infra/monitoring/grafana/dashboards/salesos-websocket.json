@@ -1,0 +1,208 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "title": "SalesOS WebSocket Monitoring",
+  "uid": "salesos-ws-monitoring",
+  "version": 1,
+  "timezone": "browser",
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 1,
+  "tags": ["salesos", "websocket", "realtime"],
+  "description": "WebSocket connection health, heartbeat, and message throughput",
+  "panels": [
+    {
+      "title": "Active Connections",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "salesos_websocket_active",
+          "legendFormat": "active"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 80 },
+              { "color": "red", "value": 100 }
+            ]
+          },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20 }
+        }
+      },
+      "description": "Currently active WebSocket connections (limit: 100/tenant)"
+    },
+    {
+      "title": "Connection Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(salesos_websocket_connections_total[5m])",
+          "legendFormat": "opens/s"
+        },
+        {
+          "expr": "rate(salesos_websocket_disconnections_total[5m])",
+          "legendFormat": "closes/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cps",
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+        }
+      },
+      "description": "WebSocket connection and disconnection rates"
+    },
+    {
+      "title": "Connections Close to Limit",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "salesos_websocket_active",
+          "legendFormat": "connections"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "unit": "short",
+          "color": {
+            "mode": "thresholds",
+            "thresholds": {
+              "steps": [
+                { "color": "green", "value": 0 },
+                { "color": "orange", "value": 80 },
+                { "color": "red", "value": 100 }
+              ]
+            }
+          }
+        }
+      },
+      "description": "Current connections vs tenant limit (100)"
+    },
+    {
+      "title": "Total Connections Opened",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 8 },
+      "targets": [
+        {
+          "expr": "salesos_websocket_connections_total",
+          "legendFormat": "total"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "blue" }] }
+        }
+      }
+    },
+    {
+      "title": "Total Disconnections",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "salesos_websocket_disconnections_total",
+          "legendFormat": "total"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "orange" }] }
+        }
+      }
+    },
+    {
+      "title": "DB Pool — Checked Out vs Available",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        {
+          "expr": "salesos_db_pool_checkedout",
+          "legendFormat": "checked_out"
+        },
+        {
+          "expr": "salesos_db_pool_checkedin",
+          "legendFormat": "checked_in"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 15 }
+        }
+      }
+    },
+    {
+      "title": "DB Pool Utilization",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 12 },
+      "targets": [
+        {
+          "expr": "salesos_db_pool_checkedout / (salesos_db_pool_checkedout + salesos_db_pool_checkedin + 0.001) * 100",
+          "legendFormat": "utilization"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "thresholds",
+            "thresholds": {
+              "steps": [
+                { "color": "green", "value": 0 },
+                { "color": "orange", "value": 70 },
+                { "color": "red", "value": 90 }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "Cache Hit Ratio",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 12 },
+      "targets": [
+        {
+          "expr": "salesos_cache_hit_ratio * 100",
+          "legendFormat": "hit_ratio_%"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 50 },
+              { "color": "green", "value": 80 }
+            ]
+          },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 15 }
+        }
+      }
+    }
+  ],
+  "schemaVersion": 35,
+  "refresh": "15s"
+}

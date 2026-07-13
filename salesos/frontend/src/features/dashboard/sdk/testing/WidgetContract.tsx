@@ -34,7 +34,7 @@ export function describeWidgetContract<T>(cfg: ContractTestConfig<T>) {
 
       it('renders children in ready state', () => {
         renderWidget(cfg.config, { useData: () => mock.ready() })
-        expect(screen.getByRole('region')).toBeInTheDocument()
+        expect(screen.getAllByRole('region').length).toBeGreaterThanOrEqual(1)
       })
 
       it('renders with fallback when permission denied', () => {
@@ -63,7 +63,7 @@ export function describeWidgetContract<T>(cfg: ContractTestConfig<T>) {
         renderWidget(cfg.config, { useData: () => data })
         const status = data.status
         if (status === 'ready') {
-          expect(screen.getByRole('region')).toBeInTheDocument()
+          expect(screen.getAllByRole('region').length).toBeGreaterThanOrEqual(1)
         }
         if (status === 'loading') {
           expect(screen.getByRole('status')).toBeInTheDocument()
@@ -75,7 +75,7 @@ export function describeWidgetContract<T>(cfg: ContractTestConfig<T>) {
 
       it('shows content under degraded overlay when degraded with data', () => {
         renderWidget(cfg.config, { useData: () => mock.degraded() })
-        expect(screen.getByRole('region')).toBeInTheDocument()
+        expect(screen.getAllByRole('region').length).toBeGreaterThanOrEqual(1)
       })
 
       it('shows loading when degraded without data', () => {

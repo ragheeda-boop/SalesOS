@@ -5,6 +5,7 @@ import { createWidget } from '@salesos/workspace'
 import { useOpportunities } from '@/lib/hooks/opportunityQueries'
 import { useTasks } from '@/lib/hooks/taskQueries'
 import type { RevenueTimelineEvent } from './types'
+import { RevenueTimelineView } from './RevenueTimelineView'
 
 export const RevenueTimelineWidget = createWidget({
   metadata: { id: 'revenueTimeline', title: 'الجدول الزمني للإيرادات', category: 'intelligence', priority: 'medium', permissions: ['revenue:timeline:read'], featureFlag: { enabled: true }, minHeight: '400px' },

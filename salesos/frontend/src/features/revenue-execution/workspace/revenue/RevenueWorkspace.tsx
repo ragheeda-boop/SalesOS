@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 import { cn } from "@salesos/ui"
-import { NBAWidget } from "../widgets/nba-widget/NBAWidget"
-import { PipelineWorkspace } from "./pipeline/PipelineWorkspace"
-import { MeetingIntelligenceWidget } from "../widgets/meeting-intelligence/MeetingIntelligenceWidget"
-import { EmailIntelligenceWidget } from "../widgets/email-intelligence/EmailIntelligenceWidget"
+import { NBAWidget } from "../../widgets/nba-widget/NBAWidget"
+import { PipelineWorkspace } from "../pipeline/PipelineWorkspace"
+import { MeetingIntelligenceWidget } from "../../widgets/meeting-intelligence/MeetingIntelligenceWidget"
+import { EmailIntelligenceWidget } from "../../widgets/email-intelligence/EmailIntelligenceWidget"
 
 interface DashboardData {
   pipeline_summary: {

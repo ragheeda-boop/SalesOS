@@ -10,6 +10,7 @@ export type CompanyWidgetId =
   | 'buyingJourney' | 'goldenRecord'
 
 export interface CompanyWidgetMap {
+  [key: string]: { data: unknown; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
   companyDNA: { data: CompanyDNA | null; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
   aiRecommendation: { data: AIRecommendation | null; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }
   decisionMakers: { data: DecisionMaker[] | null; status: WidgetStatus; lastUpdated: string | null; error: Error | null; refetch: () => void }

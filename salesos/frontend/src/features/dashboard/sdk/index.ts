@@ -1,5 +1,6 @@
 export { createWidget } from './create-widget'
 export { createDashboardWidget } from './create-dashboard-widget'
+export { createDecisionEnabledWidget } from './create-decision-widget'
 export { useWidgetLifecycle } from './widget-lifecycle'
 export { widgetTelemetry } from './widget-telemetry'
 export { setPermissionChecker, checkPermissions } from './widget-permissions'
@@ -15,4 +16,11 @@ export type {
   WidgetData,
   WidgetRenderContext,
   WidgetConfig,
+  DecisionContextType,
+  DecisionFactor,
+  DecisionContextData,
+  NBAFeedItem,
+  NBAFeedResponse,
+  DecisionWidgetRenderContext,
+  DecisionWidgetConfig,
 } from './types'

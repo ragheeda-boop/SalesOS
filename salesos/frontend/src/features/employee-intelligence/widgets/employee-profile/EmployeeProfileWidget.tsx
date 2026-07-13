@@ -50,13 +50,13 @@ export function EmployeeProfileView({ profile }: { profile: EmployeeProfile }) {
             <Users className="h-3 w-3" /> فريق العمل ({profile.team.length})
           </p>
           <div className="space-y-1.5">
-            {profile.team.slice(0, 5).map((member: Record<string, string | undefined>) => (
-              <div key={member.id} className="flex items-center gap-2 text-xs">
+            {profile.team.slice(0, 5).map((member: Record<string, unknown>) => (
+              <div key={member.id as string} className="flex items-center gap-2 text-xs">
                 <div className="w-5 h-5 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center text-[9px] font-medium text-[var(--text-muted)]">
-                  {member.full_name?.charAt(0) || '?'}
+                  {(member.full_name as string)?.charAt(0) || '?'}
                 </div>
-                <span className="text-[var(--text-secondary)]">{member.full_name}</span>
-                <span className="text-[var(--text-muted)] mr-auto">{member.role}</span>
+                <span className="text-[var(--text-secondary)]">{member.full_name as string}</span>
+                <span className="text-[var(--text-muted)] mr-auto">{member.role as string}</span>
               </div>
             ))}
           </div>

@@ -35,7 +35,7 @@ class ForgotPasswordRequest(BaseModel):
 
 class ResetPasswordRequest(BaseModel):
     token: str
-    new_password: str = Field(..., min_length=8, max_length=128)
+    new_password: str = Field(..., min_length=12, max_length=128)
 
 router = APIRouter()
 
@@ -428,5 +428,31 @@ async def reset_password(
     body: ResetPasswordRequest,
     service: IdentityService = Depends(get_service),
 ):
+    from .schemas import validate_password_strength
+    validate_password_strength(body.new_password)
     await service.reset_password(body.token, body.new_password)
     return {"message": "Password reset successfully"}
+
+
+@router.get("/.well-known/jwks.json")
+async def jwks():
+    """JWKS endpoint for JWT key discovery.
+
+    Currently uses HS256 (symmetric). The kid field enables future
+    key rotation. Migration path to RS256:
+      1. Generate RSA key pair, add to config
+      2. Add 'v2-rs256' kid entry here alongside 'v1-hs256'
+      3. Rotate signer to use new kid
+      4. Remove old kid after all tokens expire
+    """
+    return {
+        "keys": [
+            {
+                "kty": "oct",
+                "kid": "v1-hs256",
+                "alg": "HS256",
+                "use": "sig",
+                "k": ""  # HS256 key not exposed (symmetric)
+            }
+        ]
+    }

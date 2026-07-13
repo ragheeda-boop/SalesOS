@@ -1,14 +1,18 @@
+import asyncio
 import os
 import time
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import Depends, FastAPI, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
-from app.common.middleware import RequestIDMiddleware, RequestLoggingMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
+from app.common.middleware import CsrfEnforcementMiddleware, RequestIDMiddleware, RequestLoggingMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
 from app.common.metrics import metrics
+from app.metrics.collector import collector
 from app.routers.metrics import MetricsMiddleware
 from app.config import settings
 from app.database import get_db
@@ -79,6 +83,10 @@ async def lifespan(app: FastAPI):
         app.state.cache = cache_service
         if app.state.logger:
             app.state.logger.info(f"Cache service {'connected' if cache_ok else 'unavailable'}")
+
+        # ── Scraper API Key Validation ──
+        from runtime.data_fabric_runtime.scrapers.scraper_config import validate_scraper_keys_startup
+        validate_scraper_keys_startup()
 
         # ── Event Runtime ──
         if settings.event_bus_type == "kafka":
@@ -154,7 +162,7 @@ async def lifespan(app: FastAPI):
 
         # Feature Store Domain Service (for REST API)
         from domains.feature_store import FeatureStoreService as FeatureStoreDomainService
-        from domains.feature_store.repository import PostgresFeatureStoreRepository
+        from domains.feature_store.postgres_repo import PostgresFeatureStoreRepository
         from app.database import async_session
         fs_repo = PostgresFeatureStoreRepository(async_session)
         fs_domain_service = FeatureStoreDomainService(repository=fs_repo)
@@ -213,6 +221,11 @@ async def lifespan(app: FastAPI):
         app.state.policy_engine = policy_engine
         app.state.recommendation_engine = recommendation_engine
         app.state.decision_engine = decision_engine
+
+        # ── Decision Widget Registry ──
+        from runtime.decision_runtime.registry import DecisionWidgetRegistry, register_default_widgets
+        DecisionWidgetRegistry.reset()
+        register_default_widgets()
 
         # Decision Feedback Loop
         feedback_loop = DecisionFeedbackLoop(
@@ -295,7 +308,15 @@ async def lifespan(app: FastAPI):
         register_hook_points()
         app.state.plugin_sandbox = plugin_sandbox
 
+        # ── WebSocket Heartbeat Task ──
+        from app.routers.notifications import _ws_manager
+        heartbeat_task = asyncio.create_task(_ws_manager.heartbeat_loop(interval=30.0))
+        cleanup_task = asyncio.create_task(_ws_manager.cleanup_task(interval=30.0))
+
         yield
+
+        heartbeat_task.cancel()
+        cleanup_task.cancel()
         kg = getattr(app.state, "kg_engine", None)
         if kg is not None:
             await kg.close()
@@ -323,9 +344,11 @@ app.add_middleware(
     allow_methods=[m.strip() for m in settings.cors_allow_methods.split(",") if m.strip()],
     allow_headers=[h.strip() for h in settings.cors_allow_headers.split(",") if h.strip()],
 )
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(CsrfEnforcementMiddleware)
 app.add_middleware(MetricsMiddleware)
 
 # Redis-backed rate limiter (falls back to in-memory if Redis unavailable)
@@ -368,6 +391,82 @@ async def ping():
 async def health_live():
     """Kubernetes liveness probe — simple process health."""
     return {"status": "alive", "uptime_seconds": time.time() - _start_time}
+
+@app.get("/health/detailed")
+async def health_detailed(request: Request):
+    """Aggregated detailed health — all subsystems, pool stats, WS metrics, SLA status."""
+    from sqlalchemy import text
+    from app.database import async_session, engine
+    from app.metrics.collector import collector as app_collector
+    from app.metrics.sla_monitor import sla_monitor
+
+    checks: dict[str, Any] = {}
+    overall = "healthy"
+
+    # ── Database ──
+    try:
+        async with async_session() as session:
+            await session.execute(text("SELECT 1"))
+        pool = engine.pool
+        pool_info = {
+            "status": "connected",
+            "pool_size": pool.size(),
+            "checked_in": pool.checkedin(),
+            "checked_out": pool.checkedout(),
+            "overflow": pool.overflow(),
+            "total_open": pool.open_connections(),
+        }
+        checks["database"] = pool_info
+        app_collector.track_db_pool(pool.checkedout(), pool.checkedin(), pool.overflow(), pool.open_connections())
+    except Exception as e:
+        checks["database"] = {"status": "error", "message": str(e)}
+        overall = "degraded"
+
+    # ── Cache / Redis ──
+    cache = getattr(request.app.state, "cache", None)
+    if cache is not None:
+        cache_ok = await cache.health()
+        checks["cache"] = {"status": "connected" if cache_ok else "unavailable"}
+        if not cache_ok:
+            overall = "degraded"
+    else:
+        checks["cache"] = {"status": "not_configured"}
+
+    # ── Neo4j / KG ──
+    kg = getattr(request.app.state, "kg_engine", None)
+    checks["graph"] = {
+        "status": "connected" if kg is not None and kg.metrics.neo4j_available else "not_configured",
+    }
+
+    # ── Event bus ──
+    from sdk.events.kafka_bus import KafkaEventBus
+    event_runtime = getattr(request.app.state, "event_runtime", None)
+    if isinstance(event_runtime, KafkaEventBus):
+        kafka_ok = event_runtime.is_kafka_available
+        checks["kafka"] = {"status": "connected" if kafka_ok else "fallback_in_memory"}
+    else:
+        checks["kafka"] = {"status": "active" if event_runtime else "not_configured"}
+
+    # ── WebSocket ──
+    try:
+        from app.routers.notifications import _ws_manager
+        ws_metrics = await _ws_manager.get_metrics()
+        checks["websocket"] = ws_metrics
+    except Exception:
+        checks["websocket"] = {"status": "unknown"}
+
+    # ── SLA status ──
+    try:
+        sla_report = sla_monitor.get_report()
+        checks["sla"] = sla_report
+    except Exception:
+        checks["sla"] = {"status": "unknown"}
+
+    # ── Uptime ──
+    checks["uptime_seconds"] = round(time.time() - _start_time, 1)
+    checks["version"] = settings.service_version
+
+    return {"status": overall, "checks": checks}
 
 @app.get("/health/ready")
 async def health_ready(request: Request):
@@ -425,6 +524,14 @@ async def health_ready(request: Request):
         if m.cls is not None
     )
     checks["rate_limiter"] = "active" if rate_limiter else "not_configured"
+
+    # Scrapers
+    try:
+        from runtime.data_fabric_runtime.scrapers.scraper_config import get_scraper_health
+        scraper_health = get_scraper_health()
+        checks["scrapers"] = scraper_health
+    except Exception as e:
+        checks["scrapers"] = f"error: {e}"
 
     all_ready = checks.get("database") == "connected" and checks.get("cache") != "unavailable"
     return {
@@ -501,6 +608,14 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
             checks["kafka"] = "not_attempted"
     else:
         checks["kafka"] = "active" if kafka_bus else "not_configured"
+
+    # Scraper API keys
+    try:
+        from runtime.data_fabric_runtime.scrapers.scraper_config import get_scraper_health
+        scraper_health = get_scraper_health()
+        checks["scrapers"] = scraper_health
+    except Exception as e:
+        checks["scrapers"] = f"error: {e}"
 
     # Uptime
     checks["uptime_seconds"] = time.time() - _start_time
@@ -650,6 +765,10 @@ def register_routers():
     from app.routers.analytics import router as analytics_router
     app.include_router(analytics_router, prefix="/api/v1", tags=["Analytics"], dependencies=_auth)
 
+    # Wave 3 — AI Prompt Registry & Evaluation
+    from app.routers.ai import router as ai_router
+    app.include_router(ai_router, prefix="/api/v1", tags=["AI"], dependencies=_auth)
+
     # Customer Telemetry
     from app.modules.telemetry.router import router as telemetry_router
     app.include_router(telemetry_router, tags=["Telemetry"], dependencies=_auth)
@@ -657,6 +776,10 @@ def register_routers():
     # Notifications — WebSocket (no auth dep, handled inside WS) + REST
     from app.routers.notifications import router as notifications_router
     app.include_router(notifications_router, prefix="/api/v1", tags=["Notifications"])
+
+    # Enrichment API (async via Celery)
+    from app.routers.enrichment import router as enrichment_router
+    app.include_router(enrichment_router, prefix="/api/v1", tags=["Enrichment"], dependencies=_auth)
 
 
 register_routers()

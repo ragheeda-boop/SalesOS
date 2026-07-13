@@ -1,0 +1,95 @@
+# ──────────────────────────────────────────────────────────────
+# SalesOS Frontend — Hardened Multi-Stage Production Dockerfile
+# ──────────────────────────────────────────────────────────────
+# Stage 1: Install dependencies (cached layer)
+# Stage 2: Build Next.js standalone output
+# Stage 3: Minimal runtime (non-root, static assets optimized)
+# ──────────────────────────────────────────────────────────────
+
+# ════════════════════════════════════════════════════════════
+# Stage 1: deps — install dependencies (cached)
+# ════════════════════════════════════════════════════════════
+FROM node:22-alpine AS deps
+
+WORKDIR /app
+
+# Install libc6-compat for Alpine compatibility
+RUN apk add --no-cache libc6-compat
+
+# Copy package files first (layer cache optimization)
+COPY package.json package-lock.json* ./
+COPY packages packages/
+
+# Install all dependencies (including dev for build)
+RUN npm install --no-audit --no-fund --workspaces --include-workspace-root
+
+# ════════════════════════════════════════════════════════════
+# Stage 2: builder — compile Next.js
+# ════════════════════════════════════════════════════════════
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+RUN apk add --no-cache libc6-compat
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages ./packages
+
+# Copy source code
+COPY . .
+
+# Build Next.js with standalone output
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    NODE_ENV=production
+
+RUN npm run build 2>/dev/null || npx next build
+
+# ════════════════════════════════════════════════════════════
+# Stage 3: runner — minimal production image
+# ════════════════════════════════════════════════════════════
+FROM node:22-alpine AS runner
+
+# Security: create non-root user
+RUN addgroup --system --gid 1001 app && \
+    adduser --system --uid 1001 app
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
+
+WORKDIR /app
+
+# Set production environment
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME="0.0.0.0"
+
+# Copy standalone output (contains all needed node_modules)
+COPY --from=builder --chown=app:app /app/.next/standalone ./
+
+# Copy static assets (pre-compressed, cacheable)
+COPY --from=builder --chown=app:app /app/.next/static ./.next/static
+
+# Copy public assets
+COPY --from=builder --chown=app:app /app/public ./public
+
+# Create writable directories for temp/cache
+RUN mkdir -p /app/.next/cache /app/tmp && \
+    chown -R app:app /app/.next/cache /app/tmp
+
+# Security: drop to non-root
+USER app
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD wget -qO- http://localhost:3000/ || exit 1
+
+# Use dumb-init for proper signal handling (SIGTERM, SIGINT)
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start Next.js server
+CMD ["node", "server.js"]

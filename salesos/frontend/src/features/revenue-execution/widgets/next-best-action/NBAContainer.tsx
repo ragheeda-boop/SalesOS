@@ -12,29 +12,29 @@ function mapDecisionToNBA(result: DecisionResult): NextBestAction {
   const revScore = result.scores.find(s => s.type === 'revenue')
 
   return {
-    actionId: result.decisionId,
-    actionLabel: result.recommendation.actionLabel,
-    actionType: result.recommendation.action as NextBestAction['actionType'],
-    reasoning: result.recommendation.reason,
-    confidence: result.recommendation.confidence,
+    actionId: result.decisionId ?? result.id,
+    actionLabel: result.recommendation?.actionLabel ?? result.action,
+    actionType: (result.recommendation?.action ?? result.action) as NextBestAction['actionType'],
+    reasoning: result.recommendation?.reason ?? result.reasoning,
+    confidence: result.recommendation?.confidence ?? result.confidence,
     priority: score >= 0.8 ? 'critical' : score >= 0.6 ? 'high' : score >= 0.4 ? 'medium' : 'low',
     score,
-    expectedRevenue: result.explainability.expectedImpact.revenue,
+    expectedRevenue: typeof result.explainability?.expectedImpact === 'string' ? 0 : 0,
     expectedImpact: score >= 0.7 ? 'high' : score >= 0.4 ? 'medium' : 'low',
-    estimatedTime: result.recommendation.expectedTime ?? '—',
-    contextSummary: result.explainability.why,
-    triggerEvent: result.evidence[0]?.description,
-    risks: result.recommendation.risks.map(r => r.description),
-    alternatives: result.recommendation.alternatives.map(a => ({
-      actionLabel: a.actionLabel,
-      confidence: a.confidence,
-    })),
+    estimatedTime: result.explainability?.expectedTime ?? '—',
+    contextSummary: result.explainability?.why ?? '',
+    triggerEvent: result.evidence[0]?.description as string | undefined,
+    risks: result.recommendation?.risks?.map(r => r.description) ?? [],
+    alternatives: result.recommendation?.alternatives?.map(a => ({
+      actionLabel: a.actionLabel ?? '',
+      confidence: a.confidence ?? 0,
+    })) ?? [],
     createsOpportunity: score >= 0.4,
     scoreBreakdown: {
       buyingIntent: result.scores.find(s => s.type === 'intent')?.value ?? 0,
       relationshipStrength: result.scores.find(s => s.type === 'relationship')?.value ?? 0,
-      signalRecency: result.scores.find(s => s.type === 'confidence')?.factors.find(f => f.name === 'evidence_strength')?.value ?? 0,
-      aiConfidence: result.recommendation.confidence,
+      signalRecency: result.scores.find(s => s.type === 'confidence')?.factors?.find(f => f.name === 'evidence_strength')?.value ?? 0,
+      aiConfidence: result.recommendation?.confidence ?? result.confidence,
       decisionMakerAccess: 0,
       revenuePotential: revScore?.value ?? 0,
     },
@@ -46,11 +46,10 @@ function NBAWidgetInner({ action }: { action: NextBestAction }) {
 
   const handleExecute = useCallback(async (a: NextBestAction) => {
     await decision.submitFeedback({
+      id: '',
       decisionId: a.actionId,
-      tenantId: '',
-      actorId: '',
       outcome: 'accepted',
-      timestamp: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       revenueImpact: a.expectedRevenue,
     })
   }, [decision])

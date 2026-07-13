@@ -95,6 +95,9 @@ export const adminKeys = {
   aiUsage: () => ["admin", "ai", "usage"] as const,
   healthDetailed: () => ["admin", "health", "detailed"] as const,
   healthHistory: () => ["admin", "health", "history"] as const,
+  roles: () => ["admin", "roles"] as const,
+  permissions: () => ["admin", "permissions"] as const,
+  auditLogs: (filters?: Record<string, unknown>) => ["admin", "audit", "logs", filters] as const,
 };
 
 export const decisionKeys = {

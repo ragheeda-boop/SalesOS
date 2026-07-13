@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "version": "1.0",
+  "description": "SalesOS SLA definitions per endpoint category",
+  "categories": {
+    "critical_path": {
+      "description": "Core business operations — company lookups, search, dashboard",
+      "endpoints": [
+        {"method": "GET", "pattern": "/api/v1/companies/{id}", "name": "get_company"},
+        {"method": "GET", "pattern": "/api/v1/search", "name": "search"},
+        {"method": "GET", "pattern": "/api/v1/dashboard/**", "name": "dashboard"},
+        {"method": "POST", "pattern": "/api/v1/search", "name": "search_post"}
+      ],
+      "sla": {
+        "p50_ms": 100,
+        "p95_ms": 300,
+        "p99_ms": 700,
+        "error_budget_percent": 0.1,
+        "uptime_percent": 99.9
+      }
+    },
+    "standard": {
+      "description": "Standard CRUD operations — companies list, contacts, opportunities",
+      "endpoints": [
+        {"method": "GET", "pattern": "/api/v1/companies", "name": "list_companies"},
+        {"method": "POST", "pattern": "/api/v1/companies", "name": "create_company"},
+        {"method": "PATCH", "pattern": "/api/v1/companies/{id}", "name": "update_company"},
+        {"method": "GET", "pattern": "/api/v1/contacts/**", "name": "contacts"},
+        {"method": "GET", "pattern": "/api/v1/opportunities/**", "name": "opportunities"}
+      ],
+      "sla": {
+        "p50_ms": 200,
+        "p95_ms": 500,
+        "p99_ms": 1000,
+        "error_budget_percent": 0.5,
+        "uptime_percent": 99.5
+      }
+    },
+    "enrichment": {
+      "description": "Data enrichment and AI processing — async long-running",
+      "endpoints": [
+        {"method": "POST", "pattern": "/api/v1/enrich", "name": "enrich"},
+        {"method": "POST", "pattern": "/api/v1/ai/**", "name": "ai_processing"},
+        {"method": "POST", "pattern": "/api/v1/data-fabric/**", "name": "data_fabric"}
+      ],
+      "sla": {
+        "p50_ms": 2000,
+        "p95_ms": 8000,
+        "p99_ms": 15000,
+        "error_budget_percent": 1.0,
+        "uptime_percent": 99.0
+      }
+    },
+    "auth": {
+      "description": "Authentication and identity operations",
+      "endpoints": [
+        {"method": "POST", "pattern": "/api/v1/identity/login", "name": "login"},
+        {"method": "POST", "pattern": "/api/v1/identity/register", "name": "register"},
+        {"method": "POST", "pattern": "/api/v1/identity/refresh", "name": "refresh_token"},
+        {"method": "POST", "pattern": "/api/v1/sso/**", "name": "sso"}
+      ],
+      "sla": {
+        "p50_ms": 150,
+        "p95_ms": 400,
+        "p99_ms": 800,
+        "error_budget_percent": 0.1,
+        "uptime_percent": 99.95
+      }
+    },
+    "health": {
+      "description": "Health and monitoring endpoints",
+      "endpoints": [
+        {"method": "GET", "pattern": "/health*", "name": "health"},
+        {"method": "GET", "pattern": "/ping", "name": "ping"},
+        {"method": "GET", "pattern": "/metrics*", "name": "metrics"}
+      ],
+      "sla": {
+        "p50_ms": 5,
+        "p95_ms": 20,
+        "p99_ms": 50,
+        "error_budget_percent": 0.01,
+        "uptime_percent": 99.99
+      }
+    }
+  },
+  "alerting": {
+    "evaluation_window_seconds": 300,
+    "breach_cooldown_seconds": 600,
+    "notify_via": ["webhook", "logs"],
+    "severity_rules": {
+      "p99_breach": "critical",
+      "p95_breach": "warning",
+      "p50_breach": "warning",
+      "error_budget_exhausted": "critical",
+      "uptime_breach": "critical"
+    }
+  }
+}

@@ -7,7 +7,7 @@ from datetime import datetime
 from .agents.base import BaseAgent, AgentTask, AgentResult, AgentStatus
 from .agents.llm import LLMService
 from .grounding import AgentContext, GroundingService
-from .guardrails import extract_json_from_llm_output, validate_output
+from .guardrails import add_input_moderation, extract_json_from_llm_output, sanitize_input, validate_output
 from .schemas import AgentAnalysis
 
 
@@ -50,6 +50,19 @@ class GroundedBaseAgent(BaseAgent):
             user = self._user_prompt(task, context)
 
             if self._llm and self._llm.client:
+                user = sanitize_input(user)
+                if add_input_moderation(user):
+                    result = AgentResult(
+                        task_id=task.id,
+                        agent_type=self._agent_type(),
+                        success=False,
+                        output={"error": "Input rejected by content moderation"},
+                        confidence=0.0,
+                    )
+                    self.status = AgentStatus.COMPLETED
+                    self._task_history.append(result)
+                    return result
+
                 schema_guide = ""
                 if self._output_schema():
                     schema_guide = (

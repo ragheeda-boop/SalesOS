@@ -28,6 +28,7 @@ from sdk.events.domain_events import (
 from sdk.telemetry import StructuredLogger
 
 from ..company.repositories import CompanyRepository
+from .city_mapping import CityRegionNormalizer
 from .models import EntityResolutionConflict, EntityResolutionLog, GoldenRecord
 from .repositories import ConflictRepository, GoldenRecordRepository
 
@@ -195,15 +196,26 @@ class EntityResolutionService:
         source_slug: str,
         record: dict,
     ) -> GoldenRecord:
-        """Create a new golden record from a source record."""
+        """Create a new golden record from a source record.
+
+        City and region fields are normalized through CityRegionNormalizer to
+        canonical Arabic forms before storage.
+        """
         tenant_uuid = uuid.UUID(tenant_id)
         now = datetime.now(timezone.utc)
+        city_normalizer = CityRegionNormalizer.default()
 
         data: dict = {}
         for field, value in record.items():
             if value is not None and not field.startswith("_"):
+                # Normalize city and region fields
+                normalized_value = value
+                if field in ("city", "city_ar", "city_en", "region", "region_ar", "region_en"):
+                    if isinstance(value, str):
+                        normalized_value = city_normalizer.normalize_city(str(value))
+
                 data[field] = {
-                    "value": value,
+                    "value": normalized_value,
                     "source": source_slug.upper(),
                     "confidence": self._compute_field_confidence(field, source_slug),
                     "timestamp": now.isoformat(),

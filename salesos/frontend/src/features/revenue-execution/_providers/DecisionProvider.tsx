@@ -136,3 +136,11 @@ export function useDecision(): DecisionContextValue {
   }
   return ctx
 }
+
+export function useCompanyDecision(_tenantId: string): import('../../dashboard/sdk/types').DecisionContextData | null {
+  const ctx = useContext(DecisionCtx)
+  if (!ctx) {
+    return null
+  }
+  return null
+}

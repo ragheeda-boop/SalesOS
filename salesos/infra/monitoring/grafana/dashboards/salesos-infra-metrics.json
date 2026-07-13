@@ -1,0 +1,273 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "title": "SalesOS Infrastructure Metrics",
+  "uid": "salesos-infra-metrics",
+  "version": 1,
+  "timezone": "browser",
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 1,
+  "tags": ["salesos", "infrastructure", "postgres", "redis", "memory"],
+  "description": "Infrastructure health — DB pool, Redis, memory, WebSocket connections",
+  "panels": [
+    {
+      "title": "DB Connection Pool",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "salesos_db_pool_checkedout",
+          "legendFormat": "checked_out"
+        },
+        {
+          "expr": "salesos_db_pool_checkedin",
+          "legendFormat": "checked_in"
+        },
+        {
+          "expr": "salesos_db_pool_overflow",
+          "legendFormat": "overflow"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 15 },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 18 },
+              { "color": "red", "value": 25 }
+            ]
+          }
+        }
+      },
+      "description": "Database connection pool: checked_out vs checked_in vs overflow. Alert if checked_out > 18 (80% of pool_size=20)."
+    },
+    {
+      "title": "DB Pool Utilization (%)",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "salesos_db_pool_checkedout / (salesos_db_pool_checkedout + salesos_db_pool_checkedin) * 100",
+          "legendFormat": "utilization"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "thresholds",
+            "thresholds": {
+              "steps": [
+                { "color": "green", "value": 0 },
+                { "color": "orange", "value": 70 },
+                { "color": "red", "value": 90 }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "title": "DB Total Open Connections",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 0 },
+      "targets": [
+        {
+          "expr": "salesos_db_pool_total",
+          "legendFormat": "total_open"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 20 },
+              { "color": "red", "value": 30 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Active WebSocket Connections",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "salesos_websocket_active",
+          "legendFormat": "active"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 80 },
+              { "color": "red", "value": 100 }
+            ]
+          },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 20 }
+        }
+      },
+      "description": "Active WebSocket connections. Max per tenant = 100."
+    },
+    {
+      "title": "WebSocket Connections Total",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "salesos_websocket_connections_total",
+          "legendFormat": "total_opened"
+        },
+        {
+          "expr": "salesos_websocket_disconnections_total",
+          "legendFormat": "total_closed"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "title": "Cache Hit Ratio",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 8 },
+      "targets": [
+        {
+          "expr": "salesos_cache_hit_ratio * 100",
+          "legendFormat": "hit_ratio"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "thresholds",
+            "thresholds": {
+              "steps": [
+                { "color": "red", "value": 0 },
+                { "color": "orange", "value": 50 },
+                { "color": "green", "value": 80 }
+              ]
+            }
+          }
+        }
+      },
+      "description": "Cache hit ratio. Target: > 80%."
+    },
+    {
+      "title": "PostgreSQL — Active Backends",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "expr": "pg_stat_database_numbackends",
+          "legendFormat": "active_backends"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 30 },
+              { "color": "red", "value": 50 }
+            ]
+          }
+        }
+      },
+      "description": "PostgreSQL active backend connections from postgres-exporter"
+    },
+    {
+      "title": "Redis — Memory Usage",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes",
+          "legendFormat": "used"
+        },
+        {
+          "expr": "redis_memory_max_bytes",
+          "legendFormat": "max"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+        }
+      },
+      "description": "Redis memory usage vs maxmemory limit (256MB)"
+    },
+    {
+      "title": "Redis — Hit Rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "targets": [
+        {
+          "expr": "rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]) + 0.001) * 100",
+          "legendFormat": "hit_rate_%"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "orange", "value": 50 },
+              { "color": "green", "value": 80 }
+            ]
+          },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 15 }
+        }
+      },
+      "description": "Redis key hit rate from redis-exporter metrics"
+    },
+    {
+      "title": "Application Uptime",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 12, "y": 24 },
+      "targets": [
+        {
+          "expr": "salesos_app_uptime_seconds",
+          "legendFormat": "uptime"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dtdurations",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "green" }] }
+        }
+      }
+    }
+  ],
+  "schemaVersion": 35,
+  "refresh": "15s"
+}

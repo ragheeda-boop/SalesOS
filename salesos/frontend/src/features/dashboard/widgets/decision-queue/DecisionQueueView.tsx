@@ -67,9 +67,55 @@ function DecisionRow({
   )
 }
 
-export function DecisionQueueView({ items, total, onItemClick }: DecisionQueueViewProps) {
+function SkeletonRows() {
+  return (
+    <div className="space-y-2" role="status" aria-label="جاري تحميل القرارات">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="flex items-center gap-3 rounded-lg px-3 py-2.5">
+          <div className="h-2 w-2 animate-pulse rounded-full bg-neutral-200 dark:bg-neutral-700" />
+          <div className="flex-1 space-y-1.5">
+            <div className="h-3.5 w-3/4 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700" />
+            <div className="h-2.5 w-1/2 animate-pulse rounded bg-neutral-100 dark:bg-neutral-800" />
+          </div>
+          <div className="h-3 w-8 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function DecisionSummary({ decision }: { decision: DecisionQueueViewProps['decision'] }) {
+  if (!decision) return null
+
+  return (
+    <div
+      aria-live="polite"
+      aria-atomic="true"
+      className="mb-2 rounded-lg bg-[var(--bg-secondary)] px-3 py-2 text-xs text-[var(--text-muted)]"
+    >
+      <span className="font-medium text-[var(--text-primary)]">ملخص القرارات: </span>
+      {decision.summary}
+      <span className="ml-1 text-[10px] opacity-60">
+        ({Math.round(decision.confidence * 100)}% ثقة)
+      </span>
+    </div>
+  )
+}
+
+export function DecisionQueueView({
+  items,
+  total,
+  decision,
+  nbaItems,
+  isDecisionLoading,
+  onItemClick,
+}: DecisionQueueViewProps) {
   const priorityOrder = { high: 0, medium: 1, low: 2 }
   const sorted = [...items].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority])
+
+  if (isDecisionLoading && items.length === 0) {
+    return <SkeletonRows />
+  }
 
   if (items.length === 0) {
     return (
@@ -83,14 +129,38 @@ export function DecisionQueueView({ items, total, onItemClick }: DecisionQueueVi
 
   return (
     <div role="region" aria-label="قرارات معلقة" className="space-y-1">
+      <DecisionSummary decision={decision} />
+
       {total > items.length && (
         <div className="px-1 pb-1 text-[10px] font-medium text-[var(--text-muted)]">
           {items.length} من أصل {total} قرار
         </div>
       )}
+
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {items.length} قرار معلق
+      </div>
+
       {sorted.map((item) => (
         <DecisionRow key={item.id} item={item} onItemClick={onItemClick} />
       ))}
+
+      {nbaItems && nbaItems.length > 0 && (
+        <div className="mt-2 border-t border-[var(--border-secondary)] pt-2">
+          <div className="mb-1 text-[10px] font-semibold text-[var(--text-muted)]">توصيات AI</div>
+          {nbaItems.slice(0, 3).map((nba) => (
+            <div
+              key={nba.id}
+              className="rounded-md px-2 py-1 text-xs text-[var(--text-muted)]"
+              aria-label={`AI توصية: ${nba.action} لـ ${nba.company_name}`}
+            >
+              <span className="font-medium text-[var(--text-primary)]">{nba.company_name}</span>
+              {' — '}
+              {nba.action}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

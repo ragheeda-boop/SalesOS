@@ -4,6 +4,7 @@ import { useCallback } from 'react'
 import { createWidget } from '@salesos/workspace'
 import { useTasks, useCompleteTask } from '@/lib/hooks/taskQueries'
 import type { RevenueTask } from '@/application/revenue-execution/task.dto'
+import { TaskView } from './TaskView'
 
 export const TaskIntelligenceWidget = createWidget({
   metadata: { id: 'taskIntelligence', title: 'المهام', category: 'intelligence', priority: 'high', permissions: ['task:read'], featureFlag: { enabled: true }, minHeight: '360px' },
@@ -34,5 +35,5 @@ export const TaskIntelligenceWidget = createWidget({
       onComplete: handleComplete,
     }
   },
-  render: ({ data, onComplete }) => <TaskView tasks={data} onComplete={onComplete} />,
+  render: ({ data }) => <TaskView tasks={data} />,
 })

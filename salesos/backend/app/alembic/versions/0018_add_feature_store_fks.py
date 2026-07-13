@@ -38,17 +38,26 @@ FEATURE_TABLES = [
     "company_payments",
 ]
 
+_ALLOWED_MIGRATION_TABLES = frozenset(FEATURE_TABLES)
+
+
+def _validate_migration_table(name: str) -> str:
+    if name not in _ALLOWED_MIGRATION_TABLES:
+        raise ValueError(f"Invalid migration table: {name}")
+    return name
+
 
 def upgrade() -> None:
     for table in FEATURE_TABLES:
+        safe_table = _validate_migration_table(table)
         op.execute(f"""
-            ALTER TABLE {table}
+            ALTER TABLE {safe_table}
             ADD CONSTRAINT fk_{table}_tenant
             FOREIGN KEY (tenant_id) REFERENCES tenants(id)
             ON DELETE CASCADE
         """)
         op.execute(f"""
-            ALTER TABLE {table}
+            ALTER TABLE {safe_table}
             ADD CONSTRAINT fk_{table}_company
             FOREIGN KEY (company_id) REFERENCES companies(id)
             ON DELETE CASCADE
@@ -57,5 +66,6 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     for table in FEATURE_TABLES:
-        op.execute(f"ALTER TABLE {table} DROP CONSTRAINT IF EXISTS fk_{table}_company")
-        op.execute(f"ALTER TABLE {table} DROP CONSTRAINT IF EXISTS fk_{table}_tenant")
+        safe_table = _validate_migration_table(table)
+        op.execute(f"ALTER TABLE {safe_table} DROP CONSTRAINT IF EXISTS fk_{table}_company")
+        op.execute(f"ALTER TABLE {safe_table} DROP CONSTRAINT IF EXISTS fk_{table}_tenant")

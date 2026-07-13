@@ -34,7 +34,8 @@ describe('ForecastView edge cases', () => {
   it('renders $0 for all metrics when all zero', () => {
     const allZero: ForecastData = { currentQuarter: { target: 0, actual: 0, projected: 0, confidence: 0 }, monthlyTrend: [], risks: [] }
     renderView(allZero)
-    expect(screen.getByText(/\$0K/)).toBeInTheDocument()
+    const zeroTexts = screen.getAllByText(/\$0K/)
+    expect(zeroTexts.length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders K format for values under 1M', () => {

@@ -72,7 +72,7 @@ describe('TaskView interactions', () => {
   })
 
   it('renders due date when present', () => {
-    renderView(); expect(document.body.textContent).toContain('١٤')
+    renderView(); expect(document.body.textContent).toContain('١٥‏/٧')
   })
 })
 describe('TaskIntelligenceWidget', () => { it('is a valid widget', () => { expect(TaskIntelligenceWidget).toBeDefined() }) })

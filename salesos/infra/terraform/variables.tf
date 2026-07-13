@@ -75,3 +75,15 @@ variable "rds_max_allocated_storage" {
   type        = number
   default     = 500
 }
+
+variable "redis_node_type" {
+  description = "ElastiCache Redis node instance type"
+  type        = string
+  default     = "cache.t3.micro"
+}
+
+variable "redis_num_cache_clusters" {
+  description = "Number of Redis cache clusters (only used in production for multi-AZ)"
+  type        = number
+  default     = 2
+}

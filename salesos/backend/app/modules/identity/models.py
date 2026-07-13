@@ -1,7 +1,7 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -46,8 +46,16 @@ class User(BaseModel):
     phone: Mapped[str | None] = mapped_column(String(30))
     preferences: Mapped[dict | None] = mapped_column(type_=JSONB, default=dict)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    failed_attempts: Mapped[int] = mapped_column(default=0, nullable=False)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     tenant: Mapped[Tenant] = relationship("Tenant", back_populates="users")
+
+    @property
+    def is_locked(self) -> bool:
+        if self.locked_until is None:
+            return False
+        return self.locked_until > datetime.now(timezone.utc)
 
     def __repr__(self) -> str:
         return f"<User {self.email}>"

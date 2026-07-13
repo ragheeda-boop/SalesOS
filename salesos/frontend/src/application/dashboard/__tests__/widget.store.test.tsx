@@ -27,17 +27,17 @@ describe('deriveStatus', () => {
 })
 
 describe('deriveWidgets', () => {
-  it('returns all six widgets with loading status', () => {
+  it('returns all eight widgets with loading status', () => {
     const widgets = deriveWidgets(undefined, true, false)
     expect(Object.keys(widgets)).toEqual([
-      'missionCenter', 'decisionQueue', 'intelligenceFeed', 'aiBrief', 'marketPulse', 'recentActivity',
+      'missionCenter', 'decisionQueue', 'intelligenceFeed', 'aiBrief', 'marketPulse', 'recentActivity', 'pipeline', 'companyHealth',
     ])
     Object.values(widgets).forEach((w) => {
       expect(w.status).toBe('loading')
     })
   })
 
-  it('returns all six widgets with ready status', () => {
+  it('returns all eight widgets with ready status', () => {
     const dto: any = {
       missionCenter: { data: { companiesTracked: 100 }, id: 'mc', title: 'MC', status: 'ready', lastUpdated: null, actions: [] },
       decisionQueue: { data: { items: [], total: 0 }, id: 'dq', title: 'DQ', status: 'ready', lastUpdated: null, actions: [] },
@@ -45,6 +45,8 @@ describe('deriveWidgets', () => {
       aiBrief: { data: { summary: '', highlights: [], generatedAt: '' }, id: 'ab', title: 'AB', status: 'ready', lastUpdated: null, actions: [] },
       marketPulse: { data: { trends: [], topMovers: [] }, id: 'mp', title: 'MP', status: 'ready', lastUpdated: null, actions: [] },
       recentActivity: { data: { items: [], total: 0 }, id: 'ra', title: 'RA', status: 'ready', lastUpdated: null, actions: [] },
+      pipeline: { data: { opportunities: [], totalValue: 0 }, id: 'pl', title: 'PL', status: 'ready', lastUpdated: null, actions: [] },
+      companyHealth: { data: { companies: [], averageScore: 0 }, id: 'ch', title: 'CH', status: 'ready', lastUpdated: null, actions: [] },
     }
     const widgets = deriveWidgets(dto, false, false)
     expect(widgets.missionCenter.status).toBe('ready')

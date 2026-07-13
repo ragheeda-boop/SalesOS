@@ -1,5 +1,7 @@
 """AI Copilot — coordinates agents to answer user queries."""
 
+import time as _time
+
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
@@ -81,7 +83,7 @@ async def copilot_query(
 
     coordinator = _build_coordinator()
     task = AgentTask(
-        id=f"copilot_{user_id}_{int(__import__('time').time())}",
+        id=f"copilot_{user_id}_{int(_time.time())}",
         agent_type="coordinator",
         input={"goal": body.goal or body.query, "context": {**context, "tenant_id": tenant_id}},
     )

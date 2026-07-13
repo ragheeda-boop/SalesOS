@@ -7,9 +7,11 @@ import type {
   AIBriefData,
   MarketPulseData,
   RecentActivityData,
+  PipelineDTOData,
+  CompanyHealthDTOData,
 } from './dashboard.dto'
 
-type WidgetId = 'missionCenter' | 'decisionQueue' | 'intelligenceFeed' | 'aiBrief' | 'marketPulse' | 'recentActivity'
+type WidgetId = 'missionCenter' | 'decisionQueue' | 'intelligenceFeed' | 'aiBrief' | 'marketPulse' | 'recentActivity' | 'pipeline' | 'companyHealth'
 
 const WIDGET_META: Record<WidgetId, { id: string; title: string }> = {
   missionCenter: { id: 'mission-center', title: 'Mission Center' },
@@ -18,6 +20,8 @@ const WIDGET_META: Record<WidgetId, { id: string; title: string }> = {
   aiBrief: { id: 'ai-brief', title: 'AI Brief' },
   marketPulse: { id: 'market-pulse', title: 'Market Pulse' },
   recentActivity: { id: 'recent-activity', title: 'Recent Activity' },
+  pipeline: { id: 'pipeline', title: 'Pipeline' },
+  companyHealth: { id: 'company-health', title: 'Company Health' },
 }
 
 export type WidgetMap = {
@@ -27,6 +31,8 @@ export type WidgetMap = {
   aiBrief: DashboardWidget<AIBriefData>
   marketPulse: DashboardWidget<MarketPulseData>
   recentActivity: DashboardWidget<RecentActivityData>
+  pipeline: DashboardWidget<PipelineDTOData>
+  companyHealth: DashboardWidget<CompanyHealthDTOData>
 }
 
 export function deriveStatus(data: unknown, isLoading: boolean, isError: boolean): WidgetStatus {
@@ -67,5 +73,7 @@ export function deriveWidgets(
     aiBrief: buildWidget('aiBrief', dto?.aiBrief?.data as AIBriefData | null | undefined, isLoading, isError),
     marketPulse: buildWidget('marketPulse', dto?.marketPulse?.data as MarketPulseData | null | undefined, isLoading, isError),
     recentActivity: buildWidget('recentActivity', dto?.recentActivity?.data as RecentActivityData | null | undefined, isLoading, isError),
+    pipeline: buildWidget('pipeline', dto?.pipeline?.data as PipelineDTOData | null | undefined, isLoading, isError),
+    companyHealth: buildWidget('companyHealth', dto?.companyHealth?.data as CompanyHealthDTOData | null | undefined, isLoading, isError),
   }
 }

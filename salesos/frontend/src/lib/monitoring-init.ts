@@ -86,7 +86,7 @@ export function initMonitoring(): void {
       const clsObserver = new PerformanceObserver((list) => {
         let clsValue = 0
         for (const entry of list.getEntries()) {
-          const layoutShift = entry as LayoutShift
+          const layoutShift = entry as PerformanceEntry & { hadRecentInput: boolean; value: number }
           if (!layoutShift.hadRecentInput) {
             clsValue += layoutShift.value
           }

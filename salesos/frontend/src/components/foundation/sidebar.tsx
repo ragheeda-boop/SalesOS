@@ -1,6 +1,15 @@
 import { cn } from "@salesos/ui"
 import { useAppShell } from "./app-shell"
 
+/**
+ * @deprecated Use {@link @salesos/ui#Sidebar} from the canonical UI kit instead.
+ * The @salesos/ui package provides a Sidebar component with consistent navigation
+ * patterns (items, icons, badges, collapsed state) across the application.
+ *
+ * Migration: Replace `@/components/foundation` imports with `@salesos/ui`.
+ * The App Shell's sidebarCollapsed state is available via useAppShell().
+ */
+
 interface SidebarItem {
   id: string
   label: string

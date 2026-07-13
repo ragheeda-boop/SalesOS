@@ -6,9 +6,22 @@ Supports both pgvector (production) and in-memory (development/demo).
 from __future__ import annotations
 
 import math
+import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
+
+_ALLOWED_COLLECTIONS = frozenset({
+    "vectors", "company_embeddings", "contact_embeddings",
+    "document_embeddings",
+})
+
+
+def _validate_collection(name: str) -> str:
+    """Validate table/collection name against allowlist to prevent SQL injection."""
+    if name not in _ALLOWED_COLLECTIONS:
+        raise ValueError(f"Invalid collection name: {name}")
+    return name
 
 
 @dataclass
@@ -85,7 +98,7 @@ class PgVectorStore(VectorStore):
 
     def __init__(self, session_factory, collection: str = "vectors"):
         self._session_factory = session_factory
-        self._collection = collection
+        self._collection = _validate_collection(collection)
 
     async def search(self, vector: list[float], top_k: int = 10) -> list[VectorRecord]:
         from sqlalchemy import text

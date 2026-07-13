@@ -29,7 +29,14 @@ const SOURCE_LABELS = {
 }
 
 export function RecommendationCard({ recommendation, onAccept, onDismiss, onRefresh }: RecommendationCardProps) {
-  const { action, reason, confidence, confidenceLabel, source, evidence, alternatives, potentialRisks } = recommendation
+  const { recommendation: rec, evidence, explainability } = recommendation
+  const action = rec?.actionLabel ?? rec?.action ?? ''
+  const reason = rec?.reason ?? explainability?.why ?? ''
+  const confidence = rec?.confidence ?? 0
+  const confidenceLabel: 'high' | 'medium' | 'low' = confidence >= 0.7 ? 'high' : confidence >= 0.4 ? 'medium' : 'low'
+  const source = (rec?.scores?.[0]?.type ?? 'rule') as keyof typeof SOURCE_LABELS
+  const potentialRisks = rec?.risks ?? []
+  const alternatives = rec?.alternatives ?? []
 
   return (
     <div
@@ -107,7 +114,7 @@ export function RecommendationCard({ recommendation, onAccept, onDismiss, onRefr
             {alternatives.map((alt, i) => (
               <div key={i} className="flex items-center justify-between text-xs py-1 px-2 rounded-md hover:bg-[var(--bg-secondary)]">
                 <span className="text-[var(--text-secondary)]">{alt.reason}</span>
-                <span className="text-[var(--text-muted)]">{Math.round(alt.confidence * 100)}%</span>
+                <span className="text-[var(--text-muted)]">{Math.round((alt.confidence ?? 0) * 100)}%</span>
               </div>
             ))}
           </div>
