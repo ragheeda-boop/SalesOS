@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@salesos/ui"
 import { AppShell, useAppShell } from "@/components/foundation/app-shell"
-import { Building2, Users, DollarSign, Search, Settings, LayoutDashboard, Bell, Menu, Bot, User, Shield, Workflow, MessageSquareText, Activity, HeartHandshake, X, TrendingUp, BarChart3, Brain, CalendarClock, Sparkles, GitGraph, Video } from "lucide-react"
+import { Building2, Users, DollarSign, Search, Settings, LayoutDashboard, Bell, Menu, Bot, User, Shield, Workflow, MessageSquareText, Activity, HeartHandshake, X, TrendingUp, BarChart3, Brain, CalendarClock, Sparkles, GitGraph, Video, LineChart, Radio, ListChecks } from "lucide-react"
 import { CommandBar } from "@/components/command-bar"
 import { SearchPanel } from "@/components/search-panel"
 import { CopilotPanel } from "@/components/copilot-panel"
@@ -21,6 +21,7 @@ const NAV_KEYS = [
   { href: "/employees/me", key: "nav.profile", icon: User },
   { href: "/contacts", key: "nav.contacts", icon: Users },
   { href: "/opportunities", key: "nav.opportunities", icon: DollarSign },
+  { href: "/activities", key: "nav.activities", icon: ListChecks },
   { href: "/revenue", key: "nav.revenue", icon: TrendingUp },
   { href: "/pipeline", key: "nav.pipeline", icon: BarChart3 },
   { href: "/forecast", key: "nav.forecast", icon: CalendarClock },
@@ -30,7 +31,11 @@ const NAV_KEYS = [
   { href: "/rag", key: "nav.rag", icon: MessageSquareText },
   { href: "/ai", key: "nav.ai", icon: Sparkles },
   { href: "/graph", key: "nav.graph", icon: GitGraph },
+  { href: "/copilot", key: "nav.copilot", icon: Bot },
   { href: "/automation", key: "nav.workflows", icon: Workflow },
+  { href: "/analytics", key: "nav.analytics", icon: LineChart },
+  { href: "/signals", key: "nav.signals", icon: Radio },
+  { href: "/rules", key: "nav.rules", icon: Shield },
   { href: "/monitoring", key: "nav.monitoring", icon: Activity },
   { href: "/customer-success", key: "nav.customer_success", icon: HeartHandshake },
   { href: "/settings", key: "nav.settings", icon: Settings },

@@ -54,14 +54,23 @@ class BaseScraper(ABC):
     def source_slug(self) -> str:
         ...
 
-    async def fetch_all(self) -> ScrapeResult:
-        """Fetch all available records from this source."""
+    async def fetch_all(self, max_pages: int = 0) -> ScrapeResult:
+        """Fetch all available records from this source.
+
+        Args:
+            max_pages: Maximum pages to fetch (0 = unlimited, use with caution).
+                       Set to a reasonable limit (e.g. 10) in production to
+                       prevent runaway pagination on API endpoints with
+                       large result sets.
+        """
         start = time.monotonic()
         all_records: list[dict] = []
         errors: list[dict] = []
         page = 1
 
         while True:
+            if max_pages > 0 and page > max_pages:
+                break
             try:
                 records = await self._rate_limited_fetch(page)
                 if not records:

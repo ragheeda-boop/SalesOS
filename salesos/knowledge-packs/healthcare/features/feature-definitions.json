@@ -1,0 +1,80 @@
+{
+  "pack_id": "kp-healthcare",
+  "version": "1.0.0",
+  "features": [
+    {
+      "id": "FEAT-HC-001",
+      "name": "facility_count",
+      "ar_name": "عدد المنشآت الصحية",
+      "type": "numeric",
+      "description": "عدد المنشآت الصحية التابعة للكيان (مستشفيات، عيادات، مختبرات)",
+      "source": "company_profile",
+      "importance": 0.8
+    },
+    {
+      "id": "FEAT-HC-002",
+      "name": "bed_capacity",
+      "ar_name": "السعة السريرية",
+      "type": "numeric",
+      "description": "إجمالي عدد الأسرة في المستشفيات التابعة للكيان",
+      "source": "moh_registry",
+      "importance": 0.85
+    },
+    {
+      "id": "FEAT-HC-003",
+      "name": "entity_classification",
+      "ar_name": "تصنيف المنشأة",
+      "type": "categorical",
+      "description": "تصنيف المنشأة الصحية (مستشفى عام / تخصصي / عيادة / مختبر / صيدلية / شركة تأمين صحي)",
+      "source": "moh_classification",
+      "enum": ["hospital_general", "hospital_specialized", "clinic", "lab", "pharmacy", "health_insurance"],
+      "importance": 0.9
+    },
+    {
+      "id": "FEAT-HC-004",
+      "name": "growth_rate",
+      "ar_name": "نسبة النمو",
+      "type": "numeric",
+      "description": "معدل نمو المنشأة السنوي في عدد الفروع أو الإيرادات",
+      "source": "financial_data",
+      "importance": 0.7
+    },
+    {
+      "id": "FEAT-HC-005",
+      "name": "accreditation_score",
+      "ar_name": "درجة الاعتماد",
+      "type": "numeric",
+      "description": "مجموع شهادات الاعتماد (CBAHI, JCI, ISO) — كل شهادة تضاف 1",
+      "source": "accreditation_registry",
+      "importance": 0.75
+    },
+    {
+      "id": "FEAT-HC-006",
+      "name": "regulatory_compliance_level",
+      "ar_name": "مستوى الامتثال التنظيمي",
+      "type": "categorical",
+      "description": "مستوى امتثال المنشأة للوائح وزارة الصحة",
+      "source": "moh_compliance",
+      "enum": ["full", "partial", "non_compliant", "unknown"],
+      "importance": 0.85
+    },
+    {
+      "id": "FEAT-HC-007",
+      "name": "service_categories",
+      "ar_name": "فئات الخدمات",
+      "type": "multi_select",
+      "description": "فئات الخدمات التي تقدمها المنشأة (جراحة، طب عام، أشعة، مختبر، طوارئ، إلخ)",
+      "source": "service_registry",
+      "importance": 0.65
+    },
+    {
+      "id": "FEAT-HC-008",
+      "name": "employee_count",
+      "ar_name": "عدد الموظفين",
+      "type": "numeric",
+      "description": "إجمالي عدد الموظفين في المنشأة الصحية",
+      "source": "company_profile",
+      "importance": 0.6
+    }
+  ]
+}

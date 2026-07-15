@@ -204,6 +204,10 @@ class EntityResolutionService:
         tenant_uuid = uuid.UUID(tenant_id)
         now = datetime.now(timezone.utc)
         city_normalizer = CityRegionNormalizer.default()
+        from domains.search.normalization.arabic_normalizer import (
+            ArabicSearchNormalizer,
+        )
+        name_normalizer = ArabicSearchNormalizer.for_matching()
 
         data: dict = {}
         for field, value in record.items():
@@ -213,6 +217,10 @@ class EntityResolutionService:
                 if field in ("city", "city_ar", "city_en", "region", "region_ar", "region_en"):
                     if isinstance(value, str):
                         normalized_value = city_normalizer.normalize_city(str(value))
+                # Normalize Arabic company names
+                elif field in ("name_ar", "company_name", "legal_name"):
+                    if isinstance(value, str):
+                        normalized_value = name_normalizer.normalize(str(value))
 
                 data[field] = {
                     "value": normalized_value,
@@ -462,9 +470,16 @@ class EntityResolutionService:
         cr_number: str | None = None,
         name: str | None = None,
     ) -> list[dict]:
-        """Find potential duplicate companies by domain, CR, or name."""
+        """Find potential duplicate companies by domain, CR, or name.
+
+        Uses Arabic text normalization and fuzzy matching (Jaro-Winkler)
+        for Arabic company name comparison. Exact CR number matches
+        automatically score 1.0. Name-based matching uses the
+        CompanyNameMatcher for accurate fuzzy comparison.
+        """
         from sqlalchemy import or_, select
         from app.modules.company.models import Company
+        from domains.search.normalization.company_matcher import CompanyNameMatcher
 
         tenant_uuid = uuid.UUID(tenant_id)
         stmt = select(Company).where(Company.tenant_id == tenant_uuid)
@@ -476,9 +491,16 @@ class EntityResolutionService:
             stmt = stmt.where(Company.cr_number == cr_number)
         elif name:
             from sqlalchemy import func
+            # Normalize the search name for broader recall
+            from domains.search.normalization.arabic_normalizer import (
+                ArabicSearchNormalizer,
+            )
+            normalizer = ArabicSearchNormalizer.for_matching()
+            norm_name = normalizer.normalize(name)
+            # Use trigram-like expansion: first 3 chars + whole normalized name
             stmt = stmt.where(
                 or_(
-                    Company.name_ar.ilike(f"%{name}%"),
+                    Company.name_ar.ilike(f"%{name[:3]}%"),
                     Company.name_en.ilike(f"%{name}%"),
                 )
             )
@@ -488,19 +510,28 @@ class EntityResolutionService:
         result = await self.db.execute(stmt)
         companies = result.scalars().all()
 
+        matcher = CompanyNameMatcher.default()
         candidates = []
         for company in companies:
             match_fields = []
             score = 0.5
+
             if domain and company.email and domain in company.email:
                 match_fields.append("domain_match")
                 score = max(score, 0.8)
+
             if cr_number and company.cr_number == cr_number:
                 match_fields.append("cr_match")
                 score = max(score, 1.0)
+
             if name:
-                match_fields.append("name_match")
-                score = max(score, 0.6)
+                company_name = company.name_ar or company.name_en or ""
+                if company_name:
+                    match_result = matcher.match(name, company_name)
+                    if match_result.is_match:
+                        match_fields.append("name_match")
+                        score = max(score, match_result.score)
+
             candidates.append({
                 "company_id": str(company.id),
                 "cr_number": company.cr_number,

@@ -2,6 +2,7 @@
 
 import { createWidget } from '@salesos/workspace'
 import { useOpportunities } from '@/lib/hooks/opportunityQueries'
+import { useDecisionScores } from '@/lib/decisionQueries'
 import type { ForecastData } from './types'
 import { ForecastView } from './ForecastView'
 
@@ -9,6 +10,7 @@ export const ForecastIntelligenceWidget = createWidget({
   metadata: { id: 'forecastIntelligence', title: 'التوقعات', category: 'intelligence', priority: 'critical', permissions: ['forecast:read'], featureFlag: { enabled: true, tier: 'enabled' }, minHeight: '320px' },
   useData: () => {
     const { data: oppsResp, isLoading, isError, error } = useOpportunities()
+    useDecisionScores('forecast', 'forecast')
 
     if (isLoading) {
       return { data: null, status: 'loading' as const, lastUpdated: null, error: null, refetch: () => {} }

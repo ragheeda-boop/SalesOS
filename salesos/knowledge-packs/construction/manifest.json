@@ -1,0 +1,19 @@
+{
+  "id": "kp-construction",
+  "name": "Construction & Contracting Sector Intelligence",
+  "version": "1.0.0",
+  "description": "Knowledge Pack for the Saudi construction and contracting sector — contractors, developers, engineering firms. Covers contractor classification, government tenders, giga-project participation, and risk scoring.",
+  "domain": "construction",
+  "sector": "Construction",
+  "ar_name": "قطاع المقاولات والإنشاءات",
+  "tags": ["construction", "contracting", "contractor-classification", "tenders", "giga-projects", "neom", "saudi-construction"],
+  "dependencies": {
+    "knowledge_packs": ["saudi-market", "arabic-business-terms"],
+    "ai_assets": ["company-summary", "opportunity-scoring", "signal-detection"],
+    "version": ">=1.0.0"
+  },
+  "regulatory_bodies": ["MOMRA", "MMC", "NCVC", "ETCC", "SASO"],
+  "created_at": "2026-07-14T00:00:00Z",
+  "updated_at": "2026-07-14T00:00:00Z",
+  "author": "SalesOS AI Engineering"
+}

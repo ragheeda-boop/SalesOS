@@ -346,7 +346,7 @@ class SearchRuntime:
         async with self._session_factory() as session:
             await session.execute(sa_text("SET statement_timeout = '5s'"))
 
-            tsq = f"plainto_tsquery('arabic', :q)"
+            tsq = "plainto_tsquery('arabic', :q)"
             conditions = [
                 "c.tenant_id = :tid",
                 f"c.tsv @@ {tsq}",

@@ -25,7 +25,8 @@ function flush() {
   if (queue.length === 0) return
   const batch = queue.splice(0, queue.length)
   if (typeof window !== 'undefined') {
-    navigator.sendBeacon?.('/api/v1/analytics/events', JSON.stringify({ events: batch }))
+    const blob = new Blob([JSON.stringify({ events: batch })], { type: 'application/json' })
+    navigator.sendBeacon?.('/api/v1/analytics/events', blob)
   }
 }
 

@@ -9,7 +9,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.dependencies import get_current_tenant_id, verify_token
+from app.dependencies import get_current_tenant_id, get_db_session, verify_token
 from domains.analytics.cubes import ActivityCube, ForecastCube, PipelineCube, TeamCube
 from domains.analytics.engine import CUBE_REGISTRY, ReportEngine
 from domains.analytics.models import (
@@ -21,7 +21,7 @@ from domains.analytics.models import (
     ReportStatus,
     AnalyticsCube,
 )
-from domains.analytics.repository import InMemoryReportRepository
+from domains.analytics.infrastructure.postgres_repository import PostgresReportRepository
 from domains.analytics.templates import STANDARD_TEMPLATES
 
 logger = logging.getLogger(__name__)
@@ -29,8 +29,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-def _get_engine() -> ReportEngine:
-    repo = InMemoryReportRepository()
+def _get_engine(db: AsyncSession) -> ReportEngine:
+    repo = PostgresReportRepository(session=db)
     return ReportEngine(repository=repo)
 
 
@@ -94,9 +94,10 @@ async def query_cube(
 @router.get("/analytics/reports")
 async def list_reports(
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
     _auth=Depends(verify_token),
 ):
-    engine = _get_engine()
+    engine = _get_engine(db)
     reports = await engine.repository.list_reports(tenant_id=tenant_id)
     return {
         "reports": [
@@ -120,6 +121,7 @@ async def list_reports(
 async def create_report(
     body: dict[str, Any],
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
     _auth=Depends(verify_token),
 ):
     try:
@@ -136,7 +138,7 @@ async def create_report(
         schedule=body.get("schedule", "one-time"),
         recipients=body.get("recipients", []),
     )
-    engine = _get_engine()
+    engine = _get_engine(db)
     created = await engine.repository.create_report(report)
     return {
         "id": created.id,
@@ -151,9 +153,10 @@ async def create_report(
 async def get_report(
     report_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
     _auth=Depends(verify_token),
 ):
-    engine = _get_engine()
+    engine = _get_engine(db)
     report = await engine.repository.get_report(report_id)
     if report is None:
         raise HTTPException(status_code=404, detail="Report not found")
@@ -174,9 +177,10 @@ async def get_report(
 async def delete_report(
     report_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
     _auth=Depends(verify_token),
 ):
-    engine = _get_engine()
+    engine = _get_engine(db)
     deleted = await engine.repository.delete_report(report_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Report not found")
@@ -190,9 +194,10 @@ async def delete_report(
 async def execute_report(
     report_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
     _auth=Depends(verify_token),
 ):
-    engine = _get_engine()
+    engine = _get_engine(db)
     report = await engine.repository.get_report(report_id)
     if report is None:
         raise HTTPException(status_code=404, detail="Report not found")
@@ -213,9 +218,10 @@ async def execute_report(
 async def list_executions(
     report_id: str | None = Query(None),
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
     _auth=Depends(verify_token),
 ):
-    engine = _get_engine()
+    engine = _get_engine(db)
     executions = await engine.repository.list_executions(report_id=report_id)
     return {
         "executions": [
@@ -238,11 +244,26 @@ async def list_executions(
 async def download_execution(
     execution_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
     _auth=Depends(verify_token),
 ):
-    engine = _get_engine()
+    engine = _get_engine(db)
     try:
         result = await engine.export(execution_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
     return result
+
+
+# ── Client Analytics Events (fire-and-forget from frontend) ───────────────────
+
+@router.post("/analytics/events")
+async def ingest_analytics_events(
+    body: dict,
+    tenant_id: str = Depends(get_current_tenant_id),
+    _auth=Depends(verify_token),
+):
+    """Accept batched analytics events from the frontend (fire-and-forget)."""
+    events = body.get("events", [])
+    logger.debug("Received %d analytics events for tenant %s", len(events), tenant_id)
+    return {"status": "ok", "received": len(events)}

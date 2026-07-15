@@ -166,15 +166,15 @@ class PostgresSearchRepository(SearchRepository[Any]):
                 sa_text(f"SET LOCAL statement_timeout = '{int(self._timeout * 1000)}'")
             )
 
-            sql = sa_text(f"""
+            sql = sa_text("""
                 SELECT c.id::text, c.name_ar, c.name_en, c.cr_number,
                        c.city, c.region, c.industry, c.status,
                        c.activity_description,
-                       ts_rank(c.search_vector, plainto_tsquery('{self._fts_language}', :q)) AS rank,
+                       ts_rank(c.search_vector, plainto_tsquery(:lang, :q)) AS rank,
                        count(*) OVER() AS total_count
                 FROM companies c
                 WHERE c.tenant_id = :tid
-                  AND c.search_vector @@ plainto_tsquery('{self._fts_language}', :q)
+                  AND c.search_vector @@ plainto_tsquery(:lang, :q)
                 ORDER BY rank DESC, c.updated_at DESC
                 LIMIT :lim OFFSET :off
             """)
@@ -182,6 +182,7 @@ class PostgresSearchRepository(SearchRepository[Any]):
             result = await session.execute(sql, {
                 "q": query.strip(),
                 "tid": tenant_id,
+                "lang": self._fts_language,
                 "lim": safe_limit,
                 "off": offset,
             })
@@ -215,11 +216,12 @@ class PostgresSearchRepository(SearchRepository[Any]):
 
         conditions = [
             "c.tenant_id = :tid",
-            f"c.search_vector @@ plainto_tsquery('{self._fts_language}', :q)",
+            "c.search_vector @@ plainto_tsquery(:lang, :q)",
         ]
         params: dict[str, Any] = {
             "q": query.strip(),
             "tid": tenant_id,
+            "lang": self._fts_language,
             "lim": safe_limit,
             "off": offset,
         }
@@ -247,7 +249,7 @@ class PostgresSearchRepository(SearchRepository[Any]):
                 SELECT c.id::text, c.name_ar, c.name_en, c.cr_number,
                        c.city, c.region, c.industry, c.status,
                        c.activity_description,
-                       ts_rank(c.search_vector, plainto_tsquery('{self._fts_language}', :q)) AS rank
+                       ts_rank(c.search_vector, plainto_tsquery(:lang, :q)) AS rank
                 FROM companies c
                 WHERE {where_clause}
                 ORDER BY rank DESC, c.updated_at DESC
@@ -269,9 +271,9 @@ class PostgresSearchRepository(SearchRepository[Any]):
 
         conditions = [
             "c.tenant_id = :tid",
-            f"c.search_vector @@ plainto_tsquery('{self._fts_language}', :q)",
+            "c.search_vector @@ plainto_tsquery(:lang, :q)",
         ]
-        params: dict[str, Any] = {"q": query.strip(), "tid": tenant_id}
+        params: dict[str, Any] = {"q": query.strip(), "tid": tenant_id, "lang": self._fts_language}
 
         if filters:
             for field_name, value in filters.items():
@@ -312,7 +314,7 @@ class PostgresSearchRepository(SearchRepository[Any]):
                 f"SELECT '{field}' AS facet_field, c.{field} AS facet_value, COUNT(*) AS facet_count "
                 f"FROM companies c "
                 f"WHERE c.tenant_id = :tid "
-                f"AND c.search_vector @@ plainto_tsquery('{self._fts_language}', :q) "
+                f"AND c.search_vector @@ plainto_tsquery(:lang, :q) "
                 f"AND c.{field} IS NOT NULL "
                 f"GROUP BY c.{field} "
                 f"ORDER BY facet_count DESC "
@@ -326,7 +328,7 @@ class PostgresSearchRepository(SearchRepository[Any]):
         async with self._session_factory() as session:
             rows = await session.execute(
                 sa_text(combined_sql),
-                {"tid": tenant_id, "q": query.strip()},
+                {"tid": tenant_id, "q": query.strip(), "lang": self._fts_language},
             )
             for row in rows:
                 field_name = row[0]

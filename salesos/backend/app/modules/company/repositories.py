@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from sdk.database import SqlAlchemyRepository
+from sdk.pagination import CursorPage, build_keyset_condition, decode_cursor, encode_cursor
 
 from .models import Branch, Company, Contact, License, Source
 
@@ -61,6 +62,7 @@ class CompanyRepository(SqlAlchemyRepository[Company, uuid.UUID]):
         page_size: int = 20,
         sort_by: str = "created_at",
         sort_desc: bool = True,
+        cursor: str | None = None,
     ) -> tuple[list[Company], int]:
         base = select(Company).where(Company.tenant_id == uuid.UUID(tenant_id))
         count_base = select(func.count()).select_from(Company).where(
@@ -95,10 +97,88 @@ class CompanyRepository(SqlAlchemyRepository[Company, uuid.UUID]):
 
         order_col = getattr(Company, sort_by, Company.created_at)
         base = base.order_by(order_col.desc() if sort_desc else order_col.asc())
-        base = base.offset((page - 1) * page_size).limit(page_size)
+
+        if cursor:
+            cursor_id, cursor_sort = decode_cursor(cursor)
+            condition = build_keyset_condition(
+                Company, cursor_id, cursor_sort, sort_by=sort_by,
+                sort_dir="desc" if sort_desc else "asc",
+            )
+            base = base.where(condition)
+            base = base.limit(page_size + 1)
+        else:
+            base = base.offset((page - 1) * page_size).limit(page_size)
 
         result = await self._session.execute(base)
-        return list(result.scalars().all()), total
+        rows = list(result.scalars().all())
+        return rows, total
+
+    async def search_cursored(
+        self,
+        tenant_id: str,
+        query: str | None = None,
+        filters: dict | None = None,
+        page_size: int = 20,
+        sort_by: str = "created_at",
+        sort_desc: bool = True,
+        cursor: str | None = None,
+    ) -> CursorPage[Company]:
+        base = select(Company).where(Company.tenant_id == uuid.UUID(tenant_id))
+
+        if query:
+            like = f"%{query}%"
+            condition = or_(
+                Company.name_ar.ilike(like),
+                Company.name_en.ilike(like),
+                Company.cr_number.ilike(like),
+                Company.city.ilike(like),
+                Company.activity_description.ilike(like),
+            )
+            base = base.where(condition)
+
+        if filters:
+            for field, value in filters.items():
+                if hasattr(Company, field):
+                    if isinstance(value, dict) and "contains" in value:
+                        base = base.where(getattr(Company, field).ilike(f"%{value['contains']}%"))
+                    else:
+                        base = base.where(getattr(Company, field) == value)
+
+        order_col = getattr(Company, sort_by, Company.created_at)
+        base = base.order_by(order_col.desc() if sort_desc else order_col.asc())
+
+        if cursor:
+            cursor_id, cursor_sort = decode_cursor(cursor)
+            condition = build_keyset_condition(
+                Company, cursor_id, cursor_sort, sort_by=sort_by,
+                sort_dir="desc" if sort_desc else "asc",
+            )
+            base = base.where(condition)
+
+        base = base.limit(page_size + 1)
+        result = await self._session.execute(base)
+        rows = list(result.scalars().all())
+
+        has_next = len(rows) > page_size
+        if has_next:
+            rows = rows[:page_size]
+
+        next_cursor = None
+        previous_cursor = None
+        if rows:
+            last = rows[-1]
+            sort_val = getattr(last, sort_by, None)
+            next_cursor = encode_cursor(str(last.id), sort_val)
+            first = rows[0]
+            sort_val_first = getattr(first, sort_by, None)
+            previous_cursor = encode_cursor(str(first.id), sort_val_first)
+
+        return CursorPage(
+            items=rows,
+            next_cursor=next_cursor,
+            previous_cursor=previous_cursor,
+            has_next=has_next,
+        )
 
     async def find_by_status(self, tenant_id: str, status: str) -> list[Company]:
         result = await self._session.execute(

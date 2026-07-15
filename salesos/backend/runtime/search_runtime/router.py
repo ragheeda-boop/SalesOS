@@ -5,11 +5,13 @@ Endpoints:
   GET /api/v1/search/suggest             — Auto-complete suggestions
   GET /api/v1/search/similar/{company_id} — Semantic similarity
   GET /api/v1/search/metrics             — Search engine metrics
+  POST /api/v1/search/ai                 — AI-powered semantic search
 """
 
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from pydantic import BaseModel
 
 from app.dependencies import get_current_tenant_id, verify_token
 from runtime.search_runtime import SearchStrategy
@@ -119,3 +121,36 @@ async def search_metrics(request: Request, tenant_id: str = Depends(get_current_
     if not sr:
         return {"status": "not_initialized"}
     return sr.metrics.snapshot()
+
+
+class AISearchRequest(BaseModel):
+    text: str
+    limit: int = 10
+
+
+@router.post("/search/ai")
+async def ai_search(
+    body: AISearchRequest,
+    request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
+):
+    sr = getattr(request.app.state, "search_runtime", None)
+    if not sr:
+        raise HTTPException(status_code=503, detail="Search Runtime not initialized")
+
+    try:
+        result = await sr.search(
+            query=body.text,
+            tenant_id=tenant_id,
+            strategy=SearchStrategy.SEMANTIC,
+            limit=body.limit,
+        )
+        return {
+            "query": body.text,
+            "strategy": "semantic",
+            "total": result.total,
+            "took_ms": round(result.took_ms, 2),
+            "items": [item.to_dict() for item in result.items],
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"AI search failed: {exc}")

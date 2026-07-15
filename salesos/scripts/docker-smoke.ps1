@@ -22,13 +22,13 @@ $script:results = @()
 
 function Write-Step {
     param([string]$Message)
-    Write-Host "`n─── $Message ───" -ForegroundColor Yellow
+    Write-Host "`n--- $Message ---" -ForegroundColor Yellow
 }
 
 function Write-Result {
     param([string]$Name, [string]$Status, [string]$Detail = "")
     $color = if ($Status -eq "PASS") { "Green" } else { "Red" }
-    $detailStr = if ($Detail) { " — $Detail" } else { "" }
+    $detailStr = if ($Detail) { " - $Detail" } else { "" }
     Write-Host "  [$Status] $Name$detailStr" -ForegroundColor $color
 }
 
@@ -75,6 +75,7 @@ function Invoke-DockerComposeUp {
             throw "docker compose up failed (exit $LASTEXITCODE)"
         }
         Write-Result "Services Started" "PASS"
+        docker compose ps
     } catch {
         Write-Result "Services Start" "FAIL"
         throw $_.Exception.Message
@@ -175,7 +176,7 @@ function Show-FailingLogs {
     foreach ($svc in $services) {
         $status = docker compose ps --format "{{.Status}}" $svc 2>$null
         if ($status -and ($status -match "unhealthy" -or $status -match "exited")) {
-            Write-Host "`n── Logs for $svc (status: $status) ──" -ForegroundColor DarkRed
+            Write-Host "`n-- Logs for $svc (status: $status) --" -ForegroundColor DarkRed
             $logs = docker compose logs --tail=30 $svc 2>&1
             $logs | ForEach-Object { Write-Host "  $_" -ForegroundColor DarkRed }
         }
@@ -185,9 +186,7 @@ function Show-FailingLogs {
 function New-DockerSmokeTestReport {
     $total = $script:passed + $script:failed
     Write-Host "`n"
-    Write-Host "╔════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-    Write-Host "║          SalesOS Docker E2E Smoke Results          ║" -ForegroundColor Cyan
-    Write-Host "╚════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+    Write-Host "========== SalesOS Docker E2E Smoke Results ==========" -ForegroundColor Cyan
     Write-Host "  Total: $total"
     Write-Host "  Passed: $($script:passed)" -ForegroundColor Green
     Write-Host "  Failed: $($script:failed)" -ForegroundColor $(if ($script:failed -eq 0) { "Green" } else { "Red" })
@@ -206,9 +205,7 @@ function New-DockerSmokeTestReport {
 # ─────────────────────────────────────────────────────────────────
 # Main
 # ─────────────────────────────────────────────────────────────────
-Write-Host "╔════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║     SalesOS Docker E2E Smoke Test v1.0            ║" -ForegroundColor Cyan
-Write-Host "╚════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Host "========== SalesOS Docker E2E Smoke Test v1.0 ==========" -ForegroundColor Cyan
 Write-Host ""
 
 try {
@@ -299,7 +296,6 @@ try {
     if ($script:authToken) {
         Write-Step "Authenticated API tests"
 
-        # Decision evaluate
         $evalBody = @{
             tenant_id = $script:tenantId
             actor_id = "smoke-tester"
@@ -314,7 +310,6 @@ try {
         } | ConvertTo-Json
         Invoke-ApiTest -Name "Decision Evaluate" -Method POST -Url "$BackendUrl/api/v1/decision/evaluate" -Body $evalBody -AuthToken $script:authToken -TenantId $script:tenantId -ExpectedStatus 200 -ExpectedContent "decisionId"
 
-        # Decision rules
         Invoke-ApiTest -Name "Decision Rules" -Method GET -Url "$BackendUrl/api/v1/decision/rules" -AuthToken $script:authToken -TenantId $script:tenantId -ExpectedStatus 200
     } else {
         Write-Step "Authenticated API tests (skipped)"

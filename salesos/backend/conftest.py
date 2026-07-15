@@ -21,9 +21,9 @@ for role_name, perms in PermissionRegistry.default_roles().items():
 
 def _db_url():
     from app.config import settings
-    _host = os.environ.get("TEST_POSTGRES_HOST") or os.environ.get("POSTGRES_HOST", "localhost")
-    _password = os.environ.get("POSTGRES_PASSWORD", settings.postgres_password if settings.postgres_password else "test")
-    _port = os.environ.get("TEST_POSTGRES_PORT") or os.environ.get("POSTGRES_PORT", "5432")
+    _host = os.environ.get("TEST_POSTGRES_HOST") or os.environ.get("POSTGRES_HOST") or settings.postgres_host
+    _password = os.environ.get("POSTGRES_PASSWORD") or settings.postgres_password or "test"
+    _port = os.environ.get("TEST_POSTGRES_PORT") or os.environ.get("POSTGRES_PORT") or str(settings.postgres_port)
     return os.environ.get(
         "TEST_DATABASE_URL",
         f"postgresql+asyncpg://{settings.postgres_user}:{_password}@{_host}:{_port}/salesos_test",
@@ -35,6 +35,7 @@ async def setup_database():
     engine = create_async_engine(_db_url(), echo=False)
     async with engine.begin() as conn:
         await conn.execute(text('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"'))
+        await conn.execute(text('CREATE EXTENSION IF NOT EXISTS pg_trgm'))
         await conn.run_sync(Base.metadata.create_all)
         await conn.execute(text("CREATE SCHEMA IF NOT EXISTS audit"))
         await conn.execute(text("""

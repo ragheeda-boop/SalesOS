@@ -17,8 +17,10 @@ import urllib.error
 from datetime import datetime
 from pathlib import Path
 
+from app.config import settings
+
 BASE = Path("/app")
-API = "http://localhost:8000"
+API = os.getenv("SALESOS_API_URL") or settings.next_public_api_url or "http://localhost:8000"
 
 _ALLOWED_AUDIT_TABLES = frozenset({
     "companies", "contacts", "company_deals", "activity_records",
@@ -75,12 +77,11 @@ def grep_dir(directory, text):
 
 
 def _get_dsn():
-    import os
-    pg_user = os.environ.get("POSTGRES_USER", "salesos")
-    pg_pass = os.environ.get("POSTGRES_PASSWORD", "test")
-    pg_host = os.environ.get("POSTGRES_HOST", "postgres")
-    pg_port = os.environ.get("POSTGRES_PORT", "5432")
-    pg_db = os.environ.get("POSTGRES_DB", "salesos")
+    pg_user = os.environ.get("POSTGRES_USER") or settings.postgres_user
+    pg_pass = os.environ.get("POSTGRES_PASSWORD") or settings.postgres_password or "test"
+    pg_host = os.environ.get("POSTGRES_HOST") or settings.postgres_host
+    pg_port = os.environ.get("POSTGRES_PORT") or str(settings.postgres_port)
+    pg_db = os.environ.get("POSTGRES_DB") or settings.postgres_db
     return os.environ.get("DATABASE_URL") or f"postgresql://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}"
 
 def table_count(table, where="tenant_id"):
@@ -108,7 +109,7 @@ def cat_prod_readiness():
     check(5, c, "Cache connected", lambda: _health_field("cache", "connected"))
     check(5, c, "Graph connected", lambda: _health_field("graph", None))
     check(3, c, "CORS with explicit origins",
-          lambda: file_contains("app/main.py", "allow_origins") and "http://localhost:3000" in (BASE / "app/main.py").read_text())
+          lambda: file_contains("app/main.py", "allow_origins") and settings.allowed_hosts.split(",")[0] in (BASE / "app/main.py").read_text())
     check(3, c, "Graceful shutdown", lambda: file_contains("app/main.py", "shutdown") or file_contains("app/main.py", "lifespan"))
     check(3, c, "Request ID middleware", lambda: bool(grep_dir("app", "request_id")))
     check(3, c, "JSON logging", lambda: bool(grep_dir("app", "json")))
@@ -233,9 +234,9 @@ def _db_has_col(data_type):
 
 def _graph_nodes():
     from neo4j import GraphDatabase
-    uri = os.getenv("NEO4J_URI", "bolt://neo4j:7687")
-    user = os.getenv("NEO4J_USER", "neo4j")
-    pw = os.getenv("NEO4J_PASSWORD", "neo4j_dev_password")
+    uri = os.getenv("NEO4J_URI") or settings.neo4j_uri
+    user = os.getenv("NEO4J_USER") or settings.neo4j_user
+    pw = os.getenv("NEO4J_PASSWORD") or settings.neo4j_password or "neo4j_dev_password"
     driver = None
     try:
         driver = GraphDatabase.driver(uri, auth=(user, pw))

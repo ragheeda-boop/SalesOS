@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import api from "@/lib/api"
 import { Card, Badge, cn, Spinner } from "@salesos/ui"
 import { AlertTriangle, Activity, Clock, MemoryStick, Gauge, RefreshCw, CheckCircle, XCircle } from "lucide-react"
+import { useTranslation } from "@/lib/i18n"
 
 interface AggregatedMetrics {
   api_calls: { total: number; p50_ms: number; p95_ms: number; p99_ms: number }
@@ -15,6 +16,7 @@ interface AggregatedMetrics {
 }
 
 export default function MonitoringPage() {
+  const { t } = useTranslation()
   const [metrics, setMetrics] = useState<AggregatedMetrics | null>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -40,16 +42,16 @@ export default function MonitoringPage() {
   }
 
   if (loading) {
-    return <div className="py-20 text-center text-neutral-500"><Spinner /> جاري التحميل...</div>
+    return <div className="py-20 text-center text-neutral-500"><Spinner /> {t("common.loading")}</div>
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">مراقبة النظام</h1>
+        <h1 className="text-2xl font-bold">{t("monitoring.title")}</h1>
         <div className="flex items-center gap-2">
           <Badge variant={metrics?.system_health?.database === 'connected' ? 'success' : 'danger'}>
-            {metrics?.system_health?.database === 'connected' ? 'متصل' : 'منفصل'}
+            {metrics?.system_health?.database === 'connected' ? t("status.connected") : t("status.disconnected")}
           </Badge>
           <button onClick={handleRefresh} className="rounded-lg p-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800">
             <RefreshCw className={cn("h-5 w-5", refreshing && "animate-spin")} />
@@ -58,17 +60,17 @@ export default function MonitoringPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Activity} label="طلبات API" value={metrics?.api_calls?.total || 0} color="blue" />
-        <StatCard icon={AlertTriangle} label="الأخطاء" value={metrics?.errors?.total || 0} color="red" />
-        <StatCard icon={Clock} label="متوسط زمن التحميل" value={`${metrics?.page_loads?.avg_load_ms || 0}ms`} color="green" />
-        <StatCard icon={MemoryStick} label="الذاكرة" value={metrics?.memory?.current_mb ? `${metrics.memory.current_mb}MB` : '-'} color="purple" />
+        <StatCard icon={Activity} label={t("monitoring.api_requests")} value={metrics?.api_calls?.total || 0} color="blue" />
+        <StatCard icon={AlertTriangle} label={t("monitoring.errors")} value={metrics?.errors?.total || 0} color="red" />
+        <StatCard icon={Clock} label={t("monitoring.page_load")} value={`${metrics?.page_loads?.avg_load_ms || 0}ms`} color="green" />
+        <StatCard icon={MemoryStick} label={t("monitoring.memory")} value={metrics?.memory?.current_mb ? `${metrics.memory.current_mb}MB` : '-'} color="purple" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Gauge className="h-4 w-4" />
-            زمن استجابة API
+            {t("monitoring.latency")}
           </h3>
           <div className="space-y-3">
             <LatencyBar label="p50" value={metrics?.api_calls?.p50_ms || 0} max={1000} color="bg-success-500" />
@@ -80,7 +82,7 @@ export default function MonitoringPage() {
         <Card className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            مقاييس تحميل الصفحة
+            {t("monitoring.page_load")}
           </h3>
           <div className="space-y-3">
             <LatencyBar label="DOM Interactive" value={metrics?.page_loads?.avg_dom_interactive_ms || 0} max={5000} color="bg-info-500" />
@@ -95,7 +97,7 @@ export default function MonitoringPage() {
         <Card className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-danger-500" />
-            آخر الأخطاء
+            {t("monitoring.recent_errors")}
           </h3>
           <div className="space-y-2">
             {metrics.errors.recent.slice(0, 10).map((err, i) => (
@@ -114,7 +116,7 @@ export default function MonitoringPage() {
       <Card className="p-4">
         <h3 className="font-semibold mb-3 flex items-center gap-2">
           <Activity className="h-4 w-4" />
-          حالة النظام
+            {t("monitoring.health")}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {Object.entries(metrics?.system_health || {}).map(([service, status]) => (

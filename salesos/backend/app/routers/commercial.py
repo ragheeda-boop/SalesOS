@@ -82,7 +82,7 @@ async def create_opportunity(
     company_id: str = Query(...), name: str = Query(...),
     value: float = Query(0), tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "opportunity")),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.CREATE)),
 ):
     svc = _get_opp(db)
     opp = await svc.create_opportunity(tenant_id, company_id, name, value=value)
@@ -90,7 +90,7 @@ async def create_opportunity(
 
 
 @router.get("/opportunities", tags=["Opportunities"])
-async def list_opportunities(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "opportunity"))):
+async def list_opportunities(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.READ))):
     from domains.commercial.opportunity.contracts.repository import OpportunityQuery
     svc = _get_opp(db)
     result = await svc.query(OpportunityQuery(tenant_id=tenant_id))
@@ -98,21 +98,21 @@ async def list_opportunities(tenant_id: str = Depends(get_current_tenant_id), db
 
 
 @router.post("/opportunities/{opportunity_id}/advance", tags=["Opportunities"])
-async def advance_opportunity(opportunity_id: str, to_stage: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "opportunity"))):
+async def advance_opportunity(opportunity_id: str, to_stage: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE))):
     svc = _get_opp(db)
     opp = await svc.advance_stage(opportunity_id, to_stage)
     return {"id": opp.id, "stage": opp.stage, "status": opp.status.value}
 
 
 @router.post("/opportunities/{opportunity_id}/won", tags=["Opportunities"])
-async def close_won(opportunity_id: str, amount: float = Query(None), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "opportunity"))):
+async def close_won(opportunity_id: str, amount: float = Query(None), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE))):
     svc = _get_opp(db)
     opp = await svc.close_won(opportunity_id, amount)
     return {"id": opp.id, "status": "won", "won_amount": opp.won_amount}
 
 
 @router.post("/opportunities/{opportunity_id}/lost", tags=["Opportunities"])
-async def close_lost(opportunity_id: str, reason: str = Query(""), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "opportunity"))):
+async def close_lost(opportunity_id: str, reason: str = Query(""), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE))):
     svc = _get_opp(db)
     opp = await svc.close_lost(opportunity_id, reason)
     return {"id": opp.id, "status": "lost", "loss_reason": opp.loss_reason}
@@ -123,7 +123,7 @@ async def close_lost(opportunity_id: str, reason: str = Query(""), tenant_id: st
 # ─────────────────────────────────────────────
 
 @router.post("/pipelines", tags=["Pipelines"])
-async def create_pipeline(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "pipeline"))):
+async def create_pipeline(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.CREATE))):
     from domains.commercial.pipeline.contracts.models import PipelineDefinition
     svc = _get_pipe(db)
     pipe = PipelineDefinition.default_sales_pipeline(tenant_id, f"pipe-{tenant_id}")
@@ -132,14 +132,14 @@ async def create_pipeline(tenant_id: str = Depends(get_current_tenant_id), db: A
 
 
 @router.get("/pipelines", tags=["Pipelines"])
-async def list_pipelines(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "pipeline"))):
+async def list_pipelines(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.READ))):
     svc = _get_pipe(db)
     pipes = await svc.list_pipelines(tenant_id)
     return {"items": [{"id": p.id, "name": p.name, "stages": len(p.stages)} for p in pipes]}
 
 
 @router.get("/pipelines/{pipeline_id}/kpis", tags=["Pipelines"])
-async def pipeline_kpis(pipeline_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "pipeline"))):
+async def pipeline_kpis(pipeline_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.READ))):
     svc = _get_pipe(db)
     kpis = await svc.compute_kpis(pipeline_id, [])
     return {"pipeline_value": kpis.pipeline_value, "weighted": kpis.weighted_pipeline, "win_rate": kpis.win_rate}
@@ -150,14 +150,14 @@ async def pipeline_kpis(pipeline_id: str, tenant_id: str = Depends(get_current_t
 # ─────────────────────────────────────────────
 
 @router.post("/activity-sessions", tags=["Activities"])
-async def create_session(target_id: str = Query(...), title: str = "Session", tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "activity"))):
+async def create_session(target_id: str = Query(...), title: str = "Session", tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("activity", PermissionAction.CREATE))):
     svc = _get_act(db)
     session = await svc.create_session(tenant_id, title, target_id)
     return {"id": session.id, "title": session.title, "target_id": session.target_id}
 
 
 @router.post("/activity-sessions/{session_id}/activities", tags=["Activities"])
-async def add_activity(session_id: str, activity_type: str = Query(...), owner_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "activity"))):
+async def add_activity(session_id: str, activity_type: str = Query(...), owner_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("activity", PermissionAction.CREATE))):
     from domains.commercial.activity.contracts.models import ActivityType
     svc = _get_act(db)
     atype = ActivityType(activity_type)
@@ -166,7 +166,7 @@ async def add_activity(session_id: str, activity_type: str = Query(...), owner_i
 
 
 @router.post("/activities/{activity_id}/complete", tags=["Activities"])
-async def complete_activity(activity_id: str, session_id: str = Query(...), outcome_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "activity"))):
+async def complete_activity(activity_id: str, session_id: str = Query(...), outcome_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("activity", PermissionAction.UPDATE))):
     svc = _get_act(db)
     result = await svc.complete_activity(session_id, activity_id, outcome_id)
     return {"activity_id": result.activity_id, "outcome": result.outcome_label, "business_action": result.business_action}
@@ -177,42 +177,42 @@ async def complete_activity(activity_id: str, session_id: str = Query(...), outc
 # ─────────────────────────────────────────────
 
 @router.post("/quotes", tags=["Quotes"])
-async def create_quote(opportunity_id: str = Query(...), title: str = "Quote", tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "quote"))):
+async def create_quote(opportunity_id: str = Query(...), title: str = "Quote", tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("quote", PermissionAction.CREATE))):
     svc = _get_quote(db)
     q = await svc.create_quote(tenant_id, opportunity_id=opportunity_id, title=title)
     return {"id": q.id, "title": q.title, "status": q.status.value, "version": q.version}
 
 
 @router.post("/quotes/{quote_id}/lines", tags=["Quotes"])
-async def add_quote_line(quote_id: str, description: str = Query(...), quantity: int = Query(1), unit_price: float = Query(0), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "quote"))):
+async def add_quote_line(quote_id: str, description: str = Query(...), quantity: int = Query(1), unit_price: float = Query(0), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("quote", PermissionAction.CREATE))):
     svc = _get_quote(db)
     line = await svc.add_line(quote_id, description, quantity=quantity, unit_price=unit_price)
     return {"id": line.id, "description": line.description, "line_total": line.line_total}
 
 
 @router.post("/quotes/{quote_id}/submit", tags=["Quotes"])
-async def submit_quote(quote_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "quote"))):
+async def submit_quote(quote_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE))):
     svc = _get_quote(db)
     q = await svc.submit_for_approval(quote_id)
     return {"id": q.id, "status": q.status.value, "grand_total": q.grand_total}
 
 
 @router.post("/quotes/{quote_id}/approve", tags=["Quotes"])
-async def approve_quote(quote_id: str, approved_by: str = Query("manager"), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "quote"))):
+async def approve_quote(quote_id: str, approved_by: str = Query("manager"), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE))):
     svc = _get_quote(db)
     q = await svc.approve(quote_id, approved_by)
     return {"id": q.id, "status": q.status.value, "approved": q.approval.is_approved}
 
 
 @router.post("/quotes/{quote_id}/send", tags=["Quotes"])
-async def send_quote(quote_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "quote"))):
+async def send_quote(quote_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE))):
     svc = _get_quote(db)
     q = await svc.send(quote_id)
     return {"id": q.id, "status": q.status.value}
 
 
 @router.post("/quotes/{quote_id}/accept", tags=["Quotes"])
-async def accept_quote(quote_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "quote"))):
+async def accept_quote(quote_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE))):
     svc = _get_quote(db)
     q = await svc.accept(quote_id)
     return {"id": q.id, "status": q.status.value, "grand_total": q.grand_total}
@@ -223,14 +223,14 @@ async def accept_quote(quote_id: str, tenant_id: str = Depends(get_current_tenan
 # ─────────────────────────────────────────────
 
 @router.post("/proposals", tags=["Proposals"])
-async def create_proposal(opportunity_id: str = Query(...), quote_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "proposal"))):
+async def create_proposal(opportunity_id: str = Query(...), quote_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.CREATE))):
     svc = _get_proposal(db)
     p = await svc.create_proposal(tenant_id, opportunity_id, quote_id)
     return {"id": p.id, "status": p.status.value, "sections": len(p.sections)}
 
 
 @router.post("/proposals/{proposal_id}/deliver", tags=["Proposals"])
-async def deliver_proposal(proposal_id: str, method: str = Query("email"), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "proposal"))):
+async def deliver_proposal(proposal_id: str, method: str = Query("email"), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.UPDATE))):
     svc = _get_proposal(db)
     p = await svc.approve(proposal_id, "auto")
     p = await svc.deliver(proposal_id, method=method)
@@ -238,7 +238,7 @@ async def deliver_proposal(proposal_id: str, method: str = Query("email"), tenan
 
 
 @router.post("/proposals/{proposal_id}/accept", tags=["Proposals"])
-async def accept_proposal(proposal_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "proposal"))):
+async def accept_proposal(proposal_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.UPDATE))):
     svc = _get_proposal(db)
     p = await svc.approve(proposal_id, "auto")
     p = await svc.deliver(proposal_id)
@@ -252,14 +252,14 @@ async def accept_proposal(proposal_id: str, tenant_id: str = Depends(get_current
 # ─────────────────────────────────────────────
 
 @router.post("/contracts", tags=["Contracts"])
-async def create_contract(opportunity_id: str = Query(...), quote_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "contract"))):
+async def create_contract(opportunity_id: str = Query(...), quote_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("contract", PermissionAction.CREATE))):
     svc = _get_contract(db)
     c = await svc.create_contract(tenant_id, opportunity_id=opportunity_id, quote_id=quote_id)
     return {"id": c.id, "status": c.status.value}
 
 
 @router.post("/contracts/{contract_id}/sign", tags=["Contracts"])
-async def sign_contract(contract_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.UPDATE, "contract"))):
+async def sign_contract(contract_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("contract", PermissionAction.UPDATE))):
     svc = _get_contract(db)
     c = await svc.sign(contract_id)
     c = await svc.activate(contract_id)
@@ -271,7 +271,7 @@ async def sign_contract(contract_id: str, tenant_id: str = Depends(get_current_t
 # ─────────────────────────────────────────────
 
 @router.post("/forecast/run", tags=["Forecast"])
-async def run_forecast(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "forecast"))):
+async def run_forecast(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("forecast", PermissionAction.CREATE))):
     from domains.revenue.forecast.engine import CommercialInput
     import os
 
@@ -298,7 +298,7 @@ async def run_forecast(tenant_id: str = Depends(get_current_tenant_id), db: Asyn
 
 
 @router.get("/forecast", tags=["Forecast"])
-async def get_forecast(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "forecast"))):
+async def get_forecast(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("forecast", PermissionAction.READ))):
     svc = _get_forecast(db)
     latest = await svc.get_latest(tenant_id)
     if not latest:
@@ -319,7 +319,7 @@ async def get_forecast(tenant_id: str = Depends(get_current_tenant_id), db: Asyn
 # ─────────────────────────────────────────────
 
 @router.post("/analytics/generate", tags=["Analytics"])
-async def generate_analytics(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "analytics"))):
+async def generate_analytics(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("analytics", PermissionAction.CREATE))):
     from datetime import datetime, timedelta, timezone
     from domains.revenue.analytics.service import AnalyticsInput
     svc = _get_analytics(db)
@@ -340,7 +340,7 @@ async def generate_analytics(tenant_id: str = Depends(get_current_tenant_id), db
 
 
 @router.get("/analytics/kpis", tags=["Analytics"])
-async def analytics_kpis(tenant_id: str = Depends(get_current_tenant_id), _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "analytics"))):
+async def analytics_kpis(tenant_id: str = Depends(get_current_tenant_id), _rbac: None = Depends(require_permission_dep("analytics", PermissionAction.READ))):
     from domains.revenue.analytics.registry import KPIRegistry
     KPIRegistry.load_defaults()
     return {"kpis": [{"id": k.id, "name": k.name, "category": k.category.value, "formula": k.formula} for k in KPIRegistry.all().values()]}
@@ -351,7 +351,7 @@ async def analytics_kpis(tenant_id: str = Depends(get_current_tenant_id), _rbac:
 # ─────────────────────────────────────────────
 
 @router.post("/decision/context", tags=["Decisions"])
-async def build_context(target_id: str = Query(...), target_type: str = Query("opportunity"), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "decision"))):
+async def build_context(target_id: str = Query(...), target_type: str = Query("opportunity"), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("decision", PermissionAction.CREATE))):
     ctx = _get_context(db)
     from domains.decision.context.models import DecisionFactor
     factors = [
@@ -368,7 +368,7 @@ async def build_context(target_id: str = Query(...), target_type: str = Query("o
 
 
 @router.post("/recommendations/evaluate", tags=["Decisions"])
-async def evaluate_recommendation(context_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "decision"))):
+async def evaluate_recommendation(context_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("decision", PermissionAction.READ))):
     ctx_svc = _get_context(db)
     context = await ctx_svc.get_context(context_id)
     if not context:
@@ -397,7 +397,7 @@ async def evaluate_recommendation(context_id: str = Query(...), tenant_id: str =
 # ─────────────────────────────────────────────
 
 @router.get("/workspace", tags=["Workspace"])
-async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "workspace"))):
+async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("workspace", PermissionAction.READ))):
     """Rich aggregated workspace — powers the main dashboard UI."""
     from datetime import datetime, timezone
     result = {"tenant_id": tenant_id, "generated_at": datetime.now(timezone.utc).isoformat()}

@@ -119,12 +119,12 @@ class ApplicationMetricsCollector:
                 path_clean = path.replace('"', '\\"')
                 labels = f'method="{method}",path="{path_clean}"'
                 snap = hist.snapshot()
-                base = f'salesos_http_request_duration_seconds{{{labels}}}'
+                base = "salesos_http_request_duration_seconds"
                 for bucket, count in sorted(snap["buckets"].items()):
-                    _line(f'{base}_bucket{{le="{bucket}"}} {count}')
-                _line(f'{base}_bucket{{le="+Inf"}} {snap["count"]}')
-                _line(f"{base}_count {snap['count']}")
-                _line(f"{base}_sum {snap['sum']:.6f}")
+                    _line(f'{base}_bucket{{{labels},le="{bucket}"}} {count}')
+                _line(f'{base}_bucket{{{labels},le="+Inf"}} {snap["count"]}')
+                _line(f"{base}_count{{{labels}}} {snap['count']}")
+                _line(f"{base}_sum{{{labels}}} {snap['sum']:.6f}")
 
             # ── Error counts ──
             _line("")

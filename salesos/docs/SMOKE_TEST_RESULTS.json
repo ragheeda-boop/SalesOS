@@ -1,0 +1,8 @@
+﻿{
+    "environment":  "http://localhost:8000",
+    "passed":  6,
+    "timestamp":  "2026-07-14T10:15:16Z",
+    "total":  11,
+    "failed":  0,
+    "skipped":  5
+}

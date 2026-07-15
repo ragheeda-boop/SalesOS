@@ -93,6 +93,7 @@ class CompanySearchParams(BaseModel):
     page_size: int = Field(default=20, ge=1, le=100)
     sort_by: str = "created_at"
     sort_order: str = "desc"
+    cursor: str | None = None
 
 
 class BranchCreate(BaseModel):

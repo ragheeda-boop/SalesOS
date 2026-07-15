@@ -44,6 +44,8 @@ export const contactKeys = {
 };
 
 export const activityKeys = {
+  all: ["activities"] as const,
+  global: (filters?: Record<string, unknown>) => [...activityKeys.all, "global", filters] as const,
   entity: (entityType: string, entityId: string) =>
     ["activities", entityType, entityId] as const,
 };
@@ -98,6 +100,14 @@ export const adminKeys = {
   roles: () => ["admin", "roles"] as const,
   permissions: () => ["admin", "permissions"] as const,
   auditLogs: (filters?: Record<string, unknown>) => ["admin", "audit", "logs", filters] as const,
+};
+
+export const ruleKeys = {
+  all: ["rules"] as const,
+  lists: () => [...ruleKeys.all, "list"] as const,
+  list: (filters?: Record<string, unknown>) => [...ruleKeys.lists(), filters] as const,
+  details: () => [...ruleKeys.all, "detail"] as const,
+  detail: (id: string) => [...ruleKeys.details(), id] as const,
 };
 
 export const decisionKeys = {

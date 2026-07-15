@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.schemas import PaginatedResponse
+from app.common.schemas import CursorResponse, PaginatedResponse
 from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
 from sdk.permissions import PermissionAction
 from domains.search.contracts.models import SearchQuery, SearchSort
@@ -90,6 +90,7 @@ async def search_companies(
     page_size: int = Query(20, ge=1, le=100),
     sort_by: str = Query("created_at"),
     sort_order: str = Query("desc"),
+    cursor: str | None = Query(None),
     tenant_id: str = Depends(get_current_tenant_id),
     planner: SearchPlanner = Depends(get_search_planner),
     service: CompanyService = Depends(get_service),
@@ -113,6 +114,7 @@ async def search_companies(
         page=page,
         page_size=page_size,
         tenant_id=tenant_id,
+        context={"cursor": cursor} if cursor else {},
     )
 
     result = await planner.search(query)
@@ -135,7 +137,12 @@ async def search_companies(
         )
         for c in result.items
     ]
-    return PaginatedResponse(total=result.total, page=result.page, page_size=result.page_size, items=items)
+    return CursorResponse(
+        data=items,
+        next_cursor=result.next_cursor,
+        total=result.total,
+        has_next=result.next_cursor is not None,
+    ) if cursor else PaginatedResponse(total=result.total, page=result.page, page_size=result.page_size, items=items)
 
 
 @router.get("/{company_id}", response_model=CompanyResponse,
@@ -292,8 +299,7 @@ async def company_360(
         }
     return Company360Response(**result)
 
-# Alias: /intelligence → /360 (للتطابق مع frontend)
-@router.get("/{company_id}/intelligence", response_model=Company360Response,
+@router.get("/{company_id}/intelligence",
             dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))])
 async def company_intelligence(
     company_id: str,
@@ -304,7 +310,59 @@ async def company_intelligence(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
 ):
-    return await company_360(company_id, request, tenant_id, service, db, page, page_size)
+    from .intelligence_computer import build_intelligence_dto
+    resp = await company_360(company_id, request, tenant_id, service, db, page, page_size)
+    return build_intelligence_dto(resp)
+
+
+@router.get("/cursors", response_model=CursorResponse)
+async def search_companies_cursor(
+    q: str | None = Query(None),
+    cr_number: str | None = Query(None),
+    status: str | None = Query(None),
+    city: str | None = Query(None),
+    region: str | None = Query(None),
+    activity_code: str | None = Query(None),
+    page_size: int = Query(20, ge=1, le=100),
+    sort_by: str = Query("created_at"),
+    sort_order: str = Query("desc"),
+    cursor: str | None = Query(None),
+    tenant_id: str = Depends(get_current_tenant_id),
+    service: CompanyService = Depends(get_service),
+):
+    filters = {}
+    if cr_number:
+        filters["cr_number"] = {"contains": cr_number}
+    if status:
+        filters["status"] = status
+    if city:
+        filters["city"] = {"contains": city}
+    if region:
+        filters["region"] = {"contains": region}
+    if activity_code:
+        filters["activity_code"] = activity_code
+
+    result = await service.search_companies_cursored(
+        tenant_id=tenant_id,
+        query=q,
+        filters=filters,
+        page_size=page_size,
+        sort_by=sort_by,
+        sort_desc=sort_order == "desc",
+        cursor=cursor,
+    )
+    return CursorResponse(
+        data=[CompanyListResponse(
+            id=c.id, name_ar=c.name_ar, name_en=c.name_en,
+            cr_number=c.cr_number, status=c.status, city=c.city,
+            region=c.region, confidence_score=c.confidence_score,
+            created_at=c.created_at,
+        ) for c in result.items],
+        next_cursor=result.next_cursor,
+        previous_cursor=result.previous_cursor,
+        has_next=result.has_next,
+        has_previous=result.has_previous,
+    )
 
 
 @router.post("/ingest", status_code=201,

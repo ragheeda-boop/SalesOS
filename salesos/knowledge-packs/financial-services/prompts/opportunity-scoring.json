@@ -1,0 +1,22 @@
+{
+  "prompt_id": "kp-financial-services.opportunity-scoring",
+  "name": "Financial Services Compliance Assessment",
+  "version": "1.0.0",
+  "domain": "financial-services",
+  "active": true,
+  "template": "أنت خبير امتثال تنظيمي في قطاع الخدمات المالية السعودي. قم بتقييم الامتثال التنظيمي والمخاطر للمؤسسة التالية.\n\nمعلومات المؤسسة:\n- الاسم: {company_name}\n- نوع الترخيص: {license_type}\n- الجهة التنظيمية: {regulator}\n- تاريخ الترخيص: {license_date}\n- حجم الأصول: {asset_size}\n- عدد الفروع: {branch_count}\n- نسبة الامتثال: {compliance_ratio}\n- العقوبات السابقة: {previous_penalties}\n- آخر تدقيق: {last_audit_date}\n\nمجالات التقييم:\n1. الامتثال التنظيمي — الالتزام بلوائح SAMA/CMA\n2. إدارة المخاطر — جودة إطار إدارة المخاطر\n3. الحوكمة — هيكل الحوكمة المؤسسية\n4. مكافحة غسل الأموال (AML) — التزام بتعليمات مكافحة غسل الأموال\n5. أمن المعلومات — تطبيق معايير الأمن السيبراني\n6. كفاية رأس المال — نسبة كفاية رأس المال مقابل المتطلبات\n7. جودة الأصول — نسبة القروض المتعثرة وجودة المحفظة\n\nيجب أن يكون الرد بصيغة JSON:\n- overall_compliance_score: درجة الامتثال الإجمالية (0-100)\n- dimension_scores: scores لكل بعد\n- risk_level: مستوى الخطر (low/medium/high/critical)\n- regulatory_gaps: الفجوات التنظيمية\n- recommendations: التوصيات\n- sales_opportunities: فرص البيع المرتبطة بالامتثال\n- confidence: درجة الثقة (0-1)",
+  "variables": ["company_name", "license_type", "regulator", "license_date", "asset_size", "branch_count", "compliance_ratio", "previous_penalties", "last_audit_date"],
+  "output_schema": {
+    "type": "object",
+    "required": ["overall_compliance_score", "dimension_scores", "risk_level", "confidence"],
+    "properties": {
+      "overall_compliance_score": {"type": "number", "minimum": 0, "maximum": 100},
+      "dimension_scores": {"type": "object"},
+      "risk_level": {"type": "string", "enum": ["low", "medium", "high", "critical"]},
+      "regulatory_gaps": {"type": "array"},
+      "recommendations": {"type": "array"},
+      "sales_opportunities": {"type": "array"},
+      "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "prompt_id": "kp-construction.opportunity-scoring",
+  "name": "Construction Project Risk Assessment",
+  "version": "1.0.0",
+  "domain": "construction",
+  "active": true,
+  "template": "أنت خبير تقييم مخاطر المشاريع في قطاع المقاولات السعودي. قم بتقييم مخاطر المشروع/الفرصة التالية.\n\nمعلومات المشروع:\n- العميل: {company_name}\n- تصنيف المقاول: {contractor_grade}\n- نوع المشروع: {project_type}\n- قيمة المشروع: {project_value}\n- مدة المشروع: {project_duration}\n- موقع المشروع: {project_location}\n- الجهة المالكة: {project_owner} (حكومي/خاص)\n- مرحلة المشروع: {project_stage}\n\nعوامل التقييم:\n1. المخاطر المالية — قدرة المقاول على تمويل المشروع\n2. المخاطر التشغيلية — الخبرة في هذا النوع من المشاريع\n3. المخاطر التعاقدية — شروط العقد، التأمينات، الضمانات\n4. مخاطر الجدول الزمني — واقعية المدة\n5. مخاطر الموقع — التحديات الجغرافية واللوجستية\n6. مخاطر الامتثال — تصنيف المقاولين، التراخيص\n7. مخاطر السوق — تقلبات الأسعار، توفر المواد\n\nيجب أن يكون الرد بصيغة JSON:\n- overall_risk_score: درجة الخطر الإجمالية (0-100)\n- risk_categories: scores لكل فئة خطر\n- icp_fit: ملاءمة المقاول للفرصة\n- risk_mitigations: إجراءات تخفيف المخاطر\n- bid_recommendation: (bid/no-bid/conditional)\n- confidence: درجة الثقة (0-1)",
+  "variables": ["company_name", "contractor_grade", "project_type", "project_value", "project_duration", "project_location", "project_owner", "project_stage"],
+  "output_schema": {
+    "type": "object",
+    "required": ["overall_risk_score", "risk_categories", "bid_recommendation", "confidence"],
+    "properties": {
+      "overall_risk_score": {"type": "number", "minimum": 0, "maximum": 100},
+      "risk_categories": {"type": "object"},
+      "icp_fit": {"type": "object"},
+      "risk_mitigations": {"type": "array"},
+      "bid_recommendation": {"type": "string", "enum": ["bid", "no-bid", "conditional"]},
+      "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+    }
+  }
+}

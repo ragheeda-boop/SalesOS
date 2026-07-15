@@ -684,3 +684,73 @@ async def run_decision_health_check():
     registry = DecisionWidgetRegistry.get_instance()
     results = registry.run_health_checks()
     return {"results": {k: v.value for k, v in results.items()}, "total": len(results)}
+
+
+# ── Roles & Permissions (seed data — DB-backed in future) ────────────────────
+
+_SEED_ROLES = [
+    {"id": "role_admin", "name": "Admin", "description": "Full system access", "permissions": ["admin", "manage_users", "manage_billing", "manage_plans", "manage_roles"], "is_system": True, "user_count": 2, "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-07-01T00:00:00Z"},
+    {"id": "role_sales_manager", "name": "Sales Manager", "description": "Manage sales team and pipeline", "permissions": ["read_companies", "read_contacts", "manage_opportunities", "manage_tasks", "reports"], "is_system": False, "user_count": 5, "created_at": "2026-01-15T00:00:00Z", "updated_at": "2026-07-01T00:00:00Z"},
+    {"id": "role_sales_rep", "name": "Sales Representative", "description": "Basic sales access", "permissions": ["read_companies", "read_contacts", "manage_opportunities"], "is_system": False, "user_count": 12, "created_at": "2026-01-15T00:00:00Z", "updated_at": "2026-07-01T00:00:00Z"},
+    {"id": "role_viewer", "name": "Viewer", "description": "Read-only access", "permissions": ["read_companies", "read_contacts"], "is_system": False, "user_count": 3, "created_at": "2026-02-01T00:00:00Z", "updated_at": "2026-07-01T00:00:00Z"},
+]
+
+_SEED_PERMISSIONS = [
+    {"id": "perm_admin", "key": "admin", "name": "Administrator", "description": "Full admin access", "group": "system"},
+    {"id": "perm_manage_users", "key": "manage_users", "name": "Manage Users", "description": "Create, edit, deactivate users", "group": "users"},
+    {"id": "perm_manage_billing", "key": "manage_billing", "name": "Manage Billing", "description": "Manage invoices and payments", "group": "billing"},
+    {"id": "perm_manage_plans", "key": "manage_plans", "name": "Manage Plans", "description": "Create and edit subscription plans", "group": "billing"},
+    {"id": "perm_manage_roles", "key": "manage_roles", "name": "Manage Roles", "description": "Create and edit RBAC roles", "group": "users"},
+    {"id": "perm_read_companies", "key": "read_companies", "name": "Read Companies", "description": "View company data", "group": "crm"},
+    {"id": "perm_read_contacts", "key": "read_contacts", "name": "Read Contacts", "description": "View contact data", "group": "crm"},
+    {"id": "perm_manage_opportunities", "key": "manage_opportunities", "name": "Manage Opportunities", "description": "Create and manage sales opportunities", "group": "sales"},
+    {"id": "perm_manage_tasks", "key": "manage_tasks", "name": "Manage Tasks", "description": "Create and manage tasks", "group": "sales"},
+    {"id": "perm_reports", "key": "reports", "name": "Reports", "description": "View and generate reports", "group": "analytics"},
+]
+
+
+@router.get("/roles")
+async def list_roles():
+    return _SEED_ROLES
+
+
+@router.post("/roles", status_code=201)
+async def create_role(data: dict):
+    import uuid
+    role = {
+        "id": f"role_{uuid.uuid4().hex[:8]}",
+        "name": data.get("name", ""),
+        "description": data.get("description", ""),
+        "permissions": data.get("permissions", []),
+        "is_system": False,
+        "user_count": 0,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    _SEED_ROLES.append(role)
+    return role
+
+
+@router.put("/roles/{role_id}")
+async def update_role(role_id: str, data: dict):
+    for role in _SEED_ROLES:
+        if role["id"] == role_id:
+            role.update({k: v for k, v in data.items() if k != "id"})
+            role["updated_at"] = datetime.now(timezone.utc).isoformat()
+            return role
+    raise HTTPException(status_code=404, detail="Role not found")
+
+
+@router.delete("/roles/{role_id}")
+async def delete_role(role_id: str):
+    global _SEED_ROLES
+    original_len = len(_SEED_ROLES)
+    _SEED_ROLES = [r for r in _SEED_ROLES if r["id"] != role_id]
+    if len(_SEED_ROLES) == original_len:
+        raise HTTPException(status_code=404, detail="Role not found")
+    return {"status": "deleted", "id": role_id}
+
+
+@router.get("/permissions")
+async def list_permissions():
+    return _SEED_PERMISSIONS

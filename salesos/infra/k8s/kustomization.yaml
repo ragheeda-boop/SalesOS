@@ -1,0 +1,56 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: salesos
+
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/managed-by: kustomize
+      app.kubernetes.io/environment: production
+
+resources:
+  - namespace.yaml
+  - resource-quota.yaml
+  - limit-range.yaml
+  - configmap.yaml
+  - secrets.yaml
+
+  - postgres/statefulset.yaml
+  - postgres/service.yaml
+
+  - neo4j/statefulset.yaml
+  - neo4j/service.yaml
+
+  - redis/deployment.yaml
+  - redis/service.yaml
+
+  - backend/deployment.yaml
+  - backend/service.yaml
+  - backend/hpa.yaml
+  - backend/ingress.yaml
+
+  - frontend/deployment.yaml
+  - frontend/service.yaml
+  - frontend/hpa.yaml
+  - frontend/ingress.yaml
+
+  - kafka/statefulset.yaml
+  - kafka/service.yaml
+
+  - prometheus/deployment.yaml
+  - prometheus/service.yaml
+  - prometheus/configmap.yaml
+  - prometheus/prometheus-rule.yaml
+
+  - grafana/deployment.yaml
+  - grafana/service.yaml
+  - grafana/configmap.yaml
+
+  - alertmanager/deployment.yaml
+  - monitoring-ingress.yaml
+
+  - backup-cronjob.yaml
+  - restore-test-cronjob.yaml
+  - network-policy.yaml
+  - pdb.yaml

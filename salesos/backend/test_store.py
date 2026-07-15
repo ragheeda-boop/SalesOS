@@ -3,13 +3,14 @@ import asyncio, json, os, uuid
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy import text
+from app.config import settings
 
 async def test():
-    pg_user = os.environ.get("POSTGRES_USER", "salesos")
-    pg_pass = os.environ.get("POSTGRES_PASSWORD", "test")
-    pg_host = os.environ.get("POSTGRES_HOST", "postgres")
-    pg_port = os.environ.get("POSTGRES_PORT", "5432")
-    pg_db = os.environ.get("POSTGRES_DB", "salesos")
+    pg_user = os.environ.get("POSTGRES_USER") or settings.postgres_user
+    pg_pass = os.environ.get("POSTGRES_PASSWORD") or settings.postgres_password
+    pg_host = os.environ.get("POSTGRES_HOST") or settings.postgres_host
+    pg_port = os.environ.get("POSTGRES_PORT") or str(settings.postgres_port)
+    pg_db = os.environ.get("POSTGRES_DB") or settings.postgres_db
     engine = create_async_engine(f'postgresql+asyncpg://{pg_user}:{pg_pass}@{pg_host}:{pg_port}/{pg_db}')
     factory = async_sessionmaker(engine, class_=AsyncSession)
 

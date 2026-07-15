@@ -24,21 +24,14 @@ def upgrade() -> None:
     # 1. Ensure pgvector extension (idempotent)
     op.execute("CREATE EXTENSION IF NOT EXISTS vector")
 
-    # 2. Composite index for filtered full-text search.
-    #    Most queries are tenant-scoped + full-text match. A composite index
-    #    on (tenant_id, search_vector) lets PostgreSQL skip the row-level
-    #    filter and jump straight to the GIN scan within the tenant partition.
+    # 2. Create a btree index on tenant_id for fast tenant-scoped lookups
     op.execute("""
-        CREATE INDEX IF NOT EXISTS idx_companies_tenant_search_vector
-        ON companies USING GIN(tenant_id, search_vector)
+        CREATE INDEX IF NOT EXISTS idx_companies_tenant_search
+        ON companies (tenant_id)
     """)
 
-    # 3. Ensure HNSW index exists on embedding_vector for semantic search.
-    #    This is a safety net — 0017 should have created it already.
-    op.execute("""
-        CREATE INDEX IF NOT EXISTS idx_companies_embedding_hnsw
-        ON companies USING hnsw (embedding_vector vector_cosine_ops)
-    """)
+    # 3. Skip HNSW index — 3072-dim vectors exceed pgvector's 2000-dim HNSW limit.
+    #    The column works for exact search without an index.
 
     # 4. Partial index: only companies with embeddings get indexed in HNSW.
     #    Reduces index size and speeds up insertion for companies without embeddings.
@@ -78,5 +71,4 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.execute("DROP TRIGGER IF EXISTS trg_companies_search_vectors ON companies")
     op.execute("DROP FUNCTION IF EXISTS refresh_companies_search_vectors()")
-    op.execute("DROP INDEX IF EXISTS idx_companies_tenant_search_vector")
-    op.execute("DROP INDEX IF EXISTS idx_companies_embedding_hnsw")
+    op.execute("DROP INDEX IF EXISTS idx_companies_tenant_search")

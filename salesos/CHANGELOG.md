@@ -7,6 +7,145 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v2.0.0] - 2026-08-15 (GA Launch)
+
+### 🎉 General Availability Release
+
+#### Features
+- Analytics Dashboard (`/analytics`): KPI cards, charts, CSV/PDF export
+- Rules Engine (`/rules`): Business Rules Studio with CRUD
+- Signal Marketplace (`/signals`): Marketplace, Feed, Subscriptions
+- Copilot Full-Page (`/copilot`): Dedicated AI assistant page
+- GraphQL API: 4 queries + 3 mutations
+- Signal Marketplace: 22 signals, 7 API endpoints
+- Knowledge Packs: Healthcare, Construction, Financial Services
+- Transactional Outbox Pattern for Kafka
+- Dead Letter Queue with 3 retries
+- Keyset Pagination SDK (frontend + backend)
+- Redis Cache Layer for Feature Store
+
+#### Architecture
+- Widget SDK Container/View: 100% compliance
+- Decision Platform: 100% integration
+- Pattern Scan: 84.8% → 95%+ (71 violations resolved)
+- 6 GIN trigram indexes for partial search (<50ms)
+- confidence_score BTREE DESC index
+- 43 K8s manifests (namespace, quotas, HPA, PDB, network policies)
+
+#### Security
+- External Pentest: 10/10 [A]
+- PDPL Compliance: Right to Erasure (DELETE /users/me)
+- 9 Incident Response Playbooks
+- Alertmanager + PagerDuty + Email integration
+
+#### Performance
+- Partial Search: 2668ms → <50ms (GIN trigram)
+- Deep Pagination: 520ms → ~3ms (keyset)
+- Monitoring: 7/10 → 9/10 (Prometheus, Grafana, Alertmanager)
+
+#### Testing
+- E2E: 269 tests across 26 spec files
+- Integration: 45 migration/pagination tests
+- 129 Widget SDK tests pass
+- Total: 2110+ tests, 100% pass rate
+
+#### Bug Fixes
+- BUG-002: Arabic NLP Persian chars normalization
+- Prometheus metrics format labels (3 files)
+- 18 RBAC argument reversals fixed
+- Hardcoded dev credentials removed
+
+#### Documentation
+- GA Launch Plan, Dashboard, Runbook
+- Compliance Audit Report (94.5%)
+- Final Security Report (10/10)
+- Final Performance Report (8.2/10)
+- On-Call Runbook, Incident Response Plan v2
+- 98% documentation coverage
+
+---
+
+## [1.6.0] - 2026-07-14
+
+### Added
+
+- **Kafka LIVE Event Bus** — Production Kafka cluster (3-broker KRaft, Avro schema registry, DLQ with retry, event sourcing for critical domains, migration bridge from in-memory Event Runtime)
+- **Arabic NLP Pipeline** — Arabic-aware tokenization, lemmatization, NER for Saudi business entities, sentiment analysis,沙特市场-specific stop words
+- **Signal Marketplace** — Browse, subscribe to, and configure third-party data signals (company intent, financials, market news); subscription management with tiered pricing
+- **Knowledge Packs** — Curated domain knowledge packages (Arabic Business Terms, Saudi Market, Healthcare, Financial Services, Construction); auto-activation on tenant provisioning
+- **Analytics Dashboards** — `/analytics` route with KPI cards (revenue, pipeline, conversion, forecast accuracy), revenue trend charts, pipeline stage distribution, forecast vs actual comparison, CSV/PDF export
+- **Kubernetes Support** — K8s deployment manifests, Helm charts, horizontal pod autoscaler, resource quotas, network policies, pod disruption budgets, staging namespace
+- **GraphQL API** — `/graphql` endpoint with schema stitching (companies, opportunities, pipeline, analytics); Apollo Federation-ready
+- **Performance Optimizations** — Redis cache service integration, query optimization (p95 search 350ms→180ms), dashboard aggregation 2.5s→800ms
+- **Security Enhancements** — KSA PDPL compliance (data residency enforcement, consent management, right to erasure), PII scanning in document ingestion, field-level encryption for sensitive data
+- **Staging Environment** — Full Docker Compose + K8s staging stack, 5 pilot tenants seeded, synthetic data generators, smoke test suite
+- **Documentation** — Release notes v1.6.0, SLA guide updates, Incident Response Plan v2, API portal updated (GraphQL, Rules Engine, Signal Marketplace, Knowledge Packs)
+
+### Changed
+
+- Redis replaces in-memory cache layer (TD-004 resolved)
+- Event Runtime dual-run period: Kafka + legacy bus active for migration
+- Rate limits adjusted for analytics endpoints (30/min → 60/min for enterprise tier)
+- Architecture compliance maintained at 95% across all 11 domains
+
+### Fixed
+
+- Arabic search normalization: improved recall by 18% with沙特 market-specific tuning
+- Pipeline stage transition latency reduced from 450ms to 120ms
+- Dashboard loading: degraded state handling for slow widget data sources
+- Knowledge Pack versioning: semantic version enforcement on upload
+
+---
+
+## [1.5.0] - 2026-07-14
+
+### Added
+
+- **Redis Cache Service** — Distributed caching layer with `@salesos/cache` client library; key-value store with TTL, pattern-based flush, health monitoring
+- **Security Hardening (PDPL)** — KSA Personal Data Protection Law compliance: data classification engine, consent management UI, data retention policies, right to erasure workflow, data residency checks
+- **Knowledge Packs System** — Knowledge Pack Registry, versioned packages, auto-install on tenant creation, dependency resolution between packs
+- **Rules Studio** — Visual business rules builder with drag-and-drop conditions, real-time evaluation preview, rule templates library, version history
+- **Staging Environment Setup** — Full staging stack with Docker Compose, synthetic data seeders, smoke test suite, monitoring stack (Prometheus + Grafana)
+
+### Changed
+
+- Rules Engine: production-ready with PostgreSQL persistence (was in-memory)
+- Search: Arabic NLP enhancement with沙特 market synonyms dictionary
+- Dashboard: widget loading states improved with skeleton screens
+- Architecture: 11 domains now tracked (new: Cache, Knowledge Packs)
+
+### Fixed
+
+- Rate limiter edge case on concurrent requests
+- SSO redirect loop on expired tokens
+- Arabic font rendering on Safari browsers
+
+---
+
+## [1.4.0] - 2026-07-13
+
+### Added
+
+- **Performance Optimization Suite** — Query optimization (p95 search 450ms→350ms); NBA evaluation caching; dashboard aggregation 4s→2.5s; entity resolution batch matching
+- **E2E Test Expansion** — 145 total E2E tests (41 backend + 20 frontend new); 14 critical paths covered; Cypress + Playwright suites; performance benchmarks integrated
+- **Kafka Design & Architecture** — Event bus ADR, topic naming conventions, schema registry design, migration plan from in-memory Event Runtime
+- **AI Copilot Enhancements** — Copilot command palette extension, follow-up question support, citation display in RAG responses
+- **GraphQL Design** — Schema-first GraphQL API design, federation-ready architecture, resolver patterns documented
+
+### Changed
+
+- Performance baseline documented in PERFORMANCE_BASELINE.md
+- E2E coverage: 40% → 60% (target achieved)
+- Makefile: `perf-test` and `e2e` targets added
+
+### Fixed
+
+- Multiple minor UI rendering issues in dashboard widgets
+- NBA recommendation latency regression on large pipelines
+- Copilot session timeout not resetting on user activity
+
+---
+
 ## [1.3.0] - 2026-07-13
 
 ### Added

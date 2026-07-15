@@ -1,0 +1,22 @@
+{
+  "prompt_id": "kp-construction.company-summary",
+  "name": "Construction Company Summary",
+  "version": "1.0.0",
+  "domain": "construction",
+  "active": true,
+  "template": "أنت محلل متخصص في قطاع المقاولات والإنشاءات السعودي. قم بتحليل شركة {company_name} وأعط ملخصًا شاملاً.\n\nالمعلومات المتاحة:\n- الاسم: {company_name}\n- نوع الشركة: {company_type}\n- تصنيف المقاولين: {contractor_grade} (أول/ثاني/ثالث/رابع/خامس)\n- رأس المال: {capital}\n- عدد المشاريع: {project_count}\n- إجمالي قيمة المشاريع: {total_project_value}\n- التخصصات: {specializations}\n- شهادات الجودة: {quality_certifications}\n- الإيرادات السنوية: {annual_revenue}\n- عدد الموظفين: {employee_count}\n\nالمطلوب:\n1. ملخص الشركة — النشاط الرئيسي، الحجم، التصنيف\n2. الوضع التصنيفي — تصنيف المقاولين (درجة أولى/ثانية/ثالثة)، الجهة المصنفة\n3. محفظة المشاريع — عدد المشاريع، القيمة، القطاعات (حكومي/خاص)\n4. القوة المالية — رأس المال، الإيرادات، التدفق النقدي\n5. المشاركة في المشاريع الكبرى — NEOM، البحر الأحمر، القدية، إلخ\n6. تحليل المخاطر — مخاطر مالية، تشغيلية، تعاقدية\n\nيجب أن يكون الرد بصيغة JSON:\n- summary: الملخص بالعربية\n- classification_status: حالة التصنيف\n- project_portfolio: محفظة المشاريع\n- financial_health: الصحة المالية\n- giga_project_involvement: المشاركة في المشاريع الكبرى\n- risk_factors: عوامل المخاطرة\n- confidence: درجة الثقة (0-1)",
+  "variables": ["company_name", "company_type", "contractor_grade", "capital", "project_count", "total_project_value", "specializations", "quality_certifications", "annual_revenue", "employee_count"],
+  "output_schema": {
+    "type": "object",
+    "required": ["summary", "classification_status", "project_portfolio", "confidence"],
+    "properties": {
+      "summary": {"type": "string"},
+      "classification_status": {"type": "object"},
+      "project_portfolio": {"type": "object"},
+      "financial_health": {"type": "object"},
+      "giga_project_involvement": {"type": "array"},
+      "risk_factors": {"type": "array"},
+      "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+    }
+  }
+}

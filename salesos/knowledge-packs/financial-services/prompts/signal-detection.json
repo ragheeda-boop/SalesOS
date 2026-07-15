@@ -1,0 +1,32 @@
+{
+  "prompt_id": "kp-financial-services.signal-detection",
+  "name": "Financial Services Signal Detection",
+  "version": "1.0.0",
+  "domain": "financial-services",
+  "active": true,
+  "template": "أنت محلل إشارات في قطاع الخدمات المالية السعودي. قم بتحليل النص التالي واستخرج الإشارات البيعية.\n\nالنص: {source_text}\nالمصدر: {source_type}\nالتاريخ: {detection_date}\n\nالإشارات المستهدفة:\n1. ترخيص SAMA — إصدار، تعديل، إلغاء ترخيص بنكي/تأميني/تمويلي\n2. ترخيص CMA — إصدار ترخيص وساطة، إدارة أصول، استشارات\n3. تغيير تنظيمي — لائحة جديدة من SAMA/CMA\n4. اندماج أو استحواذ — في القطاع المالي\n5. إدراج في السوق — طرح عام أولي (IPO)\n6. تغيير قيادي — تعيين رئيس تنفيذي، مجلس إدارة\n7. عقوبة تنظيمية — غرامة من SAMA/CMA\n8. إطلاق منتج — منتج مالي جديد، خدمة رقمية\n\nيجب أن يكون الرد بصيغة JSON:\n- signals: مصفوفة من الإشارات\n  - type: نوع الإشارة\n  - title: عنوان الإشارة\n  - description: وصف مختصر\n  - confidence: درجة الثقة (0-1)\n  - urgency: درجة الاستعجال (high/medium/low)\n  - source: المصدر\n  - detected_at: تاريخ الكشف\n- total_signals: عدد الإشارات\n- key_insight: insight رئيسي",
+  "variables": ["source_text", "source_type", "detection_date"],
+  "output_schema": {
+    "type": "object",
+    "required": ["signals", "total_signals", "key_insight"],
+    "properties": {
+      "signals": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {"type": "string"},
+            "title": {"type": "string"},
+            "description": {"type": "string"},
+            "confidence": {"type": "number"},
+            "urgency": {"type": "string"},
+            "source": {"type": "string"},
+            "detected_at": {"type": "string"}
+          }
+        }
+      },
+      "total_signals": {"type": "integer"},
+      "key_insight": {"type": "string"}
+    }
+  }
+}

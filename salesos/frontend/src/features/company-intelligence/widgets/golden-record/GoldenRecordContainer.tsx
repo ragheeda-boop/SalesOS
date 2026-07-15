@@ -1,8 +1,12 @@
 'use client'
 
 import { createWidget } from '@salesos/workspace'
-import { useCompanyIntelligenceContext, COMPANY_INTELLIGENCE_WIDGET_CONFIG } from '../../index'
+import { useParams } from 'next/navigation'
+import { COMPANY_INTELLIGENCE_WIDGET_CONFIG } from '../../index'
+import { useCompanyIntelligence } from '@/application/company-intelligence/useCompanyIntelligence'
+import { useDecision } from '@/features/revenue-execution/_providers/DecisionProvider'
 import { GoldenRecordView } from './GoldenRecordView'
+import type { GoldenRecordEntry, CompanyDNA } from '@/application/company-intelligence/company-intelligence.dto'
 
 export const GoldenRecordWidget = createWidget({
   metadata: {
@@ -11,14 +15,16 @@ export const GoldenRecordWidget = createWidget({
     minHeight: COMPANY_INTELLIGENCE_WIDGET_CONFIG.goldenRecord.minHeight,
   },
   useData: () => {
-    const ctx = useCompanyIntelligenceContext()
+    const { id: companyId } = useParams<{ id: string }>()
+    const { data, isLoading, isError, error, refetch } = useCompanyIntelligence(companyId)
+    useDecision()
     return {
-      data: { entries: ctx.widgets.goldenRecord.data, dna: ctx.widgets.companyDNA.data },
-      status: ctx.widgets.goldenRecord.status,
-      lastUpdated: ctx.widgets.goldenRecord.lastUpdated,
-      error: ctx.widgets.goldenRecord.error,
-      refetch: ctx.widgets.goldenRecord.refetch,
+      data: data ? { entries: data.goldenRecord, dna: data.dna } : null,
+      status: isLoading ? 'loading' as const : isError ? 'error' as const : 'ready' as const,
+      lastUpdated: null,
+      error: error as Error | null,
+      refetch,
     }
   },
-  render: ({ data }) => <GoldenRecordView entries={data.entries ?? []} dna={data.dna} />,
+  render: ({ data }) => data ? <GoldenRecordView entries={data.entries ?? []} dna={data.dna as CompanyDNA | null} /> : null,
 })

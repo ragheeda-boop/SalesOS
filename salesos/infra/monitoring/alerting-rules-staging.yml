@@ -1,0 +1,78 @@
+groups:
+  - name: salesos-staging
+    interval: 30s
+    rules:
+      # ── Error Rate ──
+      - alert: StagingHighErrorRate
+        expr: rate(salesos_http_requests_total{status=~"5.."}[5m]) / rate(salesos_http_requests_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Staging: High HTTP 5xx error rate ({{ $value | humanizePercentage }})"
+          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+
+      # ── High Latency ──
+      - alert: StagingHighLatency
+        expr: histogram_quantile(0.99, rate(salesos_http_request_duration_seconds_bucket[5m])) > 2
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Staging: P99 latency is {{ $value }}s"
+          description: "P99 request latency is {{ $value }}s, above 2s threshold"
+
+      # ── Service Health ──
+      - alert: StagingBackendDown
+        expr: up{job="salesos-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Staging: Backend service is down"
+          description: "Healthcheck has failed for over 1 minute"
+
+      # ── Database ──
+      - alert: StagingPostgresDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Staging: PostgreSQL is unreachable"
+
+      - alert: StagingPostgresHighConnections
+        expr: pg_stat_database_numbackends > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Staging: PostgreSQL has {{ $value }} active connections"
+
+      # ── Redis ──
+      - alert: StagingRedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Staging: Redis is unreachable"
+
+      # ── Neo4j ──
+      - alert: StagingNeo4jDown
+        expr: neo4j_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Staging: Neo4j is unreachable"
+
+      # ── No Traffic Warning ──
+      - alert: StagingNoTraffic
+        expr: rate(salesos_http_requests_total[5m]) == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Staging: No HTTP traffic detected"
+          description: "Zero requests in the last 10 minutes"

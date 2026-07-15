@@ -26,6 +26,8 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import Any
 
+from ..normalization import ArabicSearchNormalizer
+
 
 class SearchIntent(Enum):
     """The intent behind a user's search query."""
@@ -83,10 +85,12 @@ SEMANTIC_INDICATORS = [
 ]
 
 # Legal prefixes to strip for normalization
+# After ArabicSearchNormalizer runs, all variants (أ, إ, آ → ا, ة → ه, ى → ي)
+# are already normalized, so we only need the normalized forms.
 LEGAL_PREFIXES = [
-    "شركة", "شركه", "مؤسسة", "مؤسسه", "موسسه", "مجموعة", "مجموعه", "مصنع", "مكتب",
+    "شركة", "شركه", "مؤسسة", "مؤسسه", "موسسه",
+    "مجموعة", "مجموعه", "مصنع", "مكتب",
     "مستشفى", "مستشفي",
-    "شركة ", "شركه ", "مؤسسة ", "مؤسسه ", "موسسه ", "مجموعة ", "مجموعه ",
 ]
 
 
@@ -168,20 +172,16 @@ def normalize_query(query: str) -> str:
     Uses ArabicSearchNormalizer for comprehensive normalization and
     legal prefix stripping for better trigram matching.
 
+    Strips Arabic legal prefixes and normalizes characters:
     "شركة الكهرباء" → "الكهرباء"
     "مؤسسة أحمد للتجارة" → "احمد للتجاره"
     "شَرِكَةُ المقاولات" → "المقاولات"
     """
     q = query.strip()
-    # First normalize Arabic (diacritics, alef, yeh, teh marbuta)
-    try:
-        from ..normalization import ArabicSearchNormalizer
-        normalizer = ArabicSearchNormalizer.default()
-        q = normalizer.normalize(q)
-    except ImportError:
-        pass
-
-    # Then strip legal prefixes
+    # First normalize Arabic (diacritics, alef, yeh, teh marbuta, digits)
+    normalizer = ArabicSearchNormalizer(normalize_digits=True)
+    q = normalizer.normalize(q)
+    # Then strip legal prefixes (after normalization to catch normalized forms)
     for prefix in LEGAL_PREFIXES:
         if q.startswith(prefix):
             q = q[len(prefix):].strip()

@@ -180,7 +180,7 @@ async def _do_scrape(company_id: str, cr_number: str):
     async def _scrape_one(slug: str, scraper):
         try:
             async with asyncio.timeout(10):
-                result = await scraper.fetch_all()
+                result = await scraper.fetch_all(max_pages=5)
                 if result.records:
                     logger.info("Scraped %d records from %s for company %s", len(result.records), slug, company_id)
                 else:
@@ -365,7 +365,7 @@ async def _run_enrichment_pipeline(company_id: str, tenant_id: str) -> dict:
             async def _scrape_one(slug, scraper):
                 try:
                     async with asyncio.timeout(10):
-                        return await scraper.fetch_all()
+                        return await scraper.fetch_all(max_pages=5)
                 except Exception:
                     return None
                 finally:
@@ -409,9 +409,13 @@ async def _run_enrichment_pipeline(company_id: str, tenant_id: str) -> dict:
             logger.warning("Feature store unavailable for %s: %s", company_id, e)
             return {}
 
-    scrape_result, feature_result = await asyncio.gather(
-        _run_scrapers(), _run_features(), return_exceptions=True,
-    )
+    try:
+        scrape_result, feature_result = await asyncio.gather(
+            _run_scrapers(), _run_features(), return_exceptions=True,
+        )
+    except Exception as e:
+        logger.warning("Enrichment pipeline aborted for %s: %s", company_id, e)
+        scrape_result, feature_result = None, {}
 
     features = feature_result if isinstance(feature_result, dict) else {}
 

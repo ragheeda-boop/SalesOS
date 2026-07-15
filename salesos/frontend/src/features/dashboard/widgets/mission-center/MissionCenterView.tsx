@@ -5,15 +5,16 @@ import { Target, AlertTriangle, TrendingUp, Building2, Activity } from 'lucide-r
 import { MissionMetric } from './MissionMetric'
 import { MissionAction } from './MissionAction'
 import { MissionProgress } from './MissionProgress'
+import { useTranslation } from '@/lib/i18n'
 import type { MissionCenterViewProps } from './types'
 
-function deriveActions(props: MissionCenterViewProps) {
+function deriveActions(props: MissionCenterViewProps, t: (key: string, params?: Record<string, string | number>) => string) {
   const actions: { id: string; title: string; priority: 'high' | 'medium' | 'low'; companyName?: string }[] = []
 
   if (props.signalsToday > 0) {
     actions.push({
       id: 'review-signals',
-      title: `مراجعة ${props.signalsToday} إشارة شرائية`,
+      title: t('mission.action.review_signals', { count: props.signalsToday }),
       priority: 'high',
     })
   }
@@ -21,7 +22,7 @@ function deriveActions(props: MissionCenterViewProps) {
   if (props.decisionsPending > 0) {
     actions.push({
       id: 'pending-decisions',
-      title: `${props.decisionsPending} قرارات معلقة تحتاج اتخاذ`,
+      title: t('mission.action.pending_decisions', { count: props.decisionsPending }),
       priority: 'high',
     })
   }
@@ -29,7 +30,7 @@ function deriveActions(props: MissionCenterViewProps) {
   if (props.activeDeals > 0) {
     actions.push({
       id: 'active-deals',
-      title: `متابعة ${props.activeDeals} صفقة نشطة`,
+      title: t('mission.action.follow_deals', { count: props.activeDeals }),
       priority: 'medium',
     })
   }
@@ -37,7 +38,7 @@ function deriveActions(props: MissionCenterViewProps) {
   if (props.companiesTracked > 10) {
     actions.push({
       id: 'new-companies',
-      title: `مراجعة ${props.companiesTracked} شركة تحت المراقبة`,
+      title: t('mission.action.review_companies', { count: props.companiesTracked }),
       priority: 'low',
     })
   }
@@ -46,29 +47,32 @@ function deriveActions(props: MissionCenterViewProps) {
 }
 
 function EmptyState() {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center" role="status">
       <Building2 className="h-8 w-8 text-[var(--text-muted)] mb-2" aria-hidden="true" />
-      <p className="text-sm font-medium text-[var(--text-primary)]">لا توجد بيانات بعد</p>
-      <p className="text-xs text-[var(--text-muted)] mt-1">قم بإضافة شركات لبدء التتبع</p>
+      <p className="text-sm font-medium text-[var(--text-primary)]">{t('mission.empty.title')}</p>
+      <p className="text-xs text-[var(--text-muted)] mt-1">{t('mission.empty.hint')}</p>
     </div>
   )
 }
 
 function SummaryBanner({ metrics }: { metrics: { label: string; value: number }[] }) {
+  const { t } = useTranslation()
   const activeMetrics = metrics.filter((m) => m.value > 0)
   return (
     <div className="text-xs text-[var(--text-muted)]" aria-live="polite" aria-atomic="true">
       {activeMetrics.length > 0
         ? `${activeMetrics.map((m) => `${m.value} ${m.label}`).join('، ')}`
-        : 'لا توجد مؤشرات نشطة حالياً'}
+        : t('mission.summary.no_metrics')}
     </div>
   )
 }
 
 export function MissionCenterView(props: MissionCenterViewProps) {
+  const { t } = useTranslation()
   const isAllZero = props.companiesTracked === 0 && props.activeDeals === 0 && props.pipelineValue === 0 && props.signalsToday === 0 && props.decisionsPending === 0
-  const actions = !isAllZero ? deriveActions(props) : []
+  const actions = !isAllZero ? deriveActions(props, t) : []
   const pipelineCompletion = props.pipelineValue > 0
     ? Math.min(Math.round((props.activeDeals * 100000) / props.pipelineValue * 100), 100)
     : 0
@@ -77,9 +81,9 @@ export function MissionCenterView(props: MissionCenterViewProps) {
     return (
       <div className="flex flex-col gap-4" role="region" aria-label="Mission Center Dashboard">
         <SummaryBanner metrics={[
-          { label: 'شركات', value: props.companiesTracked },
-          { label: 'صفقات', value: props.activeDeals },
-          { label: 'إشارات', value: props.signalsToday },
+          { label: t('mission.companies_short'), value: props.companiesTracked },
+          { label: t('mission.deals_short'), value: props.activeDeals },
+          { label: t('mission.signals_short'), value: props.signalsToday },
         ]} />
         <EmptyState />
       </div>
@@ -89,9 +93,9 @@ export function MissionCenterView(props: MissionCenterViewProps) {
   return (
     <div className="flex flex-col gap-4" role="region" aria-label="Mission Center Dashboard">
       <SummaryBanner metrics={[
-        { label: 'شركات', value: props.companiesTracked },
-        { label: 'صفقات', value: props.activeDeals },
-        { label: 'إشارات', value: props.signalsToday },
+        { label: t('mission.companies_short'), value: props.companiesTracked },
+        { label: t('mission.deals_short'), value: props.activeDeals },
+        { label: t('mission.signals_short'), value: props.signalsToday },
       ]} />
 
       {/* Metrics Grid */}
@@ -103,44 +107,44 @@ export function MissionCenterView(props: MissionCenterViewProps) {
       >
         <div role="listitem">
           <MissionMetric
-            label="شركات تحت المراقبة"
+            label={t('dashboard.metrics.companies_tracked')}
             value={props.companiesTracked}
             valueClassName="text-info-600 dark:text-info-400"
-            ariaLabel={`${props.companiesTracked} شركات تحت المراقبة`}
+            ariaLabel={t('mission.aria.companies_tracked', { count: props.companiesTracked })}
           />
         </div>
         <div role="listitem">
           <MissionMetric
-            label="صفقات نشطة"
+            label={t('dashboard.metrics.active_deals')}
             value={props.activeDeals}
             valueClassName="text-[var(--muhide-orange)]"
-            ariaLabel={`${props.activeDeals} صفقات نشطة`}
+            ariaLabel={t('mission.aria.active_deals', { count: props.activeDeals })}
           />
         </div>
         <div role="listitem">
           <MissionMetric
-            label="قيمة الأنابيب"
+            label={t('dashboard.metrics.pipeline_value')}
             value={`${(props.pipelineValue / 1000000).toFixed(1)}M`}
             valueClassName="text-success-600 dark:text-success-400"
-            ariaLabel={`قيمة الأنابيب ${props.pipelineValue.toLocaleString()} ريال`}
+            ariaLabel={t('mission.aria.pipeline_value', { value: props.pipelineValue.toLocaleString() })}
           />
         </div>
         <div role="listitem">
           <MissionMetric
-            label="إشارات اليوم"
+            label={t('dashboard.metrics.signals_today')}
             value={props.signalsToday}
             valueClassName="text-info-600 dark:text-info-400"
             icon="📡"
-            ariaLabel={`${props.signalsToday} إشارة جديدة اليوم`}
+            ariaLabel={t('mission.aria.signals_today', { count: props.signalsToday })}
           />
         </div>
         <div role="listitem">
           <MissionMetric
-            label="قرارات معلقة"
+            label={t('dashboard.metrics.decisions_pending')}
             value={props.decisionsPending}
             valueClassName="text-danger-600 dark:text-danger-400"
             icon="⚡"
-            ariaLabel={`${props.decisionsPending} قرارات معلقة`}
+            ariaLabel={t('mission.aria.decisions_pending', { count: props.decisionsPending })}
           />
         </div>
       </div>
@@ -181,7 +185,7 @@ export function MissionCenterView(props: MissionCenterViewProps) {
               SAR {props.pipelineValue.toLocaleString()}
             </p>
             <p className="text-[10px] text-success-600 dark:text-success-400">
-              {props.activeDeals} صفقات نشطة
+              {props.activeDeals} {t('dashboard.metrics.active_deals')}
             </p>
           </CardContent>
         </Card>

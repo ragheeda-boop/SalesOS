@@ -6,17 +6,23 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_current_user_id, verify_token
-from domains.notifications.models import InMemoryNotificationRepository, Notification
+from app.dependencies import get_current_tenant_id, get_current_user_id, require_role_dep, verify_token, get_db_session
+from domains.notifications.models import InMemoryNotificationRepository, Notification, NotificationRepository
+from domains.notifications.postgres_repo import PostgresNotificationRepository
 from intelligence.notifications.websocket import WebSocketManager
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-_repo = InMemoryNotificationRepository()
+_inmemory_repo = InMemoryNotificationRepository()
 _ws_manager = WebSocketManager()
+
+
+async def _get_notification_repo(db: AsyncSession = Depends(get_db_session)) -> PostgresNotificationRepository:
+    return PostgresNotificationRepository(session=db)
 
 
 @router.websocket("/notifications/ws")
@@ -74,9 +80,10 @@ async def list_notifications(
     limit: int = Query(default=50, le=100),
     tenant_id: str = Depends(get_current_tenant_id),
     user_id: str = Depends(get_current_user_id),
+    repo: PostgresNotificationRepository = Depends(_get_notification_repo),
 ):
-    notifs = await _repo.list_by_user(tenant_id, user_id, limit)
-    unread = await _repo.count_unread(tenant_id, user_id)
+    notifs = await repo.list_by_user(tenant_id, user_id, limit)
+    unread = await repo.count_unread(tenant_id, user_id)
     return {
         "notifications": [
             {
@@ -100,17 +107,18 @@ async def mark_notification_read(
     body: dict,
     tenant_id: str = Depends(get_current_tenant_id),
     user_id: str = Depends(get_current_user_id),
+    repo: PostgresNotificationRepository = Depends(_get_notification_repo),
 ):
     notification_id = body.get("notification_id")
     if notification_id:
-        ok = await _repo.mark_read(notification_id, tenant_id, user_id)
+        ok = await repo.mark_read(notification_id, tenant_id, user_id)
         if not ok:
             raise HTTPException(status_code=404, detail="Notification not found")
         return {"status": "ok", "notification_id": notification_id}
 
     all_val = body.get("all", False)
     if all_val:
-        count = await _repo.mark_all_read(tenant_id, user_id)
+        count = await repo.mark_all_read(tenant_id, user_id)
         return {"status": "ok", "marked_read": count}
 
     raise HTTPException(status_code=400, detail="Provide notification_id or all=true")
@@ -120,14 +128,17 @@ async def mark_notification_read(
 async def unread_count(
     tenant_id: str = Depends(get_current_tenant_id),
     user_id: str = Depends(get_current_user_id),
+    repo: PostgresNotificationRepository = Depends(_get_notification_repo),
 ):
-    count = await _repo.count_unread(tenant_id, user_id)
+    count = await repo.count_unread(tenant_id, user_id)
     return {"unread_count": count}
 
 
 @router.get("/notifications/ws/metrics")
-async def websocket_metrics():
-    """Return WebSocket connection metrics for monitoring."""
+async def websocket_metrics(
+    _=Depends(require_role_dep("admin")),
+):
+    """Return WebSocket connection metrics for monitoring (admin only)."""
     return await _ws_manager.get_metrics()
 
 
@@ -138,7 +149,9 @@ async def create_and_notify(
     title: str,
     body: str,
     data: dict | None = None,
+    repo: NotificationRepository | None = None,
 ) -> Notification:
+    store = repo or _inmemory_repo
     notification = Notification(
         id=uuid.uuid4().hex[:12],
         tenant_id=tenant_id,
@@ -148,7 +161,7 @@ async def create_and_notify(
         body=body,
         data=data or {},
     )
-    await _repo.create(notification)
+    await store.create(notification)
     await _ws_manager.send_to_user(tenant_id, user_id, notif_type, {
         "id": notification.id,
         "type": notif_type,
@@ -166,7 +179,9 @@ async def broadcast_notification(
     title: str,
     body: str,
     data: dict | None = None,
+    repo: NotificationRepository | None = None,
 ) -> Notification:
+    store = repo or _inmemory_repo
     notification = Notification(
         id=uuid.uuid4().hex[:12],
         tenant_id=tenant_id,
@@ -176,7 +191,7 @@ async def broadcast_notification(
         body=body,
         data=data or {},
     )
-    await _repo.create(notification)
+    await store.create(notification)
     await _ws_manager.broadcast(tenant_id, notif_type, {
         "id": notification.id,
         "type": notif_type,

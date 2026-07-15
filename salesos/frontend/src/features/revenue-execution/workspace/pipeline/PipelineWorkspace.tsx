@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import axios from "axios"
+import api from "@/lib/api"
 import { cn } from "@salesos/ui"
 
 interface Opportunity {
@@ -67,9 +67,9 @@ export function PipelineWorkspace() {
     const load = async () => {
       try {
         const [oppsRes, healthRes, forecastRes] = await Promise.all([
-          axios.get('/api/v1/opportunities', { params: { limit: 200 } }),
-          axios.get('/api/v1/pipeline/health'),
-          axios.get('/api/v1/pipeline/forecast'),
+          api.get('/api/v1/opportunities', { params: { limit: 200 } }),
+          api.get('/api/v1/pipeline/health'),
+          api.get('/api/v1/pipeline/forecast'),
         ])
         setOpportunities(oppsRes.data || [])
         setHealthMap(healthRes.data || [])

@@ -43,13 +43,7 @@ def upgrade() -> None:
 
     # Make the new column NOT NULL (after data migration)
     op.execute("ALTER TABLE vectors ALTER COLUMN embedding SET NOT NULL")
-
-    # Create HNSW index for approximate nearest neighbor search
-    op.execute("""
-        CREATE INDEX IF NOT EXISTS idx_vectors_embedding_hnsw
-        ON vectors
-        USING hnsw (embedding vector_cosine_ops)
-    """)
+    # NOTE: Skipping HNSW index — 3072-dim vectors exceed pgvector's 2000-dim limit
 
 
 def downgrade() -> None:

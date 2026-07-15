@@ -1,0 +1,180 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: salesos
+  labels:
+    app: alertmanager
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: salesos
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9093"
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: alertmanager
+          image: prom/alertmanager:v0.28.1
+          args:
+            - "--config.file=/etc/alertmanager/alertmanager.yml"
+            - "--storage.path=/alertmanager"
+            - "--web.external-url=https://monitoring.salesos.com/alertmanager"
+          ports:
+            - containerPort: 9093
+              name: http
+          env:
+            - name: SLACK_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: salesos-secrets
+                  key: slack_webhook_url
+                  optional: true
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alertmanager
+              readOnly: true
+            - name: alertmanager-data
+              mountPath: /alertmanager
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+      volumes:
+        - name: config
+          configMap:
+            name: alertmanager-config
+        - name: alertmanager-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: salesos
+  labels:
+    app: alertmanager
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: salesos
+spec:
+  ports:
+    - port: 9093
+      targetPort: 9093
+      name: http
+  selector:
+    app: alertmanager
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: salesos
+  labels:
+    app: alertmanager
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: salesos
+data:
+  alertmanager.yml: |
+    route:
+      group_by: ["alertname", "severity"]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: "default"
+      routes:
+        - match:
+            severity: critical
+          receiver: "critical"
+          repeat_interval: 1h
+        - match:
+            severity: warning
+          receiver: "warnings"
+          repeat_interval: 4h
+    receivers:
+      - name: "default"
+        slack_configs:
+          - send_resolved: true
+            api_url: "${SLACK_WEBHOOK_URL}"
+            channel: "#salesos-alerts"
+            username: "Alertmanager"
+            icon_emoji: ":warning:"
+            title: '{{ if eq .Status "firing" }}🔥{{ else }}✅{{ end }} {{ .GroupLabels.alertname }}'
+            text: "{{ .CommonAnnotations.summary }}"
+            footer: "SalesOS Production"
+      - name: "critical"
+        slack_configs:
+          - send_resolved: true
+            api_url: "${SLACK_WEBHOOK_URL}"
+            channel: "#salesos-critical"
+            username: "Alertmanager"
+            icon_emoji: ":red_circle:"
+            title: '🚨 [CRITICAL] {{ .GroupLabels.alertname }}'
+            text: "{{ .CommonAnnotations.summary }}"
+            footer: "SalesOS Critical Incident"
+        email_configs:
+          - send_resolved: true
+            to: "${ALERTMANAGER_EMAIL_TO}"
+            from: "${ALERTMANAGER_EMAIL_FROM}"
+            smarthost: "${ALERTMANAGER_SMTP_HOST}:${ALERTMANAGER_SMTP_PORT}"
+            auth_username: "${ALERTMANAGER_SMTP_USER}"
+            auth_password: "${ALERTMANAGER_SMTP_PASSWORD}"
+            headers:
+              subject: '[CRITICAL] {{ .GroupLabels.alertname }} - {{ .Status }}'
+            html: '<h2>{{ .GroupLabels.alertname }}</h2><p>{{ range .Alerts }}{{ .Annotations.description }}<br>{{ end }}</p>'
+        pagerduty_configs:
+          - send_resolved: true
+            routing_key: "${PAGERDUTY_ROUTING_KEY}"
+            severity: critical
+            description: '{{ .GroupLabels.alertname }} - {{ .CommonAnnotations.summary }}'
+            client: "SalesOS Production"
+            client_url: "https://monitoring.salesos.com"
+      - name: "warnings"
+        slack_configs:
+          - send_resolved: true
+            api_url: "${SLACK_WEBHOOK_URL}"
+            channel: "#salesos-alerts"
+            username: "Alertmanager"
+            icon_emoji: ":warning:"
+            title: '⚠️ {{ .GroupLabels.alertname }}'
+            text: "{{ .CommonAnnotations.summary }}"
+            footer: "SalesOS Monitoring"
+    inhibit_rules:
+      - source_match:
+          severity: critical
+        target_match:
+          severity: warning
+        equal: ["alertname"]

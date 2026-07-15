@@ -1,8 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react"
-
-const ONBOARDING_KEY = "salesos:onboarding-progress"
+import { createContext, useContext, useState, useCallback, type ReactNode } from "react"
 
 export interface OnboardingItem {
   id: string
@@ -30,30 +28,8 @@ interface OnboardingContextValue {
 
 const OnboardingContext = createContext<OnboardingContextValue | null>(null)
 
-function loadCompleted(): string[] {
-  if (typeof window === "undefined") return []
-  try {
-    const raw = localStorage.getItem(ONBOARDING_KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
-}
-
-function saveCompleted(completed: string[]) {
-  try {
-    localStorage.setItem(ONBOARDING_KEY, JSON.stringify(completed))
-  } catch {
-    // localStorage unavailable
-  }
-}
-
 export function OnboardingProvider({ children }: { children: ReactNode }) {
-  const [completed, setCompleted] = useState<string[]>(loadCompleted)
-
-  useEffect(() => {
-    saveCompleted(completed)
-  }, [completed])
+  const [completed, setCompleted] = useState<string[]>([])
 
   const completeItem = useCallback((id: string) => {
     setCompleted((prev) => {

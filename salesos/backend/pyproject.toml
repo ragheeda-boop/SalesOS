@@ -38,6 +38,7 @@ opentelemetry-api = "^1.25"
 opentelemetry-sdk = "^1.25"
 opentelemetry-exporter-otlp-proto-http = "^1.25"
 celery = "^5.4"
+strawberry-graphql = "^0.243"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2"

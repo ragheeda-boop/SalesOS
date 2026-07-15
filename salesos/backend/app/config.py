@@ -46,6 +46,7 @@ class Settings(BaseSettings):
     openai_embedding_model: str = "text-embedding-3-large"
 
     next_public_api_url: str = "http://localhost:8000"
+    salesos_api_url: str = "http://localhost:8000"
 
     feature_search_fuzzy_v2: bool = False
     feature_ai_copilot: bool = False

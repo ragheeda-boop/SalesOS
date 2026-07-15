@@ -56,7 +56,12 @@ class StructuredLogger:
         return self
 
     def _log(self, level: int, msg: str, **kwargs) -> None:
-        self._logger.log(level, msg, extra={**self._extra, **kwargs})
+        log_kwargs = {}
+        for key in ("exc_info", "stack_info", "stacklevel"):
+            if key in kwargs:
+                log_kwargs[key] = kwargs.pop(key)
+        extra = {**self._extra, **kwargs}
+        self._logger.log(level, msg, extra=extra, **log_kwargs)
 
     def info(self, msg: str, **kwargs) -> None:
         self._log(logging.INFO, msg, **kwargs)

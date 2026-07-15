@@ -1,0 +1,287 @@
+name: Deploy to Production
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g., v1.2.3)"
+        required: true
+        type: string
+      environment:
+        description: "Deployment target"
+        default: production
+        type: choice
+        options:
+          - production
+          - staging
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAMESPACE: ragheeda-boop/salesos
+  IMAGE_TAG: ${{ github.sha }}
+  KUBE_NAMESPACE: salesos
+  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+  K8S_MANIFESTS_DIR: infra/k8s
+
+jobs:
+  gate-check:
+    name: 🚦 Deployment Gate Check
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Verify CHANGELOG updated
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if ! grep -q "$VERSION" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md not updated for $VERSION"
+            exit 1
+          fi
+          echo "✅ CHANGELOG verified for $VERSION"
+
+      - name: Verify RELEASE_GATES
+        run: |
+          if [ ! -f RELEASE_GATES.md ]; then
+            echo "::warning::RELEASE_GATES.md not found — skipping gate check"
+            exit 0
+          fi
+          echo "✅ Release gates document found"
+
+  build-and-push:
+    name: 🐳 Build & Push Images
+    needs: [gate-check]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      backend-image: ${{ steps.push-backend.outputs.registry-url }}
+      frontend-image: ${{ steps.push-frontend.outputs.registry-url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend
+        id: push-backend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:${{ needs.gate-check.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+      - name: Build and push frontend
+        id: push-frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:${{ env.IMAGE_TAG }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:${{ needs.gate-check.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
+
+  security-scan:
+    name: 🔒 Security Scan
+    needs: [build-and-push]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner on backend
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:${{ env.IMAGE_TAG }}
+          format: sarif
+          output: trivy-backend.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+      - name: Run Trivy vulnerability scanner on frontend
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:${{ env.IMAGE_TAG }}
+          format: sarif
+          output: trivy-frontend.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+      - name: Upload Trivy results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-backend.sarif
+
+  deploy-to-production:
+    name: 🚀 Deploy to Production
+    needs: [gate-check, build-and-push, security-scan]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://app.salesos.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: "v1.32.0"
+
+      - name: Set up kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+
+      - name: Update image tags in kustomize
+        run: |
+          VERSION="${{ needs.gate-check.outputs.version }}"
+          cd $K8S_MANIFESTS_DIR
+
+          # Update backend image
+          kustomize edit set image \
+            ghcr.io/ragheeda-boop/salesos/backend:${{ env.IMAGE_TAG }}
+
+          # Update frontend image
+          kustomize edit set image \
+            ghcr.io/ragheeda-boop/salesos/frontend:${{ env.IMAGE_TAG }}
+
+      - name: Preview deployment changes
+        run: |
+          kubectl kustomize $K8S_MANIFESTS_DIR | kubectl diff -f - --namespace $KUBE_NAMESPACE || true
+
+      - name: Apply manifests
+        run: |
+          kubectl apply -k $K8S_MANIFESTS_DIR/ --namespace $KUBE_NAMESPACE
+          kubectl rollout status deployment/backend -n $KUBE_NAMESPACE --timeout=300s
+          kubectl rollout status deployment/frontend -n $KUBE_NAMESPACE --timeout=300s
+
+      - name: Verify pods are healthy
+        run: |
+          kubectl wait --for=condition=Ready pods --all -n $KUBE_NAMESPACE --timeout=180s
+          kubectl get pods -n $KUBE_NAMESPACE -o wide
+
+  smoke-tests:
+    name: 🧪 Smoke Tests
+    needs: [deploy-to-production]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get service endpoints
+        run: |
+          echo "API_URL=https://api.salesos.com" >> $GITHUB_ENV
+          echo "FRONTEND_URL=https://app.salesos.com" >> $GITHUB_ENV
+
+      - name: Wait for services
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf "$API_URL/health" > /dev/null 2>&1; then
+              echo "✅ Backend ready"
+              break
+            fi
+            echo "Waiting for backend... ($i/30)"
+            sleep 5
+          done
+
+      - name: Run smoke tests
+        run: |
+          pwsh -File ./scripts/smoke-test.ps1 \
+            -BaseUrl "$API_URL" \
+            -FrontendUrl "$FRONTEND_URL" \
+            -TestEmail "ci@salesos-test.io" \
+            -MaxRetries 10
+
+      - name: Run Docker smoke tests
+        run: |
+          pwsh -File ./scripts/docker-smoke.ps1
+
+  rollback-on-failure:
+    name: ↩️ Automatic Rollback
+    if: failure()
+    needs: [deploy-to-production, smoke-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rollback to previous version
+        run: |
+          PREVIOUS_TAG=$(git tag --sort=-version:refname | head -n 2 | tail -n 1)
+          echo "⚠️ Rolling back to $PREVIOUS_TAG"
+
+          kubectl set image deployment/backend \
+            backend=ghcr.io/ragheeda-boop/salesos/backend:$PREVIOUS_TAG \
+            -n $KUBE_NAMESPACE
+
+          kubectl set image deployment/frontend \
+            frontend=ghcr.io/ragheeda-boop/salesos/frontend:$PREVIOUS_TAG \
+            -n $KUBE_NAMESPACE
+
+          kubectl rollout status deployment/backend -n $KUBE_NAMESPACE --timeout=300s
+          kubectl rollout status deployment/frontend -n $KUBE_NAMESPACE --timeout=300s
+
+      - name: Verify rollback
+        run: |
+          kubectl rollout history deployment/backend -n $KUBE_NAMESPACE
+          kubectl get pods -n $KUBE_NAMESPACE
+
+  notify:
+    name: 📢 Slack Notification
+    if: always()
+    needs: [deploy-to-production, smoke-tests, rollback-on-failure]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "channel": "#salesos-deployments",
+              "username": "SalesOS Bot",
+              "icon_emoji": ":rocket:",
+              "text": "SalesOS Deployment ${{ job.status == 'success' && '✅ Succeeded' || '❌ Failed' }}\nVersion: ${{ needs.gate-check.outputs.version }}\nEnvironment: Production\nCommit: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}\nStatus: ${{ job.status }}"
+            }

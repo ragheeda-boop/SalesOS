@@ -1,6 +1,7 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import api from '@/lib/api'
 import { getTenantId } from '@/lib/hooks/useTenant'
 import type { RevenueOpportunity, OpportunityStage } from '../revenue-execution/opportunity.dto'
 
@@ -21,16 +22,13 @@ interface CreateTaskInput {
   assignee_id?: string
 }
 
-const API = '/api/v1'
-
 export function useOpportunities(stage?: string) {
-  const params = stage ? `?stage=${stage}` : ''
+  const params = stage ? { stage } : undefined
   return useQuery({
     queryKey: ['opportunities', stage],
     queryFn: async () => {
-      const res = await fetch(`${API}/opportunities${params}`, { headers: { 'X-Tenant-Id': getTenantId() } })
-      if (!res.ok) throw new Error('Failed to load opportunities')
-      return res.json()
+      const res = await api.get('/api/v1/opportunities', { params, headers: { 'X-Tenant-Id': getTenantId() } })
+      return res.data
     },
     staleTime: 30_000,
   })
@@ -40,12 +38,10 @@ export function useCreateOpportunity() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (data: CreateOpportunityInput) => {
-      const res = await fetch(`${API}/opportunities`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': getTenantId() },
-        body: JSON.stringify(data),
+      const res = await api.post('/api/v1/opportunities', data, {
+        headers: { 'X-Tenant-Id': getTenantId() },
       })
-      if (!res.ok) throw new Error('Failed to create opportunity')
-      return res.json()
+      return res.data
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['opportunities'] }),
   })
@@ -55,25 +51,22 @@ export function useUpdateOpportunityStage() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, stage }: { id: string; stage: OpportunityStage }) => {
-      const res = await fetch(`${API}/opportunities/${id}/stage`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': getTenantId() },
-        body: JSON.stringify({ stage }),
+      const res = await api.put(`/api/v1/opportunities/${id}/stage`, { stage }, {
+        headers: { 'X-Tenant-Id': getTenantId() },
       })
-      if (!res.ok) throw new Error('Failed to update stage')
-      return res.json()
+      return res.data
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['opportunities'] }),
   })
 }
 
 export function useTasks(priority?: string) {
-  const params = priority ? `?priority=${priority}` : ''
+  const params = priority ? { priority } : undefined
   return useQuery({
     queryKey: ['tasks', priority],
     queryFn: async () => {
-      const res = await fetch(`${API}/tasks${params}`, { headers: { 'X-Tenant-Id': getTenantId() } })
-      if (!res.ok) throw new Error('Failed to load tasks')
-      return res.json()
+      const res = await api.get('/api/v1/tasks', { params, headers: { 'X-Tenant-Id': getTenantId() } })
+      return res.data
     },
     staleTime: 30_000,
   })
@@ -83,12 +76,10 @@ export function useCreateTask() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (data: CreateTaskInput) => {
-      const res = await fetch(`${API}/tasks`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': getTenantId() },
-        body: JSON.stringify(data),
+      const res = await api.post('/api/v1/tasks', data, {
+        headers: { 'X-Tenant-Id': getTenantId() },
       })
-      if (!res.ok) throw new Error('Failed to create task')
-      return res.json()
+      return res.data
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
   })
@@ -98,11 +89,10 @@ export function useCompleteTask() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`${API}/tasks/${id}/complete`, {
-        method: 'PUT', headers: { 'X-Tenant-Id': getTenantId() },
+      const res = await api.put(`/api/v1/tasks/${id}/complete`, null, {
+        headers: { 'X-Tenant-Id': getTenantId() },
       })
-      if (!res.ok) throw new Error('Failed to complete task')
-      return res.json()
+      return res.data
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
   })
@@ -112,9 +102,8 @@ export function usePipeline() {
   return useQuery({
     queryKey: ['pipeline'],
     queryFn: async () => {
-      const res = await fetch(`${API}/pipeline`, { headers: { 'X-Tenant-Id': getTenantId() } })
-      if (!res.ok) throw new Error('Failed to load pipeline')
-      return res.json()
+      const res = await api.get('/api/v1/pipeline', { headers: { 'X-Tenant-Id': getTenantId() } })
+      return res.data
     },
     staleTime: 30_000,
   })

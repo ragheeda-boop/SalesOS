@@ -21,6 +21,8 @@ terraform {
   }
 }
 
+data "aws_caller_identity" "current" {}
+
 provider "aws" {
   region = var.aws_region
 }
@@ -84,8 +86,28 @@ module "eks" {
 
       instance_types = var.eks_instance_types
       capacity_type  = "ON_DEMAND"
+
+      disk_size = var.eks_disk_size
+
+      update_config = {
+        max_unavailable_percentage = 33
+      }
+
+      labels = {
+        "nodegroup-type" = "main"
+        "environment"    = var.environment
+      }
     }
   }
+
+  manage_aws_auth_configmap = true
+  aws_auth_roles = [
+    {
+      rolearn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.name_prefix}-admin"
+      username = "admin"
+      groups   = ["system:masters"]
+    },
+  ]
 
   tags = local.common_tags
 }

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { KPIView } from '../KPIWidget'
+import { KPIView } from '../KPIView'
 import type { EmployeeKPIs } from '@/lib/api'
 
 const baseKPIs: EmployeeKPIs = {

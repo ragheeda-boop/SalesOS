@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { EmailIntelligenceView } from '../EmailIntelligenceWidget'
+import { EmailIntelligenceView } from '../EmailIntelligenceView'
 import type { EmailIntelligence } from '@/lib/api'
 
 const baseData: EmailIntelligence = {

@@ -92,8 +92,37 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_LOG_RETENTION_HOURS: 168
     volumes:
       - kafka_data:/var/lib/kafka/data
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.0.0
+    restart: unless-stopped
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: INFO
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    restart: unless-stopped
+    depends_on:
+      - kafka
+    ports:
+      - "9100:9000"
+    environment:
+      KAFKA_BROKERCONNECT: kafka:9092
+      SCHEMA_REGISTRY: http://schema-registry:8081
+      JVM_OPTS: -Xms32M -Xmx64M
+    profiles:
+      - dev
 
   backend:
     build:
@@ -149,6 +178,8 @@ services:
       - "9090:9090"
     volumes:
       - ./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infra/monitoring/alerting-rules-production.yml:/etc/prometheus/alerts.yml
+      - ./infra/monitoring/prometheus-token:/etc/prometheus/prometheus-token
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
@@ -158,6 +189,30 @@ services:
       - "--web.enable-lifecycle"
     healthcheck:
       test: ["CMD-SHELL", "wget --spider -q http://localhost:9090/-/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      alertmanager:
+        condition: service_started
+
+  alertmanager:
+    build:
+      context: ./infra/docker/monitoring/alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    environment:
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL}
+      ALERTMANAGER_EMAIL_TO: ${ALERTMANAGER_EMAIL_TO}
+      ALERTMANAGER_EMAIL_FROM: ${ALERTMANAGER_EMAIL_FROM}
+      ALERTMANAGER_SMTP_HOST: ${ALERTMANAGER_SMTP_HOST}
+      ALERTMANAGER_SMTP_PORT: ${ALERTMANAGER_SMTP_PORT}
+      ALERTMANAGER_SMTP_USER: ${ALERTMANAGER_SMTP_USER}
+      ALERTMANAGER_SMTP_PASSWORD: ${ALERTMANAGER_SMTP_PASSWORD}
+      PAGERDUTY_ROUTING_KEY: ${PAGERDUTY_ROUTING_KEY}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9093/-/healthy"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -195,6 +250,19 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: "local:redis:6379"
+    depends_on:
+      redis:
+        condition: service_healthy
+    profiles:
+      - dev
 
   redis-exporter:
     image: oliver006/redis_exporter:latest

@@ -54,7 +54,7 @@ export function useIngestDocument() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (data: { title: string; content: string; source_type: DocumentSourceType }) => {
-      const res = await api.post("/api/v1/rag/documents", data, {
+      const res = await api.post("/api/v1/rag/ingest", data, {
         headers: { "X-Tenant-Id": getTenantId() },
       })
       return res.data as RagDocument

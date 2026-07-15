@@ -6,20 +6,18 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field
 
-from app.dependencies import get_current_tenant_id
+from app.dependencies import get_current_tenant_id, get_db_session
 from sdk.permissions import PermissionAction
 from app.dependencies import require_permission_dep
-from domains.workflow import InMemoryWorkflowRepository, WorkflowEngine, Workflow, WorkflowStep, WORKFLOW_TEMPLATES
+from domains.workflow import WorkflowEngine, Workflow, WorkflowStep, WORKFLOW_TEMPLATES
+from domains.workflow.postgres_repo import PostgresWorkflowRepository
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
-# Shared in-memory store (replaced by Postgres in production)
-_repo = InMemoryWorkflowRepository()
-_engine = WorkflowEngine(_repo)
 
 
 # ── Schemas ──
@@ -54,12 +52,12 @@ class WorkflowExecuteRequest(BaseModel):
 
 # ── Dependencies ──
 
-async def _get_repo() -> InMemoryWorkflowRepository:
-    return _repo
+async def _get_repo(db: AsyncSession = Depends(get_db_session)) -> PostgresWorkflowRepository:
+    return PostgresWorkflowRepository(session=db)
 
 
-async def _get_engine() -> WorkflowEngine:
-    return _engine
+async def _get_engine(db: AsyncSession = Depends(get_db_session)) -> WorkflowEngine:
+    return WorkflowEngine(repository=PostgresWorkflowRepository(session=db))
 
 
 # ── Endpoints ──
@@ -67,7 +65,7 @@ async def _get_engine() -> WorkflowEngine:
 @router.get("/workflows")
 async def list_workflows(
     tenant_id: str = Depends(get_current_tenant_id),
-    repo: InMemoryWorkflowRepository = Depends(_get_repo),
+    repo: PostgresWorkflowRepository = Depends(_get_repo),
     _rbac: None = Depends(require_permission_dep("workflow", PermissionAction.READ)),
 ):
     try:
@@ -94,7 +92,7 @@ async def list_workflows(
 async def create_workflow(
     body: WorkflowCreate,
     tenant_id: str = Depends(get_current_tenant_id),
-    repo: InMemoryWorkflowRepository = Depends(_get_repo),
+    repo: PostgresWorkflowRepository = Depends(_get_repo),
     _rbac: None = Depends(require_permission_dep("workflow", PermissionAction.CREATE)),
 ):
     try:
@@ -148,7 +146,7 @@ async def create_workflow(
 async def get_workflow(
     workflow_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
-    repo: InMemoryWorkflowRepository = Depends(_get_repo),
+    repo: PostgresWorkflowRepository = Depends(_get_repo),
     _rbac: None = Depends(require_permission_dep("workflow", PermissionAction.READ)),
 ):
     try:
@@ -186,7 +184,7 @@ async def update_workflow(
     workflow_id: str,
     body: WorkflowUpdate,
     tenant_id: str = Depends(get_current_tenant_id),
-    repo: InMemoryWorkflowRepository = Depends(_get_repo),
+    repo: PostgresWorkflowRepository = Depends(_get_repo),
     _rbac: None = Depends(require_permission_dep("workflow", PermissionAction.UPDATE)),
 ):
     try:
@@ -228,7 +226,7 @@ async def update_workflow(
 async def delete_workflow(
     workflow_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
-    repo: InMemoryWorkflowRepository = Depends(_get_repo),
+    repo: PostgresWorkflowRepository = Depends(_get_repo),
     _rbac: None = Depends(require_permission_dep("workflow", PermissionAction.DELETE)),
 ):
     try:
@@ -249,7 +247,7 @@ async def execute_workflow(
     workflow_id: str,
     body: WorkflowExecuteRequest,
     tenant_id: str = Depends(get_current_tenant_id),
-    repo: InMemoryWorkflowRepository = Depends(_get_repo),
+    repo: PostgresWorkflowRepository = Depends(_get_repo),
     engine: WorkflowEngine = Depends(_get_engine),
     _rbac: None = Depends(require_permission_dep("workflow", PermissionAction.UPDATE)),
 ):
@@ -288,7 +286,7 @@ async def execute_workflow(
 async def list_executions(
     workflow_id: str | None = None,
     tenant_id: str = Depends(get_current_tenant_id),
-    repo: InMemoryWorkflowRepository = Depends(_get_repo),
+    repo: PostgresWorkflowRepository = Depends(_get_repo),
     _rbac: None = Depends(require_permission_dep("workflow", PermissionAction.READ)),
 ):
     try:
@@ -315,7 +313,7 @@ async def list_executions(
 async def get_execution(
     execution_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
-    repo: InMemoryWorkflowRepository = Depends(_get_repo),
+    repo: PostgresWorkflowRepository = Depends(_get_repo),
     _rbac: None = Depends(require_permission_dep("workflow", PermissionAction.READ)),
 ):
     try:

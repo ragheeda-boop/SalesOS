@@ -13,6 +13,7 @@ COPY intelligence/ intelligence/
 COPY runtime/ runtime/
 COPY sdk/ sdk/
 COPY modules/ modules/
+COPY design_tokens/ design_tokens/
 
 RUN pip install --no-cache-dir .
 
@@ -35,6 +36,8 @@ COPY --from=builder /app/intelligence ./intelligence
 COPY --from=builder /app/runtime ./runtime
 COPY --from=builder /app/sdk ./sdk
 COPY --from=builder /app/modules ./modules
+COPY --from=builder /app/design_tokens ./design_tokens
+COPY alembic.ini .
 
 RUN chown -R salesos:salesos /app
 

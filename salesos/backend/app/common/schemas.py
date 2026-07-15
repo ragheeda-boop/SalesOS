@@ -7,6 +7,9 @@ from pydantic import BaseModel, ConfigDict
 class PaginationParams(BaseModel):
     page: int = 1
     page_size: int = 20
+    cursor: str | None = None
+    sort_by: str = "created_at"
+    sort_dir: str = "desc"
 
     @property
     def offset(self) -> int:
@@ -22,6 +25,15 @@ class PaginatedResponse(BaseModel):
     page: int
     page_size: int
     items: list
+
+
+class CursorResponse(BaseModel):
+    data: list
+    next_cursor: str | None = None
+    previous_cursor: str | None = None
+    has_next: bool = False
+    has_previous: bool = False
+    total: int | None = None
 
 
 class MessageResponse(BaseModel):

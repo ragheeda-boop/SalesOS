@@ -1,0 +1,22 @@
+{
+  "prompt_id": "kp-healthcare.company-summary",
+  "name": "Healthcare Company Summary",
+  "version": "1.0.0",
+  "domain": "healthcare",
+  "active": true,
+  "template": "أنت محلل متخصص في قطاع الصحة السعودي. قم بتحليل شركة {company_name} وأعط ملخصًا شاملاً.\n\nالمعلومات المتاحة:\n- الاسم: {company_name}\n- النوع: {entity_type} (مستشفى / عيادة / مختبر / صيدلية / شركة تأمين صحي)\n- التصنيف: {classification}\n- التراخيص: {licenses}\n- عدد المنشآت: {facility_count}\n- السعة السريرية: {bed_capacity}\n- شهادات الاعتماد: {accreditations}\n- الإيرادات: {revenue}\n- عدد الموظفين: {employee_count}\n- الخدمات الرئيسية: {key_services}\n\nالمطلوب:\n1. ملخص المنشأة — النشاط الرئيسي، الحجم، النطاق الجغرافي\n2. الوضع التنظيمي — التراخيص من وزارة الصحة، شهادات CBAHI، تصنيف المنشأة\n3. القوة السوقية — الحصة السوقية، السمعة، الشراكات\n4. مؤشرات النمو — التوسع، فتح فروع جديدة، زيادة السعة\n5. تحليل المخاطر — مخاطر تنظيمية، تشغيلية، مالية\n6. فرص البيع — احتياجات تقنية، استشارية، تدريبية\n\nيجب أن يكون الرد بصيغة JSON تحتوي على:\n- summary: الملخص بالعربية\n- regulatory_status: الوضع التنظيمي مع الثقة\n- market_position: الوضع السوقي\n- growth_indicators: مؤشرات النمو\n- risk_factors: عوامل المخاطرة مع مستوى الخطر (high/medium/low)\n- sales_opportunities: فرص البيع مع الأولوية\n- confidence: درجة الثقة (0-1)",
+  "variables": ["company_name", "entity_type", "classification", "licenses", "facility_count", "bed_capacity", "accreditations", "revenue", "employee_count", "key_services"],
+  "output_schema": {
+    "type": "object",
+    "required": ["summary", "regulatory_status", "market_position", "confidence"],
+    "properties": {
+      "summary": {"type": "string"},
+      "regulatory_status": {"type": "object"},
+      "market_position": {"type": "object"},
+      "growth_indicators": {"type": "array"},
+      "risk_factors": {"type": "array"},
+      "sales_opportunities": {"type": "array"},
+      "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+    }
+  }
+}

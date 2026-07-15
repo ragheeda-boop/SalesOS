@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { EmployeeProfileView } from '../EmployeeProfileWidget'
+import { EmployeeProfileView } from '../EmployeeProfileView'
 import type { EmployeeProfile } from '@/lib/api'
 
 const baseProfile: EmployeeProfile = {

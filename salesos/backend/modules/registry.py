@@ -25,6 +25,7 @@ def register_modules() -> None:
     _register_timeline()
     _register_opportunity()
     _register_search()
+    _register_signal_marketplace()
     _register_permissions()
     _register_platform_capabilities()
 
@@ -128,6 +129,25 @@ def _register_search() -> None:
         sprint=3,
         owner="platform",
         tags=["search", "discovery"],
+     ))
+
+
+def _register_signal_marketplace() -> None:
+    FeatureRegistry.register(FeatureModule(
+        name="signal_marketplace",
+        label="Signal Marketplace",
+        label_ar="سوق الإشارات",
+        description="Signal detection, subscription, and feed from Knowledge Packs and domain events",
+        description_ar="اكتشاف الإشارات، الاشتراك، والتغذية من حقائب المعرفة وأحداث المجال",
+        version="1.0.0",
+        status=ModuleStatus.IN_PROGRESS,
+        entities=["Signal", "SignalSubscription", "SignalEvent"],
+        permissions=["signal.*"],
+        events=["signal.detected", "signal.acknowledged"],
+        api_prefix="/api/v1/signals",
+        sprint=10,
+        owner="platform",
+        tags=["signals", "marketplace", "intelligence"],
     ))
 
 

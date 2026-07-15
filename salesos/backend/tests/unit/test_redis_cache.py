@@ -1,174 +1,182 @@
-"""Tests for Redis caching layer — redis_client.py and cache.py."""
-import os
+"""Tests for RedisCache — async Redis wrapper with JSON serialisation and graceful failover."""
 
-# Must set before any app imports to satisfy settings validation
-os.environ.setdefault("SECRET_KEY", "test")
-os.environ.setdefault("POSTGRES_PASSWORD", "test")
-os.environ.setdefault("NEO4J_PASSWORD", "test")
-os.environ.setdefault("JWT_SECRET_KEY", "test")
+from __future__ import annotations
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.common.cache import cached, make_cache_key
+from sdk.cache.redis_cache import RedisCache
 
 
-class FakeRedisClient:
-    """In-memory mock that mirrors the AsyncRedisClient interface."""
+class FakeStubRedis:
+    """Minimal Redis mock that stores JSON-serialised strings."""
 
     def __init__(self):
-        self._store = {}
+        self._store: dict[str, str] = {}
         self.available = True
 
     async def get(self, key: str) -> str | None:
         if not self.available:
-            return None
+            raise ConnectionError("Redis unavailable")
         return self._store.get(key)
 
-    async def set(self, key: str, value: str, ttl: int = 60) -> None:
-        if self.available:
-            self._store[key] = value
+    async def setex(self, key: str, ttl: int, value: str) -> None:
+        if not self.available:
+            raise ConnectionError("Redis unavailable")
+        self._store[key] = value
 
-    async def delete(self, key: str) -> None:
-        self._store.pop(key, None)
+    async def delete(self, *keys: str) -> int:
+        if not self.available:
+            raise ConnectionError("Redis unavailable")
+        count = 0
+        for k in keys:
+            if k in self._store:
+                del self._store[k]
+                count += 1
+        return count
 
-    async def health(self) -> bool:
-        return self.available
+    async def exists(self, key: str) -> int:
+        if not self.available:
+            raise ConnectionError("Redis unavailable")
+        return 1 if key in self._store else 0
+
+    async def ttl(self, key: str) -> int:
+        if not self.available:
+            raise ConnectionError("Redis unavailable")
+        return 120 if key in self._store else -2
+
+    async def flushall(self) -> None:
+        if not self.available:
+            raise ConnectionError("Redis unavailable")
+        self._store.clear()
+
+    async def scan(self, cursor: int = 0, match: str = "*", count: int = 10):
+        if not self.available:
+            raise ConnectionError("Redis unavailable")
+        keys = [k for k in self._store if self._match_pattern(k, match)]
+        return 0, keys
+
+    @staticmethod
+    def _match_pattern(key: str, pattern: str) -> bool:
+        import fnmatch
+        return fnmatch.fnmatch(key, pattern)
 
 
 @pytest.fixture
-def fake_redis():
-    return FakeRedisClient()
+def stub_redis():
+    return FakeStubRedis()
 
 
 @pytest.fixture
-def patch_redis_client(fake_redis):
-    with patch("app.common.cache._cache_client", fake_redis) as mock:
-        yield mock
+def cache(stub_redis):
+    return RedisCache(stub_redis)
 
 
-# ── Tests: make_cache_key ────────────────────────────────────────────────────
+# ── Construction / availability ─────────────────────────────────
 
-class TestMakeCacheKey:
-    def test_includes_tenant_and_resource(self):
-        key = make_cache_key("t-1", "nba:recommendations", {"opportunity_id": "opp-1", "tenant_id": "t-1"})
-        assert key.startswith("t-1:nba:recommendations:")
+class TestConstruction:
+    def test_with_none_redis(self):
+        c = RedisCache(None)
+        assert c.available is False
 
-    def test_excludes_db_request(self):
-        key_with = make_cache_key("t-1", "r", {"db": "x", "request": "y", "tenant_id": "t-1"})
-        key_without = make_cache_key("t-1", "r", {"tenant_id": "t-1"})
-        assert key_with == key_without
-
-    def test_excludes_underscore_prefix(self):
-        key_with = make_cache_key("t-1", "r", {"_rbac": None, "tenant_id": "t-1"})
-        key_without = make_cache_key("t-1", "r", {"tenant_id": "t-1"})
-        assert key_with == key_without
-
-    def test_different_args_produce_different_keys(self):
-        k1 = make_cache_key("t-1", "r", {"opportunity_id": "opp-1", "tenant_id": "t-1"})
-        k2 = make_cache_key("t-1", "r", {"opportunity_id": "opp-2", "tenant_id": "t-1"})
-        assert k1 != k2
+    def test_with_redis(self, stub_redis):
+        c = RedisCache(stub_redis)
+        assert c.available is True
 
 
-# ── Tests: cached decorator ──────────────────────────────────────────────────
+# ── get / set ───────────────────────────────────────────────────
 
-class TestCachedDecorator:
-    async def test_returns_cached_value(self, patch_redis_client, fake_redis):
-        call_count = 0
+class TestGetSet:
+    async def test_set_and_get(self, cache, stub_redis):
+        await cache.set("k1", {"a": 1}, ttl=60)
+        val = await cache.get("k1")
+        assert val == {"a": 1}
 
-        @cached("test:resource", ttl=60)
-        async def my_func(tenant_id: str, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            return {"data": "expensive"}
+    async def test_get_miss_returns_none(self, cache):
+        val = await cache.get("nonexistent")
+        assert val is None
 
-        result1 = await my_func(tenant_id="t-1")
-        assert result1 == {"data": "expensive"}
-        assert call_count == 1
+    async def test_get_empty_string(self, cache):
+        await cache.set("empty", "", ttl=60)
+        val = await cache.get("empty")
+        assert val == ""
 
-        result2 = await my_func(tenant_id="t-1")
-        assert result2 == {"data": "expensive"}
-        assert call_count == 1, "should use cache on second call"
-
-    async def test_cache_miss_calls_function(self, patch_redis_client):
-        call_count = 0
-
-        @cached("test:resource", ttl=60)
-        async def my_func(tenant_id: str, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            return {"data": call_count}
-
-        r1 = await my_func(tenant_id="t-1")
-        r2 = await my_func(tenant_id="t-2")
-        assert r1["data"] == 1
-        assert r2["data"] == 2, "different tenant = different cache key"
-
-    async def test_different_tenants_have_separate_cache(self, patch_redis_client):
-        call_count = 0
-
-        @cached("test:resource", ttl=60)
-        async def my_func(tenant_id: str, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            return {"data": call_count}
-
-        await my_func(tenant_id="t-1")
-        await my_func(tenant_id="t-2")
-        await my_func(tenant_id="t-1")
-        assert call_count == 2, "t-1 cached, t-2 miss"
-
-    async def test_no_tenant_id_skips_cache(self, patch_redis_client, fake_redis):
-        call_count = 0
-
-        @cached("test:resource", ttl=60)
-        async def my_func(**kwargs):
-            nonlocal call_count
-            call_count += 1
-            return {"data": call_count}
-
-        await my_func()
-        await my_func()
-        assert call_count == 2, "no tenant_id means no caching"
-
-    async def test_graceful_degradation_when_redis_down(self):
-        """When Redis is unavailable, the function should still execute."""
-        redis_down = FakeRedisClient()
-        redis_down.available = False
-
-        call_count = 0
-
-        with patch("app.common.cache._cache_client", redis_down):
-            @cached("test:resource", ttl=60)
-            async def my_func(tenant_id: str, **kwargs):
-                nonlocal call_count
-                call_count += 1
-                return {"data": call_count}
-
-            r1 = await my_func(tenant_id="t-1")
-            r2 = await my_func(tenant_id="t-1")
-            assert r1["data"] == 1
-            assert r2["data"] == 2, "no cache when redis is down"
-            assert call_count == 2
+    async def test_set_overwrites(self, cache):
+        await cache.set("k", "v1", ttl=60)
+        await cache.set("k", "v2", ttl=60)
+        assert await cache.get("k") == "v2"
 
 
-# ── Tests: FakeRedisClient (mock sanity) ────────────────────────────────────
+# ── delete ──────────────────────────────────────────────────────
 
-class TestFakeRedisClient:
-    async def test_get_set(self, fake_redis):
-        await fake_redis.set("k", "v", ttl=10)
-        assert await fake_redis.get("k") == "v"
+class TestDelete:
+    async def test_delete_existing(self, cache):
+        await cache.set("k", "v", ttl=60)
+        await cache.delete("k")
+        assert await cache.get("k") is None
 
-    async def test_get_miss(self, fake_redis):
-        assert await fake_redis.get("missing") is None
+    async def test_delete_missing_does_not_raise(self, cache):
+        await cache.delete("nonexistent")
 
-    async def test_delete(self, fake_redis):
-        await fake_redis.set("k", "v")
-        await fake_redis.delete("k")
-        assert await fake_redis.get("k") is None
 
-    async def test_health(self, fake_redis):
-        assert await fake_redis.health() is True
-        fake_redis.available = False
-        assert await fake_redis.health() is False
+# ── ttl ─────────────────────────────────────────────────────────
+
+class TestTtl:
+    async def test_ttl_returns_positive_for_existing(self, cache, stub_redis):
+        await cache.set("k", "v", ttl=120)
+        remaining = await cache.ttl("k")
+        assert remaining > 0
+
+    async def test_ttl_returns_minus2_for_missing(self, cache):
+        assert await cache.ttl("nonexistent") == -2
+
+
+# ── exists ──────────────────────────────────────────────────────
+
+class TestExists:
+    async def test_exists_returns_true(self, cache):
+        await cache.set("k", "v", ttl=60)
+        assert await cache.exists("k") is True
+
+    async def test_exists_returns_false(self, cache):
+        assert await cache.exists("missing") is False
+
+
+# ── clear ───────────────────────────────────────────────────────
+
+class TestClear:
+    async def test_clear_empties_cache(self, cache):
+        await cache.set("a", 1, ttl=60)
+        await cache.set("b", 2, ttl=60)
+        await cache.clear()
+        assert await cache.get("a") is None
+        assert await cache.get("b") is None
+
+
+# ── Graceful failover ───────────────────────────────────────────
+
+class TestFailover:
+    async def test_get_returns_none_when_redis_unavailable(self):
+        c = RedisCache(None)
+        assert await c.get("any") is None
+
+    async def test_set_does_not_raise_when_redis_down(self):
+        c = RedisCache(None)
+        await c.set("k", "v", ttl=60)
+
+    async def test_delete_does_not_raise_when_redis_down(self):
+        c = RedisCache(None)
+        await c.delete("k")
+
+    async def test_exists_returns_false_when_redis_down(self):
+        c = RedisCache(None)
+        assert await c.exists("k") is False
+
+    async def test_clear_does_not_raise_when_redis_down(self):
+        c = RedisCache(None)
+        await c.clear()
+
+    async def test_scan_delete_returns_zero_when_redis_down(self):
+        c = RedisCache(None)
+        assert await c.scan_delete("*") == 0

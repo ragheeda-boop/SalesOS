@@ -12,34 +12,49 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import PlainTextResponse
-from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.common.metrics import metrics
+from app.dependencies import require_role_dep, verify_token
 from app.metrics.collector import collector
 from app.metrics.sla_monitor import sla_monitor
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(verify_token)])
 
 
-class MetricsMiddleware(BaseHTTPMiddleware):
-    """Track HTTP request count and duration for every request."""
+class MetricsMiddleware:
+    """Track HTTP request count and duration for every request.
 
-    async def dispatch(self, request: Request, call_next):
+    Uses ASGI __call__ pattern (not BaseHTTPMiddleware) to avoid
+    body streaming deadlocks with nested middleware + exception handlers.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+
         start = time.time()
-        response = await call_next(request)
-        duration = time.time() - start
-        path = request.url.path
-        method = request.method
-        status = response.status_code
-        metrics.track_http_request(method, path, status, duration)
-        collector.track_http_request(method, path, status, duration)
+        status_code = 0
 
-        # Feed SLA monitor — categorise by path prefix
-        category = _categorize_path(path)
-        if category:
-            sla_monitor.record_request(category, duration * 1000, status)
+        async def send_wrapper(message):
+            nonlocal status_code
+            if message["type"] == "http.response.start":
+                status_code = message.get("status", 0)
+            await send(message)
 
-        return response
+        try:
+            await self.app(scope, receive, send_wrapper)
+        finally:
+            duration = time.time() - start
+            path = scope.get("path", "")
+            method = scope.get("method", "GET")
+            metrics.track_http_request(method, path, status_code, duration)
+            collector.track_http_request(method, path, status_code, duration)
+            category = _categorize_path(path)
+            if category:
+                sla_monitor.record_request(category, duration * 1000, status_code)
 
 
 def _categorize_path(path: str) -> str | None:
@@ -105,6 +120,8 @@ async def app_metrics():
 
 
 @router.get("/api/v1/admin/sla-report")
-async def sla_report():
+async def sla_report(
+    _=Depends(require_role_dep("admin")),
+):
     """SLA compliance report per endpoint category (24h window)."""
     return sla_monitor.get_report()

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import axios from "axios"
+import api from "@/lib/api"
 import { cn } from "@salesos/ui"
 import { NBAWidget } from "../../widgets/nba-widget/NBAWidget"
 import { PipelineWorkspace } from "../pipeline/PipelineWorkspace"
@@ -57,7 +57,7 @@ export function RevenueWorkspace() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await axios.get("/api/v1/revenue/dashboard")
+        const res = await api.get("/api/v1/revenue/dashboard")
         setData(res.data)
       } finally {
         setLoading(false)

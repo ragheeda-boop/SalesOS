@@ -1,0 +1,79 @@
+{
+  "pack_id": "kp-construction",
+  "version": "1.0.0",
+  "features": [
+    {
+      "id": "FEAT-CN-001",
+      "name": "contractor_grade",
+      "ar_name": "درجة تصنيف المقاول",
+      "type": "categorical",
+      "description": "تصنيف المقاول حسب اللجنة الوطنية لتصنيف المقاولين (أول/ثاني/ثالث/رابع/خامس)",
+      "source": "NCVC",
+      "enum": ["first", "second", "third", "fourth", "fifth", "unclassified"],
+      "importance": 0.95
+    },
+    {
+      "id": "FEAT-CN-002",
+      "name": "capital_amount",
+      "ar_name": "رأس المال",
+      "type": "numeric",
+      "description": "رأس مال الشركة المسجل بالريال السعودي",
+      "source": "company_registry",
+      "importance": 0.85
+    },
+    {
+      "id": "FEAT-CN-003",
+      "name": "project_count",
+      "ar_name": "عدد المشاريع",
+      "type": "numeric",
+      "description": "عدد المشاريع الحالية والمنجزة للشركة",
+      "source": "project_portfolio",
+      "importance": 0.8
+    },
+    {
+      "id": "FEAT-CN-004",
+      "name": "total_project_value",
+      "ar_name": "إجمالي قيمة المشاريع",
+      "type": "numeric",
+      "description": "إجمالي قيمة المشاريع المسجلة (جاري + منجز) بالريال السعودي",
+      "source": "financial_data",
+      "importance": 0.85
+    },
+    {
+      "id": "FEAT-CN-005",
+      "name": "specializations",
+      "ar_name": "التخصصات",
+      "type": "multi_select",
+      "description": "التخصصات الهندسية والإنشائية للشركة (مباني، طرق، بنية تحتية، مياه، كهرباء، إلخ)",
+      "source": "classification_registry",
+      "importance": 0.75
+    },
+    {
+      "id": "FEAT-CN-006",
+      "name": "quality_certifications",
+      "ar_name": "شهادات الجودة",
+      "type": "multi_select",
+      "description": "شهادات الجودة والاعتماد (ISO 9001, ISO 14001, OHSAS 18001, SASO)",
+      "source": "certification_registry",
+      "importance": 0.6
+    },
+    {
+      "id": "FEAT-CN-007",
+      "name": "giga_project_experience",
+      "ar_name": "خبرة المشاريع الكبرى",
+      "type": "boolean",
+      "description": "هل للشركة خبرة سابقة في المشاريع الكبرى (NEOM، البحر الأحمر، القدية)؟",
+      "source": "project_portfolio",
+      "importance": 0.8
+    },
+    {
+      "id": "FEAT-CN-008",
+      "name": "employee_count",
+      "ar_name": "عدد الموظفين",
+      "type": "numeric",
+      "description": "عدد المهندسين والفنيين والإداريين في الشركة",
+      "source": "company_profile",
+      "importance": 0.65
+    }
+  ]
+}

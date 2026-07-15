@@ -1,0 +1,237 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "title": "SalesOS Business Metrics",
+  "uid": "salesos-business",
+  "version": 1,
+  "timezone": "browser",
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 1,
+  "tags": ["salesos", "business", "pipeline", "forecast"],
+  "description": "Pipeline conversion rates, forecast accuracy, user activity, and revenue metrics",
+  "panels": [
+    {
+      "title": "Pipeline: Records Ingested",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "targets": [{
+        "expr": "salesos_pipeline_records_ingested_total",
+        "legendFormat": "total"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "green" }] }
+        }
+      },
+      "description": "Total pipeline records ingested"
+    },
+    {
+      "title": "Golden Records",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "targets": [{
+        "expr": "salesos_golden_records_total",
+        "legendFormat": "golden"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "purple" }] }
+        }
+      },
+      "description": "Golden records (resolved entities)"
+    },
+    {
+      "title": "Open Entity Conflicts",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "targets": [{
+        "expr": "salesos_open_conflicts_total",
+        "legendFormat": "conflicts"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "orange", "value": 5 },
+              { "color": "red", "value": 20 }
+            ]
+          }
+        }
+      },
+      "description": "Open entity resolution conflicts requiring manual resolution"
+    },
+    {
+      "title": "DLQ Failed Records",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "targets": [{
+        "expr": "salesos_dlq_failed_total",
+        "legendFormat": "failed"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      },
+      "description": "Dead letter queue — failed records requiring retry"
+    },
+    {
+      "title": "Pipeline Error Rate (5m)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [{
+        "expr": "rate(salesos_pipeline_errors_total[5m])",
+        "legendFormat": "{{stage}}"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cps",
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+        }
+      },
+      "description": "Pipeline error rate by stage"
+    },
+    {
+      "title": "Stage Duration (avg ms)",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [{
+        "expr": "salesos_pipeline_stage_duration_ms_avg",
+        "legendFormat": "{{stage}}"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "description": "Average pipeline stage duration in milliseconds"
+    },
+    {
+      "title": "User Activity (HTTP Requests/min)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        {
+          "expr": "rate(salesos_http_requests_total[1m])",
+          "legendFormat": "req/min"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cpm",
+          "color": { "mode": "palette-classic" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10 }
+        }
+      },
+      "description": "HTTP request rate — proxy for user activity"
+    },
+    {
+      "title": "Errors by Context",
+      "type": "bargauge",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "targets": [
+        {
+          "expr": "salesos_errors_total",
+          "legendFormat": "{{type}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "displayName": "{{type}}"
+        }
+      },
+      "description": "Error counts by context/type"
+    },
+    {
+      "title": "Feature Computations",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 20 },
+      "targets": [{
+        "expr": "salesos_feature_computations_total",
+        "legendFormat": "computations"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "orange" }] }
+        }
+      },
+      "description": "Feature store computations performed"
+    },
+    {
+      "title": "Feature Cache Hit Rate",
+      "type": "gauge",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 20 },
+      "targets": [{
+        "expr": "rate(salesos_feature_cache_hits_total[5m]) / (rate(salesos_feature_cache_hits_total[5m]) + 0.001) * 100",
+        "legendFormat": "hit rate"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "color": {
+            "mode": "thresholds",
+            "thresholds": {
+              "steps": [
+                { "color": "red", "value": 0 },
+                { "color": "orange", "value": 50 },
+                { "color": "green", "value": 80 }
+              ]
+            }
+          }
+        }
+      },
+      "description": "Feature store cache hit rate — target > 80%"
+    },
+    {
+      "title": "Companies Synced",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 20 },
+      "targets": [{
+        "expr": "salesos_pipeline_companies_synced_total",
+        "legendFormat": "synced"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "blue" }] }
+        }
+      },
+      "description": "Companies synced from golden records"
+    },
+    {
+      "title": "KG Triples Created",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 20 },
+      "targets": [{
+        "expr": "salesos_pipeline_kg_triples_created_total",
+        "legendFormat": "triples"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "purple" }] }
+        }
+      },
+      "description": "Knowledge graph triples created"
+    }
+  ],
+  "schemaVersion": 35,
+  "refresh": "15s"
+}

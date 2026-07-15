@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: salesos-config
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos
+    app.kubernetes.io/part-of: salesos
+data:
+  ENV: "production"
+  SALESOS_ENV: "production"
+  DEBUG: "false"
+  SALESOS_DEBUG: "false"
+  NODE_ENV: "production"
+  LOG_LEVEL: "INFO"
+
+  POSTGRES_USER: "salesos"
+  POSTGRES_DB: "salesos"
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+
+  NEO4J_URI: "bolt://neo4j:7687"
+  NEO4J_USER: "neo4j"
+  NEO4J_DATABASE: "neo4j"
+  NEO4J_MAX_CONNECTION_POOL_SIZE: "50"
+  NEO4J_CONNECTION_ACQUISITION_TIMEOUT: "30"
+  NEO4J_MAX_TRANSACTION_RETRY_TIME: "10"
+
+  REDIS_URL: "redis://redis:6379/0"
+
+  JWT_ALGORITHM: "HS256"
+  JWT_ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+  JWT_REFRESH_TOKEN_EXPIRE_DAYS: "7"
+
+  OPENAI_MODEL: "gpt-4o-mini"
+  OPENAI_EMBEDDING_MODEL: "text-embedding-3-large"
+  LLM_TEMPERATURE: "0.7"
+  LLM_MAX_TOKENS: "1024"
+
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  KAFKA_GROUP_ID: "salesos-group"
+  KAFKA_AUTO_OFFSET_RESET: "earliest"
+  EVENT_BUS_TYPE: "kafka"
+
+  PROMETHEUS_METRICS_ENABLED: "true"
+  PROMETHEUS_METRICS_PORT: "9090"
+  GRAFANA_ADMIN_USER: "admin"
+
+  RATE_LIMIT_AUTHENTICATED: "100"
+  RATE_LIMIT_ANONYMOUS: "20"
+  RATE_LIMIT_SEARCH: "30"
+  RATE_LIMIT_DEFAULT: "60"
+  RATE_LIMIT_WINDOW: "60"
+  RATE_LIMIT_HEALTH: "120"
+
+  CORS_ALLOW_METHODS: "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+  CORS_ALLOW_HEADERS: "Authorization,Content-Type,X-Tenant-Id,X-Request-ID,X-CSRF-Token"
+
+  FEATURE_SEARCH_FUZZY_V2: "false"
+  FEATURE_AI_COPILOT: "false"
+  FEATURE_CRM_KANBAN: "false"
+
+  DEMO_MODE: "false"
+  SERVICE_VERSION: "0.1.0"
+
+  AUDIT_RETENTION_DAYS: "90"
+  CELERY_TASK_TIME_LIMIT: "600"
+  CELERY_TASK_SOFT_TIME_LIMIT: "300"
+  CELERY_WORKER_MAX_TASKS_PER_CHILD: "1000"
+  CELERY_RESULT_EXPIRES: "86400"

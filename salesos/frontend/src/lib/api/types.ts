@@ -20,6 +20,15 @@ export interface Company {
   updated_at: string;
 }
 
+export interface CursorResponse<T> {
+  data: T[];
+  next_cursor: string | null;
+  previous_cursor: string | null;
+  has_next: boolean;
+  has_previous: boolean;
+  total: number | null;
+}
+
 export interface CompanySearchParams {
   q?: string;
   cr_number?: string;
@@ -27,6 +36,9 @@ export interface CompanySearchParams {
   city?: string;
   page?: number;
   page_size?: number;
+  cursor?: string;
+  sort_by?: string;
+  sort_order?: string;
 }
 
 export interface Branch {
@@ -163,6 +175,7 @@ export interface Company360Response {
   signals: Company360Signals;
   branches: Branch[];
   licenses: License[];
+  health_score?: number;
 }
 
 export interface EmployeeProfile {

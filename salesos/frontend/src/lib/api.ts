@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || "http://localhost:8000",
   headers: {
     "Content-Type": "application/json",
   },
@@ -81,6 +81,15 @@ export interface Company {
   updated_at: string;
 }
 
+export interface CursorResponse<T> {
+  data: T[];
+  next_cursor: string | null;
+  previous_cursor: string | null;
+  has_next: boolean;
+  has_previous: boolean;
+  total: number | null;
+}
+
 export interface CompanySearchParams {
   q?: string;
   cr_number?: string;
@@ -88,6 +97,9 @@ export interface CompanySearchParams {
   city?: string;
   page?: number;
   page_size?: number;
+  cursor?: string;
+  sort_by?: string;
+  sort_order?: string;
 }
 
 export interface Branch {
@@ -277,6 +289,17 @@ export async function searchCompanies(
   tenantId: string
 ): Promise<PaginatedResponse<Company>> {
   const response = await api.get("/api/v1/companies", {
+    params: { ...params, cursor: undefined },
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
+export async function searchCompaniesCursor(
+  params: CompanySearchParams,
+  tenantId: string
+): Promise<CursorResponse<Company>> {
+  const response = await api.get("/api/v1/companies/cursors", {
     params,
     headers: { "X-Tenant-Id": tenantId },
   });
@@ -343,6 +366,7 @@ export interface Company360Response {
   signals: Company360Signals;
   branches: Branch[];
   licenses: License[];
+  health_score?: number;
 }
 
 export async function getCompany360(id: string, tenantId: string): Promise<Company360Response> {
@@ -643,6 +667,17 @@ export async function getEntityActivities(
   return response.data;
 }
 
+export async function getGlobalActivities(
+  tenantId: string,
+  params: { actor?: string; action?: string; entity_type?: string; limit?: number; offset?: number } = {}
+): Promise<ActivityQueryResponse> {
+  const response = await api.get("/api/v1/activities", {
+    params,
+    headers: { "X-Tenant-Id": tenantId },
+  });
+  return response.data;
+}
+
 export async function queryActivities(
   params: Record<string, string | number | undefined>,
   tenantId: string
@@ -721,6 +756,36 @@ export async function register(
   return response.data;
 }
 
+// ─── User Profile ────────────────────────────────────────────
+export interface UserProfile {
+  id: string;
+  email: string;
+  full_name: string;
+  full_name_ar: string | null;
+  role: string;
+  is_active: boolean;
+  is_verified: boolean;
+  tenant_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getCurrentUser(): Promise<UserProfile> {
+  const response = await api.get("/api/v1/identity/users/me");
+  return response.data;
+}
+
+export async function changePassword(
+  current_password: string,
+  new_password: string
+): Promise<{ message: string }> {
+  const response = await api.post("/api/v1/identity/change-password", {
+    current_password,
+    new_password,
+  });
+  return response.data;
+}
+
 // ─── Admin / Monitoring ──────────────────────────────────────
 export interface PipelineMetrics {
   records_ingested: number;
@@ -777,7 +842,7 @@ export interface EntityResolutionConflict {
 export async function getAdminHealth(
   tenantId: string
 ): Promise<FullHealthResponse> {
-  const response = await api.get("/api/v1/admin/health/full", {
+  const response = await api.get("/health/full", {
     headers: { "X-Tenant-Id": tenantId },
   });
   return response.data;
@@ -1305,7 +1370,7 @@ export interface AdminRole {
 }
 
 export async function listAdminAuditLogs(params?: Record<string, string | number | undefined>): Promise<PaginatedResponse<AuditLogEntry>> {
-  const resp = await api.get("/api/v1/admin/audit/logs", { params });
+  const resp = await api.get("/api/v1/audit/logs", { params });
   return resp.data;
 }
 

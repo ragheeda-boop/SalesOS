@@ -24,7 +24,7 @@ def get_pool_metrics() -> dict[str, Any]:
         "checked_in": pool.checkedin(),
         "checked_out": pool.checkedout(),
         "overflow": pool.overflow(),
-        "total_open": pool.open_connections(),
+        "total_open": pool.checkedout() + pool.checkedin(),
     }
 
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
@@ -41,6 +41,7 @@ import domains.analytics.infrastructure.models  # noqa: F401
 import app.modules.sso.models  # noqa: F401
 import app.modules.audit.models  # noqa: F401
 import app.modules.api_keys.models  # noqa: F401
+import app.modules.signal_marketplace.models  # noqa: F401
 
 
 async def get_db() -> AsyncSession:

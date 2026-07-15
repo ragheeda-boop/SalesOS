@@ -6,8 +6,8 @@ import Link from "next/link"
 import { CompanyWorkspace } from "@/components/company-workspace"
 import { useCompany } from "@/lib/hooks/companyQueries"
 import { useUpdateCompany, useDeleteCompany, useAddContact } from "@/lib/hooks/mutationHooks"
-import { Button, Modal, ModalTrigger, ModalContent, ModalHeader, ModalBody, ModalFooter, Input, Spinner } from "@salesos/ui"
-import { Pencil, Trash2, UserPlus, Loader2, ArrowLeft } from "lucide-react"
+import { Button, Modal, ModalTrigger, ModalContent, ModalHeader, ModalBody, ModalFooter, Input } from "@salesos/ui"
+import { Pencil, Trash2, UserPlus, ArrowRight, Loader2 } from "lucide-react"
 import { ErrorFallback } from "@/components/foundation/error-boundary"
 
 export default function CompanyPage() {
@@ -62,9 +62,9 @@ export default function CompanyPage() {
       <div className="mb-4 flex items-center justify-between">
         <Link
           href="/companies"
-          className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
+          className="inline-flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100 transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowRight className="h-4 w-4" />
           العودة إلى الشركات
         </Link>
         <div className="flex items-center gap-2">
@@ -111,19 +111,7 @@ export default function CompanyPage() {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12"><Spinner className="h-6 w-6" /></div>
-      ) : isError ? (
-        <ErrorFallback
-          title="فشل تحميل بيانات الشركة"
-          message={(error as Error)?.message || "تعذر تحميل بيانات الشركة. تأكد من اتصال الخادم."}
-          onRetry={() => refetch()}
-          showDetails={process.env.NODE_ENV === "development"}
-          errorDetails={String(error)}
-        />
-      ) : (
-        <CompanyWorkspace companyId={id} />
-      )}
+      <CompanyWorkspace companyId={id} />
 
       <Modal open={editOpen} onOpenChange={setEditOpen}>
         <ModalContent>

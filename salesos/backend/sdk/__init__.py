@@ -1,7 +1,7 @@
 """SalesOS Platform SDK — foundational layer for all modules."""
 
 from sdk.audit import AuditTrail
-from sdk.cache import CacheService
+from sdk.cache import CacheService, RedisCache
 from sdk.config import SdkSettings, sdk_settings
 from sdk.database import (
     Entity,
@@ -58,6 +58,7 @@ from sdk.vector import EmbeddingService, OpenAIEmbeddingService
 __all__ = [
     "AuditTrail",
     "CacheService",
+    "RedisCache",
     "ConfigurationError",
     "create_jwt",
     "decode_jwt",
