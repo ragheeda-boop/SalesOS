@@ -24,7 +24,7 @@ router = APIRouter(
 async def revenue_dashboard(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "revenue")),
+    _rbac: None = Depends(require_permission_dep("revenue", PermissionAction.READ)),
 ):
     """Unified revenue dashboard: pipeline summary, active opportunities, recent activity."""
     try:

@@ -40,7 +40,7 @@ async def semantic_search(
     page_size: int = Query(10, ge=1, le=50),
     tenant_id: str = Depends(get_current_tenant_id),
     planner: SearchPlanner = Depends(get_semantic_planner),
-    _rbac=Depends(require_permission_dep(PermissionAction.READ, "search")),
+    _rbac=Depends(require_permission_dep("search", PermissionAction.READ)),
 ):
     query = SearchQuery(query=q, page_size=page_size, tenant_id=tenant_id)
     result = await planner.search(query)
@@ -72,7 +72,7 @@ async def similar_companies(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
     repo: PgVectorCompanyRepository = Depends(get_pgvector_repo),
-    _rbac=Depends(require_permission_dep(PermissionAction.READ, "search")),
+    _rbac=Depends(require_permission_dep("search", PermissionAction.READ)),
 ):
     result = await repo.similar_to(company_id, top_k=top_k)
 

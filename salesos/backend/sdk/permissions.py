@@ -85,7 +85,7 @@ class PermissionRegistry:
         return {
             "admin": [
                 Permission(r, a)
-                for r in ["company", "contact", "license", "opportunity", "pipeline", "user", "tenant", "settings", "billing", "audit", "api", "executive", "workflow", "employee", "entity-resolution", "search", "feature-store", "data-fabric", "knowledge-graph", "decision", "timeline", "monitoring", "customer-success", "work-intelligence", "employee-360"]
+                for r in ["company", "contact", "license", "opportunity", "pipeline", "user", "tenant", "settings", "billing", "audit", "api", "executive", "workflow", "employee", "entity-resolution", "search", "feature-store", "data-fabric", "knowledge-graph", "decision", "timeline", "monitoring", "customer-success", "work-intelligence", "employee-360", "revenue", "meeting", "email", "ai", "forecast", "workspace", "analytics", "copilot", "activity", "quote", "proposal", "contract", "task"]
                 for a in PermissionAction
             ],
             "manager": [

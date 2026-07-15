@@ -1,3 +1,5 @@
+"use client"
+
 import { forwardRef, createContext, useContext, useMemo, useState, type ReactNode } from 'react'
 import * as ToastPrimitive from '@radix-ui/react-toast'
 import { cva, type VariantProps } from 'class-variance-authority'

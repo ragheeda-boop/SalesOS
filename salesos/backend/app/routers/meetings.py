@@ -51,7 +51,7 @@ async def get_meetings(
     opportunity_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "meeting")),
+    _rbac: None = Depends(require_permission_dep("meeting", PermissionAction.READ)),
 ):
     try:
         repo = _get_meeting_repo(db)
@@ -77,7 +77,7 @@ async def get_meeting_brief(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "meeting")),
+    _rbac: None = Depends(require_permission_dep("meeting", PermissionAction.READ)),
 ):
     try:
         from domains.commercial.infrastructure.postgres_repositories import PostgresOpportunityRepository
@@ -102,7 +102,7 @@ async def get_meeting_summary(
     body: MeetingSummaryRequest,
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "meeting")),
+    _rbac: None = Depends(require_permission_dep("meeting", PermissionAction.CREATE)),
 ):
     try:
         service = MeetingIntelligenceService(db, tenant_id)
@@ -119,7 +119,7 @@ async def get_emails(
     opportunity_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.READ, "email")),
+    _rbac: None = Depends(require_permission_dep("email", PermissionAction.READ)),
 ):
     try:
         repo = _get_email_repo(db)
@@ -146,7 +146,7 @@ async def get_emails(
 async def analyze_email(
     email_req: EmailRequest,
     tenant_id: str = Depends(get_current_tenant_id),
-    _rbac: None = Depends(require_permission_dep(PermissionAction.CREATE, "email")),
+    _rbac: None = Depends(require_permission_dep("email", PermissionAction.CREATE)),
 ):
     email = Email(
         id="preview",
