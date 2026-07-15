@@ -1,0 +1,19 @@
+{
+  "id": "kp-healthcare",
+  "name": "Healthcare Sector Intelligence",
+  "version": "1.0.0",
+  "description": "Knowledge Pack for the Saudi healthcare sector — hospitals, clinics, labs, and health insurance. Covers MoH licensing, CBAHI accreditation, NUPCO tenders, and ICP fit scoring for healthcare providers.",
+  "domain": "healthcare",
+  "sector": "Healthcare",
+  "ar_name": "قطاع الصحة",
+  "tags": ["healthcare", "moh", "cbahi", "nupco", "hospitals", "clinics", "saudi-health"],
+  "dependencies": {
+    "knowledge_packs": ["saudi-market", "arabic-business-terms"],
+    "ai_assets": ["company-summary", "opportunity-scoring", "signal-detection"],
+    "version": ">=1.0.0"
+  },
+  "regulatory_bodies": ["MOH", "CBAHI", "SFDA", "NUPCO", "SEHA"],
+  "created_at": "2026-07-14T00:00:00Z",
+  "updated_at": "2026-07-14T00:00:00Z",
+  "author": "SalesOS AI Engineering"
+}

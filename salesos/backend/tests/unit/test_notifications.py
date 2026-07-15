@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.routers.notifications import _repo, _ws_manager, create_and_notify, broadcast_notification
+from app.routers.notifications import _inmemory_repo as _repo, _ws_manager, create_and_notify, broadcast_notification
 from domains.notifications.models import InMemoryNotificationRepository, Notification
 from intelligence.notifications.email import EmailService
 from intelligence.notifications.websocket import WebSocketManager

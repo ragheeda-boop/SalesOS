@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import json
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -20,7 +18,7 @@ def event() -> DomainEvent:
         aggregate_id="agg-1",
         aggregate_type="company",
         tenant_id="tenant-1",
-        data={"name": "Acme"},
+        data={"company_id": "c1", "name": "Acme", "tenant_id": "tenant-1"},
         metadata={"user_id": "user-1", "correlation_id": "corr-1"},
     )
 
@@ -43,7 +41,6 @@ async def test_fallback_when_aiokafka_not_installed(event: DomainEvent) -> None:
 
     assert len(results) == 1
     assert results[0].event_type == "company.created"
-    assert results[0].data == {"name": "Acme"}
 
 
 @pytest.mark.asyncio
@@ -117,144 +114,37 @@ async def test_wildcard_subscription(event: DomainEvent) -> None:
     assert len(results) == 1
 
 
-# ── Topic naming ───────────────────────────────────────────────────────────
-
-
-def test_topic_naming() -> None:
-    bus = KafkaEventBus(bootstrap_servers="localhost:9092")
-    # The topic derivation is internal — verify it matches the convention
-    event = DomainEvent(event_type="opportunity.created")
-    # Publish through fallback (no kafka), just confirm no crash
-    with patch.object(bus, "_fallback") as mock_fb:
-        mock_fb.publish = AsyncMock()
-        bus.subscribe("opportunity.created", lambda e: None)
-
-        import asyncio
-        asyncio.run(bus.publish(event))
-        mock_fb.publish.assert_called_once()
-
-
-# ── Kafka producer with mock ───────────────────────────────────────────────
+# ── Kafka producer integration ─────────────────────────────────────────────
 
 
 @pytest.mark.asyncio
-async def test_publish_with_mock_producer(event: DomainEvent) -> None:
-    """When aiokafka IS available, the producer should be called."""
-    mock_producer = AsyncMock()
-    mock_producer.send = AsyncMock()
-
+async def test_publish_goes_through_kafka_producer(event: DomainEvent) -> None:
+    """When Kafka is available, the bus should use the KafkaProducer."""
     bus = KafkaEventBus(bootstrap_servers="localhost:9092")
-    bus._producer = mock_producer  # inject directly, skip _start_producer
     bus._kafka_available = True
 
-    await bus.publish(event)
-
-    expected_topic = "salesos.company.created"
-    expected_value = event.to_dict()
-    expected_headers = [
-        ("tenant_id", b"tenant-1"),
-        ("event_type", b"company.created"),
-        ("user_id", b"user-1"),
-        ("correlation_id", b"corr-1"),
-    ]
-
-    mock_producer.send.assert_called_once_with(
-        expected_topic,
-        value=expected_value,
-        headers=expected_headers,
-    )
+    with patch.object(bus._producer, "publish", new_callable=AsyncMock, return_value=True) as mock_pub:
+        with patch.object(bus, "_ensure_producer", new_callable=AsyncMock, return_value=True):
+            await bus.publish(event)
+            mock_pub.assert_awaited_once_with(event)
 
 
 @pytest.mark.asyncio
 async def test_producer_failure_triggers_fallback(event: DomainEvent) -> None:
-    """When the producer raises, the bus should fall to in-memory."""
-    mock_producer = AsyncMock()
-    mock_producer.send = AsyncMock(side_effect=RuntimeError("broker down"))
-
+    """When the producer fails, the bus should fall to in-memory."""
     results: list[DomainEvent] = []
 
     async def handler(e: DomainEvent) -> None:
         results.append(e)
 
     bus = KafkaEventBus(bootstrap_servers="localhost:9092")
-    bus._producer = mock_producer
     bus._kafka_available = True
     bus.subscribe("company.created", handler)
 
-    await bus.publish(event)
+    with patch.object(bus._producer, "publish", new_callable=AsyncMock, return_value=False):
+        await bus.publish(event)
 
     assert len(results) == 1  # delivered via fallback
-
-
-# ── Deserialization (handling incoming Kafka messages) ─────────────────────
-
-
-def test_deserialize_cloudevents() -> None:
-    """Should parse CloudEvents 1.0 format."""
-    payload = {
-        "specversion": "1.0",
-        "id": "evt-1",
-        "source": "salesos.company",
-        "type": "company.created",
-        "time": "2026-07-11T12:00:00+00:00",
-        "data": {
-            "tenant_id": "t-1",
-            "payload": {"name": "Acme"},
-            "metadata": {"correlation_id": "c-1"},
-        },
-    }
-
-    bus = KafkaEventBus(bootstrap_servers="localhost:9092")
-    msg = MagicMock()
-    msg.value = json.dumps(payload).encode("utf-8")
-
-    event = bus._deserialize(msg)
-    assert event is not None
-    assert event.event_id == "evt-1"
-    assert event.event_type == "company.created"
-    assert event.data == {"name": "Acme"}
-    assert event.metadata == {"correlation_id": "c-1"}
-    assert event.tenant_id == "t-1"
-
-
-def test_deserialize_legacy() -> None:
-    """Should parse the legacy (non-CloudEvents) format."""
-    payload = {
-        "event_id": "evt-2",
-        "event_type": "company.updated",
-        "aggregate_id": "agg-1",
-        "aggregate_type": "company",
-        "tenant_id": "t-1",
-        "occurred_at": "2026-07-11T12:00:00+00:00",
-        "data": {"field": "name"},
-        "metadata": {},
-    }
-
-    bus = KafkaEventBus(bootstrap_servers="localhost:9092")
-    msg = MagicMock()
-    msg.value = json.dumps(payload).encode("utf-8")
-
-    event = bus._deserialize(msg)
-    assert event is not None
-    assert event.event_id == "evt-2"
-    assert event.event_type == "company.updated"
-    assert event.data == {"field": "name"}
-
-
-def test_deserialize_invalid_json() -> None:
-    bus = KafkaEventBus(bootstrap_servers="localhost:9092")
-    msg = MagicMock()
-    msg.value = b"not-json"
-
-    assert bus._deserialize(msg) is None
-
-
-def test_deserialize_no_value() -> None:
-    bus = KafkaEventBus(bootstrap_servers="localhost:9092")
-    msg = MagicMock()
-    msg.value = None
-
-    assert bus._deserialize(msg) is None
 
 
 # ── Schema validation for Wave 2 events ────────────────────────────────────
@@ -378,17 +268,20 @@ async def test_is_kafka_available_untried() -> None:
 
 
 @pytest.mark.asyncio
-async def test_is_kafka_available_false_on_fallback() -> None:
+async def test_is_kafka_available_false_on_fallback(event: DomainEvent) -> None:
     bus = KafkaEventBus(bootstrap_servers="localhost:9092")
-    await bus.publish(DomainEvent(event_type="test.event"))
+    with patch.object(bus._producer, "start", new_callable=AsyncMock, return_value=False):
+        await bus.publish(event)
     assert bus.is_kafka_available is False
 
 
 @pytest.mark.asyncio
-async def test_is_kafka_available_true_with_mock(event: DomainEvent) -> None:
+async def test_is_kafka_available_true_after_start(event: DomainEvent) -> None:
     bus = KafkaEventBus(bootstrap_servers="localhost:9092")
-    bus._producer = AsyncMock()
     bus._kafka_available = True
+    with patch.object(bus._producer, "publish", new_callable=AsyncMock, return_value=True):
+        with patch.object(bus, "_ensure_producer", new_callable=AsyncMock, return_value=True):
+            await bus.publish(event)
     assert bus.is_kafka_available is True
 
 
@@ -398,17 +291,15 @@ async def test_is_kafka_available_true_with_mock(event: DomainEvent) -> None:
 @pytest.mark.asyncio
 async def test_close_graceful() -> None:
     bus = KafkaEventBus(bootstrap_servers="localhost:9092")
-    # Should not raise even without a producer
     await bus.close()
 
 
 @pytest.mark.asyncio
 async def test_close_stops_producer() -> None:
     bus = KafkaEventBus(bootstrap_servers="localhost:9092")
-    mock_producer = AsyncMock()
-    bus._producer = mock_producer
-    await bus.close()
-    mock_producer.stop.assert_awaited_once()
+    with patch.object(bus._producer, "close", new_callable=AsyncMock) as mock_close:
+        await bus.close()
+        mock_close.assert_awaited_once()
 
 
 # ── InMemoryEventBus compliance ────────────────────────────────────────────

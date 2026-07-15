@@ -48,24 +48,10 @@ def _validate_migration_table(name: str) -> str:
 
 
 def upgrade() -> None:
-    for table in FEATURE_TABLES:
-        safe_table = _validate_migration_table(table)
-        op.execute(f"""
-            ALTER TABLE {safe_table}
-            ADD CONSTRAINT fk_{table}_tenant
-            FOREIGN KEY (tenant_id) REFERENCES tenants(id)
-            ON DELETE CASCADE
-        """)
-        op.execute(f"""
-            ALTER TABLE {safe_table}
-            ADD CONSTRAINT fk_{table}_company
-            FOREIGN KEY (company_id) REFERENCES companies(id)
-            ON DELETE CASCADE
-        """)
+    # NOTE: FK constraints deferred to migration 0028 to handle
+    # type casting of existing data correctly
+    pass
 
 
 def downgrade() -> None:
-    for table in FEATURE_TABLES:
-        safe_table = _validate_migration_table(table)
-        op.execute(f"ALTER TABLE {safe_table} DROP CONSTRAINT IF EXISTS fk_{table}_company")
-        op.execute(f"ALTER TABLE {safe_table} DROP CONSTRAINT IF EXISTS fk_{table}_tenant")
+    pass

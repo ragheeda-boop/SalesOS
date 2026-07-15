@@ -69,6 +69,7 @@ def upgrade() -> None:
     op.drop_table("contacts_standalone")
 
     # 4. Make tenant_id NOT NULL now that data is merged
+    op.execute("UPDATE contacts SET tenant_id = (SELECT id FROM tenants ORDER BY created_at LIMIT 1) WHERE tenant_id IS NULL")
     op.execute("ALTER TABLE contacts ALTER COLUMN tenant_id SET NOT NULL")
 
     # 5. Create indexes for the unified table

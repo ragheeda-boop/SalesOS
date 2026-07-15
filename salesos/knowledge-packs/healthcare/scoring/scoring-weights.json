@@ -1,0 +1,117 @@
+{
+  "pack_id": "kp-healthcare",
+  "version": "1.0.0",
+  "scoring_model": {
+    "name": "Healthcare ICP Fit Score",
+    "ar_name": "درجة ملاءمة قطاع الصحة",
+    "description": "نموذج تسجيل لقياس مدى ملاءمة عميل في قطاع الصحة للفرصة البيعية",
+    "dimensions": {
+      "icp_fit": {
+        "weight": 0.4,
+        "description": "مدى تطابق العميل مع معايير العميل المثالي في القطاع الصحي",
+        "sub_factors": [
+          {
+            "id": "icp_entity_type",
+            "name": "Entity Type Match",
+            "ar_name": "مطابقة نوع المنشأة",
+            "weight": 0.3,
+            "scoring_rules": {
+              "hospital_general": 1.0,
+              "hospital_specialized": 0.9,
+              "clinic": 0.6,
+              "lab": 0.5,
+              "pharmacy": 0.4,
+              "health_insurance": 0.7
+            }
+          },
+          {
+            "id": "icp_facility_size",
+            "name": "Facility Size",
+            "ar_name": "حجم المنشأة",
+            "weight": 0.25,
+            "scoring_rules": {
+              "bed_capacity_gt_500": 1.0,
+              "bed_capacity_100_500": 0.8,
+              "bed_capacity_lt_100": 0.5,
+              "no_beds": 0.3
+            }
+          },
+          {
+            "id": "icp_accreditation",
+            "name": "Accreditation Level",
+            "ar_name": "مستوى الاعتماد",
+            "weight": 0.2,
+            "scoring_rules": {
+              "cbahi_and_jci": 1.0,
+              "cbahi_only": 0.8,
+              "jci_only": 0.7,
+              "none": 0.3
+            }
+          },
+          {
+            "id": "icp_growth_trajectory",
+            "name": "Growth Trajectory",
+            "ar_name": "مسار النمو",
+            "weight": 0.15,
+            "scoring_rules": {
+              "high_growth": 1.0,
+              "stable": 0.6,
+              "declining": 0.2,
+              "unknown": 0.4
+            }
+          },
+          {
+            "id": "icp_budget_capacity",
+            "name": "Budget Capacity",
+            "ar_name": "القدرة المالية",
+            "weight": 0.1,
+            "scoring_rules": {
+              "revenue_gt_500m": 1.0,
+              "revenue_100m_500m": 0.8,
+              "revenue_10m_100m": 0.5,
+              "revenue_lt_10m": 0.2
+            }
+          }
+        ]
+      },
+      "engagement": {
+        "weight": 0.2,
+        "description": "مستوى التفاعل مع المنصة والخدمات",
+        "sub_factors": [
+          {"id": "eng_activity_frequency", "weight": 0.4},
+          {"id": "eng_past_deals", "weight": 0.3},
+          {"id": "eng_response_rate", "weight": 0.3}
+        ]
+      },
+      "market_signal": {
+        "weight": 0.25,
+        "description": "قوة الإشارات السوقية في القطاع الصحي",
+        "sub_factors": [
+          {"id": "sig_regulatory_change", "weight": 0.35},
+          {"id": "sig_tender_activity", "weight": 0.35},
+          {"id": "sig_expansion_news", "weight": 0.3}
+        ]
+      },
+      "urgency": {
+        "weight": 0.15,
+        "description": "مدى إلحاح الفرصة",
+        "sub_factors": [
+          {"id": "urg_tender_deadline", "weight": 0.4},
+          {"id": "urg_compliance_deadline", "weight": 0.35},
+          {"id": "urg_competitor_presence", "weight": 0.25}
+        ]
+      }
+    },
+    "thresholds": {
+      "hot": 80,
+      "warm": 50,
+      "cold": 0,
+      "min_confidence": 0.5
+    },
+    "confidence_rules": {
+      "high": {"min_signals": 5, "min_data_points": 8},
+      "medium": {"min_signals": 2, "min_data_points": 4},
+      "low": {"min_signals": 0, "min_data_points": 1}
+    }
+  }
+}

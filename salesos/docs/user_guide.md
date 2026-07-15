@@ -13,17 +13,23 @@
 4. [Company Intelligence](#4-company-intelligence)
 5. [Next Best Action (NBA) Recommendations](#5-next-best-action-nba-recommendations)
 6. [Pipeline Management](#6-pipeline-management)
-7. [Search](#7-search)
-8. [Timeline and Activity](#8-timeline-and-activity)
-9. [AI Copilot (Smart Assistant)](#9-ai-copilot-smart-assistant)
-10. [Workflows and Automation](#10-workflows-and-automation)
-11. [Customer Success](#11-customer-success)
-12. [Settings and Profile](#12-settings-and-profile)
-13. [Administration (Admin Only)](#13-administration-admin-only)
-14. [Keyboard Shortcuts](#14-keyboard-shortcuts)
-15. [Mobile Access](#15-mobile-access)
-16. [Getting Help](#16-getting-help)
-17. [FAQ](#17-faq)
+7. [Revenue Dashboard & Analytics](#7-revenue-dashboard--analytics)
+8. [Forecasting](#8-forecasting)
+9. [Search](#9-search)
+10. [Timeline and Activity](#10-timeline-and-activity)
+11. [AI Copilot (Smart Assistant)](#11-ai-copilot-smart-assistant)
+12. [Workflows and Automation](#12-workflows-and-automation)
+13. [Customer Success](#13-customer-success)
+14. [Employee 360](#14-employee-360)
+15. [Work Intelligence](#15-work-intelligence)
+16. [Knowledge Graph](#16-knowledge-graph)
+17. [Entity Resolution](#17-entity-resolution)
+18. [Settings and Profile](#18-settings-and-profile)
+19. [Administration (Admin Only)](#19-administration-admin-only)
+20. [Keyboard Shortcuts](#20-keyboard-shortcuts)
+21. [Mobile Access](#21-mobile-access)
+22. [Getting Help](#22-getting-help)
+23. [FAQ](#23-faq)
 
 ---
 
@@ -415,7 +421,78 @@ Lost reasons are tracked for analytics and help identify patterns.
 
 ---
 
-## 7. Search
+## 7. Revenue Dashboard & Analytics
+
+### Revenue Dashboard Overview
+
+The Revenue Dashboard gives you a real-time view of your team's revenue performance. Access it from the sidebar or via the Mission Center widget.
+
+**Key Metrics:**
+
+| Metric | Description |
+|--------|-------------|
+| **Target Revenue** | Revenue target for the current period (quarter) |
+| **Current Revenue** | Revenue achieved so far this period |
+| **Pipeline Value** | Total value of all open opportunities |
+| **Weighted Pipeline** | Pipeline value adjusted by win probability |
+| **Win Rate** | Percentage of deals won vs total closed |
+| **Deal Velocity** | Average time to close a deal |
+
+The dashboard includes visual indicators (progress bars, trend arrows) showing whether you're on track to meet targets.
+
+### Analytics Reports
+
+Access detailed reports from Analytics sidebar:
+
+| Report | What It Shows |
+|--------|---------------|
+| **Pipeline Health** | Deal distribution by stage, weighted values |
+| **Team Performance** | Per-rep metrics: pipeline, win rate, activity count |
+| **Forecast Accuracy** | Predicted vs actual revenue by rep and category |
+| **Activity Analysis** | Activity type trends, per-rep comparison |
+| **Deal Velocity** | Average days per pipeline stage, bottleneck detection |
+| **Win/Loss Analysis** | Win rate by industry, product, region, reason |
+
+### Exporting Reports
+
+Reports can be exported in CSV or PDF format. Look for the download icon in the report header.
+
+---
+
+## 8. Forecasting
+
+### What Is Forecasting?
+
+The Forecast module predicts future revenue based on your current pipeline, historical win rates, and deal velocity. It helps you set realistic targets and identify pipeline gaps early.
+
+### Forecast View
+
+Access Forecast via **Analytics → Forecast** in the sidebar.
+
+**Forecast Components:**
+
+| Component | Description |
+|-----------|-------------|
+| **Expected Revenue** | Revenue you're likely to close based on weighted pipeline |
+| **Best Case** | Revenue if all open deals close (optimistic) |
+| **Commit** | Revenue you're confident will close (conservative) |
+| **Forecast Gap** | Difference between target and expected revenue |
+
+The forecast automatically updates as deals move through pipeline stages. Drill down by rep, team, or product category.
+
+### Forecast Accuracy
+
+The system tracks your forecast accuracy over time:
+
+- **Forecast vs Actual** — Comparison chart showing how close past forecasts were to actual results
+- **Accuracy Trend** — How your forecasting accuracy is improving or declining
+- **Over/Under Forecasting** — Patterns in bias (are you consistently over- or under-forecasting?)
+
+Use accuracy data to calibrate your pipeline stage probabilities and improve future forecasts.
+
+---
+
+## 9. Search
 
 SalesOS provides a powerful search engine that understands both Arabic and English, with multiple search strategies.
 
@@ -460,7 +537,7 @@ Search results are paginated (20 per page). Use the page navigation at the botto
 
 ---
 
-## 8. Timeline and Activity
+## 10. Timeline and Activity
 
 ### Activity Feed
 
@@ -501,7 +578,7 @@ The timeline shows events in reverse chronological order. On the dashboard, the 
 
 ---
 
-## 9. AI Copilot (Smart Assistant)
+## 11. AI Copilot (Smart Assistant)
 
 The AI Copilot is a conversational assistant accessible from any page. It can answer questions about your data, provide analysis, and suggest actions.
 
@@ -529,7 +606,7 @@ When you open the Copilot from within a specific company profile, it is automati
 
 ---
 
-## 10. Workflows and Automation
+## 12. Workflows and Automation
 
 The **Automation** section (accessible via "الأتمتة" in the sidebar) allows you to set up automated workflows. Common use cases include:
 
@@ -541,7 +618,7 @@ The Automation workspace provides a visual interface for managing these workflow
 
 ---
 
-## 11. Customer Success
+## 13. Customer Success
 
 The **Customer Success** section (accessible via the sidebar) provides tools for managing post-sale relationships:
 
@@ -554,7 +631,136 @@ This section is primarily used by customer success managers and account managers
 
 ---
 
-## 12. Settings and Profile
+## 14. Employee 360
+
+### What Is Employee 360?
+
+Employee 360 is an intelligence module that provides a complete view of each team member's performance, activity patterns, and effectiveness. It helps managers understand who is performing well and where coaching is needed.
+
+### Accessing Employee 360
+
+- **Managers:** Click **"الموظفون"** (Employees) in the sidebar → select an employee → **360 View**
+- **Self-service:** Click your profile picture → **My 360**
+
+### 360 View Components
+
+| Widget | Description |
+|--------|-------------|
+| **Activity Summary** | Total calls, emails, meetings, and tasks over a selected period |
+| **Performance Metrics** | Win rate, pipeline generated, revenue closed, deal velocity |
+| **Focus Time Analysis** | Time spent on high-value activities vs administrative tasks |
+| **Collaboration Map** | Who the employee interacts with most frequently |
+| **Trend Chart** | Performance trends over weeks/months |
+
+### Using Employee 360
+
+Managers can use the 360 view to:
+
+- Identify top performers and replicate their habits
+- Spot declining performance early and intervene
+- Balance workload across the team
+- Prepare for performance reviews with data-driven insights
+
+---
+
+## 15. Work Intelligence
+
+### What Is Work Intelligence?
+
+Work Intelligence analyzes digital exhaust (calendar data, email patterns, meeting attendance, application usage) to provide insights into how work gets done across the organization.
+
+### Accessing Work Intelligence
+
+- **Managers:** Click **"ذكاء العمل"** (Work Intelligence) in the sidebar
+- **Self-service:** Select a team member to see their work patterns
+
+### Key Insights
+
+| Insight | Description |
+|---------|-------------|
+| **Activity Time** | Breakdown of time by activity type (meetings, focused work, communication) |
+| **Collaboration Patterns** | Network graph showing who works with whom |
+| **Peak Productivity Hours** | When each employee is most active |
+| **Meeting Load** | Meeting hours per week vs industry benchmark |
+| **Work-Life Balance** | After-hours activity, weekend work patterns |
+
+### Using Work Intelligence
+
+- **Team Leads:** Optimize meeting schedules to protect focus time
+- **Managers:** Identify burnout risk (excessive after-hours work)
+- **Individuals:** Understand your own work patterns and optimize your schedule
+
+---
+
+## 16. Knowledge Graph
+
+### What Is the Knowledge Graph?
+
+The Knowledge Graph maps relationships between companies, contacts, and deals in an interactive network. It reveals hidden connections that can lead to new opportunities.
+
+### Accessing Knowledge Graph
+
+Access from any Company Profile or via **"الرسم البياني"** (Graph) in the sidebar.
+
+### Graph View
+
+The graph is an interactive network where:
+
+- **Nodes** represent entities (companies, contacts, deals)
+- **Edges** represent relationships (ownership, partnership, employment)
+- **Node size** indicates entity importance
+- **Edge thickness** indicates relationship strength
+
+### Interactions
+
+| Action | Result |
+|--------|--------|
+| Click a node | View entity details |
+| Double-click a node | Navigate to full profile |
+| Zoom in/out | See more or fewer details |
+| Filter | Show specific relationship types |
+
+### Use Cases
+
+- **Find warm introductions** — See which contacts know a decision-maker at a target company
+- **Discover hidden connections** — Board members linking companies
+- **Map account ecosystems** — Understand relationship networks around key accounts
+
+---
+
+## 17. Entity Resolution
+
+### What Is Entity Resolution?
+
+Entity Resolution automatically detects and merges duplicate company records across multiple data sources (Baladi, Tameem, Adaa, Najiz) into a single **Golden Record**.
+
+### How It Works
+
+1. **Detection** — The system compares new data against existing records using fuzzy matching
+2. **Scoring** — Each potential duplicate gets a confidence score (0–100%)
+3. **Auto-merge** — Pairs above the threshold (95%) merge automatically
+4. **Manual review** — Pairs below threshold are queued for admin review
+5. **Golden Record** — The merged result preserves the most complete data
+
+### Merge Strategy
+
+- The **oldest record** is kept as the primary
+- The **newest record's fields** enrich gaps in the primary
+- All source IDs are preserved for traceability
+- A merge event is logged in the activity timeline
+
+### Managing Duplicates
+
+Entity Resolution runs automatically. Administrators can:
+
+- Review pending merge suggestions in **Admin → Entity Resolution**
+- Set confidence thresholds for auto-merge
+- Manually merge or unmerge records
+- View merge history and audit trail
+
+---
+
+## 18. Settings and Profile
 
 Access settings by clicking **"الإعدادات"** (Settings) in the sidebar. Settings are organized into tabs:
 
@@ -619,7 +825,7 @@ All sources show their connection status. Contact your administrator if a source
 
 ---
 
-## 13. Administration (Admin Only)
+## 19. Administration (Admin Only)
 
 > This section is for administrators only. Regular users will not see the Admin section.
 
@@ -634,6 +840,7 @@ The **Admin Dashboard** (accessible via "الإدارة" in the sidebar) provide
 | Plans & Licenses | Manage billing plans and license allocation |
 | Users | View and manage all platform users |
 | Feature Flags | Toggle features on/off per tenant |
+| Entity Resolution | Review and manage duplicate merge suggestions |
 | Background Jobs | Monitor and manage background tasks |
 | AI Costs | Track AI token usage and costs |
 | System Health | Real-time system health monitoring |
@@ -657,12 +864,13 @@ The overview also provides quick-action buttons for common tasks:
 - Manage Plans
 - Manage Users
 - Toggle Feature Flags
+- Review Entity Resolution
 - Monitor Background Jobs
 - Check System Health
 
 ---
 
-## 14. Keyboard Shortcuts
+## 20. Keyboard Shortcuts
 
 SalesOS supports several keyboard shortcuts for faster navigation:
 
@@ -677,7 +885,7 @@ The Command Bar is the most powerful shortcut — it lets you navigate to any pa
 
 ---
 
-## 15. Mobile Access
+## 21. Mobile Access
 
 SalesOS is fully responsive and works on mobile devices.
 
@@ -696,7 +904,7 @@ SalesOS is fully responsive and works on mobile devices.
 
 ---
 
-## 16. Getting Help
+## 22. Getting Help
 
 ### In-App Support
 
@@ -730,7 +938,7 @@ If you encounter a problem:
 
 ---
 
-## 17. FAQ
+## 23. FAQ
 
 **Q: Can I search for companies in Arabic?**
 A: Yes. SalesOS is built Arabic-first. You can search using Arabic company names, English names, commercial registration numbers, or industry keywords. The search engine handles Arabic text natively with proper normalization.

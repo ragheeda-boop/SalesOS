@@ -3,27 +3,25 @@ import type { RevenueTask } from './task.dto'
 
 export async function loadTasks(): Promise<RevenueTask[]> {
   try {
-    const response = await api.get('/api/v1/revenue-execution/tasks')
+    const response = await api.get('/api/v1/tasks')
     return response.data.items ?? response.data ?? []
   } catch {
     return []
   }
 }
 
-export async function saveTasks(tasks: RevenueTask[]): Promise<void> {
-  try {
-    await api.put('/api/v1/revenue-execution/tasks', tasks)
-  } catch { /* ignore */ }
+export async function saveTasks(_tasks: RevenueTask[]): Promise<void> {
+  // Batch update not supported by backend — individual updates via completeTask
 }
 
 export async function addTask(task: Omit<RevenueTask, 'id' | 'createdAt'>): Promise<RevenueTask[]> {
-  const response = await api.post('/api/v1/revenue-execution/tasks', task)
+  await api.post('/api/v1/tasks', task)
   const tasks = await loadTasks()
   return tasks
 }
 
 export async function completeTask(id: string): Promise<RevenueTask[]> {
-  await api.patch(`/api/v1/revenue-execution/tasks/${id}/complete`)
+  await api.put(`/api/v1/tasks/${id}/complete`)
   return loadTasks()
 }
 

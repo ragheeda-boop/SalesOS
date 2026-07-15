@@ -3,6 +3,7 @@
 import { DashboardProvider, useDashboardContext } from '../_providers/dashboard-provider'
 import { DashboardGrid } from './dashboard-grid'
 import { DashboardLoading } from './dashboard-loading'
+import { DashboardMetricsHeader } from './dashboard-metrics-header'
 import { widgetRegistry } from '../widget-registry'
 
 function DashboardBody() {
@@ -14,28 +15,13 @@ function DashboardBody() {
     return (
       <div
         role="alert"
-        style={{
-          padding: '2rem',
-          textAlign: 'center',
-          color: '#991b1b',
-          background: '#fef2f2',
-          borderRadius: '0.5rem',
-          border: '1px solid #fca5a5',
-        }}
+        className="rounded-xl border border-danger-200 bg-danger-50 p-6 text-center dark:border-danger-800 dark:bg-danger-950/30"
       >
-        <p style={{ fontWeight: 600, margin: 0 }}>فشل تحميل لوحة المعلومات</p>
-        <p style={{ fontSize: '0.875rem', margin: '0.5rem 0' }}>{error?.message}</p>
+        <p className="text-sm font-semibold text-danger-800 dark:text-danger-200">فشل تحميل لوحة المعلومات</p>
+        <p className="mt-1 text-xs text-danger-600 dark:text-danger-400">{error?.message}</p>
         <button
           onClick={() => refetch()}
-          style={{
-            padding: '0.5rem 1rem',
-            borderRadius: '0.375rem',
-            border: 'none',
-            background: '#f97316',
-            color: '#fff',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-          }}
+          className="mt-3 rounded-lg bg-[var(--muhide-orange)] px-4 py-2 text-xs font-semibold text-white transition-colors hover:opacity-90"
         >
           إعادة المحاولة
         </button>
@@ -44,11 +30,14 @@ function DashboardBody() {
   }
 
   return (
-    <DashboardGrid>
-      {widgetRegistry.map((entry) => (
-        <entry.Container key={entry.id} />
-      ))}
-    </DashboardGrid>
+    <>
+      <DashboardMetricsHeader />
+      <DashboardGrid>
+        {widgetRegistry.map((entry) => (
+          <entry.Container key={entry.id} />
+        ))}
+      </DashboardGrid>
+    </>
   )
 }
 

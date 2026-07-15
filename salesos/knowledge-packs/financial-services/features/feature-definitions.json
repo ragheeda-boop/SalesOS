@@ -1,0 +1,81 @@
+{
+  "pack_id": "kp-financial-services",
+  "version": "1.0.0",
+  "features": [
+    {
+      "id": "FEAT-FS-001",
+      "name": "license_type",
+      "ar_name": "نوع الترخيص",
+      "type": "categorical",
+      "description": "نوع الترخيص المالي (بنك تجاري / بنك استثماري / تأمين / تمويل / وساطة / fintech / إدارة أصول)",
+      "source": "regulatory_registry",
+      "enum": ["commercial_bank", "investment_bank", "insurance", "finance", "brokerage", "fintech", "asset_management"],
+      "importance": 0.95
+    },
+    {
+      "id": "FEAT-FS-002",
+      "name": "regulator",
+      "ar_name": "الجهة التنظيمية",
+      "type": "categorical",
+      "description": "الجهة التنظيمية المشرفة (SAMA / CMA)",
+      "source": "regulatory_registry",
+      "enum": ["sama", "cma"],
+      "importance": 0.9
+    },
+    {
+      "id": "FEAT-FS-003",
+      "name": "asset_size",
+      "ar_name": "حجم الأصول",
+      "type": "numeric",
+      "description": "إجمالي حجم الأصول بالريال السعودي",
+      "source": "financial_statement",
+      "importance": 0.85
+    },
+    {
+      "id": "FEAT-FS-004",
+      "name": "compliance_ratio",
+      "ar_name": "نسبة الامتثال",
+      "type": "numeric",
+      "description": "نسبة الامتثال التنظيمي (0-100%) بناءً على تقييم SAMA/CMA",
+      "source": "regulatory_assessment",
+      "importance": 0.9
+    },
+    {
+      "id": "FEAT-FS-005",
+      "name": "capital_adequacy_ratio",
+      "ar_name": "نسبة كفاية رأس المال",
+      "type": "numeric",
+      "description": "نسبة كفاية رأس المال (CAR) — الحد الأدنى SAMA هو 8%",
+      "source": "financial_statement",
+      "importance": 0.8
+    },
+    {
+      "id": "FEAT-FS-006",
+      "name": "non_performing_loan_ratio",
+      "ar_name": "نسبة القروض المتعثرة",
+      "type": "numeric",
+      "description": "نسبة القروض المتعثرة (NPL) إلى إجمالي القروض",
+      "source": "financial_statement",
+      "importance": 0.75
+    },
+    {
+      "id": "FEAT-FS-007",
+      "name": "credit_rating",
+      "ar_name": "التصنيف الائتماني",
+      "type": "categorical",
+      "description": "التصنيف الائتماني من وكالات التصنيف (Fitch, Moody's, S&P, CAPM)",
+      "source": "rating_agency",
+      "enum": ["aaa", "aa", "a", "bbb", "bb", "b", "ccc", "cc", "c", "d", "unrated"],
+      "importance": 0.7
+    },
+    {
+      "id": "FEAT-FS-008",
+      "name": "branch_count",
+      "ar_name": "عدد الفروع",
+      "type": "numeric",
+      "description": "عدد فروع المؤسسة المالية داخل المملكة",
+      "source": "regulatory_registry",
+      "importance": 0.5
+    }
+  ]
+}

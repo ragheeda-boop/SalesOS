@@ -23,9 +23,9 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.create_table(
         "meetings",
-        sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("tenant_id", sa.String(36), nullable=False, index=True),
-        sa.Column("opportunity_id", sa.String(36), nullable=False, index=True),
+        sa.Column("id", sa.UUID(), primary_key=True),
+        sa.Column("tenant_id", sa.UUID(), nullable=False, index=True),
+        sa.Column("opportunity_id", sa.UUID(), nullable=False, index=True),
         sa.Column("title", sa.String(500), nullable=False),
         sa.Column("meeting_date", sa.DateTime(timezone=True), nullable=False),
         sa.Column("duration_minutes", sa.Integer, nullable=True),
@@ -36,9 +36,9 @@ def upgrade() -> None:
     )
     op.create_table(
         "emails",
-        sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("tenant_id", sa.String(36), nullable=False, index=True),
-        sa.Column("opportunity_id", sa.String(36), nullable=False, index=True),
+        sa.Column("id", sa.UUID(), primary_key=True),
+        sa.Column("tenant_id", sa.UUID(), nullable=False, index=True),
+        sa.Column("opportunity_id", sa.UUID(), nullable=False, index=True),
         sa.Column("subject", sa.String(500), nullable=False),
         sa.Column("from_address", sa.String(254), nullable=False),
         sa.Column("to_addresses", postgresql.JSON, nullable=False, server_default="[]"),

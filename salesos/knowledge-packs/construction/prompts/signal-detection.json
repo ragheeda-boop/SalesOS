@@ -1,0 +1,32 @@
+{
+  "prompt_id": "kp-construction.signal-detection",
+  "name": "Construction Signal Detection",
+  "version": "1.0.0",
+  "domain": "construction",
+  "active": true,
+  "template": "أنت محلل إشارات في قطاع المقاولات والإنشاءات السعودي. قم بتحليل النص التالي واستخرج الإشارات البيعية.\n\nالنص: {source_text}\nالمصدر: {source_type}\nالتاريخ: {detection_date}\n\nالإشارات المستهدفة:\n1. تصنيف مقاولين — تحديث، رفع درجة، تخفيض درجة\n2. مناقصة حكومية — مناقصة جديدة من جهة حكومية\n3. مشروع كبير — NEOM، البحر الأحمر، القدية، روشن، إلخ\n4. ترخيص بناء — إصدار رخصة بناء جديدة\n5. عقد — ترسية عقد مقاولات\n6. شراكة — تحالف أو شراكة استراتيجية\n7. زيادة رأس المال — رفع رأس المال، تمويل جديد\n8. تغيير ملكية — استحواذ، اندماج\n\nيجب أن يكون الرد بصيغة JSON:\n- signals: مصفوفة من الإشارات\n  - type: نوع الإشارة\n  - title: عنوان الإشارة\n  - description: وصف مختصر\n  - confidence: درجة الثقة (0-1)\n  - urgency: درجة الاستعجال (high/medium/low)\n  - source: المصدر\n  - detected_at: تاريخ الكشف\n- total_signals: عدد الإشارات\n- key_insight: insight رئيسي",
+  "variables": ["source_text", "source_type", "detection_date"],
+  "output_schema": {
+    "type": "object",
+    "required": ["signals", "total_signals", "key_insight"],
+    "properties": {
+      "signals": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {"type": "string"},
+            "title": {"type": "string"},
+            "description": {"type": "string"},
+            "confidence": {"type": "number"},
+            "urgency": {"type": "string"},
+            "source": {"type": "string"},
+            "detected_at": {"type": "string"}
+          }
+        }
+      },
+      "total_signals": {"type": "integer"},
+      "key_insight": {"type": "string"}
+    }
+  }
+}

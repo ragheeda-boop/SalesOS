@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { AICoachView } from '../AICoachWidget'
+import { AICoachView } from '../AICoachView'
 import type { AICoachAction } from '@/lib/api'
 
 jest.mock('../../../../revenue-execution/_providers/DecisionProvider', () => ({

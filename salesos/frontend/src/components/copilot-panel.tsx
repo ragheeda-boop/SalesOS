@@ -19,6 +19,7 @@ interface CopilotPanelProps {
   entityType?: string
   entityId?: string
   context?: Record<string, unknown>
+  embedded?: boolean
 }
 
 const INITIAL_MESSAGE: Message = {
@@ -28,18 +29,8 @@ const INITIAL_MESSAGE: Message = {
   timestamp: Date.now(),
 }
 
-export function CopilotPanel({ open, onClose, entityType, entityId, context }: CopilotPanelProps) {
-  const [messages, setMessages] = useState<Message[]>(() => {
-    if (typeof window === "undefined") return [INITIAL_MESSAGE]
-    try {
-      const saved = localStorage.getItem("salesos-copilot-messages")
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed
-      }
-    } catch {}
-    return [INITIAL_MESSAGE]
-  })
+export function CopilotPanel({ open, onClose, entityType, entityId, context, embedded = false }: CopilotPanelProps) {
+  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const [mode, setMode] = useState<"collapsed" | "expanded" | "fullscreen">("expanded")
@@ -47,14 +38,6 @@ export function CopilotPanel({ open, onClose, entityType, entityId, context }: C
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
-
-  useEffect(() => {
-    if (messages.length > 1) {
-      try {
-        localStorage.setItem("salesos-copilot-messages", JSON.stringify(messages))
-      } catch {}
-    }
   }, [messages])
 
   useEffect(() => {
@@ -122,7 +105,6 @@ export function CopilotPanel({ open, onClose, entityType, entityId, context }: C
 
   const handleClearChat = () => {
     setMessages([INITIAL_MESSAGE])
-    try { localStorage.removeItem("salesos-copilot-messages") } catch {}
   }
 
   if (!open) return null
@@ -132,14 +114,15 @@ export function CopilotPanel({ open, onClose, entityType, entityId, context }: C
   return (
     <div
       className={cn(
-        "fixed z-50 flex flex-col bg-white shadow-muhide-6 dark:bg-neutral-900",
-        isFullscreen
-          ? "inset-0"
-          : "bottom-8 w-[420px] max-w-[calc(100vw-2rem)] rounded-2xl border border-neutral-200 dark:border-neutral-700",
-            !isFullscreen && "end-4",
-        mode === "collapsed" && "h-auto"
+        embedded
+          ? "flex flex-col h-full bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-700"
+          : "fixed z-50 flex flex-col bg-white shadow-muhide-6 dark:bg-neutral-900",
+        !embedded && isFullscreen && "inset-0",
+        !embedded && !isFullscreen && "bottom-8 w-[420px] max-w-[calc(100vw-2rem)] rounded-2xl border border-neutral-200 dark:border-neutral-700",
+        !embedded && !isFullscreen && "end-4",
+        !embedded && mode === "collapsed" && "h-auto"
       )}
-      style={!isFullscreen ? { height: "560px", maxHeight: "calc(100vh - 4rem)" } : undefined}
+      style={!embedded && !isFullscreen ? { height: "560px", maxHeight: "calc(100vh - 4rem)" } : undefined}
       role="dialog"
       aria-label="المساعد الذكي"
     >
@@ -173,9 +156,11 @@ export function CopilotPanel({ open, onClose, entityType, entityId, context }: C
           >
             {mode === "fullscreen" ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
           </button>
-          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-            <X className="h-4 w-4" />
-          </button>
+          {!embedded && (
+            <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 

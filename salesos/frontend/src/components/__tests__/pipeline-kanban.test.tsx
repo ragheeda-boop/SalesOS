@@ -31,7 +31,7 @@ import {
   useCloseLost,
 } from '@/lib/hooks/opportunityQueries'
 import { useCompanySearch } from '@/lib/hooks/companyQueries'
-import { PipelineKanban } from '../pipeline-kanban'
+import { PipelineKanban, OpportunityCard, PipelineColumn } from '../pipeline-kanban'
 
 const mockUseOpportunities = useOpportunities as jest.Mock
 const mockUseCreateOpportunity = useCreateOpportunity as jest.Mock
@@ -140,50 +140,42 @@ describe('PipelineKanban', () => {
 
 describe('OpportunityCard', () => {
   it('formats large currency (>=1M)', () => {
-    const { OpportunityCard } = require('../pipeline-kanban/OpportunityCard')
     render(<OpportunityCard opportunity={makeOpp({ value: 2500000 })} />)
     expect(screen.getByText(/2\.5M SAR/)).toBeInTheDocument()
   })
 
   it('formats medium currency (>=1K)', () => {
-    const { OpportunityCard } = require('../pipeline-kanban/OpportunityCard')
     render(<OpportunityCard opportunity={makeOpp({ value: 75000 })} />)
     expect(screen.getByText(/75K SAR/)).toBeInTheDocument()
   })
 
   it('formats small currency (<1K)', () => {
-    const { OpportunityCard } = require('../pipeline-kanban/OpportunityCard')
     render(<OpportunityCard opportunity={makeOpp({ value: 500 })} />)
     expect(screen.getByText(/500 SAR/)).toBeInTheDocument()
   })
 
   it('shows company name when provided', () => {
-    const { OpportunityCard } = require('../pipeline-kanban/OpportunityCard')
     render(<OpportunityCard opportunity={makeOpp({ company_name: 'أرامكو' })} />)
     expect(screen.getByText('أرامكو')).toBeInTheDocument()
   })
 
   it('hides company name when not provided', () => {
-    const { OpportunityCard } = require('../pipeline-kanban/OpportunityCard')
     const { container } = render(<OpportunityCard opportunity={makeOpp({ company_name: '' })} />)
     expect(container.querySelector('.text-neutral-500')).toBeNull()
   })
 
   it('shows won badge with amount', () => {
-    const { OpportunityCard } = require('../pipeline-kanban/OpportunityCard')
     render(<OpportunityCard opportunity={makeOpp({ status: 'won', won_amount: 500000 })} />)
     const matches = screen.getAllByText(/500K/)
     expect(matches.length).toBe(2)
   })
 
   it('shows loss reason when status is lost', () => {
-    const { OpportunityCard } = require('../pipeline-kanban/OpportunityCard')
     render(<OpportunityCard opportunity={makeOpp({ status: 'lost', loss_reason: 'السعر مرتفع' })} />)
     expect(screen.getByText('السعر مرتفع')).toBeInTheDocument()
   })
 
   it('sets dragging class on drag start', () => {
-    const { OpportunityCard } = require('../pipeline-kanban/OpportunityCard')
     const { container } = render(<OpportunityCard opportunity={makeOpp()} />)
     const card = container.firstChild as HTMLElement
     const dataTransfer = { setData: jest.fn() }
@@ -192,7 +184,6 @@ describe('OpportunityCard', () => {
   })
 
   it('removes dragging class on drag end', () => {
-    const { OpportunityCard } = require('../pipeline-kanban/OpportunityCard')
     const { container } = render(<OpportunityCard opportunity={makeOpp()} />)
     const card = container.firstChild as HTMLElement
     fireEvent.dragStart(card, { dataTransfer: { setData: jest.fn() } })
@@ -204,7 +195,6 @@ describe('OpportunityCard', () => {
 describe('PipelineColumn', () => {
   it('calls onDrop with correct stage', () => {
     const onDrop = jest.fn()
-    const { PipelineColumn } = require('../pipeline-kanban/PipelineColumn')
     const stage = { key: 'proposal', label: 'عرض', color: 'bg-warning-500' }
     const { container } = render(<PipelineColumn stage={stage} opportunities={[]} onDrop={onDrop} />)
 
@@ -216,7 +206,6 @@ describe('PipelineColumn', () => {
 
   it('does not call onDrop when no data in transfer', () => {
     const onDrop = jest.fn()
-    const { PipelineColumn } = require('../pipeline-kanban/PipelineColumn')
     const stage = { key: 'proposal', label: 'عرض', color: 'bg-warning-500' }
     const { container } = render(<PipelineColumn stage={stage} opportunities={[]} onDrop={onDrop} />)
 
@@ -227,7 +216,6 @@ describe('PipelineColumn', () => {
   })
 
   it('shows opportunity count in badge', () => {
-    const { PipelineColumn } = require('../pipeline-kanban/PipelineColumn')
     const stage = { key: 'proposal', label: 'عرض', color: 'bg-warning-500' }
     const opps = [makeOpp({ id: 'o1' }), makeOpp({ id: 'o2' })]
     render(<PipelineColumn stage={stage} opportunities={opps} onDrop={jest.fn()} />)

@@ -42,6 +42,10 @@ describe("WorkflowBuilderWidget", () => {
   beforeEach(() => {
     jest.clearAllMocks()
     window.confirm = jest.fn(() => true)
+    mockUseCreateWorkflow.mockReturnValue({ mutateAsync: jest.fn(), isPending: false } as any)
+    mockUseUpdateWorkflow.mockReturnValue({ mutateAsync: jest.fn(), isPending: false } as any)
+    mockUseExecuteWorkflow.mockReturnValue({ mutateAsync: jest.fn(), isPending: false } as any)
+    mockUseDeleteWorkflow.mockReturnValue({ mutateAsync: jest.fn(), isPending: false } as any)
   })
 
   describe("1. Loading State", () => {

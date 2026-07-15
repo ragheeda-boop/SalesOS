@@ -1,0 +1,22 @@
+{
+  "prompt_id": "kp-healthcare.opportunity-scoring",
+  "name": "Healthcare Opportunity Scoring",
+  "version": "1.0.0",
+  "domain": "healthcare",
+  "active": true,
+  "template": "أنت خبير تقييم فرص في قطاع الصحة السعودي. قم بتقييم فرصة البيع التالية وقم بتسجيلها.\n\nمعلومات الفرصة:\n- العميل: {company_name}\n- نوع المنشأة: {entity_type}\n- الخدمة/المنتج: {product_service}\n- قيمة الصفقة: {deal_value}\n- الجهة المشترية: {buying_entity}\n- الميزانية: {budget_status}\n- الجدول الزمني: {timeline}\n- صانع القرار: {decision_maker}\n\nعوامل التقييم:\n1. ملاءمة القطاع (ICP Fit) — هل العميل ضمن الفئة المستهدفة؟\n2. الاحتياج الملح — هل هناك حاجة واضحة وعاجلة؟\n3. الميزانية — هل الميزانية متوفرة ومعتمدة؟\n4. سلطة القرار — هل صانع القرار مشارك؟\n5. الجدول الزمني — هل الإطار الزمني واقعي؟\n6. المخاطر التنظيمية — هل هناك موافقات وزارة الصحة مطلوبة؟\n7. المنافسة — من هم المنافسون وما هي حصتهم؟\n\nيجب أن يكون الرد بصيغة JSON:\n- overall_score: النتيجة الإجمالية (0-100)\n- dimension_scores: نتائج كل بعد\n- icp_fit: ملاءمة القطاع مع التبرير\n- risks: المخاطر المحددة\n- recommendation: التوصية (pursue/nurture/pass)\n- next_steps: الخطوات التالية\n- confidence: درجة الثقة (0-1)",
+  "variables": ["company_name", "entity_type", "product_service", "deal_value", "buying_entity", "budget_status", "timeline", "decision_maker"],
+  "output_schema": {
+    "type": "object",
+    "required": ["overall_score", "dimension_scores", "recommendation", "confidence"],
+    "properties": {
+      "overall_score": {"type": "number", "minimum": 0, "maximum": 100},
+      "dimension_scores": {"type": "object"},
+      "icp_fit": {"type": "object"},
+      "risks": {"type": "array"},
+      "recommendation": {"type": "string", "enum": ["pursue", "nurture", "pass"]},
+      "next_steps": {"type": "array"},
+      "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+    }
+  }
+}

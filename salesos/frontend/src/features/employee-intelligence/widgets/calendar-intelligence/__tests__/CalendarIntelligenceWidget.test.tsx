@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { CalendarIntelligenceView } from '../CalendarIntelligenceWidget'
+import { CalendarIntelligenceView } from '../CalendarIntelligenceView'
 import type { CalendarIntelligence } from '@/lib/api'
 
 const baseData: CalendarIntelligence = {

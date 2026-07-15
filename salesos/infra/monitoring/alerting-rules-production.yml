@@ -1,0 +1,99 @@
+groups:
+  - name: salesos-production
+    interval: 30s
+    rules:
+      # ── S1: Error Rate > 5% ──
+      - alert: ProductionHighErrorRate
+        expr: rate(salesos_http_requests_total{status=~"5.."}[5m]) / rate(salesos_http_requests_total[5m]) > 0.05
+        for: 3m
+        labels:
+          severity: critical
+          tier: "s1"
+        annotations:
+          summary: "PRODUCTION: HTTP 5xx error rate is {{ $value | humanizePercentage }}"
+          description: "Error rate exceeds 5% threshold for 3 minutes — immediate investigation required"
+          runbook: "https://wiki.salesos.com/runbooks/high-error-rate"
+
+      # ── S2: P95 Latency > Budget ──
+      - alert: ProductionHighLatencyP95
+        expr: histogram_quantile(0.95, rate(salesos_http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          tier: "s2"
+        annotations:
+          summary: "PRODUCTION: P95 latency is {{ $value }}s (budget: 500ms)"
+          description: "P95 request latency exceeds 500ms SLA budget for 5 minutes"
+          runbook: "https://wiki.salesos.com/runbooks/latency"
+
+      # ── S2: Disk > 80% ──
+      - alert: ProductionDiskHigh
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.2
+        for: 10m
+        labels:
+          severity: warning
+          tier: "s2"
+        annotations:
+          summary: "PRODUCTION: Disk usage above 80% on {{ $labels.instance }}"
+          description: "Available disk space is {{ $value | humanizePercentage }} — scale up or clean up"
+          runbook: "https://wiki.salesos.com/runbooks/disk-space"
+
+      # ── S1: Pod CrashLoop ──
+      - alert: ProductionPodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total[15m]) > 3
+        for: 3m
+        labels:
+          severity: critical
+          tier: "s1"
+        annotations:
+          summary: "PRODUCTION: Pod {{ $labels.pod }} is crash-looping"
+          description: "Container restarted more than 3 times in 15 minutes — possible OOM, panic, or misconfiguration"
+          runbook: "https://wiki.salesos.com/runbooks/crashloop"
+
+      # ── S2: Certificate Expiry < 30 days ──
+      - alert: ProductionCertificateExpiring
+        expr: (certmanager_certificate_expiration_seconds - time()) < 2592000
+        for: 1h
+        labels:
+          severity: warning
+          tier: "s2"
+        annotations:
+          summary: "PRODUCTION: TLS certificate for {{ $labels.name }} expires in {{ $value | humanizeDuration }}"
+          description: "Certificate expiry within 30 days — renew via cert-manager or manual process"
+          runbook: "https://wiki.salesos.com/runbooks/certificate-renewal"
+
+      # ── S2: Kafka Consumer Lag > 1000 ──
+      - alert: ProductionKafkaConsumerLag
+        expr: kafka_consumer_lag > 1000
+        for: 5m
+        labels:
+          severity: warning
+          tier: "s2"
+        annotations:
+          summary: "PRODUCTION: Kafka consumer lag is {{ $value }} messages"
+          description: "Event processing backlog exceeds 1000 messages — consumer may be degraded"
+          runbook: "https://wiki.salesos.com/runbooks/kafka-lag"
+
+      # ── S2: Redis Memory > 80% ──
+      - alert: ProductionRedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          tier: "s2"
+        annotations:
+          summary: "PRODUCTION: Redis memory usage is {{ $value | humanizePercentage }}"
+          description: "Redis approaching maxmemory — eviction may be active, increase maxmemory or reduce cache TTL"
+          runbook: "https://wiki.salesos.com/runbooks/redis-memory"
+
+      # ── S2: PostgreSQL Connections > 80% ──
+      - alert: ProductionPostgresConnectionsHigh
+        expr: pg_stat_database_numbackends > 80
+        for: 5m
+        labels:
+          severity: warning
+          tier: "s2"
+        annotations:
+          summary: "PRODUCTION: PostgreSQL has {{ $value }} active connections"
+          description: "Database connection count exceeds 80% of max_connections — risk of connection starvation"
+          runbook: "https://wiki.salesos.com/runbooks/postgres-connections"

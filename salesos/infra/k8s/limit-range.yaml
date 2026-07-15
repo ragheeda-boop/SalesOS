@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: salesos-limits
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos-limits
+    app.kubernetes.io/component: limits
+    app.kubernetes.io/part-of: salesos
+spec:
+  limits:
+  - default:
+      cpu: "500m"
+      memory: "512Mi"
+    defaultRequest:
+      cpu: "200m"
+      memory: "256Mi"
+    type: Container

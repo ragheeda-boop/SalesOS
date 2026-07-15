@@ -33,6 +33,10 @@ class SdkSettings(BaseSettings):
     kafka_bootstrap_servers: str = "kafka:9092"
     kafka_group_id: str = "salesos-group"
     kafka_auto_offset_reset: str = "earliest"
+    kafka_outbox_enabled: bool = False
+    outbox_relay_interval: float = 1.0
+    outbox_batch_size: int = 50
+    schema_registry_url: str = "http://schema-registry:8081"
 
     # LLM
     openai_model: str = "gpt-4o-mini"

@@ -1,7 +1,7 @@
 # Performance Baseline
 
-> Last updated: 2026-07-13
-> Status: Post-optimization baseline
+> Last updated: 2026-07-14
+> Status: Post-S9 final verification — Performance Review Complete
 
 ## Infrastructure
 
@@ -33,7 +33,33 @@
 
 Measured inside Docker network (no Docker Desktop overhead).
 
-### Optimized Endpoints (Post-Optimization)
+### DB-Level Benchmark (100k Companies) — Added 2026-07-14
+
+### By Category
+
+| Category | p50 (ms) | p95 (ms) | p99 (ms) | Budget | Status |
+|----------|----------|----------|----------|--------|--------|
+| Exact Search | 2.9 | 4.7 | 4.7 | 200ms | 🟢 |
+| Count | 9.6 | 11.4 | 11.4 | 500ms | 🟢 |
+| Filter | 48.9 | 57.9 | 57.9 | 200ms | 🟢 |
+| Sort (indexed) | 1.1 | 1.4 | 1.4 | 200ms | 🟢 |
+| Sort (unindexed) | 30.8 | 33.1 | 33.1 | 200ms | 🟢 |
+| Pagination (shallow) | 2.3 | 6.6 | 6.6 | 200ms | 🟢 |
+| Pagination (deep ~20k) | 103.5 | 126.6 | 126.6 | 200ms | 🟢 |
+| Pagination (very deep ~50k) | 255.8 | 520.5 | 520.5 | 300ms | 🟡 |
+| Partial Search (ILIKE) | 538.9 | 2668.2 | 2668.2 | 500ms | 🔴 |
+
+### Top 5 Slowest Queries (100k Companies)
+
+| Query | p95 (ms) | Root Cause |
+|-------|----------|------------|
+| `partial_search_name_ar` (شركة%) | 2668 | No GIN trigram idx on name_ar |
+| `partial_search_name_ar` (%تجارة%) | 226 | No GIN trigram idx on name_ar |
+| `partial_search_cr_number` (10%) | 231 | No GIN trigram idx on cr_number |
+| `pagination_page_deep` (OFFSET 50k) | 520 | Keyset pagination not implemented |
+| `partial_search_city` (الرياض%) | 151 | No GIN trigram idx on city |
+
+## Optimized Endpoints (Post-Optimization)
 
 | Endpoint | p50 | p95 | p99 | Budget | Cache TTL |
 |----------|-----|-----|-----|--------|-----------|

@@ -37,26 +37,26 @@ TABLES = [
 
 def upgrade() -> None:
     for table in TABLES:
-        op.add_column(
-            table,
-            sa.Column(
-                "tenant_id",
-                postgresql.UUID(as_uuid=True),
-                sa.ForeignKey("tenants.id", ondelete="CASCADE"),
-                nullable=True,
-            ),
-        )
-        op.create_index(
-            f"ix_{table}_tenant_company",
-            table,
-            ["tenant_id", "company_id"],
-        )
+        op.execute(f"""
+            DO $$
+            BEGIN
+                IF EXISTS (SELECT FROM pg_tables WHERE tablename = '{table}') THEN
+                    ALTER TABLE {table} ADD COLUMN IF NOT EXISTS tenant_id uuid REFERENCES tenants(id) ON DELETE CASCADE;
+                END IF;
+            END;
+            $$;
+        """)
 
 
 def downgrade() -> None:
     for table in TABLES:
-        op.drop_index(f"ix_{table}_tenant_company", table_name=table)
-        op.drop_constraint(
-            f"{table}_tenant_id_fkey", table, type_="foreignkey"
-        )
-        op.drop_column(table, "tenant_id")
+        op.execute(f"""
+            DO $$
+            BEGIN
+                IF EXISTS (SELECT FROM pg_tables WHERE tablename = '{table}') THEN
+                    ALTER TABLE {table} DROP CONSTRAINT IF EXISTS {table}_tenant_id_fkey;
+                    ALTER TABLE {table} DROP COLUMN IF EXISTS tenant_id;
+                END IF;
+            END;
+            $$;
+        """)

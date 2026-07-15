@@ -148,7 +148,7 @@ async def lifespan(app: FastAPI):
         from sdk.cache import CacheService
         _redis_client = AsyncRedisClient()
         _cache_service: Any = None
-        if _redis_client.available:
+        if await _redis_client.health():
             _cache_service = CacheService(_redis_client._redis)
 
         # ── Feature Store ──
@@ -384,7 +384,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     import traceback
     logger = getattr(request.app.state, "logger", None)
     if logger:
-        logger.exception("Unhandled exception: %s %s", request.method, request.url.path)
+        logger.exception("Unhandled exception", method=request.method, path=request.url.path)
     else:
         traceback.print_exc()
     detail = "An unexpected error occurred" if settings.env == "production" else str(exc)
@@ -425,10 +425,10 @@ async def health_detailed(request: Request):
             "checked_in": pool.checkedin(),
             "checked_out": pool.checkedout(),
             "overflow": pool.overflow(),
-            "total_open": pool.open_connections(),
+            "total_open": pool.checkedout() + pool.checkedin(),
         }
         checks["database"] = pool_info
-        app_collector.track_db_pool(pool.checkedout(), pool.checkedin(), pool.overflow(), pool.open_connections())
+        app_collector.track_db_pool(pool.checkedout(), pool.checkedin(), pool.overflow(), pool.checkedout() + pool.checkedin())
     except Exception as e:
         checks["database"] = {"status": "error", "message": str(e) if settings.env != "production" else "unavailable"}
         overall = "degraded"
@@ -478,6 +478,80 @@ async def health_detailed(request: Request):
     checks["version"] = settings.service_version
 
     return {"status": overall, "checks": checks}
+
+@app.get("/health/dependencies")
+async def health_dependencies(request: Request):
+    """Health check for all external dependencies — PostgreSQL, Redis, Kafka, Neo4j."""
+    from sqlalchemy import text
+    from app.database import async_session
+    from app.config import settings
+
+    deps: dict[str, dict] = {}
+    overall = "healthy"
+
+    # PostgreSQL
+    try:
+        async with async_session() as session:
+            await session.execute(text("SELECT 1"))
+        deps["postgresql"] = {"status": "connected", "type": "database", "critical": True}
+    except Exception as e:
+        deps["postgresql"] = {"status": "error", "type": "database", "critical": True, "message": str(e) if settings.env != "production" else "unavailable"}
+        overall = "degraded"
+
+    # Redis / Cache
+    cache = getattr(request.app.state, "cache", None)
+    try:
+        if cache is not None:
+            cache_ok = await cache.health()
+        else:
+            import redis.asyncio as aioredis
+            r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=settings.redis_health_socket_connect_timeout, socket_timeout=settings.redis_health_socket_timeout)
+            await r.ping()
+            await r.aclose()
+            cache_ok = True
+        deps["redis"] = {"status": "connected" if cache_ok else "unavailable", "type": "cache", "critical": False}
+    except Exception as e:
+        deps["redis"] = {"status": "error", "type": "cache", "critical": False, "message": str(e) if settings.env != "production" else "unavailable"}
+
+    # Kafka
+    from sdk.events.kafka_bus import KafkaEventBus
+    event_runtime = getattr(request.app.state, "event_runtime", None)
+    try:
+        if isinstance(event_runtime, KafkaEventBus):
+            kafka_ok = event_runtime.is_kafka_available
+            deps["kafka"] = {"status": "connected" if kafka_ok else "fallback_in_memory", "type": "message_queue", "critical": False}
+        else:
+            deps["kafka"] = {"status": "active" if event_runtime else "not_configured", "type": "message_queue", "critical": False}
+    except Exception as e:
+        deps["kafka"] = {"status": "error", "type": "message_queue", "critical": False, "message": str(e) if settings.env != "production" else "unavailable"}
+
+    # Neo4j / Knowledge Graph
+    try:
+        kg = getattr(request.app.state, "kg_engine", None)
+        if kg is not None and kg.metrics.neo4j_available:
+            is_healthy = await kg.health_check()
+            deps["neo4j"] = {"status": "connected" if is_healthy else "unhealthy", "type": "graph_database", "critical": False}
+        else:
+            deps["neo4j"] = {"status": "not_configured", "type": "graph_database", "critical": False}
+    except Exception as e:
+        deps["neo4j"] = {"status": "error", "type": "graph_database", "critical": False, "message": str(e) if settings.env != "production" else "unavailable"}
+
+    # Feature Store
+    try:
+        fs = getattr(request.app.state, "feature_store", None)
+        deps["feature_store"] = {"status": "initialized" if fs else "not_initialized", "type": "feature_store", "critical": False}
+    except Exception:
+        deps["feature_store"] = {"status": "unknown", "type": "feature_store", "critical": False}
+
+    return {
+        "status": overall,
+        "dependencies": deps,
+        "summary": {
+            "total": len(deps),
+            "healthy": sum(1 for d in deps.values() if d["status"] in ("connected", "active", "initialized", "fallback_in_memory", "not_configured")),
+            "degraded": sum(1 for d in deps.values() if d["status"] in ("error", "unavailable", "unhealthy")),
+        },
+    }
 
 @app.get("/health/ready")
 async def health_ready(request: Request):
@@ -670,6 +744,7 @@ def register_routers():
     from app.modules.contact.router import router as contact_router
     from app.modules.entity_resolution.router import router as entity_resolution_router
     from app.modules.identity.router import router as identity_router
+    from app.modules.signal_marketplace.router import router as signal_marketplace_router
     from app.modules.notion_sync.router import router as notion_sync_router
     from app.modules.excel_import.router import router as excel_import_router
     from app.modules.employee_360.router import router as employee_360_router
@@ -713,6 +788,7 @@ def register_routers():
     app.include_router(contact_router, prefix="/api/v1/contacts", tags=["Contacts"], dependencies=_auth)
     app.include_router(activity_router, prefix="/api/v1", tags=["Activity"], dependencies=_auth)
     app.include_router(entity_resolution_router, prefix="/api/v1/entity-resolution", tags=["Entity Resolution"], dependencies=_auth)
+    app.include_router(signal_marketplace_router, tags=["Signal Marketplace"], dependencies=_auth)
     app.include_router(event_runtime_router, prefix="/api/v1", tags=["Event Runtime"], dependencies=_auth)
     app.include_router(data_fabric_router, prefix="/api/v1", tags=["Data Fabric"], dependencies=_auth)
     app.include_router(feature_store_router, prefix="/api/v1", tags=["Feature Store"], dependencies=_auth)

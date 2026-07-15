@@ -5,8 +5,10 @@ from __future__ import annotations
 import logging
 import os
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
+
+from app.dependencies import verify_token
 
 try:
     from mcp_server.server import create_server
@@ -59,6 +61,8 @@ async def mcp_sse(request: Request):
 
 
 @router.get("/health")
-async def mcp_health():
+async def mcp_health(
+    _=Depends(verify_token),
+):
     """Health check for the MCP server."""
     return {"status": "ok", "server": "salesos-mcp"}

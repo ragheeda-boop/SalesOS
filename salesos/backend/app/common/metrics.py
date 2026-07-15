@@ -105,12 +105,12 @@ class MetricsTracker:
                 path_clean = path.replace('"', '\\"')
                 labels = f'method="{method}",path="{path_clean}"'
                 snap = hist.snapshot()
-                base = f'salesos_http_request_duration_seconds{{{labels}}}'
+                base = "salesos_http_request_duration_seconds"
                 for bucket, count in sorted(snap["buckets"].items()):
-                    lines.append(f'{base}_bucket{{le="{bucket}"}} {count}')
-                lines.append(f'{base}_bucket{{le="+Inf"}} {snap["count"]}')
-                lines.append(f"{base}_count {snap['count']}")
-                lines.append(f"{base}_sum {snap['sum']:.6f}")
+                    lines.append(f'{base}_bucket{{{labels},le="{bucket}"}} {count}')
+                lines.append(f'{base}_bucket{{{labels},le="+Inf"}} {snap["count"]}')
+                lines.append(f"{base}_count{{{labels}}} {snap['count']}")
+                lines.append(f"{base}_sum{{{labels}}} {snap['sum']:.6f}")
 
             lines.append("")
             lines.append("# HELP salesos_db_query_duration_seconds Database query duration histogram")
@@ -118,12 +118,12 @@ class MetricsTracker:
             for query_name, hist in sorted(self._db_duration.items()):
                 labels = f'query_name="{query_name}"'
                 snap = hist.snapshot()
-                base = f'salesos_db_query_duration_seconds{{{labels}}}'
+                base = "salesos_db_query_duration_seconds"
                 for bucket, count in sorted(snap["buckets"].items()):
-                    lines.append(f'{base}_bucket{{le="{bucket}"}} {count}')
-                lines.append(f'{base}_bucket{{le="+Inf"}} {snap["count"]}')
-                lines.append(f"{base}_count {snap['count']}")
-                lines.append(f"{base}_sum {snap['sum']:.6f}")
+                    lines.append(f'{base}_bucket{{{labels},le="{bucket}"}} {count}')
+                lines.append(f'{base}_bucket{{{labels},le="+Inf"}} {snap["count"]}')
+                lines.append(f"{base}_count{{{labels}}} {snap['count']}")
+                lines.append(f"{base}_sum{{{labels}}} {snap['sum']:.6f}")
 
             lines.append("")
             lines.append("# HELP salesos_ai_inference_duration_seconds AI inference duration histogram")
@@ -131,12 +131,12 @@ class MetricsTracker:
             for model, hist in sorted(self._ai_duration.items()):
                 labels = f'model="{model}"'
                 snap = hist.snapshot()
-                base = f'salesos_ai_inference_duration_seconds{{{labels}}}'
+                base = "salesos_ai_inference_duration_seconds"
                 for bucket, count in sorted(snap["buckets"].items()):
-                    lines.append(f'{base}_bucket{{le="{bucket}"}} {count}')
-                lines.append(f'{base}_bucket{{le="+Inf"}} {snap["count"]}')
-                lines.append(f"{base}_count {snap['count']}")
-                lines.append(f"{base}_sum {snap['sum']:.6f}")
+                    lines.append(f'{base}_bucket{{{labels},le="{bucket}"}} {count}')
+                lines.append(f'{base}_bucket{{{labels},le="+Inf"}} {snap["count"]}')
+                lines.append(f"{base}_count{{{labels}}} {snap['count']}")
+                lines.append(f"{base}_sum{{{labels}}} {snap['sum']:.6f}")
 
             lines.append("")
             lines.append("# HELP salesos_uptime_seconds Application uptime")

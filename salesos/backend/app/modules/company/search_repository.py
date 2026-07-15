@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from domains.search.contracts.models import SearchQuery, SearchResult, SearchSort
 from domains.search.contracts.repository import SearchRepository
+from sdk.pagination import build_keyset_condition, decode_cursor, encode_cursor
 
 
 class CompanySearchRepository(SearchRepository[Any]):
@@ -111,14 +112,37 @@ class CompanySearchRepository(SearchRepository[Any]):
 
     async def search(self, query: SearchQuery) -> SearchResult[Any]:
         base = self._build_base(query)
+
         cq = select(func.count()).select_from(base.subquery())
         tr = await self.db.execute(cq)
         total = tr.scalar() or 0
 
         fq = self._apply_sort(base, query)
-        fq = fq.offset((query.page - 1) * query.page_size).limit(query.page_size)
-        r = await self.db.execute(fq)
-        companies = list(r.scalars().all())
+        cursor = query.context.get("cursor") if query.context else None
+        if cursor:
+            cursor_id, cursor_sort = decode_cursor(cursor)
+            sort = query.sort or SearchSort(field="created_at", direction="desc")
+            condition = build_keyset_condition(
+                self._Company, cursor_id, cursor_sort,
+                sort_by=sort.field, sort_dir=sort.direction,
+            )
+            fq = fq.where(condition)
+            fq = fq.limit(query.page_size + 1)
+            r = await self.db.execute(fq)
+            companies = list(r.scalars().all())
+            has_next = len(companies) > query.page_size
+            if has_next:
+                companies = companies[:query.page_size]
+            next_cursor = None
+            if companies:
+                last = companies[-1]
+                sort_val = getattr(last, sort.field, None)
+                next_cursor = encode_cursor(str(last.id), sort_val)
+        else:
+            fq = fq.offset((query.page - 1) * query.page_size).limit(query.page_size)
+            r = await self.db.execute(fq)
+            companies = list(r.scalars().all())
+            next_cursor = None
 
         return SearchResult(
             items=companies,
@@ -127,6 +151,7 @@ class CompanySearchRepository(SearchRepository[Any]):
             page_size=query.page_size,
             filters=query.filters,
             query=query.query,
+            next_cursor=next_cursor,
         )
 
     async def count(self, query: SearchQuery) -> int:

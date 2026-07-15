@@ -3,10 +3,11 @@ import os
 import random
 
 from neo4j import GraphDatabase
+from app.config import settings
 
-URI = os.getenv("NEO4J_URI", "bolt://neo4j:7687")
-USER = os.getenv("NEO4J_USER", "neo4j")
-PASS = os.environ["NEO4J_PASSWORD"]
+URI = os.getenv("NEO4J_URI") or settings.neo4j_uri
+USER = os.getenv("NEO4J_USER") or settings.neo4j_user
+PASS = os.environ.get("NEO4J_PASSWORD") or settings.neo4j_password
 
 INDUSTRIES = ["Construction", "Healthcare", "Manufacturing", "Technology", "Real Estate",
               "Energy", "Logistics", "Food & Beverage", "Retail", "Telecom"]

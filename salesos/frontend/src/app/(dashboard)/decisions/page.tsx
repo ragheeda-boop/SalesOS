@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import axios from "axios"
+import api from "@/lib/api"
 import { useTranslation } from "@/lib/i18n"
 import { cn } from "@salesos/ui"
 import { Check, X, ChevronRight } from "lucide-react"
@@ -26,18 +26,18 @@ export default function DecisionCenterPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    axios.get("/api/v1/decision/history?limit=50")
+    api.get("/api/v1/decision/history?limit=50")
       .then(res => { setDecisions(res.data.items || []); setLoading(false) })
       .catch(() => { setError(t("error.server_error")); setLoading(false) })
   }, [t])
 
   const handleAccept = async (id: string) => {
-    await axios.post(`/api/v1/decisions/${id}/accept`)
+    await api.post(`/api/v1/decisions/${id}/accept`)
     setDecisions(prev => prev.map(d => d.id === id ? { ...d, status: "accepted" as const } : d))
   }
 
   const handleDismiss = async (id: string) => {
-    await axios.post(`/api/v1/decisions/${id}/feedback`, { accepted: false })
+    await api.post(`/api/v1/decisions/${id}/feedback`, { accepted: false })
     setDecisions(prev => prev.map(d => d.id === id ? { ...d, status: "dismissed" as const } : d))
   }
 

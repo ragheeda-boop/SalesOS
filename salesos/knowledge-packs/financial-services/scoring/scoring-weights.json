@@ -1,0 +1,143 @@
+{
+  "pack_id": "kp-financial-services",
+  "version": "1.0.0",
+  "scoring_model": {
+    "name": "Financial Services ICP Fit & Compliance Score",
+    "ar_name": "درجة ملاءمة وامتثال قطاع الخدمات المالية",
+    "description": "نموذج مزدوج لتسجيل ملاءمة المؤسسة المالية للفرصة البيعية بالتوازي مع تقييم الامتثال التنظيمي",
+    "dimensions": {
+      "icp_fit": {
+        "weight": 0.4,
+        "description": "مدى مطابقة المؤسسة المالية لمعايير العميل المثالي",
+        "sub_factors": [
+          {
+            "id": "icp_license_type",
+            "name": "License Type Match",
+            "ar_name": "مطابقة نوع الترخيص",
+            "weight": 0.3,
+            "scoring_rules": {
+              "commercial_bank": 1.0,
+              "investment_bank": 0.9,
+              "insurance": 0.85,
+              "finance": 0.8,
+              "fintech": 0.9,
+              "brokerage": 0.6,
+              "asset_management": 0.7
+            }
+          },
+          {
+            "id": "icp_asset_size",
+            "name": "Asset Size",
+            "ar_name": "حجم الأصول",
+            "weight": 0.25,
+            "scoring_rules": {
+              "assets_gt_100b": 1.0,
+              "assets_10b_100b": 0.85,
+              "assets_1b_10b": 0.6,
+              "assets_500m_1b": 0.4,
+              "assets_lt_500m": 0.2
+            }
+          },
+          {
+            "id": "icp_digital_maturity",
+            "name": "Digital Maturity",
+            "ar_name": "النضج الرقمي",
+            "weight": 0.25,
+            "scoring_rules": {
+              "advanced": 1.0,
+              "intermediate": 0.7,
+              "basic": 0.4,
+              "none": 0.1
+            }
+          },
+          {
+            "id": "icp_credit_rating",
+            "name": "Credit Rating",
+            "ar_name": "التصنيف الائتماني",
+            "weight": 0.2,
+            "scoring_rules": {
+              "aaa_or_aa": 1.0,
+              "a_or_bbb": 0.8,
+              "bb_or_b": 0.4,
+              "below_b": 0.1,
+              "unrated": 0.3
+            }
+          }
+        ]
+      },
+      "compliance": {
+        "weight": 0.35,
+        "description": "تقييم الالتزام التنظيمي والمخاطر الرقابية",
+        "sub_factors": [
+          {
+            "id": "com_regulatory_compliance",
+            "name": "Regulatory Compliance",
+            "ar_name": "الامتثال التنظيمي",
+            "weight": 0.35,
+            "scoring_rules": {
+              "compliant": 1.0,
+              "partial": 0.5,
+              "non_compliant": 0.0
+            }
+          },
+          {
+            "id": "com_penalty_history",
+            "name": "Penalty History",
+            "ar_name": "تاريخ العقوبات",
+            "weight": 0.25,
+            "scoring_rules": {
+              "no_penalties": 1.0,
+              "minor_penalties": 0.6,
+              "major_penalties": 0.1
+            }
+          },
+          {
+            "id": "com_capital_adequacy",
+            "name": "Capital Adequacy",
+            "ar_name": "كفاية رأس المال",
+            "weight": 0.2,
+            "scoring_rules": {
+              "car_gt_15": 1.0,
+              "car_10_to_15": 0.8,
+              "car_8_to_10": 0.5,
+              "car_lt_8": 0.0
+            }
+          },
+          {
+            "id": "com_aml_framework",
+            "name": "AML Framework",
+            "ar_name": "إطار مكافحة غسل الأموال",
+            "weight": 0.2,
+            "scoring_rules": {
+              "advanced": 1.0,
+              "adequate": 0.7,
+              "weak": 0.2,
+              "unknown": 0.3
+            }
+          }
+        ]
+      },
+      "market_signal": {
+        "weight": 0.25,
+        "description": "قوة الإشارات السوقية في القطاع المالي",
+        "sub_factors": [
+          {"id": "sig_ma_activity", "weight": 0.3},
+          {"id": "sig_regulatory_change", "weight": 0.3},
+          {"id": "sig_ipo_pipeline", "weight": 0.2},
+          {"id": "sig_fintech_growth", "weight": 0.2}
+        ]
+      }
+    },
+    "thresholds": {
+      "hot": 80,
+      "warm": 50,
+      "cold": 0,
+      "min_confidence": 0.5
+    },
+    "confidence_rules": {
+      "high": {"min_signals": 5, "min_data_points": 8},
+      "medium": {"min_signals": 2, "min_data_points": 4},
+      "low": {"min_signals": 0, "min_data_points": 1}
+    }
+  }
+}

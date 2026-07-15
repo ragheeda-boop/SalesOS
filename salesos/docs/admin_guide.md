@@ -12,6 +12,14 @@
 - [2. Installation](#2-installation)
 - [3. Configuration](#3-configuration)
 - [4. Administration](#4-administration)
+  - [4.1 User Management](#41-user-management)
+  - [4.2 Tenant Management](#42-tenant-management)
+  - [4.3 Monitoring Dashboard](#43-monitoring-dashboard)
+  - [4.4 Logging](#44-logging)
+  - [4.5 Entity Resolution Management](#45-entity-resolution-management)
+  - [4.6 Knowledge Graph Management](#46-knowledge-graph-management)
+  - [4.7 AI Model & Prompt Registry Management](#47-ai-model--prompt-registry-management)
+  - [4.8 Feature Store Management](#48-feature-store-management)
 - [5. Security](#5-security)
 - [6. Backup & Recovery](#6-backup--recovery)
 - [7. Troubleshooting](#7-troubleshooting)
@@ -581,6 +589,125 @@ docker compose -f docker-compose.prod.yml logs --since="2026-07-12T10:00:00" --u
 | Permission change | Admin ID, target user, old/new role | 1 year |
 | Tenant creation | Admin ID, tenant details | 7 years |
 | NBA action | User ID, company, action, outcome | 1 year |
+
+---
+
+### 4.5 Entity Resolution Management
+
+Entity Resolution automatically detects and merges duplicate company records. Administrators can manage its configuration and review pending merges.
+
+**Available endpoints:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/entity-resolution/pending` | List pending merge suggestions |
+| `POST` | `/api/v1/entity-resolution/merge/{id}` | Approve and execute a merge |
+| `POST` | `/api/v1/entity-resolution/reject/{id}` | Reject a merge suggestion |
+| `GET` | `/api/v1/entity-resolution/history` | View merge audit trail |
+| `PUT` | `/api/v1/entity-resolution/config` | Update matching thresholds |
+
+**Configuration parameters:**
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `auto_merge_threshold` | 0.95 | Confidence score for automatic merge (0.0–1.0) |
+| `suggest_threshold` | 0.70 | Minimum score to generate a merge suggestion |
+| `match_fields` | name, cr_number | Fields used for fuzzy matching |
+
+**Review pending merges:**
+
+```bash
+# List pending merge suggestions
+curl -X GET https://api.salesos.sa/api/v1/entity-resolution/pending \
+  -H "Authorization: Bearer <admin_token>" \
+  -H "X-Tenant-Id: <tenant_id>"
+```
+
+### 4.6 Knowledge Graph Management
+
+The Knowledge Graph stores entity relationships in Neo4j. Administrators can monitor graph health and manage relationship types.
+
+**Available endpoints:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/graph/stats` | Graph statistics (node/edge counts) |
+| `POST` | `/api/v1/graph/rebuild/{entity_type}` | Rebuild graph for an entity type |
+| `DELETE` | `/api/v1/graph/relationships/{id}` | Remove a specific relationship |
+
+**Graph health checks:**
+
+Admin can verify the Knowledge Graph via the Admin Dashboard → System Health, or via API:
+
+```bash
+# Check graph stats
+curl -X GET https://api.salesos.sa/api/v1/graph/stats \
+  -H "Authorization: Bearer <admin_token>" \
+  -H "X-Tenant-Id: <tenant_id>"
+```
+
+**Neo4j maintenance** (via CLI):
+
+```bash
+# Connect to Neo4j
+docker compose -f docker-compose.prod.yml exec neo4j \
+  cypher-shell -u neo4j -p "$NEO4J_PASSWORD"
+
+# Check node distribution
+MATCH (n) RETURN labels(n)[0] AS label, count(n) AS count ORDER BY count DESC;
+```
+
+### 4.7 AI Model & Prompt Registry Management
+
+SalesOS includes an AI engine with configurable models, prompts, and evaluation settings.
+
+**Prompt Registry:**
+
+The Prompt Registry stores and versions all AI prompts used across the platform (NBA recommendations, AI Copilot, AI Brief, etc.).
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/ai/prompts` | List all registered prompts |
+| `POST` | `/api/v1/ai/prompts` | Create a new prompt |
+| `PUT` | `/api/v1/ai/prompts/{id}` | Update an existing prompt |
+| `POST` | `/api/v1/ai/prompts/{id}/evaluate` | Run evaluation against test cases |
+
+**Model configuration:**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OPENAI_MODEL` | `gpt-4o-mini` | Chat model for copilot and recommendations |
+| `OPENAI_EMBEDDING_MODEL` | `text-embedding-3-large` | Model for vector embeddings |
+| `LLM_TEMPERATURE` | `0.7` | Generation temperature |
+| `LLM_MAX_TOKENS` | `1024` | Max tokens per response |
+
+**AI Cost Tracking:**
+
+Monitor AI token usage and costs in **Admin Dashboard → AI Costs**:
+
+| Metric | Description |
+|--------|-------------|
+| Total tokens (input + output) | Usage across all AI features |
+| Cost per tenant | Breakdown by tenant |
+| Cost per feature | NBA, Copilot, Brief, Search |
+| Daily/Weekly/Monthly trends | Usage patterns over time |
+
+### 4.8 Feature Store Management
+
+The Feature Store provides a centralized repository for entity features used by scoring engines and decision pipelines.
+
+**Available endpoints:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/features/{type}/{id}` | Get features for an entity |
+| `POST` | `/api/v1/features/{type}/{id}` | Set features for an entity |
+| `DELETE` | `/api/v1/features/{type}/{id}` | Clear features for an entity |
+| `GET` | `/api/v1/features/stats` | Feature store statistics |
+
+**Entity types:** `company`, `contact`, `deal`
+
+**Feature TTL:** Features have configurable time-to-live (TTL) values. Expired features are automatically purged. Default TTL is 7 days.
 
 ---
 

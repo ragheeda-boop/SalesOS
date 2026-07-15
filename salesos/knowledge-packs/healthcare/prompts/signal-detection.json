@@ -1,0 +1,32 @@
+{
+  "prompt_id": "kp-healthcare.signal-detection",
+  "name": "Healthcare Signal Detection",
+  "version": "1.0.0",
+  "domain": "healthcare",
+  "active": true,
+  "template": "أنت محلل إشارات في قطاع الصحة السعودي. قم بتحليل النص التالي واستخرج الإشارات البيعية.\n\nالنص: {source_text}\n\nالمصدر: {source_type}\nالتاريخ: {detection_date}\n\nالإشارات المستهدفة:\n1. ترخيص وزارة الصحة — إصدار، تجديد، تعديل، إلغاء\n2. شهادة CBAHI — منح، تجديد، تعليق\n3. مناقصة صحية — NUPCO، وزارة الصحة، مستشفيات حكومية\n4. توسعة — فتح قسم جديد، مستشفى جديد، فرع جديد\n5. شراكة — مع شركات أدوية، تقنية، تأمين\n6. تغيير قيادي — تعيين مدير تنفيذي، استشاري أول\n7. استثمار — تمويل، استحواذ، اندماج\n8. تنظيمي — لائحة جديدة، تعميم وزارة الصحة\n\nيجب أن يكون الرد بصيغة JSON:\n- signals: مصفوفة من الإشارات مع:\n  - type: نوع الإشارة\n  - title: عنوان الإشارة\n  - description: وصف مختصر\n  - confidence: درجة الثقة (0-1)\n  - urgency: درجة الاستعجال (high/medium/low)\n  - source: المصدر\n  - detected_at: تاريخ الكشف\n- total_signals: عدد الإشارات\n- key_insight: insight رئيسي",
+  "variables": ["source_text", "source_type", "detection_date"],
+  "output_schema": {
+    "type": "object",
+    "required": ["signals", "total_signals", "key_insight"],
+    "properties": {
+      "signals": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {"type": "string"},
+            "title": {"type": "string"},
+            "description": {"type": "string"},
+            "confidence": {"type": "number"},
+            "urgency": {"type": "string"},
+            "source": {"type": "string"},
+            "detected_at": {"type": "string"}
+          }
+        }
+      },
+      "total_signals": {"type": "integer"},
+      "key_insight": {"type": "string"}
+    }
+  }
+}

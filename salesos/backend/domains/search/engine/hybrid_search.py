@@ -217,11 +217,12 @@ class HybridSearchEngine:
 
             conditions = [
                 "c.tenant_id = :tid",
-                f"c.search_vector @@ plainto_tsquery('{self._fts_language}', :q)",
+                "c.search_vector @@ plainto_tsquery(:lang, :q)",
             ]
             params: dict[str, Any] = {
                 "tid": tenant_id,
                 "q": query,
+                "lang": self._fts_language,
                 "lim": limit,
                 "off": offset,
             }
@@ -242,7 +243,7 @@ class HybridSearchEngine:
                            c.city, c.region, c.industry, c.status,
                            c.activity_description,
                            ts_rank(c.search_vector,
-                                   plainto_tsquery('{self._fts_language}', :q)) AS rank
+                                   plainto_tsquery(:lang, :q)) AS rank
                     FROM companies c
                     WHERE {where_clause}
                     ORDER BY rank DESC, c.updated_at DESC

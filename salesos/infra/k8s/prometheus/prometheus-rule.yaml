@@ -1,0 +1,132 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: salesos-alerts
+  namespace: salesos
+  labels:
+    app: prometheus
+    app.kubernetes.io/name: salesos
+    app.kubernetes.io/part-of: salesos
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+    - name: salesos-service
+      interval: 30s
+      rules:
+        - alert: BackendDown
+          expr: up{job="salesos-backend"} == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Backend instance {{ $labels.pod }} is down"
+            description: "Healthcheck has failed for over 1 minute"
+
+        - alert: HighErrorRate
+          expr: rate(salesos_http_requests_total{status=~"5.."}[5m]) / rate(salesos_http_requests_total[5m]) > 0.05
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "High HTTP 5xx error rate ({{ $value | humanizePercentage }})"
+            description: "Error rate exceeds 5% for 5 minutes"
+
+        - alert: HighLatency
+          expr: histogram_quantile(0.99, rate(salesos_http_request_duration_seconds_bucket[5m])) > 1
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "P99 latency is {{ $value }}s"
+            description: "P99 request latency exceeds 1s threshold"
+
+        - alert: HighLatencyP95
+          expr: histogram_quantile(0.95, rate(salesos_http_request_duration_seconds_bucket[5m])) > 0.5
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "P95 latency is {{ $value }}s"
+            description: "P95 request latency exceeds 500ms threshold"
+
+        - alert: SLACriticalPathBreach
+          expr: histogram_quantile(0.99, rate(salesos_http_request_duration_seconds_bucket{path=~"/api/v1/companies.*|/api/v1/search.*|/api/v1/dashboard.*"}[5m])) > 0.7
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Critical path SLA breached: P99 > 700ms"
+            description: "Companies/Search/Dashboard endpoints exceeding SLA"
+
+        - alert: DBPoolSaturated
+          expr: salesos_db_pool_checkedout / (salesos_db_pool_checkedout + salesos_db_pool_checkedin + 0.001) > 0.9
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "DB connection pool > 90% utilized"
+            description: "Database pool near saturation — risk of timeouts"
+
+        - alert: SlowDatabaseQueries
+          expr: histogram_quantile(0.95, rate(salesos_db_query_duration_seconds_bucket[5m])) > 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "P95 DB query duration is {{ $value }}s"
+            description: "Database queries slower than 1s P95"
+
+        - alert: SlowAIInference
+          expr: histogram_quantile(0.95, rate(salesos_ai_inference_duration_seconds_bucket[5m])) > 10
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "P95 AI inference time is {{ $value }}s"
+            description: "AI model inference exceeding 10s P95"
+
+        - alert: PodCrashLooping
+          expr: rate(kube_pod_container_status_restarts_total[15m]) > 3
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod {{ $labels.pod }} is crash-looping"
+            description: "Container restarted more than 3 times in 15 minutes"
+
+        - alert: DiskSpaceLow
+          expr: node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} < 0.1
+          for: 10m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Disk space below 10% on {{ $labels.instance }}"
+            description: "Critical disk space — possible data loss risk"
+
+        - alert: MemoryUsageHigh
+          expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.9
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node memory usage above 90%"
+            description: "{{ $labels.node }} memory usage exceeds 90%"
+
+        - alert: NoTraffic
+          expr: rate(salesos_http_requests_total[5m]) == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "No HTTP traffic detected for 10 minutes"
+            description: "Possible routing issue — zero requests received"
+
+        - alert: QueueDepthHigh
+          expr: kafka_consumer_lag > 1000
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Kafka consumer lag is {{ $value }}"
+            description: "Event processing backlog exceeds 1000 messages"

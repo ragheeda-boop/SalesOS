@@ -1,0 +1,147 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: salesos-backup
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos-backup
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/part-of: salesos
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 300
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: backup
+          containers:
+            - name: backup
+              image: ghcr.io/ragheeda-boop/salesos/backup:latest
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: PGHOST
+                  value: postgres
+                - name: PGUSER
+                  value: salesos
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: salesos-secrets
+                      key: postgres_password
+                - name: PGDATABASE
+                  value: salesos
+                - name: NEO4J_URI
+                  value: bolt://neo4j:7687
+                - name: NEO4J_USER
+                  value: neo4j
+                - name: NEO4J_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: salesos-secrets
+                      key: neo4j_password
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: salesos-secrets
+                      key: redis_password
+                - name: BACKUP_DIR
+                  value: /backups
+                - name: RETENTION_DAYS
+                  value: "7"
+                - name: S3_BUCKET
+                  value: salesos-backups
+                - name: S3_ENDPOINT
+                  value: "https://s3.amazonaws.com"
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: salesos-secrets
+                      key: aws_access_key_id
+                      optional: true
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: salesos-secrets
+                      key: aws_secret_access_key
+                      optional: true
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
+              resources:
+                requests:
+                  cpu: "500m"
+                  memory: "256Mi"
+                limits:
+                  cpu: "1"
+                  memory: "512Mi"
+          volumes:
+            - name: backup-storage
+              persistentVolumeClaim:
+                claimName: backup-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-pvc
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos-backup
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/part-of: salesos
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos-backup
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/part-of: salesos
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backup
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos-backup
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/part-of: salesos
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backup
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos-backup
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/part-of: salesos
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: backup
+subjects:
+  - kind: ServiceAccount
+    name: backup
+    namespace: salesos

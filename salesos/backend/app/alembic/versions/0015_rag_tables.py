@@ -53,18 +53,11 @@ def upgrade() -> None:
     )
     op.create_index("idx_rag_chunks_document", "rag_document_chunks", ["document_id"])
 
-    # Add pgvector embedding column and IVFFlat index
+    # Add pgvector embedding column
     op.execute("ALTER TABLE rag_document_chunks ADD COLUMN embedding vector(3072)")
-    op.execute("""
-        CREATE INDEX IF NOT EXISTS idx_rag_chunks_vector
-        ON rag_document_chunks
-        USING ivfflat (embedding vector_cosine_ops)
-        WITH (lists = 100)
-    """)
 
 
 def downgrade() -> None:
-    op.execute("DROP INDEX IF EXISTS idx_rag_chunks_vector")
     op.drop_index("idx_rag_chunks_document", table_name="rag_document_chunks")
     op.drop_index("idx_rag_chunks_tenant", table_name="rag_documents")
     op.drop_table("rag_document_chunks")

@@ -1,0 +1,152 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: salesos
+  labels:
+    app: prometheus
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: salesos
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    rule_files:
+      - /etc/prometheus/alerts.yml
+
+    scrape_configs:
+      - job_name: "salesos-backend"
+        scrape_interval: 15s
+        metrics_path: "/metrics"
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - salesos
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: backend
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_container_port_name]
+            regex: http
+            action: keep
+          - source_labels: [__address__]
+            action: replace
+            regex: ([^:]+)(?::\d+)?
+            replacement: $1:8000
+            target_label: __address__
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: namespace
+
+      - job_name: "prometheus"
+        static_configs:
+          - targets: ["localhost:9090"]
+
+      - job_name: "postgres-exporter"
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - salesos
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: postgres-exporter
+            action: keep
+
+      - job_name: "redis-exporter"
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - salesos
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: redis-exporter
+            action: keep
+
+      - job_name: "kube-state-metrics"
+        static_configs:
+          - targets: ["kube-state-metrics.monitoring:8080"]
+
+  alerts.yml: |
+    groups:
+      - name: salesos
+        rules:
+          - alert: BackendDown
+            expr: up{job="salesos-backend"} == 0
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Backend instance {{ $labels.pod }} is down"
+              description: "Backend pod has been unreachable for more than 1 minute."
+
+          - alert: HighErrorRate
+            expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High HTTP error rate ({{ $value | humanizePercentage }})"
+              description: "Error rate exceeds 5% for 5 minutes."
+
+          - alert: HighCPULoad
+            expr: avg(rate(process_cpu_seconds_total{job="salesos-backend"}[5m])) by (pod) > 0.8
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High CPU load on {{ $labels.pod }}"
+              description: "CPU usage above 80% for 5 minutes."
+
+          - alert: PostgreSQLDown
+            expr: pg_up == 0
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "PostgreSQL is down"
+              description: "PostgreSQL database has been unreachable for more than 1 minute."
+
+          - alert: ProductionPodCrashLooping
+            expr: rate(kube_pod_container_status_restarts_total[15m]) > 3
+            for: 3m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Pod {{ $labels.pod }} is crash-looping"
+              description: "Container restarted >3 times in 15 minutes"
+
+          - alert: ProductionCertificateExpiring
+            expr: (certmanager_certificate_expiration_seconds - time()) < 2592000
+            for: 1h
+            labels:
+              severity: warning
+            annotations:
+              summary: "TLS certificate expires in {{ $value | humanizeDuration }}"
+              description: "Certificate expiry within 30 days"
+
+          - alert: ProductionPostgresConnectionsHigh
+            expr: pg_stat_database_numbackends > 80
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "PostgreSQL has {{ $value }} active connections"
+              description: "DB connections exceed 80% of max_connections"
+
+          - alert: DiskSpaceLow
+            expr: node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} < 0.15
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Low disk space on {{ $labels.instance }}"
+              description: "Disk usage above 85% for 5 minutes."

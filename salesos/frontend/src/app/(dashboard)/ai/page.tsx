@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import axios from "axios"
+import api from "@/lib/api"
 import { useTranslation } from "@/lib/i18n"
 import { cn } from "@salesos/ui"
 import { Plus, Play, RefreshCw } from "lucide-react"
@@ -30,7 +30,7 @@ export default function AIPage() {
   const [evaluating, setEvaluating] = useState(false)
 
   useEffect(() => {
-    axios.get("/api/v1/ai/prompts")
+    api.get("/api/v1/ai/prompts")
       .then(res => { setPrompts(res.data.prompts || []); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
@@ -39,7 +39,7 @@ export default function AIPage() {
     if (!selected) return
     setEvaluating(true)
     try {
-      const res = await axios.post("/api/v1/ai/generate", {
+      const res = await api.post("/api/v1/ai/generate", {
         prompt_id: selected.id,
         variables: { input: testInput }
       })
@@ -49,7 +49,7 @@ export default function AIPage() {
   }
 
   const handleActivate = async (id: string) => {
-    await axios.post("/api/v1/ai/prompts/activate", { prompt_id: id })
+    await api.post("/api/v1/ai/prompts/activate", { prompt_id: id })
     setPrompts(prev => prev.map(p => ({ ...p, is_active: p.id === id })))
   }
 

@@ -27,7 +27,7 @@ function formatCurrency(value: number): string {
   return value.toLocaleString();
 }
 
-function OpportunityCard({
+export function OpportunityCard({
   opportunity,
 }: {
   opportunity: Opportunity;
@@ -77,7 +77,7 @@ function OpportunityCard({
   );
 }
 
-function PipelineColumn({
+export function PipelineColumn({
   stage,
   opportunities,
   onDrop,

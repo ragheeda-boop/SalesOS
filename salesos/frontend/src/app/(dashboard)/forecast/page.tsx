@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import axios from "axios"
+import api from "@/lib/api"
 import { cn } from "@salesos/ui"
 import { useTranslation } from "@/lib/i18n"
 
@@ -47,7 +47,7 @@ export default function ForecastPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    axios.get("/api/v1/forecast")
+    api.get("/api/v1/forecast")
       .then(res => { setForecast(res.data); setLoading(false) })
       .catch(() => { setError(t("error.server_error")); setLoading(false) })
   }, [t])

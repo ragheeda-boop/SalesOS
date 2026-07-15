@@ -287,6 +287,15 @@ class CsrfEnforcementMiddleware:
 
     _STATE_CHANGING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
+    _PUBLIC_PATHS = frozenset({
+        "/api/v1/identity/register",
+        "/api/v1/identity/login",
+        "/api/v1/identity/forgot-password",
+        "/api/v1/identity/reset-password",
+        "/api/v1/identity/refresh",
+        "/csrf-token",
+    })
+
     def __init__(self, app):
         self.app = app
 
@@ -299,6 +308,10 @@ class CsrfEnforcementMiddleware:
 
         method = scope.get("method", "GET")
         if method not in self._STATE_CHANGING_METHODS:
+            return await self.app(scope, receive, send)
+
+        path = scope.get("path", "")
+        if path in self._PUBLIC_PATHS:
             return await self.app(scope, receive, send)
 
         headers = dict(scope.get("headers", []))

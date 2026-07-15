@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -74,6 +75,17 @@ class FeatureStoreMetrics:
         }
 
 
+FEATURE_CACHE_PREFIX = "feature"
+
+
+def _build_feature_cache_key(tenant_id: str, company_id: str, feature_name: str) -> str:
+    return f"{FEATURE_CACHE_PREFIX}:{tenant_id}:{company_id}:{feature_name}"
+
+
+def _build_company_cache_pattern(tenant_id: str, company_id: str) -> str:
+    return f"{FEATURE_CACHE_PREFIX}:{tenant_id}:{company_id}:*"
+
+
 class FeatureStore:
     """Orchestrates feature computation, caching, and event-triggered refresh.
 
@@ -89,22 +101,36 @@ class FeatureStore:
         event_runtime: EventRuntime,
         computers: list[FeatureComputer],
         logger: Any = None,
+        cache_service: Any = None,
+        cache_ttl: int = 300,
     ):
         self._session_factory = session_factory
         self._event_runtime = event_runtime
         self._computers = {c.name: c for c in computers}
         self._logger = logger
+        self._cache_service = cache_service
+        self._cache_ttl = cache_ttl
         self.metrics = FeatureStoreMetrics()
 
     async def get_feature(
         self, company_id: str, tenant_id: str, feature_name: str
     ) -> Optional[FeatureResult]:
-        """Return cached feature if fresh, otherwise compute."""
+        """Return cached feature if fresh, otherwise compute.
+
+        Tries Redis cache first (if configured), falls back to DB-level cache,
+        then computes on miss.
+        """
+        # 1. Try Redis cache
+        cached = await self._redis_get_feature(company_id, tenant_id, feature_name)
+        if cached is not None:
+            return cached
+
         async with self._session_factory() as session:
+            # 2. Try DB-level cache
             row = await self._load_cached(session, company_id, tenant_id, feature_name)
             if row is not None:
                 self.metrics.cache_hits += 1
-                return FeatureResult(
+                result = FeatureResult(
                     score=row.score,
                     version=row.version,
                     computed_at=row.computed_at,
@@ -112,11 +138,14 @@ class FeatureStore:
                     contributing_signals=row.signals or {},
                     explanation=row.explanation or "",
                 )
+                await self._redis_set_feature(company_id, tenant_id, feature_name, result)
+                return result
             computer = self._computers.get(feature_name)
             if not computer:
                 return None
             company = await self._load_company(session, tenant_id, company_id)
             result = await self._compute_and_store(session, computer, company, tenant_id, company_id)
+            await self._redis_set_feature(company_id, tenant_id, feature_name, result)
             return result
 
     async def get_features(
@@ -125,17 +154,33 @@ class FeatureStore:
         """Return multiple features for a company.
 
         Cached features load instantly; uncached features are computed in parallel.
+        Tries Redis cache first (if configured), then DB-level cache, then compute.
         """
         names = feature_names or list(self._computers.keys())
         results: dict[str, FeatureResult] = {}
         needs_compute: list[str] = []
+
+        # 1. Try Redis cache for each name
+        for name in names:
+            cached = await self._redis_get_feature(company_id, tenant_id, name)
+            if cached is not None:
+                results[name] = cached
+            else:
+                needs_compute.append(name)
+
+        if not needs_compute:
+            return results
+
+        # 2. For Redis misses, try DB cache or compute
         async with self._session_factory() as session:
             company = await self._load_company(session, tenant_id, company_id)
-            for name in names:
+            still_needs: list[str] = []
+
+            for name in needs_compute:
                 row = await self._load_cached(session, company_id, tenant_id, name)
                 if row is not None:
                     self.metrics.cache_hits += 1
-                    results[name] = FeatureResult(
+                    result = FeatureResult(
                         score=row.score,
                         version=row.version,
                         computed_at=row.computed_at,
@@ -143,20 +188,24 @@ class FeatureStore:
                         contributing_signals=row.signals or {},
                         explanation=row.explanation or "",
                     )
+                    results[name] = result
+                    await self._redis_set_feature(company_id, tenant_id, name, result)
                     continue
                 computer = self._computers.get(name)
                 if not computer:
                     continue
-                needs_compute.append(name)
+                still_needs.append(name)
 
-            if needs_compute:
+            if still_needs:
                 import asyncio
                 async def _compute_one(feature_name: str):
                     computer = self._computers[feature_name]
-                    return feature_name, await self._compute_and_store(
+                    fresult = await self._compute_and_store(
                         session, computer, company, tenant_id, company_id,
                     )
-                tasks = [_compute_one(n) for n in needs_compute]
+                    await self._redis_set_feature(company_id, tenant_id, feature_name, fresult)
+                    return feature_name, fresult
+                tasks = [_compute_one(n) for n in still_needs]
                 computed = await asyncio.gather(*tasks, return_exceptions=True)
                 for item in computed:
                     if isinstance(item, Exception):
@@ -169,23 +218,90 @@ class FeatureStore:
         """Force recompute ALL features for a company.
 
         All feature computers run in parallel since they are independent.
+        Results are stored in a single bulk UPSERT with one commit
+        instead of 7 individual SELECT → INSERT/UPDATE → COMMIT round-trips.
         """
         import asyncio
+        from datetime import datetime, timezone
+
         results: dict[str, FeatureResult] = {}
         async with self._session_factory() as session:
             company = await self._load_company(session, tenant_id, company_id)
+
             async def _recompute_one(feature_name: str):
                 computer = self._computers[feature_name]
-                return feature_name, await self._compute_and_store(
-                    session, computer, company, tenant_id, company_id,
-                )
+                t0 = time.monotonic()
+                try:
+                    result = await computer.compute(company, session)
+                    elapsed = (time.monotonic() - t0) * 1000
+                    self.metrics.computations += 1
+                    self.metrics.total_compute_ms += elapsed
+                    return feature_name, result
+                except Exception as exc:
+                    elapsed = (time.monotonic() - t0) * 1000
+                    self.metrics.errors += 1
+                    if self._logger:
+                        self._logger.error(
+                            "Feature compute error: %s on %s/%s: %s",
+                            computer.name, tenant_id, company_id, exc,
+                        )
+                    return feature_name, None
+
             tasks = [_recompute_one(n) for n in self._computers]
             computed = await asyncio.gather(*tasks, return_exceptions=True)
+
+            # Bulk UPSERT — single round-trip, single commit
+            now = datetime.now(timezone.utc)
+            upsert_rows = []
             for item in computed:
                 if isinstance(item, Exception):
                     continue
                 fname, fresult = item
+                if fresult is None:
+                    continue
                 results[fname] = fresult
+                upsert_rows.append({
+                    "p_tenant_id": tenant_id,
+                    "p_company_id": company_id,
+                    "p_feature_name": fname,
+                    "p_score": fresult.score,
+                    "p_version": fresult.version,
+                    "p_computed_at": fresult.computed_at,
+                    "p_confidence": fresult.confidence,
+                    "p_signals": fresult.contributing_signals,
+                    "p_explanation": fresult.explanation,
+                    "p_now": now,
+                })
+
+            if upsert_rows:
+                from sqlalchemy import text as sql_text
+                await session.execute(
+                    sql_text("""
+                        INSERT INTO public.company_features
+                            (tenant_id, company_id, feature_name, score, version,
+                             computed_at, confidence, signals, explanation,
+                             created_at, updated_at)
+                        VALUES
+                            (:p_tenant_id, :p_company_id, :p_feature_name, :p_score,
+                             :p_version, :p_computed_at, :p_confidence,
+                             CAST(:p_signals AS jsonb), :p_explanation,
+                             :p_now, :p_now)
+                        ON CONFLICT (tenant_id, company_id, feature_name)
+                        DO UPDATE SET
+                            score = EXCLUDED.score,
+                            version = EXCLUDED.version,
+                            computed_at = EXCLUDED.computed_at,
+                            confidence = EXCLUDED.confidence,
+                            signals = EXCLUDED.signals,
+                            explanation = EXCLUDED.explanation,
+                            updated_at = EXCLUDED.updated_at
+                    """),
+                    upsert_rows,
+                )
+                await session.commit()
+
+        # Invalidate Redis cache for this company's features
+        await self._redis_clear_company(tenant_id, company_id)
         return results
 
     async def _compute_and_store(
@@ -234,6 +350,69 @@ class FeatureStore:
             )
         )
         return result.scalar_one_or_none()
+
+    # ── Redis cache helpers (optional, graceful failover) ──────────────
+
+    async def _redis_get_feature(
+        self, company_id: str, tenant_id: str, feature_name: str
+    ) -> Optional[FeatureResult]:
+        if self._cache_service is None:
+            return None
+        key = _build_feature_cache_key(tenant_id, company_id, feature_name)
+        try:
+            raw = await self._cache_service.get(key)
+            if raw is None:
+                return None
+            self.metrics.cache_hits += 1
+            return FeatureResult(
+                score=raw["score"],
+                version=raw["version"],
+                computed_at=datetime.fromisoformat(raw["computed_at"]),
+                confidence=raw["confidence"],
+                contributing_signals=raw.get("contributing_signals", {}),
+                explanation=raw.get("explanation", ""),
+            )
+        except Exception:
+            return None
+
+    async def _redis_set_feature(
+        self, company_id: str, tenant_id: str, feature_name: str, result: FeatureResult
+    ) -> None:
+        if self._cache_service is None:
+            return
+        key = _build_feature_cache_key(tenant_id, company_id, feature_name)
+        try:
+            await self._cache_service.set(
+                key,
+                {
+                    "score": result.score,
+                    "version": result.version,
+                    "computed_at": result.computed_at.isoformat(),
+                    "confidence": result.confidence,
+                    "contributing_signals": result.contributing_signals,
+                    "explanation": result.explanation,
+                },
+                ttl_seconds=self._cache_ttl,
+            )
+        except Exception:
+            pass
+
+    async def _redis_clear_company(self, tenant_id: str, company_id: str) -> None:
+        if self._cache_service is None:
+            return
+        if hasattr(self._cache_service, "scan_delete"):
+            pattern = _build_company_cache_pattern(tenant_id, company_id)
+            try:
+                await self._cache_service.scan_delete(pattern)
+            except Exception:
+                pass
+        else:
+            try:
+                await self._cache_service.delete_pattern(
+                    _build_company_cache_pattern(tenant_id, company_id)
+                )
+            except Exception:
+                pass
 
     async def _store_result(
         self,

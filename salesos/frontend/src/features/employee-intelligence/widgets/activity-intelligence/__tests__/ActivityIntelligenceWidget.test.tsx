@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { ActivityIntelligenceView } from '../ActivityIntelligenceWidget'
+import { ActivityIntelligenceView } from '../ActivityIntelligenceView'
 import type { ActivityIntelligence } from '@/lib/api'
 
 const baseData: ActivityIntelligence = {

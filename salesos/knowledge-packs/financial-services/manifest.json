@@ -1,0 +1,19 @@
+{
+  "id": "kp-financial-services",
+  "name": "Financial Services Sector Intelligence",
+  "version": "1.0.0",
+  "description": "Knowledge Pack for the Saudi financial services sector — banks, insurance, finance companies, fintech. Covers SAMA/CMA licensing, regulatory compliance, M&A activity, and compliance scoring.",
+  "domain": "financial-services",
+  "sector": "Financial Services",
+  "ar_name": "قطاع الخدمات المالية",
+  "tags": ["banking", "insurance", "fintech", "finance", "sama", "cma", "tadawul", "saudi-finance"],
+  "dependencies": {
+    "knowledge_packs": ["saudi-market", "arabic-business-terms"],
+    "ai_assets": ["company-summary", "opportunity-scoring", "signal-detection"],
+    "version": ">=1.0.0"
+  },
+  "regulatory_bodies": ["SAMA", "CMA", "Tadawul", "ZATCA", " NCA"],
+  "created_at": "2026-07-14T00:00:00Z",
+  "updated_at": "2026-07-14T00:00:00Z",
+  "author": "SalesOS AI Engineering"
+}

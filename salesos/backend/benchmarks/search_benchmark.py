@@ -22,9 +22,12 @@ from sqlalchemy import text as sa_text
 from .runner import BenchmarkResult
 
 
+from app.config import settings
+
+_DB_PASS = os.getenv("POSTGRES_PASSWORD") or getattr(settings, "postgres_password", "salesos")
 POSTGRES_URL = os.getenv(
     "SALESOS_DATABASE_URL",
-    "postgresql+asyncpg://salesos:salesos@localhost:5432/salesos_test",
+    f"postgresql+asyncpg://{settings.postgres_user}:{_DB_PASS}@{settings.postgres_host}:{settings.postgres_port}/salesos_test",
 )
 
 TEST_TENANT_ID = "00000000-0000-0000-0000-000000000001"

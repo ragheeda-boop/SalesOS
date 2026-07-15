@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import axios from "axios"
+import api from "@/lib/api"
 import { useTranslation } from "@/lib/i18n"
 import { cn } from "@salesos/ui"
 import { Calendar, Users, AlertTriangle, Lightbulb, Target, ChevronDown, Mail } from "lucide-react"
@@ -47,7 +47,7 @@ export default function MeetingsPage() {
   const [showDropdown, setShowDropdown] = useState(false)
 
   useEffect(() => {
-    axios.get("/api/v1/opportunities?limit=100")
+    api.get("/api/v1/opportunities?limit=100")
       .then(res => { setOpportunities(res.data.records || res.data || []); setLoading(false) })
       .catch(() => { setError(t("error.server_error")); setLoading(false) })
   }, [t])
@@ -56,8 +56,8 @@ export default function MeetingsPage() {
     setBriefLoading(true)
     try {
       const [briefRes, meetingsRes] = await Promise.allSettled([
-        axios.post(`/api/v1/meetings/${oppId}/brief`),
-        axios.get(`/api/v1/meetings/${oppId}`),
+        api.post(`/api/v1/meetings/${oppId}/brief`),
+        api.get(`/api/v1/meetings/${oppId}`),
       ])
       if (briefRes.status === "fulfilled") setBrief(briefRes.value.data)
       if (meetingsRes.status === "fulfilled") setMeetings(meetingsRes.value.data.records || meetingsRes.value.data || [])

@@ -140,7 +140,8 @@ export function useWorkflowExecutions(workflowId: string) {
   return useQuery({
     queryKey: workflowKeys.executions(workflowId),
     queryFn: async () => {
-      const res = await api.get(`/api/v1/workflows/${workflowId}/executions`, {
+      const res = await api.get(`/api/v1/workflows/executions`, {
+        params: { workflow_id: workflowId },
         headers: { "X-Tenant-Id": getTenantId() },
       })
       return res.data as WorkflowExecution[]

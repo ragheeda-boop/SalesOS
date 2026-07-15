@@ -105,6 +105,16 @@ class ArabicSearchNormalizer:
         ord('\u0624'): '\u0648',  # ؤ → و
     }
 
+    # Persian/Urdu characters → Arabic equivalents
+    _PERSIAN_TABLE: ClassVar[dict[int, str]] = {
+        ord('\u06A9'): '\u0643',  # ک (keheh) → ك (kaf)
+        ord('\u06AF'): '\u0643',  # گ (gaf) → ك (kaf)
+        ord('\u06D2'): '\u064A',  # ے (yeh barree) → ي (yeh)
+        ord('\u06BA'): '\u0646',  # ں (noon ghunna) → ن (noon)
+        ord('\u06BE'): '\u0647',  # ہ (heh goal) → ه (heh)
+        ord('\u06C1'): '\u0647',  # ھ (heh doachashmee) → ه (heh)
+    }
+
     # Arabic-Indic digits → Western digits
     _DIGIT_NORMALIZATION_TABLE: ClassVar[dict[int, str]] = {
         ord('\u0660'): '0', ord('\u0661'): '1', ord('\u0662'): '2',
@@ -112,6 +122,39 @@ class ArabicSearchNormalizer:
         ord('\u0666'): '6', ord('\u0667'): '7', ord('\u0668'): '8',
         ord('\u0669'): '9',
     }
+
+    # ══════════════════════════════════════════════════════════════════
+    # Saudi business name prefixes — removed before matching
+    # ══════════════════════════════════════════════════════════════════
+
+    _COMPANY_PREFIXES: ClassVar[list[str]] = [
+        "شركة", "شركه", "مؤسسة", "مؤسسه", "موسسه", "مجموعة", "مجموعه",
+        "مصنع", "مكتب",
+        "الشركة", "الشركه", "المؤسسة", "المؤسسه",
+        "المجموعة", "المجموعه", "المصنع", "المكتب",
+        "شركة مساهمة", "شركه مساهمه", "شركه مساهمه",
+        "شركة مساهمة سعودية", "شركه مساهمه سعوديه",
+        "شركة سعودية مساهمة", "شركه سعوديه مساهمه",
+        "شركة ذات مسؤولية محدودة", "شركه ذات مسئوليه محدوده",
+        "شركة تضامن", "شركه تضامن",
+        "شركة توصية بسيطة", "شركه توصيه بسيطه",
+        "مؤسسة فردية", "مؤسسه فرديه", "مؤسسه فرديه",
+        "مؤسسة شخص واحد", "مؤسسه شخص واحد",
+        "جمعية", "جمعيه", "هيئة", "هييه", "صندوق",
+    ]
+
+    _COMPANY_SUFFIXES: ClassVar[list[str]] = [
+        "المحدودة", "المحدوده",
+        "ذات مسؤولية محدودة", "ذات مسئوليه محدوده",
+        "المساهمة", "المساهمه",
+        "السعودية", "السعوديه",
+        "العامة", "العامه",
+        "المقفلة", "المقفله",
+        "المغلقة", "المغلقه",
+        "التضامن", "التوصية", "التوصيه",
+    ]
+
+    _DASH_SEPARATOR_RE: ClassVar[re.Pattern] = re.compile(r'\s*[-–—]+\s*')
 
     def __init__(
         self,
@@ -121,9 +164,13 @@ class ArabicSearchNormalizer:
         normalize_yeh: bool = True,
         normalize_teh_marbuta: bool = True,
         normalize_hamza_on_waw: bool = True,
-        normalize_digits: bool = False,
+        normalize_digits: bool = True,
         normalize_punctuation: bool = True,
+        normalize_persian: bool = True,
         remove_stop_words: bool = True,
+        remove_company_prefixes: bool = False,
+        remove_company_suffixes: bool = False,
+        remove_separators: bool = False,
         lower_case: bool = False,
     ):
         self.remove_diacritics = remove_diacritics
@@ -134,7 +181,11 @@ class ArabicSearchNormalizer:
         self.normalize_hamza_on_waw = normalize_hamza_on_waw
         self.normalize_digits = normalize_digits
         self.normalize_punctuation = normalize_punctuation
+        self.normalize_persian = normalize_persian
         self.remove_stop_words = remove_stop_words
+        self.remove_company_prefixes = remove_company_prefixes
+        self.remove_company_suffixes = remove_company_suffixes
+        self.remove_separators = remove_separators
         self.lower_case = lower_case
 
     def normalize(self, text: str) -> str:
@@ -159,6 +210,10 @@ class ArabicSearchNormalizer:
         if self.remove_tatweel:
             text = text.replace(self._TATWEEL, '')
 
+        # 2b. Normalize dash separators (" - " → " ")
+        if self.remove_separators:
+            text = self._DASH_SEPARATOR_RE.sub(' ', text)
+
         # 3. Normalize Alef variants (أ إ آ → ا)
         if self.normalize_alef:
             text = text.translate(self._ALEF_NORMALIZATION_TABLE)
@@ -175,6 +230,10 @@ class ArabicSearchNormalizer:
         # 6. Normalize Waw with hamza (ؤ → و)
         if self.normalize_hamza_on_waw:
             text = text.translate(self._WAW_HAMZA_TABLE)
+
+        # 6b. Normalize Persian/Urdu characters to Arabic equivalents
+        if self.normalize_persian:
+            text = text.translate(self._PERSIAN_TABLE)
 
         # 7. Normalize Arabic-Indic digits to Western
         if self.normalize_digits:
@@ -195,6 +254,14 @@ class ArabicSearchNormalizer:
         # 11. Remove Arabic stop words
         if self.remove_stop_words:
             text = self._remove_stop_words(text)
+
+        # 12. Remove company legal prefixes (for matching)
+        if self.remove_company_prefixes:
+            text = self._remove_prefixes(text)
+
+        # 13. Remove company legal suffixes (for matching)
+        if self.remove_company_suffixes:
+            text = self._remove_suffixes(text)
 
         return text
 
@@ -239,6 +306,37 @@ class ArabicSearchNormalizer:
         text = self._WHITESPACE_RE.sub(' ', text).strip()
         return text
 
+    def _remove_prefixes(self, text: str) -> str:
+        """Remove company legal prefixes from the beginning of text."""
+        words = text.split()
+        if not words:
+            return text
+        # Try longest prefixes first
+        for prefix in sorted(self._COMPANY_PREFIXES, key=len, reverse=True):
+            prefix_words = prefix.split()
+            prefix_len = len(prefix_words)
+            if len(words) >= prefix_len:
+                candidate = " ".join(words[:prefix_len])
+                if candidate == prefix:
+                    words = words[prefix_len:]
+                    break
+        return " ".join(words).strip()
+
+    def _remove_suffixes(self, text: str) -> str:
+        """Remove company legal suffixes from the end of text."""
+        words = text.split()
+        if not words:
+            return text
+        for suffix in sorted(self._COMPANY_SUFFIXES, key=len, reverse=True):
+            suffix_words = suffix.split()
+            suffix_len = len(suffix_words)
+            if len(words) >= suffix_len:
+                candidate = " ".join(words[-suffix_len:])
+                if candidate == suffix:
+                    words = words[:-suffix_len]
+                    break
+        return " ".join(words).strip()
+
     @staticmethod
     def default() -> ArabicSearchNormalizer:
         """Create a normalizer with default settings for search."""
@@ -254,9 +352,16 @@ class ArabicSearchNormalizer:
 
     @staticmethod
     def for_matching() -> ArabicSearchNormalizer:
-        """Create an aggressive normalizer for entity matching."""
+        """Create an aggressive normalizer for entity matching.
+
+        Removes company prefixes/suffixes, separators, and fully normalizes
+        all characters for maximum recall when comparing company names.
+        """
         return ArabicSearchNormalizer(
             remove_stop_words=True,
             normalize_teh_marbuta=True,
             normalize_digits=True,
+            remove_company_prefixes=True,
+            remove_company_suffixes=True,
+            remove_separators=True,
         )

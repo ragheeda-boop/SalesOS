@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import axios from "axios"
+import api from "@/lib/api"
 import { cn } from "@salesos/ui"
 
 interface EmailAnalysis {
@@ -47,7 +47,7 @@ export function EmailIntelligenceWidget({ opportunityId, emails = [] }: Props) {
     setSelectedEmail(email)
     setLoading(true)
     try {
-      const res = await axios.post("/api/v1/emails/analyze", {
+      const res = await api.post("/api/v1/emails/analyze", {
         opportunity_id: opportunityId,
         subject: email.subject,
         from_address: email.from_address,

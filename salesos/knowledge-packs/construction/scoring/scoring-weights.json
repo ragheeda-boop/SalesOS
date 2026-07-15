@@ -1,0 +1,144 @@
+{
+  "pack_id": "kp-construction",
+  "version": "1.0.0",
+  "scoring_model": {
+    "name": "Construction ICP Fit & Risk Score",
+    "ar_name": "درجة ملاءمة وخطر قطاع المقاولات",
+    "description": "نموذج مزدوج لتسجيل ملاءمة المقاول للفرصة بالتوازي مع تقييم المخاطر",
+    "dimensions": {
+      "icp_fit": {
+        "weight": 0.5,
+        "description": "مدى مطابقة المقاول لمعايير العميل المثالي",
+        "sub_factors": [
+          {
+            "id": "icp_contractor_grade",
+            "name": "Contractor Grade",
+            "ar_name": "درجة تصنيف المقاول",
+            "weight": 0.35,
+            "scoring_rules": {
+              "first": 1.0,
+              "second": 0.85,
+              "third": 0.6,
+              "fourth": 0.35,
+              "fifth": 0.15,
+              "unclassified": 0.05
+            }
+          },
+          {
+            "id": "icp_project_capacity",
+            "name": "Project Capacity",
+            "ar_name": "الطاقة الاستيعابية للمشاريع",
+            "weight": 0.25,
+            "scoring_rules": {
+              "gt_10_projects": 1.0,
+              "5_to_10_projects": 0.8,
+              "1_to_4_projects": 0.5,
+              "no_active_projects": 0.1
+            }
+          },
+          {
+            "id": "icp_financial_capacity",
+            "name": "Financial Capacity",
+            "ar_name": "القدرة المالية",
+            "weight": 0.25,
+            "scoring_rules": {
+              "capital_gt_500m": 1.0,
+              "capital_100m_500m": 0.8,
+              "capital_10m_100m": 0.5,
+              "capital_lt_10m": 0.2
+            }
+          },
+          {
+            "id": "icp_giga_experience",
+            "name": "Giga-Project Experience",
+            "ar_name": "خبرة المشاريع الكبرى",
+            "weight": 0.15,
+            "scoring_rules": {
+              "confirmed": 1.0,
+              "possible": 0.5,
+              "none": 0.0
+            }
+          }
+        ]
+      },
+      "risk": {
+        "weight": 0.5,
+        "description": "تقييم المخاطر التشغيلية والمالية والتعاقدية",
+        "is_inverse": true,
+        "sub_factors": [
+          {
+            "id": "risk_financial",
+            "name": "Financial Risk",
+            "ar_name": "المخاطر المالية",
+            "weight": 0.3,
+            "scoring_rules": {
+              "low_risk": 0.1,
+              "medium_risk": 0.5,
+              "high_risk": 0.9
+            }
+          },
+          {
+            "id": "risk_operational",
+            "name": "Operational Risk",
+            "ar_name": "المخاطر التشغيلية",
+            "weight": 0.25,
+            "scoring_rules": {
+              "low_risk": 0.1,
+              "medium_risk": 0.5,
+              "high_risk": 0.9
+            }
+          },
+          {
+            "id": "risk_contractual",
+            "name": "Contractual Risk",
+            "ar_name": "المخاطر التعاقدية",
+            "weight": 0.2,
+            "scoring_rules": {
+              "low_risk": 0.1,
+              "medium_risk": 0.5,
+              "high_risk": 0.9
+            }
+          },
+          {
+            "id": "risk_schedule",
+            "name": "Schedule Risk",
+            "ar_name": "مخاطر الجدول الزمني",
+            "weight": 0.15,
+            "scoring_rules": {
+              "low_risk": 0.1,
+              "medium_risk": 0.5,
+              "high_risk": 0.9
+            }
+          },
+          {
+            "id": "risk_market",
+            "name": "Market Risk",
+            "ar_name": "مخاطر السوق",
+            "weight": 0.1,
+            "scoring_rules": {
+              "low_risk": 0.1,
+              "medium_risk": 0.5,
+              "high_risk": 0.9
+            }
+          }
+        ]
+      }
+    },
+    "risk_tiers": {
+      "low_risk": {"max_score": 30, "label": "منخفض المخاطر", "action": "bid"},
+      "medium_risk": {"max_score": 60, "label": "متوسط المخاطر", "action": "conditional_bid"},
+      "high_risk": {"max_score": 100, "label": "عالی المخاطر", "action": "no_bid"}
+    },
+    "thresholds": {
+      "hot": 75,
+      "warm": 45,
+      "cold": 0,
+      "min_confidence": 0.5
+    },
+    "confidence_rules": {
+      "high": {"min_signals": 5, "min_data_points": 8},
+      "medium": {"min_signals": 2, "min_data_points": 4},
+      "low": {"min_signals": 0, "min_data_points": 1}
+    }
+  }
+}

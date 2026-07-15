@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from sdk.events.base import DomainEvent
+from sdk.pagination import CursorPage, build_keyset_condition, decode_cursor, encode_cursor
 
 
 class Base(DeclarativeBase):
@@ -126,6 +127,48 @@ class SqlAlchemyRepository(Repository[T, TId], ABC):
         stmt = stmt.offset((page - 1) * page_size).limit(page_size)
         result = await self._session.execute(stmt)
         return list(result.scalars().all()), total
+
+    async def find_all_cursored(
+        self, page_size: int = 20, order_by: str = "created_at",
+        desc: bool = True, cursor: str | None = None,
+    ) -> CursorPage[T]:
+        stmt = select(self.model_class)
+        order_col = getattr(self.model_class, order_by, None)
+        if order_col:
+            stmt = stmt.order_by(order_col.desc() if desc else order_col.asc())
+
+        if cursor:
+            cursor_id, cursor_sort = decode_cursor(cursor)
+            condition = build_keyset_condition(
+                self.model_class, cursor_id, cursor_sort,
+                sort_by=order_by, sort_dir="desc" if desc else "asc",
+            )
+            stmt = stmt.where(condition)
+
+        stmt = stmt.limit(page_size + 1)
+        result = await self._session.execute(stmt)
+        rows = list(result.scalars().all())
+
+        has_next = len(rows) > page_size
+        if has_next:
+            rows = rows[:page_size]
+
+        next_cursor = None
+        previous_cursor = None
+        if rows:
+            last = rows[-1]
+            sort_val = getattr(last, order_by, None)
+            next_cursor = encode_cursor(str(last.id), sort_val)
+            first = rows[0]
+            sort_val_first = getattr(first, order_by, None)
+            previous_cursor = encode_cursor(str(first.id), sort_val_first)
+
+        return CursorPage(
+            items=rows,
+            next_cursor=next_cursor,
+            previous_cursor=previous_cursor,
+            has_next=has_next,
+        )
 
 
 class UnitOfWork:

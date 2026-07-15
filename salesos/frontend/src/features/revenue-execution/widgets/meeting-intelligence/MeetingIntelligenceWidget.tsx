@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import axios from "axios"
+import api from "@/lib/api"
 import { cn } from "@salesos/ui"
 
 interface Brief {
@@ -52,8 +52,8 @@ export function MeetingIntelligenceWidget({ opportunityId }: Props) {
     const load = async () => {
       try {
         const [briefRes, meetingsRes] = await Promise.all([
-          axios.post(`/api/v1/meetings/${opportunityId}/brief`),
-          axios.get(`/api/v1/meetings/${opportunityId}`),
+          api.post(`/api/v1/meetings/${opportunityId}/brief`),
+          api.get(`/api/v1/meetings/${opportunityId}`),
         ])
         setBrief(briefRes.data)
         setMeetings(meetingsRes.data || [])

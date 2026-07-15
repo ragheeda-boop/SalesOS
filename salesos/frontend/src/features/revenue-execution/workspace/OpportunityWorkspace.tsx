@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import axios from "axios"
+import api from "@/lib/api"
 import { cn } from "@salesos/ui"
 import { NBAWidget } from "../widgets/nba-widget/NBAWidget"
 
@@ -36,7 +36,7 @@ export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProp
   useEffect(() => {
     const load = async () => {
       try {
-        const { data } = await axios.get(`/api/v1/opportunities/${opportunityId}`)
+        const { data } = await api.get(`/api/v1/opportunities/${opportunityId}`)
         setOpportunity(data)
       } finally {
         setLoading(false)

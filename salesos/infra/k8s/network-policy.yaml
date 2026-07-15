@@ -1,0 +1,188 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos
+    app.kubernetes.io/part-of: salesos
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backend-ingress
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos
+    app.kubernetes.io/part-of: salesos
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: frontend
+        - podSelector:
+            matchLabels:
+              app: prometheus
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+      ports:
+        - port: 8000
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-ingress
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos
+    app.kubernetes.io/part-of: salesos
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+  ingress:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: grafana
+      ports:
+        - port: 3000
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-postgres-ingress
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos
+    app.kubernetes.io/part-of: salesos
+spec:
+  podSelector:
+    matchLabels:
+      app: postgres
+  ingress:
+    - podSelector:
+        matchLabels:
+          app: backend
+    - podSelector:
+        matchLabels:
+          app: pgbouncer
+    - podSelector:
+        matchLabels:
+          app: postgres-exporter
+    - podSelector:
+        matchLabels:
+          app: backup
+      ports:
+        - port: 5432
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-neo4j-ingress
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos
+    app.kubernetes.io/part-of: salesos
+spec:
+  podSelector:
+    matchLabels:
+      app: neo4j
+  ingress:
+    - podSelector:
+        matchLabels:
+          app: backend
+      ports:
+        - port: 7687
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-redis-ingress
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos
+    app.kubernetes.io/part-of: salesos
+spec:
+  podSelector:
+    matchLabels:
+      app: redis
+  ingress:
+    - podSelector:
+        matchLabels:
+          app: backend
+    - podSelector:
+        matchLabels:
+          app: redis-exporter
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-kafka-ingress
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos
+    app.kubernetes.io/part-of: salesos
+spec:
+  podSelector:
+    matchLabels:
+      app: kafka
+  ingress:
+    - podSelector:
+        matchLabels:
+          app: backend
+    - podSelector:
+        matchLabels:
+          app: zookeeper
+      ports:
+        - port: 9092
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-dns
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos
+    app.kubernetes.io/part-of: salesos
+spec:
+  podSelector: {}
+  egress:
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+  policyTypes:
+    - Egress

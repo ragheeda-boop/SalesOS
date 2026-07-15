@@ -18,6 +18,8 @@ from sdk.events.domain_events import (
 )
 from sdk.telemetry import StructuredLogger
 
+from sdk.pagination import CursorPage
+
 from .models import Branch, Company, Contact, License, Source
 
 
@@ -640,6 +642,19 @@ class CompanyService:
         base = base.offset((page - 1) * page_size).limit(page_size)
         result = await self.db.execute(base)
         return list(result.scalars().all()), total
+
+    async def search_companies_cursored(
+        self, tenant_id: str, query: str | None = None,
+        filters: dict | None = None,
+        page_size: int = 20, sort_by: str = "created_at",
+        sort_desc: bool = True, cursor: str | None = None,
+    ) -> CursorPage[Company]:
+        from .repositories import CompanyRepository
+        repo = CompanyRepository(self.db)
+        return await repo.search_cursored(
+            tenant_id=tenant_id, query=query, filters=filters,
+            page_size=page_size, sort_by=sort_by, sort_desc=sort_desc, cursor=cursor,
+        )
 
     async def ingest_from_source(
         self, tenant_id: str, source_slug: str, records: list[dict]

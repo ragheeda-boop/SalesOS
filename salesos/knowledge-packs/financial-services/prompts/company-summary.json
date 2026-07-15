@@ -1,0 +1,23 @@
+{
+  "prompt_id": "kp-financial-services.company-summary",
+  "name": "Financial Services Company Summary",
+  "version": "1.0.0",
+  "domain": "financial-services",
+  "active": true,
+  "template": "أنت محلل متخصص في قطاع الخدمات المالية السعودي. قم بتحليل {company_name} وأعط ملخصًا شاملاً.\n\nالمعلومات المتاحة:\n- الاسم: {company_name}\n- نوع الترخيص: {license_type} (بنك / تأمين / تمويل / وساطة / fintech)\n- الجهة التنظيمية: {regulator} (SAMA / CMA)\n- حجم الأصول: {asset_size}\n- الإيرادات السنوية: {annual_revenue}\n- صافي الربح: {net_profit}\n- عدد الفروع: {branch_count}\n- عدد الموظفين: {employee_count}\n- نسبة كفاية رأس المال: {capital_adequacy_ratio}\n- نسبة الامتثال: {compliance_ratio}\n- التصنيف الائتماني: {credit_rating}\n\nالمطلوب:\n1. ملخص المؤسسة — النشاط الرئيسي، نوع الترخيص، الحجم\n2. الوضع التنظيمي — الترخيص من SAMA/CMA، حالة الامتثال\n3. الأداء المالي — حجم الأصول، الإيرادات، الربحية\n4. الوضع السوقي — الحصة السوقية، التصنيف الائتماني، السمعة\n5. الامتثال التنظيمي — نسبة الامتثال، العقوبات السابقة\n6. مؤشرات النمو — التوسع، الفروع الجديدة، المنتجات الجديدة\n7. فرص البيع — احتياجات تقنية، تنظيمية، تشغيلية\n\nيجب أن يكون الرد بصيغة JSON:\n- summary: الملخص بالعربية\n- regulatory_status: الوضع التنظيمي\n- financial_performance: الأداء المالي\n- market_position: الوضع السوقي\n- compliance_assessment: تقييم الامتثال\n- growth_indicators: مؤشرات النمو\n- sales_opportunities: فرص البيع\n- confidence: درجة الثقة (0-1)",
+  "variables": ["company_name", "license_type", "regulator", "asset_size", "annual_revenue", "net_profit", "branch_count", "employee_count", "capital_adequacy_ratio", "compliance_ratio", "credit_rating"],
+  "output_schema": {
+    "type": "object",
+    "required": ["summary", "regulatory_status", "financial_performance", "confidence"],
+    "properties": {
+      "summary": {"type": "string"},
+      "regulatory_status": {"type": "object"},
+      "financial_performance": {"type": "object"},
+      "market_position": {"type": "object"},
+      "compliance_assessment": {"type": "object"},
+      "growth_indicators": {"type": "array"},
+      "sales_opportunities": {"type": "array"},
+      "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+    }
+  }
+}

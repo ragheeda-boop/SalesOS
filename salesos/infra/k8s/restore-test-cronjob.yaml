@@ -1,0 +1,127 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: salesos-restore-test
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos-restore-test
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/part-of: salesos
+spec:
+  schedule: "0 5 * * 6"              # Every Saturday at 05:00
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 0                 # Do not retry on failure — alert instead
+      ttlSecondsAfterFinished: 604800 # 7 days
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: restore-test
+          containers:
+            - name: restore-test
+              image: ghcr.io/ragheeda-boop/salesos/backup:latest
+              imagePullPolicy: IfNotPresent
+              command:
+                - pwsh
+                - -File
+                - /scripts/restore-test.ps1
+              env:
+                - name: PGHOST
+                  value: postgres
+                - name: PGUSER
+                  value: salesos
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: salesos-secrets
+                      key: postgres_password
+                - name: POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: salesos-secrets
+                      key: postgres_password
+                - name: PGDATABASE
+                  value: salesos
+                - name: NEO4J_URI
+                  value: bolt://neo4j:7687
+                - name: NEO4J_USER
+                  value: neo4j
+                - name: NEO4J_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: salesos-secrets
+                      key: neo4j_password
+                - name: REDIS_HOST
+                  value: redis
+                - name: REDIS_PORT
+                  value: "6379"
+                - name: REDIS_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: salesos-secrets
+                      key: redis_password
+                - name: BACKUP_DIR
+                  value: /backups/restore-test
+                - name: BASE_URL
+                  value: "http://backend:8000"
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backups
+              resources:
+                requests:
+                  cpu: "1"
+                  memory: "1Gi"
+                limits:
+                  cpu: "2"
+                  memory: "2Gi"
+          volumes:
+            - name: backup-storage
+              persistentVolumeClaim:
+                claimName: backup-pvc
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: restore-test
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos-restore-test
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/part-of: salesos
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: restore-test
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos-restore-test
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/part-of: salesos
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "pods/exec"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: restore-test
+  namespace: salesos
+  labels:
+    app.kubernetes.io/name: salesos-restore-test
+    app.kubernetes.io/component: backup
+    app.kubernetes.io/part-of: salesos
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: restore-test
+subjects:
+  - kind: ServiceAccount
+    name: restore-test
+    namespace: salesos

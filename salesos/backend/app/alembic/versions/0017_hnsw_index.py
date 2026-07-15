@@ -19,12 +19,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.execute("""
-        CREATE INDEX IF NOT EXISTS idx_companies_embedding_hnsw
-        ON companies
-        USING hnsw (embedding_vector vector_cosine_ops)
-    """)
-
+    # NOTE: 3072-dim vectors exceed pgvector HNSW 2000-dim limit, so we skip
+    # INDEX creation here. The column itself still works for exact search.
+    pass
 
 def downgrade() -> None:
-    op.execute("DROP INDEX IF EXISTS idx_companies_embedding_hnsw")
+    pass

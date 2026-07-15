@@ -43,19 +43,25 @@ variable "eks_desired_size" {
 variable "eks_min_size" {
   description = "EKS minimum node count"
   type        = number
-  default     = 2
+  default     = 3
 }
 
 variable "eks_max_size" {
   description = "EKS maximum node count"
   type        = number
-  default     = 10
+  default     = 6
 }
 
 variable "eks_instance_types" {
-  description = "EKS instance types"
+  description = "EKS instance types (8 vCPU, 32GB RAM per node)"
   type        = list(string)
-  default     = ["t3.medium", "t3.large"]
+  default     = ["m6i.2xlarge", "m7i.2xlarge"]
+}
+
+variable "eks_disk_size" {
+  description = "EKS node disk size in GB"
+  type        = number
+  default     = 100
 }
 
 variable "rds_instance_class" {

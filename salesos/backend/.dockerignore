@@ -10,7 +10,6 @@ __pycache__
 tests/
 demo/
 docs/
-design_tokens/
 pipeline/
 benchmark/
 conftest.py
