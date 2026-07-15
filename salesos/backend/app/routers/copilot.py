@@ -69,7 +69,7 @@ async def copilot_query(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
     user_id: str = Depends(get_current_user_id),
-    _rbac=Depends(require_permission_dep(PermissionAction.READ, "copilot")),
+    _rbac=Depends(require_permission_dep("copilot", PermissionAction.READ)),
 ):
     logger: StructuredLogger = getattr(request.app.state, "logger", None)
 
