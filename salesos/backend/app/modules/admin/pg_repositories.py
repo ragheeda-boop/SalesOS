@@ -278,10 +278,25 @@ class PostgresAICostRepository:
             for row in by_operation_result
         ]
 
+        by_tenant_result = await self._session.execute(
+            select(
+                AICostRecordModel.tenant_id,
+                sa_func.sum(AICostRecordModel.cost).label("cost"),
+                sa_func.sum(AICostRecordModel.total_tokens).label("tokens"),
+            )
+            .where(AICostRecordModel.created_at >= cutoff)
+            .group_by(AICostRecordModel.tenant_id)
+        )
+        by_tenant = [
+            {"tenant_id": str(row[0]), "cost": round(float(row[1]), 4), "tokens": int(row[2])}
+            for row in by_tenant_result
+        ]
+
         return {
             "total_cost": round(total_cost, 4),
             "total_tokens": total_tokens,
             "by_model": sorted(by_model, key=lambda x: -x["cost"]),
+            "by_tenant": sorted(by_tenant, key=lambda x: -x["cost"]),
             "by_operation": sorted(by_operation, key=lambda x: -x["cost"]),
         }
 
