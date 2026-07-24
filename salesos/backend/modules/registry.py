@@ -351,6 +351,32 @@ def _register_platform_capabilities() -> None:
         permissions=["email.*"],
     ))
 
+    # ── Quota Domain ──
+    CapabilityRegistry.register(Capability(
+        name="quota",
+        label="Quota Management",
+        label_ar="إدارة الحصص",
+        description="Sales quota definition, tracking, and attainment analysis",
+        type=CapabilityType.DOMAIN,
+        events=EventDeclaration(
+            produces=["quota.created", "quota.updated", "quota.achieved"],
+        ),
+        permissions=["quota.*"],
+    ))
+
+    # ── Territory Domain ──
+    CapabilityRegistry.register(Capability(
+        name="territory",
+        label="Territory Management",
+        label_ar="إدارة المناطق",
+        description="Sales territory assignment, coverage, and optimization",
+        type=CapabilityType.DOMAIN,
+        events=EventDeclaration(
+            produces=["territory.created", "territory.assigned", "territory.rebalanced"],
+        ),
+        permissions=["territory.*"],
+    ))
+
     # ── Revenue Analytics Domain ──
     CapabilityRegistry.register(Capability(
         name="analytics",

@@ -491,19 +491,22 @@ class EntityResolutionService:
             stmt = stmt.where(Company.cr_number == cr_number)
         elif name:
             from sqlalchemy import func
-            # Normalize the search name for broader recall
             from domains.search.normalization.arabic_normalizer import (
                 ArabicSearchNormalizer,
             )
+            from domains.search.normalization.company_matcher import (
+                _extract_head_word,
+            )
             normalizer = ArabicSearchNormalizer.for_matching()
             norm_name = normalizer.normalize(name)
-            # Use trigram-like expansion: first 3 chars + whole normalized name
-            stmt = stmt.where(
-                or_(
-                    Company.name_ar.ilike(f"%{name[:3]}%"),
-                    Company.name_en.ilike(f"%{name}%"),
-                )
-            )
+            head_word = _extract_head_word(norm_name)
+            conditions = []
+            if len(norm_name) >= 3:
+                conditions.append(Company.name_ar.ilike(f"%{norm_name[:3]}%"))
+            if head_word and len(head_word) >= 3:
+                conditions.append(Company.name_ar.ilike(f"%{head_word}%"))
+            conditions.append(Company.name_en.ilike(f"%{name}%"))
+            stmt = stmt.where(or_(*conditions))
         else:
             return []
 

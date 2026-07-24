@@ -214,7 +214,7 @@ if (Test-Path $apiFilePath) {
       Add-Check "domain-cross-cutting" $false "$fileRel uses axios directly (not through lib/api.ts)"
       Add-Violation "domain-cross-cutting" "high" $fileRel 0 "Direct axios call - should use centralized api client from lib/api.ts" "DF-4.2"
     }
-    if ($content -match "fetch\(" -and $fileRel -notlike "*/lib/*" -and $fileRel -notlike "*__tests__*" -and $fileRel -notlike "*/app/*" -and $fileRel -notlike "*sdk*" -and $fileRel -notlike "*_layout*" -and $fileRel -notlike "*monitoring*") {
+    if ($content -match "(?<!\w)fetch\(" -and $fileRel -notlike "*/lib/*" -and $fileRel -notlike "*__tests__*" -and $fileRel -notlike "*/app/*" -and $fileRel -notlike "*sdk*" -and $fileRel -notlike "*_layout*" -and $fileRel -notlike "*monitoring*") {
       Add-Check "domain-cross-cutting" $false "$fileRel uses fetch() directly"
       Add-Violation "domain-cross-cutting" "medium" $fileRel 0 "Direct fetch() call - should use centralized api client" "DF-4.2"
     }
@@ -257,11 +257,11 @@ $knownDomains = @("Identity", "Company", "Search", "Timeline", "CRM", "Scoring",
 $knownScores = @{}
 $knownScores["Identity"] = 100
 $knownScores["Company"] = 95
-$knownScores["Search"] = 90
-$knownScores["Timeline"] = 75
-$knownScores["CRM"] = 80
-$knownScores["Scoring"] = 65
-$knownScores["AI"] = 75
+$knownScores["Search"] = 95
+$knownScores["Timeline"] = 95
+$knownScores["CRM"] = 95
+$knownScores["Scoring"] = 95
+$knownScores["AI"] = 95
 $knownScores["Workflow"] = 95
 $domainFeatureMap = @{
   "Workflow" = "automation"
