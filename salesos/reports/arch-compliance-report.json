@@ -7,26 +7,26 @@
                     "target_compliance":  95,
                     "medium_violations":  0,
                     "high_violations":  0,
-                    "passes":  false,
-                    "checks_total":  63,
-                    "overall_compliance":  91,
-                    "checks_passed":  63,
-                    "total_files_scanned":  1590,
+                    "passes":  true,
+                    "checks_total":  65,
+                    "overall_compliance":  95.8,
+                    "checks_passed":  65,
+                    "total_files_scanned":  1682,
                     "critical_violations":  0,
                     "low_violations":  0
                 },
     "domain_scores":  {
-                          "AI":  75,
+                          "AI":  95,
                           "Company":  95,
                           "Workflow":  96,
                           "Widget SDK":  100,
-                          "Search":  93,
+                          "Search":  96,
                           "CRM":  90,
                           "Identity":  100,
                           "Scoring":  95,
-                          "Timeline":  75
+                          "Timeline":  95
                       },
-    "overall_compliance":  91,
+    "overall_compliance":  95.8,
     "domains":  {
                     "feature-monitoring":  {
                                                "passed":  1,
@@ -86,40 +86,6 @@
                                                                 ],
                                                      "violations":  0
                                                  },
-                    "feature-employee-intelligence":  {
-                                                          "passed":  7,
-                                                          "checks":  [
-                                                                         {
-                                                                             "message":  "activity-intelligence has Container+View",
-                                                                             "passed":  true
-                                                                         },
-                                                                         {
-                                                                             "message":  "ai-coach has Container+View",
-                                                                             "passed":  true
-                                                                         },
-                                                                         {
-                                                                             "message":  "calendar-intelligence has Container+View",
-                                                                             "passed":  true
-                                                                         },
-                                                                         {
-                                                                             "message":  "email-intelligence has Container+View",
-                                                                             "passed":  true
-                                                                         },
-                                                                         {
-                                                                             "message":  "employee-portfolio has Container+View",
-                                                                             "passed":  true
-                                                                         },
-                                                                         {
-                                                                             "message":  "employee-profile has Container+View",
-                                                                             "passed":  true
-                                                                         },
-                                                                         {
-                                                                             "message":  "kpi-widget has Container+View",
-                                                                             "passed":  true
-                                                                         }
-                                                                     ],
-                                                          "violations":  0
-                                                      },
                     "feature-automation":  {
                                                "passed":  1,
                                                "checks":  [
@@ -131,10 +97,18 @@
                                                "violations":  0
                                            },
                     "feature-dashboard":  {
-                                              "passed":  8,
+                                              "passed":  12,
                                               "checks":  [
                                                              {
                                                                  "message":  "ai-brief has Container+View",
+                                                                 "passed":  true
+                                                             },
+                                                             {
+                                                                 "message":  "calendar-intelligence has Container+View",
+                                                                 "passed":  true
+                                                             },
+                                                             {
+                                                                 "message":  "company-engagement has Container+View",
                                                                  "passed":  true
                                                              },
                                                              {
@@ -143,6 +117,14 @@
                                                              },
                                                              {
                                                                  "message":  "decision-queue has Container+View",
+                                                                 "passed":  true
+                                                             },
+                                                             {
+                                                                 "message":  "email-intelligence has Container+View",
+                                                                 "passed":  true
+                                                             },
+                                                             {
+                                                                 "message":  "followup-center has Container+View",
                                                                  "passed":  true
                                                              },
                                                              {
@@ -179,10 +161,22 @@
                                               "violations":  0
                                           },
                     "domain-cross-cutting":  {
-                                                 "passed":  5,
+                                                 "passed":  9,
                                                  "checks":  [
                                                                 {
+                                                                    "message":  "frontend/src/app/(dashboard)/companies/page.tsx uses localStorage for auth tokens (acceptable)",
+                                                                    "passed":  true
+                                                                },
+                                                                {
+                                                                    "message":  "frontend/src/app/(dashboard)/employees/page.tsx uses localStorage for auth tokens (acceptable)",
+                                                                    "passed":  true
+                                                                },
+                                                                {
                                                                     "message":  "frontend/src/app/(dashboard)/layout.tsx uses localStorage for auth tokens (acceptable)",
+                                                                    "passed":  true
+                                                                },
+                                                                {
+                                                                    "message":  "frontend/src/app/v3/_hooks/useAccessToken.ts uses localStorage for auth tokens (acceptable)",
                                                                     "passed":  true
                                                                 },
                                                                 {
@@ -190,22 +184,26 @@
                                                                     "passed":  true
                                                                 },
                                                                 {
+                                                                    "message":  "frontend/src/lib/api/identity.ts uses localStorage for auth tokens (acceptable)",
+                                                                    "passed":  true
+                                                                },
+                                                                {
                                                                     "message":  "frontend/src/lib/hooks/mutationHooks.ts uses localStorage for auth tokens (acceptable)",
                                                                     "passed":  true
                                                                 },
                                                                 {
-                                                                    "message":  "frontend/src/lib/hooks/useTenant.ts uses localStorage for auth tokens (acceptable)",
+                                                                    "message":  "frontend/src/lib/hooks/ruleQueries.ts uses localStorage for auth tokens (acceptable)",
                                                                     "passed":  true
                                                                 },
                                                                 {
-                                                                    "message":  "frontend/src/lib/api.ts uses localStorage for auth tokens (acceptable)",
+                                                                    "message":  "frontend/src/lib/hooks/useTenant.ts uses localStorage for auth tokens (acceptable)",
                                                                     "passed":  true
                                                                 }
                                                             ],
                                                  "violations":  0
                                              },
                     "feature-company-intelligence":  {
-                                                         "passed":  10,
+                                                         "passed":  11,
                                                          "checks":  [
                                                                         {
                                                                             "message":  "ai-recommendation has Container+View",
@@ -213,6 +211,10 @@
                                                                         },
                                                                         {
                                                                             "message":  "buying-journey has Container+View",
+                                                                            "passed":  true
+                                                                        },
+                                                                        {
+                                                                            "message":  "company-360 has Container+View",
                                                                             "passed":  true
                                                                         },
                                                                         {
@@ -371,14 +373,14 @@
                                         "violations":  0
                                     }
                 },
-    "scanned_files":  1590,
-    "took_ms":  1841,
-    "total_checks":  63,
-    "duration":  "1.841s",
-    "total_files":  453,
+    "scanned_files":  1682,
+    "took_ms":  3424,
+    "total_checks":  65,
+    "duration":  "3.424s",
+    "total_files":  490,
     "script":  "arch-compliance.ps1",
     "target_compliance":  95,
     "repo_root":  "C:\\Users\\raghe\\OneDrive - RATL Technology Ltd\\Muhide\\salesos",
-    "passed_checks":  63,
-    "timestamp":  "2026-07-14T21:22:23Z"
+    "passed_checks":  65,
+    "timestamp":  "2026-07-24T07:02:56Z"
 }

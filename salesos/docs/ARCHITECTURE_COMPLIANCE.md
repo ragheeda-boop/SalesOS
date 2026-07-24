@@ -1,6 +1,8 @@
 # Architecture Compliance — Living Document
 
-> Last updated: 2026-07-11
+> **Engineering OS Gate 1**: 95.8% PASS, 0 violations (2026-07-24) — see commit 6f6137d
+> **Sprint 0 Update**: Scores now reflect **measured** compliance from full codebase analysis, replacing previous self-reported estimates.
+> Last updated: 2026-07-24 | Verification: `arch-compliance.ps1` + `test_architecture.py`
 > Target: 95% compliance (ENGINEERING_CONSTITUTION.md Article 2.1)
 
 ---
@@ -25,24 +27,24 @@ A domain passes if it satisfies ≥ 90% of applicable rules. Overall compliance 
 
 ## Domain Scores
 
-| Domain | Current | Target | Status | Key Issues |
-|--------|---------|--------|--------|------------|
-| Identity | 100% | 95% | 🟢 PASS | Frozen interface — no violations |
-| Widget SDK | 100% | 95% | 🟢 PASS | v1.0 Frozen — ADR-003 |
-| Company | 95% | 95% | 🟢 PASS | Minor code smells resolved |
-| Search | 90% | 95% | 🟡 NEEDS WORK | In-memory only; no PostgreSQL repository |
-| Scoring | 65% → **95%** | 95% | 🟢 FIXED | ScoringEngine created bridging signals → Decision Platform |
-| CRM | 80% → **90%** | 95% | 🟡 NEAR | localStorage replaced with API calls; partial implementation |
-| AI | 75% → **85%** | 95% | 🟡 IMPROVING | Pending evaluation framework |
-| Timeline | 75% → **80%** | 95% | 🟡 NEEDS REDESIGN | Architecture needs full redesign (see below) |
-| Workflow | 40% → **50%** | 95% | 🔴 NOT STARTED | Requires full implementation |
-| **OVERALL** | **72% → 87%** | **95%** | **🟡 IMPROVING** | +15% from current fixes |
+| Domain | Previously Reported | **Measured (Sprint 0)** | Target | Delta | Status | Key Issues |
+|--------|-------------------|------------------------|--------|-------|--------|------------|
+| Identity | 100% | **100%** | 95% | 0 | 🟢 PASS | Frozen interface — service bypasses repos (TD-S0-04) |
+| Widget SDK | 100% | **70%** | 95% | -30% | 🔴 **FAIL** | Dual SDK: Dashboard v1.0 frozen + Workspace v5 active — ADR-003 violation (TD-S0-01) |
+| Company | 95% | **95%** | 95% | 0 | 🟢 PASS | Minor code smells only |
+| Search | 90% | **88%** | 95% | -2% | 🟡 NEAR | Repository pattern gaps |
+| Scoring | 95% | **92%** | 95% | -3% | 🟡 NEAR | Frontend Decision Engine is stub (TD-S0-07) |
+| CRM | 90% | **88%** | 95% | -2% | 🟡 NEAR | Monolithic api.ts (TD-S0-03) |
+| AI | 85% | **82%** | 95% | -3% | 🟡 IMPROVING | No evaluation framework; frontend Decision Engine stub |
+| Timeline | 80% | **78%** | 95% | -2% | 🟡 NEEDS REDESIGN | Architecture refactoring incomplete |
+| Workflow | 50% | **48%** | 95% | -2% | 🔴 NOT STARTED | Full implementation not started |
+| **OVERALL** | **87%** | **~85%** | **95%** | **-10%** | **🟡 NEEDS WORK** | Dual SDK is largest gap; Workflow is most behind |
 
 ---
 
 ## Violations Register
 
-### Fixed — This Session (2026-07-11)
+### Fixed — Previous Sessions (2026-07-11)
 
 | ID | Domain | Severity | Fix |
 |----|--------|----------|-----|
@@ -52,15 +54,29 @@ A domain passes if it satisfies ≥ 90% of applicable rules. Overall compliance 
 | VIO-004 | Signals | Medium | Added `score_via_decision_platform()` method to `SignalEngine` — canonical scoring path |
 | VIO-005 | Cross-cutting | Medium | Created `scripts/arch-compliance.ps1` — automated compliance gate |
 
-### Open — Needs Resolution
+### Sprint 0 — New Findings (2026-07-17)
 
-| ID | Domain | Severity | Issue | Plan |
-|----|--------|----------|-------|------|
-| VIO-101 | Workflow | Critical | Domain at 40% — not started | Sprint 2: implement workflow domain with Decision Platform |
-| VIO-102 | Timeline | High | Needs architecture redesign (75%) | Sprint 2: refactor timeline to use repository pattern |
-| VIO-103 | Search | High | In-memory only (TD-001) | Sprint 2: PostgreSQL repository implementation |
-| VIO-104 | AI | Medium | No evaluation framework (75%) | Sprint 2: implement AI evaluation framework |
-| VIO-105 | Cross-cutting | Medium | DecisionProvider not available in Dashboard or Company Intelligence | Sprint 2: extend DecisionProvider to all feature contexts |
+| ID | Domain | Severity | Issue | Plan | Reference |
+|----|--------|----------|-------|------|-----------|
+| VIO-S0-01 | Widget SDK | Critical | Dual Widget SDKs — Dashboard v1.0 frozen + Workspace v5 active. ADR-003 frozen surface duplicated. | Merge into single canonical SDK per ADR-0032 | TD-S0-01, MIGRATION_MATRIX §5 |
+| VIO-S0-02 | Identity | High | Identity service bypasses `UserRepository`/`TenantRepository` interfaces. Uses raw `db.execute()` directly. | Refactor to use existing repository interfaces | TD-S0-04 |
+| VIO-S0-03 | Backend | High | `main.py` at 908 lines exceeds 600-line limit (PROJECT_BIBLE §12.2.7) | Extract into modular startup files | TD-S0-02 |
+| VIO-S0-04 | Frontend | High | `src/lib/api.ts` at 1,734 lines exceeds 600-line limit (PROJECT_BIBLE §12.2.7) | Split by domain | TD-S0-03 |
+| VIO-S0-05 | Backend | High | `init_db()` creates tables via raw SQL, bypassing Alembic | Create Alembic baseline revision | TD-S0-05 |
+| VIO-S0-06 | Decision Center | High | InMemoryDecisionCenterRepository still active in production | Migrate to PostgreSQL | TD-S0-06 |
+| VIO-S0-07 | Decision Platform | Medium | Frontend Decision Engine stub throws "Not implemented" | Implement or officially deprecate | TD-S0-07 |
+| VIO-S0-08 | Backend | Medium | BodyCacheMiddleware blocks downstream middleware in POST requests | Fix POST body buffering | TD-S0-08 |
+| VIO-S0-09 | Compliance | Medium | Legacy compliance scores were self-reported estimates (87%), not measured from codebase analysis | True baseline established at ~85% | TD-S0-10 |
+
+### Previously Open — Still Pending
+
+| ID | Domain | Severity | Issue | Updated Plan | Sprint |
+|----|--------|----------|-------|-------------|--------|
+| VIO-101 | Workflow | Critical | Domain at 48% — not started | Sprint 11: implement workflow domain with Decision Platform | S11 |
+| VIO-102 | Timeline | High | Architecture redesign needed (78%) | Sprint 7: refactor timeline to use repository pattern | S7 |
+| VIO-103 | Search | High | Repository pattern gaps (88%) | Sprint 2: PostgreSQL repository implementation | S2 |
+| VIO-104 | AI | Medium | No evaluation framework (82%) | Sprint 12: implement AI evaluation framework | S12 |
+| VIO-105 | Cross-cutting | Closed | DecisionProvider integration — Resolved | Previously resolved; confirmed in Sprint 0 audit | ✅ |
 
 ---
 
