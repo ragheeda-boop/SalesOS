@@ -1,6 +1,9 @@
 'use client'
 
-import { createWidget } from '@salesos/workspace'
+import { createWidget } from '@salesos/widget-sdk'
+import { useParams } from 'next/navigation'
+import { useDecision } from '@salesos/decision-platform'
+import { useDecisionRecommendations } from '@/lib/decisionQueries'
 import type { Playbook } from '@/application/revenue-execution/playbook.dto'
 import { PlaybookView } from './PlaybookView'
 
@@ -30,6 +33,21 @@ export const PlaybookWidget = createWidget({
     id: 'playbookEngine', title: 'محرك اللعب', category: 'intelligence', priority: 'high',
     permissions: ['playbook:read'], featureFlag: { enabled: true }, minHeight: '360px',
   },
-  useData: () => ({ data: { playbook: getPlaybook('energy'), industry: 'energy' }, status: 'ready' as const, lastUpdated: null, error: null, refetch: () => {} }),
+  useData: () => {
+    const { id: companyId } = useParams<{ id: string }>()
+    const { data: recommendations } = useDecisionRecommendations(companyId, 'company')
+    const basePlaybook = getPlaybook('energy')
+    const platformSuccessRate = recommendations?.[0]?.confidence
+      ? Math.round(recommendations[0].confidence * 100)
+      : basePlaybook?.successRate
+    const playbook = basePlaybook ? { ...basePlaybook, successRate: platformSuccessRate ?? basePlaybook.successRate } : null
+    return {
+      data: { playbook, industry: 'energy', decisionRecommendations: recommendations ?? [] },
+      status: 'ready' as const,
+      lastUpdated: null,
+      error: null,
+      refetch: () => {},
+    }
+  },
   render: ({ data }) => <PlaybookView playbook={data.playbook} industry={data.industry} />,
 })

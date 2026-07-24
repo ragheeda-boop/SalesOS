@@ -10,6 +10,8 @@ import {
   Shield, Briefcase, TrendingUp, ChevronLeft, Loader2, ExternalLink,
   BarChart3, Globe, Newspaper, AlertTriangle, CheckCircle, Clock,
 } from "lucide-react"
+import { useDecision } from "@salesos/decision-platform"
+import { useTranslation } from "@/lib/i18n"
 
 import { SmartTimelineWidget } from "@/features/company-intelligence/widgets/smart-timeline/SmartTimelineContainer"
 import { SignalsFeedWidget } from "@/features/company-intelligence/widgets/signals-feed/SignalsFeedContainer"
@@ -29,17 +31,17 @@ interface CompanyWorkspaceProps {
 
 type TabId = "overview" | "intelligence" | "contacts" | "government" | "documents" | "timeline" | "ai"
 
-const TABS: { id: TabId; label: string; icon: typeof Activity }[] = [
-  { id: "overview", label: "نظرة عامة", icon: BarChart3 },
-  { id: "intelligence", label: "الذكاء", icon: Sparkles },
-  { id: "contacts", label: "صناع القرار", icon: Users },
-  { id: "government", label: "البيانات الحكومية", icon: Shield },
-  { id: "documents", label: "المستندات", icon: FileText },
-  { id: "timeline", label: "الجدول الزمني", icon: Clock },
-  { id: "ai", label: "AI", icon: Sparkles },
+const TABS: { id: TabId; labelKey: string; icon: typeof Activity }[] = [
+  { id: "overview", labelKey: "tabs.overview", icon: BarChart3 },
+  { id: "intelligence", labelKey: "tabs.intelligence", icon: Sparkles },
+  { id: "contacts", labelKey: "tabs.decision_makers", icon: Users },
+  { id: "government", labelKey: "tabs.government_data", icon: Shield },
+  { id: "documents", labelKey: "tabs.documents", icon: FileText },
+  { id: "timeline", labelKey: "tabs.timeline", icon: Clock },
+  { id: "ai", labelKey: "AI", icon: Sparkles },
 ]
 
-function HealthScoreRing({ score }: { score: number }) {
+function HealthScoreRing({ score, label }: { score: number; label: string }) {
   const radius = 28
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (score / 100) * circumference
@@ -53,7 +55,7 @@ function HealthScoreRing({ score }: { score: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-lg font-bold text-neutral-900 dark:text-neutral-100">{score}</span>
-        <span className="text-[8px] text-neutral-500">صحة</span>
+        <span className="text-[8px] text-neutral-500">{label}</span>
       </div>
     </div>
   )
@@ -72,6 +74,7 @@ function MetricCard({ label, value, icon: Icon, color }: { label: string; value:
 }
 
 export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
+  const { t } = useTranslation()
   const { data: company, isLoading, isError } = useCompany(companyId)
   const { data: company360 } = useCompany360(companyId)
   const [activeTab, setActiveTab] = useState<TabId>("overview")
@@ -96,8 +99,8 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <AlertTriangle className="mb-3 h-10 w-10 text-danger-500" />
-        <p className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">فشل تحميل بيانات الشركة</p>
-        <p className="mt-1 text-sm text-neutral-500">تأكد من اتصال الخادم وحاول مرة أخرى</p>
+        <p className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">{t("company.load_error")}</p>
+        <p className="mt-1 text-sm text-neutral-500">{t("company.load_error_hint")}</p>
       </div>
     )
   }
@@ -144,7 +147,7 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
               </span>
             </div>
           </div>
-          <HealthScoreRing score={healthScore} />
+          <HealthScoreRing score={healthScore} label={t("company.health")} />
         </div>
 
         {/* AI Action Bar */}
@@ -170,7 +173,7 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {overview?.total_revenue !== undefined && (
             <MetricCard
-              label="الإيرادات"
+              label={t("company.revenue")}
               value={`$${(overview.total_revenue / 1000).toFixed(0)}K`}
               icon={TrendingUp}
               color="bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-400"
@@ -178,7 +181,7 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
           )}
           {overview?.active_contracts !== undefined && (
             <MetricCard
-              label="العقود النشطة"
+              label={t("company.active_contracts")}
               value={overview.active_contracts}
               icon={BarChart3}
               color="bg-info-50 text-info-700 dark:bg-info-900/20 dark:text-info-400"
@@ -186,7 +189,7 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
           )}
           {assignedEmployees.length > 0 && (
             <MetricCard
-              label="الفريق المعين"
+              label={t("company.assigned_team")}
               value={assignedEmployees.length}
               icon={Users}
               color="bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400"
@@ -194,7 +197,7 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
           )}
           {opportunities.length > 0 && (
             <MetricCard
-              label="الفرص"
+              label={t("company.opportunities")}
               value={opportunities.length}
               icon={Zap}
               color="bg-warning-50 text-warning-700 dark:bg-warning-900/20 dark:text-warning-400"
@@ -214,7 +217,7 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
                 className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border-b-0 px-3 py-2 data-[state=active]:bg-[var(--muhide-orange)]/10 data-[state=active]:text-[var(--muhide-orange)] data-[state=active]:border-b-0 dark:data-[state=active]:bg-[var(--muhide-orange)]/20 dark:data-[state=active]:text-orange-300"
               >
                 <Icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="hidden sm:inline">{t(tab.labelKey)}</span>
               </Tab>
             )
           })}
@@ -259,7 +262,7 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
         <TabsPanel value="timeline">
           <div className="space-y-4">
             <SmartTimelineWidget />
-            <TimelineWidget entityType="company" entityId={companyId} title="سجل النشاطات" />
+            <TimelineWidget entityType="company" entityId={companyId} title={t("company.activity_log")} />
           </div>
         </TabsPanel>
 
@@ -277,7 +280,7 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
         <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">
           <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-neutral-100">
             <Users className="h-4 w-4" />
-            الفريق المعين
+            {t("company.assigned_team")}
           </h3>
           <div className="flex flex-wrap gap-2">
             {assignedEmployees.map((emp: Record<string, unknown>, i: number) => (
