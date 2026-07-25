@@ -37,13 +37,17 @@ def normalize_cr(cr_number: str | None) -> str | None:
 
 
 def normalize_arabic_text(text: str | None) -> str | None:
-    """Normalize Arabic text: unify alef, yeh, teh, remove diacritics, normalize digits."""
+    """Normalize Arabic text: unify alef, yeh, teh, remove diacritics, normalize digits.
+
+    Covers: alef variants, yeh variants, teh marbuta, waw hamza, Persian/Urdu chars,
+    extended diacritics, Arabic-Indic digits, tatweel, and whitespace normalization.
+    """
     if not text:
         return None
     text = text.strip()
     # Phase 1: Character normalization
     # Unify alef forms (hamza above/below, madd, wasla → bare alef)
-    text = re.sub(r"[أإآٱ]", "ا", text)
+    text = re.sub(r"[أإآٱٲٳٵ]", "ا", text)
     # Unify alef maqsura → yaa
     text = re.sub(r"[ى]", "ي", text)
     # Unify teh marbuta → heh
@@ -52,13 +56,21 @@ def normalize_arabic_text(text: str | None) -> str | None:
     text = re.sub(r"[ؤ]", "و", text)
     # Unify yeh with hamza → yaa
     text = re.sub(r"[ئ]", "ي", text)
-    # Unify keheh → kaf (Persian/Urdu)
-    text = re.sub(r"[ک]", "ك", text)
-    # Unify heh goal → heh (Urdu)
-    text = re.sub(r"[ہ]", "ه", text)
+    # Unify keheh → kaf (Persian/Urdu ک گ)
+    text = re.sub(r"[کگ]", "ك", text)
+    # Unify heh goal → heh (Urdu ہ ھ)
+    text = re.sub(r"[ہھ]", "ه", text)
+    # Unify yeh barree, noon ghunna, and extended yeh variants → yaa/noon
+    text = re.sub(r"[ےېۍێݷۑ]", "ي", text)
+    text = re.sub(r"[ں]", "ن", text)
 
-    # Phase 2: Remove diacritics / tashkeel
-    text = re.sub(r"[\u064B-\u065F\u0610-\u061A\u0670]", "", text)
+    # Phase 2: Remove diacritics / tashkeel (full range including extended marks)
+    text = re.sub(
+        r"[\u0610-\u061A\u064B-\u065F\u0670"
+        r"\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED]",
+        "",
+        text,
+    )
 
     # Phase 3: Normalize Arabic-Indic digits to ASCII
     text = re.sub(r"[\u0660-\u0669]", lambda m: str(ord(m.group(0)) - 0x0660), text)

@@ -3,7 +3,6 @@ import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,6 +21,7 @@ from sdk.events.domain_events import (
 from sdk.telemetry import StructuredLogger
 
 from .models import DeviceSession, PasswordResetToken, RefreshTokenFamily, Tenant, TokenBlacklist, User
+from .repositories import TenantRepository, UserRepository
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -47,10 +47,12 @@ def _generate_id() -> str:
 
 
 def _current_key_id() -> str:
-    return "v1-hs256"
+    return "v2-rs256"
 
 
 def create_access_token(user_id: str, tenant_id: str, jti: str | None = None) -> str:
+    from app.modules.identity.jwks import create_rs256_token_payload
+
     expire = _now() + timedelta(minutes=settings.jwt_access_token_expire_minutes)
     payload = {
         "sub": user_id,
@@ -63,10 +65,12 @@ def create_access_token(user_id: str, tenant_id: str, jti: str | None = None) ->
         "aud": "salesos-api",
         "kid": _current_key_id(),
     }
-    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    return create_rs256_token_payload(payload)
 
 
 def create_refresh_token(user_id: str, tenant_id: str, jti: str | None = None) -> str:
+    from app.modules.identity.jwks import create_rs256_token_payload
+
     expire = _now() + timedelta(days=settings.jwt_refresh_token_expire_days)
     payload = {
         "sub": user_id,
@@ -79,32 +83,30 @@ def create_refresh_token(user_id: str, tenant_id: str, jti: str | None = None) -
         "aud": "salesos-api",
         "kid": _current_key_id(),
     }
-    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    return create_rs256_token_payload(payload)
 
 
 def decode_access_token(token: str) -> dict:
+    from app.modules.identity.jwks import decode_token
+
     try:
-        payload = jwt.decode(
-            token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm],
-            audience="salesos-api",
-        )
+        payload = decode_token(token, settings.jwt_secret_key)
         if payload.get("type") != "access":
             raise UnauthorizedError("Invalid token type")
         return payload
-    except JWTError:
+    except ValueError:
         raise UnauthorizedError("Invalid or expired token")
 
 
 def decode_refresh_token(token: str) -> dict:
+    from app.modules.identity.jwks import decode_token
+
     try:
-        payload = jwt.decode(
-            token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm],
-            audience="salesos-api",
-        )
+        payload = decode_token(token, settings.jwt_secret_key)
         if payload.get("type") != "refresh":
             raise UnauthorizedError("Invalid token type")
         return payload
-    except JWTError:
+    except ValueError:
         raise UnauthorizedError("Invalid or expired refresh token")
 
 
@@ -112,10 +114,14 @@ class IdentityService:
     def __init__(
         self,
         db: AsyncSession,
+        tenant_repo: TenantRepository | None = None,
+        user_repo: UserRepository | None = None,
         event_bus: EventBus | None = None,
         logger: StructuredLogger | None = None,
     ):
         self.db = db
+        self._tenant_repo = tenant_repo or TenantRepository(db)
+        self._user_repo = user_repo or UserRepository(db)
         self.event_bus = event_bus
         self.logger = logger
 
@@ -286,13 +292,11 @@ class IdentityService:
         return result.scalar_one_or_none() is not None
 
     async def create_tenant(self, name: str, slug: str, domain: str | None = None) -> Tenant:
-        existing = await self.db.execute(select(Tenant).where(Tenant.slug == slug))
-        if existing.scalar_one_or_none():
+        if await self._tenant_repo.exists_by_slug(slug):
             raise DuplicateError("Tenant", "slug", slug)
 
         tenant = Tenant(name=name, slug=slug, domain=domain)
-        self.db.add(tenant)
-        await self.db.flush()
+        await self._tenant_repo.save(tenant)
 
         audit = AuditTrail(self.db)
         await audit.record(
@@ -318,15 +322,13 @@ class IdentityService:
         return tenant
 
     async def get_tenant(self, tenant_id: str) -> Tenant:
-        result = await self.db.execute(select(Tenant).where(Tenant.id == tenant_id))
-        tenant = result.scalar_one_or_none()
-        if not tenant:
+        try:
+            return await self._tenant_repo.get(uuid.UUID(tenant_id))
+        except Exception:
             raise NotFoundError("Tenant", tenant_id)
-        return tenant
 
     async def get_tenant_by_slug(self, slug: str) -> Tenant | None:
-        result = await self.db.execute(select(Tenant).where(Tenant.slug == slug))
-        return result.scalar_one_or_none()
+        return await self._tenant_repo.get_by_slug(slug)
 
     async def create_user(
         self,
@@ -336,8 +338,7 @@ class IdentityService:
         full_name_ar: str | None = None,
         tenant_id: str | None = None,
     ) -> User:
-        existing = await self.db.execute(select(User).where(User.email == email))
-        if existing.scalar_one_or_none():
+        if await self._user_repo.exists_by_email(email):
             raise DuplicateError("User", "email", email)
 
         user = User(
@@ -347,8 +348,7 @@ class IdentityService:
             full_name_ar=full_name_ar,
             tenant_id=tenant_id,
         )
-        self.db.add(user)
-        await self.db.flush()
+        await self._user_repo.save(user)
 
         audit = AuditTrail(self.db)
         await audit.record(
@@ -374,8 +374,7 @@ class IdentityService:
         return user
 
     async def authenticate(self, email: str, password: str) -> User:
-        result = await self.db.execute(select(User).where(User.email == email))
-        user = result.scalar_one_or_none()
+        user = await self._user_repo.get_by_email(email)
 
         _MAX_FAILED_ATTEMPTS = 5
         _LOCK_DURATION_MINUTES = 15
@@ -457,17 +456,14 @@ class IdentityService:
         return user
 
     async def get_user(self, user_id: str) -> User:
-        result = await self.db.execute(select(User).where(User.id == user_id))
-        user = result.scalar_one_or_none()
-        if not user:
+        try:
+            return await self._user_repo.get(uuid.UUID(user_id))
+        except Exception:
             raise NotFoundError("User", user_id)
-        return user
 
     async def get_users_by_tenant(self, tenant_id: str) -> list[User]:
-        result = await self.db.execute(
-            select(User).where(User.tenant_id == tenant_id).order_by(User.created_at)
-        )
-        return list(result.scalars().all())
+        users, _ = await self._user_repo.find_by_tenant(tenant_id, page=1, page_size=10000)
+        return users
 
     async def update_user_role(self, user_id: str, role: str) -> User:
         user = await self.get_user(user_id)
@@ -513,13 +509,13 @@ class IdentityService:
 
         return user
 
-    async def forgot_password(self, email: str) -> None:
-        result = await self.db.execute(select(User).where(User.email == email))
-        user = result.scalar_one_or_none()
+    async def forgot_password(self, email: str) -> str | None:
+        """Generate a password reset token. Returns the raw token for delivery."""
+        user = await self._user_repo.get_by_email(email)
         if not user:
             if self.logger:
                 self.logger.info("Password reset requested for unknown email=%s", email)
-            return
+            return None
         raw_token = secrets.token_urlsafe(32)
         token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
         now = datetime.now(timezone.utc)
@@ -533,6 +529,7 @@ class IdentityService:
         await self.db.flush()
         if self.logger:
             self.logger.info("Password reset token generated for user=%s", email)
+        return raw_token
 
     async def reset_password(self, token: str, new_password: str) -> User:
         token_hash = hashlib.sha256(token.encode()).hexdigest()
@@ -555,10 +552,7 @@ class IdentityService:
 
     async def delete_user(self, user_id: str, tenant_id: str) -> None:
         """PDPL/Right to Erasure — permanently delete user and anonymize personal data."""
-        result = await self.db.execute(
-            select(User).where(User.id == uuid.UUID(user_id), User.tenant_id == uuid.UUID(tenant_id))
-        )
-        user = result.scalar_one_or_none()
+        user = await self._user_repo.get(uuid.UUID(user_id))
         if not user:
             raise NotFoundError("User not found")
 

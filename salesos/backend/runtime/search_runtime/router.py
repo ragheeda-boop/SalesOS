@@ -26,13 +26,14 @@ async def search(
     q: str = Query(..., min_length=1, description="Search query"),
     strategy: str = Query("hybrid", pattern="^(fulltext|semantic|graph|hybrid)$"),
     limit: int = Query(20, ge=1, le=50),
-    offset: int = Query(0, ge=0),
+    cursor: str | None = Query(None, description="Keyset cursor for pagination"),
     include_facets: bool = Query(False),
     city: Optional[str] = None,
     region: Optional[str] = None,
     industry: Optional[str] = None,
     status: Optional[str] = None,
 ):
+    from sdk.pagination import decode_cursor, encode_cursor
     import hashlib, json as _json
 
     sr = getattr(request.app.state, "search_runtime", None)
@@ -51,7 +52,7 @@ async def search(
 
     cache = getattr(request.app.state, "cache", None)
     if cache:
-        cache_payload = _json.dumps({"q": q, "strategy": strategy, "limit": limit, "offset": offset, "filters": filters, "facets": include_facets}, sort_keys=True)
+        cache_payload = _json.dumps({"q": q, "strategy": strategy, "limit": limit, "cursor": cursor, "filters": filters, "facets": include_facets}, sort_keys=True)
         ck = f"search:{hashlib.md5(cache_payload.encode()).hexdigest()}"
         cached = await cache.get(ck)
         if cached:
@@ -62,10 +63,20 @@ async def search(
         tenant_id=tenant_id,
         strategy=SearchStrategy(strategy),
         filters=filters or None,
-        limit=limit,
-        offset=offset,
+        limit=limit + 1,
+        offset=0,
         include_facets=include_facets,
     )
+
+    has_next = len(result.items) > limit
+    if has_next:
+        result.items = result.items[:limit]
+
+    next_cursor = None
+    if has_next and result.items:
+        last = result.items[-1]
+        next_cursor = encode_cursor(str(last.id), last.created_at)
+
     response = {
         "query": q,
         "strategy": strategy,
@@ -74,6 +85,8 @@ async def search(
         "items": [item.to_dict() for item in result.items],
         "facets": result.facets,
         "suggestions": result.suggestions,
+        "next_cursor": next_cursor,
+        "has_next": has_next,
     }
 
     if cache:

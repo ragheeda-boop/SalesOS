@@ -176,3 +176,8 @@ class DecisionFeedbackLoop:
             )
 
         return evicted
+
+    async def close(self) -> None:
+        """Clear in-memory state and release references."""
+        self._entries.clear()
+        self._session_factory = None  # type: ignore

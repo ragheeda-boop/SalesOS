@@ -24,7 +24,23 @@ from runtime.decision_runtime.models import (
     RequiredAction,
 )
 from runtime.decision_runtime.events import DecisionEvent, DecisionEventType
-from runtime.event_runtime import EventRuntime
+from sdk.events.base import DomainEvent as BaseDomainEvent
+
+
+from sdk.events.base import DomainEvent as BaseDomainEvent
+
+
+def _to_domain_event(raw: dict) -> BaseDomainEvent:
+    return BaseDomainEvent(
+        event_id=raw.get("event_id", str(uuid.uuid4())),
+        event_type=raw.get("event_type", ""),
+        event_version=raw.get("event_version", 1),
+        aggregate_id=raw.get("aggregate_id", ""),
+        aggregate_type=raw.get("aggregate_type", ""),
+        tenant_id=raw.get("tenant_id", ""),
+        data=raw.get("data", {}),
+        metadata=raw.get("metadata", {}),
+    )
 
 
 logger = logging.getLogger(__name__)
@@ -169,7 +185,7 @@ class DecisionEngine:
                 tenant_id=tenant_id,
                 decision_type=decision.decision_type.value,
             )
-            await self._event_runtime.publish(event.event_type.value, event.to_domain_event())
+            await self._event_runtime.publish(_to_domain_event(event.to_domain_event()))
         except Exception:
             pass
 
@@ -191,13 +207,13 @@ class DecisionEngine:
         best = active[0]
         return {"decision_id": best.decision_id, "action": "existing", "decision": best.to_dict()}
 
-    async def accept_decision(self, decision_id: str, user_id: Optional[str] = None) -> bool:
+    async def accept_decision(self, decision_id: str, tenant_id: str, user_id: Optional[str] = None) -> bool:
         decision = self._decisions.get(decision_id)
-        if not decision or decision.status != DecisionStatus.SUGGESTED:
+        if not decision or decision.tenant_id != tenant_id or decision.status != DecisionStatus.SUGGESTED:
             return False
         decision.status = DecisionStatus.ACCEPTED
         self.metrics.decisions_accepted += 1
-        await self._update_status(decision_id, "accepted")
+        await self._update_status(decision_id, "accepted", tenant_id)
         try:
             event = DecisionEvent(
                 event_type=DecisionEventType.ACCEPTED,
@@ -207,19 +223,19 @@ class DecisionEngine:
                 decision_type=decision.decision_type.value,
                 new_status="accepted",
             )
-            await self._event_runtime.publish(event.event_type.value, event.to_domain_event())
+            await self._event_runtime.publish(_to_domain_event(event.to_domain_event()))
         except Exception:
             pass
         return True
 
-    async def execute_decision(self, decision_id: str, user_id: Optional[str] = None) -> bool:
+    async def execute_decision(self, decision_id: str, tenant_id: str, user_id: Optional[str] = None) -> bool:
         decision = self._decisions.get(decision_id)
-        if not decision or decision.status != DecisionStatus.ACCEPTED:
+        if not decision or decision.tenant_id != tenant_id or decision.status != DecisionStatus.ACCEPTED:
             return False
         decision.status = DecisionStatus.EXECUTED
         decision.executed_at = datetime.now(timezone.utc)
         self.metrics.decisions_executed += 1
-        await self._update_status(decision_id, "executed")
+        await self._update_status(decision_id, "executed", tenant_id)
         try:
             event = DecisionEvent(
                 event_type=DecisionEventType.EXECUTED,
@@ -229,7 +245,7 @@ class DecisionEngine:
                 decision_type=decision.decision_type.value,
                 new_status="executed",
             )
-            await self._event_runtime.publish(event.event_type.value, event.to_domain_event())
+            await self._event_runtime.publish(_to_domain_event(event.to_domain_event()))
         except Exception:
             pass
         return True
@@ -238,6 +254,7 @@ class DecisionEngine:
         self,
         decision_id: str,
         accepted: bool,
+        tenant_id: str,
         executed: bool = False,
         outcome: Optional[str] = None,
         outcome_value: Optional[float] = None,
@@ -245,7 +262,7 @@ class DecisionEngine:
         user_id: Optional[str] = None,
     ) -> bool:
         decision = self._decisions.get(decision_id)
-        if not decision:
+        if not decision or decision.tenant_id != tenant_id:
             return False
         decision.feedback = DecisionFeedback(
             decision_id=decision_id,
@@ -265,14 +282,16 @@ class DecisionEngine:
                 decision_type=decision.decision_type.value,
                 feedback=vars(decision.feedback),
             )
-            await self._event_runtime.publish(event.event_type.value, event.to_domain_event())
+            await self._event_runtime.publish(_to_domain_event(event.to_domain_event()))
         except Exception:
             pass
         return True
 
-    def get_decision(self, decision_id: str) -> Optional[dict]:
+    def get_decision(self, decision_id: str, tenant_id: str) -> Optional[dict]:
         d = self._decisions.get(decision_id)
-        return d.to_dict() if d else None
+        if not d or d.tenant_id != tenant_id:
+            return None
+        return d.to_dict()
 
     def get_decisions(self, company_id: str, tenant_id: str, limit: int = 20) -> list[dict]:
         matching = [d.to_dict() for d in self._decisions.values()
@@ -282,9 +301,9 @@ class DecisionEngine:
     def get_history(self, company_id: str, tenant_id: str) -> list[dict]:
         return self.get_decisions(company_id, tenant_id, limit=100)
 
-    async def get_reasoning(self, decision_id: str) -> Optional[dict]:
+    async def get_reasoning(self, decision_id: str, tenant_id: str) -> Optional[dict]:
         d = self._decisions.get(decision_id)
-        if not d:
+        if not d or d.tenant_id != tenant_id:
             return None
         return {
             "decision_id": d.decision_id,
@@ -481,12 +500,15 @@ class DecisionEngine:
             )
             await session.commit()
 
-    async def _update_status(self, decision_id: str, status: str) -> None:
+    async def _update_status(self, decision_id: str, status: str, tenant_id: str) -> None:
         async with self._session_factory() as session:
             from sqlalchemy import text as sa_text
             await session.execute(
-                sa_text("UPDATE decisions SET status = :s, updated_at = NOW() WHERE decision_id = :did"),
-                {"s": status, "did": decision_id},
+                sa_text(
+                    "UPDATE decisions SET status = :s, updated_at = NOW() "
+                    "WHERE decision_id = :did AND tenant_id = :tid"
+                ),
+                {"s": status, "did": decision_id, "tid": tenant_id},
             )
             await session.commit()
 
@@ -496,3 +518,13 @@ class DecisionEngine:
             if d.company_id == company_id and d.tenant_id == tenant_id
             and d.status in (DecisionStatus.SUGGESTED, DecisionStatus.ACCEPTED)
         ]
+
+    async def close(self) -> None:
+        """Clear in-memory state and release references."""
+        self._decisions.clear()
+        self._session_factory = None  # type: ignore
+        self._context_builder = None  # type: ignore
+        self._policy_engine = None  # type: ignore
+        self._recommendation_engine = None  # type: ignore
+        self._event_runtime = None  # type: ignore
+        self._feature_store = None  # type: ignore

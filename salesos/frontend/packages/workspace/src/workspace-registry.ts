@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import type { WorkspaceWidgetEntry } from './types'
+import type { WorkspaceWidgetEntry } from './workspace-types'
 
 export interface RegistryEntry {
   id: string

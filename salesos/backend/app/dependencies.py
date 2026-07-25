@@ -3,15 +3,26 @@ from collections.abc import Callable
 from fastapi import Depends, Header, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.exceptions import UnauthorizedError
 from app.database import async_session, get_db
 from sdk.permissions import PermissionAction, PermissionEnforcer
 from sdk.exceptions import PermissionDeniedError
 
 
 async def verify_token(
-    authorization: str = Header(..., description="Bearer token"),
+    authorization: str | None = Header(None, description="Bearer token"),
 ) -> dict:
-    token = authorization.replace("Bearer ", "")
+    """Require a Bearer access token.
+
+    Missing/invalid auth → 401 (not FastAPI 422 from required Header).
+    """
+    if not authorization:
+        raise UnauthorizedError("Not authenticated")
+    if not authorization.startswith("Bearer "):
+        raise UnauthorizedError("Invalid authorization scheme; expected Bearer")
+    token = authorization[7:].strip()
+    if not token:
+        raise UnauthorizedError("Not authenticated")
     from app.modules.identity.service import decode_access_token
 
     return decode_access_token(token)
@@ -32,16 +43,28 @@ async def get_current_user_id(
 
 
 async def get_current_tenant_id(
-    x_tenant_id: str = Header(..., description="Tenant ID for multi-tenancy"),
+    x_tenant_id: str | None = Header(None, alias="X-Tenant-Id", description="Tenant ID for multi-tenancy"),
     token_payload: dict = Depends(verify_token),
 ) -> str:
+    """Resolve tenant from header or JWT claim.
+
+    Header remains preferred when present; missing header falls back to token
+    ``tenant_id`` so FE callers that only send Authorization do not 422.
+    Mismatch between header and token is still rejected (403).
+    """
     token_tenant = token_payload.get("tenant_id")
-    if token_tenant and str(token_tenant) != x_tenant_id:
+    if x_tenant_id and token_tenant and str(token_tenant) != x_tenant_id:
         raise HTTPException(
             status_code=403,
             detail="Tenant ID in header does not match authenticated user's tenant",
         )
-    return x_tenant_id
+    tenant = x_tenant_id or (str(token_tenant) if token_tenant else None)
+    if not tenant:
+        raise HTTPException(
+            status_code=422,
+            detail="Tenant ID required via X-Tenant-Id header or token tenant_id claim",
+        )
+    return tenant
 
 
 async def get_db_session(

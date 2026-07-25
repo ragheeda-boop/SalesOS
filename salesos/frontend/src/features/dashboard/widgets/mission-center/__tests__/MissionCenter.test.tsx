@@ -4,7 +4,7 @@ import { MissionCenterWidget } from '../MissionCenterContainer'
 import { MissionMetric } from '../MissionMetric'
 import { MissionAction } from '../MissionAction'
 import { MissionProgress } from '../MissionProgress'
-import { describeWidgetContract } from '../../../sdk/testing'
+import { describeWidgetContract } from '@salesos/widget-sdk/testing'
 import type { MissionCenterViewProps } from '../types'
 import type { MissionCenterData } from '../../../../../application/dashboard/dashboard.dto'
 

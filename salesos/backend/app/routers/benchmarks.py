@@ -9,6 +9,7 @@ import re
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
+from app.common.exceptions import safe_error_detail
 from app.dependencies import require_role_dep
 from benchmarks.runner import RESULTS_DIR, BenchmarkRunner
 
@@ -42,11 +43,21 @@ class BenchmarkComparisonResponse(BaseModel):
 
 @router.get("", response_model=list[BenchmarkRunResponse])
 async def list_benchmark_runs(
+    limit: int = Query(20, ge=1, le=200, description="Max results"),
+    cursor: str | None = Query(None, description="Pagination cursor"),
     _=Depends(require_role_dep("admin")),
 ):
-    """List all benchmark runs."""
+    """List benchmark runs with cursor-based pagination."""
     runs = _load_runs()
-    return runs
+    offset = 0
+    if cursor:
+        try:
+            offset = int(cursor)
+        except (ValueError, TypeError):
+            offset = 0
+    sliced = runs[offset:offset + limit]
+    next_cursor = str(offset + limit) if offset + limit < len(runs) else None
+    return {"items": sliced, "next_cursor": next_cursor, "total": len(runs)}
 
 
 @router.post("/run", response_model=BenchmarkDetailResponse)
@@ -140,7 +151,7 @@ async def compare_benchmark(
     try:
         comparison = runner.compare(baseline)
     except FileNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=safe_error_detail(e, "Baseline not found"))
     return BenchmarkComparisonResponse(**comparison)
 
 

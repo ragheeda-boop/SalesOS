@@ -82,7 +82,7 @@ async def get_decision(
     engine = getattr(request.app.state, "decision_engine", None)
     if not engine:
         raise HTTPException(status_code=503, detail="Decision Engine not initialized")
-    result = engine.get_decision(decision_id)
+    result = engine.get_decision(decision_id, tenant_id)
     if not result:
         raise HTTPException(status_code=404, detail="Decision not found")
     return result
@@ -97,7 +97,7 @@ async def get_reasoning(
     engine = getattr(request.app.state, "decision_engine", None)
     if not engine:
         raise HTTPException(status_code=503, detail="Decision Engine not initialized")
-    result = await engine.get_reasoning(decision_id)
+    result = await engine.get_reasoning(decision_id, tenant_id)
     if not result:
         raise HTTPException(status_code=404, detail="Decision not found")
     return result
@@ -112,7 +112,7 @@ async def accept_decision(
     engine = getattr(request.app.state, "decision_engine", None)
     if not engine:
         raise HTTPException(status_code=503, detail="Decision Engine not initialized")
-    ok = await engine.accept_decision(decision_id)
+    ok = await engine.accept_decision(decision_id, tenant_id)
     if not ok:
         raise HTTPException(status_code=400, detail="Decision cannot be accepted")
     return {"status": "accepted", "decision_id": decision_id}
@@ -127,7 +127,7 @@ async def execute_decision(
     engine = getattr(request.app.state, "decision_engine", None)
     if not engine:
         raise HTTPException(status_code=503, detail="Decision Engine not initialized")
-    ok = await engine.execute_decision(decision_id)
+    ok = await engine.execute_decision(decision_id, tenant_id)
     if not ok:
         raise HTTPException(status_code=400, detail="Decision cannot be executed")
     return {"status": "executed", "decision_id": decision_id}
@@ -146,6 +146,7 @@ async def submit_feedback(
     ok = await engine.submit_feedback(
         decision_id=decision_id,
         accepted=body.accepted,
+        tenant_id=tenant_id,
         executed=body.executed,
         outcome=body.outcome,
         outcome_value=body.outcome_value,

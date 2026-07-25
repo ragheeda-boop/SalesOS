@@ -277,7 +277,7 @@ class TestCompanySearchViewEnrich:
         client: AsyncClient,
         registered_user_headers: dict,
     ):
-        """GET /api/v1/companies/{id}/360 returns enriched company view."""
+        """GET /api/v1/companies/{id}/360 returns enriched company view with all sections."""
         company = await self._seed_company(
             client, registered_user_headers, "CR-360-001"
         )
@@ -291,6 +291,63 @@ class TestCompanySearchViewEnrich:
         assert resp.status_code == 200, resp.text
         data = resp.json()
         assert "company" in data
+
+        # Sprint 4 — new sections (B-1)
+        for section in ("crm", "timeline", "enrichment", "entity_resolution", "knowledge_graph"):
+            assert section in data, f"Missing {section} section in 360 response"
+            assert isinstance(data[section], dict), f"{section} should be a dict"
+
+        # CRM section structure
+        crm = data["crm"]
+        assert "deals" in crm
+        assert "contacts" in crm
+        assert isinstance(crm["deals"], list)
+        assert isinstance(crm["contacts"], list)
+
+        # Timeline section structure
+        timeline = data["timeline"]
+        assert "events" in timeline
+        assert isinstance(timeline["events"], list)
+
+        # Enrichment section structure
+        enrichment = data["enrichment"]
+        assert "firmographics" in enrichment
+        assert "financials" in enrichment
+
+        # Entity resolution section structure
+        er = data["entity_resolution"]
+        assert "is_golden_record" in er
+        assert "confidence_score" in er
+
+        # Knowledge graph section structure
+        kg = data["knowledge_graph"]
+        assert "relationships" in kg
+        assert "hierarchy" in kg
+        assert isinstance(kg["relationships"], list)
+
+    async def test_knowledge_graph_company_insights(
+        self,
+        client: AsyncClient,
+        registered_user_headers: dict,
+    ):
+        """GET /api/v1/knowledge-graph/companies/{id}/insights (B-2)."""
+        company = await self._seed_company(
+            client, registered_user_headers, "CR-KG-001"
+        )
+        resp = await asyncio.wait_for(
+            client.get(
+                f"/api/v1/knowledge-graph/companies/{company['id']}/insights",
+                headers=registered_user_headers,
+            ),
+            timeout=_TEST_TIMEOUT,
+        )
+        assert resp.status_code in (200, 503), f"Unexpected {resp.status_code}: {resp.text}"
+        if resp.status_code == 200:
+            data = resp.json()
+            assert "company_id" in data
+            assert "competitors" in data
+            assert "market_position" in data
+            assert "relationship_strength_scores" in data
 
     async def test_full_search_view_enrich_journey(
         self,

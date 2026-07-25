@@ -15,12 +15,16 @@ Usage:
         await openai.chat(...)
 
     # Generate Prometheus output
-    print(metrics.generate())
+    logger.info(metrics.generate())
 """
 
+import logging
 import threading
 import time
 from collections import defaultdict
+
+
+logger = logging.getLogger(__name__)
 
 
 class _Histogram:

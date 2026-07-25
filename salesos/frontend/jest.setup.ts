@@ -1,4 +1,6 @@
 import '@testing-library/jest-dom'
+import { toHaveNoViolations } from 'jest-axe'
+expect.extend(toHaveNoViolations)
 
 if (typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.randomUUID !== 'function') {
   Object.defineProperty(globalThis.crypto, 'randomUUID', {

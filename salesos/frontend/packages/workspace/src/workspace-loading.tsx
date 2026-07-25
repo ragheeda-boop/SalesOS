@@ -1,7 +1,7 @@
 'use client'
 
 import { WorkspaceGrid } from './workspace-grid'
-import type { WorkspaceWidgetEntry } from './types'
+import type { WorkspaceWidgetEntry } from './workspace-types'
 
 function Skeleton({ minHeight }: { minHeight: string }) {
   return (

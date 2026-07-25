@@ -41,7 +41,9 @@ async def get_dashboard(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
     request: Request = None,
-    _: None = Depends(require_permission_dep("executive", PermissionAction.READ)),
+    # Sales home aggregates company/ops signals — gate on company.READ (user+manager+admin).
+    # Keep executive.READ on /executive/dashboard only; do not conflate the two surfaces.
+    _: None = Depends(require_permission_dep("company", PermissionAction.READ)),
 ):
     cache = getattr(request.app.state, "cache", None) if request else None
     cache_key = f"dashboard:{tenant_id}:{query.period}:{','.join(sorted(query.fields)) if query.fields else 'all'}"
@@ -118,7 +120,7 @@ async def get_nba_feed(
     status_filter: str | None = Query(None, description="Filter by status: pending|accepted|rejected"),
     priority_min: int | None = Query(None, ge=0, le=100, description="Minimum priority threshold"),
     tenant_id: str = Depends(get_current_tenant_id),
-    _: None = Depends(require_permission_dep("executive", PermissionAction.READ)),
+    _: None = Depends(require_permission_dep("company", PermissionAction.READ)),
 ):
     """NBA feed optimized for dashboard consumption.
 
@@ -159,7 +161,7 @@ async def get_nba_feed(
         except Exception:
             pass
 
-    # ── Source 2: NBA Engine (per-opportunity) ─────────────────
+    # ── Source 2: NBA Engine (batched via batch_get_or_compute) ──
     nba_engine = getattr(request.app.state, "nba_engine", None)
     if nba_engine:
         try:
@@ -182,12 +184,17 @@ async def get_nba_feed(
                 )
                 opportunities = rows.mappings().all()
 
-                for opp in opportunities:
-                    opp_id = str(opp["opp_id"])
-                    nba = await nba_engine.get_or_compute(opp_id, tenant_id)
+                opp_map = {str(o["opp_id"]): o for o in opportunities}
+                nba_results = await nba_engine.batch_get_or_compute(
+                    list(opp_map.keys()), tenant_id,
+                )
+
+                for opp_id, nba in nba_results.items():
                     if not nba:
                         continue
-
+                    opp = opp_map.get(opp_id)
+                    if not opp:
+                        continue
                     if status_filter and nba.status != status_filter:
                         continue
                     if priority_min is not None and int(nba.confidence * 100) < priority_min:

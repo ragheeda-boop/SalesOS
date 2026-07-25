@@ -22,7 +22,14 @@ def create_server(api_keys: list[str] | None = None) -> FastMCP:
 
     Each call creates a fresh server with tools and resources registered.
     """
-    keys = api_keys or [os.environ.get("MCP_API_KEY", "mcp-dev-key")]
+    keys = api_keys
+    if not keys:
+        env_key = os.environ.get("MCP_API_KEY", "")
+        if not env_key:
+            logger.warning("MCP_API_KEY not set — MCP server will reject all connections")
+            keys = []
+        else:
+            keys = [env_key]
     set_valid_api_keys(keys)
 
     mcp = FastMCP(

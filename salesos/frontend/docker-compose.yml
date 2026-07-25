@@ -15,7 +15,7 @@ services:
       - PG_HOST=postgres
       - NEO4J_URI=bolt://neo4j:7687
       - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=${JWT_SECRET:-salesos-prod-secret}
+      - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET}
     depends_on:
       postgres:
         condition: service_healthy
@@ -29,7 +29,7 @@ services:
     environment:
       - POSTGRES_DB=salesos
       - POSTGRES_USER=salesos
-      - POSTGRES_PASSWORD=${PG_PASSWORD:-salesos}
+      - POSTGRES_PASSWORD=${PG_PASSWORD:?Set PG_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ../backend/migrations:/docker-entrypoint-initdb.d

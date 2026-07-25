@@ -13,6 +13,12 @@ from .repository import (
     InMemoryWebhookDeliveryRepository,
     InMemoryWebhookSubscriptionRepository,
 )
+from .url_safety import (
+    UnsafeWebhookURLError,
+    analyze_webhook_url,
+    build_pinned_async_transport,
+    validate_webhook_url,
+)
 
 RETRY_DELAYS = [10, 60, 300]  # seconds: attempt 0→10s, 1→60s, 2→300s
 
@@ -31,17 +37,21 @@ class WebhookService:
         self,
         subscription_repo: InMemoryWebhookSubscriptionRepository | None = None,
         delivery_repo: InMemoryWebhookDeliveryRepository | None = None,
+        *,
+        resolve_dns: bool = True,
     ):
         self.subscription_repo = subscription_repo or InMemoryWebhookSubscriptionRepository()
         self.delivery_repo = delivery_repo or InMemoryWebhookDeliveryRepository()
+        self._resolve_dns = resolve_dns
 
     async def create_subscription(
         self, tenant_id: str, url: str, events: list[str], secret: str
     ) -> WebhookSubscription:
+        safe_url = validate_webhook_url(url, resolve_dns=self._resolve_dns)
         sub = WebhookSubscription(
             id=str(uuid.uuid4()),
             tenant_id=tenant_id,
-            url=url,
+            url=safe_url,
             secret=secret,
             events=events,
         )
@@ -50,6 +60,8 @@ class WebhookService:
     async def update_subscription(
         self, sub_id: str, data: dict
     ) -> WebhookSubscription | None:
+        if "url" in data and data["url"] is not None:
+            data = {**data, "url": validate_webhook_url(data["url"], resolve_dns=self._resolve_dns)}
         return await self.subscription_repo.update(sub_id, data)
 
     async def delete_subscription(self, sub_id: str) -> bool:
@@ -90,9 +102,20 @@ class WebhookService:
         signature = _sign_payload(delivery.payload, sub.secret)
 
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            # Resolve + validate immediately before connect; pin TCP to a checked IP
+            # so DNS rebinding between validate and dial cannot retarget private space.
+            target = analyze_webhook_url(sub.url, resolve_dns=self._resolve_dns)
+            transport = (
+                build_pinned_async_transport(target.allowed_ips[0])
+                if target.allowed_ips
+                else None
+            )
+            client_kwargs: dict = {"timeout": 10.0, "follow_redirects": False}
+            if transport is not None:
+                client_kwargs["transport"] = transport
+            async with httpx.AsyncClient(**client_kwargs) as client:
                 resp = await client.post(
-                    sub.url,
+                    target.url,
                     json=delivery.payload,
                     headers={
                         "Content-Type": "application/json",
@@ -103,6 +126,10 @@ class WebhookService:
                 delivery.status = "success" if resp.is_success else "failed"
                 delivery.response_code = resp.status_code
                 delivery.response_body = resp.text[:2000]
+        except UnsafeWebhookURLError as e:
+            delivery.status = "failed"
+            delivery.response_code = None
+            delivery.response_body = f"SSRF blocked: {e}"[:2000]
         except Exception as e:
             delivery.status = "failed"
             delivery.response_code = None

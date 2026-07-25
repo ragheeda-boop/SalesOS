@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
-import type { WorkspaceContextValue } from './types'
+import type { WorkspaceContextValue } from './workspace-types'
 
 export function createWorkspaceProvider<W extends Record<string, unknown>, P extends Record<string, unknown> = Record<string, unknown>>(
   useData: (props: P) => { data: unknown; isLoading: boolean; isError: boolean; error: Error | null; refetch: () => void },

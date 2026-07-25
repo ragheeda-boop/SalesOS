@@ -64,12 +64,14 @@ async def list_contacts(
     company_id: str = Query(None),
     email: str = Query(None),
     source: str = Query(None),
-    page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
+    cursor: str | None = Query(None, description="Keyset cursor for pagination"),
     sort_by: str = Query("created_at"),
     sort_order: str = Query("desc"),
     service: ContactService = Depends(get_service),
 ):
+    from sdk.pagination import decode_cursor, encode_cursor
+
     filters = {}
     if company_id:
         filters["company_id"] = company_id
@@ -82,16 +84,28 @@ async def list_contacts(
         tenant_id,
         query=q,
         filters=filters or None,
-        page=page,
-        page_size=page_size,
+        page=1,
+        page_size=page_size + 1,
         sort_by=sort_by,
         sort_desc=sort_order == "desc",
     )
+
+    has_next = len(items) > page_size
+    if has_next:
+        items = items[:page_size]
+
+    next_cursor = None
+    if has_next and items:
+        last = items[-1]
+        next_cursor = encode_cursor(str(last.id), last.created_at)
+
     return PaginatedResponse(
         items=[ContactResponse.model_validate(c) for c in items],
         total=total,
-        page=page,
+        page=1,
         page_size=page_size,
+        next_cursor=next_cursor,
+        has_next=has_next,
     )
 
 

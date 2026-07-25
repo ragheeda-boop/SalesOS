@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.dependencies import get_current_tenant_id
+from app.common.exceptions import safe_error_detail
+from app.dependencies import get_current_tenant_id, verify_token
 
 from .schemas import (
     AcknowledgeResponse,
@@ -18,6 +19,7 @@ from .service import SignalMarketplaceService
 router = APIRouter(
     prefix="/api/v1/signals",
     tags=["Signal Marketplace"],
+    dependencies=[Depends(verify_token)],
 )
 
 _service: SignalMarketplaceService | None = None
@@ -86,7 +88,7 @@ async def subscribe(
             channel=body.channel,
         )
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=safe_error_detail(e, "Signal not found"))
 
     return SubscribeResponse(
         id=sub.id, signal_id=sub.signal_id,
@@ -144,9 +146,10 @@ async def get_feed(
 @router.post("/{event_id}/acknowledge", response_model=AcknowledgeResponse)
 async def acknowledge(
     event_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
     service: SignalMarketplaceService = Depends(get_signal_service),
 ):
-    event = await service.acknowledge(event_id)
+    event = await service.acknowledge(event_id, tenant_id)
     if event is None:
         raise HTTPException(status_code=404, detail="Signal event not found")
     return AcknowledgeResponse(

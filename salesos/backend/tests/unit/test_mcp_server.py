@@ -1,4 +1,9 @@
-"""Tests for SalesOS MCP Server — validates tools, auth, and error handling."""
+"""Tests for SalesOS MCP Server — validates tools, auth, and error handling.
+
+QUARANTINE (PROD-W3-001): `mcp` is an optional extras package, not on the
+SalesOS GA critical path. Skip collection when the package is absent so
+`pytest tests/unit` stays green without installing MCP.
+"""
 
 from __future__ import annotations
 
@@ -6,6 +11,11 @@ import os
 from unittest.mock import patch
 
 import pytest
+
+pytest.importorskip(
+    "mcp",
+    reason="MCP optional dependency not installed (PROD-W3-001 quarantine; out of SalesOS GA critical path)",
+)
 
 from mcp_server.server import create_server
 from mcp_server.tools import set_valid_api_keys, _auth

@@ -270,11 +270,39 @@ def validate_event(event: DomainEvent) -> list[str]:
         errors = list(validator.iter_errors(event.data))
         return [e.message for e in errors]
     except ImportError:
-        logger.debug("jsonschema not installed — skipping validation")
-        return []
+        return _validate_event_fallback(event.data, schema)
     except Exception as exc:
         logger.warning("Schema validation error for %s: %s", event.event_type, exc)
         return [str(exc)]
+
+
+def _validate_event_fallback(data: Any, schema: dict[str, Any]) -> list[str]:
+    """Minimal required/type checks when jsonschema is not installed."""
+    if not isinstance(data, dict):
+        return ["data must be an object"]
+    errors: list[str] = []
+    for key in schema.get("required", []):
+        if key not in data:
+            errors.append(f"'{key}' is a required property")
+    props = schema.get("properties") or {}
+    for key, prop in props.items():
+        if key not in data:
+            continue
+        expected = prop.get("type")
+        value = data[key]
+        if expected == "string" and not isinstance(value, str):
+            errors.append(f"'{key}' is not of type 'string'")
+        elif expected == "integer" and not isinstance(value, int):
+            errors.append(f"'{key}' is not of type 'integer'")
+        elif expected == "number" and not isinstance(value, (int, float)):
+            errors.append(f"'{key}' is not of type 'number'")
+        elif expected == "array" and not isinstance(value, list):
+            errors.append(f"'{key}' is not of type 'array'")
+        elif expected == "object" and not isinstance(value, dict):
+            errors.append(f"'{key}' is not of type 'object'")
+        elif expected == "boolean" and not isinstance(value, bool):
+            errors.append(f"'{key}' is not of type 'boolean'")
+    return errors
 
 
 def register_schema(event_type: str, schema: dict[str, Any]) -> None:

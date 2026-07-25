@@ -1,7 +1,7 @@
 "use client"
 
-import { AutomationWorkspace } from "@/features/automation/workspace/automation/AutomationWorkspace"
+import { AutomationWorkspace } from"@/features/automation/workspace/automation/AutomationWorkspace"
 
 export default function AutomationPage() {
-  return <AutomationWorkspace />
+ return <AutomationWorkspace />
 }

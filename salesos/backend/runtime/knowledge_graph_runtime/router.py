@@ -74,7 +74,7 @@ async def find_path(
     kg = getattr(request.app.state, "kg_engine", None)
     if not kg:
         raise HTTPException(status_code=503, detail="Knowledge Graph not initialized")
-    path = await kg.find_path(source, target, max_depth)
+    path = await kg.find_path(source, target, max_depth, tenant_id=tenant_id)
     if not path:
         return {"path": None, "message": "No path found"}
     return {"path": path.to_dict()}
@@ -90,7 +90,7 @@ async def ego_network(
     kg = getattr(request.app.state, "kg_engine", None)
     if not kg:
         raise HTTPException(status_code=503, detail="Knowledge Graph not initialized")
-    items = await kg.get_ego_network(company_id, depth)
+    items = await kg.get_ego_network(company_id, depth, tenant_id=tenant_id)
     return {"company_id": company_id, "network": items}
 
 
@@ -103,7 +103,7 @@ async def decision_makers(
     kg = getattr(request.app.state, "kg_engine", None)
     if not kg:
         raise HTTPException(status_code=503, detail="Knowledge Graph not initialized")
-    nodes = await kg.get_decision_makers(company_id)
+    nodes = await kg.get_decision_makers(company_id, tenant_id=tenant_id)
     return {"company_id": company_id, "decision_makers": [n.to_dict() for n in nodes]}
 
 
@@ -117,7 +117,7 @@ async def graph_search(
     kg = getattr(request.app.state, "kg_engine", None)
     if not kg:
         raise HTTPException(status_code=503, detail="Knowledge Graph not initialized")
-    nodes = await kg.search(q, limit=limit)
+    nodes = await kg.search(q, limit=limit, tenant_id=tenant_id)
     return {"query": q, "results": [n.to_dict() for n in nodes]}
 
 
@@ -185,6 +185,20 @@ async def custom_graph_query(
         result["total"] = len(items)
 
     return result
+
+
+@router.get("/knowledge-graph/companies/{company_id}/insights")
+async def company_kg_insights(
+    company_id: str,
+    request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
+):
+    """Return comprehensive KG insights for a company: competitors, partners, hierarchy, market position."""
+    kg = getattr(request.app.state, "kg_engine", None)
+    if not kg:
+        raise HTTPException(status_code=503, detail="Knowledge Graph not initialized")
+    insights = await kg.get_company_insights(company_id, tenant_id)
+    return insights
 
 
 @router.get("/graph/query/companies-without-activity")

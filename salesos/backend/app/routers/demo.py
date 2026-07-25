@@ -1,6 +1,6 @@
 """Demo Environment API — reset, status, and scenario endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from app.dependencies import require_role_dep, verify_token
@@ -42,6 +42,7 @@ class ResetResponse(BaseModel):
 @router.get("/status", response_model=DemoStatusResponse)
 async def demo_status(
     demo_service: DemoModeService = Depends(get_demo_mode_service),
+    _auth=Depends(verify_token),
 ):
     """Check current demo mode status."""
     status = demo_service.get_status()
@@ -56,11 +57,22 @@ async def demo_status(
 
 @router.get("/scenarios", response_model=list[ScenarioResponse])
 async def list_scenarios(
+    limit: int = Query(20, ge=1, le=200, description="Max results"),
+    cursor: str | None = Query(None, description="Pagination cursor"),
     demo_service: DemoModeService = Depends(get_demo_mode_service),
     _auth=Depends(verify_token),
 ):
-    """List available demo scenarios."""
-    return demo_service.get_scenarios()
+    """List available demo scenarios with cursor-based pagination."""
+    scenarios = demo_service.get_scenarios()
+    offset = 0
+    if cursor:
+        try:
+            offset = int(cursor)
+        except (ValueError, TypeError):
+            offset = 0
+    sliced = scenarios[offset:offset + limit]
+    next_cursor = str(offset + limit) if offset + limit < len(scenarios) else None
+    return {"items": sliced, "next_cursor": next_cursor, "total": len(scenarios)}
 
 
 @router.post("/reset", response_model=ResetResponse)

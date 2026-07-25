@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from httpx import ASGITransport, AsyncClient
 
+from app.common.middleware import BodyCacheMiddleware
 from app.routers.metrics import MetricsMiddleware
 
 
@@ -15,7 +17,7 @@ def anyio_backend():
     return "asyncio"
 
 
-def _make_app() -> FastAPI:
+def _make_app(max_body_size: int = 10 * 1024 * 1024) -> FastAPI:
     """Build a minimal app with the real middleware chain + a POST echo route."""
     app = FastAPI()
 
@@ -24,14 +26,20 @@ def _make_app() -> FastAPI:
     async def global_exception_handler(request: Request, exc: Exception):
         return JSONResponse(status_code=500, content={"detail": str(exc)})
 
-    # Add the three middleware that were previously BaseHTTPMiddleware
+    # Add middleware in same order as production
     app.add_middleware(MetricsMiddleware)
 
     from app.modules.audit.middleware import AuditMiddleware
     from app.modules.api_keys.middleware import ApiKeyMiddleware
 
-    app.add_middleware(AuditMiddleware)
+    # Mock the session factory to avoid PostgreSQL dependency in tests
+    mock_session_factory = MagicMock()
+    mock_session_factory.return_value.__aenter__ = AsyncMock()
+    mock_session_factory.return_value.__aexit__ = AsyncMock(return_value=False)
+
+    app.add_middleware(AuditMiddleware, session_factory=mock_session_factory)
     app.add_middleware(ApiKeyMiddleware)
+    app.add_middleware(BodyCacheMiddleware, max_body_size=max_body_size)
 
     # Echo route that returns the request body
     @app.post("/api/v1/echo")
@@ -173,3 +181,94 @@ async def test_concurrent_post_requests():
     assert all(r.status_code == 200 for r in responses)
     for i, r in enumerate(responses):
         assert r.json()["received"]["seq"] == i
+
+
+@pytest.mark.asyncio
+async def test_oversized_body_returns_413():
+    """POST with body exceeding max_body_size should return 413."""
+    app = _make_app(max_body_size=1024)  # 1KB limit for test
+    transport = ASGITransport(app=app)
+    large_body = {"data": "x" * 2000}  # ~2KB when serialized
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            "/api/v1/echo",
+            json=large_body,
+            headers={"X-Tenant-Id": "tenant-1"},
+            timeout=10,
+        )
+    assert response.status_code == 413
+    assert "too large" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_body_cache_available_in_request_state():
+    """BodyCacheMiddleware should store body in scope['body_cache']."""
+    app = _make_app()
+    transport = ASGITransport(app=app)
+
+    @app.post("/api/v1/check-cache")
+    async def check_cache(request: Request):
+        cached = request.scope.get("body_cache", b"")
+        return JSONResponse(content={"cached_length": len(cached), "cached_type": type(cached).__name__})
+
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            "/api/v1/check-cache",
+            json={"test": True},
+            headers={"X-Tenant-Id": "tenant-1"},
+            timeout=5,
+        )
+    assert response.status_code == 200
+    assert response.json()["cached_length"] > 0
+    assert response.json()["cached_type"] == "bytes"
+
+
+@pytest.mark.asyncio
+async def test_multiple_receive_calls_after_cache():
+    """After body is cached, subsequent receive() calls should return disconnect."""
+    app = _make_app()
+
+    @app.post("/api/v1/double-receive")
+    async def double_receive(request: Request):
+        # First call should return cached body
+        msg1 = await request.receive()
+        assert msg1["type"] == "http.request"
+        assert msg1["more_body"] is False
+        assert len(msg1["body"]) > 0
+
+        # Second call should return disconnect
+        msg2 = await request.receive()
+        return JSONResponse(content={"msg2_type": msg2["type"]})
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post(
+            "/api/v1/double-receive",
+            json={"test": True},
+            headers={"X-Tenant-Id": "tenant-1"},
+            timeout=5,
+        )
+    assert response.status_code == 200
+    assert response.json()["msg2_type"] == "http.disconnect"
+
+
+@pytest.mark.asyncio
+async def test_concurrent_post_different_bodies():
+    """Concurrent POST requests with different bodies should not mix."""
+    app = _make_app()
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        responses = await asyncio.gather(*[
+            client.post(
+                "/api/v1/echo",
+                json={"id": i, "unique": f"data_{i}"},
+                headers={"X-Tenant-Id": "tenant-1"},
+                timeout=10,
+            )
+            for i in range(20)
+        ])
+    assert all(r.status_code == 200 for r in responses)
+    for i, r in enumerate(responses):
+        data = r.json()["received"]
+        assert data["id"] == i
+        assert data["unique"] == f"data_{i}"

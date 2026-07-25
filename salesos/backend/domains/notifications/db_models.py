@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, Index, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,3 +23,8 @@ class NotificationModel(Base):
     data: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=dict)
     read: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+
+    __table_args__ = (
+        Index("ix_notifications_user_read", "user_id", "read", "created_at"),
+        Index("ix_notifications_tenant_type", "tenant_id", "type"),
+    )

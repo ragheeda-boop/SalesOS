@@ -105,10 +105,8 @@ class CompanyRepository(SqlAlchemyRepository[Company, uuid.UUID]):
                 sort_dir="desc" if sort_desc else "asc",
             )
             base = base.where(condition)
-            base = base.limit(page_size + 1)
-        else:
-            base = base.offset((page - 1) * page_size).limit(page_size)
 
+        base = base.limit(page_size + 1)
         result = await self._session.execute(base)
         rows = list(result.scalars().all())
         return rows, total

@@ -23,8 +23,8 @@ export const LineChartStory: StoryObj = {
   render: () => (
     <LineChart
       series={[
-        { name: 'Actual', color: '#3B82F6', data: [400, 300, 600, 800] },
-        { name: 'Forecast', color: '#10B981', data: [350, 400, 550, 750] },
+        { name: 'Actual', color: '#F57C1E', data: [400, 300, 600, 800] },
+        { name: 'Forecast', color: '#22C55E', data: [350, 400, 550, 750] },
       ]}
       title="Revenue vs Forecast"
       height={250}

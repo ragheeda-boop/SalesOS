@@ -38,10 +38,13 @@ import { useAdminTenants, useAdminPlans, useAdminUsers, useAdminDetailedHealth }
 
 function createWrapper() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return ({ children }: { children: React.ReactNode }) => (
-    React.createElement(QueryClientProvider, { client: queryClient }, children)
-  )
+  function Wrapper({ children }: { children: React.ReactNode }) {
+    return React.createElement(QueryClientProvider, { client: queryClient }, children)
+  }
+  Wrapper.displayName = 'AdminQueryTestWrapper'
+  return Wrapper
 }
+createWrapper.displayName = 'createWrapper'
 
 describe('Admin Query Hooks', () => {
   it('useAdminTenants fetches tenants', async () => {

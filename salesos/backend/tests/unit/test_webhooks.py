@@ -29,7 +29,12 @@ def delivery_repo():
 
 @pytest.fixture
 def service(sub_repo, delivery_repo):
-    return WebhookService(subscription_repo=sub_repo, delivery_repo=delivery_repo)
+    # Unit tests skip live DNS to avoid flakiness; SSRF suite covers resolve path.
+    return WebhookService(
+        subscription_repo=sub_repo,
+        delivery_repo=delivery_repo,
+        resolve_dns=False,
+    )
 
 
 @pytest.fixture
@@ -425,6 +430,159 @@ class TestDeliveryRepository:
         pending = await delivery_repo.list_pending_retries()
         assert len(pending) == 1
         assert pending[0].id == "d-1"
+
+
+# ── SSRF URL safety (PROD-W2-002 / GA-P0-SEC-02) ──
+
+class TestWebhookSSRF:
+    @pytest.mark.asyncio
+    async def test_rejects_http_url(self, service):
+        from app.modules.webhooks.url_safety import UnsafeWebhookURLError
+
+        with pytest.raises(UnsafeWebhookURLError, match="HTTPS"):
+            await service.create_subscription(
+                "tenant-1", "http://example.com/hook", ["company.created"], "secret-12345678"
+            )
+
+    @pytest.mark.asyncio
+    async def test_rejects_metadata_ip(self, service):
+        from app.modules.webhooks.url_safety import UnsafeWebhookURLError
+
+        with pytest.raises(UnsafeWebhookURLError):
+            await service.create_subscription(
+                "tenant-1",
+                "https://169.254.169.254/latest/meta-data/",
+                ["company.created"],
+                "secret-12345678",
+            )
+
+    @pytest.mark.asyncio
+    async def test_rejects_private_rfc1918(self, service):
+        from app.modules.webhooks.url_safety import UnsafeWebhookURLError
+
+        for url in (
+            "https://10.0.0.5/hook",
+            "https://192.168.1.10/hook",
+            "https://127.0.0.1/hook",
+        ):
+            with pytest.raises(UnsafeWebhookURLError):
+                await service.create_subscription(
+                    "tenant-1", url, ["company.created"], "secret-12345678"
+                )
+
+    def test_validate_blocks_dns_rebinding_to_private(self):
+        from app.modules.webhooks.url_safety import UnsafeWebhookURLError, validate_webhook_url
+
+        with patch("socket.getaddrinfo", return_value=[
+            (None, None, None, None, ("10.1.2.3", 443)),
+        ]):
+            with pytest.raises(UnsafeWebhookURLError, match="private"):
+                validate_webhook_url("https://evil.example/hook", resolve_dns=True)
+
+    def test_validate_allows_public_https(self):
+        from app.modules.webhooks.url_safety import validate_webhook_url
+
+        with patch("socket.getaddrinfo", return_value=[
+            (None, None, None, None, ("93.184.216.34", 443)),
+        ]):
+            assert validate_webhook_url("https://example.com/hook", resolve_dns=True).startswith("https://")
+
+    def test_analyze_returns_allowed_public_ips(self):
+        from app.modules.webhooks.url_safety import analyze_webhook_url
+
+        with patch("socket.getaddrinfo", return_value=[
+            (None, None, None, None, ("93.184.216.34", 443)),
+            (None, None, None, None, ("93.184.216.34", 443)),
+        ]):
+            target = analyze_webhook_url("https://example.com/hook", resolve_dns=True)
+        assert target.hostname == "example.com"
+        assert target.allowed_ips == ("93.184.216.34",)
+
+    def test_pinned_backend_dials_validated_ip_not_hostname(self):
+        """DNS TOCTOU mitigation: TCP connect uses pre-validated IP."""
+        import asyncio
+
+        from app.modules.webhooks.url_safety import _PinnedIPBackend
+
+        calls: list[tuple[str, int]] = []
+
+        class _FakeInner:
+            async def connect_tcp(self, host, port, timeout=None, local_address=None, socket_options=None):
+                calls.append((host, port))
+                return object()
+
+            async def sleep(self, seconds):
+                return None
+
+        backend = _PinnedIPBackend("93.184.216.34")
+        backend._inner = _FakeInner()
+        asyncio.run(backend.connect_tcp("evil-rebinding.example", 443))
+        assert calls == [("93.184.216.34", 443)]
+
+    @pytest.mark.asyncio
+    async def test_delivery_uses_pinned_transport_when_dns_resolved(self, sub_repo, delivery_repo):
+        """Delivery path builds pinned transport from analyze_webhook_url IPs."""
+        from app.modules.webhooks.url_safety import SafeWebhookTarget
+
+        svc = WebhookService(
+            subscription_repo=sub_repo,
+            delivery_repo=delivery_repo,
+            resolve_dns=True,
+        )
+        target = SafeWebhookTarget(
+            url="https://example.com/hook",
+            hostname="example.com",
+            port=443,
+            allowed_ips=("93.184.216.34",),
+        )
+        sub = WebhookSubscription(
+            id=str(uuid.uuid4()),
+            tenant_id="tenant-1",
+            url=target.url,
+            secret="secret-12345678",
+            events=["company.created"],
+        )
+        await sub_repo.create(sub)
+
+        mock_response = AsyncMock()
+        mock_response.is_success = True
+        mock_response.status_code = 200
+        mock_response.text = "ok"
+
+        captured: dict = {}
+
+        class _FakeClient:
+            def __init__(self, **kwargs):
+                captured["kwargs"] = kwargs
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return None
+
+            async def post(self, url, json=None, headers=None):
+                captured["url"] = url
+                return mock_response
+
+        with patch(
+            "app.modules.webhooks.service.analyze_webhook_url",
+            return_value=target,
+        ), patch(
+            "app.modules.webhooks.service.build_pinned_async_transport",
+            return_value=object(),
+        ) as build_pin, patch(
+            "app.modules.webhooks.service.httpx.AsyncClient",
+            _FakeClient,
+        ):
+            deliveries = await svc.dispatch_event(
+                "company.created", {"id": "c1"}, "tenant-1"
+            )
+
+        assert build_pin.call_args.args[0] == "93.184.216.34"
+        assert captured["kwargs"].get("transport") is not None
+        assert captured["kwargs"].get("follow_redirects") is False
+        assert deliveries[0].status == "success"
 
 
 # ── All supported events test ──

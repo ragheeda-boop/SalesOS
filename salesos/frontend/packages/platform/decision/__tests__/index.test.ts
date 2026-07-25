@@ -38,7 +38,7 @@ describe("Decision Platform - index", () => {
         actorId: "user-1",
         entityType: "opportunity",
       }
-      await expect(decisionEngine.evaluate(context)).rejects.toThrow("Not implemented")
+      await expect(decisionEngine.evaluate(context)).rejects.toThrow(/STUB|Not implemented/)
     })
   })
 
@@ -48,7 +48,7 @@ describe("Decision Platform - index", () => {
     })
 
     it("throws not implemented by default", async () => {
-      await expect(decisionEngine.evaluateBatch([])).rejects.toThrow("Not implemented")
+      await expect(decisionEngine.evaluateBatch([])).rejects.toThrow(/STUB|Not implemented/)
     })
   })
 
@@ -58,7 +58,7 @@ describe("Decision Platform - index", () => {
     })
 
     it("throws not implemented by default", async () => {
-      await expect(decisionEngine.explain("dec-1")).rejects.toThrow("Not implemented")
+      await expect(decisionEngine.explain("dec-1")).rejects.toThrow(/STUB|Not implemented/)
     })
   })
 
@@ -68,7 +68,7 @@ describe("Decision Platform - index", () => {
     })
 
     it("throws not implemented by default", async () => {
-      await expect(decisionEngine.getHistory("tenant-1")).rejects.toThrow("Not implemented")
+      await expect(decisionEngine.getHistory("tenant-1")).rejects.toThrow(/STUB|Not implemented/)
     })
   })
 
@@ -83,9 +83,19 @@ describe("Decision Platform - index", () => {
       expect(typeof engine.score).toBe("function")
     })
 
-    it("score throws not implemented by default", () => {
+    it("score returns weighted average for empty factors", () => {
       const engine = new ScoringEngine()
-      expect(() => engine.score("engagement", {})).toThrow("Not implemented")
+      const result = engine.score("engagement", {})
+      expect(result.value).toBe(0.5)
+      expect(result.name).toBe("engagement")
+    })
+
+    it("score computes weighted average from factors", () => {
+      const engine = new ScoringEngine()
+      const result = engine.score("buying_intent", { urgency: 0.8, budget: 0.6, authority: 0.9 })
+      expect(result.value).toBeGreaterThan(0)
+      expect(result.value).toBeLessThanOrEqual(1)
+      expect(result.factors).toHaveLength(3)
     })
   })
 
@@ -113,12 +123,12 @@ describe("Decision Platform - index", () => {
         outcome: "accepted",
         createdAt: "2026-01-01T00:00:00Z",
       }
-      await expect(engine.submit(feedback)).rejects.toThrow("Not implemented")
+      await expect(engine.submit(feedback)).rejects.toThrow(/STUB|Not implemented/)
     })
 
     it("getStats throws not implemented by default", async () => {
       const engine = new FeedbackEngine()
-      await expect(engine.getStats("tenant-1")).rejects.toThrow("Not implemented")
+      await expect(engine.getStats("tenant-1")).rejects.toThrow(/STUB|Not implemented/)
     })
   })
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "salesos-backend"
-version = "0.1.0"
+version = "3.1.0"
 description = "SalesOS Enterprise Company Intelligence Platform - Backend"
 authors = ["SalesOS Team"]
 
@@ -39,6 +39,7 @@ opentelemetry-sdk = "^1.25"
 opentelemetry-exporter-otlp-proto-http = "^1.25"
 celery = "^5.4"
 strawberry-graphql = "^0.243"
+jsonschema = "^4.22"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2"
@@ -55,6 +56,7 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "ARG", "C4"]
+per-file-ignores = {"app/routers/*.py" = ["B008"]}
 
 [tool.ruff.format]
 quote-style = "double"

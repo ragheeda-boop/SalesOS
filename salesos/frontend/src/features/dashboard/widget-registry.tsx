@@ -21,23 +21,23 @@ const PipelineBounded = withErrorBoundary(PipelineWidget, <WidgetFallback title=
 const CompanyHealthBounded = withErrorBoundary(CompanyHealthWidget, <WidgetFallback title="Company Health" />)
 
 function WidgetFallback({ title }: { title: string }) {
-  return (
-    <div className="flex h-full items-center justify-center p-4" role="status" aria-label={`${title} widget loading error`}>
-      <div className="text-center">
-        <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">{title}</p>
-        <p className="mt-1 text-xs text-neutral-500">حدث خطأ في تحميل هذا المكون</p>
-      </div>
-    </div>
-  )
+ return (
+ <div className="flex h-full items-center justify-center p-4" role="status" aria-label={`${title} widget loading error`}>
+ <div className="text-center">
+ <p className="text-sm font-medium text-[var(--text-primary)]">{title}</p>
+ <p className="mt-1 text-xs text-[var(--text-muted)]">حدث خطأ في تحميل هذا المكون</p>
+ </div>
+ </div>
+ )
 }
 
 export const widgetRegistry: RegistryEntry[] = createRegistry([
-  { id: 'missionCenter', Container: MissionCenterBounded },
-  { id: 'decisionQueue', Container: DecisionQueueBounded },
-  { id: 'intelligenceFeed', Container: IntelligenceFeedBounded },
-  { id: 'aiBrief', Container: AIBriefBounded },
-  { id: 'marketPulse', Container: MarketPulseBounded },
-  { id: 'recentActivity', Container: RecentActivityBounded },
-  { id: 'pipeline', Container: PipelineBounded },
-  { id: 'companyHealth', Container: CompanyHealthBounded },
+ { id: 'missionCenter', Container: MissionCenterBounded },
+ { id: 'decisionQueue', Container: DecisionQueueBounded },
+ { id: 'intelligenceFeed', Container: IntelligenceFeedBounded },
+ { id: 'aiBrief', Container: AIBriefBounded },
+ { id: 'marketPulse', Container: MarketPulseBounded },
+ { id: 'recentActivity', Container: RecentActivityBounded },
+ { id: 'pipeline', Container: PipelineBounded },
+ { id: 'companyHealth', Container: CompanyHealthBounded },
 ])

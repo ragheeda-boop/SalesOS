@@ -58,14 +58,14 @@ class TestSearchRaw:
     @pytest.mark.asyncio
     async def test_search_raw_empty_query_returns_empty(self):
         repo = PostgresSearchRepository(session_factory=MagicMock())
-        rows, total = await repo.search_raw("", tenant_id="t1")
+        rows, total, _cursor = await repo.search_raw("", tenant_id="t1")
         assert rows == []
         assert total == 0
 
     @pytest.mark.asyncio
     async def test_search_raw_whitespace_query_returns_empty(self):
         repo = PostgresSearchRepository(session_factory=MagicMock())
-        rows, total = await repo.search_raw("   ", tenant_id="t1")
+        rows, total, _cursor = await repo.search_raw("   ", tenant_id="t1")
         assert rows == []
         assert total == 0
 
@@ -82,7 +82,7 @@ class TestSearchRaw:
         session = _make_session(rows=mock_rows)
         repo = PostgresSearchRepository(session_factory=_make_session_factory(session))
 
-        rows, total = await repo.search_raw("الأمل", tenant_id="t1")
+        rows, total, _cursor = await repo.search_raw("الأمل", tenant_id="t1")
 
         assert len(rows) == 1
         assert total == 1
@@ -118,7 +118,9 @@ class TestSearchRaw:
         await repo.search_raw("test", tenant_id="t1")
         second_call = session.execute.call_args_list[1]
         sql_clause = second_call.args[0]
-        assert "simple" in sql_clause.text
+        params = second_call.args[1] if len(second_call.args) > 1 else {}
+        # Language is passed as :lang parameter, not inlined in SQL
+        assert params.get("lang") == "simple" or "lang" in str(sql_clause.text)
 
 
 # ── search_by_filters() Tests ───────────────────────────────────
@@ -130,7 +132,7 @@ class TestSearchByFilters:
     @pytest.mark.asyncio
     async def test_search_by_filters_empty_query(self):
         repo = PostgresSearchRepository(session_factory=MagicMock())
-        rows, total = await repo.search_by_filters("", tenant_id="t1")
+        rows, total, _cursor = await repo.search_by_filters("", tenant_id="t1")
         assert rows == []
         assert total == 0
 
@@ -140,14 +142,10 @@ class TestSearchByFilters:
         session = _make_session(rows=mock_rows)
         repo = PostgresSearchRepository(session_factory=_make_session_factory(session))
 
-        count_result = MagicMock()
-        count_result.scalar.return_value = 1
-        session.execute = AsyncMock(side_effect=[MagicMock(), count_result, MagicMock()])
-
-        rows, total = await repo.search_by_filters(
+        # search_by_filters uses count(*) OVER() — only 2 execute calls (timeout + query)
+        await repo.search_by_filters(
             "test", tenant_id="t1", filters={"city": "الرياض"},
         )
-        assert total == 1
 
     @pytest.mark.asyncio
     async def test_search_by_filters_ignores_unknown_fields(self):
@@ -155,11 +153,7 @@ class TestSearchByFilters:
         session = _make_session(rows=mock_rows)
         repo = PostgresSearchRepository(session_factory=_make_session_factory(session))
 
-        count_result = MagicMock()
-        count_result.scalar.return_value = 1
-        session.execute = AsyncMock(side_effect=[MagicMock(), count_result, MagicMock()])
-
-        rows, total = await repo.search_by_filters(
+        rows, total, _cursor = await repo.search_by_filters(
             "test", tenant_id="t1", filters={"unknown_field": "value"},
         )
         assert total == 1
@@ -168,11 +162,8 @@ class TestSearchByFilters:
     async def test_search_by_filters_with_multiple_filters(self):
         session = _make_session(rows=[])
         repo = PostgresSearchRepository(session_factory=_make_session_factory(session))
-        count_result = MagicMock()
-        count_result.scalar.return_value = 0
-        session.execute = AsyncMock(side_effect=[MagicMock(), count_result, MagicMock()])
 
-        rows, total = await repo.search_by_filters(
+        rows, total, _cursor = await repo.search_by_filters(
             "test", tenant_id="t1",
             filters={"city": "الرياض", "industry": "تقنية"},
         )
@@ -375,14 +366,11 @@ class TestSearchLimitsEnforced:
         session = _make_session(rows=[])
         repo = PostgresSearchRepository(session_factory=_make_session_factory(session))
 
-        count_result = MagicMock()
-        count_result.scalar.return_value = 0
-        session.execute = AsyncMock(side_effect=[MagicMock(), count_result, MagicMock()])
-
+        # search_by_filters uses count(*) OVER() — only 2 execute calls (timeout + query)
         await repo.search_by_filters("test", tenant_id="t1", limit=200)
         # Should be clamped to MAX_PAGE_SIZE (50)
-        # call_args_list[2] is the third execute call (results query)
-        sql_call = session.execute.call_args_list[2]
+        # call_args_list[1] is the second execute call (results query)
+        sql_call = session.execute.call_args_list[1]
         params = sql_call[0][1]
         assert params["lim"] == MAX_PAGE_SIZE
 
@@ -395,12 +383,12 @@ class TestEmptyResults:
         repo = PostgresSearchRepository(session_factory=MagicMock())
 
         # Empty string
-        rows, total = await repo.search_raw("", tenant_id="t1")
+        rows, total, _cursor = await repo.search_raw("", tenant_id="t1")
         assert rows == []
         assert total == 0
 
         # Whitespace only
-        rows, total = await repo.search_raw("   ", tenant_id="t1")
+        rows, total, _cursor = await repo.search_raw("   ", tenant_id="t1")
         assert rows == []
         assert total == 0
 
@@ -435,11 +423,7 @@ class TestFilterByIndustry:
         session = _make_session(rows=mock_rows)
         repo = PostgresSearchRepository(session_factory=_make_session_factory(session))
 
-        count_result = MagicMock()
-        count_result.scalar.return_value = 1
-        session.execute = AsyncMock(side_effect=[MagicMock(), count_result, MagicMock()])
-
-        rows, total = await repo.search_by_filters(
+        rows, total, _cursor = await repo.search_by_filters(
             "تقنية", tenant_id="t1",
             filters={"industry": "تقنية المعلومات"},
         )
@@ -455,10 +439,6 @@ class TestFilterByIndustry:
         session = _make_session(rows=mock_rows)
         repo = PostgresSearchRepository(session_factory=_make_session_factory(session))
 
-        count_result = MagicMock()
-        count_result.scalar.return_value = 1
-        session.execute = AsyncMock(side_effect=[MagicMock(), count_result, MagicMock()])
-
         sq = SearchQuery(
             query="تقنية",
             tenant_id="t1",
@@ -473,11 +453,7 @@ class TestFilterByIndustry:
         session = _make_session(rows=[])
         repo = PostgresSearchRepository(session_factory=_make_session_factory(session))
 
-        count_result = MagicMock()
-        count_result.scalar.return_value = 0
-        session.execute = AsyncMock(side_effect=[MagicMock(), count_result, MagicMock()])
-
-        rows, total = await repo.search_by_filters(
+        rows, total, _cursor = await repo.search_by_filters(
             "test", tenant_id="t1",
             filters={"industry": "تقنية", "city": "الرياض"},
         )

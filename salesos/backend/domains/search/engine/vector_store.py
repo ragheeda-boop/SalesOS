@@ -104,12 +104,12 @@ class PgVectorStore(VectorStore):
         from sqlalchemy import text
 
         async with self._session_factory() as session:
-            stmt = text(f"""
-                SELECT id, metadata, 1 - (embedding <=> :vector::vector) AS score
-                FROM {self._collection}
-                ORDER BY embedding <=> :vector::vector
-                LIMIT :top_k
-            """)
+            stmt = text(
+                "SELECT id, metadata, 1 - (embedding <=> :vector::vector) AS score "
+                "FROM " + self._collection + " "
+                "ORDER BY embedding <=> :vector::vector "
+                "LIMIT :top_k"
+            )
             result = await session.execute(stmt, {"vector": vector, "top_k": top_k})
             return [
                 VectorRecord(id=str(r.id), vector=[], metadata=r.metadata or {}, score=float(r.score))
@@ -121,12 +121,12 @@ class PgVectorStore(VectorStore):
 
         async with self._session_factory() as session:
             await session.execute(
-                text(f"""
-                    INSERT INTO {self._collection} (id, embedding, metadata)
-                    VALUES (:id, :vector::vector, :metadata::jsonb)
-                    ON CONFLICT (id) DO UPDATE
-                    SET embedding = :vector::vector, metadata = :metadata::jsonb
-                """),
+                text(
+                    "INSERT INTO " + self._collection + " (id, embedding, metadata) "
+                    "VALUES (:id, :vector::vector, :metadata::jsonb) "
+                    "ON CONFLICT (id) DO UPDATE "
+                    "SET embedding = :vector::vector, metadata = :metadata::jsonb"
+                ),
                 {"id": record.id, "vector": record.vector, "metadata": record.metadata},
             )
             await session.commit()
@@ -136,7 +136,7 @@ class PgVectorStore(VectorStore):
 
         async with self._session_factory() as session:
             await session.execute(
-                text(f"DELETE FROM {self._collection} WHERE id = :id"),
+                text("DELETE FROM " + self._collection + " WHERE id = :id"),
                 {"id": record_id},
             )
             await session.commit()
@@ -145,5 +145,5 @@ class PgVectorStore(VectorStore):
         from sqlalchemy import text
 
         async with self._session_factory() as session:
-            result = await session.execute(text(f"SELECT COUNT(*) FROM {self._collection}"))
+            result = await session.execute(text("SELECT COUNT(*) FROM " + self._collection))
             return result.scalar() or 0

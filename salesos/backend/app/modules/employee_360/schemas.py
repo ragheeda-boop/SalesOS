@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class EmployeeProfile(BaseModel):
@@ -10,11 +10,12 @@ class EmployeeProfile(BaseModel):
     full_name_ar: Optional[str] = None
     email: str
     role: str
+    department: Optional[str] = None
     phone: Optional[str] = None
     avatar_url: Optional[str] = None
     is_active: bool = True
     tenant_id: str
-    created_at: datetime
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     team: list[dict] = []
     manager: Optional[dict] = None
 
@@ -77,6 +78,65 @@ class EmployeeKPIs(BaseModel):
     activities: int = 0
     productivity: float = 0.0
     forecast: float = 0.0
+    signal_volume_score: float = 0.0
+    diversity_score: float = 0.0
+    completion_rate: float = 0.0
+    signal_count: int = 0
+
+
+
+class EmployeeSignalSummary(BaseModel):
+    total_signals: int = 0
+    by_source: dict[str, int] = {}
+    by_type: dict[str, int] = {}
+    recent_signals: list[dict] = []
+
+
+class EmployeeSignals(BaseModel):
+    signals: EmployeeSignalSummary = EmployeeSignalSummary()
+    score: dict | None = None
+
+
+class ScoreTrend(BaseModel):
+    current_score: float = 0.0
+    previous_score: float = 0.0
+    delta: float = 0.0
+    direction: str = "stable"
+    period_days: int = 30
+
+
+class PeerComparison(BaseModel):
+    employee_score: float = 0.0
+    department_average: float = 0.0
+    percentile: int = 0
+    above_average: bool = False
+
+
+class RiskFlagItem(BaseModel):
+    flag: str
+    severity: str = "low"
+    message: str = ""
+    detail: dict = {}
+
+
+class PerformanceInsights(BaseModel):
+    trend: ScoreTrend = ScoreTrend()
+    peer_comparison: PeerComparison = PeerComparison()
+    risk_flags: list[RiskFlagItem] = []
+
+
+class TimelineEvent(BaseModel):
+    id: str
+    signal_type: str
+    source: str
+    metadata: dict = {}
+    timestamp: datetime
+
+
+class EmployeeTimeline(BaseModel):
+    events: list[TimelineEvent] = []
+    total: int = 0
+    next_cursor: Optional[str] = None
 
 
 class AICoachAction(BaseModel):
@@ -96,3 +156,6 @@ class Employee360Response(BaseModel):
     activity_intelligence: ActivityIntelligence = ActivityIntelligence()
     kpis: EmployeeKPIs = EmployeeKPIs()
     ai_coach: list[AICoachAction] = []
+    signals: EmployeeSignals = EmployeeSignals()
+    timeline: EmployeeTimeline = EmployeeTimeline()
+    performance: PerformanceInsights = PerformanceInsights()

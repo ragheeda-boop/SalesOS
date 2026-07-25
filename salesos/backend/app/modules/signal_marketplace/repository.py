@@ -54,7 +54,7 @@ class SignalEventRepository:
     async def list_by_company(self, company_id: str, tenant_id: str, limit: int = 50) -> list[SignalEvent]:
         raise NotImplementedError
 
-    async def acknowledge(self, event_id: str) -> SignalEvent | None:
+    async def acknowledge(self, event_id: str, tenant_id: str) -> SignalEvent | None:
         raise NotImplementedError
 
     async def count_unacknowledged(self, tenant_id: str) -> int:
@@ -136,9 +136,9 @@ class InMemorySignalEventRepository(SignalEventRepository):
         results.sort(key=lambda e: e.detected_at, reverse=True)
         return results[:limit]
 
-    async def acknowledge(self, event_id: str) -> SignalEvent | None:
+    async def acknowledge(self, event_id: str, tenant_id: str) -> SignalEvent | None:
         event = self._store.get(event_id)
-        if event is None:
+        if event is None or event.tenant_id != tenant_id:
             return None
         event.acknowledged = True
         event.acknowledged_at = datetime.now(timezone.utc)

@@ -172,6 +172,7 @@ class ArabicSearchNormalizer:
         remove_company_suffixes: bool = False,
         remove_separators: bool = False,
         lower_case: bool = False,
+        apply_stemming: bool = False,
     ):
         self.remove_diacritics = remove_diacritics
         self.remove_tatweel = remove_tatweel
@@ -187,6 +188,15 @@ class ArabicSearchNormalizer:
         self.remove_company_suffixes = remove_company_suffixes
         self.remove_separators = remove_separators
         self.lower_case = lower_case
+        self.apply_stemming = apply_stemming
+        self._stemmer = None
+
+    @property
+    def _stemmer_instance(self):
+        if self._stemmer is None:
+            from .arabic_stemmer import ArabicStemmer
+            self._stemmer = ArabicStemmer.default()
+        return self._stemmer
 
     def normalize(self, text: str) -> str:
         """Apply the full normalization pipeline to the given text.
@@ -263,6 +273,10 @@ class ArabicSearchNormalizer:
         if self.remove_company_suffixes:
             text = self._remove_suffixes(text)
 
+        # 14. Apply Arabic stemming (suffix stripping)
+        if self.apply_stemming:
+            text = self._apply_stemming(text)
+
         return text
 
     def normalize_for_indexing(self, text: str) -> str:
@@ -337,6 +351,12 @@ class ArabicSearchNormalizer:
                     break
         return " ".join(words).strip()
 
+    def _apply_stemming(self, text: str) -> str:
+        """Apply Arabic stemming (suffix stripping) to each word."""
+        words = text.split()
+        stemmed = [self._stemmer_instance.stem(w) for w in words]
+        return " ".join(stemmed)
+
     @staticmethod
     def default() -> ArabicSearchNormalizer:
         """Create a normalizer with default settings for search."""
@@ -364,4 +384,16 @@ class ArabicSearchNormalizer:
             remove_company_prefixes=True,
             remove_company_suffixes=True,
             remove_separators=True,
+        )
+
+    @staticmethod
+    def for_stemming() -> ArabicSearchNormalizer:
+        """Create a normalizer with stemming enabled for search indexing.
+
+        Applies full normalization + suffix stripping to produce
+        root-like forms for better recall.
+        """
+        return ArabicSearchNormalizer(
+            remove_stop_words=True,
+            apply_stemming=True,
         )

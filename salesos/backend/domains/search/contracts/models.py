@@ -35,6 +35,8 @@ class SearchQuery:
     page_size: int = 20
     tenant_id: str = ""
     context: dict[str, Any] = field(default_factory=dict)
+    cursor: str | None = None
+    cursor_sort_value: Any = None
 
 
 @dataclass

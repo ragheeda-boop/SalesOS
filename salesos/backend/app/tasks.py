@@ -422,7 +422,7 @@ async def _run_enrichment_pipeline(company_id: str, tenant_id: str) -> dict:
     return {
         "company_id": company_id,
         "features": features,
-        "enriched_at": str(_datetime.datetime.utcnow()),
+        "enriched_at": str(_datetime.datetime.now(_datetime.timezone.utc)),
     }
 
 

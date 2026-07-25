@@ -82,11 +82,12 @@ services:
       - neo4j_data:/data
       - neo4j_logs:/logs
     healthcheck:
-      test: ["CMD", "cypher-shell", "-u", "${NEO4J_USER:-neo4j}", "-p", "${NEO4J_PASSWORD:-salesos_neo4j_staging}", "RETURN 1"]
+      # HTTP probe avoids compose password-subst issues in cypher-shell CMD.
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:7474 || exit 1"]
       interval: 15s
       timeout: 10s
-      retries: 10
-      start_period: 30s
+      retries: 12
+      start_period: 45s
     deploy:
       resources:
         limits:
@@ -179,10 +180,10 @@ services:
           memory: 512M
     logging: *default-logging
 
+  # App images: GHCR tags via REGISTRY / IMAGE_NAMESPACE / IMAGE_TAG
+  # (aligned with deploy-staging.yml SSH pull path — not local build).
   migrations:
-    build:
-      context: ../../backend
-      dockerfile: Dockerfile
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-ragheeda-boop/salesos}/backend:${IMAGE_TAG:-staging}
     restart: on-failure
     entrypoint: ["sh", "-c", "alembic upgrade head"]
     depends_on:
@@ -198,9 +199,7 @@ services:
     logging: *default-logging
 
   backend:
-    build:
-      context: ../../backend
-      dockerfile: Dockerfile
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-ragheeda-boop/salesos}/backend:${IMAGE_TAG:-staging}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -216,7 +215,7 @@ services:
     environment:
       - SALESOS_ENV=staging
       - SALESOS_DEBUG=true
-    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -234,9 +233,7 @@ services:
     logging: *default-logging
 
   frontend:
-    build:
-      context: ../../frontend
-      dockerfile: Dockerfile
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-ragheeda-boop/salesos}/frontend:${IMAGE_TAG:-staging}
     restart: unless-stopped
     depends_on:
       backend:

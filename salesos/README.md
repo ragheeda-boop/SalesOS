@@ -53,6 +53,28 @@ docker compose up --build -d
 # Frontend:     http://localhost:3000
 ```
 
+## Windows Development Setup
+
+### Prerequisites
+- Docker Desktop for Windows (with WSL2 backend recommended)
+- Git for Windows
+
+### Quick Start (Docker-only)
+```powershell
+.\start.bat
+```
+
+### WSL2 Setup (Recommended)
+1. Install WSL2: `wsl --install`
+2. Install Docker Desktop with WSL2 integration
+3. Clone repo inside WSL: `git clone <repo>`
+4. Run: `docker compose up --build -d`
+
+### Known Issues
+- **Poetry on Windows host:** May fail with asyncpg. Use Docker-only backend per `AGENTS.md`.
+- **Line endings:** Use `git config core.autocrlf input` before cloning.
+- **Symlinks:** WSL2 handles symlinks correctly; native Windows may not.
+
 ## Data Fabric — v0.2.0
 
 SalesOS v0.2.0 introduces the **Data Fabric** layer — Entity Resolution, Hybrid Search, Feature Store, and Knowledge Graph.

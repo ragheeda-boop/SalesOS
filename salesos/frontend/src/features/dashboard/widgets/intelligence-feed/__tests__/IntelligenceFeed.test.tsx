@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { IntelligenceFeedView } from '../IntelligenceFeedView'
 import { IntelligenceFeedWidget } from '../IntelligenceFeedContainer'
-import { describeWidgetContract } from '../../../sdk/testing'
+import { describeWidgetContract } from '@salesos/widget-sdk/testing'
 import type { IntelligenceFeedViewProps, SignalItemData } from '../types'
 
 const sampleSignals: SignalItemData[] = [

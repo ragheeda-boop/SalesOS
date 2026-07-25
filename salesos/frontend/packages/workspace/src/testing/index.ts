@@ -1,7 +1,8 @@
-export { renderWidget } from './renderWidget'
-export { describeWidgetContract } from './WidgetContract'
-export { createMockWidget, createEmptyWidget } from './mockWidgetContext'
+// Workspace-specific testing utilities
 export { TelemetrySpy, createTelemetrySpy } from './mockTelemetry'
-export { mockPermissions, mockPermissionsAll, mockPermissionsNone } from './mockPermissions'
-export { mockFeatureFlagsAll, mockFeatureFlagsNone, mockFeatureFlagsCustom } from './mockFeatureFlags'
 export type { MockWidgetContext, MockFactory } from './types'
+
+// Re-exported from canonical SDK for convenience
+export { describeWidgetContract, renderWidget, createMockWidget } from '@salesos/widget-sdk/testing'
+export { mockPermissionsAll, mockPermissionsNone } from '@salesos/widget-sdk/testing'
+export { mockFeatureFlagsAll, mockFeatureFlagsNone } from '@salesos/widget-sdk/testing'

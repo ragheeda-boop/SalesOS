@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.exceptions import safe_error_detail
+from app.common.rate_limit import check_rate_limit_by_key
 from app.dependencies import (
     get_current_tenant_id,
     get_current_user_id,
@@ -10,6 +12,7 @@ from app.dependencies import (
 )
 
 from .invite_service import InviteService
+from .schemas import validate_password_strength
 
 router = APIRouter()
 
@@ -20,8 +23,13 @@ class InviteRequest(BaseModel):
 
 
 class AcceptInviteRequest(BaseModel):
-    password: str = Field(..., min_length=8, max_length=128)
+    password: str = Field(..., min_length=12, max_length=128)
     full_name: str = Field(..., min_length=1, max_length=255)
+
+    @model_validator(mode="after")
+    def validate_password(self) -> "AcceptInviteRequest":
+        validate_password_strength(self.password)
+        return self
 
 
 def get_service(
@@ -52,7 +60,7 @@ async def invite_user(
             tenant_id=tenant_id,
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid invitation"))
     return {
         "message": f"Invitation sent to {body.email}",
         "email": result["email"],
@@ -69,7 +77,7 @@ async def validate_invite(
     try:
         result = await service.validate_invite(token)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid invitation"))
     return result
 
 
@@ -77,8 +85,10 @@ async def validate_invite(
 async def accept_invite(
     token: str,
     body: AcceptInviteRequest,
+    request: Request,
     service: InviteService = Depends(get_service),
 ):
+    await check_rate_limit_by_key(f"accept-invite:{request.client.host}", limit=5, window=900)
     try:
         result = await service.accept_invite(
             token=token,
@@ -86,7 +96,7 @@ async def accept_invite(
             full_name=body.full_name,
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid invitation"))
     return {
         "message": "Invitation accepted successfully",
         "user_id": result["user_id"],

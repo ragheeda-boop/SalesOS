@@ -94,7 +94,10 @@ class RevenueService:
             where += " AND priority = :priority"
             params["priority"] = priority
         result = await self.db.execute(
-            text(f"SELECT id, title, priority, source, completed, created_at FROM tasks {where} ORDER BY created_at DESC"),
-            params
+            text(
+                f"SELECT id, title, priority, source, company_id, completed, created_at "
+                f"FROM tasks {where} ORDER BY created_at DESC"
+            ),
+            params,
         )
         return [dict(r._mapping) for r in result.fetchall()]

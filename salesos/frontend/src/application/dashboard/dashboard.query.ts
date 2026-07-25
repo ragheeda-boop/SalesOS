@@ -1,4 +1,4 @@
 export interface DashboardQuery {
-  period?: 'today' | 'week' | 'month' | 'quarter'
-  fields?: string[]
+ period?: 'today' | 'week' | 'month' | 'quarter'
+ fields?: string[]
 }

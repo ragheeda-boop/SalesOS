@@ -11,6 +11,71 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 
+class BodyCacheMiddleware:
+    """Cache the request body and make it available via request.state.body.
+
+    Reads the body from the ASGI receive stream once and stores it in
+    scope['state']['body'].  Downstream middleware and route handlers can
+    retrieve it via request.state.body without consuming the stream.
+
+    Skips body caching for methods without request bodies (GET, HEAD, OPTIONS,
+    DELETE) to reduce overhead under load.
+    """
+
+    _DEFAULT_MAX_BODY_SIZE = 10 * 1024 * 1024  # 10 MB
+    _BODY_METHODS = frozenset({"POST", "PUT", "PATCH"})
+
+    def __init__(self, app, max_body_size: int = _DEFAULT_MAX_BODY_SIZE):
+        self.app = app
+        self.max_body_size = max_body_size
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+
+        if scope.get("method", "GET") not in self._BODY_METHODS:
+            return await self.app(scope, receive, send)
+
+        chunks = []
+        total_size = 0
+        more_body = True
+        while more_body:
+            message = await receive()
+            chunk = message.get("body", b"")
+            chunks.append(chunk)
+            total_size += len(chunk)
+            if total_size > self.max_body_size:
+                response = JSONResponse(
+                    status_code=413,
+                    content={
+                        "detail": "Request body too large",
+                        "detail_ar": "حجم الطلب أكبر من الحد المسموح",
+                    },
+                )
+                await response(scope, receive, send)
+                return
+            more_body = message.get("more_body", False)
+
+        body = b"".join(chunks)
+
+        if "state" not in scope:
+            scope["state"] = {}
+        scope["state"]["body"] = body
+        # Legacy key retained for callers/tests that read scope["body_cache"]
+        scope["body_cache"] = body
+
+        body_sent = False
+
+        async def cached_receive():
+            nonlocal body_sent
+            if not body_sent:
+                body_sent = True
+                return {"type": "http.request", "body": body, "more_body": False}
+            return {"type": "http.disconnect"}
+
+        await self.app(scope, cached_receive, send)
+
+
 def _get_client_ip(scope: dict) -> str:
     """Extract client IP from request scope, handling proxies."""
     headers = dict(scope.get("headers", []))
@@ -24,6 +89,7 @@ def _get_client_ip(scope: dict) -> str:
 
 
 _SEARCH_ENRICH_PREFIXES = ("/api/v1/search", "/api/v1/entity-resolution", "/api/v1/data-fabric")
+_GRAPHQL_PREFIX = "/graphql"
 
 
 class RateLimitMiddleware:
@@ -52,17 +118,43 @@ class RateLimitMiddleware:
             del self._local[k]
         self._last_cleanup = now
 
-    def _select_tier(self, path: str, auth_header: str) -> int:
+    @staticmethod
+    def _is_authenticated(request: Request, auth_header: str) -> bool:
+        """Authenticated tier only after verified API key or decodable JWT.
+
+        Presence of a Bearer prefix alone must not raise the limit (PROD-W5-002).
+        """
+        if getattr(request.state, "api_key_authenticated", False):
+            return True
+        if not auth_header.startswith("Bearer "):
+            return False
+        token = auth_header[7:].strip()
+        if not token:
+            return False
+        try:
+            from app.modules.identity.service import decode_access_token
+
+            decode_access_token(token)
+            return True
+        except Exception:
+            return False
+
+    def _select_tier(self, path: str, authenticated: bool) -> int:
         """Return the per-minute rate limit for the given request path."""
-        health_paths = ("/health", "/health/live", "/health/ready")
+        health_paths = ("/health", "/health/live", "/health/ready", "/csrf-token")
         if path in health_paths or path.startswith(("/docs", "/redoc")):
             return settings.rate_limit_health
+        # NOTE: RateLimitMiddleware runs before CsrfEnforcementMiddleware in the
+        # stack (see app/boot/middleware.py). CSRF-failing POST/PUT/PATCH/DELETE
+        # requests will therefore consume the caller's rate-limit budget before
+        # the CSRF 403 is returned. This is a known P2 limitation; a full fix
+        # requires middleware reordering or post-response rate-limit accounting.
         if path.startswith("/api/v1/identity"):
             return settings.rate_limit_identity
         if any(path.startswith(p) for p in _SEARCH_ENRICH_PREFIXES):
             return settings.rate_limit_search
-        if path.startswith("/api/v1/"):
-            if auth_header.startswith("Bearer "):
+        if path.startswith(_GRAPHQL_PREFIX) or path.startswith("/api/v1/"):
+            if authenticated:
                 return settings.rate_limit_authenticated
             return settings.rate_limit_anonymous
         return settings.rate_limit_default
@@ -78,7 +170,7 @@ class RateLimitMiddleware:
         client_ip = request.client.host if request.client else "unknown"
         path = request.url.path
         auth_header = request.headers.get("authorization", "")
-        tier_rate = self._select_tier(path, auth_header)
+        tier_rate = self._select_tier(path, self._is_authenticated(request, auth_header))
         now = time.time()
 
         # Key by IP only — prevents bypass via path variation
@@ -281,8 +373,9 @@ class CsrfEnforcementMiddleware:
     """Enforce CSRF token validation on state-changing requests.
 
     Requires X-CSRF-Token header matching the csrf_token cookie on
-    POST/PUT/PATCH/DELETE. Skips for API key authenticated requests,
-    testing mode (SALESOS_TESTING=true), and read-only methods (GET/HEAD/OPTIONS).
+    POST/PUT/PATCH/DELETE. Skips only after successful API-key auth
+    (request.state.api_key_authenticated), testing mode (SALESOS_TESTING=true),
+    and read-only methods (GET/HEAD/OPTIONS).
     """
 
     _STATE_CHANGING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
@@ -317,9 +410,11 @@ class CsrfEnforcementMiddleware:
         headers = dict(scope.get("headers", []))
         cookie_header = headers.get(b"cookie", b"").decode()
         csrf_header = headers.get(b"x-csrf-token", b"").decode()
-        api_key_header = headers.get(b"x-api-key", b"").decode()
 
-        if api_key_header:
+        # Skip CSRF only after ApiKeyMiddleware successfully authenticated
+        # (PROD-W5-001). A non-empty X-API-Key alone must NOT bypass CSRF.
+        request = Request(scope, receive)
+        if getattr(request.state, "api_key_authenticated", False):
             return await self.app(scope, receive, send)
 
         cookie_csrf = ""

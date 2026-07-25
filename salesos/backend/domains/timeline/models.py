@@ -2,7 +2,7 @@ import datetime
 import uuid
 from typing import Any
 
-from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy import Column, Index, Integer, String, DateTime, func
 from sqlalchemy.dialects.postgresql import JSONB
 
 from sdk.database import Base
@@ -21,4 +21,10 @@ class TimelineEventModel(Base):
     importance = Column(Integer, nullable=False, server_default="0")
     created_at = Column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    __table_args__ = (
+        Index("ix_timeline_entity", "entity_type", "entity_id"),
+        Index("ix_timeline_tenant_created", "tenant_id", "created_at"),
+        Index("ix_timeline_event_type", "event_type"),
     )

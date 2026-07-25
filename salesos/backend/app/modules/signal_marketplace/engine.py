@@ -9,7 +9,16 @@ from .models import Signal
 from .service import SignalMarketplaceService
 
 
-PACKS_BASE = Path(os.environ.get("KNOWLEDGE_PACKS_PATH", str(Path(__file__).resolve().parents[5] / "knowledge-packs")))
+def _packs_base() -> Path:
+    """Resolve knowledge-packs root (env override for tests/ops)."""
+    env = os.environ.get("KNOWLEDGE_PACKS_PATH")
+    if env:
+        return Path(env)
+    here = Path(__file__).resolve()
+    # Prefer repo-root knowledge-packs when depth allows; else sibling fallback.
+    if len(here.parents) > 5:
+        return here.parents[5] / "knowledge-packs"
+    return here.parents[len(here.parents) - 1] / "knowledge-packs"
 
 
 class SignalDetectionEngine:
@@ -21,10 +30,11 @@ class SignalDetectionEngine:
 
     async def load_all_packs(self) -> list[Signal]:
         all_signals: list[Signal] = []
-        if not PACKS_BASE.exists():
+        packs_base = _packs_base()
+        if not packs_base.exists():
             return all_signals
 
-        for pack_dir in sorted(PACKS_BASE.iterdir()):
+        for pack_dir in sorted(packs_base.iterdir()):
             if not pack_dir.is_dir():
                 continue
             signal_file = pack_dir / "signals" / "signal-definitions.json"

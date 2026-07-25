@@ -65,6 +65,13 @@ def validate_output(llm_output: str, schema: dict[str, Any]) -> bool:
         return False
     if "analysis" not in parsed and "proposal" not in parsed and "summary" not in parsed:
         return False
+    # Require non-optional keys declared in the schema (e.g. proposal when listed)
+    optional_keys = {"confidence", "evidence", "sources"}
+    for key in schema:
+        if key in optional_keys:
+            continue
+        if key not in parsed:
+            return False
     if "confidence" in schema and "confidence" in parsed:
         c = parsed["confidence"]
         if not isinstance(c, (int, float)) or not (0 <= c <= 1):

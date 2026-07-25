@@ -1,9 +1,9 @@
-"""SQLAlchemy ORM models for Admin module — Plans, Licenses, Invoices, FeatureFlags, Jobs, AI Costs, Health."""
+"""SQLAlchemy ORM models for Admin module — Plans, Licenses, Invoices, FeatureFlags, Jobs, AI Costs, Health, Roles, Permissions, Configs."""
 
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -39,6 +39,10 @@ class LicenseModel(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
+    __table_args__ = (
+        Index("ix_admin_licenses_tenant_active", "tenant_id", "is_active"),
+    )
+
 
 class InvoiceModel(Base):
     __tablename__ = "admin_invoices"
@@ -52,6 +56,11 @@ class InvoiceModel(Base):
     due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    __table_args__ = (
+        Index("ix_admin_invoices_tenant_status", "tenant_id", "status"),
+        Index("ix_admin_invoices_due", "due_date"),
+    )
 
 
 class TransactionModel(Base):
@@ -68,6 +77,10 @@ class TransactionModel(Base):
     reference: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
+    __table_args__ = (
+        Index("ix_admin_transactions_tenant_status", "tenant_id", "status"),
+    )
+
 
 class FeatureFlagModel(Base):
     __tablename__ = "admin_feature_flags"
@@ -79,6 +92,8 @@ class FeatureFlagModel(Base):
     enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     is_global: Mapped[bool] = mapped_column(Boolean, default=True)
     tenant_overrides: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=dict)
+    rollout_percentage: Mapped[int] = mapped_column(Integer, default=100)
+    is_ci_test: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
@@ -118,6 +133,10 @@ class AICostRecordModel(Base):
     operation: Mapped[str] = mapped_column(String(50), default="completion")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
+    __table_args__ = (
+        Index("ix_admin_ai_costs_tenant_model", "tenant_id", "model"),
+    )
+
 
 class HealthSnapshotModel(Base):
     __tablename__ = "admin_health_snapshots"
@@ -126,3 +145,53 @@ class HealthSnapshotModel(Base):
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     overall_status: Mapped[str] = mapped_column(String(50), nullable=False)
     components: Mapped[dict] = mapped_column(JSONB, nullable=False)
+
+    __table_args__ = (
+        Index("ix_admin_health_ts", "timestamp"),
+    )
+
+
+class RoleModel(Base):
+    __tablename__ = "admin_roles"
+
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str] = mapped_column(Text, default="")
+    is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    tenant_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+
+class PermissionModel(Base):
+    __tablename__ = "admin_permissions"
+
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    key: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str] = mapped_column(Text, default="")
+    group: Mapped[str] = mapped_column(String(50), default="general")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class RolePermissionModel(Base):
+    __tablename__ = "admin_role_permissions"
+
+    role_id: Mapped[str] = mapped_column(String(100), ForeignKey("admin_roles.id", ondelete="CASCADE"), primary_key=True)
+    permission_id: Mapped[str] = mapped_column(String(100), ForeignKey("admin_permissions.id", ondelete="CASCADE"), primary_key=True)
+
+
+class TenantConfigModel(Base):
+    __tablename__ = "tenant_configs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    key: Mapped[str] = mapped_column(String(255), nullable=False)
+    yaml_content: Mapped[str] = mapped_column(Text, nullable=False)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    created_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    __table_args__ = (
+        Index("ix_tenant_configs_tenant_key", "tenant_id", "key"),
+    )

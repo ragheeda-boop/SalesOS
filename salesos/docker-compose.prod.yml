@@ -272,6 +272,61 @@ services:
           memory: 512M
     logging: *default-logging
 
+  worker:
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-ragheeda-boop/salesos}/backend:${IMAGE_TAG:-latest}
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    env_file:
+      - .env.production
+    environment:
+      - SALESOS_ENV=production
+      - SALESOS_DEBUG=false
+      - EVENT_BUS_TYPE=${EVENT_BUS_TYPE:-in_memory}
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=2 --max-tasks-per-child=1000
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    logging: *default-logging
+
+  beat:
+    image: ${REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-ragheeda-boop/salesos}/backend:${IMAGE_TAG:-latest}
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+      worker:
+        condition: service_started
+    env_file:
+      - .env.production
+    environment:
+      - SALESOS_ENV=production
+      - SALESOS_DEBUG=false
+    command: celery -A app.celery_app beat --loglevel=info
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+        reservations:
+          cpus: "0.1"
+          memory: 64M
+    logging: *default-logging
+
   frontend:
     image: ${REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-ragheeda-boop/salesos}/frontend:${IMAGE_TAG:-latest}
     restart: always

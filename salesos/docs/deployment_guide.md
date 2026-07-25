@@ -1222,16 +1222,101 @@ Prometheus is configured in `infra/monitoring/prometheus.yml` with these scrape 
 
 ### 9.3 Log Aggregation
 
-All services use JSON file logging with rotation:
+The observability stack consists of:
+
+| Component | Purpose | Config |
+|-----------|---------|--------|
+| **Loki** | Log aggregation and storage | `grafana/loki:latest`, port 3100 |
+| **Promtail** | Log shipping agent | Sidecar, ships container logs to Loki |
+| **OpenTelemetry Collector** | Trace, metric, and log collection | `otel/opentelemetry-collector-contrib`, ports 4317/4318 |
+| **Prometheus** | Metrics storage and alerting | `prom/prometheus`, port 9090 |
+| **Grafana** | Dashboard and visualization | `grafana/grafana`, port 3001 |
+| **Alertmanager** | Alert routing and notification | `prom/alertmanager`, port 9093 |
+
+#### Log Shipping (Promtail)
+
+All services write JSON-formatted logs to stdout. Promtail scrapes these via the Docker socket:
 
 ```yaml
-x-logging: &default-logging
-  driver: "json-file"
-  options:
-    max-size: "10m"
-    max-file: "3"
-    tag: "{{.Name}}/{{.ID}}"
+# docker-compose.yml — promtail service
+promtail:
+  image: grafana/promtail:latest
+  volumes:
+    - ./salesos/infra/monitoring/promtail-config.yml:/etc/promtail/config.yml
+    - /var/log:/var/log:ro
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+  command:
+    - "--config.file=/etc/promtail/config.yml"
+  depends_on:
+    - loki
 ```
+
+Promtail configuration (`infra/monitoring/promtail-config.yml`) parses JSON log entries:
+- Extracts `level`, `logger`, `request_id`, `tenant_id`, `latency_ms`
+- Labels: `service`, `container`, `level`
+- Timestamps from log entry (RFC3339 format)
+
+#### Querying Logs in Grafana
+
+1. Open Grafana at `http://<host>:3001`
+2. Navigate to **Explore** → Select **Loki** data source
+3. Query examples:
+
+```
+# All backend errors
+{service="salesos-api"} |= "error"
+
+# Errors for specific tenant
+{service="salesos-api"} |= `"tenant_id": "tenant-123"`
+
+# Slow requests (>1s)
+{service="salesos-api"} | json | latency_ms > 1000
+```
+
+#### Distributed Tracing (OpenTelemetry)
+
+The backend configures OpenTelemetry at startup (`sdk/telemetry.py`):
+
+```python
+setup_telemetry("salesos")
+```
+
+Traces are exported via OTLP HTTP to the OpenTelemetry Collector:
+
+```yaml
+# docker-compose.yml — otel-collector service
+otel-collector:
+  image: otel/opentelemetry-collector-contrib:latest
+  command:
+    - "--config=/etc/otel-collector-config.yaml"
+  volumes:
+    - ./salesos/infra/monitoring/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+  ports:
+    - "4317:4317"   # OTLP gRPC
+    - "4318:4318"   # OTLP HTTP
+    - "8889:8889"   # Collector self-metrics
+```
+
+The collector pipeline:
+1. **Receives** OTLP traces/metrics/logs from the backend
+2. **Processes** via batch, memory_limiter, and attribute processors
+3. **Exports** traces to OTLP backend, metrics to Prometheus, logs to Loki
+
+Configuration at `infra/monitoring/otel-collector-config.yaml`.
+
+#### Grafana Dashboards
+
+Pre-built dashboards in `infra/monitoring/grafana/dashboards/`:
+
+| Dashboard | UID | Description |
+|-----------|-----|-------------|
+| SalesOS Overview | `salesos-overview` | HTTP rate, latency, error rate, DB queries |
+| SalesOS API Metrics | `salesos-api-metrics` | Request throughput, latency percentiles, error rate |
+| SalesOS Infrastructure | `salesos-infra-metrics` | DB pool, Redis, memory, WebSocket connections |
+| SalesOS Pipeline | `salesos-pipeline` | DLQ status, pipeline health |
+| SalesOS WebSocket | `salesos-ws-monitoring` | WebSocket connection health |
+| SalesOS Business | `salesos-business` | Business KPIs, NBA metrics |
+| SalesOS DB | `salesos-db` | Database performance and connections |
 
 **View logs**:
 
@@ -1249,7 +1334,7 @@ docker compose -f docker-compose.prod.yml logs backend 2>&1 | grep -i error
 docker compose -f docker-compose.prod.yml logs backend 2>&1 | jq -r 'select(.level == "error")'
 ```
 
-**Production recommendation**: Deploy Loki + Promtail for centralized log aggregation and long-term storage, or ship logs to an external service (Datadog, CloudWatch Logs).
+**Production recommendation**: For production, ship logs to an external service (Datadog, CloudWatch Logs) in addition to Loki for long-term archival.
 
 ### 9.4 Alert Rules
 
@@ -1452,9 +1537,9 @@ docker compose exec postgres psql -U salesos -d salesos \
 
 | Component | Method | Frequency | Retention | Storage |
 |-----------|--------|-----------|-----------|---------|
-| PostgreSQL | `pg_dump` custom format | Daily at 03:00 UTC | 7 days | Local + S3 |
-| PostgreSQL WAL | Continuous archiving | Real-time | 7 days | S3 |
-| Neo4j | `neo4j-admin dump` | Daily at 04:00 UTC | 14 days | Local + S3 |
+| PostgreSQL | `pg_dump` custom format | Daily at 03:00 UTC | 7 days local + 30 days S3 | Local + S3 |
+| PostgreSQL WAL | Continuous archiving | Real-time | 7 days | S3 (separate bucket) |
+| Neo4j | APOC export / `neo4j-admin dump` | Daily at 04:00 UTC | 14 days | Local + S3 |
 | Redis | RDB snapshot | Every 6 hours | 7 days | Local |
 | Docker volumes | Volume snapshot | Daily | 7 days | Local |
 | Terraform state | S3 backend | On every apply | Indefinite | S3 (versioned) |
@@ -1463,9 +1548,116 @@ docker compose exec postgres psql -U salesos -d salesos \
 
 ```bash
 S3_BUCKET=s3://salesos-backups-production
+S3_WAL_BUCKET=s3://salesos-wal-archives
+S3_DR_BUCKET=s3://salesos-backups-dr  # cross-region replica
 ```
 
 The backup script uploads to S3 using `aws s3 cp` or `rclone copy`.
+
+### 11.1a PITR / WAL Archiving
+
+Point-in-Time Recovery (PITR) enables restoring the database to any moment within the WAL retention period, reducing the recovery window from up to 24 hours to minutes.
+
+**Configuration** (`postgresql.conf` or Docker command args):
+
+```ini
+wal_level = replica
+archive_mode = on
+archive_command = 'aws s3 cp %p s3://salesos-wal-archives/%f'
+archive_timeout = 60
+max_wal_senders = 3
+wal_keep_size = 1024   # MB
+```
+
+**Docker Compose integration**:
+
+```yaml
+postgres:
+  image: pgvector/pgvector:pg16
+  command:
+    - "postgres"
+    - "-c"
+    - "wal_level=replica"
+    - "-c"
+    - "archive_mode=on"
+    - "-c"
+    - "archive_command=aws s3 cp %p s3://salesos-wal-archives/%f"
+```
+
+**Managed RDS** (recommended for production):
+- Enable automated backups with 7-day retention
+- Enable WAL archiving (automatic in RDS)
+- Configure cross-region snapshot copy to secondary region (eu-central-1)
+
+**PITR Restore**:
+
+```bash
+# 1. Stop applications
+docker compose -f docker-compose.prod.yml stop backend
+
+# 2. Restore base backup + replay WAL to target time
+pg_basebackup -h postgres -D /tmp/pg_restore -X stream -P
+echo "restore_command = 'aws s3 cp s3://salesos-wal-archives/%f %p'" > /tmp/pg_restore/recovery.conf
+echo "recovery_target_time = '2026-07-17 14:30:00 UTC'" >> /tmp/pg_restore/recovery.conf
+pg_ctl -D /tmp/pg_restore start
+# Verify and promote
+pg_ctl -D /tmp/pg_restore promote
+
+# 3. Verify data integrity
+docker compose exec postgres psql -U salesos -d salesos -c "SELECT COUNT(*) FROM identity.users;"
+
+# 4. Restart applications
+docker compose -f docker-compose.prod.yml start backend
+```
+
+### 11.1b Multi-Region DR Strategy
+
+**Architecture**:
+
+```
+Primary Region (me-south-1)          DR Region (eu-central-1)
+┌─────────────────────────┐         ┌─────────────────────────┐
+│  Application (EKS)      │         │  Application (EKS)       │
+│  PostgreSQL (RDS Multi-AZ)│        │  PostgreSQL (RDS Read)   │
+│  Neo4j (standalone)     │         │  Neo4j (standby)         │
+│  Redis (standalone)     │         │  Redis (standalone)      │
+│  S3 Backups (primary)   │──CRR──►│  S3 Backups (replica)    │
+│  WAL Archive S3         │──CRR──►│  WAL Archive S3         │
+└─────────────────────────┘         └─────────────────────────┘
+```
+
+**Components**:
+
+1. **S3 Cross-Region Replication**: Enable CRR on `salesos-backups` → `salesos-backups-dr` (eu-central-1). Same for WAL archive bucket.
+
+2. **RDS Cross-Region Read Replica**:
+
+```bash
+aws rds create-db-instance-read-replica \
+  --db-instance-identifier salesos-dr \
+  --source-db-instance-identifier salesos-primary \
+  --source-region me-south-1 \
+  --db-instance-class db.r6g.large \
+  --region eu-central-1
+
+# Promote during failover
+aws rds promote-read-replica \
+  --db-instance-identifier salesos-dr \
+  --region eu-central-1
+```
+
+3. **DNS Failover**: Route53 active-passive with health check on `/health`. TTL: 60s.
+
+4. **Failover Procedure**:
+   - Confirm primary region failure
+   - Promote RDS read replica to primary
+   - Deploy application stack to DR region
+   - Restore latest backup from DR S3 bucket if needed
+   - Update Route53 DNS to point to DR load balancer
+   - Verify health
+   - Notify stakeholders
+
+See `docs/ops/DR_RUNBOOK.md` for full procedures including RPO/RTO targets, backup verification schedules, and scenario-specific recovery steps.
 
 ### 11.2 Restore Procedure
 

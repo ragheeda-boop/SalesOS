@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { MarketPulseView } from '../MarketPulseView'
 import { MarketPulseWidget } from '../MarketPulseContainer'
-import { describeWidgetContract } from '../../../sdk/testing'
+import { describeWidgetContract } from '@salesos/widget-sdk/testing'
 import type { MarketPulseViewProps } from '../types'
 import type { MarketTrend, CompanyMover } from '@/application/dashboard/dashboard.dto'
 

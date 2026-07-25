@@ -9,6 +9,10 @@ class DecisionRepository(ABC):
         ...
 
     @abstractmethod
+    async def save_contexts(self, contexts: list[DecisionContext]) -> list[DecisionContext]:
+        ...
+
+    @abstractmethod
     async def get_context(self, context_id: str) -> DecisionContext | None:
         ...
 

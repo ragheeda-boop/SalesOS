@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from app.common.exceptions import safe_error_detail
 from app.dependencies import get_current_tenant_id
 from sdk.permissions import PermissionAction
 from app.dependencies import require_permission_dep
@@ -153,7 +154,7 @@ async def generate(
         )
         return {"prompt_template_id": body.prompt_template_id, "output": output}
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
+        raise HTTPException(status_code=404, detail=safe_error_detail(exc, "Not found"))
     except Exception as exc:
         logger.error("generate failed: %s", exc)
         raise HTTPException(status_code=500, detail="Internal server error")

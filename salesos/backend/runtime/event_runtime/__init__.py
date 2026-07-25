@@ -441,3 +441,10 @@ class EventRuntime(EventBus):
             if success:
                 count += 1
         return count
+
+    async def close(self) -> None:
+        """Release resources and clear subscriber state."""
+        self._dlq.clear()
+        self._subscribers.clear()
+        self._wildcard_subscribers.clear()
+        self._session_factory = None  # type: ignore

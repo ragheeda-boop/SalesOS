@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from app.config import settings
 from app.dependencies import get_current_tenant_id, get_current_user_id, get_db_session, require_permission_dep
+from app.common.rate_limit import check_rate_limit_by_key
 from sdk.permissions import PermissionAction
 
 from pydantic import BaseModel, Field
@@ -419,8 +420,12 @@ async def forgot_password(
     body: ForgotPasswordRequest,
     service: IdentityService = Depends(get_service),
 ):
-    await service.forgot_password(body.email)
-    return {"message": "If the email exists, a reset link has been sent"}
+    await check_rate_limit_by_key(f"forgot-pw:{body.email.lower().strip()}", limit=3, window=900)
+    token = await service.forgot_password(body.email)
+    response: dict = {"message": "If the email exists, a reset token has been generated"}
+    if token is not None and settings.env != "production":
+        response["token"] = token
+    return response
 
 
 @router.post("/reset-password")
@@ -450,21 +455,9 @@ async def delete_my_account(
 async def jwks():
     """JWKS endpoint for JWT key discovery.
 
-    Currently uses HS256 (symmetric). The kid field enables future
-    key rotation. Migration path to RS256:
-      1. Generate RSA key pair, add to config
-      2. Add 'v2-rs256' kid entry here alongside 'v1-hs256'
-      3. Rotate signer to use new kid
-      4. Remove old kid after all tokens expire
+    Returns RSA public key for RS256 token verification.
+    The HS256 symmetric key is only used for internal verification
+    of legacy tokens during the migration window.
     """
-    return {
-        "keys": [
-            {
-                "kty": "oct",
-                "kid": "v1-hs256",
-                "alg": "HS256",
-                "use": "sig",
-                "k": ""  # HS256 key not exposed (symmetric)
-            }
-        ]
-    }
+    from app.modules.identity.jwks import get_jwks
+    return get_jwks()

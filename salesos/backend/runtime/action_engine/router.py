@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from app.common.exceptions import safe_error_detail
 from app.dependencies import verify_token
 
 router = APIRouter(prefix="/api/v1/actions", tags=["Action Engine"], dependencies=[Depends(verify_token)])
@@ -46,7 +47,7 @@ async def execute_action(req: ExecuteRequest):
         )
         return execution.to_dict()
     except ValueError as e:
-        raise HTTPException(404, str(e))
+        raise HTTPException(404, safe_error_detail(e, "Action not found"))
 
 
 @router.get("/executions/{execution_id}")

@@ -78,12 +78,14 @@ async def notifications_ws(websocket: WebSocket):
 @router.get("/notifications/history")
 async def list_notifications(
     limit: int = Query(default=50, le=100),
+    cursor: str | None = Query(None, description="Pagination cursor (notification ID)"),
     tenant_id: str = Depends(get_current_tenant_id),
     user_id: str = Depends(get_current_user_id),
     repo: PostgresNotificationRepository = Depends(_get_notification_repo),
 ):
     notifs = await repo.list_by_user(tenant_id, user_id, limit)
     unread = await repo.count_unread(tenant_id, user_id)
+    next_cursor = notifs[-1].id if len(notifs) == limit else None
     return {
         "notifications": [
             {
@@ -99,6 +101,7 @@ async def list_notifications(
         ],
         "unread_count": unread,
         "total": len(notifs),
+        "next_cursor": next_cursor,
     }
 
 

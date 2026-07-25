@@ -1,3 +1,11 @@
+/**
+ * STUB — NOT PRODUCTION-READY (GA Wave 6 / AI honesty)
+ *
+ * `decisionEngine` and `FeedbackEngine` throw on every call.
+ * Do not wire into GA navigation or market as a live Decision Engine.
+ * Prefer Decision Center API (`/api/v1/...`) when available.
+ * Tracking: PROD-W6-001, TD-S0-07, docs/audit/ga-engineering-audit/AI_HONESTY.md
+ */
 export interface Score {
   name: string
   value: number
@@ -88,24 +96,27 @@ export interface Feedback {
   tenantId?: string
 }
 
+const STUB_MSG =
+  'STUB: @salesos decision package is not implemented — not production-ready (see AI_HONESTY.md)'
+
 export const decisionEngine = {
   evaluate: async (_context: DecisionContext): Promise<DecisionResult> => {
-    throw new Error('Not implemented')
+    throw new Error(STUB_MSG)
   },
   evaluateBatch: async (_contexts: DecisionContext[]): Promise<DecisionResult[]> => {
-    throw new Error('Not implemented')
+    throw new Error(STUB_MSG)
   },
   explain: async (_decisionId: string): Promise<Explainability | null> => {
-    throw new Error('Not implemented')
+    throw new Error(STUB_MSG)
   },
   getHistory: async (_tenantId: string, _limit?: number): Promise<DecisionHistoryItem[]> => {
-    throw new Error('Not implemented')
+    throw new Error(STUB_MSG)
   },
 }
 
 export class FeedbackEngine {
   async submit(_feedback: Feedback): Promise<{ id: string; accepted: boolean }> {
-    throw new Error('Not implemented')
+    throw new Error(STUB_MSG)
   }
 
   async getStats(_tenantId: string): Promise<{
@@ -117,12 +128,44 @@ export class FeedbackEngine {
     totalRevenueImpact: number
     averageTimeToExecution: number | null
   }> {
-    throw new Error('Not implemented')
+    throw new Error(STUB_MSG)
   }
 }
 
 export class ScoringEngine {
-  score(_type: ScoreType, _factors: Record<string, number>, _metadata?: Record<string, unknown>): Score {
-    throw new Error('Not implemented')
+  score(type: ScoreType, factors: Record<string, number>, metadata?: Record<string, unknown>): Score {
+    const entries = Object.entries(factors)
+    if (entries.length === 0) {
+      return {
+        name: type,
+        value: 0.5,
+        label: type === 'engagement' ? 'تفاعل' : type === 'buying_intent' ? 'نية الشراء' : type === 'fit_score' ? 'ملاءمة' : type,
+        weight: 1.0,
+      }
+    }
+
+    const total = entries.reduce((sum, [, v]) => sum + Math.max(0, Math.min(1, v)), 0)
+    const value = Math.round((total / entries.length) * 100) / 100
+
+    const typeLabels: Record<ScoreType, string> = {
+      buying_intent: 'نية الشراء',
+      engagement: 'تفاعل',
+      fit_score: 'ملاءمة',
+      custom: 'مخصص',
+    }
+
+    return {
+      name: type,
+      value: Math.max(0, Math.min(1, value)),
+      label: (metadata?.label as string) || typeLabels[type] || type,
+      weight: 1.0,
+      type,
+      factors: entries.map(([name, v]) => ({
+        name,
+        value: Math.max(0, Math.min(1, v)),
+        weight: 1 / entries.length,
+        description: `${name}: ${Math.round(v * 100)}%`,
+      })),
+    }
   }
 }

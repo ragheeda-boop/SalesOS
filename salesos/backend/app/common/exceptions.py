@@ -1,5 +1,14 @@
 from fastapi import HTTPException, status
 
+from app.config import settings
+
+
+def safe_error_detail(exc: Exception, default: str = "An unexpected error occurred") -> str:
+    """Return a safe error message, hiding internals in production."""
+    if settings.env == "production":
+        return default
+    return str(exc)
+
 
 class NotFoundError(HTTPException):
     def __init__(self, entity: str, entity_id: str):

@@ -424,7 +424,8 @@ class TestStepConditions:
 
 class TestWorkflowTemplates:
     def test_templates_defined(self):
-        assert len(WORKFLOW_TEMPLATES) == 4
+        # Core four plus later product templates (assignment/escalation/…)
+        assert len(WORKFLOW_TEMPLATES) >= 4
         assert "lead_followup" in WORKFLOW_TEMPLATES
         assert "deal_review" in WORKFLOW_TEMPLATES
         assert "meeting_prep" in WORKFLOW_TEMPLATES

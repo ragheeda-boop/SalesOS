@@ -84,15 +84,21 @@ async def list_opportunities(
     company_id: Optional[str] = Query(None),
     owner_id: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=200),
-    offset: int = Query(0, ge=0),
+    cursor: str | None = Query(None),
     _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.READ)),
 ):
-    """List opportunities with optional filters."""
+    """List opportunities with cursor-based pagination."""
     try:
         svc = getattr(request.app.state, "opportunity_service", None)
         if not svc:
             raise HTTPException(status_code=503, detail="Opportunity service not initialized")
         from domains.commercial.opportunity.contracts.repository import OpportunityQuery
+        offset = 0
+        if cursor:
+            try:
+                offset = int(cursor)
+            except (ValueError, TypeError):
+                offset = 0
         query = OpportunityQuery(
             tenant_id=tenant_id,
             stage=stage,
@@ -103,7 +109,8 @@ async def list_opportunities(
             offset=offset,
         )
         result = await svc.query(query)
-        return [_to_response(o) for o in result.items]
+        next_cursor = str(offset + limit) if offset + limit < result.total else None
+        return {"items": [_to_response(o) for o in result.items], "next_cursor": next_cursor, "total": result.total}
     except HTTPException:
         raise
     except Exception as exc:

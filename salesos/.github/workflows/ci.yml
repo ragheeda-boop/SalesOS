@@ -148,6 +148,11 @@ jobs:
           cd backend
           DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
           poetry run alembic upgrade head
+      - name: Migrate gate (current == heads)
+        run: |
+          cd backend
+          DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
+          poetry run python scripts/check_alembic_head.py
       - name: Run unit tests with coverage gate
         run: |
           cd backend

@@ -24,7 +24,7 @@ class TestNormalizeArabicText:
 
     def test_teh_marbuta_to_heh(self):
         assert normalize_arabic_text("شركة") == "شركه"
-        assert normalize_arabic_text("مؤسسة") == "مؤسسه"
+        assert normalize_arabic_text("مؤسسة") == "موسسه"
 
     def test_tashkeel_removal(self):
         assert normalize_arabic_text("شَرِكَة") == "شركه"
@@ -43,6 +43,30 @@ class TestNormalizeArabicText:
     def test_whitespace_normalization(self):
         result = normalize_arabic_text("   شركة    الأمل   ")
         assert result == "شركه الامل"
+
+    def test_extended_diacritics_removal(self):
+        """BUG-002: Extended diacritics (Quranic marks) must be removed."""
+        text = "بِسْمِ\u06E0الل\u06E3هِ"
+        result = normalize_arabic_text(text)
+        assert "\u06E0" not in result
+        assert "\u06E3" not in result
+
+    def test_persian_gaf_normalization(self):
+        """BUG-002: Persian gaf (گ) must normalize to kaf (ك)."""
+        assert normalize_arabic_text("گل") == "كل"
+
+    def test_noon_ghunna_normalization(self):
+        """BUG-002: Noon ghunna (ں) must normalize to noon (ن)."""
+        assert normalize_arabic_text("گنج") == "كنج"
+
+    def test_heh_doachashmee_normalization(self):
+        """BUG-002: Urdu heh doachashmee (U+06C1) must normalize to heh (U+0647)."""
+        result = normalize_arabic_text("\u06af\u06be\u0631")
+        assert result == "\u0643\u0647\u0631"
+
+    def test_extended_yeh_variants(self):
+        """BUG-002: Extended yeh variants must normalize to yeh (ي)."""
+        assert normalize_arabic_text("\u06D0\u06CD\u06CE") == "ييي"
 
 
 class TestNormalizeCr:

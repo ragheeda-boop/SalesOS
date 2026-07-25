@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { PipelineView } from '../PipelineView'
 import { PipelineWidget } from '../PipelineContainer'
-import { describeWidgetContract } from '../../../sdk/testing'
+import { describeWidgetContract } from '@salesos/widget-sdk/testing'
 import type { PipelineViewProps, PipelineStage, PipelineDeal } from '../types'
 
 const sampleStages: PipelineStage[] = [

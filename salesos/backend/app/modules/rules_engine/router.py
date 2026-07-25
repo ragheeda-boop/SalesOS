@@ -6,6 +6,7 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from app.common.exceptions import safe_error_detail
 from app.dependencies import get_current_tenant_id, verify_token
 from app.modules.rules_engine.engine import _rules_engine, RulesEngine
 from app.modules.rules_engine.models import (
@@ -90,7 +91,7 @@ async def create_rule(
     try:
         created = engine.create_rule(rule)
     except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code=409, detail=safe_error_detail(e, "Rule conflict"))
 
     return _rule_to_response(created)
 
@@ -118,7 +119,7 @@ async def update_rule(
     try:
         updated = engine.update_rule(rule_id, updates)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=safe_error_detail(e, "Rule not found"))
     return _rule_to_response(updated)
 
 
@@ -144,7 +145,7 @@ async def evaluate_rule_endpoint(
     try:
         result = engine.evaluate(rule_id, context)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=safe_error_detail(e, "Rule not found"))
     return result.model_dump() if hasattr(result, "model_dump") else result
 
 

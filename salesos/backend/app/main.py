@@ -1,339 +1,27 @@
-import asyncio
-import os
 import time
 from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import Depends, FastAPI, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 
-from app.common.middleware import CsrfEnforcementMiddleware, RequestIDMiddleware, RequestLoggingMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
-from app.common.metrics import metrics
-from app.metrics.collector import collector
-from app.routers.metrics import MetricsMiddleware
+from app.common.schemas import HealthResponse
 from app.config import settings
 from app.database import get_db
-from sdk.events.base import DomainEvent
-from sdk.telemetry import StructuredLogger, setup_telemetry
-from sdk.vector import OpenAIEmbeddingService
-from runtime import (
-    ContextBuilder,
-    DataFabricPipeline,
-    DecisionEngine,
-    DecisionFeedbackLoop,
-    EventRuntime,
-    FeatureStore,
-    KnowledgeGraphEngine,
-    PolicyEngine,
-    RecommendationEngine,
-    SearchRuntime,
-    TimelineRuntime,
-)
-from runtime.activity_runtime import ActivityRuntime
-from runtime.feature_store.features import (
-    IcpComputer,
-    FundingScoreComputer,
-    HiringScoreComputer,
-    GrowthScoreComputer,
-    IntentScoreComputer,
-    ExpansionScoreComputer,
-    RevenueScoreComputer,
-)
+from app.boot.middleware import setup_middleware
+from app.boot.routers import register_routers
+from app.boot.startup import init_startup_services, shutdown_services
+from app.boot.exceptions import register_exception_handlers
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    from app.database import async_session, close_db, init_db
-    from modules.registry import register_modules
-
-    if os.environ.get("SALESOS_TESTING"):
-        yield
-    else:
-        # Configure JSON logging before anything else
-        from app.common.logging_config import configure_logging
-        configure_logging(settings.log_level)
-
-        await init_db()
-        register_modules()
-        setup_telemetry("salesos")
-
-        if settings.sentry_dsn:
-            import sentry_sdk
-            sentry_sdk.init(
-                dsn=settings.sentry_dsn,
-                environment=settings.env,
-                traces_sample_rate=settings.sentry_traces_sample_rate,
-            )
-            if app.state.logger:
-                app.state.logger.info(f"Sentry initialized: dsn={settings.sentry_dsn[:20]}... env={settings.env}")
-
-        app.state.logger = StructuredLogger("salesos.api")
-
-        # ── Cache Service (Redis) ──
-        from app.cache import CacheService
-        cache_service = CacheService(
-            redis_url=settings.redis_url,
-            socket_connect_timeout=settings.redis_socket_connect_timeout,
-            socket_timeout=settings.redis_socket_timeout,
-        )
-        cache_ok = await cache_service.health()
-        app.state.cache = cache_service
-        if app.state.logger:
-            app.state.logger.info(f"Cache service {'connected' if cache_ok else 'unavailable'}")
-
-        # ── Scraper API Key Validation ──
-        from runtime.data_fabric_runtime.scrapers.scraper_config import validate_scraper_keys_startup
-        validate_scraper_keys_startup()
-
-        # ── Event Runtime ──
-        if settings.event_bus_type == "kafka":
-            from sdk.events.kafka_bus import KafkaEventBus
-            event_runtime = KafkaEventBus(
-                bootstrap_servers=settings.kafka_bootstrap_servers,
-                group_id=settings.kafka_group_id,
-                auto_offset_reset=settings.kafka_auto_offset_reset,
-            )
-        else:
-            event_runtime = EventRuntime(
-                session_factory=async_session,
-                logger=app.state.logger,
-            )
-        app.state.event_runtime = event_runtime
-        # Backward compat: services expect app.state.event_bus
-        app.state.event_bus = event_runtime
-
-        # ── Activity Runtime (unified activity spine) ──
-        activity_runtime = ActivityRuntime(
-            session_factory=async_session,
-            logger=app.state.logger,
-        )
-        app.state.activity_runtime = activity_runtime
-
-        # ── Work Intelligence Engine ──
-        from app.modules.work_intelligence.service import WorkIntelligenceEngine
-        work_intelligence_engine = WorkIntelligenceEngine(
-            activity_runtime=activity_runtime,
-            logger=app.state.logger,
-        )
-        app.state.work_intelligence_engine = work_intelligence_engine
-
-        # ── Timeline Recorder (PostgreSQL-backed) ──
-        from domains.timeline.engine.recorder import TimelineRecorder
-        from domains.timeline.engine.postgres_repo import PostgresTimelineRepository
-        timeline_repo = PostgresTimelineRepository(async_session())
-        timeline_recorder = TimelineRecorder(timeline_repo)
-        app.state.timeline_repo = timeline_repo
-        app.state.timeline_recorder = timeline_recorder
-
-        # ── Opportunity Service (PostgreSQL-backed, used by opportunities router) ──
-        from domains.commercial.opportunity.engine.service import OpportunityService
-        from domains.commercial.infrastructure.postgres_repositories import PostgresOpportunityRepository
-        opp_session = async_session()
-        opp_repo = PostgresOpportunityRepository(opp_session)
-        app.state.opportunity_service = OpportunityService(
-            repository=opp_repo,
-            event_bus=event_runtime,
-        )
-
-        # ── PgVectorStore (production vector search) ──
-        from domains.search.engine.vector_store import PgVectorStore
-        vector_store = PgVectorStore(session_factory=async_session, collection="vectors")
-        app.state.vector_store = vector_store
-
-        # ── Redis Cache (optional — graceful degrade if unavailable) ──
-        from app.common.redis_client import AsyncRedisClient
-        from sdk.cache import CacheService
-        _redis_client = AsyncRedisClient()
-        _cache_service: Any = None
-        if await _redis_client.health():
-            _cache_service = CacheService(_redis_client._redis)
-
-        # ── Feature Store ──
-        feature_store = FeatureStore(
-            session_factory=async_session,
-            event_runtime=event_runtime,
-            computers=[
-                IcpComputer(),
-                FundingScoreComputer(),
-                HiringScoreComputer(),
-                GrowthScoreComputer(),
-                IntentScoreComputer(),
-                ExpansionScoreComputer(),
-                RevenueScoreComputer(),
-            ],
-            logger=app.state.logger,
-            cache_service=_cache_service,
-            cache_ttl=settings.feature_cache_ttl,
-        )
-        app.state.feature_store = feature_store
-
-        # Feature Store Domain Service (for REST API)
-        from domains.feature_store import FeatureStoreService as FeatureStoreDomainService
-        from domains.feature_store.postgres_repo import PostgresFeatureStoreRepository
-        from app.database import async_session
-        fs_repo = PostgresFeatureStoreRepository(async_session)
-        fs_domain_service = FeatureStoreDomainService(repository=fs_repo)
-        app.state.feature_store_domain_service = fs_domain_service
-
-        # ── Knowledge Graph Runtime ──
-        try:
-            kg_engine = KnowledgeGraphEngine(
-                session_factory=async_session,
-                neo4j_uri=settings.neo4j_uri,
-                neo4j_user=settings.neo4j_user,
-                neo4j_password=settings.neo4j_password,
-                logger=app.state.logger,
-            )
-            app.state.kg_engine = kg_engine
-        except Exception:
-            app.state.logger.warning("Neo4j unavailable — KG engine disabled")
-            kg_engine = None
-            app.state.kg_engine = None
-
-        # ── Data Fabric Runtime ──
-        data_fabric = DataFabricPipeline(
-            session_factory=async_session,
-            event_runtime=event_runtime,
-            feature_store=feature_store,
-            vector_store=vector_store,
-            embedding_service=OpenAIEmbeddingService(),
-            kg_engine=kg_engine,
-            logger=app.state.logger,
-        )
-        app.state.data_fabric = data_fabric
-
-        # ── Decision Intelligence Engine (DIE) ──
-        context_builder = ContextBuilder(
-            session_factory=async_session,
-            feature_store=feature_store,
-            logger=app.state.logger,
-        )
-        policy_engine = PolicyEngine(
-            session_factory=async_session,
-            logger=app.state.logger,
-        )
-        recommendation_engine = RecommendationEngine(
-            logger=app.state.logger,
-        )
-        decision_engine = DecisionEngine(
-            session_factory=async_session,
-            context_builder=context_builder,
-            policy_engine=policy_engine,
-            recommendation_engine=recommendation_engine,
-            event_runtime=event_runtime,
-            feature_store=feature_store,
-            logger=app.state.logger,
-        )
-        app.state.context_builder = context_builder
-        app.state.policy_engine = policy_engine
-        app.state.recommendation_engine = recommendation_engine
-        app.state.decision_engine = decision_engine
-
-        # ── Decision Widget Registry ──
-        from runtime.decision_runtime.registry import DecisionWidgetRegistry, register_default_widgets
-        DecisionWidgetRegistry.reset()
-        register_default_widgets()
-
-        # Decision Feedback Loop
-        feedback_loop = DecisionFeedbackLoop(
-            session_factory=async_session,
-            logger=app.state.logger,
-        )
-        app.state.feedback_loop = feedback_loop
-
-        # ── Decision Platform Engine (module-level) ──
-        from app.modules.decision.engine import DecisionEngine as DecisionPlatformEngine
-        app.state.decision_platform_engine = DecisionPlatformEngine()
-
-        # ── Universal Timeline Runtime ──
-        timeline_runtime = TimelineRuntime(
-            session_factory=async_session,
-            logger=app.state.logger,
-        )
-        app.state.timeline_runtime = timeline_runtime
-        # Subscribe Activity Runtime + Universal Timeline + legacy recorder to ALL domain events
-        async def _on_timeline_event(event: DomainEvent) -> None:
-            await activity_runtime.on_domain_event(event.to_dict_legacy())
-            await timeline_runtime.on_domain_event(event.to_dict_legacy())
-            await timeline_recorder.on_domain_event(event.to_dict_legacy())
-
-        event_runtime.subscribe("*", _on_timeline_event)
-
-        # ── Search Runtime ──
-        from domains.search.engine.postgres_repo import PostgresSearchRepository
-        search_repo = PostgresSearchRepository(session_factory=async_session)
-        search_runtime = SearchRuntime(
-            session_factory=async_session,
-            embedding_service=OpenAIEmbeddingService(),
-            kg_engine=kg_engine,
-            logger=app.state.logger,
-            search_repo=search_repo,
-        )
-        app.state.search_runtime = search_runtime
-
-        # ── Widget Engine ──
-        from runtime.widget_engine import WidgetRegistry, register_builtin_widgets
-        register_builtin_widgets()
-        WidgetRegistry.generate_from_capabilities()
-        app.state.widget_registry = WidgetRegistry
-
-        # ── UX Runtime (Experience Layer) ──
-        from runtime.ux_runtime import UXRuntime
-        from runtime.ux_runtime.router import set_ux_runtime
-        ux_runtime = UXRuntime()
-        app.state.ux_runtime = ux_runtime
-        set_ux_runtime(ux_runtime)
-        app.state.object_viewer = None  # lazy init via UniversalObjectViewer
-
-        # ── Platform SDK ──
-        from sdk.backend_sdk import BackendClient
-        backend_sdk = BackendClient(app.state._state)
-        app.state.backend_sdk = backend_sdk
-
-        # ── UI Schema Engine ──
-        from runtime.ui_schema_engine import UISchemaEngine
-        schema_engine = UISchemaEngine()
-        app.state.schema_engine = schema_engine
-
-        # ── Form Engine ──
-        from runtime.form_engine import FormEngine
-        form_engine = FormEngine()
-        app.state.form_engine = form_engine
-
-        # ── Action Engine ──
-        from runtime.action_engine import ActionRegistry
-        action_registry = ActionRegistry()
-        app.state.action_registry = action_registry
-
-        # ── Extension API ──
-        from runtime.extension_api import init_hooks
-        init_hooks()
-
-        # ── Plugin Sandbox ──
-        from runtime.plugin_sandbox import PluginSandbox, register_hook_points
-        plugin_sandbox = PluginSandbox()
-        register_hook_points()
-        app.state.plugin_sandbox = plugin_sandbox
-
-        # ── WebSocket Heartbeat Task ──
-        from app.routers.notifications import _ws_manager
-        heartbeat_task = asyncio.create_task(_ws_manager.heartbeat_loop(interval=30.0))
-        cleanup_task = asyncio.create_task(_ws_manager.cleanup_task(interval=30.0))
-
-        yield
-
-        heartbeat_task.cancel()
-        cleanup_task.cancel()
-        kg = getattr(app.state, "kg_engine", None)
-        if kg is not None:
-            await kg.close()
-        cache = getattr(app.state, "cache", None)
-        if cache is not None:
-            await cache.close()
-        await close_db()
+    tasks = await init_startup_services(app)
+    yield
+    for t in tasks:
+        t.cancel()
+    await shutdown_services(app)
 
 
 _start_time = time.time()
@@ -347,65 +35,22 @@ app = FastAPI(
     redoc_url="/redoc" if settings.debug else None,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[o.strip() for o in settings.allowed_hosts.split(",") if o.strip()],
-    allow_credentials=True,
-    allow_methods=[m.strip() for m in settings.cors_allow_methods.split(",") if m.strip()],
-    allow_headers=[h.strip() for h in settings.cors_allow_headers.split(",") if h.strip()],
-)
-app.add_middleware(GZipMiddleware, minimum_size=1024)
-app.add_middleware(RequestIDMiddleware)
-app.add_middleware(RequestLoggingMiddleware)
-app.add_middleware(SecurityHeadersMiddleware)
-app.add_middleware(CsrfEnforcementMiddleware)
-app.add_middleware(MetricsMiddleware)
-
-# Redis-backed rate limiter (falls back to in-memory if Redis unavailable)
-_redis = None
-try:
-    import redis.asyncio as aioredis
-    _redis = aioredis.Redis.from_url(settings.redis_url)
-except Exception:
-    pass
-app.add_middleware(RateLimitMiddleware, window=settings.rate_limit_window, redis_client=_redis)
-
-# Audit middleware
-from app.modules.audit.middleware import AuditMiddleware
-app.add_middleware(AuditMiddleware)
-
-# Api key middleware
-from app.modules.api_keys.middleware import ApiKeyMiddleware
-app.add_middleware(ApiKeyMiddleware)
-
-
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    import traceback
-    logger = getattr(request.app.state, "logger", None)
-    if logger:
-        logger.exception("Unhandled exception", method=request.method, path=request.url.path)
-    else:
-        traceback.print_exc()
-    detail = "An unexpected error occurred" if settings.env == "production" else str(exc)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": detail},
-    )
+setup_middleware(app)
+register_exception_handlers(app)
 
 
 @app.get("/ping")
 async def ping():
     return {"ping": "pong"}
 
+
 @app.get("/health/live")
 async def health_live():
-    """Kubernetes liveness probe — simple process health."""
     return {"status": "alive", "uptime_seconds": time.time() - _start_time}
+
 
 @app.get("/health/detailed")
 async def health_detailed(request: Request):
-    """Aggregated detailed health — all subsystems, pool stats, WS metrics, SLA status."""
     from sqlalchemy import text
     from app.database import async_session, engine
     from app.metrics.collector import collector as app_collector
@@ -414,7 +59,6 @@ async def health_detailed(request: Request):
     checks: dict[str, Any] = {}
     overall = "healthy"
 
-    # ── Database ──
     try:
         async with async_session() as session:
             await session.execute(text("SELECT 1"))
@@ -433,7 +77,6 @@ async def health_detailed(request: Request):
         checks["database"] = {"status": "error", "message": str(e) if settings.env != "production" else "unavailable"}
         overall = "degraded"
 
-    # ── Cache / Redis ──
     cache = getattr(request.app.state, "cache", None)
     if cache is not None:
         cache_ok = await cache.health()
@@ -443,22 +86,25 @@ async def health_detailed(request: Request):
     else:
         checks["cache"] = {"status": "not_configured"}
 
-    # ── Neo4j / KG ──
     kg = getattr(request.app.state, "kg_engine", None)
-    checks["graph"] = {
-        "status": "connected" if kg is not None and kg.metrics.neo4j_available else "not_configured",
-    }
+    if kg is None:
+        checks["graph"] = {"status": "not_configured"}
+    elif getattr(kg.metrics, "neo4j_available", False):
+        checks["graph"] = {"status": "connected"}
+    else:
+        checks["graph"] = {"status": "unavailable"}
 
-    # ── Event bus ──
     from sdk.events.kafka_bus import KafkaEventBus
     event_runtime = getattr(request.app.state, "event_runtime", None)
     if isinstance(event_runtime, KafkaEventBus):
         kafka_ok = event_runtime.is_kafka_available
         checks["kafka"] = {"status": "connected" if kafka_ok else "fallback_in_memory"}
+    elif event_runtime is not None:
+        # Default EVENT_BUS_TYPE=in_memory — Kafka not required for GA (documented degraded).
+        checks["kafka"] = {"status": "in_memory"}
     else:
-        checks["kafka"] = {"status": "active" if event_runtime else "not_configured"}
+        checks["kafka"] = {"status": "not_configured"}
 
-    # ── WebSocket ──
     try:
         from app.routers.notifications import _ws_manager
         ws_metrics = await _ws_manager.get_metrics()
@@ -466,30 +112,26 @@ async def health_detailed(request: Request):
     except Exception:
         checks["websocket"] = {"status": "unknown"}
 
-    # ── SLA status ──
     try:
         sla_report = sla_monitor.get_report()
         checks["sla"] = sla_report
     except Exception:
         checks["sla"] = {"status": "unknown"}
 
-    # ── Uptime ──
     checks["uptime_seconds"] = round(time.time() - _start_time, 1)
     checks["version"] = settings.service_version
 
     return {"status": overall, "checks": checks}
 
+
 @app.get("/health/dependencies")
 async def health_dependencies(request: Request):
-    """Health check for all external dependencies — PostgreSQL, Redis, Kafka, Neo4j."""
     from sqlalchemy import text
     from app.database import async_session
-    from app.config import settings
 
     deps: dict[str, dict] = {}
     overall = "healthy"
 
-    # PostgreSQL
     try:
         async with async_session() as session:
             await session.execute(text("SELECT 1"))
@@ -498,22 +140,16 @@ async def health_dependencies(request: Request):
         deps["postgresql"] = {"status": "error", "type": "database", "critical": True, "message": str(e) if settings.env != "production" else "unavailable"}
         overall = "degraded"
 
-    # Redis / Cache
     cache = getattr(request.app.state, "cache", None)
     try:
         if cache is not None:
             cache_ok = await cache.health()
         else:
-            import redis.asyncio as aioredis
-            r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=settings.redis_health_socket_connect_timeout, socket_timeout=settings.redis_health_socket_timeout)
-            await r.ping()
-            await r.aclose()
-            cache_ok = True
+            cache_ok = False
         deps["redis"] = {"status": "connected" if cache_ok else "unavailable", "type": "cache", "critical": False}
     except Exception as e:
         deps["redis"] = {"status": "error", "type": "cache", "critical": False, "message": str(e) if settings.env != "production" else "unavailable"}
 
-    # Kafka
     from sdk.events.kafka_bus import KafkaEventBus
     event_runtime = getattr(request.app.state, "event_runtime", None)
     try:
@@ -521,22 +157,22 @@ async def health_dependencies(request: Request):
             kafka_ok = event_runtime.is_kafka_available
             deps["kafka"] = {"status": "connected" if kafka_ok else "fallback_in_memory", "type": "message_queue", "critical": False}
         else:
-            deps["kafka"] = {"status": "active" if event_runtime else "not_configured", "type": "message_queue", "critical": False}
+            deps["kafka"] = {"status": "in_memory" if event_runtime else "not_configured", "type": "message_queue", "critical": False}
     except Exception as e:
         deps["kafka"] = {"status": "error", "type": "message_queue", "critical": False, "message": str(e) if settings.env != "production" else "unavailable"}
 
-    # Neo4j / Knowledge Graph
     try:
         kg = getattr(request.app.state, "kg_engine", None)
-        if kg is not None and kg.metrics.neo4j_available:
+        if kg is None:
+            deps["neo4j"] = {"status": "not_configured", "type": "graph_database", "critical": False}
+        elif getattr(kg.metrics, "neo4j_available", False):
             is_healthy = await kg.health_check()
             deps["neo4j"] = {"status": "connected" if is_healthy else "unhealthy", "type": "graph_database", "critical": False}
         else:
-            deps["neo4j"] = {"status": "not_configured", "type": "graph_database", "critical": False}
+            deps["neo4j"] = {"status": "unavailable", "type": "graph_database", "critical": False}
     except Exception as e:
         deps["neo4j"] = {"status": "error", "type": "graph_database", "critical": False, "message": str(e) if settings.env != "production" else "unavailable"}
 
-    # Feature Store
     try:
         fs = getattr(request.app.state, "feature_store", None)
         deps["feature_store"] = {"status": "initialized" if fs else "not_initialized", "type": "feature_store", "critical": False}
@@ -548,21 +184,19 @@ async def health_dependencies(request: Request):
         "dependencies": deps,
         "summary": {
             "total": len(deps),
-            "healthy": sum(1 for d in deps.values() if d["status"] in ("connected", "active", "initialized", "fallback_in_memory", "not_configured")),
+            "healthy": sum(1 for d in deps.values() if d["status"] in ("connected", "active", "initialized", "fallback_in_memory", "not_configured", "in_memory")),
             "degraded": sum(1 for d in deps.values() if d["status"] in ("error", "unavailable", "unhealthy")),
         },
     }
 
+
 @app.get("/health/ready")
 async def health_ready(request: Request):
-    """Kubernetes readiness probe — checks critical dependencies."""
     from sqlalchemy import text
     from app.database import async_session
-    from app.config import settings
 
     checks = {}
 
-    # Database
     try:
         async with async_session() as session:
             await session.execute(text("SELECT 1"))
@@ -570,21 +204,12 @@ async def health_ready(request: Request):
     except Exception:
         checks["database"] = "unavailable"
 
-    # Redis / Cache
     cache = getattr(request.app.state, "cache", None)
     if cache is not None:
         checks["cache"] = "connected" if await cache.health() else "unavailable"
     else:
-        try:
-            import redis.asyncio as aioredis
-            r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=settings.redis_health_socket_connect_timeout, socket_timeout=settings.redis_health_socket_timeout)
-            await r.ping()
-            await r.aclose()
-            checks["cache"] = "connected"
-        except Exception:
-            checks["cache"] = "unavailable"
+        checks["cache"] = "unavailable"
 
-    # Kafka
     from sdk.events.kafka_bus import KafkaEventBus
     event_runtime = getattr(request.app.state, "event_runtime", None)
     if isinstance(event_runtime, KafkaEventBus):
@@ -596,13 +221,16 @@ async def health_ready(request: Request):
         else:
             checks["kafka"] = "not_attempted"
     else:
-        checks["kafka"] = "active" if event_runtime else "not_configured"
+        checks["kafka"] = "in_memory" if event_runtime else "not_configured"
 
-    # Neo4j / KG
     kg = getattr(request.app.state, "kg_engine", None)
-    checks["graph"] = "connected" if kg is not None and kg.metrics.neo4j_available else "not_configured"
+    if kg is None:
+        checks["graph"] = "not_configured"
+    elif getattr(kg.metrics, "neo4j_available", False):
+        checks["graph"] = "connected"
+    else:
+        checks["graph"] = "unavailable"
 
-    # Rate limiter
     rate_limiter = any(
         "RateLimitMiddleware" in str(m.cls)
         for m in request.app.user_middleware
@@ -610,7 +238,6 @@ async def health_ready(request: Request):
     )
     checks["rate_limiter"] = "active" if rate_limiter else "not_configured"
 
-    # Scrapers
     try:
         from runtime.data_fabric_runtime.scrapers.scraper_config import get_scraper_health
         scraper_health = get_scraper_health()
@@ -624,15 +251,14 @@ async def health_ready(request: Request):
         "checks": checks,
     }
 
+
 @app.get("/health")
 async def health(request: Request, db: AsyncSession = Depends(get_db)):
-    from app.common.schemas import HealthResponse
     from sqlalchemy import text
 
     status = "ok"
     checks = {}
 
-    # PostgreSQL
     try:
         await db.execute(text("SELECT 1"))
         checks["database"] = "connected"
@@ -640,35 +266,18 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
         checks["database"] = "unavailable"
         status = "degraded"
 
-    # Redis / Cache
     cache = getattr(request.app.state, "cache", None)
     if cache is not None:
         checks["cache"] = "connected" if await cache.health() else "unavailable"
     else:
-        try:
-            import redis.asyncio as aioredis
-            r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=settings.redis_health_socket_connect_timeout, socket_timeout=settings.redis_health_socket_timeout)
-            await r.ping()
-            await r.aclose()
-            checks["cache"] = "connected"
-        except Exception:
-            checks["cache"] = "unavailable"
+        checks["cache"] = "unavailable"
 
-    # Redis connectivity (reuses same connection)
-    cache = getattr(request.app.state, "cache", None)
-    if cache is not None:
-        checks["redis"] = "connected" if await cache.health() else "unavailable"
+    cache_redis = getattr(request.app.state, "cache", None)
+    if cache_redis is not None:
+        checks["redis"] = "connected" if await cache_redis.health() else "unavailable"
     else:
-        try:
-            import redis.asyncio as aioredis
-            r = aioredis.Redis.from_url(settings.redis_url, socket_connect_timeout=settings.redis_health_socket_connect_timeout, socket_timeout=settings.redis_health_socket_timeout)
-            await r.ping()
-            await r.aclose()
-            checks["redis"] = "connected"
-        except Exception:
-            checks["redis"] = "unavailable"
+        checks["redis"] = "unavailable"
 
-    # Rate limiter health
     rate_limiter = None
     for m in request.app.user_middleware:
         if m.cls is not None and "RateLimitMiddleware" in m.cls.__name__:
@@ -676,11 +285,6 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
             break
     checks["rate_limiter"] = "active" if rate_limiter else "not_configured"
 
-    # Neo4j / Knowledge Graph
-    kg = getattr(request.app.state, "kg_engine", None)
-    checks["graph"] = "connected" if kg is not None and kg.metrics.neo4j_available else "not_configured"
-
-    # Kafka connectivity check
     from sdk.events.kafka_bus import KafkaEventBus
     kafka_bus = getattr(request.app.state, "event_runtime", None)
     if isinstance(kafka_bus, KafkaEventBus):
@@ -692,9 +296,8 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
         else:
             checks["kafka"] = "not_attempted"
     else:
-        checks["kafka"] = "active" if kafka_bus else "not_configured"
+        checks["kafka"] = "in_memory" if kafka_bus else "not_configured"
 
-    # Scraper API keys
     try:
         from runtime.data_fabric_runtime.scrapers.scraper_config import get_scraper_health
         scraper_health = get_scraper_health()
@@ -702,15 +305,22 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         checks["scrapers"] = f"error: {e}"
 
-    # Uptime
     checks["uptime_seconds"] = time.time() - _start_time
+
+    kg = getattr(request.app.state, "kg_engine", None)
+    if kg is None:
+        graph_status = "not_configured"
+    elif getattr(kg.metrics, "neo4j_available", False):
+        graph_status = "connected"
+    else:
+        graph_status = "unavailable"
 
     return HealthResponse(
         status=status,
         version=settings.service_version,
         database=checks.get("database", "unknown"),
         cache=checks.get("cache", "unknown"),
-        graph=checks.get("graph", "not_configured"),
+        graph=graph_status,
         kafka=checks.get("kafka", "not_configured"),
         redis=checks.get("redis", "unknown"),
         rate_limiter=checks.get("rate_limiter", "unknown"),
@@ -728,162 +338,4 @@ async def root():
     }
 
 
-def register_routers():
-    from app.dependencies import verify_token
-    from fastapi import Depends
-
-    _auth = [Depends(verify_token)]
-
-    from app.routers.metrics import router as metrics_router
-    app.include_router(metrics_router, tags=["Metrics"])
-
-    from runtime.admin_router import router as admin_router
-    app.include_router(admin_router, tags=["Admin"])
-
-    from app.modules.company.router import router as company_router
-    from app.modules.contact.router import router as contact_router
-    from app.modules.entity_resolution.router import router as entity_resolution_router
-    from app.modules.identity.router import router as identity_router
-    from app.modules.signal_marketplace.router import router as signal_marketplace_router
-    from app.modules.notion_sync.router import router as notion_sync_router
-    from app.modules.excel_import.router import router as excel_import_router
-    from app.modules.employee_360.router import router as employee_360_router
-    from app.modules.executive.router import router as executive_router
-    from app.application.dashboard.router import router as dashboard_router
-    from app.modules.work_intelligence.router import router as work_intelligence_router
-    from app.modules.decision.router import router as decision_platform_router
-    from app.modules.revenue_execution.router import router as revenue_execution_router
-    from app.modules.monitoring.router import router as monitoring_router
-    from app.modules.cache.router import router as cache_router
-    from app.modules.sso.router import router as sso_router
-    from app.modules.audit.router import router as audit_router
-    from app.modules.api_keys.router import router as api_keys_router
-    from app.modules.admin.router import router as admin_router
-    from app.routers.commercial import router as commercial_router
-    from app.routers.copilot import router as copilot_router
-    from app.routers.demo import router as demo_router
-    from app.routers.admin_demo import router as admin_demo_router
-    from runtime.capability_framework.router import router as capability_router
-    from runtime.data_fabric_runtime.router import router as data_fabric_router
-    from runtime.decision_runtime.router import router as decision_router
-    from runtime.event_runtime.router import router as event_runtime_router
-    from runtime.feature_store.router import router as feature_store_router
-    from domains.feature_store.router import router as feature_store_domain_router
-    from runtime.knowledge_graph_runtime.router import router as graph_router
-    from runtime.search_runtime.router import router as search_router
-    from runtime.activity_runtime.router import router as activity_router
-    from runtime.timeline_runtime.router import router as timeline_router
-    from runtime.ux_runtime.router import router as ux_router
-
-    app.include_router(identity_router, prefix="/api/v1/identity", tags=["Identity"])
-    app.include_router(notion_sync_router, prefix="/api/v1", tags=["Notion Sync"], dependencies=_auth)
-    app.include_router(excel_import_router, prefix="/api/v1", tags=["Excel Import"], dependencies=_auth)
-    app.include_router(employee_360_router, prefix="/api/v1", tags=["Employee 360"], dependencies=_auth)
-    app.include_router(executive_router, prefix="/api/v1", tags=["Executive"], dependencies=_auth)
-    app.include_router(dashboard_router, prefix="/api/v1", tags=["Dashboard"], dependencies=_auth)
-    app.include_router(work_intelligence_router, prefix="/api/v1", tags=["Work Intelligence"], dependencies=_auth)
-    app.include_router(decision_platform_router, prefix="", tags=["Decision Platform"], dependencies=_auth)
-    app.include_router(revenue_execution_router, prefix="", tags=["Revenue Execution"], dependencies=_auth)
-    app.include_router(company_router, prefix="/api/v1/companies", tags=["Companies"], dependencies=_auth)
-    app.include_router(contact_router, prefix="/api/v1/contacts", tags=["Contacts"], dependencies=_auth)
-    app.include_router(activity_router, prefix="/api/v1", tags=["Activity"], dependencies=_auth)
-    app.include_router(entity_resolution_router, prefix="/api/v1/entity-resolution", tags=["Entity Resolution"], dependencies=_auth)
-    app.include_router(signal_marketplace_router, tags=["Signal Marketplace"], dependencies=_auth)
-    app.include_router(event_runtime_router, prefix="/api/v1", tags=["Event Runtime"], dependencies=_auth)
-    app.include_router(data_fabric_router, prefix="/api/v1", tags=["Data Fabric"], dependencies=_auth)
-    app.include_router(feature_store_router, prefix="/api/v1", tags=["Feature Store"], dependencies=_auth)
-    app.include_router(feature_store_domain_router, prefix="/api/v1", tags=["Feature Store Domain"], dependencies=_auth)
-    app.include_router(decision_router, prefix="/api/v1", tags=["Decision Engine"], dependencies=_auth)
-    app.include_router(graph_router, prefix="/api/v1", tags=["Knowledge Graph"], dependencies=_auth)
-    app.include_router(timeline_router, prefix="/api/v1", tags=["Timeline"], dependencies=_auth)
-    app.include_router(search_router, prefix="/api/v1", tags=["Search"], dependencies=_auth)
-    from app.routers.search import router as search_api_router
-    app.include_router(search_api_router, prefix="/api/v1", tags=["Search"], dependencies=_auth)
-    app.include_router(capability_router, dependencies=_auth)
-    app.include_router(ux_router, dependencies=_auth)
-
-    # XP1 — Schema-Driven UI
-    from runtime.ui_schema_engine.router import router as schema_router
-    from runtime.form_engine.router import router as form_router
-    from runtime.action_engine.router import router as action_router
-    from runtime.extension_api.router import router as extension_router
-    from runtime.plugin_sandbox.router import router as plugin_router
-    app.include_router(schema_router, dependencies=_auth)
-    app.include_router(form_router, dependencies=_auth)
-    app.include_router(action_router, dependencies=_auth)
-    app.include_router(extension_router, dependencies=_auth)
-    app.include_router(plugin_router, dependencies=_auth)
-
-    app.include_router(sso_router, prefix="/api/v1", tags=["SSO"])
-    app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
-    app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
-    app.include_router(admin_router)
-    app.include_router(monitoring_router, tags=["Monitoring"])
-    app.include_router(cache_router, tags=["Cache"], dependencies=_auth)
-    app.include_router(copilot_router, prefix="/api/v1", tags=["Copilot"], dependencies=_auth)
-    app.include_router(commercial_router, prefix="/api/v1", tags=["Commercial"], dependencies=_auth)
-
-    # Demo Environment (some endpoints public, reset requires admin)
-    app.include_router(demo_router, tags=["Demo"])
-    app.include_router(admin_demo_router, tags=["Admin"], dependencies=_auth)
-
-    # Wave 3 — Workflow Engine
-    from app.routers.workflows import router as workflow_router
-    app.include_router(workflow_router, prefix="/api/v1", tags=["Workflow Engine"], dependencies=_auth)
-
-    # Wave 3 — Business Rules Engine
-    from app.modules.rules_engine.router import router as rules_engine_router
-    app.include_router(rules_engine_router, tags=["Rules Engine"], dependencies=_auth)
-
-    # Wave 2 — Revenue Execution Platform
-    from app.routers.opportunities import router as opportunities_router
-    from app.routers.meetings import router as meetings_router
-    from app.routers.revenue import router as revenue_router
-    from runtime.nba_engine.api.router import router as nba_router
-    from runtime.pipeline_analytics.router import router as pipeline_analytics_router
-
-    app.include_router(opportunities_router, prefix="/api/v1", tags=["Opportunities"], dependencies=_auth)
-    app.include_router(meetings_router, prefix="/api/v1", tags=["Meeting Intelligence"], dependencies=_auth)
-    app.include_router(revenue_router, prefix="/api/v1", tags=["Revenue"], dependencies=_auth)
-    app.include_router(nba_router, prefix="/api/v1", tags=["NBA Engine"], dependencies=_auth)
-    app.include_router(pipeline_analytics_router, prefix="/api/v1", tags=["Pipeline Analytics"], dependencies=_auth)
-
-    # Wave 3 — RAG Pipeline
-    from app.routers.rag import router as rag_router
-    app.include_router(rag_router, prefix="/api/v1", tags=["RAG"], dependencies=_auth)
-
-    # Wave 3 — Analytics & Reporting
-    from app.routers.analytics import router as analytics_router
-    app.include_router(analytics_router, prefix="/api/v1", tags=["Analytics"], dependencies=_auth)
-
-    # Wave 3 — AI Prompt Registry & Evaluation
-    from app.routers.ai import router as ai_router
-    app.include_router(ai_router, prefix="/api/v1", tags=["AI"], dependencies=_auth)
-
-    # Customer Telemetry
-    from app.modules.telemetry.router import router as telemetry_router
-    app.include_router(telemetry_router, tags=["Telemetry"], dependencies=_auth)
-
-    # Notifications — WebSocket (no auth dep, handled inside WS) + REST
-    from app.routers.notifications import router as notifications_router
-    app.include_router(notifications_router, prefix="/api/v1", tags=["Notifications"])
-
-    # Webhooks
-    from app.modules.webhooks.router import router as webhooks_router
-    app.include_router(webhooks_router)
-
-    # Enrichment API (async via Celery)
-    from app.routers.enrichment import router as enrichment_router
-    app.include_router(enrichment_router, prefix="/api/v1", tags=["Enrichment"], dependencies=_auth)
-
-    # MCP Server (SSE transport for AI agents)
-    from app.routers.mcp import router as mcp_router
-    app.include_router(mcp_router)
-
-    # GraphQL API (Strawberry)
-    from strawberry.fastapi import GraphQLRouter
-    from app.graphql.schema import graphql_router
-    app.include_router(graphql_router, prefix="/graphql")
-
-
-register_routers()
+register_routers(app)

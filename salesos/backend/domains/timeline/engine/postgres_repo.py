@@ -117,6 +117,20 @@ class PostgresTimelineRepository(TimelineRepository):
         )
         return result.scalar() or 0
 
+    async def delete_by_target(
+        self, entity_type: str, entity_id: str, tenant_id: str = ""
+    ) -> None:
+        from sqlalchemy import delete
+
+        stmt = delete(TimelineEventModel).where(
+            TimelineEventModel.entity_type == entity_type,
+            TimelineEventModel.entity_id == entity_id,
+        )
+        if tenant_id:
+            stmt = stmt.where(TimelineEventModel.tenant_id == tenant_id)
+        await self._session.execute(stmt)
+        await self._session.flush()
+
     async def get_summary(
         self, entity_type: str, entity_id: str, tenant_id: str = ""
     ) -> dict:

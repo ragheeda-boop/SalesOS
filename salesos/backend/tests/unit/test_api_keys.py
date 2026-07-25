@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import uuid
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, Mock, patch
@@ -20,12 +21,9 @@ def mock_db():
 
 
 @pytest.fixture(autouse=True)
-def patch_bcrypt():
-    with patch("app.modules.api_keys.service._generate_api_key") as mock_gen, \
-         patch("app.modules.api_keys.service.pwd_context") as mock_pwd:
-        mock_gen.return_value = ("sos_abc123def456", "sos_abc123", "mock_hash")
-        mock_pwd.hash.return_value = "mock_hash"
-        mock_pwd.verify.side_effect = lambda key, hash_val: key == "sos_abc123def456"
+def patch_crypto():
+    with patch("app.modules.api_keys.service._generate_api_key") as mock_gen:
+        mock_gen.return_value = ("sos_abc123def456", "sos_abc123", _TEST_API_HASH)
         yield
 
 
@@ -44,11 +42,16 @@ class TestApiKeyGeneration:
         assert key[:10] == "sos_" + raw[:6]
 
     def test_hash_and_verify(self):
-        import hashlib
         key = "sos_" + "a" * 64
         h = hashlib.sha256(key.encode()).hexdigest()
         assert hashlib.sha256(key.encode()).hexdigest() == h
         assert hashlib.sha256(("sos_" + "b" * 64).encode()).hexdigest() != h
+
+
+_TEST_API_KEY = "sos_abc123def456"
+_TEST_API_HASH = hashlib.sha256(_TEST_API_KEY.encode()).hexdigest()
+_WRONG_API_KEY = "sos_wrongkey123456"
+_WRONG_API_HASH = hashlib.sha256(_WRONG_API_KEY.encode()).hexdigest()
 
 
 class TestApiKeyCreate:
@@ -96,14 +99,14 @@ class TestApiKeyValidate:
     async def test_validate_valid_key(self, api_key_service, mock_db):
         mock_key = ApiKey(
             id="key1", tenant_id=uuid.uuid4(), user_id=uuid.uuid4(),
-            name="Test", key_prefix="sos_abc123", key_hash="mock_hash",
+            name="Test", key_prefix="sos_abc123", key_hash=_TEST_API_HASH,
             is_revoked=False,
         )
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = [mock_key]
         mock_db.execute.return_value = mock_result
 
-        result = await api_key_service.validate("sos_abc123def456")
+        result = await api_key_service.validate(_TEST_API_KEY)
         assert result is not None
         assert result.id == "key1"
 
@@ -111,14 +114,14 @@ class TestApiKeyValidate:
     async def test_validate_invalid_key(self, api_key_service, mock_db):
         mock_key = ApiKey(
             id="key1", tenant_id=uuid.uuid4(), user_id=uuid.uuid4(),
-            name="Test", key_prefix="sos_abc123", key_hash="mock_hash",
+            name="Test", key_prefix="sos_abc123", key_hash=_WRONG_API_HASH,
             is_revoked=False,
         )
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = [mock_key]
         mock_db.execute.return_value = mock_result
 
-        result = await api_key_service.validate("sos_wrongkey123456")
+        result = await api_key_service.validate(_TEST_API_KEY)
         assert result is None
 
     @pytest.mark.asyncio
@@ -139,7 +142,7 @@ class TestApiKeyValidate:
     async def test_validate_expired_key(self, api_key_service, mock_db):
         mock_key = ApiKey(
             id="key1", tenant_id=uuid.uuid4(), user_id=uuid.uuid4(),
-            name="Test", key_prefix="sos_abc123", key_hash="mock_hash",
+            name="Test", key_prefix="sos_abc123", key_hash=_TEST_API_HASH,
             is_revoked=False,
             expires_at=datetime.now(timezone.utc) - timedelta(days=1),
         )
@@ -147,7 +150,7 @@ class TestApiKeyValidate:
         mock_result.scalars.return_value.all.return_value = [mock_key]
         mock_db.execute.return_value = mock_result
 
-        result = await api_key_service.validate("sos_abc123def456")
+        result = await api_key_service.validate(_TEST_API_KEY)
         assert result is None
         assert mock_key.is_revoked is True
 
@@ -155,14 +158,14 @@ class TestApiKeyValidate:
     async def test_validate_updates_last_used(self, api_key_service, mock_db):
         mock_key = ApiKey(
             id="key1", tenant_id=uuid.uuid4(), user_id=uuid.uuid4(),
-            name="Test", key_prefix="sos_abc123", key_hash="mock_hash",
+            name="Test", key_prefix="sos_abc123", key_hash=_TEST_API_HASH,
             is_revoked=False, last_used_at=None,
         )
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = [mock_key]
         mock_db.execute.return_value = mock_result
 
-        result = await api_key_service.validate("sos_abc123def456")
+        result = await api_key_service.validate(_TEST_API_KEY)
         assert result is not None
         assert result.last_used_at is not None
 

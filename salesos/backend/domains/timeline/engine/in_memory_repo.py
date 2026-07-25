@@ -51,6 +51,15 @@ class InMemoryTimelineRepository(TimelineRepository):
     async def count(self, tenant_id: str) -> int:
         return len([e for e in self._events if e.tenant_id == tenant_id])
 
+    async def delete_by_target(
+        self, entity_type: str, entity_id: str, tenant_id: str = ""
+    ) -> None:
+        self._events = [
+            e for e in self._events
+            if not (e.target.type == entity_type and e.target.id == entity_id)
+            and (not tenant_id or e.tenant_id != tenant_id)
+        ]
+
     async def get_summary(self, entity_type: str, entity_id: str, tenant_id: str = "") -> dict:
         filtered = [e for e in self._events if e.target.type == entity_type and e.target.id == entity_id]
         if tenant_id:

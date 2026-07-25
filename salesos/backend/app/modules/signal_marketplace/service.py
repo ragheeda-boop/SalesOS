@@ -81,8 +81,8 @@ class SignalMarketplaceService:
     async def get_company_feed(self, company_id: str, tenant_id: str, limit: int = 50) -> list[SignalEvent]:
         return await self.event_repo.list_by_company(company_id, tenant_id, limit=limit)
 
-    async def acknowledge(self, event_id: str) -> SignalEvent | None:
-        return await self.event_repo.acknowledge(event_id)
+    async def acknowledge(self, event_id: str, tenant_id: str) -> SignalEvent | None:
+        return await self.event_repo.acknowledge(event_id, tenant_id)
 
     async def count_unacknowledged(self, tenant_id: str) -> int:
         return await self.event_repo.count_unacknowledged(tenant_id)

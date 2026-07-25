@@ -7,6 +7,135 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v3.1.0] - 2026-07-19
+
+### 🚀 ADR-012 — Activity Intelligence Capability (LIVE v1.0.0)
+
+#### Backend (29 files, 68 tests)
+- **Communication Model**: Unified `Communication` type with 9 channels (Email, Meeting, Call, WhatsApp, Slack, Teams, SMS, LinkedIn, Zoom) and 15 DTOs
+- **Provider Abstraction**: `EmailProvider` and `CalendarProvider` ABCs — provider-agnostic sync
+- **Mapping Pipeline**: 5-stage: Normalizer (MIME/Re/Fwd decode) → Resolver (entity extraction) → Matcher (5-level CRM priority chain) → Confidence Scorer (method weights 1.0–0.4) → Mapper (persist + provenance)
+- **Google Providers**: `GoogleGmailProvider` + `GoogleCalendarProvider` (OAuth-ready stubs)
+- **Sync Workers**: `EmailSyncWorker` + `CalendarSyncWorker` — event-driven, provider-agnostic
+- **Event Bus Integration**: 4 new event types (`CommunicationReceived`, `CommunicationMapped`, `CommunicationSynced`, `CommunicationDeduplicated`) registered in `EVENT_REGISTRY`
+- **Engines**: `EmailEngine` (reply rate), `CalendarEngine` (frequency/hours), `EngagementEngine` (plugin architecture + 13 metric slots), `FollowupEngine` (priority queue + stagnation detection)
+- **REST API**: 6 endpoints (`GET /api/v1/activity/{dashboard,company/{id},email,calendar,followups,engagement}`) with JWT + multi-tenant isolation
+- **DTO Mappers**: `DashboardMapper`, `CompanyEngagementMapper`, `EmployeeActivityMapper`
+- **Facade**: `ActivityIntelligenceService` — single entry point for all consumers
+- **Tests**: 68 unit tests, 0 regressions (1544 existing tests unchanged)
+
+#### Frontend (10 files, 0 TypeScript errors)
+- **API Client**: 6 typed functions in `api/activity-intelligence.ts`
+- **Hook**: `useActivityIntelligence()` + `useCompanyEngagement()` via `@tanstack/react-query`
+- **Widgets**: `EmailIntelligenceWidget`, `CalendarIntelligenceWidget`, `FollowupCenterWidget`, `CompanyEngagementWidget` — all view-only, 4 states each (loading/error/empty/ready), ARIA + RTL compliant
+- **DTO Types**: 7 TypeScript interfaces (`ActivityDashboardDTO`, `CompanyEngagementDTO`, `EngagementScoreDTO`, `FollowUpStatusDTO`, `FollowupDashboardDTO`, `EmailMetricsDTO`, `CalendarMetricsDTO`)
+
+#### Architecture Compliance
+- Zero circular dependencies
+- Zero layer violations
+- 2 external consumers only: `router_registry.py` + `domain_events.py`
+- Dependency flow: `contracts → mapping → providers → sync → engine → api → frontend`
+
+#### Registry Update
+- Capability `activity-intelligence`: `status: live`, `version: v1.0.0`, `frozen: true`
+- ADR-012 closed
+
+#### Sprint 2.5 — Platform Consolidation
+- Capability Registry: 7 entries synchronized (timeline, crm, scoring, ai, workflow, company-360, search)
+- Engineering Dashboard: Sprint 14 active, ADR-012 noted, next milestones defined
+
+---
+
+## [v3.0.0-RC] - 2026-07-16
+
+### 🎯 Release Candidate — vNext Platform Convergence
+
+#### Features (Phases 0–17)
+
+- **Phase 0 — Data Fabric Pipeline**: End-to-end ingestion pipeline with entity resolution (pg_trgm), golden record merge, vector embedding (OpenAI), Knowledge Graph triples, and feature computation orchestration
+- **Phase 1 — Feature Store**: Real-time feature computation engine with 7 built-in scorers (ICP, Funding, Hiring, Growth, Intent, Expansion, Revenue), Redis caching, event-driven recomputation, REST API
+- **Phase 2 — Knowledge Graph Engine**: Neo4j-backed graph runtime with entity relationship traversal, health checks, graceful degradation on connection failure
+- **Phase 3 — Decision Intelligence Engine (DIE)**: ContextBuilder, PolicyEngine, RecommendationEngine, DecisionEngine pipeline with event-driven feedback loop and DecisionWidgetRegistry
+- **Phase 4 — Universal Timeline Runtime**: Cross-domain activity spine with TimelineRecorder (PostgreSQL), ActivityRuntime, TimelineRuntime, unified event subscription via `event_runtime.subscribe("*", ...)`
+- **Phase 5 — Work Intelligence Engine**: Employee activity analysis, productivity scoring, signal aggregation across meetings/emails/tasks/documents
+- **Phase 6 — Search Runtime**: Hybrid search (full-text + semantic) with PgVectorStore, PostgresSearchRepository, RRF fusion, scraper API health monitoring
+- **Phase 7 — UX Runtime / Schema Engine**: UXRuntime for experience layer, UISchemaEngine for schema-driven UI, FormEngine, ActionRegistry for declarative action execution
+- **Phase 8 — Plugin Sandbox / Extension API**: PluginSandbox with hook points, Extension API with init_hooks, capability framework router
+- **Phase 9 — Decision Center**: Unified aggregation, audit trail, feedback loop, decision templates, ensemble evaluation via DecisionCenterService (InMemoryDecisionCenterRepository)
+- **Phase 10 — Revenue Execution Platform**: Opportunities service (PostgreSQL), Meeting Intelligence, Revenue analytics, NBA Engine, Pipeline Analytics
+- **Phase 11 — Workflow Engine**: Business workflow automation with PostgreSQL persistence, Rules Engine Studio (visual drag-and-drop conditions with evaluation preview, rule templates, version history)
+- **Phase 12 — RAG Pipeline**: Retrieval-Augmented Generation with citation support, AI Prompt Registry & Evaluation, telemetry for cost/usage tracking
+- **Phase 13 — Analytics & Reporting**: KPI cards, charts (revenue trend, pipeline stage distribution, forecast vs actual), CSV/PDF export, automation analytics, employee analytics
+- **Phase 14 — Copilot**: Full-page AI assistant, command palette, follow-up questions, feedback collection, telemetry dashboard (latency distribution, tool usage, volume over time)
+- **Phase 15 — Marketplace**: Plugin marketplace with configuration UI, subscription management, capability discovery
+- **Phase 16 — MCP Server**: SSE transport for AI agents, MCP protocol endpoints for external tool integration
+- **Phase 17 — Platform SDK & Admin Portal**: BackendClient SDK, Admin Portal (tenants, plans, licenses, users, billing, feature flags, jobs, AI costs, health dashboard, audit logs, role management, config management, webhooks, enrichment API)
+
+#### Architecture
+
+- **main.py**: Split into modular architecture — `middleware_setup.py`, `router_registry.py`, `startup.py` (all <200 lines each)
+- **api.ts (frontend)**: Split by domain — `api/company.ts`, `api/employee.ts`, `api/pipeline.ts`, `api/search.ts`, `api/identity.ts`, `api/activities.ts`, `api/admin.ts` (all <200 lines each)
+- Feature Store Domain Service with PostgreSQL repository
+- Search domain with PostgreSQL repository pattern
+- Decision Center with InMemory repository + event-driven feedback
+- Plugin Sandbox with hook point registration
+- All runtime modules follow single-responsibility pattern
+
+#### Security
+
+- API Key authentication middleware
+- Audit logging middleware across all admin operations
+- SSO integration with OAuth2 flows
+- CSRF enforcement on state-changing endpoints
+- Rate limiting with Redis-backed sliding window
+- Security headers middleware (HSTS, CSP, X-Frame-Options)
+- Request ID tracking for audit trails
+
+#### Performance
+
+- PgVectorStore for vector search (OpenAI embeddings in PostgreSQL)
+- Redis caching for Feature Store computations and API responses
+- GZip compression for responses >1KB
+- Connection pooling for PostgreSQL and Neo4j
+- Async event bus with Kafka support (KRaft, Avro schema registry)
+
+#### Testing
+
+- All domain modules tested with InMemory repositories
+- 93%+ unit test coverage across all domains
+- E2E tests for marketplace, admin, and decision center flows
+- Integration tests for pipeline ingestion and feature computation
+
+#### Documentation
+
+- API documentation portal (26+ files in `docs/portal/api/`)
+- Platform SDK reference (`sdk/backend_sdk.py`)
+- Marketplace developer guide
+- Decision Center architecture guide
+- Data Fabric pipeline documentation
+- Revenue Execution platform guide
+
+### Migration Notes
+
+1. **Database**: Run `alembic upgrade head` for new Feature Store, Decision Center, Work Engine, and Opportunity tables
+2. **Environment Variables**: Add `FEATURE_CACHE_TTL`, `REDIS_URL`, `NEO4J_URI` (with credentials) to `.env.production`
+3. **API Client (frontend)**: `api.ts` is now a barrel file — all existing `import { ... } from "@/lib/api"` imports continue to work
+4. **Custom Widgets**: Update to use Widget SDK `createDashboardWidget()` / `createWidget()` Container/View pattern
+5. **Event Bus**: Configure `EVENT_BUS_TYPE=kafka` for production Kafka cluster; defaults to in-memory EventRuntime
+6. **Feature Store**: Enable Redis caching by setting `REDIS_URL` and `FEATURE_CACHE_TTL`
+7. **Knowledge Graph**: Neo4j is optional; system degrades gracefully if unavailable
+
+### Known Issues
+
+- **Kafka migration**: In-memory EventRuntime remains default; full Kafka migration requires Phase 18 operational readiness
+- **Redis availability**: Feature Store performance degrades if Redis is unavailable (falls back to in-memory computation)
+- **Neo4j connection**: Single-node Neo4j only; cluster mode requires Phase 19
+- **Admin Portal**: Feature flag toggling per-tenant is functional but audit trail pending
+- **Marketplace**: Plugin sandbox isolation is preliminary; security hardening needed for third-party plugins
+- **Search**: Deep pagination (keyset) not implemented for all search endpoints
+
+---
+
 ## [v2.0.0] - 2026-08-15 (GA Launch)
 
 ### 🎉 General Availability Release

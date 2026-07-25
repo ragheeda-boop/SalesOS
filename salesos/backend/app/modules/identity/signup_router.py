@@ -1,19 +1,27 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.exceptions import safe_error_detail
+from app.common.rate_limit import check_rate_limit_by_key
 from app.dependencies import get_db_session
 
 from .signup_service import SignupService
+from .schemas import validate_password_strength
 
 router = APIRouter()
 
 
 class SignupRequest(BaseModel):
     email: EmailStr
-    password: str = Field(..., min_length=8, max_length=128)
+    password: str = Field(..., min_length=12, max_length=128)
     company_name: str = Field(..., min_length=1, max_length=255)
     phone: str | None = Field(None, pattern=r"^\+?[0-9\s\-()]{7,20}$")
+
+    @model_validator(mode="after")
+    def validate_password(self) -> "SignupRequest":
+        validate_password_strength(self.password)
+        return self
 
 
 class ResendVerificationRequest(BaseModel):
@@ -34,8 +42,10 @@ def get_service(
 @router.post("/auth/signup", status_code=201)
 async def signup(
     body: SignupRequest,
+    request: Request,
     service: SignupService = Depends(get_service),
 ):
+    await check_rate_limit_by_key(f"signup:{body.email.lower().strip()}", limit=3, window=900)
     try:
         result = await service.signup(
             email=body.email,
@@ -44,7 +54,7 @@ async def signup(
             phone=body.phone,
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid request"))
     return {
         "message": "Account created. Please verify your email.",
         "user_id": result["user_id"],
@@ -56,12 +66,14 @@ async def signup(
 @router.get("/auth/verify-email/{token}")
 async def verify_email(
     token: str,
+    request: Request,
     service: SignupService = Depends(get_service),
 ):
+    await check_rate_limit_by_key(f"verify-email:{request.client.host}", limit=10, window=900)
     try:
         result = await service.verify_email(token)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid request"))
     return result
 
 
@@ -70,4 +82,5 @@ async def resend_verification(
     body: ResendVerificationRequest,
     service: SignupService = Depends(get_service),
 ):
+    await check_rate_limit_by_key(f"resend-verify:{body.email.lower().strip()}", limit=3, window=900)
     return await service.resend_verification(body.email)

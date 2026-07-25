@@ -196,3 +196,70 @@ groups:
         annotations:
           summary: "Auth SLA breached: P99 > 800ms"
           description: "P99 latency for auth endpoints exceeds 800ms SLA threshold"
+
+      # ── SLA Standard ──
+      - alert: SLAStandardBreach
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{sla_category="standard"}[5m])) > 1.0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Standard SLA breached: P99 > 1000ms"
+          description: "P99 latency for standard CRUD endpoints exceeds 1000ms SLA threshold"
+
+      - alert: SLAStandardP95Breach
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{sla_category="standard"}[5m])) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Standard SLA P95 warning: P95 > 500ms"
+          description: "P95 latency for standard endpoints exceeds 500ms threshold for 10m"
+
+      # ── SLA Enrichment ──
+      - alert: SLAEnrichmentBreach
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{sla_category="enrichment"}[5m])) > 15.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Enrichment SLA breached: P99 > 15000ms"
+          description: "P99 latency for enrichment endpoints exceeds 15000ms SLA threshold"
+
+      - alert: SLAEnrichmentP95Breach
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{sla_category="enrichment"}[5m])) > 8.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Enrichment SLA P95 warning: P95 > 8000ms"
+          description: "P95 latency for enrichment endpoints exceeds 8000ms threshold"
+
+      # ── SLA Health ──
+      - alert: SLAHealthBreach
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{sla_category="health"}[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Health SLA breached: P99 > 50ms"
+          description: "P99 latency for health endpoints exceeds 50ms SLA threshold — possible infrastructure issue"
+
+      - alert: SLAHealthP95Breach
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{sla_category="health"}[5m])) > 0.02
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Health SLA P95 warning: P95 > 20ms"
+          description: "P95 latency for health endpoints exceeds 20ms threshold"
+
+      # ── SLA Error Budget Burn ──
+      - alert: SLAErrorBudgetBurn
+        expr: rate(http_request_duration_seconds_count{status="500"}[1h]) / rate(http_request_duration_seconds_count[1h]) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Error budget burn rate exceeds 10x sustainable rate"
+          description: "Error rate over the last 1h is burning error budget faster than 10x the acceptable rate"

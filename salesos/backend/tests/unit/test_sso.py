@@ -57,6 +57,8 @@ class TestSSOAuthorizationUrl:
 class TestSSOCallback:
     @pytest.mark.asyncio
     async def test_handle_callback_existing_user(self, sso_service, mock_db):
+        from app.modules.sso.service import _store_oauth_state
+
         user_id = uuid.uuid4()
         tenant_id = uuid.uuid4()
         mock_user = User(id=user_id, tenant_id=tenant_id, email="test@example.com")
@@ -71,6 +73,7 @@ class TestSSOCallback:
         user_result.scalar_one_or_none.return_value = mock_user
         mock_db.execute.side_effect = [conn_result, user_result]
 
+        _store_oauth_state("state123", "google")
         with patch.object(sso_service, "_exchange_code", new=AsyncMock(return_value={"access_token": "tok123", "expires_in": 3600})), \
              patch.object(sso_service, "_fetch_user_info", new=AsyncMock(return_value={"id": "p1", "email": "test@example.com", "name": "Test User"})):
 
@@ -80,10 +83,13 @@ class TestSSOCallback:
 
     @pytest.mark.asyncio
     async def test_handle_callback_new_user(self, sso_service, mock_db):
+        from app.modules.sso.service import _store_oauth_state
+
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = None
         mock_db.execute.side_effect = [mock_result, mock_result]
 
+        _store_oauth_state("state456", "github")
         with patch.object(sso_service, "_exchange_code", new=AsyncMock(return_value={"access_token": "tok456", "expires_in": 3600})), \
              patch.object(sso_service, "_fetch_user_info", new=AsyncMock(return_value={"id": "gh456", "email": "new@example.com", "name": "New User"})), \
              patch("app.modules.sso.service.hash_password", return_value="hashed_pw"):
@@ -94,10 +100,13 @@ class TestSSOCallback:
 
     @pytest.mark.asyncio
     async def test_handle_callback_no_email_github(self, sso_service, mock_db):
+        from app.modules.sso.service import _store_oauth_state
+
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = None
         mock_db.execute.side_effect = [mock_result, mock_result]
 
+        _store_oauth_state("state", "github")
         with patch.object(sso_service, "_exchange_code", new=AsyncMock(return_value={"access_token": "tok789"})), \
              patch.object(sso_service, "_fetch_user_info", new=AsyncMock(return_value={"id": "gh789", "name": "No Email"})), \
              patch.object(sso_service, "_fetch_github_emails", new=AsyncMock(return_value=[{"email": "ghuser@github.com"}])), \

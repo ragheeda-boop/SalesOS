@@ -2,13 +2,16 @@ import { render, screen, fireEvent } from "@testing-library/react"
 import { OnboardingProvider, useOnboarding } from "../onboarding/OnboardingProvider"
 import { OnboardingChecklist } from "../onboarding/OnboardingChecklist"
 import { TourProvider } from "../tour/TourProvider"
-import { Card } from "@/components/foundation/card"
-
-jest.mock("@/components/foundation/card", () => ({
-  Card: ({ children }: any) => <div data-testid="card">{children}</div>,
-  CardHeader: ({ children }: any) => <div data-testid="card-header">{children}</div>,
-  CardContent: ({ children }: any) => <div data-testid="card-content">{children}</div>,
-}))
+jest.mock("@salesos/ui", () => {
+  const h = require("react").createElement
+  return {
+    cn: (...classes: any[]) => classes.filter(Boolean).join(" "),
+    Card: (props: any) => h("div", { ...props, "data-testid": "card", className: props.className }, props.children),
+    CardHeader: (props: any) => h("div", { "data-testid": "card-header" }, props.children),
+    CardContent: (props: any) => h("div", { "data-testid": "card-content" }, props.children),
+    CardFooter: (props: any) => h("div", { "data-testid": "card-footer" }, props.children),
+  }
+})
 
 describe("OnboardingProvider", () => {
   beforeEach(() => {

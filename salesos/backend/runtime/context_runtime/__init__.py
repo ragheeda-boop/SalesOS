@@ -202,3 +202,8 @@ class ContextBuilder:
             "total_build_ms": round(self._total_build_ms, 2),
             "avg_build_ms": round(self._total_build_ms / max(self._build_count, 1), 2),
         }
+
+    async def close(self) -> None:
+        """Release held references."""
+        self._session_factory = None  # type: ignore
+        self._feature_store = None  # type: ignore

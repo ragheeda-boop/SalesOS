@@ -275,34 +275,45 @@ class FeatureStore:
 
             if upsert_rows:
                 from sqlalchemy import text as sql_text
-                await session.execute(
-                    sql_text("""
-                        INSERT INTO public.company_features
-                            (tenant_id, company_id, feature_name, score, version,
-                             computed_at, confidence, signals, explanation,
-                             created_at, updated_at)
-                        VALUES
-                            (:p_tenant_id, :p_company_id, :p_feature_name, :p_score,
-                             :p_version, :p_computed_at, :p_confidence,
-                             CAST(:p_signals AS jsonb), :p_explanation,
-                             :p_now, :p_now)
-                        ON CONFLICT (tenant_id, company_id, feature_name)
-                        DO UPDATE SET
-                            score = EXCLUDED.score,
-                            version = EXCLUDED.version,
-                            computed_at = EXCLUDED.computed_at,
-                            confidence = EXCLUDED.confidence,
-                            signals = EXCLUDED.signals,
-                            explanation = EXCLUDED.explanation,
-                            updated_at = EXCLUDED.updated_at
-                    """),
-                    upsert_rows,
-                )
-                await session.commit()
+                # One row at a time — portable across SQLAlchemy execute vs executemany.
+                for row in upsert_rows:
+                    await session.execute(
+                        sql_text("""
+                            INSERT INTO public.company_features
+                                (tenant_id, company_id, feature_name, score, version,
+                                 computed_at, confidence, signals, explanation,
+                                 created_at, updated_at)
+                            VALUES
+                                (:p_tenant_id, :p_company_id, :p_feature_name, :p_score,
+                                 :p_version, :p_computed_at, :p_confidence,
+                                 CAST(:p_signals AS jsonb), :p_explanation,
+                                 :p_now, :p_now)
+                            ON CONFLICT (tenant_id, company_id, feature_name)
+                            DO UPDATE SET
+                                score = EXCLUDED.score,
+                                version = EXCLUDED.version,
+                                computed_at = EXCLUDED.computed_at,
+                                confidence = EXCLUDED.confidence,
+                                signals = EXCLUDED.signals,
+                                explanation = EXCLUDED.explanation,
+                                updated_at = EXCLUDED.updated_at
+                        """),
+                        {**row, "p_signals": __import__("json").dumps(row["p_signals"])},
+                    )
+            await session.commit()
 
         # Invalidate Redis cache for this company's features
         await self._redis_clear_company(tenant_id, company_id)
         return results
+
+    async def close(self) -> None:
+        """Release Redis cache connections and clear held references."""
+        if self._cache_service and hasattr(self._cache_service, "close"):
+            await self._cache_service.close()
+        self._cache_service = None
+        self._session_factory = None  # type: ignore
+        self._event_runtime = None  # type: ignore
+        self._computers.clear()
 
     async def _compute_and_store(
         self,

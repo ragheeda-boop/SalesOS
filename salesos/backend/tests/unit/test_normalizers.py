@@ -61,6 +61,23 @@ class TestNormalizeArabicText:
         assert "شركه" in result
         assert "الامل" in result
 
+    def test_extended_diacritics_removal(self):
+        result = normalize_arabic_text("بِسْمِ\u06E0الل\u06E3هِ")
+        assert "\u06E0" not in result
+        assert "\u06E3" not in result
+
+    def test_persian_gaf_normalization(self):
+        assert normalize_arabic_text("گوگل") == "كوكل"
+
+    def test_persian_yeh_barree(self):
+        assert normalize_arabic_text("کارگر") == "كاركر"
+
+    def test_noon_ghunna(self):
+        assert normalize_arabic_text("گنج") == "كنج"
+
+    def test_heh_doachashmee(self):
+        assert normalize_arabic_text("مُحَمَّد\u06C1") == "محمده"
+
 
 class TestNormalizeCr:
     def test_none_and_empty(self):

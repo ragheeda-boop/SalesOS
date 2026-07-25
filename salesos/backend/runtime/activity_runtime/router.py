@@ -83,8 +83,10 @@ async def query_activities(
     since: Optional[datetime] = Query(None),
     until: Optional[datetime] = Query(None),
     limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0),
+    cursor: str | None = Query(None, description="Keyset cursor for pagination"),
 ):
+    from sdk.pagination import decode_cursor, encode_cursor
+
     rt = _get_runtime(request)
     items, total = await rt.query(
         tenant_id=tenant_id,
@@ -96,10 +98,20 @@ async def query_activities(
         target_id=target_id,
         since=since,
         until=until,
-        limit=limit,
-        offset=offset,
+        limit=limit + 1,
+        offset=0,
     )
-    return {"items": items, "total": total, "limit": limit, "offset": offset}
+
+    has_next = len(items) > limit
+    if has_next:
+        items = items[:limit]
+
+    next_cursor = None
+    if has_next and items:
+        last = items[-1]
+        next_cursor = encode_cursor(str(last.get("id", "")), last.get("created_at"))
+
+    return {"items": items, "total": total, "limit": limit, "next_cursor": next_cursor, "has_next": has_next}
 
 
 @router.get("/activities/{entity_type}/{entity_id}")
@@ -109,17 +121,29 @@ async def get_entity_activities(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
     limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0),
+    cursor: str | None = Query(None, description="Keyset cursor for pagination"),
 ):
+    from sdk.pagination import encode_cursor
+
     rt = _get_runtime(request)
     items, total = await rt.get_by_entity(
         entity_type=entity_type,
         entity_id=entity_id,
         tenant_id=tenant_id,
-        limit=limit,
-        offset=offset,
+        limit=limit + 1,
+        offset=0,
     )
-    return {"entity_type": entity_type, "entity_id": entity_id, "items": items, "total": total}
+
+    has_next = len(items) > limit
+    if has_next:
+        items = items[:limit]
+
+    next_cursor = None
+    if has_next and items:
+        last = items[-1]
+        next_cursor = encode_cursor(str(last.get("id", "")), last.get("created_at"))
+
+    return {"entity_type": entity_type, "entity_id": entity_id, "items": items, "total": total, "next_cursor": next_cursor, "has_next": has_next}
 
 
 @router.get("/activities/by-actor/{actor}")
@@ -128,16 +152,28 @@ async def get_actor_activities(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
     limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0),
+    cursor: str | None = Query(None, description="Keyset cursor for pagination"),
 ):
+    from sdk.pagination import encode_cursor
+
     rt = _get_runtime(request)
     items, total = await rt.get_by_actor(
         actor=actor,
         tenant_id=tenant_id,
-        limit=limit,
-        offset=offset,
+        limit=limit + 1,
+        offset=0,
     )
-    return {"actor": actor, "items": items, "total": total}
+
+    has_next = len(items) > limit
+    if has_next:
+        items = items[:limit]
+
+    next_cursor = None
+    if has_next and items:
+        last = items[-1]
+        next_cursor = encode_cursor(str(last.get("id", "")), last.get("created_at"))
+
+    return {"actor": actor, "items": items, "total": total, "next_cursor": next_cursor, "has_next": has_next}
 
 
 @router.get("/activities/by-action/{action}")
@@ -146,16 +182,28 @@ async def get_action_activities(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
     limit: int = Query(50, ge=1, le=500),
-    offset: int = Query(0, ge=0),
+    cursor: str | None = Query(None, description="Keyset cursor for pagination"),
 ):
+    from sdk.pagination import encode_cursor
+
     rt = _get_runtime(request)
     items, total = await rt.get_by_action(
         action=action,
         tenant_id=tenant_id,
-        limit=limit,
-        offset=offset,
+        limit=limit + 1,
+        offset=0,
     )
-    return {"action": action, "items": items, "total": total}
+
+    has_next = len(items) > limit
+    if has_next:
+        items = items[:limit]
+
+    next_cursor = None
+    if has_next and items:
+        last = items[-1]
+        next_cursor = encode_cursor(str(last.get("id", "")), last.get("created_at"))
+
+    return {"action": action, "items": items, "total": total, "next_cursor": next_cursor, "has_next": has_next}
 
 
 @router.get("/activities/stats")

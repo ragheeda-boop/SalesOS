@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { DecisionQueueView } from '../DecisionQueueView'
 import { DecisionQueueWidget } from '../DecisionQueueContainer'
-import { describeWidgetContract } from '../../../sdk/testing'
+import { describeWidgetContract } from '@salesos/widget-sdk/testing'
 import type { DecisionQueueViewProps } from '../types'
 import type { DecisionItem } from '@/application/dashboard/dashboard.dto'
 
