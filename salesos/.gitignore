@@ -38,6 +38,7 @@ secrets.*
 *.key
 *.pem
 credentials*
+infra/monitoring/prometheus-token
 
 # Docker
 .docker/
@@ -73,3 +74,36 @@ coverage/
 
 # Uploads
 uploads/
+
+# Celery beat state
+backend/celerybeat-schedule
+
+# Playwright test reports
+frontend/playwright-report/
+
+# Storybook build
+frontend/storybook-static/
+
+# Temp schema dumps
+.tmp-staging-schema.sql
+**/.tmp-*
+
+# Security scan artifacts
+security-audit-report-latest.json
+
+# Import data
+backend/data/
+backend/direct_import.py
+
+# Debug/one-off scripts
+backend/scripts/debug_360.py
+backend/scripts/test_bat.py
+backend/scripts/check_alembic_head.py
+backend/scripts/final_smoke_test.py
+
+# OpenTelemetry local config
+infra/monitoring/otel-collector-config.local.yaml
+infra/monitoring/prometheus.compose-root.yml
+
+# Gitleaks suppression
+.gitleaks.toml
