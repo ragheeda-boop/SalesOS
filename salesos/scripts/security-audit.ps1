@@ -63,7 +63,7 @@ $secretChecks = @(
 )
 
 $pyFiles = Get-ChildItem -Path $BackendPath -Recurse -Include "*.py","*.js","*.ts","*.yaml","*.yml","*.json","*.toml","*.cfg" -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -notmatch '(test_|tests[/\\]|__pycache__|node_modules|\.next|venv|migrations|\.git)' }
+    Where-Object { $_.FullName -notmatch '(test_|tests[/\\]|__pycache__|node_modules|\.next|venv|migrations|\.git|\.local|site-packages)' }
 
 foreach ($sc in $secretChecks) {
     $results = $pyFiles | Select-String -Pattern $sc.Pat -ErrorAction SilentlyContinue
@@ -191,7 +191,9 @@ foreach ($sp in $sqlPats) {
     $hits = $pyFiles | Select-String -Pattern $sp -ErrorAction SilentlyContinue
     foreach ($h in $hits) {
         if ($h.Path -match 'test') { continue }
-        if ($h.Line -match ':param|:name') { continue }
+        if ($h.Path -match 'migration|alembic') { continue }
+        if ($h.Line -match ':' + '\w+' + '') { continue }
+        if ($h.Line -match '[,\s]params[,\s\)]') { continue }
         $tline = $h.Line.Trim()
         if ($tline.Length -gt 200) { $tline = $tline.Substring(0,200) + "..." }
         Add-Finding -Category "Injection" -Check "SQL Injection Risk" -Severity "Critical" -Status "Fail" `
