@@ -1,0 +1,6 @@
+# Quarantined unit tests (PROD-W3-001)
+#
+# Empty after 2026-07-22 fix wave — signal/SSO/workflow/schema/feature_store repaired.
+# Re-add lines only for known regressions with owners.
+#
+# Format: one pytest node-id prefix per line.
