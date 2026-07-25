@@ -1,9 +1,19 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id
+from app.common.exceptions import safe_error_detail
+from app.dependencies import (
+    get_current_tenant_id,
+    get_db_session,
+    verify_token,
+)
 
+from .repository import (
+    PostgresWebhookDeliveryRepository,
+    PostgresWebhookSubscriptionRepository,
+)
 from .schemas import (
     WebhookDeliveryResponse,
     WebhookSubscriptionCreate,
@@ -11,21 +21,21 @@ from .schemas import (
     WebhookSubscriptionUpdate,
 )
 from .service import WebhookService
+from .url_safety import UnsafeWebhookURLError
 
 router = APIRouter(
     prefix="/api/v1/webhooks",
     tags=["Webhooks"],
-    dependencies=[Depends(get_current_tenant_id)],
+    dependencies=[Depends(verify_token), Depends(get_current_tenant_id)],
 )
 
-_service: WebhookService | None = None
 
-
-def get_webhook_service() -> WebhookService:
-    global _service
-    if _service is None:
-        _service = WebhookService()
-    return _service
+def get_webhook_service(db: AsyncSession = Depends(get_db_session)) -> WebhookService:
+    """Prefer Postgres persistence for production multi-replica safety."""
+    return WebhookService(
+        subscription_repo=PostgresWebhookSubscriptionRepository(db),
+        delivery_repo=PostgresWebhookDeliveryRepository(db),
+    )
 
 
 @router.get("/subscriptions", response_model=list[WebhookSubscriptionResponse])
@@ -50,14 +60,17 @@ async def create_subscription(
     try:
         body.validate_events()
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid webhook events"))
 
-    sub = await service.create_subscription(
-        tenant_id=tenant_id,
-        url=body.url,
-        events=body.events,
-        secret=body.secret,
-    )
+    try:
+        sub = await service.create_subscription(
+            tenant_id=tenant_id,
+            url=body.url,
+            events=body.events,
+            secret=body.secret,
+        )
+    except UnsafeWebhookURLError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     return WebhookSubscriptionResponse(
         id=sub.id, tenant_id=sub.tenant_id, url=sub.url,
         events=sub.events, is_active=sub.is_active,
@@ -93,7 +106,10 @@ async def update_subscription(
         raise HTTPException(status_code=404, detail="Subscription not found")
 
     data = body.model_dump(exclude_none=True)
-    sub = await service.update_subscription(sub_id, data)
+    try:
+        sub = await service.update_subscription(sub_id, data)
+    except UnsafeWebhookURLError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     if not sub:
         raise HTTPException(status_code=404, detail="Subscription not found")
     return WebhookSubscriptionResponse(
@@ -143,14 +159,20 @@ async def retry_delivery(
     tenant_id: str = Depends(get_current_tenant_id),
     service: WebhookService = Depends(get_webhook_service),
 ):
-    from .models import WebhookDelivery
-    delivery = await service.retry_delivery(delivery_id)
+    delivery = await service.delivery_repo.get(delivery_id)
     if not delivery:
         raise HTTPException(status_code=404, detail="Delivery not found or not retryable")
+    sub = await service.get_subscription(delivery.subscription_id)
+    if not sub or sub.tenant_id != tenant_id:
+        raise HTTPException(status_code=404, detail="Delivery not found or not retryable")
+
+    retried = await service.retry_delivery(delivery_id)
+    if not retried:
+        raise HTTPException(status_code=404, detail="Delivery not found or not retryable")
     return WebhookDeliveryResponse(
-        id=delivery.id, subscription_id=delivery.subscription_id,
-        event_type=delivery.event_type, payload=delivery.payload,
-        status=delivery.status, response_code=delivery.response_code,
-        response_body=delivery.response_body, attempt=delivery.attempt,
-        next_retry_at=delivery.next_retry_at, created_at=delivery.created_at,
+        id=retried.id, subscription_id=retried.subscription_id,
+        event_type=retried.event_type, payload=retried.payload,
+        status=retried.status, response_code=retried.response_code,
+        response_body=retried.response_body, attempt=retried.attempt,
+        next_retry_at=retried.next_retry_at, created_at=retried.created_at,
     )

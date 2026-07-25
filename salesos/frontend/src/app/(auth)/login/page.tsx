@@ -1,83 +1,99 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { useLogin } from "@/lib/hooks/mutationHooks";
+import { useState } from"react";
+import { useRouter } from"next/navigation";
+import Link from"next/link";
+import { useLogin } from"@/lib/hooks/mutationHooks";
+import { useTranslation } from"@/lib/i18n";
+import { Card, CardContent, Input, Button, cn } from"@salesos/ui";
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const loginMutation = useLogin();
+ const router = useRouter();
+ const { t } = useTranslation();
+ const [email, setEmail] = useState("");
+ const [password, setPassword] = useState("");
+ const [error, setError] = useState("");
+ const loginMutation = useLogin();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+ const handleSubmit = async (e: React.FormEvent) => {
+ e.preventDefault();
+ setError("");
 
-    if (!email || !password) {
-      setError("يرجى إدخال البريد الإلكتروني وكلمة المرور");
-      return;
-    }
+ if (!email || !password) {
+ setError(t("auth.login_fill_all"));
+ return;
+ }
 
-    loginMutation.mutate(
-      { email, password },
-      {
-        onSuccess: () => router.push("/dashboard"),
-        onError: (err: unknown) => {
-          if (err && typeof err === "object" && "response" in err) {
-            const axiosErr = err as { response?: { data?: { detail?: string } } };
-            setError(axiosErr.response?.data?.detail || "فشل تسجيل الدخول");
-          } else {
-            setError("حدث خطأ غير متوقع");
-          }
-        },
-      }
-    );
-  };
+ loginMutation.mutate(
+ { email, password },
+ {
+ onSuccess: () => router.push("/dashboard"),
+ onError: (err: unknown) => {
+ if (err && typeof err ==="object" &&"response" in err) {
+ const axiosErr = err as {
+ response?: { status?: number; data?: { detail?: string | { msg?: string }[] } };
+ message?: string;
+ };
+ const detail = axiosErr.response?.data?.detail;
+ if (typeof detail ==="string" && detail) {
+ setError(detail);
+ } else if (Array.isArray(detail) && detail[0]?.msg) {
+ setError(detail.map((d) => d.msg).filter(Boolean).join(";") || t("auth.login_failed"));
+ } else if (!axiosErr.response) {
+ setError(
+ `Cannot reach API (${axiosErr.message ||"network error"}). Check NEXT_PUBLIC_API_URL.`
+ );
+ } else {
+ setError(t("auth.login_failed"));
+ }
+ } else {
+ setError(t("error.unexpected"));
+ }
+ },
+ }
+ );
+ };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-      <div className="w-full max-w-md p-8 bg-[var(--card)] rounded-xl shadow-muhide-1 border border-[var(--border)]">
-        <h1 className="text-2xl font-bold mb-6 text-center">تسجيل الدخول إلى سيلز أو إس</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">البريد الإلكتروني</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--muhide-orange)]"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">كلمة المرور</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-[var(--border)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--muhide-orange)]"
-              required
-            />
-          </div>
-          {error && <p className="text-danger-500 text-sm">{error}</p>}
-          <button
-            type="submit"
-            disabled={loginMutation.isPending}
-            className="w-full py-3 bg-[var(--muhide-orange)] text-white rounded-lg hover:bg-orange-700 transition disabled:opacity-50 font-medium"
-          >
-            {loginMutation.isPending ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}
-          </button>
-        </form>
-        <p className="mt-4 text-sm text-center text-[var(--muted-foreground)]">
-          ليس لديك حساب؟{" "}
-          <Link href="/register" className="text-[var(--muhide-orange)] hover:underline">
-            إنشاء حساب
-          </Link>
-        </p>
-      </div>
-    </div>
-  );
+ return (
+ <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-secondary)' }}>
+ <Card className="w-full max-w-md p-8">
+ <CardContent>
+ <h1 className="text-2xl font-bold mb-6 text-center" style={{ color: 'var(--text-primary)' }}>{t("auth.login_title")}</h1>
+ <form onSubmit={handleSubmit} className="space-y-4">
+ <Input
+ label={t("labels.email")}
+ type="email"
+ value={email}
+ onChange={(e) => setEmail(e.target.value)}
+ error={error && !email ? error : undefined}
+ required
+ />
+ <Input
+ label={t("labels.password")}
+ type="password"
+ value={password}
+ onChange={(e) => setPassword(e.target.value)}
+ required
+ />
+ {error && <p className="text-sm" role="alert" style={{ color: 'var(--danger-600, #EF4444)' }}>{error}</p>}
+ <Button
+ type="submit"
+ variant="primary"
+ className="w-full"
+ loading={loginMutation.isPending}
+ disabled={loginMutation.isPending}
+ >
+ {loginMutation.isPending ? t("auth.logging_in") : t("auth.login")}
+ </Button>
+ </form>
+ <p className="mt-4 text-sm text-center" style={{ color: 'var(--text-muted)' }}>
+ {t("auth.no_account")}{""}
+ <Link href="/register" style={{ color: 'var(--muhide-orange)' }} className="hover:underline">
+ {t("auth.register")}
+ </Link>
+ </p>
+ </CardContent>
+ </Card>
+ </div>
+ );
 }

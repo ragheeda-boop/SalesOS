@@ -1,5 +1,6 @@
-import { createWidget } from './create-widget'
-import type { WidgetConfig, WidgetMetadata, WidgetLifecycle, WidgetData, WorkspaceContextValue } from './types'
+import { createWidget } from '@salesos/widget-sdk'
+import type { WidgetConfig, WidgetMetadata, WidgetLifecycle, WidgetData } from '@salesos/widget-sdk'
+import type { WorkspaceContextValue } from './workspace-types'
 
 export interface WorkspaceWidgetConfig {
   id: string

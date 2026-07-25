@@ -258,14 +258,14 @@ class TestSignalDetection:
         assert event is not None
         assert event.acknowledged is False
 
-        acked = await service.acknowledge(event.id)
+        acked = await service.acknowledge(event.id, "tenant-1")
         assert acked is not None
         assert acked.acknowledged is True
         assert acked.acknowledged_at is not None
 
     @pytest.mark.asyncio
     async def test_acknowledge_nonexistent(self, service):
-        acked = await service.acknowledge("nonexistent")
+        acked = await service.acknowledge("nonexistent", "tenant-1")
         assert acked is None
 
     @pytest.mark.asyncio
@@ -282,7 +282,7 @@ class TestSignalDetection:
         e1 = await service.create_signal_event("SIG-HC-001", "company-1", "tenant-1")
         await service.create_signal_event("SIG-HC-001", "company-2", "tenant-1")
         assert e1 is not None
-        await service.acknowledge(e1.id)
+        await service.acknowledge(e1.id, "tenant-1")
 
         unacked = await service.get_feed("tenant-1", acknowledged=False)
         assert len(unacked) == 1

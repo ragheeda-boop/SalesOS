@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -18,7 +18,7 @@ class GoldenRecord(BaseModel):
     )
     cr_number: Mapped[str] = mapped_column(String(50), nullable=False)
     company_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("companies.id"), nullable=True
+        UUID(as_uuid=True), ForeignKey("companies.id"), nullable=True, index=True
     )
     data: Mapped[dict] = mapped_column(
         JSONB, nullable=False,
@@ -27,6 +27,11 @@ class GoldenRecord(BaseModel):
     confidence_score: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     source_ids: Mapped[list | None] = mapped_column(JSONB, default=list)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    __table_args__ = (
+        Index("ix_golden_records_tenant_company", "tenant_id", "company_id"),
+        Index("ix_golden_records_tenant_active", "tenant_id", "is_active"),
+    )
 
     def __repr__(self) -> str:
         return f"<GoldenRecord cr={self.cr_number} confidence={self.confidence_score:.2f}>"
@@ -39,7 +44,7 @@ class EntityResolutionConflict(BaseModel):
         UUID(as_uuid=True), nullable=False, index=True
     )
     golden_record_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("golden_records.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("golden_records.id"), nullable=False, index=True
     )
     field_name: Mapped[str] = mapped_column(String(255), nullable=False)
     source_a_value: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -49,7 +54,11 @@ class EntityResolutionConflict(BaseModel):
     resolution_strategy: Mapped[str | None] = mapped_column(String(50), nullable=True)
     resolved_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    status: Mapped[str] = mapped_column(String(20), default="open")
+    status: Mapped[str] = mapped_column(String(20), default="open", index=True)
+
+    __table_args__ = (
+        Index("ix_conflicts_tenant_status", "tenant_id", "status"),
+    )
 
     def __repr__(self) -> str:
         return f"<Conflict {self.field_name}: {self.source_a_source} vs {self.source_b_source}>"

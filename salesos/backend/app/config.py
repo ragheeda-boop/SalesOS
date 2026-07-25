@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -12,6 +13,26 @@ class Settings(BaseSettings):
     env: str = "development"
     debug: bool = False
     secret_key: str  # Must be set via SECRET_KEY environment variable
+
+    @field_validator("secret_key")
+    @classmethod
+    def _validate_secret_key(cls, v: str) -> str:
+        if len(v) < 32:
+            raise ValueError(
+                "SECRET_KEY must be at least 32 characters. "
+                "Generate with: python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
+        return v
+
+    @field_validator("jwt_secret_key")
+    @classmethod
+    def _validate_jwt_secret_key(cls, v: str) -> str:
+        if len(v) < 32:
+            raise ValueError(
+                "JWT_SECRET_KEY must be at least 32 characters. "
+                "Generate with: python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
+        return v
     allowed_hosts: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     postgres_user: str = "salesos"
@@ -49,12 +70,15 @@ class Settings(BaseSettings):
     salesos_api_url: str = "http://localhost:8000"
 
     feature_search_fuzzy_v2: bool = False
+    # GA honesty (Wave 6): keep False until AI runtime is evidence-validated.
+    # Do not market copilot as production-ready while this remains False.
+    # See docs/audit/ga-engineering-audit/AI_HONESTY.md
     feature_ai_copilot: bool = False
     feature_crm_kanban: bool = False
 
-    log_level: str = "DEBUG"
+    log_level: str = "INFO"
     sentry_dsn: str = ""
-    service_version: str = "0.1.0"
+    service_version: str = "3.1.0"
     sentry_traces_sample_rate: float = 0.1
 
     # Neo4j connection details
@@ -62,6 +86,9 @@ class Settings(BaseSettings):
     neo4j_max_connection_pool_size: int = 50
     neo4j_connection_acquisition_timeout: int = 30
     neo4j_max_transaction_retry_time: int = 10
+
+    # Body size limit (bytes, default 10 MB)
+    max_body_size: int = 10 * 1024 * 1024
 
     # Rate limiting (requests per window)
     rate_limit_default: int = 60
@@ -74,7 +101,8 @@ class Settings(BaseSettings):
 
     # CORS
     cors_allow_methods: str = "GET,POST,PUT,PATCH,DELETE,OPTIONS"
-    cors_allow_headers: str = "Authorization,Content-Type,X-Tenant-Id,X-Request-ID,X-CSRF-Token"
+    # Include Accept* so browser preflights from axios/fetch pass CORS checks.
+    cors_allow_headers: str = "Authorization,Content-Type,Accept,Accept-Language,X-Tenant-Id,X-Request-ID,X-CSRF-Token"
 
     # Redis timeouts
     redis_socket_connect_timeout: int = 2
@@ -137,6 +165,14 @@ class Settings(BaseSettings):
 
     # Demo Mode
     demo_mode: bool = False
+
+    # Knowledge graph SQL fallback (disabled in production unless explicitly enabled)
+    kg_allow_sql_fallback: bool | None = None
+
+    def is_kg_sql_fallback_allowed(self) -> bool:
+        if self.kg_allow_sql_fallback is not None:
+            return self.kg_allow_sql_fallback
+        return self.env.lower() not in ("production", "prod")
 
 
 settings = Settings()

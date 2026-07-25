@@ -119,6 +119,126 @@ npm run dev:company             # Company Workspace only
 npm run dev:search              # Search app only
 ```
 
+## Consumer Contract Tests
+
+Every API client function in `src/lib/api.ts` has a contract test verifying:
+- Response shape matches its TypeScript type
+- Correct HTTP method and endpoint are called
+- Tenant ID header is attached
+- Error codes (401, 403, 422, 4xx, 5xx) are handled correctly
+- Paginated response format (offset + cursor)
+- Error propagation for network failures and validation errors
+
+```bash
+npm test -- --testPathPattern="api.contract"
+```
+
+Coverage: **93 API functions covered** across Companies, Contacts, Employees, Opportunities, Activities, Auth, User Profile, Company 360, Admin (tenants, plans, licenses, users, feature flags, jobs, AI costs, health, roles, permissions, config, audit logs), Copilot, Entity Resolution, DLQ, Search, Executive Dashboard, and Tasks.
+
+## Performance Optimization
+
+### Lazy Loading
+
+Heavy components (CommandBar, SearchPanel, CopilotPanel, charts) are loaded via `next/dynamic`:
+
+```typescript
+import { LazyCommandBar } from "@/components/lazy-exports"
+```
+
+- SSR disabled for all panel components
+- Skeleton loading states shown during load
+- No impact on initial page load
+
+### Code Splitting
+
+- Dashboard panels are dynamic imports (not statically bundled)
+- `experimental.optimizePackageImports` configured for Radix UI and Lucide icons
+- `console.log` stripped in production builds (errors/warnings preserved)
+
+### Bundle Analysis
+
+```bash
+npm run build
+node scripts/analyze-bundle.js
+```
+
+- Reports top-20 largest JS assets by page and chunk
+- Flags any asset > 100 KB (gzipped equivalent)
+- Writes `.next/bundle-report.json` for CI gates
+- Run after every build to catch regressions
+
+### Vendor Code Splitting
+
+Webpack `splitChunks` configured in `next.config.js` with cache groups:
+- `framework` — React, ReactDOM, Next.js
+- `radix` — All `@radix-ui/*` packages
+- `charts` — Recharts and charting dependencies
+- `commons` — Axios, Zod, CVA, clsx, tailwind-merge
+
+### Optimized Package Imports
+
+Tree-shaking configured via `experimental.optimizePackageImports`:
+- `lucide-react`, `recharts`
+- All `@radix-ui/*` packages
+- `@tanstack/react-table`, `@tanstack/react-query`
+- `class-variance-authority`, `tailwind-merge`
+
+## Dashboard Pages
+
+| Route | Description |
+|-------|-------------|
+| `/dashboard` | Executive dashboard with KPIs |
+| `/companies` | Company management with search |
+| `/companies/:id` | Company 360° view |
+| `/companies/:id/360` | Company 360° detail page |
+| `/employees` | Employee management |
+| `/employees/me` | Employee 360° (self) |
+| `/employees/:id` | Employee 360° (other) |
+| `/contacts` | Contact management |
+| `/opportunities` | Pipeline & deals |
+| `/opportunities/:id` | Opportunity detail |
+| `/pipeline` | Kanban pipeline board |
+| `/pipeline/analytics` | Pipeline analytics |
+| `/revenue` | Revenue intelligence |
+| `/revenue/territories` | Territory management |
+| `/revenue/quotas` | Quota management |
+| `/forecast` | Forecasting |
+| `/activities` | Activity timeline |
+| `/search` | Unified search |
+| `/search/analytics` | Search analytics |
+| `/admin` | Admin portal |
+| `/admin/tenants` | Tenant management |
+| `/admin/flags` | Feature flag management |
+| `/admin/audit` | Audit log viewer |
+| `/admin/config` | System configuration |
+| `/copilot` | AI copilot |
+| `/copilot/telemetry` | Copilot telemetry dashboard |
+| `/analytics` | Analytics dashboards |
+| `/analytics/sales` | Sales analytics |
+| `/analytics/revenue` | Revenue analytics |
+| `/analytics/pipeline` | Pipeline analytics |
+| `/analytics/employees` | Employee analytics |
+| `/analytics/automation` | Automation analytics |
+| `/analytics/reports/builder` | Custom report builder |
+| `/automation` | Workflow automation |
+| `/automation/workflows/new` | New workflow |
+| `/automation/analytics` | Automation analytics |
+| `/knowledge` | Knowledge graph visualization |
+| `/knowledge/connectors` | Knowledge connectors |
+| `/graph` | Entity relationship graph |
+| `/decisions` | Decision center |
+| `/decisions/templates` | Decision templates |
+| `/monitoring` | System health monitoring |
+| `/signals` | Signal intelligence |
+| `/rules` | Business rules engine |
+| `/rag` | RAG query interface |
+| `/ai` | AI prompt templates |
+| `/meetings` | Meeting intelligence |
+| `/customer-success` | Customer success hub |
+| `/marketplace` | App marketplace |
+| `/marketplace/:pluginId/config` | Plugin configuration |
+| `/settings` | User settings |
+
 ## Links
 
 - [Widget SDK Guide](docs/REFERENCE_WIDGET_GUIDE.md)

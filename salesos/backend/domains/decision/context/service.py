@@ -40,6 +40,39 @@ class DecisionService:
             await self._event_bus.publish(event)
         return result
 
+    async def build_contexts(
+        self,
+        tenant_id: str,
+        target_ids: list[str],
+        target_type: str = "opportunity",
+        factors: list[DecisionFactor] | None = None,
+        policies: list[Policy] | None = None,
+    ) -> list[DecisionContext]:
+        ctx_factors = factors or []
+        ctx_policies = policies or []
+        contexts = [
+            DecisionContext(
+                id=str(uuid.uuid4()),
+                tenant_id=tenant_id,
+                target_id=tid,
+                target_type=target_type,
+                factors=list(ctx_factors),
+                policies=list(ctx_policies),
+            )
+            for tid in target_ids
+        ]
+        results = await self._repository.save_contexts(contexts)
+        if self._event_bus and contexts:
+            from sdk.events.base import DomainEvent
+            for ctx in contexts:
+                event = DomainEvent(event_type="decision.context_built", tenant_id=tenant_id,
+                                    aggregate_id=ctx.id,
+                                    data={"target_id": ctx.target_id, "target_type": target_type,
+                                          "factor_count": len(ctx.factors)})
+                event.event_type = "decision.context_built"
+                await self._event_bus.publish(event)
+        return results
+
     async def add_factor(self, context_id: str, factor: DecisionFactor) -> DecisionContext:
         ctx = await self._repository.get_context(context_id)
         if not ctx:

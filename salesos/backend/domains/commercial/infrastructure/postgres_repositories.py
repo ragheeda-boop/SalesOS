@@ -304,7 +304,14 @@ class PostgresActivityRepository(ActivityRepository):
         return [self._session_to_domain(r) for r in result.scalars().all()]
 
     async def count_sessions(self, query: Any) -> int:
-        return len(await self.query_sessions(query))
+        from sqlalchemy import func as sa_func
+        q = select(sa_func.count(ActivitySessionModel.id))
+        if hasattr(query, 'tenant_id') and query.tenant_id:
+            q = q.where(ActivitySessionModel.tenant_id == query.tenant_id)
+        if hasattr(query, 'target_id') and query.target_id:
+            q = q.where(ActivitySessionModel.target_id == query.target_id)
+        result = await self.session.execute(q)
+        return result.scalar() or 0
 
     async def get_activities_by_target(self, target_id: str, target_type: str, limit: int = 50) -> list:
         q = select(ActivitySessionModel).where(
@@ -750,6 +757,17 @@ class PostgresDecisionRepository(DecisionRepository):
         self.session.add(model)
         await self.session.flush()
         return context
+
+    async def save_contexts(self, contexts: list[DecisionContext]) -> list[DecisionContext]:
+        for ctx in contexts:
+            model = DecisionContextModel(
+                id=ctx.id, tenant_id=ctx.tenant_id,
+                target_id=ctx.target_id, target_type=ctx.target_type,
+                factors=ctx.factors, confidence=ctx.confidence,
+            )
+            self.session.add(model)
+        await self.session.flush()
+        return contexts
 
     async def get_context(self, context_id: str) -> Optional[DecisionContext]:
         stmt = select(DecisionContextModel).where(DecisionContextModel.id == context_id)

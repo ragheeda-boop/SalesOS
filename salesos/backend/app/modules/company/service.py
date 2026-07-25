@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 import uuid
 
 import sqlalchemy as sa
@@ -504,11 +506,173 @@ class CompanyService:
 
         health_score = self._heuristic_health_score(contacts, opportunities, signals["items"])
 
+        # ── ADR-012 Activity Intelligence Integration ──
+        engagement_data = None
+        try:
+            from intelligence.activity_intelligence.engine.email_engine import EmailEngine
+            from intelligence.activity_intelligence.engine.calendar_engine import CalendarEngine
+            from intelligence.activity_intelligence.engine.engagement_engine import EngagementEngine
+            from intelligence.activity_intelligence.engine.followup_engine import FollowupEngine
+
+            email_eng = EmailEngine()
+            calendar_eng = CalendarEngine()
+            engagement_eng = EngagementEngine(email_engine=email_eng, calendar_engine=calendar_eng)
+            followup_eng = FollowupEngine(email_engine=email_eng, calendar_engine=calendar_eng)
+
+            followup_status = await followup_eng.get_status(company_id, tenant_id)
+            health = await engagement_eng.get_relationship_health(company_id, tenant_id)
+
+            engagement_data = {
+                "relationship_health": health.get("relationship_health", 0.0),
+                "metrics": health.get("metrics", {}),
+                "followup_status": {
+                    "assigned": followup_status.assigned,
+                    "need_followup": followup_status.need_followup,
+                    "waiting_customer": followup_status.waiting_customer,
+                    "waiting_you": followup_status.waiting_you,
+                    "overdue": followup_status.overdue,
+                    "last_outbound_days": followup_status.last_outbound_days,
+                    "priority": followup_status.priority,
+                },
+            }
+            if health.get("relationship_health", 0.0) > 0:
+                health_score = round(max(0.0, min(1.0, health["relationship_health"])), 4)
+        except Exception as e:
+            if self.logger:
+                self.logger.warn("company_360.adr012_failed", company_id=company_id, error=str(e))
+
+        # ── Entity Resolution section ──
+        entity_resolution = {
+            "is_golden_record": company.is_golden_record or False,
+            "golden_record_id": golden_record_id,
+            "confidence_score": company.confidence_score or 0.0,
+            "source_count": len(company.source_ids) if company.source_ids else 0,
+            "duplicates_detected": 0,
+            "conflicts_pending": 0,
+        }
+        try:
+            from app.modules.entity_resolution.models import GoldenRecord
+            gr_result = await session.execute(
+                select(GoldenRecord).where(GoldenRecord.company_id == uid, GoldenRecord.is_active == True)
+            )
+            gr = gr_result.scalar_one_or_none()
+            if gr:
+                entity_resolution["duplicates_detected"] = len(gr.source_ids) - 1 if gr.source_ids else 0
+        except Exception as e:
+            if self.logger:
+                self.logger.warn("company_360.entity_resolution_failed", company_id=company_id, error=str(e))
+
+        try:
+            from app.modules.entity_resolution.models import EntityResolutionConflict
+            conflict_count = await session.scalar(
+                select(sa.func.count()).select_from(EntityResolutionConflict).where(
+                    EntityResolutionConflict.golden_record_id == uid, EntityResolutionConflict.status == "pending"
+                )
+            )
+            entity_resolution["conflicts_pending"] = conflict_count or 0
+        except Exception as e:
+            if self.logger:
+                self.logger.warn("company_360.conflicts_failed", company_id=company_id, error=str(e))
+
+        # ── CRM section ──
+        crm = {
+            "deals": opportunities,
+            "deals_total": len(opportunities),
+            "deals_value": total_revenue,
+            "contacts": contacts,
+            "contacts_total": contacts_total,
+            "opportunities": opportunities,
+            "opportunities_total": opportunities_total,
+        }
+
+        # ── Timeline section ──
+        timeline_section = {
+            "events": timeline,
+            "count": timeline_total,
+            "page": page,
+            "total": timeline_total,
+        }
+
+        # ── Enrichment section ──
+        enrichment_section = {
+            "firmographics": {
+                "industry": company.industry,
+                "isic_code": company.isic_code,
+                "isic_description": company.isic_description,
+                "legal_form": company.legal_form,
+                "employees_count": company.employees_count,
+                "capital": company.capital,
+                "incorporation_date": str(company.incorporation_date) if company.incorporation_date else None,
+                "city": company.city,
+                "region": company.region,
+                "activity_description": company.activity_description,
+                "activity_code": company.activity_code,
+            },
+            "financials": {
+                "total_revenue": total_revenue,
+                "total_opportunity_value": total_revenue,
+                "active_contracts": active_contracts,
+                "pending_invoices": len(invoices),
+            },
+            "sources": company.source_ids or [],
+            "is_golden_record": company.is_golden_record or False,
+            "confidence_score": company.confidence_score or 0.0,
+            "last_enriched_at": company.updated_at.isoformat() if company.updated_at else None,
+        }
+
+        # ── Knowledge Graph section ──
+        kg_section = {
+            "relationships": [],
+            "hierarchy": {
+                "parent_company": None,
+                "subsidiaries": [],
+                "level": 0,
+            },
+            "competitors": [],
+            "partners": [],
+            "decision_makers": decision_makers,
+        }
+        if kg_engine:
+            try:
+                for item in related_entities:
+                    node = item.get("node", {})
+                    rel_type = item.get("relationship", "")
+                    kg_section["relationships"].append({
+                        "entity_id": node.get("id", ""),
+                        "entity_name": node.get("properties", {}).get("name_en") or node.get("properties", {}).get("name_ar"),
+                        "relationship_type": rel_type,
+                        "strength": 1.0,
+                        "properties": node.get("properties", {}),
+                    })
+                    if rel_type == "COMPETITOR_OF":
+                        kg_section["competitors"].append(node)
+                    elif rel_type == "PARTNER_WITH":
+                        kg_section["partners"].append(node)
+            except Exception as e:
+                if self.logger:
+                    self.logger.warn("company_360.kg_failed", company_id=company_id, error=str(e))
+            try:
+                from sqlalchemy import text as sa_text
+                from sqlalchemy import select as sa_select
+                row = await session.execute(
+                    sa_text("SELECT id, name_ar, name_en FROM companies WHERE id = :cid AND parent_company_id IS NOT NULL"),
+                    {"cid": company_id},
+                )
+                own_parent = row.mappings().one_or_none()
+            except Exception:
+                pass
+
         return {
             "company": company,
+            "crm": crm,
+            "timeline": timeline_section,
+            "enrichment": enrichment_section,
+            "entity_resolution": entity_resolution,
+            "knowledge_graph": kg_section,
             "related_entities": related_entities,
             "decision_makers": decision_makers,
             "health_score": health_score,
+            "engagement": engagement_data,
             "overview": {
                 "total_contacts": len(contacts),
                 "total_opportunities": len(opportunities),
@@ -540,7 +704,7 @@ class CompanyService:
             "opportunities": opportunities,
             "contracts": contracts,
             "invoices": invoices,
-            "timeline": timeline,
+            "timeline_legacy": timeline,
             "documents": documents,
             "signals": {"items": signals["items"], "total": signals["total"]},
             "branches": branches,
@@ -554,15 +718,14 @@ class CompanyService:
             "opportunities_total": opportunities_total,
             "timeline_page": page,
             "timeline_total": timeline_total,
-            "enrichment": enrichment,
+            "enrichment_legacy": enrichment,
             "golden_record_id": golden_record_id,
             "golden_record_data": golden_record_data,
         }
 
     def _detect_signals(self, company, contacts: list, opportunities: list, contracts: list, branches: list, tenant_id: str) -> dict:
         items = []
-        from datetime import datetime
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
 
         if hasattr(company, "expiry_date") and company.expiry_date:
             days_left = (company.expiry_date - now.date()).days if company.expiry_date else 365
@@ -621,6 +784,7 @@ class CompanyService:
     async def search_companies(
         self, tenant_id: str, query: str | None = None,
         page: int = 1, page_size: int = 20,
+        cursor: str | None = None,
     ) -> tuple[list[Company], int]:
         base = select(Company).where(Company.tenant_id == uuid.UUID(tenant_id))
         count_base = select(sa.func.count()).select_from(Company).where(
@@ -639,9 +803,21 @@ class CompanyService:
             count_base = count_base.where(condition)
 
         total = await self.db.scalar(count_base) or 0
-        base = base.offset((page - 1) * page_size).limit(page_size)
+        base = base.order_by(Company.created_at.desc())
+
+        if cursor:
+            from sdk.pagination import build_keyset_condition, decode_cursor
+            cursor_id, cursor_sort = decode_cursor(cursor)
+            condition = build_keyset_condition(
+                Company, cursor_id, cursor_sort,
+                sort_by="created_at", sort_dir="desc",
+            )
+            base = base.where(condition)
+
+        base = base.limit(page_size + 1)
         result = await self.db.execute(base)
-        return list(result.scalars().all()), total
+        rows = list(result.scalars().all())
+        return rows, total
 
     async def search_companies_cursored(
         self, tenant_id: str, query: str | None = None,
@@ -656,6 +832,86 @@ class CompanyService:
             page_size=page_size, sort_by=sort_by, sort_desc=sort_desc, cursor=cursor,
         )
 
+    async def bulk_update_companies(self, company_ids: list[str], updates: dict) -> dict:
+        allowed_fields = {"industry", "size", "status", "tags"}
+        field_map = {"size": "employees_count"}
+        field_updates = {k: v for k, v in updates.items() if k in allowed_fields}
+
+        updated = 0
+        failed = 0
+        errors = []
+
+        for cid in company_ids:
+            try:
+                company = await self.get_company(cid)
+                for key, value in field_updates.items():
+                    model_key = field_map.get(key, key)
+                    if key == "size":
+                        try:
+                            value = int(value)
+                        except (ValueError, TypeError):
+                            failed += 1
+                            errors.append({"company_id": cid, "error": f"Invalid size value: {value}"})
+                            continue
+                    if hasattr(company, model_key) and value is not None:
+                        setattr(company, model_key, value)
+                await self.db.flush()
+                await self.db.refresh(company)
+
+                audit = AuditTrail(self.db)
+                await audit.record(
+                    tenant_id=str(company.tenant_id),
+                    entity_type="company",
+                    entity_id=cid,
+                    action="bulk_updated",
+                    changes=field_updates,
+                )
+                if self.event_bus:
+                    try:
+                        await self.event_bus.publish(
+                            CompanyUpdated(
+                                tenant_id=str(company.tenant_id),
+                                aggregate_id=cid,
+                                aggregate_type="company",
+                                data={"updates": field_updates, "bulk": True},
+                            )
+                        )
+                    except Exception:
+                        if self.logger:
+                            self.logger.warn("event.publish_failed", entity_type="company", aggregate_id=cid)
+                updated += 1
+            except Exception as e:
+                failed += 1
+                errors.append({"company_id": cid, "error": str(e)})
+
+        return {"updated": updated, "failed": failed, "errors": errors}
+
+    async def bulk_delete_companies(self, company_ids: list[str]) -> dict:
+        now = datetime.now(timezone.utc)
+        deleted = 0
+
+        for cid in company_ids:
+            try:
+                company = await self.get_company(cid)
+                company.deleted_at = now
+                company.is_active = False
+                company.status = "deleted"
+                await self.db.flush()
+
+                audit = AuditTrail(self.db)
+                await audit.record(
+                    tenant_id=str(company.tenant_id),
+                    entity_type="company",
+                    entity_id=cid,
+                    action="deleted",
+                    changes={"bulk": True},
+                )
+                deleted += 1
+            except Exception:
+                pass
+
+        return {"deleted": deleted}
+
     async def ingest_from_source(
         self, tenant_id: str, source_slug: str, records: list[dict]
     ) -> dict:
@@ -668,6 +924,23 @@ class CompanyService:
         updated = 0
         errors = []
 
+        # BATCH: load all existing companies by cr_number in one query instead of N+1
+        cr_numbers = []
+        for record in records:
+            cr = record.get("cr_number") or record.get("CR_number")
+            if cr:
+                cr_numbers.append(cr)
+        if cr_numbers:
+            existing_result = await self.db.execute(
+                select(Company).where(
+                    Company.tenant_id == uuid.UUID(tenant_id),
+                    Company.cr_number.in_(cr_numbers),
+                )
+            )
+            existing_companies = {c.cr_number: c for c in existing_result.scalars().all()}
+        else:
+            existing_companies = {}
+
         for record in records:
             try:
                 cr_number = record.get("cr_number") or record.get("CR_number")
@@ -675,13 +948,7 @@ class CompanyService:
                     errors.append({"record": record, "error": "Missing cr_number"})
                     continue
 
-                existing = await self.db.execute(
-                    select(Company).where(
-                        Company.tenant_id == uuid.UUID(tenant_id),
-                        Company.cr_number == cr_number,
-                    )
-                )
-                existing_company = existing.scalar_one_or_none()
+                existing_company = existing_companies.get(cr_number)
 
                 if existing_company:
                     for key, value in record.items():

@@ -12,7 +12,8 @@
     "@salesos/runtime": "*",
     "@salesos/hooks": "*",
     "@salesos/design-language": "*",
-    "@salesos/renderer": "*"
+    "@salesos/renderer": "*",
+    "@salesos/widget-sdk": "*"
   },
   "peerDependencies": {
     "react": "^19.0"

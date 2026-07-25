@@ -69,6 +69,8 @@ class FeatureFlag:
     enabled: bool = False
     is_global: bool = True
     tenant_overrides: dict[str, bool] = field(default_factory=dict)
+    rollout_percentage: int = 100
+    is_ci_test: bool = False
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -112,3 +114,36 @@ class HealthSnapshot:
     timestamp: datetime
     overall_status: str
     components: dict[str, str]
+
+
+@dataclass
+class Role:
+    id: str
+    name: str
+    description: str = ""
+    is_system: bool = False
+    tenant_id: str | None = None
+    permissions: list[str] = field(default_factory=list)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+@dataclass
+class Permission:
+    id: str
+    key: str
+    name: str
+    description: str = ""
+    group: str = "general"
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+@dataclass
+class TenantConfig:
+    id: int
+    tenant_id: str
+    key: str
+    yaml_content: str
+    version: int = 1
+    created_by: str | None = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

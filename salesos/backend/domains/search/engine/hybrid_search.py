@@ -232,23 +232,23 @@ class HybridSearchEngine:
                     allowed = ("city", "region", "industry", "status",
                                "legal_form", "activity")
                     if field_name in allowed:
-                        conditions.append(f"c.{field_name} = :fltr_{field_name}")
-                        params[f"fltr_{field_name}"] = value
+                        conditions.append("c." + field_name + " = :fltr_" + field_name)
+                        params["fltr_" + field_name] = value
 
             where_clause = " AND ".join(conditions)
 
             rows = await session.execute(
-                sa_text(f"""
-                    SELECT c.id::text, c.name_ar, c.name_en, c.cr_number,
-                           c.city, c.region, c.industry, c.status,
-                           c.activity_description,
-                           ts_rank(c.search_vector,
-                                   plainto_tsquery(:lang, :q)) AS rank
-                    FROM companies c
-                    WHERE {where_clause}
-                    ORDER BY rank DESC, c.updated_at DESC
-                    LIMIT :lim OFFSET :off
-                """),
+                sa_text(
+                    "SELECT c.id::text, c.name_ar, c.name_en, c.cr_number, "
+                    "c.city, c.region, c.industry, c.status, "
+                    "c.activity_description, "
+                    "ts_rank(c.search_vector, "
+                    "plainto_tsquery(:lang, :q)) AS rank "
+                    "FROM companies c "
+                    "WHERE " + where_clause + " "
+                    "ORDER BY rank DESC, c.updated_at DESC "
+                    "LIMIT :lim OFFSET :off"
+                ),
                 params,
             )
 

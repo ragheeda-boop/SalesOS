@@ -1,14 +1,26 @@
 # SalesOS Monitoring Stack
 
+> Canonical enablement: [`docs/ops/RUNTIME_STACK.md`](../../../docs/ops/RUNTIME_STACK.md)  
+> SLOs / alerts: [`docs/ops/SLO_ALERTS.md`](../../../docs/ops/SLO_ALERTS.md)
+
 ## URLs (Docker Compose)
 
 | Service | URL | Default Credentials |
 |---------|-----|-------------------|
 | Prometheus | http://localhost:9090 | — |
 | Alertmanager | http://localhost:9093 | — |
-| Grafana | http://localhost:3001 | admin / admin |
+| Grafana | http://localhost:3001 | admin / set via `GRAFANA_PASSWORD` |
+| Loki | http://localhost:3100 | — (root compose or `--profile observability`) |
+| OTel Collector | localhost:4317 (gRPC) / 4318 (HTTP) | — |
 | Backend Health | http://localhost:8000/health | — |
-| Backend Metrics | http://localhost:8000/metrics | Bearer token |
+| Backend Metrics | http://localhost:8000/metrics | Bearer scrape token (Wave 5) |
+
+## Stack selection
+
+| Compose | Prometheus config | Loki / OTel |
+|---------|-------------------|-------------|
+| Repo root `docker-compose.yml` | `prometheus.compose-root.yml` (target `api:8000`) | Included |
+| `salesos/docker-compose.yml` | `prometheus.yml` + token example | `--profile observability` |
 
 ## Grafana Dashboards
 
@@ -25,76 +37,41 @@ All dashboards are in the **SalesOS** folder (auto-provisioned):
 ### How to browse dashboards
 
 1. Open http://localhost:3001
-2. Login with `admin` / `admin`
+2. Login with admin / your `GRAFANA_PASSWORD`
 3. Go to **Dashboards → SalesOS** folder
 4. Click any dashboard to view
 
 ## Prometheus
 
-### Alerting Rules (8 production rules)
+### Alerting Rules
 
-| Rule | Severity | Description |
-|------|----------|-------------|
-| ProductionHighErrorRate | critical | HTTP 5xx > 5% for 3m |
-| ProductionHighLatencyP95 | warning | P95 latency > 500ms for 5m |
-| ProductionDiskHigh | warning | Disk usage > 80% |
-| ProductionPodCrashLooping | critical | Pod restarts > 3x in 15m |
-| ProductionCertificateExpiring | warning | TLS cert expires in < 30d |
-| ProductionKafkaConsumerLag | warning | Consumer lag > 1000 messages |
-| ProductionRedisMemoryHigh | warning | Redis memory > 80% |
-| ProductionPostgresConnectionsHigh | warning | DB connections > 80 |
+Production rules: `infra/monitoring/alerting-rules-production.yml`  
+Local/dev rules: `infra/monitoring/alerts.yml`
 
-Production rules file: `infra/monitoring/alerting-rules-production.yml`
+### Scrape token
+
+Do **not** commit real JWTs. Use `prometheus-token.example`. See `docs/ops/SECRETS_HYGIENE.md`.
 
 ## Alertmanager
 
-### Integrations
-
-| Channel | Receiver | Status |
-|---------|----------|--------|
-| Slack #salesos-alerts | `default` | 🔴 Needs real webhook URL |
-| Slack #salesos-critical | `critical` | 🔴 Needs real webhook URL |
-| PagerDuty | `critical` | 🔴 Needs real routing key |
-| Email (SMTP) | `critical` | 🔴 Needs real SMTP credentials |
+Integrations (Slack / PagerDuty / SMTP) are env-driven — leave empty locally. No cloud vendor required for the local stack.
 
 ### How to test alerts
 
 ```bash
-# Send a test alert to Alertmanager
 curl -X POST http://localhost:9093/api/v2/alerts \
   -H "Content-Type: application/json" \
   -d '[{"labels":{"alertname":"TestAlert","severity":"warning"},"annotations":{"summary":"Test alert"},"startsAt":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}]'
-
-# Check active alerts
-curl http://localhost:9093/api/v2/alerts
-
-# Check Alertmanager status
 curl http://localhost:9093/-/ready
 ```
-
-### Reload config
-
-```bash
-curl -XPOST http://localhost:9093/-/reload
-```
-
-## K8s Manifests
-
-For production deployment on Kubernetes:
-
-| Component | Manifests |
-|-----------|-----------|
-| Prometheus | `infra/k8s/prometheus/` (configmap, deployment, service, prometheus-rule) |
-| Alertmanager | `infra/k8s/alertmanager/` (deployment with ConfigMap) |
-| Grafana | `infra/k8s/grafana/` (configmap, deployment, service) |
 
 ## Architecture
 
 ```
-Backend (:8000) ──► Prometheus (:9090) ──► Alertmanager (:9093) ──► Slack / PagerDuty / Email
+Backend (:8000) ──► Prometheus (:9090) ──► Alertmanager (:9093)
                      │
                      └──► Grafana (:3001)
-                     │
-Postgres (:5432) ──► postgres-exporter (:9187) ──► Prometheus
-Redis (:6379)    ──► redis-exporter (:9121)    ──► Prometheus
+App / OTel ──► OTel Collector ──► Loki (:3100) ──► Grafana
+Postgres ──► postgres-exporter ──► Prometheus
+Redis    ──► redis-exporter    ──► Prometheus
 ```

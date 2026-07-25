@@ -28,8 +28,17 @@ jobs:
               forbidden=1
             fi
           done
+          if git ls-files -- '**/prometheus-token' | grep -q .; then
+            echo "::error::Committed prometheus-token detected — use prometheus-token.example only"
+            forbidden=1
+          fi
           if [ "$forbidden" = "1" ]; then exit 1; fi
           echo "No forbidden files detected."
+      - name: Gitleaks (stub config at repo root)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
       - name: Run Trivy filesystem scan (secrets + vulns)
         uses: aquasecurity/trivy-action@master
         with:

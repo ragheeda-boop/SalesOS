@@ -215,7 +215,14 @@ async def _resolve_system_health(request: Request) -> dict[str, str]:
     app_state = request.app.state
 
     checks["database"] = "connected" if getattr(app_state, "db_available", True) else "disconnected"
-    checks["cache"] = "connected" if hasattr(app_state, "event_runtime") else "unavailable"
+    cache = getattr(app_state, "cache", None)
+    if cache is not None:
+        try:
+            checks["cache"] = "connected" if await cache.health() else "unavailable"
+        except Exception:
+            checks["cache"] = "unavailable"
+    else:
+        checks["cache"] = "not_configured"
     checks["graph"] = "connected" if getattr(app_state, "kg_engine", None) is not None else "not_configured"
     checks["kafka"] = "active" if getattr(app_state, "event_runtime", None) else "not_configured"
     checks["rate_limiter"] = "active"

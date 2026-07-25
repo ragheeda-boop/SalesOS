@@ -1,4 +1,9 @@
-from fastapi import APIRouter, Depends, Query, Request
+import csv
+import io
+import uuid
+from datetime import date, datetime
+
+from fastapi import APIRouter, Depends, Query, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.schemas import CursorResponse, PaginatedResponse
@@ -12,6 +17,10 @@ from sdk.telemetry import record_metric
 from .schemas import (
     BranchCreate,
     BranchResponse,
+    BulkDeleteRequest,
+    BulkDeleteResponse,
+    BulkEditRequest,
+    BulkEditResponse,
     Company360Response,
     CompanyCreate,
     CompanyIngestRequest,
@@ -78,7 +87,8 @@ async def create_company(
     return company
 
 
-@router.get("", response_model=PaginatedResponse)
+@router.get("", response_model=CursorResponse,
+            dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))])
 async def search_companies(
     q: str | None = Query(None),
     cr_number: str | None = Query(None),
@@ -86,6 +96,12 @@ async def search_companies(
     city: str | None = Query(None),
     region: str | None = Query(None),
     activity_code: str | None = Query(None),
+    # B-2: Advanced filtering
+    industry: str | None = Query(None, description="Comma-separated list (OR)"),
+    size_min: int | None = Query(None, ge=0),
+    size_max: int | None = Query(None, ge=0),
+    created_from: date | None = Query(None),
+    created_to: date | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     sort_by: str = Query("created_at"),
@@ -99,13 +115,24 @@ async def search_companies(
     if cr_number:
         filters["cr_number"] = {"contains": cr_number}
     if status:
-        filters["status"] = status
+        filters["status"] = {"in": status.split(",")} if "," in status else status
     if city:
         filters["city"] = {"contains": city}
     if region:
-        filters["region"] = {"contains": region}
+        filters["region"] = region
     if activity_code:
         filters["activity_code"] = activity_code
+    if industry:
+        industries = [i.strip() for i in industry.split(",") if i.strip()]
+        filters["industry"] = {"in": industries}
+    if size_min is not None:
+        filters["employees_count"] = {**filters.get("employees_count", {}), "gte": size_min}
+    if size_max is not None:
+        filters["employees_count"] = {**filters.get("employees_count", {}), "lte": size_max}
+    if created_from:
+        filters["created_at"] = {**filters.get("created_at", {}), "gte": created_from}
+    if created_to:
+        filters["created_at"] = {**filters.get("created_at", {}), "lte": created_to}
 
     query = SearchQuery(
         query=q or "",
@@ -142,7 +169,80 @@ async def search_companies(
         next_cursor=result.next_cursor,
         total=result.total,
         has_next=result.next_cursor is not None,
-    ) if cursor else PaginatedResponse(total=result.total, page=result.page, page_size=result.page_size, items=items)
+    )
+
+
+# ── B-1: Bulk Operations (must be before /{company_id} routes) ─────────────
+
+
+@router.patch("/bulk", response_model=BulkEditResponse,
+              dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))])
+async def bulk_update_companies(
+    body: BulkEditRequest,
+    service: CompanyService = Depends(get_service),
+):
+    result = await service.bulk_update_companies(body.company_ids, body.updates)
+    record_metric("company_bulk_updated_total", result["updated"])
+    return BulkEditResponse(**result)
+
+
+@router.delete("/bulk", response_model=BulkDeleteResponse,
+               dependencies=[Depends(require_permission_dep("company", PermissionAction.DELETE))])
+async def bulk_delete_companies(
+    body: BulkDeleteRequest,
+    service: CompanyService = Depends(get_service),
+):
+    result = await service.bulk_delete_companies(body.company_ids)
+    record_metric("company_bulk_deleted_total", result["deleted"])
+    return BulkDeleteResponse(**result)
+
+
+@router.get("/export",
+            dependencies=[Depends(require_permission_dep("company", PermissionAction.EXPORT))])
+async def export_companies(
+    format: str = Query("csv", pattern="^(csv)$"),
+    fields: str = Query("name,industry,size,region,status"),
+    company_ids: str | None = Query(None, description="Comma-separated UUIDs"),
+    tenant_id: str = Depends(get_current_tenant_id),
+    service: CompanyService = Depends(get_service),
+):
+    from .models import Company
+    from sqlalchemy import select
+
+    field_list = [f.strip() for f in fields.split(",") if f.strip()]
+    allowed = {"name", "name_ar", "name_en", "industry", "size", "employees_count",
+               "region", "status", "city", "cr_number", "email", "phone", "website",
+               "legal_form", "activity_description", "confidence_score", "created_at"}
+
+    field_map = {
+        "name": "name_ar",
+        "size": "employees_count",
+    }
+    model_fields = [field_map.get(f, f) for f in field_list if f in allowed or field_map.get(f) in allowed]
+    cols = [getattr(Company, mf) for mf in model_fields]
+
+    stmt = select(*cols).where(Company.tenant_id == uuid.UUID(tenant_id))
+    if company_ids:
+        ids = [uuid.UUID(cid.strip()) for cid in company_ids.split(",") if cid.strip()]
+        stmt = stmt.where(Company.id.in_(ids))
+    result = await service.db.execute(stmt)
+    rows = result.fetchall()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(field_list)
+    for row_data in rows:
+        writer.writerow(
+            str(v.isoformat() if isinstance(v, datetime) else v) if v is not None else ""
+            for v in row_data
+        )
+
+    content = output.getvalue()
+    return Response(
+        content=content,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=companies_export_{datetime.now().strftime('%Y%m%d')}.csv"},
+    )
 
 
 @router.get("/{company_id}", response_model=CompanyResponse,
@@ -315,7 +415,8 @@ async def company_intelligence(
     return build_intelligence_dto(resp)
 
 
-@router.get("/cursors", response_model=CursorResponse)
+@router.get("/cursors", response_model=CursorResponse,
+            dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))])
 async def search_companies_cursor(
     q: str | None = Query(None),
     cr_number: str | None = Query(None),

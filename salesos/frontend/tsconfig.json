@@ -30,6 +30,12 @@
       ],
       "@salesos/decision-platform/*": [
         "./packages/platform/decision/*"
+      ],
+      "@salesos/widget-sdk": [
+        "./packages/widget-sdk/src/index.ts"
+      ],
+      "@salesos/widget-sdk/*": [
+        "./packages/widget-sdk/src/*"
       ]
     },
     "target": "ES2017"
@@ -48,6 +54,10 @@
     "**/*.test.*",
     "**/*.spec.*",
     "**/tests/**",
-    "**/contract-test-utils.ts"
+    "**/contract-test-utils.ts",
+    "jest.setup.ts",
+    "jest.config.js",
+    "jest.custom-environment.js",
+    "jest.resolver.js"
   ]
 }

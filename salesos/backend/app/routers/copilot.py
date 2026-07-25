@@ -1,29 +1,88 @@
-"""AI Copilot — coordinates agents to answer user queries."""
+"""AI Copilot — coordinates agents to answer user queries.
+
+Phase 11 additions:
+- B-1: search_companies tool integrated with Search domain
+- B-2: Feedback endpoints (submit + stats)
+- B-3: Tool telemetry logging + aggregation endpoints
+- B-4: Arabic copilot engine (NLP detection, RTL, Saudi context)
+
+GA honesty (Wave 6–7): product endpoints require settings.feature_ai_copilot.
+Registration ≠ GA; see docs/audit/ga-engineering-audit/AI_HONESTY.md
+"""
 
 import time as _time
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from app.config import settings
-from app.dependencies import get_current_tenant_id, get_current_user_id, require_permission_dep
-from sdk.permissions import PermissionAction
+from app.dependencies import get_current_tenant_id, get_current_user_id, require_permission_dep, verify_token
+from domains.copilot.arabic import ArabicCopilotEngine
+from domains.copilot.feedback_service import CopilotFeedbackService
+from domains.copilot.models import ToolTelemetryStats
+from domains.copilot.schemas import (
+    ArabicDetectRequest,
+    ArabicDetectResponse,
+    CopilotFeedbackResponse,
+    CopilotFeedbackStatsResponse,
+    CopilotFeedbackSubmit,
+    SearchCompaniesRequest,
+    ToolTelemetryBreakdownResponse,
+    ToolTelemetryLogRequest,
+    ToolTelemetryStatsResponse,
+)
+from domains.copilot.telemetry_service import ToolTelemetryService
+from domains.copilot.tools import SearchCompaniesTool
 from intelligence.agents import AgentCoordinator, AgentTask
-from intelligence.agents.llm import LLMService
-from intelligence.agents.research import ResearchAgent
-from intelligence.agents.meeting import MeetingAgent
-from intelligence.agents.proposal import ProposalAgent
-from intelligence.agents.contract import ContractAgent
-from intelligence.agents.pricing import PricingAgent
-from intelligence.agents.forecast import ForecastAgent
-from intelligence.agents.renewal import RenewalAgent
 from intelligence.agents.competitor import CompetitorAgent
-from intelligence.agents.tender import TenderAgent
+from intelligence.agents.contract import ContractAgent
+from intelligence.agents.forecast import ForecastAgent
+from intelligence.agents.llm import LLMService
+from intelligence.agents.meeting import MeetingAgent
 from intelligence.agents.news import NewsAgent
+from intelligence.agents.pricing import PricingAgent
+from intelligence.agents.proposal import ProposalAgent
 from intelligence.agents.relationship import RelationshipAgent
+from intelligence.agents.renewal import RenewalAgent
+from intelligence.agents.research import ResearchAgent
+from intelligence.agents.tender import TenderAgent
+from sdk.permissions import PermissionAction
 from sdk.telemetry import StructuredLogger
 
 router = APIRouter()
+
+# ── Singleton services ──────────────────────────────────────────
+_feedback_service = CopilotFeedbackService()
+_telemetry_service = ToolTelemetryService()
+_arabic_engine = ArabicCopilotEngine()
+
+_COPILOT_DISABLED_DETAIL = (
+    "AI Copilot is disabled (feature_ai_copilot=False). "
+    "Experimental only — not GA. See AI_HONESTY.md."
+)
+
+
+def require_ai_copilot_enabled() -> None:
+    """Block product use while Settings.feature_ai_copilot remains False."""
+    if not settings.feature_ai_copilot:
+        raise HTTPException(status_code=403, detail=_COPILOT_DISABLED_DETAIL)
+
+
+class CopilotStatusResponse(BaseModel):
+    feature_ai_copilot: bool
+    classification: str
+    ga_ready: bool = False
+
+
+@router.get("/copilot/status", response_model=CopilotStatusResponse)
+async def copilot_status(_auth=Depends(verify_token)):
+    """Honest flag surface for FE gating — always readable when authenticated."""
+    enabled = bool(settings.feature_ai_copilot)
+    return CopilotStatusResponse(
+        feature_ai_copilot=enabled,
+        classification="experimental" if enabled else "disabled",
+        ga_ready=False,
+    )
 
 
 class CopilotQuery(BaseModel):
@@ -41,6 +100,7 @@ class CopilotResponse(BaseModel):
     confidence: float
     agent_used: str
     sources: list[str] = []
+    conversation_id: str = ""
 
 
 def _build_coordinator() -> AgentCoordinator:
@@ -63,6 +123,58 @@ def _build_coordinator() -> AgentCoordinator:
     return coordinator
 
 
+# ── B-1: search_companies tool ────────────────────────────────
+
+@router.post("/copilot/search-companies")
+async def copilot_search_companies(
+    body: SearchCompaniesRequest,
+    tenant_id: str = Depends(get_current_tenant_id),
+    user_id: str = Depends(get_current_user_id),
+    _rbac=Depends(require_permission_dep("copilot", PermissionAction.READ)),
+    _flag=Depends(require_ai_copilot_enabled),
+):
+    """Search companies via copilot tool — structured results with < 1s latency."""
+    search_repo = None
+    try:
+        from app.database import async_session
+        from domains.search.engine.postgres_repo import PostgresSearchRepository
+        search_repo = PostgresSearchRepository(session_factory=async_session)
+    except Exception:
+        pass
+
+    tool = SearchCompaniesTool(search_repo=search_repo)
+    result = await tool.execute(
+        params={
+            "query": body.query,
+            "city": body.city,
+            "industry": body.industry,
+            "limit": body.limit,
+        },
+        context={"tenant_id": tenant_id, "user_id": user_id},
+    )
+
+    _telemetry_service.log(
+        tool_name=tool.name,
+        tenant_id=tenant_id,
+        user_id=user_id,
+        success=result.success,
+        latency_ms=result.latency_ms,
+        result_count=len(result.data),
+        error_message=result.error,
+    )
+
+    return {
+        "success": result.success,
+        "data": result.data,
+        "total": result.total,
+        "latency_ms": round(result.latency_ms, 2),
+        "tool_name": result.tool_name,
+        "error": result.error,
+    }
+
+
+# ── Copilot Query (existing + enhanced) ──────────────────────
+
 @router.post("/copilot/query", response_model=CopilotResponse)
 async def copilot_query(
     body: CopilotQuery,
@@ -70,9 +182,13 @@ async def copilot_query(
     tenant_id: str = Depends(get_current_tenant_id),
     user_id: str = Depends(get_current_user_id),
     _rbac=Depends(require_permission_dep("copilot", PermissionAction.READ)),
+    _flag=Depends(require_ai_copilot_enabled),
 ):
     logger: StructuredLogger = getattr(request.app.state, "logger", None)
+    conversation_id = f"conv_{user_id}_{int(_time.time())}"
 
+    # B-4: Detect Arabic and enrich context
+    detection = _arabic_engine.detect(body.query)
     context = {
         "company_id": body.company_id,
         "company_name": body.company_name,
@@ -80,35 +196,351 @@ async def copilot_query(
         "city": body.city,
         "industry": body.industry,
     }
+    context = _arabic_engine.enrich_saudi_context(body.query, context)
+    context["tenant_id"] = tenant_id
 
     coordinator = _build_coordinator()
     task = AgentTask(
         id=f"copilot_{user_id}_{int(_time.time())}",
         agent_type="coordinator",
-        input={"goal": body.goal or body.query, "context": {**context, "tenant_id": tenant_id}},
+        input={"goal": body.goal or body.query, "context": context},
     )
 
+    t0 = _time.monotonic()
     result = await coordinator.execute(task)
+    latency_ms = (_time.monotonic() - t0) * 1000
 
     # Extract text response
     steps = result.output.get("results", [])
     texts = []
     for step in steps:
         out = step.get("output", {})
-        text = out.get("summary") or out.get("analysis") or out.get("proposal") or out.get("preparation") or out.get("message") or ""
+        text = (
+            out.get("summary") or out.get("analysis")
+            or out.get("proposal") or out.get("preparation")
+            or out.get("message") or ""
+        )
         if text:
             texts.append(text)
 
     response_text = "\n\n".join(texts) if texts else "لم يتم العثور على معلومات كافية."
     if not settings.openai_api_key:
-        response_text = "⚠️ لم يتم تكوين مفتاح OpenAI. يرجى ضبط `OPENAI_API_KEY` في الإعدادات لتفعيل المساعد الذكي."
+        response_text = (
+            "⚠️ لم يتم تكوين مفتاح OpenAI."
+            " يرجى ضبط `OPENAI_API_KEY` في الإعدادات"
+            " لتفعيل المساعد الذكي."
+        )
+
+    # B-4: Apply RTL markers if Arabic
+    if detection.is_arabic:
+        response_text = _arabic_engine.add_rtl_markers(response_text)
+
+    # B-3: Log telemetry for coordinator
+    _telemetry_service.log(
+        tool_name="copilot_coordinator",
+        conversation_id=conversation_id,
+        tenant_id=tenant_id,
+        user_id=user_id,
+        success=result.success,
+        latency_ms=latency_ms,
+        result_count=len(steps),
+    )
 
     if logger:
-        logger.info("Copilot query: user=%s goal=%s confidence=%.2f", user_id, body.goal or body.query[:50], result.confidence)
+        logger.info(
+            "Copilot query: user=%s goal=%s confidence=%.2f lang=%s latency=%.0fms",
+            user_id,
+            (body.goal or body.query)[:50],
+            result.confidence,
+            "ar" if detection.is_arabic else "en",
+            latency_ms,
+        )
 
     return CopilotResponse(
         response=response_text,
         confidence=result.confidence,
         agent_used="coordinator",
         sources=[],
+        conversation_id=conversation_id,
     )
+
+
+# ── B-2: Feedback endpoints ──────────────────────────────────
+
+@router.post("/copilot/feedback", response_model=CopilotFeedbackResponse, status_code=201)
+async def submit_feedback(
+    body: CopilotFeedbackSubmit,
+    tenant_id: str = Depends(get_current_tenant_id),
+    user_id: str = Depends(get_current_user_id),
+    _rbac=Depends(require_permission_dep("copilot", PermissionAction.CREATE)),
+    _flag=Depends(require_ai_copilot_enabled),
+):
+    """Submit thumbs up/down feedback for a copilot response."""
+    feedback = _feedback_service.submit(
+        conversation_id=body.conversation_id,
+        message_id=body.message_id,
+        user_id=user_id,
+        tenant_id=tenant_id,
+        rating=body.rating,
+        comment=body.comment,
+        tool_name=body.tool_name,
+    )
+    return CopilotFeedbackResponse(
+        id=feedback.id,
+        conversation_id=feedback.conversation_id,
+        message_id=feedback.message_id,
+        rating=feedback.rating.value,
+        comment=feedback.comment,
+        tool_name=feedback.tool_name,
+        created_at=feedback.created_at.isoformat(),
+    )
+
+
+@router.get("/copilot/feedback/stats", response_model=CopilotFeedbackStatsResponse)
+async def feedback_stats(
+    tenant_id: str = Depends(get_current_tenant_id),
+    _rbac=Depends(require_permission_dep("copilot", PermissionAction.READ)),
+):
+    """Get aggregated feedback statistics (satisfaction rate, per-tool breakdown)."""
+    stats = _feedback_service.get_stats(tenant_id=tenant_id)
+    return CopilotFeedbackStatsResponse(
+        total_feedback=stats.total_feedback,
+        positive_count=stats.positive_count,
+        negative_count=stats.negative_count,
+        satisfaction_rate=stats.satisfaction_rate,
+        by_tool=stats.by_tool,
+    )
+
+
+# ── B-3: Tool Telemetry endpoints ────────────────────────────
+
+@router.get("/copilot/telemetry")
+async def telemetry_dashboard(
+    days: int = Query(30, ge=1, le=365),
+    tenant_id: str = Depends(get_current_tenant_id),
+    _rbac=Depends(require_permission_dep("copilot", PermissionAction.READ)),
+):
+    """Aggregate telemetry payload for FE `/copilot/telemetry` page.
+
+    Read-only dashboard; does not require feature_ai_copilot (honest empty OK).
+    """
+    period_hours = float(days * 24)
+    overall = _telemetry_service.get_stats(tenant_id=tenant_id, period_hours=period_hours)
+    by_tool = _telemetry_service.get_tool_breakdown(tenant_id=tenant_id, period_hours=period_hours)
+    volume_raw = _telemetry_service.get_volume_over_time(
+        tenant_id=tenant_id,
+        period_hours=period_hours,
+        bucket_minutes=1440 if days > 7 else 60,
+    )
+
+    tools = [
+        {
+            "tool_name": s.tool_name,
+            "total_calls": s.total_calls,
+            "success_count": s.success_count,
+            "failure_count": s.failure_count,
+            "success_rate": s.success_rate,
+            "latency_p50_ms": s.latency_p50_ms,
+            "latency_p95_ms": s.latency_p95_ms,
+            "latency_p99_ms": s.latency_p99_ms,
+            "avg_result_count": s.result_count_avg,
+        }
+        for s in by_tool.values()
+    ]
+    tools.sort(key=lambda t: t["total_calls"], reverse=True)
+
+    latency_distribution = [
+        {
+            "label": s.tool_name,
+            "p50": s.latency_p50_ms,
+            "p95": s.latency_p95_ms,
+            "p99": s.latency_p99_ms,
+        }
+        for s in by_tool.values()
+    ] or [{"label": "overall", "p50": 0, "p95": 0, "p99": 0}]
+
+    # Result-count histogram from overall buckets
+    result_histogram = [
+        {"label": "0", "count": 0},
+        {"label": "1-5", "count": 0},
+        {"label": "6-20", "count": 0},
+        {"label": "20+", "count": 0},
+    ]
+    cutoff_hours = period_hours
+    from datetime import UTC, datetime, timedelta
+    cutoff = datetime.now(UTC) - timedelta(hours=cutoff_hours)
+    for r in _telemetry_service._records:
+        if r.tenant_id and r.tenant_id != tenant_id:
+            continue
+        if r.timestamp < cutoff:
+            continue
+        c = r.result_count
+        if c <= 0:
+            result_histogram[0]["count"] += 1
+        elif c <= 5:
+            result_histogram[1]["count"] += 1
+        elif c <= 20:
+            result_histogram[2]["count"] += 1
+        else:
+            result_histogram[3]["count"] += 1
+
+    volume_over_time = [
+        {
+            "date": v.get("timestamp", "")[:10],
+            "calls": v.get("total", 0),
+            "successes": v.get("success", 0),
+            "failures": v.get("failure", 0),
+        }
+        for v in volume_raw
+    ]
+
+    return {
+        "summary": {
+            "total_calls": overall.total_calls,
+            "success_rate": overall.success_rate,
+            "avg_latency_ms": overall.latency_avg_ms,
+            "p95_latency_ms": overall.latency_p95_ms,
+        },
+        "tools": tools,
+        "latency_distribution": latency_distribution,
+        "result_histogram": result_histogram,
+        "volume_over_time": volume_over_time,
+        "period_days": days,
+    }
+
+
+@router.get("/copilot/telemetry/stats", response_model=ToolTelemetryStatsResponse)
+async def telemetry_stats(
+    tool_name: str | None = Query(None, description="Filter by tool name"),
+    period_hours: float = Query(24.0, ge=1, le=168),
+    tenant_id: str = Depends(get_current_tenant_id),
+    _rbac=Depends(require_permission_dep("copilot", PermissionAction.READ)),
+):
+    """Get tool telemetry: success rate, p50/p95/p99 latency, result counts."""
+    stats = _telemetry_service.get_stats(
+        tool_name=tool_name,
+        tenant_id=tenant_id,
+        period_hours=period_hours,
+    )
+    return ToolTelemetryStatsResponse(
+        tool_name=stats.tool_name,
+        total_calls=stats.total_calls,
+        success_count=stats.success_count,
+        failure_count=stats.failure_count,
+        success_rate=stats.success_rate,
+        latency_p50_ms=stats.latency_p50_ms,
+        latency_p95_ms=stats.latency_p95_ms,
+        latency_p99_ms=stats.latency_p99_ms,
+        latency_avg_ms=stats.latency_avg_ms,
+        result_count_avg=stats.result_count_avg,
+        calls_per_hour=stats.calls_per_hour,
+        period_hours=stats.period_hours,
+    )
+
+
+@router.get("/copilot/telemetry/breakdown", response_model=ToolTelemetryBreakdownResponse)
+async def telemetry_breakdown(
+    period_hours: float = Query(24.0, ge=1, le=168),
+    tenant_id: str = Depends(get_current_tenant_id),
+    _rbac=Depends(require_permission_dep("copilot", PermissionAction.READ)),
+):
+    """Get per-tool telemetry breakdown with overall stats."""
+    overall = _telemetry_service.get_stats(tenant_id=tenant_id, period_hours=period_hours)
+    by_tool_raw = _telemetry_service.get_tool_breakdown(
+        tenant_id=tenant_id, period_hours=period_hours
+    )
+
+    def _to_response(s: "ToolTelemetryStats") -> ToolTelemetryStatsResponse:
+        return ToolTelemetryStatsResponse(
+            tool_name=s.tool_name,
+            total_calls=s.total_calls,
+            success_count=s.success_count,
+            failure_count=s.failure_count,
+            success_rate=s.success_rate,
+            latency_p50_ms=s.latency_p50_ms,
+            latency_p95_ms=s.latency_p95_ms,
+            latency_p99_ms=s.latency_p99_ms,
+            latency_avg_ms=s.latency_avg_ms,
+            result_count_avg=s.result_count_avg,
+            calls_per_hour=s.calls_per_hour,
+            period_hours=s.period_hours,
+        )
+
+    return ToolTelemetryBreakdownResponse(
+        overall=_to_response(overall),
+        by_tool={name: _to_response(s) for name, s in by_tool_raw.items()},
+    )
+
+
+@router.get("/copilot/telemetry/volume")
+async def telemetry_volume(
+    tool_name: str | None = Query(None),
+    period_hours: float = Query(24.0, ge=1, le=168),
+    bucket_minutes: int = Query(60, ge=5, le=1440),
+    tenant_id: str = Depends(get_current_tenant_id),
+    _rbac=Depends(require_permission_dep("copilot", PermissionAction.READ)),
+):
+    """Get call volume over time (bucketed)."""
+    volume = _telemetry_service.get_volume_over_time(
+        tool_name=tool_name,
+        tenant_id=tenant_id,
+        period_hours=period_hours,
+        bucket_minutes=bucket_minutes,
+    )
+    return {"data": volume, "period_hours": period_hours, "bucket_minutes": bucket_minutes}
+
+
+@router.post("/copilot/telemetry/log", status_code=201)
+async def telemetry_log(
+    body: ToolTelemetryLogRequest,
+    tenant_id: str = Depends(get_current_tenant_id),
+    user_id: str = Depends(get_current_user_id),
+    _rbac=Depends(require_permission_dep("copilot", PermissionAction.CREATE)),
+):
+    """Manually log a tool call (for testing or external integrations)."""
+    record = _telemetry_service.log(
+        tool_name=body.tool_name,
+        tenant_id=tenant_id,
+        user_id=user_id,
+        success=body.success,
+        latency_ms=body.latency_ms,
+        result_count=body.result_count,
+        error_message=body.error_message,
+    )
+    return {"id": record.id, "tool_name": record.tool_name, "logged": True}
+
+
+# ── B-4: Arabic Copilot endpoints ────────────────────────────
+
+@router.post("/copilot/arabic/detect", response_model=ArabicDetectResponse)
+async def arabic_detect(
+    body: ArabicDetectRequest,
+    _rbac=Depends(require_permission_dep("copilot", PermissionAction.READ)),
+):
+    """Detect Arabic content and extract Saudi business entities."""
+    detection = _arabic_engine.detect(body.text)
+    return ArabicDetectResponse(
+        is_arabic=detection.is_arabic,
+        arabic_ratio=detection.arabic_ratio,
+        contains_diacritics=detection.contains_diacritics,
+        detected_entities=detection.detected_entities,
+        language=_arabic_engine.detect_language(body.text),
+    )
+
+
+@router.get("/copilot/arabic/prompts")
+async def arabic_prompts(
+    intent: str = Query(
+        "default",
+        description="Prompt intent: research, proposal, meeting, search, default",
+    ),
+    _rbac=Depends(require_permission_dep("copilot", PermissionAction.READ)),
+):
+    """Get Arabic or English prompt template for a given intent."""
+    ar_template = _arabic_engine.get_prompt_template(intent, "ar")
+    en_template = _arabic_engine.get_prompt_template(intent, "en")
+    return {
+        "intent": intent,
+        "arabic": ar_template,
+        "english": en_template,
+    }

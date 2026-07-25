@@ -45,7 +45,11 @@ def record_metric(name: str, value: float, attributes: dict | None = None) -> No
 
 
 class StructuredLogger:
-    """Structured JSON logger with request context."""
+    """Structured JSON logger with request context.
+
+    Accepts stdlib-style printf ``*args`` so call sites written for
+    ``logging.Logger`` (e.g. knowledge graph runtime) do not 500.
+    """
 
     def __init__(self, name: str):
         self._logger = logging.getLogger(name)
@@ -55,28 +59,37 @@ class StructuredLogger:
         self._extra.update(kwargs)
         return self
 
-    def _log(self, level: int, msg: str, **kwargs) -> None:
-        log_kwargs = {}
+    def _log(self, level: int, msg: str, *args: Any, **kwargs) -> None:
+        log_kwargs: dict[str, Any] = {}
         for key in ("exc_info", "stack_info", "stacklevel"):
             if key in kwargs:
                 log_kwargs[key] = kwargs.pop(key)
+        if args:
+            try:
+                msg = msg % args
+            except (TypeError, ValueError):
+                msg = f"{msg} | args={args!r}"
         extra = {**self._extra, **kwargs}
         self._logger.log(level, msg, extra=extra, **log_kwargs)
 
-    def info(self, msg: str, **kwargs) -> None:
-        self._log(logging.INFO, msg, **kwargs)
+    def info(self, msg: str, *args: Any, **kwargs) -> None:
+        self._log(logging.INFO, msg, *args, **kwargs)
 
-    def error(self, msg: str, **kwargs) -> None:
-        self._log(logging.ERROR, msg, **kwargs)
+    def error(self, msg: str, *args: Any, **kwargs) -> None:
+        self._log(logging.ERROR, msg, *args, **kwargs)
 
-    def warn(self, msg: str, **kwargs) -> None:
-        self._log(logging.WARNING, msg, **kwargs)
+    def warn(self, msg: str, *args: Any, **kwargs) -> None:
+        self._log(logging.WARNING, msg, *args, **kwargs)
 
-    def debug(self, msg: str, **kwargs) -> None:
-        self._log(logging.DEBUG, msg, **kwargs)
+    def warning(self, msg: str, *args: Any, **kwargs) -> None:
+        """Alias for ``warn`` — matches stdlib ``Logger.warning``."""
+        self._log(logging.WARNING, msg, *args, **kwargs)
 
-    def exception(self, msg: str, **kwargs) -> None:
-        self._log(logging.ERROR, msg, exc_info=True, **kwargs)
+    def debug(self, msg: str, *args: Any, **kwargs) -> None:
+        self._log(logging.DEBUG, msg, *args, **kwargs)
+
+    def exception(self, msg: str, *args: Any, **kwargs) -> None:
+        self._log(logging.ERROR, msg, *args, exc_info=True, **kwargs)
 
 
 @asynccontextmanager

@@ -27,13 +27,17 @@ if not exist .env (
 )
 
 echo [2/3] Installing dependencies...
-if exist frontend\package.json (
-  cd frontend
-  call npm ci --ignore-scripts 2>nul
-  cd ..
-) else (
-  echo       Skipping (frontend directory not found)
-)
+REM Docker-based frontend is preferred per AGENTS.md low-load protocol.
+REM npm ci is not required on Windows host — frontend runs in Docker.
+REM Uncomment the block below only if running frontend natively on Windows.
+REM if exist frontend\package.json (
+REM   cd frontend
+REM   call npm ci --ignore-scripts 2>nul
+REM   cd ..
+REM ) else (
+REM   echo       Skipping (frontend directory not found)
+REM )
+echo       Skipping (Docker-based frontend preferred — see AGENTS.md)
 
 echo [3/3] Starting services...
 echo.

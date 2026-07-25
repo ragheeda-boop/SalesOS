@@ -157,8 +157,9 @@ class InMemoryFeatureFlagRepository:
 
     def _seed(self):
         flags = [
+            # Align with Settings.feature_ai_copilot=False (GA honesty Wave 6).
             FeatureFlag(id=uuid.uuid4(), key="ai_copilot", name="AI Copilot",
-                        description="Enable AI-powered copilot assistant", enabled=True),
+                        description="AI copilot — disabled by default until runtime is production-validated", enabled=False),
             FeatureFlag(id=uuid.uuid4(), key="advanced_search", name="Advanced Search",
                         description="Enable semantic and hybrid search", enabled=True),
             FeatureFlag(id=uuid.uuid4(), key="crm_kanban", name="CRM Kanban Board",

@@ -5,6 +5,8 @@ module.exports = {
   },
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
+    "^@salesos/widget-sdk$": "<rootDir>/packages/widget-sdk/src/index.ts",
+    "^@salesos/widget-sdk/testing$": "<rootDir>/packages/widget-sdk/src/testing",
     "^@salesos/workspace/testing$": "<rootDir>/packages/workspace/src/testing",
     "^@salesos/decision-platform$": "<rootDir>/packages/platform/decision/index.ts",
     "^@salesos/decision-platform/(.*)$": "<rootDir>/packages/platform/decision/$1",

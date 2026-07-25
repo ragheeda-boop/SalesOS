@@ -9,26 +9,8 @@ export { UniversalInbox, type InboxItem, type InboxItemType } from './universal-
 export { RevenueCommandCenter, type RevenueMetrics } from './revenue-command-center'
 export { AIOperatingAssistant, type WorkflowExecution, type WorkflowStep, type QuickAction } from './ai-operating-assistant'
 
-// Widget SDK (generic, extracted from Dashboard Widget SDK v1.0)
-export { createWidget } from './create-widget'
-export { useWidgetLifecycle } from './widget-lifecycle'
-export { widgetTelemetry, type TelemetryEventType, type TelemetryEvent } from './widget-telemetry'
-export { setPermissionChecker, checkPermissions, type PermissionChecker } from './widget-permissions'
-export { setFeatureFlagResolver, isFeatureEnabled, type FeatureFlagResolver } from './widget-feature-flags'
-export type {
-  WidgetStatus,
-  WidgetPriority,
-  WidgetCategory,
-  WidgetFeatureTier,
-  WidgetFeatureFlag,
-  WidgetMetadata,
-  WidgetLifecycle,
-  WidgetData,
-  WidgetRenderContext,
-  WidgetConfig,
-  WorkspaceWidgetEntry,
-  WorkspaceContextValue,
-} from './types'
+// Workspace types (unique to workspace, not part of canonical SDK)
+export type { WorkspaceWidgetEntry, WorkspaceContextValue } from './workspace-types'
 
 // Workspace Infrastructure
 export { deriveStatus } from './derive-status'

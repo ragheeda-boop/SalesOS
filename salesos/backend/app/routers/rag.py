@@ -112,23 +112,37 @@ async def ingest_document(
 
 @router.get("/rag/documents", response_model=list[DocumentResponse])
 async def list_documents(
+    limit: int = Query(20, ge=1, le=200, description="Max results"),
+    cursor: str | None = Query(None, description="Pagination cursor"),
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
     _token: dict = Depends(verify_token),
 ):
     retrieval = RetrievalService(db=db)
     docs = await retrieval.list_documents(tenant_id)
-    return [
-        DocumentResponse(
-            id=d.id,
-            source_type=d.source_type,
-            source_id=d.source_id,
-            title=d.title,
-            metadata=d.metadata,
-            created_at=d.created_at.isoformat() if d.created_at else None,
-        )
-        for d in docs
-    ]
+    offset = 0
+    if cursor:
+        try:
+            offset = int(cursor)
+        except (ValueError, TypeError):
+            offset = 0
+    sliced = docs[offset:offset + limit]
+    next_cursor = str(offset + limit) if offset + limit < len(docs) else None
+    return {
+        "items": [
+            DocumentResponse(
+                id=d.id,
+                source_type=d.source_type,
+                source_id=d.source_id,
+                title=d.title,
+                metadata=d.metadata,
+                created_at=d.created_at.isoformat() if d.created_at else None,
+            )
+            for d in sliced
+        ],
+        "next_cursor": next_cursor,
+        "total": len(docs),
+    }
 
 
 @router.delete("/rag/documents/{document_id}")

@@ -169,6 +169,25 @@ class CompanyIngestRequest(BaseModel):
     data: list[dict] = Field(..., description="Array of company records from source")
 
 
+class BulkEditRequest(BaseModel):
+    company_ids: list[str] = Field(..., min_length=1)
+    updates: dict = Field(..., description="Fields to update: industry, size, status, tags")
+
+
+class BulkEditResponse(BaseModel):
+    updated: int
+    failed: int
+    errors: list[dict]
+
+
+class BulkDeleteRequest(BaseModel):
+    company_ids: list[str] = Field(..., min_length=1)
+
+
+class BulkDeleteResponse(BaseModel):
+    deleted: int
+
+
 class CompanyOverview(BaseModel):
     total_contacts: int = 0
     total_opportunities: int = 0
@@ -199,8 +218,102 @@ class CompanySignals(BaseModel):
     total: int = 0
 
 
+class CrmDeal(BaseModel):
+    id: str
+    name: str | None = None
+    value: float = 0.0
+    stage: str | None = None
+    status: str | None = None
+    probability: float | None = None
+    owner_id: str | None = None
+    created_at: str | None = None
+
+
+class CrmSection(BaseModel):
+    deals: list[CrmDeal] = []
+    deals_total: int = 0
+    deals_value: float = 0.0
+    contacts: list[dict] = []
+    contacts_total: int = 0
+    opportunities: list[dict] = []
+    opportunities_total: int = 0
+
+
+class TimelineSection(BaseModel):
+    events: list[dict] = []
+    count: int = 0
+    page: int = 1
+    total: int = 0
+
+
+class EnrichmentFirmographics(BaseModel):
+    industry: str | None = None
+    isic_code: str | None = None
+    isic_description: str | None = None
+    legal_form: str | None = None
+    employees_count: int | None = None
+    capital: float | None = None
+    incorporation_date: str | None = None
+    city: str | None = None
+    region: str | None = None
+    activity_description: str | None = None
+    activity_code: str | None = None
+
+
+class EnrichmentFinancials(BaseModel):
+    total_revenue: float = 0.0
+    total_opportunity_value: float = 0.0
+    active_contracts: int = 0
+    pending_invoices: int = 0
+
+
+class EnrichmentSection(BaseModel):
+    firmographics: EnrichmentFirmographics = EnrichmentFirmographics()
+    financials: EnrichmentFinancials = EnrichmentFinancials()
+    sources: list = []
+    is_golden_record: bool = False
+    confidence_score: float = 0.0
+    last_enriched_at: str | None = None
+
+
+class EntityResolutionSection(BaseModel):
+    is_golden_record: bool = False
+    golden_record_id: str | None = None
+    confidence_score: float = 0.0
+    source_count: int = 0
+    duplicates_detected: int = 0
+    conflicts_pending: int = 0
+
+
+class KgRelationship(BaseModel):
+    entity_id: str
+    entity_name: str | None = None
+    relationship_type: str
+    strength: float = 0.0
+    properties: dict = {}
+
+
+class KgHierarchy(BaseModel):
+    parent_company: dict | None = None
+    subsidiaries: list[dict] = []
+    level: int = 0
+
+
+class KnowledgeGraphSection(BaseModel):
+    relationships: list[KgRelationship] = []
+    hierarchy: KgHierarchy = KgHierarchy()
+    competitors: list[dict] = []
+    partners: list[dict] = []
+    decision_makers: list[dict] = []
+
+
 class Company360Response(BaseModel):
     company: CompanyResponse
+    crm: CrmSection = CrmSection()
+    timeline: TimelineSection = TimelineSection()
+    enrichment: EnrichmentSection = EnrichmentSection()
+    entity_resolution: EntityResolutionSection = EntityResolutionSection()
+    knowledge_graph: KnowledgeGraphSection = KnowledgeGraphSection()
     overview: CompanyOverview = CompanyOverview()
     organization: CompanyOrganization = CompanyOrganization()
     contacts: list[dict] = []
@@ -211,7 +324,7 @@ class Company360Response(BaseModel):
     opportunities: list[dict] = []
     contracts: list[dict] = []
     invoices: list[dict] = []
-    timeline: list[dict] = []
+    timeline_legacy: list[dict] = []
     documents: list[dict] = []
     signals: CompanySignals = CompanySignals()
     branches: list[BranchResponse] = []
@@ -225,7 +338,7 @@ class Company360Response(BaseModel):
     opportunities_total: int = 0
     timeline_page: int = 1
     timeline_total: int = 0
-    enrichment: dict = {}
+    enrichment_legacy: dict = {}
     golden_record_id: str | None = None
     golden_record_data: dict | None = None
     related_entities: list[dict] = []

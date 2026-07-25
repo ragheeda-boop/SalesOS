@@ -316,40 +316,40 @@ class ActivityRuntime:
         async with self._session_factory() as session:
             # Total count
             row = await session.execute(
-                sa_text(f"SELECT COUNT(*) FROM activity_records WHERE {where}"), params
+                sa_text("SELECT COUNT(*) FROM activity_records WHERE " + where), params
             )
             total = row.scalar() or 0
 
             # By action
             breakdown = await session.execute(
-                sa_text(f"""
-                    SELECT action, COUNT(*) as cnt
-                    FROM activity_records WHERE {where}
-                    GROUP BY action ORDER BY cnt DESC
-                """),
+                sa_text(
+                    "SELECT action, COUNT(*) as cnt "
+                    "FROM activity_records WHERE " + where + " "
+                    "GROUP BY action ORDER BY cnt DESC"
+                ),
                 params,
             )
             by_action = {r["action"]: r["cnt"] for r in breakdown.mappings().all()}
 
             # By entity type
             et_breakdown = await session.execute(
-                sa_text(f"""
-                    SELECT entity_type, COUNT(*) as cnt
-                    FROM activity_records WHERE {where}
-                    GROUP BY entity_type ORDER BY cnt DESC
-                """),
+                sa_text(
+                    "SELECT entity_type, COUNT(*) as cnt "
+                    "FROM activity_records WHERE " + where + " "
+                    "GROUP BY entity_type ORDER BY cnt DESC"
+                ),
                 params,
             )
             by_entity_type = {r["entity_type"]: r["cnt"] for r in et_breakdown.mappings().all()}
 
             # Time range
             time_range = await session.execute(
-                sa_text(f"""
-                    SELECT
-                        MIN(timestamp) as first_ts,
-                        MAX(timestamp) as last_ts
-                    FROM activity_records WHERE {where}
-                """),
+                sa_text(
+                    "SELECT "
+                    "MIN(timestamp) as first_ts, "
+                    "MAX(timestamp) as last_ts "
+                    "FROM activity_records WHERE " + where
+                ),
                 params,
             )
             tr = dict(time_range.mappings().one())

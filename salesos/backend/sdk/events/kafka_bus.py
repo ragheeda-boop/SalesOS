@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from typing import Any
 
 from sdk.config import sdk_settings
@@ -88,15 +89,28 @@ class KafkaEventBus(EventBus):
         """Ensure producer is started.
 
         Returns True if Kafka is available for publishing.
+        Implements automatic reconnection with 30-second backoff.
         """
         if self._kafka_available is False:
-            return False
+            now = getattr(self, "_kafka_retry_after", 0)
+            if time.monotonic() < now:
+                return False
+            # Attempt reconnection
+            logger.info("KafkaEventBus: attempting reconnect...")
+            ok = await self._producer.start()
+            if ok:
+                self._kafka_available = True
+                logger.info("KafkaEventBus: reconnected successfully")
+            else:
+                self._kafka_retry_after = time.monotonic() + 30
+            return ok
 
         ok = await self._producer.start()
         if ok:
             self._kafka_available = True
         else:
             self._kafka_available = False
+            self._kafka_retry_after = time.monotonic() + 30
         return ok
 
     async def publish(self, event: DomainEvent) -> None:

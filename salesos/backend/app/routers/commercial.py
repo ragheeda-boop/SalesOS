@@ -3,9 +3,11 @@
 import logging
 import os
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.exceptions import safe_error_detail
+from app.config import settings
 from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
 from sdk.permissions import PermissionAction
 
@@ -77,7 +79,7 @@ def _get_context(db: AsyncSession):
 # Opportunity Endpoints
 # ─────────────────────────────────────────────
 
-@router.post("/opportunities", tags=["Opportunities"])
+@router.post("/opportunities", status_code=201, tags=["Opportunities"])
 async def create_opportunity(
     company_id: str = Query(...), name: str = Query(...),
     value: float = Query(0), tenant_id: str = Depends(get_current_tenant_id),
@@ -90,11 +92,24 @@ async def create_opportunity(
 
 
 @router.get("/opportunities", tags=["Opportunities"])
-async def list_opportunities(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.READ))):
+async def list_opportunities(
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.READ)),
+    limit: int = Query(50, ge=1, le=500),
+    cursor: str | None = Query(None),
+):
     from domains.commercial.opportunity.contracts.repository import OpportunityQuery
     svc = _get_opp(db)
-    result = await svc.query(OpportunityQuery(tenant_id=tenant_id))
-    return {"items": [{"id": o.id, "name": o.name, "stage": o.stage, "value": o.value, "company_id": o.company_id} for o in result.items], "total": result.total}
+    offset = 0
+    if cursor:
+        try:
+            offset = int(cursor)
+        except (ValueError, TypeError):
+            offset = 0
+    result = await svc.query(OpportunityQuery(tenant_id=tenant_id, page_size=limit, page=offset // limit + 1 if limit else 1))
+    next_cursor = str(offset + limit) if offset + limit < result.total else None
+    return {"items": [{"id": o.id, "name": o.name, "stage": o.stage, "value": o.value, "company_id": o.company_id} for o in result.items], "total": result.total, "next_cursor": next_cursor}
 
 
 @router.post("/opportunities/{opportunity_id}/advance", tags=["Opportunities"])
@@ -122,7 +137,7 @@ async def close_lost(opportunity_id: str, reason: str = Query(""), tenant_id: st
 # Pipeline Endpoints
 # ─────────────────────────────────────────────
 
-@router.post("/pipelines", tags=["Pipelines"])
+@router.post("/pipelines", status_code=201, tags=["Pipelines"])
 async def create_pipeline(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.CREATE))):
     from domains.commercial.pipeline.contracts.models import PipelineDefinition
     svc = _get_pipe(db)
@@ -132,10 +147,17 @@ async def create_pipeline(tenant_id: str = Depends(get_current_tenant_id), db: A
 
 
 @router.get("/pipelines", tags=["Pipelines"])
-async def list_pipelines(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.READ))):
+async def list_pipelines(
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.READ)),
+    limit: int = Query(20, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+):
     svc = _get_pipe(db)
     pipes = await svc.list_pipelines(tenant_id)
-    return {"items": [{"id": p.id, "name": p.name, "stages": len(p.stages)} for p in pipes]}
+    sliced = pipes[offset:offset + limit]
+    return {"items": [{"id": p.id, "name": p.name, "stages": len(p.stages)} for p in sliced], "total": len(pipes), "limit": limit, "offset": offset}
 
 
 @router.get("/pipelines/{pipeline_id}/kpis", tags=["Pipelines"])
@@ -149,7 +171,7 @@ async def pipeline_kpis(pipeline_id: str, tenant_id: str = Depends(get_current_t
 # Activity Endpoints
 # ─────────────────────────────────────────────
 
-@router.post("/activity-sessions", tags=["Activities"])
+@router.post("/activity-sessions", status_code=201, tags=["Activities"])
 async def create_session(target_id: str = Query(...), title: str = "Session", tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("activity", PermissionAction.CREATE))):
     svc = _get_act(db)
     session = await svc.create_session(tenant_id, title, target_id)
@@ -176,7 +198,7 @@ async def complete_activity(activity_id: str, session_id: str = Query(...), outc
 # Quote Endpoints
 # ─────────────────────────────────────────────
 
-@router.post("/quotes", tags=["Quotes"])
+@router.post("/quotes", status_code=201, tags=["Quotes"])
 async def create_quote(opportunity_id: str = Query(...), title: str = "Quote", tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("quote", PermissionAction.CREATE))):
     svc = _get_quote(db)
     q = await svc.create_quote(tenant_id, opportunity_id=opportunity_id, title=title)
@@ -222,7 +244,7 @@ async def accept_quote(quote_id: str, tenant_id: str = Depends(get_current_tenan
 # Proposal Endpoints
 # ─────────────────────────────────────────────
 
-@router.post("/proposals", tags=["Proposals"])
+@router.post("/proposals", status_code=201, tags=["Proposals"])
 async def create_proposal(opportunity_id: str = Query(...), quote_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.CREATE))):
     svc = _get_proposal(db)
     p = await svc.create_proposal(tenant_id, opportunity_id, quote_id)
@@ -251,7 +273,7 @@ async def accept_proposal(proposal_id: str, tenant_id: str = Depends(get_current
 # Contract Endpoints
 # ─────────────────────────────────────────────
 
-@router.post("/contracts", tags=["Contracts"])
+@router.post("/contracts", status_code=201, tags=["Contracts"])
 async def create_contract(opportunity_id: str = Query(...), quote_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("contract", PermissionAction.CREATE))):
     svc = _get_contract(db)
     c = await svc.create_contract(tenant_id, opportunity_id=opportunity_id, quote_id=quote_id)
@@ -272,21 +294,47 @@ async def sign_contract(contract_id: str, tenant_id: str = Depends(get_current_t
 
 @router.post("/forecast/run", tags=["Forecast"])
 async def run_forecast(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("forecast", PermissionAction.CREATE))):
+    from sqlalchemy import select
     from domains.revenue.forecast.engine import CommercialInput
-    import os
+    from domains.commercial.infrastructure.models import OpportunityModel
 
     svc = _get_forecast(db)
 
-    # TODO(D-005): Replace hardcoded demo input with real pipeline data.
-    # The demo input below uses a static opportunity_id="demo-1". In production,
-    # this must be replaced by reading actual commercial_opportunities for the
-    # tenant and feeding them as CommercialInput instances.
-    # Tracked in: memory/technical-debt.md (TD-005)
-    is_demo = os.getenv("DEMO_MODE", "false").lower() == "true"
+    is_demo = settings.demo_mode or os.getenv("DEMO_MODE", "false").lower() == "true"
     if is_demo:
         logger.warning("Forecast running with DEMO MODE data for tenant=%s", tenant_id)
+        inputs = [
+            CommercialInput(
+                opportunity_id="demo-1",
+                opportunity_value=100000,
+                opportunity_probability=0.5,
+                historical_win_rate=0.7,
+            )
+        ]
+    else:
+        result = await db.execute(
+            select(OpportunityModel).where(
+                OpportunityModel.tenant_id == tenant_id,
+                OpportunityModel.status == "open",
+            ).limit(200)
+        )
+        opportunities = result.scalars().all()
+        if not opportunities:
+            raise HTTPException(
+                status_code=400,
+                detail="No open opportunities for tenant; cannot run forecast without pipeline data",
+            )
+        inputs = [
+            CommercialInput(
+                opportunity_id=opp.id,
+                opportunity_value=float(opp.value or 0),
+                opportunity_probability=float(opp.probability or 0),
+                opportunity_stage=opp.stage or "",
+                historical_win_rate=0.0,
+            )
+            for opp in opportunities
+        ]
 
-    inputs = [CommercialInput(opportunity_id="demo-1", opportunity_value=100000, opportunity_probability=0.5, historical_win_rate=0.7)]
     snap = await svc.create_forecast(tenant_id, inputs)
     return {
         "snapshot_id": snap.id,
@@ -294,6 +342,8 @@ async def run_forecast(tenant_id: str = Depends(get_current_tenant_id), db: Asyn
         "total_weighted": snap.total_weighted_revenue,
         "confidence": snap.overall_confidence,
         "scenarios": list(set(l.scenario.value for l in snap.lines)),
+        "input_count": len(inputs),
+        "demo_mode": is_demo,
     }
 
 
@@ -418,7 +468,7 @@ async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSe
         else:
             result["forecast"] = {"message": "Generate forecast via POST /api/v1/forecast/run"}
     except Exception as e:
-        result["forecast"] = {"error": str(e)}
+        result["forecast"] = {"error": safe_error_detail(e, "Failed to load forecast")}
 
     # Opportunities summary
     try:
@@ -437,7 +487,7 @@ async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSe
             "recent": [{"id": o.id, "name": o.name, "stage": o.stage, "value": o.value, "company_id": o.company_id} for o in open_opps[:5]],
         }
     except Exception as e:
-        result["opportunities"] = {"error": str(e)}
+        result["opportunities"] = {"error": safe_error_detail(e, "Failed to load opportunities")}
 
     # Pipeline summary
     try:
@@ -467,25 +517,27 @@ async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSe
         result["kpis"] = {}
 
     # Recommendations for open opportunities
+    # BATCHED: contexts in one round-trip + concurrent evaluate via asyncio.gather
     try:
+        import asyncio as _asyncio
         from domains.decision.context.models import DecisionFactor
         ctx_svc = _get_context(db)
+        open_opps = [o for o in (opp_result.items if 'opp_result' in dir() else []) if o.status.value == "open"]
         recs = []
-        for opp in (opp_result.items if 'opp_result' in dir() else []):
-            if opp.status.value != "open":
-                continue
-            ctx = await ctx_svc.build_context(tenant_id, opp.id, factors=[
+        if open_opps:
+            contexts = await ctx_svc.build_contexts(tenant_id, [o.id for o in open_opps], factors=[
                 DecisionFactor(source_layer="fact", source_domain="pipeline", key="stage_aging",
                                value=7, severity="info", label="Opportunity in stage"),
             ])
             from domains.decision.recommendation.engine import RecommendationEngine
             eng = RecommendationEngine()
-            rec = await eng.evaluate(ctx)
-            if rec:
-                recs.append({"id": rec.id, "title": rec.title, "confidence": rec.confidence, "reasoning": rec.reasoning, "target_id": opp.id})
+            results = await _asyncio.gather(*[eng.evaluate(ctx) if ctx else _asyncio.sleep(0, result=None) for ctx in contexts])
+            for opp, rec in zip(open_opps, results):
+                if rec:
+                    recs.append({"id": rec.id, "title": rec.title, "confidence": rec.confidence, "reasoning": rec.reasoning, "target_id": opp.id})
         result["recommendations"] = recs
         result["recommendations_count"] = len(recs)
-    except Exception as e:
+    except Exception:
         result["recommendations"] = []
 
     # Today overview

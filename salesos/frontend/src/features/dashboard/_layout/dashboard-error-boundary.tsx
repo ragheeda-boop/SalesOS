@@ -4,52 +4,57 @@ import { Component, type ReactNode, type ErrorInfo } from 'react'
 import { dashboardTelemetry } from '../_telemetry/dashboard-telemetry'
 
 interface Props {
-  widgetId: string
-  fallback?: ReactNode
-  children: ReactNode
+ widgetId: string
+ fallback?: ReactNode
+ children: ReactNode
+ onError?: (error: Error) => void
 }
 
 interface State {
-  hasError: boolean
-  error: Error | null
+ hasError: boolean
+ error: Error | null
 }
 
 export class DashboardErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props)
-    this.state = { hasError: false, error: null }
-  }
+ constructor(props: Props) {
+ super(props)
+ this.state = { hasError: false, error: null }
+ }
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error }
-  }
+ static getDerivedStateFromError(error: Error): State {
+ return { hasError: true, error }
+ }
 
-  componentDidCatch(error: Error, info: ErrorInfo) {
-    dashboardTelemetry.error(this.props.widgetId, error.message)
-  }
+ componentDidCatch(error: Error, info: ErrorInfo) {
+ dashboardTelemetry.error(this.props.widgetId, error.message)
+ this.props.onError?.(error)
+ }
 
-  render() {
-    if (this.state.hasError) {
-      return (
-        this.props.fallback ?? (
-          <div
-            role="alert"
-            style={{
-              padding: '1rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #fca5a5',
-              background: '#fef2f2',
-              color: '#991b1b',
-              fontSize: '0.875rem',
-            }}
-          >
-            <p style={{ fontWeight: 600, margin: 0 }}>Widget Error</p>
-            <p style={{ margin: '0.25rem 0 0' }}>{this.state.error?.message}</p>
-          </div>
-        )
-      )
-    }
+ handleRetry = () => {
+ this.setState({ hasError: false, error: null })
+ }
 
-    return this.props.children
-  }
+ render() {
+ if (this.state.hasError) {
+ return (
+ this.props.fallback ?? (
+ <div
+ role="alert"
+ className="flex flex-col items-center gap-3 rounded-xl border border-danger-200 bg-danger-50 p-4 text-center dark:border-danger-800 dark:bg-danger-950/30"
+ >
+ <p className="text-sm font-semibold text-danger-800 dark:text-danger-200">Widget Error</p>
+ <p className="text-xs text-danger-600 dark:text-danger-400">{this.state.error?.message}</p>
+ <button
+ onClick={this.handleRetry}
+ className="rounded-lg bg-[var(--muhide-orange)] px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:opacity-90"
+ >
+ إعادة المحاولة
+ </button>
+ </div>
+ )
+ )
+ }
+
+ return this.props.children
+ }
 }

@@ -18,7 +18,10 @@ from app.dependencies import require_role_dep, verify_token
 from app.metrics.collector import collector
 from app.metrics.sla_monitor import sla_monitor
 
-router = APIRouter(dependencies=[Depends(verify_token)])
+# Scrape path /metrics has no user-JWT dependency (PROD-W5-004).
+# Protect via network policy / internal scrape; admin/app metrics stay auth'd.
+router = APIRouter()
+_auth_deps = [Depends(verify_token)]
 
 
 class MetricsMiddleware:
@@ -80,13 +83,16 @@ def _categorize_path(path: str) -> str | None:
 
 @router.get("/metrics")
 async def prometheus_metrics():
-    """Expose combined Prometheus-formatted metrics for scraping."""
+    """Expose combined Prometheus-formatted metrics for scraping.
+
+    No user JWT — scrape via internal network / Prometheus service mesh.
+    """
     common = metrics.generate()
     app = collector.generate()
     return PlainTextResponse(common + "\n" + app)
 
 
-@router.get("/metrics/pool")
+@router.get("/metrics/pool", dependencies=_auth_deps)
 async def db_pool_metrics():
     """Expose database connection pool metrics."""
     from app.database import get_pool_metrics
@@ -100,7 +106,7 @@ async def db_pool_metrics():
     return pool
 
 
-@router.get("/metrics/app")
+@router.get("/metrics/app", dependencies=_auth_deps)
 async def app_metrics():
     """Application-level metrics: WS connections, cache stats, NBA timing."""
     from app.routers.notifications import _ws_manager

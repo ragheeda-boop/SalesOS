@@ -57,126 +57,49 @@ async def get_db() -> AsyncSession:
 
 
 async def init_db():
+    """Initialize database: ensure extensions, schemas, and Alembic migrations are up to date."""
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-        # Create audit schema and audit_log table (not in ORM metadata)
         from sqlalchemy import text as sa_text
+        await conn.execute(sa_text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
+        await conn.execute(sa_text('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"'))
+        await conn.execute(sa_text('CREATE EXTENSION IF NOT EXISTS "vector"'))
         await conn.execute(sa_text("CREATE SCHEMA IF NOT EXISTS audit"))
-        await conn.execute(sa_text("""
-            CREATE TABLE IF NOT EXISTS audit.audit_log (
-                id              BIGSERIAL PRIMARY KEY,
-                tenant_id       UUID NOT NULL,
-                entity_type     VARCHAR(100) NOT NULL,
-                entity_id       UUID NOT NULL,
-                action          VARCHAR(50) NOT NULL,
-                changes         JSONB DEFAULT '{}',
-                performed_by    UUID,
-                performed_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                ip_address      VARCHAR(45),
-                request_id      VARCHAR(100),
-                metadata        JSONB DEFAULT '{}'
+    await _run_migrations_if_needed()
+
+async def _run_migrations_if_needed() -> None:
+    """Skip Alembic entirely when database is already at head revision."""
+    from alembic.script import ScriptDirectory
+    from alembic.config import Config as AlembicConfig
+    import os as _os
+    import logging
+
+    log = logging.getLogger("salesos.db")
+    try:
+        _cfg = AlembicConfig(
+            _os.path.join(_os.path.dirname(__file__), "..", "alembic.ini")
+        )
+        _cfg.set_main_option("sqlalchemy.url", settings.database_url)
+        _script = ScriptDirectory.from_config(_cfg)
+        _head = _script.get_current_head()
+        async with engine.connect() as conn:
+            from sqlalchemy import text as sa_text
+            _result = await conn.execute(
+                sa_text("SELECT version_num FROM alembic_version LIMIT 1")
             )
-        """))
-        await conn.execute(sa_text(
-            "CREATE INDEX IF NOT EXISTS ix_audit_log_entity "
-            "ON audit.audit_log (entity_type, entity_id)"
-        ))
-        await conn.execute(sa_text(
-            "CREATE INDEX IF NOT EXISTS ix_audit_log_tenant_performed "
-            "ON audit.audit_log (tenant_id, performed_at DESC)"
-        ))
-        # Create domain_events table (for PostgresEventStore)
-        await conn.execute(sa_text("""
-            CREATE TABLE IF NOT EXISTS domain_events (
-                event_id VARCHAR(64) PRIMARY KEY,
-                event_type VARCHAR(100) NOT NULL,
-                event_version INTEGER DEFAULT 1,
-                aggregate_id VARCHAR(64) NOT NULL,
-                aggregate_type VARCHAR(50) NOT NULL,
-                tenant_id VARCHAR(36),
-                occurred_at TIMESTAMPTZ DEFAULT now(),
-                data JSONB DEFAULT '{}',
-                metadata JSONB DEFAULT '{}'
-            )
-        """))
-        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_domain_events_type ON domain_events(event_type)"))
-        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_domain_events_aggregate ON domain_events(aggregate_type, aggregate_id)"))
-        # Create activity_records table (for ActivityRuntime)
-        await conn.execute(sa_text("""
-            CREATE TABLE IF NOT EXISTS activity_records (
-                id VARCHAR(64) PRIMARY KEY,
-                actor VARCHAR(255) NOT NULL,
-                action VARCHAR(100) NOT NULL,
-                entity_type VARCHAR(50) NOT NULL,
-                entity_id VARCHAR(64) NOT NULL,
-                target_type VARCHAR(50),
-                target_id VARCHAR(64),
-                metadata JSONB DEFAULT '{}',
-                tenant_id VARCHAR(36),
-                timestamp TIMESTAMPTZ DEFAULT now()
-            )
-        """))
-        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_activity_entity ON activity_records(entity_type, entity_id, timestamp DESC)"))
-        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_activity_tenant_action ON activity_records(tenant_id, action, timestamp DESC)"))
-        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_activity_actor ON activity_records(actor, timestamp DESC)"))
-        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_activity_action ON activity_records(action, timestamp DESC)"))
-        # Create sso_connections table (managed via ORM, but ensure schema)
-        await conn.execute(sa_text("""
-            CREATE TABLE IF NOT EXISTS sso_connections (
-                id VARCHAR(64) PRIMARY KEY,
-                user_id UUID NOT NULL REFERENCES users(id),
-                provider VARCHAR(50) NOT NULL,
-                provider_user_id VARCHAR(255) NOT NULL,
-                provider_email VARCHAR(255),
-                access_token TEXT,
-                refresh_token TEXT,
-                expires_at TIMESTAMPTZ,
-                is_active BOOLEAN DEFAULT TRUE,
-                created_at TIMESTAMPTZ DEFAULT now(),
-                updated_at TIMESTAMPTZ DEFAULT now()
-            )
-        """))
-        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_sso_user_provider ON sso_connections(user_id, provider)"))
-        # Create audit_logs table
-        await conn.execute(sa_text("""
-            CREATE TABLE IF NOT EXISTS audit_logs (
-                id BIGSERIAL PRIMARY KEY,
-                tenant_id VARCHAR(64) NOT NULL,
-                user_id VARCHAR(64),
-                action VARCHAR(100) NOT NULL,
-                resource_type VARCHAR(100) NOT NULL,
-                resource_id VARCHAR(255),
-                details JSONB DEFAULT '{}',
-                ip_address VARCHAR(45),
-                user_agent TEXT,
-                request_id VARCHAR(100),
-                created_at TIMESTAMPTZ DEFAULT now()
-            )
-        """))
-        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_audit_logs_tenant_action ON audit_logs(tenant_id, action, created_at DESC)"))
-        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_audit_logs_tenant_resource ON audit_logs(tenant_id, resource_type, created_at DESC)"))
-        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_audit_logs_created_at ON audit_logs(created_at DESC)"))
-        # Create api_keys table
-        await conn.execute(sa_text("""
-            CREATE TABLE IF NOT EXISTS api_keys (
-                id VARCHAR(64) PRIMARY KEY,
-                tenant_id UUID NOT NULL REFERENCES tenants(id),
-                user_id UUID NOT NULL REFERENCES users(id),
-                name VARCHAR(255) NOT NULL,
-                key_prefix VARCHAR(10) NOT NULL,
-                key_hash VARCHAR(255) NOT NULL,
-                permissions JSONB DEFAULT '{}',
-                scopes TEXT,
-                expires_at TIMESTAMPTZ,
-                is_revoked BOOLEAN DEFAULT FALSE,
-                revoked_at TIMESTAMPTZ,
-                last_used_at TIMESTAMPTZ,
-                created_at TIMESTAMPTZ DEFAULT now(),
-                updated_at TIMESTAMPTZ DEFAULT now()
-            )
-        """))
-        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_api_keys_prefix ON api_keys(key_prefix)"))
-        await conn.execute(sa_text("CREATE INDEX IF NOT EXISTS ix_api_keys_user ON api_keys(user_id)"))
+            _row = _result.fetchone()
+        current = _row[0] if _row is not None else None
+        log.info("Alembic current=%s head=%s", current, _head)
+        if current is not None and current == _head:
+            return
+    except Exception as exc:
+        log.warning("Alembic head check failed (%s) — running migrations", exc)
+
+    # Import only when an upgrade is required (avoids env.py side-effects on hot path).
+    from app.alembic.env import run_async_migrations
+
+    log.info("Running Alembic migrations to head…")
+    await run_async_migrations()
+    log.info("Alembic migrations complete")
 
 
 async def close_db():

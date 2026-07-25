@@ -19,6 +19,7 @@ from domains.analytics.models import (
     ReportDefinition,
     ReportExecution,
     ReportStatus,
+    ScheduleCadence,
 )
 from domains.analytics.repository import InMemoryReportRepository
 from domains.analytics.templates import (
@@ -253,7 +254,7 @@ class TestReportCRUD:
                 type=CubeType.PIPELINE,
             )
             await repo.create_report(r)
-        reports = await repo.list_reports(tenant_id="t-1")
+        reports, _ = await repo.list_reports(tenant_id="t-1")
         assert len(reports) == 3
 
     @pytest.mark.asyncio
@@ -266,7 +267,7 @@ class TestReportCRUD:
         )
         await repo.create_report(r1)
         await repo.create_report(r2)
-        t1_reports = await repo.list_reports(tenant_id="t-1")
+        t1_reports, _ = await repo.list_reports(tenant_id="t-1")
         assert len(t1_reports) == 1
         assert t1_reports[0].tenant_id == "t-1"
 
@@ -391,16 +392,25 @@ class TestReportExecution:
 class TestScheduling:
     @pytest.mark.asyncio
     async def test_schedule_report(self, engine, sample_report):
-        cron = "0 8 * * *"
-        result = await engine.schedule(sample_report.id, cron)
-        assert result == cron
-        updated = await engine.repository.get_report(sample_report.id)
-        assert updated.schedule == cron
+        schedule = await engine.create_schedule(
+            report_id=sample_report.id,
+            tenant_id="t-1",
+            cadence=ScheduleCadence.DAILY,
+            recipients=["user-1@example.com"],
+        )
+        assert schedule.cadence == ScheduleCadence.DAILY
+        assert "user-1@example.com" in schedule.recipients
+        assert schedule.report_id == sample_report.id
 
     @pytest.mark.asyncio
     async def test_schedule_nonexistent_report(self, engine):
         with pytest.raises(ValueError, match="not found"):
-            await engine.schedule("nonexistent", "0 8 * * *")
+            await engine.create_schedule(
+                report_id="nonexistent",
+                tenant_id="t-1",
+                cadence=ScheduleCadence.DAILY,
+                recipients=["user@example.com"],
+            )
 
 
 # ── Tests: Templates ─────────────────────────────────────────────────────────

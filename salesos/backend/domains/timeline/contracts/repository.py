@@ -64,6 +64,12 @@ class TimelineRepository(ABC):
         """Total number of events for a tenant."""
 
     @abstractmethod
+    async def delete_by_target(
+        self, entity_type: str, entity_id: str, tenant_id: str = ""
+    ) -> None:
+        """Delete all events for a given target entity."""
+
+    @abstractmethod
     async def get_summary(
         self, entity_type: str, entity_id: str, tenant_id: str = ""
     ) -> dict:

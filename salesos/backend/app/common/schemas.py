@@ -25,6 +25,8 @@ class PaginatedResponse(BaseModel):
     page: int
     page_size: int
     items: list
+    next_cursor: str | None = None
+    has_next: bool = False
 
 
 class CursorResponse(BaseModel):

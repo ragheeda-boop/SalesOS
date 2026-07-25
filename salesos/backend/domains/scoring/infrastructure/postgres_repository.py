@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from sqlalchemy import JSON, func, select
+from sqlalchemy import JSON, Index, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -27,6 +27,10 @@ class ScoreCardModel(Base):
     overall_confidence: Mapped[str] = mapped_column(default="low")
     scores_json: Mapped[dict] = mapped_column(JSON, default=dict)
     generated_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        Index("ix_scorecards_tenant_target", "tenant_id", "target_id", "generated_at"),
+    )
 
 
 class PostgresScoreCardRepository(ScoreCardRepository):

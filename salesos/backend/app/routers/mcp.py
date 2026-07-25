@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import os
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
 from app.dependencies import verify_token
@@ -39,9 +39,14 @@ def _get_mcp():
 
 
 @router.get("/sse")
-async def mcp_sse(request: Request):
+async def mcp_sse(
+    request: Request,
+    _=Depends(verify_token),
+):
     """SSE endpoint for MCP protocol — enables AI agents to connect via web."""
     mcp_server = _get_mcp()
+    if not mcp_server:
+        raise HTTPException(status_code=503, detail="MCP server unavailable")
     logger.info("MCP SSE connection established from %s", request.client.host if request.client else "unknown")
 
     async def event_stream():

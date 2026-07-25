@@ -27,17 +27,26 @@ export interface ChartProps {
   height?: number
 }
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316']
+const COLORS = [
+  '#F57C1E', // orange — primary brand
+  '#22C55E', // green — success
+  '#F59E0B', // amber — warning
+  '#EF4444', // red — danger
+  '#A855F7', // purple — ai/copilot
+  '#3B82F6', // blue — info
+  '#F97316', // orange-700
+  '#16A34A', // green-700
+]
 
 export function BarChart({ data, title, className, height = 200 }: { data: ChartDataPoint[] } & ChartProps) {
   return (
     <div className={cn('space-y-2', className)}>
-      {title && <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">{title}</h4>}
+      {title && <h4 className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{title}</h4>}
       <ResponsiveContainer width="100%" height={height}>
         <RechartsBarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-          <XAxis dataKey="label" tick={{ fontSize: 10 }} className="text-gray-500" />
-          <YAxis tick={{ fontSize: 10 }} className="text-gray-500" />
+          <CartesianGrid strokeDasharray="3 3" className="stroke-[var(--border-default)]" />
+          <XAxis dataKey="label" tick={{ fontSize: 10 }} style={{ color: 'var(--text-muted)' }} />
+          <YAxis tick={{ fontSize: 10 }} style={{ color: 'var(--text-muted)' }} />
           <Tooltip />
           <Bar dataKey="value" radius={[4, 4, 0, 0]}>
             {data.map((entry, i) => (
@@ -59,12 +68,12 @@ export function LineChart({ series, title, className, height = 200 }: { series: 
   })
   return (
     <div className={cn('space-y-2', className)}>
-      {title && <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">{title}</h4>}
+      {title && <h4 className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{title}</h4>}
       <ResponsiveContainer width="100%" height={height}>
         <RechartsLineChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-          <XAxis dataKey="label" tick={{ fontSize: 10 }} />
-          <YAxis tick={{ fontSize: 10 }} />
+          <CartesianGrid strokeDasharray="3 3" className="stroke-[var(--border-default)]" />
+          <XAxis dataKey="label" tick={{ fontSize: 10 }} style={{ color: 'var(--text-muted)' }} />
+          <YAxis tick={{ fontSize: 10 }} style={{ color: 'var(--text-muted)' }} />
           <Tooltip />
           <Legend />
           {series.map((s, i) => (
@@ -85,7 +94,7 @@ export interface ChartSeries {
 export function PieChart({ data, title, className }: { data: ChartDataPoint[] } & ChartProps) {
   return (
     <div className={cn('space-y-2', className)}>
-      {title && <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">{title}</h4>}
+      {title && <h4 className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{title}</h4>}
       <ResponsiveContainer width="100%" height={200}>
         <RechartsPieChart>
           <Pie data={data} dataKey="value" nameKey="label" cx="50%" cy="50%" outerRadius={70} label={({ label, percent }) => `${label} ${(percent * 100).toFixed(0)}%`}>
@@ -114,19 +123,17 @@ export function MetricCard({
   className?: string
 }) {
   return (
-    <div className={cn('rounded-xl border bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900', className)}>
+    <div className={cn('rounded-xl border p-4 shadow-sm', className)} style={{ background: 'var(--bg-primary)', borderColor: 'var(--border-default)' }}>
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500 dark:text-gray-400">{label}</span>
-        {icon && <span className="text-gray-400">{icon}</span>}
+        <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{label}</span>
+        {icon && <span style={{ color: 'var(--text-muted)' }}>{icon}</span>}
       </div>
       <div className="mt-2 flex items-baseline gap-2">
-        <span className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{value}</span>
+        <span className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>{value}</span>
         {trend && (
           <span
-            className={cn(
-              'text-xs font-medium',
-              trend.direction === 'up' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-            )}
+            className={cn('text-xs font-medium')}
+            style={{ color: trend.direction === 'up' ? 'var(--muhide-orange)' : 'var(--danger-600, #EF4444)' }}
           >
             {trend.direction === 'up' ? '↑' : '↓'} {trend.percentage}%
           </span>

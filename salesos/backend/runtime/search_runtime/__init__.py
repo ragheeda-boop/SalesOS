@@ -547,3 +547,13 @@ class SearchRuntime:
             if data:
                 facets[field] = data
         return facets
+
+    async def close(self) -> None:
+        """Release held resources."""
+        self._cache.clear()
+        if self._kg_engine and hasattr(self._kg_engine, "close"):
+            await self._kg_engine.close()
+        self._kg_engine = None
+        self._session_factory = None  # type: ignore
+        self._embedding_service = None  # type: ignore
+        self._search_repo = None  # type: ignore

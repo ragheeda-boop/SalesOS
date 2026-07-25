@@ -22,7 +22,8 @@ async def create_opportunity(body: OpportunityCreate, tenant_id: str = Depends(g
         source_action_id=body.source_action_id,
     )
 
-@router.get("/opportunities")
+@router.get("/opportunities",
+            dependencies=[Depends(require_permission_dep("opportunity", PermissionAction.READ))])
 async def list_opportunities(
     stage: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
@@ -47,7 +48,8 @@ async def create_task(body: TaskCreate, tenant_id: str = Depends(get_current_ten
         source=body.source, company_id=body.company_id, due_date=str(body.due_date) if body.due_date else None,
     )
 
-@router.get("/tasks")
+@router.get("/tasks",
+            dependencies=[Depends(require_permission_dep("task", PermissionAction.READ))])
 async def list_tasks(
     priority: Optional[str] = Query(None),
     tenant_id: str = Depends(get_current_tenant_id),
@@ -63,6 +65,7 @@ async def complete_task(task_id: str, tenant_id: str = Depends(get_current_tenan
         raise HTTPException(404, "Task not found")
     return result
 
-@router.get("/pipeline", response_model=PipelineResponse)
+@router.get("/pipeline", response_model=PipelineResponse,
+            dependencies=[Depends(require_permission_dep("pipeline", PermissionAction.READ))])
 async def get_pipeline(tenant_id: str = Depends(get_current_tenant_id), service: RevenueService = Depends(get_service)):
     return await service.get_pipeline(tenant_id)

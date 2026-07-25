@@ -23,6 +23,13 @@ from sdk.events.schemas import (
     PipelineStageChanged,
 )
 
+from intelligence.activity_intelligence.contracts.events import (
+    CommunicationDeduplicated,
+    CommunicationMapped,
+    CommunicationReceived,
+    CommunicationSynced,
+)
+
 
 # ── Identity & Tenant ─────────────────────────────────────────────────────
 
@@ -259,6 +266,10 @@ class AgentMemoryUpdated(DomainEvent):
 EVENT_REGISTRY: dict[str, type[DomainEvent]] = {
     cls.event_type: cls
     for cls in [
+        # Activity Intelligence events
+        CommunicationReceived, CommunicationMapped,
+        CommunicationSynced, CommunicationDeduplicated,
+        # Core events
         TenantCreated, TenantUpdated, TenantSuspended, TenantReactivated,
         UserRegistered, UserInvited, UserActivated, UserDeactivated,
         UserRoleChanged, UserLoggedIn, UserPasswordChanged,

@@ -196,6 +196,8 @@ class FeatureFlagCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: str | None = None
     enabled: bool = False
+    rollout_percentage: int = 100
+    is_ci_test: bool = False
 
 
 class FeatureFlagResponse(BaseModel):
@@ -205,6 +207,8 @@ class FeatureFlagResponse(BaseModel):
     description: str | None
     enabled: bool
     is_global: bool
+    rollout_percentage: int
+    is_ci_test: bool
     created_at: datetime
     updated_at: datetime
 
@@ -213,6 +217,8 @@ class FeatureFlagUpdate(BaseModel):
     enabled: bool | None = None
     name: str | None = None
     description: str | None = None
+    rollout_percentage: int | None = None
+    is_ci_test: bool | None = None
 
 
 class FeatureFlagTenantResponse(BaseModel):
@@ -221,6 +227,18 @@ class FeatureFlagTenantResponse(BaseModel):
     tenant_id: UUID
     tenant_name: str
     enabled: bool
+
+
+class FeatureFlagEvaluateRequest(BaseModel):
+    flag_key: str
+    tenant_id: str
+
+
+class FeatureFlagEvaluateResponse(BaseModel):
+    flag_key: str
+    tenant_id: str
+    enabled: bool
+    reason: str
 
 
 class JobResponse(BaseModel):
@@ -293,3 +311,84 @@ class HealthHistoryEntry(BaseModel):
     timestamp: datetime
     overall_status: str
     components: dict[str, str]
+
+
+class RoleCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    description: str = ""
+    permissions: list[str] = []
+
+
+class RoleUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    permissions: list[str] | None = None
+
+
+class RoleResponse(BaseModel):
+    id: str
+    name: str
+    description: str
+    is_system: bool
+    tenant_id: str | None
+    permissions: list[str]
+    created_at: datetime
+    updated_at: datetime
+
+
+class PermissionResponse(BaseModel):
+    id: str
+    key: str
+    name: str
+    description: str
+    group: str
+
+
+class TenantConfigCreate(BaseModel):
+    key: str = Field(..., min_length=1, max_length=255)
+    yaml_content: str = Field(..., min_length=1)
+
+
+class TenantConfigResponse(BaseModel):
+    id: int
+    tenant_id: str
+    key: str
+    yaml_content: str
+    version: int
+    created_by: str | None
+    created_at: datetime
+
+
+class TenantConfigVersionResponse(BaseModel):
+    id: int
+    version: int
+    created_by: str | None
+    created_at: datetime
+
+
+class TenantConfigValidationResponse(BaseModel):
+    valid: bool
+    errors: list[dict]
+
+
+class TenantSuspendRequest(BaseModel):
+    reason: str = ""
+
+
+class TenantHardDeleteRequest(BaseModel):
+    confirm: bool = Field(..., description="Must be True to confirm hard delete")
+
+
+class AuditLogQueryResponse(BaseModel):
+    total: int
+    page: int
+    size: int
+    results: list[dict]
+
+
+class AuditLogStatsResponse(BaseModel):
+    total_events: int
+    period_days: int
+    top_users: list[dict]
+    top_actions: list[dict]
+    resource_breakdown: list[dict]

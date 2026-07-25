@@ -243,9 +243,17 @@ async def test_search_companies_pagination_second_page(db_session: AsyncSession,
     for i in range(5):
         await service.create_company(tenant_id=test_tenant, name_ar=f"شركة {i}", cr_number=f"CR-PAGE2-{i}")
 
-    results, total = await service.search_companies(tenant_id=test_tenant, query=None, page=2, page_size=2)
+    from sdk.pagination import encode_cursor
+    results, total = await service.search_companies(tenant_id=test_tenant, query=None, page=1, page_size=2, cursor=None)
     assert total == 5
     assert len(results) == 2
+    # Get second page via cursor
+    if results:
+        last = results[-1]
+        cursor = encode_cursor(str(last.id), last.created_at)
+        results2, total2 = await service.search_companies(tenant_id=test_tenant, query=None, page=1, page_size=2, cursor=cursor)
+        assert total2 == 5
+        assert len(results2) == 2
 
 
 @pytest.mark.asyncio
@@ -330,7 +338,7 @@ async def test_company_360_with_activity_runtime(db_session: AsyncSession, test_
         str(company.id), test_tenant, db=db_session,
         activity_runtime=FakeActivityRuntime(),
     )
-    assert len(result["timeline"]) == 6
+    assert len(result["timeline_legacy"]) == 6
     assert len(result["meetings"]) == 1
     assert len(result["emails"]) == 1
     assert len(result["tasks"]) == 1
@@ -354,7 +362,7 @@ async def test_company_360_activity_runtime_exception(db_session: AsyncSession, 
         str(company.id), test_tenant, db=db_session,
         activity_runtime=BrokenActivityRuntime(),
     )
-    assert result["timeline"] == []
+    assert result["timeline_legacy"] == []
     mock_logger.warn.assert_called()
 
 
@@ -481,6 +489,9 @@ async def test_company_360_enrichment_fields(db_session: AsyncSession, test_tena
     assert enrichment["is_golden_record"] is True
     assert enrichment["confidence_score"] == 0.95
     assert enrichment["last_enriched_at"] is not None
+    # Legacy enrichment still works
+    legacy_enrichment = result["enrichment_legacy"]
+    assert legacy_enrichment["sources"] == ["src-a", "src-b"]
 
 
 # ── search_companies with multiple filter fields ───────────────────────────

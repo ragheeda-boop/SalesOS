@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { AIBriefView } from '../AIBriefView'
 import { AIBriefWidget } from '../AIBriefContainer'
-import { describeWidgetContract } from '../../../sdk/testing'
+import { describeWidgetContract } from '@salesos/widget-sdk/testing'
 import type { AIBriefViewProps } from '../types'
 import type { AIBriefData } from '@/application/dashboard/dashboard.dto'
 

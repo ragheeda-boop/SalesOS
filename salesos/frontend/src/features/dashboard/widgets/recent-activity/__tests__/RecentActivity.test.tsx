@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { RecentActivityView } from '../RecentActivityView'
 import { RecentActivityWidget } from '../RecentActivityContainer'
-import { describeWidgetContract } from '../../../sdk/testing'
+import { describeWidgetContract } from '@salesos/widget-sdk/testing'
 import type { RecentActivityViewProps } from '../types'
 import type { ActivityItem } from '@/application/dashboard/dashboard.dto'
 

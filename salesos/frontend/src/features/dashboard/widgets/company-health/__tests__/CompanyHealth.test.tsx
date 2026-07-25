@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { CompanyHealthView } from '../CompanyHealthView'
 import { CompanyHealthWidget } from '../CompanyHealthContainer'
-import { describeWidgetContract } from '../../../sdk/testing'
+import { describeWidgetContract } from '@salesos/widget-sdk/testing'
 import type { CompanyHealthViewProps, HealthMetric, HealthAlert } from '../types'
 
 const sampleMetrics: HealthMetric[] = [

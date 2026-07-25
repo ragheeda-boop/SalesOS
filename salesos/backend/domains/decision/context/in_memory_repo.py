@@ -16,6 +16,10 @@ class InMemoryDecisionRepository(DecisionRepository):
         self._contexts.append(context)
         return context
 
+    async def save_contexts(self, contexts: list[DecisionContext]) -> list[DecisionContext]:
+        self._contexts.extend(contexts)
+        return contexts
+
     async def get_context(self, context_id: str) -> DecisionContext | None:
         for c in self._contexts:
             if c.id == context_id:

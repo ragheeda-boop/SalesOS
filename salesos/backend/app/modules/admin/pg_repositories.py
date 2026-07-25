@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import func as sa_func, or_, select
+from sqlalchemy import func as sa_func, or_, select, delete as sa_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .db_models import (
@@ -17,6 +17,10 @@ from .db_models import (
     JobModel,
     LicenseModel,
     PlanModel,
+    RoleModel,
+    RolePermissionModel,
+    PermissionModel,
+    TenantConfigModel,
     TransactionModel,
 )
 
@@ -156,6 +160,43 @@ class PostgresFeatureFlagRepository:
             {"flag_id": flag_id, "flag_key": flag.key, "tenant_id": tid, "enabled": enabled}
             for tid, enabled in overrides.items()
         ]
+
+    async def evaluate(self, flag_key: str, tenant_id: str, tenant_ids_all: list[str] | None = None) -> dict:
+        """Evaluate a feature flag for a specific tenant.
+
+        Returns dict with 'enabled' bool and 'reason' str.
+        """
+        flag = await self.get_by_key(flag_key)
+        if not flag:
+            return {"enabled": False, "reason": "flag_not_found"}
+
+        if flag.is_ci_test:
+            return {"enabled": True, "reason": "ci_test_always_on"}
+
+        overrides = flag.tenant_overrides or {}
+        if tenant_id in overrides:
+            return {"enabled": overrides[tenant_id], "reason": "tenant_override"}
+
+        if not flag.enabled:
+            return {"enabled": False, "reason": "globally_disabled"}
+
+        if flag.rollout_percentage >= 100:
+            return {"enabled": True, "reason": "fully_rollout"}
+
+        if flag.rollout_percentage <= 0:
+            return {"enabled": False, "reason": "zero_rollout"}
+
+        if tenant_ids_all:
+            sorted_ids = sorted(tenant_ids_all)
+            try:
+                idx = sorted_ids.index(tenant_id)
+            except ValueError:
+                return {"enabled": False, "reason": "tenant_not_in_rollout_set"}
+            ratio = idx / len(sorted_ids)
+            included = ratio < (flag.rollout_percentage / 100)
+            return {"enabled": included, "reason": f"gradual_rollout_{flag.rollout_percentage}pct"}
+
+        return {"enabled": flag.enabled, "reason": "global_default"}
 
 
 class PostgresJobRepository:
@@ -368,3 +409,141 @@ class PostgresHealthRepository:
         stmt = select(HealthSnapshotModel).where(HealthSnapshotModel.timestamp >= cutoff).order_by(HealthSnapshotModel.timestamp)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
+
+
+class PostgresRoleRepository:
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    async def list(self, tenant_id: str | None = None) -> list[RoleModel]:
+        stmt = select(RoleModel)
+        if tenant_id:
+            stmt = stmt.where(RoleModel.tenant_id == tenant_id)
+        stmt = stmt.order_by(RoleModel.name)
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get(self, role_id: str) -> RoleModel | None:
+        stmt = select(RoleModel).where(RoleModel.id == role_id)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def create(self, role: RoleModel) -> RoleModel:
+        self._session.add(role)
+        await self._session.flush()
+        return role
+
+    async def update(self, role_id: str, data: dict) -> RoleModel | None:
+        role = await self.get(role_id)
+        if not role:
+            return None
+        for key, value in data.items():
+            if hasattr(role, key) and key != "id" and value is not None:
+                setattr(role, key, value)
+        role.updated_at = datetime.now(timezone.utc)
+        await self._session.flush()
+        return role
+
+    async def delete(self, role_id: str) -> bool:
+        role = await self.get(role_id)
+        if not role or role.is_system:
+            return False
+        await self._session.delete(role)
+        await self._session.flush()
+        return True
+
+    async def set_permissions(self, role_id: str, permission_ids: list[str]) -> None:
+        await self._session.execute(
+            sa_delete(RolePermissionModel).where(RolePermissionModel.role_id == role_id)
+        )
+        for pid in permission_ids:
+            self._session.add(RolePermissionModel(role_id=role_id, permission_id=pid))
+        await self._session.flush()
+
+    async def get_permissions(self, role_id: str) -> list[str]:
+        stmt = select(RolePermissionModel.permission_id).where(RolePermissionModel.role_id == role_id)
+        result = await self._session.execute(stmt)
+        return [row[0] for row in result]
+
+    async def get_roles_with_permissions(self, tenant_id: str | None = None) -> list[dict]:
+        roles = await self.list(tenant_id)
+        result = []
+        for role in roles:
+            perms = await self.get_permissions(role.id)
+            result.append({
+                "id": role.id,
+                "name": role.name,
+                "description": role.description,
+                "is_system": role.is_system,
+                "tenant_id": role.tenant_id,
+                "permissions": perms,
+                "created_at": role.created_at,
+                "updated_at": role.updated_at,
+            })
+        return result
+
+
+class PostgresPermissionRepository:
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    async def list(self) -> list[PermissionModel]:
+        stmt = select(PermissionModel).order_by(PermissionModel.group, PermissionModel.name)
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def get_by_key(self, key: str) -> PermissionModel | None:
+        stmt = select(PermissionModel).where(PermissionModel.key == key)
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def create(self, perm: PermissionModel) -> PermissionModel:
+        self._session.add(perm)
+        await self._session.flush()
+        return perm
+
+
+class PostgresTenantConfigRepository:
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    async def get_latest(self, tenant_id: str, key: str) -> TenantConfigModel | None:
+        stmt = (
+            select(TenantConfigModel)
+            .where(TenantConfigModel.tenant_id == tenant_id, TenantConfigModel.key == key)
+            .order_by(TenantConfigModel.version.desc())
+            .limit(1)
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
+    async def list_keys(self, tenant_id: str) -> list[str]:
+        stmt = (
+            select(TenantConfigModel.key)
+            .where(TenantConfigModel.tenant_id == tenant_id)
+            .group_by(TenantConfigModel.key)
+            .order_by(TenantConfigModel.key)
+        )
+        result = await self._session.execute(stmt)
+        return [row[0] for row in result]
+
+    async def list_versions(self, tenant_id: str, key: str) -> list[TenantConfigModel]:
+        stmt = (
+            select(TenantConfigModel)
+            .where(TenantConfigModel.tenant_id == tenant_id, TenantConfigModel.key == key)
+            .order_by(TenantConfigModel.version.desc())
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def create(self, config: TenantConfigModel) -> TenantConfigModel:
+        self._session.add(config)
+        await self._session.flush()
+        return config
+
+    async def get_version_count(self, tenant_id: str, key: str) -> int:
+        stmt = select(sa_func.count()).where(
+            TenantConfigModel.tenant_id == tenant_id, TenantConfigModel.key == key
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar() or 0

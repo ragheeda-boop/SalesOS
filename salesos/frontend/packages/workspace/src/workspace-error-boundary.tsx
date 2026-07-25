@@ -1,7 +1,7 @@
 'use client'
 
 import { Component, type ReactNode, type ErrorInfo } from 'react'
-import { widgetTelemetry } from './widget-telemetry'
+import { widgetTelemetry } from '@salesos/widget-sdk'
 
 interface Props {
   widgetId: string

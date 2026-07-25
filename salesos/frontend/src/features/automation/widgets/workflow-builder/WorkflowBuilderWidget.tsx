@@ -1,7 +1,7 @@
 "use client"
 
-import { WorkflowBuilderContainer } from "./WorkflowBuilderContainer"
+import { WorkflowBuilderContainer } from"./WorkflowBuilderContainer"
 
 export function WorkflowBuilderWidget() {
-  return <WorkflowBuilderContainer />
+ return <WorkflowBuilderContainer />
 }

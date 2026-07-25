@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 from sqlalchemy import (
     Boolean, Column, Date, DateTime, Enum as SAEnum,
-    Float, ForeignKey, Integer, JSON, String, Text,
+    Float, ForeignKey, Index, Integer, JSON, String, Text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -40,6 +40,12 @@ class OpportunityModel(Base, TimestampMixin):
     tags: Mapped[Any] = mapped_column(JSON, default=list)
     extra_data: Mapped[Any] = mapped_column("metadata", JSON, default=dict)
 
+    __table_args__ = (
+        Index("ix_commercial_opps_tenant_stage", "tenant_id", "stage"),
+        Index("ix_commercial_opps_tenant_status", "tenant_id", "status"),
+        Index("ix_commercial_opps_owner", "owner_id"),
+    )
+
 
 class StageEntryModel(Base):
     __tablename__ = "commercial_stage_entries"
@@ -53,6 +59,11 @@ class StageEntryModel(Base):
     entered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     exited_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     duration_hours: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+
+    __table_args__ = (
+        Index("ix_stage_entries_opportunity", "opportunity_id"),
+        Index("ix_stage_entries_tenant_entered", "tenant_id", "entered_at"),
+    )
 
 
 class PipelineDefinitionModel(Base):
@@ -79,6 +90,11 @@ class ActivitySessionModel(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(String(20), default="scheduled")
     notes: Mapped[str] = mapped_column(Text, default="")
 
+    __table_args__ = (
+        Index("ix_activity_sessions_tenant_status", "tenant_id", "status"),
+        Index("ix_activity_sessions_target", "target_id", "target_type"),
+    )
+
 
 class ActivityModel(Base):
     __tablename__ = "commercial_activities"
@@ -95,6 +111,11 @@ class ActivityModel(Base):
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="scheduled")
     external_id: Mapped[str] = mapped_column(String(200), default="")
+
+    __table_args__ = (
+        Index("ix_activities_type_status", "activity_type", "status"),
+        Index("ix_activities_owner", "owner_id"),
+    )
 
 
 class QuoteModel(Base, TimestampMixin):
@@ -113,6 +134,10 @@ class QuoteModel(Base, TimestampMixin):
     approved_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     accepted_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     version: Mapped[int] = mapped_column(Integer, default=1)
+
+    __table_args__ = (
+        Index("ix_commercial_quotes_tenant_status", "tenant_id", "status"),
+    )
 
 
 class QuoteLineModel(Base):
@@ -143,6 +168,10 @@ class ProposalModel(Base, TimestampMixin):
     rejection_reason: Mapped[str] = mapped_column(Text, default="")
     version: Mapped[int] = mapped_column(Integer, default=1)
 
+    __table_args__ = (
+        Index("ix_commercial_proposals_tenant_status", "tenant_id", "status"),
+    )
+
 
 class ContractModel(Base, TimestampMixin):
     __tablename__ = "commercial_contracts"
@@ -165,6 +194,11 @@ class ContractModel(Base, TimestampMixin):
     signed_by_customer: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     notes: Mapped[str] = mapped_column(Text, default="")
     version: Mapped[int] = mapped_column(Integer, default=1)
+
+    __table_args__ = (
+        Index("ix_commercial_contracts_tenant_status", "tenant_id", "status"),
+        Index("ix_commercial_contracts_expiry", "expiry_date"),
+    )
 
 
 class ForecastSnapshotModel(Base):
@@ -232,6 +266,11 @@ class MeetingModel(Base, TimestampMixin):
     notes: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(20), default="scheduled")
 
+    __table_args__ = (
+        Index("ix_meetings_tenant_date", "tenant_id", "meeting_date"),
+        Index("ix_meetings_status", "status"),
+    )
+
 
 class EmailModel(Base, TimestampMixin):
     __tablename__ = "emails"
@@ -246,6 +285,11 @@ class EmailModel(Base, TimestampMixin):
     email_type: Mapped[str] = mapped_column(String(50), default="general")
     body: Mapped[str] = mapped_column(Text, default="")
     sent_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        Index("ix_emails_tenant_sent", "tenant_id", "sent_at"),
+        Index("ix_emails_direction", "direction"),
+    )
 
 
 class RecommendationModel(Base, TimestampMixin):
@@ -264,3 +308,8 @@ class RecommendationModel(Base, TimestampMixin):
     alternatives: Mapped[Any] = mapped_column(JSON, default=list)
     applied_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     dismissed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        Index("ix_commercial_recs_tenant_status", "tenant_id", "status"),
+        Index("ix_commercial_recs_target", "target_id", "target_type"),
+    )

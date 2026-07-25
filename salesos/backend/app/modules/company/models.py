@@ -1,7 +1,7 @@
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -79,6 +79,13 @@ class Company(BaseModel):
     licenses: Mapped[list["License"]] = relationship("License", back_populates="company", lazy="selectin", cascade="all, delete-orphan")
     contacts: Mapped[list["Contact"]] = relationship("app.modules.company.models.Contact", back_populates="company", lazy="selectin", cascade="all, delete-orphan")
 
+    __table_args__ = (
+        Index("ix_companies_tenant_confidence", "tenant_id", "confidence_score"),
+        Index("ix_companies_tenant_golden", "tenant_id", "is_golden_record"),
+        Index("ix_companies_tenant_created", "tenant_id", "created_at"),
+        Index("ix_companies_tenant_status", "tenant_id", "status"),
+    )
+
     def __repr__(self) -> str:
         return f"<Company {self.cr_number}: {self.name_ar}>"
 
@@ -122,6 +129,10 @@ class License(BaseModel):
     source: Mapped[str | None] = mapped_column(String(100))
 
     company: Mapped[Company] = relationship("Company", back_populates="licenses")
+
+    __table_args__ = (
+        Index("ix_licenses_expiry_status", "expiry_date", "status"),
+    )
 
     def __repr__(self) -> str:
         return f"<License {self.license_number}: {self.license_type}>"

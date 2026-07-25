@@ -1,4 +1,5 @@
 import secrets
+import time
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -19,6 +20,25 @@ from app.modules.identity.service import (
 from sdk.security import decrypt_token, encrypt_token
 
 from .models import SSOConnection
+
+# In-memory OAuth state store (fallback when Redis unavailable)
+_OAUTH_STATE_STORE: dict[str, tuple[str, float]] = {}
+_OAUTH_STATE_TTL = 600
+
+
+def _store_oauth_state(key: str, value: str) -> None:
+    _OAUTH_STATE_STORE[key] = (value, time.monotonic() + _OAUTH_STATE_TTL)
+
+
+def _validate_oauth_state(key: str) -> str | None:
+    entry = _OAUTH_STATE_STORE.pop(key, None)
+    if entry is None:
+        return None
+    stored_value, expiry = entry
+    if time.monotonic() > expiry:
+        return None
+    return stored_value
+
 
 PROVIDER_CONFIGS: dict[str, dict[str, Any]] = {
     "google": {
@@ -82,6 +102,7 @@ class OAuthService:
     def get_authorization_url(self, provider: str) -> str:
         config = self._get_provider_config(provider)
         state = secrets.token_urlsafe(32)
+        _store_oauth_state(state, provider)
         params = {
             "client_id": config["client_id"](),
             "redirect_uri": self._base_redirect_uri(provider),
@@ -95,6 +116,9 @@ class OAuthService:
         return f"{config['authorize_url']}?{urlencode(params)}"
 
     async def handle_callback(self, provider: str, code: str, state: str) -> tuple[str, str]:
+        stored = _validate_oauth_state(state)
+        if stored != provider:
+            raise UnauthorizedError("OAuth state mismatch — possible CSRF attack")
         config = self._get_provider_config(provider)
         token_data = await self._exchange_code(provider, config, code)
         user_info = await self._fetch_user_info(provider, config, token_data["access_token"])

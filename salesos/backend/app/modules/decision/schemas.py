@@ -468,7 +468,9 @@ class DecisionHistoryItemAPI(BaseModel):
 
 class HistoryResponseAPI(BaseModel):
     items: list[DecisionHistoryItemAPI]
-    total: int
+    total: int | None = None
+    next_cursor: str | None = None
+    has_next: bool = False
 
 
 class BatchSummaryAPI(BaseModel):
@@ -510,6 +512,8 @@ class RulesResponseAPI(BaseModel):
 class RecommendationsResponseAPI(BaseModel):
     items: list[RecommendationAPI]
     total: int
+    next_cursor: str | None = None
+    has_next: bool = False
 
 
 class ScoresResponseAPI(BaseModel):
@@ -519,6 +523,8 @@ class ScoresResponseAPI(BaseModel):
 class EvidenceResponseAPI(BaseModel):
     items: list[EvidenceItemAPI]
     total: int
+    next_cursor: str | None = None
+    has_next: bool = False
 
 
 class LearningTrendAPI(BaseModel):

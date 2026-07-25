@@ -47,7 +47,7 @@
 
     --text-primary: #26231E;
     --text-secondary: #706A5D;
-    --text-muted: #A59E90;
+    --text-muted: #8C8374;
     --text-disabled: #BFB9AD;
     --bg-primary: #FFFFFF;
     --bg-secondary: #F7F6F4;
@@ -60,6 +60,19 @@
     --border-muted: #EDEBE6;
     --border-strong: #706A5D;
     --border: #D9D5CD;
+
+    --chart-1: #F57C1E;
+    --chart-2: #22C55E;
+    --chart-3: #3B82F6;
+    --chart-4: #8B5CF6;
+    --chart-5: #F59E0B;
+    --chart-6: #EF4444;
+    --chart-7: #10B981;
+    --chart-8: #A855F7;
+    --chart-9: #06B6D4;
+    --chart-10: #EC4899;
+    --chart-11: #84CC16;
+    --chart-12: #F97316;
 
     --surface-default: #FFFFFF;
     --surface-dark: #151214;
@@ -89,6 +102,45 @@
     --z-overlay: 40;
     --z-modal: 50;
     --z-toast: 60;
+
+    /* Semantic status colors */
+    --status-success-text: #2E7D32;
+    --status-success-bg: #E8F5E9;
+    --status-success-border: #A5D6A7;
+    --status-danger-text: #D32F2F;
+    --status-danger-bg: #FFEBEE;
+    --status-danger-border: #EF9A9A;
+    --status-warning-text: #F57F17;
+    --status-warning-bg: #FFF8E1;
+    --status-warning-border: #FFE082;
+    --status-info-text: #1565C0;
+    --status-info-bg: #E3F2FD;
+    --status-info-border: #90CAF9;
+
+    /* Interactive states */
+    --bg-hover: #EDEBE6;
+    --bg-active: #D9D5CD;
+
+    /* Chart & visualization colors */
+    --chart-purple: #8B5CF6;
+    --chart-purple-bg: #EDE9FE;
+    --chart-emerald: #10B981;
+    --chart-emerald-bg: #D1FAE5;
+    --chart-blue: #3B82F6;
+    --chart-blue-bg: #DBEAFE;
+    --chart-orange: #F97316;
+    --chart-orange-bg: #FED7AA;
+    --chart-violet: #7C3AED;
+    --chart-violet-bg: #EDE9FE;
+    --chart-yellow: #EAB308;
+    --chart-yellow-bg: #FEF9C3;
+
+    /* Dashboard indicator colors (500-shade equivalents) */
+    --indicator-success: #10B981;
+    --indicator-danger: #EF4444;
+    --indicator-warning: #F59E0B;
+    --indicator-info: #3B82F6;
+    --indicator-neutral: #6B7280;
   }
 
   .dark {
@@ -112,6 +164,45 @@
     --surface-glass: rgba(21, 18, 20, 0.8);
     --shadow-card: 0 1px 3px rgba(0,0,0,0.30), 0 1px 2px rgba(0,0,0,0.15);
     --focus-ring: #64B5F6;
+
+    /* Semantic status colors - dark mode */
+    --status-success-text: #81C784;
+    --status-success-bg: #1B5E20;
+    --status-success-border: #388E3C;
+    --status-danger-text: #EF9A9A;
+    --status-danger-bg: #B71C1C;
+    --status-danger-border: #D32F2F;
+    --status-warning-text: #FFF176;
+    --status-warning-bg: #F57F17;
+    --status-warning-border: #FBC02D;
+    --status-info-text: #90CAF9;
+    --status-info-bg: #0D47A1;
+    --status-info-border: #1976D2;
+
+    /* Interactive states - dark mode */
+    --bg-hover: #26211E;
+    --bg-active: #3D3630;
+
+    /* Chart & visualization colors - dark mode */
+    --chart-purple: #A78BFA;
+    --chart-purple-bg: #4C1D95;
+    --chart-emerald: #34D399;
+    --chart-emerald-bg: #064E3B;
+    --chart-blue: #60A5FA;
+    --chart-blue-bg: #1E3A5F;
+    --chart-orange: #FB923C;
+    --chart-orange-bg: #7C2D12;
+    --chart-violet: #8B5CF6;
+    --chart-violet-bg: #4C1D95;
+    --chart-yellow: #FACC15;
+    --chart-yellow-bg: #713F12;
+
+    /* Dashboard indicator colors - dark mode */
+    --indicator-success: #34D399;
+    --indicator-danger: #F87171;
+    --indicator-warning: #FBBF24;
+    --indicator-info: #60A5FA;
+    --indicator-neutral: #9CA3AF;
   }
 }
 

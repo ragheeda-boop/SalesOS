@@ -531,3 +531,143 @@ class TestDataclasses:
     def test_alternative_dataclass(self):
         alt = Alternative(action="a", reason="r", confidence=0.9)
         assert alt.action == "a"
+
+
+# ── Tests: batch_get_or_compute ───────────────────────────────────────────
+
+class TestBatchGetOrCompute:
+
+    BATCH_OPPS = [
+        {"id": "opp-1", "name": "Deal A", "stage": "proposal", "value": 500000,
+         "company_id": "co-1", "tenant_id": "tenant-1", "status": "open",
+         "company_name_ar": "Co A", "industry": "tech", "city": "Riyadh",
+         "employees_count": 100, "annual_revenue": 5000000,
+         "expected_close_date": datetime.now(timezone.utc) + timedelta(days=30)},
+        {"id": "opp-2", "name": "Deal B", "stage": "negotiation", "value": 1000000,
+         "company_id": "co-2", "tenant_id": "tenant-1", "status": "open",
+         "company_name_ar": "Co B", "industry": "finance", "city": "Jeddah",
+         "employees_count": 300, "annual_revenue": 20000000,
+         "expected_close_date": datetime.now(timezone.utc) + timedelta(days=15)},
+    ]
+
+    BATCH_ACTIVITIES = [
+        {"id": "act-1", "entity_id": "opp-1", "action": "email_sent",
+         "timestamp": datetime.now(timezone.utc) - timedelta(days=2), "description": "Follow-up"},
+        {"id": "act-2", "entity_id": "opp-2", "action": "call_made",
+         "timestamp": datetime.now(timezone.utc) - timedelta(days=1), "description": "Discovery"},
+    ]
+
+    def _make_batch_factory(self, opps=None, activities=None, cached_ids=None):
+        opps = opps or self.BATCH_OPPS
+        activities = activities or self.BATCH_ACTIVITIES
+        cached_ids = cached_ids or set()
+        call_queue = []
+
+        def _queue(sql_str, params=None):
+            text = str(sql_str)
+            if "company_features" in text:
+                call_queue.append("cache_check")
+            elif "commercial_opportunities" in text:
+                call_queue.append("normalize_opps")
+            elif "activity_records" in text:
+                call_queue.append("normalize_activities")
+            elif "company_features" in text and "INSERT" in text.upper():
+                call_queue.append("cache_result")
+        # We use an async execute that returns based on call context
+        call_count = {"n": 0}
+        calls = []
+
+        async def execute(sql_str, params=None):
+            text = str(sql_str)
+            call_count["n"] += 1
+            calls.append(text)
+
+            if "company_features" in text and "computed_at" in text:
+                # cache check
+                cached_rows = [
+                    {"company_id": oid, "score": 0.9, "signals": {}, "explanation": "cached", "computed_at": datetime.now(timezone.utc)}
+                    for oid in cached_ids
+                ]
+                return FakeResult(FakeMappings(rows=cached_rows))
+            elif "commercial_opportunities" in text and "activity_records" not in text:
+                return FakeResult(FakeMappings(rows=opps))
+            elif "activity_records" in text:
+                return FakeResult(FakeMappings(rows=activities))
+            elif "INSERT INTO company_features" in text or ("company_features" in text and "INSERT" not in text.upper() and "computed_at" not in text):
+                return FakeResult(FakeMappings())
+            return FakeResult(FakeMappings())
+
+        async def __aenter__(self):
+            session = AsyncMock()
+            session.execute = execute
+            return session
+
+        async def __aexit__(self, *a):
+            pass
+
+        factory = MagicMock()
+        factory.return_value.__aenter__ = __aenter__
+        factory.return_value.__aexit__ = __aexit__
+        return factory, call_count
+
+    async def test_returns_dict_with_all_keys(self):
+        factory, _ = self._make_batch_factory()
+        engine = NBAEngine(session_factory=factory)
+        result = await engine.batch_get_or_compute(["opp-1", "opp-2"], "tenant-1")
+        assert isinstance(result, dict)
+        assert set(result.keys()) == {"opp-1", "opp-2"}
+
+    async def test_returns_nba_results_for_valid_opportunities(self):
+        factory, _ = self._make_batch_factory()
+        engine = NBAEngine(session_factory=factory)
+        result = await engine.batch_get_or_compute(["opp-1", "opp-2"], "tenant-1")
+        assert result["opp-1"] is not None
+        assert result["opp-2"] is not None
+        assert isinstance(result["opp-1"], NBAResult)
+        assert isinstance(result["opp-2"], NBAResult)
+
+    async def test_cached_opportunities_skip_normalize(self):
+        factory, call_count = self._make_batch_factory(cached_ids={"opp-1"})
+        engine = NBAEngine(session_factory=factory)
+        result = await engine.batch_get_or_compute(["opp-1", "opp-2"], "tenant-1")
+        assert result["opp-1"] is not None
+        assert result["opp-1"].action == "cached"
+        # opp-2 should be computed
+        assert result["opp-2"] is not None
+        assert result["opp-2"].action != "cached"
+
+    async def test_all_cached_returns_immediately(self):
+        factory, _ = self._make_batch_factory(cached_ids={"opp-1", "opp-2"})
+        engine = NBAEngine(session_factory=factory)
+        result = await engine.batch_get_or_compute(["opp-1", "opp-2"], "tenant-1")
+        assert len(result) == 2
+        assert result["opp-1"].action == "cached"
+        assert result["opp-2"].action == "cached"
+
+    async def test_empty_input_returns_empty_dict(self):
+        factory, _ = self._make_batch_factory()
+        engine = NBAEngine(session_factory=factory)
+        result = await engine.batch_get_or_compute([], "tenant-1")
+        assert result == {}
+
+    async def test_nonexistent_opportunity_returns_none(self):
+        factory, _ = self._make_batch_factory(opps=[])
+        engine = NBAEngine(session_factory=factory)
+        result = await engine.batch_get_or_compute(["nonexistent"], "tenant-1")
+        assert result["nonexistent"] is None
+
+    async def test_result_fields_populated(self):
+        factory, _ = self._make_batch_factory()
+        engine = NBAEngine(session_factory=factory)
+        result = await engine.batch_get_or_compute(["opp-1"], "tenant-1")
+        nba = result["opp-1"]
+        assert nba.id
+        assert nba.opportunity_id == "opp-1"
+        assert nba.action
+        assert nba.reason
+        assert 0 <= nba.confidence <= 1
+        assert nba.confidence_label in ("high", "medium", "low")
+        assert nba.source in ("rule", "ai", "hybrid")
+        assert nba.created_at
+        assert nba.pipeline_trace is not None
+        assert "total_ms" in nba.pipeline_trace

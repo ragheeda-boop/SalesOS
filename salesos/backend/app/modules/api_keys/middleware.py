@@ -1,4 +1,5 @@
 from starlette.requests import Request
+from starlette.datastructures import Headers
 
 from .service import ApiKeyService
 
@@ -8,6 +9,8 @@ class ApiKeyMiddleware:
 
     Uses ASGI __call__ pattern (not BaseHTTPMiddleware) to avoid
     body streaming deadlocks with nested middleware + exception handlers.
+
+    Reads headers directly from ASGI scope (never consumes request body).
     """
 
     def __init__(self, app):
@@ -17,9 +20,10 @@ class ApiKeyMiddleware:
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
 
-        request = Request(scope, receive)
-        api_key = request.headers.get("X-API-Key", "")
-        if api_key and not request.headers.get("Authorization", "").startswith("Bearer "):
+        headers = Headers(scope=scope)
+        api_key = headers.get("x-api-key", "")
+        if api_key and not headers.get("authorization", "").startswith("Bearer "):
+            request = Request(scope, receive)
             db_session = getattr(request.app.state, "db_session_factory", None)
             if db_session:
                 async with db_session() as db:

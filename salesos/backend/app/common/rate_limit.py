@@ -90,6 +90,21 @@ def _check_rate_limit_in_memory(key: str, limit: int, window: int) -> float | No
         return None
 
 
+async def check_rate_limit_by_key(key: str, limit: int, window: int = 60) -> None:
+    """Check rate limit by arbitrary key (e.g. email for forgot-password).
+    Raises HTTPException 429 if exceeded.
+    """
+    retry_after = await _check_rate_limit_redis(key, limit, window)
+    if retry_after is None:
+        retry_after = _check_rate_limit_in_memory(key, limit, window)
+    if retry_after is not None:
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded",
+            headers={"Retry-After": str(int(retry_after))},
+        )
+
+
 def rate_limit_dep(resource: str, limit: int, window: int = 60) -> Callable:
     """Factory returning a FastAPI dependency that enforces per-user rate limiting.
 

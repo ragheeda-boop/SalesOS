@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.exceptions import safe_error_detail
 from app.dependencies import get_current_user_id, get_db_session
 
 from .service import OAuthService
@@ -20,7 +21,7 @@ async def sso_login(
     try:
         auth_url = service.get_authorization_url(provider)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid SSO provider"))
     return {"authorization_url": auth_url}
 
 
@@ -34,9 +35,9 @@ async def sso_callback(
     try:
         access_token, user_id = await service.handle_callback(provider, code, state)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid SSO callback"))
     except Exception as e:
-        raise HTTPException(status_code=401, detail=f"SSO authentication failed: {str(e)}")
+        raise HTTPException(status_code=401, detail="SSO authentication failed")
     return {
         "access_token": access_token,
         "token_type": "bearer",

@@ -124,6 +124,7 @@ jobs:
     name: Deploy to Staging
     needs: [resolve-version, build-backend, build-frontend]
     runs-on: ubuntu-latest
+    environment: staging
     outputs:
       deploy_status: ${{ steps.deploy.outputs.status }}
       previous_tag: ${{ steps.deploy.outputs.previous_tag }}
@@ -176,6 +177,7 @@ jobs:
     name: Health Check Gate
     needs: [deploy-staging, resolve-version]
     runs-on: ubuntu-latest
+    environment: staging
     steps:
       - name: Wait for stabilization
         run: sleep ${{ env.SMOKE_WAIT }}
@@ -207,6 +209,7 @@ jobs:
     name: Post-deploy Smoke Tests
     needs: [deploy-staging, health-check, resolve-version]
     runs-on: ubuntu-latest
+    environment: staging
     steps:
       - uses: actions/checkout@v4
       - name: Run smoke tests via SSH
@@ -226,7 +229,7 @@ jobs:
             echo "PASS: /health"
 
             # Test ping
-            PING=$(curl -s -o /dev/null -w "%{http_code}} "http://localhost:8000/ping")
+            PING=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8000/ping")
             if [ "$PING" != "200" ]; then echo "FAIL: /ping -> $PING"; exit 1; fi
             echo "PASS: /ping"
 
@@ -258,6 +261,7 @@ jobs:
     if: failure()
     needs: [deploy-staging, health-check, smoke-tests, resolve-version]
     runs-on: ubuntu-latest
+    environment: staging
     steps:
       - name: Rollback to previous tag
         uses: appleboy/ssh-action@v1.0.3

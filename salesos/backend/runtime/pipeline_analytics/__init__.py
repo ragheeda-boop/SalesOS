@@ -19,13 +19,13 @@ class PipelineAnalytics:
         """Average days per stage for won opportunities."""
         rows = await self.db.execute(
             sa_text("""
-                SELECT se.stage_name,
+                SELECT se.to_stage as stage_name,
                        AVG(EXTRACT(EPOCH FROM (se.exited_at - se.entered_at)) / 86400) as avg_days,
                        COUNT(*) as entry_count
                 FROM commercial_stage_entries se
                 JOIN commercial_opportunities o ON o.id = se.opportunity_id
                 WHERE o.tenant_id = :tid AND se.exited_at IS NOT NULL
-                GROUP BY se.stage_name
+                GROUP BY se.to_stage
                 ORDER BY MIN(se.entered_at)
             """),
             {"tid": self.tenant_id},
@@ -62,23 +62,23 @@ class PipelineAnalytics:
         return rates
 
     async def health_map(self) -> list[dict[str, Any]]:
-        """Health status for all open opportunities."""
+        """Health status for all open opportunities.
+
+        Uses a default score when feature-store table is absent / empty.
+        """
         rows = await self.db.execute(
             sa_text("""
-                SELECT o.id, o.name, o.stage, o.value,
-                       COALESCE(cf.score, 0.5) as health_score,
-                       o.owner_id
+                SELECT o.id, o.name, o.stage, o.value, o.owner_id,
+                       COALESCE(o.probability, 0.5) as health_score
                 FROM commercial_opportunities o
-                LEFT JOIN company_features cf ON cf.company_id = o.id::text
-                    AND cf.tenant_id = :tid AND cf.feature_name = 'deal_health'
                 WHERE o.tenant_id = :tid AND o.status = 'open'
-                ORDER BY cf.score ASC NULLS LAST
+                ORDER BY o.probability ASC NULLS LAST
             """),
             {"tid": self.tenant_id},
         )
         results = []
         for r in rows.mappings().all():
-            score = float(r["health_score"])
+            score = float(r["health_score"] or 0.5)
             if score >= 0.7:
                 health = "healthy"
             elif score >= 0.4:
@@ -128,11 +128,11 @@ class PipelineAnalytics:
         }
 
     async def summary(self) -> dict[str, Any]:
-        """Combined pipeline summary with parallel queries."""
-        from asyncio import gather
-        velocity, conversion, health, forecast = await gather(
-            self.velocity(), self.conversion_rates(), self.health_map(), self.forecast()
-        )
+        """Combined pipeline summary (sequential — one asyncpg connection)."""
+        velocity = await self.velocity()
+        conversion = await self.conversion_rates()
+        health = await self.health_map()
+        forecast = await self.forecast()
 
         healthy_count = sum(1 for h in health if h["health"] == "healthy")
         at_risk_count = sum(1 for h in health if h["health"] == "at_risk")

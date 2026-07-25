@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -40,6 +40,8 @@ class User(BaseModel):
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name_ar: Mapped[str | None] = mapped_column(String(255))
     role: Mapped[str] = mapped_column(String(50), default="user")
+    department: Mapped[str | None] = mapped_column(String(100), nullable=True, default=None)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     avatar_url: Mapped[str | None] = mapped_column(String(500))
@@ -102,6 +104,11 @@ class DeviceSession(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     is_revoked: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    __table_args__ = (
+        Index("ix_device_sessions_tenant", "tenant_id"),
+        Index("ix_device_sessions_expires", "expires_at"),
+    )
+
 
 class TokenBlacklist(Base):
     __tablename__ = "token_blacklist"
@@ -110,3 +117,7 @@ class TokenBlacklist(Base):
     token_type: Mapped[str] = mapped_column(String(10), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     revoked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    __table_args__ = (
+        Index("ix_token_blacklist_expires", "expires_at"),
+    )

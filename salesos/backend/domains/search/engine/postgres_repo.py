@@ -15,6 +15,8 @@ Architecture compliance:
 
 from __future__ import annotations
 
+import base64
+import json
 import logging
 import time
 from collections.abc import Callable
@@ -51,6 +53,22 @@ ALLOWED_SUGGEST_FIELDS = frozenset({
 })
 
 
+# ── Keyset Cursor Helpers ──────────────────────────────────────────
+
+def encode_search_cursor(rank: float, updated_at: Any, row_id: str) -> str:
+    """Encode a keyset cursor from (rank, updated_at, id)."""
+    raw: dict[str, Any] = {"id": row_id, "r": round(rank, 10)}
+    if updated_at is not None:
+        raw["u"] = updated_at.isoformat() if hasattr(updated_at, "isoformat") else str(updated_at)
+    return base64.urlsafe_b64encode(json.dumps(raw, separators=(",", ":")).encode()).decode()
+
+
+def decode_search_cursor(cursor: str) -> tuple[float, str | None, str]:
+    """Decode a keyset cursor into (rank, updated_at_str, id)."""
+    raw = json.loads(base64.urlsafe_b64decode(cursor.encode()).decode())
+    return float(raw["r"]), raw.get("u"), str(raw["id"])
+
+
 class PostgresSearchRepository(SearchRepository[Any]):
     """PostgreSQL-backed search repository for the Search domain.
 
@@ -84,25 +102,37 @@ class PostgresSearchRepository(SearchRepository[Any]):
 
         Delegates to search_by_filters when structured filters are present,
         otherwise to search_raw for pure full-text queries.
+        Supports keyset cursor pagination when cursor is provided.
         """
         t0 = time.monotonic()
         filters = query.filters if query.filters else None
-        offset = (query.page - 1) * query.page_size
+        cursor_rank: float | None = None
+        cursor_updated_at: str | None = None
+        cursor_id: str | None = None
+
+        if query.cursor:
+            cursor_rank, cursor_updated_at, cursor_id = decode_search_cursor(query.cursor)
 
         if filters:
-            rows, total = await self.search_by_filters(
+            rows, total, next_cursor = await self.search_by_filters(
                 query=query.query,
                 tenant_id=query.tenant_id,
                 filters=filters,
                 limit=query.page_size,
-                offset=offset,
+                offset=(query.page - 1) * query.page_size if not query.cursor else 0,
+                cursor_rank=cursor_rank,
+                cursor_updated_at=cursor_updated_at,
+                cursor_id=cursor_id,
             )
         else:
-            rows, total = await self.search_raw(
+            rows, total, next_cursor = await self.search_raw(
                 query=query.query,
                 tenant_id=query.tenant_id,
                 limit=query.page_size,
-                offset=offset,
+                offset=(query.page - 1) * query.page_size if not query.cursor else 0,
+                cursor_rank=cursor_rank,
+                cursor_updated_at=cursor_updated_at,
+                cursor_id=cursor_id,
             )
 
         took_ms = (time.monotonic() - t0) * 1000
@@ -116,6 +146,7 @@ class PostgresSearchRepository(SearchRepository[Any]):
             query=query.query,
             duration_ms=round(took_ms, 2),
             strategy="postgres",
+            next_cursor=next_cursor,
         )
 
     async def count(self, query: SearchQuery) -> int:
@@ -151,44 +182,91 @@ class PostgresSearchRepository(SearchRepository[Any]):
         tenant_id: str,
         limit: int = 20,
         offset: int = 0,
-    ) -> tuple[list[dict[str, Any]], int]:
+        cursor_rank: float | None = None,
+        cursor_updated_at: str | None = None,
+        cursor_id: str | None = None,
+    ) -> tuple[list[dict[str, Any]], int, str | None]:
         """Full-text search using PostgreSQL tsvector/tsquery with GIN index.
 
+        Supports keyset cursor pagination when cursor params are provided.
+        Falls back to offset-based pagination when cursor is None.
+
         Returns:
-            (rows, total_count) — rows are dicts with company fields + rank.
+            (rows, total_count, next_cursor) — rows are dicts with company fields + rank.
         """
         safe_limit = min(limit, MAX_PAGE_SIZE)
         if not query or not query.strip():
-            return [], 0
+            return [], 0, None
 
         async with self._session_factory() as session:
             await session.execute(
-                sa_text(f"SET LOCAL statement_timeout = '{int(self._timeout * 1000)}'")
+                sa_text("SET LOCAL statement_timeout = :timeout"),
+                {"timeout": str(int(self._timeout * 1000))},
             )
 
-            sql = sa_text("""
-                SELECT c.id::text, c.name_ar, c.name_en, c.cr_number,
-                       c.city, c.region, c.industry, c.status,
-                       c.activity_description,
-                       ts_rank(c.search_vector, plainto_tsquery(:lang, :q)) AS rank,
-                       count(*) OVER() AS total_count
-                FROM companies c
-                WHERE c.tenant_id = :tid
-                  AND c.search_vector @@ plainto_tsquery(:lang, :q)
-                ORDER BY rank DESC, c.updated_at DESC
-                LIMIT :lim OFFSET :off
-            """)
-
-            result = await session.execute(sql, {
+            params: dict[str, Any] = {
                 "q": query.strip(),
                 "tid": tenant_id,
                 "lang": self._fts_language,
-                "lim": safe_limit,
-                "off": offset,
-            })
-            rows = [dict(r._mapping) for r in result.fetchall()]
-            total = rows[0]["total_count"] if rows else 0
-            return rows, total
+                "lim": safe_limit + 1,
+            }
+
+            cursor_clause = ""
+            if cursor_rank is not None and cursor_id is not None:
+                cursor_clause = """
+                    AND (
+                        (ts_rank(c.search_vector, plainto_tsquery(:lang, :q)) < :cursor_rank)
+                        OR (ts_rank(c.search_vector, plainto_tsquery(:lang, :q)) = :cursor_rank
+                            AND c.updated_at < :cursor_uat)
+                        OR (ts_rank(c.search_vector, plainto_tsquery(:lang, :q)) = :cursor_rank
+                            AND c.updated_at = :cursor_uat
+                            AND c.id < :cursor_id)
+                    )
+                """
+                params["cursor_rank"] = cursor_rank
+                params["cursor_uat"] = cursor_updated_at
+                params["cursor_id"] = cursor_id
+
+            if not cursor_clause:
+                params["lim"] = safe_limit
+                params["off"] = offset
+
+            limit_clause = "LIMIT :lim" if cursor_clause else "LIMIT :lim OFFSET :off"
+            sql = sa_text(
+                "SELECT c.id::text, c.name_ar, c.name_en, c.cr_number, "
+                "c.city, c.region, c.industry, c.status, "
+                "c.activity_description, c.updated_at, "
+                "ts_rank(c.search_vector, plainto_tsquery(:lang, :q)) AS rank, "
+                "count(*) OVER() AS total_count "
+                "FROM companies c "
+                "WHERE c.tenant_id = :tid "
+                "AND c.search_vector @@ plainto_tsquery(:lang, :q) "
+                + cursor_clause + " "
+                "ORDER BY rank DESC, c.updated_at DESC, c.id DESC "
+                + limit_clause
+            )
+
+            result = await session.execute(sql, params)
+            rows_raw = [dict(r._mapping) for r in result.fetchall()]
+            total = rows_raw[0]["total_count"] if rows_raw else 0
+
+            has_next = len(rows_raw) > (safe_limit if not cursor_clause else safe_limit)
+            rows = rows_raw[:safe_limit]
+
+            next_cursor = None
+            if has_next and rows:
+                last = rows[-1]
+                next_cursor = encode_search_cursor(
+                    float(last["rank"]) if last["rank"] else 0.0,
+                    last.get("updated_at"),
+                    last["id"],
+                )
+
+            for row in rows:
+                row.pop("total_count", None)
+                row.pop("updated_at", None)
+
+            return rows, total, next_cursor
 
     async def search_by_filters(
         self,
@@ -197,22 +275,30 @@ class PostgresSearchRepository(SearchRepository[Any]):
         filters: dict[str, str] | None = None,
         limit: int = 20,
         offset: int = 0,
-    ) -> tuple[list[dict[str, Any]], int]:
+        cursor_rank: float | None = None,
+        cursor_updated_at: str | None = None,
+        cursor_id: str | None = None,
+    ) -> tuple[list[dict[str, Any]], int, str | None]:
         """Full-text search with structured field filters.
+
+        Supports keyset cursor pagination when cursor params are provided.
 
         Args:
             query: Search text (tsquery-compatible)
             tenant_id: Tenant UUID for multi-tenant isolation
             filters: Dict of field=value pairs (city, region, industry, etc.)
             limit: Max results to return
-            offset: Pagination offset
+            offset: Pagination offset (used when no cursor)
+            cursor_rank: Rank value from the last result (keyset pagination)
+            cursor_updated_at: Updated_at value from the last result
+            cursor_id: ID of the last result
 
         Returns:
-            (rows, total_count)
+            (rows, total_count, next_cursor)
         """
         safe_limit = min(limit, MAX_PAGE_SIZE)
         if not query or not query.strip():
-            return [], 0
+            return [], 0, None
 
         conditions = [
             "c.tenant_id = :tid",
@@ -222,42 +308,79 @@ class PostgresSearchRepository(SearchRepository[Any]):
             "q": query.strip(),
             "tid": tenant_id,
             "lang": self._fts_language,
-            "lim": safe_limit,
-            "off": offset,
         }
 
         if filters:
             for field_name, value in filters.items():
                 if field_name in ALLOWED_FILTER_FIELDS and value is not None:
-                    conditions.append(f"c.{field_name} = :fltr_{field_name}")
-                    params[f"fltr_{field_name}"] = value
+                    conditions.append("c." + field_name + " = :fltr_" + field_name)
+                    params["fltr_" + field_name] = value
+
+        cursor_clause = ""
+        if cursor_rank is not None and cursor_id is not None:
+            cursor_clause = """
+                AND (
+                    (ts_rank(c.search_vector, plainto_tsquery(:lang, :q)) < :cursor_rank)
+                    OR (ts_rank(c.search_vector, plainto_tsquery(:lang, :q)) = :cursor_rank
+                        AND c.updated_at < :cursor_uat)
+                    OR (ts_rank(c.search_vector, plainto_tsquery(:lang, :q)) = :cursor_rank
+                        AND c.updated_at = :cursor_uat
+                        AND c.id < :cursor_id)
+                )
+            """
+            params["cursor_rank"] = cursor_rank
+            params["cursor_uat"] = cursor_updated_at
+            params["cursor_id"] = cursor_id
 
         where_clause = " AND ".join(conditions)
 
         async with self._session_factory() as session:
             await session.execute(
-                sa_text(f"SET LOCAL statement_timeout = '{int(self._timeout * 1000)}'")
+                sa_text("SET LOCAL statement_timeout = :timeout"),
+                {"timeout": str(int(self._timeout * 1000))},
             )
 
-            # Count total matching rows
-            count_sql = sa_text(f"SELECT count(*) FROM companies c WHERE {where_clause}")
-            count_result = await session.execute(count_sql, params)
-            total = count_result.scalar() or 0
+            if cursor_clause:
+                params["lim"] = safe_limit + 1
+                limit_clause = "LIMIT :lim"
+            else:
+                params["lim"] = safe_limit
+                params["off"] = offset
+                limit_clause = "LIMIT :lim OFFSET :off"
 
-            # Fetch results
-            sql = sa_text(f"""
-                SELECT c.id::text, c.name_ar, c.name_en, c.cr_number,
-                       c.city, c.region, c.industry, c.status,
-                       c.activity_description,
-                       ts_rank(c.search_vector, plainto_tsquery(:lang, :q)) AS rank
-                FROM companies c
-                WHERE {where_clause}
-                ORDER BY rank DESC, c.updated_at DESC
-                LIMIT :lim OFFSET :off
-            """)
+            sql = sa_text(
+                "SELECT c.id::text, c.name_ar, c.name_en, c.cr_number, "
+                "c.city, c.region, c.industry, c.status, "
+                "c.activity_description, c.updated_at, "
+                "ts_rank(c.search_vector, plainto_tsquery(:lang, :q)) AS rank, "
+                "count(*) OVER() AS total_count "
+                "FROM companies c "
+                "WHERE " + where_clause + " "
+                + cursor_clause + " "
+                "ORDER BY rank DESC, c.updated_at DESC, c.id DESC "
+                + limit_clause
+            )
             result = await session.execute(sql, params)
-            rows = [dict(r._mapping) for r in result.fetchall()]
-            return rows, total
+            rows_raw = [dict(r._mapping) for r in result.fetchall()]
+            total = rows_raw[0]["total_count"] if rows_raw else 0
+
+            has_next = len(rows_raw) > safe_limit
+            rows = rows_raw[:safe_limit]
+
+            next_cursor = None
+            if has_next and rows:
+                last = rows[-1]
+                next_cursor = encode_search_cursor(
+                    float(last["rank"]) if last["rank"] else 0.0,
+                    last.get("updated_at"),
+                    last["id"],
+                )
+
+            for row in rows:
+                row.pop("total_count", None)
+                row.pop("updated_at", None)
+
+            return rows, total, next_cursor
 
     async def count_raw(
         self,
@@ -278,14 +401,14 @@ class PostgresSearchRepository(SearchRepository[Any]):
         if filters:
             for field_name, value in filters.items():
                 if field_name in ALLOWED_FILTER_FIELDS and value is not None:
-                    conditions.append(f"c.{field_name} = :fltr_{field_name}")
-                    params[f"fltr_{field_name}"] = value
+                    conditions.append("c." + field_name + " = :fltr_" + field_name)
+                    params["fltr_" + field_name] = value
 
         where_clause = " AND ".join(conditions)
 
         async with self._session_factory() as session:
             result = await session.execute(
-                sa_text(f"SELECT count(*) FROM companies c WHERE {where_clause}"),
+                sa_text("SELECT count(*) FROM companies c WHERE " + where_clause),
                 params,
             )
             return result.scalar() or 0
@@ -311,14 +434,15 @@ class PostgresSearchRepository(SearchRepository[Any]):
         union_parts = []
         for field in target_fields:
             union_parts.append(
-                f"SELECT '{field}' AS facet_field, c.{field} AS facet_value, COUNT(*) AS facet_count "
-                f"FROM companies c "
-                f"WHERE c.tenant_id = :tid "
-                f"AND c.search_vector @@ plainto_tsquery(:lang, :q) "
-                f"AND c.{field} IS NOT NULL "
-                f"GROUP BY c.{field} "
-                f"ORDER BY facet_count DESC "
-                f"LIMIT 20"
+                "SELECT '" + field + "' AS facet_field, "
+                "c." + field + " AS facet_value, COUNT(*) AS facet_count "
+                "FROM companies c "
+                "WHERE c.tenant_id = :tid "
+                "AND c.search_vector @@ plainto_tsquery(:lang, :q) "
+                "AND c." + field + " IS NOT NULL "
+                "GROUP BY c." + field + " "
+                "ORDER BY facet_count DESC "
+                "LIMIT 20"
             )
 
         combined_sql = " UNION ALL ".join(union_parts)
@@ -353,14 +477,14 @@ class PostgresSearchRepository(SearchRepository[Any]):
             return []
 
         async with self._session_factory() as session:
-            sql = sa_text(f"""
-                SELECT DISTINCT c.{field}
-                FROM companies c
-                WHERE c.tenant_id = :tid
-                  AND c.{field} ILIKE :prefix
-                ORDER BY c.{field}
-                LIMIT :lim
-            """)
+            sql = sa_text(
+                "SELECT DISTINCT c." + field + " "
+                "FROM companies c "
+                "WHERE c.tenant_id = :tid "
+                "AND c." + field + " ILIKE :prefix "
+                "ORDER BY c." + field + " "
+                "LIMIT :lim"
+            )
             result = await session.execute(sql, {
                 "tid": tenant_id,
                 "prefix": f"{prefix.strip()}%",

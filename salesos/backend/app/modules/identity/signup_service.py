@@ -5,12 +5,12 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import DuplicateError
 from app.config import settings
 from app.modules.identity.models import Tenant, User
+from app.modules.identity.repositories import TenantRepository, UserRepository
 from app.modules.identity.service import IdentityService, hash_password
 from sdk.audit import AuditTrail
 from sdk.events import EventBus
@@ -30,10 +30,14 @@ class SignupService:
     def __init__(
         self,
         db: AsyncSession,
+        tenant_repo: TenantRepository | None = None,
+        user_repo: UserRepository | None = None,
         event_bus: EventBus | None = None,
         logger: StructuredLogger | None = None,
     ):
         self.db = db
+        self._tenant_repo = tenant_repo or TenantRepository(db)
+        self._user_repo = user_repo or UserRepository(db)
         self.event_bus = event_bus
         self.logger = logger
 
@@ -44,8 +48,7 @@ class SignupService:
         company_name: str,
         phone: str | None = None,
     ) -> dict[str, Any]:
-        existing = await self.db.execute(select(User).where(User.email == email))
-        if existing.scalar_one_or_none():
+        if await self._user_repo.exists_by_email(email):
             raise DuplicateError("User", "email", email)
 
         slug = secrets.token_urlsafe(8).lower()
@@ -127,11 +130,9 @@ class SignupService:
             del VERIFICATION_TOKENS[token]
             raise ValueError("Verification token expired")
 
-        result = await self.db.execute(
-            select(User).where(User.id == data["user_id"])
-        )
-        user = result.scalar_one_or_none()
-        if not user:
+        try:
+            user = await self._user_repo.get(uuid.UUID(data["user_id"]))
+        except Exception:
             del VERIFICATION_TOKENS[token]
             raise ValueError("User not found")
 
@@ -141,8 +142,7 @@ class SignupService:
         return {"message": "Email verified successfully", "user_id": str(user.id)}
 
     async def resend_verification(self, email: str) -> dict[str, Any]:
-        result = await self.db.execute(select(User).where(User.email == email))
-        user = result.scalar_one_or_none()
+        user = await self._user_repo.get_by_email(email)
         if not user:
             return {"message": "If the email exists, a verification link has been sent"}
         if user.is_verified:

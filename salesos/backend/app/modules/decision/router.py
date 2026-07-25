@@ -277,22 +277,34 @@ async def explain_decision(
 async def get_history(
     tenant_id: str = Depends(get_current_tenant_id),
     limit: int = Query(20, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    cursor: str | None = Query(None, description="Keyset cursor for pagination"),
     entity_type: Optional[str] = Query(None),
     outcome: Optional[str] = Query(None),
     _token: dict = Depends(verify_token),
 ):
+    from sdk.pagination import decode_cursor, encode_cursor
+
     engine = _engine()
-    items = engine.get_history(tenant_id, limit=offset + limit)
-    filtered = items[offset:]
+    if cursor:
+        cursor_id, cursor_sort = decode_cursor(cursor)
+    items = engine.get_history(tenant_id, limit=limit + 1)
 
     if entity_type:
-        filtered = [i for i in filtered if i.context.entity_type == entity_type]
+        items = [i for i in items if i.context.entity_type == entity_type]
     if outcome:
         if outcome == "null":
-            filtered = [i for i in filtered if i.outcome is None]
+            items = [i for i in items if i.outcome is None]
         else:
-            filtered = [i for i in filtered if i.outcome == outcome]
+            items = [i for i in items if i.outcome == outcome]
+
+    has_next = len(items) > limit
+    if has_next:
+        items = items[:limit]
+
+    next_cursor = None
+    if has_next and items:
+        last = items[-1]
+        next_cursor = encode_cursor(str(last.decision_id), last.created_at)
 
     from app.modules.decision.schemas import DecisionHistoryItemAPI, DecisionHistoryRecommendationAPI
     api_items = [
@@ -309,9 +321,9 @@ async def get_history(
             createdAt=i.created_at,
             updatedAt=i.updated_at,
         )
-        for i in filtered
+        for i in items
     ]
-    return HistoryResponseAPI(items=api_items, total=len(api_items))
+    return HistoryResponseAPI(items=api_items, total=None, next_cursor=next_cursor, has_next=has_next)
 
 
 # ---------------------------------------------------------------------------
@@ -325,14 +337,25 @@ async def get_recommendations(
     entity_type: Optional[str] = Query(None),
     status: Optional[str] = Query("pending"),
     limit: int = Query(20, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    cursor: str | None = Query(None, description="Keyset cursor for pagination"),
     _token: dict = Depends(verify_token),
 ):
+    from sdk.pagination import decode_cursor, encode_cursor
+
     engine = _engine()
     recs, total = engine.get_recommendations(
         tenant_id, entity_id=entity_id, entity_type=entity_type,
-        status=status, limit=limit, offset=offset,
+        status=status, limit=limit + 1, offset=0,
     )
+
+    has_next = len(recs) > limit
+    if has_next:
+        recs = recs[:limit]
+
+    next_cursor = None
+    if has_next and recs:
+        last = recs[-1]
+        next_cursor = encode_cursor(str(last.id), last.created_at)
 
     from app.modules.decision.schemas import (
         RecommendationAPI, AlternativeRecommendationAPI,
@@ -371,7 +394,7 @@ async def get_recommendations(
             status=rec.status, createdAt=rec.created_at, updatedAt=rec.updated_at,
         )
 
-    return RecommendationsResponseAPI(items=[_rec_to_api(r) for r in recs], total=total)
+    return RecommendationsResponseAPI(items=[_rec_to_api(r) for r in recs], total=total, next_cursor=next_cursor, has_next=has_next)
 
 
 # ---------------------------------------------------------------------------
@@ -417,13 +440,24 @@ async def get_evidence(
     entity_type: str = Query(...),
     type: Optional[str] = Query(None),
     limit: int = Query(20, ge=1, le=100),
-    offset: int = Query(0, ge=0),
+    cursor: str | None = Query(None, description="Keyset cursor for pagination"),
     _token: dict = Depends(verify_token),
 ):
+    from sdk.pagination import decode_cursor, encode_cursor
+
     engine = _engine()
     items, total = engine.get_evidence(
-        tenant_id, entity_id, evidence_type=type, limit=limit, offset=offset,
+        tenant_id, entity_id, evidence_type=type, limit=limit + 1, offset=0,
     )
+
+    has_next = len(items) > limit
+    if has_next:
+        items = items[:limit]
+
+    next_cursor = None
+    if has_next and items:
+        last = items[-1]
+        next_cursor = encode_cursor(str(last.id), last.timestamp)
 
     from app.modules.decision.schemas import EvidenceItemAPI
     api_items = [
@@ -435,7 +469,7 @@ async def get_evidence(
         )
         for e in items
     ]
-    return EvidenceResponseAPI(items=api_items, total=total)
+    return EvidenceResponseAPI(items=api_items, total=total, next_cursor=next_cursor, has_next=has_next)
 
 
 # ---------------------------------------------------------------------------

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from passlib.context import CryptContext
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,15 +15,16 @@ from app.config import settings
 
 from .models import ApiKey
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def _hash_key(raw_key: str) -> str:
-    return pwd_context.hash(raw_key)
+    return hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
 
 
 def _verify_key(raw_key: str, key_hash: str) -> bool:
-    return pwd_context.verify(raw_key, key_hash)
+    computed_hash = hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
+    if hmac.compare_digest(computed_hash, key_hash):
+        return True
+    return False
 
 
 def _generate_api_key() -> tuple[str, str, str]:

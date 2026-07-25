@@ -79,7 +79,6 @@ class GraphService:
             validated = [_validate_cypher_identifier(l, "label") for l in labels]
             label_str = ":".join(validated)
             async with self._driver.session() as session:
-                label_str = ":".join(labels)
                 result = await session.run(
                     f"CREATE (n:{label_str} $props) RETURN elementId(n) AS id",
                     props=properties,

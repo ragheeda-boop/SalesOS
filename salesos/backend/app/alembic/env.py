@@ -1,7 +1,14 @@
+"""Alembic migrations environment configuration.
+
+Supports both CLI invocation (alembic upgrade head) and
+programmatic invocation from init_db().
+"""
+
 import asyncio
 from logging.config import fileConfig
 
 from alembic import context
+from alembic.config import Config as AlembicConfig
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
@@ -9,7 +16,14 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from app.config import settings
 from app.database import Base
 
-config = context.config
+# When invoked via `alembic` CLI, context.config is set by Alembic.
+# When invoked programmatically, we create a Config from alembic.ini.
+_alembic_cfg: AlembicConfig | None = getattr(context, "config", None)
+if _alembic_cfg is None:
+    import os
+    _alembic_cfg = AlembicConfig(os.path.join(os.path.dirname(__file__), "../../alembic.ini"))
+
+config = _alembic_cfg
 config.set_main_option("sqlalchemy.url", settings.database_url)
 
 if config.config_file_name is not None:
@@ -53,7 +67,8 @@ def run_migrations_online() -> None:
     asyncio.run(run_async_migrations())
 
 
-if context.is_offline_mode():
-    run_migrations_offline()
-else:
-    run_migrations_online()
+if _alembic_cfg is not None and getattr(context, "config", None) is not None:
+    if context.is_offline_mode():
+        run_migrations_offline()
+    else:
+        run_migrations_online()

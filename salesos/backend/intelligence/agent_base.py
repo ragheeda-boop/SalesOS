@@ -65,9 +65,14 @@ class GroundedBaseAgent(BaseAgent):
 
                 schema_guide = ""
                 if self._output_schema():
+                    # Serialize type objects as names (str/float/list are not JSON-native)
+                    schema_for_prompt = {
+                        k: (v.__name__ if isinstance(v, type) else v)
+                        for k, v in self._output_schema().items()
+                    }
                     schema_guide = (
                         "\n\nيجب أن يكون الرد بصيغة JSON فقط:\n"
-                        f"{json.dumps(self._output_schema(), ensure_ascii=False, indent=2)}"
+                        f"{json.dumps(schema_for_prompt, ensure_ascii=False, indent=2)}"
                     )
 
                 response = await self._llm.chat(

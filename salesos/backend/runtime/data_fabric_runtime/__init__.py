@@ -778,3 +778,14 @@ class DataFabricPipeline:
         """Run the pipeline on a single record."""
         result_dict = await self.run_batch(source_slug, [record], tenant_id)
         return result_dict
+
+    async def close(self) -> None:
+        """Release Neo4j driver and clear held references."""
+        if self._kg_engine and hasattr(self._kg_engine, "close"):
+            await self._kg_engine.close()
+        self._kg_engine = None
+        self._vector_store = None
+        self._event_runtime = None
+        self._feature_store = None
+        self._embedding_service = None
+        self._session_factory = None  # type: ignore

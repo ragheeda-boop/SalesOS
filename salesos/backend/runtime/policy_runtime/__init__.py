@@ -119,3 +119,7 @@ class PolicyEngine:
                 self.metrics.escalated += 1
 
         return results
+
+    async def close(self) -> None:
+        """Release held references."""
+        self._session_factory = None  # type: ignore

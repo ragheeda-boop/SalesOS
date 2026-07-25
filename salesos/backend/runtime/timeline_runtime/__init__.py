@@ -126,89 +126,133 @@ class TimelineRuntime:
         event_types: Optional[list[str]] = None,
         since: Optional[datetime] = None,
         until: Optional[datetime] = None,
+        domain: Optional[str] = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> list[dict]:
+        cursor: Optional[str] = None,
+    ) -> tuple[list[dict], int]:
         t0 = time.monotonic()
         self.metrics.queries_executed += 1
 
-        query = """
-            SELECT * FROM timeline_entries
-            WHERE entity_type = :et AND entity_id = :eid
-        """
+        base_where = "WHERE entity_type = :et AND entity_id = :eid"
         params: dict = {"et": entity_type, "eid": entity_id}
 
         if event_types:
-            query += " AND event_type = ANY(:evts)"
+            base_where += " AND event_type = ANY(:evts)"
             params["evts"] = event_types
         if since:
-            query += " AND created_at >= :since"
+            base_where += " AND created_at >= :since"
             params["since"] = since
         if until:
-            query += " AND created_at <= :until"
+            base_where += " AND created_at <= :until"
             params["until"] = until
+        if domain:
+            base_where += " AND data->>'domain' = :domain"
+            params["domain"] = domain
 
-        query += " ORDER BY created_at DESC LIMIT :lim OFFSET :off"
-        params["lim"] = limit
-        params["off"] = offset
-
+        # Count total matching
         async with self._session_factory() as session:
+            count_row = await session.execute(
+                sa_text(f"SELECT COUNT(*) FROM timeline_entries {base_where}"), params
+            )
+            total = count_row.scalar() or 0
+
+            # Keyset cursor pagination
+            if cursor:
+                import json
+                try:
+                    cursor_data = json.loads(cursor)
+                    cursor_created = cursor_data.get("created_at")
+                    cursor_id = cursor_data.get("id")
+                    if cursor_created:
+                        base_where += " AND (created_at < :cursor_created OR (created_at = :cursor_created2 AND id < :cursor_id))"
+                        params["cursor_created"] = cursor_created
+                        params["cursor_created2"] = cursor_created
+                        params["cursor_id"] = cursor_id
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+            query = f"SELECT * FROM timeline_entries {base_where} ORDER BY created_at DESC, id DESC LIMIT :lim"
+            if not cursor:
+                query += " OFFSET :off"
+                params["off"] = offset
+            params["lim"] = limit
+
             rows = await session.execute(sa_text(query), params)
             results = [dict(r) for r in rows.mappings().all()]
 
         elapsed = (time.monotonic() - t0) * 1000
         self.metrics.total_query_ms += elapsed
-        return results
+        return results, total
 
-    async def get_entity_timelines(self, tenant_id: str, entity_type: str, limit: int = 20) -> list[dict]:
+    async def get_entity_timelines(self, tenant_id: str, entity_type: str, limit: int = 20, domain: Optional[str] = None, since: Optional[datetime] = None, until: Optional[datetime] = None) -> list[dict]:
         """Get most recent timelines across all entities of a type."""
         t0 = time.monotonic()
         self.metrics.queries_executed += 1
+
+        base_where = "WHERE tenant_id = :tid AND entity_type = :et"
+        params: dict = {"tid": tenant_id, "et": entity_type}
+        if domain:
+            base_where += " AND data->>'domain' = :domain"
+            params["domain"] = domain
+        if since:
+            base_where += " AND created_at >= :since"
+            params["since"] = since
+        if until:
+            base_where += " AND created_at <= :until"
+            params["until"] = until
+
         async with self._session_factory() as session:
             rows = await session.execute(
-                sa_text("""
+                sa_text(f"""
                     SELECT DISTINCT ON (entity_id) *
                     FROM timeline_entries
-                    WHERE tenant_id = :tid AND entity_type = :et
+                    {base_where}
                     ORDER BY entity_id, created_at DESC
                     LIMIT :lim
                 """),
-                {"tid": tenant_id, "et": entity_type, "lim": limit},
+                {**params, "lim": limit},
             )
             results = [dict(r) for r in rows.mappings().all()]
         elapsed = (time.monotonic() - t0) * 1000
         self.metrics.total_query_ms += elapsed
         return results
 
-    async def get_timeline_summary(self, entity_type: str, entity_id: str) -> dict:
+    async def get_timeline_summary(self, entity_type: str, entity_id: str, domain: Optional[str] = None) -> dict:
         """Return summary stats for an entity's timeline."""
         t0 = time.monotonic()
         self.metrics.queries_executed += 1
+        base_where = "WHERE entity_type = :et AND entity_id = :eid"
+        params: dict = {"et": entity_type, "eid": entity_id}
+        if domain:
+            base_where += " AND data->>'domain' = :domain"
+            params["domain"] = domain
+
         async with self._session_factory() as session:
             row = await session.execute(
-                sa_text("""
+                sa_text(f"""
                     SELECT
                         COUNT(*) as total_events,
                         COUNT(DISTINCT event_type) as unique_event_types,
                         MIN(created_at) as first_event,
                         MAX(created_at) as last_event
                     FROM timeline_entries
-                    WHERE entity_type = :et AND entity_id = :eid
+                    {base_where}
                 """),
-                {"et": entity_type, "eid": entity_id},
+                params,
             )
             stats = dict(row.mappings().one())
 
             # Event type breakdown
             breakdown = await session.execute(
-                sa_text("""
+                sa_text(f"""
                     SELECT event_type, COUNT(*) as cnt
                     FROM timeline_entries
-                    WHERE entity_type = :et AND entity_id = :eid
+                    {base_where}
                     GROUP BY event_type
                     ORDER BY cnt DESC
                 """),
-                {"et": entity_type, "eid": entity_id},
+                params,
             )
             event_breakdown = {r["event_type"]: r["cnt"] for r in breakdown.mappings().all()}
 

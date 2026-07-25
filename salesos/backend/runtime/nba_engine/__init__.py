@@ -148,6 +148,163 @@ class NBAEngine:
         await self._emit_event(nba, tenant_id)
         return nba
 
+    async def batch_get_or_compute(
+        self, opportunity_ids: list[str], tenant_id: str,
+    ) -> dict[str, NBAResult | None]:
+        """Evaluate NBA for multiple opportunities in O(1) DB queries.
+
+        Returns dict mapping opportunity_id -> NBAResult (or None if not found/cached).
+        """
+        if not opportunity_ids:
+            return {}
+
+        cached = await self._batch_load_cached(opportunity_ids, tenant_id)
+        results: dict[str, NBAResult | None] = dict(cached)
+
+        need_compute = [oid for oid in opportunity_ids if oid not in cached]
+        if not need_compute:
+            return results
+
+        signals = await self._batch_normalize(need_compute, tenant_id)
+
+        for opp_id in need_compute:
+            signal = signals.get(opp_id)
+            if not signal:
+                results[opp_id] = None
+                continue
+            try:
+                nba = await self._run_pipeline(signal, tenant_id)
+                results[opp_id] = nba
+            except Exception:
+                if self._logger:
+                    self._logger.exception("NBA pipeline failed for %s", opp_id)
+                results[opp_id] = None
+
+        return results
+
+    async def _batch_load_cached(
+        self, opportunity_ids: list[str], tenant_id: str,
+    ) -> dict[str, NBAResult]:
+        """Load cached NBA results for multiple opportunities in 1 query."""
+        from sqlalchemy import text as sa_text
+        async with self._session_factory() as session:
+            rows = await session.execute(
+                sa_text("""
+                    SELECT company_id, score, signals, explanation, computed_at
+                    FROM company_features
+                    WHERE company_id = ANY(:cids) AND tenant_id = :tid
+                      AND feature_name = 'nba'
+                      AND computed_at >= NOW() - INTERVAL '1 hour'
+                """),
+                {"cids": opportunity_ids, "tid": tenant_id},
+            )
+            results: dict[str, NBAResult] = {}
+            for r in rows.mappings().all():
+                cid = str(r["company_id"])
+                results[cid] = NBAResult(
+                    id="cached", opportunity_id=cid,
+                    action="cached", reason=r["explanation"] or "",
+                    evidence=[], confidence=float(r["score"]),
+                    confidence_label="medium", source="rule",
+                    alternatives=[], expected_impact=Impact(description=""),
+                    potential_risks=[],
+                )
+            return results
+
+    async def _batch_normalize(
+        self, opportunity_ids: list[str], tenant_id: str,
+    ) -> dict[str, NormalizedSignal | None]:
+        """Load all opportunities + activities in 2 queries total."""
+        from sqlalchemy import text as sa_text
+        async with self._session_factory() as session:
+            rows = await session.execute(
+                sa_text("""
+                    SELECT o.*, c.name_ar as company_name_ar, c.industry, c.city,
+                           c.employees_count, c.annual_revenue
+                    FROM commercial_opportunities o
+                    LEFT JOIN companies c ON c.id::text = o.company_id
+                    WHERE o.id = ANY(:oids) AND o.tenant_id = :tid
+                """),
+                {"oids": opportunity_ids, "tid": tenant_id},
+            )
+            opp_rows: dict[str, dict] = {}
+            for r in rows.mappings().all():
+                opp_rows[str(r["id"])] = dict(r)
+
+            if not opp_rows:
+                return {oid: None for oid in opportunity_ids}
+
+            activities = await session.execute(
+                sa_text("""
+                    SELECT id, entity_id, action, timestamp, description
+                    FROM activity_records
+                    WHERE tenant_id = :tid AND entity_id = ANY(:eids)
+                    ORDER BY timestamp DESC
+                """),
+                {"tid": tenant_id, "eids": list(opp_rows.keys())},
+            )
+
+            activities_by_entity: dict[str, list[dict]] = {}
+            for a in activities.mappings().all():
+                eid = str(a["entity_id"])
+                if eid not in activities_by_entity:
+                    activities_by_entity[eid] = []
+                activities_by_entity[eid].append(dict(a))
+
+            now = datetime.now(timezone.utc)
+            signals: dict[str, NormalizedSignal | None] = {}
+            for opp_id in opportunity_ids:
+                opp_dict = opp_rows.get(opp_id)
+                if not opp_dict:
+                    signals[opp_id] = None
+                    continue
+                opp_activities = activities_by_entity.get(opp_id, [])
+                signals[opp_id] = NormalizedSignal(
+                    source="manual_refresh",
+                    entity_type="opportunity",
+                    entity_id=opp_id,
+                    opportunity_id=opp_id,
+                    tenant_id=tenant_id,
+                    timestamp=now.isoformat(),
+                    data=opp_dict,
+                    context={
+                        "opportunity": opp_dict,
+                        "recent_activities": opp_activities[:20],
+                    },
+                )
+            return signals
+
+    async def _run_pipeline(self, signal: NormalizedSignal, tenant_id: str) -> NBAResult:
+        """Run NBA pipeline stages on a pre-normalized signal."""
+        t0 = time.monotonic()
+        trace: dict[str, float] = {}
+
+        t1 = time.monotonic()
+        rule_candidates = await self._apply_rules(signal)
+        trace["rules_ms"] = (time.monotonic() - t1) * 1000
+
+        t1 = time.monotonic()
+        scored = await self._score_candidates(signal, rule_candidates)
+        trace["scoring_ms"] = (time.monotonic() - t1) * 1000
+
+        t1 = time.monotonic()
+        ai_ranking = await self._ai_evaluate(signal, scored)
+        trace["ai_ms"] = (time.monotonic() - t1) * 1000
+
+        t1 = time.monotonic()
+        risks = await self._assess_risk(signal)
+        trace["risk_ms"] = (time.monotonic() - t1) * 1000
+
+        t1 = time.monotonic()
+        nba = self._build_recommendation(signal, scored, ai_ranking, risks, trace)
+        trace["confidence_ms"] = (time.monotonic() - t1) * 1000
+        trace["total_ms"] = (time.monotonic() - t0) * 1000
+        nba.pipeline_trace = trace
+
+        await self._cache_result(nba, tenant_id)
+        await self._emit_event(nba, tenant_id)
+        return nba
+
     async def record_feedback(
         self, opportunity_id: str, nba_id: str, user_id: str,
         action: str, reason: str | None = None,
@@ -442,3 +599,13 @@ class NBAEngine:
                     "source": nba.source,
                 },
             ))
+
+    async def close(self) -> None:
+        """Release LLM connections and clear held references."""
+        if self._reasoner and hasattr(self._reasoner, "close"):
+            await self._reasoner.close()
+        self._reasoner = None
+        self._llm_service = None
+        self._session_factory = None  # type: ignore
+        self._feature_store = None  # type: ignore
+        self._event_runtime = None  # type: ignore

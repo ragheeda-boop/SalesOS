@@ -6,16 +6,23 @@ Pipeline stages:
 3. Pipeline Velocity (stage duration affects risk)
 4. Quote Status (approved quotes increase confidence)
 5. Contract Status (signed contracts lock revenue)
+
+Also supports:
+- Time-series linear regression on historical data
+- Combined (weighted average) forecast
+- Confidence intervals based on data quality
 """
 
 from __future__ import annotations
+import math
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
 from .models import (
-    ForecastExplanation, ForecastLine, ForecastScenario,
-    ForecastSnapshot, ForecastSnapshotStatus,
+    CombinedForecast, ForecastBreakdown, ForecastExplanation, ForecastLine,
+    ForecastScenario, ForecastSnapshot, ForecastSnapshotStatus,
+    TimeSeriesDataPoint, TimeSeriesForecast,
 )
 
 
@@ -34,6 +41,10 @@ class CommercialInput:
     contract_signed: bool = False
     contract_value: float = 0.0
     historical_win_rate: float = 0.0
+    rep_id: str = ""
+    rep_name: str = ""
+    region: str = ""
+    product: str = ""
 
 
 class ForecastEngine:
@@ -47,6 +58,13 @@ class ForecastEngine:
 
         for inp in inputs:
             explanations: list[ForecastExplanation] = []
+            metadata: dict[str, str] = {}
+            if inp.rep_id:
+                metadata["rep_id"] = inp.rep_id
+            if inp.region:
+                metadata["region"] = inp.region
+            if inp.product:
+                metadata["product"] = inp.product
 
             # Stage 1: Weighted Revenue
             weighted = inp.opportunity_value * inp.opportunity_probability
@@ -112,6 +130,7 @@ class ForecastEngine:
                 weighted_revenue=weighted,
                 explanations=explanations,
                 source_id=inp.opportunity_id, source_type="opportunity",
+                metadata=metadata,
             ))
 
             # Commit scenario (conservative — only what's nearly certain)
@@ -124,6 +143,7 @@ class ForecastEngine:
                 risk=round(min(total_risk * 0.5, 1.0), 2),
                 weighted_revenue=weighted * 0.8,
                 source_id=inp.opportunity_id, source_type="opportunity",
+                metadata=metadata,
             ))
 
             # Best Case (optimistic)
@@ -135,6 +155,7 @@ class ForecastEngine:
                 risk=round(total_risk * 0.3, 2),
                 weighted_revenue=weighted * 1.2,
                 source_id=inp.opportunity_id, source_type="opportunity",
+                metadata=metadata,
             ))
 
             # Worst Case (conservative)
@@ -147,6 +168,7 @@ class ForecastEngine:
                 risk=round(min(total_risk * 1.5, 1.0), 2),
                 weighted_revenue=weighted * 0.5,
                 source_id=inp.opportunity_id, source_type="opportunity",
+                metadata=metadata,
             ))
 
         import uuid
@@ -165,3 +187,136 @@ class ForecastEngine:
             ],
         )
         return snapshot
+
+    def time_series_forecast(
+        self,
+        data_points: list[TimeSeriesDataPoint],
+        horizon_months: int = 3,
+    ) -> TimeSeriesForecast:
+        """Simple linear regression on historical revenue data."""
+        if len(data_points) < 2:
+            return TimeSeriesForecast(data_points_used=len(data_points))
+
+        sorted_data = sorted(data_points, key=lambda d: d.date)
+        n = len(sorted_data)
+
+        t0 = sorted_data[0].date
+        xs: list[float] = []
+        ys: list[float] = []
+        for dp in sorted_data:
+            days = (dp.date - t0).total_seconds() / 86400.0
+            xs.append(days)
+            ys.append(dp.value)
+
+        mean_x = sum(xs) / n
+        mean_y = sum(ys) / n
+
+        ss_xy = sum((xs[i] - mean_x) * (ys[i] - mean_y) for i in range(n))
+        ss_xx = sum((xs[i] - mean_x) ** 2 for i in range(n))
+
+        if ss_xx == 0:
+            return TimeSeriesForecast(
+                predicted_value=mean_y,
+                slope=0.0,
+                intercept=mean_y,
+                r_squared=0.0,
+                confidence_lower=mean_y,
+                confidence_upper=mean_y,
+                data_points_used=n,
+            )
+
+        slope = ss_xy / ss_xx
+        intercept = mean_y - slope * mean_x
+
+        ss_res = sum((ys[i] - (slope * xs[i] + intercept)) ** 2 for i in range(n))
+        ss_tot = sum((ys[i] - mean_y) ** 2 for i in range(n))
+        r_squared = 1.0 - (ss_res / ss_tot) if ss_tot > 0 else 0.0
+
+        last_day = xs[-1]
+        future_day = last_day + (horizon_months * 30)
+        predicted = slope * future_day + intercept
+
+        residuals = [ys[i] - (slope * xs[i] + intercept) for i in range(n)]
+        mse = sum(r ** 2 for r in residuals) / max(n - 2, 1)
+        std_err = math.sqrt(mse)
+        margin = 1.96 * std_err
+        if margin == 0.0:
+            margin = abs(predicted) * 0.05
+
+        data_confidence = min(n / 12, 1.0) * r_squared
+
+        return TimeSeriesForecast(
+            predicted_value=round(predicted, 2),
+            slope=round(slope, 4),
+            intercept=round(intercept, 2),
+            r_squared=round(r_squared, 4),
+            confidence_lower=round(predicted - margin, 2),
+            confidence_upper=round(predicted + margin, 2),
+            data_points_used=n,
+        )
+
+    def combined_forecast(
+        self,
+        inputs: list[CommercialInput],
+        historical_data: list[TimeSeriesDataPoint],
+        horizon_months: int = 3,
+        ts_weight: float = 0.4,
+        pipeline_weight: float = 0.6,
+    ) -> CombinedForecast:
+        """Weighted average of time-series and pipeline-based forecasts."""
+        pipeline_snap = self.predict(inputs, horizon_months)
+        pipeline_value = pipeline_snap.total_expected_revenue
+
+        ts_result = self.time_series_forecast(historical_data, horizon_months)
+        ts_value = ts_result.predicted_value
+
+        combined = (ts_value * ts_weight) + (pipeline_value * pipeline_weight)
+
+        lower = min(
+            ts_result.confidence_lower * ts_weight + pipeline_value * pipeline_weight * 0.8,
+            combined * 0.7,
+        )
+        upper = max(
+            ts_result.confidence_upper * ts_weight + pipeline_value * pipeline_weight * 1.2,
+            combined * 1.3,
+        )
+
+        method_confidence = ts_result.r_squared * ts_weight + pipeline_snap.overall_confidence * pipeline_weight
+
+        return CombinedForecast(
+            time_series_weight=ts_weight,
+            pipeline_weight=pipeline_weight,
+            time_series_value=round(ts_value, 2),
+            pipeline_value=round(pipeline_value, 2),
+            combined_value=round(combined, 2),
+            confidence_lower=round(lower, 2),
+            confidence_upper=round(upper, 2),
+            method_confidence=round(method_confidence, 2),
+        )
+
+    def breakdown(
+        self,
+        snapshot: ForecastSnapshot,
+        dimension: str,
+    ) -> list[ForecastBreakdown]:
+        """Aggregate forecast lines by a dimension (rep_id, region, product)."""
+        groups: dict[str, list[ForecastLine]] = {}
+        for line in snapshot.lines:
+            key = line.metadata.get(dimension, "unknown")
+            if key not in groups:
+                groups[key] = []
+            groups[key].append(line)
+
+        result = []
+        for key, lines in groups.items():
+            most_likely = [l for l in lines if l.scenario == ForecastScenario.MOST_LIKELY]
+            result.append(ForecastBreakdown(
+                dimension=dimension,
+                value=key,
+                expected_revenue=round(sum(l.expected_revenue for l in most_likely), 2),
+                weighted_revenue=round(sum(l.weighted_revenue for l in most_likely), 2),
+                confidence=round(sum(l.confidence for l in most_likely) / len(most_likely), 2) if most_likely else 0.0,
+                line_count=len(most_likely),
+            ))
+        result.sort(key=lambda b: b.expected_revenue, reverse=True)
+        return result

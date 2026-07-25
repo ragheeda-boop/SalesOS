@@ -8,8 +8,17 @@ celery_app = Celery(
     "salesos",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    include=["app.tasks"],
+    include=[
+        "app.tasks",
+        "domains.employee.tasks",
+    ],
 )
+
+try:
+    from app.celery_schedule import BEAT_SCHEDULE
+    _beat_schedule = BEAT_SCHEDULE
+except ImportError:
+    _beat_schedule = {}
 
 celery_app.conf.update(
     task_serializer="json",
@@ -24,4 +33,5 @@ celery_app.conf.update(
     task_acks_late=True,
     worker_prefetch_multiplier=settings.celery_worker_prefetch_multiplier,
     result_expires=settings.celery_result_expires,
+    beat_schedule=_beat_schedule,
 )

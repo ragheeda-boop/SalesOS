@@ -4,11 +4,11 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import DuplicateError, NotFoundError
 from app.modules.identity.models import Tenant, User
+from app.modules.identity.repositories import TenantRepository, UserRepository
 from app.modules.identity.service import IdentityService, hash_password
 from sdk.audit import AuditTrail
 from sdk.events import EventBus
@@ -24,10 +24,14 @@ class InviteService:
     def __init__(
         self,
         db: AsyncSession,
+        tenant_repo: TenantRepository | None = None,
+        user_repo: UserRepository | None = None,
         event_bus: EventBus | None = None,
         logger: StructuredLogger | None = None,
     ):
         self.db = db
+        self._tenant_repo = tenant_repo or TenantRepository(db)
+        self._user_repo = user_repo or UserRepository(db)
         self.event_bus = event_bus
         self.logger = logger
 
@@ -38,8 +42,7 @@ class InviteService:
         invited_by: str,
         tenant_id: str,
     ) -> dict[str, Any]:
-        existing_user = await self.db.execute(select(User).where(User.email == email))
-        if existing_user.scalar_one_or_none():
+        if await self._user_repo.exists_by_email(email):
             raise DuplicateError("User", "email", email)
 
         token = secrets.token_urlsafe(32)
@@ -107,14 +110,13 @@ class InviteService:
             del INVITE_TOKENS[token]
             raise ValueError("Invite token has expired")
 
-        existing = await self.db.execute(select(User).where(User.email == data["email"]))
-        if existing.scalar_one_or_none():
+        if await self._user_repo.exists_by_email(data["email"]):
             raise DuplicateError("User", "email", data["email"])
 
-        tenant_result = await self.db.execute(
-            select(Tenant).where(Tenant.id == data["tenant_id"])
-        )
-        tenant = tenant_result.scalar_one_or_none()
+        try:
+            tenant = await self._tenant_repo.get(uuid.UUID(data["tenant_id"]))
+        except Exception:
+            tenant = None
         if not tenant:
             raise NotFoundError("Tenant", data["tenant_id"])
 

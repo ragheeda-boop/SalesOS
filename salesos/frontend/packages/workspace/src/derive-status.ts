@@ -1,4 +1,4 @@
-import type { WidgetStatus } from './types'
+import type { WidgetStatus } from '@salesos/widget-sdk'
 
 export function deriveStatus(data: unknown, isLoading: boolean, isError: boolean): WidgetStatus {
   if (isLoading && !data) return 'loading'
