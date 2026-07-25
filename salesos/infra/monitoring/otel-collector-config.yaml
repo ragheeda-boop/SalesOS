@@ -1,0 +1,61 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  attributes:
+    actions:
+      - key: environment
+        value: "${ENVIRONMENT}"
+        action: upsert
+      - key: service.version
+        value: "${SERVICE_VERSION}"
+        action: upsert
+
+exporters:
+  debug:
+    verbosity: detailed
+  otlp:
+    endpoint: "${TRACING_BACKEND_ENDPOINT}"
+    tls:
+      insecure: "${TRACING_INSECURE}"
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    namespace: salesos
+    const_labels:
+      environment: "${ENVIRONMENT}"
+  loki:
+    endpoint: "${LOKI_ENDPOINT}"
+    tls:
+      insecure: "${LOKI_INSECURE}"
+    labels:
+      attributes:
+        - service.name
+        - service.version
+        - environment
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes]
+      exporters: [debug, otlp]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes]
+      exporters: [debug, prometheus]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes]
+      exporters: [debug, loki]

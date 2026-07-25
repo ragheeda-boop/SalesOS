@@ -1,0 +1,190 @@
+# =============================================================================
+# SalesOS — LOCAL VIRTUAL STAGING (NOT cloud / VPS staging)
+# =============================================================================
+# Project name (required): salesos-staging-local
+# Purpose: local tabletop stand-in when no staging VPS exists.
+# Honesty: does NOT satisfy GA cloud-staging blocker. Production remains NO-GO.
+#
+# Light profile (default): postgres + redis + migrations + backend + frontend
+# Host ports chosen to avoid primary / 48h soak (:8000 / :3000) and Grafana (:3001):
+#   API  :8001   FE  :3002   Postgres  :5433   Redis  :6380
+#
+# Usage (from salesos/):
+#   .\scripts\staging-virtual-up.ps1
+#   .\scripts\staging-virtual-down.ps1
+#   .\scripts\staging-virtual-deploy-rollback.ps1
+# =============================================================================
+
+name: salesos-staging-local
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "5m"
+    max-file: "2"
+    tag: "{{.Name}}/{{.ID}}"
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-salesos}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.staging.local}
+      POSTGRES_DB: ${POSTGRES_DB:-salesos}
+    ports:
+      - "5433:5432"
+    volumes:
+      - staging_local_pgdata:/var/lib/postgresql/data
+      - ../../infra/docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-salesos}"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+        reservations:
+          memory: 256M
+    logging: *default-logging
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    command: ["redis-server", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru"]
+    volumes:
+      - staging_local_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 96M
+        reservations:
+          memory: 32M
+    logging: *default-logging
+
+  # Optional Alembic (profile: migrate). Fresh upgrade currently fails at 0028
+  # (company_licenses missing) on empty DBs — see PROGRESS-WAVE12-STAGING-VIRTUAL.md.
+  # Default light tabletop uses empty Postgres; /health only needs SELECT 1.
+  # Seed from primary when needed:
+  #   docker exec salesos-postgres-1 pg_dump -U salesos -d salesos --schema-only \
+  #     | docker exec -i salesos-staging-local-postgres-1 psql -U salesos -d salesos
+  migrations:
+    image: ${BACKEND_IMAGE:-salesos-backend:latest}
+    profiles: ["migrate"]
+    restart: "no"
+    entrypoint: ["sh", "-c", "alembic upgrade head"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ../../.env.staging.local
+    environment:
+      SALESOS_ENV: staging-virtual-local
+      SALESOS_DEBUG: "true"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      EVENT_BUS_TYPE: in_memory
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    logging: *default-logging
+
+  backend:
+    image: ${BACKEND_IMAGE:-salesos-backend:latest}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8001:8000"
+    env_file:
+      - ../../.env.staging.local
+    # Mount source like primary compose so /app/.local site-packages resolve
+    # (baked image alone hits strawberry/pydantic ImportError on this host).
+    # Isolate JWKS RSA keys: host backend/_keys is encrypted with primary SECRET_KEY;
+    # virtual uses a different SECRET_KEY — sharing those PEMs breaks login (token sign).
+    volumes:
+      - ../../backend:/app
+      - staging_local_jwks:/app/app/modules/identity/_keys
+    environment:
+      SALESOS_ENV: staging-virtual-local
+      SALESOS_DEBUG: "true"
+      SALESOS_TESTING: ""
+      PYTHONPATH: /app/.local/lib/python3.12/site-packages:/app
+      POSTGRES_HOST: postgres
+      # Direct Postgres (no PgBouncer in light virtual profile)
+      POSTGRES_PORT: "5432"
+      REDIS_URL: redis://redis:6379/0
+      EVENT_BUS_TYPE: in_memory
+      NEXT_PUBLIC_API_URL: http://localhost:8001
+      SALESOS_API_URL: http://localhost:8001
+      ALLOWED_HOSTS: http://localhost:3002,http://127.0.0.1:3002,http://localhost:8001
+      FEATURE_AI_COPILOT: "false"
+      DEMO_MODE: "false"
+      # Safe with staging_local_jwks volume (does not overwrite primary host _keys)
+      SALESOS_JWKS_ALLOW_REGENERATE: "true"
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 20s
+      timeout: 8s
+      start_period: 90s
+      retries: 6
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+        reservations:
+          memory: 256M
+    logging: *default-logging
+
+  frontend:
+    image: ${FRONTEND_IMAGE:-salesos-frontend:local}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3002:3000"
+    env_file:
+      - ../../.env.staging.local
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:8001
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 20s
+      timeout: 5s
+      start_period: 20s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 384M
+        reservations:
+          memory: 128M
+    logging: *default-logging
+
+volumes:
+  staging_local_pgdata:
+  staging_local_redis:
+  staging_local_jwks:
