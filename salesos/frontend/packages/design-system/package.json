@@ -1,0 +1,8 @@
+{
+  "name": "@salesos/design-system",
+  "version": "0.1.0-alpha",
+  "private": true,
+  "description": "SalesOS Design System v3 — alpha scaffold (Design Program). Not production GA.",
+  "main": "src/index.ts",
+  "sideEffects": false
+}

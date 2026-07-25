@@ -1,0 +1,6 @@
+{
+  "name": "@salesos/charts-v3",
+  "version": "0.1.0-alpha",
+  "private": true,
+  "description": "SalesOS v3 charts package scaffold"
+}
