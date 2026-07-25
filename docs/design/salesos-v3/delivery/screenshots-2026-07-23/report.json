@@ -1,0 +1,185 @@
+{
+  "checks": [
+    {
+      "route": "/companies",
+      "screenshot": "C:/Users/raghe/OneDrive - RATL Technology Ltd/Muhide/docs/design/salesos-v3/delivery/screenshots-2026-07-23/companies.png",
+      "status": "PASS",
+      "fails": [],
+      "metrics": {
+        "url": "http://127.0.0.1:3000/companies",
+        "dir": "ltr",
+        "vw": 1440,
+        "vh": 900,
+        "gap": {
+          "asideStartFromViewportEdge": 0,
+          "asideEndToMain": 0,
+          "mainFills": 1184,
+          "asideWidth": 256,
+          "asideLeft": 0,
+          "asideRight": 256,
+          "mainLeft": 256,
+          "mainRight": 1440
+        },
+        "asides": [
+          {
+            "w": 256,
+            "h": 844,
+            "left": 0,
+            "right": 256,
+            "label": null,
+            "display": "flex"
+          }
+        ],
+        "askButtons": [],
+        "title": "SalesOS - Enterprise Company Intelligence Platform",
+        "hasHeading": true,
+        "bodyLen": 565
+      },
+      "askAi": {
+        "status": "n/a",
+        "detail": null
+      }
+    },
+    {
+      "route": "/v3",
+      "screenshot": "C:/Users/raghe/OneDrive - RATL Technology Ltd/Muhide/docs/design/salesos-v3/delivery/screenshots-2026-07-23/v3.png",
+      "status": "PASS",
+      "fails": [],
+      "metrics": {
+        "url": "http://127.0.0.1:3000/v3",
+        "dir": "ltr",
+        "vw": 1440,
+        "vh": 900,
+        "gap": {
+          "asideStartFromViewportEdge": 0,
+          "asideEndToMain": 0,
+          "mainFills": 1216,
+          "asideWidth": 224,
+          "asideLeft": 0,
+          "asideRight": 224,
+          "mainLeft": 224,
+          "mainRight": 1440
+        },
+        "asides": [
+          {
+            "w": 224,
+            "h": 900,
+            "left": 0,
+            "right": 224,
+            "label": "Workspace navigation",
+            "display": "flex"
+          }
+        ],
+        "askButtons": [
+          {
+            "tag": "BUTTON",
+            "text": "Ask AI",
+            "aria": "Open Ask AI popup",
+            "rect": {
+              "x": 1306,
+              "y": 8,
+              "w": 78,
+              "h": 32
+            }
+          },
+          {
+            "tag": "BUTTON",
+            "text": "Ask AI",
+            "aria": null,
+            "rect": {
+              "x": 1327,
+              "y": 72,
+              "w": 81,
+              "h": 31
+            }
+          }
+        ],
+        "title": "SalesOS - Enterprise Company Intelligence Platform",
+        "hasHeading": true,
+        "bodyLen": 730
+      },
+      "askAi": {
+        "status": "PASS",
+        "detail": {
+          "buttonPresent": true,
+          "box": {
+            "x": 1305.84375,
+            "y": 7.5,
+            "width": 78.15625,
+            "height": 32
+          },
+          "dialogVisible": 1,
+          "visibleAsides": 1
+        }
+      }
+    },
+    {
+      "route": "/v3/companies",
+      "screenshot": "C:/Users/raghe/OneDrive - RATL Technology Ltd/Muhide/docs/design/salesos-v3/delivery/screenshots-2026-07-23/v3-companies.png",
+      "status": "PASS",
+      "fails": [],
+      "metrics": {
+        "url": "http://127.0.0.1:3000/v3/companies",
+        "dir": "ltr",
+        "vw": 1440,
+        "vh": 900,
+        "gap": {
+          "asideStartFromViewportEdge": 0,
+          "asideEndToMain": 0,
+          "mainFills": 1216,
+          "asideWidth": 224,
+          "asideLeft": 0,
+          "asideRight": 224,
+          "mainLeft": 224,
+          "mainRight": 1440
+        },
+        "asides": [
+          {
+            "w": 224,
+            "h": 900,
+            "left": 0,
+            "right": 224,
+            "label": "Workspace navigation",
+            "display": "flex"
+          }
+        ],
+        "askButtons": [
+          {
+            "tag": "BUTTON",
+            "text": "Ask AI",
+            "aria": "Open Ask AI popup",
+            "rect": {
+              "x": 1306,
+              "y": 8,
+              "w": 78,
+              "h": 32
+            }
+          }
+        ],
+        "title": "SalesOS - Enterprise Company Intelligence Platform",
+        "hasHeading": true,
+        "bodyLen": 350
+      },
+      "askAi": {
+        "status": "PASS",
+        "detail": {
+          "buttonPresent": true,
+          "box": {
+            "x": 1305.84375,
+            "y": 7.5,
+            "width": 78.15625,
+            "height": 32
+          },
+          "dialogVisible": 1,
+          "visibleAsides": 1
+        }
+      }
+    }
+  ],
+  "login": {
+    "ok": true,
+    "status": 200,
+    "tenant_id": "0d5c6d89-7c77-4567-a266-6c9f4c9e6976"
+  },
+  "method": "api-seed"
+}

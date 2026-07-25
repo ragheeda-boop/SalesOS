@@ -1,0 +1,33 @@
+{
+  "companies_rtl": {
+    "status": "PASS",
+    "fails": [],
+    "metrics": {
+      "dir": "rtl",
+      "lang": "ar",
+      "asideStartFromViewportEdge": 0,
+      "asideEndToMain": 0,
+      "asideLeft": 1184,
+      "asideRight": 1440,
+      "mainLeft": 0,
+      "mainRight": 1184,
+      "mainW": 1184,
+      "asideW": 256,
+      "vw": 1440
+    }
+  },
+  "v3_rtl": {
+    "status": "PASS",
+    "fails": [],
+    "metrics": {
+      "dir": "rtl",
+      "asideStartFromViewportEdge": 0,
+      "asideEndToMain": 0,
+      "asideLeft": 1216,
+      "asideRight": 1440,
+      "mainW": 1216,
+      "asideW": 224,
+      "vw": 1440
+    }
+  }
+}
