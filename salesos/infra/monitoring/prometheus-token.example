@@ -1,0 +1,12 @@
+# REPLACE THIS FILE — do not commit real scrape JWTs.
+#
+# Copy to prometheus-token (gitignored) and put a single-line JWT issued for the
+# Prometheus scraper principal, signed with the same JWT_SECRET_KEY as the API.
+#
+# Generate (example, adjust claims to match your auth schema):
+#   python -c "from jose import jwt; import time; print(jwt.encode({'sub':'prometheus-scraper','tenant_id':'monitoring','type':'access','exp':int(time.time())+86400*365}, 'YOUR_JWT_SECRET_KEY', algorithm='HS256'))"
+#
+# Local root compose (docker-compose.yml) uses prometheus.compose-root.yml and
+# does not mount this file. salesos/docker-compose.yml expects:
+#   ./infra/monitoring/prometheus-token
+PLACEHOLDER_GENERATE_SCRAPE_TOKEN
