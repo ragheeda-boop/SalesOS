@@ -1,0 +1,306 @@
+{
+  "$description": "SalesOS DS v3 — Figma Variables handoff (no Figma API). Mirror of design-system/foundations.md + MUHIDE globals.css + V3AiPopup sizing. Import via Tokens Studio / Variables Import plugin, or recreate manually per figma-library.md / FIGMA_BUILD_CHECKLIST.md.",
+  "meta": {
+    "name": "SalesOS DS v3",
+    "version": "0.1.1",
+    "brand": {
+      "primary": "#F57C1E",
+      "mutedContrastSafe": "#8C8374"
+    },
+    "sources": [
+      "docs/design/salesos-v3/design-system/foundations.md",
+      "docs/design/salesos-v3/ai/ai-experience.md",
+      "salesos/frontend/src/app/globals.css",
+      "salesos/frontend/src/components/v3/V3AiPopup.tsx"
+    ],
+    "collections": [
+      "Color/Light",
+      "Color/Dark",
+      "Space",
+      "Radius",
+      "Typography"
+    ],
+    "completeness": {
+      "colorLightDarkParity": true,
+      "spaceScale": "space/1…space/16 (4px grid) + shell + Ask AI popup",
+      "radiusScale": "sm/md/lg/xl/2xl/pill",
+      "textStyles": ["Display", "Title", "Subtitle", "Body", "Meta"],
+      "effectStyles": ["elevation/sm", "elevation/md", "elevation/lg", "elevation/xl", "elevation/focus-ring"],
+      "aiLayout": "modal popup only — use space/ai-popup-* and overlay/scrim; do not reserve page chrome for AI"
+    },
+    "notes": [
+      "Color/Light and Color/Dark are separate collections (not dual-mode) so designers can bind Light→Dark aliases after publish.",
+      "Muted text light uses #8C8374 (≥4.5:1 on white). Dark muted uses #A59E90 for AA on ink canvas (prefer over weaker host CSS if they diverge).",
+      "Brand orange #F57C1E is primary CTA / border-active only — not decorative fill sprawl.",
+      "Ask AI is a modal (V3AiPopup): max width space/ai-popup, max height space/ai-popup-max-h, scrim overlay/scrim. Never a docked rail.",
+      "Opacity fields (surface/*, overlay/scrim) = COLOR with alpha in Figma.",
+      "Do not claim Production GO from this file alone."
+    ]
+  },
+  "collections": {
+    "Color/Light": {
+      "modes": ["Default"],
+      "variables": {
+        "brand/orange": { "type": "COLOR", "value": "#F57C1E" },
+        "brand/orange-50": { "type": "COLOR", "value": "#FFF3E6" },
+        "brand/orange-100": { "type": "COLOR", "value": "#FFE2BF" },
+        "brand/orange-600": { "type": "COLOR", "value": "#D4660F" },
+        "brand/orange-700": { "type": "COLOR", "value": "#B35009" },
+        "brand/ink": { "type": "COLOR", "value": "#151214" },
+        "brand/espresso": { "type": "COLOR", "value": "#403D38" },
+        "brand/sand": { "type": "COLOR", "value": "#CCC6BA" },
+        "brand/paper": { "type": "COLOR", "value": "#FAFAFA" },
+
+        "neutral/50": { "type": "COLOR", "value": "#F7F6F4" },
+        "neutral/100": { "type": "COLOR", "value": "#EDEBE6" },
+        "neutral/200": { "type": "COLOR", "value": "#D9D5CD" },
+        "neutral/300": { "type": "COLOR", "value": "#BFB9AD" },
+        "neutral/400": { "type": "COLOR", "value": "#A59E90" },
+        "neutral/500": { "type": "COLOR", "value": "#8B8475" },
+        "neutral/600": { "type": "COLOR", "value": "#706A5D" },
+        "neutral/700": { "type": "COLOR", "value": "#565147" },
+        "neutral/800": { "type": "COLOR", "value": "#3D3932" },
+        "neutral/900": { "type": "COLOR", "value": "#26231E" },
+
+        "text/primary": { "type": "COLOR", "value": "#26231E" },
+        "text/secondary": { "type": "COLOR", "value": "#706A5D" },
+        "text/muted": { "type": "COLOR", "value": "#8C8374", "$comment": "contrast-safe muted ≥4.5:1" },
+        "text/disabled": { "type": "COLOR", "value": "#BFB9AD" },
+        "text/inverse": { "type": "COLOR", "value": "#FFFFFF" },
+        "text/accent": { "type": "COLOR", "value": "#D4660F" },
+
+        "bg/primary": { "type": "COLOR", "value": "#FFFFFF" },
+        "bg/secondary": { "type": "COLOR", "value": "#F7F6F4" },
+        "bg/tertiary": { "type": "COLOR", "value": "#EDEBE6" },
+        "bg/inverse": { "type": "COLOR", "value": "#151214" },
+
+        "surface/default": { "type": "COLOR", "value": "#FFFFFF" },
+        "surface/raised": { "type": "COLOR", "value": "#FFFFFF" },
+        "surface/sunken": { "type": "COLOR", "value": "#F7F6F4" },
+        "surface/overlay": { "type": "COLOR", "value": "#FFFFFF", "opacity": 0.96 },
+        "surface/glass": { "type": "COLOR", "value": "#FFFFFF", "opacity": 0.8 },
+
+        "overlay/scrim": { "type": "COLOR", "value": "#000000", "opacity": 0.5, "$comment": "Ask AI / Dialog backdrop" },
+
+        "border/default": { "type": "COLOR", "value": "#D9D5CD" },
+        "border/hover": { "type": "COLOR", "value": "#BFB9AD" },
+        "border/active": { "type": "COLOR", "value": "#F57C1E" },
+        "border/disabled": { "type": "COLOR", "value": "#EDEBE6" },
+        "border/subtle": { "type": "COLOR", "value": "#D9D5CD" },
+        "border/muted": { "type": "COLOR", "value": "#EDEBE6" },
+        "border/strong": { "type": "COLOR", "value": "#706A5D" },
+
+        "status/success": { "type": "COLOR", "value": "#15803D" },
+        "status/success-bg": { "type": "COLOR", "value": "#F0FDF4" },
+        "status/warning": { "type": "COLOR", "value": "#B45309" },
+        "status/warning-bg": { "type": "COLOR", "value": "#FFFBEB" },
+        "status/danger": { "type": "COLOR", "value": "#B91C1C" },
+        "status/danger-bg": { "type": "COLOR", "value": "#FEF2F2" },
+        "status/info": { "type": "COLOR", "value": "#1D4ED8" },
+        "status/info-bg": { "type": "COLOR", "value": "#EFF6FF" },
+
+        "ai/surface": { "type": "COLOR", "value": "#FFF8F1" },
+        "ai/border": { "type": "COLOR", "value": "#FFCE99" },
+        "ai/text": { "type": "COLOR", "value": "#8F3C06" },
+        "ai/badge": { "type": "COLOR", "value": "#F57C1E" },
+
+        "focus/ring": { "type": "COLOR", "value": "#2196F3" },
+
+        "chart/1": { "type": "COLOR", "value": "#F57C1E" },
+        "chart/2": { "type": "COLOR", "value": "#22C55E" },
+        "chart/3": { "type": "COLOR", "value": "#3B82F6" },
+        "chart/4": { "type": "COLOR", "value": "#8B5CF6" },
+        "chart/5": { "type": "COLOR", "value": "#F59E0B" }
+      }
+    },
+    "Color/Dark": {
+      "modes": ["Default"],
+      "variables": {
+        "brand/orange": { "type": "COLOR", "value": "#F57C1E" },
+        "brand/orange-50": { "type": "COLOR", "value": "#3D2410" },
+        "brand/orange-100": { "type": "COLOR", "value": "#5C3212" },
+        "brand/orange-600": { "type": "COLOR", "value": "#FFA04A" },
+        "brand/orange-700": { "type": "COLOR", "value": "#FFB870" },
+        "brand/ink": { "type": "COLOR", "value": "#151214" },
+        "brand/espresso": { "type": "COLOR", "value": "#403D38" },
+        "brand/sand": { "type": "COLOR", "value": "#CCC6BA" },
+        "brand/paper": { "type": "COLOR", "value": "#FAFAFA" },
+
+        "neutral/50": { "type": "COLOR", "value": "#26231E" },
+        "neutral/100": { "type": "COLOR", "value": "#3D3932" },
+        "neutral/200": { "type": "COLOR", "value": "#565147" },
+        "neutral/300": { "type": "COLOR", "value": "#706A5D" },
+        "neutral/400": { "type": "COLOR", "value": "#8B8475" },
+        "neutral/500": { "type": "COLOR", "value": "#A59E90" },
+        "neutral/600": { "type": "COLOR", "value": "#BFB9AD" },
+        "neutral/700": { "type": "COLOR", "value": "#D9D5CD" },
+        "neutral/800": { "type": "COLOR", "value": "#EDEBE6" },
+        "neutral/900": { "type": "COLOR", "value": "#F7F6F4" },
+
+        "text/primary": { "type": "COLOR", "value": "#EDEBE6" },
+        "text/secondary": { "type": "COLOR", "value": "#A59E90" },
+        "text/muted": { "type": "COLOR", "value": "#A59E90", "$comment": "AA on #151214; light muted source #8C8374" },
+        "text/disabled": { "type": "COLOR", "value": "#565147" },
+        "text/inverse": { "type": "COLOR", "value": "#151214" },
+        "text/accent": { "type": "COLOR", "value": "#FFA04A" },
+
+        "bg/primary": { "type": "COLOR", "value": "#151214" },
+        "bg/secondary": { "type": "COLOR", "value": "#26231E" },
+        "bg/tertiary": { "type": "COLOR", "value": "#3D3932" },
+        "bg/inverse": { "type": "COLOR", "value": "#FAFAFA" },
+
+        "surface/default": { "type": "COLOR", "value": "#151214" },
+        "surface/raised": { "type": "COLOR", "value": "#26231E" },
+        "surface/sunken": { "type": "COLOR", "value": "#0F0D0E" },
+        "surface/overlay": { "type": "COLOR", "value": "#26231E", "opacity": 0.96 },
+        "surface/glass": { "type": "COLOR", "value": "#151214", "opacity": 0.8 },
+
+        "overlay/scrim": { "type": "COLOR", "value": "#000000", "opacity": 0.6, "$comment": "Ask AI / Dialog backdrop" },
+
+        "border/default": { "type": "COLOR", "value": "#3D3932" },
+        "border/hover": { "type": "COLOR", "value": "#565147" },
+        "border/active": { "type": "COLOR", "value": "#F57C1E" },
+        "border/disabled": { "type": "COLOR", "value": "#26231E" },
+        "border/subtle": { "type": "COLOR", "value": "#3D3932" },
+        "border/muted": { "type": "COLOR", "value": "#26231E" },
+        "border/strong": { "type": "COLOR", "value": "#8B8475" },
+
+        "status/success": { "type": "COLOR", "value": "#4ADE80" },
+        "status/success-bg": { "type": "COLOR", "value": "#14532D" },
+        "status/warning": { "type": "COLOR", "value": "#FBBF24" },
+        "status/warning-bg": { "type": "COLOR", "value": "#78350F" },
+        "status/danger": { "type": "COLOR", "value": "#F87171" },
+        "status/danger-bg": { "type": "COLOR", "value": "#7F1D1D" },
+        "status/info": { "type": "COLOR", "value": "#60A5FA" },
+        "status/info-bg": { "type": "COLOR", "value": "#1E3A8A" },
+
+        "ai/surface": { "type": "COLOR", "value": "#2A1F16" },
+        "ai/border": { "type": "COLOR", "value": "#8F3C06" },
+        "ai/text": { "type": "COLOR", "value": "#FFCE99" },
+        "ai/badge": { "type": "COLOR", "value": "#F57C1E" },
+
+        "focus/ring": { "type": "COLOR", "value": "#64B5F6" },
+
+        "chart/1": { "type": "COLOR", "value": "#F57C1E" },
+        "chart/2": { "type": "COLOR", "value": "#22C55E" },
+        "chart/3": { "type": "COLOR", "value": "#3B82F6" },
+        "chart/4": { "type": "COLOR", "value": "#8B5CF6" },
+        "chart/5": { "type": "COLOR", "value": "#F59E0B" }
+      }
+    },
+    "Space": {
+      "modes": ["Default"],
+      "variables": {
+        "space/1": { "type": "FLOAT", "value": 4, "unit": "px" },
+        "space/2": { "type": "FLOAT", "value": 8, "unit": "px" },
+        "space/3": { "type": "FLOAT", "value": 12, "unit": "px" },
+        "space/4": { "type": "FLOAT", "value": 16, "unit": "px" },
+        "space/5": { "type": "FLOAT", "value": 20, "unit": "px" },
+        "space/6": { "type": "FLOAT", "value": 24, "unit": "px" },
+        "space/7": { "type": "FLOAT", "value": 28, "unit": "px" },
+        "space/8": { "type": "FLOAT", "value": 32, "unit": "px" },
+        "space/9": { "type": "FLOAT", "value": 36, "unit": "px" },
+        "space/10": { "type": "FLOAT", "value": 40, "unit": "px" },
+        "space/11": { "type": "FLOAT", "value": 44, "unit": "px" },
+        "space/12": { "type": "FLOAT", "value": 48, "unit": "px" },
+        "space/13": { "type": "FLOAT", "value": 52, "unit": "px" },
+        "space/14": { "type": "FLOAT", "value": 56, "unit": "px" },
+        "space/15": { "type": "FLOAT", "value": 60, "unit": "px" },
+        "space/16": { "type": "FLOAT", "value": 64, "unit": "px" },
+        "space/sidebar": { "type": "FLOAT", "value": 256, "unit": "px", "$comment": "shell sidebar width" },
+        "space/ai-popup": { "type": "FLOAT", "value": 512, "unit": "px", "$comment": "Ask AI modal max-width (max-w-lg); not a layout rail" },
+        "space/ai-popup-max-h": { "type": "FLOAT", "value": 640, "unit": "px", "$comment": "Ask AI modal max-height; also cap at ~85vh in prototypes" }
+      }
+    },
+    "Radius": {
+      "modes": ["Default"],
+      "variables": {
+        "radius/sm": { "type": "FLOAT", "value": 2, "unit": "px" },
+        "radius/md": { "type": "FLOAT", "value": 6, "unit": "px" },
+        "radius/lg": { "type": "FLOAT", "value": 8, "unit": "px" },
+        "radius/xl": { "type": "FLOAT", "value": 12, "unit": "px" },
+        "radius/2xl": { "type": "FLOAT", "value": 16, "unit": "px" },
+        "radius/pill": { "type": "FLOAT", "value": 9999, "unit": "px", "$comment": "foundations pill; maps to --radius-full" }
+      }
+    },
+    "Typography": {
+      "modes": ["Default"],
+      "variables": {
+        "font/family/display": { "type": "STRING", "value": "Viga" },
+        "font/family/ui": { "type": "STRING", "value": "IBM Plex Sans" },
+        "font/family/ui-arabic": { "type": "STRING", "value": "IBM Plex Sans Arabic" },
+        "font/family/mono": { "type": "STRING", "value": "IBM Plex Mono" },
+
+        "font/size/display": { "type": "FLOAT", "value": 36, "unit": "px", "$comment": "range 32–40; default mid" },
+        "font/size/display-min": { "type": "FLOAT", "value": 32, "unit": "px" },
+        "font/size/display-max": { "type": "FLOAT", "value": 40, "unit": "px" },
+        "font/size/title": { "type": "FLOAT", "value": 22, "unit": "px", "$comment": "range 20–24" },
+        "font/size/title-min": { "type": "FLOAT", "value": 20, "unit": "px" },
+        "font/size/title-max": { "type": "FLOAT", "value": 24, "unit": "px" },
+        "font/size/subtitle": { "type": "FLOAT", "value": 17, "unit": "px", "$comment": "range 16–18" },
+        "font/size/subtitle-min": { "type": "FLOAT", "value": 16, "unit": "px" },
+        "font/size/subtitle-max": { "type": "FLOAT", "value": 18, "unit": "px" },
+        "font/size/body": { "type": "FLOAT", "value": 14, "unit": "px" },
+        "font/size/meta": { "type": "FLOAT", "value": 12, "unit": "px" },
+
+        "font/weight/regular": { "type": "FLOAT", "value": 400 },
+        "font/weight/medium": { "type": "FLOAT", "value": 500 },
+        "font/weight/semibold": { "type": "FLOAT", "value": 600 },
+        "font/weight/bold": { "type": "FLOAT", "value": 700 },
+
+        "font/line-height/display": { "type": "FLOAT", "value": 1.2 },
+        "font/line-height/title": { "type": "FLOAT", "value": 1.3 },
+        "font/line-height/subtitle": { "type": "FLOAT", "value": 1.4 },
+        "font/line-height/body": { "type": "FLOAT", "value": 1.5 },
+        "font/line-height/meta": { "type": "FLOAT", "value": 1.4 }
+      }
+    }
+  },
+  "textStyles": {
+    "$comment": "Create these as Figma Text Styles bound to Typography variables",
+    "Display": {
+      "fontFamily": "Viga",
+      "fontSize": "font/size/display",
+      "fontWeight": 400,
+      "lineHeight": "font/line-height/display",
+      "use": "Home titles"
+    },
+    "Title": {
+      "fontFamily": "IBM Plex Sans",
+      "fontSize": "font/size/title",
+      "fontWeight": 600,
+      "lineHeight": "font/line-height/title",
+      "use": "Page h1"
+    },
+    "Subtitle": {
+      "fontFamily": "IBM Plex Sans",
+      "fontSize": "font/size/subtitle",
+      "fontWeight": 500,
+      "lineHeight": "font/line-height/subtitle",
+      "use": "Section headings"
+    },
+    "Body": {
+      "fontFamily": "IBM Plex Sans",
+      "fontSize": "font/size/body",
+      "fontWeight": 400,
+      "lineHeight": "font/line-height/body",
+      "use": "Default UI"
+    },
+    "Meta": {
+      "fontFamily": "IBM Plex Sans",
+      "fontSize": "font/size/meta",
+      "fontWeight": 400,
+      "lineHeight": "font/line-height/meta",
+      "use": "Tables, hints, captions"
+    }
+  },
+  "effectStyles": {
+    "$comment": "Foundations elevations — create as Figma Effect Styles (not Variables)",
+    "elevation/sm": "0 1px 2px rgba(21,18,20,0.04)",
+    "elevation/md": "0 1px 3px rgba(21,18,20,0.08), 0 1px 2px rgba(21,18,20,0.04)",
+    "elevation/lg": "0 4px 12px rgba(21,18,20,0.10)",
+    "elevation/xl": "0 8px 24px rgba(21,18,20,0.12)",
+    "elevation/modal": "0 12px 40px rgba(0,0,0,0.18)",
+    "elevation/focus-ring": "0 0 0 2px var(focus/ring) offset 2px"
+  }
+}
