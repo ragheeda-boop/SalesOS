@@ -505,6 +505,8 @@ class EntityResolutionService:
                 conditions.append(Company.name_ar.ilike(f"%{norm_name[:3]}%"))
             if head_word and len(head_word) >= 3:
                 conditions.append(Company.name_ar.ilike(f"%{head_word}%"))
+                if head_word[0] == 'ا':
+                    conditions.append(Company.name_ar.ilike(f"%{head_word[1:]}%"))
             conditions.append(Company.name_en.ilike(f"%{name}%"))
             stmt = stmt.where(or_(*conditions))
         else:

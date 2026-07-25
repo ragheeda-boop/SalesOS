@@ -8,9 +8,6 @@ from .models import EmployeeSignal, EmployeeScore
 
 
 class EmployeeSignalRepository(ABC):
-    @property
-    def db(self):
-        return None
 
     @abstractmethod
     async def save(self, signal: EmployeeSignal) -> EmployeeSignal:
