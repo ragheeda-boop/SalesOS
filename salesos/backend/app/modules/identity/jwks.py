@@ -104,17 +104,25 @@ def _load_or_generate_rsa() -> tuple[rsa.RSAPrivateKey, rsa.RSAPublicKey]:
 
 
 def _save_private_key(path: str, private_key: rsa.RSAPrivateKey) -> None:
-    with open(path, "wb") as f:
-        f.write(
-            private_key.private_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PrivateFormat.PKCS8,
-                encryption_algorithm=serialization.BestAvailableEncryption(
-                    _encryption_passphrase()
-                ),
+    try:
+        with open(path, "wb") as f:
+            f.write(
+                private_key.private_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PrivateFormat.PKCS8,
+                    encryption_algorithm=serialization.BestAvailableEncryption(
+                        _encryption_passphrase()
+                    ),
+                )
             )
+        os.chmod(path, 0o600)
+    except PermissionError:
+        logger.warning(
+            "Cannot persist JWKS private key to %s (permission denied). "
+            "Keys will be regenerated on restart. Fix: ensure /data/jwks is "
+            "owned by the salesos user.",
+            path,
         )
-    os.chmod(path, 0o600)
 
 
 _private_key: rsa.RSAPrivateKey | None = None
