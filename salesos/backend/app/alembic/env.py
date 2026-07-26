@@ -24,7 +24,7 @@ if _alembic_cfg is None:
     _alembic_cfg = AlembicConfig(os.path.join(os.path.dirname(__file__), "../../alembic.ini"))
 
 config = _alembic_cfg
-config.set_main_option("sqlalchemy.url", settings.database_url)
+config.set_main_option("sqlalchemy.url", settings.resolved_database_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
@@ -52,7 +52,7 @@ def do_run_migrations(connection: Connection) -> None:
 
 async def run_async_migrations() -> None:
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = settings.database_url
+    configuration["sqlalchemy.url"] = settings.resolved_database_url
     connectable = async_engine_from_config(
         configuration,
         prefix="sqlalchemy.",

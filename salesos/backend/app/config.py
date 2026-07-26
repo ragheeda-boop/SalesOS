@@ -35,19 +35,30 @@ class Settings(BaseSettings):
         return v
     allowed_hosts: str = "http://localhost:3000,http://127.0.0.1:3000"
 
+    # Support DATABASE_URL (Railway, Render, etc.) or individual POSTGRES_* vars
+    database_url: str = ""
+
     postgres_user: str = "salesos"
-    postgres_password: str  # Must be set via POSTGRES_PASSWORD
+    postgres_password: str = ""
     postgres_db: str = "salesos"
     postgres_host: str = "postgres"
     postgres_port: int = 6432
 
     @property
-    def database_url(self) -> str:
+    def resolved_database_url(self) -> str:
+        if self.database_url:
+            # DATABASE_URL takes precedence (12-factor / Railway / Render)
+            url = self.database_url
+            if url.startswith("postgresql://"):
+                url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            elif url.startswith("postgres://"):
+                url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+            return url
         return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
 
     neo4j_uri: str = "bolt://neo4j:7687"
     neo4j_user: str = "neo4j"
-    neo4j_password: str  # Must be set via NEO4J_PASSWORD
+    neo4j_password: str = ""
 
     event_bus_type: str = "in_memory"
     kafka_bootstrap_servers: str = "kafka:9092"

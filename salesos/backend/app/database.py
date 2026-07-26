@@ -6,7 +6,7 @@ from app.common.models import Base
 from app.config import settings
 
 engine = create_async_engine(
-    settings.database_url,
+    settings.resolved_database_url,
     echo=settings.debug,
     pool_size=20,
     max_overflow=10,
@@ -78,7 +78,7 @@ async def _run_migrations_if_needed() -> None:
         _cfg = AlembicConfig(
             _os.path.join(_os.path.dirname(__file__), "..", "alembic.ini")
         )
-        _cfg.set_main_option("sqlalchemy.url", settings.database_url)
+        _cfg.set_main_option("sqlalchemy.url", settings.resolved_database_url)
         _script = ScriptDirectory.from_config(_cfg)
         _head = _script.get_current_head()
         async with engine.connect() as conn:
