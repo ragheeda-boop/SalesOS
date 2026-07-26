@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml .
+COPY alembic.ini .
 COPY app/ app/
 COPY domains/ domains/
 COPY intelligence/ intelligence/
@@ -37,7 +38,7 @@ COPY --from=builder /app/runtime ./runtime
 COPY --from=builder /app/sdk ./sdk
 COPY --from=builder /app/modules ./modules
 COPY --from=builder /app/design_tokens ./design_tokens
-COPY alembic.ini .
+COPY --from=builder /app/alembic.ini .
 
 RUN mkdir -p /data/jwks && chown -R salesos:salesos /app /data/jwks
 
