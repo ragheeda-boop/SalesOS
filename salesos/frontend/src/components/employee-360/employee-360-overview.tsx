@@ -14,10 +14,10 @@ import {
 export { OverviewSkeleton }
 
 function ProfileCard({ data, t }: {
-  data: { profile: Record<string, unknown> }
+  data: { profile: any }
   t: (k: string, vars?: Record<string, string | number>) => string
 }) {
-  const profile = data.profile as Record<string, unknown>
+  const profile = data.profile as any
   const initials = String(profile.full_name || "").split("").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
 
   return (
@@ -38,20 +38,20 @@ function ProfileCard({ data, t }: {
             </h1>
             <p className="text-sm text-[var(--text-muted)]">
               {profile.role as string}
-              {profile.email && <span className="ms-2">· {profile.email as string}</span>}
+              {(profile.email as string) && <span className="ms-2">· {profile.email as string}</span>}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant={profile.is_active ? "success" : "default"}>
               {profile.is_active ? t("status.active") : t("status.inactive")}
             </Badge>
-            {profile.phone && (
-              <a href={`tel:${profile.phone}`} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border-default)] px-2 py-1 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]">
+            {(profile.phone as string) && (
+              <a href={`tel:${profile.phone as string}`} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border-default)] px-2 py-1 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]">
                 <Phone className="h-3 w-3" /> {t("employee.call")}
               </a>
             )}
-            {profile.email && (
-              <a href={`mailto:${profile.email}`} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border-default)] px-2 py-1 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]">
+            {(profile.email as string) && (
+              <a href={`mailto:${profile.email as string}`} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border-default)] px-2 py-1 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]">
                 <Mail className="h-3 w-3" /> {t("employee.email_short")}
               </a>
             )}
