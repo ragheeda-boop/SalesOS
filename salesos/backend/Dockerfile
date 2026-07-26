@@ -39,7 +39,7 @@ COPY --from=builder /app/modules ./modules
 COPY --from=builder /app/design_tokens ./design_tokens
 COPY alembic.ini .
 
-RUN chown -R salesos:salesos /app
+RUN mkdir -p /data/jwks && chown -R salesos:salesos /app /data/jwks
 
 USER salesos
 
