@@ -48,7 +48,7 @@ export function Employee360Page({ employeeId }: Employee360PageProps) {
     setVisitedTabs(prev => new Set(prev).add(tabId))
   }
 
-  const baseData = useMemo(() => data as { profile: Record<string, unknown> } & Record<string, unknown>, [data])
+  const baseData = useMemo(() => data as any, [data])
 
   if (isLoading) {
     return (
