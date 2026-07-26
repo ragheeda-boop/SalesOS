@@ -198,6 +198,21 @@ salesos/backend/
 
 ## 3. Frontend Architecture
 
+### 3.0 V3 Interface (Active — as of 2026-07-26)
+
+The V3 frontend (`/v3/*` routes) is the **active production interface**. Legacy routes (`/(dashboard)/*`, `/companies/*`) remain for backward compatibility but are not the primary UI.
+
+**V3 Company 360 Intelligence Tab** (wired 2026-07-26, commit `ec99019`):
+- `IntelligenceTab` component calls `useCompanyIntelligence(companyId)` once
+- Renders 10 widget Views directly: Company DNA, AI Recommendation, Decision Makers, Relationship Graph, Buying Journey, Golden Record, Signals, Smart Timeline, Government Intelligence, Document Intelligence
+- Loading/Error/Empty states handled at tab level
+- No backend changes required — uses existing `GET /api/v1/companies/{id}/intelligence`
+
+**Data Flow:**
+```
+IntelligenceTab → useCompanyIntelligence hook → getCompanyIntelligence() → GET /api/v1/companies/{id}/intelligence → build_intelligence_dto()
+```
+
 ### 3.1 Layer Breakdown
 
 ```
@@ -206,6 +221,12 @@ salesos/frontend/
 │   ├── app/                           # Next.js 14 App Router
 │   │   ├── (auth)/                    # login, register
 │   │   ├── (dashboard)/               # 28 authenticated route segments
+│   │   ├── v3/                        # V3 INTERFACE (ACTIVE)
+│   │   │   ├── companies/             # Company 360 + Intelligence tab
+│   │   │   ├── contacts/              # Contacts CRUD
+│   │   │   ├── people/                # Employee directory
+│   │   │   ├── analytics/             # Executive analytics
+│   │   │   └── activities/            # Global activity feed
 │   │   ├── globals.css                # Global CSS with MUHIDE tokens
 │   │   ├── layout.tsx                 # Root layout (RTL-first, Arabic detection)
 │   │   ├── page.tsx                   # Landing page

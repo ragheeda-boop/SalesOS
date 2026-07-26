@@ -1,5 +1,7 @@
 import csv
+import hashlib
 import io
+import time
 import uuid
 from datetime import date, datetime
 
@@ -12,7 +14,7 @@ from sdk.permissions import PermissionAction
 from domains.search.contracts.models import SearchQuery, SearchSort
 from domains.search.engine.planner import SearchPlanner
 from domains.search.ranking.pipeline import RankingPipeline
-from sdk.telemetry import record_metric
+from sdk.telemetry import record_metric, trace_span
 
 from .schemas import (
     BranchCreate,
@@ -411,8 +413,53 @@ async def company_intelligence(
     page_size: int = Query(50, ge=1, le=100),
 ):
     from .intelligence_computer import build_intelligence_dto
-    resp = await company_360(company_id, request, tenant_id, service, db, page, page_size)
-    return build_intelligence_dto(resp)
+
+    start = time.monotonic()
+    tenant_hash = hashlib.sha256(tenant_id.encode()).hexdigest()[:12]
+    status_code = 200
+    widget_count = 0
+    response_size = 0
+
+    try:
+        async with trace_span("company_intelligence", {
+            "company_id": company_id,
+            "tenant_hash": tenant_hash,
+        }):
+            resp = await company_360(company_id, request, tenant_id, service, db, page, page_size)
+            dto = build_intelligence_dto(resp)
+            duration_ms = (time.monotonic() - start) * 1000
+
+            dto_dict = dto.model_dump() if hasattr(dto, 'model_dump') else dto
+            if isinstance(dto_dict, dict):
+                widget_count = sum(1 for k, v in dto_dict.items()
+                                   if k not in ('companyId', 'generatedAt', 'firmographic')
+                                   and v is not None and v != [] and v != {})
+                response_size = len(str(dto_dict))
+
+            record_metric("company_intelligence_request_total", 1, {
+                "tenant_hash": tenant_hash,
+                "status": "success",
+            })
+            record_metric("company_intelligence_duration_ms", duration_ms, {
+                "tenant_hash": tenant_hash,
+            })
+            record_metric("company_intelligence_widget_count", widget_count, {
+                "tenant_hash": tenant_hash,
+            })
+
+            return dto
+
+    except Exception:
+        status_code = 500
+        duration_ms = (time.monotonic() - start) * 1000
+        record_metric("company_intelligence_request_total", 1, {
+            "tenant_hash": tenant_hash,
+            "status": "error",
+        })
+        record_metric("company_intelligence_duration_ms", duration_ms, {
+            "tenant_hash": tenant_hash,
+        })
+        raise
 
 
 @router.get("/cursors", response_model=CursorResponse,

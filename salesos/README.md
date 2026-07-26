@@ -161,6 +161,45 @@ Full API documentation: [`docs/wave-2/11-API_REFERENCE.md`](docs/wave-2/11-API_R
 
 ---
 
+## V3 Frontend (Active Interface)
+
+SalesOS V3 (`/v3/*`) is the active production frontend interface, replacing legacy routes.
+
+### V3 Routes
+
+| Route | Purpose |
+|-------|---------|
+| `/v3/companies` | Companies list with search |
+| `/v3/companies/[id]` | Company 360 — 6 tabs: Overview, Contacts, Timeline, Opportunities, Tasks, **Intelligence** |
+| `/v3/contacts` | Contacts list |
+| `/v3/people` | Employee directory |
+| `/v3/analytics` | Executive analytics |
+| `/v3/activities` | Global activity feed |
+
+### Intelligence Tab Data Flow
+
+```
+UI (IntelligenceTab)
+    ↓
+useCompanyIntelligence(companyId)
+    ↓
+getCompanyIntelligence() — lib/api/company.ts
+    ↓
+GET /api/v1/companies/{id}/intelligence
+    ↓
+intelligence_computer.build_intelligence_dto()
+    ↓
+10 Widget Views: DNA, AI Recommendation, Decision Makers,
+Relationship Graph, Buying Journey, Golden Record, Signals,
+Smart Timeline, Government Intelligence, Document Intelligence
+```
+
+### Performance Baseline
+
+See [`docs/performance/company360-baseline.md`](docs/performance/company360-baseline.md) for measured API latencies.
+
+---
+
 ## Project Structure
 
 ```
@@ -184,6 +223,9 @@ salesos/
 ├── frontend/
 │   └── src/
 │       ├── app/            # Next.js pages
+│       │   ├── (auth)/     # login, register
+│       │   ├── (dashboard)/# Legacy dashboard routes
+│       │   └── v3/         # V3 ACTIVE interface
 │       ├── components/     # UI components
 │       └── lib/            # Utilities, API client
 ├── infra/
@@ -228,6 +270,7 @@ Full architecture, implementation blueprint, and operations manuals are in `outp
 | `SALESOS_IMPLEMENTATION_BLUEPRINT.md` | Implementation specs, 15 CTO layers, ERD, API, sprint plan |
 | `SALESOS_ENGINEERING_OPERATIONS_MANUAL.md` | ADRs, engineering standards, PRDs, Sprint 1 checklist |
 | `SALESOS_PRODUCT_DELIVERY_PLAYBOOK.md` | Roadmap, pricing, DevOps, SRE, onboarding, metrics |
+| `docs/performance/company360-baseline.md` | Company 360 V3 performance baseline (API latencies) |
 | `docs/wave-2/10-WAVE2_RELEASE_NOTES.md` | Wave 2 detailed release notes |
 | `docs/wave-2/11-API_REFERENCE.md` | Wave 2 full API documentation |
 | `CHANGELOG.md` | Version history and release notes |
