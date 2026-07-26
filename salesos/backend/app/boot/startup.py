@@ -544,8 +544,8 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     try:
         await _phase0_bootstrap(app, logger, t_start)
     except Exception:
-        logger.exception("Phase 0 bootstrap failed — cannot start")
-        raise
+        logger.exception("Phase 0 bootstrap failed — continuing with degraded mode")
+        # Do NOT re-raise: app must still serve /health and basic endpoints
 
     # ── Phase 1: Independent services (parallel) ─────────────────────────
     logger.info("Phase 1: parallel independent services")

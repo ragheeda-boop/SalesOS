@@ -58,13 +58,30 @@ async def get_db() -> AsyncSession:
 
 async def init_db():
     """Initialize database: ensure extensions, schemas, and Alembic migrations are up to date."""
+    from sqlalchemy import text as sa_text
+    _extensions = [
+        ("pg_trgm", "pg_trgm"),
+        ("uuid-ossp", "uuid-ossp"),
+        ("vector", "vector"),
+    ]
     async with engine.begin() as conn:
-        from sqlalchemy import text as sa_text
-        await conn.execute(sa_text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
-        await conn.execute(sa_text('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"'))
-        await conn.execute(sa_text('CREATE EXTENSION IF NOT EXISTS "vector"'))
+        for ext_name, ext_name_dq in _extensions:
+            try:
+                await conn.execute(sa_text(f'CREATE EXTENSION IF NOT EXISTS "{ext_name_dq}"'))
+            except Exception as exc:
+                import logging
+                logging.getLogger("salesos.db").warning(
+                    "Could not create extension %s (%s) — skipping", ext_name, exc
+                )
         await conn.execute(sa_text("CREATE SCHEMA IF NOT EXISTS audit"))
-    await _run_migrations_if_needed()
+    try:
+        await _run_migrations_if_needed()
+    except Exception as exc:
+        import logging
+        logging.getLogger("salesos.db").error(
+            "Alembic migrations failed (%s) — app will start with degraded schema", exc
+        )
+
 
 async def _run_migrations_if_needed() -> None:
     """Skip Alembic entirely when database is already at head revision."""
@@ -100,7 +117,6 @@ async def _run_migrations_if_needed() -> None:
     log.info("Running Alembic migrations to head…")
     await run_async_migrations()
     log.info("Alembic migrations complete")
-
 
 async def close_db():
     await engine.dispose()
