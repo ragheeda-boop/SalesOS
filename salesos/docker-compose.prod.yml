@@ -255,7 +255,11 @@ services:
     environment:
       - SALESOS_ENV=production
       - SALESOS_DEBUG=false
-    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+      - SALESOS_JWKS_ALLOW_REGENERATE=true
+      - SALESOS_JWKS_KEY_DIR=/data/jwks
+    volumes:
+      - jwks_data:/data/jwks
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -547,3 +551,4 @@ volumes:
   backups:
   caddy_data:
   caddy_config:
+  jwks_data:

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import base64
+import logging
 import os
+import warnings
 from typing import Any
 
 from cryptography.hazmat.backends import default_backend
@@ -10,7 +12,12 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 
 from app.config import settings
 
-_RSA_KEY_DIR = os.path.join(os.path.dirname(__file__), "_keys")
+logger = logging.getLogger("salesos.jwks")
+
+_RSA_KEY_DIR = os.environ.get(
+    "SALESOS_JWKS_KEY_DIR",
+    os.path.join(os.path.dirname(__file__), "_keys"),
+)
 _RSA_PRIVATE_PATH = os.path.join(_RSA_KEY_DIR, "rsa_private.pem")
 _RSA_PUBLIC_PATH = os.path.join(_RSA_KEY_DIR, "rsa_public.pem")
 _KID = "v2-rs256"
@@ -22,6 +29,14 @@ def _encryption_passphrase() -> bytes:
 
 def _b64url(data: bytes) -> str:
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode()
+
+
+def _allow_regeneration() -> bool:
+    return os.environ.get("SALESOS_JWKS_ALLOW_REGENERATE", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    )
 
 
 def _load_or_generate_rsa() -> tuple[rsa.RSAPrivateKey, rsa.RSAPublicKey]:
@@ -36,13 +51,11 @@ def _load_or_generate_rsa() -> tuple[rsa.RSAPrivateKey, rsa.RSAPublicKey]:
         with open(private_path, "rb") as f:
             private_data = f.read()
         # Try encrypted first, fall back to unencrypted for migration.
-        # If the PEM is encrypted with a different SECRET_KEY (e.g. shared
-        # host mount across compose projects), do not crash with a nested
-        # TypeError — regenerate only when explicitly allowed.
         try:
             private_key = serialization.load_pem_private_key(
                 private_data, password=_encryption_passphrase(), backend=default_backend()
             )
+            logger.info("JWKS RSA keys loaded successfully (encrypted)")
             return private_key, public_key
         except (ValueError, TypeError):
             pass
@@ -50,24 +63,26 @@ def _load_or_generate_rsa() -> tuple[rsa.RSAPrivateKey, rsa.RSAPublicKey]:
             private_key = serialization.load_pem_private_key(
                 private_data, password=None, backend=default_backend()
             )
+            logger.warning("JWKS private key was unencrypted — re-saving with SECRET_KEY encryption")
             _save_private_key(private_path, private_key)
             return private_key, public_key
         except (ValueError, TypeError):
-            allow = os.environ.get("SALESOS_JWKS_ALLOW_REGENERATE", "").strip().lower() in (
-                "1",
-                "true",
-                "yes",
-            )
-            if not allow:
+            if not _allow_regeneration():
                 raise RuntimeError(
                     "RSA private key is encrypted but SECRET_KEY cannot decrypt it. "
                     "Use an isolated JWKS volume (virtual staging) or set "
                     "SALESOS_JWKS_ALLOW_REGENERATE=1 to mint new keys for this env."
                 ) from None
-            # Fall through to regenerate below (same as missing keys).
+            logger.critical(
+                "JWKS KEY REGENERATION TRIGGERED — existing key cannot be decrypted "
+                "with current SECRET_KEY. All previously issued tokens will become invalid. "
+                "Key dir: %s",
+                _RSA_KEY_DIR,
+            )
 
     os.makedirs(_RSA_KEY_DIR, exist_ok=True)
 
+    logger.warning("Generating new RSA-4096 JWKS keypair in %s", _RSA_KEY_DIR)
     private_key = rsa.generate_private_key(
         public_exponent=65537,
         key_size=4096,
