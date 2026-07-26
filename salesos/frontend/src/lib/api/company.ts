@@ -132,7 +132,14 @@ export async function getCompany(id: string, tenantId: string): Promise<CompanyD
 
 export async function getCompany360(id: string, tenantId: string): Promise<Company360Response> {
  const response = await api.get(`/api/v1/companies/${id}/360`, {
- headers: {"X-Tenant-Id": tenantId },
+  headers: {"X-Tenant-Id": tenantId },
+ });
+ return response.data;
+}
+
+export async function getCompanyIntelligence(id: string, tenantId: string) {
+ const response = await api.get(`/api/v1/companies/${id}/intelligence`, {
+  headers: {"X-Tenant-Id": tenantId },
  });
  return response.data;
 }

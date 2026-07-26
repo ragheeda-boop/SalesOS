@@ -27,6 +27,7 @@ import {
 } from '../../_components/states'
 import { useAccessToken } from '../../_hooks/useAccessToken'
 import { openV3AiPopup } from '@/components/v3/V3AiPopup'
+import { IntelligenceTab } from './intelligence-tab'
 
 type TabId =
  | 'overview'
@@ -547,14 +548,7 @@ export default function V3Company360Page() {
  />
  )
  case 'intelligence':
- return (
- <TabEmpty
- title="Intelligence widgets not mounted"
- description="Company intelligence widgets remain on legacy Company 360. This tab is an honest placeholder."
- ctaHref={`/companies/${company.id}/360`}
- ctaLabel="Open legacy 360"
- />
- )
+  return <IntelligenceTab companyId={company.id} />
  default:
  return null
  }
