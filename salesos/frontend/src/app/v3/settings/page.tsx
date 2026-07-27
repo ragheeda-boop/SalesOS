@@ -18,6 +18,7 @@ import {
 } from '../_components/states'
 import { formatWhen } from '../_components/format'
 import { useAccessToken } from '../_hooks/useAccessToken'
+import { GoogleIntegrationPanel } from './integrations/google-panel'
 
 function PreviewPanel({
  children,
@@ -237,17 +238,20 @@ export default function V3SettingsPage() {
  <PermissionState nextPath="/v3/settings" />
  ),
  },
- {
- id: 'integrations',
- label: 'Integrations',
- audience: 'Admins',
- description: 'Connected apps for mail, calendar, and CRM sync.',
- body: (
- <PreviewPanel legacyHref="/settings">
- Integration connectors are not dual-run on this page.
- </PreviewPanel>
- ),
- },
+  {
+  id: 'integrations',
+  label: 'Integrations',
+  audience: 'Admins',
+  description: 'Connected apps for mail, calendar, and CRM sync.',
+  body:
+  ready && hasToken ? (
+  <GoogleIntegrationPanel ready={ready} hasToken={hasToken} />
+  ) : !ready ? (
+  <LoadingState />
+  ) : (
+  <PermissionState nextPath="/v3/settings" />
+  ),
+  },
  {
  id: 'ai',
  label: 'AI',

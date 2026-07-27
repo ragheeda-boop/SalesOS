@@ -33,6 +33,7 @@ def register_routers(app: FastAPI) -> None:
     from app.modules.revenue_execution.router import router as revenue_execution_router
     from app.modules.signal_marketplace.router import router as signal_marketplace_router
     from app.modules.sso.router import router as sso_router
+    from app.modules.communication_hub.router import router as communication_hub_router
     from app.modules.work_intelligence.router import router as work_intelligence_router
     from app.routers.admin_demo import router as admin_demo_router
     from app.routers.commercial import router as commercial_router
@@ -110,6 +111,7 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(marketplace_router)
 
     app.include_router(sso_router, prefix="/api/v1", tags=["SSO"])
+    app.include_router(communication_hub_router, prefix="/api/v1", tags=["Communication Hub"], dependencies=_auth)
     app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
     app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
     app.include_router(admin_router)

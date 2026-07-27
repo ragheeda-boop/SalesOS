@@ -167,6 +167,10 @@ class Settings(BaseSettings):
     sso_github_client_id: str = ""
     sso_github_client_secret: str = ""
 
+    # Google Workspace integration
+    google_redirect_uri: str = ""
+    google_encryption_key: str = ""
+
     # Audit
     audit_retention_days: int = 90
     audit_excluded_paths: list[str] = ["/health", "/metrics", "/docs", "/redoc", "/ping", "/openapi.json"]
