@@ -18,6 +18,12 @@ from uuid import UUID
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.oauth_state import (
+    clear_oauth_state_memory,
+    get_oauth_state,
+    memory_store_snapshot,
+    store_oauth_state,
+)
 from app.config import settings
 from app.modules.communication_hub.models import GoogleAccount
 from app.modules.communication_hub.repository import GoogleAccountRepository
@@ -28,8 +34,6 @@ _TOKEN_EXPIRY_SKEW_SECONDS = 60
 
 logger = logging.getLogger(__name__)
 
-# In-memory state store (TTL 600s) — same pattern as SSO module
-_OAUTH_STATE_STORE: dict[str, dict[str, Any]] = {}
 _STATE_TTL = 600
 
 GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -53,16 +57,73 @@ class GoogleTokenRefreshError(GoogleOAuthError):
     pass
 
 
+class _MemoryStateFacade(dict):
+    """Mutable dict facade so existing unit tests can inspect/clear OAuth state."""
+
+    def clear(self) -> None:  # type: ignore[override]
+        clear_oauth_state_memory()
+        super().clear()
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        store_oauth_state(key, value, ttl=_STATE_TTL)
+        super().__setitem__(key, value)
+
+    def __delitem__(self, key: str) -> None:
+        get_oauth_state(key, consume=True)
+        super().pop(key, None)
+
+    def __contains__(self, key: object) -> bool:
+        if not isinstance(key, str):
+            return False
+        return get_oauth_state(key, consume=False) is not None
+
+    def get(self, key: str, default: Any = None) -> Any:  # type: ignore[override]
+        val = get_oauth_state(key, consume=False)
+        return default if val is None else val
+
+    def pop(self, key: str, default: Any = None) -> Any:  # type: ignore[override]
+        val = get_oauth_state(key, consume=True)
+        super().pop(key, None)
+        return default if val is None else val
+
+
+_OAUTH_STATE_STORE = _MemoryStateFacade()
+
+
 def _clean_expired_states() -> None:
+    """Drop entries whose payload ``created_at`` exceeds TTL (Redis keys deleted too)."""
     now = time.time()
-    expired = [k for k, v in _OAUTH_STATE_STORE.items() if now - v["created_at"] > _STATE_TTL]
-    for k in expired:
-        del _OAUTH_STATE_STORE[k]
+    for key, value in list(memory_store_snapshot().items()):
+        if isinstance(value, dict):
+            created = float(value.get("created_at") or now)
+            if now - created > _STATE_TTL:
+                get_oauth_state(key, consume=True)
+                dict.pop(_OAUTH_STATE_STORE, key, None)
 
 
 def _get_encryption_key() -> str:
-    key = getattr(settings, "google_encryption_key", None) or settings.secret_key
-    return key
+    """OAuth token encryption key — must not reuse JWT/app secret_key."""
+    key = (getattr(settings, "google_encryption_key", None) or "").strip()
+    if key:
+        return key
+    env = (settings.env or "").lower()
+    if env in ("production", "prod", "staging"):
+        raise GoogleOAuthError(
+            "GOOGLE_ENCRYPTION_KEY must be set in staging/production "
+            "(must not fall back to SECRET_KEY)"
+        )
+    # Local/dev only — still avoid silent reuse of JWT signing material.
+    raise GoogleOAuthError(
+        "GOOGLE_ENCRYPTION_KEY is required to encrypt Google OAuth tokens"
+    )
+
+
+def _get_previous_encryption_keys() -> list[str]:
+    """Optional previous keys for decrypt during key rotation (comma-separated)."""
+    raw = (getattr(settings, "google_encryption_key_previous", None) or "").strip()
+    if not raw:
+        return []
+    return [k.strip() for k in raw.split(",") if k.strip()]
 
 
 class GoogleOAuthService:
@@ -80,7 +141,18 @@ class GoogleOAuthService:
         return encrypt_token(plaintext, _get_encryption_key())
 
     def _decrypt(self, ciphertext: str) -> str:
-        return decrypt_token(ciphertext, _get_encryption_key())
+        """Decrypt with current key; fall back to previous keys during rotation."""
+        keys = [_get_encryption_key(), *_get_previous_encryption_keys()]
+        last_err: Exception | None = None
+        for key in keys:
+            try:
+                return decrypt_token(ciphertext, key)
+            except Exception as exc:  # InvalidToken or key mismatch
+                last_err = exc
+                continue
+        if last_err:
+            raise last_err
+        raise GoogleOAuthError("Token decrypt failed")
 
     def _redirect_uri(self) -> str:
         base = getattr(settings, "google_redirect_uri", None)
@@ -130,7 +202,7 @@ class GoogleOAuthService:
 
         if existing:
             await self.repo.update_tokens(
-                existing.id, access_enc, refresh_enc, expiry
+                existing.id, access_enc, refresh_enc, expiry, tenant_id=tenant_id
             )
             await self.db.commit()
             await self.db.refresh(existing)
@@ -199,7 +271,9 @@ class GoogleOAuthService:
         )
         expiry = datetime.now(timezone.utc) + timedelta(seconds=new_tokens.get("expires_in", 3600))
 
-        await self.repo.update_tokens(account.id, access_enc, refresh_enc, expiry)
+        await self.repo.update_tokens(
+            account.id, access_enc, refresh_enc, expiry, tenant_id=self.tenant_id
+        )
         await self.db.commit()
         account.access_token_encrypted = access_enc
         if refresh_enc is not None:

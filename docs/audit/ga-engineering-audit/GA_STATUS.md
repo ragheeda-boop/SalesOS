@@ -1,6 +1,6 @@
 # GA Status Scoreboard — AQLIYA / SalesOS
 
-**Date:** 2026-07-22  
+**Date:** 2026-07-28 (updated)  
 **Authority:** [ga-engineering-audit](./00-EXECUTIVE-SUMMARY.md) + execution progress below  
 **Decision:** **NO-GO** for Production GA  
 **Classification:** production no-go
@@ -11,13 +11,13 @@
 
 ## Scoreboard (honest)
 
-| Dimension | Audit baseline | After Waves 0–13 local evidence | Notes |
-|-----------|---------------:|--------------------------------:|-------|
-| Production Readiness | **38** | still **no-go** | Local ops evidence advanced; cutover not run |
-| Security | **48** | improved (code + local load light) | Wave 2 P0s + logger arity + SSRF pin + local `graph_edges` **0040**; SSRF residuals + staging pentest **OPEN** — **not** production-secure |
-| Testing | **52** | improved (local) | Unit ~1542; Playwright UI smoke **PASS** (light); **full UI crawl 49/49 page shells PASS** (light; API 422/404/500 residuals) — [PROGRESS-WAVE13-FULL-UI-CRAWL.md](./PROGRESS-WAVE13-FULL-UI-CRAWL.md); full browser GA still open |
-| DevOps / Deploy | **62** | prep+ | Local + **virtual staging** tabletop PASS (`:8001`/`:3002`); **staging cloud BLOCKED** (re-probe `2026-07-22T16:32:00Z`: no Env/secrets; workflow 404 on `master`; `develop` absent); **staging prep DONE**; prod open |
-| AI honesty | — | gated | Copilot default False + API 403; FE nav/panel hidden; DecisionProvider → HTTP API; Preview badges — [PROGRESS-WAVE6-7-AI-GATE.md](./PROGRESS-WAVE6-7-AI-GATE.md) |
+| Dimension | Audit baseline | After Waves 0–15 local + Railway evidence | Notes |
+|-----------|---------------:|------------------------------------------:|-------|
+| Production Readiness | **38** | ~**46** (still **no-go**) | Railway SalesOS live; muhide **141k** companies; OAuth Redis store **deployed** `339ebbab`; cutover/soak/signatures open |
+| Security | **48** | ~**56** | Wave 2 + CORS on Railway; OAuth Redis store **in prod image** (SSH file + `/health` redis=connected); SSRF pentest **OPEN** |
+| Testing | **52** | improved (local) | Unit focused OAuth **35 PASS**; full browser GA still open |
+| DevOps / Deploy | **62** | prep+ / **Railway live** | Railway deploy `339ebbab` SUCCESS (2026-07-28); Vercel `sales-os` READY; classic staging VPS secrets still empty |
+| AI honesty | — | gated | Copilot default False + API 403; FE Decision stub honesty — see AI_HONESTY.md |
 
 **Verdict unchanged: Production GA = NO-GO.**
 
@@ -45,15 +45,22 @@
 
 ## Remaining NO-GO blockers
 
-1. **No 48–72h soak report** — local evidence: short loop + **4h extended loop DONE** (45 iters, 29 PASS / 16 FAIL, exit 1); **48h local loop RUNNING** (start `2026-07-22T14:31:46Z`, PID `21856`, evidence `wave11-soak-48h/`; checkpoint `2026-07-24T13:11Z`: ~46.7h elapsed, **529** iters, **418 PASS / 111 FAIL**, expected end `2026-07-24T14:31:46Z`) — [PROGRESS-WAVE11-SOAK-48H.md](./PROGRESS-WAVE11-SOAK-48H.md); `soak_complete_claim: false`; cloud staging soak **UNVERIFIED**  
-2. **No staging (cloud/VPS) deploy + rollback tabletop** — **local virtual staging tabletop DONE** ([PROGRESS-WAVE12-STAGING-VIRTUAL.md](./PROGRESS-WAVE12-STAGING-VIRTUAL.md), `:8001`/`:3002`); cloud/VPS still **BLOCKED** (re-probe `2026-07-22T16:32:00Z`: Environments=0; secrets empty; `deploy-staging.yml` 404 on `master`; `develop` missing) — prep **DONE** ([PROGRESS-WAVE12-STAGING-UNBLOCK.md](./PROGRESS-WAVE12-STAGING-UNBLOCK.md), [runbooks/staging-fill-in.md](./runbooks/staging-fill-in.md); [PROGRESS-WAVE12-STAGING.md](./PROGRESS-WAVE12-STAGING.md))  
-3. **No production Alembic upgrade** — prep **DONE** ([PROGRESS-WAVE12-PROD-MIGRATE-PREP.md](./PROGRESS-WAVE12-PROD-MIGRATE-PREP.md)); **EXECUTION BLOCKED pending approval** (backup+soak+staging tabletop+signatures)  
-4. **Security residuals** (Wave 2 load light PASS locally — logger arity **closed**, SSRF pin **hardened** with residuals, local `graph_edges` **0040 closed**; SSRF redesign + staging pentest still open; **not** production-secure)  
-5. **CTO + Tech Lead GO signatures UNSIGNED** — checklist + [SIGN_HERE.md](./SIGN_HERE.md) prepared; no human ink ([runbooks/go-live-checklist.md](./runbooks/go-live-checklist.md), [PROGRESS-WAVE14-GO-LIVE.md](./PROGRESS-WAVE14-GO-LIVE.md)). Do not forge.  
-6. **AI surfaces must not be marketed as GA** — code/docs gate **DONE** (API 403 + FE hide + badges); **human PRC / launch-notes sign-off still OPEN** ([AI_HONESTY.md](./AI_HONESTY.md), [PROGRESS-WAVE6-7-AI-GATE.md](./PROGRESS-WAVE6-7-AI-GATE.md))  
-7. **Backup DR beyond local dumps** — local `pg_dump` + Neo4j dump + **disposable load-verify** done; **primary** WAL still off (disposable archive only; no PITR restore); offsite/S3/MinIO **OPEN** (no MinIO in compose) (Wave 10)  
-8. **UI residuals (non-route):** `/dashboard` `no_h1` + `GET /api/v1/dashboard` **403** for role=`user` — **closed** 2026-07-22 (see `PROGRESS-WAVE13-UI-SMOKE.md` residual fix); smoke now `h1=Dashboard`, dashboard API **200** for disposable user; executive surface still gated  
-9. **RPO acceptance (24h vs WAL) UNSIGNED** — [PROGRESS-WAVE10-DR-GAPS.md](./PROGRESS-WAVE10-DR-GAPS.md)
+1. **No 48–72h soak report** — see [PROGRESS-WAVE11-SOAK-CLAIM.md](./PROGRESS-WAVE11-SOAK-CLAIM.md); `soak_complete_claim: false`  
+2. **Classic staging VPS tabletop** — secrets still empty; **Railway SalesOS is live** as cloud path ([PROGRESS-WAVE15-MUHIDE-COMPANIES-RAILWAY.md](./PROGRESS-WAVE15-MUHIDE-COMPANIES-RAILWAY.md))  
+3. **No approved production Alembic upgrade** — [PROGRESS-WAVE13-CUTOVER-PREP.md](./PROGRESS-WAVE13-CUTOVER-PREP.md); **EXECUTION BLOCKED pending approval**  
+4. **Security residuals** — SSRF pin redesign **code closed**; staging/Railway pentest **OPEN**; OAuth Redis store **deployed** (`339ebbab`, 2026-07-28) — human OAuth login smoke still advised  
+
+5. **CTO + Tech Lead GO signatures UNSIGNED** — [SIGN_HERE.md](./SIGN_HERE.md)  
+6. **AI surfaces must not be marketed as GA** — code gate DONE; PRC sign-off OPEN  
+7. **Backup DR beyond local dumps** — MinIO profile added; primary WAL/PITR + offsite drill **OPEN**  
+8. **RPO acceptance (24h vs WAL) UNSIGNED**  
+9. **Activity Intelligence honesty** — engineering pass; still pilot-ready with conditions, not GA  
+
+**Muhide account note (2026-07-28):** `ragheed.a@muhide.com` exists on Railway with **141,221** companies — Track A closed for data presence; GA still NO-GO.
+
+**Verdict unchanged: Production GA = NO-GO.**
+
+**Do not claim full GA from this scoreboard. Signatures remain UNSIGNED. Do not claim 48h soak done.**
 
 ---
 

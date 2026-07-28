@@ -1,5 +1,4 @@
 import secrets
-import time
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -10,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import UnauthorizedError
+from app.common.oauth_state import get_oauth_state, store_oauth_state
 from app.config import settings
 from app.modules.identity.models import User
 from app.modules.identity.service import (
@@ -21,23 +21,18 @@ from sdk.security import decrypt_token, encrypt_token
 
 from .models import SSOConnection
 
-# In-memory OAuth state store (fallback when Redis unavailable)
-_OAUTH_STATE_STORE: dict[str, tuple[str, float]] = {}
 _OAUTH_STATE_TTL = 600
 
 
 def _store_oauth_state(key: str, value: str) -> None:
-    _OAUTH_STATE_STORE[key] = (value, time.monotonic() + _OAUTH_STATE_TTL)
+    store_oauth_state(key, value, ttl=_OAUTH_STATE_TTL)
 
 
 def _validate_oauth_state(key: str) -> str | None:
-    entry = _OAUTH_STATE_STORE.pop(key, None)
-    if entry is None:
+    stored = get_oauth_state(key, consume=True)
+    if stored is None:
         return None
-    stored_value, expiry = entry
-    if time.monotonic() > expiry:
-        return None
-    return stored_value
+    return str(stored)
 
 
 PROVIDER_CONFIGS: dict[str, dict[str, Any]] = {
