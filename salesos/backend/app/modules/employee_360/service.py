@@ -69,41 +69,43 @@ class Employee360Service:
 
         ai_coach = self._generate_coach_actions(portfolio, kpis, performance)
 
-        # ── ADR-012 Activity Intelligence Integration ──
+        # ── ADR-012 Activity Intelligence Integration (employee-scoped events) ──
         calendar_intelligence = CalendarIntelligence()
         email_intelligence = EmailIntelligence()
         try:
-            from intelligence.activity_intelligence.engine.calendar_engine import CalendarEngine
-            from intelligence.activity_intelligence.engine.email_engine import EmailEngine
-            from intelligence.activity_intelligence.engine.engagement_engine import EngagementEngine
+            from intelligence.activity_intelligence.readers.postgres_readers import (
+                PostgresEmailReader,
+                PostgresMeetingReader,
+            )
 
-            email_eng = EmailEngine()
-            calendar_eng = CalendarEngine()
-            eng = EngagementEngine(email_engine=email_eng, calendar_engine=calendar_eng)
+            email_reader = PostgresEmailReader(self.db)
+            meeting_reader = PostgresMeetingReader(self.db)
 
-            health = await eng.get_relationship_health(user_id, tenant_id)
-            metrics = health.get("metrics", {})
+            sent = await email_reader.count_by_employee(user_id, tenant_id, direction="outbound")
+            received = await email_reader.count_by_employee(user_id, tenant_id, direction="inbound")
+            meeting_count = await meeting_reader.count_by_employee(user_id, tenant_id)
+            meeting_hours = await meeting_reader.hours_by_employee(user_id, tenant_id)
+            reply_rate = round(sent / max(1, received), 4)
 
-            if metrics:
-                email_intelligence = EmailIntelligence(
-                    sent=metrics.get("email_count_sent", {}).get("value", 0) or 0,
-                    received=metrics.get("email_count_received", {}).get("value", 0) or 0,
-                    replies=int((metrics.get("reply_rate", {}).get("value", 0) or 0) * 100),
-                    avg_response_hours=metrics.get("response_time_avg", {}).get("value") or 0,
-                    top_companies=[],
-                    top_contacts=[],
-                )
-                calendar_intelligence = CalendarIntelligence(
-                    today_count=metrics.get("meeting_count", {}).get("value", 0) or 0,
-                    week_count=max(0, int(metrics.get("communication_velocity", {}).get("value", 0) or 0)),
-                    month_count=0,
-                    total_hours=metrics.get("meeting_hours", {}).get("value", 0) or 0,
-                    avg_duration_minutes=0,
-                    unique_companies_met=0,
-                    upcoming=[],
-                )
-                kpis.response_rate = metrics.get("reply_rate", {}).get("value", 0) or 0
-                kpis.follow_up_rate = min(1.0, max(0.0, metrics.get("follow_up_rate", {}).get("value", 0) or 0))
+            email_intelligence = EmailIntelligence(
+                sent=sent,
+                received=received,
+                replies=int(reply_rate * 100),
+                avg_response_hours=0,
+                top_companies=[],
+                top_contacts=[],
+            )
+            calendar_intelligence = CalendarIntelligence(
+                today_count=0,
+                week_count=meeting_count,
+                month_count=meeting_count,
+                total_hours=meeting_hours,
+                avg_duration_minutes=0,
+                unique_companies_met=0,
+                upcoming=[],
+            )
+            kpis.response_rate = reply_rate
+            kpis.follow_up_rate = min(1.0, max(0.0, reply_rate))
         except Exception as e:
             if self.logger:
                 self.logger.warn("employee_360.adr012_failed", user_id=user_id, error=str(e))

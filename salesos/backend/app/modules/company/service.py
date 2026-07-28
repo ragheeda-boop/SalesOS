@@ -509,15 +509,11 @@ class CompanyService:
         # ── ADR-012 Activity Intelligence Integration ──
         engagement_data = None
         try:
-            from intelligence.activity_intelligence.engine.email_engine import EmailEngine
-            from intelligence.activity_intelligence.engine.calendar_engine import CalendarEngine
-            from intelligence.activity_intelligence.engine.engagement_engine import EngagementEngine
-            from intelligence.activity_intelligence.engine.followup_engine import FollowupEngine
+            from intelligence.activity_intelligence.readers.postgres_readers import (
+                build_company_engines,
+            )
 
-            email_eng = EmailEngine()
-            calendar_eng = CalendarEngine()
-            engagement_eng = EngagementEngine(email_engine=email_eng, calendar_engine=calendar_eng)
-            followup_eng = FollowupEngine(email_engine=email_eng, calendar_engine=calendar_eng)
+            _email_eng, _calendar_eng, engagement_eng, followup_eng = build_company_engines(session)
 
             followup_status = await followup_eng.get_status(company_id, tenant_id)
             health = await engagement_eng.get_relationship_health(company_id, tenant_id)

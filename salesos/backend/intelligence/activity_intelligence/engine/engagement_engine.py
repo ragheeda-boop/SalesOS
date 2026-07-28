@@ -118,6 +118,10 @@ class EngagementEngine:
         )
         metrics = await self.compute_all(ctx)
 
+        # When no plugins are registered, fall back to email/calendar engines.
+        if not metrics and (self._email_engine or self._calendar_engine):
+            metrics = await self._metrics_from_engines(company_id, tenant_id)
+
         health_score = self._calculate_health_score(metrics)
 
         return {
@@ -128,6 +132,53 @@ class EngagementEngine:
                 for pid, mv in metrics.items()
             },
         }
+
+    async def _metrics_from_engines(
+        self, company_id: str, tenant_id: str
+    ) -> dict[str, MetricValue]:
+        metrics: dict[str, MetricValue] = {}
+        if self._email_engine:
+            email = await self._email_engine.get_email_metrics(company_id, tenant_id)
+            metrics["email_count_sent"] = MetricValue(
+                plugin_id="email_count_sent",
+                value=email.get("email_count_sent", 0),
+                unit="count",
+                label="Emails sent",
+            )
+            metrics["email_count_received"] = MetricValue(
+                plugin_id="email_count_received",
+                value=email.get("email_count_received", 0),
+                unit="count",
+                label="Emails received",
+            )
+            metrics["reply_rate"] = MetricValue(
+                plugin_id="reply_rate",
+                value=email.get("reply_rate", 0.0),
+                unit="percent",
+                label="Reply rate",
+            )
+            if email.get("last_email_days") is not None:
+                metrics["last_activity"] = MetricValue(
+                    plugin_id="last_activity",
+                    value=email["last_email_days"],
+                    unit="days",
+                    label="Days since last email",
+                )
+        if self._calendar_engine:
+            meeting = await self._calendar_engine.get_meeting_metrics(company_id, tenant_id)
+            metrics["meeting_count"] = MetricValue(
+                plugin_id="meeting_count",
+                value=meeting.get("meeting_count", 0),
+                unit="count",
+                label="Meetings",
+            )
+            metrics["meeting_completion_rate"] = MetricValue(
+                plugin_id="meeting_completion_rate",
+                value=meeting.get("meeting_completion_rate", 0.0),
+                unit="percent",
+                label="Meeting completion",
+            )
+        return metrics
 
     @staticmethod
     def _calculate_health_score(metrics: dict[str, MetricValue]) -> float:
