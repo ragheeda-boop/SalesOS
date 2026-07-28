@@ -14,7 +14,7 @@ class EmailReader(ABC):
     """Read-only access to email domain data."""
 
     @abstractmethod
-    async def get(self, email_id: str) -> Optional[dict]: ...
+    async def get(self, email_id: str, tenant_id: str) -> Optional[dict]: ...
 
     @abstractmethod
     async def list_by_company(
@@ -36,7 +36,7 @@ class MeetingReader(ABC):
     """Read-only access to meeting domain data."""
 
     @abstractmethod
-    async def get(self, meeting_id: str) -> Optional[dict]: ...
+    async def get(self, meeting_id: str, tenant_id: str) -> Optional[dict]: ...
 
     @abstractmethod
     async def list_by_company(

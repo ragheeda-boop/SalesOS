@@ -60,9 +60,8 @@ def register_routers(app: FastAPI) -> None:
 
     from domains.employee.intelligence_router import router as employee_intelligence_router
     app.include_router(employee_intelligence_router, prefix="/api/v1", tags=["Employee Intelligence"], dependencies=_auth)
-
-    from domains.employee.intelligence_router import router as employee_health_router
-    app.include_router(employee_health_router, prefix="", tags=["Employee Health"], include_in_schema=False)
+    # Same router remounted without schema for infra health probes (not a second module).
+    app.include_router(employee_intelligence_router, prefix="", tags=["Employee Health"], include_in_schema=False)
 
     from domains.employee.webhook_handler import router as employee_webhook_router
     app.include_router(employee_webhook_router, prefix="/api/v1", tags=["Employee Webhooks"])
@@ -156,7 +155,9 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(telemetry_router, tags=["Telemetry"], dependencies=_auth)
 
     from app.routers.notifications import router as notifications_router
-    app.include_router(notifications_router, prefix="/api/v1", tags=["Notifications"])
+    app.include_router(
+        notifications_router, prefix="/api/v1", tags=["Notifications"], dependencies=_auth
+    )
 
     from app.modules.webhooks.router import router as webhooks_router
     app.include_router(webhooks_router)
@@ -165,7 +166,7 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(enrichment_router, prefix="/api/v1", tags=["Enrichment"], dependencies=_auth)
 
     from app.routers.mcp import router as mcp_router
-    app.include_router(mcp_router)
+    app.include_router(mcp_router, dependencies=_auth)
 
     from app.graphql.schema import graphql_router
     app.include_router(graphql_router, prefix="/graphql", dependencies=_auth)

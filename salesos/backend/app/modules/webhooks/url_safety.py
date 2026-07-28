@@ -118,10 +118,18 @@ def analyze_webhook_url(url: str, *, resolve_dns: bool = True) -> SafeWebhookTar
 
 
 class _PinnedIPBackend(httpcore.AsyncNetworkBackend):
-    """TCP connect to a pre-validated IP; TLS SNI still uses request hostname."""
+    """TCP connect to pre-validated IPs only; TLS SNI still uses request hostname.
 
-    def __init__(self, pinned_ip: str) -> None:
-        self._pinned_ip = pinned_ip
+    Tries each allowed IP in order so multi-A records are usable without
+    falling back to unvalidated hostname dial (DNS rebinding window).
+    """
+
+    def __init__(self, pinned_ips: tuple[str, ...] | str) -> None:
+        if isinstance(pinned_ips, str):
+            pinned_ips = (pinned_ips,)
+        if not pinned_ips:
+            raise ValueError("pinned_ips must be non-empty")
+        self._pinned_ips = pinned_ips
         self._inner = httpcore.AnyIOBackend()
 
     async def connect_tcp(
@@ -132,13 +140,21 @@ class _PinnedIPBackend(httpcore.AsyncNetworkBackend):
         local_address: str | None = None,
         socket_options: object | None = None,
     ) -> httpcore.AsyncNetworkStream:
-        return await self._inner.connect_tcp(
-            self._pinned_ip,
-            port,
-            timeout=timeout,
-            local_address=local_address,
-            socket_options=socket_options,
-        )
+        last_exc: Exception | None = None
+        for pinned_ip in self._pinned_ips:
+            try:
+                return await self._inner.connect_tcp(
+                    pinned_ip,
+                    port,
+                    timeout=timeout,
+                    local_address=local_address,
+                    socket_options=socket_options,
+                )
+            except Exception as exc:
+                last_exc = exc
+                continue
+        assert last_exc is not None
+        raise last_exc
 
     async def connect_unix_socket(
         self,
@@ -152,8 +168,14 @@ class _PinnedIPBackend(httpcore.AsyncNetworkBackend):
         await self._inner.sleep(seconds)
 
 
-def build_pinned_async_transport(pinned_ip: str) -> httpx.AsyncHTTPTransport:
-    """httpx transport that dials ``pinned_ip`` while keeping URL hostname for TLS/Host."""
+def build_pinned_async_transport(
+    pinned_ips: tuple[str, ...] | str,
+) -> httpx.AsyncHTTPTransport:
+    """httpx transport that dials validated IP(s) while keeping URL hostname for TLS/Host."""
+    if isinstance(pinned_ips, str):
+        pinned_ips = (pinned_ips,)
+    if not pinned_ips:
+        raise UnsafeWebhookURLError("Webhook delivery requires at least one validated IP")
     transport = httpx.AsyncHTTPTransport()
     old_pool = transport._pool
     ssl_context = getattr(old_pool, "_ssl_context", None)
@@ -164,6 +186,6 @@ def build_pinned_async_transport(pinned_ip: str) -> httpx.AsyncHTTPTransport:
         keepalive_expiry=getattr(old_pool, "_keepalive_expiry", None),
         http1=True,
         http2=False,
-        network_backend=_PinnedIPBackend(pinned_ip),
+        network_backend=_PinnedIPBackend(pinned_ips),
     )
     return transport

@@ -38,13 +38,14 @@
 
 ## Remaining blockers (honest)
 
-1. Cloud staging credentials / Environments / deploy workflow still **BLOCKED**
-2. 48–72h soak claim still **false**
-3. Prod Alembic migrate **needs human approval** (now head will be **0049** after apply)
+1. Cloud staging credentials / Environments / deploy workflow still **BLOCKED** (workflow now also triggers on `master` — still needs secrets)
+2. 48–72h soak claim still **false** — [PROGRESS-WAVE11-SOAK-CLAIM.md](./PROGRESS-WAVE11-SOAK-CLAIM.md)
+3. Prod Alembic migrate **needs human approval**
 4. CTO/TL signatures **UNSIGNED**
 5. OAuth state still **in-memory** (multi-replica gap; same pattern as SSO)
 6. ActivityRuntime ingest still **not** wired from Hub sync (APIs read `employee_*_events` directly — intentional)
 7. Google OAuth client credentials required for live connect smoke (**external credential**)
-8. Primary WAL/PITR + offsite backup **OPEN**
+8. Primary WAL/PITR + offsite backup **OPEN** (MinIO profile added — drill not run)
+9. Activity honesty engineering pass: [PROGRESS-COMMHUB-ACTIVITY-HONESTY.md](./PROGRESS-COMMHUB-ACTIVITY-HONESTY.md)
 
 **Verdict:** production **no-go**. Comm Hub / Activity Intelligence vertical slice is **pilot-ready with conditions** locally.

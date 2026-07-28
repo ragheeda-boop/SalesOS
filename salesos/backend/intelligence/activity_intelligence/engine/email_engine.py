@@ -36,22 +36,49 @@ class EmailEngine:
     async def get_reply_rate(
         self, company_id: str, tenant_id: str
     ) -> float:
-        """Calculate reply rate: received / total for company.
+        """Thread-based reply rate: inbound threads that also have outbound.
 
-        Heuristic based on subject prefixes (Re:, Fwd:) and direction.
+        Falls back to inbound/total only when the reader cannot expose thread data.
         """
         if not self._reader:
             return 0.0
 
+        # Prefer reader SQL if available via count + list heuristic is weak;
+        # use inbound/total only as last resort (documented as volume share).
+        if hasattr(self._reader, "db"):
+            from sqlalchemy import text as sa_text
+
+            row = (
+                await self._reader.db.execute(
+                    sa_text("""
+                        SELECT
+                            COUNT(*) FILTER (WHERE has_in) AS inbound_threads,
+                            COUNT(*) FILTER (WHERE has_in AND has_out) AS replied_threads
+                        FROM (
+                            SELECT thread_id,
+                                   bool_or(direction IN ('inbound', 'received')) AS has_in,
+                                   bool_or(direction IN ('outbound', 'sent')) AS has_out
+                            FROM employee_email_events
+                            WHERE tenant_id = :tid
+                              AND related_company_ids @> to_jsonb(:company_id::text)
+                              AND thread_id IS NOT NULL AND thread_id <> ''
+                            GROUP BY thread_id
+                        ) t
+                    """),
+                    {"tid": tenant_id, "company_id": company_id},
+                )
+            ).mappings().one()
+            inbound_threads = int(row["inbound_threads"] or 0)
+            if inbound_threads == 0:
+                return 0.0
+            return round(int(row["replied_threads"] or 0) / inbound_threads, 4)
+
         total = await self._reader.count_by_company(company_id, tenant_id)
         if total == 0:
             return 0.0
-
-        # Count received emails
         received = await self._reader.count_by_company(
             company_id, tenant_id, direction="inbound"
         )
-
         return round(received / total, 4)
 
     async def get_email_metrics(

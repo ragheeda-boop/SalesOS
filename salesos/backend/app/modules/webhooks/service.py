@@ -102,17 +102,19 @@ class WebhookService:
         signature = _sign_payload(delivery.payload, sub.secret)
 
         try:
-            # Resolve + validate immediately before connect; pin TCP to a checked IP
-            # so DNS rebinding between validate and dial cannot retarget private space.
-            target = analyze_webhook_url(sub.url, resolve_dns=self._resolve_dns)
-            transport = (
-                build_pinned_async_transport(target.allowed_ips[0])
-                if target.allowed_ips
-                else None
-            )
-            client_kwargs: dict = {"timeout": 10.0, "follow_redirects": False}
-            if transport is not None:
-                client_kwargs["transport"] = transport
+            # Always resolve+validate immediately before connect; refuse unpinned
+            # hostname dial (closes resolve_dns=False delivery TOCTOU residual).
+            target = analyze_webhook_url(sub.url, resolve_dns=True)
+            if not target.allowed_ips:
+                raise UnsafeWebhookURLError(
+                    "Webhook delivery requires DNS-validated public IPs (pinning required)"
+                )
+            transport = build_pinned_async_transport(target.allowed_ips)
+            client_kwargs: dict = {
+                "timeout": 10.0,
+                "follow_redirects": False,
+                "transport": transport,
+            }
             async with httpx.AsyncClient(**client_kwargs) as client:
                 resp = await client.post(
                     target.url,

@@ -343,6 +343,23 @@ services:
     profiles:
       - backup
 
+  # Optional local object store for offsite backup drills (no secrets committed).
+  # Enable: docker compose --profile objectstore up -d minio
+  # Then set S3_BUCKET / endpoint via env — never commit keys.
+  minio:
+    image: minio/minio:RELEASE.2024-09-22T00-33-43Z
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio_data:/data
+    profiles:
+      - objectstore
+
   # ── Observability profile (Loki / OTel / Promtail) ──────────
   # Enable: docker compose --profile observability up -d
   # Canonical docs: docs/ops/RUNTIME_STACK.md, docs/ops/SLO_ALERTS.md
@@ -396,3 +413,4 @@ volumes:
   grafana_data:
   backup_data:
   redis-data:
+  minio_data:

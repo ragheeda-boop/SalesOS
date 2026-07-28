@@ -47,6 +47,19 @@ class TestActivityDashboardEndpoint:
                 return email_result
             elif call_count[0] == 2:
                 return cal_result
+            elif call_count[0] == 3:
+                # top_companies_total
+                total_result = MagicMock()
+                total_result.mappings.return_value.one.return_value = {"c": 0}
+                return total_result
+            elif call_count[0] == 5:
+                # followup_row
+                follow_result = MagicMock()
+                follow_result.mappings.return_value.one.return_value = {
+                    "need_followup": 0,
+                    "overdue": 0,
+                }
+                return follow_result
             return top_result
 
         mock_db.execute = mock_execute
@@ -60,3 +73,6 @@ class TestActivityDashboardEndpoint:
         assert result["meeting_active"] == 40
         assert result["meeting_hours"] == 45.0
         assert result["period"] == "30d"
+        assert "limit" in result
+        assert "offset" in result
+        assert "top_companies_total" in result

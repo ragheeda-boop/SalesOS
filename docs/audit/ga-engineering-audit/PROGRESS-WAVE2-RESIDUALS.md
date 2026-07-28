@@ -21,15 +21,14 @@
 | Smoke | In-container: `LOGGER_OK` with printf error/warning |
 | Re-probe `T125056Z` | Logger arity string **absent**; competitors/network **500** now show `graph_edges` missing (different residual) |
 
-### 2. Webhook SSRF DNS TOCTOU → HARDENED (residual remains)
+### 2. Webhook SSRF DNS TOCTOU → REDESIGNED (code) / pentest OPEN
 
 | Item | Detail |
 |------|--------|
-| Before | Validate DNS then `httpx` reconnects by hostname (rebinding window) |
-| Fix | `analyze_webhook_url` → `SafeWebhookTarget.allowed_ips`; delivery uses `_PinnedIPBackend` / `build_pinned_async_transport` so TCP dials validated IP while URL hostname drives TLS SNI |
-| Files | `app/modules/webhooks/url_safety.py`, `service.py`; unit cases in `test_webhooks.py` |
-| Smoke | `ANALYZE_OK`, `PIN_BACKEND_OK`, `TRANSPORT_OK`, `BLOCK_LOCAL_OK` |
-| Still OPEN | First resolved IP only; `resolve_dns=False` skips pin; couples to httpx/httpcore private `_pool`; no staging pentest |
+| Before | Validate DNS then optional hostname dial; pin first IP only |
+| Fix (2026-07-28) | Delivery always `resolve_dns=True`; refuse empty `allowed_ips`; multi-IP `_PinnedIPBackend` failover |
+| Files | `url_safety.py`, `service.py`; [PROGRESS-WAVE2-SSRF-REDESIGN.md](./PROGRESS-WAVE2-SSRF-REDESIGN.md) |
+| Still OPEN | Staging pentest [runbooks/staging-ssrf-pentest.md](./runbooks/staging-ssrf-pentest.md); httpx `_pool` private API coupling |
 
 ### 3. KG `graph_edges` missing / SQL fallback 500 → CLOSED (local schema repair)
 
@@ -49,8 +48,8 @@
 1. ~~**`graph_edges` missing**~~ — **CLOSED** local (0040); staging/prod DBs still need migrate when approved.  
 2. **KG SQL fallback policy** — non-prod allows fallback; prod default-off (prior Wave 2).  
 3. **`graph_edges` lacking `tenant_id` column** — scope via company joins + `tenant_id` filters; orphan edges invisible vs leak.  
-4. **SSRF residuals** — pin incomplete vs full multi-IP / custom-resolver redesign; **not** production-secure.  
-5. **Staging / pentest** — not run.  
+4. **SSRF residuals** — multi-IP pin + refuse unpinned delivery **CLOSED in code**; staging pentest still **OPEN**.  
+5. **Staging / pentest** — checklist ready; not run.  
 6. **RBAC nuance** — webhook create without `workflow.read` list permission.  
 7. **Full pytest** — not validated here (OOM / memory).  
 8. **Neo4j flakiness** — metrics still show `neo4j_available: false` after probes; SQL fallback is the resilience path.

@@ -19,7 +19,9 @@
 | Dump location | Docker volume `salesos_backup_data` only (`/backups/*.dump`) |
 | Off-box copy evidence | **None** |
 
-**Conclusion:** Cannot start MinIO “via compose profile without secrets” — the service is not defined. Durability remains **single-host Docker volume** until an external bucket or an added (non-committed-secret) MinIO profile exists.
+**Conclusion:** Local MinIO can be started via `docker compose --profile objectstore up -d minio` (added 2026-07-28). That alone does **not** close offsite restore — upload/download/restore drills + credentials still required. See [PROGRESS-WAVE10-OBJECTSTORE.md](../PROGRESS-WAVE10-OBJECTSTORE.md).
+
+Durability remains **single-host Docker volume** for backups until an external bucket drill succeeds.
 
 ---
 

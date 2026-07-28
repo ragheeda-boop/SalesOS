@@ -21,6 +21,9 @@ _FREE_EMAIL_DOMAINS = frozenset({
     "protonmail.com",
 })
 
+# Cap domains to bound query size / param count.
+_MAX_DOMAINS = 20
+
 
 def extract_domains(addresses: list[str]) -> set[str]:
     domains: set[str] = set()
@@ -28,6 +31,11 @@ def extract_domains(addresses: list[str]) -> set[str]:
         if not addr or "@" not in addr:
             continue
         domain = addr.rsplit("@", 1)[-1].strip().lower()
+        # Reject values that are not plausible hostnames (defense-in-depth).
+        if not domain or not all(c.isalnum() or c in ".-" for c in domain):
+            continue
+        if domain.startswith(".") or domain.endswith(".") or ".." in domain:
+            continue
         if domain and domain not in _FREE_EMAIL_DOMAINS:
             domains.add(domain)
     return domains
@@ -38,27 +46,30 @@ async def resolve_company_ids_for_addresses(
     tenant_id: UUID,
     addresses: list[str],
 ) -> list[str]:
-    """Match company website/email fields containing external domains."""
-    domains = extract_domains(addresses)
+    """Match company website/email fields containing external domains.
+
+    Domain values are bound as parameters — never interpolated into SQL text.
+    """
+    domains = sorted(extract_domains(addresses))[:_MAX_DOMAINS]
     if not domains:
         return []
 
-    # Build OR clauses for domain substring match on website + email.
-    clauses = []
+    # Bound OR clauses with named parameters (d0, d1, ...) — keys are integers only.
+    clauses: list[str] = []
     params: dict = {"tid": str(tenant_id)}
-    for i, domain in enumerate(sorted(domains)):
+    for i, domain in enumerate(domains):
         key = f"d{i}"
         params[key] = f"%{domain}%"
         clauses.append(
-            f"(lower(coalesce(website, '')) LIKE :{key} OR lower(coalesce(email, '')) LIKE :{key})"
+            f"(lower(coalesce(website, '')) LIKE :{key} "
+            f"OR lower(coalesce(email, '')) LIKE :{key})"
         )
 
-    sql = f"""
-        SELECT id::text AS id
-        FROM companies
-        WHERE tenant_id = :tid
-          AND ({' OR '.join(clauses)})
-        LIMIT 20
-    """
-    result = await db.execute(sa_text(sql), params)
+    # Clause keys are generated from enumerate indices only (not user input).
+    sql = sa_text(
+        "SELECT id::text AS id FROM companies "
+        "WHERE tenant_id = :tid AND (" + " OR ".join(clauses) + ") "
+        "LIMIT 20"
+    )
+    result = await db.execute(sql, params)
     return [row["id"] for row in result.mappings().all()]

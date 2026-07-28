@@ -49,6 +49,9 @@ class Settings(BaseSettings):
         if self.database_url:
             # DATABASE_URL takes precedence (12-factor / Railway / Render)
             url = self.database_url
+            # Already asyncpg — do not double-prefix
+            if "+asyncpg://" in url or url.startswith("postgresql+asyncpg://"):
+                return url
             if url.startswith("postgresql://"):
                 url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
             elif url.startswith("postgres://"):
@@ -170,6 +173,8 @@ class Settings(BaseSettings):
     # Google Workspace integration
     google_redirect_uri: str = ""
     google_encryption_key: str = ""
+    # Comma-separated previous keys for decrypt during rotation (optional).
+    google_encryption_key_previous: str = ""
     # Post-OAuth browser return target (settings integrations panel)
     frontend_url: str = "http://localhost:3000"
 

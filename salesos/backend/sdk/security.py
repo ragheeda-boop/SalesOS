@@ -81,14 +81,21 @@ def _derive_fernet_key(secret: str) -> bytes:
     return base64.urlsafe_b64encode(digest)
 
 
-_fernet: Fernet | None = None
+_fernet_cache: dict[str, Fernet] = {}
 
 
 def _get_fernet(secret: str) -> Fernet:
-    global _fernet
-    if _fernet is None:
-        _fernet = Fernet(_derive_fernet_key(secret))
-    return _fernet
+    """Return a Fernet instance for the given secret (cached per secret).
+
+    Caching by secret (not a process-wide singleton) is required so key
+    rotation / dual-key decrypt can use different secrets in one process.
+    """
+    cached = _fernet_cache.get(secret)
+    if cached is not None:
+        return cached
+    f = Fernet(_derive_fernet_key(secret))
+    _fernet_cache[secret] = f
+    return f
 
 
 def encrypt_token(plaintext: str, secret: str) -> str:

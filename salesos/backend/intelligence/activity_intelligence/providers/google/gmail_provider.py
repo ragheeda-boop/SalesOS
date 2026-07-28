@@ -108,21 +108,40 @@ class GoogleGmailProvider(EmailProvider):
             query_parts.append(f"after:{epoch_str}")
         query = " ".join(query_parts) if query_parts else None
 
-        list_params: dict[str, Any] = {"maxResults": min(max_results, 100)}
-        if query:
-            list_params["q"] = query
-
-        list_data = await self._get("/messages", list_params)
-        message_ids = [m["id"] for m in list_data.get("messages", [])]
-
         emails: list[RawEmail] = []
-        for mid in message_ids:
-            try:
-                raw_email = await self.fetch_message(mid)
-                if raw_email:
-                    emails.append(raw_email)
-            except GmailAPIError as e:
-                logger.warning("gmail.fetch_message.failed", extra={"message_id": mid, "error": str(e)})
+        page_token: str | None = None
+        remaining = max(1, max_results)
+
+        while remaining > 0:
+            page_size = min(remaining, 100)
+            list_params: dict[str, Any] = {"maxResults": page_size}
+            if query:
+                list_params["q"] = query
+            if page_token:
+                list_params["pageToken"] = page_token
+
+            list_data = await self._get("/messages", list_params)
+            message_ids = [m["id"] for m in list_data.get("messages", [])]
+            if not message_ids:
+                break
+
+            for mid in message_ids:
+                if remaining <= 0:
+                    break
+                try:
+                    raw_email = await self.fetch_message(mid)
+                    if raw_email:
+                        emails.append(raw_email)
+                        remaining -= 1
+                except GmailAPIError as e:
+                    logger.warning(
+                        "gmail.fetch_message.failed",
+                        extra={"message_id": mid, "error": str(e)},
+                    )
+
+            page_token = list_data.get("nextPageToken")
+            if not page_token:
+                break
 
         return emails
 

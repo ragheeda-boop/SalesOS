@@ -514,10 +514,32 @@ class TestWebhookSSRF:
             async def sleep(self, seconds):
                 return None
 
-        backend = _PinnedIPBackend("93.184.216.34")
+        backend = _PinnedIPBackend(("93.184.216.34", "93.184.216.35"))
         backend._inner = _FakeInner()
         asyncio.run(backend.connect_tcp("evil-rebinding.example", 443))
         assert calls == [("93.184.216.34", 443)]
+
+    def test_pinned_backend_tries_next_ip_on_failure(self):
+        import asyncio
+
+        from app.modules.webhooks.url_safety import _PinnedIPBackend
+
+        calls: list[str] = []
+
+        class _FakeInner:
+            async def connect_tcp(self, host, port, timeout=None, local_address=None, socket_options=None):
+                calls.append(host)
+                if host == "1.1.1.1":
+                    raise OSError("down")
+                return object()
+
+            async def sleep(self, seconds):
+                return None
+
+        backend = _PinnedIPBackend(("1.1.1.1", "2.2.2.2"))
+        backend._inner = _FakeInner()
+        asyncio.run(backend.connect_tcp("example.com", 443))
+        assert calls == ["1.1.1.1", "2.2.2.2"]
 
     @pytest.mark.asyncio
     async def test_delivery_uses_pinned_transport_when_dns_resolved(self, sub_repo, delivery_repo):
@@ -579,7 +601,7 @@ class TestWebhookSSRF:
                 "company.created", {"id": "c1"}, "tenant-1"
             )
 
-        assert build_pin.call_args.args[0] == "93.184.216.34"
+        assert build_pin.call_args.args[0] == ("93.184.216.34",)
         assert captured["kwargs"].get("transport") is not None
         assert captured["kwargs"].get("follow_redirects") is False
         assert deliveries[0].status == "success"

@@ -36,9 +36,13 @@ router = APIRouter(
 async def get_dashboard(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
+    limit: int = Query(10, ge=1, le=50),
+    offset: int = Query(0, ge=0),
 ):
     now = datetime.now(timezone.utc)
     thirty_days_ago = now - timedelta(days=30)
+    fourteen_days_ago = now - timedelta(days=14)
+    seven_days_ago = now - timedelta(days=7)
 
     email_row = (await db.execute(
         sa_text("""
@@ -63,36 +67,61 @@ async def get_dashboard(
         {"tid": tenant_id, "since": thirty_days_ago},
     )).mappings().one()
 
+    top_total_row = (await db.execute(
+        sa_text("""
+            SELECT COUNT(*) AS c FROM (
+                SELECT company_id
+                FROM employee_email_events e
+                CROSS JOIN LATERAL jsonb_array_elements_text(e.related_company_ids) AS company_id
+                WHERE e.tenant_id = :tid AND e.timestamp_utc >= :since
+                  AND e.related_company_ids != '[]'::jsonb
+                GROUP BY company_id
+            ) t
+        """),
+        {"tid": tenant_id, "since": thirty_days_ago},
+    )).mappings().one()
+
     top_companies = (await db.execute(
         sa_text("""
             SELECT
-                unnest(related_company_ids) as company_id,
+                company_id::text AS company_id,
+                COALESCE(c.name_en, c.name_ar, '') AS name,
                 COUNT(*) as email_count
-            FROM employee_email_events
-            WHERE tenant_id = :tid AND timestamp_utc >= :since
-              AND related_company_ids != '[]'::jsonb
-            GROUP BY company_id
+            FROM employee_email_events e
+            CROSS JOIN LATERAL jsonb_array_elements_text(e.related_company_ids) AS company_id
+            LEFT JOIN companies c
+              ON c.id::text = company_id AND c.tenant_id = e.tenant_id
+            WHERE e.tenant_id = :tid AND e.timestamp_utc >= :since
+              AND e.related_company_ids != '[]'::jsonb
+            GROUP BY company_id, c.name_en, c.name_ar
             ORDER BY email_count DESC
-            LIMIT 10
+            LIMIT :lim OFFSET :off
         """),
-        {"tid": tenant_id, "since": thirty_days_ago},
+        {
+            "tid": tenant_id,
+            "since": thirty_days_ago,
+            "lim": limit,
+            "off": offset,
+        },
     )).mappings().all()
 
     followup_row = (await db.execute(
         sa_text("""
-            SELECT COUNT(*) AS stale_count
+            SELECT
+                COUNT(*) FILTER (WHERE last_outbound < :since7) AS need_followup,
+                COUNT(*) FILTER (WHERE last_outbound < :since14) AS overdue
             FROM (
-                SELECT employee_id
+                SELECT employee_id, MAX(timestamp_utc) AS last_outbound
                 FROM employee_email_events
                 WHERE tenant_id = :tid AND direction = 'outbound'
                 GROUP BY employee_id
-                HAVING MAX(timestamp_utc) < :since7
             ) s
+            WHERE last_outbound < :since7
         """),
-        {"tid": tenant_id, "since7": now - timedelta(days=7)},
+        {"tid": tenant_id, "since7": seven_days_ago, "since14": fourteen_days_ago},
     )).mappings().one()
-    followup_count = followup_row["stale_count"] or 0
-    overdue_count = followup_count
+    need_followup = int(followup_row["need_followup"] or 0)
+    overdue_count = int(followup_row["overdue"] or 0)
 
     engagement_trend = (await db.execute(
         sa_text("""
@@ -101,8 +130,14 @@ async def get_dashboard(
             WHERE tenant_id = :tid AND timestamp_utc >= :since
             GROUP BY day
             ORDER BY day
+            LIMIT :lim OFFSET :off
         """),
-        {"tid": tenant_id, "since": thirty_days_ago},
+        {
+            "tid": tenant_id,
+            "since": thirty_days_ago,
+            "lim": limit,
+            "off": offset,
+        },
     )).mappings().all()
 
     return {
@@ -113,19 +148,22 @@ async def get_dashboard(
         "meeting_active": cal_row["active"],
         "meeting_cancelled": cal_row["cancelled"],
         "meeting_hours": round((cal_row["total_minutes"] or 0) / 60, 1),
-        "followup_count": followup_count,
+        "followup_count": need_followup,
         "overdue_count": overdue_count,
         "top_companies": [
             {
                 "company_id": str(r["company_id"]),
-                "name": "",
+                "name": r["name"] or "",
                 "count": r["email_count"],
             }
             for r in top_companies
         ],
+        "top_companies_total": int(top_total_row["c"] or 0),
         "engagement_trend": [
             {"date": str(r["day"]), "value": r["count"]} for r in engagement_trend
         ],
+        "limit": limit,
+        "offset": offset,
         "period": "30d",
     }
 
@@ -203,15 +241,12 @@ async def get_email_metrics(
     employee_id: str | None = Query(None),
 ):
     since = datetime.now(timezone.utc) - timedelta(days=days)
-
-    conditions = "tenant_id = :tid AND timestamp_utc >= :since"
     params: dict = {"tid": tenant_id, "since": since}
     if employee_id:
-        conditions += " AND employee_id = :eid"
         params["eid"] = employee_id
 
-    row = (await db.execute(
-        sa_text(f"""
+    if employee_id:
+        count_sql = sa_text("""
             SELECT COUNT(*) as total,
                    COUNT(CASE WHEN direction = 'inbound' THEN 1 END) as inbound,
                    COUNT(CASE WHEN direction = 'outbound' THEN 1 END) as outbound,
@@ -219,33 +254,165 @@ async def get_email_metrics(
                    COUNT(CASE WHEN is_read THEN 1 END) as read_count,
                    COUNT(CASE WHEN NOT is_read THEN 1 END) as unread_count
             FROM employee_email_events
-            WHERE {conditions}
-        """),
-        params,
-    )).mappings().one()
-
-    daily = (await db.execute(
-        sa_text(f"""
+            WHERE tenant_id = :tid AND timestamp_utc >= :since AND employee_id = :eid
+        """)
+        reply_sql = sa_text("""
+            SELECT
+                COUNT(*) FILTER (WHERE has_in) AS inbound_threads,
+                COUNT(*) FILTER (WHERE has_in AND has_out) AS replied_threads
+            FROM (
+                SELECT thread_id,
+                       bool_or(direction IN ('inbound', 'received')) AS has_in,
+                       bool_or(direction IN ('outbound', 'sent')) AS has_out
+                FROM employee_email_events
+                WHERE tenant_id = :tid AND timestamp_utc >= :since
+                  AND thread_id IS NOT NULL AND thread_id <> ''
+                  AND employee_id = :eid
+                GROUP BY thread_id
+            ) t
+        """)
+        avg_sql = sa_text("""
+            SELECT AVG(EXTRACT(EPOCH FROM (first_out - first_in)) / 3600.0) AS avg_hours
+            FROM (
+                SELECT thread_id,
+                       MIN(timestamp_utc) FILTER (
+                         WHERE direction IN ('inbound', 'received')
+                       ) AS first_in,
+                       MIN(timestamp_utc) FILTER (
+                         WHERE direction IN ('outbound', 'sent')
+                       ) AS first_out
+                FROM employee_email_events
+                WHERE tenant_id = :tid AND timestamp_utc >= :since
+                  AND thread_id IS NOT NULL AND thread_id <> ''
+                  AND employee_id = :eid
+                GROUP BY thread_id
+            ) t
+            WHERE first_in IS NOT NULL AND first_out IS NOT NULL AND first_out >= first_in
+        """)
+        top_sql = sa_text("""
+            SELECT company_id::text AS company_id,
+                   COALESCE(c.name_en, c.name_ar, '') AS name,
+                   COUNT(*) AS email_count
+            FROM employee_email_events e
+            CROSS JOIN LATERAL jsonb_array_elements_text(e.related_company_ids) AS company_id
+            LEFT JOIN companies c
+              ON c.id::text = company_id AND c.tenant_id = e.tenant_id
+            WHERE e.tenant_id = :tid AND e.timestamp_utc >= :since
+              AND e.related_company_ids != '[]'::jsonb
+              AND e.employee_id = :eid
+            GROUP BY company_id, c.name_en, c.name_ar
+            ORDER BY email_count DESC
+            LIMIT 10
+        """)
+        daily_sql = sa_text("""
             SELECT DATE(timestamp_utc) as day, COUNT(*) as count
             FROM employee_email_events
-            WHERE {conditions}
+            WHERE tenant_id = :tid AND timestamp_utc >= :since AND employee_id = :eid
             GROUP BY day ORDER BY day
-        """),
-        params,
-    )).mappings().all()
+        """)
+    else:
+        count_sql = sa_text("""
+            SELECT COUNT(*) as total,
+                   COUNT(CASE WHEN direction = 'inbound' THEN 1 END) as inbound,
+                   COUNT(CASE WHEN direction = 'outbound' THEN 1 END) as outbound,
+                   COUNT(CASE WHEN has_attachments THEN 1 END) as with_attachments,
+                   COUNT(CASE WHEN is_read THEN 1 END) as read_count,
+                   COUNT(CASE WHEN NOT is_read THEN 1 END) as unread_count
+            FROM employee_email_events
+            WHERE tenant_id = :tid AND timestamp_utc >= :since
+        """)
+        reply_sql = sa_text("""
+            SELECT
+                COUNT(*) FILTER (WHERE has_in) AS inbound_threads,
+                COUNT(*) FILTER (WHERE has_in AND has_out) AS replied_threads
+            FROM (
+                SELECT thread_id,
+                       bool_or(direction IN ('inbound', 'received')) AS has_in,
+                       bool_or(direction IN ('outbound', 'sent')) AS has_out
+                FROM employee_email_events
+                WHERE tenant_id = :tid AND timestamp_utc >= :since
+                  AND thread_id IS NOT NULL AND thread_id <> ''
+                GROUP BY thread_id
+            ) t
+        """)
+        avg_sql = sa_text("""
+            SELECT AVG(EXTRACT(EPOCH FROM (first_out - first_in)) / 3600.0) AS avg_hours
+            FROM (
+                SELECT thread_id,
+                       MIN(timestamp_utc) FILTER (
+                         WHERE direction IN ('inbound', 'received')
+                       ) AS first_in,
+                       MIN(timestamp_utc) FILTER (
+                         WHERE direction IN ('outbound', 'sent')
+                       ) AS first_out
+                FROM employee_email_events
+                WHERE tenant_id = :tid AND timestamp_utc >= :since
+                  AND thread_id IS NOT NULL AND thread_id <> ''
+                GROUP BY thread_id
+            ) t
+            WHERE first_in IS NOT NULL AND first_out IS NOT NULL AND first_out >= first_in
+        """)
+        top_sql = sa_text("""
+            SELECT company_id::text AS company_id,
+                   COALESCE(c.name_en, c.name_ar, '') AS name,
+                   COUNT(*) AS email_count
+            FROM employee_email_events e
+            CROSS JOIN LATERAL jsonb_array_elements_text(e.related_company_ids) AS company_id
+            LEFT JOIN companies c
+              ON c.id::text = company_id AND c.tenant_id = e.tenant_id
+            WHERE e.tenant_id = :tid AND e.timestamp_utc >= :since
+              AND e.related_company_ids != '[]'::jsonb
+            GROUP BY company_id, c.name_en, c.name_ar
+            ORDER BY email_count DESC
+            LIMIT 10
+        """)
+        daily_sql = sa_text("""
+            SELECT DATE(timestamp_utc) as day, COUNT(*) as count
+            FROM employee_email_events
+            WHERE tenant_id = :tid AND timestamp_utc >= :since
+            GROUP BY day ORDER BY day
+        """)
+
+    row = (await db.execute(count_sql, params)).mappings().one()
+
+    # Thread-based reply rate: inbound threads that also have outbound.
+    reply_row = (await db.execute(reply_sql, params)).mappings().one()
+    inbound_threads = int(reply_row["inbound_threads"] or 0)
+    replied_threads = int(reply_row["replied_threads"] or 0)
+    reply_rate = round(replied_threads / inbound_threads, 4) if inbound_threads else 0.0
+
+    # Avg hours from first inbound to first subsequent outbound in same thread.
+    avg_resp = (await db.execute(avg_sql, params)).mappings().one()
+    avg_hours = avg_resp["avg_hours"]
+    avg_response_hours = round(float(avg_hours), 2) if avg_hours is not None else None
+
+    top_companies = (await db.execute(top_sql, params)).mappings().all()
+    daily = (await db.execute(daily_sql, params)).mappings().all()
+
+    outbound = int(row["outbound"] or 0)
+    inbound = int(row["inbound"] or 0)
 
     return {
         "total": row["total"],
-        "total_sent": row["outbound"],
-        "total_received": row["inbound"],
-        "inbound": row["inbound"],
-        "outbound": row["outbound"],
-        "reply_rate": round((row["outbound"] or 0) / max(1, row["inbound"] or 0), 4),
-        "avg_response_hours": None,
+        "total_sent": outbound,
+        "total_received": inbound,
+        "inbound": inbound,
+        "outbound": outbound,
+        "reply_rate": reply_rate,
+        "reply_rate_definition": "replied_inbound_threads / inbound_threads",
+        "outbound_inbound_ratio": round(outbound / max(1, inbound), 4),
+        "avg_response_hours": avg_response_hours,
         "with_attachments": row["with_attachments"],
         "read_count": row["read_count"],
         "unread_count": row["unread_count"],
-        "top_companies": [],
+        "top_companies": [
+            {
+                "company_id": str(r["company_id"]),
+                "name": r["name"] or "",
+                "count": r["email_count"],
+            }
+            for r in top_companies
+        ],
         "daily": [{"date": str(r["day"]), "count": r["count"]} for r in daily],
         "period": f"{days}d",
     }
@@ -260,16 +427,14 @@ async def get_calendar_metrics(
     days: int = Query(30, ge=1, le=365),
     employee_id: str | None = Query(None),
 ):
-    since = datetime.now(timezone.utc) - timedelta(days=days)
-
-    conditions = "tenant_id = :tid AND start_utc >= :since"
-    params: dict = {"tid": tenant_id, "since": since}
+    now = datetime.now(timezone.utc)
+    since = now - timedelta(days=days)
+    params: dict = {"tid": tenant_id, "since": since, "now": now}
     if employee_id:
-        conditions += " AND employee_id = :eid"
         params["eid"] = employee_id
 
-    row = (await db.execute(
-        sa_text(f"""
+    if employee_id:
+        count_sql = sa_text("""
             SELECT COUNT(*) as total,
                    COUNT(CASE WHEN is_cancelled = false THEN 1 END) as active,
                    COUNT(CASE WHEN is_cancelled = true THEN 1 END) as cancelled,
@@ -278,10 +443,42 @@ async def get_calendar_metrics(
                    COUNT(CASE WHEN is_internal THEN 1 END) as internal,
                    COUNT(CASE WHEN NOT is_internal THEN 1 END) as external
             FROM employee_calendar_events
-            WHERE {conditions}
-        """),
-        params,
-    )).mappings().one()
+            WHERE tenant_id = :tid AND start_utc >= :since AND employee_id = :eid
+        """)
+        upcoming_sql = sa_text("""
+            SELECT id::text, title, start_utc, end_utc, duration_minutes, location
+            FROM employee_calendar_events
+            WHERE tenant_id = :tid
+              AND is_cancelled = false
+              AND start_utc >= :now
+              AND employee_id = :eid
+            ORDER BY start_utc ASC
+            LIMIT 10
+        """)
+    else:
+        count_sql = sa_text("""
+            SELECT COUNT(*) as total,
+                   COUNT(CASE WHEN is_cancelled = false THEN 1 END) as active,
+                   COUNT(CASE WHEN is_cancelled = true THEN 1 END) as cancelled,
+                   COALESCE(SUM(duration_minutes), 0) as total_minutes,
+                   COALESCE(AVG(duration_minutes), 0) as avg_minutes,
+                   COUNT(CASE WHEN is_internal THEN 1 END) as internal,
+                   COUNT(CASE WHEN NOT is_internal THEN 1 END) as external
+            FROM employee_calendar_events
+            WHERE tenant_id = :tid AND start_utc >= :since
+        """)
+        upcoming_sql = sa_text("""
+            SELECT id::text, title, start_utc, end_utc, duration_minutes, location
+            FROM employee_calendar_events
+            WHERE tenant_id = :tid
+              AND is_cancelled = false
+              AND start_utc >= :now
+            ORDER BY start_utc ASC
+            LIMIT 10
+        """)
+
+    row = (await db.execute(count_sql, params)).mappings().one()
+    upcoming = (await db.execute(upcoming_sql, params)).mappings().all()
 
     return {
         "total": row["total"],
@@ -294,7 +491,17 @@ async def get_calendar_metrics(
         "avg_minutes": round(row["avg_minutes"] or 0),
         "internal": row["internal"],
         "external": row["external"],
-        "upcoming": [],
+        "upcoming": [
+            {
+                "id": str(r["id"]),
+                "title": r["title"],
+                "start_utc": str(r["start_utc"]),
+                "end_utc": str(r["end_utc"]),
+                "duration_minutes": r["duration_minutes"],
+                "location": r["location"],
+            }
+            for r in upcoming
+        ],
         "period": f"{days}d",
     }
 
@@ -305,49 +512,109 @@ async def get_calendar_metrics(
 async def get_followups(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
 ):
     now = datetime.now(timezone.utc)
     seven_days_ago = now - timedelta(days=7)
+    fourteen_days_ago = now - timedelta(days=14)
 
     stale = (await db.execute(
         sa_text("""
-            SELECT employee_id, MAX(timestamp_utc) as last_activity
-            FROM employee_email_events
-            WHERE tenant_id = :tid AND direction = 'outbound'
-            GROUP BY employee_id
-            HAVING MAX(timestamp_utc) < :since
+            SELECT employee_id,
+                   last_activity,
+                   last_direction,
+                   EXTRACT(EPOCH FROM (:now - last_activity)) / 86400.0 AS last_outbound_days
+            FROM (
+                SELECT employee_id,
+                       MAX(timestamp_utc) AS last_activity,
+                       (ARRAY_AGG(direction ORDER BY timestamp_utc DESC))[1] AS last_direction
+                FROM employee_email_events
+                WHERE tenant_id = :tid
+                GROUP BY employee_id
+            ) s
+            WHERE last_activity < :since7
             ORDER BY last_activity ASC
-            LIMIT 20
+            LIMIT :lim OFFSET :off
         """),
-        {"tid": tenant_id, "since": seven_days_ago},
+        {
+            "tid": tenant_id,
+            "since7": seven_days_ago,
+            "now": now,
+            "lim": limit,
+            "off": offset,
+        },
     )).mappings().all()
 
+    counts = (await db.execute(
+        sa_text("""
+            SELECT
+                COUNT(*) FILTER (WHERE last_activity < :since7) AS need_followup,
+                COUNT(*) FILTER (WHERE last_activity < :since14) AS overdue,
+                COUNT(*) FILTER (
+                    WHERE last_activity < :since7
+                      AND last_direction IN ('inbound', 'received')
+                ) AS waiting_you,
+                COUNT(*) FILTER (
+                    WHERE last_activity < :since7
+                      AND last_direction IN ('outbound', 'sent')
+                ) AS waiting_customer
+            FROM (
+                SELECT employee_id,
+                       MAX(timestamp_utc) AS last_activity,
+                       (ARRAY_AGG(direction ORDER BY timestamp_utc DESC))[1] AS last_direction
+                FROM employee_email_events
+                WHERE tenant_id = :tid
+                GROUP BY employee_id
+            ) s
+        """),
+        {"tid": tenant_id, "since7": seven_days_ago, "since14": fourteen_days_ago},
+    )).mappings().one()
+
+    need_followup = int(counts["need_followup"] or 0)
+    overdue = int(counts["overdue"] or 0)
+    waiting_you = int(counts["waiting_you"] or 0)
+    waiting_customer = int(counts["waiting_customer"] or 0)
+
+    items = []
+    for r in stale:
+        days = float(r["last_outbound_days"] or 0)
+        is_overdue = days >= 14
+        last_dir = (r["last_direction"] or "").lower()
+        wait_you = last_dir in ("inbound", "received")
+        priority = "high" if is_overdue else ("medium" if days >= 10 else "low")
+        items.append(
+            {
+                # Company linkage not derived from employee-level stale query yet.
+                "company_id": None,
+                "company_id_available": False,
+                "assigned": False,
+                "need_followup": True,
+                "waiting_customer": not wait_you and last_dir in ("outbound", "sent"),
+                "waiting_you": wait_you,
+                "overdue": is_overdue,
+                "last_outbound_days": round(days, 1),
+                "priority": priority,
+                "priority_definition": "high>=14d, medium>=10d, else low (days since last activity)",
+                "employee_id": str(r["employee_id"]),
+                "last_outbound": str(r["last_activity"]),
+            }
+        )
+
     return {
-        "total": len(stale),
-        "overdue": len(stale),
-        "need_followup": len(stale),
-        "waiting_you": 0,
-        "waiting_customer": 0,
-        "stale_count": len(stale),
+        "total": need_followup,
+        "overdue": overdue,
+        "need_followup": need_followup,
+        "waiting_you": waiting_you,
+        "waiting_customer": waiting_customer,
+        "stale_count": need_followup,
         "stale_employees": [
             {"employee_id": str(r["employee_id"]), "last_outbound": str(r["last_activity"])}
             for r in stale
         ],
-        "items": [
-            {
-                "company_id": "",
-                "assigned": False,
-                "need_followup": True,
-                "waiting_customer": False,
-                "waiting_you": True,
-                "overdue": True,
-                "last_outbound_days": None,
-                "priority": "high",
-                "employee_id": str(r["employee_id"]),
-                "last_outbound": str(r["last_activity"]),
-            }
-            for r in stale
-        ],
+        "items": items,
+        "limit": limit,
+        "offset": offset,
     }
 
 
@@ -361,7 +628,7 @@ async def get_engagement_summary(
 ):
     since = datetime.now(timezone.utc) - timedelta(days=days)
 
-    rows = (await db.execute(
+    employee_rows = (await db.execute(
         sa_text("""
             SELECT employee_id,
                    COUNT(*) as email_count,
@@ -376,20 +643,67 @@ async def get_engagement_summary(
         {"tid": tenant_id, "since": since},
     )).mappings().all()
 
+    company_rows = (await db.execute(
+        sa_text("""
+            SELECT company_id::text AS company_id,
+                   COALESCE(c.name_en, c.name_ar, '') AS name,
+                   COUNT(*) AS email_count
+            FROM employee_email_events e
+            CROSS JOIN LATERAL jsonb_array_elements_text(e.related_company_ids) AS company_id
+            LEFT JOIN companies c
+              ON c.id::text = company_id AND c.tenant_id = e.tenant_id
+            WHERE e.tenant_id = :tid AND e.timestamp_utc >= :since
+              AND e.related_company_ids != '[]'::jsonb
+            GROUP BY company_id, c.name_en, c.name_ar
+            ORDER BY email_count DESC
+            LIMIT 20
+        """),
+        {"tid": tenant_id, "since": since},
+    )).mappings().all()
+
+    totals = (await db.execute(
+        sa_text("""
+            SELECT
+                (
+                    SELECT COUNT(DISTINCT company_id)
+                    FROM employee_email_events e
+                    CROSS JOIN LATERAL jsonb_array_elements_text(e.related_company_ids)
+                        AS company_id
+                    WHERE e.tenant_id = :tid AND e.timestamp_utc >= :since
+                      AND e.related_company_ids != '[]'::jsonb
+                ) AS total_companies,
+                (
+                    SELECT COUNT(DISTINCT employee_id)
+                    FROM employee_email_events
+                    WHERE tenant_id = :tid AND timestamp_utc >= :since
+                ) AS total_employees
+        """),
+        {"tid": tenant_id, "since": since},
+    )).mappings().one()
+
+    total_companies = int(totals["total_companies"] or 0)
+    total_employees = int(totals["total_employees"] or 0)
+    active_companies = len([r for r in company_rows if r["email_count"] > 0])
+    # Honest: health / stagnant not modeled yet — expose null / unavailable, not fake zeros.
     return {
-        "total_companies": len(rows),
-        "active_companies": len([r for r in rows if r["email_count"] > 0]),
-        "avg_relationship_health": 0,
-        "stagnant_companies": 0,
+        "total_companies": total_companies,
+        "total_employees": total_employees,
+        # Backward-compatible alias: older clients misread total_companies as employees.
+        "total_companies_definition": "distinct companies linked via related_company_ids",
+        "active_companies": active_companies,
+        "avg_relationship_health": None,
+        "relationship_health_available": False,
+        "stagnant_companies": None,
+        "stagnant_companies_available": False,
         "top_engaged": [
             {
-                "company_id": "",
-                "name": str(r["employee_id"]),
-                "health": 0,
-                "employee_id": str(r["employee_id"]),
+                "company_id": str(r["company_id"]),
+                "name": r["name"] or "",
+                "health": None,
+                "health_available": False,
                 "email_count": r["email_count"],
             }
-            for r in rows[:5]
+            for r in company_rows[:5]
         ],
         "employees": [
             {
@@ -398,7 +712,7 @@ async def get_engagement_summary(
                 "inbound": r["inbound"],
                 "outbound": r["outbound"],
             }
-            for r in rows
+            for r in employee_rows
         ],
         "period": f"{days}d",
     }
@@ -413,8 +727,25 @@ async def get_employee_email_events(
     db: AsyncSession = Depends(get_db_session),
     days: int = Query(30, ge=1, le=365),
     limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
 ):
     since = datetime.now(timezone.utc) - timedelta(days=days)
+    params = {
+        "tid": tenant_id,
+        "eid": employee_id,
+        "since": since,
+        "lim": limit,
+        "off": offset,
+    }
+
+    total_row = (await db.execute(
+        sa_text("""
+            SELECT COUNT(*) AS c
+            FROM employee_email_events
+            WHERE tenant_id = :tid AND employee_id = :eid AND timestamp_utc >= :since
+        """),
+        params,
+    )).mappings().one()
 
     rows = (await db.execute(
         sa_text("""
@@ -424,9 +755,9 @@ async def get_employee_email_events(
             FROM employee_email_events
             WHERE tenant_id = :tid AND employee_id = :eid AND timestamp_utc >= :since
             ORDER BY timestamp_utc DESC
-            LIMIT :lim
+            LIMIT :lim OFFSET :off
         """),
-        {"tid": tenant_id, "eid": employee_id, "since": since, "lim": limit},
+        params,
     )).mappings().all()
 
     return {
@@ -447,7 +778,9 @@ async def get_employee_email_events(
             }
             for r in rows
         ],
-        "total": len(rows),
+        "total": int(total_row["c"] or 0),
+        "limit": limit,
+        "offset": offset,
         "period": f"{days}d",
     }
 
@@ -461,8 +794,25 @@ async def get_employee_calendar_events(
     db: AsyncSession = Depends(get_db_session),
     days: int = Query(30, ge=1, le=365),
     limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
 ):
     since = datetime.now(timezone.utc) - timedelta(days=days)
+    params = {
+        "tid": tenant_id,
+        "eid": employee_id,
+        "since": since,
+        "lim": limit,
+        "off": offset,
+    }
+
+    total_row = (await db.execute(
+        sa_text("""
+            SELECT COUNT(*) AS c
+            FROM employee_calendar_events
+            WHERE tenant_id = :tid AND employee_id = :eid AND start_utc >= :since
+        """),
+        params,
+    )).mappings().one()
 
     rows = (await db.execute(
         sa_text("""
@@ -473,9 +823,9 @@ async def get_employee_calendar_events(
             FROM employee_calendar_events
             WHERE tenant_id = :tid AND employee_id = :eid AND start_utc >= :since
             ORDER BY start_utc DESC
-            LIMIT :lim
+            LIMIT :lim OFFSET :off
         """),
-        {"tid": tenant_id, "eid": employee_id, "since": since, "lim": limit},
+        params,
     )).mappings().all()
 
     return {
@@ -498,6 +848,8 @@ async def get_employee_calendar_events(
             }
             for r in rows
         ],
-        "total": len(rows),
+        "total": int(total_row["c"] or 0),
+        "limit": limit,
+        "offset": offset,
         "period": f"{days}d",
     }
