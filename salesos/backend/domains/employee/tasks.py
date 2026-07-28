@@ -36,6 +36,11 @@ from app.modules.identity.models import User
 _engine = None
 _engine_lock = None
 
+_FREE_EMAIL_DOMAINS = {
+    "gmail.com", "googlemail.com", "yahoo.com", "hotmail.com", "outlook.com",
+    "live.com", "icloud.com", "me.com", "aol.com", "proton.me", "protonmail.com",
+}
+
 
 async def _get_session() -> AsyncSession:
     global _engine
@@ -46,6 +51,74 @@ async def _get_session() -> AsyncSession:
         )
     factory = async_sessionmaker(_engine, expire_on_commit=False)
     return factory()
+
+
+def _extract_email_address(raw: str | None) -> str | None:
+    if not raw:
+        return None
+    value = raw.strip().lower()
+    if "<" in value and ">" in value:
+        value = value[value.rfind("<") + 1:value.rfind(">")].strip()
+    if "@" not in value:
+        return None
+    return value
+
+
+def _domain_of(email: str | None) -> str | None:
+    addr = _extract_email_address(email)
+    if not addr or "@" not in addr:
+        return None
+    domain = addr.split("@", 1)[1].lower()
+    if domain in _FREE_EMAIL_DOMAINS:
+        return None
+    return domain
+
+
+async def _resolve_related_company_ids(
+    db: AsyncSession,
+    tenant_id: uuid.UUID,
+    emails: list[str | None],
+) -> list[str]:
+    """Map participant emails to company IDs via contacts and company website/email domains."""
+    addresses = [a for a in (_extract_email_address(e) for e in emails) if a]
+    if not addresses:
+        return []
+
+    company_ids: set[str] = set()
+    try:
+        from app.modules.contact.models import Contact
+        from app.modules.company.models import Company
+
+        contact_rows = await db.execute(
+            select(Contact.company_id).where(
+                Contact.tenant_id == tenant_id,
+                Contact.email.in_(addresses),
+                Contact.company_id.isnot(None),
+            )
+        )
+        for cid in contact_rows.scalars().all():
+            if cid:
+                company_ids.add(str(cid))
+
+        domains = {_domain_of(a) for a in addresses}
+        domains.discard(None)
+        if domains:
+            companies = await db.execute(
+                select(Company.id, Company.website, Company.email).where(
+                    Company.tenant_id == tenant_id,
+                )
+            )
+            for row in companies.all():
+                site = (row.website or "").lower()
+                cemail = (row.email or "").lower()
+                for domain in domains:
+                    if domain and (domain in site or cemail.endswith("@" + domain)):
+                        company_ids.add(str(row.id))
+                        break
+    except Exception:
+        return list(company_ids)
+
+    return list(company_ids)
 
 
 # ── Calendar Sync ──────────────────────────────────────────────────
@@ -135,6 +208,9 @@ async def _sync_google_calendar(
             start_dt = start.get("dateTime") or start.get("date")
             end_dt = end.get("dateTime") or end.get("date")
 
+            attendee_emails = [a.get("email") for a in event.get("attendees", [])]
+            attendee_emails.append(event.get("organizer", {}).get("email"))
+            related_companies = await _resolve_related_company_ids(db, tid, attendee_emails)
             cal_event = EmployeeCalendarEventModel(
                 id=uuid.uuid4(),
                 employee_id=eid, tenant_id=tid, provider="google",
@@ -151,6 +227,7 @@ async def _sync_google_calendar(
                 organizer_email=event.get("organizer", {}).get("email"),
                 response_status=event.get("attendees", [{}])[0].get("responseStatus", "accepted") if event.get("attendees") else "accepted",
                 location=event.get("location"),
+                related_company_ids=related_companies,
             )
             db.add(cal_event)
 
@@ -197,6 +274,11 @@ async def _sync_microsoft_calendar(
 
             is_cancelled = event.get("isCancelled", False) or event.get("removed", {}).get("reason") is not None
 
+            attendee_emails = [
+                a.get("emailAddress", {}).get("address") for a in event.get("attendees", [])
+            ]
+            attendee_emails.append(event.get("organizer", {}).get("emailAddress", {}).get("address"))
+            related_companies = await _resolve_related_company_ids(db, tid, attendee_emails)
             cal_event = EmployeeCalendarEventModel(
                 id=uuid.uuid4(),
                 employee_id=eid, tenant_id=tid, provider="microsoft",
@@ -212,6 +294,7 @@ async def _sync_microsoft_calendar(
                 conference_link=event.get("onlineMeeting", {}).get("joinUrl"),
                 organizer_email=event.get("organizer", {}).get("emailAddress", {}).get("address"),
                 location=event.get("location", {}).get("displayName"),
+                related_company_ids=related_companies,
             )
             db.add(cal_event)
 
@@ -392,6 +475,11 @@ async def _sync_gmail(
                 except (TypeError, ValueError):
                     pass
 
+            related_companies = await _resolve_related_company_ids(
+                db,
+                tid,
+                [headers_map.get("from"), headers_map.get("to"), headers_map.get("cc")],
+            )
             email = EmployeeEmailEventModel(
                 id=uuid.uuid4(),
                 employee_id=eid,
@@ -410,6 +498,7 @@ async def _sync_gmail(
                 is_read="UNREAD" not in labels,
                 sync_history_id=new_history_id,
                 last_synced_at=datetime.now(timezone.utc),
+                related_company_ids=related_companies,
             )
             db.add(email)
 
@@ -431,20 +520,27 @@ async def _sync_outlook(db: AsyncSession, employee_id: str, tenant_id: str, toke
             return
         data = resp.json()
         for msg in data.get("value", []):
+            to_addrs = [r.get("emailAddress", {}).get("address") for r in msg.get("toRecipients", [])]
+            cc_addrs = [r.get("emailAddress", {}).get("address") for r in msg.get("ccRecipients", [])]
+            from_addr = msg.get("from", {}).get("emailAddress", {}).get("address")
+            related_companies = await _resolve_related_company_ids(
+                db, uuid.UUID(tenant_id), [from_addr, *to_addrs, *cc_addrs]
+            )
             email = EmployeeEmailEventModel(
                 id=uuid.uuid4(),
                 employee_id=uuid.UUID(employee_id), tenant_id=uuid.UUID(tenant_id), provider="microsoft",
                 provider_message_id=msg.get("id"),
                 thread_id=msg.get("conversationId"),
                 direction="sent" if msg.get("sender", {}).get("emailAddress", {}).get("address", "").endswith("@") else "received",
-                from_address=msg.get("from", {}).get("emailAddress", {}).get("address"),
-                to_addresses=[r.get("emailAddress", {}).get("address") for r in msg.get("toRecipients", [])],
-                cc_addresses=[r.get("emailAddress", {}).get("address") for r in msg.get("ccRecipients", [])],
+                from_address=from_addr,
+                to_addresses=to_addrs,
+                cc_addresses=cc_addrs,
                 subject=msg.get("subject"),
                 snippet=msg.get("bodyPreview"),
                 has_attachments=msg.get("hasAttachments", False),
                 is_read=msg.get("isRead", True),
                 timestamp_utc=datetime.fromisoformat(msg.get("receivedDateTime", "").replace("Z", "+00:00")),
+                related_company_ids=related_companies,
             )
             db.add(email)
 
