@@ -159,6 +159,8 @@ class TestGoogleOAuthService:
             _OAUTH_STATE_STORE.clear()
 
     def test_generate_authorization_url_uses_custom_redirect(self):
+        from urllib.parse import quote
+
         service = self._make_service()
         with patch("app.modules.communication_hub.service.settings") as mock_settings:
             mock_settings.sso_google_client_id = "test-client-id"
@@ -166,7 +168,9 @@ class TestGoogleOAuthService:
 
             auth_url, _ = service.generate_authorization_url()
 
-            assert "https://custom.example.com/callback" in auth_url
+            assert quote("https://custom.example.com/callback", safe="") in auth_url
+            assert "redirect_uri=" in auth_url
+            assert "access_type=offline" in auth_url
 
     def test_clean_expired_states(self):
         _OAUTH_STATE_STORE.clear()
