@@ -97,6 +97,7 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
       ZOOKEEPER_SERVER_ID: 1
+      KAFKA_OPTS: "-Dzookeeper.4lw.commands.whitelist=ruok,srvr,stat"
     volumes:
       - zoo_data:/var/lib/zookeeper/data
       - zoo_logs:/var/lib/zookeeper/log
