@@ -127,7 +127,7 @@ deploy-prod:
 	@echo "========================================"
 	@echo "  SalesOS Production Deployment"
 	@echo "========================================"
-	@if [ -z "$(VERSION)" ]; then echo "Usage: make deploy-prod VERSION=v1.0.0"; exit 1; fi
+	@if [ -z "$(VERSION)" ]; then echo "Usage: make deploy-prod VERSION=v5.1.0"; exit 1; fi
 	@echo "Version: $(VERSION)"
 	@echo ""
 	@echo "[1/5] Tagging images..."
@@ -147,7 +147,7 @@ deploy-prod-k8s:
 	@echo "========================================"
 	@echo "  SalesOS K8s Production Deployment"
 	@echo "========================================"
-	@if [ -z "$(VERSION)" ]; then echo "Usage: make deploy-prod-k8s VERSION=v1.0.0"; exit 1; fi
+	@if [ -z "$(VERSION)" ]; then echo "Usage: make deploy-prod-k8s VERSION=v5.1.0"; exit 1; fi
 	@echo "Version: $(VERSION)"
 	@echo ""
 	@echo "[1/4] Updating images..."

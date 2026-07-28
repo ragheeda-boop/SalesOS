@@ -189,7 +189,7 @@ Caddy automatically provisions and renews TLS certificates when it starts. No ce
 ```bash
 # Multi-stage build: builder (pip install) → production (slim runtime)
 docker build \
-  -t ghcr.io/ragheeda-boop/salesos/backend:v1.0.0 \
+  -t ghcr.io/ragheeda-boop/salesos/backend:v5.1.0 \
   -t ghcr.io/ragheeda-boop/salesos/backend:latest \
   -f backend/Dockerfile backend/
 ```

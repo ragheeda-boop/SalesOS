@@ -119,7 +119,7 @@ curl -sf https://api.salesos.com/health | jq .
 # Expected response:
 # {
 #   "status": "healthy",
-#   "version": "1.0.0",
+#   "version": "5.1.0-rc1",
 #   "database": "connected",
 #   "neo4j": "connected",
 #   "redis": "connected",

@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v5.1.0-rc1] - 2026-07-29
+
+### 🚀 Release Candidate 1 — Engineering GO, Operations Pending
+
+#### Backend
+- **Communication Hub (GA)**: OAuth 2.0 with Google (Gmail + Calendar), encrypted token storage (Fernet + `GOOGLE_ENCRYPTION_KEY`), refresh token rotation
+- **Gmail Sync**: Incremental sync via `historyId`, dedup by `provider_message_id`, tenant-isolated
+- **Calendar Sync**: Incremental sync via `syncToken`, dedup by `provider_event_id`, tenant-isolated
+- **Activity Intelligence (Live)**: 6 REST endpoints, 68 unit tests, 0 circular deps
+- **Decision Center**: Stub with integration points (see `AI_HONESTY.md`)
+- **Knowledge Graph**: Tenant isolation hardened (14/18 queries include `tenant_id` filter)
+- **Security**: Webhook SSRF pinning, Redis-backed OAuth state store (600s TTL, one-time consumption)
+- **Auth**: JWT with `UnauthorizedError(HTTPException 401)` for all token failures
+- **Database**: Alembic migrations 0046–0049 (opportunities, tasks, google_accounts, unique provider event IDs)
+- **Docker**: Multi-stage builds, non-root user, healthchecks, PgBouncer, resource limits
+
+#### Frontend
+- **Build verified**: `npm run build`, `tsc --noEmit`, `npm run lint` — all exit 0
+- **Activity Widgets**: EmailIntelligenceWidget, CalendarIntelligenceWidget, FollowupCenterWidget, CompanyEngagementWidget
+- **API Client**: 6 typed functions in `api/activity-intelligence.ts`
+- **RTL/ARIA compliant**: All new widgets support RTL layout and ARIA labels
+
+#### CI/CD & Infra
+- **CI Pipeline**: 7 stages (lint, typecheck, unit, integration, security, build, e2e)
+- **Deploy Pipeline**: Health gates, smoke tests, automatic rollback, Slack notification
+- **Docker Compose (prod)**: Production-ready stack with Caddy TLS, PgBouncer, backup service
+- **K8s**: Full manifests for backend (3 replicas, HPA 3–10), frontend (3 replicas, HPA 3–8), monitoring stack
+- **Railway Staging**: Live at `salesos-staging.up.railway.app` (v5.1.0-rc1)
+
+#### Upgrade Notes
+- Run `alembic upgrade head` for migrations 0046–0049
+- Set `GOOGLE_ENCRYPTION_KEY` for Communication Hub OAuth
+- Existing scrapers continue in MOCK mode until API keys are set
+
+---
+
 ## [v3.1.0] - 2026-07-19
 
 ### 🚀 ADR-012 — Activity Intelligence Capability (LIVE v1.0.0)

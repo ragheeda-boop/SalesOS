@@ -2,7 +2,7 @@
 
 > **منصة ذكاء المبيعات — Sales Intelligence Platform for the Middle East**
 >
-> Base URL: `https://api.salesos.sa` | Status: Production | Version: v0.9.0
+> Base URL: `https://salesos-staging.up.railway.app` | Status: Staging (RC1) | Version: v5.1.0-rc1
 
 SalesOS is a domain-driven sales intelligence platform purpose-built for the Saudi Arabian and Middle Eastern markets. It organizes and enriches company data so sales, procurement, and risk teams can make better decisions faster.
 

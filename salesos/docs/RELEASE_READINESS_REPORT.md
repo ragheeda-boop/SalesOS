@@ -1,6 +1,6 @@
-# SalesOS v1.0 — Release Readiness Report
+# SalesOS v5.1.0-rc1 — Release Readiness Report
 
-> تاريخ: 2026-07-11
+> تاريخ: 2026-07-29
 
 ---
 

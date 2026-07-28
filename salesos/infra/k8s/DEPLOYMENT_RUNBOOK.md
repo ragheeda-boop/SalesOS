@@ -1,7 +1,7 @@
 # SalesOS Production Deployment Runbook
 
-> **Version:** 1.0.0  
-> **Last Updated:** 2026-07-14  
+> **Version:** 5.1.0-rc1  
+> **Last Updated:** 2026-07-29  
 > **Owner:** DevOps Team  
 > **SLA:** 99.9% uptime | RTO: 1 hour | RPO: 15 minutes
 

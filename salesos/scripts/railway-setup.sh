@@ -71,7 +71,7 @@ railway variables set \
     FEATURE_CRM_KANBAN=false \
     DEMO_MODE=false \
     LOG_LEVEL=INFO \
-    SERVICE_VERSION=3.1.0 \
+    SERVICE_VERSION=5.1.0 \
     POSTGRES_PORT=5432
 
 echo "[✓] Backend service configured"

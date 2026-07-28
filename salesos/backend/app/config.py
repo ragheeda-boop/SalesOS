@@ -92,7 +92,7 @@ class Settings(BaseSettings):
 
     log_level: str = "INFO"
     sentry_dsn: str = ""
-    service_version: str = "3.1.0"
+    service_version: str = "5.1.0-rc1"
     sentry_traces_sample_rate: float = 0.1
 
     # Neo4j connection details

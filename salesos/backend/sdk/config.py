@@ -18,7 +18,7 @@ class SdkSettings(BaseSettings):
     neo4j_password: str = ""
     redis_url: str = "redis://redis:6379/0"
     default_cache_ttl: int = 300
-    service_version: str = "3.1.0"
+    service_version: str = "5.1.0-rc1"
     environment: str = "development"
     otlp_endpoint: str = "http://otel-collector:4318/v1/traces"
 
