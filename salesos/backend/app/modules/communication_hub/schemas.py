@@ -39,3 +39,32 @@ class GoogleStatusResponse(BaseModel):
 class GoogleDisconnectResponse(BaseModel):
     success: bool
     message: str
+
+
+class GoogleSyncRequest(BaseModel):
+    days_lookback: int = Field(default=30, ge=1, le=365)
+    max_results: int = Field(default=100, ge=1, le=500)
+
+
+class GoogleSyncResponse(BaseModel):
+    success: bool
+    synced_count: int = 0
+    new_count: int = 0
+    updated_count: int = 0
+    errors: list[str] = []
+    message: str = ""
+
+
+class GoogleCalendarSyncRequest(BaseModel):
+    days_lookback: int = Field(default=90, ge=1, le=365)
+    days_forward: int = Field(default=90, ge=1, le=365)
+
+
+class GoogleCalendarSyncResponse(BaseModel):
+    success: bool
+    synced_count: int = 0
+    new_count: int = 0
+    updated_count: int = 0
+    cancelled_count: int = 0
+    errors: list[str] = []
+    message: str = ""

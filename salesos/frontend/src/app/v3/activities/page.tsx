@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getGlobalActivities } from '@/lib/api'
 import { activityKeys } from '@/lib/queryKeys'
 import { getTenantId } from '@/lib/hooks/useTenant'
+import { useActivityIntelligence } from '@/lib/hooks/useActivityIntelligence'
 import { openV3AiPopup } from '@/components/v3/V3AiPopup'
 import { PageHeader } from '../_components/page-header'
 import { ActivityFeed } from '../_components/activity-feed'
@@ -30,6 +31,13 @@ export default function V3ActivitiesPage() {
  const { ready, hasToken } = useAccessToken()
  const [actionFilter, setActionFilter] = useState('')
  const [q, setQ] = useState('')
+ const tenantId = getTenantId()
+
+ const intelligence = useActivityIntelligence({
+ tenantId,
+ refreshInterval: 60_000,
+ enabled: ready && hasToken,
+ })
 
  const filters = useMemo(() => {
  const f: { action?: string; limit: number } = { limit: 50 }
@@ -46,6 +54,7 @@ export default function V3ActivitiesPage() {
 
  const items = data?.items ?? []
  const total = data?.total ?? items.length
+ const dash = intelligence.dashboard.data
 
  const filtered = useMemo(() => {
  const needle = q.trim().toLowerCase()
@@ -60,7 +69,7 @@ export default function V3ActivitiesPage() {
  <div className="mx-auto max-w-6xl">
  <PageHeader
  title="Activities"
- description="Tenant activity feed — Design Program v3. Legacy /activities remains unchanged."
+ description="Tenant activity feed plus Google-synced Activity Intelligence metrics."
  actions={
  <div className="flex flex-wrap gap-2">
  <button
@@ -81,6 +90,21 @@ export default function V3ActivitiesPage() {
  <PermissionState nextPath="/v3/activities" />
  ) : (
  <div className="space-y-4">
+ {dash ? (
+ <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+ <MetricCard label="Emails (30d)" value={dash.email_count} />
+ <MetricCard label="Meetings (30d)" value={dash.meeting_count} />
+ <MetricCard label="Follow-ups" value={dash.followup_count} />
+ <MetricCard label="Overdue" value={dash.overdue_count} />
+ </div>
+ ) : intelligence.dashboard.isLoading ? (
+ <p className="text-xs text-[var(--text-muted)]">Loading activity intelligence…</p>
+ ) : intelligence.dashboard.error ? (
+ <p className="text-xs text-red-600">
+ Activity intelligence unavailable. Timeline below still uses the activity feed.
+ </p>
+ ) : null}
+
  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
  <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
  <label className="block min-w-0 flex-1">
@@ -135,11 +159,11 @@ export default function V3ActivitiesPage() {
  emptyTitle={items.length === 0 ? 'No activity yet' : 'No matching activity'}
  emptyDescription={
  items.length === 0
- ? 'The activities API returned no rows for this tenant. Nothing is invented here.'
+ ? 'The activities API returned no rows for this tenant. Sync Gmail/Calendar from Settings → Integrations to populate intelligence metrics.'
  : 'Try a different filter or clear the search.'
  }
- emptyActionHref={q || actionFilter ? undefined : '/v3/crm'}
- emptyActionLabel={q || actionFilter ? undefined : 'Browse CRM'}
+ emptyActionHref={q || actionFilter ? undefined : '/v3/settings'}
+ emptyActionLabel={q || actionFilter ? undefined : 'Open Settings'}
  />
 
  {(q || actionFilter) && items.length > 0 && filtered.length === 0 ? (
@@ -158,6 +182,15 @@ export default function V3ActivitiesPage() {
  ) : null}
  </div>
  )}
+ </div>
+ )
+}
+
+function MetricCard({ label, value }: { label: string; value: number }) {
+ return (
+ <div className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-2">
+ <p className="text-[11px] text-[var(--text-muted)]">{label}</p>
+ <p className="text-lg font-semibold text-[var(--text-primary)] tabular-nums">{value}</p>
  </div>
  )
 }

@@ -29,7 +29,7 @@ class EmailIntelligenceService:
                 EmployeeEmailEventModel.employee_id == eid,
                 EmployeeEmailEventModel.tenant_id == tid,
                 EmployeeEmailEventModel.timestamp_utc >= since,
-                EmployeeEmailEventModel.direction == "sent",
+                EmployeeEmailEventModel.direction.in_(("sent", "outbound")),
             )
         )).scalar() or 0
 
@@ -38,7 +38,7 @@ class EmailIntelligenceService:
                 EmployeeEmailEventModel.employee_id == eid,
                 EmployeeEmailEventModel.tenant_id == tid,
                 EmployeeEmailEventModel.timestamp_utc >= since,
-                EmployeeEmailEventModel.direction == "received",
+                EmployeeEmailEventModel.direction.in_(("received", "inbound")),
             )
         )).scalar() or 0
 
@@ -147,7 +147,7 @@ class EmailIntelligenceService:
         for row in result.fetchall():
             day_str = str(row[0])
             daily.setdefault(day_str, {"date": day_str, "sent": 0, "received": 0})
-            if row[1] == "sent":
+            if row[1] in ("sent", "outbound"):
                 daily[day_str]["sent"] = row[2]
             else:
                 daily[day_str]["received"] = row[2]

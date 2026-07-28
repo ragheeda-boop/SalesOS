@@ -80,6 +80,7 @@ class GoogleAccountRepository:
         access_token_encrypted: str,
         refresh_token_encrypted: str | None,
         token_expiry: datetime | None,
+        tenant_id: UUID | None = None,
     ) -> None:
         values: dict = {
             "access_token_encrypted": access_token_encrypted,
@@ -90,26 +91,53 @@ class GoogleAccountRepository:
         if token_expiry is not None:
             values["token_expiry"] = token_expiry
 
-        stmt = (
-            update(GoogleAccount)
-            .where(GoogleAccount.id == account_id)
-            .values(**values)
-        )
+        conditions = [GoogleAccount.id == account_id]
+        if tenant_id is not None:
+            conditions.append(GoogleAccount.tenant_id == tenant_id)
+
+        stmt = update(GoogleAccount).where(*conditions).values(**values)
         await self.db.execute(stmt)
 
-    async def update_last_sync(self, account_id: UUID) -> None:
+    async def update_last_sync(self, account_id: UUID, tenant_id: UUID | None = None) -> None:
+        conditions = [GoogleAccount.id == account_id]
+        if tenant_id is not None:
+            conditions.append(GoogleAccount.tenant_id == tenant_id)
         stmt = (
             update(GoogleAccount)
-            .where(GoogleAccount.id == account_id)
+            .where(*conditions)
             .values(last_sync_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc))
         )
         await self.db.execute(stmt)
 
-    async def update_history_id(self, account_id: UUID, history_id: str) -> None:
+    async def update_history_id(
+        self, account_id: UUID, history_id: str, tenant_id: UUID | None = None
+    ) -> None:
+        conditions = [GoogleAccount.id == account_id]
+        if tenant_id is not None:
+            conditions.append(GoogleAccount.tenant_id == tenant_id)
         stmt = (
             update(GoogleAccount)
-            .where(GoogleAccount.id == account_id)
+            .where(*conditions)
             .values(history_id=history_id, updated_at=datetime.now(timezone.utc))
+        )
+        await self.db.execute(stmt)
+
+    async def update_calendar_sync_token(
+        self,
+        account_id: UUID,
+        sync_token: str | None,
+        tenant_id: UUID | None = None,
+    ) -> None:
+        conditions = [GoogleAccount.id == account_id]
+        if tenant_id is not None:
+            conditions.append(GoogleAccount.tenant_id == tenant_id)
+        stmt = (
+            update(GoogleAccount)
+            .where(*conditions)
+            .values(
+                calendar_sync_token=sync_token,
+                updated_at=datetime.now(timezone.utc),
+            )
         )
         await self.db.execute(stmt)
 

@@ -69,9 +69,13 @@ class CalendarProvider(ABC):
 
     @abstractmethod
     async def fetch_events(
-        self, since: datetime, until: datetime
-    ) -> list[RawCalendarEvent]:
-        """Fetch calendar events in a time range."""
+        self,
+        since: datetime | None = None,
+        until: datetime | None = None,
+        sync_token: str | None = None,
+        max_results: int = 250,
+    ) -> tuple[list[RawCalendarEvent], str | None]:
+        """Fetch calendar events. Returns (events, next_sync_token)."""
 
     @abstractmethod
     async def create_event(self, event: dict) -> str:

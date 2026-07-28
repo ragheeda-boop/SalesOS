@@ -53,7 +53,7 @@ class CalendarSyncWorker:
         since = since or self.last_sync or datetime.now(timezone.utc)
         until = until or datetime.now(timezone.utc)
 
-        events = await self.provider.fetch_events(since=since, until=until)
+        events, _next_sync_token = await self.provider.fetch_events(since=since, until=until)
 
         new_count = 0
         updated_count = 0

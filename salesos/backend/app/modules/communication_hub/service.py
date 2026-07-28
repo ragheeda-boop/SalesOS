@@ -12,6 +12,7 @@ import secrets
 import time
 from datetime import datetime, timezone, timedelta
 from typing import Any
+from urllib.parse import urlencode
 from uuid import UUID
 
 import httpx
@@ -21,6 +22,9 @@ from app.config import settings
 from app.modules.communication_hub.models import GoogleAccount
 from app.modules.communication_hub.repository import GoogleAccountRepository
 from sdk.security import encrypt_token, decrypt_token
+
+# Refresh access token this many seconds before hard expiry.
+_TOKEN_EXPIRY_SKEW_SECONDS = 60
 
 logger = logging.getLogger(__name__)
 
@@ -104,8 +108,7 @@ class GoogleOAuthService:
             "access_type": "offline",
             "prompt": "consent",
         }
-        query = "&".join(f"{k}={v}" for k, v in params.items())
-        auth_url = f"{GOOGLE_AUTH_URL}?{query}"
+        auth_url = f"{GOOGLE_AUTH_URL}?{urlencode(params)}"
         return auth_url, state
 
     async def handle_callback(self, code: str, state: str) -> GoogleAccount:
@@ -175,21 +178,33 @@ class GoogleOAuthService:
         return resp.json()
 
     async def get_valid_token(self, account: GoogleAccount) -> str:
-        if account.token_expiry and account.token_expiry > datetime.now(timezone.utc):
+        skew_deadline = datetime.now(timezone.utc) + timedelta(seconds=_TOKEN_EXPIRY_SKEW_SECONDS)
+        if account.token_expiry and account.token_expiry > skew_deadline:
             return self._decrypt(account.access_token_encrypted)
 
         if not account.refresh_token_encrypted:
+            # Access may still be usable for a few seconds; prefer fail-closed on missing refresh.
+            if account.token_expiry and account.token_expiry > datetime.now(timezone.utc):
+                return self._decrypt(account.access_token_encrypted)
             raise GoogleTokenRefreshError("No refresh token available")
 
         refresh_token = self._decrypt(account.refresh_token_encrypted)
         new_tokens = await self._refresh_access_token(refresh_token)
 
         access_enc = self._encrypt(new_tokens["access_token"])
-        refresh_enc = self._encrypt(new_tokens["refresh_token"]) if new_tokens.get("refresh_token") else None
+        refresh_enc = (
+            self._encrypt(new_tokens["refresh_token"])
+            if new_tokens.get("refresh_token")
+            else None
+        )
         expiry = datetime.now(timezone.utc) + timedelta(seconds=new_tokens.get("expires_in", 3600))
 
         await self.repo.update_tokens(account.id, access_enc, refresh_enc, expiry)
         await self.db.commit()
+        account.access_token_encrypted = access_enc
+        if refresh_enc is not None:
+            account.refresh_token_encrypted = refresh_enc
+        account.token_expiry = expiry
 
         return new_tokens["access_token"]
 

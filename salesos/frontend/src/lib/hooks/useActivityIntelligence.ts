@@ -21,16 +21,18 @@ import type {
 interface UseActivityIntelligenceOptions {
  tenantId: string
  refreshInterval?: number
+ enabled?: boolean
 }
 
 export function useActivityIntelligence(options: UseActivityIntelligenceOptions) {
- const { tenantId, refreshInterval = 60_000 } = options
+ const { tenantId, refreshInterval = 60_000, enabled = true } = options
 
  const dashboard = useQuery<ActivityDashboardDTO>({
  queryKey: ['activity', 'dashboard', tenantId],
  queryFn: () => getActivityDashboard(tenantId),
  refetchInterval: refreshInterval,
  staleTime: 30_000,
+ enabled: enabled && Boolean(tenantId),
  })
 
  const email = useQuery<EmailMetricsDTO>({
@@ -38,6 +40,7 @@ export function useActivityIntelligence(options: UseActivityIntelligenceOptions)
  queryFn: () => getEmailMetrics(tenantId),
  refetchInterval: refreshInterval * 2,
  staleTime: 60_000,
+ enabled: enabled && Boolean(tenantId),
  })
 
  const calendar = useQuery<CalendarMetricsDTO>({
@@ -45,6 +48,7 @@ export function useActivityIntelligence(options: UseActivityIntelligenceOptions)
  queryFn: () => getCalendarMetrics(tenantId),
  refetchInterval: refreshInterval * 2,
  staleTime: 60_000,
+ enabled: enabled && Boolean(tenantId),
  })
 
  const followups = useQuery<FollowupDashboardDTO>({
@@ -52,6 +56,7 @@ export function useActivityIntelligence(options: UseActivityIntelligenceOptions)
  queryFn: () => getFollowups(tenantId),
  refetchInterval: refreshInterval,
  staleTime: 30_000,
+ enabled: enabled && Boolean(tenantId),
  })
 
  const engagement = useQuery<EngagementSummaryDTO>({
@@ -59,6 +64,7 @@ export function useActivityIntelligence(options: UseActivityIntelligenceOptions)
  queryFn: () => getEngagementSummary(tenantId),
  refetchInterval: refreshInterval * 3,
  staleTime: 120_000,
+ enabled: enabled && Boolean(tenantId),
  })
 
  const isLoading =

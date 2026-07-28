@@ -170,6 +170,8 @@ class Settings(BaseSettings):
     # Google Workspace integration
     google_redirect_uri: str = ""
     google_encryption_key: str = ""
+    # Post-OAuth browser return target (settings integrations panel)
+    frontend_url: str = "http://localhost:3000"
 
     # Audit
     audit_retention_days: int = 90

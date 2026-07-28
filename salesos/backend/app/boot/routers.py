@@ -111,7 +111,9 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(marketplace_router)
 
     app.include_router(sso_router, prefix="/api/v1", tags=["SSO"])
-    app.include_router(communication_hub_router, prefix="/api/v1", tags=["Communication Hub"], dependencies=_auth)
+    # Mount without router-level auth so Google OAuth /callback can complete
+    # without a Bearer header. Protected routes declare Depends(verify_token).
+    app.include_router(communication_hub_router, prefix="/api/v1", tags=["Communication Hub"])
     app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
     app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
     app.include_router(admin_router)

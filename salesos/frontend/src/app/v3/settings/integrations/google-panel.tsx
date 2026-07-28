@@ -27,11 +27,26 @@ interface Props {
   hasToken: boolean;
 }
 
+function readOauthReturnParams(): { google: string | null; email: string | null; reason: string | null } {
+  if (typeof window === "undefined") {
+    return { google: null, email: null, reason: null };
+  }
+  const params = new URLSearchParams(window.location.search);
+  return {
+    google: params.get("google"),
+    email: params.get("email"),
+    reason: params.get("reason"),
+  };
+}
+
 export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
   const [status, setStatus] = useState<GoogleStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [syncingGmail, setSyncingGmail] = useState(false);
+  const [syncingCalendar, setSyncingCalendar] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchStatus = useCallback(async () => {
@@ -51,6 +66,18 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
     fetchStatus();
   }, [fetchStatus]);
 
+  useEffect(() => {
+    const { google, email, reason } = readOauthReturnParams();
+    if (!google) return;
+    if (google === "connected") {
+      setSyncMessage(email ? `Google connected as ${email}` : "Google account connected successfully");
+      setError(null);
+      void fetchStatus();
+    } else if (google === "error") {
+      setError(`Google connection failed (${reason || "unknown"})`);
+    }
+  }, [fetchStatus]);
+
   const handleConnect = useCallback(async () => {
     setConnecting(true);
     setError(null);
@@ -68,6 +95,7 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
   const handleDisconnect = useCallback(async () => {
     setDisconnecting(true);
     setError(null);
+    setSyncMessage(null);
     try {
       await client.post("/api/v1/integrations/google/disconnect");
       await fetchStatus();
@@ -75,6 +103,44 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
       setError("Failed to disconnect Google account");
     } finally {
       setDisconnecting(false);
+    }
+  }, [fetchStatus]);
+
+  const handleSyncGmail = useCallback(async () => {
+    setSyncingGmail(true);
+    setError(null);
+    setSyncMessage(null);
+    try {
+      const res = await client.post<{ message: string; errors?: string[] }>(
+        "/api/v1/integrations/google/sync",
+        { days_lookback: 30, max_results: 100 },
+      );
+      const errs = res.data.errors?.length ? ` (${res.data.errors.length} item errors)` : "";
+      setSyncMessage((res.data.message || "Gmail sync completed") + errs);
+      await fetchStatus();
+    } catch {
+      setError("Gmail sync failed");
+    } finally {
+      setSyncingGmail(false);
+    }
+  }, [fetchStatus]);
+
+  const handleSyncCalendar = useCallback(async () => {
+    setSyncingCalendar(true);
+    setError(null);
+    setSyncMessage(null);
+    try {
+      const res = await client.post<{ message: string; errors?: string[] }>(
+        "/api/v1/integrations/google/calendar-sync",
+        { days_lookback: 90, days_forward: 90 },
+      );
+      const errs = res.data.errors?.length ? ` (${res.data.errors.length} item errors)` : "";
+      setSyncMessage((res.data.message || "Calendar sync completed") + errs);
+      await fetchStatus();
+    } catch {
+      setError("Calendar sync failed");
+    } finally {
+      setSyncingCalendar(false);
     }
   }, [fetchStatus]);
 
@@ -88,6 +154,7 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
   }
 
   const connected = status?.connected && status?.account;
+  const canSync = Boolean(connected);
   const tokenValid = status?.token_valid ?? false;
 
   return (
@@ -111,7 +178,7 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
             </div>
             <div>
               <h3 className="text-sm font-medium text-[var(--text-primary)]">Google Workspace</h3>
-              <p className="text-xs text-[var(--text-secondary)]">Gmail, Calendar, and Contacts</p>
+              <p className="text-xs text-[var(--text-secondary)]">Gmail and Calendar sync</p>
             </div>
           </div>
 
@@ -124,7 +191,7 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
                     : "bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300"
                 }`}
               >
-                {tokenValid ? "Connected" : "Token Expired"}
+                {tokenValid ? "Connected" : "Needs Reconnect"}
               </span>
               <button
                 type="button"
@@ -151,6 +218,7 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
           <div className="mt-3 border-t border-[var(--border-subtle)] pt-3 text-xs text-[var(--text-secondary)]">
             <div className="flex items-center gap-2">
               {status.account.avatar_url && (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={status.account.avatar_url}
                   alt=""
@@ -169,13 +237,35 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
                 Scopes: {status.scopes_granted.length} permissions granted
               </p>
             )}
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleSyncGmail}
+                disabled={syncingGmail || syncingCalendar || !canSync}
+                className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50"
+              >
+                {syncingGmail ? "Syncing Gmail..." : "Sync Gmail"}
+              </button>
+              <button
+                type="button"
+                onClick={handleSyncCalendar}
+                disabled={syncingCalendar || syncingGmail || !canSync}
+                className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] disabled:opacity-50"
+              >
+                {syncingCalendar ? "Syncing Calendar..." : "Sync Calendar"}
+              </button>
+            </div>
+            {syncMessage && (
+              <p className="mt-2 text-green-700 dark:text-green-300">{syncMessage}</p>
+            )}
           </div>
         )}
 
         {!connected && (
           <p className="mt-3 border-t border-[var(--border-subtle)] pt-3 text-xs text-[var(--text-secondary)]">
             Connect your Google account to enable Gmail and Calendar sync for the
-            Communication Hub. Tokens are encrypted at rest.
+            Communication Hub. Tokens are encrypted at rest. Sync refreshes tokens
+            automatically when a refresh token is present.
           </p>
         )}
       </div>

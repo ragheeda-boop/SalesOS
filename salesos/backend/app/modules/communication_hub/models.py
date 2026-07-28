@@ -35,6 +35,7 @@ class GoogleAccount(BaseModel):
     google_user_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     history_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    calendar_sync_token: Mapped[str | None] = mapped_column(Text(), nullable=True)
     is_active: Mapped[bool] = mapped_column(
         Boolean(), nullable=False, server_default=text("true")
     )

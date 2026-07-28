@@ -101,6 +101,9 @@ class RawCalendarEvent:
     is_recurring: bool = False
     recurrence_rule: str | None = None
     status: str = "confirmed"  # confirmed | tentative | cancelled
+    conference_link: str = ""
+    conference_provider: str = ""
+    timezone_name: str = ""
     created_at: datetime | None = None
     updated_at: datetime | None = None
 

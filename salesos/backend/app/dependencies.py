@@ -60,8 +60,10 @@ async def get_current_tenant_id(
         )
     tenant = x_tenant_id or (str(token_tenant) if token_tenant else None)
     if not tenant:
+        # Authenticated but missing tenant context — 400 (not 422 validation),
+        # so clients do not confuse this with FastAPI request-body validation.
         raise HTTPException(
-            status_code=422,
+            status_code=400,
             detail="Tenant ID required via X-Tenant-Id header or token tenant_id claim",
         )
     return tenant

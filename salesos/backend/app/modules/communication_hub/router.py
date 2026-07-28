@@ -1,37 +1,52 @@
 """Google Workspace integration router — Communication Hub.
 
 Endpoints:
-  GET  /api/v1/integrations/google/connect    — Start OAuth flow
-  GET  /api/v1/integrations/google/callback   — OAuth callback (no auth required)
-  GET  /api/v1/integrations/google/status     — Connection status
-  POST /api/v1/integrations/google/disconnect — Disconnect account
+  GET  /api/v1/integrations/google/connect         — Start OAuth flow
+  GET  /api/v1/integrations/google/callback         — OAuth callback (no auth required)
+  GET  /api/v1/integrations/google/status           — Connection status
+  POST /api/v1/integrations/google/disconnect       — Disconnect account
+  POST /api/v1/integrations/google/sync             — Sync Gmail emails
+  POST /api/v1/integrations/google/calendar-sync    — Sync Google Calendar
 """
 import logging
+from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_current_user_id, get_db_session
+from app.config import settings
+from app.dependencies import get_current_tenant_id, get_current_user_id, get_db_session, verify_token
 from app.modules.communication_hub.schemas import (
     GoogleAccountResponse,
-    GoogleCallbackRequest,
     GoogleConnectResponse,
     GoogleDisconnectResponse,
     GoogleStatusResponse,
+    GoogleSyncRequest,
+    GoogleSyncResponse,
+    GoogleCalendarSyncRequest,
+    GoogleCalendarSyncResponse,
 )
 from app.modules.communication_hub.service import (
     GoogleOAuthError,
     GoogleOAuthService,
-    GoogleTokenRefreshError,
 )
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/integrations/google", tags=["Google Workspace"])
 
+_AUTH = [Depends(verify_token)]
+
+
+def _frontend_integrations_url(**params: str) -> str:
+    base = (getattr(settings, "frontend_url", None) or "http://localhost:3000").rstrip("/")
+    query = urlencode({k: v for k, v in params.items() if v is not None})
+    path = f"{base}/v3/settings"
+    return f"{path}?{query}" if query else path
+
 
 def _get_service(
-    request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db_session),
@@ -39,12 +54,12 @@ def _get_service(
     return GoogleOAuthService(db, __import__("uuid").UUID(tenant_id), __import__("uuid").UUID(user_id))
 
 
-@router.get("/connect", response_model=GoogleConnectResponse)
+@router.get("/connect", response_model=GoogleConnectResponse, dependencies=_AUTH)
 async def connect_google(service: GoogleOAuthService = Depends(_get_service)):
     try:
         auth_url, state = service.generate_authorization_url()
         return GoogleConnectResponse(authorization_url=auth_url, state=state)
-    except Exception as e:
+    except Exception:
         logger.exception("google_connect.failed")
         raise HTTPException(status_code=500, detail="Failed to generate authorization URL")
 
@@ -55,15 +70,19 @@ async def google_callback(
     state: str = Query(...),
     db: AsyncSession = Depends(get_db_session),
 ):
+    """Google redirects here without a Bearer token — auth is via OAuth state."""
     from uuid import UUID
-    import hashlib, time
+    import hashlib
 
     from app.modules.communication_hub.service import _OAUTH_STATE_STORE
 
     state_hash = hashlib.sha256(state.encode()).hexdigest()
     state_data = _OAUTH_STATE_STORE.get(state_hash)
     if not state_data:
-        raise HTTPException(status_code=400, detail="Invalid or expired OAuth state")
+        return RedirectResponse(
+            url=_frontend_integrations_url(google="error", reason="invalid_state"),
+            status_code=302,
+        )
 
     tenant_id = UUID(state_data["tenant_id"])
     user_id = UUID(state_data["user_id"])
@@ -71,30 +90,42 @@ async def google_callback(
     service = GoogleOAuthService(db, tenant_id, user_id)
     try:
         account = await service.handle_callback(code, state)
-        return {
-            "status": "connected",
-            "email": account.email,
-            "provider": account.provider,
-        }
+        return RedirectResponse(
+            url=_frontend_integrations_url(
+                google="connected",
+                email=account.email or "",
+                tab="integrations",
+            ),
+            status_code=302,
+        )
     except GoogleOAuthError as e:
         logger.warning("google_callback.failed", extra={"error": str(e)})
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+        return RedirectResponse(
+            url=_frontend_integrations_url(google="error", reason="oauth_failed", tab="integrations"),
+            status_code=302,
+        )
+    except Exception:
         logger.exception("google_callback.error")
-        raise HTTPException(status_code=500, detail="OAuth callback processing failed")
+        return RedirectResponse(
+            url=_frontend_integrations_url(google="error", reason="server_error", tab="integrations"),
+            status_code=302,
+        )
 
 
-@router.get("/status", response_model=GoogleStatusResponse)
+@router.get("/status", response_model=GoogleStatusResponse, dependencies=_AUTH)
 async def google_status(service: GoogleOAuthService = Depends(_get_service)):
     connected, account = await service.get_status()
     if not connected or not account:
         return GoogleStatusResponse(connected=False)
 
     scopes_granted = (account.scope or "").split()
-    token_valid = False
+    # Sync is possible when access token is fresh OR a refresh token can renew it.
+    token_valid = bool(account.refresh_token_encrypted)
     if account.token_expiry:
-        from datetime import datetime, timezone
-        token_valid = account.token_expiry > datetime.now(timezone.utc)
+        from datetime import datetime, timezone, timedelta
+        skew = datetime.now(timezone.utc) + timedelta(seconds=60)
+        if account.token_expiry > skew:
+            token_valid = True
 
     return GoogleStatusResponse(
         connected=True,
@@ -104,7 +135,7 @@ async def google_status(service: GoogleOAuthService = Depends(_get_service)):
     )
 
 
-@router.post("/disconnect", response_model=GoogleDisconnectResponse)
+@router.post("/disconnect", response_model=GoogleDisconnectResponse, dependencies=_AUTH)
 async def disconnect_google(service: GoogleOAuthService = Depends(_get_service)):
     success = await service.disconnect()
     if not success:
@@ -116,3 +147,70 @@ async def disconnect_google(service: GoogleOAuthService = Depends(_get_service))
         success=True,
         message="Google account disconnected successfully",
     )
+
+
+@router.post("/sync", response_model=GoogleSyncResponse, dependencies=_AUTH)
+async def sync_gmail(
+    request: GoogleSyncRequest = GoogleSyncRequest(),
+    tenant_id: str = Depends(get_current_tenant_id),
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db_session),
+):
+    from uuid import UUID
+    from app.modules.communication_hub.gmail_sync import GmailSyncService, GmailSyncError
+
+    service = GmailSyncService(db, UUID(tenant_id), UUID(user_id))
+    try:
+        result = await service.sync(
+            days_lookback=request.days_lookback,
+            max_results=request.max_results,
+        )
+        return GoogleSyncResponse(
+            success=True,
+            synced_count=result["synced_count"],
+            new_count=result["new_count"],
+            updated_count=result["updated_count"],
+            errors=result["errors"],
+            message=f"Synced {result['synced_count']} emails ({result['new_count']} new, {result['updated_count']} updated)",
+        )
+    except GmailSyncError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        logger.exception("gmail_sync.failed")
+        raise HTTPException(status_code=500, detail="Gmail sync failed")
+
+
+@router.post("/calendar-sync", response_model=GoogleCalendarSyncResponse, dependencies=_AUTH)
+async def sync_calendar(
+    request: GoogleCalendarSyncRequest = GoogleCalendarSyncRequest(),
+    tenant_id: str = Depends(get_current_tenant_id),
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db_session),
+):
+    from uuid import UUID
+    from app.modules.communication_hub.calendar_sync import CalendarSyncService, CalendarSyncError
+
+    service = CalendarSyncService(db, UUID(tenant_id), UUID(user_id))
+    try:
+        result = await service.sync(
+            days_lookback=request.days_lookback,
+            days_forward=request.days_forward,
+        )
+        return GoogleCalendarSyncResponse(
+            success=True,
+            synced_count=result["synced_count"],
+            new_count=result["new_count"],
+            updated_count=result["updated_count"],
+            cancelled_count=result["cancelled_count"],
+            errors=result["errors"],
+            message=(
+                f"Synced {result['synced_count']} events "
+                f"({result['new_count']} new, {result['updated_count']} updated, "
+                f"{result['cancelled_count']} cancelled)"
+            ),
+        )
+    except CalendarSyncError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        logger.exception("calendar_sync.failed")
+        raise HTTPException(status_code=500, detail="Calendar sync failed")
