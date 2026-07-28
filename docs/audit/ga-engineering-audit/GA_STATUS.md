@@ -1,9 +1,10 @@
 # GA Status Scoreboard — AQLIYA / SalesOS
 
-**Date:** 2026-07-28 (updated)  
+**Date:** 2026-07-28 (Wave 16 update)  
 **Authority:** [ga-engineering-audit](./00-EXECUTIVE-SUMMARY.md) + execution progress below  
 **Decision:** **NO-GO** for Production GA  
-**Classification:** production no-go
+**Classification:** production no-go  
+**Wave 16:** [PROGRESS-WAVE16-FULL-GA.md](./PROGRESS-WAVE16-FULL-GA.md)
 
 > Superseded GO claims in `docs/vnext/reports/GO_NO_GO_DECISION.md` / `GA_CHECKLIST.md` must not be used.
 
@@ -11,13 +12,13 @@
 
 ## Scoreboard (honest)
 
-| Dimension | Audit baseline | After Waves 0–15 local + Railway evidence | Notes |
-|-----------|---------------:|------------------------------------------:|-------|
-| Production Readiness | **38** | ~**46** (still **no-go**) | Railway SalesOS live; muhide **141k** companies; OAuth Redis store **deployed** `339ebbab`; cutover/soak/signatures open |
-| Security | **48** | ~**56** | Wave 2 + CORS on Railway; OAuth Redis store **in prod image** (SSH file + `/health` redis=connected); SSRF pentest **OPEN** |
-| Testing | **52** | improved (local) | Unit focused OAuth **35 PASS**; full browser GA still open |
-| DevOps / Deploy | **62** | prep+ / **Railway live** | Railway deploy `339ebbab` SUCCESS (2026-07-28); Vercel `sales-os` READY; classic staging VPS secrets still empty |
-| AI honesty | — | gated | Copilot default False + API 403; FE Decision stub honesty — see AI_HONESTY.md |
+| Dimension | Audit baseline | After Waves 0–16 Railway evidence | Notes |
+|-----------|---------------:|----------------------------------:|-------|
+| Production Readiness | **38** | ~**48** (still **no-go**) | Railway live; muhide **141,221** companies; OAuth Redis + `GOOGLE_ENCRYPTION_KEY` set; git `master` pushed `04b9ace`; soak/signatures/migrate/DR open |
+| Security | **48** | ~**58** | SSRF pin redesign **in live image** (SSH grep); CORS OK; GEK set (value redacted); staging pentest still **OPEN** |
+| Testing | **52** | improved (local) | Focused Docker pytest **52 PASS** (webhooks/oauth/encryption); full browser GA still open |
+| DevOps / Deploy | **62** | **Railway live** | Active SUCCESS deploy `b1b183a3` (GEK redeploy); incremental `railway up` FAILED (missing Dockerfile in bad archive) — code already live; Vercel READY |
+| AI honesty | — | gated | `FEATURE_AI_COPILOT=false` on Railway; FE Decision stub honesty — see AI_HONESTY.md |
 
 **Verdict unchanged: Production GA = NO-GO.**
 
@@ -45,10 +46,10 @@
 
 ## Remaining NO-GO blockers
 
-1. **No 48–72h soak report** — see [PROGRESS-WAVE11-SOAK-CLAIM.md](./PROGRESS-WAVE11-SOAK-CLAIM.md); `soak_complete_claim: false`  
-2. **Classic staging VPS tabletop** — secrets still empty; **Railway SalesOS is live** as cloud path ([PROGRESS-WAVE15-MUHIDE-COMPANIES-RAILWAY.md](./PROGRESS-WAVE15-MUHIDE-COMPANIES-RAILWAY.md))  
-3. **No approved production Alembic upgrade** — [PROGRESS-WAVE13-CUTOVER-PREP.md](./PROGRESS-WAVE13-CUTOVER-PREP.md); **EXECUTION BLOCKED pending approval**  
-4. **Security residuals** — SSRF pin redesign **code closed**; staging/Railway pentest **OPEN**; OAuth Redis store **deployed** (`339ebbab`, 2026-07-28) — human OAuth login smoke still advised  
+1. **No 48–72h soak report** — Railway health loop **started** `2026-07-28T20:29:48Z` ([evidence/wave16-soak/](./evidence/wave16-soak/)); `soak_complete_claim: false` until 48–72h + TL review ([PROGRESS-WAVE11-SOAK-CLAIM.md](./PROGRESS-WAVE11-SOAK-CLAIM.md))  
+2. **Classic staging VPS tabletop / SSRF pentest** — secrets still empty; Railway is live cloud path ([PROGRESS-WAVE15-MUHIDE-COMPANIES-RAILWAY.md](./PROGRESS-WAVE15-MUHIDE-COMPANIES-RAILWAY.md), [runbooks/staging-ssrf-pentest.md](./runbooks/staging-ssrf-pentest.md))  
+3. **No approved production Alembic upgrade** — prod at **0046**, repo head **0049** (0047–0049 pending); [PROGRESS-WAVE13-CUTOVER-PREP.md](./PROGRESS-WAVE13-CUTOVER-PREP.md) — **EXECUTION BLOCKED pending approval + backup**  
+4. **Security residuals** — SSRF pin **in live image** (SSH evidence Wave 16); GEK **set**; OAuth Redis **live**; human OAuth login smoke + staging pentest still advised  
 
 5. **CTO + Tech Lead GO signatures UNSIGNED** — [SIGN_HERE.md](./SIGN_HERE.md)  
 6. **AI surfaces must not be marketed as GA** — code gate DONE; PRC sign-off OPEN  
@@ -56,7 +57,7 @@
 8. **RPO acceptance (24h vs WAL) UNSIGNED**  
 9. **Activity Intelligence honesty** — engineering pass; still pilot-ready with conditions, not GA  
 
-**Muhide account note (2026-07-28):** `ragheed.a@muhide.com` exists on Railway with **141,221** companies — Track A closed for data presence; GA still NO-GO.
+**Muhide account note (2026-07-28 Wave 16 re-verify):** `ragheed.a@muhide.com` role=`user` with **141,221** companies — data presence OK; GA still NO-GO.
 
 **Verdict unchanged: Production GA = NO-GO.**
 
