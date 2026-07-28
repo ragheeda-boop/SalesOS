@@ -2,8 +2,8 @@
 
 > **The Highest Authority for SalesOS Engineering**
 >
-> Version: v2.0.0 (vNext)
-> Last Updated: 2026-07-16
+> Version: v5.1.0-rc1
+> Last Updated: 2026-07-29
 > Status: Ratified
 >
 > This document supersedes all previous project manifestos. It is the single source of truth for SalesOS architecture, engineering, design, and product decisions. Every agent, engineer, and stakeholder must follow this document.

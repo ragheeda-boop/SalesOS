@@ -122,7 +122,7 @@ Week 5 (11-15 Aug) ─── GA Launch Week
 |---|-------|--------|----------|
 | 6.1 | API docs generated | ✅ ~98% | Portal API docs (43+ files) |
 | 6.2 | ADRs updated | ✅ | ADRs 001-028 complete |
-| 6.3 | CHANGELOG updated | ✅ | v1.0.0 through v2.0.0 |
+| 6.3 | CHANGELOG updated | ✅ | v1.0.0 through v5.1.0-rc1 |
 | 6.4 | User guide published | ✅ | `docs/user_guide.md` |
 | 6.5 | Admin guide published | ✅ | `docs/admin_guide.md` |
 | 6.6 | Deployment guide published | ✅ | `docs/deployment_guide.md` |
