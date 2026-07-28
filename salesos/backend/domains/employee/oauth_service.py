@@ -22,7 +22,7 @@ class EmployeeOAuthToken(Base):
 
     __tablename__ = "employee_oauth_tokens"
 
-    id = Column(UUID(as_uuid=True), primary_key=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     employee_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     tenant_id = Column(UUID(as_uuid=True), nullable=False, index=True)
     provider = Column(String(20), nullable=False)  # google, microsoft
@@ -128,8 +128,50 @@ class OAuthTokenService:
         expires_in: int,
         scope: str,
     ) -> EmployeeOAuthToken:
+        return await self.upsert_tokens(
+            employee_id=employee_id,
+            tenant_id=tenant_id,
+            provider=provider,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            id_token=id_token,
+            expires_in=expires_in,
+            scope=scope,
+        )
+
+    async def upsert_tokens(
+        self,
+        employee_id: str,
+        tenant_id: str,
+        provider: str,
+        access_token: str,
+        refresh_token: str | None,
+        id_token: str | None,
+        expires_in: int,
+        scope: str,
+    ) -> EmployeeOAuthToken:
+        """Create or update the active OAuth token row for employee+provider."""
         now = datetime.now(timezone.utc)
+        existing = await self._get_token(employee_id, provider)
+        if existing:
+            existing.scope = scope
+            existing.access_token_encrypted = await self._encrypt(access_token) if access_token else None
+            if refresh_token:
+                existing.refresh_token_encrypted = await self._encrypt(refresh_token)
+            if id_token:
+                existing.id_token_encrypted = await self._encrypt(id_token)
+            existing.access_token_expires_at = now + timedelta(seconds=expires_in)
+            existing.last_refreshed_at = now
+            existing.last_used_at = now
+            existing.is_active = True
+            existing.is_connected = True
+            existing.connection_error = None
+            existing.consecutive_failures = 0
+            await self.db.flush()
+            return existing
+
         token = EmployeeOAuthToken(
+            id=uuid.uuid4(),
             employee_id=uuid.UUID(employee_id),
             tenant_id=uuid.UUID(tenant_id),
             provider=provider,
@@ -149,10 +191,82 @@ class OAuthTokenService:
         return token
 
     async def get_access_token(self, employee_id: str, provider: str) -> str | None:
+        """Return a valid access token, refreshing when expired."""
         token = await self._get_token(employee_id, provider)
         if not token or not token.access_token_encrypted:
             return None
-        return await self._decrypt(token.access_token_encrypted)
+
+        if not token.is_access_token_expired():
+            token.last_used_at = datetime.now(timezone.utc)
+            await self.db.flush()
+            return await self._decrypt(token.access_token_encrypted)
+
+        refresh = await self.get_refresh_token(employee_id, provider)
+        if not refresh:
+            token.record_failure("access_token_expired_no_refresh")
+            await self.db.flush()
+            return None
+
+        try:
+            new_tokens = await self._refresh_provider_token(provider, refresh)
+        except Exception as exc:
+            token.record_failure(str(exc)[:500])
+            await self.db.flush()
+            return None
+
+        access = new_tokens.get("access_token")
+        if not access:
+            token.record_failure("refresh_returned_no_access_token")
+            await self.db.flush()
+            return None
+
+        expires_in = int(new_tokens.get("expires_in", 3600))
+        await self.update_access_token(employee_id, provider, access, expires_in)
+        if new_tokens.get("refresh_token"):
+            token.refresh_token_encrypted = await self._encrypt(new_tokens["refresh_token"])
+            await self.db.flush()
+        return access
+
+    async def _refresh_provider_token(self, provider: str, refresh_token: str) -> dict[str, Any]:
+        import httpx
+        from app.config import settings
+
+        if provider == "google":
+            client_id = self._google_client_id or settings.sso_google_client_id
+            client_secret = self._google_client_secret or settings.sso_google_client_secret
+            async with httpx.AsyncClient(timeout=20) as client:
+                resp = await client.post(
+                    "https://oauth2.googleapis.com/token",
+                    data={
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "refresh_token": refresh_token,
+                        "grant_type": "refresh_token",
+                    },
+                )
+            if resp.status_code != 200:
+                raise RuntimeError(f"google_token_refresh_failed:{resp.status_code}")
+            return resp.json()
+
+        if provider == "microsoft":
+            client_id = self._microsoft_client_id or getattr(settings, "sso_microsoft_client_id", "")
+            client_secret = self._microsoft_client_secret or getattr(settings, "sso_microsoft_client_secret", "")
+            async with httpx.AsyncClient(timeout=20) as client:
+                resp = await client.post(
+                    "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                    data={
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "refresh_token": refresh_token,
+                        "grant_type": "refresh_token",
+                        "scope": "https://graph.microsoft.com/.default offline_access",
+                    },
+                )
+            if resp.status_code != 200:
+                raise RuntimeError(f"microsoft_token_refresh_failed:{resp.status_code}")
+            return resp.json()
+
+        raise RuntimeError(f"unsupported_provider:{provider}")
 
     async def get_refresh_token(self, employee_id: str, provider: str) -> str | None:
         token = await self._get_token(employee_id, provider)

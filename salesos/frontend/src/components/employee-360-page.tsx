@@ -8,7 +8,7 @@ import {
   cn,
 } from "@salesos/ui"
 import {
-  User, Activity, Brain, Clock, TrendingUp,
+  User, Activity, Brain, Clock, TrendingUp, Calendar, Mail,
 } from "lucide-react"
 import { useTranslation } from "@/lib/i18n"
 
@@ -17,18 +17,22 @@ const EmployeeSignals = lazy(() => import("@/components/employee-360/employee-36
 const EmployeeScoring = lazy(() => import("@/components/employee-360/employee-360-scoring").then(m => ({ default: m.EmployeeScoring })))
 const EmployeeTimeline = lazy(() => import("@/components/employee-360/employee-360-timeline").then(m => ({ default: m.EmployeeTimeline })))
 const EmployeePerformance = lazy(() => import("@/components/employee-360/employee-360-performance").then(m => ({ default: m.EmployeePerformance })))
+const CalendarDashboard = lazy(() => import("@/components/employee-360/employee-360-calendar").then(m => ({ default: m.CalendarDashboard })))
+const EmailDashboard = lazy(() => import("@/components/employee-360/employee-360-email").then(m => ({ default: m.EmailDashboard })))
 
 function TabFallback() {
   return <Skeleton className="h-64 rounded-xl" />
 }
 
-type TabId = "overview" | "signals" | "scoring" | "timeline" | "performance"
+type TabId = "overview" | "signals" | "scoring" | "timeline" | "performance" | "calendar" | "email"
 
 const TABS: { id: TabId; labelKey: string; icon: typeof Activity }[] = [
   { id: "overview", labelKey: "emp360.tabs.overview", icon: User },
   { id: "signals", labelKey: "emp360.tabs.signals", icon: Activity },
   { id: "scoring", labelKey: "emp360.tabs.scoring", icon: Brain },
   { id: "timeline", labelKey: "emp360.tabs.timeline", icon: Clock },
+  { id: "calendar", labelKey: "emp360.tabs.calendar", icon: Calendar },
+  { id: "email", labelKey: "emp360.tabs.email", icon: Mail },
   { id: "performance", labelKey: "emp360.tabs.performance", icon: TrendingUp },
 ]
 
@@ -90,7 +94,7 @@ export function Employee360Page({ employeeId }: Employee360PageProps) {
                 )}
               >
                 <Icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{t(tab.labelKey)}</span>
+                <span className="hidden sm:inline">{t(tab.labelKey) || tab.id}</span>
               </Tab>
             )
           })}
@@ -117,6 +121,18 @@ export function Employee360Page({ employeeId }: Employee360PageProps) {
         <TabsPanel value="timeline">
           <Suspense fallback={<TabFallback />}>
             {visitedTabs.has("timeline") && <EmployeeTimeline employeeId={employeeId} />}
+          </Suspense>
+        </TabsPanel>
+
+        <TabsPanel value="calendar">
+          <Suspense fallback={<TabFallback />}>
+            {visitedTabs.has("calendar") && <CalendarDashboard employeeId={employeeId} />}
+          </Suspense>
+        </TabsPanel>
+
+        <TabsPanel value="email">
+          <Suspense fallback={<TabFallback />}>
+            {visitedTabs.has("email") && <EmailDashboard employeeId={employeeId} />}
           </Suspense>
         </TabsPanel>
 

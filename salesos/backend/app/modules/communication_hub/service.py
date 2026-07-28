@@ -129,6 +129,14 @@ class GoogleOAuthService:
             await self.repo.update_tokens(
                 existing.id, access_enc, refresh_enc, expiry
             )
+            await self._mirror_employee_oauth_tokens(
+                tenant_id=tenant_id,
+                user_id=user_id,
+                access_token=tokens["access_token"],
+                refresh_token=tokens.get("refresh_token"),
+                expires_in=int(tokens.get("expires_in", 3600)),
+                scope=" ".join(SCOPES),
+            )
             await self.db.commit()
             await self.db.refresh(existing)
             logger.info(
@@ -148,8 +156,51 @@ class GoogleOAuthService:
             google_user_id=user_info.get("id"),
             avatar_url=user_info.get("picture"),
         )
+        await self._mirror_employee_oauth_tokens(
+            tenant_id=tenant_id,
+            user_id=user_id,
+            access_token=tokens["access_token"],
+            refresh_token=tokens.get("refresh_token"),
+            expires_in=int(tokens.get("expires_in", 3600)),
+            scope=" ".join(SCOPES),
+        )
         await self.db.commit()
         return account
+
+    async def _mirror_employee_oauth_tokens(
+        self,
+        *,
+        tenant_id: UUID,
+        user_id: UUID,
+        access_token: str,
+        refresh_token: str | None,
+        expires_in: int,
+        scope: str,
+    ) -> None:
+        """Bridge Hub tokens into employee_oauth_tokens so Celery sync can use them."""
+        try:
+            from domains.employee.oauth_service import OAuthTokenService
+
+            svc = OAuthTokenService(
+                self.db,
+                google_client_id=settings.sso_google_client_id,
+                google_client_secret=settings.sso_google_client_secret,
+            )
+            await svc.upsert_tokens(
+                employee_id=str(user_id),
+                tenant_id=str(tenant_id),
+                provider="google",
+                access_token=access_token,
+                refresh_token=refresh_token,
+                id_token=None,
+                expires_in=expires_in,
+                scope=scope,
+            )
+        except Exception:
+            logger.exception(
+                "google_account.employee_token_mirror_failed",
+                extra={"tenant_id": str(tenant_id), "user_id": str(user_id)},
+            )
 
     async def _exchange_code(self, code: str) -> dict[str, Any]:
         data = {
@@ -221,4 +272,15 @@ class GoogleOAuthService:
         account = await self.repo.get_by_user(self.tenant_id, self.user_id)
         if not account:
             return False
-        return await self.repo.deactivate(account.id, self.tenant_id)
+        deactivated = await self.repo.deactivate(account.id, self.tenant_id)
+        try:
+            from domains.employee.oauth_service import OAuthTokenService
+
+            await OAuthTokenService(self.db).invalidate(str(self.user_id), "google")
+            await self.db.commit()
+        except Exception:
+            logger.exception(
+                "google_account.employee_token_invalidate_failed",
+                extra={"user_id": str(self.user_id)},
+            )
+        return deactivated

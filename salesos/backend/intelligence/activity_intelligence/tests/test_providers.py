@@ -47,9 +47,18 @@ class TestGoogleGmailProvider:
         import asyncio
         loop = asyncio.new_event_loop()
         result = loop.run_until_complete(
-            provider.authenticate({"email": "test@gmail.com"})
+            provider.authenticate({"email": "test@gmail.com", "access_token": "tok"})
         )
         assert result is True
+
+    def test_authenticate_requires_token(self):
+        provider = GoogleGmailProvider()
+        import asyncio
+        loop = asyncio.new_event_loop()
+        result = loop.run_until_complete(
+            provider.authenticate({"email": "test@gmail.com"})
+        )
+        assert result is False
 
     def test_fetch_emails_empty_when_not_auth(self):
         provider = GoogleGmailProvider()
@@ -70,7 +79,7 @@ class TestGoogleCalendarProvider:
         import asyncio
         loop = asyncio.new_event_loop()
         result = loop.run_until_complete(
-            provider.authenticate({"email": "test@gmail.com"})
+            provider.authenticate({"email": "test@gmail.com", "access_token": "tok"})
         )
         assert result is True
 

@@ -60,6 +60,7 @@ def calendar_sync_all_employees_task(self) -> dict:
 async def calendar_sync_employee(employee_id: str, tenant_id: str, provider: str = "google") -> None:
     """Sync calendar events for one employee from specified provider."""
     db = await _get_session()
+    record = None
     try:
         svc = OAuthTokenService(db)
         token = await svc.get_access_token(employee_id, provider)
@@ -135,6 +136,7 @@ async def _sync_google_calendar(
             end_dt = end.get("dateTime") or end.get("date")
 
             cal_event = EmployeeCalendarEventModel(
+                id=uuid.uuid4(),
                 employee_id=eid, tenant_id=tid, provider="google",
                 provider_event_id=event.get("id", ""),
                 title=event.get("summary", ""),
@@ -196,6 +198,7 @@ async def _sync_microsoft_calendar(
             is_cancelled = event.get("isCancelled", False) or event.get("removed", {}).get("reason") is not None
 
             cal_event = EmployeeCalendarEventModel(
+                id=uuid.uuid4(),
                 employee_id=eid, tenant_id=tid, provider="microsoft",
                 provider_event_id=event_id,
                 title=event.get("subject", ""),
@@ -259,59 +262,160 @@ async def calendar_sync_all_employees() -> dict:
 async def email_sync_employee(employee_id: str, tenant_id: str, provider: str = "google") -> None:
     """Sync email events for one employee."""
     db = await _get_session()
+    record = None
     try:
         svc = OAuthTokenService(db)
         token = await svc.get_access_token(employee_id, provider)
         if not token:
             return
+        result = await db.execute(
+            select(EmployeeOAuthToken).where(
+                EmployeeOAuthToken.employee_id == uuid.UUID(employee_id),
+                EmployeeOAuthToken.provider == provider,
+                EmployeeOAuthToken.is_active == True,
+            ).limit(1)
+        )
+        record = result.scalar_one_or_none()
         if provider == "google":
-            await _sync_gmail(db, employee_id, tenant_id, token)
+            await _sync_gmail(db, employee_id, tenant_id, token, record)
         else:
             await _sync_outlook(db, employee_id, tenant_id, token)
+        if record:
+            record.record_success()
+            await db.flush()
         await db.commit()
+    except Exception as exc:
+        if record:
+            record.record_failure(str(exc)[:500])
+            await db.commit()
+        raise
     finally:
         await db.close()
 
 
-async def _sync_gmail(db: AsyncSession, employee_id: str, tenant_id: str, token: str) -> None:
-    """Sync Gmail messages via Gmail API."""
+async def _sync_gmail(
+    db: AsyncSession,
+    employee_id: str,
+    tenant_id: str,
+    token: str,
+    record: EmployeeOAuthToken | None,
+) -> None:
+    """Sync Gmail via History API when possible; fall back to recent message list."""
     import httpx
-    url = "https://gmail.googleapis.com/gmail/v1/users/me/messages"
+
+    eid = uuid.UUID(employee_id)
+    tid = uuid.UUID(tenant_id)
+    history_id = record.email_history_id if record else None
+    headers = {"Authorization": f"Bearer {token}"}
+
     async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.get(
-            url, headers={"Authorization": f"Bearer {token}"},
-            params={"maxResults": 100, "q": "newer_than:1d"},
-        )
-        if resp.status_code != 200:
-            return
-        data = resp.json()
-        for msg in data.get("messages", []):
+        message_ids: list[str] = []
+        new_history_id: str | None = None
+
+        if history_id:
+            hist_resp = await client.get(
+                "https://gmail.googleapis.com/gmail/v1/users/me/history",
+                headers=headers,
+                params={
+                    "startHistoryId": history_id,
+                    "historyTypes": "messageAdded",
+                    "maxResults": 100,
+                },
+            )
+            if hist_resp.status_code == 404:
+                # History expired — full recent sync
+                history_id = None
+            elif hist_resp.status_code != 200:
+                raise Exception(f"Gmail History API error: {hist_resp.status_code} {hist_resp.text[:200]}")
+            else:
+                hist_data = hist_resp.json()
+                new_history_id = hist_data.get("historyId") or history_id
+                for entry in hist_data.get("history", []):
+                    for added in entry.get("messagesAdded", []):
+                        msg = added.get("message") or {}
+                        if msg.get("id"):
+                            message_ids.append(msg["id"])
+
+        if not history_id:
+            list_resp = await client.get(
+                "https://gmail.googleapis.com/gmail/v1/users/me/messages",
+                headers=headers,
+                params={"maxResults": 100, "q": "newer_than:7d"},
+            )
+            if list_resp.status_code != 200:
+                raise Exception(f"Gmail messages.list error: {list_resp.status_code} {list_resp.text[:200]}")
+            list_data = list_resp.json()
+            message_ids = [m["id"] for m in list_data.get("messages", []) if m.get("id")]
+            profile = await client.get(
+                "https://gmail.googleapis.com/gmail/v1/users/me/profile",
+                headers=headers,
+            )
+            if profile.status_code == 200:
+                new_history_id = str(profile.json().get("historyId") or "")
+
+        seen: set[str] = set()
+        for msg_id in message_ids:
+            if msg_id in seen:
+                continue
+            seen.add(msg_id)
+
+            existing = await db.execute(
+                select(EmployeeEmailEventModel.id).where(
+                    EmployeeEmailEventModel.provider == "google",
+                    EmployeeEmailEventModel.provider_message_id == msg_id,
+                    EmployeeEmailEventModel.tenant_id == tid,
+                ).limit(1)
+            )
+            if existing.scalar_one_or_none():
+                continue
+
             detail = await client.get(
-                f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{msg['id']}",
-                headers={"Authorization": f"Bearer {token}"},
-                params={"format": "metadata", "metadataHeaders": "From,To,Cc,Subject,Date,Message-ID,In-Reply-To,References"},
+                f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{msg_id}",
+                headers=headers,
+                params={
+                    "format": "metadata",
+                    "metadataHeaders": "From,To,Cc,Subject,Date,Message-ID,In-Reply-To,References",
+                },
             )
             if detail.status_code != 200:
                 continue
             msg_data = detail.json()
-            headers = {h["name"].lower(): h["value"] for h in msg_data.get("payload", {}).get("headers", [])}
+            headers_map = {
+                h["name"].lower(): h["value"]
+                for h in msg_data.get("payload", {}).get("headers", [])
+            }
             labels = msg_data.get("labelIds", [])
+            ts = datetime.now(timezone.utc)
+            if msg_data.get("internalDate"):
+                try:
+                    ts = datetime.fromtimestamp(int(msg_data["internalDate"]) / 1000, tz=timezone.utc)
+                except (TypeError, ValueError):
+                    pass
 
             email = EmployeeEmailEventModel(
-                employee_id=uuid.UUID(employee_id), tenant_id=uuid.UUID(tenant_id), provider="google",
-                provider_message_id=msg["id"],
+                id=uuid.uuid4(),
+                employee_id=eid,
+                tenant_id=tid,
+                provider="google",
+                provider_message_id=msg_id,
                 thread_id=msg_data.get("threadId"),
-                in_reply_to=headers.get("in-reply-to"),
+                in_reply_to=headers_map.get("in-reply-to"),
                 direction="sent" if "SENT" in labels else "received",
-                from_address=headers.get("from"),
-                to_addresses=[headers.get("to", "")],
-                subject=headers.get("subject", ""),
+                from_address=headers_map.get("from"),
+                to_addresses=[headers_map.get("to", "")],
+                subject=headers_map.get("subject", ""),
                 snippet=msg_data.get("snippet", ""),
-                timestamp_utc=datetime.fromisoformat(headers.get("date", "")) if headers.get("date") else datetime.now(timezone.utc),
+                timestamp_utc=ts,
                 labels=labels,
                 is_read="UNREAD" not in labels,
+                sync_history_id=new_history_id,
+                last_synced_at=datetime.now(timezone.utc),
             )
             db.add(email)
+
+        if new_history_id and record:
+            record.email_history_id = new_history_id
+            record.last_email_sync_at = datetime.now(timezone.utc)
 
 
 async def _sync_outlook(db: AsyncSession, employee_id: str, tenant_id: str, token: str) -> None:
@@ -328,6 +432,7 @@ async def _sync_outlook(db: AsyncSession, employee_id: str, tenant_id: str, toke
         data = resp.json()
         for msg in data.get("value", []):
             email = EmployeeEmailEventModel(
+                id=uuid.uuid4(),
                 employee_id=uuid.UUID(employee_id), tenant_id=uuid.UUID(tenant_id), provider="microsoft",
                 provider_message_id=msg.get("id"),
                 thread_id=msg.get("conversationId"),

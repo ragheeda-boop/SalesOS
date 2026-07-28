@@ -1,42 +1,58 @@
-from .providers import *
-from .memory import *
-from .prompts import *
-from .streaming import *
-from .business_objects import BusinessObjectRegistry, BusinessObject, ObjectIdentity, ObjectProfile, EntityType, SignalType
-from .company import CompanyIntelligenceEngine
-from .enrichment import EnrichmentService
-from .market import MarketIntelligenceEngine
-from .graph import RelationshipGraphService
-from .signals import SignalEngine
-from .revenue_brain import RevenueBrain
-from .data_fabric import DataFabric, ConnectorEngine, ConnectorType, ConnectorStatus, IdentityResolver, EntityMatcher, DataQualityEngine
-from .agents import AgentCoordinator, BaseAgent, AgentTask, AgentResult, AgentStatus, ResearchAgent, NewsAgent, ProposalAgent, ContractAgent, MeetingAgent, PricingAgent, ForecastAgent, RenewalAgent, CompetitorAgent, TenderAgent, RelationshipAgent
-from .digital_twin import TwinEngine, DigitalTwin, CompanyTwin
-from .simulation import SimulationEngine, DecisionIntelligence, Scenario, ScenarioResult, ScenarioType
+"""SalesOS intelligence package.
+
+Subpackages are imported explicitly (e.g. ``intelligence.activity_intelligence``)
+to avoid eager loading of optional LLM provider dependencies at import time.
+"""
+
+from __future__ import annotations
+
+from typing import Any
 
 __all__ = [
-    "LLMProvider", "ChatRequest", "ChatResponse", "EmbeddingRequest", "EmbeddingResponse",
-    "FinishReason", "StreamEvent", "estimate_cost", "get_model_family",
-    "OpenAIProvider", "AnthropicProvider", "GeminiProvider", "AzureOpenAIProvider", "OllamaProvider",
-    "ProviderFactory", "get_provider", "QueryRouter", "ComplexityLevel", "RoutingDecision",
-    "CostTracker", "CostRecord", "BudgetEnforcement", "get_cost_tracker",
-    "MemoryStore", "MemoryEntry", "MemoryScope", "MemoryEntryType",
-    "WorkingMemory", "SessionMemory", "ConversationMemory", "InMemoryMemoryStore",
-    "PostgresMemoryStore", "MemoryRetrieval", "MemoryResult",
-    "PromptRegistry", "PromptTemplate", "PromptVersion", "PromptValidationError", "PromptNotFoundError",
-    "SSEMessage", "format_sse_event", "stream_to_sse", "stream_to_async_gen",
-    "BusinessObjectRegistry", "BusinessObject", "ObjectIdentity", "ObjectProfile", "EntityType", "SignalType",
+    "LLMProvider",
+    "OpenAIProvider",
+    "ProviderFactory",
+    "get_provider",
     "CompanyIntelligenceEngine",
     "EnrichmentService",
     "MarketIntelligenceEngine",
     "RelationshipGraphService",
     "SignalEngine",
     "RevenueBrain",
-    "DataFabric", "ConnectorEngine", "ConnectorType", "ConnectorStatus",
-    "IdentityResolver", "EntityMatcher", "DataQualityEngine",
-    "AgentCoordinator", "BaseAgent", "AgentTask", "AgentResult", "AgentStatus",
-    "ResearchAgent", "NewsAgent", "ProposalAgent", "ContractAgent", "MeetingAgent",
-    "PricingAgent", "ForecastAgent", "RenewalAgent", "CompetitorAgent", "TenderAgent", "RelationshipAgent",
-    "TwinEngine", "DigitalTwin", "CompanyTwin",
-    "SimulationEngine", "DecisionIntelligence", "Scenario", "ScenarioResult", "ScenarioType",
+    "DataFabric",
+    "AgentCoordinator",
+    "TwinEngine",
+    "SimulationEngine",
+    "DecisionIntelligence",
 ]
+
+_LAZY_MAP = {
+    "LLMProvider": "intelligence.providers.protocol:LLMProvider",
+    "OpenAIProvider": "intelligence.providers.openai_provider:OpenAIProvider",
+    "ProviderFactory": "intelligence.providers.factory:ProviderFactory",
+    "get_provider": "intelligence.providers.factory:get_provider",
+    "CompanyIntelligenceEngine": "intelligence.company:CompanyIntelligenceEngine",
+    "EnrichmentService": "intelligence.enrichment:EnrichmentService",
+    "MarketIntelligenceEngine": "intelligence.market:MarketIntelligenceEngine",
+    "RelationshipGraphService": "intelligence.graph:RelationshipGraphService",
+    "SignalEngine": "intelligence.signals:SignalEngine",
+    "RevenueBrain": "intelligence.revenue_brain:RevenueBrain",
+    "DataFabric": "intelligence.data_fabric:DataFabric",
+    "AgentCoordinator": "intelligence.agents:AgentCoordinator",
+    "TwinEngine": "intelligence.digital_twin:TwinEngine",
+    "SimulationEngine": "intelligence.simulation:SimulationEngine",
+    "DecisionIntelligence": "intelligence.simulation:DecisionIntelligence",
+}
+
+
+def __getattr__(name: str) -> Any:
+    target = _LAZY_MAP.get(name)
+    if not target:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    module_path, attr = target.split(":")
+    import importlib
+
+    module = importlib.import_module(module_path)
+    value = getattr(module, attr)
+    globals()[name] = value
+    return value

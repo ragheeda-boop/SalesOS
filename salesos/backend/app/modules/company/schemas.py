@@ -344,3 +344,4 @@ class Company360Response(BaseModel):
     related_entities: list[dict] = []
     decision_makers: list[dict] = []
     health_score: float = 0.0
+    engagement: dict | None = None

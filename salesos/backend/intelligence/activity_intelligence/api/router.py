@@ -14,15 +14,12 @@ Routes:
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from dataclasses import asdict
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, verify_token
-from intelligence.activity_intelligence.contracts.models import (
-    ActivityDashboardDTO,
-    CompanyEngagementDTO,
-)
-from intelligence.activity_intelligence.mappers.company_mapper import CompanyEngagementMapper
-from intelligence.activity_intelligence.mappers.dashboard_mapper import DashboardMapper
+from app.dependencies import get_current_tenant_id, get_db_session, verify_token
+from intelligence.activity_intelligence.service import ActivityIntelligenceService
 
 router = APIRouter(
     prefix="/api/v1/activity",
@@ -31,55 +28,71 @@ router = APIRouter(
 )
 
 
-def _get_service():
-    """Get ActivityIntelligenceService from app state."""
-    # In production, injected via FastAPI dependency
-    # For now, returns None — wired during app startup
-    return None
+def _get_service(db: AsyncSession = Depends(get_db_session)) -> ActivityIntelligenceService:
+    return ActivityIntelligenceService(db)
+
+
+def _serialize(obj) -> dict:
+    if hasattr(obj, "__dataclass_fields__"):
+        data = asdict(obj)
+        return data
+    if isinstance(obj, dict):
+        return obj
+    return dict(obj)
 
 
 @router.get("/dashboard", response_model=dict)
-async def get_dashboard(tenant_id: str = Depends(get_current_tenant_id)):
+async def get_dashboard(
+    tenant_id: str = Depends(get_current_tenant_id),
+    svc: ActivityIntelligenceService = Depends(_get_service),
+):
     """Get activity dashboard summary."""
-    svc = _get_service()
-    if svc is None:
-        return ActivityDashboardDTO().__dict__
     result = await svc.get_dashboard(tenant_id)
-    return DashboardMapper.to_activity_dashboard(result).__dict__
+    return _serialize(result)
 
 
 @router.get("/company/{company_id}", response_model=dict)
 async def get_company_engagement(
     company_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
+    svc: ActivityIntelligenceService = Depends(_get_service),
 ):
     """Get per-company engagement summary."""
-    svc = _get_service()
-    if svc is None:
-        return CompanyEngagementDTO(company_id=company_id).__dict__
     result = await svc.get_company_engagement(company_id, tenant_id)
-    return CompanyEngagementMapper.to_company_engagement(company_id, result).__dict__
+    return _serialize(result)
 
 
 @router.get("/email", response_model=dict)
-async def get_email_metrics(tenant_id: str = Depends(get_current_tenant_id)):
+async def get_email_metrics(
+    tenant_id: str = Depends(get_current_tenant_id),
+    svc: ActivityIntelligenceService = Depends(_get_service),
+):
     """Get email intelligence metrics."""
-    return {"status": "ok", "message": "Email metrics endpoint"}
+    return await svc.get_email_metrics(tenant_id)
 
 
 @router.get("/calendar", response_model=dict)
-async def get_calendar_metrics(tenant_id: str = Depends(get_current_tenant_id)):
+async def get_calendar_metrics(
+    tenant_id: str = Depends(get_current_tenant_id),
+    svc: ActivityIntelligenceService = Depends(_get_service),
+):
     """Get calendar intelligence metrics."""
-    return {"status": "ok", "message": "Calendar metrics endpoint"}
+    return await svc.get_calendar_metrics(tenant_id)
 
 
 @router.get("/followups", response_model=dict)
-async def get_followups(tenant_id: str = Depends(get_current_tenant_id)):
+async def get_followups(
+    tenant_id: str = Depends(get_current_tenant_id),
+    svc: ActivityIntelligenceService = Depends(_get_service),
+):
     """Get follow-up dashboard."""
-    return {"status": "ok", "message": "Followups endpoint"}
+    return await svc.get_followups(tenant_id)
 
 
 @router.get("/engagement", response_model=dict)
-async def get_engagement_summary(tenant_id: str = Depends(get_current_tenant_id)):
+async def get_engagement_summary(
+    tenant_id: str = Depends(get_current_tenant_id),
+    svc: ActivityIntelligenceService = Depends(_get_service),
+):
     """Get engagement summary across all companies."""
-    return {"status": "ok", "message": "Engagement endpoint"}
+    return await svc.get_engagement_summary(tenant_id)

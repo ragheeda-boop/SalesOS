@@ -1,8 +1,10 @@
 """Create google_accounts table for Google Workspace integration.
 
 Revision ID: 0047
-Revises: 0046
+Revises: 0045
 Create Date: 2026-07-28
+
+Note: 0046 was never committed; this revision correctly chains from 0045.
 """
 from typing import Sequence, Union
 
@@ -10,7 +12,7 @@ from alembic import op
 import sqlalchemy as sa
 
 revision: str = "0047"
-down_revision: Union[str, None] = "0046"
+down_revision: Union[str, None] = "0045"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

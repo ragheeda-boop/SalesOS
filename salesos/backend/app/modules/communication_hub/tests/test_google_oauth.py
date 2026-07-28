@@ -274,8 +274,8 @@ class TestGoogleOAuthService:
         assert "openid" in SCOPES
         assert "email" in SCOPES
         assert "profile" in SCOPES
-        assert "gmail.readonly" in SCOPES
-        assert "calendar.readonly" in SCOPES
+        assert any("gmail.readonly" in s for s in SCOPES)
+        assert any("calendar.readonly" in s for s in SCOPES)
         assert len(SCOPES) == 5
 
 

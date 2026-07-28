@@ -111,7 +111,9 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(marketplace_router)
 
     app.include_router(sso_router, prefix="/api/v1", tags=["SSO"])
-    app.include_router(communication_hub_router, prefix="/api/v1", tags=["Communication Hub"], dependencies=_auth)
+    # Communication Hub: callback must remain unauthenticated (Google redirect).
+    # Per-route auth is applied inside the router for connect/status/disconnect.
+    app.include_router(communication_hub_router, prefix="/api/v1", tags=["Communication Hub"])
     app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
     app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
     app.include_router(admin_router)

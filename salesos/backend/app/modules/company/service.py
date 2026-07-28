@@ -509,34 +509,37 @@ class CompanyService:
         # ── ADR-012 Activity Intelligence Integration ──
         engagement_data = None
         try:
-            from intelligence.activity_intelligence.engine.email_engine import EmailEngine
-            from intelligence.activity_intelligence.engine.calendar_engine import CalendarEngine
-            from intelligence.activity_intelligence.engine.engagement_engine import EngagementEngine
-            from intelligence.activity_intelligence.engine.followup_engine import FollowupEngine
+            from intelligence.activity_intelligence.service import ActivityIntelligenceService
 
-            email_eng = EmailEngine()
-            calendar_eng = CalendarEngine()
-            engagement_eng = EngagementEngine(email_engine=email_eng, calendar_engine=calendar_eng)
-            followup_eng = FollowupEngine(email_engine=email_eng, calendar_engine=calendar_eng)
-
-            followup_status = await followup_eng.get_status(company_id, tenant_id)
-            health = await engagement_eng.get_relationship_health(company_id, tenant_id)
-
+            ai_svc = ActivityIntelligenceService(session)
+            engagement = await ai_svc.get_company_engagement(company_id, tenant_id)
+            followup = await ai_svc.followup_engine.get_status(company_id, tenant_id)
+            score = engagement.score
             engagement_data = {
-                "relationship_health": health.get("relationship_health", 0.0),
-                "metrics": health.get("metrics", {}),
+                "relationship_health": score.relationship_health if score else 0.0,
+                "email_count": engagement.email_count,
+                "meeting_count": engagement.meeting_count,
+                "last_activity": engagement.last_activity,
+                "last_email": engagement.last_email,
+                "last_meeting": engagement.last_meeting,
+                "metrics": {
+                    "email_count_sent": score.email_count_sent if score else 0,
+                    "email_count_received": score.email_count_received if score else 0,
+                    "reply_rate": score.reply_rate if score else 0.0,
+                    "meeting_hours": score.meeting_hours if score else 0.0,
+                },
                 "followup_status": {
-                    "assigned": followup_status.assigned,
-                    "need_followup": followup_status.need_followup,
-                    "waiting_customer": followup_status.waiting_customer,
-                    "waiting_you": followup_status.waiting_you,
-                    "overdue": followup_status.overdue,
-                    "last_outbound_days": followup_status.last_outbound_days,
-                    "priority": followup_status.priority,
+                    "assigned": followup.assigned,
+                    "need_followup": followup.need_followup,
+                    "waiting_customer": followup.waiting_customer,
+                    "waiting_you": followup.waiting_you,
+                    "overdue": followup.overdue,
+                    "last_outbound_days": followup.last_outbound_days,
+                    "priority": followup.priority,
                 },
             }
-            if health.get("relationship_health", 0.0) > 0:
-                health_score = round(max(0.0, min(1.0, health["relationship_health"])), 4)
+            if score and score.relationship_health > 0:
+                health_score = round(max(0.0, min(1.0, score.relationship_health)), 4)
         except Exception as e:
             if self.logger:
                 self.logger.warn("company_360.adr012_failed", company_id=company_id, error=str(e))

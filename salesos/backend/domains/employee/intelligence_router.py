@@ -344,9 +344,11 @@ async def _exchange_google_code(code: str, redirect_uri: str) -> dict:
     from app.config import settings
     async with httpx.AsyncClient(timeout=15) as client:
         resp = await client.post("https://oauth2.googleapis.com/token", data={
-            "code": code, "client_id": getattr(settings, "GOOGLE_CLIENT_ID", ""),
-            "client_secret": getattr(settings, "GOOGLE_CLIENT_SECRET", ""),
-            "redirect_uri": redirect_uri, "grant_type": "authorization_code",
+            "code": code,
+            "client_id": settings.sso_google_client_id,
+            "client_secret": settings.sso_google_client_secret,
+            "redirect_uri": redirect_uri,
+            "grant_type": "authorization_code",
         })
         if resp.status_code != 200:
             raise Exception(f"Google OAuth error: {resp.text[:200]}")
@@ -356,11 +358,16 @@ async def _exchange_google_code(code: str, redirect_uri: str) -> dict:
 async def _exchange_microsoft_code(code: str, redirect_uri: str) -> dict:
     import httpx
     from app.config import settings
+    client_id = getattr(settings, "sso_microsoft_client_id", "") or getattr(settings, "MICROSOFT_CLIENT_ID", "")
+    client_secret = getattr(settings, "sso_microsoft_client_secret", "") or getattr(settings, "MICROSOFT_CLIENT_SECRET", "")
     async with httpx.AsyncClient(timeout=15) as client:
         resp = await client.post("https://login.microsoftonline.com/common/oauth2/v2.0/token", data={
-            "code": code, "client_id": getattr(settings, "MICROSOFT_CLIENT_ID", ""),
-            "client_secret": getattr(settings, "MICROSOFT_CLIENT_SECRET", ""),
-            "redirect_uri": redirect_uri, "grant_type": "authorization_code", "scope": "https://graph.microsoft.com/.default",
+            "code": code,
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "redirect_uri": redirect_uri,
+            "grant_type": "authorization_code",
+            "scope": "https://graph.microsoft.com/.default",
         })
         if resp.status_code != 200:
             raise Exception(f"Microsoft OAuth error: {resp.text[:200]}")
