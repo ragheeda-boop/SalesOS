@@ -9,6 +9,8 @@
 |------|---------|
 | `fbea9aa` | Harden Google OAuth callback, calendar syncToken, company domain linking, Activity Intelligence FE metrics |
 | `64858dd` | Fix OAuth unit test for URL-encoded redirect_uri |
+| `0ef2ff1` | Unique tenant+provider IDs on synced email/calendar events (Alembic **0049**) |
+| `cb7e914` | Wire Company/Employee 360 engagement to Postgres event readers |
 
 ## Fixes applied
 
