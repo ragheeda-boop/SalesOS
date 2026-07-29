@@ -48,12 +48,18 @@ async def get_db() -> AsyncSession:
     async with async_session() as session:
         try:
             yield session
-            await session.commit()
         except Exception:
             await session.rollback()
             raise
-        finally:
-            await session.close()
+        else:
+            # Prefer rollback over raising when the session is already aborted
+            # (e.g. swallowed DB errors mid-request). Re-raise unexpected commit
+            # failures so write endpoints still fail closed.
+            try:
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
 
 
 async def init_db():

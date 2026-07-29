@@ -50,7 +50,12 @@ async def my_employee_360(
         audit = EmployeeAuditLogger(db)
         await audit.log_view(user_id, user_id, tenant_id)
     except Exception:
-        pass
+        # Swallowed audit failures must not leave the request session aborted,
+        # or get_db commit raises PendingRollbackError after a successful 360.
+        try:
+            await db.rollback()
+        except Exception:
+            pass
     return result
 
 
@@ -77,5 +82,8 @@ async def employee_360(
         audit = EmployeeAuditLogger(db)
         await audit.log_view(employee_id, user_id, tenant_id)
     except Exception:
-        pass
+        try:
+            await db.rollback()
+        except Exception:
+            pass
     return result

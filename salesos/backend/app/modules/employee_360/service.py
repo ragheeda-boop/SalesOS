@@ -1,4 +1,3 @@
-import asyncio
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
@@ -40,16 +39,21 @@ class Employee360Service:
         self.signal_pipeline = signal_pipeline
         self.signal_repo = signal_repo
 
-    async def get_360(self, user_id: str, tenant_id: str) -> Employee360Response:
-        # Phase 1: Parallelize independent calls
-        profile_task = self._get_profile(user_id, tenant_id)
-        portfolio_task = self._get_portfolio(tenant_id, user_id)
-        activity_task = self._get_activity_intelligence(tenant_id, user_id)
-        signal_data_task = self._get_signals_data(user_id, tenant_id)
+    async def _recover_session(self) -> None:
+        """Clear an aborted transaction so later reads in the same request can continue."""
+        try:
+            await self.db.rollback()
+        except Exception:
+            pass
 
-        profile, portfolio, activity, signal_data = await asyncio.gather(
-            profile_task, portfolio_task, activity_task, signal_data_task,
-        )
+    async def get_360(self, user_id: str, tenant_id: str) -> Employee360Response:
+        # Sequential DB work only — AsyncSession is not safe under asyncio.gather.
+        # Concurrent use left the request transaction aborted; commit then raised
+        # PendingRollbackError and the browser saw axios "Network Error".
+        profile = await self._get_profile(user_id, tenant_id)
+        portfolio = await self._get_portfolio(tenant_id, user_id)
+        activity = await self._get_activity_intelligence(tenant_id, user_id)
+        signal_data = await self._get_signals_data(user_id, tenant_id)
 
         kpis = self._compute_kpis(portfolio, activity)
         if signal_data:
@@ -59,13 +63,8 @@ class Employee360Service:
             kpis.completion_rate = score_data.get("completion_rate", 0.0)
             kpis.signal_count = (signal_data.get("summary") or {}).get("total_signals", 0)
 
-        # Phase 2: Calls that depend on signal_data
-        timeline_task = self._get_timeline(user_id, tenant_id)
-        performance_task = self._get_performance(user_id, tenant_id, signal_data)
-
-        timeline, performance = await asyncio.gather(
-            timeline_task, performance_task,
-        )
+        timeline = await self._get_timeline(user_id, tenant_id)
+        performance = await self._get_performance(user_id, tenant_id, signal_data)
 
         ai_coach = self._generate_coach_actions(portfolio, kpis, performance)
 
@@ -107,6 +106,7 @@ class Employee360Service:
             kpis.response_rate = reply_rate
             kpis.follow_up_rate = min(1.0, max(0.0, reply_rate))
         except Exception as e:
+            await self._recover_session()
             if self.logger:
                 self.logger.warn("employee_360.adr012_failed", user_id=user_id, error=str(e))
 
@@ -185,6 +185,7 @@ class Employee360Service:
                 for o in result.items
             ]
         except Exception as e:
+            await self._recover_session()
             if self.logger:
                 self.logger.warn("employee_360.portfolio_opportunities_failed", user_id=user_id, error=str(e))
 
@@ -200,6 +201,7 @@ class Employee360Service:
                 for c in contact_result.scalars().all()
             ]
         except Exception as e:
+            await self._recover_session()
             if self.logger:
                 self.logger.warn("employee_360.portfolio_contacts_failed", error=str(e))
 
@@ -215,6 +217,7 @@ class Employee360Service:
                 for c in company_result.scalars().all()
             ]
         except Exception as e:
+            await self._recover_session()
             if self.logger:
                 self.logger.warn("employee_360.portfolio_companies_failed", error=str(e))
 
@@ -238,6 +241,7 @@ class Employee360Service:
                 actor=user_id, tenant_id=tenant_id, limit=50
             )
         except Exception:
+            await self._recover_session()
             return ActivityIntelligence()
 
         meetings = sum(1 for a in items if a.get("action", "").startswith("meeting"))
@@ -284,6 +288,7 @@ class Employee360Service:
                 "score": score.__dict__ if score else None,
             }
         except Exception:
+            await self._recover_session()
             return None
 
     async def _get_timeline(self, user_id: str, tenant_id: str) -> EmployeeTimeline:
@@ -305,6 +310,7 @@ class Employee360Service:
             ]
             return EmployeeTimeline(events=events, total=total)
         except Exception:
+            await self._recover_session()
             return EmployeeTimeline()
 
     async def _get_performance(
@@ -350,6 +356,7 @@ class Employee360Service:
                 risk_flags=[RiskFlagItem(**f) for f in result.get("risk_flags", [])],
             )
         except Exception:
+            await self._recover_session()
             return PerformanceInsights()
 
     def _generate_coach_actions(

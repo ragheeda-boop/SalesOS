@@ -210,7 +210,7 @@ export default function SettingsPage() {
  <Card className="p-6">
  <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">{t("settings.profile_title")}</h2>
  {profile && (
- <div className="mb-4 flex items-center gap-3 rounded-lg bg-[var(--bg-secondary)] p-3/50">
+ <div className="mb-4 flex items-center gap-3 rounded-lg bg-[var(--bg-secondary)] p-3">
  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)]">
  <User className="h-5 w-5" />
  </div>
