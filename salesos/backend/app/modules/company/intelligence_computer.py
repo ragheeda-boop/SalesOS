@@ -113,10 +113,13 @@ def _build_dna(resp: Company360Response, firmographic: CompanyFirmographicDTO) -
         buyingIntent={"score": 40, "confidence": 60},
         riskLevel={"score": max(0, 100 - resp.health_score * 100), "level": "low" if resp.health_score > 0.7 else "medium"},
         confidenceScore=resp.health_score,
-        dataFreshness={"score": 80, "updatedAt": resp.enrichment.get("last_enriched_at", "") or ""},
+        dataFreshness={
+            "score": 80,
+            "updatedAt": getattr(resp.enrichment, "last_enriched_at", None) or "",
+        },
         goldenRecordStatus={
             "status": "clean" if resp.golden_record_id else "needs_review",
-            "sources": len(resp.enrichment.get("sources", [])),
+            "sources": len(getattr(resp.enrichment, "sources", None) or []),
         },
     )
 
@@ -306,13 +309,14 @@ def _stage_label(stage: str) -> str:
 def _map_golden_record(resp: Company360Response) -> list[GoldenRecordEntryDTO]:
     result = []
     if resp.golden_record_id:
+        sources = getattr(resp.enrichment, "sources", None) or []
         result.append(GoldenRecordEntryDTO(
             id=resp.golden_record_id,
             entityName=resp.company.name_ar or resp.company.name_en or "",
-            source=resp.enrichment.get("sources", ["system"])[0] if resp.enrichment.get("sources") else "system",
-            confidence=resp.enrichment.get("confidence_score", 0.0),
+            source=sources[0] if sources else "system",
+            confidence=float(getattr(resp.enrichment, "confidence_score", 0.0) or 0.0),
             conflicts=[],
             freshness="current",
-            status="matched" if resp.enrichment.get("is_golden_record") else "potential_duplicate",
+            status="matched" if getattr(resp.enrichment, "is_golden_record", False) else "potential_duplicate",
         ))
     return result

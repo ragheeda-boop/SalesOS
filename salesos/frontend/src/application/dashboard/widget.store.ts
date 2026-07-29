@@ -40,7 +40,8 @@ export function deriveStatus(data: unknown, isLoading: boolean, isError: boolean
  if (isLoading && data) return 'degraded'
  if (isError && !data) return 'error'
  if (isError && data) return 'degraded'
- if (!data) return 'loading'
+ // Never spin forever when the request finished with empty/error payload.
+ if (!data) return 'error'
  return 'ready'
 }
 
@@ -66,14 +67,30 @@ export function deriveWidgets(
  isLoading: boolean,
  isError: boolean,
 ): WidgetMap {
+ const from = <T,>(
+ id: WidgetId,
+ widget: DashboardWidget<T> | null | undefined,
+ ): DashboardWidget<T> => {
+ if (widget) {
+ const status =
+ isLoading && !widget.data
+ ? 'loading'
+ : widget.status === 'ready' || widget.status === 'error' || widget.status === 'degraded' || widget.status === 'loading'
+ ? (isLoading && widget.data ? 'degraded' : widget.status)
+ : deriveStatus(widget.data, isLoading, isError)
+ return { ...widget, status }
+ }
+ return buildWidget(id, null, isLoading, isError)
+ }
+
  return {
- missionCenter: buildWidget('missionCenter', dto?.missionCenter?.data as MissionCenterData | null | undefined, isLoading, isError),
- decisionQueue: buildWidget('decisionQueue', dto?.decisionQueue?.data as DecisionQueueData | null | undefined, isLoading, isError),
- intelligenceFeed: buildWidget('intelligenceFeed', dto?.intelligenceFeed?.data as IntelligenceFeedData | null | undefined, isLoading, isError),
- aiBrief: buildWidget('aiBrief', dto?.aiBrief?.data as AIBriefData | null | undefined, isLoading, isError),
- marketPulse: buildWidget('marketPulse', dto?.marketPulse?.data as MarketPulseData | null | undefined, isLoading, isError),
- recentActivity: buildWidget('recentActivity', dto?.recentActivity?.data as RecentActivityData | null | undefined, isLoading, isError),
- pipeline: buildWidget('pipeline', dto?.pipeline?.data as PipelineDTOData | null | undefined, isLoading, isError),
- companyHealth: buildWidget('companyHealth', dto?.companyHealth?.data as CompanyHealthDTOData | null | undefined, isLoading, isError),
+ missionCenter: from('missionCenter', dto?.missionCenter as DashboardWidget<MissionCenterData> | null | undefined),
+ decisionQueue: from('decisionQueue', dto?.decisionQueue as DashboardWidget<DecisionQueueData> | null | undefined),
+ intelligenceFeed: from('intelligenceFeed', dto?.intelligenceFeed as DashboardWidget<IntelligenceFeedData> | null | undefined),
+ aiBrief: from('aiBrief', dto?.aiBrief as DashboardWidget<AIBriefData> | null | undefined),
+ marketPulse: from('marketPulse', dto?.marketPulse as DashboardWidget<MarketPulseData> | null | undefined),
+ recentActivity: from('recentActivity', dto?.recentActivity as DashboardWidget<RecentActivityData> | null | undefined),
+ pipeline: from('pipeline', dto?.pipeline as DashboardWidget<PipelineDTOData> | null | undefined),
+ companyHealth: from('companyHealth', dto?.companyHealth as DashboardWidget<CompanyHealthDTOData> | null | undefined),
  }
 }

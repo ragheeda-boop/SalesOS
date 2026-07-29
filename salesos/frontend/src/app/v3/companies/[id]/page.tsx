@@ -120,7 +120,13 @@ function OverviewTab({ company }: { company: CompanyDetail }) {
  label="Confidence"
  value={
  company.confidence_score != null
- ? `${Math.round(company.confidence_score * 100)}%`
+ ? (() => {
+ const raw = Number(company.confidence_score)
+ if (!Number.isFinite(raw)) return null
+ // Backend may send 0–1 ratio or already 0–100 percent.
+ const pct = raw <= 1 ? raw * 100 : raw
+ return `${Math.round(Math.min(Math.max(pct, 0), 100))}%`
+ })()
  : null
  }
  />
@@ -614,9 +620,6 @@ export default function V3Company360Page() {
  description={company.name_en && company.name_ar ? company.name_ar : company.cr_number}
  badge={
  <span className="flex flex-wrap items-center gap-1.5">
- <span className="rounded-full border border-[var(--border-default)] px-2 py-0.5 text-[11px] text-[var(--text-muted)]">
- Health — placeholder
- </span>
  {!oppsLoading && !oppsError ? (
  <span className="rounded-full border border-[var(--border-default)] px-2 py-0.5 text-[11px] text-[var(--text-muted)]">
  {openDealCount} open deal{openDealCount === 1 ? '' : 's'}
