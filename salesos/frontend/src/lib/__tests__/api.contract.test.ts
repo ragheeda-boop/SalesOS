@@ -61,6 +61,27 @@ describe('searchCompanies — contract', () => {
     const callParams = mockAxios.get.mock.calls[0][1].params
     expect(callParams.cursor).toBeUndefined()
   })
+
+  it('normalizes CursorResponse data into PaginatedResponse items', async () => {
+    const payload = {
+      data: [
+        { id: 'c-1', name_ar: 'أرامكو', name_en: 'Aramco', cr_number: '101', status: 'نشط', city: null, region: null, phone: null, email: null, confidence_score: null, created_at: '2026-01-01', updated_at: '2026-07-10' },
+      ],
+      next_cursor: null,
+      has_next: false,
+      total: 141221,
+    }
+    mockAxios.get.mockResolvedValueOnce(mockResponse(payload))
+
+    const { searchCompanies } = require('../api')
+    const result = await searchCompanies({ page: 1, page_size: 50 }, TENANT)
+
+    expect(result.total).toBe(141221)
+    expect(result.items).toHaveLength(1)
+    expect(result.items[0].id).toBe('c-1')
+    expect(result.page).toBe(1)
+    expect(result.page_size).toBe(50)
+  })
 })
 
 describe('searchCompaniesCursor — contract', () => {

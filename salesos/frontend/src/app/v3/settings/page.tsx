@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, type ReactNode } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { getApiKeys, getNotificationPreferences, type ApiKeyRecord } from '@/lib/api'
 import { settingsKeys } from '@/lib/queryKeys'
@@ -162,6 +163,10 @@ function ApiKeysPanel({ ready, hasToken }: { ready: boolean; hasToken: boolean }
 
 export default function V3SettingsPage() {
  const { ready, hasToken } = useAccessToken()
+ const searchParams = useSearchParams()
+ const router = useRouter()
+ const pathname = usePathname()
+ const tabFromUrl = searchParams.get('tab') || 'notifications'
 
  const sections: DomainSection[] = useMemo(
  () => [
@@ -326,7 +331,15 @@ export default function V3SettingsPage() {
  ) : !hasToken ? (
  <PermissionState nextPath="/v3/settings" />
  ) : (
- <DomainWorkbench sections={sections} defaultId="notifications" />
+ <DomainWorkbench
+ sections={sections}
+ defaultId={tabFromUrl}
+ onSectionChange={(id) => {
+ const next = new URLSearchParams(searchParams.toString())
+ next.set('tab', id)
+ router.replace(`${pathname}?${next.toString()}`, { scroll: false })
+ }}
+ />
  )}
  </div>
  )

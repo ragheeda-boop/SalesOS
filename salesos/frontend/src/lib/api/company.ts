@@ -109,7 +109,26 @@ export async function searchCompanies(
  params: { ...params, cursor: undefined },
  headers: {"X-Tenant-Id": tenantId },
  });
- return response.data;
+ const raw = response.data as PaginatedResponse<Company> & {
+  data?: Company[];
+  page?: number;
+  page_size?: number;
+ };
+ // Backend list endpoint returns CursorResponse ({ data, total }), while
+ // offset consumers expect PaginatedResponse ({ items, total, page, page_size }).
+ if (Array.isArray(raw?.items)) {
+  return raw;
+ }
+ const rows = Array.isArray(raw?.data) ? raw.data : [];
+ return {
+  items: rows,
+  total: typeof raw?.total === "number" ? raw.total : rows.length,
+  page: typeof raw?.page === "number" ? raw.page : params.page ?? 1,
+  page_size:
+   typeof raw?.page_size === "number"
+    ? raw.page_size
+    : params.page_size ?? rows.length,
+ };
 }
 
 export async function searchCompaniesCursor(

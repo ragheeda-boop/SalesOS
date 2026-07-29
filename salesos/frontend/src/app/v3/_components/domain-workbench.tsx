@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { cn } from '@salesos/ui'
 
 export type DomainSection = {
@@ -20,13 +20,30 @@ export function DomainWorkbench({
  sections,
  defaultId,
  emptyHint = 'Connect data or open the matching legacy surface when ready. Nothing here invents live metrics.',
+ onSectionChange,
 }: {
  sections: DomainSection[]
  defaultId?: string
  emptyHint?: string
+ /** Called when the user picks a section (e.g. to sync `?tab=`). */
+ onSectionChange?: (id: string) => void
 }) {
  const initial = defaultId && sections.some((s) => s.id === defaultId) ? defaultId : sections[0]?.id
  const [activeId, setActiveId] = useState(initial ?? '')
+
+ useEffect(() => {
+  if (defaultId && sections.some((s) => s.id === defaultId) && defaultId !== activeId) {
+   setActiveId(defaultId)
+  }
+  // Sync external default (URL) into local selection.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid fighting in-progress clicks
+ }, [defaultId, sections])
+
+ const selectSection = (id: string) => {
+  setActiveId(id)
+  onSectionChange?.(id)
+ }
+
  const active = sections.find((s) => s.id === activeId) ?? sections[0]
 
  if (!active) return null
@@ -43,7 +60,7 @@ export function DomainWorkbench({
  <button
  key={section.id}
  type="button"
- onClick={() => setActiveId(section.id)}
+ onClick={() => selectSection(section.id)}
  aria-current={selected ? 'page' : undefined}
  className={cn(
  'whitespace-nowrap rounded-[var(--radius-md)] px-3 py-2 text-left text-[13px] transition-colors',

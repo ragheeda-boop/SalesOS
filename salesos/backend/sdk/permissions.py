@@ -130,6 +130,7 @@ class PermissionRegistry:
                 Permission("workspace", PermissionAction.READ),
                 Permission("revenue", PermissionAction.READ),
                 Permission("search", PermissionAction.READ),
+                Permission("executive", PermissionAction.READ),
             ],
             "api": [
                 Permission("company", PermissionAction.READ),
