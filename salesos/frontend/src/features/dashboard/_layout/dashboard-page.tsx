@@ -1,11 +1,19 @@
 'use client'
 
+import { setDashboardDependencies } from '@salesos/widget-sdk'
 import { DashboardProvider, useDashboardContext } from '../_providers/dashboard-provider'
+import { getWidgetConfig } from '../_registry/widget-config'
 import { DashboardGrid } from './dashboard-grid'
 import { DashboardLoading } from './dashboard-loading'
 import { DashboardMetricsHeader } from './dashboard-metrics-header'
 import { widgetRegistry } from '../widget-registry'
 import { useTranslation } from '@/lib/i18n'
+
+// Wire SDK to this app's dashboard context so widgets can read live data.
+setDashboardDependencies(
+  useDashboardContext,
+  (id: string) => getWidgetConfig(id as Parameters<typeof getWidgetConfig>[0]),
+)
 
 function DashboardBody() {
  const { isLoading, isError, error, refetch } = useDashboardContext()
