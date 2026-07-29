@@ -1,4 +1,4 @@
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -9,6 +9,20 @@ class Settings(BaseSettings):
         case_sensitive=False,
         extra="ignore",
     )
+
+    # Optional comma-separated extra CORS origins to merge into allowed_hosts.
+    # Set EXTRA_CORS_ORIGINS in Railway to add Vercel preview/prod URLs without
+    # overwriting the full ALLOWED_HOSTS list.
+    extra_cors_origins: str = ""
+
+    @model_validator(mode="after")
+    def _merge_cors_origins(self) -> "Settings":
+        extras = [o.strip() for o in self.extra_cors_origins.split(",") if o.strip()]
+        if extras:
+            existing = [o.strip() for o in self.allowed_hosts.split(",") if o.strip()]
+            merged = list(dict.fromkeys(existing + extras))
+            self.allowed_hosts = ",".join(merged)
+        return self
 
     env: str = "development"
     debug: bool = False
