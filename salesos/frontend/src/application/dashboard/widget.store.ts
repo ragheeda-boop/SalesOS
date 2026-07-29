@@ -62,35 +62,41 @@ function buildWidget<T>(
  }
 }
 
+function resolveFromDto<T>(
+ id: WidgetId,
+ widget: DashboardWidget<T> | null | undefined,
+ isLoading: boolean,
+ isError: boolean,
+): DashboardWidget<T> {
+ if (!widget) {
+ return buildWidget<T>(id, null, isLoading, isError)
+ }
+ if (isLoading && !widget.data) {
+ return { ...widget, status: 'loading' }
+ }
+ if (isLoading && widget.data) {
+ return { ...widget, status: 'degraded' }
+ }
+ // Prefer API-reported status (e.g. error with null data) over infinite loading.
+ if (widget.status === 'error' || widget.status === 'ready' || widget.status === 'degraded') {
+ return widget
+ }
+ return { ...widget, status: deriveStatus(widget.data, isLoading, isError) }
+}
+
 export function deriveWidgets(
  dto: DashboardDTO | undefined,
  isLoading: boolean,
  isError: boolean,
 ): WidgetMap {
- const from = <T,>(
- id: WidgetId,
- widget: DashboardWidget<T> | null | undefined,
- ): DashboardWidget<T> => {
- if (widget) {
- const status =
- isLoading && !widget.data
- ? 'loading'
- : widget.status === 'ready' || widget.status === 'error' || widget.status === 'degraded' || widget.status === 'loading'
- ? (isLoading && widget.data ? 'degraded' : widget.status)
- : deriveStatus(widget.data, isLoading, isError)
- return { ...widget, status }
- }
- return buildWidget(id, null, isLoading, isError)
- }
-
  return {
- missionCenter: from('missionCenter', dto?.missionCenter as DashboardWidget<MissionCenterData> | null | undefined),
- decisionQueue: from('decisionQueue', dto?.decisionQueue as DashboardWidget<DecisionQueueData> | null | undefined),
- intelligenceFeed: from('intelligenceFeed', dto?.intelligenceFeed as DashboardWidget<IntelligenceFeedData> | null | undefined),
- aiBrief: from('aiBrief', dto?.aiBrief as DashboardWidget<AIBriefData> | null | undefined),
- marketPulse: from('marketPulse', dto?.marketPulse as DashboardWidget<MarketPulseData> | null | undefined),
- recentActivity: from('recentActivity', dto?.recentActivity as DashboardWidget<RecentActivityData> | null | undefined),
- pipeline: from('pipeline', dto?.pipeline as DashboardWidget<PipelineDTOData> | null | undefined),
- companyHealth: from('companyHealth', dto?.companyHealth as DashboardWidget<CompanyHealthDTOData> | null | undefined),
+ missionCenter: resolveFromDto('missionCenter', dto?.missionCenter, isLoading, isError),
+ decisionQueue: resolveFromDto('decisionQueue', dto?.decisionQueue, isLoading, isError),
+ intelligenceFeed: resolveFromDto('intelligenceFeed', dto?.intelligenceFeed, isLoading, isError),
+ aiBrief: resolveFromDto('aiBrief', dto?.aiBrief, isLoading, isError),
+ marketPulse: resolveFromDto('marketPulse', dto?.marketPulse, isLoading, isError),
+ recentActivity: resolveFromDto('recentActivity', dto?.recentActivity, isLoading, isError),
+ pipeline: resolveFromDto('pipeline', dto?.pipeline, isLoading, isError),
+ companyHealth: resolveFromDto('companyHealth', dto?.companyHealth, isLoading, isError),
  }
 }
