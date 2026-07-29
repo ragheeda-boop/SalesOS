@@ -32,8 +32,16 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  return <DashboardContext.Provider value={value}>{children}</DashboardContext.Provider>
 }
 
+const EMPTY_DASHBOARD_CONTEXT: DashboardContextValue = {
+ widgets: {} as WidgetMap,
+ isLoading: true,
+ isError: false,
+ error: null,
+ refetch: () => {},
+}
+
 export function useDashboardContext(): DashboardContextValue {
  const ctx = useContext(DashboardContext)
- if (!ctx) throw new Error('useDashboardContext must be used within <DashboardProvider>')
- return ctx
+ // Never throw — widget-sdk may call this during edge renders; throwing takes down /dashboard.
+ return ctx ?? EMPTY_DASHBOARD_CONTEXT
 }

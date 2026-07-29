@@ -61,7 +61,7 @@ function QuickActions() {
 export function DashboardMetricsHeader() {
  const { widgets } = useDashboardContext()
  const { t } = useTranslation()
- const missionData = widgets.missionCenter.data as MissionCenterData | null
+ const missionData = widgets.missionCenter?.data as MissionCenterData | null
 
  if (!missionData) return null
 
