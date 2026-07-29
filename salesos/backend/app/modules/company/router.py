@@ -263,7 +263,8 @@ async def get_company(
         cached = await cache.get(ck)
         if cached:
             return CompanyResponse(**cached)
-    result = await service.get_company(company_id)
+    # service returns SQLAlchemy Company — convert before cache/response
+    result = CompanyResponse.model_validate(await service.get_company(company_id))
     if cache:
         await cache.set(f"company:{company_id}", result.model_dump(mode="json"), ttl_seconds=300)
     return result
