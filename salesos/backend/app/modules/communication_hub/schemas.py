@@ -34,6 +34,9 @@ class GoogleStatusResponse(BaseModel):
     account: GoogleAccountResponse | None = None
     scopes_granted: list[str] = []
     token_valid: bool = False
+    # Honest config gate — false when Client ID/Secret/encryption key missing.
+    oauth_configured: bool = False
+    config_missing: list[str] = []
 
 
 class GoogleDisconnectResponse(BaseModel):

@@ -30,6 +30,7 @@ from app.modules.communication_hub.schemas import (
 from app.modules.communication_hub.service import (
     GoogleOAuthError,
     GoogleOAuthService,
+    google_oauth_config_status,
 )
 
 logger = logging.getLogger(__name__)
@@ -56,9 +57,20 @@ def _get_service(
 
 @router.get("/connect", response_model=GoogleConnectResponse, dependencies=_AUTH)
 async def connect_google(service: GoogleOAuthService = Depends(_get_service)):
+    configured, missing = google_oauth_config_status()
+    if not configured:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Google OAuth is not configured on this environment. "
+                f"Missing: {', '.join(missing)}"
+            ),
+        )
     try:
         auth_url, state = service.generate_authorization_url()
         return GoogleConnectResponse(authorization_url=auth_url, state=state)
+    except GoogleOAuthError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
     except Exception:
         logger.exception("google_connect.failed")
         raise HTTPException(status_code=500, detail="Failed to generate authorization URL")
@@ -119,9 +131,14 @@ async def google_callback(
 
 @router.get("/status", response_model=GoogleStatusResponse, dependencies=_AUTH)
 async def google_status(service: GoogleOAuthService = Depends(_get_service)):
+    configured, missing = google_oauth_config_status()
     connected, account = await service.get_status()
     if not connected or not account:
-        return GoogleStatusResponse(connected=False)
+        return GoogleStatusResponse(
+            connected=False,
+            oauth_configured=configured,
+            config_missing=missing,
+        )
 
     scopes_granted = (account.scope or "").split()
     # Sync is possible when access token is fresh OR a refresh token can renew it.
@@ -137,6 +154,8 @@ async def google_status(service: GoogleOAuthService = Depends(_get_service)):
         account=GoogleAccountResponse.model_validate(account),
         scopes_granted=scopes_granted,
         token_valid=token_valid,
+        oauth_configured=configured,
+        config_missing=missing,
     )
 
 

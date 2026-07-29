@@ -194,10 +194,16 @@ class CompanyService:
         return company
 
     async def get_company(self, company_id: str) -> Company:
+        try:
+            cid = uuid.UUID(str(company_id))
+        except (ValueError, TypeError, AttributeError):
+            # Invalid UUID must be 404 (not asyncpg DataError → 500).
+            raise NotFoundError("Company", company_id)
+
         result = await self.db.execute(
             select(Company)
             .options(selectinload(Company.branches), selectinload(Company.licenses))
-            .where(Company.id == company_id)
+            .where(Company.id == cid)
         )
         company = result.scalar_one_or_none()
         if not company:

@@ -101,9 +101,23 @@ def _clean_expired_states() -> None:
                 dict.pop(_OAUTH_STATE_STORE, key, None)
 
 
+def google_oauth_config_status() -> tuple[bool, list[str]]:
+    """Return (configured, missing_env_names) without exposing secret values."""
+    missing: list[str] = []
+    if not (getattr(settings, "sso_google_client_id", None) or "").strip():
+        missing.append("SSO_GOOGLE_CLIENT_ID")
+    if not (getattr(settings, "sso_google_client_secret", None) or "").strip():
+        missing.append("SSO_GOOGLE_CLIENT_SECRET")
+    if not (getattr(settings, "google_encryption_key", None) or "").strip():
+        missing.append("GOOGLE_ENCRYPTION_KEY")
+    # redirect URI has a safe default from next_public_api_url — not required
+    return (len(missing) == 0, missing)
+
+
 def _get_encryption_key() -> str:
     """OAuth token encryption key — must not reuse JWT/app secret_key."""
     key = (getattr(settings, "google_encryption_key", None) or "").strip()
+
     if key:
         return key
     env = (settings.env or "").lower()

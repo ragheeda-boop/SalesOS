@@ -353,6 +353,7 @@ async def company_360(
             page=page, page_size=page_size,
         )
     except HTTPException:
+        # Includes NotFoundError (404) for missing / invalid company ids.
         raise
     except Exception as exc:
         # Do not invent health_score or empty 360 payloads — surface failure honestly.
@@ -411,6 +412,16 @@ async def company_intelligence(
 
             return dto
 
+    except HTTPException:
+        duration_ms = (time.monotonic() - start) * 1000
+        record_metric("company_intelligence_request_total", 1, {
+            "tenant_hash": tenant_hash,
+            "status": "client_error",
+        })
+        record_metric("company_intelligence_duration_ms", duration_ms, {
+            "tenant_hash": tenant_hash,
+        })
+        raise
     except Exception:
         status_code = 500
         duration_ms = (time.monotonic() - start) * 1000
