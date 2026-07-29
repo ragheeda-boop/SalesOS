@@ -111,3 +111,8 @@ output_check.txt
 
 # data directory
 data/
+
+# Credential / sensitive files (not tracked, guard against accidental commit)
+cookies.txt
+login.json
+railway-status.json

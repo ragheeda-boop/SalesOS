@@ -107,3 +107,8 @@ infra/monitoring/prometheus.compose-root.yml
 
 # Gitleaks suppression
 .gitleaks.toml
+
+# Credential / sensitive files (guard against accidental commit)
+cookies.txt
+login.json
+railway-status.json

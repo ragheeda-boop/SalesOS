@@ -24,7 +24,7 @@ jobs:
 
       - name: Setup .env
         run: |
-          cat > .env << 'EOF'
+          cat > salesos/.env << 'EOF'
           POSTGRES_USER=salesos
           POSTGRES_PASSWORD=salesos_smoke_test
           POSTGRES_DB=salesos
@@ -52,17 +52,17 @@ jobs:
           EOF
 
       - name: Validate Compose File
-        run: docker compose config --quiet
+        run: cd salesos && docker compose config --quiet
 
       - name: Build Services
-        run: docker compose build --parallel
+        run: cd salesos && docker compose build --parallel
         timeout-minutes: 15
 
       - name: Start Services
-        run: docker compose up -d
+        run: cd salesos && docker compose up -d
 
       - name: Run Smoke Tests
-        run: pwsh -File ./scripts/docker-smoke.ps1
+        run: pwsh -File ./salesos/scripts/docker-smoke.ps1
         timeout-minutes: 10
         env:
           POSTGRES_PASSWORD: salesos_smoke_test
@@ -74,10 +74,10 @@ jobs:
         if: failure()
         run: |
           mkdir -p ./artifacts/logs
-          docker compose logs --no-color > ./artifacts/logs/docker-compose.log 2>&1
-          docker compose ps > ./artifacts/logs/docker-ps.log 2>&1
-          echo "=== Docker Disk Usage ===" >> ./artifacts/logs/docker-ps.log
-          docker system df >> ./artifacts/logs/docker-ps.log 2>&1
+          cd salesos && docker compose logs --no-color > ../artifacts/logs/docker-compose.log 2>&1
+          cd salesos && docker compose ps > ../artifacts/logs/docker-ps.log 2>&1
+          echo "=== Docker Disk Usage ===" >> ../artifacts/logs/docker-ps.log
+          docker system df >> ../artifacts/logs/docker-ps.log 2>&1
 
       - name: Upload Log Artifacts
         if: failure()
@@ -89,4 +89,4 @@ jobs:
 
       - name: Stop Services
         if: always()
-        run: docker compose down -v --remove-orphans
+        run: cd salesos && docker compose down -v --remove-orphans

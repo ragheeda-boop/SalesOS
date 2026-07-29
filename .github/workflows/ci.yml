@@ -40,14 +40,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pypoetry
-          key: poetry-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+          key: poetry-${{ runner.os }}-${{ hashFiles('salesos/backend/poetry.lock') }}
           restore-keys: poetry-${{ runner.os }}-
       - name: Install dependencies
-        run: cd backend && poetry install --no-interaction
+        run: cd salesos/backend && poetry install --no-interaction
       - name: Ruff lint
-        run: cd backend && poetry run ruff check app/ tests/ sdk/ modules/ cli/ --output-format=github
+        run: cd salesos/backend && poetry run ruff check app/ tests/ sdk/ modules/ cli/ --output-format=github
       - name: Ruff format check
-        run: cd backend && poetry run ruff format --check app/ tests/ sdk/ modules/ cli/
+        run: cd salesos/backend && poetry run ruff format --check app/ tests/ sdk/ modules/ cli/
 
   lint-frontend:
     name: "Stage 1: Frontend Lint"
@@ -58,13 +58,13 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: salesos/frontend/package-lock.json
       - name: Install dependencies
-        run: cd frontend && npm ci --no-audit --no-fund
+        run: cd salesos/frontend && npm ci --no-audit --no-fund
       - name: ESLint
-        run: cd frontend && npm run lint
+        run: cd salesos/frontend && npm run lint
       - name: Prettier check
-        run: cd frontend && npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}"
+        run: cd salesos/frontend && npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}"
 
   # ──────────────────────────────────────────────
   # Stage 2: Type Check
@@ -84,12 +84,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pypoetry
-          key: poetry-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+          key: poetry-${{ runner.os }}-${{ hashFiles('salesos/backend/poetry.lock') }}
           restore-keys: poetry-${{ runner.os }}-
       - name: Install dependencies
-        run: cd backend && poetry install --no-interaction
+        run: cd salesos/backend && poetry install --no-interaction
       - name: MyPy type check
-        run: cd backend && poetry run mypy app/ sdk/ modules/ cli/ --no-error-summary
+        run: cd salesos/backend && poetry run mypy app/ sdk/ modules/ cli/ --no-error-summary
 
   typecheck-frontend:
     name: "Stage 2: Frontend Types"
@@ -100,11 +100,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: salesos/frontend/package-lock.json
       - name: Install dependencies
-        run: cd frontend && npm ci --no-audit --no-fund
+        run: cd salesos/frontend && npm ci --no-audit --no-fund
       - name: TypeScript check
-        run: cd frontend && npx tsc --noEmit
+        run: cd salesos/frontend && npx tsc --noEmit
 
   # ──────────────────────────────────────────────
   # Stage 3: Unit Tests
@@ -139,23 +139,23 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pypoetry
-          key: poetry-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+          key: poetry-${{ runner.os }}-${{ hashFiles('salesos/backend/poetry.lock') }}
           restore-keys: poetry-${{ runner.os }}-
       - name: Install dependencies
-        run: cd backend && poetry install --no-interaction
+        run: cd salesos/backend && poetry install --no-interaction
       - name: Run migrations
         run: |
-          cd backend
+          cd salesos/backend
           DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
           poetry run alembic upgrade head
       - name: Migrate gate (current == heads)
         run: |
-          cd backend
+          cd salesos/backend
           DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
           poetry run python scripts/check_alembic_head.py
       - name: Run unit tests with coverage gate
         run: |
-          cd backend
+          cd salesos/backend
           TEST_DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
           poetry run pytest -v \
             --cov=app --cov=domains --cov=sdk --cov=runtime --cov=intelligence \
@@ -170,8 +170,8 @@ jobs:
         with:
           name: backend-coverage
           path: |
-            backend/coverage.xml
-            backend/htmlcov/
+            salesos/backend/coverage.xml
+            salesos/backend/htmlcov/
 
   test-frontend:
     name: "Stage 3: Frontend Unit Tests"
@@ -183,17 +183,17 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: salesos/frontend/package-lock.json
       - name: Install dependencies
-        run: cd frontend && npm ci --no-audit --no-fund
+        run: cd salesos/frontend && npm ci --no-audit --no-fund
       - name: Run tests
-        run: cd frontend && npm run test -- --coverage --forceExit
+        run: cd salesos/frontend && npm run test -- --coverage --forceExit
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: frontend-coverage
-          path: frontend/coverage/
+          path: salesos/frontend/coverage/
 
   # ──────────────────────────────────────────────
   # Stage 4: Integration Tests
@@ -237,18 +237,18 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pypoetry
-          key: poetry-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+          key: poetry-${{ runner.os }}-${{ hashFiles('salesos/backend/poetry.lock') }}
           restore-keys: poetry-${{ runner.os }}-
       - name: Install dependencies
-        run: cd backend && poetry install --no-interaction
+        run: cd salesos/backend && poetry install --no-interaction
       - name: Run migrations
         run: |
-          cd backend
+          cd salesos/backend
           DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
           poetry run alembic upgrade head
       - name: Run integration tests
         run: |
-          cd backend
+          cd salesos/backend
           TEST_DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
           REDIS_URL=redis://localhost:6379/0 \
           poetry run pytest -v \
@@ -262,7 +262,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: integration-coverage
-          path: backend/integration-coverage.xml
+          path: salesos/backend/integration-coverage.xml
 
   # ──────────────────────────────────────────────
   # Stage 5: Security Scan
@@ -279,7 +279,7 @@ jobs:
         run: pip install pip-audit
       - name: Run pip-audit
         run: |
-          cd backend
+          cd salesos/backend
           poetry export -f requirements.txt --without-hashes -o /tmp/requirements.txt
           pip-audit -r /tmp/requirements.txt --desc on -f json -o pip-audit-report.json || true
           pip-audit -r /tmp/requirements.txt --desc on --strict
@@ -288,7 +288,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pip-audit-report
-          path: backend/pip-audit-report.json
+          path: salesos/backend/pip-audit-report.json
 
   security-npm-audit:
     name: "Stage 5: npm audit"
@@ -299,12 +299,12 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: salesos/frontend/package-lock.json
       - name: Install dependencies
-        run: cd frontend && npm ci --no-audit --no-fund
+        run: cd salesos/frontend && npm ci --no-audit --no-fund
       - name: Run npm audit
         run: |
-          cd frontend
+          cd salesos/frontend
           npm audit --audit-level=high --json > npm-audit-report.json || true
           npm audit --audit-level=high
 
@@ -320,21 +320,23 @@ jobs:
         run: pip install bandit[toml]
       - name: Run bandit
         run: |
-          bandit -r backend/app/ backend/domains/ backend/sdk/ backend/modules/ \
+          cd salesos/backend
+          bandit -r app/ domains/ sdk/ modules/ \
             -f sarif -o bandit-results.sarif \
             --severity-level medium --confidence-level medium \
-            -x backend/app/tests,backend/domains/*/tests || true
+            -x app/tests,domains/*/tests || true
       - name: Upload bandit results
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: bandit-results.sarif
+          sarif_file: salesos/backend/bandit-results.sarif
       - name: Run bandit (fail on high)
         run: |
-          bandit -r backend/app/ backend/domains/ backend/sdk/ backend/modules/ \
+          cd salesos/backend
+          bandit -r app/ domains/ sdk/ modules/ \
             -f json -o bandit-report.json \
             --severity-level high --confidence-level high \
-            -x backend/app/tests,backend/domains/*/tests || exit_code=$?
+            -x app/tests,domains/*/tests || exit_code=$?
           if [ "${exit_code:-0}" -gt 0 ]; then
             echo "::error::Bandit found high-severity security issues"
             exit 1
@@ -385,7 +387,7 @@ jobs:
       - name: Run architecture compliance check
         shell: pwsh
         run: |
-          $result = & "${{ github.workspace }}/scripts/arch-compliance.ps1" -JsonOnly
+          $result = & "${{ github.workspace }}/salesos/scripts/arch-compliance.ps1" -JsonOnly
           $report = $result | ConvertFrom-Json
           Write-Host "Overall Compliance: $($report.overall_compliance)%"
           Write-Host "Target: $($report.summary.target_compliance)%"
@@ -399,7 +401,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: arch-compliance-report
-          path: reports/arch-compliance-report.json
+          path: salesos/reports/arch-compliance-report.json
 
   # ──────────────────────────────────────────────
   # Stage 6: Build
@@ -435,15 +437,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
-          key: docker-backend-${{ runner.os }}-${{ hashFiles('backend/Dockerfile') }}
+          key: docker-backend-${{ runner.os }}-${{ hashFiles('salesos/backend/Dockerfile') }}
           restore-keys: docker-backend-${{ runner.os }}-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push backend
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: ./salesos/backend
+          file: ./salesos/backend/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:latest
@@ -485,15 +487,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
-          key: docker-frontend-${{ runner.os }}-${{ hashFiles('frontend/Dockerfile') }}
+          key: docker-frontend-${{ runner.os }}-${{ hashFiles('salesos/frontend/Dockerfile') }}
           restore-keys: docker-frontend-${{ runner.os }}-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build and push frontend
         uses: docker/build-push-action@v5
         with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
+          context: ./salesos/frontend
+          file: ./salesos/frontend/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:latest
@@ -518,21 +520,21 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: salesos/frontend/package-lock.json
       - name: Install Playwright
         run: |
-          cd frontend
+          cd salesos/frontend
           npm ci --no-audit --no-fund
           npx playwright install --with-deps chromium
       - name: Setup .env for E2E
         run: |
-          cat > frontend/.env.test << 'EOF'
+          cat > salesos/frontend/.env.test << 'EOF'
           NEXT_PUBLIC_API_URL=http://localhost:8000
           API_URL=http://localhost:8000
           EOF
       - name: Run E2E tests
         run: |
-          cd frontend
+          cd salesos/frontend
           npx playwright test --config playwright.config.ts --project=chromium
       - name: Upload E2E results
         if: always()
@@ -540,8 +542,8 @@ jobs:
         with:
           name: e2e-results
           path: |
-            frontend/test-results/
-            frontend/playwright-report/
+            salesos/frontend/test-results/
+            salesos/frontend/playwright-report/
           retention-days: 7
 
   # ──────────────────────────────────────────────

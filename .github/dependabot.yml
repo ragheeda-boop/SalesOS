@@ -1,7 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: npm
-    directory: /frontend
+    directory: /salesos/frontend
     schedule:
       interval: weekly
       day: monday
@@ -24,7 +24,7 @@ updates:
           - "ts-jest"
 
   - package-ecosystem: pip
-    directory: /backend
+    directory: /salesos/backend
     schedule:
       interval: weekly
       day: monday
@@ -44,7 +44,7 @@ updates:
           - "coverage*"
 
   - package-ecosystem: docker
-    directory: /backend
+    directory: /salesos/backend
     schedule:
       interval: weekly
       day: monday
@@ -53,7 +53,7 @@ updates:
       - backend
 
   - package-ecosystem: docker
-    directory: /frontend
+    directory: /salesos/frontend
     schedule:
       interval: weekly
       day: monday

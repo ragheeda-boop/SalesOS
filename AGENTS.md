@@ -125,4 +125,16 @@ Windows host Poetry is **not** the production path.
 
 ---
 
+## 9. CI/Dependabot location fix (2026-07-30)
+
+- GitHub Actions workflows were at `salesos/.github/workflows/` — **undiscoverable** by GitHub
+- **Fix:** Moved all workflows → `.github/workflows/` (repo root) + path fixes:
+  - `cd backend` → `cd salesos/backend`, `cd frontend` → `cd salesos/frontend`
+  - Docker context/file paths, cache keys, artifact paths, hashFiles refs
+  - Gitleaks `continue-on-error: true` removed (blocking now)
+- Dependabot file moved from `salesos/.github/dependabot.yml` → `.github/dependabot.yml` with `directory:` paths fixed (`/frontend` → `/salesos/frontend`)
+- Credential files `cookies.txt`, `login.json`, `railway-status.json` added to `.gitignore` (both root + salesos)
+
+---
+
 *Agents: keep patches minimal, report files changed + commands run + validation status honestly.*

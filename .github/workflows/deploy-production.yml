@@ -28,11 +28,11 @@ env:
   IMAGE_TAG: ${{ github.sha }}
   KUBE_NAMESPACE: salesos
   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-  K8S_MANIFESTS_DIR: infra/k8s
+  K8S_MANIFESTS_DIR: salesos/infra/k8s
 
 jobs:
   gate-check:
-    name: 🚦 Deployment Gate Check
+    name: Deployment Gate Check
     runs-on: ubuntu-latest
     environment: production
     outputs:
@@ -58,7 +58,7 @@ jobs:
             echo "::error::CHANGELOG.md not updated for $VERSION"
             exit 1
           fi
-          echo "✅ CHANGELOG verified for $VERSION"
+          echo "CHANGELOG verified for $VERSION"
 
       - name: Verify RELEASE_GATES
         run: |
@@ -66,10 +66,10 @@ jobs:
             echo "::warning::RELEASE_GATES.md not found — skipping gate check"
             exit 0
           fi
-          echo "✅ Release gates document found"
+          echo "Release gates document found"
 
   build-and-push:
-    name: 🐳 Build & Push Images
+    name: Build & Push Images
     needs: [gate-check]
     runs-on: ubuntu-latest
     permissions:
@@ -96,8 +96,8 @@ jobs:
         id: push-backend
         uses: docker/build-push-action@v6
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: ./salesos/backend
+          file: ./salesos/backend/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:${{ env.IMAGE_TAG }}
@@ -111,8 +111,8 @@ jobs:
         id: push-frontend
         uses: docker/build-push-action@v6
         with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
+          context: ./salesos/frontend
+          file: ./salesos/frontend/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:${{ env.IMAGE_TAG }}
@@ -123,7 +123,7 @@ jobs:
           provenance: false
 
   security-scan:
-    name: 🔒 Security Scan
+    name: Security Scan
     needs: [build-and-push]
     runs-on: ubuntu-latest
     steps:
@@ -154,7 +154,7 @@ jobs:
           sarif_file: trivy-backend.sarif
 
   deploy-to-production:
-    name: 🚀 Deploy to Production
+    name: Deploy to Production
     needs: [gate-check, build-and-push, security-scan]
     runs-on: ubuntu-latest
     environment:
@@ -180,11 +180,9 @@ jobs:
           VERSION="${{ needs.gate-check.outputs.version }}"
           cd $K8S_MANIFESTS_DIR
 
-          # Update backend image
           kustomize edit set image \
             ghcr.io/ragheeda-boop/salesos/backend:${{ env.IMAGE_TAG }}
 
-          # Update frontend image
           kustomize edit set image \
             ghcr.io/ragheeda-boop/salesos/frontend:${{ env.IMAGE_TAG }}
 
@@ -204,7 +202,7 @@ jobs:
           kubectl get pods -n $KUBE_NAMESPACE -o wide
 
   smoke-tests:
-    name: 🧪 Smoke Tests
+    name: Smoke Tests
     needs: [deploy-to-production]
     runs-on: ubuntu-latest
     steps:
@@ -219,7 +217,7 @@ jobs:
         run: |
           for i in $(seq 1 30); do
             if curl -sf "$API_URL/health" > /dev/null 2>&1; then
-              echo "✅ Backend ready"
+              echo "Backend ready"
               break
             fi
             echo "Waiting for backend... ($i/30)"
@@ -228,7 +226,7 @@ jobs:
 
       - name: Run smoke tests
         run: |
-          pwsh -File ./scripts/smoke-test.ps1 \
+          pwsh -File ./salesos/scripts/smoke-test.ps1 \
             -BaseUrl "$API_URL" \
             -FrontendUrl "$FRONTEND_URL" \
             -TestEmail "ci@salesos-test.io" \
@@ -236,10 +234,10 @@ jobs:
 
       - name: Run Docker smoke tests
         run: |
-          pwsh -File ./scripts/docker-smoke.ps1
+          pwsh -File ./salesos/scripts/docker-smoke.ps1
 
   rollback-on-failure:
-    name: ↩️ Automatic Rollback
+    name: Automatic Rollback
     if: failure()
     needs: [deploy-to-production, smoke-tests]
     runs-on: ubuntu-latest
@@ -249,7 +247,7 @@ jobs:
       - name: Rollback to previous version
         run: |
           PREVIOUS_TAG=$(git tag --sort=-version:refname | head -n 2 | tail -n 1)
-          echo "⚠️ Rolling back to $PREVIOUS_TAG"
+          echo "Rolling back to $PREVIOUS_TAG"
 
           kubectl set image deployment/backend \
             backend=ghcr.io/ragheeda-boop/salesos/backend:$PREVIOUS_TAG \
@@ -268,7 +266,7 @@ jobs:
           kubectl get pods -n $KUBE_NAMESPACE
 
   notify:
-    name: 📢 Slack Notification
+    name: Slack Notification
     if: always()
     needs: [deploy-to-production, smoke-tests, rollback-on-failure]
     runs-on: ubuntu-latest
@@ -282,6 +280,5 @@ jobs:
             {
               "channel": "#salesos-deployments",
               "username": "SalesOS Bot",
-              "icon_emoji": ":rocket:",
-              "text": "SalesOS Deployment ${{ job.status == 'success' && '✅ Succeeded' || '❌ Failed' }}\nVersion: ${{ needs.gate-check.outputs.version }}\nEnvironment: Production\nCommit: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}\nStatus: ${{ job.status }}"
+              "text": "SalesOS Deployment ${{ job.status == 'success' && 'Succeeded' || 'Failed' }}\nVersion: ${{ needs.gate-check.outputs.version }}\nEnvironment: Production\nCommit: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}\nStatus: ${{ job.status }}"
             }

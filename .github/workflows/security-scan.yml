@@ -38,7 +38,6 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
       - name: Run Trivy filesystem scan (secrets + vulns)
         uses: aquasecurity/trivy-action@master
         with:
@@ -68,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend
+        working-directory: salesos/backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -82,20 +81,20 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pip-audit-report
-          path: backend/pip-audit-report.txt
+          path: salesos/backend/pip-audit-report.txt
 
   npm-audit:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: frontend
+        working-directory: salesos/frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: salesos/frontend/package-lock.json
       - name: Install dependencies
         run: npm ci
       - name: Run npm audit
@@ -104,7 +103,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: npm-audit-report
-          path: frontend/npm-audit-report.txt
+          path: salesos/frontend/npm-audit-report.txt
 
   sast-scan:
     runs-on: ubuntu-latest
@@ -116,12 +115,15 @@ jobs:
       - name: Install bandit
         run: pip install bandit
       - name: Run bandit (Python SAST)
-        run: bandit -r backend/app/ -f sarif -o bandit-results.sarif -ll -iii || true
+        run: |
+          bandit -r salesos/backend/app/ \
+            -f sarif -o salesos/backend/bandit-results.sarif \
+            -ll -iii || true
       - name: Upload bandit results
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: bandit-results.sarif
+          sarif_file: salesos/backend/bandit-results.sarif
       - name: Install semgrep
         run: pip install semgrep
       - name: Run semgrep (generic SAST)
@@ -142,14 +144,14 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
-          scan-ref: ./backend
+          scan-ref: ./salesos/backend
           format: spdx-json
           output: sbom-backend.spdx.json
       - name: Generate SBOM (frontend)
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: fs
-          scan-ref: ./frontend
+          scan-ref: ./salesos/frontend
           format: spdx-json
           output: sbom-frontend.spdx.json
       - name: Upload SBOM artifacts

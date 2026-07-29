@@ -22,7 +22,7 @@ concurrency:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAMESPACE: ragheeda-boop/salesos
-  STAGING_COMPOSE: infra/staging/docker-compose.staging.yml
+  STAGING_COMPOSE: salesos/infra/staging/docker-compose.staging.yml
   STAGING_ENV: .env.staging
   HEALTH_ENDPOINT: "http://localhost:8000/health"
   SMOKE_RETRIES: 6
@@ -76,8 +76,8 @@ jobs:
       - name: Build and push backend
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: ./salesos/backend
+          file: ./salesos/backend/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:staging
@@ -105,8 +105,8 @@ jobs:
       - name: Build and push frontend
         uses: docker/build-push-action@v5
         with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
+          context: ./salesos/frontend
+          file: ./salesos/frontend/Dockerfile
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:staging
@@ -145,25 +145,20 @@ jobs:
             echo "=== Staging Deploy ==="
             echo "Image tag: $SHORT_TAG"
 
-            # Save current tag for rollback
             CURRENT_IMG=$(docker compose -f ${{ env.STAGING_COMPOSE }} images backend 2>/dev/null | awk 'NR>1 {print $2}' | head -1 || echo "none")
             echo "Previous image: $CURRENT_IMG"
             echo "previous_tag=$CURRENT_IMG" >> $GITHUB_OUTPUT
 
-            # Export env vars
             export IMAGE_TAG=$SHORT_TAG
             export REGISTRY=${{ env.REGISTRY }}
             export IMAGE_NAMESPACE=${{ env.IMAGE_NAMESPACE }}
 
-            # Pull new images
             docker compose -f ${{ env.STAGING_COMPOSE }} pull backend frontend
 
-            # Run migrations
             echo "Running database migrations..."
             docker compose -f ${{ env.STAGING_COMPOSE }} up -d migrations
             docker compose -f ${{ env.STAGING_COMPOSE }} wait migrations
 
-            # Deploy backend + frontend
             echo "Starting services..."
             docker compose -f ${{ env.STAGING_COMPOSE }} up -d backend frontend
 
@@ -223,28 +218,23 @@ jobs:
             cd /opt/salesos-staging
             echo "=== Running Smoke Tests ==="
 
-            # Test health
             HEALTH=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.HEALTH_ENDPOINT }})
             if [ "$HEALTH" != "200" ]; then echo "FAIL: health -> $HEALTH"; exit 1; fi
             echo "PASS: /health"
 
-            # Test ping
             PING=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8000/ping")
             if [ "$PING" != "200" ]; then echo "FAIL: /ping -> $PING"; exit 1; fi
             echo "PASS: /ping"
 
-            # Test detailed health (checks all deps)
             DETAILED=$(curl -s http://localhost:8000/health/detailed)
             DB_STATUS=$(echo "$DETAILED" | python3 -c "import sys,json; print(json.load(sys.stdin)['checks']['database']['status'])" 2>/dev/null || echo "unknown")
             if [ "$DB_STATUS" != "connected" ]; then echo "FAIL: database status=$DB_STATUS"; exit 1; fi
             echo "PASS: database connected"
 
-            # Test frontend
             FE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000)
             if [ "$FE" != "200" ]; then echo "FAIL: frontend -> $FE"; exit 1; fi
             echo "PASS: frontend"
 
-            # Test docker service health
             ALL_HEALTHY=$(docker compose -f ${{ env.STAGING_COMPOSE }} ps --format "{{.Status}}" | grep -v "healthy" | wc -l)
             if [ "$ALL_HEALTHY" -gt 0 ]; then
               echo "WARN: $ALL_HEALTHY service(s) not healthy"

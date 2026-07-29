@@ -45,7 +45,6 @@ jobs:
       - name: Verify CI passed on this commit
         run: |
           echo "Checking CI status for commit ${{ github.sha }}..."
-          # Verify the commit is on main branch
           if [[ "${{ github.ref }}" != "refs/heads/main" ]]; then
             echo "::error::Deploy only allowed from main branch"
             exit 1
@@ -90,7 +89,6 @@ jobs:
             echo "=== Blue-Green Deploy ==="
             echo "Image tag: $SHORT_TAG"
 
-            # Determine which slot is currently live
             CURRENT_SLOT=$(docker compose -f docker-compose.prod.yml ps --format json | \
               grep '"backend"' | grep -o '"Slot":"[^"]*"' | cut -d'"' -f4 || echo "none")
             echo "Current live slot: $CURRENT_SLOT"
@@ -103,14 +101,11 @@ jobs:
             echo "Deploying to: $DEPLOY_SLOT"
             echo "slot=$DEPLOY_SLOT" >> $GITHUB_OUTPUT
 
-            # Pull new images
             docker compose -f docker-compose.prod.yml pull
 
-            # Run migrations on new slot
             SLOT_ENV="DEPLOY_SLOT=$DEPLOY_SLOT"
             docker compose -f docker-compose.prod.yml run --rm $SLOT_ENV migrations
 
-            # Deploy new slot
             docker compose -f docker-compose.prod.yml up -d --no-deps \
               --scale backend-${DEPLOY_SLOT}=1 \
               backend-${DEPLOY_SLOT}
@@ -218,8 +213,6 @@ jobs:
             NEW_SLOT="${{ needs.deploy-blue.outputs.slot }}"
             echo "Switching traffic to: $NEW_SLOT"
 
-            # Update Caddy config to point to new backend
-            # Scale down old slot, scale up new slot
             if [ "$NEW_SLOT" = "blue" ]; then
               docker compose -f docker-compose.prod.yml up -d --no-deps \
                 --scale backend-green=0 \
