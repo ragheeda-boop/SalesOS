@@ -44,10 +44,14 @@ class CompanyService:
         opportunities: list[dict],
         signals: list[dict],
     ) -> float:
-        """Compute a 0–1 health score for a company from contacts, opportunities, and signals.
+        """Compute a 0–1 health score from evidence only.
 
-        Baseline 0.5 (neutral). Positive factors raise, negative factors lower.
+        No contacts/opportunities/signals → 0.0 (honest empty), not a fake 0.5.
+        With evidence, start from a neutral 0.5 and adjust.
         """
+        if not contacts and not opportunities and not signals:
+            return 0.0
+
         score = 0.5
 
         if contacts:

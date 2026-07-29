@@ -116,6 +116,23 @@ class TestHealthPing:
             assert result["status"] == "ok"
             assert result["database"] == "connected"
 
+    def test_worker_health_ping_uses_asyncio_run(self):
+        """Sync Celery wrapper must use asyncio.run (no get_event_loop)."""
+        from domains.employee.tasks import worker_health_ping_task
+
+        with patch("domains.employee.tasks._run_async", return_value={"status": "ok"}) as run_async:
+            result = worker_health_ping_task()
+        assert result == {"status": "ok"}
+        run_async.assert_called_once()
+
+    def test_run_async_uses_asyncio_run(self):
+        from domains.employee.tasks import _run_async
+
+        async def _ok():
+            return {"status": "ok"}
+
+        assert _run_async(_ok()) == {"status": "ok"}
+
 
 class TestTaskRetryBehavior:
     def test_calendar_sync_task_has_retry_config(self):

@@ -1,7 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import client from "@/lib/api/client";
+import {
+  contactKeys,
+  dashboardKeys,
+  employeeKeys,
+} from "@/lib/queryKeys";
 
 interface GoogleAccount {
   id: string;
@@ -27,19 +33,36 @@ interface Props {
   hasToken: boolean;
 }
 
-function readOauthReturnParams(): { google: string | null; email: string | null; reason: string | null } {
+function readOauthReturnParams(): {
+  google: string | null;
+  email: string | null;
+  reason: string | null;
+  sync: string | null;
+} {
   if (typeof window === "undefined") {
-    return { google: null, email: null, reason: null };
+    return { google: null, email: null, reason: null, sync: null };
   }
   const params = new URLSearchParams(window.location.search);
   return {
     google: params.get("google"),
     email: params.get("email"),
     reason: params.get("reason"),
+    sync: params.get("sync"),
   };
 }
 
+/** After Google sync, Emp360 / Company360 / contacts / dashboard must refetch. */
+function invalidatePostSync(queryClient: ReturnType<typeof useQueryClient>) {
+  void queryClient.invalidateQueries({ queryKey: employeeKeys.all });
+  void queryClient.invalidateQueries({ queryKey: ["company360"] });
+  void queryClient.invalidateQueries({ queryKey: contactKeys.all });
+  void queryClient.invalidateQueries({ queryKey: dashboardKeys.stats() });
+  void queryClient.invalidateQueries({ queryKey: dashboardKeys.exec() });
+  void queryClient.invalidateQueries({ queryKey: dashboardKeys.main() });
+}
+
 export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<GoogleStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
@@ -48,6 +71,7 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
   const [syncingCalendar, setSyncingCalendar] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const autoSyncStarted = useRef(false);
 
   const fetchStatus = useCallback(async () => {
     if (!ready || !hasToken) return;
@@ -66,17 +90,71 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
     fetchStatus();
   }, [fetchStatus]);
 
+  const runFirstSync = useCallback(async () => {
+    setSyncingGmail(true);
+    setSyncingCalendar(true);
+    setError(null);
+    setSyncMessage("Starting first Gmail + Calendar sync…");
+    try {
+      const [gmailRes, calRes] = await Promise.allSettled([
+        client.post<{ message: string; errors?: string[] }>(
+          "/api/v1/integrations/google/sync",
+          { days_lookback: 30, max_results: 100 },
+        ),
+        client.post<{ message: string; errors?: string[] }>(
+          "/api/v1/integrations/google/calendar-sync",
+          { days_lookback: 90, days_forward: 90 },
+        ),
+      ]);
+      const parts: string[] = [];
+      if (gmailRes.status === "fulfilled") {
+        parts.push(gmailRes.value.data.message || "Gmail synced");
+      } else {
+        parts.push("Gmail sync failed");
+      }
+      if (calRes.status === "fulfilled") {
+        parts.push(calRes.value.data.message || "Calendar synced");
+      } else {
+        parts.push("Calendar sync failed");
+      }
+      setSyncMessage(parts.join(" · "));
+      if (gmailRes.status === "rejected" && calRes.status === "rejected") {
+        setError("First sync failed — use Sync Gmail / Sync Calendar to retry");
+      }
+      invalidatePostSync(queryClient);
+      await fetchStatus();
+    } finally {
+      setSyncingGmail(false);
+      setSyncingCalendar(false);
+    }
+  }, [fetchStatus, queryClient]);
+
   useEffect(() => {
-    const { google, email, reason } = readOauthReturnParams();
+    const { google, email, reason, sync } = readOauthReturnParams();
     if (!google) return;
     if (google === "connected") {
-      setSyncMessage(email ? `Google connected as ${email}` : "Google account connected successfully");
+      setSyncMessage(
+        email
+          ? `Google connected as ${email}${sync === "started" ? " — first sync started" : ""}`
+          : "Google account connected successfully",
+      );
       setError(null);
-      void fetchStatus();
+      void fetchStatus().then(() => {
+        // Belt-and-suspenders with backend schedule_initial_sync — once per return.
+        if (!autoSyncStarted.current && ready && hasToken) {
+          autoSyncStarted.current = true;
+          void runFirstSync();
+        }
+      });
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        ["google", "email", "reason", "sync", "tab"].forEach((k) => url.searchParams.delete(k));
+        window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
+      }
     } else if (google === "error") {
       setError(`Google connection failed (${reason || "unknown"})`);
     }
-  }, [fetchStatus]);
+  }, [fetchStatus, ready, hasToken, runFirstSync]);
 
   const handleConnect = useCallback(async () => {
     setConnecting(true);
@@ -117,13 +195,17 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
       );
       const errs = res.data.errors?.length ? ` (${res.data.errors.length} item errors)` : "";
       setSyncMessage((res.data.message || "Gmail sync completed") + errs);
+      invalidatePostSync(queryClient);
       await fetchStatus();
-    } catch {
-      setError("Gmail sync failed");
+    } catch (err: unknown) {
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        "Gmail sync failed — check connection and try again";
+      setError(String(detail));
     } finally {
       setSyncingGmail(false);
     }
-  }, [fetchStatus]);
+  }, [fetchStatus, queryClient]);
 
   const handleSyncCalendar = useCallback(async () => {
     setSyncingCalendar(true);
@@ -136,13 +218,17 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
       );
       const errs = res.data.errors?.length ? ` (${res.data.errors.length} item errors)` : "";
       setSyncMessage((res.data.message || "Calendar sync completed") + errs);
+      invalidatePostSync(queryClient);
       await fetchStatus();
-    } catch {
-      setError("Calendar sync failed");
+    } catch (err: unknown) {
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        "Calendar sync failed — check connection and try again";
+      setError(String(detail));
     } finally {
       setSyncingCalendar(false);
     }
-  }, [fetchStatus]);
+  }, [fetchStatus, queryClient]);
 
   if (loading) {
     return (
@@ -262,11 +348,16 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
         )}
 
         {!connected && (
-          <p className="mt-3 border-t border-[var(--border-subtle)] pt-3 text-xs text-[var(--text-secondary)]">
-            Connect your Google account to enable Gmail and Calendar sync for the
-            Communication Hub. Tokens are encrypted at rest. Sync refreshes tokens
-            automatically when a refresh token is present.
-          </p>
+          <div className="mt-3 space-y-1 border-t border-[var(--border-subtle)] pt-3 text-xs text-[var(--text-secondary)]">
+            <p>
+              Not connected — Employee360 email/calendar and Communication Hub stay empty
+              until you connect. Nothing is invented while disconnected.
+            </p>
+            <p>
+              Connect Google to enable Gmail and Calendar sync. First sync starts
+              automatically after consent; tokens are encrypted at rest.
+            </p>
+          </div>
         )}
       </div>
     </div>

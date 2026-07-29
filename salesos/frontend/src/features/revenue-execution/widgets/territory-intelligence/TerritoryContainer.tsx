@@ -8,37 +8,30 @@ import type { Score } from '@salesos/decision-platform'
 import { TerritoryView } from './TerritoryView'
 
 function mapScoresToTerritory(scores: Score[]): TerritoryData {
- const territories = scores.filter(s => s.type === 'territory').map((s, i) => ({
+ // Require real territory metadata — never invent SAR values from score multipliers.
+ const territories = scores
+ .filter(s => (s.type === 'territory' || s.type === 'region') && (s.metadata?.name as string | undefined))
+ .map((s, i) => ({
  id: `territory-${i}`,
- name: (s.metadata?.name as string) ?? `منطقة ${i + 1}`,
- deals: (s.metadata?.deals as number) ?? Math.round(s.value * 10),
- value: (s.metadata?.value as number) ?? Math.round(s.value * 5000000),
- quota: (s.metadata?.quota as number) ?? Math.round(s.value * 6000000),
- attainment: Math.round(s.value * 100),
+ name: String(s.metadata?.name),
+ deals: typeof s.metadata?.deals === 'number' ? s.metadata.deals : 0,
+ value: typeof s.metadata?.value === 'number' ? s.metadata.value : 0,
+ quota: typeof s.metadata?.quota === 'number' ? s.metadata.quota : 0,
+ attainment: typeof s.metadata?.attainment === 'number'
+  ? Math.round(s.metadata.attainment)
+  : Math.round(s.value * 100),
  }))
-
- const regionScores = scores.filter(s => s.type === 'region')
- for (const s of regionScores) {
- territories.push({
- id: `territory-${territories.length}`,
- name: (s.metadata?.name as string) ?? `منطقة ${territories.length}`,
- deals: (s.metadata?.deals as number) ?? Math.round(s.value * 8),
- value: (s.metadata?.value as number) ?? Math.round(s.value * 4000000),
- quota: (s.metadata?.quota as number) ?? Math.round(s.value * 5000000),
- attainment: Math.round(s.value * 100),
- })
- }
 
  const coverage = territories.filter(t => t.attainment >= 50).map(t => ({
  region: t.name,
  covered: true,
- salesReps: Math.max(1, Math.round(t.deals / 3)),
+ salesReps: typeof t.deals === 'number' && t.deals > 0 ? Math.max(1, Math.round(t.deals / 3)) : 0,
  opportunityValue: t.value,
  }))
 
  const gaps = territories.filter(t => t.attainment < 50).map(t => ({
  region: t.name,
- potentialValue: t.quota - t.value,
+ potentialValue: Math.max(0, t.quota - t.value),
  reason: t.attainment < 30 ? 'تغطية ضعيفة' : 'أداء دون المستوى',
  }))
 

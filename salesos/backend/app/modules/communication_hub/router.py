@@ -90,11 +90,16 @@ async def google_callback(
     service = GoogleOAuthService(db, tenant_id, user_id)
     try:
         account = await service.handle_callback(code, state)
+        # Kick off Gmail + Calendar sync immediately after connect (non-blocking).
+        from app.modules.communication_hub.initial_sync import schedule_initial_sync
+
+        schedule_initial_sync(tenant_id, user_id)
         return RedirectResponse(
             url=_frontend_integrations_url(
                 google="connected",
                 email=account.email or "",
                 tab="integrations",
+                sync="started",
             ),
             status_code=302,
         )

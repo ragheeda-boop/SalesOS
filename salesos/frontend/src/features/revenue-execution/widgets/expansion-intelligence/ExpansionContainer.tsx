@@ -8,20 +8,25 @@ import type { Score } from '@salesos/decision-platform'
 import { ExpansionView } from './ExpansionView'
 
 function mapScoresToExpansion(scores: Score[]): ExpansionData {
- const opportunities = scores.filter(s => s.type === 'expansion' || s.type === 'upsell').map((s, i) => ({
- companyName: (s.metadata?.companyName as string) ?? `فرصة ${i + 1}`,
+ // Require explicit metadata — never invent company names or SAR from score*1e6.
+ const opportunities = scores
+ .filter(s => (s.type === 'expansion' || s.type === 'upsell') && (s.metadata?.companyName as string | undefined))
+ .map((s) => ({
+ companyName: String(s.metadata?.companyName),
  product: (s.metadata?.product as string) ?? s.factors?.[0]?.name ?? 'منتج',
- value: (s.metadata?.value as number) ?? Math.round(s.value * 1000000),
+ value: typeof s.metadata?.value === 'number' ? s.metadata.value : 0,
  confidence: s.value,
  reason: s.factors?.map(f => f.name).join('، ') ?? 'فرصة توسع',
  }))
 
- const confidenceScores = scores.filter(s => s.type === 'confidence')
+ const confidenceScores = scores.filter(
+  s => s.type === 'opportunity' && (s.metadata?.companyName as string | undefined),
+ )
  for (const s of confidenceScores) {
  opportunities.push({
- companyName: (s.metadata?.companyName as string) ?? `فرصة ${opportunities.length + 1}`,
+ companyName: String(s.metadata?.companyName),
  product: (s.metadata?.product as string) ?? 'منتج',
- value: (s.metadata?.value as number) ?? Math.round(s.value * 1000000),
+ value: typeof s.metadata?.value === 'number' ? s.metadata.value : 0,
  confidence: s.value,
  reason: s.factors?.map(f => f.name).join('، ') ?? 'فرصة نمو',
  })

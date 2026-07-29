@@ -274,13 +274,42 @@ class TestGoogleOAuthService:
             await service.get_valid_token(account)
 
     @pytest.mark.asyncio
-    async def test_scopes_defined(self):
+    async def test_refresh_retries_transient_then_succeeds(self):
+        service = self._make_service()
+        ok = MagicMock(status_code=200)
+        ok.json = MagicMock(return_value={"access_token": "new", "expires_in": 3600})
+        transient = MagicMock(status_code=503)
+        service._http = AsyncMock()
+        service._http.post = AsyncMock(side_effect=[transient, ok])
+
+        tokens = await service._refresh_access_token("refresh_tok")
+        assert tokens["access_token"] == "new"
+        assert service._http.post.await_count == 2
+
+    @pytest.mark.asyncio
+    async     def test_scopes_defined(self):
         assert "openid" in SCOPES
         assert "email" in SCOPES
         assert "profile" in SCOPES
         assert "https://www.googleapis.com/auth/gmail.readonly" in SCOPES
         assert "https://www.googleapis.com/auth/calendar.readonly" in SCOPES
         assert len(SCOPES) == 5
+
+    def test_generate_authorization_url_reaches_google_consent(self):
+        """OAuth connect path ends at Google authorize URL (no real consent needed)."""
+        service = self._make_service()
+        with patch.object(service, "_redirect_uri", return_value="https://api.example.com/callback"), \
+             patch("app.modules.communication_hub.service.settings") as mock_settings:
+            mock_settings.sso_google_client_id = "client-id"
+            url, state = service.generate_authorization_url()
+        assert url.startswith("https://accounts.google.com/o/oauth2/v2/auth?")
+        assert "client_id=client-id" in url
+        assert "access_type=offline" in url
+        assert "prompt=consent" in url
+        assert "gmail.readonly" in url
+        assert "calendar.readonly" in url
+        assert state
+        assert len(state) >= 16
 
 
 # ---------------------------------------------------------------------------

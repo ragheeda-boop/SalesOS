@@ -1,13 +1,15 @@
 import csv
 import hashlib
 import io
+import logging
 import time
 import uuid
 from datetime import date, datetime
 
-from fastapi import APIRouter, Depends, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.exceptions import safe_error_detail
 from app.common.schemas import CursorResponse, PaginatedResponse
 from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
 from sdk.permissions import PermissionAction
@@ -38,6 +40,7 @@ from .search_repository import CompanySearchRepository
 from .service import CompanyService
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 def get_service(
@@ -349,56 +352,15 @@ async def company_360(
             kg_engine=kg_engine,
             page=page, page_size=page_size,
         )
-    except Exception:
-        company = await service.get_company(company_id)
-        result = {
-            "company": company,
-            "related_entities": [],
-            "decision_makers": [],
-            "health_score": 0.5,
-            "overview": {
-                "total_contacts": 0, "total_opportunities": 0, "total_revenue": 0,
-                "active_contracts": 0, "pending_tasks": 0, "upcoming_meetings": 0,
-                "last_activity": None, "signal_count": 0,
-                "contacts_page": page, "contacts_total": 0,
-                "opportunities_page": page, "opportunities_total": 0,
-                "timeline_page": page, "timeline_total": 0,
-            },
-            "organization": {
-                "branches": [], "departments": [], "employees_count": 0,
-                "legal_form": None, "incorporation_date": None,
-            },
-            "contacts": [],
-            "assigned_employees": [],
-            "emails": [],
-            "meetings": [],
-            "tasks": [],
-            "opportunities": [],
-            "contracts": [],
-            "invoices": [],
-            "timeline": [],
-            "documents": [],
-            "signals": {"items": [], "total": 0},
-            "branches": [],
-            "licenses": [],
-            "contact_count": 0,
-            "opportunity_count": 0,
-            "total_revenue": 0,
-            "contacts_page": page,
-            "contacts_total": 0,
-            "opportunities_page": page,
-            "opportunities_total": 0,
-            "timeline_page": page,
-            "timeline_total": 0,
-            "enrichment": {
-                "sources": company.source_ids or [],
-                "is_golden_record": False,
-                "confidence_score": 0.0,
-                "last_enriched_at": None,
-            },
-            "golden_record_id": None,
-            "golden_record_data": None,
-        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        # Do not invent health_score or empty 360 payloads — surface failure honestly.
+        logger.exception("company_360.failed", extra={"company_id": company_id, "tenant_id": tenant_id})
+        raise HTTPException(
+            status_code=500,
+            detail=safe_error_detail(exc, "Failed to load company 360"),
+        ) from exc
     return Company360Response(**result)
 
 @router.get("/{company_id}/intelligence",

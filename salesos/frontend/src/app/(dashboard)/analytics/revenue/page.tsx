@@ -98,56 +98,28 @@ export default function RevenueAnalyticsPage() {
  const forecast = forecastRes.data
  const workspace = workspaceRes.data
 
- const arr = workspace?.kpis?.revenue?.value ?? 500000
+ const arr = workspace?.kpis?.revenue?.value ?? workspace?.opportunities?.total_value ?? dash?.total_value ?? 0
  const metrics: RevenueMetrics = {
  arr,
- arr_trend: workspace?.kpis?.revenue?.change ?? 12.5,
- nrr: 105,
- nrr_trend: 2.3,
- churn_rate: 3.2,
- churn_trend: -0.8,
- expansion_revenue: workspace?.kpis?.forecast?.value ?? 150000,
- expansion_trend: 15.2,
- mrr: Math.round(arr / 12),
- ltv: Math.round(arr * 3.5),
+ arr_trend: workspace?.kpis?.revenue?.change ?? 0,
+ nrr: workspace?.kpis?.nrr?.value ?? 0,
+ nrr_trend: workspace?.kpis?.nrr?.change ?? 0,
+ churn_rate: workspace?.kpis?.churn?.value ?? 0,
+ churn_trend: workspace?.kpis?.churn?.change ?? 0,
+ expansion_revenue: workspace?.kpis?.forecast?.value ?? 0,
+ expansion_trend: workspace?.kpis?.forecast?.change ?? 0,
+ mrr: arr ? Math.round(arr / 12) : 0,
+ ltv: 0,
  }
-
- const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
- const currentMonth = new Date().getMonth()
- const trendMonths = Array.from({ length: 6 }, (_, i) => {
- const idx = (currentMonth - 5 + i + 12) % 12
- return months[idx]
- })
- const baseARR = arr * 0.85
-
- const arrTrend: TrendPoint[] = trendMonths.map((m, i) => ({
- date: m,
- value: Math.round(baseARR + (arr - baseARR) * ((i + 1) / 6)),
- }))
-
- const nrrTrend: TrendPoint[] = trendMonths.map((m, i) => ({
- date: m,
- value: Math.round(98 + (metrics.nrr - 98) * ((i + 1) / 6)),
- }))
-
- const forecastVsActual: ForecastVsActual[] = trendMonths.map((m, i) => ({
- month: m,
- forecast: Math.round(baseARR * 0.9 + (arr * 1.1 - baseARR * 0.9) * ((i + 1) / 6)),
- actual: arrTrend[i].value,
- }))
 
  setData({
  metrics,
- arr_trend: arrTrend,
- nrr_trend: nrrTrend,
- forecast_vs_actual: forecastVsActual,
- revenue_by_region: [
- { region:"Riyadh", value: Math.round(arr * 0.4) },
- { region:"Jeddah", value: Math.round(arr * 0.25) },
- { region:"Eastern Province", value: Math.round(arr * 0.2) },
- { region:"Other", value: Math.round(arr * 0.15) },
- ],
+ arr_trend: [],
+ nrr_trend: [],
+ forecast_vs_actual: [],
+ revenue_by_region: [],
  })
+ void forecast
  } catch {
  setError("Failed to load revenue analytics")
  } finally {

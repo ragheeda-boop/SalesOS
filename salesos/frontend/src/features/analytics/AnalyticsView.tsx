@@ -24,11 +24,22 @@ function MetricCard({ icon, label, value, sub, color }: { icon: React.ReactNode;
 
 export function AnalyticsView({ data }: AnalyticsViewProps) {
  const { t } = useTranslation()
+ const isEmpty =
+  data.users.total === 0 &&
+  data.pipeline.dealCount === 0 &&
+  data.widgets.usageCount === 0 &&
+  data.search.totalQueries === 0 &&
+  data.nba.shown === 0
  return (
  <div role="region" aria-label={t("analytics.title")} className="space-y-4 p-6">
  <div>
  <h1 className="text-xl font-bold text-[var(--text-primary)]">{t("analytics.title")}</h1>
  <p className="text-sm text-[var(--text-muted)]">{t("analytics.subtitle")}</p>
+ {isEmpty && (
+  <p className="mt-2 text-xs text-[var(--text-muted)]">
+   No live commercial analytics yet — zeros are honest; nothing is invented.
+  </p>
+ )}
  </div>
 
  <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

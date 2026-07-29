@@ -6,8 +6,8 @@
     "watchPatterns": ["**"]
   },
   "deploy": {
-    "startCommand": "sh -c 'python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}'",
-    "preDeployCommand": ["python -c \"import asyncio; from app.database import init_db; asyncio.run(init_db())\""],
+    "startCommand": "sh -c 'if [ \"$RAILWAY_SERVICE_NAME\" = \"celery-worker\" ]; then celery -A app.celery_app worker --loglevel=info --concurrency=2 --max-tasks-per-child=1000; elif [ \"$RAILWAY_SERVICE_NAME\" = \"celery-beat\" ]; then celery -A app.celery_app beat --loglevel=info; else python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}; fi'",
+    "preDeployCommand": ["python -c \"import asyncio, importlib; try: mod=importlib.import_module('app.database'); init_db=mod.init_db; asyncio.run(init_db()) except ModuleNotFoundError as e: print('preDeploy init_db skipped', e)\""],
     "healthcheckPath": "/health",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",

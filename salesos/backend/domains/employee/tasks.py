@@ -14,12 +14,13 @@ Schedule (Celery Beat config):
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from datetime import datetime, timezone, timedelta
 from typing import Any
 
 from celery import shared_task
-from sqlalchemy import select, delete
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
 from app.config import settings
@@ -35,6 +36,11 @@ from app.modules.identity.models import User
 
 _engine = None
 _engine_lock = None
+
+
+def _run_async(coro):
+    """Bridge sync Celery tasks to async services via a fresh event loop."""
+    return asyncio.run(coro)
 
 
 async def _get_session() -> AsyncSession:
@@ -53,8 +59,7 @@ async def _get_session() -> AsyncSession:
 @shared_task(name="calendar_sync_all", bind=True, max_retries=3, default_retry_delay=300)
 def calendar_sync_all_employees_task(self) -> dict:
     """Celery task: sync calendar for all employees."""
-    import asyncio
-    return asyncio.get_event_loop().run_until_complete(calendar_sync_all_employees())
+    return _run_async(calendar_sync_all_employees())
 
 
 async def calendar_sync_employee(employee_id: str, tenant_id: str, provider: str = "google") -> None:
@@ -499,44 +504,37 @@ async def signal_retention_cleanup() -> dict:
 
 @shared_task(name="email_sync_all", bind=True, max_retries=3, default_retry_delay=300)
 def email_sync_all_task(self):
-    import asyncio
-    return asyncio.get_event_loop().run_until_complete(_email_sync_all_wrapper())
+    return _run_async(_email_sync_all_wrapper())
 
 
 @shared_task(name="webhook_renewal_all", bind=True, max_retries=1)
 def webhook_renewal_all_task(self):
-    import asyncio
-    return asyncio.get_event_loop().run_until_complete(webhook_renewal_all())
+    return _run_async(webhook_renewal_all())
 
 
 @shared_task(name="score_rebuild_all_employees", bind=True, max_retries=1, time_limit=3600)
 def score_rebuild_task(self):
-    import asyncio
-    return asyncio.get_event_loop().run_until_complete(score_rebuild_all_employees())
+    return _run_async(score_rebuild_all_employees())
 
 
 @shared_task(name="gdpr_purge_expired_users", bind=True, max_retries=1, time_limit=1800)
 def gdpr_purge_task(self):
-    import asyncio
-    return asyncio.get_event_loop().run_until_complete(gdpr_purge_expired_users())
+    return _run_async(gdpr_purge_expired_users())
 
 
 @shared_task(name="signal_retention_cleanup", bind=True, max_retries=1, time_limit=600)
 def signal_cleanup_task(self):
-    import asyncio
-    return asyncio.get_event_loop().run_until_complete(signal_retention_cleanup())
+    return _run_async(signal_retention_cleanup())
 
 
 @shared_task(name="worker_health_ping", bind=True, max_retries=0)
 def worker_health_ping_task(self) -> dict:
-    import asyncio
-    return asyncio.get_event_loop().run_until_complete(_health_ping())
+    return _run_async(_health_ping())
 
 
 @shared_task(name="calendar_event_cleanup", bind=True, max_retries=1, time_limit=600)
 def calendar_event_cleanup_task(self):
-    import asyncio
-    return asyncio.get_event_loop().run_until_complete(_calendar_cleanup())
+    return _run_async(_calendar_cleanup())
 
 
 async def _calendar_cleanup() -> dict:

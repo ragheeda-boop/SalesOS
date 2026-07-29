@@ -11,6 +11,7 @@ celery_app = Celery(
     include=[
         "app.tasks",
         "domains.employee.tasks",
+        "app.modules.communication_hub.tasks",
     ],
 )
 

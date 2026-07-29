@@ -100,15 +100,24 @@ function QuickStatsRow({ data, signals, scoreData }: {
   scoreData: { score?: number } | undefined
 }) {
   const { t } = useTranslation()
-  const riskLevel = scoreData && (scoreData.score ?? 0) < 40 ? "high" : scoreData && (scoreData.score ?? 0) < 70 ? "medium" : "low"
+  const hasScore = typeof scoreData?.score === "number"
+  const riskLevel = !hasScore
+    ? null
+    : (scoreData!.score! < 40 ? "high" : scoreData!.score! < 70 ? "medium" : "low")
   const riskColor = riskLevel === "high" ? "text-danger-600" : riskLevel === "medium" ? "text-warning-600" : "text-success-600"
-  const riskLabel = riskLevel === "high" ? t("emp360.risk.high") : riskLevel === "medium" ? t("emp360.risk.medium") : t("emp360.risk.low")
+  const riskLabel = riskLevel === "high"
+    ? t("emp360.risk.high")
+    : riskLevel === "medium"
+      ? t("emp360.risk.medium")
+      : riskLevel === "low"
+        ? t("emp360.risk.low")
+        : "—"
 
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       <StatBox icon={Mail} label={t("emp360.total_signals")} value={signals?.total ?? 0} color="bg-info-50 text-info-700 dark:bg-info-900/20 dark:text-info-400" />
-      <StatBox icon={Users} label={t("emp360.current_score")} value={scoreData?.score ?? "-"} color="bg-[var(--chart-purple-bg)] text-[var(--text-secondary)] dark:bg-[var(--bg-primary)]/20 dark:text-[var(--chart-purple)]" />
-      <StatBox icon={Users} label={t("emp360.risk_level")} value={<span className={riskColor}>{riskLabel}</span>} color={riskLevel === "high" ? "bg-danger-50 text-danger-700 dark:bg-danger-900/20 dark:text-danger-400" : riskLevel === "medium" ? "bg-warning-50 text-warning-700 dark:bg-warning-900/20 dark:text-warning-400" : "bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-400"} />
+      <StatBox icon={Users} label={t("emp360.current_score")} value={hasScore ? scoreData!.score! : "—"} color="bg-[var(--chart-purple-bg)] text-[var(--text-secondary)] dark:bg-[var(--bg-primary)]/20 dark:text-[var(--chart-purple)]" />
+      <StatBox icon={Users} label={t("emp360.risk_level")} value={<span className={riskLevel ? riskColor : "text-[var(--text-muted)]"}>{riskLabel}</span>} color={riskLevel === "high" ? "bg-danger-50 text-danger-700 dark:bg-danger-900/20 dark:text-danger-400" : riskLevel === "medium" ? "bg-warning-50 text-warning-700 dark:bg-warning-900/20 dark:text-warning-400" : riskLevel === "low" ? "bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-400" : "bg-[var(--bg-secondary)] text-[var(--text-muted)]"} />
       <StatBox icon={Users} label={t("emp360.tenure")} value={new Date((data.profile.created_at as string) || "").toLocaleDateString("en-US", { month: "short", year: "numeric" })} color="bg-[var(--bg-secondary)] text-[var(--text-secondary)]/50" />
     </div>
   )
@@ -124,8 +133,23 @@ export function EmployeeOverview({ employeeId, data }: {
 
   if (signalsLoading || scoreLoading) return <OverviewSkeleton />
 
+  const emailCount = Number((data as { email_intelligence?: { total?: number } }).email_intelligence?.total ?? 0)
+  const meetingCount = Number(
+    (data as { calendar_intelligence?: { total?: number; month_count?: number } }).calendar_intelligence?.total
+    ?? (data as { calendar_intelligence?: { month_count?: number } }).calendar_intelligence?.month_count
+    ?? 0,
+  )
+  const signalTotal = Number((signals as { total?: number } | undefined)?.total ?? 0)
+  const noSyncData = emailCount === 0 && meetingCount === 0 && signalTotal === 0
+
   return (
     <div className="space-y-4">
+      {noSyncData && (
+        <div className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-xs text-[var(--text-muted)]">
+          No Gmail/Calendar sync data for this employee yet. Empty signals and timeline are honest —
+          connect Google under Settings → Integrations, then run Sync.
+        </div>
+      )}
       <ProfileCard data={data} t={t} />
       <QuickStatsRow data={data} signals={signals as { total?: number } | undefined} scoreData={scoreData as { score?: number } | undefined} />
       <RecentActivityFeed employeeId={employeeId} />

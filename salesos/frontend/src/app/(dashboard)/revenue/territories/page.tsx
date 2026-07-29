@@ -189,85 +189,45 @@ export default function TerritoryMapPage() {
 
  const workspace = workspaceRes.data
 
- const demoTerritories: Territory[] = [
- {
- id:"t-1", name:"Riyadh Central", rep_name:"Ahmed Al-Rashid", rep_id:"rep-1",
- account_count: 24, total_value: 3200000,
- accounts: [
- { id:"a-1", name:"Al Rajhi Corp", value: 500000, status:"assigned", rep_name:"Ahmed Al-Rashid" },
- { id:"a-2", name:"Saudi Aramco Services", value: 800000, status:"assigned", rep_name:"Ahmed Al-Rashid" },
- { id:"a-3", name:"Almarai Company", value: 350000, status:"assigned", rep_name:"Ahmed Al-Rashid" },
- { id:"a-4", name:"SABIC Industries", value: 600000, status:"assigned", rep_name:"Ahmed Al-Rashid" },
- { id:"a-5", name:"STC Solutions", value: 450000, status:"assigned", rep_name:"Ahmed Al-Rashid" },
- ],
- },
- {
- id:"t-2", name:"Eastern Province", rep_name:"Sara Al-Mutairi", rep_id:"rep-2",
- account_count: 18, total_value: 2800000,
- accounts: [
- { id:"a-6", name:"Dammam Refinery", value: 700000, status:"assigned", rep_name:"Sara Al-Mutairi" },
- { id:"a-7", name:"Jubail Petrochemical", value: 550000, status:"assigned", rep_name:"Sara Al-Mutairi" },
- { id:"a-8", name:"Eastern Trading Co", value: 300000, status:"assigned", rep_name:"Sara Al-Mutairi" },
- ],
- },
- {
- id:"t-3", name:"Western Region", rep_name:"Khalid Al-Otaibi", rep_id:"rep-3",
- account_count: 15, total_value: 1900000,
- accounts: [
- { id:"a-9", name:"Jeddah Port Services", value: 400000, status:"assigned", rep_name:"Khalid Al-Otaibi" },
- { id:"a-10", name:"Makkah Construction", value: 350000, status:"assigned", rep_name:"Khalid Al-Otaibi" },
- ],
- },
- {
- id:"t-4", name:"Northern Region", rep_name:"Fatima Al-Harbi", rep_id:"rep-4",
- account_count: 12, total_value: 1200000,
- accounts: [
- { id:"a-11", name:"Tabuk Mining", value: 250000, status:"assigned", rep_name:"Fatima Al-Harbi" },
- { id:"a-12", name:"Hail Agriculture", value: 180000, status:"assigned", rep_name:"Fatima Al-Harbi" },
- ],
- },
- ]
+ // Honest empty / pipeline-derived — never invent Aramco/SABIC demo territories
+ const recent = (workspace?.opportunities?.recent || []) as Array<{
+  id: string
+  name: string
+  value: number
+  company_id?: string
+ }>
+ const territories: Territory[] = recent.length
+  ? [
+     {
+      id: "pipeline",
+      name: "Open pipeline",
+      rep_name: "Unassigned",
+      rep_id: "none",
+      account_count: recent.length,
+      total_value: recent.reduce((s, o) => s + (Number(o.value) || 0), 0),
+      accounts: recent.map((o) => ({
+       id: o.company_id || o.id,
+       name: o.name || "Opportunity",
+       value: Number(o.value) || 0,
+       status: "assigned" as const,
+       rep_name: "Unassigned",
+      })),
+     },
+    ]
+  : []
 
- const allAccounts = demoTerritories.flatMap((t) => t.accounts)
- const totalAccounts = allAccounts.length + 3
- const unassignedCount = 3
-
- const gaps: CoverageGap[] = [
- {
- region:"Central South",
- unassigned_accounts: 2,
- potential_value: 450000,
- reason:"No rep assigned",
- },
- {
- region:"Jizan",
- unassigned_accounts: 1,
- potential_value: 200000,
- reason:"Low coverage",
- },
- ]
+ const allAccounts = territories.flatMap((t) => t.accounts)
+ const gaps: CoverageGap[] = []
 
  setData({
- territories: demoTerritories,
+ territories,
  gaps,
- total_accounts: totalAccounts,
- unassigned_accounts: unassignedCount,
+ total_accounts: allAccounts.length,
+ unassigned_accounts: allAccounts.length,
  })
 
- setRebalanceSuggestions([
- {
- from_territory:"Riyadh Central",
- to_territory:"Eastern Province",
- account_name:"Al Rajhi Corp",
- reason:"Geographic proximity — 23% value imbalance",
- },
- {
- from_territory:"Western Region",
- to_territory:"Northern Region",
- account_name:"Jeddah Port Services",
- reason:"Workload balance — 40% account count difference",
- },
- ])
+ setRebalanceSuggestions([])
+ void decisionRes
  } catch {
  setError(t("error.server_error"))
  } finally {

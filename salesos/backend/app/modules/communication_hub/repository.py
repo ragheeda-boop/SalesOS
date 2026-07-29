@@ -30,6 +30,16 @@ class GoogleAccountRepository:
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def list_active(self, *, limit: int = 500) -> list[GoogleAccount]:
+        """All active Google accounts (periodic background sync)."""
+        stmt = (
+            select(GoogleAccount)
+            .where(GoogleAccount.is_active.is_(True))
+            .limit(max(1, min(limit, 2000)))
+        )
+        result = await self.db.execute(stmt)
+        return list(result.scalars().all())
+
     async def get_by_id(
         self, account_id: UUID, tenant_id: UUID
     ) -> GoogleAccount | None:
@@ -114,7 +124,7 @@ class GoogleAccountRepository:
         await self.db.execute(stmt)
 
     async def update_history_id(
-        self, account_id: UUID, history_id: str, tenant_id: UUID
+        self, account_id: UUID, history_id: str | None, tenant_id: UUID
     ) -> None:
         stmt = (
             update(GoogleAccount)

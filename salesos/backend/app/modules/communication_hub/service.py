@@ -289,11 +289,22 @@ class GoogleOAuthService:
             "refresh_token": refresh_token,
             "grant_type": "refresh_token",
         }
-        resp = await self._http.post(GOOGLE_TOKEN_URL, data=data)
-        if resp.status_code != 200:
-            logger.error("google_token_refresh.failed", extra={"status": resp.status_code})
-            raise GoogleTokenRefreshError(f"Token refresh failed: {resp.status_code}")
-        return resp.json()
+        last_status = 0
+        for attempt in range(3):
+            resp = await self._http.post(GOOGLE_TOKEN_URL, data=data)
+            last_status = resp.status_code
+            if resp.status_code == 200:
+                return resp.json()
+            # Retry transient Google / network-edge failures only.
+            if resp.status_code in (429, 500, 502, 503, 504) and attempt < 2:
+                logger.warning(
+                    "google_token_refresh.retry",
+                    extra={"status": resp.status_code, "attempt": attempt + 1},
+                )
+                continue
+            break
+        logger.error("google_token_refresh.failed", extra={"status": last_status})
+        raise GoogleTokenRefreshError(f"Token refresh failed: {last_status}")
 
     async def get_status(self) -> tuple[bool, GoogleAccount | None]:
         account = await self.repo.get_by_user(self.tenant_id, self.user_id)

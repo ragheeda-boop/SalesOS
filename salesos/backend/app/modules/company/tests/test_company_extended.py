@@ -524,7 +524,7 @@ async def test_search_companies_by_city(db_session: AsyncSession, test_tenant: s
 
 def test_heuristic_health_score_no_contacts_no_opps():
     score = CompanyService._heuristic_health_score([], [], [])
-    assert score == 0.5
+    assert score == 0.0
 
 
 def test_heuristic_health_score_mixed_signals():

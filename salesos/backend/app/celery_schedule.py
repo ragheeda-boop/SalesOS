@@ -13,7 +13,7 @@ from datetime import timedelta
 from celery.schedules import crontab
 
 BEAT_SCHEDULE = {
-    # ── Calendar & Email Sync ──────────────────────────────────
+    # ── Calendar & Email Sync (Emp360 OAuth tokens) ────────────────
     "calendar-sync-every-15m": {
         "task": "calendar_sync_all",
         "schedule": timedelta(minutes=15),
@@ -21,6 +21,17 @@ BEAT_SCHEDULE = {
     },
     "email-sync-every-15m": {
         "task": "email_sync_all",
+        "schedule": timedelta(minutes=15),
+        "options": {"expires": 600, "retry": True, "max_retries": 3, "default_retry_delay": 300},
+    },
+    # ── Communication Hub Google accounts ──────────────────────────
+    "hub-gmail-sync-every-15m": {
+        "task": "hub_gmail_sync_all",
+        "schedule": timedelta(minutes=15),
+        "options": {"expires": 600, "retry": True, "max_retries": 3, "default_retry_delay": 300},
+    },
+    "hub-calendar-sync-every-15m": {
+        "task": "hub_calendar_sync_all",
         "schedule": timedelta(minutes=15),
         "options": {"expires": 600, "retry": True, "max_retries": 3, "default_retry_delay": 300},
     },

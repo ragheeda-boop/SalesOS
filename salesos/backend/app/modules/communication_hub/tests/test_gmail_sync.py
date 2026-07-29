@@ -283,6 +283,108 @@ class TestGmailSyncService:
                     assert result["new_count"] == 0
                     mock_update.assert_called_once()
 
+    @pytest.mark.asyncio
+    async def test_sync_incremental_stale_history_404_falls_back(self):
+        """history_id 404 → full fetch_emails fallback (not abort)."""
+        service = self._make_service()
+        account = MagicMock(spec=GoogleAccount)
+        account.id = uuid4()
+        account.history_id = "stale_hist"
+        account.email = "test@gmail.com"
+        account.last_sync_at = datetime.now(timezone.utc) - timedelta(days=1)
+
+        repo = AsyncMock()
+        repo.get_by_user = AsyncMock(return_value=account)
+        repo.update_history_id = AsyncMock()
+        service.repo = repo
+
+        raw = RawEmail(
+            message_id="msg_fb",
+            subject="Fallback",
+            from_address="a@b.com",
+            sent_at=datetime.now(timezone.utc),
+            labels=["INBOX"],
+        )
+        mock_provider = AsyncMock()
+        mock_provider.fetch_history = AsyncMock(
+            side_effect=GmailAPIError(404, "not found")
+        )
+        mock_provider.fetch_emails = AsyncMock(return_value=[raw])
+        mock_provider.get_history_id = AsyncMock(return_value="new_hist")
+        mock_provider.close = AsyncMock()
+
+        with patch.object(service, "_ensure_provider", return_value=mock_provider):
+            with patch.object(service, "_get_existing_email", return_value=None):
+                with patch.object(service, "_insert_email", new_callable=AsyncMock):
+                    result = await service.sync()
+                    assert result["synced_count"] == 1
+                    mock_provider.fetch_emails.assert_called_once()
+                    repo.update_history_id.assert_any_call(
+                        account.id, None, tenant_id=service.tenant_id
+                    )
+
+    @pytest.mark.asyncio
+    async def test_sync_incremental_stale_history_410_falls_back(self):
+        """history_id 410 (gone) → clear + full fetch_emails fallback."""
+        service = self._make_service()
+        account = MagicMock(spec=GoogleAccount)
+        account.id = uuid4()
+        account.history_id = "gone_hist"
+        account.email = "test@gmail.com"
+        account.last_sync_at = datetime.now(timezone.utc) - timedelta(days=2)
+
+        repo = AsyncMock()
+        repo.get_by_user = AsyncMock(return_value=account)
+        repo.update_history_id = AsyncMock()
+        service.repo = repo
+
+        raw = RawEmail(
+            message_id="msg_410",
+            subject="Gone",
+            from_address="a@b.com",
+            sent_at=datetime.now(timezone.utc),
+            labels=["INBOX"],
+        )
+        mock_provider = AsyncMock()
+        mock_provider.fetch_history = AsyncMock(
+            side_effect=GmailAPIError(410, "gone")
+        )
+        mock_provider.fetch_emails = AsyncMock(return_value=[raw])
+        mock_provider.get_history_id = AsyncMock(return_value="hist2")
+        mock_provider.close = AsyncMock()
+
+        with patch.object(service, "_ensure_provider", return_value=mock_provider):
+            with patch.object(service, "_get_existing_email", return_value=None):
+                with patch.object(service, "_insert_email", new_callable=AsyncMock):
+                    result = await service.sync()
+                    assert result["synced_count"] == 1
+                    mock_provider.fetch_emails.assert_called_once()
+                    repo.update_history_id.assert_any_call(
+                        account.id, None, tenant_id=service.tenant_id
+                    )
+
+    @pytest.mark.asyncio
+    async def test_sync_auth_401_raises_gmail_sync_error(self):
+        service = self._make_service()
+        account = MagicMock(spec=GoogleAccount)
+        account.id = uuid4()
+        account.history_id = None
+        account.email = "test@gmail.com"
+
+        repo = AsyncMock()
+        repo.get_by_user = AsyncMock(return_value=account)
+        service.repo = repo
+
+        mock_provider = AsyncMock()
+        mock_provider.fetch_emails = AsyncMock(
+            side_effect=GmailAPIError(401, "unauthorized")
+        )
+        mock_provider.close = AsyncMock()
+
+        with patch.object(service, "_ensure_provider", return_value=mock_provider):
+            with pytest.raises(GmailSyncError, match="authentication failed"):
+                await service.sync()
+
 
 # ---------------------------------------------------------------------------
 # Schema tests for new sync schemas

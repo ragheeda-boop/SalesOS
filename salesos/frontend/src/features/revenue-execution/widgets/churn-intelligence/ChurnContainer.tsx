@@ -8,28 +8,16 @@ import type { Score } from '@salesos/decision-platform'
 import { ChurnView } from './ChurnView'
 
 function mapScoresToChurn(scores: Score[]): ChurnData {
+ // Only map explicit risk scores with real metadata — never invent revenue or company names.
  const atRiskAccounts = scores
- .filter(s => s.type === 'risk')
- .map((s, i) => ({
- companyName: (s.metadata?.companyName as string) ?? `الشركة ${i + 1}`,
+ .filter(s => s.type === 'risk' && (s.metadata?.companyName as string | undefined))
+ .map((s) => ({
+ companyName: String(s.metadata?.companyName),
  riskScore: s.value,
- revenue: (s.metadata?.revenue as number) ?? 0,
+ revenue: typeof s.metadata?.revenue === 'number' ? s.metadata.revenue : 0,
  reason: (s.metadata?.reason as string) ?? s.factors?.[0]?.name ?? 'مخاطر عالية',
- daysSinceActivity: (s.metadata?.daysSinceActivity as number) ?? 30,
+ daysSinceActivity: typeof s.metadata?.daysSinceActivity === 'number' ? s.metadata.daysSinceActivity : 0,
  }))
-
- if (atRiskAccounts.length === 0) {
- const total = scores.reduce((sum, s) => sum + s.value, 0) / Math.max(scores.length, 1)
- for (let i = 0; i < Math.min(scores.length, 5); i++) {
- atRiskAccounts.push({
- companyName: `الشركة ${i + 1}`,
- riskScore: scores[i]?.value ?? total,
- revenue: 500000 + i * 200000,
- reason: scores[i]?.factors?.[0]?.name ?? 'مؤشر خطر',
- daysSinceActivity: 20 + i * 10,
- })
- }
- }
 
  const totalRevenue = atRiskAccounts.reduce((s, a) => s + a.revenue, 0)
  const avgRiskScore = atRiskAccounts.length > 0

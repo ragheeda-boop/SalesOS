@@ -103,8 +103,9 @@ class InMemoryWebhookDeliveryRepository:
         d = self._deliveries.get(delivery_id)
         if not d:
             return None
+        # Allow explicit None (e.g. clear next_retry_at / response_code on terminal states).
         for key, value in data.items():
-            if hasattr(d, key) and value is not None:
+            if hasattr(d, key):
                 setattr(d, key, value)
         return d
 
@@ -293,8 +294,10 @@ class PostgresWebhookDeliveryRepository:
         row = await self._session.get(WebhookDeliveryModel, delivery_id)
         if not row:
             return None
+        # Allow explicit None so terminal success/failure can clear next_retry_at
+        # and exception paths can clear response_code (otherwise retries stick forever).
         for key in ("status", "response_code", "response_body", "attempt", "next_retry_at", "payload"):
-            if key in data and data[key] is not None:
+            if key in data:
                 setattr(row, key, data[key])
         await self._session.flush()
         return _delivery_from_row(row)

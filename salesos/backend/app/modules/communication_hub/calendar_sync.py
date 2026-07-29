@@ -18,6 +18,7 @@ from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.communication_hub.company_linker import resolve_company_ids_for_addresses
+from app.modules.communication_hub.contact_sync import upsert_contacts_from_addresses
 from app.modules.communication_hub.models import GoogleAccount
 from app.modules.communication_hub.repository import GoogleAccountRepository
 from app.modules.communication_hub.service import GoogleOAuthService
@@ -110,6 +111,7 @@ class CalendarSyncService:
         updated_count = 0
         cancelled_count = 0
         errors: list[str] = []
+        contact_addresses: list[str] = []
 
         for raw in events:
             try:
@@ -126,6 +128,14 @@ class CalendarSyncService:
                 elif not is_cancelled:
                     await self._insert_event(account, raw)
                     new_count += 1
+
+                attendees = raw.attendees or []
+                contact_addresses.extend(
+                    [a.get("email", "") for a in attendees if a.get("email")]
+                )
+                organizer_email = (raw.organizer or {}).get("email", "")
+                if organizer_email:
+                    contact_addresses.append(organizer_email)
             except Exception as e:
                 errors.append(f"Event {raw.event_id}: {e}")
                 logger.exception(
@@ -133,11 +143,21 @@ class CalendarSyncService:
                     extra={"event_id": raw.event_id, "error": str(e)},
                 )
 
+        contacts = {"created": 0, "updated": 0, "skipped": 0}
+        try:
+            contacts = await upsert_contacts_from_addresses(
+                self.db, self.tenant_id, contact_addresses, source="calendar_sync"
+            )
+        except Exception as e:
+            errors.append(f"contact_sync: {e}")
+            logger.exception("calendar_sync.contact_upsert.failed", extra={"error": str(e)})
+
         return {
             "synced_count": len(events),
             "new_count": new_count,
             "updated_count": updated_count,
             "cancelled_count": cancelled_count,
+            "contacts": contacts,
             "errors": errors,
         }
 

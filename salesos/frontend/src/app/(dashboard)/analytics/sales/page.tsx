@@ -105,26 +105,16 @@ export default function SalesAnalyticsPage() {
 
  const metrics: SalesMetrics = {
  total_revenue: dash?.total_value ?? 0,
- revenue_trend: 12.5,
+ revenue_trend: 0,
  deals_closed: dash?.closed_won ?? 0,
- deals_trend: 8.3,
+ deals_trend: 0,
  avg_deal_size: dash?.avg_deal_size ?? 0,
- avg_deal_trend: -2.1,
+ avg_deal_trend: 0,
  win_rate: pipeline?.win_rate ?? 0,
- win_rate_trend: 3.2,
+ win_rate_trend: 0,
  }
 
- const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
- const currentMonth = new Date().getMonth()
- const trendMonths = Array.from({ length: 6 }, (_, i) => {
- const idx = (currentMonth - 5 + i + 12) % 12
- return months[idx]
- })
- const baseRevenue = metrics.total_revenue * 0.7
- const revenueTrend: RevenueTrend[] = trendMonths.map((m, i) => ({
- date: m,
- value: Math.round(baseRevenue + (metrics.total_revenue - baseRevenue) * ((i + 1) / 6)),
- }))
+ const revenueTrend: RevenueTrend[] = []
 
  const pipelineByStage: DealStage[] = (pipeline?.conversion_funnel ?? []).map(
  (s: { stage: string; count: number; value: number }) => ({
@@ -135,31 +125,23 @@ export default function SalesAnalyticsPage() {
  )
 
  const topReps: SalesRep[] = (dash?.active_opportunities ?? []).slice(0, 5).map(
- (o: { name: string; value: number }, i: number) => ({
+ (o: { name: string; value: number }) => ({
  name: o.name,
  revenue: o.value,
- deals: Math.round(3 + Math.random() * 10),
- win_rate: Math.round(40 + Math.random() * 40),
+ deals: 0,
+ win_rate: 0,
  })
  )
 
  setData({
  metrics,
  revenue_trend: revenueTrend,
- pipeline_by_stage: pipelineByStage.length > 0 ? pipelineByStage : [
- { stage:"lead", count: 45, value: 200000 },
- { stage:"opportunity", count: 30, value: 450000 },
- { stage:"proposal", count: 15, value: 300000 },
- { stage:"negotiation", count: 8, value: 180000 },
- { stage:"closed_won", count: 12, value: 250000 },
- { stage:"closed_lost", count: 5, value: 90000 },
- ],
- top_reps: topReps.length > 0 ? topReps : [
- { name:"Ahmed Al-Rashid", revenue: 180000, deals: 8, win_rate: 72 },
- { name:"Sara Al-Harbi", revenue: 150000, deals: 6, win_rate: 68 },
- { name:"Omar Al-Zahrani", revenue: 120000, deals: 5, win_rate: 65 },
- ],
- won_lost: { won: metrics.deals_closed, lost: Math.round(metrics.deals_closed * 0.35) },
+ pipeline_by_stage: pipelineByStage,
+ top_reps: topReps,
+ won_lost: {
+ won: metrics.deals_closed,
+ lost: dash?.closed_lost ?? 0,
+ },
  })
  } catch {
  setError("Failed to load sales analytics")

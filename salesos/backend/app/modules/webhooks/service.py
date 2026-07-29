@@ -169,8 +169,15 @@ class WebhookService:
         count = 0
         for delivery in pending:
             sub = await self.subscription_repo.get(delivery.subscription_id)
-            if sub:
-                delivery.status = "pending"
-                await self._attempt_delivery(delivery, sub)
-                count += 1
+            if not sub:
+                # Orphan delivery: stop infinite retry selection.
+                await self.delivery_repo.update(delivery.id, {
+                    "status": "failed",
+                    "response_body": "subscription missing",
+                    "next_retry_at": None,
+                })
+                continue
+            delivery.status = "pending"
+            await self._attempt_delivery(delivery, sub)
+            count += 1
         return count

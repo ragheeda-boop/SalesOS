@@ -23,6 +23,7 @@ from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.communication_hub.company_linker import resolve_company_ids_for_addresses
+from app.modules.communication_hub.contact_sync import upsert_contacts_from_addresses
 from app.modules.communication_hub.models import GoogleAccount
 from app.modules.communication_hub.repository import GoogleAccountRepository
 from app.modules.communication_hub.service import GoogleOAuthService
@@ -104,11 +105,20 @@ class GmailSyncService:
         try:
             history_data = await provider.fetch_history(account.history_id)
         except GmailAPIError as e:
-            if e.status == 404:
+            # 404 = unknown historyId; 410 = history expired / gone — both need full resync.
+            if e.status in (404, 410):
                 logger.warning(
                     "gmail.history_id.stale",
-                    extra={"account_id": str(account.id), "history_id": account.history_id},
+                    extra={
+                        "account_id": str(account.id),
+                        "history_id": account.history_id,
+                        "status": e.status,
+                    },
                 )
+                await self.repo.update_history_id(
+                    account.id, None, tenant_id=self.tenant_id
+                )
+                account.history_id = None
                 since = account.last_sync_at or (datetime.now(timezone.utc) - timedelta(days=30))
                 emails = await provider.fetch_emails(since=since, max_results=200)
                 return await self._process_emails(account, emails)
@@ -136,6 +146,7 @@ class GmailSyncService:
         new_count = 0
         updated_count = 0
         errors: list[str] = []
+        contact_addresses: list[str] = []
 
         for raw in emails:
             try:
@@ -149,6 +160,9 @@ class GmailSyncService:
                 else:
                     await self._insert_email(account, raw, direction, is_read)
                     new_count += 1
+                contact_addresses.extend(
+                    [raw.from_address, *(raw.to_addresses or []), *(raw.cc_addresses or [])]
+                )
             except Exception as e:
                 errors.append(f"Email {raw.message_id}: {e}")
                 logger.exception(
@@ -156,10 +170,20 @@ class GmailSyncService:
                     extra={"message_id": raw.message_id, "error": str(e)},
                 )
 
+        contacts = {"created": 0, "updated": 0, "skipped": 0}
+        try:
+            contacts = await upsert_contacts_from_addresses(
+                self.db, self.tenant_id, contact_addresses, source="gmail_sync"
+            )
+        except Exception as e:
+            errors.append(f"contact_sync: {e}")
+            logger.exception("gmail_sync.contact_upsert.failed", extra={"error": str(e)})
+
         return {
             "synced_count": len(emails),
             "new_count": new_count,
             "updated_count": updated_count,
+            "contacts": contacts,
             "errors": errors,
         }
 

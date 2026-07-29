@@ -15,6 +15,109 @@ router = APIRouter()
 logger = logging.getLogger(__name__)
 
 
+async def _analytics_input_from_db(db: AsyncSession, tenant_id: str):
+    """Build AnalyticsInput from commercial_opportunities — never invent revenue."""
+    from datetime import datetime, timedelta, timezone
+
+    from sqlalchemy import func, select
+
+    from domains.commercial.infrastructure.models import OpportunityModel
+    from domains.revenue.analytics.service import AnalyticsInput
+
+    now = datetime.now(timezone.utc)
+    period_start = now - timedelta(days=30)
+    prev_start = now - timedelta(days=60)
+
+    booked = (
+        await db.execute(
+            select(func.coalesce(func.sum(OpportunityModel.won_amount), 0.0)).where(
+                OpportunityModel.tenant_id == tenant_id,
+                OpportunityModel.status == "won",
+                OpportunityModel.updated_at >= period_start,
+            )
+        )
+    ).scalar() or 0.0
+
+    previous_booked = (
+        await db.execute(
+            select(func.coalesce(func.sum(OpportunityModel.won_amount), 0.0)).where(
+                OpportunityModel.tenant_id == tenant_id,
+                OpportunityModel.status == "won",
+                OpportunityModel.updated_at >= prev_start,
+                OpportunityModel.updated_at < period_start,
+            )
+        )
+    ).scalar() or 0.0
+
+    # Fall back to opportunity value when won_amount is unset on won deals
+    if booked == 0.0:
+        booked = (
+            await db.execute(
+                select(func.coalesce(func.sum(OpportunityModel.value), 0.0)).where(
+                    OpportunityModel.tenant_id == tenant_id,
+                    OpportunityModel.status == "won",
+                    OpportunityModel.updated_at >= period_start,
+                )
+            )
+        ).scalar() or 0.0
+    if previous_booked == 0.0:
+        previous_booked = (
+            await db.execute(
+                select(func.coalesce(func.sum(OpportunityModel.value), 0.0)).where(
+                    OpportunityModel.tenant_id == tenant_id,
+                    OpportunityModel.status == "won",
+                    OpportunityModel.updated_at >= prev_start,
+                    OpportunityModel.updated_at < period_start,
+                )
+            )
+        ).scalar() or 0.0
+
+    expected = (
+        await db.execute(
+            select(func.coalesce(func.sum(OpportunityModel.value), 0.0)).where(
+                OpportunityModel.tenant_id == tenant_id,
+                OpportunityModel.status == "open",
+            )
+        )
+    ).scalar() or 0.0
+
+    open_count = (
+        await db.execute(
+            select(func.count()).select_from(OpportunityModel).where(
+                OpportunityModel.tenant_id == tenant_id,
+                OpportunityModel.status == "open",
+            )
+        )
+    ).scalar() or 0
+    won_count = (
+        await db.execute(
+            select(func.count()).select_from(OpportunityModel).where(
+                OpportunityModel.tenant_id == tenant_id,
+                OpportunityModel.status == "won",
+            )
+        )
+    ).scalar() or 0
+    lost_count = (
+        await db.execute(
+            select(func.count()).select_from(OpportunityModel).where(
+                OpportunityModel.tenant_id == tenant_id,
+                OpportunityModel.status == "lost",
+            )
+        )
+    ).scalar() or 0
+    closed = won_count + lost_count
+    conversion = (won_count / closed) if closed else 0.0
+    coverage = (float(expected) / float(booked)) if booked else 0.0
+
+    return AnalyticsInput(
+        total_booked_revenue=float(booked),
+        total_expected_revenue=float(expected),
+        previous_booked_revenue=float(previous_booked),
+        pipeline_coverage_ratio=float(coverage),
+        stage_conversion_rate=float(conversion),
+    ), open_count
+
+
 # ── PostgreSQL-backed service factories ──
 
 def _get_opp(db: AsyncSession):
@@ -371,22 +474,29 @@ async def get_forecast(tenant_id: str = Depends(get_current_tenant_id), db: Asyn
 @router.post("/analytics/generate", tags=["Analytics"])
 async def generate_analytics(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("analytics", PermissionAction.CREATE))):
     from datetime import datetime, timedelta, timezone
-    from domains.revenue.analytics.service import AnalyticsInput
     svc = _get_analytics(db)
     now = datetime.now(timezone.utc)
 
-    # TODO(D-005): Replace hardcoded demo analytics input with real data pipeline.
-    # The AnalyticsInput below uses static values (500000, 650000, 400000).
-    # In production, this must be computed from actual booked/expected revenue
-    # data in the database (commercial_opportunities, contracts, etc.).
-    # Tracked in: memory/technical-debt.md (TD-005)
-    is_demo = os.getenv("DEMO_MODE", "false").lower() == "true"
+    is_demo = settings.demo_mode or os.getenv("DEMO_MODE", "false").lower() == "true"
     if is_demo:
         logger.warning("Analytics generating with DEMO MODE data for tenant=%s", tenant_id)
+        from domains.revenue.analytics.service import AnalyticsInput
+        inputs = AnalyticsInput(
+            total_booked_revenue=500000,
+            total_expected_revenue=650000,
+            previous_booked_revenue=400000,
+        )
+    else:
+        inputs, _open_count = await _analytics_input_from_db(db, tenant_id)
 
-    inputs = AnalyticsInput(total_booked_revenue=500000, total_expected_revenue=650000, previous_booked_revenue=400000)
     snap = await svc.generate_snapshot(tenant_id, inputs, now - timedelta(days=30), now)
-    return {"snapshot_id": snap.id, "kpi_count": snap.total_kpis, "values": [{"kpi": v.kpi_id, "value": v.value, "change": v.change_percent} for v in snap.values]}
+    return {
+        "snapshot_id": snap.id,
+        "kpi_count": snap.total_kpis,
+        "values": [{"kpi": v.kpi_id, "value": v.value, "change": v.change_percent} for v in snap.values],
+        "demo_mode": is_demo,
+        "source": "demo" if is_demo else "commercial_opportunities",
+    }
 
 
 @router.get("/analytics/kpis", tags=["Analytics"])
@@ -402,18 +512,70 @@ async def analytics_kpis(tenant_id: str = Depends(get_current_tenant_id), _rbac:
 
 @router.post("/decision/context", tags=["Decisions"])
 async def build_context(target_id: str = Query(...), target_type: str = Query("opportunity"), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("decision", PermissionAction.CREATE))):
-    ctx = _get_context(db)
+    from datetime import date, datetime, timezone
+
+    from sqlalchemy import select
+
+    from domains.commercial.infrastructure.models import OpportunityModel
     from domains.decision.context.models import DecisionFactor
-    factors = [
-        DecisionFactor(source_layer="fact", source_domain="pipeline", key="stage_aging", value=14, severity="critical", label="14 days in stage"),
-        DecisionFactor(source_layer="knowledge", source_domain="forecast", key="forecast_drop", value=0.22, severity="warning", label="Forecast dropped 22%"),
-    ]
+
+    ctx = _get_context(db)
+    factors: list[DecisionFactor] = []
+
+    if target_type == "opportunity":
+        row = (
+            await db.execute(
+                select(OpportunityModel).where(
+                    OpportunityModel.id == target_id,
+                    OpportunityModel.tenant_id == tenant_id,
+                )
+            )
+        ).scalar_one_or_none()
+        if row:
+            aging_days = 0
+            if row.updated_at:
+                aging_days = max(0, (datetime.now(timezone.utc) - row.updated_at).days)
+            factors.append(
+                DecisionFactor(
+                    source_layer="fact",
+                    source_domain="pipeline",
+                    key="stage_aging",
+                    value=aging_days,
+                    severity="critical" if aging_days >= 14 else ("warning" if aging_days >= 7 else "info"),
+                    label=f"{aging_days} days since last update in stage {row.stage}",
+                )
+            )
+            factors.append(
+                DecisionFactor(
+                    source_layer="fact",
+                    source_domain="pipeline",
+                    key="opportunity_value",
+                    value=float(row.value or 0),
+                    severity="info",
+                    label=f"Pipeline value {row.value} {row.currency}",
+                )
+            )
+            if row.expected_close_date:
+                days_to_close = (row.expected_close_date - date.today()).days
+                factors.append(
+                    DecisionFactor(
+                        source_layer="fact",
+                        source_domain="pipeline",
+                        key="close_date_delta",
+                        value=days_to_close,
+                        severity="warning" if days_to_close < 0 else "info",
+                        label=f"Days to expected close: {days_to_close}",
+                    )
+                )
+
     context = await ctx.build_context(tenant_id, target_id, target_type, factors=factors)
     return {
         "context_id": context.id,
         "target_id": context.target_id,
         "critical_factors": len(context.critical_factors),
         "warnings": len(context.warnings),
+        "factor_count": len(factors),
+        "source": "commercial_opportunities" if factors else "empty",
     }
 
 
@@ -496,56 +658,109 @@ async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSe
     except Exception:
         result["pipelines"] = []
 
-    # Analytics KPIs
-    # TODO(D-005): Replace hardcoded demo analytics input with real pipeline data.
-    # The AnalyticsInput uses static values (500000, 650000, 400000, 0.82).
-    # Production must compute these from actual revenue/opportunity data.
-    # See also: POST /analytics/generate endpoint.
+    # Analytics KPIs from real commercial_opportunities (or demo when DEMO_MODE)
     try:
-        from domains.revenue.analytics.service import AnalyticsInput
+        from datetime import timedelta
+
         asvc = _get_analytics(db)
-        await asvc.generate_snapshot(tenant_id, AnalyticsInput(
-            total_booked_revenue=500000, total_expected_revenue=650000,
-            previous_booked_revenue=400000, forecast_accuracy=0.82,
-        ), datetime.now(timezone.utc).replace(day=1), datetime.now(timezone.utc))
+        is_demo = settings.demo_mode or os.getenv("DEMO_MODE", "false").lower() == "true"
+        if is_demo:
+            from domains.revenue.analytics.service import AnalyticsInput
+            inputs = AnalyticsInput(
+                total_booked_revenue=500000,
+                total_expected_revenue=650000,
+                previous_booked_revenue=400000,
+                forecast_accuracy=0.82,
+            )
+            open_count = 0
+        else:
+            inputs, open_count = await _analytics_input_from_db(db, tenant_id)
+        await asvc.generate_snapshot(
+            tenant_id,
+            inputs,
+            datetime.now(timezone.utc) - timedelta(days=30),
+            datetime.now(timezone.utc),
+        )
         latest_a = await asvc.get_latest(tenant_id)
         if latest_a:
             result["kpis"] = {}
             for v in latest_a.values:
                 result["kpis"][v.kpi_id] = {"value": v.value, "change": v.change_percent}
+        result["analytics_meta"] = {
+            "demo_mode": is_demo,
+            "open_opportunities": open_count,
+            "source": "demo" if is_demo else "commercial_opportunities",
+        }
     except Exception:
         result["kpis"] = {}
 
-    # Recommendations for open opportunities
-    # BATCHED: contexts in one round-trip + concurrent evaluate via asyncio.gather
+    # Recommendations for open opportunities — factors from live opportunity rows
     try:
         import asyncio as _asyncio
+
         from domains.decision.context.models import DecisionFactor
         ctx_svc = _get_context(db)
         open_opps = [o for o in (opp_result.items if 'opp_result' in dir() else []) if o.status.value == "open"]
         recs = []
         if open_opps:
-            contexts = await ctx_svc.build_contexts(tenant_id, [o.id for o in open_opps], factors=[
-                DecisionFactor(source_layer="fact", source_domain="pipeline", key="stage_aging",
-                               value=7, severity="info", label="Opportunity in stage"),
-            ])
+            shared = [
+                DecisionFactor(
+                    source_layer="fact",
+                    source_domain="pipeline",
+                    key="open_pipeline_count",
+                    value=len(open_opps),
+                    severity="info",
+                    label=f"{len(open_opps)} open opportunities",
+                )
+            ]
+            contexts = await ctx_svc.build_contexts(
+                tenant_id, [o.id for o in open_opps], factors=shared
+            )
             from domains.decision.recommendation.engine import RecommendationEngine
             eng = RecommendationEngine()
-            results = await _asyncio.gather(*[eng.evaluate(ctx) if ctx else _asyncio.sleep(0, result=None) for ctx in contexts])
+            results = await _asyncio.gather(
+                *[eng.evaluate(ctx) if ctx else _asyncio.sleep(0, result=None) for ctx in contexts]
+            )
             for opp, rec in zip(open_opps, results):
                 if rec:
-                    recs.append({"id": rec.id, "title": rec.title, "confidence": rec.confidence, "reasoning": rec.reasoning, "target_id": opp.id})
+                    recs.append({
+                        "id": rec.id,
+                        "title": rec.title,
+                        "confidence": rec.confidence,
+                        "reasoning": rec.reasoning,
+                        "target_id": opp.id,
+                    })
         result["recommendations"] = recs
         result["recommendations_count"] = len(recs)
     except Exception:
         result["recommendations"] = []
 
-    # Today overview
-    # TODO(D-005): Replace hardcoded "Today" summary values (12.4M, 89%, "Healthy")
-    # with real-time computed metrics from the data pipeline.
-    # Production should aggregate from: commercial_opportunities, company_signals,
-    # forecast snapshots, and analytics service.
+    # Today overview — computed from workspace aggregates, never hardcoded demo SAR
     today_str = datetime.now(timezone.utc).strftime("%A, %Y-%m-%d")
-    result["today"] = {"date": today_str, "revenue_today": "12.4M SAR", "forecast_accuracy": "89%", "pipeline_health": "Healthy", "companies_at_risk": result.get("recommendations_count", 0)}
+    opp_block = result.get("opportunities") or {}
+    forecast_block = result.get("forecast") or {}
+    total_value = float(opp_block.get("total_value") or 0) if isinstance(opp_block, dict) else 0.0
+    conf = forecast_block.get("confidence") if isinstance(forecast_block, dict) else None
+    open_n = int(opp_block.get("total") or 0) if isinstance(opp_block, dict) else 0
+    if conf is None:
+        pipeline_health = "unknown"
+    elif float(conf) >= 0.7:
+        pipeline_health = "healthy"
+    elif float(conf) >= 0.4:
+        pipeline_health = "needs_review"
+    else:
+        pipeline_health = "at_risk"
+    if open_n == 0 and total_value == 0:
+        pipeline_health = "empty"
+
+    result["today"] = {
+        "date": today_str,
+        "revenue_pipeline_sar": round(total_value, 2),
+        "forecast_confidence": conf,
+        "pipeline_health": pipeline_health,
+        "open_opportunities": open_n,
+        "companies_at_risk": result.get("recommendations_count", 0),
+        "source": "workspace_aggregates",
+    }
 
     return result

@@ -170,10 +170,18 @@ class KnowledgeGraphEngine:
         if not company_id:
             return stats
 
+        if not (tenant_id or "").strip():
+            raise ValueError("tenant_id is required for populate_from_golden_record")
+
         async with self._session_factory() as session:
+            # licenses/branches have no tenant_id column — scope via companies join
             rows = await session.execute(
-                sa_text("SELECT * FROM licenses WHERE company_id = :cid"),
-                {"cid": company_id},
+                sa_text(
+                    "SELECT l.* FROM licenses l "
+                    "JOIN companies c ON c.id = l.company_id "
+                    "WHERE l.company_id = :cid AND c.tenant_id = :tid"
+                ),
+                {"cid": company_id, "tid": tenant_id},
             )
             for lic in rows.mappings().all():
                 lic_node = await self.repo.upsert_license(dict(lic), tenant_id)
@@ -182,8 +190,12 @@ class KnowledgeGraphEngine:
                 stats["edges"] += 1
 
             rows = await session.execute(
-                sa_text("SELECT * FROM branches WHERE company_id = :cid"),
-                {"cid": company_id},
+                sa_text(
+                    "SELECT b.* FROM branches b "
+                    "JOIN companies c ON c.id = b.company_id "
+                    "WHERE b.company_id = :cid AND c.tenant_id = :tid"
+                ),
+                {"cid": company_id, "tid": tenant_id},
             )
             for branch in rows.mappings().all():
                 branch_node = await self.repo.upsert_branch(dict(branch), tenant_id)
@@ -192,8 +204,8 @@ class KnowledgeGraphEngine:
                 stats["edges"] += 1
 
             rows = await session.execute(
-                sa_text("SELECT * FROM contacts WHERE company_id = :cid"),
-                {"cid": company_id},
+                sa_text("SELECT * FROM contacts WHERE company_id = :cid AND tenant_id = :tid"),
+                {"cid": company_id, "tid": tenant_id},
             )
             for contact in rows.mappings().all():
                 person_node = await self.upsert_person(dict(contact), tenant_id)

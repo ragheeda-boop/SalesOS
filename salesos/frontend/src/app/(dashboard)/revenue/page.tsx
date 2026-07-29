@@ -234,63 +234,35 @@ export default function RevenueDashboardPage() {
  const workspace = leaderboardRes.data
 
  const metrics: RevenueMetrics = {
- arr: workspace?.kpis?.revenue?.value ?? 500000,
- arr_trend: workspace?.kpis?.revenue?.change ?? 12.5,
- nrr: 105,
- nrr_trend: 2.3,
- churn_rate: 3.2,
- churn_trend: -0.8,
- expansion_revenue: workspace?.kpis?.forecast?.value ?? 150000,
- expansion_trend: 15.2,
+ arr: workspace?.kpis?.revenue?.value ?? workspace?.opportunities?.total_value ?? dash?.total_value ?? 0,
+ arr_trend: workspace?.kpis?.revenue?.change ?? 0,
+ nrr: workspace?.kpis?.nrr?.value ?? 0,
+ nrr_trend: workspace?.kpis?.nrr?.change ?? 0,
+ churn_rate: workspace?.kpis?.churn?.value ?? 0,
+ churn_trend: workspace?.kpis?.churn?.change ?? 0,
+ expansion_revenue: workspace?.kpis?.forecast?.value ?? 0,
+ expansion_trend: workspace?.kpis?.forecast?.change ?? 0,
  total_pipe: dash?.total_value ?? workspace?.opportunities?.total_value ?? 0,
  forecast: forecast?.total_weighted ?? workspace?.forecast?.total_weighted ?? 0,
  }
 
- const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
- const currentMonth = new Date().getMonth()
- const trendMonths = Array.from({ length: 6 }, (_, i) => {
- const idx = (currentMonth - 5 + i + 12) % 12
- return months[idx]
- })
+ // No synthetic trend invention — empty series until time-series API exists
+ const trends = { arr: [] as {month:string;value:number}[], nrr: [] as {month:string;value:number}[], churn: [] as {month:string;value:number}[], expansion: [] as {month:string;value:number}[] }
+ const forecastVsActual: ForecastVsActual[] = []
 
- const baseARR = metrics.arr * 0.85
- const trends = {
- arr: trendMonths.map((m, i) => ({
- month: m,
- value: Math.round(baseARR + (metrics.arr - baseARR) * (i / 5)),
- })),
- nrr: trendMonths.map((m, i) => ({
- month: m,
- value: Math.round(98 + (metrics.nrr - 98) * (i / 5)),
- })),
- churn: trendMonths.map((m, i) => ({
- month: m,
- value: Math.round((5 - (5 - metrics.churn_rate) * (i / 5)) * 10) / 10,
- })),
- expansion: trendMonths.map((m, i) => ({
- month: m,
- value: Math.round((metrics.expansion_revenue * 0.6) + (metrics.expansion_revenue * 0.4 * (i / 5))),
- })),
- }
-
- const forecastVsActual: ForecastVsActual[] = trendMonths.map((m, i) => ({
- month: m,
- forecast: Math.round(baseARR * 0.9 + (metrics.arr * 1.1 - baseARR * 0.9) * ((i + 1) / 6)),
- actual: trends.arr[i].value,
- }))
-
- const activeOpps = dash?.active_opportunities ?? []
- const leaderboard: RepLeaderboardEntry[] = activeOpps.slice(0, 5).map(
- (o: { id: string; name: string; value: number }, i: number) => ({
- rep_id: `rep-${i}`,
- rep_name: o.name,
- revenue: o.value,
- quota_attainment: Math.round(60 + Math.random() * 40),
- deals_closed: Math.round(3 + Math.random() * 10),
+ const activeOpps = dash?.active_opportunities ?? workspace?.opportunities?.recent ?? []
+ const leaderboard: RepLeaderboardEntry[] = (activeOpps as Array<{ id: string; name: string; value: number }>).slice(0, 5).map(
+ (o, i: number) => ({
+ rep_id: o.id || `opp-${i}`,
+ rep_name: o.name || "Opportunity",
+ revenue: Number(o.value) || 0,
+ quota_attainment: 0,
+ deals_closed: 0,
  })
  )
 
  setData({ metrics, trends, forecast_vs_actual: forecastVsActual, leaderboard })
+ void analytics
  } catch (err) {
  setError(t("error.server_error"))
  } finally {

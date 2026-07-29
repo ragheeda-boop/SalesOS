@@ -102,35 +102,14 @@ function formatValue(value: number, format:"currency" |"number" |"percentage"): 
 }
 
 function generatePreview(config: ReportConfig): ReportPreview {
+ // Honest empty preview — do not invent Math.random metrics.
  const selectedMetrics = METRICS.filter((m) => config.metrics.includes(m.id))
-
  const metrics = selectedMetrics.map((m) => ({
  label: m.label,
- value: formatValue(
- m.format ==="currency"
- ? Math.round(100000 + Math.random() * 900000)
- : m.format ==="percentage"
- ? Math.round(20 + Math.random() * 60)
- : Math.round(10 + Math.random() * 200),
- m.format
- ),
- trend: Math.round(-15 + Math.random() * 30),
+ value: formatValue(0, m.format),
+ trend: 0,
  }))
-
- const months = ["Jan","Feb","Mar","Apr","May","Jun"]
- const chartData = months.map((m) => ({
- label: m,
- value: Math.round(50000 + Math.random() * 200000),
- }))
-
- const tableData = months.map((m, i) => ({
- month: m,
- revenue: Math.round(50000 + Math.random() * 200000),
- pipeline: Math.round(100000 + Math.random() * 400000),
- deals: Math.round(5 + Math.random() * 20),
- }))
-
- return { metrics, chart_data: chartData, table_data: tableData }
+ return { metrics, chart_data: [], table_data: [] }
 }
 
 export default function ReportBuilderPage() {

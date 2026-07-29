@@ -94,8 +94,8 @@ export function DealCard({
  onDragEnd?: () => void
 }) {
  const [dragging, setDragging] = useState(false)
- const age = daysSince(opportunity.expected_close_date) || Math.floor(Math.random() * 60) + 1
- const score = healthScore ?? Math.floor(Math.random() * 100)
+ const age = daysSince(opportunity.expected_close_date) ?? null
+ const score = healthScore ?? null
 
  const handleDragStart = (e: DragEvent<HTMLDivElement>) => {
  e.dataTransfer.setData("text/plain", opportunity.id)
@@ -123,9 +123,13 @@ export function DealCard({
  <div className="flex items-center gap-1.5 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity">
  <GripVertical className="h-3 w-3" />
  </div>
+ {score != null ? (
  <Badge variant={scoreBadgeVariant(score)} className="shrink-0 text-[10px] px-1.5 py-0">
  {score}
  </Badge>
+ ) : (
+ <span className="shrink-0 text-[10px] text-[var(--text-muted)]">—</span>
+ )}
  </div>
 
  <div className="mt-1">
@@ -153,7 +157,7 @@ export function DealCard({
  <div className="flex items-center gap-2">
  <span className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
  <Clock className="h-3 w-3" />
- {age}d
+ {age != null ? `${age}d` : "—"}
  </span>
  <Avatar
  alt={opportunity.owner_id ??"Owner"}
@@ -472,7 +476,7 @@ export function PipelineWorkspace() {
  </thead>
  <tbody>
  {opportunities.map((opp) => {
- const score = healthMap.find((h) => h.opportunity_id === opp.id)?.health_score ?? 50
+ const score = healthMap.find((h) => h.opportunity_id === opp.id)?.health_score
  const stageConfig = STAGE_CONFIG[(opp.stage ||"lead") as StageKey]
  return (
  <tr
@@ -497,7 +501,11 @@ export function PipelineWorkspace() {
  </td>
  <td className="px-4 py-3 font-medium text-[var(--text-primary)]">{formatCurrency(opp.value)}</td>
  <td className="px-4 py-3">
+ {score != null ? (
  <Badge variant={scoreBadgeVariant(score)} className="text-[10px]">{score}</Badge>
+ ) : (
+ <span className="text-[10px] text-[var(--text-muted)]">—</span>
+ )}
  </td>
  <td className="px-4 py-3">
  <Avatar

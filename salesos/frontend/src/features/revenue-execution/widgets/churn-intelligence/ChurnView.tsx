@@ -21,7 +21,11 @@ export function ChurnView({ data }: { data: ChurnData }) {
         <p className="text-sm font-bold text-[var(--status-danger-text)]">%{Math.round(data.avgRiskScore * 100)}</p>
  </div>
  </div>
- {data.atRiskAccounts.map((a, i) => (
+ {data.atRiskAccounts.length === 0 ? (
+ <p className="px-2 py-3 text-[10px] text-[var(--text-muted)]">
+ لا حسابات معرضة للخطر من بيانات حقيقية — القائمة فارغة بأمانة.
+ </p>
+ ) : data.atRiskAccounts.map((a, i) => (
  <div key={i} className="flex items-start gap-2 rounded-lg px-2 py-1.5 transition hover:bg-[var(--bg-tertiary)]">
  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--status-danger-text)]" />
  <div className="flex-1 min-w-0">

@@ -300,6 +300,58 @@ class TestCalendarSyncService:
             repo.update_calendar_sync_token.assert_called_once()
             mock_provider.fetch_events_time_range.assert_not_called()
 
+    @pytest.mark.asyncio
+    async def test_sync_token_410_clears_and_full_resync(self):
+        """Gone sync token → clear token then fetch_events_time_range."""
+        service = self._make_service()
+        account = MagicMock(spec=GoogleAccount)
+        account.id = uuid4()
+        account.email = "test@gmail.com"
+        account.calendar_sync_token = "dead_token"
+
+        repo = AsyncMock()
+        repo.get_by_user = AsyncMock(return_value=account)
+        repo.update_calendar_sync_token = AsyncMock()
+        repo.update_last_sync = AsyncMock()
+        service.repo = repo
+
+        mock_provider = AsyncMock()
+        mock_provider.fetch_events = AsyncMock(
+            side_effect=CalendarAPIError(410, "gone")
+        )
+        mock_provider.fetch_events_time_range = AsyncMock(return_value=([], "fresh_token"))
+        mock_provider.close = AsyncMock()
+
+        with patch.object(service, "_ensure_provider", return_value=mock_provider):
+            result = await service.sync()
+            repo.update_calendar_sync_token.assert_any_call(
+                account.id, None, tenant_id=service.tenant_id
+            )
+            mock_provider.fetch_events_time_range.assert_called_once()
+            assert result["next_sync_token"] == "fresh_token"
+
+    @pytest.mark.asyncio
+    async def test_sync_auth_403_raises_calendar_sync_error(self):
+        service = self._make_service()
+        account = MagicMock(spec=GoogleAccount)
+        account.id = uuid4()
+        account.email = "test@gmail.com"
+        account.calendar_sync_token = None
+
+        repo = AsyncMock()
+        repo.get_by_user = AsyncMock(return_value=account)
+        service.repo = repo
+
+        mock_provider = AsyncMock()
+        mock_provider.fetch_events_time_range = AsyncMock(
+            side_effect=CalendarAPIError(403, "forbidden")
+        )
+        mock_provider.close = AsyncMock()
+
+        with patch.object(service, "_ensure_provider", return_value=mock_provider):
+            with pytest.raises(CalendarSyncError, match="authentication failed"):
+                await service.sync()
+
 
 # ---------------------------------------------------------------------------
 # Helper function tests

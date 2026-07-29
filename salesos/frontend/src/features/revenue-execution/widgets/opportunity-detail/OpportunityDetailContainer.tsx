@@ -7,8 +7,9 @@ import type { RevenueOpportunity } from '@/application/revenue-execution/opportu
 import type { DecisionResult } from '@salesos/decision-platform'
 
 function mapToOpportunity(result: DecisionResult): RevenueOpportunity {
- const confidenceScore = result.scores.find(s => s.type === 'confidence')?.value ?? 0.5
+ const confidenceScore = result.scores.find(s => s.type === 'confidence')?.value ?? 0
  const revenueScore = result.scores.find(s => s.type === 'revenue')
+ const amountMeta = revenueScore?.metadata?.amount
 
  return {
  id: result.decisionId ?? 'opp-1',
@@ -16,13 +17,14 @@ function mapToOpportunity(result: DecisionResult): RevenueOpportunity {
  companyName: result.explainability?.why?.split(' ')[0] ?? 'الشركة',
  title: result.recommendation?.actionLabel ?? result.action,
  source: 'nba' as const,
- estimatedValue: revenueScore?.value != null ? Math.round(revenueScore.value * 1000000) : 500000,
+ // Prefer explicit revenue metadata; never invent SAR from score*1e6.
+ estimatedValue: typeof amountMeta === 'number' ? amountMeta : 0,
  confidence: confidenceScore,
  winProbability: confidenceScore,
  stage: 'developing',
  createdAt: new Date().toISOString().split('T')[0],
- buyingIntent: result.scores.find(s => s.type === 'intent')?.value ?? 0.5,
- relationshipStrength: result.scores.find(s => s.type === 'relationship')?.value ?? 0.5,
+ buyingIntent: result.scores.find(s => s.type === 'intent')?.value ?? 0,
+ relationshipStrength: result.scores.find(s => s.type === 'relationship')?.value ?? 0,
  riskLevel: confidenceScore < 0.4 ? 'high' : confidenceScore < 0.7 ? 'medium' : 'low',
  tags: [],
  notes: [],

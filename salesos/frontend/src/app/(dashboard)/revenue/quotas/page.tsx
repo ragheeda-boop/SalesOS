@@ -230,48 +230,42 @@ export default function QuotaManagementPage() {
  const forecast = quotaRes.data
  const workspace = workspaceRes.data
 
- const demoQuotas: QuotaItem[] = [
- {
- id:"q-1", rep_id:"rep-1", rep_name:"Ahmed Al-Rashid",
- target_amount: 500000, attained_amount: 425000, attainment_percent: 85,
- forecast_amount: 480000, period:"Q2", status:"on_track", is_on_track: true,
- },
- {
- id:"q-2", rep_id:"rep-2", rep_name:"Sara Al-Mutairi",
- target_amount: 400000, attained_amount: 380000, attainment_percent: 95,
- forecast_amount: 420000, period:"Q2", status:"on_track", is_on_track: true,
- },
- {
- id:"q-3", rep_id:"rep-3", rep_name:"Khalid Al-Otaibi",
- target_amount: 600000, attained_amount: 360000, attainment_percent: 60,
- forecast_amount: 400000, period:"Q2", status:"behind", is_on_track: false,
- },
- {
- id:"q-4", rep_id:"rep-4", rep_name:"Fatima Al-Harbi",
- target_amount: 350000, attained_amount: 280000, attainment_percent: 80,
- forecast_amount: 340000, period:"Q2", status:"at_risk", is_on_track: false,
- },
- {
- id:"q-5", rep_id:"rep-5", rep_name:"Omar Al-Dosari",
- target_amount: 450000, attained_amount: 430000, attainment_percent: 95.6,
- forecast_amount: 460000, period:"Q2", status:"on_track", is_on_track: true,
- },
- ]
+ // Honest empty: no quota API yet — never invent demo reps
+ const quotas: QuotaItem[] = []
+ if (workspace?.opportunities?.recent?.length) {
+  // Map open opportunities to a lightweight quota-style view when no quota service exists
+  for (const [i, o] of (workspace.opportunities.recent as Array<{id:string;name:string;value:number}>).entries()) {
+   quotas.push({
+    id: o.id || `opp-${i}`,
+    rep_id: `owner-${i}`,
+    rep_name: o.name || "Unnamed opportunity",
+    target_amount: Number(o.value) || 0,
+    attained_amount: 0,
+    attainment_percent: 0,
+    forecast_amount: Number(o.value) || 0,
+    period: "pipeline",
+    status: "at_risk",
+    is_on_track: false,
+   })
+  }
+ }
 
- const totalTarget = demoQuotas.reduce((s, q) => s + q.target_amount, 0)
- const totalAttained = demoQuotas.reduce((s, q) => s + q.attained_amount, 0)
+ const totalTarget = quotas.reduce((s, q) => s + q.target_amount, 0)
+ const totalAttained = quotas.reduce((s, q) => s + q.attained_amount, 0)
 
  const team: TeamAggregate = {
  total_target: totalTarget,
  total_attained: totalAttained,
- overall_attainment: Math.round((totalAttained / totalTarget) * 100),
- rep_count: demoQuotas.length,
- reps_on_track: demoQuotas.filter((q) => q.status ==="on_track").length,
- reps_at_risk: demoQuotas.filter((q) => q.status ==="at_risk").length,
- reps_missed: demoQuotas.filter((q) => q.status ==="behind").length,
+ overall_attainment: totalTarget > 0 ? Math.round((totalAttained / totalTarget) * 100) : 0,
+ rep_count: quotas.length,
+ reps_on_track: quotas.filter((q) => q.status ==="on_track").length,
+ reps_at_risk: quotas.filter((q) => q.status ==="at_risk").length,
+ reps_missed: quotas.filter((q) => q.status ==="behind").length,
  }
 
- setData({ quotas: demoQuotas, team })
+ setData({ quotas, team })
+ // silence unused until quota service ships
+ void forecast
  } catch {
  setError(t("error.server_error"))
  } finally {
