@@ -45,15 +45,23 @@ def build_intelligence_dto(resp: Company360Response) -> CompanyIntelligenceDTO:
     ai_rec = _build_ai_recommendation(resp)
     decision_makers = _map_decision_makers(resp.decision_makers)
     relationships = _build_relationships(resp)
-    timeline = _map_timeline(resp.timeline)
-    signals = _map_signals(resp.signals.items)
+    # Company360Response.timeline is TimelineSection (events/count/page/total),
+    # not a bare list — iterating the section yields field tuples and 500s.
+    timeline_events = getattr(resp.timeline, "events", None)
+    if timeline_events is None:
+        timeline_events = resp.timeline_legacy or []
+    timeline = _map_timeline(timeline_events)
+    signal_items = getattr(resp.signals, "items", None)
+    if signal_items is None:
+        signal_items = resp.signals if isinstance(resp.signals, list) else []
+    signals = _map_signals(signal_items)
     government = _map_government(resp.licenses)
     documents = _map_documents(resp.documents)
     buying_journey = _build_buying_journey(resp)
     golden_record = _map_golden_record(resp)
 
     return CompanyIntelligenceDTO(
-        companyId=company.id,
+        companyId=str(company.id),
         generatedAt=datetime.now(timezone.utc).isoformat(),
         dna=dna,
         aiRecommendation=ai_rec,
@@ -203,7 +211,7 @@ def _build_relationships(resp: Company360Response) -> RelationshipsDTO:
                 strength=float(ent.get("strength", 0.5)),
             ))
             edges.append(RelationshipEdgeDTO(
-                source=resp.company.id,
+                source=str(resp.company.id),
                 target=ent_id,
                 type="related",
                 label=str(ent.get("relationship", "مرتبط")),
