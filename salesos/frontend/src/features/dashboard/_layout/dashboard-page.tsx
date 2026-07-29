@@ -11,7 +11,8 @@ import { useTranslation } from '@/lib/i18n'
 
 // Wire SDK to this app's dashboard context so widgets read live data.
 // Guard against calls outside <DashboardProvider> (e.g. SSR without Provider).
-function safeDashboardContext() {
+// Must be named with "use" prefix so React hooks rules allow calling useDashboardContext inside.
+function useSafeDashboardContext() {
   try {
     return useDashboardContext()
   } catch {
@@ -19,7 +20,7 @@ function safeDashboardContext() {
   }
 }
 setDashboardDependencies(
-  safeDashboardContext,
+  useSafeDashboardContext,
   (id: string) => getWidgetConfig(id as Parameters<typeof getWidgetConfig>[0]),
 )
 
