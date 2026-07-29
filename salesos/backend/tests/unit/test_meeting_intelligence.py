@@ -72,7 +72,7 @@ def _make_service(stage="proposal"):
             return FakeResult(FakeMappings(rows=[
                 {"title": "Signal 1", "description": "Description of signal 1", "created_at": datetime.now(timezone.utc)},
             ]))
-        elif "contacts_standalone" in text:
+        elif "FROM contacts" in text or "contacts WHERE" in text:
             return FakeResult(FakeMappings(rows=[
                 {"name": "Ahmed", "position": "CTO"},
             ]))

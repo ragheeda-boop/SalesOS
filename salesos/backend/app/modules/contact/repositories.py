@@ -1,7 +1,7 @@
-"""PostgreSQL repositories for standalone Contact module.
+"""PostgreSQL repositories for Contact module.
 
 Implements the Repository Pattern (Constitution Art. 3.3) for the
-contacts_standalone table. Follows the same SqlAlchemyRepository base
+unified contacts table. Follows the same SqlAlchemyRepository base
 used by CompanyRepository.
 """
 
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class ContactRepository(SqlAlchemyRepository[Contact, uuid.UUID]):
-    """PostgreSQL repository for standalone contacts (contacts_standalone table)."""
+    """PostgreSQL repository for unified contacts table."""
 
     model_class = Contact
 

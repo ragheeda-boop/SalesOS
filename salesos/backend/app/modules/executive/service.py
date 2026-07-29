@@ -132,7 +132,7 @@ class ExecutiveService:
         r = await self._fetch_one(
             "SELECT "
             "(SELECT COUNT(*) FROM companies WHERE tenant_id = :tid AND created_at >= :d30) as new_companies, "
-            "(SELECT COUNT(*) FROM contacts_standalone WHERE tenant_id = :tid AND created_at >= :d30) as new_contacts, "
+            "(SELECT COUNT(*) FROM contacts WHERE tenant_id = :tid AND created_at >= :d30) as new_contacts, "
             "(SELECT COUNT(*) FROM commercial_opportunities WHERE tenant_id = :tid AND created_at >= :d30) as new_opps, "
             "(SELECT COUNT(*) FROM commercial_contracts WHERE tenant_id = :tid AND created_at >= :d30) as new_contracts",
             {"tid": self.tenant_id, "d30": self.days_30},

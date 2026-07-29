@@ -25,7 +25,7 @@ SEARCH_TIMEOUT_SECONDS = 10.0
 
 
 class ContactSearchRepository(SearchRepository[Any]):
-    """SearchRepository implementation for standalone contacts (contacts_standalone)."""
+    """SearchRepository implementation for unified contacts."""
 
     def __init__(self, db: AsyncSession):
         from app.modules.contact.models import Contact

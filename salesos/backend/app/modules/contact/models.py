@@ -1,21 +1,28 @@
 import uuid
-from datetime import date, datetime
 
-from sqlalchemy import Boolean, Date, Float, String, Text
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Boolean, Float, ForeignKey, String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.common.models import BaseModel
 
 
 class Contact(BaseModel):
-    __tablename__ = "contacts_standalone"
+    """Unified contacts table (post-0022; formerly contacts_standalone)."""
+
+    __tablename__ = "contacts"
 
     tenant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), index=True, nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("tenants.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
     )
-    company_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), index=True, nullable=True
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("companies.id"),
+        index=True,
+        nullable=False,
     )
 
     name: Mapped[str] = mapped_column(String(500), nullable=False, index=True)
@@ -34,6 +41,11 @@ class Contact(BaseModel):
 
     tags: Mapped[list | None] = mapped_column(JSONB, default=list)
     extra_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB, default=dict)
+
+    company: Mapped["Company"] = relationship(  # noqa: F821
+        "app.modules.company.models.Company",
+        back_populates="contacts",
+    )
 
     def __repr__(self) -> str:
         return f"<Contact {self.name}: {self.email}>"

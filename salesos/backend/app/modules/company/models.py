@@ -77,7 +77,12 @@ class Company(BaseModel):
 
     branches: Mapped[list["Branch"]] = relationship("Branch", back_populates="company", lazy="selectin", cascade="all, delete-orphan")
     licenses: Mapped[list["License"]] = relationship("License", back_populates="company", lazy="selectin", cascade="all, delete-orphan")
-    contacts: Mapped[list["Contact"]] = relationship("app.modules.company.models.Contact", back_populates="company", lazy="selectin", cascade="all, delete-orphan")
+    contacts: Mapped[list["Contact"]] = relationship(
+        "app.modules.contact.models.Contact",
+        back_populates="company",
+        lazy="selectin",
+        cascade="all, delete-orphan",
+    )
 
     __table_args__ = (
         Index("ix_companies_tenant_confidence", "tenant_id", "confidence_score"),
@@ -138,25 +143,5 @@ class License(BaseModel):
         return f"<License {self.license_number}: {self.license_type}>"
 
 
-class Contact(BaseModel):
-    __tablename__ = "contacts"
-
-    company_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False, index=True
-    )
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    name_ar: Mapped[str | None] = mapped_column(String(255))
-    email: Mapped[str | None] = mapped_column(String(255))
-    phone: Mapped[str | None] = mapped_column(String(50))
-    mobile: Mapped[str | None] = mapped_column(String(50))
-    position: Mapped[str | None] = mapped_column(String(255))
-    position_ar: Mapped[str | None] = mapped_column(String(255))
-    department: Mapped[str | None] = mapped_column(String(255))
-    is_primary: Mapped[bool] = mapped_column(Boolean, default=False)
-    source: Mapped[str | None] = mapped_column(String(100))
-    confidence_score: Mapped[float | None] = mapped_column(Float, default=0.0)
-
-    company: Mapped["Company"] = relationship("app.modules.company.models.Company", back_populates="contacts")
-
-    def __repr__(self) -> str:
-        return f"<Contact {self.name}: {self.email}>"
+# Canonical Contact ORM lives in contact module (unified `contacts` table post-0022).
+from app.modules.contact.models import Contact  # noqa: E402

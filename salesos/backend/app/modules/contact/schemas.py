@@ -13,7 +13,7 @@ class ContactCreate(BaseModel):
     position: str | None = None
     position_ar: str | None = None
     department: str | None = None
-    company_id: str | None = None
+    company_id: str = Field(..., min_length=1)
     is_primary: bool = False
     source: str | None = None
     tags: list[str] = []

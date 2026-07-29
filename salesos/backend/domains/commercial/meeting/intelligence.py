@@ -46,7 +46,7 @@ class MeetingIntelligenceService:
 
         # Key contacts
         contacts = await self.db.execute(
-            sa_text("SELECT name, position FROM contacts_standalone WHERE company_id = :cid AND tenant_id = :tid LIMIT 5"),
+            sa_text("SELECT name, position FROM contacts WHERE company_id = :cid AND tenant_id = :tid LIMIT 5"),
             {"cid": company_id, "tid": self.tenant_id},
         )
         key_contacts = [f"{c['name']} ({c['position'] or ''})" for c in contacts.mappings().all()]

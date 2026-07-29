@@ -14,9 +14,11 @@ class ContactService:
         self.db = db
 
     async def create(self, tenant_id: str, data: dict) -> Contact:
+        if not data.get("company_id"):
+            raise ValueError("company_id is required for contacts (unified contacts table)")
         contact = Contact(
             tenant_id=uuid.UUID(tenant_id),
-            company_id=uuid.UUID(data["company_id"]) if data.get("company_id") else None,
+            company_id=uuid.UUID(data["company_id"]),
             name=data["name"],
             name_ar=data.get("name_ar"),
             email=data.get("email"),
