@@ -10,17 +10,9 @@ import { widgetRegistry } from '../widget-registry'
 import { useTranslation } from '@/lib/i18n'
 
 // Wire SDK to this app's dashboard context so widgets read live data.
-// Guard against calls outside <DashboardProvider> (e.g. SSR without Provider).
-// Must be named with "use" prefix so React hooks rules allow calling useDashboardContext inside.
-function useSafeDashboardContext() {
-  try {
-    return useDashboardContext()
-  } catch {
-    return { widgets: {}, error: null, refetch: () => {} } as ReturnType<typeof useDashboardContext>
-  }
-}
+// Must match dashboard-layout.tsx — pass the real hook (no try/catch around Hooks).
 setDashboardDependencies(
-  useSafeDashboardContext,
+  useDashboardContext,
   (id: string) => getWidgetConfig(id as Parameters<typeof getWidgetConfig>[0]),
 )
 
