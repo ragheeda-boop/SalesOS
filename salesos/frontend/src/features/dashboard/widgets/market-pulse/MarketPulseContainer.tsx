@@ -1,17 +1,16 @@
 'use client'
 
-import { createDashboardWidget } from '@salesos/widget-sdk'
+import { useDashboardContext } from '../../_providers/dashboard-provider'
+import { WidgetCard } from '../widget-card'
 import { MarketPulseView } from './MarketPulseView'
-import type { MarketPulseData } from '@/application/dashboard/dashboard.dto'
 
-export const MarketPulseWidget = createDashboardWidget<MarketPulseData>('marketPulse', {
- metadata: {
- title: 'نبض السوق',
- description: 'اتجاهات السوق وشركات ذات التحركات البارزة',
- permissions: ['market:read'],
- featureFlag: { enabled: true, tier: 'enterprise' },
- },
- render: ({ data }) => (
+export function MarketPulseWidget() {
+ const { widgets } = useDashboardContext()
+ const widget = widgets.marketPulse
+ const data = widget?.data
+ return (
+ <WidgetCard widget={widget} widgetId="marketPulse">
+ {data ? (
  <MarketPulseView
  trends={data.trends ?? []}
  topMovers={data.topMovers ?? []}
@@ -22,5 +21,7 @@ export const MarketPulseWidget = createDashboardWidget<MarketPulseData>('marketP
  window.location.href = `/companies/${companyId}`
  }}
  />
- ),
-})
+ ) : null}
+ </WidgetCard>
+ )
+}

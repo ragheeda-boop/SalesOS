@@ -1,30 +1,32 @@
 'use client'
 
-import { createDecisionEnabledWidget } from '@salesos/widget-sdk'
+import { useDashboardContext } from '../../_providers/dashboard-provider'
+import { WidgetCard } from '../widget-card'
 import { DecisionQueueView } from './DecisionQueueView'
 import { useCompanyDecision } from '../../../revenue-execution/_providers/DecisionProvider'
 import { useNBAFeed } from '../../_hooks/useNBAFeed'
-import type { DecisionQueueData } from '@/application/dashboard/dashboard.dto'
 
-export const DecisionQueueWidget = createDecisionEnabledWidget<DecisionQueueData>('decisionQueue', {
- metadata: {
- title: 'قرارات معلقة',
- description: 'القرارات التي تحتاج إلى اتخاذ إجراء',
- permissions: ['decisions:read'],
- featureFlag: { enabled: true },
- },
- useDecision: (tenantId) => useCompanyDecision(tenantId),
- useNBA: () => useNBAFeed(),
- render: (ctx) => (
+export function DecisionQueueWidget() {
+ const { widgets } = useDashboardContext()
+ const widget = widgets.decisionQueue
+ const data = widget?.data
+ const tenantId = (data as { tenant_id?: string } | null)?.tenant_id ?? ''
+ const decision = useCompanyDecision(tenantId)
+ const nbaItems = useNBAFeed()
+ return (
+ <WidgetCard widget={widget} widgetId="decisionQueue">
+ {data ? (
  <DecisionQueueView
- items={ctx.data.items ?? []}
- total={ctx.data.total ?? 0}
- decision={ctx.decision}
- nbaItems={ctx.nbaItems}
- isDecisionLoading={ctx.isDecisionLoading}
+ items={data.items ?? []}
+ total={data.total ?? 0}
+ decision={decision}
+ nbaItems={nbaItems}
+ isDecisionLoading={false}
  onItemClick={(id) => {
- window.location.href = `/companies/${ctx.data.items?.find((i) => i.id === id)?.companyId ?? id}`
+ window.location.href = `/companies/${data.items?.find((i) => i.id === id)?.companyId ?? id}`
  }}
  />
- ),
-})
+ ) : null}
+ </WidgetCard>
+ )
+}

@@ -1,17 +1,16 @@
 'use client'
 
-import { createDashboardWidget } from '@salesos/widget-sdk'
+import { useDashboardContext } from '../../_providers/dashboard-provider'
+import { WidgetCard } from '../widget-card'
 import { RecentActivityView } from './RecentActivityView'
-import type { RecentActivityData } from '@/application/dashboard/dashboard.dto'
 
-export const RecentActivityWidget = createDashboardWidget<RecentActivityData>('recentActivity', {
- metadata: {
- title: 'نشاطات حديثة',
- description: 'آخر النشاطات على الشركات المتابعة',
- permissions: ['activity:read'],
- featureFlag: { enabled: true },
- },
- render: ({ data, refresh }) => (
+export function RecentActivityWidget() {
+ const { widgets } = useDashboardContext()
+ const widget = widgets.recentActivity
+ const data = widget?.data
+ return (
+ <WidgetCard widget={widget} widgetId="recentActivity">
+ {data ? (
  <RecentActivityView
  items={data.items ?? []}
  total={data.total ?? 0}
@@ -22,5 +21,7 @@ export const RecentActivityWidget = createDashboardWidget<RecentActivityData>('r
  }
  }}
  />
- ),
-})
+ ) : null}
+ </WidgetCard>
+ )
+}

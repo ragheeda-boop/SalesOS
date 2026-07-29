@@ -1,32 +1,35 @@
 'use client'
 
-import { createDecisionEnabledWidget } from '@salesos/widget-sdk'
+import { useDashboardContext } from '../../_providers/dashboard-provider'
+import { WidgetCard } from '../widget-card'
 import { PipelineView } from './PipelineView'
 import { useCompanyDecision } from '../../../revenue-execution/_providers/DecisionProvider'
 import { useNBAFeed } from '../../_hooks/useNBAFeed'
 import type { PipelineData } from './types'
 
-export const PipelineWidget = createDecisionEnabledWidget<PipelineData>('pipeline', {
- metadata: {
- title: 'أنابيب المبيعات',
- description: 'مراحل الأنبوب والصفقات النشطة',
- permissions: ['pipeline:read'],
- featureFlag: { enabled: true },
- },
- useDecision: (tenantId) => useCompanyDecision(tenantId),
- useNBA: () => useNBAFeed(),
- render: (ctx) => (
+export function PipelineWidget() {
+ const { widgets } = useDashboardContext()
+ const widget = widgets.pipeline
+ const data = widget?.data as PipelineData | null
+ const tenantId = (data as { tenant_id?: string } | null)?.tenant_id ?? ''
+ const decision = useCompanyDecision(tenantId)
+ const nbaItems = useNBAFeed()
+ return (
+ <WidgetCard widget={widget} widgetId="pipeline">
+ {data ? (
  <PipelineView
- stages={ctx.data.stages ?? []}
- deals={ctx.data.deals ?? []}
- totalValue={ctx.data.totalValue ?? 0}
- dealCount={ctx.data.dealCount ?? 0}
- decision={ctx.decision}
- nbaItems={ctx.nbaItems}
- isDecisionLoading={ctx.isDecisionLoading}
+ stages={(data as PipelineData).stages ?? []}
+ deals={(data as PipelineData).deals ?? []}
+ totalValue={(data as PipelineData).totalValue ?? 0}
+ dealCount={(data as PipelineData).dealCount ?? 0}
+ decision={decision}
+ nbaItems={nbaItems}
+ isDecisionLoading={false}
  onDealClick={(dealId) => {
- window.location.href = `/companies/${ctx.data.deals?.find((d) => d.id === dealId)?.companyId ?? dealId}`
+ window.location.href = `/companies/${data.deals?.find((d) => d.id === dealId)?.companyId ?? dealId}`
  }}
  />
- ),
-})
+ ) : null}
+ </WidgetCard>
+ )
+}

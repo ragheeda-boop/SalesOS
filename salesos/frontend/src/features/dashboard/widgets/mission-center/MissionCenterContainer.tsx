@@ -1,19 +1,16 @@
 'use client'
 
-import { createDashboardWidget } from '@salesos/widget-sdk'
+import { useDashboardContext } from '../../_providers/dashboard-provider'
+import { WidgetCard } from '../widget-card'
 import { MissionCenterView } from './MissionCenterView'
-import type { MissionCenterData } from '@/application/dashboard/dashboard.dto'
 
-export const MissionCenterWidget = createDashboardWidget<MissionCenterData>('missionCenter', {
- metadata: {
- title: 'Mission Center',
- description: 'نظرة سريعة على مؤشرات المهمة الرئيسية',
- priority: 'high',
- category: 'metrics',
- icon: '🎯',
- },
- render({ data }) {
+export function MissionCenterWidget() {
+ const { widgets } = useDashboardContext()
+ const widget = widgets.missionCenter
+ const data = widget?.data
  return (
+ <WidgetCard widget={widget} widgetId="missionCenter">
+ {data ? (
  <MissionCenterView
  companiesTracked={data.companiesTracked}
  activeDeals={data.activeDeals}
@@ -21,6 +18,7 @@ export const MissionCenterWidget = createDashboardWidget<MissionCenterData>('mis
  signalsToday={data.signalsToday}
  decisionsPending={data.decisionsPending}
  />
+ ) : null}
+ </WidgetCard>
  )
- },
-})
+}

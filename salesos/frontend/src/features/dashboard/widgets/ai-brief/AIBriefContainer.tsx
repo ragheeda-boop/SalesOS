@@ -1,22 +1,23 @@
 'use client'
 
-import { createDashboardWidget } from '@salesos/widget-sdk'
+import { useDashboardContext } from '../../_providers/dashboard-provider'
+import { WidgetCard } from '../widget-card'
 import { AIBriefView } from './AIBriefView'
-import type { AIBriefData } from '@/application/dashboard/dashboard.dto'
 
-export const AIBriefWidget = createDashboardWidget<AIBriefData>('aiBrief', {
- metadata: {
- title: 'الملخص اليومي',
- description: 'ملخص يومي من الذكاء الاصطناعي لأهم الأحداث',
- permissions: ['ai:read'],
- featureFlag: { enabled: true, tier: 'enabled' },
- },
- render: ({ data, refresh }) => (
+export function AIBriefWidget() {
+ const { widgets, refetch } = useDashboardContext()
+ const widget = widgets.aiBrief
+ const data = widget?.data
+ return (
+ <WidgetCard widget={widget} widgetId="aiBrief">
+ {data ? (
  <AIBriefView
  summary={data.summary ?? ''}
  highlights={data.highlights ?? []}
  generatedAt={data.generatedAt}
- onRefresh={refresh}
+ onRefresh={refetch}
  />
- ),
-})
+ ) : null}
+ </WidgetCard>
+ )
+}

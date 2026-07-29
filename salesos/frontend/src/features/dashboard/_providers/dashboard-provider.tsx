@@ -1,10 +1,8 @@
 'use client'
 
 import { createContext, useContext, useMemo, type ReactNode } from 'react'
-import { setDashboardDependencies } from '@salesos/widget-sdk'
 import { useDashboard } from '@/application/dashboard/useDashboard'
 import { deriveWidgets, type WidgetMap } from '@/application/dashboard/widget.store'
-import { getWidgetConfig, type WidgetId } from '../_registry/widget-config'
 import { dashboardTelemetry } from '../_telemetry/dashboard-telemetry'
 
 interface DashboardContextValue {
@@ -27,12 +25,9 @@ const EMPTY_DASHBOARD_CONTEXT: DashboardContextValue = {
 
 export function useDashboardContext(): DashboardContextValue {
  const ctx = useContext(DashboardContext)
- // Never throw — widget-sdk may call this during edge renders; throwing takes down /dashboard.
+ // Never throw — keeps /dashboard stable if a child renders outside the provider.
  return ctx ?? EMPTY_DASHBOARD_CONTEXT
 }
-
-// Peer-only React in widget-sdk — same React context as this provider.
-setDashboardDependencies(useDashboardContext, (id) => getWidgetConfig(id as WidgetId) ?? {})
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
  const { data, isLoading, isError, error, refetch } = useDashboard()

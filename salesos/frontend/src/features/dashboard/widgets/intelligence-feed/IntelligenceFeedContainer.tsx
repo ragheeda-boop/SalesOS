@@ -1,23 +1,22 @@
 'use client'
 
-import { createDashboardWidget } from '@salesos/widget-sdk'
+import { useDashboardContext } from '../../_providers/dashboard-provider'
+import { WidgetCard } from '../widget-card'
 import { IntelligenceFeedView } from './IntelligenceFeedView'
-import type { IntelligenceFeedData } from '@/application/dashboard/dashboard.dto'
 
-export const IntelligenceFeedWidget = createDashboardWidget<IntelligenceFeedData>('intelligenceFeed', {
- metadata: {
- title: 'Intelligence Feed',
- description: 'الإشارات الذكية والتنبيهات التنافسية',
- permissions: ['intelligence:read'],
- featureFlag: { enabled: true },
- },
- render({ data }) {
+export function IntelligenceFeedWidget() {
+ const { widgets } = useDashboardContext()
+ const widget = widgets.intelligenceFeed
+ const data = widget?.data
  return (
+ <WidgetCard widget={widget} widgetId="intelligenceFeed">
+ {data ? (
  <IntelligenceFeedView
  items={data.items ?? []}
  total={data.total ?? 0}
  unseenCount={data.unseenCount ?? 0}
  />
+ ) : null}
+ </WidgetCard>
  )
- },
-})
+}
