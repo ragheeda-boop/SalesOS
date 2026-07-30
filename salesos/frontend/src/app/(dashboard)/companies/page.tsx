@@ -148,9 +148,13 @@ export default function CompaniesPage() {
  setFormData({ name_ar:"", cr_number:"", name_en:"", city:"", region:"" })
  setPage(1)
  toast({ variant:"success", title:"Company created", description:"The company has been added successfully." })
- } catch {
- toast({ variant:"error", title:"Failed to create", description:"An error occurred while creating the company." })
- }
+  } catch (err) {
+    const status = (err as { response?: { status?: number } })?.response?.status
+    const msg = status === 403
+      ? "You don't have permission to create companies."
+      : (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail || "An error occurred while creating the company."
+    toast({ variant:"error", title:"Failed to create", description: msg })
+  }
  }, [formData, createCompany, toast])
 
  const handleBulkEdit = useCallback(async () => {

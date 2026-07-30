@@ -1,7 +1,7 @@
 import { WidgetRenderer } from './widget-renderer'
 import { Badge } from '@salesos/ui'
-import type { UISchemaSection } from './types'
-import { cn } from '../../ui/src/utils'
+import type { UISchemaSection, UISchemaNode } from './types'
+import { cn } from '@salesos/ui'
 
 export interface SectionRendererProps {
   section: UISchemaSection
@@ -10,28 +10,29 @@ export interface SectionRendererProps {
   context?: Record<string, unknown>
 }
 
-function renderNode(node: any, index: number) {
+function renderNode(node: UISchemaNode, index: number) {
+  const val = typeof node.value === 'string' ? node.value : ''
   switch (node.type) {
     case 'text':
       return (
         <span key={index} className="text-sm text-gray-700 dark:text-gray-300">
-          {node.value as string}
+          {val}
         </span>
       )
     case 'badge':
       return (
-        <Badge key={index} variant={(node.props?.variant as any) || 'default'}>
-          {node.value as string}
+        <Badge key={index} variant="default">
+          {val}
         </Badge>
       )
     case 'metric':
       return (
         <div key={index} className="rounded-lg border bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
           {node.label && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">{node.label as string}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{node.label}</p>
           )}
           <p className="mt-1 text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {node.value as string}
+            {val}
           </p>
         </div>
       )
@@ -39,18 +40,18 @@ function renderNode(node: any, index: number) {
       return (
         <a
           key={index}
-          href={node.value as string}
+          href={val}
           className="text-sm text-blue-600 hover:underline dark:text-blue-400"
         >
-          {node.label as string}
+          {node.label}
         </a>
       )
     case 'list':
       return (
         <ul key={index} className="space-y-1">
-          {(node.children as any[])?.map((child: any, ci: number) => (
+          {node.children?.map((child, ci) => (
             <li key={ci} className="text-sm text-gray-700 dark:text-gray-300">
-              {child.value as string}
+              {typeof child.value === 'string' ? child.value : ''}
             </li>
           ))}
         </ul>

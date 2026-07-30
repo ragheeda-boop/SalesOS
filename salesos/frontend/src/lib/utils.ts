@@ -14,5 +14,9 @@ export function formatDate(date: string | Date): string {
 }
 
 export function formatNumber(num: number): string {
- return new Intl.NumberFormat("ar-SA").format(num);
+  return new Intl.NumberFormat("ar-SA").format(num);
+}
+
+export function safeArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : []
 }

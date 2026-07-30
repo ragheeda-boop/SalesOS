@@ -40,6 +40,12 @@ class DocumentResponse(BaseModel):
     created_at: str | None = None
 
 
+class DocumentListResponse(BaseModel):
+    items: list[DocumentResponse]
+    next_cursor: str | None = None
+    total: int
+
+
 class AskResponse(BaseModel):
     answer: str
     citations: list[dict]
@@ -110,7 +116,7 @@ async def ingest_document(
     }
 
 
-@router.get("/rag/documents", response_model=list[DocumentResponse])
+@router.get("/rag/documents", response_model=DocumentListResponse)
 async def list_documents(
     limit: int = Query(20, ge=1, le=200, description="Max results"),
     cursor: str | None = Query(None, description="Pagination cursor"),

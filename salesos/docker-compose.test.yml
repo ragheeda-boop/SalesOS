@@ -36,7 +36,7 @@ services:
         condition: service_healthy
     environment:
       SALESOS_TESTING: "true"
-      SECRET_KEY: test-secret-key-for-testing
+      SECRET_KEY: test-secret-key-for-testing-padded-to-32chars!!
       POSTGRES_USER: salesos
       POSTGRES_PASSWORD: test
       POSTGRES_HOST: postgres
@@ -47,7 +47,8 @@ services:
       NEO4J_PORT: "7687"
       REDIS_URL: redis://redis:6379/0
       JWT_SECRET_KEY: test-jwt-secret-for-testing
-      JWT_ALGORITHM: HS256
+      JWT_ALGORITHM: RS256
+      SALESOS_JWKS_ALLOW_REGENERATE: "1"
     volumes:
       - ./backend:/app
     working_dir: /app

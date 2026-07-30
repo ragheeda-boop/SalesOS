@@ -5,10 +5,11 @@ import uuid
 from typing import AsyncGenerator
 
 os.environ.setdefault("SALESOS_TESTING", "true")
-os.environ.setdefault("SECRET_KEY", "e2e-test-secret")
+os.environ.setdefault("SECRET_KEY", "e2e-test-secret-key-padded-to-32-chars!!")
 os.environ.setdefault("POSTGRES_PASSWORD", "test")
 os.environ.setdefault("NEO4J_PASSWORD", "test")
-os.environ.setdefault("JWT_SECRET_KEY", "e2e-test-jwt-key")
+os.environ.setdefault("JWT_SECRET_KEY", "e2e-test-jwt-secret-key-padded-to-32!!")
+os.environ.setdefault("SALESOS_JWKS_ALLOW_REGENERATE", "1")
 
 import pytest
 import pytest_asyncio
@@ -50,9 +51,8 @@ async def test_tenant(db_session: AsyncSession) -> str:
 @pytest_asyncio.fixture
 async def auth_headers(test_tenant: str, db_session: AsyncSession) -> dict:
     """Register a tenant admin via the API, login, and return auth headers."""
-    import jwt as pyjwt
-    from app.config import settings
     from app.modules.identity.models import User
+    from app.modules.identity.service import create_access_token
 
     user_id = str(uuid.uuid4())
     user = User(
@@ -66,16 +66,7 @@ async def auth_headers(test_tenant: str, db_session: AsyncSession) -> dict:
     db_session.add(user)
     await db_session.flush()
 
-    token = pyjwt.encode(
-        {
-            "sub": user_id,
-            "tenant_id": test_tenant,
-            "role": "admin",
-            "type": "access",
-        },
-        settings.jwt_secret_key,
-        algorithm=settings.jwt_algorithm,
-    )
+    token = create_access_token(user_id, test_tenant)
     return {
         "Authorization": f"Bearer {token}",
         "X-Tenant-Id": test_tenant,

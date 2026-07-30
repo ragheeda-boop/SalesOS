@@ -63,7 +63,7 @@ export function useWorkflows() {
  const res = await api.get("/api/v1/workflows", {
  headers: {"X-Tenant-Id": getTenantId() },
  })
- return res.data as Workflow[]
+ return Array.isArray(res.data) ? res.data as Workflow[] : []
  },
  staleTime: 15_000,
  })
@@ -144,7 +144,7 @@ export function useWorkflowExecutions(workflowId: string) {
  params: { workflow_id: workflowId },
  headers: {"X-Tenant-Id": getTenantId() },
  })
- return res.data as WorkflowExecution[]
+ return Array.isArray(res.data) ? res.data as WorkflowExecution[] : []
  },
  enabled: !!workflowId,
  staleTime: 10_000,

@@ -452,6 +452,59 @@ class EventRuntimeCapability:
 
 
 @Capability(
+    id="activity-intelligence",
+    name="Activity Intelligence",
+    version="1.0.0",
+    description="Email, calendar, engagement, follow-up intelligence across entities",
+    owner="platform",
+    status=CapabilityStatus.STABLE,
+    dependencies=["company", "identity", "timeline", "search"],
+    contract=CapabilityContract(
+        entities=["engagement", "email_activity", "calendar_event", "followup"],
+        apis=["/api/v1/activity/*"],
+        events=["activity.email_received", "activity.email_sent",
+                "activity.meeting_created", "activity.meeting_completed",
+                "activity.engagement_calculated", "activity.followup_due"],
+        permissions=["activity.read", "activity.write", "activity.admin"],
+    ),
+    ui=CapabilityUIDefinition(
+        tabs=["Dashboard", "Emails", "Calendar", "Follow-ups"],
+        icon="activity",
+    ),
+    tags=["intelligence", "activity", "email", "calendar"],
+)
+class ActivityIntelligenceCapability:
+    pass
+
+
+@Capability(
+    id="workflow",
+    name="Workflow Engine",
+    version="0.9.0",
+    description="Visual workflow builder, scheduler, event subscriber, webhooks, job execution",
+    owner="platform",
+    status=CapabilityStatus.BETA,
+    dependencies=["identity", "company", "event-runtime", "decision-engine"],
+    contract=CapabilityContract(
+        entities=["workflow", "workflow_execution", "scheduled_job", "webhook_endpoint"],
+        apis=["/api/v1/workflows/*", "/api/v1/jobs/*", "/api/v1/webhooks/*"],
+        events=["workflow.created", "workflow.executed", "workflow.scheduled",
+                "workflow.completed", "workflow.failed", "job.executed"],
+        permissions=["workflow.read", "workflow.write", "workflow.admin",
+                     "jobs.read", "jobs.write", "webhooks.read", "webhooks.write"],
+    ),
+    ui=CapabilityUIDefinition(
+        tabs=["Builder", "Templates", "Executions", "Jobs", "Webhooks"],
+        icon="settings",
+        routes=["/automation"],
+    ),
+    tags=["automation", "workflow", "scheduler"],
+)
+class WorkflowCapability:
+    pass
+
+
+@Capability(
     id="marketplace",
     name="Marketplace",
     version="0.1.0",

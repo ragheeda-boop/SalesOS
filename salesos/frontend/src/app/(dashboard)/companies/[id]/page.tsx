@@ -4,6 +4,7 @@ import { useState, useCallback } from"react"
 import { useParams, useRouter } from"next/navigation"
 import Link from"next/link"
 import { CompanyWorkspace } from"@/components/company-workspace"
+import { DecisionProvider } from"@/features/revenue-execution/_providers/DecisionProvider"
 import { useCompany } from"@/lib/hooks/companyQueries"
 import { useUpdateCompany, useDeleteCompany, useAddContact } from"@/lib/hooks/mutationHooks"
 import { Button, Modal, ModalTrigger, ModalContent, ModalHeader, ModalBody, ModalFooter, Input } from"@salesos/ui"
@@ -116,7 +117,9 @@ export default function CompanyPage() {
  </div>
  </div>
 
- <CompanyWorkspace companyId={id} />
+  <DecisionProvider>
+    <CompanyWorkspace companyId={id} />
+  </DecisionProvider>
 
  <Modal open={editOpen} onOpenChange={setEditOpen}>
  <ModalContent>

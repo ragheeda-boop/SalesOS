@@ -14,8 +14,9 @@ import { FeatureFlagManager } from"./widgets/FeatureFlagManager"
 import { JobList } from"./widgets/JobList"
 import { AICostDashboard } from"./widgets/AICostDashboard"
 import { HealthDashboard } from"./widgets/HealthDashboard"
+import { AIAuditLogWidget } from"./widgets/AIAuditLog"
 
-type AdminTab ="overview" |"tenants" |"plans" |"users" |"flags" |"jobs" |"ai-costs" |"health"
+type AdminTab ="overview" |"tenants" |"plans" |"users" |"flags" |"jobs" |"ai-costs" |"ai-audit" |"health"
 
 const TABS: { id: AdminTab; labelKey: string; icon: React.ElementType }[] = [
  { id:"overview", labelKey:"admin.tab.overview", icon: LayoutDashboard },
@@ -25,6 +26,7 @@ const TABS: { id: AdminTab; labelKey: string; icon: React.ElementType }[] = [
  { id:"flags", labelKey:"admin.tab.flags", icon: Flag },
  { id:"jobs", labelKey:"admin.tab.jobs", icon: Briefcase },
  { id:"ai-costs", labelKey:"admin.tab.ai_costs", icon: DollarSign },
+ { id:"ai-audit", labelKey:"admin.tab.ai_audit", icon: DollarSign },
  { id:"health", labelKey:"admin.tab.health", icon: HeartPulse },
 ]
 
@@ -40,8 +42,9 @@ export function AdminWorkspace() {
  case"users": return <UserList />
  case"flags": return <FeatureFlagManager />
  case"jobs": return <JobList />
- case"ai-costs": return <AICostDashboard />
- case"health": return <HealthDashboard />
+  case"ai-costs": return <AICostDashboard />
+  case"ai-audit": return <AIAuditLogWidget />
+  case"health": return <HealthDashboard />
  }
  }
 
@@ -160,8 +163,9 @@ function QuickActions({ onNavigate }: { onNavigate: (tab: AdminTab) => void }) {
  { labelKey:"admin.action.manage_plans", descKey:"admin.action.manage_plans_desc", tab:"plans" as AdminTab, icon: KeyRound },
  { labelKey:"admin.action.manage_users", descKey:"admin.action.manage_users_desc", tab:"users" as AdminTab, icon: Users },
  { labelKey:"admin.action.feature_flags", descKey:"admin.action.feature_flags_desc", tab:"flags" as AdminTab, icon: Flag },
- { labelKey:"admin.action.background_jobs", descKey:"admin.action.background_jobs_desc", tab:"jobs" as AdminTab, icon: Briefcase },
- { labelKey:"admin.action.system_health", descKey:"admin.action.system_health_desc", tab:"health" as AdminTab, icon: HeartPulse },
+  { labelKey:"admin.action.background_jobs", descKey:"admin.action.background_jobs_desc", tab:"jobs" as AdminTab, icon: Briefcase },
+  { labelKey:"admin.action.system_health", descKey:"admin.action.system_health_desc", tab:"health" as AdminTab, icon: HeartPulse },
+  { labelKey:"admin.action.ai_audit", descKey:"admin.action.ai_audit_desc", tab:"ai-audit" as AdminTab, icon: DollarSign },
  ]
 
  return (

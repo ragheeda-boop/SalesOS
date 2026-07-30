@@ -10,9 +10,7 @@ export function Layout({ children, className }: LayoutProps) {
   return <div className={cn('flex h-screen', className)}>{children}</div>
 }
 
-interface LayoutHeaderProps extends HTMLAttributes<HTMLElement> {}
-
-export const LayoutHeader = forwardRef<HTMLElement, LayoutHeaderProps>(
+export const LayoutHeader = forwardRef<HTMLElement, HTMLAttributes<HTMLElement>>(
   ({ className, children, ...props }, ref) => {
     return (
       <header
@@ -30,9 +28,7 @@ export const LayoutHeader = forwardRef<HTMLElement, LayoutHeaderProps>(
 )
 LayoutHeader.displayName = 'LayoutHeader'
 
-interface LayoutSidebarProps extends HTMLAttributes<HTMLDivElement> {}
-
-export const LayoutSidebar = forwardRef<HTMLDivElement, LayoutSidebarProps>(
+export const LayoutSidebar = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => {
     return (
       <div
@@ -47,9 +43,7 @@ export const LayoutSidebar = forwardRef<HTMLDivElement, LayoutSidebarProps>(
 )
 LayoutSidebar.displayName = 'LayoutSidebar'
 
-interface LayoutContentProps extends HTMLAttributes<HTMLDivElement> {}
-
-export const LayoutContent = forwardRef<HTMLDivElement, LayoutContentProps>(
+export const LayoutContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => {
     return (
       <main

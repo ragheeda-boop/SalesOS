@@ -35,7 +35,7 @@ export interface FormErrors {
   [key: string]: string
 }
 
-function buildZodSchema(fields: FormFieldDefinition[]): z.ZodObject<any> {
+function buildZodSchema(fields: FormFieldDefinition[]): z.ZodObject<z.ZodRawShape> {
   const shape: Record<string, z.ZodTypeAny> = {}
   for (const field of fields) {
     let schema: z.ZodTypeAny
@@ -100,9 +100,9 @@ export function useFormFromDefinition<T extends FieldValues>(
 
   return useForm({
     resolver: zodResolver(zodSchema),
-    defaultValues: defaults as any,
+    defaultValues: defaults as T,
     ...options,
-  }) as UseFormReturn<T>
+  })
 }
 
 export function FormField({
@@ -111,7 +111,7 @@ export function FormField({
   error,
 }: {
   field: FormFieldDefinition
-  register: any
+  register: (name: string) => Record<string, unknown>
   error?: string
 }) {
   const baseClasses =
@@ -175,8 +175,8 @@ export function FormRenderer({
   errors,
 }: {
   definition: FormDefinition
-  form: UseFormReturn<any>
-  onSubmit: (data: any) => void
+  form: UseFormReturn<FieldValues>
+  onSubmit: (data: FieldValues) => void
   errors?: FormErrors
 }) {
   const sortedFields = [...definition.fields].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))

@@ -1,9 +1,7 @@
 import { forwardRef, type HTMLAttributes } from 'react'
 import { cn } from './utils'
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> {}
-
-export const Card = forwardRef<HTMLDivElement, CardProps>(
+export const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => {
     return (
       <div
@@ -16,7 +14,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
 )
 Card.displayName = 'Card'
 
-export const CardHeader = forwardRef<HTMLDivElement, CardProps>(
+export const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => {
     return (
       <div
@@ -29,7 +27,7 @@ export const CardHeader = forwardRef<HTMLDivElement, CardProps>(
 )
 CardHeader.displayName = 'CardHeader'
 
-export const CardContent = forwardRef<HTMLDivElement, CardProps>(
+export const CardContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => {
     return (
       <div
@@ -42,7 +40,7 @@ export const CardContent = forwardRef<HTMLDivElement, CardProps>(
 )
 CardContent.displayName = 'CardContent'
 
-export const CardFooter = forwardRef<HTMLDivElement, CardProps>(
+export const CardFooter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => {
     return (
       <div

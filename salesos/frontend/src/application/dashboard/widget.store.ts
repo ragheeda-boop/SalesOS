@@ -40,8 +40,8 @@ export function deriveStatus(data: unknown, isLoading: boolean, isError: boolean
  if (isLoading && data) return 'degraded'
  if (isError && !data) return 'error'
  if (isError && data) return 'degraded'
- // Never spin forever when the request finished with empty/error payload.
- if (!data) return 'error'
+  // Widget absent from API or empty data — treat as ready, not error.
+  if (!data) return 'ready'
  return 'ready'
 }
 

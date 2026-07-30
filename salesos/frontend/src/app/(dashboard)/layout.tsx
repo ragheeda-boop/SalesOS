@@ -13,9 +13,18 @@ import { registerBuiltinCommands } from"@/lib/commands"
 import { useTranslation } from"@/lib/i18n"
 import { LanguageSwitcher } from"@/components/foundation/LanguageSwitcher"
 import { useAiCopilotEnabled } from"@/lib/hooks/useAiCopilotEnabled"
+import { LogOut, User, Settings } from"lucide-react"
+
+const [userMenuOpen, setUserMenuOpen] = useState(false)
+
+const handleLogout = useCallback(() => {
+  localStorage.removeItem("access_token")
+  localStorage.removeItem("refresh_token")
+  window.location.href = "/login"
+}, [])
 
 const NAV_KEYS = [
- { href:"/dashboard", key:"nav.dashboard", icon: LayoutDashboard },
+  { href:"/dashboard", key:"nav.dashboard", icon: LayoutDashboard },
  { href:"/companies", key:"nav.companies", icon: Building2 },
  { href:"/employees", key:"nav.employees", icon: UserCheck },
  { href:"/employees/me", key:"nav.profile", icon: User },
@@ -138,8 +147,48 @@ function DashboardContent({ children }: { children: ReactNode }) {
  <button className="rounded-lg p-1.5 hover:bg-[var(--bg-tertiary)] dark:hover:bg-[var(--bg-secondary)] min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label={t("a11y.notifications")}>
  <Bell className="h-5 w-5" />
  </button>
- <LanguageSwitcher />
- </header>
+  <LanguageSwitcher />
+  <div className="relative">
+    <button
+      onClick={() => setUserMenuOpen(!userMenuOpen)}
+      className="rounded-lg p-1.5 hover:bg-[var(--bg-tertiary)] dark:hover:bg-[var(--bg-secondary)] min-h-[44px] min-w-[44px] flex items-center justify-center"
+      aria-label={t("a11y.user_menu")}
+    >
+      <User className="h-5 w-5" />
+    </button>
+    {userMenuOpen && (
+      <>
+        <div className="fixed inset-0 z-10" onClick={() => setUserMenuOpen(false)} />
+        <div className="absolute end-0 top-full mt-1 z-20 min-w-[180px] rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] shadow-muhide-4 py-1">
+          <Link
+            href="/employees/me"
+            className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]"
+            onClick={() => setUserMenuOpen(false)}
+          >
+            <User className="h-4 w-4" />
+            {t("auth.profile")}
+          </Link>
+          <Link
+            href="/settings"
+            className="flex items-center gap-2 px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)]"
+            onClick={() => setUserMenuOpen(false)}
+          >
+            <Settings className="h-4 w-4" />
+            {t("settings.title")}
+          </Link>
+          <hr className="my-1 border-[var(--border-default)]" />
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 w-full px-3 py-2 text-sm text-[var(--status-danger-text)] hover:bg-[var(--bg-tertiary)]"
+          >
+            <LogOut className="h-4 w-4" />
+            {t("auth.logout")}
+          </button>
+        </div>
+      </>
+    )}
+  </div>
+  </header>
 
  {mobileSidebarOpen && (
  <div className="fixed inset-0 z-40 md:hidden">

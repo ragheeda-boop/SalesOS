@@ -231,13 +231,14 @@ async def test_create_access_token_and_decode():
 
 @pytest.mark.asyncio
 async def test_decode_expired_token():
-    from jose import jwt
+    from app.modules.identity.jwks import create_rs256_token_payload
     from datetime import datetime, timedelta, timezone
-    token = jwt.encode(
-        {"sub": "u1", "tenant_id": "t1", "exp": datetime.now(timezone.utc) - timedelta(hours=1),
-         "type": "access", "jti": "test", "iat": datetime.now(timezone.utc) - timedelta(hours=2),
-         "iss": "salesos", "aud": "salesos-api"},
-        "test-key", algorithm="HS256",
-    )
+    payload = {
+        "sub": "u1", "tenant_id": "t1",
+        "exp": datetime.now(timezone.utc) - timedelta(hours=1),
+        "type": "access", "jti": "test", "iat": datetime.now(timezone.utc) - timedelta(hours=2),
+        "iss": "salesos", "aud": "salesos-api",
+    }
+    token = create_rs256_token_payload(payload)
     with pytest.raises(Exception):
         decode_access_token(token)

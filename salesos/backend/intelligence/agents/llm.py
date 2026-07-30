@@ -40,11 +40,13 @@ class LLMService:
         model: str | None = None,
         provider_type: str | None = None,
         cost_tracker: CostTracker | None = None,
+        ai_audit_service: Any | None = None,
     ):
         self._provider_type = provider_type
         self._model_override = model
         self._api_key_override = api_key
         self._cost_tracker = cost_tracker or get_cost_tracker()
+        self._ai_audit = ai_audit_service
 
     def _get_provider(self) -> LLMProvider:
         kwargs: dict[str, Any] = {}
@@ -64,6 +66,7 @@ class LLMService:
         response_format: dict[str, Any] | None = None,
         tools: list[dict[str, Any]] | None = None,
         tenant_id: str | None = None,
+        user_id: str | None = None,
     ) -> LLMResponse:
         provider = self._get_provider()
 
@@ -89,6 +92,21 @@ class LLMService:
             tenant_id=tenant_id,
             latency_ms=response.latency_ms,
         )
+
+        if self._ai_audit and tenant_id and user_id:
+            try:
+                await self._ai_audit.log_llm_call(
+                    tenant_id=tenant_id,
+                    user_id=user_id,
+                    model=response.model,
+                    prompt_tokens=response.usage.get("prompt_tokens", 0),
+                    completion_tokens=response.usage.get("completion_tokens", 0),
+                    total_tokens=response.usage.get("total_tokens", 0),
+                    cost=response.cost,
+                    operation="completion",
+                )
+            except Exception:
+                pass
 
         return LLMResponse(
             content=response.content,

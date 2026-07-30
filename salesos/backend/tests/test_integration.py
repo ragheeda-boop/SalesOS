@@ -61,8 +61,7 @@ async def auth_headers(test_tenant: str, db_session: AsyncSession) -> dict:
     """Create a user and return auth headers."""
     from app.modules.identity.models import User
     from passlib.hash import bcrypt
-    from app.config import settings
-    import jwt
+    from app.modules.identity.service import create_access_token
 
     user = User(
         tenant_id=uuid.UUID(test_tenant),
@@ -75,11 +74,7 @@ async def auth_headers(test_tenant: str, db_session: AsyncSession) -> dict:
     db_session.add(user)
     await db_session.flush()
 
-    token = jwt.encode(
-        {"sub": str(user.id), "tenant_id": test_tenant, "role": "admin", "type": "access"},
-        settings.jwt_secret_key,
-        algorithm=settings.jwt_algorithm,
-    )
+    token = create_access_token(str(user.id), test_tenant)
     return {
         "Authorization": f"Bearer {token}",
         "X-Tenant-Id": test_tenant,

@@ -3,10 +3,11 @@ import os
 from pathlib import Path
 
 os.environ.setdefault("SALESOS_TESTING", "true")
-os.environ.setdefault("SECRET_KEY", "test")
+os.environ.setdefault("SECRET_KEY", "t3st-s3cr3t-k3y-f0r-unit-t3sts-m1n-32-ch4rs!!")
 os.environ.setdefault("POSTGRES_PASSWORD", "test")
 os.environ.setdefault("NEO4J_PASSWORD", "test")
-os.environ.setdefault("JWT_SECRET_KEY", "test")
+os.environ.setdefault("JWT_SECRET_KEY", "jwt-t3st-s3cr3t-f0r-unit-t3sts-m1n-32-ch4rs!!")
+os.environ.setdefault("SALESOS_JWKS_ALLOW_REGENERATE", "1")
 
 
 import pytest

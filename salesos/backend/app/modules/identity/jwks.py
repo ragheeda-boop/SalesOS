@@ -185,27 +185,17 @@ def create_rs256_token_payload(payload: dict) -> str:
     return jwt.encode(token_payload, pem_private, algorithm="RS256")
 
 
-def decode_token(token: str, secret: str) -> dict:
+def decode_token(token: str) -> dict:
     from jose import JWTError, jwt
 
-    # Try RS256 first
+    public_key = get_public_key()
+    pem_public = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
     try:
-        public_key = get_public_key()
-        pem_public = public_key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo,
-        )
         return jwt.decode(
             token, pem_public, algorithms=["RS256"],
-            audience="salesos-api",
-        )
-    except JWTError:
-        pass
-
-    # Fall back to HS256 for legacy tokens during migration
-    try:
-        return jwt.decode(
-            token, secret, algorithms=["HS256"],
             audience="salesos-api",
         )
     except JWTError:

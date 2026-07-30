@@ -1,33 +1,37 @@
 "use client"
 
-import { useEffect } from"react"
-import { useTranslation } from"@/lib/i18n"
+import { useEffect } from "react"
 
 export default function DashboardError({
- error,
- reset,
+  error,
+  reset,
 }: {
- error: Error & { digest?: string }
- reset: () => void
+  error: Error & { digest?: string }
+  reset: () => void
 }) {
- const { t } = useTranslation()
+  useEffect(() => {
+    console.error("[Dashboard Error]", error)
+  }, [error])
 
- useEffect(() => {
- console.error("Dashboard error:", error)
- }, [error])
-
- return (
- <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
- <h2 className="text-xl font-bold text-[var(--text-primary)]">
- {t("error.default_title")}
- </h2>
- <p className="mt-2 text-[var(--text-muted)]">{t("error.default_message")}</p>
- <button
- onClick={reset}
- className="mt-4 px-4 py-2 bg-[var(--muhide-orange)] text-white rounded-lg hover:opacity-90"
- >
- {t("error.retry")}
- </button>
- </div>
- )
+  return (
+    <div className="flex items-center justify-center min-h-[60vh] p-8">
+      <div className="text-center space-y-4 max-w-md">
+        <div className="rounded-full bg-[var(--status-danger-bg)] w-16 h-16 flex items-center justify-center mx-auto">
+          <span className="text-2xl">!</span>
+        </div>
+        <h1 className="text-xl font-display text-[var(--text-primary)]">
+          Something went wrong
+        </h1>
+        <p className="text-sm text-[var(--text-muted)]">
+          An unexpected error occurred. Please try again.
+        </p>
+        <button
+          onClick={reset}
+          className="px-4 py-2 bg-[var(--muhide-orange)] text-white rounded-lg text-sm hover:opacity-90"
+        >
+          Try again
+        </button>
+      </div>
+    </div>
+  )
 }

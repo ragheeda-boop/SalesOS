@@ -482,6 +482,36 @@ async def _init_timeline_runtime(app: FastAPI, logger: StructuredLogger) -> None
         logger.exception("  timeline runtime init failed")
 
 
+async def _init_workflow_subscriber(app: FastAPI, logger: StructuredLogger) -> None:
+    try:
+        from domains.workflow.postgres_repo import PostgresWorkflowRepository
+        from domains.workflow.service import WorkflowService
+        from domains.workflow.engine import WorkflowEngine
+        from domains.workflow.event_subscriber import WorkflowEventSubscriber
+
+        event_runtime = getattr(app.state, "event_runtime", None)
+        if event_runtime is None:
+            logger.warning("  workflow subscriber: skipped (no event_runtime)")
+            return
+
+        sess = async_session()
+        app.state._workflow_session = sess
+        repo = PostgresWorkflowRepository(session=sess)
+        engine = WorkflowEngine(repository=repo)
+        service = WorkflowService(repository=repo, engine=engine)
+
+        subscriber = WorkflowEventSubscriber(
+            workflow_service=service,
+            event_bus=event_runtime,
+            engine=engine,
+        )
+        await subscriber.start()
+        app.state.workflow_subscriber = subscriber
+        logger.info("  workflow subscriber: ok")
+    except Exception:
+        logger.exception("  workflow subscriber init failed")
+
+
 async def _init_timeline_subscriber(app: FastAPI, logger: StructuredLogger) -> None:
     try:
         from sdk.events.base import DomainEvent
@@ -611,6 +641,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
         return_exceptions=True,
     )
     await _init_timeline_subscriber(app, logger)
+    await _init_workflow_subscriber(app, logger)
     logger.info(f"Phase 4 complete (+{time.monotonic() - p4_start:.1f}s)")
 
     # ── Phase 5: Background tasks ────────────────────────────────────────
@@ -656,7 +687,7 @@ async def shutdown_services(app: FastAPI) -> None:
         if svc is not None and hasattr(svc, "close"):
             await _safe_close(name, svc.close())
 
-    for sess_attr in ("_timeline_session", "_opportunity_session", "_fs_repo_session", "_dc_session"):
+    for sess_attr in ("_timeline_session", "_opportunity_session", "_fs_repo_session", "_dc_session", "_workflow_session"):
         sess = getattr(app.state, sess_attr, None)
         if sess:
             with contextlib.suppress(Exception):

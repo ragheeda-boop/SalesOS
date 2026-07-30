@@ -8,6 +8,7 @@ Endpoints:
   POST /api/v1/search/ai                 — AI-powered semantic search
 """
 
+from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -75,7 +76,8 @@ async def search(
     next_cursor = None
     if has_next and result.items:
         last = result.items[-1]
-        next_cursor = encode_cursor(str(last.id), last.created_at)
+        created_at = getattr(last, "created_at", None) or datetime.utcnow().isoformat()
+        next_cursor = encode_cursor(str(last.id), created_at)
 
     response = {
         "query": q,

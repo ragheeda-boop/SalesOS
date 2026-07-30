@@ -42,6 +42,7 @@ import app.modules.sso.models  # noqa: F401
 import app.modules.audit.models  # noqa: F401
 import app.modules.api_keys.models  # noqa: F401
 import app.modules.signal_marketplace.models  # noqa: F401
+import app.modules.telemetry.models  # noqa: F401
 
 
 async def get_db() -> AsyncSession:

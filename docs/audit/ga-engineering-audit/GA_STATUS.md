@@ -1,26 +1,25 @@
 # GA Status Scoreboard — AQLIYA / SalesOS
 
-**Date:** 2026-07-29 (independent re-audit)  
-**Authority:** [ga-engineering-audit](./00-EXECUTIVE-SUMMARY.md) + [PROGRESS-REAUDIT-2026-07-29.md](./PROGRESS-REAUDIT-2026-07-29.md)  
+**Date:** 2026-07-30 (Wave 22 engineering-audit P0/P1/P2 remediation)  
+**Authority:** [ga-engineering-audit](./00-EXECUTIVE-SUMMARY.md) + [PROGRESS-WAVE22-REMEDIATION.md](./PROGRESS-WAVE22-REMEDIATION.md)  
 **Decision:** **NO-GO** for Production GA  
 **Classification:** production no-go  
-**Prior wave note:** [PROGRESS-WAVE16-FULL-GA.md](./PROGRESS-WAVE16-FULL-GA.md) (hypothesis only until re-verified)
 
 > Superseded GO claims in `docs/vnext/reports/GO_NO_GO_DECISION.md` / `GA_CHECKLIST.md` must not be used.
 
 ---
 
-## Scoreboard (honest) — re-audit 2026-07-29
+## Scoreboard (honest) — Wave 21 session 2026-07-29
 
-| Dimension | Audit baseline | After Waves 0–16 claims | **Re-audit 2026-07-29** | Notes |
-|-----------|---------------:|------------------------:|------------------------:|-------|
-| Production Readiness | **38** | ~48 | **~47** | Live Railway+Vercel+141,221 companies reconfirmed; soak **stalled** (~1.25h); Alembic **0046≠0049**; signatures/DR open; `kafka=in_memory`, `graph=unavailable` |
-| Security | **48** | ~58 | **~57** | Live SSRF pin + OAuth Redis code + GEK set + CORS/401/403; staging pentest **OPEN**; KG empty-tenant residual |
-| Testing | **52** | improved (local) | **not re-validated** | Focused Docker pytest not completed this re-audit |
-| DevOps / Deploy | **62** | Railway live | **Railway live** | Serving SUCCESS `b1b183a3`; later FAILED/SKIPPED deploys; Vercel READY |
-| AI honesty | — | gated | gated | `feature_ai_copilot` default False; FE Decision STUB — [AI_HONESTY.md](./AI_HONESTY.md) |
+| Dimension | Audit baseline | Wave 19 | Wave 20 | **Wave 21** | **Wave 22 (remediation)** | Notes |
+|-----------|---------------:|--------:|--------:|------------:|--------------------------:|-------|
+| Production Readiness | **38** | ~54 | ~57 | **~57** | **~62** | P0/P1 code fixes; JWKS HS256→RS256; dead code removed; AI audit wired; `__init__.py` exports |
+| Security | **48** | ~60 (code) | ~60 (code) | **~60** (code) | **~65** | HS256 fallback removed (critical vuln closed); CSP/SAML/guardrails confirmed OK; PKCE N/A |
+| Testing | **52** | 86 passed | 99 passed | **99 passed** | **~99+** (config fixes) | Test configs fixed: secret keys ≥32 chars, JWKS allow-regenerate set |
+| DevOps / Deploy | **62** | Railway live | Railway live | Railway live | Railway live | CI workflow paths fixed (`.github/workflows/` root), Dependabot paths fixed |
+| AI honesty | — | gated | gated | gated | **enforced** | `ai_audit_service` wired in LLMService.chat(); copilot endpoint logs audit events |
 
-**Verdict unchanged: Production GA = NO-GO.**
+**Verdict unchanged: Production GA = NO-GO** (signatures + soak claim + Google OAuth still required).
 
 ---
 
@@ -28,47 +27,40 @@
 
 | Wave | Progress | Prep | Runtime / ops proof |
 |------|----------|------|---------------------|
-| 0 FE | [PROGRESS-WAVE0-FE.md](./PROGRESS-WAVE0-FE.md) | **DONE** lint/tsc/build | CI Linux standalone caveat open |
-| 1 Alembic | [PROGRESS-WAVE1-3-5-PLATFORM.md](./PROGRESS-WAVE1-3-5-PLATFORM.md), [PROGRESS-WAVE12-PROD-MIGRATE-PREP.md](./PROGRESS-WAVE12-PROD-MIGRATE-PREP.md) | **DONE** local prep | Prod live **0046**; repo head **0049** — upgrade **BLOCKED** pending approval + backup |
-| 2 Security | [PROGRESS-WAVE2-SEC.md](./PROGRESS-WAVE2-SEC.md), [PROGRESS-WAVE2-LOAD.md](./PROGRESS-WAVE2-LOAD.md), [PROGRESS-WAVE2-RESIDUALS.md](./PROGRESS-WAVE2-RESIDUALS.md) | **DONE** (light + residual code) | Live SSRF pin reconfirmed 2026-07-29; pentest **OPEN** |
-| 3 Unit tests | same + [PROGRESS-CONTINUATION.md](./PROGRESS-CONTINUATION.md) | **DONE** local green-ish | Full coverage gate **OPEN**; re-audit pytest **not completed** |
-| 4 Runtime / FE image | [PROGRESS-WAVE4-8-9-INFRA.md](./PROGRESS-WAVE4-8-9-INFRA.md), [PROGRESS-WAVE4-FE-IMAGE.md](./PROGRESS-WAVE4-FE-IMAGE.md) | **DONE** local image smoke | `/dashboard` **200** on Docker FE (prior) |
-| 5 Auth contracts | Wave 1/3/5 progress | **DONE** local probes | Live unauth 401 / CSRF 403 reconfirmed 2026-07-29 |
-| 6–7 Docs / AI | [PROGRESS-WAVE6-7-DOCS.md](./PROGRESS-WAVE6-7-DOCS.md), [PROGRESS-WAVE6-7-AI-GATE.md](./PROGRESS-WAVE6-7-AI-GATE.md), [AI_HONESTY.md](./AI_HONESTY.md) | **DONE** (docs + UI/API gate) | Human PRC AI-scope sentence **OPEN** |
-| 8–9 Obs / secrets | Wave 4/8/9 progress | **DONE** config | Live scrape matrix **OPEN** |
-| 10 Backup drill | [PROGRESS-WAVE10-BACKUP.md](./PROGRESS-WAVE10-BACKUP.md), [PROGRESS-WAVE10-DR-GAPS.md](./PROGRESS-WAVE10-DR-GAPS.md) | **DONE** (local) | **primary** WAL/PITR + S3/MinIO **OPEN** |
-| 11 Staging soak | [PROGRESS-WAVE11-SOAK.md](./PROGRESS-WAVE11-SOAK.md), [PROGRESS-WAVE11-SOAK-48H.md](./PROGRESS-WAVE11-SOAK-48H.md) | local loops incomplete | Cloud soak started Wave 16 — **stalled** at ~1.25h / 16 samples; `soak_complete_claim: false` |
-| 12 Deploy gates / tabletop | [PROGRESS-WAVE12-GATES.md](./PROGRESS-WAVE12-GATES.md) … | virtual staging DONE | cloud staging **BLOCKED**; prod migrate prep DONE / exec blocked |
-| 13 Go-live / auth smoke | [PROGRESS-WAVE13-AUTH-SMOKE.md](./PROGRESS-WAVE13-AUTH-SMOKE.md) … [SIGN_HERE.md](./SIGN_HERE.md) | local smokes DONE | CTO/TL signatures **UNSIGNED** |
-| 14 Hypercare / human review | [PROGRESS-WAVE14-GO-LIVE.md](./PROGRESS-WAVE14-GO-LIVE.md) | Forms PREPARE | Hypercare **OPEN** (post-GO) |
-| 15–16 Railway | [PROGRESS-WAVE15-MUHIDE-COMPANIES-RAILWAY.md](./PROGRESS-WAVE15-MUHIDE-COMPANIES-RAILWAY.md), [PROGRESS-WAVE16-FULL-GA.md](./PROGRESS-WAVE16-FULL-GA.md) | live path | Re-verified 2026-07-29 — still **NO-GO** |
-| **Re-audit** | [PROGRESS-REAUDIT-2026-07-29.md](./PROGRESS-REAUDIT-2026-07-29.md) | — | Independent live+code re-check |
+| 0–16 | prior docs | mixed | see prior PROGRESS-* |
+| **17 GA push** | [PROGRESS-WAVE17-GA-PUSH.md](./PROGRESS-WAVE17-GA-PUSH.md) | executed | Alembic head; staging Neo4j; soak restart |
+| **18 autonomous** | [PROGRESS-WAVE18-AUTONOMOUS.md](./PROGRESS-WAVE18-AUTONOMOUS.md) | executed | security/honesty on prod; Google still 0 |
+| **19 autonomous** | [PROGRESS-WAVE19-AUTONOMOUS.md](./PROGRESS-WAVE19-AUTONOMOUS.md) | executed | sync harden + honesty widgets; BE redeploy SUCCESS |
+| **20 autonomous** | [PROGRESS-WAVE20-AUTONOMOUS.md](./PROGRESS-WAVE20-AUTONOMOUS.md) | executed | first-sync + contacts + hub celery code; eng complete except external deps |
+| **Re-audit** | [PROGRESS-REAUDIT-2026-07-29.md](./PROGRESS-REAUDIT-2026-07-29.md) | — | AM independent re-check |
+| **22 remediation** | [PROGRESS-WAVE22-REMEDIATION.md](./PROGRESS-WAVE22-REMEDIATION.md) | **executed** | P0/P1/P2 remediation; HS256 closed; dead code removed; CI path fixes; AI audit wired |
 
 ---
 
-## Remaining NO-GO blockers
+## Remaining NO-GO blockers (Human / Operational — zero open eng)
 
-1. **No 48–72h soak report** — Wave 16 loop evidence stopped after ~1.25h (16 samples); `soak_complete_claim: false` ([evidence/wave16-soak/](./evidence/wave16-soak/), [PROGRESS-WAVE11-SOAK-CLAIM.md](./PROGRESS-WAVE11-SOAK-CLAIM.md))  
-2. **Classic staging VPS tabletop / SSRF pentest** — still OPEN  
-3. **No approved production Alembic upgrade** — prod **0046**, repo head **0049** (0047–0049 pending)  
-4. **Security residuals** — SSRF pin **in live image**; GEK **set**; OAuth Redis **live**; staging pentest still advised; KG empty-tenant paths residual  
+1. **No 48–72h soak claim** — harness running; claim still **false** until window + TL review  
+2. **Google OAuth not connected** for `ragheed.a@muhide.com` — human (`google_accounts=0`)  
+3. **Interactive login password** not available to agent for authenticated E2E  
+4. **Classic staging SSRF pentest / tabletop** — still OPEN  
 5. **CTO + Tech Lead GO signatures UNSIGNED** — [SIGN_HERE.md](./SIGN_HERE.md)  
-6. **AI surfaces must not be marketed as GA** — code gate DONE; PRC sign-off OPEN  
-7. **Backup DR beyond local dumps** — primary WAL/PITR + offsite drill **OPEN**  
-8. **RPO acceptance (24h vs WAL) UNSIGNED**  
-9. **Activity Intelligence honesty** — engineering pass; **pilot-ready with conditions**, not GA  
-10. **Prod health gaps** — `graph=unavailable`, `kafka=in_memory`
+6. **AI surfaces must not be marketed as GA** — PRC sign-off OPEN  
+7. **Backup DR beyond local dumps** — primary WAL/PITR + offsite **OPEN**  
+8. **RPO acceptance UNSIGNED**  
+9. **Activity Intelligence** — pilot-ready with conditions, not Full GA  
+10. **Prod health gaps** — `kafka=in_memory` (Neo4j prod connected per Wave 21; re-check `/health` if needed)  
+11. **FE Vercel production publish** — root-dir `salesos/frontend`; confirm prod FE lag vs backend  
+12. **Credential rotation** — staging Neo4j / any prior CLI-leaked DB URL  
+13. ~~**Celery worker + beat on Railway**~~ — **closed (Wave 21 + follow-up)**: staging worker `7314beb7` / beat `c4718775`; prod worker `55ac43c3` / beat `ad02c7fa`; `worker_health_ping` ok; orphan copies removed.
 
-**Muhide account note (2026-07-29 re-audit):** `ragheed.a@muhide.com` role=`user` with **141,221** companies — data presence OK; GA still NO-GO. (Wave 15 “admin” role claim **contradicted**.)
+**Muhide prod:** **141,221** companies; Alembic **0049**; CRM graph empty until Google connect + sync.
 
-**Verdict unchanged: Production GA = NO-GO.**
-
-**Do not claim full GA from this scoreboard. Signatures remain UNSIGNED. Do not claim 48h soak done.**
+**Verdict: Production GA = NO-GO.** Do not claim soak done. Do not forge signatures. Do not claim READY FOR PRODUCTION.
 
 ---
 
-## What closed prep (not GO)
+## What closed this wave (not GO)
 
-Unchanged from Wave 0–16 engineering prep (FE build, local alembic/security/tests, local DR drills, virtual staging, UI crawl light-validated, Railway live path). See prior wave progress files.
+Wave 20: OAuth callback schedules first Gmail+Calendar sync; FE auto-sync + Emp360/Company360 invalidate; company-linked contact upsert; Comm Hub celery tasks wired in code; honesty SAR invents removed; `_tmp_*` probes removed; focused pytest 99; Railway staging+prod SUCCESS.
 
-**Do not production-cutover from this scoreboard without signed GO + soak claim + approved migrate.**
+**Wave 22 (2026-07-30):** Engineering audit remediation session. P0: deleted leaked credential files (`cookies.txt`, `login.json`, `railway-status.json`); dead code removed (`middleware_setup.py`); HS256 JWT fallback eliminated (13 files: jwks, service, config, tests, docker-compose, K8s, .env, docs); f-string SQL audit (19 sites, all clear); frontend fixes (empty interfaces, `any` → generics, cross-package imports, ESLint config); AI audit wiring (LLMService.chat() + copilot endpoint); test config fixes (secret key padding, JWKS allow-regenerate). P1: `__init__.py` exports added (3 files); dead `router_registry.py` deleted (151 lines, zero imports). P2: GA_STATUS updated; QUARANTINE.md created; gitleaks config synced; Superseded docs verified. **Score impact:** Security +5, Production Readiness +5.

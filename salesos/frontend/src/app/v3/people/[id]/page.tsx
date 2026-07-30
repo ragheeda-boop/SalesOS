@@ -23,6 +23,9 @@ import {
 } from '../../_components/states'
 import { useAccessToken } from '../../_hooks/useAccessToken'
 import { openV3AiPopup } from '@/components/v3/V3AiPopup'
+import { EmployeeTimeline } from '@/components/employee-360/employee-360-timeline'
+import { EmployeeScoring } from '@/components/employee-360/employee-360-scoring'
+import { EmployeeSignals } from '@/components/employee-360/employee-360-signals'
 
 type TabId = 'overview' | 'portfolio' | 'activity' | 'timeline' | 'intelligence'
 
@@ -462,24 +465,26 @@ export default function V3People360Page() {
  employeeId={data.profile.id}
  />
  )
- case 'timeline':
- return (
- <TabEmpty
- title="Timeline not wired on v3 yet"
- description="Full employee timeline stays on the legacy employee 360 surface for now. This tab is an honest placeholder."
- ctaHref={legacyHref}
- ctaLabel="Open legacy employee 360"
- />
- )
- case 'intelligence':
- return (
- <TabEmpty
- title="Intelligence widgets not mounted"
- description="Signals, scoring, and AI coach remain on legacy employee 360. This tab is an honest placeholder — not live GA AI."
- ctaHref={legacyHref}
- ctaLabel="Open legacy employee 360"
- />
- )
+  case 'timeline':
+  return (
+  <div className="space-y-4">
+  <p className="text-[12px] text-[var(--text-muted)]">سجل النشاطات الكامل للموظف — Timeline</p>
+  <EmployeeTimeline employeeId={data.profile.id} />
+  </div>
+  )
+  case 'intelligence':
+  return (
+  <div className="space-y-6">
+  <section>
+  <h2 className="text-sm font-medium text-[var(--text-primary)] mb-3">التقييم</h2>
+  <EmployeeScoring employeeId={data.profile.id} />
+  </section>
+  <section>
+  <h2 className="text-sm font-medium text-[var(--text-primary)] mb-3">الإشارات</h2>
+  <EmployeeSignals employeeId={data.profile.id} />
+  </section>
+  </div>
+  )
  default:
  return null
  }

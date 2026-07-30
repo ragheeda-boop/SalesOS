@@ -1,8 +1,8 @@
 ﻿{
-    "environment":  "http://localhost:8000",
-    "passed":  7,
-    "timestamp":  "2026-07-22T01:26:08Z",
-    "total":  16,
-    "failed":  5,
+    "environment":  "https://salesos-staging.up.railway.app",
+    "passed":  4,
+    "timestamp":  "2026-07-29T00:38:45Z",
+    "total":  10,
+    "failed":  2,
     "skipped":  4
 }

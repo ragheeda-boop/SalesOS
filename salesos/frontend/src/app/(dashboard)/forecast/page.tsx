@@ -49,7 +49,15 @@ export default function ForecastPage() {
  useEffect(() => {
  api.get("/api/v1/forecast")
  .then(res => { setForecast(res.data); setLoading(false) })
- .catch(() => { setError(t("error.server_error")); setLoading(false) })
+ .catch((err) => {
+   const status = (err as { response?: { status?: number } })?.response?.status
+   if (status === 403) {
+     setError("Access denied. You do not have permission to view the forecast.")
+   } else {
+     setError(t("error.server_error"))
+   }
+   setLoading(false)
+ })
  }, [t])
 
  if (loading) return <div className="p-8 text-center text-[var(--text-muted)]">{t("common.loading")}</div>

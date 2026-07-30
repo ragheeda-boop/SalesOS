@@ -139,11 +139,12 @@ def test_login_request_invalid_email():
 
 def test_token_response_schema():
     from app.modules.identity.schemas import TokenResponse
-    resp = TokenResponse(access_token="eyJ...", token_type="bearer", expires_in=3600)
+    resp = TokenResponse(access_token="eyJ...", refresh_token="rt...", token_type="bearer", expires_in=3600)
     assert resp.access_token == "eyJ..."
     assert resp.token_type == "bearer"
     assert resp.expires_in == 3600
-    assert resp.refresh_token is None
+    assert resp.refresh_token == "rt..."
+    assert resp.tenant_id is None
 
 
 # ── Company Domain Contracts ───────────────────────────────────────────────
@@ -183,7 +184,7 @@ def test_cursor_response_on_company_search():
 
 def test_decision_schemas_exist():
     from app.modules.decision.schemas import (
-        DecisionRequestAPI,
+        DecisionContext,
         DecisionResultAPI,
         EvidenceItemAPI,
         HistoryResponseAPI,
@@ -191,7 +192,7 @@ def test_decision_schemas_exist():
         RecommendationsResponseAPI,
         EvidenceResponseAPI,
     )
-    assert DecisionRequestAPI is not None
+    assert DecisionContext is not None
     assert DecisionResultAPI is not None
     assert HistoryResponseAPI is not None
     assert RecommendationsResponseAPI is not None
@@ -316,18 +317,27 @@ def test_golden_record_response():
 
 def test_job_response_schema():
     from app.modules.admin.schemas import JobResponse
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
     job = JobResponse(
         id="j1", type="enrichment", status="completed", progress=100,
-        created_by="admin", payload={},
+        tenant_id="tenant_1", created_by="admin", payload={},
+        result={}, error_message=None, retry_count=0, max_retries=3,
+        scheduled_at=now, started_at=now, completed_at=now,
+        created_at=now, updated_at=now,
     )
     assert job.status == "completed"
 
 
 def test_ai_cost_response_schema():
     from app.modules.admin.schemas import AICostResponse
+    from datetime import datetime, timezone
+    from uuid import uuid4
     cost = AICostResponse(
-        id="c1", model="gpt-4o", prompt_tokens=100, completion_tokens=50,
+        id=uuid4(), model="gpt-4o", tenant_id=uuid4(), tenant_name="Default",
+        prompt_tokens=100, completion_tokens=50,
         total_tokens=150, cost=0.01, operation="chat",
+        created_at=datetime.now(timezone.utc),
     )
     assert cost.total_tokens == 150
 

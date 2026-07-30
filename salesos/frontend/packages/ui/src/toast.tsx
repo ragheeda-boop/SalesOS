@@ -52,7 +52,7 @@ export const Toast = forwardRef<HTMLLIElement, ToastProps>(
     return (
       <ToastPrimitive.Root
         ref={ref}
-        className={cn(toastVariants({ variant: v as any }), className)}
+        className={cn(toastVariants({ variant: v as ToastVariantKey }), className)}
         role="alert"
         aria-live="polite"
         {...props}
@@ -162,7 +162,7 @@ function Toaster({ toasts, onDismiss }: { toasts: ToastMessage[]; onDismiss: (id
         return (
           <ToastPrimitive.Root
             key={t.id}
-            className={cn(toastVariants({ variant: variant as any }))}
+            className={cn(toastVariants({ variant: variant as ToastVariantKey }))}
             role="alert"
             aria-live="polite"
             open

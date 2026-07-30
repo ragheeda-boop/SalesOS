@@ -37,8 +37,8 @@ export function useEntity<T = Record<string, unknown>>(
       const result = res.data as T
       runtime.cache.set(cacheKey, result, options?.cacheTtlMs)
       setData(result)
-    } catch (err: any) {
-      setError(err.message || 'Failed to load entity')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load entity')
     } finally {
       setLoading(false)
     }

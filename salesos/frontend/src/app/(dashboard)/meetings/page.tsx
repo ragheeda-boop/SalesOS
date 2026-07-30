@@ -48,7 +48,7 @@ export default function MeetingsPage() {
 
  useEffect(() => {
  api.get("/api/v1/opportunities?limit=100")
- .then(res => { setOpportunities(res.data.records || res.data || []); setLoading(false) })
+ .then(res => { setOpportunities(Array.isArray(res.data.records) ? res.data.records : Array.isArray(res.data) ? res.data : []); setLoading(false) })
  .catch(() => { setError(t("error.server_error")); setLoading(false) })
  }, [t])
 

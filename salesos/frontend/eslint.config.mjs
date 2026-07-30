@@ -11,6 +11,15 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals"),
+  ...compat.extends("plugin:@typescript-eslint/recommended"),
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-empty-interface": "warn",
+      "@typescript-eslint/ban-ts-comment": ["warn", { "ts-expect-error": "allow-with-description" }],
+      "react-hooks/exhaustive-deps": "warn",
+    },
+  },
   {
     files: ["src/app/**/*.tsx", "src/app/**/*.ts", "src/features/**/*.tsx", "src/features/**/*.ts", "src/components/**/*.tsx", "src/components/**/*.ts"],
     plugins: {

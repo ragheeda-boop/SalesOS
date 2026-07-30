@@ -22,6 +22,7 @@ from .routers.health import router as health_router
 from .routers.decision_adoption import router as decision_adoption_router
 from .routers.config_editor import router as config_editor_router
 from .routers.audit_log import router as audit_log_router
+from .routers.ai_audit import router as ai_audit_router
 
 router.include_router(tenants_router)
 router.include_router(plans_router)
@@ -35,3 +36,4 @@ router.include_router(health_router)
 router.include_router(decision_adoption_router)
 router.include_router(config_editor_router)
 router.include_router(audit_log_router)
+router.include_router(ai_audit_router)

@@ -90,7 +90,7 @@ def decode_access_token(token: str) -> dict:
     from app.modules.identity.jwks import decode_token
 
     try:
-        payload = decode_token(token, settings.jwt_secret_key)
+        payload = decode_token(token)
         if payload.get("type") != "access":
             raise UnauthorizedError("Invalid token type")
         return payload
@@ -102,7 +102,7 @@ def decode_refresh_token(token: str) -> dict:
     from app.modules.identity.jwks import decode_token
 
     try:
-        payload = decode_token(token, settings.jwt_secret_key)
+        payload = decode_token(token)
         if payload.get("type") != "refresh":
             raise UnauthorizedError("Invalid token type")
         return payload

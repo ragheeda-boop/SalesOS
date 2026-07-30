@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Tabs, TabsList, Tab, TabsPanel, Button } from '@salesos/ui'
 import { TabRenderer } from './tab-renderer'
 import type { UISchemaTab, UIAction } from './types'
-import { cn } from '../../ui/src/utils'
+import { cn } from '@salesos/ui'
 
 export interface ViewerRendererProps {
   entityType: string

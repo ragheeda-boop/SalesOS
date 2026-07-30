@@ -282,7 +282,7 @@ async def get_entity_subgraph(
     kg = getattr(request.app.state, "kg_engine", None)
     if not kg:
         raise HTTPException(status_code=503, detail="Knowledge Graph not initialized")
-    subgraph = await kg.get_entity_subgraph(entity_id, depth)
+    subgraph = await kg.get_entity_subgraph(entity_id, depth, tenant_id=tenant_id)
     return {
         "entity_id": entity_id,
         "depth": depth,
@@ -318,7 +318,7 @@ async def merge_graph_nodes(
     kg = getattr(request.app.state, "kg_engine", None)
     if not kg:
         raise HTTPException(status_code=503, detail="Knowledge Graph not initialized")
-    stats = await kg.merge_graph_nodes(surviving_id, absorbed_id)
+    stats = await kg.merge_graph_nodes(surviving_id, absorbed_id, tenant_id=tenant_id)
     return {"status": "ok", "surviving_id": surviving_id, "absorbed_id": absorbed_id, "stats": stats}
 
 

@@ -730,7 +730,7 @@ All variables are defined in `.env.production.template`. Copy and customize.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `JWT_ALGORITHM` | `HS256` | JWT signing algorithm |
+| `JWT_ALGORITHM` | `RS256` | JWT signing algorithm |
 | `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | `30` | Access token lifetime |
 | `JWT_REFRESH_TOKEN_EXPIRE_DAYS` | `7` | Refresh token lifetime |
 

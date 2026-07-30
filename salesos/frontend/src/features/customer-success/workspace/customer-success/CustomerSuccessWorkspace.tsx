@@ -12,11 +12,23 @@ import { TenantHealthList } from"../../widgets/customer-success/TenantHealthList
 
 export function CustomerSuccessWorkspace() {
  const [activeView, setActiveView] = useState<"overview" |"tenants">("overview")
- const { data, isLoading } = useTelemetryOverview()
+  const { data, isLoading, error } = useTelemetryOverview()
 
- if (isLoading || !data) {
- return <div className="animate-pulse h-96 bg-[var(--bg-tertiary)] rounded-xl" />
- }
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center space-y-3">
+          <p className="text-sm text-[var(--status-danger-text)]">
+            Failed to load customer success data. Please try again later.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (isLoading || !data) {
+    return <div className="animate-pulse h-96 bg-[var(--bg-tertiary)] rounded-xl" />
+  }
 
  const { feature_adoption, search_success, nba_acceptance, active_users, avg_adoption_pct } = data
 

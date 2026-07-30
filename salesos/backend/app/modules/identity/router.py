@@ -456,8 +456,6 @@ async def jwks():
     """JWKS endpoint for JWT key discovery.
 
     Returns RSA public key for RS256 token verification.
-    The HS256 symmetric key is only used for internal verification
-    of legacy tokens during the migration window.
     """
     from app.modules.identity.jwks import get_jwks
     return get_jwks()

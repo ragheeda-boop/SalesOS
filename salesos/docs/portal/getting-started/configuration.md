@@ -22,7 +22,7 @@ All configuration is via environment variables. Below is the complete reference 
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `JWT_ALGORITHM` | ❌ | `HS256` | JWT signing algorithm |
+| `JWT_ALGORITHM` | ❌ | `RS256` | JWT signing algorithm |
 | `JWT_EXPIRY_MINUTES` | ❌ | `30` | Access token lifetime |
 | `REFRESH_TOKEN_EXPIRY_DAYS` | ❌ | `7` | Refresh token lifetime |
 | `SSO_PROVIDER` | ❌ | — | `azure`, `google`, `okta`, or `custom` |

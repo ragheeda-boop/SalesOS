@@ -593,20 +593,20 @@ export default function DecisionCenterPage() {
  <div>
  <p className="text-xs text-[var(--text-muted)]">{t("decisions.acceptance_rate")}</p>
  <p className="text-lg font-bold text-[var(--text-primary)]">
- {Math.round(feedbackStats.data.acceptanceRate * 100)}%
- </p>
- </div>
- </div>
- </Card>
- <Card className="p-4">
- <div className="flex items-center gap-3">
-                    <div className="rounded-lg bg-[var(--chart-purple-bg)] dark:bg-[var(--bg-primary)]/30 p-2">
-                      <ThumbsDown className="h-5 w-5 text-[var(--chart-purple)] dark:text-[var(--chart-purple)]" />
- </div>
- <div>
- <p className="text-xs text-[var(--text-muted)]">{t("decisions.rejection_rate")}</p>
- <p className="text-lg font-bold text-[var(--text-primary)]">
- {Math.round(feedbackStats.data.rejectionRate * 100)}%
+{Math.round((feedbackStats.data.acceptanceRate ?? 0) * 100)}%
+      </p>
+      </div>
+      </div>
+      </Card>
+      <Card className="p-4">
+      <div className="flex items-center gap-3">
+                     <div className="rounded-lg bg-[var(--chart-purple-bg)] dark:bg-[var(--bg-primary)]/30 p-2">
+                       <ThumbsDown className="h-5 w-5 text-[var(--chart-purple)] dark:text-[var(--chart-purple)]" />
+      </div>
+      <div>
+      <p className="text-xs text-[var(--text-muted)]">{t("decisions.rejection_rate")}</p>
+      <p className="text-lg font-bold text-[var(--text-primary)]">
+      {Math.round((feedbackStats.data.rejectionRate ?? 0) * 100)}%
  </p>
  </div>
  </div>

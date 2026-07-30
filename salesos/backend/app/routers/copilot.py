@@ -246,6 +246,32 @@ async def copilot_query(
         result_count=len(steps),
     )
 
+    # P0-8: AI audit logging
+    try:
+        from app.database import async_session as _audit_session
+        from app.modules.audit.ai_audit_service import AIAuditService
+        from app.modules.audit.service import AuditService, PostgresAuditRepository
+
+        async with _audit_session() as _s:
+            _audit_repo = PostgresAuditRepository(_s)
+            _audit_svc = AuditService(_audit_repo)
+            _ai_audit = AIAuditService(_audit_svc)
+            await _ai_audit.log_agent_call(
+                tenant_id=tenant_id,
+                user_id=user_id,
+                agent_name="copilot_coordinator",
+                metadata={
+                    "conversation_id": conversation_id,
+                    "confidence": result.confidence,
+                    "query": body.query[:200],
+                    "goal": body.goal[:200] if body.goal else None,
+                    "latency_ms": latency_ms,
+                    "num_steps": len(steps),
+                },
+            )
+    except Exception:
+        pass
+
     if logger:
         logger.info(
             "Copilot query: user=%s goal=%s confidence=%.2f lang=%s latency=%.0fms",
