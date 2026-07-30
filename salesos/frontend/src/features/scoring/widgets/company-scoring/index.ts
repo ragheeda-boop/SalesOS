@@ -1,0 +1,1 @@
+export { CompanyScoringWidget } from './CompanyScoringContainer'
