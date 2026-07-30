@@ -164,11 +164,11 @@ function AuditTrailPanel({ decisionId, onClose }: { decisionId: string; onClose:
  className={cn("h-full rounded-full",
  f.impact ==="high" ?"bg-red-500" : f.impact ==="medium" ?"bg-yellow-500" :"bg-green-500"
  )}
- style={{ width: `${Math.round(f.value * 100)}%` }}
- />
- </div>
- <span className="text-xs text-[var(--text-muted)] w-10 text-right">
- {Math.round(f.value * 100)}%
+                  style={{ width: `${Math.round((f.value ?? 0) * 100)}%` }}
+  />
+  </div>
+  <span className="text-xs text-[var(--text-muted)] w-10 text-right">
+  {Math.round((f.value ?? 0) * 100)}%
  </span>
  </div>
  ))}
@@ -593,7 +593,7 @@ export default function DecisionCenterPage() {
  <div>
  <p className="text-xs text-[var(--text-muted)]">{t("decisions.acceptance_rate")}</p>
  <p className="text-lg font-bold text-[var(--text-primary)]">
-{Math.round((feedbackStats.data.acceptanceRate ?? 0) * 100)}%
+{Math.round((feedbackStats.data.acceptanceRate || 0) * 100)}%
       </p>
       </div>
       </div>
@@ -606,7 +606,7 @@ export default function DecisionCenterPage() {
       <div>
       <p className="text-xs text-[var(--text-muted)]">{t("decisions.rejection_rate")}</p>
       <p className="text-lg font-bold text-[var(--text-primary)]">
-      {Math.round((feedbackStats.data.rejectionRate ?? 0) * 100)}%
+      {Math.round((feedbackStats.data.rejectionRate || 0) * 100)}%
  </p>
  </div>
  </div>

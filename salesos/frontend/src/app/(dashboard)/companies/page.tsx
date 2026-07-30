@@ -3,13 +3,15 @@
 import { useState, useCallback, useMemo } from"react"
 import Link from"next/link"
 import { useRouter, useSearchParams } from"next/navigation"
+import { useQuery } from"@tanstack/react-query"
 import { useCompanySearch } from"@/lib/hooks/companyQueries"
 import { useCreateCompany, useUpdateCompany, useDeleteCompany } from"@/lib/hooks/mutationHooks"
 import { useDebounce } from"@salesos/hooks"
-import { DataTable, Checkbox, Input, Badge, Button, Spinner, Select, Modal, ModalTrigger, ModalContent, ModalHeader, ModalBody, ModalFooter, Combobox, DatePicker, useToast, Pagination } from"@salesos/ui"
+import { DataTable, Checkbox, Input, Badge, Button, Spinner, Select, Modal, ModalTrigger, ModalContent, ModalHeader, ModalBody, ModalFooter, Combobox, DatePicker, useToast, Pagination, Tooltip } from"@salesos/ui"
 import { Search, Plus, Building2, ArrowLeft, ChevronLeft, ChevronRight, Loader2, MapPin, Hash, Download, Edit3, Trash2, X } from"lucide-react"
 import { ErrorFallback } from"@/components/foundation/error-boundary"
 import { useTranslation } from"@/lib/i18n"
+import { getCurrentUser } from"@/lib/api"
 import type { ColumnDef } from"@tanstack/react-table"
 import type { Company } from"@/lib/api"
 
@@ -109,6 +111,13 @@ export default function CompaniesPage() {
  const createCompany = useCreateCompany()
  const updateCompany = useUpdateCompany()
  const deleteCompany = useDeleteCompany()
+
+ const { data: currentUser } = useQuery({
+  queryKey: ["profile","me"],
+  queryFn: getCurrentUser,
+  staleTime: 5 * 60 * 1000,
+ })
+ const isAdmin = currentUser?.role === "admin"
 
  const totalPages = data ? Math.max(1, Math.ceil(data.total / 20)) : 1
 
@@ -325,7 +334,9 @@ export default function CompaniesPage() {
  </div>
  <Modal open={modalOpen} onOpenChange={setModalOpen}>
  <ModalTrigger>
- <Button leftIcon={<Plus className="h-4 w-4" />}>{t("companies.add_company")}</Button>
+  <Tooltip content={isAdmin ? undefined : "Only admins can add companies"}>
+   <Button leftIcon={<Plus className="h-4 w-4" />} disabled={!isAdmin}>{t("companies.add_company")}</Button>
+  </Tooltip>
  </ModalTrigger>
  <ModalContent>
  <ModalHeader>{t("companies.add_new")}</ModalHeader>

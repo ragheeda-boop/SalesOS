@@ -77,10 +77,13 @@ function resolveFromDto<T>(
  if (isLoading && widget.data) {
  return { ...widget, status: 'degraded' }
  }
- // Prefer API-reported status (e.g. error with null data) over infinite loading.
- if (widget.status === 'error' || widget.status === 'ready' || widget.status === 'degraded') {
- return widget
- }
+  // API-reported error with no data = empty state, not an error
+  if (widget.status === 'error') {
+  return { ...widget, status: deriveStatus(widget.data, isLoading, isError) }
+  }
+  if (widget.status === 'ready' || widget.status === 'degraded') {
+  return widget
+  }
  return { ...widget, status: deriveStatus(widget.data, isLoading, isError) }
 }
 

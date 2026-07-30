@@ -2,6 +2,7 @@
 
 import { useState } from"react"
 import { cn } from"@salesos/ui"
+import { useTranslation } from"@/lib/i18n"
 import { useTelemetryOverview } from"@/lib/telemetryQueries"
 import { HealthScoreCard } from"../../widgets/customer-success/HealthScoreCard"
 import { AdoptionChart } from"../../widgets/customer-success/AdoptionChart"
@@ -11,15 +12,16 @@ import { NBAAcceptanceWidget } from"../../widgets/customer-success/NBAAcceptance
 import { TenantHealthList } from"../../widgets/customer-success/TenantHealthList"
 
 export function CustomerSuccessWorkspace() {
- const [activeView, setActiveView] = useState<"overview" |"tenants">("overview")
-  const { data, isLoading, error } = useTelemetryOverview()
+  const { t } = useTranslation()
+  const [activeView, setActiveView] = useState<"overview" |"tenants">("overview")
+   const { data, isLoading, error } = useTelemetryOverview()
 
   if (error) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center space-y-3">
           <p className="text-sm text-[var(--status-danger-text)]">
-            Failed to load customer success data. Please try again later.
+            {t("customer_success.error")}
           </p>
         </div>
       </div>
@@ -35,7 +37,7 @@ export function CustomerSuccessWorkspace() {
  return (
  <div className="space-y-6">
  <div className="flex items-center justify-between">
- <h1 className="text-xl font-display text-[var(--text-primary)]">نجاح العملاء</h1>
+  <h1 className="text-xl font-display text-[var(--text-primary)]">{t("customer_success.title")}</h1>
  <div className="flex gap-2">
  {(["overview","tenants"] as const).map((v) => (
  <button
@@ -48,7 +50,7 @@ export function CustomerSuccessWorkspace() {
  :"text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
  )}
  >
- {v ==="overview" ?"نظرة عامة" :"العملاء"}
+  {v ==="overview" ?t("customer_success.overview") :t("customer_success.tenants")}
  </button>
  ))}
  </div>
@@ -59,7 +61,7 @@ export function CustomerSuccessWorkspace() {
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
  <HealthScoreCard
  score={avg_adoption_pct}
- label="متوسط التبني"
+  label={t("customer_success.avg_adoption")}
  thresholds={{ green: 80, yellow: 50 }}
  />
  <ActiveUsersWidget
@@ -82,16 +84,16 @@ export function CustomerSuccessWorkspace() {
 
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
  <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
- <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">تبني الميزات</h3>
+  <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">{t("customer_success.feature_adoption")}</h3>
  <AdoptionChart data={feature_adoption} />
  </div>
  <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
- <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">صحة العملاء</h3>
+  <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">{t("customer_success.customer_health")}</h3>
  <TenantHealthList
  tenants={[
  {
  tenant_id:"current",
- tenant_name:"المستأجر الحالي",
+  tenant_name: t("customer_success.current_tenant"),
  score: avg_adoption_pct,
  status: avg_adoption_pct > 80 ?"healthy" : avg_adoption_pct > 50 ?"warning" :"critical",
  color: avg_adoption_pct > 80 ?"green" : avg_adoption_pct > 50 ?"yellow" :"red",
@@ -110,12 +112,12 @@ export function CustomerSuccessWorkspace() {
 
  {activeView ==="tenants" && (
  <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
- <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">قائمة العملاء</h3>
+  <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">{t("customer_success.tenant_list")}</h3>
  <TenantHealthList
  tenants={[
  {
  tenant_id:"current",
- tenant_name:"المستأجر الحالي",
+  tenant_name: t("customer_success.current_tenant"),
  score: avg_adoption_pct,
  status: avg_adoption_pct > 80 ?"healthy" : avg_adoption_pct > 50 ?"warning" :"critical",
  color: avg_adoption_pct > 80 ?"green" : avg_adoption_pct > 50 ?"yellow" :"red",

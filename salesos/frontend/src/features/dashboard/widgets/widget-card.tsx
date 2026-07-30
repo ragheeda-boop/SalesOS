@@ -91,8 +91,13 @@ export function WidgetCard<T>({ widget, widgetId, children }: WidgetCardProps<T>
  <p style={{ margin: '0.5rem 0 0' }}>تعذر تحميل البيانات</p>
  </div>
  )}
- {widget.status === 'ready' && children}
- {widget.status === 'degraded' && (
+  {widget.status === 'ready' && widget.data !== null && children}
+  {widget.status === 'ready' && widget.data === null && (
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 120, color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+  <p style={{ margin: 0 }}>لا توجد بيانات بعد</p>
+  </div>
+  )}
+  {widget.status === 'degraded' && (
  <>
  <div style={{ position: 'relative' }}>
  <div style={{ opacity: 0.5, filter: 'blur(0.5px)' }}>{children}</div>

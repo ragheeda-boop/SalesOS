@@ -13,13 +13,6 @@ import { registerBuiltinCommands } from"@/lib/commands"
 import { useTranslation } from"@/lib/i18n"
 import { LanguageSwitcher } from"@/components/foundation/LanguageSwitcher"
 import { useAiCopilotEnabled } from"@/lib/hooks/useAiCopilotEnabled"
-const [userMenuOpen, setUserMenuOpen] = useState(false)
-
-const handleLogout = useCallback(() => {
-  localStorage.removeItem("access_token")
-  localStorage.removeItem("refresh_token")
-  window.location.href = "/login"
-}, [])
 
 const NAV_KEYS = [
   { href:"/dashboard", key:"nav.dashboard", icon: LayoutDashboard },
@@ -55,10 +48,18 @@ function DashboardContent({ children }: { children: ReactNode }) {
  const [copilotOpen, setCopilotOpen] = React.useState(false)
  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
  const { toggle: toggleTheme } = useTheme()
- const { t, dir } = useTranslation()
- const { enabled: aiCopilotEnabled } = useAiCopilotEnabled()
- // AI routes intentionally absent from NAV_KEYS — gated via Ask AI / feature flag only
- const navItems = NAV_KEYS
+  const { t, dir } = useTranslation()
+  const { enabled: aiCopilotEnabled } = useAiCopilotEnabled()
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("access_token")
+    localStorage.removeItem("refresh_token")
+    window.location.href = "/login"
+  }, [])
+
+  // AI routes intentionally absent from NAV_KEYS — gated via Ask AI / feature flag only
+  const navItems = NAV_KEYS
 
  const slideAnim = dir ==="rtl" ?"animate-slide-in-right" :"animate-slide-in-left"
 

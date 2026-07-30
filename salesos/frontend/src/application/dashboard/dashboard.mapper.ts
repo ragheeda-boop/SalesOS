@@ -6,7 +6,7 @@ function parseWidget<T>(raw: Record<string, unknown> | null | undefined): Dashbo
  return {
  id: String(raw.id ??""),
  title: String(raw.title ??""),
- status: (raw.status as WidgetStatus) ??"error",
+  status: (raw.status as WidgetStatus) ??"ready",
  lastUpdated: raw.lastUpdated ? String(raw.lastUpdated) : null,
  data: (raw.data as T) ?? null,
  actions: Array.isArray(raw.actions) ? raw.actions as DashboardWidget<T>["actions"] : [],

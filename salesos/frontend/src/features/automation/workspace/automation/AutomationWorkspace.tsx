@@ -6,6 +6,7 @@ import { WorkflowTemplates } from"../../widgets/workflow-builder/WorkflowTemplat
 import { useWorkflows, useWorkflowExecutions } from"@/lib/workflowQueries"
 import { useTranslation } from"@/lib/i18n"
 import type { Workflow, WorkflowExecution } from"@/lib/workflowQueries"
+import { safeArray } from"@/lib/utils"
 
 type AutomationTab ="workflows" |"templates" |"history"
 
@@ -63,7 +64,7 @@ function WorkflowExecutionHistory() {
  className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-1.5 text-sm text-[var(--text-primary)]"
  >
  <option value="">{t("automation.select_workflow")}</option>
- {workflows?.map((w: Workflow) => (
+  {safeArray(workflows).map((w: Workflow) => (
  <option key={w.id} value={w.id}>{w.name}</option>
  ))}
  </select>
@@ -77,13 +78,13 @@ function WorkflowExecutionHistory() {
 
  {isLoading && <div className="animate-pulse h-24 bg-[var(--bg-tertiary)] rounded-xl" />}
 
- {executions && executions.length === 0 && (
+  {safeArray(executions).length === 0 && (
  <div className="rounded-xl border border-dashed border-[var(--border-default)] p-8 text-center">
  <p className="text-sm text-[var(--text-muted)]">{t("automation.no_executions")}</p>
  </div>
  )}
 
- {executions?.map((ex: WorkflowExecution) => (
+  {safeArray(executions).map((ex: WorkflowExecution) => (
  <div key={ex.id} className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-3 space-y-1">
  <div className="flex items-center justify-between">
  <span className={`text-xs font-medium ${

@@ -8,6 +8,7 @@ import { cn, Badge, Avatar, Button } from"@salesos/ui"
 import { BarChart, LineChart, MetricCard } from"@salesos/charts"
 import { DollarSign, TrendingUp, Clock, Target, GripVertical } from"lucide-react"
 import type { Opportunity } from"@/lib/api"
+import { safeArray } from"@/lib/utils"
 import {
  useAdvanceOpportunity,
  useCloseWon,
@@ -274,8 +275,8 @@ export function PipelineWorkspace() {
  api.get("/api/v1/pipeline/forecast"),
  api.get("/api/v1/pipeline/analytics"),
  ])
- if (oppsRes.status ==="fulfilled") setOpportunities(oppsRes.value.data || [])
- if (healthRes.status ==="fulfilled") setHealthMap(healthRes.value.data || [])
+  if (oppsRes.status ==="fulfilled") setOpportunities(safeArray(oppsRes.value.data))
+  if (healthRes.status ==="fulfilled") setHealthMap(safeArray(healthRes.value.data))
  if (forecastRes.status ==="fulfilled") setForecast(forecastRes.value.data)
  if (analyticsRes.status ==="fulfilled") setAnalytics(analyticsRes.value.data)
  } finally {

@@ -4,6 +4,7 @@ import { useState, useEffect } from"react"
 import api from"@/lib/api"
 import { useTranslation } from"@/lib/i18n"
 import { cn } from"@salesos/ui"
+import { safeArray } from"@/lib/utils"
 import { Calendar, Users, AlertTriangle, Lightbulb, Target, ChevronDown, Mail } from"lucide-react"
 
 interface Opportunity {
@@ -60,7 +61,7 @@ export default function MeetingsPage() {
  api.get(`/api/v1/meetings/${oppId}`),
  ])
  if (briefRes.status ==="fulfilled") setBrief(briefRes.value.data)
- if (meetingsRes.status ==="fulfilled") setMeetings(meetingsRes.value.data.records || meetingsRes.value.data || [])
+  if (meetingsRes.status ==="fulfilled") setMeetings(safeArray(meetingsRes.value.data.records || meetingsRes.value.data))
  } catch { /* graceful */}
  setBriefLoading(false)
  }

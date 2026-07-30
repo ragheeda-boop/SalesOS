@@ -9,6 +9,7 @@ import { useCompany } from"@/lib/hooks/companyQueries"
 import { useUpdateCompany, useDeleteCompany, useAddContact } from"@/lib/hooks/mutationHooks"
 import { Button, Modal, ModalTrigger, ModalContent, ModalHeader, ModalBody, ModalFooter, Input } from"@salesos/ui"
 import { Pencil, Trash2, UserPlus, ArrowRight, Loader2, BarChart3 } from"lucide-react"
+import { ErrorBoundary } from"@/components/error-boundary"
 import { ErrorFallback } from"@/components/foundation/error-boundary"
 import { useTranslation } from"@/lib/i18n"
 
@@ -117,9 +118,11 @@ export default function CompanyPage() {
  </div>
  </div>
 
-  <DecisionProvider>
-    <CompanyWorkspace companyId={id} />
-  </DecisionProvider>
+  <ErrorBoundary fallback={<ErrorFallback title="تعذر تحميل لوحة الشركة" message="حدث خطأ غير متوقع. حاول مرة أخرى." />}>
+    <DecisionProvider>
+      <CompanyWorkspace companyId={id} />
+    </DecisionProvider>
+  </ErrorBoundary>
 
  <Modal open={editOpen} onOpenChange={setEditOpen}>
  <ModalContent>

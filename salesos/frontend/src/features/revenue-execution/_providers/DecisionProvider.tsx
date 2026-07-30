@@ -201,11 +201,19 @@ export function DecisionProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useDecision(): DecisionContextValue {
- const ctx = useContext(DecisionCtx)
- if (!ctx) {
- throw new Error('useDecision must be used within a DecisionProvider')
- }
- return ctx
+  const ctx = useContext(DecisionCtx)
+  if (!ctx) {
+    throw new Error('useDecision must be used within a DecisionProvider')
+  }
+  return ctx
+}
+
+export function useDecisionSafe(): DecisionContextValue | null {
+  try {
+    return useDecision()
+  } catch {
+    return null
+  }
 }
 
 import type { DecisionContextData } from '@salesos/widget-sdk'
