@@ -1,9 +1,11 @@
 'use client'
 
-import { createContext, useContext, useMemo, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, useEffect, type ReactNode } from 'react'
 import { useDashboard } from '@/application/dashboard/useDashboard'
 import { deriveWidgets, type WidgetMap } from '@/application/dashboard/widget.store'
 import { dashboardTelemetry } from '../_telemetry/dashboard-telemetry'
+import { setDashboardDependencies } from '@salesos/widget-sdk'
+import { getWidgetConfig } from '@/features/dashboard/_registry/widget-config'
 
 interface DashboardContextValue {
  widgets: WidgetMap
@@ -38,10 +40,17 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
  telemetry.end(isError ? error?.message : undefined)
  }, [isError, error, telemetry])
 
- const value = useMemo<DashboardContextValue>(
- () => ({ widgets, isLoading, isError, error, refetch }),
- [widgets, isLoading, isError, error, refetch]
- )
+  const value = useMemo<DashboardContextValue>(
+	 () => ({ widgets, isLoading, isError, error, refetch }),
+	 [widgets, isLoading, isError, error, refetch]
+	 )
 
- return <DashboardContext.Provider value={value}>{children}</DashboardContext.Provider>
+  useEffect(() => {
+	 setDashboardDependencies(
+		useDashboardContext,
+		(id: string) => getWidgetConfig(id as import('@/features/dashboard/_registry/widget-config').WidgetId),
+	 )
+  }, [])
+
+  return <DashboardContext.Provider value={value}>{children}</DashboardContext.Provider>
 }

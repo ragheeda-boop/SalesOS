@@ -79,7 +79,8 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
     try {
       const res = await client.get<GoogleStatus>("/api/v1/integrations/google/status");
       setStatus(res.data);
-    } catch {
+    } catch (err) {
+      console.warn("[GooglePanel] status fetch failed", err);
       setStatus({ connected: false, account: null, scopes_granted: [], token_valid: false });
     } finally {
       setLoading(false);
@@ -185,6 +186,7 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
   }, [fetchStatus]);
 
   const handleSyncGmail = useCallback(async () => {
+    console.warn("[GooglePanel] handleSyncGmail fired");
     setSyncingGmail(true);
     setError(null);
     setSyncMessage(null);
@@ -208,6 +210,7 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
   }, [fetchStatus, queryClient]);
 
   const handleSyncCalendar = useCallback(async () => {
+    console.warn("[GooglePanel] handleSyncCalendar fired");
     setSyncingCalendar(true);
     setError(null);
     setSyncMessage(null);

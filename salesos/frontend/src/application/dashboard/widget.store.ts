@@ -9,9 +9,14 @@ import type {
  RecentActivityData,
  PipelineDTOData,
  CompanyHealthDTOData,
+ CompanyEngagementDTO,
+ EmailMetricsDTO,
+ CalendarMetricsDTO,
+ FollowupDashboardDTO,
+ CompanyScoringData,
 } from './dashboard.dto'
 
-type WidgetId = 'missionCenter' | 'decisionQueue' | 'intelligenceFeed' | 'aiBrief' | 'marketPulse' | 'recentActivity' | 'pipeline' | 'companyHealth'
+type WidgetId = 'missionCenter' | 'decisionQueue' | 'intelligenceFeed' | 'aiBrief' | 'marketPulse' | 'recentActivity' | 'pipeline' | 'companyHealth' | 'companyEngagement' | 'emailIntelligence' | 'calendarIntelligence' | 'followupCenter' | 'companyScoring'
 
 const WIDGET_META: Record<WidgetId, { id: string; title: string }> = {
  missionCenter: { id: 'mission-center', title: 'Mission Center' },
@@ -21,7 +26,12 @@ const WIDGET_META: Record<WidgetId, { id: string; title: string }> = {
  marketPulse: { id: 'market-pulse', title: 'Market Pulse' },
  recentActivity: { id: 'recent-activity', title: 'Recent Activity' },
  pipeline: { id: 'pipeline', title: 'Pipeline' },
- companyHealth: { id: 'company-health', title: 'Company Health' },
+  companyHealth: { id: 'company-health', title: 'Company Health' },
+  companyEngagement: { id: 'company-engagement', title: 'Company Engagement' },
+  emailIntelligence: { id: 'email-intelligence', title: 'Email Intelligence' },
+  calendarIntelligence: { id: 'calendar-intelligence', title: 'Calendar Intelligence' },
+  followupCenter: { id: 'followup-center', title: 'Follow-up Center' },
+  companyScoring: { id: 'company-scoring', title: 'Company Scoring' },
 }
 
 export type WidgetMap = {
@@ -31,8 +41,13 @@ export type WidgetMap = {
  aiBrief: DashboardWidget<AIBriefData>
  marketPulse: DashboardWidget<MarketPulseData>
  recentActivity: DashboardWidget<RecentActivityData>
- pipeline: DashboardWidget<PipelineDTOData>
- companyHealth: DashboardWidget<CompanyHealthDTOData>
+  pipeline: DashboardWidget<PipelineDTOData>
+  companyHealth: DashboardWidget<CompanyHealthDTOData>
+  companyEngagement: DashboardWidget<CompanyEngagementDTO>
+  emailIntelligence: DashboardWidget<EmailMetricsDTO>
+  calendarIntelligence: DashboardWidget<CalendarMetricsDTO>
+  followupCenter: DashboardWidget<FollowupDashboardDTO>
+  companyScoring: DashboardWidget<CompanyScoringData>
 }
 
 export function deriveStatus(data: unknown, isLoading: boolean, isError: boolean): WidgetStatus {
@@ -100,6 +115,11 @@ export function deriveWidgets(
  marketPulse: resolveFromDto('marketPulse', dto?.marketPulse, isLoading, isError),
  recentActivity: resolveFromDto('recentActivity', dto?.recentActivity, isLoading, isError),
  pipeline: resolveFromDto('pipeline', dto?.pipeline, isLoading, isError),
- companyHealth: resolveFromDto('companyHealth', dto?.companyHealth, isLoading, isError),
- }
+  companyHealth: resolveFromDto('companyHealth', dto?.companyHealth, isLoading, isError),
+  companyEngagement: resolveFromDto('companyEngagement', dto?.companyEngagement, isLoading, isError),
+  emailIntelligence: resolveFromDto('emailIntelligence', dto?.emailIntelligence, isLoading, isError),
+  calendarIntelligence: resolveFromDto('calendarIntelligence', dto?.calendarIntelligence, isLoading, isError),
+  followupCenter: resolveFromDto('followupCenter', dto?.followupCenter, isLoading, isError),
+  companyScoring: resolveFromDto('companyScoring', dto?.companyScoring, isLoading, isError),
+  }
 }

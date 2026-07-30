@@ -1,4 +1,7 @@
 import type { DashboardWidget } from './widget.contract'
+import type { CompanyEngagementDTO, EmailMetricsDTO, CalendarMetricsDTO, FollowupDashboardDTO } from '@/lib/api/types'
+export type { CompanyEngagementDTO, EmailMetricsDTO, CalendarMetricsDTO, FollowupDashboardDTO }
+import type { Score, Recommendation } from '@salesos/decision-platform'
 
 export interface DashboardDTO {
  generatedAt: string | null
@@ -11,8 +14,20 @@ export interface DashboardDTO {
  aiBrief: DashboardWidget<AIBriefData> | null
  marketPulse: DashboardWidget<MarketPulseData> | null
  recentActivity: DashboardWidget<RecentActivityData> | null
- pipeline: DashboardWidget<PipelineDTOData> | null
- companyHealth: DashboardWidget<CompanyHealthDTOData> | null
+  pipeline: DashboardWidget<PipelineDTOData> | null
+  companyHealth: DashboardWidget<CompanyHealthDTOData> | null
+  companyEngagement: DashboardWidget<CompanyEngagementDTO> | null
+  emailIntelligence: DashboardWidget<EmailMetricsDTO> | null
+  calendarIntelligence: DashboardWidget<CalendarMetricsDTO> | null
+  followupCenter: DashboardWidget<FollowupDashboardDTO> | null
+  companyScoring: DashboardWidget<CompanyScoringData> | null
+}
+
+export interface CompanyScoringData {
+  dealScore: number
+  scores: Score[]
+  recommendations: Recommendation[]
+  riskFlags: Score[]
 }
 
 export interface MissionCenterData {
