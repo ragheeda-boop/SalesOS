@@ -1,0 +1,1 @@
+export { CalendarIntelligenceWidget } from './CalendarIntelligenceContainer'

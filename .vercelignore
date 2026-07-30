@@ -1,0 +1,28 @@
+# Directories outside frontend
+docs/
+data/
+engineering-os/
+salesos/backend/
+salesos/infra/
+salesos/scripts/
+
+# Git
+.git/
+
+# Large dev artifacts anywhere
+node_modules/
+**/node_modules/
+**/.next/
+**/__pycache__/
+**/.pytest_cache/
+**/dist/
+**/build/
+
+# Environment files
+.env*
+**/.env*
+
+# Lock files
+**/poetry.lock
+**/package-lock.json
+**/pnpm-lock.yaml

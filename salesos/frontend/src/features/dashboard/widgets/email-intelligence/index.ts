@@ -1,0 +1,1 @@
+export { EmailIntelligenceWidget } from './EmailIntelligenceContainer'

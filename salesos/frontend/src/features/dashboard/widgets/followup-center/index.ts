@@ -1,0 +1,1 @@
+export { FollowupCenterWidget } from './FollowupCenterContainer'

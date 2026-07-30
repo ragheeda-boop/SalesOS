@@ -5,7 +5,7 @@ import Link from"next/link"
 import { usePathname, useRouter } from"next/navigation"
 import { cn } from"@salesos/ui"
 import { AppShell, useAppShell } from"@/components/foundation/app-shell"
-import { Building2, Users, UserCheck, DollarSign, Search, Settings, LayoutDashboard, Bell, Menu, User, Shield, Workflow, Activity, HeartHandshake, X, TrendingUp, BarChart3, Brain, CalendarClock, GitGraph, Video, LineChart, Radio, ListChecks, Bot } from"lucide-react"
+import { Building2, Users, UserCheck, DollarSign, Search, Settings, LayoutDashboard, Bell, Menu, User, Shield, Workflow, Activity, HeartHandshake, X, TrendingUp, BarChart3, Brain, CalendarClock, GitGraph, Video, LineChart, Radio, ListChecks, Bot, LogOut } from"lucide-react"
 import { LazyCommandBar, LazySearchPanel, LazyCopilotPanel } from"@/components/lazy-exports"
 import { MobileNav } from"@/components/foundation/MobileNav"
 import { useTheme } from"@salesos/hooks"
@@ -13,8 +13,6 @@ import { registerBuiltinCommands } from"@/lib/commands"
 import { useTranslation } from"@/lib/i18n"
 import { LanguageSwitcher } from"@/components/foundation/LanguageSwitcher"
 import { useAiCopilotEnabled } from"@/lib/hooks/useAiCopilotEnabled"
-import { LogOut, User, Settings } from"lucide-react"
-
 const [userMenuOpen, setUserMenuOpen] = useState(false)
 
 const handleLogout = useCallback(() => {
