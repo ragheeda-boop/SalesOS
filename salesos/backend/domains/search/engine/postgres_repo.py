@@ -200,8 +200,7 @@ class PostgresSearchRepository(SearchRepository[Any]):
 
         async with self._session_factory() as session:
             await session.execute(
-                sa_text("SET LOCAL statement_timeout = :timeout"),
-                {"timeout": str(int(self._timeout * 1000))},
+                sa_text(f"SET LOCAL statement_timeout = {int(self._timeout * 1000)}")
             )
 
             params: dict[str, Any] = {
@@ -336,8 +335,7 @@ class PostgresSearchRepository(SearchRepository[Any]):
 
         async with self._session_factory() as session:
             await session.execute(
-                sa_text("SET LOCAL statement_timeout = :timeout"),
-                {"timeout": str(int(self._timeout * 1000))},
+                sa_text(f"SET LOCAL statement_timeout = {int(self._timeout * 1000)}")
             )
 
             if cursor_clause:
