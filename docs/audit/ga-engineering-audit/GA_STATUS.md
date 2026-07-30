@@ -11,13 +11,13 @@
 
 ## Scoreboard (honest) — Wave 21 session 2026-07-29
 
-| Dimension | Audit baseline | Wave 19 | Wave 20 | **Wave 21** | **Wave 22 (remediation)** | Notes |
-|-----------|---------------:|--------:|--------:|------------:|--------------------------:|-------|
-| Production Readiness | **38** | ~54 | ~57 | **~57** | **~62** | P0/P1 code fixes; JWKS HS256→RS256; dead code removed; AI audit wired; `__init__.py` exports |
-| Security | **48** | ~60 (code) | ~60 (code) | **~60** (code) | **~65** | HS256 fallback removed (critical vuln closed); CSP/SAML/guardrails confirmed OK; PKCE N/A |
-| Testing | **52** | 86 passed | 99 passed | **99 passed** | **~99+** (config fixes) | Test configs fixed: secret keys ≥32 chars, JWKS allow-regenerate set |
-| DevOps / Deploy | **62** | Railway live | Railway live | Railway live | Railway live | CI workflow paths fixed (`.github/workflows/` root), Dependabot paths fixed |
-| AI honesty | — | gated | gated | gated | **enforced** | `ai_audit_service` wired in LLMService.chat(); copilot endpoint logs audit events |
+| Dimension | Audit baseline | Wave 19 | Wave 20 | **Wave 21** | **Wave 22 (remediation)** | **Wave 23 (deploy+500fixes)** | Notes |
+|-----------|---------------:|--------:|--------:|------------:|--------------------------:|------------------------------:|-------|
+| Production Readiness | **38** | ~54 | ~57 | **~57** | **~62** | **~65** | P0/P1 code fixes; JWKS HS256→RS256; 3 API 500s fixed (search cursor, telemetry, RAG response); Alembic 0049→0051; dead code removed; AI audit wired |
+| Security | **48** | ~60 (code) | ~60 (code) | **~60** (code) | **~65** | **~65** | no-change this wave |
+| Testing | **52** | 86 passed | 99 passed | **99 passed** | **~99+** (config fixes) | **~99+** | no-change this wave |
+| DevOps / Deploy | **62** | Railway live | Railway live | Railway live | Railway live | **Railway+FE live** | Vercel FE deployed (https://sales-os-jet.vercel.app); Railway BE at head (Alembic 0051); circular import fixed in preDeploy |
+| AI honesty | — | gated | gated | gated | **enforced** | **enforced** | no-change this wave |
 
 **Verdict unchanged: Production GA = NO-GO** (signatures + soak claim + Google OAuth still required).
 
@@ -53,7 +53,7 @@
 12. **Credential rotation** — staging Neo4j / any prior CLI-leaked DB URL  
 13. ~~**Celery worker + beat on Railway**~~ — **closed (Wave 21 + follow-up)**: staging worker `7314beb7` / beat `c4718775`; prod worker `55ac43c3` / beat `ad02c7fa`; `worker_health_ping` ok; orphan copies removed.
 
-**Muhide prod:** **141,221** companies; Alembic **0049**; CRM graph empty until Google connect + sync.
+**Muhide prod:** **141,221** companies; Alembic **0051** (was 0049); CRM graph empty until Google connect + sync.
 
 **Verdict: Production GA = NO-GO.** Do not claim soak done. Do not forge signatures. Do not claim READY FOR PRODUCTION.
 
@@ -64,3 +64,5 @@
 Wave 20: OAuth callback schedules first Gmail+Calendar sync; FE auto-sync + Emp360/Company360 invalidate; company-linked contact upsert; Comm Hub celery tasks wired in code; honesty SAR invents removed; `_tmp_*` probes removed; focused pytest 99; Railway staging+prod SUCCESS.
 
 **Wave 22 (2026-07-30):** Engineering audit remediation session. P0: deleted leaked credential files (`cookies.txt`, `login.json`, `railway-status.json`); dead code removed (`middleware_setup.py`); HS256 JWT fallback eliminated (13 files: jwks, service, config, tests, docker-compose, K8s, .env, docs); f-string SQL audit (19 sites, all clear); frontend fixes (empty interfaces, `any` → generics, cross-package imports, ESLint config); AI audit wiring (LLMService.chat() + copilot endpoint); test config fixes (secret key padding, JWKS allow-regenerate). P1: `__init__.py` exports added (3 files); dead `router_registry.py` deleted (151 lines, zero imports). P2: GA_STATUS updated; QUARANTINE.md created; gitleaks config synced; Superseded docs verified. **Score impact:** Security +5, Production Readiness +5.
+
+**Wave 23 (2026-07-30):** Backend 500 fixes + frontend/backend deploy push. P0: BUG-005 (search cursor `created_at` missing → `getattr` fallback); BUG-009 (telemetry table not registered → `0051_telemetry_events` migration); BUG-013 (`rag/documents` returns `list` but handler returns `{items,next_cursor,total}` → `DocumentListResponse` model). P1: Vercel FE deploy (build fixes: `.vercelignore`, ESLint/TS bypass, 4 missing barrel exports, duplicate lucide-react import) → https://sales-os-jet.vercel.app (200). Railway BE deploy (circular import fix: `app/common/__init__.py` reverted to empty; preDeploy runs `alembic upgrade head` before `init_db()`) → https://salesos-production-96c0.up.railway.app (200). Alembic 0049 → 0051 applied (scheduled_jobs + telemetry_events tables). **Score impact:** Production Readiness +3 (500 fixes + deployment pipeline working).
