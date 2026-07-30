@@ -100,7 +100,7 @@ export function useFormFromDefinition<T extends FieldValues>(
 
   return useForm({
     resolver: zodResolver(zodSchema),
-    defaultValues: defaults as T,
+    defaultValues: defaults as any,
     ...options,
   })
 }
