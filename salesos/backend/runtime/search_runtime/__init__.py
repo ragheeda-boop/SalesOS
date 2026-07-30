@@ -321,7 +321,7 @@ class SearchRuntime:
     ) -> SearchResult:
         # Delegate to PostgresSearchRepository when available (VIO-103 compliance)
         if self._search_repo is not None:
-            rows, total = await self._search_repo.search_by_filters(
+            rows, total, _cursor = await self._search_repo.search_by_filters(
                 query=query,
                 tenant_id=tenant_id,
                 filters=filters,
