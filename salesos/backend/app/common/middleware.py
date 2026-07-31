@@ -79,7 +79,10 @@ class BodyCacheMiddleware:
 def _get_client_ip(scope: dict) -> str:
     """Extract client IP from request scope, handling proxies."""
     headers = dict(scope.get("headers", []))
-    for header_name, header_bytes in [(b"x-forwarded-for", b"x-forwarded-for"), (b"x-real-ip", b"x-real-ip")]:
+    for _header_name, header_bytes in [
+        (b"x-forwarded-for", b"x-forwarded-for"),
+        (b"x-real-ip", b"x-real-ip"),
+    ]:
         if header_bytes in headers:
             val = headers[header_bytes].decode().split(",")[0].strip()
             if val:
@@ -222,6 +225,11 @@ class TenantContextMiddleware:
     dependency runs, storing it in a ContextVar so get_db() can SET LOCAL
     app.tenant_id before yielding the session.
 
+    Security (R-22): when both a header and a Bearer token are present, the
+    header value MUST match the token's tenant_id claim — a mismatch is
+    rejected with 403 (fail-closed) instead of trusting the client-controlled
+    header. This blocks cross-tenant RLS impersonation.
+
     This MUST run early in the middleware stack — before any middleware or
     dependency that opens a DB session. Without this, RLS policies return
     zero rows (fail-closed) because the session variable is never set.
@@ -235,32 +243,48 @@ class TenantContextMiddleware:
             return await self.app(scope, receive, send)
 
         headers = dict(scope.get("headers", []))
-        tenant_id = self._resolve_tenant(headers)
+        header_tenant = self._header_tenant(headers)
+        token_tenant = self._token_tenant(headers)
+
+        if header_tenant and token_tenant and header_tenant != token_tenant:
+            response = JSONResponse(
+                status_code=403,
+                content={"detail": "X-Tenant-Id does not match the authenticated user's tenant"},
+            )
+            return await response(scope, receive, send)
+
+        tenant_id = header_tenant or token_tenant
         if tenant_id:
             from app.database import set_current_tenant_id
+
             set_current_tenant_id(tenant_id)
 
         return await self.app(scope, receive, send)
 
     @staticmethod
-    def _resolve_tenant(headers: dict) -> str | None:
+    def _header_tenant(headers: dict) -> str | None:
         raw = headers.get(b"x-tenant-id")
-        if raw:
-            return raw.decode().strip() or None
+        if not raw:
+            return None
+        value = raw.decode().strip()
+        return value or None
 
+    @staticmethod
+    def _token_tenant(headers: dict) -> str | None:
         auth = headers.get(b"authorization")
-        if auth and auth.startswith(b"Bearer "):
-            token = auth[7:].decode().strip()
-            if token:
-                try:
-                    from app.modules.identity.service import decode_access_token
-                    payload = decode_access_token(token)
-                    tid = payload.get("tenant_id")
-                    if tid:
-                        return str(tid)
-                except Exception:
-                    pass
-        return None
+        if not auth or not auth.startswith(b"Bearer "):
+            return None
+        token = auth[7:].decode().strip()
+        if not token:
+            return None
+        try:
+            from app.modules.identity.service import decode_access_token
+
+            payload = decode_access_token(token)
+            tid = payload.get("tenant_id")
+            return str(tid) if tid else None
+        except Exception:
+            return None
 
 
 class SecurityHeadersMiddleware:
@@ -372,8 +396,9 @@ class RequestLoggingMiddleware:
         if auth_header.startswith("Bearer "):
             token = auth_header[7:]
             try:
-                import json as _json
                 import base64
+                import json as _json
+
                 payload_b64 = token.split(".")[1]
                 payload_b64 += "=" * (4 - len(payload_b64) % 4)
                 payload = _json.loads(base64.urlsafe_b64decode(payload_b64))
@@ -403,11 +428,13 @@ class RequestLoggingMiddleware:
                 "client_ip": client_ip,
                 "resource": path,
             }
-            extra.update({
-                "request_id": request_id,
-                "tenant_id": tenant_id,
-                "user_id": user_id,
-            })
+            extra.update(
+                {
+                    "request_id": request_id,
+                    "tenant_id": tenant_id,
+                    "user_id": user_id,
+                }
+            )
             log_level = "warning" if elapsed > 1.0 else "info" if status_code < 500 else "error"
             getattr(logger, log_level)(
                 "%s %s %d (%.1fms)" % (method, path, status_code, elapsed * 1000),
@@ -426,14 +453,16 @@ class CsrfEnforcementMiddleware:
 
     _STATE_CHANGING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
-    _PUBLIC_PATHS = frozenset({
-        "/api/v1/identity/register",
-        "/api/v1/identity/login",
-        "/api/v1/identity/forgot-password",
-        "/api/v1/identity/reset-password",
-        "/api/v1/identity/refresh",
-        "/csrf-token",
-    })
+    _PUBLIC_PATHS = frozenset(
+        {
+            "/api/v1/identity/register",
+            "/api/v1/identity/login",
+            "/api/v1/identity/forgot-password",
+            "/api/v1/identity/reset-password",
+            "/api/v1/identity/refresh",
+            "/csrf-token",
+        }
+    )
 
     def __init__(self, app):
         self.app = app
@@ -460,7 +489,7 @@ class CsrfEnforcementMiddleware:
         cookie_csrf = ""
         for part in cookie_header.split("; "):
             if part.startswith("csrf_token="):
-                cookie_csrf = part[len("csrf_token="):]
+                cookie_csrf = part[len("csrf_token=") :]
                 break
 
         if not csrf_header:
@@ -468,7 +497,7 @@ class CsrfEnforcementMiddleware:
                 status_code=403,
                 content={
                     "detail": "CSRF token missing. Include X-CSRF-Token header.",
-                    "detail_ar": "رمز CSRF مطلوب. يرجى تضمين X-CSRF-Token في الترويسة."
+                    "detail_ar": "رمز CSRF مطلوب. يرجى تضمين X-CSRF-Token في الترويسة.",
                 },
             )
             await response(scope, receive, send)
@@ -479,7 +508,7 @@ class CsrfEnforcementMiddleware:
                 status_code=403,
                 content={
                     "detail": "CSRF token mismatch. Obtain a fresh token from GET /csrf-token.",
-                    "detail_ar": "رمز CSRF غير متطابق. احصل على رمز جديد من GET /csrf-token."
+                    "detail_ar": "رمز CSRF غير متطابق. احصل على رمز جديد من GET /csrf-token.",
                 },
             )
             await response(scope, receive, send)

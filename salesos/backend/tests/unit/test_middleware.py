@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -14,6 +14,7 @@ from app.common.middleware import (
     RateLimitMiddleware,
     RequestIDMiddleware,
     SecurityHeadersMiddleware,
+    TenantContextMiddleware,
     _get_client_ip,
 )
 
@@ -38,8 +39,7 @@ def _make_scope(
 ):
     h = []
     for k, v in (headers or {}).items():
-        h.append((k.encode() if isinstance(k, str) else k,
-                  v.encode() if isinstance(v, str) else v))
+        h.append((k.encode() if isinstance(k, str) else k, v.encode() if isinstance(v, str) else v))
     return {
         "type": "http",
         "path": path,
@@ -50,6 +50,7 @@ def _make_scope(
 
 
 # ── _get_client_ip ────────────────────────────────────────────────────────
+
 
 class TestGetClientIp:
     def test_direct_client(self):
@@ -80,6 +81,7 @@ class TestGetClientIp:
 
 
 # ── BodyCacheMiddleware ──────────────────────────────────────────────────
+
 
 class TestBodyCacheMiddleware:
     @pytest.mark.asyncio
@@ -186,15 +188,14 @@ class TestBodyCacheMiddleware:
     async def test_non_http_scope_passthrough(self):
         """Non-HTTP scopes should pass through without body reading."""
         collected = []
-        app = BodyCacheMiddleware(
-            lambda s, r, send: _collecting_app(collected, s, r, send)
-        )
+        app = BodyCacheMiddleware(lambda s, r, send: _collecting_app(collected, s, r, send))
         await app({"type": "websocket"}, AsyncMock(), AsyncMock())
         assert len(collected) == 1
 
     @pytest.mark.asyncio
     async def test_empty_body(self):
         """POST with empty body should work."""
+
         async def inner_app(scope, receive, send):
             msg = await receive()
             assert msg["body"] == b""
@@ -214,6 +215,7 @@ class TestBodyCacheMiddleware:
 
 # ── CsrfEnforcementMiddleware ────────────────────────────────────────────
 
+
 class TestCsrfMiddleware:
     @pytest.fixture(autouse=True)
     def _testing_mode_off(self):
@@ -224,9 +226,7 @@ class TestCsrfMiddleware:
     @pytest.mark.asyncio
     async def test_get_skips_csrf(self):
         collected = []
-        app = CsrfEnforcementMiddleware(
-            lambda s, r, send: _collecting_app(collected, s, r, send)
-        )
+        app = CsrfEnforcementMiddleware(lambda s, r, send: _collecting_app(collected, s, r, send))
         scope = _make_scope(method="GET")
         await app(scope, AsyncMock(), AsyncMock())
         assert len(collected) == 1
@@ -247,9 +247,7 @@ class TestCsrfMiddleware:
     @pytest.mark.asyncio
     async def test_post_with_matching_csrf_passes(self):
         collected = []
-        app = CsrfEnforcementMiddleware(
-            lambda s, r, send: _collecting_app(collected, s, r, send)
-        )
+        app = CsrfEnforcementMiddleware(lambda s, r, send: _collecting_app(collected, s, r, send))
         scope = _make_scope(
             method="POST",
             headers={
@@ -317,9 +315,7 @@ class TestCsrfMiddleware:
     @pytest.mark.asyncio
     async def test_public_path_skips_csrf(self):
         collected = []
-        app = CsrfEnforcementMiddleware(
-            lambda s, r, send: _collecting_app(collected, s, r, send)
-        )
+        app = CsrfEnforcementMiddleware(lambda s, r, send: _collecting_app(collected, s, r, send))
         scope = _make_scope(method="POST", path="/api/v1/identity/login")
         await app(scope, AsyncMock(), AsyncMock())
         assert len(collected) == 1
@@ -327,14 +323,13 @@ class TestCsrfMiddleware:
     @pytest.mark.asyncio
     async def test_non_http_scope_passthrough(self):
         collected = []
-        app = CsrfEnforcementMiddleware(
-            lambda s, r, send: _collecting_app(collected, s, r, send)
-        )
+        app = CsrfEnforcementMiddleware(lambda s, r, send: _collecting_app(collected, s, r, send))
         await app({"type": "websocket"}, AsyncMock(), AsyncMock())
         assert len(collected) == 1
 
 
 # ── SecurityHeadersMiddleware ────────────────────────────────────────────
+
 
 class TestSecurityHeaders:
     @pytest.mark.asyncio
@@ -373,14 +368,13 @@ class TestSecurityHeaders:
     @pytest.mark.asyncio
     async def test_non_http_scope_passthrough(self):
         collected = []
-        app = SecurityHeadersMiddleware(
-            lambda s, r, send: _collecting_app(collected, s, r, send)
-        )
+        app = SecurityHeadersMiddleware(lambda s, r, send: _collecting_app(collected, s, r, send))
         await app({"type": "websocket"}, AsyncMock(), AsyncMock())
         assert len(collected) == 1
 
 
 # ── RequestIDMiddleware ──────────────────────────────────────────────────
+
 
 class TestRequestIDMiddleware:
     @pytest.mark.asyncio
@@ -445,14 +439,13 @@ class TestRequestIDMiddleware:
     @pytest.mark.asyncio
     async def test_non_http_scope_passthrough(self):
         collected = []
-        app = RequestIDMiddleware(
-            lambda s, r, send: _collecting_app(collected, s, r, send)
-        )
+        app = RequestIDMiddleware(lambda s, r, send: _collecting_app(collected, s, r, send))
         await app({"type": "websocket"}, AsyncMock(), AsyncMock())
         assert len(collected) == 1
 
 
 # ── RateLimitMiddleware ──────────────────────────────────────────────────
+
 
 class TestRateLimitMiddleware:
     @pytest.fixture(autouse=True)
@@ -493,8 +486,8 @@ class TestRateLimitMiddleware:
 
     @pytest.mark.asyncio
     async def test_different_ips_independent(self):
-        collected_a = []
-        collected_b = []
+        _ = []
+        _ = []
         counter = {"count": 0}
 
         async def counting_app(scope, receive, send):
@@ -526,3 +519,122 @@ class TestRateLimitMiddleware:
         app._last_cleanup = 0
         app._cleanup_local(time.time())
         assert "ratelimit:1.2.3.4" not in app._local
+
+
+# ── TenantContextMiddleware ──────────────────────────────────────────────
+
+
+class TestTenantContextMiddleware:
+    @pytest.mark.asyncio
+    async def test_header_sets_tenant_context(self):
+        """X-Tenant-Id header should set the tenant ContextVar."""
+        set_tenant = Mock()
+
+        async def inner_app(scope, receive, send):
+            await send({"type": "http.response.start", "status": 200, "headers": []})
+            await send({"type": "http.response.body"})
+
+        with patch("app.database.set_current_tenant_id", set_tenant):
+            app = TenantContextMiddleware(inner_app)
+            scope = _make_scope(headers={"x-tenant-id": "tenant-456"})
+            await app(scope, AsyncMock(), AsyncMock())
+
+        set_tenant.assert_called_once_with("tenant-456")
+
+    @pytest.mark.asyncio
+    async def test_matching_header_and_token_uses_header_value(self):
+        """Header matching the token tenant_id should pass through."""
+        collected = []
+
+        async def inner_app(scope, receive, send):
+            collected.append(scope)
+            await send({"type": "http.response.start", "status": 200, "headers": []})
+            await send({"type": "http.response.body"})
+
+        with (
+            patch(
+                "app.modules.identity.service.decode_access_token",
+                return_value={"sub": "u1", "tenant_id": "tenant-456"},
+            ),
+            patch("app.database.set_current_tenant_id") as set_tenant,
+        ):
+            app = TenantContextMiddleware(inner_app)
+            scope = _make_scope(
+                headers={
+                    "x-tenant-id": "tenant-456",
+                    "authorization": "Bearer some-token",
+                }
+            )
+            await app(scope, AsyncMock(), AsyncMock())
+
+        assert len(collected) == 1
+        set_tenant.assert_called_once_with("tenant-456")
+
+    @pytest.mark.asyncio
+    async def test_mismatched_header_and_token_rejected_403(self):
+        """Header differing from the token tenant must be rejected (R-22)."""
+        collected = []
+        statuses = []
+
+        async def inner_app(scope, receive, send):
+            collected.append(scope)
+            await send({"type": "http.response.start", "status": 200, "headers": []})
+            await send({"type": "http.response.body"})
+
+        async def send(msg):
+            if msg["type"] == "http.response.start":
+                statuses.append(msg["status"])
+
+        with (
+            patch(
+                "app.modules.identity.service.decode_access_token",
+                return_value={"sub": "u1", "tenant_id": "tenant-999"},
+            ),
+            patch("app.database.set_current_tenant_id") as set_tenant,
+        ):
+            app = TenantContextMiddleware(inner_app)
+            scope = _make_scope(
+                headers={
+                    "x-tenant-id": "tenant-456",
+                    "authorization": "Bearer some-token",
+                }
+            )
+            await app(scope, AsyncMock(), send)
+
+        assert statuses == [403]
+        assert collected == []  # downstream app never invoked
+        set_tenant.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_token_fallback_when_no_header(self):
+        """Without a header, the token tenant_id should be used."""
+        with (
+            patch(
+                "app.modules.identity.service.decode_access_token",
+                return_value={"sub": "u1", "tenant_id": "tenant-456"},
+            ),
+            patch("app.database.set_current_tenant_id") as set_tenant,
+        ):
+            app = TenantContextMiddleware(_dummy_app)
+            scope = _make_scope(headers={"authorization": "Bearer some-token"})
+            await app(scope, AsyncMock(), AsyncMock())
+
+        set_tenant.assert_called_once_with("tenant-456")
+
+    @pytest.mark.asyncio
+    async def test_no_tenant_does_not_set_context(self):
+        """No header and no token should leave the ContextVar untouched."""
+        with patch("app.database.set_current_tenant_id") as set_tenant:
+            app = TenantContextMiddleware(_dummy_app)
+            scope = _make_scope()
+            await app(scope, AsyncMock(), AsyncMock())
+
+        set_tenant.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_non_http_scope_passthrough(self):
+        """Websocket scopes should bypass tenant resolution."""
+        collected = []
+        app = TenantContextMiddleware(lambda s, r, send: _collecting_app(collected, s, r, send))
+        await app({"type": "websocket"}, AsyncMock(), AsyncMock())
+        assert len(collected) == 1

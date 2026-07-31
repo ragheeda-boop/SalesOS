@@ -4,16 +4,19 @@ from typing import Any
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.common.models import Base
+from app.common.models import Base  # noqa: F401
 from app.config import settings
 
 _current_tenant_id: ContextVar[str | None] = ContextVar("current_tenant_id", default=None)
 
+
 def set_current_tenant_id(tenant_id: str | None) -> None:
     _current_tenant_id.set(tenant_id)
 
+
 def get_current_tenant_id_context() -> str | None:
     return _current_tenant_id.get(None)
+
 
 # STORY-02-01 / R-14 remediation (docs/program/RISK_REGISTER.md): request-
 # serving traffic connects through app_database_url (salesos_app — non-
@@ -59,29 +62,33 @@ def get_pool_metrics() -> dict[str, Any]:
         "total_open": pool.checkedout() + pool.checkedin(),
     }
 
+
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
 # Register all models so Alembic can discover them
-import domains.commercial.infrastructure.models  # noqa: F401
-import app.modules.contact.models  # noqa: F401
-import app.modules.identity.models  # noqa: F401
-import app.modules.company.models  # noqa: F401
-import app.modules.entity_resolution.models  # noqa: F401
-import domains.timeline.models  # noqa: F401
-import domains.analytics.infrastructure.models  # noqa: F401
-import app.modules.sso.models  # noqa: F401
-import app.modules.audit.models  # noqa: F401
 import app.modules.api_keys.models  # noqa: F401
+import app.modules.audit.models  # noqa: F401
+import app.modules.company.models  # noqa: F401
+import app.modules.contact.models  # noqa: F401
+import app.modules.entity_resolution.models  # noqa: F401
+import app.modules.identity.models  # noqa: F401
 import app.modules.signal_marketplace.models  # noqa: F401
+import app.modules.sso.models  # noqa: F401
 import app.modules.telemetry.models  # noqa: F401
+import domains.analytics.infrastructure.models  # noqa: F401
+import domains.commercial.infrastructure.models  # noqa: F401
+import domains.timeline.models  # noqa: F401
 
 
 async def get_db() -> AsyncSession:
     async with async_session() as session:
         tenant_id = _current_tenant_id.get(None)
         if tenant_id:
-            await session.execute(sa_text(f"SET LOCAL app.tenant_id = '{tenant_id}'"))
+            await session.execute(
+                sa_text("SET LOCAL app.tenant_id = :tenant_id"),
+                {"tenant_id": tenant_id},
+            )
         try:
             yield session
         except Exception:
@@ -111,6 +118,7 @@ async def init_db():
                 await conn.execute(sa_text(f'CREATE EXTENSION IF NOT EXISTS "{ext_name_dq}"'))
             except Exception as exc:
                 import logging
+
                 logging.getLogger("salesos.db").warning(
                     "Could not create extension %s (%s) — skipping", ext_name, exc
                 )
@@ -119,6 +127,7 @@ async def init_db():
         await _run_migrations_if_needed()
     except Exception as exc:
         import logging
+
         logging.getLogger("salesos.db").error(
             "Alembic migrations failed (%s) — app will start with degraded schema", exc
         )
@@ -126,24 +135,22 @@ async def init_db():
 
 async def _run_migrations_if_needed() -> None:
     """Skip Alembic entirely when database is already at head revision."""
-    from alembic.script import ScriptDirectory
-    from alembic.config import Config as AlembicConfig
-    import os as _os
     import logging
+    import os as _os
+
+    from alembic.config import Config as AlembicConfig
+    from alembic.script import ScriptDirectory
 
     log = logging.getLogger("salesos.db")
     try:
-        _cfg = AlembicConfig(
-            _os.path.join(_os.path.dirname(__file__), "..", "alembic.ini")
-        )
+        _cfg = AlembicConfig(_os.path.join(_os.path.dirname(__file__), "..", "alembic.ini"))
         _cfg.set_main_option("sqlalchemy.url", settings.resolved_database_url)
         _script = ScriptDirectory.from_config(_cfg)
         _head = _script.get_current_head()
         async with owner_engine.connect() as conn:
             from sqlalchemy import text as sa_text
-            _result = await conn.execute(
-                sa_text("SELECT version_num FROM alembic_version LIMIT 1")
-            )
+
+            _result = await conn.execute(sa_text("SELECT version_num FROM alembic_version LIMIT 1"))
             _row = _result.fetchone()
         current = _row[0] if _row is not None else None
         log.info("Alembic current=%s head=%s", current, _head)
@@ -158,6 +165,7 @@ async def _run_migrations_if_needed() -> None:
     log.info("Running Alembic migrations to head…")
     await run_async_migrations()
     log.info("Alembic migrations complete")
+
 
 async def close_db():
     await engine.dispose()
