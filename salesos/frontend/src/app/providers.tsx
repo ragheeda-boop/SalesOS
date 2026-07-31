@@ -6,6 +6,7 @@ import { createFrontendRuntime, type FrontendRuntime } from "@salesos/runtime";
 import { RuntimeContext } from "@salesos/hooks";
 import { ToastViewport } from "@salesos/ui";
 import { I18nProvider } from "@/lib/i18n";
+import { AuthSessionSync } from "@/components/foundation/AuthSessionSync";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -46,6 +47,7 @@ export function Providers({ children }: { children: ReactNode }) {
       <I18nProvider>
         <RuntimeContext.Provider value={runtime}>
           <QueryClientProvider client={queryClient}>
+            <AuthSessionSync />
             {children}
           </QueryClientProvider>
         </RuntimeContext.Provider>
