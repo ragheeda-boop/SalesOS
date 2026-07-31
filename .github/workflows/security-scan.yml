@@ -130,7 +130,7 @@ jobs:
         run: pip install semgrep
       - name: Run semgrep (generic SAST)
         run: |
-          semgrep --config=auto --sarif-output=semgrep-results.sarif --error --severity ERROR,WARNING || true
+          semgrep --config=auto --sarif-output=semgrep-results.sarif --error --severity ERROR --severity WARNING || true
         continue-on-error: true
       - name: Upload semgrep results
         if: always()
