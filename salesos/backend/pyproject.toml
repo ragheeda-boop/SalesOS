@@ -123,6 +123,7 @@ files = ["app/", "sdk/", "modules/", "cli/"]
 asyncio_mode = "auto"
 markers = [
     "e2e: end-to-end tests requiring a live database and full application stack",
+    "contract: OpenAPI / HTTP schema conformance tests (TEST_STRATEGY.md §3)",
 ]
 testpaths = [
     "tests",
