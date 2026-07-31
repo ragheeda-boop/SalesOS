@@ -129,6 +129,11 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v4
+        with:
+          # STORY-03-03: full history, not the default shallow fetch-depth:1
+          # — the diff-coverage gate below needs the merge-base with the PR's
+          # base branch, which a shallow clone doesn't carry.
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -153,10 +158,24 @@ jobs:
           cd salesos/backend
           DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
           poetry run python scripts/check_alembic_head.py
+      - name: Provision salesos_app role (R-14)
+        # docs/program/RISK_REGISTER.md R-14: mirrors the local-dev/staging/prod
+        # least-privilege runtime role in CI's ephemeral Postgres service. The
+        # `services:` container can't bind-mount infra/docker/postgres/init
+        # (it starts before checkout), so this runs the same idempotent SQL
+        # explicitly, after migrations have created the schemas it grants on.
+        run: |
+          cd salesos
+          PGPASSWORD=salesos_test psql -h localhost -U salesos -d salesos_test \
+            -v ON_ERROR_STOP=1 -f infra/docker/postgres/init/02-app-role.sql
+          PGPASSWORD=salesos_test psql -h localhost -U salesos -d salesos_test \
+            -v ON_ERROR_STOP=1 -c "ALTER ROLE salesos_app WITH PASSWORD 'ci_app_role_test_password';"
       - name: Run unit tests with coverage gate
         run: |
           cd salesos/backend
           TEST_DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
+          APP_POSTGRES_USER=salesos_app \
+          APP_POSTGRES_PASSWORD=ci_app_role_test_password \
           poetry run pytest -v \
             --cov=app --cov=domains --cov=sdk --cov=runtime --cov=intelligence \
             --cov-report=term-missing \
@@ -164,6 +183,20 @@ jobs:
             --cov-report=html:htmlcov \
             --cov-fail-under=85 \
             -m "not e2e"
+      - name: Diff coverage gate (new/changed lines only)
+        # STORY-03-03 (Sprint 02): independent of --cov-fail-under=85 above,
+        # which is repo-wide and grandfathers existing Grade D coverage (see
+        # CANONICAL_ARCHITECTURE.md §17) — this one only looks at lines this
+        # PR actually added or changed, per docs/program/TEST_STRATEGY.md §0.
+        # PR-only: a push directly to main/develop has no meaningful base to
+        # diff against.
+        if: github.event_name == 'pull_request'
+        run: |
+          cd salesos/backend
+          poetry run python scripts/check_diff_coverage.py \
+            --coverage-xml coverage.xml \
+            --base-ref ${{ github.event.pull_request.base.sha }} \
+            --fail-under 80
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
@@ -246,11 +279,23 @@ jobs:
           cd salesos/backend
           DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
           poetry run alembic upgrade head
+      - name: Provision salesos_app role (R-14)
+        # docs/program/RISK_REGISTER.md R-14 — see test-backend job above for
+        # why this is an explicit step rather than a docker-entrypoint-initdb.d
+        # mount.
+        run: |
+          cd salesos
+          PGPASSWORD=salesos_test psql -h localhost -U salesos -d salesos_test \
+            -v ON_ERROR_STOP=1 -f infra/docker/postgres/init/02-app-role.sql
+          PGPASSWORD=salesos_test psql -h localhost -U salesos -d salesos_test \
+            -v ON_ERROR_STOP=1 -c "ALTER ROLE salesos_app WITH PASSWORD 'ci_app_role_test_password';"
       - name: Run integration tests
         run: |
           cd salesos/backend
           TEST_DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
           REDIS_URL=redis://localhost:6379/0 \
+          APP_POSTGRES_USER=salesos_app \
+          APP_POSTGRES_PASSWORD=ci_app_role_test_password \
           poetry run pytest -v \
             --cov=app --cov=domains \
             --cov-report=term-missing \

@@ -5,11 +5,33 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app.common.models import Base
 from app.config import settings
 
+# STORY-02-01 / R-14 remediation (docs/program/RISK_REGISTER.md): request-
+# serving traffic connects through app_database_url (salesos_app — non-
+# superuser, non-BYPASSRLS — falls back to resolved_database_url if
+# salesos_app isn't provisioned in this environment yet, so this is safe to
+# deploy everywhere at once). Bootstrap/admin operations (init_db()'s
+# CREATE EXTENSION/CREATE SCHEMA, and the Alembic migration check below)
+# keep using owner_engine (resolved_database_url, the salesos owner role) —
+# CREATE SCHEMA IF NOT EXISTS still requires database-level CREATE
+# privilege even when the schema already exists (verified directly:
+# `psql -U salesos_app` on an *existing* schema still raises "permission
+# denied for database" — Postgres checks the privilege before the
+# existence check), so a restricted role cannot run these calls.
 engine = create_async_engine(
-    settings.resolved_database_url,
+    settings.app_database_url,
     echo=settings.debug,
     pool_size=20,
     max_overflow=10,
+    pool_pre_ping=True,
+    pool_recycle=1800,
+    pool_timeout=30,
+)
+
+owner_engine = create_async_engine(
+    settings.resolved_database_url,
+    echo=settings.debug,
+    pool_size=5,
+    max_overflow=2,
     pool_pre_ping=True,
     pool_recycle=1800,
     pool_timeout=30,
@@ -71,7 +93,7 @@ async def init_db():
         ("uuid-ossp", "uuid-ossp"),
         ("vector", "vector"),
     ]
-    async with engine.begin() as conn:
+    async with owner_engine.begin() as conn:
         for ext_name, ext_name_dq in _extensions:
             try:
                 await conn.execute(sa_text(f'CREATE EXTENSION IF NOT EXISTS "{ext_name_dq}"'))
@@ -105,7 +127,7 @@ async def _run_migrations_if_needed() -> None:
         _cfg.set_main_option("sqlalchemy.url", settings.resolved_database_url)
         _script = ScriptDirectory.from_config(_cfg)
         _head = _script.get_current_head()
-        async with engine.connect() as conn:
+        async with owner_engine.connect() as conn:
             from sqlalchemy import text as sa_text
             _result = await conn.execute(
                 sa_text("SELECT version_num FROM alembic_version LIMIT 1")
@@ -127,3 +149,4 @@ async def _run_migrations_if_needed() -> None:
 
 async def close_db():
     await engine.dispose()
+    await owner_engine.dispose()

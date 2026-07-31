@@ -73,6 +73,38 @@ class Settings(BaseSettings):
             return url
         return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
 
+    # STORY-02-01 / R-14 remediation (docs/program/RISK_REGISTER.md,
+    # docs/program/DECISION_LOG.md DEC-013): `postgres_user` above
+    # (`salesos`) is a Postgres superuser with BYPASSRLS — RLS policies,
+    # however correctly written, provide zero protection under that role.
+    # This is the RUNTIME application's connection only; Alembic
+    # (app/alembic/env.py) and app/database.py's own DDL calls in init_db()
+    # keep using `resolved_database_url` (the owner role) unchanged, since
+    # migrations must create/alter tables, which a restricted role cannot do.
+    app_postgres_user: str = "salesos_app"
+    app_postgres_password: str = ""
+    app_database_url_override: str = ""
+
+    @property
+    def app_database_url(self) -> str:
+        if self.app_database_url_override:
+            url = self.app_database_url_override
+            if "+asyncpg://" in url or url.startswith("postgresql+asyncpg://"):
+                return url
+            if url.startswith("postgresql://"):
+                return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            if url.startswith("postgres://"):
+                return url.replace("postgres://", "postgresql+asyncpg://", 1)
+            return url
+        if not self.app_postgres_password:
+            # salesos_app not provisioned in this environment yet (e.g. CI,
+            # staging, or the prod template haven't run the R-14 remediation
+            # script) — fall back to the owner-role URL so nothing breaks.
+            # This fallback is the entire reason app_database_url is safe to
+            # wire in everywhere at once rather than per-environment.
+            return self.resolved_database_url
+        return f"postgresql+asyncpg://{self.app_postgres_user}:{self.app_postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+
     neo4j_uri: str = "bolt://neo4j:7687"
     neo4j_user: str = "neo4j"
     neo4j_password: str = ""
