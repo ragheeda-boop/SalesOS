@@ -236,6 +236,17 @@
 
 ---
 
+### DEC-041 ΓÇö CI-21 closed: Gitleaks false-positive neutralized (test JWT ΓÇö Bearer stub)
+
+**Date:** 2026-08-01
+**Context:** Security closed a Gitleaks false-positive on `master` commit `b03ffbf` (`b03ffbf3aec1985d540107eeab0e753a2f06ab4a`): `salesos/backend/tests/integration/test_post_middleware.py` held a jwt.io sample JWT in an Authorization header that tripped Gitleaks. Fix replaced it with `Bearer test-fake-token-not-a-jwt` (middleware only needs Bearer present); no `.gitleaksignore`, allowlist, or global Gitleaks disable.
+**Alternatives considered:** (a) allowlist / ignore the path ΓÇö rejected (weakens secret scanning); (b) neutralize the fixture token in-test ΓÇö chosen by Security.
+**Decision:** Register and **CLOSE** story **CI-21** on the Sprint 05 delivery board. Field-verify: Security Scan run `30671556546` on `b03ffbf` ΓÇö **entire workflow SUCCESS** (secret-scan including Gitleaks PASS; sbom, sast-scan, pip-audit, npm-audit, report all SUCCESS).
+**Consequence:** CI-21 **CLOSED**. Program progress: **18/20** complete/closed. Security Scan green on this commit is **not** a claim that the main CI workflow is green ΓÇö **CI GREEN not met**.
+**Status:** Accepted. CI-21 **COMPLETE**. Field-verify label: **build validated** (Security Scan workflow only).
+
+---
+
 ### DEC-038 ΓÇö CI-20 registered: Backend Types (MyPy) remediation ΓÇö 308 errors surfaced; phased, not mechanical this sprint
 
 **Date:** 2026-08-01
@@ -426,5 +437,5 @@
 **Context:** Database Team Alpha STOPPED on STORY-02-01 with evidence (no migration shipped beyond existing 46): policies today = 46 (`ALL_TENANT_TABLES` / `0afbf3e6ae53`); AC target 72 → gap 26; ORM `tenant_id` tables = 55 (9 missing from RLS list); only `company_features` additive-safe; 8 blocked on R-09 (no CREATE TABLE); remainder is Category B join policies (Sprint 04); exact-72 inventory not pinned in code (55+14≈69).
 **Alternatives considered (draft):** (A) pull Category B into STORY-02-01 now + settle canonical 72 inventory; (B) split — close STORY-02-01 at 46+`company_features` (47) with revised AC, Category B → Sprint 04, R-09 tables wait on DB-05; (C) block STORY-02-01 until R-09 CREATE TABLE migrations land for the 8 drift tables, then resume.
 **Decision:** **Not decided.** Full ARB + Documentation package: [`docs/program/decisions/DEC-DRAFT-STORY-02-01-RLS-72.md`](decisions/DEC-DRAFT-STORY-02-01-RLS-72.md). Package **recommends Option B**. Phase 0 exit remains **NO-GO** (Railway R-14 + incomplete 72 unless AC revised).
-**Consequence:** STORY-02-01 marked PARTIAL/STOPPED pending Accept. No Alembic RLS migrations authorized by this entry. Upon human accept, mint Accepted DEC (proposed **DEC-041**) and mark this draft Superseded.
+**Consequence:** STORY-02-01 marked PARTIAL/STOPPED pending Accept. No Alembic RLS migrations authorized by this entry. Upon human accept, mint Accepted DEC (proposed **DEC-042**; DEC-041 is CI-21) and mark this draft Superseded.
 **Status:** **DRAFT** (not Accepted).
