@@ -42,7 +42,7 @@ async def list_jobs(
             progress=j.progress,
             tenant_id=j.tenant_id,
             created_by=j.created_by,
-            payload=j.payload,
+            payload=j.payload or {},
             result=j.result,
             error_message=j.error_message,
             retry_count=j.retry_count,
@@ -77,7 +77,7 @@ async def get_job(job_id: str, repos: AdminRepositories = Depends(get_admin_repo
         progress=job.progress,
         tenant_id=job.tenant_id,
         created_by=job.created_by,
-        payload=job.payload,
+        payload=job.payload or {},
         result=job.result,
         error_message=job.error_message,
         retry_count=job.retry_count,
@@ -87,7 +87,7 @@ async def get_job(job_id: str, repos: AdminRepositories = Depends(get_admin_repo
         completed_at=job.completed_at,
         created_at=job.created_at,
         updated_at=job.updated_at,
-        logs=job.logs,
+        logs=job.logs or [],
     )
 
 

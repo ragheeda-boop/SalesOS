@@ -15,6 +15,7 @@ from ..schemas import (
     LicenseResponse,
     PlanCreate,
     PlanResponse,
+    PlanTier,
     PlanUpdate,
 )
 from ._dependencies import AdminRepositories, get_admin_repos
@@ -46,7 +47,7 @@ async def list_plans(repos: AdminRepositories = Depends(get_admin_repos)):
         PlanResponse(
             id=p.id,
             name=p.name,
-            tier=p.tier,
+            tier=PlanTier(p.tier),
             price_monthly=p.price_monthly,
             price_yearly=p.price_yearly,
             max_users=p.max_users,
@@ -78,7 +79,7 @@ async def create_plan(body: PlanCreate, repos: AdminRepositories = Depends(get_a
     return PlanResponse(
         id=created.id,
         name=created.name,
-        tier=created.tier,
+        tier=PlanTier(created.tier),
         price_monthly=created.price_monthly,
         price_yearly=created.price_yearly,
         max_users=created.max_users,
@@ -102,7 +103,7 @@ async def update_plan(
     return PlanResponse(
         id=plan.id,
         name=plan.name,
-        tier=plan.tier,
+        tier=PlanTier(plan.tier),
         price_monthly=plan.price_monthly,
         price_yearly=plan.price_yearly,
         max_users=plan.max_users,
@@ -135,7 +136,7 @@ async def list_licenses(
                 tenant_name=tenant_name,
                 plan_id=lic.plan_id,
                 plan_name=plan.name if plan else "Unknown",
-                tier=plan.tier if plan else "free",
+                tier=PlanTier(plan.tier) if plan else PlanTier.FREE,
                 is_active=lic.is_active,
                 starts_at=lic.starts_at,
                 ends_at=lic.ends_at,
@@ -169,7 +170,7 @@ async def create_license(
         tenant_name=tenant_name,
         plan_id=created.plan_id,
         plan_name=plan.name if plan else "Unknown",
-        tier=plan.tier if plan else "free",
+        tier=PlanTier(plan.tier) if plan else PlanTier.FREE,
         is_active=created.is_active,
         starts_at=created.starts_at,
         ends_at=created.ends_at,

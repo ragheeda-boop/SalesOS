@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime, timedelta
+from typing import List
 
 from .models import (
     AICostRecord,
@@ -134,7 +135,7 @@ class InMemoryLicenseRepository:
         self._licenses[license.id] = license
         return license
 
-    async def find_by_tenant(self, tenant_id: str | uuid.UUID) -> list[License]:
+    async def find_by_tenant(self, tenant_id: str | uuid.UUID) -> List[License]:
         tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
         return [lic for lic in self._licenses.values() if lic.tenant_id == tid]
 
@@ -321,7 +322,7 @@ class InMemoryFeatureFlagRepository:
         flag.updated_at = datetime.now(UTC)
         return flag
 
-    async def get_tenants_for_flag(self, flag_id: uuid.UUID) -> list[dict]:
+    async def get_tenants_for_flag(self, flag_id: uuid.UUID) -> List[dict]:
         flag = self._flags.get(flag_id)
         if not flag:
             return []
@@ -648,12 +649,15 @@ class InMemoryAICostRepository:
 
 
 class InMemoryHealthRepository:
-    def __init__(self):
-        self._history: list[HealthSnapshot] = []
+    _history: List[HealthSnapshot]
+    _start_time: datetime
+
+    def __init__(self) -> None:
+        self._history = []
         self._start_time = datetime.now(UTC)
         self._seed()
 
-    def _seed(self):
+    def _seed(self) -> None:
         now = datetime.now(UTC)
         statuses = ["healthy", "healthy", "degraded", "healthy", "healthy", "healthy"]
         for i in range(6):
@@ -675,7 +679,8 @@ class InMemoryHealthRepository:
 
     @property
     def uptime_seconds(self) -> float:
-        return (datetime.now(UTC) - self._start_time).total_seconds()
+        delta = datetime.now(UTC) - self._start_time
+        return float(delta.total_seconds())
 
     async def get_detailed_health(self) -> dict:
         now = datetime.now(UTC)

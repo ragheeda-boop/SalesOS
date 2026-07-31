@@ -10,8 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.identity.models import Tenant, User
 
-from .repositories import AdminPostgresRepository
-
 
 @dataclass
 class HealthScoreDimension:
@@ -31,7 +29,10 @@ class CustomerHealthScore:
     calculated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
-class HealthScoreRepository(AdminPostgresRepository):
+class HealthScoreRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
     async def get_adoption_rate(self, tenant_id: str, days: int = 30) -> float:
         _ = datetime.now(UTC) - timedelta(days=days)
         total_users = await self._session.execute(

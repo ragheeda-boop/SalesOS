@@ -48,9 +48,9 @@ async def list_tenants(
 ):
     stmt = select(Tenant)
     if status == "active":
-        stmt = stmt.where(Tenant.is_active is True)
+        stmt = stmt.where(Tenant.is_active.is_(True))
     elif status == "suspended":
-        stmt = stmt.where(Tenant.is_active is False)
+        stmt = stmt.where(Tenant.is_active.is_(False))
     if plan:
         stmt = stmt.where(Tenant.plan == plan)
     if search:

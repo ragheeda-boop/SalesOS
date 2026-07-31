@@ -52,6 +52,8 @@ async def save_config(
     if not result["saved"]:
         raise HTTPException(status_code=422, detail=result["validation"])
     config = await svc.get_latest(tenant_id, body.key)
+    if not config:
+        raise HTTPException(status_code=500, detail="Config saved but could not be retrieved")
     return TenantConfigResponse(
         id=config.id,
         tenant_id=config.tenant_id,
