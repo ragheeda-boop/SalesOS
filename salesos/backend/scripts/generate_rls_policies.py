@@ -41,6 +41,7 @@ ALL_TENANT_TABLES: list[str] = [
     # ── Company / Contact ──
     "companies",                  # app/modules/company/models.py — uuid
     "contacts",                   # app/modules/contact/models.py — uuid
+    "company_features",           # runtime/feature_store — String(36); CREATE TABLE in 0002_feature_store
     # ── Commercial ──
     "commercial_opportunities",   # domains/commercial/infrastructure/models.py — String(36)
     "commercial_stage_entries",   # domains/commercial/infrastructure/models.py — String(36)

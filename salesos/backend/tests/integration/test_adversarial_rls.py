@@ -10,7 +10,7 @@ from sqlalchemy import text
 
 from app.database import engine
 
-POLICY_COUNT = 46
+POLICY_COUNT = 47
 
 
 @pytest_asyncio.fixture(autouse=True)
