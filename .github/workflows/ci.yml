@@ -366,7 +366,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install bandit
-        run: pip install bandit[toml]
+        run: pip install "bandit[toml,sarif]"
       - name: Run bandit
         run: |
           cd salesos/backend

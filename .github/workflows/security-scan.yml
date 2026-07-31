@@ -113,7 +113,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install bandit
-        run: pip install bandit
+        run: pip install "bandit[sarif]"
       - name: Run bandit (Python SAST)
         run: |
           bandit -r salesos/backend/app/ \
