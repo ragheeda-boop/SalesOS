@@ -387,6 +387,28 @@
 
 ---
 
+### DEC-039 — S04-05 closed: adversarial write-protection suite on master; Docker evidence **build validated** (8/8)
+
+**Date:** 2026-08-01
+**Context:** S04-05 (adversarial write-protection tests) landed as commit `8699796` (`tests/integration/test_adversarial_write_protection.py` — 8 tests mirroring the read RLS suite: 6 table write fail-closed paths, tenant_id column rejection, SELECT FOR UPDATE). Initial records close (`029a17a`) incorrectly labeled validation **not validated**. Security/QA Docker evidence: `docker compose exec backend python -m pytest tests/integration/test_adversarial_write_protection.py -v --tb=short` → **8 passed in 4.88s**.
+**Alternatives considered:** (a) leave "not validated" until a future CI gate run — rejected: Docker command evidence already exists; (b) record **build validated** from the Docker run and keep **CI GREEN not met** honesty — approved.
+**Decision:** Close S04-05 as COMPLETE with validation label **build validated** (Docker pytest 8/8 PASS, 4.88s). Does not claim overall CI workflow green or Phase 0 GO.
+**Consequence:** Board S04-05 COMPLETE; program progress absorbs S04-05 into Complete/Closed. Related residual: S04-06 (remaining adversarial coverage) still PENDING. **CI GREEN not met.**
+**Status:** Accepted. S04-05 **COMPLETE**. Field-verify label: **build validated** (Docker suite only).
+
+---
+
+### DEC-040 — Sprint 03 story landings recorded; Phase 0 exit remains **NO-GO**
+
+**Date:** 2026-08-01
+**Context:** Multiple Sprint 03 / adjacency stories landed on `master` while Phase 0 exit is still blocked on Railway R-14 (S04-04) and incomplete STORY-02-01 Railway AC. Landings: STORY-02-03 JWT audience groundwork `2379e5f` (DONE; consumption deferred); STORY-02-02 server-side middleware `3f4b3c8` (PARTIAL — browser/E2E redirect **not validated**); STORY-03-04 OpenAPI contract framework `623077c` (DONE; pytest execution **not validated** at records close); STORY-02-04 §17.2 relabel `932f722` (DONE, docs-only); Card primitives `9577c98` (Jest-debt related progress only — does not close CI-13 remediation).
+**Alternatives considered:** (a) mark Sprint 03 / Phase 0 complete because several stories landed — rejected (Railway R-14 open; CI not green; several validations missing); (b) record honest landings + keep Phase 0 **NO-GO** — approved.
+**Decision:** Update `SPRINT_PLAN/Sprint-03.md` and `EXECUTION_DAG.md` to reflect landed SHAs with honest validation labels. Phase 0 exit = **NO-GO**. Railway authorization remains the DEC-DRAFT-RAILWAY-R14-PHASE0 package (not Accepted).
+**Consequence:** Sprint 03 partial progress recorded without overclaiming GO. Board progress separate (Sprint 05 delivery board). **CI GREEN not met.**
+**Status:** Accepted (records only).
+
+---
+
 ### DEC-DRAFT-RAILWAY-R14-PHASE0 — Phase 0 exit blocked on Railway R-14 human authorization (S04-04)
 
 **Date:** 2026-08-01
@@ -398,11 +420,11 @@
 
 ---
 
-### DEC-DRAFT-RAILWAY-R14-PHASE0 — Phase 0 exit blocked on Railway R-14 human authorization (S04-04)
+### DEC-DRAFT-STORY-02-01-RLS-72 — STORY-02-01 stopped: 72-table AC vs inventory reality
 
 **Date:** 2026-08-01
-**Context:** R-14 is PARTIALLY CLOSED (local/CI/staging/prod-template remediated per DEC-014/DEC-015); Railway remains the sole open environment, left untouched by explicit prior choice. Stop condition S04-04 blocks Phase 0 GO. Board story S04-04 references "DEC-016," but no Accepted DEC-016 exists yet.
-**Alternatives considered (draft):** (A) authorize Railway remediation now per `OPERATIONS_MANUAL.md` §14; (B) formally accept Phase 0 exit without Railway coverage (residual risk; requires DEC-008 carve-out); (C) defer Phase 0 GO indefinitely while continuing local/CI/non-Railway work.
-**Decision:** **Not decided.** Full ARB + Risk Manager package: [`docs/program/decisions/DEC-DRAFT-RAILWAY-R14-PHASE0.md`](decisions/DEC-DRAFT-RAILWAY-R14-PHASE0.md). Package **recommends Option A**; interim posture if unauthorized = Option C (not B).
-**Consequence:** Phase 0 exit remains **NO-GO**. S04-04 remains BLOCKED. No Railway changes authorized by this entry. Upon human accept, mint Accepted **DEC-016** (or next free ID) and mark this draft Superseded.
+**Context:** Database Team Alpha STOPPED on STORY-02-01 with evidence (no migration shipped beyond existing 46): policies today = 46 (`ALL_TENANT_TABLES` / `0afbf3e6ae53`); AC target 72 → gap 26; ORM `tenant_id` tables = 55 (9 missing from RLS list); only `company_features` additive-safe; 8 blocked on R-09 (no CREATE TABLE); remainder is Category B join policies (Sprint 04); exact-72 inventory not pinned in code (55+14≈69).
+**Alternatives considered (draft):** (A) pull Category B into STORY-02-01 now + settle canonical 72 inventory; (B) split — close STORY-02-01 at 46+`company_features` (47) with revised AC, Category B → Sprint 04, R-09 tables wait on DB-05; (C) block STORY-02-01 until R-09 CREATE TABLE migrations land for the 8 drift tables, then resume.
+**Decision:** **Not decided.** Full ARB + Documentation package: [`docs/program/decisions/DEC-DRAFT-STORY-02-01-RLS-72.md`](decisions/DEC-DRAFT-STORY-02-01-RLS-72.md). Package **recommends Option B**. Phase 0 exit remains **NO-GO** (Railway R-14 + incomplete 72 unless AC revised).
+**Consequence:** STORY-02-01 marked PARTIAL/STOPPED pending Accept. No Alembic RLS migrations authorized by this entry. Upon human accept, mint Accepted DEC (proposed **DEC-041**) and mark this draft Superseded.
 **Status:** **DRAFT** (not Accepted).
