@@ -234,6 +234,15 @@
 **Consequence:** `.github/workflows/docker-smoke.yml` updated (workflow only); YAML parse OK. No compose file, no grafana config, no secrets handling, no other service touched. Committed locally (no push); Phase 2 (controlled push/CI) pending executive approval.
 **Status:** Accepted. Phase 1 result: **SUCCESS — READY FOR PHASE 2.**
 
+### DEC-029 — CI-05 closed: Trivy SARIF category collision resolved — both uploads green in `secret-scan`
+
+**Date:** 2026-07-31
+**Context:** Phase 2 authorized for the CI-05 Phase 1 commit (actual SHA **`f34bef2`**; the earlier "c0f2199" in the Phase 1 report was inaccurate — corrected in the close records). Change: distinct `category` per `upload-sarif` step in `secret-scan` (`trivy-fs` for fs scan, `trivy-config` for IaC config scan).
+**Alternatives considered:** None — GitHub's error message itself prescribes the `category` fix; audit confirmed the Trivy pair in `secret-scan` was the only tool/category collision across all 7 `upload-sarif@v3` occurrences in the repo.
+**Decision:** Pushed `f34bef2` (also carried CI-04 close records `949dbf4`). Evidence — Security Scan run `30659372944`, `secret-scan`: Set up, Checkout, forbidden-files check, Gitleaks, Trivy fs scan, **`Upload Trivy results` SUCCESS**, Trivy config scan, **`Upload Trivy config results` SUCCESS** → job conclusion **SUCCESS**. Log scan: **0** occurrences of `Aborting upload` / `only one run` / `tool/category`. IaC SARIF now visible in code scanning (previously silently lost).
+**Consequence:** CI-05 **CLOSED** (all Phase 2 ACs met). No regression. Program progress: **8/19**. Remaining security-scan reds are independent items: semgrep upload (CI-18), Trivy fs findings in CI workflow (triage #3). Board + DECISION_LOG updated; committed locally (no push).
+**Status:** Accepted. CI-05 **COMPLETE.**
+
 ### DEC-028 — CI-04 closed: Bandit SARIF uploads fixed in both workflows; gate now executes and surfaces a pre-existing high finding (B324)
 
 **Date:** 2026-07-31
