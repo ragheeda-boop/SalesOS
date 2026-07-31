@@ -37,9 +37,11 @@ describe("CopilotPanel", () => {
 
   it("calls onClose when close button is clicked", () => {
     const onClose = jest.fn();
-    render(<CopilotPanel open={true} onClose={onClose} />);
-    const buttons = screen.getAllByRole("button");
-    fireEvent.click(buttons[buttons.length - 2]);
+    const { container } = render(<CopilotPanel open={true} onClose={onClose} />);
+    // Close control is the unlabeled X in the header (not send / feedback).
+    const closeBtn = container.querySelector("svg.lucide-x")?.closest("button");
+    expect(closeBtn).toBeTruthy();
+    fireEvent.click(closeBtn!);
     expect(onClose).toHaveBeenCalled();
   });
 
