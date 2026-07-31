@@ -1,21 +1,20 @@
 """Revenue Workspace REST API — unified dashboard endpoint."""
+
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
 from app.common.cache import cached
 from app.common.rate_limit import rate_limit_dep
-from sdk.permissions import PermissionAction
+from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
 from runtime.pipeline_analytics import PipelineAnalytics
+from sdk.permissions import PermissionAction
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    dependencies=[Depends(rate_limit_dep("revenue", 15, 60))]
-)
+router = APIRouter(dependencies=[Depends(rate_limit_dep("revenue", 15, 60))])
 
 
 @router.get("/revenue/dashboard")
@@ -81,4 +80,4 @@ async def revenue_dashboard(
         }
     except Exception as exc:
         logger.error("revenue_dashboard failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc

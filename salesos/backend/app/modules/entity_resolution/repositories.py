@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import select, func, update, delete
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from sdk.database import SqlAlchemyRepository
 
-from .models import DeadLetterRecord, EntityResolutionConflict, EntityResolutionLog, GoldenRecord
+from .models import DeadLetterRecord, EntityResolutionConflict, GoldenRecord
 
 
 class GoldenRecordRepository(SqlAlchemyRepository[GoldenRecord, uuid.UUID]):
@@ -31,15 +31,20 @@ class GoldenRecordRepository(SqlAlchemyRepository[GoldenRecord, uuid.UUID]):
     async def find_by_tenant(
         self, tenant_id: uuid.UUID, page: int = 1, page_size: int = 20
     ) -> tuple[list[GoldenRecord], int]:
-        base = select(GoldenRecord).where(
-            GoldenRecord.tenant_id == tenant_id
-        ).order_by(GoldenRecord.updated_at.desc())
+        base = (
+            select(GoldenRecord)
+            .where(GoldenRecord.tenant_id == tenant_id)
+            .order_by(GoldenRecord.updated_at.desc())
+        )
 
-        count = await self._session.scalar(
-            select(func.count()).select_from(GoldenRecord).where(
-                GoldenRecord.tenant_id == tenant_id
+        count = (
+            await self._session.scalar(
+                select(func.count())
+                .select_from(GoldenRecord)
+                .where(GoldenRecord.tenant_id == tenant_id)
             )
-        ) or 0
+            or 0
+        )
 
         stmt = base.offset((page - 1) * page_size).limit(page_size)
         result = await self._session.execute(stmt)
@@ -58,11 +63,14 @@ class GoldenRecordRepository(SqlAlchemyRepository[GoldenRecord, uuid.UUID]):
         return list(result.scalars().all())
 
     async def count_by_tenant(self, tenant_id: uuid.UUID) -> int:
-        return await self._session.scalar(
-            select(func.count()).select_from(GoldenRecord).where(
-                GoldenRecord.tenant_id == tenant_id
+        return (
+            await self._session.scalar(
+                select(func.count())
+                .select_from(GoldenRecord)
+                .where(GoldenRecord.tenant_id == tenant_id)
             )
-        ) or 0
+            or 0
+        )
 
 
 class ConflictRepository(SqlAlchemyRepository[EntityResolutionConflict, uuid.UUID]):
@@ -88,8 +96,10 @@ class ConflictRepository(SqlAlchemyRepository[EntityResolutionConflict, uuid.UUI
         base = select(EntityResolutionConflict).where(
             EntityResolutionConflict.tenant_id == tenant_id
         )
-        count_base = select(func.count()).select_from(EntityResolutionConflict).where(
-            EntityResolutionConflict.tenant_id == tenant_id
+        count_base = (
+            select(func.count())
+            .select_from(EntityResolutionConflict)
+            .where(EntityResolutionConflict.tenant_id == tenant_id)
         )
 
         if status:
@@ -97,19 +107,26 @@ class ConflictRepository(SqlAlchemyRepository[EntityResolutionConflict, uuid.UUI
             count_base = count_base.where(EntityResolutionConflict.status == status)
 
         total = await self._session.scalar(count_base) or 0
-        stmt = base.order_by(EntityResolutionConflict.created_at.desc()).offset(
-            (page - 1) * page_size
-        ).limit(page_size)
+        stmt = (
+            base.order_by(EntityResolutionConflict.created_at.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
         result = await self._session.execute(stmt)
         return list(result.scalars().all()), total
 
     async def count_open(self, tenant_id: uuid.UUID) -> int:
-        return await self._session.scalar(
-            select(func.count()).select_from(EntityResolutionConflict).where(
-                EntityResolutionConflict.tenant_id == tenant_id,
-                EntityResolutionConflict.status == "open",
+        return (
+            await self._session.scalar(
+                select(func.count())
+                .select_from(EntityResolutionConflict)
+                .where(
+                    EntityResolutionConflict.tenant_id == tenant_id,
+                    EntityResolutionConflict.status == "open",
+                )
             )
-        ) or 0
+            or 0
+        )
 
 
 class DeadLetterRepository:
@@ -154,7 +171,11 @@ class DeadLetterRepository:
     ) -> tuple[list[DeadLetterRecord], int]:
         tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
         query = select(DeadLetterRecord).where(DeadLetterRecord.tenant_id == tid)
-        count_query = select(func.count()).select_from(DeadLetterRecord).where(DeadLetterRecord.tenant_id == tid)
+        count_query = (
+            select(func.count())
+            .select_from(DeadLetterRecord)
+            .where(DeadLetterRecord.tenant_id == tid)
+        )
 
         if status:
             query = query.where(DeadLetterRecord.status == status)
@@ -198,7 +219,7 @@ class DeadLetterRepository:
             .where(DeadLetterRecord.id == entry_id)
             .values(
                 retry_count=DeadLetterRecord.retry_count + 1,
-                last_retry_at=datetime.now(timezone.utc),
+                last_retry_at=datetime.now(UTC),
             )
         )
         await self._session.execute(stmt)
@@ -219,7 +240,7 @@ class DeadLetterRepository:
                 status="failed",
                 error_message=error_message,
                 retry_count=DeadLetterRecord.retry_count + 1,
-                last_retry_at=datetime.now(timezone.utc),
+                last_retry_at=datetime.now(UTC),
             )
         )
         await self._session.execute(stmt)

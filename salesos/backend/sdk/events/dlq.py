@@ -11,10 +11,7 @@ from __future__ import annotations
 import json
 import logging
 from abc import ABC, abstractmethod
-import asyncio
-from collections.abc import Callable
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
 
 from sdk.events.base import DomainEvent
 from sdk.events.kafka_consumer import KafkaConsumerBase
@@ -42,7 +39,7 @@ class DLQEntry:
         self.topic = topic
         self.error = error
         self.retry_count = retry_count
-        self.failed_at = failed_at or datetime.now(timezone.utc)
+        self.failed_at = failed_at or datetime.now(UTC)
 
     def to_dict(self) -> dict:
         return {
@@ -108,13 +105,20 @@ class DLQHandler:
         if attempt < self._max_retries:
             logger.warning(
                 "Event %s (%s) failed (attempt %d/%d): %s — will retry",
-                event.event_id, event.event_type, attempt, self._max_retries, error,
+                event.event_id,
+                event.event_type,
+                attempt,
+                self._max_retries,
+                error,
             )
             return False
 
         logger.error(
             "Event %s (%s) failed after %d attempts — sending to DLQ: %s",
-            event.event_id, event.event_type, self._max_retries, error,
+            event.event_id,
+            event.event_type,
+            self._max_retries,
+            error,
         )
 
         await self._send_to_dlq(event, original_topic, error)
@@ -217,13 +221,16 @@ class RetryableConsumer(KafkaConsumerBase, ABC):
                 if attempt < self._dlq_handler._max_retries:
                     logger.warning(
                         "RetryableConsumer: attempt %d/%d failed for %s: %s",
-                        attempt, self._dlq_handler._max_retries,
-                        event.event_id, error,
+                        attempt,
+                        self._dlq_handler._max_retries,
+                        event.event_id,
+                        error,
                     )
                 else:
                     logger.error(
                         "RetryableConsumer: all %d attempts failed for %s — DLQ",
-                        self._dlq_handler._max_retries, event.event_id,
+                        self._dlq_handler._max_retries,
+                        event.event_id,
                     )
                     await self._dlq_handler._send_to_dlq(event, topic, error)
                     raise
@@ -262,7 +269,7 @@ class DLQReader:
             consumer = AIOKafkaConsumer(
                 DLQ_TOPIC,
                 bootstrap_servers=self._bootstrap,
-                group_id=f"{self._group_id}-{datetime.now(timezone.utc).timestamp()}",
+                group_id=f"{self._group_id}-{datetime.now(UTC).timestamp()}",
                 auto_offset_reset="earliest",
                 enable_auto_commit=False,
             )
@@ -280,10 +287,14 @@ class DLQReader:
                     event = DomainEvent(
                         event_id=event_dict.get("id", ""),
                         event_type=event_dict.get("type", ""),
-                        aggregate_id=event_dict.get("subject", "").split("/")[-1] if "/" in (event_dict.get("subject", "")) else "",
+                        aggregate_id=event_dict.get("subject", "").split("/")[-1]
+                        if "/" in (event_dict.get("subject", ""))
+                        else "",
                         aggregate_type=event_dict.get("source", "").replace("salesos.", ""),
                         tenant_id=event_dict.get("data", {}).get("tenant_id", ""),
-                        occurred_at=datetime.fromisoformat(event_dict.get("time", datetime.now(timezone.utc).isoformat())),
+                        occurred_at=datetime.fromisoformat(
+                            event_dict.get("time", datetime.now(UTC).isoformat())
+                        ),
                         data=event_dict.get("data", {}).get("payload", {}),
                         metadata=event_dict.get("data", {}).get("metadata", {}),
                     )
@@ -292,7 +303,9 @@ class DLQReader:
                         topic=payload.get("original_topic", ""),
                         error=payload.get("error", ""),
                         retry_count=payload.get("retry_count", 0),
-                        failed_at=datetime.fromisoformat(payload.get("failed_at", datetime.now(timezone.utc).isoformat())),
+                        failed_at=datetime.fromisoformat(
+                            payload.get("failed_at", datetime.now(UTC).isoformat())
+                        ),
                     )
                     entries.append(entry)
             except TimeoutError:

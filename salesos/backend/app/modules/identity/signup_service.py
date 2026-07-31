@@ -1,17 +1,15 @@
-import uuid
-import secrets
-import hashlib
 import logging
-from datetime import datetime, timedelta, timezone
+import secrets
+import uuid
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import DuplicateError
-from app.config import settings
 from app.modules.identity.models import Tenant, User
 from app.modules.identity.repositories import TenantRepository, UserRepository
-from app.modules.identity.service import IdentityService, hash_password
+from app.modules.identity.service import hash_password
 from sdk.audit import AuditTrail
 from sdk.events import EventBus
 from sdk.events.domain_events import TenantCreated, UserRegistered
@@ -76,7 +74,7 @@ class SignupService:
         VERIFICATION_TOKENS[token] = {
             "user_id": str(user.id),
             "email": email,
-            "expires_at": datetime.now(timezone.utc) + timedelta(hours=24),
+            "expires_at": datetime.now(UTC) + timedelta(hours=24),
         }
 
         audit = AuditTrail(self.db)
@@ -126,7 +124,7 @@ class SignupService:
         data = VERIFICATION_TOKENS.get(token)
         if not data:
             raise ValueError("Invalid verification token")
-        if data["expires_at"] < datetime.now(timezone.utc):
+        if data["expires_at"] < datetime.now(UTC):
             del VERIFICATION_TOKENS[token]
             raise ValueError("Verification token expired")
 
@@ -134,7 +132,7 @@ class SignupService:
             user = await self._user_repo.get(uuid.UUID(data["user_id"]))
         except Exception:
             del VERIFICATION_TOKENS[token]
-            raise ValueError("User not found")
+            raise ValueError("User not found") from None
 
         user.is_verified = True
         await self.db.flush()
@@ -156,7 +154,7 @@ class SignupService:
         VERIFICATION_TOKENS[new_token] = {
             "user_id": str(user.id),
             "email": email,
-            "expires_at": datetime.now(timezone.utc) + timedelta(hours=24),
+            "expires_at": datetime.now(UTC) + timedelta(hours=24),
         }
         return {
             "message": "Verification email resent",

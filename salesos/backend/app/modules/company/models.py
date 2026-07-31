@@ -1,13 +1,12 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 
-from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Index, Integer, String, Text
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy import Boolean, Date, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.common.models import BaseModel
 # Import Contact for relationship resolution (bypasses string-name conflict)
-from sqlalchemy.orm import relationship as _sa_relationship
+from app.common.models import BaseModel
 
 
 class Source(BaseModel):
@@ -75,8 +74,12 @@ class Company(BaseModel):
     tags: Mapped[list | None] = mapped_column(JSONB, default=list)
     extra_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB, default=dict)
 
-    branches: Mapped[list["Branch"]] = relationship("Branch", back_populates="company", lazy="selectin", cascade="all, delete-orphan")
-    licenses: Mapped[list["License"]] = relationship("License", back_populates="company", lazy="selectin", cascade="all, delete-orphan")
+    branches: Mapped[list["Branch"]] = relationship(
+        "Branch", back_populates="company", lazy="selectin", cascade="all, delete-orphan"
+    )
+    licenses: Mapped[list["License"]] = relationship(
+        "License", back_populates="company", lazy="selectin", cascade="all, delete-orphan"
+    )
     contacts: Mapped[list["Contact"]] = relationship(
         "app.modules.contact.models.Contact",
         back_populates="company",
@@ -135,9 +138,7 @@ class License(BaseModel):
 
     company: Mapped[Company] = relationship("Company", back_populates="licenses")
 
-    __table_args__ = (
-        Index("ix_licenses_expiry_status", "expiry_date", "status"),
-    )
+    __table_args__ = (Index("ix_licenses_expiry_status", "expiry_date", "status"),)
 
     def __repr__(self) -> str:
         return f"<License {self.license_number}: {self.license_type}>"

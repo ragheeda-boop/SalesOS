@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import DateTime, Integer, String, Text, text, func
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from sdk.events.base import DomainEvent, EventStore
@@ -47,9 +47,7 @@ class PostgresEventStore(EventStore):
             },
         )
 
-    async def read_stream(
-        self, aggregate_type: str, aggregate_id: str
-    ) -> list[DomainEvent]:
+    async def read_stream(self, aggregate_type: str, aggregate_id: str) -> list[DomainEvent]:
         stmt = text("""
             SELECT * FROM domain_events
             WHERE aggregate_type = :aggregate_type

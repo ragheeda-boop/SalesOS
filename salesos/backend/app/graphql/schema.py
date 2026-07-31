@@ -2,12 +2,12 @@ from typing import Any
 
 import strawberry
 from fastapi import HTTPException, Request
-from strawberry.extensions import QueryDepthLimiter, MaxTokensLimiter
+from strawberry.extensions import MaxTokensLimiter, QueryDepthLimiter
 from strawberry.fastapi import GraphQLRouter
 
 from app.config import settings
-from app.graphql.query import Query
 from app.graphql.mutation import Mutation
+from app.graphql.query import Query
 from app.modules.identity.service import decode_access_token
 
 
@@ -18,7 +18,7 @@ async def get_context(request: Request) -> dict[str, Any]:
     try:
         payload = decode_access_token(auth.replace("Bearer ", ""))
     except Exception:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+        raise HTTPException(status_code=401, detail="Invalid or expired token") from None
     tenant_id = request.headers.get("x-tenant-id", "")
     token_tenant = payload.get("tenant_id")
     if token_tenant and str(token_tenant) != tenant_id:

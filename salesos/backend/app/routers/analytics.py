@@ -2,50 +2,38 @@
 
 from __future__ import annotations
 
+import io
 import logging
 import uuid
-from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-import io
 
 from app.common.exceptions import safe_error_detail
-from app.dependencies import get_current_tenant_id, get_current_user_id, get_db_session, verify_token
-from domains.analytics.cubes import ActivityCube, ForecastCube, PipelineCube, TeamCube
+from app.dependencies import (
+    get_current_tenant_id,
+    get_current_user_id,
+    get_db_session,
+    verify_token,
+)
 from domains.analytics.engine import CUBE_REGISTRY, ReportEngine
+from domains.analytics.infrastructure.postgres_repository import PostgresReportRepository
 from domains.analytics.models import (
     CubeType,
     Granularity,
     OutputFormat,
     PermissionLevel,
     ReportDefinition,
-    ReportExecution,
-    ReportShare,
-    ReportStatus,
     ScheduleCadence,
-    ScheduledReport,
     VisualizationType,
-    AnalyticsCube,
 )
-from domains.analytics.infrastructure.postgres_repository import PostgresReportRepository
 from domains.analytics.schemas import (
-    ExecutionListResponse,
-    ExecutionResponse,
-    ExportRequest,
-    ExportResponse,
-    ExecuteDueSchedulesResponse,
     ReportCreate,
-    ReportListResponse,
-    ReportResponse,
     ReportShareCreate,
-    ReportShareResponse,
     ReportUpdate,
     ScheduledReportCreate,
-    ScheduledReportResponse,
     ScheduledReportUpdate,
-    UnifiedAnalyticsResponse,
 )
 from domains.analytics.templates import STANDARD_TEMPLATES
 
@@ -64,7 +52,9 @@ def _get_engine(db) -> ReportEngine:
 
 @router.get("/analytics")
 async def get_unified_analytics(
-    domain: str | None = Query(None, description="Filter by domain: pipeline, forecast, team, activity"),
+    domain: str | None = Query(
+        None, description="Filter by domain: pipeline, forecast, team, activity"
+    ),
     tenant_id: str = Depends(get_current_tenant_id),
     db=Depends(get_db_session),
     _auth=Depends(verify_token),
@@ -75,7 +65,7 @@ async def get_unified_analytics(
         metrics = await engine.get_unified_analytics(tenant_id, domain)
     except Exception as exc:
         logger.exception("Unified analytics failed")
-        raise HTTPException(status_code=500, detail=safe_error_detail(exc))
+        raise HTTPException(status_code=500, detail=safe_error_detail(exc)) from exc
     return {
         "total_deals": metrics.total_deals,
         "total_revenue": metrics.total_revenue,
@@ -100,13 +90,15 @@ async def list_cubes(
 ):
     cubes = []
     for cube_type, cube in CUBE_REGISTRY.items():
-        cubes.append({
-            "name": cube.name,
-            "type": cube_type.value,
-            "dimensions": cube.dimensions,
-            "measures": cube.measures,
-            "granularity": cube.granularity.value,
-        })
+        cubes.append(
+            {
+                "name": cube.name,
+                "type": cube_type.value,
+                "dimensions": cube.dimensions,
+                "measures": cube.measures,
+                "granularity": cube.granularity.value,
+            }
+        )
     return {"cubes": cubes}
 
 
@@ -120,7 +112,7 @@ async def query_cube(
     try:
         cube_type = CubeType(cube_name)
     except ValueError:
-        raise HTTPException(status_code=404, detail=f"Unknown cube: {cube_name}")
+        raise HTTPException(status_code=404, detail=f"Unknown cube: {cube_name}") from None
 
     cube = CUBE_REGISTRY.get(cube_type)
     if cube is None:
@@ -131,7 +123,9 @@ async def query_cube(
     try:
         granularity = Granularity(granularity_str)
     except ValueError:
-        raise HTTPException(status_code=422, detail=f"Invalid granularity: {granularity_str}")
+        raise HTTPException(
+            status_code=422, detail=f"Invalid granularity: {granularity_str}"
+        ) from None  # noqa: E501
 
     try:
         rows = await cube.query(
@@ -139,7 +133,7 @@ async def query_cube(
         )
     except Exception as exc:
         logger.exception("Cube query failed: %s", cube_name)
-        raise HTTPException(status_code=500, detail=safe_error_detail(exc))
+        raise HTTPException(status_code=500, detail=safe_error_detail(exc)) from exc
 
     return {"cube": cube_name, "rows": rows, "total": len(rows)}
 
@@ -194,11 +188,13 @@ async def create_report(
     try:
         cube_type = CubeType(body.type)
     except ValueError:
-        raise HTTPException(status_code=422, detail=f"Invalid type: {body.type}")
+        raise HTTPException(status_code=422, detail=f"Invalid type: {body.type}") from None
     try:
         viz_type = VisualizationType(body.visualization_type)
     except ValueError:
-        raise HTTPException(status_code=422, detail=f"Invalid visualization_type: {body.visualization_type}")
+        raise HTTPException(
+            status_code=422, detail=f"Invalid visualization_type: {body.visualization_type}"
+        ) from None
 
     report = ReportDefinition(
         id=str(uuid.uuid4()),
@@ -318,13 +314,13 @@ async def share_report(
     try:
         permission = PermissionLevel(body.permission)
     except ValueError:
-        raise HTTPException(status_code=422, detail=f"Invalid permission: {body.permission}")
+        raise HTTPException(
+            status_code=422, detail=f"Invalid permission: {body.permission}"
+        ) from None  # noqa: E501
     try:
-        share = await engine.share_report(
-            report_id, body.user_id, permission, shared_by=user_id
-        )
+        share = await engine.share_report(report_id, body.user_id, permission, shared_by=user_id)
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=safe_error_detail(exc))
+        raise HTTPException(status_code=404, detail=safe_error_detail(exc)) from exc
     return {
         "id": share.id,
         "report_id": share.report_id,
@@ -351,7 +347,7 @@ async def list_shares(
             offset = int(cursor)
         except (ValueError, TypeError):
             offset = 0
-    sliced = all_shares[offset:offset + limit]
+    sliced = all_shares[offset : offset + limit]
     next_cursor = str(offset + limit) if offset + limit < len(all_shares) else None
     return {
         "shares": [
@@ -402,7 +398,7 @@ async def execute_report(
         execution = await engine.generate(report_id, tenant_id)
     except Exception as exc:
         logger.exception("Report execution failed: %s", report_id)
-        raise HTTPException(status_code=500, detail=safe_error_detail(exc))
+        raise HTTPException(status_code=500, detail=safe_error_detail(exc)) from exc
     return {
         "execution_id": execution.id,
         "status": execution.status.value,
@@ -459,7 +455,9 @@ async def download_execution(
     try:
         result = await engine.export(execution_id)
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=safe_error_detail(exc, "Export not found"))
+        raise HTTPException(
+            status_code=404, detail=safe_error_detail(exc, "Export not found")
+        ) from exc  # noqa: E501
     return result
 
 
@@ -479,20 +477,18 @@ async def export_report(
     try:
         output_format = OutputFormat(format)
     except ValueError:
-        raise HTTPException(status_code=422, detail=f"Invalid format: {format}")
+        raise HTTPException(status_code=422, detail=f"Invalid format: {format}") from None
     try:
         result = await engine.export_report(report_id, tenant_id, output_format)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=safe_error_detail(exc))
+        raise HTTPException(status_code=400, detail=safe_error_detail(exc)) from exc
 
     if output_format == OutputFormat.CSV:
         csv_bytes = result["content"].encode("utf-8")
         return StreamingResponse(
             io.BytesIO(csv_bytes),
             media_type="text/csv",
-            headers={
-                "Content-Disposition": f'attachment; filename="report_{report_id}.csv"'
-            },
+            headers={"Content-Disposition": f'attachment; filename="report_{report_id}.csv"'},
         )
     return {
         "content": result["content"],
@@ -515,13 +511,11 @@ async def create_schedule(
     try:
         cadence = ScheduleCadence(body.cadence)
     except ValueError:
-        raise HTTPException(status_code=422, detail=f"Invalid cadence: {body.cadence}")
+        raise HTTPException(status_code=422, detail=f"Invalid cadence: {body.cadence}") from None
     try:
-        schedule = await engine.create_schedule(
-            tenant_id, body.report_id, cadence, body.recipients
-        )
+        schedule = await engine.create_schedule(tenant_id, body.report_id, cadence, body.recipients)
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=safe_error_detail(exc))
+        raise HTTPException(status_code=404, detail=safe_error_detail(exc)) from exc
     return {
         "id": schedule.id,
         "report_id": schedule.report_id,
@@ -548,7 +542,7 @@ async def list_schedules(
             offset = int(cursor)
         except (ValueError, TypeError):
             offset = 0
-    sliced = all_schedules[offset:offset + limit]
+    sliced = all_schedules[offset : offset + limit]
     next_cursor = str(offset + limit) if offset + limit < len(all_schedules) else None
     return {
         "schedules": [
@@ -611,7 +605,7 @@ async def update_schedule(
             schedule_id, cadence=cadence, recipients=body.recipients, enabled=body.enabled
         )
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=safe_error_detail(exc))
+        raise HTTPException(status_code=404, detail=safe_error_detail(exc)) from exc
     return {
         "id": updated.id,
         "cadence": updated.cadence.value,
@@ -657,12 +651,14 @@ async def list_templates(
     templates = []
     for key, factory in STANDARD_TEMPLATES.items():
         sample = factory("template-preview")
-        templates.append({
-            "key": key,
-            "name": sample.name,
-            "type": sample.type.value,
-            "schedule": sample.schedule,
-        })
+        templates.append(
+            {
+                "key": key,
+                "name": sample.name,
+                "type": sample.type.value,
+                "schedule": sample.schedule,
+            }
+        )
     return {"templates": templates}
 
 

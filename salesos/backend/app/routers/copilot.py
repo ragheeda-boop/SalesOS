@@ -16,7 +16,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from app.config import settings
-from app.dependencies import get_current_tenant_id, get_current_user_id, require_permission_dep, verify_token
+from app.dependencies import (
+    get_current_tenant_id,
+    get_current_user_id,
+    require_permission_dep,
+    verify_token,
+)
 from domains.copilot.arabic import ArabicCopilotEngine
 from domains.copilot.feedback_service import CopilotFeedbackService
 from domains.copilot.models import ToolTelemetryStats
@@ -125,6 +130,7 @@ def _build_coordinator() -> AgentCoordinator:
 
 # ── B-1: search_companies tool ────────────────────────────────
 
+
 @router.post("/copilot/search-companies")
 async def copilot_search_companies(
     body: SearchCompaniesRequest,
@@ -138,6 +144,7 @@ async def copilot_search_companies(
     try:
         from app.database import async_session
         from domains.search.engine.postgres_repo import PostgresSearchRepository
+
         search_repo = PostgresSearchRepository(session_factory=async_session)
     except Exception:
         pass
@@ -174,6 +181,7 @@ async def copilot_search_companies(
 
 
 # ── Copilot Query (existing + enhanced) ──────────────────────
+
 
 @router.post("/copilot/query", response_model=CopilotResponse)
 async def copilot_query(
@@ -216,9 +224,12 @@ async def copilot_query(
     for step in steps:
         out = step.get("output", {})
         text = (
-            out.get("summary") or out.get("analysis")
-            or out.get("proposal") or out.get("preparation")
-            or out.get("message") or ""
+            out.get("summary")
+            or out.get("analysis")
+            or out.get("proposal")
+            or out.get("preparation")
+            or out.get("message")
+            or ""
         )
         if text:
             texts.append(text)
@@ -293,6 +304,7 @@ async def copilot_query(
 
 # ── B-2: Feedback endpoints ──────────────────────────────────
 
+
 @router.post("/copilot/feedback", response_model=CopilotFeedbackResponse, status_code=201)
 async def submit_feedback(
     body: CopilotFeedbackSubmit,
@@ -339,6 +351,7 @@ async def feedback_stats(
 
 
 # ── B-3: Tool Telemetry endpoints ────────────────────────────
+
 
 @router.get("/copilot/telemetry")
 async def telemetry_dashboard(
@@ -394,6 +407,7 @@ async def telemetry_dashboard(
     ]
     cutoff_hours = period_hours
     from datetime import UTC, datetime, timedelta
+
     cutoff = datetime.now(UTC) - timedelta(hours=cutoff_hours)
     for r in _telemetry_service._records:
         if r.tenant_id and r.tenant_id != tenant_id:
@@ -537,6 +551,7 @@ async def telemetry_log(
 
 
 # ── B-4: Arabic Copilot endpoints ────────────────────────────
+
 
 @router.post("/copilot/arabic/detect", response_model=ArabicDetectResponse)
 async def arabic_detect(

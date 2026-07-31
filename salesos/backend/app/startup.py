@@ -3,7 +3,6 @@ import os
 from typing import Any
 
 from fastapi import FastAPI
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cache import CacheService
 from app.common.logging_config import configure_logging
@@ -30,8 +29,11 @@ from runtime import (
     SearchRuntime,
     TimelineRuntime,
 )
+from runtime.action_engine import ActionRegistry
 from runtime.activity_runtime import ActivityRuntime
 from runtime.data_fabric_runtime.scrapers.scraper_config import validate_scraper_keys_startup
+from runtime.decision_runtime.registry import DecisionWidgetRegistry, register_default_widgets
+from runtime.extension_api import init_hooks
 from runtime.feature_store.features import (
     ExpansionScoreComputer,
     FundingScoreComputer,
@@ -41,20 +43,17 @@ from runtime.feature_store.features import (
     IntentScoreComputer,
     RevenueScoreComputer,
 )
+from runtime.form_engine import FormEngine
+from runtime.plugin_sandbox import PluginSandbox, register_hook_points
+from runtime.ui_schema_engine import UISchemaEngine
+from runtime.ux_runtime import UXRuntime
+from runtime.ux_runtime.router import set_ux_runtime
+from runtime.widget_engine import WidgetRegistry, register_builtin_widgets
 from sdk.backend_sdk import BackendClient
 from sdk.events.base import DomainEvent
 from sdk.events.kafka_bus import KafkaEventBus
 from sdk.telemetry import StructuredLogger, setup_telemetry
 from sdk.vector import OpenAIEmbeddingService
-from runtime.decision_runtime.registry import DecisionWidgetRegistry, register_default_widgets
-from runtime.widget_engine import WidgetRegistry, register_builtin_widgets
-from runtime.ux_runtime import UXRuntime
-from runtime.ux_runtime.router import set_ux_runtime
-from runtime.ui_schema_engine import UISchemaEngine
-from runtime.form_engine import FormEngine
-from runtime.action_engine import ActionRegistry
-from runtime.extension_api import init_hooks
-from runtime.plugin_sandbox import PluginSandbox, register_hook_points
 
 
 async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
@@ -69,6 +68,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
 
     if settings.sentry_dsn:
         import sentry_sdk
+
         sentry_sdk.init(
             dsn=settings.sentry_dsn,
             environment=settings.env,
@@ -112,6 +112,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     app.state.activity_runtime = activity_runtime
 
     from app.modules.work_intelligence.service import WorkIntelligenceEngine
+
     work_intelligence_engine = WorkIntelligenceEngine(
         activity_runtime=activity_runtime,
         logger=app.state.logger,
@@ -124,6 +125,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     app.state.timeline_recorder = timeline_recorder
 
     from domains.commercial.opportunity.engine.service import OpportunityService
+
     opp_session = async_session()
     opp_repo = PostgresOpportunityRepository(opp_session)
     app.state.opportunity_service = OpportunityService(
@@ -136,6 +138,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
 
     from app.common.redis_client import AsyncRedisClient
     from sdk.cache import CacheService as SdkCacheService
+
     _redis_client = AsyncRedisClient()
     _cache_service: Any = None
     if await _redis_client.health():
@@ -224,10 +227,12 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     app.state.feedback_loop = feedback_loop
 
     from app.modules.decision.engine import DecisionEngine as DecisionPlatformEngine
+
     app.state.decision_platform_engine = DecisionPlatformEngine()
 
     from domains.decision_center.postgres_repo import PostgresDecisionCenterRepository
     from domains.decision_center.service import DecisionCenterService
+
     dc_repo = PostgresDecisionCenterRepository(async_session())
     dc_service = DecisionCenterService(repository=dc_repo)
     app.state.decision_center_service = dc_service
@@ -283,6 +288,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     app.state.plugin_sandbox = plugin_sandbox
 
     from app.routers.notifications import _ws_manager
+
     heartbeat_task = asyncio.create_task(_ws_manager.heartbeat_loop(interval=30.0))
     cleanup_task = asyncio.create_task(_ws_manager.cleanup_task(interval=30.0))
 

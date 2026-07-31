@@ -1,9 +1,10 @@
 """PostgresTelemetryRepository — SQLAlchemy-backed telemetry persistence."""
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 
-from sqlalchemy import func as sa_func, select
+from sqlalchemy import func as sa_func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import TelemetryEvent
@@ -85,7 +86,11 @@ class PostgresTelemetryRepository(TelemetryRepository):
         return [{"period": k, "count": v} for k, v in sorted(buckets.items())]
 
     async def get_all_events(self, tenant_id: str) -> list[TelemetryEvent]:
-        stmt = select(TelemetryEvent).where(TelemetryEvent.tenant_id == tenant_id).order_by(TelemetryEvent.timestamp)
+        stmt = (
+            select(TelemetryEvent)
+            .where(TelemetryEvent.tenant_id == tenant_id)
+            .order_by(TelemetryEvent.timestamp)
+        )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 

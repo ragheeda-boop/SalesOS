@@ -18,6 +18,7 @@ topics.  Event types are mapped to domain topics via
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import time
 from typing import Any
@@ -25,9 +26,9 @@ from typing import Any
 from sdk.config import sdk_settings
 from sdk.events.base import DomainEvent
 from sdk.events.bus import EventBus, InMemoryEventBus
-from sdk.events.kafka_producer import KafkaProducer
 from sdk.events.kafka_consumer import KafkaConsumerBase
-from sdk.events.topic_mapping import event_type_to_topic, topics_for_event_types
+from sdk.events.kafka_producer import KafkaProducer
+from sdk.events.topic_mapping import topics_for_event_types
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +57,7 @@ class KafkaEventBus(EventBus):
         self._group_id = group_id or sdk_settings.kafka_group_id
         self._offset_reset = auto_offset_reset or sdk_settings.kafka_auto_offset_reset
         self._outbox_enabled = (
-            outbox_enabled
-            if outbox_enabled is not None
-            else sdk_settings.kafka_outbox_enabled
+            outbox_enabled if outbox_enabled is not None else sdk_settings.kafka_outbox_enabled
         )
 
         self._producer = KafkaProducer(bootstrap_servers=self._bootstrap)
@@ -141,7 +140,7 @@ class KafkaEventBus(EventBus):
         try:
             from sdk.events.outbox import EventOutbox
 
-            outbox = EventOutbox(self._relay._session_factory)
+            _ = EventOutbox(self._relay._session_factory)
             async with self._relay._session_factory() as session:
                 event_outbox = EventOutbox(session)
                 await event_outbox.ensure_table()
@@ -223,10 +222,8 @@ class KafkaEventBus(EventBus):
         """Remove a previously registered handler."""
         handlers = self._handlers.get(event_type)
         if handlers:
-            try:
+            with contextlib.suppress(ValueError):
                 handlers.remove(handler)
-            except ValueError:
-                pass
             if not handlers:
                 del self._handlers[event_type]
         self._fallback.unsubscribe(event_type, handler)

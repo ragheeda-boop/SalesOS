@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from pydantic import BaseModel
 
 from app.application.dashboard.dto.widget_contract import DashboardWidget

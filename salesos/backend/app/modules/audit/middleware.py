@@ -1,5 +1,4 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker
-from starlette.requests import Request
 
 from app.config import settings
 from app.database import async_session
@@ -44,7 +43,11 @@ class AuditMiddleware:
 
         await self.app(scope, receive, send_wrapper)
 
-        if method in ("POST", "PUT", "PATCH", "DELETE") and path.startswith("/api/v1/") or status_code == 403:
+        if (
+            method in ("POST", "PUT", "PATCH", "DELETE")
+            and path.startswith("/api/v1/")
+            or status_code == 403
+        ):
             try:
                 tenant_id = raw_headers.get(b"x-tenant-id", b"").decode()
                 auth = raw_headers.get(b"authorization", b"").decode()
@@ -52,6 +55,7 @@ class AuditMiddleware:
                 if auth.startswith("Bearer "):
                     try:
                         from app.modules.identity.service import decode_access_token
+
                         payload = decode_access_token(auth.replace("Bearer ", ""))
                         user_id = payload.get("sub")
                     except Exception:

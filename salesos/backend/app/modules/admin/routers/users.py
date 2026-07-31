@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
@@ -44,10 +45,8 @@ async def list_admin_users(
 ):
     stmt = select(User)
     if tenant_id:
-        try:
+        with contextlib.suppress(ValueError):
             stmt = stmt.where(User.tenant_id == uuid.UUID(tenant_id))
-        except ValueError:
-            pass
     if role:
         stmt = stmt.where(User.role == role)
     if is_active is not None:
@@ -61,13 +60,21 @@ async def list_admin_users(
     response = []
     for u in users:
         tenant_name = await _resolve_tenant_name(db, str(u.tenant_id))
-        response.append(UserAdminListItem(
-            id=u.id, email=u.email, full_name=u.full_name,
-            full_name_ar=u.full_name_ar, role=u.role, is_active=u.is_active,
-            is_verified=u.is_verified, tenant_id=u.tenant_id,
-            tenant_name=tenant_name, created_at=u.created_at,
-            last_login_at=u.last_login_at,
-        ))
+        response.append(
+            UserAdminListItem(
+                id=u.id,
+                email=u.email,
+                full_name=u.full_name,
+                full_name_ar=u.full_name_ar,
+                role=u.role,
+                is_active=u.is_active,
+                is_verified=u.is_verified,
+                tenant_id=u.tenant_id,
+                tenant_name=tenant_name,
+                created_at=u.created_at,
+                last_login_at=u.last_login_at,
+            )
+        )
     return response
 
 
@@ -76,7 +83,7 @@ async def get_admin_user(user_id: str, db: AsyncSession = Depends(get_db_session
     try:
         uid = uuid.UUID(user_id)
     except ValueError:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found") from None
     user = await db.get(User, uid)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -91,21 +98,30 @@ async def get_admin_user(user_id: str, db: AsyncSession = Depends(get_db_session
             break
 
     return UserAdminDetail(
-        id=user.id, email=user.email, full_name=user.full_name,
-        full_name_ar=user.full_name_ar, role=user.role,
-        is_active=user.is_active, is_verified=user.is_verified,
-        tenant_id=user.tenant_id, tenant_name=tenant_name,
-        permissions=permissions, created_at=user.created_at,
-        updated_at=user.updated_at, last_login_at=user.last_login_at,
+        id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        full_name_ar=user.full_name_ar,
+        role=user.role,
+        is_active=user.is_active,
+        is_verified=user.is_verified,
+        tenant_id=user.tenant_id,
+        tenant_name=tenant_name,
+        permissions=permissions,
+        created_at=user.created_at,
+        updated_at=user.updated_at,
+        last_login_at=user.last_login_at,
     )
 
 
 @router.put("/users/{user_id}", response_model=UserAdminDetail)
-async def update_admin_user(user_id: str, body: UserAdminUpdate, db: AsyncSession = Depends(get_db_session)):
+async def update_admin_user(
+    user_id: str, body: UserAdminUpdate, db: AsyncSession = Depends(get_db_session)
+):
     try:
         uid = uuid.UUID(user_id)
     except ValueError:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found") from None
     user = await db.get(User, uid)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -113,17 +129,24 @@ async def update_admin_user(user_id: str, body: UserAdminUpdate, db: AsyncSessio
         user.role = body.role
     if body.is_active is not None:
         user.is_active = body.is_active
-    user.updated_at = datetime.now(timezone.utc)
+    user.updated_at = datetime.now(UTC)
     await db.flush()
 
     tenant_name = await _resolve_tenant_name(db, str(user.tenant_id))
     return UserAdminDetail(
-        id=user.id, email=user.email, full_name=user.full_name,
-        full_name_ar=user.full_name_ar, role=user.role,
-        is_active=user.is_active, is_verified=user.is_verified,
-        tenant_id=user.tenant_id, tenant_name=tenant_name,
-        permissions=[], created_at=user.created_at,
-        updated_at=user.updated_at, last_login_at=user.last_login_at,
+        id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        full_name_ar=user.full_name_ar,
+        role=user.role,
+        is_active=user.is_active,
+        is_verified=user.is_verified,
+        tenant_id=user.tenant_id,
+        tenant_name=tenant_name,
+        permissions=[],
+        created_at=user.created_at,
+        updated_at=user.updated_at,
+        last_login_at=user.last_login_at,
     )
 
 
@@ -132,11 +155,11 @@ async def deactivate_admin_user(user_id: str, db: AsyncSession = Depends(get_db_
     try:
         uid = uuid.UUID(user_id)
     except ValueError:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="User not found") from None
     user = await db.get(User, uid)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     user.is_active = False
-    user.updated_at = datetime.now(timezone.utc)
+    user.updated_at = datetime.now(UTC)
     await db.flush()
     return {"message": "User deactivated", "user_id": user_id}

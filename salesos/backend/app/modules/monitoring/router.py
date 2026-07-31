@@ -1,7 +1,7 @@
-import time
 import statistics
+import time
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
@@ -56,36 +56,42 @@ class _MonitoringStore:
 
     def ingest(self, event: MonitoringEventSchema):
         if event.type == "api_call":
-            self.api_calls.append({
-                "method": event.method,
-                "path": event.path,
-                "duration_ms": event.duration_ms,
-                "status": event.status,
-                "timestamp": event.timestamp,
-            })
+            self.api_calls.append(
+                {
+                    "method": event.method,
+                    "path": event.path,
+                    "duration_ms": event.duration_ms,
+                    "status": event.status,
+                    "timestamp": event.timestamp,
+                }
+            )
             if len(self.api_calls) > self.max_samples:
                 self.api_calls.pop(0)
 
         elif event.type == "error":
-            self.errors.append({
-                "message": event.error_message,
-                "stack": event.error_stack,
-                "context": event.context,
-                "time": event.timestamp,
-            })
+            self.errors.append(
+                {
+                    "message": event.error_message,
+                    "stack": event.error_stack,
+                    "context": event.context,
+                    "time": event.timestamp,
+                }
+            )
             if len(self.errors) > self.max_samples:
                 self.errors.pop(0)
 
         elif event.type == "page_load":
-            self.page_loads.append({
-                "route": event.route,
-                "duration_ms": event.duration_ms,
-                "dom_interactive": event.dom_interactive,
-                "dom_complete": event.dom_complete,
-                "fcp": event.fcp,
-                "memory_used_mb": event.memory_used_mb,
-                "timestamp": event.timestamp,
-            })
+            self.page_loads.append(
+                {
+                    "route": event.route,
+                    "duration_ms": event.duration_ms,
+                    "dom_interactive": event.dom_interactive,
+                    "dom_complete": event.dom_complete,
+                    "fcp": event.fcp,
+                    "memory_used_mb": event.memory_used_mb,
+                    "timestamp": event.timestamp,
+                }
+            )
             if len(self.page_loads) > self.max_samples:
                 self.page_loads.pop(0)
 
@@ -113,8 +119,7 @@ class _MonitoringStore:
         )
 
         recent_errors = [
-            {"message": e["message"] or "", "time": e["time"]}
-            for e in self.errors[-20:]
+            {"message": e["message"] or "", "time": e["time"]} for e in self.errors[-20:]
         ][::-1]
 
         error_by_context: dict[str, int] = defaultdict(int)
@@ -139,12 +144,20 @@ class _MonitoringStore:
             "page_loads": {
                 "total": len(self.page_loads),
                 "avg_load_ms": round(statistics.mean(page_durations), 1) if page_durations else 0,
-                "avg_dom_interactive_ms": round(statistics.mean(dom_interactive_times), 1) if dom_interactive_times else 0,
+                "avg_dom_interactive_ms": round(statistics.mean(dom_interactive_times), 1)
+                if dom_interactive_times
+                else 0,
             },
             "web_vitals": {
-                "lcp": round(statistics.mean(self.web_vitals.get("lcp", [])), 1) if self.web_vitals.get("lcp") else None,
-                "fid": round(statistics.mean(self.web_vitals.get("fid", [])), 1) if self.web_vitals.get("fid") else None,
-                "cls": round(statistics.mean(self.web_vitals.get("cls", [])), 4) if self.web_vitals.get("cls") else None,
+                "lcp": round(statistics.mean(self.web_vitals.get("lcp", [])), 1)
+                if self.web_vitals.get("lcp")
+                else None,
+                "fid": round(statistics.mean(self.web_vitals.get("fid", [])), 1)
+                if self.web_vitals.get("fid")
+                else None,
+                "cls": round(statistics.mean(self.web_vitals.get("cls", [])), 4)
+                if self.web_vitals.get("cls")
+                else None,
             },
             "memory": {
                 "current_mb": latest_load.get("memory_used_mb") if latest_load else None,
@@ -161,12 +174,16 @@ class _MonitoringStore:
     def health(self) -> dict:
         return {
             "status": "ok",
-            "events_ingested": len(self.api_calls) + len(self.errors) + len(self.page_loads) + sum(len(v) for v in self.web_vitals.values()) + sum(len(v) for v in self.custom_metrics.values()),
+            "events_ingested": len(self.api_calls)
+            + len(self.errors)
+            + len(self.page_loads)
+            + sum(len(v) for v in self.web_vitals.values())
+            + sum(len(v) for v in self.custom_metrics.values()),
             "uptime_seconds": time.time() - self._start_time,
             "api_calls_total": len(self.api_calls),
             "errors_total": len(self.errors),
             "page_loads_total": len(self.page_loads),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     @staticmethod
@@ -223,7 +240,9 @@ async def _resolve_system_health(request: Request) -> dict[str, str]:
             checks["cache"] = "unavailable"
     else:
         checks["cache"] = "not_configured"
-    checks["graph"] = "connected" if getattr(app_state, "kg_engine", None) is not None else "not_configured"
+    checks["graph"] = (
+        "connected" if getattr(app_state, "kg_engine", None) is not None else "not_configured"
+    )
     checks["kafka"] = "active" if getattr(app_state, "event_runtime", None) else "not_configured"
     checks["rate_limiter"] = "active"
     checks["uptime_seconds"] = f"{time.time() - getattr(app_state, '_start_time', time.time()):.0f}"

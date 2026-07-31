@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from app.modules.audit.models import AuditLog
-from app.modules.audit.service import AuditService, InMemoryAuditRepository, PostgresAuditRepository
+from app.modules.audit.service import AuditService, InMemoryAuditRepository
 
 
 @pytest.fixture
@@ -68,11 +68,11 @@ class TestAuditLogging:
 
     @pytest.mark.asyncio
     async def test_log_includes_timestamp(self, audit_service):
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         entry = await audit_service.log("t1", "u1", "login", "session")
-        after = datetime.now(timezone.utc)
+        after = datetime.now(UTC)
         assert entry.created_at is not None
-        assert before <= entry.created_at.replace(tzinfo=timezone.utc) <= after
+        assert before <= entry.created_at.replace(tzinfo=UTC) <= after
 
 
 class TestAuditQuery:
@@ -136,7 +136,7 @@ class TestAuditStats:
 
     @pytest.mark.asyncio
     async def test_stats_top_users(self, audit_service):
-        for i in range(10):
+        for _i in range(10):
             await audit_service.log("t1", "frequent-user", "create", "company")
         await audit_service.log("t1", "rare-user", "create", "company")
         stats = await audit_service.stats("t1", days=30)
@@ -166,8 +166,11 @@ class TestAuditStats:
     @pytest.mark.asyncio
     async def test_stats_respects_days(self, audit_service):
         old_entry = AuditLog(
-            tenant_id="t1", user_id="u1", action="old", resource_type="x",
-            created_at=datetime.now(timezone.utc) - timedelta(days=400),
+            tenant_id="t1",
+            user_id="u1",
+            action="old",
+            resource_type="x",
+            created_at=datetime.now(UTC) - timedelta(days=400),
         )
         audit_service.repository._entries.append(old_entry)
         await audit_service.log("t1", "u1", "new", "x")

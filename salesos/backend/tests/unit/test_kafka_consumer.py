@@ -136,11 +136,13 @@ async def test_start_success() -> None:
 @pytest.mark.asyncio
 async def test_start_import_error() -> None:
     consumer = CollectingConsumer(topics=["salesos.company"])
-    with patch.dict("sys.modules", {"aiokafka": None}):
-        with patch("builtins.__import__", side_effect=ImportError):
-            ok = await consumer.start()
-            assert ok is False
-            assert consumer.is_running is False
+    with (
+        patch.dict("sys.modules", {"aiokafka": None}),
+        patch("builtins.__import__", side_effect=ImportError),
+    ):  # noqa: E501
+        ok = await consumer.start()
+        assert ok is False
+        assert consumer.is_running is False
 
 
 @pytest.mark.asyncio

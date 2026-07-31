@@ -1,7 +1,8 @@
-"""Tests for the GraphQL API layer — schema validation, endpoint health, query/mutation structure."""
+"""Tests for the GraphQL API layer — schema validation, endpoint health, query/mutation structure."""  # noqa: E501
 
 import pytest
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
+
 from app.main import app
 from app.modules.identity.service import create_access_token
 

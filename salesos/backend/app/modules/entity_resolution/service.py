@@ -1,4 +1,5 @@
-"""Entity Resolution Service — orchestrates golden record creation, matching, and conflict detection.
+"""Entity Resolution Service — orchestrates golden record creation, matching, and
+conflict detection.
 
 The pipeline flow:
 1. Receive records from a source (e.g., Balady scraper)
@@ -12,7 +13,7 @@ The pipeline flow:
 
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -98,9 +99,7 @@ class EntityResolutionService:
             processed += 1
 
             try:
-                existing_golden = await self.golden_repo.get_by_cr_number(
-                    tenant_uuid, cr_number
-                )
+                existing_golden = await self.golden_repo.get_by_cr_number(tenant_uuid, cr_number)
 
                 if existing_golden:
                     matched += 1
@@ -112,16 +111,15 @@ class EntityResolutionService:
                     if result.get("conflicts"):
                         conflicts += result["conflicts"]
                 else:
-                    await self._create_golden_record(
-                        tenant_id, cr_number, source_slug, record
-                    )
+                    await self._create_golden_record(tenant_id, cr_number, source_slug, record)
                     created += 1
 
             except Exception as e:
                 errors.append({"cr_number": cr_number, "error": str(e)})
                 if self.logger:
-                    self.logger.error("entity_resolution.record_error",
-                                      cr_number=cr_number, error=str(e))
+                    self.logger.error(
+                        "entity_resolution.record_error", cr_number=cr_number, error=str(e)
+                    )
 
         duration = time.time() - start_time
 
@@ -202,7 +200,7 @@ class EntityResolutionService:
         canonical Arabic forms before storage.
         """
         tenant_uuid = uuid.UUID(tenant_id)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         city_normalizer = CityRegionNormalizer.default()
 
         data: dict = {}
@@ -210,9 +208,15 @@ class EntityResolutionService:
             if value is not None and not field.startswith("_"):
                 # Normalize city and region fields
                 normalized_value = value
-                if field in ("city", "city_ar", "city_en", "region", "region_ar", "region_en"):
-                    if isinstance(value, str):
-                        normalized_value = city_normalizer.normalize_city(str(value))
+                if field in (
+                    "city",
+                    "city_ar",
+                    "city_en",
+                    "region",
+                    "region_ar",
+                    "region_en",
+                ) and isinstance(value, str):
+                    normalized_value = city_normalizer.normalize_city(str(value))
                 # Normalize Arabic company names for matching only —
                 # the raw value is stored as-is. for_matching() strips
                 # legal prefixes (شركة, مؤسسة, etc.) which corrupts
@@ -268,7 +272,7 @@ class EntityResolutionService:
         """
         merged = False
         conflict_count = 0
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         incoming_priority = SOURCE_PRIORITY.get(source_slug, 0)
         pending_conflicts: list[EntityResolutionConflict] = []
 
@@ -413,7 +417,7 @@ class EntityResolutionService:
                         "value": conflict.source_b_value,
                         "source": conflict.source_b_source,
                         "verified_by": resolved_by,
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                     },
                 }
                 golden.confidence_score = self._compute_overall_confidence(golden.data)
@@ -427,7 +431,7 @@ class EntityResolutionService:
                         "value": custom_value,
                         "source": "manual_merge",
                         "verified_by": resolved_by,
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                     },
                 }
                 golden.confidence_score = self._compute_overall_confidence(golden.data)
@@ -441,14 +445,14 @@ class EntityResolutionService:
                         "value": custom_value,
                         "source": "manual_custom",
                         "verified_by": resolved_by,
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                     },
                 }
                 golden.confidence_score = self._compute_overall_confidence(golden.data)
 
         conflict.resolution_strategy = strategy
         conflict.resolved_by = uuid.UUID(resolved_by) if resolved_by else None
-        conflict.resolved_at = datetime.now(timezone.utc)
+        conflict.resolved_at = datetime.now(UTC)
         conflict.status = "resolved"
         await self.db.flush()
 
@@ -475,6 +479,7 @@ class EntityResolutionService:
         CompanyNameMatcher for accurate fuzzy comparison.
         """
         from sqlalchemy import or_, select
+
         from app.modules.company.models import Company
         from domains.search.normalization.company_matcher import CompanyNameMatcher
 
@@ -487,13 +492,13 @@ class EntityResolutionService:
         elif cr_number:
             stmt = stmt.where(Company.cr_number == cr_number)
         elif name:
-            from sqlalchemy import func
             from domains.search.normalization.arabic_normalizer import (
                 ArabicSearchNormalizer,
             )
             from domains.search.normalization.company_matcher import (
                 _extract_head_word,
             )
+
             normalizer = ArabicSearchNormalizer.for_matching()
             norm_name = normalizer.normalize(name)
             head_word = _extract_head_word(norm_name)
@@ -502,7 +507,7 @@ class EntityResolutionService:
                 conditions.append(Company.name_ar.ilike(f"%{norm_name[:3]}%"))
             if head_word and len(head_word) >= 3:
                 conditions.append(Company.name_ar.ilike(f"%{head_word}%"))
-                if head_word[0] == 'ا':
+                if head_word[0] == "ا":
                     conditions.append(Company.name_ar.ilike(f"%{head_word[1:]}%"))
             conditions.append(Company.name_en.ilike(f"%{name}%"))
             stmt = stmt.where(or_(*conditions))
@@ -534,24 +539,23 @@ class EntityResolutionService:
                         match_fields.append("name_match")
                         score = max(score, match_result.score)
 
-            candidates.append({
-                "company_id": str(company.id),
-                "cr_number": company.cr_number,
-                "company_name": company.name_ar or company.name_en,
-                "name_ar": company.name_ar,
-                "name_en": company.name_en,
-                "email": company.email,
-                "match_fields": match_fields,
-                "match_score": score,
-            })
+            candidates.append(
+                {
+                    "company_id": str(company.id),
+                    "cr_number": company.cr_number,
+                    "company_name": company.name_ar or company.name_en,
+                    "name_ar": company.name_ar,
+                    "name_en": company.name_en,
+                    "email": company.email,
+                    "match_fields": match_fields,
+                    "match_score": score,
+                }
+            )
 
         return candidates
 
-    async def find_duplicates_for_company(
-        self, company_id: str, tenant_id: str
-    ) -> list[dict]:
+    async def find_duplicates_for_company(self, company_id: str, tenant_id: str) -> list[dict]:
         """Find potential duplicates for a specific company, excluding itself."""
-        from sqlalchemy import select
         from app.modules.company.models import Company
 
         company = await self.db.get(Company, uuid.UUID(company_id))
@@ -572,7 +576,8 @@ class EntityResolutionService:
         reason: str | None = None,
     ) -> dict:
         """Merge source company into target company, archiving the source."""
-        from sqlalchemy import select, update
+        from sqlalchemy import select
+
         from app.modules.company.models import Company
 
         source = await self.db.get(Company, uuid.UUID(source_id))
@@ -584,7 +589,8 @@ class EntityResolutionService:
             raise NotFoundError("Company", target_id)
 
         # Move relations from source to target
-        from app.modules.company.models import Contact, Branch, License
+        from app.modules.company.models import Branch, Contact, License
+
         for model_cls, _ in [(Contact, "contacts"), (Branch, "branches"), (License, "licenses")]:
             stmt = select(model_cls).where(model_cls.company_id == source.id)
             rels = (await self.db.execute(stmt)).scalars().all()
@@ -595,6 +601,7 @@ class EntityResolutionService:
         opps_moved = False
         try:
             from app.modules.revenue_execution.models import Opportunity
+
             async with self.db.begin_nested():
                 stmt = select(Opportunity).where(Opportunity.company_id == source.id)
                 opps = (await self.db.execute(stmt)).scalars().all()
@@ -649,10 +656,6 @@ class EntityResolutionService:
                 "source_ids": True,
             },
         }
-        return await self.golden_repo.get(uuid.UUID(golden_record_id))
-
-    async def get_golden_by_cr(self, tenant_id: str, cr_number: str) -> GoldenRecord | None:
-        return await self.golden_repo.get_by_cr_number(uuid.UUID(tenant_id), cr_number)
 
     async def list_golden_records(
         self, tenant_id: str, page: int = 1, page_size: int = 20
@@ -689,8 +692,6 @@ class EntityResolutionService:
         if not data:
             return 0.0
         scores = [
-            entry.get("confidence", 0.0)
-            for entry in data.values()
-            if isinstance(entry, dict)
+            entry.get("confidence", 0.0) for entry in data.values() if isinstance(entry, dict)
         ]
         return round(sum(scores) / len(scores), 4) if scores else 0.0

@@ -8,7 +8,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
 
 
 class ViewType(str, Enum):
@@ -23,16 +22,17 @@ class ViewType(str, Enum):
 @dataclass
 class UISchema:
     """A complete UI definition for any screen. No JSX — just JSON."""
+
     view: ViewType = ViewType.OBJECT_VIEWER
-    entity_type: Optional[str] = None
-    entity_id: Optional[str] = None
-    title: Optional[str] = None
+    entity_type: str | None = None
+    entity_id: str | None = None
+    title: str | None = None
     layout: dict = field(default_factory=lambda: {"zones": ["center"]})
     widgets: list[dict] = field(default_factory=list)
     actions: list[dict] = field(default_factory=list)
     commands: list[dict] = field(default_factory=list)
     policies: list[dict] = field(default_factory=list)
-    ai_context: Optional[dict] = None
+    ai_context: dict | None = None
     meta: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
@@ -54,16 +54,17 @@ class UISchema:
 @dataclass
 class ActionDescriptor:
     """An action that any frontend framework can render as a button/menu item."""
+
     id: str
     label: str
-    label_ar: Optional[str] = None
-    icon: Optional[str] = None
+    label_ar: str | None = None
+    icon: str | None = None
     variant: str = "default"  # default, primary, danger, ghost
-    shortcut: Optional[str] = None
-    schema: Optional[dict] = None  # JSON Schema if action requires input
-    confirm: Optional[str] = None  # Confirmation message
+    shortcut: str | None = None
+    schema: dict | None = None  # JSON Schema if action requires input
+    confirm: str | None = None  # Confirmation message
     permissions: list[str] = field(default_factory=list)
-    handler: Optional[str] = None  # Action handler ID (resolved by Action Engine)
+    handler: str | None = None  # Action handler ID (resolved by Action Engine)
 
     def to_dict(self) -> dict:
         return {
@@ -83,16 +84,17 @@ class ActionDescriptor:
 @dataclass
 class CommandDescriptor:
     """A command for the Global Command Bar (Ctrl+K)."""
+
     id: str
     label: str
-    label_ar: Optional[str] = None
-    description: Optional[str] = None
-    icon: Optional[str] = None
+    label_ar: str | None = None
+    description: str | None = None
+    icon: str | None = None
     category: str = "general"
-    shortcut: Optional[str] = None
-    context: Optional[str] = None
+    shortcut: str | None = None
+    context: str | None = None
     permissions: list[str] = field(default_factory=list)
-    schema: Optional[dict] = None
+    schema: dict | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -112,11 +114,12 @@ class CommandDescriptor:
 @dataclass
 class UIPolicy:
     """Declarative UI policy — hide, disable, or modify widgets based on conditions."""
+
     effect: str  # "hide", "disable", "require", "modify"
-    widget: Optional[str] = None
-    role: Optional[str] = None
-    permission: Optional[str] = None
-    condition: Optional[str] = None  # Expression evaluated by Policy Engine
+    widget: str | None = None
+    role: str | None = None
+    permission: str | None = None
+    condition: str | None = None  # Expression evaluated by Policy Engine
 
     def to_dict(self) -> dict:
         return {
@@ -130,11 +133,11 @@ class UIPolicy:
 
 def build_ui_schema(
     view_type: ViewType,
-    entity_type: Optional[str] = None,
-    entity_id: Optional[str] = None,
-    widgets: Optional[list[dict]] = None,
-    actions: Optional[list[dict]] = None,
-    policies: Optional[list[dict]] = None,
+    entity_type: str | None = None,
+    entity_id: str | None = None,
+    widgets: list[dict] | None = None,
+    actions: list[dict] | None = None,
+    policies: list[dict] | None = None,
 ) -> dict:
     """Helper to build a UISchema from parts."""
     schema = UISchema(

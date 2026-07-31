@@ -2,7 +2,7 @@
 
 import os
 import uuid
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 os.environ.setdefault("SALESOS_TESTING", "true")
 os.environ.setdefault("SECRET_KEY", "e2e-test-secret-key-padded-to-32-chars!!")
@@ -11,7 +11,6 @@ os.environ.setdefault("NEO4J_PASSWORD", "test")
 os.environ.setdefault("JWT_SECRET_KEY", "e2e-test-jwt-secret-key-padded-to-32!!")
 os.environ.setdefault("SALESOS_JWKS_ALLOW_REGENERATE", "1")
 
-import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -74,9 +73,7 @@ async def auth_headers(test_tenant: str, db_session: AsyncSession) -> dict:
 
 
 @pytest_asyncio.fixture
-async def registered_user(
-    client: AsyncClient, test_tenant: str, db_session: AsyncSession
-) -> dict:
+async def registered_user(client: AsyncClient, test_tenant: str, db_session: AsyncSession) -> dict:
     """Register a real user via POST /api/v1/identity/register, then login.
 
     Returns dict with: access_token, refresh_token, tenant_id, user_email.
@@ -98,7 +95,9 @@ async def registered_user(
     reg = resp.json()
 
     from sqlalchemy import select
+
     from app.modules.identity.models import User
+
     result = await db_session.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
     if user:

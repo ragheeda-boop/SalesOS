@@ -60,7 +60,9 @@ async def invite_user(
             tenant_id=tenant_id,
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid invitation"))
+        raise HTTPException(
+            status_code=400, detail=safe_error_detail(e, "Invalid invitation")
+        ) from e  # noqa: E501
     return {
         "message": f"Invitation sent to {body.email}",
         "email": result["email"],
@@ -77,7 +79,9 @@ async def validate_invite(
     try:
         result = await service.validate_invite(token)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid invitation"))
+        raise HTTPException(
+            status_code=400, detail=safe_error_detail(e, "Invalid invitation")
+        ) from e  # noqa: E501
     return result
 
 
@@ -96,7 +100,9 @@ async def accept_invite(
             full_name=body.full_name,
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid invitation"))
+        raise HTTPException(
+            status_code=400, detail=safe_error_detail(e, "Invalid invitation")
+        ) from e  # noqa: E501
     return {
         "message": "Invitation accepted successfully",
         "user_id": result["user_id"],

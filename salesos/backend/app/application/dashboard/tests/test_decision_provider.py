@@ -3,8 +3,12 @@
 import pytest
 
 from app.application.dashboard.services.decision_provider import DashboardDecisionProvider
-from sdk.scoring.interfaces import DecisionContext, DecisionFactor, Recommendation, RecommendationEvidence
-
+from sdk.scoring.interfaces import (
+    DecisionContext,
+    DecisionFactor,
+    Recommendation,
+    RecommendationEvidence,
+)
 
 # ── Fakes for Decision Platform protocols ──
 
@@ -37,7 +41,7 @@ class FakeDecisionService:
 
 
 class FakeRecommendationEngine:
-    """In-memory RecommendationEngineProtocol stub that returns a recommendation when critical factors exist."""
+    """In-memory RecommendationEngineProtocol stub that returns a recommendation when critical factors exist."""  # noqa: E501
 
     def __init__(self, return_recommendation: bool = True):
         self._return_recommendation = return_recommendation

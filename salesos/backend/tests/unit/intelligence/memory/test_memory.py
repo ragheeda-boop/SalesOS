@@ -1,18 +1,20 @@
 """Memory tests — store, working, session, conversation, retrieval."""
+
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
+
 import pytest
-from datetime import datetime, timezone, timedelta
 
 from intelligence.memory import (
-    InMemoryMemoryStore,
-    WorkingMemory,
-    SessionMemory,
     ConversationMemory,
-    MemoryRetrieval,
+    InMemoryMemoryStore,
     MemoryEntry,
-    MemoryScope,
     MemoryEntryType,
+    MemoryRetrieval,
+    MemoryScope,
+    SessionMemory,
+    WorkingMemory,
 )
 
 
@@ -26,7 +28,13 @@ def store():
 
 @pytest.mark.asyncio
 async def test_store_and_get(store):
-    entry = MemoryEntry(id="e1", agent_id="agent-1", scope=MemoryScope.WORKING, type=MemoryEntryType.CONTEXT, content="test data")
+    entry = MemoryEntry(
+        id="e1",
+        agent_id="agent-1",
+        scope=MemoryScope.WORKING,
+        type=MemoryEntryType.CONTEXT,
+        content="test data",
+    )
     await store.store(entry)
     retrieved = await store.get("e1")
     assert retrieved is not None
@@ -40,8 +48,24 @@ async def test_get_nonexistent(store):
 
 @pytest.mark.asyncio
 async def test_query_by_agent(store):
-    await store.store(MemoryEntry(id="e1", agent_id="agent-1", scope=MemoryScope.WORKING, type=MemoryEntryType.CONTEXT, content="data 1"))
-    await store.store(MemoryEntry(id="e2", agent_id="agent-2", scope=MemoryScope.WORKING, type=MemoryEntryType.CONTEXT, content="data 2"))
+    await store.store(
+        MemoryEntry(
+            id="e1",
+            agent_id="agent-1",
+            scope=MemoryScope.WORKING,
+            type=MemoryEntryType.CONTEXT,
+            content="data 1",
+        )
+    )
+    await store.store(
+        MemoryEntry(
+            id="e2",
+            agent_id="agent-2",
+            scope=MemoryScope.WORKING,
+            type=MemoryEntryType.CONTEXT,
+            content="data 2",
+        )
+    )
     results = await store.query(agent_id="agent-1")
     assert len(results) == 1
     assert results[0].id == "e1"
@@ -49,8 +73,24 @@ async def test_query_by_agent(store):
 
 @pytest.mark.asyncio
 async def test_query_by_scope(store):
-    await store.store(MemoryEntry(id="e1", agent_id="agent-1", scope=MemoryScope.WORKING, type=MemoryEntryType.CONTEXT, content="working"))
-    await store.store(MemoryEntry(id="e2", agent_id="agent-1", scope=MemoryScope.SESSION, type=MemoryEntryType.CONTEXT, content="session"))
+    await store.store(
+        MemoryEntry(
+            id="e1",
+            agent_id="agent-1",
+            scope=MemoryScope.WORKING,
+            type=MemoryEntryType.CONTEXT,
+            content="working",
+        )
+    )
+    await store.store(
+        MemoryEntry(
+            id="e2",
+            agent_id="agent-1",
+            scope=MemoryScope.SESSION,
+            type=MemoryEntryType.CONTEXT,
+            content="session",
+        )
+    )
     results = await store.query(scope=MemoryScope.SESSION)
     assert len(results) == 1
     assert results[0].id == "e2"
@@ -58,7 +98,15 @@ async def test_query_by_scope(store):
 
 @pytest.mark.asyncio
 async def test_delete(store):
-    await store.store(MemoryEntry(id="e1", agent_id="agent-1", scope=MemoryScope.WORKING, type=MemoryEntryType.CONTEXT, content="data"))
+    await store.store(
+        MemoryEntry(
+            id="e1",
+            agent_id="agent-1",
+            scope=MemoryScope.WORKING,
+            type=MemoryEntryType.CONTEXT,
+            content="data",
+        )
+    )
     assert await store.delete("e1") is True
     assert await store.get("e1") is None
     assert await store.delete("e1") is False
@@ -66,8 +114,24 @@ async def test_delete(store):
 
 @pytest.mark.asyncio
 async def test_clear_all(store):
-    await store.store(MemoryEntry(id="e1", agent_id="agent-1", scope=MemoryScope.WORKING, type=MemoryEntryType.CONTEXT, content="data"))
-    await store.store(MemoryEntry(id="e2", agent_id="agent-2", scope=MemoryScope.SESSION, type=MemoryEntryType.CONTEXT, content="data"))
+    await store.store(
+        MemoryEntry(
+            id="e1",
+            agent_id="agent-1",
+            scope=MemoryScope.WORKING,
+            type=MemoryEntryType.CONTEXT,
+            content="data",
+        )
+    )
+    await store.store(
+        MemoryEntry(
+            id="e2",
+            agent_id="agent-2",
+            scope=MemoryScope.SESSION,
+            type=MemoryEntryType.CONTEXT,
+            content="data",
+        )
+    )
     count = await store.clear()
     assert count == 2
     assert len(await store.query()) == 0
@@ -75,17 +139,52 @@ async def test_clear_all(store):
 
 @pytest.mark.asyncio
 async def test_clear_by_agent(store):
-    await store.store(MemoryEntry(id="e1", agent_id="agent-1", scope=MemoryScope.WORKING, type=MemoryEntryType.CONTEXT, content="data"))
-    await store.store(MemoryEntry(id="e2", agent_id="agent-2", scope=MemoryScope.WORKING, type=MemoryEntryType.CONTEXT, content="data"))
+    await store.store(
+        MemoryEntry(
+            id="e1",
+            agent_id="agent-1",
+            scope=MemoryScope.WORKING,
+            type=MemoryEntryType.CONTEXT,
+            content="data",
+        )
+    )
+    await store.store(
+        MemoryEntry(
+            id="e2",
+            agent_id="agent-2",
+            scope=MemoryScope.WORKING,
+            type=MemoryEntryType.CONTEXT,
+            content="data",
+        )
+    )
     count = await store.clear(agent_id="agent-1")
     assert count == 1
 
 
 @pytest.mark.asyncio
 async def test_cleanup_expired(store):
-    old_time = datetime.now(timezone.utc) - timedelta(seconds=100)
-    await store.store(MemoryEntry(id="e1", agent_id="agent-1", scope=MemoryScope.WORKING, type=MemoryEntryType.CONTEXT, content="expired", ttl_seconds=10, timestamp=old_time))
-    await store.store(MemoryEntry(id="e2", agent_id="agent-1", scope=MemoryScope.WORKING, type=MemoryEntryType.CONTEXT, content="fresh", ttl_seconds=3600))
+    old_time = datetime.now(UTC) - timedelta(seconds=100)
+    await store.store(
+        MemoryEntry(
+            id="e1",
+            agent_id="agent-1",
+            scope=MemoryScope.WORKING,
+            type=MemoryEntryType.CONTEXT,
+            content="expired",
+            ttl_seconds=10,
+            timestamp=old_time,
+        )
+    )
+    await store.store(
+        MemoryEntry(
+            id="e2",
+            agent_id="agent-1",
+            scope=MemoryScope.WORKING,
+            type=MemoryEntryType.CONTEXT,
+            content="fresh",
+            ttl_seconds=3600,
+        )
+    )
     count = await store.cleanup_expired()
     assert count == 1
     assert await store.get("e2") is not None
@@ -265,7 +364,13 @@ async def test_retrieval_conversation_context(store):
 
 
 def test_memory_entry_defaults():
-    entry = MemoryEntry(id="e1", agent_id="agent-1", scope=MemoryScope.WORKING, type=MemoryEntryType.CONTEXT, content="test")
+    entry = MemoryEntry(
+        id="e1",
+        agent_id="agent-1",
+        scope=MemoryScope.WORKING,
+        type=MemoryEntryType.CONTEXT,
+        content="test",
+    )
     assert entry.ttl_seconds is None
     assert entry.session_id is None
     assert entry.conversation_id is None

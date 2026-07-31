@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,12 +17,12 @@ class CompanyMapper:
             sa_text(
                 "SELECT "
                 "(SELECT COUNT(*) FROM companies WHERE tenant_id = :tid) as companies, "
-                "(SELECT COUNT(*) FROM commercial_opportunities WHERE tenant_id = :tid AND status = 'open') as deals, "
-                "(SELECT COALESCE(SUM(value), 0) FROM commercial_opportunities WHERE tenant_id = :tid AND status = 'open') as pipeline, "
-                "(SELECT COUNT(*) FROM activity_records WHERE tenant_id = :tid AND timestamp >= :today) as signals, "
-                "(SELECT COUNT(*) FROM commercial_opportunities WHERE tenant_id = :tid AND status = 'open' AND stage = 'prospecting') as pending"
+                "(SELECT COUNT(*) FROM commercial_opportunities WHERE tenant_id = :tid AND status = 'open') as deals, "  # noqa: E501
+                "(SELECT COALESCE(SUM(value), 0) FROM commercial_opportunities WHERE tenant_id = :tid AND status = 'open') as pipeline, "  # noqa: E501
+                "(SELECT COUNT(*) FROM activity_records WHERE tenant_id = :tid AND timestamp >= :today) as signals, "  # noqa: E501
+                "(SELECT COUNT(*) FROM commercial_opportunities WHERE tenant_id = :tid AND status = 'open' AND stage = 'prospecting') as pending"  # noqa: E501
             ),
-            {"tid": self.tenant_id, "today": datetime.now(timezone.utc) - timedelta(days=1)},
+            {"tid": self.tenant_id, "today": datetime.now(UTC) - timedelta(days=1)},
         )
         r = dict(row.mappings().one())
 

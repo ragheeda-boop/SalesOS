@@ -2,7 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user_id, get_current_tenant_id, get_db_session, verify_token
+from app.dependencies import (
+    get_current_tenant_id,
+    get_current_user_id,
+    get_db_session,
+    verify_token,
+)
 
 from .service import ApiKeyService
 

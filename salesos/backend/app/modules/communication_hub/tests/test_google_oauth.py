@@ -1,32 +1,33 @@
 """Unit tests for Communication Hub — Google OAuth Service and Repository."""
+
 import hashlib
 import time
-from datetime import datetime, timezone, timedelta
-from unittest.mock import AsyncMock, patch, MagicMock
+from datetime import UTC, datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
 
-from app.modules.communication_hub.repository import GoogleAccountRepository
-from app.modules.communication_hub.service import (
-    GoogleOAuthService,
-    GoogleOAuthError,
-    GoogleTokenRefreshError,
-    _OAUTH_STATE_STORE,
-    _clean_expired_states,
-    SCOPES,
-)
 from app.modules.communication_hub.models import GoogleAccount
+from app.modules.communication_hub.repository import GoogleAccountRepository
 from app.modules.communication_hub.schemas import (
     GoogleConnectResponse,
-    GoogleStatusResponse,
     GoogleDisconnectResponse,
+    GoogleStatusResponse,
 )
-
+from app.modules.communication_hub.service import (
+    _OAUTH_STATE_STORE,
+    SCOPES,
+    GoogleOAuthError,
+    GoogleOAuthService,
+    GoogleTokenRefreshError,
+    _clean_expired_states,
+)
 
 # ---------------------------------------------------------------------------
 # Repository tests
 # ---------------------------------------------------------------------------
+
 
 class TestGoogleAccountRepository:
     def test_init(self):
@@ -72,7 +73,7 @@ class TestGoogleAccountRepository:
             email="test@gmail.com",
             access_token_encrypted="enc_access",
             refresh_token_encrypted="enc_refresh",
-            token_expiry=datetime.now(timezone.utc),
+            token_expiry=datetime.now(UTC),
             scope="openid email",
             google_user_id="123",
             avatar_url="https://example.com/avatar.jpg",
@@ -112,6 +113,7 @@ class TestGoogleAccountRepository:
 # ---------------------------------------------------------------------------
 # Service tests
 # ---------------------------------------------------------------------------
+
 
 class TestGoogleOAuthService:
     def setup_method(self):
@@ -215,7 +217,7 @@ class TestGoogleOAuthService:
     async def test_get_status_with_account(self):
         service = self._make_service()
         account = MagicMock(spec=GoogleAccount)
-        account.token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+        account.token_expiry = datetime.now(UTC) + timedelta(hours=1)
         repo = AsyncMock()
         repo.get_by_user = AsyncMock(return_value=account)
         service.repo = repo
@@ -257,7 +259,7 @@ class TestGoogleOAuthService:
         service._decrypt = MagicMock(return_value="raw_access_token")
         account = MagicMock(spec=GoogleAccount)
         account.access_token_encrypted = "enc_access"
-        account.token_expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+        account.token_expiry = datetime.now(UTC) + timedelta(hours=1)
 
         token = await service.get_valid_token(account)
 
@@ -267,7 +269,7 @@ class TestGoogleOAuthService:
     async def test_get_valid_token_expired_no_refresh(self):
         service = self._make_service()
         account = MagicMock(spec=GoogleAccount)
-        account.token_expiry = datetime.now(timezone.utc) - timedelta(hours=1)
+        account.token_expiry = datetime.now(UTC) - timedelta(hours=1)
         account.refresh_token_encrypted = None
 
         with pytest.raises(GoogleTokenRefreshError, match="No refresh token"):
@@ -287,7 +289,7 @@ class TestGoogleOAuthService:
         assert service._http.post.await_count == 2
 
     @pytest.mark.asyncio
-    async     def test_scopes_defined(self):
+    async def test_scopes_defined(self):
         assert "openid" in SCOPES
         assert "email" in SCOPES
         assert "profile" in SCOPES
@@ -298,8 +300,10 @@ class TestGoogleOAuthService:
     def test_generate_authorization_url_reaches_google_consent(self):
         """OAuth connect path ends at Google authorize URL (no real consent needed)."""
         service = self._make_service()
-        with patch.object(service, "_redirect_uri", return_value="https://api.example.com/callback"), \
-             patch("app.modules.communication_hub.service.settings") as mock_settings:
+        with (
+            patch.object(service, "_redirect_uri", return_value="https://api.example.com/callback"),
+            patch("app.modules.communication_hub.service.settings") as mock_settings,
+        ):
             mock_settings.sso_google_client_id = "client-id"
             url, state = service.generate_authorization_url()
         assert url.startswith("https://accounts.google.com/o/oauth2/v2/auth?")
@@ -315,6 +319,7 @@ class TestGoogleOAuthService:
 # ---------------------------------------------------------------------------
 # Schema tests
 # ---------------------------------------------------------------------------
+
 
 class TestSchemas:
     def test_google_connect_response(self):
@@ -336,6 +341,7 @@ class TestSchemas:
 
     def test_google_callback_request_validation(self):
         from app.modules.communication_hub.schemas import GoogleCallbackRequest
+
         req = GoogleCallbackRequest(code="auth_code_123", state="state_abc")
         assert req.code == "auth_code_123"
         assert req.state == "state_abc"

@@ -5,8 +5,8 @@ from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import safe_error_detail
-from app.dependencies import get_db_session, require_role_dep
 from app.common.rate_limit import check_rate_limit_by_key
+from app.dependencies import get_db_session, require_role_dep
 
 from .saml_service import SAMLService, decode_saml_response, register_saml_config
 
@@ -36,11 +36,15 @@ async def saml_login(
     tenant_id: str = Form(...),
     service: SAMLService = Depends(get_service),
 ):
-    await check_rate_limit_by_key(f"saml-login:{request.client.host}", limit=_SAML_RATE_LIMIT, window=60)
+    await check_rate_limit_by_key(
+        f"saml-login:{request.client.host}", limit=_SAML_RATE_LIMIT, window=60
+    )
     try:
         redirect_url = service.initiate_saml_login(tenant_id)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid SAML login request"))
+        raise HTTPException(
+            status_code=400, detail=safe_error_detail(e, "Invalid SAML login request")
+        ) from e
     return {"redirect_url": redirect_url}
 
 
@@ -51,19 +55,27 @@ async def saml_callback(
     RelayState: str = Form(""),
     service: SAMLService = Depends(get_service),
 ):
-    await check_rate_limit_by_key(f"saml-callback:{request.client.host}", limit=_SAML_RATE_LIMIT, window=60)
+    await check_rate_limit_by_key(
+        f"saml-callback:{request.client.host}", limit=_SAML_RATE_LIMIT, window=60
+    )
 
     try:
         xml_data = decode_saml_response(SAMLResponse)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Failed to decode SAMLResponse"))
+        raise HTTPException(
+            status_code=400, detail=safe_error_detail(e, "Failed to decode SAMLResponse")
+        ) from e
 
     try:
         access_token, user_id = await service.handle_saml_callback(xml_data, RelayState or None)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid SAML login request"))
+        raise HTTPException(
+            status_code=400, detail=safe_error_detail(e, "Invalid SAML login request")
+        ) from e
     except Exception as e:
-        raise HTTPException(status_code=401, detail=safe_error_detail(e, "SAML authentication failed"))
+        raise HTTPException(
+            status_code=401, detail=safe_error_detail(e, "SAML authentication failed")
+        ) from e
 
     return {
         "access_token": access_token,
@@ -79,19 +91,27 @@ async def saml_idp_initiated(
     RelayState: str = Form(""),
     service: SAMLService = Depends(get_service),
 ):
-    await check_rate_limit_by_key(f"saml-idp-init:{request.client.host}", limit=_SAML_RATE_LIMIT, window=60)
+    await check_rate_limit_by_key(
+        f"saml-idp-init:{request.client.host}", limit=_SAML_RATE_LIMIT, window=60
+    )
 
     try:
         xml_data = decode_saml_response(SAMLResponse)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Failed to decode SAMLResponse"))
+        raise HTTPException(
+            status_code=400, detail=safe_error_detail(e, "Failed to decode SAMLResponse")
+        ) from e
 
     try:
         access_token, user_id = await service.handle_idp_initiated(xml_data, RelayState or None)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid SAML login request"))
+        raise HTTPException(
+            status_code=400, detail=safe_error_detail(e, "Invalid SAML login request")
+        ) from e
     except Exception as e:
-        raise HTTPException(status_code=401, detail=safe_error_detail(e, "SAML authentication failed"))
+        raise HTTPException(
+            status_code=401, detail=safe_error_detail(e, "SAML authentication failed")
+        ) from e
 
     return {
         "access_token": access_token,
@@ -107,9 +127,12 @@ async def saml_configure(
     idp_entity_id: str = Form(...),
     idp_cert: str = Form(""),
 ):
-    register_saml_config(tenant_id, {
-        "idp_sso_url": idp_sso_url,
-        "idp_entity_id": idp_entity_id,
-        "idp_cert": idp_cert,
-    })
+    register_saml_config(
+        tenant_id,
+        {
+            "idp_sso_url": idp_sso_url,
+            "idp_entity_id": idp_entity_id,
+            "idp_cert": idp_cert,
+        },
+    )
     return {"message": f"SAML configured for tenant {tenant_id}"}

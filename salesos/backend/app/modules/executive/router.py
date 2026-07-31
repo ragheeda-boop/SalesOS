@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
-from sdk.permissions import PermissionAction
 from app.modules.executive.schemas import ExecutiveDashboard
 from app.modules.executive.service import ExecutiveService
+from sdk.permissions import PermissionAction
 
 router = APIRouter()
 

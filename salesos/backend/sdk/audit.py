@@ -1,7 +1,7 @@
 """Audit trail writer for recording all domain mutations."""
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
@@ -51,7 +51,7 @@ class AuditTrail:
                 "action": action,
                 "changes": json.dumps(changes or {}),
                 "performed_by": str(performed_by) if performed_by else None,
-                "performed_at": datetime.now(timezone.utc),
+                "performed_at": datetime.now(UTC),
                 "ip_address": ip_address,
                 "request_id": request_id,
                 "metadata": json.dumps(metadata or {}),

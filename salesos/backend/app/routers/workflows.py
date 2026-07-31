@@ -1,35 +1,26 @@
 """Workflow Engine REST API — full CRUD, execution, webhooks, jobs, templates."""
+
 from __future__ import annotations
 
 import logging
+from datetime import UTC
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_db_session
-from sdk.permissions import PermissionAction
-from app.dependencies import require_permission_dep
-from domains.workflow.postgres_repo import PostgresWorkflowRepository
+from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
 from domains.workflow.engine import WorkflowEngine
-from domains.workflow.service import WorkflowService, WorkflowValidationError
+from domains.workflow.postgres_repo import PostgresWorkflowRepository
 from domains.workflow.schemas import (
-    WorkflowCreate,
-    WorkflowUpdate,
-    WorkflowExecuteRequest,
-    WorkflowResponse,
-    WorkflowDetailResponse,
-    WorkflowExecutionResponse,
-    WorkflowExecutionDetailResponse,
-    WebhookEndpointCreate,
-    WebhookEndpointResponse,
     ScheduledJobCreate,
     ScheduledJobUpdate,
-    ScheduledJobResponse,
-    JobExecutionResponse,
-    WorkflowTemplateResponse,
-    WorkflowTemplateDetailResponse,
+    WebhookEndpointCreate,
+    WorkflowCreate,
+    WorkflowExecuteRequest,
+    WorkflowUpdate,
 )
-from domains.workflow.models import Workflow, WorkflowStep
+from domains.workflow.service import WorkflowService, WorkflowValidationError
+from sdk.permissions import PermissionAction
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +28,7 @@ router = APIRouter()
 
 
 # ── Dependencies ──
+
 
 async def _get_repo(db: AsyncSession = Depends(get_db_session)) -> PostgresWorkflowRepository:
     return PostgresWorkflowRepository(session=db)
@@ -54,6 +46,7 @@ async def _get_service(
 
 
 # ── Workflow CRUD ──
+
 
 def _iso(dt) -> str | None:
     if dt is None:
@@ -82,7 +75,7 @@ async def list_workflows(
                 offset = int(cursor)
             except (ValueError, TypeError):
                 offset = 0
-        sliced = workflows[offset:offset + limit]
+        sliced = workflows[offset : offset + limit]
         next_cursor = str(offset + limit) if offset + limit < len(workflows) else None
         return {
             "items": [
@@ -106,7 +99,7 @@ async def list_workflows(
             logger.warning("list_workflows: workflow tables missing — returning empty (%s)", exc)
             return {"items": [], "next_cursor": None, "total": 0}
         logger.error("list_workflows failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.get("/workflows/analytics")
@@ -118,7 +111,7 @@ async def workflow_analytics(
 ):
     """Aggregate workflow + execution stats for automation analytics UI."""
     from collections import defaultdict
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
     try:
         workflows = await svc.list(tenant_id)
@@ -129,12 +122,14 @@ async def workflow_analytics(
             workflows, executions = [], []
         else:
             logger.error("workflow_analytics failed: %s", exc)
-            raise HTTPException(status_code=500, detail="Internal server error")
+            raise HTTPException(status_code=500, detail="Internal server error") from exc
 
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    cutoff = datetime.now(UTC) - timedelta(days=days)
     recent = [
-        e for e in executions
-        if e.started_at and (e.started_at if e.started_at.tzinfo else e.started_at.replace(tzinfo=timezone.utc)) >= cutoff
+        e
+        for e in executions
+        if e.started_at
+        and (e.started_at if e.started_at.tzinfo else e.started_at.replace(tzinfo=UTC)) >= cutoff
     ]
 
     successful = [e for e in recent if e.status in ("completed", "success")]
@@ -165,12 +160,14 @@ async def workflow_analytics(
     top_workflows = []
     for wf_id, runs in runs_by_wf.items():
         ok = sum(1 for r in runs if r.status in ("completed", "success"))
-        top_workflows.append({
-            "id": wf_id,
-            "name": wf_name.get(wf_id, wf_id),
-            "runs": len(runs),
-            "success_rate": round(ok / len(runs), 4) if runs else 0.0,
-        })
+        top_workflows.append(
+            {
+                "id": wf_id,
+                "name": wf_name.get(wf_id, wf_id),
+                "runs": len(runs),
+                "success_rate": round(ok / len(runs), 4) if runs else 0.0,
+            }
+        )
     top_workflows.sort(key=lambda x: x["runs"], reverse=True)
 
     active = sum(1 for w in workflows if w.status == "active")
@@ -186,9 +183,7 @@ async def workflow_analytics(
         "completion_rate": round((success_n / total_exec) * 100, 2) if total_exec else 0.0,
         "avg_duration_seconds": round(sum(durations) / len(durations), 2) if durations else 0.0,
         "failure_rate": round((failed_n / total_exec) * 100, 2) if total_exec else 0.0,
-        "executions_over_time": [
-            {"date": day, **vals} for day, vals in sorted(by_day.items())
-        ],
+        "executions_over_time": [{"date": day, **vals} for day, vals in sorted(by_day.items())],
         "top_workflows": top_workflows[:10],
         "recent_executions": [
             {
@@ -199,7 +194,9 @@ async def workflow_analytics(
                 "completed_at": _iso(e.completed_at),
                 "error": e.error,
             }
-            for e in sorted(recent, key=lambda x: x.started_at or datetime.min.replace(tzinfo=timezone.utc), reverse=True)[:20]
+            for e in sorted(
+                recent, key=lambda x: x.started_at or datetime.min.replace(tzinfo=UTC), reverse=True
+            )[:20]
         ],
         "period_days": days,
     }
@@ -226,10 +223,10 @@ async def create_workflow(
         )
         return {"id": wf.id, "name": wf.name, "steps_count": len(wf.steps), "status": wf.status}
     except WorkflowValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as exc:
         logger.error("create_workflow failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 # ── Execution & Template routes (must be before /workflows/{workflow_id}) ──
@@ -252,7 +249,7 @@ async def list_executions(
                 offset = int(cursor)
             except (ValueError, TypeError):
                 offset = 0
-        sliced = executions[offset:offset + limit]
+        sliced = executions[offset : offset + limit]
         next_cursor = str(offset + limit) if offset + limit < len(executions) else None
         return {
             "items": [
@@ -273,7 +270,7 @@ async def list_executions(
         }
     except Exception as exc:
         logger.error("list_executions failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.get("/workflows/executions/{execution_id}")
@@ -312,7 +309,7 @@ async def get_execution(
         raise
     except Exception as exc:
         logger.error("get_execution failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.get("/workflows/templates")
@@ -336,7 +333,7 @@ async def list_templates(
         ]
     except Exception as exc:
         logger.error("list_templates failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.get("/workflows/templates/{template_id}")
@@ -363,7 +360,7 @@ async def get_template(
         raise
     except Exception as exc:
         logger.error("get_template failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.get("/workflows/{workflow_id}")
@@ -403,7 +400,7 @@ async def get_workflow(
         raise
     except Exception as exc:
         logger.error("get_workflow failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.put("/workflows/{workflow_id}")
@@ -428,12 +425,12 @@ async def update_workflow(
         )
         return {"id": wf.id, "name": wf.name, "status": wf.status}
     except WorkflowValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except HTTPException:
         raise
     except Exception as exc:
         logger.error("update_workflow failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.delete("/workflows/{workflow_id}")
@@ -447,13 +444,14 @@ async def delete_workflow(
         await svc.delete(workflow_id, tenant_id)
         return {"deleted": True, "id": workflow_id}
     except WorkflowValidationError:
-        raise HTTPException(status_code=404, detail="Workflow not found")
+        raise HTTPException(status_code=404, detail="Workflow not found") from None
     except Exception as exc:
         logger.error("delete_workflow failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 # ── Execution ──
+
 
 @router.post("/workflows/{workflow_id}/execute")
 async def execute_workflow(
@@ -482,12 +480,12 @@ async def execute_workflow(
             ],
         }
     except WorkflowValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except HTTPException:
         raise
     except Exception as exc:
         logger.error("execute_workflow failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.post("/webhooks", status_code=201)
@@ -506,10 +504,16 @@ async def create_webhook(
             auth_config=body.auth_config,
             secret=body.secret,
         )
-        return {"id": ep.id, "url": ep.url, "name": ep.name, "auth_type": ep.auth_type, "status": ep.status}
+        return {
+            "id": ep.id,
+            "url": ep.url,
+            "name": ep.name,
+            "auth_type": ep.auth_type,
+            "status": ep.status,
+        }
     except Exception as exc:
         logger.error("create_webhook failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.get("/webhooks")
@@ -521,12 +525,19 @@ async def list_webhooks(
     try:
         webhooks = await svc.list_webhooks(tenant_id)
         return [
-            {"id": ep.id, "url": ep.url, "name": ep.name, "auth_type": ep.auth_type, "status": ep.status, "created_at": ep.created_at.isoformat()}
+            {
+                "id": ep.id,
+                "url": ep.url,
+                "name": ep.name,
+                "auth_type": ep.auth_type,
+                "status": ep.status,
+                "created_at": ep.created_at.isoformat(),
+            }
             for ep in webhooks
         ]
     except Exception as exc:
         logger.error("list_webhooks failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.get("/webhooks/{endpoint_id}")
@@ -540,12 +551,18 @@ async def get_webhook(
         ep = await svc.get_webhook(endpoint_id, tenant_id)
         if not ep:
             raise HTTPException(status_code=404, detail="Webhook not found")
-        return {"id": ep.id, "url": ep.url, "name": ep.name, "auth_type": ep.auth_type, "status": ep.status}
+        return {
+            "id": ep.id,
+            "url": ep.url,
+            "name": ep.name,
+            "auth_type": ep.auth_type,
+            "status": ep.status,
+        }
     except HTTPException:
         raise
     except Exception as exc:
         logger.error("get_webhook failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.put("/webhooks/{endpoint_id}")
@@ -565,12 +582,18 @@ async def update_webhook(
             auth_type=body.auth_type,
             secret=body.secret,
         )
-        return {"id": ep.id, "url": ep.url, "name": ep.name, "auth_type": ep.auth_type, "status": ep.status}
+        return {
+            "id": ep.id,
+            "url": ep.url,
+            "name": ep.name,
+            "auth_type": ep.auth_type,
+            "status": ep.status,
+        }
     except WorkflowValidationError:
-        raise HTTPException(status_code=404, detail="Webhook not found")
+        raise HTTPException(status_code=404, detail="Webhook not found") from None
     except Exception as exc:
         logger.error("update_webhook failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.delete("/webhooks/{endpoint_id}")
@@ -584,13 +607,14 @@ async def delete_webhook(
         await svc.delete_webhook(endpoint_id, tenant_id)
         return {"deleted": True, "id": endpoint_id}
     except WorkflowValidationError:
-        raise HTTPException(status_code=404, detail="Webhook not found")
+        raise HTTPException(status_code=404, detail="Webhook not found") from None
     except Exception as exc:
         logger.error("delete_webhook failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 # ── Scheduled Job CRUD ──
+
 
 @router.post("/jobs", status_code=201)
 async def create_job(
@@ -618,10 +642,10 @@ async def create_job(
             "next_run_at": job.next_run_at.isoformat() if job.next_run_at else None,
         }
     except WorkflowValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as exc:
         logger.error("create_job failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.get("/jobs")
@@ -647,7 +671,7 @@ async def list_jobs(
         ]
     except Exception as exc:
         logger.error("list_jobs failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.get("/jobs/{job_id}")
@@ -679,7 +703,7 @@ async def get_job(
         raise
     except Exception as exc:
         logger.error("get_job failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.put("/jobs/{job_id}")
@@ -700,10 +724,10 @@ async def update_job(
         )
         return {"id": job.id, "name": job.name, "status": job.status}
     except WorkflowValidationError:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise HTTPException(status_code=404, detail="Job not found") from None
     except Exception as exc:
         logger.error("update_job failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.delete("/jobs/{job_id}")
@@ -717,10 +741,10 @@ async def delete_job(
         await svc.delete_job(job_id, tenant_id)
         return {"deleted": True, "id": job_id}
     except WorkflowValidationError:
-        raise HTTPException(status_code=404, detail="Job not found")
+        raise HTTPException(status_code=404, detail="Job not found") from None
     except Exception as exc:
         logger.error("delete_job failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.get("/jobs/{job_id}/executions")
@@ -745,4 +769,4 @@ async def list_job_executions(
         ]
     except Exception as exc:
         logger.error("list_job_executions failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc

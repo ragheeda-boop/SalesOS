@@ -1,32 +1,37 @@
 """Tests for FeatureStore — orchestration, caching, metrics, recompute."""
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from runtime.feature_store import (
-    FeatureStore,
-    FeatureStoreMetrics,
+    CompanyFeatureModel,
     FeatureComputer,
     FeatureResult,
-    CompanyFeatureModel,
+    FeatureStore,
+    FeatureStoreMetrics,
 )
 
-
 # ── Fake SQLAlchemy helpers ──────────────────────────────────────────────────
+
 
 class FakeMapping:
     def __init__(self, data):
         self._data = data
+
     def __getitem__(self, key):
         return self._data[key]
+
     def get(self, key, default=None):
         return self._data.get(key, default)
+
     def keys(self):
         return self._data.keys()
+
     def __iter__(self):
         return iter(self._data)
 
@@ -35,10 +40,13 @@ class FakeMappings:
     def __init__(self, rows=None, one=None):
         self._rows = rows or []
         self._one = one
+
     def one(self):
         return FakeMapping(self._one) if self._one else None
+
     def one_or_none(self):
         return FakeMapping(self._one) if self._one else None
+
     def all(self):
         return [FakeMapping(r) for r in self._rows]
 
@@ -47,15 +55,19 @@ class FakeResult:
     def __init__(self, mappings_obj=None, scalar_val=None):
         self._mappings = mappings_obj or FakeMappings()
         self._scalar_val = scalar_val
+
     def mappings(self):
         return self._mappings
+
     def scalar_one_or_none(self):
         return self._scalar_val
+
     def scalar(self):
         return self._scalar_val or 0
 
 
 # ── Dummy Computer ───────────────────────────────────────────────────────────
+
 
 class DummyComputer(FeatureComputer):
     name = "dummy_score"
@@ -65,7 +77,7 @@ class DummyComputer(FeatureComputer):
         return FeatureResult(
             score=75.0,
             version=self.version,
-            computed_at=datetime.now(timezone.utc),
+            computed_at=datetime.now(UTC),
             confidence=0.9,
             contributing_signals={"dummy": True},
             explanation="Dummy score",
@@ -74,16 +86,21 @@ class DummyComputer(FeatureComputer):
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def mock_session():
     """Returns a session that returns no cached results, simulating a cache miss."""
+
     async def execute(sql_str, params=None):
         text = str(sql_str)
         if "SELECT" in text and "company_features" in text:
             return FakeResult(scalar_val=None)
         if "SELECT * FROM public.companies" in text:
-            return FakeResult(FakeMappings(one={"id": "co-1", "tenant_id": "t-1", "name": "Test Co"}))
+            return FakeResult(
+                FakeMappings(one={"id": "co-1", "tenant_id": "t-1", "name": "Test Co"})
+            )
         return FakeResult()
+
     session = AsyncMock(spec=AsyncSession)
     session.execute = execute
     return session
@@ -112,6 +129,7 @@ def feature_store(mock_session_factory, event_runtime):
 
 
 # ── Tests: FeatureStoreMetrics ───────────────────────────────────────────────
+
 
 class TestFeatureStoreMetrics:
     def test_snapshot_returns_dict(self):
@@ -148,6 +166,7 @@ class TestFeatureStoreMetrics:
 
 # ── Tests: FeatureStore.get_feature ──────────────────────────────────────────
 
+
 class TestGetFeature:
     async def test_returns_feature_result(self, feature_store):
         result = await feature_store.get_feature("co-1", "t-1", "dummy_score")
@@ -168,7 +187,7 @@ class TestGetFeature:
         cached_model = MagicMock(spec=CompanyFeatureModel)
         cached_model.score = 80.0
         cached_model.version = 1
-        cached_model.computed_at = datetime.now(timezone.utc)
+        cached_model.computed_at = datetime.now(UTC)
         cached_model.confidence = 0.9
         cached_model.signals = {"cached": True}
         cached_model.explanation = "Cached result"
@@ -187,7 +206,9 @@ class TestGetFeature:
         factory.return_value.__aenter__.return_value = session
         factory.return_value.__aexit__.return_value = None
 
-        store = FeatureStore(session_factory=factory, event_runtime=event_runtime, computers=[DummyComputer()])
+        store = FeatureStore(
+            session_factory=factory, event_runtime=event_runtime, computers=[DummyComputer()]
+        )
         before_hits = store.metrics.cache_hits
         result = await store.get_feature("co-1", "t-1", "dummy_score")
         assert result.score == 80.0
@@ -195,6 +216,7 @@ class TestGetFeature:
 
 
 # ── Tests: FeatureStore.get_features ─────────────────────────────────────────
+
 
 class TestGetFeatures:
     async def test_returns_dict(self, feature_store):
@@ -218,6 +240,7 @@ class TestGetFeatures:
 
 # ── Tests: FeatureStore.recompute ────────────────────────────────────────────
 
+
 class TestRecompute:
     async def test_recompute_returns_all_results(self, feature_store):
         results = await feature_store.recompute("co-1", "t-1")
@@ -237,6 +260,7 @@ class TestRecompute:
 
 # ── Tests: FeatureComputer Base ──────────────────────────────────────────────
 
+
 class TestFeatureComputerBase:
     async def test_compute_raises_not_implemented(self):
         computer = FeatureComputer()
@@ -251,10 +275,12 @@ class TestFeatureComputerBase:
 
 # ── Tests: error handling ────────────────────────────────────────────────────
 
+
 class TestErrorHandling:
     async def test_computer_error_caught(self, mock_session_factory, event_runtime):
         class BrokenComputer(FeatureComputer):
             name = "broken"
+
             async def compute(self, company, session):
                 raise ValueError("Broken!")
 
@@ -269,6 +295,7 @@ class TestErrorHandling:
     async def test_error_increments_errors_metric(self, mock_session_factory, event_runtime):
         class FailingComputer(FeatureComputer):
             name = "failing"
+
             async def compute(self, company, session):
                 raise RuntimeError("fail")
 

@@ -4,13 +4,13 @@ import hashlib
 import hmac
 import secrets
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.exceptions import NotFoundError, UnauthorizedError
+from app.common.exceptions import NotFoundError
 from app.config import settings
 
 from .models import ApiKey
@@ -51,9 +51,9 @@ class ApiKeyService:
         raw_key, prefix, key_hash = _generate_api_key()
         expires_at = None
         if expiry_days:
-            expires_at = datetime.now(timezone.utc) + timedelta(days=expiry_days)
+            expires_at = datetime.now(UTC) + timedelta(days=expiry_days)
         if not expiry_days and settings.api_key_expiry_days:
-            expires_at = datetime.now(timezone.utc) + timedelta(days=settings.api_key_expiry_days)
+            expires_at = datetime.now(UTC) + timedelta(days=settings.api_key_expiry_days)
 
         api_key = ApiKey(
             id=secrets.token_urlsafe(16),
@@ -81,11 +81,11 @@ class ApiKeyService:
         keys = list(result.scalars().all())
         for api_key in keys:
             if _verify_key(key, api_key.key_hash):
-                if api_key.expires_at and api_key.expires_at < datetime.now(timezone.utc):
+                if api_key.expires_at and api_key.expires_at < datetime.now(UTC):
                     api_key.is_revoked = True
                     await self.db.flush()
                     return None
-                api_key.last_used_at = datetime.now(timezone.utc)
+                api_key.last_used_at = datetime.now(UTC)
                 await self.db.flush()
                 return api_key
         return None
@@ -102,16 +102,18 @@ class ApiKeyService:
         if not api_key:
             return False
         api_key.is_revoked = True
-        api_key.revoked_at = datetime.now(timezone.utc)
+        api_key.revoked_at = datetime.now(UTC)
         await self.db.flush()
         return True
 
     async def list_for_user(self, user_id: str) -> list[dict[str, Any]]:
         result = await self.db.execute(
-            select(ApiKey).where(
+            select(ApiKey)
+            .where(
                 ApiKey.user_id == uuid.UUID(user_id),
                 ApiKey.is_revoked.is_(False),
-            ).order_by(ApiKey.created_at.desc())
+            )
+            .order_by(ApiKey.created_at.desc())
         )
         keys = list(result.scalars().all())
         return [

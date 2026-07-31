@@ -1,15 +1,15 @@
 """Tests for Pipeline Analytics — velocity, conversion, health_map, forecast."""
+
 from __future__ import annotations
 
-from datetime import datetime, timezone, timedelta
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
 from runtime.pipeline_analytics import PipelineAnalytics
 
-
 # ── Fake SQLAlchemy helpers ──────────────────────────────────────────────────
+
 
 class FakeMapping:
     def __init__(self, data):
@@ -68,12 +68,30 @@ CONVERSION_ROWS = [
 ]
 
 HEALTH_ROWS = [
-    {"id": "opp-1", "name": "Deal A", "stage": "proposal", "value": 500000,
-     "health_score": 0.85, "owner_id": "user-1"},
-    {"id": "opp-2", "name": "Deal B", "stage": "qualification", "value": 200000,
-     "health_score": 0.50, "owner_id": "user-2"},
-    {"id": "opp-3", "name": "Deal C", "stage": "negotiation", "value": 100000,
-     "health_score": 0.30, "owner_id": None},
+    {
+        "id": "opp-1",
+        "name": "Deal A",
+        "stage": "proposal",
+        "value": 500000,
+        "health_score": 0.85,
+        "owner_id": "user-1",
+    },
+    {
+        "id": "opp-2",
+        "name": "Deal B",
+        "stage": "qualification",
+        "value": 200000,
+        "health_score": 0.50,
+        "owner_id": "user-2",
+    },
+    {
+        "id": "opp-3",
+        "name": "Deal C",
+        "stage": "negotiation",
+        "value": 100000,
+        "health_score": 0.30,
+        "owner_id": None,
+    },
 ]
 
 FORECAST_ROW = {
@@ -86,18 +104,31 @@ FORECAST_ROW = {
 
 def _make_session(velocity_rows=None, conversion_rows=None, health_rows=None, forecast_row=None):
     """Return a mock session that returns different data based on the SQL query."""
+
     async def execute(sql_str, params=None):
         text = str(sql_str)
         if "stage_entries" in text or "AVG(EXTRACT" in text:
-            return FakeResult(FakeMappings(rows=velocity_rows if velocity_rows is not None else VELOCITY_ROWS))
+            return FakeResult(
+                FakeMappings(rows=velocity_rows if velocity_rows is not None else VELOCITY_ROWS)
+            )
         elif "stage_counts" in text or ("stage" in text and "GROUP BY stage" in text):
-            return FakeResult(FakeMappings(rows=conversion_rows if conversion_rows is not None else CONVERSION_ROWS))
+            return FakeResult(
+                FakeMappings(
+                    rows=conversion_rows if conversion_rows is not None else CONVERSION_ROWS
+                )
+            )
         elif "health_score" in text or "company_features" in text:
-            return FakeResult(FakeMappings(rows=health_rows if health_rows is not None else HEALTH_ROWS))
-        elif "weighted_value" in text or "SUM(value * probability)" in text:
-            return FakeResult(FakeMappings(one=forecast_row if forecast_row is not None else FORECAST_ROW))
-        elif "COUNT(*) as total_count" in text or "SUM(value)" in text:
-            return FakeResult(FakeMappings(one=forecast_row if forecast_row is not None else FORECAST_ROW))
+            return FakeResult(
+                FakeMappings(rows=health_rows if health_rows is not None else HEALTH_ROWS)
+            )
+        elif (
+            "weighted_value" in text
+            or "SUM(value * probability)" in text
+            or ("COUNT(*) as total_count" in text or "SUM(value)" in text)
+        ):
+            return FakeResult(
+                FakeMappings(one=forecast_row if forecast_row is not None else FORECAST_ROW)
+            )
         return FakeResult(FakeMappings())
 
     session = AsyncMock()
@@ -111,6 +142,7 @@ def analytics():
 
 
 # ── Tests: velocity ──────────────────────────────────────────────────────────
+
 
 class TestVelocity:
     async def test_returns_dict(self, analytics):
@@ -139,6 +171,7 @@ class TestVelocity:
 
 # ── Tests: conversion_rates ──────────────────────────────────────────────────
 
+
 class TestConversionRates:
     async def test_returns_dict(self, analytics):
         result = await analytics.conversion_rates()
@@ -146,11 +179,11 @@ class TestConversionRates:
 
     async def test_has_stage_arrow_keys(self, analytics):
         result = await analytics.conversion_rates()
-        assert any("→" in k for k in result.keys())
+        assert any("→" in k for k in result)
 
     async def test_conversion_bounded(self, analytics):
         result = await analytics.conversion_rates()
-        for k, v in result.items():
+        for _k, v in result.items():
             assert 0 <= v <= 10  # Allow >1 if stage counts increase
 
     async def test_prospecting_to_qualification(self, analytics):
@@ -167,6 +200,7 @@ class TestConversionRates:
 
 
 # ── Tests: health_map ────────────────────────────────────────────────────────
+
 
 class TestHealthMap:
     async def test_returns_list(self, analytics):
@@ -218,6 +252,7 @@ class TestHealthMap:
 
 
 # ── Tests: forecast ──────────────────────────────────────────────────────────
+
 
 class TestForecast:
     async def test_returns_dict(self, analytics):

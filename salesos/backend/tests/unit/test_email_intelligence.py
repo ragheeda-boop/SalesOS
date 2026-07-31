@@ -1,12 +1,13 @@
 """Tests for Email Intelligence — sentiment, topics, action items, urgency, empty text."""
+
 from __future__ import annotations
 
 import pytest
 
 from domains.commercial.email import Email, EmailIntelligence
 
-
 # ── Fixtures ─────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def analyzer():
@@ -25,6 +26,7 @@ def _make_email(body: str) -> Email:
 
 
 # ── Tests: Sentiment Analysis ───────────────────────────────────────────────
+
 
 class TestSentiment:
     def test_positive_arabic(self, analyzer):
@@ -64,6 +66,7 @@ class TestSentiment:
 
 
 # ── Tests: Topic Extraction ─────────────────────────────────────────────────
+
 
 class TestTopicExtraction:
     def test_pricing_topic(self, analyzer):
@@ -112,6 +115,7 @@ class TestTopicExtraction:
 
 # ── Tests: Action Item Extraction ────────────────────────────────────────────
 
+
 class TestActionItems:
     def test_action_colon_prefix(self, analyzer):
         email = _make_email("action: متابعة العرض下周")
@@ -152,6 +156,7 @@ class TestActionItems:
 
 # ── Tests: Urgency Detection ────────────────────────────────────────────────
 
+
 class TestUrgency:
     def test_high_urgency(self, analyzer):
         email = _make_email("هذا عاجل وضروري، نحتاج الرد ASAP")
@@ -186,6 +191,7 @@ class TestUrgency:
 
 # ── Tests: Empty / Edge Cases ────────────────────────────────────────────────
 
+
 class TestEmptyHandling:
     def test_empty_body_returns_all_fields(self, analyzer):
         email = _make_email("")
@@ -211,8 +217,12 @@ class TestEmptyHandling:
 
     def test_email_object_fields(self, analyzer):
         email = Email(
-            id="em-2", tenant_id="t-1", opportunity_id="opp-1",
-            subject="Subject", from_address="a@b.com", body="",
+            id="em-2",
+            tenant_id="t-1",
+            opportunity_id="opp-1",
+            subject="Subject",
+            from_address="a@b.com",
+            body="",
         )
         result = analyzer.analyze(email)
         assert isinstance(result, dict)

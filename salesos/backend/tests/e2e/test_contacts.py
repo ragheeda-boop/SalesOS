@@ -15,9 +15,7 @@ _TEST_TIMEOUT = 30
 class TestContactCRUD:
     """Create, read, update, delete contacts."""
 
-    async def _seed_company(
-        self, client: AsyncClient, headers: dict
-    ) -> str:
+    async def _seed_company(self, client: AsyncClient, headers: dict) -> str:
         """Create a company and return its ID."""
         resp = await client.post(
             "/api/v1/companies",

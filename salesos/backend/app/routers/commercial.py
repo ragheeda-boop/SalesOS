@@ -2,6 +2,7 @@
 
 import logging
 import os
+from datetime import UTC
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,14 +18,14 @@ logger = logging.getLogger(__name__)
 
 async def _analytics_input_from_db(db: AsyncSession, tenant_id: str):
     """Build AnalyticsInput from commercial_opportunities — never invent revenue."""
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
     from sqlalchemy import func, select
 
     from domains.commercial.infrastructure.models import OpportunityModel
     from domains.revenue.analytics.service import AnalyticsInput
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     period_start = now - timedelta(days=30)
     prev_start = now - timedelta(days=60)
 
@@ -83,7 +84,9 @@ async def _analytics_input_from_db(db: AsyncSession, tenant_id: str):
 
     open_count = (
         await db.execute(
-            select(func.count()).select_from(OpportunityModel).where(
+            select(func.count())
+            .select_from(OpportunityModel)
+            .where(
                 OpportunityModel.tenant_id == tenant_id,
                 OpportunityModel.status == "open",
             )
@@ -91,7 +94,9 @@ async def _analytics_input_from_db(db: AsyncSession, tenant_id: str):
     ).scalar() or 0
     won_count = (
         await db.execute(
-            select(func.count()).select_from(OpportunityModel).where(
+            select(func.count())
+            .select_from(OpportunityModel)
+            .where(
                 OpportunityModel.tenant_id == tenant_id,
                 OpportunityModel.status == "won",
             )
@@ -99,7 +104,9 @@ async def _analytics_input_from_db(db: AsyncSession, tenant_id: str):
     ).scalar() or 0
     lost_count = (
         await db.execute(
-            select(func.count()).select_from(OpportunityModel).where(
+            select(func.count())
+            .select_from(OpportunityModel)
+            .where(
                 OpportunityModel.tenant_id == tenant_id,
                 OpportunityModel.status == "lost",
             )
@@ -120,61 +127,73 @@ async def _analytics_input_from_db(db: AsyncSession, tenant_id: str):
 
 # ── PostgreSQL-backed service factories ──
 
+
 def _get_opp(db: AsyncSession):
+    from domains.commercial.infrastructure.postgres_repositories import (
+        PostgresOpportunityRepository,
+    )
     from domains.commercial.opportunity.engine.service import OpportunityService
-    from domains.commercial.infrastructure.postgres_repositories import PostgresOpportunityRepository
+
     return OpportunityService(PostgresOpportunityRepository(db))
 
 
 def _get_pipe(db: AsyncSession):
-    from domains.commercial.pipeline.engine.service import PipelineService
     from domains.commercial.infrastructure.postgres_repositories import PostgresPipelineRepository
+    from domains.commercial.pipeline.engine.service import PipelineService
+
     return PipelineService(PostgresPipelineRepository(db))
 
 
 def _get_act(db: AsyncSession):
+    from domains.commercial.activity.contracts.outcome_catalog import OutcomeCatalog
     from domains.commercial.activity.engine.service import ActivityService
     from domains.commercial.infrastructure.postgres_repositories import PostgresActivityRepository
-    from domains.commercial.activity.contracts.outcome_catalog import OutcomeCatalog
+
     OutcomeCatalog.load_defaults()
     return ActivityService(PostgresActivityRepository(db))
 
 
 def _get_quote(db: AsyncSession):
-    from domains.commercial.quote.engine.service import QuoteService
     from domains.commercial.infrastructure.postgres_repositories import PostgresQuoteRepository
+    from domains.commercial.quote.engine.service import QuoteService
+
     return QuoteService(PostgresQuoteRepository(db))
 
 
 def _get_proposal(db: AsyncSession):
-    from domains.commercial.proposal.engine.service import ProposalService
     from domains.commercial.infrastructure.postgres_repositories import PostgresProposalRepository
+    from domains.commercial.proposal.engine.service import ProposalService
+
     return ProposalService(PostgresProposalRepository(db))
 
 
 def _get_contract(db: AsyncSession):
     from domains.commercial.contract.service import ContractService
     from domains.commercial.infrastructure.postgres_repositories import PostgresContractRepository
+
     return ContractService(PostgresContractRepository(db))
 
 
 def _get_forecast(db: AsyncSession):
-    from domains.revenue.forecast.service import ForecastService
     from domains.commercial.infrastructure.postgres_repositories import PostgresForecastRepository
+    from domains.revenue.forecast.service import ForecastService
+
     return ForecastService(PostgresForecastRepository(db))
 
 
 def _get_analytics(db: AsyncSession):
-    from domains.revenue.analytics.service import AnalyticsService
     from domains.commercial.infrastructure.postgres_repositories import PostgresAnalyticsRepository
     from domains.revenue.analytics.registry import KPIRegistry
+    from domains.revenue.analytics.service import AnalyticsService
+
     KPIRegistry.load_defaults()
     return AnalyticsService(PostgresAnalyticsRepository(db))
 
 
 def _get_context(db: AsyncSession):
-    from domains.decision.context.service import DecisionService
     from domains.commercial.infrastructure.postgres_repositories import PostgresDecisionRepository
+    from domains.decision.context.service import DecisionService
+
     return DecisionService(PostgresDecisionRepository(db))
 
 
@@ -182,10 +201,13 @@ def _get_context(db: AsyncSession):
 # Opportunity Endpoints
 # ─────────────────────────────────────────────
 
+
 @router.post("/opportunities", status_code=201, tags=["Opportunities"])
 async def create_opportunity(
-    company_id: str = Query(...), name: str = Query(...),
-    value: float = Query(0), tenant_id: str = Depends(get_current_tenant_id),
+    company_id: str = Query(...),
+    name: str = Query(...),
+    value: float = Query(0),
+    tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
     _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.CREATE)),
 ):
@@ -203,6 +225,7 @@ async def list_opportunities(
     cursor: str | None = Query(None),
 ):
     from domains.commercial.opportunity.contracts.repository import OpportunityQuery
+
     svc = _get_opp(db)
     offset = 0
     if cursor:
@@ -210,27 +233,62 @@ async def list_opportunities(
             offset = int(cursor)
         except (ValueError, TypeError):
             offset = 0
-    result = await svc.query(OpportunityQuery(tenant_id=tenant_id, page_size=limit, page=offset // limit + 1 if limit else 1))
+    result = await svc.query(
+        OpportunityQuery(
+            tenant_id=tenant_id, page_size=limit, page=offset // limit + 1 if limit else 1
+        )
+    )
     next_cursor = str(offset + limit) if offset + limit < result.total else None
-    return {"items": [{"id": o.id, "name": o.name, "stage": o.stage, "value": o.value, "company_id": o.company_id} for o in result.items], "total": result.total, "next_cursor": next_cursor}
+    return {
+        "items": [
+            {
+                "id": o.id,
+                "name": o.name,
+                "stage": o.stage,
+                "value": o.value,
+                "company_id": o.company_id,
+            }
+            for o in result.items
+        ],
+        "total": result.total,
+        "next_cursor": next_cursor,
+    }
 
 
 @router.post("/opportunities/{opportunity_id}/advance", tags=["Opportunities"])
-async def advance_opportunity(opportunity_id: str, to_stage: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE))):
+async def advance_opportunity(
+    opportunity_id: str,
+    to_stage: str = Query(...),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE)),
+):
     svc = _get_opp(db)
     opp = await svc.advance_stage(opportunity_id, to_stage)
     return {"id": opp.id, "stage": opp.stage, "status": opp.status.value}
 
 
 @router.post("/opportunities/{opportunity_id}/won", tags=["Opportunities"])
-async def close_won(opportunity_id: str, amount: float = Query(None), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE))):
+async def close_won(
+    opportunity_id: str,
+    amount: float = Query(None),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE)),
+):
     svc = _get_opp(db)
     opp = await svc.close_won(opportunity_id, amount)
     return {"id": opp.id, "status": "won", "won_amount": opp.won_amount}
 
 
 @router.post("/opportunities/{opportunity_id}/lost", tags=["Opportunities"])
-async def close_lost(opportunity_id: str, reason: str = Query(""), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE))):
+async def close_lost(
+    opportunity_id: str,
+    reason: str = Query(""),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE)),
+):
     svc = _get_opp(db)
     opp = await svc.close_lost(opportunity_id, reason)
     return {"id": opp.id, "status": "lost", "loss_reason": opp.loss_reason}
@@ -240,9 +298,15 @@ async def close_lost(opportunity_id: str, reason: str = Query(""), tenant_id: st
 # Pipeline Endpoints
 # ─────────────────────────────────────────────
 
+
 @router.post("/pipelines", status_code=201, tags=["Pipelines"])
-async def create_pipeline(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.CREATE))):
+async def create_pipeline(
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.CREATE)),
+):
     from domains.commercial.pipeline.contracts.models import PipelineDefinition
+
     svc = _get_pipe(db)
     pipe = PipelineDefinition.default_sales_pipeline(tenant_id, f"pipe-{tenant_id}")
     result = await svc.create_pipeline(pipe)
@@ -259,31 +323,60 @@ async def list_pipelines(
 ):
     svc = _get_pipe(db)
     pipes = await svc.list_pipelines(tenant_id)
-    sliced = pipes[offset:offset + limit]
-    return {"items": [{"id": p.id, "name": p.name, "stages": len(p.stages)} for p in sliced], "total": len(pipes), "limit": limit, "offset": offset}
+    sliced = pipes[offset : offset + limit]
+    return {
+        "items": [{"id": p.id, "name": p.name, "stages": len(p.stages)} for p in sliced],
+        "total": len(pipes),
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 @router.get("/pipelines/{pipeline_id}/kpis", tags=["Pipelines"])
-async def pipeline_kpis(pipeline_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.READ))):
+async def pipeline_kpis(
+    pipeline_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("pipeline", PermissionAction.READ)),
+):
     svc = _get_pipe(db)
     kpis = await svc.compute_kpis(pipeline_id, [])
-    return {"pipeline_value": kpis.pipeline_value, "weighted": kpis.weighted_pipeline, "win_rate": kpis.win_rate}
+    return {
+        "pipeline_value": kpis.pipeline_value,
+        "weighted": kpis.weighted_pipeline,
+        "win_rate": kpis.win_rate,
+    }
 
 
 # ─────────────────────────────────────────────
 # Activity Endpoints
 # ─────────────────────────────────────────────
 
+
 @router.post("/activity-sessions", status_code=201, tags=["Activities"])
-async def create_session(target_id: str = Query(...), title: str = "Session", tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("activity", PermissionAction.CREATE))):
+async def create_session(
+    target_id: str = Query(...),
+    title: str = "Session",
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("activity", PermissionAction.CREATE)),
+):
     svc = _get_act(db)
     session = await svc.create_session(tenant_id, title, target_id)
     return {"id": session.id, "title": session.title, "target_id": session.target_id}
 
 
 @router.post("/activity-sessions/{session_id}/activities", tags=["Activities"])
-async def add_activity(session_id: str, activity_type: str = Query(...), owner_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("activity", PermissionAction.CREATE))):
+async def add_activity(
+    session_id: str,
+    activity_type: str = Query(...),
+    owner_id: str = Query(...),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("activity", PermissionAction.CREATE)),
+):
     from domains.commercial.activity.contracts.models import ActivityType
+
     svc = _get_act(db)
     atype = ActivityType(activity_type)
     act = await svc.add_activity(session_id, atype, owner_id)
@@ -291,53 +384,100 @@ async def add_activity(session_id: str, activity_type: str = Query(...), owner_i
 
 
 @router.post("/activities/{activity_id}/complete", tags=["Activities"])
-async def complete_activity(activity_id: str, session_id: str = Query(...), outcome_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("activity", PermissionAction.UPDATE))):
+async def complete_activity(
+    activity_id: str,
+    session_id: str = Query(...),
+    outcome_id: str = Query(...),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("activity", PermissionAction.UPDATE)),
+):
     svc = _get_act(db)
     result = await svc.complete_activity(session_id, activity_id, outcome_id)
-    return {"activity_id": result.activity_id, "outcome": result.outcome_label, "business_action": result.business_action}
+    return {
+        "activity_id": result.activity_id,
+        "outcome": result.outcome_label,
+        "business_action": result.business_action,
+    }
 
 
 # ─────────────────────────────────────────────
 # Quote Endpoints
 # ─────────────────────────────────────────────
 
+
 @router.post("/quotes", status_code=201, tags=["Quotes"])
-async def create_quote(opportunity_id: str = Query(...), title: str = "Quote", tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("quote", PermissionAction.CREATE))):
+async def create_quote(
+    opportunity_id: str = Query(...),
+    title: str = "Quote",
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("quote", PermissionAction.CREATE)),
+):
     svc = _get_quote(db)
     q = await svc.create_quote(tenant_id, opportunity_id=opportunity_id, title=title)
     return {"id": q.id, "title": q.title, "status": q.status.value, "version": q.version}
 
 
 @router.post("/quotes/{quote_id}/lines", tags=["Quotes"])
-async def add_quote_line(quote_id: str, description: str = Query(...), quantity: int = Query(1), unit_price: float = Query(0), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("quote", PermissionAction.CREATE))):
+async def add_quote_line(
+    quote_id: str,
+    description: str = Query(...),
+    quantity: int = Query(1),
+    unit_price: float = Query(0),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("quote", PermissionAction.CREATE)),
+):
     svc = _get_quote(db)
     line = await svc.add_line(quote_id, description, quantity=quantity, unit_price=unit_price)
     return {"id": line.id, "description": line.description, "line_total": line.line_total}
 
 
 @router.post("/quotes/{quote_id}/submit", tags=["Quotes"])
-async def submit_quote(quote_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE))):
+async def submit_quote(
+    quote_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE)),
+):
     svc = _get_quote(db)
     q = await svc.submit_for_approval(quote_id)
     return {"id": q.id, "status": q.status.value, "grand_total": q.grand_total}
 
 
 @router.post("/quotes/{quote_id}/approve", tags=["Quotes"])
-async def approve_quote(quote_id: str, approved_by: str = Query("manager"), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE))):
+async def approve_quote(
+    quote_id: str,
+    approved_by: str = Query("manager"),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE)),
+):
     svc = _get_quote(db)
     q = await svc.approve(quote_id, approved_by)
     return {"id": q.id, "status": q.status.value, "approved": q.approval.is_approved}
 
 
 @router.post("/quotes/{quote_id}/send", tags=["Quotes"])
-async def send_quote(quote_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE))):
+async def send_quote(
+    quote_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE)),
+):
     svc = _get_quote(db)
     q = await svc.send(quote_id)
     return {"id": q.id, "status": q.status.value}
 
 
 @router.post("/quotes/{quote_id}/accept", tags=["Quotes"])
-async def accept_quote(quote_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE))):
+async def accept_quote(
+    quote_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("quote", PermissionAction.UPDATE)),
+):
     svc = _get_quote(db)
     q = await svc.accept(quote_id)
     return {"id": q.id, "status": q.status.value, "grand_total": q.grand_total}
@@ -347,15 +487,28 @@ async def accept_quote(quote_id: str, tenant_id: str = Depends(get_current_tenan
 # Proposal Endpoints
 # ─────────────────────────────────────────────
 
+
 @router.post("/proposals", status_code=201, tags=["Proposals"])
-async def create_proposal(opportunity_id: str = Query(...), quote_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.CREATE))):
+async def create_proposal(
+    opportunity_id: str = Query(...),
+    quote_id: str = Query(...),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.CREATE)),
+):
     svc = _get_proposal(db)
     p = await svc.create_proposal(tenant_id, opportunity_id, quote_id)
     return {"id": p.id, "status": p.status.value, "sections": len(p.sections)}
 
 
 @router.post("/proposals/{proposal_id}/deliver", tags=["Proposals"])
-async def deliver_proposal(proposal_id: str, method: str = Query("email"), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.UPDATE))):
+async def deliver_proposal(
+    proposal_id: str,
+    method: str = Query("email"),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.UPDATE)),
+):
     svc = _get_proposal(db)
     p = await svc.approve(proposal_id, "auto")
     p = await svc.deliver(proposal_id, method=method)
@@ -363,7 +516,12 @@ async def deliver_proposal(proposal_id: str, method: str = Query("email"), tenan
 
 
 @router.post("/proposals/{proposal_id}/accept", tags=["Proposals"])
-async def accept_proposal(proposal_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.UPDATE))):
+async def accept_proposal(
+    proposal_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("proposal", PermissionAction.UPDATE)),
+):
     svc = _get_proposal(db)
     p = await svc.approve(proposal_id, "auto")
     p = await svc.deliver(proposal_id)
@@ -376,15 +534,27 @@ async def accept_proposal(proposal_id: str, tenant_id: str = Depends(get_current
 # Contract Endpoints
 # ─────────────────────────────────────────────
 
+
 @router.post("/contracts", status_code=201, tags=["Contracts"])
-async def create_contract(opportunity_id: str = Query(...), quote_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("contract", PermissionAction.CREATE))):
+async def create_contract(
+    opportunity_id: str = Query(...),
+    quote_id: str = Query(...),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("contract", PermissionAction.CREATE)),
+):
     svc = _get_contract(db)
     c = await svc.create_contract(tenant_id, opportunity_id=opportunity_id, quote_id=quote_id)
     return {"id": c.id, "status": c.status.value}
 
 
 @router.post("/contracts/{contract_id}/sign", tags=["Contracts"])
-async def sign_contract(contract_id: str, tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("contract", PermissionAction.UPDATE))):
+async def sign_contract(
+    contract_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("contract", PermissionAction.UPDATE)),
+):
     svc = _get_contract(db)
     c = await svc.sign(contract_id)
     c = await svc.activate(contract_id)
@@ -395,11 +565,17 @@ async def sign_contract(contract_id: str, tenant_id: str = Depends(get_current_t
 # Forecast Endpoints
 # ─────────────────────────────────────────────
 
+
 @router.post("/forecast/run", tags=["Forecast"])
-async def run_forecast(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("forecast", PermissionAction.CREATE))):
+async def run_forecast(
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("forecast", PermissionAction.CREATE)),
+):
     from sqlalchemy import select
-    from domains.revenue.forecast.engine import CommercialInput
+
     from domains.commercial.infrastructure.models import OpportunityModel
+    from domains.revenue.forecast.engine import CommercialInput
 
     svc = _get_forecast(db)
 
@@ -416,16 +592,18 @@ async def run_forecast(tenant_id: str = Depends(get_current_tenant_id), db: Asyn
         ]
     else:
         result = await db.execute(
-            select(OpportunityModel).where(
+            select(OpportunityModel)
+            .where(
                 OpportunityModel.tenant_id == tenant_id,
                 OpportunityModel.status == "open",
-            ).limit(200)
+            )
+            .limit(200)
         )
         opportunities = result.scalars().all()
         if not opportunities:
             raise HTTPException(
                 status_code=400,
-                detail="No open opportunities for tenant; cannot run forecast without pipeline data",
+                detail="No open opportunities for tenant; cannot run forecast without pipeline data",  # noqa: E501
             )
         inputs = [
             CommercialInput(
@@ -444,14 +622,18 @@ async def run_forecast(tenant_id: str = Depends(get_current_tenant_id), db: Asyn
         "total_expected": snap.total_expected_revenue,
         "total_weighted": snap.total_weighted_revenue,
         "confidence": snap.overall_confidence,
-        "scenarios": list(set(l.scenario.value for l in snap.lines)),
+        "scenarios": list({line.scenario.value for line in snap.lines}),
         "input_count": len(inputs),
         "demo_mode": is_demo,
     }
 
 
 @router.get("/forecast", tags=["Forecast"])
-async def get_forecast(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("forecast", PermissionAction.READ))):
+async def get_forecast(
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("forecast", PermissionAction.READ)),
+):
     svc = _get_forecast(db)
     latest = await svc.get_latest(tenant_id)
     if not latest:
@@ -471,16 +653,23 @@ async def get_forecast(tenant_id: str = Depends(get_current_tenant_id), db: Asyn
 # Analytics Endpoints
 # ─────────────────────────────────────────────
 
+
 @router.post("/analytics/generate", tags=["Analytics"])
-async def generate_analytics(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("analytics", PermissionAction.CREATE))):
-    from datetime import datetime, timedelta, timezone
+async def generate_analytics(
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("analytics", PermissionAction.CREATE)),
+):
+    from datetime import datetime, timedelta
+
     svc = _get_analytics(db)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     is_demo = settings.demo_mode or os.getenv("DEMO_MODE", "false").lower() == "true"
     if is_demo:
         logger.warning("Analytics generating with DEMO MODE data for tenant=%s", tenant_id)
         from domains.revenue.analytics.service import AnalyticsInput
+
         inputs = AnalyticsInput(
             total_booked_revenue=500000,
             total_expected_revenue=650000,
@@ -493,26 +682,44 @@ async def generate_analytics(tenant_id: str = Depends(get_current_tenant_id), db
     return {
         "snapshot_id": snap.id,
         "kpi_count": snap.total_kpis,
-        "values": [{"kpi": v.kpi_id, "value": v.value, "change": v.change_percent} for v in snap.values],
+        "values": [
+            {"kpi": v.kpi_id, "value": v.value, "change": v.change_percent} for v in snap.values
+        ],
         "demo_mode": is_demo,
         "source": "demo" if is_demo else "commercial_opportunities",
     }
 
 
 @router.get("/analytics/kpis", tags=["Analytics"])
-async def analytics_kpis(tenant_id: str = Depends(get_current_tenant_id), _rbac: None = Depends(require_permission_dep("analytics", PermissionAction.READ))):
+async def analytics_kpis(
+    tenant_id: str = Depends(get_current_tenant_id),
+    _rbac: None = Depends(require_permission_dep("analytics", PermissionAction.READ)),
+):
     from domains.revenue.analytics.registry import KPIRegistry
+
     KPIRegistry.load_defaults()
-    return {"kpis": [{"id": k.id, "name": k.name, "category": k.category.value, "formula": k.formula} for k in KPIRegistry.all().values()]}
+    return {
+        "kpis": [
+            {"id": k.id, "name": k.name, "category": k.category.value, "formula": k.formula}
+            for k in KPIRegistry.all().values()
+        ]
+    }
 
 
 # ─────────────────────────────────────────────
 # Decision Context + Recommendation Endpoints
 # ─────────────────────────────────────────────
 
+
 @router.post("/decision/context", tags=["Decisions"])
-async def build_context(target_id: str = Query(...), target_type: str = Query("opportunity"), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("decision", PermissionAction.CREATE))):
-    from datetime import date, datetime, timezone
+async def build_context(
+    target_id: str = Query(...),
+    target_type: str = Query("opportunity"),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("decision", PermissionAction.CREATE)),
+):
+    from datetime import date, datetime
 
     from sqlalchemy import select
 
@@ -534,14 +741,16 @@ async def build_context(target_id: str = Query(...), target_type: str = Query("o
         if row:
             aging_days = 0
             if row.updated_at:
-                aging_days = max(0, (datetime.now(timezone.utc) - row.updated_at).days)
+                aging_days = max(0, (datetime.now(UTC) - row.updated_at).days)
             factors.append(
                 DecisionFactor(
                     source_layer="fact",
                     source_domain="pipeline",
                     key="stage_aging",
                     value=aging_days,
-                    severity="critical" if aging_days >= 14 else ("warning" if aging_days >= 7 else "info"),
+                    severity="critical"
+                    if aging_days >= 14
+                    else ("warning" if aging_days >= 7 else "info"),
                     label=f"{aging_days} days since last update in stage {row.stage}",
                 )
             )
@@ -580,13 +789,19 @@ async def build_context(target_id: str = Query(...), target_type: str = Query("o
 
 
 @router.post("/recommendations/evaluate", tags=["Decisions"])
-async def evaluate_recommendation(context_id: str = Query(...), tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("decision", PermissionAction.READ))):
+async def evaluate_recommendation(
+    context_id: str = Query(...),
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("decision", PermissionAction.READ)),
+):
     ctx_svc = _get_context(db)
     context = await ctx_svc.get_context(context_id)
     if not context:
         return {"error": "Context not found"}
 
     from domains.decision.recommendation.engine import RecommendationEngine
+
     engine = RecommendationEngine()
     rec = await engine.evaluate(context)
     if not rec:
@@ -599,7 +814,9 @@ async def evaluate_recommendation(context_id: str = Query(...), tenant_id: str =
         "confidence": rec.confidence,
         "risk": rec.risk,
         "expected_impact": rec.expected_impact,
-        "alternatives": [{"title": a.title, "description": a.description} for a in rec.alternatives],
+        "alternatives": [
+            {"title": a.title, "description": a.description} for a in rec.alternatives
+        ],
         "evidence": [{"factor": e.key, "narrative": e.narrative} for e in rec.evidence],
     }
 
@@ -608,11 +825,17 @@ async def evaluate_recommendation(context_id: str = Query(...), tenant_id: str =
 # Workspace (Aggregated Dashboard)
 # ─────────────────────────────────────────────
 
+
 @router.get("/workspace", tags=["Workspace"])
-async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSession = Depends(get_db_session), _rbac: None = Depends(require_permission_dep("workspace", PermissionAction.READ))):
+async def workspace(
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    _rbac: None = Depends(require_permission_dep("workspace", PermissionAction.READ)),
+):
     """Rich aggregated workspace — powers the main dashboard UI."""
-    from datetime import datetime, timezone
-    result = {"tenant_id": tenant_id, "generated_at": datetime.now(timezone.utc).isoformat()}
+    from datetime import datetime
+
+    result = {"tenant_id": tenant_id, "generated_at": datetime.now(UTC).isoformat()}
 
     # Forecast
     try:
@@ -635,6 +858,7 @@ async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSe
     # Opportunities summary
     try:
         from domains.commercial.opportunity.contracts.repository import OpportunityQuery
+
         opp_result = await _get_opp(db).query(OpportunityQuery(tenant_id=tenant_id, page_size=100))
         total_value = sum(o.value for o in opp_result.items)
         won = sum(1 for o in opp_result.items if o.status.value == "won")
@@ -646,7 +870,16 @@ async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSe
             "won": won,
             "lost": lost,
             "win_rate": round(won / (won + lost), 2) if (won + lost) > 0 else 0,
-            "recent": [{"id": o.id, "name": o.name, "stage": o.stage, "value": o.value, "company_id": o.company_id} for o in open_opps[:5]],
+            "recent": [
+                {
+                    "id": o.id,
+                    "name": o.name,
+                    "stage": o.stage,
+                    "value": o.value,
+                    "company_id": o.company_id,
+                }
+                for o in open_opps[:5]
+            ],
         }
     except Exception as e:
         result["opportunities"] = {"error": safe_error_detail(e, "Failed to load opportunities")}
@@ -666,6 +899,7 @@ async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSe
         is_demo = settings.demo_mode or os.getenv("DEMO_MODE", "false").lower() == "true"
         if is_demo:
             from domains.revenue.analytics.service import AnalyticsInput
+
             inputs = AnalyticsInput(
                 total_booked_revenue=500000,
                 total_expected_revenue=650000,
@@ -678,8 +912,8 @@ async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSe
         await asvc.generate_snapshot(
             tenant_id,
             inputs,
-            datetime.now(timezone.utc) - timedelta(days=30),
-            datetime.now(timezone.utc),
+            datetime.now(UTC) - timedelta(days=30),
+            datetime.now(UTC),
         )
         latest_a = await asvc.get_latest(tenant_id)
         if latest_a:
@@ -699,8 +933,13 @@ async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSe
         import asyncio as _asyncio
 
         from domains.decision.context.models import DecisionFactor
+
         ctx_svc = _get_context(db)
-        open_opps = [o for o in (opp_result.items if 'opp_result' in dir() else []) if o.status.value == "open"]
+        open_opps = [
+            o
+            for o in (opp_result.items if "opp_result" in dir() else [])
+            if o.status.value == "open"
+        ]
         recs = []
         if open_opps:
             shared = [
@@ -717,26 +956,29 @@ async def workspace(tenant_id: str = Depends(get_current_tenant_id), db: AsyncSe
                 tenant_id, [o.id for o in open_opps], factors=shared
             )
             from domains.decision.recommendation.engine import RecommendationEngine
+
             eng = RecommendationEngine()
             results = await _asyncio.gather(
                 *[eng.evaluate(ctx) if ctx else _asyncio.sleep(0, result=None) for ctx in contexts]
             )
-            for opp, rec in zip(open_opps, results):
+            for opp, rec in zip(open_opps, results, strict=False):
                 if rec:
-                    recs.append({
-                        "id": rec.id,
-                        "title": rec.title,
-                        "confidence": rec.confidence,
-                        "reasoning": rec.reasoning,
-                        "target_id": opp.id,
-                    })
+                    recs.append(
+                        {
+                            "id": rec.id,
+                            "title": rec.title,
+                            "confidence": rec.confidence,
+                            "reasoning": rec.reasoning,
+                            "target_id": opp.id,
+                        }
+                    )
         result["recommendations"] = recs
         result["recommendations_count"] = len(recs)
     except Exception:
         result["recommendations"] = []
 
     # Today overview — computed from workspace aggregates, never hardcoded demo SAR
-    today_str = datetime.now(timezone.utc).strftime("%A, %Y-%m-%d")
+    today_str = datetime.now(UTC).strftime("%A, %Y-%m-%d")
     opp_block = result.get("opportunities") or {}
     forecast_block = result.get("forecast") or {}
     total_value = float(opp_block.get("total_value") or 0) if isinstance(opp_block, dict) else 0.0

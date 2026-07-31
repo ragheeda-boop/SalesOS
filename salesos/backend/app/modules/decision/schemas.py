@@ -1,32 +1,48 @@
-from pydantic import BaseModel, Field
-from typing import Optional, Literal, Any
-from datetime import datetime
-from decimal import Decimal
+from typing import Any, Literal
 
+from pydantic import BaseModel, Field
 
 DecisionStatus = Literal["pending", "accepted", "dismissed", "completed", "failed"]
 ConfidenceLabel = Literal["high", "medium", "low"]
 DecisionSource = Literal["rule", "ai", "hybrid"]
 SignalSeverity = Literal["critical", "high", "medium", "low"]
 RiskLevel = Literal["critical", "high", "medium", "low"]
-EvidenceType = Literal["signal", "document", "timeline", "dna", "meeting", "email", "search", "government"]
-ScoreType = Literal["company", "opportunity", "intent", "relationship", "risk", "revenue", "data_quality", "confidence"]
+EvidenceType = Literal[
+    "signal", "document", "timeline", "dna", "meeting", "email", "search", "government"
+]
+ScoreType = Literal[
+    "company",
+    "opportunity",
+    "intent",
+    "relationship",
+    "risk",
+    "revenue",
+    "data_quality",
+    "confidence",
+]
 OutcomeValue = Literal["accepted", "rejected", "ignored"]
 EntityType = Literal["company", "opportunity", "person"]
-LearningEventType = Literal["recommendation_quality", "acceptance_rate", "rule_effectiveness", "signal_usefulness", "evidence_quality"]
+LearningEventType = Literal[
+    "recommendation_quality",
+    "acceptance_rate",
+    "rule_effectiveness",
+    "signal_usefulness",
+    "evidence_quality",
+]
 
 
 # --- Request Schemas ---
 
+
 class DecisionContext(BaseModel):
     tenant_id: str
     actor_id: str
-    entity_id: Optional[str] = None
-    entity_type: Optional[EntityType] = None
-    opportunity_id: Optional[str] = None
-    company_id: Optional[str] = None
-    signal_id: Optional[str] = None
-    metadata: Optional[dict[str, Any]] = None
+    entity_id: str | None = None
+    entity_type: EntityType | None = None
+    opportunity_id: str | None = None
+    company_id: str | None = None
+    signal_id: str | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class FeedbackRequest(BaseModel):
@@ -34,11 +50,11 @@ class FeedbackRequest(BaseModel):
     tenant_id: str
     actor_id: str
     outcome: OutcomeValue
-    reason: Optional[str] = None
-    revenue_impact: Optional[float] = None
-    time_to_execution: Optional[float] = None
-    actual_effort: Optional[str] = None
-    metadata: Optional[dict[str, Any]] = None
+    reason: str | None = None
+    revenue_impact: float | None = None
+    time_to_execution: float | None = None
+    actual_effort: str | None = None
+    metadata: dict[str, Any] | None = None
     timestamp: str
 
 
@@ -55,6 +71,7 @@ class RuleCreateRequest(BaseModel):
 
 # --- Evidence & Rules ---
 
+
 class EvidenceItem(BaseModel):
     id: str
     type: EvidenceType
@@ -63,9 +80,9 @@ class EvidenceItem(BaseModel):
     confidence: float
     freshness: str
     timestamp: str
-    severity: Optional[SignalSeverity] = None
-    url: Optional[str] = None
-    data: Optional[dict[str, Any]] = None
+    severity: SignalSeverity | None = None
+    url: str | None = None
+    data: dict[str, Any] | None = None
 
 
 class DecisionRule(BaseModel):
@@ -81,6 +98,7 @@ class DecisionRule(BaseModel):
 
 
 # --- Scores ---
+
 
 class ScoreFactor(BaseModel):
     name: str
@@ -101,19 +119,20 @@ class Score(BaseModel):
 
 # --- Recommendation ---
 
+
 class AlternativeRecommendation(BaseModel):
     action: str
     action_label: str
     reason: str
     confidence: float
-    expected_revenue: Optional[float] = None
+    expected_revenue: float | None = None
 
 
 class Risk(BaseModel):
     type: str
     level: RiskLevel
     description: str
-    mitigation: Optional[str] = None
+    mitigation: str | None = None
 
 
 class Recommendation(BaseModel):
@@ -125,10 +144,10 @@ class Recommendation(BaseModel):
     confidence_label: ConfidenceLabel
     source: DecisionSource
     priority: int
-    expected_revenue: Optional[float] = None
-    expected_effort: Optional[str] = None
-    expected_time: Optional[str] = None
-    business_impact: Optional[str] = None
+    expected_revenue: float | None = None
+    expected_effort: str | None = None
+    expected_time: str | None = None
+    business_impact: str | None = None
     alternatives: list[AlternativeRecommendation]
     evidence: list[EvidenceItem]
     risks: list[Risk]
@@ -138,6 +157,7 @@ class Recommendation(BaseModel):
 
 
 # --- Explainability ---
+
 
 class ExpectedImpact(BaseModel):
     revenue: float
@@ -151,13 +171,14 @@ class Explainability(BaseModel):
     why_not_alternative: list[str]
     evidence: list[EvidenceItem]
     rules_applied: list[DecisionRule]
-    ai_reasoning: Optional[str] = None
+    ai_reasoning: str | None = None
     confidence: float
     risk: RiskLevel
     expected_impact: ExpectedImpact
 
 
 # --- Telemetry ---
+
 
 class Telemetry(BaseModel):
     evaluation_time_ms: float
@@ -168,6 +189,7 @@ class Telemetry(BaseModel):
 
 
 # --- Decision Result ---
+
 
 class DecisionResult(BaseModel):
     decision_id: str
@@ -183,6 +205,7 @@ class DecisionResult(BaseModel):
 
 # --- History ---
 
+
 class DecisionHistoryRecommendation(BaseModel):
     action: str
     action_label: str
@@ -193,24 +216,25 @@ class DecisionHistoryItem(BaseModel):
     decision_id: str
     context: DecisionContext
     recommendation: DecisionHistoryRecommendation
-    outcome: Optional[OutcomeValue] = None
-    revenue_impact: Optional[float] = None
+    outcome: OutcomeValue | None = None
+    revenue_impact: float | None = None
     created_at: str
     updated_at: str
 
 
 # --- Feedback ---
 
+
 class Feedback(BaseModel):
     decision_id: str
     tenant_id: str
     actor_id: str
     outcome: OutcomeValue
-    reason: Optional[str] = None
-    revenue_impact: Optional[float] = None
-    time_to_execution: Optional[float] = None
-    actual_effort: Optional[str] = None
-    metadata: Optional[dict[str, Any]] = None
+    reason: str | None = None
+    revenue_impact: float | None = None
+    time_to_execution: float | None = None
+    actual_effort: str | None = None
+    metadata: dict[str, Any] | None = None
     timestamp: str
 
 
@@ -220,11 +244,11 @@ class FeedbackRecord(BaseModel):
     tenant_id: str
     actor_id: str
     outcome: OutcomeValue
-    reason: Optional[str] = None
-    revenue_impact: Optional[float] = None
-    time_to_execution: Optional[float] = None
-    actual_effort: Optional[str] = None
-    metadata: Optional[dict[str, Any]] = None
+    reason: str | None = None
+    revenue_impact: float | None = None
+    time_to_execution: float | None = None
+    actual_effort: str | None = None
+    metadata: dict[str, Any] | None = None
     timestamp: str
     created_at: str
 
@@ -236,10 +260,11 @@ class FeedbackStats(BaseModel):
     ignored: int
     acceptance_rate: float
     total_revenue_impact: float
-    average_time_to_execution: Optional[float] = None
+    average_time_to_execution: float | None = None
 
 
 # --- Learning ---
+
 
 class LearningEvent(BaseModel):
     id: str
@@ -270,6 +295,7 @@ class LearningTrend(BaseModel):
 
 # --- Batch ---
 
+
 class BatchSummary(BaseModel):
     total: int
     succeeded: int
@@ -283,6 +309,7 @@ class BatchResponse(BaseModel):
 
 
 # --- Response Wrappers ---
+
 
 class ExplainResponse(BaseModel):
     decision_id: str
@@ -323,6 +350,7 @@ class LearningTrendsResponse(BaseModel):
 
 # --- API Mapping Aliases (camelCase responses) ---
 
+
 class RecommendationAPI(BaseModel):
     id: str
     action: str
@@ -332,10 +360,10 @@ class RecommendationAPI(BaseModel):
     confidenceLabel: ConfidenceLabel
     source: DecisionSource
     priority: int
-    expectedRevenue: Optional[float] = None
-    expectedEffort: Optional[str] = None
-    expectedTime: Optional[str] = None
-    businessImpact: Optional[str] = None
+    expectedRevenue: float | None = None
+    expectedEffort: str | None = None
+    expectedTime: str | None = None
+    businessImpact: str | None = None
     alternatives: list["AlternativeRecommendationAPI"]
     evidence: list["EvidenceItemAPI"]
     risks: list["RiskAPI"]
@@ -349,14 +377,14 @@ class AlternativeRecommendationAPI(BaseModel):
     actionLabel: str
     reason: str
     confidence: float
-    expectedRevenue: Optional[float] = None
+    expectedRevenue: float | None = None
 
 
 class RiskAPI(BaseModel):
     type: str
     level: RiskLevel
     description: str
-    mitigation: Optional[str] = None
+    mitigation: str | None = None
 
 
 class EvidenceItemAPI(BaseModel):
@@ -367,9 +395,9 @@ class EvidenceItemAPI(BaseModel):
     confidence: float
     freshness: str
     timestamp: str
-    severity: Optional[SignalSeverity] = None
-    url: Optional[str] = None
-    data: Optional[dict[str, Any]] = None
+    severity: SignalSeverity | None = None
+    url: str | None = None
+    data: dict[str, Any] | None = None
 
 
 class ScoreFactorAPI(BaseModel):
@@ -413,7 +441,7 @@ class ExplainabilityAPI(BaseModel):
     whyNotAlternative: list[str]
     evidence: list[EvidenceItemAPI]
     rulesApplied: list[DecisionRuleAPI]
-    aiReasoning: Optional[str] = None
+    aiReasoning: str | None = None
     confidence: float
     risk: RiskLevel
     expectedImpact: ExpectedImpactAPI
@@ -430,12 +458,12 @@ class TelemetryAPI(BaseModel):
 class DecisionContextAPI(BaseModel):
     tenantId: str
     actorId: str
-    entityId: Optional[str] = None
-    entityType: Optional[EntityType] = None
-    opportunityId: Optional[str] = None
-    companyId: Optional[str] = None
-    signalId: Optional[str] = None
-    metadata: Optional[dict[str, Any]] = None
+    entityId: str | None = None
+    entityType: EntityType | None = None
+    opportunityId: str | None = None
+    companyId: str | None = None
+    signalId: str | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class DecisionResultAPI(BaseModel):
@@ -460,8 +488,8 @@ class DecisionHistoryItemAPI(BaseModel):
     decisionId: str
     context: DecisionContextAPI
     recommendation: DecisionHistoryRecommendationAPI
-    outcome: Optional[OutcomeValue] = None
-    revenueImpact: Optional[float] = None
+    outcome: OutcomeValue | None = None
+    revenueImpact: float | None = None
     createdAt: str
     updatedAt: str
 
@@ -502,7 +530,7 @@ class FeedbackStatsAPI(BaseModel):
     ignored: int
     acceptanceRate: float
     totalRevenueImpact: float
-    averageTimeToExecution: Optional[float] = None
+    averageTimeToExecution: float | None = None
 
 
 class RulesResponseAPI(BaseModel):

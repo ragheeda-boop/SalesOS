@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -19,7 +18,7 @@ class SyncStatus(BaseModel):
     sync_id: str
     status: str
     started_at: datetime
-    completed_at: Optional[datetime] = None
+    completed_at: datetime | None = None
     entities_found: int = 0
     entities_imported: int = 0
     entities_skipped: int = 0

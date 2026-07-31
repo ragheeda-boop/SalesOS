@@ -1,31 +1,33 @@
-"""Tests for FeatureStore Redis cache integration — cache hit/miss, recompute clears cache, graceful failover."""
+"""Tests for FeatureStore Redis cache integration — cache hit/miss, recompute clears cache, graceful failover."""  # noqa: E501
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from runtime.feature_store import (
+    FeatureComputer,
     FeatureResult,
     FeatureStore,
-    FeatureComputer,
-    CompanyFeatureModel,
 )
 
-
 # ── Helpers ─────────────────────────────────────────────────────
+
 
 class FakeResult:
     def __init__(self, mappings_obj=None, scalar_val=None):
         self._mappings = mappings_obj
         self._scalar_val = scalar_val
+
     def mappings(self):
         return self._mappings
+
     def scalar_one_or_none(self):
         return self._scalar_val
+
     def scalar(self):
         return self._scalar_val or 0
 
@@ -34,10 +36,13 @@ class FakeMappings:
     def __init__(self, rows=None, one=None):
         self._rows = rows or []
         self._one = one
+
     def one(self):
         return None
+
     def one_or_none(self):
         return FakeMapping(self._one) if self._one else None
+
     def all(self):
         return [FakeMapping(r) for r in self._rows]
 
@@ -45,18 +50,25 @@ class FakeMappings:
 class FakeMapping:
     def __init__(self, data):
         self._data = data
+
     def __getitem__(self, key):
         return self._data[key]
+
     def __iter__(self):
         return iter(self._data)
+
     def __len__(self):
         return len(self._data)
+
     def keys(self):
         return self._data.keys()
+
     def values(self):
         return self._data.values()
+
     def items(self):
         return self._data.items()
+
     def get(self, key, default=None):
         return self._data.get(key, default)
 
@@ -64,11 +76,12 @@ class FakeMapping:
 class DummyComputer(FeatureComputer):
     name = "dummy_score"
     version = 1
+
     async def compute(self, company: dict, session: AsyncSession) -> FeatureResult:
         return FeatureResult(
             score=75.0,
             version=self.version,
-            computed_at=datetime.now(timezone.utc),
+            computed_at=datetime.now(UTC),
             confidence=0.9,
             contributing_signals={"dummy": True},
             explanation="Dummy score",
@@ -97,6 +110,7 @@ class FakeCacheService:
 
     async def scan_delete(self, pattern: str) -> int:
         import fnmatch
+
         keys = [k for k in self._store if fnmatch.fnmatch(k, pattern)]
         for k in keys:
             del self._store[k]
@@ -108,19 +122,24 @@ class FakeCacheService:
 
 # ── Fixtures ────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def mock_session():
     async def execute(sql, params=None):
         from sqlalchemy import TextClause
+
         raw = str(sql)
         if isinstance(sql, TextClause):
             if "companies" in raw:
-                return FakeResult(FakeMappings(one={"id": "co-1", "tenant_id": "t-1", "name": "Test Co"}))
+                return FakeResult(
+                    FakeMappings(one={"id": "co-1", "tenant_id": "t-1", "name": "Test Co"})
+                )
             if "company_features" in raw:
                 return FakeResult(scalar_val=None)
             if "UPSERT" in raw or "INSERT INTO public.company_features" in raw:
                 return FakeResult()
         return FakeResult(scalar_val=None)
+
     session = AsyncMock(spec=AsyncSession)
     session.execute = execute
     return session
@@ -168,6 +187,7 @@ def store_without_cache(mock_session_factory, event_runtime):
 
 # ── Tests: cache hit ────────────────────────────────────────────
 
+
 class TestCacheHit:
     async def test_get_feature_returns_from_redis_on_hit(self, store_with_cache, fake_cache):
         await fake_cache.set(
@@ -175,7 +195,7 @@ class TestCacheHit:
             {
                 "score": 99.0,
                 "version": 1,
-                "computed_at": datetime.now(timezone.utc).isoformat(),
+                "computed_at": datetime.now(UTC).isoformat(),
                 "confidence": 0.95,
                 "contributing_signals": {"from_cache": True},
                 "explanation": "From Redis",
@@ -188,8 +208,14 @@ class TestCacheHit:
     async def test_get_features_multiple_hits(self, store_with_cache, fake_cache):
         await fake_cache.set(
             "feature:t-1:co-1:dummy_score",
-            {"score": 80.0, "version": 1, "computed_at": datetime.now(timezone.utc).isoformat(),
-             "confidence": 0.8, "contributing_signals": {}, "explanation": ""},
+            {
+                "score": 80.0,
+                "version": 1,
+                "computed_at": datetime.now(UTC).isoformat(),
+                "confidence": 0.8,
+                "contributing_signals": {},
+                "explanation": "",
+            },
         )
         results = await store_with_cache.get_features("co-1", "t-1", ["dummy_score"])
         assert results["dummy_score"].score == 80.0
@@ -197,8 +223,11 @@ class TestCacheHit:
 
 # ── Tests: cache miss → compute → populate ──────────────────────
 
+
 class TestCacheMiss:
-    async def test_get_feature_computes_on_miss_and_populates_cache(self, store_with_cache, fake_cache):
+    async def test_get_feature_computes_on_miss_and_populates_cache(
+        self, store_with_cache, fake_cache
+    ):
         result = await store_with_cache.get_feature("co-1", "t-1", "dummy_score")
         assert result.score == 75.0
         cached = await fake_cache.get("feature:t-1:co-1:dummy_score")
@@ -218,6 +247,7 @@ class TestCacheMiss:
 
 # ── Tests: recompute clears cache ───────────────────────────────
 
+
 class TestRecomputeCache:
     async def test_recompute_clears_redis_cache(self, store_with_cache, fake_cache):
         await fake_cache.set("feature:t-1:co-1:dummy_score", {"score": 50.0})
@@ -232,6 +262,7 @@ class TestRecomputeCache:
 
 
 # ── Tests: graceful failover when no cache ──────────────────────
+
 
 class TestFailover:
     async def test_get_feature_works_without_cache(self, store_without_cache):

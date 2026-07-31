@@ -12,21 +12,17 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import datetime, timedelta, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from sdk.events.base import DomainEvent
 from sdk.events.outbox import (
-    EventOutbox,
-    OutboxRelay,
-    OutboxEntry,
-    MAX_RETRY_COUNT,
     DLQ_ALERT_THRESHOLD,
-    OUTBOX_CREATE_SQL,
+    EventOutbox,
+    OutboxEntry,
+    OutboxRelay,
 )
-
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -101,7 +97,9 @@ def _make_session_factory(session: MagicMock | None = None) -> MagicMock:
 
 
 @pytest.mark.asyncio
-async def test_write_event_creates_outbox_entry(outbox: EventOutbox, sample_event: DomainEvent) -> None:
+async def test_write_event_creates_outbox_entry(
+    outbox: EventOutbox, sample_event: DomainEvent
+) -> None:
     """Writing an event should insert a row and return its ID."""
     mock_result = MagicMock()
     mock_result.fetchone.return_value = (42,)
@@ -114,7 +112,9 @@ async def test_write_event_creates_outbox_entry(outbox: EventOutbox, sample_even
 
 
 @pytest.mark.asyncio
-async def test_write_stores_payload_correctly(outbox: EventOutbox, sample_event: DomainEvent) -> None:
+async def test_write_stores_payload_correctly(
+    outbox: EventOutbox, sample_event: DomainEvent
+) -> None:
     """The payload should include the CloudEvents envelope."""
     mock_result = MagicMock()
     mock_result.fetchone.return_value = (1,)
@@ -133,7 +133,9 @@ async def test_write_stores_payload_correctly(outbox: EventOutbox, sample_event:
 
 
 @pytest.mark.asyncio
-async def test_write_headers_include_metadata(outbox: EventOutbox, sample_event: DomainEvent) -> None:
+async def test_write_headers_include_metadata(
+    outbox: EventOutbox, sample_event: DomainEvent
+) -> None:
     """User ID and correlation ID should be in headers."""
     mock_result = MagicMock()
     mock_result.fetchone.return_value = (1,)
@@ -185,11 +187,20 @@ async def test_relay_publishes_pending_events(sample_entry: OutboxEntry) -> None
     """Relay should fetch pending entries and publish them."""
     session = _make_session()
     session.execute.return_value.fetchall.return_value = [
-        (sample_entry.id, sample_entry.event_id, sample_entry.event_type,
-         sample_entry.topic, sample_entry.key,
-         sample_entry.payload, sample_entry.headers,
-         sample_entry.status, sample_entry.retry_count, sample_entry.last_error,
-         sample_entry.created_at, sample_entry.updated_at),
+        (
+            sample_entry.id,
+            sample_entry.event_id,
+            sample_entry.event_type,
+            sample_entry.topic,
+            sample_entry.key,
+            sample_entry.payload,
+            sample_entry.headers,
+            sample_entry.status,
+            sample_entry.retry_count,
+            sample_entry.last_error,
+            sample_entry.created_at,
+            sample_entry.updated_at,
+        ),
     ]
     session_factory = _make_session_factory(session)
 
@@ -346,10 +357,18 @@ async def test_write_then_relay_delivered(sample_event: DomainEvent) -> None:
     """Write + relay should result in delivered events."""
     session = _make_session()
     entry_tuple = (
-        1, sample_event.event_id, sample_event.event_type, "salesos.company",
-        "agg-1", sample_event.to_dict(),
+        1,
+        sample_event.event_id,
+        sample_event.event_type,
+        "salesos.company",
+        "agg-1",
+        sample_event.to_dict(),
         {"event_type": sample_event.event_type, "tenant_id": sample_event.tenant_id},
-        "pending", 0, "", sample_event.occurred_at, sample_event.occurred_at,
+        "pending",
+        0,
+        "",
+        sample_event.occurred_at,
+        sample_event.occurred_at,
     )
     session.execute.return_value.fetchall.return_value = [entry_tuple]
     session_factory = _make_session_factory(session)
@@ -382,11 +401,20 @@ async def test_relay_stats(sample_entry: OutboxEntry) -> None:
     """Relay stats should track relayed and failed counts."""
     session = _make_session()
     session.execute.return_value.fetchall.return_value = [
-        (sample_entry.id, sample_entry.event_id, sample_entry.event_type,
-         sample_entry.topic, sample_entry.key,
-         sample_entry.payload, sample_entry.headers,
-         sample_entry.status, sample_entry.retry_count, sample_entry.last_error,
-         sample_entry.created_at, sample_entry.updated_at),
+        (
+            sample_entry.id,
+            sample_entry.event_id,
+            sample_entry.event_type,
+            sample_entry.topic,
+            sample_entry.key,
+            sample_entry.payload,
+            sample_entry.headers,
+            sample_entry.status,
+            sample_entry.retry_count,
+            sample_entry.last_error,
+            sample_entry.created_at,
+            sample_entry.updated_at,
+        ),
     ]
     session_factory = _make_session_factory(session)
 

@@ -1,15 +1,16 @@
 """Tests for Revenue Dashboard endpoint — data formatting and response structure."""
+
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from runtime.pipeline_analytics import PipelineAnalytics
 
-
 # ── Fake SQLAlchemy helpers ──────────────────────────────────────────────────
+
 
 class FakeMapping:
     def __init__(self, data):
@@ -50,23 +51,70 @@ class FakeResult:
 
 # ── Fake execute that returns realistic revenue data ────────────────────────
 
+
 class FakeRevenueExecute:
     call_count = {"n": 0}
 
     async def __call__(self, sql_str, params=None):
         text = str(sql_str)
         FakeRevenueExecute.call_count["n"] += 1
-        if "commercial_opportunities" in text and "status != 'closed'" in text and "ORDER BY value" in text:
-            return FakeResult(FakeMappings(rows=[
-                {"id": "opp-2", "name": "Deal B", "stage": "negotiation", "value": 1000000, "probability": 0.8, "health": "healthy", "company_id": "co-2", "owner_id": "user-1"},
-                {"id": "opp-1", "name": "Deal A", "stage": "proposal", "value": 500000, "probability": 0.6, "health": "healthy", "company_id": "co-1", "owner_id": "user-1"},
-            ]))
+        if (
+            "commercial_opportunities" in text
+            and "status != 'closed'" in text
+            and "ORDER BY value" in text
+        ):
+            return FakeResult(
+                FakeMappings(
+                    rows=[
+                        {
+                            "id": "opp-2",
+                            "name": "Deal B",
+                            "stage": "negotiation",
+                            "value": 1000000,
+                            "probability": 0.8,
+                            "health": "healthy",
+                            "company_id": "co-2",
+                            "owner_id": "user-1",
+                        },
+                        {
+                            "id": "opp-1",
+                            "name": "Deal A",
+                            "stage": "proposal",
+                            "value": 500000,
+                            "probability": 0.6,
+                            "health": "healthy",
+                            "company_id": "co-1",
+                            "owner_id": "user-1",
+                        },
+                    ]
+                )
+            )
         if "SUM(value * probability)" in text or "SUM(value)" in text or "COUNT(*)" in text:
-            return FakeResult(FakeMappings(one={"total_value": 1500000, "count": 2, "weighted_value": 900000, "avg_probability": 0.6, "total_count": 2}))
+            return FakeResult(
+                FakeMappings(
+                    one={
+                        "total_value": 1500000,
+                        "count": 2,
+                        "weighted_value": 900000,
+                        "avg_probability": 0.6,
+                        "total_count": 2,
+                    }
+                )
+            )
         if "company_signals" in text:
-            return FakeResult(FakeMappings(rows=[
-                {"id": "sig-1", "title": "New tender released", "signal_type": "tender", "created_at": "2026-07-10T08:00:00Z", "company_name": "شركة أ"},
-            ]))
+            return FakeResult(
+                FakeMappings(
+                    rows=[
+                        {
+                            "id": "sig-1",
+                            "title": "New tender released",
+                            "signal_type": "tender",
+                            "created_at": "2026-07-10T08:00:00Z",
+                            "company_name": "شركة أ",
+                        },
+                    ]
+                )
+            )
         return FakeResult(FakeMappings())
 
 
@@ -78,6 +126,7 @@ def mock_session():
 
 
 # ── Tests: PipelineAnalytics (used by revenue dashboard) ────────────────────
+
 
 class TestPipelineAnalyticsSummary:
     async def test_summary_returns_dict(self, mock_session):
@@ -117,6 +166,7 @@ class TestPipelineAnalyticsSummary:
 
 # ── Tests: Dashboard data formatting ────────────────────────────────────────
 
+
 class TestRevenueDataFormatting:
     async def test_active_opportunities_have_required_fields(self, mock_session):
         analytics = PipelineAnalytics(mock_session, "tenant-1")
@@ -152,7 +202,10 @@ class TestRevenueDataFormatting:
 
         # Query active opportunities
         fake_execute = FakeRevenueExecute()
-        opps_result = await fake_execute("SELECT ... FROM commercial_opportunities WHERE status != 'closed' ORDER BY value ...", None)
+        opps_result = await fake_execute(
+            "SELECT ... FROM commercial_opportunities WHERE status != 'closed' ORDER BY value ...",
+            None,
+        )
         opps = [dict(r) for r in opps_result.mappings().all()]
 
         # Query total
@@ -174,7 +227,7 @@ class TestRevenueDataFormatting:
     async def test_opportunity_values_are_positive(self, mock_session):
         fake_execute = FakeRevenueExecute()
         opps_result = await fake_execute(
-            "SELECT ... FROM commercial_opportunities WHERE status != 'closed' ORDER BY value DESC LIMIT 10",
+            "SELECT ... FROM commercial_opportunities WHERE status != 'closed' ORDER BY value DESC LIMIT 10",  # noqa: E501
             None,
         )
         opps = [dict(r) for r in opps_result.mappings().all()]

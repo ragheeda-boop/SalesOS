@@ -1,8 +1,6 @@
-from datetime import datetime
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.application.dashboard.dto.dashboard_dto import RecentActivityData, ActivityItem
+from app.application.dashboard.dto.dashboard_dto import ActivityItem, RecentActivityData
 
 
 class TimelineMapper:
@@ -27,14 +25,16 @@ class TimelineMapper:
         items = []
         for r in rows.mappings().all():
             meta = r["metadata"] or {}
-            items.append(ActivityItem(
-                id=r["id"],
-                type=self._activity_type(r["action"]),
-                title=meta.get("description") or r["action"],
-                companyId=r["entity_id"],
-                companyName=meta.get("name_ar"),
-                timestamp=r["timestamp"].isoformat() if r["timestamp"] else "",
-            ))
+            items.append(
+                ActivityItem(
+                    id=r["id"],
+                    type=self._activity_type(r["action"]),
+                    title=meta.get("description") or r["action"],
+                    companyId=r["entity_id"],
+                    companyName=meta.get("name_ar"),
+                    timestamp=r["timestamp"].isoformat() if r["timestamp"] else "",
+                )
+            )
 
         return RecentActivityData(items=items, total=len(items))
 

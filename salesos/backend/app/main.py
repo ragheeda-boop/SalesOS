@@ -4,15 +4,14 @@ from typing import Any
 
 from fastapi import Depends, FastAPI, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi.responses import JSONResponse
 
-from app.common.schemas import HealthResponse
-from app.config import settings
-from app.database import get_db
+from app.boot.exceptions import register_exception_handlers
 from app.boot.middleware import setup_middleware
 from app.boot.routers import register_routers
 from app.boot.startup import init_startup_services, shutdown_services
-from app.boot.exceptions import register_exception_handlers
+from app.common.schemas import HealthResponse
+from app.config import settings
+from app.database import get_db
 
 
 @asynccontextmanager
@@ -52,6 +51,7 @@ async def health_live():
 @app.get("/health/detailed")
 async def health_detailed(request: Request):
     from sqlalchemy import text
+
     from app.database import async_session, engine
     from app.metrics.collector import collector as app_collector
     from app.metrics.sla_monitor import sla_monitor
@@ -72,9 +72,17 @@ async def health_detailed(request: Request):
             "total_open": pool.checkedout() + pool.checkedin(),
         }
         checks["database"] = pool_info
-        app_collector.track_db_pool(pool.checkedout(), pool.checkedin(), pool.overflow(), pool.checkedout() + pool.checkedin())
+        app_collector.track_db_pool(
+            pool.checkedout(),
+            pool.checkedin(),
+            pool.overflow(),
+            pool.checkedout() + pool.checkedin(),
+        )
     except Exception as e:
-        checks["database"] = {"status": "error", "message": str(e) if settings.env != "production" else "unavailable"}
+        checks["database"] = {
+            "status": "error",
+            "message": str(e) if settings.env != "production" else "unavailable",
+        }
         overall = "degraded"
 
     cache = getattr(request.app.state, "cache", None)
@@ -95,6 +103,7 @@ async def health_detailed(request: Request):
         checks["graph"] = {"status": "unavailable"}
 
     from sdk.events.kafka_bus import KafkaEventBus
+
     event_runtime = getattr(request.app.state, "event_runtime", None)
     if isinstance(event_runtime, KafkaEventBus):
         kafka_ok = event_runtime.is_kafka_available
@@ -107,6 +116,7 @@ async def health_detailed(request: Request):
 
     try:
         from app.routers.notifications import _ws_manager
+
         ws_metrics = await _ws_manager.get_metrics()
         checks["websocket"] = ws_metrics
     except Exception:
@@ -127,6 +137,7 @@ async def health_detailed(request: Request):
 @app.get("/health/dependencies")
 async def health_dependencies(request: Request):
     from sqlalchemy import text
+
     from app.database import async_session
 
     deps: dict[str, dict] = {}
@@ -137,7 +148,12 @@ async def health_dependencies(request: Request):
             await session.execute(text("SELECT 1"))
         deps["postgresql"] = {"status": "connected", "type": "database", "critical": True}
     except Exception as e:
-        deps["postgresql"] = {"status": "error", "type": "database", "critical": True, "message": str(e) if settings.env != "production" else "unavailable"}
+        deps["postgresql"] = {
+            "status": "error",
+            "type": "database",
+            "critical": True,
+            "message": str(e) if settings.env != "production" else "unavailable",
+        }
         overall = "degraded"
 
     cache = getattr(request.app.state, "cache", None)
@@ -146,36 +162,76 @@ async def health_dependencies(request: Request):
             cache_ok = await cache.health()
         else:
             cache_ok = False
-        deps["redis"] = {"status": "connected" if cache_ok else "unavailable", "type": "cache", "critical": False}
+        deps["redis"] = {
+            "status": "connected" if cache_ok else "unavailable",
+            "type": "cache",
+            "critical": False,
+        }
     except Exception as e:
-        deps["redis"] = {"status": "error", "type": "cache", "critical": False, "message": str(e) if settings.env != "production" else "unavailable"}
+        deps["redis"] = {
+            "status": "error",
+            "type": "cache",
+            "critical": False,
+            "message": str(e) if settings.env != "production" else "unavailable",
+        }
 
     from sdk.events.kafka_bus import KafkaEventBus
+
     event_runtime = getattr(request.app.state, "event_runtime", None)
     try:
         if isinstance(event_runtime, KafkaEventBus):
             kafka_ok = event_runtime.is_kafka_available
-            deps["kafka"] = {"status": "connected" if kafka_ok else "fallback_in_memory", "type": "message_queue", "critical": False}
+            deps["kafka"] = {
+                "status": "connected" if kafka_ok else "fallback_in_memory",
+                "type": "message_queue",
+                "critical": False,
+            }
         else:
-            deps["kafka"] = {"status": "in_memory" if event_runtime else "not_configured", "type": "message_queue", "critical": False}
+            deps["kafka"] = {
+                "status": "in_memory" if event_runtime else "not_configured",
+                "type": "message_queue",
+                "critical": False,
+            }
     except Exception as e:
-        deps["kafka"] = {"status": "error", "type": "message_queue", "critical": False, "message": str(e) if settings.env != "production" else "unavailable"}
+        deps["kafka"] = {
+            "status": "error",
+            "type": "message_queue",
+            "critical": False,
+            "message": str(e) if settings.env != "production" else "unavailable",
+        }
 
     try:
         kg = getattr(request.app.state, "kg_engine", None)
         if kg is None:
-            deps["neo4j"] = {"status": "not_configured", "type": "graph_database", "critical": False}
+            deps["neo4j"] = {
+                "status": "not_configured",
+                "type": "graph_database",
+                "critical": False,
+            }
         elif getattr(kg.metrics, "neo4j_available", False):
             is_healthy = await kg.health_check()
-            deps["neo4j"] = {"status": "connected" if is_healthy else "unhealthy", "type": "graph_database", "critical": False}
+            deps["neo4j"] = {
+                "status": "connected" if is_healthy else "unhealthy",
+                "type": "graph_database",
+                "critical": False,
+            }
         else:
             deps["neo4j"] = {"status": "unavailable", "type": "graph_database", "critical": False}
     except Exception as e:
-        deps["neo4j"] = {"status": "error", "type": "graph_database", "critical": False, "message": str(e) if settings.env != "production" else "unavailable"}
+        deps["neo4j"] = {
+            "status": "error",
+            "type": "graph_database",
+            "critical": False,
+            "message": str(e) if settings.env != "production" else "unavailable",
+        }
 
     try:
         fs = getattr(request.app.state, "feature_store", None)
-        deps["feature_store"] = {"status": "initialized" if fs else "not_initialized", "type": "feature_store", "critical": False}
+        deps["feature_store"] = {
+            "status": "initialized" if fs else "not_initialized",
+            "type": "feature_store",
+            "critical": False,
+        }
     except Exception:
         deps["feature_store"] = {"status": "unknown", "type": "feature_store", "critical": False}
 
@@ -184,8 +240,22 @@ async def health_dependencies(request: Request):
         "dependencies": deps,
         "summary": {
             "total": len(deps),
-            "healthy": sum(1 for d in deps.values() if d["status"] in ("connected", "active", "initialized", "fallback_in_memory", "not_configured", "in_memory")),
-            "degraded": sum(1 for d in deps.values() if d["status"] in ("error", "unavailable", "unhealthy")),
+            "healthy": sum(
+                1
+                for d in deps.values()
+                if d["status"]
+                in (
+                    "connected",
+                    "active",
+                    "initialized",
+                    "fallback_in_memory",
+                    "not_configured",
+                    "in_memory",
+                )
+            ),
+            "degraded": sum(
+                1 for d in deps.values() if d["status"] in ("error", "unavailable", "unhealthy")
+            ),
         },
     }
 
@@ -193,6 +263,7 @@ async def health_dependencies(request: Request):
 @app.get("/health/ready")
 async def health_ready(request: Request):
     from sqlalchemy import text
+
     from app.database import async_session
 
     checks = {}
@@ -211,6 +282,7 @@ async def health_ready(request: Request):
         checks["cache"] = "unavailable"
 
     from sdk.events.kafka_bus import KafkaEventBus
+
     event_runtime = getattr(request.app.state, "event_runtime", None)
     if isinstance(event_runtime, KafkaEventBus):
         kafka_ok = event_runtime.is_kafka_available
@@ -240,6 +312,7 @@ async def health_ready(request: Request):
 
     try:
         from runtime.data_fabric_runtime.scrapers.scraper_config import get_scraper_health
+
         scraper_health = get_scraper_health()
         checks["scrapers"] = scraper_health
     except Exception:
@@ -286,6 +359,7 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
     checks["rate_limiter"] = "active" if rate_limiter else "not_configured"
 
     from sdk.events.kafka_bus import KafkaEventBus
+
     kafka_bus = getattr(request.app.state, "event_runtime", None)
     if isinstance(kafka_bus, KafkaEventBus):
         kafka_ok = kafka_bus.is_kafka_available
@@ -300,6 +374,7 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
 
     try:
         from runtime.data_fabric_runtime.scrapers.scraper_config import get_scraper_health
+
         scraper_health = get_scraper_health()
         checks["scrapers"] = scraper_health
     except Exception as e:

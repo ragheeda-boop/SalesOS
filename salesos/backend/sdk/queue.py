@@ -2,7 +2,6 @@
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
 
@@ -11,15 +10,11 @@ class TaskQueue(ABC):
     """Abstract task queue for background job processing."""
 
     @abstractmethod
-    async def enqueue(
-        self, task_name: str, payload: dict, delay_seconds: int = 0
-    ) -> str:
+    async def enqueue(self, task_name: str, payload: dict, delay_seconds: int = 0) -> str:
         """Enqueue a task for background execution. Returns task ID."""
 
     @abstractmethod
-    async def enqueue_unique(
-        self, task_name: str, payload: dict, dedup_key: str
-    ) -> str | None:
+    async def enqueue_unique(self, task_name: str, payload: dict, dedup_key: str) -> str | None:
         """Enqueue only if no identical task is pending. Returns task ID or None."""
 
 
@@ -30,9 +25,7 @@ class RedisTaskQueue(TaskQueue):
         self._redis = redis
         self._prefix = "salesos:queue"
 
-    async def enqueue(
-        self, task_name: str, payload: dict, delay_seconds: int = 0
-    ) -> str:
+    async def enqueue(self, task_name: str, payload: dict, delay_seconds: int = 0) -> str:
         import json
         import uuid
 
@@ -57,9 +50,7 @@ class RedisTaskQueue(TaskQueue):
         logger.info("Enqueued task %s: %s", task_id, task_name)
         return task_id
 
-    async def enqueue_unique(
-        self, task_name: str, payload: dict, dedup_key: str
-    ) -> str | None:
+    async def enqueue_unique(self, task_name: str, payload: dict, dedup_key: str) -> str | None:
         dedup_set_key = f"{self._prefix}:dedup:{task_name}"
         added = await self._redis.sadd(dedup_set_key, dedup_key)
         if added == 0:
@@ -74,9 +65,7 @@ class CeleryTaskQueue(TaskQueue):
     def __init__(self, celery_app):
         self._celery = celery_app
 
-    async def enqueue(
-        self, task_name: str, payload: dict, delay_seconds: int = 0
-    ) -> str:
+    async def enqueue(self, task_name: str, payload: dict, delay_seconds: int = 0) -> str:
         task = self._celery.send_task(
             task_name,
             kwargs=payload,
@@ -84,11 +73,7 @@ class CeleryTaskQueue(TaskQueue):
         )
         return task.id
 
-    async def enqueue_unique(
-        self, task_name: str, payload: dict, dedup_key: str
-    ) -> str | None:
-        from celery.signals import task_received
-
+    async def enqueue_unique(self, task_name: str, payload: dict, dedup_key: str) -> str | None:
         # Check if task with same dedup_key is already queued
         inspector = self._celery.control.inspect()
         scheduled = inspector.scheduled() or {}

@@ -1,10 +1,10 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_current_user_id, get_db_session, verify_token
+from app.dependencies import get_current_tenant_id, get_db_session, verify_token
 
 from .service import AuditService, PostgresAuditRepository
 

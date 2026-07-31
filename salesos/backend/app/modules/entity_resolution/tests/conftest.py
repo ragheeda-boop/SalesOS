@@ -1,7 +1,6 @@
 """Fixtures for Entity Resolution tests."""
 
 import uuid
-from typing import AsyncGenerator
 
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession

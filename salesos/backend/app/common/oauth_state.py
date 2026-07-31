@@ -3,8 +3,10 @@
 Used by SSO and Communication Hub Google OAuth so multi-instance deploys
 do not break the authorize→callback round-trip.
 """
+
 from __future__ import annotations
 
+import contextlib
 import json
 import threading
 import time
@@ -62,10 +64,8 @@ def store_oauth_state(key: str, value: Any, ttl: int = _DEFAULT_TTL) -> None:
     payload = json.dumps({"v": value}, separators=(",", ":"), default=str)
     r = _get_sync_redis()
     if r is not None:
-        try:
+        with contextlib.suppress(Exception):
             r.setex(_redis_key(key), ttl, payload)
-        except Exception:
-            pass
 
 
 def get_oauth_state(key: str, *, consume: bool = False) -> Any | None:

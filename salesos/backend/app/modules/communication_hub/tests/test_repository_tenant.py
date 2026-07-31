@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import inspect
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
@@ -24,7 +24,7 @@ async def test_update_tokens_requires_tenant_id_in_where():
         account_id,
         "enc_access",
         "enc_refresh",
-        datetime.now(timezone.utc),
+        datetime.now(UTC),
         tenant_id=tenant_id,
     )
 

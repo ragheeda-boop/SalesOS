@@ -8,9 +8,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Optional
-
+from datetime import UTC, datetime
+from typing import Any
 
 # ── Analytics data types ──
 
@@ -35,7 +34,7 @@ class AnalyticsSnapshot:
     period_end: datetime | None = None
     kpis: dict[str, KPIValue] = field(default_factory=dict)
     insights: list[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 # ── Forecast data types ──
@@ -77,7 +76,7 @@ class ForecastSnapshot:
     status: str = "calculated"
     lines: list[ForecastLine] = field(default_factory=list)
     assumptions: list[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     finalized_at: datetime | None = None
     version: int = 1
     total_expected_revenue: float = 0.0
@@ -93,49 +92,32 @@ class AnalyticsRepository(ABC):
     """Repository contract for analytics snapshots — consumed by commercial infra."""
 
     @abstractmethod
-    async def save(self, snapshot: AnalyticsSnapshot) -> AnalyticsSnapshot:
-        ...
+    async def save(self, snapshot: AnalyticsSnapshot) -> AnalyticsSnapshot: ...
 
     @abstractmethod
-    async def get(self, snapshot_id: str) -> Optional[AnalyticsSnapshot]:
-        ...
+    async def get(self, snapshot_id: str) -> AnalyticsSnapshot | None: ...
 
     @abstractmethod
-    async def list_by_tenant(
-        self, tenant_id: str, limit: int = 20
-    ) -> list[AnalyticsSnapshot]:
-        ...
+    async def list_by_tenant(self, tenant_id: str, limit: int = 20) -> list[AnalyticsSnapshot]: ...
 
     @abstractmethod
-    async def get_latest(
-        self, tenant_id: str
-    ) -> Optional[AnalyticsSnapshot]:
-        ...
+    async def get_latest(self, tenant_id: str) -> AnalyticsSnapshot | None: ...
 
 
 class ForecastRepository(ABC):
     """Repository contract for forecast snapshots — consumed by commercial infra."""
 
     @abstractmethod
-    async def save(self, snapshot: ForecastSnapshot) -> ForecastSnapshot:
-        ...
+    async def save(self, snapshot: ForecastSnapshot) -> ForecastSnapshot: ...
 
     @abstractmethod
-    async def get(self, snapshot_id: str) -> Optional[ForecastSnapshot]:
-        ...
+    async def get(self, snapshot_id: str) -> ForecastSnapshot | None: ...
 
     @abstractmethod
-    async def list_by_tenant(
-        self, tenant_id: str, limit: int = 10
-    ) -> list[ForecastSnapshot]:
-        ...
+    async def list_by_tenant(self, tenant_id: str, limit: int = 10) -> list[ForecastSnapshot]: ...
 
     @abstractmethod
-    async def get_latest(
-        self, tenant_id: str
-    ) -> Optional[ForecastSnapshot]:
-        ...
+    async def get_latest(self, tenant_id: str) -> ForecastSnapshot | None: ...
 
     @abstractmethod
-    async def kpis(self, tenant_id: str) -> Any:
-        ...
+    async def kpis(self, tenant_id: str) -> Any: ...

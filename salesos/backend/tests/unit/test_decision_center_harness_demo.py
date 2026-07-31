@@ -39,7 +39,7 @@ the current (fixed) code and must always pass in CI.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -67,7 +67,7 @@ def _decision(tenant_id: str) -> Decision:
         confidence=0.9,
         reasoning="tenant isolation harness demo",
         provider="rule_engine",
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         metadata={"tenant_id": tenant_id},
     )
 

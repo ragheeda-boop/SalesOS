@@ -87,7 +87,9 @@ def analyze_webhook_url(url: str, *, resolve_dns: bool = True) -> SafeWebhookTar
 
     # Literal IP in hostname
     try:
-        literal_ip: ipaddress.IPv4Address | ipaddress.IPv6Address | None = ipaddress.ip_address(host)
+        literal_ip: ipaddress.IPv4Address | ipaddress.IPv6Address | None = ipaddress.ip_address(
+            host
+        )
     except ValueError:
         literal_ip = None
     if literal_ip is not None:

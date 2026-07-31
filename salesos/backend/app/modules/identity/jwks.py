@@ -3,7 +3,6 @@ from __future__ import annotations
 import base64
 import logging
 import os
-import warnings
 from typing import Any
 
 from cryptography.hazmat.backends import default_backend
@@ -45,9 +44,7 @@ def _load_or_generate_rsa() -> tuple[rsa.RSAPrivateKey, rsa.RSAPublicKey]:
 
     if os.path.exists(private_path) and os.path.exists(public_path):
         with open(public_path, "rb") as f:
-            public_key = serialization.load_pem_public_key(
-                f.read(), backend=default_backend()
-            )
+            public_key = serialization.load_pem_public_key(f.read(), backend=default_backend())
         with open(private_path, "rb") as f:
             private_data = f.read()
         # Try encrypted first, fall back to unencrypted for migration.
@@ -63,7 +60,9 @@ def _load_or_generate_rsa() -> tuple[rsa.RSAPrivateKey, rsa.RSAPublicKey]:
             private_key = serialization.load_pem_private_key(
                 private_data, password=None, backend=default_backend()
             )
-            logger.warning("JWKS private key was unencrypted — re-saving with SECRET_KEY encryption")
+            logger.warning(
+                "JWKS private key was unencrypted — re-saving with SECRET_KEY encryption"
+            )
             _save_private_key(private_path, private_key)
             return private_key, public_key
         except (ValueError, TypeError):
@@ -195,7 +194,9 @@ def decode_token(token: str) -> dict:
     )
     try:
         return jwt.decode(
-            token, pem_public, algorithms=["RS256"],
+            token,
+            pem_public,
+            algorithms=["RS256"],
             audience="salesos-api",
         )
     except JWTError:

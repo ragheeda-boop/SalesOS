@@ -1,9 +1,7 @@
-from datetime import datetime, date
-from decimal import Decimal
-from typing import Optional
-from sqlalchemy import Column, Index, String, Numeric, DateTime, Date, Boolean, ForeignKey, Text, func
-from sqlalchemy.dialects.postgresql import UUID
 import uuid
+
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Index, Numeric, String, func
+from sqlalchemy.dialects.postgresql import UUID
 
 from sdk.database import Base
 

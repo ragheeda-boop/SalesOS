@@ -7,10 +7,10 @@ Violates SLA when latency or error-rate thresholds defined in SLA_CONFIG.json ar
 from __future__ import annotations
 
 import json
-import os
-import time
-import threading
 import logging
+import os
+import threading
+import time
 from collections import defaultdict
 from typing import Any
 
@@ -66,7 +66,7 @@ class SLAMonitor:
         if self._config is not None:
             return self._config
         try:
-            with open(_SLA_CONFIG_PATH, "r", encoding="utf-8") as f:
+            with open(_SLA_CONFIG_PATH, encoding="utf-8") as f:
                 self._config = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             self._config = {"categories": {}, "alerting": {"evaluation_window_seconds": 300}}
@@ -159,14 +159,20 @@ class SLAMonitor:
             violations.append(violation)
 
             if reasons:
-                severity = "critical" if any("p99" in r or "error_budget" in r for r in reasons) else "warning"
+                severity = (
+                    "critical"
+                    if any("p99" in r or "error_budget" in r for r in reasons)
+                    else "warning"
+                )
                 entry = {**violation, "severity": severity}
                 self._violations.append(entry)
                 if len(self._violations) > self._max_violations:
-                    self._violations = self._violations[-self._max_violations:]
+                    self._violations = self._violations[-self._max_violations :]
                 logger.warning(
                     "SLA violation category=%s severity=%s reasons=%s",
-                    cat_name, severity, "; ".join(reasons),
+                    cat_name,
+                    severity,
+                    "; ".join(reasons),
                 )
 
         return violations
@@ -176,7 +182,7 @@ class SLAMonitor:
             return list(self._violations[-limit:])
 
     def get_report(self) -> dict[str, Any]:
-        config = self._load_config()
+        _ = self._load_config()
         now = time.time()
         violations = self.evaluate()
 

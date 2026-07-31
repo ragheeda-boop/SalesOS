@@ -11,8 +11,8 @@ from sdk.database import (
     UnitOfWork,
 )
 from sdk.events import (
-    DomainEvent,
     EVENT_REGISTRY,
+    DomainEvent,
     EmailAnalyzed,
     EventBus,
     EventStore,
@@ -41,8 +41,14 @@ from sdk.exceptions import (
 from sdk.feature_registry import FeatureModule, FeatureRegistry, ModuleStatus
 from sdk.graph import GraphService
 from sdk.metadata import EntityMetadata, FieldMetadata, FieldType, MetadataRegistry, UiWidget
-from sdk.permissions import Permission, PermissionAction, PermissionEnforcer, PermissionRegistry, Role
-from sdk.queue import TaskQueue, RedisTaskQueue
+from sdk.permissions import (
+    Permission,
+    PermissionAction,
+    PermissionEnforcer,
+    PermissionRegistry,
+    Role,
+)
+from sdk.queue import RedisTaskQueue, TaskQueue
 from sdk.search import FullTextSearch, PgVectorSearch, SearchQuery, SearchResult, VectorSearch
 from sdk.security import (
     create_jwt,
@@ -52,7 +58,14 @@ from sdk.security import (
     verify_api_key,
     verify_password,
 )
-from sdk.telemetry import StructuredLogger, get_meter, get_tracer, record_metric, setup_telemetry, trace_span
+from sdk.telemetry import (
+    StructuredLogger,
+    get_meter,
+    get_tracer,
+    record_metric,
+    setup_telemetry,
+    trace_span,
+)
 from sdk.vector import EmbeddingService, OpenAIEmbeddingService
 
 __all__ = [

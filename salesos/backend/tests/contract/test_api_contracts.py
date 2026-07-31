@@ -5,8 +5,7 @@ Target: all major endpoints covered.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
@@ -14,7 +13,6 @@ from pydantic import BaseModel, ValidationError
 
 from app.common.schemas import CursorResponse, PaginatedResponse
 from sdk.pagination import CursorPage, decode_cursor, encode_cursor
-
 
 # ── Pagination Contract ────────────────────────────────────────────────────
 
@@ -48,7 +46,9 @@ def test_cursor_response_empty():
 
 
 def test_paginated_response_contract():
-    resp = PaginatedResponse(total=100, page=1, page_size=20, items=[{"id": "1"}], next_cursor="xyz", has_next=True)
+    resp = PaginatedResponse(
+        total=100, page=1, page_size=20, items=[{"id": "1"}], next_cursor="xyz", has_next=True
+    )
     assert resp.total == 100
     assert resp.page == 1
     assert resp.page_size == 20
@@ -67,7 +67,7 @@ def test_paginated_response_minimal():
 
 def test_cursor_encode_decode_roundtrip():
     original_id = str(uuid4())
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     cursor = encode_cursor(original_id, now)
     decoded_id, decoded_sort = decode_cursor(cursor)
     assert decoded_id == original_id
@@ -83,9 +83,9 @@ def test_cursor_id_only_roundtrip():
 
 
 def test_cursor_malformed_raises():
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         decode_cursor("!!!invalid!!!")
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         decode_cursor("bm90IGpzb24=")
 
 
@@ -94,6 +94,7 @@ def test_cursor_malformed_raises():
 
 def test_error_response_format():
     from app.common.schemas import ErrorResponse
+
     err = ErrorResponse(detail="Not found", code="NOT_FOUND", errors=[{"field": "id"}])
     assert err.detail == "Not found"
     assert err.code == "NOT_FOUND"
@@ -102,6 +103,7 @@ def test_error_response_format():
 
 def test_error_response_defaults():
     from app.common.schemas import ErrorResponse
+
     err = ErrorResponse(detail="Server error")
     assert err.code == "ERROR"
     assert err.errors is None
@@ -109,13 +111,17 @@ def test_error_response_defaults():
 
 def test_health_response_format():
     from app.common.schemas import HealthResponse
-    health = HealthResponse(status="ok", version="1.0", database="up", cache="up", rate_limiter="active")
+
+    health = HealthResponse(
+        status="ok", version="1.0", database="up", cache="up", rate_limiter="active"
+    )
     assert health.status == "ok"
     assert health.uptime_seconds == 0.0
 
 
 def test_message_response_format():
     from app.common.schemas import MessageResponse
+
     msg = MessageResponse(message="Success")
     assert msg.message == "Success"
     assert msg.code == "OK"
@@ -126,6 +132,7 @@ def test_message_response_format():
 
 def test_login_request_schema():
     from app.modules.identity.schemas import LoginRequest
+
     req = LoginRequest(email="user@example.com", password="secure123")
     assert req.email == "user@example.com"
     assert req.password == "secure123"
@@ -133,13 +140,17 @@ def test_login_request_schema():
 
 def test_login_request_invalid_email():
     from app.modules.identity.schemas import LoginRequest
+
     with pytest.raises(ValidationError):
         LoginRequest(email="not-an-email", password="pw")
 
 
 def test_token_response_schema():
     from app.modules.identity.schemas import TokenResponse
-    resp = TokenResponse(access_token="eyJ...", refresh_token="rt...", token_type="bearer", expires_in=3600)
+
+    resp = TokenResponse(
+        access_token="eyJ...", refresh_token="rt...", token_type="bearer", expires_in=3600
+    )
     assert resp.access_token == "eyJ..."
     assert resp.token_type == "bearer"
     assert resp.expires_in == 3600
@@ -151,8 +162,6 @@ def test_token_response_schema():
 
 
 def test_company_response_schema():
-    from pydantic import BaseModel
-
     class CompanyResponse(BaseModel):
         id: str
         name_ar: str | None = None
@@ -169,6 +178,7 @@ def test_company_response_schema():
 
 def test_cursor_response_on_company_search():
     from app.common.schemas import CursorResponse
+
     resp = CursorResponse(
         data=[{"id": "c1", "name_en": "Test Corp"}],
         next_cursor="abc123",
@@ -186,12 +196,11 @@ def test_decision_schemas_exist():
     from app.modules.decision.schemas import (
         DecisionContext,
         DecisionResultAPI,
-        EvidenceItemAPI,
-        HistoryResponseAPI,
-        RecommendationAPI,
-        RecommendationsResponseAPI,
         EvidenceResponseAPI,
+        HistoryResponseAPI,
+        RecommendationsResponseAPI,
     )
+
     assert DecisionContext is not None
     assert DecisionResultAPI is not None
     assert HistoryResponseAPI is not None
@@ -201,6 +210,7 @@ def test_decision_schemas_exist():
 
 def test_decision_history_response_has_cursor():
     from app.modules.decision.schemas import HistoryResponseAPI
+
     resp = HistoryResponseAPI(items=[], next_cursor="abc", has_next=True)
     assert resp.next_cursor == "abc"
     assert resp.has_next is True
@@ -210,8 +220,6 @@ def test_decision_history_response_has_cursor():
 
 
 def test_timeline_entry_schema():
-    from pydantic import BaseModel
-
     class TimelineEntry(BaseModel):
         id: str
         event_type: str
@@ -221,8 +229,12 @@ def test_timeline_entry_schema():
         entity_id: str
 
     entry = TimelineEntry(
-        id="t1", event_type="email", description="Sent proposal",
-        occurred_at=datetime.now(timezone.utc), entity_type="company", entity_id="c1",
+        id="t1",
+        event_type="email",
+        description="Sent proposal",
+        occurred_at=datetime.now(UTC),
+        entity_type="company",
+        entity_id="c1",
     )
     assert entry.event_type == "email"
 
@@ -280,6 +292,7 @@ def test_search_response_format():
 
 def test_ai_generate_request_schema():
     from domains.ai.schemas import GenerateRequest
+
     req = GenerateRequest(prompt_template_id="greet", variables={"name": "World"})
     assert req.provider == "openai"
     assert req.variables["name"] == "World"
@@ -287,10 +300,16 @@ def test_ai_generate_request_schema():
 
 def test_ai_evaluate_response():
     from domains.ai.models import AIEvaluation, EvaluationMetric
+
     metric = EvaluationMetric(name="exact_match", value=1.0, threshold=0.5, passed=True)
     eval_result = AIEvaluation(
-        id="eval1", prompt_id="p1", input="Q", output="A",
-        expected="A", score=1.0, metrics=[metric],
+        id="eval1",
+        prompt_id="p1",
+        input="Q",
+        output="A",
+        expected="A",
+        score=1.0,
+        metrics=[metric],
     )
     assert eval_result.score == 1.0
     assert eval_result.metrics[0].passed is True
@@ -300,8 +319,6 @@ def test_ai_evaluate_response():
 
 
 def test_golden_record_response():
-    from pydantic import BaseModel
-
     class GoldenRecordResponse(BaseModel):
         id: str
         cr_number: str
@@ -316,28 +333,49 @@ def test_golden_record_response():
 
 
 def test_job_response_schema():
+    from datetime import datetime
+
     from app.modules.admin.schemas import JobResponse
-    from datetime import datetime, timezone
-    now = datetime.now(timezone.utc)
+
+    now = datetime.now(UTC)
     job = JobResponse(
-        id="j1", type="enrichment", status="completed", progress=100,
-        tenant_id="tenant_1", created_by="admin", payload={},
-        result={}, error_message=None, retry_count=0, max_retries=3,
-        scheduled_at=now, started_at=now, completed_at=now,
-        created_at=now, updated_at=now,
+        id="j1",
+        type="enrichment",
+        status="completed",
+        progress=100,
+        tenant_id="tenant_1",
+        created_by="admin",
+        payload={},
+        result={},
+        error_message=None,
+        retry_count=0,
+        max_retries=3,
+        scheduled_at=now,
+        started_at=now,
+        completed_at=now,
+        created_at=now,
+        updated_at=now,
     )
     assert job.status == "completed"
 
 
 def test_ai_cost_response_schema():
-    from app.modules.admin.schemas import AICostResponse
-    from datetime import datetime, timezone
+    from datetime import datetime
     from uuid import uuid4
+
+    from app.modules.admin.schemas import AICostResponse
+
     cost = AICostResponse(
-        id=uuid4(), model="gpt-4o", tenant_id=uuid4(), tenant_name="Default",
-        prompt_tokens=100, completion_tokens=50,
-        total_tokens=150, cost=0.01, operation="chat",
-        created_at=datetime.now(timezone.utc),
+        id=uuid4(),
+        model="gpt-4o",
+        tenant_id=uuid4(),
+        tenant_name="Default",
+        prompt_tokens=100,
+        completion_tokens=50,
+        total_tokens=150,
+        cost=0.01,
+        operation="chat",
+        created_at=datetime.now(UTC),
     )
     assert cost.total_tokens == 150
 
@@ -345,13 +383,25 @@ def test_ai_cost_response_schema():
 # ── Pagination Response Contract (all list endpoints) ──────────────────────
 
 
-@pytest.mark.parametrize("total,page,page_size,items,next_cursor,has_next", [
-    (0, 1, 20, [], None, False),
-    (1, 1, 20, [{"id": "1"}], None, False),
-    (100, 1, 20, [{"id": str(i)} for i in range(20)], "next_cursor", True),
-])
-def test_paginated_response_contract_parametrized(total, page, page_size, items, next_cursor, has_next):
-    resp = PaginatedResponse(total=total, page=page, page_size=page_size, items=items, next_cursor=next_cursor, has_next=has_next)
+@pytest.mark.parametrize(
+    "total,page,page_size,items,next_cursor,has_next",
+    [
+        (0, 1, 20, [], None, False),
+        (1, 1, 20, [{"id": "1"}], None, False),
+        (100, 1, 20, [{"id": str(i)} for i in range(20)], "next_cursor", True),
+    ],
+)
+def test_paginated_response_contract_parametrized(
+    total, page, page_size, items, next_cursor, has_next
+):
+    resp = PaginatedResponse(
+        total=total,
+        page=page,
+        page_size=page_size,
+        items=items,
+        next_cursor=next_cursor,
+        has_next=has_next,
+    )
     assert resp.total == total
     assert len(resp.items) == len(items)
     assert resp.next_cursor == next_cursor

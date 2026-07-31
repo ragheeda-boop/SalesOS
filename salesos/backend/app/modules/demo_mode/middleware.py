@@ -34,7 +34,7 @@ class DemoModeMiddleware:
                 status_code=403,
                 content={
                     "detail": "Write operations are not allowed in demo mode. "
-                              "Demo mode is read-only to protect data integrity.",
+                    "Demo mode is read-only to protect data integrity.",
                     "demo_mode": True,
                 },
             )
@@ -43,6 +43,7 @@ class DemoModeMiddleware:
 
         token = demo_schema_ctx.set(DEMO_DB_PREFIX)
         try:
+
             async def send_wrapper(message):
                 if message["type"] == "http.response.start":
                     headers = list(message.get("headers", []))

@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from app.modules.telemetry.models import TelemetryEvent
+from app.domains.customer_success.health import compute_health_score, compute_tenant_health
 from app.modules.telemetry.service import (
     EVENT_TYPES,
     InMemoryTelemetryRepository,
     TelemetryService,
 )
-from app.domains.customer_success.health import compute_health_score, compute_tenant_health
 
 
 @pytest.fixture
@@ -24,6 +23,7 @@ def telemetry_service(inmem_repo):
 
 
 # ─── Event Tracking ─────────────────────────────────────────────
+
 
 class TestEventTracking:
     @pytest.mark.asyncio
@@ -53,7 +53,7 @@ class TestEventTracking:
 
     @pytest.mark.asyncio
     async def test_track_with_custom_timestamp(self, telemetry_service):
-        ts = datetime(2026, 1, 15, 10, 30, 0, tzinfo=timezone.utc)
+        ts = datetime(2026, 1, 15, 10, 30, 0, tzinfo=UTC)
         event = await telemetry_service.track("login", "t1", "u1", timestamp=ts)
         assert event.timestamp == ts
 
@@ -66,13 +66,14 @@ class TestEventTracking:
 
     @pytest.mark.asyncio
     async def test_track_auto_timestamp(self, telemetry_service):
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         event = await telemetry_service.track("login", "t1", "u1")
-        after = datetime.now(timezone.utc)
-        assert before <= event.timestamp.replace(tzinfo=timezone.utc) <= after
+        after = datetime.now(UTC)
+        assert before <= event.timestamp.replace(tzinfo=UTC) <= after
 
 
 # ─── Event Querying ─────────────────────────────────────────────
+
 
 class TestEventQuerying:
     @pytest.mark.asyncio
@@ -86,12 +87,12 @@ class TestEventQuerying:
 
     @pytest.mark.asyncio
     async def test_query_by_date_range(self, telemetry_service):
-        old_ts = datetime(2025, 1, 1, tzinfo=timezone.utc)
-        new_ts = datetime(2026, 6, 15, tzinfo=timezone.utc)
+        old_ts = datetime(2025, 1, 1, tzinfo=UTC)
+        new_ts = datetime(2026, 6, 15, tzinfo=UTC)
         await telemetry_service.track("login", "t1", "u1", timestamp=old_ts)
         await telemetry_service.track("login", "t1", "u1", timestamp=new_ts)
-        frm = datetime(2026, 1, 1, tzinfo=timezone.utc)
-        to = datetime(2026, 12, 31, tzinfo=timezone.utc)
+        frm = datetime(2026, 1, 1, tzinfo=UTC)
+        to = datetime(2026, 12, 31, tzinfo=UTC)
         results, total = await telemetry_service.repository.query("t1", from_date=frm, to_date=to)
         assert total == 1
         assert results[0].timestamp == new_ts
@@ -125,11 +126,12 @@ class TestEventQuerying:
 
 # ─── Aggregation ────────────────────────────────────────────────
 
+
 class TestAggregation:
     @pytest.mark.asyncio
     async def test_aggregate_daily(self, telemetry_service):
-        day1 = datetime(2026, 7, 1, tzinfo=timezone.utc)
-        day2 = datetime(2026, 7, 2, tzinfo=timezone.utc)
+        day1 = datetime(2026, 7, 1, tzinfo=UTC)
+        day2 = datetime(2026, 7, 2, tzinfo=UTC)
         await telemetry_service.track("login", "t1", "u1", timestamp=day1)
         await telemetry_service.track("login", "t1", "u1", timestamp=day1)
         await telemetry_service.track("login", "t1", "u1", timestamp=day2)
@@ -140,8 +142,8 @@ class TestAggregation:
 
     @pytest.mark.asyncio
     async def test_aggregate_monthly(self, telemetry_service):
-        jan = datetime(2026, 1, 15, tzinfo=timezone.utc)
-        feb = datetime(2026, 2, 10, tzinfo=timezone.utc)
+        jan = datetime(2026, 1, 15, tzinfo=UTC)
+        feb = datetime(2026, 2, 10, tzinfo=UTC)
         await telemetry_service.track("login", "t1", "u1", timestamp=jan)
         await telemetry_service.track("login", "t1", "u1", timestamp=feb)
         await telemetry_service.track("login", "t1", "u1", timestamp=feb)
@@ -152,7 +154,7 @@ class TestAggregation:
 
     @pytest.mark.asyncio
     async def test_aggregate_filtered_by_type(self, telemetry_service):
-        ts = datetime(2026, 7, 1, tzinfo=timezone.utc)
+        ts = datetime(2026, 7, 1, tzinfo=UTC)
         await telemetry_service.track("login", "t1", "u1", timestamp=ts)
         await telemetry_service.track("search_query", "t1", "u1", timestamp=ts)
         result = await telemetry_service.query("t1", event_type="login", granularity="day")
@@ -166,6 +168,7 @@ class TestAggregation:
 
 
 # ─── Feature Adoption ───────────────────────────────────────────
+
 
 class TestFeatureAdoption:
     @pytest.mark.asyncio
@@ -194,6 +197,7 @@ class TestFeatureAdoption:
 
 # ─── Search Success Rate ────────────────────────────────────────
 
+
 class TestSearchSuccess:
     @pytest.mark.asyncio
     async def test_search_success_rate(self, telemetry_service):
@@ -211,6 +215,7 @@ class TestSearchSuccess:
 
 
 # ─── NBA Acceptance Rate ────────────────────────────────────────
+
 
 class TestNBAAcceptance:
     @pytest.mark.asyncio
@@ -232,12 +237,15 @@ class TestNBAAcceptance:
 
 # ─── Time Metrics ───────────────────────────────────────────────
 
+
 class TestTimeMetrics:
     @pytest.mark.asyncio
     async def test_time_to_insight(self, telemetry_service):
-        base = datetime(2026, 7, 1, 8, 0, 0, tzinfo=timezone.utc)
+        base = datetime(2026, 7, 1, 8, 0, 0, tzinfo=UTC)
         await telemetry_service.track("login", "t1", "user-a", timestamp=base)
-        await telemetry_service.track("search_query", "t1", "user-a", timestamp=base + timedelta(minutes=5))
+        await telemetry_service.track(
+            "search_query", "t1", "user-a", timestamp=base + timedelta(minutes=5)
+        )
         result = await telemetry_service.time_to_insight("t1")
         assert result["users_with_insight"] == 1
         assert result["avg_time_to_insight_seconds"] == 300.0
@@ -249,9 +257,11 @@ class TestTimeMetrics:
 
     @pytest.mark.asyncio
     async def test_time_to_action(self, telemetry_service):
-        base = datetime(2026, 7, 1, 8, 0, 0, tzinfo=timezone.utc)
+        base = datetime(2026, 7, 1, 8, 0, 0, tzinfo=UTC)
         await telemetry_service.track("nba_view", "t1", "user-a", timestamp=base)
-        await telemetry_service.track("nba_accept", "t1", "user-a", timestamp=base + timedelta(minutes=10))
+        await telemetry_service.track(
+            "nba_accept", "t1", "user-a", timestamp=base + timedelta(minutes=10)
+        )
         result = await telemetry_service.time_to_action("t1")
         assert result["users_with_action"] == 1
         assert result["avg_time_to_action_seconds"] == 600.0
@@ -259,10 +269,11 @@ class TestTimeMetrics:
 
 # ─── Active Users ───────────────────────────────────────────────
 
+
 class TestActiveUsers:
     @pytest.mark.asyncio
     async def test_active_users(self, telemetry_service):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         await telemetry_service.track("login", "t1", "user-a", timestamp=now)
         await telemetry_service.track("login", "t1", "user-b", timestamp=now - timedelta(days=3))
         await telemetry_service.track("login", "t1", "user-c", timestamp=now - timedelta(days=20))
@@ -273,6 +284,7 @@ class TestActiveUsers:
 
 
 # ─── Health Score Algorithm ─────────────────────────────────────
+
 
 class TestHealthScore:
     def test_health_score_green(self):
@@ -301,13 +313,13 @@ class TestHealthScore:
         assert result["components"]["nba_acceptance"]["contribution"] == 30.0
 
     def test_health_score_renewal_risk(self):
-        low_since = datetime.now(timezone.utc) - timedelta(days=35)
+        low_since = datetime.now(UTC) - timedelta(days=35)
         result = compute_health_score(30.0, 40.0, 35.0, low_health_since=low_since)
         assert result["renewal_risk"] is True
         assert result["days_in_low_health"] >= 30
 
     def test_health_score_no_renewal_risk_recent(self):
-        low_since = datetime.now(timezone.utc) - timedelta(days=10)
+        low_since = datetime.now(UTC) - timedelta(days=10)
         result = compute_health_score(30.0, 40.0, 35.0, low_health_since=low_since)
         assert result["renewal_risk"] is False
         assert result["days_in_low_health"] < 30
@@ -319,9 +331,13 @@ class TestHealthScore:
 
     def test_tenant_health_returns_tenant_info(self):
         result = compute_tenant_health(
-            "tenant-1", "شركة التقنية",
-            80.0, 75.0, 70.0,
-            user_count=25, last_active="2026-07-10",
+            "tenant-1",
+            "شركة التقنية",
+            80.0,
+            75.0,
+            70.0,
+            user_count=25,
+            last_active="2026-07-10",
         )
         assert result["tenant_id"] == "tenant-1"
         assert result["tenant_name"] == "شركة التقنية"

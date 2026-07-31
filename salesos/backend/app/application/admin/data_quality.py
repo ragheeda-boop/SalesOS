@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -33,9 +33,20 @@ FRESHNESS_WEIGHT = 0.30
 
 # ── Core fields for quality evaluation ─────────────────────────────
 CORE_FIELDS = [
-    "name_ar", "name_en", "cr_number", "vat_number", "email",
-    "phone", "website", "address", "city", "region",
-    "industry", "status", "revenue", "employees",
+    "name_ar",
+    "name_en",
+    "cr_number",
+    "vat_number",
+    "email",
+    "phone",
+    "website",
+    "address",
+    "city",
+    "region",
+    "industry",
+    "status",
+    "revenue",
+    "employees",
 ]
 
 _ALLOWED_QUALITY_FIELDS = frozenset(CORE_FIELDS)
@@ -47,34 +58,52 @@ def _validate_quality_field(name: str) -> str:
         raise ValueError(f"Invalid quality field: {name}")
     return name
 
+
 # ── Field freshness max valid hours ────────────────────────────────
 FIELD_FRESHNESS_HOURS: dict[str, float] = {
-    "name_ar": 8760, "name_en": 8760, "cr_number": 8760,
-    "vat_number": 8760, "address": 4380, "phone": 4380,
-    "email": 2160, "website": 4380, "revenue": 720,
-    "employees": 720, "status": 720, "industry": 2160,
-    "city": 8760, "region": 8760, "legal_form": 8760,
+    "name_ar": 8760,
+    "name_en": 8760,
+    "cr_number": 8760,
+    "vat_number": 8760,
+    "address": 4380,
+    "phone": 4380,
+    "email": 2160,
+    "website": 4380,
+    "revenue": 720,
+    "employees": 720,
+    "status": 720,
+    "industry": 2160,
+    "city": 8760,
+    "region": 8760,
+    "legal_form": 8760,
 }
 
 # ── Source reliability scores ──────────────────────────────────────
 SOURCE_RELIABILITY: dict[str, float] = {
-    "government": 0.95, "manual": 0.90, "erp": 0.85,
-    "crm": 0.80, "linkedin": 0.70, "website": 0.60,
-    "news": 0.50, "enrichment_api": 0.40, "ai_extraction": 0.30,
+    "government": 0.95,
+    "manual": 0.90,
+    "erp": 0.85,
+    "crm": 0.80,
+    "linkedin": 0.70,
+    "website": 0.60,
+    "news": 0.50,
+    "enrichment_api": 0.40,
+    "ai_extraction": 0.30,
 }
 
 
 class FreshnessGrade(str, Enum):
-    REAL_TIME = "real_time"    # < 1 hour
-    FRESH = "fresh"            # < 24 hours
-    MODERATE = "moderate"      # < 1 week
-    STALE = "stale"            # < 30 days
-    EXPIRED = "expired"        # > 30 days
+    REAL_TIME = "real_time"  # < 1 hour
+    FRESH = "fresh"  # < 24 hours
+    MODERATE = "moderate"  # < 1 week
+    STALE = "stale"  # < 30 days
+    EXPIRED = "expired"  # > 30 days
 
 
 @dataclass
 class CompletenessStats:
     """Per-field completeness statistics."""
+
     field_name: str
     filled_count: int = 0
     total_count: int = 0
@@ -86,6 +115,7 @@ class CompletenessStats:
 @dataclass
 class FreshnessStats:
     """Freshness distribution statistics."""
+
     grade: str = ""
     count: int = 0
     percentage: float = 0.0
@@ -95,6 +125,7 @@ class FreshnessStats:
 @dataclass
 class DuplicateCandidate:
     """Potential duplicate record."""
+
     id_a: str = ""
     id_b: str = ""
     name_a: str = ""
@@ -108,6 +139,7 @@ class DuplicateCandidate:
 @dataclass
 class QualitySummary:
     """Overall quality summary."""
+
     overall_score: float = 0.0
     completeness_score: float = 0.0
     accuracy_score: float = 0.0
@@ -134,9 +166,7 @@ class DataQualityService:
         self._cache: dict[str, Any] = {}
         self._cache_ttl_seconds = 300  # 5 minutes
 
-    async def get_quality_summary(
-        self, tenant_id: str | None = None
-    ) -> QualitySummary:
+    async def get_quality_summary(self, tenant_id: str | None = None) -> QualitySummary:
         """Compute overall quality score for the tenant."""
         if not self._session_factory:
             return self._summary_from_cache_or_default()
@@ -168,15 +198,13 @@ class DataQualityService:
             total_records=total,
             records_with_issues=issues,
             duplicate_count=duplicates,
-            last_evaluated=datetime.now(timezone.utc).isoformat(),
+            last_evaluated=datetime.now(UTC).isoformat(),
         )
 
         self._set_cache(cache_key, summary)
         return summary
 
-    async def get_completeness(
-        self, tenant_id: str | None = None
-    ) -> list[CompletenessStats]:
+    async def get_completeness(self, tenant_id: str | None = None) -> list[CompletenessStats]:
         """Get per-field completeness statistics."""
         if not self._session_factory:
             return []
@@ -184,9 +212,7 @@ class DataQualityService:
         async with self._session_factory() as session:
             return await self._field_completeness(session, tenant_id)
 
-    async def get_freshness(
-        self, tenant_id: str | None = None
-    ) -> list[FreshnessStats]:
+    async def get_freshness(self, tenant_id: str | None = None) -> list[FreshnessStats]:
         """Get data freshness distribution."""
         if not self._session_factory:
             return []
@@ -216,7 +242,9 @@ class DataQualityService:
         filled_conditions = []
         for f in CORE_FIELDS:
             _validate_quality_field(f)
-            filled_conditions.append(f"(CASE WHEN c.{f} IS NOT NULL AND c.{f} != '' THEN 1 ELSE 0 END)")
+            filled_conditions.append(
+                f"(CASE WHEN c.{f} IS NOT NULL AND c.{f} != '' THEN 1 ELSE 0 END)"
+            )
 
         filled_sum = " + ".join(filled_conditions)
         total_fields = len(CORE_FIELDS)
@@ -240,9 +268,11 @@ class DataQualityService:
         sql = sa_text(f"""
             SELECT
                 AVG(CASE WHEN c.email LIKE '%@%.%' THEN 0.15 ELSE 0 END) as email_valid,
-                AVG(CASE WHEN c.phone IS NOT NULL AND length(c.phone) >= 7 THEN 0.10 ELSE 0 END) as phone_valid,
+                AVG(CASE WHEN c.phone IS NOT NULL AND length(c.phone) >= 7
+                    THEN 0.10 ELSE 0 END) as phone_valid,
                 AVG(CASE WHEN c.website LIKE '%.%' THEN 0.10 ELSE 0 END) as website_valid,
-                AVG(CASE WHEN c.cr_number IS NOT NULL AND length(c.cr_number) >= 5 THEN 0.15 ELSE 0 END) as cr_valid,
+                AVG(CASE WHEN c.cr_number IS NOT NULL AND length(c.cr_number) >= 5
+                    THEN 0.15 ELSE 0 END) as cr_valid,
                 COUNT(*) as total
             FROM companies c {tenant_filter}
         """)
@@ -363,13 +393,15 @@ class DataQualityService:
         for row in result:
             filled = int(row[1])
             total = int(row[2])
-            stats.append(CompletenessStats(
-                field_name=str(row[0]),
-                filled_count=filled,
-                total_count=total,
-                completeness_pct=round(filled / max(total, 1) * 100, 1),
-                null_count=total - filled,
-            ))
+            stats.append(
+                CompletenessStats(
+                    field_name=str(row[0]),
+                    filled_count=filled,
+                    total_count=total,
+                    completeness_pct=round(filled / max(total, 1) * 100, 1),
+                    null_count=total - filled,
+                )
+            )
 
         return stats
 
@@ -410,12 +442,14 @@ class DataQualityService:
         stats = []
         for row in result:
             count = int(row[1])
-            stats.append(FreshnessStats(
-                grade=str(row[0]),
-                count=count,
-                percentage=round(count / max(total_count, 1) * 100, 1),
-                avg_age_hours=round(float(row[2] or 0), 1),
-            ))
+            stats.append(
+                FreshnessStats(
+                    grade=str(row[0]),
+                    count=count,
+                    percentage=round(count / max(total_count, 1) * 100, 1),
+                    avg_age_hours=round(float(row[2] or 0), 1),
+                )
+            )
 
         return stats
 
@@ -463,16 +497,18 @@ class DataQualityService:
 
             action = "auto_merge" if sim > 0.95 else "review" if sim > 0.7 else "keep_separate"
 
-            duplicates.append(DuplicateCandidate(
-                id_a=str(row[0]),
-                id_b=str(row[1]),
-                name_a=str(row[2] or ""),
-                name_b=str(row[3] or ""),
-                cr_number=str(row[4] or ""),
-                similarity_score=round(sim, 2),
-                match_reasons=reasons,
-                recommended_action=action,
-            ))
+            duplicates.append(
+                DuplicateCandidate(
+                    id_a=str(row[0]),
+                    id_b=str(row[1]),
+                    name_a=str(row[2] or ""),
+                    name_b=str(row[3] or ""),
+                    cr_number=str(row[4] or ""),
+                    similarity_score=round(sim, 2),
+                    match_reasons=reasons,
+                    recommended_action=action,
+                )
+            )
 
         return duplicates
 
@@ -480,12 +516,12 @@ class DataQualityService:
         entry = self._cache.get(key)
         if entry:
             ts, value = entry
-            if (datetime.now(timezone.utc) - ts).total_seconds() < self._cache_ttl_seconds:
+            if (datetime.now(UTC) - ts).total_seconds() < self._cache_ttl_seconds:
                 return value
         return None
 
     def _set_cache(self, key: str, value: Any) -> None:
-        self._cache[key] = (datetime.now(timezone.utc), value)
+        self._cache[key] = (datetime.now(UTC), value)
 
     def _summary_from_cache_or_default(self) -> QualitySummary:
         return QualitySummary(
@@ -494,7 +530,7 @@ class DataQualityService:
             accuracy_score=0.0,
             freshness_score=0.0,
             total_records=0,
-            last_evaluated=datetime.now(timezone.utc).isoformat(),
+            last_evaluated=datetime.now(UTC).isoformat(),
         )
 
 
@@ -516,6 +552,7 @@ def init_quality_service(session_factory) -> DataQualityService:
 
 
 # ── API Endpoints ──────────────────────────────────────────────────
+
 
 @router.get("/summary")
 async def quality_summary(

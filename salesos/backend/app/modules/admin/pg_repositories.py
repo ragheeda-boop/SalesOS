@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Any
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func as sa_func, or_, select, delete as sa_delete
+from sqlalchemy import delete as sa_delete
+from sqlalchemy import func as sa_func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .db_models import (
@@ -16,10 +17,10 @@ from .db_models import (
     InvoiceModel,
     JobModel,
     LicenseModel,
+    PermissionModel,
     PlanModel,
     RoleModel,
     RolePermissionModel,
-    PermissionModel,
     TenantConfigModel,
     TransactionModel,
 )
@@ -51,7 +52,7 @@ class PostgresPlanRepository:
         for key, value in data.items():
             if hasattr(plan, key) and value is not None:
                 setattr(plan, key, value)
-        plan.updated_at = datetime.now(timezone.utc)
+        plan.updated_at = datetime.now(UTC)
         await self._session.flush()
         return plan
 
@@ -136,18 +137,20 @@ class PostgresFeatureFlagRepository:
         for key, value in data.items():
             if hasattr(flag, key) and value is not None:
                 setattr(flag, key, value)
-        flag.updated_at = datetime.now(timezone.utc)
+        flag.updated_at = datetime.now(UTC)
         await self._session.flush()
         return flag
 
-    async def set_tenant_override(self, flag_id: uuid.UUID, tenant_id: str, enabled: bool) -> FeatureFlagModel | None:
+    async def set_tenant_override(
+        self, flag_id: uuid.UUID, tenant_id: str, enabled: bool
+    ) -> FeatureFlagModel | None:
         flag = await self.get(flag_id)
         if not flag:
             return None
         overrides = dict(flag.tenant_overrides or {})
         overrides[tenant_id] = enabled
         flag.tenant_overrides = overrides
-        flag.updated_at = datetime.now(timezone.utc)
+        flag.updated_at = datetime.now(UTC)
         await self._session.flush()
         return flag
 
@@ -161,7 +164,9 @@ class PostgresFeatureFlagRepository:
             for tid, enabled in overrides.items()
         ]
 
-    async def evaluate(self, flag_key: str, tenant_id: str, tenant_ids_all: list[str] | None = None) -> dict:
+    async def evaluate(
+        self, flag_key: str, tenant_id: str, tenant_ids_all: list[str] | None = None
+    ) -> dict:
         """Evaluate a feature flag for a specific tenant.
 
         Returns dict with 'enabled' bool and 'reason' str.
@@ -239,9 +244,15 @@ class PostgresJobRepository:
         job.error_message = None
         job.result = None
         job.completed_at = None
-        job.updated_at = datetime.now(timezone.utc)
+        job.updated_at = datetime.now(UTC)
         logs = list(job.logs or [])
-        logs.append({"level": "INFO", "message": "Retry requested", "timestamp": datetime.now(timezone.utc).isoformat()})
+        logs.append(
+            {
+                "level": "INFO",
+                "message": "Retry requested",
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
+        )
         job.logs = logs
         await self._session.flush()
         return job
@@ -259,7 +270,7 @@ class PostgresAICostRepository:
         page: int = 1,
         page_size: int = 20,
     ) -> tuple[list[AICostRecordModel], int]:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = select(AICostRecordModel).where(AICostRecordModel.created_at >= cutoff)
         if model:
             stmt = stmt.where(AICostRecordModel.model == model)
@@ -277,11 +288,11 @@ class PostgresAICostRepository:
         return list(result.scalars().all()), total
 
     async def get_summary(self, days: int = 30) -> dict:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
 
-        total_cost_stmt = select(
-            sa_func.coalesce(sa_func.sum(AICostRecordModel.cost), 0)
-        ).where(AICostRecordModel.created_at >= cutoff)
+        total_cost_stmt = select(sa_func.coalesce(sa_func.sum(AICostRecordModel.cost), 0)).where(
+            AICostRecordModel.created_at >= cutoff
+        )
         total_cost_result = await self._session.execute(total_cost_stmt)
         total_cost = float(total_cost_result.scalar() or 0)
 
@@ -342,17 +353,19 @@ class PostgresAICostRepository:
         }
 
     async def get_usage(self, days: int = 30) -> dict:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
 
         prompt_result = await self._session.execute(
-            select(sa_func.coalesce(sa_func.sum(AICostRecordModel.prompt_tokens), 0))
-            .where(AICostRecordModel.created_at >= cutoff)
+            select(sa_func.coalesce(sa_func.sum(AICostRecordModel.prompt_tokens), 0)).where(
+                AICostRecordModel.created_at >= cutoff
+            )
         )
         total_prompt = int(prompt_result.scalar() or 0)
 
         completion_result = await self._session.execute(
-            select(sa_func.coalesce(sa_func.sum(AICostRecordModel.completion_tokens), 0))
-            .where(AICostRecordModel.created_at >= cutoff)
+            select(sa_func.coalesce(sa_func.sum(AICostRecordModel.completion_tokens), 0)).where(
+                AICostRecordModel.created_at >= cutoff
+            )
         )
         total_completion = int(completion_result.scalar() or 0)
 
@@ -387,26 +400,66 @@ class PostgresAICostRepository:
 class PostgresHealthRepository:
     def __init__(self, session: AsyncSession):
         self._session = session
-        self._start_time = datetime.now(timezone.utc)
+        self._start_time = datetime.now(UTC)
 
     async def get_detailed_health(self) -> dict:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return {
             "overall_status": "healthy",
             "uptime_seconds": (now - self._start_time).total_seconds(),
             "components": [
-                {"component": "database", "status": "healthy", "latency_ms": 5.2, "last_check": now, "details": "PostgreSQL 15 — connected, pool: 5/20"},
-                {"component": "cache", "status": "healthy", "latency_ms": 1.8, "last_check": now, "details": "Redis 7 — connected, hit rate: 94%"},
-                {"component": "graph", "status": "healthy", "latency_ms": 12.5, "last_check": now, "details": "Neo4j 5 — connected, nodes: 45K"},
-                {"component": "kafka", "status": "healthy", "latency_ms": 3.1, "last_check": now, "details": "Kafka 3.6 — 4 topics, 12 partitions"},
-                {"component": "rate_limiter", "status": "healthy", "latency_ms": 0.3, "last_check": now, "details": "In-memory rate limiter — 60 req/min"},
-                {"component": "event_bus", "status": "healthy", "latency_ms": 2.0, "last_check": now, "details": "In-memory event bus — active"},
+                {
+                    "component": "database",
+                    "status": "healthy",
+                    "latency_ms": 5.2,
+                    "last_check": now,
+                    "details": "PostgreSQL 15 — connected, pool: 5/20",
+                },
+                {
+                    "component": "cache",
+                    "status": "healthy",
+                    "latency_ms": 1.8,
+                    "last_check": now,
+                    "details": "Redis 7 — connected, hit rate: 94%",
+                },
+                {
+                    "component": "graph",
+                    "status": "healthy",
+                    "latency_ms": 12.5,
+                    "last_check": now,
+                    "details": "Neo4j 5 — connected, nodes: 45K",
+                },
+                {
+                    "component": "kafka",
+                    "status": "healthy",
+                    "latency_ms": 3.1,
+                    "last_check": now,
+                    "details": "Kafka 3.6 — 4 topics, 12 partitions",
+                },
+                {
+                    "component": "rate_limiter",
+                    "status": "healthy",
+                    "latency_ms": 0.3,
+                    "last_check": now,
+                    "details": "In-memory rate limiter — 60 req/min",
+                },
+                {
+                    "component": "event_bus",
+                    "status": "healthy",
+                    "latency_ms": 2.0,
+                    "last_check": now,
+                    "details": "In-memory event bus — active",
+                },
             ],
         }
 
     async def get_history(self, hours: int = 24) -> list[HealthSnapshotModel]:
-        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
-        stmt = select(HealthSnapshotModel).where(HealthSnapshotModel.timestamp >= cutoff).order_by(HealthSnapshotModel.timestamp)
+        cutoff = datetime.now(UTC) - timedelta(hours=hours)
+        stmt = (
+            select(HealthSnapshotModel)
+            .where(HealthSnapshotModel.timestamp >= cutoff)
+            .order_by(HealthSnapshotModel.timestamp)
+        )
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -440,7 +493,7 @@ class PostgresRoleRepository:
         for key, value in data.items():
             if hasattr(role, key) and key != "id" and value is not None:
                 setattr(role, key, value)
-        role.updated_at = datetime.now(timezone.utc)
+        role.updated_at = datetime.now(UTC)
         await self._session.flush()
         return role
 
@@ -461,7 +514,9 @@ class PostgresRoleRepository:
         await self._session.flush()
 
     async def get_permissions(self, role_id: str) -> list[str]:
-        stmt = select(RolePermissionModel.permission_id).where(RolePermissionModel.role_id == role_id)
+        stmt = select(RolePermissionModel.permission_id).where(
+            RolePermissionModel.role_id == role_id
+        )
         result = await self._session.execute(stmt)
         return [row[0] for row in result]
 
@@ -470,16 +525,18 @@ class PostgresRoleRepository:
         result = []
         for role in roles:
             perms = await self.get_permissions(role.id)
-            result.append({
-                "id": role.id,
-                "name": role.name,
-                "description": role.description,
-                "is_system": role.is_system,
-                "tenant_id": role.tenant_id,
-                "permissions": perms,
-                "created_at": role.created_at,
-                "updated_at": role.updated_at,
-            })
+            result.append(
+                {
+                    "id": role.id,
+                    "name": role.name,
+                    "description": role.description,
+                    "is_system": role.is_system,
+                    "tenant_id": role.tenant_id,
+                    "permissions": perms,
+                    "created_at": role.created_at,
+                    "updated_at": role.updated_at,
+                }
+            )
         return result
 
 

@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import text as sa_text
@@ -27,11 +27,11 @@ from app.modules.communication_hub.contact_sync import upsert_contacts_from_addr
 from app.modules.communication_hub.models import GoogleAccount
 from app.modules.communication_hub.repository import GoogleAccountRepository
 from app.modules.communication_hub.service import GoogleOAuthService
-from intelligence.activity_intelligence.providers.google.gmail_provider import (
-    GoogleGmailProvider,
-    GmailAPIError,
-)
 from intelligence.activity_intelligence.contracts.models import RawEmail
+from intelligence.activity_intelligence.providers.google.gmail_provider import (
+    GmailAPIError,
+    GoogleGmailProvider,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +93,7 @@ class GmailSyncService:
         days_lookback: int,
         max_results: int,
     ) -> dict:
-        since = datetime.now(timezone.utc) - timedelta(days=days_lookback)
+        since = datetime.now(UTC) - timedelta(days=days_lookback)
         emails = await provider.fetch_emails(since=since, max_results=max_results)
         return await self._process_emails(account, emails)
 
@@ -115,11 +115,9 @@ class GmailSyncService:
                         "status": e.status,
                     },
                 )
-                await self.repo.update_history_id(
-                    account.id, None, tenant_id=self.tenant_id
-                )
+                await self.repo.update_history_id(account.id, None, tenant_id=self.tenant_id)
                 account.history_id = None
-                since = account.last_sync_at or (datetime.now(timezone.utc) - timedelta(days=30))
+                since = account.last_sync_at or (datetime.now(UTC) - timedelta(days=30))
                 emails = await provider.fetch_emails(since=since, max_results=200)
                 return await self._process_emails(account, emails)
             raise
@@ -196,9 +194,7 @@ class GmailSyncService:
     ) -> None:
         body_preview = (raw.body_text or "")[:500]
         addresses = [raw.from_address, *(raw.to_addresses or []), *(raw.cc_addresses or [])]
-        company_ids = await resolve_company_ids_for_addresses(
-            self.db, self.tenant_id, addresses
-        )
+        company_ids = await resolve_company_ids_for_addresses(self.db, self.tenant_id, addresses)
         account_domain = account.email.rsplit("@", 1)[-1].lower() if "@" in account.email else ""
         is_internal = _is_internal_email(raw, account_domain)
 
@@ -238,7 +234,7 @@ class GmailSyncService:
                 "is_internal": is_internal,
                 "is_read": is_read,
                 "labels": json.dumps(raw.labels or []),
-                "timestamp_utc": raw.sent_at or datetime.now(timezone.utc),
+                "timestamp_utc": raw.sent_at or datetime.now(UTC),
                 "related_company_ids": json.dumps(company_ids),
                 "sync_history_id": None,
             },

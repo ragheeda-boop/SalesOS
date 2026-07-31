@@ -11,7 +11,6 @@ import pytest
 
 from domains.search.normalization.arabic_normalizer import ArabicSearchNormalizer
 
-
 # ── Fixtures ────────────────────────────────────────────────────────────
 
 
@@ -173,7 +172,9 @@ class TestRealCompanyNames:
         assert normalizer.normalize("شركة أرامكو السعودية") == "شركه ارامكو السعوديه"
 
     def test_company_with_multiple_variants(self, normalizer):
-        assert normalizer.normalize("مؤسسة سابك للصناعات الأساسية") == "موسسه سابك للصناعات الاساسيه"
+        assert (
+            normalizer.normalize("مؤسسة سابك للصناعات الأساسية") == "موسسه سابك للصناعات الاساسيه"
+        )
 
     def test_company_with_wasla_and_madda(self, normalizer):
         assert normalizer.normalize("آفاق المستقبل للتجارة") == "افاق المستقبل للتجاره"
@@ -201,16 +202,12 @@ class TestBug002:
         assert "2024" in result
 
     def test_bug002_long_tatweel_company(self, normalizer):
-        result = normalizer.normalize(
-            "شـــــركة المـــــقاولات الـــــحديثة"
-        )
+        result = normalizer.normalize("شـــــركة المـــــقاولات الـــــحديثة")
         assert "ـ" not in result
         assert result == "شركه المقاولات الحديثه"
 
     def test_bug002_diacritics_with_special_chars(self, normalizer):
-        result = normalizer.normalize(
-            "شَرِكَةُ الأَمَلِ للتِجَارَةِ - مَطَابِخُ أَلْمَانِيَّة"
-        )
+        result = normalizer.normalize("شَرِكَةُ الأَمَلِ للتِجَارَةِ - مَطَابِخُ أَلْمَانِيَّة")
         assert "َ" not in result
         assert "ِ" not in result
         assert "ُ" not in result

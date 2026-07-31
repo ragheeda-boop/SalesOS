@@ -1,16 +1,12 @@
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.exceptions import NotFoundError
 from app.config import settings
 from app.modules.company.models import Company
-from app.modules.contact.models import Contact
-from app.modules.identity.models import User
 
 
 class NotionSyncService:
@@ -132,7 +128,7 @@ class NotionSyncService:
 
         return data
 
-    def _get_notion_prop(self, props: dict, possible_names: list[str]) -> Optional[str]:
+    def _get_notion_prop(self, props: dict, possible_names: list[str]) -> str | None:
         for name in possible_names:
             prop = props.get(name)
             if not prop:

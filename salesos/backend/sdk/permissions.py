@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    pass
 
 
 class PermissionAction(Enum):
@@ -41,9 +42,7 @@ class Role:
     permissions: set[Permission] = field(default_factory=set)
 
     def has_permission(self, resource: str, action: PermissionAction) -> bool:
-        return any(
-            p.resource == resource and p.action == action for p in self.permissions
-        )
+        return any(p.resource == resource and p.action == action for p in self.permissions)
 
 
 class PermissionRegistry:
@@ -85,7 +84,46 @@ class PermissionRegistry:
         return {
             "admin": [
                 Permission(r, a)
-                for r in ["company", "contact", "license", "opportunity", "pipeline", "user", "tenant", "settings", "billing", "audit", "api", "executive", "workflow", "employee", "entity-resolution", "search", "feature-store", "data-fabric", "knowledge-graph", "decision", "timeline", "monitoring", "customer-success", "work-intelligence", "employee-360", "revenue", "meeting", "email", "ai", "forecast", "workspace", "analytics", "copilot", "activity", "quote", "proposal", "contract", "task"]
+                for r in [
+                    "company",
+                    "contact",
+                    "license",
+                    "opportunity",
+                    "pipeline",
+                    "user",
+                    "tenant",
+                    "settings",
+                    "billing",
+                    "audit",
+                    "api",
+                    "executive",
+                    "workflow",
+                    "employee",
+                    "entity-resolution",
+                    "search",
+                    "feature-store",
+                    "data-fabric",
+                    "knowledge-graph",
+                    "decision",
+                    "timeline",
+                    "monitoring",
+                    "customer-success",
+                    "work-intelligence",
+                    "employee-360",
+                    "revenue",
+                    "meeting",
+                    "email",
+                    "ai",
+                    "forecast",
+                    "workspace",
+                    "analytics",
+                    "copilot",
+                    "activity",
+                    "quote",
+                    "proposal",
+                    "contract",
+                    "task",
+                ]
                 for a in PermissionAction
             ],
             "manager": [
@@ -153,9 +191,7 @@ class PermissionEnforcer:
 
         action_str = action.value if hasattr(action, "value") else action
         if isinstance(action, str):
-            try:
+            with contextlib.suppress(ValueError):
                 action = PermissionAction(action)
-            except ValueError:
-                pass
         if not PermissionRegistry.has_permission(user_role, resource, action):
             raise PermissionDeniedError(user_role, f"{resource}.{action_str}")

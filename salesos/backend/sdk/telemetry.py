@@ -16,16 +16,16 @@ from sdk.config import sdk_settings
 
 def setup_telemetry(service_name: str = "salesos") -> None:
     """Initialize OpenTelemetry tracer and meter providers."""
-    resource = Resource.create({
-        "service.name": service_name,
-        "service.version": sdk_settings.service_version,
-        "deployment.environment": sdk_settings.environment,
-    })
+    resource = Resource.create(
+        {
+            "service.name": service_name,
+            "service.version": sdk_settings.service_version,
+            "deployment.environment": sdk_settings.environment,
+        }
+    )
 
     tracer_provider = TracerProvider(resource=resource)
-    span_processor = BatchSpanProcessor(
-        OTLPSpanExporter(endpoint=sdk_settings.otlp_endpoint)
-    )
+    span_processor = BatchSpanProcessor(OTLPSpanExporter(endpoint=sdk_settings.otlp_endpoint))
     tracer_provider.add_span_processor(span_processor)
     trace.set_tracer_provider(tracer_provider)
 

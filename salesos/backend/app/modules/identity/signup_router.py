@@ -6,8 +6,8 @@ from app.common.exceptions import safe_error_detail
 from app.common.rate_limit import check_rate_limit_by_key
 from app.dependencies import get_db_session
 
-from .signup_service import SignupService
 from .schemas import validate_password_strength
+from .signup_service import SignupService
 
 router = APIRouter()
 
@@ -54,7 +54,7 @@ async def signup(
             phone=body.phone,
         )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid request"))
+        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid request")) from e
     return {
         "message": "Account created. Please verify your email.",
         "user_id": result["user_id"],
@@ -73,7 +73,7 @@ async def verify_email(
     try:
         result = await service.verify_email(token)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid request"))
+        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid request")) from e
     return result
 
 
@@ -82,5 +82,7 @@ async def resend_verification(
     body: ResendVerificationRequest,
     service: SignupService = Depends(get_service),
 ):
-    await check_rate_limit_by_key(f"resend-verify:{body.email.lower().strip()}", limit=3, window=900)
+    await check_rate_limit_by_key(
+        f"resend-verify:{body.email.lower().strip()}", limit=3, window=900
+    )
     return await service.resend_verification(body.email)

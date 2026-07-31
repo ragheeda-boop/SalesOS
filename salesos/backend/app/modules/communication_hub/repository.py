@@ -1,6 +1,7 @@
 """Repository for Google Accounts — Communication Hub."""
+
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select, update
@@ -15,9 +16,7 @@ class GoogleAccountRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_by_user(
-        self, tenant_id: UUID, user_id: UUID
-    ) -> GoogleAccount | None:
+    async def get_by_user(self, tenant_id: UUID, user_id: UUID) -> GoogleAccount | None:
         stmt = (
             select(GoogleAccount)
             .where(
@@ -40,9 +39,7 @@ class GoogleAccountRepository:
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
 
-    async def get_by_id(
-        self, account_id: UUID, tenant_id: UUID
-    ) -> GoogleAccount | None:
+    async def get_by_id(self, account_id: UUID, tenant_id: UUID) -> GoogleAccount | None:
         stmt = (
             select(GoogleAccount)
             .where(
@@ -95,7 +92,7 @@ class GoogleAccountRepository:
         """Update tokens — tenant_id is required (cross-tenant IDOR prevention)."""
         values: dict = {
             "access_token_encrypted": access_token_encrypted,
-            "updated_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(UTC),
         }
         if refresh_token_encrypted is not None:
             values["refresh_token_encrypted"] = refresh_token_encrypted
@@ -119,7 +116,7 @@ class GoogleAccountRepository:
                 GoogleAccount.id == account_id,
                 GoogleAccount.tenant_id == tenant_id,
             )
-            .values(last_sync_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc))
+            .values(last_sync_at=datetime.now(UTC), updated_at=datetime.now(UTC))
         )
         await self.db.execute(stmt)
 
@@ -132,7 +129,7 @@ class GoogleAccountRepository:
                 GoogleAccount.id == account_id,
                 GoogleAccount.tenant_id == tenant_id,
             )
-            .values(history_id=history_id, updated_at=datetime.now(timezone.utc))
+            .values(history_id=history_id, updated_at=datetime.now(UTC))
         )
         await self.db.execute(stmt)
 
@@ -150,7 +147,7 @@ class GoogleAccountRepository:
             )
             .values(
                 calendar_sync_token=sync_token,
-                updated_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(UTC),
             )
         )
         await self.db.execute(stmt)
@@ -162,7 +159,7 @@ class GoogleAccountRepository:
                 GoogleAccount.id == account_id,
                 GoogleAccount.tenant_id == tenant_id,
             )
-            .values(is_active=False, updated_at=datetime.now(timezone.utc))
+            .values(is_active=False, updated_at=datetime.now(UTC))
         )
         result = await self.db.execute(stmt)
         return result.rowcount > 0

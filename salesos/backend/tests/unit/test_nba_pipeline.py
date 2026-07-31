@@ -1,24 +1,24 @@
-"""Tests for the NBA Decision Pipeline — normalize, rules, score, risk, confidence, recommend, recompute."""
+"""Tests for the NBA Decision Pipeline — normalize, rules, score, risk, confidence, recommend, recompute."""  # noqa: E501
+
 from __future__ import annotations
 
-import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from runtime.nba_engine import (
+    Alternative,
+    Evidence,
+    Impact,
     NBAEngine,
     NBAResult,
     NormalizedSignal,
-    Evidence,
-    Alternative,
-    Impact,
     RiskFactor,
 )
 
-
 # ── Fake SQLAlchemy helpers ──────────────────────────────────────────────────
+
 
 class FakeMapping:
     def __init__(self, data):
@@ -72,7 +72,7 @@ SAMPLE_OPP = {
     "tenant_id": "tenant-1",
     "owner_id": "user-1",
     "status": "open",
-    "expected_close_date": datetime.now(timezone.utc) + timedelta(days=30),
+    "expected_close_date": datetime.now(UTC) + timedelta(days=30),
     "company_name_ar": "شركة التقنية",
     "industry": "technology",
     "city": "Riyadh",
@@ -84,13 +84,13 @@ SAMPLE_ACTIVITIES = [
     {
         "id": "act-1",
         "action": "email_sent",
-        "timestamp": datetime.now(timezone.utc) - timedelta(days=2),
+        "timestamp": datetime.now(UTC) - timedelta(days=2),
         "description": "Sent proposal follow-up",
     },
     {
         "id": "act-2",
         "action": "call_made",
-        "timestamp": datetime.now(timezone.utc) - timedelta(days=5),
+        "timestamp": datetime.now(UTC) - timedelta(days=5),
         "description": "Discovery call completed",
     },
 ]
@@ -143,7 +143,7 @@ def sample_signal():
         entity_id="opp-1",
         opportunity_id="opp-1",
         tenant_id="tenant-1",
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         data=SAMPLE_OPP.copy(),
         context={
             "opportunity": SAMPLE_OPP.copy(),
@@ -160,7 +160,7 @@ def signal_no_activities():
         entity_id="opp-opp",
         opportunity_id="opp-opp",
         tenant_id="tenant-1",
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         data=SAMPLE_OPP.copy(),
         context={
             "opportunity": SAMPLE_OPP.copy(),
@@ -170,6 +170,7 @@ def signal_no_activities():
 
 
 # ── Tests: _normalize ────────────────────────────────────────────────────────
+
 
 class TestNormalize:
     async def test_returns_normalized_signal(self, engine):
@@ -225,6 +226,7 @@ class TestNormalize:
 
 # ── Tests: _apply_rules ──────────────────────────────────────────────────────
 
+
 class TestApplyRules:
     async def test_returns_list(self, engine, sample_signal):
         candidates = await engine._apply_rules(sample_signal)
@@ -238,9 +240,13 @@ class TestApplyRules:
     async def test_prospecting_stage(self, engine):
         opp = {**SAMPLE_OPP, "stage": "prospecting"}
         signal = NormalizedSignal(
-            source="manual_refresh", entity_type="opportunity",
-            entity_id="opp-1", opportunity_id="opp-1", tenant_id="t-1",
-            timestamp="", data=opp,
+            source="manual_refresh",
+            entity_type="opportunity",
+            entity_id="opp-1",
+            opportunity_id="opp-1",
+            tenant_id="t-1",
+            timestamp="",
+            data=opp,
             context={"opportunity": opp, "recent_activities": []},
         )
         candidates = await engine._apply_rules(signal)
@@ -249,9 +255,13 @@ class TestApplyRules:
     async def test_negotiation_stage(self, engine):
         opp = {**SAMPLE_OPP, "stage": "negotiation"}
         signal = NormalizedSignal(
-            source="manual_refresh", entity_type="opportunity",
-            entity_id="opp-1", opportunity_id="opp-1", tenant_id="t-1",
-            timestamp="", data=opp,
+            source="manual_refresh",
+            entity_type="opportunity",
+            entity_id="opp-1",
+            opportunity_id="opp-1",
+            tenant_id="t-1",
+            timestamp="",
+            data=opp,
             context={"opportunity": opp, "recent_activities": []},
         )
         candidates = await engine._apply_rules(signal)
@@ -260,9 +270,13 @@ class TestApplyRules:
     async def test_closed_won_stage(self, engine):
         opp = {**SAMPLE_OPP, "stage": "closed_won"}
         signal = NormalizedSignal(
-            source="manual_refresh", entity_type="opportunity",
-            entity_id="opp-1", opportunity_id="opp-1", tenant_id="t-1",
-            timestamp="", data=opp,
+            source="manual_refresh",
+            entity_type="opportunity",
+            entity_id="opp-1",
+            opportunity_id="opp-1",
+            tenant_id="t-1",
+            timestamp="",
+            data=opp,
             context={"opportunity": opp, "recent_activities": []},
         )
         candidates = await engine._apply_rules(signal)
@@ -297,22 +311,29 @@ class TestApplyRules:
 
 # ── Tests: _score_candidates ─────────────────────────────────────────────────
 
+
 class TestScoreCandidates:
     async def test_scored_candidates_have_opportunity_score(self, engine, sample_signal):
-        candidates = [{"action": "test", "reason": "r", "score": 0.8, "rule_name": "test", "metadata": {}}]
+        candidates = [
+            {"action": "test", "reason": "r", "score": 0.8, "rule_name": "test", "metadata": {}}
+        ]
         scored = await engine._score_candidates(sample_signal, candidates)
         for c in scored:
             assert "opportunity_score" in c
 
     async def test_scored_candidates_have_combined_score(self, engine, sample_signal):
-        candidates = [{"action": "test", "reason": "r", "score": 0.8, "rule_name": "test", "metadata": {}}]
+        candidates = [
+            {"action": "test", "reason": "r", "score": 0.8, "rule_name": "test", "metadata": {}}
+        ]
         scored = await engine._score_candidates(sample_signal, candidates)
         for c in scored:
             assert "combined_score" in c
 
     async def test_combined_score_formula(self, engine, sample_signal):
         """combined_score = rule_score * 0.6 + opportunity_score * 0.4"""
-        candidates = [{"action": "test", "reason": "r", "score": 1.0, "rule_name": "test", "metadata": {}}]
+        candidates = [
+            {"action": "test", "reason": "r", "score": 1.0, "rule_name": "test", "metadata": {}}
+        ]
         scored = await engine._score_candidates(sample_signal, candidates)
         c = scored[0]
         expected = c["score"] * 0.6 + c["opportunity_score"] * 0.4
@@ -327,7 +348,9 @@ class TestScoreCandidates:
         assert scored[0]["combined_score"] >= scored[1]["combined_score"]
 
     async def test_opportunity_score_bounded(self, engine, sample_signal):
-        candidates = [{"action": "test", "reason": "r", "score": 0.8, "rule_name": "test", "metadata": {}}]
+        candidates = [
+            {"action": "test", "reason": "r", "score": 0.8, "rule_name": "test", "metadata": {}}
+        ]
         scored = await engine._score_candidates(sample_signal, candidates)
         for c in scored:
             assert 0 <= c["opportunity_score"] <= 1
@@ -335,17 +358,24 @@ class TestScoreCandidates:
     async def test_high_value_deal_increases_opportunity_score(self, engine):
         high_value_opp = {**SAMPLE_OPP, "value": 2000000, "stage": "negotiation"}
         signal = NormalizedSignal(
-            source="manual_refresh", entity_type="opportunity",
-            entity_id="opp-1", opportunity_id="opp-1", tenant_id="t-1",
-            timestamp="", data=high_value_opp,
+            source="manual_refresh",
+            entity_type="opportunity",
+            entity_id="opp-1",
+            opportunity_id="opp-1",
+            tenant_id="t-1",
+            timestamp="",
+            data=high_value_opp,
             context={"opportunity": high_value_opp, "recent_activities": []},
         )
-        candidates = [{"action": "test", "reason": "r", "score": 0.8, "rule_name": "test", "metadata": {}}]
+        candidates = [
+            {"action": "test", "reason": "r", "score": 0.8, "rule_name": "test", "metadata": {}}
+        ]
         scored = await engine._score_candidates(signal, candidates)
         assert scored[0]["opportunity_score"] > 0.2
 
 
 # ── Tests: _assess_risk ─────────────────────────────────────────────────────
+
 
 class TestAssessRisk:
     async def test_no_activities_means_high_risk(self, engine, signal_no_activities):
@@ -370,45 +400,88 @@ class TestAssessRisk:
 
 # ── Tests: _build_recommendation ────────────────────────────────────────────
 
+
 class TestBuildRecommendation:
     def test_returns_nba_result(self, engine, sample_signal):
         candidates = [
-            {"action": "send_proposal", "reason": "أرسل عرض السعر", "score": 0.9,
-             "rule_name": "stage_proposal", "metadata": {}, "combined_score": 0.85, "opportunity_score": 0.4},
+            {
+                "action": "send_proposal",
+                "reason": "أرسل عرض السعر",
+                "score": 0.9,
+                "rule_name": "stage_proposal",
+                "metadata": {},
+                "combined_score": 0.85,
+                "opportunity_score": 0.4,
+            },
         ]
         result = engine._build_recommendation(sample_signal, candidates, None, [], {})
         assert isinstance(result, NBAResult)
 
     def test_top_candidate_is_action(self, engine, sample_signal):
         candidates = [
-            {"action": "send_proposal", "reason": "r1", "score": 0.9,
-             "rule_name": "r", "metadata": {}, "combined_score": 0.85, "opportunity_score": 0.4},
-            {"action": "schedule_call", "reason": "r2", "score": 0.7,
-             "rule_name": "r", "metadata": {}, "combined_score": 0.6, "opportunity_score": 0.4},
+            {
+                "action": "send_proposal",
+                "reason": "r1",
+                "score": 0.9,
+                "rule_name": "r",
+                "metadata": {},
+                "combined_score": 0.85,
+                "opportunity_score": 0.4,
+            },
+            {
+                "action": "schedule_call",
+                "reason": "r2",
+                "score": 0.7,
+                "rule_name": "r",
+                "metadata": {},
+                "combined_score": 0.6,
+                "opportunity_score": 0.4,
+            },
         ]
         result = engine._build_recommendation(sample_signal, candidates, None, [], {})
         assert result.action == "send_proposal"
 
     def test_confidence_label_high(self, engine, sample_signal):
         candidates = [
-            {"action": "x", "reason": "r", "score": 1.0,
-             "rule_name": "r", "metadata": {}, "combined_score": 0.85, "opportunity_score": 0.4},
+            {
+                "action": "x",
+                "reason": "r",
+                "score": 1.0,
+                "rule_name": "r",
+                "metadata": {},
+                "combined_score": 0.85,
+                "opportunity_score": 0.4,
+            },
         ]
         result = engine._build_recommendation(sample_signal, candidates, None, [], {})
         assert result.confidence_label == "high"
 
     def test_confidence_label_medium(self, engine, sample_signal):
         candidates = [
-            {"action": "x", "reason": "r", "score": 0.5,
-             "rule_name": "r", "metadata": {}, "combined_score": 0.6, "opportunity_score": 0.4},
+            {
+                "action": "x",
+                "reason": "r",
+                "score": 0.5,
+                "rule_name": "r",
+                "metadata": {},
+                "combined_score": 0.6,
+                "opportunity_score": 0.4,
+            },
         ]
         result = engine._build_recommendation(sample_signal, candidates, None, [], {})
         assert result.confidence_label == "medium"
 
     def test_confidence_label_low(self, engine, sample_signal):
         candidates = [
-            {"action": "x", "reason": "r", "score": 0.3,
-             "rule_name": "r", "metadata": {}, "combined_score": 0.3, "opportunity_score": 0.1},
+            {
+                "action": "x",
+                "reason": "r",
+                "score": 0.3,
+                "rule_name": "r",
+                "metadata": {},
+                "combined_score": 0.3,
+                "opportunity_score": 0.1,
+            },
         ]
         result = engine._build_recommendation(sample_signal, candidates, None, [], {})
         assert result.confidence_label == "low"
@@ -420,8 +493,15 @@ class TestBuildRecommendation:
 
     def test_has_evidence(self, engine, sample_signal):
         candidates = [
-            {"action": "x", "reason": "r", "score": 0.8,
-             "rule_name": "r", "metadata": {}, "combined_score": 0.7, "opportunity_score": 0.4},
+            {
+                "action": "x",
+                "reason": "r",
+                "score": 0.8,
+                "rule_name": "r",
+                "metadata": {},
+                "combined_score": 0.7,
+                "opportunity_score": 0.4,
+            },
         ]
         result = engine._build_recommendation(sample_signal, candidates, None, [], {})
         assert len(result.evidence) >= 1
@@ -429,10 +509,24 @@ class TestBuildRecommendation:
 
     def test_has_alternatives(self, engine, sample_signal):
         candidates = [
-            {"action": "a", "reason": "r1", "score": 0.9,
-             "rule_name": "r", "metadata": {}, "combined_score": 0.85, "opportunity_score": 0.4},
-            {"action": "b", "reason": "r2", "score": 0.7,
-             "rule_name": "r", "metadata": {}, "combined_score": 0.6, "opportunity_score": 0.4},
+            {
+                "action": "a",
+                "reason": "r1",
+                "score": 0.9,
+                "rule_name": "r",
+                "metadata": {},
+                "combined_score": 0.85,
+                "opportunity_score": 0.4,
+            },
+            {
+                "action": "b",
+                "reason": "r2",
+                "score": 0.7,
+                "rule_name": "r",
+                "metadata": {},
+                "combined_score": 0.6,
+                "opportunity_score": 0.4,
+            },
         ]
         result = engine._build_recommendation(sample_signal, candidates, None, [], {})
         assert len(result.alternatives) >= 1
@@ -441,30 +535,52 @@ class TestBuildRecommendation:
     def test_risks_included(self, engine, sample_signal):
         risks = [RiskFactor(type="stagnation", level="high", description="test", detected_at="now")]
         candidates = [
-            {"action": "x", "reason": "r", "score": 0.8,
-             "rule_name": "r", "metadata": {}, "combined_score": 0.7, "opportunity_score": 0.4},
+            {
+                "action": "x",
+                "reason": "r",
+                "score": 0.8,
+                "rule_name": "r",
+                "metadata": {},
+                "combined_score": 0.7,
+                "opportunity_score": 0.4,
+            },
         ]
         result = engine._build_recommendation(sample_signal, candidates, None, risks, {})
         assert len(result.potential_risks) == 1
 
     def test_revenue_category_for_proposal(self, engine, sample_signal):
         candidates = [
-            {"action": "send_proposal", "reason": "r", "score": 0.9,
-             "rule_name": "r", "metadata": {}, "combined_score": 0.85, "opportunity_score": 0.4},
+            {
+                "action": "send_proposal",
+                "reason": "r",
+                "score": 0.9,
+                "rule_name": "r",
+                "metadata": {},
+                "combined_score": 0.85,
+                "opportunity_score": 0.4,
+            },
         ]
         result = engine._build_recommendation(sample_signal, candidates, None, [], {})
         assert result.expected_impact.category == "revenue"
 
     def test_opportunity_id_set(self, engine, sample_signal):
         candidates = [
-            {"action": "x", "reason": "r", "score": 0.8,
-             "rule_name": "r", "metadata": {}, "combined_score": 0.7, "opportunity_score": 0.4},
+            {
+                "action": "x",
+                "reason": "r",
+                "score": 0.8,
+                "rule_name": "r",
+                "metadata": {},
+                "combined_score": 0.7,
+                "opportunity_score": 0.4,
+            },
         ]
         result = engine._build_recommendation(sample_signal, candidates, None, [], {})
         assert result.opportunity_id == "opp-1"
 
 
 # ── Tests: recompute (full pipeline) ────────────────────────────────────────
+
 
 class TestRecompute:
     async def test_returns_nba_result(self, engine):
@@ -506,6 +622,7 @@ class TestRecompute:
 
 # ── Tests: dataclass types ──────────────────────────────────────────────────
 
+
 class TestDataclasses:
     def test_normalized_signal_defaults(self):
         ns = NormalizedSignal(source="s", entity_type="t", entity_id="e")
@@ -525,7 +642,9 @@ class TestDataclasses:
         assert imp.category == "information_gathering"
 
     def test_evidence_dataclass(self):
-        ev = Evidence(id="1", type="signal", description="d", source="s", confidence=0.8, timestamp="now")
+        ev = Evidence(
+            id="1", type="signal", description="d", source="s", confidence=0.8, timestamp="now"
+        )
         assert ev.confidence == 0.8
 
     def test_alternative_dataclass(self):
@@ -535,26 +654,56 @@ class TestDataclasses:
 
 # ── Tests: batch_get_or_compute ───────────────────────────────────────────
 
-class TestBatchGetOrCompute:
 
+class TestBatchGetOrCompute:
     BATCH_OPPS = [
-        {"id": "opp-1", "name": "Deal A", "stage": "proposal", "value": 500000,
-         "company_id": "co-1", "tenant_id": "tenant-1", "status": "open",
-         "company_name_ar": "Co A", "industry": "tech", "city": "Riyadh",
-         "employees_count": 100, "annual_revenue": 5000000,
-         "expected_close_date": datetime.now(timezone.utc) + timedelta(days=30)},
-        {"id": "opp-2", "name": "Deal B", "stage": "negotiation", "value": 1000000,
-         "company_id": "co-2", "tenant_id": "tenant-1", "status": "open",
-         "company_name_ar": "Co B", "industry": "finance", "city": "Jeddah",
-         "employees_count": 300, "annual_revenue": 20000000,
-         "expected_close_date": datetime.now(timezone.utc) + timedelta(days=15)},
+        {
+            "id": "opp-1",
+            "name": "Deal A",
+            "stage": "proposal",
+            "value": 500000,
+            "company_id": "co-1",
+            "tenant_id": "tenant-1",
+            "status": "open",
+            "company_name_ar": "Co A",
+            "industry": "tech",
+            "city": "Riyadh",
+            "employees_count": 100,
+            "annual_revenue": 5000000,
+            "expected_close_date": datetime.now(UTC) + timedelta(days=30),
+        },
+        {
+            "id": "opp-2",
+            "name": "Deal B",
+            "stage": "negotiation",
+            "value": 1000000,
+            "company_id": "co-2",
+            "tenant_id": "tenant-1",
+            "status": "open",
+            "company_name_ar": "Co B",
+            "industry": "finance",
+            "city": "Jeddah",
+            "employees_count": 300,
+            "annual_revenue": 20000000,
+            "expected_close_date": datetime.now(UTC) + timedelta(days=15),
+        },
     ]
 
     BATCH_ACTIVITIES = [
-        {"id": "act-1", "entity_id": "opp-1", "action": "email_sent",
-         "timestamp": datetime.now(timezone.utc) - timedelta(days=2), "description": "Follow-up"},
-        {"id": "act-2", "entity_id": "opp-2", "action": "call_made",
-         "timestamp": datetime.now(timezone.utc) - timedelta(days=1), "description": "Discovery"},
+        {
+            "id": "act-1",
+            "entity_id": "opp-1",
+            "action": "email_sent",
+            "timestamp": datetime.now(UTC) - timedelta(days=2),
+            "description": "Follow-up",
+        },
+        {
+            "id": "act-2",
+            "entity_id": "opp-2",
+            "action": "call_made",
+            "timestamp": datetime.now(UTC) - timedelta(days=1),
+            "description": "Discovery",
+        },
     ]
 
     def _make_batch_factory(self, opps=None, activities=None, cached_ids=None):
@@ -573,6 +722,7 @@ class TestBatchGetOrCompute:
                 call_queue.append("normalize_activities")
             elif "company_features" in text and "INSERT" in text.upper():
                 call_queue.append("cache_result")
+
         # We use an async execute that returns based on call context
         call_count = {"n": 0}
         calls = []
@@ -585,7 +735,13 @@ class TestBatchGetOrCompute:
             if "company_features" in text and "computed_at" in text:
                 # cache check
                 cached_rows = [
-                    {"company_id": oid, "score": 0.9, "signals": {}, "explanation": "cached", "computed_at": datetime.now(timezone.utc)}
+                    {
+                        "company_id": oid,
+                        "score": 0.9,
+                        "signals": {},
+                        "explanation": "cached",
+                        "computed_at": datetime.now(UTC),
+                    }
                     for oid in cached_ids
                 ]
                 return FakeResult(FakeMappings(rows=cached_rows))
@@ -593,7 +749,11 @@ class TestBatchGetOrCompute:
                 return FakeResult(FakeMappings(rows=opps))
             elif "activity_records" in text:
                 return FakeResult(FakeMappings(rows=activities))
-            elif "INSERT INTO company_features" in text or ("company_features" in text and "INSERT" not in text.upper() and "computed_at" not in text):
+            elif "INSERT INTO company_features" in text or (
+                "company_features" in text
+                and "INSERT" not in text.upper()
+                and "computed_at" not in text
+            ):
                 return FakeResult(FakeMappings())
             return FakeResult(FakeMappings())
 

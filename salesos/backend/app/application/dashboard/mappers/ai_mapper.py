@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,12 +17,16 @@ class AIMapper:
             sa_text("""
                 SELECT
                     (SELECT COUNT(*) FROM companies WHERE tenant_id = :tid) as total_companies,
-                    (SELECT COUNT(*) FROM companies WHERE tenant_id = :tid AND created_at >= :d30) as new_companies,
-                    (SELECT COUNT(*) FROM commercial_opportunities WHERE tenant_id = :tid) as total_deals,
-                    (SELECT COUNT(*) FROM commercial_opportunities WHERE tenant_id = :tid AND status = 'open') as active_deals,
-                    (SELECT COALESCE(SUM(value), 0) FROM commercial_opportunities WHERE tenant_id = :tid AND status = 'open') as pipeline
+                    (SELECT COUNT(*) FROM companies
+                        WHERE tenant_id = :tid AND created_at >= :d30) as new_companies,
+                    (SELECT COUNT(*) FROM commercial_opportunities
+                        WHERE tenant_id = :tid) as total_deals,
+                    (SELECT COUNT(*) FROM commercial_opportunities
+                        WHERE tenant_id = :tid AND status = 'open') as active_deals,
+                    (SELECT COALESCE(SUM(value), 0) FROM commercial_opportunities
+                        WHERE tenant_id = :tid AND status = 'open') as pipeline
             """),
-            {"tid": self.tenant_id, "d30": datetime.now(timezone.utc) - timedelta(days=30)},
+            {"tid": self.tenant_id, "d30": datetime.now(UTC) - timedelta(days=30)},
         )
         r = dict(row.mappings().one())
 
@@ -49,5 +53,5 @@ class AIMapper:
         return AIBriefData(
             summary=summary,
             highlights=highlights,
-            generatedAt=datetime.now(timezone.utc).isoformat(),
+            generatedAt=datetime.now(UTC).isoformat(),
         )

@@ -6,6 +6,7 @@ import os
 from unittest.mock import patch
 
 import pytest
+from cryptography.fernet import InvalidToken
 
 
 def test_resolved_database_url_postgres_schemes():
@@ -48,7 +49,7 @@ def test_resolved_database_url_postgres_schemes():
 
 
 def test_fernet_cache_supports_multiple_secrets():
-    from sdk.security import decrypt_token, encrypt_token, _fernet_cache
+    from sdk.security import _fernet_cache, decrypt_token, encrypt_token
 
     _fernet_cache.clear()
     key_a = "encryption-key-a-" + ("a" * 16)
@@ -57,7 +58,7 @@ def test_fernet_cache_supports_multiple_secrets():
     ct_b = encrypt_token("token-b", key_b)
     assert decrypt_token(ct_a, key_a) == "token-a"
     assert decrypt_token(ct_b, key_b) == "token-b"
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidToken):
         decrypt_token(ct_a, key_b)
 
 

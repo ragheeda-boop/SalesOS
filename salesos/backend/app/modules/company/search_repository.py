@@ -3,6 +3,7 @@
 This is the bridge between the Company module and the Search Domain.
 Every company-specific search concern lives here, not in the service or router.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -17,7 +18,6 @@ from sdk.pagination import build_keyset_condition, decode_cursor, encode_cursor
 
 
 class CompanySearchRepository(SearchRepository[Any]):
-
     def __init__(self, db: AsyncSession):
         from app.modules.company.models import Company
 
@@ -123,8 +123,11 @@ class CompanySearchRepository(SearchRepository[Any]):
             cursor_id, cursor_sort = decode_cursor(cursor)
             sort = query.sort or SearchSort(field="created_at", direction="desc")
             condition = build_keyset_condition(
-                self._Company, cursor_id, cursor_sort,
-                sort_by=sort.field, sort_dir=sort.direction,
+                self._Company,
+                cursor_id,
+                cursor_sort,
+                sort_by=sort.field,
+                sort_dir=sort.direction,
             )
             fq = fq.where(condition)
             fq = fq.limit(query.page_size + 1)
@@ -132,7 +135,7 @@ class CompanySearchRepository(SearchRepository[Any]):
             companies = list(r.scalars().all())
             has_next = len(companies) > query.page_size
             if has_next:
-                companies = companies[:query.page_size]
+                companies = companies[: query.page_size]
             next_cursor = None
             if companies:
                 last = companies[-1]
@@ -169,13 +172,21 @@ class CompanySearchRepository(SearchRepository[Any]):
             if hasattr(Company, field):
                 col = getattr(Company, field)
                 sub = base.subquery()
-                fq = select(col, func.count().label("cnt")).select_from(sub).group_by(col).order_by(text("cnt desc")).limit(20)
+                fq = (
+                    select(col, func.count().label("cnt"))
+                    .select_from(sub)
+                    .group_by(col)
+                    .order_by(text("cnt desc"))
+                    .limit(20)
+                )
                 r = await self.db.execute(fq)
                 result[field] = {str(row[0] or "unknown"): row[1] for row in r}
 
         return result
 
-    async def suggest(self, query: SearchQuery, field: str, prefix: str, limit: int = 10) -> list[str]:
+    async def suggest(
+        self, query: SearchQuery, field: str, prefix: str, limit: int = 10
+    ) -> list[str]:
         Company = self._Company
         if not hasattr(Company, field):
             return []

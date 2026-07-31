@@ -5,6 +5,7 @@ This suite targets the removed in-memory admin store
 Postgres-backed (`router.py` + `test_admin_phase16.py`). Rewrite against
 Postgres/fakes before un-quarantining.
 """
+
 from __future__ import annotations
 
 import os
@@ -22,9 +23,9 @@ from httpx import ASGITransport, AsyncClient
 
 os.environ.setdefault("JWT_SECRET_KEY", "test")
 
-from app.dependencies import get_current_user_role, get_current_user_id, verify_token
-from app.main import app
 import app.modules.admin.router as admin_router
+from app.dependencies import get_current_user_id, get_current_user_role, verify_token
+from app.main import app
 from app.modules.admin.repositories import (
     InMemoryAICostRepository,
     InMemoryFeatureFlagRepository,
@@ -87,7 +88,11 @@ def _override_deps():
 
 @pytest.fixture
 def admin_headers():
-    return {"Authorization": "Bearer test-token", "X-Tenant-Id": admin_router._TENANT_UUIDS["techpro"], "X-API-Key": "test"}
+    return {
+        "Authorization": "Bearer test-token",
+        "X-Tenant-Id": admin_router._TENANT_UUIDS["techpro"],
+        "X-API-Key": "test",
+    }
 
 
 @pytest.mark.asyncio
@@ -106,10 +111,14 @@ async def test_list_tenants(admin_headers):
 async def test_create_tenant(admin_headers):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        resp = await ac.post("/api/v1/admin/tenants", json={
-            "name": "New Tenant",
-            "slug": "new-tenant",
-        }, headers=admin_headers)
+        resp = await ac.post(
+            "/api/v1/admin/tenants",
+            json={
+                "name": "New Tenant",
+                "slug": "new-tenant",
+            },
+            headers=admin_headers,
+        )
     assert resp.status_code == 201
     data = resp.json()
     assert data["name"] == "New Tenant"
@@ -140,9 +149,13 @@ async def test_update_tenant_suspend(admin_headers):
     tid = admin_router._TENANT_UUIDS["techpro"]
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        resp = await ac.put(f"/api/v1/admin/tenants/{tid}", json={
-            "is_active": False,
-        }, headers=admin_headers)
+        resp = await ac.put(
+            f"/api/v1/admin/tenants/{tid}",
+            json={
+                "is_active": False,
+            },
+            headers=admin_headers,
+        )
     assert resp.status_code == 200
     assert resp.json()["is_active"] is False
 
@@ -186,15 +199,19 @@ async def test_list_plans(admin_headers):
 async def test_create_plan(admin_headers):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        resp = await ac.post("/api/v1/admin/plans", json={
-            "name": "Custom Plan",
-            "tier": "growth",
-            "price_monthly": 599,
-            "max_users": 10,
-            "max_storage_mb": 5000,
-            "max_api_calls": 50000,
-            "features": ["basic_search", "reports"],
-        }, headers=admin_headers)
+        resp = await ac.post(
+            "/api/v1/admin/plans",
+            json={
+                "name": "Custom Plan",
+                "tier": "growth",
+                "price_monthly": 599,
+                "max_users": 10,
+                "max_storage_mb": 5000,
+                "max_api_calls": 50000,
+                "features": ["basic_search", "reports"],
+            },
+            headers=admin_headers,
+        )
     assert resp.status_code == 201
     assert resp.json()["name"] == "Custom Plan"
 
@@ -205,10 +222,14 @@ async def test_update_plan(admin_headers):
     plan_id = str(plans[0].id)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        resp = await ac.put(f"/api/v1/admin/plans/{plan_id}", json={
-            "price_monthly": 199,
-            "name": "Updated Plan",
-        }, headers=admin_headers)
+        resp = await ac.put(
+            f"/api/v1/admin/plans/{plan_id}",
+            json={
+                "price_monthly": 199,
+                "name": "Updated Plan",
+            },
+            headers=admin_headers,
+        )
     assert resp.status_code == 200, f"Expected 200 got {resp.status_code}: {resp.text}"
     assert resp.json()["price_monthly"] == 199
 
@@ -229,10 +250,14 @@ async def test_create_license(admin_headers):
     tid = admin_router._TENANT_UUIDS["techpro"]
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        resp = await ac.post("/api/v1/admin/licenses", json={
-            "tenant_id": tid,
-            "plan_id": str(plan_id),
-        }, headers=admin_headers)
+        resp = await ac.post(
+            "/api/v1/admin/licenses",
+            json={
+                "tenant_id": tid,
+                "plan_id": str(plan_id),
+            },
+            headers=admin_headers,
+        )
     assert resp.status_code == 201, f"Expected 201 got {resp.status_code}: {resp.text}"
     assert resp.json()["plan_name"] == plans[1].name
 
@@ -265,9 +290,13 @@ async def test_update_user_role(admin_headers):
     user_id = admin_router._users_store[0]["id"]
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        resp = await ac.put(f"/api/v1/admin/users/{user_id}", json={
-            "role": "manager",
-        }, headers=admin_headers)
+        resp = await ac.put(
+            f"/api/v1/admin/users/{user_id}",
+            json={
+                "role": "manager",
+            },
+            headers=admin_headers,
+        )
     assert resp.status_code == 200
     assert resp.json()["role"] == "manager"
 
@@ -317,12 +346,16 @@ async def test_list_feature_flags(admin_headers):
 async def test_create_feature_flag(admin_headers):
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        resp = await ac.post("/api/v1/admin/feature-flags", json={
-            "key": "new_feature_x",
-            "name": "New Feature X",
-            "description": "Testing feature",
-            "enabled": False,
-        }, headers=admin_headers)
+        resp = await ac.post(
+            "/api/v1/admin/feature-flags",
+            json={
+                "key": "new_feature_x",
+                "name": "New Feature X",
+                "description": "Testing feature",
+                "enabled": False,
+            },
+            headers=admin_headers,
+        )
     assert resp.status_code == 201
     assert resp.json()["key"] == "new_feature_x"
 
@@ -333,9 +366,13 @@ async def test_toggle_feature_flag(admin_headers):
     flag_id = str(flags[0].id)
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        resp = await ac.put(f"/api/v1/admin/feature-flags/{flag_id}", json={
-            "enabled": False,
-        }, headers=admin_headers)
+        resp = await ac.put(
+            f"/api/v1/admin/feature-flags/{flag_id}",
+            json={
+                "enabled": False,
+            },
+            headers=admin_headers,
+        )
     assert resp.status_code == 200, f"Expected 200 got {resp.status_code}: {resp.text}"
     assert resp.json()["enabled"] is False
 

@@ -1,21 +1,23 @@
 import uuid
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
 from sdk.permissions import PermissionAction
 
-from .schemas import ImportPreview, ImportPreviewRow, ImportResult
+from .schemas import ImportPreview, ImportResult
 from .service import ExcelImportService
 
 router = APIRouter()
 
 
-@router.post("/import/excel/preview", response_model=ImportPreview, dependencies=[Depends(require_permission_dep("company", PermissionAction.IMPORT))])
+@router.post(
+    "/import/excel/preview",
+    response_model=ImportPreview,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.IMPORT))],
+)
 async def preview_excel(
     file: UploadFile = File(...),
     tenant_id: str = Depends(get_current_tenant_id),
@@ -30,10 +32,14 @@ async def preview_excel(
     return ImportPreview(**result)
 
 
-@router.post("/import/excel/companies", response_model=ImportResult, dependencies=[Depends(require_permission_dep("company", PermissionAction.IMPORT))])
+@router.post(
+    "/import/excel/companies",
+    response_model=ImportResult,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.IMPORT))],
+)
 async def import_companies_from_excel(
     file: UploadFile = File(...),
-    column_mapping: Optional[str] = Form(None, description="JSON string of column mapping"),
+    column_mapping: str | None = Form(None, description="JSON string of column mapping"),
     request: Request = Request,
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
@@ -55,7 +61,7 @@ async def import_companies_from_excel(
     )
 
     import_id = str(uuid.uuid4())
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return ImportResult(
         import_id=import_id,
         filename=file.filename,

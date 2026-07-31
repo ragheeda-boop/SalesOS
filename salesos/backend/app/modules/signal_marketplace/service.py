@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any
 
 from .models import Signal, SignalEvent, SignalSubscription
 from .repository import (
@@ -25,7 +23,9 @@ class SignalMarketplaceService:
 
     # ── Signal Library ──
 
-    async def list_signals(self, domain: str | None = None, pack_id: str | None = None) -> list[Signal]:
+    async def list_signals(
+        self, domain: str | None = None, pack_id: str | None = None
+    ) -> list[Signal]:
         return await self.signal_repo.get_all(domain=domain, pack_id=pack_id)
 
     async def get_signal(self, signal_id: str) -> Signal | None:
@@ -44,7 +44,9 @@ class SignalMarketplaceService:
 
     # ── Subscription Management ──
 
-    async def subscribe(self, signal_id: str, company_id: str, tenant_id: str, channel: str = "in-app") -> SignalSubscription:
+    async def subscribe(
+        self, signal_id: str, company_id: str, tenant_id: str, channel: str = "in-app"
+    ) -> SignalSubscription:
         signal = await self.signal_repo.get_by_id(signal_id)
         if signal is None:
             raise ValueError(f"Signal {signal_id} not found")
@@ -75,10 +77,16 @@ class SignalMarketplaceService:
 
     # ── Signal Feed ──
 
-    async def get_feed(self, tenant_id: str, limit: int = 50, acknowledged: bool | None = None) -> list[SignalEvent]:
-        return await self.event_repo.list_by_tenant(tenant_id, limit=limit, acknowledged=acknowledged)
+    async def get_feed(
+        self, tenant_id: str, limit: int = 50, acknowledged: bool | None = None
+    ) -> list[SignalEvent]:
+        return await self.event_repo.list_by_tenant(
+            tenant_id, limit=limit, acknowledged=acknowledged
+        )
 
-    async def get_company_feed(self, company_id: str, tenant_id: str, limit: int = 50) -> list[SignalEvent]:
+    async def get_company_feed(
+        self, company_id: str, tenant_id: str, limit: int = 50
+    ) -> list[SignalEvent]:
         return await self.event_repo.list_by_company(company_id, tenant_id, limit=limit)
 
     async def acknowledge(self, event_id: str, tenant_id: str) -> SignalEvent | None:
@@ -89,7 +97,9 @@ class SignalMarketplaceService:
 
     # ── Signal Detection ──
 
-    async def create_signal_event(self, signal_id: str, company_id: str, tenant_id: str, data: dict | None = None) -> SignalEvent | None:
+    async def create_signal_event(
+        self, signal_id: str, company_id: str, tenant_id: str, data: dict | None = None
+    ) -> SignalEvent | None:
         signal = await self.signal_repo.get_by_id(signal_id)
         if signal is None:
             return None

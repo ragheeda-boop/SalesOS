@@ -9,11 +9,9 @@ Flow: Widget Signals → DecisionContext → RecommendationEngine → Scored Dec
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
 from typing import Any
 
 from sdk.scoring.interfaces import (
-    DecisionContext,
     DecisionFactor,
     DecisionServiceProtocol,
     Recommendation,
@@ -55,7 +53,9 @@ class CompanyDecisionContext:
             "warning_count": sum(1 for f in self.factors if f.severity == "warning"),
             "has_recommendation": self.recommendation is not None,
             "recommendation_title": self.recommendation.title if self.recommendation else None,
-            "recommendation_confidence": self.recommendation.confidence if self.recommendation else None,
+            "recommendation_confidence": self.recommendation.confidence
+            if self.recommendation
+            else None,
             "signals_summary": self.signals_summary,
         }
 
@@ -217,29 +217,34 @@ class DashboardDecisionProvider:
         total = self._extract_total(data)
 
         if total > 5:
-            factors.append(DecisionFactor(
-                source_layer="measurement",
-                source_domain="decision_queue",
-                key="high_pending_decisions",
-                value=total,
-                label=f"{total} pending decisions in queue",
-                severity="warning",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="measurement",
+                    source_domain="decision_queue",
+                    key="high_pending_decisions",
+                    value=total,
+                    label=f"{total} pending decisions in queue",
+                    severity="warning",
+                )
+            )
 
         high_priority = sum(
-            1 for item in items
+            1
+            for item in items
             if getattr(item, "priority", None) == "high"
             or (isinstance(item, dict) and item.get("priority") == "high")
         )
         if high_priority > 0:
-            factors.append(DecisionFactor(
-                source_layer="measurement",
-                source_domain="decision_queue",
-                key="critical_decisions",
-                value=high_priority,
-                label=f"{high_priority} high-priority decisions pending",
-                severity="critical",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="measurement",
+                    source_domain="decision_queue",
+                    key="critical_decisions",
+                    value=high_priority,
+                    label=f"{high_priority} high-priority decisions pending",
+                    severity="critical",
+                )
+            )
 
         return factors
 
@@ -248,34 +253,40 @@ class DashboardDecisionProvider:
         items = self._extract_items(data)
 
         critical_signals = sum(
-            1 for item in items
+            1
+            for item in items
             if getattr(item, "severity", None) == "critical"
             or (isinstance(item, dict) and item.get("severity") == "critical")
         )
         if critical_signals > 0:
-            factors.append(DecisionFactor(
-                source_layer="measurement",
-                source_domain="intelligence_feed",
-                key="critical_signals",
-                value=critical_signals,
-                label=f"{critical_signals} critical intelligence signals",
-                severity="critical",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="measurement",
+                    source_domain="intelligence_feed",
+                    key="critical_signals",
+                    value=critical_signals,
+                    label=f"{critical_signals} critical intelligence signals",
+                    severity="critical",
+                )
+            )
 
         high_signals = sum(
-            1 for item in items
+            1
+            for item in items
             if getattr(item, "severity", None) == "high"
             or (isinstance(item, dict) and item.get("severity") == "high")
         )
         if high_signals > 0:
-            factors.append(DecisionFactor(
-                source_layer="measurement",
-                source_domain="intelligence_feed",
-                key="warning_signals",
-                value=high_signals,
-                label=f"{high_signals} high-severity intelligence signals",
-                severity="warning",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="measurement",
+                    source_domain="intelligence_feed",
+                    key="warning_signals",
+                    value=high_signals,
+                    label=f"{high_signals} high-severity intelligence signals",
+                    severity="warning",
+                )
+            )
 
         return factors
 
@@ -288,28 +299,32 @@ class DashboardDecisionProvider:
             return factors
 
         active_deals = data_dict.get("activeDeals", 0)
-        pipeline = data_dict.get("pipelineValue", 0)
+        _ = data_dict.get("pipelineValue", 0)
         signals_today = data_dict.get("signalsToday", 0)
 
         if active_deals == 0:
-            factors.append(DecisionFactor(
-                source_layer="fact",
-                source_domain="mission_center",
-                key="no_active_deals",
-                value=0,
-                label="No active deals in pipeline",
-                severity="warning",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="fact",
+                    source_domain="mission_center",
+                    key="no_active_deals",
+                    value=0,
+                    label="No active deals in pipeline",
+                    severity="warning",
+                )
+            )
 
         if signals_today > 10:
-            factors.append(DecisionFactor(
-                source_layer="measurement",
-                source_domain="mission_center",
-                key="high_signal_volume",
-                value=signals_today,
-                label=f"{signals_today} signals detected today — high activity",
-                severity="info",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="measurement",
+                    source_domain="mission_center",
+                    key="high_signal_volume",
+                    value=signals_today,
+                    label=f"{signals_today} signals detected today — high activity",
+                    severity="info",
+                )
+            )
 
         return factors
 
@@ -318,14 +333,16 @@ class DashboardDecisionProvider:
         items = self._extract_items(data)
 
         if not items:
-            factors.append(DecisionFactor(
-                source_layer="measurement",
-                source_domain="recent_activity",
-                key="no_recent_activity",
-                value=0,
-                label="No recent activity",
-                severity="info",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="measurement",
+                    source_domain="recent_activity",
+                    key="no_recent_activity",
+                    value=0,
+                    label="No recent activity",
+                    severity="info",
+                )
+            )
 
         return factors
 
@@ -339,24 +356,28 @@ class DashboardDecisionProvider:
 
         for factor in factors:
             score = self._factor_to_score(factor)
-            scored.append({
-                "factor_key": factor.key,
-                "source_domain": factor.source_domain,
-                "label": factor.label,
-                "severity": factor.severity,
-                "score": score,
-                "value": factor.value,
-            })
+            scored.append(
+                {
+                    "factor_key": factor.key,
+                    "source_domain": factor.source_domain,
+                    "label": factor.label,
+                    "severity": factor.severity,
+                    "score": score,
+                    "value": factor.value,
+                }
+            )
 
         if recommendation:
-            scored.append({
-                "factor_key": "recommendation",
-                "source_domain": "recommendation_engine",
-                "label": recommendation.title,
-                "severity": "critical",
-                "score": recommendation.confidence,
-                "value": recommendation.description,
-            })
+            scored.append(
+                {
+                    "factor_key": "recommendation",
+                    "source_domain": "recommendation_engine",
+                    "label": recommendation.title,
+                    "severity": "critical",
+                    "score": recommendation.confidence,
+                    "value": recommendation.description,
+                }
+            )
 
         return scored
 
@@ -366,7 +387,7 @@ class DashboardDecisionProvider:
         base = severity_weights.get(factor.severity, 0.5)
 
         value = factor.value
-        if isinstance(value, (int, float)) and value > 0:
+        if isinstance(value, int | float) and value > 0:
             value_factor = min(value / 10.0, 1.0)
             return round((base + value_factor) / 2, 4)
 
@@ -405,48 +426,73 @@ class DashboardDecisionProvider:
         annual_revenue = company_data.get("annual_revenue", 0)
 
         if employee_count and employee_count > 500:
-            factors.append(DecisionFactor(
-                source_layer="fact", source_domain="company",
-                key="large_enterprise", value=employee_count,
-                label=f"Enterprise account ({employee_count} employees)",
-                severity="info",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="fact",
+                    source_domain="company",
+                    key="large_enterprise",
+                    value=employee_count,
+                    label=f"Enterprise account ({employee_count} employees)",
+                    severity="info",
+                )
+            )
 
         if annual_revenue and annual_revenue > 10_000_000:
-            factors.append(DecisionFactor(
-                source_layer="fact", source_domain="company",
-                key="high_revenue", value=annual_revenue,
-                label=f"High-revenue account (${annual_revenue:,.0f})",
-                severity="info",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="fact",
+                    source_domain="company",
+                    key="high_revenue",
+                    value=annual_revenue,
+                    label=f"High-revenue account (${annual_revenue:,.0f})",
+                    severity="info",
+                )
+            )
 
         # Measurement layer: engagement signals
         recent_activities = company_data.get("recent_activities", [])
         if not recent_activities:
-            factors.append(DecisionFactor(
-                source_layer="measurement", source_domain="company",
-                key="no_engagement", value=0,
-                label="No recent engagement with company",
-                severity="warning",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="measurement",
+                    source_domain="company",
+                    key="no_engagement",
+                    value=0,
+                    label="No recent engagement with company",
+                    severity="warning",
+                )
+            )
         elif len(recent_activities) > 20:
-            factors.append(DecisionFactor(
-                source_layer="measurement", source_domain="company",
-                key="high_engagement", value=len(recent_activities),
-                label=f"High engagement ({len(recent_activities)} recent activities)",
-                severity="info",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="measurement",
+                    source_domain="company",
+                    key="high_engagement",
+                    value=len(recent_activities),
+                    label=f"High engagement ({len(recent_activities)} recent activities)",
+                    severity="info",
+                )
+            )
 
         # Knowledge layer: signals
         signals = company_data.get("signals", [])
-        critical_signals = [s for s in signals if (s.get("severity") if isinstance(s, dict) else getattr(s, "severity", "")) == "critical"]
+        critical_signals = [
+            s
+            for s in signals
+            if (s.get("severity") if isinstance(s, dict) else getattr(s, "severity", ""))
+            == "critical"
+        ]
         if critical_signals:
-            factors.append(DecisionFactor(
-                source_layer="knowledge", source_domain="company",
-                key="critical_signals", value=len(critical_signals),
-                label=f"{len(critical_signals)} critical intelligence signals",
-                severity="critical",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="knowledge",
+                    source_domain="company",
+                    key="critical_signals",
+                    value=len(critical_signals),
+                    label=f"{len(critical_signals)} critical intelligence signals",
+                    severity="critical",
+                )
+            )
 
         # Score via DecisionPlatform
         recommendation = None
@@ -503,56 +549,80 @@ class DashboardDecisionProvider:
         if forecast_value > 0 and pipeline_value > 0:
             coverage = pipeline_value / max(forecast_value, 1)
             if coverage < 2.0:
-                factors.append(DecisionFactor(
-                    source_layer="measurement", source_domain="revenue",
-                    key="low_coverage", value=round(coverage, 2),
-                    label=f"Low pipeline coverage ({coverage:.1f}x forecast)",
-                    severity="warning",
-                ))
+                factors.append(
+                    DecisionFactor(
+                        source_layer="measurement",
+                        source_domain="revenue",
+                        key="low_coverage",
+                        value=round(coverage, 2),
+                        label=f"Low pipeline coverage ({coverage:.1f}x forecast)",
+                        severity="warning",
+                    )
+                )
             elif coverage > 4.0:
-                factors.append(DecisionFactor(
-                    source_layer="measurement", source_domain="revenue",
-                    key="high_coverage", value=round(coverage, 2),
-                    label=f"Healthy pipeline coverage ({coverage:.1f}x)",
-                    severity="info",
-                ))
+                factors.append(
+                    DecisionFactor(
+                        source_layer="measurement",
+                        source_domain="revenue",
+                        key="high_coverage",
+                        value=round(coverage, 2),
+                        label=f"Healthy pipeline coverage ({coverage:.1f}x)",
+                        severity="info",
+                    )
+                )
 
         # Win rate
         if win_rate > 0 and win_rate < 0.20:
-            factors.append(DecisionFactor(
-                source_layer="measurement", source_domain="revenue",
-                key="low_win_rate", value=win_rate,
-                label=f"Low win rate ({win_rate:.0%})",
-                severity="critical",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="measurement",
+                    source_domain="revenue",
+                    key="low_win_rate",
+                    value=win_rate,
+                    label=f"Low win rate ({win_rate:.0%})",
+                    severity="critical",
+                )
+            )
         elif win_rate >= 0.30:
-            factors.append(DecisionFactor(
-                source_layer="measurement", source_domain="revenue",
-                key="healthy_win_rate", value=win_rate,
-                label=f"Healthy win rate ({win_rate:.0%})",
-                severity="info",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="measurement",
+                    source_domain="revenue",
+                    key="healthy_win_rate",
+                    value=win_rate,
+                    label=f"Healthy win rate ({win_rate:.0%})",
+                    severity="info",
+                )
+            )
 
         # Revenue loss
         if lost_value > won_value and lost_value > 0:
-            factors.append(DecisionFactor(
-                source_layer="measurement", source_domain="revenue",
-                key="revenue_leakage", value=lost_value,
-                label=f"Revenue leakage: ${lost_value:,.0f} lost vs ${won_value:,.0f} won",
-                severity="critical",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="measurement",
+                    source_domain="revenue",
+                    key="revenue_leakage",
+                    value=lost_value,
+                    label=f"Revenue leakage: ${lost_value:,.0f} lost vs ${won_value:,.0f} won",
+                    severity="critical",
+                )
+            )
 
         # Large deal concentration
         large_deals = revenue_data.get("large_deals", [])
         if large_deals and total_deals:
             concentration = len(large_deals) / max(total_deals, 1)
             if concentration > 0.5:
-                factors.append(DecisionFactor(
-                    source_layer="measurement", source_domain="revenue",
-                    key="deal_concentration", value=concentration,
-                    label=f"High deal concentration ({concentration:.0%} in large deals)",
-                    severity="warning",
-                ))
+                factors.append(
+                    DecisionFactor(
+                        source_layer="measurement",
+                        source_domain="revenue",
+                        key="deal_concentration",
+                        value=concentration,
+                        label=f"High deal concentration ({concentration:.0%} in large deals)",
+                        severity="warning",
+                    )
+                )
 
         recommendation = None
         pipeline_health = self._compute_overall_health(factors)
@@ -608,23 +678,27 @@ class DashboardDecisionProvider:
         stage_health: dict[str, float] = {}
         for stage_name, stage_data in stages.items():
             if isinstance(stage_data, dict):
-                count = stage_data.get("count", 0)
-                value = stage_data.get("value", 0)
+                _ = stage_data.get("count", 0)
+                _ = stage_data.get("value", 0)
                 aging = stage_data.get("avg_days_in_stage", 0)
             else:
-                count = getattr(stage_data, "count", 0)
-                value = getattr(stage_data, "value", 0)
+                _ = getattr(stage_data, "count", 0)
+                _ = getattr(stage_data, "value", 0)
                 aging = getattr(stage_data, "avg_days_in_stage", 0)
 
             health = 1.0
             if aging > 30:
                 health = max(0.0, 1.0 - (aging - 30) / 60)
-                factors.append(DecisionFactor(
-                    source_layer="measurement", source_domain="pipeline",
-                    key=f"stage_aging_{stage_name}", value=aging,
-                    label=f"Stage '{stage_name}' aging: {aging} days avg",
-                    severity="critical" if aging > 60 else "warning",
-                ))
+                factors.append(
+                    DecisionFactor(
+                        source_layer="measurement",
+                        source_domain="pipeline",
+                        key=f"stage_aging_{stage_name}",
+                        value=aging,
+                        label=f"Stage '{stage_name}' aging: {aging} days avg",
+                        severity="critical" if aging > 60 else "warning",
+                    )
+                )
             elif aging > 14:
                 health = max(0.0, 1.0 - (aging - 14) / 30)
 
@@ -633,34 +707,46 @@ class DashboardDecisionProvider:
         # Stagnant deals
         stalled = pipeline_data.get("stalled_deals", 0)
         if stalled > 0:
-            factors.append(DecisionFactor(
-                source_layer="measurement", source_domain="pipeline",
-                key="stalled_pipeline", value=stalled,
-                label=f"{stalled} deals stalled (no activity >14 days)",
-                severity="critical" if stalled > 5 else "warning",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="measurement",
+                    source_domain="pipeline",
+                    key="stalled_pipeline",
+                    value=stalled,
+                    label=f"{stalled} deals stalled (no activity >14 days)",
+                    severity="critical" if stalled > 5 else "warning",
+                )
+            )
 
         # Pipeline velocity
         velocity = pipeline_data.get("velocity", 0)
         if velocity and velocity < 0.5:
-            factors.append(DecisionFactor(
-                source_layer="measurement", source_domain="pipeline",
-                key="low_velocity", value=velocity,
-                label=f"Low pipeline velocity ({velocity:.1f} deals/week)",
-                severity="warning",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="measurement",
+                    source_domain="pipeline",
+                    key="low_velocity",
+                    value=velocity,
+                    label=f"Low pipeline velocity ({velocity:.1f} deals/week)",
+                    severity="warning",
+                )
+            )
 
         # Empty pipeline
         if total_count == 0:
-            factors.append(DecisionFactor(
-                source_layer="fact", source_domain="pipeline",
-                key="empty_pipeline", value=0,
-                label="Pipeline is empty — no active opportunities",
-                severity="critical",
-            ))
+            factors.append(
+                DecisionFactor(
+                    source_layer="fact",
+                    source_domain="pipeline",
+                    key="empty_pipeline",
+                    value=0,
+                    label="Pipeline is empty — no active opportunities",
+                    severity="critical",
+                )
+            )
 
         recommendation = None
-        pipeline_health = self._compute_overall_health(factors)
+        _ = self._compute_overall_health(factors)
 
         try:
             scored = await self.score_dashboard(tenant_id, {"pipeline": pipeline_data})

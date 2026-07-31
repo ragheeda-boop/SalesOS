@@ -12,6 +12,7 @@ from app.dependencies import verify_token
 
 try:
     from mcp_server.server import create_server
+
     _mcp_available = True
 except ImportError:
     _mcp_available = False
@@ -47,7 +48,10 @@ async def mcp_sse(
     mcp_server = _get_mcp()
     if not mcp_server:
         raise HTTPException(status_code=503, detail="MCP server unavailable")
-    logger.info("MCP SSE connection established from %s", request.client.host if request.client else "unknown")
+    logger.info(
+        "MCP SSE connection established from %s",
+        request.client.host if request.client else "unknown",
+    )
 
     async def event_stream():
         async with mcp_server.run_sse_async() as stream:

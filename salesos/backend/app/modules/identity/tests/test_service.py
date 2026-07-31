@@ -1,10 +1,19 @@
+from datetime import UTC
+
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import DuplicateError, NotFoundError, UnauthorizedError
 from app.modules.identity.models import RefreshTokenFamily
-from app.modules.identity.service import IdentityService, hash_password, verify_password, create_access_token, decode_access_token, decode_refresh_token
+from app.modules.identity.service import (
+    IdentityService,
+    create_access_token,
+    decode_access_token,
+    decode_refresh_token,
+    hash_password,
+    verify_password,
+)
 
 
 @pytest.mark.asyncio
@@ -107,7 +116,9 @@ async def test_create_token_family(db_session: AsyncSession):
     service = IdentityService(db_session)
     tenant = await service.create_tenant(name="Test", slug="sec-test-1")
     user = await service.create_user(
-        email="sec@test.com", password="Test1234!", full_name="Sec User",
+        email="sec@test.com",
+        password="Test1234!",
+        full_name="Sec User",
         tenant_id=str(tenant.id),
     )
     uid = str(user.id)
@@ -129,7 +140,9 @@ async def test_refresh_token_rotation(db_session: AsyncSession):
     service = IdentityService(db_session)
     tenant = await service.create_tenant(name="Test", slug="sec-test-2")
     user = await service.create_user(
-        email="rot@test.com", password="Test1234!", full_name="Rot User",
+        email="rot@test.com",
+        password="Test1234!",
+        full_name="Rot User",
         tenant_id=str(tenant.id),
     )
     uid = str(user.id)
@@ -148,7 +161,9 @@ async def test_refresh_token_reuse_detection(db_session: AsyncSession):
     service = IdentityService(db_session)
     tenant = await service.create_tenant(name="Test", slug="sec-test-3")
     user = await service.create_user(
-        email="reuse@test.com", password="Test1234!", full_name="Reuse User",
+        email="reuse@test.com",
+        password="Test1234!",
+        full_name="Reuse User",
         tenant_id=str(tenant.id),
     )
     uid = str(user.id)
@@ -165,15 +180,21 @@ async def test_device_session_creation_and_revocation(db_session: AsyncSession):
     service = IdentityService(db_session)
     tenant = await service.create_tenant(name="Test", slug="sec-test-4")
     user = await service.create_user(
-        email="sess@test.com", password="Test1234!", full_name="Sess User",
+        email="sess@test.com",
+        password="Test1234!",
+        full_name="Sess User",
         tenant_id=str(tenant.id),
     )
     uid = str(user.id)
     tid = str(tenant.id)
     _, _, family_pk, _ = await service.create_token_family(uid, tid)
     session = await service.create_device_session(
-        user_id=uid, tenant_id=tid, refresh_family_id=family_pk,
-        device_name="Test Browser", device_type="desktop", ip_address="127.0.0.1",
+        user_id=uid,
+        tenant_id=tid,
+        refresh_family_id=family_pk,
+        device_name="Test Browser",
+        device_type="desktop",
+        ip_address="127.0.0.1",
     )
     assert session is not None
     assert session.device_name == "Test Browser"
@@ -191,7 +212,9 @@ async def test_revoke_all_user_sessions(db_session: AsyncSession):
     service = IdentityService(db_session)
     tenant = await service.create_tenant(name="Test", slug="sec-test-5")
     user = await service.create_user(
-        email="all@test.com", password="Test1234!", full_name="All User",
+        email="all@test.com",
+        password="Test1234!",
+        full_name="All User",
         tenant_id=str(tenant.id),
     )
     uid = str(user.id)
@@ -199,12 +222,20 @@ async def test_revoke_all_user_sessions(db_session: AsyncSession):
     _, _, fp1, _ = await service.create_token_family(uid, tid)
     _, _, fp2, _ = await service.create_token_family(uid, tid)
     await service.create_device_session(
-        user_id=uid, tenant_id=tid, refresh_family_id=fp1,
-        device_name="Device 1", device_type="desktop", ip_address="1.1.1.1",
+        user_id=uid,
+        tenant_id=tid,
+        refresh_family_id=fp1,
+        device_name="Device 1",
+        device_type="desktop",
+        ip_address="1.1.1.1",
     )
     await service.create_device_session(
-        user_id=uid, tenant_id=tid, refresh_family_id=fp2,
-        device_name="Device 2", device_type="mobile", ip_address="2.2.2.2",
+        user_id=uid,
+        tenant_id=tid,
+        refresh_family_id=fp2,
+        device_name="Device 2",
+        device_type="mobile",
+        ip_address="2.2.2.2",
     )
     total = await service.revoke_all_user_sessions(uid)
     assert total == 2
@@ -212,9 +243,10 @@ async def test_revoke_all_user_sessions(db_session: AsyncSession):
 
 @pytest.mark.asyncio
 async def test_token_blacklist(db_session: AsyncSession):
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
+
     service = IdentityService(db_session)
-    future = datetime.now(timezone.utc) + timedelta(hours=1)
+    future = datetime.now(UTC) + timedelta(hours=1)
     await service.blacklist_token("test-jti-123", "refresh", future)
     assert await service.is_token_blacklisted("test-jti-123") is True
     assert await service.is_token_blacklisted("nonexistent-jti") is False
@@ -231,14 +263,20 @@ async def test_create_access_token_and_decode():
 
 @pytest.mark.asyncio
 async def test_decode_expired_token():
+    from datetime import datetime, timedelta
+
     from app.modules.identity.jwks import create_rs256_token_payload
-    from datetime import datetime, timedelta, timezone
+
     payload = {
-        "sub": "u1", "tenant_id": "t1",
-        "exp": datetime.now(timezone.utc) - timedelta(hours=1),
-        "type": "access", "jti": "test", "iat": datetime.now(timezone.utc) - timedelta(hours=2),
-        "iss": "salesos", "aud": "salesos-api",
+        "sub": "u1",
+        "tenant_id": "t1",
+        "exp": datetime.now(UTC) - timedelta(hours=1),
+        "type": "access",
+        "jti": "test",
+        "iat": datetime.now(UTC) - timedelta(hours=2),
+        "iss": "salesos",
+        "aud": "salesos-api",
     }
     token = create_rs256_token_payload(payload)
-    with pytest.raises(Exception):
+    with pytest.raises(UnauthorizedError):
         decode_access_token(token)

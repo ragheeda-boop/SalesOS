@@ -140,9 +140,7 @@ class TestFeatureStoreDomain:
 class TestFeatureStoreRuntime:
     """Compute and retrieve runtime features for companies."""
 
-    async def _seed_company(
-        self, client: AsyncClient, headers: dict
-    ) -> str:
+    async def _seed_company(self, client: AsyncClient, headers: dict) -> str:
         resp = await client.post(
             "/api/v1/companies",
             json={

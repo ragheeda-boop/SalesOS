@@ -1,13 +1,13 @@
-"""Per-user rate limiting for API endpoints — sliding window, Redis-backed with in-memory fallback."""
+"""Per-user rate limiting for API endpoints — sliding window, Redis-backed with in-memory fallback."""  # noqa: E501
+
 import threading
 import time
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import Depends, HTTPException, Request
 
 from app.config import settings
 from app.dependencies import get_current_tenant_id
-
 
 _store: dict[str, list[float]] = {}
 _lock = threading.Lock()
@@ -29,6 +29,7 @@ def _get_redis():
         _redis_checked = True
         try:
             import redis.asyncio as aioredis
+
             _redis = aioredis.Redis.from_url(
                 settings.redis_url,
                 socket_connect_timeout=settings.redis_socket_connect_timeout,

@@ -15,20 +15,34 @@ async def test_run_initial_sync_invokes_gmail_and_calendar():
     tenant_id = uuid4()
     user_id = uuid4()
     gmail_svc = AsyncMock()
-    gmail_svc.sync = AsyncMock(return_value={"synced_count": 2, "new_count": 2, "updated_count": 0, "errors": []})
+    gmail_svc.sync = AsyncMock(
+        return_value={"synced_count": 2, "new_count": 2, "updated_count": 0, "errors": []}
+    )
     cal_svc = AsyncMock()
-    cal_svc.sync = AsyncMock(return_value={"synced_count": 1, "new_count": 1, "updated_count": 0, "cancelled_count": 0, "errors": []})
+    cal_svc.sync = AsyncMock(
+        return_value={
+            "synced_count": 1,
+            "new_count": 1,
+            "updated_count": 0,
+            "cancelled_count": 0,
+            "errors": [],
+        }
+    )
 
     session_cm = MagicMock()
     session_cm.__aenter__ = AsyncMock(return_value=AsyncMock())
     session_cm.__aexit__ = AsyncMock(return_value=False)
 
-    with patch("app.database.async_session", return_value=session_cm), patch(
-        "app.modules.communication_hub.gmail_sync.GmailSyncService",
-        return_value=gmail_svc,
-    ), patch(
-        "app.modules.communication_hub.calendar_sync.CalendarSyncService",
-        return_value=cal_svc,
+    with (
+        patch("app.database.async_session", return_value=session_cm),
+        patch(
+            "app.modules.communication_hub.gmail_sync.GmailSyncService",
+            return_value=gmail_svc,
+        ),
+        patch(
+            "app.modules.communication_hub.calendar_sync.CalendarSyncService",
+            return_value=cal_svc,
+        ),
     ):
         result = await run_initial_sync(tenant_id, user_id)
 
@@ -46,19 +60,31 @@ async def test_run_initial_sync_records_partial_failure():
     gmail_svc = AsyncMock()
     gmail_svc.sync = AsyncMock(side_effect=Exception("no token"))
     cal_svc = AsyncMock()
-    cal_svc.sync = AsyncMock(return_value={"synced_count": 0, "new_count": 0, "updated_count": 0, "cancelled_count": 0, "errors": []})
+    cal_svc.sync = AsyncMock(
+        return_value={
+            "synced_count": 0,
+            "new_count": 0,
+            "updated_count": 0,
+            "cancelled_count": 0,
+            "errors": [],
+        }
+    )
 
     db = AsyncMock()
     session_cm = MagicMock()
     session_cm.__aenter__ = AsyncMock(return_value=db)
     session_cm.__aexit__ = AsyncMock(return_value=False)
 
-    with patch("app.database.async_session", return_value=session_cm), patch(
-        "app.modules.communication_hub.gmail_sync.GmailSyncService",
-        return_value=gmail_svc,
-    ), patch(
-        "app.modules.communication_hub.calendar_sync.CalendarSyncService",
-        return_value=cal_svc,
+    with (
+        patch("app.database.async_session", return_value=session_cm),
+        patch(
+            "app.modules.communication_hub.gmail_sync.GmailSyncService",
+            return_value=gmail_svc,
+        ),
+        patch(
+            "app.modules.communication_hub.calendar_sync.CalendarSyncService",
+            return_value=cal_svc,
+        ),
     ):
         result = await run_initial_sync(tenant_id, user_id)
 
@@ -74,9 +100,12 @@ def test_schedule_initial_sync_creates_task():
     task = MagicMock()
     loop.create_task.return_value = task
 
-    with patch("asyncio.get_running_loop", return_value=loop), patch(
-        "app.modules.communication_hub.initial_sync.run_initial_sync",
-        new=AsyncMock(),
+    with (
+        patch("asyncio.get_running_loop", return_value=loop),
+        patch(
+            "app.modules.communication_hub.initial_sync.run_initial_sync",
+            new=AsyncMock(),
+        ),
     ):
         schedule_initial_sync(tenant_id, user_id)
 

@@ -10,6 +10,7 @@ from sdk.config import sdk_settings
 @dataclass
 class VectorRecord:
     """A record with a vector embedding and associated metadata."""
+
     id: str
     vector: list[float]
     metadata: dict[str, Any] = field(default_factory=dict)

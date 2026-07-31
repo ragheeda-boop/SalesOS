@@ -15,9 +15,7 @@ _TEST_TIMEOUT = 30
 class TestRevenueDashboard:
     """GET /api/v1/revenue/dashboard endpoint."""
 
-    async def _seed_company_and_opp(
-        self, client: AsyncClient, headers: dict
-    ) -> tuple[str, str]:
+    async def _seed_company_and_opp(self, client: AsyncClient, headers: dict) -> tuple[str, str]:
         cr = f"CR-REV-{uuid.uuid4().hex[:8]}"
         company_resp = await client.post(
             "/api/v1/companies",

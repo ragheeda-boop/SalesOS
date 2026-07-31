@@ -11,7 +11,7 @@ from __future__ import annotations
 import json as _json
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.dependencies import get_current_tenant_id, verify_token
@@ -37,8 +37,8 @@ async def start_enrichment(
     tenant_id: str = Depends(get_current_tenant_id),
 ):
     """Start async company enrichment. Returns 202 Accepted with task ID."""
-    from app.tasks import enrich_company_task
     from app.common.redis_client import AsyncRedisClient
+    from app.tasks import enrich_company_task
 
     client = AsyncRedisClient()
     cache_key = f"enrich:company:{body.company_id}"
@@ -80,6 +80,7 @@ async def get_enrichment_status(
 ):
     """Poll enrichment task status."""
     from celery.result import AsyncResult
+
     from app.tasks import enrich_company_task
 
     result = AsyncResult(task_id, app=enrich_company_task.app)
@@ -103,6 +104,7 @@ async def get_enrichment_result(
 ):
     """Get the final result of a completed enrichment task."""
     from celery.result import AsyncResult
+
     from app.tasks import enrich_company_task
 
     result = AsyncResult(task_id, app=enrich_company_task.app)

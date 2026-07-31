@@ -11,12 +11,12 @@ Provides:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
 
 
 @dataclass
 class ThemeTokenSet:
     """A set of design tokens for a theme."""
+
     colors: dict = field(default_factory=dict)
     typography: dict = field(default_factory=dict)
     radius: dict = field(default_factory=dict)
@@ -28,7 +28,15 @@ class ThemeTokenSet:
 
     def to_css_variables(self, prefix: str = "--tw-") -> str:
         lines = [":root {"]
-        for category in ["colors", "radius", "elevation", "spacing", "motion", "breakpoints", "icons"]:
+        for category in [
+            "colors",
+            "radius",
+            "elevation",
+            "spacing",
+            "motion",
+            "breakpoints",
+            "icons",
+        ]:
             tokens = getattr(self, category, {})
             for key, value in tokens.items():
                 css_key = key.replace("_", "-")
@@ -36,10 +44,20 @@ class ThemeTokenSet:
         lines.append("}")
         return "\n".join(lines)
 
-    def merge(self, overrides: "ThemeTokenSet") -> "ThemeTokenSet":
+    def merge(self, overrides: ThemeTokenSet) -> ThemeTokenSet:
         import copy
+
         merged = copy.deepcopy(self)
-        for category in ["colors", "typography", "radius", "elevation", "spacing", "motion", "breakpoints", "icons"]:
+        for category in [
+            "colors",
+            "typography",
+            "radius",
+            "elevation",
+            "spacing",
+            "motion",
+            "breakpoints",
+            "icons",
+        ]:
             base = getattr(merged, category)
             override = getattr(overrides, category, {})
             base.update(override)
@@ -52,38 +70,38 @@ class ThemeBuilder:
     def __init__(self, name: str = "custom"):
         self._name = name
         self._tokens = ThemeTokenSet()
-        self._parent: Optional[str] = None
+        self._parent: str | None = None
         self._is_dark = False
 
-    def inherit(self, parent_theme: str) -> "ThemeBuilder":
+    def inherit(self, parent_theme: str) -> ThemeBuilder:
         self._parent = parent_theme
         return self
 
-    def dark(self) -> "ThemeBuilder":
+    def dark(self) -> ThemeBuilder:
         self._is_dark = True
         return self
 
-    def with_colors(self, **colors) -> "ThemeBuilder":
+    def with_colors(self, **colors) -> ThemeBuilder:
         self._tokens.colors.update(colors)
         return self
 
-    def with_typography(self, **tokens) -> "ThemeBuilder":
+    def with_typography(self, **tokens) -> ThemeBuilder:
         self._tokens.typography.update(tokens)
         return self
 
-    def with_radius(self, **tokens) -> "ThemeBuilder":
+    def with_radius(self, **tokens) -> ThemeBuilder:
         self._tokens.radius.update(tokens)
         return self
 
-    def with_elevation(self, **tokens) -> "ThemeBuilder":
+    def with_elevation(self, **tokens) -> ThemeBuilder:
         self._tokens.elevation.update(tokens)
         return self
 
-    def with_spacing(self, **tokens) -> "ThemeBuilder":
+    def with_spacing(self, **tokens) -> ThemeBuilder:
         self._tokens.spacing.update(tokens)
         return self
 
-    def with_motion(self, **tokens) -> "ThemeBuilder":
+    def with_motion(self, **tokens) -> ThemeBuilder:
         self._tokens.motion.update(tokens)
         return self
 

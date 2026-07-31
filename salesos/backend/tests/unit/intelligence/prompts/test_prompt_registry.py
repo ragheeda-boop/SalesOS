@@ -1,13 +1,18 @@
 """Prompt Registry tests — versioning, validation, categories, persistence."""
+
 from __future__ import annotations
 
-import json
 import os
 import tempfile
 
 import pytest
 
-from intelligence.prompts.registry import PromptRegistry, PromptTemplate, PromptVersion, PromptValidationError, PromptNotFoundError
+from intelligence.prompts.registry import (
+    PromptNotFoundError,
+    PromptRegistry,
+    PromptTemplate,
+    PromptValidationError,
+)
 
 
 @pytest.fixture
@@ -74,7 +79,10 @@ def test_versioning(registry, sample_template):
         system="You are a helpful assistant.",
     )
     registry.register(v2)
-    assert registry.get("test-greeting", version="1.0").template == "Hello {name}, welcome to {company}!"
+    assert (
+        registry.get("test-greeting", version="1.0").template
+        == "Hello {name}, welcome to {company}!"
+    )
     assert registry.get("test-greeting", version="2.0").template == "Hello {name}!"
     assert registry.get("test-greeting").version == "2.0"
 
@@ -86,7 +94,9 @@ def test_get_nonexistent_version(registry, sample_template):
 
 def test_get_versions_history(registry, sample_template):
     registry.register(sample_template, changelog="Initial version")
-    v2 = PromptTemplate(id="test-greeting", name="greeting", version="2.0", template="Hello {name}!", system="")
+    v2 = PromptTemplate(
+        id="test-greeting", name="greeting", version="2.0", template="Hello {name}!", system=""
+    )
     registry.register(v2, changelog="Simplified template")
     history = registry.get_versions("test-greeting")
     assert len(history) == 2
@@ -99,7 +109,9 @@ def test_get_versions_history(registry, sample_template):
 
 def test_activate(registry, sample_template):
     registry.register(sample_template)
-    v2 = PromptTemplate(id="test-greeting", name="greeting", version="2.0", template="Hello {name}!", system="")
+    v2 = PromptTemplate(
+        id="test-greeting", name="greeting", version="2.0", template="Hello {name}!", system=""
+    )
     registry.register(v2)
     activated = registry.activate("test-greeting", "1.0")
     assert activated is not None
@@ -117,14 +129,32 @@ def test_activate_nonexistent(registry):
 
 def test_list_all(registry, sample_template):
     registry.register(sample_template)
-    registry.register(PromptTemplate(id="p2", name="farewell", version="1.0", template="Bye {name}!", system="", domain="support"))
+    registry.register(
+        PromptTemplate(
+            id="p2",
+            name="farewell",
+            version="1.0",
+            template="Bye {name}!",
+            system="",
+            domain="support",
+        )
+    )
     all_templates = registry.list()
     assert len(all_templates) == 2
 
 
 def test_list_by_domain(registry, sample_template):
     registry.register(sample_template)
-    registry.register(PromptTemplate(id="p2", name="farewell", version="1.0", template="Bye {name}!", system="", domain="support"))
+    registry.register(
+        PromptTemplate(
+            id="p2",
+            name="farewell",
+            version="1.0",
+            template="Bye {name}!",
+            system="",
+            domain="support",
+        )
+    )
     sales = registry.list(domain="sales")
     assert len(sales) == 1
     assert sales[0].domain == "sales"
@@ -132,14 +162,27 @@ def test_list_by_domain(registry, sample_template):
 
 def test_list_by_category(registry, sample_template):
     registry.register(sample_template)
-    registry.register(PromptTemplate(id="p2", name="farewell", version="1.0", template="Bye!", system="", category="offboarding"))
+    registry.register(
+        PromptTemplate(
+            id="p2",
+            name="farewell",
+            version="1.0",
+            template="Bye!",
+            system="",
+            category="offboarding",
+        )
+    )
     onboarding = registry.list(category="onboarding")
     assert len(onboarding) == 1
 
 
 def test_list_by_tag(registry, sample_template):
     registry.register(sample_template)
-    registry.register(PromptTemplate(id="p2", name="farewell", version="1.0", template="Bye!", system="", tags=["farewell"]))
+    registry.register(
+        PromptTemplate(
+            id="p2", name="farewell", version="1.0", template="Bye!", system="", tags=["farewell"]
+        )
+    )
     greeting = registry.list(tag="greeting")
     assert len(greeting) == 1
 
@@ -190,7 +233,9 @@ def test_validate_nonexistent(registry):
 
 def test_validate_empty_template():
     registry = PromptRegistry()
-    registry._templates["empty"] = [PromptTemplate(id="empty", name="empty", version="1.0", template="  ")]
+    registry._templates["empty"] = [
+        PromptTemplate(id="empty", name="empty", version="1.0", template="  ")
+    ]
     errors = registry.validate("empty")
     assert len(errors) == 1
 
@@ -241,7 +286,16 @@ def test_search(registry, sample_template):
 
 def test_categories(registry, sample_template):
     registry.register(sample_template)
-    registry.register(PromptTemplate(id="p2", name="farewell", version="1.0", template="Bye!", system="", category="offboarding"))
+    registry.register(
+        PromptTemplate(
+            id="p2",
+            name="farewell",
+            version="1.0",
+            template="Bye!",
+            system="",
+            category="offboarding",
+        )
+    )
     categories = registry.get_categories()
     assert "onboarding" in categories
     assert "offboarding" in categories
@@ -256,7 +310,11 @@ def test_persist_and_load():
 
     try:
         registry = PromptRegistry(persist_path=path)
-        registry.register(PromptTemplate(id="p1", name="test", version="1.0", template="Hello {name}!", system="Be nice"))
+        registry.register(
+            PromptTemplate(
+                id="p1", name="test", version="1.0", template="Hello {name}!", system="Be nice"
+            )
+        )
         registry.activate("p1", "1.0")
 
         registry2 = PromptRegistry(persist_path=path)
@@ -307,7 +365,9 @@ def test_metadata(registry):
 
 
 def test_placeholder_extraction():
-    t = PromptTemplate(id="t1", name="test", version="1.0", template="Hello {name}, your {role} is {status}")
+    t = PromptTemplate(
+        id="t1", name="test", version="1.0", template="Hello {name}, your {role} is {status}"
+    )
     assert "name" in t.placeholders
     assert "role" in t.placeholders
     assert "status" in t.placeholders

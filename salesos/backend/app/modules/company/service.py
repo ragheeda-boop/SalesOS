@@ -1,9 +1,8 @@
-from datetime import datetime, timezone
-
 import uuid
+from datetime import UTC, datetime
 
 import sqlalchemy as sa
-from sqlalchemy import select, or_
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -18,9 +17,8 @@ from sdk.events.domain_events import (
     ContactCreated,
     LicenseCreated,
 )
-from sdk.telemetry import StructuredLogger
-
 from sdk.pagination import CursorPage
+from sdk.telemetry import StructuredLogger
 
 from .models import Branch, Company, Contact, License, Source
 
@@ -80,6 +78,7 @@ class CompanyService:
             return []
         try:
             from app.modules.identity.models import User
+
             result = await db.execute(select(User).where(User.id.in_(owner_ids)))
             return [
                 {"id": str(u.id), "full_name": u.full_name, "email": u.email, "role": u.role}
@@ -93,16 +92,23 @@ class CompanyService:
     # ── Intelligence endpoint ────────────────────────────────────────
 
     async def get_company_intelligence(
-        self, company: Company, company_id: str, tenant_id: str, db: AsyncSession,
+        self,
+        company: Company,
+        company_id: str,
+        tenant_id: str,
+        db: AsyncSession,
     ) -> dict:
         """Return intelligence-layer data: golden record, enrichment, confidence."""
         golden_record_id = None
         golden_record_data = None
         try:
             from app.modules.entity_resolution.models import GoldenRecord
+
             uid = uuid.UUID(company_id) if isinstance(company_id, str) else company_id
             gr_result = await db.execute(
-                select(GoldenRecord).where(GoldenRecord.company_id == uid, GoldenRecord.is_active == True)
+                select(GoldenRecord).where(
+                    GoldenRecord.company_id == uid, GoldenRecord.is_active is True
+                )
             )
             golden_record = gr_result.scalar_one_or_none()
             if golden_record:
@@ -110,7 +116,9 @@ class CompanyService:
                 golden_record_data = golden_record.data
         except Exception as e:
             if self.logger:
-                self.logger.warn("company_360.golden_record_failed", company_id=company_id, error=str(e))
+                self.logger.warn(
+                    "company_360.golden_record_failed", company_id=company_id, error=str(e)
+                )
 
         enrichment = {
             "sources": company.source_ids or [],
@@ -189,7 +197,9 @@ class CompanyService:
                 )
             except Exception:
                 if self.logger:
-                    self.logger.warn("event.publish_failed", entity_type="company", aggregate_id=str(company.id))
+                    self.logger.warn(
+                        "event.publish_failed", entity_type="company", aggregate_id=str(company.id)
+                    )
 
         return company
 
@@ -198,7 +208,7 @@ class CompanyService:
             cid = uuid.UUID(str(company_id))
         except (ValueError, TypeError, AttributeError):
             # Invalid UUID must be 404 (not asyncpg DataError → 500).
-            raise NotFoundError("Company", company_id)
+            raise NotFoundError("Company", company_id) from None
 
         result = await self.db.execute(
             select(Company)
@@ -238,7 +248,9 @@ class CompanyService:
                 )
             except Exception:
                 if self.logger:
-                    self.logger.warn("event.publish_failed", entity_type="company", entity_id=company_id)
+                    self.logger.warn(
+                        "event.publish_failed", entity_type="company", entity_id=company_id
+                    )
 
         return company
 
@@ -267,7 +279,9 @@ class CompanyService:
                 )
             except Exception:
                 if self.logger:
-                    self.logger.warn("event.publish_failed", entity_type="branch", aggregate_id=str(branch.id))
+                    self.logger.warn(
+                        "event.publish_failed", entity_type="branch", aggregate_id=str(branch.id)
+                    )
 
         return branch
 
@@ -296,7 +310,9 @@ class CompanyService:
                 )
             except Exception:
                 if self.logger:
-                    self.logger.warn("event.publish_failed", entity_type="license", aggregate_id=str(license.id))
+                    self.logger.warn(
+                        "event.publish_failed", entity_type="license", aggregate_id=str(license.id)
+                    )
 
         return license
 
@@ -325,7 +341,9 @@ class CompanyService:
                 )
             except Exception:
                 if self.logger:
-                    self.logger.warn("event.publish_failed", entity_type="contact", aggregate_id=str(contact.id))
+                    self.logger.warn(
+                        "event.publish_failed", entity_type="contact", aggregate_id=str(contact.id)
+                    )
 
         return contact
 
@@ -353,12 +371,19 @@ class CompanyService:
                 )
             except Exception:
                 if self.logger:
-                    self.logger.warn("event.publish_failed", entity_type="company", aggregate_id=company_id)
+                    self.logger.warn(
+                        "event.publish_failed", entity_type="company", aggregate_id=company_id
+                    )
 
     async def get_company_360(
-        self, company_id: str, tenant_id: str, activity_runtime=None, db: AsyncSession | None = None,
+        self,
+        company_id: str,
+        tenant_id: str,
+        activity_runtime=None,
+        db: AsyncSession | None = None,
         kg_engine=None,
-        page: int = 1, page_size: int = 50,
+        page: int = 1,
+        page_size: int = 50,
     ) -> dict:
         company = await self.get_company(company_id)
         session = db or self.db
@@ -379,18 +404,33 @@ class CompanyService:
 
         try:
             from .models import Contact as CompanyContact
-            contacts_total_q = select(sa.func.count()).select_from(CompanyContact).where(
-                CompanyContact.company_id == company_id,
+
+            contacts_total_q = (
+                select(sa.func.count())
+                .select_from(CompanyContact)
+                .where(
+                    CompanyContact.company_id == company_id,
+                )
             )
             contacts_total = await session.scalar(contacts_total_q) or 0
             result = await session.execute(
-                select(CompanyContact).where(
+                select(CompanyContact)
+                .where(
                     CompanyContact.company_id == company_id,
-                ).order_by(CompanyContact.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
+                )
+                .order_by(CompanyContact.created_at.desc())
+                .offset((page - 1) * page_size)
+                .limit(page_size)
             )
             contacts = [
-                {"id": str(c.id), "name": c.name, "email": c.email, "phone": c.phone,
-                 "position": c.position, "is_primary": c.is_primary}
+                {
+                    "id": str(c.id),
+                    "name": c.name,
+                    "email": c.email,
+                    "phone": c.phone,
+                    "position": c.position,
+                    "is_primary": c.is_primary,
+                }
                 for c in result.scalars().all()
             ]
         except Exception as e:
@@ -399,26 +439,38 @@ class CompanyService:
                 self.logger.warn("company_360.contacts_failed", company_id=company_id, error=str(e))
 
         try:
+            from domains.commercial.infrastructure.postgres_repositories import (
+                PostgresOpportunityRepository,
+            )
             from domains.commercial.opportunity.contracts.repository import OpportunityQuery
-            from domains.commercial.infrastructure.postgres_repositories import PostgresOpportunityRepository
+
             opp_repo = PostgresOpportunityRepository(session)
-            opp_result = await opp_repo.query(OpportunityQuery(
-                tenant_id=tenant_id, company_id=company_id,
-                page=page, page_size=page_size,
-            ))
+            opp_result = await opp_repo.query(
+                OpportunityQuery(
+                    tenant_id=tenant_id,
+                    company_id=company_id,
+                    page=page,
+                    page_size=page_size,
+                )
+            )
             opportunities = [
-                {"id": str(o.id), "name": o.name, "value": o.value, "stage": o.stage,
-                 "status": o.status.value if hasattr(o.status, 'value') else str(o.status),
-                 "probability": o.probability, "owner_id": o.owner_id}
+                {
+                    "id": str(o.id),
+                    "name": o.name,
+                    "value": o.value,
+                    "stage": o.stage,
+                    "status": o.status.value if hasattr(o.status, "value") else str(o.status),
+                    "probability": o.probability,
+                    "owner_id": o.owner_id,
+                }
                 for o in opp_result.items
             ]
             opportunities_total = opp_result.total
-            owner_ids = list(set(o["owner_id"] for o in opportunities if o.get("owner_id")))
+            owner_ids = list({o["owner_id"] for o in opportunities if o.get("owner_id")})
             if owner_ids:
                 from app.modules.identity.models import User
-                user_result = await session.execute(
-                    select(User).where(User.id.in_(owner_ids))
-                )
+
+                user_result = await session.execute(select(User).where(User.id.in_(owner_ids)))
                 assigned_employees = [
                     {"id": str(u.id), "full_name": u.full_name, "email": u.email, "role": u.role}
                     for u in user_result.scalars().all()
@@ -426,7 +478,9 @@ class CompanyService:
         except Exception as e:
             opportunities_total = 0
             if self.logger:
-                self.logger.warn("company_360.opportunities_failed", company_id=company_id, error=str(e))
+                self.logger.warn(
+                    "company_360.opportunities_failed", company_id=company_id, error=str(e)
+                )
 
         timeline_total = 0
         try:
@@ -455,27 +509,38 @@ class CompanyService:
                 self.logger.warn("company_360.timeline_failed", company_id=company_id, error=str(e))
 
         try:
-            from .models import Branch as BranchModel, License as LicenseModel
+            from .models import Branch as BranchModel
+            from .models import License as LicenseModel
+
             branch_result = await session.execute(
                 select(BranchModel).where(BranchModel.company_id == uid)
             )
             from .schemas import BranchResponse, LicenseResponse
+
             branches = [BranchResponse.model_validate(b) for b in branch_result.scalars().all()]
             license_result = await session.execute(
                 select(LicenseModel).where(LicenseModel.company_id == uid)
             )
-            licenses = [LicenseResponse.model_validate(l) for l in license_result.scalars().all()]
+            licenses = [
+                LicenseResponse.model_validate(lic) for lic in license_result.scalars().all()
+            ]  # noqa: E501
         except Exception as e:
             if self.logger:
                 self.logger.warn("company_360.branches_failed", company_id=company_id, error=str(e))
 
         total_revenue = sum(o.get("value", 0) or 0 for o in opportunities)
-        active_contracts = sum(1 for c in contracts if c.get("metadata", {}).get("status") in ("active", "signed"))
+        active_contracts = sum(
+            1 for c in contracts if c.get("metadata", {}).get("status") in ("active", "signed")
+        )
         pending_tasks = sum(1 for t in tasks if t.get("metadata", {}).get("status") != "completed")
-        upcoming_meetings = sum(1 for m in meetings if m.get("metadata", {}).get("status") == "scheduled")
+        upcoming_meetings = sum(
+            1 for m in meetings if m.get("metadata", {}).get("status") == "scheduled"
+        )
         last_activity = timeline[0].get("timestamp") if timeline else None
 
-        signals = self._detect_signals(company, contacts, opportunities, contracts, branches, tenant_id)
+        signals = self._detect_signals(
+            company, contacts, opportunities, contracts, branches, tenant_id
+        )
 
         enrichment = {
             "sources": company.source_ids or [],
@@ -488,8 +553,11 @@ class CompanyService:
         golden_record_data = None
         try:
             from app.modules.entity_resolution.models import GoldenRecord
+
             gr_result = await session.execute(
-                select(GoldenRecord).where(GoldenRecord.company_id == uid, GoldenRecord.is_active == True)
+                select(GoldenRecord).where(
+                    GoldenRecord.company_id == uid, GoldenRecord.is_active is True
+                )
             )
             golden_record = gr_result.scalar_one_or_none()
             if golden_record:
@@ -497,7 +565,9 @@ class CompanyService:
                 golden_record_data = golden_record.data
         except Exception as e:
             if self.logger:
-                self.logger.warn("company_360.golden_record_failed", company_id=company_id, error=str(e))
+                self.logger.warn(
+                    "company_360.golden_record_failed", company_id=company_id, error=str(e)
+                )
 
         related_entities = []
         decision_makers = []
@@ -506,13 +576,17 @@ class CompanyService:
                 related_entities = await kg_engine.get_ego_network(company_id=company_id, depth=1)
             except Exception as e:
                 if self.logger:
-                    self.logger.warn("company_360.related_entities_failed", company_id=company_id, error=str(e))
+                    self.logger.warn(
+                        "company_360.related_entities_failed", company_id=company_id, error=str(e)
+                    )
             try:
                 dm_nodes = await kg_engine.get_decision_makers(company_id=company_id)
                 decision_makers = [n.to_dict() for n in dm_nodes]
             except Exception as e:
                 if self.logger:
-                    self.logger.warn("company_360.decision_makers_failed", company_id=company_id, error=str(e))
+                    self.logger.warn(
+                        "company_360.decision_makers_failed", company_id=company_id, error=str(e)
+                    )
 
         health_score = self._heuristic_health_score(contacts, opportunities, signals["items"])
 
@@ -558,27 +632,40 @@ class CompanyService:
         }
         try:
             from app.modules.entity_resolution.models import GoldenRecord
+
             gr_result = await session.execute(
-                select(GoldenRecord).where(GoldenRecord.company_id == uid, GoldenRecord.is_active == True)
+                select(GoldenRecord).where(
+                    GoldenRecord.company_id == uid, GoldenRecord.is_active is True
+                )
             )
             gr = gr_result.scalar_one_or_none()
             if gr:
-                entity_resolution["duplicates_detected"] = len(gr.source_ids) - 1 if gr.source_ids else 0
+                entity_resolution["duplicates_detected"] = (
+                    len(gr.source_ids) - 1 if gr.source_ids else 0
+                )
         except Exception as e:
             if self.logger:
-                self.logger.warn("company_360.entity_resolution_failed", company_id=company_id, error=str(e))
+                self.logger.warn(
+                    "company_360.entity_resolution_failed", company_id=company_id, error=str(e)
+                )
 
         try:
             from app.modules.entity_resolution.models import EntityResolutionConflict
+
             conflict_count = await session.scalar(
-                select(sa.func.count()).select_from(EntityResolutionConflict).where(
-                    EntityResolutionConflict.golden_record_id == uid, EntityResolutionConflict.status == "pending"
+                select(sa.func.count())
+                .select_from(EntityResolutionConflict)
+                .where(
+                    EntityResolutionConflict.golden_record_id == uid,
+                    EntityResolutionConflict.status == "pending",
                 )
             )
             entity_resolution["conflicts_pending"] = conflict_count or 0
         except Exception as e:
             if self.logger:
-                self.logger.warn("company_360.conflicts_failed", company_id=company_id, error=str(e))
+                self.logger.warn(
+                    "company_360.conflicts_failed", company_id=company_id, error=str(e)
+                )
 
         # ── CRM section ──
         crm = {
@@ -608,7 +695,9 @@ class CompanyService:
                 "legal_form": company.legal_form,
                 "employees_count": company.employees_count,
                 "capital": company.capital,
-                "incorporation_date": str(company.incorporation_date) if company.incorporation_date else None,
+                "incorporation_date": str(company.incorporation_date)
+                if company.incorporation_date
+                else None,
                 "city": company.city,
                 "region": company.region,
                 "activity_description": company.activity_description,
@@ -643,13 +732,16 @@ class CompanyService:
                 for item in related_entities:
                     node = item.get("node", {})
                     rel_type = item.get("relationship", "")
-                    kg_section["relationships"].append({
-                        "entity_id": node.get("id", ""),
-                        "entity_name": node.get("properties", {}).get("name_en") or node.get("properties", {}).get("name_ar"),
-                        "relationship_type": rel_type,
-                        "strength": 1.0,
-                        "properties": node.get("properties", {}),
-                    })
+                    kg_section["relationships"].append(
+                        {
+                            "entity_id": node.get("id", ""),
+                            "entity_name": node.get("properties", {}).get("name_en")
+                            or node.get("properties", {}).get("name_ar"),
+                            "relationship_type": rel_type,
+                            "strength": 1.0,
+                            "properties": node.get("properties", {}),
+                        }
+                    )
                     if rel_type == "COMPETITOR_OF":
                         kg_section["competitors"].append(node)
                     elif rel_type == "PARTNER_WITH":
@@ -659,12 +751,14 @@ class CompanyService:
                     self.logger.warn("company_360.kg_failed", company_id=company_id, error=str(e))
             try:
                 from sqlalchemy import text as sa_text
-                from sqlalchemy import select as sa_select
+
                 row = await session.execute(
-                    sa_text("SELECT id, name_ar, name_en FROM companies WHERE id = :cid AND parent_company_id IS NOT NULL"),
+                    sa_text(
+                        "SELECT id, name_ar, name_en FROM companies WHERE id = :cid AND parent_company_id IS NOT NULL"  # noqa: E501
+                    ),
                     {"cid": company_id},
                 )
-                own_parent = row.mappings().one_or_none()
+                _ = row.mappings().one_or_none()
             except Exception:
                 pass
 
@@ -700,7 +794,9 @@ class CompanyService:
                 "departments": [],
                 "employees_count": company.employees_count or 0,
                 "legal_form": company.legal_form,
-                "incorporation_date": str(company.incorporation_date) if company.incorporation_date else None,
+                "incorporation_date": str(company.incorporation_date)
+                if company.incorporation_date
+                else None,
             },
             "contacts": contacts,
             "assigned_employees": assigned_employees,
@@ -729,72 +825,142 @@ class CompanyService:
             "golden_record_data": golden_record_data,
         }
 
-    def _detect_signals(self, company, contacts: list, opportunities: list, contracts: list, branches: list, tenant_id: str) -> dict:
+    def _detect_signals(
+        self,
+        company,
+        contacts: list,
+        opportunities: list,
+        contracts: list,
+        branches: list,
+        tenant_id: str,
+    ) -> dict:
         items = []
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if hasattr(company, "expiry_date") and company.expiry_date:
             days_left = (company.expiry_date - now.date()).days if company.expiry_date else 365
             if days_left < 0:
-                items.append({"type": "expired", "severity": "critical",
-                              "title": "License expired", "days": abs(days_left)})
+                items.append(
+                    {
+                        "type": "expired",
+                        "severity": "critical",
+                        "title": "License expired",
+                        "days": abs(days_left),
+                    }
+                )
             elif days_left < 30:
-                items.append({"type": "expiring_soon", "severity": "high",
-                              "title": "License expiring soon", "days": days_left})
+                items.append(
+                    {
+                        "type": "expiring_soon",
+                        "severity": "high",
+                        "title": "License expiring soon",
+                        "days": days_left,
+                    }
+                )
             elif days_left < 90:
-                items.append({"type": "expiring", "severity": "medium",
-                              "title": "License expiring", "days": days_left})
+                items.append(
+                    {
+                        "type": "expiring",
+                        "severity": "medium",
+                        "title": "License expiring",
+                        "days": days_left,
+                    }
+                )
 
         if opportunities:
-            stalled = [o for o in opportunities if o.get("stage") == "prospecting" and o.get("status") == "open"]
+            stalled = [
+                o
+                for o in opportunities
+                if o.get("stage") == "prospecting" and o.get("status") == "open"
+            ]
             if len(stalled) > 3:
-                items.append({"type": "stalled_pipeline", "severity": "medium",
-                              "title": f"{len(stalled)} deals stuck in prospecting"})
+                items.append(
+                    {
+                        "type": "stalled_pipeline",
+                        "severity": "medium",
+                        "title": f"{len(stalled)} deals stuck in prospecting",
+                    }
+                )
             won = sum(1 for o in opportunities if o.get("status") in ("won", "closed_won"))
             if won > 0:
-                items.append({"type": "won_deals", "severity": "positive",
-                              "title": f"{won} deals won", "value": won})
+                items.append(
+                    {
+                        "type": "won_deals",
+                        "severity": "positive",
+                        "title": f"{won} deals won",
+                        "value": won,
+                    }
+                )
 
         if not contacts:
-            items.append({"type": "no_contacts", "severity": "info",
-                          "title": "No contacts saved yet"})
+            items.append(
+                {"type": "no_contacts", "severity": "info", "title": "No contacts saved yet"}
+            )
 
         if not branches:
-            items.append({"type": "no_branches", "severity": "info",
-                          "title": "No branches registered"})
+            items.append(
+                {"type": "no_branches", "severity": "info", "title": "No branches registered"}
+            )
 
         if company.confidence_score is not None and company.confidence_score < 0.5:
-            items.append({"type": "low_confidence", "severity": "info",
-                          "title": "Low data confidence", "score": company.confidence_score})
+            items.append(
+                {
+                    "type": "low_confidence",
+                    "severity": "info",
+                    "title": "Low data confidence",
+                    "score": company.confidence_score,
+                }
+            )
 
         completeness_fields = [
-            (5.0, "name_ar"), (5.0, "cr_number"), (5.0, "status"),
-            (5.0, "name_en"), (5.0, "city"), (5.0, "region"),
-            (5.0, "phone"), (5.0, "email"), (5.0, "website"), (5.0, "address"),
-            (5.0, "activity_description"), (5.0, "activity_code"),
-            (5.0, "industry"), (5.0, "legal_form"),
-            (20.0 / 3, "employees_count"), (20.0 / 3, "capital"),
+            (5.0, "name_ar"),
+            (5.0, "cr_number"),
+            (5.0, "status"),
+            (5.0, "name_en"),
+            (5.0, "city"),
+            (5.0, "region"),
+            (5.0, "phone"),
+            (5.0, "email"),
+            (5.0, "website"),
+            (5.0, "address"),
+            (5.0, "activity_description"),
+            (5.0, "activity_code"),
+            (5.0, "industry"),
+            (5.0, "legal_form"),
+            (20.0 / 3, "employees_count"),
+            (20.0 / 3, "capital"),
             (20.0 / 3, "incorporation_date"),
         ]
         filled = sum(
-            weight for weight, field in completeness_fields
+            weight
+            for weight, field in completeness_fields
             if getattr(company, field, None) is not None
         )
         if filled < 50.0:
-            items.append({"type": "low_data_quality", "severity": "info",
-                          "title": "Low data completeness",
-                          "score": round(filled, 1)})
+            items.append(
+                {
+                    "type": "low_data_quality",
+                    "severity": "info",
+                    "title": "Low data completeness",
+                    "score": round(filled, 1),
+                }
+            )
 
         return {"items": items, "total": len(items)}
 
     async def search_companies(
-        self, tenant_id: str, query: str | None = None,
-        page: int = 1, page_size: int = 20,
+        self,
+        tenant_id: str,
+        query: str | None = None,
+        page: int = 1,
+        page_size: int = 20,
         cursor: str | None = None,
     ) -> tuple[list[Company], int]:
         base = select(Company).where(Company.tenant_id == uuid.UUID(tenant_id))
-        count_base = select(sa.func.count()).select_from(Company).where(
-            Company.tenant_id == uuid.UUID(tenant_id)
+        count_base = (
+            select(sa.func.count())
+            .select_from(Company)
+            .where(Company.tenant_id == uuid.UUID(tenant_id))
         )
 
         if query:
@@ -813,10 +979,14 @@ class CompanyService:
 
         if cursor:
             from sdk.pagination import build_keyset_condition, decode_cursor
+
             cursor_id, cursor_sort = decode_cursor(cursor)
             condition = build_keyset_condition(
-                Company, cursor_id, cursor_sort,
-                sort_by="created_at", sort_dir="desc",
+                Company,
+                cursor_id,
+                cursor_sort,
+                sort_by="created_at",
+                sort_dir="desc",
             )
             base = base.where(condition)
 
@@ -826,16 +996,26 @@ class CompanyService:
         return rows, total
 
     async def search_companies_cursored(
-        self, tenant_id: str, query: str | None = None,
+        self,
+        tenant_id: str,
+        query: str | None = None,
         filters: dict | None = None,
-        page_size: int = 20, sort_by: str = "created_at",
-        sort_desc: bool = True, cursor: str | None = None,
+        page_size: int = 20,
+        sort_by: str = "created_at",
+        sort_desc: bool = True,
+        cursor: str | None = None,
     ) -> CursorPage[Company]:
         from .repositories import CompanyRepository
+
         repo = CompanyRepository(self.db)
         return await repo.search_cursored(
-            tenant_id=tenant_id, query=query, filters=filters,
-            page_size=page_size, sort_by=sort_by, sort_desc=sort_desc, cursor=cursor,
+            tenant_id=tenant_id,
+            query=query,
+            filters=filters,
+            page_size=page_size,
+            sort_by=sort_by,
+            sort_desc=sort_desc,
+            cursor=cursor,
         )
 
     async def bulk_update_companies(self, company_ids: list[str], updates: dict) -> dict:
@@ -857,7 +1037,9 @@ class CompanyService:
                             value = int(value)
                         except (ValueError, TypeError):
                             failed += 1
-                            errors.append({"company_id": cid, "error": f"Invalid size value: {value}"})
+                            errors.append(
+                                {"company_id": cid, "error": f"Invalid size value: {value}"}
+                            )
                             continue
                     if hasattr(company, model_key) and value is not None:
                         setattr(company, model_key, value)
@@ -884,7 +1066,9 @@ class CompanyService:
                         )
                     except Exception:
                         if self.logger:
-                            self.logger.warn("event.publish_failed", entity_type="company", aggregate_id=cid)
+                            self.logger.warn(
+                                "event.publish_failed", entity_type="company", aggregate_id=cid
+                            )
                 updated += 1
             except Exception as e:
                 failed += 1
@@ -893,7 +1077,7 @@ class CompanyService:
         return {"updated": updated, "failed": failed, "errors": errors}
 
     async def bulk_delete_companies(self, company_ids: list[str]) -> dict:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         deleted = 0
 
         for cid in company_ids:
@@ -962,7 +1146,9 @@ class CompanyService:
                             setattr(existing_company, key, value)
                     if existing_company.source_ids:
                         if source_slug not in existing_company.source_ids:
-                            existing_company.source_ids = existing_company.source_ids + [source_slug]
+                            existing_company.source_ids = existing_company.source_ids + [
+                                source_slug
+                            ]
                     else:
                         existing_company.source_ids = [source_slug]
                     updated += 1
@@ -970,7 +1156,9 @@ class CompanyService:
                     company_data = {
                         "tenant_id": uuid.UUID(tenant_id),
                         "source_ids": [source_slug],
-                        **{k: v for k, v in record.items() if hasattr(Company, k) and v is not None},
+                        **{
+                            k: v for k, v in record.items() if hasattr(Company, k) and v is not None
+                        },
                     }
                     company = Company(**company_data)
                     self.db.add(company)

@@ -1,15 +1,14 @@
 """Tests for Meeting Intelligence — talking points, questions, topics, action items, sentiment."""
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock
-
-import pytest
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock
 
 from domains.commercial.meeting.intelligence import MeetingIntelligenceService
 
-
 # ── Fake SQLAlchemy helpers ──────────────────────────────────────────────────
+
 
 class FakeMapping:
     def __init__(self, data):
@@ -69,13 +68,25 @@ def _make_service(stage="proposal"):
         if "companies" in text and "activity" not in text:
             return FakeResult(FakeMappings(one=COMPANY_ROW))
         elif "company_signals" in text:
-            return FakeResult(FakeMappings(rows=[
-                {"title": "Signal 1", "description": "Description of signal 1", "created_at": datetime.now(timezone.utc)},
-            ]))
+            return FakeResult(
+                FakeMappings(
+                    rows=[
+                        {
+                            "title": "Signal 1",
+                            "description": "Description of signal 1",
+                            "created_at": datetime.now(UTC),
+                        },
+                    ]
+                )
+            )
         elif "FROM contacts" in text or "contacts WHERE" in text:
-            return FakeResult(FakeMappings(rows=[
-                {"name": "Ahmed", "position": "CTO"},
-            ]))
+            return FakeResult(
+                FakeMappings(
+                    rows=[
+                        {"name": "Ahmed", "position": "CTO"},
+                    ]
+                )
+            )
         elif "commercial_opportunities" in text:
             return FakeResult(FakeMappings(one=opp_row))
         return FakeResult(FakeMappings())
@@ -86,6 +97,7 @@ def _make_service(stage="proposal"):
 
 
 # ── Tests: Talking Points ───────────────────────────────────────────────────
+
 
 class TestTalkingPoints:
     def test_qualification_stage(self):
@@ -122,6 +134,7 @@ class TestTalkingPoints:
 
 # ── Tests: Questions ─────────────────────────────────────────────────────────
 
+
 class TestQuestions:
     def test_always_has_general_question(self):
         service = _make_service()
@@ -152,10 +165,13 @@ class TestQuestions:
 
 # ── Tests: Topic Extraction ─────────────────────────────────────────────────
 
+
 class TestTopicExtraction:
     def test_returns_list(self):
         service = _make_service()
-        topics = service._extract_topics("This is a long enough line for topic extraction to work properly")
+        topics = service._extract_topics(
+            "This is a long enough line for topic extraction to work properly"
+        )
         assert isinstance(topics, list)
 
     def test_short_lines_excluded(self):
@@ -165,13 +181,15 @@ class TestTopicExtraction:
 
     def test_long_lines_included(self):
         service = _make_service()
-        long_line = "This is a very long line that should be included as a topic because it exceeds twenty characters"
+        long_line = "This is a very long line that should be included as a topic because it exceeds twenty characters"  # noqa: E501
         topics = service._extract_topics(long_line)
         assert len(topics) == 1
 
     def test_max_5_topics(self):
         service = _make_service()
-        lines = "\n".join([f"This is topic line number {i} and it is quite long enough" for i in range(10)])
+        lines = "\n".join(
+            [f"This is topic line number {i} and it is quite long enough" for i in range(10)]
+        )
         topics = service._extract_topics(lines)
         assert len(topics) <= 5
 
@@ -187,6 +205,7 @@ class TestTopicExtraction:
 
 
 # ── Tests: Action Items Extraction ──────────────────────────────────────────
+
 
 class TestActionItemsExtraction:
     def test_action_colon(self):
@@ -230,10 +249,11 @@ class TestActionItemsExtraction:
 
 # ── Tests: Sentiment Analysis ───────────────────────────────────────────────
 
+
 class TestSentimentAnalysis:
     def test_positive_sentiment(self):
         service = _make_service()
-        # Use words that don't accidentally contain "لا" as substring (e.g. "الاجتماع" contains "لا")
+        # Use words that don't accidentally contain "لا" as substring (e.g. "الاجتماع" contains "لا")  # noqa: E501
         sentiment = service._analyze_sentiment("ممتاز جداً، شراكة ناجحة وموافق على كل شيء")
         assert sentiment == "positive"
 
@@ -264,6 +284,7 @@ class TestSentimentAnalysis:
 
 
 # ── Tests: generate_summary (non-DB-dependent parts) ────────────────────────
+
 
 class TestGenerateSummary:
     async def test_returns_dict(self):

@@ -41,9 +41,7 @@ class FullTextSearch(ABC):
         """Index or update a document."""
 
     @abstractmethod
-    async def bulk_index(
-        self, index_name: str, documents: list[dict]
-    ) -> None:
+    async def bulk_index(self, index_name: str, documents: list[dict]) -> None:
         """Bulk index multiple documents."""
 
     @abstractmethod
@@ -74,10 +72,18 @@ class VectorSearch(ABC):
         """Delete a vector embedding."""
 
 
-ALLOWED_COLLECTIONS = frozenset({
-    "company_embeddings", "contact_embeddings", "document_embeddings",
-    "companies", "contacts", "licenses", "branches", "opportunities",
-})
+ALLOWED_COLLECTIONS = frozenset(
+    {
+        "company_embeddings",
+        "contact_embeddings",
+        "document_embeddings",
+        "companies",
+        "contacts",
+        "licenses",
+        "branches",
+        "opportunities",
+    }
+)
 
 
 def _validate_collection(name: str) -> None:
@@ -120,9 +126,7 @@ class PgVectorSearch(VectorSearch):
                 ORDER BY embedding <=> :vector::vector
                 LIMIT :top_k
             """)
-            result = await session.execute(
-                stmt, {"vector": vector, "top_k": top_k}
-            )
+            result = await session.execute(stmt, {"vector": vector, "top_k": top_k})
             rows = result.fetchall()
             return [
                 SearchResult(id=str(r.id), score=float(r.score), data=r.metadata or {})
@@ -142,9 +146,7 @@ class PgVectorSearch(VectorSearch):
                 ON CONFLICT (id)
                 DO UPDATE SET embedding = :vector::vector, metadata = :metadata::jsonb
             """)
-            await session.execute(
-                stmt, {"id": document_id, "vector": vector, "metadata": metadata}
-            )
+            await session.execute(stmt, {"id": document_id, "vector": vector, "metadata": metadata})
             await session.commit()
 
     async def delete(self, collection: str, document_id: str) -> None:

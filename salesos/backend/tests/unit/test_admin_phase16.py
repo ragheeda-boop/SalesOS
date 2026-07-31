@@ -1,10 +1,9 @@
 """Phase 16 Admin Backend — Feature Flags, Roles, Config, Audit CSV, Tenant lifecycle."""
+
 from __future__ import annotations
 
-import csv
-import io
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -14,7 +13,6 @@ from app.modules.admin.db_models import (
     FeatureFlagModel,
     PermissionModel,
     RoleModel,
-    RolePermissionModel,
     TenantConfigModel,
 )
 from app.modules.admin.pg_repositories import (
@@ -30,8 +28,8 @@ from app.modules.admin.services import (
     TenantProvisioningService,
 )
 
-
 # ── Fake SQLAlchemy helpers ──────────────────────────────────────────────────
+
 
 class FakeScalars:
     def __init__(self, items=None):
@@ -73,38 +71,56 @@ class FakeResult:
 
 
 def _make_flag(key="test_flag", enabled=True, is_ci_test=False, rollout_pct=100, overrides=None):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return FeatureFlagModel(
-        id=uuid.uuid4(), key=key, name=f"Flag {key}",
-        description=f"Test flag {key}", enabled=enabled,
-        is_global=True, tenant_overrides=overrides or {},
-        rollout_percentage=rollout_pct, is_ci_test=is_ci_test,
-        created_at=now, updated_at=now,
+        id=uuid.uuid4(),
+        key=key,
+        name=f"Flag {key}",
+        description=f"Test flag {key}",
+        enabled=enabled,
+        is_global=True,
+        tenant_overrides=overrides or {},
+        rollout_percentage=rollout_pct,
+        is_ci_test=is_ci_test,
+        created_at=now,
+        updated_at=now,
     )
 
 
 def _make_role(role_id="role_test", name="Test Role", is_system=False):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return RoleModel(
-        id=role_id, name=name, description=f"Role {name}",
-        is_system=is_system, created_at=now, updated_at=now,
+        id=role_id,
+        name=name,
+        description=f"Role {name}",
+        is_system=is_system,
+        created_at=now,
+        updated_at=now,
     )
 
 
 def _make_permission(perm_id="perm_test", key="test_perm", name="Test Perm", group="test"):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return PermissionModel(
-        id=perm_id, key=key, name=name, description=f"Permission {name}",
-        group=group, created_at=now,
+        id=perm_id,
+        key=key,
+        name=name,
+        description=f"Permission {name}",
+        group=group,
+        created_at=now,
     )
 
 
 def _make_config(tenant_id="t-1", key="settings", yaml_content="key: value", version=1):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return TenantConfigModel(
-        id=version, tenant_id=tenant_id, key=key,
-        yaml_content=yaml_content, version=version,
-        created_by="admin", created_at=now,
+        id=version,
+        tenant_id=tenant_id,
+        key=key,
+        yaml_content=yaml_content,
+        version=version,
+        created_by="admin",
+        created_at=now,
     )
 
 
@@ -394,7 +410,10 @@ class TestRolesAndPermissions:
 
     @pytest.mark.asyncio
     async def test_list_permissions(self):
-        perms = [_make_permission("p1", "read", "Read", "crm"), _make_permission("p2", "write", "Write", "crm")]
+        perms = [
+            _make_permission("p1", "read", "Read", "crm"),
+            _make_permission("p2", "write", "Write", "crm"),
+        ]
         session = AsyncMock(spec=AsyncSession)
 
         async def execute(stmt, *args, **kwargs):
@@ -475,7 +494,9 @@ class TestConfigEditor:
     @pytest.mark.asyncio
     async def test_list_keys(self):
         session = AsyncMock(spec=AsyncSession)
-        session.execute = AsyncMock(return_value=FakeResult(mapping_rows=[("settings",), ("rules",)]))
+        session.execute = AsyncMock(
+            return_value=FakeResult(mapping_rows=[("settings",), ("rules",)])
+        )
 
         svc = ConfigEditorService(session)
         keys = await svc.list_keys("t-1")
@@ -502,14 +523,21 @@ class TestAuditCSVExport:
         assert result == ""
 
     def test_single_entry_csv(self):
-        now = datetime.now(timezone.utc)
-        entries = [{
-            "id": "log-1", "tenant_id": "t-1", "user_id": "u-1",
-            "action": "created", "resource_type": "company",
-            "resource_id": "c-1", "outcome": "success",
-            "ip_address": "127.0.0.1", "user_agent": "test",
-            "created_at": now,
-        }]
+        now = datetime.now(UTC)
+        entries = [
+            {
+                "id": "log-1",
+                "tenant_id": "t-1",
+                "user_id": "u-1",
+                "action": "created",
+                "resource_type": "company",
+                "resource_id": "c-1",
+                "outcome": "success",
+                "ip_address": "127.0.0.1",
+                "user_agent": "test",
+                "created_at": now,
+            }
+        ]
         result = AuditCSVExportService.to_csv(entries)
         lines = result.strip().split("\n")
         assert len(lines) == 2
@@ -519,10 +547,15 @@ class TestAuditCSVExport:
         assert "log-1" in lines[1]
 
     def test_multiple_entries_csv(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         entries = [
-            {"id": f"log-{i}", "tenant_id": "t-1", "action": f"action_{i}",
-             "resource_type": "company", "created_at": now}
+            {
+                "id": f"log-{i}",
+                "tenant_id": "t-1",
+                "action": f"action_{i}",
+                "resource_type": "company",
+                "created_at": now,
+            }
             for i in range(5)
         ]
         result = AuditCSVExportService.to_csv(entries)
@@ -530,7 +563,7 @@ class TestAuditCSVExport:
         assert len(lines) == 6
 
     def test_csv_datetime_serialization(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         entries = [{"id": "log-dt", "created_at": now}]
         result = AuditCSVExportService.to_csv(entries)
         assert now.isoformat() in result
@@ -559,8 +592,12 @@ class TestTenantProvisioning:
         role_repo.get_permissions = AsyncMock(return_value=[])
         role_repo.set_permissions = AsyncMock()
 
-        with patch("app.modules.admin.services.PostgresPermissionRepository", return_value=perm_repo), \
-             patch("app.modules.admin.services.PostgresRoleRepository", return_value=role_repo):
+        with (
+            patch(
+                "app.modules.admin.services.PostgresPermissionRepository", return_value=perm_repo
+            ),
+            patch("app.modules.admin.services.PostgresRoleRepository", return_value=role_repo),
+        ):
             svc = TenantProvisioningService(session)
             await svc.seed_defaults()
 
@@ -579,8 +616,12 @@ class TestTenantProvisioning:
         role_repo.get_permissions = AsyncMock(return_value=[])
         role_repo.set_permissions = AsyncMock()
 
-        with patch("app.modules.admin.services.PostgresPermissionRepository", return_value=perm_repo), \
-             patch("app.modules.admin.services.PostgresRoleRepository", return_value=role_repo):
+        with (
+            patch(
+                "app.modules.admin.services.PostgresPermissionRepository", return_value=perm_repo
+            ),
+            patch("app.modules.admin.services.PostgresRoleRepository", return_value=role_repo),
+        ):
             svc = TenantProvisioningService(session)
             result = await svc.provision_tenant("t-new")
         assert result["tenant_id"] == "t-new"

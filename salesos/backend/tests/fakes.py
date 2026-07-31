@@ -1,21 +1,25 @@
-"""Shared fake implementations for unit tests — replaces duplicated FakeMapping/FakeMappings/FakeResult across test files."""
+"""Shared fake implementations for unit tests — replaces duplicated FakeMapping/FakeMappings/FakeResult across test files."""  # noqa: E501
 
 from __future__ import annotations
 
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 from unittest.mock import AsyncMock
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class FakeDBResult:
-    """Simulates a SQLAlchemy `CursorResult` for `.mappings()`, `.scalar()`, `.one_or_none()`, and iteration.
+    """Simulates a SQLAlchemy `CursorResult` for `.mappings()`, `.scalar()`,
+    `.one_or_none()`, and iteration.
 
     Centralises all the duplicated `FakeMapping`/`FakeMappings`/`FakeResult` variants found
     across test files into a single unified implementation.
     """
 
-    def __init__(self, rows: Optional[list[dict]] = None, one: Optional[dict] = None, scalar_val: Any = None):
+    def __init__(
+        self, rows: list[dict] | None = None, one: dict | None = None, scalar_val: Any = None
+    ):
         self._rows = rows or []
         self._one = one
         self._scalar_val = scalar_val
@@ -71,7 +75,7 @@ class FakeDBResult:
     def one(self) -> FakeDBResult:
         return self
 
-    def one_or_none(self) -> Optional[FakeDBResult]:
+    def one_or_none(self) -> FakeDBResult | None:
         return self if self._one is not None else None
 
     def all(self) -> list[FakeDBResult]:
@@ -85,7 +89,7 @@ class FakeExecute:
     or use `with_handler` to attach a custom handler function.
     """
 
-    def __init__(self, handler: Optional[Callable[[str, Any], FakeDBResult]] = None):
+    def __init__(self, handler: Callable[[str, Any], FakeDBResult] | None = None):
         self._handler = handler
 
     async def __call__(self, sql_str, params=None) -> FakeDBResult:

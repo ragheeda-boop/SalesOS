@@ -125,7 +125,7 @@ class TestForecastSeedAndRun:
         assert company_resp.status_code in (200, 201)
         company_id = company_resp.json()["id"]
 
-        opp_resp = await client.post(
+        _ = await client.post(
             "/api/v1/opportunities",
             params={
                 "company_id": company_id,

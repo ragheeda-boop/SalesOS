@@ -22,9 +22,11 @@ async def list_jobs(
     cursor: str | None = Query(None, description="Keyset cursor for pagination"),
     repos: AdminRepositories = Depends(get_admin_repos),
 ):
-    from sdk.pagination import decode_cursor, encode_cursor
+    from sdk.pagination import encode_cursor
 
-    jobs, total = await repos.jobs.list(status=status, job_type=job_type, page=1, page_size=page_size + 1)
+    jobs, total = await repos.jobs.list(
+        status=status, job_type=job_type, page=1, page_size=page_size + 1
+    )
     has_next = len(jobs) > page_size
     if has_next:
         jobs = jobs[:page_size]
@@ -32,15 +34,35 @@ async def list_jobs(
     if has_next and jobs:
         last = jobs[-1]
         next_cursor = encode_cursor(str(last.id), last.created_at)
-    items = [JobResponse(
-        id=j.id, type=j.type, status=j.status, progress=j.progress,
-        tenant_id=j.tenant_id, created_by=j.created_by, payload=j.payload,
-        result=j.result, error_message=j.error_message,
-        retry_count=j.retry_count, max_retries=j.max_retries,
-        scheduled_at=j.scheduled_at, started_at=j.started_at,
-        completed_at=j.completed_at, created_at=j.created_at, updated_at=j.updated_at,
-    ) for j in jobs]
-    return PaginatedResponse(total=total, page=1, page_size=page_size, items=items, next_cursor=next_cursor, has_next=has_next)
+    items = [
+        JobResponse(
+            id=j.id,
+            type=j.type,
+            status=j.status,
+            progress=j.progress,
+            tenant_id=j.tenant_id,
+            created_by=j.created_by,
+            payload=j.payload,
+            result=j.result,
+            error_message=j.error_message,
+            retry_count=j.retry_count,
+            max_retries=j.max_retries,
+            scheduled_at=j.scheduled_at,
+            started_at=j.started_at,
+            completed_at=j.completed_at,
+            created_at=j.created_at,
+            updated_at=j.updated_at,
+        )
+        for j in jobs
+    ]
+    return PaginatedResponse(
+        total=total,
+        page=1,
+        page_size=page_size,
+        items=items,
+        next_cursor=next_cursor,
+        has_next=has_next,
+    )
 
 
 @router.get("/jobs/{job_id}", response_model=JobDetailResponse)
@@ -49,12 +71,22 @@ async def get_job(job_id: str, repos: AdminRepositories = Depends(get_admin_repo
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     return JobDetailResponse(
-        id=job.id, type=job.type, status=job.status, progress=job.progress,
-        tenant_id=job.tenant_id, created_by=job.created_by, payload=job.payload,
-        result=job.result, error_message=job.error_message,
-        retry_count=job.retry_count, max_retries=job.max_retries,
-        scheduled_at=job.scheduled_at, started_at=job.started_at,
-        completed_at=job.completed_at, created_at=job.created_at, updated_at=job.updated_at,
+        id=job.id,
+        type=job.type,
+        status=job.status,
+        progress=job.progress,
+        tenant_id=job.tenant_id,
+        created_by=job.created_by,
+        payload=job.payload,
+        result=job.result,
+        error_message=job.error_message,
+        retry_count=job.retry_count,
+        max_retries=job.max_retries,
+        scheduled_at=job.scheduled_at,
+        started_at=job.started_at,
+        completed_at=job.completed_at,
+        created_at=job.created_at,
+        updated_at=job.updated_at,
         logs=job.logs,
     )
 

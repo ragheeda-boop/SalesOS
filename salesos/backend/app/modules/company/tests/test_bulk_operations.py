@@ -6,18 +6,16 @@ import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import NotFoundError
 from app.modules.company.models import Company
-from app.modules.company.service import CompanyService
 from app.modules.company.schemas import (
     BulkDeleteRequest,
+    BulkDeleteResponse,
     BulkEditRequest,
     BulkEditResponse,
-    BulkDeleteResponse,
 )
-
+from app.modules.company.service import CompanyService
 
 # ── Bulk Update Tests ────────────────────────────────────────────────────
 
@@ -30,11 +28,23 @@ class TestBulkUpdate:
         service.event_bus = AsyncMock()
         service.logger = None
 
-        c1 = MagicMock(spec=Company, id=uuid.uuid4(), tenant_id=uuid.uuid4(),
-                       industry="Tech", status="active", tags=["a"])
+        c1 = MagicMock(
+            spec=Company,
+            id=uuid.uuid4(),
+            tenant_id=uuid.uuid4(),
+            industry="Tech",
+            status="active",
+            tags=["a"],
+        )
         c1.__class__ = Company
-        c2 = MagicMock(spec=Company, id=uuid.uuid4(), tenant_id=uuid.uuid4(),
-                       industry="Finance", status="active", tags=["b"])
+        c2 = MagicMock(
+            spec=Company,
+            id=uuid.uuid4(),
+            tenant_id=uuid.uuid4(),
+            industry="Finance",
+            status="active",
+            tags=["b"],
+        )
         c2.__class__ = Company
 
         with patch.object(service, "get_company") as mock_get:
@@ -58,8 +68,13 @@ class TestBulkUpdate:
         service.event_bus = AsyncMock()
         service.logger = None
 
-        c1 = MagicMock(spec=Company, id=uuid.uuid4(), tenant_id=uuid.uuid4(),
-                       industry="Tech", name_ar="Old Name")
+        c1 = MagicMock(
+            spec=Company,
+            id=uuid.uuid4(),
+            tenant_id=uuid.uuid4(),
+            industry="Tech",
+            name_ar="Old Name",
+        )
         c1.__class__ = Company
 
         with patch.object(service, "get_company") as mock_get:
@@ -103,8 +118,9 @@ class TestBulkDelete:
         service.event_bus = None
         service.logger = None
 
-        c1 = MagicMock(spec=Company, id=uuid.uuid4(), tenant_id=uuid.uuid4(),
-                       status="active", is_active=True)
+        c1 = MagicMock(
+            spec=Company, id=uuid.uuid4(), tenant_id=uuid.uuid4(), status="active", is_active=True
+        )
         c1.__class__ = Company
 
         with patch.object(service, "get_company") as mock_get:
@@ -124,9 +140,7 @@ class TestBulkDelete:
 
         with patch.object(service, "get_company") as mock_get:
             mock_get.side_effect = NotFoundError("Company", "bad-id")
-            result = await service.bulk_delete_companies(
-                ["00000000-0000-0000-0000-000000000000"]
-            )
+            result = await service.bulk_delete_companies(["00000000-0000-0000-0000-000000000000"])
 
         assert result["deleted"] == 0
 
@@ -144,7 +158,9 @@ class TestBulkEditSchema:
         assert req.updates["industry"] == "Tech"
 
     def test_bulk_edit_response(self):
-        resp = BulkEditResponse(updated=5, failed=1, errors=[{"company_id": "x", "error": "not found"}])
+        resp = BulkEditResponse(
+            updated=5, failed=1, errors=[{"company_id": "x", "error": "not found"}]
+        )
         assert resp.updated == 5
         assert len(resp.errors) == 1
 

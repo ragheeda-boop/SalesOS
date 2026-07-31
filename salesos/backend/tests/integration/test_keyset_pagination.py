@@ -8,15 +8,14 @@ Uses mocked SQLAlchemy sessions to verify that:
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from sqlalchemy import func, select
 
 from app.modules.company.models import Company
 from app.modules.company.repositories import CompanyRepository
-from sdk.pagination import CursorPage, decode_cursor, encode_cursor
+from sdk.pagination import decode_cursor
 
 
 @pytest.fixture
@@ -46,7 +45,7 @@ def _make_company(id_suffix: int, tenant_id: str, created_at: datetime | None = 
     c.cr_number = f"CR{id_suffix:06d}"
     c.status = "active"
     c.city = "Riyadh"
-    c.created_at = created_at or datetime.now(timezone.utc)
+    c.created_at = created_at or datetime.now(UTC)
     return c
 
 
@@ -125,7 +124,7 @@ async def test_cursor_roundtrip(mock_session):
     """Cursor must survive encode → decode → use cycle."""
     repo = CompanyRepository(mock_session)
     tenant_id = str(uuid.uuid4())
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     companies = [_make_company(i, tenant_id, now) for i in range(2)]
 
     mock_session.execute.return_value = _mock_scalar_result(companies)

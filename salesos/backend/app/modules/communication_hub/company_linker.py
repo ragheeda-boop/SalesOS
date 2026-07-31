@@ -7,19 +7,21 @@ from uuid import UUID
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-_FREE_EMAIL_DOMAINS = frozenset({
-    "gmail.com",
-    "googlemail.com",
-    "yahoo.com",
-    "outlook.com",
-    "hotmail.com",
-    "live.com",
-    "icloud.com",
-    "me.com",
-    "aol.com",
-    "proton.me",
-    "protonmail.com",
-})
+_FREE_EMAIL_DOMAINS = frozenset(
+    {
+        "gmail.com",
+        "googlemail.com",
+        "yahoo.com",
+        "outlook.com",
+        "hotmail.com",
+        "live.com",
+        "icloud.com",
+        "me.com",
+        "aol.com",
+        "proton.me",
+        "protonmail.com",
+    }
+)
 
 # Cap domains to bound query size / param count.
 _MAX_DOMAINS = 20

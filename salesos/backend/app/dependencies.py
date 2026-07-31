@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import UnauthorizedError
 from app.database import async_session, get_db
-from sdk.permissions import PermissionAction, PermissionEnforcer
 from sdk.exceptions import PermissionDeniedError
+from sdk.permissions import PermissionAction, PermissionEnforcer
 
 
 async def verify_token(
@@ -43,7 +43,9 @@ async def get_current_user_id(
 
 
 async def get_current_tenant_id(
-    x_tenant_id: str | None = Header(None, alias="X-Tenant-Id", description="Tenant ID for multi-tenancy"),
+    x_tenant_id: str | None = Header(
+        None, alias="X-Tenant-Id", description="Tenant ID for multi-tenancy"
+    ),
     token_payload: dict = Depends(verify_token),
 ) -> str:
     """Resolve tenant from header or JWT claim.
@@ -80,6 +82,7 @@ async def get_current_user_role(
     db: AsyncSession = Depends(get_db_session),
 ) -> str:
     from app.modules.identity.service import IdentityService
+
     service = IdentityService(db=db)
     user = await service.get_user(token_payload.get("sub", ""))
     return user.role
@@ -112,23 +115,27 @@ async def require_permission(
         PermissionEnforcer.check(user.role, resource, action)
         return True
     except PermissionDeniedError as e:
-        raise HTTPException(status_code=403, detail=str(e))
+        raise HTTPException(status_code=403, detail=str(e)) from e
 
 
 def require_role_dep(required_role: str) -> Callable:
     """Factory for role-checking dependency. Use: Depends(require_role_dep('admin'))."""
+
     async def _require_role(user_role: str = Depends(get_current_user_role)) -> bool:
         return await require_role(required_role, user_role=user_role)
+
     return _require_role
 
 
 def require_permission_dep(resource: str, action: PermissionAction) -> Callable:
-    """Factory for permission-checking dependency. Use: Depends(require_permission_dep('company', PermissionAction.CREATE))."""
+    """Factory for permission-checking dependency. Use: Depends(require_permission_dep('company', PermissionAction.CREATE))."""  # noqa: E501
+
     async def _require_permission(
         token_payload: dict = Depends(verify_token),
         db: AsyncSession = Depends(get_db_session),
     ) -> bool:
         return await require_permission(resource, action, token_payload=token_payload, db=db)
+
     return _require_permission
 
 
@@ -141,14 +148,15 @@ def get_search_repository():
     Used by SearchRuntime and FastAPI dependency injection.
     """
     from domains.search.engine.postgres_repo import PostgresSearchRepository
+
     return PostgresSearchRepository(session_factory=async_session)
 
 
 async def get_feature_store_service(
     db: AsyncSession = Depends(get_db_session),
 ):
-    from domains.feature_store.service import FeatureStoreService
     from domains.feature_store.postgres_repo import PostgresFeatureStoreRepository
+    from domains.feature_store.service import FeatureStoreService
 
     repo = PostgresFeatureStoreRepository(session=db)
     return FeatureStoreService(repository=repo)

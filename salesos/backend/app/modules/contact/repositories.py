@@ -34,9 +34,7 @@ class ContactRepository(SqlAlchemyRepository[Contact, uuid.UUID]):
         return list(result.scalars().all())
 
     async def find_by_email(self, email: str) -> list[Contact]:
-        result = await self._session.execute(
-            select(Contact).where(Contact.email == email)
-        )
+        result = await self._session.execute(select(Contact).where(Contact.email == email))
         return list(result.scalars().all())
 
     async def find_primary_by_company(self, company_id: uuid.UUID) -> Contact | None:
@@ -59,8 +57,10 @@ class ContactRepository(SqlAlchemyRepository[Contact, uuid.UUID]):
         sort_desc: bool = True,
     ) -> tuple[list[Contact], int]:
         base = select(Contact).where(Contact.tenant_id == uuid.UUID(tenant_id))
-        count_base = select(func.count()).select_from(Contact).where(
-            Contact.tenant_id == uuid.UUID(tenant_id)
+        count_base = (
+            select(func.count())
+            .select_from(Contact)
+            .where(Contact.tenant_id == uuid.UUID(tenant_id))
         )
 
         if query:
@@ -95,8 +95,10 @@ class ContactRepository(SqlAlchemyRepository[Contact, uuid.UUID]):
         self, tenant_id: str, page: int = 1, page_size: int = 20
     ) -> tuple[list[Contact], int]:
         base = select(Contact).where(Contact.tenant_id == uuid.UUID(tenant_id))
-        count_base = select(func.count()).select_from(Contact).where(
-            Contact.tenant_id == uuid.UUID(tenant_id)
+        count_base = (
+            select(func.count())
+            .select_from(Contact)
+            .where(Contact.tenant_id == uuid.UUID(tenant_id))
         )
 
         total = await self._session.scalar(count_base) or 0
@@ -117,9 +119,7 @@ class ContactRepository(SqlAlchemyRepository[Contact, uuid.UUID]):
         )
         return list(result.scalars().all())
 
-    async def find_by_tenant_and_email(
-        self, tenant_id: str, email: str
-    ) -> list[Contact]:
+    async def find_by_tenant_and_email(self, tenant_id: str, email: str) -> list[Contact]:
         result = await self._session.execute(
             select(Contact).where(
                 Contact.tenant_id == uuid.UUID(tenant_id),
@@ -149,11 +149,7 @@ class ContactRepository(SqlAlchemyRepository[Contact, uuid.UUID]):
             else:
                 contact = Contact(
                     tenant_id=uuid.UUID(tenant_id),
-                    **{
-                        k: v
-                        for k, v in record.items()
-                        if hasattr(Contact, k) and v is not None
-                    },
+                    **{k: v for k, v in record.items() if hasattr(Contact, k) and v is not None},
                 )
                 self._session.add(contact)
                 created.append(contact)

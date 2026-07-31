@@ -12,7 +12,7 @@ from __future__ import annotations
 import uuid
 
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 pytestmark = pytest.mark.asyncio
@@ -57,7 +57,6 @@ async def _search_companies(db: AsyncSession, tenant_id: str, q: str, limit: int
 
 
 class TestTrigramArabicSearch:
-
     async def test_exact_arabic_name(self, db_session: AsyncSession, test_tenant: str):
         await _create_company(db_session, test_tenant, name_ar="شركة زامل للمقاولات")
         results = await _search_companies(db_session, test_tenant, "زامل")
@@ -91,7 +90,6 @@ class TestTrigramArabicSearch:
 
 
 class TestTrigramEnglishSearch:
-
     async def test_exact_english_name(self, db_session: AsyncSession, test_tenant: str):
         await _create_company(db_session, test_tenant, name_en="Saudi Aramco")
         results = await _search_companies(db_session, test_tenant, "Aramco")
@@ -110,7 +108,6 @@ class TestTrigramEnglishSearch:
 
 
 class TestTrigramCrossField:
-
     async def test_search_by_cr_number_partial(self, db_session: AsyncSession, test_tenant: str):
         cr = "CR-123456"
         await _create_company(db_session, test_tenant, cr_number=cr)
@@ -123,9 +120,12 @@ class TestTrigramCrossField:
         results = await _search_companies(db_session, test_tenant, "جدة")
         assert len(results) >= 1
 
-    async def test_search_with_activity_description(self, db_session: AsyncSession, test_tenant: str):
+    async def test_search_with_activity_description(
+        self, db_session: AsyncSession, test_tenant: str
+    ):
         await _create_company(
-            db_session, test_tenant,
+            db_session,
+            test_tenant,
             activity_description="توريد وتركيب أنظمة السلامة",
         )
         results = await _search_companies(db_session, test_tenant, "سلامة")
@@ -133,7 +133,6 @@ class TestTrigramCrossField:
 
 
 class TestTrigramEdgeCases:
-
     async def test_short_query_returns_results(self, db_session: AsyncSession, test_tenant: str):
         await _create_company(db_session, test_tenant, name_ar="بيت التمويل الكويتي")
         results = await _search_companies(db_session, test_tenant, "بيت")
@@ -146,7 +145,8 @@ class TestTrigramEdgeCases:
     async def test_multiple_companies_search(self, db_session: AsyncSession, test_tenant: str):
         for i in range(5):
             await _create_company(
-                db_session, test_tenant,
+                db_session,
+                test_tenant,
                 name_ar=f"شركة اختبار رقم {i}",
                 cr_number=f"CR-MULTI-{i}",
             )

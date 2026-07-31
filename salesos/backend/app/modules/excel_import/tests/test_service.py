@@ -1,6 +1,6 @@
 import io
 import uuid
-from unittest.mock import AsyncMock, MagicMock, PropertyMock
+from unittest.mock import AsyncMock, MagicMock
 
 import openpyxl
 import pytest
@@ -43,7 +43,7 @@ class TestParseExcel:
 
     def test_handles_empty_spreadsheet(self):
         wb = openpyxl.Workbook()
-        ws = wb.active
+        _ = wb.active
         buf = io.BytesIO()
         wb.save(buf)
         content = buf.getvalue()

@@ -5,19 +5,18 @@ from __future__ import annotations
 import asyncio
 import random
 import re
-from contextlib import asynccontextmanager
-from typing import Any
-from typing import TYPE_CHECKING
+from contextlib import asynccontextmanager, suppress
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from neo4j import AsyncDriver, AsyncManagedTransaction, Record
+    from neo4j import AsyncDriver
 
 from sdk.config import sdk_settings
 
 _NEO4J_MAX_RETRIES = 3
 _NEO4J_RETRY_BASE_DELAY = 0.1
 
-_CYpher_IDENT_RE = re.compile(r'^[A-Za-z_][A-Za-z0-9_]*$')
+_CYpher_IDENT_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
 def _validate_cypher_identifier(name: str, kind: str = "identifier") -> str:
@@ -47,9 +46,8 @@ class GraphService:
 
     @asynccontextmanager
     async def _transaction(self):
-        async with self._driver.session() as session:
-            async with await session.begin_transaction() as tx:
-                yield tx
+        async with self._driver.session() as session, await session.begin_transaction() as tx:
+            yield tx
 
     async def _run(self, op_name: str, fn, **kwargs):
         last_error = None
@@ -59,7 +57,9 @@ class GraphService:
             except Exception as exc:
                 last_error = exc
                 if attempt < _NEO4J_MAX_RETRIES:
-                    delay = _NEO4J_RETRY_BASE_DELAY * (2 ** (attempt - 1)) * (1 + random.random() * 0.1)
+                    delay = (
+                        _NEO4J_RETRY_BASE_DELAY * (2 ** (attempt - 1)) * (1 + random.random() * 0.1)
+                    )
                     await asyncio.sleep(delay)
         raise last_error
 
@@ -76,7 +76,7 @@ class GraphService:
         properties: dict[str, Any],
     ) -> str | None:
         async def _create():
-            validated = [_validate_cypher_identifier(l, "label") for l in labels]
+            validated = [_validate_cypher_identifier(label, "label") for label in labels]
             label_str = ":".join(validated)
             async with self._driver.session() as session:
                 result = await session.run(
@@ -85,15 +85,18 @@ class GraphService:
                 )
                 record = await result.single()
                 return record["id"] if record else None
+
         return await self._run("create_node", _create)
 
-    async def find_node(self, node_type: str, property_key: str, property_value: str) -> dict | None:
+    async def find_node(
+        self, node_type: str, property_key: str, property_value: str
+    ) -> dict | None:
         async def _find():
             _validate_cypher_identifier(node_type, "label")
             _validate_cypher_identifier(property_key, "property")
             async with self._driver.session() as session:
                 result = await session.run(
-                    f"MATCH (n:{node_type} {{{property_key}: $value}}) RETURN n, elementId(n) AS id",
+                    f"MATCH (n:{node_type} {{{property_key}: $value}}) RETURN n, elementId(n) AS id",  # noqa: E501
                     value=property_value,
                 )
                 record = await result.single()
@@ -101,6 +104,7 @@ class GraphService:
                     node = record["n"]
                     return {**dict(node), "_id": record["id"]}
                 return None
+
         return await self._run("find_node", _find)
 
     async def create_relationship(
@@ -123,6 +127,7 @@ class GraphService:
                     to_id=to_id,
                     props=properties or {},
                 )
+
         return await self._run("create_relationship", _create_rel)
 
     async def find_related(
@@ -144,11 +149,17 @@ class GraphService:
             async with self._driver.session() as session:
                 result = await session.run(query, node_id=node_id)
                 return await result.data()
+
         return await self._run("find_related", _find_rel)
 
     async def shortest_path(
-        self, from_type: str, from_key: str, from_value: str,
-        to_type: str, to_key: str, to_value: str,
+        self,
+        from_type: str,
+        from_key: str,
+        from_value: str,
+        to_type: str,
+        to_key: str,
+        to_value: str,
         max_hops: int = 6,
     ) -> list[dict] | None:
         async def _path():
@@ -158,10 +169,14 @@ class GraphService:
             _validate_cypher_identifier(to_key, "property")
             query = f"""
                 MATCH path = shortestPath(
-                    (a:{from_type} {{{from_key}: $from_value}})-[*..{max_hops}]-(b:{to_type} {{{to_key}: $to_value}})
+                    (a:{from_type} {{{from_key}: $from_value}})-[*..{max_hops}]
+                        -(b:{to_type} {{{to_key}: $to_value}})
                 )
-                RETURN [node IN nodes(path) | {{id: elementId(node), labels: labels(node), properties: properties(node)}}] AS nodes,
-                       [rel IN relationships(path) | {{type: type(rel), properties: properties(rel)}}] AS relationships
+                RETURN [node IN nodes(path) |
+                    {{id: elementId(node), labels: labels(node),
+                     properties: properties(node)}}] AS nodes,
+                       [rel IN relationships(path) |
+                           {{type: type(rel), properties: properties(rel)}}] AS relationships
             """
             async with self._driver.session() as session:
                 result = await session.run(
@@ -171,6 +186,7 @@ class GraphService:
                 )
                 record = await result.single()
                 return dict(record) if record else None
+
         return await self._run("shortest_path", _path)
 
     async def run_community_detection(self, label: str = "Company") -> list[dict]:
@@ -194,10 +210,9 @@ class GraphService:
             async with self._driver.session() as session:
                 result = await session.run(query)
                 return await result.data()
+
         return await self._run("community_detection", _community)
 
     async def close(self) -> None:
-        try:
+        with suppress(Exception):
             await self._driver.close()
-        except Exception:
-            pass

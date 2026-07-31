@@ -5,14 +5,13 @@ from __future__ import annotations
 import json
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
 from domains.analytics.cubes import ActivityCube, ForecastCube, PipelineCube, TeamCube
 from domains.analytics.engine import CUBE_REGISTRY, ReportEngine
 from domains.analytics.models import (
-    AnalyticsCube,
     CubeType,
     Granularity,
     OutputFormat,
@@ -29,7 +28,6 @@ from domains.analytics.templates import (
     team_performance_report,
     weekly_pipeline_summary,
 )
-
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -71,13 +69,24 @@ class TestCubeDefinitions:
         cube = ForecastCube()
         assert cube.name == "forecast"
         assert set(cube.dimensions) == {"quarter", "owner", "product_line"}
-        assert set(cube.measures) == {"forecast_amount", "committed", "best_case", "pipeline_coverage"}
+        assert set(cube.measures) == {
+            "forecast_amount",
+            "committed",
+            "best_case",
+            "pipeline_coverage",
+        }
 
     def test_team_cube_has_correct_dimensions(self):
         cube = TeamCube()
         assert cube.name == "team"
         assert set(cube.dimensions) == {"owner", "team", "month"}
-        assert set(cube.measures) == {"deals_created", "deals_won", "deals_lost", "avg_cycle_days", "win_rate"}
+        assert set(cube.measures) == {
+            "deals_created",
+            "deals_won",
+            "deals_lost",
+            "avg_cycle_days",
+            "win_rate",
+        }
 
     def test_activity_cube_has_correct_dimensions(self):
         cube = ActivityCube()
@@ -137,9 +146,7 @@ class TestForecastCubeQuery:
     @pytest.mark.asyncio
     async def test_filters_by_product_line(self):
         cube = ForecastCube()
-        rows = await cube.query(
-            db=None, tenant_id="t-1", filters={"product_line": ["SalesOS Pro"]}
-        )
+        rows = await cube.query(db=None, tenant_id="t-1", filters={"product_line": ["SalesOS Pro"]})
         assert all(r["product_line"] == "SalesOS Pro" for r in rows)
 
 
@@ -159,7 +166,7 @@ class TestTeamCubeQuery:
     @pytest.mark.asyncio
     async def test_filters_by_month(self):
         cube = TeamCube()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         this_month = now.strftime("%Y-%m")
         rows = await cube.query(db=None, tenant_id="t-1", filters={"month": [this_month]})
         assert all(r["month"] == this_month for r in rows)
@@ -348,7 +355,7 @@ class TestReportExecution:
     @pytest.mark.asyncio
     async def test_execution_output_contains_data(self, engine, sample_report):
         execution = await engine.generate(sample_report.id, "t-1")
-        with open(execution.output_path, "r") as f:
+        with open(execution.output_path) as f:
             data = json.load(f)
         assert len(data) > 0
 
@@ -363,7 +370,7 @@ class TestReportExecution:
         )
         await repo.create_report(r)
         execution = await engine.generate(r.id, "t-1")
-        with open(execution.output_path, "r") as f:
+        with open(execution.output_path) as f:
             lines = f.read().strip().split("\n")
         assert "stage" in lines[0]
 
@@ -447,7 +454,7 @@ class TestTemplates:
         assert "activity_report" in STANDARD_TEMPLATES
 
     def test_all_templates_return_valid_reports(self):
-        for name, factory in STANDARD_TEMPLATES.items():
+        for _name, factory in STANDARD_TEMPLATES.items():
             r = factory("t-1")
             assert r.name is not None
             assert r.type in CubeType

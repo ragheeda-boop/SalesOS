@@ -3,9 +3,6 @@
 from __future__ import annotations
 
 import time
-from unittest.mock import patch
-
-import pytest
 
 from app.common.metrics import MetricsTracker, _Histogram, metrics
 

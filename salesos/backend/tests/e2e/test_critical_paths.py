@@ -20,7 +20,6 @@ import asyncio
 import uuid
 
 import pytest
-import pytest_asyncio
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -154,10 +153,12 @@ class TestRegistrationLoginDashboard:
             timeout=_TEST_TIMEOUT,
         )
         assert reg.status_code in (200, 201)
-        tokens = reg.json()
+        _ = reg.json()
 
         from sqlalchemy import select
+
         from app.modules.identity.models import User
+
         result = await db_session.execute(select(User).where(User.email == email))
         user = result.scalar_one_or_none()
         if user:
@@ -257,9 +258,7 @@ class TestCompanySearchViewEnrich:
         registered_user_headers: dict,
     ):
         """GET /api/v1/companies/{id} returns full company details."""
-        company = await self._seed_company(
-            client, registered_user_headers, "CR-VIEW-001"
-        )
+        company = await self._seed_company(client, registered_user_headers, "CR-VIEW-001")
         resp = await asyncio.wait_for(
             client.get(
                 f"/api/v1/companies/{company['id']}",
@@ -278,9 +277,7 @@ class TestCompanySearchViewEnrich:
         registered_user_headers: dict,
     ):
         """GET /api/v1/companies/{id}/360 returns enriched company view with all sections."""
-        company = await self._seed_company(
-            client, registered_user_headers, "CR-360-001"
-        )
+        company = await self._seed_company(client, registered_user_headers, "CR-360-001")
         resp = await asyncio.wait_for(
             client.get(
                 f"/api/v1/companies/{company['id']}/360",
@@ -331,9 +328,7 @@ class TestCompanySearchViewEnrich:
         registered_user_headers: dict,
     ):
         """GET /api/v1/knowledge-graph/companies/{id}/insights (B-2)."""
-        company = await self._seed_company(
-            client, registered_user_headers, "CR-KG-001"
-        )
+        company = await self._seed_company(client, registered_user_headers, "CR-KG-001")
         resp = await asyncio.wait_for(
             client.get(
                 f"/api/v1/knowledge-graph/companies/{company['id']}/insights",
@@ -402,9 +397,7 @@ class TestCompanySearchViewEnrich:
 class TestNBADecisionFlow:
     """Evaluate a company through the Decision Intelligence Engine and act on it."""
 
-    async def _seed_company_id(
-        self, client: AsyncClient, headers: dict
-    ) -> str:
+    async def _seed_company_id(self, client: AsyncClient, headers: dict) -> str:
         """Create a company and return its ID."""
         resp = await client.post(
             "/api/v1/companies",
@@ -536,9 +529,7 @@ class TestNBADecisionFlow:
 class TestTimelineActivity:
     """Record activities, query timeline, verify events appear."""
 
-    async def _seed_company_id(
-        self, client: AsyncClient, headers: dict
-    ) -> str:
+    async def _seed_company_id(self, client: AsyncClient, headers: dict) -> str:
         resp = await client.post(
             "/api/v1/companies",
             json={
@@ -868,9 +859,7 @@ class TestHealthSmoke:
 
     async def test_health_root(self, client: AsyncClient):
         """GET /health returns 200 with status ok."""
-        resp = await asyncio.wait_for(
-            client.get("/health"), timeout=_TEST_TIMEOUT
-        )
+        resp = await asyncio.wait_for(client.get("/health"), timeout=_TEST_TIMEOUT)
         assert resp.status_code == 200
         body = resp.json()
         assert body["status"] in ("ok", "degraded")
@@ -878,9 +867,7 @@ class TestHealthSmoke:
 
     async def test_health_ready(self, client: AsyncClient):
         """GET /health/ready returns readiness check."""
-        resp = await asyncio.wait_for(
-            client.get("/health/ready"), timeout=_TEST_TIMEOUT
-        )
+        resp = await asyncio.wait_for(client.get("/health/ready"), timeout=_TEST_TIMEOUT)
         assert resp.status_code == 200
         body = resp.json()
         assert "status" in body
@@ -889,9 +876,7 @@ class TestHealthSmoke:
 
     async def test_health_live(self, client: AsyncClient):
         """GET /health/live returns liveness probe."""
-        resp = await asyncio.wait_for(
-            client.get("/health/live"), timeout=_TEST_TIMEOUT
-        )
+        resp = await asyncio.wait_for(client.get("/health/live"), timeout=_TEST_TIMEOUT)
         assert resp.status_code == 200
         body = resp.json()
         assert body["status"] == "alive"
@@ -899,17 +884,13 @@ class TestHealthSmoke:
 
     async def test_ping(self, client: AsyncClient):
         """GET /ping returns pong."""
-        resp = await asyncio.wait_for(
-            client.get("/ping"), timeout=_TEST_TIMEOUT
-        )
+        resp = await asyncio.wait_for(client.get("/ping"), timeout=_TEST_TIMEOUT)
         assert resp.status_code == 200
         assert resp.json() == {"ping": "pong"}
 
     async def test_root_returns_metadata(self, client: AsyncClient):
         """GET / returns SalesOS API metadata."""
-        resp = await asyncio.wait_for(
-            client.get("/"), timeout=_TEST_TIMEOUT
-        )
+        resp = await asyncio.wait_for(client.get("/"), timeout=_TEST_TIMEOUT)
         assert resp.status_code == 200
         body = resp.json()
         assert body["name"] == "SalesOS API"
@@ -917,13 +898,9 @@ class TestHealthSmoke:
         assert "docs" in body
         assert "health" in body
 
-    async def test_unauthenticated_api_returns_401(
-        self, client: AsyncClient
-    ):
+    async def test_unauthenticated_api_returns_401(self, client: AsyncClient):
         """Protected endpoint without token returns 401."""
-        resp = await asyncio.wait_for(
-            client.get("/api/v1/companies"), timeout=_TEST_TIMEOUT
-        )
+        resp = await asyncio.wait_for(client.get("/api/v1/companies"), timeout=_TEST_TIMEOUT)
         assert resp.status_code in (401, 422)
 
 
@@ -1090,4 +1067,3 @@ class TestCrossCuttingConcerns:
         data = resp.json()
         assert data["ingested"] == 2
         assert len(data["ids"]) == 2
-

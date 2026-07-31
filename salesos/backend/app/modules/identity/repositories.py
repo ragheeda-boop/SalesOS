@@ -1,7 +1,6 @@
 """PostgreSQL repositories for Identity module (Tenant, User)."""
 
 import uuid
-from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,24 +17,18 @@ class TenantRepository(SqlAlchemyRepository[Tenant, uuid.UUID]):
         super().__init__(session)
 
     async def get_by_slug(self, slug: str) -> Tenant | None:
-        result = await self._session.execute(
-            select(Tenant).where(Tenant.slug == slug)
-        )
+        result = await self._session.execute(select(Tenant).where(Tenant.slug == slug))
         return result.scalar_one_or_none()
 
     async def get_by_domain(self, domain: str) -> Tenant | None:
-        result = await self._session.execute(
-            select(Tenant).where(Tenant.domain == domain)
-        )
+        result = await self._session.execute(select(Tenant).where(Tenant.domain == domain))
         return result.scalar_one_or_none()
 
     async def find_all_active(self, page: int = 1, page_size: int = 20) -> tuple[list[Tenant], int]:
         return await self.find_all(page=page, page_size=page_size)
 
     async def exists_by_slug(self, slug: str) -> bool:
-        result = await self._session.execute(
-            select(Tenant.id).where(Tenant.slug == slug).limit(1)
-        )
+        result = await self._session.execute(select(Tenant.id).where(Tenant.slug == slug).limit(1))
         return result.scalar_one_or_none() is not None
 
 
@@ -46,9 +39,7 @@ class UserRepository(SqlAlchemyRepository[User, uuid.UUID]):
         super().__init__(session)
 
     async def get_by_email(self, email: str) -> User | None:
-        result = await self._session.execute(
-            select(User).where(User.email == email)
-        )
+        result = await self._session.execute(select(User).where(User.email == email))
         return result.scalar_one_or_none()
 
     async def find_by_tenant(
@@ -71,7 +62,5 @@ class UserRepository(SqlAlchemyRepository[User, uuid.UUID]):
         return list(result.scalars().all())
 
     async def exists_by_email(self, email: str) -> bool:
-        result = await self._session.execute(
-            select(User.id).where(User.email == email).limit(1)
-        )
+        result = await self._session.execute(select(User.id).where(User.email == email).limit(1))
         return result.scalar_one_or_none() is not None

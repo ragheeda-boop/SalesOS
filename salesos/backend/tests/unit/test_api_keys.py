@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import uuid
-from datetime import datetime, timedelta, timezone
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from datetime import UTC, datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -35,6 +35,7 @@ def api_key_service(mock_db):
 class TestApiKeyGeneration:
     def test_generate_api_key_format(self):
         import secrets
+
         raw = secrets.token_hex(32)
         key = f"sos_{raw}"
         assert key.startswith("sos_")
@@ -71,7 +72,11 @@ class TestApiKeyCreate:
         user_id = str(uuid.uuid4())
         perms = {"companies": ["read", "write"]}
         key_record, raw_key = await api_key_service.create(
-            tenant_id, user_id, "Scoped Key", permissions=perms, scopes=["companies:read"],
+            tenant_id,
+            user_id,
+            "Scoped Key",
+            permissions=perms,
+            scopes=["companies:read"],
         )
         assert key_record.permissions == perms
 
@@ -80,7 +85,10 @@ class TestApiKeyCreate:
         tenant_id = str(uuid.uuid4())
         user_id = str(uuid.uuid4())
         key_record, raw_key = await api_key_service.create(
-            tenant_id, user_id, "Expiring Key", expiry_days=30,
+            tenant_id,
+            user_id,
+            "Expiring Key",
+            expiry_days=30,
         )
         assert key_record.expires_at is not None
 
@@ -98,8 +106,12 @@ class TestApiKeyValidate:
     @pytest.mark.asyncio
     async def test_validate_valid_key(self, api_key_service, mock_db):
         mock_key = ApiKey(
-            id="key1", tenant_id=uuid.uuid4(), user_id=uuid.uuid4(),
-            name="Test", key_prefix="sos_abc123", key_hash=_TEST_API_HASH,
+            id="key1",
+            tenant_id=uuid.uuid4(),
+            user_id=uuid.uuid4(),
+            name="Test",
+            key_prefix="sos_abc123",
+            key_hash=_TEST_API_HASH,
             is_revoked=False,
         )
         mock_result = MagicMock()
@@ -113,8 +125,12 @@ class TestApiKeyValidate:
     @pytest.mark.asyncio
     async def test_validate_invalid_key(self, api_key_service, mock_db):
         mock_key = ApiKey(
-            id="key1", tenant_id=uuid.uuid4(), user_id=uuid.uuid4(),
-            name="Test", key_prefix="sos_abc123", key_hash=_WRONG_API_HASH,
+            id="key1",
+            tenant_id=uuid.uuid4(),
+            user_id=uuid.uuid4(),
+            name="Test",
+            key_prefix="sos_abc123",
+            key_hash=_WRONG_API_HASH,
             is_revoked=False,
         )
         mock_result = MagicMock()
@@ -127,8 +143,12 @@ class TestApiKeyValidate:
     @pytest.mark.asyncio
     async def test_validate_revoked_key(self, api_key_service, mock_db):
         mock_key = ApiKey(
-            id="key1", tenant_id=uuid.uuid4(), user_id=uuid.uuid4(),
-            name="Test", key_prefix="sos_abc123", key_hash="hash",
+            id="key1",
+            tenant_id=uuid.uuid4(),
+            user_id=uuid.uuid4(),
+            name="Test",
+            key_prefix="sos_abc123",
+            key_hash="hash",
             is_revoked=True,
         )
         mock_result = MagicMock()
@@ -141,10 +161,14 @@ class TestApiKeyValidate:
     @pytest.mark.asyncio
     async def test_validate_expired_key(self, api_key_service, mock_db):
         mock_key = ApiKey(
-            id="key1", tenant_id=uuid.uuid4(), user_id=uuid.uuid4(),
-            name="Test", key_prefix="sos_abc123", key_hash=_TEST_API_HASH,
+            id="key1",
+            tenant_id=uuid.uuid4(),
+            user_id=uuid.uuid4(),
+            name="Test",
+            key_prefix="sos_abc123",
+            key_hash=_TEST_API_HASH,
             is_revoked=False,
-            expires_at=datetime.now(timezone.utc) - timedelta(days=1),
+            expires_at=datetime.now(UTC) - timedelta(days=1),
         )
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = [mock_key]
@@ -157,9 +181,14 @@ class TestApiKeyValidate:
     @pytest.mark.asyncio
     async def test_validate_updates_last_used(self, api_key_service, mock_db):
         mock_key = ApiKey(
-            id="key1", tenant_id=uuid.uuid4(), user_id=uuid.uuid4(),
-            name="Test", key_prefix="sos_abc123", key_hash=_TEST_API_HASH,
-            is_revoked=False, last_used_at=None,
+            id="key1",
+            tenant_id=uuid.uuid4(),
+            user_id=uuid.uuid4(),
+            name="Test",
+            key_prefix="sos_abc123",
+            key_hash=_TEST_API_HASH,
+            is_revoked=False,
+            last_used_at=None,
         )
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = [mock_key]
@@ -175,8 +204,12 @@ class TestApiKeyRevoke:
     async def test_revoke_api_key(self, api_key_service, mock_db):
         user_id = uuid.uuid4()
         mock_key = ApiKey(
-            id="key1", tenant_id=uuid.uuid4(), user_id=user_id,
-            name="Test", key_prefix="sos_abc", key_hash="hash",
+            id="key1",
+            tenant_id=uuid.uuid4(),
+            user_id=user_id,
+            name="Test",
+            key_prefix="sos_abc",
+            key_hash="hash",
             is_revoked=False,
         )
         mock_result = MagicMock()
@@ -200,9 +233,14 @@ class TestApiKeyRevoke:
     async def test_list_for_user(self, api_key_service, mock_db):
         user_id = uuid.uuid4()
         mock_key = ApiKey(
-            id="key1", tenant_id=uuid.uuid4(), user_id=user_id,
-            name="My Key", key_prefix="sos_abc12", key_hash="hash",
-            is_revoked=False, scopes="read,write",
+            id="key1",
+            tenant_id=uuid.uuid4(),
+            user_id=user_id,
+            name="My Key",
+            key_prefix="sos_abc12",
+            key_hash="hash",
+            is_revoked=False,
+            scopes="read,write",
         )
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = [mock_key]

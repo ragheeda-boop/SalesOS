@@ -1,14 +1,16 @@
+from datetime import UTC
+
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
-from sdk.permissions import PermissionAction
-from app.application.dashboard.dto.dashboard_dto import DashboardDTO
 from app.application.dashboard.aggregators.dashboard_aggregator import DashboardAggregator
+from app.application.dashboard.dto.dashboard_dto import DashboardDTO
 from app.application.dashboard.queries.dashboard_query_handler import DashboardQueryHandler
 from app.application.dashboard.queries.get_dashboard_query import DashboardQuery
 from app.application.dashboard.services.decision_provider import DashboardDecisionProvider
+from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from sdk.permissions import PermissionAction
 
 router = APIRouter()
 
@@ -16,13 +18,13 @@ router = APIRouter()
 def _build_decision_provider():
     """Build DashboardDecisionProvider with Decision Platform wiring."""
     try:
-        from domains.decision.context.in_memory_repo import InMemoryDecisionRepository
-        from domains.decision.context.service import DecisionService
-        from domains.decision.recommendation.engine import RecommendationEngine
         from app.application.dashboard.services.decision_platform_adapter import (
             DecisionServiceAdapter,
             RecommendationEngineAdapter,
         )
+        from domains.decision.context.in_memory_repo import InMemoryDecisionRepository
+        from domains.decision.context.service import DecisionService
+        from domains.decision.recommendation.engine import RecommendationEngine
 
         repo = InMemoryDecisionRepository()
         decision_service = DecisionService(repository=repo)
@@ -46,12 +48,13 @@ async def get_dashboard(
     _: None = Depends(require_permission_dep("company", PermissionAction.READ)),
 ):
     cache = getattr(request.app.state, "cache", None) if request else None
-    cache_key = f"dashboard:{tenant_id}:{query.period}:{','.join(sorted(query.fields)) if query.fields else 'all'}"
+    cache_key = f"dashboard:{tenant_id}:{query.period}:{','.join(sorted(query.fields)) if query.fields else 'all'}"  # noqa: E501
 
     if cache:
         cached = await cache.get(cache_key)
         if cached:
             from app.application.dashboard.dto.dashboard_dto import DashboardDTO
+
             return DashboardDTO(**cached)
 
     aggregator = DashboardAggregator(db, tenant_id)
@@ -117,7 +120,9 @@ async def get_nba_feed(
     request: Request,
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Items per page"),
-    status_filter: str | None = Query(None, description="Filter by status: pending|accepted|rejected"),
+    status_filter: str | None = Query(
+        None, description="Filter by status: pending|accepted|rejected"
+    ),
     priority_min: int | None = Query(None, ge=0, le=100, description="Minimum priority threshold"),
     tenant_id: str = Depends(get_current_tenant_id),
     _: None = Depends(require_permission_dep("company", PermissionAction.READ)),
@@ -127,7 +132,7 @@ async def get_nba_feed(
     Returns cached, paginated, tenant-filtered Next Best Actions
     merged from the Decision Engine and NBA Engine.
     """
-    from datetime import datetime, timezone as tz
+    from datetime import datetime
 
     nba_items: list[NBAFeedItem] = []
 
@@ -145,19 +150,25 @@ async def get_nba_feed(
                     continue
                 if priority_min is not None and d.get("priority", 0) < priority_min:
                     continue
-                nba_items.append(NBAFeedItem(
-                    id=d["decision_id"],
-                    decision_id=d["decision_id"],
-                    company_id=d.get("company_id", ""),
-                    action=d.get("decision_type", ""),
-                    reason=d.get("reasoning", ""),
-                    confidence=d.get("confidence", 0.0),
-                    confidence_label="high" if d.get("confidence", 0) >= 0.8 else "medium" if d.get("confidence", 0) >= 0.5 else "low",
-                    priority=d.get("priority", 0),
-                    source="decision_engine",
-                    status=d.get("status", "suggested"),
-                    created_at=d.get("created_at", ""),
-                ))
+                nba_items.append(
+                    NBAFeedItem(
+                        id=d["decision_id"],
+                        decision_id=d["decision_id"],
+                        company_id=d.get("company_id", ""),
+                        action=d.get("decision_type", ""),
+                        reason=d.get("reasoning", ""),
+                        confidence=d.get("confidence", 0.0),
+                        confidence_label="high"
+                        if d.get("confidence", 0) >= 0.8
+                        else "medium"
+                        if d.get("confidence", 0) >= 0.5
+                        else "low",
+                        priority=d.get("priority", 0),
+                        source="decision_engine",
+                        status=d.get("status", "suggested"),
+                        created_at=d.get("created_at", ""),
+                    )
+                )
         except Exception:
             pass
 
@@ -166,6 +177,7 @@ async def get_nba_feed(
     if nba_engine:
         try:
             from sqlalchemy import text as sa_text
+
             async with nba_engine._session_factory() as session:
                 rows = await session.execute(
                     sa_text("""
@@ -186,7 +198,8 @@ async def get_nba_feed(
 
                 opp_map = {str(o["opp_id"]): o for o in opportunities}
                 nba_results = await nba_engine.batch_get_or_compute(
-                    list(opp_map.keys()), tenant_id,
+                    list(opp_map.keys()),
+                    tenant_id,
                 )
 
                 for opp_id, nba in nba_results.items():
@@ -200,19 +213,21 @@ async def get_nba_feed(
                     if priority_min is not None and int(nba.confidence * 100) < priority_min:
                         continue
 
-                    nba_items.append(NBAFeedItem(
-                        id=nba.id,
-                        company_id=str(opp.get("company_id", "")),
-                        company_name=str(opp.get("company_name") or ""),
-                        action=nba.action,
-                        reason=nba.reason,
-                        confidence=max(0.0, min(1.0, nba.confidence)),
-                        confidence_label=nba.confidence_label,
-                        priority=int(nba.confidence * 100),
-                        source=nba.source,
-                        status=nba.status,
-                        created_at=nba.created_at,
-                    ))
+                    nba_items.append(
+                        NBAFeedItem(
+                            id=nba.id,
+                            company_id=str(opp.get("company_id", "")),
+                            company_name=str(opp.get("company_name") or ""),
+                            action=nba.action,
+                            reason=nba.reason,
+                            confidence=max(0.0, min(1.0, nba.confidence)),
+                            confidence_label=nba.confidence_label,
+                            priority=int(nba.confidence * 100),
+                            source=nba.source,
+                            status=nba.status,
+                            created_at=nba.created_at,
+                        )
+                    )
         except Exception:
             pass
 
@@ -229,6 +244,6 @@ async def get_nba_feed(
         page=page,
         page_size=page_size,
         has_more=end < total,
-        generated_at=datetime.now(tz.utc).isoformat(),
+        generated_at=datetime.now(UTC).isoformat(),
         cached=False,
     )

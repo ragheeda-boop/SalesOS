@@ -157,7 +157,7 @@ class TestWorkflowCRUD:
             assert resp.status_code in (200, 500), resp.text
             if resp.status_code == 200:
                 assert resp.json()["deleted"] is True
-        except asyncio.TimeoutError:
+        except TimeoutError:
             pass  # Known server-side hang in async path
 
 
@@ -240,4 +240,7 @@ class TestWorkflowExecution:
             json={"context": {}},
             headers=auth_headers,
         )
-        assert resp.status_code in (400, 422), f"Expected error, got {resp.status_code}: {resp.text}"
+        assert resp.status_code in (
+            400,
+            422,
+        ), f"Expected error, got {resp.status_code}: {resp.text}"

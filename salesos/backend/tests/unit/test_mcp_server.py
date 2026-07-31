@@ -14,14 +14,14 @@ import pytest
 
 pytest.importorskip(
     "mcp",
-    reason="MCP optional dependency not installed (PROD-W3-001 quarantine; out of SalesOS GA critical path)",
+    reason="MCP optional dependency not installed (PROD-W3-001 quarantine; out of SalesOS GA critical path)",  # noqa: E501
 )
 
 from mcp_server.server import create_server
-from mcp_server.tools import set_valid_api_keys, _auth
-
+from mcp_server.tools import _auth, set_valid_api_keys
 
 # ── Fixtures ──
+
 
 @pytest.fixture(autouse=True)
 def setup_api_keys():
@@ -36,6 +36,7 @@ def mcp():
 
 
 # ── Auth Tests ──
+
 
 class TestAuth:
     def test_valid_api_key(self):
@@ -56,6 +57,7 @@ class TestAuth:
 
 
 # ── Tool Registration Tests ──
+
 
 class TestToolRegistration:
     def test_tools_are_registered(self, mcp):
@@ -87,6 +89,7 @@ class TestToolRegistration:
         """Creating a second server should not produce duplicate warnings."""
         import io
         import logging
+
         logger = logging.getLogger("mcp.server.fastmcp")
         level = logger.level
         logger.setLevel(logging.WARNING)
@@ -94,7 +97,7 @@ class TestToolRegistration:
         handler = logging.StreamHandler(buf)
         logger.addHandler(handler)
         try:
-            mcp2 = create_server(api_keys=["test-api-key"])
+            _ = create_server(api_keys=["test-api-key"])
             output = buf.getvalue()
             assert "already exists" not in output, f"Duplicates detected: {output}"
         finally:
@@ -103,6 +106,7 @@ class TestToolRegistration:
 
 
 # ── Server Initialization Tests ──
+
 
 class TestServerInit:
     def test_create_with_keys(self):
@@ -115,10 +119,12 @@ class TestServerInit:
             server = create_server()
             assert server is not None
             from mcp_server.tools import VALID_API_KEYS
+
             assert "env-key" in VALID_API_KEYS
 
 
 # ── Tool Handler Tests ──
+
 
 class TestToolHandlers:
     def test_search_companies_tool_exists(self, mcp):

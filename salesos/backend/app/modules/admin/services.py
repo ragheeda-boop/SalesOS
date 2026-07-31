@@ -1,10 +1,9 @@
-"""Admin domain services: feature flag evaluation, tenant provisioning, config validation, audit CSV export."""
+"""Admin domain services: feature flag evaluation, tenant provisioning, config validation, audit CSV export."""  # noqa: E501
 
 from __future__ import annotations
 
 import csv
 import io
-import re
 from typing import Any
 
 import yaml
@@ -15,7 +14,6 @@ from app.modules.identity.models import Tenant, User
 from .db_models import (
     PermissionModel,
     RoleModel,
-    RolePermissionModel,
     TenantConfigModel,
 )
 from .pg_repositories import (
@@ -64,27 +62,119 @@ class TenantProvisioningService:
     """Handles tenant creation with default roles, permissions, and admin user."""
 
     DEFAULT_ROLES = [
-        {"id": "role_admin", "name": "Admin", "description": "Full system access",
-         "permissions": ["admin", "manage_users", "manage_billing", "manage_plans", "manage_roles"], "is_system": True},
-        {"id": "role_manager", "name": "Sales Manager", "description": "Manage sales team and pipeline",
-         "permissions": ["read_companies", "read_contacts", "manage_opportunities", "manage_tasks", "reports"], "is_system": False},
-        {"id": "role_rep", "name": "Sales Representative", "description": "Basic sales access",
-         "permissions": ["read_companies", "read_contacts", "manage_opportunities"], "is_system": False},
-        {"id": "role_viewer", "name": "Viewer", "description": "Read-only access",
-         "permissions": ["read_companies", "read_contacts"], "is_system": False},
+        {
+            "id": "role_admin",
+            "name": "Admin",
+            "description": "Full system access",
+            "permissions": [
+                "admin",
+                "manage_users",
+                "manage_billing",
+                "manage_plans",
+                "manage_roles",
+            ],
+            "is_system": True,
+        },
+        {
+            "id": "role_manager",
+            "name": "Sales Manager",
+            "description": "Manage sales team and pipeline",
+            "permissions": [
+                "read_companies",
+                "read_contacts",
+                "manage_opportunities",
+                "manage_tasks",
+                "reports",
+            ],
+            "is_system": False,
+        },
+        {
+            "id": "role_rep",
+            "name": "Sales Representative",
+            "description": "Basic sales access",
+            "permissions": ["read_companies", "read_contacts", "manage_opportunities"],
+            "is_system": False,
+        },
+        {
+            "id": "role_viewer",
+            "name": "Viewer",
+            "description": "Read-only access",
+            "permissions": ["read_companies", "read_contacts"],
+            "is_system": False,
+        },
     ]
 
     DEFAULT_PERMISSIONS = [
-        {"id": "perm_admin", "key": "admin", "name": "Administrator", "description": "Full admin access", "group": "system"},
-        {"id": "perm_manage_users", "key": "manage_users", "name": "Manage Users", "description": "Create, edit, deactivate users", "group": "users"},
-        {"id": "perm_manage_billing", "key": "manage_billing", "name": "Manage Billing", "description": "Manage invoices and payments", "group": "billing"},
-        {"id": "perm_manage_plans", "key": "manage_plans", "name": "Manage Plans", "description": "Create and edit subscription plans", "group": "billing"},
-        {"id": "perm_manage_roles", "key": "manage_roles", "name": "Manage Roles", "description": "Create and edit RBAC roles", "group": "users"},
-        {"id": "perm_read_companies", "key": "read_companies", "name": "Read Companies", "description": "View company data", "group": "crm"},
-        {"id": "perm_read_contacts", "key": "read_contacts", "name": "Read Contacts", "description": "View contact data", "group": "crm"},
-        {"id": "perm_manage_opportunities", "key": "manage_opportunities", "name": "Manage Opportunities", "description": "Create and manage sales opportunities", "group": "sales"},
-        {"id": "perm_manage_tasks", "key": "manage_tasks", "name": "Manage Tasks", "description": "Create and manage tasks", "group": "sales"},
-        {"id": "perm_reports", "key": "reports", "name": "Reports", "description": "View and generate reports", "group": "analytics"},
+        {
+            "id": "perm_admin",
+            "key": "admin",
+            "name": "Administrator",
+            "description": "Full admin access",
+            "group": "system",
+        },
+        {
+            "id": "perm_manage_users",
+            "key": "manage_users",
+            "name": "Manage Users",
+            "description": "Create, edit, deactivate users",
+            "group": "users",
+        },
+        {
+            "id": "perm_manage_billing",
+            "key": "manage_billing",
+            "name": "Manage Billing",
+            "description": "Manage invoices and payments",
+            "group": "billing",
+        },
+        {
+            "id": "perm_manage_plans",
+            "key": "manage_plans",
+            "name": "Manage Plans",
+            "description": "Create and edit subscription plans",
+            "group": "billing",
+        },
+        {
+            "id": "perm_manage_roles",
+            "key": "manage_roles",
+            "name": "Manage Roles",
+            "description": "Create and edit RBAC roles",
+            "group": "users",
+        },
+        {
+            "id": "perm_read_companies",
+            "key": "read_companies",
+            "name": "Read Companies",
+            "description": "View company data",
+            "group": "crm",
+        },
+        {
+            "id": "perm_read_contacts",
+            "key": "read_contacts",
+            "name": "Read Contacts",
+            "description": "View contact data",
+            "group": "crm",
+        },
+        {
+            "id": "perm_manage_opportunities",
+            "key": "manage_opportunities",
+            "name": "Manage Opportunities",
+            "description": "Create and manage sales opportunities",
+            "group": "sales",
+        },
+        {
+            "id": "perm_manage_tasks",
+            "key": "manage_tasks",
+            "name": "Manage Tasks",
+            "description": "Create and manage tasks",
+            "group": "sales",
+        },
+        {
+            "id": "perm_reports",
+            "key": "reports",
+            "name": "Reports",
+            "description": "View and generate reports",
+            "group": "analytics",
+        },
     ]
 
     def __init__(self, session: AsyncSession):
@@ -99,10 +189,15 @@ class TenantProvisioningService:
 
         for pd in self.DEFAULT_PERMISSIONS:
             if pd["key"] not in existing_keys:
-                self.session.add(PermissionModel(
-                    id=pd["id"], key=pd["key"], name=pd["name"],
-                    description=pd["description"], group=pd["group"],
-                ))
+                self.session.add(
+                    PermissionModel(
+                        id=pd["id"],
+                        key=pd["key"],
+                        name=pd["name"],
+                        description=pd["description"],
+                        group=pd["group"],
+                    )
+                )
         await self.session.flush()
 
         existing_roles = await self.role_repo.list()
@@ -110,10 +205,14 @@ class TenantProvisioningService:
 
         for rd in self.DEFAULT_ROLES:
             if rd["id"] not in existing_role_ids:
-                self.session.add(RoleModel(
-                    id=rd["id"], name=rd["name"], description=rd["description"],
-                    is_system=rd["is_system"],
-                ))
+                self.session.add(
+                    RoleModel(
+                        id=rd["id"],
+                        name=rd["name"],
+                        description=rd["description"],
+                        is_system=rd["is_system"],
+                    )
+                )
         await self.session.flush()
 
         for rd in self.DEFAULT_ROLES:
@@ -156,7 +255,9 @@ class ConfigEditorService:
             if parsed is None:
                 errors.append({"line": 1, "message": "Empty YAML content"})
             elif not isinstance(parsed, dict):
-                errors.append({"line": 1, "message": f"Root must be a mapping, got {type(parsed).__name__}"})
+                errors.append(
+                    {"line": 1, "message": f"Root must be a mapping, got {type(parsed).__name__}"}
+                )
         except yaml.YAMLError as e:
             line = getattr(e, "problem_mark", None)
             if line is not None:
@@ -166,7 +267,9 @@ class ConfigEditorService:
 
         return {"valid": len(errors) == 0, "errors": errors}
 
-    async def save(self, tenant_id: str, key: str, yaml_content: str, created_by: str | None = None) -> dict:
+    async def save(
+        self, tenant_id: str, key: str, yaml_content: str, created_by: str | None = None
+    ) -> dict:
         """Save a YAML config with versioning."""
         validation = self.validate_yaml(yaml_content)
         if not validation["valid"]:
@@ -197,7 +300,12 @@ class ConfigEditorService:
     async def list_versions(self, tenant_id: str, key: str) -> list[dict]:
         versions = await self.repo.list_versions(tenant_id, key)
         return [
-            {"id": v.id, "version": v.version, "created_by": v.created_by, "created_at": v.created_at}
+            {
+                "id": v.id,
+                "version": v.version,
+                "created_by": v.created_by,
+                "created_at": v.created_at,
+            }
             for v in versions
         ]
 
@@ -211,15 +319,29 @@ class AuditCSVExportService:
             return ""
 
         output = io.StringIO()
-        fieldnames = ["id", "tenant_id", "user_id", "action", "resource_type", "resource_id",
-                       "outcome", "ip_address", "user_agent", "created_at"]
+        fieldnames = [
+            "id",
+            "tenant_id",
+            "user_id",
+            "action",
+            "resource_type",
+            "resource_id",
+            "outcome",
+            "ip_address",
+            "user_agent",
+            "created_at",
+        ]
         writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
 
         for entry in entries:
             row = {k: entry.get(k, "") for k in fieldnames}
             if row.get("created_at"):
-                row["created_at"] = row["created_at"].isoformat() if hasattr(row["created_at"], "isoformat") else str(row["created_at"])
+                row["created_at"] = (
+                    row["created_at"].isoformat()
+                    if hasattr(row["created_at"], "isoformat")
+                    else str(row["created_at"])
+                )
             writer.writerow(row)
 
         return output.getvalue()

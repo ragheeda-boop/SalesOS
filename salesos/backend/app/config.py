@@ -34,7 +34,7 @@ class Settings(BaseSettings):
         if len(v) < 32:
             raise ValueError(
                 "SECRET_KEY must be at least 32 characters. "
-                "Generate with: python -c \"import secrets; print(secrets.token_hex(32))\""
+                'Generate with: python -c "import secrets; print(secrets.token_hex(32))"'
             )
         return v
 
@@ -44,9 +44,10 @@ class Settings(BaseSettings):
         if len(v) < 32:
             raise ValueError(
                 "JWT_SECRET_KEY must be at least 32 characters. "
-                "Generate with: python -c \"import secrets; print(secrets.token_hex(32))\""
+                'Generate with: python -c "import secrets; print(secrets.token_hex(32))"'
             )
         return v
+
     allowed_hosts: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     # Support DATABASE_URL (Railway, Render, etc.) or individual POSTGRES_* vars
@@ -164,7 +165,9 @@ class Settings(BaseSettings):
     # CORS
     cors_allow_methods: str = "GET,POST,PUT,PATCH,DELETE,OPTIONS"
     # Include Accept* so browser preflights from axios/fetch pass CORS checks.
-    cors_allow_headers: str = "Authorization,Content-Type,Accept,Accept-Language,X-Tenant-Id,X-Request-ID,X-CSRF-Token"
+    cors_allow_headers: str = (
+        "Authorization,Content-Type,Accept,Accept-Language,X-Tenant-Id,X-Request-ID,X-CSRF-Token"
+    )
 
     # Redis timeouts
     redis_socket_connect_timeout: int = 2
@@ -228,7 +231,14 @@ class Settings(BaseSettings):
 
     # Audit
     audit_retention_days: int = 90
-    audit_excluded_paths: list[str] = ["/health", "/metrics", "/docs", "/redoc", "/ping", "/openapi.json"]
+    audit_excluded_paths: list[str] = [
+        "/health",
+        "/metrics",
+        "/docs",
+        "/redoc",
+        "/ping",
+        "/openapi.json",
+    ]
 
     # API Keys
     api_key_expiry_days: int = 365

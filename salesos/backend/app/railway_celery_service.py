@@ -40,7 +40,9 @@ def _build_command(role: str) -> list[str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run Celery with a lightweight Railway health server.")
+    parser = argparse.ArgumentParser(
+        description="Run Celery with a lightweight Railway health server."
+    )
     parser.add_argument("role", choices=("worker", "beat"))
     args = parser.parse_args()
 

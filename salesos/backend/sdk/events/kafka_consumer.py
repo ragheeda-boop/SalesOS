@@ -12,15 +12,15 @@ Provides:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sdk.config import sdk_settings
 from sdk.events.base import DomainEvent
-from sdk.events.topic_mapping import TOPIC_PREFIX, topic_to_domain
 from sdk.events.schema_registry import validate_event
 
 logger = logging.getLogger(__name__)
@@ -101,7 +101,8 @@ class KafkaConsumerBase(ABC):
             self._task = asyncio.create_task(self._consume_loop())
             logger.info(
                 "Consumer started (group=%s, topics=%s)",
-                self._group_id, self._topics,
+                self._group_id,
+                self._topics,
             )
             return True
         except ImportError:
@@ -117,10 +118,8 @@ class KafkaConsumerBase(ABC):
 
         if self._task is not None:
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
             self._task = None
 
         if self._consumer is not None:
@@ -158,7 +157,9 @@ class KafkaConsumerBase(ABC):
                     if errors:
                         logger.warning(
                             "Schema validation failed for %s (%s): %s",
-                            event.event_id, event.event_type, errors,
+                            event.event_id,
+                            event.event_type,
+                            errors,
                         )
                         self._metrics.record_validation_error(event.event_type)
                         continue
@@ -171,7 +172,8 @@ class KafkaConsumerBase(ABC):
                 except Exception:
                     logger.exception(
                         "Handler failed for event %s (%s)",
-                        event.event_id, event.event_type,
+                        event.event_id,
+                        event.event_type,
                     )
                     self._metrics.record_handler_error(event.event_type)
 
@@ -278,8 +280,8 @@ class ConsumerMetrics:
 
 def _parse_time(value: str | None) -> datetime:
     if value is None:
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
     try:
         return datetime.fromisoformat(value)
     except (ValueError, TypeError):
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)

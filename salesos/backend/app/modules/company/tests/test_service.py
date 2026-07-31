@@ -1,8 +1,9 @@
+from datetime import UTC
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import DuplicateError, NotFoundError
-from app.modules.company.models import Company
 from app.modules.company.service import CompanyService
 
 
@@ -84,7 +85,9 @@ async def test_update_company(db_session: AsyncSession, test_tenant: str):
 async def test_add_branch(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
 
-    company = await service.create_company(tenant_id=test_tenant, name_ar="شركة الفروع", cr_number="CR-500")
+    company = await service.create_company(
+        tenant_id=test_tenant, name_ar="شركة الفروع", cr_number="CR-500"
+    )
     branch = await service.add_branch(
         str(company.id),
         {"name_ar": "فرع الرياض", "city": "الرياض", "phone": "0112345678"},
@@ -97,7 +100,9 @@ async def test_add_branch(db_session: AsyncSession, test_tenant: str):
 async def test_add_contact(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
 
-    company = await service.create_company(tenant_id=test_tenant, name_ar="شركة الاتصالات", cr_number="CR-600")
+    company = await service.create_company(
+        tenant_id=test_tenant, name_ar="شركة الاتصالات", cr_number="CR-600"
+    )
     contact = await service.add_contact(
         str(company.id),
         {"name": "أحمد محمد", "email": "ahmed@example.com", "position": "مدير مبيعات"},
@@ -112,9 +117,10 @@ async def test_add_contact(db_session: AsyncSession, test_tenant: str):
 @pytest.mark.asyncio
 async def test_company_360_basic(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
-    from datetime import date
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة 360", cr_number="360-001",
+        tenant_id=test_tenant,
+        name_ar="شركة 360",
+        cr_number="360-001",
         city="جدة",
     )
     company.industry = "تقنية"
@@ -157,7 +163,9 @@ async def test_company_360_basic(db_session: AsyncSession, test_tenant: str):
 async def test_company_360_with_contacts_and_branches(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة متكاملة", cr_number="360-002",
+        tenant_id=test_tenant,
+        name_ar="شركة متكاملة",
+        cr_number="360-002",
     )
     cid = str(company.id)
     await service.add_branch(cid, {"name_ar": "فرع الرياض", "city": "الرياض"})
@@ -178,7 +186,9 @@ async def test_company_360_with_contacts_and_branches(db_session: AsyncSession, 
 async def test_company_360_signals_no_contacts(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة بدون جهات اتصال", cr_number="360-003",
+        tenant_id=test_tenant,
+        name_ar="شركة بدون جهات اتصال",
+        cr_number="360-003",
     )
     result = await service.get_company_360(str(company.id), test_tenant, db=db_session)
     signals = result["signals"]
@@ -191,8 +201,11 @@ async def test_company_360_signals_no_contacts(db_session: AsyncSession, test_te
 async def test_company_360_signals_expired(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
     from datetime import date, timedelta
+
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة منتهية", cr_number="360-004",
+        tenant_id=test_tenant,
+        name_ar="شركة منتهية",
+        cr_number="360-004",
     )
     company.expiry_date = date.today() - timedelta(days=30)
     await db_session.flush()
@@ -208,7 +221,9 @@ async def test_company_360_signals_expired(db_session: AsyncSession, test_tenant
 async def test_company_360_signals_no_branches(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة بلا فروع", cr_number="360-005",
+        tenant_id=test_tenant,
+        name_ar="شركة بلا فروع",
+        cr_number="360-005",
         city="جدة",
     )
     result = await service.get_company_360(str(company.id), test_tenant, db=db_session)
@@ -222,7 +237,9 @@ async def test_company_360_signals_no_branches(db_session: AsyncSession, test_te
 async def test_company_360_signals_low_data_quality(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة", cr_number="CR-LOW",
+        tenant_id=test_tenant,
+        name_ar="شركة",
+        cr_number="CR-LOW",
     )
     result = await service.get_company_360(str(company.id), test_tenant, db=db_session)
     signals = result["signals"]
@@ -236,7 +253,9 @@ async def test_company_360_signals_low_data_quality(db_session: AsyncSession, te
 async def test_company_360_pagination(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة الباجينيشن", cr_number="360-006",
+        tenant_id=test_tenant,
+        name_ar="شركة الباجينيشن",
+        cr_number="360-006",
     )
     cid = str(company.id)
     for i in range(5):
@@ -247,7 +266,9 @@ async def test_company_360_pagination(db_session: AsyncSession, test_tenant: str
     assert result["overview"]["contacts_total"] == 5
     assert result["overview"]["contacts_page"] == 1
 
-    result_page2 = await service.get_company_360(cid, test_tenant, db=db_session, page=2, page_size=2)
+    result_page2 = await service.get_company_360(
+        cid, test_tenant, db=db_session, page=2, page_size=2
+    )
     assert len(result_page2["contacts"]) == 2
     assert result_page2["overview"]["contacts_total"] == 5
     assert result_page2["overview"]["contacts_page"] == 2
@@ -268,7 +289,9 @@ async def test_company_360_not_found(db_session: AsyncSession):
 async def test_company_360_crm_section(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة CRM", cr_number="CRM-001",
+        tenant_id=test_tenant,
+        name_ar="شركة CRM",
+        cr_number="CRM-001",
     )
     cid = str(company.id)
     await service.add_contact(cid, {"name": "اتصال 1", "email": "c1@test.com"})
@@ -285,7 +308,9 @@ async def test_company_360_crm_section(db_session: AsyncSession, test_tenant: st
 async def test_company_360_entity_resolution_section(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة ER", cr_number="ER-001",
+        tenant_id=test_tenant,
+        name_ar="شركة ER",
+        cr_number="ER-001",
     )
     company.is_golden_record = True
     company.confidence_score = 0.95
@@ -301,9 +326,13 @@ async def test_company_360_entity_resolution_section(db_session: AsyncSession, t
 async def test_company_360_enrichment_firmographics(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
     from datetime import date
+
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة Firmo", cr_number="FIRMO-001",
-        city="الرياض", region="Riyadh",
+        tenant_id=test_tenant,
+        name_ar="شركة Firmo",
+        cr_number="FIRMO-001",
+        city="الرياض",
+        region="Riyadh",
     )
     company.industry = "تقنية المعلومات"
     company.isic_code = "6201"
@@ -332,7 +361,9 @@ async def test_company_360_enrichment_firmographics(db_session: AsyncSession, te
 async def test_company_360_knowledge_graph_empty(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة KG", cr_number="KG-001",
+        tenant_id=test_tenant,
+        name_ar="شركة KG",
+        cr_number="KG-001",
     )
     result = await service.get_company_360(str(company.id), test_tenant, db=db_session)
     assert result["knowledge_graph"]["relationships"] == []
@@ -344,21 +375,28 @@ async def test_company_360_knowledge_graph_empty(db_session: AsyncSession, test_
 # ── B-3 Timeline Filter Tests ──────────────────────────────────────────
 
 
-def _make_timeline_entry(session, entity_type, entity_id, event_type, created_at, domain=None, actor=None, tenant_id=None):
-    from sqlalchemy import text as sa_text
-    from datetime import timezone
+def _make_timeline_entry(
+    session, entity_type, entity_id, event_type, created_at, domain=None, actor=None, tenant_id=None
+):
     import uuid
+
+    from sqlalchemy import text as sa_text
+
     data = {"domain": domain} if domain else {}
     session.execute(
         sa_text("""
-            INSERT INTO timeline_entries (id, entity_type, entity_id, event_type, data, actor, tenant_id, created_at)
+            INSERT INTO timeline_entries (id, entity_type, entity_id, event_type,
+                data, actor, tenant_id, created_at)
             VALUES (:id, :et, :eid, :evt, :data, :actor, :tid, :ca)
         """),
         {
             "id": str(uuid.uuid4()),
-            "et": entity_type, "eid": entity_id,
-            "evt": event_type, "data": data,
-            "actor": actor or "test", "tid": tenant_id or "test",
+            "et": entity_type,
+            "eid": entity_id,
+            "evt": event_type,
+            "data": data,
+            "actor": actor or "test",
+            "tid": tenant_id or "test",
             "ca": created_at,
         },
     )
@@ -366,19 +404,32 @@ def _make_timeline_entry(session, entity_type, entity_id, event_type, created_at
 
 @pytest.mark.asyncio
 async def test_timeline_runtime_get_timeline_with_domain(db_session: AsyncSession):
+    from datetime import datetime
+
     from runtime.timeline_runtime import TimelineRuntime
-    from datetime import datetime, timezone
 
     async def session_factory():
         return db_session
 
     tl = TimelineRuntime(session_factory=session_factory)
-    now = datetime.now(timezone.utc)
+    _ = datetime.now(UTC)
 
-    await tl.record("company", "comp-1", "email.sent", {"domain": "crm", "subject": "Hello"}, tenant_id="t1")
-    await tl.record("company", "comp-1", "email.opened", {"domain": "crm", "subject": "Hello"}, tenant_id="t1")
-    await tl.record("company", "comp-1", "enrich.completed", {"domain": "enrichment", "source": "balady"}, tenant_id="t1")
-    await tl.record("company", "comp-1", "meeting.held", {"domain": "crm", "title": "QBR"}, tenant_id="t1")
+    await tl.record(
+        "company", "comp-1", "email.sent", {"domain": "crm", "subject": "Hello"}, tenant_id="t1"
+    )
+    await tl.record(
+        "company", "comp-1", "email.opened", {"domain": "crm", "subject": "Hello"}, tenant_id="t1"
+    )
+    await tl.record(
+        "company",
+        "comp-1",
+        "enrich.completed",
+        {"domain": "enrichment", "source": "balady"},
+        tenant_id="t1",
+    )
+    await tl.record(
+        "company", "comp-1", "meeting.held", {"domain": "crm", "title": "QBR"}, tenant_id="t1"
+    )
 
     # Filter by domain
     crm_events, total = await tl.get_timeline("company", "comp-1", domain="crm")
@@ -393,7 +444,6 @@ async def test_timeline_runtime_get_timeline_with_domain(db_session: AsyncSessio
 @pytest.mark.asyncio
 async def test_timeline_runtime_filter_by_event_type(db_session: AsyncSession):
     from runtime.timeline_runtime import TimelineRuntime
-    from datetime import datetime, timezone
 
     async def session_factory():
         return db_session
@@ -403,16 +453,18 @@ async def test_timeline_runtime_filter_by_event_type(db_session: AsyncSession):
     await tl.record("company", "comp-2", "meeting.held", {"domain": "crm"}, tenant_id="t1")
     await tl.record("company", "comp-2", "call.held", {"domain": "crm"}, tenant_id="t1")
 
-    events, total = await tl.get_timeline("company", "comp-2", event_types=["email.sent", "meeting.held"])
+    events, total = await tl.get_timeline(
+        "company", "comp-2", event_types=["email.sent", "meeting.held"]
+    )
     assert total == 2
     assert len(events) == 2
 
 
 @pytest.mark.asyncio
 async def test_timeline_runtime_keyset_cursor(db_session: AsyncSession):
-    from runtime.timeline_runtime import TimelineRuntime
-    from datetime import datetime, timezone
     import json
+
+    from runtime.timeline_runtime import TimelineRuntime
 
     async def session_factory():
         return db_session
@@ -437,8 +489,9 @@ async def test_timeline_runtime_keyset_cursor(db_session: AsyncSession):
 
 @pytest.mark.asyncio
 async def test_kg_engine_get_company_insights_basic(db_session: AsyncSession, test_tenant: str):
-    from runtime.knowledge_graph_runtime import KnowledgeGraphEngine, EdgeType
     from sqlalchemy import text as sa_text
+
+    from runtime.knowledge_graph_runtime import EdgeType, KnowledgeGraphEngine
 
     async def session_factory():
         return db_session
@@ -448,6 +501,7 @@ async def test_kg_engine_get_company_insights_basic(db_session: AsyncSession, te
 
     # Create test companies
     import uuid
+
     c1 = str(uuid.uuid4())
     c2 = str(uuid.uuid4())
     c3 = str(uuid.uuid4())
@@ -462,7 +516,14 @@ async def test_kg_engine_get_company_insights_basic(db_session: AsyncSession, te
                 INSERT INTO companies (id, tenant_id, name_ar, name_en, industry, city, is_active)
                 VALUES (:id, :tid, :name_ar, :name_en, :industry, :city, true)
             """),
-            {"id": cid, "tid": test_tenant, "name_ar": name_ar, "name_en": name_en, "industry": industry, "city": city},
+            {
+                "id": cid,
+                "tid": test_tenant,
+                "name_ar": name_ar,
+                "name_en": name_en,
+                "industry": industry,
+                "city": city,
+            },
         )
     await db_session.commit()
 

@@ -7,15 +7,15 @@ Every backend service uses this SDK instead of accessing runtimes directly.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
 class EntityQuery:
     entity_type: str
     filters: dict = field(default_factory=dict)
-    fields: Optional[list[str]] = None
-    order_by: Optional[str] = None
+    fields: list[str] | None = None
+    order_by: str | None = None
     limit: int = 20
     offset: int = 0
 

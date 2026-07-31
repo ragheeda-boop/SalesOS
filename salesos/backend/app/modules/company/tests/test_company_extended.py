@@ -1,15 +1,15 @@
 """Extended Company domain tests — covers 360 sub-methods, ingest, event bus, and edge cases."""
+
 from __future__ import annotations
 
-import uuid
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 from sqlalchemy import select as sa_select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.common.exceptions import DuplicateError, NotFoundError
+from app.common.exceptions import NotFoundError
 from app.modules.company.models import Company
 from app.modules.company.service import CompanyService
 
@@ -58,8 +58,10 @@ async def test_ingest_updates_existing_companies(db_session: AsyncSession, test_
     await db_session.flush()
 
     service = CompanyService(db_session)
-    company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة قديمة", cr_number="CR-ING-EXIST",
+    _ = await service.create_company(
+        tenant_id=test_tenant,
+        name_ar="شركة قديمة",
+        cr_number="CR-ING-EXIST",
     )
 
     result = await service.ingest_from_source(
@@ -129,17 +131,19 @@ async def test_ingest_source_ids_appended(db_session: AsyncSession, test_tenant:
 
     service = CompanyService(db_session)
     await service.ingest_from_source(
-        tenant_id=test_tenant, source_slug="src-a",
+        tenant_id=test_tenant,
+        source_slug="src-a",
         records=[{"cr_number": "CR-SRC-001", "name_ar": "شركة مصدرين"}],
     )
     await service.ingest_from_source(
-        tenant_id=test_tenant, source_slug="src-b",
+        tenant_id=test_tenant,
+        source_slug="src-b",
         records=[{"cr_number": "CR-SRC-001", "name_ar": "شركة مصدرين"}],
     )
 
-    company = (await db_session.execute(
-        sa_select(Company).where(Company.cr_number == "CR-SRC-001")
-    )).scalar_one()
+    company = (
+        await db_session.execute(sa_select(Company).where(Company.cr_number == "CR-SRC-001"))
+    ).scalar_one()
     assert "src-a" in company.source_ids
     assert "src-b" in company.source_ids
 
@@ -148,24 +152,32 @@ async def test_ingest_source_ids_appended(db_session: AsyncSession, test_tenant:
 
 
 @pytest.mark.asyncio
-async def test_create_company_event_bus_failure(db_session: AsyncSession, test_tenant: str, mock_event_bus, mock_logger):
+async def test_create_company_event_bus_failure(
+    db_session: AsyncSession, test_tenant: str, mock_event_bus, mock_logger
+):
     mock_event_bus.publish.side_effect = RuntimeError("bus down")
     service = CompanyService(db_session, event_bus=mock_event_bus, logger=mock_logger)
 
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة مع خطأ", cr_number="CR-EVTFAIL-001",
+        tenant_id=test_tenant,
+        name_ar="شركة مع خطأ",
+        cr_number="CR-EVTFAIL-001",
     )
     assert company is not None
     mock_logger.warn.assert_called()
 
 
 @pytest.mark.asyncio
-async def test_update_company_event_bus_failure(db_session: AsyncSession, test_tenant: str, mock_event_bus, mock_logger):
+async def test_update_company_event_bus_failure(
+    db_session: AsyncSession, test_tenant: str, mock_event_bus, mock_logger
+):
     mock_event_bus.publish.side_effect = RuntimeError("bus down")
     service = CompanyService(db_session, event_bus=mock_event_bus, logger=mock_logger)
 
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة تحديث مع خطأ", cr_number="CR-EVTFAIL-002",
+        tenant_id=test_tenant,
+        name_ar="شركة تحديث مع خطأ",
+        cr_number="CR-EVTFAIL-002",
     )
     updated = await service.update_company(str(company.id), {"name_ar": "تم التحديث"})
     assert updated.name_ar == "تم التحديث"
@@ -173,12 +185,16 @@ async def test_update_company_event_bus_failure(db_session: AsyncSession, test_t
 
 
 @pytest.mark.asyncio
-async def test_add_branch_event_bus_failure(db_session: AsyncSession, test_tenant: str, mock_event_bus, mock_logger):
+async def test_add_branch_event_bus_failure(
+    db_session: AsyncSession, test_tenant: str, mock_event_bus, mock_logger
+):
     mock_event_bus.publish.side_effect = RuntimeError("bus down")
     service = CompanyService(db_session, event_bus=mock_event_bus, logger=mock_logger)
 
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة فروع مع خطأ", cr_number="CR-EVTFAIL-003",
+        tenant_id=test_tenant,
+        name_ar="شركة فروع مع خطأ",
+        cr_number="CR-EVTFAIL-003",
     )
     branch = await service.add_branch(str(company.id), {"name_ar": "فرع جديد"})
     assert branch is not None
@@ -186,25 +202,35 @@ async def test_add_branch_event_bus_failure(db_session: AsyncSession, test_tenan
 
 
 @pytest.mark.asyncio
-async def test_add_license_event_bus_failure(db_session: AsyncSession, test_tenant: str, mock_event_bus, mock_logger):
+async def test_add_license_event_bus_failure(
+    db_session: AsyncSession, test_tenant: str, mock_event_bus, mock_logger
+):
     mock_event_bus.publish.side_effect = RuntimeError("bus down")
     service = CompanyService(db_session, event_bus=mock_event_bus, logger=mock_logger)
 
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة ترخيص مع خطأ", cr_number="CR-EVTFAIL-004",
+        tenant_id=test_tenant,
+        name_ar="شركة ترخيص مع خطأ",
+        cr_number="CR-EVTFAIL-004",
     )
-    lic = await service.add_license(str(company.id), {"license_number": "L-001", "license_type": "تجارية"})
+    lic = await service.add_license(
+        str(company.id), {"license_number": "L-001", "license_type": "تجارية"}
+    )
     assert lic is not None
     mock_logger.warn.assert_called()
 
 
 @pytest.mark.asyncio
-async def test_add_contact_event_bus_failure(db_session: AsyncSession, test_tenant: str, mock_event_bus, mock_logger):
+async def test_add_contact_event_bus_failure(
+    db_session: AsyncSession, test_tenant: str, mock_event_bus, mock_logger
+):
     mock_event_bus.publish.side_effect = RuntimeError("bus down")
     service = CompanyService(db_session, event_bus=mock_event_bus, logger=mock_logger)
 
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة اتصال مع خطأ", cr_number="CR-EVTFAIL-005",
+        tenant_id=test_tenant,
+        name_ar="شركة اتصال مع خطأ",
+        cr_number="CR-EVTFAIL-005",
     )
     contact = await service.add_contact(str(company.id), {"name": "أحمد", "email": "a@b.com"})
     assert contact is not None
@@ -212,12 +238,16 @@ async def test_add_contact_event_bus_failure(db_session: AsyncSession, test_tena
 
 
 @pytest.mark.asyncio
-async def test_delete_company_event_bus_failure(db_session: AsyncSession, test_tenant: str, mock_event_bus, mock_logger):
+async def test_delete_company_event_bus_failure(
+    db_session: AsyncSession, test_tenant: str, mock_event_bus, mock_logger
+):
     mock_event_bus.publish.side_effect = RuntimeError("bus down")
     service = CompanyService(db_session, event_bus=mock_event_bus, logger=mock_logger)
 
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة حذف مع خطأ", cr_number="CR-EVTFAIL-006",
+        tenant_id=test_tenant,
+        name_ar="شركة حذف مع خطأ",
+        cr_number="CR-EVTFAIL-006",
     )
     await service.delete_company(str(company.id))
     mock_logger.warn.assert_called()
@@ -230,9 +260,13 @@ async def test_delete_company_event_bus_failure(db_session: AsyncSession, test_t
 async def test_search_companies_empty_query(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
     for i in range(5):
-        await service.create_company(tenant_id=test_tenant, name_ar=f"شركة {i}", cr_number=f"CR-PAGE-{i}")
+        await service.create_company(
+            tenant_id=test_tenant, name_ar=f"شركة {i}", cr_number=f"CR-PAGE-{i}"
+        )
 
-    results, total = await service.search_companies(tenant_id=test_tenant, query=None, page=1, page_size=2)
+    results, total = await service.search_companies(
+        tenant_id=test_tenant, query=None, page=1, page_size=2
+    )
     assert total == 5
     assert len(results) == 2
 
@@ -241,17 +275,24 @@ async def test_search_companies_empty_query(db_session: AsyncSession, test_tenan
 async def test_search_companies_pagination_second_page(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
     for i in range(5):
-        await service.create_company(tenant_id=test_tenant, name_ar=f"شركة {i}", cr_number=f"CR-PAGE2-{i}")
+        await service.create_company(
+            tenant_id=test_tenant, name_ar=f"شركة {i}", cr_number=f"CR-PAGE2-{i}"
+        )
 
     from sdk.pagination import encode_cursor
-    results, total = await service.search_companies(tenant_id=test_tenant, query=None, page=1, page_size=2, cursor=None)
+
+    results, total = await service.search_companies(
+        tenant_id=test_tenant, query=None, page=1, page_size=2, cursor=None
+    )
     assert total == 5
     assert len(results) == 2
     # Get second page via cursor
     if results:
         last = results[-1]
         cursor = encode_cursor(str(last.id), last.created_at)
-        results2, total2 = await service.search_companies(tenant_id=test_tenant, query=None, page=1, page_size=2, cursor=cursor)
+        results2, total2 = await service.search_companies(
+            tenant_id=test_tenant, query=None, page=1, page_size=2, cursor=cursor
+        )
         assert total2 == 5
         assert len(results2) == 2
 
@@ -282,10 +323,15 @@ async def test_company_360_with_kg_engine(db_session: AsyncSession, test_tenant:
 
     service = CompanyService(db_session)
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة مع KG", cr_number="360-KG-001",
+        tenant_id=test_tenant,
+        name_ar="شركة مع KG",
+        cr_number="360-KG-001",
     )
     result = await service.get_company_360(
-        str(company.id), test_tenant, db=db_session, kg_engine=FakeKGEngine(),
+        str(company.id),
+        test_tenant,
+        db=db_session,
+        kg_engine=FakeKGEngine(),
     )
     assert len(result["related_entities"]) == 1
     assert len(result["decision_makers"]) == 1
@@ -293,7 +339,9 @@ async def test_company_360_with_kg_engine(db_session: AsyncSession, test_tenant:
 
 
 @pytest.mark.asyncio
-async def test_company_360_kg_engine_exception(db_session: AsyncSession, test_tenant: str, mock_logger):
+async def test_company_360_kg_engine_exception(
+    db_session: AsyncSession, test_tenant: str, mock_logger
+):
     class BrokenKGEngine:
         async def get_ego_network(self, **kwargs):
             raise RuntimeError("KG down")
@@ -303,10 +351,15 @@ async def test_company_360_kg_engine_exception(db_session: AsyncSession, test_te
 
     service = CompanyService(db_session, logger=mock_logger)
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة KG مكسور", cr_number="360-KG-ERR",
+        tenant_id=test_tenant,
+        name_ar="شركة KG مكسور",
+        cr_number="360-KG-ERR",
     )
     result = await service.get_company_360(
-        str(company.id), test_tenant, db=db_session, kg_engine=BrokenKGEngine(),
+        str(company.id),
+        test_tenant,
+        db=db_session,
+        kg_engine=BrokenKGEngine(),
     )
     assert result["related_entities"] == []
     assert result["decision_makers"] == []
@@ -321,10 +374,22 @@ async def test_company_360_with_activity_runtime(db_session: AsyncSession, test_
     class FakeActivityRuntime:
         async def get_by_entity(self, entity_type, entity_id, tenant_id=None, limit=50):
             items = [
-                {"action": "meeting_scheduled", "timestamp": "2026-07-01", "metadata": {"status": "scheduled"}},
+                {
+                    "action": "meeting_scheduled",
+                    "timestamp": "2026-07-01",
+                    "metadata": {"status": "scheduled"},
+                },
                 {"action": "email_sent", "timestamp": "2026-07-02", "metadata": {}},
-                {"action": "task_created", "timestamp": "2026-07-03", "metadata": {"status": "pending"}},
-                {"action": "contract_signed", "timestamp": "2026-07-04", "metadata": {"status": "active"}},
+                {
+                    "action": "task_created",
+                    "timestamp": "2026-07-03",
+                    "metadata": {"status": "pending"},
+                },
+                {
+                    "action": "contract_signed",
+                    "timestamp": "2026-07-04",
+                    "metadata": {"status": "active"},
+                },
                 {"action": "document_uploaded", "timestamp": "2026-07-05", "metadata": {}},
                 {"action": "invoice_created", "timestamp": "2026-07-06", "metadata": {}},
             ]
@@ -332,10 +397,14 @@ async def test_company_360_with_activity_runtime(db_session: AsyncSession, test_
 
     service = CompanyService(db_session)
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة مع أنشطة", cr_number="360-ACT-001",
+        tenant_id=test_tenant,
+        name_ar="شركة مع أنشطة",
+        cr_number="360-ACT-001",
     )
     result = await service.get_company_360(
-        str(company.id), test_tenant, db=db_session,
+        str(company.id),
+        test_tenant,
+        db=db_session,
         activity_runtime=FakeActivityRuntime(),
     )
     assert len(result["timeline_legacy"]) == 6
@@ -349,17 +418,23 @@ async def test_company_360_with_activity_runtime(db_session: AsyncSession, test_
 
 
 @pytest.mark.asyncio
-async def test_company_360_activity_runtime_exception(db_session: AsyncSession, test_tenant: str, mock_logger):
+async def test_company_360_activity_runtime_exception(
+    db_session: AsyncSession, test_tenant: str, mock_logger
+):
     class BrokenActivityRuntime:
         async def get_by_entity(self, **kwargs):
             raise RuntimeError("Timeline down")
 
     service = CompanyService(db_session, logger=mock_logger)
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة أنشطة مكسورة", cr_number="360-ACT-ERR",
+        tenant_id=test_tenant,
+        name_ar="شركة أنشطة مكسورة",
+        cr_number="360-ACT-ERR",
     )
     result = await service.get_company_360(
-        str(company.id), test_tenant, db=db_session,
+        str(company.id),
+        test_tenant,
+        db=db_session,
         activity_runtime=BrokenActivityRuntime(),
     )
     assert result["timeline_legacy"] == []
@@ -370,14 +445,20 @@ async def test_company_360_activity_runtime_exception(db_session: AsyncSession, 
 
 
 @pytest.mark.asyncio
-async def test_company_360_branches_licenses_error(db_session: AsyncSession, test_tenant: str, mock_logger):
+async def test_company_360_branches_licenses_error(
+    db_session: AsyncSession, test_tenant: str, mock_logger
+):
     """Test that branch/license errors are caught and logged."""
     service = CompanyService(db_session, logger=mock_logger)
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة فروع خطأ", cr_number="360-BL-ERR",
+        tenant_id=test_tenant,
+        name_ar="شركة فروع خطأ",
+        cr_number="360-BL-ERR",
     )
     result = await service.get_company_360(
-        str(company.id), test_tenant, db=db_session,
+        str(company.id),
+        test_tenant,
+        db=db_session,
     )
     assert "branches" in result
     assert "licenses" in result
@@ -404,13 +485,20 @@ async def test_company_360_users_exception(db_session: AsyncSession, test_tenant
 
 
 @pytest.mark.asyncio
-async def test_company_intelligence_golden_record_exception(db_session: AsyncSession, test_tenant: str, mock_logger):
+async def test_company_intelligence_golden_record_exception(
+    db_session: AsyncSession, test_tenant: str, mock_logger
+):
     service = CompanyService(db_session, logger=mock_logger)
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة ذهبية", cr_number="360-GR-ERR",
+        tenant_id=test_tenant,
+        name_ar="شركة ذهبية",
+        cr_number="360-GR-ERR",
     )
     intelligence = await service.get_company_intelligence(
-        company, str(company.id), test_tenant, db_session,
+        company,
+        str(company.id),
+        test_tenant,
+        db_session,
     )
     assert intelligence["golden_record_id"] is None
 
@@ -474,9 +562,10 @@ def test_detect_signals_low_confidence():
 @pytest.mark.asyncio
 async def test_company_360_enrichment_fields(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
-    from datetime import date
     company = await service.create_company(
-        tenant_id=test_tenant, name_ar="شركة غنية", cr_number="360-ENR-001",
+        tenant_id=test_tenant,
+        name_ar="شركة غنية",
+        cr_number="360-ENR-001",
     )
     company.source_ids = ["src-a", "src-b"]
     company.is_golden_record = True
@@ -511,8 +600,12 @@ async def test_search_companies_by_cr_number(db_session: AsyncSession, test_tena
 @pytest.mark.asyncio
 async def test_search_companies_by_city(db_session: AsyncSession, test_tenant: str):
     service = CompanyService(db_session)
-    await service.create_company(tenant_id=test_tenant, name_ar="شركة جدة", cr_number="CR-CITY-1", city="جدة")
-    await service.create_company(tenant_id=test_tenant, name_ar="شركة الرياض", cr_number="CR-CITY-2", city="الرياض")
+    await service.create_company(
+        tenant_id=test_tenant, name_ar="شركة جدة", cr_number="CR-CITY-1", city="جدة"
+    )
+    await service.create_company(
+        tenant_id=test_tenant, name_ar="شركة الرياض", cr_number="CR-CITY-2", city="الرياض"
+    )
 
     results, total = await service.search_companies(tenant_id=test_tenant, query="جدة")
     assert total == 1
@@ -534,7 +627,9 @@ def test_heuristic_health_score_mixed_signals():
         {"severity": "info"},
     ]
     score = CompanyService._heuristic_health_score(
-        contacts=[{"name": "A"}], opportunities=[{"id": 1}], signals=signals,
+        contacts=[{"name": "A"}],
+        opportunities=[{"id": 1}],
+        signals=signals,
     )
     expected = 0.5 + 0.1 + 0.15 - 0.15 - 0.05
     assert abs(score - expected) < 0.01

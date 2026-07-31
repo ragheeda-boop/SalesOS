@@ -1,5 +1,5 @@
-from app.application.dashboard.dto.dashboard_dto import DashboardDTO
 from app.application.dashboard.aggregators.dashboard_aggregator import DashboardAggregator
+from app.application.dashboard.dto.dashboard_dto import DashboardDTO
 from app.application.dashboard.queries.get_dashboard_query import DashboardQuery
 
 

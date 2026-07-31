@@ -1,7 +1,7 @@
 """Common SQLAlchemy models — re-exported from sdk.database for backward compatibility."""
 
-from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String
+from sqlalchemy.orm import Mapped, mapped_column
 
 from sdk.database import Base, BaseModel, TimestampMixin
 

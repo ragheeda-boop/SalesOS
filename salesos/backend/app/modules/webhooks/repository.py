@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Protocol
 
 from sqlalchemy import Boolean, DateTime, Integer, String, Text, select, text
@@ -19,14 +19,18 @@ class WebhookSubscriptionRepository(Protocol):
     async def get(self, sub_id: str, tenant_id: str = "") -> WebhookSubscription | None: ...
     async def list_by_tenant(self, tenant_id: str) -> list[WebhookSubscription]: ...
     async def find_by_event(self, tenant_id: str, event_type: str) -> list[WebhookSubscription]: ...
-    async def update(self, sub_id: str, data: dict, tenant_id: str = "") -> WebhookSubscription | None: ...
+    async def update(
+        self, sub_id: str, data: dict, tenant_id: str = ""
+    ) -> WebhookSubscription | None: ...
     async def delete(self, sub_id: str, tenant_id: str = "") -> bool: ...
 
 
 class WebhookDeliveryRepository(Protocol):
     async def create(self, delivery: WebhookDelivery) -> WebhookDelivery: ...
     async def get(self, delivery_id: str) -> WebhookDelivery | None: ...
-    async def list_by_subscription(self, subscription_id: str, limit: int = 50) -> list[WebhookDelivery]: ...
+    async def list_by_subscription(
+        self, subscription_id: str, limit: int = 50
+    ) -> list[WebhookDelivery]: ...
     async def update(self, delivery_id: str, data: dict) -> WebhookDelivery | None: ...
     async def list_pending_retries(self) -> list[WebhookDelivery]: ...
 
@@ -36,7 +40,7 @@ class InMemoryWebhookSubscriptionRepository:
         self._subscriptions: dict[str, WebhookSubscription] = {}
 
     async def create(self, sub: WebhookSubscription) -> WebhookSubscription:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if sub.created_at is None:
             sub.created_at = now
         if sub.updated_at is None:
@@ -55,11 +59,14 @@ class InMemoryWebhookSubscriptionRepository:
 
     async def find_by_event(self, tenant_id: str, event_type: str) -> list[WebhookSubscription]:
         return [
-            s for s in self._subscriptions.values()
+            s
+            for s in self._subscriptions.values()
             if s.tenant_id == tenant_id and s.is_active and event_type in s.events
         ]
 
-    async def update(self, sub_id: str, data: dict, tenant_id: str = "") -> WebhookSubscription | None:
+    async def update(
+        self, sub_id: str, data: dict, tenant_id: str = ""
+    ) -> WebhookSubscription | None:
         sub = self._subscriptions.get(sub_id)
         if not sub:
             return None
@@ -68,7 +75,7 @@ class InMemoryWebhookSubscriptionRepository:
         for key, value in data.items():
             if hasattr(sub, key) and value is not None:
                 setattr(sub, key, value)
-        sub.updated_at = datetime.now(timezone.utc)
+        sub.updated_at = datetime.now(UTC)
         return sub
 
     async def delete(self, sub_id: str, tenant_id: str = "") -> bool:
@@ -92,10 +99,10 @@ class InMemoryWebhookDeliveryRepository:
     async def get(self, delivery_id: str) -> WebhookDelivery | None:
         return self._deliveries.get(delivery_id)
 
-    async def list_by_subscription(self, subscription_id: str, limit: int = 50) -> list[WebhookDelivery]:
-        result = [
-            d for d in self._deliveries.values() if d.subscription_id == subscription_id
-        ]
+    async def list_by_subscription(
+        self, subscription_id: str, limit: int = 50
+    ) -> list[WebhookDelivery]:
+        result = [d for d in self._deliveries.values() if d.subscription_id == subscription_id]
         result.sort(key=lambda d: d.created_at, reverse=True)
         return result[:limit]
 
@@ -110,9 +117,10 @@ class InMemoryWebhookDeliveryRepository:
         return d
 
     async def list_pending_retries(self) -> list[WebhookDelivery]:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return [
-            d for d in self._deliveries.values()
+            d
+            for d in self._deliveries.values()
             if d.status == "failed"
             and d.next_retry_at is not None
             and d.next_retry_at <= now
@@ -144,7 +152,9 @@ class WebhookDeliveryModel(Base):
     subscription_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     payload: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
-    status: Mapped[str] = mapped_column(String(20), nullable=False, server_default=text("'pending'"))
+    status: Mapped[str] = mapped_column(
+        String(20), nullable=False, server_default=text("'pending'")
+    )
     response_code: Mapped[int | None] = mapped_column(Integer, nullable=True)
     response_body: Mapped[str | None] = mapped_column(Text, nullable=True)
     attempt: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text("0"))
@@ -187,7 +197,7 @@ class PostgresWebhookSubscriptionRepository:
         self._session = session
 
     async def create(self, sub: WebhookSubscription) -> WebhookSubscription:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         row = WebhookSubscriptionModel(
             id=sub.id or str(uuid.uuid4()),
             tenant_id=sub.tenant_id,
@@ -228,7 +238,9 @@ class PostgresWebhookSubscriptionRepository:
         )
         return [_sub_from_row(r) for r in result.scalars().all()]
 
-    async def update(self, sub_id: str, data: dict, tenant_id: str = "") -> WebhookSubscription | None:
+    async def update(
+        self, sub_id: str, data: dict, tenant_id: str = ""
+    ) -> WebhookSubscription | None:
         q = select(WebhookSubscriptionModel).where(WebhookSubscriptionModel.id == sub_id)
         if tenant_id:
             q = q.where(WebhookSubscriptionModel.tenant_id == tenant_id)
@@ -239,7 +251,7 @@ class PostgresWebhookSubscriptionRepository:
         for key in ("url", "secret", "events", "is_active"):
             if key in data and data[key] is not None:
                 setattr(row, key, data[key])
-        row.updated_at = datetime.now(timezone.utc)
+        row.updated_at = datetime.now(UTC)
         await self._session.flush()
         return _sub_from_row(row)
 
@@ -271,7 +283,7 @@ class PostgresWebhookDeliveryRepository:
             response_body=delivery.response_body,
             attempt=delivery.attempt,
             next_retry_at=delivery.next_retry_at,
-            created_at=delivery.created_at or datetime.now(timezone.utc),
+            created_at=delivery.created_at or datetime.now(UTC),
         )
         self._session.add(row)
         await self._session.flush()
@@ -281,7 +293,9 @@ class PostgresWebhookDeliveryRepository:
         row = await self._session.get(WebhookDeliveryModel, delivery_id)
         return _delivery_from_row(row) if row else None
 
-    async def list_by_subscription(self, subscription_id: str, limit: int = 50) -> list[WebhookDelivery]:
+    async def list_by_subscription(
+        self, subscription_id: str, limit: int = 50
+    ) -> list[WebhookDelivery]:
         result = await self._session.execute(
             select(WebhookDeliveryModel)
             .where(WebhookDeliveryModel.subscription_id == subscription_id)
@@ -296,14 +310,21 @@ class PostgresWebhookDeliveryRepository:
             return None
         # Allow explicit None so terminal success/failure can clear next_retry_at
         # and exception paths can clear response_code (otherwise retries stick forever).
-        for key in ("status", "response_code", "response_body", "attempt", "next_retry_at", "payload"):
+        for key in (
+            "status",
+            "response_code",
+            "response_body",
+            "attempt",
+            "next_retry_at",
+            "payload",
+        ):
             if key in data:
                 setattr(row, key, data[key])
         await self._session.flush()
         return _delivery_from_row(row)
 
     async def list_pending_retries(self) -> list[WebhookDelivery]:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         result = await self._session.execute(
             select(WebhookDeliveryModel).where(
                 WebhookDeliveryModel.status == "failed",

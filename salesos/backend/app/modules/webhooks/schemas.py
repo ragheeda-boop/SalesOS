@@ -4,10 +4,13 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-
 SUPPORTED_EVENTS = [
-    "company.created", "company.updated",
-    "opportunity.created", "opportunity.stage_changed", "opportunity.won", "opportunity.lost",
+    "company.created",
+    "company.updated",
+    "opportunity.created",
+    "opportunity.stage_changed",
+    "opportunity.won",
+    "opportunity.lost",
     "decision.evaluated",
     "pipeline.updated",
     "search.performed",
@@ -24,7 +27,9 @@ class WebhookSubscriptionCreate(BaseModel):
     def validate_events(self):
         for e in self.events:
             if e not in SUPPORTED_EVENTS:
-                raise ValueError(f"Unsupported event: {e}. Supported: {', '.join(SUPPORTED_EVENTS)}")
+                raise ValueError(
+                    f"Unsupported event: {e}. Supported: {', '.join(SUPPORTED_EVENTS)}"
+                )
 
 
 class WebhookSubscriptionUpdate(BaseModel):

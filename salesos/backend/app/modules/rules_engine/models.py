@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Literal
 
@@ -58,11 +58,13 @@ class Rule(BaseModel):
     description: str = ""
     enabled: bool = True
     domain: DomainType = "company"
-    conditions: ConditionGroup = Field(default_factory=lambda: ConditionGroup(type=ConditionGroupType.and_))
+    conditions: ConditionGroup = Field(
+        default_factory=lambda: ConditionGroup(type=ConditionGroupType.and_)
+    )
     actions: list[Action] = Field(default_factory=list)
     priority: int = 0
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 class RuleEvaluationContext(BaseModel):

@@ -1,20 +1,19 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from app.common.exceptions import safe_error_detail
-from app.dependencies import get_current_tenant_id, verify_token
-from app.modules.rules_engine.engine import _rules_engine, RulesEngine
+from app.dependencies import verify_token
+from app.modules.rules_engine.engine import RulesEngine, _rules_engine
 from app.modules.rules_engine.models import (
     Action,
+    ConditionGroup,
     DomainType,
     Rule,
     RuleEvaluationContext,
-    ConditionGroup,
 )
 
 router = APIRouter(prefix="/api/v1/rules")
@@ -31,7 +30,9 @@ def _rule_to_response(rule: Rule) -> dict:
         "description": rule.description,
         "enabled": rule.enabled,
         "domain": rule.domain,
-        "conditions": rule.conditions.model_dump() if hasattr(rule.conditions, "model_dump") else rule.conditions,
+        "conditions": rule.conditions.model_dump()
+        if hasattr(rule.conditions, "model_dump")
+        else rule.conditions,
         "actions": [a.model_dump() if hasattr(a, "model_dump") else a for a in rule.actions],
         "priority": rule.priority,
         "created_at": rule.created_at,
@@ -50,18 +51,18 @@ class RuleCreateRequest(BaseModel):
 
 
 class RuleUpdateRequest(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    enabled: Optional[bool] = None
-    domain: Optional[DomainType] = None
-    conditions: Optional[dict] = None
-    actions: Optional[list[dict]] = None
-    priority: Optional[int] = None
+    name: str | None = None
+    description: str | None = None
+    enabled: bool | None = None
+    domain: DomainType | None = None
+    conditions: dict | None = None
+    actions: list[dict] | None = None
+    priority: int | None = None
 
 
 @router.get("")
 async def list_rules(
-    domain: Optional[DomainType] = Query(None),
+    domain: DomainType | None = Query(None),
     _token: dict = Depends(verify_token),
 ):
     engine = _engine()
@@ -91,7 +92,7 @@ async def create_rule(
     try:
         created = engine.create_rule(rule)
     except ValueError as e:
-        raise HTTPException(status_code=409, detail=safe_error_detail(e, "Rule conflict"))
+        raise HTTPException(status_code=409, detail=safe_error_detail(e, "Rule conflict")) from e
 
     return _rule_to_response(created)
 
@@ -119,7 +120,7 @@ async def update_rule(
     try:
         updated = engine.update_rule(rule_id, updates)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=safe_error_detail(e, "Rule not found"))
+        raise HTTPException(status_code=404, detail=safe_error_detail(e, "Rule not found")) from e
     return _rule_to_response(updated)
 
 
@@ -145,7 +146,7 @@ async def evaluate_rule_endpoint(
     try:
         result = engine.evaluate(rule_id, context)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=safe_error_detail(e, "Rule not found"))
+        raise HTTPException(status_code=404, detail=safe_error_detail(e, "Rule not found")) from e
     return result.model_dump() if hasattr(result, "model_dump") else result
 
 

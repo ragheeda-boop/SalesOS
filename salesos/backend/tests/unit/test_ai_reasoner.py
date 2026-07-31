@@ -1,7 +1,8 @@
 """Tests for NBAReasoner — AI reasoning layer for the NBA engine."""
+
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -70,16 +71,25 @@ def reasoner_with_llm():
 
 # ── Tests: evaluate ───────────────────────────────────────────────────────────
 
+
 class TestEvaluate:
     async def test_returns_none_when_no_llm(self, reasoner_no_llm):
         result = await reasoner_no_llm.evaluate(
-            SAMPLE_OPP, SAMPLE_COMPANY, SAMPLE_SIGNALS, SAMPLE_ACTIVITIES, SAMPLE_CANDIDATES,
+            SAMPLE_OPP,
+            SAMPLE_COMPANY,
+            SAMPLE_SIGNALS,
+            SAMPLE_ACTIVITIES,
+            SAMPLE_CANDIDATES,
         )
         assert result is None
 
     async def test_returns_parsed_result_with_llm(self, reasoner_with_llm):
         result = await reasoner_with_llm.evaluate(
-            SAMPLE_OPP, SAMPLE_COMPANY, SAMPLE_SIGNALS, SAMPLE_ACTIVITIES, SAMPLE_CANDIDATES,
+            SAMPLE_OPP,
+            SAMPLE_COMPANY,
+            SAMPLE_SIGNALS,
+            SAMPLE_ACTIVITIES,
+            SAMPLE_CANDIDATES,
         )
         assert isinstance(result, dict)
         assert "ranking" in result
@@ -89,7 +99,11 @@ class TestEvaluate:
 
     async def test_passes_opportunity_context_to_llm(self, reasoner_with_llm):
         await reasoner_with_llm.evaluate(
-            SAMPLE_OPP, SAMPLE_COMPANY, SAMPLE_SIGNALS, SAMPLE_ACTIVITIES, SAMPLE_CANDIDATES,
+            SAMPLE_OPP,
+            SAMPLE_COMPANY,
+            SAMPLE_SIGNALS,
+            SAMPLE_ACTIVITIES,
+            SAMPLE_CANDIDATES,
         )
         prompt = reasoner_with_llm._llm.last_prompt
         assert prompt is not None
@@ -102,13 +116,21 @@ class TestEvaluate:
         llm = MockLLMService(fail=True)
         reasoner = NBAReasoner(llm_service=llm)
         result = await reasoner.evaluate(
-            SAMPLE_OPP, SAMPLE_COMPANY, SAMPLE_SIGNALS, SAMPLE_ACTIVITIES, SAMPLE_CANDIDATES,
+            SAMPLE_OPP,
+            SAMPLE_COMPANY,
+            SAMPLE_SIGNALS,
+            SAMPLE_ACTIVITIES,
+            SAMPLE_CANDIDATES,
         )
         assert result is None
 
     async def test_includes_company_info_in_prompt(self, reasoner_with_llm):
         await reasoner_with_llm.evaluate(
-            SAMPLE_OPP, SAMPLE_COMPANY, SAMPLE_SIGNALS, SAMPLE_ACTIVITIES, SAMPLE_CANDIDATES,
+            SAMPLE_OPP,
+            SAMPLE_COMPANY,
+            SAMPLE_SIGNALS,
+            SAMPLE_ACTIVITIES,
+            SAMPLE_CANDIDATES,
         )
         prompt = reasoner_with_llm._llm.last_prompt
         user_msg = prompt[1]["content"]
@@ -116,7 +138,11 @@ class TestEvaluate:
 
     async def test_includes_days_since_last_activity(self, reasoner_with_llm):
         await reasoner_with_llm.evaluate(
-            SAMPLE_OPP, SAMPLE_COMPANY, SAMPLE_SIGNALS, SAMPLE_ACTIVITIES, SAMPLE_CANDIDATES,
+            SAMPLE_OPP,
+            SAMPLE_COMPANY,
+            SAMPLE_SIGNALS,
+            SAMPLE_ACTIVITIES,
+            SAMPLE_CANDIDATES,
         )
         prompt = reasoner_with_llm._llm.last_prompt
         user_msg = prompt[1]["content"]
@@ -124,7 +150,11 @@ class TestEvaluate:
 
     async def test_empty_activities_has_zero_days(self, reasoner_with_llm):
         await reasoner_with_llm.evaluate(
-            SAMPLE_OPP, SAMPLE_COMPANY, [], [], SAMPLE_CANDIDATES,
+            SAMPLE_OPP,
+            SAMPLE_COMPANY,
+            [],
+            [],
+            SAMPLE_CANDIDATES,
         )
         prompt = reasoner_with_llm._llm.last_prompt
         user_msg = prompt[1]["content"]
@@ -135,28 +165,44 @@ class TestEvaluate:
 class TestBuildPrompt:
     def test_build_prompt_returns_list_of_dicts(self, reasoner_no_llm):
         prompt = reasoner_no_llm._build_prompt(
-            SAMPLE_OPP, SAMPLE_COMPANY, SAMPLE_SIGNALS, SAMPLE_ACTIVITIES, SAMPLE_CANDIDATES,
+            SAMPLE_OPP,
+            SAMPLE_COMPANY,
+            SAMPLE_SIGNALS,
+            SAMPLE_ACTIVITIES,
+            SAMPLE_CANDIDATES,
         )
         assert isinstance(prompt, list)
         assert len(prompt) == 2
 
     def test_system_role_first_message(self, reasoner_no_llm):
         prompt = reasoner_no_llm._build_prompt(
-            SAMPLE_OPP, SAMPLE_COMPANY, SAMPLE_SIGNALS, SAMPLE_ACTIVITIES, SAMPLE_CANDIDATES,
+            SAMPLE_OPP,
+            SAMPLE_COMPANY,
+            SAMPLE_SIGNALS,
+            SAMPLE_ACTIVITIES,
+            SAMPLE_CANDIDATES,
         )
         assert prompt[0]["role"] == "system"
         assert "sales strategist" in prompt[0]["content"]
 
     def test_user_role_second_message(self, reasoner_no_llm):
         prompt = reasoner_no_llm._build_prompt(
-            SAMPLE_OPP, SAMPLE_COMPANY, SAMPLE_SIGNALS, SAMPLE_ACTIVITIES, SAMPLE_CANDIDATES,
+            SAMPLE_OPP,
+            SAMPLE_COMPANY,
+            SAMPLE_SIGNALS,
+            SAMPLE_ACTIVITIES,
+            SAMPLE_CANDIDATES,
         )
         assert prompt[1]["role"] == "user"
 
     def test_company_name_arabic_preferred(self, reasoner_no_llm):
         company = {"name_ar": "شركة العربية", "name_en": "Al Arabia Co", "industry": "tech"}
         prompt = reasoner_no_llm._build_prompt(
-            SAMPLE_OPP, company, SAMPLE_SIGNALS, SAMPLE_ACTIVITIES, SAMPLE_CANDIDATES,
+            SAMPLE_OPP,
+            company,
+            SAMPLE_SIGNALS,
+            SAMPLE_ACTIVITIES,
+            SAMPLE_CANDIDATES,
         )
         user_msg = prompt[1]["content"]
         assert "شركة العربية" in user_msg
@@ -164,7 +210,11 @@ class TestBuildPrompt:
     def test_company_name_fallback_to_english(self, reasoner_no_llm):
         company = {"name_ar": "", "name_en": "English Only Co", "industry": "tech"}
         prompt = reasoner_no_llm._build_prompt(
-            SAMPLE_OPP, company, SAMPLE_SIGNALS, SAMPLE_ACTIVITIES, SAMPLE_CANDIDATES,
+            SAMPLE_OPP,
+            company,
+            SAMPLE_SIGNALS,
+            SAMPLE_ACTIVITIES,
+            SAMPLE_CANDIDATES,
         )
         user_msg = prompt[1]["content"]
         assert "English Only Co" in user_msg
@@ -172,7 +222,11 @@ class TestBuildPrompt:
     def test_truncates_long_names(self, reasoner_no_llm):
         opp = {"name": "A" * 500, "stage": "proposal", "value": 1000, "health": "healthy"}
         prompt = reasoner_no_llm._build_prompt(
-            opp, SAMPLE_COMPANY, [], [], SAMPLE_CANDIDATES,
+            opp,
+            SAMPLE_COMPANY,
+            [],
+            [],
+            SAMPLE_CANDIDATES,
         )
         user_msg = prompt[1]["content"]
         assert len(opp["name"]) > 200
@@ -183,18 +237,25 @@ class TestBuildPrompt:
             {"action": "x" * 300, "reason": "y" * 300, "score": 0.9, "extra": "z" * 300},
         ]
         prompt = reasoner_no_llm._build_prompt(
-            SAMPLE_OPP, SAMPLE_COMPANY, [], [], long_candidate,
+            SAMPLE_OPP,
+            SAMPLE_COMPANY,
+            [],
+            [],
+            long_candidate,
         )
         user_msg = prompt[1]["content"]
         assert "extra" not in user_msg
 
     def test_limits_candidates_to_10(self, reasoner_no_llm):
         many_candidates = [
-            {"action": f"action_{i}", "reason": f"reason_{i}", "score": 0.5}
-            for i in range(20)
+            {"action": f"action_{i}", "reason": f"reason_{i}", "score": 0.5} for i in range(20)
         ]
         prompt = reasoner_no_llm._build_prompt(
-            SAMPLE_OPP, SAMPLE_COMPANY, [], [], many_candidates,
+            SAMPLE_OPP,
+            SAMPLE_COMPANY,
+            [],
+            [],
+            many_candidates,
         )
         user_msg = prompt[1]["content"]
         # Only 10 candidates should be included
@@ -204,21 +265,33 @@ class TestBuildPrompt:
     def test_industry_included(self, reasoner_no_llm):
         company = {"name_ar": "C", "name_en": "C", "industry": "financial services"}
         prompt = reasoner_no_llm._build_prompt(
-            SAMPLE_OPP, company, SAMPLE_SIGNALS, SAMPLE_ACTIVITIES, SAMPLE_CANDIDATES,
+            SAMPLE_OPP,
+            company,
+            SAMPLE_SIGNALS,
+            SAMPLE_ACTIVITIES,
+            SAMPLE_CANDIDATES,
         )
         user_msg = prompt[1]["content"]
         assert "financial services" in user_msg
 
     def test_empty_signals_handled(self, reasoner_no_llm):
         prompt = reasoner_no_llm._build_prompt(
-            SAMPLE_OPP, SAMPLE_COMPANY, [], SAMPLE_ACTIVITIES, SAMPLE_CANDIDATES,
+            SAMPLE_OPP,
+            SAMPLE_COMPANY,
+            [],
+            SAMPLE_ACTIVITIES,
+            SAMPLE_CANDIDATES,
         )
         user_msg = prompt[1]["content"]
         assert "candidate_actions" in user_msg
 
     def test_empty_candidates_handled(self, reasoner_no_llm):
         prompt = reasoner_no_llm._build_prompt(
-            SAMPLE_OPP, SAMPLE_COMPANY, SAMPLE_SIGNALS, SAMPLE_ACTIVITIES, [],
+            SAMPLE_OPP,
+            SAMPLE_COMPANY,
+            SAMPLE_SIGNALS,
+            SAMPLE_ACTIVITIES,
+            [],
         )
         user_msg = prompt[1]["content"]
         assert "candidate_actions" in user_msg
@@ -227,7 +300,12 @@ class TestBuildPrompt:
 
 class TestParseResponse:
     def test_parse_dict_response(self, reasoner_no_llm):
-        response = {"ranking": [{"action": "send_proposal", "score": 0.9}], "explanation": "best action", "confidence": 0.85, "risks": ["stagnation"]}
+        response = {
+            "ranking": [{"action": "send_proposal", "score": 0.9}],
+            "explanation": "best action",
+            "confidence": 0.85,
+            "risks": ["stagnation"],
+        }
         result = reasoner_no_llm._parse_response(response)
         assert result["ranking"] == [{"action": "send_proposal", "score": 0.9}]
         assert result["explanation"] == "best action"
@@ -242,9 +320,13 @@ class TestParseResponse:
 
     def test_parse_object_with_choices(self, reasoner_no_llm):
         class FakeChoice:
-            message = MagicMock(content='{"ranking": [], "explanation": "from choices", "confidence": 0.6, "risks": []}')
+            message = MagicMock(
+                content='{"ranking": [], "explanation": "from choices", "confidence": 0.6, "risks": []}'  # noqa: E501
+            )
+
         class FakeResponse:
             choices = [FakeChoice()]
+
         result = reasoner_no_llm._parse_response(FakeResponse())
         assert result["explanation"] == "from choices"
 
@@ -275,13 +357,23 @@ class TestParseResponse:
         assert len(result["ranking"]) == 10
 
     def test_ranking_filters_non_dict_items(self, reasoner_no_llm):
-        response = {"ranking": [{"action": "valid"}, "invalid_string", None], "explanation": "x", "confidence": 0.5, "risks": []}
+        response = {
+            "ranking": [{"action": "valid"}, "invalid_string", None],
+            "explanation": "x",
+            "confidence": 0.5,
+            "risks": [],
+        }
         result = reasoner_no_llm._parse_response(response)
         assert len(result["ranking"]) == 1
         assert result["ranking"][0]["action"] == "valid"
 
     def test_ranking_filters_missing_action(self, reasoner_no_llm):
-        response = {"ranking": [{"action": "good"}, {"no_action": "bad"}], "explanation": "x", "confidence": 0.5, "risks": []}
+        response = {
+            "ranking": [{"action": "good"}, {"no_action": "bad"}],
+            "explanation": "x",
+            "confidence": 0.5,
+            "risks": [],
+        }
         result = reasoner_no_llm._parse_response(response)
         assert len(result["ranking"]) == 1
         assert result["ranking"][0]["action"] == "good"

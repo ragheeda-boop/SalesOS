@@ -1,38 +1,43 @@
+import contextlib
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.identity.models import User
 from app.modules.company.models import Company
 from app.modules.contact.models import Contact
+from app.modules.identity.models import User
 
 from .schemas import (
-    AICoachAction,
     ActivityIntelligence,
+    AICoachAction,
     CalendarIntelligence,
     EmailIntelligence,
+    Employee360Response,
     EmployeeKPIs,
     EmployeePortfolio,
     EmployeePortfolioItem,
     EmployeeProfile,
-    Employee360Response,
     EmployeeSignals,
-    EmployeeSignalSummary,
     EmployeeTimeline,
-    PerformanceInsights,
-    ScoreTrend,
     PeerComparison,
+    PerformanceInsights,
     RiskFlagItem,
+    ScoreTrend,
     TimelineEvent,
 )
 
 
 class Employee360Service:
-    def __init__(self, db: AsyncSession, activity_runtime: Any = None, logger: Any = None,
-                 signal_pipeline: Any = None, signal_repo: Any = None):
+    def __init__(
+        self,
+        db: AsyncSession,
+        activity_runtime: Any = None,
+        logger: Any = None,
+        signal_pipeline: Any = None,
+        signal_repo: Any = None,
+    ):
         self.db = db
         self.activity_runtime = activity_runtime
         self.logger = logger
@@ -41,10 +46,8 @@ class Employee360Service:
 
     async def _recover_session(self) -> None:
         """Clear an aborted transaction so later reads in the same request can continue."""
-        try:
+        with contextlib.suppress(Exception):
             await self.db.rollback()
-        except Exception:
-            pass
 
     async def get_360(self, user_id: str, tenant_id: str) -> Employee360Response:
         # Sequential DB work only — AsyncSession is not safe under asyncio.gather.
@@ -131,14 +134,18 @@ class Employee360Service:
 
         if not user:
             from app.common.exceptions import NotFoundError
+
             raise NotFoundError("User", user_id)
 
         # Get team members (same tenant)
         team_result = await self.db.execute(
-            select(User).where(
+            select(User)
+            .where(
                 User.tenant_id == tenant_id,
-                User.is_active == True,
-            ).order_by(User.full_name).limit(10)
+                User.is_active is True,
+            )
+            .order_by(User.full_name)
+            .limit(10)
         )
         team = [
             {"id": str(u.id), "full_name": u.full_name, "email": u.email, "role": u.role}
@@ -169,8 +176,10 @@ class Employee360Service:
         contracts = []
 
         try:
+            from domains.commercial.infrastructure.postgres_repositories import (
+                PostgresOpportunityRepository,
+            )
             from domains.commercial.opportunity.contracts.repository import OpportunityQuery
-            from domains.commercial.infrastructure.postgres_repositories import PostgresOpportunityRepository
 
             opp_repo = PostgresOpportunityRepository(self.db)
             result = await opp_repo.query(
@@ -178,26 +187,40 @@ class Employee360Service:
             )
             pipeline = [
                 EmployeePortfolioItem(
-                    id=o.id, name=o.name, type="opportunity",
-                    value=o.value, status=o.stage,
-                    company_id=o.company_id, company_name=getattr(o, "company_name", None) or getattr(o, "account_name", None),
+                    id=o.id,
+                    name=o.name,
+                    type="opportunity",
+                    value=o.value,
+                    status=o.stage,
+                    company_id=o.company_id,
+                    company_name=getattr(o, "company_name", None)
+                    or getattr(o, "account_name", None),
                 )
                 for o in result.items
             ]
         except Exception as e:
             await self._recover_session()
             if self.logger:
-                self.logger.warn("employee_360.portfolio_opportunities_failed", user_id=user_id, error=str(e))
+                self.logger.warn(
+                    "employee_360.portfolio_opportunities_failed", user_id=user_id, error=str(e)
+                )
 
         try:
             contact_result = await self.db.execute(
-                select(Contact).where(
+                select(Contact)
+                .where(
                     Contact.tenant_id == uuid.UUID(tenant_id),
-                ).limit(50)
+                )
+                .limit(50)
             )
             contacts_list = [
-                {"id": str(c.id), "name": c.name, "email": c.email,
-                 "phone": c.phone, "company_id": str(c.company_id) if c.company_id else None}
+                {
+                    "id": str(c.id),
+                    "name": c.name,
+                    "email": c.email,
+                    "phone": c.phone,
+                    "company_id": str(c.company_id) if c.company_id else None,
+                }
                 for c in contact_result.scalars().all()
             ]
         except Exception as e:
@@ -207,13 +230,21 @@ class Employee360Service:
 
         try:
             company_result = await self.db.execute(
-                select(Company).where(
+                select(Company)
+                .where(
                     Company.tenant_id == uuid.UUID(tenant_id),
-                ).limit(50)
+                )
+                .limit(50)
             )
             companies = [
-                {"id": str(c.id), "name_ar": c.name_ar, "name_en": c.name_en,
-                 "cr_number": c.cr_number, "status": c.status, "city": c.city}
+                {
+                    "id": str(c.id),
+                    "name_ar": c.name_ar,
+                    "name_en": c.name_en,
+                    "cr_number": c.cr_number,
+                    "status": c.status,
+                    "city": c.city,
+                }
                 for c in company_result.scalars().all()
             ]
         except Exception as e:
@@ -232,7 +263,9 @@ class Employee360Service:
             projects=[],
         )
 
-    async def _get_activity_intelligence(self, tenant_id: str, user_id: str) -> ActivityIntelligence:
+    async def _get_activity_intelligence(
+        self, tenant_id: str, user_id: str
+    ) -> ActivityIntelligence:
         if not self.activity_runtime:
             return ActivityIntelligence()
 
@@ -249,7 +282,11 @@ class Employee360Service:
         calls = sum(1 for a in items if a.get("action", "").startswith("call"))
         tasks = sum(1 for a in items if a.get("action", "").startswith("task"))
         notes = sum(1 for a in items if a.get("action", "").startswith("note"))
-        documents = sum(1 for a in items if a.get("action", "").startswith("document") or a.get("action", "").startswith("file"))
+        documents = sum(
+            1
+            for a in items
+            if a.get("action", "").startswith("document") or a.get("action", "").startswith("file")
+        )
 
         return ActivityIntelligence(
             meetings=meetings,
@@ -262,8 +299,14 @@ class Employee360Service:
             recent=items[:20],
         )
 
-    def _compute_kpis(self, portfolio: EmployeePortfolio, activity: ActivityIntelligence) -> EmployeeKPIs:
-        total_pipeline = sum(p.value for p in portfolio.pipeline if p.status not in ("closed_won", "closed_lost", "won", "lost"))
+    def _compute_kpis(
+        self, portfolio: EmployeePortfolio, activity: ActivityIntelligence
+    ) -> EmployeeKPIs:
+        total_pipeline = sum(
+            p.value
+            for p in portfolio.pipeline
+            if p.status not in ("closed_won", "closed_lost", "won", "lost")
+        )
         won_deals = [p for p in portfolio.pipeline if p.status in ("closed_won", "won")]
         lost_deals = [p for p in portfolio.pipeline if p.status in ("closed_lost", "lost")]
         total_deals = len(won_deals) + len(lost_deals)
@@ -296,7 +339,9 @@ class Employee360Service:
             return EmployeeTimeline()
         try:
             items, total, _ = await self.signal_repo.get_by_employee(
-                user_id, tenant_id, limit=10,
+                user_id,
+                tenant_id,
+                limit=10,
             )
             events = [
                 TimelineEvent(
@@ -323,11 +368,13 @@ class Employee360Service:
             return PerformanceInsights()
         try:
             from domains.employee.performance import EmployeePerformanceEngine
+
             engine = EmployeePerformanceEngine(repository=self.signal_repo)
 
             current_score = None
             if signal_data and signal_data.get("score"):
                 from domains.employee.models import EmployeeScore
+
                 score_dict = signal_data["score"]
                 current_score = EmployeeScore(
                     id=score_dict.get("id", ""),
@@ -344,11 +391,16 @@ class Employee360Service:
                 )
 
             all_signals, _, _ = await self.signal_repo.get_by_employee(
-                user_id, tenant_id, limit=500,
+                user_id,
+                tenant_id,
+                limit=500,
             )
 
             result = await engine.compute_performance(
-                user_id, tenant_id, current_score, all_signals,
+                user_id,
+                tenant_id,
+                current_score,
+                all_signals,
             )
             return PerformanceInsights(
                 trend=ScoreTrend(**result.get("trend", {})),
@@ -369,101 +421,143 @@ class Employee360Service:
 
         # ── Pipeline & Revenue ──
         if kpis.pipeline == 0 and kpis.revenue == 0:
-            actions.append(AICoachAction(
-                type="pipeline_empty", title="Build your pipeline",
-                description="You have no active deals. Start prospecting by identifying target companies in your territory.",
-                priority="high",
-            ))
+            actions.append(
+                AICoachAction(
+                    type="pipeline_empty",
+                    title="Build your pipeline",
+                    description="You have no active deals. Start prospecting by identifying target companies in your territory.",  # noqa: E501
+                    priority="high",
+                )
+            )
         elif kpis.pipeline > 0 and kpis.revenue == 0:
-            actions.append(AICoachAction(
-                type="no_revenue", title="Convert pipeline to revenue",
-                description=f"You have {kpis.pipeline:,.0f} SAR in pipeline but no closed revenue. Focus on advancing deals to close.",
-                priority="high",
-            ))
+            actions.append(
+                AICoachAction(
+                    type="no_revenue",
+                    title="Convert pipeline to revenue",
+                    description=f"You have {kpis.pipeline:,.0f} SAR in pipeline but no closed revenue. Focus on advancing deals to close.",  # noqa: E501
+                    priority="high",
+                )
+            )
         if 0 < kpis.win_rate < 0.3:
-            actions.append(AICoachAction(
-                type="win_rate_low", title="Improve win rate",
-                description="Your win rate is below 30%. Review deal qualification criteria and focus on high-probability opportunities.",
-                priority="medium",
-            ))
+            actions.append(
+                AICoachAction(
+                    type="win_rate_low",
+                    title="Improve win rate",
+                    description="Your win rate is below 30%. Review deal qualification criteria and focus on high-probability opportunities.",  # noqa: E501
+                    priority="medium",
+                )
+            )
 
         # ── Signal Quality ──
         if kpis.signal_count > 0 and kpis.diversity_score < 0.3:
-            actions.append(AICoachAction(
-                type="low_signal_diversity", title="Diversify your activity types",
-                description="Your signals are concentrated in few areas. Mix calls, emails, and meetings for better engagement.",
-                priority="medium",
-            ))
+            actions.append(
+                AICoachAction(
+                    type="low_signal_diversity",
+                    title="Diversify your activity types",
+                    description="Your signals are concentrated in few areas. Mix calls, emails, and meetings for better engagement.",  # noqa: E501
+                    priority="medium",
+                )
+            )
         if kpis.signal_count < 10 and kpis.pipeline > 0:
-            actions.append(AICoachAction(
-                type="low_activity", title="Increase activity volume",
-                description=f"Only {kpis.signal_count} signals recorded. Aim for consistent daily activity to drive pipeline.",
-                priority="medium",
-            ))
+            actions.append(
+                AICoachAction(
+                    type="low_activity",
+                    title="Increase activity volume",
+                    description=f"Only {kpis.signal_count} signals recorded. Aim for consistent daily activity to drive pipeline.",  # noqa: E501
+                    priority="medium",
+                )
+            )
         if kpis.completion_rate < 0.3 and kpis.signal_count > 0:
-            actions.append(AICoachAction(
-                type="low_completion", title="Complete your tasks and workflows",
-                description=f"Task completion rate is {round(kpis.completion_rate * 100)}%. Complete outstanding items to maintain momentum.",
-                priority="medium",
-            ))
+            actions.append(
+                AICoachAction(
+                    type="low_completion",
+                    title="Complete your tasks and workflows",
+                    description=f"Task completion rate is {round(kpis.completion_rate * 100)}%. Complete outstanding items to maintain momentum.",  # noqa: E501
+                    priority="medium",
+                )
+            )
 
         # ── Response & Follow-up ──
         if kpis.response_rate > 0 and kpis.response_rate < 0.5:
-            actions.append(AICoachAction(
-                type="low_response_rate", title="Respond faster to communications",
-                description=f"Response rate is {round(kpis.response_rate * 100)}%. Faster responses improve win rates and customer satisfaction.",
-                priority="medium",
-            ))
+            actions.append(
+                AICoachAction(
+                    type="low_response_rate",
+                    title="Respond faster to communications",
+                    description=f"Response rate is {round(kpis.response_rate * 100)}%. Faster responses improve win rates and customer satisfaction.",  # noqa: E501
+                    priority="medium",
+                )
+            )
         if kpis.follow_up_rate > 0 and kpis.follow_up_rate < 0.3:
-            actions.append(AICoachAction(
-                type="low_follow_up", title="Increase follow-up consistency",
-                description=f"Follow-up rate is {round(kpis.follow_up_rate * 100)}%. Consistent follow-ups are the top predictor of deal closure.",
-                priority="high",
-            ))
+            actions.append(
+                AICoachAction(
+                    type="low_follow_up",
+                    title="Increase follow-up consistency",
+                    description=f"Follow-up rate is {round(kpis.follow_up_rate * 100)}%. Consistent follow-ups are the top predictor of deal closure.",  # noqa: E501
+                    priority="high",
+                )
+            )
 
         # ── Performance Risk Flags ──
         if performance:
             for flag in performance.risk_flags:
                 if flag.flag == "declining_signals" and flag.severity == "high":
-                    actions.append(AICoachAction(
-                        type="declining_signals", title="Activity dropping sharply",
-                        description=f"{flag.message}. Review your weekly plan and identify blockers.",
-                        priority="high",
-                    ))
+                    actions.append(
+                        AICoachAction(
+                            type="declining_signals",
+                            title="Activity dropping sharply",
+                            description=f"{flag.message}. Review your weekly plan and identify blockers.",  # noqa: E501
+                            priority="high",
+                        )
+                    )
                 elif flag.flag == "low_engagement" and flag.severity in ("high", "medium"):
-                    actions.append(AICoachAction(
-                        type="low_engagement", title="Increase customer engagement",
-                        description=f"{flag.message}. Schedule outreach calls and meetings this week.",
-                        priority="high" if flag.severity == "high" else "medium",
-                    ))
+                    actions.append(
+                        AICoachAction(
+                            type="low_engagement",
+                            title="Increase customer engagement",
+                            description=f"{flag.message}. Schedule outreach calls and meetings this week.",  # noqa: E501
+                            priority="high" if flag.severity == "high" else "medium",
+                        )
+                    )
                 elif flag.flag == "declining_score":
-                    actions.append(AICoachAction(
-                        type="score_declining", title="Performance score declining",
-                        description=f"{flag.message}. Focus on consistent daily activity to reverse the trend.",
-                        priority="high",
-                    ))
+                    actions.append(
+                        AICoachAction(
+                            type="score_declining",
+                            title="Performance score declining",
+                            description=f"{flag.message}. Focus on consistent daily activity to reverse the trend.",  # noqa: E501
+                            priority="high",
+                        )
+                    )
 
         # ── Productivity ──
         if kpis.productivity < 0.5 and kpis.activities > 0:
-            actions.append(AICoachAction(
-                type="low_productivity", title="Boost your daily productivity",
-                description=f"Productivity score is {round(kpis.productivity * 100)}%. Set daily activity targets and track your progress.",
-                priority="medium",
-            ))
+            actions.append(
+                AICoachAction(
+                    type="low_productivity",
+                    title="Boost your daily productivity",
+                    description=f"Productivity score is {round(kpis.productivity * 100)}%. Set daily activity targets and track your progress.",  # noqa: E501
+                    priority="medium",
+                )
+            )
         if kpis.activities > 80:
-            actions.append(AICoachAction(
-                type="high_performer", title="Excellent activity levels",
-                description=f"You have {kpis.activities} activities this month. Keep up the great work and focus on quality over quantity.",
-                priority="low",
-            ))
+            actions.append(
+                AICoachAction(
+                    type="high_performer",
+                    title="Excellent activity levels",
+                    description=f"You have {kpis.activities} activities this month. Keep up the great work and focus on quality over quantity.",  # noqa: E501
+                    priority="low",
+                )
+            )
 
         # ── Fallback ──
         if not actions:
-            actions.append(AICoachAction(
-                type="on_track", title="You're on track",
-                description="Your activity, pipeline, and performance indicators are healthy. Keep maintaining your rhythm.",
-                priority="low",
-            ))
+            actions.append(
+                AICoachAction(
+                    type="on_track",
+                    title="You're on track",
+                    description="Your activity, pipeline, and performance indicators are healthy. Keep maintaining your rhythm.",  # noqa: E501
+                    priority="low",
+                )
+            )
 
         # ── Sort by priority ──
         priority_order = {"high": 0, "medium": 1, "low": 2}

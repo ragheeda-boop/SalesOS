@@ -1,11 +1,17 @@
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.executive.schemas import (
-    ExecutiveDashboard, RevenueKPI, TeamKPI, RiskKPI,
-    PipelineHealth, RenewalKPI, GrowthKPI, HealthKPI,
+    ExecutiveDashboard,
+    GrowthKPI,
+    HealthKPI,
+    PipelineHealth,
+    RenewalKPI,
+    RevenueKPI,
+    RiskKPI,
+    TeamKPI,
 )
 
 
@@ -13,7 +19,7 @@ class ExecutiveService:
     def __init__(self, db: AsyncSession, tenant_id: str):
         self.db = db
         self.tenant_id = tenant_id
-        self.now = datetime.now(timezone.utc)
+        self.now = datetime.now(UTC)
         self.days_30 = self.now - timedelta(days=30)
         self.days_90 = self.now - timedelta(days=90)
 
@@ -34,7 +40,7 @@ class ExecutiveService:
     async def get_revenue(self) -> RevenueKPI:
         r = await self._fetch_one(
             "SELECT COALESCE(SUM(value), 0) as total_pipeline, "
-            "COALESCE(SUM(CASE WHEN status IN ('won','closed_won') THEN value ELSE 0 END), 0) as won_value "
+            "COALESCE(SUM(CASE WHEN status IN ('won','closed_won') THEN value ELSE 0 END), 0) as won_value "  # noqa: E501
             "FROM commercial_opportunities WHERE tenant_id = :tid",
             {"tid": self.tenant_id},
         )
@@ -70,7 +76,7 @@ class ExecutiveService:
             "SELECT COUNT(*) as total, "
             "COALESCE(SUM(value), 0) as pipeline_value, "
             "COALESCE(SUM(CASE WHEN status IN ('won','closed_won') THEN 1 ELSE 0 END), 0) as won, "
-            "COALESCE(SUM(CASE WHEN status IN ('lost','closed_lost') THEN 1 ELSE 0 END), 0) as lost, "
+            "COALESCE(SUM(CASE WHEN status IN ('lost','closed_lost') THEN 1 ELSE 0 END), 0) as lost, "  # noqa: E501
             "COALESCE(AVG(value), 0) as avg_val "
             "FROM commercial_opportunities WHERE tenant_id = :tid",
             {"tid": self.tenant_id},
@@ -131,10 +137,10 @@ class ExecutiveService:
     async def get_growth(self) -> GrowthKPI:
         r = await self._fetch_one(
             "SELECT "
-            "(SELECT COUNT(*) FROM companies WHERE tenant_id = :tid AND created_at >= :d30) as new_companies, "
-            "(SELECT COUNT(*) FROM contacts WHERE tenant_id = :tid AND created_at >= :d30) as new_contacts, "
-            "(SELECT COUNT(*) FROM commercial_opportunities WHERE tenant_id = :tid AND created_at >= :d30) as new_opps, "
-            "(SELECT COUNT(*) FROM commercial_contracts WHERE tenant_id = :tid AND created_at >= :d30) as new_contracts",
+            "(SELECT COUNT(*) FROM companies WHERE tenant_id = :tid AND created_at >= :d30) as new_companies, "  # noqa: E501
+            "(SELECT COUNT(*) FROM contacts WHERE tenant_id = :tid AND created_at >= :d30) as new_contacts, "  # noqa: E501
+            "(SELECT COUNT(*) FROM commercial_opportunities WHERE tenant_id = :tid AND created_at >= :d30) as new_opps, "  # noqa: E501
+            "(SELECT COUNT(*) FROM commercial_contracts WHERE tenant_id = :tid AND created_at >= :d30) as new_contracts",  # noqa: E501
             {"tid": self.tenant_id, "d30": self.days_30},
         )
         return GrowthKPI(
@@ -157,20 +163,22 @@ class ExecutiveService:
             {"tid": self.tenant_id},
         )
         total = completeness.get("total", 0) or 1
-        filled = sum([
-            completeness.get("has_name", 0) or 0,
-            completeness.get("has_email", 0) or 0,
-            completeness.get("has_phone", 0) or 0,
-            completeness.get("has_city", 0) or 0,
-            completeness.get("has_industry", 0) or 0,
-        ])
+        filled = sum(
+            [
+                completeness.get("has_name", 0) or 0,
+                completeness.get("has_email", 0) or 0,
+                completeness.get("has_phone", 0) or 0,
+                completeness.get("has_city", 0) or 0,
+                completeness.get("has_industry", 0) or 0,
+            ]
+        )
         max_fill = total * 5
         data_completeness = round(filled / max_fill, 2) if max_fill > 0 else 0.0
 
         sync = await self._fetch_one(
             "SELECT COUNT(*) as cnt FROM entity_resolution_log "
             "WHERE tenant_id = :tid AND created_at >= :d1",
-            {"tid": self.tenant_id, "d1": datetime.now(timezone.utc) - timedelta(days=1)},
+            {"tid": self.tenant_id, "d1": datetime.now(UTC) - timedelta(days=1)},
         )
         has_recent_sync = sync.get("cnt", 0) > 0
 

@@ -1,28 +1,35 @@
 """Tests for SearchRuntime — full-text, semantic, and hybrid search strategies."""
-from unittest.mock import AsyncMock, MagicMock, call
+
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from runtime.search_runtime import SearchRuntime, SearchStrategy, SearchResult
+from runtime.search_runtime import SearchResult, SearchRuntime, SearchStrategy
 
 
 class FakeMapping:
     """Simulate a SQLAlchemy row mapping."""
+
     def __init__(self, data):
         self._data = data
+
     def __getitem__(self, key):
         return self._data[key]
+
     def get(self, key, default=None):
         return self._data.get(key, default)
+
     def keys(self):
         return self._data.keys()
+
     def __iter__(self):
         return iter(self._data)
 
 
 class FakeMappings:
     """Simulate .mappings() result."""
+
     def __init__(self, rows=None, one=None):
         self._rows = rows or []
         self._one = one or {"id": "1", "name_ar": "Test", "relevance": 1.0, "count": 5}
@@ -36,15 +43,35 @@ class FakeMappings:
 
 class FakeResult:
     """Simulate a SQLAlchemy result."""
+
     def __init__(self, one=None, rows=None, scalar_val=5):
-        self._one = one or {"count": 5, "id": "1", "name_ar": "Test", "name_en": "Test EN",
-                            "cr_number": "1234567890", "city": "Riyadh", "region": "Riyadh",
-                            "industry": "Tech", "status": "active", "activity_description": "Desc",
-                            "relevance": 1.0}
-        self._rows = rows or [{"id": "1", "name_ar": "شركة أ", "name_en": "Co A",
-                               "cr_number": "1234567890", "city": "Riyadh", "region": "Riyadh",
-                               "industry": "Tech", "status": "active", "activity_description": "Desc",
-                               "relevance": 1.0}]
+        self._one = one or {
+            "count": 5,
+            "id": "1",
+            "name_ar": "Test",
+            "name_en": "Test EN",
+            "cr_number": "1234567890",
+            "city": "Riyadh",
+            "region": "Riyadh",
+            "industry": "Tech",
+            "status": "active",
+            "activity_description": "Desc",
+            "relevance": 1.0,
+        }
+        self._rows = rows or [
+            {
+                "id": "1",
+                "name_ar": "شركة أ",
+                "name_en": "Co A",
+                "cr_number": "1234567890",
+                "city": "Riyadh",
+                "region": "Riyadh",
+                "industry": "Tech",
+                "status": "active",
+                "activity_description": "Desc",
+                "relevance": 1.0,
+            }
+        ]
         self._scalar_val = scalar_val
 
     def mappings(self):
@@ -59,7 +86,12 @@ class FakeResult:
     def __iter__(self):
         class FakeRow:
             def __getitem__(self, i):
-                return list(self._row_vals.values())[i] if isinstance(self._row_vals, dict) else self._row_vals[i]
+                return (
+                    list(self._row_vals.values())[i]
+                    if isinstance(self._row_vals, dict)
+                    else self._row_vals[i]
+                )
+
         for row_data in self._rows:
             r = FakeRow()
             r._row_vals = row_data

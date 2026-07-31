@@ -1,9 +1,8 @@
 """DemoModeService — manages demo mode toggle and behavior."""
 
-import os
 import json
+import os
 from pathlib import Path
-from typing import Any
 
 DEMO_DATA_PATH = Path(__file__).parent.parent.parent.parent / "demo" / "demo_data.json"
 
@@ -31,7 +30,7 @@ class DemoModeService:
             return self._demo_data
         if not DEMO_DATA_PATH.exists():
             return None
-        with open(DEMO_DATA_PATH, "r", encoding="utf-8") as f:
+        with open(DEMO_DATA_PATH, encoding="utf-8") as f:
             self._demo_data = json.load(f)
         return self._demo_data
 
@@ -124,7 +123,11 @@ class DemoModeService:
                 "description": "Show NBA recommendation → Create task → Send email → Close deal",
                 "steps": [
                     {"order": 1, "action": "view_nba", "label": "View NBA Recommendation"},
-                    {"order": 2, "action": "create_task", "label": "Create Task from Recommendation"},
+                    {
+                        "order": 2,
+                        "action": "create_task",
+                        "label": "Create Task from Recommendation",
+                    },
                     {"order": 3, "action": "send_email", "label": "Send Follow-up Email"},
                     {"order": 4, "action": "close_deal", "label": "Close Won Deal"},
                 ],
@@ -136,7 +139,11 @@ class DemoModeService:
                 "steps": [
                     {"order": 1, "action": "view_pipeline", "label": "View Pipeline Health"},
                     {"order": 2, "action": "view_forecast", "label": "Review Forecast"},
-                    {"order": 3, "action": "team_performance", "label": "Team Performance Analysis"},
+                    {
+                        "order": 3,
+                        "action": "team_performance",
+                        "label": "Team Performance Analysis",
+                    },
                 ],
             },
             {

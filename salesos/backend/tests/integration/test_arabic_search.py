@@ -13,10 +13,9 @@ import uuid
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from domains.search.engine.parser import QueryParser
 from domains.search.normalization.arabic_normalizer import ArabicSearchNormalizer
 from domains.search.normalization.company_matcher import CompanyNameMatcher
-from domains.search.engine.parser import QueryParser
-
 
 # ── Helper: create test company ─────────────────────────────────────────
 
@@ -151,11 +150,9 @@ class TestArabicTokenization:
 
 
 @pytest.mark.asyncio
-async def test_entity_resolution_arabic_name_matching(
-    db_session: AsyncSession, test_tenant: str
-):
-    from app.modules.entity_resolution.service import EntityResolutionService
+async def test_entity_resolution_arabic_name_matching(db_session: AsyncSession, test_tenant: str):
     from app.modules.company.models import Company
+    from app.modules.entity_resolution.service import EntityResolutionService
 
     c1 = Company(
         tenant_id=uuid.UUID(test_tenant),
@@ -178,11 +175,9 @@ async def test_entity_resolution_arabic_name_matching(
 
 
 @pytest.mark.asyncio
-async def test_entity_resolution_prefix_variations(
-    db_session: AsyncSession, test_tenant: str
-):
-    from app.modules.entity_resolution.service import EntityResolutionService
+async def test_entity_resolution_prefix_variations(db_session: AsyncSession, test_tenant: str):
     from app.modules.company.models import Company
+    from app.modules.entity_resolution.service import EntityResolutionService
 
     c1 = Company(
         tenant_id=uuid.UUID(test_tenant),

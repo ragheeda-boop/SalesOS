@@ -1,13 +1,14 @@
 """PostgresMemoryStore tests — mocked SQL layer."""
+
 from __future__ import annotations
 
-from datetime import datetime, timezone, timedelta
-from unittest.mock import AsyncMock, MagicMock, PropertyMock
+from datetime import UTC, datetime, timedelta
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from intelligence.memory.base import MemoryEntry, MemoryEntryType, MemoryScope
 from intelligence.memory.postgres_store import PostgresMemoryStore
-from intelligence.memory.base import MemoryEntry, MemoryScope, MemoryEntryType
 
 
 @pytest.fixture
@@ -33,14 +34,20 @@ async def test_store_and_get(store, mock_session):
         "type": "context",
         "content": "test data",
         "metadata": {},
-        "timestamp": datetime.now(timezone.utc),
+        "timestamp": datetime.now(UTC),
         "ttl_seconds": None,
         "session_id": None,
         "conversation_id": None,
     }
     mock_session.execute.return_value = mock_result
 
-    entry = MemoryEntry(id="e1", agent_id="agent-1", scope=MemoryScope.WORKING, type=MemoryEntryType.CONTEXT, content="test data")
+    entry = MemoryEntry(
+        id="e1",
+        agent_id="agent-1",
+        scope=MemoryScope.WORKING,
+        type=MemoryEntryType.CONTEXT,
+        content="test data",
+    )
     await store.store(entry)
 
     retrieved = await store.get("e1")
@@ -62,7 +69,18 @@ async def test_get_nonexistent(store, mock_session):
 async def test_query_by_agent(store, mock_session):
     mock_result = MagicMock()
     mock_result.mappings.return_value.all.return_value = [
-        {"id": "e1", "agent_id": "agent-1", "scope": "working", "type": "context", "content": "data 1", "metadata": {}, "timestamp": datetime.now(timezone.utc), "ttl_seconds": None, "session_id": None, "conversation_id": None},
+        {
+            "id": "e1",
+            "agent_id": "agent-1",
+            "scope": "working",
+            "type": "context",
+            "content": "data 1",
+            "metadata": {},
+            "timestamp": datetime.now(UTC),
+            "ttl_seconds": None,
+            "session_id": None,
+            "conversation_id": None,
+        },
     ]
     mock_session.execute.return_value = mock_result
 
@@ -75,7 +93,18 @@ async def test_query_by_agent(store, mock_session):
 async def test_query_by_scope(store, mock_session):
     mock_result = MagicMock()
     mock_result.mappings.return_value.all.return_value = [
-        {"id": "e1", "agent_id": "agent-1", "scope": "session", "type": "context", "content": "session data", "metadata": {}, "timestamp": datetime.now(timezone.utc), "ttl_seconds": None, "session_id": "s1", "conversation_id": None},
+        {
+            "id": "e1",
+            "agent_id": "agent-1",
+            "scope": "session",
+            "type": "context",
+            "content": "session data",
+            "metadata": {},
+            "timestamp": datetime.now(UTC),
+            "ttl_seconds": None,
+            "session_id": "s1",
+            "conversation_id": None,
+        },
     ]
     mock_session.execute.return_value = mock_result
 
@@ -135,7 +164,13 @@ async def test_cleanup_expired(store, mock_session):
 
 @pytest.mark.asyncio
 async def test_store_generates_id(store, mock_session):
-    entry = MemoryEntry(id="", agent_id="agent-1", scope=MemoryScope.WORKING, type=MemoryEntryType.CONTEXT, content="auto-id")
+    entry = MemoryEntry(
+        id="",
+        agent_id="agent-1",
+        scope=MemoryScope.WORKING,
+        type=MemoryEntryType.CONTEXT,
+        content="auto-id",
+    )
     await store.store(entry)
     assert entry.id != ""
 
@@ -144,7 +179,18 @@ async def test_store_generates_id(store, mock_session):
 async def test_query_with_session_and_conversation(store, mock_session):
     mock_result = MagicMock()
     mock_result.mappings.return_value.all.return_value = [
-        {"id": "e1", "agent_id": "agent-1", "scope": "conversation", "type": "message", "content": "Hello", "metadata": {}, "timestamp": datetime.now(timezone.utc), "ttl_seconds": None, "session_id": "s1", "conversation_id": "c1"},
+        {
+            "id": "e1",
+            "agent_id": "agent-1",
+            "scope": "conversation",
+            "type": "message",
+            "content": "Hello",
+            "metadata": {},
+            "timestamp": datetime.now(UTC),
+            "ttl_seconds": None,
+            "session_id": "s1",
+            "conversation_id": "c1",
+        },
     ]
     mock_session.execute.return_value = mock_result
 
@@ -159,6 +205,6 @@ async def test_query_with_since(store, mock_session):
     mock_result.mappings.return_value.all.return_value = []
     mock_session.execute.return_value = mock_result
 
-    since = datetime.now(timezone.utc) - timedelta(hours=1)
+    since = datetime.now(UTC) - timedelta(hours=1)
     results = await store.query(since=since)
     assert len(results) == 0

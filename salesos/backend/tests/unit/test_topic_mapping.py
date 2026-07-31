@@ -1,12 +1,12 @@
 """Tests for domain event → Kafka topic mapping."""
 
 from sdk.events.topic_mapping import (
-    event_type_to_topic,
-    topic_to_domain,
-    topics_for_event_types,
     ALL_TOPICS,
     DOMAIN_PREFIXES,
     TOPIC_PREFIX,
+    event_type_to_topic,
+    topic_to_domain,
+    topics_for_event_types,
 )
 
 
@@ -86,8 +86,16 @@ def test_topics_for_event_types_single() -> None:
 
 def test_all_topics_contains_all_domains() -> None:
     expected_domains = {
-        "identity", "company", "entity_resolution", "timeline",
-        "crm", "scoring", "ai", "workflow", "integration", "billing",
+        "identity",
+        "company",
+        "entity_resolution",
+        "timeline",
+        "crm",
+        "scoring",
+        "ai",
+        "workflow",
+        "integration",
+        "billing",
     }
     for domain in expected_domains:
         assert f"{TOPIC_PREFIX}.{domain}" in ALL_TOPICS

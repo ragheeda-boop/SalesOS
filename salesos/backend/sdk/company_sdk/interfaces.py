@@ -7,7 +7,7 @@ directly from the Commercial domain (ISP + DIP).
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 
@@ -25,7 +25,4 @@ class CompanyOpportunityService(ABC):
     """Interface for querying opportunities scoped to a company."""
 
     @abstractmethod
-    async def query_opportunities(
-        self, query: CompanyOpportunityQuery
-    ) -> Any:
-        ...
+    async def query_opportunities(self, query: CompanyOpportunityQuery) -> Any: ...

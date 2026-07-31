@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import uuid
-
 import pytest
 
-from app.modules.signal_marketplace.models import Signal, SignalEvent, SignalSubscription
+from app.modules.signal_marketplace.models import Signal
 from app.modules.signal_marketplace.repository import (
     InMemorySignalEventRepository,
     InMemorySignalRepository,
@@ -71,6 +69,7 @@ def another_signal():
 
 # ── Signal Library Tests ──
 
+
 class TestSignalLibrary:
     @pytest.mark.asyncio
     async def test_list_signals_empty(self, service):
@@ -125,6 +124,7 @@ class TestSignalLibrary:
 
 
 # ── Subscription Tests ──
+
 
 class TestSubscription:
     @pytest.mark.asyncio
@@ -201,6 +201,7 @@ class TestSubscription:
 
 
 # ── Signal Detection & Feed Tests ──
+
 
 class TestSignalDetection:
     @pytest.mark.asyncio
@@ -301,13 +302,16 @@ class TestSignalDetection:
 
 # ── SignalDetectionEngine Tests ──
 
+
 class TestSignalDetectionEngine:
     @pytest.mark.asyncio
     async def test_load_pack_with_no_packs_dir(self, monkeypatch):
-        import tempfile, os
+        import tempfile
+
         tmp = tempfile.gettempdir()
         monkeypatch.setenv("KNOWLEDGE_PACKS_PATH", tmp)
         from app.modules.signal_marketplace.engine import SignalDetectionEngine
+
         engine = SignalDetectionEngine(SignalMarketplaceService())
         signals = await engine.load_all_packs()
         # Temp dir is empty → no packs found
@@ -317,6 +321,7 @@ class TestSignalDetectionEngine:
     async def test_engine_on_domain_event_matches_trigger(self, service, sample_signal):
         await service.register_signal(sample_signal)
         from app.modules.signal_marketplace.engine import SignalDetectionEngine
+
         engine = SignalDetectionEngine(service)
         engine._signal_map = {"SIG-HC-001": sample_signal}
         await engine.on_domain_event(
@@ -333,6 +338,7 @@ class TestSignalDetectionEngine:
     async def test_engine_no_match(self, service, sample_signal):
         await service.register_signal(sample_signal)
         from app.modules.signal_marketplace.engine import SignalDetectionEngine
+
         engine = SignalDetectionEngine(service)
         engine._signal_map = {"SIG-HC-001": sample_signal}
         await engine.on_domain_event(
@@ -346,6 +352,7 @@ class TestSignalDetectionEngine:
     @pytest.mark.asyncio
     async def test_map_priority_to_severity(self):
         from app.modules.signal_marketplace.engine import SignalDetectionEngine
+
         assert SignalDetectionEngine._map_priority("high") == "critical"
         assert SignalDetectionEngine._map_priority("medium") == "warning"
         assert SignalDetectionEngine._map_priority("low") == "info"

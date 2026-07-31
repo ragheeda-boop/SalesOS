@@ -1,6 +1,7 @@
 """Event bus: publish and subscribe to domain events."""
 
 import asyncio
+import contextlib
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Callable
@@ -26,6 +27,7 @@ class EventBus(ABC):
 
     def unsubscribe(self, event_type: str, handler: EventHandler) -> None:
         """Remove a previously registered handler (optional override)."""
+        del event_type, handler
 
 
 class InMemoryEventBus(EventBus):
@@ -46,10 +48,8 @@ class InMemoryEventBus(EventBus):
     def unsubscribe(self, event_type: str, handler: EventHandler) -> None:
         handlers = self._handlers.get(event_type)
         if handlers:
-            try:
+            with contextlib.suppress(ValueError):
                 handlers.remove(handler)
-            except ValueError:
-                pass
 
     async def publish(self, event: DomainEvent) -> None:
         handlers = self._handlers.get(event.event_type, [])
@@ -70,6 +70,3 @@ class InMemoryEventBus(EventBus):
                 logger.exception(
                     "Handler %s failed for event %s", handler.__name__, event.event_type
                 )
-
-
-

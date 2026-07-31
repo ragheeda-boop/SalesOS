@@ -1,5 +1,4 @@
 import uuid
-from typing import Any
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,9 +35,7 @@ class ContactService:
         return contact
 
     async def get(self, contact_id: str) -> Contact:
-        result = await self.db.execute(
-            select(Contact).where(Contact.id == contact_id)
-        )
+        result = await self.db.execute(select(Contact).where(Contact.id == contact_id))
         contact = result.scalar_one_or_none()
         if not contact:
             raise NotFoundError("Contact", contact_id)
@@ -68,8 +65,10 @@ class ContactService:
         sort_desc: bool = True,
     ) -> tuple[list[Contact], int]:
         base = select(Contact).where(Contact.tenant_id == uuid.UUID(tenant_id))
-        count_base = select(func.count()).select_from(Contact).where(
-            Contact.tenant_id == uuid.UUID(tenant_id)
+        count_base = (
+            select(func.count())
+            .select_from(Contact)
+            .where(Contact.tenant_id == uuid.UUID(tenant_id))
         )
 
         if query:
@@ -145,8 +144,7 @@ class ContactService:
             else:
                 contact = Contact(
                     tenant_id=uuid.UUID(tenant_id),
-                    **{k: v for k, v in record.items()
-                       if hasattr(Contact, k) and v is not None},
+                    **{k: v for k, v in record.items() if hasattr(Contact, k) and v is not None},
                 )
                 self.db.add(contact)
                 created.append(contact)

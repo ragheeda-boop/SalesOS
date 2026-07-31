@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -40,7 +40,7 @@ class TestContactCreate:
     async def test_create_contact_basic(self, service, mock_db):
         tenant_id = str(uuid.uuid4())
         data = {"name": "Ahmed Al-Saud", "company_id": str(uuid.uuid4())}
-        contact = await service.create(tenant_id, data)
+        _ = await service.create(tenant_id, data)
         mock_db.add.assert_called_once()
         mock_db.flush.assert_awaited_once()
         added = mock_db.add.call_args[0][0]
@@ -65,7 +65,7 @@ class TestContactCreate:
             "company_id": company_id,
             "tags": ["vip", "enterprise"],
         }
-        contact = await service.create(tenant_id, data)
+        _ = await service.create(tenant_id, data)
         added = mock_db.add.call_args[0][0]
         assert added.name == "Sara Al-Qahtani"
         assert added.email == "sara@example.com"
@@ -76,9 +76,9 @@ class TestContactCreate:
     async def test_create_contact_optional_fields_none(self, service, mock_db):
         tenant_id = str(uuid.uuid4())
         data = {"name": "Minimal Contact", "company_id": str(uuid.uuid4())}
-        contact = await service.create(tenant_id, data)
+        _ = await service.create(tenant_id, data)
         added = mock_db.add.call_args[0][0]
-        assert added.company_id is not None   # company_id is now required
+        assert added.company_id is not None  # company_id is now required
         assert added.email is None
         assert added.phone is None
         assert added.is_primary is False
@@ -105,6 +105,7 @@ class TestContactGet:
         mock_db.execute.return_value = mock_result
 
         from app.common.exceptions import NotFoundError
+
         with pytest.raises(NotFoundError):
             await service.get(str(uuid.uuid4()))
 
@@ -119,7 +120,7 @@ class TestContactUpdate:
         mock_result.scalar_one_or_none.return_value = mock_contact
         mock_db.execute.return_value = mock_result
 
-        result = await service.update(contact_id, {"name": "Updated Name"})
+        _ = await service.update(contact_id, {"name": "Updated Name"})
         mock_db.flush.assert_awaited_once()
 
     @pytest.mark.asyncio
@@ -129,6 +130,7 @@ class TestContactUpdate:
         mock_db.execute.return_value = mock_result
 
         from app.common.exceptions import NotFoundError
+
         with pytest.raises(NotFoundError):
             await service.update(str(uuid.uuid4()), {"name": "No One"})
 
@@ -153,6 +155,7 @@ class TestContactDelete:
         mock_db.execute.return_value = mock_result
 
         from app.common.exceptions import NotFoundError
+
         with pytest.raises(NotFoundError):
             await service.delete(str(uuid.uuid4()))
 
@@ -191,9 +194,7 @@ class TestContactSearch:
         mock_db.execute.return_value = mock_result
         mock_db.scalar = AsyncMock(return_value=0)
 
-        items, total = await service.search(
-            tenant_id, filters={"email": "test@example.com"}
-        )
+        items, total = await service.search(tenant_id, filters={"email": "test@example.com"})
         assert items == []
 
     @pytest.mark.asyncio

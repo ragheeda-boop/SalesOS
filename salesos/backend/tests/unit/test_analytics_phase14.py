@@ -8,28 +8,23 @@ from __future__ import annotations
 import json
 import os
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from domains.analytics.cubes import ActivityCube, ForecastCube, PipelineCube, TeamCube
-from domains.analytics.engine import CUBE_REGISTRY, ReportEngine, _compute_next_run
+from domains.analytics.engine import ReportEngine, _compute_next_run
 from domains.analytics.models import (
     CubeType,
     DomainMetrics,
-    Granularity,
     OutputFormat,
     PermissionLevel,
     ReportDefinition,
     ReportExecution,
-    ReportShare,
     ReportStatus,
-    ScheduledReport,
     ScheduleCadence,
     VisualizationType,
 )
 from domains.analytics.repository import InMemoryReportRepository
-
 
 # ── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -145,29 +140,19 @@ class TestReportSharing:
 
     @pytest.mark.asyncio
     async def test_check_permission_view(self, engine, sample_report):
-        await engine.share_report(
-            sample_report.id, "user-2", PermissionLevel.VIEW
-        )
+        await engine.share_report(sample_report.id, "user-2", PermissionLevel.VIEW)
         assert await engine.check_permission(sample_report.id, "user-2") is True
 
     @pytest.mark.asyncio
     async def test_check_permission_upgrade(self, engine, sample_report):
-        await engine.share_report(
-            sample_report.id, "user-2", PermissionLevel.VIEW
-        )
-        has_edit = await engine.check_permission(
-            sample_report.id, "user-2", PermissionLevel.EDIT
-        )
+        await engine.share_report(sample_report.id, "user-2", PermissionLevel.VIEW)
+        has_edit = await engine.check_permission(sample_report.id, "user-2", PermissionLevel.EDIT)
         assert has_edit is False
 
     @pytest.mark.asyncio
     async def test_check_permission_admin_has_view(self, engine, sample_report):
-        await engine.share_report(
-            sample_report.id, "user-2", PermissionLevel.ADMIN
-        )
-        has_view = await engine.check_permission(
-            sample_report.id, "user-2", PermissionLevel.VIEW
-        )
+        await engine.share_report(sample_report.id, "user-2", PermissionLevel.ADMIN)
+        has_view = await engine.check_permission(sample_report.id, "user-2", PermissionLevel.VIEW)
         assert has_view is True
 
     @pytest.mark.asyncio
@@ -271,38 +256,26 @@ class TestScheduledReports:
 
     @pytest.mark.asyncio
     async def test_update_schedule_cadence(self, engine, sample_report):
-        schedule = await engine.create_schedule(
-            "t-1", sample_report.id, ScheduleCadence.DAILY
-        )
-        updated = await engine.update_schedule(
-            schedule.id, cadence=ScheduleCadence.MONTHLY
-        )
+        schedule = await engine.create_schedule("t-1", sample_report.id, ScheduleCadence.DAILY)
+        updated = await engine.update_schedule(schedule.id, cadence=ScheduleCadence.MONTHLY)
         assert updated.cadence == ScheduleCadence.MONTHLY
         assert updated.next_run is not None
 
     @pytest.mark.asyncio
     async def test_update_schedule_recipients(self, engine, sample_report):
-        schedule = await engine.create_schedule(
-            "t-1", sample_report.id, ScheduleCadence.WEEKLY
-        )
-        updated = await engine.update_schedule(
-            schedule.id, recipients=["new@example.com"]
-        )
+        schedule = await engine.create_schedule("t-1", sample_report.id, ScheduleCadence.WEEKLY)
+        updated = await engine.update_schedule(schedule.id, recipients=["new@example.com"])
         assert updated.recipients == ["new@example.com"]
 
     @pytest.mark.asyncio
     async def test_update_schedule_disable(self, engine, sample_report):
-        schedule = await engine.create_schedule(
-            "t-1", sample_report.id, ScheduleCadence.WEEKLY
-        )
+        schedule = await engine.create_schedule("t-1", sample_report.id, ScheduleCadence.WEEKLY)
         updated = await engine.update_schedule(schedule.id, enabled=False)
         assert updated.enabled is False
 
     @pytest.mark.asyncio
     async def test_delete_schedule(self, engine, sample_report):
-        schedule = await engine.create_schedule(
-            "t-1", sample_report.id, ScheduleCadence.WEEKLY
-        )
+        schedule = await engine.create_schedule("t-1", sample_report.id, ScheduleCadence.WEEKLY)
         deleted = await engine.delete_schedule(schedule.id)
         assert deleted is True
         assert await engine.get_schedule(schedule.id) is None
@@ -314,11 +287,9 @@ class TestScheduledReports:
 
     @pytest.mark.asyncio
     async def test_execute_due_schedules(self, engine, sample_report):
-        schedule = await engine.create_schedule(
-            "t-1", sample_report.id, ScheduleCadence.WEEKLY
-        )
+        schedule = await engine.create_schedule("t-1", sample_report.id, ScheduleCadence.WEEKLY)
         # Force next_run to the past
-        schedule.next_run = datetime.now(timezone.utc) - timedelta(hours=1)
+        schedule.next_run = datetime.now(UTC) - timedelta(hours=1)
         await engine.repository.update_schedule(schedule)
         results = await engine.execute_due_schedules()
         assert len(results) == 1
@@ -326,9 +297,7 @@ class TestScheduledReports:
 
     @pytest.mark.asyncio
     async def test_execute_due_schedules_none_due(self, engine, sample_report):
-        schedule = await engine.create_schedule(
-            "t-1", sample_report.id, ScheduleCadence.WEEKLY
-        )
+        _ = await engine.create_schedule("t-1", sample_report.id, ScheduleCadence.WEEKLY)
         # next_run is in the future — should not execute
         results = await engine.execute_due_schedules()
         assert len(results) == 0
@@ -339,22 +308,22 @@ class TestScheduledReports:
 
 class TestComputeNextRun:
     def test_daily_next_run(self):
-        now = datetime(2026, 7, 16, 12, 0, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 7, 16, 12, 0, 0, tzinfo=UTC)
         next_run = _compute_next_run(ScheduleCadence.DAILY, now)
         assert next_run.day == 17
 
     def test_weekly_next_run(self):
-        now = datetime(2026, 7, 16, 12, 0, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 7, 16, 12, 0, 0, tzinfo=UTC)
         next_run = _compute_next_run(ScheduleCadence.WEEKLY, now)
         assert next_run.day == 23
 
     def test_monthly_next_run(self):
-        now = datetime(2026, 7, 16, 12, 0, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 7, 16, 12, 0, 0, tzinfo=UTC)
         next_run = _compute_next_run(ScheduleCadence.MONTHLY, now)
         assert next_run.month == 8
 
     def test_quarterly_next_run(self):
-        now = datetime(2026, 7, 16, 12, 0, 0, tzinfo=timezone.utc)
+        now = datetime(2026, 7, 16, 12, 0, 0, tzinfo=UTC)
         next_run = _compute_next_run(ScheduleCadence.QUARTERLY, now)
         assert next_run.month == 10
 
@@ -391,9 +360,7 @@ class TestKeysetPagination:
             ids.append(r.id)
         page1, cursor = await repo.list_reports(tenant_id="t-1", limit=2)
         assert len(page1) == 2
-        page2, cursor2 = await repo.list_reports(
-            tenant_id="t-1", limit=2, cursor=cursor
-        )
+        page2, cursor2 = await repo.list_reports(tenant_id="t-1", limit=2, cursor=cursor)
         assert len(page2) == 2
         assert page1[0].id != page2[0].id
 

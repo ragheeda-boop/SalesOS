@@ -1,10 +1,14 @@
-from datetime import datetime, timezone
-from typing import Any
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_current_user_id, get_db_session, verify_token
+from app.dependencies import (
+    get_current_tenant_id,
+    get_current_user_id,
+    get_db_session,
+    verify_token,
+)
 
 from .repository import PostgresTelemetryRepository
 from .service import TelemetryService
@@ -12,7 +16,9 @@ from .service import TelemetryService
 router = APIRouter()
 
 
-async def get_service(request: Request, db: AsyncSession = Depends(get_db_session)) -> TelemetryService:
+async def get_service(
+    request: Request, db: AsyncSession = Depends(get_db_session)
+) -> TelemetryService:
     repo = PostgresTelemetryRepository(db)
     return TelemetryService(repository=repo)
 
@@ -27,12 +33,13 @@ async def track_event(
     service: TelemetryService = Depends(get_service),
 ):
     import json
+
     parsed_props = None
     if properties:
         try:
             parsed_props = json.loads(properties)
         except json.JSONDecodeError:
-            raise HTTPException(status_code=400, detail="Invalid JSON in properties")
+            raise HTTPException(status_code=400, detail="Invalid JSON in properties") from None
     event = await service.track(event_type, tenant_id, user_id, parsed_props)
     return {
         "id": event.id,
@@ -97,7 +104,11 @@ async def get_telemetry_overview(
     users = await service.active_users()
 
     total_features = len(adoption)
-    avg_adoption = round(sum(a["adoption_pct"] for a in adoption) / total_features, 1) if total_features > 0 else 0.0
+    avg_adoption = (
+        round(sum(a["adoption_pct"] for a in adoption) / total_features, 1)
+        if total_features > 0
+        else 0.0
+    )
 
     return {
         "feature_adoption": adoption,

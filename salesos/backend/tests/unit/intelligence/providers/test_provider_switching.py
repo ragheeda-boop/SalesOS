@@ -1,17 +1,18 @@
 """Provider switching tests — factory, failover, router."""
+
 from __future__ import annotations
 
 import pytest
 
 from intelligence.providers import (
+    AnthropicProvider,
     ChatRequest,
     ChatResponse,
+    ComplexityLevel,
     FinishReason,
+    OpenAIProvider,
     ProviderFactory,
     QueryRouter,
-    ComplexityLevel,
-    OpenAIProvider,
-    AnthropicProvider,
 )
 
 
@@ -45,6 +46,7 @@ class MockProvider:
 
     async def embed(self, request):
         from intelligence.providers import EmbeddingResponse
+
         return EmbeddingResponse(embedding=[0.1, 0.2, 0.3], model="mock-embed")
 
 
@@ -111,10 +113,14 @@ def test_router_complexity_levels():
     simple = QueryRouter.classify_complexity(messages=[{"role": "user", "content": "hi"}])
     assert simple == ComplexityLevel.SIMPLE
 
-    moderate = QueryRouter.classify_complexity(messages=[{"role": "user", "content": "Explain the difference between AI and ML in detail"}])
+    moderate = QueryRouter.classify_complexity(
+        messages=[{"role": "user", "content": "Explain the difference between AI and ML in detail"}]
+    )
     assert moderate == ComplexityLevel.MODERATE
 
-    complex_tools = QueryRouter.classify_complexity(messages=[{"role": "user", "content": "Analyze"}], tools=[{"function": {"name": "test"}}])
+    complex_tools = QueryRouter.classify_complexity(
+        messages=[{"role": "user", "content": "Analyze"}], tools=[{"function": {"name": "test"}}]
+    )
     assert complex_tools == ComplexityLevel.COMPLEX
 
 

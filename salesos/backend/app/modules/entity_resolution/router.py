@@ -30,7 +30,12 @@ def get_service(
     )
 
 
-@router.post("/resolve", response_model=ResolutionRunResponse, status_code=201, dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.ADMIN))])
+@router.post(
+    "/resolve",
+    response_model=ResolutionRunResponse,
+    status_code=201,
+    dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.ADMIN))],
+)
 async def resolve_batch(
     body: ResolutionRunRequest,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -54,14 +59,18 @@ async def resolve_batch(
     )
 
 
-@router.get("/golden-records", response_model=PaginatedResponse, dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))])
+@router.get(
+    "/golden-records",
+    response_model=PaginatedResponse,
+    dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))],
+)
 async def list_golden_records(
     page_size: int = Query(20, ge=1, le=100),
     cursor: str | None = Query(None, description="Keyset cursor for pagination"),
     tenant_id: str = Depends(get_current_tenant_id),
     service: EntityResolutionService = Depends(get_service),
 ):
-    from sdk.pagination import decode_cursor, encode_cursor
+    from sdk.pagination import encode_cursor
 
     records, total = await service.list_golden_records(tenant_id, page=1, page_size=page_size + 1)
     has_next = len(records) > page_size
@@ -82,10 +91,21 @@ async def list_golden_records(
         )
         for r in records
     ]
-    return PaginatedResponse(total=total, page=1, page_size=page_size, items=items, next_cursor=next_cursor, has_next=has_next)
+    return PaginatedResponse(
+        total=total,
+        page=1,
+        page_size=page_size,
+        items=items,
+        next_cursor=next_cursor,
+        has_next=has_next,
+    )
 
 
-@router.get("/golden-records/{golden_id}", response_model=GoldenRecordResponse, dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))])
+@router.get(
+    "/golden-records/{golden_id}",
+    response_model=GoldenRecordResponse,
+    dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))],
+)
 async def get_golden_record(
     golden_id: str = Path(...),
     tenant_id: str = Depends(get_current_tenant_id),
@@ -94,7 +114,11 @@ async def get_golden_record(
     return await service.get_golden_record(golden_id)
 
 
-@router.get("/golden-records/by-cr/{cr_number}", response_model=GoldenRecordResponse | None, dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))])
+@router.get(
+    "/golden-records/by-cr/{cr_number}",
+    response_model=GoldenRecordResponse | None,
+    dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))],
+)
 async def get_golden_by_cr(
     cr_number: str = Path(...),
     tenant_id: str = Depends(get_current_tenant_id),
@@ -103,7 +127,11 @@ async def get_golden_by_cr(
     return await service.get_golden_by_cr(tenant_id, cr_number)
 
 
-@router.get("/conflicts", response_model=PaginatedResponse, dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))])
+@router.get(
+    "/conflicts",
+    response_model=PaginatedResponse,
+    dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))],
+)
 async def list_conflicts(
     status: str | None = Query(None),
     page_size: int = Query(20, ge=1, le=100),
@@ -111,7 +139,7 @@ async def list_conflicts(
     tenant_id: str = Depends(get_current_tenant_id),
     service: EntityResolutionService = Depends(get_service),
 ):
-    from sdk.pagination import decode_cursor, encode_cursor
+    from sdk.pagination import encode_cursor
 
     conflicts, total = await service.list_conflicts(
         tenant_id, status=status, page=1, page_size=page_size + 1
@@ -140,10 +168,20 @@ async def list_conflicts(
         )
         for c in conflicts
     ]
-    return PaginatedResponse(total=total, page=1, page_size=page_size, items=items, next_cursor=next_cursor, has_next=has_next)
+    return PaginatedResponse(
+        total=total,
+        page=1,
+        page_size=page_size,
+        items=items,
+        next_cursor=next_cursor,
+        has_next=has_next,
+    )
 
 
-@router.post("/conflicts/{conflict_id}/resolve", dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.UPDATE))])
+@router.post(
+    "/conflicts/{conflict_id}/resolve",
+    dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.UPDATE))],
+)
 async def resolve_conflict(
     conflict_id: str = Path(...),
     body: ConflictResolveRequest = ...,
@@ -159,7 +197,10 @@ async def resolve_conflict(
     return {"message": f"Conflict {conflict_id} resolved with strategy: {body.resolution_strategy}"}
 
 
-@router.get("/stats", dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))])
+@router.get(
+    "/stats",
+    dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.READ))],
+)
 async def get_resolution_stats(
     tenant_id: str = Depends(get_current_tenant_id),
     service: EntityResolutionService = Depends(get_service),

@@ -266,6 +266,7 @@ def validate_event(event: DomainEvent) -> list[str]:
 
     try:
         import jsonschema
+
         validator = jsonschema.Draft7Validator(schema)
         errors = list(validator.iter_errors(event.data))
         return [e.message for e in errors]
@@ -294,7 +295,7 @@ def _validate_event_fallback(data: Any, schema: dict[str, Any]) -> list[str]:
             errors.append(f"'{key}' is not of type 'string'")
         elif expected == "integer" and not isinstance(value, int):
             errors.append(f"'{key}' is not of type 'integer'")
-        elif expected == "number" and not isinstance(value, (int, float)):
+        elif expected == "number" and not isinstance(value, int | float):
             errors.append(f"'{key}' is not of type 'number'")
         elif expected == "array" and not isinstance(value, list):
             errors.append(f"'{key}' is not of type 'array'")

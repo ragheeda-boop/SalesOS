@@ -20,7 +20,6 @@ from domains.search.engine.vector_store import InMemoryVectorStore, VectorRecord
 
 
 class PgVectorCompanyRepository(SearchRepository[Any]):
-
     def __init__(
         self,
         db: AsyncSession,
@@ -38,12 +37,11 @@ class PgVectorCompanyRepository(SearchRepository[Any]):
     async def _embed_query(self, query: SearchQuery) -> list[float]:
         if not self._embedding_service:
             from sdk.vector import OpenAIEmbeddingService
+
             self._embedding_service = OpenAIEmbeddingService()
         return await self._embedding_service.embed(query.query)
 
-    async def _vector_search(
-        self, embedding: list[float], query: SearchQuery
-    ) -> SearchResult[Any]:
+    async def _vector_search(self, embedding: list[float], query: SearchQuery) -> SearchResult[Any]:
         records = await self._store.search(embedding, top_k=query.page_size)
         if not records:
             return SearchResult(
@@ -107,19 +105,21 @@ class PgVectorCompanyRepository(SearchRepository[Any]):
 
         count = 0
         for company in companies:
-            text = f"{company.name_ar} {company.name_en or ''} {company.activity_description or ''} {company.city or ''}"
+            text = f"{company.name_ar} {company.name_en or ''} {company.activity_description or ''} {company.city or ''}"  # noqa: E501
             embedding = await self._embed_query(SearchQuery(query=text))
-            await self._store.upsert(VectorRecord(
-                id=str(company.id),
-                vector=embedding,
-                metadata={
-                    "name_ar": company.name_ar,
-                    "name_en": company.name_en,
-                    "cr_number": company.cr_number,
-                    "city": company.city,
-                    "activity": company.activity_description,
-                },
-            ))
+            await self._store.upsert(
+                VectorRecord(
+                    id=str(company.id),
+                    vector=embedding,
+                    metadata={
+                        "name_ar": company.name_ar,
+                        "name_en": company.name_en,
+                        "cr_number": company.cr_number,
+                        "city": company.city,
+                        "activity": company.activity_description,
+                    },
+                )
+            )
             count += 1
 
         return count
@@ -130,5 +130,7 @@ class PgVectorCompanyRepository(SearchRepository[Any]):
     async def facets(self, query: SearchQuery, fields: list[str]) -> dict[str, dict[str, int]]:
         return {}
 
-    async def suggest(self, query: SearchQuery, field: str, prefix: str, limit: int = 10) -> list[str]:
+    async def suggest(
+        self, query: SearchQuery, field: str, prefix: str, limit: int = 10
+    ) -> list[str]:
         return []

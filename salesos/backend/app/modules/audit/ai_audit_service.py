@@ -4,7 +4,6 @@ from typing import Any
 
 from .service import AuditService
 
-
 AI_ACTIONS = {
     "chat_completion": "ai:chat_completion",
     "embedding": "ai:embedding",
@@ -137,7 +136,9 @@ class AIAuditService:
             tenant_id=tenant_id,
             user_id=user_id,
             action=AI_ACTIONS["agent_call"] if not tool_name else AI_ACTIONS["tool_call"],
-            resource_type=AI_RESOURCE_TYPES["copilot_agent"] if not tool_name else AI_RESOURCE_TYPES["copilot_tool"],
+            resource_type=AI_RESOURCE_TYPES["copilot_agent"]
+            if not tool_name
+            else AI_RESOURCE_TYPES["copilot_tool"],
             model=agent_name,
             operation=tool_name,
             metadata=metadata,

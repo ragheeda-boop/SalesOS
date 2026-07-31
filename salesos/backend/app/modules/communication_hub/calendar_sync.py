@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import text as sa_text
@@ -22,11 +22,11 @@ from app.modules.communication_hub.contact_sync import upsert_contacts_from_addr
 from app.modules.communication_hub.models import GoogleAccount
 from app.modules.communication_hub.repository import GoogleAccountRepository
 from app.modules.communication_hub.service import GoogleOAuthService
-from intelligence.activity_intelligence.providers.google.calendar_provider import (
-    GoogleCalendarProvider,
-    CalendarAPIError,
-)
 from intelligence.activity_intelligence.contracts.models import RawCalendarEvent
+from intelligence.activity_intelligence.providers.google.calendar_provider import (
+    CalendarAPIError,
+    GoogleCalendarProvider,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -102,8 +102,8 @@ class CalendarSyncService:
                     account.id, None, tenant_id=self.tenant_id
                 )
 
-        since = datetime.now(timezone.utc) - timedelta(days=days_lookback)
-        until = datetime.now(timezone.utc) + timedelta(days=days_forward)
+        since = datetime.now(UTC) - timedelta(days=days_lookback)
+        until = datetime.now(UTC) + timedelta(days=days_forward)
         return await provider.fetch_events_time_range(since=since, until=until)
 
     async def _process_events(self, account: GoogleAccount, events: list[RawCalendarEvent]) -> dict:
@@ -130,9 +130,7 @@ class CalendarSyncService:
                     new_count += 1
 
                 attendees = raw.attendees or []
-                contact_addresses.extend(
-                    [a.get("email", "") for a in attendees if a.get("email")]
-                )
+                contact_addresses.extend([a.get("email", "") for a in attendees if a.get("email")])
                 organizer_email = (raw.organizer or {}).get("email", "")
                 if organizer_email:
                     contact_addresses.append(organizer_email)
@@ -162,8 +160,8 @@ class CalendarSyncService:
         }
 
     async def _insert_event(self, account: GoogleAccount, raw: RawCalendarEvent) -> None:
-        start_utc = raw.start_time or datetime.now(timezone.utc)
-        end_utc = raw.end_time or datetime.now(timezone.utc)
+        start_utc = raw.start_time or datetime.now(UTC)
+        end_utc = raw.end_time or datetime.now(UTC)
         duration_minutes = (
             int((end_utc - start_utc).total_seconds() / 60) if end_utc and start_utc else 0
         )
@@ -178,9 +176,7 @@ class CalendarSyncService:
         addresses = [a.get("email", "") for a in attendees if a.get("email")]
         if organizer_email:
             addresses.append(organizer_email)
-        company_ids = await resolve_company_ids_for_addresses(
-            self.db, self.tenant_id, addresses
-        )
+        company_ids = await resolve_company_ids_for_addresses(self.db, self.tenant_id, addresses)
 
         await self.db.execute(
             sa_text("""
@@ -291,9 +287,15 @@ def _all_internal_attendees(attendees: list[dict]) -> bool:
 
 
 def _is_all_day_event(raw: RawCalendarEvent) -> bool:
-    if raw.start_time and raw.start_time.hour == 0 and raw.start_time.minute == 0:
-        if raw.end_time and raw.end_time.hour == 0 and raw.end_time.minute == 0:
-            diff = (raw.end_time - raw.start_time).total_seconds()
-            if diff >= 86400:
-                return True
+    if (
+        raw.start_time
+        and raw.start_time.hour == 0
+        and raw.start_time.minute == 0
+        and raw.end_time
+        and raw.end_time.hour == 0
+        and raw.end_time.minute == 0
+    ):
+        diff = (raw.end_time - raw.start_time).total_seconds()
+        if diff >= 86400:
+            return True
     return False

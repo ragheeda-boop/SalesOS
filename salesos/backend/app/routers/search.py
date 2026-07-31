@@ -7,17 +7,17 @@ To be connected to SearchPlanner only after validation.
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
-from sdk.permissions import PermissionAction
 from app.modules.company.pgvector_repository import PgVectorCompanyRepository
 from domains.search.contracts.models import SearchQuery
 from domains.search.engine.planner import SearchPlanner
 from domains.search.engine.strategy_matrix import detect_intent
+from sdk.permissions import PermissionAction
 
 router = APIRouter()
 
@@ -35,14 +35,16 @@ def record_search_event(
     strategy: str = "",
 ) -> None:
     """Optional hook for search callers to feed the analytics dashboard."""
-    _search_event_log.append({
-        "query": query,
-        "result_count": result_count,
-        "latency_ms": latency_ms,
-        "tenant_id": tenant_id,
-        "strategy": strategy,
-        "timestamp": datetime.now(timezone.utc),
-    })
+    _search_event_log.append(
+        {
+            "query": query,
+            "result_count": result_count,
+            "latency_ms": latency_ms,
+            "tenant_id": tenant_id,
+            "strategy": strategy,
+            "timestamp": datetime.now(UTC),
+        }
+    )
     if len(_search_event_log) > 10_000:
         del _search_event_log[: len(_search_event_log) - 10_000]
 
@@ -69,9 +71,10 @@ async def search_analytics(
     _rbac=Depends(require_permission_dep("search", PermissionAction.READ)),
 ):
     """Search analytics dashboard payload expected by FE `/search/analytics`."""
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    cutoff = datetime.now(UTC) - timedelta(days=days)
     entries = [
-        e for e in _search_event_log
+        e
+        for e in _search_event_log
         if e.get("tenant_id") in ("", tenant_id) and e["timestamp"] >= cutoff
     ]
 
@@ -114,18 +117,20 @@ async def search_analytics(
             continue
         sg = sorted(group)
         n = len(sg)
-        latency_distribution.append({
-            "label": label,
-            "p50": round(sg[n // 2], 2),
-            "p95": round(sg[min(n - 1, int(n * 0.95))], 2),
-            "p99": round(sg[min(n - 1, int(n * 0.99))], 2),
-        })
+        latency_distribution.append(
+            {
+                "label": label,
+                "p50": round(sg[n // 2], 2),
+                "p95": round(sg[min(n - 1, int(n * 0.95))], 2),
+                "p99": round(sg[min(n - 1, int(n * 0.99))], 2),
+            }
+        )
 
     by_day: dict[str, int] = defaultdict(int)
     for e in entries:
         by_day[e["timestamp"].date().isoformat()] += 1
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return {
         "total_queries": total,
         "zero_result_rate": round((zeros / total) * 100, 2) if total else 0.0,

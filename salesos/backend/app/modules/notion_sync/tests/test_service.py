@@ -1,27 +1,21 @@
 """Unit tests for NotionSyncService — no DB required."""
 
-import uuid
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 from app.modules.notion_sync.service import NotionSyncService
 
 
 def make_notion_prop(ptype: str, value):
-    if ptype == "title":
-        return {"type": "title", "title": [{"plain_text": value or ""}]}
-    elif ptype == "rich_text":
-        return {"type": "rich_text", "rich_text": [{"plain_text": value or ""}]}
-    elif ptype == "select":
-        return {"type": "select", "select": {"name": value} if value else None}
-    elif ptype == "phone_number":
-        return {"type": "phone_number", "phone_number": value}
-    elif ptype == "email":
-        return {"type": "email", "email": value}
-    elif ptype == "url":
-        return {"type": "url", "url": value}
-    return {"type": ptype}
+    builders = {
+        "title": lambda: {"type": "title", "title": [{"plain_text": value or ""}]},
+        "rich_text": lambda: {"type": "rich_text", "rich_text": [{"plain_text": value or ""}]},
+        "select": lambda: {"type": "select", "select": {"name": value} if value else None},
+        "phone_number": lambda: {"type": "phone_number", "phone_number": value},
+        "email": lambda: {"type": "email", "email": value},
+        "url": lambda: {"type": "url", "url": value},
+    }
+    build = builders.get(ptype)
+    return build() if build else {"type": ptype}
 
 
 class TestExtractCompany:

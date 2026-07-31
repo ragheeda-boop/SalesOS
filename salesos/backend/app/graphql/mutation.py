@@ -47,16 +47,10 @@ async def _create_opportunity(
             probability=opp.probability,
             health=getattr(opp, "health", "healthy"),
             expected_close_date=(
-                opp.expected_close_date.isoformat()
-                if opp.expected_close_date
-                else None
+                opp.expected_close_date.isoformat() if opp.expected_close_date else None
             ),
             owner_id=opp.owner_id,
-            status=(
-                opp.status.value
-                if hasattr(opp.status, "value")
-                else str(opp.status)
-            ),
+            status=(opp.status.value if hasattr(opp.status, "value") else str(opp.status)),
             description=getattr(opp, "description", ""),
             created_at=(
                 opp.created_at.isoformat()
@@ -120,9 +114,7 @@ async def _update_company(
             legal_form=company.legal_form,
             employees_count=company.employees_count,
             confidence_score=(
-                float(company.confidence_score)
-                if company.confidence_score is not None
-                else None
+                float(company.confidence_score) if company.confidence_score is not None else None
             ),
             is_golden_record=company.is_golden_record,
             tags=company.tags,

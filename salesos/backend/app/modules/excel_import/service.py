@@ -1,7 +1,6 @@
 import io
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 import openpyxl
 from sqlalchemy import select
@@ -12,10 +11,28 @@ from app.modules.company.models import Company
 
 class ExcelImportService:
     SUGGESTED_MAPPING = {
-        "name_ar": ["name", "company", "company name", "company_name", "اسم", "الاسم", "اسم الشركة", "company_ar"],
+        "name_ar": [
+            "name",
+            "company",
+            "company name",
+            "company_name",
+            "اسم",
+            "الاسم",
+            "اسم الشركة",
+            "company_ar",
+        ],
         "name_en": ["name_en", "english name", "name english", "الاسم الإنجليزي"],
         "email": ["email", "e-mail", "البريد", "البريد الالكتروني", "mail"],
-        "phone": ["phone", "phone number", "telephone", "tel", "mobile", "هاتف", "جوال", "رقم الهاتف"],
+        "phone": [
+            "phone",
+            "phone number",
+            "telephone",
+            "tel",
+            "mobile",
+            "هاتف",
+            "جوال",
+            "رقم الهاتف",
+        ],
         "website": ["website", "web", "url", "موقع", "الموقع"],
         "city": ["city", "المدينة", "مدينة"],
         "region": ["region", "area", "المنطقة", "منطقة"],
@@ -39,9 +56,9 @@ class ExcelImportService:
         headers = [str(h).strip() if h else f"column_{i}" for i, h in enumerate(rows[0])]
         data = []
         errors = []
-        for i, row in enumerate(rows[1:], start=2):
+        for _i, row in enumerate(rows[1:], start=2):
             row_data = {}
-            row_errors = []
+            _ = []
             for j, val in enumerate(row):
                 col_name = headers[j] if j < len(headers) else f"column_{j}"
                 row_data[col_name] = str(val) if val is not None else ""
@@ -64,7 +81,7 @@ class ExcelImportService:
         content: bytes,
         filename: str,
         tenant_id: str,
-        column_mapping: Optional[dict[str, str]] = None,
+        column_mapping: dict[str, str] | None = None,
     ) -> dict:
         records, parse_errors = self.parse_excel(content, filename)
         if parse_errors:
@@ -109,7 +126,9 @@ class ExcelImportService:
                     website=company_data.get("website"),
                     city=company_data.get("city"),
                     region=company_data.get("region"),
-                    cr_number=company_data.get("cr_number", f"EXCEL-{uuid.uuid4().hex[:12].upper()}"),
+                    cr_number=company_data.get(
+                        "cr_number", f"EXCEL-{uuid.uuid4().hex[:12].upper()}"
+                    ),
                     postal_code=company_data.get("postal_code"),
                     address=company_data.get("address"),
                     status=company_data.get("status", "active"),
@@ -130,12 +149,17 @@ class ExcelImportService:
             "errors": errors[:50],
         }
 
-    async def preview(
-        self, content: bytes, filename: str
-    ) -> dict:
+    async def preview(self, content: bytes, filename: str) -> dict:
         records, errors = self.parse_excel(content, filename)
         if errors:
-            return {"filename": filename, "total_rows": 0, "sample_rows": [], "detected_columns": [], "suggested_mapping": {}, "errors": errors}
+            return {
+                "filename": filename,
+                "total_rows": 0,
+                "sample_rows": [],
+                "detected_columns": [],
+                "suggested_mapping": {},
+                "errors": errors,
+            }
 
         columns = list(records[0].keys()) if records else []
         mapping = self.suggest_mapping(columns)

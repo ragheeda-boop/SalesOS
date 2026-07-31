@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import uuid
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from app.modules.identity.models import User
 from app.modules.sso.models import SSOConnection
 from app.modules.sso.service import OAuthService
-from app.modules.identity.models import User, Tenant
 
 
 @pytest.fixture
@@ -33,7 +33,10 @@ class TestSSOAuthorizationUrl:
             url = sso_service.get_authorization_url("google")
             assert "accounts.google.com" in url
             assert "client_id=google-client-id" in url
-            assert "redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fapi%2Fv1%2Fauth%2Fsso%2Fgoogle%2Fcallback" in url
+            assert (
+                "redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Fapi%2Fv1%2Fauth%2Fsso%2Fgoogle%2Fcallback"
+                in url
+            )
 
     def test_get_authorization_url_microsoft(self, sso_service):
         with patch("app.modules.sso.service.settings") as mock_settings:
@@ -64,8 +67,11 @@ class TestSSOCallback:
         mock_user = User(id=user_id, tenant_id=tenant_id, email="test@example.com")
 
         mock_conn = SSOConnection(
-            id="conn1", user_id=user_id, provider="google",
-            provider_user_id="p1", provider_email="test@example.com",
+            id="conn1",
+            user_id=user_id,
+            provider="google",
+            provider_user_id="p1",
+            provider_email="test@example.com",
         )
         conn_result = MagicMock()
         conn_result.scalar_one_or_none.return_value = mock_conn
@@ -74,9 +80,20 @@ class TestSSOCallback:
         mock_db.execute.side_effect = [conn_result, user_result]
 
         _store_oauth_state("state123", "google")
-        with patch.object(sso_service, "_exchange_code", new=AsyncMock(return_value={"access_token": "tok123", "expires_in": 3600})), \
-             patch.object(sso_service, "_fetch_user_info", new=AsyncMock(return_value={"id": "p1", "email": "test@example.com", "name": "Test User"})):
-
+        with (
+            patch.object(
+                sso_service,
+                "_exchange_code",
+                new=AsyncMock(return_value={"access_token": "tok123", "expires_in": 3600}),
+            ),
+            patch.object(
+                sso_service,
+                "_fetch_user_info",
+                new=AsyncMock(
+                    return_value={"id": "p1", "email": "test@example.com", "name": "Test User"}
+                ),
+            ),
+        ):
             token, uid = await sso_service.handle_callback("google", "authcode123", "state123")
             assert token is not None
             assert uid == str(user_id)
@@ -90,10 +107,21 @@ class TestSSOCallback:
         mock_db.execute.side_effect = [mock_result, mock_result]
 
         _store_oauth_state("state456", "github")
-        with patch.object(sso_service, "_exchange_code", new=AsyncMock(return_value={"access_token": "tok456", "expires_in": 3600})), \
-             patch.object(sso_service, "_fetch_user_info", new=AsyncMock(return_value={"id": "gh456", "email": "new@example.com", "name": "New User"})), \
-             patch("app.modules.sso.service.hash_password", return_value="hashed_pw"):
-
+        with (
+            patch.object(
+                sso_service,
+                "_exchange_code",
+                new=AsyncMock(return_value={"access_token": "tok456", "expires_in": 3600}),
+            ),
+            patch.object(
+                sso_service,
+                "_fetch_user_info",
+                new=AsyncMock(
+                    return_value={"id": "gh456", "email": "new@example.com", "name": "New User"}
+                ),
+            ),
+            patch("app.modules.sso.service.hash_password", return_value="hashed_pw"),
+        ):
             token, uid = await sso_service.handle_callback("github", "authcode456", "state456")
             assert token is not None
             assert uid is not None
@@ -107,11 +135,24 @@ class TestSSOCallback:
         mock_db.execute.side_effect = [mock_result, mock_result]
 
         _store_oauth_state("state", "github")
-        with patch.object(sso_service, "_exchange_code", new=AsyncMock(return_value={"access_token": "tok789"})), \
-             patch.object(sso_service, "_fetch_user_info", new=AsyncMock(return_value={"id": "gh789", "name": "No Email"})), \
-             patch.object(sso_service, "_fetch_github_emails", new=AsyncMock(return_value=[{"email": "ghuser@github.com"}])), \
-             patch("app.modules.sso.service.hash_password", return_value="hashed_pw"):
-
+        with (
+            patch.object(
+                sso_service,
+                "_exchange_code",
+                new=AsyncMock(return_value={"access_token": "tok789"}),
+            ),
+            patch.object(
+                sso_service,
+                "_fetch_user_info",
+                new=AsyncMock(return_value={"id": "gh789", "name": "No Email"}),
+            ),
+            patch.object(
+                sso_service,
+                "_fetch_github_emails",
+                new=AsyncMock(return_value=[{"email": "ghuser@github.com"}]),
+            ),
+            patch("app.modules.sso.service.hash_password", return_value="hashed_pw"),
+        ):
             token, uid = await sso_service.handle_callback("github", "code", "state")
             assert token is not None
 
@@ -129,7 +170,7 @@ class TestSSOCallback:
                 "client_id": lambda: "id",
                 "client_secret": lambda: "secret",
             }
-            with pytest.raises(Exception):
+            with pytest.raises(Exception, match="HTTP Error"):
                 await sso_service._exchange_code("google", config, "bad-code")
 
 
@@ -138,8 +179,11 @@ class TestSSOConnections:
     async def test_get_connections_for_user(self, sso_service, mock_db):
         user_id = uuid.uuid4()
         mock_conn = SSOConnection(
-            id="conn1", user_id=user_id, provider="google",
-            provider_user_id="p1", provider_email="u@example.com",
+            id="conn1",
+            user_id=user_id,
+            provider="google",
+            provider_user_id="p1",
+            provider_email="u@example.com",
         )
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.return_value = [mock_conn]
@@ -153,8 +197,11 @@ class TestSSOConnections:
     async def test_disconnect_provider(self, sso_service, mock_db):
         user_id = uuid.uuid4()
         mock_conn = SSOConnection(
-            id="conn1", user_id=user_id, provider="google",
-            provider_user_id="p1", is_active=True,
+            id="conn1",
+            user_id=user_id,
+            provider="google",
+            provider_user_id="p1",
+            is_active=True,
         )
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = mock_conn

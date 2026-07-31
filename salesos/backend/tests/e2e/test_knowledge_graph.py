@@ -15,9 +15,7 @@ _TEST_TIMEOUT = 30
 class TestKnowledgeGraph:
     """Graph search, metrics, subgraph, and network queries."""
 
-    async def _seed_company(
-        self, client: AsyncClient, headers: dict
-    ) -> str:
+    async def _seed_company(self, client: AsyncClient, headers: dict) -> str:
         resp = await client.post(
             "/api/v1/companies",
             json={

@@ -1,29 +1,27 @@
 import time
 import uuid
-from datetime import datetime, timezone
-from typing import Optional
-from collections import defaultdict
+from datetime import UTC, datetime
 
 from app.modules.decision.schemas import (
+    AlternativeRecommendation,
     DecisionContext,
-    DecisionResult,
     DecisionHistoryItem,
     DecisionHistoryRecommendation,
-    EvidenceItem,
+    DecisionResult,
     DecisionRule,
-    Score,
-    ScoreFactor,
-    Recommendation,
-    AlternativeRecommendation,
-    Risk,
-    Explainability,
+    EvidenceItem,
     ExpectedImpact,
+    Explainability,
     Feedback,
     FeedbackRecord,
     FeedbackStats,
     LearningEvent,
-    QualityMetrics,
     LearningTrend,
+    QualityMetrics,
+    Recommendation,
+    Risk,
+    Score,
+    ScoreFactor,
     Telemetry,
 )
 
@@ -33,7 +31,7 @@ def _generate_id() -> str:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _clamp(value: float, lo: float = 0.0, hi: float = 1.0) -> float:
@@ -176,9 +174,7 @@ def _apply_rules(context: DecisionContext, evidence: list[EvidenceItem]) -> list
 
         if rule.category == "intent":
             has_high_intent = any(
-                e.data
-                and isinstance(e.data, dict)
-                and e.data.get("strength") == "high"
+                e.data and isinstance(e.data, dict) and e.data.get("strength") == "high"
                 for e in evidence
             )
             if has_high_intent or len(evidence) > 3:
@@ -206,12 +202,8 @@ def _compute_scores(
     ts = _now_iso()
     scores: list[Score] = []
 
-    evidence_confidence = (
-        sum(e.confidence for e in evidence) / len(evidence) if evidence else 0
-    )
-    rule_weight = (
-        sum(r.weight for r in rules_applied) / len(rules_applied) if rules_applied else 0
-    )
+    evidence_confidence = sum(e.confidence for e in evidence) / len(evidence) if evidence else 0
+    rule_weight = sum(r.weight for r in rules_applied) / len(rules_applied) if rules_applied else 0
     combined = round((evidence_confidence * 0.6 + rule_weight * 0.4) * 100) / 100
 
     # Confidence score
@@ -439,7 +431,7 @@ def _generate_recommendation(
         id=decision_id,
         action=action,
         action_label=action_label,
-        reason=f"Based on {len(evidence)} evidence items and {len(rules_applied)} rules, the combined score is {round(value * 100)}%.",
+        reason=f"Based on {len(evidence)} evidence items and {len(rules_applied)} rules, the combined score is {round(value * 100)}%.",  # noqa: E501
         confidence=value,
         confidence_label=conf_label,
         source=source,
@@ -471,7 +463,11 @@ def _build_explainability(
     if rules_applied:
         why_parts.append(f"{len(rules_applied)} business rules matched")
 
-    why = "; ".join(why_parts) if why_parts else "Limited context available — default evaluation applied"
+    why = (
+        "; ".join(why_parts)
+        if why_parts
+        else "Limited context available — default evaluation applied"
+    )
     entity_ref = context.entity_id or context.entity_type or "unknown"
     why_now = f"Decision requested at {_now_iso()} for entity {entity_ref}"
     why_this = (
@@ -506,6 +502,7 @@ def _build_explainability(
 # DecisionEngine
 # ---------------------------------------------------------------------------
 
+
 class DecisionEngine:
     def __init__(self) -> None:
         self._history: dict[str, DecisionResult] = {}
@@ -517,7 +514,7 @@ class DecisionEngine:
 
     # -- Public rules registry --
 
-    def list_rules(self, category: Optional[str] = None) -> list[DecisionRule]:
+    def list_rules(self, category: str | None = None) -> list[DecisionRule]:
         all_rules = list(BASE_RULES) + list(self._custom_rules.values())
         if category:
             all_rules = [r for r in all_rules if r.category == category]
@@ -548,10 +545,14 @@ class DecisionEngine:
         scoring_ms = round((time.perf_counter() - t) * 1000, 2)
 
         t = time.perf_counter()
-        recommendation = _generate_recommendation(context, evidence, scores, rules_applied, decision_id)
+        recommendation = _generate_recommendation(
+            context, evidence, scores, rules_applied, decision_id
+        )
         rec_ms = round((time.perf_counter() - t) * 1000, 2)
 
-        explainability = _build_explainability(context, evidence, rules_applied, recommendation, scores)
+        explainability = _build_explainability(
+            context, evidence, rules_applied, recommendation, scores
+        )
         eval_total = round((time.perf_counter() - eval_start) * 1000, 2)
 
         result = DecisionResult(
@@ -580,7 +581,7 @@ class DecisionEngine:
     def evaluate_batch(self, contexts: list[DecisionContext]) -> list[DecisionResult]:
         return [self.evaluate(ctx) for ctx in contexts]
 
-    def explain(self, decision_id: str) -> Optional[Explainability]:
+    def explain(self, decision_id: str) -> Explainability | None:
         result = self._history.get(decision_id)
         if result:
             return result.explainability
@@ -589,7 +590,7 @@ class DecisionEngine:
     def get_history(
         self,
         tenant_id: str,
-        limit: Optional[int] = None,
+        limit: int | None = None,
     ) -> list[DecisionHistoryItem]:
         ids = self._tenant_history.get(tenant_id, [])
         sliced = ids[-limit:] if limit else ids
@@ -619,9 +620,9 @@ class DecisionEngine:
     def get_recommendations(
         self,
         tenant_id: str,
-        entity_id: Optional[str] = None,
-        entity_type: Optional[str] = None,
-        status: Optional[str] = "pending",
+        entity_id: str | None = None,
+        entity_type: str | None = None,
+        status: str | None = "pending",
         limit: int = 20,
         offset: int = 0,
     ) -> tuple[list[Recommendation], int]:
@@ -659,7 +660,7 @@ class DecisionEngine:
         self,
         tenant_id: str,
         entity_id: str,
-        evidence_type: Optional[str] = None,
+        evidence_type: str | None = None,
         limit: int = 20,
         offset: int = 0,
     ) -> tuple[list[EvidenceItem], int]:
@@ -699,7 +700,13 @@ class DecisionEngine:
         self._feedback_store[fb_id] = record
         self._tenant_feedback.setdefault(feedback.tenant_id, []).append(fb_id)
 
-        event_value = 1.0 if feedback.outcome == "accepted" else 0.0 if feedback.outcome == "rejected" else 0.5
+        event_value = (
+            1.0
+            if feedback.outcome == "accepted"
+            else 0.0
+            if feedback.outcome == "rejected"
+            else 0.5
+        )
         event = LearningEvent(
             id=_generate_id(),
             type="acceptance_rate",
@@ -763,10 +770,7 @@ class DecisionEngine:
         )
 
         high = sum(1 for e in quality_events if e.factors.get("confidence", e.value) >= 0.8)
-        medium = sum(
-            1 for e in quality_events
-            if 0.5 <= e.factors.get("confidence", e.value) < 0.8
-        )
+        medium = sum(1 for e in quality_events if 0.5 <= e.factors.get("confidence", e.value) < 0.8)
         low = sum(1 for e in quality_events if e.factors.get("confidence", e.value) < 0.5)
 
         return QualityMetrics(
@@ -782,7 +786,7 @@ class DecisionEngine:
         import datetime as _dt
 
         tenant_events = [e for tid, e in self._learning_events if tid == tenant_id]
-        now = _dt.datetime.now(_dt.timezone.utc)
+        now = _dt.datetime.now(_dt.UTC)
         period = _dt.timedelta(days=7)
         current_start = now - period
         previous_start = current_start - period
@@ -806,11 +810,13 @@ class DecisionEngine:
         trends: list[LearningTrend] = []
         for metric_name, event_type in trend_defs:
             curr = [
-                e for e in tenant_events
+                e
+                for e in tenant_events
                 if e.type == event_type and _parse_ts(e.timestamp) >= current_start
             ]
             prev = [
-                e for e in tenant_events
+                e
+                for e in tenant_events
                 if e.type == event_type and previous_start <= _parse_ts(e.timestamp) < current_start
             ]
             curr_val = _avg(curr)
@@ -846,7 +852,7 @@ class DecisionEngine:
 
     # -- Helpers --
 
-    def _get_feedback_for_decision(self, decision_id: str) -> Optional[FeedbackRecord]:
+    def _get_feedback_for_decision(self, decision_id: str) -> FeedbackRecord | None:
         for record in self._feedback_store.values():
             if record.decision_id == decision_id:
                 return record

@@ -4,8 +4,7 @@ import base64
 import hashlib
 import hmac
 import secrets
-from datetime import datetime, timedelta, timezone
-from typing import Any
+from datetime import UTC, datetime, timedelta
 
 from cryptography.fernet import Fernet
 from jose import JWTError, jwt
@@ -31,8 +30,8 @@ def create_jwt(
     expires_minutes: int = 30,
 ) -> str:
     """Create a signed JWT token."""
-    expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
-    token_payload = {**payload, "exp": expire, "iat": datetime.now(timezone.utc)}
+    expire = datetime.now(UTC) + timedelta(minutes=expires_minutes)
+    token_payload = {**payload, "exp": expire, "iat": datetime.now(UTC)}
     return jwt.encode(token_payload, secret, algorithm=algorithm)
 
 
@@ -41,7 +40,7 @@ def decode_jwt(token: str, secret: str, algorithms: list[str] | None = None) -> 
     try:
         return jwt.decode(token, secret, algorithms=algorithms or ["HS256"])
     except JWTError:
-        raise ValueError("Invalid or expired token")
+        raise ValueError("Invalid or expired token") from None
 
 
 def generate_api_key() -> tuple[str, str]:

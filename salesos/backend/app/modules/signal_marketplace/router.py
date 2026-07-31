@@ -41,16 +41,26 @@ async def list_signals(
     signals = await service.list_signals(domain=domain, pack_id=pack_id)
     return SignalListResponse(
         total=len(signals),
-        signals=[SignalResponse(
-            id=s.id, name=s.name, ar_name=s.ar_name,
-            description=s.description, domain=s.domain,
-            category=s.category, severity=s.severity,
-            source=s.source, pack_id=s.pack_id,
-            priority=s.priority, weight=s.weight,
-            decay_days=s.decay_days, triggers=s.triggers,
-            relevance_sectors=s.relevance_sectors,
-            created_at=s.created_at,
-        ) for s in signals],
+        signals=[
+            SignalResponse(
+                id=s.id,
+                name=s.name,
+                ar_name=s.ar_name,
+                description=s.description,
+                domain=s.domain,
+                category=s.category,
+                severity=s.severity,
+                source=s.source,
+                pack_id=s.pack_id,
+                priority=s.priority,
+                weight=s.weight,
+                decay_days=s.decay_days,
+                triggers=s.triggers,
+                relevance_sectors=s.relevance_sectors,
+                created_at=s.created_at,
+            )
+            for s in signals
+        ],
     )
 
 
@@ -63,12 +73,19 @@ async def get_signal(
     if signal is None:
         raise HTTPException(status_code=404, detail="Signal not found")
     return SignalResponse(
-        id=signal.id, name=signal.name, ar_name=signal.ar_name,
-        description=signal.description, domain=signal.domain,
-        category=signal.category, severity=signal.severity,
-        source=signal.source, pack_id=signal.pack_id,
-        priority=signal.priority, weight=signal.weight,
-        decay_days=signal.decay_days, triggers=signal.triggers,
+        id=signal.id,
+        name=signal.name,
+        ar_name=signal.ar_name,
+        description=signal.description,
+        domain=signal.domain,
+        category=signal.category,
+        severity=signal.severity,
+        source=signal.source,
+        pack_id=signal.pack_id,
+        priority=signal.priority,
+        weight=signal.weight,
+        decay_days=signal.decay_days,
+        triggers=signal.triggers,
         relevance_sectors=signal.relevance_sectors,
         created_at=signal.created_at,
     )
@@ -88,12 +105,15 @@ async def subscribe(
             channel=body.channel,
         )
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=safe_error_detail(e, "Signal not found"))
+        raise HTTPException(status_code=404, detail=safe_error_detail(e, "Signal not found")) from e
 
     return SubscribeResponse(
-        id=sub.id, signal_id=sub.signal_id,
-        company_id=sub.company_id, tenant_id=sub.tenant_id,
-        channel=sub.channel, active=sub.active,
+        id=sub.id,
+        signal_id=sub.signal_id,
+        company_id=sub.company_id,
+        tenant_id=sub.tenant_id,
+        channel=sub.channel,
+        active=sub.active,
         created_at=sub.created_at,
     )
 
@@ -116,12 +136,18 @@ async def list_subscriptions(
     service: SignalMarketplaceService = Depends(get_signal_service),
 ):
     subs = await service.list_subscriptions(tenant_id)
-    return [SubscribeResponse(
-        id=s.id, signal_id=s.signal_id,
-        company_id=s.company_id, tenant_id=s.tenant_id,
-        channel=s.channel, active=s.active,
-        created_at=s.created_at,
-    ) for s in subs]
+    return [
+        SubscribeResponse(
+            id=s.id,
+            signal_id=s.signal_id,
+            company_id=s.company_id,
+            tenant_id=s.tenant_id,
+            channel=s.channel,
+            active=s.active,
+            created_at=s.created_at,
+        )
+        for s in subs
+    ]
 
 
 @router.get("/feed", response_model=SignalFeedResponse)
@@ -134,12 +160,19 @@ async def get_feed(
     events = await service.get_feed(tenant_id, limit=limit, acknowledged=acknowledged)
     return SignalFeedResponse(
         total=len(events),
-        events=[SignalEventResponse(
-            id=e.id, signal_id=e.signal_id,
-            company_id=e.company_id, tenant_id=e.tenant_id,
-            data=e.data, detected_at=e.detected_at,
-            acknowledged=e.acknowledged, acknowledged_at=e.acknowledged_at,
-        ) for e in events],
+        events=[
+            SignalEventResponse(
+                id=e.id,
+                signal_id=e.signal_id,
+                company_id=e.company_id,
+                tenant_id=e.tenant_id,
+                data=e.data,
+                detected_at=e.detected_at,
+                acknowledged=e.acknowledged,
+                acknowledged_at=e.acknowledged_at,
+            )
+            for e in events
+        ],
     )
 
 
@@ -153,7 +186,8 @@ async def acknowledge(
     if event is None:
         raise HTTPException(status_code=404, detail="Signal event not found")
     return AcknowledgeResponse(
-        id=event.id, signal_id=event.signal_id,
+        id=event.id,
+        signal_id=event.signal_id,
         company_id=event.company_id,
         acknowledged=event.acknowledged,
         acknowledged_at=event.acknowledged_at,

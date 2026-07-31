@@ -8,7 +8,6 @@ own diff correctness is not this project's concern to re-test.
 
 from __future__ import annotations
 
-import xml.etree.ElementTree as ET
 from pathlib import Path
 from unittest.mock import patch
 
@@ -156,8 +155,12 @@ class TestAnalyzeEndToEnd:
                 return {11, 12, 23, 24}
             return {1, 2, 3}  # test file — must not affect the result at all
 
-        with patch("scripts.check_diff_coverage._changed_python_files", side_effect=fake_changed_files), \
-             patch("scripts.check_diff_coverage._added_line_numbers", side_effect=fake_added_lines):
+        with (
+            patch(
+                "scripts.check_diff_coverage._changed_python_files", side_effect=fake_changed_files
+            ),
+            patch("scripts.check_diff_coverage._added_line_numbers", side_effect=fake_added_lines),
+        ):
             results = analyze("base", xml_path)
 
         assert len(results) == 1
@@ -172,12 +175,15 @@ class TestAnalyzeEndToEnd:
         xml_path = tmp_path / "coverage.xml"
         xml_path.write_text(SAMPLE_COVERAGE_XML)
 
-        with patch(
-            "scripts.check_diff_coverage._changed_python_files",
-            return_value=["domains/example/never_imported.py"],
-        ), patch(
-            "scripts.check_diff_coverage._added_line_numbers",
-            return_value={1, 2, 3, 4, 5},
+        with (
+            patch(
+                "scripts.check_diff_coverage._changed_python_files",
+                return_value=["domains/example/never_imported.py"],
+            ),
+            patch(
+                "scripts.check_diff_coverage._added_line_numbers",
+                return_value={1, 2, 3, 4, 5},
+            ),
         ):
             results = analyze("base", xml_path)
 

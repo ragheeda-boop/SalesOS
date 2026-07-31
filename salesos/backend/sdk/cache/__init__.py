@@ -1,7 +1,8 @@
 """Cache abstraction backed by Redis."""
 
 import json
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from redis.asyncio import Redis
 
@@ -38,9 +39,7 @@ class CacheService:
             if cursor == 0:
                 break
 
-    async def remember(
-        self, key: str, ttl_seconds: int, factory: Callable[[], Any]
-    ) -> Any:
+    async def remember(self, key: str, ttl_seconds: int, factory: Callable[[], Any]) -> Any:
         cached = await self.get(key)
         if cached is not None:
             return cached

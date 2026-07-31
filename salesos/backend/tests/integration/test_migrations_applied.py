@@ -11,12 +11,11 @@ Tests:
 from __future__ import annotations
 
 import uuid
+from datetime import UTC
 
 import pytest
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from sdk.pagination import decode_cursor
 
 pytestmark = pytest.mark.asyncio
 
@@ -55,15 +54,15 @@ async def ensure_trigram_indexes(db_session: AsyncSession):
 
 @pytest.fixture
 async def ensure_confidence_index(db_session: AsyncSession):
-    await db_session.execute(text(
-        "CREATE INDEX IF NOT EXISTS ix_companies_confidence_score "
-        "ON companies (confidence_score DESC)"
-    ))
+    await db_session.execute(
+        text(
+            "CREATE INDEX IF NOT EXISTS ix_companies_confidence_score "
+            "ON companies (confidence_score DESC)"
+        )
+    )
     await db_session.commit()
     yield
-    await db_session.execute(text(
-        "DROP INDEX IF EXISTS ix_companies_confidence_score"
-    ))
+    await db_session.execute(text("DROP INDEX IF EXISTS ix_companies_confidence_score"))
     await db_session.commit()
 
 
@@ -84,9 +83,13 @@ class TestMigration0029:
         )
         assert r.fetchone() is not None, "pg_trgm extension is not enabled"
 
-    async def test_all_trigram_indexes_exist(self, db_session: AsyncSession, ensure_trigram_indexes):
+    async def test_all_trigram_indexes_exist(
+        self, db_session: AsyncSession, ensure_trigram_indexes
+    ):
         r = await db_session.execute(
-            text("SELECT indexname FROM pg_indexes WHERE tablename='companies' AND indexname LIKE '%trgm'")
+            text(
+                "SELECT indexname FROM pg_indexes WHERE tablename='companies' AND indexname LIKE '%trgm'"  # noqa: E501
+            )
         )
         existing = {row[0] for row in r.fetchall()}
         missing = set(TRIGRAM_INDEXES) - existing
@@ -94,28 +97,36 @@ class TestMigration0029:
 
     async def test_trigram_indexes_use_gin(self, db_session: AsyncSession, ensure_trigram_indexes):
         r = await db_session.execute(
-            text("SELECT indexname, indexdef FROM pg_indexes WHERE tablename='companies' AND indexname LIKE '%trgm'")
+            text(
+                "SELECT indexname, indexdef FROM pg_indexes WHERE tablename='companies' AND indexname LIKE '%trgm'"  # noqa: E501
+            )
         )
         for row in r.fetchall():
             assert "gin" in row[1].lower(), f"Index {row[0]} is not GIN: {row[1]}"
 
-    async def test_each_trigram_index_individually(self, db_session: AsyncSession, ensure_trigram_indexes):
+    async def test_each_trigram_index_individually(
+        self, db_session: AsyncSession, ensure_trigram_indexes
+    ):
         for name in TRIGRAM_INDEXES:
             r = await db_session.execute(
                 text("SELECT indexname FROM pg_indexes WHERE indexname=:name").bindparams(name=name)
             )
             assert r.fetchone() is not None, f"Missing trigram index: {name}"
 
-    async def test_arabic_iliike_uses_trigram(self, db_session: AsyncSession, ensure_trigram_indexes, test_tenant: str):
+    async def test_arabic_iliike_uses_trigram(
+        self, db_session: AsyncSession, ensure_trigram_indexes, test_tenant: str
+    ):
         from app.modules.company.models import Company
 
         tid = uuid.UUID(test_tenant)
-        db_session.add(Company(
-            tenant_id=tid,
-            name_ar="شركة المقاولات المتقدمة",
-            cr_number=f"CR-{uuid.uuid4().hex[:8].upper()}",
-            status="active",
-        ))
+        db_session.add(
+            Company(
+                tenant_id=tid,
+                name_ar="شركة المقاولات المتقدمة",
+                cr_number=f"CR-{uuid.uuid4().hex[:8].upper()}",
+                status="active",
+            )
+        )
         await db_session.flush()
 
         r = await db_session.execute(
@@ -130,13 +141,17 @@ class TestMigration0029:
 class TestMigration0030:
     """Verify confidence_score DESC index from migration 0030."""
 
-    async def test_confidence_score_index_exists(self, db_session: AsyncSession, ensure_confidence_index):
+    async def test_confidence_score_index_exists(
+        self, db_session: AsyncSession, ensure_confidence_index
+    ):
         r = await db_session.execute(
             text("SELECT indexname FROM pg_indexes WHERE indexname='ix_companies_confidence_score'")
         )
         assert r.fetchone() is not None, "ix_companies_confidence_score index does not exist"
 
-    async def test_confidence_score_index_is_btree_desc(self, db_session: AsyncSession, ensure_confidence_index):
+    async def test_confidence_score_index_is_btree_desc(
+        self, db_session: AsyncSession, ensure_confidence_index
+    ):
         r = await db_session.execute(
             text("SELECT indexdef FROM pg_indexes WHERE indexname='ix_companies_confidence_score'")
         )
@@ -149,7 +164,9 @@ class TestMigration0030:
 class TestKeysetPagination:
     """Verify keyset (cursor) pagination works end-to-end."""
 
-    async def test_cursor_pagination_returns_next_cursor(self, db_session: AsyncSession, test_tenant: str):
+    async def test_cursor_pagination_returns_next_cursor(
+        self, db_session: AsyncSession, test_tenant: str
+    ):
         from app.modules.company.repositories import CompanyRepository
 
         repo = CompanyRepository(db_session)
@@ -160,21 +177,23 @@ class TestKeysetPagination:
             assert result.next_cursor is not None or not result.has_next
 
     async def test_cursor_pagination_has_next(self, db_session: AsyncSession, test_tenant: str):
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
         from app.modules.company.models import Company
         from app.modules.company.repositories import CompanyRepository
 
         tid = uuid.UUID(test_tenant)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         for i in range(15):
-            db_session.add(Company(
-                tenant_id=tid,
-                name_ar=f"شركة اختبار {i}",
-                cr_number=f"CR-CURSOR-{i:04d}",
-                status="active",
-                created_at=now - timedelta(seconds=i),
-            ))
+            db_session.add(
+                Company(
+                    tenant_id=tid,
+                    name_ar=f"شركة اختبار {i}",
+                    cr_number=f"CR-CURSOR-{i:04d}",
+                    status="active",
+                    created_at=now - timedelta(seconds=i),
+                )
+            )
         await db_session.flush()
 
         repo = CompanyRepository(db_session)
@@ -184,28 +203,32 @@ class TestKeysetPagination:
         assert result.next_cursor is not None
 
     async def test_no_overlap_across_pages(self, db_session: AsyncSession, test_tenant: str):
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
         from app.modules.company.models import Company
         from app.modules.company.repositories import CompanyRepository
 
         tid = uuid.UUID(test_tenant)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         for i in range(20):
-            db_session.add(Company(
-                tenant_id=tid,
-                name_ar=f"شركة لا تكرار {i}",
-                cr_number=f"CR-NODUP-{i:04d}",
-                status="active",
-                created_at=now - timedelta(seconds=i),
-            ))
+            db_session.add(
+                Company(
+                    tenant_id=tid,
+                    name_ar=f"شركة لا تكرار {i}",
+                    cr_number=f"CR-NODUP-{i:04d}",
+                    status="active",
+                    created_at=now - timedelta(seconds=i),
+                )
+            )
         await db_session.flush()
 
         repo = CompanyRepository(db_session)
         page1 = await repo.search_cursored(tenant_id=test_tenant, page_size=5)
         ids1 = {str(c.id) for c in page1.items}
 
-        page2 = await repo.search_cursored(tenant_id=test_tenant, page_size=5, cursor=page1.next_cursor)
+        page2 = await repo.search_cursored(
+            tenant_id=test_tenant, page_size=5, cursor=page1.next_cursor
+        )
         ids2 = {str(c.id) for c in page2.items}
 
         assert ids1.isdisjoint(ids2), f"Overlapping IDs between pages: {ids1 & ids2}"

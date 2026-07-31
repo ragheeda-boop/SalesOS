@@ -10,22 +10,18 @@
 
 from __future__ import annotations
 
-import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from sdk.events.base import DomainEvent
 from sdk.events.dlq import (
-    DLQHandler,
-    DLQEntry,
-    DLQReader,
-    RetryableConsumer,
     DLQ_TOPIC,
     MAX_RETRIES,
+    DLQEntry,
+    DLQHandler,
+    RetryableConsumer,
 )
-from sdk.events.kafka_producer import KafkaProducer
-
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -79,7 +75,9 @@ def test_should_retry_false_after_max(handler: DLQHandler) -> None:
 
 
 @pytest.mark.asyncio
-async def test_handle_failure_returns_false_below_max(handler: DLQHandler, sample_event: DomainEvent) -> None:
+async def test_handle_failure_returns_false_below_max(
+    handler: DLQHandler, sample_event: DomainEvent
+) -> None:
     """handle_failure should return False (retry) when under max retries."""
     result = await handler.handle_failure(sample_event, "salesos.company", "timeout")
     assert result is False
@@ -87,7 +85,9 @@ async def test_handle_failure_returns_false_below_max(handler: DLQHandler, sampl
 
 
 @pytest.mark.asyncio
-async def test_handle_failure_returns_true_on_max(handler: DLQHandler, sample_event: DomainEvent) -> None:
+async def test_handle_failure_returns_true_on_max(
+    handler: DLQHandler, sample_event: DomainEvent
+) -> None:
     """handle_failure should return True (DLQ) after max retries."""
     with patch.object(handler, "_send_to_dlq", new_callable=AsyncMock) as mock_dlq:
         for _ in range(MAX_RETRIES - 1):

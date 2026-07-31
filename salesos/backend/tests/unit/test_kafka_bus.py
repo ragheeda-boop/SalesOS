@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -123,10 +123,14 @@ async def test_publish_goes_through_kafka_producer(event: DomainEvent) -> None:
     bus = KafkaEventBus(bootstrap_servers="localhost:9092")
     bus._kafka_available = True
 
-    with patch.object(bus._producer, "publish", new_callable=AsyncMock, return_value=True) as mock_pub:
-        with patch.object(bus, "_ensure_producer", new_callable=AsyncMock, return_value=True):
-            await bus.publish(event)
-            mock_pub.assert_awaited_once_with(event)
+    with (
+        patch.object(
+            bus._producer, "publish", new_callable=AsyncMock, return_value=True
+        ) as mock_pub,
+        patch.object(bus, "_ensure_producer", new_callable=AsyncMock, return_value=True),
+    ):
+        await bus.publish(event)
+        mock_pub.assert_awaited_once_with(event)
 
 
 @pytest.mark.asyncio
@@ -279,9 +283,11 @@ async def test_is_kafka_available_false_on_fallback(event: DomainEvent) -> None:
 async def test_is_kafka_available_true_after_start(event: DomainEvent) -> None:
     bus = KafkaEventBus(bootstrap_servers="localhost:9092")
     bus._kafka_available = True
-    with patch.object(bus._producer, "publish", new_callable=AsyncMock, return_value=True):
-        with patch.object(bus, "_ensure_producer", new_callable=AsyncMock, return_value=True):
-            await bus.publish(event)
+    with (
+        patch.object(bus._producer, "publish", new_callable=AsyncMock, return_value=True),
+        patch.object(bus, "_ensure_producer", new_callable=AsyncMock, return_value=True),
+    ):  # noqa: E501
+        await bus.publish(event)
     assert bus.is_kafka_available is True
 
 

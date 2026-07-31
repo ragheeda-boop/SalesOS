@@ -9,15 +9,14 @@ Provides a dedicated producer that:
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 from typing import Any
 
 from sdk.config import sdk_settings
 from sdk.events.base import DomainEvent
-from sdk.events.topic_mapping import event_type_to_topic, TOPIC_PREFIX
 from sdk.events.schema_registry import validate_event
+from sdk.events.topic_mapping import event_type_to_topic
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +82,9 @@ class KafkaProducer:
         if errors:
             logger.error(
                 "Schema validation failed for %s (%s): %s",
-                event.event_id, event.event_type, errors,
+                event.event_id,
+                event.event_type,
+                errors,
             )
             self._metrics.record_validation_error(event.event_type)
             return False

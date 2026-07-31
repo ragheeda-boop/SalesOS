@@ -21,6 +21,7 @@ from app.database import Base
 _alembic_cfg: AlembicConfig | None = getattr(context, "config", None)
 if _alembic_cfg is None:
     import os
+
     _alembic_cfg = AlembicConfig(os.path.join(os.path.dirname(__file__), "../../alembic.ini"))
 
 config = _alembic_cfg

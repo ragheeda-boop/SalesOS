@@ -21,7 +21,9 @@ async def sso_login(
     try:
         auth_url = service.get_authorization_url(provider)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid SSO provider"))
+        raise HTTPException(
+            status_code=400, detail=safe_error_detail(e, "Invalid SSO provider")
+        ) from e  # noqa: E501
     return {"authorization_url": auth_url}
 
 
@@ -35,9 +37,11 @@ async def sso_callback(
     try:
         access_token, user_id = await service.handle_callback(provider, code, state)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid SSO callback"))
-    except Exception as e:
-        raise HTTPException(status_code=401, detail="SSO authentication failed")
+        raise HTTPException(
+            status_code=400, detail=safe_error_detail(e, "Invalid SSO callback")
+        ) from e  # noqa: E501
+    except Exception:
+        raise HTTPException(status_code=401, detail="SSO authentication failed") from None
     return {
         "access_token": access_token,
         "token_type": "bearer",

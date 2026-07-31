@@ -10,12 +10,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import safe_error_detail
-from app.common.schemas import CursorResponse, PaginatedResponse
+from app.common.schemas import CursorResponse
 from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
-from sdk.permissions import PermissionAction
 from domains.search.contracts.models import SearchQuery, SearchSort
 from domains.search.engine.planner import SearchPlanner
 from domains.search.ranking.pipeline import RankingPipeline
+from sdk.permissions import PermissionAction
 from sdk.telemetry import record_metric, trace_span
 
 from .schemas import (
@@ -65,8 +65,12 @@ def get_search_planner(
     return SearchPlanner(repository=repository, ranking_pipeline=ranking)
 
 
-@router.post("", response_model=CompanyResponse, status_code=201,
-             dependencies=[Depends(require_permission_dep("company", PermissionAction.CREATE))])
+@router.post(
+    "",
+    response_model=CompanyResponse,
+    status_code=201,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.CREATE))],
+)
 async def create_company(
     body: CompanyCreate,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -92,8 +96,11 @@ async def create_company(
     return company
 
 
-@router.get("", response_model=CursorResponse,
-            dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))])
+@router.get(
+    "",
+    response_model=CursorResponse,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))],
+)
 async def search_companies(
     q: str | None = Query(None),
     cr_number: str | None = Query(None),
@@ -180,8 +187,11 @@ async def search_companies(
 # ── B-1: Bulk Operations (must be before /{company_id} routes) ─────────────
 
 
-@router.patch("/bulk", response_model=BulkEditResponse,
-              dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))])
+@router.patch(
+    "/bulk",
+    response_model=BulkEditResponse,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))],
+)
 async def bulk_update_companies(
     body: BulkEditRequest,
     service: CompanyService = Depends(get_service),
@@ -191,8 +201,11 @@ async def bulk_update_companies(
     return BulkEditResponse(**result)
 
 
-@router.delete("/bulk", response_model=BulkDeleteResponse,
-               dependencies=[Depends(require_permission_dep("company", PermissionAction.DELETE))])
+@router.delete(
+    "/bulk",
+    response_model=BulkDeleteResponse,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.DELETE))],
+)
 async def bulk_delete_companies(
     body: BulkDeleteRequest,
     service: CompanyService = Depends(get_service),
@@ -202,8 +215,9 @@ async def bulk_delete_companies(
     return BulkDeleteResponse(**result)
 
 
-@router.get("/export",
-            dependencies=[Depends(require_permission_dep("company", PermissionAction.EXPORT))])
+@router.get(
+    "/export", dependencies=[Depends(require_permission_dep("company", PermissionAction.EXPORT))]
+)
 async def export_companies(
     format: str = Query("csv", pattern="^(csv)$"),
     fields: str = Query("name,industry,size,region,status"),
@@ -211,19 +225,38 @@ async def export_companies(
     tenant_id: str = Depends(get_current_tenant_id),
     service: CompanyService = Depends(get_service),
 ):
-    from .models import Company
     from sqlalchemy import select
 
+    from .models import Company
+
     field_list = [f.strip() for f in fields.split(",") if f.strip()]
-    allowed = {"name", "name_ar", "name_en", "industry", "size", "employees_count",
-               "region", "status", "city", "cr_number", "email", "phone", "website",
-               "legal_form", "activity_description", "confidence_score", "created_at"}
+    allowed = {
+        "name",
+        "name_ar",
+        "name_en",
+        "industry",
+        "size",
+        "employees_count",
+        "region",
+        "status",
+        "city",
+        "cr_number",
+        "email",
+        "phone",
+        "website",
+        "legal_form",
+        "activity_description",
+        "confidence_score",
+        "created_at",
+    }
 
     field_map = {
         "name": "name_ar",
         "size": "employees_count",
     }
-    model_fields = [field_map.get(f, f) for f in field_list if f in allowed or field_map.get(f) in allowed]
+    model_fields = [
+        field_map.get(f, f) for f in field_list if f in allowed or field_map.get(f) in allowed
+    ]
     cols = [getattr(Company, mf) for mf in model_fields]
 
     stmt = select(*cols).where(Company.tenant_id == uuid.UUID(tenant_id))
@@ -246,12 +279,17 @@ async def export_companies(
     return Response(
         content=content,
         media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=companies_export_{datetime.now().strftime('%Y%m%d')}.csv"},
+        headers={
+            "Content-Disposition": f"attachment; filename=companies_export_{datetime.now().strftime('%Y%m%d')}.csv"  # noqa: E501
+        },
     )
 
 
-@router.get("/{company_id}", response_model=CompanyResponse,
-            dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))])
+@router.get(
+    "/{company_id}",
+    response_model=CompanyResponse,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))],
+)
 async def get_company(
     company_id: str,
     request: Request,
@@ -270,8 +308,11 @@ async def get_company(
     return result
 
 
-@router.patch("/{company_id}", response_model=CompanyResponse,
-              dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))])
+@router.patch(
+    "/{company_id}",
+    response_model=CompanyResponse,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))],
+)
 async def update_company(
     company_id: str,
     body: CompanyUpdate,
@@ -287,8 +328,12 @@ async def update_company(
     return result
 
 
-@router.post("/{company_id}/branches", response_model=BranchResponse, status_code=201,
-             dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))])
+@router.post(
+    "/{company_id}/branches",
+    response_model=BranchResponse,
+    status_code=201,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))],
+)
 async def add_branch(
     company_id: str,
     body: BranchCreate,
@@ -299,8 +344,12 @@ async def add_branch(
     return branch
 
 
-@router.post("/{company_id}/licenses", response_model=LicenseResponse, status_code=201,
-             dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))])
+@router.post(
+    "/{company_id}/licenses",
+    response_model=LicenseResponse,
+    status_code=201,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))],
+)
 async def add_license(
     company_id: str,
     body: LicenseCreate,
@@ -311,8 +360,12 @@ async def add_license(
     return license
 
 
-@router.post("/{company_id}/contacts", response_model=ContactResponse, status_code=201,
-             dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))])
+@router.post(
+    "/{company_id}/contacts",
+    response_model=ContactResponse,
+    status_code=201,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.UPDATE))],
+)
 async def add_contact(
     company_id: str,
     body: ContactCreate,
@@ -323,8 +376,11 @@ async def add_contact(
     return contact
 
 
-@router.delete("/{company_id}", status_code=204,
-               dependencies=[Depends(require_permission_dep("company", PermissionAction.DELETE))])
+@router.delete(
+    "/{company_id}",
+    status_code=204,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.DELETE))],
+)
 async def delete_company(
     company_id: str,
     tenant_id: str = Depends(get_current_tenant_id),
@@ -333,8 +389,11 @@ async def delete_company(
     await service.delete_company(company_id)
 
 
-@router.get("/{company_id}/360", response_model=Company360Response,
-            dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))])
+@router.get(
+    "/{company_id}/360",
+    response_model=Company360Response,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))],
+)
 async def company_360(
     company_id: str,
     request: Request,
@@ -348,25 +407,33 @@ async def company_360(
     kg_engine = getattr(request.app.state, "kg_engine", None)
     try:
         result = await service.get_company_360(
-            company_id=company_id, tenant_id=tenant_id,
-            activity_runtime=activity_runtime, db=db,
+            company_id=company_id,
+            tenant_id=tenant_id,
+            activity_runtime=activity_runtime,
+            db=db,
             kg_engine=kg_engine,
-            page=page, page_size=page_size,
+            page=page,
+            page_size=page_size,
         )
     except HTTPException:
         # Includes NotFoundError (404) for missing / invalid company ids.
         raise
     except Exception as exc:
         # Do not invent health_score or empty 360 payloads — surface failure honestly.
-        logger.exception("company_360.failed", extra={"company_id": company_id, "tenant_id": tenant_id})
+        logger.exception(
+            "company_360.failed", extra={"company_id": company_id, "tenant_id": tenant_id}
+        )
         raise HTTPException(
             status_code=500,
             detail=safe_error_detail(exc, "Failed to load company 360"),
         ) from exc
     return Company360Response(**result)
 
-@router.get("/{company_id}/intelligence",
-            dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))])
+
+@router.get(
+    "/{company_id}/intelligence",
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))],
+)
 async def company_intelligence(
     company_id: str,
     request: Request,
@@ -380,64 +447,101 @@ async def company_intelligence(
 
     start = time.monotonic()
     tenant_hash = hashlib.sha256(tenant_id.encode()).hexdigest()[:12]
-    status_code = 200
     widget_count = 0
-    response_size = 0
 
     try:
-        async with trace_span("company_intelligence", {
-            "company_id": company_id,
-            "tenant_hash": tenant_hash,
-        }):
+        async with trace_span(
+            "company_intelligence",
+            {
+                "company_id": company_id,
+                "tenant_hash": tenant_hash,
+            },
+        ):
             resp = await company_360(company_id, request, tenant_id, service, db, page, page_size)
             dto = build_intelligence_dto(resp)
             duration_ms = (time.monotonic() - start) * 1000
 
-            dto_dict = dto.model_dump() if hasattr(dto, 'model_dump') else dto
+            dto_dict = dto.model_dump() if hasattr(dto, "model_dump") else dto
             if isinstance(dto_dict, dict):
-                widget_count = sum(1 for k, v in dto_dict.items()
-                                   if k not in ('companyId', 'generatedAt', 'firmographic')
-                                   and v is not None and v != [] and v != {})
-                response_size = len(str(dto_dict))
+                widget_count = sum(
+                    1
+                    for k, v in dto_dict.items()
+                    if k not in ("companyId", "generatedAt", "firmographic")
+                    and v is not None
+                    and v != []
+                    and v != {}
+                )
+                _ = len(str(dto_dict))
 
-            record_metric("company_intelligence_request_total", 1, {
-                "tenant_hash": tenant_hash,
-                "status": "success",
-            })
-            record_metric("company_intelligence_duration_ms", duration_ms, {
-                "tenant_hash": tenant_hash,
-            })
-            record_metric("company_intelligence_widget_count", widget_count, {
-                "tenant_hash": tenant_hash,
-            })
+            record_metric(
+                "company_intelligence_request_total",
+                1,
+                {
+                    "tenant_hash": tenant_hash,
+                    "status": "success",
+                },
+            )
+            record_metric(
+                "company_intelligence_duration_ms",
+                duration_ms,
+                {
+                    "tenant_hash": tenant_hash,
+                },
+            )
+            record_metric(
+                "company_intelligence_widget_count",
+                widget_count,
+                {
+                    "tenant_hash": tenant_hash,
+                },
+            )
 
             return dto
 
     except HTTPException:
         duration_ms = (time.monotonic() - start) * 1000
-        record_metric("company_intelligence_request_total", 1, {
-            "tenant_hash": tenant_hash,
-            "status": "client_error",
-        })
-        record_metric("company_intelligence_duration_ms", duration_ms, {
-            "tenant_hash": tenant_hash,
-        })
+        record_metric(
+            "company_intelligence_request_total",
+            1,
+            {
+                "tenant_hash": tenant_hash,
+                "status": "client_error",
+            },
+        )
+        record_metric(
+            "company_intelligence_duration_ms",
+            duration_ms,
+            {
+                "tenant_hash": tenant_hash,
+            },
+        )
         raise
     except Exception:
-        status_code = 500
+        _ = 500
         duration_ms = (time.monotonic() - start) * 1000
-        record_metric("company_intelligence_request_total", 1, {
-            "tenant_hash": tenant_hash,
-            "status": "error",
-        })
-        record_metric("company_intelligence_duration_ms", duration_ms, {
-            "tenant_hash": tenant_hash,
-        })
+        record_metric(
+            "company_intelligence_request_total",
+            1,
+            {
+                "tenant_hash": tenant_hash,
+                "status": "error",
+            },
+        )
+        record_metric(
+            "company_intelligence_duration_ms",
+            duration_ms,
+            {
+                "tenant_hash": tenant_hash,
+            },
+        )
         raise
 
 
-@router.get("/cursors", response_model=CursorResponse,
-            dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))])
+@router.get(
+    "/cursors",
+    response_model=CursorResponse,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.READ))],
+)
 async def search_companies_cursor(
     q: str | None = Query(None),
     cr_number: str | None = Query(None),
@@ -474,12 +578,20 @@ async def search_companies_cursor(
         cursor=cursor,
     )
     return CursorResponse(
-        data=[CompanyListResponse(
-            id=c.id, name_ar=c.name_ar, name_en=c.name_en,
-            cr_number=c.cr_number, status=c.status, city=c.city,
-            region=c.region, confidence_score=c.confidence_score,
-            created_at=c.created_at,
-        ) for c in result.items],
+        data=[
+            CompanyListResponse(
+                id=c.id,
+                name_ar=c.name_ar,
+                name_en=c.name_en,
+                cr_number=c.cr_number,
+                status=c.status,
+                city=c.city,
+                region=c.region,
+                confidence_score=c.confidence_score,
+                created_at=c.created_at,
+            )
+            for c in result.items
+        ],
         next_cursor=result.next_cursor,
         previous_cursor=result.previous_cursor,
         has_next=result.has_next,
@@ -487,8 +599,11 @@ async def search_companies_cursor(
     )
 
 
-@router.post("/ingest", status_code=201,
-             dependencies=[Depends(require_permission_dep("company", PermissionAction.CREATE))])
+@router.post(
+    "/ingest",
+    status_code=201,
+    dependencies=[Depends(require_permission_dep("company", PermissionAction.CREATE))],
+)
 async def ingest_companies(
     body: CompanyIngestRequest,
     tenant_id: str = Depends(get_current_tenant_id),

@@ -53,10 +53,61 @@ asyncpg-stubs = "^0.29"
 [tool.ruff]
 target-version = "py312"
 line-length = 100
+extend-exclude = ["app/alembic/versions"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "ARG", "C4"]
-per-file-ignores = {"app/routers/*.py" = ["B008"]}
+
+[tool.ruff.lint.per-file-ignores]
+# Framework-convention parameters: FastAPI dependency-injection signatures,
+# GraphQL resolvers, Celery task bindings, and test doubles must conform to
+# framework/protocol signatures even when an argument is unused.
+"app/routers/*.py" = ["B008", "ARG001"]
+"app/modules/*/router.py" = ["B008", "ARG001"]
+"app/modules/*/routers/*.py" = ["B008", "ARG001"]
+"app/modules/identity/*_router.py" = ["B008", "ARG001"]
+"app/modules/sso/saml_router.py" = ["B008", "ARG001", "N803"]
+"app/main.py" = ["B008"]
+"app/dependencies.py" = ["B008"]
+"app/application/dashboard/router.py" = ["B008"]
+"app/application/admin/data_quality.py" = ["B008"]
+"app/graphql/*.py" = ["ARG001"]
+"app/boot/startup.py" = ["ARG001"]
+"app/tasks.py" = ["ARG001"]
+"app/railway_celery_service.py" = ["ARG001", "ARG002"]
+"app/modules/communication_hub/tasks.py" = ["ARG001"]
+"app/modules/rules_engine/engine.py" = ["ARG001"]
+# Pydantic DTOs / API schemas mirror camelCase external JSON keys.
+"app/application/dashboard/dto/*.py" = ["N815"]
+"app/modules/company/intelligence_dto.py" = ["N815"]
+"app/modules/decision/schemas.py" = ["N815"]
+"app/modules/company/search_repository.py" = ["N806"]
+"app/modules/contact/search_repository.py" = ["N806"]
+"app/modules/identity/service.py" = ["N806"]
+"app/modules/sso/saml_service.py" = ["N817", "ARG002"]
+# Module-level env/bootstrap setup must precede imports.
+"app/database.py" = ["E402"]
+"app/modules/admin/router.py" = ["E402"]
+"tests/e2e/conftest.py" = ["E402"]
+"tests/unit/conftest.py" = ["E402"]
+"tests/unit/test_admin_api.py" = ["E402"]
+"tests/unit/test_mcp_server.py" = ["E402"]
+# Interface-conformance parameters in internal services/repositories.
+"app/modules/webhooks/url_safety.py" = ["ARG002"]
+"app/modules/communication_hub/calendar_sync.py" = ["ARG002"]
+"app/modules/company/pgvector_repository.py" = ["ARG002"]
+"app/modules/company/repositories.py" = ["ARG002"]
+"app/modules/company/service.py" = ["ARG002"]
+"app/modules/decision/engine.py" = ["ARG002"]
+"app/modules/employee_360/service.py" = ["ARG002"]
+"app/modules/excel_import/service.py" = ["ARG002"]
+"sdk/events/outbox.py" = ["ARG002"]
+"sdk/graph.py" = ["ARG002"]
+# Test doubles must match mocked signatures.
+"app/**/tests/*.py" = ["ARG001", "ARG002"]
+"tests/**/*.py" = ["ARG001", "ARG002"]
+"tests/unit/test_nba_pipeline.py" = ["N807"]
+"tests/support/tenant_isolation.py" = ["N818"]
 
 [tool.ruff.format]
 quote-style = "double"

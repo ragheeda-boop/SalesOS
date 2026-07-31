@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import uuid
-import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import select, func as sa_func
+from sqlalchemy import func as sa_func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.identity.models import Tenant, User
@@ -29,14 +28,16 @@ class CustomerHealthScore:
     overall_score: float
     dimensions: list[HealthScoreDimension]
     trend: str
-    calculated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    calculated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class HealthScoreRepository(AdminPostgresRepository):
     async def get_adoption_rate(self, tenant_id: str, days: int = 30) -> float:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        _ = datetime.now(UTC) - timedelta(days=days)
         total_users = await self._session.execute(
-            select(sa_func.count()).select_from(User).where(
+            select(sa_func.count())
+            .select_from(User)
+            .where(
                 User.tenant_id == tenant_id,
                 User.is_active.is_(True),
             )
@@ -44,9 +45,11 @@ class HealthScoreRepository(AdminPostgresRepository):
         total = total_users.scalar() or 0
         if total == 0:
             return 0.0
-        active_cutoff = datetime.now(timezone.utc) - timedelta(days=14)
+        active_cutoff = datetime.now(UTC) - timedelta(days=14)
         active_users = await self._session.execute(
-            select(sa_func.count()).select_from(User).where(
+            select(sa_func.count())
+            .select_from(User)
+            .where(
                 User.tenant_id == tenant_id,
                 User.is_active.is_(True),
                 User.last_login_at >= active_cutoff,
@@ -56,9 +59,11 @@ class HealthScoreRepository(AdminPostgresRepository):
         return round(active / total, 2)
 
     async def get_login_frequency(self, tenant_id: str, days: int = 30) -> float:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         total_users = await self._session.execute(
-            select(sa_func.count()).select_from(User).where(
+            select(sa_func.count())
+            .select_from(User)
+            .where(
                 User.tenant_id == tenant_id,
                 User.is_active.is_(True),
             )
@@ -67,7 +72,9 @@ class HealthScoreRepository(AdminPostgresRepository):
         if total == 0:
             return 0.0
         recent = await self._session.execute(
-            select(sa_func.count()).select_from(User).where(
+            select(sa_func.count())
+            .select_from(User)
+            .where(
                 User.tenant_id == tenant_id,
                 User.is_active.is_(True),
                 User.last_login_at >= cutoff,
@@ -78,16 +85,21 @@ class HealthScoreRepository(AdminPostgresRepository):
 
     async def get_error_rate(self, tenant_id: str, days: int = 30) -> float:
         from app.modules.audit.models import AuditLog
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         total_events = await self._session.execute(
-            select(sa_func.count()).select_from(AuditLog).where(
+            select(sa_func.count())
+            .select_from(AuditLog)
+            .where(
                 AuditLog.tenant_id == tenant_id,
                 AuditLog.created_at >= cutoff,
             )
         )
         total = total_events.scalar() or 1
         error_events = await self._session.execute(
-            select(sa_func.count()).select_from(AuditLog).where(
+            select(sa_func.count())
+            .select_from(AuditLog)
+            .where(
                 AuditLog.tenant_id == tenant_id,
                 AuditLog.created_at >= cutoff,
                 AuditLog.action.ilike("%error%"),
@@ -98,9 +110,12 @@ class HealthScoreRepository(AdminPostgresRepository):
 
     async def get_support_ticket_count(self, tenant_id: str, days: int = 30) -> int:
         from app.modules.audit.models import AuditLog
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         tickets = await self._session.execute(
-            select(sa_func.count()).select_from(AuditLog).where(
+            select(sa_func.count())
+            .select_from(AuditLog)
+            .where(
                 AuditLog.tenant_id == tenant_id,
                 AuditLog.created_at >= cutoff,
                 AuditLog.action == "support_ticket_created",
@@ -170,7 +185,9 @@ class HealthScoreService:
         tenant_name, _ = await self.repo.get_tenant_info(tenant_id)
 
         total_active = await self.db.execute(
-            select(sa_func.count()).select_from(User).where(
+            select(sa_func.count())
+            .select_from(User)
+            .where(
                 User.tenant_id == tenant_id,
                 User.is_active.is_(True),
             )
@@ -199,7 +216,10 @@ class HealthScoreService:
             name="support_tickets",
             score=self._score_support_tickets(ticket_count, total_users),
             weight=0.20,
-            details={"ticket_count": ticket_count, "per_user": round(ticket_count / max(total_users, 1), 2)},
+            details={
+                "ticket_count": ticket_count,
+                "per_user": round(ticket_count / max(total_users, 1), 2),
+            },
         )
 
         dimensions = [dim_adoption, dim_login, dim_error, dim_tickets]
@@ -225,9 +245,7 @@ class HealthScoreService:
         )
 
     async def get_all_tenant_health(self) -> list[CustomerHealthScore]:
-        result = await self.db.execute(
-            select(Tenant).where(Tenant.is_active.is_(True))
-        )
+        result = await self.db.execute(select(Tenant).where(Tenant.is_active.is_(True)))
         tenants = result.scalars().all()
         scores = []
         for tenant in tenants:

@@ -1,7 +1,3 @@
-from datetime import date, datetime
-from decimal import Decimal
-from typing import Optional
-
 import strawberry
 
 
@@ -9,23 +5,23 @@ import strawberry
 class CompanyType:
     id: str
     name_ar: str
-    name_en: Optional[str] = None
+    name_en: str | None = None
     cr_number: str
     status: str
-    city: Optional[str] = None
-    region: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
-    website: Optional[str] = None
-    address: Optional[str] = None
-    activity_description: Optional[str] = None
-    activity_code: Optional[str] = None
-    industry: Optional[str] = None
-    legal_form: Optional[str] = None
-    employees_count: Optional[int] = None
-    confidence_score: Optional[float] = None
-    is_golden_record: Optional[bool] = None
-    tags: Optional[list[str]] = None
+    city: str | None = None
+    region: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    website: str | None = None
+    address: str | None = None
+    activity_description: str | None = None
+    activity_code: str | None = None
+    industry: str | None = None
+    legal_form: str | None = None
+    employees_count: int | None = None
+    confidence_score: float | None = None
+    is_golden_record: bool | None = None
+    tags: list[str] | None = None
     created_at: str
     updated_at: str
 
@@ -40,7 +36,7 @@ class OpportunityType:
     currency: str
     probability: float
     health: str
-    expected_close_date: Optional[str] = None
+    expected_close_date: str | None = None
     owner_id: str
     status: str
     description: str
@@ -53,17 +49,17 @@ class PipelineSummaryType:
     pipeline_value: float
     weighted_pipeline: float
     win_rate: float
-    stage_velocity: Optional[list[str]] = None
+    stage_velocity: list[str] | None = None
 
 
 @strawberry.type
 class SearchResultItemType:
     id: str
     name_ar: str
-    name_en: Optional[str] = None
+    name_en: str | None = None
     cr_number: str
-    city: Optional[str] = None
-    confidence_score: Optional[float] = None
+    city: str | None = None
+    confidence_score: float | None = None
 
 
 @strawberry.type
@@ -83,29 +79,29 @@ class EnrichmentResultType:
 
 @strawberry.input
 class OpportunityFiltersInput:
-    stage: Optional[str] = None
-    status: Optional[str] = None
-    company_id: Optional[str] = None
-    owner_id: Optional[str] = None
-    min_value: Optional[float] = None
-    max_value: Optional[float] = None
+    stage: str | None = None
+    status: str | None = None
+    company_id: str | None = None
+    owner_id: str | None = None
+    min_value: float | None = None
+    max_value: float | None = None
     limit: int = 20
     offset: int = 0
 
 
 @strawberry.input
 class CompanyUpdateInput:
-    name_ar: Optional[str] = None
-    name_en: Optional[str] = None
-    status: Optional[str] = None
-    city: Optional[str] = None
-    region: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
-    website: Optional[str] = None
-    address: Optional[str] = None
-    activity_description: Optional[str] = None
-    tags: Optional[list[str]] = None
+    name_ar: str | None = None
+    name_en: str | None = None
+    status: str | None = None
+    city: str | None = None
+    region: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    website: str | None = None
+    address: str | None = None
+    activity_description: str | None = None
+    tags: list[str] | None = None
 
 
 @strawberry.input
@@ -114,6 +110,6 @@ class CreateOpportunityInput:
     name: str
     value: float = 0.0
     currency: str = "SAR"
-    expected_close_date: Optional[str] = None
+    expected_close_date: str | None = None
     owner_id: str = ""
     description: str = ""

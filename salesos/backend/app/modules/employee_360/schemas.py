@@ -1,5 +1,4 @@
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field
 
@@ -7,17 +6,17 @@ from pydantic import BaseModel, Field
 class EmployeeProfile(BaseModel):
     id: str
     full_name: str
-    full_name_ar: Optional[str] = None
+    full_name_ar: str | None = None
     email: str
     role: str
-    department: Optional[str] = None
-    phone: Optional[str] = None
-    avatar_url: Optional[str] = None
+    department: str | None = None
+    phone: str | None = None
+    avatar_url: str | None = None
     is_active: bool = True
     tenant_id: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     team: list[dict] = []
-    manager: Optional[dict] = None
+    manager: dict | None = None
 
 
 class EmployeePortfolioItem(BaseModel):
@@ -26,8 +25,8 @@ class EmployeePortfolioItem(BaseModel):
     type: str
     value: float = 0.0
     status: str = ""
-    company_id: Optional[str] = None
-    company_name: Optional[str] = None
+    company_id: str | None = None
+    company_name: str | None = None
 
 
 class EmployeePortfolio(BaseModel):
@@ -84,7 +83,6 @@ class EmployeeKPIs(BaseModel):
     signal_count: int = 0
 
 
-
 class EmployeeSignalSummary(BaseModel):
     total_signals: int = 0
     by_source: dict[str, int] = {}
@@ -136,7 +134,7 @@ class TimelineEvent(BaseModel):
 class EmployeeTimeline(BaseModel):
     events: list[TimelineEvent] = []
     total: int = 0
-    next_cursor: Optional[str] = None
+    next_cursor: str | None = None
 
 
 class AICoachAction(BaseModel):
@@ -144,8 +142,8 @@ class AICoachAction(BaseModel):
     title: str
     description: str
     priority: str = "medium"
-    target_id: Optional[str] = None
-    target_type: Optional[str] = None
+    target_id: str | None = None
+    target_type: str | None = None
 
 
 class Employee360Response(BaseModel):

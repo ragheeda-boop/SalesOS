@@ -1,4 +1,5 @@
 """Tests for the RAG pipeline — chunking, embeddings, retrieval, and full pipeline."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock
@@ -12,8 +13,8 @@ from intelligence.rag.embeddings import EmbeddingService
 from intelligence.rag.retrieval import RetrievalService
 from intelligence.rag.service import RagService
 
-
 # ── Fixtures ──────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def sample_document():
@@ -90,8 +91,8 @@ def retrieval_service(mock_db_session):
 
 # ── Chunking Tests ───────────────────────────────────────────────────────────
 
-class TestChunkingService:
 
+class TestChunkingService:
     def test_fixed_size_chunks_small_document(self, chunking_service, sample_document):
         chunks = chunking_service.chunk_document(sample_document, strategy="fixed_size")
         assert len(chunks) >= 1
@@ -106,10 +107,17 @@ class TestChunkingService:
         assert all(len(c) > 0 for c in contents)
 
     def test_fixed_size_respects_chunk_size(self, chunking_service):
-        doc = Document(id=str(uuid4()), tenant_id="t1", source_type="note",
-                       source_id="n1", title="Test",
-                       content="word " * 200)
-        chunks = chunking_service.chunk_document(doc, strategy="fixed_size", chunk_size=30, overlap=5)
+        doc = Document(
+            id=str(uuid4()),
+            tenant_id="t1",
+            source_type="note",
+            source_id="n1",
+            title="Test",
+            content="word " * 200,
+        )
+        chunks = chunking_service.chunk_document(
+            doc, strategy="fixed_size", chunk_size=30, overlap=5
+        )
         for c in chunks:
             token_count = len(chunking_service._tokenize(c.content))
             assert token_count <= 30
@@ -120,9 +128,14 @@ class TestChunkingService:
         assert all(c.metadata.get("strategy") in ("semantic", "semantic_overflow") for c in chunks)
 
     def test_semantic_chunking_paragraph_boundaries(self, chunking_service):
-        doc = Document(id=str(uuid4()), tenant_id="t1", source_type="note",
-                       source_id="n1", title="Test",
-                       content="فقرة أولى.\n\nفقرة ثانية.\n\nفقرة ثالثة.")
+        doc = Document(
+            id=str(uuid4()),
+            tenant_id="t1",
+            source_type="note",
+            source_id="n1",
+            title="Test",
+            content="فقرة أولى.\n\nفقرة ثانية.\n\nفقرة ثالثة.",
+        )
         chunks = chunking_service.chunk_document(doc, strategy="semantic", chunk_size=100)
         assert len(chunks) >= 1
 
@@ -139,8 +152,14 @@ class TestChunkingService:
             chunking_service.chunk_document(sample_document, strategy="invalid")
 
     def test_empty_document_returns_empty(self, chunking_service):
-        doc = Document(id=str(uuid4()), tenant_id="t1", source_type="note",
-                       source_id="n1", title="Empty", content="")
+        doc = Document(
+            id=str(uuid4()),
+            tenant_id="t1",
+            source_type="note",
+            source_id="n1",
+            title="Empty",
+            content="",
+        )
         chunks = chunking_service.chunk_document(doc, strategy="fixed_size")
         assert chunks == []
 
@@ -168,8 +187,8 @@ class TestChunkingService:
 
 # ── Embedding Tests ──────────────────────────────────────────────────────────
 
-class TestEmbeddingService:
 
+class TestEmbeddingService:
     async def test_embed_text_returns_vector(self, embedding_service, mock_openai_client):
         result = await embedding_service.embed_text("hello")
         assert len(result) == 3072
@@ -194,7 +213,9 @@ class TestEmbeddingService:
         # Only 1 new call + 1 from embed_text
         assert mock_openai_client.embeddings.create.call_count >= 1
 
-    async def test_embed_document_returns_chunks_with_embeddings(self, embedding_service, sample_document):
+    async def test_embed_document_returns_chunks_with_embeddings(
+        self, embedding_service, sample_document
+    ):
         chunks = await embedding_service.embed_document(sample_document)
         assert len(chunks) >= 1
         for c in chunks:
@@ -227,8 +248,8 @@ class TestEmbeddingService:
 
 # ── Retrieval Tests ──────────────────────────────────────────────────────────
 
-class TestRetrievalService:
 
+class TestRetrievalService:
     async def test_retrieve_without_pgvector_returns_fallback(self, retrieval_service):
         results = await retrieval_service.retrieve(
             query_embedding=[0.1, 0.2, 0.3],
@@ -245,10 +266,15 @@ class TestRetrievalService:
         assert results == []
 
     async def test_store_and_delete_document(self, retrieval_service):
-        doc = Document(id=str(uuid4()), tenant_id="t1", source_type="note",
-                       source_id="n1", title="Test", content="test")
-        chunks = [DocumentChunk(id=str(uuid4()), document_id=doc.id,
-                                content="test", chunk_index=0)]
+        doc = Document(
+            id=str(uuid4()),
+            tenant_id="t1",
+            source_type="note",
+            source_id="n1",
+            title="Test",
+            content="test",
+        )
+        chunks = [DocumentChunk(id=str(uuid4()), document_id=doc.id, content="test", chunk_index=0)]
         await retrieval_service.store_document_chunks(doc, chunks)
         await retrieval_service.delete_document(doc.id)
         # Should not raise
@@ -279,21 +305,23 @@ class TestRetrievalService:
             def __getattr__(self, name):
                 return self.get(name)
 
-        row = FakeRow({
-            "id": str(uuid4()),
-            "document_id": str(uuid4()),
-            "content": "relevant chunk",
-            "chunk_index": 0,
-            "metadata": {},
-            "score": 0.92,
-            "tenant_id": "t1",
-            "source_type": "email",
-            "source_id": "s1",
-            "title": "Doc",
-            "doc_content": "full content",
-            "doc_metadata": {},
-            "created_at": None,
-        })
+        row = FakeRow(
+            {
+                "id": str(uuid4()),
+                "document_id": str(uuid4()),
+                "content": "relevant chunk",
+                "chunk_index": 0,
+                "metadata": {},
+                "score": 0.92,
+                "tenant_id": "t1",
+                "source_type": "email",
+                "source_id": "s1",
+                "title": "Doc",
+                "doc_content": "full content",
+                "doc_metadata": {},
+                "created_at": None,
+            }
+        )
 
         mock_mappings = MagicMock()
         mock_mappings.all.return_value = [row]
@@ -316,8 +344,8 @@ class TestRetrievalService:
 
 # ── Full RAG Pipeline Tests ──────────────────────────────────────────────────
 
-class TestRagService:
 
+class TestRagService:
     async def test_answer_returns_rag_answer(self, mock_db_session):
         embed_svc = MagicMock()
         embed_svc.embed_text = AsyncMock(return_value=[0.1, 0.2, 0.3])
@@ -325,10 +353,17 @@ class TestRagService:
         retrieve_svc = RetrievalService(db=mock_db_session)
         retrieve_svc._pgvector_available = False
         doc_id = str(uuid4())
-        doc = Document(id=doc_id, tenant_id="t1", source_type="email",
-                       source_id="e1", title="Doc", content="info")
-        chunk = DocumentChunk(id=str(uuid4()), document_id=doc_id,
-                              content="relevant info", chunk_index=0)
+        doc = Document(
+            id=doc_id,
+            tenant_id="t1",
+            source_type="email",
+            source_id="e1",
+            title="Doc",
+            content="info",
+        )
+        chunk = DocumentChunk(
+            id=str(uuid4()), document_id=doc_id, content="relevant info", chunk_index=0
+        )
         await retrieve_svc.store_document_chunks(doc, [chunk])
 
         rag = RagService(

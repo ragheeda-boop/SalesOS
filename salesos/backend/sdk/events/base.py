@@ -8,8 +8,7 @@ with Kafka, NATS, Azure Event Grid, Google Eventarc, etc.
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -36,7 +35,7 @@ class DomainEvent:
     aggregate_id: str = ""
     aggregate_type: str = ""
     tenant_id: str = ""
-    occurred_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    occurred_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     data: dict = field(default_factory=dict)
     metadata: dict = field(default_factory=dict)
 
@@ -100,9 +99,7 @@ class EventStore(ABC):
         """Append an event to the store."""
 
     @abstractmethod
-    async def read_stream(
-        self, aggregate_type: str, aggregate_id: str
-    ) -> list[DomainEvent]:
+    async def read_stream(self, aggregate_type: str, aggregate_id: str) -> list[DomainEvent]:
         """Read all events for a specific aggregate (event sourcing replay)."""
 
     @abstractmethod

@@ -1,6 +1,5 @@
 """Guardrails tests — sanitization, moderation, output validation, JSON extraction."""
 
-import pytest
 from intelligence.guardrails import (
     add_input_moderation,
     extract_json_from_llm_output,
@@ -27,9 +26,9 @@ def test_sanitize_removes_hex_escapes():
 
 
 def test_sanitize_removes_control_chars():
-    result = sanitize_input("hello\x00world\x1Ftest")
+    result = sanitize_input("hello\x00world\x1ftest")
     assert "\x00" not in result
-    assert "\x1F" not in result
+    assert "\x1f" not in result
 
 
 def test_sanitize_strips_whitespace():

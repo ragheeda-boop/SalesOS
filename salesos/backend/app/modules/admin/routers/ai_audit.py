@@ -52,21 +52,23 @@ async def query_ai_audit_logs(
     results = []
     for e in entries:
         details = e.details or {}
-        results.append({
-            "id": e.id,
-            "user_id": e.user_id,
-            "action": e.action,
-            "resource_type": e.resource_type,
-            "resource_id": e.resource_id,
-            "model": details.get("ai_model"),
-            "prompt_tokens": details.get("prompt_tokens"),
-            "completion_tokens": details.get("completion_tokens"),
-            "total_tokens": details.get("total_tokens"),
-            "cost": details.get("cost"),
-            "operation": details.get("operation"),
-            "details": details,
-            "created_at": e.created_at.isoformat() if e.created_at else None,
-        })
+        results.append(
+            {
+                "id": e.id,
+                "user_id": e.user_id,
+                "action": e.action,
+                "resource_type": e.resource_type,
+                "resource_id": e.resource_id,
+                "model": details.get("ai_model"),
+                "prompt_tokens": details.get("prompt_tokens"),
+                "completion_tokens": details.get("completion_tokens"),
+                "total_tokens": details.get("total_tokens"),
+                "cost": details.get("cost"),
+                "operation": details.get("operation"),
+                "details": details,
+                "created_at": e.created_at.isoformat() if e.created_at else None,
+            }
+        )
 
     return {
         "total": total,
@@ -110,6 +112,12 @@ async def ai_audit_summary(
         "total_calls": total,
         "total_cost": round(total_cost, 6),
         "total_tokens": total_tokens,
-        "by_model": [{"model": m, "count": c} for m, c in sorted(model_counts.items(), key=lambda x: x[1], reverse=True)],
-        "by_action": [{"action": a, "count": c} for a, c in sorted(action_counts.items(), key=lambda x: x[1], reverse=True)],
+        "by_model": [
+            {"model": m, "count": c}
+            for m, c in sorted(model_counts.items(), key=lambda x: x[1], reverse=True)
+        ],
+        "by_action": [
+            {"action": a, "count": c}
+            for a, c in sorted(action_counts.items(), key=lambda x: x[1], reverse=True)
+        ],
     }

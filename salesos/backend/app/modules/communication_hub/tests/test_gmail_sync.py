@@ -1,25 +1,26 @@
 """Unit tests for Gmail Sync Service and Gmail Provider."""
-from datetime import datetime, timezone, timedelta
+
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
 
 from app.modules.communication_hub.gmail_sync import (
-    GmailSyncService,
     GmailSyncError,
+    GmailSyncService,
 )
 from app.modules.communication_hub.models import GoogleAccount
-from intelligence.activity_intelligence.providers.google.gmail_provider import (
-    GoogleGmailProvider,
-    GmailAPIError,
-)
 from intelligence.activity_intelligence.contracts.models import RawEmail
-
+from intelligence.activity_intelligence.providers.google.gmail_provider import (
+    GmailAPIError,
+    GoogleGmailProvider,
+)
 
 # ---------------------------------------------------------------------------
 # GoogleGmailProvider tests
 # ---------------------------------------------------------------------------
+
 
 class TestGoogleGmailProvider:
     def test_init(self):
@@ -86,6 +87,7 @@ class TestGoogleGmailProvider:
 
     def test_extract_body_text(self):
         import base64
+
         payload = {
             "mimeType": "text/plain",
             "body": {"data": base64.urlsafe_b64encode(b"Hello World").decode()},
@@ -97,6 +99,7 @@ class TestGoogleGmailProvider:
 
     def test_extract_body_multipart(self):
         import base64
+
         payload = {
             "mimeType": "multipart/alternative",
             "body": {},
@@ -156,6 +159,7 @@ class TestGoogleGmailProvider:
 # GmailSyncService tests
 # ---------------------------------------------------------------------------
 
+
 class TestGmailSyncService:
     def setup_method(self):
         self.tenant_id = uuid4()
@@ -189,28 +193,32 @@ class TestGmailSyncService:
         service.repo = repo
 
         mock_provider = AsyncMock()
-        mock_provider.fetch_emails = AsyncMock(return_value=[
-            RawEmail(
-                message_id="msg_1",
-                subject="Test",
-                from_address="sender@test.com",
-                to_addresses=["test@gmail.com"],
-                sent_at=datetime.now(timezone.utc),
-                labels=["INBOX"],
-            )
-        ])
+        mock_provider.fetch_emails = AsyncMock(
+            return_value=[
+                RawEmail(
+                    message_id="msg_1",
+                    subject="Test",
+                    from_address="sender@test.com",
+                    to_addresses=["test@gmail.com"],
+                    sent_at=datetime.now(UTC),
+                    labels=["INBOX"],
+                )
+            ]
+        )
         mock_provider.get_history_id = AsyncMock(return_value="12345")
         mock_provider.close = AsyncMock()
 
-        with patch.object(service, '_ensure_provider', return_value=mock_provider):
-            with patch.object(service, '_get_existing_email', return_value=None):
-                with patch.object(service, '_insert_email', new_callable=AsyncMock) as mock_insert:
-                    result = await service.sync(days_lookback=7, max_results=50)
+        with (
+            patch.object(service, "_ensure_provider", return_value=mock_provider),
+            patch.object(service, "_get_existing_email", return_value=None),
+            patch.object(service, "_insert_email", new_callable=AsyncMock) as mock_insert,
+        ):  # noqa: E501
+            result = await service.sync(days_lookback=7, max_results=50)
 
-                    assert result["synced_count"] == 1
-                    assert result["new_count"] == 1
-                    assert result["updated_count"] == 0
-                    mock_insert.assert_called_once()
+            assert result["synced_count"] == 1
+            assert result["new_count"] == 1
+            assert result["updated_count"] == 0
+            mock_insert.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_sync_incremental_flow(self):
@@ -228,26 +236,30 @@ class TestGmailSyncService:
             message_id="msg_2",
             subject="Inc",
             from_address="a@b.com",
-            sent_at=datetime.now(timezone.utc),
+            sent_at=datetime.now(UTC),
             labels=["INBOX"],
         )
 
         mock_provider = AsyncMock()
-        mock_provider.fetch_history = AsyncMock(return_value={
-            "history": [{"messagesAdded": [{"message": {"id": "msg_2"}}]}],
-            "historyId": "100000",
-        })
+        mock_provider.fetch_history = AsyncMock(
+            return_value={
+                "history": [{"messagesAdded": [{"message": {"id": "msg_2"}}]}],
+                "historyId": "100000",
+            }
+        )
         mock_provider.fetch_message = AsyncMock(return_value=raw)
         mock_provider.get_history_id = AsyncMock(return_value="100000")
         mock_provider.close = AsyncMock()
 
-        with patch.object(service, '_ensure_provider', return_value=mock_provider):
-            with patch.object(service, '_get_existing_email', return_value=None):
-                with patch.object(service, '_insert_email', new_callable=AsyncMock):
-                    result = await service.sync()
+        with (
+            patch.object(service, "_ensure_provider", return_value=mock_provider),
+            patch.object(service, "_get_existing_email", return_value=None),
+            patch.object(service, "_insert_email", new_callable=AsyncMock),
+        ):  # noqa: E501
+            result = await service.sync()
 
-                    assert result["synced_count"] == 1
-                    mock_provider.fetch_history.assert_called_once_with("99999")
+            assert result["synced_count"] == 1
+            mock_provider.fetch_history.assert_called_once_with("99999")
 
     @pytest.mark.asyncio
     async def test_sync_updates_existing_email(self):
@@ -265,7 +277,7 @@ class TestGmailSyncService:
             message_id="msg_3",
             subject="Existing",
             from_address="sender@test.com",
-            sent_at=datetime.now(timezone.utc),
+            sent_at=datetime.now(UTC),
             labels=["INBOX"],
         )
 
@@ -274,14 +286,16 @@ class TestGmailSyncService:
         mock_provider.get_history_id = AsyncMock(return_value="500")
         mock_provider.close = AsyncMock()
 
-        with patch.object(service, '_ensure_provider', return_value=mock_provider):
-            with patch.object(service, '_get_existing_email', return_value={"id": str(uuid4())}):
-                with patch.object(service, '_update_email', new_callable=AsyncMock) as mock_update:
-                    result = await service.sync()
+        with (
+            patch.object(service, "_ensure_provider", return_value=mock_provider),
+            patch.object(service, "_get_existing_email", return_value={"id": str(uuid4())}),
+            patch.object(service, "_update_email", new_callable=AsyncMock) as mock_update,
+        ):  # noqa: E501
+            result = await service.sync()
 
-                    assert result["updated_count"] == 1
-                    assert result["new_count"] == 0
-                    mock_update.assert_called_once()
+            assert result["updated_count"] == 1
+            assert result["new_count"] == 0
+            mock_update.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_sync_incremental_stale_history_404_falls_back(self):
@@ -291,7 +305,7 @@ class TestGmailSyncService:
         account.id = uuid4()
         account.history_id = "stale_hist"
         account.email = "test@gmail.com"
-        account.last_sync_at = datetime.now(timezone.utc) - timedelta(days=1)
+        account.last_sync_at = datetime.now(UTC) - timedelta(days=1)
 
         repo = AsyncMock()
         repo.get_by_user = AsyncMock(return_value=account)
@@ -302,26 +316,24 @@ class TestGmailSyncService:
             message_id="msg_fb",
             subject="Fallback",
             from_address="a@b.com",
-            sent_at=datetime.now(timezone.utc),
+            sent_at=datetime.now(UTC),
             labels=["INBOX"],
         )
         mock_provider = AsyncMock()
-        mock_provider.fetch_history = AsyncMock(
-            side_effect=GmailAPIError(404, "not found")
-        )
+        mock_provider.fetch_history = AsyncMock(side_effect=GmailAPIError(404, "not found"))
         mock_provider.fetch_emails = AsyncMock(return_value=[raw])
         mock_provider.get_history_id = AsyncMock(return_value="new_hist")
         mock_provider.close = AsyncMock()
 
-        with patch.object(service, "_ensure_provider", return_value=mock_provider):
-            with patch.object(service, "_get_existing_email", return_value=None):
-                with patch.object(service, "_insert_email", new_callable=AsyncMock):
-                    result = await service.sync()
-                    assert result["synced_count"] == 1
-                    mock_provider.fetch_emails.assert_called_once()
-                    repo.update_history_id.assert_any_call(
-                        account.id, None, tenant_id=service.tenant_id
-                    )
+        with (
+            patch.object(service, "_ensure_provider", return_value=mock_provider),
+            patch.object(service, "_get_existing_email", return_value=None),
+            patch.object(service, "_insert_email", new_callable=AsyncMock),
+        ):  # noqa: E501
+            result = await service.sync()
+            assert result["synced_count"] == 1
+            mock_provider.fetch_emails.assert_called_once()
+            repo.update_history_id.assert_any_call(account.id, None, tenant_id=service.tenant_id)
 
     @pytest.mark.asyncio
     async def test_sync_incremental_stale_history_410_falls_back(self):
@@ -331,7 +343,7 @@ class TestGmailSyncService:
         account.id = uuid4()
         account.history_id = "gone_hist"
         account.email = "test@gmail.com"
-        account.last_sync_at = datetime.now(timezone.utc) - timedelta(days=2)
+        account.last_sync_at = datetime.now(UTC) - timedelta(days=2)
 
         repo = AsyncMock()
         repo.get_by_user = AsyncMock(return_value=account)
@@ -342,26 +354,24 @@ class TestGmailSyncService:
             message_id="msg_410",
             subject="Gone",
             from_address="a@b.com",
-            sent_at=datetime.now(timezone.utc),
+            sent_at=datetime.now(UTC),
             labels=["INBOX"],
         )
         mock_provider = AsyncMock()
-        mock_provider.fetch_history = AsyncMock(
-            side_effect=GmailAPIError(410, "gone")
-        )
+        mock_provider.fetch_history = AsyncMock(side_effect=GmailAPIError(410, "gone"))
         mock_provider.fetch_emails = AsyncMock(return_value=[raw])
         mock_provider.get_history_id = AsyncMock(return_value="hist2")
         mock_provider.close = AsyncMock()
 
-        with patch.object(service, "_ensure_provider", return_value=mock_provider):
-            with patch.object(service, "_get_existing_email", return_value=None):
-                with patch.object(service, "_insert_email", new_callable=AsyncMock):
-                    result = await service.sync()
-                    assert result["synced_count"] == 1
-                    mock_provider.fetch_emails.assert_called_once()
-                    repo.update_history_id.assert_any_call(
-                        account.id, None, tenant_id=service.tenant_id
-                    )
+        with (
+            patch.object(service, "_ensure_provider", return_value=mock_provider),
+            patch.object(service, "_get_existing_email", return_value=None),
+            patch.object(service, "_insert_email", new_callable=AsyncMock),
+        ):  # noqa: E501
+            result = await service.sync()
+            assert result["synced_count"] == 1
+            mock_provider.fetch_emails.assert_called_once()
+            repo.update_history_id.assert_any_call(account.id, None, tenant_id=service.tenant_id)
 
     @pytest.mark.asyncio
     async def test_sync_auth_401_raises_gmail_sync_error(self):
@@ -376,35 +386,39 @@ class TestGmailSyncService:
         service.repo = repo
 
         mock_provider = AsyncMock()
-        mock_provider.fetch_emails = AsyncMock(
-            side_effect=GmailAPIError(401, "unauthorized")
-        )
+        mock_provider.fetch_emails = AsyncMock(side_effect=GmailAPIError(401, "unauthorized"))
         mock_provider.close = AsyncMock()
 
-        with patch.object(service, "_ensure_provider", return_value=mock_provider):
-            with pytest.raises(GmailSyncError, match="authentication failed"):
-                await service.sync()
+        with (
+            patch.object(service, "_ensure_provider", return_value=mock_provider),
+            pytest.raises(GmailSyncError, match="authentication failed"),
+        ):  # noqa: E501
+            await service.sync()
 
 
 # ---------------------------------------------------------------------------
 # Schema tests for new sync schemas
 # ---------------------------------------------------------------------------
 
+
 class TestSyncSchemas:
     def test_sync_request_defaults(self):
         from app.modules.communication_hub.schemas import GoogleSyncRequest
+
         req = GoogleSyncRequest()
         assert req.days_lookback == 30
         assert req.max_results == 100
 
     def test_sync_request_custom(self):
         from app.modules.communication_hub.schemas import GoogleSyncRequest
+
         req = GoogleSyncRequest(days_lookback=7, max_results=50)
         assert req.days_lookback == 7
         assert req.max_results == 50
 
     def test_sync_response(self):
         from app.modules.communication_hub.schemas import GoogleSyncResponse
+
         resp = GoogleSyncResponse(
             success=True,
             synced_count=10,

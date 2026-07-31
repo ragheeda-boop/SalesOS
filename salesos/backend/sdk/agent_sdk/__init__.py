@@ -15,21 +15,22 @@ No agent needs to access runtimes directly.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
 class AgentContext:
     """Everything an agent knows about the current situation."""
+
     user_id: str
     tenant_id: str
-    entity_type: Optional[str] = None
-    entity_id: Optional[str] = None
-    entity_data: Optional[dict] = None
+    entity_type: str | None = None
+    entity_id: str | None = None
+    entity_data: dict | None = None
     timeline: list[dict] = field(default_factory=list)
     features: dict = field(default_factory=dict)
     decisions: list[dict] = field(default_factory=list)
-    graph: Optional[dict] = None
+    graph: dict | None = None
     permissions: list[str] = field(default_factory=list)
     active_widgets: list[str] = field(default_factory=list)
 
@@ -52,10 +53,11 @@ class AgentContext:
 @dataclass
 class AgentAction:
     """An action an agent can propose or execute."""
+
     id: str
     label: str
-    description: Optional[str] = None
-    handler: Optional[str] = None
+    description: str | None = None
+    handler: str | None = None
     parameters: dict = field(default_factory=dict)
     permissions: list[str] = field(default_factory=list)
     requires_confirmation: bool = False
@@ -78,11 +80,16 @@ class AgentContextCollector:
     def __init__(self, runtime_registry: dict[str, Any]):
         self._runtimes = runtime_registry
 
-    def collect(self, user_id: str, tenant_id: str,
-                entity_type: Optional[str] = None,
-                entity_id: Optional[str] = None) -> AgentContext:
-        ctx = AgentContext(user_id=user_id, tenant_id=tenant_id,
-                           entity_type=entity_type, entity_id=entity_id)
+    def collect(
+        self,
+        user_id: str,
+        tenant_id: str,
+        entity_type: str | None = None,
+        entity_id: str | None = None,
+    ) -> AgentContext:
+        ctx = AgentContext(
+            user_id=user_id, tenant_id=tenant_id, entity_type=entity_type, entity_id=entity_id
+        )
 
         # Entity data
         if entity_type and entity_id:
@@ -94,9 +101,10 @@ class AgentContextCollector:
         if timeline_rt and entity_type and entity_id:
             try:
                 import asyncio
-                events = asyncio.run(timeline_rt.query(
-                    entity_type=entity_type, entity_id=entity_id, limit=20
-                ))
+
+                events = asyncio.run(
+                    timeline_rt.query(entity_type=entity_type, entity_id=entity_id, limit=20)
+                )
                 ctx.timeline = events if isinstance(events, list) else []
             except Exception:
                 pass
@@ -106,6 +114,7 @@ class AgentContextCollector:
         if feature_store and entity_id:
             try:
                 import asyncio
+
                 scores = asyncio.run(feature_store.get_scores(entity_id))
                 ctx.features = scores if isinstance(scores, dict) else {}
             except Exception:
@@ -116,6 +125,7 @@ class AgentContextCollector:
         if kg and entity_id:
             try:
                 import asyncio
+
                 network = asyncio.run(kg.get_ego_network(entity_id, depth=1))
                 ctx.graph = network if isinstance(network, dict) else None
             except Exception:

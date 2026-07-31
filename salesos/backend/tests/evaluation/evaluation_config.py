@@ -7,6 +7,7 @@ from typing import Any
 @dataclass
 class EvaluationConfig:
     """Configuration for AI evaluation suite."""
+
     min_grounding_confidence: float = 0.3
     min_faithfulness_score: float = 0.7
     max_hallucination_ratio: float = 0.2

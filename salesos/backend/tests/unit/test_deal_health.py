@@ -1,16 +1,15 @@
 """Tests for Deal Health Computer — stagnation, engagement, health classification, thresholds."""
+
 from __future__ import annotations
 
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock
-
-import pytest
 
 from runtime.feature_store import FeatureResult
 from runtime.nba_engine.engine.risk.deal_health import DealHealthComputer
 
-
 # ── Fake SQLAlchemy helpers ──────────────────────────────────────────────────
+
 
 class FakeMapping:
     def __init__(self, data):
@@ -45,6 +44,7 @@ class FakeResult:
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
+
 def _make_computer(
     total_activities=10,
     last_activity_days_ago=5,
@@ -52,18 +52,26 @@ def _make_computer(
     close_date_days_ahead=30,
 ):
     """Create a DealHealthComputer with a mock session returning controlled data."""
-    last_activity = datetime.now(timezone.utc) - timedelta(days=last_activity_days_ago)
-    close_date = (datetime.now(timezone.utc) + timedelta(days=close_date_days_ahead)).date() if close_date_days_ahead is not None else None
+    last_activity = datetime.now(UTC) - timedelta(days=last_activity_days_ago)
+    close_date = (
+        (datetime.now(UTC) + timedelta(days=close_date_days_ahead)).date()
+        if close_date_days_ahead is not None
+        else None
+    )
 
-    call_count = {"n": 0}
+    _ = {"n": 0}
 
     async def execute(sql_str, params=None):
         text = str(sql_str)
         if "activity_records" in text and "COUNT(*)" in text and "last_activity" in text:
-            return FakeResult(FakeMappings(one={
-                "total": total_activities,
-                "last_activity": last_activity,
-            }))
+            return FakeResult(
+                FakeMappings(
+                    one={
+                        "total": total_activities,
+                        "last_activity": last_activity,
+                    }
+                )
+            )
         elif "company_signals" in text:
             return FakeResult(FakeMappings(one={"cnt": signal_count}))
         return FakeResult(FakeMappings(one={"cnt": 0}))
@@ -83,10 +91,11 @@ def _make_computer(
 
 # ── Tests: Stagnation Score ─────────────────────────────────────────────────
 
+
 class TestStagnationScore:
     async def test_no_activity_means_0_5_stagnation(self):
         """No last_activity at all → stagnation = 0.5."""
-        last_activity = None
+        _ = None
 
         async def execute(sql_str, params=None):
             text = str(sql_str)
@@ -129,6 +138,7 @@ class TestStagnationScore:
 
 # ── Tests: Engagement Score ─────────────────────────────────────────────────
 
+
 class TestEngagementScore:
     async def test_high_engagement_better_health(self):
         session_high, opp_high = _make_computer(total_activities=20, last_activity_days_ago=2)
@@ -151,13 +161,18 @@ class TestEngagementScore:
 
 # ── Tests: Timeline Risk ────────────────────────────────────────────────────
 
+
 class TestTimelineRisk:
     async def test_overdue_deal_worse_health(self):
         session_overdue, opp_overdue = _make_computer(
-            total_activities=5, last_activity_days_ago=3, close_date_days_ahead=-5,
+            total_activities=5,
+            last_activity_days_ago=3,
+            close_date_days_ahead=-5,
         )
         session_ok, opp_ok = _make_computer(
-            total_activities=5, last_activity_days_ago=3, close_date_days_ahead=60,
+            total_activities=5,
+            last_activity_days_ago=3,
+            close_date_days_ahead=60,
         )
 
         computer = DealHealthComputer()
@@ -169,7 +184,9 @@ class TestTimelineRisk:
     async def test_no_close_date_no_timeline_risk(self):
         """No expected_close_date → timeline_risk = 0."""
         session, opp = _make_computer(
-            total_activities=5, last_activity_days_ago=3, close_date_days_ahead=None,
+            total_activities=5,
+            last_activity_days_ago=3,
+            close_date_days_ahead=None,
         )
         opp.pop("expected_close_date", None)
         computer = DealHealthComputer()
@@ -178,6 +195,7 @@ class TestTimelineRisk:
 
 
 # ── Tests: Health Classification ────────────────────────────────────────────
+
 
 class TestHealthClassification:
     async def test_healthy_explanation(self):
@@ -206,6 +224,7 @@ class TestHealthClassification:
 
 
 # ── Tests: FeatureResult Structure ──────────────────────────────────────────
+
 
 class TestFeatureResult:
     async def test_has_all_fields(self):
@@ -245,11 +264,14 @@ class TestFeatureResult:
 
 # ── Tests: Threshold Boundaries ─────────────────────────────────────────────
 
+
 class TestThresholdBoundaries:
     async def test_score_exactly_0(self):
         """Maximum stagnation, no engagement, overdue → near 0."""
         session, opp = _make_computer(
-            total_activities=0, last_activity_days_ago=40, close_date_days_ahead=-30,
+            total_activities=0,
+            last_activity_days_ago=40,
+            close_date_days_ahead=-30,
         )
         computer = DealHealthComputer()
         result = await computer.compute(opp, session)
@@ -258,7 +280,9 @@ class TestThresholdBoundaries:
     async def test_score_near_1(self):
         """No stagnation, full engagement, no timeline pressure → near 1."""
         session, opp = _make_computer(
-            total_activities=20, last_activity_days_ago=1, close_date_days_ahead=90,
+            total_activities=20,
+            last_activity_days_ago=1,
+            close_date_days_ahead=90,
         )
         computer = DealHealthComputer()
         result = await computer.compute(opp, session)

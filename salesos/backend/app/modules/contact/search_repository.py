@@ -6,6 +6,7 @@ Mirrors the CompanySearchRepository pattern from app/modules/company/search_repo
 Uses PostgreSQL full-text search via tsvector for token/phrase matching,
 with ILIKE fallback for field filters.
 """
+
 from __future__ import annotations
 
 import logging
@@ -35,9 +36,7 @@ class ContactSearchRepository(SearchRepository[Any]):
 
     def _build_base(self, query: SearchQuery):
         Contact = self._Contact
-        stmt = select(Contact).where(
-            Contact.tenant_id == uuid.UUID(query.tenant_id)
-        )
+        stmt = select(Contact).where(Contact.tenant_id == uuid.UUID(query.tenant_id))
 
         if query.query:
             like = f"%{query.query}%"
@@ -59,9 +58,7 @@ class ContactSearchRepository(SearchRepository[Any]):
                     if "in" in value:
                         stmt = stmt.where(getattr(Contact, field).in_(value["in"]))
                     if "contains" in value:
-                        stmt = stmt.where(
-                            getattr(Contact, field).ilike(f"%{value['contains']}%")
-                        )
+                        stmt = stmt.where(getattr(Contact, field).ilike(f"%{value['contains']}%"))
                 else:
                     stmt = stmt.where(getattr(Contact, field) == value)
 
@@ -93,10 +90,7 @@ class ContactSearchRepository(SearchRepository[Any]):
         safe_page_size = min(query.page_size, MAX_PAGE_SIZE)
 
         await self.db.execute(
-            text(
-                f"SET LOCAL statement_timeout = "
-                f"'{int(SEARCH_TIMEOUT_SECONDS * 1000)}'"
-            )
+            text(f"SET LOCAL statement_timeout = " f"'{int(SEARCH_TIMEOUT_SECONDS * 1000)}'")
         )
 
         base = self._build_base(query)
@@ -125,9 +119,7 @@ class ContactSearchRepository(SearchRepository[Any]):
         r = await self.db.execute(cq)
         return r.scalar() or 0
 
-    async def facets(
-        self, query: SearchQuery, fields: list[str]
-    ) -> dict[str, dict[str, int]]:
+    async def facets(self, query: SearchQuery, fields: list[str]) -> dict[str, dict[str, int]]:
         Contact = self._Contact
         base = self._build_base(query)
         result: dict[str, dict[str, int]] = {}
@@ -144,9 +136,7 @@ class ContactSearchRepository(SearchRepository[Any]):
                     .limit(20)
                 )
                 r = await self.db.execute(fq)
-                result[field] = {
-                    str(row[0] or "unknown"): row[1] for row in r
-                }
+                result[field] = {str(row[0] or "unknown"): row[1] for row in r}
 
         return result
 

@@ -2,6 +2,7 @@
 Owner engine (salesos) is superuser/BYPASSRLS — if any request path
 accidentally uses it, RLS is silently bypassed.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -27,7 +28,6 @@ async def test_get_db_yields_app_engine_session():
 @pytest.mark.asyncio
 async def test_owner_engine_not_imported_by_request_paths():
     """Verify no route or middleware imports owner_engine directly."""
-    import ast
     import os
 
     violations: list[str] = []

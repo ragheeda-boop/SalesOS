@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
@@ -55,7 +54,7 @@ async def list_benchmark_runs(
             offset = int(cursor)
         except (ValueError, TypeError):
             offset = 0
-    sliced = runs[offset:offset + limit]
+    sliced = runs[offset : offset + limit]
     next_cursor = str(offset + limit) if offset + limit < len(runs) else None
     return {"items": sliced, "next_cursor": next_cursor, "total": len(runs)}
 
@@ -67,8 +66,13 @@ async def trigger_benchmark_run(
     _=Depends(require_role_dep("admin")),
 ):
     """Trigger a new benchmark run."""
-    import asyncio
-    from benchmarks import search_benchmark, nba_benchmark, rag_benchmark, dashboard_benchmark, api_benchmark
+    from benchmarks import (
+        api_benchmark,
+        dashboard_benchmark,
+        nba_benchmark,
+        rag_benchmark,
+        search_benchmark,
+    )
 
     runner = BenchmarkRunner(version=_get_version(request))
 
@@ -124,8 +128,13 @@ async def compare_benchmark(
     _=Depends(require_role_dep("admin")),
 ):
     """Compare current results against a baseline run."""
-    import asyncio
-    from benchmarks import search_benchmark, nba_benchmark, rag_benchmark, dashboard_benchmark, api_benchmark
+    from benchmarks import (
+        api_benchmark,
+        dashboard_benchmark,
+        nba_benchmark,
+        rag_benchmark,
+        search_benchmark,
+    )
 
     runner = BenchmarkRunner(version=_get_version(request))
     runner.register("search", search_benchmark.benchmark_fulltext_search)
@@ -151,7 +160,9 @@ async def compare_benchmark(
     try:
         comparison = runner.compare(baseline)
     except FileNotFoundError as e:
-        raise HTTPException(status_code=404, detail=safe_error_detail(e, "Baseline not found"))
+        raise HTTPException(
+            status_code=404, detail=safe_error_detail(e, "Baseline not found")
+        ) from e  # noqa: E501
     return BenchmarkComparisonResponse(**comparison)
 
 
@@ -162,12 +173,14 @@ def _load_runs() -> list[dict]:
             path = os.path.join(RESULTS_DIR, fname)
             with open(path, encoding="utf-8") as f:
                 data = json.load(f)
-            runs.append({
-                "run_id": data.get("run_id", fname.replace(".json", "")),
-                "timestamp": data.get("timestamp", ""),
-                "version": data.get("version", ""),
-                "total": len(data.get("results", [])),
-            })
+            runs.append(
+                {
+                    "run_id": data.get("run_id", fname.replace(".json", "")),
+                    "timestamp": data.get("timestamp", ""),
+                    "version": data.get("version", ""),
+                    "total": len(data.get("results", [])),
+                }
+            )
     return runs
 
 
@@ -189,6 +202,7 @@ def _load_run_detail(run_id: str) -> BenchmarkDetailResponse:
 def _get_version(request: Request) -> str:
     try:
         from app.config import settings
+
         return settings.service_version
     except Exception:
         return "unknown"

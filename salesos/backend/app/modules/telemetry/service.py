@@ -2,17 +2,27 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from .models import TelemetryEvent
 
-
-EVENT_TYPES = frozenset({
-    "page_view", "search_query", "nba_view", "nba_accept", "nba_reject",
-    "workflow_run", "workflow_complete", "rag_query", "report_run", "api_call",
-    "login", "logout",
-})
+EVENT_TYPES = frozenset(
+    {
+        "page_view",
+        "search_query",
+        "nba_view",
+        "nba_accept",
+        "nba_reject",
+        "workflow_run",
+        "workflow_complete",
+        "rag_query",
+        "report_run",
+        "api_call",
+        "login",
+        "logout",
+    }
+)
 
 
 class TelemetryRepository(ABC):
@@ -79,9 +89,9 @@ class InMemoryTelemetryRepository(TelemetryRepository):
             filtered = [e for e in filtered if e.timestamp and e.timestamp >= from_date]
         if to_date:
             filtered = [e for e in filtered if e.timestamp and e.timestamp <= to_date]
-        filtered.sort(key=lambda e: e.timestamp or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+        filtered.sort(key=lambda e: e.timestamp or datetime.min.replace(tzinfo=UTC), reverse=True)
         total = len(filtered)
-        return filtered[offset:offset + limit], total
+        return filtered[offset : offset + limit], total
 
     async def aggregate(
         self,
@@ -156,7 +166,7 @@ class TelemetryService:
             tenant_id=tenant_id,
             user_id=user_id,
             properties=properties or {},
-            timestamp=timestamp or datetime.now(timezone.utc),
+            timestamp=timestamp or datetime.now(UTC),
         )
         return await self.repository.create(event)
 
@@ -168,7 +178,9 @@ class TelemetryService:
         to_date: datetime | None = None,
         granularity: str = "day",
     ) -> list[dict[str, Any]]:
-        return await self.repository.aggregate(tenant_id, event_type, from_date, to_date, granularity)
+        return await self.repository.aggregate(
+            tenant_id, event_type, from_date, to_date, granularity
+        )
 
     async def feature_adoption(
         self,
@@ -201,18 +213,20 @@ class TelemetryService:
             if e.event_type in type_labels:
                 counts[e.event_type].add(e.user_id)
 
-        total_users = len(set(e.user_id for e in events))
+        total_users = len({e.user_id for e in events})
         result = []
         for etype, label in type_labels.items():
             user_count = len(counts.get(etype, set()))
             pct = round(user_count / total_users * 100, 1) if total_users > 0 else 0.0
-            result.append({
-                "feature": etype,
-                "label": label,
-                "user_count": user_count,
-                "total_users": total_users,
-                "adoption_pct": pct,
-            })
+            result.append(
+                {
+                    "feature": etype,
+                    "label": label,
+                    "user_count": user_count,
+                    "total_users": total_users,
+                    "adoption_pct": pct,
+                }
+            )
         return sorted(result, key=lambda x: x["adoption_pct"], reverse=True)
 
     async def search_success_rate(self, tenant_id: str) -> dict[str, Any]:
@@ -220,8 +234,10 @@ class TelemetryService:
         searches = [e for e in events if e.event_type == "search_query"]
         total_searches = len(searches)
         searches_with_action = sum(
-            1 for e in searches
-            if e.properties and (e.properties.get("clicked") is True or e.properties.get("result_clicked") is True)
+            1
+            for e in searches
+            if e.properties
+            and (e.properties.get("clicked") is True or e.properties.get("result_clicked") is True)
         )
         rate = round(searches_with_action / total_searches * 100, 1) if total_searches > 0 else 0.0
         return {
@@ -249,15 +265,25 @@ class TelemetryService:
         user_logins: dict[str, datetime] = {}
         user_first_action: dict[str, datetime] = {}
 
-        for e in sorted(events, key=lambda x: x.timestamp or datetime.min.replace(tzinfo=timezone.utc)):
+        for e in sorted(events, key=lambda x: x.timestamp or datetime.min.replace(tzinfo=UTC)):
             if not e.timestamp:
                 continue
             if e.event_type == "login":
                 if e.user_id not in user_logins:
                     user_logins[e.user_id] = e.timestamp
-            elif e.event_type in ("search_query", "nba_view", "workflow_run", "rag_query", "report_run"):
-                if e.user_id not in user_first_action and e.user_id in user_logins:
-                    user_first_action[e.user_id] = e.timestamp
+            elif (
+                e.event_type
+                in (
+                    "search_query",
+                    "nba_view",
+                    "workflow_run",
+                    "rag_query",
+                    "report_run",
+                )
+                and e.user_id not in user_first_action
+                and e.user_id in user_logins
+            ):
+                user_first_action[e.user_id] = e.timestamp
 
         times = []
         for uid in user_first_action:
@@ -277,15 +303,18 @@ class TelemetryService:
         user_nba_view: dict[str, datetime] = {}
         user_nba_accept: dict[str, datetime] = {}
 
-        for e in sorted(events, key=lambda x: x.timestamp or datetime.min.replace(tzinfo=timezone.utc)):
+        for e in sorted(events, key=lambda x: x.timestamp or datetime.min.replace(tzinfo=UTC)):
             if not e.timestamp:
                 continue
             if e.event_type == "nba_view":
                 if e.user_id not in user_nba_view:
                     user_nba_view[e.user_id] = e.timestamp
-            elif e.event_type == "nba_accept":
-                if e.user_id not in user_nba_accept and e.user_id in user_nba_view:
-                    user_nba_accept[e.user_id] = e.timestamp
+            elif (
+                e.event_type == "nba_accept"
+                and e.user_id not in user_nba_accept
+                and e.user_id in user_nba_view
+            ):
+                user_nba_accept[e.user_id] = e.timestamp
 
         times = []
         for uid in user_nba_accept:
@@ -301,7 +330,7 @@ class TelemetryService:
         }
 
     async def active_users(self, days: int = 7) -> dict[str, Any]:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         dau_cutoff = now - timedelta(days=1)
         wau_cutoff = now - timedelta(days=7)
         mau_cutoff = now - timedelta(days=30)

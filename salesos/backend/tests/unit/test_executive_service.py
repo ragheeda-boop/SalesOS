@@ -1,23 +1,30 @@
 """Tests for the ExecutiveService dashboard."""
+
+from unittest.mock import AsyncMock
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.executive.service import ExecutiveService
 from app.modules.executive.schemas import ExecutiveDashboard
+from app.modules.executive.service import ExecutiveService
 
 
 class FakeMapping:
     def __init__(self, data):
         self._data = data
+
     def __getitem__(self, key):
         return self._data[key]
+
     def get(self, key, default=None):
         return self._data.get(key, default)
+
     def keys(self):
         return self._data.keys()
+
     def __iter__(self):
         return iter(self._data)
+
     def __len__(self):
         return len(self._data)
 
@@ -26,14 +33,18 @@ class FakeResult:
     def __init__(self, one=None, all_rows=None):
         self._one = one or {}
         self._all_rows = all_rows or []
+
     def mappings(self):
         class M:
             def __init__(self, p):
                 self._p = p
+
             def one(self):
                 return FakeMapping(self._p._one)
+
             def all(self):
                 return [FakeMapping(r) for r in self._p._all_rows]
+
         return M(self)
 
 
@@ -41,15 +52,28 @@ class FakeResult:
 def mock_execute():
     """Always return a FakeResult with default non-zero values for any SQL query."""
     defaults = {
-        "total": 10, "active": 8,
-        "total_pipeline": 1000000.0, "won_value": 500000.0, "prev_value": 800000.0,
-        "cnt": 3, "due_30": 2, "due_90": 5,
-        "new_companies": 5, "new_contacts": 12, "new_opps": 8, "new_contracts": 3,
-        "has_name": 45, "has_email": 30, "has_phone": 25, "has_city": 40, "has_industry": 35,
+        "total": 10,
+        "active": 8,
+        "total_pipeline": 1000000.0,
+        "won_value": 500000.0,
+        "prev_value": 800000.0,
+        "cnt": 3,
+        "due_30": 2,
+        "due_90": 5,
+        "new_companies": 5,
+        "new_contacts": 12,
+        "new_opps": 8,
+        "new_contracts": 3,
+        "has_name": 45,
+        "has_email": 30,
+        "has_phone": 25,
+        "has_city": 40,
+        "has_industry": 35,
     }
 
     async def execute(text, params=None):
         return FakeResult(one=dict(defaults))
+
     return execute
 
 

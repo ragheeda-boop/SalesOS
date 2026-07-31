@@ -1,5 +1,6 @@
 import pytest
 
+from sdk.exceptions import PermissionDeniedError
 from sdk.permissions import (
     Permission,
     PermissionAction,
@@ -7,7 +8,6 @@ from sdk.permissions import (
     PermissionRegistry,
     Role,
 )
-from sdk.exceptions import PermissionDeniedError
 
 
 class TestRoleHierarchy:
@@ -18,9 +18,15 @@ class TestRoleHierarchy:
     def test_admin_has_all_permissions(self):
         roles = PermissionRegistry.default_roles()
         admin_perms = roles.get("admin", [])
-        assert any(p.resource == "company" and p.action == PermissionAction.DELETE for p in admin_perms)
-        assert any(p.resource == "monitoring" and p.action == PermissionAction.ADMIN for p in admin_perms)
-        assert any(p.resource == "billing" and p.action == PermissionAction.EXPORT for p in admin_perms)
+        assert any(
+            p.resource == "company" and p.action == PermissionAction.DELETE for p in admin_perms
+        )
+        assert any(
+            p.resource == "monitoring" and p.action == PermissionAction.ADMIN for p in admin_perms
+        )
+        assert any(
+            p.resource == "billing" and p.action == PermissionAction.EXPORT for p in admin_perms
+        )
 
     def test_manager_permissions_correct(self):
         roles = PermissionRegistry.default_roles()
@@ -71,16 +77,22 @@ class TestPermissionRegistry:
         role = Role("tester", permissions={perm})
         PermissionRegistry.register_role(role)
         assert PermissionRegistry.has_permission("tester", "test_resource", PermissionAction.READ)
-        assert not PermissionRegistry.has_permission("tester", "test_resource", PermissionAction.CREATE)
+        assert not PermissionRegistry.has_permission(
+            "tester", "test_resource", PermissionAction.CREATE
+        )
 
     def test_register_module_permissions(self):
-        PermissionRegistry.register_module_permissions("my_module", [PermissionAction.READ, PermissionAction.CREATE])
+        PermissionRegistry.register_module_permissions(
+            "my_module", [PermissionAction.READ, PermissionAction.CREATE]
+        )
         assert PermissionRegistry._permissions.get("my_module.read") is not None
         assert PermissionRegistry._permissions.get("my_module.create") is not None
         assert PermissionRegistry._permissions.get("my_module.delete") is None
 
     def test_unknown_role_returns_false(self):
-        assert not PermissionRegistry.has_permission("nonexistent", "company", PermissionAction.READ)
+        assert not PermissionRegistry.has_permission(
+            "nonexistent", "company", PermissionAction.READ
+        )
 
 
 class TestPermissionEnforcer:

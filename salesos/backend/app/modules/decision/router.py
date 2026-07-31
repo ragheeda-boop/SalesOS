@@ -1,27 +1,27 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Optional
 
 from app.dependencies import get_current_tenant_id, verify_token
-from app.modules.decision.engine import decision_engine, DecisionEngine
+from app.modules.decision.engine import DecisionEngine, decision_engine
 from app.modules.decision.schemas import (
+    BatchResponseAPI,
+    BatchSummaryAPI,
     DecisionContext,
     DecisionContextAPI,
     DecisionResultAPI,
+    DecisionRule,
     DecisionRuleAPI,
-    FeedbackRequest,
-    FeedbackSubmitResponseAPI,
-    FeedbackStatsAPI,
-    ExplainResponseAPI,
-    HistoryResponseAPI,
-    RecommendationsResponseAPI,
-    ScoresResponseAPI,
     EvidenceResponseAPI,
-    RulesResponseAPI,
-    RuleCreateRequest,
+    ExplainResponseAPI,
+    FeedbackRequest,
+    FeedbackStatsAPI,
+    FeedbackSubmitResponseAPI,
+    HistoryResponseAPI,
     LearningTrendsResponseAPI,
     QualityMetricsAPI,
-    BatchResponseAPI,
-    BatchSummaryAPI,
+    RecommendationsResponseAPI,
+    RuleCreateRequest,
+    RulesResponseAPI,
+    ScoresResponseAPI,
 )
 
 router = APIRouter(prefix="/api/v1/decision")
@@ -48,15 +48,15 @@ def _context_to_api(ctx: DecisionContext) -> DecisionContextAPI:
 
 def _result_to_api(result) -> DecisionResultAPI:
     from app.modules.decision.schemas import (
-        RecommendationAPI,
         AlternativeRecommendationAPI,
-        RiskAPI,
+        DecisionRuleAPI,
         EvidenceItemAPI,
+        ExpectedImpactAPI,
+        ExplainabilityAPI,
+        RecommendationAPI,
+        RiskAPI,
         ScoreAPI,
         ScoreFactorAPI,
-        DecisionRuleAPI,
-        ExplainabilityAPI,
-        ExpectedImpactAPI,
         TelemetryAPI,
     )
 
@@ -89,15 +89,23 @@ def _result_to_api(result) -> DecisionResultAPI:
             ],
             evidence=[
                 EvidenceItemAPI(
-                    id=e.id, type=e.type, description=e.description,
-                    source=e.source, confidence=e.confidence,
-                    freshness=e.freshness, timestamp=e.timestamp,
-                    severity=e.severity, url=e.url, data=e.data,
+                    id=e.id,
+                    type=e.type,
+                    description=e.description,
+                    source=e.source,
+                    confidence=e.confidence,
+                    freshness=e.freshness,
+                    timestamp=e.timestamp,
+                    severity=e.severity,
+                    url=e.url,
+                    data=e.data,
                 )
                 for e in rec.evidence
             ],
             risks=[
-                RiskAPI(type=r.type, level=r.level, description=r.description, mitigation=r.mitigation)
+                RiskAPI(
+                    type=r.type, level=r.level, description=r.description, mitigation=r.mitigation
+                )
                 for r in rec.risks
             ],
             status=rec.status,
@@ -106,11 +114,17 @@ def _result_to_api(result) -> DecisionResultAPI:
         ),
         scores=[
             ScoreAPI(
-                type=s.type, value=s.value, confidence=s.confidence, label=s.label,
+                type=s.type,
+                value=s.value,
+                confidence=s.confidence,
+                label=s.label,
                 factors=[
                     ScoreFactorAPI(
-                        name=f.name, value=f.value, weight=f.weight,
-                        description=f.description, source=f.source,
+                        name=f.name,
+                        value=f.value,
+                        weight=f.weight,
+                        description=f.description,
+                        source=f.source,
                     )
                     for f in s.factors
                 ],
@@ -120,18 +134,30 @@ def _result_to_api(result) -> DecisionResultAPI:
         ],
         rulesApplied=[
             DecisionRuleAPI(
-                id=r.id, name=r.name, description=r.description,
-                priority=r.priority, category=r.category, version=r.version,
-                conditions=r.conditions, action=r.action, weight=r.weight,
+                id=r.id,
+                name=r.name,
+                description=r.description,
+                priority=r.priority,
+                category=r.category,
+                version=r.version,
+                conditions=r.conditions,
+                action=r.action,
+                weight=r.weight,
             )
             for r in result.rules_applied
         ],
         evidence=[
             EvidenceItemAPI(
-                id=e.id, type=e.type, description=e.description,
-                source=e.source, confidence=e.confidence,
-                freshness=e.freshness, timestamp=e.timestamp,
-                severity=e.severity, url=e.url, data=e.data,
+                id=e.id,
+                type=e.type,
+                description=e.description,
+                source=e.source,
+                confidence=e.confidence,
+                freshness=e.freshness,
+                timestamp=e.timestamp,
+                severity=e.severity,
+                url=e.url,
+                data=e.data,
             )
             for e in result.evidence
         ],
@@ -142,18 +168,30 @@ def _result_to_api(result) -> DecisionResultAPI:
             whyNotAlternative=result.explainability.why_not_alternative,
             evidence=[
                 EvidenceItemAPI(
-                    id=e.id, type=e.type, description=e.description,
-                    source=e.source, confidence=e.confidence,
-                    freshness=e.freshness, timestamp=e.timestamp,
-                    severity=e.severity, url=e.url, data=e.data,
+                    id=e.id,
+                    type=e.type,
+                    description=e.description,
+                    source=e.source,
+                    confidence=e.confidence,
+                    freshness=e.freshness,
+                    timestamp=e.timestamp,
+                    severity=e.severity,
+                    url=e.url,
+                    data=e.data,
                 )
                 for e in result.explainability.evidence
             ],
             rulesApplied=[
                 DecisionRuleAPI(
-                    id=r.id, name=r.name, description=r.description,
-                    priority=r.priority, category=r.category, version=r.version,
-                    conditions=r.conditions, action=r.action, weight=r.weight,
+                    id=r.id,
+                    name=r.name,
+                    description=r.description,
+                    priority=r.priority,
+                    category=r.category,
+                    version=r.version,
+                    conditions=r.conditions,
+                    action=r.action,
+                    weight=r.weight,
                 )
                 for r in result.explainability.rules_applied
             ],
@@ -179,6 +217,7 @@ def _result_to_api(result) -> DecisionResultAPI:
 # ---------------------------------------------------------------------------
 # Decision Evaluation
 # ---------------------------------------------------------------------------
+
 
 @router.post("/evaluate", response_model=DecisionResultAPI)
 async def evaluate_decision(
@@ -207,6 +246,7 @@ async def evaluate_batch(
 
     engine = _engine()
     import time
+
     start = time.perf_counter()
     results = engine.evaluate_batch(contexts)
     total_ms = round((time.perf_counter() - start) * 1000, 2)
@@ -233,7 +273,13 @@ async def explain_decision(
     if explainability is None:
         raise HTTPException(status_code=404, detail="Decision not found")
 
-    from app.modules.decision.schemas import ExplainabilityAPI, ExpectedImpactAPI, EvidenceItemAPI, DecisionRuleAPI
+    from app.modules.decision.schemas import (
+        DecisionRuleAPI,
+        EvidenceItemAPI,
+        ExpectedImpactAPI,
+        ExplainabilityAPI,
+    )
+
     return ExplainResponseAPI(
         decisionId=decision_id,
         explainability=ExplainabilityAPI(
@@ -243,18 +289,30 @@ async def explain_decision(
             whyNotAlternative=explainability.why_not_alternative,
             evidence=[
                 EvidenceItemAPI(
-                    id=e.id, type=e.type, description=e.description,
-                    source=e.source, confidence=e.confidence,
-                    freshness=e.freshness, timestamp=e.timestamp,
-                    severity=e.severity, url=e.url, data=e.data,
+                    id=e.id,
+                    type=e.type,
+                    description=e.description,
+                    source=e.source,
+                    confidence=e.confidence,
+                    freshness=e.freshness,
+                    timestamp=e.timestamp,
+                    severity=e.severity,
+                    url=e.url,
+                    data=e.data,
                 )
                 for e in explainability.evidence
             ],
             rulesApplied=[
                 DecisionRuleAPI(
-                    id=r.id, name=r.name, description=r.description,
-                    priority=r.priority, category=r.category, version=r.version,
-                    conditions=r.conditions, action=r.action, weight=r.weight,
+                    id=r.id,
+                    name=r.name,
+                    description=r.description,
+                    priority=r.priority,
+                    category=r.category,
+                    version=r.version,
+                    conditions=r.conditions,
+                    action=r.action,
+                    weight=r.weight,
                 )
                 for r in explainability.rules_applied
             ],
@@ -273,13 +331,14 @@ async def explain_decision(
 # History
 # ---------------------------------------------------------------------------
 
+
 @router.get("/history", response_model=HistoryResponseAPI)
 async def get_history(
     tenant_id: str = Depends(get_current_tenant_id),
     limit: int = Query(20, ge=1, le=100),
     cursor: str | None = Query(None, description="Keyset cursor for pagination"),
-    entity_type: Optional[str] = Query(None),
-    outcome: Optional[str] = Query(None),
+    entity_type: str | None = Query(None),
+    outcome: str | None = Query(None),
     _token: dict = Depends(verify_token),
 ):
     from sdk.pagination import decode_cursor, encode_cursor
@@ -306,7 +365,11 @@ async def get_history(
         last = items[-1]
         next_cursor = encode_cursor(str(last.decision_id), last.created_at)
 
-    from app.modules.decision.schemas import DecisionHistoryItemAPI, DecisionHistoryRecommendationAPI
+    from app.modules.decision.schemas import (
+        DecisionHistoryItemAPI,
+        DecisionHistoryRecommendationAPI,
+    )
+
     api_items = [
         DecisionHistoryItemAPI(
             decisionId=i.decision_id,
@@ -323,29 +386,36 @@ async def get_history(
         )
         for i in items
     ]
-    return HistoryResponseAPI(items=api_items, total=None, next_cursor=next_cursor, has_next=has_next)
+    return HistoryResponseAPI(
+        items=api_items, total=None, next_cursor=next_cursor, has_next=has_next
+    )
 
 
 # ---------------------------------------------------------------------------
 # Recommendations
 # ---------------------------------------------------------------------------
 
+
 @router.get("/recommendations", response_model=RecommendationsResponseAPI)
 async def get_recommendations(
     tenant_id: str = Depends(get_current_tenant_id),
-    entity_id: Optional[str] = Query(None),
-    entity_type: Optional[str] = Query(None),
-    status: Optional[str] = Query("pending"),
+    entity_id: str | None = Query(None),
+    entity_type: str | None = Query(None),
+    status: str | None = Query("pending"),
     limit: int = Query(20, ge=1, le=100),
     cursor: str | None = Query(None, description="Keyset cursor for pagination"),
     _token: dict = Depends(verify_token),
 ):
-    from sdk.pagination import decode_cursor, encode_cursor
+    from sdk.pagination import encode_cursor
 
     engine = _engine()
     recs, total = engine.get_recommendations(
-        tenant_id, entity_id=entity_id, entity_type=entity_type,
-        status=status, limit=limit + 1, offset=0,
+        tenant_id,
+        entity_id=entity_id,
+        entity_type=entity_type,
+        status=status,
+        limit=limit + 1,
+        offset=0,
     )
 
     has_next = len(recs) > limit
@@ -358,48 +428,74 @@ async def get_recommendations(
         next_cursor = encode_cursor(str(last.id), last.created_at)
 
     from app.modules.decision.schemas import (
-        RecommendationAPI, AlternativeRecommendationAPI,
-        EvidenceItemAPI, RiskAPI,
+        AlternativeRecommendationAPI,
+        EvidenceItemAPI,
+        RecommendationAPI,
+        RiskAPI,
     )
 
     def _rec_to_api(rec):
         return RecommendationAPI(
-            id=rec.id, action=rec.action, actionLabel=rec.action_label,
-            reason=rec.reason, confidence=rec.confidence,
-            confidenceLabel=rec.confidence_label, source=rec.source,
-            priority=rec.priority, expectedRevenue=rec.expected_revenue,
-            expectedEffort=rec.expected_effort, expectedTime=rec.expected_time,
+            id=rec.id,
+            action=rec.action,
+            actionLabel=rec.action_label,
+            reason=rec.reason,
+            confidence=rec.confidence,
+            confidenceLabel=rec.confidence_label,
+            source=rec.source,
+            priority=rec.priority,
+            expectedRevenue=rec.expected_revenue,
+            expectedEffort=rec.expected_effort,
+            expectedTime=rec.expected_time,
             businessImpact=rec.business_impact,
             alternatives=[
                 AlternativeRecommendationAPI(
-                    action=a.action, actionLabel=a.action_label,
-                    reason=a.reason, confidence=a.confidence,
+                    action=a.action,
+                    actionLabel=a.action_label,
+                    reason=a.reason,
+                    confidence=a.confidence,
                     expectedRevenue=a.expected_revenue,
                 )
                 for a in rec.alternatives
             ],
             evidence=[
                 EvidenceItemAPI(
-                    id=e.id, type=e.type, description=e.description,
-                    source=e.source, confidence=e.confidence,
-                    freshness=e.freshness, timestamp=e.timestamp,
-                    severity=e.severity, url=e.url, data=e.data,
+                    id=e.id,
+                    type=e.type,
+                    description=e.description,
+                    source=e.source,
+                    confidence=e.confidence,
+                    freshness=e.freshness,
+                    timestamp=e.timestamp,
+                    severity=e.severity,
+                    url=e.url,
+                    data=e.data,
                 )
                 for e in rec.evidence
             ],
             risks=[
-                RiskAPI(type=r.type, level=r.level, description=r.description, mitigation=r.mitigation)
+                RiskAPI(
+                    type=r.type, level=r.level, description=r.description, mitigation=r.mitigation
+                )
                 for r in rec.risks
             ],
-            status=rec.status, createdAt=rec.created_at, updatedAt=rec.updated_at,
+            status=rec.status,
+            createdAt=rec.created_at,
+            updatedAt=rec.updated_at,
         )
 
-    return RecommendationsResponseAPI(items=[_rec_to_api(r) for r in recs], total=total, next_cursor=next_cursor, has_next=has_next)
+    return RecommendationsResponseAPI(
+        items=[_rec_to_api(r) for r in recs],
+        total=total,
+        next_cursor=next_cursor,
+        has_next=has_next,
+    )
 
 
 # ---------------------------------------------------------------------------
 # Scores
 # ---------------------------------------------------------------------------
+
 
 @router.get("/scores", response_model=ScoresResponseAPI)
 async def get_scores(
@@ -412,13 +508,20 @@ async def get_scores(
     scores = engine.get_scores(tenant_id, entity_id, entity_type)
 
     from app.modules.decision.schemas import ScoreAPI, ScoreFactorAPI
+
     api_scores = [
         ScoreAPI(
-            type=s.type, value=s.value, confidence=s.confidence, label=s.label,
+            type=s.type,
+            value=s.value,
+            confidence=s.confidence,
+            label=s.label,
             factors=[
                 ScoreFactorAPI(
-                    name=f.name, value=f.value, weight=f.weight,
-                    description=f.description, source=f.source,
+                    name=f.name,
+                    value=f.value,
+                    weight=f.weight,
+                    description=f.description,
+                    source=f.source,
                 )
                 for f in s.factors
             ],
@@ -433,21 +536,26 @@ async def get_scores(
 # Evidence
 # ---------------------------------------------------------------------------
 
+
 @router.get("/evidence", response_model=EvidenceResponseAPI)
 async def get_evidence(
     tenant_id: str = Depends(get_current_tenant_id),
     entity_id: str = Query(...),
     entity_type: str = Query(...),
-    type: Optional[str] = Query(None),
+    type: str | None = Query(None),
     limit: int = Query(20, ge=1, le=100),
     cursor: str | None = Query(None, description="Keyset cursor for pagination"),
     _token: dict = Depends(verify_token),
 ):
-    from sdk.pagination import decode_cursor, encode_cursor
+    from sdk.pagination import encode_cursor
 
     engine = _engine()
     items, total = engine.get_evidence(
-        tenant_id, entity_id, evidence_type=type, limit=limit + 1, offset=0,
+        tenant_id,
+        entity_id,
+        evidence_type=type,
+        limit=limit + 1,
+        offset=0,
     )
 
     has_next = len(items) > limit
@@ -460,21 +568,31 @@ async def get_evidence(
         next_cursor = encode_cursor(str(last.id), last.timestamp)
 
     from app.modules.decision.schemas import EvidenceItemAPI
+
     api_items = [
         EvidenceItemAPI(
-            id=e.id, type=e.type, description=e.description,
-            source=e.source, confidence=e.confidence,
-            freshness=e.freshness, timestamp=e.timestamp,
-            severity=e.severity, url=e.url, data=e.data,
+            id=e.id,
+            type=e.type,
+            description=e.description,
+            source=e.source,
+            confidence=e.confidence,
+            freshness=e.freshness,
+            timestamp=e.timestamp,
+            severity=e.severity,
+            url=e.url,
+            data=e.data,
         )
         for e in items
     ]
-    return EvidenceResponseAPI(items=api_items, total=total, next_cursor=next_cursor, has_next=has_next)
+    return EvidenceResponseAPI(
+        items=api_items, total=total, next_cursor=next_cursor, has_next=has_next
+    )
 
 
 # ---------------------------------------------------------------------------
 # Feedback
 # ---------------------------------------------------------------------------
+
 
 @router.post("/feedback", response_model=FeedbackSubmitResponseAPI)
 async def submit_feedback(
@@ -486,6 +604,7 @@ async def submit_feedback(
         raise HTTPException(status_code=403, detail="Tenant mismatch")
 
     from app.modules.decision.schemas import Feedback
+
     feedback = Feedback(
         decision_id=body.decision_id,
         tenant_id=body.tenant_id,
@@ -529,20 +648,28 @@ async def get_feedback_stats(
 # Rules
 # ---------------------------------------------------------------------------
 
+
 @router.get("/rules", response_model=RulesResponseAPI)
 async def list_rules(
-    category: Optional[str] = Query(None),
+    category: str | None = Query(None),
     _token: dict = Depends(verify_token),
 ):
     engine = _engine()
     rules = engine.list_rules(category=category)
 
     from app.modules.decision.schemas import DecisionRuleAPI
+
     api_rules = [
         DecisionRuleAPI(
-            id=r.id, name=r.name, description=r.description,
-            priority=r.priority, category=r.category, version=r.version,
-            conditions=r.conditions, action=r.action, weight=r.weight,
+            id=r.id,
+            name=r.name,
+            description=r.description,
+            priority=r.priority,
+            category=r.category,
+            version=r.version,
+            conditions=r.conditions,
+            action=r.action,
+            weight=r.weight,
         )
         for r in rules
     ]
@@ -555,6 +682,7 @@ async def create_rule(
     _token: dict = Depends(verify_token),
 ):
     import uuid
+
     rule_id = f"rule-{uuid.uuid4().hex[:12]}"
     rule = DecisionRule(
         id=rule_id,
@@ -572,19 +700,27 @@ async def create_rule(
     try:
         created = engine.create_rule(rule)
     except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code=409, detail=str(e)) from e
 
     from app.modules.decision.schemas import DecisionRuleAPI
+
     return DecisionRuleAPI(
-        id=created.id, name=created.name, description=created.description,
-        priority=created.priority, category=created.category, version=created.version,
-        conditions=created.conditions, action=created.action, weight=created.weight,
+        id=created.id,
+        name=created.name,
+        description=created.description,
+        priority=created.priority,
+        category=created.category,
+        version=created.version,
+        conditions=created.conditions,
+        action=created.action,
+        weight=created.weight,
     )
 
 
 # ---------------------------------------------------------------------------
 # Learning
 # ---------------------------------------------------------------------------
+
 
 @router.get("/learning/quality", response_model=QualityMetricsAPI)
 async def get_learning_quality(
@@ -612,6 +748,7 @@ async def get_learning_trends(
     trends = engine.get_learning_trends(tenant_id)
 
     from app.modules.decision.schemas import LearningTrendAPI
+
     return LearningTrendsResponseAPI(
         trends=[
             LearningTrendAPI(

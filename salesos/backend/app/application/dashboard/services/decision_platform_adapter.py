@@ -7,23 +7,26 @@ domains.decision.* and use domain model types. This adapter converts between the
 
 from __future__ import annotations
 
-import uuid
-from typing import Optional
-
-from sdk.scoring.interfaces import (
-    DecisionContext as SDKDecisionContext,
-    DecisionFactor as SDKDecisionFactor,
-    DecisionServiceProtocol,
-    Recommendation as SDKRecommendation,
-    RecommendationEngineProtocol,
-    RecommendationEvidence as SDKRecommendationEvidence,
-)
-
 from domains.decision.context.models import DecisionContext as DomainDecisionContext
 from domains.decision.context.models import DecisionFactor as DomainDecisionFactor
 from domains.decision.context.service import DecisionService
 from domains.decision.recommendation.engine import RecommendationEngine
-from domains.decision.recommendation.models import Recommendation as DomainRecommendation
+from sdk.scoring.interfaces import (
+    DecisionContext as SDKDecisionContext,
+)
+from sdk.scoring.interfaces import (
+    DecisionFactor as SDKDecisionFactor,
+)
+from sdk.scoring.interfaces import (
+    DecisionServiceProtocol,
+    RecommendationEngineProtocol,
+)
+from sdk.scoring.interfaces import (
+    Recommendation as SDKRecommendation,
+)
+from sdk.scoring.interfaces import (
+    RecommendationEvidence as SDKRecommendationEvidence,
+)
 
 
 class DecisionServiceAdapter(DecisionServiceProtocol):
@@ -76,7 +79,7 @@ class DecisionServiceAdapter(DecisionServiceProtocol):
 
     async def get_latest_context(
         self, target_id: str, target_type: str
-    ) -> Optional[SDKDecisionContext]:
+    ) -> SDKDecisionContext | None:
         domain_ctx = await self._service.get_latest_context(target_id, target_type)
         if not domain_ctx:
             return None
@@ -105,7 +108,7 @@ class RecommendationEngineAdapter(RecommendationEngineProtocol):
     def __init__(self, domain_engine: RecommendationEngine):
         self._engine = domain_engine
 
-    async def evaluate(self, context: SDKDecisionContext) -> Optional[SDKRecommendation]:
+    async def evaluate(self, context: SDKDecisionContext) -> SDKRecommendation | None:
         domain_factors = [
             DomainDecisionFactor(
                 source_layer=f.source_layer,

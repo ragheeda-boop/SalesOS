@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -21,7 +20,7 @@ class Signal:
     decay_days: int = 90
     triggers: list[str] = field(default_factory=list)
     relevance_sectors: list[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -32,8 +31,8 @@ class SignalSubscription:
     tenant_id: str
     channel: str = "in-app"
     active: bool = True
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -43,6 +42,6 @@ class SignalEvent:
     company_id: str
     tenant_id: str
     data: dict = field(default_factory=dict)
-    detected_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    detected_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     acknowledged: bool = False
     acknowledged_at: datetime | None = None

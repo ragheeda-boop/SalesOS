@@ -2,10 +2,10 @@
 
 from sdk.events.base import DomainEvent
 from sdk.events.schema_registry import (
-    validate_event,
+    export_schemas,
     get_schema,
     register_schema,
-    export_schemas,
+    validate_event,
 )
 
 
@@ -13,7 +13,10 @@ def test_get_schema_registered() -> None:
     schema = get_schema("company.created")
     assert schema is not None
     assert schema["title"] == "CompanyCreated"
-    assert "company_id" in {p["title"] if isinstance(p, dict) and "title" in p else p for p in schema.get("properties", {})}
+    assert "company_id" in {
+        p["title"] if isinstance(p, dict) and "title" in p else p
+        for p in schema.get("properties", {})
+    }
 
 
 def test_get_schema_unregistered() -> None:
@@ -64,7 +67,12 @@ def test_validate_opportunity_created() -> None:
 def test_validate_opportunity_won() -> None:
     event = DomainEvent(
         event_type="opportunity.won",
-        data={"opportunity_id": "opp-1", "tenant_id": "t-1", "value": 50000, "close_date": "2026-08-01"},
+        data={
+            "opportunity_id": "opp-1",
+            "tenant_id": "t-1",
+            "value": 50000,
+            "close_date": "2026-08-01",
+        },
     )
     errors = validate_event(event)
     assert errors == []

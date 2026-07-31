@@ -8,8 +8,7 @@ import html
 import re
 from typing import Any
 
-from pydantic import field_validator, model_validator
-
+from pydantic import field_validator
 
 # ── Regex Patterns ───────────────────────────────────────────────────────────
 
@@ -35,7 +34,9 @@ SAUDI_ID_RE = re.compile(r"^\d{10}$")
 # ── SQL Injection Patterns ───────────────────────────────────────────────────
 
 SQL_INJECTION_PATTERNS = [
-    re.compile(r"(?i)(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|FETCH|DECLARE|TRUNCATE)\b)"),
+    re.compile(
+        r"(?i)(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|FETCH|DECLARE|TRUNCATE)\b)"
+    ),
     re.compile(r"(?i)(\b(OR|AND)\b\s+[\d\w'\"=]+\s*=\s*[\d\w'\"=]+)"),
     re.compile(r"(?i)(--|/\*|\*/|;\s*(DROP|DELETE|INSERT|UPDATE|SELECT))"),
     re.compile(r"(?i)(CHAR\s*\(|CONCAT\s*\(|0x[0-9a-fA-F]+)"),
@@ -49,7 +50,10 @@ XSS_PATTERNS = [
     re.compile(r"<\s*script[\s>]", re.IGNORECASE),
     re.compile(r"javascript\s*:", re.IGNORECASE),
     re.compile(r"on\w+\s*=", re.IGNORECASE),
-    re.compile(r"<\s*(iframe|object|embed|applet|form|input|button|img|svg|math|link|meta|base|video|audio|source)", re.IGNORECASE),
+    re.compile(
+        r"<\s*(iframe|object|embed|applet|form|input|button|img|svg|math|link|meta|base|video|audio|source)",
+        re.IGNORECASE,
+    ),
     re.compile(r"expression\s*\(", re.IGNORECASE),
     re.compile(r"url\s*\(", re.IGNORECASE),
     re.compile(r"data\s*:\s*text/html", re.IGNORECASE),
@@ -167,10 +171,7 @@ def detect_sql_injection(value: str) -> bool:
     """
     if not value or not isinstance(value, str):
         return False
-    for pattern in SQL_INJECTION_PATTERNS:
-        if pattern.search(value):
-            return True
-    return False
+    return any(pattern.search(value) for pattern in SQL_INJECTION_PATTERNS)
 
 
 def detect_xss(value: str) -> bool:
@@ -184,10 +185,7 @@ def detect_xss(value: str) -> bool:
     """
     if not value or not isinstance(value, str):
         return False
-    for pattern in XSS_PATTERNS:
-        if pattern.search(value):
-            return True
-    return False
+    return any(pattern.search(value) for pattern in XSS_PATTERNS)
 
 
 def sanitize_html(value: str) -> str:
@@ -270,6 +268,7 @@ def validate_input(
 
 
 # ── Pydantic Validators ──────────────────────────────────────────────────────
+
 
 class InputSanitizedModel:
     """Mixin for Pydantic models that sanitizes string inputs against injection."""

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from typing import Generic, Optional, TypeVar
+from typing import Generic, TypeVar
 
 T = TypeVar("T")
 
@@ -30,7 +30,7 @@ class InMemoryRepository(Generic[T]):
         self._store[str(entity_id)] = entity
         return entity
 
-    async def get(self, id: str) -> Optional[T]:
+    async def get(self, id: str) -> T | None:
         return self._store.get(id)
 
     async def delete(self, id: str) -> bool:
@@ -54,6 +54,4 @@ class InMemoryRepository(Generic[T]):
         return PaginatedResult(items=items[start:end], total=total, page=page, page_size=page_size)
 
     async def count(self, tenant_id: str) -> int:
-        return len(
-            [i for i in self._store.values() if getattr(i, "tenant_id", None) == tenant_id]
-        )
+        return len([i for i in self._store.values() if getattr(i, "tenant_id", None) == tenant_id])

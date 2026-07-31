@@ -1,10 +1,11 @@
 """Streaming SSE tests — format_sse_event, stream_to_sse, stream_to_async_gen."""
+
 from __future__ import annotations
 
 import pytest
 
-from intelligence.streaming.sse import format_sse_event, stream_to_sse, stream_to_async_gen
-from intelligence.providers.base import StreamEvent, FinishReason
+from intelligence.providers.base import FinishReason, StreamEvent
+from intelligence.streaming.sse import format_sse_event, stream_to_async_gen, stream_to_sse
 
 
 def test_format_sse_event_chunk():
@@ -16,7 +17,11 @@ def test_format_sse_event_chunk():
 
 
 def test_format_sse_event_done():
-    event = StreamEvent(type="done", finish_reason=FinishReason.STOP, usage={"prompt_tokens": 10, "completion_tokens": 5})
+    event = StreamEvent(
+        type="done",
+        finish_reason=FinishReason.STOP,
+        usage={"prompt_tokens": 10, "completion_tokens": 5},
+    )
     output = format_sse_event(event)
     assert "done" in output
     assert "stop" in output
@@ -31,7 +36,9 @@ def test_format_sse_event_error():
 
 
 def test_format_sse_event_tool_call():
-    event = StreamEvent(type="tool_call", tool_calls=[{"id": "call_1", "function": {"name": "test"}}])
+    event = StreamEvent(
+        type="tool_call", tool_calls=[{"id": "call_1", "function": {"name": "test"}}]
+    )
     output = format_sse_event(event)
     assert "tool_call" in output
     assert "call_1" in output

@@ -6,11 +6,12 @@ Handles the full OAuth2 Authorization Code Flow for Google Workspace:
 - Encrypted token storage
 - Token refresh lifecycle
 """
+
 import hashlib
 import logging
 import secrets
 import time
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from urllib.parse import urlencode
 from uuid import UUID
@@ -27,7 +28,7 @@ from app.common.oauth_state import (
 from app.config import settings
 from app.modules.communication_hub.models import GoogleAccount
 from app.modules.communication_hub.repository import GoogleAccountRepository
-from sdk.security import encrypt_token, decrypt_token
+from sdk.security import decrypt_token, encrypt_token
 
 # Refresh access token this many seconds before hard expiry.
 _TOKEN_EXPIRY_SKEW_SECONDS = 60
@@ -127,9 +128,7 @@ def _get_encryption_key() -> str:
             "(must not fall back to SECRET_KEY)"
         )
     # Local/dev only — still avoid silent reuse of JWT signing material.
-    raise GoogleOAuthError(
-        "GOOGLE_ENCRYPTION_KEY is required to encrypt Google OAuth tokens"
-    )
+    raise GoogleOAuthError("GOOGLE_ENCRYPTION_KEY is required to encrypt Google OAuth tokens")
 
 
 def _get_previous_encryption_keys() -> list[str]:
@@ -211,8 +210,10 @@ class GoogleOAuthService:
 
         existing = await self.repo.get_by_user(tenant_id, user_id)
         access_enc = self._encrypt(tokens["access_token"])
-        refresh_enc = self._encrypt(tokens["refresh_token"]) if tokens.get("refresh_token") else None
-        expiry = datetime.now(timezone.utc) + timedelta(seconds=tokens.get("expires_in", 3600))
+        refresh_enc = (
+            self._encrypt(tokens["refresh_token"]) if tokens.get("refresh_token") else None
+        )
+        expiry = datetime.now(UTC) + timedelta(seconds=tokens.get("expires_in", 3600))
 
         if existing:
             await self.repo.update_tokens(
@@ -250,7 +251,10 @@ class GoogleOAuthService:
         }
         resp = await self._http.post(GOOGLE_TOKEN_URL, data=data)
         if resp.status_code != 200:
-            logger.error("google_token_exchange.failed", extra={"status": resp.status_code, "body": resp.text})
+            logger.error(
+                "google_token_exchange.failed",
+                extra={"status": resp.status_code, "body": resp.text},
+            )
             raise GoogleOAuthError(f"Token exchange failed: {resp.status_code}")
         return resp.json()
 
@@ -264,13 +268,13 @@ class GoogleOAuthService:
         return resp.json()
 
     async def get_valid_token(self, account: GoogleAccount) -> str:
-        skew_deadline = datetime.now(timezone.utc) + timedelta(seconds=_TOKEN_EXPIRY_SKEW_SECONDS)
+        skew_deadline = datetime.now(UTC) + timedelta(seconds=_TOKEN_EXPIRY_SKEW_SECONDS)
         if account.token_expiry and account.token_expiry > skew_deadline:
             return self._decrypt(account.access_token_encrypted)
 
         if not account.refresh_token_encrypted:
             # Access may still be usable for a few seconds; prefer fail-closed on missing refresh.
-            if account.token_expiry and account.token_expiry > datetime.now(timezone.utc):
+            if account.token_expiry and account.token_expiry > datetime.now(UTC):
                 return self._decrypt(account.access_token_encrypted)
             raise GoogleTokenRefreshError("No refresh token available")
 
@@ -279,11 +283,9 @@ class GoogleOAuthService:
 
         access_enc = self._encrypt(new_tokens["access_token"])
         refresh_enc = (
-            self._encrypt(new_tokens["refresh_token"])
-            if new_tokens.get("refresh_token")
-            else None
+            self._encrypt(new_tokens["refresh_token"]) if new_tokens.get("refresh_token") else None
         )
-        expiry = datetime.now(timezone.utc) + timedelta(seconds=new_tokens.get("expires_in", 3600))
+        expiry = datetime.now(UTC) + timedelta(seconds=new_tokens.get("expires_in", 3600))
 
         await self.repo.update_tokens(
             account.id, access_enc, refresh_enc, expiry, tenant_id=self.tenant_id
@@ -324,10 +326,6 @@ class GoogleOAuthService:
         account = await self.repo.get_by_user(self.tenant_id, self.user_id)
         if not account:
             return False, None
-
-        token_valid = False
-        if account.token_expiry:
-            token_valid = account.token_expiry > datetime.now(timezone.utc)
 
         return True, account
 

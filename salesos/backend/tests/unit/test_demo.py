@@ -6,12 +6,11 @@ import json
 import os
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
-from app.modules.demo_mode import DemoModeService, get_demo_mode_service
-
+from app.modules.demo_mode import DemoModeService
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -33,97 +32,229 @@ def sample_demo_data():
         ],
         "companies": [
             {
-                "id": "c1", "tenant_id": "demo_tenant", "name_en": "TestCo",
-                "name_ar": "شركة اختبار", "cr_number": "3010000001",
-                "city": "Riyadh", "region": "Riyadh", "industry": "technology",
-                "employees": 100, "status": "active",
+                "id": "c1",
+                "tenant_id": "demo_tenant",
+                "name_en": "TestCo",
+                "name_ar": "شركة اختبار",
+                "cr_number": "3010000001",
+                "city": "Riyadh",
+                "region": "Riyadh",
+                "industry": "technology",
+                "employees": 100,
+                "status": "active",
                 "description": "Test company description.",
-                "annual_revenue": 50000000, "founded_year": 2020,
+                "annual_revenue": 50000000,
+                "founded_year": 2020,
             },
             {
-                "id": "c2", "tenant_id": "demo_tenant", "name_en": "DemoCorp",
-                "name_ar": "شركة ديمو", "cr_number": "3010000002",
-                "city": "Jeddah", "region": "Makkah", "industry": "fintech",
-                "employees": 200, "status": "active",
+                "id": "c2",
+                "tenant_id": "demo_tenant",
+                "name_en": "DemoCorp",
+                "name_ar": "شركة ديمو",
+                "cr_number": "3010000002",
+                "city": "Jeddah",
+                "region": "Makkah",
+                "industry": "fintech",
+                "employees": 200,
+                "status": "active",
                 "description": "Demo company description.",
-                "annual_revenue": 100000000, "founded_year": 2018,
+                "annual_revenue": 100000000,
+                "founded_year": 2018,
             },
         ],
         "decision_makers": [
-            {"id": "dm1", "company_id": "c1", "name": "Ahmed", "role": "CEO", "influence": "high", "connected": True, "email": "ahmed@test.io"},
+            {
+                "id": "dm1",
+                "company_id": "c1",
+                "name": "Ahmed",
+                "role": "CEO",
+                "influence": "high",
+                "connected": True,
+                "email": "ahmed@test.io",
+            },
         ],
         "opportunities": [
-            {"id": "opp1", "tenant_id": "demo_tenant", "company_id": "c1", "company_name": "TestCo",
-             "title": "Cloud Migration", "stage": "proposal", "estimated_value": 250000,
-             "confidence": 0.65, "buying_intent": 0.7, "relationship_strength": 0.6,
-             "currency": "SAR", "owner_id": "u1",
-             "created_at": "2026-06-01T00:00:00", "expected_close": "2026-08-01T00:00:00"},
-            {"id": "opp2", "tenant_id": "demo_tenant", "company_id": "c2", "company_name": "DemoCorp",
-             "title": "Payment Platform", "stage": "negotiation", "estimated_value": 500000,
-             "confidence": 0.8, "buying_intent": 0.85, "relationship_strength": 0.75,
-             "currency": "SAR", "owner_id": "u1",
-             "created_at": "2026-05-15T00:00:00"},
-            {"id": "opp3", "tenant_id": "demo_tenant", "company_id": "c1", "company_name": "TestCo",
-             "title": "Analytics Suite", "stage": "closed_won", "estimated_value": 180000,
-             "confidence": 1.0, "buying_intent": 0.9, "relationship_strength": 0.85,
-             "currency": "SAR", "owner_id": "u1", "won_amount": 180000,
-             "created_at": "2026-04-01T00:00:00"},
+            {
+                "id": "opp1",
+                "tenant_id": "demo_tenant",
+                "company_id": "c1",
+                "company_name": "TestCo",
+                "title": "Cloud Migration",
+                "stage": "proposal",
+                "estimated_value": 250000,
+                "confidence": 0.65,
+                "buying_intent": 0.7,
+                "relationship_strength": 0.6,
+                "currency": "SAR",
+                "owner_id": "u1",
+                "created_at": "2026-06-01T00:00:00",
+                "expected_close": "2026-08-01T00:00:00",
+            },
+            {
+                "id": "opp2",
+                "tenant_id": "demo_tenant",
+                "company_id": "c2",
+                "company_name": "DemoCorp",
+                "title": "Payment Platform",
+                "stage": "negotiation",
+                "estimated_value": 500000,
+                "confidence": 0.8,
+                "buying_intent": 0.85,
+                "relationship_strength": 0.75,
+                "currency": "SAR",
+                "owner_id": "u1",
+                "created_at": "2026-05-15T00:00:00",
+            },
+            {
+                "id": "opp3",
+                "tenant_id": "demo_tenant",
+                "company_id": "c1",
+                "company_name": "TestCo",
+                "title": "Analytics Suite",
+                "stage": "closed_won",
+                "estimated_value": 180000,
+                "confidence": 1.0,
+                "buying_intent": 0.9,
+                "relationship_strength": 0.85,
+                "currency": "SAR",
+                "owner_id": "u1",
+                "won_amount": 180000,
+                "created_at": "2026-04-01T00:00:00",
+            },
         ],
         "meetings": [
-            {"id": "mtg1", "tenant_id": "demo_tenant", "opportunity_id": "opp1",
-             "company_id": "c1", "type": "product_demo",
-             "title": "Demo — TestCo", "notes": "Product demo conducted.",
-             "date": "2026-07-01T00:00:00", "duration_minutes": 60, "owner_id": "u1", "outcome": "completed"},
+            {
+                "id": "mtg1",
+                "tenant_id": "demo_tenant",
+                "opportunity_id": "opp1",
+                "company_id": "c1",
+                "type": "product_demo",
+                "title": "Demo — TestCo",
+                "notes": "Product demo conducted.",
+                "date": "2026-07-01T00:00:00",
+                "duration_minutes": 60,
+                "owner_id": "u1",
+                "outcome": "completed",
+            },
         ],
         "emails": [
-            {"id": "em1", "tenant_id": "demo_tenant", "opportunity_id": "opp1",
-             "company_id": "c1", "subject": "Follow-up", "preview": "Thank you for the demo.",
-             "from_address": "u1@salesos.io", "to_address": "contact@testco.sa",
-             "sent_at": "2026-07-02T00:00:00", "direction": "outbound"},
+            {
+                "id": "em1",
+                "tenant_id": "demo_tenant",
+                "opportunity_id": "opp1",
+                "company_id": "c1",
+                "subject": "Follow-up",
+                "preview": "Thank you for the demo.",
+                "from_address": "u1@salesos.io",
+                "to_address": "contact@testco.sa",
+                "sent_at": "2026-07-02T00:00:00",
+                "direction": "outbound",
+            },
         ],
         "signals": [
-            {"id": "sig1", "tenant_id": "demo_tenant", "company_id": "c1",
-             "type": "hiring", "title": "Hiring signal", "severity": "high",
-             "ai_confidence": 0.85, "timestamp": "2026-07-05T00:00:00", "details": "Hiring 50 engineers."},
+            {
+                "id": "sig1",
+                "tenant_id": "demo_tenant",
+                "company_id": "c1",
+                "type": "hiring",
+                "title": "Hiring signal",
+                "severity": "high",
+                "ai_confidence": 0.85,
+                "timestamp": "2026-07-05T00:00:00",
+                "details": "Hiring 50 engineers.",
+            },
         ],
         "tasks": [
-            {"id": "task1", "tenant_id": "demo_tenant", "opportunity_id": "opp1",
-             "company_id": "c1", "title": "Send proposal", "description": "Send updated proposal.",
-             "priority": "high", "source": "nba", "status": "pending",
-             "assigned_to": "u1", "created_at": "2026-07-03T00:00:00"},
+            {
+                "id": "task1",
+                "tenant_id": "demo_tenant",
+                "opportunity_id": "opp1",
+                "company_id": "c1",
+                "title": "Send proposal",
+                "description": "Send updated proposal.",
+                "priority": "high",
+                "source": "nba",
+                "status": "pending",
+                "assigned_to": "u1",
+                "created_at": "2026-07-03T00:00:00",
+            },
         ],
         "nba_recommendations": [
-            {"id": "nba1", "tenant_id": "demo_tenant", "opportunity_id": "opp1",
-             "company_id": "c1", "type": "send_email", "title": "Send follow-up",
-             "description": "Follow up after demo.", "priority": "high",
-             "confidence": 0.85, "generated_at": "2026-07-04T00:00:00", "status": "active"},
+            {
+                "id": "nba1",
+                "tenant_id": "demo_tenant",
+                "opportunity_id": "opp1",
+                "company_id": "c1",
+                "type": "send_email",
+                "title": "Send follow-up",
+                "description": "Follow up after demo.",
+                "priority": "high",
+                "confidence": 0.85,
+                "generated_at": "2026-07-04T00:00:00",
+                "status": "active",
+            },
         ],
         "workflow_templates": [
-            {"id": "wf1", "tenant_id": "demo_tenant", "name": "Deal Review",
-             "category": "sales", "steps": [{"order": 1, "name": "Submit"}], "is_active": True,
-             "created_at": "2026-06-01T00:00:00"},
+            {
+                "id": "wf1",
+                "tenant_id": "demo_tenant",
+                "name": "Deal Review",
+                "category": "sales",
+                "steps": [{"order": 1, "name": "Submit"}],
+                "is_active": True,
+                "created_at": "2026-06-01T00:00:00",
+            },
         ],
         "rag_documents": [
-            {"id": "doc1", "tenant_id": "demo_tenant", "company_id": "c1",
-             "type": "company_profile", "title": "TestCo Profile",
-             "content": "TestCo is a technology company.", "created_at": "2026-06-15T00:00:00"},
+            {
+                "id": "doc1",
+                "tenant_id": "demo_tenant",
+                "company_id": "c1",
+                "type": "company_profile",
+                "title": "TestCo Profile",
+                "content": "TestCo is a technology company.",
+                "created_at": "2026-06-15T00:00:00",
+            },
         ],
         "dashboard_analytics": [
-            {"id": "an1", "tenant_id": "demo_tenant", "company_id": "c1",
-             "metric": "pipeline_value", "value": 500000.0, "dimension": "total",
-             "recorded_at": "2026-07-10T00:00:00"},
+            {
+                "id": "an1",
+                "tenant_id": "demo_tenant",
+                "company_id": "c1",
+                "metric": "pipeline_value",
+                "value": 500000.0,
+                "dimension": "total",
+                "recorded_at": "2026-07-10T00:00:00",
+            },
         ],
         "timeline_events": [
-            {"id": "tl1", "tenant_id": "demo_tenant", "opportunity_id": "opp1",
-             "company_id": "c1", "event_type": "meeting", "title": "Demo meeting",
-             "description": "Product demo.", "timestamp": "2026-07-01T00:00:00", "user": "u1"},
+            {
+                "id": "tl1",
+                "tenant_id": "demo_tenant",
+                "opportunity_id": "opp1",
+                "company_id": "c1",
+                "event_type": "meeting",
+                "title": "Demo meeting",
+                "description": "Product demo.",
+                "timestamp": "2026-07-01T00:00:00",
+                "user": "u1",
+            },
         ],
         "generated_at": "2026-07-11T00:00:00",
         "total": {
-            "users": 1, "companies": 2, "decision_makers": 1, "opportunities": 3,
-            "meetings": 1, "emails": 1, "signals": 1, "tasks": 1,
-            "nba_recommendations": 1, "workflow_templates": 1, "rag_documents": 1,
-            "dashboard_analytics": 1, "timeline_events": 1,
+            "users": 1,
+            "companies": 2,
+            "decision_makers": 1,
+            "opportunities": 3,
+            "meetings": 1,
+            "emails": 1,
+            "signals": 1,
+            "tasks": 1,
+            "nba_recommendations": 1,
+            "workflow_templates": 1,
+            "rag_documents": 1,
+            "dashboard_analytics": 1,
+            "timeline_events": 1,
         },
     }
 
@@ -161,7 +292,9 @@ class TestDemoModeService:
         assert data is None
 
     def test_load_demo_data_with_file(self, demo_service, sample_demo_data):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as f:
             json.dump(sample_demo_data, f)
             temp_path = f.name
 
@@ -180,7 +313,9 @@ class TestDemoModeService:
         assert demo_service._demo_data is None
 
     def test_get_companies(self, demo_service, sample_demo_data):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as f:
             json.dump(sample_demo_data, f)
             temp_path = f.name
         with patch("app.modules.demo_mode.service.DEMO_DATA_PATH", Path(temp_path)):
@@ -190,7 +325,9 @@ class TestDemoModeService:
         os.unlink(temp_path)
 
     def test_get_opportunities(self, demo_service, sample_demo_data):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as f:
             json.dump(sample_demo_data, f)
             temp_path = f.name
         with patch("app.modules.demo_mode.service.DEMO_DATA_PATH", Path(temp_path)):
@@ -226,7 +363,9 @@ class TestDemoModeService:
                 assert "label" in step
 
     def test_get_meetings_returns_list(self, demo_service, sample_demo_data):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as f:
             json.dump(sample_demo_data, f)
             temp_path = f.name
         with patch("app.modules.demo_mode.service.DEMO_DATA_PATH", Path(temp_path)):
@@ -236,7 +375,9 @@ class TestDemoModeService:
         os.unlink(temp_path)
 
     def test_get_emails_returns_list(self, demo_service, sample_demo_data):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as f:
             json.dump(sample_demo_data, f)
             temp_path = f.name
         with patch("app.modules.demo_mode.service.DEMO_DATA_PATH", Path(temp_path)):
@@ -246,7 +387,9 @@ class TestDemoModeService:
         os.unlink(temp_path)
 
     def test_get_signals_returns_list(self, demo_service, sample_demo_data):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as f:
             json.dump(sample_demo_data, f)
             temp_path = f.name
         with patch("app.modules.demo_mode.service.DEMO_DATA_PATH", Path(temp_path)):
@@ -256,7 +399,9 @@ class TestDemoModeService:
         os.unlink(temp_path)
 
     def test_get_tasks_returns_list(self, demo_service, sample_demo_data):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as f:
             json.dump(sample_demo_data, f)
             temp_path = f.name
         with patch("app.modules.demo_mode.service.DEMO_DATA_PATH", Path(temp_path)):
@@ -266,7 +411,9 @@ class TestDemoModeService:
         os.unlink(temp_path)
 
     def test_get_analytics_returns_list(self, demo_service, sample_demo_data):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as f:
             json.dump(sample_demo_data, f)
             temp_path = f.name
         with patch("app.modules.demo_mode.service.DEMO_DATA_PATH", Path(temp_path)):
@@ -281,11 +428,14 @@ class TestDemoModeService:
 
 class TestDemoScenarios:
     def test_enterprise_deal_scenario_structure(self, demo_service, sample_demo_data):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as f:
             json.dump(sample_demo_data, f)
             temp_path = f.name
         with patch("app.modules.demo_mode.service.DEMO_DATA_PATH", Path(temp_path)):
             import demo.scenarios.enterprise_deal as ed_mod
+
             results = ed_mod.execute(demo_service)
             assert len(results) == 4
             assert results[0]["action"] == "view_nba"
@@ -295,11 +445,14 @@ class TestDemoScenarios:
         os.unlink(temp_path)
 
     def test_pipeline_review_scenario_structure(self, demo_service, sample_demo_data):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as f:
             json.dump(sample_demo_data, f)
             temp_path = f.name
         with patch("app.modules.demo_mode.service.DEMO_DATA_PATH", Path(temp_path)):
             import demo.scenarios.pipeline_review as pr_mod
+
             results = pr_mod.execute(demo_service)
             assert len(results) == 3
             assert results[0]["action"] == "view_pipeline"
@@ -308,11 +461,14 @@ class TestDemoScenarios:
         os.unlink(temp_path)
 
     def test_company_research_scenario_structure(self, demo_service, sample_demo_data):
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False, encoding="utf-8"
+        ) as f:
             json.dump(sample_demo_data, f)
             temp_path = f.name
         with patch("app.modules.demo_mode.service.DEMO_DATA_PATH", Path(temp_path)):
             import demo.scenarios.company_research as cr_mod
+
             results = cr_mod.execute(demo_service)
             assert len(results) == 4
             assert results[0]["action"] == "search_company"
@@ -322,12 +478,14 @@ class TestDemoScenarios:
         os.unlink(temp_path)
 
     def test_scenario_runner_registry(self):
-        from demo.scenarios.runner import list_scenarios, execute_scenario
+        from demo.scenarios.runner import list_scenarios
+
         scenarios = list_scenarios()
         assert len(scenarios) >= 3
 
     def test_scenario_runner_execute_unknown(self):
         from demo.scenarios.runner import execute_scenario
+
         with pytest.raises(ValueError, match="Unknown scenario"):
             execute_scenario("nonexistent")
 
@@ -338,6 +496,7 @@ class TestDemoScenarios:
 class TestSeedDataGeneration:
     def test_seed_data_generates_all_sections(self):
         from demo.seed_data import seed_data
+
         with tempfile.TemporaryDirectory() as tmpdir:
             data = seed_data(base_dir=tmpdir)
             assert data["tenant_id"] == "demo_tenant"
@@ -356,14 +515,23 @@ class TestSeedDataGeneration:
 
     def test_seed_data_all_stages_represented(self):
         from demo.seed_data import seed_data
+
         with tempfile.TemporaryDirectory() as tmpdir:
             data = seed_data(base_dir=tmpdir)
             stages = {o["stage"] for o in data["opportunities"]}
-            for stage in ("qualification", "discovery", "proposal", "negotiation", "closed_won", "closed_lost"):
+            for stage in (
+                "qualification",
+                "discovery",
+                "proposal",
+                "negotiation",
+                "closed_won",
+                "closed_lost",
+            ):
                 assert stage in stages, f"Missing stage: {stage}"
 
     def test_seed_data_opportunity_values_in_range(self):
         from demo.seed_data import seed_data
+
         with tempfile.TemporaryDirectory() as tmpdir:
             data = seed_data(base_dir=tmpdir)
             for opp in data["opportunities"]:
@@ -372,6 +540,7 @@ class TestSeedDataGeneration:
 
     def test_seed_data_each_company_has_opportunities(self):
         from demo.seed_data import seed_data
+
         with tempfile.TemporaryDirectory() as tmpdir:
             data = seed_data(base_dir=tmpdir)
             company_ids = {c["id"] for c in data["companies"]}
@@ -381,6 +550,7 @@ class TestSeedDataGeneration:
 
     def test_seed_data_users_have_correct_roles(self):
         from demo.seed_data import seed_data
+
         with tempfile.TemporaryDirectory() as tmpdir:
             data = seed_data(base_dir=tmpdir)
             roles = {u["role"] for u in data["users"]}
@@ -390,6 +560,7 @@ class TestSeedDataGeneration:
 
     def test_seed_data_workflow_templates_have_steps(self):
         from demo.seed_data import seed_data
+
         with tempfile.TemporaryDirectory() as tmpdir:
             data = seed_data(base_dir=tmpdir)
             for wf in data["workflow_templates"]:
@@ -402,25 +573,29 @@ class TestSeedDataGeneration:
 class TestResetFunction:
     def test_reset_regenerates_seed(self):
         from demo.reset import reset_demo_data
+
         with tempfile.TemporaryDirectory() as tmpdir:
             data = reset_demo_data(base_dir=tmpdir)
             assert data["total"]["companies"] == 5
             assert data["total"]["opportunities"] >= 15
 
     def test_reset_replaces_existing_data(self):
-        from demo.reset import reset_demo_data, load_demo_data, is_demo_data_available
+        from demo.reset import is_demo_data_available, load_demo_data, reset_demo_data
+
         with tempfile.TemporaryDirectory() as tmpdir:
-            data = reset_demo_data(base_dir=tmpdir)
+            _ = reset_demo_data(base_dir=tmpdir)
             assert is_demo_data_available() or True  # File should exist in tmpdir
             loaded = load_demo_data()
             if loaded:
                 assert loaded["tenant_id"] == "demo_tenant"
 
     def test_demo_data_available_no_file(self):
-        from demo.reset import is_demo_data_available, DEMO_DATA_FILE
+        from demo.reset import DEMO_DATA_FILE, is_demo_data_available
+
         # Use a nonexistent path
         original = DEMO_DATA_FILE
         import demo.reset as mod
+
         mod.DEMO_DATA_FILE = "/nonexistent/path.json"
         try:
             assert is_demo_data_available() is False
@@ -444,7 +619,8 @@ class TestResetFunction:
             assert "steps" in s
 
     def test_seed_data_pipeline_values_by_stage(self):
-        from demo.seed_data import seed_data, OPPORTUNITY_TEMPLATES
+        from demo.seed_data import seed_data
+
         with tempfile.TemporaryDirectory() as tmpdir:
             data = seed_data(base_dir=tmpdir)
             for opp in data["opportunities"]:
@@ -455,6 +631,7 @@ class TestResetFunction:
 
     def test_seed_data_decision_makers_per_company(self):
         from demo.seed_data import seed_data
+
         with tempfile.TemporaryDirectory() as tmpdir:
             data = seed_data(base_dir=tmpdir)
             dm_by_company = {}

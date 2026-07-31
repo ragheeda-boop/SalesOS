@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_tenant_id, get_db_session, verify_token
-from domains.rag.models import Document, EmbeddingConfig
+from domains.rag.models import Document
 from intelligence.rag.embeddings import EmbeddingService
 from intelligence.rag.retrieval import RetrievalService
 from intelligence.rag.service import RagService
-from sdk.permissions import PermissionAction
 
 router = APIRouter()
 
@@ -101,7 +100,7 @@ async def ingest_document(
         title=body.title,
         content=body.content,
         metadata=body.metadata,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
 
     embedding_service = EmbeddingService()
@@ -132,7 +131,7 @@ async def list_documents(
             offset = int(cursor)
         except (ValueError, TypeError):
             offset = 0
-    sliced = docs[offset:offset + limit]
+    sliced = docs[offset : offset + limit]
     next_cursor = str(offset + limit) if offset + limit < len(docs) else None
     return {
         "items": [

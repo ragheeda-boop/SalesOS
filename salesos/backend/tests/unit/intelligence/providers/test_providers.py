@@ -1,26 +1,26 @@
 """Provider tests — all 5 providers + factory + router + cost tracker."""
+
 from __future__ import annotations
 
 import pytest
 
 from intelligence.providers import (
+    AnthropicProvider,
+    AzureOpenAIProvider,
     ChatRequest,
     ChatResponse,
-    EmbeddingRequest,
-    FinishReason,
-    ProviderFactory,
-    QueryRouter,
     ComplexityLevel,
     CostTracker,
+    EmbeddingRequest,
+    FinishReason,
+    GeminiProvider,
+    OllamaProvider,
+    OpenAIProvider,
+    ProviderFactory,
+    QueryRouter,
     estimate_cost,
     get_model_family,
-    OpenAIProvider,
-    AnthropicProvider,
-    GeminiProvider,
-    AzureOpenAIProvider,
-    OllamaProvider,
 )
-
 
 # ── Mock Provider for Testing ──────────────────────────────────────────────
 
@@ -55,6 +55,7 @@ class MockProvider:
 
     async def embed(self, request: EmbeddingRequest):
         from intelligence.providers import EmbeddingResponse
+
         return EmbeddingResponse(embedding=[0.1, 0.2, 0.3], model="mock-embed")
 
 
@@ -271,14 +272,22 @@ def test_cost_tracker_budget():
     tracker.set_budget("tenant-1", 10.0)
     assert tracker.is_budget_exceeded("tenant-1") is False
 
-    tracker.track(provider="openai", model="gpt-4o", prompt_tokens=1000000, completion_tokens=500000, tenant_id="tenant-1")
+    tracker.track(
+        provider="openai",
+        model="gpt-4o",
+        prompt_tokens=1000000,
+        completion_tokens=500000,
+        tenant_id="tenant-1",
+    )
     assert tracker.get_spend("tenant-1") > 0
 
 
 def test_cost_tracker_summary():
     tracker = CostTracker()
     tracker.track(provider="openai", model="gpt-4o-mini", prompt_tokens=100, completion_tokens=50)
-    tracker.track(provider="anthropic", model="claude-3-haiku", prompt_tokens=200, completion_tokens=100)
+    tracker.track(
+        provider="anthropic", model="claude-3-haiku", prompt_tokens=200, completion_tokens=100
+    )
 
     summary = tracker.get_summary()
     assert summary["total_calls"] == 2
@@ -295,7 +304,13 @@ def test_cost_tracker_summary_empty():
 def test_cost_tracker_budget_exceeded():
     tracker = CostTracker()
     tracker.set_budget("tenant-2", 0.001)
-    tracker.track(provider="openai", model="gpt-4o", prompt_tokens=500, completion_tokens=200, tenant_id="tenant-2")
+    tracker.track(
+        provider="openai",
+        model="gpt-4o",
+        prompt_tokens=500,
+        completion_tokens=200,
+        tenant_id="tenant-2",
+    )
     assert tracker.is_budget_exceeded("tenant-2") is True
 
 

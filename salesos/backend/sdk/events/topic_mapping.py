@@ -86,7 +86,7 @@ def topic_to_domain(topic: str) -> str:
     'salesos.company' → 'company'
     """
     if topic.startswith(f"{TOPIC_PREFIX}."):
-        return topic[len(TOPIC_PREFIX) + 1:]
+        return topic[len(TOPIC_PREFIX) + 1 :]
     return topic
 
 

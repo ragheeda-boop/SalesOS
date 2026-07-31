@@ -1,4 +1,5 @@
 """Unit tests for Redis-backed OAuth state store (memory fallback)."""
+
 from __future__ import annotations
 
 from app.common.oauth_state import (

@@ -15,11 +15,11 @@ Flow:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -69,8 +69,8 @@ class OutboxEntry:
     status: str = "pending"
     retry_count: int = 0
     last_error: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class EventOutbox:
@@ -128,7 +128,9 @@ class EventOutbox:
         )
         row = result.fetchone()
         outbox_id = row[0] if row else 0
-        logger.debug("Outbox entry %d for event %s (%s)", outbox_id, event.event_id, event.event_type)
+        logger.debug(
+            "Outbox entry %d for event %s (%s)", outbox_id, event.event_id, event.event_type
+        )
         return outbox_id
 
     async def mark_delivered(self, outbox_id: int) -> None:
@@ -254,7 +256,9 @@ class OutboxRelay:
         if not ok:
             logger.warning("OutboxRelay: Kafka producer unavailable — relay in standby")
         self._task = asyncio.create_task(self._relay_loop())
-        logger.info("OutboxRelay started (interval=%ss, batch=%d)", self._interval, self._batch_size)
+        logger.info(
+            "OutboxRelay started (interval=%ss, batch=%d)", self._interval, self._batch_size
+        )
         return True
 
     async def stop(self) -> None:
@@ -262,13 +266,13 @@ class OutboxRelay:
         self._running = False
         if self._task is not None:
             self._task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._task
-            except asyncio.CancelledError:
-                pass
             self._task = None
         await self._producer.close()
-        logger.info("OutboxRelay stopped (relayed=%d, failed=%d)", self._total_relayed, self._total_failed)
+        logger.info(
+            "OutboxRelay stopped (relayed=%d, failed=%d)", self._total_relayed, self._total_failed
+        )
 
     async def _relay_loop(self) -> None:
         """Main loop: poll outbox → publish to Kafka."""
@@ -341,7 +345,9 @@ class OutboxRelay:
 
             if entry.retry_count + 1 >= MAX_RETRY_COUNT:
                 await outbox.mark_dlq(entry.id, error)
-                logger.error("OutboxRelay: entry %d moved to DLQ after %d retries", entry.id, MAX_RETRY_COUNT)
+                logger.error(
+                    "OutboxRelay: entry %d moved to DLQ after %d retries", entry.id, MAX_RETRY_COUNT
+                )
             else:
                 await outbox.mark_failed(entry.id, error)
 
@@ -357,7 +363,8 @@ class OutboxRelay:
             if count >= DLQ_ALERT_THRESHOLD:
                 logger.warning(
                     "DLQ ALERT: %d messages in dead letter queue (threshold=%d)",
-                    count, DLQ_ALERT_THRESHOLD,
+                    count,
+                    DLQ_ALERT_THRESHOLD,
                 )
             return count
 

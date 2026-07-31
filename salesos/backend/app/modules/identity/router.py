@@ -1,15 +1,19 @@
-from datetime import datetime, timezone
-
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import UTC, datetime
 from uuid import uuid4
 
-from app.config import settings
-from app.dependencies import get_current_tenant_id, get_current_user_id, get_db_session, require_permission_dep
-from app.common.rate_limit import check_rate_limit_by_key
-from sdk.permissions import PermissionAction
-
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.common.rate_limit import check_rate_limit_by_key
+from app.config import settings
+from app.dependencies import (
+    get_current_tenant_id,
+    get_current_user_id,
+    get_db_session,
+    require_permission_dep,
+)
+from sdk.permissions import PermissionAction
 
 from .schemas import (
     CsrfTokenResponse,
@@ -19,7 +23,6 @@ from .schemas import (
     LogoutResponse,
     PasswordChangeRequest,
     RefreshTokenRequest,
-    RoleUpdateRequest,
     SessionResponse,
     TenantCreate,
     TenantResponse,
@@ -37,6 +40,7 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str = Field(..., min_length=12, max_length=128)
+
 
 router = APIRouter()
 
@@ -166,6 +170,7 @@ async def register(
     tenant_id = str(body.tenant_id) if body.tenant_id else str(uuid4())
     if not body.tenant_id:
         from app.modules.identity.models import Tenant
+
         tenant = Tenant(id=tenant_id, name=body.full_name, slug=tenant_id[:8], plan="free")
         db.add(tenant)
         await db.flush()
@@ -181,8 +186,11 @@ async def register(
     refresh_token, family_id, family_pk, jti = await service.create_token_family(uid, tid)
     device_name, device_type = _parse_device_info(request)
     await service.create_device_session(
-        user_id=uid, tenant_id=tid, refresh_family_id=family_pk,
-        device_name=device_name, device_type=device_type,
+        user_id=uid,
+        tenant_id=tid,
+        refresh_family_id=family_pk,
+        device_name=device_name,
+        device_type=device_type,
         ip_address=request.client.host if request.client else "",
     )
     access_token = create_access_token(uid, tid)
@@ -210,8 +218,11 @@ async def login(
     refresh_token, family_id, family_pk, jti = await service.create_token_family(uid, tid)
     device_name, device_type = _parse_device_info(request)
     await service.create_device_session(
-        user_id=uid, tenant_id=tid, refresh_family_id=family_pk,
-        device_name=device_name, device_type=device_type,
+        user_id=uid,
+        tenant_id=tid,
+        refresh_family_id=family_pk,
+        device_name=device_name,
+        device_type=device_type,
         ip_address=request.client.host if request.client else "",
     )
     access_token = create_access_token(uid, tid)
@@ -280,6 +291,7 @@ async def invite_user(
     _: None = Depends(require_permission_dep("user", PermissionAction.CREATE)),
 ):
     import secrets
+
     temp_password = secrets.token_urlsafe(12)
     user = await service.create_user(
         email=body.email,
@@ -317,7 +329,9 @@ async def refresh_token(
     if blacklisted:
         raise HTTPException(status_code=401, detail="Token revoked")
     new_access, new_refresh = await service.rotate_refresh_token(jti, uid, tid)
-    old_exp = datetime.fromtimestamp(payload["exp"], tz=timezone.utc) if "exp" in payload else datetime.now(timezone.utc)
+    old_exp = (
+        datetime.fromtimestamp(payload["exp"], tz=UTC) if "exp" in payload else datetime.now(UTC)
+    )
     await service.blacklist_token(jti, "refresh", old_exp)
     max_age = settings.jwt_refresh_token_expire_days * 86400
     _set_refresh_cookie(response, new_refresh, max_age)
@@ -348,7 +362,11 @@ async def logout(
             try:
                 payload = decode_refresh_token(token)
                 jti = payload["jti"]
-                old_exp = datetime.fromtimestamp(payload["exp"], tz=timezone.utc) if "exp" in payload else datetime.now(timezone.utc)
+                old_exp = (
+                    datetime.fromtimestamp(payload["exp"], tz=UTC)
+                    if "exp" in payload
+                    else datetime.now(UTC)
+                )
                 await service.blacklist_token(jti, "refresh", old_exp)
                 revoked = 1
             except Exception:
@@ -410,6 +428,7 @@ async def revoke_session(
 @router.get("/csrf-token", response_model=CsrfTokenResponse)
 async def get_csrf_token(response: Response):
     import secrets
+
     token = secrets.token_urlsafe(32)
     _set_csrf_cookie(response, token)
     return CsrfTokenResponse(csrf_token=token)
@@ -434,6 +453,7 @@ async def reset_password(
     service: IdentityService = Depends(get_service),
 ):
     from .schemas import validate_password_strength
+
     validate_password_strength(body.new_password)
     await service.reset_password(body.token, body.new_password)
     return {"message": "Password reset successfully"}
@@ -458,4 +478,5 @@ async def jwks():
     Returns RSA public key for RS256 token verification.
     """
     from app.modules.identity.jwks import get_jwks
+
     return get_jwks()

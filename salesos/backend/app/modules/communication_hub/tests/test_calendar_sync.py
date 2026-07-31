@@ -1,28 +1,29 @@
 """Unit tests for Calendar Sync Service and Google Calendar Provider."""
-from datetime import datetime, timezone, timedelta
+
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
 
 from app.modules.communication_hub.calendar_sync import (
-    CalendarSyncService,
     CalendarSyncError,
+    CalendarSyncService,
     _all_internal_attendees,
     _is_all_day_event,
 )
 from app.modules.communication_hub.models import GoogleAccount
+from intelligence.activity_intelligence.contracts.models import RawCalendarEvent
 from intelligence.activity_intelligence.providers.google.calendar_provider import (
-    GoogleCalendarProvider,
     CalendarAPIError,
+    GoogleCalendarProvider,
     _parse_datetime,
 )
-from intelligence.activity_intelligence.contracts.models import RawCalendarEvent
-
 
 # ---------------------------------------------------------------------------
 # GoogleCalendarProvider tests
 # ---------------------------------------------------------------------------
+
 
 class TestGoogleCalendarProvider:
     def test_init(self):
@@ -52,7 +53,7 @@ class TestGoogleCalendarProvider:
     @pytest.mark.asyncio
     async def test_fetch_events_not_authenticated(self):
         provider = GoogleCalendarProvider()
-        events, token = await provider.fetch_events(since=datetime.now(timezone.utc))
+        events, token = await provider.fetch_events(since=datetime.now(UTC))
         assert events == []
         assert token is None
 
@@ -90,8 +91,18 @@ class TestGoogleCalendarProvider:
             "start": {"dateTime": "2026-07-28T10:00:00+03:00", "timeZone": "Asia/Amman"},
             "end": {"dateTime": "2026-07-28T11:00:00+03:00", "timeZone": "Asia/Amman"},
             "attendees": [
-                {"email": "a@company.com", "displayName": "Alice", "responseStatus": "accepted", "self": False},
-                {"email": "b@company.com", "displayName": "Bob", "responseStatus": "tentative", "self": True},
+                {
+                    "email": "a@company.com",
+                    "displayName": "Alice",
+                    "responseStatus": "accepted",
+                    "self": False,
+                },
+                {
+                    "email": "b@company.com",
+                    "displayName": "Bob",
+                    "responseStatus": "tentative",
+                    "self": True,
+                },
             ],
             "organizer": {"email": "a@company.com", "displayName": "Alice"},
             "recurrence": ["RRULE:FREQ=WEEKLY"],
@@ -114,13 +125,25 @@ class TestGoogleCalendarProvider:
         assert raw.conference_provider == "google_meet"
 
     def test_parse_event_cancelled(self):
-        item = {"id": "evt_cancel", "status": "cancelled", "start": {"dateTime": "2026-07-28T10:00:00Z"}, "end": {"dateTime": "2026-07-28T11:00:00Z"}}
+        item = {
+            "id": "evt_cancel",
+            "status": "cancelled",
+            "start": {"dateTime": "2026-07-28T10:00:00Z"},
+            "end": {"dateTime": "2026-07-28T11:00:00Z"},
+        }
         raw = GoogleCalendarProvider._parse_event(item)
         assert raw is not None
         assert raw.status == "cancelled"
 
     def test_parse_event_all_day(self):
-        item = {"id": "evt_allday", "summary": "Holiday", "start": {"date": "2026-07-28"}, "end": {"date": "2026-07-29"}, "attendees": [], "status": "confirmed"}
+        item = {
+            "id": "evt_allday",
+            "summary": "Holiday",
+            "start": {"date": "2026-07-28"},
+            "end": {"date": "2026-07-29"},
+            "attendees": [],
+            "status": "confirmed",
+        }
         raw = GoogleCalendarProvider._parse_event(item)
         assert raw is not None
         assert raw.start_time is not None
@@ -154,6 +177,7 @@ class TestParseDatetime:
 # ---------------------------------------------------------------------------
 # CalendarSyncService tests
 # ---------------------------------------------------------------------------
+
 
 class TestCalendarSyncService:
     def setup_method(self):
@@ -189,27 +213,34 @@ class TestCalendarSyncService:
         service.repo = repo
 
         mock_provider = AsyncMock()
-        mock_provider.fetch_events_time_range = AsyncMock(return_value=([
-            RawCalendarEvent(
-                event_id="evt_1",
-                title="Meeting",
-                start_time=datetime.now(timezone.utc),
-                end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-                status="confirmed",
+        mock_provider.fetch_events_time_range = AsyncMock(
+            return_value=(
+                [
+                    RawCalendarEvent(
+                        event_id="evt_1",
+                        title="Meeting",
+                        start_time=datetime.now(UTC),
+                        end_time=datetime.now(UTC) + timedelta(hours=1),
+                        status="confirmed",
+                    )
+                ],
+                "next_token_123",
             )
-        ], "next_token_123"))
+        )
         mock_provider.close = AsyncMock()
 
-        with patch.object(service, '_ensure_provider', return_value=mock_provider):
-            with patch.object(service, '_get_existing_event', return_value=None):
-                with patch.object(service, '_insert_event', new_callable=AsyncMock) as mock_insert:
-                    result = await service.sync(days_lookback=30, days_forward=30)
+        with (
+            patch.object(service, "_ensure_provider", return_value=mock_provider),
+            patch.object(service, "_get_existing_event", return_value=None),
+            patch.object(service, "_insert_event", new_callable=AsyncMock) as mock_insert,
+        ):  # noqa: E501
+            result = await service.sync(days_lookback=30, days_forward=30)
 
-                    assert result["synced_count"] == 1
-                    assert result["new_count"] == 1
-                    assert result["next_sync_token"] == "next_token_123"
-                    mock_insert.assert_called_once()
-                    repo.update_calendar_sync_token.assert_called_once()
+            assert result["synced_count"] == 1
+            assert result["new_count"] == 1
+            assert result["next_sync_token"] == "next_token_123"
+            mock_insert.assert_called_once()
+            repo.update_calendar_sync_token.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_sync_handles_existing_event(self):
@@ -226,23 +257,30 @@ class TestCalendarSyncService:
         service.repo = repo
 
         mock_provider = AsyncMock()
-        mock_provider.fetch_events_time_range = AsyncMock(return_value=([
-            RawCalendarEvent(
-                event_id="evt_existing",
-                title="Updated Meeting",
-                start_time=datetime.now(timezone.utc),
-                end_time=datetime.now(timezone.utc) + timedelta(hours=1),
-                status="confirmed",
+        mock_provider.fetch_events_time_range = AsyncMock(
+            return_value=(
+                [
+                    RawCalendarEvent(
+                        event_id="evt_existing",
+                        title="Updated Meeting",
+                        start_time=datetime.now(UTC),
+                        end_time=datetime.now(UTC) + timedelta(hours=1),
+                        status="confirmed",
+                    )
+                ],
+                None,
             )
-        ], None))
+        )
         mock_provider.close = AsyncMock()
 
-        with patch.object(service, '_ensure_provider', return_value=mock_provider):
-            with patch.object(service, '_get_existing_event', return_value={"id": str(uuid4())}):
-                with patch.object(service, '_update_event', new_callable=AsyncMock) as mock_update:
-                    result = await service.sync()
-                    assert result["updated_count"] == 1
-                    mock_update.assert_called_once()
+        with (
+            patch.object(service, "_ensure_provider", return_value=mock_provider),
+            patch.object(service, "_get_existing_event", return_value={"id": str(uuid4())}),
+            patch.object(service, "_update_event", new_callable=AsyncMock) as mock_update,
+        ):  # noqa: E501
+            result = await service.sync()
+            assert result["updated_count"] == 1
+            mock_update.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_sync_handles_cancelled_event(self):
@@ -259,21 +297,28 @@ class TestCalendarSyncService:
         service.repo = repo
 
         mock_provider = AsyncMock()
-        mock_provider.fetch_events_time_range = AsyncMock(return_value=([
-            RawCalendarEvent(
-                event_id="evt_cancel",
-                title="Cancelled",
-                status="cancelled",
+        mock_provider.fetch_events_time_range = AsyncMock(
+            return_value=(
+                [
+                    RawCalendarEvent(
+                        event_id="evt_cancel",
+                        title="Cancelled",
+                        status="cancelled",
+                    )
+                ],
+                None,
             )
-        ], None))
+        )
         mock_provider.close = AsyncMock()
 
-        with patch.object(service, '_ensure_provider', return_value=mock_provider):
-            with patch.object(service, '_get_existing_event', return_value={"id": str(uuid4())}):
-                with patch.object(service, '_mark_cancelled', new_callable=AsyncMock) as mock_cancel:
-                    result = await service.sync()
-                    assert result["cancelled_count"] == 1
-                    mock_cancel.assert_called_once()
+        with (
+            patch.object(service, "_ensure_provider", return_value=mock_provider),
+            patch.object(service, "_get_existing_event", return_value={"id": str(uuid4())}),
+            patch.object(service, "_mark_cancelled", new_callable=AsyncMock) as mock_cancel,
+        ):
+            result = await service.sync()
+            assert result["cancelled_count"] == 1
+            mock_cancel.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_sync_uses_incremental_token(self):
@@ -293,7 +338,7 @@ class TestCalendarSyncService:
         mock_provider.fetch_events = AsyncMock(return_value=([], "newer_token"))
         mock_provider.close = AsyncMock()
 
-        with patch.object(service, '_ensure_provider', return_value=mock_provider):
+        with patch.object(service, "_ensure_provider", return_value=mock_provider):
             result = await service.sync()
             mock_provider.fetch_events.assert_called_once()
             assert result["next_sync_token"] == "newer_token"
@@ -316,9 +361,7 @@ class TestCalendarSyncService:
         service.repo = repo
 
         mock_provider = AsyncMock()
-        mock_provider.fetch_events = AsyncMock(
-            side_effect=CalendarAPIError(410, "gone")
-        )
+        mock_provider.fetch_events = AsyncMock(side_effect=CalendarAPIError(410, "gone"))
         mock_provider.fetch_events_time_range = AsyncMock(return_value=([], "fresh_token"))
         mock_provider.close = AsyncMock()
 
@@ -348,14 +391,17 @@ class TestCalendarSyncService:
         )
         mock_provider.close = AsyncMock()
 
-        with patch.object(service, "_ensure_provider", return_value=mock_provider):
-            with pytest.raises(CalendarSyncError, match="authentication failed"):
-                await service.sync()
+        with (
+            patch.object(service, "_ensure_provider", return_value=mock_provider),
+            pytest.raises(CalendarSyncError, match="authentication failed"),
+        ):  # noqa: E501
+            await service.sync()
 
 
 # ---------------------------------------------------------------------------
 # Helper function tests
 # ---------------------------------------------------------------------------
+
 
 class TestHelpers:
     def test_all_internal_attendees_empty(self):
@@ -372,16 +418,16 @@ class TestHelpers:
     def test_is_all_day_event(self):
         raw = RawCalendarEvent(
             event_id="1",
-            start_time=datetime(2026, 7, 28, 0, 0, tzinfo=timezone.utc),
-            end_time=datetime(2026, 7, 29, 0, 0, tzinfo=timezone.utc),
+            start_time=datetime(2026, 7, 28, 0, 0, tzinfo=UTC),
+            end_time=datetime(2026, 7, 29, 0, 0, tzinfo=UTC),
         )
         assert _is_all_day_event(raw) is True
 
     def test_is_not_all_day_event(self):
         raw = RawCalendarEvent(
             event_id="1",
-            start_time=datetime(2026, 7, 28, 10, 0, tzinfo=timezone.utc),
-            end_time=datetime(2026, 7, 28, 11, 0, tzinfo=timezone.utc),
+            start_time=datetime(2026, 7, 28, 10, 0, tzinfo=UTC),
+            end_time=datetime(2026, 7, 28, 11, 0, tzinfo=UTC),
         )
         assert _is_all_day_event(raw) is False
 
@@ -390,21 +436,25 @@ class TestHelpers:
 # Schema tests
 # ---------------------------------------------------------------------------
 
+
 class TestCalendarSchemas:
     def test_calendar_sync_request_defaults(self):
         from app.modules.communication_hub.schemas import GoogleCalendarSyncRequest
+
         req = GoogleCalendarSyncRequest()
         assert req.days_lookback == 90
         assert req.days_forward == 90
 
     def test_calendar_sync_request_custom(self):
         from app.modules.communication_hub.schemas import GoogleCalendarSyncRequest
+
         req = GoogleCalendarSyncRequest(days_lookback=30, days_forward=60)
         assert req.days_lookback == 30
         assert req.days_forward == 60
 
     def test_calendar_sync_response(self):
         from app.modules.communication_hub.schemas import GoogleCalendarSyncResponse
+
         resp = GoogleCalendarSyncResponse(
             success=True,
             synced_count=5,

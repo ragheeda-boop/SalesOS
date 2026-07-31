@@ -18,7 +18,8 @@ policy this module implements.
 
 from __future__ import annotations
 
-from typing import Any, Awaitable, Callable, Sequence
+from collections.abc import Awaitable, Callable, Sequence
+from typing import Any
 
 TENANT_A_DEFAULT = "tenant-a"
 TENANT_B_DEFAULT = "tenant-b"

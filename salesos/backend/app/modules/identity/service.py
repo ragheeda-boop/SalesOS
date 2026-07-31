@@ -1,7 +1,7 @@
-import uuid
 import hashlib
 import secrets
-from datetime import datetime, timedelta, timezone
+import uuid
+from datetime import UTC, datetime, timedelta
 
 from passlib.context import CryptContext
 from sqlalchemy import select
@@ -20,7 +20,14 @@ from sdk.events.domain_events import (
 )
 from sdk.telemetry import StructuredLogger
 
-from .models import DeviceSession, PasswordResetToken, RefreshTokenFamily, Tenant, TokenBlacklist, User
+from .models import (
+    DeviceSession,
+    PasswordResetToken,
+    RefreshTokenFamily,
+    Tenant,
+    TokenBlacklist,
+    User,
+)
 from .repositories import TenantRepository, UserRepository
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -39,7 +46,7 @@ def _hash_jti(jti: str) -> str:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _generate_id() -> str:
@@ -95,7 +102,7 @@ def decode_access_token(token: str) -> dict:
             raise UnauthorizedError("Invalid token type")
         return payload
     except ValueError:
-        raise UnauthorizedError("Invalid or expired token")
+        raise UnauthorizedError("Invalid or expired token") from None
 
 
 def decode_refresh_token(token: str) -> dict:
@@ -107,7 +114,7 @@ def decode_refresh_token(token: str) -> dict:
             raise UnauthorizedError("Invalid token type")
         return payload
     except ValueError:
-        raise UnauthorizedError("Invalid or expired refresh token")
+        raise UnauthorizedError("Invalid or expired refresh token") from None
 
 
 class IdentityService:
@@ -128,7 +135,9 @@ class IdentityService:
     # ── Refresh Token Family Management ──────────────────────────────────
 
     async def create_token_family(
-        self, user_id: str, tenant_id: str,
+        self,
+        user_id: str,
+        tenant_id: str,
     ) -> tuple[str, str, str, str]:
         family_id = _generate_id()
         jti = secrets.token_urlsafe(16)
@@ -146,7 +155,10 @@ class IdentityService:
         return refresh_token, family_id, family.id, jti
 
     async def rotate_refresh_token(
-        self, refresh_token_jti: str, user_id: str, tenant_id: str,
+        self,
+        refresh_token_jti: str,
+        user_id: str,
+        tenant_id: str,
     ) -> tuple[str, str]:
         token_hash = _hash_jti(refresh_token_jti)
         result = await self.db.execute(
@@ -225,11 +237,13 @@ class IdentityService:
 
     async def get_user_sessions(self, user_id: str) -> list[DeviceSession]:
         result = await self.db.execute(
-            select(DeviceSession).where(
+            select(DeviceSession)
+            .where(
                 DeviceSession.user_id == user_id,
                 DeviceSession.is_revoked.is_(False),
                 DeviceSession.expires_at > _now(),
-            ).order_by(DeviceSession.last_used_at.desc())
+            )
+            .order_by(DeviceSession.last_used_at.desc())
         )
         return list(result.scalars().all())
 
@@ -317,7 +331,9 @@ class IdentityService:
                 )
             except Exception:
                 if self.logger:
-                    self.logger.warn("event.publish_failed", entity_type="tenant", aggregate_id=str(tenant.id))
+                    self.logger.warn(
+                        "event.publish_failed", entity_type="tenant", aggregate_id=str(tenant.id)
+                    )
 
         return tenant
 
@@ -325,7 +341,7 @@ class IdentityService:
         try:
             return await self._tenant_repo.get(uuid.UUID(tenant_id))
         except Exception:
-            raise NotFoundError("Tenant", tenant_id)
+            raise NotFoundError("Tenant", tenant_id) from None
 
     async def get_tenant_by_slug(self, slug: str) -> Tenant | None:
         return await self._tenant_repo.get_by_slug(slug)
@@ -369,7 +385,9 @@ class IdentityService:
                 )
             except Exception:
                 if self.logger:
-                    self.logger.warn("event.publish_failed", entity_type="user", aggregate_id=str(user.id))
+                    self.logger.warn(
+                        "event.publish_failed", entity_type="user", aggregate_id=str(user.id)
+                    )
 
         return user
 
@@ -432,7 +450,9 @@ class IdentityService:
                         "تم قفل الحساب بعد 5 محاولات فاشلة. حاول مرة أخرى بعد 15 دقيقة."
                     )
                 await self.db.flush()
-            raise UnauthorizedError("Invalid email or password | البريد الإلكتروني أو كلمة المرور غير صحيحة")
+            raise UnauthorizedError(
+                "Invalid email or password | البريد الإلكتروني أو كلمة المرور غير صحيحة"
+            )
 
         user.failed_attempts = 0
         user.locked_until = None
@@ -451,7 +471,9 @@ class IdentityService:
                 )
             except Exception:
                 if self.logger:
-                    self.logger.warn("event.publish_failed", entity_type="user", aggregate_id=str(user.id))
+                    self.logger.warn(
+                        "event.publish_failed", entity_type="user", aggregate_id=str(user.id)
+                    )
 
         return user
 
@@ -459,7 +481,7 @@ class IdentityService:
         try:
             return await self._user_repo.get(uuid.UUID(user_id))
         except Exception:
-            raise NotFoundError("User", user_id)
+            raise NotFoundError("User", user_id) from None
 
     async def get_users_by_tenant(self, tenant_id: str) -> list[User]:
         users, _ = await self._user_repo.find_by_tenant(tenant_id, page=1, page_size=10000)
@@ -483,7 +505,9 @@ class IdentityService:
                 )
             except Exception:
                 if self.logger:
-                    self.logger.warn("event.publish_failed", entity_type="user", aggregate_id=str(user.id))
+                    self.logger.warn(
+                        "event.publish_failed", entity_type="user", aggregate_id=str(user.id)
+                    )
 
         return user
 
@@ -505,7 +529,9 @@ class IdentityService:
                 )
             except Exception:
                 if self.logger:
-                    self.logger.warn("event.publish_failed", entity_type="user", aggregate_id=str(user.id))
+                    self.logger.warn(
+                        "event.publish_failed", entity_type="user", aggregate_id=str(user.id)
+                    )
 
         return user
 
@@ -518,7 +544,7 @@ class IdentityService:
             return None
         raw_token = secrets.token_urlsafe(32)
         token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         reset = PasswordResetToken(
             id=secrets.token_urlsafe(16),
             user_id=str(user.id),
@@ -533,7 +559,7 @@ class IdentityService:
 
     async def reset_password(self, token: str, new_password: str) -> User:
         token_hash = hashlib.sha256(token.encode()).hexdigest()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         result = await self.db.execute(
             select(PasswordResetToken).where(
                 PasswordResetToken.token_hash == token_hash,
@@ -574,6 +600,7 @@ class IdentityService:
         if self.event_bus:
             try:
                 from sdk.events.domain_events import UserRegistered as UserDeleted
+
                 await self.event_bus.publish(
                     UserDeleted(
                         tenant_id=tenant_id,
@@ -583,7 +610,11 @@ class IdentityService:
                 )
             except Exception:
                 if self.logger:
-                    self.logger.warn("event.publish_failed", entity_type="user", aggregate_id=user_id)
+                    self.logger.warn(
+                        "event.publish_failed", entity_type="user", aggregate_id=user_id
+                    )
 
         if self.logger:
-            self.logger.info("User deleted (anonymized) per PDPL right to erasure: user_id=%s", user_id)
+            self.logger.info(
+                "User deleted (anonymized) per PDPL right to erasure: user_id=%s", user_id
+            )

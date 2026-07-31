@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func as sa_func, select
+from sqlalchemy import func as sa_func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db_session, require_role_dep
@@ -47,9 +48,9 @@ async def list_tenants(
 ):
     stmt = select(Tenant)
     if status == "active":
-        stmt = stmt.where(Tenant.is_active == True)
+        stmt = stmt.where(Tenant.is_active is True)
     elif status == "suspended":
-        stmt = stmt.where(Tenant.is_active == False)
+        stmt = stmt.where(Tenant.is_active is False)
     if plan:
         stmt = stmt.where(Tenant.plan == plan)
     if search:
@@ -64,11 +65,19 @@ async def list_tenants(
         user_count_stmt = select(sa_func.count()).where(User.tenant_id == t.id)
         count_result = await db.execute(user_count_stmt)
         user_count = count_result.scalar() or 0
-        response.append(TenantListItem(
-            id=t.id, name=t.name, slug=t.slug, domain=t.domain,
-            plan=t.plan, is_active=t.is_active, user_count=user_count,
-            created_at=t.created_at, updated_at=t.updated_at,
-        ))
+        response.append(
+            TenantListItem(
+                id=t.id,
+                name=t.name,
+                slug=t.slug,
+                domain=t.domain,
+                plan=t.plan,
+                is_active=t.is_active,
+                user_count=user_count,
+                created_at=t.created_at,
+                updated_at=t.updated_at,
+            )
+        )
     return response
 
 
@@ -79,7 +88,9 @@ async def create_tenant(
 ):
     existing = await db.execute(select(Tenant).where(Tenant.slug == body.slug))
     if existing.scalar_one_or_none():
-        raise HTTPException(status_code=409, detail=f"Tenant with slug '{body.slug}' already exists")
+        raise HTTPException(
+            status_code=409, detail=f"Tenant with slug '{body.slug}' already exists"
+        )
 
     tenant = Tenant(
         name=body.name,
@@ -97,10 +108,18 @@ async def create_tenant(
     await provisioning.provision_tenant(str(tenant.id))
 
     return TenantDetail(
-        id=tenant.id, name=tenant.name, slug=tenant.slug, domain=tenant.domain,
-        plan=tenant.plan, is_active=tenant.is_active, settings=tenant.settings or {},
-        features=tenant.features or {}, user_count=0, subscription_ends_at=tenant.subscription_ends_at,
-        created_at=tenant.created_at, updated_at=tenant.updated_at,
+        id=tenant.id,
+        name=tenant.name,
+        slug=tenant.slug,
+        domain=tenant.domain,
+        plan=tenant.plan,
+        is_active=tenant.is_active,
+        settings=tenant.settings or {},
+        features=tenant.features or {},
+        user_count=0,
+        subscription_ends_at=tenant.subscription_ends_at,
+        created_at=tenant.created_at,
+        updated_at=tenant.updated_at,
     )
 
 
@@ -109,7 +128,7 @@ async def get_tenant(tenant_id: str, db: AsyncSession = Depends(get_db_session))
     try:
         tid = uuid.UUID(tenant_id)
     except ValueError:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+        raise HTTPException(status_code=404, detail="Tenant not found") from None
     tenant = await db.get(Tenant, tid)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
@@ -119,20 +138,29 @@ async def get_tenant(tenant_id: str, db: AsyncSession = Depends(get_db_session))
     user_count = count_result.scalar() or 0
 
     return TenantDetail(
-        id=tenant.id, name=tenant.name, slug=tenant.slug, domain=tenant.domain,
-        plan=tenant.plan, is_active=tenant.is_active, settings=tenant.settings or {},
-        features=tenant.features or {}, user_count=user_count,
+        id=tenant.id,
+        name=tenant.name,
+        slug=tenant.slug,
+        domain=tenant.domain,
+        plan=tenant.plan,
+        is_active=tenant.is_active,
+        settings=tenant.settings or {},
+        features=tenant.features or {},
+        user_count=user_count,
         subscription_ends_at=tenant.subscription_ends_at,
-        created_at=tenant.created_at, updated_at=tenant.updated_at,
+        created_at=tenant.created_at,
+        updated_at=tenant.updated_at,
     )
 
 
 @router.put("/tenants/{tenant_id}", response_model=TenantDetail)
-async def update_tenant(tenant_id: str, body: TenantUpdate, db: AsyncSession = Depends(get_db_session)):
+async def update_tenant(
+    tenant_id: str, body: TenantUpdate, db: AsyncSession = Depends(get_db_session)
+):
     try:
         tid = uuid.UUID(tenant_id)
     except ValueError:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+        raise HTTPException(status_code=404, detail="Tenant not found") from None
     tenant = await db.get(Tenant, tid)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
@@ -146,7 +174,7 @@ async def update_tenant(tenant_id: str, body: TenantUpdate, db: AsyncSession = D
         settings = dict(tenant.settings or {})
         settings.update(body.settings)
         tenant.settings = settings
-    tenant.updated_at = datetime.now(timezone.utc)
+    tenant.updated_at = datetime.now(UTC)
     await db.flush()
 
     user_count_stmt = select(sa_func.count()).where(User.tenant_id == tenant.id)
@@ -154,25 +182,34 @@ async def update_tenant(tenant_id: str, body: TenantUpdate, db: AsyncSession = D
     user_count = count_result.scalar() or 0
 
     return TenantDetail(
-        id=tenant.id, name=tenant.name, slug=tenant.slug, domain=tenant.domain,
-        plan=tenant.plan, is_active=tenant.is_active, settings=tenant.settings or {},
-        features=tenant.features or {}, user_count=user_count,
+        id=tenant.id,
+        name=tenant.name,
+        slug=tenant.slug,
+        domain=tenant.domain,
+        plan=tenant.plan,
+        is_active=tenant.is_active,
+        settings=tenant.settings or {},
+        features=tenant.features or {},
+        user_count=user_count,
         subscription_ends_at=tenant.subscription_ends_at,
-        created_at=tenant.created_at, updated_at=tenant.updated_at,
+        created_at=tenant.created_at,
+        updated_at=tenant.updated_at,
     )
 
 
 @router.post("/tenants/{tenant_id}/suspend")
-async def suspend_tenant(tenant_id: str, body: TenantSuspendRequest, db: AsyncSession = Depends(get_db_session)):
+async def suspend_tenant(
+    tenant_id: str, body: TenantSuspendRequest, db: AsyncSession = Depends(get_db_session)
+):
     try:
         tid = uuid.UUID(tenant_id)
     except ValueError:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+        raise HTTPException(status_code=404, detail="Tenant not found") from None
     tenant = await db.get(Tenant, tid)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
     tenant.is_active = False
-    tenant.updated_at = datetime.now(timezone.utc)
+    tenant.updated_at = datetime.now(UTC)
     await db.flush()
     return {"message": "Tenant suspended", "tenant_id": tenant_id, "reason": body.reason}
 
@@ -182,24 +219,26 @@ async def soft_delete_tenant(tenant_id: str, db: AsyncSession = Depends(get_db_s
     try:
         tid = uuid.UUID(tenant_id)
     except ValueError:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+        raise HTTPException(status_code=404, detail="Tenant not found") from None
     tenant = await db.get(Tenant, tid)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
     tenant.is_active = False
-    tenant.updated_at = datetime.now(timezone.utc)
+    tenant.updated_at = datetime.now(UTC)
     await db.flush()
     return {"message": "Tenant soft-deleted", "tenant_id": tenant_id}
 
 
 @router.delete("/tenants/{tenant_id}/hard-delete")
-async def hard_delete_tenant(tenant_id: str, body: TenantHardDeleteRequest, db: AsyncSession = Depends(get_db_session)):
+async def hard_delete_tenant(
+    tenant_id: str, body: TenantHardDeleteRequest, db: AsyncSession = Depends(get_db_session)
+):
     if not body.confirm:
         raise HTTPException(status_code=400, detail="confirm must be True for hard delete")
     try:
         tid = uuid.UUID(tenant_id)
     except ValueError:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+        raise HTTPException(status_code=404, detail="Tenant not found") from None
     tenant = await db.get(Tenant, tid)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
@@ -213,7 +252,7 @@ async def get_tenant_usage(tenant_id: str, db: AsyncSession = Depends(get_db_ses
     try:
         tid = uuid.UUID(tenant_id)
     except ValueError:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+        raise HTTPException(status_code=404, detail="Tenant not found") from None
     tenant = await db.get(Tenant, tid)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
@@ -222,7 +261,7 @@ async def get_tenant_usage(tenant_id: str, db: AsyncSession = Depends(get_db_ses
     count_result = await db.execute(user_count_stmt)
     user_count = count_result.scalar() or 0
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return TenantUsage(
         tenant_id=tid,
         tenant_name=tenant.name,

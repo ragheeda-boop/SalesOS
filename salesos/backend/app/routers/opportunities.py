@@ -1,20 +1,18 @@
 """Opportunity REST API — CRUD, stage management, pipeline analytics."""
+
 import logging
 from datetime import date
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
-from app.dependencies import get_current_tenant_id, require_permission_dep
 from app.common.rate_limit import rate_limit_dep
+from app.dependencies import get_current_tenant_id, require_permission_dep
 from sdk.permissions import PermissionAction
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(
-    dependencies=[Depends(rate_limit_dep("opportunity", 60, 60))]
-)
+router = APIRouter(dependencies=[Depends(rate_limit_dep("opportunity", 60, 60))])
 
 
 class OpportunityCreateRequest(BaseModel):
@@ -68,10 +66,14 @@ def _to_response(opp) -> OpportunityResponse:
         health=getattr(opp, "health", "healthy"),
         expected_close_date=opp.expected_close_date,
         owner_id=opp.owner_id,
-        status=opp.status.value if hasattr(opp.status, 'value') else opp.status,
+        status=opp.status.value if hasattr(opp.status, "value") else opp.status,
         description=opp.description,
-        created_at=opp.created_at.isoformat() if hasattr(opp.created_at, 'isoformat') else str(opp.created_at),
-        updated_at=opp.updated_at.isoformat() if hasattr(opp.updated_at, 'isoformat') else str(opp.updated_at),
+        created_at=opp.created_at.isoformat()
+        if hasattr(opp.created_at, "isoformat")
+        else str(opp.created_at),
+        updated_at=opp.updated_at.isoformat()
+        if hasattr(opp.updated_at, "isoformat")
+        else str(opp.updated_at),
     )
 
 
@@ -79,10 +81,10 @@ def _to_response(opp) -> OpportunityResponse:
 async def list_opportunities(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
-    stage: Optional[str] = Query(None),
-    status: Optional[str] = Query(None),
-    company_id: Optional[str] = Query(None),
-    owner_id: Optional[str] = Query(None),
+    stage: str | None = Query(None),
+    status: str | None = Query(None),
+    company_id: str | None = Query(None),
+    owner_id: str | None = Query(None),
     limit: int = Query(50, ge=1, le=200),
     cursor: str | None = Query(None),
     _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.READ)),
@@ -93,6 +95,7 @@ async def list_opportunities(
         if not svc:
             raise HTTPException(status_code=503, detail="Opportunity service not initialized")
         from domains.commercial.opportunity.contracts.repository import OpportunityQuery
+
         offset = 0
         if cursor:
             try:
@@ -110,12 +113,16 @@ async def list_opportunities(
         )
         result = await svc.query(query)
         next_cursor = str(offset + limit) if offset + limit < result.total else None
-        return {"items": [_to_response(o) for o in result.items], "next_cursor": next_cursor, "total": result.total}
+        return {
+            "items": [_to_response(o) for o in result.items],
+            "next_cursor": next_cursor,
+            "total": result.total,
+        }
     except HTTPException:
         raise
     except Exception as exc:
         logger.error("list_opportunities failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.get("/opportunities/{opportunity_id}", response_model=OpportunityResponse)
@@ -139,7 +146,7 @@ async def get_opportunity(
         raise
     except Exception as exc:
         logger.error("get_opportunity failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.post("/opportunities", response_model=OpportunityResponse, status_code=201)
@@ -194,7 +201,7 @@ async def update_opportunity(
         raise
     except Exception as exc:
         logger.error("update_opportunity failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.patch("/opportunities/{opportunity_id}/stage", response_model=OpportunityResponse)
@@ -217,17 +224,17 @@ async def advance_stage(
     except HTTPException:
         raise
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid stage transition")
+        raise HTTPException(status_code=400, detail="Invalid stage transition") from None
     except Exception as exc:
         logger.error("advance_stage failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.post("/opportunities/{opportunity_id}/close-won", response_model=OpportunityResponse)
 async def close_won(
     opportunity_id: str,
     request: Request,
-    won_amount: Optional[float] = None,
+    won_amount: float | None = None,
     tenant_id: str = Depends(get_current_tenant_id),
     _rbac: None = Depends(require_permission_dep("opportunity", PermissionAction.UPDATE)),
 ):
@@ -243,10 +250,10 @@ async def close_won(
     except HTTPException:
         raise
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid close operation")
+        raise HTTPException(status_code=400, detail="Invalid close operation") from None
     except Exception as exc:
         logger.error("close_won failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.post("/opportunities/{opportunity_id}/close-lost", response_model=OpportunityResponse)
@@ -269,7 +276,7 @@ async def close_lost(
     except HTTPException:
         raise
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid close operation")
+        raise HTTPException(status_code=400, detail="Invalid close operation") from None
     except Exception as exc:
         logger.error("close_lost failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc

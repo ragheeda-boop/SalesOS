@@ -86,7 +86,9 @@ class ApplicationMetricsCollector:
             self._ws_total_closed += 1
             self._ws_active = max(0, self._ws_active - 1)
 
-    def track_db_pool(self, checkedout: int, checkedin: int, overflow: int, total_open: int) -> None:
+    def track_db_pool(
+        self, checkedout: int, checkedin: int, overflow: int, total_open: int
+    ) -> None:
         with self._lock:
             self._db_pool_checkedout = checkedout
             self._db_pool_checkedin = checkedin
@@ -109,7 +111,9 @@ class ApplicationMetricsCollector:
             _line("# TYPE salesos_http_requests_total counter")
             for (method, path, status), count in sorted(self._http_requests.items()):
                 path_clean = path.replace('"', '\\"')
-                _line(f'salesos_http_requests_total{{method="{method}",path="{path_clean}",status="{status}"}} {count}')
+                _line(
+                    f'salesos_http_requests_total{{method="{method}",path="{path_clean}",status="{status}"}} {count}'  # noqa: E501
+                )
 
             # ── HTTP latency histogram ──
             _line("")
@@ -183,7 +187,9 @@ class ApplicationMetricsCollector:
 
             # ── NBA engine ──
             _line("")
-            _line("# HELP salesos_nba_processing_duration_seconds NBA engine processing duration histogram")
+            _line(
+                "# HELP salesos_nba_processing_duration_seconds NBA engine processing duration histogram"  # noqa: E501
+            )
             _line("# TYPE salesos_nba_processing_duration_seconds histogram")
             nba_snap = self._nba_duration.snapshot()
             nba_base = "salesos_nba_processing_duration_seconds"

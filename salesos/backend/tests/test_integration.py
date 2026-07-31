@@ -14,9 +14,10 @@ from app.main import app
 
 
 def _test_db_url():
-    from app.config import settings
     host = os.environ.get("TEST_POSTGRES_HOST") or os.environ.get("POSTGRES_HOST", "localhost")
-    password = os.environ.get("POSTGRES_PASSWORD", settings.postgres_password if settings.postgres_password else "test")
+    password = os.environ.get(
+        "POSTGRES_PASSWORD", settings.postgres_password if settings.postgres_password else "test"
+    )
     port = os.environ.get("TEST_POSTGRES_PORT") or os.environ.get("POSTGRES_PORT", "5432")
     return os.environ.get(
         "TEST_DATABASE_URL",
@@ -28,6 +29,7 @@ def _test_db_url():
 async def pipeline():
     """Provide a DataFabricPipeline with its own engine session factory."""
     from runtime.data_fabric_runtime import DataFabricPipeline
+
     engine = create_async_engine(_test_db_url(), echo=False)
     session_factory = async_sessionmaker(bind=engine, expire_on_commit=False)
     yield DataFabricPipeline(session_factory=session_factory)
@@ -37,8 +39,10 @@ async def pipeline():
 @pytest_asyncio.fixture
 async def client(db_session: AsyncSession) -> AsyncClient:
     """FastAPI test client with overridden DB dependency."""
+
     async def override_get_db():
         yield db_session
+
     app.dependency_overrides[get_db] = override_get_db
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
@@ -49,6 +53,7 @@ async def client(db_session: AsyncSession) -> AsyncClient:
 @pytest_asyncio.fixture
 async def test_tenant(db_session: AsyncSession) -> str:
     from app.modules.identity.models import Tenant
+
     tenant = Tenant(name="E2E Tenant", slug=f"e2e-{uuid.uuid4().hex[:8]}")
     db_session.add(tenant)
     await db_session.flush()
@@ -59,8 +64,9 @@ async def test_tenant(db_session: AsyncSession) -> str:
 @pytest_asyncio.fixture
 async def auth_headers(test_tenant: str, db_session: AsyncSession) -> dict:
     """Create a user and return auth headers."""
-    from app.modules.identity.models import User
     from passlib.hash import bcrypt
+
+    from app.modules.identity.models import User
     from app.modules.identity.service import create_access_token
 
     user = User(
@@ -91,7 +97,9 @@ class TestPipelineE2E:
         return await pipeline.run_batch("test_e2e", records, test_tenant)
 
     @pytest.mark.asyncio
-    async def test_pipeline_valid_record_creates_golden(self, db_session: AsyncSession, test_tenant: str, pipeline):
+    async def test_pipeline_valid_record_creates_golden(
+        self, db_session: AsyncSession, test_tenant: str, pipeline
+    ):
         """Valid record flows through all stages and creates a golden record + company."""
         record = {
             "cr_number": "CR-E2E-001",
@@ -106,11 +114,15 @@ class TestPipelineE2E:
         assert result["records_processed"] == 1
         assert result["records_valid"] == 1
         assert result["records_invalid"] == 0
-        assert result["golden_records_created"] >= 1, f"golden_records_created was {result['golden_records_created']}, errors: {result.get('errors', [])}"
+        assert (
+            result["golden_records_created"] >= 1
+        ), f"golden_records_created was {result['golden_records_created']}, errors: {result.get('errors', [])}"  # noqa: E501
         assert "errors" not in result or len(result["errors"]) == 0
 
-        from app.modules.entity_resolution.models import GoldenRecord
         from sqlalchemy import select
+
+        from app.modules.entity_resolution.models import GoldenRecord
+
         r = await db_session.execute(
             select(GoldenRecord).where(
                 GoldenRecord.tenant_id == uuid.UUID(test_tenant),
@@ -122,16 +134,17 @@ class TestPipelineE2E:
         assert golden.company_id is not None, "Golden record should be linked to a company"
 
         from app.modules.company.models import Company
-        r = await db_session.execute(
-            select(Company).where(Company.id == golden.company_id)
-        )
+
+        r = await db_session.execute(select(Company).where(Company.id == golden.company_id))
         company = r.scalar_one_or_none()
         assert company is not None, "Company should exist"
         assert company.name_ar == "شركة الاختبار الشامل"
         assert company.cr_number == "CR-E2E-001"
 
     @pytest.mark.asyncio
-    async def test_pipeline_invalid_record_rejected(self, db_session: AsyncSession, test_tenant: str, pipeline):
+    async def test_pipeline_invalid_record_rejected(
+        self, db_session: AsyncSession, test_tenant: str, pipeline
+    ):
         """Record missing required fields is rejected at validation stage."""
         record = {"phone": "0512345678"}
 
@@ -142,7 +155,9 @@ class TestPipelineE2E:
         assert result["records_invalid"] == 1
 
     @pytest.mark.asyncio
-    async def test_pipeline_duplicate_cr_merges(self, db_session: AsyncSession, test_tenant: str, pipeline):
+    async def test_pipeline_duplicate_cr_merges(
+        self, db_session: AsyncSession, test_tenant: str, pipeline
+    ):
         """Two records with same CR number merge into one golden record."""
         records = [
             {"cr_number": "CR-E2E-MERGE", "name_ar": "شركة أ", "city": "الرياض"},
@@ -154,10 +169,14 @@ class TestPipelineE2E:
         assert result["records_valid"] == 2
         assert result["golden_records_created"] >= 1
 
+        from sqlalchemy import func, select
+
         from app.modules.entity_resolution.models import GoldenRecord
-        from sqlalchemy import select, func
+
         r = await db_session.execute(
-            select(func.count()).select_from(GoldenRecord).where(
+            select(func.count())
+            .select_from(GoldenRecord)
+            .where(
                 GoldenRecord.tenant_id == uuid.UUID(test_tenant),
                 GoldenRecord.cr_number == "CR-E2E-MERGE",
             )
@@ -166,9 +185,12 @@ class TestPipelineE2E:
         assert count == 1, "Should have exactly one golden record for duplicate CRs"
 
     @pytest.mark.asyncio
-    async def test_pipeline_multi_tenant_isolation(self, db_session: AsyncSession, test_tenant: str, pipeline):
+    async def test_pipeline_multi_tenant_isolation(
+        self, db_session: AsyncSession, test_tenant: str, pipeline
+    ):
         """Records from different tenants do not interfere."""
         from app.modules.identity.models import Tenant
+
         tenant2 = Tenant(name="Isolation Tenant", slug=f"iso-{uuid.uuid4().hex[:8]}")
         db_session.add(tenant2)
         await db_session.flush()
@@ -180,17 +202,23 @@ class TestPipelineE2E:
         await self._run_pipeline(pipeline, test_tenant, [record])
         await self._run_pipeline(pipeline, tenant2_id, [record])
 
+        from sqlalchemy import func, select
+
         from app.modules.entity_resolution.models import GoldenRecord
-        from sqlalchemy import select, func
+
         r = await db_session.execute(
-            select(func.count()).select_from(GoldenRecord).where(
+            select(func.count())
+            .select_from(GoldenRecord)
+            .where(
                 GoldenRecord.cr_number == "CR-ISO-001",
             )
         )
         assert r.scalar() == 2, "Each tenant should have its own golden record"
 
     @pytest.mark.asyncio
-    async def test_pipeline_with_dlq_on_failure(self, db_session: AsyncSession, test_tenant: str, pipeline):
+    async def test_pipeline_with_dlq_on_failure(
+        self, db_session: AsyncSession, test_tenant: str, pipeline
+    ):
         """Pipeline captures failures in the dead letter queue."""
         record = {"cr_number": "CR-DLQ-001", "name_ar": "DLQ Test", "city": "مكة"}
         result = await pipeline.run_batch("test_dlq", [record], test_tenant)
@@ -199,7 +227,9 @@ class TestPipelineE2E:
         assert result["records_valid"] == 1
 
     @pytest.mark.asyncio
-    async def test_pipeline_audit_trail_created(self, db_session: AsyncSession, test_tenant: str, pipeline):
+    async def test_pipeline_audit_trail_created(
+        self, db_session: AsyncSession, test_tenant: str, pipeline
+    ):
         """Pipeline run creates an audit log entry."""
         from sqlalchemy import text
 
@@ -207,7 +237,9 @@ class TestPipelineE2E:
         await pipeline.run_batch("test_audit", [record], test_tenant)
 
         r = await db_session.execute(
-            text("SELECT COUNT(*) FROM audit.audit_log WHERE tenant_id = :tid AND action = 'pipeline_run'"),
+            text(
+                "SELECT COUNT(*) FROM audit.audit_log WHERE tenant_id = :tid AND action = 'pipeline_run'"  # noqa: E501
+            ),
             {"tid": test_tenant},
         )
         assert r.scalar() >= 1, "Audit log should contain pipeline_run entry"
@@ -273,7 +305,7 @@ class TestAPIE2E:
         )
         assert resp.status_code == 200
         data = resp.json()
-        assert "data" in data   # CursorResponse uses 'data', not 'items'
+        assert "data" in data  # CursorResponse uses 'data', not 'items'
         assert "has_next" in data
 
     @pytest.mark.asyncio
@@ -281,6 +313,7 @@ class TestAPIE2E:
         self, client: AsyncClient, test_tenant: str, auth_headers: dict, db_session: AsyncSession
     ):
         from app.modules.company.models import Company
+
         company = Company(
             tenant_id=uuid.UUID(test_tenant),
             cr_number="CR-360-001",
@@ -381,8 +414,10 @@ class TestCrossModuleE2E:
         result = await pipeline.run_batch("test_sync", [record], test_tenant)
         assert result["records_valid"] == 1
 
-        from app.modules.company.models import Company
         from sqlalchemy import select
+
+        from app.modules.company.models import Company
+
         r = await db_session.execute(
             select(Company).where(
                 Company.tenant_id == uuid.UUID(test_tenant),
@@ -399,15 +434,14 @@ class TestCrossModuleE2E:
         self, db_session: AsyncSession, test_tenant: str, pipeline
     ):
         """When pipeline fails mid-way, previous valid records are still committed."""
-        from app.modules.company.models import Company
         from sqlalchemy import select
+
+        from app.modules.company.models import Company
 
         valid = {"cr_number": "CR-ATOMIC-001", "name_ar": "صالح", "city": "الرياض"}
         await pipeline.run_batch("test_atomic", [valid], test_tenant)
 
-        r = await db_session.execute(
-            select(Company).where(Company.cr_number == "CR-ATOMIC-001")
-        )
+        r = await db_session.execute(select(Company).where(Company.cr_number == "CR-ATOMIC-001"))
         assert r.scalar_one_or_none() is not None, "Valid record should be persisted"
 
     @pytest.mark.asyncio
@@ -415,8 +449,9 @@ class TestCrossModuleE2E:
         self, db_session: AsyncSession, test_tenant: str, pipeline
     ):
         """All golden record fields are properly mapped to company columns."""
-        from app.modules.company.models import Company
         from sqlalchemy import select
+
+        from app.modules.company.models import Company
 
         record = {
             "cr_number": "CR-FIELDS-001",
@@ -430,9 +465,7 @@ class TestCrossModuleE2E:
         result = await pipeline.run_batch("test_fields", [record], test_tenant)
         assert result["records_valid"] == 1
 
-        r = await db_session.execute(
-            select(Company).where(Company.cr_number == "CR-FIELDS-001")
-        )
+        r = await db_session.execute(select(Company).where(Company.cr_number == "CR-FIELDS-001"))
         company = r.scalar_one_or_none()
         assert company is not None
         assert company.name_ar == "شركة الحقول"
@@ -452,15 +485,17 @@ class TestCrossModuleE2E:
             {"cr_number": "CR-CONFLICT-001", "name_ar": "اسم متطابق"},
             {"cr_number": "CR-CONFLICT-001", "name_ar": "اسم مختلف"},
         ]
-        result = await service.resolve_records(
+        _ = await service.resolve_records(
             tenant_id=test_tenant,
             source_slug="test_conflict",
             records=records,
             confidence_threshold=0.5,
         )
 
-        from app.modules.entity_resolution.models import EntityResolutionLog
         from sqlalchemy import select
+
+        from app.modules.entity_resolution.models import EntityResolutionLog
+
         r = await db_session.execute(
             select(EntityResolutionLog).where(
                 EntityResolutionLog.tenant_id == uuid.UUID(test_tenant),

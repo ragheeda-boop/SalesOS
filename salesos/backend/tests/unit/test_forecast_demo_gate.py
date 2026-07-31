@@ -13,21 +13,23 @@ from fastapi import HTTPException
 async def test_forecast_demo_mode_allows_demo_input():
     from domains.revenue.forecast.engine import CommercialInput
 
-    with patch.dict("os.environ", {"DEMO_MODE": "true"}):
-        with patch("app.routers.commercial.settings") as mock_settings:
-            mock_settings.demo_mode = False
-            # Import after patches applied — exercise branch logic inline
-            is_demo = mock_settings.demo_mode or True
-            assert is_demo is True
-            inputs = [
-                CommercialInput(
-                    opportunity_id="demo-1",
-                    opportunity_value=100000,
-                    opportunity_probability=0.5,
-                    historical_win_rate=0.7,
-                )
-            ]
-            assert inputs[0].opportunity_id == "demo-1"
+    with (
+        patch.dict("os.environ", {"DEMO_MODE": "true"}),
+        patch("app.routers.commercial.settings") as mock_settings,
+    ):  # noqa: E501
+        mock_settings.demo_mode = False
+        # Import after patches applied — exercise branch logic inline
+        is_demo = mock_settings.demo_mode or True
+        assert is_demo is True
+        inputs = [
+            CommercialInput(
+                opportunity_id="demo-1",
+                opportunity_value=100000,
+                opportunity_probability=0.5,
+                historical_win_rate=0.7,
+            )
+        ]
+        assert inputs[0].opportunity_id == "demo-1"
 
 
 @pytest.mark.asyncio
@@ -50,15 +52,17 @@ async def test_forecast_prod_rejects_empty_pipeline():
     )
     mock_forecast_svc.create_forecast = AsyncMock(return_value=mock_snap)
 
-    with patch.object(commercial_router, "_get_forecast", return_value=mock_forecast_svc):
-        with patch.object(commercial_router.settings, "demo_mode", False):
-            with patch.dict("os.environ", {"DEMO_MODE": "false"}):
-                with pytest.raises(HTTPException) as exc:
-                    await commercial_router.run_forecast(
-                        tenant_id="tenant-a",
-                        db=mock_db,
-                        _rbac=None,
-                    )
+    with (
+        patch.object(commercial_router, "_get_forecast", return_value=mock_forecast_svc),
+        patch.object(commercial_router.settings, "demo_mode", False),
+        patch.dict("os.environ", {"DEMO_MODE": "false"}),
+        pytest.raises(HTTPException) as exc,
+    ):  # noqa: E501
+        await commercial_router.run_forecast(
+            tenant_id="tenant-a",
+            db=mock_db,
+            _rbac=None,
+        )
     assert exc.value.status_code == 400
     mock_forecast_svc.create_forecast.assert_not_called()
 
@@ -94,14 +98,16 @@ async def test_forecast_prod_uses_real_opportunities_not_demo():
     mock_forecast_svc = AsyncMock()
     mock_forecast_svc.create_forecast = AsyncMock(side_effect=_create)
 
-    with patch.object(commercial_router, "_get_forecast", return_value=mock_forecast_svc):
-        with patch.object(commercial_router.settings, "demo_mode", False):
-            with patch.dict("os.environ", {"DEMO_MODE": "false"}):
-                result = await commercial_router.run_forecast(
-                    tenant_id="tenant-a",
-                    db=mock_db,
-                    _rbac=None,
-                )
+    with (
+        patch.object(commercial_router, "_get_forecast", return_value=mock_forecast_svc),
+        patch.object(commercial_router.settings, "demo_mode", False),
+        patch.dict("os.environ", {"DEMO_MODE": "false"}),
+    ):  # noqa: E501
+        result = await commercial_router.run_forecast(
+            tenant_id="tenant-a",
+            db=mock_db,
+            _rbac=None,
+        )
 
     assert result["demo_mode"] is False
     assert result["input_count"] == 1

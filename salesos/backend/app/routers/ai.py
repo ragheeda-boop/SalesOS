@@ -1,17 +1,16 @@
 """AI Domain REST API — prompt registry, evaluation, and generation."""
+
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.common.exceptions import safe_error_detail
-from app.dependencies import get_current_tenant_id
+from app.dependencies import get_current_tenant_id, require_permission_dep
+from domains.ai import AIEvaluator, AIService, OpenAIProvider, PromptRegistry
+from domains.ai.schemas import ActivateRequest, EvaluateRequest, GenerateRequest, PromptCreate
 from sdk.permissions import PermissionAction
-from app.dependencies import require_permission_dep
-from domains.ai import PromptRegistry, AIEvaluator, AIService, OpenAIProvider
-from domains.ai.schemas import PromptCreate, EvaluateRequest, GenerateRequest, ActivateRequest
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +57,7 @@ async def list_prompts(
         ]
     except Exception as exc:
         logger.error("list_prompts failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.post("/ai/prompts", status_code=201)
@@ -69,6 +68,7 @@ async def create_prompt(
 ):
     try:
         from domains.ai.models import PromptTemplate
+
         template = PromptTemplate(
             id=body.id,
             name=body.name,
@@ -82,7 +82,7 @@ async def create_prompt(
         return {"id": template.id, "name": template.name, "version": template.version}
     except Exception as exc:
         logger.error("create_prompt failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.post("/ai/prompts/activate")
@@ -123,7 +123,7 @@ async def evaluate(
         }
     except Exception as exc:
         logger.error("evaluate failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.get("/ai/metrics/{prompt_id}")
@@ -136,7 +136,7 @@ async def get_metrics(
         return _evaluator.get_metrics(prompt_id)
     except Exception as exc:
         logger.error("get_metrics failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 @router.post("/ai/generate")
@@ -154,7 +154,7 @@ async def generate(
         )
         return {"prompt_template_id": body.prompt_template_id, "output": output}
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=safe_error_detail(exc, "Not found"))
+        raise HTTPException(status_code=404, detail=safe_error_detail(exc, "Not found")) from exc
     except Exception as exc:
         logger.error("generate failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc

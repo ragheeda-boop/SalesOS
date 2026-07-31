@@ -1,9 +1,10 @@
-from starlette.requests import Request
 from starlette.datastructures import Headers
+from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from .service import ApiKeyService
 from app.common.api_key_manager import get_api_key_rate_limiter
+
+from .service import ApiKeyService
 
 # Per-key default when ApiKey model has no rate_limit_per_minute column.
 _DEFAULT_API_KEY_RPM = 60
@@ -39,7 +40,9 @@ class ApiKeyMiddleware:
                         request.state.api_key_authenticated = True
                         request.state.api_key_user_id = str(key_record.user_id)
                         request.state.api_key_tenant_id = str(key_record.tenant_id)
-                        request.state.api_key_scopes = key_record.scopes.split(",") if key_record.scopes else []
+                        request.state.api_key_scopes = (
+                            key_record.scopes.split(",") if key_record.scopes else []
+                        )
                         allowed, retry = get_api_key_rate_limiter().check_rate_limit(
                             str(key_record.id), _DEFAULT_API_KEY_RPM
                         )

@@ -1,10 +1,9 @@
 import secrets
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
-from jose import jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,7 +12,6 @@ from app.common.oauth_state import get_oauth_state, store_oauth_state
 from app.config import settings
 from app.modules.identity.models import User
 from app.modules.identity.service import (
-    IdentityService,
     create_access_token,
     hash_password,
 )
@@ -108,6 +106,7 @@ class OAuthService:
             "prompt": "consent",
         }
         from urllib.parse import urlencode
+
         return f"{config['authorize_url']}?{urlencode(params)}"
 
     async def handle_callback(self, provider: str, code: str, state: str) -> tuple[str, str]:
@@ -147,13 +146,16 @@ class OAuthService:
             elif connection.refresh_token:
                 pass  # keep existing
             if "expires_in" in token_data:
-                connection.expires_at = datetime.now(timezone.utc) + timedelta(seconds=token_data["expires_in"])
+                connection.expires_at = datetime.now(UTC) + timedelta(
+                    seconds=token_data["expires_in"]
+                )
             await self.db.flush()
         else:
             user_result = await self.db.execute(select(User).where(User.email == email))
             user = user_result.scalar_one_or_none()
             if not user:
                 from app.modules.identity.models import Tenant
+
                 tenant_name = email.split("@")[0]
                 tenant = Tenant(
                     id=uuid.uuid4(),
@@ -180,7 +182,9 @@ class OAuthService:
                 provider_email=email,
                 access_token=self._encrypt(token_data["access_token"]),
                 refresh_token=self._encrypt(token_data.get("refresh_token")),
-                expires_at=datetime.now(timezone.utc) + timedelta(seconds=token_data.get("expires_in", 3600)) if "expires_in" in token_data else None,
+                expires_at=datetime.now(UTC) + timedelta(seconds=token_data.get("expires_in", 3600))
+                if "expires_in" in token_data
+                else None,
             )
             self.db.add(connection)
             await self.db.flush()
@@ -188,7 +192,9 @@ class OAuthService:
         access_token = create_access_token(str(user.id), str(user.tenant_id))
         return access_token, str(user.id)
 
-    async def _exchange_code(self, provider: str, config: dict[str, Any], code: str) -> dict[str, Any]:
+    async def _exchange_code(
+        self, provider: str, config: dict[str, Any], code: str
+    ) -> dict[str, Any]:
         async with httpx.AsyncClient() as client:
             headers = {"Accept": "application/json"}
             if provider == "github":
@@ -207,10 +213,14 @@ class OAuthService:
             resp.raise_for_status()
             data = resp.json()
             if "error" in data:
-                raise UnauthorizedError(f"OAuth token exchange failed: {data.get('error_description', data['error'])}")
+                raise UnauthorizedError(
+                    f"OAuth token exchange failed: {data.get('error_description', data['error'])}"
+                )
             return data
 
-    async def _fetch_user_info(self, provider: str, config: dict[str, Any], access_token: str) -> dict[str, Any]:
+    async def _fetch_user_info(
+        self, provider: str, config: dict[str, Any], access_token: str
+    ) -> dict[str, Any]:
         async with httpx.AsyncClient() as client:
             headers = {"Authorization": f"Bearer {access_token}"}
             if provider == "github":
@@ -223,7 +233,10 @@ class OAuthService:
         async with httpx.AsyncClient() as client:
             resp = await client.get(
                 "https://api.github.com/user/emails",
-                headers={"Authorization": f"Bearer {access_token}", "Accept": "application/vnd.github+json"},
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "Accept": "application/vnd.github+json",
+                },
             )
             resp.raise_for_status()
             return resp.json()

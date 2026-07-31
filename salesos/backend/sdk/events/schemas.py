@@ -10,7 +10,6 @@ from dataclasses import dataclass
 
 from sdk.events.base import DomainEvent
 
-
 # ── Opportunity / Pipeline ─────────────────────────────────────────────────
 
 

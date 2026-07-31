@@ -10,13 +10,11 @@ from __future__ import annotations
 import pytest
 
 from domains.search.normalization.company_matcher import (
-    CompanyMatchResult,
     CompanyNameMatcher,
+    _extract_head_word,
     _jaro_distance,
     _jaro_winkler_distance,
-    _extract_head_word,
 )
-
 
 # ── Fixtures ────────────────────────────────────────────────────────────
 

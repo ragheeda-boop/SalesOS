@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import time
-import uuid
 from typing import Any
 
 from app.modules.rules_engine.models import (
@@ -78,41 +77,53 @@ def _execute_action(action: Action, context: RuleEvaluationContext) -> dict[str,
         result.update({"field": field, "value": value})
 
     elif action.type == ActionType.send_notification:
-        result.update({
-            "channel": action.params.get("channel", "in_app"),
-            "message": action.params.get("message", ""),
-        })
+        result.update(
+            {
+                "channel": action.params.get("channel", "in_app"),
+                "message": action.params.get("message", ""),
+            }
+        )
 
     elif action.type == ActionType.trigger_workflow:
-        result.update({
-            "workflow_id": action.params.get("workflow_id"),
-            "trigger_data": action.params.get("trigger_data", {}),
-        })
+        result.update(
+            {
+                "workflow_id": action.params.get("workflow_id"),
+                "trigger_data": action.params.get("trigger_data", {}),
+            }
+        )
 
     elif action.type == ActionType.create_task:
-        result.update({
-            "title": action.params.get("title", ""),
-            "assignee": action.params.get("assignee"),
-            "priority": action.params.get("priority", "medium"),
-        })
+        result.update(
+            {
+                "title": action.params.get("title", ""),
+                "assignee": action.params.get("assignee"),
+                "priority": action.params.get("priority", "medium"),
+            }
+        )
 
     elif action.type == ActionType.score_adjustment:
-        result.update({
-            "score_type": action.params.get("score_type", "confidence"),
-            "adjustment": action.params.get("adjustment", 0),
-        })
+        result.update(
+            {
+                "score_type": action.params.get("score_type", "confidence"),
+                "adjustment": action.params.get("adjustment", 0),
+            }
+        )
 
     elif action.type == ActionType.flag_company:
-        result.update({
-            "flag": action.params.get("flag", "review"),
-            "reason": action.params.get("reason", ""),
-        })
+        result.update(
+            {
+                "flag": action.params.get("flag", "review"),
+                "reason": action.params.get("reason", ""),
+            }
+        )
 
     elif action.type == ActionType.assign_owner:
-        result.update({
-            "owner_id": action.params.get("owner_id"),
-            "owner_type": action.params.get("owner_type", "user"),
-        })
+        result.update(
+            {
+                "owner_id": action.params.get("owner_id"),
+                "owner_type": action.params.get("owner_type", "user"),
+            }
+        )
 
     return result
 
@@ -183,6 +194,7 @@ class RulesEngine:
             raise ValueError(f"Rule '{rule_id}' not found")
 
         import copy
+
         updated = copy.deepcopy(existing)
 
         for key, value in updates.items():

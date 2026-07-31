@@ -29,8 +29,8 @@ def _make_app(max_body_size: int = 10 * 1024 * 1024) -> FastAPI:
     # Add middleware in same order as production
     app.add_middleware(MetricsMiddleware)
 
-    from app.modules.audit.middleware import AuditMiddleware
     from app.modules.api_keys.middleware import ApiKeyMiddleware
+    from app.modules.audit.middleware import AuditMiddleware
 
     # Mock the session factory to avoid PostgreSQL dependency in tests
     mock_session_factory = MagicMock()
@@ -127,7 +127,7 @@ async def test_post_with_auth_header():
             "/api/v1/echo",
             json={"status": "authorized"},
             headers={
-                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",  # noqa: E501
                 "X-Tenant-Id": "tenant-1",
             },
             timeout=5,
@@ -169,15 +169,17 @@ async def test_concurrent_post_requests():
     app = _make_app()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        responses = await asyncio.gather(*[
-            client.post(
-                "/api/v1/echo",
-                json={"seq": i},
-                headers={"X-Tenant-Id": "tenant-1"},
-                timeout=10,
-            )
-            for i in range(10)
-        ])
+        responses = await asyncio.gather(
+            *[
+                client.post(
+                    "/api/v1/echo",
+                    json={"seq": i},
+                    headers={"X-Tenant-Id": "tenant-1"},
+                    timeout=10,
+                )
+                for i in range(10)
+            ]
+        )
     assert all(r.status_code == 200 for r in responses)
     for i, r in enumerate(responses):
         assert r.json()["received"]["seq"] == i
@@ -209,7 +211,9 @@ async def test_body_cache_available_in_request_state():
     @app.post("/api/v1/check-cache")
     async def check_cache(request: Request):
         cached = request.scope.get("body_cache", b"")
-        return JSONResponse(content={"cached_length": len(cached), "cached_type": type(cached).__name__})
+        return JSONResponse(
+            content={"cached_length": len(cached), "cached_type": type(cached).__name__}
+        )
 
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
@@ -258,15 +262,17 @@ async def test_concurrent_post_different_bodies():
     app = _make_app()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        responses = await asyncio.gather(*[
-            client.post(
-                "/api/v1/echo",
-                json={"id": i, "unique": f"data_{i}"},
-                headers={"X-Tenant-Id": "tenant-1"},
-                timeout=10,
-            )
-            for i in range(20)
-        ])
+        responses = await asyncio.gather(
+            *[
+                client.post(
+                    "/api/v1/echo",
+                    json={"id": i, "unique": f"data_{i}"},
+                    headers={"X-Tenant-Id": "tenant-1"},
+                    timeout=10,
+                )
+                for i in range(20)
+            ]
+        )
     assert all(r.status_code == 200 for r in responses)
     for i, r in enumerate(responses):
         data = r.json()["received"]

@@ -8,28 +8,26 @@ Security measures:
 """
 
 import base64
-import hashlib
+import contextlib
 import logging
 import secrets
 import time
-import uuid
 import zlib
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
-
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 from xml.etree import ElementTree as ET
 
 from cryptography import x509
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import UnauthorizedError
 from app.config import settings
 from app.modules.identity.models import Tenant, User
-from app.modules.identity.service import IdentityService, create_access_token, hash_password
+from app.modules.identity.service import create_access_token, hash_password
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +54,7 @@ def _generate_id() -> str:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def _safe_xml_parser() -> ET.XMLParser:
@@ -69,10 +67,11 @@ def _safe_xml_parser() -> ET.XMLParser:
 def decode_saml_response(saml_response: str) -> str:
     """Decode a base64-encoded SAMLResponse (deflated or raw XML)."""
     import binascii
+
     try:
         decoded = base64.b64decode(saml_response)
     except (binascii.Error, ValueError) as e:
-        raise ValueError(f"Invalid base64 in SAMLResponse: {e}")
+        raise ValueError(f"Invalid base64 in SAMLResponse: {e}") from e
 
     try:
         xml_data = zlib.decompress(decoded, -15)
@@ -83,7 +82,7 @@ def decode_saml_response(saml_response: str) -> str:
         try:
             xml_data = xml_data.decode("utf-8")
         except UnicodeDecodeError as e:
-            raise ValueError(f"Invalid UTF-8 in SAMLResponse: {e}")
+            raise ValueError(f"Invalid UTF-8 in SAMLResponse: {e}") from e
 
     if not isinstance(xml_data, str) or not xml_data.strip():
         raise ValueError("Empty SAMLResponse after decoding")
@@ -236,7 +235,7 @@ def _validate_assertion_conditions(assertion_el: ET.Element, ns: dict) -> None:
     if conditions_el is None:
         return  # No conditions to validate
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     not_before_str = conditions_el.get("NotBefore", "")
     not_after_str = conditions_el.get("NotOnOrAfter", "")
 
@@ -278,11 +277,14 @@ class SAMLService:
             attrib={
                 "xmlns:md": "urn:oasis:names:tc:SAML:2.0:metadata",
                 "entityID": entity_id,
-                "validUntil": (datetime.now(timezone.utc) + timedelta(days=365)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "validUntil": (datetime.now(UTC) + timedelta(days=365)).strftime(
+                    "%Y-%m-%dT%H:%M:%SZ"
+                ),
             },
         )
         sp_sso = ET.SubElement(
-            md, "md:SPSSODescriptor",
+            md,
+            "md:SPSSODescriptor",
             attrib={
                 "protocolSupportEnumeration": "urn:oasis:names:tc:SAML:2.0:protocol",
                 "AuthnRequestsSigned": "false",
@@ -293,7 +295,8 @@ class SAMLService:
         name_id.text = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
 
         ET.SubElement(
-            sp_sso, "md:AssertionConsumerService",
+            sp_sso,
+            "md:AssertionConsumerService",
             attrib={
                 "Binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
                 "Location": acs_url,
@@ -333,7 +336,8 @@ class SAMLService:
         issuer.text = entity_id
 
         ET.SubElement(
-            authn, "samlp:NameIDPolicy",
+            authn,
+            "samlp:NameIDPolicy",
             attrib={
                 "Format": "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
                 "AllowCreate": "true",
@@ -342,18 +346,21 @@ class SAMLService:
         authn_xml = ET.tostring(authn, encoding="unicode")
         saml_request = _deflate_and_b64(authn_xml)
         from urllib.parse import urlencode
+
         params = {
             "SAMLRequest": saml_request,
             "RelayState": tenant_id,
         }
         return f"{idp_sso_url}?{urlencode(params)}"
 
-    async def handle_saml_callback(self, response_xml: str, relay_state: str | None = None) -> tuple[str, str]:
+    async def handle_saml_callback(
+        self, response_xml: str, relay_state: str | None = None
+    ) -> tuple[str, str]:
         parser = _safe_xml_parser()
         try:
             root = ET.fromstring(response_xml, parser=parser)
         except ET.ParseError as e:
-            raise UnauthorizedError(f"Invalid SAML Response XML: {e}")
+            raise UnauthorizedError(f"Invalid SAML Response XML: {e}") from e
 
         ns = {
             "samlp": "urn:oasis:names:tc:SAML:2.0:protocol",
@@ -366,7 +373,9 @@ class SAMLService:
         if response_el.tag.endswith("}Response"):
             response_relay = response_el.get("InResponseTo", "")
             if response_relay and not _verify_inresponse(response_relay):
-                logger.warning("SAML InResponseTo validation failed — possible replay: %s", response_relay)
+                logger.warning(
+                    "SAML InResponseTo validation failed — possible replay: %s", response_relay
+                )
 
         assertion = response_el.find(".//saml:Assertion", ns)
         if assertion is None:
@@ -377,21 +386,26 @@ class SAMLService:
         # Verify assertion signature
         tenant_cfg = None
         if relay_state:
-            try:
+            with contextlib.suppress(ValueError):
                 tenant_cfg = get_saml_config(relay_state)
-            except ValueError:
-                pass
 
         idp_cert = tenant_cfg.get("idp_cert", "") if tenant_cfg else ""
         if idp_cert:
             # Verify certificate in assertion matches configured cert
             assertion_cert = _extract_assertion_certificate(assertion, ns)
             if assertion_cert:
-                idp_cert_normalized = idp_cert.strip().replace("\n", "").replace(" ", "") \
-                    .replace("-----BEGINCERTIFICATE-----", "").replace("-----ENDCERTIFICATE-----", "")
+                idp_cert_normalized = (
+                    idp_cert.strip()
+                    .replace("\n", "")
+                    .replace(" ", "")
+                    .replace("-----BEGINCERTIFICATE-----", "")
+                    .replace("-----ENDCERTIFICATE-----", "")
+                )
                 assertion_cert_normalized = assertion_cert.replace("\n", "").replace(" ", "")
                 if idp_cert_normalized != assertion_cert_normalized:
-                    logger.warning("SAML assertion certificate does not match configured IdP certificate")
+                    logger.warning(
+                        "SAML assertion certificate does not match configured IdP certificate"
+                    )
                     raise UnauthorizedError("SAML assertion certificate mismatch")
 
             if not _verify_assertion_signature(assertion, ns, idp_cert):
@@ -410,7 +424,9 @@ class SAMLService:
         name_id_el = assertion.find(".//saml:Subject/saml:NameID", ns)
         name_id = name_id_el.text if name_id_el is not None else ""
 
-        email = attributes.get("email") or attributes.get("Email") or attributes.get("mail") or name_id
+        email = (
+            attributes.get("email") or attributes.get("Email") or attributes.get("mail") or name_id
+        )
         if not email or "@" not in email:
             raise UnauthorizedError("SAML response missing email attribute")
 
@@ -451,7 +467,9 @@ class SAMLService:
         access_token = create_access_token(str(user.id), str(user.tenant_id))
         return access_token, str(user.id)
 
-    async def handle_idp_initiated(self, response_xml: str, relay_state: str | None = None) -> tuple[str, str]:
+    async def handle_idp_initiated(
+        self, response_xml: str, relay_state: str | None = None
+    ) -> tuple[str, str]:
         return await self.handle_saml_callback(response_xml, relay_state)
 
     async def _find_tenant_by_email_domain(self, email: str) -> Tenant | None:

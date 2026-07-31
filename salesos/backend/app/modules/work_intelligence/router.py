@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.dependencies import get_current_tenant_id, require_permission_dep
 from sdk.permissions import PermissionAction
+
 from .schemas import WorkIntelligenceResponse
 
 router = APIRouter()
@@ -14,7 +15,11 @@ def _get_engine(request: Request):
     return engine
 
 
-@router.get("/work-intelligence/{employee_id}", response_model=WorkIntelligenceResponse, dependencies=[Depends(require_permission_dep("work-intelligence", PermissionAction.READ))])
+@router.get(
+    "/work-intelligence/{employee_id}",
+    response_model=WorkIntelligenceResponse,
+    dependencies=[Depends(require_permission_dep("work-intelligence", PermissionAction.READ))],
+)
 async def get_work_intelligence(
     employee_id: str,
     request: Request,
@@ -29,7 +34,11 @@ async def get_work_intelligence(
     )
 
 
-@router.get("/work-intelligence/me", response_model=WorkIntelligenceResponse, dependencies=[Depends(require_permission_dep("work-intelligence", PermissionAction.READ))])
+@router.get(
+    "/work-intelligence/me",
+    response_model=WorkIntelligenceResponse,
+    dependencies=[Depends(require_permission_dep("work-intelligence", PermissionAction.READ))],
+)
 async def get_my_work_intelligence(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),

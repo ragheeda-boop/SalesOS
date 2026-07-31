@@ -2,7 +2,7 @@
 
 import base64
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 import pytest
@@ -18,22 +18,30 @@ from sdk.pagination import (
 class FakeCond:
     def __and__(self, other):
         return self
+
     def __or__(self, other):
         return self
+
 
 class FakeCol:
     def __lt__(self, other):
         return FakeCond()
+
     def __gt__(self, other):
         return FakeCond()
+
     def __eq__(self, other):
         return FakeCond()
+
     def __ne__(self, other):
         return FakeCond()
+
     def __le__(self, other):
         return FakeCond()
+
     def __ge__(self, other):
         return FakeCond()
+
 
 class FakeModel:
     id = FakeCol()
@@ -48,7 +56,7 @@ def test_encode_decode_id_only():
 
 
 def test_encode_decode_with_sort_value():
-    created_at = datetime(2026, 7, 14, 10, 0, 0, tzinfo=timezone.utc)
+    created_at = datetime(2026, 7, 14, 10, 0, 0, tzinfo=UTC)
     cursor = encode_cursor("abc-123", created_at)
     decoded_id, decoded_sort = decode_cursor(cursor)
     assert decoded_id == "abc-123"
@@ -70,13 +78,13 @@ def test_encode_decode_with_int_sort():
 
 
 def test_decode_validates_base64():
-    with pytest.raises(Exception):
-        decode_cursor("not-valid-base64!!!")  
+    with pytest.raises(ValueError):
+        decode_cursor("not-valid-base64!!!")
 
 
 def test_decode_validates_json():
     b64 = base64.urlsafe_b64encode(b"not json").decode()
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         decode_cursor(b64)
 
 
@@ -105,14 +113,14 @@ def test_encode_cursor_with_uuid():
 
 
 def test_roundtrip_preserves_sort_value():
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     cursor = encode_cursor("test-id", now)
     _, sort_back = decode_cursor(cursor)
     assert sort_back == now
 
 
 def test_encode_short_and_readable():
-    cursor = encode_cursor("abc", datetime(2026, 1, 1, tzinfo=timezone.utc))
+    cursor = encode_cursor("abc", datetime(2026, 1, 1, tzinfo=UTC))
     decoded = base64.urlsafe_b64decode(cursor).decode()
     raw = json.loads(decoded)
     assert raw["id"] == "abc"
@@ -121,13 +129,13 @@ def test_encode_short_and_readable():
 
 def test_build_keyset_condition_desc():
     uid = "550e8400-e29b-41d4-a716-446655440000"
-    condition = build_keyset_condition(FakeModel, uid, datetime(2026, 1, 1, tzinfo=timezone.utc))
+    condition = build_keyset_condition(FakeModel, uid, datetime(2026, 1, 1, tzinfo=UTC))
     assert condition is not None
 
 
 def test_build_keyset_condition_asc():
     uid = "550e8400-e29b-41d4-a716-446655440000"
     condition = build_keyset_condition(
-        FakeModel, uid, datetime(2026, 1, 1, tzinfo=timezone.utc), sort_dir="asc"
+        FakeModel, uid, datetime(2026, 1, 1, tzinfo=UTC), sort_dir="asc"
     )
     assert condition is not None

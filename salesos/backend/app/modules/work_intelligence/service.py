@@ -1,5 +1,5 @@
-from datetime import datetime, timezone, timedelta
-from typing import Any, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from .schemas import (
     ActivityScore,
@@ -8,7 +8,6 @@ from .schemas import (
     WorkIntelligenceResponse,
     WorkRecommendation,
 )
-
 
 ACTIVITY_WEIGHTS = {
     "meeting": {"hours": 1.0, "category": "meeting"},
@@ -29,7 +28,7 @@ class WorkIntelligenceEngine:
     async def analyze(
         self, employee_id: str, tenant_id: str, period_days: int = 30
     ) -> WorkIntelligenceResponse:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         since = now - timedelta(days=period_days)
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         week_start = today_start - timedelta(days=today_start.weekday())
@@ -48,7 +47,9 @@ class WorkIntelligenceEngine:
         time_alloc = self._compute_time_allocation(items)
         meeting_load = self._compute_meeting_load(items, today_start, week_start)
         activity_score = self._compute_activity_score(items, total, period_days)
-        recommendations = self._generate_recommendations(time_alloc, meeting_load, activity_score, total)
+        recommendations = self._generate_recommendations(
+            time_alloc, meeting_load, activity_score, total
+        )
 
         return WorkIntelligenceResponse(
             employee_id=employee_id,
@@ -95,7 +96,9 @@ class WorkIntelligenceEngine:
             total_tracked=round(total_tracked, 1),
         )
 
-    def _compute_meeting_load(self, items: list, today_start: datetime, week_start: datetime) -> MeetingLoad:
+    def _compute_meeting_load(
+        self, items: list, today_start: datetime, week_start: datetime
+    ) -> MeetingLoad:
         meetings_today = 0
         meetings_this_week = 0
         meetings_this_month = 0
@@ -110,7 +113,7 @@ class WorkIntelligenceEngine:
                 if isinstance(ts, str):
                     ts = datetime.fromisoformat(ts.replace("Z", "+00:00"))
                 if ts.tzinfo is None:
-                    ts = ts.replace(tzinfo=timezone.utc)
+                    ts = ts.replace(tzinfo=UTC)
             except (ValueError, AttributeError):
                 ts = None
 
@@ -147,10 +150,12 @@ class WorkIntelligenceEngine:
     def _compute_activity_score(self, items: list, total: int, period_days: int) -> ActivityScore:
         volume = min(total / (period_days * 5), 1.0) * 100 if period_days > 0 else 0
 
-        action_types = set((item.get("action") or "").split("_")[0] for item in items if item.get("action"))
+        action_types = {
+            (item.get("action") or "").split("_")[0] for item in items if item.get("action")
+        }
         variety = min(len(action_types) / 5.0, 1.0) * 100
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         recent_count = 0
         for item in items[:100]:
             try:
@@ -208,56 +213,68 @@ class WorkIntelligenceEngine:
         recs = []
 
         if meeting_load.overbooked:
-            recs.append(WorkRecommendation(
-                type="reduce_meetings",
-                title="قلل الاجتماعات",
-                description=meeting_load.recommendation,
-                priority="high",
-                metric=f"{meeting_load.total_meeting_hours_this_week} ساعة هذا الأسبوع",
-            ))
+            recs.append(
+                WorkRecommendation(
+                    type="reduce_meetings",
+                    title="قلل الاجتماعات",
+                    description=meeting_load.recommendation,
+                    priority="high",
+                    metric=f"{meeting_load.total_meeting_hours_this_week} ساعة هذا الأسبوع",
+                )
+            )
 
         if time_alloc.meeting_hours > time_alloc.focus_hours and time_alloc.meeting_hours > 20:
-            recs.append(WorkRecommendation(
-                type="meeting_vs_focus",
-                title="وقت الاجتماعات يفوق وقت التركيز",
-                description=f"{time_alloc.meeting_hours} ساعة اجتماعات مقابل {time_alloc.focus_hours} ساعة تركيز في آخر 30 يوم",
-                priority="medium",
-                metric=f"{time_alloc.meeting_hours}h اجتماعات / {time_alloc.focus_hours}h تركيز",
-            ))
+            recs.append(
+                WorkRecommendation(
+                    type="meeting_vs_focus",
+                    title="وقت الاجتماعات يفوق وقت التركيز",
+                    description=f"{time_alloc.meeting_hours} ساعة اجتماعات مقابل {time_alloc.focus_hours} ساعة تركيز في آخر 30 يوم",  # noqa: E501
+                    priority="medium",
+                    metric=f"{time_alloc.meeting_hours}h اجتماعات / {time_alloc.focus_hours}h تركيز",  # noqa: E501
+                )
+            )
 
         if total_activities == 0:
-            recs.append(WorkRecommendation(
-                type="no_activity",
-                title="لا توجد نشاطات مسجلة",
-                description="ابدأ بتسجيل نشاطاتك اليومية لمتابعة إنتاجيتك",
-                priority="high",
-                metric="0 نشاط",
-            ))
+            recs.append(
+                WorkRecommendation(
+                    type="no_activity",
+                    title="لا توجد نشاطات مسجلة",
+                    description="ابدأ بتسجيل نشاطاتك اليومية لمتابعة إنتاجيتك",
+                    priority="high",
+                    metric="0 نشاط",
+                )
+            )
         elif activity_score.overall < 30:
-            recs.append(WorkRecommendation(
-                type="low_activity",
-                title="نشاطات قليلة",
-                description=f"نشاطك العام {activity_score.grade}. حاول زيادة التفاعل مع العملاء",
-                priority="medium",
-                metric=f"{activity_score.overall}/100",
-            ))
+            recs.append(
+                WorkRecommendation(
+                    type="low_activity",
+                    title="نشاطات قليلة",
+                    description=f"نشاطك العام {activity_score.grade}. حاول زيادة التفاعل مع العملاء",  # noqa: E501
+                    priority="medium",
+                    metric=f"{activity_score.overall}/100",
+                )
+            )
 
         if activity_score.variety < 40:
-            recs.append(WorkRecommendation(
-                type="improve_variety",
-                title="نوع النشاطات محدود",
-                description="نوع النشاطات المسجلة قليل. حاول تنويع أنشطتك (مكالمات، إيميلات، اجتماعات)",
-                priority="medium",
-                metric=f"{activity_score.variety}/100",
-            ))
+            recs.append(
+                WorkRecommendation(
+                    type="improve_variety",
+                    title="نوع النشاطات محدود",
+                    description="نوع النشاطات المسجلة قليل. حاول تنويع أنشطتك (مكالمات، إيميلات، اجتماعات)",  # noqa: E501
+                    priority="medium",
+                    metric=f"{activity_score.variety}/100",
+                )
+            )
 
         if activity_score.consistency >= 70 and activity_score.overall >= 60:
-            recs.append(WorkRecommendation(
-                type="on_track",
-                title="أداء جيد",
-                description="استمر في الحفاظ على وتيرة نشاطك الحالية",
-                priority="low",
-                metric=f"{activity_score.overall}/100",
-            ))
+            recs.append(
+                WorkRecommendation(
+                    type="on_track",
+                    title="أداء جيد",
+                    description="استمر في الحفاظ على وتيرة نشاطك الحالية",
+                    priority="low",
+                    metric=f"{activity_score.overall}/100",
+                )
+            )
 
         return recs

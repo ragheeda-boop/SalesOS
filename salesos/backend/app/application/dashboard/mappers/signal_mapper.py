@@ -1,9 +1,11 @@
-from datetime import datetime, timezone, timedelta
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.dashboard.dto.dashboard_dto import (
-    IntelligenceFeedData, SignalItem, MarketPulseData, MarketTrend, CompanyMover,
+    CompanyMover,
+    IntelligenceFeedData,
+    MarketPulseData,
+    MarketTrend,
+    SignalItem,
 )
 
 
@@ -29,18 +31,20 @@ class SignalMapper:
         items = []
         for r in rows.mappings().all():
             meta = r["metadata"] or {}
-            items.append(SignalItem(
-                id=r["id"],
-                companyId=r["entity_id"],
-                companyName=meta.get("name_ar") or r["actor"] or "",
-                category=self._categorize(r["action"]),
-                title=r["action"],
-                summary=meta.get("description", ""),
-                severity="medium",
-                source=r["entity_type"] or "system",
-                timestamp=r["timestamp"].isoformat() if r["timestamp"] else "",
-                isUnseen=True,
-            ))
+            items.append(
+                SignalItem(
+                    id=r["id"],
+                    companyId=r["entity_id"],
+                    companyName=meta.get("name_ar") or r["actor"] or "",
+                    category=self._categorize(r["action"]),
+                    title=r["action"],
+                    summary=meta.get("description", ""),
+                    severity="medium",
+                    source=r["entity_type"] or "system",
+                    timestamp=r["timestamp"].isoformat() if r["timestamp"] else "",
+                    isUnseen=True,
+                )
+            )
 
         return IntelligenceFeedData(
             items=items,
@@ -66,12 +70,14 @@ class SignalMapper:
         )
         for r in rows.mappings().all():
             avg = float(r["avg_score"])
-            trends.append(MarketTrend(
-                name=r["feature_name"],
-                direction="up" if avg > 0.6 else "stable" if avg > 0.3 else "down",
-                change=round(avg * 100, 1),
-                description=f"{r['company_count']} شركة بمتوسط {avg:.0%}",
-            ))
+            trends.append(
+                MarketTrend(
+                    name=r["feature_name"],
+                    direction="up" if avg > 0.6 else "stable" if avg > 0.3 else "down",
+                    change=round(avg * 100, 1),
+                    description=f"{r['company_count']} شركة بمتوسط {avg:.0%}",
+                )
+            )
 
         movers = []
         top = await self.db.execute(
@@ -86,12 +92,14 @@ class SignalMapper:
             {"tid": self.tenant_id},
         )
         for r in top.mappings().all():
-            movers.append(CompanyMover(
-                companyId=r["id"],
-                companyName=r["name_ar"] or "",
-                scoreChange=round(float(r["score"]) * 100, 1),
-                reason=f"ارتفاع في {r['feature_name']}",
-            ))
+            movers.append(
+                CompanyMover(
+                    companyId=r["id"],
+                    companyName=r["name_ar"] or "",
+                    scoreChange=round(float(r["score"]) * 100, 1),
+                    reason=f"ارتفاع في {r['feature_name']}",
+                )
+            )
 
         return MarketPulseData(trends=trends, topMovers=movers)
 

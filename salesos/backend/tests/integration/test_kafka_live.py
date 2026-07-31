@@ -12,16 +12,15 @@
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from tests.integration.conftest import make_mock_session, make_mock_session_factory
-
 from sdk.events.base import DomainEvent
-from sdk.events.dlq import DLQHandler, RetryableConsumer
+from sdk.events.dlq import DLQHandler
 from sdk.events.kafka_bus import KafkaEventBus
-from sdk.events.outbox import EventOutbox, OutboxRelay, OutboxEntry
+from sdk.events.outbox import EventOutbox, OutboxRelay
+from tests.integration.conftest import make_mock_session, make_mock_session_factory
 
 
 @pytest.fixture
@@ -40,26 +39,32 @@ def sample_event() -> DomainEvent:
 def _make_entry_tuples(sample_event: DomainEvent, count: int = 1) -> list[tuple]:
     results = []
     for i in range(count):
-        evt = sample_event if i == 0 else DomainEvent(
-            event_id=f"live-evt-{i:03d}",
-            event_type="company.created",
-            tenant_id="t-1",
-            data={"company_id": f"c{i}", "name": f"Co{i}", "tenant_id": "t-1"},
+        evt = (
+            sample_event
+            if i == 0
+            else DomainEvent(
+                event_id=f"live-evt-{i:03d}",
+                event_type="company.created",
+                tenant_id="t-1",
+                data={"company_id": f"c{i}", "name": f"Co{i}", "tenant_id": "t-1"},
+            )
         )
-        results.append((
-            i + 1,
-            evt.event_id,
-            evt.event_type,
-            "salesos.company",
-            evt.aggregate_id or evt.event_id,
-            evt.to_dict(),
-            {"event_type": evt.event_type, "tenant_id": evt.tenant_id},
-            "pending",
-            0,
-            "",
-            evt.occurred_at,
-            evt.occurred_at,
-        ))
+        results.append(
+            (
+                i + 1,
+                evt.event_id,
+                evt.event_type,
+                "salesos.company",
+                evt.aggregate_id or evt.event_id,
+                evt.to_dict(),
+                {"event_type": evt.event_type, "tenant_id": evt.tenant_id},
+                "pending",
+                0,
+                "",
+                evt.occurred_at,
+                evt.occurred_at,
+            )
+        )
     return results
 
 
@@ -103,7 +108,14 @@ async def test_outbox_multiple_events(sample_event: DomainEvent) -> None:
     session = make_mock_session()
     entries_3 = _make_entry_tuples(sample_event, 3)
     empty = []
-    session.execute.return_value.fetchall.side_effect = [entries_3, empty, empty, empty, empty, empty]
+    session.execute.return_value.fetchall.side_effect = [
+        entries_3,
+        empty,
+        empty,
+        empty,
+        empty,
+        empty,
+    ]
     session_factory = make_mock_session_factory(session)
 
     producer = AsyncMock()
@@ -255,12 +267,22 @@ async def test_batch_relay_performance() -> None:
             tenant_id="t-1",
             data={"company_id": f"c{i}", "name": f"Co{i}", "tenant_id": "t-1"},
         )
-        entries.append((
-            i + 1, evt.event_id, evt.event_type, "salesos.company",
-            evt.aggregate_id or evt.event_id, evt.to_dict(),
-            {"event_type": evt.event_type, "tenant_id": evt.tenant_id},
-            "pending", 0, "", evt.occurred_at, evt.occurred_at,
-        ))
+        entries.append(
+            (
+                i + 1,
+                evt.event_id,
+                evt.event_type,
+                "salesos.company",
+                evt.aggregate_id or evt.event_id,
+                evt.to_dict(),
+                {"event_type": evt.event_type, "tenant_id": evt.tenant_id},
+                "pending",
+                0,
+                "",
+                evt.occurred_at,
+                evt.occurred_at,
+            )
+        )
     session.execute.return_value.fetchall.side_effect = [entries, [], [], [], [], []]
     session_factory = make_mock_session_factory(session)
 

@@ -1,4 +1,5 @@
 """Prompt Registry v2 tests — version_hash, evaluation_criteria, A/B testing."""
+
 from __future__ import annotations
 
 import pytest
@@ -29,14 +30,22 @@ def test_version_hash_auto_generated(sample_template):
 
 
 def test_version_hash_different_content():
-    t1 = PromptTemplate(id="t1", name="t1", version="1.0", template="Hello {name}!", system="Be nice")
-    t2 = PromptTemplate(id="t2", name="t2", version="1.0", template="Goodbye {name}!", system="Be nice")
+    t1 = PromptTemplate(
+        id="t1", name="t1", version="1.0", template="Hello {name}!", system="Be nice"
+    )
+    t2 = PromptTemplate(
+        id="t2", name="t2", version="1.0", template="Goodbye {name}!", system="Be nice"
+    )
     assert t1.version_hash != t2.version_hash
 
 
 def test_version_hash_different_versions():
-    t1 = PromptTemplate(id="t1", name="t1", version="1.0", template="Hello {name}!", system="Be nice")
-    t2 = PromptTemplate(id="t1", name="t1", version="2.0", template="Hello {name}!", system="Be nice")
+    t1 = PromptTemplate(
+        id="t1", name="t1", version="1.0", template="Hello {name}!", system="Be nice"
+    )
+    t2 = PromptTemplate(
+        id="t1", name="t1", version="2.0", template="Hello {name}!", system="Be nice"
+    )
     assert t1.version_hash != t2.version_hash
 
 
@@ -74,7 +83,9 @@ def test_version_hash_in_render_output(registry, sample_template):
 
 def test_version_hash_in_version_history(registry, sample_template):
     registry.register(sample_template, changelog="Initial")
-    v2 = PromptTemplate(id="test-greeting", name="greeting", version="2.0", template="Hello {name}!", system="")
+    v2 = PromptTemplate(
+        id="test-greeting", name="greeting", version="2.0", template="Hello {name}!", system=""
+    )
     registry.register(v2, changelog="Simplified")
     history = registry.get_versions("test-greeting")
     assert len(history) == 2
@@ -90,12 +101,17 @@ def test_evaluation_criteria_in_version_history(registry, sample_template):
 
 
 def test_version_hash_persistence():
-    import tempfile, os, json
+    import json
+    import os
+    import tempfile
+
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         path = f.name
     try:
         registry = PromptRegistry(persist_path=path)
-        t = PromptTemplate(id="p1", name="test", version="1.0", template="Hello {name}!", system="Be nice")
+        t = PromptTemplate(
+            id="p1", name="test", version="1.0", template="Hello {name}!", system="Be nice"
+        )
         registry.register(t)
         with open(path) as f:
             data = json.load(f)
@@ -108,7 +124,13 @@ def test_version_hash_persistence():
 
 def test_ab_testing_set_agent_version(registry, sample_template):
     registry.register(sample_template)
-    v2 = PromptTemplate(id="test-greeting", name="greeting", version="2.0", template="Hello {name}!", system="You are helpful.")
+    v2 = PromptTemplate(
+        id="test-greeting",
+        name="greeting",
+        version="2.0",
+        template="Hello {name}!",
+        system="You are helpful.",
+    )
     registry.register(v2)
 
     registry.set_agent_active_version("sales-agent", "test-greeting", "1.0")
@@ -117,7 +139,13 @@ def test_ab_testing_set_agent_version(registry, sample_template):
 
 def test_ab_testing_get_for_agent(registry, sample_template):
     registry.register(sample_template)
-    v2 = PromptTemplate(id="test-greeting", name="greeting", version="2.0", template="Hello {name}!", system="You are helpful.")
+    v2 = PromptTemplate(
+        id="test-greeting",
+        name="greeting",
+        version="2.0",
+        template="Hello {name}!",
+        system="You are helpful.",
+    )
     registry.register(v2)
     registry.activate("test-greeting", "2.0")
 
@@ -131,7 +159,13 @@ def test_ab_testing_get_for_agent(registry, sample_template):
 
 def test_ab_testing_multiple_agents(registry, sample_template):
     registry.register(sample_template)
-    v2 = PromptTemplate(id="test-greeting", name="greeting", version="2.0", template="Hello {name}!", system="You are helpful.")
+    v2 = PromptTemplate(
+        id="test-greeting",
+        name="greeting",
+        version="2.0",
+        template="Hello {name}!",
+        system="You are helpful.",
+    )
     registry.register(v2)
 
     registry.set_agent_active_version("agent-a", "test-greeting", "1.0")

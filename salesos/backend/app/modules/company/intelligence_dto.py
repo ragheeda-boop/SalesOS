@@ -1,4 +1,5 @@
 """Pydantic models matching the frontend CompanyIntelligenceDTO exactly."""
+
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
@@ -24,10 +25,14 @@ class CompanyDNADTO(BaseModel):
     growthPattern: str = "stable"
     buyingBehaviour: dict = Field(default_factory=lambda: {"score": 0, "intent": "low"})
     technologyProfile: dict = Field(default_factory=dict)
-    financialHealth: dict = Field(default_factory=lambda: {"score": 0, "revenue": 0, "growth": 0, "trend": "stable"})
+    financialHealth: dict = Field(
+        default_factory=lambda: {"score": 0, "revenue": 0, "growth": 0, "trend": "stable"}
+    )
     governmentExposure: dict = Field(default_factory=lambda: {"level": "none", "contracts": 0})
     expansionPotential: dict = Field(default_factory=lambda: {"score": 0, "markets": []})
-    digitalPresence: dict = Field(default_factory=lambda: {"score": 0, "website": "none", "social": "none"})
+    digitalPresence: dict = Field(
+        default_factory=lambda: {"score": 0, "website": "none", "social": "none"}
+    )
     hiringTrend: dict = Field(default_factory=lambda: {"trend": "stable", "openings": 0})
     procurementMaturity: dict = Field(default_factory=lambda: {"score": 0, "level": "initial"})
     relationshipStrength: dict = Field(default_factory=lambda: {"score": 0, "connections": 0})

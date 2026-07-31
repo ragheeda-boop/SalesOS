@@ -1,10 +1,11 @@
 """GroundedBaseAgent tests — execute_grounded with LLM and grounding."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
 from intelligence.agent_base import GroundedBaseAgent
-from intelligence.agents.base import AgentTask, AgentResult, AgentStatus
+from intelligence.agents.base import AgentStatus, AgentTask
 from intelligence.grounding import AgentContext, GroundingService
 
 
@@ -29,7 +30,9 @@ def mock_llm():
     llm = MagicMock()
     llm.client = True
     llm.chat = AsyncMock()
-    llm.chat.return_value = MagicMock(content='{"analysis": "Good", "confidence": 0.9, "evidence": [], "sources": []}')
+    llm.chat.return_value = MagicMock(
+        content='{"analysis": "Good", "confidence": 0.9, "evidence": [], "sources": []}'
+    )
     return llm
 
 

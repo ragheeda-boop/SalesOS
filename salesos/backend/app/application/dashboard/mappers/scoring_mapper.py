@@ -1,8 +1,6 @@
-from datetime import datetime, timezone
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.application.dashboard.dto.dashboard_dto import DecisionQueueData, DecisionItem
+from app.application.dashboard.dto.dashboard_dto import DecisionItem, DecisionQueueData
 
 
 class ScoringMapper:
@@ -27,14 +25,16 @@ class ScoringMapper:
         )
         items = []
         for r in rows.mappings().all():
-            items.append(DecisionItem(
-                id=f"dec_{r['feature_name']}_{r['id']}",
-                companyId=r["id"],
-                companyName=r["name_ar"] or "",
-                type="opportunity",
-                title=f"فرصة: {r['name_ar']} — {r['feature_name']}",
-                priority="high" if r["score"] >= 0.85 else "medium",
-                score=float(r["score"]),
-            ))
+            items.append(
+                DecisionItem(
+                    id=f"dec_{r['feature_name']}_{r['id']}",
+                    companyId=r["id"],
+                    companyName=r["name_ar"] or "",
+                    type="opportunity",
+                    title=f"فرصة: {r['name_ar']} — {r['feature_name']}",
+                    priority="high" if r["score"] >= 0.85 else "medium",
+                    score=float(r["score"]),
+                )
+            )
 
         return DecisionQueueData(items=items, total=len(items))

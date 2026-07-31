@@ -70,7 +70,7 @@ async def list_scenarios(
             offset = int(cursor)
         except (ValueError, TypeError):
             offset = 0
-    sliced = scenarios[offset:offset + limit]
+    sliced = scenarios[offset : offset + limit]
     next_cursor = str(offset + limit) if offset + limit < len(scenarios) else None
     return {"items": sliced, "next_cursor": next_cursor, "total": len(scenarios)}
 
@@ -83,17 +83,25 @@ async def reset_demo(
 ):
     """Reset all demo data and re-seed. Only available when DEMO_MODE is enabled."""
     if not demo_service.enabled:
-        raise HTTPException(status_code=403, detail="Demo mode is not enabled. Set DEMO_MODE=true to use this endpoint.")
+        raise HTTPException(
+            status_code=403,
+            detail="Demo mode is not enabled. Set DEMO_MODE=true to use this endpoint.",
+        )
 
     try:
         from backend.demo.reset import reset_demo_data
+
         data = reset_demo_data()
     except ImportError:
         try:
             from demo.reset import reset_demo_data
+
             data = reset_demo_data()
         except ImportError:
-            raise HTTPException(status_code=500, detail="Demo reset module not found. Ensure backend.demo.reset is importable.")
+            raise HTTPException(
+                status_code=500,
+                detail="Demo reset module not found. Ensure backend.demo.reset is importable.",
+            ) from None
 
     demo_service.reload_demo_data()
 

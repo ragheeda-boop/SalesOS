@@ -27,12 +27,19 @@ async def list_roles(
     repos: AdminRepositories = Depends(get_admin_repos),
 ):
     roles = await repos.roles.get_roles_with_permissions(tenant_id)
-    return [RoleResponse(
-        id=r["id"], name=r["name"], description=r["description"],
-        is_system=r["is_system"], tenant_id=r["tenant_id"],
-        permissions=r["permissions"],
-        created_at=r["created_at"], updated_at=r["updated_at"],
-    ) for r in roles]
+    return [
+        RoleResponse(
+            id=r["id"],
+            name=r["name"],
+            description=r["description"],
+            is_system=r["is_system"],
+            tenant_id=r["tenant_id"],
+            permissions=r["permissions"],
+            created_at=r["created_at"],
+            updated_at=r["updated_at"],
+        )
+        for r in roles
+    ]
 
 
 @router.post("/roles", response_model=RoleResponse, status_code=201)
@@ -55,15 +62,21 @@ async def create_role(body: RoleCreate, repos: AdminRepositories = Depends(get_a
         await repos.roles.set_permissions(role_id, body.permissions)
 
     return RoleResponse(
-        id=created.id, name=created.name, description=created.description,
-        is_system=created.is_system, tenant_id=created.tenant_id,
+        id=created.id,
+        name=created.name,
+        description=created.description,
+        is_system=created.is_system,
+        tenant_id=created.tenant_id,
         permissions=body.permissions,
-        created_at=created.created_at, updated_at=created.updated_at,
+        created_at=created.created_at,
+        updated_at=created.updated_at,
     )
 
 
 @router.put("/roles/{role_id}", response_model=RoleResponse)
-async def update_role(role_id: str, body: RoleUpdate, repos: AdminRepositories = Depends(get_admin_repos)):
+async def update_role(
+    role_id: str, body: RoleUpdate, repos: AdminRepositories = Depends(get_admin_repos)
+):
     data = body.model_dump(exclude_none=True)
     perms = data.pop("permissions", None)
     updated = await repos.roles.update(role_id, data)
@@ -74,10 +87,14 @@ async def update_role(role_id: str, body: RoleUpdate, repos: AdminRepositories =
 
     permissions = await repos.roles.get_permissions(role_id)
     return RoleResponse(
-        id=updated.id, name=updated.name, description=updated.description,
-        is_system=updated.is_system, tenant_id=updated.tenant_id,
+        id=updated.id,
+        name=updated.name,
+        description=updated.description,
+        is_system=updated.is_system,
+        tenant_id=updated.tenant_id,
         permissions=permissions,
-        created_at=updated.created_at, updated_at=updated.updated_at,
+        created_at=updated.created_at,
+        updated_at=updated.updated_at,
     )
 
 
@@ -92,7 +109,13 @@ async def delete_role(role_id: str, repos: AdminRepositories = Depends(get_admin
 @router.get("/permissions", response_model=list[PermissionResponse])
 async def list_permissions(repos: AdminRepositories = Depends(get_admin_repos)):
     perms = await repos.permissions.list()
-    return [PermissionResponse(
-        id=p.id, key=p.key, name=p.name,
-        description=p.description, group=p.group,
-    ) for p in perms]
+    return [
+        PermissionResponse(
+            id=p.id,
+            key=p.key,
+            name=p.name,
+            description=p.description,
+            group=p.group,
+        )
+        for p in perms
+    ]

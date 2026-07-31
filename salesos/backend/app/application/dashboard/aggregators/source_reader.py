@@ -1,9 +1,10 @@
 import asyncio
-from datetime import datetime, timezone
-from typing import Any, Callable
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import Any
 
-from app.application.dashboard.dto.widget_state import WidgetStatus
 from app.application.dashboard.dto.widget_contract import DashboardWidget, WidgetAction
+from app.application.dashboard.dto.widget_state import WidgetStatus
 
 
 class SourceReader:
@@ -13,18 +14,18 @@ class SourceReader:
         self.timeout = timeout
 
     async def read(self, fetcher: Callable[[], Any]) -> DashboardWidget:
-        started = datetime.now(timezone.utc)
+        _ = datetime.now(UTC)
         try:
             data = await asyncio.wait_for(fetcher(), timeout=self.timeout)
             return DashboardWidget(
                 id=self.widget_id,
                 title=self.title,
                 status=WidgetStatus.ready,
-                lastUpdated=datetime.now(timezone.utc),
+                lastUpdated=datetime.now(UTC),
                 data=data.model_dump() if hasattr(data, "model_dump") else data,
                 actions=self._default_actions(),
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return DashboardWidget(
                 id=self.widget_id,
                 title=self.title,

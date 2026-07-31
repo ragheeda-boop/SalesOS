@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -102,7 +102,16 @@ class TestSourcePriority:
         assert SOURCE_PRIORITY["hubspot"] < SOURCE_PRIORITY["apollo"]
 
     def test_all_sources_have_priority(self):
-        expected_sources = {"balady", "ncnp", "taqeem", "rega", "najiz", "socpa", "apollo", "hubspot"}
+        expected_sources = {
+            "balady",
+            "ncnp",
+            "taqeem",
+            "rega",
+            "najiz",
+            "socpa",
+            "apollo",
+            "hubspot",
+        }
         assert set(SOURCE_PRIORITY.keys()) == expected_sources
 
 
@@ -116,9 +125,7 @@ class TestResolveConflictStrategies:
         service.conflict_repo = MagicMock()
         service.conflict_repo.get = AsyncMock(return_value=conflict)
 
-        result = await service.resolve_conflict(
-            str(uuid.uuid4()), "use_source_a"
-        )
+        result = await service.resolve_conflict(str(uuid.uuid4()), "use_source_a")
         assert result.status == "resolved"
         assert result.resolution_strategy == "use_source_a"
 
@@ -140,7 +147,8 @@ class TestResolveConflictStrategies:
         service.golden_repo.get = AsyncMock(return_value=golden)
 
         result = await service.resolve_conflict(
-            str(uuid.uuid4()), "use_source_b",
+            str(uuid.uuid4()),
+            "use_source_b",
             resolved_by=str(uuid.uuid4()),
         )
         assert result.status == "resolved"
@@ -162,7 +170,9 @@ class TestResolveConflictStrategies:
         service.golden_repo.get = AsyncMock(return_value=golden)
 
         result = await service.resolve_conflict(
-            str(uuid.uuid4()), "merge", custom_value="Merged Name",
+            str(uuid.uuid4()),
+            "merge",
+            custom_value="Merged Name",
             resolved_by=str(uuid.uuid4()),
         )
         assert result.status == "resolved"
@@ -185,7 +195,8 @@ class TestResolveConflictStrategies:
         service.golden_repo.get = AsyncMock(return_value=golden)
 
         result = await service.resolve_conflict(
-            str(uuid.uuid4()), "custom",
+            str(uuid.uuid4()),
+            "custom",
             custom_value="new@example.com",
             resolved_by=str(uuid.uuid4()),
         )

@@ -1,18 +1,19 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.routers.notifications import _inmemory_repo as _repo, _ws_manager, create_and_notify, broadcast_notification
+from app.routers.notifications import _inmemory_repo as _repo
+from app.routers.notifications import broadcast_notification, create_and_notify
 from domains.notifications.models import InMemoryNotificationRepository, Notification
 from intelligence.notifications.email import EmailService
 from intelligence.notifications.websocket import WebSocketManager
 
-
 # ── Fixtures ──
+
 
 @pytest.fixture
 def repo():
@@ -51,16 +52,26 @@ def mock_websocket():
 
 # ── Notification Model Tests ──
 
+
 class TestNotificationModel:
     def test_notification_defaults(self):
-        n = Notification(id="n-1", tenant_id="t-1", user_id="u-1", type="alert", title="Test", body="Body")
+        n = Notification(
+            id="n-1", tenant_id="t-1", user_id="u-1", type="alert", title="Test", body="Body"
+        )
         assert n.read is False
         assert n.data == {}
         assert isinstance(n.created_at, datetime)
 
     def test_notification_with_data(self):
-        n = Notification(id="n-1", tenant_id="t-1", user_id="u-1", type="nba", title="NBA", body="Body",
-                         data={"action": "follow_up", "confidence": 0.85})
+        n = Notification(
+            id="n-1",
+            tenant_id="t-1",
+            user_id="u-1",
+            type="nba",
+            title="NBA",
+            body="Body",
+            data={"action": "follow_up", "confidence": 0.85},
+        )
         assert n.data["action"] == "follow_up"
         assert n.data["confidence"] == 0.85
 
@@ -73,7 +84,9 @@ class TestNotificationModel:
 class TestNotificationRepository:
     @pytest.mark.asyncio
     async def test_create_notification(self, repo):
-        n = Notification(id="n-1", tenant_id="t-1", user_id="u-1", type="workflow", title="Test", body="Body")
+        n = Notification(
+            id="n-1", tenant_id="t-1", user_id="u-1", type="workflow", title="Test", body="Body"
+        )
         created = await repo.create(n)
         assert created.id == "n-1"
 
@@ -93,15 +106,26 @@ class TestNotificationRepository:
     @pytest.mark.asyncio
     async def test_list_by_user(self, repo):
         for i in range(3):
-            n = Notification(id=f"n-{i}", tenant_id="t-1", user_id="u-1", type="alert", title=f"Alert {i}", body="Body")
+            n = Notification(
+                id=f"n-{i}",
+                tenant_id="t-1",
+                user_id="u-1",
+                type="alert",
+                title=f"Alert {i}",
+                body="Body",
+            )
             await repo.create(n)
         notifs = await repo.list_by_user("t-1", "u-1")
         assert len(notifs) == 3
 
     @pytest.mark.asyncio
     async def test_list_by_user_tenant_isolation(self, repo):
-        n1 = Notification(id="n-1", tenant_id="t-1", user_id="u-1", type="alert", title="A", body="B")
-        n2 = Notification(id="n-2", tenant_id="t-2", user_id="u-1", type="alert", title="A", body="B")
+        n1 = Notification(
+            id="n-1", tenant_id="t-1", user_id="u-1", type="alert", title="A", body="B"
+        )
+        n2 = Notification(
+            id="n-2", tenant_id="t-2", user_id="u-1", type="alert", title="A", body="B"
+        )
         await repo.create(n1)
         await repo.create(n2)
         t1_notifs = await repo.list_by_user("t-1", "u-1")
@@ -110,7 +134,9 @@ class TestNotificationRepository:
     @pytest.mark.asyncio
     async def test_list_by_user_limit(self, repo):
         for i in range(5):
-            n = Notification(id=f"n-{i}", tenant_id="t-1", user_id="u-1", type="alert", title=f"A{i}", body="B")
+            n = Notification(
+                id=f"n-{i}", tenant_id="t-1", user_id="u-1", type="alert", title=f"A{i}", body="B"
+            )
             await repo.create(n)
         notifs = await repo.list_by_user("t-1", "u-1", limit=2)
         assert len(notifs) == 2
@@ -137,7 +163,9 @@ class TestNotificationRepository:
     @pytest.mark.asyncio
     async def test_mark_all_read(self, repo):
         for i in range(3):
-            n = Notification(id=f"n-{i}", tenant_id="t-1", user_id="u-1", type="alert", title=f"A{i}", body="B")
+            n = Notification(
+                id=f"n-{i}", tenant_id="t-1", user_id="u-1", type="alert", title=f"A{i}", body="B"
+            )
             await repo.create(n)
         count = await repo.mark_all_read("t-1", "u-1")
         assert count == 3
@@ -145,8 +173,12 @@ class TestNotificationRepository:
 
     @pytest.mark.asyncio
     async def test_count_unread(self, repo):
-        n1 = Notification(id="n-1", tenant_id="t-1", user_id="u-1", type="alert", title="A", body="B")
-        n2 = Notification(id="n-2", tenant_id="t-1", user_id="u-1", type="alert", title="A", body="B")
+        n1 = Notification(
+            id="n-1", tenant_id="t-1", user_id="u-1", type="alert", title="A", body="B"
+        )
+        n2 = Notification(
+            id="n-2", tenant_id="t-1", user_id="u-1", type="alert", title="A", body="B"
+        )
         n2.read = True
         await repo.create(n1)
         await repo.create(n2)
@@ -155,10 +187,24 @@ class TestNotificationRepository:
 
     @pytest.mark.asyncio
     async def test_list_sorted_by_date_desc(self, repo):
-        n1 = Notification(id="n-1", tenant_id="t-1", user_id="u-1", type="alert", title="A", body="B",
-                          created_at=datetime(2026, 1, 1, tzinfo=timezone.utc))
-        n2 = Notification(id="n-2", tenant_id="t-1", user_id="u-1", type="alert", title="B", body="B",
-                          created_at=datetime(2026, 6, 1, tzinfo=timezone.utc))
+        n1 = Notification(
+            id="n-1",
+            tenant_id="t-1",
+            user_id="u-1",
+            type="alert",
+            title="A",
+            body="B",
+            created_at=datetime(2026, 1, 1, tzinfo=UTC),
+        )
+        n2 = Notification(
+            id="n-2",
+            tenant_id="t-1",
+            user_id="u-1",
+            type="alert",
+            title="B",
+            body="B",
+            created_at=datetime(2026, 6, 1, tzinfo=UTC),
+        )
         await repo.create(n1)
         await repo.create(n2)
         notifs = await repo.list_by_user("t-1", "u-1")
@@ -167,6 +213,7 @@ class TestNotificationRepository:
 
 
 # ── Email Service Tests ──
+
 
 class TestEmailService:
     def test_not_configured_by_default(self, email_service):
@@ -184,7 +231,13 @@ class TestEmailService:
     def test_send_smtp_success(self, mock_smtp):
         mock_server = MagicMock()
         mock_smtp.return_value.__enter__.return_value = mock_server
-        svc = EmailService(smtp_host="smtp.example.com", smtp_port=465, smtp_user="user", smtp_password="pass", smtp_from="from@example.com")
+        svc = EmailService(
+            smtp_host="smtp.example.com",
+            smtp_port=465,
+            smtp_user="user",
+            smtp_password="pass",
+            smtp_from="from@example.com",
+        )
         result = svc.send("to@example.com", "Test", "Hello")
         assert result is True
         mock_smtp.assert_called_once_with("smtp.example.com", 465)
@@ -193,19 +246,29 @@ class TestEmailService:
     def test_send_smtp_html_body(self, mock_smtp):
         mock_server = MagicMock()
         mock_smtp.return_value.__enter__.return_value = mock_server
-        svc = EmailService(smtp_host="smtp.example.com", smtp_port=465, smtp_user="user", smtp_password="pass", smtp_from="from@example.com")
+        svc = EmailService(
+            smtp_host="smtp.example.com",
+            smtp_port=465,
+            smtp_user="user",
+            smtp_password="pass",
+            smtp_from="from@example.com",
+        )
         result = svc.send("to@example.com", "Test", "Plain", "<h1>HTML</h1>")
         assert result is True
 
     @patch("smtplib.SMTP_SSL")
     def test_send_smtp_failure(self, mock_smtp):
         mock_smtp.return_value.__enter__.side_effect = Exception("Connection failed")
-        svc = EmailService(smtp_host="smtp.example.com", smtp_port=465, smtp_user="user", smtp_password="pass")
+        svc = EmailService(
+            smtp_host="smtp.example.com", smtp_port=465, smtp_user="user", smtp_password="pass"
+        )
         result = svc.send("to@example.com", "Test", "Hello")
         assert result is False
 
     def test_send_template_not_configured(self, email_service):
-        result = email_service.send_template("to@example.com", "workflow_triggered.html", {"workflow_name": "Test"})
+        result = email_service.send_template(
+            "to@example.com", "workflow_triggered.html", {"workflow_name": "Test"}
+        )
         assert result is False
 
     def test_send_template_not_found(self, email_service):
@@ -215,7 +278,11 @@ class TestEmailService:
     @patch.object(EmailService, "send", return_value=True)
     def test_send_template_delegates_to_send(self, mock_send):
         svc = EmailService()
-        result = svc.send_template("to@example.com", "workflow_triggered.html", {"workflow_name": "Test WF", "status": "completed", "triggered_at": "now"})
+        result = svc.send_template(
+            "to@example.com",
+            "workflow_triggered.html",
+            {"workflow_name": "Test WF", "status": "completed", "triggered_at": "now"},
+        )
         assert result is True
         mock_send.assert_called_once()
 
@@ -238,6 +305,7 @@ class TestEmailService:
 
 
 # ── WebSocket Manager Tests ──
+
 
 class TestWebSocketManager:
     @pytest.mark.asyncio
@@ -316,6 +384,7 @@ class TestWebSocketManager:
     async def test_cleanup_stale(self, ws_manager, mock_websocket):
         await ws_manager.connect(mock_websocket, "t-1", "u-1")
         import time
+
         for info in ws_manager._connections.values():
             info["last_active"] = time.time() - 120
         cleaned = await ws_manager.cleanup_stale()
@@ -335,6 +404,7 @@ class TestWebSocketManager:
 
 # ── Integration: create_and_notify ──
 
+
 class TestCreateAndNotify:
     @pytest.mark.asyncio
     async def test_create_and_notify_creates_notification(self):
@@ -353,12 +423,15 @@ class TestCreateAndNotify:
 
     @pytest.mark.asyncio
     async def test_broadcast_notification(self):
-        n = await broadcast_notification("t-1", "alert", "System Alert", "Something happened", {"severity": "high"})
+        n = await broadcast_notification(
+            "t-1", "alert", "System Alert", "Something happened", {"severity": "high"}
+        )
         assert n.type == "alert"
         assert n.data["severity"] == "high"
 
 
 # ── Integration: WebSocket payload format ──
+
 
 class TestWebSocketPayload:
     @pytest.mark.asyncio

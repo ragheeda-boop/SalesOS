@@ -8,9 +8,8 @@ Endpoints:
 """
 
 import time
-from typing import Any
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 from fastapi.responses import PlainTextResponse
 
 from app.common.metrics import metrics
@@ -66,7 +65,11 @@ def _categorize_path(path: str) -> str | None:
         return "health"
     if path.startswith("/api/v1/identity") or path.startswith("/api/v1/sso"):
         return "auth"
-    if path.startswith("/api/v1/enrich") or path.startswith("/api/v1/ai") or path.startswith("/api/v1/data-fabric"):
+    if (
+        path.startswith("/api/v1/enrich")
+        or path.startswith("/api/v1/ai")
+        or path.startswith("/api/v1/data-fabric")
+    ):
         return "enrichment"
     if path.startswith("/api/v1/search"):
         return "critical_path"
@@ -96,6 +99,7 @@ async def prometheus_metrics():
 async def db_pool_metrics():
     """Expose database connection pool metrics."""
     from app.database import get_pool_metrics
+
     pool = get_pool_metrics()
     collector.track_db_pool(
         pool.get("checked_out", 0),
@@ -110,13 +114,15 @@ async def db_pool_metrics():
 async def app_metrics():
     """Application-level metrics: WS connections, cache stats, NBA timing."""
     from app.routers.notifications import _ws_manager
+
     ws_metrics = await _ws_manager.get_metrics()
     return {
         "websocket": ws_metrics,
         "cache": {
             "hits": collector._cache_hits,
             "misses": collector._cache_misses,
-            "hit_ratio": collector._cache_hits / max(1, collector._cache_hits + collector._cache_misses),
+            "hit_ratio": collector._cache_hits
+            / max(1, collector._cache_hits + collector._cache_misses),
         },
         "errors": {
             "http_5xx": collector._error_count.get("http_5xx", 0),

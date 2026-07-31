@@ -109,7 +109,9 @@ class TestMeetingBriefTenantIsolation:
         await _ensure_company_signals_table(db_session)
         await assert_cross_tenant_read_blocked(
             create_as=lambda tenant_id: _create_opportunity_as(tenant_id, db_session),
-            read_as=lambda opportunity_id, tenant_id: _read_brief_as(opportunity_id, tenant_id, db_session),
+            read_as=lambda opportunity_id, tenant_id: _read_brief_as(
+                opportunity_id, tenant_id, db_session
+            ),
             # generate_brief() also queries contacts.tenant_id, a real `uuid`
             # column (unlike commercial_opportunities.tenant_id, which is
             # varchar) — the harness's plain-string defaults aren't valid

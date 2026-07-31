@@ -1,20 +1,20 @@
 """Tests for Workflow Engine — models, repository, engine, conditions, templates."""
+
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, patch
 import uuid
+from datetime import datetime
 
 import pytest
 
-from domains.workflow.models import Workflow, WorkflowStep, WorkflowExecution, WorkflowExecutionStep
-from domains.workflow.repository import InMemoryWorkflowRepository
 from domains.workflow.engine import WorkflowEngine, _eval_condition, _resolve_config
+from domains.workflow.models import Workflow, WorkflowExecution, WorkflowExecutionStep, WorkflowStep
+from domains.workflow.repository import InMemoryWorkflowRepository
 from domains.workflow.templates import WORKFLOW_TEMPLATES
 
-
 # ── Fixtures ──
+
 
 @pytest.fixture
 def repo():
@@ -35,15 +35,26 @@ def _wf(tenant_id: str = "tenant-1", status: str = "active") -> Workflow:
         trigger_type="manual",
     )
     wf.steps = [
-        WorkflowStep(id=uuid.uuid4().hex[:12], workflow_id=wf.id, step_type="send_email",
-                     config={"to": "test@example.com", "subject": "Hello", "body": "Test body"}, order=0),
-        WorkflowStep(id=uuid.uuid4().hex[:12], workflow_id=wf.id, step_type="create_task",
-                     config={"title": "Test Task", "assignee": "user-1"}, order=1),
+        WorkflowStep(
+            id=uuid.uuid4().hex[:12],
+            workflow_id=wf.id,
+            step_type="send_email",
+            config={"to": "test@example.com", "subject": "Hello", "body": "Test body"},
+            order=0,
+        ),
+        WorkflowStep(
+            id=uuid.uuid4().hex[:12],
+            workflow_id=wf.id,
+            step_type="create_task",
+            config={"title": "Test Task", "assignee": "user-1"},
+            order=1,
+        ),
     ]
     return wf
 
 
 # ── Model Tests ──
+
 
 class TestWorkflowModels:
     def test_workflow_defaults(self):
@@ -67,13 +78,16 @@ class TestWorkflowModels:
         assert ex.step_results == []
 
     def test_workflow_execution_step_defaults(self):
-        es = WorkflowExecutionStep(id="es-1", execution_id="ex-1", step_id="s-1", step_type="send_email")
+        es = WorkflowExecutionStep(
+            id="es-1", execution_id="ex-1", step_id="s-1", step_type="send_email"
+        )
         assert es.status == "pending"
         assert es.result is None
         assert es.error is None
 
 
 # ── Repository Tests ──
+
 
 class TestWorkflowRepository:
     @pytest.mark.asyncio
@@ -158,14 +172,19 @@ class TestWorkflowRepository:
 
     @pytest.mark.asyncio
     async def test_list_executions_filtered_by_workflow(self, repo):
-        await repo.create_execution(WorkflowExecution(id="ex-1", workflow_id="wf-1", tenant_id="t-1"))
-        await repo.create_execution(WorkflowExecution(id="ex-2", workflow_id="wf-2", tenant_id="t-1"))
+        await repo.create_execution(
+            WorkflowExecution(id="ex-1", workflow_id="wf-1", tenant_id="t-1")
+        )
+        await repo.create_execution(
+            WorkflowExecution(id="ex-2", workflow_id="wf-2", tenant_id="t-1")
+        )
         filtered = await repo.list_executions("t-1", workflow_id="wf-1")
         assert len(filtered) == 1
         assert filtered[0].id == "ex-1"
 
 
 # ── Engine Tests ──
+
 
 class TestWorkflowEngine:
     @pytest.mark.asyncio
@@ -199,24 +218,32 @@ class TestWorkflowEngine:
         executions = [await engine.execute(wf, {}) for _ in range(50)]
 
         ids = [e.id for e in executions]
-        assert len(ids) == len(set(ids)), "duplicate execution id generated under rapid sequential execution"
+        assert len(ids) == len(
+            set(ids)
+        ), "duplicate execution id generated under rapid sequential execution"
 
         stored = await repo.list_executions("tenant-1", wf.id)
-        assert len(stored) == 50, "collided ids caused executions to overwrite each other in the repository"
+        assert (
+            len(stored) == 50
+        ), "collided ids caused executions to overwrite each other in the repository"
 
     @pytest.mark.asyncio
     async def test_execution_ids_unique_under_concurrent_execution(self, engine, repo):
-        """R-12 regression, concurrent variant: truly simultaneous executes must not collide either."""
+        """R-12 regression, concurrent variant: truly simultaneous executes must not collide either."""  # noqa: E501
         wf = _wf()
         await repo.create(wf)
 
         executions = await asyncio.gather(*(engine.execute(wf, {}) for _ in range(50)))
 
         ids = [e.id for e in executions]
-        assert len(ids) == len(set(ids)), "duplicate execution id generated under concurrent execution"
+        assert len(ids) == len(
+            set(ids)
+        ), "duplicate execution id generated under concurrent execution"
 
         stored = await repo.list_executions("tenant-1", wf.id)
-        assert len(stored) == 50, "collided ids caused executions to overwrite each other in the repository"
+        assert (
+            len(stored) == 50
+        ), "collided ids caused executions to overwrite each other in the repository"
 
     @pytest.mark.asyncio
     async def test_execution_step_ids_unique_within_single_run(self, engine, repo):
@@ -231,7 +258,9 @@ class TestWorkflowEngine:
         execution = await engine.execute(wf, {})
 
         step_ids = [sr.id for sr in execution.step_results]
-        assert len(step_ids) == len(set(step_ids)), "duplicate step result id generated within one execution"
+        assert len(step_ids) == len(
+            set(step_ids)
+        ), "duplicate step result id generated within one execution"
 
     @pytest.mark.asyncio
     async def test_execute_workflow_updates_execution_status(self, engine, repo):
@@ -249,8 +278,13 @@ class TestWorkflowEngine:
     async def test_execute_create_task_step(self, engine, repo):
         wf = _wf(status="active")
         wf.steps = [
-            WorkflowStep(id="s1", workflow_id=wf.id, step_type="create_task",
-                         config={"title": "My Task", "assignee": "user-1", "description": "Do it"}, order=0),
+            WorkflowStep(
+                id="s1",
+                workflow_id=wf.id,
+                step_type="create_task",
+                config={"title": "My Task", "assignee": "user-1", "description": "Do it"},
+                order=0,
+            ),
         ]
         await repo.create(wf)
         execution = await engine.execute(wf, {})
@@ -262,9 +296,17 @@ class TestWorkflowEngine:
     async def test_execute_update_crm_step(self, engine, repo):
         wf = _wf(status="active")
         wf.steps = [
-            WorkflowStep(id="s1", workflow_id=wf.id, step_type="update_crm",
-                         config={"entity": "opportunity", "entity_id": "opp-1",
-                                 "fields": {"stage": "closed_won"}}, order=0),
+            WorkflowStep(
+                id="s1",
+                workflow_id=wf.id,
+                step_type="update_crm",
+                config={
+                    "entity": "opportunity",
+                    "entity_id": "opp-1",
+                    "fields": {"stage": "closed_won"},
+                },
+                order=0,
+            ),
         ]
         await repo.create(wf)
         execution = await engine.execute(wf, {})
@@ -276,8 +318,13 @@ class TestWorkflowEngine:
     async def test_execute_webhook_step(self, engine, repo):
         wf = _wf(status="active")
         wf.steps = [
-            WorkflowStep(id="s1", workflow_id=wf.id, step_type="webhook",
-                         config={"url": "https://hooks.example.com/notify", "method": "POST"}, order=0),
+            WorkflowStep(
+                id="s1",
+                workflow_id=wf.id,
+                step_type="webhook",
+                config={"url": "https://hooks.example.com/notify", "method": "POST"},
+                order=0,
+            ),
         ]
         await repo.create(wf)
         execution = await engine.execute(wf, {})
@@ -288,8 +335,13 @@ class TestWorkflowEngine:
     async def test_execute_nba_recommend_step(self, engine, repo):
         wf = _wf(status="active")
         wf.steps = [
-            WorkflowStep(id="s1", workflow_id=wf.id, step_type="nba_recommend",
-                         config={"action": "follow_up", "reason": "High interest detected"}, order=0),
+            WorkflowStep(
+                id="s1",
+                workflow_id=wf.id,
+                step_type="nba_recommend",
+                config={"action": "follow_up", "reason": "High interest detected"},
+                order=0,
+            ),
         ]
         await repo.create(wf)
         execution = await engine.execute(wf, {})
@@ -300,8 +352,13 @@ class TestWorkflowEngine:
     async def test_execute_send_email_step(self, engine, repo):
         wf = _wf(status="active")
         wf.steps = [
-            WorkflowStep(id="s1", workflow_id=wf.id, step_type="send_email",
-                         config={"to": "user@example.com", "subject": "Alert", "body": "Hello"}, order=0),
+            WorkflowStep(
+                id="s1",
+                workflow_id=wf.id,
+                step_type="send_email",
+                config={"to": "user@example.com", "subject": "Alert", "body": "Hello"},
+                order=0,
+            ),
         ]
         await repo.create(wf)
         execution = await engine.execute(wf, {})
@@ -312,8 +369,13 @@ class TestWorkflowEngine:
     async def test_send_email_missing_to_fails(self, engine, repo):
         wf = _wf(status="active")
         wf.steps = [
-            WorkflowStep(id="s1", workflow_id=wf.id, step_type="send_email",
-                         config={"subject": "No to"}, order=0),
+            WorkflowStep(
+                id="s1",
+                workflow_id=wf.id,
+                step_type="send_email",
+                config={"subject": "No to"},
+                order=0,
+            ),
         ]
         await repo.create(wf)
         execution = await engine.execute(wf, {})
@@ -324,8 +386,13 @@ class TestWorkflowEngine:
     async def test_update_crm_missing_entity_id_fails(self, engine, repo):
         wf = _wf(status="active")
         wf.steps = [
-            WorkflowStep(id="s1", workflow_id=wf.id, step_type="update_crm",
-                         config={"entity": "opportunity"}, order=0),
+            WorkflowStep(
+                id="s1",
+                workflow_id=wf.id,
+                step_type="update_crm",
+                config={"entity": "opportunity"},
+                order=0,
+            ),
         ]
         await repo.create(wf)
         execution = await engine.execute(wf, {})
@@ -336,8 +403,13 @@ class TestWorkflowEngine:
     async def test_create_task_missing_title_fails(self, engine, repo):
         wf = _wf(status="active")
         wf.steps = [
-            WorkflowStep(id="s1", workflow_id=wf.id, step_type="create_task",
-                         config={"assignee": "user-1"}, order=0),
+            WorkflowStep(
+                id="s1",
+                workflow_id=wf.id,
+                step_type="create_task",
+                config={"assignee": "user-1"},
+                order=0,
+            ),
         ]
         await repo.create(wf)
         execution = await engine.execute(wf, {})
@@ -359,9 +431,17 @@ class TestWorkflowEngine:
     async def test_context_resolved_in_config(self, engine, repo):
         wf = _wf(status="active")
         wf.steps = [
-            WorkflowStep(id="s1", workflow_id=wf.id, step_type="send_email",
-                         config={"to": "{{context.user_email}}", "subject": "Hi {{context.name}}", "body": "OK"},
-                         order=0),
+            WorkflowStep(
+                id="s1",
+                workflow_id=wf.id,
+                step_type="send_email",
+                config={
+                    "to": "{{context.user_email}}",
+                    "subject": "Hi {{context.name}}",
+                    "body": "OK",
+                },
+                order=0,
+            ),
         ]
         await repo.create(wf)
         execution = await engine.execute(wf, {"user_email": "user@co.com", "name": "Alice"})
@@ -373,10 +453,20 @@ class TestWorkflowEngine:
     async def test_steps_execute_in_order(self, engine, repo):
         wf = _wf(status="active")
         wf.steps = [
-            WorkflowStep(id="s1", workflow_id=wf.id, step_type="create_task",
-                         config={"title": "First"}, order=1),
-            WorkflowStep(id="s2", workflow_id=wf.id, step_type="create_task",
-                         config={"title": "Zero"}, order=0),
+            WorkflowStep(
+                id="s1",
+                workflow_id=wf.id,
+                step_type="create_task",
+                config={"title": "First"},
+                order=1,
+            ),
+            WorkflowStep(
+                id="s2",
+                workflow_id=wf.id,
+                step_type="create_task",
+                config={"title": "Zero"},
+                order=0,
+            ),
         ]
         await repo.create(wf)
         execution = await engine.execute(wf, {})
@@ -386,14 +476,20 @@ class TestWorkflowEngine:
 
 # ── Condition Tests ──
 
+
 class TestStepConditions:
     @pytest.mark.asyncio
     async def test_condition_true_executes_step(self, engine, repo):
         wf = _wf(status="active")
         wf.steps = [
-            WorkflowStep(id="s1", workflow_id=wf.id, step_type="create_task",
-                         config={"title": "Conditional"}, order=0,
-                         condition="context.amount > 1000"),
+            WorkflowStep(
+                id="s1",
+                workflow_id=wf.id,
+                step_type="create_task",
+                config={"title": "Conditional"},
+                order=0,
+                condition="context.amount > 1000",
+            ),
         ]
         await repo.create(wf)
         execution = await engine.execute(wf, {"amount": 5000})
@@ -403,9 +499,14 @@ class TestStepConditions:
     async def test_condition_false_skips_step(self, engine, repo):
         wf = _wf(status="active")
         wf.steps = [
-            WorkflowStep(id="s1", workflow_id=wf.id, step_type="create_task",
-                         config={"title": "Conditional"}, order=0,
-                         condition="context.amount > 1000"),
+            WorkflowStep(
+                id="s1",
+                workflow_id=wf.id,
+                step_type="create_task",
+                config={"title": "Conditional"},
+                order=0,
+                condition="context.amount > 1000",
+            ),
         ]
         await repo.create(wf)
         execution = await engine.execute(wf, {"amount": 500})
@@ -443,13 +544,29 @@ class TestStepConditions:
 
     @pytest.mark.asyncio
     async def test_condition_in_list(self):
-        assert _eval_condition("context.stage in [closed_won,closed_lost]", {"stage": "closed_won"}) is True
-        assert _eval_condition("context.stage in [closed_won,closed_lost]", {"stage": "negotiation"}) is False
+        assert (
+            _eval_condition("context.stage in [closed_won,closed_lost]", {"stage": "closed_won"})
+            is True
+        )
+        assert (
+            _eval_condition("context.stage in [closed_won,closed_lost]", {"stage": "negotiation"})
+            is False
+        )
 
     @pytest.mark.asyncio
     async def test_condition_not_in_list(self):
-        assert _eval_condition("context.stage not in [closed_won,closed_lost]", {"stage": "negotiation"}) is True
-        assert _eval_condition("context.stage not in [closed_won,closed_lost]", {"stage": "closed_won"}) is False
+        assert (
+            _eval_condition(
+                "context.stage not in [closed_won,closed_lost]", {"stage": "negotiation"}
+            )
+            is True
+        )
+        assert (
+            _eval_condition(
+                "context.stage not in [closed_won,closed_lost]", {"stage": "closed_won"}
+            )
+            is False
+        )
 
     @pytest.mark.asyncio
     async def test_no_condition_always_executes(self):
@@ -473,6 +590,7 @@ class TestStepConditions:
 
 
 # ── Template Tests ──
+
 
 class TestWorkflowTemplates:
     def test_templates_defined(self):
@@ -513,16 +631,26 @@ class TestWorkflowTemplates:
     async def test_lost_deal_condition_skips_email(self, engine, repo):
         tpl = WORKFLOW_TEMPLATES["lost_deal_analysis"]
         wf = Workflow(
-            id=uuid.uuid4().hex[:12], tenant_id="t-1", name=tpl.name,
-            status="active", trigger_type=tpl.trigger_type, steps=tpl.steps,
+            id=uuid.uuid4().hex[:12],
+            tenant_id="t-1",
+            name=tpl.name,
+            status="active",
+            trigger_type=tpl.trigger_type,
+            steps=tpl.steps,
         )
         for s in wf.steps:
             s.workflow_id = wf.id
         await repo.create(wf)
 
-        execution = await engine.execute(wf, {
-            "deal_name": "Small Deal", "amount": 500, "owner": "u1", "manager_email": "m@co.com",
-        })
+        execution = await engine.execute(
+            wf,
+            {
+                "deal_name": "Small Deal",
+                "amount": 500,
+                "owner": "u1",
+                "manager_email": "m@co.com",
+            },
+        )
         # Step 0 (create_task) completes, Step 1 (send_email) skipped because amount < 10000
         assert execution.step_results[0].status == "completed"
         assert execution.step_results[1].status == "skipped"
@@ -532,16 +660,26 @@ class TestWorkflowTemplates:
     async def test_lost_deal_condition_sends_email(self, engine, repo):
         tpl = WORKFLOW_TEMPLATES["lost_deal_analysis"]
         wf = Workflow(
-            id=uuid.uuid4().hex[:12], tenant_id="t-1", name=tpl.name,
-            status="active", trigger_type=tpl.trigger_type, steps=tpl.steps,
+            id=uuid.uuid4().hex[:12],
+            tenant_id="t-1",
+            name=tpl.name,
+            status="active",
+            trigger_type=tpl.trigger_type,
+            steps=tpl.steps,
         )
         for s in wf.steps:
             s.workflow_id = wf.id
         await repo.create(wf)
 
-        execution = await engine.execute(wf, {
-            "deal_name": "Big Deal", "amount": 50000, "owner": "u1", "manager_email": "m@co.com",
-        })
+        execution = await engine.execute(
+            wf,
+            {
+                "deal_name": "Big Deal",
+                "amount": 50000,
+                "owner": "u1",
+                "manager_email": "m@co.com",
+            },
+        )
         assert execution.step_results[0].status == "completed"
         assert execution.step_results[1].status == "completed"
 

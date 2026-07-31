@@ -1,18 +1,17 @@
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.application.dashboard.dto.dashboard_dto import (
-    DashboardDTO, MissionCenterData, DecisionQueueData, IntelligenceFeedData,
-    AIBriefData, MarketPulseData, RecentActivityData,
-)
 from app.application.dashboard.aggregators.source_reader import SourceReader
+from app.application.dashboard.dto.dashboard_dto import (
+    DashboardDTO,
+)
+from app.application.dashboard.mappers.ai_mapper import AIMapper
 from app.application.dashboard.mappers.company_mapper import CompanyMapper
+from app.application.dashboard.mappers.scoring_mapper import ScoringMapper
 from app.application.dashboard.mappers.signal_mapper import SignalMapper
 from app.application.dashboard.mappers.timeline_mapper import TimelineMapper
-from app.application.dashboard.mappers.scoring_mapper import ScoringMapper
-from app.application.dashboard.mappers.ai_mapper import AIMapper
 from app.application.dashboard.queries.get_dashboard_query import DashboardQuery
 
 
@@ -28,7 +27,7 @@ class DashboardAggregator:
 
     async def aggregate(self, query: DashboardQuery) -> DashboardDTO:
         requested = query.fields
-        sources = {}
+        _ = {}
 
         tasks = {}
 
@@ -59,20 +58,26 @@ class DashboardAggregator:
         results = {}
         if tasks:
             done = await asyncio.gather(*tasks.values(), return_exceptions=True)
-            for key, result in zip(tasks.keys(), done):
+            for key, result in zip(tasks.keys(), done, strict=False):
                 if isinstance(result, Exception):
+                    from app.application.dashboard.dto.widget_contract import (
+                        DashboardWidget,
+                        WidgetAction,
+                    )
                     from app.application.dashboard.dto.widget_state import WidgetStatus
-                    from app.application.dashboard.dto.widget_contract import DashboardWidget, WidgetAction
+
                     results[key] = DashboardWidget(
-                        id=key, title=key.replace("-", " ").title(),
-                        status=WidgetStatus.error, data=None,
+                        id=key,
+                        title=key.replace("-", " ").title(),
+                        status=WidgetStatus.error,
+                        data=None,
                         actions=[WidgetAction(id=f"{key}.refresh", label="Retry", type="refresh")],
                     )
                 else:
                     results[key] = result
 
         return DashboardDTO(
-            generatedAt=datetime.now(timezone.utc),
+            generatedAt=datetime.now(UTC),
             period=query.period,
             totalTracked=0,
             missionCenter=results.get("missionCenter"),

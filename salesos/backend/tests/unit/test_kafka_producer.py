@@ -38,11 +38,13 @@ async def test_start_producer_success() -> None:
 @pytest.mark.asyncio
 async def test_start_producer_import_error() -> None:
     producer = KafkaProducer(bootstrap_servers="localhost:9092")
-    with patch.dict("sys.modules", {"aiokafka": None}):
-        with patch("builtins.__import__", side_effect=ImportError):
-            ok = await producer.start()
-            assert ok is False
-            assert producer.is_connected is False
+    with (
+        patch.dict("sys.modules", {"aiokafka": None}),
+        patch("builtins.__import__", side_effect=ImportError),
+    ):  # noqa: E501
+        ok = await producer.start()
+        assert ok is False
+        assert producer.is_connected is False
 
 
 @pytest.mark.asyncio
@@ -140,7 +142,14 @@ async def test_metrics_snapshot() -> None:
     event2 = DomainEvent(
         event_type="opportunity.created",
         tenant_id="t1",
-        data={"opportunity_id": "o1", "company_id": "c1", "tenant_id": "t1", "name": "Deal", "value": 100000, "stage": "qualification"},
+        data={
+            "opportunity_id": "o1",
+            "company_id": "c1",
+            "tenant_id": "t1",
+            "name": "Deal",
+            "value": 100000,
+            "stage": "qualification",
+        },
     )
 
     await producer.publish(event1)

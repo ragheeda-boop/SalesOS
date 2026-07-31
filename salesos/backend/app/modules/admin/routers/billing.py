@@ -35,14 +35,21 @@ async def list_invoices(
     db: AsyncSession = Depends(get_db_session),
 ):
     invoices = await repos.invoices.list_invoices(tenant_id)
-    return [InvoiceResponse(
-        id=inv.id, tenant_id=inv.tenant_id,
-        tenant_name=await _resolve_tenant_name(db, str(inv.tenant_id)),
-        amount=inv.amount, currency=inv.currency,
-        status=inv.status, description=inv.description,
-        due_date=inv.due_date, paid_at=inv.paid_at,
-        created_at=inv.created_at,
-    ) for inv in invoices]
+    return [
+        InvoiceResponse(
+            id=inv.id,
+            tenant_id=inv.tenant_id,
+            tenant_name=await _resolve_tenant_name(db, str(inv.tenant_id)),
+            amount=inv.amount,
+            currency=inv.currency,
+            status=inv.status,
+            description=inv.description,
+            due_date=inv.due_date,
+            paid_at=inv.paid_at,
+            created_at=inv.created_at,
+        )
+        for inv in invoices
+    ]
 
 
 @router.get("/billing/transactions", response_model=list[TransactionResponse])
@@ -52,11 +59,18 @@ async def list_transactions(
     db: AsyncSession = Depends(get_db_session),
 ):
     txs = await repos.invoices.list_transactions(tenant_id)
-    return [TransactionResponse(
-        id=tx.id, tenant_id=tx.tenant_id,
-        tenant_name=await _resolve_tenant_name(db, str(tx.tenant_id)),
-        amount=tx.amount, currency=tx.currency,
-        status=tx.status, method=tx.method,
-        description=tx.description, reference=tx.reference,
-        created_at=tx.created_at,
-    ) for tx in txs]
+    return [
+        TransactionResponse(
+            id=tx.id,
+            tenant_id=tx.tenant_id,
+            tenant_name=await _resolve_tenant_name(db, str(tx.tenant_id)),
+            amount=tx.amount,
+            currency=tx.currency,
+            status=tx.status,
+            method=tx.method,
+            description=tx.description,
+            reference=tx.reference,
+            created_at=tx.created_at,
+        )
+        for tx in txs
+    ]

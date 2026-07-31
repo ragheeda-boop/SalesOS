@@ -1,10 +1,12 @@
 """Integration tests for company-level Entity Resolution pipeline."""
 
 import uuid
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.company.models import Company, Contact, Branch, License
+from app.common.exceptions import NotFoundError
+from app.modules.company.models import Branch, Company, Contact, License
 from app.modules.entity_resolution.service import EntityResolutionService
 
 
@@ -25,19 +27,22 @@ async def _create_company(db: AsyncSession, tenant_id: str, **kwargs) -> Company
 @pytest.mark.asyncio
 async def test_find_duplicates_by_domain(db_session: AsyncSession, test_tenant: str):
     c1 = await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Acme Corp",
         cr_number="CR-DOM-001",
         email="info@acme.com",
     )
     c2 = await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Acme Saudi",
         cr_number="CR-DOM-002",
         email="contact@acme.com",
     )
     await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Other Corp",
         cr_number="CR-DOM-003",
         email="info@other.com",
@@ -61,7 +66,8 @@ async def test_find_duplicates_by_domain(db_session: AsyncSession, test_tenant: 
 @pytest.mark.asyncio
 async def test_find_duplicates_by_cr(db_session: AsyncSession, test_tenant: str):
     c1 = await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Unique Co",
         cr_number="CR-UNIQUE-123",
     )
@@ -82,12 +88,14 @@ async def test_find_duplicates_by_cr(db_session: AsyncSession, test_tenant: str)
 @pytest.mark.asyncio
 async def test_find_duplicates_by_name(db_session: AsyncSession, test_tenant: str):
     await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="شركة أكما للتقنية",
         cr_number="CR-NAME-001",
     )
     await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="أكما تك",
         cr_number="CR-NAME-002",
     )
@@ -99,7 +107,7 @@ async def test_find_duplicates_by_name(db_session: AsyncSession, test_tenant: st
         name="أكما",
     )
 
-    match_names = {c["company_name"] for c in candidates}
+    _ = {c["company_name"] for c in candidates}
     assert len(candidates) >= 1
     for c in candidates:
         assert c["match_score"] > 0.3
@@ -108,19 +116,22 @@ async def test_find_duplicates_by_name(db_session: AsyncSession, test_tenant: st
 @pytest.mark.asyncio
 async def test_merge_companies_moves_relations(db_session: AsyncSession, test_tenant: str):
     source = await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Source Co",
         cr_number="CR-MRG-001",
         email="info@source.com",
     )
     target = await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Target Co",
         cr_number="CR-MRG-002",
         email="info@target.com",
     )
 
     contact = Contact(
+        tenant_id=uuid.UUID(test_tenant),
         company_id=source.id,
         name="John Doe",
         email="john@source.com",
@@ -176,19 +187,21 @@ async def test_merge_companies_moves_relations(db_session: AsyncSession, test_te
 @pytest.mark.asyncio
 async def test_merge_archives_source(db_session: AsyncSession, test_tenant: str):
     source = await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Archive Me",
         cr_number="CR-ARCH-001",
     )
     target = await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Keep Me",
         cr_number="CR-ARCH-002",
     )
     await db_session.flush()
 
     service = EntityResolutionService(db_session)
-    result = await service.merge_companies(
+    _ = await service.merge_companies(
         source_id=str(source.id),
         target_id=str(target.id),
         tenant_id=test_tenant,
@@ -206,13 +219,15 @@ async def test_merge_archives_source(db_session: AsyncSession, test_tenant: str)
 @pytest.mark.asyncio
 async def test_merge_preserves_target_data(db_session: AsyncSession, test_tenant: str):
     source = await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Source",
         cr_number="CR-PRES-001",
         source_ids=["balady"],
     )
     target = await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Target",
         cr_number="CR-PRES-002",
         source_ids=["ncnp"],
@@ -238,7 +253,7 @@ async def test_merge_rejects_missing_company(db_session: AsyncSession, test_tena
     service = EntityResolutionService(db_session)
     fake_source = str(uuid.uuid4())
     fake_target = str(uuid.uuid4())
-    with pytest.raises(Exception):
+    with pytest.raises(NotFoundError):
         await service.merge_companies(
             source_id=fake_source,
             target_id=fake_target,
@@ -249,19 +264,22 @@ async def test_merge_rejects_missing_company(db_session: AsyncSession, test_tena
 @pytest.mark.asyncio
 async def test_find_duplicates_for_company(db_session: AsyncSession, test_tenant: str):
     c1 = await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Find Me Dup",
         cr_number="CR-FIND-001",
         email="dup@findme.com",
     )
     await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Find Me Dup Saudi",
         cr_number="CR-FIND-002",
         email="dup@findme.com",
     )
     await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Unrelated Corp",
         cr_number="CR-FIND-003",
         email="info@unrelated.com",
@@ -281,12 +299,14 @@ async def test_find_duplicates_for_company(db_session: AsyncSession, test_tenant
 @pytest.mark.asyncio
 async def test_merge_moves_opportunities(db_session: AsyncSession, test_tenant: str):
     source = await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Opp Source",
         cr_number="CR-OPP-001",
     )
     target = await _create_company(
-        db_session, test_tenant,
+        db_session,
+        test_tenant,
         name_ar="Opp Target",
         cr_number="CR-OPP-002",
     )
@@ -299,6 +319,8 @@ async def test_merge_moves_opportunities(db_session: AsyncSession, test_tenant: 
         tenant_id=test_tenant,
     )
 
-    assert "opportunities" in result["merged_fields"] or "opportunities" not in result["merged_fields"]
+    assert (
+        "opportunities" in result["merged_fields"] or "opportunities" not in result["merged_fields"]
+    )
     await db_session.refresh(source)
     assert source.is_active is False

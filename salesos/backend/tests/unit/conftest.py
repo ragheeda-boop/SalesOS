@@ -1,4 +1,5 @@
 """Unit test conftest — overrides root conftest's DB setup with no-op."""
+
 import os
 from pathlib import Path
 

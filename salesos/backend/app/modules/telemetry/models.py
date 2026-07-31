@@ -16,4 +16,6 @@ class TelemetryEvent(Base):
     event_type: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     properties: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=dict)
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )

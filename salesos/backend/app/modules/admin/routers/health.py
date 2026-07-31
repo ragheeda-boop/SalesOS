@@ -28,10 +28,15 @@ async def get_detailed_health(repos: AdminRepositories = Depends(get_admin_repos
 
 
 @router.get("/health/history", response_model=list[HealthHistoryEntry])
-async def get_health_history(hours: int = Query(24, ge=1, le=168), repos: AdminRepositories = Depends(get_admin_repos)):
+async def get_health_history(
+    hours: int = Query(24, ge=1, le=168), repos: AdminRepositories = Depends(get_admin_repos)
+):
     history = await repos.health.get_history(hours=hours)
-    return [HealthHistoryEntry(
-        timestamp=h.timestamp,
-        overall_status=h.overall_status,
-        components=h.components,
-    ) for h in history]
+    return [
+        HealthHistoryEntry(
+            timestamp=h.timestamp,
+            overall_status=h.overall_status,
+            components=h.components,
+        )
+        for h in history
+    ]

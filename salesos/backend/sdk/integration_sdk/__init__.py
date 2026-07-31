@@ -9,9 +9,9 @@ Provides:
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Optional
 
 
 class AuthType(str, Enum):
@@ -42,11 +42,11 @@ class WebhookDefinition:
     id: str
     name: str
     direction: IntegrationDirection = IntegrationDirection.INBOUND
-    url: Optional[str] = None  # For outbound: target URL
+    url: str | None = None  # For outbound: target URL
     events: list[str] = field(default_factory=list)  # Event IDs to subscribe to
     auth: AuthConfig = field(default_factory=AuthConfig)
-    mapper: Optional[Callable] = None  # Data transformation function
-    schema: Optional[dict] = None  # Expected payload schema
+    mapper: Callable | None = None  # Data transformation function
+    schema: dict | None = None  # Expected payload schema
 
     def to_dict(self) -> dict:
         return {

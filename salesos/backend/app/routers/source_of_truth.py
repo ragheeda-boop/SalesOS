@@ -25,22 +25,24 @@ def _get_all_modules() -> list[dict]:
 
     for name, fm in FeatureRegistry.all().items():
         seen.add(name)
-        modules.append({
-            "name": name,
-            "label": fm.label,
-            "label_ar": fm.label_ar,
-            "description": fm.description,
-            "description_ar": fm.description_ar,
-            "version": fm.version,
-            "status": fm.status.value,
-            "entities": fm.entities,
-            "permissions": fm.permissions,
-            "events": fm.events,
-            "api_prefix": fm.api_prefix,
-            "owner": fm.owner,
-            "tags": fm.tags,
-            "source": "FeatureRegistry",
-        })
+        modules.append(
+            {
+                "name": name,
+                "label": fm.label,
+                "label_ar": fm.label_ar,
+                "description": fm.description,
+                "description_ar": fm.description_ar,
+                "version": fm.version,
+                "status": fm.status.value,
+                "entities": fm.entities,
+                "permissions": fm.permissions,
+                "events": fm.events,
+                "api_prefix": fm.api_prefix,
+                "owner": fm.owner,
+                "tags": fm.tags,
+                "source": "FeatureRegistry",
+            }
+        )
 
     for name, cap in SDKCapabilityRegistry.all().items():
         label = name
@@ -118,26 +120,49 @@ def _get_all_pages() -> list[dict]:
     seen_routes = set()
 
     from runtime.capability_framework import Capability
+
     for cap in Capability.all():
         ui = cap.manifest.ui
         for route in ui.routes:
             if route not in seen_routes:
                 seen_routes.add(route)
-                pages.append({
-                    "route": route,
-                    "label": route.strip("/").split("/")[0].replace("_", " ").title(),
-                    "capability_id": cap.id,
-                    "capability_name": cap.manifest.name,
-                    "tabs": ui.tabs,
-                    "icon": ui.icon,
-                    "sidebar": ui.sidebar,
-                })
+                pages.append(
+                    {
+                        "route": route,
+                        "label": route.strip("/").split("/")[0].replace("_", " ").title(),
+                        "capability_id": cap.id,
+                        "capability_name": cap.manifest.name,
+                        "tabs": ui.tabs,
+                        "icon": ui.icon,
+                        "sidebar": ui.sidebar,
+                    }
+                )
 
     core_pages = [
-        {"route": "/login", "label": "Login", "capability_id": "identity", "capability_name": "Identity & Access Management"},
-        {"route": "/register", "label": "Register", "capability_id": "identity", "capability_name": "Identity & Access Management"},
-        {"route": "/dashboard", "label": "Dashboard", "capability_id": "company", "capability_name": "Company Intelligence"},
-        {"route": "/admin", "label": "Admin", "capability_id": "identity", "capability_name": "Identity & Access Management"},
+        {
+            "route": "/login",
+            "label": "Login",
+            "capability_id": "identity",
+            "capability_name": "Identity & Access Management",
+        },
+        {
+            "route": "/register",
+            "label": "Register",
+            "capability_id": "identity",
+            "capability_name": "Identity & Access Management",
+        },
+        {
+            "route": "/dashboard",
+            "label": "Dashboard",
+            "capability_id": "company",
+            "capability_name": "Company Intelligence",
+        },
+        {
+            "route": "/admin",
+            "label": "Admin",
+            "capability_id": "identity",
+            "capability_name": "Identity & Access Management",
+        },
         {"route": "/admin/tenants", "label": "Admin Tenants", "capability_id": "identity"},
         {"route": "/admin/audit", "label": "Admin Audit", "capability_id": "identity"},
         {"route": "/admin/flags", "label": "Admin Flags", "capability_id": "identity"},
@@ -151,14 +176,22 @@ def _get_all_pages() -> list[dict]:
 
     v3_pages = [
         {"route": "/v3", "label": "V3 Shell", "capability_id": "capability-framework"},
-        {"route": "/v3/activities", "label": "Activities (v3)", "capability_id": "activity-intelligence"},
+        {
+            "route": "/v3/activities",
+            "label": "Activities (v3)",
+            "capability_id": "activity-intelligence",
+        },
         {"route": "/v3/admin", "label": "Admin (v3)", "capability_id": "identity"},
         {"route": "/v3/analytics", "label": "Analytics (v3)", "capability_id": "feature-store"},
         {"route": "/v3/companies", "label": "Companies (v3)", "capability_id": "company"},
         {"route": "/v3/contacts", "label": "Contacts (v3)", "capability_id": "company"},
         {"route": "/v3/crm", "label": "CRM (v3)", "capability_id": "company"},
         {"route": "/v3/cs", "label": "Customer Success (v3)", "capability_id": "company"},
-        {"route": "/v3/employee", "label": "Employee (v3)", "capability_id": "activity-intelligence"},
+        {
+            "route": "/v3/employee",
+            "label": "Employee (v3)",
+            "capability_id": "activity-intelligence",
+        },
         {"route": "/v3/people", "label": "People (v3)", "capability_id": "company"},
         {"route": "/v3/settings", "label": "Settings (v3)", "capability_id": "identity"},
         {"route": "/v3/shell", "label": "Shell (v3)", "capability_id": "capability-framework"},

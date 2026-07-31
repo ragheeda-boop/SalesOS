@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-import uuid
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import and_, desc, func, or_, select, text
+from sqlalchemy import and_, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.config import settings
 
 from .models import AuditLog
 
@@ -51,7 +48,9 @@ class PostgresAuditRepository(AuditRepository):
         size: int = 50,
     ) -> tuple[list[AuditLog], int]:
         query = select(AuditLog).where(AuditLog.tenant_id == tenant_id)
-        count_query = select(func.count()).select_from(AuditLog).where(AuditLog.tenant_id == tenant_id)
+        count_query = (
+            select(func.count()).select_from(AuditLog).where(AuditLog.tenant_id == tenant_id)
+        )
 
         if filters:
             conditions = []
@@ -68,7 +67,9 @@ class PostgresAuditRepository(AuditRepository):
             if "date_to" in filters:
                 conditions.append(AuditLog.created_at <= filters["date_to"])
             if "search" in filters:
-                conditions.append(AuditLog.details.cast(func.text()).ilike(f"%{filters['search']}%"))
+                conditions.append(
+                    AuditLog.details.cast(func.text()).ilike(f"%{filters['search']}%")
+                )
 
             if conditions:
                 query = query.where(and_(*conditions))
@@ -84,14 +85,16 @@ class PostgresAuditRepository(AuditRepository):
         return entries, total
 
     async def stats(self, tenant_id: str, days: int = 30) -> dict[str, Any]:
-        since = datetime.now(timezone.utc) - timedelta(days=days)
-        base = select(AuditLog).where(
+        since = datetime.now(UTC) - timedelta(days=days)
+        _ = select(AuditLog).where(
             AuditLog.tenant_id == tenant_id,
             AuditLog.created_at >= since,
         )
 
         total_result = await self.db.execute(
-            select(func.count()).select_from(AuditLog).where(
+            select(func.count())
+            .select_from(AuditLog)
+            .where(
                 AuditLog.tenant_id == tenant_id,
                 AuditLog.created_at >= since,
             )
@@ -100,7 +103,11 @@ class PostgresAuditRepository(AuditRepository):
 
         top_users_result = await self.db.execute(
             select(AuditLog.user_id, func.count().label("cnt"))
-            .where(AuditLog.tenant_id == tenant_id, AuditLog.created_at >= since, AuditLog.user_id.isnot(None))
+            .where(
+                AuditLog.tenant_id == tenant_id,
+                AuditLog.created_at >= since,
+                AuditLog.user_id.isnot(None),
+            )
             .group_by(AuditLog.user_id)
             .order_by(desc("cnt"))
             .limit(10)
@@ -123,7 +130,9 @@ class PostgresAuditRepository(AuditRepository):
             .order_by(desc("cnt"))
             .limit(20)
         )
-        resource_breakdown = [{"resource_type": row[0], "count": row[1]} for row in resource_breakdown_result]
+        resource_breakdown = [
+            {"resource_type": row[0], "count": row[1]} for row in resource_breakdown_result
+        ]
 
         return {
             "total_events": total_events,
@@ -143,7 +152,7 @@ class InMemoryAuditRepository(AuditRepository):
         self._counter += 1
         entry.id = self._counter
         if entry.created_at is None:
-            entry.created_at = datetime.now(timezone.utc)
+            entry.created_at = datetime.now(UTC)
         self._entries.append(entry)
         return entry
 
@@ -165,19 +174,27 @@ class InMemoryAuditRepository(AuditRepository):
             if "resource_id" in filters:
                 filtered = [e for e in filtered if e.resource_id == filters["resource_id"]]
             if "date_from" in filters:
-                filtered = [e for e in filtered if e.created_at and e.created_at >= filters["date_from"]]
+                filtered = [
+                    e for e in filtered if e.created_at and e.created_at >= filters["date_from"]
+                ]
             if "date_to" in filters:
-                filtered = [e for e in filtered if e.created_at and e.created_at <= filters["date_to"]]
+                filtered = [
+                    e for e in filtered if e.created_at and e.created_at <= filters["date_to"]
+                ]
 
-        filtered.sort(key=lambda e: e.created_at or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+        filtered.sort(key=lambda e: e.created_at or datetime.min.replace(tzinfo=UTC), reverse=True)
         total = len(filtered)
         start = (page - 1) * size
         end = start + size
         return filtered[start:end], total
 
     async def stats(self, tenant_id: str, days: int = 30) -> dict[str, Any]:
-        since = datetime.now(timezone.utc) - timedelta(days=days)
-        filtered = [e for e in self._entries if e.tenant_id == tenant_id and e.created_at and e.created_at >= since]
+        since = datetime.now(UTC) - timedelta(days=days)
+        filtered = [
+            e
+            for e in self._entries
+            if e.tenant_id == tenant_id and e.created_at and e.created_at >= since
+        ]
 
         total_events = len(filtered)
         user_counts: dict[str, int] = {}

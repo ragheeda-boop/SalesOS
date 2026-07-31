@@ -3,13 +3,21 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from datetime import datetime, timezone
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_current_user_id, require_role_dep, verify_token, get_db_session
-from domains.notifications.models import InMemoryNotificationRepository, Notification, NotificationRepository
+from app.dependencies import (
+    get_current_tenant_id,
+    get_current_user_id,
+    get_db_session,
+    require_role_dep,
+)
+from domains.notifications.models import (
+    InMemoryNotificationRepository,
+    Notification,
+    NotificationRepository,
+)
 from domains.notifications.postgres_repo import PostgresNotificationRepository
 from intelligence.notifications.websocket import WebSocketManager
 
@@ -21,7 +29,9 @@ _inmemory_repo = InMemoryNotificationRepository()
 _ws_manager = WebSocketManager()
 
 
-async def _get_notification_repo(db: AsyncSession = Depends(get_db_session)) -> PostgresNotificationRepository:
+async def _get_notification_repo(
+    db: AsyncSession = Depends(get_db_session),
+) -> PostgresNotificationRepository:
     return PostgresNotificationRepository(session=db)
 
 
@@ -35,6 +45,7 @@ async def notifications_ws(websocket: WebSocket):
 
     try:
         from app.modules.identity.service import decode_access_token
+
         payload = decode_access_token(token)
         user_id = payload.get("sub", "")
         token_tenant = payload.get("tenant_id", "")
@@ -49,11 +60,15 @@ async def notifications_ws(websocket: WebSocket):
 
     connected = await _ws_manager.connect(websocket, tenant_id, user_id)
     if not connected:
-        await websocket.send_text(json.dumps({
-            "type": "error",
-            "code": "TENANT_LIMIT",
-            "message": "Maximum connections per tenant reached",
-        }))
+        await websocket.send_text(
+            json.dumps(
+                {
+                    "type": "error",
+                    "code": "TENANT_LIMIT",
+                    "message": "Maximum connections per tenant reached",
+                }
+            )
+        )
         await websocket.close(code=4002)
         return
 
@@ -165,14 +180,19 @@ async def create_and_notify(
         data=data or {},
     )
     await store.create(notification)
-    await _ws_manager.send_to_user(tenant_id, user_id, notif_type, {
-        "id": notification.id,
-        "type": notif_type,
-        "title": title,
-        "body": body,
-        "data": data or {},
-        "created_at": notification.created_at.isoformat(),
-    })
+    await _ws_manager.send_to_user(
+        tenant_id,
+        user_id,
+        notif_type,
+        {
+            "id": notification.id,
+            "type": notif_type,
+            "title": title,
+            "body": body,
+            "data": data or {},
+            "created_at": notification.created_at.isoformat(),
+        },
+    )
     return notification
 
 
@@ -195,12 +215,16 @@ async def broadcast_notification(
         data=data or {},
     )
     await store.create(notification)
-    await _ws_manager.broadcast(tenant_id, notif_type, {
-        "id": notification.id,
-        "type": notif_type,
-        "title": title,
-        "body": body,
-        "data": data or {},
-        "created_at": notification.created_at.isoformat(),
-    })
+    await _ws_manager.broadcast(
+        tenant_id,
+        notif_type,
+        {
+            "id": notification.id,
+            "type": notif_type,
+            "title": title,
+            "body": body,
+            "data": data or {},
+            "created_at": notification.created_at.isoformat(),
+        },
+    )
     return notification

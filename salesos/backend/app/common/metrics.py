@@ -23,7 +23,6 @@ import threading
 import time
 from collections import defaultdict
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -99,11 +98,13 @@ class MetricsTracker:
             for (method, path, status), count in sorted(self._http_requests.items()):
                 path_clean = path.replace('"', '\\"')
                 lines.append(
-                    f'salesos_http_requests_total{{method="{method}",path="{path_clean}",status="{status}"}} {count}'
+                    f'salesos_http_requests_total{{method="{method}",path="{path_clean}",status="{status}"}} {count}'  # noqa: E501
                 )
 
             lines.append("")
-            lines.append("# HELP salesos_http_request_duration_seconds HTTP request duration histogram")
+            lines.append(
+                "# HELP salesos_http_request_duration_seconds HTTP request duration histogram"
+            )
             lines.append("# TYPE salesos_http_request_duration_seconds histogram")
             for (method, path), hist in sorted(self._http_duration.items()):
                 path_clean = path.replace('"', '\\"')
@@ -117,7 +118,9 @@ class MetricsTracker:
                 lines.append(f"{base}_sum{{{labels}}} {snap['sum']:.6f}")
 
             lines.append("")
-            lines.append("# HELP salesos_db_query_duration_seconds Database query duration histogram")
+            lines.append(
+                "# HELP salesos_db_query_duration_seconds Database query duration histogram"
+            )
             lines.append("# TYPE salesos_db_query_duration_seconds histogram")
             for query_name, hist in sorted(self._db_duration.items()):
                 labels = f'query_name="{query_name}"'
@@ -130,7 +133,9 @@ class MetricsTracker:
                 lines.append(f"{base}_sum{{{labels}}} {snap['sum']:.6f}")
 
             lines.append("")
-            lines.append("# HELP salesos_ai_inference_duration_seconds AI inference duration histogram")
+            lines.append(
+                "# HELP salesos_ai_inference_duration_seconds AI inference duration histogram"
+            )
             lines.append("# TYPE salesos_ai_inference_duration_seconds histogram")
             for model, hist in sorted(self._ai_duration.items()):
                 labels = f'model="{model}"'

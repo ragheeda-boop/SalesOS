@@ -3,20 +3,18 @@
 from __future__ import annotations
 
 import uuid
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from datetime import datetime, timezone
-
-from app.modules.employee_360.service import Employee360Service
 from app.modules.employee_360.schemas import (
-    AICoachAction,
     ActivityIntelligence,
+    EmployeeKPIs,
     EmployeePortfolio,
     EmployeePortfolioItem,
-    EmployeeKPIs,
 )
+from app.modules.employee_360.service import Employee360Service
 
 
 @pytest.fixture
@@ -43,7 +41,7 @@ def _mock_user(**kwargs):
         "avatar_url": None,
         "is_active": True,
         "tenant_id": uuid.uuid4(),
-        "created_at": datetime.now(timezone.utc),
+        "created_at": datetime.now(UTC),
     }
     defaults.update(kwargs)
     user = MagicMock()
@@ -58,12 +56,15 @@ class TestComputeKpis:
             companies=[],
             contacts=[],
             pipeline=[
-                EmployeePortfolioItem(id="1", name="Won Deal", type="opportunity",
-                                      value=100000, status="closed_won"),
-                EmployeePortfolioItem(id="2", name="Lost Deal", type="opportunity",
-                                      value=50000, status="closed_lost"),
-                EmployeePortfolioItem(id="3", name="Active Deal", type="opportunity",
-                                      value=75000, status="qualifying"),
+                EmployeePortfolioItem(
+                    id="1", name="Won Deal", type="opportunity", value=100000, status="closed_won"
+                ),
+                EmployeePortfolioItem(
+                    id="2", name="Lost Deal", type="opportunity", value=50000, status="closed_lost"
+                ),
+                EmployeePortfolioItem(
+                    id="3", name="Active Deal", type="opportunity", value=75000, status="qualifying"
+                ),
             ],
             revenue=100000,
             contracts=[],
@@ -80,8 +81,12 @@ class TestComputeKpis:
 
     def test_compute_kpis_empty_pipeline(self, service):
         portfolio = EmployeePortfolio(
-            companies=[], contacts=[], pipeline=[],
-            revenue=0, contracts=[], projects=[],
+            companies=[],
+            contacts=[],
+            pipeline=[],
+            revenue=0,
+            contracts=[],
+            projects=[],
         )
         activity = ActivityIntelligence(total=0)
 
@@ -94,15 +99,19 @@ class TestComputeKpis:
 
     def test_compute_kpis_all_won(self, service):
         portfolio = EmployeePortfolio(
-            companies=[], contacts=[],
+            companies=[],
+            contacts=[],
             pipeline=[
-                EmployeePortfolioItem(id="1", name="Deal 1", type="opportunity",
-                                      value=100000, status="closed_won"),
-                EmployeePortfolioItem(id="2", name="Deal 2", type="opportunity",
-                                      value=200000, status="won"),
+                EmployeePortfolioItem(
+                    id="1", name="Deal 1", type="opportunity", value=100000, status="closed_won"
+                ),
+                EmployeePortfolioItem(
+                    id="2", name="Deal 2", type="opportunity", value=200000, status="won"
+                ),
             ],
             revenue=300000,
-            contracts=[], projects=[],
+            contracts=[],
+            projects=[],
         )
         activity = ActivityIntelligence(total=60)
 
@@ -112,14 +121,19 @@ class TestComputeKpis:
 
     def test_compute_kpis_only_active_deals(self, service):
         portfolio = EmployeePortfolio(
-            companies=[], contacts=[],
+            companies=[],
+            contacts=[],
             pipeline=[
-                EmployeePortfolioItem(id="1", name="Active", type="opportunity",
-                                      value=200000, status="developing"),
-                EmployeePortfolioItem(id="2", name="Active 2", type="opportunity",
-                                      value=300000, status="proposing"),
+                EmployeePortfolioItem(
+                    id="1", name="Active", type="opportunity", value=200000, status="developing"
+                ),
+                EmployeePortfolioItem(
+                    id="2", name="Active 2", type="opportunity", value=300000, status="proposing"
+                ),
             ],
-            revenue=0, contracts=[], projects=[],
+            revenue=0,
+            contracts=[],
+            projects=[],
         )
         activity = ActivityIntelligence(total=15)
 
@@ -132,12 +146,19 @@ class TestComputeKpis:
 class TestGenerateCoachActions:
     def test_empty_pipeline_generates_high_priority(self, service):
         portfolio = EmployeePortfolio(
-            companies=[], contacts=[], pipeline=[],
-            revenue=0, contracts=[], projects=[],
+            companies=[],
+            contacts=[],
+            pipeline=[],
+            revenue=0,
+            contracts=[],
+            projects=[],
         )
         kpis = EmployeeKPIs(
-            revenue=0, pipeline=0, win_rate=0.0,
-            activities=0, productivity=0.0,
+            revenue=0,
+            pipeline=0,
+            win_rate=0.0,
+            activities=0,
+            productivity=0.0,
         )
 
         actions = service._generate_coach_actions(portfolio, kpis)
@@ -147,16 +168,23 @@ class TestGenerateCoachActions:
 
     def test_low_win_rate_generates_medium_priority(self, service):
         portfolio = EmployeePortfolio(
-            companies=[], contacts=[],
+            companies=[],
+            contacts=[],
             pipeline=[
-                EmployeePortfolioItem(id="1", name="Deal", type="opportunity",
-                                      value=10000, status="closed_lost"),
+                EmployeePortfolioItem(
+                    id="1", name="Deal", type="opportunity", value=10000, status="closed_lost"
+                ),
             ],
-            revenue=0, contracts=[], projects=[],
+            revenue=0,
+            contracts=[],
+            projects=[],
         )
         kpis = EmployeeKPIs(
-            revenue=0, pipeline=0, win_rate=0.2,
-            activities=10, productivity=0.33,
+            revenue=0,
+            pipeline=0,
+            win_rate=0.2,
+            activities=10,
+            productivity=0.33,
         )
 
         actions = service._generate_coach_actions(portfolio, kpis)
@@ -166,16 +194,23 @@ class TestGenerateCoachActions:
 
     def test_healthy_pipeline_generates_on_track(self, service):
         portfolio = EmployeePortfolio(
-            companies=[], contacts=[],
+            companies=[],
+            contacts=[],
             pipeline=[
-                EmployeePortfolioItem(id="1", name="Deal", type="opportunity",
-                                      value=100000, status="qualifying"),
+                EmployeePortfolioItem(
+                    id="1", name="Deal", type="opportunity", value=100000, status="qualifying"
+                ),
             ],
-            revenue=200000, contracts=[], projects=[],
+            revenue=200000,
+            contracts=[],
+            projects=[],
         )
         kpis = EmployeeKPIs(
-            revenue=200000, pipeline=100000, win_rate=0.6,
-            activities=30, productivity=1.0,
+            revenue=200000,
+            pipeline=100000,
+            win_rate=0.6,
+            activities=30,
+            productivity=1.0,
         )
 
         actions = service._generate_coach_actions(portfolio, kpis)
@@ -185,12 +220,19 @@ class TestGenerateCoachActions:
 
     def test_both_empty_and_low_win_rate(self, service):
         portfolio = EmployeePortfolio(
-            companies=[], contacts=[], pipeline=[],
-            revenue=0, contracts=[], projects=[],
+            companies=[],
+            contacts=[],
+            pipeline=[],
+            revenue=0,
+            contracts=[],
+            projects=[],
         )
         kpis = EmployeeKPIs(
-            revenue=0, pipeline=0, win_rate=0.1,
-            activities=5, productivity=0.17,
+            revenue=0,
+            pipeline=0,
+            win_rate=0.1,
+            activities=5,
+            productivity=0.17,
         )
 
         actions = service._generate_coach_actions(portfolio, kpis)
@@ -267,5 +309,6 @@ class TestGetProfile:
         mock_db.execute.return_value = user_result
 
         from app.common.exceptions import NotFoundError
+
         with pytest.raises(NotFoundError):
             await service._get_profile(str(uuid.uuid4()), str(uuid.uuid4()))

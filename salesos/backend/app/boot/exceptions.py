@@ -8,6 +8,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
         import traceback
+
         logger = getattr(request.app.state, "logger", None)
         if logger:
             logger.exception("Unhandled exception", method=request.method, path=request.url.path)

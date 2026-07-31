@@ -8,7 +8,7 @@ import hashlib
 import hmac
 import secrets
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 
 class KeyScope(str, Enum):
     """API key permission scopes."""
+
     READ = "read"
     WRITE = "write"
     ADMIN = "admin"
@@ -26,12 +27,13 @@ class KeyScope(str, Enum):
 
 class ApiKeyRecord(BaseModel):
     """Stored API key metadata (never stores the raw key)."""
+
     key_id: str
     key_hash: str
     name: str
     scopes: list[KeyScope] = [KeyScope.READ]
     tenant_id: str | None = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     expires_at: datetime | None = None
     rotated_at: datetime | None = None
     revoked_at: datetime | None = None
@@ -120,7 +122,7 @@ class ApiKeyManager:
         raw_key = self.generate_raw_key()
         key_hash = self.hash_key(raw_key)
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expires_at = (now + timedelta(days=expiry_days)) if expiry_days else None
 
         record = ApiKeyRecord(
@@ -164,7 +166,7 @@ class ApiKeyManager:
         )
 
         # Mark old key for expiry after grace period
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         old_record.rotated_at = now
         old_record.expires_at = now + timedelta(hours=grace_period_hours)
         old_record.metadata["grace_expiry"] = True
@@ -184,7 +186,7 @@ class ApiKeyManager:
             return False
         if record.revoked_at is not None:
             return False
-        if record.expires_at is not None and record.expires_at < datetime.now(timezone.utc):
+        if record.expires_at is not None and record.expires_at < datetime.now(UTC):
             return False
         return True
 
@@ -214,11 +216,12 @@ class ApiKeyManager:
             Updated record with revoked status.
         """
         record.is_active = False
-        record.revoked_at = datetime.now(timezone.utc)
+        record.revoked_at = datetime.now(UTC)
         return record
 
 
 # ── Per-Key Rate Limiter ─────────────────────────────────────────────────────
+
 
 class ApiKeyRateLimiter:
     """In-memory sliding-window rate limiter scoped per API key.

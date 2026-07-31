@@ -44,11 +44,18 @@ async def list_subscriptions(
     service: WebhookService = Depends(get_webhook_service),
 ):
     subs = await service.list_subscriptions(tenant_id)
-    return [WebhookSubscriptionResponse(
-        id=s.id, tenant_id=s.tenant_id, url=s.url,
-        events=s.events, is_active=s.is_active,
-        created_at=s.created_at, updated_at=s.updated_at,
-    ) for s in subs]
+    return [
+        WebhookSubscriptionResponse(
+            id=s.id,
+            tenant_id=s.tenant_id,
+            url=s.url,
+            events=s.events,
+            is_active=s.is_active,
+            created_at=s.created_at,
+            updated_at=s.updated_at,
+        )
+        for s in subs
+    ]
 
 
 @router.post("/subscriptions", response_model=WebhookSubscriptionResponse, status_code=201)
@@ -60,7 +67,9 @@ async def create_subscription(
     try:
         body.validate_events()
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=safe_error_detail(e, "Invalid webhook events"))
+        raise HTTPException(
+            status_code=400, detail=safe_error_detail(e, "Invalid webhook events")
+        ) from e  # noqa: E501
 
     try:
         sub = await service.create_subscription(
@@ -70,11 +79,15 @@ async def create_subscription(
             secret=body.secret,
         )
     except UnsafeWebhookURLError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     return WebhookSubscriptionResponse(
-        id=sub.id, tenant_id=sub.tenant_id, url=sub.url,
-        events=sub.events, is_active=sub.is_active,
-        created_at=sub.created_at, updated_at=sub.updated_at,
+        id=sub.id,
+        tenant_id=sub.tenant_id,
+        url=sub.url,
+        events=sub.events,
+        is_active=sub.is_active,
+        created_at=sub.created_at,
+        updated_at=sub.updated_at,
     )
 
 
@@ -88,9 +101,13 @@ async def get_subscription(
     if not sub or sub.tenant_id != tenant_id:
         raise HTTPException(status_code=404, detail="Subscription not found")
     return WebhookSubscriptionResponse(
-        id=sub.id, tenant_id=sub.tenant_id, url=sub.url,
-        events=sub.events, is_active=sub.is_active,
-        created_at=sub.created_at, updated_at=sub.updated_at,
+        id=sub.id,
+        tenant_id=sub.tenant_id,
+        url=sub.url,
+        events=sub.events,
+        is_active=sub.is_active,
+        created_at=sub.created_at,
+        updated_at=sub.updated_at,
     )
 
 
@@ -109,13 +126,17 @@ async def update_subscription(
     try:
         sub = await service.update_subscription(sub_id, data)
     except UnsafeWebhookURLError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     if not sub:
         raise HTTPException(status_code=404, detail="Subscription not found")
     return WebhookSubscriptionResponse(
-        id=sub.id, tenant_id=sub.tenant_id, url=sub.url,
-        events=sub.events, is_active=sub.is_active,
-        created_at=sub.created_at, updated_at=sub.updated_at,
+        id=sub.id,
+        tenant_id=sub.tenant_id,
+        url=sub.url,
+        events=sub.events,
+        is_active=sub.is_active,
+        created_at=sub.created_at,
+        updated_at=sub.updated_at,
     )
 
 
@@ -144,13 +165,21 @@ async def get_delivery_logs(
         raise HTTPException(status_code=404, detail="Subscription not found")
 
     deliveries = await service.get_delivery_logs(sub_id, limit=limit)
-    return [WebhookDeliveryResponse(
-        id=d.id, subscription_id=d.subscription_id,
-        event_type=d.event_type, payload=d.payload,
-        status=d.status, response_code=d.response_code,
-        response_body=d.response_body, attempt=d.attempt,
-        next_retry_at=d.next_retry_at, created_at=d.created_at,
-    ) for d in deliveries]
+    return [
+        WebhookDeliveryResponse(
+            id=d.id,
+            subscription_id=d.subscription_id,
+            event_type=d.event_type,
+            payload=d.payload,
+            status=d.status,
+            response_code=d.response_code,
+            response_body=d.response_body,
+            attempt=d.attempt,
+            next_retry_at=d.next_retry_at,
+            created_at=d.created_at,
+        )
+        for d in deliveries
+    ]
 
 
 @router.post("/deliveries/{delivery_id}/retry")
@@ -170,9 +199,14 @@ async def retry_delivery(
     if not retried:
         raise HTTPException(status_code=404, detail="Delivery not found or not retryable")
     return WebhookDeliveryResponse(
-        id=retried.id, subscription_id=retried.subscription_id,
-        event_type=retried.event_type, payload=retried.payload,
-        status=retried.status, response_code=retried.response_code,
-        response_body=retried.response_body, attempt=retried.attempt,
-        next_retry_at=retried.next_retry_at, created_at=retried.created_at,
+        id=retried.id,
+        subscription_id=retried.subscription_id,
+        event_type=retried.event_type,
+        payload=retried.payload,
+        status=retried.status,
+        response_code=retried.response_code,
+        response_body=retried.response_body,
+        attempt=retried.attempt,
+        next_retry_at=retried.next_retry_at,
+        created_at=retried.created_at,
     )

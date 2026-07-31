@@ -11,6 +11,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from intelligence.activity_intelligence.contracts.events import (
+    CommunicationDeduplicated,
+    CommunicationMapped,
+    CommunicationReceived,
+    CommunicationSynced,
+)
 from sdk.events.base import DomainEvent
 from sdk.events.schemas import (
     EmailAnalyzed,
@@ -23,55 +29,58 @@ from sdk.events.schemas import (
     PipelineStageChanged,
 )
 
-from intelligence.activity_intelligence.contracts.events import (
-    CommunicationDeduplicated,
-    CommunicationMapped,
-    CommunicationReceived,
-    CommunicationSynced,
-)
-
-
 # ── Identity & Tenant ─────────────────────────────────────────────────────
+
 
 @dataclass
 class TenantCreated(DomainEvent):
     event_type: str = "tenant.created"
 
+
 @dataclass
 class TenantUpdated(DomainEvent):
     event_type: str = "tenant.updated"
+
 
 @dataclass
 class TenantSuspended(DomainEvent):
     event_type: str = "tenant.suspended"
 
+
 @dataclass
 class TenantReactivated(DomainEvent):
     event_type: str = "tenant.reactivated"
+
 
 @dataclass
 class UserRegistered(DomainEvent):
     event_type: str = "user.registered"
 
+
 @dataclass
 class UserInvited(DomainEvent):
     event_type: str = "user.invited"
+
 
 @dataclass
 class UserActivated(DomainEvent):
     event_type: str = "user.activated"
 
+
 @dataclass
 class UserDeactivated(DomainEvent):
     event_type: str = "user.deactivated"
+
 
 @dataclass
 class UserRoleChanged(DomainEvent):
     event_type: str = "user.role_changed"
 
+
 @dataclass
 class UserLoggedIn(DomainEvent):
     event_type: str = "user.logged_in"
+
 
 @dataclass
 class UserPasswordChanged(DomainEvent):
@@ -80,45 +89,56 @@ class UserPasswordChanged(DomainEvent):
 
 # ── Company ────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class CompanyCreated(DomainEvent):
     event_type: str = "company.created"
+
 
 @dataclass
 class CompanyUpdated(DomainEvent):
     event_type: str = "company.updated"
 
+
 @dataclass
 class CompanyMerged(DomainEvent):
     event_type: str = "company.merged"
+
 
 @dataclass
 class CompanyEnriched(DomainEvent):
     event_type: str = "company.enriched"
 
+
 @dataclass
 class CompanyDeleted(DomainEvent):
     event_type: str = "company.deleted"
+
 
 @dataclass
 class CompanyIngested(DomainEvent):
     event_type: str = "company.ingested"
 
+
 @dataclass
 class BranchCreated(DomainEvent):
     event_type: str = "branch.created"
+
 
 @dataclass
 class LicenseCreated(DomainEvent):
     event_type: str = "license.created"
 
+
 @dataclass
 class LicenseUpdated(DomainEvent):
     event_type: str = "license.updated"
 
+
 @dataclass
 class ContactCreated(DomainEvent):
     event_type: str = "contact.created"
+
 
 @dataclass
 class ContactUpdated(DomainEvent):
@@ -127,17 +147,21 @@ class ContactUpdated(DomainEvent):
 
 # ── Entity Resolution ──────────────────────────────────────────────────────
 
+
 @dataclass
 class EntityResolutionCompleted(DomainEvent):
     event_type: str = "entity_resolution.completed"
+
 
 @dataclass
 class EntityResolutionMatchFound(DomainEvent):
     event_type: str = "entity_resolution.match_found"
 
+
 @dataclass
 class GoldenRecordCreated(DomainEvent):
     event_type: str = "golden_record.created"
+
 
 @dataclass
 class GoldenRecordUpdated(DomainEvent):
@@ -146,9 +170,11 @@ class GoldenRecordUpdated(DomainEvent):
 
 # ── Timeline & Activity ────────────────────────────────────────────────────
 
+
 @dataclass
 class ActivityLogged(DomainEvent):
     event_type: str = "activity.logged"
+
 
 @dataclass
 class TimelineUpdated(DomainEvent):
@@ -157,17 +183,21 @@ class TimelineUpdated(DomainEvent):
 
 # ── Opportunity / Pipeline ─────────────────────────────────────────────────
 
+
 @dataclass
 class OpportunityCreated(DomainEvent):
     event_type: str = "opportunity.created"
+
 
 @dataclass
 class OpportunityStageChanged(DomainEvent):
     event_type: str = "opportunity.stage_changed"
 
+
 @dataclass
 class OpportunityWon(DomainEvent):
     event_type: str = "opportunity.won"
+
 
 @dataclass
 class OpportunityLost(DomainEvent):
@@ -176,17 +206,21 @@ class OpportunityLost(DomainEvent):
 
 # ── Scoring & AI ───────────────────────────────────────────────────────────
 
+
 @dataclass
 class CompanyScored(DomainEvent):
     event_type: str = "company.scored"
+
 
 @dataclass
 class LeadScored(DomainEvent):
     event_type: str = "lead.scored"
 
+
 @dataclass
 class RecommendationGenerated(DomainEvent):
     event_type: str = "recommendation.generated"
+
 
 @dataclass
 class EmbeddingGenerated(DomainEvent):
@@ -195,17 +229,21 @@ class EmbeddingGenerated(DomainEvent):
 
 # ── Integration & Import ───────────────────────────────────────────────────
 
+
 @dataclass
 class IntegrationConnected(DomainEvent):
     event_type: str = "integration.connected"
+
 
 @dataclass
 class IntegrationDisconnected(DomainEvent):
     event_type: str = "integration.disconnected"
 
+
 @dataclass
 class DataImportCompleted(DomainEvent):
     event_type: str = "data_import.completed"
+
 
 @dataclass
 class DataExportCompleted(DomainEvent):
@@ -214,13 +252,16 @@ class DataExportCompleted(DomainEvent):
 
 # ── Billing & Usage ────────────────────────────────────────────────────────
 
+
 @dataclass
 class SubscriptionCreated(DomainEvent):
     event_type: str = "subscription.created"
 
+
 @dataclass
 class SubscriptionChanged(DomainEvent):
     event_type: str = "subscription.changed"
+
 
 @dataclass
 class UsageRecorded(DomainEvent):
@@ -229,13 +270,16 @@ class UsageRecorded(DomainEvent):
 
 # ── Workflow & Automation ──────────────────────────────────────────────────
 
+
 @dataclass
 class WorkflowTriggered(DomainEvent):
     event_type: str = "workflow.triggered"
 
+
 @dataclass
 class WorkflowCompleted(DomainEvent):
     event_type: str = "workflow.completed"
+
 
 @dataclass
 class WorkflowFailed(DomainEvent):
@@ -244,17 +288,21 @@ class WorkflowFailed(DomainEvent):
 
 # ── AI Agent ───────────────────────────────────────────────────────────────
 
+
 @dataclass
 class AgentTaskCreated(DomainEvent):
     event_type: str = "agent.task_created"
+
 
 @dataclass
 class AgentTaskCompleted(DomainEvent):
     event_type: str = "agent.task_completed"
 
+
 @dataclass
 class AgentTaskFailed(DomainEvent):
     event_type: str = "agent.task_failed"
+
 
 @dataclass
 class AgentMemoryUpdated(DomainEvent):
@@ -267,30 +315,68 @@ EVENT_REGISTRY: dict[str, type[DomainEvent]] = {
     cls.event_type: cls
     for cls in [
         # Activity Intelligence events
-        CommunicationReceived, CommunicationMapped,
-        CommunicationSynced, CommunicationDeduplicated,
+        CommunicationReceived,
+        CommunicationMapped,
+        CommunicationSynced,
+        CommunicationDeduplicated,
         # Core events
-        TenantCreated, TenantUpdated, TenantSuspended, TenantReactivated,
-        UserRegistered, UserInvited, UserActivated, UserDeactivated,
-        UserRoleChanged, UserLoggedIn, UserPasswordChanged,
-        CompanyCreated, CompanyUpdated, CompanyMerged, CompanyEnriched,
-        CompanyDeleted, CompanyIngested,
-        BranchCreated, LicenseCreated, LicenseUpdated,
-        ContactCreated, ContactUpdated,
-        EntityResolutionCompleted, EntityResolutionMatchFound,
-        GoldenRecordCreated, GoldenRecordUpdated,
-        ActivityLogged, TimelineUpdated,
-        OpportunityCreated, OpportunityStageChanged, OpportunityWon, OpportunityLost,
-        OpportunityUpdated, OpportunityDeleted,
+        TenantCreated,
+        TenantUpdated,
+        TenantSuspended,
+        TenantReactivated,
+        UserRegistered,
+        UserInvited,
+        UserActivated,
+        UserDeactivated,
+        UserRoleChanged,
+        UserLoggedIn,
+        UserPasswordChanged,
+        CompanyCreated,
+        CompanyUpdated,
+        CompanyMerged,
+        CompanyEnriched,
+        CompanyDeleted,
+        CompanyIngested,
+        BranchCreated,
+        LicenseCreated,
+        LicenseUpdated,
+        ContactCreated,
+        ContactUpdated,
+        EntityResolutionCompleted,
+        EntityResolutionMatchFound,
+        GoldenRecordCreated,
+        GoldenRecordUpdated,
+        ActivityLogged,
+        TimelineUpdated,
+        OpportunityCreated,
+        OpportunityStageChanged,
+        OpportunityWon,
+        OpportunityLost,
+        OpportunityUpdated,
+        OpportunityDeleted,
         PipelineStageChanged,
-        NBAGenerated, NBAActionTaken,
-        MeetingBriefGenerated, MeetingCompleted,
+        NBAGenerated,
+        NBAActionTaken,
+        MeetingBriefGenerated,
+        MeetingCompleted,
         EmailAnalyzed,
-        CompanyScored, LeadScored, RecommendationGenerated, EmbeddingGenerated,
-        IntegrationConnected, IntegrationDisconnected,
-        DataImportCompleted, DataExportCompleted,
-        SubscriptionCreated, SubscriptionChanged, UsageRecorded,
-        WorkflowTriggered, WorkflowCompleted, WorkflowFailed,
-        AgentTaskCreated, AgentTaskCompleted, AgentTaskFailed, AgentMemoryUpdated,
+        CompanyScored,
+        LeadScored,
+        RecommendationGenerated,
+        EmbeddingGenerated,
+        IntegrationConnected,
+        IntegrationDisconnected,
+        DataImportCompleted,
+        DataExportCompleted,
+        SubscriptionCreated,
+        SubscriptionChanged,
+        UsageRecorded,
+        WorkflowTriggered,
+        WorkflowCompleted,
+        WorkflowFailed,
+        AgentTaskCreated,
+        AgentTaskCompleted,
+        AgentTaskFailed,
+        AgentMemoryUpdated,
     ]
 }

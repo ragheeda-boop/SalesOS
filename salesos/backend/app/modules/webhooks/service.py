@@ -4,7 +4,7 @@ import hashlib
 import hmac
 import json
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import httpx
 
@@ -57,9 +57,7 @@ class WebhookService:
         )
         return await self.subscription_repo.create(sub)
 
-    async def update_subscription(
-        self, sub_id: str, data: dict
-    ) -> WebhookSubscription | None:
+    async def update_subscription(self, sub_id: str, data: dict) -> WebhookSubscription | None:
         if "url" in data and data["url"] is not None:
             data = {**data, "url": validate_webhook_url(data["url"], resolve_dns=self._resolve_dns)}
         return await self.subscription_repo.update(sub_id, data)
@@ -73,12 +71,12 @@ class WebhookService:
     async def list_subscriptions(self, tenant_id: str) -> list[WebhookSubscription]:
         return await self.subscription_repo.list_by_tenant(tenant_id)
 
-    async def get_delivery_logs(
-        self, sub_id: str, limit: int = 50
-    ) -> list[WebhookDelivery]:
+    async def get_delivery_logs(self, sub_id: str, limit: int = 50) -> list[WebhookDelivery]:
         return await self.delivery_repo.list_by_subscription(sub_id, limit=limit)
 
-    async def dispatch_event(self, event_type: str, payload: dict, tenant_id: str) -> list[WebhookDelivery]:
+    async def dispatch_event(
+        self, event_type: str, payload: dict, tenant_id: str
+    ) -> list[WebhookDelivery]:
         subscriptions = await self.subscription_repo.find_by_event(tenant_id, event_type)
         deliveries: list[WebhookDelivery] = []
 
@@ -138,18 +136,25 @@ class WebhookService:
             delivery.response_body = str(e)[:2000]
 
         if delivery.status == "failed" and delivery.attempt < 3:
-            delay = RETRY_DELAYS[delivery.attempt - 1] if delivery.attempt - 1 < len(RETRY_DELAYS) else 300
-            delivery.next_retry_at = datetime.now(timezone.utc) + timedelta(seconds=delay)
+            delay = (
+                RETRY_DELAYS[delivery.attempt - 1]
+                if delivery.attempt - 1 < len(RETRY_DELAYS)
+                else 300
+            )
+            delivery.next_retry_at = datetime.now(UTC) + timedelta(seconds=delay)
         else:
             delivery.next_retry_at = None
 
-        await self.delivery_repo.update(delivery.id, {
-            "status": delivery.status,
-            "response_code": delivery.response_code,
-            "response_body": delivery.response_body,
-            "attempt": delivery.attempt,
-            "next_retry_at": delivery.next_retry_at,
-        })
+        await self.delivery_repo.update(
+            delivery.id,
+            {
+                "status": delivery.status,
+                "response_code": delivery.response_code,
+                "response_body": delivery.response_body,
+                "attempt": delivery.attempt,
+                "next_retry_at": delivery.next_retry_at,
+            },
+        )
 
     async def retry_delivery(self, delivery_id: str) -> WebhookDelivery | None:
         delivery = await self.delivery_repo.get(delivery_id)
@@ -171,11 +176,14 @@ class WebhookService:
             sub = await self.subscription_repo.get(delivery.subscription_id)
             if not sub:
                 # Orphan delivery: stop infinite retry selection.
-                await self.delivery_repo.update(delivery.id, {
-                    "status": "failed",
-                    "response_body": "subscription missing",
-                    "next_retry_at": None,
-                })
+                await self.delivery_repo.update(
+                    delivery.id,
+                    {
+                        "status": "failed",
+                        "response_body": "subscription missing",
+                        "next_retry_at": None,
+                    },
+                )
                 continue
             delivery.status = "pending"
             await self._attempt_delivery(delivery, sub)

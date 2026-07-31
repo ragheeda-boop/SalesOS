@@ -1,5 +1,3 @@
-from typing import Optional
-
 import strawberry
 from strawberry.types import Info
 
@@ -41,9 +39,7 @@ async def _get_company(info: Info, company_id: str) -> CompanyType | None:
             legal_form=company.legal_form,
             employees_count=company.employees_count,
             confidence_score=(
-                float(company.confidence_score)
-                if company.confidence_score is not None
-                else None
+                float(company.confidence_score) if company.confidence_score is not None else None
             ),
             is_golden_record=company.is_golden_record,
             tags=company.tags,
@@ -60,14 +56,12 @@ async def _get_company(info: Info, company_id: str) -> CompanyType | None:
         )
 
 
-async def _search_companies(
-    info: Info, query: str, limit: int = 20
-) -> SearchResultType:
+async def _search_companies(info: Info, query: str, limit: int = 20) -> SearchResultType:
     from app.database import async_session
     from app.modules.company.search_repository import CompanySearchRepository
+    from domains.search.contracts.models import SearchQuery
     from domains.search.engine.planner import SearchPlanner
     from domains.search.ranking.pipeline import RankingPipeline
-    from domains.search.contracts.models import SearchQuery
 
     async with async_session() as db:
         repo = CompanySearchRepository(db)
@@ -116,9 +110,9 @@ async def _opportunities(
     from domains.commercial.infrastructure.postgres_repositories import (
         PostgresOpportunityRepository,
     )
-    from domains.commercial.opportunity.engine.service import OpportunityService
-    from domains.commercial.opportunity.contracts.repository import OpportunityQuery
     from domains.commercial.opportunity.contracts.models import OpportunityStatus
+    from domains.commercial.opportunity.contracts.repository import OpportunityQuery
+    from domains.commercial.opportunity.engine.service import OpportunityService
 
     tenant_id = info.context.get("tenant_id", "")
     async with async_session() as db:
@@ -152,16 +146,10 @@ async def _opportunities(
                 probability=o.probability,
                 health=getattr(o, "health", "healthy"),
                 expected_close_date=(
-                    o.expected_close_date.isoformat()
-                    if o.expected_close_date
-                    else None
+                    o.expected_close_date.isoformat() if o.expected_close_date else None
                 ),
                 owner_id=o.owner_id,
-                status=(
-                    o.status.value
-                    if hasattr(o.status, "value")
-                    else str(o.status)
-                ),
+                status=(o.status.value if hasattr(o.status, "value") else str(o.status)),
                 description=o.description,
                 created_at=(
                     o.created_at.isoformat()
@@ -197,9 +185,12 @@ async def _pipeline(info: Info) -> PipelineSummaryType | None:
                     win_rate=0.0,
                 )
             pipeline_id = pipes[0].id
+            from domains.commercial.infrastructure.postgres_repositories import (
+                PostgresOpportunityRepository,
+            )
             from domains.commercial.opportunity.contracts.repository import OpportunityQuery
-            from domains.commercial.infrastructure.postgres_repositories import PostgresOpportunityRepository
             from domains.commercial.opportunity.engine.service import OpportunityService
+
             opp_svc = OpportunityService(PostgresOpportunityRepository(db))
             opps = await opp_svc.query(OpportunityQuery(tenant_id=tenant_id))
             kpis = await svc.compute_kpis(pipeline_id, opps.items)

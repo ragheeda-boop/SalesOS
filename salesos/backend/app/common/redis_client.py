@@ -1,4 +1,5 @@
 """Async Redis client with graceful degradation — singleton pattern."""
+
 import logging
 from typing import Optional
 
@@ -23,7 +24,7 @@ class AsyncRedisClient:
         if self._initialized:
             return
         self._initialized = True
-        self._redis: Optional[Redis] = None
+        self._redis: Redis | None = None
         self._connect()
 
     def _connect(self) -> None:
@@ -36,9 +37,11 @@ class AsyncRedisClient:
             )
             logger.info("Redis client connected to %s", settings.redis_url)
         except Exception as exc:
-            logger.warning("Redis unavailable at %s: %s — running without cache", settings.redis_url, exc)
+            logger.warning(
+                "Redis unavailable at %s: %s — running without cache", settings.redis_url, exc
+            )
 
-    async def get(self, key: str) -> Optional[str]:
+    async def get(self, key: str) -> str | None:
         if self._redis is None:
             return None
         try:

@@ -2,13 +2,11 @@
 
 import uuid
 from abc import ABC, abstractmethod
-from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
 from uuid import UUID
 
-from sqlalchemy import DateTime, Select, String, func, select
+from sqlalchemy import DateTime, Select, func, select
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -43,6 +41,7 @@ class BaseModel(Base, TimestampMixin):
         primary_key=True,
         default=uuid.uuid4,
     )
+
 
 T = TypeVar("T")
 TId = TypeVar("TId")
@@ -129,8 +128,11 @@ class SqlAlchemyRepository(Repository[T, TId], ABC):
         return list(result.scalars().all()), total
 
     async def find_all_cursored(
-        self, page_size: int = 20, order_by: str = "created_at",
-        desc: bool = True, cursor: str | None = None,
+        self,
+        page_size: int = 20,
+        order_by: str = "created_at",
+        desc: bool = True,
+        cursor: str | None = None,
     ) -> CursorPage[T]:
         stmt = select(self.model_class)
         order_col = getattr(self.model_class, order_by, None)
@@ -140,8 +142,11 @@ class SqlAlchemyRepository(Repository[T, TId], ABC):
         if cursor:
             cursor_id, cursor_sort = decode_cursor(cursor)
             condition = build_keyset_condition(
-                self.model_class, cursor_id, cursor_sort,
-                sort_by=order_by, sort_dir="desc" if desc else "asc",
+                self.model_class,
+                cursor_id,
+                cursor_sort,
+                sort_by=order_by,
+                sort_dir="desc" if desc else "asc",
             )
             stmt = stmt.where(condition)
 

@@ -8,9 +8,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Optional
-
+from datetime import UTC, datetime
+from typing import Any
 
 # ── Shared data types (cross-boundary contracts) ──
 
@@ -37,7 +36,7 @@ class DecisionContext:
     target_type: str
     factors: list[DecisionFactor] = field(default_factory=list)
     confidence: float = 0.0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -76,45 +75,34 @@ class DecisionServiceProtocol(ABC):
         target_id: str,
         target_type: str,
         factors: list[DecisionFactor],
-    ) -> DecisionContext:
-        ...
+    ) -> DecisionContext: ...
 
     @abstractmethod
     async def get_latest_context(
         self, target_id: str, target_type: str
-    ) -> Optional[DecisionContext]:
-        ...
+    ) -> DecisionContext | None: ...
 
 
 class RecommendationEngineProtocol(ABC):
     """Interface for evaluating contexts — consumed by ScoringEngine."""
 
     @abstractmethod
-    async def evaluate(
-        self, context: DecisionContext
-    ) -> Optional[Recommendation]:
-        ...
+    async def evaluate(self, context: DecisionContext) -> Recommendation | None: ...
 
 
 class ScoreCardRepository(ABC):
     """Interface for persisting and loading ScoreCards — consumed by ScoringEngine."""
 
     @abstractmethod
-    async def save(self, scorecard: Any) -> Any:
-        ...
+    async def save(self, scorecard: Any) -> Any: ...
 
     @abstractmethod
-    async def get(self, card_id: str) -> Optional[Any]:
-        ...
+    async def get(self, card_id: str) -> Any | None: ...
 
     @abstractmethod
     async def get_for_target(
         self, tenant_id: str, target_id: str, target_type: str = "company"
-    ) -> Optional[Any]:
-        ...
+    ) -> Any | None: ...
 
     @abstractmethod
-    async def list_by_tenant(
-        self, tenant_id: str, limit: int = 20
-    ) -> list[Any]:
-        ...
+    async def list_by_tenant(self, tenant_id: str, limit: int = 20) -> list[Any]: ...

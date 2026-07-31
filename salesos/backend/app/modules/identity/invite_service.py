@@ -1,15 +1,15 @@
-import uuid
-import secrets
 import logging
-from datetime import datetime, timedelta, timezone
+import secrets
+import uuid
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.exceptions import DuplicateError, NotFoundError
-from app.modules.identity.models import Tenant, User
+from app.modules.identity.models import User
 from app.modules.identity.repositories import TenantRepository, UserRepository
-from app.modules.identity.service import IdentityService, hash_password
+from app.modules.identity.service import hash_password
 from sdk.audit import AuditTrail
 from sdk.events import EventBus
 from sdk.events.domain_events import UserInvited
@@ -51,7 +51,7 @@ class InviteService:
             "role": role,
             "tenant_id": tenant_id,
             "invited_by": invited_by,
-            "expires_at": datetime.now(timezone.utc) + timedelta(days=7),
+            "expires_at": datetime.now(UTC) + timedelta(days=7),
             "accepted": False,
         }
 
@@ -91,7 +91,7 @@ class InviteService:
             raise ValueError("Invalid invite token")
         if data["accepted"]:
             raise ValueError("Invite has already been accepted")
-        if data["expires_at"] < datetime.now(timezone.utc):
+        if data["expires_at"] < datetime.now(UTC):
             del INVITE_TOKENS[token]
             raise ValueError("Invite token has expired")
         return {
@@ -106,7 +106,7 @@ class InviteService:
             raise ValueError("Invalid invite token")
         if data["accepted"]:
             raise ValueError("Invite has already been accepted")
-        if data["expires_at"] < datetime.now(timezone.utc):
+        if data["expires_at"] < datetime.now(UTC):
             del INVITE_TOKENS[token]
             raise ValueError("Invite token has expired")
 

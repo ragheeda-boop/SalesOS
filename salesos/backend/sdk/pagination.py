@@ -59,10 +59,6 @@ def build_keyset_condition(
         col_sort = model.created_at
 
     if sort_dir == "desc":
-        return (col_sort < cursor_sort) | (
-            (col_sort == cursor_sort) & (col_id < UUID(cursor_id))
-        )
+        return (col_sort < cursor_sort) | ((col_sort == cursor_sort) & (col_id < UUID(cursor_id)))
     else:
-        return (col_sort > cursor_sort) | (
-            (col_sort == cursor_sort) & (col_id > UUID(cursor_id))
-        )
+        return (col_sort > cursor_sort) | ((col_sort == cursor_sort) & (col_id > UUID(cursor_id)))

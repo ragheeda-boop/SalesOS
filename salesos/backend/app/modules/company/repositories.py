@@ -1,9 +1,9 @@
 """PostgreSQL repositories for Company module."""
 
 import uuid
-from typing import Any
+from datetime import UTC
 
-from sqlalchemy import select, func, or_
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -32,6 +32,7 @@ class CompanyRepository(SqlAlchemyRepository[Company, uuid.UUID]):
         company = result.scalar_one_or_none()
         if company is None:
             from sdk.exceptions import ObjectNotFoundError
+
             raise ObjectNotFoundError("Company", str(company_id))
         return company
 
@@ -46,10 +47,12 @@ class CompanyRepository(SqlAlchemyRepository[Company, uuid.UUID]):
 
     async def exists_by_cr_number(self, tenant_id: str, cr_number: str) -> bool:
         result = await self._session.execute(
-            select(Company.id).where(
+            select(Company.id)
+            .where(
                 Company.tenant_id == uuid.UUID(tenant_id),
                 Company.cr_number == cr_number,
-            ).limit(1)
+            )
+            .limit(1)
         )
         return result.scalar_one_or_none() is not None
 
@@ -65,8 +68,10 @@ class CompanyRepository(SqlAlchemyRepository[Company, uuid.UUID]):
         cursor: str | None = None,
     ) -> tuple[list[Company], int]:
         base = select(Company).where(Company.tenant_id == uuid.UUID(tenant_id))
-        count_base = select(func.count()).select_from(Company).where(
-            Company.tenant_id == uuid.UUID(tenant_id)
+        count_base = (
+            select(func.count())
+            .select_from(Company)
+            .where(Company.tenant_id == uuid.UUID(tenant_id))
         )
 
         if query:
@@ -101,7 +106,10 @@ class CompanyRepository(SqlAlchemyRepository[Company, uuid.UUID]):
         if cursor:
             cursor_id, cursor_sort = decode_cursor(cursor)
             condition = build_keyset_condition(
-                Company, cursor_id, cursor_sort, sort_by=sort_by,
+                Company,
+                cursor_id,
+                cursor_sort,
+                sort_by=sort_by,
                 sort_dir="desc" if sort_desc else "asc",
             )
             base = base.where(condition)
@@ -148,7 +156,10 @@ class CompanyRepository(SqlAlchemyRepository[Company, uuid.UUID]):
         if cursor:
             cursor_id, cursor_sort = decode_cursor(cursor)
             condition = build_keyset_condition(
-                Company, cursor_id, cursor_sort, sort_by=sort_by,
+                Company,
+                cursor_id,
+                cursor_sort,
+                sort_by=sort_by,
                 sort_dir="desc" if sort_desc else "asc",
             )
             base = base.where(condition)
@@ -198,9 +209,7 @@ class CompanyRepository(SqlAlchemyRepository[Company, uuid.UUID]):
 
     async def get_cr_numbers_for_tenant(self, tenant_id: str) -> list[str]:
         result = await self._session.execute(
-            select(Company.cr_number).where(
-                Company.tenant_id == uuid.UUID(tenant_id)
-            )
+            select(Company.cr_number).where(Company.tenant_id == uuid.UUID(tenant_id))
         )
         return [row[0] for row in result.fetchall()]
 
@@ -253,8 +262,7 @@ class CompanyRepository(SqlAlchemyRepository[Company, uuid.UUID]):
             else:
                 company = Company(
                     tenant_id=tid,
-                    **{k: v for k, v in record.items()
-                       if hasattr(Company, k) and v is not None},
+                    **{k: v for k, v in record.items() if hasattr(Company, k) and v is not None},
                 )
                 self._session.add(company)
                 created.append(company)
@@ -272,15 +280,11 @@ class BranchRepository(SqlAlchemyRepository[Branch, uuid.UUID]):
         super().__init__(session)
 
     async def find_by_company(self, company_id: uuid.UUID) -> list[Branch]:
-        result = await self._session.execute(
-            select(Branch).where(Branch.company_id == company_id)
-        )
+        result = await self._session.execute(select(Branch).where(Branch.company_id == company_id))
         return list(result.scalars().all())
 
     async def find_by_city(self, city: str) -> list[Branch]:
-        result = await self._session.execute(
-            select(Branch).where(Branch.city == city)
-        )
+        result = await self._session.execute(select(Branch).where(Branch.city == city))
         return list(result.scalars().all())
 
 
@@ -297,14 +301,14 @@ class LicenseRepository(SqlAlchemyRepository[License, uuid.UUID]):
         return list(result.scalars().all())
 
     async def find_expiring(self, within_days: int = 30) -> list[License]:
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
-        threshold = datetime.now(timezone.utc).date() + timedelta(days=within_days)
+        threshold = datetime.now(UTC).date() + timedelta(days=within_days)
         result = await self._session.execute(
             select(License).where(
                 License.expiry_date.isnot(None),
                 License.expiry_date <= threshold,
-                License.expiry_date >= datetime.now(timezone.utc).date(),
+                License.expiry_date >= datetime.now(UTC).date(),
             )
         )
         return list(result.scalars().all())
@@ -344,9 +348,7 @@ class ContactRepository(SqlAlchemyRepository[Contact, uuid.UUID]):
         return result.scalar_one_or_none()
 
     async def find_by_email(self, email: str) -> list[Contact]:
-        result = await self._session.execute(
-            select(Contact).where(Contact.email == email)
-        )
+        result = await self._session.execute(select(Contact).where(Contact.email == email))
         return list(result.scalars().all())
 
 
@@ -357,19 +359,13 @@ class SourceRepository(SqlAlchemyRepository[Source, uuid.UUID]):
         super().__init__(session)
 
     async def get_by_slug(self, slug: str) -> Source | None:
-        result = await self._session.execute(
-            select(Source).where(Source.slug == slug)
-        )
+        result = await self._session.execute(select(Source).where(Source.slug == slug))
         return result.scalar_one_or_none()
 
     async def find_active(self) -> list[Source]:
-        result = await self._session.execute(
-            select(Source).where(Source.is_active.is_(True))
-        )
+        result = await self._session.execute(select(Source).where(Source.is_active.is_(True)))
         return list(result.scalars().all())
 
     async def exists_by_slug(self, slug: str) -> bool:
-        result = await self._session.execute(
-            select(Source.id).where(Source.slug == slug).limit(1)
-        )
+        result = await self._session.execute(select(Source.id).where(Source.slug == slug).limit(1))
         return result.scalar_one_or_none() is not None

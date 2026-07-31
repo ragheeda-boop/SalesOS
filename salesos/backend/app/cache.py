@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
-
 import redis.asyncio as aioredis
 
 from sdk.cache import CacheService as _SdkCacheService

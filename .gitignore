@@ -79,6 +79,12 @@ engineering-os
 opencode.old.json
 opencode.old*.json
 
+# Agent-local settings (Claude/opencode)
+.claude/
+
+# Poetry local config (container-created)
+salesos/backend/.config/
+
 # Cursor IDE
 .cursor/
 

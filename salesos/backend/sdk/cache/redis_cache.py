@@ -1,10 +1,10 @@
-"""RedisCache — low-level async Redis wrapper with JSON serialisation, TTL, and graceful degradation."""
+"""RedisCache — low-level async Redis wrapper with JSON serialisation, TTL, and graceful degradation."""  # noqa: E501
 
 from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
@@ -26,7 +26,7 @@ class RedisCache:
     def available(self) -> bool:
         return self._redis is not None
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         if self._redis is None:
             return None
         try:

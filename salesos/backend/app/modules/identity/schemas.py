@@ -4,15 +4,32 @@ from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, model_validator
 
-
-_COMMON_PASSWORDS: frozenset[str] = frozenset({
-    "password", "12345678", "123456789", "1234567890",
-    "12345678901", "123456789012", "qwerty123", "qwerty12",
-    "admin123", "admin12345", "password123", "letmein123",
-    "welcome123", "changeme123", "salesos123", "muhide123",
-    "باسورد", "123456789", "١٢٣٤٥٦٧٨٩", "admin",
-    "administrator", "root12345", "test12345",
-})
+_COMMON_PASSWORDS: frozenset[str] = frozenset(
+    {
+        "password",
+        "12345678",
+        "123456789",
+        "1234567890",
+        "12345678901",
+        "123456789012",
+        "qwerty123",
+        "qwerty12",
+        "admin123",
+        "admin12345",
+        "password123",
+        "letmein123",
+        "welcome123",
+        "changeme123",
+        "salesos123",
+        "muhide123",
+        "باسورد",
+        "١٢٣٤٥٦٧٨٩",
+        "admin",
+        "administrator",
+        "root12345",
+        "test12345",
+    }
+)
 
 
 def validate_password_strength(password: str) -> str:

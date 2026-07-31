@@ -3,8 +3,9 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
 from intelligence.reasoning import ReasoningPipeline
-from intelligence.schemas import AgentAnalysis, EvidenceItem
+from intelligence.schemas import AgentAnalysis
 
 
 @pytest.fixture

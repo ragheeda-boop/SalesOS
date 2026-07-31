@@ -45,7 +45,10 @@ class TestAIPrompts:
                     "template": "Analyze the following company data: {input}",
                     "variables": ["input"],
                     "domain": "analysis",
-                    "output_schema": {"type": "object", "properties": {"score": {"type": "number"}}},
+                    "output_schema": {
+                        "type": "object",
+                        "properties": {"score": {"type": "number"}},
+                    },
                 },
                 headers=auth_headers,
             ),

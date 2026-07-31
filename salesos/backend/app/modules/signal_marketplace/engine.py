@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any
 
 from .models import Signal
 from .service import SignalMarketplaceService
@@ -81,12 +80,14 @@ class SignalDetectionEngine:
 
         return all_signals
 
-    async def on_domain_event(self, event_type: str, aggregate_id: str, tenant_id: str, data: dict | None = None) -> None:
+    async def on_domain_event(
+        self, event_type: str, aggregate_id: str, tenant_id: str, data: dict | None = None
+    ) -> None:
         matched_signals = []
         for signal_id, signal in self._signal_map.items():
-            if any(t in event_type for t in signal.triggers):
-                matched_signals.append(signal_id)
-            elif event_type.startswith(signal.domain.lower()):
+            if any(t in event_type for t in signal.triggers) or event_type.startswith(
+                signal.domain.lower()
+            ):
                 matched_signals.append(signal_id)
 
         for signal_id in matched_signals:

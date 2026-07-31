@@ -5,7 +5,7 @@ Thresholds: >80 Green, >50 Yellow, <50 Red
 Renewal Risk: if health < 50 for 30+ days, flag as high risk
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -16,9 +16,7 @@ def compute_health_score(
     low_health_since: datetime | None = None,
 ) -> dict[str, Any]:
     score = round(
-        0.4 * feature_adoption_pct
-        + 0.3 * search_success_rate
-        + 0.3 * nba_acceptance_rate,
+        0.4 * feature_adoption_pct + 0.3 * search_success_rate + 0.3 * nba_acceptance_rate,
         1,
     )
 
@@ -35,7 +33,7 @@ def compute_health_score(
     renewal_risk = False
     days_in_low_health = 0
     if low_health_since and score < 50:
-        days_in_low_health = (datetime.now(timezone.utc) - low_health_since).days
+        days_in_low_health = (datetime.now(UTC) - low_health_since).days
         if days_in_low_health >= 30:
             renewal_risk = True
 
@@ -44,9 +42,21 @@ def compute_health_score(
         "status": status,
         "color": color,
         "components": {
-            "feature_adoption": {"weight": 0.4, "value": feature_adoption_pct, "contribution": round(0.4 * feature_adoption_pct, 1)},
-            "search_success": {"weight": 0.3, "value": search_success_rate, "contribution": round(0.3 * search_success_rate, 1)},
-            "nba_acceptance": {"weight": 0.3, "value": nba_acceptance_rate, "contribution": round(0.3 * nba_acceptance_rate, 1)},
+            "feature_adoption": {
+                "weight": 0.4,
+                "value": feature_adoption_pct,
+                "contribution": round(0.4 * feature_adoption_pct, 1),
+            },
+            "search_success": {
+                "weight": 0.3,
+                "value": search_success_rate,
+                "contribution": round(0.3 * search_success_rate, 1),
+            },
+            "nba_acceptance": {
+                "weight": 0.3,
+                "value": nba_acceptance_rate,
+                "contribution": round(0.3 * nba_acceptance_rate, 1),
+            },
         },
         "renewal_risk": renewal_risk,
         "days_in_low_health": days_in_low_health,

@@ -1,23 +1,23 @@
-"""Tests for Work Intelligence Engine — time allocation, meeting load, activity scoring, recommendations."""
+"""Tests for Work Intelligence Engine — time allocation, meeting load, activity scoring, recommendations."""  # noqa: E501
+
 from __future__ import annotations
 
-from datetime import datetime, timezone, timedelta
-from unittest.mock import AsyncMock, MagicMock
+from datetime import UTC, datetime, timedelta
+from unittest.mock import AsyncMock
 
 import pytest
 
 from app.modules.work_intelligence.service import (
-    WorkIntelligenceEngine,
-    TimeAllocation,
-    MeetingLoad,
     ActivityScore,
-    WorkRecommendation,
+    MeetingLoad,
+    TimeAllocation,
+    WorkIntelligenceEngine,
     WorkIntelligenceResponse,
 )
 
 
 def _make_item(action: str, days_ago: int = 1):
-    ts = datetime.now(timezone.utc) - timedelta(days=days_ago)
+    ts = datetime.now(UTC) - timedelta(days=days_ago)
     return {"action": action, "timestamp": ts.isoformat()}
 
 
@@ -47,6 +47,7 @@ def engine_with_items():
 
 
 # ── Tests: Time Allocation ──────────────────────────────────────────────────
+
 
 class TestTimeAllocation:
     def test_empty_items_returns_zeros(self, engine):
@@ -100,10 +101,11 @@ class TestTimeAllocation:
 
 # ── Tests: Meeting Load ─────────────────────────────────────────────────────
 
+
 class TestMeetingLoad:
     def test_no_meetings(self, engine):
         items = [_make_item("email_sent")]
-        result = engine._compute_meeting_load(items, datetime.now(timezone.utc), datetime.now(timezone.utc))
+        result = engine._compute_meeting_load(items, datetime.now(UTC), datetime.now(UTC))
         assert isinstance(result, MeetingLoad)
         assert result.meetings_today == 0
         assert result.meetings_this_week == 0
@@ -111,26 +113,26 @@ class TestMeetingLoad:
         assert result.overbooked is False
 
     def test_meetings_today(self, engine):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         items = [_make_item("meeting", 0)]  # today
         result = engine._compute_meeting_load(items, now, now)
         assert result.meetings_today == 1
 
     def test_no_meetings_on_different_day(self, engine):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         items = [_make_item("meeting", 5)]  # 5 days ago
         result = engine._compute_meeting_load(items, now, now)
         assert result.meetings_today == 0
 
     def test_overbooked_with_many_hours(self, engine):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         week_start = now - timedelta(days=now.weekday())
         items = [_make_item("meeting", i) for i in range(20)]  # Many meetings this week
         result = engine._compute_meeting_load(items, now, week_start)
         assert result.total_meeting_hours_this_week >= 1
 
     def test_recommendation_overbooked(self, engine):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         week_start = now - timedelta(days=now.weekday())
         items = [_make_item("meeting", i) for i in range(30)]
         result = engine._compute_meeting_load(items, now, week_start)
@@ -138,7 +140,7 @@ class TestMeetingLoad:
             assert len(result.recommendation) > 0
 
     def test_recommendation_many_meetings(self, engine):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         week_start = now - timedelta(days=now.weekday())
         items = [_make_item("meeting", i) for i in range(11)]
         result = engine._compute_meeting_load(items, now, week_start)
@@ -146,7 +148,7 @@ class TestMeetingLoad:
             assert len(result.recommendation) > 0
 
     def test_avg_per_day(self, engine):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         week_start = now - timedelta(days=now.weekday())
         items = [_make_item("meeting", i) for i in range(30)]
         result = engine._compute_meeting_load(items, now, week_start)
@@ -154,6 +156,7 @@ class TestMeetingLoad:
 
 
 # ── Tests: Activity Score ───────────────────────────────────────────────────
+
 
 class TestActivityScore:
     def test_empty_items(self, engine):
@@ -208,7 +211,7 @@ class TestActivityScore:
         assert result.consistency >= 0
 
     def test_recency_score(self, engine):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         items = [
             {"action": "meeting", "timestamp": (now - timedelta(hours=i)).isoformat()}
             for i in range(10)
@@ -218,6 +221,7 @@ class TestActivityScore:
 
 
 # ── Tests: Recommendations ──────────────────────────────────────────────────
+
 
 class TestRecommendations:
     def test_no_recommendations_for_balanced(self, engine):
@@ -229,7 +233,9 @@ class TestRecommendations:
 
     def test_overbooked_recommendation(self, engine):
         time_alloc = TimeAllocation()
-        meeting_load = MeetingLoad(overbooked=True, total_meeting_hours_this_week=25, recommendation="قلل الاجتماعات")
+        meeting_load = MeetingLoad(
+            overbooked=True, total_meeting_hours_this_week=25, recommendation="قلل الاجتماعات"
+        )
         activity_score = ActivityScore(overall=50, variety=50, consistency=50, grade="متوسط")
         recs = engine._generate_recommendations(time_alloc, meeting_load, activity_score, 20)
         types = [r.type for r in recs]
@@ -277,6 +283,7 @@ class TestRecommendations:
 
 
 # ── Tests: Full analyze ─────────────────────────────────────────────────────
+
 
 class TestAnalyze:
     async def test_returns_work_intelligence_response(self, engine_with_items):

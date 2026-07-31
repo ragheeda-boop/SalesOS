@@ -1,7 +1,6 @@
 """Top-level intelligence CostTracker tests — estimate, track, budget, enforcement."""
 
-import pytest
-from intelligence.cost_tracker import CostTracker, BudgetEnforcement, CostEstimate
+from intelligence.cost_tracker import BudgetEnforcement, CostEstimate, CostTracker
 
 
 def test_estimate_cost_gpt4o_mini():
@@ -99,7 +98,13 @@ def test_update_existing_budget():
 
 
 def test_cost_estimate_dataclass():
-    ce = CostEstimate(prompt_tokens=100, completion_tokens=50, total_tokens=150, estimated_cost=0.01, model="gpt-4o")
+    ce = CostEstimate(
+        prompt_tokens=100,
+        completion_tokens=50,
+        total_tokens=150,
+        estimated_cost=0.01,
+        model="gpt-4o",
+    )
     assert ce.prompt_tokens == 100
     assert ce.model == "gpt-4o"
 

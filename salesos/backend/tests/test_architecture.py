@@ -5,7 +5,6 @@ If any test fails → build fails → architecture drift prevented.
 """
 
 import ast
-import os
 from pathlib import Path
 
 import pytest
@@ -38,22 +37,24 @@ def _get_imports(filepath: Path) -> set[str]:
         if isinstance(node, ast.Import):
             for alias in node.names:
                 imports.add(alias.name.split(".")[0])
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                imports.add(node.module.split(".")[0])
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imports.add(node.module.split(".")[0])
     return imports
 
 
-@pytest.mark.parametrize("domain_dir", [
-    d for d in DOMAINS.iterdir() if d.is_dir() and d.name != "__pycache__"
-])
+@pytest.mark.parametrize(
+    "domain_dir", [d for d in DOMAINS.iterdir() if d.is_dir() and d.name != "__pycache__"]
+)
 def test_domain_does_not_import_ui(domain_dir):
     """No domain module should import UI frameworks."""
     violations: list[str] = []
     for pyfile in domain_dir.rglob("*.py"):
-        if (pyfile.name.startswith("__") or pyfile.name in ("api.py", "router.py", "rate_limit.py", "webhook_handler.py")
-                or "router" in pyfile.name
-                or "tests" in pyfile.parts):
+        if (
+            pyfile.name.startswith("__")
+            or pyfile.name in ("api.py", "router.py", "rate_limit.py", "webhook_handler.py")
+            or "router" in pyfile.name
+            or "tests" in pyfile.parts
+        ):
             continue
         imports = _get_imports(pyfile)
         banned = BANNED_UI_IMPORTS & imports
@@ -68,16 +69,22 @@ def test_domain_does_not_import_ui(domain_dir):
 # Rule 2: Kernel does not import Commercial
 # ─────────────────────────────────────────────
 
-@pytest.mark.parametrize("kernel_dir", [
-    d for d in DOMAINS.iterdir() if d.is_dir() and d.name != "__pycache__" and d.name != "commercial"
-])
+
+@pytest.mark.parametrize(
+    "kernel_dir",
+    [
+        d
+        for d in DOMAINS.iterdir()
+        if d.is_dir() and d.name != "__pycache__" and d.name != "commercial"
+    ],
+)
 def test_kernel_does_not_import_commercial(kernel_dir):
     """Kernel domains must not import from commercial."""
     violations: list[str] = []
     for pyfile in kernel_dir.rglob("*.py"):
         if pyfile.name.startswith("__"):
             continue
-        imports = _get_imports(pyfile)
+        _ = _get_imports(pyfile)
         # Check if any import starts with "domains.commercial"
         with open(pyfile, encoding="utf-8") as f:
             content = f.read()
@@ -85,12 +92,15 @@ def test_kernel_does_not_import_commercial(kernel_dir):
             rel = pyfile.relative_to(ROOT)
             violations.append(str(rel))
 
-    assert not violations, f"Kernel domain {kernel_dir.name} imports commercial:\n" + "\n".join(violations)
+    assert not violations, f"Kernel domain {kernel_dir.name} imports commercial:\n" + "\n".join(
+        violations
+    )
 
 
 # ─────────────────────────────────────────────
 # Rule 3: SDK does not import Domains
 # ─────────────────────────────────────────────
+
 
 def test_sdk_does_not_import_domains():
     """SDK must not import from domains."""
@@ -103,7 +113,7 @@ def test_sdk_does_not_import_domains():
             rel = pyfile.relative_to(ROOT)
             violations.append(str(rel))
 
-    assert not violations, f"SDK imports domains:\n" + "\n".join(violations)
+    assert not violations, "SDK imports domains:\n" + "\n".join(violations)
 
 
 # ─────────────────────────────────────────────
@@ -115,12 +125,31 @@ FROZEN_INTERFACES = {
         "fields": {"query", "filters", "sort", "page", "page_size", "tenant_id", "context"},
     },
     "SearchResult": {
-        "fields": {"items", "total", "page", "page_size", "facets", "filters",
-                   "ranking", "duration_ms", "query", "execution_time",
-                   "strategy", "ranking_version", "next_cursor"},
+        "fields": {
+            "items",
+            "total",
+            "page",
+            "page_size",
+            "facets",
+            "filters",
+            "ranking",
+            "duration_ms",
+            "query",
+            "execution_time",
+            "strategy",
+            "ranking_version",
+            "next_cursor",
+        },
     },
     "SearchPlanner": {
-        "methods": {"search", "count", "facets", "suggest", "set_repository", "set_ranking_pipeline"},
+        "methods": {
+            "search",
+            "count",
+            "facets",
+            "suggest",
+            "set_repository",
+            "set_ranking_pipeline",
+        },
     },
 }
 
@@ -149,10 +178,7 @@ def _get_class_fields(filepath: Path, class_name: str) -> set[str]:
 def test_frozen_interfaces_preserved():
     """Verify frozen interfaces haven't changed their public API."""
     contracts_dir = ROOT / "domains" / "search" / "contracts" / "models.py"
-    planner_dir = ROOT / "domains" / "search" / "engine" / "planner.py"
-
-    import importlib.util
-    import sys
+    _ = ROOT / "domains" / "search" / "engine" / "planner.py"
 
     # Check SearchQuery fields
     sq_fields = _get_class_fields(contracts_dir, "SearchQuery")
@@ -171,6 +197,7 @@ def test_frozen_interfaces_preserved():
 # Rule 5: Every Domain module must register in CapabilityRegistry
 # ─────────────────────────────────────────────
 
+
 def test_commercial_modules_registered():
     """Every module under commercial/ must have a capability registration."""
     from modules.registry import _register_platform_capabilities
@@ -179,7 +206,9 @@ def test_commercial_modules_registered():
     _register_platform_capabilities()
     registered = set(CapabilityRegistry.all().keys())
 
-    for domain_dir in list(COMMERCIAL.iterdir()) + list(REVENUE.iterdir()) + list(DECISION.iterdir()):
+    for domain_dir in (
+        list(COMMERCIAL.iterdir()) + list(REVENUE.iterdir()) + list(DECISION.iterdir())
+    ):
         if not domain_dir.is_dir() or domain_dir.name.startswith("_"):
             continue
         assert domain_dir.name in registered, (

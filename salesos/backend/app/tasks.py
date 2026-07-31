@@ -30,6 +30,7 @@ def _run_async(coro):
 async def _get_entity_tenant(entity_id: str, entity_type: str) -> str | None:
     """Look up the tenant_id for an entity from PostgreSQL."""
     from sqlalchemy import text
+
     from app.database import async_session
 
     table_map = {
@@ -50,6 +51,7 @@ async def _get_entity_tenant(entity_id: str, entity_type: str) -> str | None:
 async def _load_company_record(company_id: str) -> dict[str, Any] | None:
     """Load a company row as a plain dict."""
     from sqlalchemy import text
+
     from app.database import async_session
 
     async with async_session() as session:
@@ -92,7 +94,10 @@ def _sync_to_graph(entity_id: str, entity_type: str):
                 else:
                     logger.warning("Graph sync skipped: company %s not found", entity_id)
             else:
-                logger.debug("Graph sync: entity type %s not yet supported for single-entity sync", entity_type)
+                logger.debug(
+                    "Graph sync: entity type %s not yet supported for single-entity sync",
+                    entity_type,
+                )
         finally:
             await engine.close()
 
@@ -102,6 +107,7 @@ def _sync_to_graph(entity_id: str, entity_type: str):
 def _generate_embedding(entity_id: str, entity_type: str):
     """Generate vector embedding for entity and store in companies.embedding + vector store."""
     from sqlalchemy import text
+
     from app.config import settings
     from app.database import async_session
     from sdk.vector import OpenAIEmbeddingService
@@ -182,9 +188,19 @@ async def _do_scrape(company_id: str, cr_number: str):
             async with asyncio.timeout(10):
                 result = await scraper.fetch_all(max_pages=5)
                 if result.records:
-                    logger.info("Scraped %d records from %s for company %s", len(result.records), slug, company_id)
+                    logger.info(
+                        "Scraped %d records from %s for company %s",
+                        len(result.records),
+                        slug,
+                        company_id,
+                    )
                 else:
-                    logger.debug("No records from %s for company %s (errors: %s)", slug, company_id, result.errors)
+                    logger.debug(
+                        "No records from %s for company %s (errors: %s)",
+                        slug,
+                        company_id,
+                        result.errors,
+                    )
         except TimeoutError:
             logger.warning("Scraper %s timed out for company %s", slug, company_id)
         except Exception as e:
@@ -239,14 +255,22 @@ async def _do_recompute(company_id: str):
 # ── Celery Tasks ────────────────────────────────────────────────
 
 
-@celery_app.task(bind=True, max_retries=settings.celery_max_retries, default_retry_delay=settings.celery_default_retry_delay)
+@celery_app.task(
+    bind=True,
+    max_retries=settings.celery_max_retries,
+    default_retry_delay=settings.celery_default_retry_delay,
+)
 def ping(self):
     """Simple heartbeat task to verify worker health."""
     logger.info("Worker ping OK")
     return "pong"
 
 
-@celery_app.task(bind=True, max_retries=settings.celery_max_retries, default_retry_delay=settings.celery_process_entity_delay)
+@celery_app.task(
+    bind=True,
+    max_retries=settings.celery_max_retries,
+    default_retry_delay=settings.celery_process_entity_delay,
+)
 def process_entity(self, entity_id: str, entity_type: str):
     """Background entity processing (vector embedding, graph sync, enrichment)."""
     logger.info("Processing entity %s (type=%s)", entity_id, entity_type)
@@ -256,10 +280,14 @@ def process_entity(self, entity_id: str, entity_type: str):
         _generate_embedding(entity_id, entity_type)
     except Exception as exc:
         logger.error("Failed to process entity %s: %s", entity_id, exc)
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
 
 
-@celery_app.task(bind=True, max_retries=settings.celery_max_retries, default_retry_delay=settings.celery_index_delay)
+@celery_app.task(
+    bind=True,
+    max_retries=settings.celery_max_retries,
+    default_retry_delay=settings.celery_index_delay,
+)
 def index_for_search(self, entity_id: str, entity_type: str, payload: dict):
     """Index an entity in Meilisearch."""
     import httpx
@@ -283,10 +311,14 @@ def index_for_search(self, entity_id: str, entity_type: str, payload: dict):
             logger.info("Indexed %s %s in Meilisearch", entity_type, entity_id)
     except Exception as exc:
         logger.error("Failed to index %s %s: %s", entity_type, entity_id, exc)
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
 
 
-@celery_app.task(bind=True, max_retries=settings.celery_max_retries, default_retry_delay=settings.celery_enrich_delay)
+@celery_app.task(
+    bind=True,
+    max_retries=settings.celery_max_retries,
+    default_retry_delay=settings.celery_enrich_delay,
+)
 def enrich_company(self, company_id: str, cr_number: str):
     """Background company enrichment pipeline.
 
@@ -297,7 +329,7 @@ def enrich_company(self, company_id: str, cr_number: str):
         _run_async(_parallel_enrich(company_id, cr_number))
     except Exception as exc:
         logger.error("Failed to enrich company %s: %s", company_id, exc)
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
 
 
 @celery_app.task(bind=True, max_retries=3, default_retry_delay=60)
@@ -318,12 +350,15 @@ def enrich_company_task(self, company_id: str, tenant_id: str) -> dict:
 
         try:
             from app.common.redis_client import AsyncRedisClient
+
             client = AsyncRedisClient()
-            _run_async(client.set(
-                cache_key,
-                _json.dumps(result, default=str),
-                ttl=86400,
-            ))
+            _run_async(
+                client.set(
+                    cache_key,
+                    _json.dumps(result, default=str),
+                    ttl=86400,
+                )
+            )
         except Exception:
             pass
 
@@ -336,12 +371,13 @@ def enrich_company_task(self, company_id: str, tenant_id: str) -> dict:
 
     except Exception as exc:
         logger.error("Enrichment task failed for %s: %s", company_id, exc)
-        raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
+        raise self.retry(exc=exc, countdown=60 * (2**self.request.retries)) from exc
 
 
 async def _run_enrichment_pipeline(company_id: str, tenant_id: str) -> dict:
     """Run the full enrichment pipeline for a company."""
     from sqlalchemy import text
+
     from app.database import async_session
 
     async with async_session() as session:
@@ -357,6 +393,7 @@ async def _run_enrichment_pipeline(company_id: str, tenant_id: str) -> dict:
         try:
             from runtime.data_fabric_runtime.scrapers.balady import BaladyScraper
             from runtime.data_fabric_runtime.scrapers.taqeem import TaqeemScraper
+
             scrapers = [
                 ("balady", BaladyScraper(use_mock=False)),
                 ("taqeem", TaqeemScraper(use_mock=False)),
@@ -376,7 +413,7 @@ async def _run_enrichment_pipeline(company_id: str, tenant_id: str) -> dict:
                 return_exceptions=True,
             )
 
-            for slug, res in zip(["balady", "taqeem"], scrape_results):
+            for slug, res in zip(["balady", "taqeem"], scrape_results, strict=False):
                 if isinstance(res, Exception):
                     logger.warning("Scraper %s failed for %s: %s", slug, company_id, res)
         except Exception as e:
@@ -385,20 +422,29 @@ async def _run_enrichment_pipeline(company_id: str, tenant_id: str) -> dict:
     async def _run_features():
         try:
             from app.database import async_session
-            from runtime.feature_store import FeatureStore
             from runtime.event_runtime import EventRuntime
+            from runtime.feature_store import FeatureStore
             from runtime.feature_store.features import (
-                IcpComputer, FundingScoreComputer, HiringScoreComputer,
-                GrowthScoreComputer, IntentScoreComputer, ExpansionScoreComputer,
+                ExpansionScoreComputer,
+                FundingScoreComputer,
+                GrowthScoreComputer,
+                HiringScoreComputer,
+                IcpComputer,
+                IntentScoreComputer,
                 RevenueScoreComputer,
             )
+
             event_runtime = EventRuntime()
             store = FeatureStore(
                 session_factory=async_session,
                 event_runtime=event_runtime,
                 computers=[
-                    IcpComputer(), FundingScoreComputer(), HiringScoreComputer(),
-                    GrowthScoreComputer(), IntentScoreComputer(), ExpansionScoreComputer(),
+                    IcpComputer(),
+                    FundingScoreComputer(),
+                    HiringScoreComputer(),
+                    GrowthScoreComputer(),
+                    IntentScoreComputer(),
+                    ExpansionScoreComputer(),
                     RevenueScoreComputer(),
                 ],
                 logger=logger,
@@ -411,28 +457,34 @@ async def _run_enrichment_pipeline(company_id: str, tenant_id: str) -> dict:
 
     try:
         scrape_result, feature_result = await asyncio.gather(
-            _run_scrapers(), _run_features(), return_exceptions=True,
+            _run_scrapers(),
+            _run_features(),
+            return_exceptions=True,
         )
     except Exception as e:
         logger.warning("Enrichment pipeline aborted for %s: %s", company_id, e)
-        scrape_result, feature_result = None, {}
+        _, feature_result = None, {}
 
     features = feature_result if isinstance(feature_result, dict) else {}
 
     return {
         "company_id": company_id,
         "features": features,
-        "enriched_at": str(_datetime.datetime.now(_datetime.timezone.utc)),
+        "enriched_at": str(_datetime.datetime.now(_datetime.UTC)),
     }
 
 
-@celery_app.task(bind=True, max_retries=settings.celery_max_retries - 1, default_retry_delay=settings.celery_sync_notion_delay)
+@celery_app.task(
+    bind=True,
+    max_retries=settings.celery_max_retries - 1,
+    default_retry_delay=settings.celery_sync_notion_delay,
+)
 def sync_notion_database(self, database_id: str, tenant_id: str):
     """Sync a Notion database into the pipeline."""
     logger.info("Syncing Notion database %s for tenant %s", database_id, tenant_id)
     from app.config import settings
-    from app.modules.notion_sync.service import NotionSyncService
     from app.database import async_session
+    from app.modules.notion_sync.service import NotionSyncService
 
     async def _do_sync():
         async with async_session() as session:
@@ -444,4 +496,4 @@ def sync_notion_database(self, database_id: str, tenant_id: str):
         logger.info("Notion sync complete for %s", database_id)
     except Exception as exc:
         logger.error("Notion sync failed for %s: %s", database_id, exc)
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc

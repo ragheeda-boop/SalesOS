@@ -8,7 +8,9 @@ Endpoints:
   POST /api/v1/integrations/google/sync             — Sync Gmail emails
   POST /api/v1/integrations/google/calendar-sync    — Sync Google Calendar
 """
+
 import logging
+from datetime import UTC
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -16,16 +18,21 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.dependencies import get_current_tenant_id, get_current_user_id, get_db_session, verify_token
+from app.dependencies import (
+    get_current_tenant_id,
+    get_current_user_id,
+    get_db_session,
+    verify_token,
+)
 from app.modules.communication_hub.schemas import (
     GoogleAccountResponse,
+    GoogleCalendarSyncRequest,
+    GoogleCalendarSyncResponse,
     GoogleConnectResponse,
     GoogleDisconnectResponse,
     GoogleStatusResponse,
     GoogleSyncRequest,
     GoogleSyncResponse,
-    GoogleCalendarSyncRequest,
-    GoogleCalendarSyncResponse,
 )
 from app.modules.communication_hub.service import (
     GoogleOAuthError,
@@ -52,7 +59,9 @@ def _get_service(
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db_session),
 ) -> GoogleOAuthService:
-    return GoogleOAuthService(db, __import__("uuid").UUID(tenant_id), __import__("uuid").UUID(user_id))
+    return GoogleOAuthService(
+        db, __import__("uuid").UUID(tenant_id), __import__("uuid").UUID(user_id)
+    )
 
 
 @router.get("/connect", response_model=GoogleConnectResponse, dependencies=_AUTH)
@@ -73,7 +82,9 @@ async def connect_google(service: GoogleOAuthService = Depends(_get_service)):
         raise HTTPException(status_code=503, detail=str(e)) from e
     except Exception:
         logger.exception("google_connect.failed")
-        raise HTTPException(status_code=500, detail="Failed to generate authorization URL")
+        raise HTTPException(
+            status_code=500, detail="Failed to generate authorization URL"
+        ) from None  # noqa: E501
 
 
 @router.get("/callback")
@@ -83,8 +94,8 @@ async def google_callback(
     db: AsyncSession = Depends(get_db_session),
 ):
     """Google redirects here without a Bearer token — auth is via OAuth state."""
-    from uuid import UUID
     import hashlib
+    from uuid import UUID
 
     from app.modules.communication_hub.service import _OAUTH_STATE_STORE
 
@@ -118,13 +129,17 @@ async def google_callback(
     except GoogleOAuthError as e:
         logger.warning("google_callback.failed", extra={"error": str(e)})
         return RedirectResponse(
-            url=_frontend_integrations_url(google="error", reason="oauth_failed", tab="integrations"),
+            url=_frontend_integrations_url(
+                google="error", reason="oauth_failed", tab="integrations"
+            ),
             status_code=302,
         )
     except Exception:
         logger.exception("google_callback.error")
         return RedirectResponse(
-            url=_frontend_integrations_url(google="error", reason="server_error", tab="integrations"),
+            url=_frontend_integrations_url(
+                google="error", reason="server_error", tab="integrations"
+            ),
             status_code=302,
         )
 
@@ -144,8 +159,9 @@ async def google_status(service: GoogleOAuthService = Depends(_get_service)):
     # Sync is possible when access token is fresh OR a refresh token can renew it.
     token_valid = bool(account.refresh_token_encrypted)
     if account.token_expiry:
-        from datetime import datetime, timezone, timedelta
-        skew = datetime.now(timezone.utc) + timedelta(seconds=60)
+        from datetime import datetime, timedelta
+
+        skew = datetime.now(UTC) + timedelta(seconds=60)
         if account.token_expiry > skew:
             token_valid = True
 
@@ -181,7 +197,8 @@ async def sync_gmail(
     db: AsyncSession = Depends(get_db_session),
 ):
     from uuid import UUID
-    from app.modules.communication_hub.gmail_sync import GmailSyncService, GmailSyncError
+
+    from app.modules.communication_hub.gmail_sync import GmailSyncError, GmailSyncService
 
     service = GmailSyncService(db, UUID(tenant_id), UUID(user_id))
     try:
@@ -195,13 +212,13 @@ async def sync_gmail(
             new_count=result["new_count"],
             updated_count=result["updated_count"],
             errors=result["errors"],
-            message=f"Synced {result['synced_count']} emails ({result['new_count']} new, {result['updated_count']} updated)",
+            message=f"Synced {result['synced_count']} emails ({result['new_count']} new, {result['updated_count']} updated)",  # noqa: E501
         )
     except GmailSyncError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception:
         logger.exception("gmail_sync.failed")
-        raise HTTPException(status_code=500, detail="Gmail sync failed")
+        raise HTTPException(status_code=500, detail="Gmail sync failed") from None
 
 
 @router.post("/calendar-sync", response_model=GoogleCalendarSyncResponse, dependencies=_AUTH)
@@ -212,7 +229,8 @@ async def sync_calendar(
     db: AsyncSession = Depends(get_db_session),
 ):
     from uuid import UUID
-    from app.modules.communication_hub.calendar_sync import CalendarSyncService, CalendarSyncError
+
+    from app.modules.communication_hub.calendar_sync import CalendarSyncError, CalendarSyncService
 
     service = CalendarSyncService(db, UUID(tenant_id), UUID(user_id))
     try:
@@ -234,7 +252,7 @@ async def sync_calendar(
             ),
         )
     except CalendarSyncError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception:
         logger.exception("calendar_sync.failed")
-        raise HTTPException(status_code=500, detail="Calendar sync failed")
+        raise HTTPException(status_code=500, detail="Calendar sync failed") from None

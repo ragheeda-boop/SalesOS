@@ -32,9 +32,7 @@ async def test_upsert_skips_when_no_company():
         "app.modules.communication_hub.contact_sync.resolve_company_ids_for_addresses",
         new=AsyncMock(return_value=[]),
     ):
-        result = await upsert_contacts_from_addresses(
-            db, uuid4(), ["person@partner.example"]
-        )
+        result = await upsert_contacts_from_addresses(db, uuid4(), ["person@partner.example"])
     assert result["skipped"] == 1
     assert result["created"] == 0
     assert db.execute.await_count == 0
@@ -52,9 +50,7 @@ async def test_upsert_creates_when_company_matched():
         "app.modules.communication_hub.contact_sync.resolve_company_ids_for_addresses",
         new=AsyncMock(return_value=[company_id]),
     ):
-        result = await upsert_contacts_from_addresses(
-            db, uuid4(), ["alice@partner.example"]
-        )
+        result = await upsert_contacts_from_addresses(db, uuid4(), ["alice@partner.example"])
     assert result["created"] == 1
     assert result["updated"] == 0
     assert db.execute.await_count == 2  # SELECT + INSERT
@@ -72,8 +68,6 @@ async def test_upsert_updates_existing():
         "app.modules.communication_hub.contact_sync.resolve_company_ids_for_addresses",
         new=AsyncMock(return_value=[company_id]),
     ):
-        result = await upsert_contacts_from_addresses(
-            db, uuid4(), ["alice@partner.example"]
-        )
+        result = await upsert_contacts_from_addresses(db, uuid4(), ["alice@partner.example"])
     assert result["updated"] == 1
     assert result["created"] == 0

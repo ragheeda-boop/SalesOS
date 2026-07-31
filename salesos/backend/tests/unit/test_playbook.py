@@ -1,8 +1,8 @@
 """Tests for Playbook Engine — default playbooks, selection, step retrieval."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 import pytest
 
@@ -14,8 +14,8 @@ from domains.commercial.playbook import (
     PlaybookTrigger,
 )
 
-
 # ── Helper: simple opportunity dataclass ─────────────────────────────────────
+
 
 @dataclass
 class FakeOpportunity:
@@ -25,6 +25,7 @@ class FakeOpportunity:
 
 
 # ── Tests: Default Playbooks ────────────────────────────────────────────────
+
 
 class TestDefaultPlaybooks:
     def test_default_playlists_exist(self):
@@ -57,6 +58,7 @@ class TestDefaultPlaybooks:
 
 
 # ── Tests: Enterprise SaaS Playbook Details ─────────────────────────────────
+
 
 class TestEnterpriseSaaSPlaybook:
     @pytest.fixture
@@ -100,6 +102,7 @@ class TestEnterpriseSaaSPlaybook:
 
 # ── Tests: SMB Quick Close Playbook Details ──────────────────────────────────
 
+
 class TestSMBQuickClosePlaybook:
     @pytest.fixture
     def playbook(self):
@@ -118,6 +121,7 @@ class TestSMBQuickClosePlaybook:
 
 
 # ── Tests: PlaybookEngine — find_playbook ───────────────────────────────────
+
 
 class TestFindPlaybook:
     def test_returns_playbook(self):
@@ -153,11 +157,21 @@ class TestFindPlaybook:
 
     def test_custom_playbook_selection(self):
         custom = Playbook(
-            id="pb-custom", tenant_id="t-1", name="Custom",
+            id="pb-custom",
+            tenant_id="t-1",
+            name="Custom",
             description="Custom playbook",
             min_deal_size=1000000,
-            steps=[PlaybookStep(id="c-1", action="custom_action", title_ar="مخصص",
-                                title_en="Custom", order=1, stage="proposal")],
+            steps=[
+                PlaybookStep(
+                    id="c-1",
+                    action="custom_action",
+                    title_ar="مخصص",
+                    title_en="Custom",
+                    order=1,
+                    stage="proposal",
+                )
+            ],
         )
         engine = PlaybookEngine(playbooks=[custom])
         opp_big = FakeOpportunity(value=2000000)
@@ -166,7 +180,9 @@ class TestFindPlaybook:
 
     def test_custom_playbook_skip_when_value_too_low(self):
         custom = Playbook(
-            id="pb-custom", tenant_id="t-1", name="Custom",
+            id="pb-custom",
+            tenant_id="t-1",
+            name="Custom",
             description="Custom playbook",
             min_deal_size=1000000,
             steps=[],
@@ -179,8 +195,12 @@ class TestFindPlaybook:
 
     def test_inactive_playbook_skipped(self):
         inactive = Playbook(
-            id="pb-inactive", tenant_id="t-1", name="Inactive",
-            description="Inactive", is_active=False, steps=[],
+            id="pb-inactive",
+            tenant_id="t-1",
+            name="Inactive",
+            description="Inactive",
+            is_active=False,
+            steps=[],
         )
         default = DEFAULT_PLAYLISTS[0]
         engine = PlaybookEngine(playbooks=[inactive, default])
@@ -190,9 +210,14 @@ class TestFindPlaybook:
 
     def test_industry_filter(self):
         tech_pb = Playbook(
-            id="pb-tech", tenant_id="t-1", name="Tech",
-            description="Tech", industry="technology",
-            steps=[PlaybookStep(id="t-1", action="a", title_ar="ت", title_en="T", order=1, stage="s")],
+            id="pb-tech",
+            tenant_id="t-1",
+            name="Tech",
+            description="Tech",
+            industry="technology",
+            steps=[
+                PlaybookStep(id="t-1", action="a", title_ar="ت", title_en="T", order=1, stage="s")
+            ],
         )
         default = DEFAULT_PLAYLISTS[0]
         engine = PlaybookEngine(playbooks=[tech_pb, default])
@@ -202,8 +227,11 @@ class TestFindPlaybook:
 
     def test_industry_mismatch_uses_fallback(self):
         tech_pb = Playbook(
-            id="pb-tech", tenant_id="t-1", name="Tech",
-            description="Tech", industry="technology",
+            id="pb-tech",
+            tenant_id="t-1",
+            name="Tech",
+            description="Tech",
+            industry="technology",
             steps=[],
         )
         default = DEFAULT_PLAYLISTS[0]
@@ -214,6 +242,7 @@ class TestFindPlaybook:
 
 
 # ── Tests: PlaybookEngine — get_steps ───────────────────────────────────────
+
 
 class TestGetSteps:
     def test_returns_steps_for_stage(self):
@@ -246,11 +275,16 @@ class TestGetSteps:
 
 # ── Tests: PlaybookStep Dataclass ───────────────────────────────────────────
 
+
 class TestPlaybookStep:
     def test_step_fields(self):
         step = PlaybookStep(
-            id="s-1", action="send_email", title_ar="أرسل بريد",
-            title_en="Send Email", order=1, stage="prospecting",
+            id="s-1",
+            action="send_email",
+            title_ar="أرسل بريد",
+            title_en="Send Email",
+            order=1,
+            stage="prospecting",
         )
         assert step.id == "s-1"
         assert step.action == "send_email"
@@ -259,8 +293,12 @@ class TestPlaybookStep:
 
     def test_step_templates_default_empty(self):
         step = PlaybookStep(
-            id="s-1", action="a", title_ar="ت", title_en="T",
-            order=1, stage="s",
+            id="s-1",
+            action="a",
+            title_ar="ت",
+            title_en="T",
+            order=1,
+            stage="s",
         )
         assert step.templates == {}
 
@@ -272,6 +310,7 @@ class TestPlaybookStep:
 
 
 # ── Tests: PlaybookTrigger ──────────────────────────────────────────────────
+
 
 class TestPlaybookTrigger:
     def test_trigger_values(self):

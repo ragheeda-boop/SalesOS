@@ -53,7 +53,6 @@ async def ensure_trigram_indexes(db_session: AsyncSession):
 
 
 class TestPgTrgmExtension:
-
     async def test_pg_trgm_extension_installed(self, db_session: AsyncSession):
         r = await db_session.execute(
             text("SELECT installed_version FROM pg_available_extensions WHERE name='pg_trgm'")
@@ -64,7 +63,9 @@ class TestPgTrgmExtension:
 
     async def test_trigram_indexes_exist(self, db_session: AsyncSession, ensure_trigram_indexes):
         r = await db_session.execute(
-            text("SELECT indexname FROM pg_indexes WHERE tablename='companies' AND indexname LIKE '%trgm'")
+            text(
+                "SELECT indexname FROM pg_indexes WHERE tablename='companies' AND indexname LIKE '%trgm'"  # noqa: E501
+            )
         )
         existing = {row[0] for row in r.fetchall()}
         missing = set(TRIGRAM_INDEXES) - existing
@@ -72,14 +73,15 @@ class TestPgTrgmExtension:
 
     async def test_trigram_indexes_use_gin(self, db_session: AsyncSession, ensure_trigram_indexes):
         r = await db_session.execute(
-            text("SELECT indexname, indexdef FROM pg_indexes WHERE tablename='companies' AND indexname LIKE '%trgm'")
+            text(
+                "SELECT indexname, indexdef FROM pg_indexes WHERE tablename='companies' AND indexname LIKE '%trgm'"  # noqa: E501
+            )
         )
         for row in r.fetchall():
             assert "gin" in row[1].lower(), f"Index {row[0]} is not GIN: {row[1]}"
 
 
 class TestTrigramSearchFunctional:
-
     async def _create_company(self, db: AsyncSession, tenant_id: str, **kwargs):
         from app.modules.company.models import Company
 
@@ -101,8 +103,9 @@ class TestTrigramSearchFunctional:
     async def test_arabic_iliike_search(self, db_session: AsyncSession, test_tenant: str):
         await self._create_company(db_session, test_tenant, name_ar="شركة زامل للمقاولات")
         r = await db_session.execute(
-            text("SELECT name_ar FROM companies WHERE name_ar ILIKE '%زامل%' AND tenant_id = :tid")
-            .bindparams(tid=uuid.UUID(test_tenant))
+            text(
+                "SELECT name_ar FROM companies WHERE name_ar ILIKE '%زامل%' AND tenant_id = :tid"
+            ).bindparams(tid=uuid.UUID(test_tenant))
         )
         rows = r.fetchall()
         assert len(rows) >= 1
@@ -112,8 +115,9 @@ class TestTrigramSearchFunctional:
         cr = "CR-987654"
         await self._create_company(db_session, test_tenant, cr_number=cr)
         r = await db_session.execute(
-            text("SELECT cr_number FROM companies WHERE cr_number ILIKE '%987654%' AND tenant_id = :tid")
-            .bindparams(tid=uuid.UUID(test_tenant))
+            text(
+                "SELECT cr_number FROM companies WHERE cr_number ILIKE '%987654%' AND tenant_id = :tid"  # noqa: E501
+            ).bindparams(tid=uuid.UUID(test_tenant))
         )
         rows = r.fetchall()
         assert len(rows) >= 1
@@ -122,8 +126,9 @@ class TestTrigramSearchFunctional:
     async def test_english_iliike_search(self, db_session: AsyncSession, test_tenant: str):
         await self._create_company(db_session, test_tenant, name_en="Saudi Aramco Gulf")
         r = await db_session.execute(
-            text("SELECT name_en FROM companies WHERE name_en ILIKE '%aramco%' AND tenant_id = :tid")
-            .bindparams(tid=uuid.UUID(test_tenant))
+            text(
+                "SELECT name_en FROM companies WHERE name_en ILIKE '%aramco%' AND tenant_id = :tid"
+            ).bindparams(tid=uuid.UUID(test_tenant))
         )
         rows = r.fetchall()
         assert len(rows) >= 1

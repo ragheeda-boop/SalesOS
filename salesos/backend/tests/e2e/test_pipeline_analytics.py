@@ -142,7 +142,7 @@ class TestPipelineFullJourney:
         assert company_resp.status_code in (200, 201)
         company_id = company_resp.json()["id"]
 
-        opp_resp = await client.post(
+        _ = await client.post(
             "/api/v1/opportunities",
             params={
                 "company_id": company_id,
@@ -156,7 +156,9 @@ class TestPipelineFullJourney:
             client.post("/api/v1/pipelines", headers=registered_user_headers),
             timeout=_TEST_TIMEOUT,
         )
-        pipe_id = pipeline_resp.json().get("id") if pipeline_resp.status_code in (200, 201) else None
+        pipe_id = (
+            pipeline_resp.json().get("id") if pipeline_resp.status_code in (200, 201) else None
+        )
 
         if pipe_id:
             kpis_resp = await asyncio.wait_for(

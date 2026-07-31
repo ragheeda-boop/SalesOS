@@ -1,4 +1,5 @@
 """Tests for per-user rate limiting — sliding window in-memory."""
+
 from __future__ import annotations
 
 import time
@@ -7,7 +8,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi import HTTPException, Request
 
-from app.common.rate_limit import _check_rate_limit_in_memory as _check_rate_limit, _cleanup, rate_limit_dep, _store
+from app.common.rate_limit import _check_rate_limit_in_memory as _check_rate_limit
+from app.common.rate_limit import _cleanup, _store, rate_limit_dep
 
 
 @pytest.fixture(autouse=True)
@@ -18,6 +20,7 @@ def clear_store():
 
 
 # ── Tests: _check_rate_limit ─────────────────────────────────────────────────
+
 
 class TestCheckRateLimit:
     def test_under_limit_returns_none(self):
@@ -64,6 +67,7 @@ class TestCheckRateLimit:
 
 # ── Tests: _cleanup ──────────────────────────────────────────────────────────
 
+
 class TestCleanup:
     def test_removes_expired_entries(self):
         key = "expired-entry"
@@ -91,6 +95,7 @@ class TestCleanup:
 
 
 # ── Tests: rate_limit_dep ────────────────────────────────────────────────────
+
 
 class TestRateLimitDep:
     @pytest.fixture(autouse=True)

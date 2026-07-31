@@ -15,12 +15,12 @@ The Plugin SDK provides:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional
 
 
 @dataclass
 class PluginManifest:
     """Required metadata for every plugin."""
+
     id: str
     name: str
     version: str = "1.0.0"
@@ -31,13 +31,15 @@ class PluginManifest:
     hooks: list[str] = field(default_factory=list)  # Hook IDs this plugin subscribes to
     widgets: list[str] = field(default_factory=list)  # Widget IDs this plugin provides
     dependencies: list[str] = field(default_factory=list)  # Plugin IDs this depends on
-    config_schema: Optional[dict] = None  # JSON Schema for plugin-level config
-    resource_limits: dict = field(default_factory=lambda: {
-        "max_calls_per_sec": 100,
-        "max_memory_mb": 50,
-        "max_timeout_ms": 5000,
-    })
-    icon: Optional[str] = None
+    config_schema: dict | None = None  # JSON Schema for plugin-level config
+    resource_limits: dict = field(
+        default_factory=lambda: {
+            "max_calls_per_sec": 100,
+            "max_memory_mb": 50,
+            "max_timeout_ms": 5000,
+        }
+    )
+    icon: str | None = None
     tags: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -62,6 +64,7 @@ class PluginManifest:
 @dataclass
 class PluginInstance:
     """A loaded plugin instance (sandboxed)."""
+
     manifest: PluginManifest
     config: dict = field(default_factory=dict)
     enabled: bool = True
@@ -81,39 +84,39 @@ class PluginBuilder:
     def __init__(self, plugin_id: str, name: str):
         self._manifest = PluginManifest(id=plugin_id, name=name)
 
-    def version(self, version: str) -> "PluginBuilder":
+    def version(self, version: str) -> PluginBuilder:
         self._manifest.version = version
         return self
 
-    def described(self, description: str) -> "PluginBuilder":
+    def described(self, description: str) -> PluginBuilder:
         self._manifest.description = description
         return self
 
-    def by(self, author: str) -> "PluginBuilder":
+    def by(self, author: str) -> PluginBuilder:
         self._manifest.author = author
         return self
 
-    def requires_permissions(self, *perms: str) -> "PluginBuilder":
+    def requires_permissions(self, *perms: str) -> PluginBuilder:
         self._manifest.permissions = list(perms)
         return self
 
-    def hooks_into(self, *hooks: str) -> "PluginBuilder":
+    def hooks_into(self, *hooks: str) -> PluginBuilder:
         self._manifest.hooks = list(hooks)
         return self
 
-    def provides_widgets(self, *widgets: str) -> "PluginBuilder":
+    def provides_widgets(self, *widgets: str) -> PluginBuilder:
         self._manifest.widgets = list(widgets)
         return self
 
-    def depends_on(self, *plugins: str) -> "PluginBuilder":
+    def depends_on(self, *plugins: str) -> PluginBuilder:
         self._manifest.dependencies = list(plugins)
         return self
 
-    def with_config(self, schema: dict) -> "PluginBuilder":
+    def with_config(self, schema: dict) -> PluginBuilder:
         self._manifest.config_schema = schema
         return self
 
-    def with_limits(self, **limits) -> "PluginBuilder":
+    def with_limits(self, **limits) -> PluginBuilder:
         self._manifest.resource_limits.update(limits)
         return self
 

@@ -12,9 +12,9 @@ from ..pg_repositories import (
     PostgresInvoiceRepository,
     PostgresJobRepository,
     PostgresLicenseRepository,
+    PostgresPermissionRepository,
     PostgresPlanRepository,
     PostgresRoleRepository,
-    PostgresPermissionRepository,
     PostgresTenantConfigRepository,
 )
 

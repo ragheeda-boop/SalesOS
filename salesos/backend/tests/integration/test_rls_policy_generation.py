@@ -30,6 +30,7 @@ ever committed, so there is no manual cleanup step to forget or fail.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import uuid
 
@@ -38,7 +39,11 @@ import pytest_asyncio
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
-from scripts.generate_rls_policies import ALL_TENANT_TABLES as PILOT_TABLES, generate_policy_sql
+from app.modules.admin import db_models as _admin_db_models  # noqa: F401
+from app.modules.company import models as _company_models  # noqa: F401
+from app.modules.contact import models as _contact_models  # noqa: F401
+from app.modules.identity import models as _identity_models  # noqa: F401
+from domains.commercial.infrastructure import models as _commercial_models  # noqa: F401
 
 # SQLAlchemy only knows about a table once its model class has been imported
 # (Base.metadata is populated lazily, at class-definition time). The root
@@ -53,11 +58,8 @@ from scripts.generate_rls_policies import ALL_TENANT_TABLES as PILOT_TABLES, gen
 # collected alongside it.
 from domains.decision_center import postgres_repo as _decision_center_postgres_repo  # noqa: F401
 from domains.workflow import db_models as _workflow_db_models  # noqa: F401
-from app.modules.company import models as _company_models  # noqa: F401
-from app.modules.contact import models as _contact_models  # noqa: F401
-from app.modules.identity import models as _identity_models  # noqa: F401
-from app.modules.admin import db_models as _admin_db_models  # noqa: F401
-from domains.commercial.infrastructure import models as _commercial_models  # noqa: F401
+from scripts.generate_rls_policies import ALL_TENANT_TABLES as PILOT_TABLES
+from scripts.generate_rls_policies import generate_policy_sql
 
 pytestmark = pytest.mark.asyncio
 
@@ -69,9 +71,17 @@ def _test_db_url() -> str:
     manage a role's lifecycle independently of the db_session transaction."""
     from app.config import settings
 
-    host = os.environ.get("TEST_POSTGRES_HOST") or os.environ.get("POSTGRES_HOST") or settings.postgres_host
+    host = (
+        os.environ.get("TEST_POSTGRES_HOST")
+        or os.environ.get("POSTGRES_HOST")
+        or settings.postgres_host
+    )
     password = os.environ.get("POSTGRES_PASSWORD") or settings.postgres_password or "test"
-    port = os.environ.get("TEST_POSTGRES_PORT") or os.environ.get("POSTGRES_PORT") or str(settings.postgres_port)
+    port = (
+        os.environ.get("TEST_POSTGRES_PORT")
+        or os.environ.get("POSTGRES_PORT")
+        or str(settings.postgres_port)
+    )
     return os.environ.get(
         "TEST_DATABASE_URL",
         f"postgresql+asyncpg://{settings.postgres_user}:{password}@{host}:{port}/salesos_test",
@@ -141,10 +151,8 @@ async def nonsuperuser_role(db_session: AsyncSession):
         # either way, is safe to call even with nothing to roll back, and
         # the outer db_session fixture's own later rollback() is then a
         # harmless no-op.
-        try:
+        with contextlib.suppress(Exception):
             await db_session.rollback()
-        except Exception:
-            pass
         async with engine.connect() as conn:
             await conn.execute(text(f'DROP ROLE IF EXISTS "{role}"'))
         await engine.dispose()
@@ -194,7 +202,9 @@ class TestGeneratorBreadthAcrossAllPilotTables:
             if policy_count != 1:
                 failures.append(f"{table}: expected exactly 1 policy, found {policy_count}")
 
-        assert not failures, "RLS generator failed for one or more pilot tables:\n" + "\n".join(failures)
+        assert not failures, "RLS generator failed for one or more pilot tables:\n" + "\n".join(
+            failures
+        )
 
 
 class TestGeneratorDepthOnRepresentativeTables:
@@ -219,7 +229,9 @@ class TestGeneratorDepthOnRepresentativeTables:
         sql = generate_policy_sql(clone, policy_name=f"tenant_isolation_{clone}")
         for statement in filter(None, (s.strip() for s in sql.split(";"))):
             await db_session.execute(text(statement))
-        await db_session.execute(text(f'GRANT SELECT, INSERT, UPDATE, DELETE ON "{clone}" TO "{role}"'))
+        await db_session.execute(
+            text(f'GRANT SELECT, INSERT, UPDATE, DELETE ON "{clone}" TO "{role}"')
+        )
         await db_session.execute(text(f'SET LOCAL ROLE "{role}"'))
         return clone
 
@@ -245,7 +257,9 @@ class TestGeneratorDepthOnRepresentativeTables:
 
         await db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant_a}'"))
         await db_session.execute(
-            text(f'INSERT INTO "{clone}" ({self._WEBHOOK_INSERT_COLS}) VALUES ({self._WEBHOOK_INSERT_VALS})'),
+            text(
+                f'INSERT INTO "{clone}" ({self._WEBHOOK_INSERT_COLS}) VALUES ({self._WEBHOOK_INSERT_VALS})'  # noqa: E501
+            ),
             {"id": row_id, "tenant_id": tenant_a, "url": "https://example.com/hook"},
         )
 
@@ -254,11 +268,15 @@ class TestGeneratorDepthOnRepresentativeTables:
         # application code, is what must stop this from leaking.
         await db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant_b}'"))
         as_b = (await db_session.execute(text(f'SELECT id FROM "{clone}"'))).fetchall()
-        assert as_b == [], "tenant B's raw, unfiltered SELECT saw tenant A's row — RLS did not isolate it"
+        assert (
+            as_b == []
+        ), "tenant B's raw, unfiltered SELECT saw tenant A's row — RLS did not isolate it"
 
         await db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant_a}'"))
         as_a = (await db_session.execute(text(f'SELECT id FROM "{clone}"'))).fetchall()
-        assert [r[0] for r in as_a] == [row_id], "tenant A could not see its own row under the same policy"
+        assert [r[0] for r in as_a] == [
+            row_id
+        ], "tenant A could not see its own row under the same policy"
 
     async def test_webhook_endpoints_rejects_forged_tenant_id_on_insert(
         self, db_session: AsyncSession, nonsuperuser_role: str
@@ -273,8 +291,14 @@ class TestGeneratorDepthOnRepresentativeTables:
         await db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant_b}'"))
         with pytest.raises(Exception, match="(?i)row-level security|policy"):
             await db_session.execute(
-                text(f'INSERT INTO "{clone}" ({self._WEBHOOK_INSERT_COLS}) VALUES ({self._WEBHOOK_INSERT_VALS})'),
-                {"id": uuid.uuid4().hex[:12], "tenant_id": tenant_a, "url": "https://example.com/hook"},
+                text(
+                    f'INSERT INTO "{clone}" ({self._WEBHOOK_INSERT_COLS}) VALUES ({self._WEBHOOK_INSERT_VALS})'  # noqa: E501
+                ),
+                {
+                    "id": uuid.uuid4().hex[:12],
+                    "tenant_id": tenant_a,
+                    "url": "https://example.com/hook",
+                },
             )
 
     async def test_workflow_definitions_raw_query_hides_other_tenants_row(
@@ -286,13 +310,17 @@ class TestGeneratorDepthOnRepresentativeTables:
 
         await db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant_a}'"))
         await db_session.execute(
-            text(f'INSERT INTO "{clone}" ({self._WORKFLOW_INSERT_COLS}) VALUES ({self._WORKFLOW_INSERT_VALS})'),
+            text(
+                f'INSERT INTO "{clone}" ({self._WORKFLOW_INSERT_COLS}) VALUES ({self._WORKFLOW_INSERT_VALS})'  # noqa: E501
+            ),
             {"id": row_id, "tenant_id": tenant_a, "name": "RLS pilot workflow"},
         )
 
         await db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant_b}'"))
         as_b = (await db_session.execute(text(f'SELECT id FROM "{clone}"'))).fetchall()
-        assert as_b == [], "tenant B's raw, unfiltered SELECT saw tenant A's workflow — RLS did not isolate it"
+        assert (
+            as_b == []
+        ), "tenant B's raw, unfiltered SELECT saw tenant A's workflow — RLS did not isolate it"
 
         await db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant_a}'"))
         as_a = (await db_session.execute(text(f'SELECT id FROM "{clone}"'))).fetchall()
@@ -309,11 +337,15 @@ class TestGeneratorDepthOnRepresentativeTables:
 
         await db_session.execute(text(f"SET LOCAL app.tenant_id = '{tenant_a}'"))
         await db_session.execute(
-            text(f'INSERT INTO "{clone}" ({self._WORKFLOW_INSERT_COLS}) VALUES ({self._WORKFLOW_INSERT_VALS})'),
+            text(
+                f'INSERT INTO "{clone}" ({self._WORKFLOW_INSERT_COLS}) VALUES ({self._WORKFLOW_INSERT_VALS})'  # noqa: E501
+            ),
             {"id": uuid.uuid4().hex[:12], "tenant_id": tenant_a, "name": "RLS pilot workflow"},
         )
 
         # RESET, not SET — simulates a session that never established a tenant context.
         await db_session.execute(text("RESET app.tenant_id"))
         rows = (await db_session.execute(text(f'SELECT id FROM "{clone}"'))).fetchall()
-        assert rows == [], "a session with no tenant context set saw rows — fail-open, not fail-closed"
+        assert (
+            rows == []
+        ), "a session with no tenant context set saw rows — fail-open, not fail-closed"

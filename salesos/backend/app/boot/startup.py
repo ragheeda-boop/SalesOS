@@ -26,8 +26,8 @@ from app.config import settings
 from app.database import async_session, close_db, init_db
 from sdk.telemetry import StructuredLogger, setup_telemetry
 
-
 # ── Phase 0: Bootstrap ──────────────────────────────────────────────────────
+
 
 async def _phase0_bootstrap(app: FastAPI, logger: StructuredLogger, t_start: float) -> None:
     """Initialize logging, database, module registry, telemetry, Sentry."""
@@ -39,6 +39,7 @@ async def _phase0_bootstrap(app: FastAPI, logger: StructuredLogger, t_start: flo
     logger.info(f"  init_db complete (+{time.monotonic() - t_start:.1f}s)")
 
     from modules.registry import register_modules
+
     register_modules()
     setup_telemetry("salesos")
     logger.info(f"  modules + telemetry ready (+{time.monotonic() - t_start:.1f}s)")
@@ -46,6 +47,7 @@ async def _phase0_bootstrap(app: FastAPI, logger: StructuredLogger, t_start: flo
     if settings.sentry_dsn:
         try:
             import sentry_sdk
+
             sentry_sdk.init(
                 dsn=settings.sentry_dsn,
                 environment=settings.env,
@@ -57,6 +59,7 @@ async def _phase0_bootstrap(app: FastAPI, logger: StructuredLogger, t_start: flo
 
 
 # ── Phase 1: Independent services (all parallel) ─────────────────────────────
+
 
 async def _init_cache(app: FastAPI, logger: StructuredLogger) -> None:
     try:
@@ -74,8 +77,8 @@ async def _init_cache(app: FastAPI, logger: StructuredLogger) -> None:
 
 
 async def _init_event_runtime(app: FastAPI, logger: StructuredLogger) -> None:
-    from sdk.events.kafka_bus import KafkaEventBus
     from runtime.event_runtime import EventRuntime
+    from sdk.events.kafka_bus import KafkaEventBus
 
     try:
         if settings.event_bus_type == "kafka":
@@ -107,6 +110,7 @@ async def _init_activity(app: FastAPI, logger: StructuredLogger) -> None:
         app.state.activity_runtime = ar
 
         from app.modules.work_intelligence.service import WorkIntelligenceEngine
+
         wi = WorkIntelligenceEngine(activity_runtime=ar, logger=logger)
         app.state.work_intelligence_engine = wi
         logger.info("  activity + work_intelligence: ok")
@@ -195,6 +199,7 @@ async def _init_decision_center(app: FastAPI, logger: StructuredLogger) -> None:
     try:
         from domains.decision_center.postgres_repo import PostgresDecisionCenterRepository
         from domains.decision_center.service import DecisionCenterService
+
         sess = async_session()
         app.state._dc_session = sess
         repo = PostgresDecisionCenterRepository(sess)
@@ -207,6 +212,7 @@ async def _init_decision_center(app: FastAPI, logger: StructuredLogger) -> None:
 async def _init_decision_platform(app: FastAPI, logger: StructuredLogger) -> None:
     try:
         from app.modules.decision.engine import DecisionEngine as DecisionPlatformEngine
+
         app.state.decision_platform_engine = DecisionPlatformEngine()
         logger.info("  decision platform: ok")
     except Exception:
@@ -216,6 +222,7 @@ async def _init_decision_platform(app: FastAPI, logger: StructuredLogger) -> Non
 async def _init_widgets_ux(app: FastAPI, logger: StructuredLogger) -> None:
     try:
         from runtime.widget_engine import WidgetRegistry, register_builtin_widgets
+
         register_builtin_widgets()
         WidgetRegistry.generate_from_capabilities()
         app.state.widget_registry = WidgetRegistry
@@ -226,6 +233,7 @@ async def _init_widgets_ux(app: FastAPI, logger: StructuredLogger) -> None:
     try:
         from runtime.ux_runtime import UXRuntime
         from runtime.ux_runtime.router import set_ux_runtime
+
         ux = UXRuntime()
         app.state.ux_runtime = ux
         set_ux_runtime(ux)
@@ -236,9 +244,10 @@ async def _init_widgets_ux(app: FastAPI, logger: StructuredLogger) -> None:
 
 async def _init_ui_engines(app: FastAPI, logger: StructuredLogger) -> None:
     try:
-        from runtime.ui_schema_engine import UISchemaEngine
-        from runtime.form_engine import FormEngine
         from runtime.action_engine import ActionRegistry
+        from runtime.form_engine import FormEngine
+        from runtime.ui_schema_engine import UISchemaEngine
+
         app.state.schema_engine = UISchemaEngine()
         app.state.form_engine = FormEngine()
         app.state.action_registry = ActionRegistry()
@@ -251,6 +260,7 @@ async def _init_plugin_sandbox(app: FastAPI, logger: StructuredLogger) -> None:
     try:
         from runtime.extension_api import init_hooks
         from runtime.plugin_sandbox import PluginSandbox, register_hook_points
+
         init_hooks()
         ps = PluginSandbox()
         register_hook_points()
@@ -262,7 +272,10 @@ async def _init_plugin_sandbox(app: FastAPI, logger: StructuredLogger) -> None:
 
 async def _init_scraper(app: FastAPI, logger: StructuredLogger) -> None:
     try:
-        from runtime.data_fabric_runtime.scrapers.scraper_config import validate_scraper_keys_startup
+        from runtime.data_fabric_runtime.scrapers.scraper_config import (
+            validate_scraper_keys_startup,
+        )
+
         validate_scraper_keys_startup()
         logger.info("  scraper keys: ok")
     except Exception:
@@ -271,12 +284,16 @@ async def _init_scraper(app: FastAPI, logger: StructuredLogger) -> None:
 
 # ── Phase 2: Feature store + opportunity ─────────────────────────────────────
 
+
 async def _init_opportunity(app: FastAPI, logger: StructuredLogger) -> None:
-    from domains.commercial.infrastructure.postgres_repositories import PostgresOpportunityRepository
+    from domains.commercial.infrastructure.postgres_repositories import (
+        PostgresOpportunityRepository,
+    )
 
     try:
         event_runtime = getattr(app.state, "event_runtime", None)
         from domains.commercial.opportunity.engine.service import OpportunityService
+
         sess = async_session()
         app.state._opportunity_session = sess
         repo = PostgresOpportunityRepository(sess)
@@ -308,9 +325,13 @@ async def _init_feature_store(app: FastAPI, logger: StructuredLogger) -> None:
             session_factory=async_session,
             event_runtime=event_runtime,
             computers=[
-                IcpComputer(), FundingScoreComputer(), HiringScoreComputer(),
-                GrowthScoreComputer(), IntentScoreComputer(),
-                ExpansionScoreComputer(), RevenueScoreComputer(),
+                IcpComputer(),
+                FundingScoreComputer(),
+                HiringScoreComputer(),
+                GrowthScoreComputer(),
+                IntentScoreComputer(),
+                ExpansionScoreComputer(),
+                RevenueScoreComputer(),
             ],
             logger=logger,
             cache_service=cache_svc,
@@ -324,6 +345,7 @@ async def _init_feature_store(app: FastAPI, logger: StructuredLogger) -> None:
 
 
 # ── Phase 3: Decision pipeline ───────────────────────────────────────────────
+
 
 async def _init_policy_engine(app: FastAPI, logger: StructuredLogger) -> None:
     from runtime.policy_runtime import PolicyEngine
@@ -404,6 +426,7 @@ async def _init_decision_feedback(app: FastAPI, logger: StructuredLogger) -> Non
 async def _init_backend_sdk(app: FastAPI, logger: StructuredLogger) -> None:
     try:
         from sdk.backend_sdk import BackendClient
+
         app.state.backend_sdk = BackendClient(app.state._state)
         logger.info("  backend sdk: ok")
     except Exception:
@@ -412,9 +435,11 @@ async def _init_backend_sdk(app: FastAPI, logger: StructuredLogger) -> None:
 
 # ── Phase 4: Data fabric, search, timeline ───────────────────────────────────
 
+
 async def _init_embedding_service(app: FastAPI, logger: StructuredLogger) -> None:
     try:
         from sdk.vector import OpenAIEmbeddingService
+
         es = OpenAIEmbeddingService()
         app.state._embedding_service = es
         logger.info("  embedding service: ok")
@@ -457,6 +482,7 @@ async def _init_search_runtime(app: FastAPI, logger: StructuredLogger) -> None:
         kg = getattr(app.state, "kg_engine", None)
         if es is None:
             from sdk.vector import OpenAIEmbeddingService
+
             es = OpenAIEmbeddingService()
         sr = SearchRuntime(
             session_factory=async_session,
@@ -484,10 +510,10 @@ async def _init_timeline_runtime(app: FastAPI, logger: StructuredLogger) -> None
 
 async def _init_workflow_subscriber(app: FastAPI, logger: StructuredLogger) -> None:
     try:
-        from domains.workflow.postgres_repo import PostgresWorkflowRepository
-        from domains.workflow.service import WorkflowService
         from domains.workflow.engine import WorkflowEngine
         from domains.workflow.event_subscriber import WorkflowEventSubscriber
+        from domains.workflow.postgres_repo import PostgresWorkflowRepository
+        from domains.workflow.service import WorkflowService
 
         event_runtime = getattr(app.state, "event_runtime", None)
         if event_runtime is None:
@@ -515,6 +541,7 @@ async def _init_workflow_subscriber(app: FastAPI, logger: StructuredLogger) -> N
 async def _init_timeline_subscriber(app: FastAPI, logger: StructuredLogger) -> None:
     try:
         from sdk.events.base import DomainEvent
+
         event_runtime = getattr(app.state, "event_runtime", None)
         if event_runtime is None:
             return
@@ -542,10 +569,12 @@ async def _init_timeline_subscriber(app: FastAPI, logger: StructuredLogger) -> N
 
 # ── Phase 5: Background tasks ────────────────────────────────────────────────
 
+
 async def _phase5_background(app: FastAPI, logger: StructuredLogger) -> list[asyncio.Task]:
     tasks: list[asyncio.Task] = []
     try:
         from app.routers.notifications import _ws_manager
+
         tasks.append(asyncio.create_task(_ws_manager.heartbeat_loop(interval=30.0)))
         tasks.append(asyncio.create_task(_ws_manager.cleanup_task(interval=30.0)))
         logger.info("  websocket background tasks started")
@@ -555,6 +584,7 @@ async def _phase5_background(app: FastAPI, logger: StructuredLogger) -> list[asy
 
 
 # ── Orchestrator ─────────────────────────────────────────────────────────────
+
 
 async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     """Orchestrate layered parallel startup of all SalesOS services."""
@@ -654,6 +684,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
 
 # ── Shutdown ─────────────────────────────────────────────────────────────────
 
+
 async def shutdown_services(app: FastAPI) -> None:
     logger = getattr(app.state, "logger", None)
 
@@ -687,7 +718,13 @@ async def shutdown_services(app: FastAPI) -> None:
         if svc is not None and hasattr(svc, "close"):
             await _safe_close(name, svc.close())
 
-    for sess_attr in ("_timeline_session", "_opportunity_session", "_fs_repo_session", "_dc_session", "_workflow_session"):
+    for sess_attr in (
+        "_timeline_session",
+        "_opportunity_session",
+        "_fs_repo_session",
+        "_dc_session",
+        "_workflow_session",
+    ):
         sess = getattr(app.state, sess_attr, None)
         if sess:
             with contextlib.suppress(Exception):

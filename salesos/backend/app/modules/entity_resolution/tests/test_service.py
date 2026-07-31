@@ -1,12 +1,13 @@
 """Tests for Entity Resolution Service."""
 
 import uuid
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
-from sdk.exceptions import ObjectNotFoundError
+
+from app.modules.entity_resolution.repositories import GoldenRecordRepository
 from app.modules.entity_resolution.service import EntityResolutionService
-from app.modules.entity_resolution.repositories import GoldenRecordRepository, ConflictRepository
-from app.modules.entity_resolution.models import GoldenRecord
+from sdk.exceptions import ObjectNotFoundError
 
 
 @pytest.mark.asyncio
@@ -22,7 +23,9 @@ async def test_service_instantiation(db_session: AsyncSession, test_tenant: str)
 async def test_resolve_records_creates_golden_record(db_session: AsyncSession, test_tenant: str):
     service = EntityResolutionService(db_session)
     records = [{"cr_number": "CR-001", "name_ar": "TestCo", "city": "Riyadh"}]
-    result = await service.resolve_records(tenant_id=test_tenant, source_slug="balady", records=records)
+    result = await service.resolve_records(
+        tenant_id=test_tenant, source_slug="balady", records=records
+    )
     assert result["records_processed"] == 1
     assert result["records_created"] == 1
     assert result["records_matched"] == 0
@@ -37,9 +40,15 @@ async def test_resolve_records_creates_golden_record(db_session: AsyncSession, t
 @pytest.mark.asyncio
 async def test_resolve_records_matches_existing(db_session: AsyncSession, test_tenant: str):
     service = EntityResolutionService(db_session)
-    r1 = await service.resolve_records(test_tenant, "balady", [{"cr_number": "CR-MATCH", "name_ar": "Original", "city": "Jeddah"}])
+    r1 = await service.resolve_records(
+        test_tenant, "balady", [{"cr_number": "CR-MATCH", "name_ar": "Original", "city": "Jeddah"}]
+    )
     assert r1["records_created"] == 1
-    r2 = await service.resolve_records(test_tenant, "ncnp", [{"cr_number": "CR-MATCH", "name_ar": "Updated", "phone": "0123456789"}])
+    r2 = await service.resolve_records(
+        test_tenant,
+        "ncnp",
+        [{"cr_number": "CR-MATCH", "name_ar": "Updated", "phone": "0123456789"}],
+    )
     assert r2["records_matched"] == 1
     assert r2["records_merged"] == 1
     golden_repo = GoldenRecordRepository(db_session)
@@ -49,10 +58,16 @@ async def test_resolve_records_matches_existing(db_session: AsyncSession, test_t
 
 
 @pytest.mark.asyncio
-async def test_resolve_records_higher_priority_overwrites(db_session: AsyncSession, test_tenant: str):
+async def test_resolve_records_higher_priority_overwrites(
+    db_session: AsyncSession, test_tenant: str
+):
     service = EntityResolutionService(db_session)
-    await service.resolve_records(test_tenant, "hubspot", [{"cr_number": "CR-PRIO", "name_ar": "LowPriority"}])
-    r2 = await service.resolve_records(test_tenant, "balady", [{"cr_number": "CR-PRIO", "name_ar": "HighPriority"}])
+    await service.resolve_records(
+        test_tenant, "hubspot", [{"cr_number": "CR-PRIO", "name_ar": "LowPriority"}]
+    )
+    r2 = await service.resolve_records(
+        test_tenant, "balady", [{"cr_number": "CR-PRIO", "name_ar": "HighPriority"}]
+    )
     assert r2["records_matched"] == 1
     golden_repo = GoldenRecordRepository(db_session)
     golden = await golden_repo.get_by_cr_number(uuid.UUID(test_tenant), "CR-PRIO")
@@ -72,7 +87,9 @@ async def test_resolve_records_skips_missing_cr(db_session: AsyncSession, test_t
 
 
 @pytest.mark.asyncio
-async def test_resolve_records_tenant_isolation(db_session: AsyncSession, test_tenant: str, test_tenant_2: str):
+async def test_resolve_records_tenant_isolation(
+    db_session: AsyncSession, test_tenant: str, test_tenant_2: str
+):
     service = EntityResolutionService(db_session)
     records = [{"cr_number": "CR-ISO", "name_ar": "Company"}]
     r1 = await service.resolve_records(test_tenant, "balady", records)
@@ -90,7 +107,9 @@ async def test_resolve_records_tenant_isolation(db_session: AsyncSession, test_t
 @pytest.mark.asyncio
 async def test_get_golden_record(db_session: AsyncSession, test_tenant: str):
     service = EntityResolutionService(db_session)
-    await service.resolve_records(test_tenant, "najiz", [{"cr_number": "CR-GET", "name_ar": "GetTest"}])
+    await service.resolve_records(
+        test_tenant, "najiz", [{"cr_number": "CR-GET", "name_ar": "GetTest"}]
+    )
     golden_repo = GoldenRecordRepository(db_session)
     golden = await golden_repo.get_by_cr_number(uuid.UUID(test_tenant), "CR-GET")
     result = await service.get_golden_record(str(golden.id))
@@ -110,7 +129,9 @@ async def test_get_golden_record_not_found(db_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_get_golden_by_cr(db_session: AsyncSession, test_tenant: str):
     service = EntityResolutionService(db_session)
-    await service.resolve_records(test_tenant, "apollo", [{"cr_number": "CR-FIND", "name_ar": "FindTest"}])
+    await service.resolve_records(
+        test_tenant, "apollo", [{"cr_number": "CR-FIND", "name_ar": "FindTest"}]
+    )
     result = await service.get_golden_by_cr(test_tenant, "CR-FIND")
     assert result is not None
     assert result.cr_number == "CR-FIND"
@@ -127,7 +148,9 @@ async def test_get_golden_by_cr_not_found(db_session: AsyncSession, test_tenant:
 async def test_list_golden_records_pagination(db_session: AsyncSession, test_tenant: str):
     service = EntityResolutionService(db_session)
     for i in range(3):
-        await service.resolve_records(test_tenant, "balady", [{"cr_number": f"CR-LIST-{i}", "name_ar": f"Company {i}"}])
+        await service.resolve_records(
+            test_tenant, "balady", [{"cr_number": f"CR-LIST-{i}", "name_ar": f"Company {i}"}]
+        )
     records, total = await service.list_golden_records(test_tenant, page=1, page_size=10)
     assert total == 3
     assert len(records) == 3
@@ -142,8 +165,12 @@ async def test_list_golden_records_pagination(db_session: AsyncSession, test_ten
 @pytest.mark.asyncio
 async def test_list_conflicts(db_session: AsyncSession, test_tenant: str):
     service = EntityResolutionService(db_session)
-    await service.resolve_records(test_tenant, "balady", [{"cr_number": "CR-CONF", "name_ar": "First"}])
-    await service.resolve_records(test_tenant, "hubspot", [{"cr_number": "CR-CONF", "name_ar": "Second"}])
+    await service.resolve_records(
+        test_tenant, "balady", [{"cr_number": "CR-CONF", "name_ar": "First"}]
+    )
+    await service.resolve_records(
+        test_tenant, "hubspot", [{"cr_number": "CR-CONF", "name_ar": "Second"}]
+    )
     conflicts, total = await service.list_conflicts(test_tenant)
     assert total >= 1
     assert conflicts[0].status == "open"
@@ -152,14 +179,20 @@ async def test_list_conflicts(db_session: AsyncSession, test_tenant: str):
 @pytest.mark.asyncio
 async def test_resolve_conflict_use_source_b(db_session: AsyncSession, test_tenant: str):
     service = EntityResolutionService(db_session)
-    await service.resolve_records(test_tenant, "balady", [{"cr_number": "CR-RES", "name_ar": "ValueA"}])
-    await service.resolve_records(test_tenant, "hubspot", [{"cr_number": "CR-RES", "name_ar": "ValueB"}])
+    await service.resolve_records(
+        test_tenant, "balady", [{"cr_number": "CR-RES", "name_ar": "ValueA"}]
+    )
+    await service.resolve_records(
+        test_tenant, "hubspot", [{"cr_number": "CR-RES", "name_ar": "ValueB"}]
+    )
     golden_repo = GoldenRecordRepository(db_session)
     golden = await golden_repo.get_by_cr_number(uuid.UUID(test_tenant), "CR-RES")
     assert golden.data["name_ar"]["value"] == "ValueA"
     conflicts, _ = await service.list_conflicts(test_tenant)
     conflict = [c for c in conflicts if c.golden_record_id == golden.id][0]
-    resolved = await service.resolve_conflict(conflict_id=str(conflict.id), strategy="use_source_b", resolved_by=test_tenant)
+    resolved = await service.resolve_conflict(
+        conflict_id=str(conflict.id), strategy="use_source_b", resolved_by=test_tenant
+    )
     assert resolved.status == "resolved"
     golden_after = await golden_repo.get(uuid.UUID(str(golden.id)))
     assert golden_after.data["name_ar"]["value"] == "ValueB"
@@ -168,13 +201,22 @@ async def test_resolve_conflict_use_source_b(db_session: AsyncSession, test_tena
 @pytest.mark.asyncio
 async def test_resolve_conflict_merge(db_session: AsyncSession, test_tenant: str):
     service = EntityResolutionService(db_session)
-    await service.resolve_records(test_tenant, "balady", [{"cr_number": "CR-MRG", "name_ar": "First"}])
-    await service.resolve_records(test_tenant, "hubspot", [{"cr_number": "CR-MRG", "name_ar": "Second"}])
+    await service.resolve_records(
+        test_tenant, "balady", [{"cr_number": "CR-MRG", "name_ar": "First"}]
+    )
+    await service.resolve_records(
+        test_tenant, "hubspot", [{"cr_number": "CR-MRG", "name_ar": "Second"}]
+    )
     golden_repo = GoldenRecordRepository(db_session)
     golden = await golden_repo.get_by_cr_number(uuid.UUID(test_tenant), "CR-MRG")
     conflicts, _ = await service.list_conflicts(test_tenant)
     conflict = [c for c in conflicts if c.golden_record_id == golden.id][0]
-    resolved = await service.resolve_conflict(conflict_id=str(conflict.id), strategy="merge", custom_value="Merged", resolved_by=test_tenant)
+    resolved = await service.resolve_conflict(
+        conflict_id=str(conflict.id),
+        strategy="merge",
+        custom_value="Merged",
+        resolved_by=test_tenant,
+    )
     assert resolved.status == "resolved"
     golden_after = await golden_repo.get(uuid.UUID(str(golden.id)))
     assert golden_after.data["name_ar"]["value"] == "Merged"
@@ -187,10 +229,14 @@ async def test_get_stats(db_session: AsyncSession, test_tenant: str):
     stats = await service.get_stats(test_tenant)
     assert stats["total_golden_records"] == 0
     assert stats["open_conflicts"] == 0
-    await service.resolve_records(test_tenant, "balady", [{"cr_number": "CR-STAT", "name_ar": "StatsCo"}])
+    await service.resolve_records(
+        test_tenant, "balady", [{"cr_number": "CR-STAT", "name_ar": "StatsCo"}]
+    )
     stats = await service.get_stats(test_tenant)
     assert stats["total_golden_records"] == 1
-    await service.resolve_records(test_tenant, "hubspot", [{"cr_number": "CR-STAT", "name_ar": "Different"}])
+    await service.resolve_records(
+        test_tenant, "hubspot", [{"cr_number": "CR-STAT", "name_ar": "Different"}]
+    )
     stats = await service.get_stats(test_tenant)
     assert stats["total_golden_records"] == 1
     assert stats["open_conflicts"] >= 1
@@ -202,7 +248,9 @@ async def test_field_confidence_computation():
     assert service._compute_field_confidence("cr_number", "balady") == 1.0
     assert service._compute_field_confidence("name_ar", "balady") == 1.0
     assert service._compute_field_confidence("city", "balady") == 1.0
-    assert service._compute_field_confidence("cr_number", "hubspot") == pytest.approx(0.45, rel=1e-6)
+    assert service._compute_field_confidence("cr_number", "hubspot") == pytest.approx(
+        0.45, rel=1e-6
+    )
     assert service._compute_field_confidence("name_ar", "hubspot") == pytest.approx(0.35, rel=1e-6)
     assert service._compute_field_confidence("city", "hubspot") == pytest.approx(0.3, rel=1e-6)
 
@@ -210,6 +258,10 @@ async def test_field_confidence_computation():
 @pytest.mark.asyncio
 async def test_overall_confidence_computation():
     service = EntityResolutionService.__new__(EntityResolutionService)
-    data = {"name_ar": {"confidence": 1.0}, "city": {"confidence": 0.8}, "phone": {"confidence": 0.6}}
+    data = {
+        "name_ar": {"confidence": 1.0},
+        "city": {"confidence": 0.8},
+        "phone": {"confidence": 0.6},
+    }
     assert service._compute_overall_confidence(data) == pytest.approx(0.8, rel=1e-6)
     assert service._compute_overall_confidence({}) == 0.0

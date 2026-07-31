@@ -1,20 +1,19 @@
 """Tests for Entity Resolution Repositories."""
 
 import uuid
-from datetime import datetime, timezone
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.entity_resolution.models import (
     EntityResolutionConflict,
-    EntityResolutionLog,
     GoldenRecord,
 )
 from app.modules.entity_resolution.repositories import (
     ConflictRepository,
     GoldenRecordRepository,
 )
+from sdk.exceptions import ObjectNotFoundError
 
 
 @pytest.mark.asyncio
@@ -57,7 +56,9 @@ async def test_golden_record_repo_get_by_cr_number(db_session: AsyncSession, tes
 
 
 @pytest.mark.asyncio
-async def test_golden_record_repo_find_by_tenant(db_session: AsyncSession, test_tenant: str, test_tenant_2: str):
+async def test_golden_record_repo_find_by_tenant(
+    db_session: AsyncSession, test_tenant: str, test_tenant_2: str
+):
     repo = GoldenRecordRepository(db_session)
     for i in range(3):
         g = GoldenRecord(
@@ -105,7 +106,9 @@ async def test_golden_record_repo_count_by_tenant(db_session: AsyncSession, test
 
 
 @pytest.mark.asyncio
-async def test_golden_record_repo_find_by_confidence_range(db_session: AsyncSession, test_tenant: str):
+async def test_golden_record_repo_find_by_confidence_range(
+    db_session: AsyncSession, test_tenant: str
+):
     repo = GoldenRecordRepository(db_session)
     for i, conf in enumerate([0.3, 0.6, 0.9]):
         g = GoldenRecord(
@@ -136,7 +139,7 @@ async def test_golden_record_repo_delete(db_session: AsyncSession, test_tenant: 
     g_id = g.id
 
     await repo.delete(g_id)
-    with pytest.raises(Exception):
+    with pytest.raises(ObjectNotFoundError):
         await repo.get(g_id)
 
 

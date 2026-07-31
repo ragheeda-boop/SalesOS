@@ -31,9 +31,7 @@ class TestRateLimiting:
         client: AsyncClient,
     ):
         """Health endpoints should be accessible even with high rate limits."""
-        resp = await asyncio.wait_for(
-            client.get("/health"), timeout=_TEST_TIMEOUT
-        )
+        resp = await asyncio.wait_for(client.get("/health"), timeout=_TEST_TIMEOUT)
         assert resp.status_code == 200, resp.text
 
     async def test_identity_endpoint_rate_limited(
@@ -98,9 +96,7 @@ class TestRateLimiting:
         client: AsyncClient,
     ):
         """Health endpoint remains functional regardless of rate limit state."""
-        resp = await asyncio.wait_for(
-            client.get("/health"), timeout=_TEST_TIMEOUT
-        )
+        resp = await asyncio.wait_for(client.get("/health"), timeout=_TEST_TIMEOUT)
         assert resp.status_code == 200
         body = resp.json()
         assert "version" in body

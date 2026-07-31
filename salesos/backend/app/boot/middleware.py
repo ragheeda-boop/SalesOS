@@ -2,9 +2,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
-from app.common.middleware import BodyCacheMiddleware, CsrfEnforcementMiddleware, RequestIDMiddleware, RequestLoggingMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware, TenantContextMiddleware
+from app.common.middleware import (
+    BodyCacheMiddleware,
+    CsrfEnforcementMiddleware,
+    RateLimitMiddleware,
+    RequestIDMiddleware,
+    RequestLoggingMiddleware,
+    SecurityHeadersMiddleware,
+    TenantContextMiddleware,
+)
 from app.config import settings
-from app.metrics.collector import collector
 from app.routers.metrics import MetricsMiddleware
 
 
@@ -23,15 +30,18 @@ def setup_middleware(app: FastAPI) -> None:
     _redis = None
     try:
         import redis.asyncio as aioredis
+
         _redis = aioredis.Redis.from_url(settings.redis_url)
     except Exception:
         pass
     app.add_middleware(RateLimitMiddleware, window=settings.rate_limit_window, redis_client=_redis)
 
     from app.modules.audit.middleware import AuditMiddleware
+
     app.add_middleware(AuditMiddleware)
 
     from app.modules.api_keys.middleware import ApiKeyMiddleware
+
     app.add_middleware(ApiKeyMiddleware)
 
     # Outermost — must wrap all other middleware for CORS on errors/OPTIONS.

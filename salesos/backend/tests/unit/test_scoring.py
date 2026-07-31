@@ -1,27 +1,22 @@
 """Tests for scoring — ScoringMapper, feature computers, and scoring logic."""
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.application.dashboard.dto.dashboard_dto import DecisionItem, DecisionQueueData
 from app.application.dashboard.mappers.scoring_mapper import ScoringMapper
-from app.application.dashboard.dto.dashboard_dto import DecisionQueueData, DecisionItem
-from runtime.feature_store import FeatureResult, FeatureComputer
+from runtime.feature_store import FeatureComputer, FeatureResult
 from runtime.feature_store.features import (
     IcpComputer,
-    FundingScoreComputer,
-    HiringScoreComputer,
-    GrowthScoreComputer,
-    IntentScoreComputer,
-    ExpansionScoreComputer,
-    RevenueScoreComputer,
 )
 
-
 # ── Fake SQLAlchemy helpers ──────────────────────────────────────────────────
+
 
 class FakeMapping:
     def __init__(self, data):
@@ -68,8 +63,10 @@ class FakeResult:
 
 # ── ScoringMapper Tests ──────────────────────────────────────────────────────
 
+
 class FakeExecute:
     """Returns different data based on SQL text patterns."""
+
     DEFAULT_ROWS = [
         {"id": "co-1", "name_ar": "شركة أ", "feature_name": "icp_score", "score": 0.85},
         {"id": "co-2", "name_ar": "شركة ب", "feature_name": "growth_score", "score": 0.72},
@@ -159,6 +156,7 @@ class TestScoringMapper:
 
 # ── Feature Computer Tests ──────────────────────────────────────────────────
 
+
 class TestIcpComputer:
     @pytest.fixture
     def computer(self):
@@ -168,30 +166,55 @@ class TestIcpComputer:
         assert computer.name == "icp_score"
 
     async def test_high_tech_score(self, computer):
-        company = {"industry": "technology", "employee_count": 200, "country": "saudi arabia", "annual_revenue": 10000000}
+        company = {
+            "industry": "technology",
+            "employee_count": 200,
+            "country": "saudi arabia",
+            "annual_revenue": 10000000,
+        }
         result = await computer.compute(company, AsyncMock())
         assert isinstance(result, FeatureResult)
         assert result.score > 0
 
     async def test_low_unknown_industry(self, computer):
-        company = {"industry": "unknown", "employee_count": 1, "country": "unknown", "annual_revenue": 1000}
+        company = {
+            "industry": "unknown",
+            "employee_count": 1,
+            "country": "unknown",
+            "annual_revenue": 1000,
+        }
         result = await computer.compute(company, AsyncMock())
         assert result.score >= 0
 
     async def test_saudi_arabia_gets_full_region_points(self, computer):
-        company = {"industry": "tech", "employee_count": 50, "country": "saudi arabia", "annual_revenue": 1000000}
+        company = {
+            "industry": "tech",
+            "employee_count": 50,
+            "country": "saudi arabia",
+            "annual_revenue": 1000000,
+        }
         result = await computer.compute(company, AsyncMock())
         signals = result.contributing_signals
         assert signals.get("region") == "primary"
 
     async def test_gcc_country_gets_partial_points(self, computer):
-        company = {"industry": "tech", "employee_count": 50, "country": "uae", "annual_revenue": 1000000}
+        company = {
+            "industry": "tech",
+            "employee_count": 50,
+            "country": "uae",
+            "annual_revenue": 1000000,
+        }
         result = await computer.compute(company, AsyncMock())
         signals = result.contributing_signals
         assert signals.get("region") == "gcc"
 
     async def test_score_bounded(self, computer):
-        company = {"industry": "technology", "employee_count": 1000, "country": "saudi arabia", "annual_revenue": 100000000}
+        company = {
+            "industry": "technology",
+            "employee_count": 1000,
+            "country": "saudi arabia",
+            "annual_revenue": 100000000,
+        }
         result = await computer.compute(company, AsyncMock())
         assert 0 <= result.score <= 100
 
@@ -201,19 +224,34 @@ class TestIcpComputer:
         assert 0 <= result.score <= 100
 
     async def test_employee_tier_mapping(self, computer):
-        company = {"industry": "tech", "employee_count": 250, "country": "sa", "annual_revenue": 1000000}
+        company = {
+            "industry": "tech",
+            "employee_count": 250,
+            "country": "sa",
+            "annual_revenue": 1000000,
+        }
         result = await computer.compute(company, AsyncMock())
         signals = result.contributing_signals
         assert signals.get("employee_tier") == "201-1000"
 
     async def test_medium_company_tier(self, computer):
-        company = {"industry": "tech", "employee_count": 200, "country": "sa", "annual_revenue": 1000000}
+        company = {
+            "industry": "tech",
+            "employee_count": 200,
+            "country": "sa",
+            "annual_revenue": 1000000,
+        }
         result = await computer.compute(company, AsyncMock())
         signals = result.contributing_signals
         assert signals.get("employee_tier") == "51-200"
 
     async def test_small_company_tier(self, computer):
-        company = {"industry": "tech", "employee_count": 5, "country": "sa", "annual_revenue": 1000000}
+        company = {
+            "industry": "tech",
+            "employee_count": 5,
+            "country": "sa",
+            "annual_revenue": 1000000,
+        }
         result = await computer.compute(company, AsyncMock())
         signals = result.contributing_signals
         assert signals.get("employee_tier") == "1-10"
@@ -228,7 +266,7 @@ class TestIcpComputer:
 
 class TestFeatureResult:
     def test_feature_result_creation(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         result = FeatureResult(
             score=85.5,
             version=1,
@@ -244,8 +282,15 @@ class TestFeatureResult:
         assert result.explanation == "Test explanation"
 
     def test_feature_result_has_computed_at(self):
-        now = datetime.now(timezone.utc)
-        result = FeatureResult(score=50, version=1, computed_at=now, confidence=0.5, contributing_signals={}, explanation="")
+        now = datetime.now(UTC)
+        result = FeatureResult(
+            score=50,
+            version=1,
+            computed_at=now,
+            confidence=0.5,
+            contributing_signals={},
+            explanation="",
+        )
         assert isinstance(result.computed_at, datetime)
 
 

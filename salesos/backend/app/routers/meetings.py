@@ -1,18 +1,20 @@
 """Meeting & Email Intelligence REST API."""
+
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
 from app.common.rate_limit import rate_limit_dep
-from sdk.permissions import PermissionAction
-from domains.commercial.meeting.intelligence import MeetingIntelligenceService
-from domains.commercial.email import EmailIntelligence, Email
+from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from domains.commercial.email import Email, EmailIntelligence
 from domains.commercial.infrastructure.postgres_repositories import (
-    PostgresMeetingRepository, PostgresEmailRepository,
+    PostgresEmailRepository,
+    PostgresMeetingRepository,
 )
+from domains.commercial.meeting.intelligence import MeetingIntelligenceService
+from sdk.permissions import PermissionAction
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +38,7 @@ class MeetingSummaryRequest(BaseModel):
 
 # ── Repository factories ──
 
+
 def _get_meeting_repo(db: AsyncSession) -> PostgresMeetingRepository:
     return PostgresMeetingRepository(db)
 
@@ -45,6 +48,7 @@ def _get_email_repo(db: AsyncSession) -> PostgresEmailRepository:
 
 
 # ── Meetings ──
+
 
 @router.get("/meetings/{opportunity_id}")
 async def get_meetings(
@@ -58,20 +62,24 @@ async def get_meetings(
         meetings = await repo.list_by_opportunity(opportunity_id, tenant_id)
         return [
             {
-                "id": m.id, "title": m.title,
+                "id": m.id,
+                "title": m.title,
                 "meeting_date": m.meeting_date.isoformat() if m.meeting_date else None,
                 "duration_minutes": m.duration_minutes,
-                "notes": m.notes, "status": m.status,
+                "notes": m.notes,
+                "status": m.status,
             }
             for m in meetings
         ]
     except Exception as exc:
         logger.error("get_meetings failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
-@router.post("/meetings/{opportunity_id}/brief",
-             dependencies=[Depends(rate_limit_dep("meeting_brief", 10, 60))])
+@router.post(
+    "/meetings/{opportunity_id}/brief",
+    dependencies=[Depends(rate_limit_dep("meeting_brief", 10, 60))],
+)
 async def get_meeting_brief(
     opportunity_id: str,
     request: Request,
@@ -80,7 +88,10 @@ async def get_meeting_brief(
     _rbac: None = Depends(require_permission_dep("meeting", PermissionAction.READ)),
 ):
     try:
-        from domains.commercial.infrastructure.postgres_repositories import PostgresOpportunityRepository
+        from domains.commercial.infrastructure.postgres_repositories import (
+            PostgresOpportunityRepository,
+        )
+
         opp_repo = PostgresOpportunityRepository(db)
         opp = await opp_repo.get(opportunity_id)
         if not opp or getattr(opp, "tenant_id", None) != tenant_id:
@@ -92,11 +103,13 @@ async def get_meeting_brief(
         raise
     except Exception as exc:
         logger.error("get_meeting_brief failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
-@router.post("/meetings/{opportunity_id}/summary",
-             dependencies=[Depends(rate_limit_dep("meeting_summary", 10, 60))])
+@router.post(
+    "/meetings/{opportunity_id}/summary",
+    dependencies=[Depends(rate_limit_dep("meeting_summary", 10, 60))],
+)
 async def get_meeting_summary(
     opportunity_id: str,
     body: MeetingSummaryRequest,
@@ -109,10 +122,11 @@ async def get_meeting_summary(
         return await service.generate_summary(body.model_dump())
     except Exception as exc:
         logger.error("get_meeting_summary failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
 # ── Emails ──
+
 
 @router.get("/emails/{opportunity_id}")
 async def get_emails(
@@ -126,7 +140,8 @@ async def get_emails(
         emails = await repo.list_by_opportunity(opportunity_id, tenant_id)
         return [
             {
-                "id": e.id, "subject": e.subject,
+                "id": e.id,
+                "subject": e.subject,
                 "from_address": e.from_address,
                 "to_addresses": e.to_addresses,
                 "direction": e.direction,
@@ -138,11 +153,10 @@ async def get_emails(
         ]
     except Exception as exc:
         logger.error("get_emails failed: %s", exc)
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
 
-@router.post("/emails/analyze",
-             dependencies=[Depends(rate_limit_dep("email_analyze", 20, 60))])
+@router.post("/emails/analyze", dependencies=[Depends(rate_limit_dep("email_analyze", 20, 60))])
 async def analyze_email(
     email_req: EmailRequest,
     tenant_id: str = Depends(get_current_tenant_id),

@@ -3,14 +3,15 @@
 Key format and TTL are aligned with the canonical sdk.cache.CacheService.
 """
 
+import contextlib
 import functools
 import json
 import logging
-from typing import Any, Callable
-
-from sdk.cache import cache_key as build_cache_key
+from collections.abc import Callable
+from typing import Any
 
 from app.common.redis_client import AsyncRedisClient
+from sdk.cache import cache_key as build_cache_key
 
 logger = logging.getLogger(__name__)
 
@@ -55,10 +56,8 @@ def cached(resource: str, ttl: int = 300) -> Callable:
 
             result = await func(*args, **kwargs)
 
-            try:
+            with contextlib.suppress(Exception):
                 await _cache_client.set(_key, json.dumps(result, default=str), ttl=ttl)
-            except Exception:
-                pass
 
             return result
 

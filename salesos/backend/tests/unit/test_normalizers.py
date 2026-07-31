@@ -1,11 +1,10 @@
 """Tests for the Arabic text normalizer (`normalize_arabic_text`),
 CR normalizer (`normalize_cr`), and city normalizer (`normalize_city`)."""
 
-import pytest
 from runtime.data_fabric_runtime.master_data.normalizers import (
     normalize_arabic_text,
-    normalize_cr,
     normalize_city,
+    normalize_cr,
 )
 
 
@@ -53,8 +52,8 @@ class TestNormalizeArabicText:
         assert normalize_arabic_text("آدم") == "ادم"
 
     def test_keeping_spaces(self):
-        result = normalize_arabic_text("شركة   الأمل   الجديد")
-        assert "  " not in result or True  # at least it doesn't crash
+        normalize_arabic_text("شركة   الأمل   الجديد")
+        assert True  # at least it doesn't crash
 
     def test_long_text_preserves_order(self):
         result = normalize_arabic_text("شركة الأمل للتجارة والمقاولات")
@@ -62,9 +61,9 @@ class TestNormalizeArabicText:
         assert "الامل" in result
 
     def test_extended_diacritics_removal(self):
-        result = normalize_arabic_text("بِسْمِ\u06E0الل\u06E3هِ")
-        assert "\u06E0" not in result
-        assert "\u06E3" not in result
+        result = normalize_arabic_text("بِسْمِ\u06e0الل\u06e3هِ")
+        assert "\u06e0" not in result
+        assert "\u06e3" not in result
 
     def test_persian_gaf_normalization(self):
         assert normalize_arabic_text("گوگل") == "كوكل"
@@ -76,7 +75,7 @@ class TestNormalizeArabicText:
         assert normalize_arabic_text("گنج") == "كنج"
 
     def test_heh_doachashmee(self):
-        assert normalize_arabic_text("مُحَمَّد\u06C1") == "محمده"
+        assert normalize_arabic_text("مُحَمَّد\u06c1") == "محمده"
 
 
 class TestNormalizeCr:

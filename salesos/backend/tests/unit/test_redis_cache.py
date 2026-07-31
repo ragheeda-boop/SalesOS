@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import pytest
 
 from sdk.cache.redis_cache import RedisCache
@@ -60,6 +58,7 @@ class FakeStubRedis:
     @staticmethod
     def _match_pattern(key: str, pattern: str) -> bool:
         import fnmatch
+
         return fnmatch.fnmatch(key, pattern)
 
 
@@ -75,6 +74,7 @@ def cache(stub_redis):
 
 # ── Construction / availability ─────────────────────────────────
 
+
 class TestConstruction:
     def test_with_none_redis(self):
         c = RedisCache(None)
@@ -86,6 +86,7 @@ class TestConstruction:
 
 
 # ── get / set ───────────────────────────────────────────────────
+
 
 class TestGetSet:
     async def test_set_and_get(self, cache, stub_redis):
@@ -110,6 +111,7 @@ class TestGetSet:
 
 # ── delete ──────────────────────────────────────────────────────
 
+
 class TestDelete:
     async def test_delete_existing(self, cache):
         await cache.set("k", "v", ttl=60)
@@ -121,6 +123,7 @@ class TestDelete:
 
 
 # ── ttl ─────────────────────────────────────────────────────────
+
 
 class TestTtl:
     async def test_ttl_returns_positive_for_existing(self, cache, stub_redis):
@@ -134,6 +137,7 @@ class TestTtl:
 
 # ── exists ──────────────────────────────────────────────────────
 
+
 class TestExists:
     async def test_exists_returns_true(self, cache):
         await cache.set("k", "v", ttl=60)
@@ -145,6 +149,7 @@ class TestExists:
 
 # ── clear ───────────────────────────────────────────────────────
 
+
 class TestClear:
     async def test_clear_empties_cache(self, cache):
         await cache.set("a", 1, ttl=60)
@@ -155,6 +160,7 @@ class TestClear:
 
 
 # ── Graceful failover ───────────────────────────────────────────
+
 
 class TestFailover:
     async def test_get_returns_none_when_redis_unavailable(self):

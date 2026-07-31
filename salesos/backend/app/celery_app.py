@@ -17,6 +17,7 @@ celery_app = Celery(
 
 try:
     from app.celery_schedule import BEAT_SCHEDULE
+
     _beat_schedule = BEAT_SCHEDULE
 except ImportError:
     _beat_schedule = {}

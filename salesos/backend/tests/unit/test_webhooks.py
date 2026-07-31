@@ -4,7 +4,7 @@ import hashlib
 import hmac
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -50,6 +50,7 @@ def sample_sub():
 
 # ── Subscription CRUD Tests ──
 
+
 class TestCreateSubscription:
     @pytest.mark.asyncio
     async def test_create_subscription(self, service):
@@ -80,8 +81,12 @@ class TestCreateSubscription:
 class TestListSubscriptions:
     @pytest.mark.asyncio
     async def test_list_subscriptions(self, service):
-        await service.create_subscription("tenant-1", "https://a.com", ["company.created"], "secret-12345678")
-        await service.create_subscription("tenant-1", "https://b.com", ["company.updated"], "secret-12345678")
+        await service.create_subscription(
+            "tenant-1", "https://a.com", ["company.created"], "secret-12345678"
+        )
+        await service.create_subscription(
+            "tenant-1", "https://b.com", ["company.updated"], "secret-12345678"
+        )
         subs = await service.list_subscriptions("tenant-1")
         assert len(subs) == 2
 
@@ -92,8 +97,12 @@ class TestListSubscriptions:
 
     @pytest.mark.asyncio
     async def test_list_subscriptions_tenant_isolation(self, service):
-        await service.create_subscription("tenant-1", "https://a.com", ["company.created"], "secret-12345678")
-        await service.create_subscription("tenant-2", "https://b.com", ["company.created"], "secret-12345678")
+        await service.create_subscription(
+            "tenant-1", "https://a.com", ["company.created"], "secret-12345678"
+        )
+        await service.create_subscription(
+            "tenant-2", "https://b.com", ["company.created"], "secret-12345678"
+        )
         subs = await service.list_subscriptions("tenant-1")
         assert len(subs) == 1
 
@@ -101,7 +110,9 @@ class TestListSubscriptions:
 class TestDeleteSubscription:
     @pytest.mark.asyncio
     async def test_delete_subscription(self, service):
-        sub = await service.create_subscription("tenant-1", "https://a.com", ["company.created"], "secret-12345678")
+        sub = await service.create_subscription(
+            "tenant-1", "https://a.com", ["company.created"], "secret-12345678"
+        )
         ok = await service.delete_subscription(sub.id)
         assert ok is True
         assert await service.get_subscription(sub.id) is None
@@ -115,14 +126,20 @@ class TestDeleteSubscription:
 class TestUpdateSubscription:
     @pytest.mark.asyncio
     async def test_update_subscription_events(self, service):
-        sub = await service.create_subscription("tenant-1", "https://a.com", ["company.created"], "secret-12345678")
-        updated = await service.update_subscription(sub.id, {"events": ["company.created", "company.updated"]})
+        sub = await service.create_subscription(
+            "tenant-1", "https://a.com", ["company.created"], "secret-12345678"
+        )
+        updated = await service.update_subscription(
+            sub.id, {"events": ["company.created", "company.updated"]}
+        )
         assert updated is not None
         assert "company.updated" in updated.events
 
     @pytest.mark.asyncio
     async def test_update_subscription_deactivate(self, service):
-        sub = await service.create_subscription("tenant-1", "https://a.com", ["company.created"], "secret-12345678")
+        sub = await service.create_subscription(
+            "tenant-1", "https://a.com", ["company.created"], "secret-12345678"
+        )
         updated = await service.update_subscription(sub.id, {"is_active": False})
         assert updated is not None
         assert updated.is_active is False
@@ -134,6 +151,7 @@ class TestUpdateSubscription:
 
 
 # ── Signature Tests ──
+
 
 class TestSignature:
     def test_sign_payload_consistent(self):
@@ -163,6 +181,7 @@ class TestSignature:
 
 # ── Dispatch & Delivery Tests ──
 
+
 class TestDispatchEvent:
     @pytest.mark.asyncio
     async def test_dispatch_event_no_subscribers(self, service):
@@ -171,7 +190,9 @@ class TestDispatchEvent:
 
     @pytest.mark.asyncio
     async def test_dispatch_event_delivery_created(self, service):
-        await service.create_subscription("tenant-1", "https://example.com/hook", ["company.created"], "secret-12345678")
+        await service.create_subscription(
+            "tenant-1", "https://example.com/hook", ["company.created"], "secret-12345678"
+        )
         deliveries = await service.dispatch_event("company.created", {"id": "1"}, "tenant-1")
         assert len(deliveries) == 1
         assert deliveries[0].event_type == "company.created"
@@ -179,28 +200,40 @@ class TestDispatchEvent:
 
     @pytest.mark.asyncio
     async def test_dispatch_event_multiple_subscribers(self, service):
-        await service.create_subscription("tenant-1", "https://a.com/hook", ["company.created"], "secret-1")
-        await service.create_subscription("tenant-1", "https://b.com/hook", ["company.created"], "secret-2")
+        await service.create_subscription(
+            "tenant-1", "https://a.com/hook", ["company.created"], "secret-1"
+        )
+        await service.create_subscription(
+            "tenant-1", "https://b.com/hook", ["company.created"], "secret-2"
+        )
         deliveries = await service.dispatch_event("company.created", {"id": "1"}, "tenant-1")
         assert len(deliveries) == 2
 
     @pytest.mark.asyncio
     async def test_dispatch_event_tenant_isolation(self, service):
-        await service.create_subscription("tenant-1", "https://a.com/hook", ["company.created"], "secret-1")
-        await service.create_subscription("tenant-2", "https://b.com/hook", ["company.created"], "secret-2")
+        await service.create_subscription(
+            "tenant-1", "https://a.com/hook", ["company.created"], "secret-1"
+        )
+        await service.create_subscription(
+            "tenant-2", "https://b.com/hook", ["company.created"], "secret-2"
+        )
         deliveries = await service.dispatch_event("company.created", {"id": "1"}, "tenant-1")
         assert len(deliveries) == 1
 
     @pytest.mark.asyncio
     async def test_dispatch_event_inactive_skipped(self, service):
-        sub = await service.create_subscription("tenant-1", "https://a.com/hook", ["company.created"], "secret-1")
+        sub = await service.create_subscription(
+            "tenant-1", "https://a.com/hook", ["company.created"], "secret-1"
+        )
         await service.update_subscription(sub.id, {"is_active": False})
         deliveries = await service.dispatch_event("company.created", {"id": "1"}, "tenant-1")
         assert deliveries == []
 
     @pytest.mark.asyncio
     async def test_dispatch_event_wrong_event_skipped(self, service):
-        await service.create_subscription("tenant-1", "https://a.com/hook", ["company.updated"], "secret-1")
+        await service.create_subscription(
+            "tenant-1", "https://a.com/hook", ["company.updated"], "secret-1"
+        )
         deliveries = await service.dispatch_event("company.created", {"id": "1"}, "tenant-1")
         assert deliveries == []
 
@@ -208,7 +241,9 @@ class TestDispatchEvent:
 class TestDeliveryAttempt:
     @pytest.mark.asyncio
     async def test_delivery_success(self, service):
-        await service.create_subscription("tenant-1", "https://example.com/hook", ["company.created"], "secret-1")
+        await service.create_subscription(
+            "tenant-1", "https://example.com/hook", ["company.created"], "secret-1"
+        )
 
         with patch("httpx.AsyncClient") as mock_client:
             mock_response = AsyncMock()
@@ -228,7 +263,9 @@ class TestDeliveryAttempt:
 
     @pytest.mark.asyncio
     async def test_delivery_failure_schedules_retry(self, service):
-        await service.create_subscription("tenant-1", "https://example.com/hook", ["company.created"], "secret-1")
+        await service.create_subscription(
+            "tenant-1", "https://example.com/hook", ["company.created"], "secret-1"
+        )
 
         with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.side_effect = Exception("Connection refused")
@@ -242,7 +279,9 @@ class TestDeliveryAttempt:
 
     @pytest.mark.asyncio
     async def test_delivery_signature_header(self, service):
-        sub = await service.create_subscription("tenant-1", "https://example.com/hook", ["company.created"], "my-secret")
+        _ = await service.create_subscription(
+            "tenant-1", "https://example.com/hook", ["company.created"], "my-secret"
+        )
 
         with patch("httpx.AsyncClient") as mock_client:
             mock_response = AsyncMock()
@@ -266,7 +305,9 @@ class TestDeliveryAttempt:
 class TestRetry:
     @pytest.mark.asyncio
     async def test_retry_failed_delivery(self, service):
-        await service.create_subscription("tenant-1", "https://example.com/hook", ["company.created"], "secret-1")
+        await service.create_subscription(
+            "tenant-1", "https://example.com/hook", ["company.created"], "secret-1"
+        )
 
         with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.side_effect = Exception("Connection refused")
@@ -291,7 +332,9 @@ class TestRetry:
 
     @pytest.mark.asyncio
     async def test_retry_successful_delivery_fails(self, service):
-        await service.create_subscription("tenant-1", "https://example.com/hook", ["company.created"], "secret-1")
+        await service.create_subscription(
+            "tenant-1", "https://example.com/hook", ["company.created"], "secret-1"
+        )
 
         with patch("httpx.AsyncClient") as mock_client:
             mock_response = AsyncMock()
@@ -316,7 +359,9 @@ class TestRetry:
 class TestDeliveryLogs:
     @pytest.mark.asyncio
     async def test_get_delivery_logs(self, service):
-        sub = await service.create_subscription("tenant-1", "https://example.com/hook", ["company.created"], "secret-1")
+        sub = await service.create_subscription(
+            "tenant-1", "https://example.com/hook", ["company.created"], "secret-1"
+        )
 
         with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.side_effect = Exception("fail")
@@ -328,7 +373,9 @@ class TestDeliveryLogs:
 
     @pytest.mark.asyncio
     async def test_get_delivery_logs_limit(self, service):
-        sub = await service.create_subscription("tenant-1", "https://example.com/hook", ["company.created"], "secret-1")
+        sub = await service.create_subscription(
+            "tenant-1", "https://example.com/hook", ["company.created"], "secret-1"
+        )
 
         with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.side_effect = Exception("fail")
@@ -340,6 +387,7 @@ class TestDeliveryLogs:
 
 
 # ── Repository-level Tests ──
+
 
 class TestSubscriptionRepository:
     @pytest.mark.asyncio
@@ -396,9 +444,15 @@ class TestSubscriptionRepository:
 class TestDeliveryRepository:
     @pytest.mark.asyncio
     async def test_list_by_subscription(self, delivery_repo):
-        d1 = WebhookDelivery(id="d-1", subscription_id="s-1", event_type="company.created", payload={})
-        d2 = WebhookDelivery(id="d-2", subscription_id="s-1", event_type="company.updated", payload={})
-        d3 = WebhookDelivery(id="d-3", subscription_id="s-2", event_type="company.created", payload={})
+        d1 = WebhookDelivery(
+            id="d-1", subscription_id="s-1", event_type="company.created", payload={}
+        )
+        d2 = WebhookDelivery(
+            id="d-2", subscription_id="s-1", event_type="company.updated", payload={}
+        )
+        d3 = WebhookDelivery(
+            id="d-3", subscription_id="s-2", event_type="company.created", payload={}
+        )
         await delivery_repo.create(d1)
         await delivery_repo.create(d2)
         await delivery_repo.create(d3)
@@ -408,20 +462,33 @@ class TestDeliveryRepository:
     @pytest.mark.asyncio
     async def test_list_pending_retries(self, delivery_repo):
         from datetime import timedelta
-        now = datetime.now(timezone.utc)
+
+        now = datetime.now(UTC)
         retryable = WebhookDelivery(
-            id="d-1", subscription_id="s-1", event_type="company.created",
-            payload={}, status="failed", attempt=1,
+            id="d-1",
+            subscription_id="s-1",
+            event_type="company.created",
+            payload={},
+            status="failed",
+            attempt=1,
             next_retry_at=now - timedelta(seconds=10),
         )
         not_yet = WebhookDelivery(
-            id="d-2", subscription_id="s-1", event_type="company.created",
-            payload={}, status="failed", attempt=1,
+            id="d-2",
+            subscription_id="s-1",
+            event_type="company.created",
+            payload={},
+            status="failed",
+            attempt=1,
             next_retry_at=now + timedelta(hours=1),
         )
         maxed = WebhookDelivery(
-            id="d-3", subscription_id="s-1", event_type="company.created",
-            payload={}, status="failed", attempt=3,
+            id="d-3",
+            subscription_id="s-1",
+            event_type="company.created",
+            payload={},
+            status="failed",
+            attempt=3,
             next_retry_at=now - timedelta(seconds=10),
         )
         await delivery_repo.create(retryable)
@@ -433,6 +500,7 @@ class TestDeliveryRepository:
 
 
 # ── SSRF URL safety (PROD-W2-002 / GA-P0-SEC-02) ──
+
 
 class TestWebhookSSRF:
     @pytest.mark.asyncio
@@ -473,27 +541,40 @@ class TestWebhookSSRF:
     def test_validate_blocks_dns_rebinding_to_private(self):
         from app.modules.webhooks.url_safety import UnsafeWebhookURLError, validate_webhook_url
 
-        with patch("socket.getaddrinfo", return_value=[
-            (None, None, None, None, ("10.1.2.3", 443)),
-        ]):
-            with pytest.raises(UnsafeWebhookURLError, match="private"):
-                validate_webhook_url("https://evil.example/hook", resolve_dns=True)
+        with (
+            patch(
+                "socket.getaddrinfo",
+                return_value=[
+                    (None, None, None, None, ("10.1.2.3", 443)),
+                ],
+            ),
+            pytest.raises(UnsafeWebhookURLError, match="private"),
+        ):
+            validate_webhook_url("https://evil.example/hook", resolve_dns=True)
 
     def test_validate_allows_public_https(self):
         from app.modules.webhooks.url_safety import validate_webhook_url
 
-        with patch("socket.getaddrinfo", return_value=[
-            (None, None, None, None, ("93.184.216.34", 443)),
-        ]):
-            assert validate_webhook_url("https://example.com/hook", resolve_dns=True).startswith("https://")
+        with patch(
+            "socket.getaddrinfo",
+            return_value=[
+                (None, None, None, None, ("93.184.216.34", 443)),
+            ],
+        ):
+            assert validate_webhook_url("https://example.com/hook", resolve_dns=True).startswith(
+                "https://"
+            )
 
     def test_analyze_returns_allowed_public_ips(self):
         from app.modules.webhooks.url_safety import analyze_webhook_url
 
-        with patch("socket.getaddrinfo", return_value=[
-            (None, None, None, None, ("93.184.216.34", 443)),
-            (None, None, None, None, ("93.184.216.34", 443)),
-        ]):
+        with patch(
+            "socket.getaddrinfo",
+            return_value=[
+                (None, None, None, None, ("93.184.216.34", 443)),
+                (None, None, None, None, ("93.184.216.34", 443)),
+            ],
+        ):
             target = analyze_webhook_url("https://example.com/hook", resolve_dns=True)
         assert target.hostname == "example.com"
         assert target.allowed_ips == ("93.184.216.34",)
@@ -507,7 +588,9 @@ class TestWebhookSSRF:
         calls: list[tuple[str, int]] = []
 
         class _FakeInner:
-            async def connect_tcp(self, host, port, timeout=None, local_address=None, socket_options=None):
+            async def connect_tcp(
+                self, host, port, timeout=None, local_address=None, socket_options=None
+            ):
                 calls.append((host, port))
                 return object()
 
@@ -527,7 +610,9 @@ class TestWebhookSSRF:
         calls: list[str] = []
 
         class _FakeInner:
-            async def connect_tcp(self, host, port, timeout=None, local_address=None, socket_options=None):
+            async def connect_tcp(
+                self, host, port, timeout=None, local_address=None, socket_options=None
+            ):
                 calls.append(host)
                 if host == "1.1.1.1":
                     raise OSError("down")
@@ -587,19 +672,21 @@ class TestWebhookSSRF:
                 captured["url"] = url
                 return mock_response
 
-        with patch(
-            "app.modules.webhooks.service.analyze_webhook_url",
-            return_value=target,
-        ), patch(
-            "app.modules.webhooks.service.build_pinned_async_transport",
-            return_value=object(),
-        ) as build_pin, patch(
-            "app.modules.webhooks.service.httpx.AsyncClient",
-            _FakeClient,
+        with (
+            patch(
+                "app.modules.webhooks.service.analyze_webhook_url",
+                return_value=target,
+            ),
+            patch(
+                "app.modules.webhooks.service.build_pinned_async_transport",
+                return_value=object(),
+            ) as build_pin,
+            patch(
+                "app.modules.webhooks.service.httpx.AsyncClient",
+                _FakeClient,
+            ),
         ):
-            deliveries = await svc.dispatch_event(
-                "company.created", {"id": "c1"}, "tenant-1"
-            )
+            deliveries = await svc.dispatch_event("company.created", {"id": "c1"}, "tenant-1")
 
         assert build_pin.call_args.args[0] == ("93.184.216.34",)
         assert captured["kwargs"].get("transport") is not None
@@ -609,19 +696,26 @@ class TestWebhookSSRF:
 
 # ── All supported events test ──
 
+
 class TestSupportedEvents:
     @pytest.mark.asyncio
     async def test_all_events_dispatched(self, service):
         events = [
-            "company.created", "company.updated",
-            "opportunity.created", "opportunity.stage_changed", "opportunity.won", "opportunity.lost",
+            "company.created",
+            "company.updated",
+            "opportunity.created",
+            "opportunity.stage_changed",
+            "opportunity.won",
+            "opportunity.lost",
             "decision.evaluated",
             "pipeline.updated",
             "search.performed",
             "workflow.completed",
             "employee.updated",
         ]
-        await service.create_subscription("tenant-1", "https://example.com/hook", events, "secret-1")
+        await service.create_subscription(
+            "tenant-1", "https://example.com/hook", events, "secret-1"
+        )
 
         with patch("httpx.AsyncClient") as mock_client:
             mock_response = AsyncMock()
