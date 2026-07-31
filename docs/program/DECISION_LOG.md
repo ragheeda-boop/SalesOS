@@ -234,6 +234,15 @@
 **Consequence:** `.github/workflows/docker-smoke.yml` updated (workflow only); YAML parse OK. No compose file, no grafana config, no secrets handling, no other service touched. Committed locally (no push); Phase 2 (controlled push/CI) pending executive approval.
 **Status:** Accepted. Phase 1 result: **SUCCESS — READY FOR PHASE 2.**
 
+### DEC-031 — CI-17 closed: B324 weak MD5 remediated — Stage 5: Bandit SAST fully green
+
+**Date:** 2026-07-31
+**Context:** Phase 2 pushed commit `b87fb22` (`usedforsecurity=False` added to the MD5 call deriving `role_id`). Success criteria: fail-on-high gate passes, Stage 5 green, no regression.
+**Alternatives considered:** Replacing MD5 with SHA-256 (would change stored role IDs → data migration) — rejected; `usedforsecurity=False` is exactly what B324 prescribes and is digest-preserving.
+**Decision:** Evidence — CI run `30661609555`: `Stage 5: Bandit SAST` **SUCCESS** on all steps including `Run bandit (fail on high)` (0 high/high findings) and `Upload bandit results`. Full job matrix identical to baseline with this one job flipped green — **no regression**. Local proofs (Phase 1): digest byte-identical (`816ba59a...` both modes), 45 admin tests pass, 0 new Ruff violations.
+**Consequence:** CI-17 **CLOSED**. Program progress: **10/19**. Board updated with explicit triage mapping for the remaining generic rows (CI-06=#14 permissions, CI-07=#1/#2 cli/, CI-12=#3 Trivy investigation, CI-10=#2 Ruff body). Entering autonomous continuous-execution mode per executive directive: next READY = CI-07 (cli/ path) then CI-06 (#14 permissions).
+**Status:** Accepted. CI-17 **COMPLETE.**
+
 ### DEC-030 — CI-18 closed: semgrep SARIF upload fixed — entire Security Scan workflow GREEN for the first time; 253 semgrep findings surfaced as a separate item
 
 **Date:** 2026-07-31
