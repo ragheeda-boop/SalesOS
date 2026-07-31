@@ -1,0 +1,20 @@
+# Sprint 07 — 2026-10-26 → 2026-11-08
+
+> **Phase:** 1 — Owner Platform Core · **Prior:** [Sprint 06](Sprint-06.md) · **Next:** [Sprint 08](Sprint-08.md) · **Index:** [ENGINEERING_ROADMAP.md](../ENGINEERING_ROADMAP.md)
+> **Release gate:** Alpha (internal-only) — see [RELEASE_PLAN.md](../RELEASE_PLAN.md) §1
+
+**Sprint Goal:** Dunning + proration; Entitlement Engine v1; Owner Console MVP. **Alpha gate.**
+
+**Team note:** AI-Lead joins the team this sprint per the Phase 2 roster plan (ramping up ahead of Sprint 11's InteractionNote/PII work).
+
+| Story | Owner | Priority | Risk | Acceptance Criteria |
+|---|---|---|---|---|
+| STORY-05-04 (dunning) | BE2 | P0 | High (R-05) | Failed payment → grace period → auto-suspend, no manual steps |
+| STORY-05-05 (proration) | BE1 | P1 | Medium | Upgrade/downgrade mid-cycle bills correctly in both directions |
+| STORY-06-01 (Plan.entitlements schema) | BE-Lead | P0 | Medium | Entitlements JSONB schema reviewed and documented |
+| STORY-06-02 (entitlement middleware) | BE-Lead | P0 | Medium | At least 3 DOM/CAP combinations gated correctly |
+| STORY-07-01/02/03 (Owner Console MVP) | FE-Lead, FE1 | P1 | Low | `/tenants` and `/billing` read views live, audience-isolated |
+
+**Expected Demo:** **Phase 1 Go/No-Go + Alpha release.** Full commercial lifecycle demo end-to-end: provision tenant → subscribe → use a gated feature → downgrade → see entitlement change take effect → Owner Console shows accurate status throughout.
+
+**Technical Debt Created:** Owner Console is read-only — write actions (manual suspend override, refund) deferred to a later increment, explicitly tracked, not silently dropped.

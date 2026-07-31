@@ -1,0 +1,16 @@
+# Sprint 10 — 2026-12-07 → 2026-12-20
+
+> **Phase:** 2 — Integration Hub + Odoo GA · **Prior:** [Sprint 09](Sprint-09.md) · **Next:** [Sprint 11](Sprint-11.md) · **Index:** [ENGINEERING_ROADMAP.md](../ENGINEERING_ROADMAP.md)
+
+**Sprint Goal:** Sync scheduling + conflict resolution; Integrations Studio UI; Odoo Company/Contact sync starts.
+
+| Story | Owner | Priority | Risk | Acceptance Criteria |
+|---|---|---|---|---|
+| STORY-08-05 (SyncRun + scheduling) | BE2 | P0 | Medium | Sync runs on schedule via existing `CAP-028`, logs to `SyncRun` |
+| STORY-08-06 (ConflictResolutionPolicy) | BE-Lead | P1 | Medium | Write-back feedback-loop exclusion rule verified with a dedicated test |
+| STORY-08-07 (Integrations Studio UI) | FE-Lead, FE2 | P0 | Medium | Connect/test/map/schedule/monitor/disconnect flow usable end-to-end in staging |
+| STORY-09-01 (Odoo Company/Contact sync) | BE3 | P0 | Medium | `cr_number` join against the 141,221-company dataset working in staging |
+
+**Expected Demo:** Connect a staging Odoo sandbox through the Studio UI, see Company/Contact records materialize with Golden Record matches.
+
+**Technical Debt Created:** "Unlinked record" badge (for match failures) is stubbed, not fully designed — completes next sprint.

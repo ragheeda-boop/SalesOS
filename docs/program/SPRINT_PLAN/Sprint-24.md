@@ -1,0 +1,15 @@
+# Sprint 24 — 2027-06-21 → 2027-07-04
+
+> **Phase:** 6 — Hardening, Scale, Compliance · **Prior:** [Sprint 23](Sprint-23.md) · **Next:** [Sprint 25](Sprint-25.md) · **Index:** [ENGINEERING_ROADMAP.md](../ENGINEERING_ROADMAP.md)
+
+**Sprint Goal:** DR drill + pentest + AI provider failover hardening.
+
+| Story | Owner | Priority | Risk | Acceptance Criteria |
+|---|---|---|---|---|
+| STORY-14-03 (DR drill) | DevOps/SRE | P0 | High | RTO/RPO measured against target |
+| STORY-14-04 (penetration test) | Security (+ external firm) | P0 | Critical | Zero unresolved criticals |
+| STORY-14-06 (AI provider failover) | AI-Lead | P0 | Medium | Failover engages within defined SLO |
+
+**Expected Demo:** DR restore executed live (to a non-production target), timed against RTO/RPO.
+
+**Technical Debt Created:** Any pentest finding below "critical" severity is triaged into a tracked backlog with an explicit fix-by date, reviewed at the Sprint 25 gate.
