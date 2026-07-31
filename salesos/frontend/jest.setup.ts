@@ -2,6 +2,17 @@ import '@testing-library/jest-dom'
 import { toHaveNoViolations } from 'jest-axe'
 expect.extend(toHaveNoViolations)
 
+// jsdom omits Element scroll APIs used by chat UIs / combobox — stub no-ops.
+if (typeof Element.prototype.scrollTo !== 'function') {
+  Element.prototype.scrollTo = jest.fn()
+}
+if (typeof Element.prototype.scrollIntoView !== 'function') {
+  Element.prototype.scrollIntoView = jest.fn()
+}
+if (typeof window.scrollTo !== 'function') {
+  window.scrollTo = jest.fn()
+}
+
 // Default i18n for tests: resolve Arabic copy so suites asserting UI strings
 // don't see raw keys (I18nContext fallback returns the key without a provider).
 // Suites may still override via their own jest.mock("@/lib/i18n", ...).

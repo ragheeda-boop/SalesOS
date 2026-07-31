@@ -1,9 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
-beforeAll(() => {
-  Element.prototype.scrollTo = jest.fn();
-});
-
 import { RagChatWidget } from "../RagChatWidget";
 
 jest.mock("@/lib/ragQueries", () => ({

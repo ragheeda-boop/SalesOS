@@ -14,11 +14,6 @@ import { CopilotPanel } from "../copilot-panel";
 
 const mockPost = api.post as jest.Mock;
 
-beforeAll(() => {
-  HTMLElement.prototype.scrollIntoView = jest.fn();
-  Element.prototype.scrollTo = jest.fn();
-});
-
 describe("CopilotPanel", () => {
   beforeEach(() => jest.clearAllMocks());
 
