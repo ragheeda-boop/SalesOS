@@ -13,7 +13,7 @@
 | CI-02 | pip-audit (Poetry) in CI | P0 | CLOSED | Closed DEC-025; commits `b330d52`+`a4e880c`; re-run `30655650484` proves chain: Poetry 2.x → plugin → `poetry export` → `pip-audit` → **24 vulns / 4 packages** → `--strict` exit 1 on findings (toolchain failure eliminated); Security Scan `pip-audit` SUCCESS (`30655650490`); residual findings → R-21/CI-16 |
 | CI-03 | docker-smoke env var (`GF_SECURITY_ADMIN_PASSWORD`) | P0 | CLOSED | Closed DEC-027; commit `83e703e`; run `30656335600` — **full Docker E2E Smoke Test job SUCCESS** (Validate Compose File 1s → Build 111s → Start 79s → Smoke Tests 30s); interpolation issue eliminated |
 | CI-07 | MyPy/Ruff `cli/` path in CI | P1 | PENDING | |
-| CI-04 | Workflow fix (triage) | P1 | PENDING | |
+| CI-04 | Bandit SARIF format (triage #5/#10): install `bandit[sarif]` in both workflows | P1 | CLOSED | Closed DEC-028; commit `ce59efd`; runs `30658782384`/`30658782394` — `Upload bandit results` **SUCCESS in both**; no `Path does not exist` for Bandit; surfaced pre-existing high/high finding B324 (weak MD5, `roles_permissions.py:40`) — gate had been SKIPPED in baseline, now executes → CI-17; semgrep upload failure separate → CI-18 |
 | CI-05 | Workflow fix (triage) | P1 | PENDING | |
 | CI-06 | Workflow fix (triage) | P1 | PENDING | |
 | CI-13 | Jest suite baseline | P1 | PENDING | Dependency for CI-14 |
@@ -27,9 +27,11 @@
 | CI-15 | Analytics Schema Reconciliation (add `metrics`, `dimensions`, `filters`, `visualization_type`, `created_by` to `analytics_reports` via Alembic) | P0 | CLOSED | Closed DEC-022; migration `07e3ec4084fc`; Phase 1 validation PASS + Phase 2 push `4793b08` → CI run `30652813475` (matrix identical to baseline `30649799993`; only delta = 10 new Ruff style violations from the migration file in the pre-existing red Backend Lint gate, transferred to the lint backlog, not fixed in CI-15); R-19 closed |
 | DB-05 | Repository Schema Reconciliation Program — systemic ORM↔DB drift (R-20) | P1 | BACKLOG | Program story, multi-sprint (R-20); created by CI-15 Phase 1 decision; NOT part of CI-15; placed in backlog per DEC-022 |
 | CI-16 | Backend Dependency Security Remediation — remediate `python-multipart`, `strawberry-graphql`, `starlette`, `ecdsa` vulnerabilities found by `pip-audit` (R-21) | P1 | BACKLOG | Standalone, DEC-023; NOT part of CI-02 (toolchain only); placed in backlog per DEC-025 |
+| CI-17 | Bandit B324 remediation — weak MD5 in `roles_permissions.py:40` (`hashlib.md5` used to derive `role_id`; add `usedforsecurity=False`) | P1 | REGISTERED | Surfaced by CI-04 run `30658782384` (DEC-028); gate `Run bandit (fail on high)` executes for the first time; high/high finding blocks Stage 5 until remediated; NOT part of CI-04 |
+| CI-18 | Semgrep SARIF upload — `semgrep-results.sarif` never produced (`Path does not exist` on `Upload semgrep results` in `sast-scan`) | P2 | REGISTERED | Separate root cause from Bandit (DEC-028); NOT part of CI-04 |
 
 ## Progress
-- Complete/Closed: 6/19 (CI-01, CI-11, S04-01, CI-15, CI-02, CI-03). Blocked: CI-08, S04-04, CI-09. Registered: CI-14. Backlog: DB-05, CI-16.
+- Complete/Closed: 7/19 (CI-01, CI-11, S04-01, CI-15, CI-02, CI-03, CI-04). Blocked: CI-08, S04-04, CI-09. Registered: CI-14, CI-17, CI-18. Backlog: DB-05, CI-16.
 - S04-01 status detail (CLOSED): RC1 (`:id::uuid` bind bug) and RC2 (cross-loop pool reuse) fixed and proven; 7th test was blocked on R-19 (analytics ORM↔DB drift), resolved by CI-15 migration `07e3ec4084fc`; suite now 7/7 PASS — see DEC-020/DEC-021/DEC-022.
 - CI-15 Phase 1 (approved ACs, DEC-021): analytics-only scope; systemic drift OUT of scope, registered as R-20 with Program Story DB-05. Principle: **Local Story fixes Local Drift. Systemic Drift becomes a Program Initiative.** Phase 2 (DEC-022): pushed `4793b08`, CI run `30652813475` — job matrix identical to baseline, no functional/test/RLS/integration regression; 10 new Ruff style violations from the migration file disclosed and transferred to the lint backlog (not fixed within CI-15).
 - CI-02 Phase 1 (DEC-023): toolchain remediation only — `pipx install poetry` added to `security-pip-audit`; security-scan `-f` parse error fixed; YAML valid; local proof: `poetry export` exit 0 (98 deps) → `pip-audit` runs → real findings (R-21). Principle ratified: **CI Stories fix CI Infrastructure, not application dependencies.**

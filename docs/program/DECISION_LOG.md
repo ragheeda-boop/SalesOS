@@ -234,6 +234,16 @@
 **Consequence:** `.github/workflows/docker-smoke.yml` updated (workflow only); YAML parse OK. No compose file, no grafana config, no secrets handling, no other service touched. Committed locally (no push); Phase 2 (controlled push/CI) pending executive approval.
 **Status:** Accepted. Phase 1 result: **SUCCESS — READY FOR PHASE 2.**
 
+### DEC-028 — CI-04 closed: Bandit SARIF uploads fixed in both workflows; gate now executes and surfaces a pre-existing high finding (B324)
+
+**Date:** 2026-07-31
+**Context:** Phase 2 authorized for commit `ce59efd` (install `bandit[sarif]` in `ci.yml` + `security-scan.yml`). Success criteria: `bandit-results.sarif` generated, `Upload bandit results` PASS in both workflows, no Bandit `Path does not exist`; any later failure (e.g., Semgrep) is an independent item, not CI-04.
+**Alternatives considered:** Dropping SARIF upload and keeping only the JSON gate (loses code-scanning visibility) — rejected; the approved fix preserves both.
+**Decision:** Pushed `ce59efd`. Evidence — CI run `30658782384` `Stage 5: Bandit SAST`: Install SUCCESS, `Run bandit` SUCCESS, **`Upload bandit results` SUCCESS**, then `Run bandit (fail on high)` FAILURE. Security Scan run `30658782394` `sast-scan`: **`Upload bandit results` SUCCESS**; `Upload semgrep results` FAILURE (`Path does not exist: semgrep-results.sarif` — separate root cause).
+**Key insight — NOT a regression:** Baseline run `30655650484` shows `Run bandit (fail on high)` = **SKIPPED** (the failing upload set `JOB_STATUS_CONFIGURATION_ERROR`, halting downstream steps). The high-severity JSON gate never executed until now. CI-04 fixing the upload enabled the gate for the first time; it correctly found **1 high/high finding: B324 (hashlib) — weak MD5** in `app/modules/admin/routers/roles_permissions.py:40` (`role_id = f"role_{hashlib.md5(body.name.encode()).hexdigest()[:8]}"`). Reproduced locally (bandit 1.9.4, JSON report, 1 result, HIGH/HIGH).
+**Consequence:** CI-04 **CLOSED** (all ACs met). New registered stories: **CI-17** (B324 remediation — add `usedforsecurity=False`), **CI-18** (semgrep SARIF upload). Program progress: **7/19**. Board + DECISION_LOG updated; committed locally (no push). The Stage 5 job will remain red until CI-17 lands — correct gate behavior, not CI debt.
+**Status:** Accepted. CI-04 **COMPLETE.**
+
 ### DEC-027 — CI-03 Phase 2 executed and closed: Docker Smoke Test fully green on real GitHub Actions (entire job, not just the gate)
 
 **Date:** 2026-07-31
