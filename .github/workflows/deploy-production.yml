@@ -44,16 +44,20 @@ jobs:
 
       - name: Determine version
         id: version
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          if [ "${EVENT_NAME}" == "workflow_dispatch" ]; then
+            echo "version=${INPUT_VERSION}" >> "$GITHUB_OUTPUT"
           else
-            echo "version=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+            echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Verify CHANGELOG updated
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
           if ! grep -q "$VERSION" CHANGELOG.md; then
             echo "::error::CHANGELOG.md not updated for $VERSION"
             exit 1

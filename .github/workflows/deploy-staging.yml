@@ -45,15 +45,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - id: tag
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          COMMIT_SHA: ${{ github.sha }}
         run: |
-          if [ -n "${{ inputs.version }}" ]; then
-            TAG="${{ inputs.version }}"
+          if [ -n "${INPUT_VERSION}" ]; then
+            TAG="${INPUT_VERSION}"
           else
-            TAG="${{ github.sha }}"
+            TAG="${COMMIT_SHA}"
           fi
           SHORT=$(echo "$TAG" | cut -c1-7)
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "short=$SHORT" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "short=$SHORT" >> "$GITHUB_OUTPUT"
           echo "Deploying tag: $TAG (short: $SHORT)"
 
   # ──────────────────────────────────────────────
@@ -297,11 +300,15 @@ jobs:
             exit 1
 
       - name: Log rollback
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+          PREVIOUS_TAG: ${{ needs.deploy-staging.outputs.previous_tag }}
         run: |
           echo "::warning::Rollback triggered for staging"
-          echo "REF: ${{ github.ref_name }}"
-          echo "COMMIT: ${{ github.sha }}"
-          echo "PREVIOUS_TAG: ${{ needs.deploy-staging.outputs.previous_tag }}"
+          echo "REF: ${REF_NAME}"
+          echo "COMMIT: ${COMMIT_SHA}"
+          echo "PREVIOUS_TAG: ${PREVIOUS_TAG}"
 
   # ──────────────────────────────────────────────
   # Notification

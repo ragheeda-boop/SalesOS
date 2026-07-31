@@ -43,22 +43,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Verify CI passed on this commit
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+          GIT_REF: ${{ github.ref }}
         run: |
-          echo "Checking CI status for commit ${{ github.sha }}..."
-          if [[ "${{ github.ref }}" != "refs/heads/master" ]]; then
+          echo "Checking CI status for commit ${COMMIT_SHA}..."
+          if [[ "${GIT_REF}" != "refs/heads/master" ]]; then
             echo "::error::Deploy only allowed from master branch"
             exit 1
           fi
           echo "Branch check passed."
       - name: Resolve deploy version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          COMMIT_SHA: ${{ github.sha }}
         run: |
-          if [ -n "${{ inputs.version }}" ]; then
-            echo "image_tag=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          if [ -n "${INPUT_VERSION}" ]; then
+            echo "image_tag=${INPUT_VERSION}" >> "$GITHUB_OUTPUT"
+            echo "Deploying tag: ${INPUT_VERSION}"
           else
-            echo "image_tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+            SHORT="$(echo "${COMMIT_SHA}" | cut -c1-7)"
+            echo "image_tag=${SHORT}" >> "$GITHUB_OUTPUT"
+            echo "Deploying tag: ${SHORT}"
           fi
-          echo "Deploying tag: ${{ steps.version.outputs.image_tag }}"
 
   # ──────────────────────────────────────────────
   # Stage 1: Deploy to BLUE (idle slot)
@@ -262,13 +270,19 @@ jobs:
             echo "Rollback complete — traffic restored to $PREV_SLOT"
 
       - name: Log rollback
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+          FAILED_SLOT: ${{ needs.deploy-blue.outputs.slot }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+          RUN_ID: ${{ github.run_id }}
         run: |
           echo "::error::Automatic rollback triggered"
-          echo "REF: ${{ github.ref_name }}"
-          echo "COMMIT: ${{ github.sha }}"
-          echo "FAILED_SLOT: ${{ needs.deploy-blue.outputs.slot }}"
-          echo "WORKFLOW: ${{ github.workflow }}"
-          echo "RUN: ${{ github.run_id }}"
+          echo "REF: ${REF_NAME}"
+          echo "COMMIT: ${COMMIT_SHA}"
+          echo "FAILED_SLOT: ${FAILED_SLOT}"
+          echo "WORKFLOW: ${WORKFLOW_NAME}"
+          echo "RUN: ${RUN_ID}"
 
   # ──────────────────────────────────────────────
   # Notifications
@@ -318,12 +332,19 @@ jobs:
       - name: Teams notification
         if: env.TEAMS_WEBHOOK_URL != ''
         uses: actions/github-script@v7
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          DEPLOY_STATUS: ${{ steps.status.outputs.status }}
+          IMAGE_TAG: ${{ needs.deploy-blue.outputs.image_tag }}
+          REF_NAME: ${{ github.ref_name }}
+          SERVER_URL: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
         with:
           script: |
-            const status = '${{ steps.status.outputs.status }}';
-            const tag = '${{ needs.deploy-blue.outputs.image_tag }}';
+            const status = process.env.DEPLOY_STATUS;
+            const tag = process.env.IMAGE_TAG;
             const emoji = status === 'success' ? '✅' : '❌';
-            const color = status === 'success' ? 'Good' : 'Error';
             const payload = {
               '@type': 'MessageCard',
               '@context': 'http://schema.org/extensions',
@@ -331,7 +352,7 @@ jobs:
               summary: `Deploy ${status}: ${tag}`,
               sections: [{
                 activityTitle: `${emoji} SalesOS Production Deploy — ${tag}`,
-                text: `Status: **${status}**\nRef: \`${{ github.ref_name }}\`\nRun: [View](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})`,
+                text: `Status: **${status}**\nRef: \`${process.env.REF_NAME}\`\nRun: [View](${process.env.SERVER_URL}/${process.env.REPOSITORY}/actions/runs/${process.env.RUN_ID})`,
                 markdown: true
               }]
             };
@@ -341,15 +362,16 @@ jobs:
             const req = http.request(options, (res) => { console.log(`Teams response: ${res.statusCode}`); });
             req.write(JSON.stringify(payload));
             req.end();
-        env:
-          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
 
       - name: GitHub commit comment
         uses: actions/github-script@v7
+        env:
+          DEPLOY_STATUS: ${{ steps.status.outputs.status }}
+          IMAGE_TAG: ${{ needs.deploy-blue.outputs.image_tag }}
         with:
           script: |
-            const status = '${{ steps.status.outputs.status }}';
-            const tag = '${{ needs.deploy-blue.outputs.image_tag }}';
+            const status = process.env.DEPLOY_STATUS;
+            const tag = process.env.IMAGE_TAG;
             const emoji = status === 'success' ? '✅' : '❌';
             const message = `${emoji} Production deploy **${status}** — \`${tag}\`\nRun: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             await github.rest.repos.createCommitComment({
