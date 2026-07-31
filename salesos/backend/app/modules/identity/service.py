@@ -117,6 +117,68 @@ def decode_refresh_token(token: str) -> dict:
         raise UnauthorizedError("Invalid or expired refresh token") from None
 
 
+def create_owner_access_token(user_id: str, jti: str | None = None) -> str:
+    """Mint an Owner Platform access token (separate audience; not accepted by tenant API)."""
+    from app.modules.identity.jwks import create_rs256_token_payload
+
+    expire = _now() + timedelta(minutes=settings.jwt_access_token_expire_minutes)
+    payload = {
+        "sub": user_id,
+        "jti": jti or secrets.token_urlsafe(16),
+        "exp": expire,
+        "iat": _now(),
+        "type": "access",
+        "iss": settings.jwt_issuer,
+        "aud": settings.jwt_owner_audience,
+        "kid": _current_key_id(),
+    }
+    return create_rs256_token_payload(payload)
+
+
+def create_owner_refresh_token(user_id: str, jti: str | None = None) -> str:
+    """Mint an Owner Platform refresh token (separate audience; not accepted by tenant API)."""
+    from app.modules.identity.jwks import create_rs256_token_payload
+
+    expire = _now() + timedelta(days=settings.jwt_refresh_token_expire_days)
+    payload = {
+        "sub": user_id,
+        "jti": jti or secrets.token_urlsafe(16),
+        "exp": expire,
+        "iat": _now(),
+        "type": "refresh",
+        "iss": settings.jwt_issuer,
+        "aud": settings.jwt_owner_audience,
+        "kid": _current_key_id(),
+    }
+    return create_rs256_token_payload(payload)
+
+
+def decode_owner_access_token(token: str) -> dict:
+    """Verify an Owner Platform access token (owner audience only)."""
+    from app.modules.identity.jwks import decode_token
+
+    try:
+        payload = decode_token(token, audience=settings.jwt_owner_audience)
+        if payload.get("type") != "access":
+            raise UnauthorizedError("Invalid token type")
+        return payload
+    except ValueError:
+        raise UnauthorizedError("Invalid or expired token") from None
+
+
+def decode_owner_refresh_token(token: str) -> dict:
+    """Verify an Owner Platform refresh token (owner audience only)."""
+    from app.modules.identity.jwks import decode_token
+
+    try:
+        payload = decode_token(token, audience=settings.jwt_owner_audience)
+        if payload.get("type") != "refresh":
+            raise UnauthorizedError("Invalid token type")
+        return payload
+    except ValueError:
+        raise UnauthorizedError("Invalid or expired refresh token") from None
+
+
 class IdentityService:
     def __init__(
         self,

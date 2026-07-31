@@ -122,7 +122,8 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int = 30
     jwt_refresh_token_expire_days: int = 7
     jwt_issuer: str = "salesos"
-    jwt_audience: str = "salesos-api"
+    jwt_audience: str = "salesos-api"  # Tenant API (existing endpoints)
+    jwt_owner_audience: str = "salesos-owner-platform"  # Owner Platform (EPIC-04+)
 
     openai_api_key: str = ""
     notion_token: str = ""

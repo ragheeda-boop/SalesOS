@@ -184,7 +184,7 @@ def create_rs256_token_payload(payload: dict) -> str:
     return jwt.encode(token_payload, pem_private, algorithm="RS256")
 
 
-def decode_token(token: str) -> dict:
+def decode_token(token: str, *, audience: str | None = None) -> dict:
     from jose import JWTError, jwt
 
     public_key = get_public_key()
@@ -197,7 +197,7 @@ def decode_token(token: str) -> dict:
             token,
             pem_public,
             algorithms=["RS256"],
-            audience="salesos-api",
+            audience=audience if audience is not None else settings.jwt_audience,
         )
     except JWTError:
         raise ValueError("Invalid or expired token") from None
