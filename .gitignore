@@ -116,3 +116,14 @@ data/
 cookies.txt
 login.json
 railway-status.json
+
+# Generated K8s configs (produced from templates at deploy time)
+salesos/infra/k8s/configmap-generated.yaml
+salesos/infra/k8s/secrets-generated.yaml
+infra/k8s/configmap-generated.yaml
+infra/k8s/secrets-generated.yaml
+
+# Backup / temp artifacts
+*.bak
+*.bak?
+tmp-*
