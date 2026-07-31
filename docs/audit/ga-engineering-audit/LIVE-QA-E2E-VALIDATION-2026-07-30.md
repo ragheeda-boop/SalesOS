@@ -6,6 +6,8 @@
 **Environment:** `https://sales-os-jet.vercel.app/` — account `ragheed.a@muhide.com`, role `user` (per the account's own employee record)
 **Scope discipline:** Per explicit agreement with the requester before testing began: Create actions were limited to one clearly-labeled test record (`QA-TEST-DoNotUse-20260730`), which the platform itself rejected (see BUG-015) so no cleanup was needed. No pre-existing record was deleted. No password-change or other credential-affecting form was submitted.
 
+> **STATUS UPDATE (same-day, later):** All 16 bugs documented in this report were subsequently fixed and independently re-verified live — see [`LIVE-QA-RECHECK-2026-07-30.md`](LIVE-QA-RECHECK-2026-07-30.md) for the full re-verification trail (including a fix that went deeper than the frontend symptom for BUG-009, and a genuine root-cause fix — not a workaround — for BUG-005's Postgres `SET LOCAL` parameterization issue). The **NO-GO** verdict in §13 below reflects the state of the application *at the time of this report* and is superseded by the recheck's findings. This document is kept as-is, unedited below this notice, as the historical record of what was found and why — see the recheck document for current status.
+
 ---
 
 ## 1. Executive Summary
@@ -293,11 +295,13 @@ No unauthorized (401 where unexpected), duplicate-request storms, or abnormal re
 
 ## 13. Go / No-Go Recommendation
 
-### **NO-GO for production / real-user traffic in the current deployed state.**
+### **NO-GO for production / real-user traffic in the current deployed state.** *(at time of writing — see status update below)*
 
 This is not a marginal call. The product's own stated #1 feature (Company Workspace) and #2 feature (Universal Search) are both completely non-functional, and the very first screen after login (Dashboard) shows total failure on every widget. These were found through completely ordinary use — clicking the obvious links a new user would click — with no attempt to break anything.
 
 **What would change this recommendation:** fixing the 6 P0 crash bugs (BUG-000, 001/002, 003, 005, 007, 008, 015 — note 015 is the most urgent given its blast radius) would likely take this from NO-GO to a defensible conditional-GO, since the underlying platform (auth, data layer, non-broken pages) is otherwise reasonably solid. The i18n and error-handling-consistency issues (P1/P2) matter for a polished launch but are not, on their own, blocking.
+
+> **RESOLVED, same day:** every condition listed above as required to move off NO-GO has since been met and independently re-verified — see [`LIVE-QA-RECHECK-2026-07-30.md`](LIVE-QA-RECHECK-2026-07-30.md). All 16 bugs, including all 6 P0s named here, are confirmed fixed. This does not automatically upgrade the verdict to GO — a fresh full end-to-end crawl (rather than the recheck's targeted re-tests) is the appropriate next step before a production/GA declaration, along with whatever operational sign-offs this repo's standing audit trail (`GA_STATUS.md`, `SIGN_HERE.md`) still requires — but the specific blockers identified in this report are closed.
 
 ---
 

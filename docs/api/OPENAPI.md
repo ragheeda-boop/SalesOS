@@ -259,6 +259,61 @@ Rate limit headers returned: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-Ra
 
 ---
 
+### Source of Truth
+
+Unified registry of every product, module, page, and widget in the platform. Aggregates from `CapabilityFramework`, `FeatureRegistry`, `SDKCapabilityRegistry`, and `WidgetRegistry`.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/v1/source-of-truth` | Full catalog: products + modules + pages + widgets |
+| GET | `/api/v1/source-of-truth/products` | Platform product capabilities only |
+| GET | `/api/v1/source-of-truth/modules` | Backend feature modules only |
+| GET | `/api/v1/source-of-truth/pages` | Frontend page routes with capability mapping |
+| GET | `/api/v1/source-of-truth/widgets` | Widget definitions only |
+
+Example response (summary):
+
+```json
+{
+  "summary": {
+    "total_products": 13,
+    "total_modules": 23,
+    "total_pages": 31,
+    "total_widgets": 64
+  },
+  "products": [
+    {
+      "id": "company",
+      "name": "Company Intelligence",
+      "description": "Company profiles, CR data, enrichment, golden records",
+      "status": "stable",
+      "contract": { "entities": ["company", "contact"], "apis": ["/api/v1/companies/*"] },
+      "ui": { "tabs": ["Overview","Timeline","Contacts","Revenue","Signals"], "routes": ["/companies", "/companies/{id}"] }
+    }
+  ],
+  "modules": [
+    {
+      "name": "entity_resolution",
+      "label": "Entity Resolution",
+      "label_ar": "حل الكيانات",
+      "description": "Golden record management with provenance, identity matching...",
+      "status": "registered",
+      "type": "domain",
+      "events": { "produces": ["golden_record.created", ...], "consumes": [] }
+    }
+  ],
+  "pages": [
+    { "route": "/companies", "label": "Companies", "capability_id": "company", "icon": "building" },
+    { "route": "/settings", "label": "Settings", "capability_id": "identity", "icon": "shield" }
+  ],
+  "widgets": [
+    { "id": "overview", "name": "Overview", "capability_id": "company", "renderer": "OverviewWidget" }
+  ]
+}
+```
+
+---
+
 ## WebSocket
 
 Real-time notifications available at `/notifications/ws`:
