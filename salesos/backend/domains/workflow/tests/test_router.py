@@ -101,6 +101,13 @@ def app(svc: WorkflowService) -> FastAPI:
     application.dependency_overrides[wr._get_service] = lambda: svc
 
     application.include_router(workflow_router, prefix="/api/v1")
+    for route in application.routes:
+        dependant = getattr(route, "dependant", None)
+        if not dependant:
+            continue
+        for dependency in dependant.dependencies:
+            if getattr(dependency.call, "__name__", "") == "_require_permission":
+                application.dependency_overrides[dependency.call] = lambda: True
 
     return application
 
@@ -163,7 +170,7 @@ async def test_create_workflow_with_all_step_types(app: FastAPI):
         {"step_type": "send_email", "config": {"to": "a@b.com"}, "order": 0},
         {"step_type": "update_crm", "config": {"entity": "lead", "entity_id": "l1"}, "order": 1},
         {"step_type": "create_task", "config": {"title": "Task"}, "order": 2},
-        {"step_type": "webhook", "config": {"url": "http://hook.com"}, "order": 3},
+        {"step_type": "webhook", "config": {"url": "https://example.com/step"}, "order": 3},
         {"step_type": "nba_recommend", "config": {"action": "call"}, "order": 4},
         {"step_type": "set_variable", "config": {"name": "x", "value": "1"}, "order": 5},
         {"step_type": "log_message", "config": {"message": "test"}, "order": 6},
@@ -296,19 +303,19 @@ async def test_create_webhook(app: FastAPI):
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
             "/api/v1/webhooks",
-            json={"url": "http://hook.example.com", "name": "Test Hook", "auth_type": "hmac", "secret": "s3cret"},
+            json={"url": "https://example.com/webhook", "name": "Test Hook", "auth_type": "hmac", "secret": "s3cret"},
             headers={"Authorization": "Bearer test", "X-Tenant-Id": "tenant-1"},
         )
     assert response.status_code in (201, 500)
     if response.status_code == 201:
         data = response.json()
-        assert data["url"] == "http://hook.example.com"
+        assert data["url"] == "https://example.com/webhook"
 
 
 @pytest.mark.asyncio
 async def test_list_webhooks(app: FastAPI, svc: WorkflowService):
-    await svc.create_webhook("tenant-1", "http://a.com", "A")
-    await svc.create_webhook("tenant-1", "http://b.com", "B")
+    await svc.create_webhook("tenant-1", "https://example.com/a-webhook", "A")
+    await svc.create_webhook("tenant-1", "https://example.com/b-webhook", "B")
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -324,7 +331,7 @@ async def test_list_webhooks(app: FastAPI, svc: WorkflowService):
 
 @pytest.mark.asyncio
 async def test_get_webhook(app: FastAPI, svc: WorkflowService):
-    ep = await svc.create_webhook("tenant-1", "http://test.com", "Test")
+    ep = await svc.create_webhook("tenant-1", "https://example.com/get-test", "Test")
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -340,7 +347,7 @@ async def test_get_webhook(app: FastAPI, svc: WorkflowService):
 
 @pytest.mark.asyncio
 async def test_delete_webhook(app: FastAPI, svc: WorkflowService):
-    ep = await svc.create_webhook("tenant-1", "http://test.com", "Del")
+    ep = await svc.create_webhook("tenant-1", "https://example.com/del-test", "Del")
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:

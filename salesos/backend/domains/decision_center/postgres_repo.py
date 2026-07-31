@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
 
+from sqlalchemy import String as sa_String
 from sqlalchemy import and_, func, select, text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,9 +28,20 @@ from .models import (
 from .repository import DecisionCenterRepository
 
 
+def _naive_utc(dt: datetime) -> datetime:
+    """Strip tzinfo before binding to a `TIMESTAMP WITHOUT TIME ZONE` column.
+
+    asyncpg cannot encode a timezone-aware datetime against a naive column
+    (raises "can't subtract offset-naive and offset-aware datetimes"), and
+    the service layer always produces tz-aware UTC timestamps.
+    """
+    return dt.astimezone(timezone.utc).replace(tzinfo=None) if dt.tzinfo else dt
+
+
 class DecisionModel(BaseModel):
     __tablename__ = "decision_center_decisions"
 
+    tenant_id: Mapped[str] = mapped_column(nullable=False, index=True)
     domain: Mapped[str] = mapped_column(nullable=False, index=True)
     decision_type: Mapped[str] = mapped_column(nullable=False, index=True)
     entity_id: Mapped[str] = mapped_column(nullable=False, index=True)
@@ -157,8 +169,10 @@ class PostgresDecisionCenterRepository(DecisionCenterRepository):
         self._session = session
 
     async def save_decision(self, decision: Decision) -> Decision:
+        tenant = (decision.metadata or {}).get("tenant_id", "")
         row = DecisionModel(
             id=uuid.uuid4(),
+            tenant_id=tenant,
             domain=decision.domain.value,
             decision_type=decision.type.value,
             entity_id=decision.entity_id,
@@ -182,7 +196,7 @@ class PostgresDecisionCenterRepository(DecisionCenterRepository):
                 for v in decision.ensemble_votes
             ] if decision.ensemble_votes else None,
             status=decision.status.value,
-            timestamp=decision.timestamp,
+            timestamp=_naive_utc(decision.timestamp),
         )
         self._session.add(row)
         await self._session.flush()
@@ -197,7 +211,7 @@ class PostgresDecisionCenterRepository(DecisionCenterRepository):
         result = await self._session.execute(
             select(DecisionModel).where(
                 DecisionModel.id == uid,
-                DecisionModel.decision_metadata["tenant_id"].as_string() == tenant_id,
+                DecisionModel.tenant_id == tenant_id,
             )
         )
         row = result.scalar_one_or_none()
@@ -217,7 +231,7 @@ class PostgresDecisionCenterRepository(DecisionCenterRepository):
         limit: int = 50,
         offset: int = 0,
     ) -> tuple[list[Decision], int]:
-        filters = [DecisionModel.decision_metadata["tenant_id"].as_string() == tenant_id]
+        filters = [DecisionModel.tenant_id == tenant_id]
         if domain:
             filters.append(DecisionModel.domain == domain)
         if decision_type:
@@ -260,7 +274,7 @@ class PostgresDecisionCenterRepository(DecisionCenterRepository):
             confidence_breakdown=audit.confidence_breakdown,
             provider_used=audit.provider_used,
             alternatives_considered=audit.alternatives_considered,
-            timestamp=audit.timestamp,
+            timestamp=_naive_utc(audit.timestamp),
             ensemble_metadata=audit.ensemble_metadata,
         )
         self._session.add(row)
@@ -283,7 +297,7 @@ class PostgresDecisionCenterRepository(DecisionCenterRepository):
             rating=feedback.rating.value,
             comment=feedback.comment,
             actor_id=feedback.actor_id,
-            created_at=feedback.created_at,
+            created_at=_naive_utc(feedback.created_at),
         )
         self._session.add(row)
         await self._session.flush()
@@ -312,8 +326,11 @@ class PostgresDecisionCenterRepository(DecisionCenterRepository):
                 func.sum(case((DecisionFeedbackModel.rating == "down", 1), else_=0)).label("down_count"),
             )
             .select_from(DecisionModel)
-            .join(DecisionFeedbackModel, DecisionModel.id == DecisionFeedbackModel.decision_id)
-            .where(DecisionModel.decision_metadata["tenant_id"].as_string() == tenant_id)
+            .join(
+                DecisionFeedbackModel,
+                func.cast(DecisionModel.id, sa_String) == DecisionFeedbackModel.decision_id,
+            )
+            .where(DecisionModel.tenant_id == tenant_id)
             .group_by(DecisionModel.decision_type)
         )
         rows = (await self._session.execute(base)).all()
@@ -340,7 +357,7 @@ class PostgresDecisionCenterRepository(DecisionCenterRepository):
             template_type=template.type.value,
             config=template.config,
             tenant_id=template.tenant_id if template.tenant_id else None,
-            created_at=template.created_at,
+            created_at=_naive_utc(template.created_at),
         )
         self._session.add(row)
         await self._session.flush()

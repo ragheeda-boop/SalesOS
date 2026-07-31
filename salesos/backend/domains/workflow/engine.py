@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+import uuid
 from datetime import datetime, timezone
 from typing import Any
 
@@ -115,7 +116,7 @@ class WorkflowEngine:
 
     async def execute(self, workflow: Workflow, context: dict[str, Any]) -> WorkflowExecution:
         execution = WorkflowExecution(
-            id=f"exec_{workflow.id}_{datetime.now(timezone.utc).timestamp()}",
+            id=f"exec_{workflow.id}_{uuid.uuid4().hex}",
             workflow_id=workflow.id,
             tenant_id=workflow.tenant_id,
             trigger_event=context.get("trigger", "manual"),
@@ -189,7 +190,7 @@ class WorkflowEngine:
 
     async def _execute_step(self, step: WorkflowStep, context: dict[str, Any]) -> WorkflowExecutionStep:
         step_result = WorkflowExecutionStep(
-            id=f"step_{step.id}_{datetime.now(timezone.utc).timestamp()}",
+            id=f"step_{step.id}_{uuid.uuid4().hex}",
             execution_id="",
             step_id=step.id,
             step_type=step.step_type,

@@ -83,7 +83,7 @@ async def get_meeting_brief(
         from domains.commercial.infrastructure.postgres_repositories import PostgresOpportunityRepository
         opp_repo = PostgresOpportunityRepository(db)
         opp = await opp_repo.get(opportunity_id)
-        if not opp:
+        if not opp or getattr(opp, "tenant_id", None) != tenant_id:
             raise HTTPException(status_code=404, detail="Opportunity not found")
 
         service = MeetingIntelligenceService(db, tenant_id)

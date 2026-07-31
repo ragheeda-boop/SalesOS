@@ -547,6 +547,7 @@ class TestDecisionCenterService:
             tenant_id=TENANT,
         )
         other = "tenant-attacker"
+        # Direct access blocked
         assert await svc.get_decision(d.id, other) is None
         assert await svc.get_audit(d.id, other) is None
         assert await svc.get_feedback_for_decision(d.id, other) == []
@@ -560,6 +561,12 @@ class TestDecisionCenterService:
             alternatives_considered=[],
             tenant_id=other,
         ) is None
+        # Listing isolation: attacker must not see victim data
+        items, total = await svc.list_decisions(other)
+        assert total == 0
+        # Feedback aggregation isolation
+        aggs = await svc.get_feedback_aggregates(other)
+        assert len(aggs) == 0
 
     @pytest.mark.asyncio
     async def test_create_audit(self, svc: DecisionCenterService):
@@ -687,43 +694,43 @@ class TestDecisionCenterService:
 
     @pytest.mark.asyncio
     async def test_create_template(self, svc: DecisionCenterService):
-        t = await svc.create_template("Test", "pricing", {"max_discount": 0.2})
+        t = await svc.create_template("Test", "pricing", {"max_discount": 0.2}, TENANT)
         assert t.id
         assert t.name == "Test"
         assert t.type.value == "pricing"
 
     @pytest.mark.asyncio
     async def test_get_template(self, svc: DecisionCenterService):
-        t = await svc.create_template("Test", "pricing", {})
-        result = await svc.get_template(t.id)
+        t = await svc.create_template("Test", "pricing", {}, TENANT)
+        result = await svc.get_template(t.id, TENANT)
         assert result is not None
 
     @pytest.mark.asyncio
     async def test_list_templates(self, svc: DecisionCenterService):
-        await svc.create_template("A", "pricing", {})
-        await svc.create_template("B", "renewal_risk", {})
-        items = await svc.list_templates()
+        await svc.create_template("A", "pricing", {}, TENANT)
+        await svc.create_template("B", "renewal_risk", {}, TENANT)
+        items = await svc.list_templates(template_type=None, tenant_id=TENANT)
         assert len(items) == 2
-        items_filtered = await svc.list_templates("pricing")
+        items_filtered = await svc.list_templates(template_type="pricing", tenant_id=TENANT)
         assert len(items_filtered) == 1
 
     @pytest.mark.asyncio
     async def test_update_template(self, svc: DecisionCenterService):
-        t = await svc.create_template("A", "pricing", {"x": 1})
-        result = await svc.update_template(t.id, name="B", config={"y": 2})
+        t = await svc.create_template("A", "pricing", {"x": 1}, TENANT)
+        result = await svc.update_template(t.id, name="B", config={"y": 2}, tenant_id=TENANT)
         assert result is not None
         assert result.name == "B"
 
     @pytest.mark.asyncio
     async def test_delete_template(self, svc: DecisionCenterService):
-        t = await svc.create_template("A", "pricing", {})
-        deleted = await svc.delete_template(t.id)
+        t = await svc.create_template("A", "pricing", {}, TENANT)
+        deleted = await svc.delete_template(t.id, TENANT)
         assert deleted is True
-        assert await svc.get_template(t.id) is None
+        assert await svc.get_template(t.id, TENANT) is None
 
     @pytest.mark.asyncio
     async def test_seed_default_templates(self, svc: DecisionCenterService):
-        templates = await svc.seed_default_templates()
+        templates = await svc.seed_default_templates(TENANT)
         assert len(templates) == 4
         names = {t.name for t in templates}
         assert "Lead Qualification" in names

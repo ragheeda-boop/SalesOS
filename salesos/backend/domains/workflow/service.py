@@ -206,10 +206,12 @@ class WorkflowService:
         auth_config: dict[str, Any] | None = None,
         secret: str = "",
     ) -> WebhookEndpoint:
+        from app.modules.webhooks.url_safety import validate_webhook_url
+        safe_url = validate_webhook_url(url, resolve_dns=True)
         endpoint = WebhookEndpoint(
             id=uuid.uuid4().hex[:12],
             tenant_id=tenant_id,
-            url=url,
+            url=safe_url,
             name=name,
             auth_type=auth_type,
             auth_config=auth_config or {},
@@ -236,7 +238,8 @@ class WorkflowService:
         if not ep:
             raise WorkflowValidationError(f"Webhook {endpoint_id} not found")
         if url is not None:
-            ep.url = url
+            from app.modules.webhooks.url_safety import validate_webhook_url
+            ep.url = validate_webhook_url(url, resolve_dns=True)
         if name is not None:
             ep.name = name
         if auth_type is not None:

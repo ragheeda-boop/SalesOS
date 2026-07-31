@@ -261,7 +261,7 @@ def test_hmac_signature_verification():
 async def test_webhook_authenticator_sign_hmac():
     auth = WebhookAuthenticator()
     endpoint = WebhookEndpoint(
-        id="ep1", tenant_id="t1", url="http://test.com", auth_type="hmac", secret="s3cret",
+        id="ep1", tenant_id="t1",         url="https://example.com/hmac-auth", auth_type="hmac", secret="s3cret",
     )
     payload = {"data": "test"}
     headers = auth.sign_request(endpoint, payload)
@@ -273,7 +273,7 @@ async def test_webhook_authenticator_sign_hmac():
 async def test_webhook_authenticator_sign_jwt():
     auth = WebhookAuthenticator()
     endpoint = WebhookEndpoint(
-        id="ep1", tenant_id="t1", url="http://test.com", auth_type="jwt", secret="jwt-secret",
+        id="ep1", tenant_id="t1", url="https://hooks.example.com/jwt-auth", auth_type="jwt", secret="jwt-secret",
     )
     headers = auth.sign_request(endpoint, {"data": "test"})
     assert "Authorization" in headers
@@ -284,7 +284,7 @@ async def test_webhook_authenticator_sign_jwt():
 async def test_webhook_authenticator_sign_none():
     auth = WebhookAuthenticator()
     endpoint = WebhookEndpoint(
-        id="ep1", tenant_id="t1", url="http://test.com", auth_type="none",
+        id="ep1", tenant_id="t1", url="https://hooks.example.com/none-auth", auth_type="none",
     )
     headers = auth.sign_request(endpoint, {"data": "test"})
     assert "X-Webhook-Signature" not in headers
@@ -295,7 +295,7 @@ async def test_webhook_authenticator_sign_none():
 async def test_webhook_authenticator_validate_hmac():
     auth = WebhookAuthenticator()
     endpoint = WebhookEndpoint(
-        id="ep1", tenant_id="t1", url="http://test.com", auth_type="hmac", secret="s3cret",
+        id="ep1", tenant_id="t1", url="https://example.com/hmac-validate", auth_type="hmac", secret="s3cret",
     )
     payload = b'{"data": "test"}'
     sig = compute_hmac_signature(payload, "s3cret")
@@ -309,7 +309,7 @@ async def test_webhook_authenticator_validate_hmac():
 async def test_webhook_authenticator_validate_no_signature():
     auth = WebhookAuthenticator()
     endpoint = WebhookEndpoint(
-        id="ep1", tenant_id="t1", url="http://test.com", auth_type="hmac", secret="s3cret",
+        id="ep1", tenant_id="t1", url="https://example.com/hmac-no-sig", auth_type="hmac", secret="s3cret",
     )
     assert auth.validate_incoming(endpoint, b'{}', {}) is False
 
@@ -318,7 +318,7 @@ async def test_webhook_authenticator_validate_no_signature():
 async def test_webhook_authenticator_validate_jwt():
     auth = WebhookAuthenticator()
     endpoint = WebhookEndpoint(
-        id="ep1", tenant_id="t1", url="http://test.com", auth_type="jwt", secret="jwt-secret",
+        id="ep1", tenant_id="t1", url="https://hooks.example.com/jwt-auth", auth_type="jwt", secret="jwt-secret",
     )
     from domains.workflow.webhook_auth import generate_jwt_token
     token = generate_jwt_token("jwt-secret", {"tenant_id": "t1", "endpoint_id": "ep1"})
@@ -332,7 +332,7 @@ async def test_webhook_authenticator_validate_jwt():
 async def test_webhook_authenticator_validate_none():
     auth = WebhookAuthenticator()
     endpoint = WebhookEndpoint(
-        id="ep1", tenant_id="t1", url="http://test.com", auth_type="none",
+        id="ep1", tenant_id="t1", url="https://hooks.example.com/none-auth", auth_type="none",
     )
     assert auth.validate_incoming(endpoint, b'{}', {}) is True
 
@@ -581,7 +581,7 @@ async def test_all_templates_have_required_fields():
 async def test_service_create_webhook():
     repo = _make_repo()
     svc = WorkflowService(repository=repo)
-    ep = await svc.create_webhook("t1", "http://test.com", "Test Hook", "hmac", secret="s3cret")
+    ep = await svc.create_webhook("t1", "https://example.com/svc-create", "Test Hook", "hmac", secret="s3cret")
     assert ep.id is not None
     assert ep.auth_type == "hmac"
 
@@ -590,9 +590,9 @@ async def test_service_create_webhook():
 async def test_service_list_webhooks():
     repo = _make_repo()
     svc = WorkflowService(repository=repo)
-    await svc.create_webhook("t1", "http://a.com", "A")
-    await svc.create_webhook("t1", "http://b.com", "B")
-    await svc.create_webhook("t2", "http://c.com", "C")
+    await svc.create_webhook("t1", "https://example.com/a-svc", "A")
+    await svc.create_webhook("t1", "https://example.com/b-svc", "B")
+    await svc.create_webhook("t2", "https://example.com/c-svc", "C")
     eps = await svc.list_webhooks("t1")
     assert len(eps) == 2
 
@@ -601,7 +601,7 @@ async def test_service_list_webhooks():
 async def test_service_delete_webhook():
     repo = _make_repo()
     svc = WorkflowService(repository=repo)
-    ep = await svc.create_webhook("t1", "http://test.com", "Del")
+    ep = await svc.create_webhook("t1", "https://example.com/svc-del", "Del")
     await svc.delete_webhook(ep.id, "t1")
     assert await svc.get_webhook(ep.id, "t1") is None
 
@@ -612,3 +612,81 @@ async def test_service_delete_webhook_not_found():
     svc = WorkflowService(repository=repo)
     with pytest.raises(WorkflowValidationError, match="not found"):
         await svc.delete_webhook("nonexistent", "t1")
+
+
+# ── SSRF Adversarial Tests ──────────────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_create_webhook_rejects_http():
+    """SSRF-01: create_webhook must reject plain HTTP URLs."""
+    repo = _make_repo()
+    svc = WorkflowService(repository=repo)
+    from app.modules.webhooks.url_safety import UnsafeWebhookURLError
+    with pytest.raises(UnsafeWebhookURLError, match="HTTPS"):
+        await svc.create_webhook("t1", "http://example.com", "SSRF Test")
+
+
+@pytest.mark.asyncio
+async def test_create_webhook_rejects_localhost():
+    """SSRF-02: create_webhook must reject localhost URLs."""
+    repo = _make_repo()
+    svc = WorkflowService(repository=repo)
+    from app.modules.webhooks.url_safety import UnsafeWebhookURLError
+    with pytest.raises(UnsafeWebhookURLError):
+        await svc.create_webhook("t1", "https://localhost:8080/hook", "SSRF Test")
+
+
+@pytest.mark.asyncio
+async def test_create_webhook_rejects_private_ip():
+    """SSRF-03: create_webhook must reject private IP URLs."""
+    repo = _make_repo()
+    svc = WorkflowService(repository=repo)
+    from app.modules.webhooks.url_safety import UnsafeWebhookURLError
+    with pytest.raises(UnsafeWebhookURLError):
+        await svc.create_webhook("t1", "https://10.0.0.1/hook", "SSRF Test")
+    with pytest.raises(UnsafeWebhookURLError):
+        await svc.create_webhook("t1", "https://192.168.1.1/hook", "SSRF Test")
+    with pytest.raises(UnsafeWebhookURLError):
+        await svc.create_webhook("t1", "https://127.0.0.1/hook", "SSRF Test")
+
+
+@pytest.mark.asyncio
+async def test_create_webhook_rejects_loopback_hostname():
+    """SSRF-04: create_webhook must reject loopback hostname."""
+    repo = _make_repo()
+    svc = WorkflowService(repository=repo)
+    from app.modules.webhooks.url_safety import UnsafeWebhookURLError
+    with pytest.raises(UnsafeWebhookURLError):
+        await svc.create_webhook("t1", "https://127.0.0.1.nip.io/hook", "SSRF Test")
+
+
+@pytest.mark.asyncio
+async def test_update_webhook_rejects_http():
+    """SSRF-05: update_webhook must reject plain HTTP URLs."""
+    repo = _make_repo()
+    svc = WorkflowService(repository=repo)
+    ep = await svc.create_webhook("t1", "https://example.com/update-ssrf", "SSRF Test")
+    from app.modules.webhooks.url_safety import UnsafeWebhookURLError
+    with pytest.raises(UnsafeWebhookURLError, match="HTTPS"):
+        await svc.update_webhook(ep.id, "t1", url="http://evil.com/hook")
+
+
+@pytest.mark.asyncio
+async def test_update_webhook_rejects_localhost():
+    """SSRF-06: update_webhook must reject localhost URLs."""
+    repo = _make_repo()
+    svc = WorkflowService(repository=repo)
+    ep = await svc.create_webhook("t1", "https://example.com/update-ssrf2", "SSRF Test")
+    from app.modules.webhooks.url_safety import UnsafeWebhookURLError
+    with pytest.raises(UnsafeWebhookURLError):
+        await svc.update_webhook(ep.id, "t1", url="https://localhost:443/hook")
+
+
+@pytest.mark.asyncio
+async def test_valid_https_webhook_passes():
+    """SSRF-07: valid HTTPS URLs must pass through create_webhook."""
+    repo = _make_repo()
+    svc = WorkflowService(repository=repo)
+    ep = await svc.create_webhook("t1", "https://example.com/valid-hook", "Valid")
+    assert ep.url == "https://example.com/valid-hook"

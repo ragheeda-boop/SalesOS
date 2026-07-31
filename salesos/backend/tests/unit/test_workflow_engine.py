@@ -1,6 +1,7 @@
 """Tests for Workflow Engine — models, repository, engine, conditions, templates."""
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 import uuid
@@ -180,6 +181,57 @@ class TestWorkflowEngine:
         assert execution.step_results[1].status == "completed"
         assert execution.step_results[0].result["sent"] is True
         assert execution.step_results[1].result["created"] is True
+
+    @pytest.mark.asyncio
+    async def test_execution_ids_unique_under_rapid_sequential_execution(self, engine, repo):
+        """R-12 regression: exec IDs must not collide when fired back-to-back with no delay.
+
+        Prior to the fix, execution.id was suffixed with a raw
+        datetime.now(timezone.utc).timestamp() float. On platforms with coarse
+        clock resolution (observed on Windows), two `execute()` calls issued in
+        immediate succession could receive the identical timestamp and therefore
+        the identical id, silently overwriting one execution with another in any
+        id-keyed store (e.g. InMemoryWorkflowRepository._executions[execution.id]).
+        """
+        wf = _wf()
+        await repo.create(wf)
+
+        executions = [await engine.execute(wf, {}) for _ in range(50)]
+
+        ids = [e.id for e in executions]
+        assert len(ids) == len(set(ids)), "duplicate execution id generated under rapid sequential execution"
+
+        stored = await repo.list_executions("tenant-1", wf.id)
+        assert len(stored) == 50, "collided ids caused executions to overwrite each other in the repository"
+
+    @pytest.mark.asyncio
+    async def test_execution_ids_unique_under_concurrent_execution(self, engine, repo):
+        """R-12 regression, concurrent variant: truly simultaneous executes must not collide either."""
+        wf = _wf()
+        await repo.create(wf)
+
+        executions = await asyncio.gather(*(engine.execute(wf, {}) for _ in range(50)))
+
+        ids = [e.id for e in executions]
+        assert len(ids) == len(set(ids)), "duplicate execution id generated under concurrent execution"
+
+        stored = await repo.list_executions("tenant-1", wf.id)
+        assert len(stored) == 50, "collided ids caused executions to overwrite each other in the repository"
+
+    @pytest.mark.asyncio
+    async def test_execution_step_ids_unique_within_single_run(self, engine, repo):
+        """Related fix applied alongside R-12: WorkflowExecutionStep.id used the
+        same timestamp-suffix pattern (engine.py, _execute_step) and could collide
+        across steps executed in the same tick. Steps within one execution run
+        close enough together to share a coarse-resolution timestamp, so this is
+        exercised directly rather than assumed safe by association."""
+        wf = _wf()
+        await repo.create(wf)
+
+        execution = await engine.execute(wf, {})
+
+        step_ids = [sr.id for sr in execution.step_results]
+        assert len(step_ids) == len(set(step_ids)), "duplicate step result id generated within one execution"
 
     @pytest.mark.asyncio
     async def test_execute_workflow_updates_execution_status(self, engine, repo):

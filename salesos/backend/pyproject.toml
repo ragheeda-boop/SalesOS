@@ -81,6 +81,7 @@ testpaths = [
     "app/modules/excel_import/tests",
     "app/modules/notion_sync/tests",
     "domains/search/tests",
+    "domains/decision_center/tests",
     "domains/commercial/activity/tests",
     "domains/commercial/contract/tests",
     "domains/commercial/opportunity/tests",
@@ -92,12 +93,16 @@ testpaths = [
     "domains/revenue/analytics/tests",
     "domains/revenue/forecast/tests",
     "domains/timeline/tests",
+    "domains/workflow/tests",
     "runtime/data_fabric_runtime/tests",
 ]
 
+[tool.coverage.run]
+relative_files = true
+source = ["app", "domains", "sdk", "runtime", "intelligence"]
+
 [tool.coverage.report]
 fail_under = 85
-source = ["app", "domains", "sdk", "runtime", "intelligence"]
 
 # ── Per-Domain Coverage Minimums (enforced by scripts/check-coverage.ps1) ──
 # Identity: 88%  |  Company: 80%  |  Search: 93%   |  Timeline: 82%
