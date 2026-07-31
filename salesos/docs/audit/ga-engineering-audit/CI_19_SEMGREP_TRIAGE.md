@@ -133,12 +133,13 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 - Confirm `.tmp-ci19` raw dumps **not** committed.  
 - **No** scanner disablement; keep `--severity ERROR --severity WARNING` upload path from CI-18.
 
-### Wave 1 — READY NEXT (P0 CI injection)
+### Wave 1 — P0 CI injection → **COMPLETE** (`d5c9b57`)
 
 - **Scope:** 8 alerts — `run-shell-injection` (7) + `github-script-injection` (1).  
 - **Fix pattern:** move interpolated values to `env:` then `$ENV_VAR` in shell; for `github-script`, use `context` / `core.getInput` instead of string-interpolating `${{ }}` into JS.  
 - **Security effect:** **strengthens** CI/CD (no auth/RBAC/CSRF/tenant weaken).  
 - **Acceptance:** those 8 Code Scanning alerts closed or fixed; Security Scan still uploads Semgrep SARIF.
+- **Remediation landed (2026-08-01):** commit `d5c9b57` (`d5c9b5746a346c6773e4205f03284c8186b7f3ca`) — `fix(ci): CI-19 wave 1 remediate GHA script injection`. Files: `.github/workflows/deploy.yml`, `deploy-staging.yml`, `deploy-production.yml`, `sales-os/.github/workflows/run.yml` (env:/process.env pattern). **Wave 1 only** — Waves 2–5 still open; CI-19 story **not** closed; **CI GREEN not met**.
 
 ### Wave 2 — Runtime SQL honesty pass (`salesos/backend` hot paths)
 
@@ -169,13 +170,13 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 
 | Label | Count (approx) | Next action |
 |-------|---------------:|-------------|
-| **READY (Wave 1)** | **8** | Implement GHA injection fixes next |
+| **READY (Wave 1)** | **8** | **COMPLETE** at `d5c9b57` (env:/process.env); Waves 2–5 still open |
 | Hardening backlog (Waves 3) | **~139** | Schedule after Wave 1 |
 | SQL honesty / FP review (Wave 2) | **~77** | Human proof per file — no mass fix |
 | **Noise / exclude (Wave 4)** | **~30** | Path excludes + doc redact |
 | Residual singletons (Wave 5) | **~6** | Case-by-case |
 
-**Implement Wave 1 next.** Do **not** start with mass SHA-pinning of 115 Actions or blanket `nosec` on 69 `sqlalchemy.text` calls.
+**Wave 1 COMPLETE** at `d5c9b57`. Do **not** start with mass SHA-pinning of 115 Actions or blanket `nosec` on 69 `sqlalchemy.text` calls. Next: Wave 2 SQL honesty (human proof) — CI-19 remains OPEN.
 
 ---
 
@@ -197,11 +198,11 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 
 ## 7. Out of scope / honesty
 
-- This pass did **not** close Code Scanning alerts (except documenting Wave 1 as READY).  
+- This pass did **not** close Code Scanning alerts (except documenting Wave 1 as READY; Wave 1 code remediation later landed at `d5c9b57` — see §4).  
 - This pass did **not** re-run Semgrep locally or download a named Semgrep SARIF artifact from run `30660116232`.  
 - Bandit / Trivy alert volumes coexist in Code Scanning but are **not** part of the Semgrep count.  
 - Classification remains **production no-go** for SalesOS GA overall; CI-19 triage alone does not change GO/NO-GO.
 
 ---
 
-*Security Team Alpha — CI-19 triage. Next implementation story: Wave 1 GHA injection remediation.*
+*Security Team Alpha — CI-19 triage. Wave 1 GHA injection remediation landed `d5c9b57`. Next: Waves 2–5 (CI-19 still OPEN).*

@@ -431,6 +431,17 @@
 
 ---
 
+### DEC-043 — CI-19 Wave 1 complete: GHA script-injection remediation (`env:` / `process.env`); CI-19 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-19 triage (`CI_19_SEMGREP_TRIAGE.md`) scoped Wave 1 as the only READY P0 batch: 8 GitHub Actions injection alerts (`run-shell-injection`×7 + `github-script-injection`×1) in deploy workflows and legacy `sales-os/.github/workflows/run.yml`. Engineering remediated on `master` at `d5c9b57` by moving interpolated `${{ }}` values into `env:` / `process.env` (no scanner disablement, no auth/RBAC weaken).
+**Alternatives considered:** (a) close entire CI-19 on Wave 1 land — rejected (Waves 2–5 still REGISTERED: SQL honesty, SHA pins, noise excludes, residual); (b) record Wave 1 COMPLETE only and keep CI-19 IN PROGRESS — approved.
+**Decision:** Accept Wave 1 as **COMPLETE** at `d5c9b57`. Update Sprint 05 board + triage Wave 1 section. Do **not** mark CI-19 CLOSED. R-24 remains Open.
+**Consequence:** CI-19 stays **IN PROGRESS**. Program Complete/Closed count unchanged (**18/20**). Next waves unchanged. **CI GREEN not met.**
+**Status:** Accepted. CI-19 **Wave 1 COMPLETE**; story **OPEN**.
+
+---
+
 ### DEC-DRAFT-STORY-02-01-RLS-72 — STORY-02-01 stopped: 72-table AC vs inventory reality
 
 **Date:** 2026-08-01
