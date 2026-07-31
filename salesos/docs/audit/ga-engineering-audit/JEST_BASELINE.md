@@ -62,18 +62,29 @@ Identical to the Sprint 01 closing numbers and the Sprint 04 CI triage (#7) — 
 
 ## 4. Root-cause categories (from triage #7 / Sprint 01 / release-readiness)
 
-1. **Card component gap** — canonical `Card`/`CardHeader`/`CardContent` live in `@salesos/ui`; deprecated duplicate `src/components/foundation/card.tsx` still exists. `card.test.tsx` fails with `Test suite failed to run` (import/type mismatch), and Card-dependent suites (dashboard, admin, customer-success widgets, DealCard, etc.) fail on rendering assertions.
-2. **Stale UI-text assertions** — scattered tests assert old copy that no longer matches current UI strings (e.g. `Expected substring: "Search failed"`, monitoring "DB connection failed" wiring, chart labels).
+1. **Card component gap** — canonical `Card`/`CardHeader`/`CardContent` live in `@salesos/ui`; deprecated duplicate `src/components/foundation/card.tsx` still exists. `card.test.tsx` fails with `Test suite failed to run` (import/type mismatch), and Card-dependent suites (dashboard, admin, customer-success widgets, DealCard, etc.) fail on rendering assertions. **Partial remediation:** `9577c98` (see §6).
+2. **Stale UI-text / i18n assertions** — scattered tests assert old copy that no longer matches current UI strings (e.g. `Expected substring: "Search failed"`, monitoring "DB connection failed" wiring, chart labels). **Category remediated** at `a93bc48` (14 suites; narrow Jest light validated — see §6); full CI inventory not re-run.
 3. **jsdom missing browser APIs** — `scrollTo`/`scrollIntoView` not polyfilled (release-readiness item; known).
 
 Representative log evidence (run `30664173050`): `TypeError: Cannot read properties of undefined (reading 'data')` (flow tests), `Test suite failed to run` (card), `Expected substring: "Search failed"` (search.api).
 
 ## 5. Use for CI-14 (dependency contract)
 
-- Before/after gate: after any dependency bump, `Test Suites` failed count must be `<= 33` and `Tests` failed count `<= 163`; **no new failures** beyond this inventory are acceptable.
-- Remediation of these suites is the Sprint 01 Jest-debt story (separate from CI-14's dependency modernization).
-- Any suite in this list that becomes green during CI-14's work should be removed from this baseline with a note.
+- Historical baseline gate (CI-13 capture): failing suites `<= 33`, failing tests `<= 163`; **no new failures** beyond the §3 inventory.
+- **Post-remediation expected ceiling (local / narrow evidence; full CI inventory not re-run):** failing suites **`<= 18`** (= 33 − 1 Card − 14 i18n/UI-text). Pending field verify on a real Stage 3 Frontend Unit Tests job before treating as CI-authoritative.
+- Remediation of remaining suites is the Sprint 01 Jest-debt story (separate from CI-14's dependency modernization).
+- Any suite in this list that becomes green should be removed from this baseline with a note.
 
-## 6. Record
+## 6. Remediation progress (post CI-13)
+
+| Date | Commit | Category | Suites recovered | Evidence | Notes |
+|---|---|---|---|---|---|
+| 2026-07-31 | `9577c98` | Card component gap | 1 | Narrow / related Card primitives landing | Aids foundation `card.test.tsx` recovery; **full CI inventory not re-run** |
+| 2026-08-01 | `a93bc48` | Stale UI-text / i18n assertions | 14 | Narrow Jest: **14 suites / 197 tests passed** (**light validated**) | i18n mock / stale copy category remediation |
+
+**Revised expected failing-suite ceiling:** **≤18** (33 − 1 − 14), pending field CI verify. Do **not** claim Stage 3 green or a new authoritative inventory until a real Frontend Unit Tests job confirms counts. Historical §2/§3 snapshot (33 failed) remains the CI-13 fixed-point.
+
+## 7. Record
 
 - Story: **CI-13** (Jest suite baseline) — **CLOSED** per DEC-035. Program progress 14/19.
+- Jest-debt remediation continues under Sprint 01 (not CI-14); see §6.
