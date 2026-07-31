@@ -10,7 +10,7 @@
 | CI-11 | npm audit remediation (patch-only) | P0 | COMPLETE | Closed DEC-019; commit `060c946`, run `30649799993`; residual 30 high → CI-14 |
 | S04-04 | Railway R-14 closure (DEC-016) | P0 | BLOCKED | Requires authorization/credentials |
 | S04-01 | Adversarial RLS suite `tests/integration/test_adversarial_rls.py` | P0 | COMPLETE | 7/7 PASS after CI-15 (07e3ec4084fc); closed DEC-021; uncommitted fixes committed with CI-15 |
-| CI-02 | pip-audit (Poetry) in CI | P0 | PENDING | |
+| CI-02 | pip-audit (Poetry) in CI | P0 | IN PROGRESS | Phase 1 (DEC-023): Poetry step + `-f` fix; Phase 2 exposed Poetry 2.x `export`-plugin gap; Corrective Phase 1A (DEC-024): `poetry self add poetry-plugin-export` added, local commit only; Phase 2 re-run pending |
 | CI-03 | docker-smoke env var (`GF_SECURITY_ADMIN_PASSWORD`) | P0 | PENDING | |
 | CI-07 | MyPy/Ruff `cli/` path in CI | P1 | PENDING | |
 | CI-04 | Workflow fix (triage) | P1 | PENDING | |

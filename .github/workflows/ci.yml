@@ -321,7 +321,9 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install Poetry
-        run: pipx install poetry
+        run: |
+          pipx install poetry
+          poetry self add poetry-plugin-export
       - name: Install pip-audit
         run: pip install pip-audit
       - name: Run pip-audit
