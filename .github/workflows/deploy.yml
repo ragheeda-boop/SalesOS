@@ -45,8 +45,8 @@ jobs:
       - name: Verify CI passed on this commit
         run: |
           echo "Checking CI status for commit ${{ github.sha }}..."
-          if [[ "${{ github.ref }}" != "refs/heads/main" ]]; then
-            echo "::error::Deploy only allowed from main branch"
+          if [[ "${{ github.ref }}" != "refs/heads/master" ]]; then
+            echo "::error::Deploy only allowed from master branch"
             exit 1
           fi
           echo "Branch check passed."
