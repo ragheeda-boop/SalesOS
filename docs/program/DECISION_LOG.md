@@ -216,6 +216,15 @@
 **Consequence:** `.github/workflows/ci.yml` updated (multi-line Install Poetry step). YAML parse OK; local `poetry export` unaffected (1.8.3, 98 lines). The plugin-install correctness for Poetry 2.x is verified on the real runner in the Phase 2 re-run. Committed locally as the CI-02 corrective; Phase 2 re-run pending executive approval.
 **Status:** Accepted. Corrective Phase 1A result: **SUCCESS — READY FOR PHASE 2 RE-RUN.**
 
+### DEC-025 — CI-02 Phase 2 re-run executed and closed: full toolchain chain proven on real GitHub Actions; all pip-audit tooling failures eliminated
+
+**Date:** 2026-07-31
+**Context:** Phase 2 re-run authorized for commit `a4e880c` (Corrective Phase 1A). Stop rules: STOP/BLOCKED on `poetry: command not found`, `export does not exist`, `poetry self add` failure, plugin-install failure, or YAML failure; SUCCESS if `pip-audit` runs, produces vulnerability findings, and fails on `--strict` with findings.
+**Alternatives considered:** None — evidence dictated the outcome; no decision fork arose.
+**Decision:** Pushed `a4e880c`; CI run `30655650484` and Security Scan run `30655650490` observed. CI `security-pip-audit` executed the FULL chain on the runner: Poetry 2.x installed via pipx → `poetry self add poetry-plugin-export` succeeded (no `export does not exist`) → `poetry export` succeeded → `pip-audit` ran → **`Found 24 known vulnerabilities in 4 packages`** (ecdsa 0.19.2, starlette 0.37.2, python-multipart 0.0.9, strawberry-graphql 0.243.1) → `--strict` exited 1 on the findings table. Security Scan `pip-audit` = **SUCCESS** (no argument-parse error). No stop-rule condition triggered. Job matrix otherwise identical to baseline (no regression).
+**Consequence:** CI-02 **CLOSED** — all pip-audit toolchain failures eliminated; any future pip-audit failure is evidence of real vulnerabilities to be handled in **CI-16 / R-21**, not CI infrastructure. DEC-024 **RATIFIED**; R-21 remains **OPEN**; CI-16 moved to **BACKLOG**. Program progress: **5/19** complete/closed (CI-01, CI-11, S04-01, CI-15, CI-02). Board and records updated; committed locally (no push).
+**Status:** Accepted. Phase 2 re-run result: **SUCCESS — CI-02 COMPLETE.**
+
 ### DEC-019 — CI-11 closed: patch-only dependency remediation verified on real GitHub Actions; zero regressions
 
 **Date:** 2026-07-31

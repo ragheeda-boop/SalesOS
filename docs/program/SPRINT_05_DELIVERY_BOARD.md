@@ -10,7 +10,7 @@
 | CI-11 | npm audit remediation (patch-only) | P0 | COMPLETE | Closed DEC-019; commit `060c946`, run `30649799993`; residual 30 high → CI-14 |
 | S04-04 | Railway R-14 closure (DEC-016) | P0 | BLOCKED | Requires authorization/credentials |
 | S04-01 | Adversarial RLS suite `tests/integration/test_adversarial_rls.py` | P0 | COMPLETE | 7/7 PASS after CI-15 (07e3ec4084fc); closed DEC-021; uncommitted fixes committed with CI-15 |
-| CI-02 | pip-audit (Poetry) in CI | P0 | IN PROGRESS | Phase 1 (DEC-023): Poetry step + `-f` fix; Phase 2 exposed Poetry 2.x `export`-plugin gap; Corrective Phase 1A (DEC-024): `poetry self add poetry-plugin-export` added, local commit only; Phase 2 re-run pending |
+| CI-02 | pip-audit (Poetry) in CI | P0 | CLOSED | Closed DEC-025; commits `b330d52`+`a4e880c`; re-run `30655650484` proves chain: Poetry 2.x → plugin → `poetry export` → `pip-audit` → **24 vulns / 4 packages** → `--strict` exit 1 on findings (toolchain failure eliminated); Security Scan `pip-audit` SUCCESS (`30655650490`); residual findings → R-21/CI-16 |
 | CI-03 | docker-smoke env var (`GF_SECURITY_ADMIN_PASSWORD`) | P0 | PENDING | |
 | CI-07 | MyPy/Ruff `cli/` path in CI | P1 | PENDING | |
 | CI-04 | Workflow fix (triage) | P1 | PENDING | |
@@ -26,10 +26,10 @@
 | CI-14 | Frontend Dependency Modernization | P1 | REGISTERED | Standalone, Sprint 06 (DEC-018); dep CI-13; R-18 |
 | CI-15 | Analytics Schema Reconciliation (add `metrics`, `dimensions`, `filters`, `visualization_type`, `created_by` to `analytics_reports` via Alembic) | P0 | CLOSED | Closed DEC-022; migration `07e3ec4084fc`; Phase 1 validation PASS + Phase 2 push `4793b08` → CI run `30652813475` (matrix identical to baseline `30649799993`; only delta = 10 new Ruff style violations from the migration file in the pre-existing red Backend Lint gate, transferred to the lint backlog, not fixed in CI-15); R-19 closed |
 | DB-05 | Repository Schema Reconciliation Program — systemic ORM↔DB drift (R-20) | P1 | BACKLOG | Program story, multi-sprint (R-20); created by CI-15 Phase 1 decision; NOT part of CI-15; placed in backlog per DEC-022 |
-| CI-16 | Backend Dependency Security Remediation — remediate `python-multipart`, `strawberry-graphql`, `starlette`, `ecdsa` vulnerabilities found by `pip-audit` (R-21) | P1 | REGISTERED | Standalone, DEC-023; NOT part of CI-02 (toolchain only) |
+| CI-16 | Backend Dependency Security Remediation — remediate `python-multipart`, `strawberry-graphql`, `starlette`, `ecdsa` vulnerabilities found by `pip-audit` (R-21) | P1 | BACKLOG | Standalone, DEC-023; NOT part of CI-02 (toolchain only); placed in backlog per DEC-025 |
 
 ## Progress
-- Complete/Closed: 4/19 (CI-01, CI-11, S04-01, CI-15). Blocked: CI-08, S04-04, CI-09. Registered: CI-14, CI-16. Backlog: DB-05.
+- Complete/Closed: 5/19 (CI-01, CI-11, S04-01, CI-15, CI-02). Blocked: CI-08, S04-04, CI-09. Registered: CI-14. Backlog: DB-05, CI-16.
 - S04-01 status detail (CLOSED): RC1 (`:id::uuid` bind bug) and RC2 (cross-loop pool reuse) fixed and proven; 7th test was blocked on R-19 (analytics ORM↔DB drift), resolved by CI-15 migration `07e3ec4084fc`; suite now 7/7 PASS — see DEC-020/DEC-021/DEC-022.
 - CI-15 Phase 1 (approved ACs, DEC-021): analytics-only scope; systemic drift OUT of scope, registered as R-20 with Program Story DB-05. Principle: **Local Story fixes Local Drift. Systemic Drift becomes a Program Initiative.** Phase 2 (DEC-022): pushed `4793b08`, CI run `30652813475` — job matrix identical to baseline, no functional/test/RLS/integration regression; 10 new Ruff style violations from the migration file disclosed and transferred to the lint backlog (not fixed within CI-15).
 - CI-02 Phase 1 (DEC-023): toolchain remediation only — `pipx install poetry` added to `security-pip-audit`; security-scan `-f` parse error fixed; YAML valid; local proof: `poetry export` exit 0 (98 deps) → `pip-audit` runs → real findings (R-21). Principle ratified: **CI Stories fix CI Infrastructure, not application dependencies.**
