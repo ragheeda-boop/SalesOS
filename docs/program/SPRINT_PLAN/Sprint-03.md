@@ -12,9 +12,9 @@
 >
 > **Local dev, CI, Staging, and the self-hosted Production Template: remediated and proven** (2026-07-31) — `salesos_app` (non-superuser, non-BYPASSRLS) provisioned via `infra/docker/postgres/init/02-app-role.sql` (auto-mounted by every compose file; an explicit CI step for GitHub Actions' non-compose ephemeral Postgres service), `app_database_url` wired in `app/config.py`/`app/database.py`, bypass-probe independently re-run against each environment's shape and confirmed isolating correctly, full regression suite re-checked with zero R-14-attributable regressions (29 pre-existing failures, all classified, none touch roles/RLS/permissions).
 >
-> **Railway: still unremediated, still blocked — by explicit choice, not oversight.** Railway's live role is `postgres` (not `salesos`), it provisions Postgres via a managed add-on rather than any compose file in this repo, and there is no init-script mount to rely on. Asked directly, the decision this session was to leave it **fully untouched**: no live connection, no `railway.json` edit. Applying R-14 there requires (a) explicit authorization to connect live and run the provisioning SQL + bypass-probe, or (b) a `railway.json`/deploy-process change that itself can't be verified without an actual deploy. See `OPERATIONS_MANUAL.md` §14 for the runbook. **STORY-02-02, STORY-02-03, and STORY-03-04 below may proceed independently.** Railway-targeted run remains blocked on R-14. **Phase 0 exit remains NO-GO.**
+> **Railway: still unremediated, still blocked — by explicit choice, not oversight.** Railway's live role is `postgres` (not `salesos`), it provisions Postgres via a managed add-on rather than any compose file in this repo, and there is no init-script mount to rely on. Asked directly, the decision this session was to leave it **fully untouched**: no live connection, no `railway.json` edit. Applying R-14 there requires (a) explicit authorization to connect live and run the provisioning SQL + bypass-probe, or (b) a `railway.json`/deploy-process change that itself can't be verified without an actual deploy. See `OPERATIONS_MANUAL.md` §14 for the runbook. **STORY-02-01 is DONE (DEC-044) — do not reopen.** **STORY-02-02, STORY-02-03, and STORY-03-04 below may proceed independently.** Railway-targeted run remains blocked on R-14 (**S04-04**). **Phase 0 exit critical path = S04-04 only; Phase 0 remains NO-GO.**
 
-**Sprint Goal:** RLS live everywhere; `middleware.ts` live; Phase 0 exit gate.
+**Sprint Goal:** RLS live (STORY-02-01 DONE @ 47 under DEC-044); `middleware.ts` live; Phase 0 exit gated on S04-04.
 
 | Story | Owner | Priority | Risk | Status | Acceptance Criteria | Landing notes |
 |---|---|---|---|---|---|---|
@@ -28,12 +28,11 @@
 
 ### Phase 0 exit (as of 2026-08-01)
 
-**NO-GO.** Reasons (honest, evidence-governed):
+**NO-GO.** **Critical path = S04-04 Railway R-14 only** (Human Gate — independent of parallel Sprint 05/06 READY work).
 
-1. **R-14 / Railway** still open — S04-04 blocked on credentials/authorization.
-2. **STORY-02-01** **DONE under revised AC (DEC-044)** at 47 policies — original literal 72 **retired**; Category B + R-09 gaps remain explicit Sprint 04 / DB-05 work. Story close ≠ Phase 0 GO.
-3. **CI GREEN not met** — overall CI workflow remains red (MyPy/CI-20, pip-audit/CI-16, npm audit/CI-14, Jest debt, Trivy fs, etc.).
-4. STORY-02-02 is **PARTIAL** (middleware landed; browser redirect verification absent).
+1. **R-14 / Railway (S04-04)** still open — **sole remaining Phase 0 exit critical-path gate**; blocked on credentials/authorization. Do not execute Railway without human auth.
+2. **STORY-02-01** **DONE under revised AC (DEC-044)** at 47 policies — original literal 72 **retired**; Category B + R-09 gaps remain explicit Sprint 04 / DB-05 work. **Do not reopen.** Story close ≠ Phase 0 GO.
+3. **Parallel (not critical path):** **CI GREEN not met** (MyPy/CI-20, pip-audit/CI-16, npm audit/CI-14, Jest debt, Trivy fs, etc.); STORY-02-02 **PARTIAL** (middleware landed; browser redirect verification absent). Continue these READY tracks while S04-04 waits.
 
 See DEC-040, **DEC-044**, and `docs/program/EXECUTION_DAG.md`.
 

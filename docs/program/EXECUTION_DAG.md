@@ -1,8 +1,8 @@
 # Execution DAG — Current Program State
 
-> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-01** (post DEC-044 Option B).  
+> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-01** (post DEC-044 Option B; human confirmed critical-path posture).  
 > Authority: evidence + `SPRINT_05_DELIVERY_BOARD.md` + `RISK_REGISTER.md` + Sprint plans.  
-> Honesty labels: **CI GREEN not met**. **Phase 0 exit = NO-GO** (Railway R-14 / S04-04). STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies, not literal 72).
+> Honesty labels: **CI GREEN not met**. **Phase 0 exit = NO-GO** — sole critical-path gate: **S04-04 Railway R-14** (human). STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies, not literal 72). **Do not reopen STORY-02-01.**
 
 ---
 
@@ -20,15 +20,14 @@
 ## Critical path (Phase 0 → Phase 1)
 
 ```
-Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47)
-                                               ├── Railway R-14 (S04-04) ──► Phase 0 exit
+Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) ──► closed
                                                │
-                                               └── Adversarial suites (S04-01 LANDED; S04-05 LANDED; S04-06 READY)
-                     Category B inventory ──► Sprint 04
-                     R-09 / DB-05 (8 tables) ──► schema program
+                                               └── Railway R-14 (S04-04) ──► Phase 0 exit
+                                                     ▲
+                                                     │ sole remaining critical-path gate (human)
 ```
 
-Phase 0 exit requires: Railway isolation proof (or formal accept-without-Railway decision), adversarial coverage, and **CI GREEN** (not met). STORY-02-01 story AC is satisfied under **DEC-044** (47) — that does **not** unlock Phase 0 GO. **Current gate: NO-GO.**
+**Phase 0 exit critical path = S04-04 only.** STORY-02-01 story AC is satisfied under **DEC-044** (47) and is **not** on the critical path. CI residual work, adversarial coverage (S04-06), and Sprint 05/06 READY items continue **in parallel** — they are independent of the Human Gate on S04-04 and do **not** reopen STORY-02-01. Closing S04-04 (or a formal accept-without-Railway decision) is the Phase 0 exit blocker. **Current gate: NO-GO.**
 
 ---
 
@@ -36,27 +35,28 @@ Phase 0 exit requires: Railway isolation proof (or formal accept-without-Railway
 
 | Item | Class | Blocked on | Notes |
 |---|---|---|---|
-| **S04-04** Railway R-14 closure | BLOCKED | Credentials / live authorization (DEC-015/016) | Highest Phase 0 gate risk (R-14 score 25) |
-| **Phase 0 exit** | BLOCKED | R-14 Railway + CI not green | **NO-GO** — DEC-040 / DEC-044; STORY-02-01 no longer a story-AC blocker |
-| **CI-08** GHCR 403 | BLOCKED | Org-level GHCR access | Outside repo scope; R-17 |
-| **CI-09** VPS SSH/secrets | BLOCKED | Ops secret provisioning | R-17 |
-| **CI GREEN** (overall workflow) | BLOCKED | Residual reds: MyPy (CI-20), pip-audit (CI-16/R-21), npm audit (CI-14), Jest debt, Trivy fs, etc. | Individual gates may be green; **workflow not green** |
+| **S04-04** Railway R-14 closure | BLOCKED | Credentials / live authorization (DEC-015/016) | **Sole Phase 0 exit critical-path gate** (R-14 score 25); Human Gate — independent of Sprint 05/06 READY work |
+| **Phase 0 exit** | BLOCKED | **S04-04 only** (critical path) | **NO-GO** — DEC-040 / DEC-044; STORY-02-01 closed; do not reopen |
+| **CI-08** GHCR 403 | BLOCKED | Org-level GHCR access | Outside repo scope; R-17 — not Phase 0 critical path |
+| **CI-09** VPS SSH/secrets | BLOCKED | Ops secret provisioning | R-17 — not Phase 0 critical path |
+| **CI GREEN** (overall workflow) | BLOCKED | Residual reds: MyPy (CI-20), pip-audit (CI-16/R-21), npm audit (CI-14), Jest debt, Trivy fs, etc. | Parallel honesty track; **not** the Phase 0 critical-path gate |
 
 ---
 
-## READY
+## READY (parallel — continue while S04-04 Human Gate is open)
 
 | Item | Class | Why ready now | Notes |
 |---|---|---|---|
-| **S04-06** Adversarial suite (remaining) | READY | S04-01 + S04-05 landed; no credential block | P2 board pending; expect POLICY_COUNT 47 after DEC-044 migration |
-| **STORY-02-02** browser/E2E verify (if scoped) | READY | Middleware code LANDED (`3f4b3c8`); status PARTIAL until redirect verified | Not a board CLOSE; validation gap only |
-| **CI-19** Semgrep Wave 1 (GHA injection ×8) | READY / IN PROGRESS | Triage done (`CI_19_SEMGREP_TRIAGE.md`); Wave 1 next; R-24 pointer | Waves 2–5 backlog |
-| **CI-21** Gitleaks JWT fixture | LANDED (CLOSED) | Fix `b03ffbf` on master | Closed from residual triage |
-| **CI-20** Backend Types (MyPy) | READY (phased) | REGISTERED; 308 errors; Backend Lint already green | DEC-038 — not mechanical this sprint |
-| **CI-14** Frontend Dependency Modernization | READY (Sprint 06) | REGISTERED; dep CI-13 baseline closed | Majors — R-18 |
-| **CI-16** Backend dependency security | READY (backlog pull) | BACKLOG; R-21 | Not part of CI-02 |
+| **S04-06** Adversarial suite (remaining) | READY / PARALLEL | S04-01 + S04-05 landed; no credential block | P2 board pending; expect POLICY_COUNT 47 after DEC-044 migration |
+| **CI-20** Backend Types (MyPy) | READY / PARALLEL (phased) | REGISTERED; 308 errors; Backend Lint already green | DEC-038 — Sprint 05/06 pull; not mechanical this sprint |
+| **CI-19** Semgrep Waves 2–5 | READY / PARALLEL | Wave 1 COMPLETE (`d5c9b57`); Waves 2–5 REGISTERED | SQL honesty, SHA pins, noise excludes, residual; R-24 |
+| **CI-16** Backend dependency security | READY / PARALLEL (backlog pull) | BACKLOG; R-21 | Not part of CI-02; Sprint 05/06 eligible |
+| **CI-14** Frontend Dependency Modernization | READY / PARALLEL (Sprint 06) | REGISTERED; dep CI-13 baseline closed | Majors — R-18 |
+| **Jest-debt** (Sprint 01 suite remediation) | READY / PARALLEL | FE-only; Card primitives `9577c98` progress only | 33 failing suites; does not close via Card primitives alone |
+| **STORY-02-02** browser/E2E verify (if scoped) | READY / PARALLEL | Middleware code LANDED (`3f4b3c8`); status PARTIAL until redirect verified | Not a board CLOSE; validation gap only |
 | **DB-05** Schema reconciliation program | READY (program) | BACKLOG; R-20 / R-09 | Multi-sprint; unblocks 8 RLS-deferred tables |
 | **Sprint 04 Category B RLS + inventory** | READY (planning) | DEC-044 deferred Category B here | Settle canonical count (may be 69/72/other) |
+| **CI-21** Gitleaks JWT fixture | LANDED (CLOSED) | Fix `b03ffbf` on master | Closed from residual triage |
 
 ---
 
@@ -64,15 +64,15 @@ Phase 0 exit requires: Railway isolation proof (or formal accept-without-Railway
 
 | Item | Class | Notes |
 |---|---|---|
-| **STORY-02-01** (RLS rollout) | **DONE** (revised AC) | DEC-044 Option B: **47** policies (`065d1d3a466b` + `company_features`). Draft RLS-72 **Superseded**. R-25 Closed-as-accepted-scope. Not Phase 0 GO |
+| **STORY-02-01** (RLS rollout) | **DONE** (revised AC) | DEC-044 Option B: **47** policies (`065d1d3a466b` + `company_features`). Draft RLS-72 **Superseded**. R-25 Closed-as-accepted-scope. **Do not reopen.** Not Phase 0 GO |
 
 ---
 
-## PARALLEL (safe alongside blocked Railway / Phase 0 gate)
+## PARALLEL (safe alongside blocked Railway / Phase 0 Human Gate)
 
 | Track | Class | Justification |
 |---|---|---|
-| Jest suite remediation (Sprint 01 debt) | PARALLEL | FE-only; Card primitives `9577c98` are related progress, not closure of 33 failing suites |
+| **S04-06**, **CI-20**, **CI-19 Waves 2–5**, **CI-16**, **CI-14**, **Jest-debt** | PARALLEL / READY | Explicitly unblocked for Sprint 05/06 execution while S04-04 waits on human auth |
 | Contract tests expansion (post STORY-03-04) | PARALLEL | Framework LANDED (`623077c`); more endpoints can add without Railway |
 | JWT audience **consumption** (EPIC-04 / Sprint 04 STORY-02-03 consume) | PARALLEL | Groundwork DONE (`2379e5f`); consumption is separate story |
 | Owner Admin / commercial FE that does not claim Phase 0 GO | PARALLEL | Must not weaken auth/CSRF/RBAC; must not market Phase 0 complete |
@@ -95,10 +95,10 @@ Phase 0 exit requires: Railway isolation proof (or formal accept-without-Railway
 
 ## Board progress fraction
 
-**18/20** Complete/Closed on `SPRINT_05_DELIVERY_BOARD.md` (S04-05 + CI-21 closed). Pending: S04-06. In progress: CI-19 Wave 1. Blocked: CI-08, S04-04, CI-09.
+**18/20** Complete/Closed on `SPRINT_05_DELIVERY_BOARD.md` (S04-05 + CI-21 closed). Pending: S04-06. In progress: CI-19 Wave 1 done / Waves 2–5 READY. Blocked (critical path): **S04-04 only**. Also blocked (non-critical-path ops): CI-08, CI-09.
 
 ---
 
 ## Update rule
 
-When a story changes READY↔BLOCKED↔COMPLETE, update this file in the same records commit as `SPRINT_05_DELIVERY_BOARD.md` / `DECISION_LOG.md`. Never claim Phase 0 GO or CI GREEN without command evidence.
+When a story changes READY↔BLOCKED↔COMPLETE, update this file in the same records commit as `SPRINT_05_DELIVERY_BOARD.md` / `DECISION_LOG.md`. Never claim Phase 0 GO or CI GREEN without command evidence. Never reopen STORY-02-01 after DEC-044.

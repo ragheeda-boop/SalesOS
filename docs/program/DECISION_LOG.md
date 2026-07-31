@@ -461,3 +461,5 @@
 **Decision:** Accept Option B. STORY-02-01 closes under revised AC at **47** policies (46 + `company_features`), **not** literal 72. Category B → Sprint 04. Eight R-09 tables wait on DB-05. Phase 0 remains **NO-GO** until Railway R-14 (separate). Supersedes the draft. Full record: [`docs/program/decisions/DEC-044-STORY-02-01-RLS-OPTION-B.md`](decisions/DEC-044-STORY-02-01-RLS-OPTION-B.md).
 **Consequence:** Additive migration `065d1d3a466b` + generator/`POLICY_COUNT` updates authorized. Sprint-03 STORY-02-01 → DONE under revised AC. R-25 → Closed-as-accepted-scope. R-09/DB-05 remain open. **CI GREEN not met.** Phase 0 **NO-GO**.
 **Status:** Accepted. STORY-02-01 **DONE** (revised AC).
+
+**Records note (2026-08-01, pointer only — no new architecture):** Human confirmed Option B state. Phase 0 exit **critical path = S04-04 only**; STORY-02-01 stays **CLOSED** (do not reopen). Parallel READY continues: S04-06, CI-20, CI-19 Waves 2–5, CI-16, CI-14, Jest-debt. See `EXECUTION_DAG.md` / `SPRINT_05_DELIVERY_BOARD.md` / `SPRINT_PLAN/Sprint-03.md`.
