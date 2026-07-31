@@ -121,3 +121,4 @@ This release candidate includes:
 ## License
 
 Proprietary — SalesOS Platform
+
