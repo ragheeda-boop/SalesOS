@@ -234,6 +234,15 @@
 **Consequence:** `.github/workflows/docker-smoke.yml` updated (workflow only); YAML parse OK. No compose file, no grafana config, no secrets handling, no other service touched. Committed locally (no push); Phase 2 (controlled push/CI) pending executive approval.
 **Status:** Accepted. Phase 1 result: **SUCCESS — READY FOR PHASE 2.**
 
+### DEC-030 — CI-18 closed: semgrep SARIF upload fixed — entire Security Scan workflow GREEN for the first time; 253 semgrep findings surfaced as a separate item
+
+**Date:** 2026-07-31
+**Context:** Phase 2 authorized for commit `6ab1d0e` (repeatable `--severity ERROR --severity WARNING` replacing invalid comma list `--severity ERROR,WARNING`). Success criteria: semgrep executes, SARIF generated, `Upload semgrep results` PASS, no CLI parse error, no regression.
+**Alternatives considered:** Dropping severity filtering (scans all severities) — rejected, changes policy; repeatable flags preserve intent exactly.
+**Decision:** Pushed `6ab1d0e`. Evidence — Security Scan run `30660116232`: **all 6 jobs SUCCESS** (secret-scan, sbom, sast-scan, pip-audit, npm-audit, report). `sast-scan` steps all green: `Install semgrep`, `Run semgrep (generic SAST)`, **`Upload semgrep results` SUCCESS**; log scan: **0** `invalid value` / `Path does not exist` / `semgrep scan: option` occurrences. Semgrep actually scanned: **Findings 253 (253 blocking)**, targets scanned 2806, 595 rules — all now visible in GitHub code scanning. The `--error` exit (1 on findings) is masked as designed by `|| true` + `continue-on-error: true`.
+**Consequence:** CI-18 **CLOSED** (all ACs met). SAST upload path complete for Bandit + Trivy (fs & IaC) + Semgrep. Security Scan workflow fully green (previously 2 of 6 jobs red). New registered story: **CI-19** (semgrep findings remediation — triage of the 253 blocking findings). Program progress: **9/19**. Board + DECISION_LOG updated; committed locally (no push).
+**Status:** Accepted. CI-18 **COMPLETE.**
+
 ### DEC-029 — CI-05 closed: Trivy SARIF category collision resolved — both uploads green in `secret-scan`
 
 **Date:** 2026-07-31
