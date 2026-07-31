@@ -28,23 +28,72 @@ import sys
 
 SESSION_VAR = "app.tenant_id"
 
-# Sprint 02 pilot set: 10 tables, deliberately spanning both tenant_id column
-# representations that exist in this codebase today (uuid.UUID and
-# String/varchar) and six distinct domains, so the generator — and the RLS
-# mechanism itself — is proven against real, heterogeneous schema shapes
-# before Sprint 03 scales it to all 72 tenant-scoped tables. Selection
-# rationale is recorded in the Sprint 02 report, not just here.
-PILOT_TABLES: list[str] = [
-    "companies",                  # app/modules/company/models.py — uuid.UUID tenant_id
-    "contacts",                   # app/modules/contact/models.py — uuid.UUID tenant_id
-    "users",                      # app/modules/identity/models.py — uuid.UUID tenant_id
-    "admin_invoices",             # app/modules/admin/db_models.py — uuid.UUID tenant_id
+# Sprint 03 full inventory: tenant-scoped tables with existing migrations.
+# Tables with tenant_id but NO migration yet (12 tracked in RISK_REGISTER.md
+# R-09) are excluded — RLS on them will be added after CREATE TABLE lands.
+# Tables without a tenant_id column (keyed via parent FK) are excluded —
+# Category B deferred to Sprint 04.
+ALL_TENANT_TABLES: list[str] = [
+    # ── Identity / Auth ──
+    "users",                      # app/modules/identity/models.py — uuid
+    "device_sessions",            # app/modules/identity/models.py — uuid
+    "api_keys",                   # app/modules/api_keys/models.py — uuid
+    # ── Company / Contact ──
+    "companies",                  # app/modules/company/models.py — uuid
+    "contacts",                   # app/modules/contact/models.py — uuid
+    # ── Commercial ──
     "commercial_opportunities",   # domains/commercial/infrastructure/models.py — String(36)
-    "decision_center_decisions",  # domains/decision_center/postgres_repo.py — String, IDOR-fixed in Sprint 01
-    "webhook_endpoints",          # domains/workflow/db_models.py — String(64), SSRF-adjacent
+    "commercial_stage_entries",   # domains/commercial/infrastructure/models.py — String(36)
+    "commercial_pipeline_definitions",  # domains/commercial/infrastructure/models.py — String(36)
+    "commercial_activity_sessions",    # domains/commercial/infrastructure/models.py — String(36)
+    "commercial_quotes",          # domains/commercial/infrastructure/models.py — String(36)
+    "commercial_proposals",       # domains/commercial/infrastructure/models.py — String(36)
+    "commercial_contracts",       # domains/commercial/infrastructure/models.py — String(36)
+    "commercial_forecast_snapshots",  # domains/commercial/infrastructure/models.py — String(36)
+    "commercial_analytics_snapshots", # domains/commercial/infrastructure/models.py — String(36)
+    "commercial_decision_contexts",   # domains/commercial/infrastructure/models.py — String(36)
+    "commercial_policies",        # domains/commercial/infrastructure/models.py — String(36)
+    "meetings",                   # domains/commercial/infrastructure/models.py — String(36)
+    "emails",                     # domains/commercial/infrastructure/models.py — String(36)
+    "commercial_recommendations", # domains/commercial/infrastructure/models.py — String(36)
+    # ── Revenue ──
+    "opportunities",              # app/modules/revenue_execution/models.py — uuid
+    "tasks",                      # app/modules/revenue_execution/models.py — uuid
+    # ── Workflow (migrated tables only) ──
     "workflow_definitions",       # domains/workflow/db_models.py — String(64)
     "workflow_executions",        # domains/workflow/db_models.py — String(64)
     "scheduled_jobs",             # domains/workflow/db_models.py — String(64)
+    "job_executions",             # domains/workflow/db_models.py — String(64)
+    # ── Analytics ──
+    "analytics_reports",          # domains/analytics/infrastructure/models.py — String(36)
+    "analytics_scheduled_reports", # domains/analytics/infrastructure/models.py — String(36)
+    # ── Entity Resolution ──
+    "golden_records",             # app/modules/entity_resolution/models.py — uuid
+    "entity_resolution_conflicts", # app/modules/entity_resolution/models.py — uuid
+    "entity_resolution_log",      # app/modules/entity_resolution/models.py — uuid
+    "dead_letter_queue",          # app/modules/entity_resolution/models.py — uuid
+    # ── Admin (migrated tables only) ──
+    "tenant_configs",             # app/modules/admin/db_models.py — String(64)
+    "admin_roles",                # app/modules/admin/db_models.py — String(64), nullable
+    # ── Employee ──
+    "employee_signals",           # domains/employee/db_models.py — uuid
+    "employee_scores",            # domains/employee/db_models.py — uuid
+    "employee_calendar_events",   # domains/employee/intelligence_models.py — uuid
+    "employee_email_events",      # domains/employee/intelligence_models.py — uuid
+    "employee_oauth_tokens",      # domains/employee/oauth_service.py — uuid
+    # ── Communication Hub ──
+    "google_accounts",            # app/modules/communication_hub/models.py — uuid
+    # ── Audit / Telemetry / Notifications ──
+    "audit_logs",                 # app/modules/audit/models.py — String(64), schema=audit
+    "telemetry_events",           # app/modules/telemetry/models.py — String(64)
+    "notifications",              # domains/notifications/db_models.py — String(64)
+    # ── Decision Center ──
+    "decision_center_decisions",  # domains/decision_center/postgres_repo.py — String
+    "decision_center_templates",  # domains/decision_center/postgres_repo.py — String, nullable
+    # ── Timeline ──
+    "timeline_entries",           # domains/timeline/models.py — String(36), nullable
+    # ── Webhooks (migrated tables only) ──
+    "webhook_subscriptions",      # app/modules/webhooks/repository.py — runtime table
 ]
 
 
@@ -93,7 +142,7 @@ def generate_policy_sql(
 
 
 def generate_all_sql(tables: list[str] | None = None) -> str:
-    tables = tables if tables is not None else PILOT_TABLES
+    tables = tables if tables is not None else ALL_TENANT_TABLES
     parts = [
         "-- Generated by scripts/generate_rls_policies.py",
         "-- STORY-02-01 (Sprint 02): pilot scope only, 10 tables. See module docstring.",
@@ -141,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    tables = args.tables if args.tables is not None else PILOT_TABLES
+    tables = args.tables if args.tables is not None else ALL_TENANT_TABLES
 
     if args.apply:
         if not args.confirmed:

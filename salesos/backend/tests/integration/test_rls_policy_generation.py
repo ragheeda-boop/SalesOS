@@ -38,7 +38,7 @@ import pytest_asyncio
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
-from scripts.generate_rls_policies import PILOT_TABLES, generate_policy_sql
+from scripts.generate_rls_policies import ALL_TENANT_TABLES as PILOT_TABLES, generate_policy_sql
 
 # SQLAlchemy only knows about a table once its model class has been imported
 # (Base.metadata is populated lazily, at class-definition time). The root

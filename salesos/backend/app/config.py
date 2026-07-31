@@ -120,6 +120,8 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "RS256"
     jwt_access_token_expire_minutes: int = 30
     jwt_refresh_token_expire_days: int = 7
+    jwt_issuer: str = "salesos"
+    jwt_audience: str = "salesos-api"
 
     openai_api_key: str = ""
     notion_token: str = ""

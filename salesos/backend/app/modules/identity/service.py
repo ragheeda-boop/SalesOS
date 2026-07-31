@@ -61,8 +61,8 @@ def create_access_token(user_id: str, tenant_id: str, jti: str | None = None) ->
         "exp": expire,
         "iat": _now(),
         "type": "access",
-        "iss": "salesos",
-        "aud": "salesos-api",
+        "iss": settings.jwt_issuer,
+        "aud": settings.jwt_audience,
         "kid": _current_key_id(),
     }
     return create_rs256_token_payload(payload)
@@ -79,8 +79,8 @@ def create_refresh_token(user_id: str, tenant_id: str, jti: str | None = None) -
         "exp": expire,
         "iat": _now(),
         "type": "refresh",
-        "iss": "salesos",
-        "aud": "salesos-api",
+        "iss": settings.jwt_issuer,
+        "aud": settings.jwt_audience,
         "kid": _current_key_id(),
     }
     return create_rs256_token_payload(payload)
