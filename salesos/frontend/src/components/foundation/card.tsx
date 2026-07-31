@@ -28,8 +28,7 @@ const cardVariants = cva("rounded-xl border", {
 });
 
 export interface CardProps
-  extends HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof cardVariants> {}
+  extends HTMLAttributes<HTMLDivElement>, VariantProps<typeof cardVariants> {}
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant, padding, accent, ...props }, ref) => {

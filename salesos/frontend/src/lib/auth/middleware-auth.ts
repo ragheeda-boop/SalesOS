@@ -73,7 +73,10 @@ export function readAccessTokenFromRequest(request: {
   return readAccessTokenFromCookieHeader(request.headers.get("cookie"));
 }
 
-export function shouldRedirectToLogin(pathname: string, token: string | null): boolean {
+export function shouldRedirectToLogin(
+  pathname: string,
+  token: string | null,
+): boolean {
   return isProtectedPath(pathname) && !hasValidAccessToken(token);
 }
 
