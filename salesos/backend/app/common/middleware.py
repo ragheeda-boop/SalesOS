@@ -201,9 +201,12 @@ class RateLimitMiddleware:
         window_start = now - self.window
         timestamps = self._local.get(key, [])
         timestamps = [t for t in timestamps if t > window_start]
+        timestamps.append(now)
+        self._local[key] = timestamps
+        count = len(timestamps)
 
-        if len(timestamps) >= tier_rate:
-            retry_after = max(int(self.window - (now - timestamps[0])), 1)
+        if count > tier_rate:
+            retry_after = self.window
             response = JSONResponse(
                 status_code=429,
                 content={"detail": "Too many requests", "retry_after": retry_after},
@@ -211,10 +214,53 @@ class RateLimitMiddleware:
             )
             await response(scope, receive, send)
             return
-
-        timestamps.append(now)
-        self._local[key] = timestamps
         await self.app(scope, receive, send)
+
+
+class TenantContextMiddleware:
+    """Resolve tenant from X-Tenant-Id header (or JWT fallback) before any
+    dependency runs, storing it in a ContextVar so get_db() can SET LOCAL
+    app.tenant_id before yielding the session.
+
+    This MUST run early in the middleware stack — before any middleware or
+    dependency that opens a DB session. Without this, RLS policies return
+    zero rows (fail-closed) because the session variable is never set.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            return await self.app(scope, receive, send)
+
+        headers = dict(scope.get("headers", []))
+        tenant_id = self._resolve_tenant(headers)
+        if tenant_id:
+            from app.database import set_current_tenant_id
+            set_current_tenant_id(tenant_id)
+
+        return await self.app(scope, receive, send)
+
+    @staticmethod
+    def _resolve_tenant(headers: dict) -> str | None:
+        raw = headers.get(b"x-tenant-id")
+        if raw:
+            return raw.decode().strip() or None
+
+        auth = headers.get(b"authorization")
+        if auth and auth.startswith(b"Bearer "):
+            token = auth[7:].decode().strip()
+            if token:
+                try:
+                    from app.modules.identity.service import decode_access_token
+                    payload = decode_access_token(token)
+                    tid = payload.get("tenant_id")
+                    if tid:
+                        return str(tid)
+                except Exception:
+                    pass
+        return None
 
 
 class SecurityHeadersMiddleware:

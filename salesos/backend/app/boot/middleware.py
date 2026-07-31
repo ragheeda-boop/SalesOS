@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
-from app.common.middleware import BodyCacheMiddleware, CsrfEnforcementMiddleware, RequestIDMiddleware, RequestLoggingMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware
+from app.common.middleware import BodyCacheMiddleware, CsrfEnforcementMiddleware, RequestIDMiddleware, RequestLoggingMiddleware, RateLimitMiddleware, SecurityHeadersMiddleware, TenantContextMiddleware
 from app.config import settings
 from app.metrics.collector import collector
 from app.routers.metrics import MetricsMiddleware
@@ -15,6 +15,7 @@ def setup_middleware(app: FastAPI) -> None:
     app.add_middleware(BodyCacheMiddleware, max_body_size=settings.max_body_size)
     app.add_middleware(RequestIDMiddleware)
     app.add_middleware(RequestLoggingMiddleware)
+    app.add_middleware(TenantContextMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(CsrfEnforcementMiddleware)
     app.add_middleware(MetricsMiddleware)

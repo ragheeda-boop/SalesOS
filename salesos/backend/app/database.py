@@ -1,9 +1,19 @@
+from contextvars import ContextVar
 from typing import Any
 
+from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.common.models import Base
 from app.config import settings
+
+_current_tenant_id: ContextVar[str | None] = ContextVar("current_tenant_id", default=None)
+
+def set_current_tenant_id(tenant_id: str | None) -> None:
+    _current_tenant_id.set(tenant_id)
+
+def get_current_tenant_id_context() -> str | None:
+    return _current_tenant_id.get(None)
 
 # STORY-02-01 / R-14 remediation (docs/program/RISK_REGISTER.md): request-
 # serving traffic connects through app_database_url (salesos_app — non-
@@ -69,6 +79,9 @@ import app.modules.telemetry.models  # noqa: F401
 
 async def get_db() -> AsyncSession:
     async with async_session() as session:
+        tenant_id = _current_tenant_id.get(None)
+        if tenant_id:
+            await session.execute(sa_text(f"SET LOCAL app.tenant_id = '{tenant_id}'"))
         try:
             yield session
         except Exception:
@@ -87,7 +100,6 @@ async def get_db() -> AsyncSession:
 
 async def init_db():
     """Initialize database: ensure extensions, schemas, and Alembic migrations are up to date."""
-    from sqlalchemy import text as sa_text
     _extensions = [
         ("pg_trgm", "pg_trgm"),
         ("uuid-ossp", "uuid-ossp"),
