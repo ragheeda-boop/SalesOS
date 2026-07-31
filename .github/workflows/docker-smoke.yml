@@ -2,9 +2,9 @@ name: Docker Smoke Test
 
 on:
   push:
-    branches: [main]
+    branches: [master, main]
   pull_request:
-    branches: [main]
+    branches: [master, main]
 
 env:
   POSTGRES_PASSWORD: salesos_smoke_test
