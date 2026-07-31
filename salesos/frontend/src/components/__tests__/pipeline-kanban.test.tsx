@@ -111,7 +111,7 @@ describe("PipelineKanban", () => {
       error: null,
     });
     render(<PipelineKanban />);
-    expect(screen.getByText("خط أنابيب المبيعات")).toBeInTheDocument();
+    expect(screen.getByText("خط الأنابيب")).toBeInTheDocument();
     expect(screen.getByText("استكشاف")).toBeInTheDocument();
     expect(screen.getByText("تأهيل")).toBeInTheDocument();
     expect(screen.getByText("عرض")).toBeInTheDocument();

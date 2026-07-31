@@ -50,7 +50,7 @@ describe("AnalyticsView", () => {
   it('has role="region"', () => {
     renderView();
     expect(
-      screen.getByRole("region", { name: "تحليلات المنتج" }),
+      screen.getByRole("region", { name: "تحليلات متقدمة" }),
     ).toBeInTheDocument();
   });
 });

@@ -1,46 +1,53 @@
+jest.mock("@/lib/api", () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn(),
+  },
+}));
+
+import api from "@/lib/api";
 import { searchApi, suggestApi } from "../search.api";
 
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
+const mockedApi = api as jest.Mocked<typeof api>;
 
 describe("searchApi", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it("makes a POST request and returns JSON", async () => {
+  it("makes a GET request and returns JSON", async () => {
     const response = { results: [], total: 0 };
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(response),
-    });
+    mockedApi.get.mockResolvedValue({ data: response } as any);
 
     const result = await searchApi({
       text: "test",
-      filters: {},
+      filters: [],
       page: 1,
       pageSize: 10,
     });
 
     expect(result).toEqual(response);
-    expect(mockFetch).toHaveBeenCalledWith("/api/v1/search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: "test",
-        filters: {},
-        page: 1,
-        pageSize: 10,
-      }),
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/v1/search", {
+      params: {
+        q: "test",
+        strategy: "hybrid",
+        limit: 10,
+        offset: 0,
+        include_facets: true,
+        city: undefined,
+        region: undefined,
+        industry: undefined,
+        status: undefined,
+      },
     });
   });
 
-  it("throws on non-ok response", async () => {
-    mockFetch.mockResolvedValue({ ok: false });
+  it("propagates API errors", async () => {
+    mockedApi.get.mockRejectedValue(new Error("Network Error"));
 
     await expect(
-      searchApi({ text: "test", filters: {}, page: 1, pageSize: 10 }),
-    ).rejects.toThrow("Search failed");
+      searchApi({ text: "test", filters: [], page: 1, pageSize: 10 }),
+    ).rejects.toThrow("Network Error");
   });
 });
 
@@ -53,23 +60,20 @@ describe("suggestApi", () => {
     const suggestions = [
       { id: "1", type: "company", score: 0.9, data: { name: "Acme" } },
     ];
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(suggestions),
-    });
+    mockedApi.get.mockResolvedValue({
+      data: { suggestions },
+    } as any);
 
     const result = await suggestApi("acme");
 
     expect(result).toEqual(suggestions);
-    expect(mockFetch).toHaveBeenCalledWith("/api/v1/search/suggest", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prefix: "acme", limit: 5 }),
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/v1/search/suggest", {
+      params: { q: "acme", limit: 5 },
     });
   });
 
-  it("returns empty array on failure", async () => {
-    mockFetch.mockResolvedValue({ ok: false });
+  it("returns empty array when suggestions are missing", async () => {
+    mockedApi.get.mockResolvedValue({ data: {} } as any);
 
     const result = await suggestApi("acme");
 

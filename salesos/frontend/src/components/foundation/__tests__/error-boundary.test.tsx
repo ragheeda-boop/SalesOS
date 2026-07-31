@@ -8,6 +8,8 @@ jest.mock("@/lib/i18n", () => ({
         "error.default_message": "",
         "error.retry": "Try again",
         "error.show_details": "Show details",
+        "error.unexpected": "حدث خطأ غير متوقع",
+        "common.retry": "إعادة المحاولة",
       };
       return map[key] || key;
     },
@@ -43,6 +45,15 @@ describe("ErrorFallback", () => {
 });
 
 describe("ErrorBoundary", () => {
+  const t = (key: string) => {
+    const map: Record<string, string> = {
+      "error.unexpected": "حدث خطأ غير متوقع",
+      "error.component_failed": "فشل المكوّن",
+      "common.retry": "إعادة المحاولة",
+    };
+    return map[key] || key;
+  };
+
   beforeEach(() => {
     jest.spyOn(console, "error").mockImplementation(() => {});
   });
@@ -53,7 +64,7 @@ describe("ErrorBoundary", () => {
 
   it("renders children when no error", () => {
     render(
-      <ErrorBoundary>
+      <ErrorBoundary t={t}>
         <div>Safe content</div>
       </ErrorBoundary>,
     );
@@ -65,7 +76,7 @@ describe("ErrorBoundary", () => {
       throw new Error("💥");
     };
     render(
-      <ErrorBoundary>
+      <ErrorBoundary t={t}>
         <Bomb />
       </ErrorBoundary>,
     );
@@ -77,7 +88,7 @@ describe("ErrorBoundary", () => {
       throw new Error("Boom");
     };
     render(
-      <ErrorBoundary fallback={<div>Custom fallback</div>}>
+      <ErrorBoundary t={t} fallback={<div>Custom fallback</div>}>
         <Bomb />
       </ErrorBoundary>,
     );
@@ -90,7 +101,7 @@ describe("ErrorBoundary", () => {
       throw new Error("Test");
     };
     render(
-      <ErrorBoundary onError={onError}>
+      <ErrorBoundary t={t} onError={onError}>
         <Bomb />
       </ErrorBoundary>,
     );
@@ -104,7 +115,7 @@ describe("ErrorBoundary", () => {
       return <div>Recovered</div>;
     };
     render(
-      <ErrorBoundary>
+      <ErrorBoundary t={t}>
         <Bomb />
       </ErrorBoundary>,
     );
@@ -122,7 +133,7 @@ describe("ErrorBoundary", () => {
       throw new Error("Oops");
     };
     render(
-      <ErrorBoundary fallback={<div>Custom fallback element</div>}>
+      <ErrorBoundary t={t} fallback={<div>Custom fallback element</div>}>
         <Bomb />
       </ErrorBoundary>,
     );
