@@ -474,3 +474,14 @@
 **Decision:** Close S04-06 as COMPLETE with validation label **build validated** (Docker pytest 15/15 PASS). Does not claim overall CI workflow green or Phase 0 GO. Does not reopen STORY-02-01 / RLS inventory.
 **Consequence:** Board S04-06 COMPLETE/CLOSED; program progress **19/20**. Residual parallel READY unchanged except S04-06 removed. Phase 0 exit still **NO-GO** (S04-04 only). **CI GREEN not met.**
 **Status:** Accepted. S04-06 **COMPLETE**. Field-verify label: **build validated** (Docker suite only).
+
+---
+
+### DEC-046 — CI-20 Phase 1 complete: admin mypy burn-down (34→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1 targeted module `app/modules/admin` and landed on `master` at `65296174` (`65296174d22fd4bd2881355442bb482d6f2c3dea`) — admin module **34 → 0** mypy errors per the CI list from run `30670339985`; overall expected **~308 → ~274**.
+**Alternatives considered:** (a) close entire CI-20 on Phase 1 land — rejected (residual ~274 errors remain; phased story); (b) record Phase 1 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
+**Decision:** Accept Phase 1 as **COMPLETE** at `65296174`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Validation label: **light validated** (host mypy); full Backend Types CI **not** re-run.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**19/20**). R-22 remains Open (mitigating). **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 1 COMPLETE**; story **OPEN**.
