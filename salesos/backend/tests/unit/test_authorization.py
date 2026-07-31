@@ -36,8 +36,8 @@ class TestRoleHierarchy:
         roles = PermissionRegistry.default_roles()
         user_perms = roles.get("user", [])
         assert Permission("company", PermissionAction.READ) in user_perms
-        assert Permission("company", PermissionAction.CREATE) not in user_perms
-        assert Permission("company", PermissionAction.UPDATE) not in user_perms
+        assert Permission("company", PermissionAction.CREATE) in user_perms
+        assert Permission("company", PermissionAction.UPDATE) in user_perms
         assert Permission("opportunity", PermissionAction.CREATE) in user_perms
         assert Permission("opportunity", PermissionAction.READ) in user_perms
         assert Permission("opportunity", PermissionAction.UPDATE) in user_perms
@@ -104,9 +104,8 @@ class TestPermissionEnforcer:
         with pytest.raises(PermissionDeniedError):
             PermissionEnforcer.check("manager", "company", PermissionAction.DELETE)
 
-    def test_user_cannot_create_company(self):
-        with pytest.raises(PermissionDeniedError):
-            PermissionEnforcer.check("user", "company", PermissionAction.CREATE)
+    def test_user_can_create_company(self):
+        PermissionEnforcer.check("user", "company", PermissionAction.CREATE)
 
     def test_user_can_read_company(self):
         PermissionEnforcer.check("user", "company", PermissionAction.READ)

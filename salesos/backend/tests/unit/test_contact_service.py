@@ -39,7 +39,7 @@ class TestContactCreate:
     @pytest.mark.asyncio
     async def test_create_contact_basic(self, service, mock_db):
         tenant_id = str(uuid.uuid4())
-        data = {"name": "Ahmed Al-Saud"}
+        data = {"name": "Ahmed Al-Saud", "company_id": str(uuid.uuid4())}
         contact = await service.create(tenant_id, data)
         mock_db.add.assert_called_once()
         mock_db.flush.assert_awaited_once()
@@ -75,10 +75,10 @@ class TestContactCreate:
     @pytest.mark.asyncio
     async def test_create_contact_optional_fields_none(self, service, mock_db):
         tenant_id = str(uuid.uuid4())
-        data = {"name": "Minimal Contact"}
+        data = {"name": "Minimal Contact", "company_id": str(uuid.uuid4())}
         contact = await service.create(tenant_id, data)
         added = mock_db.add.call_args[0][0]
-        assert added.company_id is None
+        assert added.company_id is not None   # company_id is now required
         assert added.email is None
         assert added.phone is None
         assert added.is_primary is False

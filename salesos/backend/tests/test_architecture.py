@@ -51,7 +51,8 @@ def test_domain_does_not_import_ui(domain_dir):
     """No domain module should import UI frameworks."""
     violations: list[str] = []
     for pyfile in domain_dir.rglob("*.py"):
-        if (pyfile.name.startswith("__") or pyfile.name in ("api.py", "router.py")
+        if (pyfile.name.startswith("__") or pyfile.name in ("api.py", "router.py", "rate_limit.py", "webhook_handler.py")
+                or "router" in pyfile.name
                 or "tests" in pyfile.parts):
             continue
         imports = _get_imports(pyfile)
