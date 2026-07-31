@@ -642,7 +642,7 @@ class IdentityService:
         """PDPL/Right to Erasure — permanently delete user and anonymize personal data."""
         user = await self._user_repo.get(uuid.UUID(user_id))
         if not user:
-            raise NotFoundError("User not found")
+            raise NotFoundError("User", user_id)
 
         # Revoke all sessions and tokens
         await self.revoke_all_user_sessions(user_id)

@@ -59,9 +59,7 @@ def get_response_schema(
     try:
         operation = openapi["paths"][path][method]
     except KeyError as exc:
-        raise KeyError(
-            f"Operation {method.upper()} {path} not found in OpenAPI paths"
-        ) from exc
+        raise KeyError(f"Operation {method.upper()} {path} not found in OpenAPI paths") from exc
 
     responses = operation.get("responses", {})
     response = responses.get(str(status_code)) or responses.get("default")
@@ -83,9 +81,7 @@ def get_response_schema(
 
     schema = media.get("schema")
     if schema is None:
-        raise KeyError(
-            f"No JSON schema declared for {status_code} {method.upper()} {path}"
-        )
+        raise KeyError(f"No JSON schema declared for {status_code} {method.upper()} {path}")
 
     return _resolve_ref(schema, openapi, frozenset())
 
