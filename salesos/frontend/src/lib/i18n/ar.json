@@ -207,8 +207,8 @@
   "admin.tab.ai_costs": "تكاليف AI",
   "admin.tab.health": "صحة النظام",
   "admin.tab.ai_audit": "سجل تدقيق AI",
-"admin.action.ai_audit": "سجل تدقيق الذكاء الاصطناعي",
-"admin.action.ai_audit_desc": "تتبع استدعاءات AI والتكاليف",
+  "admin.action.ai_audit": "سجل تدقيق الذكاء الاصطناعي",
+  "admin.action.ai_audit_desc": "تتبع استدعاءات AI والتكاليف",
 
   "dashboard.title": "لوحة المعلومات",
   "dashboard.welcome": "مرحباً، {name}",

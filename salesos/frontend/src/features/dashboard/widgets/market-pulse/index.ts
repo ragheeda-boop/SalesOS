@@ -1,1 +1,1 @@
-export { MarketPulseWidget } from './MarketPulseContainer'
+export { MarketPulseWidget } from "./MarketPulseContainer";

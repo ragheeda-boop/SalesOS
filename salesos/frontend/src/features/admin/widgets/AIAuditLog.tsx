@@ -1,94 +1,105 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import api from '@/lib/api'
-import { getTenantId } from '@/lib/hooks/useTenant'
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
+import { getTenantId } from "@/lib/hooks/useTenant";
 
 interface AIAuditEntry {
-  id: number
-  user_id: string | null
-  action: string
-  resource_type: string
-  resource_id: string | null
-  model: string | null
-  prompt_tokens: number | null
-  completion_tokens: number | null
-  total_tokens: number | null
-  cost: number | null
-  operation: string | null
-  details: Record<string, unknown>
-  created_at: string | null
+  id: number;
+  user_id: string | null;
+  action: string;
+  resource_type: string;
+  resource_id: string | null;
+  model: string | null;
+  prompt_tokens: number | null;
+  completion_tokens: number | null;
+  total_tokens: number | null;
+  cost: number | null;
+  operation: string | null;
+  details: Record<string, unknown>;
+  created_at: string | null;
 }
 
 interface AIAuditSummary {
-  total_calls: number
-  total_cost: number
-  total_tokens: number
-  by_model: { model: string; count: number }[]
-  by_action: { action: string; count: number }[]
+  total_calls: number;
+  total_cost: number;
+  total_tokens: number;
+  by_model: { model: string; count: number }[];
+  by_action: { action: string; count: number }[];
 }
 
 function formatCost(cost: number | null): string {
-  if (cost === null || cost === undefined) return '-'
-  return `$${cost.toFixed(6)}`
+  if (cost === null || cost === undefined) return "-";
+  return `$${cost.toFixed(6)}`;
 }
 
 function formatTokens(tokens: number | null): string {
-  if (tokens === null || tokens === undefined) return '-'
-  return tokens.toLocaleString()
+  if (tokens === null || tokens === undefined) return "-";
+  return tokens.toLocaleString();
 }
 
 const ACTION_LABELS: Record<string, string> = {
-  'ai:chat_completion': 'استكمال محادثة',
-  'ai:embedding': 'تضمين',
-  'ai:decision_evaluate': 'تقييم قرار',
-  'ai:decision_explain': 'شرح قرار',
-  'ai:recommendation': 'توصية',
-  'ai:scoring': 'تقييم',
-  'ai:agent_call': 'استدعاء وكيل',
-  'ai:tool_call': 'استدعاء أداة',
-  'ai:search': 'بحث',
-}
+  "ai:chat_completion": "استكمال محادثة",
+  "ai:embedding": "تضمين",
+  "ai:decision_evaluate": "تقييم قرار",
+  "ai:decision_explain": "شرح قرار",
+  "ai:recommendation": "توصية",
+  "ai:scoring": "تقييم",
+  "ai:agent_call": "استدعاء وكيل",
+  "ai:tool_call": "استدعاء أداة",
+  "ai:search": "بحث",
+};
 
 function actionLabel(action: string): string {
-  return ACTION_LABELS[action] || action.replace('ai:', '')
+  return ACTION_LABELS[action] || action.replace("ai:", "");
 }
 
 export function AIAuditLogWidget() {
-  const [page, setPage] = useState(1)
-  const [filterAction, setFilterAction] = useState('')
-  const [filterModel, setFilterModel] = useState('')
+  const [page, setPage] = useState(1);
+  const [filterAction, setFilterAction] = useState("");
+  const [filterModel, setFilterModel] = useState("");
 
-  const tenantId = getTenantId()
+  const tenantId = getTenantId();
 
   const { data: summary } = useQuery<AIAuditSummary>({
-    queryKey: ['admin', 'ai-audit', 'summary', tenantId],
+    queryKey: ["admin", "ai-audit", "summary", tenantId],
     queryFn: async () => {
-      const res = await api.get('/api/v1/admin/ai/audit/summary', {
-        headers: { 'X-Tenant-Id': tenantId },
-      })
-      return res.data
+      const res = await api.get("/api/v1/admin/ai/audit/summary", {
+        headers: { "X-Tenant-Id": tenantId },
+      });
+      return res.data;
     },
     refetchInterval: 60_000,
-  })
+  });
 
-  const { data: logs, isLoading } = useQuery<{ total: number; results: AIAuditEntry[] }>({
-    queryKey: ['admin', 'ai-audit', 'logs', tenantId, page, filterAction, filterModel],
+  const { data: logs, isLoading } = useQuery<{
+    total: number;
+    results: AIAuditEntry[];
+  }>({
+    queryKey: [
+      "admin",
+      "ai-audit",
+      "logs",
+      tenantId,
+      page,
+      filterAction,
+      filterModel,
+    ],
     queryFn: async () => {
-      const params: Record<string, string | number> = { page, size: 20 }
-      if (filterAction) params.action = filterAction
-      if (filterModel) params.model = filterModel
-      const res = await api.get('/api/v1/admin/ai/audit/logs', {
+      const params: Record<string, string | number> = { page, size: 20 };
+      if (filterAction) params.action = filterAction;
+      if (filterModel) params.model = filterModel;
+      const res = await api.get("/api/v1/admin/ai/audit/logs", {
         params,
-        headers: { 'X-Tenant-Id': tenantId },
-      })
-      return res.data
+        headers: { "X-Tenant-Id": tenantId },
+      });
+      return res.data;
     },
     refetchInterval: 30_000,
-  })
+  });
 
-  const totalPages = logs ? Math.ceil(logs.total / 20) : 0
+  const totalPages = logs ? Math.ceil(logs.total / 20) : 0;
 
   return (
     <div className="space-y-6" dir="rtl">
@@ -102,16 +113,24 @@ export function AIAuditLogWidget() {
       {summary && (
         <div className="grid grid-cols-3 gap-4">
           <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-            <p className="text-sm text-[var(--text-muted)]">إجمالي الاستدعاءات</p>
-            <p className="text-2xl font-bold mt-1">{summary.total_calls.toLocaleString()}</p>
+            <p className="text-sm text-[var(--text-muted)]">
+              إجمالي الاستدعاءات
+            </p>
+            <p className="text-2xl font-bold mt-1">
+              {summary.total_calls.toLocaleString()}
+            </p>
           </div>
           <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
             <p className="text-sm text-[var(--text-muted)]">إجمالي التكلفة</p>
-            <p className="text-2xl font-bold mt-1">${summary.total_cost.toFixed(4)}</p>
+            <p className="text-2xl font-bold mt-1">
+              ${summary.total_cost.toFixed(4)}
+            </p>
           </div>
           <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
             <p className="text-sm text-[var(--text-muted)]">إجمالي الرموز</p>
-            <p className="text-2xl font-bold mt-1">{summary.total_tokens.toLocaleString()}</p>
+            <p className="text-2xl font-bold mt-1">
+              {summary.total_tokens.toLocaleString()}
+            </p>
           </div>
         </div>
       )}
@@ -123,8 +142,12 @@ export function AIAuditLogWidget() {
             <div className="space-y-2">
               {summary.by_model.slice(0, 8).map((m) => (
                 <div key={m.model} className="flex justify-between text-sm">
-                  <span className="text-[var(--text-secondary)]">{m.model}</span>
-                  <span className="font-medium">{m.count.toLocaleString()}</span>
+                  <span className="text-[var(--text-secondary)]">
+                    {m.model}
+                  </span>
+                  <span className="font-medium">
+                    {m.count.toLocaleString()}
+                  </span>
                 </div>
               ))}
             </div>
@@ -136,8 +159,12 @@ export function AIAuditLogWidget() {
             <div className="space-y-2">
               {summary.by_action.slice(0, 8).map((a) => (
                 <div key={a.action} className="flex justify-between text-sm">
-                  <span className="text-[var(--text-secondary)]">{actionLabel(a.action)}</span>
-                  <span className="font-medium">{a.count.toLocaleString()}</span>
+                  <span className="text-[var(--text-secondary)]">
+                    {actionLabel(a.action)}
+                  </span>
+                  <span className="font-medium">
+                    {a.count.toLocaleString()}
+                  </span>
                 </div>
               ))}
             </div>
@@ -148,19 +175,27 @@ export function AIAuditLogWidget() {
       <div className="flex gap-3">
         <select
           value={filterAction}
-          onChange={(e) => { setFilterAction(e.target.value); setPage(1) }}
+          onChange={(e) => {
+            setFilterAction(e.target.value);
+            setPage(1);
+          }}
           className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
         >
           <option value="">جميع العمليات</option>
           {Object.entries(ACTION_LABELS).map(([key, label]) => (
-            <option key={key} value={key}>{label}</option>
+            <option key={key} value={key}>
+              {label}
+            </option>
           ))}
         </select>
         <input
           type="text"
           placeholder="فلترة حسب النموذج..."
           value={filterModel}
-          onChange={(e) => { setFilterModel(e.target.value); setPage(1) }}
+          onChange={(e) => {
+            setFilterModel(e.target.value);
+            setPage(1);
+          }}
           className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm flex-1"
         />
       </div>
@@ -181,26 +216,41 @@ export function AIAuditLogWidget() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="p-6 text-center text-[var(--text-muted)]">
+                  <td
+                    colSpan={6}
+                    className="p-6 text-center text-[var(--text-muted)]"
+                  >
                     جاري التحميل...
                   </td>
                 </tr>
               ) : !logs?.results.length ? (
                 <tr>
-                  <td colSpan={6} className="p-6 text-center text-[var(--text-muted)]">
+                  <td
+                    colSpan={6}
+                    className="p-6 text-center text-[var(--text-muted)]"
+                  >
                     لا توجد سجلات
                   </td>
                 </tr>
               ) : (
                 logs.results.map((entry) => (
-                  <tr key={entry.id} className="border-b border-[var(--border-default)] hover:bg-[var(--bg-tertiary)]">
+                  <tr
+                    key={entry.id}
+                    className="border-b border-[var(--border-default)] hover:bg-[var(--bg-tertiary)]"
+                  >
                     <td className="p-3">{actionLabel(entry.action)}</td>
-                    <td className="p-3 text-[var(--text-muted)]">{entry.model || '-'}</td>
+                    <td className="p-3 text-[var(--text-muted)]">
+                      {entry.model || "-"}
+                    </td>
                     <td className="p-3">{formatTokens(entry.total_tokens)}</td>
                     <td className="p-3">{formatCost(entry.cost)}</td>
-                    <td className="p-3 text-[var(--text-muted)]">{entry.user_id ? entry.user_id.slice(0, 8) + '...' : '-'}</td>
                     <td className="p-3 text-[var(--text-muted)]">
-                      {entry.created_at ? new Date(entry.created_at).toLocaleString('ar-SA') : '-'}
+                      {entry.user_id ? entry.user_id.slice(0, 8) + "..." : "-"}
+                    </td>
+                    <td className="p-3 text-[var(--text-muted)]">
+                      {entry.created_at
+                        ? new Date(entry.created_at).toLocaleString("ar-SA")
+                        : "-"}
                     </td>
                   </tr>
                 ))
@@ -232,5 +282,5 @@ export function AIAuditLogWidget() {
         </div>
       )}
     </div>
-  )
+  );
 }

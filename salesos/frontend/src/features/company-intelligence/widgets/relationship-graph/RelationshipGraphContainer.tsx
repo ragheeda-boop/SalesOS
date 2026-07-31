@@ -1,30 +1,50 @@
-'use client'
+"use client";
 
-import { createWidget } from '@salesos/widget-sdk'
-import { useParams } from 'next/navigation'
-import { COMPANY_INTELLIGENCE_WIDGET_CONFIG } from '../../index'
-import { useCompanyIntelligence } from '@/application/company-intelligence/useCompanyIntelligence'
-import { useDecisionSafe } from '@/features/revenue-execution/_providers/DecisionProvider'
-import { RelationshipGraphView } from './RelationshipGraphView'
-import type { RelationshipNode, RelationshipEdge } from '@/application/company-intelligence/company-intelligence.dto'
+import { createWidget } from "@salesos/widget-sdk";
+import { useParams } from "next/navigation";
+import { COMPANY_INTELLIGENCE_WIDGET_CONFIG } from "../../index";
+import { useCompanyIntelligence } from "@/application/company-intelligence/useCompanyIntelligence";
+import { useDecisionSafe } from "@/features/revenue-execution/_providers/DecisionProvider";
+import { RelationshipGraphView } from "./RelationshipGraphView";
+import type {
+  RelationshipNode,
+  RelationshipEdge,
+} from "@/application/company-intelligence/company-intelligence.dto";
 
 export const RelationshipGraphWidget = createWidget({
- metadata: {
- id: 'relationshipGraph', title: 'العلاقات', category: 'intelligence', priority: 'high',
- permissions: ['company:graph:read'], featureFlag: { enabled: true },
- minHeight: COMPANY_INTELLIGENCE_WIDGET_CONFIG.relationshipGraph.minHeight,
- },
- useData: () => {
- const { id: companyId } = useParams<{ id: string }>()
- const { data, isLoading, isError, error, refetch } = useCompanyIntelligence(companyId)
-  useDecisionSafe()
- return {
- data: data?.relationships ? { nodes: data.relationships.nodes, edges: data.relationships.edges } : null,
- status: isLoading ? 'loading' as const : isError ? 'error' as const : 'ready' as const,
- lastUpdated: null,
- error: error as Error | null,
- refetch,
- }
- },
- render: ({ data }) => data ? <RelationshipGraphView nodes={data.nodes as RelationshipNode[]} edges={data.edges as RelationshipEdge[]} /> : null,
-})
+  metadata: {
+    id: "relationshipGraph",
+    title: "العلاقات",
+    category: "intelligence",
+    priority: "high",
+    permissions: ["company:graph:read"],
+    featureFlag: { enabled: true },
+    minHeight: COMPANY_INTELLIGENCE_WIDGET_CONFIG.relationshipGraph.minHeight,
+  },
+  useData: () => {
+    const { id: companyId } = useParams<{ id: string }>();
+    const { data, isLoading, isError, error, refetch } =
+      useCompanyIntelligence(companyId);
+    useDecisionSafe();
+    return {
+      data: data?.relationships
+        ? { nodes: data.relationships.nodes, edges: data.relationships.edges }
+        : null,
+      status: isLoading
+        ? ("loading" as const)
+        : isError
+          ? ("error" as const)
+          : ("ready" as const),
+      lastUpdated: null,
+      error: error as Error | null,
+      refetch,
+    };
+  },
+  render: ({ data }) =>
+    data ? (
+      <RelationshipGraphView
+        nodes={data.nodes as RelationshipNode[]}
+        edges={data.edges as RelationshipEdge[]}
+      />
+    ) : null,
+});

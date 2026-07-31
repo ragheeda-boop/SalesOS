@@ -1,3 +1,3 @@
-export { ForecastIntelligenceWidget } from './ForecastContainer'
-export { ForecastView } from './ForecastView'
-export type { ForecastData } from './types'
+export { ForecastIntelligenceWidget } from "./ForecastContainer";
+export { ForecastView } from "./ForecastView";
+export type { ForecastData } from "./types";

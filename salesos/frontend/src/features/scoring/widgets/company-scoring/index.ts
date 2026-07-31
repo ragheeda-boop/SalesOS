@@ -1,1 +1,1 @@
-export { CompanyScoringWidget } from './CompanyScoringContainer'
+export { CompanyScoringWidget } from "./CompanyScoringContainer";

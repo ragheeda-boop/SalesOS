@@ -1,1 +1,1 @@
-export { MissionCenterWidget } from './MissionCenterContainer'
+export { MissionCenterWidget } from "./MissionCenterContainer";

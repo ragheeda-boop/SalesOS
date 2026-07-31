@@ -1,1 +1,1 @@
-export { CompanyHealthWidget } from './CompanyHealthContainer'
+export { CompanyHealthWidget } from "./CompanyHealthContainer";

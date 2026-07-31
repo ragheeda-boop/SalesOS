@@ -1,14 +1,14 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen } from "@testing-library/react";
 
-jest.mock('../search-panel', () => ({
+jest.mock("../search-panel", () => ({
   SearchPanel: () => <div data-testid="search-panel">Search Panel</div>,
-}))
+}));
 
-import { SearchPanel } from '../search-panel'
+import { SearchPanel } from "../search-panel";
 
-describe('SearchPanel', () => {
-  it('renders', () => {
-    render(<SearchPanel />)
-    expect(screen.getByTestId('search-panel')).toBeInTheDocument()
-  })
-})
+describe("SearchPanel", () => {
+  it("renders", () => {
+    render(<SearchPanel />);
+    expect(screen.getByTestId("search-panel")).toBeInTheDocument();
+  });
+});

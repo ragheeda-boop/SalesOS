@@ -168,5 +168,8 @@ def register_routers(app: FastAPI) -> None:
     from app.routers.mcp import router as mcp_router
     app.include_router(mcp_router, dependencies=_auth)
 
+    from app.routers.source_of_truth import router as source_of_truth_router
+    app.include_router(source_of_truth_router)
+
     from app.graphql.schema import graphql_router
     app.include_router(graphql_router, prefix="/graphql", dependencies=_auth)

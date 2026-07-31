@@ -9,26 +9,25 @@ const mockAxios = {
     request: { use: jest.fn() },
     response: { use: jest.fn() },
   },
-}
-jest.mock('axios', () => mockAxios)
+};
+jest.mock("axios", () => mockAxios);
 
-describe('api instance', () => {
+import api from "../api";
+
+describe("api instance", () => {
   beforeEach(() => {
-    localStorage.clear()
-  })
+    localStorage.clear();
+  });
 
-  it('creates axios instance', () => {
-    const api = require('../api').default
-    expect(api).toBeDefined()
-  })
+  it("creates axios instance", () => {
+    expect(api).toBeDefined();
+  });
 
-  it('has request interceptor registered', () => {
-    const api = require('../api').default
-    expect(api.interceptors.request.use).toHaveBeenCalled()
-  })
+  it("has request interceptor registered", () => {
+    expect(api.interceptors.request.use).toHaveBeenCalled();
+  });
 
-  it('has response interceptor registered', () => {
-    const api = require('../api').default
-    expect(api.interceptors.response.use).toHaveBeenCalled()
-  })
-})
+  it("has response interceptor registered", () => {
+    expect(api.interceptors.response.use).toHaveBeenCalled();
+  });
+});

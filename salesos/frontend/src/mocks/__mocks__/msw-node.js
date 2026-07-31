@@ -1,7 +1,12 @@
 function createMockFn() {
-  const fn = function() { return fn }
-  fn.mockReturnThis = function() { return this; return fn }
-  return fn
+  const fn = function () {
+    return fn;
+  };
+  fn.mockReturnThis = function () {
+    return this;
+    return fn;
+  };
+  return fn;
 }
 
 const server = {
@@ -15,10 +20,10 @@ const server = {
   },
   listHandlers: createMockFn(() => []),
   printHandlers: createMockFn(),
+};
+
+function setupServer(..._args) {
+  return server;
 }
 
-function setupServer(...args) {
-  return server
-}
-
-module.exports = { setupServer, server }
+module.exports = { setupServer, server };

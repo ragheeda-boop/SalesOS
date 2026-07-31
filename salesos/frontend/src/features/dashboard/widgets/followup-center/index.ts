@@ -1,1 +1,1 @@
-export { FollowupCenterWidget } from './FollowupCenterContainer'
+export { FollowupCenterWidget } from "./FollowupCenterContainer";

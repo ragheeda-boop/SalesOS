@@ -1,1 +1,1 @@
-export { PipelineWidget } from './PipelineContainer'
+export { PipelineWidget } from "./PipelineContainer";

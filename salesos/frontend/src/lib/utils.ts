@@ -1,16 +1,16 @@
-import { type ClassValue, clsx } from"clsx";
-import { twMerge } from"tailwind-merge";
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
- return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs));
 }
 
 export function formatDate(date: string | Date): string {
- return new Intl.DateTimeFormat("ar-SA", {
- year:"numeric",
- month:"long",
- day:"numeric",
- }).format(new Date(date));
+  return new Intl.DateTimeFormat("ar-SA", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date(date));
 }
 
 export function formatNumber(num: number): string {
@@ -18,5 +18,5 @@ export function formatNumber(num: number): string {
 }
 
 export function safeArray<T>(value: unknown): T[] {
-  return Array.isArray(value) ? (value as T[]) : []
+  return Array.isArray(value) ? (value as T[]) : [];
 }

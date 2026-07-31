@@ -1,14 +1,19 @@
-jest.mock('../monitoring', () => ({
+/* eslint-disable @typescript-eslint/no-require-imports -- jest.isolateModules requires synchronous require() to get a fresh module per test */
+
+jest.mock("../monitoring", () => ({
   monitor: {
     trackApiCall: jest.fn(),
     trackError: jest.fn(),
     trackMetric: jest.fn(),
     trackPageLoad: jest.fn(),
   },
-}))
+}));
 
-jest.mock('../api', () => {
-  const interceptors = { request: { use: jest.fn() }, response: { use: jest.fn() } }
+jest.mock("../api", () => {
+  const interceptors = {
+    request: { use: jest.fn() },
+    response: { use: jest.fn() },
+  };
   return {
     __esModule: true,
     default: {
@@ -16,59 +21,59 @@ jest.mock('../api', () => {
       get: jest.fn(),
       post: jest.fn(),
     },
-  }
-})
+  };
+});
 
-describe('monitoring-init', () => {
+describe("monitoring-init", () => {
   beforeEach(() => {
-    jest.clearAllMocks()
-  })
+    jest.clearAllMocks();
+  });
 
-  it('registers axios interceptors', () => {
+  it("registers axios interceptors", () => {
     jest.isolateModules(() => {
-      const originalNodeEnv = process.env.NODE_ENV
-      process.env.NODE_ENV = 'production'
+      const originalNodeEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = "production";
 
-      const { initMonitoring } = require('../monitoring-init')
-      const api = require('../api').default
+      const { initMonitoring } = require("../monitoring-init");
+      const api = require("../api").default;
 
-      initMonitoring()
+      initMonitoring();
 
-      expect(api.interceptors.request.use).toHaveBeenCalled()
-      expect(api.interceptors.response.use).toHaveBeenCalled()
-      process.env.NODE_ENV = originalNodeEnv
-    })
-  })
+      expect(api.interceptors.request.use).toHaveBeenCalled();
+      expect(api.interceptors.response.use).toHaveBeenCalled();
+      process.env.NODE_ENV = originalNodeEnv;
+    });
+  });
 
-  it('only initializes once', () => {
+  it("only initializes once", () => {
     jest.isolateModules(() => {
-      const originalNodeEnv = process.env.NODE_ENV
-      process.env.NODE_ENV = 'production'
+      const originalNodeEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = "production";
 
-      const { initMonitoring } = require('../monitoring-init')
-      const api = require('../api').default
+      const { initMonitoring } = require("../monitoring-init");
+      const api = require("../api").default;
 
-      initMonitoring()
-      initMonitoring()
+      initMonitoring();
+      initMonitoring();
 
-      expect(api.interceptors.request.use).toHaveBeenCalledTimes(1)
-      process.env.NODE_ENV = originalNodeEnv
-    })
-  })
+      expect(api.interceptors.request.use).toHaveBeenCalledTimes(1);
+      process.env.NODE_ENV = originalNodeEnv;
+    });
+  });
 
-  it('does not initialize in non-production', () => {
+  it("does not initialize in non-production", () => {
     jest.isolateModules(() => {
-      const originalNodeEnv = process.env.NODE_ENV
-      process.env.NODE_ENV = 'development'
+      const originalNodeEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = "development";
 
-      const { initMonitoring } = require('../monitoring-init')
-      const api = require('../api').default
+      const { initMonitoring } = require("../monitoring-init");
+      const api = require("../api").default;
 
-      initMonitoring()
+      initMonitoring();
 
-      expect(api.interceptors.request.use).not.toHaveBeenCalled()
+      expect(api.interceptors.request.use).not.toHaveBeenCalled();
 
-      process.env.NODE_ENV = originalNodeEnv
-    })
-  })
-})
+      process.env.NODE_ENV = originalNodeEnv;
+    });
+  });
+});

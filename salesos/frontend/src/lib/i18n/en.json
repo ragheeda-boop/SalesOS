@@ -207,8 +207,8 @@
   "admin.tab.ai_costs": "AI Costs",
   "admin.tab.health": "System Health",
   "admin.tab.ai_audit": "AI Audit Log",
-"admin.action.ai_audit": "AI Audit Log",
-"admin.action.ai_audit_desc": "Track AI calls and costs",
+  "admin.action.ai_audit": "AI Audit Log",
+  "admin.action.ai_audit_desc": "Track AI calls and costs",
 
   "dashboard.title": "Dashboard",
   "dashboard.welcome": "Welcome, {name}",

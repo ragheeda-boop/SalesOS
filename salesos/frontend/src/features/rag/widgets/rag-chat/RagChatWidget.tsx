@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { RagChatContainer } from"./RagChatContainer"
+import { RagChatContainer } from "./RagChatContainer";
 
 export function RagChatWidget() {
- return <RagChatContainer />
+  return <RagChatContainer />;
 }

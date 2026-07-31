@@ -297,20 +297,22 @@ class TestCsrfMiddleware:
         assert responses[0] == 403
 
     @pytest.mark.asyncio
-    async def test_post_with_authenticated_api_key_skips_csrf(self):
-        """Skip CSRF only after ApiKeyMiddleware set api_key_authenticated."""
-        collected = []
-        app = CsrfEnforcementMiddleware(
-            lambda s, r, send: _collecting_app(collected, s, r, send)
-        )
+    async def test_post_with_authenticated_api_key_requires_csrf(self):
+        """API-key auth alone must NOT bypass CSRF (PROD-W5-001 fix)."""
+        responses = []
+
+        async def send(msg):
+            if msg["type"] == "http.response.start":
+                responses.append(msg["status"])
+
+        app = CsrfEnforcementMiddleware(_dummy_app)
         scope = _make_scope(
             method="POST",
             headers={"x-api-key": "sos_valid"},
         )
-        # Simulate successful API-key auth (outer middleware sets this)
         scope["state"] = {"api_key_authenticated": True}
-        await app(scope, AsyncMock(), AsyncMock())
-        assert len(collected) == 1
+        await app(scope, AsyncMock(), send)
+        assert responses[0] == 403
 
     @pytest.mark.asyncio
     async def test_public_path_skips_csrf(self):

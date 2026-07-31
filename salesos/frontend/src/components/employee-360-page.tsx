@@ -1,28 +1,50 @@
-"use client"
+"use client";
 
-import { useState, useMemo, lazy, Suspense } from "react"
-import { useEmployee360 } from "@/lib/hooks/employeeQueries"
+import { useState, useMemo, lazy, Suspense } from "react";
+import { useEmployee360 } from "@/lib/hooks/employeeQueries";
 import {
-  Tabs, TabsList, Tab, TabsPanel,
-  Skeleton, EmptyState,
+  Tabs,
+  TabsList,
+  Tab,
+  TabsPanel,
+  Skeleton,
+  EmptyState,
   cn,
-} from "@salesos/ui"
-import {
-  User, Activity, Brain, Clock, TrendingUp,
-} from "lucide-react"
-import { useTranslation } from "@/lib/i18n"
+} from "@salesos/ui";
+import { User, Activity, Brain, Clock, TrendingUp } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
-const EmployeeOverview = lazy(() => import("@/components/employee-360/employee-360-overview").then(m => ({ default: m.EmployeeOverview })))
-const EmployeeSignals = lazy(() => import("@/components/employee-360/employee-360-signals").then(m => ({ default: m.EmployeeSignals })))
-const EmployeeScoring = lazy(() => import("@/components/employee-360/employee-360-scoring").then(m => ({ default: m.EmployeeScoring })))
-const EmployeeTimeline = lazy(() => import("@/components/employee-360/employee-360-timeline").then(m => ({ default: m.EmployeeTimeline })))
-const EmployeePerformance = lazy(() => import("@/components/employee-360/employee-360-performance").then(m => ({ default: m.EmployeePerformance })))
+const EmployeeOverview = lazy(() =>
+  import("@/components/employee-360/employee-360-overview").then((m) => ({
+    default: m.EmployeeOverview,
+  })),
+);
+const EmployeeSignals = lazy(() =>
+  import("@/components/employee-360/employee-360-signals").then((m) => ({
+    default: m.EmployeeSignals,
+  })),
+);
+const EmployeeScoring = lazy(() =>
+  import("@/components/employee-360/employee-360-scoring").then((m) => ({
+    default: m.EmployeeScoring,
+  })),
+);
+const EmployeeTimeline = lazy(() =>
+  import("@/components/employee-360/employee-360-timeline").then((m) => ({
+    default: m.EmployeeTimeline,
+  })),
+);
+const EmployeePerformance = lazy(() =>
+  import("@/components/employee-360/employee-360-performance").then((m) => ({
+    default: m.EmployeePerformance,
+  })),
+);
 
 function TabFallback() {
-  return <Skeleton className="h-64 rounded-xl" />
+  return <Skeleton className="h-64 rounded-xl" />;
 }
 
-type TabId = "overview" | "signals" | "scoring" | "timeline" | "performance"
+type TabId = "overview" | "signals" | "scoring" | "timeline" | "performance";
 
 const TABS: { id: TabId; labelKey: string; icon: typeof Activity }[] = [
   { id: "overview", labelKey: "emp360.tabs.overview", icon: User },
@@ -30,25 +52,27 @@ const TABS: { id: TabId; labelKey: string; icon: typeof Activity }[] = [
   { id: "scoring", labelKey: "emp360.tabs.scoring", icon: Brain },
   { id: "timeline", labelKey: "emp360.tabs.timeline", icon: Clock },
   { id: "performance", labelKey: "emp360.tabs.performance", icon: TrendingUp },
-]
+];
 
 interface Employee360PageProps {
-  employeeId: string
+  employeeId: string;
 }
 
 export function Employee360Page({ employeeId }: Employee360PageProps) {
-  const { t } = useTranslation()
-  const { data, isLoading, isError, error } = useEmployee360(employeeId)
-  const [activeTab, setActiveTab] = useState<TabId>("overview")
-  const [visitedTabs, setVisitedTabs] = useState<Set<TabId>>(new Set(["overview"]))
+  const { t } = useTranslation();
+  const { data, isLoading, isError, error } = useEmployee360(employeeId);
+  const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [visitedTabs, setVisitedTabs] = useState<Set<TabId>>(
+    new Set(["overview"]),
+  );
 
   const handleTabChange = (v: string) => {
-    const tabId = v as TabId
-    setActiveTab(tabId)
-    setVisitedTabs(prev => new Set(prev).add(tabId))
-  }
+    const tabId = v as TabId;
+    setActiveTab(tabId);
+    setVisitedTabs((prev) => new Set(prev).add(tabId));
+  };
 
-  const baseData = useMemo(() => data as any, [data])
+  const baseData = useMemo(() => data as any, [data]);
 
   if (isLoading) {
     return (
@@ -58,7 +82,7 @@ export function Employee360Page({ employeeId }: Employee360PageProps) {
         <div className="h-10 rounded-lg bg-[var(--bg-tertiary)]" />
         <Skeleton className="h-64 rounded-xl" />
       </div>
-    )
+    );
   }
 
   if (isError || !data) {
@@ -68,10 +92,13 @@ export function Employee360Page({ employeeId }: Employee360PageProps) {
           icon={<User className="h-12 w-12" />}
           title={t("emp360.load_error")}
           description={(error as Error)?.message || t("emp360.load_error_hint")}
-          action={{ label: t("common.back"), onClick: () => window.history.back() }}
+          action={{
+            label: t("common.back"),
+            onClick: () => window.history.back(),
+          }}
         />
       </div>
-    )
+    );
   }
 
   return (
@@ -79,7 +106,7 @@ export function Employee360Page({ employeeId }: Employee360PageProps) {
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="flex items-center gap-1 overflow-x-auto rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] px-2 py-1">
           {TABS.map((tab) => {
-            const Icon = tab.icon
+            const Icon = tab.icon;
             return (
               <Tab
                 key={tab.id}
@@ -92,42 +119,55 @@ export function Employee360Page({ employeeId }: Employee360PageProps) {
                 <Icon className="h-4 w-4" />
                 <span className="hidden sm:inline">{t(tab.labelKey)}</span>
               </Tab>
-            )
+            );
           })}
         </TabsList>
 
         <TabsPanel value="overview">
           <Suspense fallback={<TabFallback />}>
-            {visitedTabs.has("overview") && <EmployeeOverview employeeId={employeeId} data={baseData} />}
+            {visitedTabs.has("overview") && (
+              <EmployeeOverview employeeId={employeeId} data={baseData} />
+            )}
           </Suspense>
         </TabsPanel>
 
         <TabsPanel value="signals">
           <Suspense fallback={<TabFallback />}>
-            {visitedTabs.has("signals") && <EmployeeSignals employeeId={employeeId} />}
+            {visitedTabs.has("signals") && (
+              <EmployeeSignals employeeId={employeeId} />
+            )}
           </Suspense>
         </TabsPanel>
 
         <TabsPanel value="scoring">
           <Suspense fallback={<TabFallback />}>
-            {visitedTabs.has("scoring") && <EmployeeScoring employeeId={employeeId} />}
+            {visitedTabs.has("scoring") && (
+              <EmployeeScoring employeeId={employeeId} />
+            )}
           </Suspense>
         </TabsPanel>
 
         <TabsPanel value="timeline">
           <Suspense fallback={<TabFallback />}>
-            {visitedTabs.has("timeline") && <EmployeeTimeline employeeId={employeeId} />}
+            {visitedTabs.has("timeline") && (
+              <EmployeeTimeline employeeId={employeeId} />
+            )}
           </Suspense>
         </TabsPanel>
 
         <TabsPanel value="performance">
           <Suspense fallback={<TabFallback />}>
-            {visitedTabs.has("performance") && <EmployeePerformance employeeId={employeeId} />}
+            {visitedTabs.has("performance") && (
+              <EmployeePerformance employeeId={employeeId} />
+            )}
           </Suspense>
         </TabsPanel>
       </Tabs>
     </div>
-  )
+  );
 }
 
-export { ScoreBadge, formatRelativeTime } from "@/components/employee-360/employee-360-shared"
+export {
+  ScoreBadge,
+  formatRelativeTime,
+} from "@/components/employee-360/employee-360-shared";

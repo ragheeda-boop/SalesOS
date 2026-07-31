@@ -1,166 +1,176 @@
-import type { DashboardWidget } from './widget.contract'
-import type { CompanyEngagementDTO, EmailMetricsDTO, CalendarMetricsDTO, FollowupDashboardDTO } from '@/lib/api/types'
-export type { CompanyEngagementDTO, EmailMetricsDTO, CalendarMetricsDTO, FollowupDashboardDTO }
-import type { Score, Recommendation } from '@salesos/decision-platform'
+import type { DashboardWidget } from "./widget.contract";
+import type {
+  CompanyEngagementDTO,
+  EmailMetricsDTO,
+  CalendarMetricsDTO,
+  FollowupDashboardDTO,
+} from "@/lib/api/types";
+export type {
+  CompanyEngagementDTO,
+  EmailMetricsDTO,
+  CalendarMetricsDTO,
+  FollowupDashboardDTO,
+};
+import type { Score, Recommendation } from "@salesos/decision-platform";
 
 export interface DashboardDTO {
- generatedAt: string | null
- period: 'today' | 'week' | 'month' | 'quarter'
- totalTracked: number
+  generatedAt: string | null;
+  period: "today" | "week" | "month" | "quarter";
+  totalTracked: number;
 
- missionCenter: DashboardWidget<MissionCenterData> | null
- decisionQueue: DashboardWidget<DecisionQueueData> | null
- intelligenceFeed: DashboardWidget<IntelligenceFeedData> | null
- aiBrief: DashboardWidget<AIBriefData> | null
- marketPulse: DashboardWidget<MarketPulseData> | null
- recentActivity: DashboardWidget<RecentActivityData> | null
-  pipeline: DashboardWidget<PipelineDTOData> | null
-  companyHealth: DashboardWidget<CompanyHealthDTOData> | null
-  companyEngagement: DashboardWidget<CompanyEngagementDTO> | null
-  emailIntelligence: DashboardWidget<EmailMetricsDTO> | null
-  calendarIntelligence: DashboardWidget<CalendarMetricsDTO> | null
-  followupCenter: DashboardWidget<FollowupDashboardDTO> | null
-  companyScoring: DashboardWidget<CompanyScoringData> | null
+  missionCenter: DashboardWidget<MissionCenterData> | null;
+  decisionQueue: DashboardWidget<DecisionQueueData> | null;
+  intelligenceFeed: DashboardWidget<IntelligenceFeedData> | null;
+  aiBrief: DashboardWidget<AIBriefData> | null;
+  marketPulse: DashboardWidget<MarketPulseData> | null;
+  recentActivity: DashboardWidget<RecentActivityData> | null;
+  pipeline: DashboardWidget<PipelineDTOData> | null;
+  companyHealth: DashboardWidget<CompanyHealthDTOData> | null;
+  companyEngagement: DashboardWidget<CompanyEngagementDTO> | null;
+  emailIntelligence: DashboardWidget<EmailMetricsDTO> | null;
+  calendarIntelligence: DashboardWidget<CalendarMetricsDTO> | null;
+  followupCenter: DashboardWidget<FollowupDashboardDTO> | null;
+  companyScoring: DashboardWidget<CompanyScoringData> | null;
 }
 
 export interface CompanyScoringData {
-  dealScore: number
-  scores: Score[]
-  recommendations: Recommendation[]
-  riskFlags: Score[]
+  dealScore: number;
+  scores: Score[];
+  recommendations: Recommendation[];
+  riskFlags: Score[];
 }
 
 export interface MissionCenterData {
- companiesTracked: number
- activeDeals: number
- pipelineValue: number
- signalsToday: number
- decisionsPending: number
+  companiesTracked: number;
+  activeDeals: number;
+  pipelineValue: number;
+  signalsToday: number;
+  decisionsPending: number;
 }
 
 export interface DecisionItem {
- id: string
- companyId: string
- companyName: string
- type: 'opportunity' | 'risk' | 'recommendation'
- title: string
- priority: 'high' | 'medium' | 'low'
- dueBy?: string
- score: number
+  id: string;
+  companyId: string;
+  companyName: string;
+  type: "opportunity" | "risk" | "recommendation";
+  title: string;
+  priority: "high" | "medium" | "low";
+  dueBy?: string;
+  score: number;
 }
 
 export interface DecisionQueueData {
- items: DecisionItem[]
- total: number
+  items: DecisionItem[];
+  total: number;
 }
 
 export interface SignalItem {
- id: string
- companyId: string
- companyName: string
- category: 'tender' | 'regulatory' | 'competitor' | 'financial' | 'news'
- title: string
- summary: string
- severity: 'low' | 'medium' | 'high' | 'critical'
- source: string
- timestamp: string
- isUnseen: boolean
+  id: string;
+  companyId: string;
+  companyName: string;
+  category: "tender" | "regulatory" | "competitor" | "financial" | "news";
+  title: string;
+  summary: string;
+  severity: "low" | "medium" | "high" | "critical";
+  source: string;
+  timestamp: string;
+  isUnseen: boolean;
 }
 
 export interface IntelligenceFeedData {
- items: SignalItem[]
- total: number
- unseenCount: number
+  items: SignalItem[];
+  total: number;
+  unseenCount: number;
 }
 
 export interface AIBriefData {
- summary: string
- highlights: string[]
- generatedAt: string
+  summary: string;
+  highlights: string[];
+  generatedAt: string;
 }
 
 export interface MarketTrend {
- name: string
- direction: 'up' | 'down' | 'stable'
- change: number
- description: string
+  name: string;
+  direction: "up" | "down" | "stable";
+  change: number;
+  description: string;
 }
 
 export interface CompanyMover {
- companyId: string
- companyName: string
- scoreChange: number
- reason: string
+  companyId: string;
+  companyName: string;
+  scoreChange: number;
+  reason: string;
 }
 
 export interface MarketPulseData {
- trends: MarketTrend[]
- topMovers: CompanyMover[]
+  trends: MarketTrend[];
+  topMovers: CompanyMover[];
 }
 
 export interface ActivityItem {
- id: string
- type: 'signal' | 'decision' | 'update' | 'note'
- title: string
- companyId?: string
- companyName?: string
- timestamp: string
+  id: string;
+  type: "signal" | "decision" | "update" | "note";
+  title: string;
+  companyId?: string;
+  companyName?: string;
+  timestamp: string;
 }
 
 export interface RecentActivityData {
- items: ActivityItem[]
- total: number
+  items: ActivityItem[];
+  total: number;
 }
 
 export interface PipelineStageDTO {
- id: string
- name: string
- count: number
- value: number
- color: string
+  id: string;
+  name: string;
+  count: number;
+  value: number;
+  color: string;
 }
 
 export interface PipelineDealDTO {
- id: string
- companyId: string
- companyName: string
- title: string
- stage: string
- value: number
- probability: number
- daysInStage: number
+  id: string;
+  companyId: string;
+  companyName: string;
+  title: string;
+  stage: string;
+  value: number;
+  probability: number;
+  daysInStage: number;
 }
 
 export interface PipelineDTOData {
- stages: PipelineStageDTO[]
- deals: PipelineDealDTO[]
- totalValue: number
- dealCount: number
+  stages: PipelineStageDTO[];
+  deals: PipelineDealDTO[];
+  totalValue: number;
+  dealCount: number;
 }
 
 export interface HealthMetricDTO {
- id: string
- label: string
- value: number
- previousValue?: number
- unit: string
- trend: 'up' | 'down' | 'stable'
- trendValue: number
- color: string
+  id: string;
+  label: string;
+  value: number;
+  previousValue?: number;
+  unit: string;
+  trend: "up" | "down" | "stable";
+  trendValue: number;
+  color: string;
 }
 
 export interface HealthAlertDTO {
- id: string
- type: 'warning' | 'critical' | 'info'
- message: string
- companyId: string
- companyName: string
- timestamp: string
+  id: string;
+  type: "warning" | "critical" | "info";
+  message: string;
+  companyId: string;
+  companyName: string;
+  timestamp: string;
 }
 
 export interface CompanyHealthDTOData {
- overallScore: number
- metrics: HealthMetricDTO[]
- alerts: HealthAlertDTO[]
- companyName: string
+  overallScore: number;
+  metrics: HealthMetricDTO[];
+  alerts: HealthAlertDTO[];
+  companyName: string;
 }

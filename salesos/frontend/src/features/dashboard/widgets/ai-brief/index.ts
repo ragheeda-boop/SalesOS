@@ -1,1 +1,1 @@
-export { AIBriefWidget } from './AIBriefContainer'
+export { AIBriefWidget } from "./AIBriefContainer";

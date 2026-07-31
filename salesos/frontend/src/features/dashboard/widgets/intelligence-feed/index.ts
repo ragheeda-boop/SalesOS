@@ -1,1 +1,1 @@
-export { IntelligenceFeedWidget } from './IntelligenceFeedContainer'
+export { IntelligenceFeedWidget } from "./IntelligenceFeedContainer";

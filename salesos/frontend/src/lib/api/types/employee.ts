@@ -1,4 +1,4 @@
-import type { CursorResponse } from"./common";
+import type { CursorResponse } from "./common";
 
 export { CursorResponse };
 
@@ -19,195 +19,209 @@ export interface EmployeeProfile {
 }
 
 export interface EmployeePortfolio {
- companies: Record<string, unknown>[];
- contacts: Record<string, unknown>[];
- pipeline: { id: string; name: string; type: string; value: number; status: string; company_id?: string; company_name?: string }[];
- revenue: number;
- contracts: { id: string; name: string; type: string; value: number; status: string }[];
- projects: Record<string, unknown>[];
+  companies: Record<string, unknown>[];
+  contacts: Record<string, unknown>[];
+  pipeline: {
+    id: string;
+    name: string;
+    type: string;
+    value: number;
+    status: string;
+    company_id?: string;
+    company_name?: string;
+  }[];
+  revenue: number;
+  contracts: {
+    id: string;
+    name: string;
+    type: string;
+    value: number;
+    status: string;
+  }[];
+  projects: Record<string, unknown>[];
 }
 
 export interface ActivityIntelligence {
- meetings: number;
- emails: number;
- calls: number;
- tasks: number;
- notes: number;
- documents: number;
- total: number;
- recent: Record<string, unknown>[];
+  meetings: number;
+  emails: number;
+  calls: number;
+  tasks: number;
+  notes: number;
+  documents: number;
+  total: number;
+  recent: Record<string, unknown>[];
 }
 
 export interface CalendarIntelligence {
- today_count: number;
- week_count: number;
- month_count: number;
- total_hours: number;
- avg_duration_minutes: number;
- unique_companies_met: number;
- upcoming: Record<string, unknown>[];
+  today_count: number;
+  week_count: number;
+  month_count: number;
+  total_hours: number;
+  avg_duration_minutes: number;
+  unique_companies_met: number;
+  upcoming: Record<string, unknown>[];
 }
 
 export interface EmailIntelligence {
- sent: number;
- received: number;
- replies: number;
- avg_response_hours: number;
- top_contacts: Record<string, unknown>[];
- top_companies: Record<string, unknown>[];
+  sent: number;
+  received: number;
+  replies: number;
+  avg_response_hours: number;
+  top_contacts: Record<string, unknown>[];
+  top_companies: Record<string, unknown>[];
 }
 
 export interface EmployeeKPIs {
- revenue: number;
- pipeline: number;
- win_rate: number;
- response_rate: number;
- follow_up_rate: number;
- activities: number;
- productivity: number;
- forecast: number;
+  revenue: number;
+  pipeline: number;
+  win_rate: number;
+  response_rate: number;
+  follow_up_rate: number;
+  activities: number;
+  productivity: number;
+  forecast: number;
 }
 
 export interface AICoachAction {
- type: string;
- title: string;
- description: string;
- priority: string;
- target_id?: string;
- target_type?: string;
+  type: string;
+  title: string;
+  description: string;
+  priority: string;
+  target_id?: string;
+  target_type?: string;
 }
 
 export interface Employee360Response {
- profile: EmployeeProfile;
- portfolio: EmployeePortfolio;
- calendar_intelligence: CalendarIntelligence;
- email_intelligence: EmailIntelligence;
- activity_intelligence: ActivityIntelligence;
- kpis: EmployeeKPIs;
- ai_coach: AICoachAction[];
+  profile: EmployeeProfile;
+  portfolio: EmployeePortfolio;
+  calendar_intelligence: CalendarIntelligence;
+  email_intelligence: EmailIntelligence;
+  activity_intelligence: ActivityIntelligence;
+  kpis: EmployeeKPIs;
+  ai_coach: AICoachAction[];
 }
 
 export interface EmployeeListItem {
- id: string;
- full_name: string;
- full_name_ar: string | null;
- email: string;
- role: string;
- department: string | null;
- phone: string | null;
- avatar_url: string | null;
- is_active: boolean;
- signal_count: number;
- score: number | null;
- score_trend:"up" |"down" |"stable" | null;
- confidence: number | null;
- created_at: string;
+  id: string;
+  full_name: string;
+  full_name_ar: string | null;
+  email: string;
+  role: string;
+  department: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  is_active: boolean;
+  signal_count: number;
+  score: number | null;
+  score_trend: "up" | "down" | "stable" | null;
+  confidence: number | null;
+  created_at: string;
 }
 
 export interface EmployeeSearchParams {
- q?: string;
- department?: string;
- role?: string;
- signal_count_min?: number;
- signal_count_max?: number;
- cursor?: string;
- page_size?: number;
+  q?: string;
+  department?: string;
+  role?: string;
+  signal_count_min?: number;
+  signal_count_max?: number;
+  cursor?: string;
+  page_size?: number;
 }
 
 export interface SignalTypeBreakdown {
- type: string;
- count: number;
- label: string;
+  type: string;
+  count: number;
+  label: string;
 }
 
 export interface SignalSourceBreakdown {
- source: string;
- count: number;
- label: string;
+  source: string;
+  count: number;
+  label: string;
 }
 
 export interface SignalTrendPoint {
- date: string;
- count: number;
+  date: string;
+  count: number;
 }
 
 export interface EmployeeSignalsResponse {
- by_type: SignalTypeBreakdown[];
- by_source: SignalSourceBreakdown[];
- trend: SignalTrendPoint[];
- total: number;
+  by_type: SignalTypeBreakdown[];
+  by_source: SignalSourceBreakdown[];
+  trend: SignalTrendPoint[];
+  total: number;
 }
 
 export interface ScoreFactor {
- name: string;
- contribution: number;
- signal_type: string;
- label: string;
+  name: string;
+  contribution: number;
+  signal_type: string;
+  label: string;
 }
 
 export interface EmployeeScoreResponse {
- score: number;
- trend:"up" |"down" |"stable";
- confidence: number;
- factors: ScoreFactor[];
+  score: number;
+  trend: "up" | "down" | "stable";
+  confidence: number;
+  factors: ScoreFactor[];
 }
 
 export interface EmployeeTimelineParams {
- source?: string[];
- type?: string[];
- from?: string;
- to?: string;
- cursor?: string;
- page_size?: number;
+  source?: string[];
+  type?: string[];
+  from?: string;
+  to?: string;
+  cursor?: string;
+  page_size?: number;
 }
 
 export interface EmployeeTimelineEvent {
- id: string;
- action: string;
- title: string;
- source: string;
- source_label: string;
- timestamp: string;
- actor: string;
- entity_type?: string;
- entity_id?: string;
- metadata?: Record<string, unknown>;
+  id: string;
+  action: string;
+  title: string;
+  source: string;
+  source_label: string;
+  timestamp: string;
+  actor: string;
+  entity_type?: string;
+  entity_id?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface EmployeeTimelineResponse {
- events: EmployeeTimelineEvent[];
- next_cursor: string | null;
- has_next: boolean;
- total: number;
+  events: EmployeeTimelineEvent[];
+  next_cursor: string | null;
+  has_next: boolean;
+  total: number;
 }
 
 export interface ScoreTrendPoint {
- date: string;
- score: number;
+  date: string;
+  score: number;
 }
 
 export interface PeerComparison {
- metric: string;
- employee_value: number;
- department_avg: number;
- label: string;
+  metric: string;
+  employee_value: number;
+  department_avg: number;
+  label: string;
 }
 
 export interface RiskFlag {
- type: string;
- label: string;
- severity:"high" |"medium" |"low";
- description: string;
+  type: string;
+  label: string;
+  severity: "high" | "medium" | "low";
+  description: string;
 }
 
 export interface EmployeePerformanceResponse {
- score_trend: ScoreTrendPoint[];
- peer_comparison: PeerComparison[];
- risk_flags: RiskFlag[];
- factors: ScoreFactor[];
- current_score: number;
- score_trend_direction:"up" |"down" |"stable";
- department: string | null;
+  score_trend: ScoreTrendPoint[];
+  peer_comparison: PeerComparison[];
+  risk_flags: RiskFlag[];
+  factors: ScoreFactor[];
+  current_score: number;
+  score_trend_direction: "up" | "down" | "stable";
+  department: string | null;
 }
 
 export interface BulkEditEmployeesRequest {
@@ -310,6 +324,12 @@ export interface ExecutiveSummaryResponse {
   at_risk_count: number;
   departments: { name: string; headcount: number }[];
   roles: { role: string; count: number }[];
-  top_performers: { id: string; name: string; department: string; role: string; score: number }[];
+  top_performers: {
+    id: string;
+    name: string;
+    department: string;
+    role: string;
+    score: number;
+  }[];
   generated_at: string;
 }

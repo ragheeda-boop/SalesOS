@@ -411,12 +411,6 @@ class CsrfEnforcementMiddleware:
         cookie_header = headers.get(b"cookie", b"").decode()
         csrf_header = headers.get(b"x-csrf-token", b"").decode()
 
-        # Skip CSRF only after ApiKeyMiddleware successfully authenticated
-        # (PROD-W5-001). A non-empty X-API-Key alone must NOT bypass CSRF.
-        request = Request(scope, receive)
-        if getattr(request.state, "api_key_authenticated", False):
-            return await self.app(scope, receive, send)
-
         cookie_csrf = ""
         for part in cookie_header.split("; "):
             if part.startswith("csrf_token="):

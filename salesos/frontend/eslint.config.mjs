@@ -18,6 +18,10 @@ const eslintConfig = [
       "@typescript-eslint/no-empty-interface": "warn",
       "@typescript-eslint/ban-ts-comment": ["warn", { "ts-expect-error": "allow-with-description" }],
       "react-hooks/exhaustive-deps": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" },
+      ],
     },
   },
   {

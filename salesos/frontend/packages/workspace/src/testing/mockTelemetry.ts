@@ -1,4 +1,4 @@
-import { widgetTelemetry } from '../widget-telemetry'
+import { widgetTelemetry } from '@salesos/widget-sdk'
 
 export class TelemetrySpy {
   private events: ReturnType<typeof widgetTelemetry.getAll> = []

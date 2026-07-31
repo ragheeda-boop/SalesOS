@@ -1,24 +1,34 @@
-"use client"
+"use client";
 
-import { useEmployeeSignals, useEmployeeScore } from "@/lib/hooks/employeeQueries"
-import { Skeleton, Avatar, Badge } from "@salesos/ui"
-import { Phone, Mail, Users } from "lucide-react"
-import { useTranslation } from "@/lib/i18n"
-import { useEmployeeTimeline } from "@/lib/hooks/employeeQueries"
-import { StatBox, ScoreBadge, formatRelativeTime, getActionConfig } from "./employee-360-shared"
+import {
+  useEmployeeSignals,
+  useEmployeeScore,
+} from "@/lib/hooks/employeeQueries";
+import { Avatar, Badge } from "@salesos/ui";
+import { Phone, Mail, Users } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
+import { StatBox } from "./employee-360-shared";
 import {
   RecentActivityFeed,
   OverviewSkeleton,
-} from "./employee-360-expandable"
+} from "./employee-360-expandable";
 
-export { OverviewSkeleton }
+export { OverviewSkeleton };
 
-function ProfileCard({ data, t }: {
-  data: { profile: any }
-  t: (k: string, vars?: Record<string, string | number>) => string
+function ProfileCard({
+  data,
+  t,
+}: {
+  data: { profile: any };
+  t: (k: string, vars?: Record<string, string | number>) => string;
 }) {
-  const profile = data.profile as any
-  const initials = String(profile.full_name || "").split("").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
+  const profile = data.profile as any;
+  const initials = String(profile.full_name || "")
+    .split("")
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <div className="overflow-hidden rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] shadow-muhide-1">
@@ -34,11 +44,14 @@ function ProfileCard({ data, t }: {
           />
           <div className="flex-1 pt-2">
             <h1 className="text-xl font-bold text-[var(--text-primary)]">
-              {(profile.full_name_ar as string) || (profile.full_name as string)}
+              {(profile.full_name_ar as string) ||
+                (profile.full_name as string)}
             </h1>
             <p className="text-sm text-[var(--text-muted)]">
               {profile.role as string}
-              {(profile.email as string) && <span className="ms-2">· {profile.email as string}</span>}
+              {(profile.email as string) && (
+                <span className="ms-2">· {profile.email as string}</span>
+              )}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -46,12 +59,18 @@ function ProfileCard({ data, t }: {
               {profile.is_active ? t("status.active") : t("status.inactive")}
             </Badge>
             {(profile.phone as string) && (
-              <a href={`tel:${profile.phone as string}`} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border-default)] px-2 py-1 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]">
+              <a
+                href={`tel:${profile.phone as string}`}
+                className="inline-flex items-center gap-1 rounded-lg border border-[var(--border-default)] px-2 py-1 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
+              >
                 <Phone className="h-3 w-3" /> {t("employee.call")}
               </a>
             )}
             {(profile.email as string) && (
-              <a href={`mailto:${profile.email as string}`} className="inline-flex items-center gap-1 rounded-lg border border-[var(--border-default)] px-2 py-1 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]">
+              <a
+                href={`mailto:${profile.email as string}`}
+                className="inline-flex items-center gap-1 rounded-lg border border-[var(--border-default)] px-2 py-1 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
+              >
                 <Mail className="h-3 w-3" /> {t("employee.email_short")}
               </a>
             )}
@@ -60,99 +79,191 @@ function ProfileCard({ data, t }: {
         <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-[var(--border-subtle)] pt-4">
           {profile.manager && (
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-[var(--text-muted)]">{t("employee.manager")}</span>
+              <span className="text-[var(--text-muted)]">
+                {t("employee.manager")}
+              </span>
               <span className="font-medium text-[var(--text-primary)]">
-                {String((profile.manager as Record<string, unknown>).full_name || (profile.manager as Record<string, unknown>).name || t("employee.unknown"))}
+                {String(
+                  (profile.manager as Record<string, unknown>).full_name ||
+                    (profile.manager as Record<string, unknown>).name ||
+                    t("employee.unknown"),
+                )}
               </span>
             </div>
           )}
-          {Array.isArray(profile.team) && (profile.team as Record<string, unknown>[]).length > 0 && (
-            <div className="flex items-center gap-2">
-              <Users className="h-3.5 w-3.5 text-[var(--text-disabled)]" />
-              <span className="text-xs text-[var(--text-muted)]">{t("employee.team", { count: (profile.team as Record<string, unknown>[]).length })}</span>
-              <div className="flex -space-x-2">
-                {(profile.team as Record<string, unknown>[]).slice(0, 5).map((member, i) => (
-                  <span key={i} title={String(member.full_name || member.name)}>
-                    <Avatar
-                      size="sm"
-                      fallback={String(member.full_name || member.name || "").split("").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
-                      className="h-6 w-6 border-2 border-white text-[8px]"
-                    />
-                  </span>
-                ))}
-                {(profile.team as Record<string, unknown>[]).length > 5 && (
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[var(--bg-tertiary)] text-[8px] font-bold text-[var(--text-secondary)]">
-                    +{(profile.team as Record<string, unknown>[]).length - 5}
-                  </div>
-                )}
+          {Array.isArray(profile.team) &&
+            (profile.team as Record<string, unknown>[]).length > 0 && (
+              <div className="flex items-center gap-2">
+                <Users className="h-3.5 w-3.5 text-[var(--text-disabled)]" />
+                <span className="text-xs text-[var(--text-muted)]">
+                  {t("employee.team", {
+                    count: (profile.team as Record<string, unknown>[]).length,
+                  })}
+                </span>
+                <div className="flex -space-x-2">
+                  {(profile.team as Record<string, unknown>[])
+                    .slice(0, 5)
+                    .map((member, i) => (
+                      <span
+                        key={i}
+                        title={String(member.full_name || member.name)}
+                      >
+                        <Avatar
+                          size="sm"
+                          fallback={String(
+                            member.full_name || member.name || "",
+                          )
+                            .split("")
+                            .map((n: string) => n[0])
+                            .join("")
+                            .slice(0, 2)
+                            .toUpperCase()}
+                          className="h-6 w-6 border-2 border-white text-[8px]"
+                        />
+                      </span>
+                    ))}
+                  {(profile.team as Record<string, unknown>[]).length > 5 && (
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[var(--bg-tertiary)] text-[8px] font-bold text-[var(--text-secondary)]">
+                      +{(profile.team as Record<string, unknown>[]).length - 5}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-function QuickStatsRow({ data, signals, scoreData }: {
-  data: { profile: Record<string, unknown> }
-  signals: { total?: number } | undefined
-  scoreData: { score?: number } | undefined
+function QuickStatsRow({
+  data,
+  signals,
+  scoreData,
+}: {
+  data: { profile: Record<string, unknown> };
+  signals: { total?: number } | undefined;
+  scoreData: { score?: number } | undefined;
 }) {
-  const { t } = useTranslation()
-  const hasScore = typeof scoreData?.score === "number"
+  const { t } = useTranslation();
+  const hasScore = typeof scoreData?.score === "number";
   const riskLevel = !hasScore
     ? null
-    : (scoreData!.score! < 40 ? "high" : scoreData!.score! < 70 ? "medium" : "low")
-  const riskColor = riskLevel === "high" ? "text-danger-600" : riskLevel === "medium" ? "text-warning-600" : "text-success-600"
-  const riskLabel = riskLevel === "high"
-    ? t("emp360.risk.high")
-    : riskLevel === "medium"
-      ? t("emp360.risk.medium")
-      : riskLevel === "low"
-        ? t("emp360.risk.low")
-        : "—"
+    : scoreData!.score! < 40
+      ? "high"
+      : scoreData!.score! < 70
+        ? "medium"
+        : "low";
+  const riskColor =
+    riskLevel === "high"
+      ? "text-danger-600"
+      : riskLevel === "medium"
+        ? "text-warning-600"
+        : "text-success-600";
+  const riskLabel =
+    riskLevel === "high"
+      ? t("emp360.risk.high")
+      : riskLevel === "medium"
+        ? t("emp360.risk.medium")
+        : riskLevel === "low"
+          ? t("emp360.risk.low")
+          : "—";
 
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-      <StatBox icon={Mail} label={t("emp360.total_signals")} value={signals?.total ?? 0} color="bg-info-50 text-info-700 dark:bg-info-900/20 dark:text-info-400" />
-      <StatBox icon={Users} label={t("emp360.current_score")} value={hasScore ? scoreData!.score! : "—"} color="bg-[var(--chart-purple-bg)] text-[var(--text-secondary)] dark:bg-[var(--bg-primary)]/20 dark:text-[var(--chart-purple)]" />
-      <StatBox icon={Users} label={t("emp360.risk_level")} value={<span className={riskLevel ? riskColor : "text-[var(--text-muted)]"}>{riskLabel}</span>} color={riskLevel === "high" ? "bg-danger-50 text-danger-700 dark:bg-danger-900/20 dark:text-danger-400" : riskLevel === "medium" ? "bg-warning-50 text-warning-700 dark:bg-warning-900/20 dark:text-warning-400" : riskLevel === "low" ? "bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-400" : "bg-[var(--bg-secondary)] text-[var(--text-muted)]"} />
-      <StatBox icon={Users} label={t("emp360.tenure")} value={new Date((data.profile.created_at as string) || "").toLocaleDateString("en-US", { month: "short", year: "numeric" })} color="bg-[var(--bg-secondary)] text-[var(--text-secondary)]/50" />
+      <StatBox
+        icon={Mail}
+        label={t("emp360.total_signals")}
+        value={signals?.total ?? 0}
+        color="bg-info-50 text-info-700 dark:bg-info-900/20 dark:text-info-400"
+      />
+      <StatBox
+        icon={Users}
+        label={t("emp360.current_score")}
+        value={hasScore ? scoreData!.score! : "—"}
+        color="bg-[var(--chart-purple-bg)] text-[var(--text-secondary)] dark:bg-[var(--bg-primary)]/20 dark:text-[var(--chart-purple)]"
+      />
+      <StatBox
+        icon={Users}
+        label={t("emp360.risk_level")}
+        value={
+          <span className={riskLevel ? riskColor : "text-[var(--text-muted)]"}>
+            {riskLabel}
+          </span>
+        }
+        color={
+          riskLevel === "high"
+            ? "bg-danger-50 text-danger-700 dark:bg-danger-900/20 dark:text-danger-400"
+            : riskLevel === "medium"
+              ? "bg-warning-50 text-warning-700 dark:bg-warning-900/20 dark:text-warning-400"
+              : riskLevel === "low"
+                ? "bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-400"
+                : "bg-[var(--bg-secondary)] text-[var(--text-muted)]"
+        }
+      />
+      <StatBox
+        icon={Users}
+        label={t("emp360.tenure")}
+        value={new Date(
+          (data.profile.created_at as string) || "",
+        ).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+        color="bg-[var(--bg-secondary)] text-[var(--text-secondary)]/50"
+      />
     </div>
-  )
+  );
 }
 
-export function EmployeeOverview({ employeeId, data }: {
-  employeeId: string
-  data: { profile: Record<string, unknown> } & Record<string, unknown>
+export function EmployeeOverview({
+  employeeId,
+  data,
+}: {
+  employeeId: string;
+  data: { profile: Record<string, unknown> } & Record<string, unknown>;
 }) {
-  const { t } = useTranslation()
-  const { data: signals, isLoading: signalsLoading } = useEmployeeSignals(employeeId)
-  const { data: scoreData, isLoading: scoreLoading } = useEmployeeScore(employeeId)
+  const { t } = useTranslation();
+  const { data: signals, isLoading: signalsLoading } =
+    useEmployeeSignals(employeeId);
+  const { data: scoreData, isLoading: scoreLoading } =
+    useEmployeeScore(employeeId);
 
-  if (signalsLoading || scoreLoading) return <OverviewSkeleton />
+  if (signalsLoading || scoreLoading) return <OverviewSkeleton />;
 
-  const emailCount = Number((data as { email_intelligence?: { total?: number } }).email_intelligence?.total ?? 0)
+  const emailCount = Number(
+    (data as { email_intelligence?: { total?: number } }).email_intelligence
+      ?.total ?? 0,
+  );
   const meetingCount = Number(
-    (data as { calendar_intelligence?: { total?: number; month_count?: number } }).calendar_intelligence?.total
-    ?? (data as { calendar_intelligence?: { month_count?: number } }).calendar_intelligence?.month_count
-    ?? 0,
-  )
-  const signalTotal = Number((signals as { total?: number } | undefined)?.total ?? 0)
-  const noSyncData = emailCount === 0 && meetingCount === 0 && signalTotal === 0
+    (
+      data as {
+        calendar_intelligence?: { total?: number; month_count?: number };
+      }
+    ).calendar_intelligence?.total ??
+      (data as { calendar_intelligence?: { month_count?: number } })
+        .calendar_intelligence?.month_count ??
+      0,
+  );
+  const signalTotal = Number(
+    (signals as { total?: number } | undefined)?.total ?? 0,
+  );
+  const noSyncData =
+    emailCount === 0 && meetingCount === 0 && signalTotal === 0;
 
   return (
     <div className="space-y-4">
       {noSyncData && (
         <div className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-xs text-[var(--text-muted)]">
-          No Gmail/Calendar sync data for this employee yet. Empty signals and timeline are honest —
-          connect Google under Settings → Integrations, then run Sync.
+          No Gmail/Calendar sync data for this employee yet. Empty signals and
+          timeline are honest — connect Google under Settings → Integrations,
+          then run Sync.
         </div>
       )}
       <ProfileCard data={data} t={t} />
-      <QuickStatsRow data={data} signals={signals as { total?: number } | undefined} scoreData={scoreData as { score?: number } | undefined} />
+      <QuickStatsRow
+        data={data}
+        signals={signals as { total?: number } | undefined}
+        scoreData={scoreData as { score?: number } | undefined}
+      />
       <RecentActivityFeed employeeId={employeeId} />
     </div>
-  )
+  );
 }

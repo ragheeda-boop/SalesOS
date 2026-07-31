@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { NBAWidgetContainer } from"./NBAWidgetContainer"
+import { NBAWidgetContainer } from "./NBAWidgetContainer";
 
 interface NBAWidgetProps {
- opportunityId: string
+  opportunityId: string;
 }
 
 export function NBAWidget({ opportunityId }: NBAWidgetProps) {
- return <NBAWidgetContainer opportunityId={opportunityId} />
+  return <NBAWidgetContainer opportunityId={opportunityId} />;
 }

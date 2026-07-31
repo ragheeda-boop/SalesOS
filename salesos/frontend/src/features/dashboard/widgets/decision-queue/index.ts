@@ -1,1 +1,1 @@
-export { DecisionQueueWidget } from './DecisionQueueContainer'
+export { DecisionQueueWidget } from "./DecisionQueueContainer";

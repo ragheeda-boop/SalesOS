@@ -1,1 +1,1 @@
-export { EmailIntelligenceWidget } from './EmailIntelligenceContainer'
+export { EmailIntelligenceWidget } from "./EmailIntelligenceContainer";

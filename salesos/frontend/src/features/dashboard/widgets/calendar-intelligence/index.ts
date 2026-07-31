@@ -1,1 +1,1 @@
-export { CalendarIntelligenceWidget } from './CalendarIntelligenceContainer'
+export { CalendarIntelligenceWidget } from "./CalendarIntelligenceContainer";

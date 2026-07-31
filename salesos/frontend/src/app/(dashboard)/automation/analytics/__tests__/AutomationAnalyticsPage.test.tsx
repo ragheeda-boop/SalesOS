@@ -1,22 +1,40 @@
-import { render, screen, waitFor } from "@testing-library/react"
-import AutomationAnalyticsPage from "../page"
+import { render, screen, waitFor } from "@testing-library/react";
+import AutomationAnalyticsPage from "../page";
 
-const mockGet = jest.fn()
+const mockGet = jest.fn();
 
 jest.mock("@/lib/api", () => ({
   __esModule: true,
   default: { get: (...args: any[]) => mockGet(...args) },
-}))
+}));
 
 jest.mock("@/lib/hooks/useTenant", () => ({
   getTenantId: () => "test-tenant",
-}))
+}));
 
 jest.mock("@/lib/workflowQueries", () => ({
   useWorkflows: () => ({
     data: [
-      { id: "wf-1", name: "متابعة العميل", status: "active", steps: [], trigger_type: "event", trigger_config: {}, created_at: "", updated_at: "" },
-      { id: "wf-2", name: "مراجعة الصفقة", status: "draft", steps: [], trigger_type: "manual", trigger_config: {}, created_at: "", updated_at: "" },
+      {
+        id: "wf-1",
+        name: "متابعة العميل",
+        status: "active",
+        steps: [],
+        trigger_type: "event",
+        trigger_config: {},
+        created_at: "",
+        updated_at: "",
+      },
+      {
+        id: "wf-2",
+        name: "مراجعة الصفقة",
+        status: "draft",
+        steps: [],
+        trigger_type: "manual",
+        trigger_config: {},
+        created_at: "",
+        updated_at: "",
+      },
     ],
     isLoading: false,
   }),
@@ -24,17 +42,22 @@ jest.mock("@/lib/workflowQueries", () => ({
     data: [],
     isLoading: false,
   }),
-}))
+}));
 
 jest.mock("@/lib/i18n", () => ({
   useTranslation: () => ({ t: (k: string) => k }),
-}))
+}));
 
 jest.mock("@salesos/ui", () => ({
-  cn: (...args: (string | undefined | false)[]) => args.filter(Boolean).join(" "),
-  Badge: ({ children, variant }: any) => <span data-variant={variant}>{children}</span>,
-  Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
-}))
+  cn: (...args: (string | undefined | false)[]) =>
+    args.filter(Boolean).join(" "),
+  Badge: ({ children, variant }: any) => (
+    <span data-variant={variant}>{children}</span>
+  ),
+  Button: ({ children, ...props }: any) => (
+    <button {...props}>{children}</button>
+  ),
+}));
 
 jest.mock("@salesos/charts", () => ({
   BarChart: ({ title }: any) => <div data-testid="bar-chart">{title}</div>,
@@ -46,33 +69,39 @@ jest.mock("@salesos/charts", () => ({
       <span>{value}</span>
     </div>
   ),
-}))
+}));
 
 jest.mock("next/link", () => {
-  function MockLink({ children, href }: { children: React.ReactNode; href: string }) {
-    return <a href={href}>{children}</a>
+  function MockLink({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) {
+    return <a href={href}>{children}</a>;
   }
-  MockLink.displayName = "MockLink"
-  return MockLink
-})
+  MockLink.displayName = "MockLink";
+  return MockLink;
+});
 
 describe("AutomationAnalyticsPage", () => {
   beforeEach(() => {
-    jest.clearAllMocks()
-  })
+    jest.clearAllMocks();
+  });
 
   describe("1. Loading state", () => {
     it("shows loading skeletons", () => {
-      mockGet.mockResolvedValue({ data: null })
+      mockGet.mockResolvedValue({ data: null });
       // Override useWorkflows to return loading
       jest.doMock("@/lib/workflowQueries", () => ({
         useWorkflows: () => ({ data: null, isLoading: true }),
         useWorkflowExecutions: () => ({ data: [], isLoading: true }),
-      }))
+      }));
       // Simple test: page renders without crashing when API is mocked
-      render(<AutomationAnalyticsPage />)
-    })
-  })
+      render(<AutomationAnalyticsPage />);
+    });
+  });
 
   describe("2. Loaded state", () => {
     it("renders the page title", async () => {
@@ -91,18 +120,20 @@ describe("AutomationAnalyticsPage", () => {
           top_workflows: [],
           recent_executions: [],
         },
-      })
-      render(<AutomationAnalyticsPage />)
-      expect(screen.getByText("تحليلات الأتمتة")).toBeInTheDocument()
-    })
+      });
+      render(<AutomationAnalyticsPage />);
+      expect(screen.getByText("تحليلات الأتمتة")).toBeInTheDocument();
+    });
 
     it("renders back link", async () => {
-      mockGet.mockResolvedValue({ data: null })
-      render(<AutomationAnalyticsPage />)
-      const links = screen.getAllByRole("link")
-      const backLink = links.find((l) => l.getAttribute("href") === "/automation")
-      expect(backLink).toBeTruthy()
-    })
+      mockGet.mockResolvedValue({ data: null });
+      render(<AutomationAnalyticsPage />);
+      const links = screen.getAllByRole("link");
+      const backLink = links.find(
+        (l) => l.getAttribute("href") === "/automation",
+      );
+      expect(backLink).toBeTruthy();
+    });
 
     it("renders metric cards", async () => {
       mockGet.mockResolvedValue({
@@ -120,11 +151,11 @@ describe("AutomationAnalyticsPage", () => {
           top_workflows: [],
           recent_executions: [],
         },
-      })
-      render(<AutomationAnalyticsPage />)
-      const metricCards = screen.getAllByTestId("metric-card")
-      expect(metricCards.length).toBe(4)
-    })
+      });
+      render(<AutomationAnalyticsPage />);
+      const metricCards = screen.getAllByTestId("metric-card");
+      expect(metricCards.length).toBe(4);
+    });
 
     it("renders the completion gauge", async () => {
       mockGet.mockResolvedValue({
@@ -142,10 +173,10 @@ describe("AutomationAnalyticsPage", () => {
           top_workflows: [],
           recent_executions: [],
         },
-      })
-      render(<AutomationAnalyticsPage />)
-      expect(screen.getByText("نسبة الإتمام")).toBeInTheDocument()
-    })
+      });
+      render(<AutomationAnalyticsPage />);
+      expect(screen.getByText("نسبة الإتمام")).toBeInTheDocument();
+    });
 
     it("renders the failure rate trend chart", async () => {
       mockGet.mockResolvedValue({
@@ -163,10 +194,10 @@ describe("AutomationAnalyticsPage", () => {
           top_workflows: [],
           recent_executions: [],
         },
-      })
-      render(<AutomationAnalyticsPage />)
-      expect(screen.getByText("معدل الفشل على مدار الوقت")).toBeInTheDocument()
-    })
+      });
+      render(<AutomationAnalyticsPage />);
+      expect(screen.getByText("معدل الفشل على مدار الوقت")).toBeInTheDocument();
+    });
 
     it("renders the execution history table", async () => {
       mockGet.mockResolvedValue({
@@ -184,10 +215,10 @@ describe("AutomationAnalyticsPage", () => {
           top_workflows: [],
           recent_executions: [],
         },
-      })
-      render(<AutomationAnalyticsPage />)
-      expect(screen.getByText("سجل التنفيذ الأخير")).toBeInTheDocument()
-    })
+      });
+      render(<AutomationAnalyticsPage />);
+      expect(screen.getByText("سجل التنفيذ الأخير")).toBeInTheDocument();
+    });
 
     it("renders top workflows table", async () => {
       mockGet.mockResolvedValue({
@@ -208,20 +239,20 @@ describe("AutomationAnalyticsPage", () => {
           ],
           recent_executions: [],
         },
-      })
-      render(<AutomationAnalyticsPage />)
-      expect(screen.getByText("أكثر سير العمل استخداماً")).toBeInTheDocument()
-      expect(screen.getByText("متابعة العميل")).toBeInTheDocument()
-    })
-  })
+      });
+      render(<AutomationAnalyticsPage />);
+      expect(screen.getByText("أكثر سير العمل استخداماً")).toBeInTheDocument();
+      expect(screen.getByText("متابعة العميل")).toBeInTheDocument();
+    });
+  });
 
   describe("3. API error handling", () => {
     it("falls back gracefully when analytics API fails", async () => {
-      mockGet.mockRejectedValue(new Error("API error"))
-      render(<AutomationAnalyticsPage />)
+      mockGet.mockRejectedValue(new Error("API error"));
+      render(<AutomationAnalyticsPage />);
       await waitFor(() => {
-        expect(screen.getByText("تحليلات الأتمتة")).toBeInTheDocument()
-      })
-    })
-  })
-})
+        expect(screen.getByText("تحليلات الأتمتة")).toBeInTheDocument();
+      });
+    });
+  });
+});

@@ -1,3 +1,3 @@
-export { BuyingJourneyWidget } from './BuyingJourneyContainer'
-export { BuyingJourneyView } from './BuyingJourneyView'
-export type { BuyingJourneyViewProps } from './types'
+export { BuyingJourneyWidget } from "./BuyingJourneyContainer";
+export { BuyingJourneyView } from "./BuyingJourneyView";
+export type { BuyingJourneyViewProps } from "./types";

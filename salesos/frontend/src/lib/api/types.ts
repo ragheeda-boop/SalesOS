@@ -1,9 +1,9 @@
-export * from"./types/common";
-export * from"./types/company";
-export * from"./types/employee";
-export * from"./types/pipeline";
-export * from"./types/search";
-export * from"./types/identity";
-export * from"./types/activities";
-export * from"./types/admin";
-export * from"./types/settings";
+export * from "./types/common";
+export * from "./types/company";
+export * from "./types/employee";
+export * from "./types/pipeline";
+export * from "./types/search";
+export * from "./types/identity";
+export * from "./types/activities";
+export * from "./types/admin";
+export * from "./types/settings";

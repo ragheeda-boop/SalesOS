@@ -151,7 +151,7 @@ export function FormField({
       return (
         <input
           type="number"
-          {...register(field.name, { valueAsNumber: true })}
+          {...register(field.name)}
           placeholder={field.placeholder}
           className={`${baseClasses} ${errorClasses}`}
         />

@@ -1,5 +1,10 @@
-jest.mock('../api', () => {
-  const interceptors = { request: { use: jest.fn() }, response: { use: jest.fn() } }
+/* eslint-disable @typescript-eslint/no-require-imports -- jest.isolateModules requires synchronous require() to get a fresh module per test */
+
+jest.mock("../api", () => {
+  const interceptors = {
+    request: { use: jest.fn() },
+    response: { use: jest.fn() },
+  };
   return {
     __esModule: true,
     default: {
@@ -7,59 +12,64 @@ jest.mock('../api', () => {
       get: jest.fn(),
       post: jest.fn(),
     },
-  }
-})
+  };
+});
 
-jest.mock('../monitoring', () => ({
+jest.mock("../monitoring", () => ({
   monitor: {
     trackApiCall: jest.fn(),
     trackError: jest.fn(),
     trackMetric: jest.fn(),
     trackPageLoad: jest.fn(),
   },
-}))
+}));
 
-describe('monitoring-init interceptor registration', () => {
+describe("monitoring-init interceptor registration", () => {
   beforeEach(() => {
-    jest.clearAllMocks()
-    process.env.NODE_ENV = 'production'
-  })
+    jest.clearAllMocks();
+    process.env.NODE_ENV = "production";
+  });
 
   afterEach(() => {
-    process.env.NODE_ENV = 'test'
-  })
+    process.env.NODE_ENV = "test";
+  });
 
-  it('registers axios interceptors on init', () => {
+  it("registers axios interceptors on init", () => {
     jest.isolateModules(() => {
-      const { initMonitoring } = require('../monitoring-init')
-      const api = require('../api').default
+      const { initMonitoring } = require("../monitoring-init");
+      const api = require("../api").default;
 
-      initMonitoring()
+      initMonitoring();
 
-      expect(api.interceptors.request.use).toHaveBeenCalled()
-      expect(api.interceptors.response.use).toHaveBeenCalled()
-    })
-  })
+      expect(api.interceptors.request.use).toHaveBeenCalled();
+      expect(api.interceptors.response.use).toHaveBeenCalled();
+    });
+  });
 
-  it('tracks API calls via response interceptor', () => {
+  it("tracks API calls via response interceptor", () => {
     jest.isolateModules(() => {
-      const { initMonitoring } = require('../monitoring-init')
-      const api = require('../api').default
-      const { monitor } = require('../monitoring')
-      jest.spyOn(monitor, 'trackApiCall')
+      const { initMonitoring } = require("../monitoring-init");
+      const api = require("../api").default;
+      const { monitor } = require("../monitoring");
+      jest.spyOn(monitor, "trackApiCall");
 
-      initMonitoring()
+      initMonitoring();
 
-      const reqHandler = api.interceptors.request.use.mock.calls[0][0]
-      const resHandler = api.interceptors.response.use.mock.calls[0][0]
+      const reqHandler = api.interceptors.request.use.mock.calls[0][0];
+      const resHandler = api.interceptors.response.use.mock.calls[0][0];
 
-      const config: any = { method: 'get', url: '/api/v1/test' }
-      reqHandler(config)
-      expect(config._monitorStart).toBeDefined()
+      const config: any = { method: "get", url: "/api/v1/test" };
+      reqHandler(config);
+      expect(config._monitorStart).toBeDefined();
 
-      const response = { config, status: 200 }
-      resHandler(response)
-      expect(monitor.trackApiCall).toHaveBeenCalledWith('GET', '/api/v1/test', expect.any(Number), 200)
-    })
-  })
-})
+      const response = { config, status: 200 };
+      resHandler(response);
+      expect(monitor.trackApiCall).toHaveBeenCalledWith(
+        "GET",
+        "/api/v1/test",
+        expect.any(Number),
+        200,
+      );
+    });
+  });
+});

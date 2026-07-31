@@ -1,22 +1,22 @@
-import type { Metadata } from"next"
-import"./globals.css"
-import { Providers } from"./providers"
+import type { Metadata } from "next";
+import "./globals.css";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
- title:"SalesOS - Enterprise Company Intelligence Platform",
- description:"AI-powered company intelligence, CRM, and data platform",
- manifest:"/manifest.json",
- other: {
-"theme-color":"#0a0a0a",
-"apple-mobile-web-app-capable":"yes",
-"apple-mobile-web-app-status-bar-style":"black-translucent",
- },
-}
+  title: "SalesOS - Enterprise Company Intelligence Platform",
+  description: "AI-powered company intelligence, CRM, and data platform",
+  manifest: "/manifest.json",
+  other: {
+    "theme-color": "#0a0a0a",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+  },
+};
 
 export const viewport = {
- width:"device-width",
- initialScale: 1,
-}
+  width: "device-width",
+  initialScale: 1,
+};
 
 const localeScript = `
 (function() {
@@ -28,28 +28,39 @@ const localeScript = `
  document.documentElement.setAttribute('dir', dir);
  } catch(e) {}
 })()
-`
+`;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
- return (
- <html lang="en" dir="ltr" suppressHydrationWarning>
- <head>
- <script dangerouslySetInnerHTML={{ __html: localeScript }} />
- <link rel="manifest" href="/manifest.json" />
- <meta name="theme-color" content="#0a0a0a" />
- <meta name="apple-mobile-web-app-capable" content="yes" />
- <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
- <link rel="preconnect" href={process.env.NEXT_PUBLIC_API_URL ||"http://localhost:8000"} crossOrigin="anonymous" />
- </head>
- <body className="min-h-screen">
- <a
- href="#main-content"
- className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:start-2 focus:z-[9999] focus:rounded-lg focus:bg-[var(--muhide-orange)] focus:px-4 focus:py-2 focus:text-sm focus:text-white focus:shadow-lg"
- >
- تخطي إلى المحتوى الرئيسي
- </a>
- <Providers>{children}</Providers>
- </body>
- </html>
- )
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en" dir="ltr" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: localeScript }} />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#0a0a0a" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+        <link
+          rel="preconnect"
+          href={process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}
+          crossOrigin="anonymous"
+        />
+      </head>
+      <body className="min-h-screen">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:start-2 focus:z-[9999] focus:rounded-lg focus:bg-[var(--muhide-orange)] focus:px-4 focus:py-2 focus:text-sm focus:text-white focus:shadow-lg"
+        >
+          تخطي إلى المحتوى الرئيسي
+        </a>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
 }

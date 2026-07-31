@@ -1,1 +1,1 @@
-export { RecentActivityWidget } from './RecentActivityContainer'
+export { RecentActivityWidget } from "./RecentActivityContainer";

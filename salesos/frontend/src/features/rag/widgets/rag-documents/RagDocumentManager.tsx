@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { RagDocumentManagerContainer } from"./RagDocumentManagerContainer"
+import { RagDocumentManagerContainer } from "./RagDocumentManagerContainer";
 
 export function RagDocumentManager() {
- return <RagDocumentManagerContainer />
+  return <RagDocumentManagerContainer />;
 }
