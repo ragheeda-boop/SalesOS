@@ -791,7 +791,7 @@ Executable Code (the ground truth)
 | Metric | Value | Grade | Trend |
 |--------|-------|-------|-------|
 | **Persistence Ratio** | 45 PostgreSQL : 35 InMemory : 8 Other | **B+** | Improving (X-SPRINT added 15+ Postgres repos) |
-| **Multi-Tenant Coverage** | 93.5% (72/77 tables with `tenant_id`) | **A-** | Stable (5 tables missing: SSO, Marketplace, Feature Store) |
+| **Multi-Tenant Coverage** | 100% Tenant Workspace (72/72 tenant-scoped tables); 4 Owner-Platform-scoped + 1 root (`tenants`, §17.2) | **A** | Stable (no §17.2 tenant-isolation gaps) |
 | **Event-Driven Adoption** | 5 of ~60 modules actively emit/subscribe | **D** | Stalled (infra is ready, adoption is not) |
 | **Test-to-Source Ratio** | 13.8% (277 test files / 2,009 source files) | **D** | Coverage artifact is stale/broken |
 | **Feature Flag Maturity** | 6 seed flags + unlimited runtime flags, per-tenant override, gradual rollout | **A** | Mature |
@@ -823,24 +823,26 @@ Executable Code (the ground truth)
 
 ### 17.2 Multi-Tenant Coverage Detail
 
-| Table | Domain | Has tenant_id? |
-|-------|--------|---------------|
-| tenants | Identity | N/A (root entity) |
-| users | Identity | ✅ |
-| companies | Company Intelligence | ✅ |
-| contacts | Contact Management | ✅ |
-| branches | Company Intelligence | ✅ (via company) |
-| commercial_opportunities | Commercial | ✅ |
-| commercial_* (all 10+ tables) | Commercial | ✅ |
-| workflows | Automation | ✅ |
-| decision_center_decisions | Decision Intelligence | ✅ |
-| audit_logs | Governance | ✅ |
-| telemetry_events | Governance | ✅ |
-| reports | Analytics | ✅ |
-| sso_connections | Identity | ❌ (cross-tenant by design) |
-| marketplace_plugins | Marketplace | ❌ (global registry) |
-| feature_definitions | Feature Store | ❌ |
-| feature_values | Feature Store | ❌ |
+> **Scope note:** Tables without `tenant_id` below are not tenant-isolation gaps. Under the two-plane model (`SAAS_PLATFORM_ARCHITECTURE.md` §2, §11.3), four tables are **Owner-Platform-scoped** by design (queried cross-tenant by Owner-role principals only); `tenants` is the root entity.
+
+| Table | Domain | Scope |
+|-------|--------|-------|
+| tenants | Identity | Root entity (not tenant-scoped) |
+| users | Identity | Tenant-scoped (`tenant_id`) |
+| companies | Company Intelligence | Tenant-scoped (`tenant_id`) |
+| contacts | Contact Management | Tenant-scoped (`tenant_id`) |
+| branches | Company Intelligence | Tenant-scoped (via company) |
+| commercial_opportunities | Commercial | Tenant-scoped (`tenant_id`) |
+| commercial_* (all 10+ tables) | Commercial | Tenant-scoped (`tenant_id`) |
+| workflows | Automation | Tenant-scoped (`tenant_id`) |
+| decision_center_decisions | Decision Intelligence | Tenant-scoped (`tenant_id`) |
+| audit_logs | Governance | Tenant-scoped (`tenant_id`) |
+| telemetry_events | Governance | Tenant-scoped (`tenant_id`) |
+| reports | Analytics | Tenant-scoped (`tenant_id`) |
+| sso_connections | Identity | Owner-Platform-scoped (by design) |
+| marketplace_plugins | Marketplace | Owner-Platform-scoped (by design; superseded by `marketplace_listings` per `SAAS_PLATFORM_ARCHITECTURE.md` §11.3) |
+| feature_definitions | Feature Store | Owner-Platform-scoped (by design) |
+| feature_values | Feature Store | Owner-Platform-scoped (by design) |
 
 ### 17.3 Event-Driven Adoption Detail
 
