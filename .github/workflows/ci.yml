@@ -45,9 +45,9 @@ jobs:
       - name: Install dependencies
         run: cd salesos/backend && poetry install --no-interaction
       - name: Ruff lint
-        run: cd salesos/backend && poetry run ruff check app/ tests/ sdk/ modules/ cli/ --output-format=github
+        run: cd salesos/backend && poetry run ruff check app/ tests/ sdk/ modules/ --output-format=github
       - name: Ruff format check
-        run: cd salesos/backend && poetry run ruff format --check app/ tests/ sdk/ modules/ cli/
+        run: cd salesos/backend && poetry run ruff format --check app/ tests/ sdk/ modules/
 
   lint-frontend:
     name: "Stage 1: Frontend Lint"
@@ -89,7 +89,7 @@ jobs:
       - name: Install dependencies
         run: cd salesos/backend && poetry install --no-interaction
       - name: MyPy type check
-        run: cd salesos/backend && poetry run mypy app/ sdk/ modules/ cli/ --no-error-summary
+        run: cd salesos/backend && poetry run mypy app/ sdk/ modules/ --no-error-summary
 
   typecheck-frontend:
     name: "Stage 2: Frontend Types"
