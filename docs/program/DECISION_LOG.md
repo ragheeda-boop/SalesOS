@@ -447,6 +447,17 @@
 **Date:** 2026-08-01
 **Context:** Database Team Alpha STOPPED on STORY-02-01 with evidence (no migration shipped beyond existing 46): policies today = 46 (`ALL_TENANT_TABLES` / `0afbf3e6ae53`); AC target 72 → gap 26; ORM `tenant_id` tables = 55 (9 missing from RLS list); only `company_features` additive-safe; 8 blocked on R-09 (no CREATE TABLE); remainder is Category B join policies (Sprint 04); exact-72 inventory not pinned in code (55+14≈69).
 **Alternatives considered (draft):** (A) pull Category B into STORY-02-01 now + settle canonical 72 inventory; (B) split — close STORY-02-01 at 46+`company_features` (47) with revised AC, Category B → Sprint 04, R-09 tables wait on DB-05; (C) block STORY-02-01 until R-09 CREATE TABLE migrations land for the 8 drift tables, then resume.
-**Decision:** **Not decided.** Full ARB + Documentation package: [`docs/program/decisions/DEC-DRAFT-STORY-02-01-RLS-72.md`](decisions/DEC-DRAFT-STORY-02-01-RLS-72.md). Package **recommends Option B**. Phase 0 exit remains **NO-GO** (Railway R-14 + incomplete 72 unless AC revised).
-**Consequence:** STORY-02-01 marked PARTIAL/STOPPED pending Accept. No Alembic RLS migrations authorized by this entry. Upon human accept, mint Accepted DEC (proposed **DEC-042**; DEC-041 is CI-21) and mark this draft Superseded.
-**Status:** **DRAFT** (not Accepted).
+**Decision:** **Superseded** — human accepted **Option B**; see **DEC-044**.
+**Consequence:** Historical stop record retained; execution and revised AC live under DEC-044.
+**Status:** **Superseded** by DEC-044.
+
+---
+
+### DEC-044 — STORY-02-01 Option B accepted: revised AC closes at 47 policies
+
+**Date:** 2026-08-01
+**Context:** Human accepted Option B (“الخيار B”) from [`DEC-DRAFT-STORY-02-01-RLS-72`](decisions/DEC-DRAFT-STORY-02-01-RLS-72.md). Inventory: 46 live policies; only `company_features` additive-safe (CREATE TABLE in `0002_feature_store`); 8 ORM gaps wait on R-09/DB-05; Category B deferred to Sprint 04; literal 72 not pinned (55+14≈69).
+**Alternatives considered:** (A) Category B + exact-72 inventory in STORY-02-01 — rejected; (B) close at 47 with revised AC — accepted; (C) block until eight CREATE TABLE migrations — rejected.
+**Decision:** Accept Option B. STORY-02-01 closes under revised AC at **47** policies (46 + `company_features`), **not** literal 72. Category B → Sprint 04. Eight R-09 tables wait on DB-05. Phase 0 remains **NO-GO** until Railway R-14 (separate). Supersedes the draft. Full record: [`docs/program/decisions/DEC-044-STORY-02-01-RLS-OPTION-B.md`](decisions/DEC-044-STORY-02-01-RLS-OPTION-B.md).
+**Consequence:** Additive migration `065d1d3a466b` + generator/`POLICY_COUNT` updates authorized. Sprint-03 STORY-02-01 → DONE under revised AC. R-25 → Closed-as-accepted-scope. R-09/DB-05 remain open. **CI GREEN not met.** Phase 0 **NO-GO**.
+**Status:** Accepted. STORY-02-01 **DONE** (revised AC).

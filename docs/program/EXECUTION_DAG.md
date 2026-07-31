@@ -1,8 +1,8 @@
 # Execution DAG — Current Program State
 
-> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-01** (post DEC-039 / DEC-040).  
+> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-01** (post DEC-044 Option B).  
 > Authority: evidence + `SPRINT_05_DELIVERY_BOARD.md` + `RISK_REGISTER.md` + Sprint plans.  
-> Honesty labels: **CI GREEN not met**. **Phase 0 exit = NO-GO** (Railway R-14 / STORY-02-01 PARTIAL·STOPPED pending DEC-DRAFT-STORY-02-01-RLS-72 / incomplete 72).
+> Honesty labels: **CI GREEN not met**. **Phase 0 exit = NO-GO** (Railway R-14 / S04-04). STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies, not literal 72).
 
 ---
 
@@ -20,13 +20,15 @@
 ## Critical path (Phase 0 → Phase 1)
 
 ```
-Security P0 (historical) → RLS / STORY-02-01 ──┬── Architecture DEC (DRAFT RLS-72) ──► revised AC or resume
+Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47)
                                                ├── Railway R-14 (S04-04) ──► Phase 0 exit
                                                │
                                                └── Adversarial suites (S04-01 LANDED; S04-05 LANDED; S04-06 READY)
+                     Category B inventory ──► Sprint 04
+                     R-09 / DB-05 (8 tables) ──► schema program
 ```
 
-Phase 0 exit requires: STORY-02-01 complete under an **Accepted** AC (original 72 unmet; DRAFT recommends revise to 47 + Category B later) **including** Railway isolation proof (or formal accept-without-Railway decision), adversarial coverage, and **CI GREEN** (not met). **Current gate: NO-GO.**
+Phase 0 exit requires: Railway isolation proof (or formal accept-without-Railway decision), adversarial coverage, and **CI GREEN** (not met). STORY-02-01 story AC is satisfied under **DEC-044** (47) — that does **not** unlock Phase 0 GO. **Current gate: NO-GO.**
 
 ---
 
@@ -35,8 +37,7 @@ Phase 0 exit requires: STORY-02-01 complete under an **Accepted** AC (original 7
 | Item | Class | Blocked on | Notes |
 |---|---|---|---|
 | **S04-04** Railway R-14 closure | BLOCKED | Credentials / live authorization (DEC-015/016) | Highest Phase 0 gate risk (R-14 score 25) |
-| **STORY-02-01** (RLS rollout) | **WAITING** | Architecture decision [`DEC-DRAFT-STORY-02-01-RLS-72`](decisions/DEC-DRAFT-STORY-02-01-RLS-72.md) | Team Alpha STOPPED: 46 live; gap to 72; recommends Option B (47 + revise AC). Also still needs Railway for production shape (S04-04). **R-25** |
-| **Phase 0 exit** | BLOCKED | R-14 Railway + STORY-02-01 WAITING/incomplete 72 + CI not green | **NO-GO** — DEC-040; even if B Accepted, exit stays NO-GO until Railway + completeness criteria clear |
+| **Phase 0 exit** | BLOCKED | R-14 Railway + CI not green | **NO-GO** — DEC-040 / DEC-044; STORY-02-01 no longer a story-AC blocker |
 | **CI-08** GHCR 403 | BLOCKED | Org-level GHCR access | Outside repo scope; R-17 |
 | **CI-09** VPS SSH/secrets | BLOCKED | Ops secret provisioning | R-17 |
 | **CI GREEN** (overall workflow) | BLOCKED | Residual reds: MyPy (CI-20), pip-audit (CI-16/R-21), npm audit (CI-14), Jest debt, Trivy fs, etc. | Individual gates may be green; **workflow not green** |
@@ -47,14 +48,23 @@ Phase 0 exit requires: STORY-02-01 complete under an **Accepted** AC (original 7
 
 | Item | Class | Why ready now | Notes |
 |---|---|---|---|
-| **S04-06** Adversarial suite (remaining) | READY | S04-01 + S04-05 landed; no credential block | P2 board pending |
+| **S04-06** Adversarial suite (remaining) | READY | S04-01 + S04-05 landed; no credential block | P2 board pending; expect POLICY_COUNT 47 after DEC-044 migration |
 | **STORY-02-02** browser/E2E verify (if scoped) | READY | Middleware code LANDED (`3f4b3c8`); status PARTIAL until redirect verified | Not a board CLOSE; validation gap only |
 | **CI-19** Semgrep Wave 1 (GHA injection ×8) | READY / IN PROGRESS | Triage done (`CI_19_SEMGREP_TRIAGE.md`); Wave 1 next; R-24 pointer | Waves 2–5 backlog |
 | **CI-21** Gitleaks JWT fixture | LANDED (CLOSED) | Fix `b03ffbf` on master | Closed from residual triage |
 | **CI-20** Backend Types (MyPy) | READY (phased) | REGISTERED; 308 errors; Backend Lint already green | DEC-038 — not mechanical this sprint |
 | **CI-14** Frontend Dependency Modernization | READY (Sprint 06) | REGISTERED; dep CI-13 baseline closed | Majors — R-18 |
 | **CI-16** Backend dependency security | READY (backlog pull) | BACKLOG; R-21 | Not part of CI-02 |
-| **DB-05** Schema reconciliation program | READY (program) | BACKLOG; R-20 | Multi-sprint |
+| **DB-05** Schema reconciliation program | READY (program) | BACKLOG; R-20 / R-09 | Multi-sprint; unblocks 8 RLS-deferred tables |
+| **Sprint 04 Category B RLS + inventory** | READY (planning) | DEC-044 deferred Category B here | Settle canonical count (may be 69/72/other) |
+
+---
+
+## DONE / closed (story AC)
+
+| Item | Class | Notes |
+|---|---|---|
+| **STORY-02-01** (RLS rollout) | **DONE** (revised AC) | DEC-044 Option B: **47** policies (`065d1d3a466b` + `company_features`). Draft RLS-72 **Superseded**. R-25 Closed-as-accepted-scope. Not Phase 0 GO |
 
 ---
 

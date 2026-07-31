@@ -1,11 +1,11 @@
 # DEC-DRAFT — STORY-02-01 RLS “72-table” AC vs inventory reality
 
-> **Status:** **DRAFT** — for human resolution. Not Accepted. Not executed.  
-> **Date:** 2026-08-01  
+> **Status:** **Superseded** by [`DEC-044`](DEC-044-STORY-02-01-RLS-OPTION-B.md) (Accepted 2026-08-01 — Option B).  
+> **Date:** 2026-08-01 (draft); Accepted via DEC-044 same day.  
 > **Board:** Architecture Review Board + Documentation (SalesOS / AQLIYA program)  
-> **Stop condition:** Database Team Alpha **STOPPED** on STORY-02-01 — no further RLS migration shipped pending this package.  
-> **Authority chain:** Sprint-03 STORY-02-01 AC → R-09 / R-20 / DB-05 → DEC-008 / DEC-013 → this package → human accept/reject → (if accepted) numbered DEC entry in `DECISION_LOG.md`.  
-> **Out of scope:** Shipping Alembic migrations, editing `ALL_TENANT_TABLES` production policy sets, or claiming Phase 0 GO.
+> **Human decision:** Option B (“الخيار B”).  
+> **Authority chain:** Sprint-03 STORY-02-01 AC → R-09 / R-20 / DB-05 → DEC-008 / DEC-013 → this package → human accept → **DEC-044**.  
+> **Out of scope (unchanged):** Claiming Phase 0 GO; Railway R-14 remediation.
 
 ---
 
@@ -102,22 +102,21 @@ Under **recommended Option B**, even after STORY-02-01 closes at **47** with a *
 
 | Field | Value |
 |---|---|
-| Chosen option | ☐ A  ☐ B  ☐ C |
-| Authorizing role(s) | Program Director / Chief Architect / Backend Lead: ________ |
-| Date | ________ |
-| If B: revised STORY-02-01 AC text | ________ |
-| If B: Sprint 04 Category B story ID | ________ |
-| Follow-on DEC ID when Accepted | DEC-042 (proposed; confirm free ID at accept time — DEC-041 is CI-21) |
-| Evidence pointer | Team Alpha stop package / this DRAFT |
+| Chosen option | ☑ **B**  ☐ A  ☐ C |
+| Authorizing role(s) | Program Director / human accept (“الخيار B”) |
+| Date | 2026-08-01 |
+| If B: revised STORY-02-01 AC text | All Category A tables with CREATE TABLE in governed inventory (`ALL_TENANT_TABLES`) have RLS; close at **47** (not literal 72) |
+| If B: Sprint 04 Category B story ID | TBD in Sprint 04 plan (Category B + canonical inventory) |
+| Follow-on DEC ID when Accepted | **DEC-044** (DEC-042 left unused; DEC-043 is CI-19 Wave 1) |
+| Evidence pointer | Team Alpha stop package / this DRAFT → DEC-044 |
 
 ---
 
-## 7. Immediate program effects (unchanged until Accepted)
+## 7. Immediate program effects (post-Accept — see DEC-044)
 
-- `SPRINT_PLAN/Sprint-03.md` — STORY-02-01 **PARTIAL / STOPPED** pending this decision.  
-- `RISK_REGISTER.md` — **R-25** (72-table AC unachievable without Category B design + inventory pin); R-09 / R-20 unchanged as blockers for the 8 tables.  
-- `EXECUTION_DAG.md` — STORY-02-01 **WAITING** on architecture decision (this package).  
-- Phase 0 exit — **NO-GO** (Railway + incomplete 72 / unrevised AC).  
-- This file — **DRAFT only**; pointer in `DECISION_LOG.md` as DRAFT (not Accepted).
+- `SPRINT_PLAN/Sprint-03.md` — STORY-02-01 **DONE** under revised AC (47).  
+- `RISK_REGISTER.md` — **R-25** Closed-as-accepted-scope per DEC-044; R-09 / R-20 / DB-05 remain open for the 8 tables.  
+- `EXECUTION_DAG.md` — STORY-02-01 **DONE** under revised AC; Phase 0 still **NO-GO** (Railway).  
+- This file — **Superseded** by DEC-044.
 
-**Validation status of this package:** docs-only; **not validated** as executed RLS work. **No Alembic migrations** created under this draft.
+**Validation status of this package:** superseded by executed Option B work under DEC-044.
