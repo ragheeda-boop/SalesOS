@@ -127,7 +127,8 @@ async def test_post_with_auth_header():
             "/api/v1/echo",
             json={"status": "authorized"},
             headers={
-                "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",  # noqa: E501
+                # Intentionally non-JWT: real-looking JWTs trip Gitleaks; middleware only needs Bearer present.
+                "Authorization": "Bearer test-fake-token-not-a-jwt",
                 "X-Tenant-Id": "tenant-1",
             },
             timeout=5,
