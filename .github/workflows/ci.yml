@@ -320,6 +320,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install Poetry
+        run: pipx install poetry
       - name: Install pip-audit
         run: pip install pip-audit
       - name: Run pip-audit

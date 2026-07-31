@@ -76,7 +76,7 @@ jobs:
       - name: Install pip-audit
         run: pip install pip-audit
       - name: Run pip-audit
-        run: pip-audit --desc on -f --ignore-vuln PYSEC-2024-1 2>&1 | tee pip-audit-report.txt; exit ${PIPESTATUS[0]}
+        run: pip-audit --desc on --ignore-vuln PYSEC-2024-1 2>&1 | tee pip-audit-report.txt; exit ${PIPESTATUS[0]}
       - name: Upload pip-audit report
         uses: actions/upload-artifact@v4
         with:
