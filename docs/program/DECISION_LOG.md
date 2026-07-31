@@ -225,6 +225,17 @@
 **Consequence:** CI-02 **CLOSED** — all pip-audit toolchain failures eliminated; any future pip-audit failure is evidence of real vulnerabilities to be handled in **CI-16 / R-21**, not CI infrastructure. DEC-024 **RATIFIED**; R-21 remains **OPEN**; CI-16 moved to **BACKLOG**. Program progress: **5/19** complete/closed (CI-01, CI-11, S04-01, CI-15, CI-02). Board and records updated; committed locally (no push).
 **Status:** Accepted. Phase 2 re-run result: **SUCCESS — CI-02 COMPLETE.**
 
+### DEC-036 — CI-10 closed: whole-tree Ruff remediation — 3,611 violations cleared; Backend Lint green on post-push CI run
+
+**Date:** 2026-08-01
+**Context:** CI-10 (triage #2, P2) — after CI-07 removed the non-existent `cli/` path, Backend Lint still failed with **3,611 real Ruff violations** across the backend body (including auto-generated Alembic migration files never intended for style enforcement). Triage AC: `ruff check` exits 0; `app/alembic/versions/` excluded; `cli/` path resolved (latter satisfied by CI-07/DEC-032).
+**Alternatives considered:** (a) Exclude the entire backend from Ruff and leave debt unenforced — rejected: defeats the gate; (b) mechanical `--fix` plus targeted manual review with alembic/versions excluded — chosen; matches triage recommendation.
+**Decision:** Committed and pushed `3801151` ("CI-10: whole-tree ruff 0.4.10 pass (3,611 violations -> 0)"). Phase 1 local validation: ruff 0.4.10 clean with alembic/versions excluded. Phase 2 field verification: CI run `30670339985` on `master` — **Stage 1: Backend Lint SUCCESS** (first green Backend Lint on real GitHub Actions). Overall CI workflow on the same run remains **failure** (MyPy, pip-audit, npm audit, Frontend Unit Tests, Trivy fs, etc.) — **CI GREEN is not met**.
+**Consequence:** CI-10 **CLOSED**. The triage #2 Ruff body debt is eliminated from the Backend Lint gate. Residual CI red jobs are pre-existing or separately tracked stories (CI-16/R-21, CI-14, Sprint 01 Jest debt, MyPy classification backlog from CI-07). Program progress: **15/19**. RISK_REGISTER unchanged — Ruff debt was tracked on the delivery board, not as a standalone risk entry.
+**Status:** Accepted. CI-10 **COMPLETE**. Field-verify label: **build validated** (Backend Lint job only); full CI workflow: **production no-go**.
+
+---
+
 ### DEC-035 — CI-13 closed: Jest suite baseline captured from real CI evidence — 33/194 failing suites inventoried; dependency contract set for CI-14
 
 **Date:** 2026-07-31
