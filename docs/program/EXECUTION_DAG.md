@@ -2,7 +2,7 @@
 
 > **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-01** (post DEC-039 / DEC-040).  
 > Authority: evidence + `SPRINT_05_DELIVERY_BOARD.md` + `RISK_REGISTER.md` + Sprint plans.  
-> Honesty labels: **CI GREEN not met**. **Phase 0 exit = NO-GO** (Railway R-14 / STORY-02-01 incomplete).
+> Honesty labels: **CI GREEN not met**. **Phase 0 exit = NO-GO** (Railway R-14 / STORY-02-01 PARTIAL·STOPPED pending DEC-DRAFT-STORY-02-01-RLS-72 / incomplete 72).
 
 ---
 
@@ -20,12 +20,13 @@
 ## Critical path (Phase 0 → Phase 1)
 
 ```
-Security P0 (historical) → RLS / STORY-02-01 ──┬── Railway R-14 (S04-04) ──► Phase 0 exit
+Security P0 (historical) → RLS / STORY-02-01 ──┬── Architecture DEC (DRAFT RLS-72) ──► revised AC or resume
+                                               ├── Railway R-14 (S04-04) ──► Phase 0 exit
                                                │
                                                └── Adversarial suites (S04-01 LANDED; S04-05 LANDED; S04-06 READY)
 ```
 
-Phase 0 exit requires: STORY-02-01 complete **including** Railway isolation proof (or formal accept-without-Railway decision), adversarial coverage, and **CI GREEN** (not met). **Current gate: NO-GO.**
+Phase 0 exit requires: STORY-02-01 complete under an **Accepted** AC (original 72 unmet; DRAFT recommends revise to 47 + Category B later) **including** Railway isolation proof (or formal accept-without-Railway decision), adversarial coverage, and **CI GREEN** (not met). **Current gate: NO-GO.**
 
 ---
 
@@ -34,8 +35,8 @@ Phase 0 exit requires: STORY-02-01 complete **including** Railway isolation proo
 | Item | Class | Blocked on | Notes |
 |---|---|---|---|
 | **S04-04** Railway R-14 closure | BLOCKED | Credentials / live authorization (DEC-015/016) | Highest Phase 0 gate risk (R-14 score 25) |
-| **STORY-02-01** (Railway portion / full AC) | BLOCKED | S04-04 / R-14 Railway | Local/CI/staging/prod-template remediated; Railway open |
-| **Phase 0 exit** | BLOCKED | R-14 Railway + STORY-02-01 incomplete + CI not green | **NO-GO** — DEC-040 |
+| **STORY-02-01** (RLS rollout) | **WAITING** | Architecture decision [`DEC-DRAFT-STORY-02-01-RLS-72`](decisions/DEC-DRAFT-STORY-02-01-RLS-72.md) | Team Alpha STOPPED: 46 live; gap to 72; recommends Option B (47 + revise AC). Also still needs Railway for production shape (S04-04). **R-25** |
+| **Phase 0 exit** | BLOCKED | R-14 Railway + STORY-02-01 WAITING/incomplete 72 + CI not green | **NO-GO** — DEC-040; even if B Accepted, exit stays NO-GO until Railway + completeness criteria clear |
 | **CI-08** GHCR 403 | BLOCKED | Org-level GHCR access | Outside repo scope; R-17 |
 | **CI-09** VPS SSH/secrets | BLOCKED | Ops secret provisioning | R-17 |
 | **CI GREEN** (overall workflow) | BLOCKED | Residual reds: MyPy (CI-20), pip-audit (CI-16/R-21), npm audit (CI-14), Jest debt, Trivy fs, etc. | Individual gates may be green; **workflow not green** |
@@ -48,7 +49,8 @@ Phase 0 exit requires: STORY-02-01 complete **including** Railway isolation proo
 |---|---|---|---|
 | **S04-06** Adversarial suite (remaining) | READY | S04-01 + S04-05 landed; no credential block | P2 board pending |
 | **STORY-02-02** browser/E2E verify (if scoped) | READY | Middleware code LANDED (`3f4b3c8`); status PARTIAL until redirect verified | Not a board CLOSE; validation gap only |
-| **CI-19** Semgrep findings remediation | READY (triage first) | REGISTERED; Security Scan green; 253 findings need triage | Not mechanical |
+| **CI-19** Semgrep Wave 1 (GHA injection ×8) | READY / IN PROGRESS | Triage done (`CI_19_SEMGREP_TRIAGE.md`); Wave 1 next; R-24 pointer | Waves 2–5 backlog |
+| **CI-21** Gitleaks JWT fixture | LANDED (CLOSED) | Fix `b03ffbf` on master | Closed from residual triage |
 | **CI-20** Backend Types (MyPy) | READY (phased) | REGISTERED; 308 errors; Backend Lint already green | DEC-038 — not mechanical this sprint |
 | **CI-14** Frontend Dependency Modernization | READY (Sprint 06) | REGISTERED; dep CI-13 baseline closed | Majors — R-18 |
 | **CI-16** Backend dependency security | READY (backlog pull) | BACKLOG; R-21 | Not part of CI-02 |
@@ -71,7 +73,8 @@ Phase 0 exit requires: STORY-02-01 complete **including** Railway isolation proo
 
 | Story / item | SHA | Records status | Validation |
 |---|---|---|---|
-| S04-05 write-protection suite | `8699796` | COMPLETE (DEC-039) | **not validated** |
+| S04-05 write-protection suite | `8699796` | COMPLETE (DEC-039) | **build validated** — Docker pytest **8/8 PASS in 4.88s** |
+| CI-21 Gitleaks JWT fixture neutralize | `b03ffbf` | CLOSED | fixture replaced; scanner not weakened |
 | STORY-02-03 JWT audience groundwork | `2379e5f` | DONE | **not validated** |
 | STORY-02-02 server-side middleware | `3f4b3c8` | PARTIAL | unit helpers present; browser **not validated** |
 | STORY-03-04 OpenAPI contract framework | `623077c` | DONE | **not validated** |
@@ -82,7 +85,7 @@ Phase 0 exit requires: STORY-02-01 complete **including** Railway isolation proo
 
 ## Board progress fraction
 
-**17/19** Complete/Closed on `SPRINT_05_DELIVERY_BOARD.md` (S04-05 closed). Pending: S04-06. Blocked: CI-08, S04-04, CI-09.
+**18/20** Complete/Closed on `SPRINT_05_DELIVERY_BOARD.md` (S04-05 + CI-21 closed). Pending: S04-06. In progress: CI-19 Wave 1. Blocked: CI-08, S04-04, CI-09.
 
 ---
 
