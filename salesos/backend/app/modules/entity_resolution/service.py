@@ -204,10 +204,6 @@ class EntityResolutionService:
         tenant_uuid = uuid.UUID(tenant_id)
         now = datetime.now(timezone.utc)
         city_normalizer = CityRegionNormalizer.default()
-        from domains.search.normalization.arabic_normalizer import (
-            ArabicSearchNormalizer,
-        )
-        name_normalizer = ArabicSearchNormalizer.for_matching()
 
         data: dict = {}
         for field, value in record.items():
@@ -217,10 +213,11 @@ class EntityResolutionService:
                 if field in ("city", "city_ar", "city_en", "region", "region_ar", "region_en"):
                     if isinstance(value, str):
                         normalized_value = city_normalizer.normalize_city(str(value))
-                # Normalize Arabic company names
-                elif field in ("name_ar", "company_name", "legal_name"):
-                    if isinstance(value, str):
-                        normalized_value = name_normalizer.normalize(str(value))
+                # Normalize Arabic company names for matching only —
+                # the raw value is stored as-is. for_matching() strips
+                # legal prefixes (شركة, مؤسسة, etc.) which corrupts
+                # display names when stored. Matching normalizes at
+                # query time via the same normalizer.
 
                 data[field] = {
                     "value": normalized_value,

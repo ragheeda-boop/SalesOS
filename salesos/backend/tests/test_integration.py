@@ -273,8 +273,8 @@ class TestAPIE2E:
         )
         assert resp.status_code == 200
         data = resp.json()
-        assert "total" in data
-        assert "items" in data
+        assert "data" in data   # CursorResponse uses 'data', not 'items'
+        assert "has_next" in data
 
     @pytest.mark.asyncio
     async def test_company_360(
