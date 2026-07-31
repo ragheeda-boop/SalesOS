@@ -225,6 +225,28 @@
 **Consequence:** CI-02 **CLOSED** — all pip-audit toolchain failures eliminated; any future pip-audit failure is evidence of real vulnerabilities to be handled in **CI-16 / R-21**, not CI infrastructure. DEC-024 **RATIFIED**; R-21 remains **OPEN**; CI-16 moved to **BACKLOG**. Program progress: **5/19** complete/closed (CI-01, CI-11, S04-01, CI-15, CI-02). Board and records updated; committed locally (no push).
 **Status:** Accepted. Phase 2 re-run result: **SUCCESS — CI-02 COMPLETE.**
 
+### DEC-037 — compose prod name fix closed: explicit `name: salesos-prod` in production compose; implicit project collision hazard resolved
+
+**Date:** 2026-08-01
+**Context:** The delivery board row "compose prod name fix" (P2) tracked DEC-015's disclosed hazard: `docker-compose.prod.yml` had no explicit Compose project `name:`, so running it from the same directory as the unnamed dev stack collided under the same implicit project name — briefly recreating live dev containers against `.env.production` values before revert. The fix is workflow-only at the compose file level: set an isolated production project name.
+**Alternatives considered:** (a) document the hazard only and require operators to always pass `-p` manually — rejected: error-prone; (b) add `name: salesos-prod` to the production compose file — approved.
+**Decision:** Committed and pushed `cb707be` ("fix(compose): set production project name salesos-prod") on `master`. Change: `name: salesos-prod` in `salesos/docker-compose.prod.yml` (2-line insert). Validation: **light** — YAML `name:` field valid; `docker compose config --quiet` against production compose **fails on missing env secrets** (expected for production template without full `.env.production`); no claim of full production stack bring-up.
+**Consequence:** compose prod name fix row **CLOSED**. Production compose now has an explicit project namespace, isolating it from the dev stack's implicit project name. Program progress: **16/19**. **CI GREEN not met** — this item is compose infrastructure only, not a CI workflow gate.
+**Status:** Accepted. compose prod name fix **COMPLETE**. Field-verify label: **light validated** (YAML/name only).
+
+---
+
+### DEC-038 — CI-20 registered: Backend Types (MyPy) remediation — 308 errors surfaced; phased, not mechanical this sprint
+
+**Date:** 2026-08-01
+**Context:** CI-10 field-verify run `30670339985` (commit `3801151` on `master`) proved **Stage 1: Backend Lint SUCCESS** (DEC-036) while **Stage 2: Backend Types** remained red with **308 mypy errors** across the backend body — real type debt now visible after CI-07 removed the non-existent `cli/` path (DEC-032). This is triage #1 body debt, distinct from CI-10's Ruff body debt (triage #2, now closed).
+**Alternatives considered:** (a) mechanical bulk `--ignore-errors` or gate disable — rejected (weakens the gate); (b) register as a phased program story owned by Backend Lead, scoped outside this sprint's mechanical CI closure batch — approved.
+**Decision:** Register standalone story **CI-20 — Backend Types remediation** (P2, owner Backend Lead). Evidence anchor: CI run `30670339985`, Backend Types job, **308 mypy errors**. Scope: phased remediation of real type errors; **NOT mechanical this sprint**; blocks Backend Types gate. CI-10 close records explicitly **do not** claim CI green — sibling jobs on the same run still fail (MyPy, pip-audit, npm audit, Frontend Unit Tests, Trivy fs, etc.).
+**Consequence:** CI-20 **REGISTERED** on the delivery board. Backend Lint gate is green (CI-10); Backend Types gate remains red until CI-20 lands. No duplicate DEC for CI-10 (already DEC-036). Program progress: **16/19** closed; Registered: CI-14, CI-19, CI-20.
+**Status:** Accepted. CI-20 **REGISTERED** (not started).
+
+---
+
 ### DEC-036 — CI-10 closed: whole-tree Ruff remediation — 3,611 violations cleared; Backend Lint green on post-push CI run
 
 **Date:** 2026-08-01
