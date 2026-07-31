@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearAuthTokens } from "@/lib/auth/session";
 
 // Browser: same-origin so Next.js rewrites proxy to Railway (avoids CORS Network Error).
 // Server: absolute backend URL for SSR / Route Handlers.
@@ -51,8 +52,7 @@ api.interceptors.response.use(
     const status = error.response?.status;
 
     if (status === 401) {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
+      clearAuthTokens();
       window.location.href = "/login";
       return Promise.reject(error);
     }
@@ -65,8 +65,7 @@ api.interceptors.response.use(
             d.loc?.includes("header") && d.loc?.includes("authorization"),
         );
         if (hasAuthError) {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
+          clearAuthTokens();
           window.location.href = "/login";
           return Promise.reject(error);
         }

@@ -36,6 +36,7 @@ describe("useLogin", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
+    document.cookie = "access_token=; path=/; max-age=0";
   });
 
   it("stores tokens on login", async () => {
@@ -52,6 +53,7 @@ describe("useLogin", () => {
     expect(localStorage.getItem("access_token")).toBe("at-1");
     expect(localStorage.getItem("refresh_token")).toBe("rt-1");
     expect(localStorage.getItem("tenant_id")).toBe("t-1");
+    expect(document.cookie).toContain("access_token=at-1");
   });
 });
 
@@ -59,6 +61,7 @@ describe("useRegister", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
+    document.cookie = "access_token=; path=/; max-age=0";
   });
 
   it("stores tokens on register", async () => {

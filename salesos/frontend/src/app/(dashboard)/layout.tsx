@@ -44,6 +44,7 @@ import { registerBuiltinCommands } from "@/lib/commands";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/foundation/LanguageSwitcher";
 import { useAiCopilotEnabled } from "@/lib/hooks/useAiCopilotEnabled";
+import { clearAuthTokens } from "@/lib/auth/session";
 
 const NAV_KEYS = [
   { href: "/dashboard", key: "nav.dashboard", icon: LayoutDashboard },
@@ -89,8 +90,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const handleLogout = useCallback(() => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+    clearAuthTokens();
     window.location.href = "/login";
   }, []);
 
@@ -99,14 +99,6 @@ function DashboardContent({ children }: { children: ReactNode }) {
 
   const slideAnim =
     dir === "rtl" ? "animate-slide-in-right" : "animate-slide-in-left";
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      router.replace("/login");
-    }
-  }, [router]);
 
   useEffect(() => {
     registerBuiltinCommands(router);

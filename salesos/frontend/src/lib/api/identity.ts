@@ -1,3 +1,4 @@
+import { persistAuthTokens } from "@/lib/auth/session";
 import api from "./client";
 import type { UserProfile } from "./types";
 
@@ -6,9 +7,8 @@ export async function login(email: string, password: string) {
     email,
     password,
   });
-  const { access_token, refresh_token } = response.data;
-  localStorage.setItem("access_token", access_token);
-  localStorage.setItem("refresh_token", refresh_token);
+  const { access_token, refresh_token, tenant_id } = response.data;
+  persistAuthTokens({ access_token, refresh_token, tenant_id });
   return response.data;
 }
 
@@ -22,9 +22,8 @@ export async function register(
     password,
     full_name: fullName,
   });
-  const { access_token, refresh_token } = response.data;
-  localStorage.setItem("access_token", access_token);
-  localStorage.setItem("refresh_token", refresh_token);
+  const { access_token, refresh_token, tenant_id } = response.data;
+  persistAuthTokens({ access_token, refresh_token, tenant_id });
   return response.data;
 }
 

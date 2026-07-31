@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
+import { persistAuthTokens } from "@/lib/auth/session";
 import { companyKeys } from "@/lib/queryKeys";
 import { getTenantId } from "./useTenant";
 
@@ -19,9 +20,7 @@ export function useLogin() {
         password,
       });
       const { access_token, refresh_token, tenant_id } = response.data;
-      localStorage.setItem("access_token", access_token);
-      localStorage.setItem("refresh_token", refresh_token);
-      if (tenant_id) localStorage.setItem("tenant_id", tenant_id);
+      persistAuthTokens({ access_token, refresh_token, tenant_id });
       return response.data;
     },
   });
@@ -44,9 +43,7 @@ export function useRegister() {
         full_name: fullName,
       });
       const { access_token, refresh_token, tenant_id } = response.data;
-      localStorage.setItem("access_token", access_token);
-      localStorage.setItem("refresh_token", refresh_token);
-      if (tenant_id) localStorage.setItem("tenant_id", tenant_id);
+      persistAuthTokens({ access_token, refresh_token, tenant_id });
       return response.data;
     },
   });
