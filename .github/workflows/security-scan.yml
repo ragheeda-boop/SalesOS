@@ -50,6 +50,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-results.sarif
+          category: trivy-fs
       - name: Run Trivy config scan (IaC)
         uses: aquasecurity/trivy-action@master
         with:
@@ -62,6 +63,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-config-results.sarif
+          category: trivy-config
 
   pip-audit:
     runs-on: ubuntu-latest
