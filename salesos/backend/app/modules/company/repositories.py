@@ -221,13 +221,13 @@ class CompanyRepository(SqlAlchemyRepository[Company, uuid.UUID]):
             .where(Company.tenant_id == uuid.UUID(tenant_id))
             .group_by(Company.status)
         )
-        return dict(result.fetchall())
+        return {str(row[0]): int(row[1]) for row in result.fetchall()}
 
     async def bulk_upsert(
         self, tenant_id: str, records: list[dict]
     ) -> tuple[list[Company], list[Company]]:
-        created = []
-        updated = []
+        created: list[Company] = []
+        updated: list[Company] = []
 
         cr_numbers = []
         cr_map: dict[str, dict] = {}

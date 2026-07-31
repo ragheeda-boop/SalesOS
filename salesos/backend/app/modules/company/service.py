@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 from datetime import UTC, datetime
 
 import sqlalchemy as sa
@@ -107,7 +108,7 @@ class CompanyService:
             uid = uuid.UUID(company_id) if isinstance(company_id, str) else company_id
             gr_result = await db.execute(
                 select(GoldenRecord).where(
-                    GoldenRecord.company_id == uid, GoldenRecord.is_active is True
+                    GoldenRecord.company_id == uid, GoldenRecord.is_active.is_(True)
                 )
             )
             golden_record = gr_result.scalar_one_or_none()
@@ -556,7 +557,7 @@ class CompanyService:
 
             gr_result = await session.execute(
                 select(GoldenRecord).where(
-                    GoldenRecord.company_id == uid, GoldenRecord.is_active is True
+                    GoldenRecord.company_id == uid, GoldenRecord.is_active.is_(True)
                 )
             )
             golden_record = gr_result.scalar_one_or_none()
@@ -635,7 +636,7 @@ class CompanyService:
 
             gr_result = await session.execute(
                 select(GoldenRecord).where(
-                    GoldenRecord.company_id == uid, GoldenRecord.is_active is True
+                    GoldenRecord.company_id == uid, GoldenRecord.is_active.is_(True)
                 )
             )
             gr = gr_result.scalar_one_or_none()
@@ -716,7 +717,7 @@ class CompanyService:
         }
 
         # ── Knowledge Graph section ──
-        kg_section = {
+        kg_section: dict[str, Any] = {
             "relationships": [],
             "hierarchy": {
                 "parent_company": None,
@@ -1077,13 +1078,11 @@ class CompanyService:
         return {"updated": updated, "failed": failed, "errors": errors}
 
     async def bulk_delete_companies(self, company_ids: list[str]) -> dict:
-        now = datetime.now(UTC)
         deleted = 0
 
         for cid in company_ids:
             try:
                 company = await self.get_company(cid)
-                company.deleted_at = now
                 company.is_active = False
                 company.status = "deleted"
                 await self.db.flush()

@@ -9,7 +9,7 @@ All SDK imports are lazy (inside methods) to avoid eager __init__.py chain.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,7 +39,7 @@ class PgVectorCompanyRepository(SearchRepository[Any]):
             from sdk.vector import OpenAIEmbeddingService
 
             self._embedding_service = OpenAIEmbeddingService()
-        return await self._embedding_service.embed(query.query)
+        return cast(list[float], await self._embedding_service.embed(query.query))
 
     async def _vector_search(self, embedding: list[float], query: SearchQuery) -> SearchResult[Any]:
         records = await self._store.search(embedding, top_k=query.page_size)

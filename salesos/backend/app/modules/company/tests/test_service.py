@@ -528,7 +528,7 @@ async def test_kg_engine_get_company_insights_basic(db_session: AsyncSession, te
     await db_session.commit()
 
     # Create competitor edges
-    await kg._create_edge_sql(c1, c2, EdgeType.COMPETITOR_OF, {"reason": "same_industry"})
+    await kg.create_edge(c1, c2, EdgeType.COMPETITOR_OF, {"reason": "same_industry"}, tenant_id=test_tenant)
 
     insights = await kg.get_company_insights(c1, test_tenant)
     assert insights["company_id"] == c1

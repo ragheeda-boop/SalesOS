@@ -144,6 +144,7 @@ async def test_ingest_source_ids_appended(db_session: AsyncSession, test_tenant:
     company = (
         await db_session.execute(sa_select(Company).where(Company.cr_number == "CR-SRC-001"))
     ).scalar_one()
+    assert company.source_ids is not None
     assert "src-a" in company.source_ids
     assert "src-b" in company.source_ids
 

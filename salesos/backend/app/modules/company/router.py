@@ -5,6 +5,7 @@ import logging
 import time
 import uuid
 from datetime import date, datetime
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -123,7 +124,7 @@ async def search_companies(
     planner: SearchPlanner = Depends(get_search_planner),
     service: CompanyService = Depends(get_service),
 ):
-    filters = {}
+    filters: dict[str, Any] = {}
     if cr_number:
         filters["cr_number"] = {"contains": cr_number}
     if status:
@@ -556,7 +557,7 @@ async def search_companies_cursor(
     tenant_id: str = Depends(get_current_tenant_id),
     service: CompanyService = Depends(get_service),
 ):
-    filters = {}
+    filters: dict[str, Any] = {}
     if cr_number:
         filters["cr_number"] = {"contains": cr_number}
     if status:
