@@ -37,7 +37,9 @@ async def list_roles(
 
 @router.post("/roles", response_model=RoleResponse, status_code=201)
 async def create_role(body: RoleCreate, repos: AdminRepositories = Depends(get_admin_repos)):
-    role_id = f"role_{hashlib.md5(body.name.encode()).hexdigest()[:8]}"
+    role_id = f"role_{hashlib.md5(
+        body.name.encode(), usedforsecurity=False
+    ).hexdigest()[:8]}"
     existing = await repos.roles.get(role_id)
     if existing:
         raise HTTPException(status_code=409, detail=f"Role '{body.name}' already exists")
