@@ -225,6 +225,15 @@
 **Consequence:** CI-02 **CLOSED** — all pip-audit toolchain failures eliminated; any future pip-audit failure is evidence of real vulnerabilities to be handled in **CI-16 / R-21**, not CI infrastructure. DEC-024 **RATIFIED**; R-21 remains **OPEN**; CI-16 moved to **BACKLOG**. Program progress: **5/19** complete/closed (CI-01, CI-11, S04-01, CI-15, CI-02). Board and records updated; committed locally (no push).
 **Status:** Accepted. Phase 2 re-run result: **SUCCESS — CI-02 COMPLETE.**
 
+### DEC-026 — CI-03 Phase 1 approved and executed: `GF_SECURITY_ADMIN_PASSWORD` provided to the Docker Smoke workflow env (workflow-only, no compose weakening)
+
+**Date:** 2026-07-31
+**Context:** CI-03 (triage #8) — the Docker Smoke Test workflow's `Validate Compose File` step fails: `docker compose config` against `salesos/docker-compose.yml` errors `required variable GF_SECURITY_ADMIN_PASSWORD is missing a value` (run `30655650514`). The grafana service's `${GF_SECURITY_ADMIN_PASSWORD:?Set GF_SECURITY_ADMIN_PASSWORD}` is a correct guard; the gap is the workflow env, which provides postgres/neo4j/JWT/secret vars but not the Grafana password. Reproduced the exact error locally (host docker compose v5.3.1, `--env-file` mirroring the workflow `.env`): exit 1, same message.
+**Alternatives considered:** Removing/weakening the `:?` guard in the compose file — rejected by the executive (the guard is correct; CI must supply the right environment, not relax real config). Approved: add the dev-only smoke value to the workflow env.
+**Decision:** Added `GF_SECURITY_ADMIN_PASSWORD: salesos_smoke_test` to `.github/workflows/docker-smoke.yml` workflow-level env (mirroring the existing `salesos_smoke_test` credentials convention). Before/After proof executed: BEFORE = exit 1 with the exact GF interpolation error; AFTER = exit 0, **0** "required variable" lines, **0** "error while interpolating" lines, only the pre-existing optional-variable blank-defaulting warnings (ALERTMANAGER/SLACK/PAGERDUTY, present before the change, non-error). Principle ratified: **لا تُخفف متطلبات ملفات Compose لإرضاء CI؛ بل اجعل CI توفر البيئة الصحيحة التي يتطلبها Compose.**
+**Consequence:** `.github/workflows/docker-smoke.yml` updated (workflow only); YAML parse OK. No compose file, no grafana config, no secrets handling, no other service touched. Committed locally (no push); Phase 2 (controlled push/CI) pending executive approval.
+**Status:** Accepted. Phase 1 result: **SUCCESS — READY FOR PHASE 2.**
+
 ### DEC-019 — CI-11 closed: patch-only dependency remediation verified on real GitHub Actions; zero regressions
 
 **Date:** 2026-07-31

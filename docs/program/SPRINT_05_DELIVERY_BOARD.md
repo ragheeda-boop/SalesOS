@@ -11,7 +11,7 @@
 | S04-04 | Railway R-14 closure (DEC-016) | P0 | BLOCKED | Requires authorization/credentials |
 | S04-01 | Adversarial RLS suite `tests/integration/test_adversarial_rls.py` | P0 | COMPLETE | 7/7 PASS after CI-15 (07e3ec4084fc); closed DEC-021; uncommitted fixes committed with CI-15 |
 | CI-02 | pip-audit (Poetry) in CI | P0 | CLOSED | Closed DEC-025; commits `b330d52`+`a4e880c`; re-run `30655650484` proves chain: Poetry 2.x → plugin → `poetry export` → `pip-audit` → **24 vulns / 4 packages** → `--strict` exit 1 on findings (toolchain failure eliminated); Security Scan `pip-audit` SUCCESS (`30655650490`); residual findings → R-21/CI-16 |
-| CI-03 | docker-smoke env var (`GF_SECURITY_ADMIN_PASSWORD`) | P0 | PENDING | |
+| CI-03 | docker-smoke env var (`GF_SECURITY_ADMIN_PASSWORD`) | P0 | IN PROGRESS | Phase 1 (DEC-026): env var added to workflow env; local Before/After proven; Phase 2 pending |
 | CI-07 | MyPy/Ruff `cli/` path in CI | P1 | PENDING | |
 | CI-04 | Workflow fix (triage) | P1 | PENDING | |
 | CI-05 | Workflow fix (triage) | P1 | PENDING | |

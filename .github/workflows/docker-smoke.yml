@@ -12,6 +12,7 @@ env:
   JWT_SECRET: smoke-test-secret-do-not-use-in-prod
   SECRET_KEY: smoke-test-secret-do-not-use-in-prod
   OPENAI_API_KEY: ""
+  GF_SECURITY_ADMIN_PASSWORD: salesos_smoke_test
 
 jobs:
   smoke:
