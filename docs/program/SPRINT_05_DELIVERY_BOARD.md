@@ -24,10 +24,10 @@
 | CI-10 | Workflow fix (triage) | P2 | PENDING | |
 | compose prod name fix | docker-compose production service name | P2 | PENDING | |
 | CI-14 | Frontend Dependency Modernization | P1 | REGISTERED | Standalone, Sprint 06 (DEC-018); dep CI-13; R-18 |
-| CI-15 | Analytics Schema Reconciliation (add `metrics`, `dimensions`, `filters`, `visualization_type`, `created_by` to `analytics_reports` via Alembic) | P0 | COMPLETE | Closed DEC-021; migration `07e3ec4084fc`; upgrade/downgrade/re-upgrade PASS; 7/7; R-19 closed |
-| DB-05 | Repository Schema Reconciliation Program — systemic ORM↔DB drift (R-20) | P1 | REGISTERED | Program story, multi-sprint (R-20); created by CI-15 Phase 1 decision; NOT part of CI-15 |
+| CI-15 | Analytics Schema Reconciliation (add `metrics`, `dimensions`, `filters`, `visualization_type`, `created_by` to `analytics_reports` via Alembic) | P0 | CLOSED | Closed DEC-022; migration `07e3ec4084fc`; Phase 1 validation PASS + Phase 2 push `4793b08` → CI run `30652813475` (matrix identical to baseline `30649799993`; only delta = 10 new Ruff style violations from the migration file in the pre-existing red Backend Lint gate, transferred to the lint backlog, not fixed in CI-15); R-19 closed |
+| DB-05 | Repository Schema Reconciliation Program — systemic ORM↔DB drift (R-20) | P1 | BACKLOG | Program story, multi-sprint (R-20); created by CI-15 Phase 1 decision; NOT part of CI-15; placed in backlog per DEC-022 |
 
 ## Progress
-- Complete: 4/19 (CI-01, CI-11, S04-01, CI-15). Blocked: CI-08, S04-04, CI-09. Registered: CI-14, CI-15, DB-05.
-- S04-01 status detail (CLOSED): RC1 (`:id::uuid` bind bug) and RC2 (cross-loop pool reuse) fixed and proven; 7th test was blocked on R-19 (analytics ORM↔DB drift), resolved by CI-15 migration `07e3ec4084fc`; suite now 7/7 PASS — see DEC-020/DEC-021.
-- CI-15 Phase 1 (approved ACs, DEC-021): analytics-only scope; systemic drift OUT of scope, registered as R-20 with Program Story DB-05. Principle: **Local Story fixes Local Drift. Systemic Drift becomes a Program Initiative.**
+- Complete/Closed: 4/19 (CI-01, CI-11, S04-01, CI-15). Blocked: CI-08, S04-04, CI-09. Registered: CI-14. Backlog: DB-05.
+- S04-01 status detail (CLOSED): RC1 (`:id::uuid` bind bug) and RC2 (cross-loop pool reuse) fixed and proven; 7th test was blocked on R-19 (analytics ORM↔DB drift), resolved by CI-15 migration `07e3ec4084fc`; suite now 7/7 PASS — see DEC-020/DEC-021/DEC-022.
+- CI-15 Phase 1 (approved ACs, DEC-021): analytics-only scope; systemic drift OUT of scope, registered as R-20 with Program Story DB-05. Principle: **Local Story fixes Local Drift. Systemic Drift becomes a Program Initiative.** Phase 2 (DEC-022): pushed `4793b08`, CI run `30652813475` — job matrix identical to baseline, no functional/test/RLS/integration regression; 10 new Ruff style violations from the migration file disclosed and transferred to the lint backlog (not fixed within CI-15).
