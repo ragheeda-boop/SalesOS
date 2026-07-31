@@ -19,7 +19,7 @@
 | CI-13 | Jest suite baseline | P1 | PENDING | Dependency for CI-14 |
 | S04-05 | Adversarial write-protection tests | P1 | PENDING | |
 | S04-06 | Adversarial suite (remaining) | P2 | PENDING | |
-| CI-12 | Trivy filesystem scan silent failure (triage #3) — investigate/verbose reproduce before fix | P2 | PENDING | Investigation spike; needs local Trivy verbose reproduction |
+| CI-12 | Trivy filesystem scan silent failure (triage #3) — investigate/verbose reproduce before fix | P2 | CLOSED | Closed DEC-034; root cause reproduced locally on clean `git archive` snapshot with exact CI flags — `--format sarif --output <file>` suppresses the findings table (stdout shows only npm/poetry detecting lines, exit 1); gate split into visible blocking table (exit-code 1) + SARIF export leg (exit-code 0, upload preserved); 11 real HIGH surfaced: poetry.lock 10 (ecdsa CVE-2024-23342 → CI-16/R-21) + package-lock.json 1 (sharp GHSA-f88m-g3jw-g9cj → CI-14); gate stays red while those exist, now visibly |
 | CI-09 | VPS SSH/secrets provisioning | P2 | BLOCKED | Ops-side secret provisioning; R-17 |
 | CI-10 | Backend Lint (Ruff) remediation — 3,611 violations body (triage #2) | P2 | PENDING | Dep CI-07; large mechanical + review work; alembic/versions excluded |
 | compose prod name fix | docker-compose production service name | P2 | PENDING | |
@@ -32,7 +32,7 @@
 | CI-19 | Semgrep findings remediation — 253 blocking findings surfaced by CI-18 run `30660116232` (2806 files, 595 rules); now visible in GitHub code scanning | P2 | REGISTERED | Surfaced by CI-18 (DEC-030); requires findings triage before scoping; NOT part of CI-18 |
 
 ## Progress
-- Complete/Closed: 12/19 (CI-01, CI-11, S04-01, CI-15, CI-02, CI-03, CI-04, CI-05, CI-18, CI-17, CI-07, CI-06). Blocked: CI-08, S04-04, CI-09. Registered: CI-14, CI-19. Backlog: DB-05, CI-16.
+- Complete/Closed: 13/19 (CI-01, CI-11, S04-01, CI-15, CI-02, CI-03, CI-04, CI-05, CI-18, CI-17, CI-07, CI-06, CI-12). Blocked: CI-08, S04-04, CI-09. Registered: CI-14, CI-19. Backlog: DB-05, CI-16.
 - S04-01 status detail (CLOSED): RC1 (`:id::uuid` bind bug) and RC2 (cross-loop pool reuse) fixed and proven; 7th test was blocked on R-19 (analytics ORM↔DB drift), resolved by CI-15 migration `07e3ec4084fc`; suite now 7/7 PASS — see DEC-020/DEC-021/DEC-022.
 - CI-15 Phase 1 (approved ACs, DEC-021): analytics-only scope; systemic drift OUT of scope, registered as R-20 with Program Story DB-05. Principle: **Local Story fixes Local Drift. Systemic Drift becomes a Program Initiative.** Phase 2 (DEC-022): pushed `4793b08`, CI run `30652813475` — job matrix identical to baseline, no functional/test/RLS/integration regression; 10 new Ruff style violations from the migration file disclosed and transferred to the lint backlog (not fixed within CI-15).
 - CI-02 Phase 1 (DEC-023): toolchain remediation only — `pipx install poetry` added to `security-pip-audit`; security-scan `-f` parse error fixed; YAML valid; local proof: `poetry export` exit 0 (98 deps) → `pip-audit` runs → real findings (R-21). Principle ratified: **CI Stories fix CI Infrastructure, not application dependencies.**
