@@ -1,15 +1,22 @@
 """Sprint 04 Story 4.1: Adversarial cross-tenant RLS validation suite."""
 from __future__ import annotations
 import uuid, pytest
+import pytest_asyncio
 from sqlalchemy import text
 from app.database import engine
 POLICY_COUNT = 46
 
 
+@pytest_asyncio.fixture(autouse=True)
+async def _dispose_engine_after_test():
+    yield
+    await engine.dispose()
+
+
 async def _create_tenants(session) -> tuple[str, str]:
     a, b = str(uuid.uuid4()), str(uuid.uuid4())
-    await session.execute(text("INSERT INTO tenants (id, name, slug) VALUES (:id::uuid, :name, :slug)"), {"id": a, "name": "S04 A", "slug": f"s04a-{a[:8]}"})
-    await session.execute(text("INSERT INTO tenants (id, name, slug) VALUES (:id::uuid, :name, :slug)"), {"id": b, "name": "S04 B", "slug": f"s04b-{b[:8]}"})
+    await session.execute(text("INSERT INTO tenants (id, name, slug) VALUES (:id, :name, :slug)"), {"id": a, "name": "S04 A", "slug": f"s04a-{a[:8]}"})
+    await session.execute(text("INSERT INTO tenants (id, name, slug) VALUES (:id, :name, :slug)"), {"id": b, "name": "S04 B", "slug": f"s04b-{b[:8]}"})
     return a, b
 
 
@@ -46,8 +53,8 @@ async def test_companies_isolation():
 async def test_users_isolation():
     async with engine.begin() as conn:
         ta, tb = await _create_tenants(conn)
-        await _ins(conn, ta, f"INSERT INTO users (id, tenant_id, email, full_name, role, hashed_password) VALUES (gen_random_uuid(), '{ta}'::uuid, 'ua-{ta[:8]}@t.l', 'UA', 'user', 'x')")
-        await _ins(conn, tb, f"INSERT INTO users (id, tenant_id, email, full_name, role, hashed_password) VALUES (gen_random_uuid(), '{tb}'::uuid, 'ub-{tb[:8]}@t.l', 'UB', 'user', 'x')")
+        await _ins(conn, ta, f"INSERT INTO users (id, tenant_id, email, password_hash, full_name, role) VALUES (gen_random_uuid(), '{ta}'::uuid, 'ua-{ta[:8]}@t.l', 'x', 'UA', 'user')")
+        await _ins(conn, tb, f"INSERT INTO users (id, tenant_id, email, password_hash, full_name, role) VALUES (gen_random_uuid(), '{tb}'::uuid, 'ub-{tb[:8]}@t.l', 'x', 'UB', 'user')")
         await _chk(conn, ta, f"SELECT count(*) FROM users WHERE tenant_id='{ta}'::uuid", 1, "own")
         await _chk(conn, tb, f"SELECT count(*) FROM users WHERE tenant_id='{ta}'::uuid", 0, "cross")
         await _fc(conn, f"SELECT count(*) FROM users WHERE tenant_id='{ta}'::uuid", "users")
@@ -82,8 +89,8 @@ async def test_golden_records_isolation():
 async def test_notifications_isolation():
     async with engine.begin() as conn:
         ta, tb = await _create_tenants(conn)
-        await _ins(conn, ta, f"INSERT INTO notifications (id, tenant_id, user_id, type, title, body, read) VALUES (gen_random_uuid(), '{ta}', '{uuid.uuid4()}', 'info', 'NA', '', false)")
-        await _ins(conn, tb, f"INSERT INTO notifications (id, tenant_id, user_id, type, title, body, read) VALUES (gen_random_uuid(), '{tb}', '{uuid.uuid4()}', 'info', 'NB', '', false)")
+        await _ins(conn, ta, f"INSERT INTO notifications (notification_id, tenant_id, user_id, type, title, body, read) VALUES (gen_random_uuid(), '{ta}', '{uuid.uuid4()}', 'info', 'NA', '', false)")
+        await _ins(conn, tb, f"INSERT INTO notifications (notification_id, tenant_id, user_id, type, title, body, read) VALUES (gen_random_uuid(), '{tb}', '{uuid.uuid4()}', 'info', 'NB', '', false)")
         await _chk(conn, ta, f"SELECT count(*) FROM notifications WHERE tenant_id='{ta}'", 1, "own")
         await _chk(conn, tb, f"SELECT count(*) FROM notifications WHERE tenant_id='{ta}'", 0, "cross")
         await _fc(conn, f"SELECT count(*) FROM notifications WHERE tenant_id='{ta}'", "notif")
@@ -94,19 +101,17 @@ async def test_notifications_isolation():
 async def test_analytics_reports_isolation():
     async with engine.begin() as conn:
         ta, tb = await _create_tenants(conn)
-        await _ins(conn, ta, f"INSERT INTO analytics_reports (id, tenant_id, name, cube_type, metrics, dimensions, filters, visualization_type, created_by) VALUES ('{uuid.uuid4()}', '{ta}', 'RA', 'search', '[\"count\"]'::jsonb, '[\"day\"]'::jsonb, '{{}}'::jsonb, 'table', '{uuid.uuid4()}')")
-        await _ins(conn, tb, f"INSERT INTO analytics_reports (id, tenant_id, name, cube_type, metrics, dimensions, filters, visualization_type, created_by) VALUES ('{uuid.uuid4()}', '{tb}', 'RB', 'search', '[\"count\"]'::jsonb, '[\"day\"]'::jsonb, '{{}}'::jsonb, 'table', '{uuid.uuid4()}')")
+        await _ins(conn, ta, f"INSERT INTO analytics_reports (id, tenant_id, name, type, metrics, dimensions, filters, visualization_type, created_by) VALUES ('{uuid.uuid4()}', '{ta}', 'RA', 'search', '[\"count\"]'::jsonb, '[\"day\"]'::jsonb, '{{}}'::jsonb, 'table', '{uuid.uuid4()}')")
+        await _ins(conn, tb, f"INSERT INTO analytics_reports (id, tenant_id, name, type, metrics, dimensions, filters, visualization_type, created_by) VALUES ('{uuid.uuid4()}', '{tb}', 'RB', 'search', '[\"count\"]'::jsonb, '[\"day\"]'::jsonb, '{{}}'::jsonb, 'table', '{uuid.uuid4()}')")
         await _chk(conn, ta, f"SELECT count(*) FROM analytics_reports WHERE tenant_id='{ta}'", 1, "own")
         await _chk(conn, tb, f"SELECT count(*) FROM analytics_reports WHERE tenant_id='{ta}'", 0, "cross")
         await _fc(conn, f"SELECT count(*) FROM analytics_reports WHERE tenant_id='{ta}'", "analytics")
         await conn.rollback()
 
 
-def test_rls_policies_intact():
-    import asyncio
-    async def _c():
-        async with engine.begin() as conn:
-            r = await conn.execute(text("SELECT count(*) FROM pg_policies WHERE policyname LIKE 'tenant_isolation_%'"))
-            assert r.scalar() == POLICY_COUNT, f"policies changed: {r.scalar()}"
-            await conn.rollback()
-    asyncio.run(_c())
+@pytest.mark.asyncio
+async def test_rls_policies_intact():
+    async with engine.begin() as conn:
+        r = await conn.execute(text("SELECT count(*) FROM pg_policies WHERE policyname LIKE 'tenant_isolation_%'"))
+        assert r.scalar() == POLICY_COUNT, f"policies changed: {r.scalar()}"
+        await conn.rollback()
