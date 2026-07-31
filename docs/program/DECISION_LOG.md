@@ -463,3 +463,14 @@
 **Status:** Accepted. STORY-02-01 **DONE** (revised AC).
 
 **Records note (2026-08-01, pointer only — no new architecture):** Human confirmed Option B state. Phase 0 exit **critical path = S04-04 only**; STORY-02-01 stays **CLOSED** (do not reopen). Parallel READY continues: S04-06, CI-20, CI-19 Waves 2–5, CI-16, CI-14, Jest-debt. See `EXECUTION_DAG.md` / `SPRINT_05_DELIVERY_BOARD.md` / `SPRINT_PLAN/Sprint-03.md`.
+
+---
+
+### DEC-045 — S04-06 closed: adversarial RLS remaining suite on master; Docker evidence **build validated** (15/15)
+
+**Date:** 2026-08-01
+**Context:** S04-06 (adversarial suite remaining) landed as commit `119df9e` (`tests/integration/test_adversarial_rls_remaining.py` — 7 tables: contacts, company_features, commercial_opportunities, opportunities, tasks, tenant_configs, webhook_subscriptions). S04-01 and S04-05 suites unchanged. Docker evidence: **15/15 PASS**. Adversarial `POLICY_COUNT` remains **47** (DEC-044). RLS inventory was **not** reopened.
+**Alternatives considered:** (a) reopen RLS inventory / revise POLICY_COUNT while adding coverage — rejected (DEC-044 stands); (b) close S04-06 as COMPLETE with **build validated** Docker evidence and keep **CI GREEN not met** honesty — approved.
+**Decision:** Close S04-06 as COMPLETE with validation label **build validated** (Docker pytest 15/15 PASS). Does not claim overall CI workflow green or Phase 0 GO. Does not reopen STORY-02-01 / RLS inventory.
+**Consequence:** Board S04-06 COMPLETE/CLOSED; program progress **19/20**. Residual parallel READY unchanged except S04-06 removed. Phase 0 exit still **NO-GO** (S04-04 only). **CI GREEN not met.**
+**Status:** Accepted. S04-06 **COMPLETE**. Field-verify label: **build validated** (Docker suite only).

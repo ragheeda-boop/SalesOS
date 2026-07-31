@@ -27,7 +27,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
                                                      │ sole remaining critical-path gate (human)
 ```
 
-**Phase 0 exit critical path = S04-04 only.** STORY-02-01 story AC is satisfied under **DEC-044** (47) and is **not** on the critical path. CI residual work, adversarial coverage (S04-06), and Sprint 05/06 READY items continue **in parallel** — they are independent of the Human Gate on S04-04 and do **not** reopen STORY-02-01. Closing S04-04 (or a formal accept-without-Railway decision) is the Phase 0 exit blocker. **Current gate: NO-GO.**
+**Phase 0 exit critical path = S04-04 only.** STORY-02-01 story AC is satisfied under **DEC-044** (47) and is **not** on the critical path. CI residual work and Sprint 05/06 READY items continue **in parallel** — they are independent of the Human Gate on S04-04 and do **not** reopen STORY-02-01. S04-06 adversarial remaining suite is **COMPLETE** (DEC-045). Closing S04-04 (or a formal accept-without-Railway decision) is the Phase 0 exit blocker. **Current gate: NO-GO.**
 
 ---
 
@@ -47,7 +47,6 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 
 | Item | Class | Why ready now | Notes |
 |---|---|---|---|
-| **S04-06** Adversarial suite (remaining) | READY / PARALLEL | S04-01 + S04-05 landed; no credential block | P2 board pending; expect POLICY_COUNT 47 after DEC-044 migration |
 | **CI-20** Backend Types (MyPy) | READY / PARALLEL (phased) | REGISTERED; 308 errors; Backend Lint already green | DEC-038 — Sprint 05/06 pull; not mechanical this sprint |
 | **CI-19** Semgrep Waves 2–5 | READY / PARALLEL | Wave 1 COMPLETE (`d5c9b57`); Waves 2–5 REGISTERED | SQL honesty, SHA pins, noise excludes, residual; R-24 |
 | **CI-16** Backend dependency security | READY / PARALLEL (backlog pull) | BACKLOG; R-21 | Not part of CI-02; Sprint 05/06 eligible |
@@ -65,6 +64,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 | Item | Class | Notes |
 |---|---|---|
 | **STORY-02-01** (RLS rollout) | **DONE** (revised AC) | DEC-044 Option B: **47** policies (`065d1d3a466b` + `company_features`). Draft RLS-72 **Superseded**. R-25 Closed-as-accepted-scope. **Do not reopen.** Not Phase 0 GO |
+| **S04-06** Adversarial suite (remaining) | **COMPLETE** | DEC-045; commit `119df9e`; Docker **15/15 PASS** (**build validated**); POLICY_COUNT 47 intact; inventory not reopened |
 
 ---
 
@@ -72,7 +72,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 
 | Track | Class | Justification |
 |---|---|---|
-| **S04-06**, **CI-20**, **CI-19 Waves 2–5**, **CI-16**, **CI-14**, **Jest-debt** | PARALLEL / READY | Explicitly unblocked for Sprint 05/06 execution while S04-04 waits on human auth |
+| **CI-20**, **CI-19 Waves 2–5**, **CI-16**, **CI-14**, **Jest-debt** | PARALLEL / READY | Explicitly unblocked for Sprint 05/06 execution while S04-04 waits on human auth |
 | Contract tests expansion (post STORY-03-04) | PARALLEL | Framework LANDED (`623077c`); more endpoints can add without Railway |
 | JWT audience **consumption** (EPIC-04 / Sprint 04 STORY-02-03 consume) | PARALLEL | Groundwork DONE (`2379e5f`); consumption is separate story |
 | Owner Admin / commercial FE that does not claim Phase 0 GO | PARALLEL | Must not weaken auth/CSRF/RBAC; must not market Phase 0 complete |
@@ -84,6 +84,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 | Story / item | SHA | Records status | Validation |
 |---|---|---|---|
 | S04-05 write-protection suite | `8699796` | COMPLETE (DEC-039) | **build validated** — Docker pytest **8/8 PASS in 4.88s** |
+| S04-06 adversarial RLS remaining | `119df9e` | COMPLETE (DEC-045) | **build validated** — Docker pytest **15/15 PASS**; POLICY_COUNT 47 intact |
 | CI-21 Gitleaks JWT fixture neutralize | `b03ffbf` | CLOSED | fixture replaced; scanner not weakened |
 | STORY-02-03 JWT audience groundwork | `2379e5f` | DONE | **not validated** |
 | STORY-02-02 server-side middleware | `3f4b3c8` | PARTIAL | unit helpers present; browser **not validated** |
@@ -95,7 +96,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 
 ## Board progress fraction
 
-**18/20** Complete/Closed on `SPRINT_05_DELIVERY_BOARD.md` (S04-05 + CI-21 closed). Pending: S04-06. In progress: CI-19 Wave 1 done / Waves 2–5 READY. Blocked (critical path): **S04-04 only**. Also blocked (non-critical-path ops): CI-08, CI-09.
+**19/20** Complete/Closed on `SPRINT_05_DELIVERY_BOARD.md` (S04-06 closed DEC-045). Pending: none. In progress: CI-19 Wave 1 done / Waves 2–5 READY. Blocked (critical path): **S04-04 only**. Also blocked (non-critical-path ops): CI-08, CI-09.
 
 ---
 
