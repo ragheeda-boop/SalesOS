@@ -47,7 +47,7 @@ jobs:
           output: trivy-results.sarif
           severity: CRITICAL,HIGH,MEDIUM
       - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4.37.3
         with:
           sarif_file: trivy-results.sarif
           category: trivy-fs
@@ -60,7 +60,7 @@ jobs:
           output: trivy-config-results.sarif
           severity: CRITICAL,HIGH,MEDIUM
       - name: Upload Trivy config results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4.37.3
         with:
           sarif_file: trivy-config-results.sarif
           category: trivy-config
@@ -123,7 +123,7 @@ jobs:
             -ll -iii || true
       - name: Upload bandit results
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4.37.3
         with:
           sarif_file: salesos/backend/bandit-results.sarif
       - name: Install semgrep
@@ -134,7 +134,7 @@ jobs:
         continue-on-error: true
       - name: Upload semgrep results
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4.37.3
         with:
           sarif_file: semgrep-results.sarif
 
