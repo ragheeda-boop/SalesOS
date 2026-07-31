@@ -5,7 +5,7 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "dependencies": {
-    "react": "^19.0",
+    "react": "^19.2",
     "@salesos/ui": "*",
     "@salesos/icons": "*",
     "@salesos/charts": "*",
@@ -16,6 +16,6 @@
     "@salesos/widget-sdk": "*"
   },
   "peerDependencies": {
-    "react": "^19.0"
+    "react": "^19.2"
   }
 }
