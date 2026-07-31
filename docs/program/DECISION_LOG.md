@@ -395,3 +395,14 @@
 **Decision:** **Not decided.** Full ARB + Risk Manager package: [`docs/program/decisions/DEC-DRAFT-RAILWAY-R14-PHASE0.md`](decisions/DEC-DRAFT-RAILWAY-R14-PHASE0.md). Package **recommends Option A**; interim posture if unauthorized = Option C (not B).
 **Consequence:** Phase 0 exit remains **NO-GO**. S04-04 remains BLOCKED. No Railway changes authorized by this entry. Upon human accept, mint Accepted **DEC-016** (or next free ID) and mark this draft Superseded.
 **Status:** **DRAFT** (not Accepted).
+
+---
+
+### DEC-DRAFT-RAILWAY-R14-PHASE0 — Phase 0 exit blocked on Railway R-14 human authorization (S04-04)
+
+**Date:** 2026-08-01
+**Context:** R-14 is PARTIALLY CLOSED (local/CI/staging/prod-template remediated per DEC-014/DEC-015); Railway remains the sole open environment, left untouched by explicit prior choice. Stop condition S04-04 blocks Phase 0 GO. Board story S04-04 references "DEC-016," but no Accepted DEC-016 exists yet.
+**Alternatives considered (draft):** (A) authorize Railway remediation now per `OPERATIONS_MANUAL.md` §14; (B) formally accept Phase 0 exit without Railway coverage (residual risk; requires DEC-008 carve-out); (C) defer Phase 0 GO indefinitely while continuing local/CI/non-Railway work.
+**Decision:** **Not decided.** Full ARB + Risk Manager package: [`docs/program/decisions/DEC-DRAFT-RAILWAY-R14-PHASE0.md`](decisions/DEC-DRAFT-RAILWAY-R14-PHASE0.md). Package **recommends Option A**; interim posture if unauthorized = Option C (not B).
+**Consequence:** Phase 0 exit remains **NO-GO**. S04-04 remains BLOCKED. No Railway changes authorized by this entry. Upon human accept, mint Accepted **DEC-016** (or next free ID) and mark this draft Superseded.
+**Status:** **DRAFT** (not Accepted).
