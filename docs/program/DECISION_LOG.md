@@ -225,6 +225,15 @@
 **Consequence:** CI-02 **CLOSED** — all pip-audit toolchain failures eliminated; any future pip-audit failure is evidence of real vulnerabilities to be handled in **CI-16 / R-21**, not CI infrastructure. DEC-024 **RATIFIED**; R-21 remains **OPEN**; CI-16 moved to **BACKLOG**. Program progress: **5/19** complete/closed (CI-01, CI-11, S04-01, CI-15, CI-02). Board and records updated; committed locally (no push).
 **Status:** Accepted. Phase 2 re-run result: **SUCCESS — CI-02 COMPLETE.**
 
+### DEC-035 — CI-13 closed: Jest suite baseline captured from real CI evidence — 33/194 failing suites inventoried; dependency contract set for CI-14
+
+**Date:** 2026-07-31
+**Context:** CI-13 (triage #7, P1) — CI `Stage 3: Frontend Unit Tests` fails with `Test Suites: 33 failed, 161 passed, 194 total` / `Tests: 163 failed, 1 skipped, 2092 passed, 2256 total`, identical to the Sprint 01 closing numbers and the Sprint 04 triage. Not a regression. CI-14 (Frontend Dependency Modernization) lists CI-13 as a dependency for its Jest-major leg — the dependency needs a fixed-point baseline to measure before/after.
+**Alternatives considered:** (a) Run the full Jest suite locally to produce the list — unnecessary: the real CI run already produces the ground-truth inventory with command evidence; (b) treat CI-13 as the full remediation of the 33 suites — rejected: that is the separately-scoped Sprint 01 Jest-debt story (1–2 days), and CI-14 only needs the baseline dependency.
+**Decision:** Extracted the exact failing-suite inventory and counts from real CI run `30664173050` (commit `d48cc80`, job `Stage 3: Frontend Unit Tests`, conclusion failure): **33 failing suites** (full list, including `src/components/foundation/__tests__/card.test.tsx` = `Test suite failed to run`), 163 failed / 1 skipped / 2092 passed / 2256 total. Root-cause categories recorded: (1) Card component gap (canonical `@salesos/ui` Card vs deprecated `src/components/foundation/card.tsx` duplicate); (2) stale UI-text assertions (`Expected substring: "Search failed"`, monitoring/DB-connection wiring); (3) jsdom missing browser APIs (`scrollTo`/`scrollIntoView`). Deliverable committed: `salesos/docs/audit/ga-engineering-audit/JEST_BASELINE.md`.
+**Consequence:** CI-13 **CLOSED**. Dependency contract for CI-14: after any dependency bump, failing suites `<= 33` and failing tests `<= 163` — no new failures beyond the inventoried 33 acceptable; suites that turn green during CI-14 work are removed from the baseline with a note. The remediation of the 33 suites remains the Sprint 01 Jest-debt story (not CI-14's scope). Program progress: **14/19**.
+**Status:** Accepted. CI-13 **COMPLETE.**
+
 ### DEC-034 — CI-12 closed: Trivy fs "silent failure" root-caused (SARIF suppresses the findings table) — gate split into visible blocking table + SARIF upload leg; 11 real HIGH findings surfaced and tracked
 
 **Date:** 2026-07-31
