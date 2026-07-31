@@ -11,7 +11,7 @@
 | S04-04 | Railway R-14 closure (DEC-016) | P0 | BLOCKED | Requires authorization/credentials |
 | S04-01 | Adversarial RLS suite `tests/integration/test_adversarial_rls.py` | P0 | COMPLETE | 7/7 PASS after CI-15 (07e3ec4084fc); closed DEC-021; uncommitted fixes committed with CI-15 |
 | CI-02 | pip-audit (Poetry) in CI | P0 | CLOSED | Closed DEC-025; commits `b330d52`+`a4e880c`; re-run `30655650484` proves chain: Poetry 2.x → plugin → `poetry export` → `pip-audit` → **24 vulns / 4 packages** → `--strict` exit 1 on findings (toolchain failure eliminated); Security Scan `pip-audit` SUCCESS (`30655650490`); residual findings → R-21/CI-16 |
-| CI-03 | docker-smoke env var (`GF_SECURITY_ADMIN_PASSWORD`) | P0 | IN PROGRESS | Phase 1 (DEC-026): env var added to workflow env; local Before/After proven; Phase 2 pending |
+| CI-03 | docker-smoke env var (`GF_SECURITY_ADMIN_PASSWORD`) | P0 | CLOSED | Closed DEC-027; commit `83e703e`; run `30656335600` — **full Docker E2E Smoke Test job SUCCESS** (Validate Compose File 1s → Build 111s → Start 79s → Smoke Tests 30s); interpolation issue eliminated |
 | CI-07 | MyPy/Ruff `cli/` path in CI | P1 | PENDING | |
 | CI-04 | Workflow fix (triage) | P1 | PENDING | |
 | CI-05 | Workflow fix (triage) | P1 | PENDING | |
@@ -29,7 +29,7 @@
 | CI-16 | Backend Dependency Security Remediation — remediate `python-multipart`, `strawberry-graphql`, `starlette`, `ecdsa` vulnerabilities found by `pip-audit` (R-21) | P1 | BACKLOG | Standalone, DEC-023; NOT part of CI-02 (toolchain only); placed in backlog per DEC-025 |
 
 ## Progress
-- Complete/Closed: 5/19 (CI-01, CI-11, S04-01, CI-15, CI-02). Blocked: CI-08, S04-04, CI-09. Registered: CI-14. Backlog: DB-05, CI-16.
+- Complete/Closed: 6/19 (CI-01, CI-11, S04-01, CI-15, CI-02, CI-03). Blocked: CI-08, S04-04, CI-09. Registered: CI-14. Backlog: DB-05, CI-16.
 - S04-01 status detail (CLOSED): RC1 (`:id::uuid` bind bug) and RC2 (cross-loop pool reuse) fixed and proven; 7th test was blocked on R-19 (analytics ORM↔DB drift), resolved by CI-15 migration `07e3ec4084fc`; suite now 7/7 PASS — see DEC-020/DEC-021/DEC-022.
 - CI-15 Phase 1 (approved ACs, DEC-021): analytics-only scope; systemic drift OUT of scope, registered as R-20 with Program Story DB-05. Principle: **Local Story fixes Local Drift. Systemic Drift becomes a Program Initiative.** Phase 2 (DEC-022): pushed `4793b08`, CI run `30652813475` — job matrix identical to baseline, no functional/test/RLS/integration regression; 10 new Ruff style violations from the migration file disclosed and transferred to the lint backlog (not fixed within CI-15).
 - CI-02 Phase 1 (DEC-023): toolchain remediation only — `pipx install poetry` added to `security-pip-audit`; security-scan `-f` parse error fixed; YAML valid; local proof: `poetry export` exit 0 (98 deps) → `pip-audit` runs → real findings (R-21). Principle ratified: **CI Stories fix CI Infrastructure, not application dependencies.**

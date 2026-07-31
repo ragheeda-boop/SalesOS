@@ -234,6 +234,15 @@
 **Consequence:** `.github/workflows/docker-smoke.yml` updated (workflow only); YAML parse OK. No compose file, no grafana config, no secrets handling, no other service touched. Committed locally (no push); Phase 2 (controlled push/CI) pending executive approval.
 **Status:** Accepted. Phase 1 result: **SUCCESS — READY FOR PHASE 2.**
 
+### DEC-027 — CI-03 Phase 2 executed and closed: Docker Smoke Test fully green on real GitHub Actions (entire job, not just the gate)
+
+**Date:** 2026-07-31
+**Context:** Phase 2 authorized for commit `83e703e` (Docker Smoke workflow env now provides `GF_SECURITY_ADMIN_PASSWORD`). Stop rules: STOP on `Validate Compose File` failure (interpolation/missing var/compose syntax/workflow parsing); any failure AFTER the validation gate is NOT CI-03 (new independent item, not to be fixed here).
+**Alternatives considered:** None — evidence dictated the outcome.
+**Decision:** Pushed `83e703e`; Docker Smoke Test run `30656335600` observed. Step results: Set up job SUCCESS, Checkout SUCCESS, Setup .env SUCCESS, **Validate Compose File SUCCESS (1s)** — no `required variable GF_SECURITY_ADMIN_PASSWORD is missing` message, no interpolation errors; then Build Services SUCCESS (111s), Start Services SUCCESS (79s), Run Smoke Tests SUCCESS (30s), Stop Services SUCCESS. **The entire Docker E2E Smoke Test job concluded SUCCESS** — no downstream failure to classify; the previously all-red workflow is now fully green.
+**Consequence:** CI-03 **CLOSED**; DEC-026 **RATIFIED**; Docker Smoke interpolation issue **eliminated**. Program progress: **6/19** complete/closed (CI-01, CI-11, S04-01, CI-15, CI-02, CI-03). Board and records updated; committed locally (no push). The smoke job is now a genuine regression guard for the docker stack.
+**Status:** Accepted. Phase 2 result: **SUCCESS — CI-03 COMPLETE.**
+
 ### DEC-019 — CI-11 closed: patch-only dependency remediation verified on real GitHub Actions; zero regressions
 
 **Date:** 2026-07-31
