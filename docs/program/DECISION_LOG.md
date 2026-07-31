@@ -225,6 +225,24 @@
 **Consequence:** CI-02 **CLOSED** — all pip-audit toolchain failures eliminated; any future pip-audit failure is evidence of real vulnerabilities to be handled in **CI-16 / R-21**, not CI infrastructure. DEC-024 **RATIFIED**; R-21 remains **OPEN**; CI-16 moved to **BACKLOG**. Program progress: **5/19** complete/closed (CI-01, CI-11, S04-01, CI-15, CI-02). Board and records updated; committed locally (no push).
 **Status:** Accepted. Phase 2 re-run result: **SUCCESS — CI-02 COMPLETE.**
 
+### DEC-033 — CI-06 closed: Deploy Production commit-comment 403 resolved with least-privilege job-level permissions
+
+**Date:** 2026-07-31
+**Context:** CI-06 (triage #14) — Deploy Production (`deploy.yml`) `GitHub commit comment` step (`actions/github-script@v7` → `github.rest.repos.createCommitComment`) failed with `HttpError: Resource not accessible by integration (403)` because the workflow-level `permissions:` block (deploy.yml:30) granted only `contents: read`, `packages: read`, `id-token: write` — insufficient for commit-comment creation. The comment step lives in the `notify` job (deploy.yml:276, `if: always()`), which also posts Slack/Teams notifications.
+**Alternatives considered:** (a) Bump the workflow-level block to `contents: write` — rejected: every job inherits write on contents, broader blast radius; (b) job-level `contents: write` scoped to the `notify` job only — chosen (least privilege).
+**Decision:** Added job-level `permissions: contents: write` to the `notify` job only; top-level stays `contents: read`. YAML parse OK. Pushed `20f88bc`. Evidence — Deploy Production run `30661932918`: `Deploy Notification` **SUCCESS**; notify log shows the `createCommitComment` step executed with **0** `HttpError` / `Resource not accessible` occurrences; definitive proof via `gh api commits/20f88bc/comments` → commit comment actually created by **`github-actions[bot]`** at 2026-07-31T20:12:07Z ("❌ Production deploy **failure** — `20f88bcd...`"). Remaining job failures in that run are pre-existing blocked items, not regressions: Deploy Blue Slot = GHCR 403 (→ CI-08 / R-17), Automatic Rollback = SSH/VPS secrets (→ CI-09).
+**Consequence:** CI-06 **CLOSED** — commit-comment notification path verified working end-to-end on the real runner. No regression. Program progress: **12/19**.
+**Status:** Accepted. CI-06 **COMPLETE.**
+
+### DEC-032 — CI-07 closed: non-existent `cli/` path removed from mypy/ruff invocations — Backend Types/Lint now fail only on real code debt
+
+**Date:** 2026-07-31
+**Context:** CI-07 (triage #1/#2 partial) — `.github/workflows/ci.yml` invoked `cli/` in `ruff check` (:48), `ruff format --check` (:50), and `mypy` (:92), but `cli/` does not exist in the repo → every CI run failed with `mypy: error: cannot read file 'cli'` (Backend Types) and `cli:1:1: E902` (Backend Lint), masking real findings.
+**Alternatives considered:** None — the path simply does not exist; removing it restores the gates to genuine results.
+**Decision:** Removed `cli/` from all three invocations (workflow-only). YAML parse OK; local ruff over `app/ tests/ sdk/ modules/` = **0 E902**. Committed `b0c0069`; pushed `ba673e7..b0c0069`. Because the subsequent CI-06 push (`20f88bc`) superseded the CI-07 run via the CI concurrency group (rapid successive pushes), CI-07 verification uses CI run `30661932842`, which contains **both** changes: `Stage 2: Backend Types` and `Stage 1: Backend Lint` logs show **0** `cannot read file 'cli'` and **0** E902 occurrences (both previously present in every run). Both gates now fail only on real code debt — mypy type errors (to be classified) and the Ruff body (3,611 → **CI-10**) — which is correct gate behavior.
+**Consequence:** CI-07 **CLOSED**. No regression. Program progress: **11/19** (interim; 12/19 after CI-06 close, DEC-033).
+**Status:** Accepted. CI-07 **COMPLETE.**
+
 ### DEC-026 — CI-03 Phase 1 approved and executed: `GF_SECURITY_ADMIN_PASSWORD` provided to the Docker Smoke workflow env (workflow-only, no compose weakening)
 
 **Date:** 2026-07-31
