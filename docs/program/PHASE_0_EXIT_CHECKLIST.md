@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-02 (DEC-148 criterion 3.8 CI GREEN code path **READY FOR REVIEW**; DEC-147a 3.5 **CLOSED CONDITIONAL**; Phase 0 **44/54**; residuals EOS **4.1/4.8** ARB · CI **3.7** + tip **3.8** same-run PENDING push · CI-08/09; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
+> **Last updated:** 2026-08-02 (DEC-148a criterion 3.8 CI GREEN code path **CLOSED CONDITIONAL**; DEC-147a 3.5 **CLOSED CONDITIONAL**; Phase 0 **45/54**; residuals EOS **4.1/4.8** ARB · CI **3.6–3.7/3.9–3.11** ops · tip **3.8** same-run PENDING push; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
 >
 > ## Operating State
 >
@@ -24,7 +24,7 @@
 
 **Phase 0 = NO-GO** (CI-08/CI-09; Security residuals; Capability/ADR drift)
 
-Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSED CONDITIONAL** (multi-tenant live split residual). Security **1.5** / CI **3.5 CLOSED CONDITIONAL** (post-align Security Scan pip-audit field-verify PENDING).
+Blocked on: **CI-08** (GHCR 403), **CI GREEN not met** (full/publish **3.9**). R-14 Railway **2.3 CLOSED CONDITIONAL** (multi-tenant live split residual). Security **1.5** / CI **3.5** / CI **3.8 CLOSED CONDITIONAL** (tip Stages 1–5 same-run field-verify PENDING until tip containing `14fce5f` is pushed; Stage 3/4 may still fail when unblocked).
 
 ---
 
@@ -73,7 +73,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 3.5 | Stage 5: Security Scan green | pip-audit (named ignore only), Bandit, Gitleaks, Semgrep residual-only | ✅ VERIFIED/CLOSED **CONDITIONAL** — Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL @ `5d558af` / pin `a6488f2` (DEC-147a); CI Stage 5 + Security Scan SUCCESS @ `c842245` (`30704321096` / `30704321107`); ecdsa named ignore (DEC-057/090/098); Semgrep residual **11** alembic (DEC-105); residual: *post-align Security Scan pip-audit field-verify PENDING until tip containing `fa266b5` is pushed*; does **not** auto-close **3.8**; DEC-085 untouched; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN / finding-zero / unconditional CLOSED |
 | 3.6 | Stage 6: Docker Build + Push green | Backend + Frontend images build + push | ⬜ CI-08 BLOCKED (GHCR 403) |
 | 3.7 | Stage 7: E2E green | Playwright specs PASS with real backend services | ⬜ CI e2e job has no services |
-| 3.8 | Full pipeline: CI GREEN (code path) | Stages 1–5 all green on same run | 🟡 READY FOR REVIEW — DEC-148; tip Lint blocker cleared locally (ruff 0.4.10 check+format exit 0); last push `c842245` / `30704321096` Stage 1 FAILURE (6× E501) → Stages 3 BE/4 SKIPPED; residual: *tip Stages 1–5 same-run field-verify PENDING until tip containing DEC-148 land is pushed*; historical Stages 1–5 SUCCESS @ `7ba137b` / `30689682988` (not tip); DEC-085 untouched; do **not** claim Production GO / CI GREEN / VERIFIED/CLOSED |
+| 3.8 | Full pipeline: CI GREEN (code path) | Stages 1–5 all green on same run | ✅ VERIFIED/CLOSED **CONDITIONAL** — Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL @ `14fce5f` (DEC-148a); local ruff 0.4.10 check+format exit 0; last push `c842245` / `30704321096` Stage 1 FAILURE (6× E501) → Stages 3 BE/4 SKIPPED; residual: *tip Stages 1–5 same-run field-verify PENDING until tip containing `14fce5f` is pushed* (Stage 3/4 may still fail when unblocked); historical Stages 1–5 SUCCESS @ `7ba137b` / `30689682988` (not tip); does **not** close **3.6–3.11** ops / **3.9** full CI GREEN; DEC-085 untouched; Orchestrator 2026-08-02; do **not** claim Production GO / CI GREEN / unconditional CLOSED |
 | 3.9 | Full pipeline: CI GREEN (incl. publish) | Stages 1–7 all green on same run | ⬜ CI-08 BLOCKED |
 | 3.10 | CI-08 GHCR 403 resolved | Stage 6 push succeeds (DEC-104 Option A) | ⬜ Ops/human |
 | 3.11 | CI-09 VPS SSH/secrets provisioned | Deploy workflows functional | ⬜ Ops/human |
@@ -180,14 +180,14 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 |---------|-------|----------|---------|------|
 | 1. Security P0 | 5 | 5 | 0 | 0 |
 | 2. RLS & Tenant Isolation | 7 | 6 | 0 | 1 |
-| 3. CI/CD Green | 11 | 5 | 2 (CI-08, CI-09) | 4 |
+| 3. CI/CD Green | 11 | 6 | 2 (CI-08, CI-09) | 3 |
 | 4. EOS Audit Pass | 8 | 6 | 0 | 2 |
 | 5. Capability Drift | 4 | 4 | 0 | 0 |
 | 6. ADR Drift | 5 | 5 | 0 | 0 |
 | 7. DB Schema | 6 | 6 | 0 | 0 |
 | 8. Engineering Stability | 4 | 4 | 0 | 0 |
 | 9. ADR-036 Applied | 4 | 4 | 0 | 0 |
-| **TOTAL** | **54** | **44** | **2** | **8** |
+| **TOTAL** | **54** | **45** | **2** | **7** |
 
 ---
 
@@ -202,6 +202,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 8.3 tip `test-architecture` (non-blocking for 8.3 CONDITIONAL) | Push tip containing `868a98c` | Field-verify Stage 5 `test-architecture` SUCCESS — does **not** upgrade to unconditional CLOSED until observed |
 | 8.2 at-scale soak (non-blocking for 8.2 CONDITIONAL) | Live soak at `max_parallel_workers=8` | Concurrent-writer soak at worker ceiling — does **not** upgrade to unconditional CLOSED until field-proven |
 | 3.5 post-align Security Scan pip-audit (non-blocking for 3.5 CLOSED CONDITIONAL) | Push tip containing `fa266b5` | Field-verify Security Scan pip-audit SUCCESS with poetry export + 1 ignored (ecdsa) — same residual as 1.5 DEC-128a; does **not** upgrade to unconditional CLOSED until observed; does **not** auto-close **3.8** |
+| 3.8 tip Stages 1–5 same-run (non-blocking for 3.8 CLOSED CONDITIONAL) | Push tip containing `14fce5f` | Field-verify Stages 1–5 SUCCESS on same named run — Stage 3/4 may still fail when Lint unblocks; does **not** upgrade to unconditional CLOSED until observed; does **not** close **3.6–3.11** / **3.9** full CI GREEN |
 
 ---
 

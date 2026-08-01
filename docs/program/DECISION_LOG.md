@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-02
 **Context:** Criterion **3.8** (Stages 1–5 same-run green; DEC-104 code path) blocked after last push tip `c842245` run [`30704321096`](https://github.com/ragheeda-boop/SalesOS/actions/runs/30704321096): Stage 1 Backend Lint **FAILURE** (6× E501); Stages 3 BE / 4 **SKIPPED**. Local tip also had format drift, I001, ARG001 on unpushed DEC-130g/capability work.
 **Alternatives considered:** (a) soften ruff / raise line-length — rejected; (b) claim VERIFIED/CLOSED / CI GREEN without tip same-run — rejected; (c) push immediately — deferred (prefer not); (d) park until CI-08 — rejected (3.8 is code path only); (e) minimal lint fixes + READY FOR REVIEW + PENDING push — approved.
-**Decision:** Accept criterion **3.8** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-148-CRITERION-3-8-CI-GREEN-CODE-PATH.md`](decisions/DEC-148-CRITERION-3-8-CI-GREEN-CODE-PATH.md). Residual: *tip Stages 1–5 same-run field-verify PENDING until tip containing this land is pushed*. Historical corroboration Stages 1–5 SUCCESS @ `7ba137b` / `30689682988` (not tip). DEC-085 intact. Do **not** claim Production GO / CI GREEN / VERIFIED/CLOSED.
-**Consequence:** Phase 0 criterion **3.8** = READY FOR REVIEW (Phase 0 remains **44/54**). Adjacent **3.7** BLOCKED. Ops CI-08/09 BLOCKED. EOS **4.1/4.8** ARB. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criterion **READY FOR REVIEW** (Arch + Validation + Orchestrator PENDING).
+**Decision:** Accept criterion **3.8** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-148-CRITERION-3-8-CI-GREEN-CODE-PATH.md`](decisions/DEC-148-CRITERION-3-8-CI-GREEN-CODE-PATH.md). Residual: *tip Stages 1–5 same-run field-verify PENDING until tip containing this land is pushed*. Historical corroboration Stages 1–5 SUCCESS @ `7ba137b` / `30689682988` (not tip). DEC-085 intact. Closed CONDITIONAL via DEC-148a after Arch+Val PASS_CONDITIONAL.
+**Consequence:** Phase 0 criterion **3.8** = READY FOR REVIEW then **CLOSED CONDITIONAL** via DEC-148a. Adjacent **3.7** BLOCKED. Ops CI-08/09 BLOCKED. EOS **4.1/4.8** ARB. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED CONDITIONAL via DEC-148a**.
+
+### DEC-148a — Orchestrator VERIFIED/CLOSED CONDITIONAL criterion 3.8 (2026-08-02)
+
+**Context:** Architecture PASS_CONDITIONAL ([architecture review 3.8](f1aabd28-8f69-4e4b-8b15-65c4255afbab)) + Validation PASS_CONDITIONAL ([Validate 3.8](16d41a8d-77b9-48ce-9ee3-323d90a8c2cf)) on land `14fce5f` / DEC-148; local ruff exit 0; tip Stages 1–5 same-run PENDING push.
+**Decision:** Accept **3.8 VERIFIED → CLOSED CONDITIONAL** (same honesty pattern as 3.5 DEC-147a / 1.5 DEC-128a). Residual explicit: *tip Stages 1–5 same-run field-verify PENDING until tip containing `14fce5f` is pushed* (Stage 3/4 may still fail when unblocked). Does **not** close **3.6–3.11** ops / **3.9** full CI GREEN. Phase 0 **44/54 → 45/54**. CI/CD Complete **5 → 6** / Open **4 → 3**. Residual CI **3.6/3.7/3.9–3.11** + ops CI-08/09 and EOS **4.1/4.8** remain OPEN (non-blocking for 3.8). Do **not** push. Do **not** claim Production GO / CI GREEN / unconditional CLOSED.
+**Consequence:** CI/CD cluster Complete **6/11**. Next PARALLEL READY: EOS Audit **4.1/4.8** (ARB — do not invent); CI **3.7** non-GHCR E2E/services prep (still blocked on Stage 6 dep for full path); optional contract tests / Jest 30. BLOCKED: ops CI-08/CI-09 (**3.6/3.9/3.10/3.11**). **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **3.8 CLOSED CONDITIONAL**.
 
 ### DEC-147 — Phase 0 criterion 3.5 Stage 5 Security Scan READY FOR REVIEW
 

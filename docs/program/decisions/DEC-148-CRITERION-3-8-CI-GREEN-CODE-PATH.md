@@ -1,6 +1,6 @@
-# DEC-148 — Phase 0 criterion 3.8: CI GREEN (code path) Stages 1–5 (READY FOR REVIEW)
+# DEC-148 — Phase 0 criterion 3.8: CI GREEN (code path) Stages 1–5 (CLOSED CONDITIONAL)
 
-> **Status:** **Accepted** — Criterion 3.8 = **READY FOR REVIEW** (Cursor COMPLETE; Arch + Validation + Orchestrator PENDING)  
+> **Status:** **Accepted** — Criterion 3.8 = **VERIFIED/CLOSED CONDITIONAL** (DEC-148a; Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL @ `14fce5f`)  
 > **Date:** 2026-08-02  
 > **Board:** Backend Lead / CI-adjacent (SalesOS / AQLIYA) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **3.8** · CI GREEN (**code path**) = Stages 1–5 all green on same named run (DEC-104 Option D)  
@@ -19,7 +19,7 @@ Package criterion **3.8** as **Cursor COMPLETE** / **READY FOR REVIEW**: clear t
 | Scope honesty | **CI GREEN (code path)** ≠ **CI GREEN (full incl. publish)** (DEC-104) |
 | This land | Minimal Ruff E501/I001/ARG001 + format fixes + docs packaging |
 | DEC-085 | **Intact** (not touched) |
-| Criterion state | **READY FOR REVIEW** (not VERIFIED/CLOSED) |
+| Criterion state | **VERIFIED/CLOSED CONDITIONAL** (DEC-148a; tip same-run PENDING) |
 
 ### Gate definition (honest)
 
@@ -91,9 +91,9 @@ No workflow soften. No auth/CSRF/RBAC/DEC-085 change. No Semgrep/`--strict`/igno
 
 | Check | Result |
 |---|---|
-| Checklist packaging | **READY FOR REVIEW** (this land) |
-| Architecture | **PENDING** |
-| Validation | **PENDING** (expected PASS_CONDITIONAL: tip Stages 1–5 same-run PENDING push) |
+| Checklist packaging | **CLOSED CONDITIONAL** (DEC-148a) |
+| Architecture | **PASS_CONDITIONAL** ([architecture review 3.8](f1aabd28-8f69-4e4b-8b15-65c4255afbab)) |
+| Validation | **PASS_CONDITIONAL** ([Validate 3.8](16d41a8d-77b9-48ce-9ee3-323d90a8c2cf); tip Stages 1–5 same-run PENDING push) |
 | Narrow ruff | **exit 0** check + format |
 | Full pytest / npm | **Not run** (low-load) |
 | Production / Railway | **Not run** |
@@ -105,13 +105,14 @@ No workflow soften. No auth/CSRF/RBAC/DEC-085 change. No Semgrep/`--strict`/igno
 
 ## 7. Records
 
-- Phase 0 criterion **3.8** → **READY FOR REVIEW** (Phase 0 remains **44/54** until Arch+Val+Orchestrator close)
-- CI/CD Complete **5/11** unchanged this land (3.5 CONDITIONAL); **3.8** moves Open → READY
-- Residual: *tip Stages 1–5 same-run field-verify PENDING until tip containing this land is pushed*
+- Phase 0 criterion **3.8** → **VERIFIED/CLOSED CONDITIONAL** (DEC-148a; Phase 0 **44/54 → 45/54**)
+- CI/CD Complete **5 → 6** / Open **4 → 3**
+- Residual: *tip Stages 1–5 same-run field-verify PENDING until tip containing `14fce5f` is pushed* (Stage 3/4 may still fail when unblocked)
+- Does **not** close **3.6–3.11** ops / **3.9** full CI GREEN
 - Adjacent **3.7** BLOCKED (E2E / Stage 6 / CI-08)
 - Ops **3.6 / 3.9 / 3.10** CI-08 BLOCKED · **3.11** CI-09 BLOCKED
 - EOS **4.1 / 4.8** ARB — do not invent
-- **Not claimed:** VERIFIED/CLOSED · Production GO · CI GREEN · Phase 0 exit
+- **Not claimed:** unconditional CLOSED · Production GO · CI GREEN · Phase 0 exit
 
 ---
 
@@ -122,8 +123,9 @@ No workflow soften. No auth/CSRF/RBAC/DEC-085 change. No Semgrep/`--strict`/igno
 | EV-001 | Tip Lint failure log | CI `30704321096` job `91380692793` — 6× E501 |
 | EV-002 | Historical Stages 1–5 green | Run `30689682988` @ `7ba137b` |
 | EV-003 | Local ruff 0.4.10 clean | `cd salesos/backend && poetry run ruff check app/ tests/ sdk/ modules/` + `ruff format --check` |
-| EV-004 | Tip same-run Stages 1–5 | **PENDING** push field-verify |
+| EV-004 | Tip same-run Stages 1–5 | **PENDING** push field-verify @ `14fce5f` |
 | EV-005 | This DEC | `docs/program/decisions/DEC-148-CRITERION-3-8-CI-GREEN-CODE-PATH.md` |
+| EV-006 | Orchestrator close | DEC-148a in `docs/program/DECISION_LOG.md` |
 
 ---
 
@@ -143,7 +145,7 @@ No workflow soften. No auth/CSRF/RBAC/DEC-085 change. No Semgrep/`--strict`/igno
 |---------|-------|------|
 | Tip Stage 3/4 after lint unblock | MEDIUM | Unpushed tip has large backend delta; unit/integration may fail when jobs resume — field-verify required |
 | Format-only churn | LOW | `ruff format` on already-landed tests/models only |
-| Overclaim | LOW | Explicit READY + PENDING push; no CI GREEN / Production GO |
+| Overclaim | LOW | Explicit CLOSED CONDITIONAL + PENDING push; no CI GREEN / Production GO / unconditional CLOSED |
 | DEC-085 | NONE | Untouched |
 
 ---
@@ -152,8 +154,8 @@ No workflow soften. No auth/CSRF/RBAC/DEC-085 change. No Semgrep/`--strict`/igno
 
 | Track | Note |
 |---|---|
-| Arch / Validation on 3.8 | Review this package; close only after tip same-run Stages 1–5 SUCCESS (or CONDITIONAL with named residual) |
-| Push field-verify | Human/ops when ready — prefer not this land |
-| **3.7** | BLOCKED behind Stage 6 / CI-08 + E2E services |
+| Push field-verify | Human/ops when ready — tip containing `14fce5f`; Stage 3/4 may still fail |
 | EOS **4.1/4.8** | ARB — do not invent |
-| Ops CI-08 / CI-09 | Human/ops BLOCKED |
+| **3.7** | BLOCKED behind Stage 6 / CI-08 + E2E services |
+| Ops CI-08 / CI-09 | Human/ops BLOCKED (**3.6/3.9/3.10/3.11**) |
+| Optional | Contract tests / Jest 30 |
