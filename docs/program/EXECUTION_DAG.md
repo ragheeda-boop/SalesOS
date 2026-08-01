@@ -60,7 +60,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Item | Class | Why ready now | Notes |
 |---|---|---|---|
-| **CI-19** Semgrep Wave 2 residual | IN PROGRESS / READY | Waves 1/3/4/5 COMPLETE; Wave 2 deferred (~108 `avoid-sqlalchemy-text`) | R-24; authorize Wave 2 when ready |
+| **CI-19** Semgrep Wave 2 residual | IN PROGRESS / READY | Waves 1/3/4/5 COMPLETE; Wave 2 Slice 1+2 COMPLETE (DEC-091/DEC-097); remainder ~43 `avoid-sqlalchemy-text`| R-24; authorize Wave 2 when ready |
 | **CI-22** FastAPI / Starlette / Pydantic | IN PROGRESS / READY | Phase 1 COMPLETE (DEC-081 @ `442af64`); further phases | R-21 starlette / pip-audit path |
 | **CI-14** Frontend Dependency Modernization | IN PROGRESS / READY (Sprint 06) | Slice 1 COMPLETE; Slice 2 STOP; Slice 3 pending | R-18; STOP silent majors |
 | **STORY-02-02** browser/E2E verify (if scoped) | **CLOSED** (DEC-095) | Live Next redirect: `/dashboard` → **307** `/login?callbackUrl=%2Fdashboard`; `/`+`/login` **200** | Optional authenticated `smoke-ui.ps1` not run; **CI GREEN not met** |
@@ -110,7 +110,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | STORY-02-02 server-side middleware | `3f4b3c8` | **DONE** (DEC-095) | Jest **14/14** (DEC-088) + live redirect probe **browser-validated** (DEC-095) |
 | STORY-03-04 OpenAPI contract framework | `623077c` | DONE | Framework land; pytest via DEC-093 |
 | Contract tests expansion slice 1 (DEC-094) | `93a00d7` | LANDED | `/ping` + `/health/live` typed + OpenAPI HTTP contracts |
-| Contract tests expansion slice 2 (DEC-094) | (this land) | IN PROGRESS | `/health` + `/health/ready` + honest DB/cache fixtures; next: 401/422, auth list |
+| Contract tests expansion slice 2 (DEC-094) | `0ac07bc` | LANDED | `/health` + `/health/ready` + honest DB/cache fixtures; next: 401/422, auth list |
 | STORY-02-04 §17.2 relabel | `932f722` | DONE | docs-only |
 | Card primitives (Jest debt related) | `9577c98` | Progress note only | **CI GREEN not met** |
 
@@ -118,7 +118,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 ## Board progress fraction
 
-**22/22** Complete/Closed on tracked Sprint 05 board fraction (includes **S04-04** / **CI-16** / **CI-20**). Adjacent closed: **Jest-debt / R-23**. Pending: none. In progress: CI-19 (Wave 2 Slice 1 COMPLETE / remainder OPEN), CI-14, CI-22. Blocked (critical path Phase 0): **none**. Also blocked (ops): CI-08 (P0), CI-09 (P2).
+**22/22** Complete/Closed on tracked Sprint 05 board fraction (includes **S04-04** / **CI-16** / **CI-20**). Adjacent closed: **Jest-debt / R-23**. Pending: none. In progress: CI-19 (Wave 2 Slice 1+2 COMPLETE / remainder OPEN), CI-14, CI-22. Blocked (critical path Phase 0): **none**. Also blocked (ops): CI-08 (P0), CI-09 (P2).
 
 ---
 
