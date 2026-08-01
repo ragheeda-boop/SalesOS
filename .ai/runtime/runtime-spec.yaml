@@ -1,0 +1,69 @@
+# AI Runtime Specification (not an engine)
+
+# This file is a CONTRACT for the future Agent Operating System.
+# It is NOT a running scheduler, queue, or process.
+# Full runtime construction remains DEFERRED per ADR-036 until Phase 0 foundation is stable.
+#
+# `.ai/` organization is Architecture Frozen (2026-08-01):
+# change only to close a PHASE_0_EXIT_CHECKLIST criterion or fix organizational defects.
+#
+# Role contracts: .ai/roles/
+# Engine bindings: .ai/runtime/agent-bindings.yaml (sole engine assignment surface)
+
+runtime_version: "1.0"
+status: SPECIFICATION
+architecture: frozen
+approved_by: ARB-2026-08-01-003
+baseline: "1.0.0"
+# See also: .ai/VERSION
+
+scheduler:
+  role: execution-orchestrator
+  contract: .ai/roles/execution-orchestrator.md
+
+queue:
+  unit: criterion
+  source: docs/program/PHASE_0_EXIT_CHECKLIST.md
+
+worker_strategy:
+  mode: ephemeral
+  inherit: parent_role_contract
+  naming: namespaced  # e.g. backend/api-worker — see .ai/docs/WORKER_EXECUTION.md
+  permanent_roles_max: 4
+
+# Caps (DEC-145 / Phase 0 criterion 8.2) — close the “no max_agents” gap from DEC-107 diagnosis.
+# permanent_roles_max is hard. Worker caps are Orchestrator policy (not a running scheduler).
+parallel_execution:
+  enabled: true
+  max_parallel_workers: 8          # hard ceiling concurrent temporary workers
+  min_parallel_ready: 2            # DEC-107 floor while ops wait
+  prefer_parallel_ready: 3         # DEC-107 prefer when Multitask capacity allows
+  max_agents_total: 12             # permanent roles (≤4) + temporary workers (≤8)
+  governed_by:
+    - .ai/docs/PARALLEL_EXECUTION.md
+    - .ai/docs/WORKER_EXECUTION.md
+    - .engineering/26_AGENT_COORDINATION.md
+    - docs/program/decisions/DEC-107-SWARM-ALWAYS-ON-PARALLEL-READY.md
+    - docs/program/decisions/DEC-145-CRITERION-8-2-AGENT-COORDINATION.md
+
+authority:
+  backend-lead:
+    cycle: implementation
+  architecture-reviewer:
+    cycle: review
+  engineering-validator:
+    cycle: validation
+  execution-orchestrator:
+    cycle: coordination
+
+bindings:
+  file: .ai/runtime/agent-bindings.yaml
+
+lifecycle:
+  file: .ai/docs/EXECUTION_LIFECYCLE.md
+
+layers:
+  business_truth: docs/program/
+  engineering_specification: .engineering/
+  ai_organization: .ai/
+  implementation: salesos/

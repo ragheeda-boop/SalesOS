@@ -1,0 +1,23 @@
+# AI Organization Baseline — compatibility pin (not an executable runtime)
+# ARB-2026-08-01-003 · APPROVED · Architecture FROZEN · Execution ACTIVE
+# Further organizational changes: REJECTED — focus Phase 0 execution.
+
+ai_organization: 1.0.0
+
+architecture: frozen
+
+approved_by: ARB-2026-08-01-003
+
+compatible_with:
+  engineering_os: "3.x"
+  program: phase0
+  runtime: deferred
+
+last_contract_change: "2026-08-01"
+
+golden_boot_order:
+  - docs/program/PHASE_0_EXIT_CHECKLIST.md
+  - .engineering/21_RUNTIME_STATE.json
+  - .ai/roles/<role>.md
+  - .ai/runtime/agent-bindings.yaml
+  - current_task_only

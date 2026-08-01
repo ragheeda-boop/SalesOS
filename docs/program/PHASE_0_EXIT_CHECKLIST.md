@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-144a criterion 8.3 arch rules in CI **VERIFIED/CLOSED CONDITIONAL**; tip `test-architecture` SUCCESS PENDING until tip containing `868a98c` is pushed; Phase 0 **40/54 → 41/54**; Eng Stability Complete **2 → 3** / Open **2 → 1** (**8.2** OPEN); residuals EOS **4.1/4.8**; ADR-036 Applied Complete 3/4; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
+> **Last updated:** 2026-08-01 (DEC-145 criterion 8.2 agent coordination **READY FOR REVIEW**; caps + namespacing + conflict rules + `.ai/` org baseline committed; at-scale soak residual; Phase 0 remains **41/54** until Arch+Val CLOSE; Eng Stability Open **8.2 RFR** (+ **8.3 CLOSED CONDITIONAL** tip field-verify PENDING); residuals EOS **4.1/4.8**; ADR-036 Applied Complete 3/4; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
 >
 > ## Operating State
 >
@@ -151,7 +151,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
 | 8.1 | `engineering-os/` submodule clean | No uncommitted changes | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: pin `b82b9fb`, clean tree) @ `89502ef` (DEC-143a); discarded malformed unreviewed `capability-registry.yaml` append (outside YAML fence); parent gitlink unchanged; DEC-085 untouched; residuals Eng Stability **8.2/8.3** · EOS **4.1/4.8** OPEN; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
-| 8.2 | Agent coordination protocol exercised | Multi-agent parallel work completed without conflict | ⬜ Not tested at scale |
+| 8.2 | Agent coordination protocol exercised | Multi-agent parallel work completed without conflict | 🟡 READY FOR REVIEW — DEC-145; caps (`max_parallel_workers=8`, `max_agents_total=12`, permanent roles **4**, DEC-107 min/prefer READY **2/3**); namespaced workers (`.ai/docs/WORKER_EXECUTION.md`); conflict/lock rules (`.engineering/26_AGENT_COORDINATION.md` + PARALLEL_EXECUTION); `.ai/` org baseline committed (ARB-003); light exercise via DEC-107 swarm + namespaced workers in `21`; residual: *at-scale live soak at worker ceiling not field-proven*; DEC-085 untouched; EOS **4.1/4.8** OPEN; do **not** claim Production GO / CI GREEN / VERIFIED/CLOSED |
 | 8.3 | Architecture rules enforced in CI | `test_architecture.py` + `arch-compliance.ps1` green (critical CI jobs) | ✅ VERIFIED/CLOSED CONDITIONAL — Arch CONDITIONAL + Validation PASS_CONDITIONAL @ `868a98c` (DEC-144a); independent `test-architecture` job wired; Docker **36 passed**; local ps1 **95.8%** PASS; gh `arch-compliance` success @ run `30704321096`; residual: *tip `test-architecture` SUCCESS PENDING until tip containing `868a98c` is pushed*; DEC-085 untouched; Eng Stability residual **8.2** · EOS **4.1/4.8** OPEN; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN / unconditional CLOSED |
 | 8.4 | No stale locks in `22_FILE_LOCKS.json` | All bootstrap locks released | ✅ VERIFIED (ARB 2026-08-01; zero write locks; TTL rule active) |
 

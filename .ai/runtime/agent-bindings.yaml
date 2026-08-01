@@ -1,0 +1,27 @@
+# AI Runtime — Agent Bindings
+# Sole authority for mapping permanent roles → execution engines.
+# Role contracts under .ai/roles/ are engine-independent.
+# Changing an engine requires editing this file only — not role contracts.
+# Governed by: ADR-036 (Layer Separation).
+#
+# Rules:
+# 1. Exactly four permanent role keys. No fifth permanent role.
+# 2. Temporary workers inherit parent role engine + contract (no top-level worker keys).
+# 3. Engines may be swapped without rewriting ownership or EEC-001 rules.
+# 4. .ai/agents/ engine-named contracts are retired (redirect stubs only).
+
+backend-lead:
+  engine: cursor
+  contract: .ai/roles/backend-lead.md
+
+architecture-reviewer:
+  engine: claude
+  contract: .ai/roles/architecture-reviewer.md
+
+engineering-validator:
+  engine: opencode
+  contract: .ai/roles/engineering-validator.md
+
+execution-orchestrator:
+  engine: deepseek
+  contract: .ai/roles/execution-orchestrator.md

@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-145 — Phase 0 criterion 8.2 agent coordination protocol READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** Engineering Stability **8.2** OPEN after DEC-144a — checklist “Not tested at scale”; DEC-107 diagnosed no repo `max_agents` cap; `.ai/` org baseline (ARB-003) existed locally but was untracked; protocol pieces scattered across DEC-107 / `26_AGENT_COORDINATION` / PARALLEL_EXECUTION without pinned worker ceiling.
+**Alternatives considered:** (a) docs-only without caps / without committing `.ai/` — rejected; (b) claim VERIFIED/CLOSED / tested at scale — rejected; (c) invent Agent OS scheduler / fifth permanent role — rejected; (d) pin caps + namespacing + conflict rules + commit `.ai/` · READY FOR REVIEW CONDITIONAL — approved.
+**Decision:** Accept criterion **8.2** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-145-CRITERION-8-2-AGENT-COORDINATION.md`](decisions/DEC-145-CRITERION-8-2-AGENT-COORDINATION.md). Caps: `max_parallel_workers=8`, `max_agents_total=12`, permanent roles **4**, DEC-107 min/prefer READY **2/3**. Residual: *at-scale live soak at worker ceiling not field-proven*. DEC-085 intact. Do **not** self-CLOSE.
+**Consequence:** Phase 0 criterion **8.2** = READY FOR REVIEW (Phase 0 remains **41/54** until Arch+Val + Orchestrator). Residual EOS **4.1/4.8** OPEN. **Production GO not claimed. CI GREEN not met. VERIFIED/CLOSED not claimed.**
+**Status:** Accepted. Criterion **READY FOR REVIEW**.
+
 ### DEC-144 — Phase 0 criterion 8.3 architecture rules enforced in CI READY FOR REVIEW
 
 **Date:** 2026-08-01

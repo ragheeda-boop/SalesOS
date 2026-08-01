@@ -93,27 +93,23 @@
   ],
   "active_agents": [
     {
-      "role": "Architecture Reviewer",
-      "worker": "architecture/adr-worker",
-      "criterion": "7.5",
-      "state": "UNDER_ARCHITECTURE_REVIEW"
-    },
-    {
-      "role": "Architecture Reviewer",
-      "worker": "architecture/adr-worker",
-      "criterion": "1.1",
-      "state": "READY_FOR_REVIEW"
-    },
-    {
       "role": "Backend Lead",
-      "worker": "backend/migration-worker",
-      "criterion": "2.3",
-      "state": "IN_PROGRESS"
+      "worker": "backend/api-worker",
+      "criterion": "8.2",
+      "state": "READY_FOR_REVIEW"
     }
   ],
-  "last_updated_by": "Backend Lead / api-worker (DEC-142)",
+  "coordination_caps": {
+    "permanent_roles_max": 4,
+    "max_parallel_workers": 8,
+    "min_parallel_ready": 2,
+    "prefer_parallel_ready": 3,
+    "max_agents_total": 12,
+    "authority": "DEC-145 / .ai/runtime/runtime-spec.yaml"
+  },
+  "last_updated_by": "Backend Lead / api-worker (DEC-145)",
   "execution_cycle": 1,
-  "phase0_progress": "36/54 (pre-land tip; 4.2/4.4/4.7 READY FOR REVIEW this land)",
+  "phase0_progress": "41/54 (8.2 READY FOR REVIEW this land; Complete unchanged until Orchestrator CLOSE)",
   "locked_files": [],
   "lock_mirror": "locked_files reflects 22_FILE_LOCKS.json: no active write locks after bootstrap release (B6 fixed). Danger paths remain readonly there.",
   "generated_from_commit": "9fa8e9f",
