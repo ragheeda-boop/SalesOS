@@ -9,28 +9,30 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Coroutine
+from typing import Any, cast
 
 from celery import shared_task
 
 logger = logging.getLogger(__name__)
 
 
-def _run(coro):
+def _run(coro: Coroutine[Any, Any, dict[str, Any]]) -> dict[str, Any]:
     """Bridge sync Celery tasks to async services via a fresh event loop."""
-    return asyncio.run(coro)
+    return cast(dict[str, Any], asyncio.run(coro))
 
 
 @shared_task(name="hub_gmail_sync_all", bind=True, max_retries=3, default_retry_delay=300)
-def hub_gmail_sync_all(self) -> dict:
+def hub_gmail_sync_all(self) -> dict[str, Any]:
     return _run(_hub_gmail_sync_all())
 
 
 @shared_task(name="hub_calendar_sync_all", bind=True, max_retries=3, default_retry_delay=300)
-def hub_calendar_sync_all(self) -> dict:
+def hub_calendar_sync_all(self) -> dict[str, Any]:
     return _run(_hub_calendar_sync_all())
 
 
-async def _hub_gmail_sync_all() -> dict:
+async def _hub_gmail_sync_all() -> dict[str, Any]:
     from app.database import async_session
     from app.modules.communication_hub.gmail_sync import GmailSyncError, GmailSyncService
     from app.modules.communication_hub.repository import GoogleAccountRepository
@@ -54,7 +56,7 @@ async def _hub_gmail_sync_all() -> dict:
     return {"synced": synced, "failed": failed, "total": synced + failed}
 
 
-async def _hub_calendar_sync_all() -> dict:
+async def _hub_calendar_sync_all() -> dict[str, Any]:
     from app.database import async_session
     from app.modules.communication_hub.calendar_sync import (
         CalendarSyncError,

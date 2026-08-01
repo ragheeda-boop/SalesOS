@@ -2,6 +2,7 @@
 
 import logging
 from datetime import UTC, datetime
+from typing import cast
 from uuid import UUID
 
 from sqlalchemy import select, update
@@ -162,4 +163,4 @@ class GoogleAccountRepository:
             .values(is_active=False, updated_at=datetime.now(UTC))
         )
         result = await self.db.execute(stmt)
-        return result.rowcount > 0
+        return cast(int, getattr(result, "rowcount", 0) or 0) > 0

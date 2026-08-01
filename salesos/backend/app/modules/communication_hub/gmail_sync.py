@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import logging
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import text as sa_text
@@ -101,9 +102,12 @@ class GmailSyncService:
         self,
         account: GoogleAccount,
         provider: GoogleGmailProvider,
-    ) -> dict:
+    ) -> dict[str, Any]:
+        history_id = account.history_id
+        if not history_id:
+            return await self._sync_initial(account, provider, days_lookback=30, max_results=200)
         try:
-            history_data = await provider.fetch_history(account.history_id)
+            history_data = await provider.fetch_history(history_id)
         except GmailAPIError as e:
             # 404 = unknown historyId; 410 = history expired / gone — both need full resync.
             if e.status in (404, 410):
@@ -111,15 +115,15 @@ class GmailSyncService:
                     "gmail.history_id.stale",
                     extra={
                         "account_id": str(account.id),
-                        "history_id": account.history_id,
+                        "history_id": history_id,
                         "status": e.status,
                     },
                 )
                 await self.repo.update_history_id(account.id, None, tenant_id=self.tenant_id)
                 account.history_id = None
                 since = account.last_sync_at or (datetime.now(UTC) - timedelta(days=30))
-                emails = await provider.fetch_emails(since=since, max_results=200)
-                return await self._process_emails(account, emails)
+                fallback_emails = await provider.fetch_emails(since=since, max_results=200)
+                return await self._process_emails(account, fallback_emails)
             raise
 
         message_ids: set[str] = set()

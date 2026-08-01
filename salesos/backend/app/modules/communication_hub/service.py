@@ -12,7 +12,7 @@ import logging
 import secrets
 import time
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, cast
 from urllib.parse import urlencode
 from uuid import UUID
 
@@ -168,10 +168,12 @@ class GoogleOAuthService:
         raise GoogleOAuthError("Token decrypt failed")
 
     def _redirect_uri(self) -> str:
-        base = getattr(settings, "google_redirect_uri", None)
+        base = cast(str | None, getattr(settings, "google_redirect_uri", None))
         if base:
             return base
-        api_url = getattr(settings, "next_public_api_url", "http://localhost:8000")
+        api_url = cast(
+            str, getattr(settings, "next_public_api_url", "http://localhost:8000")
+        )
         return f"{api_url}/api/v1/integrations/google/callback"
 
     def generate_authorization_url(self) -> tuple[str, str]:
@@ -256,7 +258,7 @@ class GoogleOAuthService:
                 extra={"status": resp.status_code, "body": resp.text},
             )
             raise GoogleOAuthError(f"Token exchange failed: {resp.status_code}")
-        return resp.json()
+        return cast(dict[str, Any], resp.json())
 
     async def _fetch_user_info(self, access_token: str) -> dict[str, Any]:
         resp = await self._http.get(
@@ -265,7 +267,7 @@ class GoogleOAuthService:
         )
         if resp.status_code != 200:
             raise GoogleOAuthError(f"User info fetch failed: {resp.status_code}")
-        return resp.json()
+        return cast(dict[str, Any], resp.json())
 
     async def get_valid_token(self, account: GoogleAccount) -> str:
         skew_deadline = datetime.now(UTC) + timedelta(seconds=_TOKEN_EXPIRY_SKEW_SECONDS)
@@ -296,7 +298,7 @@ class GoogleOAuthService:
             account.refresh_token_encrypted = refresh_enc
         account.token_expiry = expiry
 
-        return new_tokens["access_token"]
+        return cast(str, new_tokens["access_token"])
 
     async def _refresh_access_token(self, refresh_token: str) -> dict[str, Any]:
         data = {
@@ -310,7 +312,7 @@ class GoogleOAuthService:
             resp = await self._http.post(GOOGLE_TOKEN_URL, data=data)
             last_status = resp.status_code
             if resp.status_code == 200:
-                return resp.json()
+                return cast(dict[str, Any], resp.json())
             # Retry transient Google / network-edge failures only.
             if resp.status_code in (429, 500, 502, 503, 504) and attempt < 2:
                 logger.warning(
