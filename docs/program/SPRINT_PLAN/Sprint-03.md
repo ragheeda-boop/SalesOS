@@ -19,7 +19,7 @@
 | Story | Owner | Priority | Risk | Status | Acceptance Criteria | Landing notes |
 |---|---|---|---|---|---|---|
 | STORY-02-01 (RLS rollout, complete) | BE-Lead, BE1 | P0 | High | **DONE** (revised AC) | **Revised (DEC-044):** Category A + migrated inventory RLS complete at **47** policies (46 + `company_features`). Original “100% of 72” **retired**. Category B → Sprint 04; 8× R-09 → DB-05 | DEC-044 Option B. Migration `065d1d3a466b`. Generator + `POLICY_COUNT` → 47. Railway R-14 still open. Phase 0 exit **NO-GO** |
-| STORY-02-02 (middleware.ts) | FE-Lead | P0 | High | **PARTIAL** | Client-side-only auth gating removed; server-side redirect verified | Commit `3f4b3c8` on master — `middleware.ts` + cookie session sync + unit tests for redirect helpers. Client-only dashboard gate removed. Browser/E2E redirect: **not validated**. No browser-pass claim |
+| STORY-02-02 (middleware.ts) | FE-Lead | P0 | High | **PARTIAL** | Client-side-only auth gating removed; server-side redirect verified | Commit `3f4b3c8` on master — `middleware.ts` + cookie session sync + unit tests for redirect helpers. Client-only dashboard gate removed. QA verify **DEC-088** (tip `f2c7587`): Jest middleware/session **14/14 PASS** (**light validated**); Playwright harness present but browser/E2E redirect **not executed** (FE `node_modules` broken; compose FE/BE down). **No browser-pass claim.** Remains: live Next redirect probe + optional `smoke-ui.ps1` |
 | STORY-02-03 (JWT audience split, groundwork) | BE1 | P1 | Medium | **DONE** | Issuer/audience claim structure defined (not yet consumed — EPIC-04 consumes it) | Commit `2379e5f` — `jwt_audience` / `jwt_owner_audience`, owner mint/verify helpers, unit tests. Consumption deferred to EPIC-04 / Sprint 04. Test run: **light validated** — commit `deae7de` / [`SWARM_VALIDATION_2026-08-01.md`](../../salesos/docs/audit/ga-engineering-audit/SWARM_VALIDATION_2026-08-01.md) (Docker pytest **15 passed** / 0 failed, including JWT suite + write-protection) |
 | STORY-02-04 (relabel 4 global tables) | BE2 | P2 | Low | **DONE** | `CANONICAL_ARCHITECTURE.md` §17.2 updated | Commit `932f722` already on master — four tables relabeled Owner-Platform-scoped by design; scorecard updated |
 | STORY-03-04 (contract test framework) | DevOps/SRE* | P1 | Medium | **DONE** | Template merged, used by first real endpoint test | Commit `623077c` — `tests/contract/` framework + first real endpoint (`GET /api/v1/identity/csrf-token`). Contract pytest execution: **not validated** at records close |
@@ -32,7 +32,7 @@
 
 1. **R-14 / Railway (S04-04)** still open — **sole remaining Phase 0 exit critical-path gate**; blocked on credentials/authorization. Do not execute Railway without human auth.
 2. **STORY-02-01** **DONE under revised AC (DEC-044)** at 47 policies — original literal 72 **retired**; Category B + R-09 gaps remain explicit Sprint 04 / DB-05 work. **Do not reopen.** Story close ≠ Phase 0 GO.
-3. **Parallel (not critical path):** **CI GREEN not met** (MyPy/CI-20, pip-audit/CI-16, npm audit/CI-14, Jest debt, Trivy fs, etc.); STORY-02-02 **PARTIAL** (middleware landed; browser redirect verification absent). Continue these READY tracks while S04-04 waits.
+3. **Parallel (not critical path):** **CI GREEN not met** (MyPy/CI-20, pip-audit residual, npm audit/CI-14, Trivy fs, etc.; Jest-debt CLOSED DEC-077); STORY-02-02 **PARTIAL** (DEC-088 — units light-validated; browser redirect still absent). Continue READY tracks.
 
 See DEC-040, **DEC-044**, and `docs/program/EXECUTION_DAG.md`.
 

@@ -64,11 +64,11 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **CI-19** Semgrep Wave 2 residual | IN PROGRESS / READY | Waves 1/3/4/5 COMPLETE; Wave 2 deferred (~108 `avoid-sqlalchemy-text`) | R-24; authorize Wave 2 when ready |
 | **CI-22** FastAPI / Starlette / Pydantic | IN PROGRESS / READY | Phase 1 COMPLETE (DEC-081 @ `442af64`); further phases | R-21 starlette / pip-audit path |
 | **CI-14** Frontend Dependency Modernization | IN PROGRESS / READY (Sprint 06) | Slice 1 COMPLETE; Slice 2 STOP; Slice 3 pending | R-18; STOP silent majors |
-| **STORY-02-02** browser/E2E verify | READY / PARALLEL | Middleware LANDED (`3f4b3c8`); browser still **not validated** | PARTIAL; no browser-pass claim |
+| **STORY-02-02** browser/E2E verify (if scoped) | READY / PARALLEL | Middleware LANDED (`3f4b3c8`); DEC-088 verify: unit **light validated** (14/14); browser still **not validated** — PARTIAL | Not a board CLOSE; restore FE/compose then redirect probe |
 | **DB-05** Schema reconciliation program | READY (program) | BACKLOG; R-20 / R-09 | Multi-sprint; unblocks 8 RLS-deferred tables |
 | **Sprint 04 Category B RLS + inventory** | READY (planning) | DEC-044 deferred Category B | Settle canonical count |
 | **JWT audience consumption** | READY / PARALLEL | Groundwork DONE (`2379e5f`) | Separate from STORY-02-03 groundwork |
-| **Contract tests expansion** | READY / PARALLEL | Framework LANDED (`623077c`) | Post STORY-03-04 |
+| **Contract tests expansion** | IN PROGRESS / PARALLEL | Slice 1 LANDED (DEC-089): `/ping` + `/health/live` + csrf | Next: `/health`+`/ready` (DB fixtures), 401/422, one auth list |
 | **CI-16** Backend dependency security | CLOSED | Slices 1+3 + ecdsa Option A; starlette → CI-22 | Story closed; residual via CI-22 |
 | **Jest-debt** | CLOSED (DEC-077) | Stage 3 field 0 failures | R-23 Closed |
 
@@ -107,7 +107,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | S04-06 adversarial RLS remaining | `119df9e` | COMPLETE (DEC-045) | **build validated** — Docker pytest **15/15 PASS** |
 | CI-21 Gitleaks JWT fixture neutralize | `b03ffbf` | CLOSED | fixture replaced; scanner not weakened |
 | STORY-02-03 JWT audience groundwork | `2379e5f` | DONE | **not validated** (suite later light-validated separately) |
-| STORY-02-02 server-side middleware | `3f4b3c8` | PARTIAL | browser/E2E **not validated** |
+| STORY-02-02 server-side middleware | `3f4b3c8` | PARTIAL (DEC-088) | Jest redirect helpers **14/14 PASS** (**light validated**); browser/E2E **not validated** |
 | STORY-03-04 OpenAPI contract framework | `623077c` | DONE | **not validated** |
 | STORY-02-04 §17.2 relabel | `932f722` | DONE | docs-only |
 | Card primitives (Jest debt related) | `9577c98` | Progress note only | **CI GREEN not met** |

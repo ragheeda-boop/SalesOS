@@ -934,12 +934,11 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 ---
 
-### DEC-085 — STORY-02-02 browser/E2E verify attempted; status remains **PARTIAL**
+### DEC-088 — STORY-02-02 browser/E2E verify attempted; status remains **PARTIAL**
 
 **Date:** 2026-08-01
 **Context:** Board listed STORY-02-02 browser/E2E verify as READY after Jest-debt R-23 CLOSED. Middleware code already on master at `3f4b3c8`. Frontend/QA authorized run+push on tip around `f2c7587` / current master.
 **Alternatives considered:** (a) close STORY-02-02 on unit evidence alone — rejected (AC requires server-side redirect verified in browser/E2E); (b) claim browser pass without harness execution — rejected; (c) record honest PARTIAL + light-validated units + blockers — approved.
-**Decision:** Keep STORY-02-02 **PARTIAL**. Evidence: Jest `middleware-auth` + `session` **14/14 PASS** (**light validated**). Playwright smoke harness present (`playwright.smoke.config.ts` / `e2e/smoke-auth-ui.spec.ts` / `scripts/smoke-ui.ps1`) but **not run** — local FE `node_modules` incomplete (no `.bin` / broken `next`); compose FE/BE not on `:3000`/`:8000` (Docker Desktop API 500 during full up; no frontend image). Full companion: [`decisions/DEC-085-STORY-02-02-BROWSER-VERIFY.md`](decisions/DEC-085-STORY-02-02-BROWSER-VERIFY.md).
+**Decision:** Keep STORY-02-02 **PARTIAL**. Evidence: Jest `middleware-auth` + `session` **14/14 PASS** (**light validated**). Playwright smoke harness present (`playwright.smoke.config.ts` / `e2e/smoke-auth-ui.spec.ts` / `scripts/smoke-ui.ps1`) but **not run** — local FE `node_modules` incomplete (no `.bin` / broken `next`); compose FE/BE not on `:3000`/`:8000` (Docker Desktop API 500 during full up; no frontend image). Full companion: [`decisions/DEC-088-STORY-02-02-BROWSER-VERIFY.md`](decisions/DEC-088-STORY-02-02-BROWSER-VERIFY.md).
 **Consequence:** No browser-pass claim. Remains: restore FE tooling or compose frontend, then unauthenticated `/dashboard` → `/login?callbackUrl` probe (+ optional authenticated `smoke-ui.ps1`). **CI GREEN not met.**
 **Status:** Accepted (records). Story **PARTIAL** — not CLOSED.
-

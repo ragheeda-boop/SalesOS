@@ -1,4 +1,4 @@
-﻿# Swarm Validation — 2026-08-01 (QA Team Alpha)
+# Swarm Validation — 2026-08-01 (QA Team Alpha)
 
 **Product:** SalesOS  
 **Scope:** Narrow validation only (not full suite)  
@@ -64,3 +64,20 @@ npx jest --testPathPattern="middleware-auth|packages/ui/__tests__/card|component
 - No claim of production GO, browser pass, or CI green beyond these commands.
 - Concurrent container activity (`poetry install --with dev`, extra pytest) may have inflated wall time; pass/fail counts above are from the completed primary backend run and the Jest run recorded here.
 
+---
+
+## Addendum — STORY-02-02 QA verify (2026-08-01, tip `f2c7587`)
+
+**DEC:** [`DEC-088-STORY-02-02-BROWSER-VERIFY.md`](../../../../docs/program/decisions/DEC-088-STORY-02-02-BROWSER-VERIFY.md)  
+**Label:** **light validated** (units only) — browser **not validated**
+
+**Command:**
+
+```text
+cd salesos/frontend
+node node_modules/jest/bin/jest.js --config jest.config.js --testPathPattern="middleware-auth|auth/__tests__/session" --no-coverage
+```
+
+**Result:** **2 suites / 14 tests PASS** (`middleware-auth.test.ts`, `session.test.ts`).
+
+**Browser/E2E:** harness present (`playwright.smoke.config.ts`, `e2e/smoke-auth-ui.spec.ts`, `scripts/smoke-ui.ps1`) — **not run**. Blockers: FE `node_modules` incomplete (no `.bin`, broken `next`); `:3000`/`:8000` down; Docker compose FE build/API failures. **No browser-pass claim.** STORY-02-02 remains **PARTIAL**.
