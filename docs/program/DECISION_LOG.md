@@ -1,4 +1,4 @@
-﻿# Decision Log ΓÇö SaaS Platform Program
+# Decision Log ΓÇö SaaS Platform Program
 
 > **Scope note:** This log is scoped to the commercial-SaaS-platform program (`docs/program/`) ΓÇö the architecture and execution decisions made in designing and sequencing the Owner Platform / Tenant Workspace / Integration Hub / GTM Studio work. It is distinct from the repo-root `docs/DECISION_LOG.md`, which predates this program and covers earlier product decisions; this file does not supersede that one.
 > **Format:** ADR-lite. Each entry: Decision, Date, Context, Alternatives Considered, Consequence, Status.
@@ -621,3 +621,14 @@
 **Decision:** Accept Phase 8 as **COMPLETE** at `3e7fadb`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Validation label: **light validated** (host mypy on `app/main.py` + `sdk/`); full Backend Types CI **not** re-run.
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 8 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-059 — CI-20 Phase 9 complete: demo_mode mypy burn-down (11→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1–8 (DEC-046–050, DEC-053, DEC-055, DEC-058) cleared admin/company/entity_resolution/identity/revenue_execution/sso/routers/main+sdk; overall expected **~308 → ~111**. Phase 9 targeted module `app/modules/demo_mode` (host mypy **11** `no-any-return` on JSON getters) and landed on `master` at `821aad5` (`821aad5a5624ffc71e7657d1fb24f9b6330e9a93`) — mechanical typing only (`cast` on `json.load` / `dict.get` list returns; `dict[str, Any]` annotations). Host light mypy: demo_mode **11 → 0**; overall expected **~111 → ~100**.
+**Alternatives considered:** (a) close entire CI-20 on Phase 9 land — rejected (residual ~100 errors remain; phased story); (b) record Phase 9 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
+**Decision:** Accept Phase 9 as **COMPLETE** at `821aad5`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16. Validation label: **light validated** (host mypy on `app/modules/demo_mode`); full Backend Types CI **not** re-run.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 9 COMPLETE**; story **OPEN**.
