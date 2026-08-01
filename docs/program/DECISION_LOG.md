@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** ADR Drift checklist **6.3** OPEN — index claimed ADR-033/034 ✅ Accepted while file headers are `**Status**: Proposed`. Criterion **6.2 CLOSED** (DEC-136a). No ARB acceptance evidence to invent Accepted.
 **Alternatives considered:** (a) flip file headers to Accepted — rejected (invents binding Accepted); (b) leave mismatch — rejected; (c) remove index rows — rejected (files exist; Proposed valid); (d) align index Status + dates to file headers — approved.
-**Decision:** Accept criterion **6.3** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-137-CRITERION-6-3-ADR-033-034-STATUS.md`](decisions/DEC-137-CRITERION-6-3-ADR-033-034-STATUS.md). `docs/adr/index.md` Status → **📝 Proposed** for ADR-033/034; dates → `2026-07-17`. DEC-085 intact. Do **not** mark VERIFIED/CLOSED.
-**Consequence:** Phase 0 criterion **6.3** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). Phase 0 remains **31/54** until Orchestrator CLOSE. Residuals **6.4–6.5** OPEN; `.engineering/27` re-pin → **4.5**. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criterion **6.3 OPEN** (READY FOR REVIEW).
+**Decision:** Accept criterion **6.3** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-137-CRITERION-6-3-ADR-033-034-STATUS.md`](decisions/DEC-137-CRITERION-6-3-ADR-033-034-STATUS.md). `docs/adr/index.md` Status → **📝 Proposed** for ADR-033/034; dates → `2026-07-17`. DEC-085 intact. Closed via DEC-137a after Arch+Val PASS.
+**Consequence:** Phase 0 criterion **6.3** = READY FOR REVIEW then **CLOSED** via DEC-137a. Residuals **6.4–6.5** OPEN; `.engineering/27` re-pin → **4.5**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED via DEC-137a**.
+
+### DEC-137a — Orchestrator VERIFIED/CLOSED criterion 6.3 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 6.3](64dec923-d2ac-4535-8ea6-860641e2c61f)) + Validation PASS (light) ([Validate 6.3](a26ea999-eabb-45ef-a569-828dd1a6e8f8): index Status == file header Proposed for 033/034; no Accepted-without-evidence; DEC-085 untouched) on land `bcd7aa6` / DEC-137.
+**Decision:** Execution Orchestrator records criterion **6.3 VERIFIED → CLOSED**. Phase 0 **31/54 → 32/54**. ADR Drift Complete **2 → 3** / Open **3 → 2**. Residuals **6.4–6.5** remain OPEN; `.engineering/27` re-pin → **4.5** (non-blocking for 6.3). Do **not** push. Do **not** claim Production GO / CI GREEN.
+**Consequence:** ADR Drift residual = **6.4–6.5** only. Next PARALLEL READY: ADR Drift **6.4–6.5**, EOS Audit **4.x**, Engineering Stability **8.1–8.3**, ADR-036 **9.2**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **6.3 CLOSED**.
 
 ### DEC-136 — Phase 0 criterion 6.2 ADR-029 phantom READY FOR REVIEW
 

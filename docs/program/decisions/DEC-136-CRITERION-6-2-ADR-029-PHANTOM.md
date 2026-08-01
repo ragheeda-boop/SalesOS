@@ -66,7 +66,7 @@ Resolve criterion **6.2** by **documenting the numbering gap** (checklist: “Nu
 - Phase 0 criterion **6.2** → **VERIFIED/CLOSED** (DEC-136a)
 - Phase 0 **30/54 → 31/54**
 - ADR Drift Complete **1 → 2** / Open **4 → 3**
-- ADR Drift residual: **6.3** (033/034 status), **6.4** (032 naming), **6.5** (036 all indexes)
+- ADR Drift residual: **6.4** (032 naming), **6.5** (036 all indexes) — **6.3 CLOSED** (DEC-137a)
 - EOS **4.5** / `.engineering/` re-pin of `27_ADR_INDEX.md` §2/§4 conflict #2 = follow-on
 - **Not claimed:** Production GO · CI GREEN · Phase 0 exit
 
