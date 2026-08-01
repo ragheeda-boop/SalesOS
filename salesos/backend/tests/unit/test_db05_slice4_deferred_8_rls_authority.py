@@ -35,7 +35,7 @@ def test_deferred_8_policy_sql_force_fail_closed() -> None:
         sql = generate_policy_sql(t)
         assert f'ALTER TABLE "{t}" ENABLE ROW LEVEL SECURITY' in sql
         assert f'ALTER TABLE "{t}" FORCE ROW LEVEL SECURITY' in sql
-        assert f'tenant_isolation_{t}' in sql
+        assert f"tenant_isolation_{t}" in sql
         assert "current_setting('app.tenant_id', true)" in sql
         # Predicate must stay fail-closed (no NULL bypass).
         assert "IS NULL" not in sql.upper()

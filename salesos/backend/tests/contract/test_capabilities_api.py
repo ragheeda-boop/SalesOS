@@ -41,7 +41,9 @@ EXPECTED_CORE_IDS = frozenset(
 
 
 @asynccontextmanager
-async def _client_as(tenant_id: str = "cap-tenant", user_id: str = "cap-user") -> AsyncIterator[AsyncClient]:
+async def _client_as(
+    tenant_id: str = "cap-tenant", user_id: str = "cap-user"
+) -> AsyncIterator[AsyncClient]:
     async def override_verify_token() -> dict[str, str]:
         return {"sub": user_id, "tenant_id": tenant_id}
 

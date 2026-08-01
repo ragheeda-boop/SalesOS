@@ -190,14 +190,12 @@ async def test_admin_jobs_isolation():
         await _ins(
             conn,
             ta,
-            f"INSERT INTO admin_jobs (id, type, tenant_id) "
-            f"VALUES ('{ja}', 'export', '{ta}')",
+            f"INSERT INTO admin_jobs (id, type, tenant_id) " f"VALUES ('{ja}', 'export', '{ta}')",
         )
         await _ins(
             conn,
             tb,
-            f"INSERT INTO admin_jobs (id, type, tenant_id) "
-            f"VALUES ('{jb}', 'export', '{tb}')",
+            f"INSERT INTO admin_jobs (id, type, tenant_id) " f"VALUES ('{jb}', 'export', '{tb}')",
         )
         await _chk(conn, ta, "SELECT count(*) FROM admin_jobs", 1, "job-own")
         await _chk(
@@ -277,14 +275,12 @@ async def test_revenue_analytics_snapshots_isolation():
         await _ins(
             conn,
             ta,
-            f"INSERT INTO revenue_analytics_snapshots (id, tenant_id) "
-            f"VALUES ('{ra}', '{ta}')",
+            f"INSERT INTO revenue_analytics_snapshots (id, tenant_id) " f"VALUES ('{ra}', '{ta}')",
         )
         await _ins(
             conn,
             tb,
-            f"INSERT INTO revenue_analytics_snapshots (id, tenant_id) "
-            f"VALUES ('{rb}', '{tb}')",
+            f"INSERT INTO revenue_analytics_snapshots (id, tenant_id) " f"VALUES ('{rb}', '{tb}')",
         )
         await _chk(conn, ta, "SELECT count(*) FROM revenue_analytics_snapshots", 1, "ras-own")
         await _chk(

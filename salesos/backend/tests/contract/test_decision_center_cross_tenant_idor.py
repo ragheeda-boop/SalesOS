@@ -29,7 +29,9 @@ USER_B = "idor-user-b"
 
 
 @asynccontextmanager
-async def _client_as(tenant_id: str, user_id: str, svc: DecisionCenterService) -> AsyncIterator[AsyncClient]:
+async def _client_as(
+    tenant_id: str, user_id: str, svc: DecisionCenterService
+) -> AsyncIterator[AsyncClient]:
     async def override_verify_token() -> dict[str, str]:
         return {"sub": user_id, "tenant_id": tenant_id}
 

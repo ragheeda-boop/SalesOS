@@ -135,9 +135,7 @@ def wf_app() -> FastAPI:
 @pytest.mark.contract
 @pytest.mark.asyncio
 @pytest.mark.parametrize("url", _SSRF_TARGETS)
-async def test_hub_subscription_rejects_ssrf_targets(
-    webhook_svc: WebhookService, url: str
-) -> None:
+async def test_hub_subscription_rejects_ssrf_targets(webhook_svc: WebhookService, url: str) -> None:
     """GA-P0-SEC-02: Integration Hub subscription create must return 400."""
     async with _hub_client(webhook_svc) as client:
         resp = await client.post(

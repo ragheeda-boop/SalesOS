@@ -71,13 +71,13 @@ async def test_admin_role_permissions_isolation():
         # admin_permissions is global (not Category B / no tenant RLS).
         await conn.execute(
             text(
-                "INSERT INTO admin_permissions (id, key, name, description, \"group\") "
+                'INSERT INTO admin_permissions (id, key, name, description, "group") '
                 f"VALUES ('{perm_a}', 'b7a.{ta[:8]}', 'B7 A', '', 'test')"
             )
         )
         await conn.execute(
             text(
-                "INSERT INTO admin_permissions (id, key, name, description, \"group\") "
+                'INSERT INTO admin_permissions (id, key, name, description, "group") '
                 f"VALUES ('{perm_b}', 'b7b.{tb[:8]}', 'B7 B', '', 'test')"
             )
         )

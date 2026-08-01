@@ -38,7 +38,8 @@ target_metadata = Base.metadata
 _KEEP_EXPRESSION_INDEXES = frozenset({"ix_graph_nodes_search"})
 
 
-def include_object(object_, name, type_, reflected, compare_to):
+def include_object(_object, name, type_, _reflected, _compare_to):
+    # Alembic include_object callback arity; unused args are protocol-required.
     if type_ == "index" and name in _KEEP_EXPRESSION_INDEXES:
         return False
     return True

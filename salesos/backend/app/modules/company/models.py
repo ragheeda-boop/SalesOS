@@ -118,17 +118,13 @@ class Company(BaseModel):
     employee_count_prev_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
     linkedin_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     country: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    branch_count: Mapped[int | None] = mapped_column(
-        Integer, nullable=True, server_default="0"
-    )
+    branch_count: Mapped[int | None] = mapped_column(Integer, nullable=True, server_default="0")
 
     # ── DNC + embedding (Alembic 0003 / 0006) — DEC-130e KEEP (no DROP) ──
     do_not_contact: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default="false", default=False
     )
-    embedding_vector: Mapped[Any | None] = mapped_column(
-        _PgVector(3072), nullable=True
-    )
+    embedding_vector: Mapped[Any | None] = mapped_column(_PgVector(3072), nullable=True)
 
     # ── FTS columns (Alembic 0006 tsv + 0023 search_vector) — DEC-129 KEEP ──
     tsv: Mapped[Any | None] = mapped_column(TSVECTOR, nullable=True)

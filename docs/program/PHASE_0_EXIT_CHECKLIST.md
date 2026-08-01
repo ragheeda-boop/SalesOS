@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-147a criterion 3.5 Stage 5 Security Scan **CLOSED CONDITIONAL**; DEC-146a 9.3 **CLOSED**; ADR-036 Applied **COMPLETE 4/4**; Eng Stability **COMPLETE 4/4**; Phase 0 **44/54**; residuals EOS **4.1/4.8** ARB · CI **3.7/3.8** + CI-08/09; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
+> **Last updated:** 2026-08-02 (DEC-148 criterion 3.8 CI GREEN code path **READY FOR REVIEW**; DEC-147a 3.5 **CLOSED CONDITIONAL**; Phase 0 **44/54**; residuals EOS **4.1/4.8** ARB · CI **3.7** + tip **3.8** same-run PENDING push · CI-08/09; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
 >
 > ## Operating State
 >
@@ -73,7 +73,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 3.5 | Stage 5: Security Scan green | pip-audit (named ignore only), Bandit, Gitleaks, Semgrep residual-only | ✅ VERIFIED/CLOSED **CONDITIONAL** — Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL @ `5d558af` / pin `a6488f2` (DEC-147a); CI Stage 5 + Security Scan SUCCESS @ `c842245` (`30704321096` / `30704321107`); ecdsa named ignore (DEC-057/090/098); Semgrep residual **11** alembic (DEC-105); residual: *post-align Security Scan pip-audit field-verify PENDING until tip containing `fa266b5` is pushed*; does **not** auto-close **3.8**; DEC-085 untouched; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN / finding-zero / unconditional CLOSED |
 | 3.6 | Stage 6: Docker Build + Push green | Backend + Frontend images build + push | ⬜ CI-08 BLOCKED (GHCR 403) |
 | 3.7 | Stage 7: E2E green | Playwright specs PASS with real backend services | ⬜ CI e2e job has no services |
-| 3.8 | Full pipeline: CI GREEN (code path) | Stages 1–5 all green on same run | ⬜ |
+| 3.8 | Full pipeline: CI GREEN (code path) | Stages 1–5 all green on same run | 🟡 READY FOR REVIEW — DEC-148; tip Lint blocker cleared locally (ruff 0.4.10 check+format exit 0); last push `c842245` / `30704321096` Stage 1 FAILURE (6× E501) → Stages 3 BE/4 SKIPPED; residual: *tip Stages 1–5 same-run field-verify PENDING until tip containing DEC-148 land is pushed*; historical Stages 1–5 SUCCESS @ `7ba137b` / `30689682988` (not tip); DEC-085 untouched; do **not** claim Production GO / CI GREEN / VERIFIED/CLOSED |
 | 3.9 | Full pipeline: CI GREEN (incl. publish) | Stages 1–7 all green on same run | ⬜ CI-08 BLOCKED |
 | 3.10 | CI-08 GHCR 403 resolved | Stage 6 push succeeds (DEC-104 Option A) | ⬜ Ops/human |
 | 3.11 | CI-09 VPS SSH/secrets provisioned | Deploy workflows functional | ⬜ Ops/human |

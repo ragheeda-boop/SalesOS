@@ -6,8 +6,8 @@ for indexes and FKs already live in Postgres. No DROP without dedicated DEC.
 
 from __future__ import annotations
 
-from app.database import Base
 from app.alembic.env import _KEEP_EXPRESSION_INDEXES, include_object
+from app.database import Base
 
 
 def test_tenants_slug_dual_unique_matches_live():
