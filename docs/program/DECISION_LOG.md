@@ -632,3 +632,14 @@
 **Decision:** Accept Phase 9 as **COMPLETE** at `821aad5`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16. Validation label: **light validated** (host mypy on `app/modules/demo_mode`); full Backend Types CI **not** re-run.
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 9 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-060 — CI-20 Phase 10 complete: communication_hub mypy burn-down (11→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1–9 (DEC-046–050, DEC-053, DEC-055, DEC-058, DEC-059) cleared admin/company/entity_resolution/identity/revenue_execution/sso/routers/main+sdk/demo_mode; overall expected **~308 → ~100** (field-verify `30677025355` **104**). Phase 10 selected largest remaining host hotspot vs boot/database/decision/SSO remnants: `app/modules/communication_hub` (**11**) and landed on `master` at `ca76f9c` (`ca76f9c7830ad1e335bd04a95537aaf1467fa9d0`) — mechanical typing only (`cast` on `resp.json()` / token / rowcount / getattr redirects; `history_id` narrow; `dict[str, Any]` / `Coroutine` annotations; rename fallback emails to clear `no-redef`). Host light mypy: communication_hub **11 → 0**; overall expected **~100 → ~89** (field baseline **104 → ~93**).
+**Alternatives considered:** (a) close entire CI-20 on Phase 10 land — rejected (residual ~89 remain; phased story); (b) clear boot or database (each 7) instead — rejected (smaller than communication_hub); (c) record Phase 10 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
+**Decision:** Accept Phase 10 as **COMPLETE** at `ca76f9c`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phase 9. Validation label: **light validated** (host mypy on `app/modules/communication_hub`); full Backend Types CI **not** re-run.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 10 COMPLETE**; story **OPEN**.
