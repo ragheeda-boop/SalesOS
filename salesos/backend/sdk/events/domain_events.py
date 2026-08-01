@@ -313,7 +313,8 @@ class AgentMemoryUpdated(DomainEvent):
 # ── Registry ───────────────────────────────────────────────────────────────
 
 EVENT_REGISTRY: dict[str, type[DomainEvent]] = {
-    cast(str, cls.event_type): cls
+    # getattr: dataclass field defaults are not visible on type[T] to mypy
+    cast(str, getattr(cls, "event_type")): cls
     for cls in [
         # Activity Intelligence events
         CommunicationReceived,

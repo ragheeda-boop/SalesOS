@@ -15,6 +15,7 @@ import json
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from sqlalchemy.dialects import postgresql
 
 from sdk.events.base import DomainEvent
 from sdk.events.outbox import (
@@ -81,6 +82,18 @@ def _make_session() -> MagicMock:
     return session
 
 
+
+
+def _compiled_params(session: MagicMock) -> dict:
+    stmt = session.execute.call_args.args[0]
+    return dict(stmt.compile(dialect=postgresql.dialect()).params)
+
+
+def _jsonish(value):
+    if isinstance(value, str):
+        return json.loads(value)
+    return value
+
 def _make_session_factory(session: MagicMock | None = None) -> MagicMock:
     """Create a mock session factory yielding the given session."""
     if session is None:
@@ -122,14 +135,14 @@ async def test_write_stores_payload_correctly(
 
     await outbox.write(sample_event)
 
-    call_kwargs = outbox._session.execute.call_args[0][1]
-    payload = json.loads(call_kwargs["payload"])
+    params = _compiled_params(outbox._session)
+    payload = _jsonish(params["payload"])
     assert payload["specversion"] == "1.0"
     assert payload["id"] == "evt-001"
     assert payload["type"] == "company.created"
-    assert call_kwargs["topic"] == "salesos.company"
-    assert call_kwargs["event_type"] == "company.created"
-    assert call_kwargs["key"] == "agg-1"
+    assert params["topic"] == "salesos.company"
+    assert params["event_type"] == "company.created"
+    assert params["key"] == "agg-1"
 
 
 @pytest.mark.asyncio
@@ -143,8 +156,8 @@ async def test_write_headers_include_metadata(
 
     await outbox.write(sample_event)
 
-    call_kwargs = outbox._session.execute.call_args[0][1]
-    headers = json.loads(call_kwargs["headers"])
+    params = _compiled_params(outbox._session)
+    headers = _jsonish(params["headers"])
     assert headers["user_id"] == "user-1"
     assert headers["correlation_id"] == "corr-1"
 
@@ -316,9 +329,9 @@ async def test_cleanup_zero(outbox: EventOutbox) -> None:
 async def test_mark_failed_increments_retry(outbox: EventOutbox) -> None:
     """mark_failed should increment retry count."""
     await outbox.mark_failed(42, "network error")
-    call_kwargs = outbox._session.execute.call_args[0][1]
-    assert call_kwargs["id"] == 42
-    assert "network error" in call_kwargs["error"]
+    params = _compiled_params(outbox._session)
+    assert params.get("id_1", params.get("id")) == 42
+    assert "network error" in str(params.get("last_error", ""))
 
 
 @pytest.mark.asyncio
@@ -332,9 +345,9 @@ async def test_max_retry_moves_to_failed(outbox: EventOutbox) -> None:
 async def test_mark_dlq(outbox: EventOutbox) -> None:
     """mark_dlq should set status to 'dlq'."""
     await outbox.mark_dlq(42, "dead letter error")
-    call_kwargs = outbox._session.execute.call_args[0][1]
-    assert call_kwargs["id"] == 42
-    assert "dead letter" in call_kwargs["error"]
+    params = _compiled_params(outbox._session)
+    assert params.get("id_1", params.get("id")) == 42
+    assert "dead letter" in str(params.get("last_error", ""))
 
 
 @pytest.mark.asyncio
