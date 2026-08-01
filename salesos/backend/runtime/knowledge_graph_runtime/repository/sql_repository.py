@@ -14,6 +14,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Index,
     Integer,
     MetaData,
     String,
@@ -90,7 +91,11 @@ graph_edges = Table(
     Column("target_id", String(64), nullable=False),
     Column("edge_type", String(50), nullable=False),
     Column("properties", JSONB, nullable=True),
-    Column("created_at", DateTime(timezone=True)),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    # Live indexes — metadata register only (DEC-130d); do not DROP
+    Index("ix_graph_edges_source", "source_id", "edge_type"),
+    Index("ix_graph_edges_target", "target_id", "edge_type"),
+    Index("ix_graph_edges_unique", "source_id", "target_id", "edge_type", unique=True),
 )
 
 golden_records = Table(

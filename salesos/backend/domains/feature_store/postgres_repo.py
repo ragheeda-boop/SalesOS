@@ -20,10 +20,11 @@ class FeatureDefinitionModel(Base):
     key: Mapped[str] = mapped_column(String(255), primary_key=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    feature_type: Mapped[str] = mapped_column(String(50), default="numeric")
-    domain: Mapped[str] = mapped_column(String(100), default="general")
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
+    # DB nullable (DEC-130d — ORM align; no SET NOT NULL)
+    feature_type: Mapped[str | None] = mapped_column(String(50), nullable=True, default="numeric")
+    domain: Mapped[str | None] = mapped_column(String(100), nullable=True, default="general")
+    created_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, server_default=func.now()
     )
 
 
@@ -37,8 +38,8 @@ class FeatureValueModel(Base):
     entity_id: Mapped[str] = mapped_column(String(36), nullable=False)
     entity_type: Mapped[str] = mapped_column(String(50), nullable=False)
     value: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
-    computed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    ttl_seconds: Mapped[int] = mapped_column(Integer, default=3600)
+    computed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ttl_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True, default=3600)
 
     __table_args__ = (
         Index(

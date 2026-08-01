@@ -19,9 +19,10 @@ class NotificationModel(Base):
     user_id: Mapped[str] = mapped_column(String(64), index=True, nullable=False)
     type: Mapped[str] = mapped_column(String(50), nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
-    body: Mapped[str] = mapped_column(Text, default="")
+    # DB nullable with defaults (DEC-130d — ORM align; no SET NOT NULL)
+    body: Mapped[str | None] = mapped_column(Text, nullable=True, default="")
     data: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=dict)
-    read: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    read: Mapped[bool | None] = mapped_column(Boolean, nullable=True, default=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
 
     __table_args__ = (

@@ -172,7 +172,7 @@ class RoleModel(Base):
 
     id: Mapped[str] = mapped_column(String(100), primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    description: Mapped[str] = mapped_column(Text, default="")
+    description: Mapped[str | None] = mapped_column(Text, nullable=True, default="")
     is_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     tenant_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -189,8 +189,8 @@ class PermissionModel(Base):
     id: Mapped[str] = mapped_column(String(100), primary_key=True)
     key: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
-    description: Mapped[str] = mapped_column(Text, default="")
-    group: Mapped[str] = mapped_column(String(50), default="general")
+    description: Mapped[str | None] = mapped_column(Text, nullable=True, default="")
+    group: Mapped[str | None] = mapped_column(String(50), nullable=True, default="general")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

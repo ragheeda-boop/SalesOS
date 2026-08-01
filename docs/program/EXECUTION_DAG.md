@@ -65,7 +65,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **S04-04 remediation A** | READY | Wiring commit identified | `5e7023f` introduced `app_database_url` / `APP_POSTGRES_*` consumption |
 | **S04-04 remediation B** | READY (path choice) | Image promote | GHCR path BLOCKED (CI-08); alternate Railway GitHub build/redeploy |
 | **S04-04 remediation A–E** | **Evidence landed** | Prod `9664e9fc` / `salesos_app` / alembic `d1a8` / policies **67** / E bare=0 | Single-tenant caveat residual; tip RLS align via owner SSH |
-| **DB-05** Schema reconciliation | IN PROGRESS | Slice 0–4 CLOSED (7.5/7.4); **Slice 5a–5c COMPLETE** (DEC-130 / DEC-130b / DEC-130c READY FOR REVIEW); head `e2b9d46f8a10`; prod tip was `d1a8` / POLICY_COUNT **67** | Residual **7.6 OPEN** (check FAILED; `add_table` **3→0**; `remove_table` **15**; next 5d); prior “prod on 59” residual cleared (`c842245`) |
+| **DB-05** Schema reconciliation | IN PROGRESS | Slice 0–4 CLOSED (7.5/7.4); **Slice 5a–5d COMPLETE** (DEC-130 / DEC-130b / DEC-130c / DEC-130d READY FOR REVIEW); head `a4f7c29e1b80`; prod tip was `d1a8` / POLICY_COUNT **67** | Residual **7.6 OPEN** (check FAILED; `added_index` **37→0**; `remove_table` **15**; next 5e); prior “prod on 59” residual cleared (`c842245`) |
 | **Optional Jest 30 evidence** | BACKLOG | DEC-108 deferred | STOP silent major |
 | **STORY-02-02** browser/E2E | **CLOSED** (DEC-095) | Redirect AC | **CI GREEN not met** |
 | **Sprint 04 Category B (B1–B7)** | **CLOSED** (COMPLETE) | DEC-110; B1–B7 CLOSED (DEC-112/114/115/116/117/118/119); live policies **59** | Does not restore Phase 0 GO (DEC-120) |
@@ -87,7 +87,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **Security P0 1.3** CSRF X-API-Key | **CLOSED** (DEC-127a) | Arch+Val PASS @ `5db0756`; Phase 0 **22/54** (superseded to **24/54**) |
 | **Security P0 1.5** SAST + deps | **CLOSED CONDITIONAL** (DEC-128a) | Arch PASS + Val PASS_CONDITIONAL @ `fa266b5`; residual: post-align Security Scan pip-audit field-verify PENDING; Phase 0 **23/54** (superseded to **24/54**) |
 | **DB-05 7.4** companies KEEP | **CLOSED** (DEC-129a) | Arch+Val PASS @ `4aacd6d`; KEEP no DROP; head `d1a8c35e7f09`; Phase 0 **24/54** |
-| **DB-05 7.6** alembic check | **OPEN** (Slice 5c DEC-130c READY FOR REVIEW) | `add_table` **3→0**; check still FAILED @ `e2b9d46f8a10`; next 5d; do **not** CLOSE |
+| **DB-05 7.6** alembic check | **OPEN** (Slice 5d DEC-130d READY FOR REVIEW) | `added_index` **37→0**; type **13→1**; check still FAILED @ `a4f7c29e1b80`; next 5e; do **not** CLOSE |
 
 ---
 
@@ -95,7 +95,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30, DB-05 7.6 Slice 5d+ | PARALLEL / READY | DEC-107 swarm; 7.6 OPEN after Slice 5c DEC-130c (`add_table` 3→0); next index/type/null — do **not** claim Phase 0 GO |
+| Contract tests, optional Jest 30, DB-05 7.6 Slice 5e+ | PARALLEL / READY | DEC-107 swarm; 7.6 OPEN after Slice 5d DEC-130d (`added_index` 37→0); next companies residual — do **not** claim Phase 0 GO |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 **Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation / CI-08/09 ops proceed.

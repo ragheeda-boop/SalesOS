@@ -119,9 +119,10 @@ class DeadLetterRecord(Base):
     retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     max_retries: Mapped[int] = mapped_column(Integer, nullable=False, default=3)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="failed")
-    created_at: Mapped[datetime] = mapped_column(
+    # DB allows NULL (0011); do not SET NOT NULL without null inventory (DEC-130d)
+    created_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
-        nullable=False,
+        nullable=True,
     )
     last_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

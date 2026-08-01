@@ -10,6 +10,7 @@ from datetime import datetime
 from sqlalchemy import (
     Column,
     DateTime,
+    Index,
     Integer,
     MetaData,
     String,
@@ -37,6 +38,10 @@ domain_events = Table(
     Column("occurred_at", DateTime(timezone=True), nullable=False),
     Column("data", JSONB),
     Column("metadata", JSONB),
+    # Live indexes — metadata register only (DEC-130d); do not DROP
+    Index("ix_domain_events_aggregate_id", "aggregate_id"),
+    Index("ix_domain_events_event_type", "event_type"),
+    Index("ix_domain_events_tenant_id", "tenant_id"),
 )
 
 

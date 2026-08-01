@@ -6,8 +6,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from sqlalchemy import String as sa_String
-from sqlalchemy import and_, func, select, text
+from sqlalchemy import DateTime, Index, String as sa_String, Text, and_, func, select, text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -28,34 +27,36 @@ from .models import (
 from .repository import DecisionCenterRepository
 
 
-def _naive_utc(dt: datetime) -> datetime:
-    """Strip tzinfo before binding to a `TIMESTAMP WITHOUT TIME ZONE` column.
-
-    asyncpg cannot encode a timezone-aware datetime against a naive column
-    (raises "can't subtract offset-naive and offset-aware datetimes"), and
-    the service layer always produces tz-aware UTC timestamps.
-    """
-    return dt.astimezone(timezone.utc).replace(tzinfo=None) if dt.tzinfo else dt
+def _aware_utc(dt: datetime) -> datetime:
+    """Ensure tz-aware UTC for TIMESTAMPTZ columns (DEC-130d ORM align)."""
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
 
 
 class DecisionModel(BaseModel):
     __tablename__ = "decision_center_decisions"
+    __table_args__ = (
+        # Live index names — metadata register (DEC-130d)
+        Index("ix_dcd_entity", "entity_type", "entity_id"),
+        Index("ix_dcd_status", "status"),
+    )
 
     tenant_id: Mapped[str] = mapped_column(nullable=False, index=True)
     domain: Mapped[str] = mapped_column(nullable=False, index=True)
     decision_type: Mapped[str] = mapped_column(nullable=False, index=True)
     entity_id: Mapped[str] = mapped_column(nullable=False, index=True)
     entity_type: Mapped[str] = mapped_column(nullable=False)
-    decision: Mapped[str] = mapped_column(nullable=False)
+    decision: Mapped[str] = mapped_column(Text, nullable=False)
     confidence: Mapped[float] = mapped_column(nullable=False)
-    reasoning: Mapped[str] = mapped_column(nullable=True)
+    reasoning: Mapped[str | None] = mapped_column(Text, nullable=True)
     provider: Mapped[str] = mapped_column(nullable=False)
     alternatives: Mapped[dict | None] = mapped_column(type_=JSONB, nullable=True)
     decision_metadata: Mapped[dict | None] = mapped_column(type_=JSONB, nullable=True)
     is_ensemble: Mapped[bool] = mapped_column(server_default=text("false"))
     ensemble_votes: Mapped[dict | None] = mapped_column(type_=JSONB, nullable=True)
     status: Mapped[str] = mapped_column(nullable=False, default="active")
-    timestamp: Mapped[datetime] = mapped_column(nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class DecisionAuditModel(Base):
@@ -67,19 +68,20 @@ class DecisionAuditModel(Base):
     confidence_breakdown: Mapped[dict | None] = mapped_column(type_=JSONB, nullable=True)
     provider_used: Mapped[str] = mapped_column(nullable=False)
     alternatives_considered: Mapped[dict | None] = mapped_column(type_=JSONB, nullable=True)
-    timestamp: Mapped[datetime] = mapped_column(nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     ensemble_metadata: Mapped[dict | None] = mapped_column(type_=JSONB, nullable=True)
 
 
 class DecisionFeedbackModel(Base):
     __tablename__ = "decision_center_feedback"
+    __table_args__ = (Index("ix_dcf_decision", "decision_id"),)
 
     id: Mapped[str] = mapped_column(primary_key=True)
     decision_id: Mapped[str] = mapped_column(nullable=False, index=True)
     rating: Mapped[str] = mapped_column(nullable=False)
-    comment: Mapped[str | None] = mapped_column(nullable=True)
+    comment: Mapped[str | None] = mapped_column(Text, nullable=True)
     actor_id: Mapped[str | None] = mapped_column(nullable=True)
-    created_at: Mapped[datetime] = mapped_column(nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 class DecisionTemplateModel(Base):
@@ -90,7 +92,7 @@ class DecisionTemplateModel(Base):
     template_type: Mapped[str] = mapped_column(nullable=False, index=True)
     config: Mapped[dict | None] = mapped_column(type_=JSONB, nullable=True)
     tenant_id: Mapped[str | None] = mapped_column(nullable=True, index=True, default=None)
-    created_at: Mapped[datetime] = mapped_column(nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
 def _decision_from_row(row: DecisionModel) -> Decision:
@@ -196,7 +198,7 @@ class PostgresDecisionCenterRepository(DecisionCenterRepository):
                 for v in decision.ensemble_votes
             ] if decision.ensemble_votes else None,
             status=decision.status.value,
-            timestamp=_naive_utc(decision.timestamp),
+            timestamp=_aware_utc(decision.timestamp),
         )
         self._session.add(row)
         await self._session.flush()
@@ -274,7 +276,7 @@ class PostgresDecisionCenterRepository(DecisionCenterRepository):
             confidence_breakdown=audit.confidence_breakdown,
             provider_used=audit.provider_used,
             alternatives_considered=audit.alternatives_considered,
-            timestamp=_naive_utc(audit.timestamp),
+            timestamp=_aware_utc(audit.timestamp),
             ensemble_metadata=audit.ensemble_metadata,
         )
         self._session.add(row)
@@ -297,7 +299,7 @@ class PostgresDecisionCenterRepository(DecisionCenterRepository):
             rating=feedback.rating.value,
             comment=feedback.comment,
             actor_id=feedback.actor_id,
-            created_at=_naive_utc(feedback.created_at),
+            created_at=_aware_utc(feedback.created_at),
         )
         self._session.add(row)
         await self._session.flush()
@@ -357,7 +359,7 @@ class PostgresDecisionCenterRepository(DecisionCenterRepository):
             template_type=template.type.value,
             config=template.config,
             tenant_id=template.tenant_id if template.tenant_id else None,
-            created_at=_naive_utc(template.created_at),
+            created_at=_aware_utc(template.created_at),
         )
         self._session.add(row)
         await self._session.flush()

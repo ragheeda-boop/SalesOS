@@ -1,6 +1,6 @@
 # DEC-130 — DB-05 criterion 7.6: live `alembic check` re-baseline + phased plan
 
-> **Status:** **Accepted** — Slice **5a** COMPLETE · Slice **5b** COMPLETE ([DEC-130b](DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md)) · Slice **5c** COMPLETE ([DEC-130c](DEC-130c-DB-05-SLICE-5C-ADMIN-GLOBAL-CREATE.md) READY FOR REVIEW) · Criterion **7.6 remains OPEN** (clean check **not** met) · do **not** CLOSE 7.6  
+> **Status:** **Accepted** — Slice **5a** COMPLETE · Slice **5b** COMPLETE ([DEC-130b](DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md)) · Slice **5c** COMPLETE ([DEC-130c](DEC-130c-DB-05-SLICE-5C-ADMIN-GLOBAL-CREATE.md) READY FOR REVIEW) · Slice **5d** COMPLETE ([DEC-130d](DEC-130d-DB-05-SLICE-5D-INDEX-TYPE-NULLABLE.md) READY FOR REVIEW) · Criterion **7.6 remains OPEN** (clean check **not** met) · do **not** CLOSE 7.6  
 > **Date:** 2026-08-01  
 > **Board:** Backend Platform / Database (SalesOS / AQLIYA)  
 > **Story / risk:** DB-05 / R-20 / Phase 0 Exit Criterion **7.6**  
@@ -66,7 +66,7 @@ docker compose exec -T backend alembic check     → FAILED exit 255
 | **5a** | *(this DEC)* Live re-baseline + plan | Evidence pinned; 7.6 stays OPEN | **No** |
 | **5b** | Metadata completeness — classify 28 `remove_table`; register FPs ([DEC-130b](DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md)) | `remove_table` **28 → 15**; **no DROP** | **No** (COMPLETE / READY FOR REVIEW) |
 | **5c** | Additive **CREATE** for global admin trio (`admin_plans`, `admin_feature_flags`, `admin_health_snapshots`) — no RLS ([DEC-130c](DEC-130c-DB-05-SLICE-5C-ADMIN-GLOBAL-CREATE.md)) | `add_table` **3 → 0** | **No** (COMPLETE / READY FOR REVIEW) |
-| **5d** | Index / type / nullable residual batches (additive rename/create only; SET NOT NULL only with null inventory) | Index/type/null noise ↓ | **No** |
+| **5d** | Index / type / nullable residual batches (additive rename/create only; SET NOT NULL only with null inventory) ([DEC-130d](DEC-130d-DB-05-SLICE-5D-INDEX-TYPE-NULLABLE.md)) | `added_index` **37 → 0**; type **13 → 1**; NOT NULL **33 → 0** | **No** (COMPLETE / READY FOR REVIEW) |
 | **5e** | Companies residual columns (`do_not_contact`, `embedding_vector`) — KEEP + ORM or explicit DROP DEC | Column DROP proposals gone | **No** |
 | **5f+** | Remaining orphan/legacy table policy + final `alembic check` | **exit 0** | **Yes** (only then) |
 

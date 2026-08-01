@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-130c Slice 5c admin CREATE READY FOR REVIEW — criterion 7.6 stays OPEN; add_table 3→0; head e2b9d46f8a10; 7.4 VERIFIED/CLOSED DEC-129a; Phase 0 24/54)
+> **Last updated:** 2026-08-01 (DEC-130d Slice 5d index/type/null READY FOR REVIEW — criterion 7.6 stays OPEN; added_index 37→0; head a4f7c29e1b80; 7.4 VERIFIED/CLOSED DEC-129a; Phase 0 24/54)
 >
 > ## Operating State
 >
@@ -139,7 +139,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 7.3 | Index names aligned | `ix_rev_*` → `ix_*` rename (DEC-122) | ✅ Slice 3 |
 | 7.4 | Companies dead-column DROP resolved | `search_vector` FTS preserved; DEC decision recorded | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `4aacd6d` (DEC-129a); KEEP (no DROP; ORM restore); head `d1a8c35e7f09`; Docker **4 passed**; DEC-085 untouched; Orchestrator 2026-08-01 |
 | 7.5 | Deferred-8 tables have RLS enabled | RLS policies on tables currently without them | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `578e4f2` (DEC-123a); live POLICY_COUNT **67** (prod tip-align `d1a8c35e7f09` / crumb `c842245` cleared prior “prod may still be on 59” residual); Orchestrator 2026-08-01 |
-| 7.6 | `alembic check` exits clean | Zero drift between ORM and DB | ⬜ **OPEN** (phased) — Slice 5c COMPLETE (DEC-130c READY FOR REVIEW): live Docker `alembic check` @ `e2b9d46f8a10` **FAILED** exit 255; `add_table` **3→0** (admin CREATE); `remove_table` **15** orphan KEEP; **not CLOSED**; next Slice 5d index/type/null |
+| 7.6 | `alembic check` exits clean | Zero drift between ORM and DB | ⬜ **OPEN** (phased) — Slice 5d COMPLETE (DEC-130d READY FOR REVIEW): live Docker `alembic check` @ `a4f7c29e1b80` **FAILED** exit 255; `added_index` **37→0**; type **13→1**; NOT NULL **33→0**; `remove_table` **15** orphan KEEP; **not CLOSED**; next Slice 5e companies residual |
 
 **Owner:** Backend Lead  
 **Reference:** `13_DATABASE_CATALOG.md`, R-20, DB-05

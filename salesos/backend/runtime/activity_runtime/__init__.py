@@ -27,6 +27,7 @@ from typing import Any, Callable, Optional
 from sqlalchemy import (
     Column,
     DateTime,
+    Index,
     MetaData,
     String,
     Table,
@@ -34,6 +35,7 @@ from sqlalchemy import (
     func,
     insert,
     select,
+    text,
     true,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -54,6 +56,16 @@ activity_records = Table(
     Column("metadata", JSONB, nullable=True),
     Column("tenant_id", String(36), nullable=True),
     Column("timestamp", DateTime(timezone=True), nullable=False),
+    # Live indexes — metadata register only (DEC-130d); do not DROP
+    Index("ix_activity_action", "action", text("timestamp DESC")),
+    Index("ix_activity_actor", "actor", text("timestamp DESC")),
+    Index("ix_activity_entity", "entity_type", "entity_id", text("timestamp DESC")),
+    Index("ix_activity_records_action", "action"),
+    Index("ix_activity_records_actor", "actor"),
+    Index("ix_activity_records_entity_id", "entity_id"),
+    Index("ix_activity_records_tenant_id", "tenant_id"),
+    Index("ix_activity_records_timestamp", "timestamp"),
+    Index("ix_activity_tenant_action", "tenant_id", "action", text("timestamp DESC")),
 )
 
 

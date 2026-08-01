@@ -8,7 +8,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
-from sqlalchemy import JSON, Column, DateTime, Float, Integer, String, UniqueConstraint
+from sqlalchemy import Column, DateTime, Float, Index, Integer, String, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from runtime.event_runtime import EventRuntime
@@ -20,7 +21,14 @@ class CompanyFeatureModel(Base):
 
     __tablename__ = "company_features"
     __table_args__ = (
-        UniqueConstraint("tenant_id", "company_id", "feature_name", name="uq_company_feature"),
+        # Live unique index name (0002) — register twin; do not DROP (DEC-130d)
+        Index(
+            "ix_company_features_lookup",
+            "tenant_id",
+            "company_id",
+            "feature_name",
+            unique=True,
+        ),
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -31,10 +39,19 @@ class CompanyFeatureModel(Base):
     version = Column(Integer, nullable=False, default=1)
     computed_at = Column(DateTime(timezone=True), nullable=False)
     confidence = Column(Float, nullable=False, default=0.0)
-    signals = Column(JSON, nullable=True)
+    signals = Column(JSONB, nullable=True)
     explanation = Column(String(500), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
 
 @dataclass
