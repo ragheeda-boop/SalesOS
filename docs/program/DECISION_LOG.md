@@ -507,3 +507,14 @@
 **Decision:** Accept Phase 3 as **COMPLETE** at `e5b4471`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Validation label: **light validated** (host mypy); full Backend Types CI **not** re-run.
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**19/20**). R-22 remains Open (mitigating). **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 3 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-049 — CI-20 Phase 4 complete: identity mypy burn-down (16→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1 (DEC-046) cleared `app/modules/admin` (**34 → 0**; overall expected **~308 → ~274**) at `65296174`. Phase 2 (DEC-047) cleared `app/modules/company` (**25 → 0**; overall expected **~274 → ~249**) at `01b6a8ae`. Phase 3 (DEC-048) cleared `app/modules/entity_resolution` (**14 → 0**; overall expected **~249 → ~235**) at `e5b4471`. Phase 4 targeted module `app/modules/identity` (highest remaining hotspot vs revenue_execution 10 / sso 8) and landed on `master` at `4b3a436` (`4b3a43671aa1376f2145fbaf624fd50b8d1dc953`) — identity module **16 → 0** mypy errors; overall expected **~235 → ~219**.
+**Alternatives considered:** (a) close entire CI-20 on Phase 4 land — rejected (residual ~219 errors remain; phased story); (b) record Phase 4 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
+**Decision:** Accept Phase 4 as **COMPLETE** at `4b3a436`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Validation label: **light validated** (host mypy); full Backend Types CI **not** re-run.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**19/20**). R-22 remains Open (mitigating). **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 4 COMPLETE**; story **OPEN**.
