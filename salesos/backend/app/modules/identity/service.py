@@ -461,7 +461,10 @@ class IdentityService:
         _LOCK_DURATION_MINUTES = 15
 
         if user and user.is_locked:
-            remaining = int((user.locked_until - _now()).total_seconds() / 60)
+            locked_until = user.locked_until
+            if locked_until is None:
+                raise UnauthorizedError("Account locked. | الحساب مقفل.")
+            remaining = int((locked_until - _now()).total_seconds() / 60)
             audit = AuditTrail(self.db)
             await audit.record(
                 tenant_id=str(user.tenant_id) if user.tenant_id else "",
@@ -633,7 +636,7 @@ class IdentityService:
         reset = result.scalar_one_or_none()
         if not reset:
             raise UnauthorizedError("Invalid or expired reset token")
-        user = await self.get_user(reset.user_id)
+        user = await self.get_user(str(reset.user_id))
         user.password_hash = hash_password(new_password)
         reset.used_at = now
         await self.db.flush()

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List
+import builtins
 
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -87,7 +87,7 @@ class InMemoryPlanRepository:
         for p in [free, starter, growth, enterprise]:
             self._plans[p.id] = p
 
-    async def list(self) -> List[Plan]:
+    async def list(self) -> builtins.list[Plan]:
         return list(self._plans.values())
 
     async def get(self, plan_id: uuid.UUID) -> Plan | None:
@@ -119,7 +119,7 @@ class InMemoryLicenseRepository:
     def __init__(self):
         self._licenses: dict[uuid.UUID, License] = {}
 
-    async def list(self) -> List[License]:
+    async def list(self) -> builtins.list[License]:
         return list(self._licenses.values())
 
     async def get(self, license_id: uuid.UUID) -> License | None:
@@ -136,7 +136,7 @@ class InMemoryLicenseRepository:
         self._licenses[license.id] = license
         return license
 
-    async def find_by_tenant(self, tenant_id: str | uuid.UUID) -> List[License]:
+    async def find_by_tenant(self, tenant_id: str | uuid.UUID) -> builtins.list[License]:
         tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
         return [lic for lic in self._licenses.values() if lic.tenant_id == tid]
 
@@ -210,14 +210,14 @@ class InMemoryInvoiceRepository:
         self._transactions[tx1.id] = tx1
         self._transactions[tx2.id] = tx2
 
-    async def list_invoices(self, tenant_id: str | None = None) -> List[Invoice]:
+    async def list_invoices(self, tenant_id: str | None = None) -> builtins.list[Invoice]:
         invs = list(self._invoices.values())
         if tenant_id:
             tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
             invs = [i for i in invs if i.tenant_id == tid]
         return sorted(invs, key=lambda x: x.created_at, reverse=True)
 
-    async def list_transactions(self, tenant_id: str | None = None) -> List[Transaction]:
+    async def list_transactions(self, tenant_id: str | None = None) -> builtins.list[Transaction]:
         txs = list(self._transactions.values())
         if tenant_id:
             tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
@@ -280,7 +280,7 @@ class InMemoryFeatureFlagRepository:
         for f in flags:
             self._flags[f.id] = f
 
-    async def list(self) -> List[FeatureFlag]:
+    async def list(self) -> builtins.list[FeatureFlag]:
         return list(self._flags.values())
 
     async def get(self, flag_id: uuid.UUID) -> FeatureFlag | None:
@@ -323,7 +323,7 @@ class InMemoryFeatureFlagRepository:
         flag.updated_at = datetime.now(UTC)
         return flag
 
-    async def get_tenants_for_flag(self, flag_id: uuid.UUID) -> List[dict]:
+    async def get_tenants_for_flag(self, flag_id: uuid.UUID) -> builtins.list[dict]:
         flag = self._flags.get(flag_id)
         if not flag:
             return []
@@ -438,7 +438,7 @@ class InMemoryJobRepository:
         job_type: str | None = None,
         page: int = 1,
         page_size: int = 20,
-    ) -> tuple[List[Job], int]:
+    ) -> tuple[builtins.list[Job], int]:
         jobs = list(self._jobs.values())
         if status:
             jobs = [j for j in jobs if j.status == status]
@@ -474,7 +474,7 @@ class InMemoryJobRepository:
 
 class InMemoryAICostRepository:
     def __init__(self):
-        self._records: List[AICostRecord] = []
+        self._records: builtins.list[AICostRecord] = []
         self._seed()
 
     def _seed(self):
@@ -546,7 +546,7 @@ class InMemoryAICostRepository:
         days: int = 30,
         page: int = 1,
         page_size: int = 20,
-    ) -> tuple[List[AICostRecord], int]:
+    ) -> tuple[builtins.list[AICostRecord], int]:
         cutoff = datetime.now(UTC) - timedelta(days=days)
         records = [r for r in self._records if r.created_at >= cutoff]
         if model:
@@ -650,7 +650,7 @@ class InMemoryAICostRepository:
 
 
 class InMemoryHealthRepository:
-    _history: List[HealthSnapshot]
+    _history: builtins.list[HealthSnapshot]
     _start_time: datetime
 
     def __init__(self) -> None:
@@ -734,6 +734,6 @@ class InMemoryHealthRepository:
             ],
         }
 
-    async def get_history(self, hours: int = 24) -> List[HealthSnapshot]:
+    async def get_history(self, hours: int = 24) -> builtins.list[HealthSnapshot]:
         cutoff = datetime.now(UTC) - timedelta(hours=hours)
         return [h for h in self._history if h.timestamp >= cutoff]
