@@ -496,6 +496,7 @@ async def test_timeline_runtime_keyset_cursor(db_session: AsyncSession):
     assert total2 == 5
     assert len(page2) == 2
 
+
 # ── B-2 Knowledge Graph Insights Tests ─────────────────────────────────
 
 

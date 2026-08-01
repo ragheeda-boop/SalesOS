@@ -136,13 +136,7 @@ class ContactSearchRepository(SearchRepository[Any]):
                 col = getattr(Contact, field)
                 sub = base.subquery()
                 cnt = func.count().label("cnt")
-                fq = (
-                    select(col, cnt)
-                    .select_from(sub)
-                    .group_by(col)
-                    .order_by(cnt.desc())
-                    .limit(20)
-                )
+                fq = select(col, cnt).select_from(sub).group_by(col).order_by(cnt.desc()).limit(20)
                 r = await self.db.execute(fq)
                 result[field] = {str(row[0] or "unknown"): row[1] for row in r}
 

@@ -141,9 +141,7 @@ def _generate_embedding(entity_id: str, entity_type: str):
             return
 
         async with async_session() as session:
-            tbl = _entity_table(
-                "companies" if entity_type.lower() == "company" else "contacts"
-            )
+            tbl = _entity_table("companies" if entity_type.lower() == "company" else "contacts")
             result = await session.execute(select(tbl).where(tbl.c.id == entity_id).limit(1))
             row = result.mappings().one_or_none()
             if not row:
@@ -394,9 +392,7 @@ async def _run_enrichment_pipeline(company_id: str, tenant_id: str) -> dict:
     tbl = _entity_table("companies")
     async with async_session() as session:
         row = await session.execute(
-            select(tbl)
-            .where(tbl.c.id == company_id, tbl.c.tenant_id == tenant_id)
-            .limit(1)
+            select(tbl).where(tbl.c.id == company_id, tbl.c.tenant_id == tenant_id).limit(1)
         )
         company = row.mappings().one_or_none()
         if not company:

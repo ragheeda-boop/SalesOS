@@ -128,9 +128,7 @@ async def init_db():
                 raise ValueError(f"Disallowed extension name: {ext_name_dq!r}")
             try:
                 # Allowlisted DDL via exec_driver_sql (CI-19 Slice 2 pattern) — not sa_text.
-                await conn.exec_driver_sql(
-                    f'CREATE EXTENSION IF NOT EXISTS "{ext_name_dq}"'
-                )
+                await conn.exec_driver_sql(f'CREATE EXTENSION IF NOT EXISTS "{ext_name_dq}"')
             except Exception as exc:
                 import logging
 
