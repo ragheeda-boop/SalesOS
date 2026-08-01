@@ -1,8 +1,9 @@
 import asyncio
 import os
-from typing import Any
+from typing import Any, cast
 
 from fastapi import FastAPI
+from redis.asyncio import Redis  # type: ignore[import-untyped]
 
 from app.cache import CacheService
 from app.common.logging_config import configure_logging
@@ -91,6 +92,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
 
     validate_scraper_keys_startup()
 
+    event_runtime: KafkaEventBus | EventRuntime
     if settings.event_bus_type == "kafka":
         event_runtime = KafkaEventBus(
             bootstrap_servers=settings.kafka_bootstrap_servers,
@@ -142,11 +144,11 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     _redis_client = AsyncRedisClient()
     _cache_service: Any = None
     if await _redis_client.health():
-        _cache_service = SdkCacheService(_redis_client._redis)
+        _cache_service = SdkCacheService(cast(Redis, _redis_client._redis))
 
     feature_store = FeatureStore(
         session_factory=async_session,
-        event_runtime=event_runtime,
+        event_runtime=cast(EventRuntime, event_runtime),
         computers=[
             IcpComputer(),
             FundingScoreComputer(),
@@ -162,7 +164,9 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
     )
     app.state.feature_store = feature_store
 
-    fs_repo = PostgresFeatureStoreRepository(async_session)
+    fs_sess = async_session()
+    app.state._fs_repo_session = fs_sess
+    fs_repo = PostgresFeatureStoreRepository(fs_sess)
     fs_domain_service = FeatureStoreDomainService(repository=fs_repo)
     app.state.feature_store_domain_service = fs_domain_service
 
@@ -208,7 +212,7 @@ async def init_startup_services(app: FastAPI) -> list[asyncio.Task]:
         context_builder=context_builder,
         policy_engine=policy_engine,
         recommendation_engine=recommendation_engine,
-        event_runtime=event_runtime,
+        event_runtime=cast(EventRuntime, event_runtime),
         feature_store=feature_store,
         logger=app.state.logger,
     )
