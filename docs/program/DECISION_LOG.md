@@ -1085,6 +1085,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-113 - DB-05 Slice 1: additive CREATE TABLE for 8 P0 R-09 tables
+
+**Date:** 2026-08-01
+**Context:** DEC-111 Slice 0 pinned 8 Category A deferred tables with ORM+`tenant_id` but no Alembic `create_table`. Slice 1 authorized as CREATE-only (no ENABLE RLS; no production migrate; DEC-085 untouched). Concurrent Category B B1 had local WIP on parent `065d1d3a466b` (DEC-112 / `b110c04e7a01`); Slice 1 chained from committed tip head `065d1d3a466b` - B1 must rebase onto new head if still unpushed.
+**Alternatives considered:** (a) wait indefinitely for B1 remote land before any CREATE - rejected (DEC-107 keep READY busy; B1 unpushed after wait); (b) ENABLE RLS in same land - rejected (DEC-110/111; Category B owns join RLS; deferred-8 RLS = later slice); (c) two additive clusters (admin x5 + webhook/scoring/revenue x3) CREATE-only - approved.
+**Decision:** Accept DB-05 **Slice 1 CLOSED** for P0 CREATE. Companion: [`decisions/DEC-113-DB-05-SLICE-1-P0-CREATE.md`](decisions/DEC-113-DB-05-SLICE-1-P0-CREATE.md). Alembic: `a7c3e91f0b05` (admin_licenses, admin_invoices, admin_transactions, admin_ai_costs, admin_jobs) -> `b8d4f02a1c06` (webhook_endpoints, scoring_scorecards, revenue_analytics_snapshots). Head **`b8d4f02a1c06`**. Remaining P0 CREATE: **0**. Still no RLS on these eight.
+**Consequence:** R-09 missing-CREATE gap closed for the deferred-8. R-20 remains OPEN (P1 type/index drift). Next DB-05 = Slice 2 emails/meetings type authority. Category B B1+ must not ENABLE RLS on these eight until a governed RLS handoff. Production GA **NO-GO**. **CI GREEN not met**. Validation: **light validated** (alembic heads + history; DEC-085 spot-check; no prod migrate).
+**Status:** Accepted. DB-05 Slice 1 **CLOSED**; program **OPEN**.
+
 ### DEC-111 - DB-05 Slice 0: schema drift inventory kickoff (R-20 / R-09)
 
 **Date:** 2026-08-01
