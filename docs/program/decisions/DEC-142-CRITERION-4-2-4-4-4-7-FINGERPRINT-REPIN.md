@@ -1,11 +1,11 @@
 # DEC-142 — EOS fingerprint re-measure + EvidenceLevel Measured (Phase 0 criteria 4.2 / 4.4 / 4.7)
 
-> **Status:** **Cursor COMPLETE** / **READY FOR REVIEW** — awaiting Architecture + Validation  
+> **Status:** **VERIFIED/CLOSED** via DEC-142a (Arch PASS + Validation PASS light @ `637d051`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / EOS Audit (SalesOS / AQLIYA) — api-worker land  
+> **Board:** Backend Lead / EOS Audit (SalesOS / AQLIYA) — api-worker land + Orchestrator CLOSE  
 > **Story / risk:** Phase 0 Exit Criteria **4.2** · **4.4** · **4.7**  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §4.2 / §4.4 / §4.7 · DEC-140 / DEC-141 residuals · ADR-036 Engineering Spec layer  
-> **Out of scope this land:** ARB re-audit (4.1/4.8) · Eng Stability 8.1–8.3 · inventing SoT · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED
+> **Out of scope this land:** ARB re-audit (4.1/4.8) · Eng Stability 8.1–8.3 · inventing SoT · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit
 
 ---
 
@@ -23,7 +23,7 @@ Resolve criteria **4.2**, **4.4**, and **4.7** by **re-measuring** the EOS finge
 | Tracked files raw / filtered | **3252** / **3241** |
 | EvidenceLevel | **Measured** |
 | Revalidation | **Active (DEC-142)** |
-| Criterion state | **READY FOR REVIEW** (not VERIFIED/CLOSED) |
+| Criterion state | **VERIFIED/CLOSED** (DEC-142a) |
 
 ### Gate definition (honest)
 
@@ -39,7 +39,7 @@ Resolve criteria **4.2**, **4.4**, and **4.7** by **re-measuring** the EOS finge
 | Independent ARB re-audit PASS | **No** — residual **4.1** / **4.8** |
 | `engineering-os/` submodule clean | **No** — residual **8.1** (dirty `kernel/capability-registry.yaml`) |
 
-**Not claimed:** Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED · ARB PASS · closing 8.x.
+**Not claimed:** Production GO · CI GREEN · Phase 0 exit · ARB PASS · closing 8.x / 4.1 / 4.8.
 
 ---
 
@@ -50,7 +50,7 @@ Resolve criteria **4.2**, **4.4**, and **4.7** by **re-measuring** the EOS finge
 | (a) Docs-only checklist note without re-measure | Rejected — 4.2 requires verified counts/head |
 | (b) Claim “Repository Verified” | Rejected — ARB B7 overclaim; needs 4.1/4.8 |
 | (c) Re-pin headers only; leave stale head `c9f4…` | Rejected — agents would target wrong Alembic head |
-| (d) Claim VERIFIED/CLOSED in this land | Rejected — Arch+Val + Orchestrator gate |
+| (d) Claim VERIFIED/CLOSED in this land | Rejected at land — Arch+Val + Orchestrator gate (CLOSED via DEC-142a) |
 | (e) Re-measure + Measured + Active protocol + critical catalog head fix | **Approved** |
 
 ---
@@ -70,10 +70,11 @@ Resolve criteria **4.2**, **4.4**, and **4.7** by **re-measuring** the EOS finge
 
 ## 4. Records
 
-- Phase 0 criteria **4.2** / **4.4** / **4.7** → **READY FOR REVIEW** (this DEC)
+- Phase 0 criteria **4.2** / **4.4** / **4.7** → **READY FOR REVIEW** (this DEC) → **CLOSED** (DEC-142a)
+- Phase 0 **36/54 → 39/54**; EOS Audit Complete **3 → 6** / Open **5 → 2**
 - Residuals: **4.1** / **4.8** ARB · Eng Stability **8.1–8.3** · CI-08/CI-09 ops
 - Historical ARB audit `32_EOS_VALIDATION_AUDIT.md` left intact (do not rewrite FAIL record)
-- **Not claimed:** Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED
+- **Not claimed:** Production GO · CI GREEN · Phase 0 exit
 
 ---
 
@@ -105,7 +106,7 @@ Resolve criteria **4.2**, **4.4**, and **4.7** by **re-measuring** the EOS finge
 |---------|-------|------|
 | Land commit advances HEAD past pin `9fa8e9f` | LOW | Expected for docs lands; protocol = re-measure when material drift |
 | Catalog prose not fully regenerated | LOW | Critical Alembic head/count paths updated; fingerprint is machine SoT |
-| Overclaim Repository Verified / CLOSED | LOW | Status = READY FOR REVIEW; EvidenceLevel = Measured only |
+| Overclaim Repository Verified / CLOSED | LOW | EvidenceLevel = Measured only; CLOSED via DEC-142a after Arch+Val; not ARB Repository Verified |
 
 ---
 
@@ -113,6 +114,6 @@ Resolve criteria **4.2**, **4.4**, and **4.7** by **re-measuring** the EOS finge
 
 | Question | Recommendation |
 |---|---|
-| Close 4.2 / 4.4 / 4.7? | **After** Arch PASS + Validation PASS (light: pin match + heads + EvidenceLevel Measured + script present) → Orchestrator DEC-142a |
+| Close 4.2 / 4.4 / 4.7? | **Done** — Arch PASS + Validation PASS (light) @ `637d051` → Orchestrator DEC-142a |
 | Next PARALLEL | EOS **4.1/4.8** ARB · Eng Stability **8.1–8.3** |
 | Do not | Claim Phase 0 GO · CI GREEN · invent ARB PASS · weaken auth / DEC-085 |

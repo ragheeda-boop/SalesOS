@@ -54,5 +54,5 @@ Program agents enter Engineering Spec via `docs/program/ENGINEERING_LAYER_BRIDGE
 
 ## Honesty
 
-- Fingerprint re-measured at tip `9fa8e9f` (DEC-142); EvidenceLevel **Measured**; Revalidation **Active** — criteria **4.2 / 4.4 / 4.7** READY FOR REVIEW (not Orchestrator-CLOSED).
+- Fingerprint re-measured at tip `9fa8e9f` (DEC-142); EvidenceLevel **Measured**; Revalidation **Active** — criteria **4.2 / 4.4 / 4.7** **CLOSED** (DEC-142a). Residuals ARB **4.1 / 4.8**.
 - **Production GO not claimed. CI GREEN not met.**

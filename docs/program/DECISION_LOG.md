@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** EOS Audit **4.2/4.4/4.7** OPEN after DEC-140a/DEC-141a — pin remained heuristic `c89025a` (46 commits behind tip); EvidenceLevel Heuristic; Revalidation Pending; Alembic head stale at `c9f4a21b6e08` vs live tip head `a4f7c29e1b80`.
 **Alternatives considered:** (a) docs-only note — rejected; (b) claim Repository Verified — rejected (ARB B7 / needs 4.1/4.8); (c) header re-pin without head fix — rejected; (d) claim VERIFIED/CLOSED — rejected; (e) re-measure + Measured + Active protocol + critical catalog head fix — approved.
-**Decision:** Accept criteria **4.2 / 4.4 / 4.7** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-142-CRITERION-4-2-4-4-4-7-FINGERPRINT-REPIN.md`](decisions/DEC-142-CRITERION-4-2-4-4-4-7-FINGERPRINT-REPIN.md). Tip pin `9fa8e9f`; Docker `alembic heads` → `a4f7c29e1b80`; script `.engineering/measure_fingerprint.py`. DEC-085 intact. Do **not** claim VERIFIED/CLOSED until Arch+Val + Orchestrator.
-**Consequence:** Phase 0 criteria **4.2/4.4/4.7** = READY FOR REVIEW. Phase 0 count remains **36/54** until CLOSE. Residuals **4.1/4.8** and **8.1–8.3** OPEN. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criteria **READY FOR REVIEW**.
+**Decision:** Accept criteria **4.2 / 4.4 / 4.7** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-142-CRITERION-4-2-4-4-4-7-FINGERPRINT-REPIN.md`](decisions/DEC-142-CRITERION-4-2-4-4-4-7-FINGERPRINT-REPIN.md). Tip pin `9fa8e9f`; Docker `alembic heads` → `a4f7c29e1b80`; script `.engineering/measure_fingerprint.py`. DEC-085 intact. Closed via DEC-142a after Arch+Val PASS.
+**Consequence:** Phase 0 criteria **4.2/4.4/4.7** = READY FOR REVIEW then **CLOSED** via DEC-142a. Residuals **4.1/4.8** and **8.1–8.3** OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criteria **CLOSED via DEC-142a**.
+
+### DEC-142a — Orchestrator VERIFIED/CLOSED criteria 4.2 / 4.4 / 4.7 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review EOS fingerprint](0d398746-14bf-4eec-97a1-63c2cdbec211)) + Validation PASS (light) ([Validate 4.2/4.4/4.7](17876794-2be1-497b-8f64-2075770f35e4)) on land `637d051` / DEC-142.
+**Decision:** Execution Orchestrator records criteria **4.2 / 4.4 / 4.7 VERIFIED → CLOSED**. Phase 0 **36/54 → 39/54**. EOS Audit Complete **3 → 6** / Open **5 → 2**. Residuals EOS **4.1/4.8** and Eng Stability **8.1–8.3** remain OPEN (non-blocking for 4.2/4.4/4.7). Do **not** push. Do **not** claim Production GO / CI GREEN.
+**Consequence:** Next PARALLEL READY: EOS Audit **4.1/4.8** (ARB), Engineering Stability **8.1–8.3**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criteria **4.2 / 4.4 / 4.7 CLOSED**.
 
 ### DEC-141 — Phase 0 criterion 9.2 program↔engineering bridges READY FOR REVIEW
 
