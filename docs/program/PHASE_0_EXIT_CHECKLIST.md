@@ -22,9 +22,9 @@
 
 ## Current Verdict
 
-**Phase 0 = NO-GO** (DEC-120; DEC-086 GO withdrawn)
+**Phase 0 = NO-GO** (CI-08/CI-09; Security residuals; Capability/ADR drift)
 
-Blocked on: **R-14 Railway** (S04-04), **CI-08** (GHCR 403), **CI GREEN not met**.
+Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSED CONDITIONAL** (multi-tenant live split residual).
 
 ---
 
@@ -34,8 +34,8 @@ Blocked on: **R-14 Railway** (S04-04), **CI-08** (GHCR 403), **CI GREEN not met*
 
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
-| 1.1 | Decision Center cross-tenant IDOR fixed | Regression test PASS, independent review signed | 🟡 READY FOR REVIEW — Cursor COMPLETE (DEC-124); Architecture Review PENDING; Validation PENDING |
-| 1.2 | Webhook SSRF fixed (URL allowlist) | Regression test PASS, re-verified against Integration Hub caller | 🟡 READY FOR REVIEW — Cursor COMPLETE (DEC-125); Architecture Review PENDING; Validation PENDING |
+| 1.1 | Decision Center cross-tenant IDOR fixed | Regression test PASS, independent review signed | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `31f3aee` (DEC-124); Orchestrator 2026-08-01 |
+| 1.2 | Webhook SSRF fixed (URL allowlist) | Regression test PASS, re-verified against Integration Hub caller | 🟡 READY FOR REVIEW — Cursor COMPLETE (DEC-125 @ `fd8699d`); Architecture IN PROGRESS · Validation PENDING |
 | 1.3 | CSRF bypass via `X-API-Key` fixed | Regression test PASS | ⬜ |
 | 1.4 | Cross-tenant regression test template established | Harness reusable by every subsequent epic | ✅ STORY-01-04 (Sprint 02) |
 | 1.5 | SAST + dependency vulnerability scan wired into CI | `security-scan.yml` + `ci.yml` security jobs green | ⬜ Partial (pip-audit findings remain) |
@@ -51,7 +51,7 @@ Blocked on: **R-14 Railway** (S04-04), **CI-08** (GHCR 403), **CI GREEN not met*
 |---|-----------|-------------------|--------|
 | 2.1 | RLS policies on all Category-A tables | 47 policies verified (DEC-044) | ✅ STORY-02-01 DONE |
 | 2.2 | RLS policies on all Category-B join tables | 59 total policies live (DEC-119: B1–B7 COMPLETE) | ✅ Category B COMPLETE |
-| 2.3 | R-14 Railway: `salesos_app` role live, BYPASSRLS removed | Slices D (prod image) + E (bypass-probe PASS) | ⬜ Slices D–E not started |
+| 2.3 | R-14 Railway: `salesos_app` role live, BYPASSRLS removed | Slices D (prod image) + E (bypass-probe PASS) | ✅ VERIFIED/CLOSED **CONDITIONAL** — D+E @ `9664e9fc` / crumb `84c5163`; `salesos_app`; `rolbypassrls=False`; policies **59**; bare/wrong-tenant=0; residual: *multi-tenant live split not re-proven* (1 tenant). Arch CONDITIONAL + Validation PASS_CONDITIONAL. Orchestrator 2026-08-01 |
 | 2.4 | R-14 Local/CI/Compose/Staging | Bypass-probe isolates on `salesos_app` | ✅ DEC-014/015 + Slice C |
 | 2.5 | Cross-tenant adversarial suite 100% PASS | `test_adversarial_rls.py` 7/7 + remaining 15/15 | ✅ S04-01, S04-05, S04-06 |
 | 2.6 | `middleware.ts` server-side auth live | Browser redirect probe PASS (DEC-095) | ✅ STORY-02-02 |
@@ -178,8 +178,8 @@ Blocked on: **R-14 Railway** (S04-04), **CI-08** (GHCR 403), **CI GREEN not met*
 
 | Cluster | Items | Complete | Blocked | Open |
 |---------|-------|----------|---------|------|
-| 1. Security P0 | 5 | 1 | 0 | 4 |
-| 2. RLS & Tenant Isolation | 7 | 5 | 1 (R-14 Railway) | 1 |
+| 1. Security P0 | 5 | 2 | 0 | 3 |
+| 2. RLS & Tenant Isolation | 7 | 6 | 0 | 1 |
 | 3. CI/CD Green | 11 | 3 | 2 (CI-08, CI-09) | 6 |
 | 4. EOS Audit Pass | 8 | 2 | 0 | 6 |
 | 5. Capability Drift | 4 | 0 | 0 | 4 |
@@ -187,7 +187,7 @@ Blocked on: **R-14 Railway** (S04-04), **CI-08** (GHCR 403), **CI GREEN not met*
 | 7. DB Schema | 6 | 4 | 0 | 2 |
 | 8. Engineering Stability | 4 | 1 | 0 | 3 |
 | 9. ADR-036 Applied | 4 | 2 | 0 | 2 |
-| **TOTAL** | **54** | **18** | **3** | **33** |
+| **TOTAL** | **54** | **20** | **2** | **32** |
 
 ---
 
@@ -195,9 +195,9 @@ Blocked on: **R-14 Railway** (S04-04), **CI-08** (GHCR 403), **CI GREEN not met*
 
 | Item | Blocked By | Action Needed |
 |------|-----------|---------------|
-| R-14 Railway Slices D–E | Human authorization / live connection | Authorize Railway ops; run `OPERATIONS_MANUAL.md` §14; rotate passwords |
 | CI-08 GHCR 403 | Org-level Packages write permission | Human/ops: grant GHCR write to Actions |
 | CI-09 VPS SSH/secrets | Secret provisioning | Ops: provision VPS_HOST, VPS_USER, VPS_SSH_KEY |
+| R-14 multi-tenant residual (non-blocking for 2.3 CONDITIONAL) | Second-tenant fixture (prefer staging) | Optional: re-run Slice E differential for unconditional PASS |
 
 ---
 
