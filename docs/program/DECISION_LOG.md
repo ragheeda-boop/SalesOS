@@ -1086,12 +1086,21 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-130c — DB-05 Slice 5c: additive CREATE for global admin trio
+
+**Date:** 2026-08-01
+**Context:** DEC-130 / DEC-130b residual `Detected added table`×3 (`admin_plans`, `admin_feature_flags`, `admin_health_snapshots`) — ORM present, live Postgres **0** rows. Criterion 7.6 stays OPEN; next land = additive CREATE (no RLS).
+**Alternatives considered:** (a) metadata-only skip CREATE — rejected (tables absent); (b) ENABLE RLS — rejected (global / no `tenant_id`); (c) idempotent CREATE matching ORM — approved.
+**Decision:** Accept **Slice 5c** as Cursor COMPLETE / READY FOR REVIEW. Companion: [`decisions/DEC-130c-DB-05-SLICE-5C-ADMIN-GLOBAL-CREATE.md`](decisions/DEC-130c-DB-05-SLICE-5C-ADMIN-GLOBAL-CREATE.md). Revision `e2b9d46f8a10` (down `d1a8c35e7f09`). Live Docker check @ `e2b9d46f8a10` still **FAILED** exit 255; `add_table` **3→0**. DEC-085 intact. Next: Slice **5d** index/type/nullable.
+**Consequence:** Phase 0 remains **24/54**. Criterion **7.6 OPEN**. **Production GO not claimed. CI GREEN not met. Do not claim VERIFIED/CLOSED for 7.6.**
+**Status:** Accepted. Criterion **7.6 OPEN** (Slice 5c COMPLETE / READY FOR REVIEW).
+
 ### DEC-130b — DB-05 Slice 5b: classify `remove_table` + register false positives
 
 **Date:** 2026-08-01
 **Context:** DEC-130 Slice 5a pinned live `alembic check` FAILED with `remove_table`×28 (many metadata false positives). Criterion 7.6 stays OPEN; next land = classify + register FPs only (no DROP).
 **Alternatives considered:** (a) DROP the 28 tables — rejected; (b) mega-migration — rejected; (c) classify FP vs orphan KEEP vs true DROP DEC + register FPs — approved.
-**Decision:** Accept **Slice 5b** as Cursor COMPLETE / READY FOR REVIEW. Companion: [`decisions/DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md`](decisions/DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md). Registered **13** FPs into `Base.metadata` (70→83); marketplace Declarative `metadata` attr → `event_metadata` (column name unchanged); `company_features` on shared Base. Live Docker check @ `d1a8c35e7f09` still **FAILED** exit 255; `remove_table` **28→15** (orphan KEEP residual). No DDL. DEC-085 intact. Next: Slice **5c** admin CREATE trio.
+**Decision:** Accept **Slice 5b** as Cursor COMPLETE / READY FOR REVIEW. Companion: [`decisions/DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md`](decisions/DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md). Registered **13** FPs into `Base.metadata` (70→83); marketplace Declarative `metadata` attr → `event_metadata` (column name unchanged); `company_features` on shared Base. Live Docker check @ `d1a8c35e7f09` still **FAILED** exit 255; `remove_table` **28→15** (orphan KEEP residual). No DDL. DEC-085 intact. Next: Slice **5c** admin CREATE trio → **landed as DEC-130c** (`add_table` 3→0).
 **Consequence:** Phase 0 remains **24/54**. Criterion **7.6 OPEN**. **Production GO not claimed. CI GREEN not met. Do not claim VERIFIED/CLOSED for 7.6.**
 **Status:** Accepted. Criterion **7.6 OPEN** (Slice 5b COMPLETE / READY FOR REVIEW).
 

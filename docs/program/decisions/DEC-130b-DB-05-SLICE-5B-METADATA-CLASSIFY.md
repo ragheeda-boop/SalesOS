@@ -20,7 +20,7 @@ Ship **Slice 5b** = classify each of the Slice 5a **28** `remove_table` proposal
 | `remove_table` | **28 → 15** |
 | `Base.metadata` size | **70 → 83** |
 | DEC-085 | **Intact** (not touched) |
-| Criterion 7.6 | **OPEN** — phased residual (next **5c**) |
+| Criterion 7.6 | **OPEN** — phased residual (next **5d**) |
 
 ### Alternatives considered
 
@@ -118,7 +118,7 @@ Log capture (local, not committed): `.tmp-alembic-check-7-6-slice5b.txt`
 - Phase 0 criterion **7.6** → **OPEN** (phased; Slice 5b COMPLETE / READY FOR REVIEW)
 - Board DB-05 → Slice 5b COMPLETE; residual = 7.6 clean check (5c+)
 - `DECISION_LOG.md` DEC-130b
-- R-20 next-action → Slice **5c** admin CREATE trio
+- R-20 next-action → Slice **5c** admin CREATE trio → **landed DEC-130c**
 - **Not claimed:** Production GO · CI GREEN · `alembic check` clean · 7.6 VERIFIED/CLOSED
 
 ---
