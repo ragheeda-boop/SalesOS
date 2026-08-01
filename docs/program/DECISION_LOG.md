@@ -496,3 +496,14 @@
 **Decision:** Accept Phase 2 as **COMPLETE** at `01b6a8ae`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Validation label: **light validated** (host mypy); full Backend Types CI **not** re-run.
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**19/20**). R-22 remains Open (mitigating). **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 2 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-048 — CI-20 Phase 3 complete: entity_resolution mypy burn-down (14→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1 (DEC-046) cleared `app/modules/admin` (**34 → 0**; overall expected **~308 → ~274**) at `65296174`. Phase 2 (DEC-047) cleared `app/modules/company` (**25 → 0**; overall expected **~274 → ~249**) at `01b6a8ae`. Phase 3 targeted module `app/modules/entity_resolution` and landed on `master` at `e5b4471` (`e5b44715c4d82c21e164805a0ebba024ab1b09cc`) — entity_resolution module **14 → 0** mypy errors; overall expected **~249 → ~235**.
+**Alternatives considered:** (a) close entire CI-20 on Phase 3 land — rejected (residual ~235 errors remain; phased story); (b) record Phase 3 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
+**Decision:** Accept Phase 3 as **COMPLETE** at `e5b4471`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Validation label: **light validated** (host mypy); full Backend Types CI **not** re-run.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**19/20**). R-22 remains Open (mitigating). **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 3 COMPLETE**; story **OPEN**.
