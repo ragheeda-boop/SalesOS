@@ -49,7 +49,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 |---|---|---|---|
 | **CI-20** Backend Types (MyPy) | IN PROGRESS / PARALLEL (phased) | Phase 1 COMPLETE at `65296174` (admin 34→0; ~308→~274); Phase 2 COMPLETE at `01b6a8ae` (company 25→0; ~274→~249 expected); Phase 3 COMPLETE at `e5b4471` (entity_resolution 14→0; ~249→~235 expected); Phase 4 COMPLETE at `4b3a436` (identity 16→0; ~235→~219 expected); Phase 5 COMPLETE at `7d8126e` (revenue_execution 10→0; ~219→~209 expected); story OPEN; Backend Lint already green | DEC-038 register; DEC-046–050 Phases 1–5 — **not CLOSED** |
 | **CI-19** Semgrep Waves 2–5 | READY / PARALLEL | Wave 1 COMPLETE (`d5c9b57`); Waves 2–5 REGISTERED | SQL honesty, SHA pins, noise excludes, residual; R-24 |
-| **CI-16** Backend dependency security | READY / PARALLEL (backlog pull) | BACKLOG; R-21 | Not part of CI-02; Sprint 05/06 eligible |
+| **CI-16** Backend dependency security | IN PROGRESS / PARALLEL | Slice 1 COMPLETE at `1e73a2f` (`python-multipart` 0.0.9→0.0.32); residual strawberry/starlette/ecdsa OPEN; R-21 mitigating | Not part of CI-02; story **not CLOSED** |
 | **CI-14** Frontend Dependency Modernization | READY / PARALLEL (Sprint 06) | REGISTERED; dep CI-13 baseline closed | Majors — R-18 |
 | **Jest-debt** (Sprint 01 suite remediation) | READY / PARALLEL | FE-only; Card primitives `9577c98` progress only | 33 failing suites; does not close via Card primitives alone |
 | **STORY-02-02** browser/E2E verify (if scoped) | READY / PARALLEL | Middleware code LANDED (`3f4b3c8`); status PARTIAL until redirect verified | Not a board CLOSE; validation gap only |

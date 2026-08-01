@@ -529,3 +529,14 @@
 **Decision:** Accept Phase 5 as **COMPLETE** at `7d8126e`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Validation label: **light validated** (host mypy); full Backend Types CI **not** re-run.
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**19/20**). R-22 remains Open (mitigating). **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 5 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-051 — CI-16 Slice 1: bump `python-multipart` only (0.0.9 → 0.0.32); CI-16 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** R-21 / CI-16 track four `pip-audit` packages. Narrow first slice authorized: remediate `python-multipart` only (PYSEC multipart DoS advisories; fix floor ≥0.0.27). Poetry caret `^0.0.9` had pinned the lock to `<0.0.10`. Explicitly out of slice: `strawberry-graphql`, `starlette`, `ecdsa`.
+**Alternatives considered:** (a) bump all four R-21 packages in one commit — rejected (blast radius; strawberry/starlette need separate compatibility review); (b) narrow multipart-only slice, keep CI-16 OPEN — approved.
+**Decision:** Accept Slice 1 as **COMPLETE** at `1e73a2f` (`1e73a2f92000be74f8d6be8ddccb2b9daeadb010`). Constraint `python-multipart = ">=0.0.27,<0.1.0"`; lock **0.0.32**. Do **not** mark CI-16 CLOSED. Validation: **light validated** (`poetry update python-multipart`; import `multipart` + `app.main` → FastAPI). No security-gate weakening.
+**Consequence:** CI-16 moves **BACKLOG → IN PROGRESS**. R-21 status **Open — mitigating**. Residual packages still fail `pip-audit --strict`. Program Complete/Closed count unchanged (**19/20**). **CI GREEN not met.**
+**Status:** Accepted. CI-16 **Slice 1 COMPLETE**; story **OPEN**.
