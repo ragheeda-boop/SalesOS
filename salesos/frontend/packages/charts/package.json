@@ -6,11 +6,11 @@
   "types": "./src/index.tsx",
   "dependencies": {
     "react": "^19.0",
-    "recharts": "^2.15",
+    "recharts": "^3.10",
     "@salesos/ui": "*"
   },
   "peerDependencies": {
     "react": "^19.0",
-    "recharts": "^2.15"
+    "recharts": "^3.10"
   }
 }
