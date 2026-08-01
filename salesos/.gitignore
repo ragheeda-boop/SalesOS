@@ -98,7 +98,6 @@ backend/direct_import.py
 # Debug/one-off scripts
 backend/scripts/debug_360.py
 backend/scripts/test_bat.py
-backend/scripts/check_alembic_head.py
 backend/scripts/final_smoke_test.py
 
 # OpenTelemetry local config
