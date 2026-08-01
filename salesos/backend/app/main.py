@@ -1,9 +1,10 @@
 import time
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import Any, cast
 
 from fastapi import Depends, FastAPI, Request
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.pool import QueuePool
 
 from app.boot.exceptions import register_exception_handlers
 from app.boot.middleware import setup_middleware
@@ -62,7 +63,7 @@ async def health_detailed(request: Request):
     try:
         async with async_session() as session:
             await session.execute(text("SELECT 1"))
-        pool = engine.pool
+        pool = cast(QueuePool, engine.pool)
         pool_info = {
             "status": "connected",
             "pool_size": pool.size(),
@@ -266,7 +267,7 @@ async def health_ready(request: Request):
 
     from app.database import async_session
 
-    checks = {}
+    checks: dict[str, Any] = {}
 
     try:
         async with async_session() as session:
@@ -330,7 +331,7 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
     from sqlalchemy import text
 
     status = "ok"
-    checks = {}
+    checks: dict[str, Any] = {}
 
     try:
         await db.execute(text("SELECT 1"))
@@ -399,7 +400,7 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
         kafka=checks.get("kafka", "not_configured"),
         redis=checks.get("redis", "unknown"),
         rate_limiter=checks.get("rate_limiter", "unknown"),
-        uptime_seconds=checks["uptime_seconds"],
+        uptime_seconds=float(checks["uptime_seconds"]),
     )
 
 

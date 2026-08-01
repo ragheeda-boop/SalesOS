@@ -6,7 +6,7 @@ import asyncio
 import random
 import re
 from contextlib import asynccontextmanager, suppress
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from neo4j import AsyncDriver
@@ -50,7 +50,7 @@ class GraphService:
             yield tx
 
     async def _run(self, op_name: str, fn, **kwargs):
-        last_error = None
+        last_error: BaseException | None = None
         for attempt in range(1, _NEO4J_MAX_RETRIES + 1):
             try:
                 return await fn(**kwargs)
@@ -61,6 +61,8 @@ class GraphService:
                         _NEO4J_RETRY_BASE_DELAY * (2 ** (attempt - 1)) * (1 + random.random() * 0.1)
                     )
                     await asyncio.sleep(delay)
+        if last_error is None:
+            raise RuntimeError(f"{op_name} failed without an exception")
         raise last_error
 
     async def health_check(self) -> bool:
@@ -86,7 +88,7 @@ class GraphService:
                 record = await result.single()
                 return record["id"] if record else None
 
-        return await self._run("create_node", _create)
+        return cast(str | None, await self._run("create_node", _create))
 
     async def find_node(
         self, node_type: str, property_key: str, property_value: str
@@ -105,7 +107,7 @@ class GraphService:
                     return {**dict(node), "_id": record["id"]}
                 return None
 
-        return await self._run("find_node", _find)
+        return cast(dict[Any, Any] | None, await self._run("find_node", _find))
 
     async def create_relationship(
         self,
@@ -128,7 +130,7 @@ class GraphService:
                     props=properties or {},
                 )
 
-        return await self._run("create_relationship", _create_rel)
+        await self._run("create_relationship", _create_rel)
 
     async def find_related(
         self,
@@ -150,7 +152,7 @@ class GraphService:
                 result = await session.run(query, node_id=node_id)
                 return await result.data()
 
-        return await self._run("find_related", _find_rel)
+        return cast(list[dict[Any, Any]], await self._run("find_related", _find_rel))
 
     async def shortest_path(
         self,
@@ -187,7 +189,7 @@ class GraphService:
                 record = await result.single()
                 return dict(record) if record else None
 
-        return await self._run("shortest_path", _path)
+        return cast(list[dict[Any, Any]] | None, await self._run("shortest_path", _path))
 
     async def run_community_detection(self, label: str = "Company") -> list[dict]:
         async def _community():
@@ -211,7 +213,7 @@ class GraphService:
                 result = await session.run(query)
                 return await result.data()
 
-        return await self._run("community_detection", _community)
+        return cast(list[dict[Any, Any]], await self._run("community_detection", _community))
 
     async def close(self) -> None:
         with suppress(Exception):

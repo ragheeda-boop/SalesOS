@@ -2,6 +2,7 @@
 
 import logging
 from abc import ABC, abstractmethod
+from typing import cast
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,7 @@ class CeleryTaskQueue(TaskQueue):
             kwargs=payload,
             countdown=delay_seconds,
         )
-        return task.id
+        return cast(str, task.id)
 
     async def enqueue_unique(self, task_name: str, payload: dict, dedup_key: str) -> str | None:
         # Check if task with same dedup_key is already queued

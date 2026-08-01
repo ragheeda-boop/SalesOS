@@ -8,7 +8,7 @@ T = TypeVar("T")
 
 
 @dataclass
-class PaginatedResult[T]:
+class PaginatedResult(Generic[T]):
     items: list[T]
     total: int
     page: int

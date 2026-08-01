@@ -10,6 +10,7 @@ and set `event_type: str = "<module>.<action>"`.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import cast
 
 from intelligence.activity_intelligence.contracts.events import (
     CommunicationDeduplicated,
@@ -312,7 +313,7 @@ class AgentMemoryUpdated(DomainEvent):
 # ── Registry ───────────────────────────────────────────────────────────────
 
 EVENT_REGISTRY: dict[str, type[DomainEvent]] = {
-    cls.event_type: cls
+    cast(str, getattr(cls, "event_type")): cls
     for cls in [
         # Activity Intelligence events
         CommunicationReceived,

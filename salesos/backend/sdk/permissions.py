@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import contextlib
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
@@ -189,9 +188,10 @@ class PermissionEnforcer:
     def check(user_role: str, resource: str, action: PermissionAction | str) -> None:
         from sdk.exceptions import PermissionDeniedError
 
-        action_str = action.value if hasattr(action, "value") else action
-        if isinstance(action, str):
-            with contextlib.suppress(ValueError):
-                action = PermissionAction(action)
-        if not PermissionRegistry.has_permission(user_role, resource, action):
+        if isinstance(action, PermissionAction):
+            resolved = action
+        else:
+            resolved = PermissionAction(action)
+        action_str = resolved.value
+        if not PermissionRegistry.has_permission(user_role, resource, resolved):
             raise PermissionDeniedError(user_role, f"{resource}.{action_str}")

@@ -11,7 +11,7 @@ import contextlib
 import json
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar, cast
 from uuid import UUID
 
 T = TypeVar("T")
@@ -53,10 +53,11 @@ def build_keyset_condition(
     sort_by: str = "created_at",
     sort_dir: str = "desc",
 ) -> Any:
-    col_id = model.id
-    col_sort = getattr(model, sort_by, None)
+    model_any = cast(Any, model)
+    col_id = model_any.id
+    col_sort = getattr(model_any, sort_by, None)
     if col_sort is None:
-        col_sort = model.created_at
+        col_sort = model_any.created_at
 
     if sort_dir == "desc":
         return (col_sort < cursor_sort) | ((col_sort == cursor_sort) & (col_id < UUID(cursor_id)))

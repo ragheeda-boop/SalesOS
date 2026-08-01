@@ -2,9 +2,9 @@
 
 import json
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
-from redis.asyncio import Redis
+from redis.asyncio import Redis  # type: ignore[import-untyped]
 
 from sdk.cache.redis_cache import RedisCache
 
@@ -48,7 +48,7 @@ class CacheService:
         return value
 
     async def exists(self, key: str) -> bool:
-        return await self._redis.exists(key) > 0
+        return cast(bool, await self._redis.exists(key) > 0)
 
     async def clear_all(self) -> None:
         await self._redis.flushall()

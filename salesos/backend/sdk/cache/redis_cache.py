@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any
+from typing import Any, cast
 
-from redis.asyncio import Redis
-from redis.exceptions import RedisError
+from redis.asyncio import Redis  # type: ignore[import-untyped]
+from redis.exceptions import RedisError  # type: ignore[import-untyped]
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ class RedisCache:
         if self._redis is None:
             return False
         try:
-            return await self._redis.exists(key) > 0
+            return cast(bool, await self._redis.exists(key) > 0)
         except RedisError as exc:
             logger.warning("RedisCache EXISTS %s failed: %s", key, exc)
             return False
@@ -76,7 +76,7 @@ class RedisCache:
         if self._redis is None:
             return -2
         try:
-            return await self._redis.ttl(key)
+            return cast(int, await self._redis.ttl(key))
         except RedisError as exc:
             logger.warning("RedisCache TTL %s failed: %s", key, exc)
             return -2

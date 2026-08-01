@@ -3,13 +3,14 @@
 import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar, cast
 from uuid import UUID
 
 from sqlalchemy import DateTime, Select, func, select
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.sql.elements import ColumnElement
 
 from sdk.events.base import DomainEvent
 from sdk.pagination import CursorPage, build_keyset_condition, decode_cursor, encode_cursor
@@ -92,7 +93,7 @@ class Repository(ABC, Generic[T, TId]):
 class SqlAlchemyRepository(Repository[T, TId], ABC):
     """SQLAlchemy-based repository implementation."""
 
-    model_class: type = None
+    model_class: type[Any]
 
     async def get(self, id: TId) -> T:
         result = await self._session.get(self.model_class, id)
@@ -100,7 +101,7 @@ class SqlAlchemyRepository(Repository[T, TId], ABC):
             from sdk.exceptions import ObjectNotFoundError
 
             raise ObjectNotFoundError(self.model_class.__name__, str(id))
-        return result
+        return cast(T, result)
 
     async def save(self, entity: T) -> None:
         self._session.add(entity)
@@ -114,7 +115,7 @@ class SqlAlchemyRepository(Repository[T, TId], ABC):
     async def find_all(
         self, page: int = 1, page_size: int = 20, order_by: str = "created_at", desc: bool = True
     ) -> tuple[list[T], int]:
-        stmt = select(self.model_class)
+        stmt: Select[Any] = select(self.model_class)
         count_stmt = select(func.count()).select_from(self.model_class)
         total_result = await self._session.execute(count_stmt)
         total = total_result.scalar() or 0
@@ -134,7 +135,7 @@ class SqlAlchemyRepository(Repository[T, TId], ABC):
         desc: bool = True,
         cursor: str | None = None,
     ) -> CursorPage[T]:
-        stmt = select(self.model_class)
+        stmt: Select[Any] = select(self.model_class)
         order_col = getattr(self.model_class, order_by, None)
         if order_col:
             stmt = stmt.order_by(order_col.desc() if desc else order_col.asc())
@@ -188,11 +189,14 @@ class UnitOfWork:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+        session = self.session
+        if session is None:
+            return
         if exc_type is not None:
-            await self.session.rollback()
+            await session.rollback()
         else:
-            await self.session.commit()
-        await self.session.close()
+            await session.commit()
+        await session.close()
         self.session = None
 
     async def flush(self) -> None:
@@ -200,6 +204,8 @@ class UnitOfWork:
             await self.session.flush()
 
     def get_repository(self, repo_class: type[Repository]) -> Repository:
+        if self.session is None:
+            raise RuntimeError("UnitOfWork session is not active")
         return repo_class(self.session)
 
 
@@ -207,7 +213,7 @@ class Specification(ABC):
     """Specification pattern for building reusable query filters."""
 
     @abstractmethod
-    def apply(self, stmt: Select) -> Select: ...
+    def apply(self, stmt: Select[Any]) -> Select[Any]: ...
 
     def __and__(self, other: "Specification") -> "AndSpecification":
         return AndSpecification(self, other)
@@ -220,7 +226,7 @@ class AndSpecification(Specification):
     def __init__(self, *specs: Specification):
         self.specs = specs
 
-    def apply(self, stmt: Select) -> Select:
+    def apply(self, stmt: Select[Any]) -> Select[Any]:
         for spec in self.specs:
             stmt = spec.apply(stmt)
         return stmt
@@ -230,8 +236,12 @@ class OrSpecification(Specification):
     def __init__(self, *specs: Specification):
         self.specs = specs
 
-    def apply(self, stmt: Select) -> Select:
+    def apply(self, stmt: Select[Any]) -> Select[Any]:
         from sqlalchemy import or_
 
-        conditions = [spec.apply(select(func.now())).whereclause for spec in self.specs]
+        conditions: list[ColumnElement[bool]] = [
+            cast(ColumnElement[bool], c)
+            for c in (spec.apply(select(func.now())).whereclause for spec in self.specs)
+            if c is not None
+        ]
         return stmt.where(or_(*conditions))

@@ -5,6 +5,7 @@ import hashlib
 import hmac
 import secrets
 from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 
 from cryptography.fernet import Fernet
 from jose import JWTError, jwt
@@ -15,12 +16,12 @@ _pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
     """Hash a password using bcrypt."""
-    return _pwd_context.hash(password)
+    return cast(str, _pwd_context.hash(password))
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash."""
-    return _pwd_context.verify(plain_password, hashed_password)
+    return cast(bool, _pwd_context.verify(plain_password, hashed_password))
 
 
 def create_jwt(
@@ -32,13 +33,13 @@ def create_jwt(
     """Create a signed JWT token."""
     expire = datetime.now(UTC) + timedelta(minutes=expires_minutes)
     token_payload = {**payload, "exp": expire, "iat": datetime.now(UTC)}
-    return jwt.encode(token_payload, secret, algorithm=algorithm)
+    return cast(str, jwt.encode(token_payload, secret, algorithm=algorithm))
 
 
 def decode_jwt(token: str, secret: str, algorithms: list[str] | None = None) -> dict:
     """Decode and verify a JWT token."""
     try:
-        return jwt.decode(token, secret, algorithms=algorithms or ["HS256"])
+        return cast(dict[Any, Any], jwt.decode(token, secret, algorithms=algorithms or ["HS256"]))
     except JWTError:
         raise ValueError("Invalid or expired token") from None
 

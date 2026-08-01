@@ -20,6 +20,7 @@ import json
 import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from typing import cast
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -127,7 +128,7 @@ class EventOutbox:
             },
         )
         row = result.fetchone()
-        outbox_id = row[0] if row else 0
+        outbox_id = cast(int, row[0] if row else 0)
         logger.debug(
             "Outbox entry %d for event %s (%s)", outbox_id, event.event_id, event.event_type
         )
@@ -197,7 +198,7 @@ class EventOutbox:
               AND updated_at < NOW() - (:hours || ' hours')::interval
         """)
         result = await self._session.execute(stmt, {"hours": str(older_than_hours)})
-        deleted = result.rowcount
+        deleted = cast(int, getattr(result, "rowcount", 0) or 0)
         if deleted:
             logger.info("Cleaned up %d delivered outbox entries", deleted)
         return deleted

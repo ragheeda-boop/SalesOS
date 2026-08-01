@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, cast
 
 from sdk.config import sdk_settings
 
@@ -42,7 +42,7 @@ class OpenAIEmbeddingService(EmbeddingService):
             model=self._model,
             input=text,
         )
-        return response.data[0].embedding
+        return cast(list[float], response.data[0].embedding)
 
     async def embed_batch(self, texts: list[str]) -> list[list[float]]:
         import openai
