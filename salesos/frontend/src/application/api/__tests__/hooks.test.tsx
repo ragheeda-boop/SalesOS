@@ -3,8 +3,19 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 jest.mock("@/lib/hooks/useTenant");
+jest.mock("@/lib/api", () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  },
+}));
 
 import { getTenantId } from "@/lib/hooks/useTenant";
+import api from "@/lib/api";
 import {
   useOpportunities,
   useTasks,
@@ -17,8 +28,7 @@ import {
 const mockedGetTenantId = getTenantId as jest.MockedFunction<
   typeof getTenantId
 >;
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
+const mockedApi = api as jest.Mocked<typeof api>;
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -38,10 +48,7 @@ describe("useOpportunities", () => {
   });
 
   it("fetches opportunities", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve([{ id: "o-1" }]),
-    });
+    mockedApi.get.mockResolvedValue({ data: [{ id: "o-1" }] } as any);
 
     const { result } = renderHook(() => useOpportunities(), {
       wrapper: createWrapper(),
@@ -52,15 +59,15 @@ describe("useOpportunities", () => {
   });
 
   it("filters by stage", async () => {
-    mockFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve([]) });
+    mockedApi.get.mockResolvedValue({ data: [] } as any);
 
     renderHook(() => useOpportunities("won"), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith(
-        "/api/v1/opportunities?stage=won",
-        expect.objectContaining({ headers: { "X-Tenant-Id": "tenant-1" } }),
-      );
+      expect(mockedApi.get).toHaveBeenCalledWith("/api/v1/opportunities", {
+        params: { stage: "won" },
+        headers: { "X-Tenant-Id": "tenant-1" },
+      });
     });
   });
 });
@@ -72,10 +79,7 @@ describe("useTasks", () => {
   });
 
   it("fetches tasks", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve([{ id: "t-1" }]),
-    });
+    mockedApi.get.mockResolvedValue({ data: [{ id: "t-1" }] } as any);
 
     const { result } = renderHook(() => useTasks(), {
       wrapper: createWrapper(),
@@ -93,10 +97,7 @@ describe("usePipeline", () => {
   });
 
   it("fetches pipeline", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ stages: [] }),
-    });
+    mockedApi.get.mockResolvedValue({ data: { stages: [] } } as any);
 
     const { result } = renderHook(() => usePipeline(), {
       wrapper: createWrapper(),
@@ -114,16 +115,18 @@ describe("useCreateOpportunity", () => {
   });
 
   it("creates opportunity via mutation", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ id: "o-2" }),
-    });
+    mockedApi.post.mockResolvedValue({ data: { id: "o-2" } } as any);
 
     const { result } = renderHook(() => useCreateOpportunity(), {
       wrapper: createWrapper(),
     });
 
-    result.current.mutate({ companyId: "c-1", name: "Deal" });
+    result.current.mutate({
+      companyId: "c-1",
+      companyName: "Acme",
+      name: "Deal",
+      estimatedValue: 1000,
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
   });
@@ -136,10 +139,7 @@ describe("useCreateTask", () => {
   });
 
   it("creates task via mutation", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ id: "t-2" }),
-    });
+    mockedApi.post.mockResolvedValue({ data: { id: "t-2" } } as any);
 
     const { result } = renderHook(() => useCreateTask(), {
       wrapper: createWrapper(),
@@ -158,10 +158,9 @@ describe("useCompleteTask", () => {
   });
 
   it("completes task via mutation", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ id: "t-1", completed: true }),
-    });
+    mockedApi.put.mockResolvedValue({
+      data: { id: "t-1", completed: true },
+    } as any);
 
     const { result } = renderHook(() => useCompleteTask(), {
       wrapper: createWrapper(),
@@ -170,9 +169,12 @@ describe("useCompleteTask", () => {
     result.current.mutate("t-1");
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(mockFetch).toHaveBeenCalledWith(
+    expect(mockedApi.put).toHaveBeenCalledWith(
       "/api/v1/tasks/t-1/complete",
-      expect.objectContaining({ method: "PUT" }),
+      null,
+      expect.objectContaining({
+        headers: { "X-Tenant-Id": "tenant-1" },
+      }),
     );
   });
 });

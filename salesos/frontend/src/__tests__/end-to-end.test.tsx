@@ -5,6 +5,21 @@
 
 jest.mock("@/lib/api", () => {
   const store = { opps: [] as any[], tasks: [] as any[] };
+  const putOrPatch = (url: string, data?: any) => {
+    const oppMatch = url.match(/\/opportunities\/([^/]+)\/stage/);
+    const taskMatch = url.match(/\/tasks\/([^/]+)\/complete/);
+    if (oppMatch) {
+      const opp = store.opps.find((o: any) => o.id === oppMatch[1]);
+      if (opp && data) opp.stage = data.stage;
+      return Promise.resolve({ data: { items: [...store.opps] } });
+    }
+    if (taskMatch) {
+      const task = store.tasks.find((t: any) => t.id === taskMatch[1]);
+      if (task) task.completed = true;
+      return Promise.resolve({ data: { items: [...store.tasks] } });
+    }
+    return Promise.resolve({ data: {} });
+  };
   return {
     __esModule: true,
     default: {
@@ -19,10 +34,18 @@ jest.mock("@/lib/api", () => {
         if (url.includes("opportunities")) {
           const opp = {
             id: "opp_" + Math.random().toString(36).slice(2, 10),
+            companyId: data.company_id,
+            title: data.title,
+            estimatedValue: data.estimated_value,
+            confidence: data.confidence,
+            buyingIntent: data.buying_intent,
+            relationshipStrength: data.relationship_strength,
+            sourceActionId: data.source_action_id,
             stage: "identified",
             source: "nba",
             createdAt: new Date().toISOString(),
-            ...data,
+            notes: [],
+            tags: [],
           };
           store.opps.push(opp);
           return Promise.resolve({ data: opp });
@@ -39,22 +62,8 @@ jest.mock("@/lib/api", () => {
         }
         return Promise.resolve({ data: { id: "test_123" } });
       }),
-      put: jest.fn(),
-      patch: jest.fn((url: string, data?: any) => {
-        const oppMatch = url.match(/\/opportunities\/([^/]+)\/stage/);
-        const taskMatch = url.match(/\/tasks\/([^/]+)\/complete/);
-        if (oppMatch) {
-          const opp = store.opps.find((o: any) => o.id === oppMatch[1]);
-          if (opp && data) opp.stage = data.stage;
-          return Promise.resolve({ data: { items: [...store.opps] } });
-        }
-        if (taskMatch) {
-          const task = store.tasks.find((t: any) => t.id === taskMatch[1]);
-          if (task) task.completed = true;
-          return Promise.resolve({ data: { items: [...store.tasks] } });
-        }
-        return Promise.resolve({ data: {} });
-      }),
+      put: jest.fn(putOrPatch),
+      patch: jest.fn(putOrPatch),
       delete: jest.fn(),
       interceptors: {
         request: { use: jest.fn() },

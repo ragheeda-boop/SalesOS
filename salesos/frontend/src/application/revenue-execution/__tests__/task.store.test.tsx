@@ -1,3 +1,38 @@
+jest.mock("@/lib/api", () => {
+  const store: any[] = [];
+  return {
+    __esModule: true,
+    default: {
+      get: jest.fn(() => Promise.resolve({ data: { items: store } })),
+      post: jest.fn((_url: string, input: any) => {
+        const task = {
+          id: "task_" + Math.random().toString(36).slice(2, 10),
+          createdAt: "2026-07-11T12:00:00.000Z",
+          ...input,
+        };
+        store.unshift(task);
+        return Promise.resolve({ data: task });
+      }),
+      put: jest.fn((url: string) => {
+        const id = url.match(/\/tasks\/([^/]+)\/complete/)?.[1];
+        if (id) {
+          const entry = store.find((t: any) => t.id === id);
+          if (entry) entry.completed = true;
+        }
+        return Promise.resolve({ data: {} });
+      }),
+      patch: jest.fn(),
+      delete: jest.fn(),
+      interceptors: {
+        request: { use: jest.fn() },
+        response: { use: jest.fn() },
+      },
+      __store: store,
+    },
+  };
+});
+
+import api from "@/lib/api";
 import {
   loadTasks,
   addTask,
@@ -6,37 +41,31 @@ import {
   getTasksByPriority,
 } from "../task.store";
 
-const _taskStore: any[] = [];
+const mockedApi = api as jest.Mocked<typeof api> & { __store: any[] };
 
-jest.mock("axios", () => ({
-  get: jest.fn(() => Promise.resolve({ data: { items: _taskStore } })),
-  post: jest.fn((_url: string, input: any) => {
+beforeEach(() => {
+  mockedApi.__store.length = 0;
+  jest.clearAllMocks();
+  mockedApi.get.mockImplementation(() =>
+    Promise.resolve({ data: { items: mockedApi.__store } } as any),
+  );
+  mockedApi.post.mockImplementation((_url: string, input: any) => {
     const task = {
       id: "task_" + Math.random().toString(36).slice(2, 10),
       createdAt: "2026-07-11T12:00:00.000Z",
       ...input,
     };
-    _taskStore.unshift(task);
-    return Promise.resolve({ data: task });
-  }),
-  put: jest.fn(),
-  patch: jest.fn((url: string) => {
+    mockedApi.__store.unshift(task);
+    return Promise.resolve({ data: task } as any);
+  });
+  mockedApi.put.mockImplementation((url: string) => {
     const id = url.match(/\/tasks\/([^/]+)\/complete/)?.[1];
     if (id) {
-      const entry = _taskStore.find((t: any) => t.id === id);
+      const entry = mockedApi.__store.find((t: any) => t.id === id);
       if (entry) entry.completed = true;
     }
-    return Promise.resolve({ data: {} });
-  }),
-  delete: jest.fn(),
-  interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } },
-  create() {
-    return this;
-  },
-}));
-
-beforeEach(() => {
-  _taskStore.length = 0;
+    return Promise.resolve({ data: {} } as any);
+  });
 });
 
 describe("task store", () => {
@@ -56,8 +85,8 @@ describe("task store", () => {
           createdAt: "2026-07-10T10:00:00Z",
         },
       ];
-      _taskStore.length = 0;
-      _taskStore.push(...tasks);
+      mockedApi.__store.length = 0;
+      mockedApi.__store.push(...tasks);
       expect(await loadTasks()).toEqual(tasks);
     });
 
@@ -130,7 +159,7 @@ describe("task store", () => {
         priority: "low",
         source: "manual",
         completed: false,
-        dueDate: "2026-07-20T12:00:00Z",
+        dueDate: "2099-07-20T12:00:00Z",
       });
 
       const overdue = await getOverdueTasks();

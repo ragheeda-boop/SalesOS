@@ -3,15 +3,25 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 jest.mock("@/lib/hooks/useTenant");
+jest.mock("@/lib/api", () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  },
+}));
 
 import { getTenantId } from "@/lib/hooks/useTenant";
+import api from "@/lib/api";
 import { useCompanyIntelligence } from "../useCompanyIntelligence";
 
 const mockedGetTenantId = getTenantId as jest.MockedFunction<
   typeof getTenantId
 >;
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
+const mockedApi = api as jest.Mocked<typeof api>;
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -46,10 +56,7 @@ describe("useCompanyIntelligence", () => {
       goldenRecord: [],
       firmographic: null,
     };
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(data),
-    });
+    mockedApi.get.mockResolvedValue({ data } as any);
 
     const { result } = renderHook(() => useCompanyIntelligence("c-1"), {
       wrapper: createWrapper(),
@@ -57,7 +64,7 @@ describe("useCompanyIntelligence", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(data);
-    expect(mockFetch).toHaveBeenCalledWith(
+    expect(mockedApi.get).toHaveBeenCalledWith(
       "/api/v1/companies/c-1/intelligence",
       {
         headers: { "X-Tenant-Id": "tenant-1" },
@@ -73,7 +80,7 @@ describe("useCompanyIntelligence", () => {
   });
 
   it("throws on error response", async () => {
-    mockFetch.mockResolvedValue({ ok: false });
+    mockedApi.get.mockRejectedValue(new Error("Network Error"));
 
     const { result } = renderHook(() => useCompanyIntelligence("c-1"), {
       wrapper: createWrapper(),

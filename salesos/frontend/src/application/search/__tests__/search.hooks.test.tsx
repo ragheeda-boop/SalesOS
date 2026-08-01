@@ -3,11 +3,23 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 jest.mock("../search.api");
+jest.mock("@/lib/api", () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  },
+}));
 
 import { searchApi } from "../search.api";
+import api from "@/lib/api";
 import { useSearch, useAISearch } from "../search.hooks";
 
 const mockedSearchApi = searchApi as jest.MockedFunction<typeof searchApi>;
+const mockedApi = api as jest.Mocked<typeof api>;
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -55,17 +67,12 @@ describe("useSearch", () => {
 });
 
 describe("useAISearch", () => {
-  const mockFetch = jest.fn();
   beforeEach(() => {
     jest.clearAllMocks();
-    global.fetch = mockFetch;
   });
 
   it("fetches AI search when enabled", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ answer: "AI answer" }),
-    });
+    mockedApi.post.mockResolvedValue({ data: { answer: "AI answer" } } as any);
 
     const { result } = renderHook(() => useAISearch("what is sales?", true), {
       wrapper: createWrapper(),
@@ -83,7 +90,7 @@ describe("useAISearch", () => {
   });
 
   it("throws on error response", async () => {
-    mockFetch.mockResolvedValue({ ok: false });
+    mockedApi.post.mockRejectedValue(new Error("Network Error"));
 
     const { result } = renderHook(() => useAISearch("test", true), {
       wrapper: createWrapper(),
