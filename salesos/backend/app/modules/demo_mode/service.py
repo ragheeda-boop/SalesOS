@@ -3,6 +3,7 @@
 import json
 import os
 from pathlib import Path
+from typing import Any, cast
 
 DEMO_DATA_PATH = Path(__file__).parent.parent.parent.parent / "demo" / "demo_data.json"
 
@@ -12,7 +13,7 @@ class DemoModeService:
 
     def __init__(self):
         self._enabled: bool = os.getenv("DEMO_MODE", "false").lower() == "true"
-        self._demo_data: dict | None = None
+        self._demo_data: dict[str, Any] | None = None
 
     @property
     def enabled(self) -> bool:
@@ -25,86 +26,86 @@ class DemoModeService:
         self._enabled = not self._enabled
         return self._enabled
 
-    def load_demo_data(self) -> dict | None:
+    def load_demo_data(self) -> dict[str, Any] | None:
         if self._demo_data is not None:
             return self._demo_data
         if not DEMO_DATA_PATH.exists():
             return None
         with open(DEMO_DATA_PATH, encoding="utf-8") as f:
-            self._demo_data = json.load(f)
+            self._demo_data = cast(dict[str, Any], json.load(f))
         return self._demo_data
 
-    def reload_demo_data(self) -> dict | None:
+    def reload_demo_data(self) -> dict[str, Any] | None:
         self._demo_data = None
         return self.load_demo_data()
 
-    def get_companies(self) -> list[dict]:
+    def get_companies(self) -> list[dict[str, Any]]:
         data = self.load_demo_data()
         if not data:
             return []
-        return data.get("companies", [])
+        return cast(list[dict[str, Any]], data.get("companies", []))
 
-    def get_opportunities(self) -> list[dict]:
+    def get_opportunities(self) -> list[dict[str, Any]]:
         data = self.load_demo_data()
         if not data:
             return []
-        return data.get("opportunities", [])
+        return cast(list[dict[str, Any]], data.get("opportunities", []))
 
-    def get_meetings(self) -> list[dict]:
+    def get_meetings(self) -> list[dict[str, Any]]:
         data = self.load_demo_data()
         if not data:
             return []
-        return data.get("meetings", [])
+        return cast(list[dict[str, Any]], data.get("meetings", []))
 
-    def get_emails(self) -> list[dict]:
+    def get_emails(self) -> list[dict[str, Any]]:
         data = self.load_demo_data()
         if not data:
             return []
-        return data.get("emails", [])
+        return cast(list[dict[str, Any]], data.get("emails", []))
 
-    def get_signals(self) -> list[dict]:
+    def get_signals(self) -> list[dict[str, Any]]:
         data = self.load_demo_data()
         if not data:
             return []
-        return data.get("signals", [])
+        return cast(list[dict[str, Any]], data.get("signals", []))
 
-    def get_tasks(self) -> list[dict]:
+    def get_tasks(self) -> list[dict[str, Any]]:
         data = self.load_demo_data()
         if not data:
             return []
-        return data.get("tasks", [])
+        return cast(list[dict[str, Any]], data.get("tasks", []))
 
-    def get_nba_recommendations(self) -> list[dict]:
+    def get_nba_recommendations(self) -> list[dict[str, Any]]:
         data = self.load_demo_data()
         if not data:
             return []
-        return data.get("nba_recommendations", [])
+        return cast(list[dict[str, Any]], data.get("nba_recommendations", []))
 
-    def get_workflow_templates(self) -> list[dict]:
+    def get_workflow_templates(self) -> list[dict[str, Any]]:
         data = self.load_demo_data()
         if not data:
             return []
-        return data.get("workflow_templates", [])
+        return cast(list[dict[str, Any]], data.get("workflow_templates", []))
 
-    def get_rag_documents(self) -> list[dict]:
+    def get_rag_documents(self) -> list[dict[str, Any]]:
         data = self.load_demo_data()
         if not data:
             return []
-        return data.get("rag_documents", [])
+        return cast(list[dict[str, Any]], data.get("rag_documents", []))
 
-    def get_analytics(self) -> list[dict]:
+    def get_analytics(self) -> list[dict[str, Any]]:
         data = self.load_demo_data()
         if not data:
             return []
-        return data.get("dashboard_analytics", [])
+        return cast(list[dict[str, Any]], data.get("dashboard_analytics", []))
 
-    def get_timeline_events(self) -> list[dict]:
+    def get_timeline_events(self) -> list[dict[str, Any]]:
         data = self.load_demo_data()
         if not data:
             return []
-        return data.get("timeline_events", [])
+        return cast(list[dict[str, Any]], data.get("timeline_events", []))
 
-    def get_status(self) -> dict:
+    def get_status(self) -> dict[str, Any]:
         data = self.load_demo_data()
         return {
             "demo_mode": self._enabled,
@@ -114,7 +115,7 @@ class DemoModeService:
             "total_records": sum(data.get("total", {}).values()) if data and "total" in data else 0,
         }
 
-    def get_scenarios(self) -> list[dict]:
+    def get_scenarios(self) -> list[dict[str, Any]]:
         """Return available demo scenarios."""
         return [
             {
