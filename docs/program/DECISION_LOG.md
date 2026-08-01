@@ -805,3 +805,12 @@
 **Decision:** Replace all 	rivy-action@18f2510... # v0.29.0 pins in ci.yml, security-scan.yml, deploy-production.yml with @a9c7b0f... # v0.36.0. Do **not** claim CI/Security GREEN. Do **not** weaken Semgrep or Trivy severity gates.
 **Consequence:** CI-19 remains **IN PROGRESS / OPEN**. Expected: setup-resolve pin breakage cleared; Security Scan may return to completing jobs; CI Secrets Scan may still fail on **findings** (pre-existing). Validation after push: field run IDs (not yet). **CI GREEN not met.**
 **Status:** Accepted. Pin-breakage fix landed; CI-19 **OPEN**.
+
+### DEC-075 - CI-19 Wave 3 pin follow-up: bump trivy-action pin v0.29.0 -> v0.36.0 (setup-trivy resolve)
+
+**Date:** 2026-08-01
+**Context:** Field verify after Wave 3 SHA-pin `556304d` (DEC-069): workflows **start and complete**, but jobs that use `aquasecurity/trivy-action@18f2510...` (v0.29.0) fail at **Set up job** with `Unable to resolve action aquasecurity/setup-trivy@v0.2.2` (tag gone; current tags include v0.2.6+). Evidence: Security Scan tip `30679471680` / pin commit `30679309711` (sbom + secret-scan setup fail) vs pre-pin parent `b1ec68c` Security Scan `30679150021` **all jobs SUCCESS**. CI tip `30679471676` / `30679589732` Secrets Scan setup fail; pre-pin CI `30679150001` Secrets Scan **Set up job SUCCESS** then failed on Trivy findings gate (pre-existing). Other CI reds (Backend Lint/Types, Frontend Lint, pip-audit) match pre-pin `30679150001` — **pre-existing**, not pin-induced.
+**Alternatives considered:** (a) revert trivy to floating `@master` — rejected (undoes Wave 3 supply-chain pin); (b) bump pin to `v0.36.0` SHA `a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8` (pins `setup-trivy@3fb12ec...` / v0.2.6) — approved; (c) document-only without fix — rejected (clear pin breakage).
+**Decision:** Replace all `trivy-action@18f2510... # v0.29.0` pins in `ci.yml`, `security-scan.yml`, `deploy-production.yml` with `@a9c7b0f... # v0.36.0`. Do **not** claim CI/Security GREEN. Do **not** weaken Semgrep or Trivy severity gates.
+**Consequence:** CI-19 remains **IN PROGRESS / OPEN**. Expected: setup-resolve pin breakage cleared; Security Scan may return to completing jobs; CI Secrets Scan may still fail on **findings** (pre-existing). Validation after push: field run IDs (not yet). **CI GREEN not met.**
+**Status:** Accepted. Pin-breakage fix landed; CI-19 **OPEN**.
