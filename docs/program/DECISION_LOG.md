@@ -586,3 +586,15 @@
 **Decision:** Accept Phase 7 as **COMPLETE** at `802cde5`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Validation label: **light validated** (host mypy on `app/routers`); full Backend Types CI **not** re-run.
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**19/20**). R-22 remains Open (mitigating). **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 7 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-056 — CI-16 Slice 3: bump `strawberry-graphql` only (0.243.1 → 0.323.2); CI-16 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** R-21 / CI-16 residual packages after Slice 1 (multipart) and Slice 2 STOP (starlette → CI-22): `strawberry-graphql 0.243.1`, `ecdsa 0.19.2`. Slice 3 authorized a narrow strawberry bump to clear pip-audit advisories without forcing FastAPI/starlette/pydantic majors. Poetry caret `^0.243` had pinned the lock to `<0.244`. Advisory clear-all floor **≥0.315.7** (PYSEC-2026-133/134/1946/2282/2283/2284). Explicitly out of slice: `ecdsa`, starlette/FastAPI/pydantic (CI-22).
+**Evidence (compatibility):** strawberry core deps are `graphql-core`, `typing-extensions`, `python-dateutil`, `packaging`, `cross-web` — FastAPI/starlette/pydantic appear only as **extras**. Solver resolved **0.323.2** under `>=0.315.7,<1.0.0` with lock unchanged: **fastapi 0.111.1**, **starlette 0.37.2**, **pydantic 2.8.2**, **python-multipart 0.0.32**, **ecdsa 0.19.2**. New transitive: **cross-web 0.7.0**.
+**Alternatives considered:** (a) force FastAPI/starlette cascade with strawberry — rejected (Slice 2 stop-rule; CI-22 owns that); (b) narrow strawberry-only bump, keep CI-16 OPEN — approved.
+**Decision:** Accept Slice 3 as **COMPLETE** at `d3f1eef` (`d3f1eeff7f6ac0d5210e14a4f3d3f650b7cca6da`). Constraint `strawberry-graphql = ">=0.315.7,<1.0.0"`; lock **0.323.2**. Do **not** mark CI-16 CLOSED. Validation: **light validated** (`poetry update strawberry-graphql`; import `app.graphql.schema` + GraphQLRouter; `pytest tests/unit/test_graphql.py::test_graphql_schema_introspection` **1 passed**; `pip-audit` export shows **NO strawberry findings** — residual **ecdsa** + **starlette** only). No security-gate weakening.
+**Consequence:** CI-16 stays **IN PROGRESS / OPEN**. R-21 **Open — mitigating**. Residual CI-16 package: **ecdsa** (often no fix / out of scope). Starlette remains on **CI-22**. Program Complete/Closed count unchanged (**19/20**). **CI GREEN not met.**
+**Status:** Accepted. CI-16 **Slice 3 COMPLETE**; story **OPEN**.
