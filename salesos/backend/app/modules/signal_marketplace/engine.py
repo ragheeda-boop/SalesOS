@@ -33,12 +33,20 @@ class SignalDetectionEngine:
         if not packs_base.exists():
             return all_signals
 
-        for pack_dir in sorted(packs_base.iterdir()):
+        try:
+            pack_dirs = sorted(packs_base.iterdir())
+        except OSError:
+            return all_signals
+
+        for pack_dir in pack_dirs:
             if not pack_dir.is_dir():
                 continue
             signal_file = pack_dir / "signals" / "signal-definitions.json"
             manifest_file = pack_dir / "manifest.json"
-            if not signal_file.exists():
+            try:
+                if not signal_file.exists():
+                    continue
+            except OSError:
                 continue
 
             pack_id = ""
@@ -46,7 +54,7 @@ class SignalDetectionEngine:
                 try:
                     manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
                     pack_id = manifest.get("id", pack_dir.name)
-                except (json.JSONDecodeError, Exception):
+                except (OSError, json.JSONDecodeError, Exception):
                     pack_id = pack_dir.name
 
             try:
@@ -75,7 +83,7 @@ class SignalDetectionEngine:
 
                 await self.service.register_signals_from_pack(pack_signals)
                 all_signals.extend(pack_signals)
-            except (json.JSONDecodeError, Exception):
+            except (OSError, json.JSONDecodeError, Exception):
                 continue
 
         return all_signals

@@ -7,10 +7,11 @@ from __future__ import annotations
 
 import asyncio
 import time
+from contextlib import AbstractAsyncContextManager
 from typing import Any, Callable, Optional
 
-from sqlalchemy import cast, func, or_, select
 from sqlalchemy import String as SAString
+from sqlalchemy import cast, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -29,6 +30,8 @@ from .repository.sql_repository import (
     graph_edges,
     licenses,
 )
+
+SessionFactory = Callable[[], AbstractAsyncContextManager[AsyncSession]]
 
 
 def _id_text(col):
@@ -53,7 +56,7 @@ class KnowledgeGraphEngine:
 
     def __init__(
         self,
-        session_factory: Callable[[], AsyncSession],
+        session_factory: SessionFactory,
         neo4j_uri: Optional[str] = None,
         neo4j_user: Optional[str] = None,
         neo4j_password: Optional[str] = None,

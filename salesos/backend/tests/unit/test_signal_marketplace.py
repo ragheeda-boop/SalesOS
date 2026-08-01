@@ -305,11 +305,10 @@ class TestSignalDetection:
 
 class TestSignalDetectionEngine:
     @pytest.mark.asyncio
-    async def test_load_pack_with_no_packs_dir(self, monkeypatch):
-        import tempfile
-
-        tmp = tempfile.gettempdir()
-        monkeypatch.setenv("KNOWLEDGE_PACKS_PATH", tmp)
+    async def test_load_pack_with_no_packs_dir(self, monkeypatch, tmp_path):
+        # Use an isolated empty dir — gettempdir() can be a shared host path
+        # (e.g. /tmp/snap-private-tmp) that is not readable for pack iteration.
+        monkeypatch.setenv("KNOWLEDGE_PACKS_PATH", str(tmp_path))
         from app.modules.signal_marketplace.engine import SignalDetectionEngine
 
         engine = SignalDetectionEngine(SignalMarketplaceService())

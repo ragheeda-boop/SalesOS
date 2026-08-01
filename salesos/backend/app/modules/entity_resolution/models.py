@@ -101,10 +101,17 @@ class EntityResolutionLog(Base):
         return f"<ResolutionLog {self.operation}: {self.records_processed} records>"
 
 
-class DeadLetterRecord(BaseModel):
+class DeadLetterRecord(Base):
+    """Failed pipeline records (alembic 0011).
+
+    Schema honesty: ``id`` is Integer PK; ``tenant_id`` is String(36);
+    table has ``created_at`` only (no BaseModel ``updated_at``).
+    """
+
     __tablename__ = "dead_letter_queue"
 
-    tenant_id: Mapped[uuid.UUID] = mapped_column(nullable=False, index=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    tenant_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     source_slug: Mapped[str] = mapped_column(String(100), nullable=False)
     cr_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
     stage: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -114,4 +121,9 @@ class DeadLetterRecord(BaseModel):
     retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     max_retries: Mapped[int] = mapped_column(Integer, nullable=False, default=3)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="failed")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
     last_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

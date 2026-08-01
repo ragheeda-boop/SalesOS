@@ -7,6 +7,7 @@ All query paths require a non-empty tenant_id — unscoped SQL is refused.
 
 from __future__ import annotations
 
+from contextlib import AbstractAsyncContextManager
 from typing import Any, Callable, Optional
 
 from sqlalchemy import (
@@ -27,7 +28,8 @@ from sqlalchemy import (
     type_coerce,
     update,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,6 +37,8 @@ from ..models import EdgeType, GraphEdge, GraphNode, GraphPath, NodeLabel
 from .base import GraphRepository
 
 _kg_metadata = MetaData()
+
+SessionFactory = Callable[[], AbstractAsyncContextManager[AsyncSession]]
 
 companies = Table(
     "companies",
@@ -105,7 +109,7 @@ def _id_text(col):
 class SqlGraphRepository(GraphRepository):
     """Graph repository backed by PostgreSQL via SQLAlchemy async sessions."""
 
-    def __init__(self, session_factory: Callable[[], AsyncSession], logger: Any = None):
+    def __init__(self, session_factory: SessionFactory, logger: Any = None):
         self._session_factory = session_factory
         self._logger = logger
 

@@ -177,7 +177,16 @@ jobs:
       - name: Run unit tests with coverage gate
         run: |
           cd salesos/backend
+          # Host/port/db must match the GHA postgres service. APP_POSTGRES_PASSWORD
+          # alone rewrites app_database_url onto settings.postgres_host (default
+          # "postgres:6432") which DNS-fails on the runner (adversarial RLS +
+          # get_db isolation → socket.gaierror). Do not weaken RLS — fix the URL.
+          DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
           TEST_DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
+          POSTGRES_HOST=localhost \
+          POSTGRES_PORT=5432 \
+          POSTGRES_DB=salesos_test \
+          POSTGRES_PASSWORD=salesos_test \
           APP_POSTGRES_USER=salesos_app \
           APP_POSTGRES_PASSWORD=ci_app_role_test_password \
           poetry run pytest -v \
@@ -300,7 +309,12 @@ jobs:
       - name: Run integration tests
         run: |
           cd salesos/backend
+          DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
           TEST_DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
+          POSTGRES_HOST=localhost \
+          POSTGRES_PORT=5432 \
+          POSTGRES_DB=salesos_test \
+          POSTGRES_PASSWORD=salesos_test \
           REDIS_URL=redis://localhost:6379/0 \
           APP_POSTGRES_USER=salesos_app \
           APP_POSTGRES_PASSWORD=ci_app_role_test_password \

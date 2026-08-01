@@ -148,7 +148,7 @@ class DeadLetterRepository:
         cr_number: str | None = None,
     ) -> DeadLetterRecord:
         entry = DeadLetterRecord(
-            tenant_id=uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id,
+            tenant_id=str(tenant_id),
             source_slug=source_slug,
             cr_number=cr_number,
             stage=stage,
@@ -171,7 +171,7 @@ class DeadLetterRepository:
         page: int = 1,
         page_size: int = 20,
     ) -> tuple[builtins.list[DeadLetterRecord], int]:
-        tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
+        tid = str(tenant_id)
         query = select(DeadLetterRecord).where(DeadLetterRecord.tenant_id == tid)
         count_query = (
             select(func.count())
@@ -201,7 +201,7 @@ class DeadLetterRepository:
         tenant_id: str | uuid.UUID,
         limit: int = 50,
     ) -> builtins.list[DeadLetterRecord]:
-        tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
+        tid = str(tenant_id)
         query = (
             select(DeadLetterRecord)
             .where(
@@ -252,7 +252,7 @@ class DeadLetterRepository:
         tenant_id: str | uuid.UUID,
         status: str | None = None,
     ) -> int:
-        tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
+        tid = str(tenant_id)
         stmt = delete(DeadLetterRecord).where(DeadLetterRecord.tenant_id == tid)
         if status:
             stmt = stmt.where(DeadLetterRecord.status == status)
@@ -260,7 +260,7 @@ class DeadLetterRepository:
         return cast(int, getattr(result, "rowcount", 0) or 0)
 
     async def count_by_stage(self, tenant_id: str | uuid.UUID) -> dict[str, int]:
-        tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
+        tid = str(tenant_id)
         query = (
             select(DeadLetterRecord.stage, func.count())
             .where(DeadLetterRecord.tenant_id == tid, DeadLetterRecord.status == "failed")

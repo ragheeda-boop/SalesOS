@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import time
+from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Callable, Optional
@@ -23,6 +24,9 @@ from sqlalchemy import and_, func, insert, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domains.timeline.models import TimelineEventModel
+
+# Returns async_sessionmaker() or a test async context manager.
+SessionFactory = Callable[[], AbstractAsyncContextManager[AsyncSession]]
 
 
 @dataclass
@@ -100,7 +104,7 @@ class TimelineRuntime:
 
     def __init__(
         self,
-        session_factory: Callable[[], AsyncSession],
+        session_factory: SessionFactory,
         logger: Any = None,
     ):
         self._session_factory = session_factory

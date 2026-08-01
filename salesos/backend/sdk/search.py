@@ -8,7 +8,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from sqlalchemy import Column, MetaData, String, Table, bindparam, delete, literal, select
-from sqlalchemy.dialects.postgresql import JSONB, insert as pg_insert
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 _vector_metadata = MetaData()
 
