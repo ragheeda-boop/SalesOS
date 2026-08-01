@@ -437,8 +437,8 @@
 **Context:** Arabic standing approval for Option A. Railway MCP Unauthorized; Ops used Railway CLI on project `responsible-comfort`. Staging first, then production env/role only (no app image promote). Prior probe: `APP_POSTGRES_*` absent; `DATABASE_URL` present; owner role `postgres` on DB `railway`.
 **Alternatives considered:** (A) §14 remediation now — accepted; (B) Phase 0 GO with Railway residual — rejected; (C) defer — superseded by A.
 **Decision:** Accept Option A. Provision `salesos_app` (NOSUPERUSER NOBYPASSRLS) on Railway staging + production Postgres; set `APP_POSTGRES_USER`/`APP_POSTGRES_PASSWORD` plus `POSTGRES_HOST`/`PORT`/`DB` derived from existing plugin/`DATABASE_URL` components (app password per §14 hex — not committed); bypass-probe PASS both envs; health 200 both envs. Full record: [`docs/program/decisions/DEC-016-RAILWAY-R14-OPTION-A.md`](decisions/DEC-016-RAILWAY-R14-OPTION-A.md).
-**Consequence:** S04-04 **CLOSED**. R-14 Railway slice **Closed**. Phase 0 critical-path gate that was solely S04-04 is cleared for R-14. **CI GREEN not met** (unrelated). Secrets never committed.
-**Status:** Accepted. S04-04 **CLOSED**.
+**Consequence (historical):** S04-04 CLOSED; R-14 Railway Closed; Phase 0 R-14 gate cleared. **Consequence (current, DEC-120):** security-closure consequence **revoked**; S04-04 **REOPENED**; Phase 0 R-14 **NO-GO**. Infra steps (role/env/deploy IDs/health) remain partially VERIFIED. **CI GREEN not met**. Secrets never committed.
+**Status:** Accepted (authorization + partial infra). Security closure **CONTRADICTED** — see **DEC-120**.
 
 ---
 
@@ -446,10 +446,10 @@
 
 **Date:** 2026-08-01
 **Context:** Program Manager / Architecture Validation reassessment after S04-04 CLOSED under DEC-016 Option A at docs tip `7232979` (staging+prod bypass-probe PASS; `APP_POSTGRES_*` set; health 200; no app image promote). Sources: PRODUCTION_PLAN Definition of Done (§3) + Wave gates; `SPRINT_05_DELIVERY_BOARD.md`; DEC-016; ga-engineering-audit `00-EXECUTIVE-SUMMARY.md` (production no-go). Prior DAG framed Phase 0 exit critical path as **S04-04 only** (DEC-040 / DEC-044 records note).
-**Alternatives considered:** (a) claim production GO because Railway closed — **rejected** (**CI GREEN not met**; PRODUCTION_PLAN DoD incomplete; audit still production no-go); (b) keep Phase 0 exit NO-GO despite S04-04 CLOSED — **rejected** (named critical-path gate cleared; would contradict DEC-016 consequence); (c) claim **pilot-ready with conditions** for external/product pilot — **rejected** (no soak/browser/GA DoD evidence; CI-08/09 deploy gaps); (d) Phase 0 (DEC-008 RLS/R-14) **GO** + production/external pilot **NO-GO** — **approved**.
-**Decision:** Record Phase 0 (DEC-008 tenant-isolation / R-14) exit = **GO** (critical-path gate cleared). Production GA = **NO-GO**. External pilot = **NO-GO**. Do **not** claim pilot-ready with conditions. Update `EXECUTION_DAG.md`, board Progress, RISK_REGISTER R-14 next-action text. Remaining board P0: **CI-08** (ops BLOCKED). Sprint 05/06+ READY continues: CI-20, CI-19 Wave 2, CI-22, CI-14, DB-05, STORY-02-02 browser verify, Category B RLS planning, JWT consumption, contract-test expansion.
-**Consequence:** Program Phase 1 commercial sequencing unblocked per DEC-008. Marketing / GA / production claims stay **NO-GO** until CI GREEN + PRODUCTION_PLAN DoD. **CI GREEN not met.**
-**Status:** Accepted (Architecture Validation records).
+**Alternatives considered:** (a) claim production GO because Railway closed — **rejected** (**CI GREEN not met**; PRODUCTION_PLAN DoD incomplete; audit still production no-go); (b) keep Phase 0 exit NO-GO despite S04-04 CLOSED — **rejected** (named critical-path gate cleared; would contradict DEC-016 consequence); (c) claim **pilot-ready with conditions** for external/product pilot — **rejected** (no soak/browser/GA DoD evidence; CI-08/09 deploy gaps); (d) Phase 0 (DEC-008 RLS/R-14) **GO** + production/external pilot **NO-GO** — **approved** (historical).
+**Decision (historical):** Record Phase 0 (DEC-008 tenant-isolation / R-14) exit = **GO**. Production GA = **NO-GO**. External pilot = **NO-GO**.
+**Consequence (current, DEC-120):** Phase 0 R-14 **GO withdrawn** after Principal Audit Tier-1 contradicted DEC-016 security closure. Phase 0 (DEC-008 / R-14) exit = **NO-GO** until live AC re-proven. Production GA remains **NO-GO**. **CI GREEN not met.**
+**Status:** Accepted historically; **Phase 0 R-14 GO superseded / withdrawn by DEC-120**.
 
 ---
 
@@ -1084,6 +1084,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+
+
+### DEC-120 — DEC-016 Railway R-14 security closure CONTRADICTED; S04-04 + R-14 REOPENED
+
+**Date:** 2026-08-01
+**Context:** Independent Principal Auditor (agent `ddf9d84e`) Tier-1 evidence contradicts DEC-016 security closure: Railway prod sessions as `postgres` (BYPASSRLS); 0 RLS policies; `salesos_app` SELECT **141221** companies with no tenant; prod health image **3.1.0** (pre-`APP_POSTGRES`); env vars present but runtime not using app role. Deploy IDs match DEC-016. Staging empty-ish + 0 policies = weak PASS support. Tip CI also red (Ruff; CI-08; CI-09). Audit: [`docs/audit/PRINCIPAL_AUDIT_2026-08-01_DEC016_RAILWAY_CI.md`](../audit/PRINCIPAL_AUDIT_2026-08-01_DEC016_RAILWAY_CI.md). DEC-119 reserved for Category B B7 (parallel).
+**Alternatives considered:** (a) leave DEC-016 CLOSED despite Tier-1 — rejected (dishonest); (b) reopen S04-04 / R-14 Railway + withdraw Phase 0 GO + encode remediation A–E — approved; (c) claim Production GO — rejected.
+**Decision:** Accept **DEC-120**. S04-04 **REOPENED**; R-14 Railway **REOPENED**; Phase 0 (DEC-008 / R-14) = **NO-GO** (DEC-086 GO withdrawn). Dual honesty: env provision ≠ runtime RLS. Remediation READY: A (`5e7023f` wiring) → B (image promote; GHCR alt) → C (alembic) → D (`salesos_app` runtime) → E (bypass-probe + `pg_stat_activity`). **Rotate Postgres passwords** — required human/ops (do not commit secrets). Companion: [`decisions/DEC-120-DEC016-RAILWAY-R14-CONTRADICTED.md`](decisions/DEC-120-DEC016-RAILWAY-R14-CONTRADICTED.md).
+**Consequence:** Phase 0 critical path blocked on S04-04 again. STORY-02-01 stays CLOSED. **Production GA = NO-GO.** Prior Phase 0 R-14 GO **withdrawn**. Validation: **docs / light validated**.
+**Status:** Accepted. S04-04 **REOPENED**.
 
 ### DEC-118 — Category B Slice B6: webhook-deliveries join RLS (`webhook_deliveries`)
 

@@ -11,7 +11,6 @@ from httpx import AsyncClient
 
 from tests.contract.openapi_contract import assert_response_matches_openapi
 
-
 PATH = "/api/v1/decisions"
 
 

@@ -1,10 +1,11 @@
 # DEC-016 — Authorize and execute Railway R-14 remediation (Option A)
 
-> **Status:** **Accepted**  
+> **Status:** **Accepted** (authorization + partial infra) — **security-closure consequence CONTRADICTED / revoked by [`DEC-120`](DEC-120-DEC016-RAILWAY-R14-CONTRADICTED.md)**  
 > **Date:** 2026-08-01  
 > **Supersedes:** [`DEC-DRAFT-RAILWAY-R14-PHASE0`](DEC-DRAFT-RAILWAY-R14-PHASE0.md)  
 > **Board:** Architecture Review Board + Risk Manager + DevOps-SRE (SalesOS / AQLIYA)  
-> **Human authorization:** Arabic standing approval — Option A full remediation (Ops via Railway CLI; MCP Unauthorized)
+> **Human authorization:** Arabic standing approval — Option A full remediation (Ops via Railway CLI; MCP Unauthorized)  
+> **Records note (2026-08-01):** Principal audit Tier-1 evidence shows env provision ≠ runtime RLS (sessions as `postgres`; 0 policies; bypass-probe FAIL). See DEC-120 + [`docs/audit/PRINCIPAL_AUDIT_2026-08-01_DEC016_RAILWAY_CI.md`](../../audit/PRINCIPAL_AUDIT_2026-08-01_DEC016_RAILWAY_CI.md).
 
 ---
 
@@ -50,8 +51,7 @@ Accept **Option A** from the draft package: execute `OPERATIONS_MANUAL.md` §14 
 
 ## Consequence
 
-- S04-04 → **CLOSED**.
-- R-14 Railway slice → **Closed** (local/CI/compose staging/prod-template + Railway staging + Railway production).
-- Phase 0 exit critical-path gate that was **solely** S04-04 is cleared for R-14 / DEC-008 tenant-isolation honesty on Railway.
+- **Historical (as recorded at close):** S04-04 → CLOSED; R-14 Railway → Closed; Phase 0 R-14 gate cleared.
+- **Current (DEC-120):** S04-04 **REOPENED**; Railway R-14 **REOPENED**; Phase 0 (DEC-008 / R-14) exit = **NO-GO** until slices A–E re-proven live. Dual honesty: deploy IDs / `APP_POSTGRES_*` presence ≠ isolation.
 - Draft `DEC-DRAFT-RAILWAY-R14-PHASE0` → **Superseded**.
 - Do **not** commit secret values; do **not** weaken auth/CSRF/RBAC.
