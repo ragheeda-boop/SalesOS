@@ -64,7 +64,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **CI-19** Semgrep Wave 2 residual | IN PROGRESS / READY | Waves 1/3/4/5 COMPLETE; Wave 2 deferred (~108 `avoid-sqlalchemy-text`) | R-24; authorize Wave 2 when ready |
 | **CI-22** FastAPI / Starlette / Pydantic | IN PROGRESS / READY | Phase 1 COMPLETE (DEC-081 @ `442af64`); further phases | R-21 starlette / pip-audit path |
 | **CI-14** Frontend Dependency Modernization | IN PROGRESS / READY (Sprint 06) | Slice 1 COMPLETE; Slice 2 STOP; Slice 3 pending | R-18; STOP silent majors |
-| **STORY-02-02** browser/E2E verify (if scoped) | READY / PARALLEL | Middleware LANDED (`3f4b3c8`); DEC-088 verify: unit **light validated** (14/14); browser still **not validated** — PARTIAL | Not a board CLOSE; restore FE/compose then redirect probe |
+| **STORY-02-02** browser/E2E verify (if scoped) | **CLOSED** (DEC-095) | Live Next redirect: `/dashboard` → **307** `/login?callbackUrl=%2Fdashboard`; `/`+`/login` **200** | Optional authenticated `smoke-ui.ps1` not run; **CI GREEN not met** |
 | **DB-05** Schema reconciliation program | READY (program) | BACKLOG; R-20 / R-09 | Multi-sprint; unblocks 8 RLS-deferred tables |
 | **Sprint 04 Category B RLS + inventory** | READY (planning) | DEC-044 deferred Category B | Settle canonical count |
 | **JWT audience consumption** | **CLOSED** (DEC-093) | Owner admin deps wire `decode_owner_*` via `owner_auth.py`; **14/14** unit PASS | Tenant `verify_token` unchanged (`salesos-api`); groundwork `2379e5f` |
@@ -107,7 +107,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | S04-06 adversarial RLS remaining | `119df9e` | COMPLETE (DEC-045) | **build validated** — Docker pytest **15/15 PASS** |
 | CI-21 Gitleaks JWT fixture neutralize | `b03ffbf` | CLOSED | fixture replaced; scanner not weakened |
 | STORY-02-03 JWT audience groundwork | `2379e5f` | DONE | **light validated** — host pytest **7/7** (DEC-091); prior Docker **15** w/ write-protection (`deae7de`) |
-| STORY-02-02 server-side middleware | `3f4b3c8` | PARTIAL (DEC-088) | Jest redirect helpers **14/14 PASS** (**light validated**); browser/E2E **not validated** |
+| STORY-02-02 server-side middleware | `3f4b3c8` | **DONE** (DEC-095) | Jest **14/14** (DEC-088) + live redirect probe **browser-validated** (DEC-095) |
 | STORY-03-04 OpenAPI contract framework | `623077c` | DONE | Framework land; pytest via DEC-093 |
 | Contract tests expansion slice 1 (DEC-093) | *(this land)* | IN PROGRESS | `/ping` + `/health/live` typed + OpenAPI HTTP contracts; next slice documented |
 | STORY-02-04 §17.2 relabel | `932f722` | DONE | docs-only |

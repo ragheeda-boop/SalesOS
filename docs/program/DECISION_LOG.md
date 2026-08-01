@@ -973,3 +973,24 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Decision:** Close consumption. Add `app/owner_auth.py` (`verify_owner_token` → `decode_owner_access_token`); wire `app/modules/admin` to `require_owner_role_dep`. Tenant `verify_token` unchanged. Package: [decisions/DEC-093-JWT-AUDIENCE-CONSUMPTION-CLOSED.md](decisions/DEC-093-JWT-AUDIENCE-CONSUMPTION-CLOSED.md). Supersedes DEC-091 consumption-OPEN clause.
 **Consequence:** Host pytest `tests/unit/test_jwt_audience_split.py` **14/14 PASS** (**light validated**). Owner login mint UX still future. **Production GO not claimed. CI GREEN not met.**
 **Status:** Accepted.
+
+---
+
+### DEC-094 ? Contract tests expansion slice 1 (post STORY-03-04)
+
+**Date:** 2026-08-01
+**Context:** Board READY track ?Contract tests expansion? after STORY-03-04 framework land (`623077c`) covering only `GET /api/v1/identity/csrf-token`. Backend QA authorized to expand minimally and document next slice. (DEC-089 was reserved in DEC-090 notes for this track; number taken by parallel JWT work as DEC-093 ? this expansion is **DEC-094**.)
+**Alternatives considered:** (a) cover `/health`+`/ready` immediately ? deferred (needs DB/cache fixtures); (b) auth-gated domain list first ? deferred; (c) type + contract public no-DB probes `/ping`+`/health/live` ? approved.
+**Decision:** Land slice 1: `PingResponse` / `HealthLiveResponse` + OpenAPI HTTP contract tests for `/ping` and `/health/live` (csrf retained). Companion: [`decisions/DEC-094-CONTRACT-TESTS-EXPANSION.md`](decisions/DEC-094-CONTRACT-TESTS-EXPANSION.md).
+**Consequence:** Track READY ? **IN PROGRESS**. Host `poetry run pytest tests/contract/test_openapi_contract.py -m contract` **PASS** (**light validated**). Not full API coverage. **CI GREEN not met.**
+**Status:** Accepted. Slice 1 landed; next slice remains open.
+
+### DEC-095 — STORY-02-02 browser redirect verify CLOSED
+
+**Date:** 2026-08-01
+**Context:** DEC-088 left STORY-02-02 PARTIAL (Jest 14/14; browser not run — FE install/compose blockers). Frontend/QA authorized npm install + push; tip during probe ~`5588bb7`. Middleware code already on master at `3f4b3c8`.
+**Alternatives considered:** (a) keep PARTIAL after redirect PASS — rejected (AC met); (b) claim Playwright authenticated smoke without running it — rejected; (c) close on live unauthenticated redirect + public route reachability — approved.
+**Decision:** Close STORY-02-02 as **DONE**. Evidence: live `next dev` on `127.0.0.1:3000` — `GET /dashboard` (no cookies) → **307** `/login?callbackUrl=%2Fdashboard`; `GET /login` + `GET /` → **200**. Validation **browser-validated** (redirect AC). Optional `smoke-ui.ps1` not run. Companion: [`decisions/DEC-095-STORY-02-02-BROWSER-VERIFY-CLOSED.md`](decisions/DEC-095-STORY-02-02-BROWSER-VERIFY-CLOSED.md). Supersedes DEC-088 PARTIAL.
+**Consequence:** No middleware code change. No `app/database.py` edits. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Story **DONE / CLOSED**.
+
