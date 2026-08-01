@@ -1092,8 +1092,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Context:** Engineering Stability **8.2** OPEN after DEC-144a — checklist “Not tested at scale”; DEC-107 diagnosed no repo `max_agents` cap; `.ai/` org baseline (ARB-003) existed locally but was untracked; protocol pieces scattered across DEC-107 / `26_AGENT_COORDINATION` / PARALLEL_EXECUTION without pinned worker ceiling.
 **Alternatives considered:** (a) docs-only without caps / without committing `.ai/` — rejected; (b) claim VERIFIED/CLOSED / tested at scale — rejected; (c) invent Agent OS scheduler / fifth permanent role — rejected; (d) pin caps + namespacing + conflict rules + commit `.ai/` · READY FOR REVIEW CONDITIONAL — approved.
 **Decision:** Accept criterion **8.2** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-145-CRITERION-8-2-AGENT-COORDINATION.md`](decisions/DEC-145-CRITERION-8-2-AGENT-COORDINATION.md). Caps: `max_parallel_workers=8`, `max_agents_total=12`, permanent roles **4**, DEC-107 min/prefer READY **2/3**. Residual: *at-scale live soak at worker ceiling not field-proven*. DEC-085 intact. Do **not** self-CLOSE.
-**Consequence:** Phase 0 criterion **8.2** = READY FOR REVIEW (Phase 0 remains **41/54** until Arch+Val + Orchestrator). Residual EOS **4.1/4.8** OPEN. **Production GO not claimed. CI GREEN not met. VERIFIED/CLOSED not claimed.**
-**Status:** Accepted. Criterion **READY FOR REVIEW**.
+**Consequence:** Phase 0 criterion **8.2** = READY FOR REVIEW then **CLOSED CONDITIONAL** via DEC-145a. Residual EOS **4.1/4.8** OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED CONDITIONAL via DEC-145a**.
+
+### DEC-145a — Orchestrator VERIFIED/CLOSED CONDITIONAL criterion 8.2 (2026-08-01)
+
+**Context:** Architecture PASS_CONDITIONAL ([architecture review 8.2](bf881caf-a0cd-486d-91f6-c17a35351cea)) + Validation PASS_CONDITIONAL ([Validate 8.2](74623bdb-8564-4b7d-b4c5-bdb56beebd90)) on land `5bc0bf2` / DEC-145.
+**Decision:** Accept **8.2 VERIFIED → CLOSED CONDITIONAL** (same honesty pattern as 8.3 DEC-144a / 1.5 DEC-128a). Residual: *at-scale live soak at max_parallel_workers=8 not field-proven*. Phase 0 **41/54 → 42/54**. Eng Stability Complete **3 → 4** / Open **1 → 0** (cluster **COMPLETE 4/4**). Residual EOS **4.1/4.8** remain OPEN (non-blocking for 8.2). Do **not** push. Do **not** claim Production GO / CI GREEN / unconditional CLOSED.
+**Consequence:** Eng Stability cluster **COMPLETE 4/4**. Next PARALLEL READY: EOS Audit **4.1/4.8** (ARB); optional contract tests / Jest 30; ops CI-08/CI-09. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **8.2 CLOSED CONDITIONAL**. Eng Stability **COMPLETE 4/4**.
 
 ### DEC-144 — Phase 0 criterion 8.3 architecture rules enforced in CI READY FOR REVIEW
 

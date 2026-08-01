@@ -1,6 +1,6 @@
 # DEC-145 — Agent coordination protocol exercised (Phase 0 criterion 8.2)
 
-> **Status:** **Accepted** — Cursor packaging **COMPLETE** · Criterion 8.2 = **READY FOR REVIEW** (recommend **CLOSED CONDITIONAL** after Arch+Val). Residual: *at-scale live soak at `max_parallel_workers=8` concurrent writers not field-proven*.  
+> **Status:** **Accepted** — Cursor packaging **COMPLETE** · Criterion 8.2 = **VERIFIED/CLOSED CONDITIONAL** (DEC-145a; Arch PASS_CONDITIONAL + Val PASS_CONDITIONAL). Residual: *at-scale live soak at `max_parallel_workers=8` concurrent writers not field-proven*.  
 > **Date:** 2026-08-01  
 > **Board:** Backend Lead / Engineering Stability (SalesOS / AQLIYA) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **8.2** · Agent coordination protocol exercised  
@@ -69,11 +69,11 @@ Resolve criterion **8.2** by landing an **honest coordination protocol evidence 
 
 ## 4. Records
 
-- Phase 0 criterion **8.2** → **READY FOR REVIEW** (Phase 0 remains **41/54** until Arch+Val + Orchestrator CLOSE)
-- Eng Stability: Open **8.2 RFR** (+ **8.3 CLOSED CONDITIONAL** residual tip field-verify)
+- Phase 0 criterion **8.2** → **VERIFIED/CLOSED CONDITIONAL** (DEC-145a; Phase 0 **41/54 → 42/54**)
+- Eng Stability: Complete **3 → 4** / Open **1 → 0** (cluster **COMPLETE 4/4**)
 - Residual (non-blocking for CONDITIONAL close): *at-scale live soak at `max_parallel_workers=8` concurrent writers not field-proven*
 - Cluster residuals: EOS **4.1** / **4.8** ARB · CI-08/CI-09 ops · 8.3 tip `test-architecture` PENDING push
-- **Not claimed:** Production GO · CI GREEN · Phase 0 exit · unconditional CLOSED · VERIFIED/CLOSED
+- **Not claimed:** Production GO · CI GREEN · Phase 0 exit · unconditional CLOSED
 
 ---
 
@@ -117,6 +117,6 @@ Resolve criterion **8.2** by landing an **honest coordination protocol evidence 
 
 | Question | Recommendation |
 |---|---|
-| Close 8.2? | **READY FOR REVIEW** → Arch review → Val → Orchestrator may **CLOSED CONDITIONAL** (at-scale soak residual) |
-| Next PARALLEL | EOS **4.1/4.8** ARB (only if executable without inventing ARB) · optional 8.3 tip field-verify after push |
+| Close 8.2? | **CLOSED CONDITIONAL** via DEC-145a (at-scale soak residual retained) |
+| Next PARALLEL | EOS **4.1/4.8** ARB (only if executable without inventing ARB) · optional 8.3 tip field-verify after push · ops CI-08/09 |
 | Do not | Claim Phase 0 GO · CI GREEN · unconditional CLOSED · invent Agent OS runtime · weaken auth / DEC-085 |
