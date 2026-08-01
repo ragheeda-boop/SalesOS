@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-149 — Canonical deploy topology: Backend → Railway; Frontend → Vercel
+
+**Date:** 2026-08-02
+**Context:** Architecture Validation (hybrid) showed live/intended deploy = Railway (backend) + Vercel (frontend) while GitHub Actions `deploy.yml` / `deploy-staging.yml` still assume VPS/SSH. Phase 0 criterion **3.11** / CI-09 previously framed as ops provision of `VPS_HOST` / `VPS_USER` / `VPS_SSH_KEY`. User governance ruling approved the hybrid verdict and forbade creating a VPS or unused `VPS_*` solely to close the criterion.
+**Alternatives considered:** (a) provision unused `VPS_*` to close CI-09 — rejected; (b) mark CI-09 obsolete / CLOSED without DEC — rejected; (c) modify workflows before governance DEC — rejected; (d) ADR instead of DEC — deferred (program DECs preferred for Phase 0 ops topology; permanent ADR optional later); (e) DEC Accepted naming Railway+Vercel + CI-09 BLOCKED BY GOVERNANCE + workflow migration deferred — approved.
+**Decision:** Accept canonical deploy **Backend → Railway**, **Frontend → Vercel**. Companion: [`decisions/DEC-149-CANONICAL-DEPLOY-RAILWAY-VERCEL.md`](decisions/DEC-149-CANONICAL-DEPLOY-RAILWAY-VERCEL.md). CI-09 / **3.11** → **BLOCKED BY GOVERNANCE** (Governance Queue; Owner Chief Architect / ARB). Workflow migration deferred; `.github/workflows/*` **unchanged** this land. Do **not** close CI-09. DEC-085 intact.
+**Consequence:** Criterion mismatch recorded honestly. Next: assign workflow migration to Backend/DevOps. Phase 0 remains **NO-GO** / **45/54**. CI-08 ops BLOCKED separately. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted.
+
 ### DEC-148 — Phase 0 criterion 3.8 CI GREEN (code path) READY FOR REVIEW
 
 **Date:** 2026-08-02

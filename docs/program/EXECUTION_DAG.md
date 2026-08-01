@@ -52,7 +52,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 |---|---|---|---|
 | **S04-04 / Railway R-14** | BLOCKED (critical path) | Remediation slices A–E + live re-proof (DEC-120) | Dual honesty: env ≠ runtime RLS; password rotate human/ops |
 | **CI-08** GHCR 403 | BLOCKED | Org-level GHCR access (DEC-104 Option A) | Also blocks primary image promote path for Railway; alternate = Railway build-from-GitHub |
-| **CI-09** VPS SSH/secrets | BLOCKED | Ops secret provisioning | R-17 — P2 |
+| **CI-09** deploy path (was VPS SSH) | **BLOCKED BY GOVERNANCE** | Deployment Decision (DEC-149 Accepted: Railway+Vercel); workflow migration deferred | Governance Queue — Chief Architect / ARB; do **not** provision unused `VPS_*`; R-17 SSH leg = governance mismatch — P2 |
 | **CI GREEN (full incl. publish)** | BLOCKED | Stage 6 GHCR push (CI-08) + Stage 7 + residual reds | Blocks production GO |
 | **CI GREEN (code path)** | REPORTING ONLY | Stages 1–5 on a named run | DEC-104 interim honesty |
 
@@ -114,7 +114,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | Track | Class | Justification |
 |---|---|---|
 | Contract tests, optional Jest 30 | PARALLEL / PARKED | Do **not** close Phase 0 rows; DEC-094/106 expansion + Jest 30 = backlog only while hard OPEN are ARB/ops |
-| EOS **4.1/4.8**, CI **3.6/3.7/3.9–3.11**, tip field-verify | **BLOCKED** (Cursor) | **2026-08-02 BLOCKED inventory:** no Cursor-closeable criterion; **4.1/4.8** ARB (do not invent); **3.6/3.9/3.10** ops CI-08; **3.11** ops CI-09; **3.7** Stage-6-dep; **3.8** / **3.5** tip push field-verify PENDING; Phase 0 **45/54**; do **not** claim Phase 0 GO / CI GREEN / fake CLOSE |
+| EOS **4.1/4.8**, CI **3.6/3.7/3.9–3.11**, tip field-verify | **BLOCKED** (Cursor) | **2026-08-02 BLOCKED inventory:** no Cursor-closeable criterion; **4.1/4.8** ARB (do not invent); **3.6/3.9/3.10** ops CI-08; **3.11** CI-09 **BLOCKED BY GOVERNANCE** (DEC-149 Railway+Vercel; not VPS secrets); **3.7** Stage-6-dep; **3.8** / **3.5** tip push field-verify PENDING; Phase 0 **45/54**; do **not** claim Phase 0 GO / CI GREEN / fake CLOSE |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 **Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation / CI-08/09 ops proceed.
@@ -133,7 +133,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 ## Board progress fraction
 
-**24/25** Complete/Closed on tracked Sprint 05 board fraction (**S04-04 REOPENED**). Adjacent closed: **Jest-debt / R-23**. **Phase 0 critical path blocked:** **S04-04 / Railway R-14**. Also blocked (ops): CI-08 (P0), CI-09 (P2).
+**24/25** Complete/Closed on tracked Sprint 05 board fraction (**S04-04 REOPENED**). Adjacent closed: **Jest-debt / R-23**. **Phase 0 critical path blocked:** **S04-04 / Railway R-14**. Also blocked: CI-08 (P0 ops), CI-09 (P2 **BLOCKED BY GOVERNANCE** DEC-149).
 
 ---
 
