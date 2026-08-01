@@ -1,10 +1,10 @@
 # DEC-062 — CI-14 Frontend Dependency Modernization: planning inventory (safe vs STOP)
 
-> **Status:** **Accepted** (planning only — no package bumps in this land)  
+> **Status:** **Accepted** — planning complete; **Slice 1 PASS** (sharp override landed; see §9)  
 > **Date:** 2026-08-01  
 > **Board:** Frontend / Deps (SalesOS / AQLIYA)  
 > **Story / risk:** CI-14 / R-18 (30 residual high npm advisories after CI-11)  
-> **Authority:** DEC-018 (story register) · DEC-019 (CI-11 closed, residual → CI-14) · DEC-035 (CI-13 Jest baseline contract) · lock evidence on `master`  
+> **Authority:** DEC-018 (story register) · DEC-019 (CI-11 closed, residual → CI-14) · DEC-035 (CI-13 Jest baseline contract) · lock evidence on `master` · Slice 1 execution **DEC-063**  
 > **Out of scope:** CI-22 · backend Poetry bumps · Railway · `npm audit --force` · silent Next/React/ESLint/Jest majors
 
 ---
@@ -108,3 +108,20 @@ Validation label for this planning land: **not validated** (docs only).
 | (B) Accept planning inventory + gated slices (this DEC) | **Approved** |
 | (C) Permanent npm-audit allowlist without modernization | **Rejected** (DEC-018 Option 1) |
 | (D) Apply a host patch bump without `node_modules` / audit evidence | **Rejected** — no safe patch proven this session |
+
+---
+
+## 9. Slice 1 outcome (2026-08-01) — **PASS**
+
+Executed under **DEC-063** (authorized Slice 1 only).
+
+| Check | Result |
+|---|---|
+| `package.json` `overrides.sharp` | `>=0.35.0` (alongside existing `postcss` override) |
+| Lock resolve | `node_modules/sharp` → **0.35.3** |
+| `npm ls sharp` | `next@15.5.22` → `sharp@0.35.3` |
+| Next / React / ESLint / Jest | Unchanged: next **15.5.22**, react **19.2.7**, eslint **9.39.5**, jest **29.7.0** |
+| STOP triggers | Not hit — no Next↓14, no `--force`, no major toolchain bumps |
+| Narrow validation | `npx tsc --noEmit` **exit 0**; prettier **not present** in frontend deps; full `next lint` / Jest **not** run (low-load) |
+
+**Label:** **light validated** (lock + `npm ls` + tsc). Story CI-14 remains **OPEN** (Cluster A / Slice 2–3 pending). Trivy/npm-audit field clear for sharp **not** re-proven on CI this land — expected residual high count drops for Cluster B only after CI Observer. **CI GREEN not met.**
