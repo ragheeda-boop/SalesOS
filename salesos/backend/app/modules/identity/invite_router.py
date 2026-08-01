@@ -92,7 +92,8 @@ async def accept_invite(
     request: Request,
     service: InviteService = Depends(get_service),
 ):
-    await check_rate_limit_by_key(f"accept-invite:{request.client.host}", limit=5, window=900)
+    client_host = request.client.host if request.client else "unknown"
+    await check_rate_limit_by_key(f"accept-invite:{client_host}", limit=5, window=900)
     try:
         result = await service.accept_invite(
             token=token,

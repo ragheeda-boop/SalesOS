@@ -69,7 +69,8 @@ async def verify_email(
     request: Request,
     service: SignupService = Depends(get_service),
 ):
-    await check_rate_limit_by_key(f"verify-email:{request.client.host}", limit=10, window=900)
+    client_host = request.client.host if request.client else "unknown"
+    await check_rate_limit_by_key(f"verify-email:{client_host}", limit=10, window=900)
     try:
         result = await service.verify_email(token)
     except ValueError as e:

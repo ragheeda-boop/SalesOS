@@ -12,6 +12,8 @@ from .models import WebhookDelivery, WebhookSubscription
 from .repository import (
     InMemoryWebhookDeliveryRepository,
     InMemoryWebhookSubscriptionRepository,
+    WebhookDeliveryRepository,
+    WebhookSubscriptionRepository,
 )
 from .url_safety import (
     UnsafeWebhookURLError,
@@ -35,13 +37,17 @@ def _sign_payload(payload: dict, secret: str) -> str:
 class WebhookService:
     def __init__(
         self,
-        subscription_repo: InMemoryWebhookSubscriptionRepository | None = None,
-        delivery_repo: InMemoryWebhookDeliveryRepository | None = None,
+        subscription_repo: WebhookSubscriptionRepository | None = None,
+        delivery_repo: WebhookDeliveryRepository | None = None,
         *,
         resolve_dns: bool = True,
     ):
-        self.subscription_repo = subscription_repo or InMemoryWebhookSubscriptionRepository()
-        self.delivery_repo = delivery_repo or InMemoryWebhookDeliveryRepository()
+        self.subscription_repo: WebhookSubscriptionRepository = (
+            subscription_repo or InMemoryWebhookSubscriptionRepository()
+        )
+        self.delivery_repo: WebhookDeliveryRepository = (
+            delivery_repo or InMemoryWebhookDeliveryRepository()
+        )
         self._resolve_dns = resolve_dns
 
     async def create_subscription(

@@ -4,11 +4,17 @@ from __future__ import annotations
 
 import ipaddress
 import socket
+from collections.abc import Iterable
 from dataclasses import dataclass
+from typing import cast
 from urllib.parse import urlparse
 
 import httpcore
 import httpx
+
+_SocketOptions = Iterable[
+    tuple[int, int, int] | tuple[int, int, bytes | bytearray] | tuple[int, int, None, int]
+]
 
 
 class UnsafeWebhookURLError(Exception):
@@ -140,7 +146,7 @@ class _PinnedIPBackend(httpcore.AsyncNetworkBackend):
         port: int,
         timeout: float | None = None,
         local_address: str | None = None,
-        socket_options: object | None = None,
+        socket_options: _SocketOptions | None = None,
     ) -> httpcore.AsyncNetworkStream:
         last_exc: Exception | None = None
         for pinned_ip in self._pinned_ips:
@@ -150,7 +156,7 @@ class _PinnedIPBackend(httpcore.AsyncNetworkBackend):
                     port,
                     timeout=timeout,
                     local_address=local_address,
-                    socket_options=socket_options,
+                    socket_options=cast(_SocketOptions | None, socket_options),
                 )
             except Exception as exc:
                 last_exc = exc
@@ -162,7 +168,7 @@ class _PinnedIPBackend(httpcore.AsyncNetworkBackend):
         self,
         path: str,
         timeout: float | None = None,
-        socket_options: object | None = None,
+        socket_options: _SocketOptions | None = None,
     ) -> httpcore.AsyncNetworkStream:
         raise RuntimeError("Unix sockets are not allowed for webhook delivery")
 
