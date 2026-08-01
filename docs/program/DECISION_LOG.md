@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** Capability Drift checklist **5.1** OPEN — 4 registries (catalog / decorator / SDK / YAML) with no designated canonical SoT (audit EXEC #9/#17; DEBT-ARC-003 / E-21). Criterion **5.4** CLOSED (DEC-131a). Residuals **5.2–5.3** need a join key before CAP-### map / validate exit 0.
 **Alternatives considered:** (a) CAP-### catalog as runtime SoT — rejected (absent from backend); (b) SDK as SoT — rejected (no `/api/v1/capabilities` identity); (c) governance YAML as SoT — rejected (naming/structural drift); (d) decorator framework as runtime SoT — approved.
-**Decision:** Accept criterion **5.1** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-132-CRITERION-5-1-CAPABILITY-SOT.md`](decisions/DEC-132-CRITERION-5-1-CAPABILITY-SOT.md). Pins `CAPABILITY_REGISTRY_SOT*` in `runtime/capability_framework`; catalog banner + validate SoT header. DEC-085 intact. Do **not** claim VERIFIED/CLOSED / validate exit 0 / Production GO.
-**Consequence:** Phase 0 remains **26/54** until Arch+Val CLOSE. **5.2–5.3** still OPEN (unblocked for join-map / SoT-oriented validate). **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criterion **5.1 READY FOR REVIEW**.
+**Decision:** Accept criterion **5.1** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-132-CRITERION-5-1-CAPABILITY-SOT.md`](decisions/DEC-132-CRITERION-5-1-CAPABILITY-SOT.md). Pins `CAPABILITY_REGISTRY_SOT*` in `runtime/capability_framework`; catalog banner + validate SoT header. DEC-085 intact. Closed via DEC-132a after Arch+Val PASS.
+**Consequence:** Phase 0 criterion **5.1** = READY FOR REVIEW then **CLOSED** via DEC-132a. **5.2–5.3** still OPEN (unblocked for join-map / SoT-oriented validate). **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED via DEC-132a**.
+
+### DEC-132a — Orchestrator VERIFIED/CLOSED criterion 5.1 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 5.1](f6e397fa-379d-40fa-aa2c-7fb7edf19fbb)) + Validation PASS (light) ([Validate 5.1](39529b56-8666-4747-81a4-a7e837b173b5): pins + docs honesty; DEC-085 untouched) on land `8e105fe` / DEC-132.
+**Decision:** Execution Orchestrator records criterion **5.1 VERIFIED → CLOSED**. Phase 0 **26/54 → 27/54**. Capability Drift Complete **1 → 2** / Open **3 → 2**. Residuals **5.2–5.3** remain OPEN (CAP-### map / validate exit 0). Do **not** push. Do **not** claim Production GO / CI GREEN.
+**Consequence:** Capability Drift residual = **5.2–5.3** only. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **5.1 CLOSED**.
 
 ### DEC-131 — Phase 0 criterion 5.4 `/api/v1/capabilities` contract test READY FOR REVIEW
 

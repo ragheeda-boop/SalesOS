@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-132 criterion 5.1 SoT READY FOR REVIEW — decorator framework canonical; Phase 0 still 26/54 until Arch+Val CLOSE; residuals 5.2–5.3 OPEN; 5.4 CLOSED)
+> **Last updated:** 2026-08-01 (DEC-132a criterion 5.1 SoT VERIFIED/CLOSED — decorator framework canonical; Phase 0 27/54; residuals 5.2–5.3 OPEN; 5.4 CLOSED)
 >
 > ## Operating State
 >
@@ -105,7 +105,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
-| 5.1 | Single source of truth established | One registry (catalog / decorator / SDK / YAML) designated canonical | 🔄 READY FOR REVIEW — DEC-132 Cursor COMPLETE; decorator framework = canonical runtime SoT (kebab IDs); secondaries = SDK / YAML / CAP-### catalog; Arch+Val PENDING; do **not** claim VERIFIED/CLOSED |
+| 5.1 | Single source of truth established | One registry (catalog / decorator / SDK / YAML) designated canonical | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `8e105fe` (DEC-132a); decorator framework = canonical runtime SoT (kebab IDs); pins `CAPABILITY_REGISTRY_SOT*`; secondaries = SDK / YAML / CAP-### catalog; DEC-085 untouched; Orchestrator 2026-08-01 |
 | 5.2 | `CAP-###` mapped to runtime kebab IDs | Automation can join registries | ⬜ `CAP-###` absent from backend code (unblocked by 5.1 SoT join key) |
 | 5.3 | Registry sync/validate scripts aligned | `validate_capability_registries.py` exits 0 | ⬜ SoT documented in script; exit still non-zero until convergence land |
 | 5.4 | `/api/v1/capabilities` tested | Test exercises decorator registry endpoint | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `65e82cc` (DEC-131a); ASGI contract `tests/contract/test_capabilities_api.py`; Docker **4 passed**; DEC-085 untouched; Orchestrator 2026-08-01 |
@@ -182,12 +182,12 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 2. RLS & Tenant Isolation | 7 | 6 | 0 | 1 |
 | 3. CI/CD Green | 11 | 3 | 2 (CI-08, CI-09) | 6 |
 | 4. EOS Audit Pass | 8 | 2 | 0 | 6 |
-| 5. Capability Drift | 4 | 1 | 0 | 3 |
+| 5. Capability Drift | 4 | 2 | 0 | 2 |
 | 6. ADR Drift | 5 | 0 | 0 | 5 |
 | 7. DB Schema | 6 | 6 | 0 | 0 |
 | 8. Engineering Stability | 4 | 1 | 0 | 3 |
 | 9. ADR-036 Applied | 4 | 2 | 0 | 2 |
-| **TOTAL** | **54** | **26** | **2** | **26** |
+| **TOTAL** | **54** | **27** | **2** | **25** |
 
 ---
 

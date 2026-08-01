@@ -88,8 +88,8 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **Security P0 1.5** SAST + deps | **CLOSED CONDITIONAL** (DEC-128a) | Arch PASS + Val PASS_CONDITIONAL @ `fa266b5`; residual: post-align Security Scan pip-audit field-verify PENDING; Phase 0 **23/54** (superseded to **24/54**) |
 | **DB-05 7.4** companies KEEP | **CLOSED** (DEC-129a) | Arch+Val PASS @ `4aacd6d`; KEEP no DROP; head `d1a8c35e7f09`; Phase 0 **24/54** |
 | **DB-05 7.6** alembic check | **CLOSED** (DEC-130h) | Arch+Val PASS @ `250bcb5` / DEC-130g; check exit 0 @ `a4f7c29e1b80`; phased 5a–5g; Phase 0 **25/54** (superseded to **26/54** by DEC-131a); do **not** claim Phase 0 GO |
-| **Capability 5.4** `/api/v1/capabilities` tested | **CLOSED** (DEC-131a) | Arch+Val PASS @ `65e82cc` / DEC-131; Docker **4 passed**; DEC-085 untouched; Phase 0 **26/54**; residuals **5.1–5.3** OPEN; do **not** claim Phase 0 GO |
-| **Capability 5.1** single SoT designated | **READY FOR REVIEW** (DEC-132) | Decorator framework = canonical runtime SoT (kebab); secondaries SDK/YAML/CAP-###; DEC-085 untouched; Phase 0 remains **26/54** until Arch+Val CLOSE; residuals **5.2–5.3** OPEN; do **not** claim Phase 0 GO / VERIFIED/CLOSED |
+| **Capability 5.4** `/api/v1/capabilities` tested | **CLOSED** (DEC-131a) | Arch+Val PASS @ `65e82cc` / DEC-131; Docker **4 passed**; DEC-085 untouched; Phase 0 **26/54** (superseded to **27/54** by DEC-132a); residual **5.2–5.3** OPEN; do **not** claim Phase 0 GO |
+| **Capability 5.1** single SoT designated | **CLOSED** (DEC-132a) | Arch+Val PASS (light) @ `8e105fe` / DEC-132; decorator framework = canonical runtime SoT (kebab); secondaries SDK/YAML/CAP-###; DEC-085 untouched; Phase 0 **27/54**; residuals **5.2–5.3** OPEN; do **not** claim Phase 0 GO |
 
 ---
 
@@ -97,7 +97,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30, ADR Drift / Capability Drift (5.2–5.3; 5.1 in review) / EOS | PARALLEL / READY | DEC-107 swarm; 5.4 **CLOSED** (DEC-131a); 5.1 **READY FOR REVIEW** (DEC-132); do **not** claim Phase 0 GO |
+| Contract tests, optional Jest 30, ADR Drift / Capability Drift (5.2–5.3) / EOS | PARALLEL / READY | DEC-107 swarm; 5.4 **CLOSED** (DEC-131a); 5.1 **CLOSED** (DEC-132a); do **not** claim Phase 0 GO |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 **Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation / CI-08/09 ops proceed.

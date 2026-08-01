@@ -1,11 +1,11 @@
 # DEC-132 — Capability registry single source of truth (Phase 0 criterion 5.1)
 
-> **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **5.1 READY FOR REVIEW** (Arch + Validation PENDING; Cursor ≠ CLOSED)  
+> **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **5.1 VERIFIED/CLOSED** via DEC-132a (Arch PASS + Validation PASS light @ `8e105fe`)  
 > **Date:** 2026-08-01  
 > **Board:** Backend Lead / Capability Drift (SalesOS / AQLIYA) — Architecture-adjacent SoT packaging  
 > **Story / risk:** Phase 0 Exit Criterion **5.1** · DEBT-ARC-003 / E-21 · EXEC-ARCHITECTURE-PRODUCT-REVIEW #9/#17  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §5.1 · audit “pick one registry as SoT” · ARB review protocol  
-> **Out of scope this land:** Criterion **5.2** CAP-###→kebab join map · **5.3** `validate_capability_registries.py` exit 0 · deleting secondary registries · auth/CSRF weaken · DEC-085 `set_config` · Production GO · CI GREEN · Phase 0 VERIFIED/CLOSED for 5.1
+> **Out of scope this land:** Criterion **5.2** CAP-###→kebab join map · **5.3** `validate_capability_registries.py` exit 0 · deleting secondary registries · auth/CSRF weaken · DEC-085 `set_config` · Production GO · CI GREEN
 
 ---
 
@@ -19,7 +19,7 @@ Designate **one** registry as the canonical **runtime** source of truth for Sale
 | Identity scheme | kebab-case IDs (`identity`, `data-fabric`, `decision-engine`, …) |
 | HTTP surface | `GET /api/v1/capabilities` (contract-tested under DEC-131 / criterion 5.4) |
 | Machine pins | `CAPABILITY_REGISTRY_SOT`, `CAPABILITY_REGISTRY_SOT_PATH`, `CAPABILITY_ID_SCHEME` in `__init__.py` |
-| Criterion state | **READY FOR REVIEW** (not CLOSED) |
+| Criterion state | **CLOSED** (DEC-132a) |
 
 ### Role matrix (honest residual)
 
@@ -55,17 +55,19 @@ Designate **one** registry as the canonical **runtime** source of truth for Sale
 | Auth / DEC-085 | **Untouched** |
 | Label | **light validated** (docs + pin inspection; no full 4-way sync claim) |
 
-**Production GO not claimed. CI GREEN not met. Criterion 5.1 not VERIFIED/CLOSED.**
+**Production GO not claimed. CI GREEN not met.**
+
+**Orchestrator CLOSE (DEC-132a):** Arch PASS + Validation PASS (light) @ `8e105fe` → criterion **5.1 VERIFIED/CLOSED**; Phase 0 **27/54**; Capability Drift **2/4**. Residuals **5.2–5.3** OPEN. **Production GO not claimed. CI GREEN not met.**
 
 ---
 
 ## 4. Records
 
-- Phase 0 criterion **5.1** → **READY FOR REVIEW** (Cursor COMPLETE)
+- Phase 0 criterion **5.1** → **VERIFIED/CLOSED** (DEC-132a)
 - Residuals **5.2** (CAP-### map) · **5.3** (validate exit 0) remain OPEN
 - **5.4** remains CLOSED (DEC-131a)
-- Phase 0 count stays **26/54** until Orchestrator Arch+Val CLOSE
-- **Not claimed:** Production GO · CI GREEN · Phase 0 exit
+- Phase 0 **26/54 → 27/54**
+- **Not claimed:** Production GO · CI GREEN · Phase 0 exit · validate exit 0
 
 ---
 
@@ -97,7 +99,7 @@ Designate **one** registry as the canonical **runtime** source of truth for Sale
 |---------|-------|------|
 | Secondary registries still diverge | HIGH residual | Expected — closes designation only; 5.2/5.3 own convergence |
 | Future dual-write to SDK “as SoT” | MEDIUM | Forbidden without a superseding DEC |
-| Overclaim CLOSED | LOW | This package is READY FOR REVIEW only |
+| Overclaim CLOSED | LOW | CLOSED = SoT designation only; 5.2/5.3 still OPEN |
 
 ---
 
@@ -105,6 +107,6 @@ Designate **one** registry as the canonical **runtime** source of truth for Sale
 
 | Question | Recommendation |
 |---|---|
-| Close 5.1? | Architecture review PASS on this designation (decorator = runtime SoT; secondaries listed) |
-| Unblocks | **5.2** — build `CAP-###` → kebab join map against decorator IDs; **5.3** — reorient validate/sync so exit 0 means “secondaries ⊆ / aligned to SoT” |
-| Do not | Delete SDK/YAML this sprint without dedicated DEC; claim validate exit 0 from this land |
+| Close 5.1? | **Done** — Arch PASS + Val PASS (light) → DEC-132a CLOSED |
+| Next | **5.2** — build `CAP-###` → kebab join map against decorator IDs; **5.3** — reorient validate/sync so exit 0 means “secondaries ⊆ / aligned to SoT” |
+| Do not | Delete SDK/YAML this sprint without dedicated DEC; claim validate exit 0 from this land; claim Production GO / CI GREEN |
