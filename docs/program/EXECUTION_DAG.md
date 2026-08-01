@@ -64,7 +64,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **DB-05** Schema reconciliation program | IN PROGRESS | Slice 0+1 CLOSED (DEC-111/113); R-20 / R-09 | Head `b8d4f02a1c06`; P0 CREATE done; next Slice 2 emails/meetings; no RLS on eight yet |
 | **Optional Jest 30 evidence** | BACKLOG (not CI-14) | DEC-108 deferred; authorize dedicated package | STOP silent major; Stage 3 **0**-fail gate |
 | **STORY-02-02** browser/E2E verify (if scoped) | **CLOSED** (DEC-095) | Live Next redirect: `/dashboard` → **307** `/login?callbackUrl=%2Fdashboard`; `/`+`/login` **200** | Optional authenticated `smoke-ui.ps1` not run; **CI GREEN not met** |
-| **Sprint 04 Category B RLS execution (B1–B7)** | READY (execution) | DEC-110 planning CLOSED | Inventory pinned: A=47, B=12, A-deferred=8; slices B1–B7; no SQL until slice land |
+| **Sprint 04 Category B RLS execution (B1–B7)** | IN PROGRESS | DEC-110 planning CLOSED; B1 CLOSED DEC-112 | Live policies **49**; B2–B7 READY; A=47 intact; A-deferred CREATE via DEC-113 |
 | **JWT audience consumption** | **CLOSED** (DEC-093) | Owner admin deps wire `decode_owner_*` via `owner_auth.py`; **14/14** unit PASS | Tenant `verify_token` unchanged (`salesos-api`); groundwork `2379e5f` |
 | **Contract tests expansion** | IN PROGRESS / PARALLEL | Slice 1–4 LANDED (DEC-094 + DEC-106): probes + health/ready + auth list + **401/422** | Optional further typed endpoints; park OK |
 
@@ -91,12 +91,12 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30 backlog, DB-05 Slice 2+, Category B B1–B7 | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. CI-14/CI-19/CI-20/CI-22 CLOSED. DB-05 Slice 0+1 CLOSED (DEC-111/113). |
+| Contract tests, optional Jest 30 backlog, DB-05 Slice 2+, Category B B2–B7 | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. CI-14/CI-19/CI-20/CI-22 CLOSED. DB-05 Slice 0+1 CLOSED (DEC-111/113). B1 CLOSED DEC-112. |
 | Contract tests expansion (post STORY-03-04) | PARALLEL | Slice 1–4 DEC-094/106 (probes + health/ready + auth list + 401/422); framework `623077c` |
 | JWT audience **consumption** | **CLOSED** (DEC-093) | Owner Platform admin consumes `salesos-owner-platform`; tenant path untouched |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
-**Category B (DEC-110):** planning CLOSED; execution slices B1–B7 READY (join-policy SQL not this land). Do not reopen STORY-02-01.
+**Category B (DEC-110/112):** planning CLOSED; B1 CLOSED (`branches`/`licenses`, POLICY_COUNT 49); B2–B7 READY. Do not reopen STORY-02-01.
 
 **Swarm dispatch (DEC-107):** While waiting on ops (CI-08 GHCR, CI-09 VPS), keep agents on independent PARALLEL READY ownership — do **not** idle solely because those ops leaves are BLOCKED. CI-14 preferred path during that wait was **DEC-108** executive AC close (not silent Jest 30); swarm policy = DEC-107. Honesty: DEC-104 **code path** vs **full incl. publish**.
 
@@ -120,6 +120,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | DB-05 Slice 1 additive CREATE (DEC-113) | *(this land)* | **CLOSED** (CREATE) | Head `b8d4f02a1c06`; 8/8 P0 tables; **no RLS**; **light validated** |
 | DB-05 Slice 0 drift inventory (DEC-111) | `630bd77` | **CLOSED** (inventory) | Alembic head was `065d1d3a466b`; 8 R-09 missing CREATE; emails/meetings type drift; **docs / light validated** |
 | Category B RLS planning (DEC-110) | `4889ac7` | **CLOSED** (planning) | docs inventory + slices B1–B7; POLICY_COUNT 47 intact; **docs / light validated** |
+| Category B Slice B1 (DEC-112) | *(this land)* | **CLOSED** (execution) | `branches`+`licenses` join RLS `b110c04e7a01`; POLICY_COUNT **49**; **build validated** |
 | CI-22 executive close (DEC-109) | `a3e4bee` | **CLOSED** | docs close; field pip-audit + Unit corroboration |
 | CI-14 executive AC close (DEC-108) | `278b0d4`+follow-up | **CLOSED** | docs-only; security AC met without Jest major |
 | STORY-02-04 §17.2 relabel | `932f722` | DONE | docs-only |

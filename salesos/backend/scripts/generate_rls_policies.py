@@ -31,8 +31,9 @@ SESSION_VAR = "app.tenant_id"
 # Sprint 03 full inventory: tenant-scoped tables with existing migrations.
 # Tables with tenant_id but NO migration yet (12 tracked in RISK_REGISTER.md
 # R-09) are excluded — RLS on them will be added after CREATE TABLE lands.
-# Tables without a tenant_id column (keyed via parent FK) are excluded —
-# Category B inventory + slices pinned in DEC-110 (execution B1–B7; not this generator).
+# Tables without a tenant_id column (keyed via parent FK) are excluded from
+# ALL_TENANT_TABLES — Category B inventory + slices pinned in DEC-110.
+# B1 company children use generate_join_policy_sql() / CATEGORY_B1_JOIN_TABLES.
 ALL_TENANT_TABLES: list[str] = [
     # ── Identity / Auth ──
     "users",                      # app/modules/identity/models.py — uuid
@@ -96,6 +97,48 @@ ALL_TENANT_TABLES: list[str] = [
     # ── Webhooks (migrated tables only) ──
     "webhook_subscriptions",      # app/modules/webhooks/repository.py — runtime table
 ]
+
+# DEC-110 Slice B1 (S04-CATB-01): company children — no tenant_id; isolate via companies.
+# Do NOT fold into ALL_TENANT_TABLES (Category A stays 47 / DEC-044).
+CATEGORY_B1_JOIN_TABLES: list[tuple[str, str, str]] = [
+    # (child_table, parent_table, child_fk_column)
+    ("branches", "companies", "company_id"),
+    ("licenses", "companies", "company_id"),
+]
+
+
+def generate_join_policy_sql(
+    child_table: str,
+    parent_table: str,
+    fk_column: str,
+    parent_tenant_column: str = "tenant_id",
+    parent_pk_column: str = "id",
+    session_var: str = SESSION_VAR,
+    policy_name: str | None = None,
+) -> str:
+    """Return DDL that enables join/parent-FK RLS on a Category B child table.
+
+    Same FORCE / fail-closed / USING+WITH CHECK rationale as generate_policy_sql().
+    Predicate: EXISTS parent row whose tenant_id matches app.tenant_id GUC.
+    """
+    policy_name = policy_name or f"tenant_isolation_{child_table}"
+    exists_pred = (
+        f"EXISTS (\n"
+        f'        SELECT 1 FROM "{parent_table}" p\n'
+        f'        WHERE p.{parent_pk_column} = "{child_table}".{fk_column}\n'
+        f"          AND p.{parent_tenant_column}::text = "
+        f"current_setting('{session_var}', true)\n"
+        f"    )"
+    )
+    return (
+        f'ALTER TABLE "{child_table}" ENABLE ROW LEVEL SECURITY;\n'
+        f'ALTER TABLE "{child_table}" FORCE ROW LEVEL SECURITY;\n'
+        f'DROP POLICY IF EXISTS "{policy_name}" ON "{child_table}";\n'
+        f'CREATE POLICY "{policy_name}" ON "{child_table}"\n'
+        f"    FOR ALL\n"
+        f"    USING ({exists_pred})\n"
+        f"    WITH CHECK ({exists_pred});\n"
+    )
 
 
 def generate_policy_sql(

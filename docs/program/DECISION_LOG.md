@@ -1085,6 +1085,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-112 — Category B Slice B1: company-children join RLS (`branches`, `licenses`)
+
+**Date:** 2026-08-01
+**Context:** DEC-110 pinned Category B inventory (12 join tables) and slices B1–B7. B1 = company children `branches` + `licenses` via `companies.id`. Category A 47 intact (DEC-044). DEC-085 set_config must not regress. Concurrent DEC-113 DB-05 Slice 1 took Alembic parent `065d1d3a466b`; B1 rebased onto `b8d4f02a1c06`.
+**Alternatives considered:** (a) fold B1 into ALL_TENANT_TABLES / reopen STORY-02-01 — rejected; (b) expand to B2 `commercial_activities` in same land — rejected (DEC-110 B2); (c) additive join-policy migration + adversarial 2-table suite — approved.
+**Decision:** Accept B1 **CLOSED**. Companion: [`decisions/DEC-112-CATEGORY-B1-COMPANY-CHILDREN-RLS.md`](decisions/DEC-112-CATEGORY-B1-COMPANY-CHILDREN-RLS.md). Alembic `b110c04e7a01` (down `b8d4f02a1c06`); live `POLICY_COUNT` **49**; `ALL_TENANT_TABLES` remains **47**.
+**Consequence:** DAG Category B execution advances B1 CLOSED; B2–B7 READY. Production GA **NO-GO**. **CI GREEN not met**. Validation: **build validated** (Docker one-off pytest **7 passed**).
+**Status:** Accepted. Slice B1 **CLOSED**.
+
 ### DEC-113 - DB-05 Slice 1: additive CREATE TABLE for 8 P0 R-09 tables
 
 **Date:** 2026-08-01

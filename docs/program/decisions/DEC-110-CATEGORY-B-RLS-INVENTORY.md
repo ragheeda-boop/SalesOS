@@ -121,7 +121,7 @@ Do **not** fold into Category B count or Sprint 04 join-policy slices:
 | Slice | ID | Scope | Preconditions | Suggested AC |
 |---|---|---|---|---|
 | **B0** | *(this DEC)* | Inventory + slices pinned | — | **CLOSED** by DEC-110 |
-| **B1** | `S04-CATB-01` | Company children: `branches`, `licenses` | Category A `companies` intact; DEC-085 | Additive migration; adversarial 2-table isolation; `POLICY_COUNT` → **49** |
+| **B1** | `S04-CATB-01` | Company children: `branches`, `licenses` | Category A `companies` intact; DEC-085 | **CLOSED DEC-112** — `b110c04e7a01`; `POLICY_COUNT` **49** |
 | **B2** | `S04-CATB-02` | Commercial children: `commercial_activities`, `commercial_quote_lines` | B1 or parallel if disjoint migration | POLICY_COUNT **+2**; session/quote parent RLS already live |
 | **B3** | `S04-CATB-03` | Analytics children: `analytics_report_executions`, `analytics_report_shares` | Parents in Category A | POLICY_COUNT **+2** |
 | **B4** | `S04-CATB-04` | Decision Center children: `decision_center_audits`, `decision_center_feedback` | Parents in Category A | POLICY_COUNT **+2** |
