@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-128 — Phase 0 criterion 1.5 SAST + dependency scan READY FOR REVIEW (residual)
+
+**Date:** 2026-08-01
+**Context:** Phase 0 Exit Criterion 1.5 still checklist-Partial (“pip-audit findings remain”) after CI-02/16/17/18/19/21/22 CLOSED and DEC-057/090/098 ecdsa named ignores. Evidence required: `security-scan.yml` + `ci.yml` security jobs green. `security-scan.yml` pip-audit still used stale `PYSEC-2024-1` and did not poetry-export the lock (DEC-090 noted path mismatch).
+**Alternatives considered:** (a) claim CLOSED/finding-zero from board story closes alone — rejected (checklist Partial; security-scan lock parity dishonest); (b) reopen CI-16 for ecdsa / PyJWT now — rejected (DEC-057 Option A); (c) reopen CI-19 for alembic Semgrep churn — rejected (DEC-105); (d) package READY FOR REVIEW + align security-scan pip-audit to DEC-090 — approved.
+**Decision:** Accept criterion **1.5** as **Cursor COMPLETE** / **READY FOR REVIEW** with documented residual (ecdsa named ignore + CI-19 Semgrep alembic **11**). Companion: [decisions/DEC-128-CRITERION-1-5-SAST-DEPS-RESIDUAL.md](decisions/DEC-128-CRITERION-1-5-SAST-DEPS-RESIDUAL.md). Align `security-scan.yml` pip-audit to poetry export + `--ignore-vuln PYSEC-2026-1325` + `--strict`. DEC-085 intact. Do **not** mark VERIFIED/CLOSED.
+**Consequence:** Phase 0 criterion **1.5** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). Phase 0 remains **22/54** until Orchestrator CLOSE. Adjacent **3.5** not auto-closed. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **READY FOR REVIEW** (not CLOSED).
+
 ### DEC-127 — CSRF X-API-Key bypass (Phase 0 criterion 1.3)
 
 **Date:** 2026-08-01

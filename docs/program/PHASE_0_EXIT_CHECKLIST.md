@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (criterion 1.3 VERIFIED/CLOSED DEC-127a; 1.2 VERIFIED/CLOSED DEC-125a; Security OPEN residual 1.5; prod tip-align `d1a8`/67)
+> **Last updated:** 2026-08-01 (criterion 1.5 READY FOR REVIEW DEC-128; 1.3 VERIFIED/CLOSED DEC-127a; Security Cursor residual packaging; prod tip-align `d1a8`/67)
 >
 > ## Operating State
 >
@@ -38,7 +38,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 1.2 | Webhook SSRF fixed (URL allowlist) | Regression test PASS, re-verified against Integration Hub caller | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (Docker SSRF suite 32 passed, 54 deselected) @ `fd8699d` (DEC-125); Orchestrator DEC-125a 2026-08-01; residual: staging SSRF pentest OPEN (non-blocking) |
 | 1.3 | CSRF bypass via `X-API-Key` fixed | Regression test PASS | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (Docker CSRF suite 11 passed; DEC-085 untouched) @ `5db0756` (DEC-127); Orchestrator DEC-127a 2026-08-01 |
 | 1.4 | Cross-tenant regression test template established | Harness reusable by every subsequent epic | ✅ STORY-01-04 (Sprint 02) |
-| 1.5 | SAST + dependency vulnerability scan wired into CI | `security-scan.yml` + `ci.yml` security jobs green | ⬜ Partial (pip-audit findings remain) |
+| 1.5 | SAST + dependency vulnerability scan wired into CI | `security-scan.yml` + `ci.yml` security jobs green | ⬜ READY FOR REVIEW — Cursor COMPLETE DEC-128 (ecdsa named ignore + CI-19 Semgrep alembic residual; Architecture PENDING · Validation PENDING). Not CLOSED/VERIFIED |
 
 **Owner:** Security Eng / CTO  
 **Reference:** `PROGRAM_PLAN.md` EPIC-01, `CANONICAL_ARCHITECTURE.md` §14
@@ -70,7 +70,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 3.2 | Stage 2: Backend Types green | MyPy exits 0 (DEC-096) | ✅ CI-20 |
 | 3.3 | Stage 3: Frontend Unit Tests green | 196/196 suites PASS (DEC-077) | ✅ Jest-debt |
 | 3.4 | Stage 4: Backend Unit + Integration green | `pytest` 2700+ PASS, `-n auto` | ✅ CI-22 follow-on |
-| 3.5 | Stage 5: Security Scan green | pip-audit (named ignore only), Bandit, Gitleaks, Semgrep residual-only | ⬜ ecdsa residual accepted; CI-19 residual |
+| 3.5 | Stage 5: Security Scan green | pip-audit (named ignore only), Bandit, Gitleaks, Semgrep residual-only | ⬜ ecdsa residual accepted (DEC-057/090/098); CI-19 residual (DEC-105); overlaps 1.5 READY FOR REVIEW — does **not** auto-close 3.5/3.8 |
 | 3.6 | Stage 6: Docker Build + Push green | Backend + Frontend images build + push | ⬜ CI-08 BLOCKED (GHCR 403) |
 | 3.7 | Stage 7: E2E green | Playwright specs PASS with real backend services | ⬜ CI e2e job has no services |
 | 3.8 | Full pipeline: CI GREEN (code path) | Stages 1–5 all green on same run | ⬜ |
