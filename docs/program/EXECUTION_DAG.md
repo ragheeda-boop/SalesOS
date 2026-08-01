@@ -29,7 +29,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
                                           (production GA still NO-GO)
 ```
 
-**Phase 0 (DEC-008 tenant-isolation / R-14) critical-path gate = BLOCKED.** Evidence: Principal Audit Tier-1 [`PRINCIPAL_AUDIT_2026-08-01_DEC016_RAILWAY_CI.md`](../audit/PRINCIPAL_AUDIT_2026-08-01_DEC016_RAILWAY_CI.md) **CONTRADICTED** DEC-016 security closure (deploy IDs match; runtime = `postgres`; policies=0; bypass-probe FALSE). S04-04 **REOPENED** under **DEC-120**. STORY-02-01 **CLOSED** (DEC-044). Local/CI/compose R-14 remediations retained; Railway live isolation **not** proven.
+**Phase 0 (DEC-008 tenant-isolation / R-14) critical-path gate = BLOCKED (executive close pending).** DEC-120 A–E Tier-1 evidence landed on Railway prod (`9664e9fc`, `salesos_app`, policies **59**, E bare/wrong-tenant **0** vs owner **141221**, single-tenant caveat). S04-04 remains **REOPENED** until Architecture/Validation close criterion **2.3**. STORY-02-01 **CLOSED** (DEC-044). Local/CI/compose R-14 remediations retained.
 
 **Does not equal production GO.** ga-engineering-audit executive summary remains **production no-go**. **CI GREEN not met.**
 
@@ -64,7 +64,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 |---|---|---|---|
 | **S04-04 remediation A** | READY | Wiring commit identified | `5e7023f` introduced `app_database_url` / `APP_POSTGRES_*` consumption |
 | **S04-04 remediation B** | READY (path choice) | Image promote | GHCR path BLOCKED (CI-08); alternate Railway GitHub build/redeploy |
-| **S04-04 remediation C–E** | READY after change-control / B | Alembic + force `salesos_app` + bypass-probe | Staging first; prove `pg_stat_activity` |
+| **S04-04 remediation A–E** | **Evidence landed** (exec close pending) | Prod `9664e9fc` / `salesos_app` / policies 59 / E bare=0 | Single-tenant caveat; criterion 2.3 not CLOSED |
 | **DB-05** Schema reconciliation | IN PROGRESS | Slice 0–3 CLOSED; Slice 4 Cursor COMPLETE (DEC-123); criterion 7.5 **READY FOR REVIEW** | Next: Claude arch review → OpenCode validation → Orchestrator VERIFIED/CLOSED; residual 7.4 / 7.6; POLICY_COUNT 67 local |
 | **Optional Jest 30 evidence** | BACKLOG | DEC-108 deferred | STOP silent major |
 | **STORY-02-02** browser/E2E | **CLOSED** (DEC-095) | Redirect AC | **CI GREEN not met** |

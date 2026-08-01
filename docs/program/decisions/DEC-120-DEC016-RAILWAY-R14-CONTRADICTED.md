@@ -127,22 +127,28 @@ Do **not** weaken RLS or DEC-085. Prefer docs/ops/code for DB URL wiring; avoid 
 | Image follow-on | Dockerfile + `.dockerignore` fixed so future builds ship `scripts/` + `PYTHONPATH=/app` (preDeploy `alembic upgrade head` can load RLS revisions) |
 | Production | **Not migrated. Not promoted.** |
 
-### Slice D — production tip image + role proof — NOT STARTED / STOPPED
+### Slice D — production tip image + role proof — DONE
 
 | Fact | Detail |
 |---|---|
-| User stop (2026-08-01) | Finish in-hand; **do not** start Slice E; **do not** promote further envs |
-| Deploy attempted? | **No** — no prod `railway up` this session; no mid-flight migrate |
-| Live prod deploy | **`1328309a-b887-4977-8e06-29ba93148682` SUCCESS** (unchanged; DEC-016-era) |
-| Live `/health` | **200** `version=3.1.0` `database=connected` (re-probed) |
-| Role proof | **Not run** (no tip image; auditor claim of `postgres` sessions still the last Tier-1) |
-| Prod alembic | **Not run** — before state not changed; tip head may now include post-`b7e2…` revisions (e.g. DB-05) — D2 must inventory carefully |
-| Staging | **Unchanged** by this stop (C remains DONE) |
+| Source | Clean worktree **`b62252a`** (`salesos/backend` + `railway.json` with `sh -c` startCommand). Dockerfile includes `scripts/` (post-`d4f2601`). Tip at land later moved to `31f3aee` (DEC-123/124) — **not** in this image |
+| Deploy | **`9664e9fc-daa6-405d-8672-900419919142` SUCCESS** via `railway up` (GHCR still BLOCKED). Prior fails: missing `railway.json` (aa982e5c); `${PORT}` without `sh -c` (ed804bcd); TooManyConnections on env-redeploy (6765da29 — celery scaled to 0 briefly, then restored) |
+| `SERVICE_VERSION` | Was masking **`3.1.0`**; set to **`5.1.0-rc1`** before tip deploy |
+| Live `/health` | **200** `version=5.1.0-rc1` `database=connected` (off 3.1.0) |
+| Role proof (SSH; no secrets) | `APP_ENGINE salesos_app`; `OWNER_ENGINE postgres`; `SESSION_USER salesos_app is_superuser=off rolbypassrls=False`; `pg_stat_activity` includes `salesos_app` |
+| Prod alembic | **Before:** `0051`, POLICY_COUNT **0**, RLS_ON **0**. **After:** `c9f4a21b6e08` (image tip head), POLICY_COUNT **59**, RLS_ON **59**. Path: 15 upgrades (`0051`→…→`b7e2…`→`c9f4…`). STOP not hit. Tip-now head `d1a8c35e7f09` (DEC-123 / 67 policies) **not** applied this land |
+| Staging | **Unchanged** (C remains DONE) |
+| Password rotate | Still **human/ops** |
 
-### Slice E — bypass-probe — NOT STARTED (READY after D)
+### Slice E — bypass-probe — DONE (single-tenant caveat)
 
-| Item | Note |
+| Check | Evidence |
 |---|---|
-| E | READY after D1+D2. **Not claimed PASS.** Do not start until D closed with evidence |
+| Owner `companies` | **141221** rows; distinct `tenant_id` = **1** |
+| App role, empty `app.tenant_id` | **0** rows (auditor fail was **141221** — fixed) |
+| App role, wrong tenant GUC | **0** rows |
+| App role, real tenant GUC | **141221** (expected under single-tenant DB) |
+| Verdict | **PASS_WITH_SINGLE_TENANT_CAVEAT** — bare/wrong-tenant isolation proven; multi-tenant split **not** re-proven (only one live tenant). DEC-085 `set_config('app.tenant_id', …)` intact |
+| Phase 0 / criterion 2.3 | **Not CLOSED** by this worker — Architecture/Validation review still required. **Production GA = NO-GO** until executive close |
 
-**Validation (A+B+C; D stop note):** **docs / light validated** (prod health re-probe). **Not** bypass-probe PASS. **Production GA = NO-GO.** R-14 remains **REOPENED** until E.
+**Validation (A–E):** **light validated** (Railway Tier-1 SSH/health/counts). **Not** Phase 0 GO by docs alone. **Production GA = NO-GO.** R-14 Railway remediations A–E evidence landed; executive close of S04-04 / criterion 2.3 still pending.
