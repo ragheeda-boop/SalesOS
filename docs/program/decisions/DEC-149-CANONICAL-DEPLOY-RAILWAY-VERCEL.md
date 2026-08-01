@@ -1,14 +1,15 @@
 # DEC-149 — Canonical deploy topology: Backend → Railway; Frontend → Vercel
 
-> **Status:** **Accepted** — User governance ruling (2026-08-02) + Architecture Validation hybrid verdict; program DEC for Phase 0 deploy topology (same class as DEC-104 / DEC-016 authorization)  
+> **Status:** **Accepted** — Criterion **3.11 / CI-09 = CLOSED CONDITIONAL** (DEC-149a; Arch prior PASS + Validation PASS @ `c3507ed` / run `30723120473`)  
 > **Date:** 2026-08-02  
 > **Board:** Chief Architect / ARB + Execution Orchestrator (SalesOS / AQLIYA) — program/governance scribe land  
 > **Story / risk:** CI-09 / Phase 0 criterion **3.11** / **R-17** (SSH/VPS leg)  
 > **Authority:** Architecture Validation session (hybrid) · user governance ruling · EXEC-ARCHITECTURE-PRODUCT-REVIEW · GA_STATUS · DEC-016 / DEC-120 · deploy configs  
-> **Amends (consequence):** CI-09 reframed from ops VPS-secret provision; governance land = **BLOCKED BY GOVERNANCE**; follow-on workflow land = **READY_FOR_REVIEW** — does **not** close CI-09  
-> **Out of scope (governance land):** Editing `.github/workflows/*` · provisioning secret *values* · inventing ARB **4.1/4.8** PASS · Phase 0 exit · CI GREEN · Production GO · DEC-085  
-> **Follow-on (2026-08-02, devops/ci-worker):** Workflow migration **implemented** — see §6. CI-09 / **3.11** → **BLOCKED** (Validation CONDITIONAL — §6 secrets missing; not CLOSED).  
-> **Validation field-verify (2026-08-02):** **VALIDATION_PASS** — Deploy [30723120473](https://github.com/ragheeda-boop/SalesOS/actions/runs/30723120473) @ c3507ed SUCCESS (Railway up ✓; health HTTP 200 ✓; Vercel FE ✓). CI-09 / **3.11** → **READY_FOR_REVIEW** (Orchestrator CLOSE / CLOSED CONDITIONAL; not auto-CLOSED).
+> **Amends (consequence):** CI-09 reframed from ops VPS-secret provision → Railway+Vercel canonical; closed CONDITIONAL via DEC-149a  
+> **Out of scope:** Inventing ARB **4.1/4.8** PASS · Phase 0 exit · full CI GREEN · Production GO · DEC-085 · unconditional CLOSED  
+> **Follow-on (2026-08-02, devops/ci-worker):** Workflow migration **implemented** — see §6.  
+> **Validation field-verify (2026-08-02):** **VALIDATION_PASS** — Deploy [30723120473](https://github.com/ragheeda-boop/SalesOS/actions/runs/30723120473) @ c3507ed SUCCESS (Railway up ✓; health HTTP 200 ✓; Vercel FE Git-primary ✓).  
+> **Orchestrator (2026-08-02, DEC-149a):** **CLOSED CONDITIONAL** — FE Git-primary (not Vercel CLI); staging deferred (single-env); no VPS. Phase 0 **46/54 NO-GO**.  
 > **Amend (2026-08-02, devops/ci-worker + user ruling):** **Single-env current state** — production Railway only; staging secrets **optional / deferred** until a staging environment is created. See §1a / §6.
 
 ---
@@ -27,10 +28,10 @@
 | Prior VPS assumption (CI-09 / **3.11**) | **Superseded as the closure path** — do **not** create a VPS or add unused `VPS_HOST` / `VPS_USER` / `VPS_SSH_KEY` solely to close the criterion |
 | Workflow migration (`deploy.yml`, `deploy-staging.yml`, related) | **Implemented** (devops/ci-worker follow-on) — Railway+Vercel active; VPS SSH removed; K8s `deploy-production.yml` quarantined |
 | Operating environments (current) | **One environment only** — production Railway / live path. Staging Railway **not provisioned**; `RAILWAY_STAGING_*` **not required** until staging exists |
-| CI-09 / **3.11** | Remains **OPEN** — status **BLOCKED** (Validation CONDITIONAL: production `RAILWAY_*` names still missing for live deploy close; staging deferred — **not CLOSED**) |
-| Validation label | **light validated (negative)** — workflows align; production deploy still needs §6 **production** secrets; staging soft-skip / dispatch-only; do not claim CI GREEN / Production GO |
+| CI-09 / **3.11** | **CLOSED CONDITIONAL** (DEC-149a) — Deploy `30723120473` @ `c3507ed` SUCCESS; residuals: FE Git-primary (not CLI); staging deferred; no VPS |
+| Validation label | **build validated** (Deploy Production SUCCESS) — do **not** claim CI GREEN / Production GO / unconditional CLOSED |
 
-**Honesty:** Governance land resolved the **intended canonical target**. Follow-on workflow land makes Railway+Vercel the **active GHA path**. CI-09 / **3.11** close only after Validation — **not** automatic.
+**Honesty:** Governance + workflow + Validation PASS landed. Orchestrator closed **CONDITIONAL** only — not Phase 0 GO / full CI GREEN.
 
 ### 1a. Single-environment operating state (user ruling 2026-08-02)
 
@@ -67,32 +68,31 @@ Cross-link: Architecture Validation session conclusion — verdict **hybrid** (B
 ## 3. CI-09 / criterion 3.11 framing (mandatory)
 
 ```text
-CI-09
-Status: BLOCKED
-Reason: VALIDATION_PASS — Deploy 30723120473 Railway up + health HTTP 200 + Vercel FE; recommend Orchestrator CLOSE/CLOSED CONDITIONAL.
-Staging: deferred (single-env) — RAILWAY_STAGING_* not required until staging exists; deploy-staging soft-skip / dispatch-only.
-Not CLOSED — pending Validation field-verify of Deploy Production + production secret/var names provisioned.
-Do not provision unused VPS_*. Do not invent staging secrets.
+CI-09 / criterion 3.11
+Status: CLOSED CONDITIONAL (DEC-149a)
+Evidence: Deploy 30723120473 @ c3507ed — Railway up + health HTTP 200 + Vercel FE Git-primary; DEC-149; Validation PASS; Arch prior PASS.
+Conditions: FE Git-primary (not Vercel CLI prod); staging deferred (single-env); no VPS.
+Do not claim Production GO / full CI GREEN / unconditional CLOSED.
 ```
 
 | Field | Value |
 |---|---|
-| Queue | **Validation Queue** (was Governance Queue until DEC Accepted + workflows landed) |
-| Owner | **Validation** (close gate); DevOps owns **production** secret-name provision |
-| Dependency | DEC-149 **Accepted** + workflow migration **landed** + single-env amend |
-| Next action | Ops: provision §6 **production** names (values out-of-band). Validation: field-verify Deploy Production. Staging: defer until Railway staging exists — then provision `RAILWAY_STAGING_*` and re-enable auto path if desired. Do **not** invent `VPS_*` |
-| Explicit non-actions | Do **not** close CI-09 without Validation; do **not** mark obsolete; do **not** claim CI GREEN / Production GO; do **not** require staging vars while single-env |
+| Queue | **DONE** (CLOSED CONDITIONAL) |
+| Owner | Orchestrator closed; residuals tracked for unconditional upgrade |
+| Dependency | DEC-149 **Accepted** + workflow migration + single-env amend + Validation PASS |
+| Residual upgrade path | Optional: Vercel CLI prod evidence; provision staging + re-enable auto path when staging exists |
+| Explicit non-actions | Do **not** claim CI GREEN / Production GO / Phase 0 GO; do **not** invent ARB **4.1/4.8**; do **not** invent `VPS_*` |
 
 ---
 
 ## 4. Consequence
 
 1. Canonical deploy = **Railway (backend) + Vercel (frontend)**.  
-2. CI-09 / **3.11** → **READY_FOR_REVIEW** (implementation landed; **not CLOSED**).  
+2. CI-09 / **3.11** → **CLOSED CONDITIONAL** (DEC-149a).  
 3. Active GHA path = `deploy.yml` (production Railway+Vercel). `deploy-staging.yml` = **deferred** (dispatch + soft-skip) until staging exists. K8s `deploy-production.yml` **quarantined**.  
 4. CI-08 (GHCR) remains a **separate** ops blocker for Stage 6 publish (DEC-104); Railway `railway up` path does **not** require GHCR.  
-5. Phase 0 remains **NO-GO**. **CI GREEN not met.** **Production GO not claimed.** DEC-085 untouched.  
-6. Single-env amend: staging secrets **not** a CI-09 close gate until staging is provisioned.
+5. Phase 0 remains **NO-GO** (**46/54**). **CI GREEN not met.** **Production GO not claimed.** DEC-085 untouched.  
+6. Single-env amend: staging secrets **not** required for CONDITIONAL close; still deferred until staging is provisioned.
 
 ---
 
@@ -150,4 +150,4 @@ Do not provision unused VPS_*. Do not invent staging secrets.
 
 **Rollback:** Restore prior workflow revisions from git history; re-enable staging push triggers only after staging exists + a program note. Prefer Railway dashboard redeploy / Vercel prior deployment for runtime rollback.
 
-**CI-09 not CLOSED. No Production GO. CI GREEN not met.**
+**CI-09 / 3.11 CLOSED CONDITIONAL (DEC-149a). No Production GO. CI GREEN not met. Phase 0 NO-GO.**

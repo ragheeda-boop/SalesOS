@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-02 (Validation Lead DEC-149: Deploy Prod 30723120473 SUCCESS — Railway+health+FE; CI-09 / **3.11** READY_FOR_REVIEW → Orchestrator CLOSE/CLOSED CONDITIONAL; staging deferred; no Production GO)
+> **Last updated:** 2026-08-02 (Orchestrator DEC-149a: CI-09 / **3.11 CLOSED CONDITIONAL** — Deploy Prod 30723120473 @ c3507ed; FE Git-primary; staging deferred; Phase 0 **46/54 NO-GO**; no Production GO)
 >
 > ## Operating State
 >
@@ -22,9 +22,9 @@
 
 ## Current Verdict
 
-**Phase 0 = NO-GO** (CI-08; CI-09 Validation PASS / READY_FOR_REVIEW pending Orchestrator CLOSE — not auto-CLOSED; EOS ARB **4.1/4.8**; CI GREEN publish **3.9** not met)
+**Phase 0 = NO-GO** (CI-08; EOS ARB **4.1/4.8**; CI GREEN publish **3.9** not met; CI-09 / **3.11 CLOSED CONDITIONAL** — does not clear Phase 0)
 
-Blocked on: **CI-08** (GHCR 403), **CI GREEN not met** (full/publish **3.9**), **CI-09** (Validation PASS 30723120473 — Orchestrator CLOSE pending; staging deferred), EOS **ARB** re-audit. R-14 Railway **2.3 CLOSED CONDITIONAL** (multi-tenant live split residual). Security **1.5** / CI GREEN path residuals unchanged.
+Blocked on: **CI-08** (GHCR 403), **CI GREEN not met** (full/publish **3.9**), EOS **ARB** re-audit. CI-09 / **3.11 CLOSED CONDITIONAL** (DEC-149a; FE Git-primary; staging deferred). R-14 Railway **2.3 CLOSED CONDITIONAL** (multi-tenant live split residual). Security **1.5** / CI GREEN path residuals unchanged.
 
 ---
 
@@ -76,7 +76,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met** (full/publish **3.9**), *
 | 3.8 | Full pipeline: CI GREEN (code path) | Stages 1–5 all green on same run | ✅ VERIFIED/CLOSED **CONDITIONAL** — Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL @ `14fce5f` (DEC-148a); local ruff 0.4.10 check+format exit 0; last push `c842245` / `30704321096` Stage 1 FAILURE (6× E501) → Stages 3 BE/4 SKIPPED; residual: *tip Stages 1–5 same-run field-verify tip `d1dcce4`/`30720732268` Stage1 SUCCESS Stage2 mypy FAILURE — Stages 1-5 same-run still PENDING; CONDITIONAL stands* (Stage 3/4 may still fail when unblocked); historical Stages 1–5 SUCCESS @ `7ba137b` / `30689682988` (not tip); does **not** close **3.6–3.11** ops / **3.9** full CI GREEN; DEC-085 untouched; Orchestrator 2026-08-02; do **not** claim Production GO / CI GREEN / unconditional CLOSED |
 | 3.9 | Full pipeline: CI GREEN (incl. publish) | Stages 1–7 all green on same run | ⬜ CI-08 BLOCKED |
 | 3.10 | CI-08 GHCR 403 resolved | Stage 6 push succeeds (DEC-104 Option A) | OPEN Ops/human — **field 2026-08-02:** `gh api user/packages` shows `salesos/backend` + `salesos/frontend` **linked** `repository=ragheeda-boop/SalesOS` (private); workflow `packages: write` + login OK; Deploy Staging [`30721601875`](https://github.com/ragheeda-boop/SalesOS/actions/runs/30721601875) @ tip `7f1482e` Build&Push BE+FE still **403 Forbidden** on blob HEAD — link alone insufficient (verify Package → Manage Actions access **Write**, not Read); do **not** CLOSE |
-| 3.11 | CI-09 deploy path (Railway+Vercel; was VPS SSH) | Canonical deploy functional under accepted topology | ✅ **READY_FOR_REVIEW** (Validation PASS) — Deploy [30723120473](https://github.com/ragheeda-boop/SalesOS/actions/runs/30723120473) @ c3507ed SUCCESS: railway up ✓, health HTTP 200 ✓, Vercel FE job ✓. Production §6 names present (repo). Staging deferred. Orchestrator may CLOSE / CLOSED CONDITIONAL. No Production GO. |
+| 3.11 | CI-09 deploy path (Railway+Vercel; was VPS SSH) | Canonical deploy functional under accepted topology | ✅ VERIFIED/CLOSED **CONDITIONAL** (DEC-149a) — Arch prior PASS + Validation PASS @ `c3507ed` / [30723120473](https://github.com/ragheeda-boop/SalesOS/actions/runs/30723120473): Railway up ✓; Health Gate HTTP 200 ✓; Vercel FE Git-primary ✓; DEC-149 §6 production names present (repo). Residuals: *FE verified via Git-primary (not Vercel CLI prod); staging deferred (single-env DEC-149); no VPS*. Does **not** close **3.6/3.9/3.10** CI-08 / full CI GREEN. DEC-085 untouched. Orchestrator 2026-08-02; do **not** claim Production GO / CI GREEN / unconditional CLOSED |
 
 **Owner:** DevOps/SRE Lead  
 **Reference:** `SPRINT_05_DELIVERY_BOARD.md`, `12_CI_CATALOG.md`, DEC-104
@@ -180,22 +180,22 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met** (full/publish **3.9**), *
 |---------|-------|----------|---------|------|
 | 1. Security P0 | 5 | 5 | 0 | 0 |
 | 2. RLS & Tenant Isolation | 7 | 6 | 0 | 1 |
-| 3. CI/CD Green | 11 | 6 | 2 (CI-08 ops; CI-09 Validation PASS — Orchestrator CLOSE pending) | 3 |
+| 3. CI/CD Green | 11 | 7 | 1 (CI-08 ops) | 3 |
 | 4. EOS Audit Pass | 8 | 6 | 0 | 2 |
 | 5. Capability Drift | 4 | 4 | 0 | 0 |
 | 6. ADR Drift | 5 | 5 | 0 | 0 |
 | 7. DB Schema | 6 | 6 | 0 | 0 |
 | 8. Engineering Stability | 4 | 4 | 0 | 0 |
 | 9. ADR-036 Applied | 4 | 4 | 0 | 0 |
-| **TOTAL** | **54** | **45** | **2** | **7** |
+| **TOTAL** | **54** | **46** | **1** | **7** |
 
-**Scoreboard honesty (2026-08-02):** Phase 0 pin remains **45/54** (DEC-148a). RLS cluster Open **1** = **2.3** CLOSED CONDITIONAL multi-tenant residual tracked as scoreboard open (criterion row stays ✅ CONDITIONAL — **not** a hard ⬜; do **not** fake unconditional CLOSE). Hard OPEN ⬜ rows = **7** (**3.6**, **3.7**, **3.9**, **3.10**, **3.11**, **4.1**, **4.8**). Cluster Open cells (1+3+2=6) + scoreboard nuance vs TOTAL Open **7** = pre-existing arithmetic debt; Orchestrator may re-baseline — this inventory does **not** bump Completes.
+**Scoreboard honesty (2026-08-02):** Phase 0 pin **45/54 → 46/54** (DEC-149a closes **3.11** CONDITIONAL). RLS cluster Open **1** = **2.3** CLOSED CONDITIONAL multi-tenant residual tracked as scoreboard open (criterion row stays ✅ CONDITIONAL — **not** a hard ⬜; do **not** fake unconditional CLOSE). Hard OPEN ⬜ rows = **6** (**3.6**, **3.7**, **3.9**, **3.10**, **4.1**, **4.8**). Cluster Open cells (1+3+2=6) + scoreboard nuance vs TOTAL Open **7** = pre-existing arithmetic debt (2.3 residual). CI-09 / **3.11** no longer hard OPEN.
 
 ---
 
-## Remaining 9 — Cursor BLOCKED inventory (2026-08-02)
+## Remaining 8 — Cursor BLOCKED inventory (2026-08-02)
 
-No Phase 0 criterion is Cursor-closeable without ARB invent, ops (CI-08), Validation (CI-09 / DEC-149), Stage-6 dependency, or human push. Optional contract-test expansion / Jest 30 = PARALLEL backlog only (does **not** close any row below). DEC-085 untouched. **No fake CLOSE. No Production GO. No CI GREEN.**
+No Phase 0 criterion is Cursor-closeable without ARB invent, ops (CI-08), Stage-6 dependency, or human push. CI-09 / **3.11 CLOSED CONDITIONAL** (DEC-149a). Optional contract-test expansion / Jest 30 = PARALLEL backlog only (does **not** close any row below). DEC-085 untouched. **No fake CLOSE. No Production GO. No CI GREEN.**
 
 | # | Criterion | Owner | Block class | Why blocked / next action |
 |---|-----------|-------|-------------|---------------------------|
@@ -203,7 +203,6 @@ No Phase 0 criterion is Cursor-closeable without ARB invent, ops (CI-08), Valida
 | 3.7 | Stage 7 E2E green | DevOps / Backend | **Stage-6-dep** | Playwright needs real services + Stage 6 path; do not fake local green as 3.7 CLOSE |
 | 3.9 | CI GREEN (incl. publish) | DevOps / ops | **ops (CI-08)** | Needs Stages 1–7 same-run; blocked behind 3.6/3.7/3.10 |
 | 3.10 | CI-08 GHCR 403 resolved | Ops / human | **ops** | Packages linked to SalesOS (API); Actions Write role still insufficient — field 403 @ `30721601875`; confirm Manage Actions access = **Write** |
-| 3.11 | CI-09 (Railway+Vercel deploy) | Validation → Orchestrator | **READY_FOR_REVIEW (Validation PASS)** | Deploy 30723120473 SUCCESS (Railway+health+FE); recommend CLOSE/CLOSED CONDITIONAL; staging deferred; no VPS_*; no Production GO |
 | 4.1 | B1–B7 findings resolved | OpenCode / **ARB** | **ARB** | v3.1 corrected; independent re-audit PASS required — **do not invent** |
 | 4.8 | Independent ARB re-audit = PASS | OpenCode / **ARB** | **ARB** | New validation report, no CRITICAL — **do not invent** |
 | 3.8 residual | tip Stages 1-5 same-run | Validation / push | **push field-verify** | Criterion **CLOSED CONDITIONAL** (DEC-148a); prior `d1dcce4` / `30720732268` Stage 2 mypy FAILURE; backend-types fix for `roles_permissions.py` 4× `arg-type` pushed — tip Stages 1-5 same-run PENDING field-verify; CONDITIONAL stands |
@@ -218,7 +217,7 @@ Adjacent non-blocking residuals (not counted in the 9): **8.3** tip `test-archit
 | Item | Blocked By | Action Needed |
 |------|-----------|---------------|
 | CI-08 GHCR 403 | Package↔repo link done; Actions package Write still 403 on push | Human/ops: Package settings → Manage Actions access → SalesOS **Write** (re-verify); re-run Deploy Staging |
-| CI-09 (criterion 3.11) | Orchestrator (CLOSE from Validation PASS) | **READY_FOR_REVIEW** — VALIDATION_PASS 30723120473 health HTTP 200 + Railway up + FE. Recommend CLOSE or CLOSED CONDITIONAL (FE Git-primary). Staging deferred. No Production GO. |
+| CI-09 (criterion 3.11) | **CLOSED CONDITIONAL** (DEC-149a) | Deploy 30723120473 @ c3507ed SUCCESS; FE Git-primary; staging deferred; no VPS. Residual for unconditional: optional Vercel CLI + staging when provisioned. No Production GO. |
 | R-14 multi-tenant residual (non-blocking for 2.3 CONDITIONAL) | Second-tenant fixture (prefer staging) | Optional: re-run Slice E differential for unconditional PASS |
 | 1.5 post-align Security Scan pip-audit (non-blocking for 1.5 CONDITIONAL) | Push tip containing `fa266b5` | Field-verify Security Scan pip-audit SUCCESS with poetry export + 1 ignored (ecdsa) — does **not** upgrade to unconditional CLOSED until observed |
 | 8.3 tip `test-architecture` (non-blocking for 8.3 CONDITIONAL) | Push tip containing `868a98c` | Field-verify Stage 5 `test-architecture` SUCCESS — does **not** upgrade to unconditional CLOSED until observed |
