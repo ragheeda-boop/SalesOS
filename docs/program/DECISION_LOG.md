@@ -1085,6 +1085,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-111 - DB-05 Slice 0: schema drift inventory kickoff (R-20 / R-09)
+
+**Date:** 2026-08-01
+**Context:** DB-05 registered by CI-15 (DEC-021/022) for systemic ORM?DB drift (R-20). DEC-044/DEC-110 pin **8** Category A deferred tables waiting on CREATE TABLE. Swarm READY (DEC-107) after CI-14/CI-22 closes. Slice 0 = inventory only ? no migrate, no Prisma, no RLS DDL, DEC-085 untouched.
+**Alternatives considered:** (a) open multi-sprint rewrite / big-bang migrate now ? rejected; (b) leave DB-05 BACKLOG idle during GHCR wait ? rejected (DEC-107); (c) Slice 0 inventory + prioritized findings + next-slice plan ? approved.
+**Decision:** Accept DB-05 **Slice 0 CLOSED**. Companion: [`decisions/DEC-111-DB-05-SCHEMA-DRIFT-INVENTORY.md`](decisions/DEC-111-DB-05-SCHEMA-DRIFT-INVENTORY.md). Pins: Alembic head `065d1d3a466b`; ORM 80 / create_table 89; P0 = 8 R-09 missing CREATE; P1 = emails/meetings UUID vs String(36) + companies/index/nullable clusters. Next = Slice 1 additive CREATE (still no RLS).
+**Consequence:** Board DB-05 ? **IN PROGRESS**. R-20/R-09 next-action = Slice 1. Category B B1?B7 must not ENABLE RLS on deferred-8. Production GA **NO-GO**. **CI GREEN not met**. Validation: **docs / light validated**.
+**Status:** Accepted. DB-05 Slice 0 **CLOSED**; program **OPEN**.
+
 ### DEC-110 — Category B RLS canonical inventory + execution slices (planning CLOSE)
 
 **Date:** 2026-08-01

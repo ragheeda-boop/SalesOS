@@ -61,7 +61,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Item | Class | Why ready now | Notes |
 |---|---|---|---|
-| **DB-05** Schema reconciliation program | READY (program) | BACKLOG; R-20 / R-09 | Multi-sprint; unblocks 8 RLS-deferred tables |
+| **DB-05** Schema reconciliation program | IN PROGRESS | Slice 0 CLOSED (DEC-111); R-20 / R-09 | Next Slice 1: additive CREATE for 8 deferred tables; no RLS yet |
 | **Optional Jest 30 evidence** | BACKLOG (not CI-14) | DEC-108 deferred; authorize dedicated package | STOP silent major; Stage 3 **0**-fail gate |
 | **STORY-02-02** browser/E2E verify (if scoped) | **CLOSED** (DEC-095) | Live Next redirect: `/dashboard` → **307** `/login?callbackUrl=%2Fdashboard`; `/`+`/login` **200** | Optional authenticated `smoke-ui.ps1` not run; **CI GREEN not met** |
 | **Sprint 04 Category B RLS execution (B1–B7)** | READY (execution) | DEC-110 planning CLOSED | Inventory pinned: A=47, B=12, A-deferred=8; slices B1–B7; no SQL until slice land |
@@ -91,7 +91,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30 backlog, DB-05 | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. CI-14/CI-19/CI-20/CI-22 CLOSED. |
+| Contract tests, optional Jest 30 backlog, DB-05 Slice 1+, Category B B1–B7 | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. CI-14/CI-19/CI-20/CI-22 CLOSED. DB-05 Slice 0 inventory CLOSED (DEC-111). |
 | Contract tests expansion (post STORY-03-04) | PARALLEL | Slice 1–4 DEC-094/106 (probes + health/ready + auth list + 401/422); framework `623077c` |
 | JWT audience **consumption** | **CLOSED** (DEC-093) | Owner Platform admin consumes `salesos-owner-platform`; tenant path untouched |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
@@ -117,8 +117,9 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | Contract tests expansion slice 2 (DEC-094) | `0ac07bc` | LANDED | `/health` + `/health/ready` + honest DB/cache fixtures |
 | Contract tests expansion slice 3 (DEC-094) | `bdc6fd2` | LANDED | Auth list `GET /api/v1/decisions` OpenAPI contract |
 | Contract tests expansion slice 4 (DEC-106) | `448c301` | LANDED | 401 `DetailStringError` + 422 `HTTPValidationError` on decisions list |
-| Category B RLS planning (DEC-110) | *(this land)* | **CLOSED** (planning) | docs inventory + slices B1–B7; POLICY_COUNT 47 intact; **docs / light validated** |
-| CI-22 executive close (DEC-109) | *(this land)* | **CLOSED** | docs close; field pip-audit + Unit corroboration |
+| DB-05 Slice 0 drift inventory (DEC-111) | *(this land)* | **CLOSED** (inventory) | Alembic head `065d1d3a466b`; 8 R-09 missing CREATE; emails/meetings type drift; **docs / light validated** |
+| Category B RLS planning (DEC-110) | `4889ac7` | **CLOSED** (planning) | docs inventory + slices B1–B7; POLICY_COUNT 47 intact; **docs / light validated** |
+| CI-22 executive close (DEC-109) | `a3e4bee` | **CLOSED** | docs close; field pip-audit + Unit corroboration |
 | CI-14 executive AC close (DEC-108) | `278b0d4`+follow-up | **CLOSED** | docs-only; security AC met without Jest major |
 | STORY-02-04 §17.2 relabel | `932f722` | DONE | docs-only |
 | Card primitives (Jest debt related) | `9577c98` | Progress note only | **CI GREEN not met** |
