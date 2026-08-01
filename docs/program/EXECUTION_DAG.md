@@ -83,7 +83,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **S04-01 / S04-05 / S04-06** | **COMPLETE** | Adversarial read / write / remaining suites |
 | **CI-16** Backend dependency security | **CLOSED** | DEC-057 ecdsa residual; starlette → CI-22 |
 | **Jest-debt** / **R-23** | **CLOSED** | DEC-077; Stage 3 **0** failing suites |
-| **CI-20** Backend Types (MyPy) / **R-22** | **CLOSED** | DEC-096; field Types **0** on `220d91a` (run `30684023356` / job `91326366120`) |
+| **CI-20** Backend Types (MyPy) / **R-22** | **CLOSED** | DEC-096; field Types **0** on `220d91a` (run `30684023356` / job `91326366120`); tip `af4835f` (`30684308678` / `91327119501`) |
 
 ---
 

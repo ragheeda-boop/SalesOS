@@ -994,6 +994,17 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** No middleware code change. No `app/database.py` edits. **Production GO not claimed. CI GREEN not met.**
 **Status:** Accepted. Story **DONE / CLOSED**.
 
+
+### DEC-096 — CI-20 Backend Types (MyPy) CLOSED — field 0
+
+**Date:** 2026-08-01
+**Context:** DEC-092 recorded Phase 21 COMPLETE at `17c1eee` (host CI-equivalent mypy **0**) but kept CI-20 OPEN pending field Backend Types **0**. Post-land field tip first failed on syntax (`pg_repositories.list_transactions` Expected `:`; fixed `5588bb7`), then DEC-093 audit-router import residuals (`a636c69`; field **1** left: `sdk/events/domain_events.py` `cls.event_type` attr-defined), then `220d91a` used `getattr(cls, "event_type")` for `EVENT_REGISTRY`.
+**Alternatives considered:** (a) keep CI-20 OPEN after host 0 without field — rejected (user required field 0); (b) claim whole-pipeline CI GREEN — rejected (other gates still red); (c) close CI-20 on field Types SUCCESS / **0** errors — approved.
+**Decision:** Close **CI-20**. Evidence: tip `220d91a` (`220d91aeeb4eafc07174b62e7468b98fbf1002c2`); CI run `30684023356`; Stage 2 Backend Types job `91326366120` **SUCCESS**; mypy `error:` count **0**. Tip corroboration `af4835f` run `30684308678` / job `91327119501` **SUCCESS** (also `844548e` `30684181874`/`91326794076`). Companion: [`decisions/DEC-096-CI-20-BACKEND-TYPES-CLOSED.md`](decisions/DEC-096-CI-20-BACKEND-TYPES-CLOSED.md). DEC-085 `get_db()` remains `set_config` (not `SET LOCAL`). Close **R-22**.
+**Consequence:** Backend Types gate green. R-22 **Closed**. Story **CLOSED**. **Whole-pipeline CI GREEN not met.** Production GO not claimed.
+**Status:** Accepted. CI-20 **CLOSED**.
+
+
 ### DEC-091 — CI-19 Wave 2 Slice 1 COMPLETE: SQLAlchemy Core honesty (outbox/revenue/store/audit); CI-19 remains OPEN
 
 **Date:** 2026-08-01
