@@ -81,3 +81,21 @@ node node_modules/jest/bin/jest.js --config jest.config.js --testPathPattern="mi
 **Result:** **2 suites / 14 tests PASS** (`middleware-auth.test.ts`, `session.test.ts`).
 
 **Browser/E2E:** harness present (`playwright.smoke.config.ts`, `e2e/smoke-auth-ui.spec.ts`, `scripts/smoke-ui.ps1`) — **not run**. Blockers: FE `node_modules` incomplete (no `.bin`, broken `next`); `:3000`/`:8000` down; Docker compose FE build/API failures. **No browser-pass claim.** STORY-02-02 remains **PARTIAL**.
+
+---
+
+## Addendum — STORY-02-03 JWT audience re-verify (2026-08-01, tip `9cfc890`)
+
+**DEC:** [`DEC-091-JWT-AUDIENCE-CONSUMPTION-KEEP-OPEN.md`](../../../../docs/program/decisions/DEC-091-JWT-AUDIENCE-CONSUMPTION-KEEP-OPEN.md)  
+**Label:** **light validated** (narrow host pytest only)
+
+**Command:**
+
+```text
+cd salesos/backend
+poetry run pytest tests/unit/test_jwt_audience_split.py -q --tb=short
+```
+
+**Result:** **7 passed**, 0 failed (~33s test time).
+
+**Honesty:** Confirms `salesos-api` vs `salesos-owner-platform` mint/verify + cross-audience reject. **JWT consumption remains OPEN** (no Owner endpoint deps). **Production GO not claimed.**
