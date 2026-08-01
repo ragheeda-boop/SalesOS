@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** EOS Audit checklist **4.5** OPEN — broader `.engineering/` tree untracked after DEC-139a pinned only `27_ADR_INDEX.md`. ADR Drift **COMPLETE 5/5**. Capability Drift **COMPLETE 4/4**.
 **Alternatives considered:** (a) regenerate fingerprint + re-pin headers to tip in same land — deferred (4.2/4.7); (b) leave untracked with docs-only note — rejected (evidence = not untracked); (c) commit subset only — rejected (broader tree residual); (d) claim VERIFIED/CLOSED — rejected; (e) commit full tree as-is (heuristic pin preserved) — approved.
-**Decision:** Accept criterion **4.5** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-140-CRITERION-4-5-ENGINEERING-TREE-COMMIT.md`](decisions/DEC-140-CRITERION-4-5-ENGINEERING-TREE-COMMIT.md). Commit all 33 EOS files under `.engineering/`. DEC-085 intact. Awaiting Arch+Val + Orchestrator CLOSE (DEC-140a).
-**Consequence:** Phase 0 criterion **4.5** = READY FOR REVIEW. Phase 0 remains **34/54** until CLOSE. Residuals **4.1/4.2/4.4/4.7/4.8** and **9.2** OPEN. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criterion **READY FOR REVIEW** (not CLOSED).
+**Decision:** Accept criterion **4.5** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-140-CRITERION-4-5-ENGINEERING-TREE-COMMIT.md`](decisions/DEC-140-CRITERION-4-5-ENGINEERING-TREE-COMMIT.md). Commit all 33 EOS files under `.engineering/`. DEC-085 intact. Closed via DEC-140a after Arch+Val PASS.
+**Consequence:** Phase 0 criterion **4.5** = READY FOR REVIEW then **CLOSED** via DEC-140a. Residuals **4.1/4.2/4.4/4.7/4.8** and **9.2** OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED via DEC-140a**.
+
+### DEC-140a — Orchestrator VERIFIED/CLOSED criterion 4.5 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 4.5](0d888ff8-733c-4888-a314-47cefb4ebc66)) + Validation PASS (light) ([Validate 4.5](529f8da1-7702-4dad-be0a-0469ca62c75e): 33 tracked, 0 untracked; DEC-085 untouched) on land `5b2e4c2` / DEC-140.
+**Decision:** Execution Orchestrator records criterion **4.5 VERIFIED → CLOSED**. Phase 0 **34/54 → 35/54**. EOS Audit Complete **2 → 3** / Open **6 → 5**. Residuals **4.1/4.2/4.4/4.7/4.8** remain OPEN (non-blocking for 4.5); heuristic pin `c89025a` preserved for **4.2/4.7**. Do **not** push. Do **not** claim Production GO / CI GREEN.
+**Consequence:** Next PARALLEL READY: EOS Audit **4.1/4.2/4.4/4.7/4.8**, Engineering Stability **8.1–8.3**, ADR-036 Applied **9.2**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **4.5 CLOSED**.
 
 ### DEC-139 — Phase 0 criterion 6.5 ADR-036 multi-index READY FOR REVIEW
 

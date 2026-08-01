@@ -59,16 +59,16 @@ Resolve criterion **4.5** by **committing the broader EOS v3.1 tree** under `.en
 | Auth / DEC-085 | **Untouched** |
 | Label | **light validated** (git track-state + secret scan; no full CI / no Production GO) |
 
-**Production GO not claimed. CI GREEN not met.** Awaiting Arch+Val then Orchestrator CLOSE (DEC-140a).
+**Production GO not claimed. CI GREEN not met.** Closed via DEC-140a after Arch+Val PASS.
 
 ---
 
 ## 4. Records
 
-- Phase 0 criterion **4.5** → **READY FOR REVIEW** (this land)
-- Phase 0 count remains **34/54** until Orchestrator CLOSE
+- Phase 0 criterion **4.5** → **VERIFIED/CLOSED** (DEC-140a)
+- Phase 0 count **34/54 → 35/54**
 - Residuals (non-blocking for 4.5): **4.1** B1–B7 re-audit · **4.2** fingerprint match · **4.4** EvidenceLevel · **4.7** staleness · **4.8** ARB PASS · **9.2** program↔engineering cross-refs · Eng Stability **8.1–8.3**
-- **Not claimed:** Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED
+- **Not claimed:** Production GO · CI GREEN · Phase 0 exit
 
 ---
 
