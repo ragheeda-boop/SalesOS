@@ -2,10 +2,12 @@
 Website & LinkedIn First Enrichment Pipeline
 Focus: Discover + Validate only. No ICP, no outreach.
 """
-import openpyxl, json, re, sys, io, socket, time, ssl, http.client
+import openpyxl, json, re, sys, io, socket, time, ipaddress
 from datetime import datetime
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from collections import Counter
+
+import httpx
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
@@ -45,45 +47,95 @@ def extract_domain(url):
     m = re.search(r'https?://(?:www\.)?([^/]+)', str(url))
     return m.group(1).lower() if m else ''
 
+_BLOCKED_HOSTNAMES = frozenset({
+    'localhost',
+    'metadata.google.internal',
+    'metadata.google',
+    'instance-data',
+})
+
+def _is_blocked_ip(ip):
+    """Mirror salesos webhook SSRF blocks (private / loopback / link-local / reserved)."""
+    return bool(
+        ip.is_private
+        or ip.is_loopback
+        or ip.is_link_local
+        or ip.is_reserved
+        or ip.is_multicast
+        or ip.is_unspecified
+    )
+
+def _validate_public_hostname(domain):
+    """Return sanitized hostname if safe for outbound fetch; else raise ValueError.
+
+    Avoids dynamic urllib openers and low-level HTTPS client APIs that trip Semgrep
+    audit rules. Pattern aligned with webhooks url_safety.py.
+    """
+    if not domain or not isinstance(domain, str):
+        raise ValueError('hostname required')
+    host = domain.strip().lower().rstrip('.')
+    # Hostname only — reject URL-ish / credential / path injection.
+    if not host or any(ch in host for ch in ('/', '\\', '@', '?', '#', ' ', ':')):
+        raise ValueError('hostname must not include path, credentials, or port')
+    if host in _BLOCKED_HOSTNAMES or host.endswith('.localhost'):
+        raise ValueError('hostname is not allowed')
+    try:
+        literal_ip = ipaddress.ip_address(host)
+    except ValueError:
+        literal_ip = None
+    if literal_ip is not None:
+        if _is_blocked_ip(literal_ip):
+            raise ValueError('hostname must not be a private or link-local IP')
+        return host
+    try:
+        addrinfos = socket.getaddrinfo(host, 443, type=socket.SOCK_STREAM)
+    except socket.gaierror as exc:
+        raise ValueError(f'DNS failed: {host}') from exc
+    if not addrinfos:
+        raise ValueError(f'DNS failed: {host}')
+    for info in addrinfos:
+        ip = ipaddress.ip_address(info[4][0])
+        if _is_blocked_ip(ip):
+            raise ValueError('hostname resolves to a private, link-local, or reserved address')
+    return host
+
 def check_domain_http(domain):
     """Check if domain resolves and HTTP loads, return status + title."""
     result = {'resolves': False, 'http_ok': False, 'title': '', 'error': '', 'redirect': '', 'description': ''}
     if not domain: return result
-    
+
     try:
-        socket.getaddrinfo(domain, 80, socket.AF_INET, socket.SOCK_STREAM)
-        result['resolves'] = True
-    except:
-        result['error'] = 'DNS failed'
+        host = _validate_public_hostname(domain)
+    except ValueError as e:
+        err = str(e)
+        if err.startswith('DNS failed'):
+            result['error'] = 'DNS failed'
+        else:
+            result['error'] = err[:100]
         return result
-    
-    # Use http.client (not urllib) so dynamic URLs cannot open file:// (CI-19 Wave 5).
+
+    result['resolves'] = True
+
+    # httpx + TLS verify (CI-19 Wave 5 follow-up / Code Scanning alert #836).
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Accept': 'text/html',
         'Accept-Language': 'en-US,en;q=0.9',
     }
-    for use_ssl in (True, False):
-        proto = 'https' if use_ssl else 'http'
-        conn = None
+    for proto in ('https', 'http'):
+        # URL built only from validated hostname — no user-controlled full URL / file://.
+        url = f'{proto}://{host}/'
         try:
-            if use_ssl:
-                ctx = ssl.create_default_context()
-                ctx.check_hostname = False
-                ctx.verify_mode = ssl.CERT_NONE
-                conn = http.client.HTTPSConnection(domain, timeout=10, context=ctx)
-            else:
-                conn = http.client.HTTPConnection(domain, timeout=10)
-            conn.request('GET', '/', headers=headers)
-            resp = conn.getresponse()
-            status = resp.status
-            location = resp.getheader('Location') or ''
-            content = resp.read(131072).decode('utf-8', errors='replace')
+            with httpx.Client(timeout=10.0, follow_redirects=False, verify=True) as client:
+                resp = client.get(url, headers=headers)
+            status = resp.status_code
+            location = resp.headers.get('Location') or ''
+            content = resp.content[:131072].decode('utf-8', errors='replace')
             result['http_ok'] = status == 200
             if location:
                 loc_l = location.lower().rstrip('/')
-                base = f'{proto}://{domain}'.lower().rstrip('/')
-                www = f'{proto}://www.{domain}'.lower().rstrip('/')
+                base = f'{proto}://{host}'.lower().rstrip('/')
+                www = f'{proto}://www.{host}'.lower().rstrip('/')
                 if loc_l != base and loc_l != www:
                     result['redirect'] = location
             m = re.search(r'<title[^>]*>(.*?)</title>', content, re.IGNORECASE | re.DOTALL)
@@ -102,12 +154,6 @@ def check_domain_http(domain):
             break
         except Exception as e:
             result['error'] = str(e)[:100]
-        finally:
-            if conn is not None:
-                try:
-                    conn.close()
-                except Exception:
-                    pass
 
     return result
 
