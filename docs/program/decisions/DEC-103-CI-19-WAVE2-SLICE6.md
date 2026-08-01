@@ -4,7 +4,7 @@
 > **Date:** 2026-08-01  
 > **Story:** CI-19 — Semgrep findings remediation (Wave 2 SQL honesty)  
 > **Prior:** Wave 2 Slice 5 COMPLETE (DEC-102 / land `179a477` + crumb `460d0a7`)  
-> **Land SHA:** *(fill after push)*  
+> **Land SHA:** `3d49ae1` (`3d49ae1`)  
 > **Validation label:** **light validated** (narrow pytest DEC-085 guard **2 passed**; AST/import of touched modules; py_compile) — **not** whole-pipeline CI GREEN  
 > **DEC-085:** `get_db()` **untouched** — still `SELECT set_config('app.tenant_id', :tenant_id, true)` (init_db DDL only changed)  
 > **Conflict note:** Parallel pytest-fix may own company/entity_resolution/workflow/activity_intelligence — this slice does **not** touch those paths.
