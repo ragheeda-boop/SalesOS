@@ -1,5 +1,5 @@
 import uuid
-from typing import Any
+from typing import Any, cast
 
 import httpx
 from sqlalchemy import select
@@ -106,8 +106,8 @@ class NotionSyncService:
             "errors": errors[:50],
         }
 
-    def _extract_company(self, props: dict) -> dict:
-        data = {}
+    def _extract_company(self, props: dict) -> dict[str, Any]:
+        data: dict[str, Any] = {}
 
         for field, config in [
             ("name", ["Name", "name", "Company Name", "company_name", "اسم"]),
@@ -144,11 +144,11 @@ class NotionSyncService:
                 sel = prop.get("select")
                 return sel.get("name") if sel else None
             elif ptype == "phone_number":
-                return prop.get("phone_number")
+                return cast(str | None, prop.get("phone_number"))
             elif ptype == "email":
-                return prop.get("email")
+                return cast(str | None, prop.get("email"))
             elif ptype == "url":
-                return prop.get("url")
+                return cast(str | None, prop.get("url"))
             elif ptype in ("number",):
                 val = prop.get("number")
                 return str(val) if val is not None else None

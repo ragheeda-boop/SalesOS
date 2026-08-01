@@ -122,9 +122,11 @@ async def _opportunities(
             page = (filters.offset // filters.limit) + 1
         q = OpportunityQuery(
             tenant_id=tenant_id,
-            stage=filters.stage if filters else None,
-            company_id=filters.company_id if filters else None,
-            owner_id=filters.owner_id if filters else None,
+            stage=(filters.stage if filters and filters.stage is not None else ""),
+            company_id=(
+                filters.company_id if filters and filters.company_id is not None else ""
+            ),
+            owner_id=(filters.owner_id if filters and filters.owner_id is not None else ""),
             page=page,
             page_size=filters.limit if filters else 20,
         )

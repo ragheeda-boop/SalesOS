@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 import strawberry
 from fastapi import HTTPException, Request
@@ -9,6 +9,8 @@ from app.config import settings
 from app.graphql.mutation import Mutation
 from app.graphql.query import Query
 from app.modules.identity.service import decode_access_token
+
+GraphqlIde = Literal["graphiql", "apollo-sandbox", "pathfinder"]
 
 
 async def get_context(request: Request) -> dict[str, Any]:
