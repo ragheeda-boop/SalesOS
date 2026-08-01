@@ -71,6 +71,7 @@ async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit
 # Register all models so Alembic can discover them
 import app.modules.api_keys.models  # noqa: F401
 import app.modules.audit.models  # noqa: F401
+import app.modules.communication_hub.models  # noqa: F401  # DEC-130g
 import app.modules.company.models  # noqa: F401
 import app.modules.contact.models  # noqa: F401
 import app.modules.entity_resolution.models  # noqa: F401
@@ -78,10 +79,14 @@ import app.modules.identity.models  # noqa: F401
 import app.modules.signal_marketplace.models  # noqa: F401
 import app.modules.sso.models  # noqa: F401
 import app.modules.telemetry.models  # noqa: F401
+import app.modules.webhooks.repository  # noqa: F401  # DEC-130g
 import domains.analytics.infrastructure.models  # noqa: F401
 import domains.commercial.infrastructure.models  # noqa: F401
 import domains.decision_center.postgres_repo  # noqa: F401  # DEC-130b FP
+import domains.employee.intelligence_models  # noqa: F401  # DEC-130g
+import domains.feature_store.postgres_repo  # noqa: F401  # DEC-130g
 import domains.marketplace.db_models  # noqa: F401  # DEC-130b FP
+import domains.notifications.db_models  # noqa: F401  # DEC-130g
 import domains.revenue.analytics.postgres_repo  # noqa: F401  # DEC-130b FP
 import domains.scoring.infrastructure.postgres_repository  # noqa: F401  # DEC-130b FP
 import domains.timeline.models  # noqa: F401

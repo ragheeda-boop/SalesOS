@@ -114,6 +114,8 @@ class ActivityModel(Base):
     __table_args__ = (
         Index("ix_activities_type_status", "activity_type", "status"),
         Index("ix_activities_owner", "owner_id"),
+        # Live name (0007) — register to silence remove_index (DEC-130g)
+        Index("ix_activities_session_type", "session_id", "activity_type"),
     )
 
 
@@ -136,6 +138,8 @@ class QuoteModel(Base, TimestampMixin):
 
     __table_args__ = (
         Index("ix_commercial_quotes_tenant_status", "tenant_id", "status"),
+        # Live name (0007) — keep alongside ORM rename (DEC-130g)
+        Index("ix_quotes_opportunity_status", "opportunity_id", "status"),
     )
 
 
@@ -197,6 +201,8 @@ class ContractModel(Base, TimestampMixin):
     __table_args__ = (
         Index("ix_commercial_contracts_tenant_status", "tenant_id", "status"),
         Index("ix_commercial_contracts_expiry", "expiry_date"),
+        # Live legacy name (0007) — keep twin (DEC-130g; no DROP)
+        Index("ix_contracts_tenant_status", "tenant_id", "status"),
     )
 
 
@@ -238,6 +244,11 @@ class DecisionContextModel(Base):
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
+    __table_args__ = (
+        # Live name (0007) — register to silence remove_index (DEC-130g)
+        Index("ix_decision_contexts_target", "target_id", "target_type"),
+    )
+
 
 class PolicyModel(Base):
     __tablename__ = "commercial_policies"
@@ -270,6 +281,8 @@ class MeetingModel(Base, TimestampMixin):
     __table_args__ = (
         Index("ix_meetings_tenant_date", "tenant_id", "meeting_date"),
         Index("ix_meetings_status", "status"),
+        # Live name (0013) — register to silence remove_index (DEC-130g)
+        Index("ix_meetings_opportunity", "opportunity_id", "tenant_id"),
     )
 
 
@@ -291,6 +304,8 @@ class EmailModel(Base, TimestampMixin):
     __table_args__ = (
         Index("ix_emails_tenant_sent", "tenant_id", "sent_at"),
         Index("ix_emails_direction", "direction"),
+        # Live name (0013) — register to silence remove_index (DEC-130g)
+        Index("ix_emails_opportunity", "opportunity_id", "tenant_id"),
     )
 
 
@@ -314,4 +329,6 @@ class RecommendationModel(Base, TimestampMixin):
     __table_args__ = (
         Index("ix_commercial_recs_tenant_status", "tenant_id", "status"),
         Index("ix_commercial_recs_target", "target_id", "target_type"),
+        # Live legacy name (0007) — keep twin (DEC-130g; no DROP)
+        Index("ix_recommendations_target", "target_id", "target_type"),
     )

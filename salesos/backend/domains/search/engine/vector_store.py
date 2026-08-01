@@ -17,16 +17,31 @@ from sqlalchemy import (
     DateTime,
     Index,
     MetaData,
-    String,
     Table,
-    Text,
     bindparam,
     delete,
     func,
     literal,
     select,
 )
-from sqlalchemy.dialects.postgresql import JSONB, insert as pg_insert
+from sqlalchemy.dialects.postgresql import JSONB, TEXT, insert as pg_insert
+from sqlalchemy.types import UserDefinedType
+
+
+class _PgVector(UserDefinedType):
+    """pgvector metadata stand-in (DEC-130g) — silences NullType reflection drift."""
+
+    cache_ok = True
+
+    def __init__(self, dim: int = 3072) -> None:
+        self.dim = dim
+
+    def get_col_spec(self, **_kw: Any) -> str:
+        return f"vector({self.dim})"
+
+    def compare_against_backend(self, _dialect: Any, _conn_type: Any) -> bool:
+        return True
+
 
 _ALLOWED_COLLECTIONS = frozenset({
     "vectors", "company_embeddings", "contact_embeddings",
@@ -48,13 +63,14 @@ def _collection_table(name: str) -> Table:
 
     DEC-130f: include live ``created_at`` / ``updated_at`` so alembic check does
     not propose ``remove_column`` DROP (columns from migration 0010).
+    DEC-130g: ``id`` as postgresql.TEXT; embedding via ``_PgVector`` stand-in.
     """
     table_name = _validate_collection(name)
     return Table(
         table_name,
         _vector_store_metadata,
-        Column("id", Text, primary_key=True),
-        Column("embedding", String, nullable=False),
+        Column("id", TEXT(), primary_key=True),
+        Column("embedding", _PgVector(3072), nullable=False),
         Column("metadata", JSONB, nullable=False),
         Column("created_at", DateTime(timezone=True)),
         Column("updated_at", DateTime(timezone=True)),

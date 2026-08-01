@@ -68,15 +68,10 @@ class Company(BaseModel):
 
     name_ar: Mapped[str] = mapped_column(String(500), nullable=False, index=True)
     name_en: Mapped[str | None] = mapped_column(String(500))
-    cr_number: Mapped[str] = mapped_column(
-        String(50), nullable=False, index=True, comment="Commercial Registration number"
-    )
-    cr_type: Mapped[str | None] = mapped_column(
-        String(50), comment="CR type code (e.g., شركة, مؤسسة)"
-    )
-    status: Mapped[str] = mapped_column(
-        String(50), default="active", index=True, comment="Current company status"
-    )
+    # Comments live in code/docs only — DB has no COMMENT (DEC-130g; no COMMENT DDL)
+    cr_number: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    cr_type: Mapped[str | None] = mapped_column(String(50))
+    status: Mapped[str] = mapped_column(String(50), default="active", index=True)
     city: Mapped[str | None] = mapped_column(String(200), index=True)
     region: Mapped[str | None] = mapped_column(String(200))
     latitude: Mapped[float | None] = mapped_column(Float)
@@ -163,6 +158,53 @@ class Company(BaseModel):
         Index("ix_companies_tenant_status", "tenant_id", "status"),
         Index("ix_companies_tsv", "tsv", postgresql_using="gin"),
         Index("idx_companies_search_vector", "search_vector", postgresql_using="gin"),
+        # Live unique (0001) — register to silence remove_index (DEC-130g)
+        Index("ix_companies_tenant_cr", "tenant_id", "cr_number", unique=True),
+        Index("ix_companies_confidence_score", "confidence_score"),
+        Index("idx_companies_tenant_search", "tenant_id"),
+        # Live GIN trigram indexes (0024/0029) — metadata register only (no DROP)
+        Index(
+            "idx_companies_name_trgm",
+            "name_ar",
+            postgresql_using="gin",
+            postgresql_ops={"name_ar": "gin_trgm_ops"},
+        ),
+        Index(
+            "idx_companies_name_ar_trgm",
+            "name_ar",
+            postgresql_using="gin",
+            postgresql_ops={"name_ar": "gin_trgm_ops"},
+        ),
+        Index(
+            "idx_companies_name_en_trgm",
+            "name_en",
+            postgresql_using="gin",
+            postgresql_ops={"name_en": "gin_trgm_ops"},
+        ),
+        Index(
+            "idx_companies_cr_number_trgm",
+            "cr_number",
+            postgresql_using="gin",
+            postgresql_ops={"cr_number": "gin_trgm_ops"},
+        ),
+        Index(
+            "idx_companies_city_trgm",
+            "city",
+            postgresql_using="gin",
+            postgresql_ops={"city": "gin_trgm_ops"},
+        ),
+        Index(
+            "idx_companies_region_trgm",
+            "region",
+            postgresql_using="gin",
+            postgresql_ops={"region": "gin_trgm_ops"},
+        ),
+        Index(
+            "idx_companies_activity_desc_trgm",
+            "activity_description",
+            postgresql_using="gin",
+            postgresql_ops={"activity_description": "gin_trgm_ops"},
+        ),
     )
 
     def __repr__(self) -> str:
@@ -194,8 +236,9 @@ class Branch(BaseModel):
 class License(BaseModel):
     __tablename__ = "licenses"
 
+    # Index owned by __table_args__ (live name ix_licenses_company) — no index=True
     company_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False, index=True
+        UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False
     )
     license_number: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     license_type: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -209,7 +252,13 @@ class License(BaseModel):
 
     company: Mapped[Company] = relationship("Company", back_populates="licenses")
 
-    __table_args__ = (Index("ix_licenses_expiry_status", "expiry_date", "status"),)
+    __table_args__ = (
+        Index("ix_licenses_expiry_status", "expiry_date", "status"),
+        # Live name (0028) — register to silence remove_index (DEC-130g)
+        Index("ix_licenses_company", "company_id"),
+        # Rename twin from former column index=True — KEEP (DEC-130g; no DROP)
+        Index("ix_licenses_company_id", "company_id"),
+    )
 
     def __repr__(self) -> str:
         return f"<License {self.license_number}: {self.license_type}>"

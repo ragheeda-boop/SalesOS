@@ -32,6 +32,17 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
+# DEC-130g: expression GIN indexes whose Postgres-reflected form (::regconfig /
+# ::text casts) cannot be mirrored in SQLAlchemy metadata without DROP+CREATE.
+# KEEP live indexes; exclude from autogenerate/check. No blind DROP.
+_KEEP_EXPRESSION_INDEXES = frozenset({"ix_graph_nodes_search"})
+
+
+def include_object(object_, name, type_, reflected, compare_to):
+    if type_ == "index" and name in _KEEP_EXPRESSION_INDEXES:
+        return False
+    return True
+
 
 def run_migrations_offline() -> None:
     url = config.get_main_option("sqlalchemy.url")
@@ -40,13 +51,18 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_object,
     )
     with context.begin_transaction():
         context.run_migrations()
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        include_object=include_object,
+    )
     with context.begin_transaction():
         context.run_migrations()
 

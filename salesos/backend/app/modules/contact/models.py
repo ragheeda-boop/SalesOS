@@ -1,7 +1,7 @@
 import uuid
 from typing import Any
 
-from sqlalchemy import Boolean, Float, ForeignKey, String
+from sqlalchemy import Boolean, Float, ForeignKey, Index, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,6 +12,11 @@ class Contact(BaseModel):
     """Unified contacts table (post-0022; formerly contacts_standalone)."""
 
     __tablename__ = "contacts"
+    __table_args__ = (
+        # Live composites (0022) — register to silence remove_index (DEC-130g)
+        Index("ix_contacts_tenant_company", "tenant_id", "company_id"),
+        Index("ix_contacts_tenant_email", "tenant_id", "email"),
+    )
 
     tenant_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

@@ -52,6 +52,14 @@ class EmployeeCalendarEventModel(Base):
         Index("ix_cal_events_tenant_employee_daterange", "tenant_id", "employee_id", "start_utc", "end_utc"),
         Index("ix_cal_events_provider_event", "provider", "provider_event_id"),
         Index("ix_cal_events_start_utc", "start_utc"),
+        # Live unique (0049) — register to silence remove_index (DEC-130g)
+        Index(
+            "uq_cal_events_tenant_provider_event",
+            "tenant_id",
+            "provider",
+            "provider_event_id",
+            unique=True,
+        ),
     )
 
 
@@ -98,4 +106,12 @@ class EmployeeEmailEventModel(Base):
         Index("ix_email_events_provider_msg", "provider", "provider_message_id"),
         Index("ix_email_events_thread", "thread_id"),
         Index("ix_email_events_timestamp", "timestamp_utc"),
+        # Live unique (0049) — register to silence remove_index (DEC-130g)
+        Index(
+            "uq_email_events_tenant_provider_msg",
+            "tenant_id",
+            "provider",
+            "provider_message_id",
+            unique=True,
+        ),
     )

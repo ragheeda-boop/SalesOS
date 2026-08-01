@@ -326,7 +326,9 @@ Table(
     Column("properties", JSONB, nullable=True),
     Column("created_at", DateTime(timezone=True), nullable=False),
     Column("updated_at", DateTime(timezone=True), nullable=False),
-    # Expression GIN ix_graph_nodes_search is live; not mirrored (expression).
+    # Live expression GIN ix_graph_nodes_search — KEEP; skipped in alembic
+    # include_object (DEC-130g). Postgres reflects ::regconfig/::text casts that
+    # cannot be mirrored without DROP+CREATE; no blind DROP.
 )
 
 # ── RAG (0015) ──────────────────────────────────────────────────────────────

@@ -13,7 +13,9 @@ from app.common.models import Base, BaseModel
 class GoldenRecord(BaseModel):
     __tablename__ = "golden_records"
 
-    tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False, index=True
+    )
     cr_number: Mapped[str] = mapped_column(String(50), nullable=False)
     company_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("companies.id"), nullable=True, index=True
@@ -21,7 +23,8 @@ class GoldenRecord(BaseModel):
     data: Mapped[dict] = mapped_column(
         JSONB,
         nullable=False,
-        comment="All fields with provenance: {field: {value, source, confidence, timestamp, verified_by}}",  # noqa: E501
+        # Align to live DB COMMENT (0001) — no verified_by (DEC-130g)
+        comment="All fields with provenance: {field: {value, source, confidence, timestamp}}",
     )
     confidence_score: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     source_ids: Mapped[list | None] = mapped_column(JSONB, default=list)
@@ -30,6 +33,8 @@ class GoldenRecord(BaseModel):
     __table_args__ = (
         Index("ix_golden_records_tenant_company", "tenant_id", "company_id"),
         Index("ix_golden_records_tenant_active", "tenant_id", "is_active"),
+        # Live unique (0001) — register to silence remove_index (DEC-130g)
+        Index("ix_golden_records_tenant_cr", "tenant_id", "cr_number", unique=True),
     )
 
     def __repr__(self) -> str:
@@ -39,7 +44,9 @@ class GoldenRecord(BaseModel):
 class EntityResolutionConflict(BaseModel):
     __tablename__ = "entity_resolution_conflicts"
 
-    tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False, index=True
+    )
     golden_record_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("golden_records.id"), nullable=False, index=True
     )
@@ -53,7 +60,11 @@ class EntityResolutionConflict(BaseModel):
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="open", index=True)
 
-    __table_args__ = (Index("ix_conflicts_tenant_status", "tenant_id", "status"),)
+    __table_args__ = (
+        Index("ix_conflicts_tenant_status", "tenant_id", "status"),
+        # Live name (0027) — register to silence remove_index (DEC-130g)
+        Index("ix_conflicts_golden_status", "golden_record_id", "status"),
+    )
 
     def __repr__(self) -> str:
         return f"<Conflict {self.field_name}: {self.source_a_source} vs {self.source_b_source}>"
@@ -126,3 +137,9 @@ class DeadLetterRecord(Base):
         nullable=True,
     )
     last_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    __table_args__ = (
+        # Live names (0011) — register to silence remove_index (DEC-130g)
+        Index("ix_dlq_created_at", "created_at"),
+        Index("ix_dlq_tenant_status", "tenant_id", "status"),
+    )

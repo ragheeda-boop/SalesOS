@@ -12,7 +12,13 @@ from sdk.database import BaseModel
 
 class GoogleAccount(BaseModel):
     __tablename__ = "google_accounts"
-    __table_args__ = (Index("ix_google_accounts_tenant_user", "tenant_id", "user_id", unique=True),)
+    __table_args__ = (
+        Index("ix_google_accounts_tenant_user", "tenant_id", "user_id", unique=True),
+        # Live single-column indexes (0047) — register (DEC-130g)
+        Index("ix_google_accounts_email", "email"),
+        Index("ix_google_accounts_tenant_id", "tenant_id"),
+        Index("ix_google_accounts_user_id", "user_id"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id: Mapped[uuid.UUID] = mapped_column(

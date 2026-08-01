@@ -32,8 +32,9 @@ class PluginModel(Base):
     resource_limits: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     config: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=dict)
 
-    state: Mapped[str | None] = mapped_column(String(20), nullable=True, default="active", index=True)
-    enabled: Mapped[bool | None] = mapped_column(Boolean, nullable=True, default=True, index=True)
+    state: Mapped[str | None] = mapped_column(String(20), nullable=True, default="active")
+    # Index names owned by __table_args__ / live (DEC-130g) — no index=True on state
+    enabled: Mapped[bool | None] = mapped_column(Boolean, nullable=True, default=True)
     call_count: Mapped[int | None] = mapped_column(Integer, nullable=True, default=0)
     error_count: Mapped[int | None] = mapped_column(Integer, nullable=True, default=0)
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -43,6 +44,7 @@ class PluginModel(Base):
 
     __table_args__ = (
         Index("ix_marketplace_plugins_state", "state", "enabled"),
+        Index("ix_marketplace_plugins_enabled", "enabled"),
     )
 
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Float, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -37,9 +37,16 @@ class ReportModel(Base):
 
 class ReportExecutionModel(Base):
     __tablename__ = "analytics_report_executions"
+    __table_args__ = (
+        # Live name (0014) — register to silence remove_index (DEC-130g)
+        Index("ix_analytics_executions_report", "report_id"),
+        # Rename twin from former column index=True — KEEP (DEC-130g; no DROP)
+        Index("ix_analytics_report_executions_report_id", "report_id"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    report_id: Mapped[str] = mapped_column(String(36), index=True, nullable=False)
+    # Index owned by __table_args__ (live name) — no index=True
+    report_id: Mapped[str] = mapped_column(String(36), nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
     output_format: Mapped[str] = mapped_column(String(10), nullable=False, default="json")
     output_path: Mapped[str | None] = mapped_column(String(1000), nullable=True)

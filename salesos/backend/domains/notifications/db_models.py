@@ -28,4 +28,6 @@ class NotificationModel(Base):
     __table_args__ = (
         Index("ix_notifications_user_read", "user_id", "read", "created_at"),
         Index("ix_notifications_tenant_type", "tenant_id", "type"),
+        # Live name (0032) — register to silence remove_index (DEC-130g)
+        Index("ix_notifications_tenant_user", "tenant_id", "user_id"),
     )

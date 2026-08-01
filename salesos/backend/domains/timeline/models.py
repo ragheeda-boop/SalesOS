@@ -2,7 +2,7 @@ import datetime
 import uuid
 from typing import Any
 
-from sqlalchemy import Column, Index, Integer, String, DateTime, func
+from sqlalchemy import Column, Index, Integer, String, DateTime, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 
 from sdk.database import Base
@@ -24,7 +24,21 @@ class TimelineEventModel(Base):
     )
 
     __table_args__ = (
-        Index("ix_timeline_entity", "entity_type", "entity_id"),
+        # Live expression indexes (0005/0027) — metadata register (DEC-130g)
+        Index(
+            "ix_timeline_entity",
+            "entity_type",
+            "entity_id",
+            text("created_at DESC"),
+        ),
+        Index(
+            "ix_timeline_tenant",
+            "tenant_id",
+            "entity_type",
+            text("created_at DESC"),
+        ),
+        Index("ix_timeline_event_type", "entity_type", "entity_id", "event_type"),
+        Index("ix_timeline_actor", "actor"),
+        # ORM/5d additive name — keep if present in live DB
         Index("ix_timeline_tenant_created", "tenant_id", "created_at"),
-        Index("ix_timeline_event_type", "event_type"),
     )

@@ -1,11 +1,11 @@
 # DEC-130 — DB-05 criterion 7.6: live `alembic check` re-baseline + phased plan
 
-> **Status:** **Accepted** — Slice **5a** COMPLETE · Slice **5b** COMPLETE ([DEC-130b](DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md)) · Slice **5c** COMPLETE ([DEC-130c](DEC-130c-DB-05-SLICE-5C-ADMIN-GLOBAL-CREATE.md) READY FOR REVIEW) · Slice **5d** COMPLETE ([DEC-130d](DEC-130d-DB-05-SLICE-5D-INDEX-TYPE-NULLABLE.md) READY FOR REVIEW) · Criterion **7.6 remains OPEN** (clean check **not** met) · do **not** CLOSE 7.6  
+> **Status:** **Accepted** — Slice **5a** COMPLETE · Slice **5b** COMPLETE ([DEC-130b](DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md)) · Slice **5c** COMPLETE ([DEC-130c](DEC-130c-DB-05-SLICE-5C-ADMIN-GLOBAL-CREATE.md) READY FOR REVIEW) · Slice **5d** COMPLETE ([DEC-130d](DEC-130d-DB-05-SLICE-5D-INDEX-TYPE-NULLABLE.md) READY FOR REVIEW) · Slice **5e** COMPLETE ([DEC-130e](DEC-130e-DB-05-SLICE-5E-COMPANIES-RESIDUAL-KEEP.md) READY FOR REVIEW) · Slice **5f** COMPLETE ([DEC-130f](DEC-130f-DB-05-SLICE-5F-ORPHAN-KEEP-REGISTER.md) READY FOR REVIEW) · Slice **5g** COMPLETE ([DEC-130g](DEC-130g-DB-05-SLICE-5G-INDEX-FK-COMMENT.md) READY FOR REVIEW — live `alembic check` **exit 0**) · Criterion **7.6 remains OPEN** until Arch+Val + Orchestrator CLOSE · do **not** CLOSE 7.6 without that path  
 > **Date:** 2026-08-01  
 > **Board:** Backend Platform / Database (SalesOS / AQLIYA)  
 > **Story / risk:** DB-05 / R-20 / Phase 0 Exit Criterion **7.6**  
 > **Authority:** DEC-111 Slice 0 · DEC-113–123 · DEC-129 KEEP · DEC-085 `set_config` · DEC-107 swarm READY  
-> **Out of scope this land:** Full `alembic check` clean · DROP companies / orphan tables · production / Railway migrate · Prisma · DEC-085 edits · Production GO / CI GREEN · Criterion VERIFIED/CLOSED
+> **Out of scope this land:** production / Railway migrate · Prisma · DEC-085 edits · Production GO / CI GREEN · Criterion VERIFIED/CLOSED without Arch+Val
 
 ---
 
@@ -68,9 +68,12 @@ docker compose exec -T backend alembic check     → FAILED exit 255
 | **5c** | Additive **CREATE** for global admin trio (`admin_plans`, `admin_feature_flags`, `admin_health_snapshots`) — no RLS ([DEC-130c](DEC-130c-DB-05-SLICE-5C-ADMIN-GLOBAL-CREATE.md)) | `add_table` **3 → 0** | **No** (COMPLETE / READY FOR REVIEW) |
 | **5d** | Index / type / nullable residual batches (additive rename/create only; SET NOT NULL only with null inventory) ([DEC-130d](DEC-130d-DB-05-SLICE-5D-INDEX-TYPE-NULLABLE.md)) | `added_index` **37 → 0**; type **13 → 1**; NOT NULL **33 → 0** | **No** (COMPLETE / READY FOR REVIEW) |
 | **5e** | Companies residual columns (`do_not_contact`, `embedding_vector`) — KEEP + ORM or explicit DROP DEC | Column DROP proposals gone | **No** |
-| **5f+** | Remaining orphan/legacy table policy + final `alembic check` | **exit 0** | **Yes** (only then) |
+| **5f** | Orphan KEEP metadata register + vectors residual columns ([DEC-130f](DEC-130f-DB-05-SLICE-5F-ORPHAN-KEEP-REGISTER.md)) | `remove_table` **15 → 0**; `remove_column` **2 → 0** | **No** |
+| **5g** | Residual index/FK/comment/type metadata + twin KEEP + expression `include_object` ([DEC-130g](DEC-130g-DB-05-SLICE-5G-INDEX-FK-COMMENT.md)) | **`alembic check` exit 0** | **Yes** (after Arch+Val + Orchestrator CLOSE) |
 
-**Slice 5f landed (DEC-130f):** orphan KEEP metadata register — `remove_table` **15→0**; vectors residual columns — `remove_column` **2→0**; check still FAILED; next **5g+** residual index/FK/comment toward exit 0.
+**Slice 5f landed (DEC-130f):** orphan KEEP metadata register — `remove_table` **15→0**; vectors residual columns — `remove_column` **2→0**; check still FAILED; next **5g**.
+
+**Slice 5g landed (DEC-130g):** residual index/FK/comment/type metadata register + rename-twin KEEP + `include_object` KEEP for `ix_graph_nodes_search` — live Docker `alembic check` **exit 0**; head unchanged `a4f7c29e1b80`; 7.6 stays OPEN pending Arch+Val + Orchestrator CLOSE.
 
 **Hard stops (all slices):** no production migrate · no Prisma · no DEC-085 edits · no DROP of FTS/KEEP columns (7.4) · no blind DROP of the 28 “removed” tables.
 

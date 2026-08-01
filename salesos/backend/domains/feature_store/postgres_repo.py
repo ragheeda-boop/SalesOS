@@ -33,7 +33,9 @@ class FeatureValueModel(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     feature_key: Mapped[str] = mapped_column(
-        String(255), ForeignKey("feature_definitions.key"), nullable=False
+        String(255),
+        ForeignKey("feature_definitions.key", ondelete="CASCADE"),
+        nullable=False,
     )
     entity_id: Mapped[str] = mapped_column(String(36), nullable=False)
     entity_type: Mapped[str] = mapped_column(String(50), nullable=False)

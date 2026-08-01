@@ -4,7 +4,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Protocol
 
-from sqlalchemy import Boolean, DateTime, Integer, String, Text, select, text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, select, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -147,9 +147,18 @@ class WebhookSubscriptionModel(Base):
 
 class WebhookDeliveryModel(Base):
     __tablename__ = "webhook_deliveries"
+    __table_args__ = (
+        # Live name (0039) — register to silence remove_index (DEC-130g)
+        Index("ix_webhook_deliveries_status_retry", "status", "next_retry_at"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    subscription_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    subscription_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("webhook_subscriptions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     payload: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
     status: Mapped[str] = mapped_column(

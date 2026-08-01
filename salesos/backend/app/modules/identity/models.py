@@ -1,7 +1,7 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -10,9 +10,15 @@ from sdk.database import Base, BaseModel
 
 class Tenant(BaseModel):
     __tablename__ = "tenants"
+    # Live DB (0001): UniqueConstraint tenants_slug_key + non-unique ix_tenants_slug
+    # (DEC-130g — avoid unique=True+index=True which invents unique ix_tenants_slug)
+    __table_args__ = (
+        UniqueConstraint("slug", name="tenants_slug_key"),
+        Index("ix_tenants_slug", "slug"),
+    )
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    slug: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
+    slug: Mapped[str] = mapped_column(String(100), nullable=False)
     domain: Mapped[str | None] = mapped_column(String(255), unique=True)
     plan: Mapped[str] = mapped_column(String(50), default="free")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -28,6 +34,11 @@ class Tenant(BaseModel):
 
 class User(BaseModel):
     __tablename__ = "users"
+    # Live DB (0001): UniqueConstraint users_email_key + non-unique ix_users_email (DEC-130g)
+    __table_args__ = (
+        UniqueConstraint("email", name="users_email_key"),
+        Index("ix_users_email", "email"),
+    )
 
     tenant_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -35,7 +46,7 @@ class User(BaseModel):
         nullable=False,
         index=True,
     )
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    email: Mapped[str] = mapped_column(String(255), nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     full_name_ar: Mapped[str | None] = mapped_column(String(255))

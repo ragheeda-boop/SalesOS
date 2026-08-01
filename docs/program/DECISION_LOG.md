@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-130g — DB-05 Slice 5g: residual index/FK/comment → alembic check exit 0
+
+**Date:** 2026-08-01
+**Context:** DEC-130 / DEC-130f residual — `remove_index`×~36 + FK/comment/type noise after orphan KEEP. Criterion 7.6 stays OPEN until Arch+Val; next land = metadata register + twin KEEP + expression include_object KEEP (no DROP).
+**Alternatives considered:** (a) blind DROP rename-twins / expression indexes — rejected; (b) DROP+CREATE graph_nodes GIN to match ORM text — rejected; (c) metadata register + twin KEEP + narrow include_object — approved.
+**Decision:** Accept **Slice 5g** as Cursor COMPLETE / READY FOR REVIEW. Companion: [`decisions/DEC-130g-DB-05-SLICE-5G-INDEX-FK-COMMENT.md`](decisions/DEC-130g-DB-05-SLICE-5G-INDEX-FK-COMMENT.md). Alembic head **unchanged** `a4f7c29e1b80`. Live Docker `alembic check` **exit 0** (`No new upgrade operations detected`). True DROP DEC **0**. DEC-085 intact. `ix_graph_nodes_search` KEEP via `include_object`. Orchestrator may CLOSE **7.6** after Arch+Val PASS.
+**Consequence:** Phase 0 remains **24/54** until Orchestrator close. Criterion **7.6 OPEN** (READY FOR REVIEW / check-clean evidenced). **Production GO not claimed. CI GREEN not met. Do not claim VERIFIED/CLOSED for 7.6 without Arch+Val.**
+**Status:** Accepted. Criterion **7.6 OPEN** (Slice 5g COMPLETE / READY FOR REVIEW — check exit 0).
+
 ### DEC-130f — DB-05 Slice 5f: orphan KEEP metadata register + vectors residual columns
 
 **Date:** 2026-08-01
