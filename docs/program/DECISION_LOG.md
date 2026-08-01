@@ -983,7 +983,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Alternatives considered:** (a) cover `/health`+`/ready` immediately ? deferred (needs DB/cache fixtures); (b) auth-gated domain list first ? deferred; (c) type + contract public no-DB probes `/ping`+`/health/live` ? approved.
 **Decision:** Land slice 1: `PingResponse` / `HealthLiveResponse` + OpenAPI HTTP contract tests for `/ping` and `/health/live` (csrf retained). Companion: [`decisions/DEC-094-CONTRACT-TESTS-EXPANSION.md`](decisions/DEC-094-CONTRACT-TESTS-EXPANSION.md).
 **Consequence:** Track READY ? **IN PROGRESS**. Host `poetry run pytest tests/contract/test_openapi_contract.py -m contract` **PASS** (**light validated**). Not full API coverage. **CI GREEN not met.**
-**Status:** Accepted. Slice 1 landed; next slice remains open.
+**Status:** Accepted. Slice 1 landed @ `93a00d7`; slice 2 landed (see addendum).
+
+### DEC-094 addendum - Contract tests expansion slice 2 (/health + /health/ready)
+
+**Date:** 2026-08-01
+**Context:** Slice 1 covered no-DB probes. Next authorized slice: readiness/health with honest DB fixtures; 401/422 if time.
+**Alternatives considered:** (a) require live Postgres db_session for contract mark - rejected (heavy; host may lack test DB); (b) invent ErrorResponse 401/422 OpenAPI without wiring - rejected (dishonest); (c) AsyncMock get_db / async_session + cache fixture + typed response_model - approved.
+**Decision:** Land slice 2: HealthResponse / HealthReadyResponse on GET /health and GET /health/ready; contract_db_client fixture; tests in test_openapi_health_ready.py. Narrow pytest tests/contract/ -m contract. Do **not** edit get_db SET LOCAL (DEC-085). 401/422 deferred to next slice pending honest OpenAPI error docs. Companion: [decisions/DEC-094-CONTRACT-TESTS-EXPANSION.md](decisions/DEC-094-CONTRACT-TESTS-EXPANSION.md).
+**Consequence:** Host poetry run pytest tests/contract/ -m contract -> **9 passed**, 31 deselected (**light validated**). Track remains **IN PROGRESS**. **CI GREEN not met.**
+**Status:** Accepted. Slice 2 landed; next slice (401/422, auth list) open.
 
 ### DEC-095 — STORY-02-02 browser redirect verify CLOSED
 

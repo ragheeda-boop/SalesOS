@@ -10,7 +10,12 @@ from app.boot.exceptions import register_exception_handlers
 from app.boot.middleware import setup_middleware
 from app.boot.routers import register_routers
 from app.boot.startup import init_startup_services, shutdown_services
-from app.common.schemas import HealthLiveResponse, HealthResponse, PingResponse
+from app.common.schemas import (
+    HealthLiveResponse,
+    HealthReadyResponse,
+    HealthResponse,
+    PingResponse,
+)
 from app.config import settings
 from app.database import get_db
 
@@ -261,7 +266,7 @@ async def health_dependencies(request: Request):
     }
 
 
-@app.get("/health/ready")
+@app.get("/health/ready", response_model=HealthReadyResponse)
 async def health_ready(request: Request):
     from sqlalchemy import text
 
@@ -320,13 +325,13 @@ async def health_ready(request: Request):
         checks["scrapers"] = "unavailable"
 
     all_ready = checks.get("database") == "connected" and checks.get("cache") != "unavailable"
-    return {
-        "status": "ready" if all_ready else "not_ready",
-        "checks": checks,
-    }
+    return HealthReadyResponse(
+        status="ready" if all_ready else "not_ready",
+        checks=checks,
+    )
 
 
-@app.get("/health")
+@app.get("/health", response_model=HealthResponse)
 async def health(request: Request, db: AsyncSession = Depends(get_db)):
     from sqlalchemy import text
 

@@ -74,6 +74,13 @@ class HealthLiveResponse(BaseModel):
     uptime_seconds: float
 
 
+class HealthReadyResponse(BaseModel):
+    """GET /health/ready - readiness probe (DB + cache required for ready)."""
+
+    status: str
+    checks: dict
+
+
 class AuditLogEntry(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
