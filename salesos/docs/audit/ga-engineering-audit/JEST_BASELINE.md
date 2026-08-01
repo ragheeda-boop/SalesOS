@@ -155,28 +155,29 @@ Do **not** claim full CI GREEN. Backend Stage 1/2 and Stage 5 gates remain red o
 |---|---:|
 | §8 field verify (`30677189129` / `1c33c1b`) | **11** |
 | Minus §6 stale production contract (`4fdc1d8`) — #5/#7/#8 light PASS | **−3** |
-| **Expected next field ceiling** | **≤8** |
+| Minus §6 residual H2/H3 (`NBAWidget`, `AutomationAnalyticsPage`) — light PASS | **−2** |
+| **Expected next field ceiling** | **≤6** |
 
-Do **not** treat light-validated ≤4 (historical §5) as Stage 3 truth. Full CI inventory not re-run after `4fdc1d8`.
+Do **not** treat light-validated historical floors as Stage 3 truth. Full CI inventory not re-run after this residual land.
 
-### 9.2 Holdout inventory (H1–H8)
+### 9.2 Holdout inventory (remaining after H2/H3 remediations)
 
 | ID | Suite | Notes |
 |---|---|---|
 | H1 | `src/app/(dashboard)/settings/__tests__/settings-page.test.tsx` | `useQueryClient` — §6 light did not hold |
-| H2 | `src/features/revenue-execution/widgets/nba-widget/__tests__/NBAWidget.test.tsx` | refetch call-count |
-| H3 | `src/app/(dashboard)/automation/analytics/__tests__/AutomationAnalyticsPage.test.tsx` | stale UI-text / testids |
 | H4 | `src/features/automation/widgets/workflow-builder/__tests__/WorkflowBuilder.test.tsx` | `useWorkflowExecutions` — light did not hold |
 | H5 | `src/app/(dashboard)/automation/workflows/new/__tests__/NewWorkflowPage.test.tsx` | DOM/selector light did not hold |
 | H6 | `src/features/revenue-execution/workspace/pipeline/__tests__/DealCard.test.tsx` | DOM/selector light did not hold |
 | H7 | `src/features/admin/__tests__/admin-workspace.test.tsx` | sidebar copy — light did not hold |
 | H8 | `src/features/analytics/__tests__/AnalyticsWorkspace.test.tsx` | `No QueryClient set` — light did not hold |
 
-**Pending field verify (not holdouts):** Onboarding, widget.store, lib/analytics (`4fdc1d8`).
+**Remediated this land (no longer holdouts):** H2 `NBAWidget`, H3 `AutomationAnalyticsPage` (pending next field verify).
+
+**Pending field verify (not holdouts):** Onboarding, widget.store, lib/analytics (`4fdc1d8`); H2/H3 (this land).
 
 ### 9.3 Next Stage 3 field-verify recipe
 
-1. Tip SHA must include `4fdc1d8` + any holdout remediations under test.  
+1. Tip SHA must include `4fdc1d8` + H2/H3 residual remediations + any remaining holdout remediations under test.  
 2. Capture GitHub Actions CI → job `Stage 3: Frontend Unit Tests` (run id, counts, failing paths).  
-3. Append a new §10 field-verify block; failing paths should be ⊆ H1–H8 (name any true regression).  
+3. Append a new §10 field-verify block; failing paths should be ⊆ remaining holdouts H1/H4–H8 (name any true regression).  
 4. Update R-23 / board with the captured count. **Never** claim Stage 3 green from narrow Jest alone.
