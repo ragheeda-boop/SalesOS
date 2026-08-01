@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-146a criterion 9.3 `.ai/` runtime deferred **VERIFIED/CLOSED**; ADR-036 Applied **COMPLETE 4/4**; Eng Stability **COMPLETE 4/4**; Phase 0 **43/54**; residuals EOS **4.1/4.8** ARB · CI **3.x** + CI-08/09; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
+> **Last updated:** 2026-08-01 (DEC-147 criterion 3.5 Stage 5 Security Scan **READY FOR REVIEW**; DEC-146a 9.3 **CLOSED**; ADR-036 Applied **COMPLETE 4/4**; Eng Stability **COMPLETE 4/4**; Phase 0 **43/54**; residuals EOS **4.1/4.8** ARB · CI **3.7/3.8** + CI-08/09; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
 >
 > ## Operating State
 >
@@ -70,7 +70,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 3.2 | Stage 2: Backend Types green | MyPy exits 0 (DEC-096) | ✅ CI-20 |
 | 3.3 | Stage 3: Frontend Unit Tests green | 196/196 suites PASS (DEC-077) | ✅ Jest-debt |
 | 3.4 | Stage 4: Backend Unit + Integration green | `pytest` 2700+ PASS, `-n auto` | ✅ CI-22 follow-on |
-| 3.5 | Stage 5: Security Scan green | pip-audit (named ignore only), Bandit, Gitleaks, Semgrep residual-only | ⬜ ecdsa residual accepted (DEC-057/090/098); CI-19 residual (DEC-105); overlaps 1.5 CLOSED CONDITIONAL (DEC-128a) — does **not** auto-close 3.5/3.8 |
+| 3.5 | Stage 5: Security Scan green | pip-audit (named ignore only), Bandit, Gitleaks, Semgrep residual-only | 🟡 READY FOR REVIEW — DEC-147 @ land SHA (pending); CI Stage 5 + Security Scan SUCCESS @ `c842245` (`30704321096` / `30704321107`); ecdsa named ignore (DEC-057/090/098); Semgrep residual **11** alembic (DEC-105); residual: *post-align Security Scan pip-audit field-verify PENDING until tip containing `fa266b5` is pushed*; does **not** auto-close **3.8**; DEC-085 untouched; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN until Arch+Val+Orchestrator |
 | 3.6 | Stage 6: Docker Build + Push green | Backend + Frontend images build + push | ⬜ CI-08 BLOCKED (GHCR 403) |
 | 3.7 | Stage 7: E2E green | Playwright specs PASS with real backend services | ⬜ CI e2e job has no services |
 | 3.8 | Full pipeline: CI GREEN (code path) | Stages 1–5 all green on same run | ⬜ |
@@ -180,7 +180,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 |---------|-------|----------|---------|------|
 | 1. Security P0 | 5 | 5 | 0 | 0 |
 | 2. RLS & Tenant Isolation | 7 | 6 | 0 | 1 |
-| 3. CI/CD Green | 11 | 3 | 2 (CI-08, CI-09) | 6 |
+| 3. CI/CD Green | 11 | 4 | 2 (CI-08, CI-09) | 5 (incl. 3.5 RFR) |
 | 4. EOS Audit Pass | 8 | 6 | 0 | 2 |
 | 5. Capability Drift | 4 | 4 | 0 | 0 |
 | 6. ADR Drift | 5 | 5 | 0 | 0 |
@@ -201,6 +201,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 1.5 post-align Security Scan pip-audit (non-blocking for 1.5 CONDITIONAL) | Push tip containing `fa266b5` | Field-verify Security Scan pip-audit SUCCESS with poetry export + 1 ignored (ecdsa) — does **not** upgrade to unconditional CLOSED until observed |
 | 8.3 tip `test-architecture` (non-blocking for 8.3 CONDITIONAL) | Push tip containing `868a98c` | Field-verify Stage 5 `test-architecture` SUCCESS — does **not** upgrade to unconditional CLOSED until observed |
 | 8.2 at-scale soak (non-blocking for 8.2 CONDITIONAL) | Live soak at `max_parallel_workers=8` | Concurrent-writer soak at worker ceiling — does **not** upgrade to unconditional CLOSED until field-proven |
+| 3.5 post-align Security Scan pip-audit (non-blocking for 3.5 RFR → expected CLOSED CONDITIONAL) | Push tip containing `fa266b5` | Field-verify Security Scan pip-audit SUCCESS with poetry export + 1 ignored (ecdsa) — same residual as 1.5 DEC-128a; does **not** auto-close **3.8** |
 
 ---
 

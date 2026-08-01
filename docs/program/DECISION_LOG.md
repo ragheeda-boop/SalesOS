@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-147 — Phase 0 criterion 3.5 Stage 5 Security Scan READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** CI **3.5** remained Open after Security P0 **1.5** CLOSED CONDITIONAL (DEC-128a explicitly did not auto-close 3.5/3.8). Stage 5 + Security Scan are field-green under named residuals (ecdsa DEC-057/090/098; Semgrep alembic **11** DEC-105) on last pushed tip `c842245`.
+**Alternatives considered:** (a) leave 3.5 open because 1.5 overlaps — rejected; (b) claim VERIFIED/CLOSED / CI GREEN / finding-zero — rejected; (c) soften Semgrep/`--strict` — rejected; (d) land 3.8 instead — rejected (tip Backend Lint red on last push); (e) package READY FOR REVIEW CONDITIONAL with gh evidence — approved.
+**Decision:** Accept criterion **3.5** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-147-CRITERION-3-5-STAGE5-SECURITY-SCAN.md`](decisions/DEC-147-CRITERION-3-5-STAGE5-SECURITY-SCAN.md). Residual: *post-align Security Scan pip-audit PENDING until tip containing `fa266b5` is pushed*. Does **not** auto-close **3.8**. DEC-085 intact. Do **not** self-CLOSE.
+**Consequence:** Phase 0 criterion **3.5** = READY FOR REVIEW (Phase 0 remains **43/54** until Arch+Val+Orchestrator). Adjacent **3.7** BLOCKED (Stage 6/CI-08 + no E2E services). **3.8** OPEN tip code-path. Ops CI-08/09 BLOCKED. EOS **4.1/4.8** ARB. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **READY FOR REVIEW** (Arch+Val+Orchestrator PENDING).
+
 ### DEC-146 — Phase 0 criterion 9.3 `.ai/` Agent OS runtime deferred READY FOR REVIEW
 
 **Date:** 2026-08-01
