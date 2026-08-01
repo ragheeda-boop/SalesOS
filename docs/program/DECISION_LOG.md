@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-139 — Phase 0 criterion 6.5 ADR-036 multi-index READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** ADR Drift checklist **6.5** OPEN — ADR-036 body existed (Status Accepted; criterion 9.1 ✅) but was missing from Active ADRs + `.engineering/27_ADR_INDEX.md`. Criterion **6.4 CLOSED** (DEC-138a).
+**Alternatives considered:** (a) register as Proposed despite file Accepted — rejected (invents conflict); (b) leave `.engineering/27` untracked for 4.5 only — rejected (checklist requires both indexes); (c) duplicate under engineering-os — rejected (no separate index); (d) claim VERIFIED/CLOSED — rejected; (e) dual-index registration with Status Accepted from file/9.1 — approved.
+**Decision:** Accept criterion **6.5** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-139-CRITERION-6-5-ADR-036-MULTI-INDEX.md`](decisions/DEC-139-CRITERION-6-5-ADR-036-MULTI-INDEX.md). Register ADR-036 in `docs/adr/index.md` + `.engineering/27_ADR_INDEX.md`; commit ADR body. DEC-085 intact. Do **not** claim VERIFIED/CLOSED until Arch+Val + Orchestrator DEC-139a.
+**Consequence:** Phase 0 criterion **6.5** = READY FOR REVIEW. Phase 0 remains **33/54**. Residual broader EOS tree re-pin → **4.5**; **9.2** OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **READY FOR REVIEW** (not CLOSED).
+
 ### DEC-138 — Phase 0 criterion 6.4 ADR-032/0032 naming READY FOR REVIEW
 
 **Date:** 2026-08-01

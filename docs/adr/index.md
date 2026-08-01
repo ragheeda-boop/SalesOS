@@ -1,7 +1,7 @@
 # Architecture Decision Records (ADR) Index
 
 > **Purpose**: Central registry of all architectural decisions for SalesOS.
-> **Last updated**: 2026-08-01 (DEC-138 — criterion 6.4: ADR-032/0032 naming unified)
+> **Last updated**: 2026-08-01 (DEC-139 — criterion 6.5: ADR-036 multi-index registration)
 
 ---
 
@@ -23,6 +23,7 @@
 | ADR-033 | Decision Engine Lifecycle | 2026-07-17 | 📝 Proposed | Decision Engine | `docs/adr/0033-decision-engine-lifecycle.md` |
 | ADR-034 | Repository Pattern Compliance | 2026-07-17 | 📝 Proposed | Architecture | `docs/adr/0034-repository-pattern-compliance.md` |
 | ADR-035 | Sprint 0 Architecture Reconciliation | 2026-07-17 | 📝 Proposed | Architecture | `docs/adr/0035-sprint-0-architecture-reconciliation.md` |
+| ADR-036 | Engineering Organization — Layer Separation | 2026-08-01 | ✅ Accepted | Governance | `docs/adr/0036-engineering-organization-layer-separation.md` |
 
 ---
 
@@ -30,7 +31,7 @@
 
 | Location | Scope |
 |----------|-------|
-| `docs/adr/` | Product-root ADRs (ADR-029 disposition; ADR-030 to ADR-035 incl. **ADR-032** naming bridge; ADR-036 file may lag multi-index — criterion 6.5) |
+| `docs/adr/` | Product-root ADRs (ADR-029 disposition; ADR-030 to ADR-036 incl. **ADR-032** naming bridge; **ADR-036** multi-index per DEC-139 / criterion 6.5) |
 | `salesos/backend/docs/adr/` | Backend domain ADRs (ADR-021..028; **ADR-025..028** canonical for criterion 6.1) |
 | `engineering-os/adr/` | Engineering-platform ADRs (ADR-001 to ADR-003, ADR-012; ADR-032 body filename historically `ADR-0032-*` — alias per DEC-138) |
 | `salesos/docs/ARCHITECTURE_BOOK.md` | Comprehensive architecture reference |

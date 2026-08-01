@@ -95,7 +95,8 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **ADR Drift 6.1** ADR-025..028 index paths | **CLOSED** (DEC-135a) | Arch+Val PASS (light) @ `4997ae4` / DEC-135; path-exists + Status Accepted; `docs/adr/index.md` File paths registered; Phase 0 **30/54** (superseded to **33/54** by DEC-138a); ADR Drift Complete **1/5** (superseded to **4/5**); residual `.engineering/27` re-pin (4.5) + **6.5**; do **not** claim Phase 0 GO |
 | **ADR Drift 6.2** ADR-029 phantom | **CLOSED** (DEC-136a) | Arch+Val PASS (light) @ `a1ce473` / DEC-136; Not Issued disposition @ `docs/adr/0029-number-never-issued.md` + index row; numbering gap documented; DEC-085 untouched; Phase 0 **31/54** (superseded to **33/54** by DEC-138a); ADR Drift Complete **2/5** (superseded to **4/5**); residual `.engineering/27` conflict #2 (4.5) + **6.5**; do **not** claim Phase 0 GO |
 | **ADR Drift 6.3** ADR-033/034 status | **CLOSED** (DEC-137a) | Arch+Val PASS (light) @ `bcd7aa6` / DEC-137; index Status **Proposed** matches file headers; dates → `2026-07-17`; no invented Accepted; DEC-085 untouched; Phase 0 **32/54** (superseded to **33/54** by DEC-138a); ADR Drift Complete **3/5** (superseded to **4/5**); residual `.engineering/27` re-pin (4.5) + **6.5**; do **not** claim Phase 0 GO |
-| **ADR Drift 6.4** ADR-032/0032 naming | **CLOSED** (DEC-138a) | Arch+Val PASS (light) @ `8a3c92e` / DEC-138; naming bridge ADR-032 + alias ADR-0032; index File/Status/date aligned (Proposed; no invented Accepted); submodule filename retained as alias; DEC-085 untouched; Phase 0 **33/54**; ADR Drift Complete **4/5**; residual **6.5** + `.engineering/27` (4.5); do **not** claim Phase 0 GO |
+| **ADR Drift 6.4** ADR-032/0032 naming | **CLOSED** (DEC-138a) | Arch+Val PASS (light) @ `8a3c92e` / DEC-138; naming bridge ADR-032 + alias ADR-0032; index File/Status/date aligned (Proposed; no invented Accepted); submodule filename retained as alias; DEC-085 untouched; Phase 0 **33/54**; ADR Drift Complete **4/5**; residual **6.5 READY FOR REVIEW** (DEC-139) + broader EOS (**4.5**); do **not** claim Phase 0 GO |
+| **ADR Drift 6.5** ADR-036 all indexes | **READY FOR REVIEW** (DEC-139) | Body `docs/adr/0036-…`; Status Accepted matches file header + 9.1 (not invented); `docs/adr/index.md` + `.engineering/27_ADR_INDEX.md` registered; engineering-os index N/A; DEC-085 untouched; Phase 0 remains **33/54** until CLOSE; residual **4.5** + **9.2**; do **not** claim VERIFIED/CLOSED / Phase 0 GO |
 
 ---
 
@@ -103,7 +104,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30, ADR Drift **6.5** / EOS **4.x** / Eng Stability **8.x** | PARALLEL / READY | DEC-107 swarm; Capability Drift **COMPLETE 4/4** (DEC-134a); **6.1–6.4 CLOSED**; ADR Drift residual **6.5** only (Complete **4/5**); do **not** claim Phase 0 GO |
+| Contract tests, optional Jest 30, EOS **4.x** / Eng Stability **8.x** / ADR-036 **9.2** | PARALLEL / READY | DEC-107 swarm; Capability Drift **COMPLETE 4/4** (DEC-134a); **6.1–6.4 CLOSED**; **6.5 READY FOR REVIEW** (DEC-139); ADR Drift residual **6.5** awaiting Arch+Val CLOSE (Complete **4/5**); do **not** claim Phase 0 GO |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 **Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation / CI-08/09 ops proceed.
