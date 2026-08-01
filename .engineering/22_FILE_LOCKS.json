@@ -1,0 +1,99 @@
+{
+  "_metadata": {
+    "file": "22_FILE_LOCKS.json",
+    "engineering_os_version": "3",
+    "generated_at": "2026-08-01T12:11:50Z",
+    "repository_commit": "c89025a",
+    "repository_branch": "master",
+    "generator": "OpenCode",
+    "status": "Corrected (EOS v3.1 cycle)",
+    "evidence_level": "Heuristic",
+    "revalidation": "Pending",
+    "purpose": "Coordination lock table. Agents must acquire (set lock_type=write, holder, acquired_at) before modifying any file, and release on completion. Read-only locks protect against accidental modification during parallel work.",
+    "protocol": "To lock: set lock_type, holder, acquired_at, and move reason='open' entries. To release: set lock_type=free, holder=null, released_at=timestamp. Never modify a file whose lock_type is 'write' held by another agent. Danger paths below are 'readonly' — no agent may write them during EOS operations.",
+    "correction_note": "B6 fix: bootstrap write lock on .engineering/** released (was retained after 30 existed). Lock TTL rule added: any write lock must be released or renewed within the same work session. 21_RUNTIME_STATE.locked_files must mirror this file."
+  },
+  "danger_paths_readonly": [
+    {
+      "path": "salesos/backend/.env",
+      "lock_type": "readonly",
+      "reason": "Live environment file; treat as sensitive. Never read into logs, never commit, never modify without explicit human instruction."
+    },
+    {
+      "path": "salesos/backend/.env.production.template",
+      "lock_type": "readonly",
+      "reason": "Template for production secrets."
+    },
+    {
+      "path": "salesos/backend/app/modules/identity/_keys/rsa_private.pem",
+      "lock_type": "readonly",
+      "reason": "Private JWT signing key. Rotation/regeneration gated by SALESOS_JWKS_ALLOW_REGENERATE and governed by human/ops. No agent may modify or copy."
+    },
+    {
+      "path": "salesos/backend/app/modules/identity/_keys/rsa_public.pem",
+      "lock_type": "readonly",
+      "reason": "Public key paired with private key; regenerated only together."
+    },
+    {
+      "path": "salesos/frontend/.env.local",
+      "lock_type": "readonly",
+      "reason": "Local secrets file (untracked, gitignored). Do not read or modify."
+    },
+    {
+      "path": "salesos/.env",
+      "lock_type": "readonly",
+      "reason": "Live environment file."
+    },
+    {
+      "path": "salesos/.env.production",
+      "lock_type": "readonly",
+      "reason": "Production environment values on disk."
+    },
+    {
+      "path": "salesos/.env.staging.local",
+      "lock_type": "readonly",
+      "reason": "Staging local secrets."
+    },
+    {
+      "path": "salesos/infra/monitoring/prometheus-token",
+      "lock_type": "readonly",
+      "reason": "Real monitoring scrape token (untracked, gitignored). Only prometheus-token.example is tracked."
+    }
+  ],
+  "locks": [
+    {
+      "path": ".engineering/**",
+      "lock_type": "free",
+      "holder": null,
+      "acquired_at": "2026-08-01T14:28:17Z",
+      "released_at": "2026-08-01T14:45:00Z",
+      "reason": "Bootstrap write lock RELEASED per ARB audit 32 B6. .engineering/ is writable by EOS change protocol; concurrent edits must be serialized via 21/25/26 (TTL: release or renew within the work session)."
+    },
+    {
+      "path": "salesos/backend/app/modules/identity/_keys/**",
+      "lock_type": "readonly",
+      "holder": "Bootstrap",
+      "reason": "JWT key material; see danger_paths_readonly."
+    },
+    {
+      "path": "docs/audit/ga-engineering-audit/**",
+      "lock_type": "readonly",
+      "reason": "Canonical GA source of truth. EOS records its contents, never modifies them."
+    },
+    {
+      "path": "engineering-os/**",
+      "lock_type": "readonly",
+      "reason": "Governance submodule (dirty). EOS reads only; submodule already has uncommitted drift in kernel/capability-registry.yaml."
+    },
+    {
+      "path": "docs/adr/**",
+      "lock_type": "readonly",
+      "reason": "ADRs are immutable during EOS; discrepancies are recorded in 18/27/28/30, not corrected."
+    },
+    {
+      "path": "docs/CAPABILITY_CATALOG.md",
+      "lock_type": "readonly",
+      "reason": "Capability definitions are immutable during EOS; drift is recorded in 29, not corrected."
+    }
+  ]
+}

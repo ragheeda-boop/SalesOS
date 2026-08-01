@@ -1,0 +1,123 @@
+{
+  "_metadata": {
+    "file": "21_RUNTIME_STATE.json",
+    "engineering_os_version": "3",
+    "generated_at": "2026-08-01T12:11:50Z",
+    "repository_commit": "c89025a",
+    "repository_branch": "master",
+    "generator": "OpenCode",
+    "status": "Corrected (EOS v3.1 cycle)",
+    "evidence_level": "Heuristic",
+    "revalidation": "Pending",
+    "purpose": "The live communication protocol between AI agents. Only agents that hold the lock in 22_FILE_LOCKS.json may update this file. Always update last_updated_by when modifying.",
+    "correction_note": "B6 fix: locked_files mirrors 22_FILE_LOCKS.json (bootstrap write lock released -> no active write locks). pinned at HEAD c89025a."
+  },
+  "operating_state": {
+    "version": "1.0",
+    "state": "EXECUTION",
+    "architecture": "FROZEN",
+    "program": "ACTIVE",
+    "engineering": "STABILIZING",
+    "ai_runtime": "DEFERRED",
+    "effective_from": "2026-08-01",
+    "declared_by": "CTO (ARB session 2026-08-01)",
+    "arb_resolution": "ARB-2026-08-01-001",
+    "arb_closure_resolution": "ARB-2026-08-01-002",
+    "architecture_phase": "CLOSED",
+    "governed_by": [
+      "ADR-036 (Layer Separation)",
+      "PHASE_0_EXIT_CHECKLIST.md (54 criteria)",
+      "EEC-001 (Engineering Execution Contract)",
+      "DEC-008 (Zero partial credit)",
+      "Rule: No work accepted unless it closes a Phase 0 exit criterion"
+    ],
+    "agent_registry": ".ai/roles/registry.md",
+    "agent_bindings": ".ai/runtime/agent-bindings.yaml",
+    "ai_organization_baseline": "1.0.0",
+    "ai_organization_arb": "ARB-2026-08-01-003",
+    "architecture_freeze_rules": [
+      "No new ADRs except to resolve critical architecture conflicts",
+      "No new architectural layers",
+      "No EngineeringOS expansion beyond audit fixes",
+      "No .ai/ Runtime construction",
+      "No new features outside Phase 0 exit scope"
+    ],
+    "transition_trigger": "Phase 0 Exit Checklist = 54/54 → Architecture Review → GO → ADR-037"
+  },
+  "current_sprint": null,
+  "blocked_tasks": [
+    {
+      "id": "CI-08",
+      "description": "GHCR push 403 for GitHub Actions; Stage 6 publish fails (DEC-104). Full publish CI-GREEN label not claimed.",
+      "area": "CI/CD",
+      "blocker_type": "ops"
+    },
+    {
+      "id": "CI-09",
+      "description": "VPS/SSH secrets not provisioned for deploy.yml / deploy-staging.yml.",
+      "area": "CI/CD",
+      "blocker_type": "ops"
+    },
+    {
+      "id": "GA-BLOCKERS",
+      "description": "No 48-72h soak claim, Google OAuth not connected, interactive login password unavailable, staging SSRF pentest/tabletop OPEN, CTO+TL GO signatures UNSIGNED, PRC sign-off OPEN, WAL/PITR+offsite backup OPEN, RPO acceptance UNSIGNED, credential rotation pending.",
+      "area": "Governance",
+      "blocker_type": "human/operational"
+    }
+  ],
+  "parallel_groups": [
+    {
+      "id": "GROUP-BACKEND",
+      "agents": ["Backend Lead", "Architecture Reviewer"],
+      "scope": "salesos/backend/app/modules, domains, runtime",
+      "status": "free"
+    },
+    {
+      "id": "GROUP-FRONTEND",
+      "agents": ["Architecture Reviewer", "Backend Lead"],
+      "scope": "salesos/frontend/src, packages",
+      "status": "free"
+    },
+    {
+      "id": "GROUP-CI-DEPLOY",
+      "agents": ["Engineering Validator"],
+      "scope": ".github/workflows, salesos/infra",
+      "status": "blocked_on_ops"
+    },
+    {
+      "id": "GROUP-SECURITY",
+      "agents": ["Human"],
+      "scope": "identity, middleware, secrets",
+      "status": "blocked_governance"
+    }
+  ],
+  "active_agents": [
+    {
+      "role": "Architecture Reviewer",
+      "worker": "architecture/adr-worker",
+      "criterion": "7.5",
+      "state": "UNDER_ARCHITECTURE_REVIEW"
+    },
+    {
+      "role": "Architecture Reviewer",
+      "worker": "architecture/adr-worker",
+      "criterion": "1.1",
+      "state": "READY_FOR_REVIEW"
+    },
+    {
+      "role": "Backend Lead",
+      "worker": "backend/migration-worker",
+      "criterion": "2.3",
+      "state": "IN_PROGRESS"
+    }
+  ],
+  "last_updated_by": "Execution Orchestrator",
+  "execution_cycle": 1,
+  "phase0_progress": "17/54",
+  "locked_files": [],
+  "lock_mirror": "locked_files reflects 22_FILE_LOCKS.json: no active write locks after bootstrap release (B6 fixed). Danger paths remain readonly there.",
+  "generated_from_commit": "c89025a",
+  "prior_pin": "3749c30",
+  "drift_note": "11 commits ahead of prior pin 3749c30 (DEC-114..121 RLS + DB-05 slices). Class Critical. Re-pinned at HEAD c89025a.",
+  "engineering_version": "3.1"
+}

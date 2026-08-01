@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-140 — Phase 0 criterion 4.5 `.engineering/` tree commit READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** EOS Audit checklist **4.5** OPEN — broader `.engineering/` tree untracked after DEC-139a pinned only `27_ADR_INDEX.md`. ADR Drift **COMPLETE 5/5**. Capability Drift **COMPLETE 4/4**.
+**Alternatives considered:** (a) regenerate fingerprint + re-pin headers to tip in same land — deferred (4.2/4.7); (b) leave untracked with docs-only note — rejected (evidence = not untracked); (c) commit subset only — rejected (broader tree residual); (d) claim VERIFIED/CLOSED — rejected; (e) commit full tree as-is (heuristic pin preserved) — approved.
+**Decision:** Accept criterion **4.5** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-140-CRITERION-4-5-ENGINEERING-TREE-COMMIT.md`](decisions/DEC-140-CRITERION-4-5-ENGINEERING-TREE-COMMIT.md). Commit all 33 EOS files under `.engineering/`. DEC-085 intact. Awaiting Arch+Val + Orchestrator CLOSE (DEC-140a).
+**Consequence:** Phase 0 criterion **4.5** = READY FOR REVIEW. Phase 0 remains **34/54** until CLOSE. Residuals **4.1/4.2/4.4/4.7/4.8** and **9.2** OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **READY FOR REVIEW** (not CLOSED).
+
 ### DEC-139 — Phase 0 criterion 6.5 ADR-036 multi-index READY FOR REVIEW
 
 **Date:** 2026-08-01

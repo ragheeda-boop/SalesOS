@@ -1,0 +1,185 @@
+{
+  "_metadata": {
+    "file": "23_PROJECT_FINGERPRINT.json",
+    "engineering_os_version": "3",
+    "generated_at": "2026-08-01T12:11:50Z",
+    "repository_commit": "c89025a",
+    "repository_branch": "master",
+    "generator": "OpenCode",
+    "status": "Corrected (EOS v3.1 cycle)",
+    "evidence_level": "Heuristic",
+    "revalidation": "Pending",
+    "purpose": "Baseline snapshot of the repository for future drift comparison. Every count below records its measurement method. Re-generate as part of a new EOS bootstrap; never during normal agent work.",
+    "prior_pin": "3749c30",
+    "correction_note": "Independent ARB audit (32) FAILED v3.0 claims at pin 3749c30 (false Alembic head, false FastAPI version, false counts, invented crm surface). This file is the v3.1 correction, re-pinned at HEAD c89025a and measured with recorded methods."
+  },
+  "repository": {
+    "root": "C:\\Users\\raghe\\Documents\\Muhide",
+    "git": {
+      "branch": "master",
+      "head_sha7": "c89025a",
+      "head_sha_full": "c89025a83b158e0db151b8dce81a2bd7fe8d217b",
+      "submodules": [
+        {
+          "path": "engineering-os",
+          "branch": "main",
+          "head": "b82b9fbee2781fa72357a61fe8dfc8a25b8de3bf",
+          "dirty": true,
+          "note": "kernel/capability-registry.yaml has pre-existing uncommitted working-tree change"
+        }
+      ],
+      "drift_vs_prior_pin": {
+        "prior_pin": "3749c30",
+        "commits_ahead": 11,
+        "commits": [
+          "4e4a36e feat(rls): DEC-114 Category B2",
+          "dbe855c feat(rls): DEC-115 Category B3",
+          "ea3c882 feat(rls): DEC-116 Category B4",
+          "20fa049 feat(rls): DEC-117 Category B5",
+          "63b73a7 feat(rls): DEC-118 Category B6",
+          "0bd73fc docs(program): DEC-120 reopen Railway R-14",
+          "291bf3d feat(rls): DEC-119 Category B7",
+          "8c69e83 docs(program): DEC-120 A/B progress",
+          "0156121 fix(db): DEC-121 DB-05 Slice 2",
+          "d4f2601 docs(program): DEC-120 Slice C — staging Alembic tip head, POLICY_COUNT 59",
+          "c89025a docs(program): DEC-120 Slice D stop"
+        ],
+        "drift_class": "Critical",
+        "impact": "Schema/RLS/ORM surface changed after prior pin; v3.0 fingerprint was false even before these commits."
+      }
+    },
+    "tracked_files_raw": 3175,
+    "tracked_files_filtered": 3164,
+    "measurement_method": "git ls-files; filtered = raw minus binary/asset extensions (pptx,xlsx,zip,pdf,png,jpg,jpeg,gif,svg,woff2,ttf,otf,map) minus node_modules,/.next/,__pycache__,.pytest_cache,.ruff_cache",
+    "measurement_units": "counts are git-tracked files (blobs in index) at commit c89025a"
+  },
+  "languages": {
+    "method": "git ls-files extension histogram (raw 3175), all extensions incl. extensionless",
+    "py": 1188,
+    "md": 714,
+    "tsx": 555,
+    "ts": 390,
+    "json": 119,
+    "yaml": 41,
+    "ps1": 30,
+    "yml": 24,
+    "sh": 19,
+    "js": 15,
+    "sql": 11,
+    "html": 11,
+    "png": 10,
+    "extensionless": 7,
+    "tf": 3,
+    "other": "single-digit counts: .example 6, .txt 5, .gitignore 4, .dockerignore 2, .template 2, plus 1 each of .trivyignore .conf .frontend .mjs .svg .gitmodules .bat .css .semgrepignore .npmrc .ini .mako .backend .test .railway .toml .db .vercelignore .lock"
+  },
+  "frameworks": {
+    "method": "values from salesos/backend/pyproject.toml at HEAD",
+    "backend": "FastAPI >=0.136.0,<0.142.0 (CI-22/DEC-054/DEC-073; NOT 0.111), Python ^3.12, SQLAlchemy ^2.0 async, Alembic ^1.13, Celery ^5.4, Pydantic >=2.9,<3, strawberry-graphql >=0.315.7,<1.0.0",
+    "frontend": "Next.js 15 (App Router), React 19, TypeScript 5.7, Tailwind 3.4, Jest 29, Playwright 1.49, Storybook 8 (from prior bootstrap; not re-verified this pass)",
+    "package_managers": { "backend": "poetry", "frontend": "npm workspaces" },
+    "backend_version": "5.1.0",
+    "frontend_version": "5.1.0-rc1"
+  },
+  "applications": [
+    { "name": "SalesOS API", "path": "salesos/backend", "type": "FastAPI monolith (modular)" },
+    { "name": "SalesOS Frontend", "path": "salesos/frontend", "type": "Next.js App Router" },
+    { "name": "Celery Worker", "path": "salesos/backend/app/celery_app.py", "type": "worker" },
+    { "name": "Celery Beat", "path": "salesos/backend/app/celery_schedule.py", "type": "scheduler" },
+    { "name": "Railway Celery Service", "path": "salesos/backend/app/railway_celery_service.py", "type": "wrapper" }
+  ],
+  "packages": {
+    "frontend_workspace_packages": 21,
+    "method": "Get-ChildItem salesos/frontend/packages -Directory (21); 'with src/' = 13; 'no src/' = 8. NOT a production/stub split.",
+    "packages_with_src": 13,
+    "packages_without_src_dir": 8,
+    "package_names_with_src": ["charts", "config", "design-language", "design-system", "forms", "hooks", "icons", "renderer", "runtime", "search", "ui", "widget-sdk", "workspace"],
+    "package_names_without_src": ["charts-v3", "layouts", "platform", "providers", "theme", "tokens", "widgets", "workspace-generator"],
+    "known_stub": "@salesos/decision-platform (in packages/platform/decision; throws per AI_HONESTY)",
+    "backend_distributions": ["app", "sdk", "domains", "runtime", "modules", "intelligence"]
+  },
+  "modules": {
+    "backend_app_modules": 23,
+    "method_modules": "Get-ChildItem salesos/backend/app/modules -Directory excluding __pycache__; names: admin, api_keys, audit, cache, communication_hub, company, contact, decision, demo_mode, employee_360, entity_resolution, excel_import, executive, identity, monitoring, notion_sync, revenue_execution, rules_engine, signal_marketplace, sso, telemetry, webhooks, work_intelligence",
+    "backend_domains": 17,
+    "domains_note": "17 dirs under salesos/backend/domains/ (ai, analytics, commercial, copilot, decision, decision_center, employee, feature_store, marketplace, notifications, rag, revenue, scoring, search, timeline, ubom, workflow) + 1 under app/domains/ (customer_success). NO 'crm' module exists.",
+    "backend_runtime_engines": 27,
+    "runtime_method": "Get-ChildItem salesos/backend/runtime -Directory excluding __pycache__ = 27 (action_engine, activity_runtime, agent_runtime, capability_framework, context_runtime, data_fabric_runtime, decision_runtime, event_runtime, execution_runtime, extension_api, feature_store, form_engine, knowledge_graph_runtime, memory_runtime, nba_engine, pipeline_analytics, plugin_sandbox, policy_runtime, recommendation_runtime, scheduler_runtime, search_runtime, simulation_runtime, timeline_runtime, ui_schema_engine, ux_runtime, widget_engine, workflow_runtime)",
+    "runtime_single_file_dirs": 10,
+    "runtime_single_file_note": "10 runtime dirs contain a single .py file each (heuristic for minimal/stub engines): agent_runtime, context_runtime, execution_runtime, memory_runtime, policy_runtime, recommendation_runtime, scheduler_runtime, simulation_runtime, widget_engine, workflow_runtime. Not individually proven stubs this pass.",
+    "runtime_stubs": "not validated this pass (v3.0 claimed 5; heuristic now suggests up to 10 single-file dirs)",
+    "frontend_features": 13,
+    "frontend_route_groups": 3,
+    "frontend_app_router_pages_tsx": 72,
+    "pages_method": "Get-ChildItem salesos/frontend/src/app -Recurse -Filter page.tsx = 72"
+  },
+  "apis": {
+    "include_router_registrations": 67,
+    "method_apis": "Select-String 'include_router' salesos/backend/app/boot/routers.py = 67 lines",
+    "graphql": "mounted at /graphql (auth protected)",
+    "mcp": "app/routers/mcp.py (auth protected)",
+    "invented_surface_correction": "v3.0 invented '/api/v1/crm/*' and 'modules/crm'. Neither exists. Removed across EOS. CRM surface is NOT present in routers.py or app/modules/."
+  },
+  "databases": {
+    "migration_files": 66,
+    "migration_count_note": "66 files under app/alembic/versions; 66 revision IDs parsed; single linear head.",
+    "alembic_heads": ["c9f4a21b6e08"],
+    "alembic_head_full": "c9f4a21b6e08_db05_slice3_index_rename_nullable_triage",
+    "method_heads": "parsed revision/down_revision from all 66 files; heads = revisions never referenced as a down_revision",
+    "head_history": "at prior pin 3749c30: head was b110c04e7a01 (enable_rls_category_b1_company_children). e4b9c32d0c04 (v3.0 claimed) did NOT exist at that pin.",
+    "rls_category_a_tables": 47,
+    "rls_note": "Category A stays 47 per DEC-044 comment in scripts/generate_rls_policies.py. RLS Category B1-B7 join tables + DB-05 slice 3 landed in DEC-114..121 commits. Exact policy count at HEAD: 59 per DEC-120 Slice C staging measurement (POLICY_COUNT 59); NOT re-computed this pass.",
+    "engine": "PostgreSQL 16 + pgvector (asyncpg), Redis 7, Neo4j 5.x, Meilisearch, optional Kafka",
+    "refresh_token_tables_note": "0012_refresh_token_tables migration exists in chain. v3.0 claim that B5 'password_reset_tokens/refresh_token_families NOT enabled' is RETRACTED as unverified; live-DB enabled-state requires alembic current on a live DB (not run)."
+  },
+  "ci": {
+    "workflow_count": 6,
+    "workflows": ["ci.yml", "security-scan.yml", "docker-smoke.yml", "deploy.yml", "deploy-staging.yml", "deploy-production.yml"],
+    "dependabot": true
+  },
+  "testing": {
+    "backend_test_files": 220,
+    "test_method": "git ls-files | filter '^salesos/backend/' and name matches test_*.py or *_test.py = 220. Method-dependent: repo-wide Get-ChildItem incl. non-tracked/cache gives different numbers. v3.0 claim 269 RETRACTED.",
+    "frontend_e2e_files": 29,
+    "frontend_e2e_note": "29 *.spec.ts files under e2e/; 31 total files in e2e/ (includes non-spec). v3.0 claim 31 spec files corrected.",
+    "frontend_api_contract_test_lines": "~1900 (approx, src/lib/__tests__/api.contract.test.ts)",
+    "coverage_gate": 55,
+    "diff_coverage_gate": 80
+  },
+  "deployments": {
+    "docker_compose_files": 7,
+    "k8s_manifests": 37,
+    "k8s_method": "Get-ChildItem salesos/infra/k8s -Recurse -Filter *.yaml|*.yml = 37",
+    "terraform_files": 3,
+    "monitoring_files": 21,
+    "monitoring_method": "Get-ChildItem salesos/infra/monitoring -Recurse -File = 21",
+    "railway": true,
+    "vercel": true,
+    "vps_blue_green": "deploy.yml",
+    "ghcr_images": "ghcr.io/ragheeda-boop/salesos/{backend,frontend}"
+  },
+  "documentation": {
+    "tracked_docs_md": 714,
+    "adr_files_found": 11,
+    "adr_note": "docs/adr (6 tracked: index + ADR-030..035 per v3.0) + engineering-os/adr (6); ADR-025/026/027/028 files missing; ADR-029 phantom (see 27)",
+    "capability_catalog_entries": 40
+  },
+  "governance": {
+    "ga_status": "production no-go",
+    "source_of_truth": "docs/audit/ga-engineering-audit/GA_STATUS.md + 00-EXECUTIVE-SUMMARY.md + PRODUCTION_PLAN.md + AI_HONESTY.md",
+    "production_readiness": "~78 (wave 24) with NO-GO blockers",
+    "security_score": "51.6/100 (security-audit-report-latest.json, 30 critical failures) — verified this pass"
+  },
+  "danger_paths": [
+    "salesos/backend/.env",
+    "salesos/backend/.env.production.template",
+    "salesos/backend/app/modules/identity/_keys/rsa_private.pem",
+    "salesos/backend/app/modules/identity/_keys/rsa_public.pem",
+    "salesos/frontend/.env.local",
+    "salesos/.env",
+    "salesos/.env.production",
+    "salesos/.env.staging.local",
+    "salesos/infra/monitoring/prometheus-token",
+    "salesos/frontend/server/server.js"
+  ],
+  "comparison_protocol": "To detect drift, re-run the exact same measurement methods above on a new commit and diff against this file. Any count change indicates repository structural change. Also compare alembic_heads (new heads = schema drift). When HEAD advances, set drift section and regenerate."
+}

@@ -97,6 +97,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **ADR Drift 6.3** ADR-033/034 status | **CLOSED** (DEC-137a) | Arch+Val PASS (light) @ `bcd7aa6` / DEC-137; index Status **Proposed** matches file headers; dates → `2026-07-17`; no invented Accepted; DEC-085 untouched; Phase 0 **32/54** (superseded to **34/54** by DEC-139a); ADR Drift Complete **3/5** (superseded to **5/5 COMPLETE**); residual broader EOS (**4.5**); do **not** claim Phase 0 GO |
 | **ADR Drift 6.4** ADR-032/0032 naming | **CLOSED** (DEC-138a) | Arch+Val PASS (light) @ `8a3c92e` / DEC-138; naming bridge ADR-032 + alias ADR-0032; index File/Status/date aligned (Proposed; no invented Accepted); submodule filename retained as alias; DEC-085 untouched; Phase 0 **33/54** (superseded to **34/54** by DEC-139a); ADR Drift Complete **4/5** (superseded to **5/5 COMPLETE**); residual broader EOS (**4.5**); do **not** claim Phase 0 GO |
 | **ADR Drift 6.5** ADR-036 all indexes | **CLOSED** (DEC-139a) | Arch+Val PASS (light) @ `aaeaff3` / DEC-139; Status Accepted matches file header + 9.1 (not invented); `docs/adr/index.md` + `.engineering/27_ADR_INDEX.md` registered; engineering-os index N/A; DEC-085 untouched; Phase 0 **34/54**; ADR Drift COMPLETE **5/5**; residual **4.5** + **9.2** (separate); do **not** claim Phase 0 GO |
+| **EOS Audit 4.5** `.engineering/` committed | **READY FOR REVIEW** (DEC-140) | Cursor COMPLETE — 33 EOS files tracked; pre-land only `27` tracked; heuristic pin `c89025a` preserved (4.2/4.7 OPEN); DEC-085 untouched; Phase 0 remains **34/54** until CLOSE; do **not** claim VERIFIED/CLOSED / Phase 0 GO |
 
 ---
 
@@ -104,7 +105,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30, EOS **4.x** / Eng Stability **8.x** / ADR-036 **9.2** | PARALLEL / READY | DEC-107 swarm; Capability Drift **COMPLETE 4/4** (DEC-134a); ADR Drift **COMPLETE 5/5** (DEC-139a); next OPEN clusters: EOS **4.x** (esp. **4.5**), Eng Stability **8.1–8.3**, ADR-036 Applied **9.2**; do **not** claim Phase 0 GO |
+| Contract tests, optional Jest 30, EOS **4.x** (post-4.5) / Eng Stability **8.x** / ADR-036 **9.2** | PARALLEL / READY | DEC-107 swarm; Capability Drift **COMPLETE 4/4** (DEC-134a); ADR Drift **COMPLETE 5/5** (DEC-139a); **4.5** READY FOR REVIEW (DEC-140); next OPEN: EOS **4.1/4.2/4.4/4.7/4.8**, Eng Stability **8.1–8.3**, ADR-036 Applied **9.2**; do **not** claim Phase 0 GO |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 **Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation / CI-08/09 ops proceed.

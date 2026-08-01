@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-139a criterion 6.5 ADR-036 multi-index VERIFIED/CLOSED; Phase 0 34/54; ADR Drift Complete 5/5 COMPLETE; Capability Drift Complete 4/4)
+> **Last updated:** 2026-08-01 (DEC-140 criterion 4.5 `.engineering/` tree commit READY FOR REVIEW; Phase 0 remains 34/54 until Orchestrator CLOSE; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
 >
 > ## Operating State
 >
@@ -91,7 +91,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 4.2 | Fingerprint matches pinned commit | Alembic head, framework versions, structural counts verified | ⬜ Counts heuristic; no auto-regeneration |
 | 4.3 | No invented surfaces | All cataloged API/Module paths exist in repo | ✅ VERIFIED (ARB 2026-08-01; B4 confirmed; filesystem audit PASS) |
 | 4.4 | EvidenceLevel justified | Counts use measured methods, not narrative | ⬜ Currently "Heuristic" |
-| 4.5 | `.engineering/` committed to git | Not untracked | ⬜ Currently untracked (`?? .engineering/`) |
+| 4.5 | `.engineering/` committed to git | Not untracked | 🟡 READY FOR REVIEW — Cursor COMPLETE (DEC-140); broader EOS tree (33 files) committed; pin remains heuristic `c89025a` (4.2/4.7 OPEN); DEC-085 untouched; awaiting Arch+Val; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN |
 | 4.6 | Lock protocol verified | `21_RUNTIME_STATE.json` mirrors `22_FILE_LOCKS.json` | ✅ VERIFIED (ARB 2026-08-01; 21 mirrors 22; bootstrap lock released) |
 | 4.7 | Staleness protocol active | Fingerprint re-validated at current HEAD | ⬜ |
 | 4.8 | Independent ARB re-audit = PASS | New validation report with no CRITICAL findings | ⬜ |

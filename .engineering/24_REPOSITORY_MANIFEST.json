@@ -1,0 +1,105 @@
+{
+  "_metadata": {
+    "file": "24_REPOSITORY_MANIFEST.json",
+    "engineering_os_version": "3",
+    "generated_at": "2026-08-01T12:11:50Z",
+    "repository_commit": "c89025a",
+    "repository_branch": "master",
+    "generator": "OpenCode",
+    "status": "Corrected (EOS v3.1 cycle)",
+    "evidence_level": "Heuristic",
+    "revalidation": "Pending",
+    "purpose": "Machine-readable single source of truth for repository topology. Agents SHOULD consume this file instead of re-scanning the whole repo. Counts corrected per ARB audit 32 (v3.1).",
+    "prior_pin": "3749c30",
+    "correction_note": "Fixed: domains 19->17(+1 app/domains), runtimes 23->27, migrations 56->66, tests 269->220, k8s 38->37, monitoring 18->21, removed invented 'crm' schema reference."
+  },
+  "directories": [
+    { "path": "salesos", "purpose": "Product monorepo (backend + frontend + infra)" },
+    { "path": "salesos/backend", "purpose": "FastAPI backend monolith" },
+    { "path": "salesos/backend/app", "purpose": "Application layer (main, boot, routers, modules)" },
+    { "path": "salesos/backend/app/modules", "purpose": "Feature modules (23)" },
+    { "path": "salesos/backend/app/alembic", "purpose": "Alembic migrations (66 versions, head c9f4a21b6e08)" },
+    { "path": "salesos/backend/domains", "purpose": "DDD domain layer (17 domains under domains/ + app/domains/customer_success)" },
+    { "path": "salesos/backend/runtime", "purpose": "Runtime engines (27 dirs; 10 single-file)" },
+    { "path": "salesos/backend/sdk", "purpose": "Cross-domain SDK, capability registry, events, telemetry" },
+    { "path": "salesos/backend/intelligence", "purpose": "AI/reasoning/enrichment/provider code" },
+    { "path": "salesos/backend/tests", "purpose": "Backend test pillar (count method: see 23 testing)" },
+    { "path": "salesos/frontend", "purpose": "Next.js 15 frontend" },
+    { "path": "salesos/frontend/src/app", "purpose": "App Router routes (72 page.tsx)" },
+    { "path": "salesos/frontend/src/features", "purpose": "Feature packages (13)" },
+    { "path": "salesos/frontend/src/lib", "purpose": "API client, auth, hooks, queries" },
+    { "path": "salesos/frontend/packages", "purpose": "npm workspace packages (21)" },
+    { "path": "salesos/frontend/e2e", "purpose": "Playwright end-to-end tests (29 *.spec.ts; 31 files total)" },
+    { "path": "salesos/infra", "purpose": "Infrastructure (k8s, terraform, monitoring, docker, staging)" },
+    { "path": "salesos/scripts", "purpose": "Operational scripts (ps1/sh/py)" },
+    { "path": ".github/workflows", "purpose": "CI/CD workflows (6)" },
+    { "path": "docs", "purpose": "Repository documentation (audits, ADRs, ops, vNext)" },
+    { "path": "docs/audit/ga-engineering-audit", "purpose": "Canonical GA engineering audit (source of truth)" },
+    { "path": "docs/adr", "purpose": "Product-root ADRs (ADR-030..035 + index)" },
+    { "path": "engineering-os", "purpose": "Governance submodule (constitution, ADRs 001/002/003/0032/012, capability-registry.yaml)" },
+    { "path": "data", "purpose": "Notion/identity import pipelines (NOT SalesOS runtime GA path by default)" },
+    { "path": "sales-os", "purpose": "Legacy / adjacent tree; prefer salesos/" },
+    { "path": "WidgetTemplate", "purpose": "Widget SDK template package" }
+  ],
+  "modules": [
+    "identity", "company", "contact", "admin", "api_keys", "audit", "communication_hub",
+    "decision", "employee_360", "entity_resolution", "excel_import", "executive",
+    "monitoring", "notion_sync", "revenue_execution", "rules_engine", "signal_marketplace",
+    "sso", "telemetry", "webhooks", "work_intelligence", "cache", "demo_mode"
+  ],
+  "domains": [
+    "ai", "analytics", "commercial", "copilot", "decision", "decision_center", "employee",
+    "feature_store", "marketplace", "notifications", "rag", "revenue", "scoring", "search",
+    "timeline", "ubom", "workflow", "customer_success (in app/domains)"
+  ],
+  "services": [
+    { "name": "backend", "port": "8000", "entry": "salesos/backend/app/main.py", "deploy": "Railway/VPS/K8s/GHCR" },
+    { "name": "frontend", "port": "3000", "entry": "salesos/frontend/src/app", "deploy": "Vercel/VPS/K8s/GHCR" },
+    { "name": "worker", "entry": "celery -A app.celery_app worker", "broker": "Redis", "deploy": "Railway/K8s" },
+    { "name": "beat", "entry": "celery -A app.celery_app beat", "schedule": "9 jobs", "deploy": "Railway/K8s" }
+  ],
+  "apis": {
+    "method": "prefix list sampled from include_router(..., prefix=...) in salesos/backend/app/boot/routers.py (67 include_router lines). Routers mounted at '/api/v1' with router-local paths are NOT fully expanded here; see 14_API_CATALOG for the verified table.",
+    "prefixes": ["/api/v1/identity", "/api/v1/companies", "/api/v1/contacts", "/api/v1/admin", "/api/v1/entity-resolution", "/api/v1/decision", "/api/v1/decision-center", "/api/v1/workflows", "/api/v1/webhooks", "/api/v1/search", "/api/v1/timeline", "/api/v1/graph", "/api/v1/features", "/api/v1/feature-store", "/api/v1/data-fabric", "/api/v1/capabilities", "/api/v1/ux", "/api/v1/actions", "/api/v1/forms", "/api/v1/extensions", "/api/v1/plugins", "/api/v1/schema", "/api/v1/opportunities", "/api/v1/meetings", "/api/v1/revenue", "/api/v1/nba", "/api/v1/pipeline-analytics", "/api/v1/rag", "/api/v1/analytics", "/api/v1/ai", "/api/v1/copilot", "/api/v1/notifications", "/api/v1/enrichment", "/api/v1/mcp", "/api/v1/source-of-truth", "/api/v1/cache", "/api/v1/audit", "/api/v1/api-keys", "/api/v1/integrations/google", "/api/v1/sso", "/api/v1/rules", "/api/v1/signals", "/api/v1/executive-dashboard", "/api/v1/employees", "/api/v1/demo", "/api/v1/admin/demo-mode", "/api/v1/admin/sla-report", "/api/v1/admin/benchmarks"],
+    "graphql": "/graphql",
+    "public_surfaces": ["/api/v1/identity (internal auth)", "/api/v1/sso", "/api/v1/integrations/google/callback", "/api/v1/webhooks (auth within)", "/api/v1/source-of-truth (optional token)", "/api/v1/demo", "/metrics", "/monitoring"],
+    "not_mounted": "CRITICAL CORRECTION: '/api/v1/crm' and module 'crm' DO NOT exist. v3.0 invented them. Removed."
+  },
+  "databases": {
+    "postgres_tables": "66 Alembic migrations; core schemas: audit, identity, company, activity, commercial, analytics, decision_center, workflow, notification, webhook, oauth, telemetry",
+    "alembic_head": "c9f4a21b6e08 (single head)",
+    "redis": "cache, session, rate-limit, celery broker",
+    "neo4j": "knowledge graph (preferred; degraded if absent)",
+    "meilisearch": "search index (hybrid search)",
+    "kafka": "optional event bus (EVENT_BUS_TYPE; default in_memory = GA degraded)"
+  },
+  "tests": {
+    "backend": "salesos/backend/tests + module/domain tests (220 files via git ls-files test_*._py/_test.py; method-dependent)",
+    "frontend_jest": "src/**/__tests__ + packages/**/__tests__",
+    "frontend_e2e": "salesos/frontend/e2e (29 *.spec.ts) + tests/visual",
+    "architecture": "salesos/backend/tests/test_architecture.py (5 rules)"
+  },
+  "deployments": [
+    { "name": "Railway", "config": "salesos/railway.json + Dockerfile.railway", "status": "backend live (salesos-production-96c0.up.railway.app); blocked for GA path per DEC-DRAFT-RAILWAY-R14-PHASE0" },
+    { "name": "Vercel", "config": "salesos/frontend/vercel.json", "status": "FE live (sales-os-jet.vercel.app)" },
+    { "name": "VPS blue-green", "config": "salesos/docker-compose.prod.yml + deploy.yml", "status": "configured; CI-09 VPS secrets blocked" },
+    { "name": "VPS staging", "config": "salesos/infra/staging + deploy-staging.yml", "status": "configured; CI-09 blocked" },
+    { "name": "Kubernetes", "config": "salesos/infra/k8s (37 manifests) + deploy-production.yml + terraform (3)", "status": "configured; secrets template CHANGE_ME; no deploy gated on CI green" }
+  ],
+  "documents": [
+    "AGENTS.md", "docs/audit/ga-engineering-audit/00-EXECUTIVE-SUMMARY.md", "docs/audit/ga-engineering-audit/GA_STATUS.md",
+    "docs/audit/ga-engineering-audit/PRODUCTION_PLAN.md", "docs/audit/ga-engineering-audit/AI_HONESTY.md",
+    "docs/adr/index.md", "docs/CAPABILITY_CATALOG.md", "PRODUCT_BIBLE.md", "salesos/CANONICAL_ARCHITECTURE.md",
+    "salesos/SAAS_PLATFORM_ARCHITECTURE.md", "docs/vnext/DECISIONS.md", "docs/ops/RUNTIME_STACK.md",
+    "docs/ops/DR_RUNBOOK.md", "docs/ops/SECRETS_HYGIENE.md", "engineering-os/ENGINEERING_CONSTITUTION.md",
+    "engineering-os/kernel/capability-registry.yaml"
+  ],
+  "ci": {
+    "workflows": ["ci.yml", "security-scan.yml", "docker-smoke.yml", "deploy.yml", "deploy-staging.yml", "deploy-production.yml"],
+    "blockers": { "CI-08": "GHCR push 403 (DEC-104)", "CI-09": "VPS/SSH secrets" }
+  },
+  "governance": {
+    "ga_status": "production no-go",
+    "freeze_rule": "During EOS Bootstrap: production code, infra code, docs outside .engineering, ADRs, and capability definitions are immutable. EOS observes/records, never corrects."
+  }
+}
