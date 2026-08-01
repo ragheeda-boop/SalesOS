@@ -55,6 +55,11 @@ async def setup_database():
         """))
     await engine.dispose()
     yield
+    # pytest-xdist: each worker has its own session-scoped teardown. drop_all
+    # against the shared salesos_test DB races workers still running (near-end
+    # UndefinedTableError on companies/tenants). Ephemeral CI DBs need no cleanup.
+    if os.environ.get("PYTEST_XDIST_WORKER"):
+        return
     engine = create_async_engine(_db_url(), echo=False)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
