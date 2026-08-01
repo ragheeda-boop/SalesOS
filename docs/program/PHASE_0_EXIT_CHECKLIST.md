@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-02 (DEC-148a criterion 3.8 CI GREEN code path **CLOSED CONDITIONAL**; DEC-147a 3.5 **CLOSED CONDITIONAL**; Phase 0 **45/54**; residuals EOS **4.1/4.8** ARB · CI **3.6–3.7/3.9–3.11** ops · tip **3.8** same-run PENDING push; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
+> **Last updated:** 2026-08-02 (backend/api-worker **BLOCKED inventory** — no Cursor-closeable Phase 0 criterion left; DEC-148a **3.8 CLOSED CONDITIONAL**; Phase 0 **45/54**; hard OPEN ⬜ **7** + scoreboard Blocked **2** = **9** remaining with owners ARB/ops/push field-verify; do **not** invent EOS **4.1/4.8** ARB; skip ops CI-08/CI-09; **3.7** Stage-6-dep; optional contract/Jest 30 parked)
 >
 > ## Operating State
 >
@@ -22,9 +22,9 @@
 
 ## Current Verdict
 
-**Phase 0 = NO-GO** (CI-08/CI-09; Security residuals; Capability/ADR drift)
+**Phase 0 = NO-GO** (CI-08/CI-09; EOS ARB **4.1/4.8**; CI GREEN publish **3.9** not met)
 
-Blocked on: **CI-08** (GHCR 403), **CI GREEN not met** (full/publish **3.9**). R-14 Railway **2.3 CLOSED CONDITIONAL** (multi-tenant live split residual). Security **1.5** / CI **3.5** / CI **3.8 CLOSED CONDITIONAL** (tip Stages 1–5 same-run field-verify PENDING until tip containing `14fce5f` is pushed; Stage 3/4 may still fail when unblocked).
+Blocked on: **CI-08** (GHCR 403), **CI GREEN not met** (full/publish **3.9**), **CI-09**, EOS **ARB** re-audit. R-14 Railway **2.3 CLOSED CONDITIONAL** (multi-tenant live split residual). Security **1.5** / CI **3.5** / CI **3.8 CLOSED CONDITIONAL** (tip field-verify PENDING push). **Cursor swarm:** no closeable Phase 0 criterion left — see §Remaining 9 BLOCKED inventory (2026-08-02).
 
 ---
 
@@ -189,6 +189,28 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met** (full/publish **3.9**). R
 | 9. ADR-036 Applied | 4 | 4 | 0 | 0 |
 | **TOTAL** | **54** | **45** | **2** | **7** |
 
+**Scoreboard honesty (2026-08-02):** Phase 0 pin remains **45/54** (DEC-148a). RLS cluster Open **1** = **2.3** CLOSED CONDITIONAL multi-tenant residual tracked as scoreboard open (criterion row stays ✅ CONDITIONAL — **not** a hard ⬜; do **not** fake unconditional CLOSE). Hard OPEN ⬜ rows = **7** (**3.6**, **3.7**, **3.9**, **3.10**, **3.11**, **4.1**, **4.8**). Cluster Open cells (1+3+2=6) + scoreboard nuance vs TOTAL Open **7** = pre-existing arithmetic debt; Orchestrator may re-baseline — this inventory does **not** bump Completes.
+
+---
+
+## Remaining 9 — Cursor BLOCKED inventory (2026-08-02)
+
+No Phase 0 criterion is Cursor-closeable without ARB invent, ops secrets, Stage-6 dependency, or human push. Optional contract-test expansion / Jest 30 = PARALLEL backlog only (does **not** close any row below). DEC-085 untouched. **No fake CLOSE. No Production GO. No CI GREEN.**
+
+| # | Criterion | Owner | Block class | Why blocked / next action |
+|---|-----------|-------|-------------|---------------------------|
+| 3.6 | Stage 6 Docker Build + Push | DevOps / ops | **ops (CI-08)** | GHCR 403 — human Packages write; Stage 6 push |
+| 3.7 | Stage 7 E2E green | DevOps / Backend | **Stage-6-dep** | Playwright needs real services + Stage 6 path; do not fake local green as 3.7 CLOSE |
+| 3.9 | CI GREEN (incl. publish) | DevOps / ops | **ops (CI-08)** | Needs Stages 1–7 same-run; blocked behind 3.6/3.7/3.10 |
+| 3.10 | CI-08 GHCR 403 resolved | Ops / human | **ops** | Grant GHCR write to Actions |
+| 3.11 | CI-09 VPS SSH/secrets | Ops / human | **ops** | Provision `VPS_HOST` / `VPS_USER` / `VPS_SSH_KEY` |
+| 4.1 | B1–B7 findings resolved | OpenCode / **ARB** | **ARB** | v3.1 corrected; independent re-audit PASS required — **do not invent** |
+| 4.8 | Independent ARB re-audit = PASS | OpenCode / **ARB** | **ARB** | New validation report, no CRITICAL — **do not invent** |
+| 3.8 residual | tip Stages 1–5 same-run | Validation / push | **push field-verify** | Criterion **CLOSED CONDITIONAL** (DEC-148a); PENDING push tip containing `14fce5f` — prefer not push from Cursor; does **not** upgrade to unconditional CLOSED until observed |
+| 3.5 / 1.5 residual | Security Scan pip-audit post-align | Validation / push | **push field-verify** | Criteria **CLOSED CONDITIONAL**; PENDING push tip containing `fa266b5` — field-verify poetry export + 1 ignored (ecdsa); does **not** auto-close **3.8** |
+
+Adjacent non-blocking residuals (not counted in the 9): **8.3** tip `test-architecture` PENDING push `868a98c`; **8.2** at-scale soak; **2.3** multi-tenant live split.
+
 ---
 
 ## Blocked Items (cannot proceed without external action)
@@ -203,6 +225,8 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met** (full/publish **3.9**). R
 | 8.2 at-scale soak (non-blocking for 8.2 CONDITIONAL) | Live soak at `max_parallel_workers=8` | Concurrent-writer soak at worker ceiling — does **not** upgrade to unconditional CLOSED until field-proven |
 | 3.5 post-align Security Scan pip-audit (non-blocking for 3.5 CLOSED CONDITIONAL) | Push tip containing `fa266b5` | Field-verify Security Scan pip-audit SUCCESS with poetry export + 1 ignored (ecdsa) — same residual as 1.5 DEC-128a; does **not** upgrade to unconditional CLOSED until observed; does **not** auto-close **3.8** |
 | 3.8 tip Stages 1–5 same-run (non-blocking for 3.8 CLOSED CONDITIONAL) | Push tip containing `14fce5f` | Field-verify Stages 1–5 SUCCESS on same named run — Stage 3/4 may still fail when Lint unblocks; does **not** upgrade to unconditional CLOSED until observed; does **not** close **3.6–3.11** / **3.9** full CI GREEN |
+| EOS **4.1** / **4.8** | Independent ARB | ARB re-audit PASS — Cursor must **not** invent ARB close |
+| CI **3.7** | Stage 6 + E2E services | Stage-6-dep — park until CI-08 unblocks publish path |
 
 ---
 
