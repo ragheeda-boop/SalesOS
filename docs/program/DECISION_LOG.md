@@ -575,3 +575,14 @@
 **Decision:** Register standalone story **CI-22 — FastAPI / Starlette / Pydantic modernization program** (P1, owner Backend Lead). Scope: planned cascade to clear starlette `pip-audit` floor (**starlette ≥1.3.1**), requiring FastAPI ≥~0.135 (or later) + pydantic ≥2.9, with compatibility/regression plan. **NOT** part of CI-16 slice work. Evidence anchor: DEC-052 / commit `8323c84`. No package bumps in the registration commit.
 **Consequence:** CI-22 **REGISTERED** on the Sprint 05 delivery board. CI-16 remains **IN PROGRESS / OPEN** (Slice 1 retained; Slice 2 BLOCKED; strawberry/ecdsa still CI-16). R-21 updated: **DEC-052 → CI-22**. Program Complete/Closed count unchanged (**19/20**). **CI GREEN not met.**
 **Status:** Accepted. CI-22 **REGISTERED** (not started).
+
+---
+
+### DEC-055 — CI-20 Phase 7 complete: app/routers mypy burn-down (44→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1–6 (DEC-046–050, DEC-053) cleared admin/company/entity_resolution/identity/revenue_execution/sso; overall expected **~308 → ~201**. Phase 7 targeted package `app/routers` (CI hotspot **44** errors across commercial/workflows/copilot/opportunities/source_of_truth/mcp/analytics) and landed on `master` at `802cde5` (`802cde5dbe23b95056ce8301ffa0e8189341895f`) — routers package **44 → 0** mypy errors (annotations, casts for `list?` shadowing from service method named `list`, OpportunityQuery page/page_size mapping, workspace `dict[str, Any]`); overall expected **~201 → ~157**.
+**Alternatives considered:** (a) close entire CI-20 on Phase 7 land — rejected (residual ~157 errors remain; phased story); (b) record Phase 7 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
+**Decision:** Accept Phase 7 as **COMPLETE** at `802cde5`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Validation label: **light validated** (host mypy on `app/routers`); full Backend Types CI **not** re-run.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**19/20**). R-22 remains Open (mitigating). **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 7 COMPLETE**; story **OPEN**.
