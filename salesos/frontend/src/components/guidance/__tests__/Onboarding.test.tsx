@@ -186,7 +186,10 @@ describe("OnboardingChecklist", () => {
       const { completeItem } = useOnboarding();
       return (
         <>
-          <button type="button" onClick={() => ALL.forEach((id) => completeItem(id))}>
+          <button
+            type="button"
+            onClick={() => ALL.forEach((id) => completeItem(id))}
+          >
             seed-all
           </button>
           <OnboardingChecklist />
