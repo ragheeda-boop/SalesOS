@@ -74,7 +74,7 @@ Representative log evidence (run `30664173050`): `TypeError: Cannot read propert
 ## 5. Use for CI-14 (dependency contract)
 
 - Historical baseline gate (CI-13 capture): failing suites `<= 33`, failing tests `<= 163`; **no new failures** beyond the §3 inventory.
-- **Post-remediation expected ceiling (local / narrow evidence; full CI inventory not re-run):** failing suites **`<= 8`** after stale production contract assertions (−3 vs section 8 inventory of **11**). Field verify recorded in section 8 (run `30677189129` / `1c33c1b`): **11** failing suites — prior light-validated ≤4 **not** met; treat section 8 as CI-authoritative inventory until next capture.
+- **Post-remediation expected ceiling (local / narrow evidence; full CI inventory not re-run):** failing suites **`<= 6`** after §8 #2/#3 residual remediation (−2 vs prior expected **≤8**; −5 vs section 8 field count **11** if holdouts also hold). Field verify recorded in section 8 (run `30677189129` / `1c33c1b`): **11** failing suites — prior light-validated ≤4 **not** met; treat section 8 as CI-authoritative inventory until next capture.
 - Remediation of remaining suites is the Sprint 01 Jest-debt story (separate from CI-14's dependency modernization).
 - Any suite in this list that becomes green should be removed from this baseline with a note.
 
@@ -89,8 +89,9 @@ Representative log evidence (run `30664173050`): `TypeError: Cannot read propert
 | 2026-08-01 | `54597d7` | Incomplete React Query / query-hook mocks | 3 | Narrow Jest: **3 suites / 33 tests passed** — `settings-page`, `WorkflowBuilder`, `AnalyticsWorkspace` (**light validated**) | `useQueryClient` + queryKey-aware mocks; `useWorkflowExecutions` returns; `useExecutiveDashboard` + chart stubs; nested `<h3>` markup fix in `AnalyticsWorkspace`. Full CI inventory not re-run. |
 | 2026-08-01 | `9739a9e` | Stale DOM/selector assertions | 3 | Narrow Jest: **3 suites / 21 tests passed** — `admin-workspace`, `DealCard`, `NewWorkflowPage` (**light validated**) | Sidebar labels aligned to `admin.tab.*` Arabic; DealCard missing-score asserts em-dash placeholder; NewWorkflow palette click uses sole `"إرسال بريد"`. Section 8 field verify: these 3 **did not hold** in full CI. |
 | 2026-08-01 | `4fdc1d8` | Stale production contract assertions | 3 | Narrow Jest: **3 suites / 22 tests passed** — `widget.store`, `lib/analytics`, `Onboarding` (**light validated**) | Targets section 8 #5/#7/#8: `deriveStatus(null)` → `ready` + 13-widget inventory; `sendBeacon` Blob parse (jsdom FileReader); onboarding in-memory (no localStorage). Expected field ceiling **11 → ≤8**. Full CI inventory not re-run. |
+| 2026-08-01 | *(this commit)* | §8 residual — NBAWidget refetch + AutomationAnalytics async wait | 2 | Narrow Jest: **2 suites / 27 tests passed** — `NBAWidget`, `AutomationAnalyticsPage` (**light validated**) | Targets section 8 #2/#3: `opportunityId` reload dep in container; `waitFor` + chart testids / lucide stubs. Expected field ceiling **≤8 → ≤6** (if six holdouts remain red). Full CI inventory not re-run. |
 
-**Revised expected failing-suite ceiling (post this category, light):** **≤8** vs section 8 field count **11**. Prior light ≤4 **not** met under full CI. Do **not** claim Stage 3 green until next field verify.
+**Revised expected failing-suite ceiling (post this category, light):** **≤6** vs prior expected **≤8** / section 8 field count **11**. Prior light ≤4 **not** met under full CI. Do **not** claim Stage 3 green until next field verify.
 
 ## 7. Record
 
@@ -123,8 +124,8 @@ Tests:       51 failed, 1 skipped, 2227 passed, 2279 total
 | # | Suite | Notes (CI log) |
 |---|---|---|
 | 1 | `src/app/(dashboard)/settings/__tests__/settings-page.test.tsx` | `useQueryClient is not a function` — section 6 `54597d7` light recovery **did not hold** in full CI |
-| 2 | `src/features/revenue-execution/widgets/nba-widget/__tests__/NBAWidget.test.tsx` | refetch call-count assertion |
-| 3 | `src/app/(dashboard)/automation/analytics/__tests__/AutomationAnalyticsPage.test.tsx` | stale UI-text / missing testids |
+| 2 | `src/features/revenue-execution/widgets/nba-widget/__tests__/NBAWidget.test.tsx` | refetch call-count assertion — **remediated** (pending next field verify) |
+| 3 | `src/app/(dashboard)/automation/analytics/__tests__/AutomationAnalyticsPage.test.tsx` | stale UI-text / missing testids / async wait — **remediated** (pending next field verify) |
 | 4 | `src/features/automation/widgets/workflow-builder/__tests__/WorkflowBuilder.test.tsx` | `useWorkflowExecutions` undefined — section 6 light recovery **did not hold** |
 | 5 | `src/components/guidance/__tests__/Onboarding.test.tsx` | localStorage / progress copy — **remediated** (stale production contract; pending next field verify) |
 | 6 | `src/app/(dashboard)/automation/workflows/new/__tests__/NewWorkflowPage.test.tsx` | section 6 `9739a9e` light recovery **did not hold** |
@@ -143,3 +144,39 @@ Tests:       51 failed, 1 skipped, 2227 passed, 2279 total
 | Ceiling | **11 > 10** (observer) and **11 > 4** (section 5 expected) |
 
 Do **not** claim full CI GREEN. Backend Stage 1/2 and Stage 5 gates remain red on this run (out of scope for this observer note).
+
+## 9. Stage 3 holdout support (post-`4fdc1d8`) — DEC-067
+
+> **Docs-only.** Holdout **code** ownership: Frontend Lead / holdout agent. Program agents must not edit the eight suite files below while a holdout remediator owns them. Companion: [`docs/program/decisions/DEC-067-JEST-STAGE3-HOLDOUT-SUPPORT.md`](../../../../docs/program/decisions/DEC-067-JEST-STAGE3-HOLDOUT-SUPPORT.md).
+
+### 9.1 Expected ceiling
+
+| Basis | Failing suites |
+|---|---:|
+| §8 field verify (`30677189129` / `1c33c1b`) | **11** |
+| Minus §6 stale production contract (`4fdc1d8`) — #5/#7/#8 light PASS | **−3** |
+| **Expected next field ceiling** | **≤8** |
+
+Do **not** treat light-validated ≤4 (historical §5) as Stage 3 truth. Full CI inventory not re-run after `4fdc1d8`.
+
+### 9.2 Holdout inventory (H1–H8)
+
+| ID | Suite | Notes |
+|---|---|---|
+| H1 | `src/app/(dashboard)/settings/__tests__/settings-page.test.tsx` | `useQueryClient` — §6 light did not hold |
+| H2 | `src/features/revenue-execution/widgets/nba-widget/__tests__/NBAWidget.test.tsx` | refetch call-count |
+| H3 | `src/app/(dashboard)/automation/analytics/__tests__/AutomationAnalyticsPage.test.tsx` | stale UI-text / testids |
+| H4 | `src/features/automation/widgets/workflow-builder/__tests__/WorkflowBuilder.test.tsx` | `useWorkflowExecutions` — light did not hold |
+| H5 | `src/app/(dashboard)/automation/workflows/new/__tests__/NewWorkflowPage.test.tsx` | DOM/selector light did not hold |
+| H6 | `src/features/revenue-execution/workspace/pipeline/__tests__/DealCard.test.tsx` | DOM/selector light did not hold |
+| H7 | `src/features/admin/__tests__/admin-workspace.test.tsx` | sidebar copy — light did not hold |
+| H8 | `src/features/analytics/__tests__/AnalyticsWorkspace.test.tsx` | `No QueryClient set` — light did not hold |
+
+**Pending field verify (not holdouts):** Onboarding, widget.store, lib/analytics (`4fdc1d8`).
+
+### 9.3 Next Stage 3 field-verify recipe
+
+1. Tip SHA must include `4fdc1d8` + any holdout remediations under test.  
+2. Capture GitHub Actions CI → job `Stage 3: Frontend Unit Tests` (run id, counts, failing paths).  
+3. Append a new §10 field-verify block; failing paths should be ⊆ H1–H8 (name any true regression).  
+4. Update R-23 / board with the captured count. **Never** claim Stage 3 green from narrow Jest alone.

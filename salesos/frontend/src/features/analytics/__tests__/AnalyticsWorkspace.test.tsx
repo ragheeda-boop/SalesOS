@@ -33,13 +33,7 @@ jest.mock("@/lib/i18n", () => ({
 jest.mock("@salesos/charts", () => ({
   BarChart: () => <div data-testid="bar-chart" />,
   PieChart: () => <div data-testid="pie-chart" />,
-  MetricCard: ({
-    label,
-    value,
-  }: {
-    label: string;
-    value: string | number;
-  }) => (
+  MetricCard: ({ label, value }: { label: string; value: string | number }) => (
     <div data-testid="metric-card">
       <span>{label}</span>
       <span>{value}</span>

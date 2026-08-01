@@ -709,3 +709,14 @@
 **Decision:** Accept Phase 13 as **COMPLETE** at `5edb6d6`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phases 1–12. Do **not** bump FastAPI. Validation label: **light validated** (host mypy on `app/application` targets); full Backend Types CI **not** re-run.
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 13 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-067 — Jest Stage 3 holdout support package (docs); R-23 remains Open
+
+**Date:** 2026-08-01
+**Context:** Stage 3 field verify `30677189129` / `1c33c1b` left **11** failing suites (authoritative). Stale production-contract remediations landed at `4fdc1d8` for §8 #5/#7/#8 (Onboarding, widget.store, analytics) — **light validated** only. Remaining **8** suites are the Stage 3 holdout set; a parallel holdout agent owns those `.test.tsx` files. Program needed a governed inventory + ownership rules so CI-14 / CI-20 / CI-19 agents do not collide.
+**Alternatives considered:** (a) edit holdout suites from this program session — rejected (ownership conflict); (b) wait for Stage 3 field verify before documenting — rejected (inventory already known from §8 + `4fdc1d8`); (c) docs-only holdout support package (inventory, ownership, field-verify recipe) — approved.
+**Decision:** Accept [`decisions/DEC-067-JEST-STAGE3-HOLDOUT-SUPPORT.md`](decisions/DEC-067-JEST-STAGE3-HOLDOUT-SUPPORT.md). Record H1–H8 in `JEST_BASELINE.md` §9. Expected next field ceiling **≤8**. Do **not** close Jest-debt / R-23. Do **not** start CI-14 Slice 3 (Jest major). Do **not** claim Stage 3 green.
+**Consequence:** Jest-debt stays **READY / PARALLEL**. R-23 **Open — mitigating**. Program Complete/Closed count unchanged (**20/21**). Validation: **not validated** (docs only). **CI GREEN not met.**
+**Status:** Accepted. Stage 3 holdout **support COMPLETE** (docs); holdout **code** remains OPEN under Frontend Lead.

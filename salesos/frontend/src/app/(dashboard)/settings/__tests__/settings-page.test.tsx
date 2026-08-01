@@ -122,18 +122,16 @@ const mockNotifPrefs = {
 };
 
 function mockQueries(profile = mockProfile) {
-  mockUseQuery.mockImplementation(
-    (opts: { queryKey?: readonly unknown[] }) => {
-      const key = (opts.queryKey ?? []).join(":");
-      if (key.includes("api-keys")) {
-        return { data: [], isLoading: false };
-      }
-      if (key.includes("notifications")) {
-        return { data: mockNotifPrefs, isLoading: false };
-      }
-      return { data: profile, isLoading: false };
-    },
-  );
+  mockUseQuery.mockImplementation((opts: { queryKey?: readonly unknown[] }) => {
+    const key = (opts.queryKey ?? []).join(":");
+    if (key.includes("api-keys")) {
+      return { data: [], isLoading: false };
+    }
+    if (key.includes("notifications")) {
+      return { data: mockNotifPrefs, isLoading: false };
+    }
+    return { data: profile, isLoading: false };
+  });
 }
 
 function mockMutations() {
