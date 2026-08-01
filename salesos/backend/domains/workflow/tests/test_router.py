@@ -1,4 +1,4 @@
-﻿"""Tests for the Workflow router â€” validates all REST endpoints through FastAPI TestClient."""
+"""Tests for the Workflow router — validates all REST endpoints through FastAPI TestClient."""
 from __future__ import annotations
 
 import uuid
@@ -25,7 +25,7 @@ from domains.workflow.repository import InMemoryWorkflowRepository
 from domains.workflow.service import WorkflowService
 
 
-# â”€â”€ Helpers â”€â”€
+# ── Helpers ──
 
 def _make_wf(override: dict | None = None) -> Workflow:
     base = {
@@ -60,7 +60,7 @@ def _make_execution(override: dict | None = None) -> WorkflowExecution:
     return WorkflowExecution(**base)
 
 
-# â”€â”€ Fixtures â”€â”€
+# ── Fixtures ──
 
 @pytest.fixture
 def repo() -> InMemoryWorkflowRepository:
@@ -97,7 +97,11 @@ def wf_app(svc: WorkflowService) -> FastAPI:
     application.dependency_overrides[require_permission] = _allow
     application.dependency_overrides[wr._get_service] = lambda: svc
 
-    application.include_router(workflow_router, prefix="/api/v1")
+    application.include_router(wr.router, prefix="/api/v1")
+    assert any(
+        getattr(route, "path", "").rstrip("/").endswith("/workflows")
+        for route in application.routes
+    ), f"workflow routes not mounted: {[getattr(r, 'path', None) for r in application.routes]}"
 
     def _override_auth_deps(dependant) -> None:
         for dependency in getattr(dependant, "dependencies", []) or []:
@@ -124,7 +128,7 @@ def wf_app(svc: WorkflowService) -> FastAPI:
     return application
 
 
-# â”€â”€ Workflow CRUD Tests â”€â”€
+# ── Workflow CRUD Tests ──
 
 @pytest.mark.asyncio
 async def test_list_workflows(wf_app: FastAPI, svc: WorkflowService):
@@ -307,7 +311,7 @@ async def test_get_execution_not_found(wf_app: FastAPI):
     assert response.status_code == 404
 
 
-# â”€â”€ Webhook Endpoint Tests â”€â”€
+# ── Webhook Endpoint Tests ──
 
 @pytest.mark.asyncio
 async def test_create_webhook(wf_app: FastAPI):
@@ -373,7 +377,7 @@ async def test_delete_webhook(wf_app: FastAPI, svc: WorkflowService):
         assert data["deleted"] is True
 
 
-# â”€â”€ Scheduled Job Tests â”€â”€
+# ── Scheduled Job Tests ──
 
 @pytest.mark.asyncio
 async def test_create_cron_job(wf_app: FastAPI):
@@ -455,7 +459,7 @@ async def test_delete_job(wf_app: FastAPI, svc: WorkflowService):
         assert data["deleted"] is True
 
 
-# â”€â”€ Template Tests â”€â”€
+# ── Template Tests ──
 
 @pytest.mark.asyncio
 async def test_list_templates(wf_app: FastAPI):
