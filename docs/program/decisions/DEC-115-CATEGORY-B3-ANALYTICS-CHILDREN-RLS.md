@@ -62,7 +62,7 @@ FORCE ROW LEVEL SECURITY required. Fail-closed if GUC unset.
 
 ## 4. Remaining (not this land)
 
-- **B4–B7** READY per DEC-110 (decision / identity / webhooks / admin).  
+- **B5–B7** READY per DEC-110 (identity / webhooks / admin).  
 - **DB-05** Slice 1 CREATE landed DEC-113 — do **not** ENABLE RLS on those 8 from Category B agents.  
 - Semgrep alembic `text()` residual expected (DEC-103/105) — do not churn for Semgrep.
 

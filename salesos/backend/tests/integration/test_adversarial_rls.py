@@ -10,7 +10,7 @@ from sqlalchemy import text
 
 from app.database import engine
 
-POLICY_COUNT = 53  # 47 Category A (DEC-044) + B1 + B2 + B3 (DEC-115)
+POLICY_COUNT = 55  # 47 Category A (DEC-044) + B1 + B2 + B3 + B4 (DEC-116)
 
 
 @pytest_asyncio.fixture(autouse=True)

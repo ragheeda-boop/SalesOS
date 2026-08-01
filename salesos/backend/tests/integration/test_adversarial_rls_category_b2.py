@@ -2,7 +2,7 @@
 
 Tables: commercial_activities, commercial_quote_lines — no tenant_id;
 isolate via commercial_activity_sessions / commercial_quotes.
-POLICY_COUNT live = 47 Category A (DEC-044) + 2 B1 + 2 B2 + 2 B3 = 53 (after DEC-115).
+POLICY_COUNT live = 47 Category A (DEC-044) + 2 B1 + 2 B2 + 2 B3 + 2 B4 = 55 (after DEC-116).
 
 Does NOT cover B3–B7. Does NOT enable R-09 / DB-05 deferred tables.
 """
@@ -17,7 +17,7 @@ from sqlalchemy import text
 
 from app.database import engine
 
-POLICY_COUNT = 53  # 47 Category A + B1 + B2 + B3 (DEC-115)
+POLICY_COUNT = 55  # 47 Category A + B1 + B2 + B3 + B4 (DEC-116)
 
 
 @pytest_asyncio.fixture(autouse=True)

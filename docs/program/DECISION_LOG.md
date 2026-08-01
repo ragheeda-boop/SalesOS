@@ -1085,6 +1085,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-116 — Category B Slice B4: decision-center-children join RLS (`decision_center_audits`, `decision_center_feedback`)
+
+**Date:** 2026-08-01
+**Context:** DEC-110 pinned B4 = decision-center children via `decision_center_decisions`. B3 CLOSED DEC-115 (`d3f8a21c9b03`, POLICY_COUNT 53). Category A 47 intact (DEC-044). DEC-085 set_config must not regress. Parent FKs confirmed in ORM + `0038`; UUID parent PK vs varchar child FK requires `p.id::text` cast.
+**Alternatives considered:** (a) fold B4 into ALL_TENANT_TABLES / reopen STORY-02-01 — rejected; (b) expand to B5 identity children in same land — rejected (DEC-110 slices); (c) additive join-policy migration + adversarial 2-table suite with cast helper — approved.
+**Decision:** Accept B4 **CLOSED**. Companion: [`decisions/DEC-116-CATEGORY-B4-DECISION-CENTER-CHILDREN-RLS.md`](decisions/DEC-116-CATEGORY-B4-DECISION-CENTER-CHILDREN-RLS.md). Alembic `e4b9c32d0c04` (down `d3f8a21c9b03`); live `POLICY_COUNT` **55**; `ALL_TENANT_TABLES` remains **47**.
+**Consequence:** DAG Category B execution advances B4 CLOSED; B5–B7 READY. Production GA **NO-GO**. **CI GREEN not met**. Validation: **build validated** (Docker `python -m pytest` **9 passed** in 8.89s).
+**Status:** Accepted. Slice B4 **CLOSED**.
+
 ### DEC-115 — Category B Slice B3: analytics-children join RLS (`analytics_report_executions`, `analytics_report_shares`)
 
 **Date:** 2026-08-01

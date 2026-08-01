@@ -33,8 +33,8 @@ SESSION_VAR = "app.tenant_id"
 # R-09) are excluded — RLS on them will be added after CREATE TABLE lands.
 # Tables without a tenant_id column (keyed via parent FK) are excluded from
 # ALL_TENANT_TABLES — Category B inventory + slices pinned in DEC-110.
-# B1/B2/B3 join children use generate_join_policy_sql() /
-# CATEGORY_B1_JOIN_TABLES / CATEGORY_B2_JOIN_TABLES / CATEGORY_B3_JOIN_TABLES (DEC-110).
+# B1–B4 join children use generate_join_policy_sql() /
+# CATEGORY_B1_JOIN_TABLES … CATEGORY_B4_JOIN_TABLES (DEC-110).
 ALL_TENANT_TABLES: list[str] = [
     # ── Identity / Auth ──
     "users",                      # app/modules/identity/models.py — uuid
@@ -123,6 +123,15 @@ CATEGORY_B3_JOIN_TABLES: list[tuple[str, str, str]] = [
     ("analytics_report_shares", "analytics_reports", "report_id"),
 ]
 
+# DEC-110 Slice B4 (S04-CATB-04): decision-center children — no tenant_id; isolate
+# via decision_center_decisions (Category A). Parent PK is UUID; child FK is
+# varchar — join uses p.id::text (same cast as postgres_repo feedback join).
+CATEGORY_B4_JOIN_TABLES: list[tuple[str, str, str]] = [
+    # (child_table, parent_table, child_fk_column)
+    ("decision_center_audits", "decision_center_decisions", "decision_id"),
+    ("decision_center_feedback", "decision_center_decisions", "decision_id"),
+]
+
 
 def generate_join_policy_sql(
     child_table: str,
@@ -132,17 +141,27 @@ def generate_join_policy_sql(
     parent_pk_column: str = "id",
     session_var: str = SESSION_VAR,
     policy_name: str | None = None,
+    cast_parent_pk_to_text: bool = False,
 ) -> str:
     """Return DDL that enables join/parent-FK RLS on a Category B child table.
 
     Same FORCE / fail-closed / USING+WITH CHECK rationale as generate_policy_sql().
     Predicate: EXISTS parent row whose tenant_id matches app.tenant_id GUC.
+
+    When cast_parent_pk_to_text=True (B4 decision-center children), compare
+    p.<pk>::text to the varchar FK — parent id is UUID, child decision_id is
+    String(64) (0038 / BaseModel).
     """
     policy_name = policy_name or f"tenant_isolation_{child_table}"
+    parent_pk_expr = (
+        f"p.{parent_pk_column}::text"
+        if cast_parent_pk_to_text
+        else f"p.{parent_pk_column}"
+    )
     exists_pred = (
         f"EXISTS (\n"
         f'        SELECT 1 FROM "{parent_table}" p\n'
-        f'        WHERE p.{parent_pk_column} = "{child_table}".{fk_column}\n'
+        f'        WHERE {parent_pk_expr} = "{child_table}".{fk_column}\n'
         f"          AND p.{parent_tenant_column}::text = "
         f"current_setting('{session_var}', true)\n"
         f"    )"
