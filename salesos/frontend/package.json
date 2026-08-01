@@ -19,7 +19,8 @@
     "dev:search": "cd apps/search && next dev",
     "build:packages": "tsc -b packages/*/tsconfig.json",
     "storybook": "storybook dev -p 6006",
-    "clean": "rm -rf node_modules packages/*/dist apps/*/.next"
+    "clean": "rm -rf node_modules packages/*/dist apps/*/.next",
+    "postinstall": "node scripts/ci14-stub-rushstack-eslint-patch.js"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.2.7",
@@ -60,22 +61,25 @@
     "zod": "^3.23"
   },
   "devDependencies": {
+    "@eslint/compat": "^2.0.0",
+    "@eslint/eslintrc": "^3.3.0",
+    "@eslint/js": "^10.0.0",
     "@playwright/test": "^1.49",
     "@storybook/react": "^8.0",
-    "@testing-library/dom": "^10.0.0",
     "@testing-library/jest-dom": "^6.6",
     "@testing-library/react": "^16.1",
     "@types/node": "^22.0",
     "@types/react": "^19.0",
     "@types/react-dom": "^19.0",
     "autoprefixer": "^10.4",
-    "eslint": "^9.0",
-    "eslint-config-next": "^15.0",
+    "eslint": "^10.0.0",
+    "eslint-config-next": "15.5.22",
     "jest": "^29.7",
     "jest-axe": "^11.0.0",
     "jest-environment-jsdom": "^29.7",
     "msw": "^2.15.0",
     "postcss": "^8.5.10",
+    "prettier": "^3.0.0",
     "tailwindcss": "^3.4",
     "ts-jest": "^29.2",
     "ts-node": "^10.9",

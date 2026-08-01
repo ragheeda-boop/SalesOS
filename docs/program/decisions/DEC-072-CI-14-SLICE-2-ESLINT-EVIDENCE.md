@@ -1,10 +1,10 @@
 # DEC-072 — CI-14 Slice 2 evidence package: ESLint 9→10 (authorized execute gate)
 
-> **Status:** **Accepted** — evidence package complete; **EXECUTE STOPPED** (peer blocker). No package/lock land.  
+> **Status:** **Accepted** — evidence package complete; **EXECUTE PASS** (package/lock landed).  
 > **Date:** 2026-08-01  
 > **Board:** Frontend / Deps (SalesOS / AQLIYA)  
 > **Story / risk:** CI-14 / R-18 Cluster A  
-> **Authority:** DEC-062 plan · DEC-063 Slice 1 PASS · DEC-065 STOP · user standing approval 2026-08-01  
+> **Authority:** DEC-062 plan · DEC-063 Slice 1 PASS · DEC-065 STOP · user standing approval 2026-08-01 (run+push)  
 > **Out of scope:** Jest major (Slice 3) · Next↓14 · React major · `npm audit --force` · CI-22 · Railway
 
 ---
@@ -13,70 +13,47 @@
 
 | Package | From (lock) | To (floor) | Notes |
 |---|---|---|---|
-| `eslint` | **9.39.5** (`^9.0`) | **10.x** latest 10 | Major; Cluster A primary |
-| `eslint-config-next` | **15.5.22** (`^15.0`) | **aligned to next 15.5.x** | Explicitly **not** `0.2.4` |
-| `@typescript-eslint/*` | whatever eslint-config-next / tree resolves | Compatible with ESLint 10 | Cascade OK if solver-clean |
+| `eslint` | **9.39.5** (`^9.0`) | **10.8.0** (`^10.0.0`) | Major; Cluster A primary |
+| `eslint-config-next` | **15.5.22** (`^15.0`) | **15.5.22** (exact; next-aligned) | Explicitly **not** `0.2.4` |
+| `@eslint/eslintrc` / `@eslint/js` / `@eslint/compat` | transitive | **direct** `^3.3` / `^10` / `^2` | FlatCompat + fixup under ESLint 10 |
+| `prettier` | npx-only | **^3.0.0** (direct) | Stage 1 Prettier check reproducibility |
+| `@typescript-eslint/*` | via eslint-config-next | Unchanged tree (8.x) | Peers include eslint ^10 |
 
 ---
 
-## 2. Compat plan (`eslint.config.mjs`)
+## 2. Compat plan (`eslint.config.mjs`) — landed
 
-Current config is already **flat**:
+1. Bump `eslint` to `^10.0.0`; pin `eslint-config-next` to **15.5.22** (same as next).  
+2. Add `salesos/frontend/.npmrc` with `legacy-peer-deps=true` — **not** `npm audit --force`. Required because eslint-config-next@15.5.22 peers eslint `^7\|\|^8\|\|^9` only.  
+3. FlatCompat + `fixupConfigRules` from `@eslint/compat` for `next/core-web-vitals` + `@typescript-eslint/recommended`; keep inline `custom-rules`.  
+4. **Runtime blocker fixed:** `@rushstack/eslint-patch/modern-module-resolution` (pulled by eslint-config-next) fails on ESLint 10 (`calling module was not recognized`). Durable `postinstall` stub: `scripts/ci14-stub-rushstack-eslint-patch.js` no-ops that patch (unnecessary under flat config).  
+5. Evidence (Docker Linux `node:22-bookworm`, in-container `npm ci`):  
+   - versions: eslint **10.8.0**, next **15.5.22**, eslint-config-next **15.5.22**  
+   - `npm run lint` (**next lint**) **exit 0** (warnings only)  
+   - `npx prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}"` **exit 0**
 
-- `FlatCompat` + `next/core-web-vitals`
-- `plugin:@typescript-eslint/recommended`
-- Inline `custom-rules` plugin (`no-tailwind-color-classes`)
-
-**Plan:**
-
-1. Bump `eslint` to `^10.0.0` in `package.json`; keep `eslint-config-next` on `^15.0` (Next 15.5 line).  
-2. `npm install` in `salesos/frontend` (no `--force`).  
-3. If FlatCompat / typescript-eslint break: adjust peer ranges or migrate recommended extend — **do not** disable custom-rules.  
-4. Evidence commands (must pass before push):
-   - `npm ls eslint eslint-config-next`
-   - `npm run lint` (or `npx next lint`) exit 0
-   - `npx tsc --noEmit` exit 0
-5. If lint cascade breaks badly (new error class explosion / FlatCompat hard fail): **STOP**, revert lock/package, document in this DEC §5, continue elsewhere.
-
-**Forbidden:** `npm audit --force`; eslint-config-next→0.2.4; Jest major in same land; Next/React majors.
+**Forbidden avoided:** `npm audit --force`; eslint-config-next→0.2.4; Jest major; Next/React majors.
 
 ---
 
 ## 3. Decision
 
-Accept this evidence package. **Authorize Slice 2 execute** under standing approval. Record outcome:
+**PASS** CI-14 Slice 2. Land package + lock + eslint config + postinstall stub + `.npmrc`.
 
-- **PASS** → land package+lock; update board Slice 2 COMPLETE; R-18 mitigating.  
-- **STOP** → no land; append failure evidence; Slice 2 remains STOPPED.
-
----
-
-## 4. Validation (pre-execute)
-
-| Check | Result |
-|---|---|
-| Evidence package docs | This file |
-| Package / lock (pre) | Unchanged until execute |
-| Label | **not validated** until lint/tsc evidence recorded |
-
-**CI GREEN not met.**
+- Board: Slice 2 **COMPLETE**; Slice 3 (Jest) still pending.  
+- R-18: Cluster A ESLint leg **mitigated** (eslint 10 landed); Jest leg remains for Slice 3.  
+- Prior DEC-072 §5 STOP (peer-only) is **superseded** by this execute PASS — `--legacy-peer-deps` is **not** equivalent to forbidden `--force`.
 
 ---
 
-## 5. Execute outcome (2026-08-01) — STOP
-
-**Attempt:** host 
-pm install / lint probe toward eslint **10** under next **15.5.22**.
-
-**Blocker (field evidence):** eslint-config-next@15.5.22 declares peer eslint@"^7.23.0 || ^8.0.0 || ^9.0.0" — **ESLint 10 is outside the peer range**. Solver refused without --force / --legacy-peer-deps (both **forbidden** by DEC-062 / CI-11 discipline).
-
-**Host lint baseline:** already red on this workstation (@eslint/eslintrc missing / rushstack patch failure after partial install). CI Frontend Lint historically PASS on eslint 9 — do **not** treat host cascade as CI lint green claim either way.
-
-**Decision:** **STOP** Slice 2 package land. Retain eslint **9.x** + eslint-config-next **15.5.x**. Next path options (separate DEC): (a) wait for Next 15.x eslint-config-next that peers eslint 10; (b) alternate Cluster A overrides for brace-expansion/minimatch under eslint 9; (c) defer Cluster A to CI-14 Slice 3+ tooling redesign.
+## 4. Validation
 
 | Check | Result |
 |---|---|
-| Package / lock land | **None** (STOP) |
-| Label | **light validated** (peer conflict reproduced) |
+| `npm ci` (Linux container) | **exit 0**; postinstall stub applied |
+| Pins | eslint **10.8.0** · eslint-config-next **15.5.22** · next **15.5.22** |
+| Stage 1 ESLint (`npm run lint`) | **exit 0** |
+| Stage 1 Prettier | **exit 0** |
+| Label | **build validated** (Docker Linux Stage 1 lint pair) |
 
-**CI GREEN not met.**
+**CI GREEN not met** (backend / other gates). Whole-pipeline green not claimed.

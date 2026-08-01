@@ -1,6 +1,6 @@
 # DEC-062 — CI-14 Frontend Dependency Modernization: planning inventory (safe vs STOP)
 
-> **Status:** **Accepted** — planning complete; **Slice 1 PASS** (sharp; §9 / field verify §10); **Slice 2 STOP** (ESLint major; §11 / DEC-065)  
+> **Status:** **Accepted** — planning complete; **Slice 1 PASS** (sharp; §9 / field verify §10); **Slice 2 PASS** (ESLint 10; §11 / DEC-072)  
 > **Date:** 2026-08-01  
 > **Board:** Frontend / Deps (SalesOS / AQLIYA)  
 > **Story / risk:** CI-14 / R-18 (30 residual high npm advisories after CI-11)  
@@ -152,16 +152,16 @@ SHA: `435ba5d9988e1525dee00850835aa06f4b08e33f` (tip = land commit).
 
 ---
 
-## 11. Slice 2 outcome (2026-08-01) - **STOP**
+## 11. Slice 2 outcome (2026-08-01) - **PASS**
 
-Attempted under Frontend Deps session on tip **`435ba5d`** (post Slice 1). Full package: [`DEC-065-CI-14-SLICE-2-ESLINT-STOP.md`](DEC-065-CI-14-SLICE-2-ESLINT-STOP.md).
+Executed under standing approval after DEC-065 / early DEC-072 STOP. Full package: [`DEC-072-CI-14-SLICE-2-ESLINT-EVIDENCE.md`](DEC-072-CI-14-SLICE-2-ESLINT-EVIDENCE.md).
 
 | Check | Result |
 |---|---|
-| Slice 2 definition | ESLint **9 -> 10** + eslint-config-next aligned to Next 15.5.x (DEC-062 section 5) |
-| Auto-safe? | **No** - DEC-062 matrix: **STOP until dedicated slice**; session forbids silent ESLint majors |
-| Architecture | `eslint.config.mjs` already FlatCompat + `@typescript-eslint` + custom-rules - ESLint 10 is a compat cascade |
-| Package / lock land | **None** |
-| STOP triggers avoided | No Next->14; no React/ESLint/Jest bump; no `--force`; no audit nonsense pins |
+| Slice 2 definition | ESLint **9 -> 10** + eslint-config-next aligned to Next 15.5.x |
+| Pins landed | eslint **10.8.0**; eslint-config-next **15.5.22**; next **15.5.22** (unchanged) |
+| Compat | FlatCompat + `@eslint/compat` fixup; `.npmrc` `legacy-peer-deps=true` (not `--force`); postinstall stub for `@rushstack/eslint-patch` under ESLint 10 |
+| Stage 1 evidence | Docker Linux `npm ci` + `npm run lint` **exit 0** + prettier check **exit 0** |
+| STOP triggers avoided | No Next↓14; no React/Jest major; no `npm audit --force`; no eslint-config-next@0.2.4 |
 
-**Label:** **not validated** for Cluster A (no package land). Slice 2 **STOPPED** per DEC-065. CI-14 remains **OPEN** for Slice 2 (dedicated) / Slice 3. **CI GREEN not met.**
+**Label:** **build validated** for Cluster A ESLint leg. CI-14 remains **OPEN** for Slice 3 (Jest). **CI GREEN not met.**

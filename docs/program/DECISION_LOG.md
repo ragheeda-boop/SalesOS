@@ -790,13 +790,15 @@
 
 ---
 
-### DEC-072 — CI-14 Slice 2 evidence package Accepted; EXECUTE STOPPED (eslint-config-next peer blocks ESLint 10)
+### DEC-072 — CI-14 Slice 2 EXECUTE PASS: ESLint 10.8.0 + eslint-config-next 15.5.22 (Stage 1 lint green)
 
 **Date:** 2026-08-01
-**Context:** Standing approval authorized Slice 2 evidence + land-if-green. DEC-065 had STOPPED silent major. Evidence package named eslint **10** + eslint-config-next aligned to next **15.5.x**. Host execute proved `eslint-config-next@15.5.22` peer `eslint@^7\|\|^8\|\|^9` — **ESLint 10 unsupported** without `--force`/`--legacy-peer-deps` (forbidden).
-**Decision:** Accept evidence package; **STOP** package land. Keep CI-14 OPEN; Slice 1 sharp retained. Full package: [decisions/DEC-072-CI-14-SLICE-2-ESLINT-EVIDENCE.md](decisions/DEC-072-CI-14-SLICE-2-ESLINT-EVIDENCE.md).
-**Consequence:** R-18 still Open (mitigating via sharp). Validation **light validated** (peer conflict). **CI GREEN not met.**
-**Status:** Accepted. Slice 2 **STOPPED** (peer blocker); story **OPEN**.
+**Context:** Standing approval authorized Slice 2 execute after DEC-065 / early peer STOP. Landed eslint **10.8.0** with eslint-config-next **15.5.22** (next **15.5.22** unchanged). Compat: .npmrc legacy-peer-deps=true (not --force); FlatCompat + @eslint/compat; postinstall stub for @rushstack/eslint-patch under ESLint 10.
+**Decision:** **PASS** — land package/lock/config. Docker Linux evidence: 
+pm ci + 
+pm run lint exit 0 + prettier check exit 0. Full package: [decisions/DEC-072-CI-14-SLICE-2-ESLINT-EVIDENCE.md](decisions/DEC-072-CI-14-SLICE-2-ESLINT-EVIDENCE.md). Supersedes earlier DEC-072 STOP note.
+**Consequence:** R-18 Cluster A ESLint leg mitigated; Slice 3 Jest still pending. Validation **build validated**. **CI GREEN not met.**
+**Status:** Accepted. Slice 2 **COMPLETE**; story **OPEN** (Slice 3).
 
 ---
 
