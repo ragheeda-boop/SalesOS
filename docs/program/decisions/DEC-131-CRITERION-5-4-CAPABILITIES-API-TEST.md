@@ -1,11 +1,11 @@
 # DEC-131 — Capability decorator API contract test (Phase 0 criterion 5.4)
 
-> **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **5.4** = **READY FOR REVIEW** (Architecture PENDING · Validation PENDING). Only Execution Orchestrator may mark VERIFIED/CLOSED.  
+> **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **5.4 VERIFIED/CLOSED** via DEC-131a (Arch PASS + Validation PASS @ `65e82cc`)  
 > **Date:** 2026-08-01  
 > **Board:** Backend Lead / Capability Drift (SalesOS / AQLIYA)  
 > **Story / risk:** Phase 0 Exit Criterion **5.4** · DEBT-ARC-003 / E-21 (partial — test gap only)  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §5.4 · `.engineering/29_CAPABILITY_REGISTRY.md` §4 drift #6 · ARB review protocol (Cursor ≠ CLOSED)  
-> **Out of scope this land:** Criterion **5.1** SoT designation · **5.2** CAP-### mapping · **5.3** `validate_capability_registries.py` exit 0 · auth/CSRF weaken · DEC-085 `set_config` · Criterion CLOSED/VERIFIED · Production GO · CI GREEN
+> **Out of scope this land:** Criterion **5.1** SoT designation · **5.2** CAP-### mapping · **5.3** `validate_capability_registries.py` exit 0 · auth/CSRF weaken · DEC-085 `set_config` · Production GO · CI GREEN
 
 ---
 
@@ -19,7 +19,7 @@ Accept HTTP ASGI contract coverage for the decorator capability registry as **Cu
 | This land | `tests/contract/test_capabilities_api.py` — auth gate, list (≥13 core kebab IDs), by-id 200/404, status filter + invalid status 400 |
 | App code | **Unchanged** (router already live: `runtime/capability_framework/router.py`) |
 | DEC-085 | **Intact** (`get_db` / `set_config` not touched) |
-| Criterion state | **READY FOR REVIEW** (not CLOSED / not VERIFIED) |
+| Criterion state | **CLOSED** (DEC-131a) |
 
 ---
 
@@ -32,16 +32,17 @@ Accept HTTP ASGI contract coverage for the decorator capability registry as **Cu
 | Production / Railway | **Not run** |
 | Label | **build validated** (narrow Docker pytest) |
 
-**Production GO not claimed. CI GREEN not met. Criterion CLOSED not claimed.**
+**Production GO not claimed. CI GREEN not met.**
+
+**Orchestrator CLOSE (DEC-131a):** Arch PASS + Validation PASS @ `65e82cc` → criterion **5.4 VERIFIED/CLOSED**; Phase 0 **26/54**; Capability Drift **1/4**. Residuals **5.1–5.3** OPEN. **Production GO not claimed. CI GREEN not met.**
 
 ---
 
 ## 3. Records
 
-- Phase 0 criterion **5.4** → **READY FOR REVIEW** (Cursor COMPLETE)
-- Assigned next: Architecture Reviewer (independent review sign)
+- Phase 0 criterion **5.4** → **VERIFIED/CLOSED** (DEC-131a)
 - Residual Capability Drift **5.1–5.3** remain OPEN (4-way registry drift unchanged)
-- **Not claimed:** Criterion CLOSED · VERIFIED · Production GO · CI GREEN · 5.1 SoT
+- **Not claimed:** Production GO · CI GREEN · 5.1 SoT · Phase 0 exit
 
 ---
 

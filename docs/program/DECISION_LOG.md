@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** Capability Drift checklist **5.4** OPEN — “No test exists” for decorator registry endpoint (`29_CAPABILITY_REGISTRY.md` §4#6). Criteria **5.1–5.3** remain OPEN (4-way SoT / CAP-### / validate exit 0). EOS 4.x largely ARB-owned; CI-08/09 ops-blocked skipped.
 **Alternatives considered:** (a) claim CLOSED from router existence alone — rejected (checklist evidence = test); (b) fix full 4-way sync (5.1–5.3) in one land — rejected (Arch SoT decision required); (c) add ASGI contract suite + package READY FOR REVIEW — approved.
-**Decision:** Accept criterion **5.4** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-131-CRITERION-5-4-CAPABILITIES-API-TEST.md`](decisions/DEC-131-CRITERION-5-4-CAPABILITIES-API-TEST.md). Narrow Docker pytest **4 passed**. App router unchanged. DEC-085 intact. Do **not** mark VERIFIED/CLOSED.
-**Consequence:** Phase 0 criterion **5.4** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). Phase 0 remains **25/54** until Orchestrator CLOSE. **5.1–5.3** still OPEN. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criterion **5.4 READY FOR REVIEW**.
+**Decision:** Accept criterion **5.4** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-131-CRITERION-5-4-CAPABILITIES-API-TEST.md`](decisions/DEC-131-CRITERION-5-4-CAPABILITIES-API-TEST.md). Narrow Docker pytest **4 passed**. App router unchanged. DEC-085 intact. Closed via DEC-131a after Arch+Val PASS.
+**Consequence:** Phase 0 criterion **5.4** = READY FOR REVIEW then **CLOSED** via DEC-131a. **5.1–5.3** still OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED via DEC-131a**.
+
+### DEC-131a — Orchestrator VERIFIED/CLOSED criterion 5.4 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 5.4](1590f43a-cac7-4284-bce6-65fcd79c66f5)) + Validation PASS ([Validate 5.4](4b99fe84-7f09-4a91-81a7-a6d04437ea71): Docker **4 passed**; DEC-085 untouched) on land `65e82cc` / DEC-131.
+**Decision:** Execution Orchestrator records criterion **5.4 VERIFIED → CLOSED**. Phase 0 **25/54 → 26/54**. Capability Drift Complete **0 → 1** / Open **4 → 3**. Residuals **5.1–5.3** remain OPEN (4-way SoT / CAP-### / validate exit 0). Do **not** push. Do **not** claim Production GO / CI GREEN.
+**Consequence:** Capability Drift residual = **5.1–5.3** only. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **5.4 CLOSED**.
 
 ### DEC-130h — Orchestrator VERIFIED/CLOSED criterion 7.6 (2026-08-01)
 
