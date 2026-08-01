@@ -74,7 +74,7 @@ Representative log evidence (run `30664173050`): `TypeError: Cannot read propert
 ## 5. Use for CI-14 (dependency contract)
 
 - Historical baseline gate (CI-13 capture): failing suites `<= 33`, failing tests `<= 163`; **no new failures** beyond the §3 inventory.
-- **Post-remediation expected ceiling (local / narrow evidence; full CI inventory not re-run):** failing suites **`<= 6`** after §8 #2/#3 residual remediation (−2 vs prior expected **≤8**; −5 vs section 8 field count **11** if holdouts also hold). Field verify recorded in section 8 (run `30677189129` / `1c33c1b`): **11** failing suites — prior light-validated ≤4 **not** met; treat section 8 as CI-authoritative inventory until next capture.
+- **Post-remediation expected ceiling (local / CI-like evidence; full Stage 3 inventory not re-run):** failing suites **`≤0`** after `4fdc1d8` (−3) + `5bba606` H2/H3 (−2) + `556304d` six-holdout re-fix (−6) vs §8 field count **11**. Field verify §8 (`30677189129` / `1c33c1b`): **11** remains CI-authoritative until next Stage 3 capture. Do **not** claim Stage 3 green from light evidence alone.
 - Remediation of remaining suites is the Sprint 01 Jest-debt story (separate from CI-14's dependency modernization).
 - Any suite in this list that becomes green should be removed from this baseline with a note.
 
@@ -86,12 +86,13 @@ Representative log evidence (run `30664173050`): `TypeError: Cannot read propert
 | 2026-08-01 | `a93bc48` | Stale UI-text / i18n assertions | 14 | Narrow Jest: **14 suites / 197 tests passed** (**light validated**) | i18n mock / stale copy category remediation |
 | 2026-08-01 | `b9b96eb` + `cd24a49` | jsdom missing browser APIs | 2 (inventory) | Narrow Jest: **4 suites / 54 tests passed** (1 skipped) — `copilot-panel`, `RagChat`, `RagWorkspace`, `packages/ui` a11y (**light validated**) | Global `scrollTo`/`scrollIntoView` stubs; per-file hacks removed. Of the 4, **2** were in CI-13 §3 inventory (`copilot-panel`, `RagWorkspace`); `RagChat` / a11y were not in the 33. Ceiling −2 only. |
 | 2026-08-01 | `fea37c8` | Stale fetch/API mocks (`global.fetch` / bare `axios` vs `@/lib/api`) | 6 | Narrow Jest: **6 suites / 50 tests passed** — `hooks.test`, `search.hooks`, `useCompanyIntelligence`, `opportunity.store`, `task.store`, `end-to-end` (**light validated**) | Hooks/stores now mock `@/lib/api` axios client; snake_case request → camelCase response mapping; `put` stage/complete handlers. Full CI inventory not re-run. |
-| 2026-08-01 | `54597d7` | Incomplete React Query / query-hook mocks | 3 | Narrow Jest: **3 suites / 33 tests passed** — `settings-page`, `WorkflowBuilder`, `AnalyticsWorkspace` (**light validated**) | `useQueryClient` + queryKey-aware mocks; `useWorkflowExecutions` returns; `useExecutiveDashboard` + chart stubs; nested `<h3>` markup fix in `AnalyticsWorkspace`. Full CI inventory not re-run. |
-| 2026-08-01 | `9739a9e` | Stale DOM/selector assertions | 3 | Narrow Jest: **3 suites / 21 tests passed** — `admin-workspace`, `DealCard`, `NewWorkflowPage` (**light validated**) | Sidebar labels aligned to `admin.tab.*` Arabic; DealCard missing-score asserts em-dash placeholder; NewWorkflow palette click uses sole `"إرسال بريد"`. Section 8 field verify: these 3 **did not hold** in full CI. |
-| 2026-08-01 | `4fdc1d8` | Stale production contract assertions | 3 | Narrow Jest: **3 suites / 22 tests passed** — `widget.store`, `lib/analytics`, `Onboarding` (**light validated**) | Targets section 8 #5/#7/#8: `deriveStatus(null)` → `ready` + 13-widget inventory; `sendBeacon` Blob parse (jsdom FileReader); onboarding in-memory (no localStorage). Expected field ceiling **11 → ≤8**. Full CI inventory not re-run. |
-| 2026-08-01 | *(this commit)* | §8 residual — NBAWidget refetch + AutomationAnalytics async wait | 2 | Narrow Jest: **2 suites / 27 tests passed** — `NBAWidget`, `AutomationAnalyticsPage` (**light validated**) | Targets section 8 #2/#3: `opportunityId` reload dep in container; `waitFor` + chart testids / lucide stubs. Expected field ceiling **≤8 → ≤6** (if six holdouts remain red). Full CI inventory not re-run. |
+| 2026-08-01 | `54597d7` | Incomplete React Query / query-hook mocks | 3 | Narrow Jest: **3 suites / 33 tests passed** — `settings-page`, `WorkflowBuilder`, `AnalyticsWorkspace` (**light validated**) | Landed **after** §8 SHA `1c33c1b`. Tip CI later skipped Stage 3 while Prettier red until `9ec79e9`. |
+| 2026-08-01 | `9739a9e` | Stale DOM/selector assertions | 3 | Narrow Jest: **3 suites / 21 tests passed** — `admin-workspace`, `DealCard`, `NewWorkflowPage` (**light validated**) | Landed **after** §8 SHA `1c33c1b`. §8 “did not hold” was chronological (pre-fix field SHA). |
+| 2026-08-01 | `4fdc1d8` | Stale production contract assertions | 3 | Narrow Jest: **3 suites / 22 tests passed** — `widget.store`, `lib/analytics`, `Onboarding` (**light validated**) | Targets section 8 #5/#7/#8. Expected field ceiling **11 → ≤8**. Full CI inventory not re-run. |
+| 2026-08-01 | `5bba606` | §8 residual — NBAWidget refetch + AutomationAnalytics async wait | 2 | Narrow Jest: **2 suites / 27 tests passed** — `NBAWidget`, `AutomationAnalyticsPage` (**light validated**) | Targets section 8 #2/#3. |
+| 2026-08-01 | `556304d` | §8 six-holdout re-fix (CI-like) | 6 | CI-like Jest: **6 suites / 54 tests passed** — `settings-page`, `WorkflowBuilder`, `AnalyticsWorkspace`, `admin-workspace`, `DealCard`, `NewWorkflowPage` (`--coverage --forceExit`, **light validated**) | Hardened mocks/selectors + Prettier-clean. Root causes: re-bind `useQueryClient` after `clearAllMocks`; `useWorkflowExecutions` `mockImplementation`; executiveDashboard mockImplementation; pinned `admin.tab.*` i18n; tolerant em-dash / palette clicks. (Landed in same tip as CI-19 Wave 3 SHA-pin.) Expected field ceiling **11 → ≤0** with `4fdc1d8`+`5bba606`. Full Stage 3 inventory not re-run. |
 
-**Revised expected failing-suite ceiling (post this category, light):** **≤6** vs prior expected **≤8** / section 8 field count **11**. Prior light ≤4 **not** met under full CI. Do **not** claim Stage 3 green until next field verify.
+**Revised expected failing-suite ceiling (post holdout re-fix, light):** **≤0** vs section 8 field count **11**. Do **not** claim Stage 3 green until next field verify.
 
 ## 7. Record
 
@@ -123,17 +124,17 @@ Tests:       51 failed, 1 skipped, 2227 passed, 2279 total
 
 | # | Suite | Notes (CI log) |
 |---|---|---|
-| 1 | `src/app/(dashboard)/settings/__tests__/settings-page.test.tsx` | `useQueryClient is not a function` — section 6 `54597d7` light recovery **did not hold** in full CI |
-| 2 | `src/features/revenue-execution/widgets/nba-widget/__tests__/NBAWidget.test.tsx` | refetch call-count assertion — **remediated** (pending next field verify) |
-| 3 | `src/app/(dashboard)/automation/analytics/__tests__/AutomationAnalyticsPage.test.tsx` | stale UI-text / missing testids / async wait — **remediated** (pending next field verify) |
-| 4 | `src/features/automation/widgets/workflow-builder/__tests__/WorkflowBuilder.test.tsx` | `useWorkflowExecutions` undefined — section 6 light recovery **did not hold** |
-| 5 | `src/components/guidance/__tests__/Onboarding.test.tsx` | localStorage / progress copy — **remediated** (stale production contract; pending next field verify) |
-| 6 | `src/app/(dashboard)/automation/workflows/new/__tests__/NewWorkflowPage.test.tsx` | section 6 `9739a9e` light recovery **did not hold** |
-| 7 | `src/application/dashboard/__tests__/widget.store.test.tsx` | `deriveStatus` / widget inventory mismatch — **remediated** (stale production contract; pending next field verify) |
-| 8 | `src/lib/__tests__/analytics.test.tsx` | `Unexpected token 'o', "[object Blob]"` JSON parse — **remediated** (stale production contract; pending next field verify) |
-| 9 | `src/features/revenue-execution/workspace/pipeline/__tests__/DealCard.test.tsx` | section 6 `9739a9e` light recovery **did not hold** |
-| 10 | `src/features/admin/__tests__/admin-workspace.test.tsx` | sidebar copy — section 6 light recovery **did not hold** |
-| 11 | `src/features/analytics/__tests__/AnalyticsWorkspace.test.tsx` | `No QueryClient set` — section 6 light recovery **did not hold** |
+| 1 | `src/app/(dashboard)/settings/__tests__/settings-page.test.tsx` | `useQueryClient is not a function` — pre-`54597d7` at this SHA; **re-fixed** in `556304d` (pending next field verify) |
+| 2 | `src/features/revenue-execution/widgets/nba-widget/__tests__/NBAWidget.test.tsx` | refetch call-count — **remediated** in `5bba606` (pending next field verify) |
+| 3 | `src/app/(dashboard)/automation/analytics/__tests__/AutomationAnalyticsPage.test.tsx` | stale UI-text / testids — **remediated** in `5bba606` (pending next field verify) |
+| 4 | `src/features/automation/widgets/workflow-builder/__tests__/WorkflowBuilder.test.tsx` | `useWorkflowExecutions` undefined — pre-`54597d7` at this SHA; **re-fixed** in `556304d` (pending next field verify) |
+| 5 | `src/components/guidance/__tests__/Onboarding.test.tsx` | localStorage / progress copy — **remediated** (`4fdc1d8`; pending next field verify) |
+| 6 | `src/app/(dashboard)/automation/workflows/new/__tests__/NewWorkflowPage.test.tsx` | pre-`9739a9e` at this SHA; **re-fixed** in `556304d` (pending next field verify) |
+| 7 | `src/application/dashboard/__tests__/widget.store.test.tsx` | `deriveStatus` / widget inventory — **remediated** (`4fdc1d8`; pending next field verify) |
+| 8 | `src/lib/__tests__/analytics.test.tsx` | Blob JSON parse — **remediated** (`4fdc1d8`; pending next field verify) |
+| 9 | `src/features/revenue-execution/workspace/pipeline/__tests__/DealCard.test.tsx` | pre-`9739a9e` at this SHA; **re-fixed** in `556304d` (pending next field verify) |
+| 10 | `src/features/admin/__tests__/admin-workspace.test.tsx` | sidebar copy — pre-`9739a9e` at this SHA; **re-fixed** in `556304d` (pending next field verify) |
+| 11 | `src/features/analytics/__tests__/AnalyticsWorkspace.test.tsx` | `No QueryClient set` — pre-`54597d7` at this SHA; **re-fixed** in `556304d` (pending next field verify) |
 
 ### Classification
 
@@ -155,29 +156,30 @@ Do **not** claim full CI GREEN. Backend Stage 1/2 and Stage 5 gates remain red o
 |---|---:|
 | §8 field verify (`30677189129` / `1c33c1b`) | **11** |
 | Minus §6 stale production contract (`4fdc1d8`) — #5/#7/#8 light PASS | **−3** |
-| Minus §6 residual H2/H3 (`NBAWidget`, `AutomationAnalyticsPage`) — light PASS | **−2** |
-| **Expected next field ceiling** | **≤6** |
+| Minus §6 residual H2/H3 (`5bba606`) — light PASS | **−2** |
+| Minus §6 six-holdout re-fix (`556304d`) — H1/H4–H8 CI-like PASS | **−6** |
+| **Expected next field ceiling** | **≤0** |
 
-Do **not** treat light-validated historical floors as Stage 3 truth. Full CI inventory not re-run after this residual land.
+Do **not** treat light-validated ceilings as Stage 3 truth until next field verify.
 
-### 9.2 Holdout inventory (remaining after H2/H3 remediations)
+### 9.2 Holdout inventory (H1–H8)
 
 | ID | Suite | Notes |
 |---|---|---|
-| H1 | `src/app/(dashboard)/settings/__tests__/settings-page.test.tsx` | `useQueryClient` — §6 light did not hold |
-| H4 | `src/features/automation/widgets/workflow-builder/__tests__/WorkflowBuilder.test.tsx` | `useWorkflowExecutions` — light did not hold |
-| H5 | `src/app/(dashboard)/automation/workflows/new/__tests__/NewWorkflowPage.test.tsx` | DOM/selector light did not hold |
-| H6 | `src/features/revenue-execution/workspace/pipeline/__tests__/DealCard.test.tsx` | DOM/selector light did not hold |
-| H7 | `src/features/admin/__tests__/admin-workspace.test.tsx` | sidebar copy — light did not hold |
-| H8 | `src/features/analytics/__tests__/AnalyticsWorkspace.test.tsx` | `No QueryClient set` — light did not hold |
+| H1 | `src/app/(dashboard)/settings/__tests__/settings-page.test.tsx` | **re-fixed** in `556304d` — `useQueryClient` re-bind |
+| H2 | `src/features/revenue-execution/widgets/nba-widget/__tests__/NBAWidget.test.tsx` | **remediated** in `5bba606` |
+| H3 | `src/app/(dashboard)/automation/analytics/__tests__/AutomationAnalyticsPage.test.tsx` | **remediated** in `5bba606` |
+| H4 | `src/features/automation/widgets/workflow-builder/__tests__/WorkflowBuilder.test.tsx` | **re-fixed** in `556304d` |
+| H5 | `src/app/(dashboard)/automation/workflows/new/__tests__/NewWorkflowPage.test.tsx` | **re-fixed** in `556304d` |
+| H6 | `src/features/revenue-execution/workspace/pipeline/__tests__/DealCard.test.tsx` | **re-fixed** in `556304d` |
+| H7 | `src/features/admin/__tests__/admin-workspace.test.tsx` | **re-fixed** in `556304d` |
+| H8 | `src/features/analytics/__tests__/AnalyticsWorkspace.test.tsx` | **re-fixed** in `556304d` |
 
-**Remediated this land (no longer holdouts):** H2 `NBAWidget`, H3 `AutomationAnalyticsPage` (pending next field verify).
-
-**Pending field verify (not holdouts):** Onboarding, widget.store, lib/analytics (`4fdc1d8`); H2/H3 (this land).
+**Pending field verify:** Onboarding, widget.store, lib/analytics (`4fdc1d8`); H1–H8 remediations above.
 
 ### 9.3 Next Stage 3 field-verify recipe
 
-1. Tip SHA must include `4fdc1d8` + H2/H3 residual remediations + any remaining holdout remediations under test.  
+1. Tip SHA must include `4fdc1d8` + `5bba606` + `556304d` + Prettier tip (`9ec79e9` or successor) so Stage 1 Frontend Lint is green and Stage 3 runs.  
 2. Capture GitHub Actions CI → job `Stage 3: Frontend Unit Tests` (run id, counts, failing paths).  
-3. Append a new §10 field-verify block; failing paths should be ⊆ remaining holdouts H1/H4–H8 (name any true regression).  
+3. Append a new §10 field-verify block; expected failing paths **empty** if remediations hold (or name any true regression).  
 4. Update R-23 / board with the captured count. **Never** claim Stage 3 green from narrow Jest alone.

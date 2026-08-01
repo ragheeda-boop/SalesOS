@@ -1,14 +1,17 @@
 import time
 import uuid
 from datetime import UTC, datetime
+from typing import Literal
 
 from app.modules.decision.schemas import (
     AlternativeRecommendation,
+    ConfidenceLabel,
     DecisionContext,
     DecisionHistoryItem,
     DecisionHistoryRecommendation,
     DecisionResult,
     DecisionRule,
+    DecisionSource,
     EvidenceItem,
     ExpectedImpact,
     Explainability,
@@ -20,6 +23,7 @@ from app.modules.decision.schemas import (
     QualityMetrics,
     Recommendation,
     Risk,
+    RiskLevel,
     Score,
     ScoreFactor,
     Telemetry,
@@ -354,7 +358,9 @@ def _generate_recommendation(
     ts = _now_iso()
     confidence_score = next((s for s in scores if s.type == "confidence"), None)
     value = confidence_score.value if confidence_score else 0.5
-    conf_label: str = "high" if value >= 0.7 else "medium" if value >= 0.4 else "low"
+    conf_label: ConfidenceLabel = (
+        "high" if value >= 0.7 else "medium" if value >= 0.4 else "low"
+    )
 
     if value >= 0.7:
         action, action_label = "pursue", "Pursue Immediately"
@@ -423,7 +429,7 @@ def _generate_recommendation(
         )
     )
 
-    source: str = "hybrid" if rules_applied else "rule"
+    source: DecisionSource = "hybrid" if rules_applied else "rule"
     priority = 1 if value >= 0.7 else 2 if value >= 0.4 else 3
     impact_label = "High" if value >= 0.7 else "Medium" if value >= 0.4 else "Low"
 
@@ -455,7 +461,7 @@ def _build_explainability(
 ) -> Explainability:
     confidence_score = next((s for s in scores if s.type == "confidence"), None)
     value = confidence_score.value if confidence_score else 0.5
-    risk_level: str = "low" if value >= 0.7 else "medium" if value >= 0.4 else "high"
+    risk_level: RiskLevel = "low" if value >= 0.7 else "medium" if value >= 0.4 else "high"
 
     why_parts: list[str] = []
     if evidence:
@@ -653,7 +659,7 @@ class DecisionEngine:
         for did in reversed(self._tenant_history.get(tenant_id, [])):
             result = self._history.get(did)
             if result and result.context.entity_id == entity_id:
-                return result.scores
+                return list(result.scores)
         return []
 
     def get_evidence(
@@ -734,7 +740,11 @@ class DecisionEngine:
         total_revenue = sum(r.revenue_impact or 0 for r in records)
 
         timed = [r for r in records if r.time_to_execution is not None]
-        avg_time = sum(r.time_to_execution for r in timed) / len(timed) if timed else None
+        avg_time = (
+            sum(r.time_to_execution for r in timed if r.time_to_execution is not None) / len(timed)
+            if timed
+            else None
+        )
 
         return FeedbackStats(
             total=total,
@@ -824,6 +834,7 @@ class DecisionEngine:
 
             delta = curr_val - prev_val
             threshold = max(abs(prev_val) * 0.05, 0.001)
+            trend_dir: Literal["up", "down", "stable"]
             if delta > threshold:
                 trend_dir = "up"
             elif delta < -threshold:

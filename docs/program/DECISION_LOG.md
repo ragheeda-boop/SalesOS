@@ -728,7 +728,7 @@
 **Date:** 2026-08-01
 **Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1–13 (DEC-046–050, DEC-053, DEC-055, DEC-058–061, DEC-064, DEC-066) cleared admin/company/entity_resolution/identity/revenue_execution/sso-initial/routers/main+sdk/demo_mode/communication_hub/work_intelligence/boot+database/application; overall expected **~308 → ~61** (field after Phase 13 expected **~65**). Phase 6 cleared an earlier SSO slice (**8→0**), but CI-104 still listed **11** SSO residuals (`Mapped[str]` vs nullable tokens; `result` reuse typing `User` as `Tenant | None`; `request.client` union-attr on SAML rate-limit keys). Phase 14 targeted those remnants (did **not** redo `app/application` / Phase 13 / DEC-066; did **not** collide with DEC-067 Jest holdout docs) — mechanical typing only (`Mapped[str | None]` for nullable SSO columns; separate `tenant_result`/`user_result`; `request.client.host if request.client else "unknown"`; `cast` on encrypt/decrypt returns). Host light mypy (`--follow-imports=skip` on four SSO targets): **0** errors (exit 0); overall expected **~61 → ~50** (field **~65 → ~54**).
 **Alternatives considered:** (a) close entire CI-20 on Phase 14 land — rejected (residual ~50 remain; phased story); (b) clear decision (~5) or `app/startup.py` (~4) instead — rejected (SSO 11 was largest non-application residual); (c) record Phase 14 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
-**Decision:** Accept Phase 14 as **COMPLETE** at 1f14337 (1f1433703bc5802ba106a7618d21e350e25513ca). Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phases 1–13. Do **not** bump FastAPI. Validation label: **light validated** (host mypy on SSO targets). CI Observer field-verified Backend Types on 30679062993 (1f14337; job 91312218365): **54** errors / **0** SSO vs prior tip 30678653664 (1bf30d2 Phase-13 docs): **65** / **11** SSO — classified **pre-existing** residual; no Phase 14 SSO regression; no SSO code fix. Docs tip 30679120749 (1aa1d69; job 91312387818) and later tip 30679150001 (1ec68c; job 91312497351) also **54** / **0** SSO.
+**Decision:** Accept Phase 14 as **COMPLETE** at 1f14337 (1f1433703bc5802ba106a7618d21e350e25513ca). Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phases 1–13. Do **not** bump FastAPI. Validation label: **light validated** (host mypy on SSO targets). CI Observer field-verified Backend Types on `30679062993` (`1f14337`; job `91312218365`): **54** errors / **0** SSO vs prior tip `30678653664` (`1bf30d2` Phase-13 docs): **65** / **11** SSO — classified **pre-existing** residual; no Phase 14 SSO regression; no SSO code fix. Docs tip `30679120749` (`1aa1d69`; job `91312387818`) and later tip `30679150001` (`b1ec68c`; job `91312497351`) also **54** / **0** SSO.
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). Field residual **54** (non-SSO). **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 14 COMPLETE**; story **OPEN**. Field-verify recorded.
 
@@ -764,4 +764,25 @@
 **Decision:** Accept Phase 15 as **COMPLETE** at 7fed3dc. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** bump FastAPI. Validation: **light validated**.
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 15 COMPLETE**; story **OPEN**.
+
+
+---
+
+### DEC-072 — CI-14 Slice 2 evidence package Accepted; EXECUTE STOPPED (eslint-config-next peer blocks ESLint 10)
+
+**Date:** 2026-08-01
+**Context:** Standing approval authorized Slice 2 evidence + land-if-green. DEC-065 had STOPPED silent major. Evidence package named eslint **10** + eslint-config-next aligned to next **15.5.x**. Host execute proved `eslint-config-next@15.5.22` peer `eslint@^7\|\|^8\|\|^9` — **ESLint 10 unsupported** without `--force`/`--legacy-peer-deps` (forbidden).
+**Decision:** Accept evidence package; **STOP** package land. Keep CI-14 OPEN; Slice 1 sharp retained. Full package: [decisions/DEC-072-CI-14-SLICE-2-ESLINT-EVIDENCE.md](decisions/DEC-072-CI-14-SLICE-2-ESLINT-EVIDENCE.md).
+**Consequence:** R-18 still Open (mitigating via sharp). Validation **light validated** (peer conflict). **CI GREEN not met.**
+**Status:** Accepted. Slice 2 **STOPPED** (peer blocker); story **OPEN**.
+
+---
+
+### DEC-073 — CI-22 FastAPI/Starlette/Pydantic plan evidence COMPLETE; no package bump
+
+**Date:** 2026-08-01
+**Context:** CI-22 REGISTERED READY (DEC-054). Session contract: prefer evidence/plan land, not silent FastAPI major.
+**Decision:** Accept [decisions/DEC-073-CI-22-FASTAPI-STARLETTE-PLAN.md](decisions/DEC-073-CI-22-FASTAPI-STARLETTE-PLAN.md). C0 inventory/plan only. Do **not** bump FastAPI/Starlette/Pydantic in this land.
+**Consequence:** CI-22 stays **REGISTERED / READY**. Validation **not validated** (docs). **CI GREEN not met.**
+**Status:** Accepted. CI-22 **PLAN COMPLETE**; no code.
 
