@@ -65,7 +65,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **S04-04 remediation A** | READY | Wiring commit identified | `5e7023f` introduced `app_database_url` / `APP_POSTGRES_*` consumption |
 | **S04-04 remediation B** | READY (path choice) | Image promote | GHCR path BLOCKED (CI-08); alternate Railway GitHub build/redeploy |
 | **S04-04 remediation C–E** | READY after change-control / B | Alembic + force `salesos_app` + bypass-probe | Staging first; prove `pg_stat_activity` |
-| **DB-05** Schema reconciliation | IN PROGRESS | Slice 0+1 CLOSED (DEC-111/113) | Next Slice 2; no RLS on eight yet |
+| **DB-05** Schema reconciliation | IN PROGRESS | Slice 0–2 CLOSED (DEC-111/113/121) | Next Slice 3 index/nullable; no RLS on eight yet |
 | **Optional Jest 30 evidence** | BACKLOG | DEC-108 deferred | STOP silent major |
 | **STORY-02-02** browser/E2E | **CLOSED** (DEC-095) | Redirect AC | **CI GREEN not met** |
 | **Sprint 04 Category B (B1–B7)** | **CLOSED** (COMPLETE) | DEC-110; B1–B7 CLOSED (DEC-112/114/115/116/117/118/119); live policies **59** | Does not restore Phase 0 GO (DEC-120) |
@@ -91,7 +91,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30, DB-05 Slice 2+ | PARALLEL / READY | DEC-107 swarm — do not idle on CI-08 alone; Category B B1–B7 COMPLETE (DEC-119); do **not** claim Phase 0 GO |
+| Contract tests, optional Jest 30, DB-05 Slice 3+ | PARALLEL / READY | DEC-107 swarm — do not idle on CI-08 alone; Category B B1–B7 COMPLETE (DEC-119); Slice 2 UUID authority DEC-121; do **not** claim Phase 0 GO |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 **Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation / CI-08/09 ops proceed.

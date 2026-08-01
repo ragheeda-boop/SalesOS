@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-121 — DB-05 Slice 2: emails/meetings type authority (Alembic UUID wins)
+
+**Date:** 2026-08-01
+**Context:** DEC-111 P1 flagged `emails`/`meetings` ORM `String(36)` vs Alembic `0013` `sa.UUID()` for `id`/`tenant_id`/`opportunity_id`. Slice 1 CREATE CLOSED DEC-113. Live Docker DB confirms UUID columns; `tenants`/`companies` PKs are UUID; local row counts 0. Category B B1–B7 COMPLETE (DEC-119); Railway R-14 owned by DEC-120 (out of scope).
+**Alternatives considered:** (a) ALTER DDL → VARCHAR(36) to match commercial String cluster — rejected (invasive; fights platform UUID identity); (b) ORM → `UUID(as_uuid=False)` / `Mapped[str]` matching live DDL — approved; (c) `as_uuid=True` cascade into domain — rejected (blast radius); (d) analysis STOP — rejected (safe ORM-only fix).
+**Decision:** Accept Slice 2 **CLOSED**. Companion: [`decisions/DEC-121-DB-05-SLICE-2-EMAILS-MEETINGS-UUID.md`](decisions/DEC-121-DB-05-SLICE-2-EMAILS-MEETINGS-UUID.md). **Authority = Alembic/live UUID.** No new Alembic revision; head remains `b7e2f65a3f07`. No ENABLE RLS on deferred-8. DEC-085 intact.
+**Consequence:** DB-05 next = Slice 3 (index rename + nullable/type triage). Residual: `opportunity_id` UUID vs `commercial_opportunities.id` VARCHAR (no FK). **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Slice 2 **CLOSED**.
+
 ### DEC-120 — DEC-016 Railway R-14 security closure CONTRADICTED; S04-04 + R-14 REOPENED
 
 **Date:** 2026-08-01

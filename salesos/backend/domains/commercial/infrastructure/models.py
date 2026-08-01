@@ -10,7 +10,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-import uuid
 
 from sdk.database import Base
 
@@ -257,9 +256,11 @@ class PolicyModel(Base):
 class MeetingModel(Base, TimestampMixin):
     __tablename__ = "meetings"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    tenant_id: Mapped[str] = mapped_column(String(36), index=True)
-    opportunity_id: Mapped[str] = mapped_column(String(36), index=True)
+    # DEC-121 / DB-05 Slice 2: Alembic `0013` + live DB use UUID; keep Mapped[str]
+    # via as_uuid=False (domain/repos stay str). Do not ALTER DDL → String(36).
+    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(UUID(as_uuid=False), index=True)
+    opportunity_id: Mapped[str] = mapped_column(UUID(as_uuid=False), index=True)
     title: Mapped[str] = mapped_column(String(500))
     meeting_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     duration_minutes: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
@@ -275,9 +276,10 @@ class MeetingModel(Base, TimestampMixin):
 class EmailModel(Base, TimestampMixin):
     __tablename__ = "emails"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    tenant_id: Mapped[str] = mapped_column(String(36), index=True)
-    opportunity_id: Mapped[str] = mapped_column(String(36), index=True)
+    # DEC-121 / DB-05 Slice 2: same UUID authority as MeetingModel (see above).
+    id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(UUID(as_uuid=False), index=True)
+    opportunity_id: Mapped[str] = mapped_column(UUID(as_uuid=False), index=True)
     subject: Mapped[str] = mapped_column(String(500))
     from_address: Mapped[str] = mapped_column(String(254))
     to_addresses: Mapped[Any] = mapped_column(JSON, default=list)

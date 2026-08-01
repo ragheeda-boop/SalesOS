@@ -56,8 +56,8 @@ ALL_TENANT_TABLES: list[str] = [
     "commercial_analytics_snapshots", # domains/commercial/infrastructure/models.py — String(36)
     "commercial_decision_contexts",   # domains/commercial/infrastructure/models.py — String(36)
     "commercial_policies",        # domains/commercial/infrastructure/models.py — String(36)
-    "meetings",                   # domains/commercial/infrastructure/models.py — String(36)
-    "emails",                     # domains/commercial/infrastructure/models.py — String(36)
+    "meetings",                   # domains/commercial/infrastructure/models.py — UUID (DEC-121)
+    "emails",                     # domains/commercial/infrastructure/models.py — UUID (DEC-121)
     "commercial_recommendations", # domains/commercial/infrastructure/models.py — String(36)
     # ── Revenue ──
     "opportunities",              # app/modules/revenue_execution/models.py — uuid
