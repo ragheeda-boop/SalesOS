@@ -1,5 +1,5 @@
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, TypedDict
 
 from .schemas import (
     ActivityScore,
@@ -9,7 +9,13 @@ from .schemas import (
     WorkRecommendation,
 )
 
-ACTIVITY_WEIGHTS = {
+
+class _ActivityWeight(TypedDict):
+    hours: float
+    category: str
+
+
+ACTIVITY_WEIGHTS: dict[str, _ActivityWeight] = {
     "meeting": {"hours": 1.0, "category": "meeting"},
     "email": {"hours": 0.25, "category": "email"},
     "call": {"hours": 0.5, "category": "call"},
@@ -168,7 +174,7 @@ class WorkIntelligenceEngine:
                 pass
         recency = min(recent_count / 10.0, 1.0) * 100
 
-        daily_counts = {}
+        daily_counts: dict[str, int] = {}
         for item in items[:200]:
             try:
                 ts = item.get("timestamp")
