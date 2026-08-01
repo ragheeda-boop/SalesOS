@@ -687,3 +687,14 @@
 **Decision:** Accept Phase 12 as **COMPLETE** at `e44b7f3`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phases 1–11. Validation label: **light validated** (host mypy on `app/boot/startup.py` + `app/database.py`); full Backend Types CI **not** re-run.
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 12 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-065 — CI-14 Slice 2 STOP: ESLint 9→10 is a silent major; dedicated evidence package required
+
+**Date:** 2026-08-01
+**Context:** CI-14 Slice 1 PASS at `435ba5d` (DEC-063: sharp **0.35.3** under next **15.5.22**). DEC-062 defines Slice 2 as ESLint ecosystem major (**eslint 9 → 10** + eslint-config-next aligned to Next 15.5.x) for R-18 Cluster A (`brace-expansion`/`minimatch`). Safe vs STOP matrix already labels ESLint 9→10 **STOP until dedicated slice**. Tip lock: eslint **9.39.5**, eslint-config-next **15.5.22**. Config `salesos/frontend/eslint.config.mjs` uses FlatCompat + `@typescript-eslint/recommended` + inline custom-rules — ESLint 10 is a compat cascade, not a one-line pin. Session contract forbids silent ESLint/React/Jest majors, Next↓14, and `npm audit --force`. npm’s historical Cluster A framing includes nonsense **eslint-config-next→0.2.4**.
+**Alternatives considered:** (a) silent eslint 10 + eslint-config-next bump now — **rejected** (silent major; no lint-green evidence package); (b) `npm audit fix --force` / audit downgrade pins — **STOP**; (c) STOP Slice 2, docs-only, keep CI-14 OPEN with Slice 1 retained, recommend dedicated evidence package — **approved**.
+**Decision:** **STOP** CI-14 Slice 2. Do **not** change `package.json` / `package-lock.json` for ESLint. Do **not** start Slice 3 / CI-22 / backend deps / Railway. Full package: [`decisions/DEC-065-CI-14-SLICE-2-ESLINT-STOP.md`](decisions/DEC-065-CI-14-SLICE-2-ESLINT-STOP.md). Companion plan §10 updated.
+**Consequence:** CI-14 remains **IN PROGRESS / OPEN** (Slice 1 PASS; Slice 2 BLOCKED; Slice 3 pending). R-18 **Open — mitigating** (sharp floor retained; Cluster A unchanged). Program Complete/Closed count unchanged (**20/21**). Validation: **not validated** (docs only). **CI GREEN not met.**
+**Status:** Accepted. CI-14 **Slice 2 STOPPED**; story **OPEN**. Next: authorize dedicated Slice 2 evidence package (named eslint 10 + next-aligned eslint-config-next + lint-green gate) before any lock change.

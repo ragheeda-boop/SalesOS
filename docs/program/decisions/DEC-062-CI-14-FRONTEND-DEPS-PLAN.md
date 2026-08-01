@@ -1,10 +1,10 @@
 # DEC-062 — CI-14 Frontend Dependency Modernization: planning inventory (safe vs STOP)
 
-> **Status:** **Accepted** — planning complete; **Slice 1 PASS** (sharp override landed; see §9)  
+> **Status:** **Accepted** — planning complete; **Slice 1 PASS** (sharp; §9); **Slice 2 STOP** (ESLint major; §10 / DEC-065)  
 > **Date:** 2026-08-01  
 > **Board:** Frontend / Deps (SalesOS / AQLIYA)  
 > **Story / risk:** CI-14 / R-18 (30 residual high npm advisories after CI-11)  
-> **Authority:** DEC-018 (story register) · DEC-019 (CI-11 closed, residual → CI-14) · DEC-035 (CI-13 Jest baseline contract) · lock evidence on `master` · Slice 1 execution **DEC-063**  
+> **Authority:** DEC-018 (story register) · DEC-019 (CI-11 closed, residual → CI-14) · DEC-035 (CI-13 Jest baseline contract) · lock evidence on `master` · Slice 1 **DEC-063** · Slice 2 STOP **DEC-065**  
 > **Out of scope:** CI-22 · backend Poetry bumps · Railway · `npm audit --force` · silent Next/React/ESLint/Jest majors
 
 ---
@@ -125,3 +125,19 @@ Executed under **DEC-063** (authorized Slice 1 only).
 | Narrow validation | `npx tsc --noEmit` **exit 0**; prettier **not present** in frontend deps; full `next lint` / Jest **not** run (low-load) |
 
 **Label:** **light validated** (lock + `npm ls` + tsc). Story CI-14 remains **OPEN** (Cluster A / Slice 2–3 pending). Trivy/npm-audit field clear for sharp **not** re-proven on CI this land — expected residual high count drops for Cluster B only after CI Observer. **CI GREEN not met.**
+
+---
+
+## 10. Slice 2 outcome (2026-08-01) — **STOP**
+
+Attempted under Frontend Deps session on tip **`435ba5d`** (post Slice 1). Full package: [`DEC-065-CI-14-SLICE-2-ESLINT-STOP.md`](DEC-065-CI-14-SLICE-2-ESLINT-STOP.md).
+
+| Check | Result |
+|---|---|
+| Slice 2 definition | ESLint **9 → 10** + eslint-config-next aligned to Next 15.5.x (DEC-062 §5) |
+| Auto-safe? | **No** — DEC-062 matrix: **STOP until dedicated slice**; session forbids silent ESLint majors |
+| Architecture | `eslint.config.mjs` already FlatCompat + `@typescript-eslint` + custom-rules — ESLint 10 is a compat cascade |
+| Package / lock land | **None** |
+| STOP triggers avoided | No Next↓14; no React/ESLint/Jest bump; no `--force`; no audit nonsense pins |
+
+**Label:** **not validated** (docs-only STOP). **Next:** authorize dedicated Slice 2 evidence package (named eslint 10 + next-aligned eslint-config-next + lint-green gate) before any lock change — see DEC-065 §4. Slice 3 (Jest) still pending and separately gated. **CI GREEN not met.**

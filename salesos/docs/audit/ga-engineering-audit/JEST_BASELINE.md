@@ -1,4 +1,4 @@
-# Jest Suite Baseline (CI-13)
+﻿# Jest Suite Baseline (CI-13)
 
 > **Purpose:** Fixed-point baseline of the frontend Jest suite, captured from a real GitHub Actions run, so that CI-14 (Frontend Dependency Modernization — the Jest/ESLint/ts-jest major leg) and the Sprint 01 Jest-debt story can be measured before/after without re-deriving the failing inventory each time.
 > **Source of truth:** Real CI run evidence (not local claims). Command evidence: CI job `Stage 3: Frontend Unit Tests` (`.github/workflows/ci.yml` → `npm run test -- --coverage --forceExit`).
@@ -88,7 +88,7 @@ Representative log evidence (run `30664173050`): `TypeError: Cannot read propert
 | 2026-08-01 | `fea37c8` | Stale fetch/API mocks (`global.fetch` / bare `axios` vs `@/lib/api`) | 6 | Narrow Jest: **6 suites / 50 tests passed** — `hooks.test`, `search.hooks`, `useCompanyIntelligence`, `opportunity.store`, `task.store`, `end-to-end` (**light validated**) | Hooks/stores now mock `@/lib/api` axios client; snake_case request → camelCase response mapping; `put` stage/complete handlers. Full CI inventory not re-run. |
 | 2026-08-01 | `54597d7` | Incomplete React Query / query-hook mocks | 3 | Narrow Jest: **3 suites / 33 tests passed** — `settings-page`, `WorkflowBuilder`, `AnalyticsWorkspace` (**light validated**) | `useQueryClient` + queryKey-aware mocks; `useWorkflowExecutions` returns; `useExecutiveDashboard` + chart stubs; nested `<h3>` markup fix in `AnalyticsWorkspace`. Full CI inventory not re-run. |
 | 2026-08-01 | `9739a9e` | Stale DOM/selector assertions | 3 | Narrow Jest: **3 suites / 21 tests passed** — `admin-workspace`, `DealCard`, `NewWorkflowPage` (**light validated**) | Sidebar labels aligned to `admin.tab.*` Arabic; DealCard missing-score asserts em-dash placeholder; NewWorkflow palette click uses sole `"إرسال بريد"`. Section 8 field verify: these 3 **did not hold** in full CI. |
-| 2026-08-01 | *(this commit)* | Stale production contract assertions | 3 | Narrow Jest: **3 suites / 22 tests passed** — `widget.store`, `lib/analytics`, `Onboarding` (**light validated**) | Targets section 8 #5/#7/#8: `deriveStatus(null)` → `ready` + 13-widget inventory; `sendBeacon` Blob parse (jsdom FileReader); onboarding in-memory (no localStorage). Expected field ceiling **11 → ≤8**. Full CI inventory not re-run. |
+| 2026-08-01 | `4fdc1d8` | Stale production contract assertions | 3 | Narrow Jest: **3 suites / 22 tests passed** — `widget.store`, `lib/analytics`, `Onboarding` (**light validated**) | Targets section 8 #5/#7/#8: `deriveStatus(null)` → `ready` + 13-widget inventory; `sendBeacon` Blob parse (jsdom FileReader); onboarding in-memory (no localStorage). Expected field ceiling **11 → ≤8**. Full CI inventory not re-run. |
 
 **Revised expected failing-suite ceiling (post this category, light):** **≤8** vs section 8 field count **11**. Prior light ≤4 **not** met under full CI. Do **not** claim Stage 3 green until next field verify.
 
