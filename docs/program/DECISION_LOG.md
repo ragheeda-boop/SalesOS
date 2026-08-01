@@ -797,16 +797,7 @@
 **Consequence:** CI-19 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-24 remains Open (mitigating). Validation: **light validated** (local inventory vs Code Scanning alert paths #591–#609; field Code Scanning closure **not** yet re-verified). **CI GREEN not met.**
 **Status:** Accepted. CI-19 **Wave 3 residual COMPLETE**; story **OPEN**.
 
-### DEC-075 - CI-19 Wave 3 pin follow-up: bump trivy-action pin v0.29.0 -> v0.36.0 (setup-trivy resolve)
-
-**Date:** 2026-08-01
-**Context:** Field verify after Wave 3 SHA-pin 556304d (DEC-069): workflows **start and complete**, but jobs that use quasecurity/trivy-action@18f2510... (v0.29.0) fail at **Set up job** with Unable to resolve action aquasecurity/setup-trivy@v0.2.2 (tag gone; current tags include v0.2.6+). Evidence: Security Scan tip 30679471680 / pin commit 30679309711 (sbom + secret-scan setup fail) vs pre-pin parent 1ec68c Security Scan 30679150021 **all jobs SUCCESS**. CI tip 30679471676 / 30679589732 Secrets Scan setup fail; pre-pin CI 30679150001 Secrets Scan **Set up job SUCCESS** then failed on Trivy findings gate (pre-existing). Other CI reds (Backend Lint/Types, Frontend Lint, pip-audit) match pre-pin 30679150001 — **pre-existing**, not pin-induced.
-**Alternatives considered:** (a) revert trivy to floating @master — rejected (undoes Wave 3 supply-chain pin); (b) bump pin to 0.36.0 SHA 9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 (pins setup-trivy@3fb12ec... / v0.2.6) — approved; (c) document-only without fix — rejected (clear pin breakage).
-**Decision:** Replace all 	rivy-action@18f2510... # v0.29.0 pins in ci.yml, security-scan.yml, deploy-production.yml with @a9c7b0f... # v0.36.0. Do **not** claim CI/Security GREEN. Do **not** weaken Semgrep or Trivy severity gates.
-**Consequence:** CI-19 remains **IN PROGRESS / OPEN**. Expected: setup-resolve pin breakage cleared; Security Scan may return to completing jobs; CI Secrets Scan may still fail on **findings** (pre-existing). Validation after push: field run IDs (not yet). **CI GREEN not met.**
-**Status:** Accepted. Pin-breakage fix landed; CI-19 **OPEN**.
-
-### DEC-075 - CI-19 Wave 3 pin follow-up: bump trivy-action pin v0.29.0 -> v0.36.0 (setup-trivy resolve)
+### DEC-075 — CI-19 Wave 3 pin follow-up: bump trivy-action pin v0.29.0 → v0.36.0 (setup-trivy resolve)
 
 **Date:** 2026-08-01
 **Context:** Field verify after Wave 3 SHA-pin `556304d` (DEC-069): workflows **start and complete**, but jobs that use `aquasecurity/trivy-action@18f2510...` (v0.29.0) fail at **Set up job** with `Unable to resolve action aquasecurity/setup-trivy@v0.2.2` (tag gone; current tags include v0.2.6+). Evidence: Security Scan tip `30679471680` / pin commit `30679309711` (sbom + secret-scan setup fail) vs pre-pin parent `b1ec68c` Security Scan `30679150021` **all jobs SUCCESS**. CI tip `30679471676` / `30679589732` Secrets Scan setup fail; pre-pin CI `30679150001` Secrets Scan **Set up job SUCCESS** then failed on Trivy findings gate (pre-existing). Other CI reds (Backend Lint/Types, Frontend Lint, pip-audit) match pre-pin `30679150001` — **pre-existing**, not pin-induced.
@@ -814,3 +805,12 @@
 **Decision:** Replace all `trivy-action@18f2510... # v0.29.0` pins in `ci.yml`, `security-scan.yml`, `deploy-production.yml` with `@a9c7b0f... # v0.36.0`. Do **not** claim CI/Security GREEN. Do **not** weaken Semgrep or Trivy severity gates.
 **Consequence:** CI-19 remains **IN PROGRESS / OPEN**. Expected: setup-resolve pin breakage cleared; Security Scan may return to completing jobs; CI Secrets Scan may still fail on **findings** (pre-existing). Validation after push: field run IDs (not yet). **CI GREEN not met.**
 **Status:** Accepted. Pin-breakage fix landed; CI-19 **OPEN**.
+
+### DEC-076 — CI-19 Wave 4 COMPLETE: Semgrep path excludes + secrets-doc redact; CI-19 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-19 triage Wave 4 scoped honest noise reduction (~30): path excludes for scrapers / root scrape JSON / abandoned `sales-os/` / demo + build scripts — **not** severity-gate weaken. Wave 1 COMPLETE (`d5c9b57`); Wave 3 COMPLETE (`556304d` / DEC-069 + `465c638` / DEC-074); DEC-075 trivy pin follow-up on tip. Wave 2 remains SKIPPED/deferred. Live Code Scanning still showed Bucket C noise (`missing-integrity` under `taqeem_scraper/`, BiDi on root/scraper JSON, demo `asyncpg-sqli`, FE/build `path-join`, root `crm_pipeline.py`) plus `detected-generic-secret` on illustrative hex/`sk-` examples in `PILOT_SECRETS_GUIDE.md`.
+**Alternatives considered:** (a) drop Semgrep `--severity WARNING` or blanket `--exclude-rule` — rejected (hides real vulns / no DEC for gate weaken); (b) mass Code Scanning dismiss without path policy — rejected (not durable); (c) repo-root `.semgrepignore` with justified out-of-GA paths + redact secrets guide placeholders — approved.
+**Decision:** Accept Wave 4 as **COMPLETE**. Add `.semgrepignore` excluding: `taqeem_scraper/`, `taqeem_facilities.json`, `companies.json`, `recovered_contacts.json`, `sales-os/`, `crm_pipeline.py`, `salesos/backend/demo/`, `salesos/frontend/scripts/`, `salesos/scripts/`. Redact `salesos/docs/PILOT_SECRETS_GUIDE.md` examples to `CHANGE_ME_*` (no live credential claim). Do **not** exclude `salesos/backend` app/runtime or product FE packages. Do **not** mark CI-19 CLOSED. Do **not** execute Wave 2. Do **not** weaken ERROR/WARNING severity or SARIF upload. Next: Wave 5 residual singletons.
+**Consequence:** CI-19 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-24 remains Open (mitigating). Validation: **light validated** (path inventory vs triage Bucket C / live alert paths; field Code Scanning closure **not** yet re-verified). **CI GREEN not met.**
+**Status:** Accepted. CI-19 **Wave 4 COMPLETE**; story **OPEN**.

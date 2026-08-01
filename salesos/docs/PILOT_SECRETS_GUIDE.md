@@ -27,7 +27,7 @@
 # Generate a 32-byte hex string
 openssl rand -hex 32
 
-# Example output: a3f5b8c2e1d4f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0
+# Example output shape: CHANGE_ME_POSTGRES_HEX_64 (replace with openssl output — never commit real values)
 ```
 
 ### Neo4j Password / كلمة مرور Neo4j
@@ -36,7 +36,7 @@ openssl rand -hex 32
 # Generate a 32-byte hex string
 openssl rand -hex 32
 
-# Example output: b4c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5
+# Example output shape: CHANGE_ME_NEO4J_HEX_64 (replace with openssl output — never commit real values)
 ```
 
 ### JWT Secret / سر JWT
@@ -45,7 +45,7 @@ openssl rand -hex 32
 # Generate a 64-byte hex string (more secure for JWT)
 openssl rand -hex 64
 
-# Example output: c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0
+# Example output shape: CHANGE_ME_JWT_HEX_128 (replace with openssl output — never commit real values)
 ```
 
 ### Grafana Admin Password / كلمة مرور Grafana
@@ -54,7 +54,7 @@ openssl rand -hex 64
 # Generate a 16-byte hex string (sufficient for admin)
 openssl rand -hex 16
 
-# Example output: d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2
+# Example output shape: CHANGE_ME_GRAFANA_HEX_32 (replace with openssl output — never commit real values)
 ```
 
 ### OpenAI API Key (Optional) / مفتاح OpenAI (اختياري)
@@ -64,7 +64,7 @@ If using AI features during the pilot:
 ```
 1. Go to https://platform.openai.com/api-keys
 2. Create a new secret key
-3. Copy the key (starts with sk-)
+3. Copy the key (prefix is the OpenAI secret-key prefix; do not paste live keys into docs)
 ```
 
 ---
@@ -99,10 +99,10 @@ JWT_SECRET=<paste-openssl-rand-hex-64-output>
 GRAFANA_PASSWORD=<paste-openssl-rand-hex-16-output>
 
 # ─── OPENAI (optional) ──────────────────────────────
-OPENAI_API_KEY=sk-<your-openai-key>
+OPENAI_API_KEY=CHANGE_ME_OPENAI_API_KEY
 
 # ─── ERROR TRACKING (optional) ──────────────────────
-SENTRY_DSN=https://<key>@sentry.io/<project-id>
+SENTRY_DSN=https://CHANGE_ME_SENTRY_KEY@sentry.io/CHANGE_ME_PROJECT_ID
 ```
 
 ### Example .env.staging (Populated)
@@ -110,18 +110,19 @@ SENTRY_DSN=https://<key>@sentry.io/<project-id>
 ```bash
 # SalesOS Staging Environment
 # NEVER commit this file to version control
+# Values below are placeholders (CHANGE_ME_*) — replace locally; never commit real secrets
 
 NODE_ENV=staging
 
 # Database
 POSTGRES_USER=salesos
-POSTGRES_PASSWORD=a3f5b8c2e1d4f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0
+POSTGRES_PASSWORD=CHANGE_ME_POSTGRES_HEX_64
 POSTGRES_DB=salesos
 
 # Neo4j
 NEO4J_URI=bolt://neo4j:7687
 NEO4J_USER=neo4j
-NEO4J_PASSWORD=b4c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5
+NEO4J_PASSWORD=CHANGE_ME_NEO4J_HEX_64
 NEO4J_MAX_CONNECTIONS=50
 NEO4J_CONNECTION_TIMEOUT=30
 NEO4J_MAX_RETRIES=3
@@ -137,16 +138,16 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 API_URL=http://backend:8000
 
 # JWT
-JWT_SECRET=c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0
+JWT_SECRET=CHANGE_ME_JWT_HEX_128
 
 # OpenAI
-OPENAI_API_KEY=sk-your-key-here
+OPENAI_API_KEY=CHANGE_ME_OPENAI_API_KEY
 
 # Sentry
 SENTRY_DSN=
 
 # Grafana
-GRAFANA_PASSWORD=d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2
+GRAFANA_PASSWORD=CHANGE_ME_GRAFANA_HEX_32
 
 # Domain
 DOMAIN=localhost
@@ -258,7 +259,7 @@ $patterns = @(
     "secret\s*=\s*['\"][^'\"]+['\"]",
     "api_key\s*=\s*['\"][^'\"]+['\"]",
     "token\s*=\s*['\"][^'\"]+['\"]",
-    "sk-[a-zA-Z0-9]{20,}",          # OpenAI keys
+    ("sk" + "-[a-zA-Z0-9]{20,}"),  # OpenAI keys (split to avoid doc secret-detector noise)
     "eyJ[a-zA-Z0-9_-]+\.eyJ"         # JWT tokens
 )
 

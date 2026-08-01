@@ -161,15 +161,22 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 - **Security effect:** strengthens supply-chain + runtime/infra hardening; **does not** weaken Semgrep gates / severity / upload path.  
 - **Wave 3 fully complete** for triage-scoped hardening items. Next: Wave 4 path excludes / Wave 5 residuals.
 
-### Wave 4 — Noise reduction (no weakening)
+### Wave 4 — Noise reduction (no weakening) → **COMPLETE** (`DEC-076`)
 
-- Path excludes for `taqeem_scraper/`, root scrape JSON, abandoned `sales-os/` — **via path excludes**, not severity drop.  
-- Redact placeholder secrets in `PILOT_SECRETS_GUIDE.md` (`CHANGE_ME_*`).  
-- FE build-script path-join / prototype-pollution: fix or dismiss as non-runtime.
+- **Path excludes (COMPLETE):** repo-root `.semgrepignore` — Semgrep auto-loads; severity ERROR+WARNING and SARIF upload **unchanged**.
+  - `taqeem_scraper/` — scraper HTML/JSON (`missing-integrity`, BiDi); not SalesOS GA runtime
+  - Root scrape JSON: `taqeem_facilities.json`, `companies.json`, `recovered_contacts.json` — BiDi dataset noise
+  - `sales-os/` — abandoned legacy tree (out of `salesos/` GA path)
+  - `crm_pipeline.py` — root legacy pipeline
+  - `salesos/backend/demo/` — demo quarantine (asyncpg-sqli / urllib deferred from Wave 2)
+  - `salesos/frontend/scripts/`, `salesos/scripts/` — non-runtime build/migrate path-join noise (Bucket C)
+- **Secrets doc (COMPLETE):** redact `salesos/docs/PILOT_SECRETS_GUIDE.md` illustrative hex/`sk-` examples → `CHANGE_ME_*` placeholders (no live credential claim).
+- **Explicitly not excluded:** `salesos/backend` app/runtime, product FE packages (e.g. prototype-pollution in `packages/runtime` → Wave 5), `.github/workflows`.
+- **Honesty:** path excludes only for out-of-product / non-runtime noise — **no** severity drop, **no** blanket rule ignore.
 
 ### Wave 5 — Residual audit rules
 
-- Singleton/error rules (xml, websocket, urllib, regexp) — case-by-case.
+- Singleton/error rules (xml, websocket, urllib, regexp, FE prototype-pollution) — case-by-case.
 
 ---
 
@@ -180,10 +187,10 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 | **READY (Wave 1)** | **8** | **COMPLETE** at `d5c9b57` (env:/process.env) |
 | SQL honesty / FP review (Wave 2) | **~77** | **SKIPPED / deferred** (aborted honesty rewrite); REGISTERED — no mass `nosec` |
 | Hardening backlog (Wave 3) | **~139** → SHA pins **115** + residual **19** done | **Wave 3 COMPLETE** (`DEC-069` SHA-pin + `DEC-074` K8s/Docker/TF) |
-| **Noise / exclude (Wave 4)** | **~30** | Path excludes + doc redact |
-| Residual singletons (Wave 5) | **~6** | Case-by-case |
+| **Noise / exclude (Wave 4)** | **~30** | **COMPLETE** (`DEC-076`) — `.semgrepignore` + secrets-doc redact |
+| Residual singletons (Wave 5) | **~6+** | Case-by-case (incl. FE prototype-pollution left in-scope) |
 
-**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 COMPLETE** under `DEC-069` (115 Action pins) + `DEC-074` (15 K8s + 2 Docker USER + 2 TF encryption). Wave 2 skipped/deferred. Next executable: Wave 4 path excludes or Wave 5 residuals — CI-19 remains OPEN. **CI GREEN not met.**
+**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 COMPLETE** under `DEC-069` (`556304d`) + `DEC-074` (`465c638`). **Wave 4 COMPLETE** under `DEC-076`. Wave 2 skipped/deferred. Next executable: Wave 5 residuals — CI-19 remains OPEN. **CI GREEN not met.**
 
 ---
 
@@ -197,8 +204,9 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 | Severity split | error **84** / warning **170** |
 | Top rules | mutable-action-tag 115; avoid-sqlalchemy-text 69; k8s privilege 15; shell-injection 7 |
 | Spot-check parameterized text | `salesos/backend/app/modules/revenue_execution/service.py` uses `text(...)` + bind dict |
-| Spot-check secrets doc | `salesos/docs/PILOT_SECRETS_GUIDE.md` placeholder examples |
+| Spot-check secrets doc | `salesos/docs/PILOT_SECRETS_GUIDE.md` → Wave 4 `CHANGE_ME_*` redact |
 | Semgrep upload config | `.github/workflows/security-scan.yml` `sast-scan` job |
+| Wave 4 path excludes | `.semgrepignore` (DEC-076) |
 | Local raw dumps | `.tmp-ci19/` **absent** at close — not committed |
 
 ---
@@ -212,4 +220,4 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 
 ---
 
-*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`DEC-069` SHA-pin + `DEC-074` K8s/Docker/TF). Wave 2 skipped/deferred. Next: Waves 4–5 (CI-19 still OPEN).*
+*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`556304d` / DEC-069 + `465c638` / DEC-074). Wave 4 COMPLETE (DEC-076 `.semgrepignore`). Wave 2 skipped/deferred. Next: Wave 5 (CI-19 still OPEN).*

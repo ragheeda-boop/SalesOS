@@ -1,0 +1,25 @@
+# CI-19 Wave 4 — honest path excludes for Semgrep noise (not GA runtime).
+# Authority: salesos/docs/audit/ga-engineering-audit/CI_19_SEMGREP_TRIAGE.md §4 Wave 4
+# Do NOT use this file to hide findings in salesos/backend app/runtime or product FE packages.
+# Severity gates (--severity ERROR --severity WARNING) remain unchanged.
+
+# Abandoned Taqeem scraper HTML/JSON (missing-integrity, BiDi) — not SalesOS GA runtime
+taqeem_scraper/
+
+# Root scrape / dataset JSON (BiDi in Arabic facility names — content noise, not Trojan Source in product)
+taqeem_facilities.json
+companies.json
+recovered_contacts.json
+
+# Abandoned legacy product tree (not salesos/ GA path)
+sales-os/
+
+# Root legacy pipeline outside salesos/ GA path
+crm_pipeline.py
+
+# Demo scripts outside GA API surface (asyncpg-sqli / urllib deferred from Wave 2 → Wave 4 quarantine)
+salesos/backend/demo/
+
+# Non-runtime FE/build migrate scripts (path-join low exploitability — triage Bucket C)
+salesos/frontend/scripts/
+salesos/scripts/
