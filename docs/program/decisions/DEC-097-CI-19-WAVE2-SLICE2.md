@@ -3,6 +3,7 @@
 > **Status:** **Accepted**  
 > **Date:** 2026-08-01  
 > **Story:** CI-19 — Semgrep findings remediation (Wave 2 SQL honesty)  
+> **Land SHA:** `5686d4d` (`5686d4d4b76829affa36ec80d36665b0b00baa8d`) — note: commit subject was mislabeled as DEC-094 SHA record; payload is Wave 2 Slice 2 + this DEC  
 > **Prior:** Wave 2 Slice 1 COMPLETE (decision-log id DEC-091 / lands `844548e` + `5fb7dc5`)  
 > **Validation label:** **light validated** (AST parse of rewritten modules) — **not** whole-pipeline CI GREEN  
 > **DEC-085:** `get_db()` untouched — still `SELECT set_config('app.tenant_id', :tenant_id, true)`
