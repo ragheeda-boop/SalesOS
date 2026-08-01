@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** DEC-122 STOPPED companies DROP (`search_vector` live FTS; `parent_company_id` / feature columns still referenced). Phase 0 Exit Criterion 7.4 still OPEN (“DEC stopped”). Evidence required: `search_vector` FTS preserved + DEC decision recorded. Full `alembic check` remains criterion 7.6.
 **Alternatives considered:** (a) DROP “dead” columns this land — rejected (FTS + runtime refs; prod safety unknown); (b) docs-only KEEP without ORM restore — rejected (autogenerate DROP noise); (c) KEEP + restore ORM (no DDL) — approved.
-**Decision:** Accept criterion **7.4** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-129-DB-05-COMPANIES-DEAD-COLUMN-KEEP.md`](decisions/DEC-129-DB-05-COMPANIES-DEAD-COLUMN-KEEP.md). Disposition = **KEEP** (no DROP migration; Alembic head unchanged `d1a8c35e7f09`). Restore live columns on `Company` ORM + unit guard. DEC-085 intact. Do **not** mark VERIFIED/CLOSED.
+**Decision:** Accept criterion **7.4** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-129-DB-05-COMPANIES-DEAD-COLUMN-KEEP.md`](decisions/DEC-129-DB-05-COMPANIES-DEAD-COLUMN-KEEP.md). Disposition = **KEEP** (no DROP migration; Alembic head unchanged `d1a8c35e7f09`). Restore live columns on `Company` ORM + unit guard. DEC-085 intact. Closed via DEC-129a after Arch+Val PASS.
 **Consequence:** Phase 0 criterion **7.4** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). DB-05 residual = **7.6**. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criterion **READY FOR REVIEW**.
+**Status:** Accepted. Criterion **CLOSED via DEC-129a**.
+
+### DEC-129a — Orchestrator VERIFIED/CLOSED criterion 7.4 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 7.4](65a2e81e-066a-47e0-a991-baab13e48e95)) + Validation PASS ([Validate 7.4](14c3743a-26b8-48c9-8e5b-3d1db3d40832): Docker **4 passed**; head `d1a8c35e7f09`; no DROP; DEC-085 untouched) on land `4aacd6d` / DEC-129.
+**Decision:** Execution Orchestrator records criterion **7.4 VERIFIED → CLOSED**. Phase 0 **23/54 → 24/54**. DB Schema Complete **4 → 5**. Residual DB-05 = **7.6** only (stays OPEN). Do **not** push. Do **not** claim Production GO / CI GREEN / `alembic check` clean.
+**Consequence:** DB-05 residual = **7.6**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **7.4 CLOSED**.
 
 ### DEC-128 — Phase 0 criterion 1.5 SAST + dependency scan READY FOR REVIEW (residual)
 

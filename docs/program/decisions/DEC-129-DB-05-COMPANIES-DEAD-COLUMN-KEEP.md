@@ -1,11 +1,11 @@
 # DEC-129 — DB-05 companies dead-column DROP disposition (Phase 0 criterion 7.4)
 
-> **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion 7.4 = **READY FOR REVIEW** (Architecture PENDING · Validation PENDING). Only Execution Orchestrator may mark VERIFIED/CLOSED.  
+> **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion 7.4 = **VERIFIED/CLOSED** (DEC-129a; Architecture PASS · Validation PASS @ `4aacd6d`).  
 > **Date:** 2026-08-01  
 > **Board:** Backend Platform / Database (SalesOS / AQLIYA)  
 > **Story / risk:** DB-05 / R-20 / Phase 0 Exit Criterion **7.4**  
-> **Authority:** DEC-122 STOP · DEC-111 P1 companies cluster · DEC-085 `set_config` · DEC-107 swarm READY · ARB review protocol (Cursor ≠ CLOSED)  
-> **Out of scope this land:** DROP any companies column · full `alembic check` (7.6) · production / Railway migrate · Prisma · DEC-085 edits · Criterion CLOSED/VERIFIED claims
+> **Authority:** DEC-122 STOP · DEC-111 P1 companies cluster · DEC-085 `set_config` · DEC-107 swarm READY · DEC-129a Orchestrator  
+> **Out of scope this land:** DROP any companies column · full `alembic check` (7.6) · production / Railway migrate · Prisma · DEC-085 edits · Production GO / CI GREEN
 
 ---
 
@@ -19,7 +19,7 @@
 | Alembic head | **unchanged** — `d1a8c35e7f09` (no new revision) |
 | FTS authority | `search_vector` remains **GENERATED ALWAYS AS … STORED** (Alembic 0023); `tsv` remains trigger-backed (0006/0025) |
 | DEC-085 | **Intact** |
-| Criterion state | **READY FOR REVIEW** (Cursor COMPLETE) |
+| Criterion state | **VERIFIED/CLOSED** (DEC-129a) |
 
 ### Column disposition (Docker `information_schema` @ local compose)
 
@@ -59,10 +59,10 @@
 
 ## 3. Records
 
-- Phase 0 criterion **7.4** → **READY FOR REVIEW** (Cursor COMPLETE). Assigned next: Architecture Reviewer.
+- Phase 0 criterion **7.4** → **VERIFIED/CLOSED** (DEC-129a; Phase 0 **24/54**).
 - DB-05 residual after this land = **7.6** `alembic check` (companies KEEP cluster mitigated; systemic drift remains).
-- `DECISION_LOG.md` DEC-129
-- **Not claimed:** Criterion CLOSED · VERIFIED · Production GO · CI GREEN · `alembic check` clean
+- `DECISION_LOG.md` DEC-129 / DEC-129a
+- **Not claimed:** Production GO · CI GREEN · `alembic check` clean
 
 ---
 
