@@ -654,3 +654,14 @@
 **Decision:** Accept Phase 11 as **COMPLETE** at `86b4094`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phases 1–10. Validation label: **light validated** (Docker mypy on `app/modules/work_intelligence`).
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 11 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-062 — CI-14 planning: frontend major inventory + safe vs STOP; Slice 1 = sharp evidence gate
+
+**Date:** 2026-08-01
+**Context:** CI-14 (Frontend Dependency Modernization) is REGISTERED/READY (Sprint 06, DEC-018/019; R-18; dep CI-13/DEC-035). CI-11 closed patch-only (`060c946`); residual **30 high**. Lock on `master`: next **15.5.22**, react **19.2.7**, eslint **9.39.5**, jest **29.7.0**, ts-jest **29.4.12**, sharp **0.34.5**. Host `node_modules` absent this session — no install/audit/bump executed. npm’s historical fix frames include **Next→14.2.35**, **jest→25**, **eslint-config-next→0.2.4** — downgrade/nonsense relative to current pins.
+**Alternatives considered:** (a) silent majors / `npm audit --force` now — rejected; (b) invent a patch land without audit evidence — rejected; (c) accept planning inventory + gated slices, no package bumps in this land — approved.
+**Decision:** Accept CI-14 **plan** as documented in [`decisions/DEC-062-CI-14-FRONTEND-DEPS-PLAN.md`](decisions/DEC-062-CI-14-FRONTEND-DEPS-PLAN.md). **STOP** without dedicated evidence: Next/React/ESLint/Jest majors, Next downgrade for sharp, audit’s jest→25 / ts-jest→27 / eslint-config-next→0.2.4, `--force`. **Next executable slice (when authorized):** Slice 1 = `sharp ≥0.35.0` override under next 15.5.x only. Do **not** start CI-22; no backend dep bumps; no Railway.
+**Consequence:** CI-14 remains **OPEN / READY** (plan Accepted; execution not started). R-18 unchanged (Open). Program Complete/Closed count unchanged (**20/21**). Validation: **not validated** (docs only). **CI GREEN not met.**
+**Status:** Accepted. CI-14 **PLAN COMPLETE**; story **OPEN** (Slice 1 pending authorization).
