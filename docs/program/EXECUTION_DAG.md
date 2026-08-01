@@ -61,7 +61,6 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Item | Class | Why ready now | Notes |
 |---|---|---|---|
-| **CI-22** FastAPI / Starlette / Pydantic | IN PROGRESS / READY | Phase 1 COMPLETE (DEC-081 @ `442af64`); further phases | R-21 starlette / pip-audit path |
 | **DB-05** Schema reconciliation program | READY (program) | BACKLOG; R-20 / R-09 | Multi-sprint; unblocks 8 RLS-deferred tables |
 | **Optional Jest 30 evidence** | BACKLOG (not CI-14) | DEC-108 deferred; authorize dedicated package | STOP silent major; Stage 3 **0**-fail gate |
 | **STORY-02-02** browser/E2E verify (if scoped) | **CLOSED** (DEC-095) | Live Next redirect: `/dashboard` → **307** `/login?callbackUrl=%2Fdashboard`; `/`+`/login` **200** | Optional authenticated `smoke-ui.ps1` not run; **CI GREEN not met** |
@@ -83,6 +82,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **Jest-debt** / **R-23** | **CLOSED** | DEC-077; Stage 3 **0** failing suites |
 | **CI-20** Backend Types (MyPy) / **R-22** | **CLOSED** | DEC-096; field Types **0** on `220d91a` (run `30684023356` / job `91326366120`); tip `af4835f` (`30684308678` / `91327119501`) |
 | **CI-19** Semgrep findings / **R-24** | **CLOSED** | DEC-105 residual-close (alembic residual accepted) |
+| **CI-22** FastAPI / Starlette / Pydantic / R-21 starlette | **CLOSED** | DEC-109 executive close; Phase 1 DEC-081 @ `442af64`; field pip-audit clear of starlette |
 | **CI-14** Frontend Dependency Modernization / **R-18** | **CLOSED** | DEC-108 executive AC (sharp + eslint 10 + audit 0; Jest 30 backlog) |
 
 ---
@@ -91,7 +91,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| **CI-22**, contract tests, optional Jest 30 backlog | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. CI-14/CI-19/CI-20 CLOSED. |
+| Contract tests, optional Jest 30 backlog, DB-05 | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. CI-14/CI-19/CI-20/CI-22 CLOSED. |
 | Contract tests expansion (post STORY-03-04) | PARALLEL | Slice 1–4 DEC-094/106 (probes + health/ready + auth list + 401/422); framework `623077c` |
 | JWT audience **consumption** | **CLOSED** (DEC-093) | Owner Platform admin consumes `salesos-owner-platform`; tenant path untouched |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
@@ -115,7 +115,8 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | Contract tests expansion slice 2 (DEC-094) | `0ac07bc` | LANDED | `/health` + `/health/ready` + honest DB/cache fixtures |
 | Contract tests expansion slice 3 (DEC-094) | `bdc6fd2` | LANDED | Auth list `GET /api/v1/decisions` OpenAPI contract |
 | Contract tests expansion slice 4 (DEC-106) | `448c301` | LANDED | 401 `DetailStringError` + 422 `HTTPValidationError` on decisions list |
-| CI-14 executive AC close (DEC-108) | *(this land)* | **CLOSED** | docs-only; security AC met without Jest major |
+| CI-22 executive close (DEC-109) | *(this land)* | **CLOSED** | docs close; field pip-audit + Unit corroboration |
+| CI-14 executive AC close (DEC-108) | `278b0d4`+follow-up | **CLOSED** | docs-only; security AC met without Jest major |
 | STORY-02-04 §17.2 relabel | `932f722` | DONE | docs-only |
 | Card primitives (Jest debt related) | `9577c98` | Progress note only | **CI GREEN not met** |
 
@@ -123,7 +124,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 ## Board progress fraction
 
-**24/24** Complete/Closed on tracked Sprint 05 board fraction (includes **S04-04** / **CI-16** / **CI-20** / **CI-19** / **CI-14**). Adjacent closed: **Jest-debt / R-23**. Pending: none. In progress: **CI-22**. Blocked (critical path Phase 0): **none**. Also blocked (ops): CI-08 (P0), CI-09 (P2).
+**25/25** Complete/Closed on tracked Sprint 05 board fraction (includes **S04-04** / **CI-16** / **CI-20** / **CI-19** / **CI-14** / **CI-22**). Adjacent closed: **Jest-debt / R-23**. Pending: none. In progress: none. Blocked (critical path Phase 0): **none**. Also blocked (ops): CI-08 (P0), CI-09 (P2).
 
 ---
 
