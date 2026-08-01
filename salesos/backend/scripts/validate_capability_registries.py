@@ -5,11 +5,19 @@ Usage:
 
 Returns exit code 0 if all registries are in sync, non-zero on mismatch.
 
-This validates alignment between:
-    1. SDK CapabilityRegistry (sdk/capability_registry.py + modules/registry.py)
-    2. Decorator Framework (runtime/capability_framework/__init__.py)
-    3. Governance YAML (engineering-os/kernel/capability-registry.yaml)
-    4. Documentation Catalog (docs/CAPABILITY_CATALOG.md) -- checks only ID presence
+**SoT (DEC-132 / Phase 0 criterion 5.1):** Decorator Framework
+(`runtime/capability_framework`, kebab-case IDs) is the canonical *runtime*
+source of truth. SDK / governance YAML / docs CAP-### catalog are secondary
+and must converge toward that SoT.
+
+This script still compares all four surfaces (criterion **5.3** = exit 0).
+Criterion **5.2** (CAP-### → kebab join map) is a separate land.
+
+Surfaces:
+    1. SDK CapabilityRegistry (sdk/capability_registry.py + modules/registry.py) — secondary
+    2. Decorator Framework (runtime/capability_framework/__init__.py) — **SoT**
+    3. Governance YAML (engineering-os/kernel/capability-registry.yaml) — secondary
+    4. Documentation Catalog (docs/CAPABILITY_CATALOG.md) — secondary (CAP-###)
 """
 
 import sys
@@ -83,6 +91,21 @@ def main():
     print("=" * 60)
     print("Capability Registry Sync Validation")
     print("=" * 60)
+    try:
+        from runtime.capability_framework import (
+            CAPABILITY_ID_SCHEME,
+            CAPABILITY_REGISTRY_SOT,
+            CAPABILITY_REGISTRY_SOT_PATH,
+        )
+
+        print(
+            f"SoT (DEC-132 / 5.1): {CAPABILITY_REGISTRY_SOT} "
+            f"@ {CAPABILITY_REGISTRY_SOT_PATH} [{CAPABILITY_ID_SCHEME}]"
+        )
+        print("Secondary: SDK · governance YAML · docs CAP-### (converge toward SoT)")
+        print("Criterion 5.3 = this script exit 0; 5.2 = CAP-### join map (separate)")
+    except Exception as exc:  # pragma: no cover - import path diagnostics only
+        print(f"SoT pins unavailable ({exc}); continuing comparison")
 
     sdk_ids = validate_sdk_registry()
     decorator_ids = validate_decorator_framework()

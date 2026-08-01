@@ -6,7 +6,13 @@ Each capability declares:
   - Health (coverage, latency, errors, AI cost, usage)
   - Contracts (consumes, produces, events, APIs, permissions)
 
-The Capability Registry is the single source of truth for what the platform can do.
+**Canonical runtime source of truth (DEC-132 / Phase 0 criterion 5.1):**
+this decorator registry (`Capability` + built-ins below). Identity scheme = kebab-case
+IDs (e.g. ``identity``, ``data-fabric``). Exposed via ``GET /api/v1/capabilities``.
+
+Secondary registries (SDK, governance YAML, docs CAP-### catalog) are **not**
+authoritative for runtime IDs — they must converge toward this SoT (criteria 5.2–5.3).
+
 Company360, Dynamic Navigation, Dynamic Search, Dynamic Permissions, AI — all read from here.
 """
 
@@ -18,6 +24,11 @@ from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Optional
+
+# DEC-132 / Phase 0 criterion 5.1 — machine-readable SoT pins (do not invent a second SoT).
+CAPABILITY_REGISTRY_SOT = "decorator-framework"
+CAPABILITY_REGISTRY_SOT_PATH = "runtime/capability_framework"
+CAPABILITY_ID_SCHEME = "kebab-case"
 
 
 class CapabilityStatus(str, Enum):

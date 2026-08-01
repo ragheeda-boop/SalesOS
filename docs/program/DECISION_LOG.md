@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-132 — Phase 0 criterion 5.1 capability registry SoT READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** Capability Drift checklist **5.1** OPEN — 4 registries (catalog / decorator / SDK / YAML) with no designated canonical SoT (audit EXEC #9/#17; DEBT-ARC-003 / E-21). Criterion **5.4** CLOSED (DEC-131a). Residuals **5.2–5.3** need a join key before CAP-### map / validate exit 0.
+**Alternatives considered:** (a) CAP-### catalog as runtime SoT — rejected (absent from backend); (b) SDK as SoT — rejected (no `/api/v1/capabilities` identity); (c) governance YAML as SoT — rejected (naming/structural drift); (d) decorator framework as runtime SoT — approved.
+**Decision:** Accept criterion **5.1** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-132-CRITERION-5-1-CAPABILITY-SOT.md`](decisions/DEC-132-CRITERION-5-1-CAPABILITY-SOT.md). Pins `CAPABILITY_REGISTRY_SOT*` in `runtime/capability_framework`; catalog banner + validate SoT header. DEC-085 intact. Do **not** claim VERIFIED/CLOSED / validate exit 0 / Production GO.
+**Consequence:** Phase 0 remains **26/54** until Arch+Val CLOSE. **5.2–5.3** still OPEN (unblocked for join-map / SoT-oriented validate). **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **5.1 READY FOR REVIEW**.
+
 ### DEC-131 — Phase 0 criterion 5.4 `/api/v1/capabilities` contract test READY FOR REVIEW
 
 **Date:** 2026-08-01

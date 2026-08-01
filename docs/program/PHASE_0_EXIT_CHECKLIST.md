@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-131a criterion 5.4 VERIFIED/CLOSED — capabilities API contract; Phase 0 26/54; Capability Drift 1/4; residuals 5.1–5.3 OPEN)
+> **Last updated:** 2026-08-01 (DEC-132 criterion 5.1 SoT READY FOR REVIEW — decorator framework canonical; Phase 0 still 26/54 until Arch+Val CLOSE; residuals 5.2–5.3 OPEN; 5.4 CLOSED)
 >
 > ## Operating State
 >
@@ -105,9 +105,9 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
-| 5.1 | Single source of truth established | One registry (catalog / decorator / SDK / YAML) designated canonical | ⬜ 4-way drift still active |
-| 5.2 | `CAP-###` mapped to runtime kebab IDs | Automation can join registries | ⬜ `CAP-###` absent from backend code |
-| 5.3 | Registry sync/validate scripts aligned | `validate_capability_registries.py` exits 0 | ⬜ |
+| 5.1 | Single source of truth established | One registry (catalog / decorator / SDK / YAML) designated canonical | 🔄 READY FOR REVIEW — DEC-132 Cursor COMPLETE; decorator framework = canonical runtime SoT (kebab IDs); secondaries = SDK / YAML / CAP-### catalog; Arch+Val PENDING; do **not** claim VERIFIED/CLOSED |
+| 5.2 | `CAP-###` mapped to runtime kebab IDs | Automation can join registries | ⬜ `CAP-###` absent from backend code (unblocked by 5.1 SoT join key) |
+| 5.3 | Registry sync/validate scripts aligned | `validate_capability_registries.py` exits 0 | ⬜ SoT documented in script; exit still non-zero until convergence land |
 | 5.4 | `/api/v1/capabilities` tested | Test exercises decorator registry endpoint | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `65e82cc` (DEC-131a); ASGI contract `tests/contract/test_capabilities_api.py`; Docker **4 passed**; DEC-085 untouched; Orchestrator 2026-08-01 |
 
 **Owner:** Shared / Chief Architect  

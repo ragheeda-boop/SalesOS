@@ -3,6 +3,11 @@
 Usage:
     python scripts/sync_capability_registries.py
 
+**SoT (DEC-132 / Phase 0 criterion 5.1):** Decorator framework is the canonical
+*runtime* source of truth. This helper currently appends missing SDK-derived
+entries into governance YAML (secondary→secondary). Criterion **5.3** should
+reorient sync toward decorator kebab IDs; do not treat this script as SoT.
+
 Updates:
     - engineering-os/kernel/capability-registry.yaml
       with any capabilities from the SDK CapabilityRegistry that are missing.
