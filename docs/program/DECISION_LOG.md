@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** ADR Drift checklist **6.4** OPEN — registry ID `ADR-032` vs body/filename `ADR-0032`; index Status Accepted vs file Proposed. Criterion **6.3 CLOSED** (DEC-137a).
 **Alternatives considered:** (a) rename submodule file ADR-0032→ADR-032 — deferred (docs-only; dirty unrelated submodule work); (b) flip registry to ADR-0032 — rejected (breaks ADR-NNN series); (c) leave dual IDs — rejected; (d) duplicate body under docs/adr — rejected; (e) naming bridge + alias + index File/Status/date align — approved.
-**Decision:** Accept criterion **6.4** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-138-CRITERION-6-4-ADR-032-NAMING.md`](decisions/DEC-138-CRITERION-6-4-ADR-032-NAMING.md). Bridge `docs/adr/0032-widget-sdk-reconciliation.md` (canonical **ADR-032**; alias ADR-0032); index Status → **📝 Proposed**; date → `2026-07-17`. DEC-085 intact. Do **not** claim VERIFIED/CLOSED until Arch+Val + Orchestrator DEC-138a.
-**Consequence:** Phase 0 criterion **6.4** = READY FOR REVIEW. Phase 0 remains **32/54**. Residual **6.5** OPEN; `.engineering/27` re-pin → **4.5**. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criterion **READY FOR REVIEW** (not CLOSED).
+**Decision:** Accept criterion **6.4** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-138-CRITERION-6-4-ADR-032-NAMING.md`](decisions/DEC-138-CRITERION-6-4-ADR-032-NAMING.md). Bridge `docs/adr/0032-widget-sdk-reconciliation.md` (canonical **ADR-032**; alias ADR-0032); index Status → **📝 Proposed**; date → `2026-07-17`. DEC-085 intact. Closed via DEC-138a after Arch+Val PASS.
+**Consequence:** Phase 0 criterion **6.4** = READY FOR REVIEW then **CLOSED** via DEC-138a. Residual **6.5** OPEN; `.engineering/27` re-pin → **4.5**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED via DEC-138a**.
+
+### DEC-138a — Orchestrator VERIFIED/CLOSED criterion 6.4 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 6.4](84e4ea3a-db09-47f1-a939-a5423ef6d5f1)) + Validation PASS (light) ([Validate 6.4](e450fc24-f176-401a-8c5b-be530de43451): naming bridge ADR-032 + alias ADR-0032; index File/Status/date aligned Proposed; no invented Accepted; DEC-085 untouched) on land `8a3c92e` / DEC-138.
+**Decision:** Execution Orchestrator records criterion **6.4 VERIFIED → CLOSED**. Phase 0 **32/54 → 33/54**. ADR Drift Complete **3 → 4** / Open **2 → 1**. Residual **6.5** remains OPEN; `.engineering/27` re-pin → **4.5** (non-blocking for 6.4). Do **not** push. Do **not** claim Production GO / CI GREEN.
+**Consequence:** ADR Drift residual = **6.5** only. Next PARALLEL READY: ADR Drift **6.5**, EOS Audit **4.x**, Engineering Stability **8.1–8.3**, ADR-036 **9.2**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **6.4 CLOSED**.
 
 ### DEC-137 — Phase 0 criterion 6.3 ADR-033/034 index↔file status READY FOR REVIEW
 
