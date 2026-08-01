@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** Capability Drift checklist **5.2** OPEN — `CAP-###` absent from backend; automation could not join catalog to decorator SoT after DEC-132a designated kebab IDs. Criterion **5.1**/**5.4** CLOSED. Residual **5.3** (validate exit 0) needs the join map first.
 **Alternatives considered:** (a) embed CAP-### into every `@Capability` — deferred; (b) name-heuristic slugify only — rejected (fragile); (c) explicit YAML join map + validate hook — approved; (d) wait for full 5.3 sync — rejected (checklist separates 5.2).
-**Decision:** Accept criterion **5.2** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-133-CRITERION-5-2-CAP-TO-KEBAB-JOIN.md`](decisions/DEC-133-CRITERION-5-2-CAP-TO-KEBAB-JOIN.md). Map `cap_to_kebab_join.yaml` (10 direct / 30 unmapped / 3 decorator-only); pin `CAPABILITY_CAP_TO_KEBAB_JOIN_MAP`; validate integrity hook. DEC-085 intact. Arch+Val PENDING — do **not** claim VERIFIED/CLOSED.
-**Consequence:** Phase 0 criterion **5.2** = READY FOR REVIEW. Phase 0 remains **27/54**. Residual **5.3** still OPEN. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criterion **READY FOR REVIEW** (not CLOSED).
+**Decision:** Accept criterion **5.2** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-133-CRITERION-5-2-CAP-TO-KEBAB-JOIN.md`](decisions/DEC-133-CRITERION-5-2-CAP-TO-KEBAB-JOIN.md). Map `cap_to_kebab_join.yaml` (10 direct / 30 unmapped / 3 decorator-only); pin `CAPABILITY_CAP_TO_KEBAB_JOIN_MAP`; validate integrity hook. DEC-085 intact. Closed via DEC-133a after Arch+Val PASS.
+**Consequence:** Phase 0 criterion **5.2** = READY FOR REVIEW then **CLOSED** via DEC-133a. Residual **5.3** still OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED via DEC-133a**.
+
+### DEC-133a — Orchestrator VERIFIED/CLOSED criterion 5.2 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 5.2](38e0b0b7-5fbb-4eef-b018-655cc919b47a)) + Validation PASS (light) ([Validate 5.2](a2d34599-5fc8-4a08-b88c-b48755f63794): `--join-map-only` exit 0; counts 40/10/30/3; DEC-085 untouched) on land `81b593f` / DEC-133.
+**Decision:** Execution Orchestrator records criterion **5.2 VERIFIED → CLOSED**. Phase 0 **27/54 → 28/54**. Capability Drift Complete **2 → 3** / Open **2 → 1**. Residual **5.3** remains OPEN (full validate exit 0). Non-blocking residual: CAP-037→`capability-framework` semantic-join refine (documented in DEC-133 risk; does not re-open 5.2). Do **not** push. Do **not** claim Production GO / CI GREEN.
+**Consequence:** Capability Drift residual = **5.3** only. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **5.2 CLOSED**.
 
 ### DEC-132 — Phase 0 criterion 5.1 capability registry SoT READY FOR REVIEW
 

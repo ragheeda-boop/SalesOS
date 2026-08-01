@@ -1,11 +1,11 @@
 # DEC-133 — CAP-### → kebab join map (Phase 0 criterion 5.2)
 
-> **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **5.2 READY FOR REVIEW** (Arch+Val PENDING; do **not** claim VERIFIED/CLOSED)  
+> **Status:** **Accepted** — Criterion **5.2 VERIFIED/CLOSED** (DEC-133a; Arch+Val PASS @ `81b593f`)  
 > **Date:** 2026-08-01  
 > **Board:** Backend Lead / Capability Drift (SalesOS / AQLIYA) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **5.2** · DEBT-ARC-003 / E-21 · unblocked by DEC-132a (5.1 SoT)  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §5.2 · DEC-132 role matrix (catalog join via 5.2) · ARB review protocol  
-> **Out of scope this land:** Criterion **5.3** `validate_capability_registries.py` exit 0 · registering new decorator capabilities · deleting secondary registries · auth/CSRF weaken · DEC-085 `set_config` · Production GO · CI GREEN · VERIFIED/CLOSED
+> **Out of scope this land:** Criterion **5.3** `validate_capability_registries.py` exit 0 · registering new decorator capabilities · deleting secondary registries · auth/CSRF weaken · DEC-085 `set_config` · Production GO · CI GREEN
 
 ---
 
@@ -19,7 +19,7 @@ Land a machine-readable **join map** from docs `CAP-###` inventory to decorator 
 | Path pin | `CAPABILITY_CAP_TO_KEBAB_JOIN_MAP` in `runtime/capability_framework/__init__.py` |
 | SoT (unchanged) | Decorator framework kebab IDs (DEC-132) |
 | Catalog role | Secondary product inventory — join only; not runtime SoT |
-| Criterion state | **READY FOR REVIEW** (not CLOSED) |
+| Criterion state | **VERIFIED/CLOSED** (DEC-133a) |
 
 ### Coverage (honest residual)
 
@@ -33,7 +33,7 @@ Land a machine-readable **join map** from docs `CAP-###` inventory to decorator 
 
 **Direct joins:** CAP-001→`identity`, CAP-002→`company`, CAP-003→`search`, CAP-004→`timeline`, CAP-005→`data-fabric`, CAP-006→`feature-store`, CAP-007→`knowledge-graph`, CAP-009→`workflow`, CAP-016→`decision-engine`, CAP-037→`capability-framework`.
 
-**Not claimed this land:** 40/40 decorator registration · validate exit 0 · Production GO · CI GREEN · VERIFIED/CLOSED.
+**Not claimed this land:** 40/40 decorator registration · validate exit 0 · Production GO · CI GREEN.
 
 ---
 
@@ -61,16 +61,19 @@ Land a machine-readable **join map** from docs `CAP-###` inventory to decorator 
 | Auth / DEC-085 | **Untouched** |
 | Label | **light validated** (join-map integrity only; no claim of 5.3 exit 0) |
 
-**Production GO not claimed. CI GREEN not met. VERIFIED/CLOSED not claimed.**
+**Production GO not claimed. CI GREEN not met.**
+
+**Orchestrator CLOSE (DEC-133a):** Arch PASS + Validation PASS (light) @ `81b593f` → criterion **5.2 VERIFIED/CLOSED**; Phase 0 **28/54**; Capability Drift **3/4**. Residual **5.3** OPEN. Non-blocking: CAP-037→`capability-framework` semantic-join refine. **Production GO not claimed. CI GREEN not met.**
 
 ---
 
 ## 4. Records
 
-- Phase 0 criterion **5.2** → **READY FOR REVIEW** (Arch+Val PENDING)
+- Phase 0 criterion **5.2** → **VERIFIED/CLOSED** (DEC-133a)
 - Residual **5.3** remains OPEN (validate exit 0)
 - **5.1** / **5.4** remain CLOSED (DEC-132a / DEC-131a)
-- Phase 0 remains **27/54** until Orchestrator CLOSE after Arch+Val
+- Phase 0 **27/54 → 28/54**
+- Non-blocking residual: CAP-037→`capability-framework` semantic-join refine (does not re-open 5.2)
 - **Not claimed:** Production GO · CI GREEN · Phase 0 exit · 5.3 exit 0
 
 ---
@@ -102,8 +105,8 @@ Land a machine-readable **join map** from docs `CAP-###` inventory to decorator 
 | Surface | Level | Note |
 |---------|-------|------|
 | 30 unmapped CAP cards | HIGH residual (documented) | Expected — catalog ≫ decorator; 5.2 allows honest null |
-| CAP-016→decision-engine / CAP-037→capability-framework | MEDIUM | Semantic joins; Arch may refine |
-| Overclaim CLOSED / 5.3 exit 0 | LOW | Status = READY FOR REVIEW only; 5.3 still OPEN |
+| CAP-016→decision-engine / CAP-037→capability-framework | MEDIUM | Semantic joins; CAP-037 refine = **non-blocking** residual (5.2 CLOSED) |
+| Overclaim 5.3 exit 0 / Production GO | LOW | 5.2 CLOSED; 5.3 still OPEN |
 
 ---
 
@@ -111,6 +114,6 @@ Land a machine-readable **join map** from docs `CAP-###` inventory to decorator 
 
 | Question | Recommendation |
 |---|---|
-| Close 5.2? | After Arch PASS + Validation PASS (light join-map integrity) → Orchestrator DEC-133a |
+| Close 5.2? | **Done** — DEC-133a (Arch+Val PASS @ `81b593f`) |
 | Next | **5.3** — reorient `validate_capability_registries.py` / sync so exit 0 means “secondaries ⊆ / aligned to SoT (+ join map)” |
 | Do not | Treat unmapped CAP as failure for 5.2; invent decorator IDs to force 40/40; claim Production GO / CI GREEN / validate exit 0 from this land |
