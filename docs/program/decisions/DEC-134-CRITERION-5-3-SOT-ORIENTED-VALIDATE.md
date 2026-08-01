@@ -1,6 +1,6 @@
 # DEC-134 — SoT-oriented capability validate exit 0 (Phase 0 criterion 5.3)
 
-> **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **5.3 READY FOR REVIEW** (Arch/Val PENDING)  
+> **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **5.3 VERIFIED/CLOSED** (DEC-134a; Arch+Val PASS @ `6a98999`)  
 > **Date:** 2026-08-01  
 > **Board:** Backend Lead / Capability Drift (SalesOS / AQLIYA) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **5.3** · DEBT-ARC-003 / E-21 · unblocked by DEC-132a (5.1) + DEC-133a (5.2)  
@@ -20,7 +20,7 @@ Reorient `validate_capability_registries.py` so **exit 0** means the **SoT-orien
 | Default validate mode | SoT-oriented subset gate → exit **0** on pass |
 | Light path | `--join-map-only` → 5.2 integrity (unchanged) |
 | Diagnostic | `--legacy-equality` → historical 4-way check; exit **2** on mismatch (not the close gate) |
-| Criterion state | **READY FOR REVIEW** |
+| Criterion state | **VERIFIED/CLOSED** (DEC-134a) |
 
 ### Gate definition (honest)
 
@@ -60,16 +60,16 @@ Reorient `validate_capability_registries.py` so **exit 0** means the **SoT-orien
 | Auth / DEC-085 | **Untouched** |
 | Label | **light validated** (script exit evidence; no full CI / no Production GO) |
 
-**Production GO not claimed. CI GREEN not met. VERIFIED/CLOSED not claimed.**
+**Production GO not claimed. CI GREEN not met.** Closed via Orchestrator DEC-134a after Arch+Val PASS.
 
 ---
 
 ## 4. Records
 
-- Phase 0 criterion **5.3** → **READY FOR REVIEW** (await Arch + Validation → Orchestrator CLOSE)
-- **5.1** / **5.2** / **5.4** remain CLOSED (DEC-132a / DEC-133a / DEC-131a)
-- Phase 0 remains **28/54** until Orchestrator CLOSE
-- Residual after CLOSE (expected): secondary extras + CAP unmapped + CAP-037 semantic-join refine (non-blocking); ADR Drift / other Phase 0 clusters unchanged
+- Phase 0 criterion **5.3** → **VERIFIED/CLOSED** (DEC-134a; Arch PASS + Validation PASS @ `6a98999`)
+- **5.1** / **5.2** / **5.4** remain CLOSED (DEC-132a / DEC-133a / DEC-131a) — Capability Drift cluster **COMPLETE 4/4**
+- Phase 0 **28/54 → 29/54**
+- Residual (non-blocking INFO): secondary SDK/YAML extras + CAP unmapped + CAP-037 semantic-join refine; ADR Drift / other Phase 0 clusters unchanged
 - **Not claimed:** Production GO · CI GREEN · Phase 0 exit
 
 ---
@@ -101,7 +101,7 @@ Reorient `validate_capability_registries.py` so **exit 0** means the **SoT-orien
 | Surface | Level | Note |
 |---------|-------|------|
 | Gate weaker than 4-way equality | MEDIUM accepted | Intentional — equality was dishonest; residual extras documented |
-| Overclaim CLOSED / Production GO | LOW | READY FOR REVIEW only; Orchestrator owns CLOSE |
+| Overclaim Production GO / CI GREEN | LOW | CLOSED for 5.3 only; Phase 0 still NO-GO |
 | Import hang via `runtime` package | MITIGATED | Source-parse path avoids `runtime/__init__.py` stack import |
 
 ---
@@ -110,6 +110,6 @@ Reorient `validate_capability_registries.py` so **exit 0** means the **SoT-orien
 
 | Question | Recommendation |
 |---|---|
-| Close 5.3? | Arch PASS + Validation PASS (light) on land SHA → Orchestrator DEC-134a CLOSE |
-| Residual after CLOSE | Optional: tighten secondary alias map (`company-360`→`company`); CAP-037 semantic-join refine; do not require 4-way equality |
-| Do not | Delete secondaries · claim Production GO / CI GREEN · reopen 5.1/5.2 without superseding DEC |
+| Close 5.3? | **DONE** — DEC-134a @ `6a98999` |
+| Residual after CLOSE | Optional backlog (INFO): tighten secondary alias map (`company-360`→`company`); CAP-037 semantic-join refine; do not require 4-way equality |
+| Do not | Delete secondaries · claim Production GO / CI GREEN · reopen 5.1–5.3 without superseding DEC |

@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** Capability Drift checklist **5.3** OPEN — prior validate demanded false 4-way identity equality (SDK/YAML extras + SoT-only IDs); host SDK import hung via `runtime` package; residual after DEC-132a/133a. Criteria **5.1**/**5.2**/**5.4** CLOSED.
 **Alternatives considered:** (a) keep 4-way equality as exit 0 — rejected (dishonest until mass delete); (b) delete secondaries — rejected; (c) SoT-oriented subset via join map — approved; (d) BLOCKED until full convergence — rejected (checklist = exit 0 under honest gate).
-**Decision:** Accept criterion **5.3** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-134-CRITERION-5-3-SOT-ORIENTED-VALIDATE.md`](decisions/DEC-134-CRITERION-5-3-SOT-ORIENTED-VALIDATE.md). Default validate = SoT-oriented (joined secondaries subset-of decorator SoT + join map integrity); `--legacy-equality` diagnostic; import-light source parse. DEC-085 intact. Await Arch+Val → Orchestrator CLOSE (DEC-134a).
-**Consequence:** Phase 0 criterion **5.3** = READY FOR REVIEW. Phase 0 remains **28/54** until CLOSE. **Production GO not claimed. CI GREEN not met. VERIFIED/CLOSED not claimed.**
-**Status:** Accepted. Criterion **READY FOR REVIEW**.
+**Decision:** Accept criterion **5.3** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-134-CRITERION-5-3-SOT-ORIENTED-VALIDATE.md`](decisions/DEC-134-CRITERION-5-3-SOT-ORIENTED-VALIDATE.md). Default validate = SoT-oriented (joined secondaries subset-of decorator SoT + join map integrity); `--legacy-equality` diagnostic; import-light source parse. DEC-085 intact. Closed via DEC-134a after Arch+Val PASS.
+**Consequence:** Phase 0 criterion **5.3** = READY FOR REVIEW then **CLOSED** via DEC-134a. Capability Drift cluster COMPLETE **4/4**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED via DEC-134a**.
+
+### DEC-134a — Orchestrator VERIFIED/CLOSED criterion 5.3 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 5.3](d7e7dfbd-d9ba-417b-8d14-61e12f29af1f)) + Validation PASS ([Validate 5.3](0d6cdb81-8e10-4094-9057-253549a3d753): host exit **0**; Docker exit **0**; `--legacy-equality` exit **2** diagnostic; DEC-085 untouched) on land `6a98999` / DEC-134.
+**Decision:** Execution Orchestrator records criterion **5.3 VERIFIED → CLOSED**. Phase 0 **28/54 → 29/54**. Capability Drift Complete **3 → 4** / Open **1 → 0** (cluster COMPLETE 4/4). Non-blocking INFO residuals: SDK/YAML extras outside SoT, unmapped CAP-### entries, CAP-037→`capability-framework` semantic-join refine (do not re-open 5.3). Do **not** push. Do **not** claim Production GO / CI GREEN.
+**Consequence:** Capability Drift residual = none (cluster closed). Next PARALLEL READY: ADR Drift **6.x**, EOS Audit **4.x**, Engineering Stability **8.1–8.3**, ADR-036 **9.2**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **5.3 CLOSED**. Capability Drift **COMPLETE 4/4**.
 
 ### DEC-133 — Phase 0 criterion 5.2 CAP-###→kebab join map READY FOR REVIEW
 

@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-134 criterion 5.3 SoT-oriented validate READY FOR REVIEW; Phase 0 28/54 until Orchestrator CLOSE; 5.1/5.2/5.4 CLOSED)
+> **Last updated:** 2026-08-01 (DEC-134a criterion 5.3 VERIFIED/CLOSED; Capability Drift Complete 4/4; Phase 0 29/54)
 >
 > ## Operating State
 >
@@ -107,7 +107,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 |---|-----------|-------------------|--------|
 | 5.1 | Single source of truth established | One registry (catalog / decorator / SDK / YAML) designated canonical | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `8e105fe` (DEC-132a); decorator framework = canonical runtime SoT (kebab IDs); pins `CAPABILITY_REGISTRY_SOT*`; secondaries = SDK / YAML / CAP-### catalog; DEC-085 untouched; Orchestrator 2026-08-01 |
 | 5.2 | `CAP-###` mapped to runtime kebab IDs | Automation can join registries | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `81b593f` (DEC-133a); join map `cap_to_kebab_join.yaml` (10 direct / 30 unmapped / 3 decorator-only); `--join-map-only` exit 0; DEC-085 untouched; CAP-037→`capability-framework` semantic-join refine = non-blocking residual; Orchestrator 2026-08-01 |
-| 5.3 | Registry sync/validate scripts aligned | `validate_capability_registries.py` exits 0 | ⬜ READY FOR REVIEW (DEC-134) — SoT-oriented gate (joined secondaries subset-of decorator SoT via join map); host+Docker default exit **0**; `--legacy-equality` non-zero (diagnostic, not close gate); DEC-085 untouched; Arch/Val PENDING; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN |
+| 5.3 | Registry sync/validate scripts aligned | `validate_capability_registries.py` exits 0 | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `6a98999` (DEC-134a); SoT-oriented gate (joined secondaries subset-of decorator SoT via join map); host+Docker default exit **0**; `--legacy-equality` exit **2** (diagnostic, not close gate); DEC-085 untouched; non-blocking INFO residuals: SDK/YAML extras + unmapped CAPs + CAP-037 refine; Orchestrator 2026-08-01 |
 | 5.4 | `/api/v1/capabilities` tested | Test exercises decorator registry endpoint | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `65e82cc` (DEC-131a); ASGI contract `tests/contract/test_capabilities_api.py`; Docker **4 passed**; DEC-085 untouched; Orchestrator 2026-08-01 |
 
 **Owner:** Shared / Chief Architect  
@@ -182,12 +182,12 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 2. RLS & Tenant Isolation | 7 | 6 | 0 | 1 |
 | 3. CI/CD Green | 11 | 3 | 2 (CI-08, CI-09) | 6 |
 | 4. EOS Audit Pass | 8 | 2 | 0 | 6 |
-| 5. Capability Drift | 4 | 3 | 0 | 1 |
+| 5. Capability Drift | 4 | 4 | 0 | 0 |
 | 6. ADR Drift | 5 | 0 | 0 | 5 |
 | 7. DB Schema | 6 | 6 | 0 | 0 |
 | 8. Engineering Stability | 4 | 1 | 0 | 3 |
 | 9. ADR-036 Applied | 4 | 2 | 0 | 2 |
-| **TOTAL** | **54** | **28** | **2** | **24** |
+| **TOTAL** | **54** | **29** | **2** | **23** |
 
 ---
 
