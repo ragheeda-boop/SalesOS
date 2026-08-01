@@ -87,8 +87,12 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         tenant_id = _current_tenant_id.get(None)
         if tenant_id:
+            # HARD STOP — DEC-085 / R-26: ALWAYS use set_config(), NEVER SET LOCAL.
+            # Postgres rejects bind params in SET/SET LOCAL ("syntax error at or
+            # near $1"). Parallel agents reintroduced SET LOCAL a 4th time
+            # (2026-08-01); do not revert for mypy/ruff/style. See DEC-085.
             await session.execute(
-                sa_text("SET LOCAL app.tenant_id = :tenant_id"),
+                sa_text("SELECT set_config('app.tenant_id', :tenant_id, true)"),
                 {"tenant_id": tenant_id},
             )
         try:
