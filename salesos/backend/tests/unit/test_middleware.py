@@ -279,7 +279,7 @@ class TestCsrfMiddleware:
 
     @pytest.mark.asyncio
     async def test_post_with_unverified_api_key_still_requires_csrf(self):
-        """PROD-W5-001: non-empty X-API-Key alone must not skip CSRF."""
+        """Phase 0 1.3 / PROD-W5-001: non-empty X-API-Key alone must not skip CSRF."""
         responses = []
 
         async def send(msg):
@@ -296,7 +296,7 @@ class TestCsrfMiddleware:
 
     @pytest.mark.asyncio
     async def test_post_with_authenticated_api_key_requires_csrf(self):
-        """API-key auth alone must NOT bypass CSRF (PROD-W5-001 fix)."""
+        """Phase 0 1.3 / STORY-01-03: API-key auth alone must NOT bypass CSRF."""
         responses = []
 
         async def send(msg):

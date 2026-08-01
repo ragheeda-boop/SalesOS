@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (criterion 1.2 VERIFIED/CLOSED DEC-125a; prod tip-align `d1a8`/67)
+> **Last updated:** 2026-08-01 (criterion 1.3 READY FOR REVIEW DEC-127; 1.2 VERIFIED/CLOSED DEC-125a; prod tip-align `d1a8`/67)
 >
 > ## Operating State
 >
@@ -36,7 +36,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 |---|-----------|-------------------|--------|
 | 1.1 | Decision Center cross-tenant IDOR fixed | Regression test PASS, independent review signed | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `31f3aee` (DEC-124); Orchestrator 2026-08-01 |
 | 1.2 | Webhook SSRF fixed (URL allowlist) | Regression test PASS, re-verified against Integration Hub caller | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (Docker SSRF suite 32 passed, 54 deselected) @ `fd8699d` (DEC-125); Orchestrator DEC-125a 2026-08-01; residual: staging SSRF pentest OPEN (non-blocking) |
-| 1.3 | CSRF bypass via `X-API-Key` fixed | Regression test PASS | ⬜ |
+| 1.3 | CSRF bypass via `X-API-Key` fixed | Regression test PASS | 🟡 READY FOR REVIEW — Cursor COMPLETE @ DEC-127 (Docker CSRF suite 11 passed); Architecture PENDING · Validation PENDING; not VERIFIED/CLOSED |
 | 1.4 | Cross-tenant regression test template established | Harness reusable by every subsequent epic | ✅ STORY-01-04 (Sprint 02) |
 | 1.5 | SAST + dependency vulnerability scan wired into CI | `security-scan.yml` + `ci.yml` security jobs green | ⬜ Partial (pip-audit findings remain) |
 

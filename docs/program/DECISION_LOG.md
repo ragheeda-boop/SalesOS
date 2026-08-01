@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-127 — CSRF X-API-Key bypass (Phase 0 criterion 1.3)
+
+**Date:** 2026-08-01
+**Context:** Phase 0 Exit Criterion 1.3 (PROD-W5-001 / STORY-01-03) still OPEN on the checklist despite Sprint 01 removal of `api_key_authenticated` CSRF bypass and unit regressions. Evidence required: regression PASS. Stale middleware docstring still claimed API-key skip. DEC-085 get_db/set_config must not regress.
+**Alternatives considered:** (a) claim CLOSED from Sprint 01/02 audit notes alone — rejected (checklist ⬜; docstring dishonest; no Phase 0 HTTP contract); (b) reintroduce API-key CSRF waiver for machine clients — rejected (weakens 1.3); (c) docstring honesty + HTTP ASGI contract + package READY FOR REVIEW — approved.
+**Decision:** Accept criterion **1.3** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [decisions/DEC-127-CSRF-X-API-KEY-BYPASS.md](decisions/DEC-127-CSRF-X-API-KEY-BYPASS.md). Narrow Docker pytest **11 passed**. DEC-085 intact.
+**Consequence:** Phase 0 criterion **1.3** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). Next: Architecture Reviewer sign. **Production GO not claimed. CI GREEN not met. Criterion CLOSED not claimed.**
+**Status:** Accepted. Criterion **READY FOR REVIEW** (not CLOSED).
+
 ### DEC-125 — Webhook SSRF URL allowlist (Phase 0 criterion 1.2)
 
 **Date:** 2026-08-01

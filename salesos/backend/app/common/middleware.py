@@ -449,9 +449,10 @@ class CsrfEnforcementMiddleware:
     """Enforce CSRF token validation on state-changing requests.
 
     Requires X-CSRF-Token header matching the csrf_token cookie on
-    POST/PUT/PATCH/DELETE. Skips only after successful API-key auth
-    (request.state.api_key_authenticated), testing mode (SALESOS_TESTING=true),
-    and read-only methods (GET/HEAD/OPTIONS).
+    POST/PUT/PATCH/DELETE. Does **not** skip for bare ``X-API-Key`` or for
+    ``request.state.api_key_authenticated`` (PROD-W5-001 / STORY-01-03 /
+    Phase 0 criterion 1.3). Skips only testing mode (``SALESOS_TESTING=true``),
+    public identity paths, and read-only methods (GET/HEAD/OPTIONS).
     """
 
     _STATE_CHANGING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
