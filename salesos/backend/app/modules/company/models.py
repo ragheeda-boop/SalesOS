@@ -1,12 +1,28 @@
 import uuid
 from datetime import date
+from typing import Any
 
-from sqlalchemy import Boolean, Date, Float, ForeignKey, Index, Integer, String, Text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import Boolean, Computed, Date, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 # Import Contact for relationship resolution (bypasses string-name conflict)
 from app.common.models import BaseModel
+
+# DEC-129 / Phase 0 criterion 7.4 — matches Alembic 0023 GENERATED ALWAYS expression.
+# Do NOT DROP: live FTS for search_runtime / domains.search.
+_COMPANIES_SEARCH_VECTOR_EXPR = (
+    "to_tsvector('simple', "
+    "COALESCE(name_ar, '') || ' ' || "
+    "COALESCE(name_en, '') || ' ' || "
+    "COALESCE(cr_number, '') || ' ' || "
+    "COALESCE(city, '') || ' ' || "
+    "COALESCE(industry, '') || ' ' || "
+    "COALESCE(activity_description, '') || ' ' || "
+    "COALESCE(region, '') || ' ' || "
+    "COALESCE(legal_form, '')"
+    ")"
+)
 
 
 class Source(BaseModel):
@@ -74,6 +90,31 @@ class Company(BaseModel):
     tags: Mapped[list | None] = mapped_column(JSONB, default=list)
     extra_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB, default=dict)
 
+    # ── Feature-store / hierarchy columns (Alembic 0002) — DEC-129 KEEP ──
+    parent_company_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("companies.id"),
+        nullable=True,
+        index=True,
+    )
+    annual_revenue: Mapped[float | None] = mapped_column(Float, nullable=True)
+    revenue_prev_year: Mapped[float | None] = mapped_column(Float, nullable=True)
+    revenue_2yr_ago: Mapped[float | None] = mapped_column(Float, nullable=True)
+    employee_count_prev_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    linkedin_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    country: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    branch_count: Mapped[int | None] = mapped_column(
+        Integer, nullable=True, server_default="0"
+    )
+
+    # ── FTS columns (Alembic 0006 tsv + 0023 search_vector) — DEC-129 KEEP ──
+    tsv: Mapped[Any | None] = mapped_column(TSVECTOR, nullable=True)
+    search_vector: Mapped[Any | None] = mapped_column(
+        TSVECTOR,
+        Computed(_COMPANIES_SEARCH_VECTOR_EXPR, persisted=True),
+        nullable=True,
+    )
+
     branches: Mapped[list["Branch"]] = relationship(
         "Branch", back_populates="company", lazy="selectin", cascade="all, delete-orphan"
     )
@@ -92,6 +133,8 @@ class Company(BaseModel):
         Index("ix_companies_tenant_golden", "tenant_id", "is_golden_record"),
         Index("ix_companies_tenant_created", "tenant_id", "created_at"),
         Index("ix_companies_tenant_status", "tenant_id", "status"),
+        Index("ix_companies_tsv", "tsv", postgresql_using="gin"),
+        Index("idx_companies_search_vector", "search_vector", postgresql_using="gin"),
     )
 
     def __repr__(self) -> str:

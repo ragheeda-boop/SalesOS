@@ -65,7 +65,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **S04-04 remediation A** | READY | Wiring commit identified | `5e7023f` introduced `app_database_url` / `APP_POSTGRES_*` consumption |
 | **S04-04 remediation B** | READY (path choice) | Image promote | GHCR path BLOCKED (CI-08); alternate Railway GitHub build/redeploy |
 | **S04-04 remediation A–E** | **Evidence landed** | Prod `9664e9fc` / `salesos_app` / alembic `d1a8` / policies **67** / E bare=0 | Single-tenant caveat residual; tip RLS align via owner SSH |
-| **DB-05** Schema reconciliation | IN PROGRESS | Slice 0–3 CLOSED; Slice 4 / criterion 7.5 **CLOSED** (DEC-123a); prod tip `d1a8` / POLICY_COUNT **67** | Residual 7.4 / 7.6; prior “prod on 59” residual cleared (`c842245`) |
+| **DB-05** Schema reconciliation | IN PROGRESS | Slice 0–3 CLOSED; Slice 4 / 7.5 **CLOSED** (DEC-123a); **7.4 READY FOR REVIEW** (DEC-129 KEEP); prod tip `d1a8` / POLICY_COUNT **67** | Residual **7.6** alembic check; prior “prod on 59” residual cleared (`c842245`) |
 | **Optional Jest 30 evidence** | BACKLOG | DEC-108 deferred | STOP silent major |
 | **STORY-02-02** browser/E2E | **CLOSED** (DEC-095) | Redirect AC | **CI GREEN not met** |
 | **Sprint 04 Category B (B1–B7)** | **CLOSED** (COMPLETE) | DEC-110; B1–B7 CLOSED (DEC-112/114/115/116/117/118/119); live policies **59** | Does not restore Phase 0 GO (DEC-120) |
@@ -93,7 +93,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30, DB-05 7.4/7.6 | PARALLEL / READY | DEC-107 swarm — do not idle on CI-08 alone; Category B B1–B7 COMPLETE (DEC-119); deferred-8 RLS DEC-123; Security 1.5 CLOSED CONDITIONAL (DEC-128a) — do **not** claim Phase 0 GO |
+| Contract tests, optional Jest 30, DB-05 7.6 | PARALLEL / READY | DEC-107 swarm — do not idle on CI-08 alone; 7.4 READY FOR REVIEW (DEC-129); Category B B1–B7 COMPLETE (DEC-119); deferred-8 RLS DEC-123; Security 1.5 CLOSED CONDITIONAL (DEC-128a) — do **not** claim Phase 0 GO |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 **Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation / CI-08/09 ops proceed.

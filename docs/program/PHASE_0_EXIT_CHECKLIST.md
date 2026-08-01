@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (criterion 1.5 VERIFIED/CLOSED CONDITIONAL DEC-128a; Security P0 Complete 5/5; Phase 0 23/54)
+> **Last updated:** 2026-08-01 (criterion 7.4 READY FOR REVIEW DEC-129; 1.5 CLOSED CONDITIONAL DEC-128a; Security P0 5/5; Phase 0 23/54)
 >
 > ## Operating State
 >
@@ -137,7 +137,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 7.1 | All tenant-scoped tables have CREATE TABLE migrations | Zero tables in R-09 missing CREATE | ✅ DEC-113 (Slice 1: 0 remaining) |
 | 7.2 | ORM↔DB type alignment complete | `emails`/`meetings` UUID aligned (DEC-121) | ✅ Slice 2 |
 | 7.3 | Index names aligned | `ix_rev_*` → `ix_*` rename (DEC-122) | ✅ Slice 3 |
-| 7.4 | Companies dead-column DROP resolved | `search_vector` FTS preserved; DEC decision recorded | ⬜ DEC stopped |
+| 7.4 | Companies dead-column DROP resolved | `search_vector` FTS preserved; DEC decision recorded | 🔲 READY FOR REVIEW — Cursor COMPLETE @ DEC-129 (KEEP; no DROP; ORM restore); Arch PENDING · Validation PENDING; Orchestrator CLOSE only |
 | 7.5 | Deferred-8 tables have RLS enabled | RLS policies on tables currently without them | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `578e4f2` (DEC-123a); live POLICY_COUNT **67** (prod tip-align `d1a8c35e7f09` / crumb `c842245` cleared prior “prod may still be on 59” residual); Orchestrator 2026-08-01 |
 | 7.6 | `alembic check` exits clean | Zero drift between ORM and DB | ⬜ 300+ drift lines remain |
 
