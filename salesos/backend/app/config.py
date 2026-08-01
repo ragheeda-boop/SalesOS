@@ -256,4 +256,4 @@ class Settings(BaseSettings):
         return self.env.lower() not in ("production", "prod")
 
 
-settings = Settings()
+settings = Settings()  # type: ignore[call-arg]

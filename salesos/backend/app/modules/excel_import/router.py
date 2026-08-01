@@ -38,9 +38,9 @@ async def preview_excel(
     dependencies=[Depends(require_permission_dep("company", PermissionAction.IMPORT))],
 )
 async def import_companies_from_excel(
+    request: Request,
     file: UploadFile = File(...),
     column_mapping: str | None = Form(None, description="JSON string of column mapping"),
-    request: Request = Request,
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
 ):

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import List
+
 import uuid
 from datetime import UTC, datetime, timedelta
 
@@ -30,7 +32,7 @@ class PostgresPlanRepository:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def list(self) -> list[PlanModel]:
+    async def list(self) -> List[PlanModel]:
         stmt = select(PlanModel).order_by(PlanModel.name)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
@@ -61,7 +63,7 @@ class PostgresLicenseRepository:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def list(self) -> list[LicenseModel]:
+    async def list(self) -> List[LicenseModel]:
         stmt = select(LicenseModel).order_by(LicenseModel.created_at.desc())
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
@@ -76,7 +78,7 @@ class PostgresLicenseRepository:
         await self._session.flush()
         return license_
 
-    async def find_by_tenant(self, tenant_id: str | uuid.UUID) -> list[LicenseModel]:
+    async def find_by_tenant(self, tenant_id: str | uuid.UUID) -> List[LicenseModel]:
         tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
         stmt = select(LicenseModel).where(LicenseModel.tenant_id == tid)
         result = await self._session.execute(stmt)
@@ -87,7 +89,7 @@ class PostgresInvoiceRepository:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def list_invoices(self, tenant_id: str | None = None) -> list[InvoiceModel]:
+    async def list_invoices(self, tenant_id: str | None = None) -> List[InvoiceModel]:
         stmt = select(InvoiceModel)
         if tenant_id:
             tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
@@ -96,7 +98,7 @@ class PostgresInvoiceRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def list_transactions(self, tenant_id: str | None = None) -> list[TransactionModel]:
+    async def list_transactions(self, tenant_id: str | None = None) -> List[TransactionModel]:
         stmt = select(TransactionModel)
         if tenant_id:
             tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
@@ -110,7 +112,7 @@ class PostgresFeatureFlagRepository:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def list(self) -> list[FeatureFlagModel]:
+    async def list(self) -> List[FeatureFlagModel]:
         stmt = select(FeatureFlagModel).order_by(FeatureFlagModel.key)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
@@ -154,7 +156,7 @@ class PostgresFeatureFlagRepository:
         await self._session.flush()
         return flag
 
-    async def get_tenants_for_flag(self, flag_id: uuid.UUID) -> list[dict]:
+    async def get_tenants_for_flag(self, flag_id: uuid.UUID) -> List[dict]:
         flag = await self.get(flag_id)
         if not flag:
             return []
@@ -165,7 +167,7 @@ class PostgresFeatureFlagRepository:
         ]
 
     async def evaluate(
-        self, flag_key: str, tenant_id: str, tenant_ids_all: list[str] | None = None
+        self, flag_key: str, tenant_id: str, tenant_ids_all: List[str] | None = None
     ) -> dict:
         """Evaluate a feature flag for a specific tenant.
 
@@ -192,7 +194,7 @@ class PostgresFeatureFlagRepository:
             return {"enabled": False, "reason": "zero_rollout"}
 
         if tenant_ids_all:
-            sorted_ids: list[str] = sorted(tenant_ids_all)
+            sorted_ids: List[str] = sorted(tenant_ids_all)
             try:
                 idx = sorted_ids.index(tenant_id)
             except ValueError:
@@ -214,7 +216,7 @@ class PostgresJobRepository:
         job_type: str | None = None,
         page: int = 1,
         page_size: int = 20,
-    ) -> tuple[list[JobModel], int]:
+    ) -> tuple[List[JobModel], int]:
         stmt = select(JobModel)
         if status:
             stmt = stmt.where(JobModel.status == status)
@@ -269,7 +271,7 @@ class PostgresAICostRepository:
         days: int = 30,
         page: int = 1,
         page_size: int = 20,
-    ) -> tuple[list[AICostRecordModel], int]:
+    ) -> tuple[List[AICostRecordModel], int]:
         cutoff = datetime.now(UTC) - timedelta(days=days)
         stmt = select(AICostRecordModel).where(AICostRecordModel.created_at >= cutoff)
         if model:
@@ -453,7 +455,7 @@ class PostgresHealthRepository:
             ],
         }
 
-    async def get_history(self, hours: int = 24) -> list[HealthSnapshotModel]:
+    async def get_history(self, hours: int = 24) -> List[HealthSnapshotModel]:
         cutoff = datetime.now(UTC) - timedelta(hours=hours)
         stmt = (
             select(HealthSnapshotModel)
@@ -468,7 +470,7 @@ class PostgresRoleRepository:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def list(self, tenant_id: str | None = None) -> list[RoleModel]:
+    async def list(self, tenant_id: str | None = None) -> List[RoleModel]:
         stmt = select(RoleModel)
         if tenant_id:
             stmt = stmt.where(RoleModel.tenant_id == tenant_id)
@@ -505,7 +507,7 @@ class PostgresRoleRepository:
         await self._session.flush()
         return True
 
-    async def set_permissions(self, role_id: str, permission_ids: list[str]) -> None:
+    async def set_permissions(self, role_id: str, permission_ids: List[str]) -> None:
         await self._session.execute(
             sa_delete(RolePermissionModel).where(RolePermissionModel.role_id == role_id)
         )
@@ -513,14 +515,14 @@ class PostgresRoleRepository:
             self._session.add(RolePermissionModel(role_id=role_id, permission_id=pid))
         await self._session.flush()
 
-    async def get_permissions(self, role_id: str) -> list[str]:
+    async def get_permissions(self, role_id: str) -> List[str]:
         stmt = select(RolePermissionModel.permission_id).where(
             RolePermissionModel.role_id == role_id
         )
         result = await self._session.execute(stmt)
         return [row[0] for row in result]
 
-    async def get_roles_with_permissions(self, tenant_id: str | None = None) -> list[dict]:
+    async def get_roles_with_permissions(self, tenant_id: str | None = None) -> List[dict]:
         roles = await self.list(tenant_id)
         result = []
         for role in roles:
@@ -544,7 +546,7 @@ class PostgresPermissionRepository:
     def __init__(self, session: AsyncSession):
         self._session = session
 
-    async def list(self) -> list[PermissionModel]:
+    async def list(self) -> List[PermissionModel]:
         stmt = select(PermissionModel).order_by(PermissionModel.group, PermissionModel.name)
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
@@ -574,7 +576,7 @@ class PostgresTenantConfigRepository:
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def list_keys(self, tenant_id: str) -> list[str]:
+    async def list_keys(self, tenant_id: str) -> List[str]:
         stmt = (
             select(TenantConfigModel.key)
             .where(TenantConfigModel.tenant_id == tenant_id)
@@ -584,7 +586,7 @@ class PostgresTenantConfigRepository:
         result = await self._session.execute(stmt)
         return [row[0] for row in result]
 
-    async def list_versions(self, tenant_id: str, key: str) -> list[TenantConfigModel]:
+    async def list_versions(self, tenant_id: str, key: str) -> List[TenantConfigModel]:
         stmt = (
             select(TenantConfigModel)
             .where(TenantConfigModel.tenant_id == tenant_id, TenantConfigModel.key == key)

@@ -612,8 +612,8 @@ class EntityResolutionService:
                 opp_stmt = select(Opportunity).where(Opportunity.company_id == source.id)
                 opps = (await self.db.execute(opp_stmt)).scalars().all()
                 for opp in opps:
-                    # Opportunity.company_id is classic Column (not Mapped) — avoid Column[UUID] assignment
-                    setattr(opp, "company_id", target.id)
+                    # Opportunity.company_id is classic Column (not Mapped)
+                    setattr(opp, "company_id", target.id)  # noqa: B010
                 opps_moved = len(opps) > 0
         except Exception:
             opps_moved = False
@@ -630,7 +630,7 @@ class EntityResolutionService:
         # Archive source (merged_into_id is not an ORM column — persist via setattr)
         source.is_active = False
         source.status = "merged"
-        setattr(source, "merged_into_id", target.id)
+        setattr(source, "merged_into_id", target.id)  # noqa: B010
         await self.db.flush()
 
         audit = AuditTrail(self.db)
