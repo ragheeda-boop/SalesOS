@@ -551,5 +551,27 @@
 **Compatibility wall:** FastAPI `0.111.x` admits only `starlette <0.38.0` — no patched candidate. Expanding FastAPI alone is insufficient without a dedicated cascade: e.g. `0.115.12` still caps starlette `<0.47.0`; `0.118–0.128` can reach `0.47.2` (clears 1941/1943 only) but **not** 1.3.1; `0.135+` opens `starlette>=0.46.0` (may resolve to 1.x) and from `0.136+` requires **pydantic ≥ 2.9.0**, which collides with the project `pydantic <2.9` pin. Starlette 1.x also introduces breaking ASGI/lifespan API changes.
 **Alternatives considered:** (a) force-pin starlette ≥1.3.1 under FastAPI 0.111 — **impossible** (solver conflict); (b) silent FastAPI major/minor cascade + pydantic floor lift in this slice — **rejected** (blast radius; stop-rule); (c) STOP Slice 2, keep CI-16 OPEN, register dedicated FastAPI/starlette modernization follow-on — **approved**.
 **Decision:** **STOP** CI-16 Slice 2. Do **not** change `poetry.lock` / FastAPI / starlette / pydantic in this commit. Record blocker; leave CI-16 **IN PROGRESS / OPEN** and R-21 **Open — mitigating** (Slice 1 multipart progress retained). Recommend a dedicated story (or CI-16 Slice 2b with explicit executive scope) for FastAPI ≥0.135 (or later) + pydantic ≥2.9 + starlette ≥1.3.1 with compatibility/regression plan.
-**Consequence:** No security-gate green for starlette. Residual R-21 packages: **starlette 0.37.2**, **strawberry-graphql**, **ecdsa**. Program Complete/Closed count unchanged (**19/20**). **CI GREEN not met.**
-**Status:** Accepted. CI-16 **Slice 2 BLOCKED**; story **OPEN**.
+**Consequence:** No security-gate green for starlette. Residual R-21 packages: **starlette 0.37.2**, **strawberry-graphql**, **ecdsa**. Program Complete/Closed count unchanged (**19/20**). **CI GREEN not met.** Follow-on modernization program registered as **CI-22** (see **DEC-054**) — **not** part of CI-16 slice work.
+**Status:** Accepted. CI-16 **Slice 2 BLOCKED**; story **OPEN**. Pointer: **DEC-052 → CI-22**.
+
+---
+
+### DEC-053 — CI-20 Phase 6 complete: sso mypy burn-down (8→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1–5 (DEC-046–050) cleared admin/company/entity_resolution/identity/revenue_execution; overall expected **~308 → ~209**. Phase 6 targeted module `app/modules/sso` and landed on `master` at `38127af` (`38127afaff8eda91cd2774175255a21d4e21ca6b`) — sso module **8 → 0** mypy errors (CI hotspot list: `bytes | str` / `HashAlgorithm` annotations + `cast` on `ET.tostring`, `scalar_one_or_none`, `resp.json()`); overall expected **~209 → ~201**.
+**Alternatives considered:** (a) close entire CI-20 on Phase 6 land — rejected (residual ~201 errors remain; phased story); (b) record Phase 6 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
+**Decision:** Accept Phase 6 as **COMPLETE** at `38127af`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Validation label: **light validated** (host mypy); full Backend Types CI **not** re-run.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**19/20**). R-22 remains Open (mitigating). **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 6 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-054 — CI-22 registered: FastAPI / Starlette / Pydantic modernization (DEC-052 follow-on); not CI-16 slice work
+
+**Date:** 2026-08-01
+**Context:** CI-16 Slice 2 **STOPPED** at `8323c84` (DEC-052): starlette cannot clear `pip-audit` without FastAPI ~0.135+ and pydantic ≥2.9 cascade. Narrow CI-16 slices remain for residual packages that do not require that cascade (`strawberry-graphql`, `ecdsa`); starlette clearance is out of CI-16 slice scope.
+**Alternatives considered:** (a) reopen CI-16 Slice 2 / Slice 2b inside CI-16 — rejected (blast radius; violates slice stop-rule); (b) register standalone **CI-22** modernization program with explicit scoped cascade + compatibility/regression plan — approved.
+**Decision:** Register standalone story **CI-22 — FastAPI / Starlette / Pydantic modernization program** (P1, owner Backend Lead). Scope: planned cascade to clear starlette `pip-audit` floor (**starlette ≥1.3.1**), requiring FastAPI ≥~0.135 (or later) + pydantic ≥2.9, with compatibility/regression plan. **NOT** part of CI-16 slice work. Evidence anchor: DEC-052 / commit `8323c84`. No package bumps in the registration commit.
+**Consequence:** CI-22 **REGISTERED** on the Sprint 05 delivery board. CI-16 remains **IN PROGRESS / OPEN** (Slice 1 retained; Slice 2 BLOCKED; strawberry/ecdsa still CI-16). R-21 updated: **DEC-052 → CI-22**. Program Complete/Closed count unchanged (**19/20**). **CI GREEN not met.**
+**Status:** Accepted. CI-22 **REGISTERED** (not started).
