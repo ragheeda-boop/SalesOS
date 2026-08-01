@@ -39,7 +39,10 @@ opentelemetry-api = "^1.25"
 opentelemetry-sdk = "^1.25"
 opentelemetry-exporter-otlp-proto-http = "^1.25"
 celery = "^5.4"
-strawberry-graphql = "^0.243"
+# CI-16 / R-21: ^0.243 pinned <0.244; pip-audit clear-all floor is 0.315.7
+# (PYSEC-2026-133/134/1946/2282/2283/2284). Core package does not require
+# FastAPI/starlette majors (extras only).
+strawberry-graphql = ">=0.315.7,<1.0.0"
 jsonschema = "^4.22"
 
 [tool.poetry.group.dev.dependencies]
