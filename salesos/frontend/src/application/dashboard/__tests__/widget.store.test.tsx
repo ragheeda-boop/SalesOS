@@ -17,8 +17,9 @@ describe("deriveStatus", () => {
     expect(deriveStatus({}, false, true)).toBe("degraded");
   });
 
-  it("returns loading when no data and no loading/error", () => {
-    expect(deriveStatus(null, false, false)).toBe("loading");
+  it("returns ready when no data and no loading/error", () => {
+    // Absent/empty widgets are treated as ready (empty state), not loading.
+    expect(deriveStatus(null, false, false)).toBe("ready");
   });
 
   it("returns ready when data is present", () => {
@@ -27,7 +28,7 @@ describe("deriveStatus", () => {
 });
 
 describe("deriveWidgets", () => {
-  it("returns all eight widgets with loading status", () => {
+  it("returns all thirteen widgets with loading status", () => {
     const widgets = deriveWidgets(undefined, true, false);
     expect(Object.keys(widgets)).toEqual([
       "missionCenter",
@@ -38,13 +39,18 @@ describe("deriveWidgets", () => {
       "recentActivity",
       "pipeline",
       "companyHealth",
+      "companyEngagement",
+      "emailIntelligence",
+      "calendarIntelligence",
+      "followupCenter",
+      "companyScoring",
     ]);
     Object.values(widgets).forEach((w) => {
       expect(w.status).toBe("loading");
     });
   });
 
-  it("returns all eight widgets with ready status", () => {
+  it("returns mission center ready when dto present", () => {
     const dto: any = {
       missionCenter: {
         data: { companiesTracked: 100 },

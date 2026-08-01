@@ -5,6 +5,7 @@ import {
 } from "../onboarding/OnboardingProvider";
 import { OnboardingChecklist } from "../onboarding/OnboardingChecklist";
 import { TourProvider } from "../tour/TourProvider";
+
 jest.mock("@salesos/ui", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- jest.mock factories can't reference outer-scope imports
   const h = require("react").createElement;
@@ -26,10 +27,6 @@ jest.mock("@salesos/ui", () => {
 });
 
 describe("OnboardingProvider", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   it("provides initial state with all items incomplete", () => {
     function Test() {
       const { items, completed, progress } = useOnboarding();
@@ -106,36 +103,29 @@ describe("OnboardingProvider", () => {
     expect(screen.getByTestId("completed-count").textContent).toBe("1");
   });
 
-  it("persists completed items to localStorage", () => {
+  it("tracks completed items in memory", () => {
+    // Provider is in-memory only — no localStorage persistence.
     function Test() {
-      const { completeItem } = useOnboarding();
+      const { completed, completeItem } = useOnboarding();
       return (
         <div>
+          <div data-testid="completed">{completed.join(",")}</div>
           <button onClick={() => completeItem("pipeline")}>Complete</button>
         </div>
       );
     }
 
-    const { unmount } = render(
+    render(
       <OnboardingProvider>
         <Test />
       </OnboardingProvider>,
     );
     fireEvent.click(screen.getByText("Complete"));
-    unmount();
-
-    const stored = JSON.parse(
-      localStorage.getItem("salesos:onboarding-progress") || "[]",
-    );
-    expect(stored).toEqual(["pipeline"]);
+    expect(screen.getByTestId("completed").textContent).toBe("pipeline");
   });
 });
 
 describe("OnboardingChecklist", () => {
-  beforeEach(() => {
-    localStorage.clear();
-  });
-
   it("renders checklist items", () => {
     render(
       <TourProvider>
@@ -153,41 +143,65 @@ describe("OnboardingChecklist", () => {
   });
 
   it("shows progress correctly", () => {
-    localStorage.setItem(
-      "salesos:onboarding-progress",
-      JSON.stringify(["profile", "pipeline"]),
-    );
+    function SeedProgress() {
+      const { completeItem } = useOnboarding();
+      return (
+        <>
+          <button
+            type="button"
+            onClick={() => {
+              completeItem("profile");
+              completeItem("pipeline");
+            }}
+          >
+            seed
+          </button>
+          <OnboardingChecklist />
+        </>
+      );
+    }
 
     render(
       <TourProvider>
         <OnboardingProvider>
-          <OnboardingChecklist />
+          <SeedProgress />
         </OnboardingProvider>
       </TourProvider>,
     );
+    fireEvent.click(screen.getByText("seed"));
     expect(screen.getByText("2 / 6")).toBeInTheDocument();
   });
 
   it("renders nothing when all items are complete", () => {
-    localStorage.setItem(
-      "salesos:onboarding-progress",
-      JSON.stringify([
-        "profile",
-        "pipeline",
-        "workflow",
-        "team",
-        "integrations",
-        "nba",
-      ]),
-    );
+    const ALL = [
+      "profile",
+      "pipeline",
+      "workflow",
+      "team",
+      "integrations",
+      "nba",
+    ];
+
+    function SeedComplete() {
+      const { completeItem } = useOnboarding();
+      return (
+        <>
+          <button type="button" onClick={() => ALL.forEach((id) => completeItem(id))}>
+            seed-all
+          </button>
+          <OnboardingChecklist />
+        </>
+      );
+    }
 
     render(
       <TourProvider>
         <OnboardingProvider>
-          <OnboardingChecklist />
+          <SeedComplete />
         </OnboardingProvider>
       </TourProvider>,
     );
+    fireEvent.click(screen.getByText("seed-all"));
     expect(screen.queryByText("البدء مع SalesOS")).not.toBeInTheDocument();
   });
 });
