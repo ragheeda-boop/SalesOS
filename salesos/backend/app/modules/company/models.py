@@ -5,6 +5,7 @@ from typing import Any
 from sqlalchemy import Boolean, Computed, Date, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import UserDefinedType
 
 # Import Contact for relationship resolution (bypasses string-name conflict)
 from app.common.models import BaseModel
@@ -23,6 +24,25 @@ _COMPANIES_SEARCH_VECTOR_EXPR = (
     "COALESCE(legal_form, '')"
     ")"
 )
+
+
+class _PgVector(UserDefinedType):
+    """pgvector metadata stand-in (DEC-130e) — no pgvector package required.
+
+    Live DB reflects embedding_vector as NullType; compare_against_backend
+    returns True so alembic check does not propose DROP/ALTER.
+    """
+
+    cache_ok = True
+
+    def __init__(self, dim: int = 3072) -> None:
+        self.dim = dim
+
+    def get_col_spec(self, **_kw: Any) -> str:
+        return f"vector({self.dim})"
+
+    def compare_against_backend(self, _dialect: Any, _conn_type: Any) -> bool:
+        return True
 
 
 class Source(BaseModel):
@@ -105,6 +125,14 @@ class Company(BaseModel):
     country: Mapped[str | None] = mapped_column(String(100), nullable=True)
     branch_count: Mapped[int | None] = mapped_column(
         Integer, nullable=True, server_default="0"
+    )
+
+    # ── DNC + embedding (Alembic 0003 / 0006) — DEC-130e KEEP (no DROP) ──
+    do_not_contact: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default="false", default=False
+    )
+    embedding_vector: Mapped[Any | None] = mapped_column(
+        _PgVector(3072), nullable=True
     )
 
     # ── FTS columns (Alembic 0006 tsv + 0023 search_vector) — DEC-129 KEEP ──

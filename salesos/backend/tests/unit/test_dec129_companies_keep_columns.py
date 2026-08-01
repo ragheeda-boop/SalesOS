@@ -10,6 +10,7 @@ from __future__ import annotations
 from app.modules.company.models import Company
 
 # DEC-122 STOP set + sibling 0002 feature columns confirmed live in Docker DB.
+# DEC-130e extends KEEP with do_not_contact + embedding_vector (criterion 7.6 Slice 5e).
 _KEEP_COLUMNS = (
     "parent_company_id",
     "annual_revenue",
@@ -19,6 +20,8 @@ _KEEP_COLUMNS = (
     "linkedin_url",
     "country",
     "branch_count",
+    "do_not_contact",
+    "embedding_vector",
     "tsv",
     "search_vector",
 )

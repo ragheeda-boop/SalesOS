@@ -1086,12 +1086,21 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-130e — DB-05 Slice 5e: companies residual columns KEEP (ORM)
+
+**Date:** 2026-08-01
+**Context:** DEC-130 / DEC-130d residual — `remove_column`×4 including companies KEEP-adjacent `do_not_contact` + `embedding_vector`. Criterion 7.6 stays OPEN; next land = DEC-129-pattern ORM restore (no DROP; columns already live).
+**Alternatives considered:** (a) DROP residual companies columns — rejected; (b) additive CREATE — rejected (live already); (c) KEEP + ORM restore (no DDL) — approved.
+**Decision:** Accept **Slice 5e** as Cursor COMPLETE / READY FOR REVIEW. Companion: [`decisions/DEC-130e-DB-05-SLICE-5E-COMPANIES-RESIDUAL-KEEP.md`](decisions/DEC-130e-DB-05-SLICE-5E-COMPANIES-RESIDUAL-KEEP.md). Alembic head **unchanged** `a4f7c29e1b80`. Live Docker check still **FAILED** exit 255; `remove_column` **4→2** (companies pair cleared; residual vectors cols). DEC-085 intact. 7.4 KEEP stands. Next: Slice **5f+** orphan KEEP / vectors.
+**Consequence:** Phase 0 remains **24/54**. Criterion **7.6 OPEN**. **Production GO not claimed. CI GREEN not met. Do not claim VERIFIED/CLOSED for 7.6.**
+**Status:** Accepted. Criterion **7.6 OPEN** (Slice 5e COMPLETE / READY FOR REVIEW).
+
 ### DEC-130d — DB-05 Slice 5d: index / type / nullable alignments
 
 **Date:** 2026-08-01
 **Context:** DEC-130 / DEC-130c residual — `added_index`×37, type×13, NOT NULL×33, remove_index noise. Criterion 7.6 stays OPEN; next land = additive CREATE INDEX + ORM align (no DROP / no SET NOT NULL without inventory).
 **Alternatives considered:** (a) DROP legacy rename-twin indexes — rejected; (b) SET NOT NULL without null inventory — rejected; (c) additive CREATE INDEX + ORM→DB type/nullable/index-register — approved.
-**Decision:** Accept **Slice 5d** as Cursor COMPLETE / READY FOR REVIEW. Companion: [`decisions/DEC-130d-DB-05-SLICE-5D-INDEX-TYPE-NULLABLE.md`](decisions/DEC-130d-DB-05-SLICE-5D-INDEX-TYPE-NULLABLE.md). Revision `a4f7c29e1b80` (down `e2b9d46f8a10`). Live Docker check @ `a4f7c29e1b80` still **FAILED** exit 255; `added_index` **37→0**; type **13→1**; NOT NULL **33→0**; `removed_index` **84→61**. DEC-085 intact. Next: Slice **5e** companies residual columns.
+**Decision:** Accept **Slice 5d** as Cursor COMPLETE / READY FOR REVIEW. Companion: [`decisions/DEC-130d-DB-05-SLICE-5D-INDEX-TYPE-NULLABLE.md`](decisions/DEC-130d-DB-05-SLICE-5D-INDEX-TYPE-NULLABLE.md). Revision `a4f7c29e1b80` (down `e2b9d46f8a10`). Live Docker check @ `a4f7c29e1b80` still **FAILED** exit 255; `added_index` **37→0**; type **13→1**; NOT NULL **33→0**; `removed_index` **84→61**. DEC-085 intact. Next: Slice **5e** companies residual columns → **landed as DEC-130e** (`remove_column` 4→2).
 **Consequence:** Phase 0 remains **24/54**. Criterion **7.6 OPEN**. **Production GO not claimed. CI GREEN not met. Do not claim VERIFIED/CLOSED for 7.6.**
 **Status:** Accepted. Criterion **7.6 OPEN** (Slice 5d COMPLETE / READY FOR REVIEW).
 
