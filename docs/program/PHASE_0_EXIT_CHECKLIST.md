@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-130h Orchestrator CLOSE 7.6 — Arch+Val PASS @ `250bcb5` / DEC-130g; Phase 0 25/54; DB Schema Complete 6/6)
+> **Last updated:** 2026-08-01 (DEC-131 criterion 5.4 READY FOR REVIEW — capabilities API contract; Phase 0 still 25/54 until Orchestrator CLOSE; DB Schema 6/6 CLOSED)
 >
 > ## Operating State
 >
@@ -108,7 +108,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 5.1 | Single source of truth established | One registry (catalog / decorator / SDK / YAML) designated canonical | ⬜ 4-way drift still active |
 | 5.2 | `CAP-###` mapped to runtime kebab IDs | Automation can join registries | ⬜ `CAP-###` absent from backend code |
 | 5.3 | Registry sync/validate scripts aligned | `validate_capability_registries.py` exits 0 | ⬜ |
-| 5.4 | `/api/v1/capabilities` tested | Test exercises decorator registry endpoint | ⬜ No test exists |
+| 5.4 | `/api/v1/capabilities` tested | Test exercises decorator registry endpoint | ⬜ READY FOR REVIEW — Cursor COMPLETE @ DEC-131 (`tests/contract/test_capabilities_api.py`; Docker **4 passed**); Architecture/Validation PENDING; do **not** claim VERIFIED/CLOSED |
 
 **Owner:** Shared / Chief Architect  
 **Reference:** `29_CAPABILITY_REGISTRY.md` §4, DEBT-ARC-003 / E-21

@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-131 — Phase 0 criterion 5.4 `/api/v1/capabilities` contract test READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** Capability Drift checklist **5.4** OPEN — “No test exists” for decorator registry endpoint (`29_CAPABILITY_REGISTRY.md` §4#6). Criteria **5.1–5.3** remain OPEN (4-way SoT / CAP-### / validate exit 0). EOS 4.x largely ARB-owned; CI-08/09 ops-blocked skipped.
+**Alternatives considered:** (a) claim CLOSED from router existence alone — rejected (checklist evidence = test); (b) fix full 4-way sync (5.1–5.3) in one land — rejected (Arch SoT decision required); (c) add ASGI contract suite + package READY FOR REVIEW — approved.
+**Decision:** Accept criterion **5.4** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-131-CRITERION-5-4-CAPABILITIES-API-TEST.md`](decisions/DEC-131-CRITERION-5-4-CAPABILITIES-API-TEST.md). Narrow Docker pytest **4 passed**. App router unchanged. DEC-085 intact. Do **not** mark VERIFIED/CLOSED.
+**Consequence:** Phase 0 criterion **5.4** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). Phase 0 remains **25/54** until Orchestrator CLOSE. **5.1–5.3** still OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **5.4 READY FOR REVIEW**.
+
 ### DEC-130h — Orchestrator VERIFIED/CLOSED criterion 7.6 (2026-08-01)
 
 **Context:** Architecture PASS ([architecture review 5g](fa5591a7-db18-4def-b2ea-be8881d3950f)) + Validation PASS ([Validate 7.6](3aed99ba-bebe-4567-b928-34e4edf9bd88): Docker `alembic check` **exit 0**; head `a4f7c29e1b80`; DEC-085 untouched; True DROP DEC **0**; residual expression GIN KEEP documented) on land `250bcb5` / DEC-130g. Phased path DEC-130 → DEC-130b → DEC-130c → DEC-130d → DEC-130e → DEC-130f → DEC-130g (Slices 5a–5g).
