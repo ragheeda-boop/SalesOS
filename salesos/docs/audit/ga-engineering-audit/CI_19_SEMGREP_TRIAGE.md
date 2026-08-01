@@ -157,7 +157,11 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
   - `app/application/admin/data_quality.py` (**8**)
   - `runtime/knowledge_graph_runtime/pgvector_migration.py` (**8** — DDL via allowlisted `exec_driver_sql`)
   - Expected cleared this slice: **16** Code Scanning alerts. Validation: **light validated** (AST parse).
-- **Remainder (not this slice):** ~**43** `avoid-sqlalchemy-text` — densest next: `domains/search/engine/postgres_repo.py` (6), `timeline_runtime` (5), `search_runtime` (4), alembic RLS/tenant migrations, `sdk/search.py` pgvector allowlist tables, `tasks.py`, etc. + non-SQL residuals (logger-credential ×4, gha-workflow-env-secret, etc.).
+- **Slice 3 COMPLETE (DEC-099):** Core rewrite for:
+  - `domains/search/engine/postgres_repo.py` (**6** — FTS Core; `statement_timeout` via `set_config`, not `SET LOCAL`)
+  - `runtime/timeline_runtime/__init__.py` (**5**)
+  - Expected cleared this slice: **11**. Narrow pytest: `test_search_postgres_repo` + `test_timeline` + DEC-085 guard (**50 passed**, **light validated**).
+- **Remainder (not this slice):** ~**32** `avoid-sqlalchemy-text` — next densest: `search_runtime` (4), alembic RLS/tenant migrations, `sdk/search.py` pgvector allowlist tables, `tasks.py`, etc. + non-SQL residuals.
 - **Wave 2 NOT CLOSED.** **CI-19 NOT CLOSED.**
 
 ### Wave 3 — Supply-chain & infra hardening → **SHA-pin + residual COMPLETE** (`DEC-069` / `DEC-074`)
@@ -205,7 +209,7 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 | Label | Count (approx) | Next action |
 |-------|---------------:|-------------|
 | **READY (Wave 1)** | **8** | **COMPLETE** at `d5c9b57` (env:/process.env) |
-| SQL honesty / FP review (Wave 2) | **~76 → ~63 → ~36** after Slice 1+2 | **IN PROGRESS** — Slice 1 (**13**, DEC-091) + Slice 2 (**27**, DEC-097); ~**32** text remain — no mass `nosec` |
+| SQL honesty / FP review (Wave 2) | **~76 → ~63 → ~36** after Slice 1+2 | **IN PROGRESS** — Slice 1 (**13**, DEC-091) + Slice 2 (**16**, DEC-097) + Slice 3 (**11**, DEC-099); ~**32** text remain — no mass `nosec` |
 | Hardening backlog (Wave 3) | **~139** → SHA pins **115** + residual **19** done | **Wave 3 COMPLETE** (`DEC-069` SHA-pin + `DEC-074` K8s/Docker/TF) |
 | **Noise / exclude (Wave 4)** | **~30** | **COMPLETE** (`DEC-076`) — `.semgrepignore` + secrets-doc redact |
 | Residual singletons (Wave 5) | **8** | **COMPLETE** (`DEC-082`) — xml/websocket/urllib/regexp×3/prototype×2 |
@@ -241,4 +245,4 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 
 ---
 
-*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`556304d` / DEC-069 + `465c638` / DEC-074). Wave 4 COMPLETE (`5c27470` / DEC-076). Wave 5 COMPLETE (DEC-082). Wave 2 Slice 1 COMPLETE (DEC-091). Wave 2 Slice 2 COMPLETE (DEC-097). CI-19 still OPEN (Wave 2 SQL remainder ~32).*
+*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`556304d` / DEC-069 + `465c638` / DEC-074). Wave 4 COMPLETE (`5c27470` / DEC-076). Wave 5 COMPLETE (DEC-082). Wave 2 Slice 1 COMPLETE (DEC-091). Wave 2 Slice 2 COMPLETE (DEC-097); Wave 2 Slice 3 COMPLETE (DEC-099). Wave 2 Slice 3 COMPLETE (DEC-099). CI-19 still OPEN (Wave 2 SQL remainder ~32).*

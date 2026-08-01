@@ -90,7 +90,7 @@ salesos/backend/.config/
 
 # Security tools
 .gitleaks.toml
-.trivyignore
+# .trivyignore tracked after DEC-098 (named CVE-2024-23342 only)
 
 # Engineering recovery docs (committed separately if needed)
 engineering-recovery/

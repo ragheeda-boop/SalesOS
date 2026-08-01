@@ -1,4 +1,6 @@
-"""Universal Timeline Runtime — every object gets a typed, queryable timeline.
+"""Universal Timeline Runtime - every object gets a typed, queryable timeline.
+
+CI-19 Wave 2 Core (no sqlalchemy.text)
 
 Timeline entries capture any event related to an entity:
   - Entity type + Entity ID identifies the timeline owner
@@ -11,13 +13,16 @@ Supports any entity type: Company, Person, Deal, License, etc.
 
 from __future__ import annotations
 
+import json
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
-from sqlalchemy import text as sa_text
+from sqlalchemy import and_, func, insert, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from domains.timeline.models import TimelineEventModel
 
 
 @dataclass
@@ -58,12 +63,40 @@ class TimelineMetrics:
         }
 
 
-class TimelineRuntime:
-    """Universal timeline — records all events for all entity types.
+def _domain_filter(domain: str):
+    return TimelineEventModel.data["domain"].astext == domain
 
-    Integrates with EventRuntime by subscribing to wildcard `*` events
-    and recording every domain event as a timeline entry.
-    """
+
+def _timeline_filters(
+    *,
+    entity_type: str | None = None,
+    entity_id: str | None = None,
+    tenant_id: str | None = None,
+    event_types: list[str] | None = None,
+    since: datetime | None = None,
+    until: datetime | None = None,
+    domain: str | None = None,
+) -> list[Any]:
+    filters: list[Any] = []
+    if entity_type is not None:
+        filters.append(TimelineEventModel.entity_type == entity_type)
+    if entity_id is not None:
+        filters.append(TimelineEventModel.entity_id == entity_id)
+    if tenant_id is not None:
+        filters.append(TimelineEventModel.tenant_id == tenant_id)
+    if event_types:
+        filters.append(TimelineEventModel.event_type.in_(event_types))
+    if since is not None:
+        filters.append(TimelineEventModel.created_at >= since)
+    if until is not None:
+        filters.append(TimelineEventModel.created_at <= until)
+    if domain:
+        filters.append(_domain_filter(domain))
+    return filters
+
+
+class TimelineRuntime:
+    """Universal timeline - records all events for all entity types."""
 
     def __init__(
         self,
@@ -98,23 +131,17 @@ class TimelineRuntime:
         self.metrics.entries_recorded += 1
 
         async with self._session_factory() as session:
-            await session.execute(
-                sa_text("""
-                    INSERT INTO timeline_entries
-                        (entity_type, entity_id, event_type, data, actor, tenant_id, importance, created_at)
-                    VALUES (:et, :eid, :evt, :data, :actor, :tid, :imp, :ca)
-                """),
-                {
-                    "et": entity_type,
-                    "eid": entity_id,
-                    "evt": event_type,
-                    "data": data,
-                    "actor": actor,
-                    "tid": tenant_id,
-                    "imp": importance,
-                    "ca": entry.created_at,
-                },
+            stmt = insert(TimelineEventModel).values(
+                entity_type=entity_type,
+                entity_id=entity_id,
+                event_type=event_type,
+                data=data,
+                actor=actor,
+                tenant_id=tenant_id,
+                importance=importance,
+                created_at=entry.created_at,
             )
+            await session.execute(stmt)
             await session.commit()
 
         return entry
@@ -134,126 +161,139 @@ class TimelineRuntime:
         t0 = time.monotonic()
         self.metrics.queries_executed += 1
 
-        base_where = "WHERE entity_type = :et AND entity_id = :eid"
-        params: dict = {"et": entity_type, "eid": entity_id}
+        filters = _timeline_filters(
+            entity_type=entity_type,
+            entity_id=entity_id,
+            event_types=event_types,
+            since=since,
+            until=until,
+            domain=domain,
+        )
+        where_clause = and_(*filters) if filters else True
 
-        if event_types:
-            base_where += " AND event_type = ANY(:evts)"
-            params["evts"] = event_types
-        if since:
-            base_where += " AND created_at >= :since"
-            params["since"] = since
-        if until:
-            base_where += " AND created_at <= :until"
-            params["until"] = until
-        if domain:
-            base_where += " AND data->>'domain' = :domain"
-            params["domain"] = domain
-
-        # Count total matching
         async with self._session_factory() as session:
-            count_row = await session.execute(
-                sa_text(f"SELECT COUNT(*) FROM timeline_entries {base_where}"), params
+            count_stmt = (
+                select(func.count())
+                .select_from(TimelineEventModel)
+                .where(where_clause)
             )
-            total = count_row.scalar() or 0
+            total = (await session.execute(count_stmt)).scalar() or 0
 
-            # Keyset cursor pagination
+            query_filters = list(filters)
             if cursor:
-                import json
                 try:
                     cursor_data = json.loads(cursor)
                     cursor_created = cursor_data.get("created_at")
                     cursor_id = cursor_data.get("id")
                     if cursor_created:
-                        base_where += " AND (created_at < :cursor_created OR (created_at = :cursor_created2 AND id < :cursor_id))"
-                        params["cursor_created"] = cursor_created
-                        params["cursor_created2"] = cursor_created
-                        params["cursor_id"] = cursor_id
+                        query_filters.append(
+                            or_(
+                                TimelineEventModel.created_at < cursor_created,
+                                and_(
+                                    TimelineEventModel.created_at == cursor_created,
+                                    TimelineEventModel.id < cursor_id,
+                                ),
+                            )
+                        )
                 except (json.JSONDecodeError, TypeError):
                     pass
 
-            query = f"SELECT * FROM timeline_entries {base_where} ORDER BY created_at DESC, id DESC LIMIT :lim"
+            query_where = and_(*query_filters) if query_filters else True
+            stmt = (
+                select(TimelineEventModel)
+                .where(query_where)
+                .order_by(
+                    TimelineEventModel.created_at.desc(),
+                    TimelineEventModel.id.desc(),
+                )
+                .limit(limit)
+            )
             if not cursor:
-                query += " OFFSET :off"
-                params["off"] = offset
-            params["lim"] = limit
+                stmt = stmt.offset(offset)
 
-            rows = await session.execute(sa_text(query), params)
+            rows = await session.execute(stmt)
             results = [dict(r) for r in rows.mappings().all()]
 
         elapsed = (time.monotonic() - t0) * 1000
         self.metrics.total_query_ms += elapsed
         return results, total
 
-    async def get_entity_timelines(self, tenant_id: str, entity_type: str, limit: int = 20, domain: Optional[str] = None, since: Optional[datetime] = None, until: Optional[datetime] = None) -> list[dict]:
-        """Get most recent timelines across all entities of a type."""
+    async def get_entity_timelines(
+        self,
+        tenant_id: str,
+        entity_type: str,
+        limit: int = 20,
+        domain: Optional[str] = None,
+        since: Optional[datetime] = None,
+        until: Optional[datetime] = None,
+    ) -> list[dict]:
         t0 = time.monotonic()
         self.metrics.queries_executed += 1
 
-        base_where = "WHERE tenant_id = :tid AND entity_type = :et"
-        params: dict = {"tid": tenant_id, "et": entity_type}
-        if domain:
-            base_where += " AND data->>'domain' = :domain"
-            params["domain"] = domain
-        if since:
-            base_where += " AND created_at >= :since"
-            params["since"] = since
-        if until:
-            base_where += " AND created_at <= :until"
-            params["until"] = until
+        filters = _timeline_filters(
+            tenant_id=tenant_id,
+            entity_type=entity_type,
+            since=since,
+            until=until,
+            domain=domain,
+        )
+        where_clause = and_(*filters)
 
         async with self._session_factory() as session:
-            rows = await session.execute(
-                sa_text(f"""
-                    SELECT DISTINCT ON (entity_id) *
-                    FROM timeline_entries
-                    {base_where}
-                    ORDER BY entity_id, created_at DESC
-                    LIMIT :lim
-                """),
-                {**params, "lim": limit},
+            stmt = (
+                select(TimelineEventModel)
+                .distinct(TimelineEventModel.entity_id)
+                .where(where_clause)
+                .order_by(
+                    TimelineEventModel.entity_id,
+                    TimelineEventModel.created_at.desc(),
+                )
+                .limit(limit)
             )
+            rows = await session.execute(stmt)
             results = [dict(r) for r in rows.mappings().all()]
+
         elapsed = (time.monotonic() - t0) * 1000
         self.metrics.total_query_ms += elapsed
         return results
 
-    async def get_timeline_summary(self, entity_type: str, entity_id: str, domain: Optional[str] = None) -> dict:
-        """Return summary stats for an entity's timeline."""
+    async def get_timeline_summary(
+        self,
+        entity_type: str,
+        entity_id: str,
+        domain: Optional[str] = None,
+    ) -> dict:
         t0 = time.monotonic()
         self.metrics.queries_executed += 1
-        base_where = "WHERE entity_type = :et AND entity_id = :eid"
-        params: dict = {"et": entity_type, "eid": entity_id}
-        if domain:
-            base_where += " AND data->>'domain' = :domain"
-            params["domain"] = domain
+
+        filters = _timeline_filters(
+            entity_type=entity_type,
+            entity_id=entity_id,
+            domain=domain,
+        )
+        where_clause = and_(*filters)
 
         async with self._session_factory() as session:
-            row = await session.execute(
-                sa_text(f"""
-                    SELECT
-                        COUNT(*) as total_events,
-                        COUNT(DISTINCT event_type) as unique_event_types,
-                        MIN(created_at) as first_event,
-                        MAX(created_at) as last_event
-                    FROM timeline_entries
-                    {base_where}
-                """),
-                params,
-            )
-            stats = dict(row.mappings().one())
+            stats_stmt = select(
+                func.count().label("total_events"),
+                func.count(func.distinct(TimelineEventModel.event_type)).label(
+                    "unique_event_types"
+                ),
+                func.min(TimelineEventModel.created_at).label("first_event"),
+                func.max(TimelineEventModel.created_at).label("last_event"),
+            ).where(where_clause)
+            stats = dict((await session.execute(stats_stmt)).mappings().one())
 
-            # Event type breakdown
-            breakdown = await session.execute(
-                sa_text(f"""
-                    SELECT event_type, COUNT(*) as cnt
-                    FROM timeline_entries
-                    {base_where}
-                    GROUP BY event_type
-                    ORDER BY cnt DESC
-                """),
-                params,
+            breakdown_stmt = (
+                select(
+                    TimelineEventModel.event_type,
+                    func.count().label("cnt"),
+                )
+                .where(where_clause)
+                .group_by(TimelineEventModel.event_type)
+                .order_by(func.count().desc())
             )
+            breakdown = await session.execute(breakdown_stmt)
             event_breakdown = {r["event_type"]: r["cnt"] for r in breakdown.mappings().all()}
 
         elapsed = (time.monotonic() - t0) * 1000
@@ -269,16 +309,13 @@ class TimelineRuntime:
         }
 
     def get_all_entries(self, entity_type: str, entity_id: str) -> list[dict]:
-        """Return in-memory entries (for testing / hot path)."""
         return [
-            e.to_dict() for e in self._entries
+            e.to_dict()
+            for e in self._entries
             if e.entity_type == entity_type and e.entity_id == entity_id
         ]
 
-    # ── Event Runtime integration ─────────────────────────────
-
     async def on_domain_event(self, event_data: dict) -> None:
-        """Called by EventRuntime subscriber — records any domain event as timeline entry."""
         await self.record(
             entity_type=event_data.get("aggregate_type", "unknown"),
             entity_id=event_data.get("aggregate_id", ""),
@@ -290,10 +327,23 @@ class TimelineRuntime:
         )
 
     def _calc_importance(self, event_type: str) -> int:
-        high = {"company.created", "company.merged", "decision.created", "golden_record.created",
-                "deal.won", "deal.lost", "contract.renewed"}
-        medium = {"company.updated", "contact.created", "license.created", "decision.accepted",
-                  "company.enriched", "funding.received"}
+        high = {
+            "company.created",
+            "company.merged",
+            "decision.created",
+            "golden_record.created",
+            "deal.won",
+            "deal.lost",
+            "contract.renewed",
+        }
+        medium = {
+            "company.updated",
+            "contact.created",
+            "license.created",
+            "decision.accepted",
+            "company.enriched",
+            "funding.received",
+        }
         if event_type in high:
             return 10
         if event_type in medium:

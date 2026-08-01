@@ -99,7 +99,8 @@ class TestSearchRaw:
         await repo.search_raw("test", tenant_id="t1")
         first_call = session.execute.call_args_list[0]
         sql_clause = first_call.args[0]
-        assert "statement_timeout" in sql_clause.text
+        rendered = str(sql_clause.compile(compile_kwargs={"literal_binds": True}))
+        assert "statement_timeout" in rendered and "set_config" in rendered
 
     @pytest.mark.asyncio
     async def test_search_raw_respects_max_page_size(self):
@@ -118,9 +119,8 @@ class TestSearchRaw:
         await repo.search_raw("test", tenant_id="t1")
         second_call = session.execute.call_args_list[1]
         sql_clause = second_call.args[0]
-        params = second_call.args[1] if len(second_call.args) > 1 else {}
-        # Language is passed as :lang parameter, not inlined in SQL
-        assert params.get("lang") == "simple" or "lang" in str(sql_clause.text)
+        compiled = sql_clause.compile()
+        assert "simple" in str(compiled.params.values()) or "simple" in str(compiled)
 
 
 # ── search_by_filters() Tests ───────────────────────────────────
@@ -358,8 +358,9 @@ class TestSearchLimitsEnforced:
         # call_args_list[1] is the second execute call (SQL query)
         # call_args_list[1][0] is the tuple of positional args; [1] is the params dict
         sql_call = session.execute.call_args_list[1]
-        params = sql_call[0][1]
-        assert params["lim"] == MAX_PAGE_SIZE
+        stmt = sql_call.args[0]
+        compiled = stmt.compile()
+        assert MAX_PAGE_SIZE in compiled.params.values() or str(MAX_PAGE_SIZE) in str(compiled)
 
     @pytest.mark.asyncio
     async def test_search_by_filters_limit_enforced(self):
@@ -371,8 +372,9 @@ class TestSearchLimitsEnforced:
         # Should be clamped to MAX_PAGE_SIZE (50)
         # call_args_list[1] is the second execute call (results query)
         sql_call = session.execute.call_args_list[1]
-        params = sql_call[0][1]
-        assert params["lim"] == MAX_PAGE_SIZE
+        stmt = sql_call.args[0]
+        compiled = stmt.compile()
+        assert MAX_PAGE_SIZE in compiled.params.values() or str(MAX_PAGE_SIZE) in str(compiled)
 
 
 class TestEmptyResults:

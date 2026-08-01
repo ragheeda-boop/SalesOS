@@ -1,0 +1,7 @@
+# Trivy named ignores - accepted residuals only (signed DECs). Do NOT blanket-ignore.
+# Format: one vulnerability ID per line. Comments after # are allowed.
+
+# DEC-057 Option A + DEC-090 / DEC-098: ecdsa Minerva (same residual as pip-audit PYSEC-2026-1325).
+# Trivy reports CVE-2024-23342; pip-audit reports PYSEC-2026-1325. Same advisory, different ID namespace.
+# JWT paths RS256/HS256 only; no ES*; upstream ecdsa no planned fix. Owner: Security.
+CVE-2024-23342
