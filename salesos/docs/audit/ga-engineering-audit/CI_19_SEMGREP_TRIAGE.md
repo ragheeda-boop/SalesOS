@@ -141,7 +141,7 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 - **Acceptance:** those 8 Code Scanning alerts closed or fixed; Security Scan still uploads Semgrep SARIF.
 - **Remediation landed (2026-08-01):** commit `d5c9b57` (`d5c9b5746a346c6773e4205f03284c8186b7f3ca`) — `fix(ci): CI-19 wave 1 remediate GHA script injection`. Files: `.github/workflows/deploy.yml`, `deploy-staging.yml`, `deploy-production.yml`, `sales-os/.github/workflows/run.yml` (env:/process.env pattern). **Wave 1 only** — Waves 2–5 still open; CI-19 story **not** closed; **CI GREEN not met**.
 
-### Wave 2 — Runtime SQL honesty pass (`salesos/backend` hot paths) → **IN PROGRESS** (Slice 1 landed — DEC-091)
+### Wave 2 — Runtime SQL honesty pass (`salesos/backend` hot paths) → **IN PROGRESS** (Slice 1+2 landed — DEC-091 / DEC-097)
 
 - Inventory: live Code Scanning (tip baseline) **72** `avoid-sqlalchemy-text` + **4** alembic raw/formatted = **76** SQL-cluster; earlier tip estimate ~108 was stale vs post–Wave 4/5 open set (**85** Semgrep OSS open total).
 - Per finding: (a) parameterized `text()` → dismiss FP with reason, (b) refactor to Core expression API, or (c) fix true concat SQLi. **No** Semgrep suppress / severity drop.
@@ -153,7 +153,11 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
   - `sdk/events/store.py` (**1**)
   - `sdk/audit.py` (**1**)
   - Expected cleared this slice: **13** Code Scanning alerts. Unit: `test_outbox` + `test_revenue_service` (**light validated**).
-- **Remainder (not this slice):** ~**59** `avoid-sqlalchemy-text` — densest next: `data_quality.py` (8), `pgvector_migration.py` (8), `domains/search/engine/postgres_repo.py` (6), `timeline_runtime` (5), `search_runtime` (4), alembic RLS/tenant migrations, `sdk/search.py` pgvector allowlist tables, `tasks.py`, etc. + non-SQL residuals (logger-credential ×4, gha-workflow-env-secret, etc.).
+- **Slice 2 COMPLETE (DEC-097):** Core rewrite for:
+  - `app/application/admin/data_quality.py` (**8**)
+  - `runtime/knowledge_graph_runtime/pgvector_migration.py` (**8** — DDL via allowlisted `exec_driver_sql`)
+  - Expected cleared this slice: **16** Code Scanning alerts. Validation: **light validated** (AST parse).
+- **Remainder (not this slice):** ~**43** `avoid-sqlalchemy-text` — densest next: `domains/search/engine/postgres_repo.py` (6), `timeline_runtime` (5), `search_runtime` (4), alembic RLS/tenant migrations, `sdk/search.py` pgvector allowlist tables, `tasks.py`, etc. + non-SQL residuals (logger-credential ×4, gha-workflow-env-secret, etc.).
 - **Wave 2 NOT CLOSED.** **CI-19 NOT CLOSED.**
 
 ### Wave 3 — Supply-chain & infra hardening → **SHA-pin + residual COMPLETE** (`DEC-069` / `DEC-074`)
@@ -201,12 +205,12 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 | Label | Count (approx) | Next action |
 |-------|---------------:|-------------|
 | **READY (Wave 1)** | **8** | **COMPLETE** at `d5c9b57` (env:/process.env) |
-| SQL honesty / FP review (Wave 2) | **~76 → ~63** after Slice 1 | **IN PROGRESS** — Slice 1 Core rewrite (**13** expected clear, DEC-091); remainder registered — no mass `nosec` |
+| SQL honesty / FP review (Wave 2) | **~76 → ~63 → ~36** after Slice 1+2 | **IN PROGRESS** — Slice 1 (**13**, DEC-091) + Slice 2 (**27**, DEC-097); ~**32** text remain — no mass `nosec` |
 | Hardening backlog (Wave 3) | **~139** → SHA pins **115** + residual **19** done | **Wave 3 COMPLETE** (`DEC-069` SHA-pin + `DEC-074` K8s/Docker/TF) |
 | **Noise / exclude (Wave 4)** | **~30** | **COMPLETE** (`DEC-076`) — `.semgrepignore` + secrets-doc redact |
 | Residual singletons (Wave 5) | **8** | **COMPLETE** (`DEC-082`) — xml/websocket/urllib/regexp×3/prototype×2 |
 
-**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 COMPLETE** under `DEC-069` (`556304d`) + `DEC-074` (`465c638`). **Wave 4 COMPLETE** under `DEC-076` (`5c27470`). **Wave 5 COMPLETE** under `DEC-082`. **Wave 2 Slice 1 COMPLETE** under `DEC-091` (outbox/revenue/store/audit Core — **13** expected). Wave 2 remainder + non-SQL residuals keep CI-19 OPEN. **CI GREEN not met.**
+**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 COMPLETE** under `DEC-069` (`556304d`) + `DEC-074` (`465c638`). **Wave 4 COMPLETE** under `DEC-076` (`5c27470`). **Wave 5 COMPLETE** under `DEC-082`. **Wave 2 Slice 1 COMPLETE** under `DEC-091` (**13**). **Wave 2 Slice 2 COMPLETE** under `DEC-097` (`data_quality` + `pgvector_migration` — **16** expected). Wave 2 remainder (~**32** text) + non-SQL residuals keep CI-19 OPEN. **CI GREEN not met.**
 
 ---
 
@@ -237,4 +241,4 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 
 ---
 
-*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`556304d` / DEC-069 + `465c638` / DEC-074). Wave 4 COMPLETE (`5c27470` / DEC-076). Wave 5 COMPLETE (DEC-082). Wave 2 Slice 1 COMPLETE (DEC-091). CI-19 still OPEN (Wave 2 SQL remainder).*
+*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`556304d` / DEC-069 + `465c638` / DEC-074). Wave 4 COMPLETE (`5c27470` / DEC-076). Wave 5 COMPLETE (DEC-082). Wave 2 Slice 1 COMPLETE (DEC-091). Wave 2 Slice 2 COMPLETE (DEC-097). CI-19 still OPEN (Wave 2 SQL remainder ~32).*

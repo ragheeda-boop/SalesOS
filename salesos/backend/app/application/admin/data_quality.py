@@ -1,5 +1,7 @@
 """Data Quality Dashboard — admin endpoints for monitoring data quality.
 
+CI-19 Wave 2 Core (no sqlalchemy.text)
+
 Provides REST API endpoints for:
 - Overall quality score (completeness 40% + accuracy 30% + freshness 30%)
 - Field completeness statistics
@@ -20,7 +22,27 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, cast
 
+from functools import reduce
+from operator import add
+
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Float,
+    MetaData,
+    String,
+    Table,
+    and_,
+    case,
+    cast as sa_cast,
+    func,
+    literal,
+    or_,
+    select,
+    union_all,
+)
+from sqlalchemy.dialects.postgresql import UUID
 
 logger = logging.getLogger(__name__)
 
@@ -52,12 +74,48 @@ CORE_FIELDS = [
 _ALLOWED_QUALITY_FIELDS = frozenset(CORE_FIELDS)
 
 
+
+_dq_metadata = MetaData()
+
+# Lightweight Core table for quality SQL (columns referenced by quality checks).
+companies = Table(
+    "companies",
+    _dq_metadata,
+    Column("id", UUID(as_uuid=True), primary_key=True),
+    Column("tenant_id", UUID(as_uuid=True)),
+    Column("name_ar", String),
+    Column("name_en", String),
+    Column("cr_number", String),
+    Column("vat_number", String),
+    Column("email", String),
+    Column("phone", String),
+    Column("website", String),
+    Column("address", String),
+    Column("city", String),
+    Column("region", String),
+    Column("industry", String),
+    Column("status", String),
+    Column("revenue", Float),
+    Column("employees", String),
+    Column("updated_at", DateTime(timezone=True)),
+)
+
+
 def _validate_quality_field(name: str) -> str:
     """Validate field name against allowlist to prevent SQL injection."""
     if name not in _ALLOWED_QUALITY_FIELDS:
         raise ValueError(f"Invalid quality field: {name}")
     return name
 
+
+def _field_col(name: str):
+    return companies.c[_validate_quality_field(name)]
+
+
+def _apply_tenant(stmt, tenant_id: str | None):
+    if tenant_id:
+        return stmt.where(companies.c.tenant_id == tenant_id)
+    return stmt
 
 # ── Field freshness max valid hours ────────────────────────────────
 FIELD_FRESHNESS_HOURS: dict[str, float] = {
@@ -234,50 +292,59 @@ class DataQualityService:
 
     async def _calc_completeness(self, session: Any, tenant_id: str | None) -> float:
         """Calculate average completeness across all records."""
-        from sqlalchemy import text as sa_text
-
-        tenant_filter = "WHERE c.tenant_id = :tid" if tenant_id else ""
-        params = {"tid": tenant_id} if tenant_id else {}
-
-        filled_conditions = []
+        filled_exprs = []
         for f in CORE_FIELDS:
-            _validate_quality_field(f)
-            filled_conditions.append(
-                f"(CASE WHEN c.{f} IS NOT NULL AND c.{f} != '' THEN 1 ELSE 0 END)"
+            col = _field_col(f)
+            filled_exprs.append(
+                case((and_(col.is_not(None), col != ""), 1), else_=0)
             )
-
-        filled_sum = " + ".join(filled_conditions)
+        filled_sum = reduce(add, filled_exprs)
         total_fields = len(CORE_FIELDS)
-
-        sql = sa_text(f"""
-            SELECT AVG(({filled_sum})::float / {total_fields}) as avg_completeness
-            FROM companies c {tenant_filter}
-        """)
-
-        result = await session.execute(sql, params)
+        stmt = select(
+            func.avg(sa_cast(filled_sum, Float) / total_fields)
+        ).select_from(companies)
+        stmt = _apply_tenant(stmt, tenant_id)
+        result = await session.execute(stmt)
         row = result.first()
         return float(row[0]) if row and row[0] is not None else 0.0
 
     async def _calc_accuracy(self, session: Any, tenant_id: str | None) -> float:
         """Calculate accuracy score based on source reliability and field validation."""
-        from sqlalchemy import text as sa_text
-
-        tenant_filter = "WHERE c.tenant_id = :tid" if tenant_id else ""
-        params = {"tid": tenant_id} if tenant_id else {}
-
-        sql = sa_text(f"""
-            SELECT
-                AVG(CASE WHEN c.email LIKE '%@%.%' THEN 0.15 ELSE 0 END) as email_valid,
-                AVG(CASE WHEN c.phone IS NOT NULL AND length(c.phone) >= 7
-                    THEN 0.10 ELSE 0 END) as phone_valid,
-                AVG(CASE WHEN c.website LIKE '%.%' THEN 0.10 ELSE 0 END) as website_valid,
-                AVG(CASE WHEN c.cr_number IS NOT NULL AND length(c.cr_number) >= 5
-                    THEN 0.15 ELSE 0 END) as cr_valid,
-                COUNT(*) as total
-            FROM companies c {tenant_filter}
-        """)
-
-        result = await session.execute(sql, params)
+        stmt = select(
+            func.avg(
+                case((companies.c.email.like("%@%.%"), 0.15), else_=0)
+            ),
+            func.avg(
+                case(
+                    (
+                        and_(
+                            companies.c.phone.is_not(None),
+                            func.length(companies.c.phone) >= 7,
+                        ),
+                        0.10,
+                    ),
+                    else_=0,
+                )
+            ),
+            func.avg(
+                case((companies.c.website.like("%.%"), 0.10), else_=0)
+            ),
+            func.avg(
+                case(
+                    (
+                        and_(
+                            companies.c.cr_number.is_not(None),
+                            func.length(companies.c.cr_number) >= 5,
+                        ),
+                        0.15,
+                    ),
+                    else_=0,
+                )
+            ),
+            func.count(),
+        ).select_from(companies)
+        stmt = _apply_tenant(stmt, tenant_id)
+        result = await session.execute(stmt)
         row = result.first()
         if not row or not row[4]:
             return 0.0
@@ -292,25 +359,17 @@ class DataQualityService:
 
     async def _calc_freshness(self, session: Any, tenant_id: str | None) -> float:
         """Calculate freshness score based on update recency."""
-        from sqlalchemy import text as sa_text
-
-        tenant_filter = "WHERE c.tenant_id = :tid" if tenant_id else ""
-        params = {"tid": tenant_id} if tenant_id else {}
-
-        sql = sa_text(f"""
-            SELECT
-                AVG(CASE
-                    WHEN c.updated_at >= NOW() - INTERVAL '1 day' THEN 1.0
-                    WHEN c.updated_at >= NOW() - INTERVAL '7 days' THEN 0.9
-                    WHEN c.updated_at >= NOW() - INTERVAL '30 days' THEN 0.6
-                    WHEN c.updated_at >= NOW() - INTERVAL '90 days' THEN 0.3
-                    ELSE 0.1
-                END) as avg_freshness,
-                COUNT(*) as total
-            FROM companies c {tenant_filter}
-        """)
-
-        result = await session.execute(sql, params)
+        now = func.now()
+        freshness = case(
+            (companies.c.updated_at >= now - func.make_interval(0, 0, 0, 1), 1.0),
+            (companies.c.updated_at >= now - func.make_interval(0, 0, 0, 7), 0.9),
+            (companies.c.updated_at >= now - func.make_interval(0, 0, 0, 30), 0.6),
+            (companies.c.updated_at >= now - func.make_interval(0, 0, 0, 90), 0.3),
+            else_=0.1,
+        )
+        stmt = select(func.avg(freshness), func.count()).select_from(companies)
+        stmt = _apply_tenant(stmt, tenant_id)
+        result = await session.execute(stmt)
         row = result.first()
         if not row or not row[1]:
             return 0.0
@@ -318,52 +377,44 @@ class DataQualityService:
         return float(row[0]) if row[0] is not None else 0.0
 
     async def _count_records(self, session: Any, tenant_id: str | None) -> int:
-        from sqlalchemy import text as sa_text
-
-        tenant_filter = "WHERE c.tenant_id = :tid" if tenant_id else ""
-        params = {"tid": tenant_id} if tenant_id else {}
-
-        sql = sa_text(f"SELECT COUNT(*) FROM companies c {tenant_filter}")
-        result = await session.execute(sql, params)
+        stmt = select(func.count()).select_from(companies)
+        stmt = _apply_tenant(stmt, tenant_id)
+        result = await session.execute(stmt)
         row = result.first()
         return int(row[0]) if row else 0
 
     async def _count_issues(self, session: Any, tenant_id: str | None) -> int:
         """Count records with quality issues (missing critical fields or stale data)."""
-        from sqlalchemy import text as sa_text
-
-        tenant_filter = "WHERE c.tenant_id = :tid" if tenant_id else ""
-        params = {"tid": tenant_id} if tenant_id else {}
-
-        sql = sa_text(f"""
-            SELECT COUNT(*) FROM companies c {tenant_filter}
-            {'AND' if tenant_filter else 'WHERE'} (
-                c.name_ar IS NULL OR c.name_ar = ''
-                OR c.cr_number IS NULL OR c.cr_number = ''
-                OR c.updated_at < NOW() - INTERVAL '90 days'
-            )
-        """)
-        result = await session.execute(sql, params)
+        issue_pred = or_(
+            companies.c.name_ar.is_(None),
+            companies.c.name_ar == "",
+            companies.c.cr_number.is_(None),
+            companies.c.cr_number == "",
+            companies.c.updated_at < func.now() - func.make_interval(0, 0, 0, 90),
+        )
+        stmt = select(func.count()).select_from(companies).where(issue_pred)
+        stmt = _apply_tenant(stmt, tenant_id)
+        result = await session.execute(stmt)
         row = result.first()
         return int(row[0]) if row else 0
 
     async def _count_duplicates(self, session: Any, tenant_id: str | None) -> int:
         """Count potential duplicates (same CR number)."""
-        from sqlalchemy import text as sa_text
-
-        tenant_filter = "WHERE c.tenant_id = :tid" if tenant_id else ""
-        params = {"tid": tenant_id} if tenant_id else {}
-
-        sql = sa_text(f"""
-            SELECT COUNT(*) FROM (
-                SELECT cr_number
-                FROM companies c {tenant_filter}
-                WHERE cr_number IS NOT NULL AND cr_number != ''
-                GROUP BY cr_number
-                HAVING COUNT(*) > 1
-            ) dups
-        """)
-        result = await session.execute(sql, params)
+        inner = (
+            select(companies.c.cr_number)
+            .where(
+                and_(
+                    companies.c.cr_number.is_not(None),
+                    companies.c.cr_number != "",
+                )
+            )
+            .group_by(companies.c.cr_number)
+            .having(func.count() > 1)
+        )
+        if tenant_id:
+            inner = inner.where(companies.c.tenant_id == tenant_id)
+        stmt = select(func.count()).select_from(inner.subquery("dups"))
+        result = await session.execute(stmt)
         row = result.first()
         return int(row[0]) if row else 0
 
@@ -371,23 +422,21 @@ class DataQualityService:
         self, session: Any, tenant_id: str | None
     ) -> list[CompletenessStats]:
         """Per-field completeness breakdown."""
-        from sqlalchemy import text as sa_text
-
-        tenant_filter = "WHERE c.tenant_id = :tid" if tenant_id else ""
-        params = {"tid": tenant_id} if tenant_id else {}
-
-        field_conditions = []
+        parts = []
         for f in CORE_FIELDS:
-            _validate_quality_field(f)
-            field_conditions.append(f"""
-                SELECT '{f}' as field_name,
-                       SUM(CASE WHEN c.{f} IS NOT NULL AND c.{f} != '' THEN 1 ELSE 0 END) as filled,
-                       COUNT(*) as total
-                FROM companies c {tenant_filter}
-            """)
+            col = _field_col(f)
+            part = select(
+                literal(f).label("field_name"),
+                func.sum(
+                    case((and_(col.is_not(None), col != ""), 1), else_=0)
+                ).label("filled"),
+                func.count().label("total"),
+            ).select_from(companies)
+            part = _apply_tenant(part, tenant_id)
+            parts.append(part)
 
-        combined_sql = " UNION ALL ".join(field_conditions)
-        result = await session.execute(sa_text(combined_sql), params)
+        stmt = union_all(*parts)
+        result = await session.execute(stmt)
 
         stats = []
         for row in result:
@@ -409,34 +458,40 @@ class DataQualityService:
         self, session: Any, tenant_id: str | None
     ) -> list[FreshnessStats]:
         """Freshness grade distribution."""
-        from sqlalchemy import text as sa_text
+        now = func.now()
+        grade = case(
+            (companies.c.updated_at >= now - func.make_interval(0, 0, 0, 0, 1), "real_time"),
+            (companies.c.updated_at >= now - func.make_interval(0, 0, 0, 1), "fresh"),
+            (companies.c.updated_at >= now - func.make_interval(0, 0, 0, 7), "moderate"),
+            (companies.c.updated_at >= now - func.make_interval(0, 0, 0, 30), "stale"),
+            else_="expired",
+        ).label("grade")
+        age_hours = (
+            func.extract("epoch", now - companies.c.updated_at) / 3600
+        ).label("age_hours")
 
-        tenant_filter = "WHERE c.tenant_id = :tid" if tenant_id else ""
-        params = {"tid": tenant_id} if tenant_id else {}
+        sub = select(grade, age_hours).select_from(companies)
+        sub = _apply_tenant(sub, tenant_id).subquery("sub")
 
-        sql = sa_text(f"""
-            SELECT grade, COUNT(*) as cnt, AVG(age_hours) as avg_age FROM (
-                SELECT CASE
-                    WHEN c.updated_at >= NOW() - INTERVAL '1 hour' THEN 'real_time'
-                    WHEN c.updated_at >= NOW() - INTERVAL '1 day' THEN 'fresh'
-                    WHEN c.updated_at >= NOW() - INTERVAL '7 days' THEN 'moderate'
-                    WHEN c.updated_at >= NOW() - INTERVAL '30 days' THEN 'stale'
-                    ELSE 'expired'
-                END as grade,
-                EXTRACT(EPOCH FROM (NOW() - c.updated_at)) / 3600 as age_hours
-                FROM companies c {tenant_filter}
-            ) sub
-            GROUP BY grade
-            ORDER BY CASE grade
-                WHEN 'real_time' THEN 1
-                WHEN 'fresh' THEN 2
-                WHEN 'moderate' THEN 3
-                WHEN 'stale' THEN 4
-                WHEN 'expired' THEN 5
-            END
-        """)
+        grade_order = case(
+            (sub.c.grade == "real_time", 1),
+            (sub.c.grade == "fresh", 2),
+            (sub.c.grade == "moderate", 3),
+            (sub.c.grade == "stale", 4),
+            (sub.c.grade == "expired", 5),
+            else_=6,
+        )
+        stmt = (
+            select(
+                sub.c.grade,
+                func.count().label("cnt"),
+                func.avg(sub.c.age_hours).label("avg_age"),
+            )
+            .group_by(sub.c.grade)
+            .order_by(grade_order)
+        )
 
-        result = await session.execute(sql, params)
+        result = await session.execute(stmt)
         total_count = await self._count_records(session, tenant_id)
 
         stats = []
@@ -457,45 +512,56 @@ class DataQualityService:
         self, session: Any, tenant_id: str | None, limit: int
     ) -> list[DuplicateCandidate]:
         """Find potential duplicate records by CR number."""
-        from sqlalchemy import text as sa_text
+        c1 = companies.alias("c1")
+        c2 = companies.alias("c2")
+        sim = func.similarity(c1.c.name_ar, c2.c.name_ar)
+        sim_score = case(
+            (c1.c.name_ar == c2.c.name_ar, 1.0),
+            (sim > 0.6, sim),
+            else_=0.5,
+        ).label("sim_score")
 
-        tenant_filter = "WHERE c.tenant_id = :tid" if tenant_id else ""
-        params: dict[str, Any] = {"tid": tenant_id, "lim": limit} if tenant_id else {"lim": limit}
+        stmt = (
+            select(
+                sa_cast(c1.c.id, String).label("id_a"),
+                sa_cast(c2.c.id, String).label("id_b"),
+                c1.c.name_ar.label("name_a"),
+                c2.c.name_ar.label("name_b"),
+                c1.c.cr_number,
+                sim_score,
+            )
+            .select_from(
+                c1.join(
+                    c2,
+                    and_(c1.c.cr_number == c2.c.cr_number, c1.c.id < c2.c.id),
+                )
+            )
+            .where(
+                and_(
+                    c1.c.cr_number.is_not(None),
+                    c1.c.cr_number != "",
+                )
+            )
+            .order_by(sim_score.desc())
+            .limit(limit)
+        )
+        if tenant_id:
+            stmt = stmt.where(c1.c.tenant_id == tenant_id)
 
-        sql = sa_text(f"""
-            SELECT c1.id::text as id_a, c2.id::text as id_b,
-                   c1.name_ar as name_a, c2.name_ar as name_b,
-                   c1.cr_number,
-                   CASE
-                       WHEN c1.name_ar = c2.name_ar THEN 1.0
-                       WHEN similarity(c1.name_ar, c2.name_ar) > 0.6
-                       THEN similarity(c1.name_ar, c2.name_ar)
-                       ELSE 0.5
-                   END as sim_score
-            FROM companies c1
-            JOIN companies c2 ON c1.cr_number = c2.cr_number
-                AND c1.id < c2.id
-            {tenant_filter}
-            {'AND' if tenant_filter else 'WHERE'} c1.cr_number IS NOT NULL
-                AND c1.cr_number != ''
-            ORDER BY sim_score DESC
-            LIMIT :lim
-        """)
-
-        result = await session.execute(sql, params)
+        result = await session.execute(stmt)
         duplicates = []
 
         for row in result:
-            sim = float(row[5]) if row[5] else 0.5
+            sim_v = float(row[5]) if row[5] else 0.5
             reasons = []
-            if sim > 0.9:
+            if sim_v > 0.9:
                 reasons.append("same_cr_number_and_name")
-            elif sim > 0.7:
+            elif sim_v > 0.7:
                 reasons.append("same_cr_number_similar_name")
             else:
                 reasons.append("same_cr_number_different_name")
 
-            action = "auto_merge" if sim > 0.95 else "review" if sim > 0.7 else "keep_separate"
+            action = "auto_merge" if sim_v > 0.95 else "review" if sim_v > 0.7 else "keep_separate"
 
             duplicates.append(
                 DuplicateCandidate(
@@ -504,7 +570,7 @@ class DataQualityService:
                     name_a=str(row[2] or ""),
                     name_b=str(row[3] or ""),
                     cr_number=str(row[4] or ""),
-                    similarity_score=round(sim, 2),
+                    similarity_score=round(sim_v, 2),
                     match_reasons=reasons,
                     recommended_action=action,
                 )
