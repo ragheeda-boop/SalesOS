@@ -75,7 +75,7 @@ Representative log evidence (run `30664173050`): `TypeError: Cannot read propert
 
 - Historical baseline gate (CI-13 capture): failing suites `<= 33`, failing tests `<= 163`; **no new failures** beyond the §3 inventory.
 - **Post-remediation expected ceiling (local / CI-like evidence; full Stage 3 inventory not re-run):** failing suites **`<=0`** after `4fdc1d8` (-3) + `5bba606` H2/H3 (-2) + `556304d` six-holdout re-fix (-6) vs section 8 field count **11**. Field verify section 8 (`30677189129` / `1c33c1b`): **11** was CI-authoritative until section 10. **Section 10 field verify** (`30679804383` / `465c638`, Stage 3 job `91314523292`): **0** failing suites - supersedes section 8 for Stage 3 counts. Do **not** claim whole-pipeline CI GREEN from Stage 3 alone.
-- Remediation of remaining suites is the Sprint 01 Jest-debt story (separate from CI-14's dependency modernization).
+- Sprint 01 Jest-debt remediation **CLOSED** (DEC-077) on §10 field evidence — separate from CI-14's dependency modernization.
 - Any suite in this list that becomes green should be removed from this baseline with a note.
 
 ## 6. Remediation progress (post CI-13)
@@ -97,7 +97,7 @@ Representative log evidence (run `30664173050`): `TypeError: Cannot read propert
 ## 7. Record
 
 - Story: **CI-13** (Jest suite baseline) — **CLOSED** per DEC-035. Program progress 14/19.
-- Jest-debt remediation continues under Sprint 01 (not CI-14); see §6.
+- Sprint 01 **Jest-debt** / **R-23** — **CLOSED** per DEC-077 on §10 field evidence (Stage 3 **0** failing suites). Not CI-14.
 
 ## 8. Field verify — Stage 3 after Prettier unblock (`1c33c1b`)
 
@@ -216,4 +216,4 @@ Tests:       1 skipped, 2278 passed, 2279 total
 | Stage 3 field ceiling | **0** (authoritative supersedes §8 **11**) |
 | Whole-pipeline CI | **Still failure** on this run — Backend Lint/Types, pip-audit, Secrets Scan red; Stage 3/6+ downstream skipped or out of FE scope |
 
-**Do not claim whole-pipeline GREEN.** Stage 3 Frontend Unit Tests field-verified success only.
+**Do not claim whole-pipeline GREEN.** Stage 3 Frontend Unit Tests field-verified success only. Program close: **Jest-debt / R-23 CLOSED** (DEC-077) on this §10 evidence.
