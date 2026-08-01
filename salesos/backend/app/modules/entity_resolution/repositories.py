@@ -257,7 +257,7 @@ class DeadLetterRepository:
         if status:
             stmt = stmt.where(DeadLetterRecord.status == status)
         result = await self._session.execute(stmt)
-        return int(result.rowcount or 0)
+        return cast(int, getattr(result, "rowcount", 0) or 0)
 
     async def count_by_stage(self, tenant_id: str | uuid.UUID) -> dict[str, int]:
         tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
@@ -267,4 +267,4 @@ class DeadLetterRepository:
             .group_by(DeadLetterRecord.stage)
         )
         result = await self._session.execute(query)
-        return dict(result.all())
+        return {str(stage): int(count) for stage, count in result.all()}

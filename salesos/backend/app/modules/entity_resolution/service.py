@@ -14,6 +14,7 @@ The pipeline flow:
 import time
 import uuid
 from datetime import UTC, datetime
+from typing import cast
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -456,10 +457,10 @@ class EntityResolutionService:
         conflict.status = "resolved"
         await self.db.flush()
 
-        return conflict
+        return cast(EntityResolutionConflict, conflict)
 
     async def get_golden_record(self, golden_record_id: str) -> GoldenRecord:
-        return await self.golden_repo.get(uuid.UUID(golden_record_id))
+        return cast(GoldenRecord, await self.golden_repo.get(uuid.UUID(golden_record_id)))
 
     async def get_golden_by_cr(self, tenant_id: str, cr_number: str) -> GoldenRecord | None:
         return await self.golden_repo.get_by_cr_number(uuid.UUID(tenant_id), cr_number)
@@ -588,14 +589,19 @@ class EntityResolutionService:
         if not target:
             raise NotFoundError("Company", target_id)
 
-        # Move relations from source to target
-        from app.modules.company.models import Branch, Contact, License
+        # Move relations from source to target (unrolled — BaseModel union loses company_id)
+        from app.modules.company.models import Branch, License
+        from app.modules.contact.models import Contact
 
-        for model_cls, _ in [(Contact, "contacts"), (Branch, "branches"), (License, "licenses")]:
-            stmt = select(model_cls).where(model_cls.company_id == source.id)
-            rels = (await self.db.execute(stmt)).scalars().all()
-            for rel in rels:
-                rel.company_id = target.id
+        contact_stmt = select(Contact).where(Contact.company_id == source.id)
+        for rel in (await self.db.execute(contact_stmt)).scalars().all():
+            rel.company_id = target.id
+        branch_stmt = select(Branch).where(Branch.company_id == source.id)
+        for rel in (await self.db.execute(branch_stmt)).scalars().all():
+            rel.company_id = target.id
+        license_stmt = select(License).where(License.company_id == source.id)
+        for rel in (await self.db.execute(license_stmt)).scalars().all():
+            rel.company_id = target.id
 
         # Move opportunities
         opps_moved = False
@@ -603,8 +609,8 @@ class EntityResolutionService:
             from app.modules.revenue_execution.models import Opportunity
 
             async with self.db.begin_nested():
-                stmt = select(Opportunity).where(Opportunity.company_id == source.id)
-                opps = (await self.db.execute(stmt)).scalars().all()
+                opp_stmt = select(Opportunity).where(Opportunity.company_id == source.id)
+                opps = (await self.db.execute(opp_stmt)).scalars().all()
                 for opp in opps:
                     opp.company_id = target.id
                 opps_moved = len(opps) > 0
@@ -620,10 +626,10 @@ class EntityResolutionService:
                     else:
                         target.source_ids = [sid]
 
-        # Archive source
+        # Archive source (merged_into_id is not an ORM column — persist via setattr)
         source.is_active = False
         source.status = "merged"
-        source.merged_into_id = target.id
+        setattr(source, "merged_into_id", target.id)
         await self.db.flush()
 
         audit = AuditTrail(self.db)

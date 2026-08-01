@@ -836,3 +836,13 @@
 **Decision:** Accept Phase 17 as **COMPLETE** at `d5e4de2` (types) with this DEC recording. Update Sprint 05 board + R-22 + EXECUTION_DAG. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen Phases 1–16. Do **not** bump FastAPI. Validation label: **light validated** (host mypy on `app/modules/decision`); full Backend Types CI **not** re-run.
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 17 COMPLETE**; story **OPEN**.
+
+### DEC-079 — CI-20 Phase 18 complete: entity_resolution remnant mypy burn-down (10→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 residual after Phase 17 (DEC-078 decision **5→0**; expected **~36** / field **~41**) still listed `app/modules/entity_resolution` as the largest non-zero CI cluster (**10** on be7 residual inventory post Phases 12–16: DeadLetter `rowcount`/`dict(result.all())`, merge-loop `BaseModel` company_id loss, `merged_into_id` attr-defined, test `source_ids` Optional `in`). Phase 3 had cleared an earlier slice (**14→0**); these are post-CI-104 re-surfaced remnants.
+**Alternatives considered:** (a) close CI-20 — rejected (graphql/notion_sync/identity/webhooks residuals remain); (b) clear graphql strawberry stubs instead — rejected (CI-visible graphql cluster is **4**, smaller than entity **10**; host `--follow-imports=skip` strawberry call-arg noise is not the CI body); (c) record Phase 18 COMPLETE only, keep CI-20 OPEN — approved.
+**Decision:** Accept Phase 18 as **COMPLETE**. Mechanical typing only: `cast`+`getattr` for `rowcount`; stage-count dict comprehension; unroll Contact/Branch/License merge selects; `setattr` for non-ORM `merged_into_id`; `cast` on conflict/golden returns; narrow Optional `source_ids` in tests. Do **not** mark CI-20 CLOSED. Do **not** bump FastAPI (CI-22). Do **not** reopen Phases 1–17. Validation: **light validated** (host mypy `app/modules/entity_resolution --follow-imports=skip` **0**). Overall expected **~36 → ~26** (field **~41 → ~31**).
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. R-22 Open — mitigating. **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 18 COMPLETE**; story **OPEN**.
+

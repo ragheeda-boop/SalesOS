@@ -34,7 +34,8 @@ async def test_resolve_records_creates_golden_record(db_session: AsyncSession, t
     assert golden is not None
     assert golden.cr_number == "CR-001"
     assert golden.confidence_score > 0
-    assert "balady" in golden.source_ids
+    assert golden.source_ids is not None
+    assert "balady" in (golden.source_ids or [])
 
 
 @pytest.mark.asyncio

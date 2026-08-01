@@ -244,8 +244,9 @@ async def test_merge_preserves_target_data(db_session: AsyncSession, test_tenant
     await db_session.refresh(target)
     assert target.name_ar == "Target"
     assert target.cr_number == "CR-PRES-002"
-    assert "ncnp" in target.source_ids
-    assert "balady" in target.source_ids
+    assert target.source_ids is not None
+    assert "ncnp" in (target.source_ids or [])
+    assert "balady" in (target.source_ids or [])
 
 
 @pytest.mark.asyncio
