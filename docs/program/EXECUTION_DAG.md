@@ -92,7 +92,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | Track | Class | Justification |
 |---|---|---|
 | **CI-20**, **CI-19 Wave 2**, **CI-22**, **CI-14** | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. |
-| Contract tests expansion (post STORY-03-04) | PARALLEL | Slice 1 DEC-093 (`/ping`+`/health/live`); framework `623077c` |
+| Contract tests expansion (post STORY-03-04) | PARALLEL | Slice 1 DEC-094 (`/ping`+`/health/live`); framework `623077c` |
 | JWT audience **consumption** | **CLOSED** (DEC-093) | Owner Platform admin consumes `salesos-owner-platform`; tenant path untouched |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
