@@ -6,6 +6,8 @@
 > AI Engineering Organization layer (ADR-036). Full scheduler/dispatcher **runtime** remains deferred; **role contracts + bindings + specs** are active.
 >
 > **Architecture Frozen:** Do not modify `.ai/` unless the change closes a criterion in `PHASE_0_EXIT_CHECKLIST.md` or fixes an organizational defect.
+>
+> **Criterion 9.3 (DEC-146):** Org baseline ≠ live Agent OS. Full runtime stays **DEFERRED** until ADR-036 trigger conditions (Phase 0 54/54 · CI GREEN · EOS ARB 4.1/4.8 PASS · drift still closed · formal ARB Phase 3 authorize). See [`docs/adr/0036-engineering-organization-layer-separation.md`](../docs/adr/0036-engineering-organization-layer-separation.md) §`.ai/` Runtime deferral.
 
 ## Golden boot order (every agent)
 

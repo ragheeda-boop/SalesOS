@@ -86,7 +86,7 @@ SalesOS adopts **four independent layers**, each with a clear responsibility. La
 
 2. **`.engineering/` is NOT retired.** It is preserved and strengthened as the permanent Engineering Specification layer. Its governance rules (truth hierarchy, honesty labels, change protocol, coordination rules) remain authoritative for all engineering work.
 
-3. **`.ai/` is NOT built now.** It is deferred until the foundation is stable (Phase 0 complete, CI green, audit passed, drift resolved). When built, `.ai/` will be an **Agent Operating System**, not embedded inside `.engineering/`.
+3. **Full `.ai/` Agent OS runtime is NOT built now.** Organization baseline (roles/bindings/SPEC) may exist (ARB-003); running scheduler/queue engines stay deferred until criterion **9.3** trigger conditions are met. When built, `.ai/` runtime will be an **Agent Operating System**, not embedded inside `.engineering/`.
 
 4. **The Sprint Delivery Board is NOT the single source of truth.** It owns story/task/status. It does not own architecture, ownership, dependency, locks, or blast radius. Those belong to `.engineering/`.
 
@@ -106,14 +106,34 @@ SalesOS adopts **four independent layers**, each with a clear responsibility. La
 
 1. **Clean separation of concerns.** Business priorities, engineering rules, runtime execution, and actual code each have a single owner.
 2. **Engine-swappable.** Changing agents (Cursor → Gemini Code, Claude → Windsurf) requires updating `.ai/`, not `.engineering/` or `docs/program/`.
-3. **No premature architecture.** `.ai/` is not built until real multi-agent coordination problems exist and can inform the design.
+3. **No premature Agent OS runtime.** Full scheduler/dispatcher/queue **runtime** is not built until trigger conditions below are met; org baseline (roles/bindings/SPEC) may exist without implying a live Agent OS.
 4. **`.engineering/` remains the authoritative specification** for how the system should be engineered, independent of which agents execute it.
 
 ### Trade-offs
 
 1. **Three layers to maintain** instead of one merged system — higher documentation discipline required.
 2. **Cross-references can drift** — bidirectional links between `docs/program/` and `.engineering/` must be validated (future CI gate).
-3. **`.engineering/` fragility remains** — hardcoded counts and commit-pinned state must be addressed before `.ai/` can rely on it at runtime.
+3. **`.engineering/` fragility remains** — hardcoded counts and commit-pinned state must be addressed before a future `.ai/` **runtime** can rely on it.
+
+### `.ai/` Runtime deferral (criterion 9.3)
+
+> **Authority:** Phase 0 Exit Criterion **9.3** · DEC-146 · ARB-2026-08-01-003  
+> **Honesty:** Committed **AI Organization baseline** ≠ running **Agent Operating System**.
+
+| Class | What | Status |
+|-------|------|--------|
+| **Allowed now** | Role contracts, engine bindings, lifecycle/worker/parallel docs, `runtime-spec.yaml` as **SPECIFICATION** | Org baseline 1.0 (ARB-003; committed DEC-145) |
+| **Deferred** | Running scheduler, dispatcher, queues, sessions, memory, events, telemetry, recovery **engines** | **Not built** — `runtime-spec.yaml` `status: SPECIFICATION` |
+
+**Trigger conditions — ALL must hold before Phase 3 (build full Agent OS runtime) may begin:**
+
+1. Phase 0 exit criteria **54/54 VERIFIED** (no partial credit).
+2. **CI GREEN** achieved for the code path at minimum (Stages 1–5 on one run); full+publish preferred once CI-08 resolved.
+3. Independent EOS ARB re-audit **PASS** (criteria **4.1** and **4.8**).
+4. Capability Registry + ADR index drift clusters remain resolved (no reopened CRITICAL drift).
+5. A **formal ARB decision** explicitly authorizes Phase 3 Agent OS construction (Architecture Freeze exception).
+
+Until then: do **not** market `.ai/` as a live Agent OS; do **not** invent running schedulers under Architecture Freeze.
 
 ---
 
@@ -126,3 +146,5 @@ SalesOS adopts **four independent layers**, each with a clear responsibility. La
 - `docs/program/DECISION_LOG.md` — Program decisions (DEC-001 through DEC-122)
 - `docs/program/ENGINEERING_LAYER_BRIDGE.md` — Program → Engineering pointers (criterion 9.2 / DEC-141)
 - `.engineering/33_PROGRAM_LAYER_BRIDGE.md` — Engineering → Program pointers (criterion 9.2 / DEC-141)
+- `docs/program/decisions/DEC-146-CRITERION-9-3-AI-RUNTIME-DEFERRED.md` — Criterion 9.3 deferral package
+- `.ai/README.md` — Org baseline honesty + deferral pointer

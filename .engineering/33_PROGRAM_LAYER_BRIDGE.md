@@ -23,7 +23,7 @@ Revalidation: Active (DEC-142)
 |-------|----------|------|--------------|
 | Business Truth | `docs/program/` | Vision, roadmap, sprint, DEC-*, risks, Phase 0 exit | Architecture catalogs, ownership maps, EOS locks |
 | Engineering Spec | `.engineering/` | Architecture, ADR index (EOS), capability map, locks, quality gates | Sprint board status, business priority |
-| AI Organization | `.ai/` | Org baseline 1.0 (ARB-003); full Agent OS runtime DEFERRED (9.3) | Running scheduler/queue |
+| AI Organization | `.ai/` | Org baseline 1.0 (ARB-003); full Agent OS runtime DEFERRED (9.3 / DEC-146) | Running scheduler/queue |
 | Implementation | `salesos/` | Code, tests, infra | Governance prose |
 
 Full four-layer decision: `docs/adr/0036-engineering-organization-layer-separation.md`.

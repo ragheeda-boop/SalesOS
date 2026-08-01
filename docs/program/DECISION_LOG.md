@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-146 — Phase 0 criterion 9.3 `.ai/` Agent OS runtime deferred READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** ADR-036 Applied Open **1** after DEC-141a (9.2 CLOSED) — checklist 9.3 had bare ✅ without packaged triggers; DEC-145 committed `.ai/` org baseline, creating risk of overclaiming a live Agent OS while full runtime remains deferred.
+**Alternatives considered:** (a) treat bare checklist ✅ as CLOSED — rejected; (b) self-CLOSE VERIFIED — rejected; (c) invent running scheduler — rejected; (d) remove org baseline — rejected (breaks 8.2 / ARB-003); (e) explicit deferral + triggers + READY FOR REVIEW — approved.
+**Decision:** Accept criterion **9.3** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-146-CRITERION-9-3-AI-RUNTIME-DEFERRED.md`](decisions/DEC-146-CRITERION-9-3-AI-RUNTIME-DEFERRED.md). Triggers pinned in ADR-036 §`.ai/` Runtime deferral + `.ai/README`; `runtime-spec.yaml` remains SPECIFICATION. DEC-085 intact. Do **not** self-CLOSE.
+**Consequence:** Phase 0 criterion **9.3** = READY FOR REVIEW. Phase 0 remains **42/54**. Residual EOS **4.1/4.8** ARB. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **READY FOR REVIEW** (awaiting Arch+Val+Orchestrator).
+
 ### DEC-145 — Phase 0 criterion 8.2 agent coordination protocol READY FOR REVIEW
 
 **Date:** 2026-08-01
