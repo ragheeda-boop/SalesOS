@@ -32,7 +32,7 @@ SESSION_VAR = "app.tenant_id"
 # Tables with tenant_id but NO migration yet (12 tracked in RISK_REGISTER.md
 # R-09) are excluded — RLS on them will be added after CREATE TABLE lands.
 # Tables without a tenant_id column (keyed via parent FK) are excluded —
-# Category B deferred to Sprint 04.
+# Category B inventory + slices pinned in DEC-110 (execution B1–B7; not this generator).
 ALL_TENANT_TABLES: list[str] = [
     # ── Identity / Auth ──
     "users",                      # app/modules/identity/models.py — uuid

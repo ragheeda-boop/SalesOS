@@ -1084,6 +1084,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+
+### DEC-110 — Category B RLS canonical inventory + execution slices (planning CLOSE)
+
+**Date:** 2026-08-01
+**Context:** DEC-044 deferred Category B join/parent-FK policies + canonical inventory settlement to Sprint 04. Adversarial RLS suites COMPLETE (S04-01/05/06); POLICY_COUNT **47** intact. Contracts slice 4 (DEC-106) landed. Swarm READY scan ranked Category B planning next. CI-14/CI-22 residuals owned elsewhere — no overlap. DEC-085 set_config must not regress.
+**Alternatives considered:** (a) ship join-policy Alembic churn now without pinned inventory — rejected; (b) leave Category B READY indefinitely — rejected (DEC-107 keep READY tracks busy with closable planning); (c) pin inventory + slices, CLOSE planning only — approved.
+**Decision:** Accept Category B **planning CLOSE**. Companion: [`decisions/DEC-110-CATEGORY-B-RLS-INVENTORY.md`](decisions/DEC-110-CATEGORY-B-RLS-INVENTORY.md). Pins: Category A live **47**; Category A deferred **8** (DB-05); Category B join **12**; historic 72 retired (evidence ≈ **67**). Execution slices B1–B7 READY; no SQL this land.
+**Consequence:** DAG Category B moves planning→execution READY. STORY-02-01 **not** reopened. Production GA **NO-GO**. **CI GREEN not met**. Validation: **docs / light validated**.
+**Status:** Accepted. Category B planning **CLOSED**.
+
 ### DEC-109 — CI-22 executive close: FastAPI/Starlette/Pydantic COMPLETE; starlette floor cleared
 
 **Date:** 2026-08-01
