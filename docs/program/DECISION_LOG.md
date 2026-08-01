@@ -954,13 +954,13 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** Stage 5 pip-audit expected **green**; R-21 Open — mitigating (monitor ecdsa). **CI GREEN not met.**
 **Status:** Accepted.
 
-### DEC-092 � CI-20 Phase 21 complete: residual cluster mypy burn-down (~10?0 host); CI-20 remains OPEN
+### DEC-092 — CI-20 Phase 21 complete: residual cluster mypy burn-down (~10→0 host); CI-20 remains OPEN
 
 **Date:** 2026-08-01
-**Context:** After Phase 20 (DEC-084 / `c4fb067`) cleared webhooks+identity hosts+employee_360 (**8?0**; expected **~18 ? ~10**), tip residual clusters (excluding those modules) were `rules_engine` (**2**), `excel_import` service annotation (**1**), `cache` ping `no-any-return` (**1**), `middleware`/`dependencies` `no-any-return` (**2**), `tasks` `feature_result` annotation (**1**), `contact` Company forward-ref (**1**), alembic `0034` Column typing (**1**). Related `Settings()` call-arg + excel `Request=` default already cleared on tip via CI-22 follow-up `4f035dd` (not reopened here).
-**Alternatives considered:** (a) close CI-20 on host 0 � rejected (field Backend Types not yet re-verified this land); (b) also remount identity service remnants � rejected (user STOP: do not redo identity/webhooks/employee_360); (c) record Phase 21 COMPLETE, keep CI-20 OPEN � approved.
-**Decision:** Accept Phase 21 as **COMPLETE** at PLACEHOLDER_SHA. Mechanical typing only (`bool(...)` / `str(...)` / annotations / `Mapped[Any]` / `list[tuple[str, Column]]`). Do **not** mark CI-20 CLOSED pending field 0. Do **not** bump FastAPI. Do **not** reopen Phases 1�20. Validation: **light validated** (host CI-equivalent `poetry run mypy app/ sdk/ modules/` **0** errors). Overall expected **~10 ? ~0** (field **~15 ? ~0** pending).
-**Consequence:** CI-20 stays **IN PROGRESS / OPEN** until Backend Types field **0**. R-22 Open � mitigating. **CI GREEN not met.**
+**Context:** After Phase 20 (DEC-084 / `c4fb067`) cleared webhooks+identity hosts+employee_360 (**8→0**; expected **~18 → ~10**), tip residual clusters (excluding those modules) were `rules_engine` (**2**), `excel_import` service annotation (**1**), `cache` ping `no-any-return` (**1**), `middleware`/`dependencies` `no-any-return` (**2**), `tasks` `feature_result` annotation (**1**), `contact` Company forward-ref (**1**), alembic `0034` Column typing (**1**). Related `Settings()` call-arg + excel `Request=` default already cleared on tip via CI-22 follow-up `4f035dd` (not reopened here).
+**Alternatives considered:** (a) close CI-20 on host 0 — rejected (field Backend Types not yet re-verified this land); (b) remount Phase 20 webhooks/identity hosts/employee_360 — rejected (user STOP); (c) record Phase 21 COMPLETE, keep CI-20 OPEN — approved.
+**Decision:** Accept Phase 21 as **COMPLETE** at 17c1eee (17c1eee69b4d1851ac6a0dbbe8385b38eb5cf2d7). Mechanical typing only (`bool(...)` / `str(...)` / annotations / `Mapped[Any]` / `list[tuple[str, Column]]`). Do **not** mark CI-20 CLOSED pending field 0. Do **not** bump FastAPI. Do **not** reopen Phases 1–20. Validation: **light validated** (host CI-equivalent `poetry run mypy app/ sdk/ modules/` **0** errors). Overall expected **~10 → ~0** (field **~15 → ~0** pending).
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN** until Backend Types field **0**. R-22 Open — mitigating. **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 21 COMPLETE**; story **OPEN**.
 
 ---
