@@ -1032,5 +1032,12 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** CI-19 OPEN. R-24 mitigating (Slice 1+2). Validation: **light validated** (AST parse). **CI GREEN not met.**
 **Status:** Accepted. Wave 2 Slice 2 COMPLETE; story OPEN.
 
+### DEC-099 — CI-19 Wave 2 Slice 3 COMPLETE: postgres_repo + timeline_runtime Core honesty; CI-19 remains OPEN
 
+**Date:** 2026-08-01
+**Context:** After Wave 2 Slice 2 (DEC-097 / 5686d4d), densest remainder was domains/search/engine/postgres_repo.py (6) + 	imeline_runtime (5). Prefer Core over sqlalchemy.text; no Semgrep suppress. DEC-085 get_db/set_config untouched; search timeout uses set_config (not SET LOCAL). DEC-098 number reserved by parallel Trivy ecdsa ignore work — this slice is DEC-099.
+**Alternatives considered:** (a) close CI-19 — rejected (~32 text remain after this slice); (b) nosemgrep / severity drop — rejected; (c) Slice 3 Core + keep OPEN — approved.
+**Decision:** Accept Wave 2 Slice 3 COMPLETE. Companion: [decisions/DEC-099-CI-19-WAVE2-SLICE3.md](decisions/DEC-099-CI-19-WAVE2-SLICE3.md). Expected clear **11**. Do not close CI-19. Do not weaken Semgrep gates.
+**Consequence:** CI-19 OPEN. R-24 mitigating (Slice 1+2+3). Validation: **light validated** (narrow pytest **50 passed**). **CI GREEN not met.**
+**Status:** Accepted. Wave 2 Slice 3 COMPLETE; story OPEN.
 

@@ -12,8 +12,14 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
 from app.database import get_db
+from app.dependencies import verify_token
 from app.main import app
+from domains.decision_center.repository import InMemoryDecisionCenterRepository
+from domains.decision_center.service import DecisionCenterService
 from tests.contract.openapi_contract import load_openapi_schema
+
+CONTRACT_TENANT_ID = "contract-tenant"
+CONTRACT_USER_ID = "contract-user"
 
 
 @pytest.fixture(scope="session")
@@ -73,3 +79,33 @@ async def contract_db_client() -> AsyncIterator[AsyncClient]:
             delattr(app.state, "cache")
     else:
         app.state.cache = previous_cache
+
+
+@pytest_asyncio.fixture
+async def contract_auth_client() -> AsyncIterator[AsyncClient]:
+    """ASGI client with honest auth + in-memory Decision Center for list contracts.
+
+    Overrides ``verify_token`` only (no JWT decode). Attaches
+    ``DecisionCenterService(InMemoryDecisionCenterRepository)`` on app.state.
+    Does not call real Postgres and does not modify get_db() tenant GUC (DEC-085).
+    """
+
+    async def override_verify_token() -> dict[str, str]:
+        return {"sub": CONTRACT_USER_ID, "tenant_id": CONTRACT_TENANT_ID}
+
+    previous_dc = getattr(app.state, "decision_center_service", None)
+    app.state.decision_center_service = DecisionCenterService(
+        repository=InMemoryDecisionCenterRepository()
+    )
+    app.dependency_overrides[verify_token] = override_verify_token
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+
+    app.dependency_overrides.pop(verify_token, None)
+    if previous_dc is None:
+        if hasattr(app.state, "decision_center_service"):
+            delattr(app.state, "decision_center_service")
+    else:
+        app.state.decision_center_service = previous_dc

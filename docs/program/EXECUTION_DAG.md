@@ -67,7 +67,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **DB-05** Schema reconciliation program | READY (program) | BACKLOG; R-20 / R-09 | Multi-sprint; unblocks 8 RLS-deferred tables |
 | **Sprint 04 Category B RLS + inventory** | READY (planning) | DEC-044 deferred Category B | Settle canonical count |
 | **JWT audience consumption** | **CLOSED** (DEC-093) | Owner admin deps wire `decode_owner_*` via `owner_auth.py`; **14/14** unit PASS | Tenant `verify_token` unchanged (`salesos-api`); groundwork `2379e5f` |
-| **Contract tests expansion** | IN PROGRESS / PARALLEL | Slice 1+2 LANDED (DEC-094): `/ping`+`/health/live`+csrf; `/health`+`/health/ready` (DB fixtures) | Next: 401/422 (honest OpenAPI error shapes), one auth list |
+| **Contract tests expansion** | IN PROGRESS / PARALLEL | Slice 1–3 LANDED (DEC-094): probes + health/ready + auth `GET /api/v1/decisions` | Next: 401/422 (honest OpenAPI error shapes) |
 | **CI-16** Backend dependency security | CLOSED | Slices 1+3 + ecdsa Option A; starlette → CI-22 | Story closed; residual via CI-22 |
 | **Jest-debt** | CLOSED (DEC-077) | Stage 3 field 0 failures | R-23 Closed |
 
@@ -92,7 +92,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | Track | Class | Justification |
 |---|---|---|
 | **CI-19 Wave 2**, **CI-22**, **CI-14** | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. CI-20 CLOSED (DEC-096). |
-| Contract tests expansion (post STORY-03-04) | PARALLEL | Slice 1+2 DEC-094 (`/ping`+`/health/live`+`/health`+`/health/ready`); framework `623077c` |
+| Contract tests expansion (post STORY-03-04) | PARALLEL | Slice 1–3 DEC-094 (probes + health/ready + auth decisions list); framework `623077c` |
 | JWT audience **consumption** | **CLOSED** (DEC-093) | Owner Platform admin consumes `salesos-owner-platform`; tenant path untouched |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
@@ -110,7 +110,8 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | STORY-02-02 server-side middleware | `3f4b3c8` | **DONE** (DEC-095) | Jest **14/14** (DEC-088) + live redirect probe **browser-validated** (DEC-095) |
 | STORY-03-04 OpenAPI contract framework | `623077c` | DONE | Framework land; pytest via DEC-093 |
 | Contract tests expansion slice 1 (DEC-094) | `93a00d7` | LANDED | `/ping` + `/health/live` typed + OpenAPI HTTP contracts |
-| Contract tests expansion slice 2 (DEC-094) | `0ac07bc` | LANDED | `/health` + `/health/ready` + honest DB/cache fixtures; next: 401/422, auth list |
+| Contract tests expansion slice 2 (DEC-094) | `0ac07bc` | LANDED | `/health` + `/health/ready` + honest DB/cache fixtures |
+| Contract tests expansion slice 3 (DEC-094) | *(this land)* | LANDED | Auth list `GET /api/v1/decisions` OpenAPI contract; next: 401/422 |
 | STORY-02-04 §17.2 relabel | `932f722` | DONE | docs-only |
 | Card primitives (Jest debt related) | `9577c98` | Progress note only | **CI GREEN not met** |
 
