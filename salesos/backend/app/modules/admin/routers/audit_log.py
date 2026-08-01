@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db_session
-from app.owner_auth import get_current_tenant_id, require_owner_role_dep
+from app.owner_auth import get_owner_scoped_tenant_id, require_owner_role_dep
 
 from ..services import AuditCSVExportService
 
