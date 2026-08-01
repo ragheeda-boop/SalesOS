@@ -1,8 +1,8 @@
 # Execution DAG — Current Program State
 
-> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-01** (post DEC-044 Option B; human confirmed critical-path posture).  
-> Authority: evidence + `SPRINT_05_DELIVERY_BOARD.md` + `RISK_REGISTER.md` + Sprint plans.  
-> Honesty labels: **CI GREEN not met**. **Phase 0 exit = NO-GO** — sole critical-path gate: **S04-04 Railway R-14** (human). STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies, not literal 72). **Do not reopen STORY-02-01.**
+> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-01** (post **DEC-016** Railway R-14 Option A + Architecture Validation reassessment).  
+> Authority: evidence + `SPRINT_05_DELIVERY_BOARD.md` + `RISK_REGISTER.md` + Sprint plans + `docs/audit/ga-engineering-audit/`.  
+> Honesty labels: **CI GREEN not met**. **Phase 0 (DEC-008 RLS / R-14) exit = GO** (critical-path gate cleared under DEC-016 @ `7232979`). **Production GA / External pilot = NO-GO** (unchanged). STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies). **Do not reopen STORY-02-01.**
 
 ---
 
@@ -20,14 +20,29 @@
 ## Critical path (Phase 0 → Phase 1)
 
 ```
-Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) ──► closed
+Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► closed
                                                │
-                                               └── Railway R-14 (S04-04) ──► Phase 0 exit
-                                                     ▲
-                                                     │ sole remaining critical-path gate (human)
+                                               └── Railway R-14 (S04-04) ──► CLOSED (DEC-016)
+                                                     │
+                                                     ▼
+                                          Phase 0 (DEC-008) exit = GO
+                                          (production GA still NO-GO)
 ```
 
-**Phase 0 exit critical path = S04-04 only.** STORY-02-01 story AC is satisfied under **DEC-044** (47) and is **not** on the critical path. CI residual work and Sprint 05/06 READY items continue **in parallel** — they are independent of the Human Gate on S04-04 and do **not** reopen STORY-02-01. S04-06 adversarial remaining suite is **COMPLETE** (DEC-045). Closing S04-04 (or a formal accept-without-Railway decision) is the Phase 0 exit blocker. **Current gate: NO-GO.**
+**Phase 0 (DEC-008 tenant-isolation / R-14) critical-path gate = CLEARED.** Evidence: S04-04 **CLOSED** under **DEC-016** Option A (Railway staging→prod bypass-probe PASS; `APP_POSTGRES_*` set; health 200; **no app image promote**; docs SHA `7232979`); STORY-02-01 **CLOSED** (DEC-044); R-14 **CLOSED**; S04-01/S04-05/S04-06 adversarial coverage **COMPLETE**.
+
+**Does not equal production GO.** ga-engineering-audit executive summary remains **production no-go**. **CI GREEN not met.** CI-08/CI-09 remain ops-blocked (non–Phase-0-critical-path). Program Phase 1 commercial sequencing may proceed per DEC-008; marketing / GA claims stay **NO-GO**.
+
+---
+
+## Architecture Validation verdict (2026-08-01)
+
+| Gate | Verdict | Evidence |
+|---|---|---|
+| Phase 0 (DEC-008 RLS / R-14) | **GO** (gate cleared) | DEC-016; S04-04 CLOSED; R-14 CLOSED; STORY-02-01 CLOSED |
+| Production GA | **NO-GO** | Audit `00-EXECUTIVE-SUMMARY.md`; PRODUCTION_PLAN DoD incomplete; **CI GREEN not met** |
+| External pilot | **NO-GO** | Same; no soak/browser/GA DoD evidence |
+| Pilot-ready with conditions | **Not claimed** | Conditions for product pilot still unmet (CI red; deploy ops gaps) |
 
 ---
 
@@ -35,28 +50,27 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 
 | Item | Class | Blocked on | Notes |
 |---|---|---|---|
-| **S04-04** Railway R-14 closure | BLOCKED | Credentials / live authorization (DEC-015/016) | **Sole Phase 0 exit critical-path gate** (R-14 score 25); Human Gate — independent of Sprint 05/06 READY work |
-| **Phase 0 exit** | BLOCKED | **S04-04 only** (critical path) | **NO-GO** — DEC-040 / DEC-044; STORY-02-01 closed; do not reopen |
-| **CI-08** GHCR 403 | BLOCKED | Org-level GHCR access | Outside repo scope; R-17 — not Phase 0 critical path |
-| **CI-09** VPS SSH/secrets | BLOCKED | Ops secret provisioning | R-17 — not Phase 0 critical path |
-| **CI GREEN** (overall workflow) | BLOCKED | Residual reds: MyPy (CI-20), pip-audit (R-21; starlette → CI-22; ecdsa accepted residual DEC-057), npm audit (CI-14), Trivy fs, etc. (**Jest-debt / R-23 CLOSED** DEC-077 — Stage 3 field 0 failures) | Parallel honesty track; **not** the Phase 0 critical-path gate |
+| **CI-08** GHCR 403 | BLOCKED | Org-level GHCR access | Outside repo scope; R-17 — remaining board **P0**; not Phase 0 RLS gate |
+| **CI-09** VPS SSH/secrets | BLOCKED | Ops secret provisioning | R-17 — P2; not Phase 0 RLS gate |
+| **CI GREEN** (overall workflow) | BLOCKED | Residual reds: MyPy (CI-20), pip-audit (R-21; starlette → CI-22; ecdsa accepted residual DEC-057), npm audit (CI-14), Trivy fs, Semgrep residual (CI-19 Wave 2), etc. (**Jest-debt / R-23 CLOSED** DEC-077) | Parallel honesty track; **blocks production GO**, not DEC-008 Phase 0 exit |
 
 ---
 
-## READY (parallel — continue while S04-04 Human Gate is open)
+## READY (Sprint 05 / 06+ — post Railway close)
 
 | Item | Class | Why ready now | Notes |
 |---|---|---|---|
-| **CI-20** Backend Types (MyPy) | IN PROGRESS / PARALLEL (phased) | Phase 1–9 COMPLETE through demo_mode (`821aad5`; ~100 expected; field-verify `30677025355` **104**); Phase 10 COMPLETE at `ca76f9c` (communication_hub 11→0; ~100→~89 / field **93**); Phase 11 COMPLETE at `86b4094` (work_intelligence 5→0; ~89→~84 / field **88**); Phase 12 COMPLETE at `e44b7f3` (boot/startup 7→0 + database 7→0; ~84→~70 / field ~74 expected); Phase 13 COMPLETE at `5edb6d6` (app/application 9→0; ~70→~61 / field ~65 expected); Phase 14 COMPLETE at 1f14337 (SSO remnants 11→0; ~61→~50 / field-verify `30679062993` **54** / 0 SSO); Phase 15 COMPLETE at `7fed3dc` (sla+redis 5→0; ~46→~41 / field ~45 expected); Phase 16 COMPLETE at `26156df` (app/startup.py 4→0; ~50→~46 / field ~50 expected); Phase 17 COMPLETE at `d5e4de2` (decision 5→0; ~41→~36 / field ~41 expected); Phase 18 COMPLETE at `e9f843c` (entity_resolution remnants 10→0; ~36→~26 / field ~31 expected); Phase 19 COMPLETE (notion_sync 4→0 + graphql 4→0; ~26→~18 / field ~23 expected); story OPEN; Backend Lint already green | DEC-038 register; DEC-046–050 Phases 1–5; DEC-053 Phase 6; DEC-055 Phase 7; DEC-058 Phase 8; DEC-059 Phase 9; DEC-060 Phase 10; DEC-061 Phase 11; DEC-064 Phase 12; DEC-066 Phase 13; DEC-068 Phase 14; DEC-071 Phase 15; DEC-070 Phase 16; DEC-078 Phase 17; DEC-079 Phase 18; DEC-080 Phase 19 — **not CLOSED** |
-| **CI-19** Semgrep Waves 2–5 | IN PROGRESS / PARALLEL | Wave 1 COMPLETE (`d5c9b57`); Wave 3 COMPLETE (DEC-069 SHA-pin + DEC-074 K8s/Docker/TF); Wave 4 COMPLETE (DEC-076 / `5c27470`) + DEC-083 built-in ignore restore; Wave 5 COMPLETE (DEC-082); Wave 2 deferred | Next: Wave 2 SQL honesty (when authorized); R-24 mitigating |
-| **CI-16** Backend dependency security | CLOSED | Slice 1 COMPLETE (`1e73a2f` multipart); Slice 2 → **CI-22** (DEC-052/054); Slice 3 COMPLETE (`d3f1eef` strawberry); **ecdsa** Accepted residual **Option A** (DEC-057); R-21 mitigating (starlette open) | Not part of CI-02; story **CLOSED** (slice scope) |
-| **CI-22** FastAPI / Starlette / Pydantic modernization | REGISTERED / PARALLEL | DEC-054; DEC-052 follow-on; scoped cascade (FastAPI ~0.135+, pydantic ≥2.9, starlette ≥1.3.1); **NOT** CI-16 slice work | No package bumps at registration; R-21 starlette leg |
-| **CI-14** Frontend Dependency Modernization | IN PROGRESS / PARALLEL (Sprint 06) | **plan DEC-062**; **Slice 1 COMPLETE DEC-063** (sharp **0.35.3** under next **15.5.22**); **Slice 2 STOP DEC-065** (ESLint 9→10 silent major blocked); dep CI-13 closed; Slice 3 pending | Majors — R-18 mitigating; STOP silent Next/React/ESLint/Jest / Next↓14 |
-| **Jest-debt** (Sprint 01 suite remediation) | **CLOSED** (DEC-077) | §10 field verify `30679804383` / `465c638`: **0** failing suites; Stage 3 job **success**; path `4fdc1d8`+`5bba606`+`556304d`+`11470b1` | R-23 **Closed**; not CI-14; **whole-pipeline CI GREEN not met** |
-| **STORY-02-02** browser/E2E verify (if scoped) | READY / PARALLEL | Middleware code LANDED (`3f4b3c8`); status PARTIAL until redirect verified | Not a board CLOSE; validation gap only |
+| **CI-20** Backend Types (MyPy) | IN PROGRESS / READY | Phased burn-down OPEN; Backend Lint already green | Continue phases; **CI GREEN not met** |
+| **CI-19** Semgrep Wave 2 residual | IN PROGRESS / READY | Waves 1/3/4/5 COMPLETE; Wave 2 deferred (~108 `avoid-sqlalchemy-text`) | R-24; authorize Wave 2 when ready |
+| **CI-22** FastAPI / Starlette / Pydantic | IN PROGRESS / READY | Phase 1 COMPLETE (DEC-081 @ `442af64`); further phases | R-21 starlette / pip-audit path |
+| **CI-14** Frontend Dependency Modernization | IN PROGRESS / READY (Sprint 06) | Slice 1 COMPLETE; Slice 2 STOP; Slice 3 pending | R-18; STOP silent majors |
+| **STORY-02-02** browser/E2E verify | READY / PARALLEL | Middleware LANDED (`3f4b3c8`); browser still **not validated** | PARTIAL; no browser-pass claim |
 | **DB-05** Schema reconciliation program | READY (program) | BACKLOG; R-20 / R-09 | Multi-sprint; unblocks 8 RLS-deferred tables |
-| **Sprint 04 Category B RLS + inventory** | READY (planning) | DEC-044 deferred Category B here | Settle canonical count (may be 69/72/other) |
-| **CI-21** Gitleaks JWT fixture | LANDED (CLOSED) | Fix `b03ffbf` on master | Closed from residual triage |
+| **Sprint 04 Category B RLS + inventory** | READY (planning) | DEC-044 deferred Category B | Settle canonical count |
+| **JWT audience consumption** | READY / PARALLEL | Groundwork DONE (`2379e5f`) | Separate from STORY-02-03 groundwork |
+| **Contract tests expansion** | READY / PARALLEL | Framework LANDED (`623077c`) | Post STORY-03-04 |
+| **CI-16** Backend dependency security | CLOSED | Slices 1+3 + ecdsa Option A; starlette → CI-22 | Story closed; residual via CI-22 |
+| **Jest-debt** | CLOSED (DEC-077) | Stage 3 field 0 failures | R-23 Closed |
 
 ---
 
@@ -64,21 +78,23 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 
 | Item | Class | Notes |
 |---|---|---|
-| **STORY-02-01** (RLS rollout) | **DONE** (revised AC) | DEC-044 Option B: **47** policies (`065d1d3a466b` + `company_features`). Draft RLS-72 **Superseded**. R-25 Closed-as-accepted-scope. **Do not reopen.** Not Phase 0 GO |
-| **S04-06** Adversarial suite (remaining) | **COMPLETE** | DEC-045; commit `119df9e`; Docker **15/15 PASS** (**build validated**); POLICY_COUNT 47 intact; inventory not reopened |
-| **CI-16** Backend dependency security | **CLOSED** | DEC-057 Option A: ecdsa accepted residual; Slices 1+3 complete; starlette → CI-22. **CI GREEN not met** |
-| **Jest-debt** (Sprint 01) / **R-23** | **CLOSED** | DEC-077; GHA `30679804383` / `465c638` Stage 3 **0** failing suites. **CI GREEN not met** |
+| **S04-04** Railway R-14 | **CLOSED** | DEC-016 Option A; SHA `7232979`; staging+prod bypass-probe PASS; health 200; no image promote |
+| **R-14** | **CLOSED** | Local/CI/compose + Railway staging + Railway production |
+| **STORY-02-01** (RLS rollout) | **DONE** (revised AC) | DEC-044 Option B @ **47** policies. **Do not reopen.** |
+| **S04-01 / S04-05 / S04-06** | **COMPLETE** | Adversarial read / write / remaining suites |
+| **CI-16** Backend dependency security | **CLOSED** | DEC-057 ecdsa residual; starlette → CI-22 |
+| **Jest-debt** / **R-23** | **CLOSED** | DEC-077; Stage 3 **0** failing suites |
 
 ---
 
-## PARALLEL (safe alongside blocked Railway / Phase 0 Human Gate)
+## PARALLEL (safe; no Phase 0 RLS Human Gate)
 
 | Track | Class | Justification |
 |---|---|---|
-| **CI-20**, **CI-19 Wave 2**, **CI-22**, **CI-14** | PARALLEL / READY | Explicitly unblocked for Sprint 05/06 execution while S04-04 waits on human auth. **Jest-debt CLOSED** (DEC-077). CI-19 Waves 1/3/4/5 COMPLETE |
-| Contract tests expansion (post STORY-03-04) | PARALLEL | Framework LANDED (`623077c`); more endpoints can add without Railway |
-| JWT audience **consumption** (EPIC-04 / Sprint 04 STORY-02-03 consume) | PARALLEL | Groundwork DONE (`2379e5f`); consumption is separate story |
-| Owner Admin / commercial FE that does not claim Phase 0 GO | PARALLEL | Must not weaken auth/CSRF/RBAC; must not market Phase 0 complete |
+| **CI-20**, **CI-19 Wave 2**, **CI-22**, **CI-14** | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. |
+| Contract tests expansion (post STORY-03-04) | PARALLEL | Framework LANDED (`623077c`) |
+| JWT audience **consumption** | PARALLEL | Groundwork DONE (`2379e5f`) |
+| Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 ---
 
@@ -86,23 +102,24 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 
 | Story / item | SHA | Records status | Validation |
 |---|---|---|---|
-| S04-05 write-protection suite | `8699796` | COMPLETE (DEC-039) | **build validated** — Docker pytest **8/8 PASS in 4.88s** |
-| S04-06 adversarial RLS remaining | `119df9e` | COMPLETE (DEC-045) | **build validated** — Docker pytest **15/15 PASS**; POLICY_COUNT 47 intact |
+| S04-04 / DEC-016 Railway R-14 | `7232979` | CLOSED | Ops evidence: bypass-probe + health (secrets redacted in DEC-016) |
+| S04-05 write-protection suite | `8699796` | COMPLETE (DEC-039) | **build validated** — Docker pytest **8/8 PASS** |
+| S04-06 adversarial RLS remaining | `119df9e` | COMPLETE (DEC-045) | **build validated** — Docker pytest **15/15 PASS** |
 | CI-21 Gitleaks JWT fixture neutralize | `b03ffbf` | CLOSED | fixture replaced; scanner not weakened |
-| STORY-02-03 JWT audience groundwork | `2379e5f` | DONE | **not validated** |
-| STORY-02-02 server-side middleware | `3f4b3c8` | PARTIAL | unit helpers present; browser **not validated** |
+| STORY-02-03 JWT audience groundwork | `2379e5f` | DONE | **not validated** (suite later light-validated separately) |
+| STORY-02-02 server-side middleware | `3f4b3c8` | PARTIAL | browser/E2E **not validated** |
 | STORY-03-04 OpenAPI contract framework | `623077c` | DONE | **not validated** |
-| STORY-02-04 §17.2 relabel | `932f722` | DONE | docs-only (already on master) |
-| Card primitives (Jest debt related) | `9577c98` | Progress note only | suite recovery aid; **CI GREEN not met** |
+| STORY-02-04 §17.2 relabel | `932f722` | DONE | docs-only |
+| Card primitives (Jest debt related) | `9577c98` | Progress note only | **CI GREEN not met** |
 
 ---
 
 ## Board progress fraction
 
-**19/20** Complete/Closed on `SPRINT_05_DELIVERY_BOARD.md` (S04-06 closed DEC-045). Pending: none. In progress: CI-19 Waves 1/3/4/5 COMPLETE / Wave 2 deferred. Blocked (critical path): **S04-04 only**. Also blocked (non-critical-path ops): CI-08, CI-09.
+**21/21** Complete/Closed on tracked Sprint 05 board fraction (includes **S04-04** / **CI-16**). Adjacent closed: **Jest-debt / R-23**. Pending: none. In progress: CI-19 (Wave 2 deferred), CI-20 (phased OPEN), CI-14, CI-22. Blocked (critical path Phase 0): **none**. Also blocked (ops): CI-08 (P0), CI-09 (P2).
 
 ---
 
 ## Update rule
 
-When a story changes READY↔BLOCKED↔COMPLETE, update this file in the same records commit as `SPRINT_05_DELIVERY_BOARD.md` / `DECISION_LOG.md`. Never claim Phase 0 GO or CI GREEN without command evidence. Never reopen STORY-02-01 after DEC-044.
+When a story changes READY↔BLOCKED↔COMPLETE, update this file in the same records commit as `SPRINT_05_DELIVERY_BOARD.md` / `DECISION_LOG.md`. Never claim **production GO** or **CI GREEN** without command evidence. Never reopen STORY-02-01 after DEC-044. Phase 0 (DEC-008) **GO** ≠ production GA GO.
