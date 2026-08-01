@@ -84,6 +84,43 @@ Do **not** weaken RLS or DEC-085. Prefer docs/ops/code for DB URL wiring; avoid 
 ## 6. Out of scope this land
 
 - Live Railway password rotation via agent CLI (leak risk)
-- App image promote / alembic upgrade execution (ops follow-on)
+- App image promote / alembic upgrade execution (ops follow-on) — **partially superseded by §7 Slice B** (staging `railway up` only; production not promoted)
 - Category B Alembic authorship
 - Weakening auth/CSRF/RBAC/RLS/DEC-085
+
+---
+
+## 7. Remediation progress (2026-08-01)
+
+### Slice A — wiring VERIFIED (tip at land: `0bd73fc`; still ancestor of later tip)
+
+| Check | Evidence |
+|---|---|
+| Ancestor | `5e7023f` is ancestor of `0bd73fc` / current tip |
+| Config | `salesos/backend/app/config.py` — `app_postgres_user` / `app_postgres_password` / `app_database_url` (lines 85–107); empty password → fallback `resolved_database_url` |
+| Engine | `salesos/backend/app/database.py` — request `engine = create_async_engine(settings.app_database_url, …)` (lines 35–36); `owner_engine` stays on `resolved_database_url` (lines 45–46); DEC-085 `set_config` intact (lines 90–96) |
+| Tip vs prod version gap | Default `service_version = "5.1.0-rc1"` (`config.py` ~145). Live prod `/health` still **`3.1.0`**. Staging `/health` reports `5.1.0-rc1` but env `SERVICE_VERSION` can mask binary age — use session proof, not version alone |
+| Staging env (redacted) | `APP_POSTGRES_USER=salesos_app`; `APP_POSTGRES_PASSWORD` present; `DATABASE_URL` user=`postgres`; `POSTGRES_HOST=postgres.railway.internal` |
+
+### Slice B — staging tip image DEPLOYED
+
+| Fact | Detail |
+|---|---|
+| Source model | **No GitHub repo** on SalesOS deploys (no `repo`/`commitHash`). Prior `7d33a0bc` was env **redeploy** (~3s) of old image |
+| GHCR | Still BLOCKED (CI-08 403) |
+| Alternate | `railway up` from clean worktree **`0bd73fc`** `salesos/backend` (pre-DEC-119 B7 — avoids alembic head fight with later `291bf3d`) |
+| Deploy | **`98bf85bf-89cc-4198-97d9-d477b2734a23` SUCCESS** |
+| Health | staging `/health` **200** `version=5.1.0-rc1` `database=connected` |
+| Session proof (SSH; no secrets) | `APP_ENGINE salesos_app`; `pg_stat_activity`: `salesos_app=2`, `postgres=87`; `OWNER_ENGINE postgres` |
+| Production | **Not promoted.** Prod remains **`3.1.0`** |
+| Password rotate | Still **human/ops** (tunnel exposure) — dashboard / `railway variables set` without echoing values |
+
+### Slice C/D prep (not closed)
+
+| Item | Note |
+|---|---|
+| C | Staging `alembic_version` = **`0049`**; tip RLS head now includes B7 (`b7e2…` @ `291bf3d`). Policies `tenant_isolation_%` = **0**. Staging first + backup; change-control before `upgrade head` |
+| D | Staging request path uses `salesos_app` after tip image; residual `postgres` sessions remain (owner + other services). Prod still needs tip image + proof |
+| E | READY after C + D/prod image |
+
+**Validation (A+B):** **light validated**. **Not** bypass-probe PASS. **Production GA = NO-GO.**
