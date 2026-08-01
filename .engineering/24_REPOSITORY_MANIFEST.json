@@ -1,14 +1,14 @@
-{
+﻿{
   "_metadata": {
     "file": "24_REPOSITORY_MANIFEST.json",
     "engineering_os_version": "3",
-    "generated_at": "2026-08-01T12:11:50Z",
-    "repository_commit": "c89025a",
+    "generated_at": "2026-08-01T20:10:52Z",
+    "repository_commit": "9fa8e9f",
     "repository_branch": "master",
     "generator": "OpenCode",
     "status": "Corrected (EOS v3.1 cycle)",
-    "evidence_level": "Heuristic",
-    "revalidation": "Pending",
+    "evidence_level": "Measured",
+    "revalidation": "Active (DEC-142)",
     "purpose": "Machine-readable single source of truth for repository topology. Agents SHOULD consume this file instead of re-scanning the whole repo. Counts corrected per ARB audit 32 (v3.1).",
     "prior_pin": "3749c30",
     "correction_note": "Fixed: domains 19->17(+1 app/domains), runtimes 23->27, migrations 56->66, tests 269->220, k8s 38->37, monitoring 18->21, removed invented 'crm' schema reference."
@@ -18,7 +18,7 @@
     { "path": "salesos/backend", "purpose": "FastAPI backend monolith" },
     { "path": "salesos/backend/app", "purpose": "Application layer (main, boot, routers, modules)" },
     { "path": "salesos/backend/app/modules", "purpose": "Feature modules (23)" },
-    { "path": "salesos/backend/app/alembic", "purpose": "Alembic migrations (66 versions, head c9f4a21b6e08)" },
+    { "path": "salesos/backend/app/alembic", "purpose": "Alembic migrations (69 versions, head a4f7c29e1b80)" },
     { "path": "salesos/backend/domains", "purpose": "DDD domain layer (17 domains under domains/ + app/domains/customer_success)" },
     { "path": "salesos/backend/runtime", "purpose": "Runtime engines (27 dirs; 10 single-file)" },
     { "path": "salesos/backend/sdk", "purpose": "Cross-domain SDK, capability registry, events, telemetry" },
@@ -66,15 +66,15 @@
     "not_mounted": "CRITICAL CORRECTION: '/api/v1/crm' and module 'crm' DO NOT exist. v3.0 invented them. Removed."
   },
   "databases": {
-    "postgres_tables": "66 Alembic migrations; core schemas: audit, identity, company, activity, commercial, analytics, decision_center, workflow, notification, webhook, oauth, telemetry",
-    "alembic_head": "c9f4a21b6e08 (single head)",
+    "postgres_tables": "69 Alembic migrations; core schemas: audit, identity, company, activity, commercial, analytics, decision_center, workflow, notification, webhook, oauth, telemetry",
+    "alembic_head": "a4f7c29e1b80 (single head)",
     "redis": "cache, session, rate-limit, celery broker",
     "neo4j": "knowledge graph (preferred; degraded if absent)",
     "meilisearch": "search index (hybrid search)",
     "kafka": "optional event bus (EVENT_BUS_TYPE; default in_memory = GA degraded)"
   },
   "tests": {
-    "backend": "salesos/backend/tests + module/domain tests (220 files via git ls-files test_*._py/_test.py; method-dependent)",
+    "backend": "salesos/backend/tests + module/domain tests (229 files via git ls-files test_*.py/_test.py; method-dependent)",
     "frontend_jest": "src/**/__tests__ + packages/**/__tests__",
     "frontend_e2e": "salesos/frontend/e2e (29 *.spec.ts) + tests/visual",
     "architecture": "salesos/backend/tests/test_architecture.py (5 rules)"

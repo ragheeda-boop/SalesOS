@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-142 — Phase 0 criteria 4.2 / 4.4 / 4.7 fingerprint re-pin READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** EOS Audit **4.2/4.4/4.7** OPEN after DEC-140a/DEC-141a — pin remained heuristic `c89025a` (46 commits behind tip); EvidenceLevel Heuristic; Revalidation Pending; Alembic head stale at `c9f4a21b6e08` vs live tip head `a4f7c29e1b80`.
+**Alternatives considered:** (a) docs-only note — rejected; (b) claim Repository Verified — rejected (ARB B7 / needs 4.1/4.8); (c) header re-pin without head fix — rejected; (d) claim VERIFIED/CLOSED — rejected; (e) re-measure + Measured + Active protocol + critical catalog head fix — approved.
+**Decision:** Accept criteria **4.2 / 4.4 / 4.7** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-142-CRITERION-4-2-4-4-4-7-FINGERPRINT-REPIN.md`](decisions/DEC-142-CRITERION-4-2-4-4-4-7-FINGERPRINT-REPIN.md). Tip pin `9fa8e9f`; Docker `alembic heads` → `a4f7c29e1b80`; script `.engineering/measure_fingerprint.py`. DEC-085 intact. Do **not** claim VERIFIED/CLOSED until Arch+Val + Orchestrator.
+**Consequence:** Phase 0 criteria **4.2/4.4/4.7** = READY FOR REVIEW. Phase 0 count remains **36/54** until CLOSE. Residuals **4.1/4.8** and **8.1–8.3** OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criteria **READY FOR REVIEW**.
+
 ### DEC-141 — Phase 0 criterion 9.2 program↔engineering bridges READY FOR REVIEW
 
 **Date:** 2026-08-01

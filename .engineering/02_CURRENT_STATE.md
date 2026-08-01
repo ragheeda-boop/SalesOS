@@ -1,17 +1,17 @@
----
+﻿---
 EngineeringOS: v3
-GeneratedAt: 2026-08-01T12:11:50Z
-RepositoryCommit: c89025a
+GeneratedAt: 2026-08-01T20:10:52Z
+RepositoryCommit: 9fa8e9f
 RepositoryBranch: master
 Generator: OpenCode
 Status: Live
-EvidenceLevel: Heuristic
-Revalidation: Pending
+EvidenceLevel: Measured
+Revalidation: Active (DEC-142)
 ---
 
 # 02 â€” CURRENT STATE
 
-> Live document. Update via `21_RUNTIME_STATE.json` + this file when sprints change. Content reflects commit `c89025a` (re-pinned; prior pin `3749c30` per ARB audit 32).
+> Live document. Update via `21_RUNTIME_STATE.json` + this file when sprints change. Content reflects commit `9fa8e9f` (DEC-142 re-pin; prior pin `c89025a`).
 
 ## 1. GA Posture (frozen â€” do not change)
 
@@ -56,7 +56,7 @@ Revalidation: Pending
 
 ## 5. Database state (evidence: 13_DATABASE_CATALOG.md)
 
-- Alembic head **`c9f4a21b6e08`** (`db05_slice3_index_rename_nullable_triage`). **66** migration files (single linear head). B1 fix: v3.0 head `e4b9c32d0c04` did not exist at pin `3749c30` (pin head was `b110c04e7a01`).
+- Alembic head **`a4f7c29e1b80`** (`db05_slice5d_indexes_types_nullable`). **69** migration files (single linear head; Docker `alembic heads` corroborates). Prior pin `c89025a` head was `c9f4a21b6e08`.
 - RLS: 47 Category-A tenant tables (DEC-044) + RLS Category B1â€“B7 join RLS landed (DEC-114..119); FORCE ROW LEVEL SECURITY, fail-closed `current_setting('app.tenant_id')`. Policy count 59 per DEC-120 Slice C staging; not re-computed this pass.
 - `0012_refresh_token_tables` (refresh token families) is in the chain. v3.0 claim that B5 is "NOT enabled" is **RETRACTED as unverified** â€” live enabled-state requires `alembic current` on a live DB (not run).
 - Muhide production: 141,221 companies; deployed revision requires live DB check (GA_STATUS cited 0051 â€” see Unknowns).

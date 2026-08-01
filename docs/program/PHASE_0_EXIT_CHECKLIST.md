@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-141a criterion 9.2 program↔engineering bridges VERIFIED/CLOSED; Phase 0 36/54; ADR-036 Applied Complete 3/4; EOS Audit Complete 3/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
+> **Last updated:** 2026-08-01 (DEC-142 criteria 4.2/4.4/4.7 fingerprint re-pin READY FOR REVIEW @ tip `9fa8e9f`; Phase 0 still 36/54 until Orchestrator CLOSE; ADR-036 Applied Complete 3/4; EOS Audit Complete 3/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
 >
 > ## Operating State
 >
@@ -88,12 +88,12 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
 | 4.1 | All B1–B7 findings resolved | ARB re-audit returns PASS | ⬜ B1–B7 corrected in v3.1; not re-audited |
-| 4.2 | Fingerprint matches pinned commit | Alembic head, framework versions, structural counts verified | ⬜ Counts heuristic; no auto-regeneration |
+| 4.2 | Fingerprint matches pinned commit | Alembic head, framework versions, structural counts verified | 🟡 READY FOR REVIEW — DEC-142 re-measure @ tip `9fa8e9f`; Alembic head `a4f7c29e1b80` (Docker corroborate); FastAPI `>=0.136.0,<0.142.0`; migrations **69**; DEC-085 untouched; awaiting Arch+Val; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN |
 | 4.3 | No invented surfaces | All cataloged API/Module paths exist in repo | ✅ VERIFIED (ARB 2026-08-01; B4 confirmed; filesystem audit PASS) |
-| 4.4 | EvidenceLevel justified | Counts use measured methods, not narrative | ⬜ Currently "Heuristic" |
-| 4.5 | `.engineering/` committed to git | Not untracked | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: 33 tracked, 0 untracked; DEC-085 untouched) @ `5b2e4c2` (DEC-140a); pin remains heuristic `c89025a` (4.2/4.7 OPEN, non-blocking for 4.5); residuals **4.1/4.2/4.4/4.7/4.8** OPEN; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
+| 4.4 | EvidenceLevel justified | Counts use measured methods, not narrative | 🟡 READY FOR REVIEW — DEC-142 EvidenceLevel **Measured** (methods in `23` + `.engineering/measure_fingerprint.py`); not ARB “Repository Verified”; awaiting Arch+Val; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN |
+| 4.5 | `.engineering/` committed to git | Not untracked | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: 33 tracked, 0 untracked; DEC-085 untouched) @ `5b2e4c2` (DEC-140a); pin residual cleared by DEC-142 READY (4.2/4.7); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 | 4.6 | Lock protocol verified | `21_RUNTIME_STATE.json` mirrors `22_FILE_LOCKS.json` | ✅ VERIFIED (ARB 2026-08-01; 21 mirrors 22; bootstrap lock released) |
-| 4.7 | Staleness protocol active | Fingerprint re-validated at current HEAD | ⬜ |
+| 4.7 | Staleness protocol active | Fingerprint re-validated at current HEAD | 🟡 READY FOR REVIEW — DEC-142 Revalidation **Active**; `measure_fingerprint.py` + `23.comparison_protocol`; re-validated at tip `9fa8e9f`; awaiting Arch+Val; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN |
 | 4.8 | Independent ARB re-audit = PASS | New validation report with no CRITICAL findings | ⬜ |
 
 **Owner:** OpenCode / ARB  

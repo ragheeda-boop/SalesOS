@@ -1,12 +1,12 @@
----
+﻿---
 EngineeringOS: v3
-GeneratedAt: 2026-08-01T12:11:50Z
-RepositoryCommit: c89025a
+GeneratedAt: 2026-08-01T20:10:52Z
+RepositoryCommit: 9fa8e9f
 RepositoryBranch: master
 Generator: OpenCode
 Status: Corrected (EOS v3.1 cycle)
-EvidenceLevel: Heuristic
-Revalidation: Pending
+EvidenceLevel: Measured
+Revalidation: Active (DEC-142)
 ---
 
 # 04 â€” DIRECTORY CATALOG
@@ -29,7 +29,7 @@ Revalidation: Pending
 | `app/routers/` | API surface | One file per endpoint group (companies, opportunities, search, workflows, analytics, ai, copilot, ...) | Backend/Cursor | HIGH | Yes, gated |
 | `app/graphql/` | â€” | GraphQL schema (read-only /graphql) | Backend/Cursor | MEDIUM | Yes |
 | `app/alembic/` | â€” | DB migration tooling | Backend/Cursor | CRITICAL | Yes, gated |
-| `app/alembic/versions/` | â€” | 66 migrations, head `c9f4a21b6e08` (DB-05 slice 3). RLS B1â€“B7 landed (DEC-114..119) | Backend/Cursor | CRITICAL | Yes, gated (record-not-fix) |
+| `app/alembic/versions/` | â€” | 69 migrations, head `a4f7c29e1b80` (DB-05 slice 5d). RLS B1â€“B7 + deferred-8 landed | Backend/Cursor | CRITICAL | Yes, gated (record-not-fix) |
 | `domains/` | DDD domains | 17 domains under domains/ (search, commercial, revenue, analytics, decision, feature_store, ai, scoring, timeline, ...) + app/domains/customer_success | Backend/Cursor | HIGH | Yes, gated |
 | `runtime/` | Runtime engines | 27 engine dirs (search, timeline, knowledge_graph, data_fabric, feature_store, decision, workflow, agent, simulation, nba, pipeline_analytics, capability_framework, ...) â€” 10 single-file dirs | Backend/Cursor | HIGH | Yes, gated |
 | `runtime/capability_framework/` | â€” | Decorator registry (14 built-ins), `router.py` | Backend/Cursor | HIGH | Yes, gated |

@@ -1,12 +1,12 @@
----
+﻿---
 EngineeringOS: v3
-GeneratedAt: 2026-08-01T12:11:50Z
-RepositoryCommit: c89025a
+GeneratedAt: 2026-08-01T20:10:52Z
+RepositoryCommit: 9fa8e9f
 RepositoryBranch: master
 Generator: OpenCode
 Status: Corrected (EOS v3.1 cycle)
-EvidenceLevel: Heuristic
-Revalidation: Pending
+EvidenceLevel: Measured
+Revalidation: Active (DEC-142)
 ---
 
 # 07 â€” DEPENDENCY GRAPH
@@ -85,7 +85,7 @@ Consumers: `app/routers/source_of_truth.py`, `runtime/ux_runtime/router.py`, `ru
 
 ## 5. Database dependency chain
 
-`app/database.py` â†’ Alembic (66 versions, head `c9f4a21b6e08` = DB-05 slice 3) â†’ Postgres 16. RLS Category A (47 tables, DEC-044) + B1â€“B7 join RLS landed (DEC-114..119); policy count 59 per DEC-120 Slice C staging (not re-computed). `0012_refresh_token_tables` in chain; live enabled-state not verified this pass.
+`app/database.py` â†’ Alembic (69 versions, head `a4f7c29e1b80` = DB-05 slice 5d) â†’ Postgres 16. RLS Category A (47 tables, DEC-044) + B1â€“B7 + deferred-8 join RLS landed; policy count 67 per DEC-123a tip-align (not re-probed). `0012_refresh_token_tables` in chain; live enabled-state not re-asserted this pass.
 
 ## 6. Test dependency graph
 

@@ -1,17 +1,17 @@
----
+﻿---
 EngineeringOS: v3
-GeneratedAt: 2026-08-01T12:11:50Z
-RepositoryCommit: c89025a
+GeneratedAt: 2026-08-01T20:10:52Z
+RepositoryCommit: 9fa8e9f
 RepositoryBranch: master
 Generator: OpenCode
 Status: Corrected (EOS v3.1 cycle)
-EvidenceLevel: Heuristic
-Revalidation: Pending
+EvidenceLevel: Measured
+Revalidation: Active (DEC-142)
 ---
 
 # 27 â€” ADR INDEX
 
-> Purpose: complete registry of Architecture Decision Records for SalesOS, as observed in the repository at commit `c89025a` (re-pinned from `3749c30` after ARB audit `32`).
+> Purpose: complete registry of Architecture Decision Records for SalesOS, as observed in the repository at commit `9fa8e9f` (DEC-142 re-pin; prior pin `c89025a`).
 > **Discrepancies are recorded here as observed facts. They are NOT fixed during bootstrap.**
 
 ## 1. Sources (evidence)

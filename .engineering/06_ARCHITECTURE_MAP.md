@@ -1,12 +1,12 @@
----
+﻿---
 EngineeringOS: v3
-GeneratedAt: 2026-08-01T12:11:50Z
-RepositoryCommit: c89025a
+GeneratedAt: 2026-08-01T20:10:52Z
+RepositoryCommit: 9fa8e9f
 RepositoryBranch: master
 Generator: OpenCode
 Status: Corrected (EOS v3.1 cycle)
-EvidenceLevel: Heuristic
-Revalidation: Pending
+EvidenceLevel: Measured
+Revalidation: Active (DEC-142)
 ---
 
 # 06 â€” ARCHITECTURE MAP
@@ -73,7 +73,7 @@ Architecture rules (`salesos/backend/tests/test_architecture.py`): (1) SDK-impor
 
 ## 5. Data layer (as-built)
 
-- **Postgres 16**, Alembic-managed, 66 migrations; head `c9f4a21b6e08` (DB-05 slice 3). RLS Category A (47 tables) + B1â€“B7 join RLS landed (DEC-114..119). `0012_refresh_token_tables` in chain; live enabled-state not verified this pass.
+- **Postgres 16**, Alembic-managed, 69 migrations; head `a4f7c29e1b80` (DB-05 slice 5d; DEC-142). RLS Category A (47 tables) + B1â€“B7 + deferred-8 join RLS landed. `0012_refresh_token_tables` in chain; live enabled-state not re-asserted this pass.
 - **RLS:** 47 Category-A tables (DEC-044) + B1â€“B7 join policies; policy count 59 per DEC-120 Slice C staging (not re-computed).
 - **Search:** pgvector + pg_trgm fulltext + Meilisearch.
 - **Graph:** Neo4j configured for knowledge graph.

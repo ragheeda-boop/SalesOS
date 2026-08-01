@@ -1,14 +1,14 @@
-{
+﻿{
   "_metadata": {
     "file": "22_FILE_LOCKS.json",
     "engineering_os_version": "3",
-    "generated_at": "2026-08-01T12:11:50Z",
-    "repository_commit": "c89025a",
+    "generated_at": "2026-08-01T20:10:52Z",
+    "repository_commit": "9fa8e9f",
     "repository_branch": "master",
     "generator": "OpenCode",
     "status": "Corrected (EOS v3.1 cycle)",
-    "evidence_level": "Heuristic",
-    "revalidation": "Pending",
+    "evidence_level": "Measured",
+    "revalidation": "Active (DEC-142)",
     "purpose": "Coordination lock table. Agents must acquire (set lock_type=write, holder, acquired_at) before modifying any file, and release on completion. Read-only locks protect against accidental modification during parallel work.",
     "protocol": "To lock: set lock_type, holder, acquired_at, and move reason='open' entries. To release: set lock_type=free, holder=null, released_at=timestamp. Never modify a file whose lock_type is 'write' held by another agent. Danger paths below are 'readonly' — no agent may write them during EOS operations.",
     "correction_note": "B6 fix: bootstrap write lock on .engineering/** released (was retained after 30 existed). Lock TTL rule added: any write lock must be released or renewed within the same work session. 21_RUNTIME_STATE.locked_files must mirror this file."

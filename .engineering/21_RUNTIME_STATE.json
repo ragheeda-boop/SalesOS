@@ -1,16 +1,16 @@
-{
+﻿{
   "_metadata": {
     "file": "21_RUNTIME_STATE.json",
     "engineering_os_version": "3",
-    "generated_at": "2026-08-01T12:11:50Z",
-    "repository_commit": "c89025a",
+    "generated_at": "2026-08-01T20:10:52Z",
+    "repository_commit": "9fa8e9f",
     "repository_branch": "master",
     "generator": "OpenCode",
     "status": "Corrected (EOS v3.1 cycle)",
-    "evidence_level": "Heuristic",
-    "revalidation": "Pending",
+    "evidence_level": "Measured",
+    "revalidation": "Active (DEC-142)",
     "purpose": "The live communication protocol between AI agents. Only agents that hold the lock in 22_FILE_LOCKS.json may update this file. Always update last_updated_by when modifying.",
-    "correction_note": "B6 fix: locked_files mirrors 22_FILE_LOCKS.json (bootstrap write lock released -> no active write locks). pinned at HEAD c89025a."
+    "correction_note": "DEC-142: re-pinned at tip 9fa8e9f; EvidenceLevel Measured; Revalidation Active. B6 lock mirror intact."
   },
   "operating_state": {
     "version": "1.0",
@@ -111,13 +111,13 @@
       "state": "IN_PROGRESS"
     }
   ],
-  "last_updated_by": "Execution Orchestrator",
+  "last_updated_by": "Backend Lead / api-worker (DEC-142)",
   "execution_cycle": 1,
-  "phase0_progress": "17/54",
+  "phase0_progress": "36/54 (pre-land tip; 4.2/4.4/4.7 READY FOR REVIEW this land)",
   "locked_files": [],
   "lock_mirror": "locked_files reflects 22_FILE_LOCKS.json: no active write locks after bootstrap release (B6 fixed). Danger paths remain readonly there.",
-  "generated_from_commit": "c89025a",
-  "prior_pin": "3749c30",
-  "drift_note": "11 commits ahead of prior pin 3749c30 (DEC-114..121 RLS + DB-05 slices). Class Critical. Re-pinned at HEAD c89025a.",
+  "generated_from_commit": "9fa8e9f",
+  "prior_pin": "c89025a",
+  "drift_note": "46 commits ahead of prior pin c89025a. Class Critical at re-measure. Re-pinned at tip 9fa8e9f (DEC-142). Alembic head a4f7c29e1b80; migrations 69.",
   "engineering_version": "3.1"
 }

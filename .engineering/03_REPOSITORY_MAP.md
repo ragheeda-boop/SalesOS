@@ -1,17 +1,17 @@
----
+﻿---
 EngineeringOS: v3
-GeneratedAt: 2026-08-01T12:11:50Z
-RepositoryCommit: c89025a
+GeneratedAt: 2026-08-01T20:10:52Z
+RepositoryCommit: 9fa8e9f
 RepositoryBranch: master
 Generator: OpenCode
 Status: Corrected (EOS v3.1 cycle)
-EvidenceLevel: Heuristic
-Revalidation: Pending
+EvidenceLevel: Measured
+Revalidation: Active (DEC-142)
 ---
 
 # 03 â€” REPOSITORY MAP
 
-> Complete topographic map of the repository at commit `c89025a` (re-pinned; prior pin `3749c30`). Every path is real and git-tracked (or an active untracked-sensitive file, marked).
+> Complete topographic map of the repository at commit `9fa8e9f` (DEC-142 re-pin; prior pin `c89025a`). Every path is real and git-tracked (or an active untracked-sensitive file, marked).
 
 ```
 C:\Users\raghe\Documents\Muhide
@@ -35,7 +35,7 @@ C:\Users\raghe\Documents\Muhide
 â”œâ”€â”€ salesos/                           # === PRODUCT MONOREPO ===
 â”‚   â”œâ”€â”€ backend/                       # FastAPI backend (Poetry, Python 3.12)
 â”‚   â”‚   â”œâ”€â”€ app/ (main.py, boot/, config.py, database.py, dependencies.py, modules/, routers/, graphql/)
-â”‚   â”‚   â”œâ”€â”€ app/alembic/versions/      # 66 migrations (head c9f4a21b6e08)
+â”‚   â”‚   â”œâ”€â”€ app/alembic/versions/      # 69 migrations (head a4f7c29e1b80)
 â”‚   â”‚   â”œâ”€â”€ domains/                   # 17 DDD domains (+ app/domains/customer_success)
 â”‚   â”‚   â”œâ”€â”€ runtime/                   # 27 engine dirs (10 single-file)
 â”‚   â”‚   â”œâ”€â”€ sdk/                       # capability registry, events, telemetry

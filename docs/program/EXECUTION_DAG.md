@@ -99,6 +99,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **ADR Drift 6.5** ADR-036 all indexes | **CLOSED** (DEC-139a) | Arch+Val PASS (light) @ `aaeaff3` / DEC-139; Status Accepted matches file header + 9.1 (not invented); `docs/adr/index.md` + `.engineering/27_ADR_INDEX.md` registered; engineering-os index N/A; DEC-085 untouched; Phase 0 **34/54** (superseded to **36/54** by DEC-141a); ADR Drift COMPLETE **5/5**; residual note superseded: **4.5 CLOSED**; **9.2 CLOSED**; do **not** claim Phase 0 GO |
 | **EOS Audit 4.5** `.engineering/` committed | **CLOSED** (DEC-140a) | Arch+Val PASS (light) @ `5b2e4c2` / DEC-140; 33 tracked / 0 untracked; heuristic pin `c89025a` preserved (4.2/4.7 OPEN); DEC-085 untouched; Phase 0 **35/54** (superseded to **36/54** by DEC-141a); EOS Audit Complete **3/8**; residuals **4.1/4.2/4.4/4.7/4.8**; do **not** claim Phase 0 GO |
 | **ADR-036 Applied 9.2** program↔engineering bridges | **CLOSED** (DEC-141a) | Arch+Val PASS (light) @ `7b618da` / DEC-141; bridges `ENGINEERING_LAYER_BRIDGE.md` ↔ `.engineering/33_PROGRAM_LAYER_BRIDGE.md` (pointers only); DEC-085 untouched; Phase 0 **36/54**; ADR-036 Applied Complete **3/4**; residuals EOS **4.1/4.2/4.4/4.7/4.8** · Eng Stability **8.1–8.3**; do **not** claim Phase 0 GO |
+| **EOS Audit 4.2/4.4/4.7** fingerprint re-pin | **READY FOR REVIEW** (DEC-142) | Backend Lead land — tip pin `9fa8e9f`; Alembic `a4f7c29e1b80`; EvidenceLevel **Measured**; Revalidation **Active**; script `.engineering/measure_fingerprint.py`; DEC-085 untouched; Phase 0 remains **36/54** until Orchestrator CLOSE; residuals **4.1/4.8** ARB · Eng Stability **8.1–8.3**; do **not** claim Phase 0 GO |
 
 ---
 
@@ -106,7 +107,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30, EOS **4.x** / Eng Stability **8.x** | PARALLEL / READY | DEC-107 swarm; Capability Drift **COMPLETE 4/4** (DEC-134a); ADR Drift **COMPLETE 5/5** (DEC-139a); **4.5 CLOSED** (DEC-140a); **9.2 CLOSED** (DEC-141a); next OPEN: EOS **4.1/4.2/4.4/4.7/4.8**, Eng Stability **8.1–8.3**; do **not** claim Phase 0 GO |
+| Contract tests, optional Jest 30, EOS **4.x** / Eng Stability **8.x** | PARALLEL / READY | DEC-107 swarm; Capability Drift **COMPLETE 4/4** (DEC-134a); ADR Drift **COMPLETE 5/5** (DEC-139a); **4.5 CLOSED** (DEC-140a); **9.2 CLOSED** (DEC-141a); **4.2/4.4/4.7 READY** (DEC-142); next OPEN: EOS **4.1/4.8**, Eng Stability **8.1–8.3**; do **not** claim Phase 0 GO |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 **Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation / CI-08/09 ops proceed.

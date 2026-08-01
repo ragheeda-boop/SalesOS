@@ -43,5 +43,5 @@ Engineering agents enter Business Truth via [`.engineering/33_PROGRAM_LAYER_BRID
 
 ## Honesty
 
-- Fingerprint / EvidenceLevel / ARB re-audit: criteria **4.2 / 4.4 / 4.7 / 4.1 / 4.8** (separate).
+- Fingerprint / EvidenceLevel / staleness: criteria **4.2 / 4.4 / 4.7** → DEC-142 READY FOR REVIEW (not Orchestrator-CLOSED). ARB re-audit: **4.1 / 4.8** (separate).
 - **Production GO not claimed. CI GREEN not met.**

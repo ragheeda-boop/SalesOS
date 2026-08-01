@@ -1,17 +1,17 @@
----
+﻿---
 EngineeringOS: v3
-GeneratedAt: 2026-08-01T12:11:50Z
-RepositoryCommit: c89025a
+GeneratedAt: 2026-08-01T20:10:52Z
+RepositoryCommit: 9fa8e9f
 RepositoryBranch: master
 Generator: OpenCode
 Status: Corrected (EOS v3.1 cycle)
-EvidenceLevel: Heuristic
-Revalidation: Pending
+EvidenceLevel: Measured
+Revalidation: Active (DEC-142)
 ---
 
 # 00 â€” PROJECT CONSTITUTION
 
-> Authority: This `.engineering/` directory is the coordination layer for AI agents working on the SalesOS repository. It observes, indexes, classifies, and cross-references the repository at commit `c89025a` (branch `master`; re-pinned from `3749c30` after ARB audit `32`). It does NOT change repository behavior.
+> Authority: This `.engineering/` directory is the coordination layer for AI agents working on the SalesOS repository. It observes, indexes, classifies, and cross-references the repository at commit `9fa8e9f` (branch `master`; re-pinned from `c89025a` via DEC-142 / criteria 4.2·4.4·4.7). It does NOT change repository behavior.
 
 ## 1. The Engineering Bootstrap Freeze Rule
 

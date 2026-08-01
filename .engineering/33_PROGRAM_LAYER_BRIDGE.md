@@ -1,12 +1,12 @@
----
+﻿---
 EngineeringOS: v3
 GeneratedAt: 2026-08-01T21:00:00Z
-RepositoryCommit: c89025a
+RepositoryCommit: 9fa8e9f
 RepositoryBranch: master
 Generator: Backend Lead (DEC-141)
 Status: Active (ADR-036 Phase 2 bridge)
-EvidenceLevel: Heuristic
-Revalidation: Pending
+EvidenceLevel: Measured
+Revalidation: Active (DEC-142)
 ---
 
 # 33 — PROGRAM LAYER BRIDGE
@@ -54,5 +54,5 @@ Program agents enter Engineering Spec via `docs/program/ENGINEERING_LAYER_BRIDGE
 
 ## Honesty
 
-- Fingerprint pin remains heuristic `c89025a` until criteria **4.2 / 4.7**.
+- Fingerprint re-measured at tip `9fa8e9f` (DEC-142); EvidenceLevel **Measured**; Revalidation **Active** — criteria **4.2 / 4.4 / 4.7** READY FOR REVIEW (not Orchestrator-CLOSED).
 - **Production GO not claimed. CI GREEN not met.**

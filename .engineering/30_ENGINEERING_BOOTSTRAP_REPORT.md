@@ -1,25 +1,25 @@
----
+﻿---
 EngineeringOS: v3
-GeneratedAt: 2026-08-01T12:11:50Z
-RepositoryCommit: c89025a
+GeneratedAt: 2026-08-01T20:10:52Z
+RepositoryCommit: 9fa8e9f
 RepositoryBranch: master
 Generator: OpenCode
 Status: Corrected (EOS v3.1 cycle)
-EvidenceLevel: Heuristic
-Revalidation: Pending
+EvidenceLevel: Measured
+Revalidation: Active (DEC-142)
 ---
 
 # 30 â€” ENGINEERING BOOTSTRAP REPORT
 
-> Final report of the `.engineering/` bootstrap. **EOS v3 was Draft 1 (Rejected)** by Independent ARB audit `32_EOS_VALIDATION_AUDIT.md` (overall confidence 38/100; Repository Integrity 42, Documentation Accuracy 35, Traceability 55). This v3.1 cycle fixed blockers B1â€“B7 on proven-inaccurate files only, re-pinned from `3749c30` to `c89025a`, downgraded all evidence claims to **Heuristic / Revalidation: Pending**, and released the bootstrap write lock. Re-audit pending; not adopted as official Source of Truth until the acceptance criteria in Â§8 pass.
+> Final report of the `.engineering/` bootstrap. **EOS v3 was Draft 1 (Rejected)** by Independent ARB audit `32_EOS_VALIDATION_AUDIT.md` (overall confidence 38/100; Repository Integrity 42, Documentation Accuracy 35, Traceability 55). This v3.1 cycle fixed blockers B1â€“B7 on proven-inaccurate files only, re-pinned from `3749c30` to `c89025a` (v3.1), then DEC-142 re-measured at tip `9fa8e9f` with EvidenceLevel **Measured** / Revalidation **Active**, and released the bootstrap write lock. Re-audit pending; not adopted as official Source of Truth until the acceptance criteria in Â§8 pass.
 
 ## 1. Executive status
 
 | Domain | Readiness | Confidence | Conditions |
 |---|---|---|---|
-| Backend | 98% ready | High | 23 modules, 17 domains (+ customer_success), 27 runtime dirs (10 single-file; stub status not individually proven), 67 routers, 66 migrations |
+| Backend | 98% ready | High | 23 modules, 17 domains (+ customer_success), 27 runtime dirs (10 single-file; stub status not individually proven), 67 routers, 69 migrations |
 | Frontend | 97% ready | High | 72 pages, 13 features, 21 packages (13 with `src`, 8 without), 31 e2e files (29 `*.spec.ts`) |
-| Database | 99% ready | High | 66 migrations, head `c9f4a21b6e08` (DB-05 slice 3); RLS A (47 tables) + B1â€“B7 landed; policy count 59 per DEC-120 staging (not re-computed) |
+| Database | 99% ready | High | 69 migrations, head `a4f7c29e1b80` (DB-05 slice 5d; DEC-142); RLS A (47 tables) + B1â€“B7 landed; policy count 59 per DEC-120 staging (not re-computed) |
 | ADR | 90% ready | Conditional | index/file conflicts (6 unresolved rows in `27`) |
 | Capabilities | 88% ready | Conditional | 4-way registry drift (40/14/~25/~22) |
 | CI/CD | 92% ready | Conditional | CI-08/CI-09 blocked; e2e no services; deploy outputs undeclared |
@@ -27,9 +27,9 @@ Revalidation: Pending
 
 ## 2. What was built and corrected
 
-- `.engineering/` â€” 33 files: 4 JSON + 28 Markdown EOS files + ARB audit `32`. All EOS files carry the v3.1 metadata header (EngineeringOS v3, GeneratedAt `2026-08-01T12:11:50Z`, RepositoryCommit `c89025a`, RepositoryBranch master, Status, EvidenceLevel **Heuristic**, Revalidation **Pending**).
+- `.engineering/` â€” 33 files: 4 JSON + 28 Markdown EOS files + ARB audit `32`. All EOS files carry the v3.1 metadata header (EngineeringOS v3, GeneratedAt `2026-08-01T12:11:50Z`, RepositoryCommit `9fa8e9f`, RepositoryBranch master, Status, EvidenceLevel **Measured**, Revalidation **Active (DEC-142)**).
 - **Correction cycle (v3.1):** re-measured every audit claim at HEAD `c89025a` with recorded methods; rewrote `13`, `14`, `23`, `24`; edited `00`, `01`, `02`, `03`, `04`, `05`, `06`, `07`, `08`, `09`, `10`, `15`, `16`, `17`, `18`, `21`, `22`, `27`, `29`; released the bootstrap lock (`22`); restored two quoted strings in `32` accidentally touched by the metadata bulk pass.
-- **B1â€“B7 status:** B1 fixed (head `e4b9c32d0c04` never existed; pin head `b110c04e7a01`; live head `c9f4a21b6e08`). B2 fixed (FastAPI `>=0.136.0,<0.142.0`, not `0.111`). B3 fixed (counts re-derived from git â€” see Â§4). B4 fixed (`modules/crm` and `/api/v1/crm` removed; no `crm` module/route exists). B5 fixed (`.engineering/**` write lock released; TTL rule added). B6 recorded (11 commits ahead of prior pin, class Critical, re-pinned). B7 fixed (`EvidenceLevel: Heuristic`, `Revalidation: Pending` everywhere).
+- **B1â€“B7 status:** B1 fixed (head `e4b9c32d0c04` never existed; pin head `b110c04e7a01`; live head `c9f4a21b6e08`). B2 fixed (FastAPI `>=0.136.0,<0.142.0`, not `0.111`). B3 fixed (counts re-derived from git â€” see Â§4). B4 fixed (`modules/crm` and `/api/v1/crm` removed; no `crm` module/route exists). B5 fixed (`.engineering/**` write lock released; TTL rule added). B6 recorded (11 commits ahead of prior pin, class Critical, re-pinned). B7 fixed (`EvidenceLevel: Measured`, `Revalidation: Active (DEC-142)` everywhere).
 
 ## 3. Confidence score per file (post-correction)
 
