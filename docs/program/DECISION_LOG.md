@@ -720,3 +720,14 @@
 **Decision:** Accept [`decisions/DEC-067-JEST-STAGE3-HOLDOUT-SUPPORT.md`](decisions/DEC-067-JEST-STAGE3-HOLDOUT-SUPPORT.md). Record H1–H8 in `JEST_BASELINE.md` §9. Expected next field ceiling **≤8**. Do **not** close Jest-debt / R-23. Do **not** start CI-14 Slice 3 (Jest major). Do **not** claim Stage 3 green.
 **Consequence:** Jest-debt stays **READY / PARALLEL**. R-23 **Open — mitigating**. Program Complete/Closed count unchanged (**20/21**). Validation: **not validated** (docs only). **CI GREEN not met.**
 **Status:** Accepted. Stage 3 holdout **support COMPLETE** (docs); holdout **code** remains OPEN under Frontend Lead.
+
+---
+
+### DEC-068 — CI-20 Phase 14 complete: SSO remnant mypy burn-down (11→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1–13 (DEC-046–050, DEC-053, DEC-055, DEC-058–061, DEC-064, DEC-066) cleared admin/company/entity_resolution/identity/revenue_execution/sso-initial/routers/main+sdk/demo_mode/communication_hub/work_intelligence/boot+database/application; overall expected **~308 → ~61** (field after Phase 13 expected **~65**). Phase 6 cleared an earlier SSO slice (**8→0**), but CI-104 still listed **11** SSO residuals (`Mapped[str]` vs nullable tokens; `result` reuse typing `User` as `Tenant | None`; `request.client` union-attr on SAML rate-limit keys). Phase 14 targeted those remnants (did **not** redo `app/application` / Phase 13 / DEC-066; did **not** collide with DEC-067 Jest holdout docs) — mechanical typing only (`Mapped[str | None]` for nullable SSO columns; separate `tenant_result`/`user_result`; `request.client.host if request.client else "unknown"`; `cast` on encrypt/decrypt returns). Host light mypy (`--follow-imports=skip` on four SSO targets): **0** errors (exit 0); overall expected **~61 → ~50** (field **~65 → ~54**).
+**Alternatives considered:** (a) close entire CI-20 on Phase 14 land — rejected (residual ~50 remain; phased story); (b) clear decision (~5) or `app/startup.py` (~4) instead — rejected (SSO 11 was largest non-application residual); (c) record Phase 14 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
+**Decision:** Accept Phase 14 as **COMPLETE** at 1f14337 (1f1433703bc5802ba106a7618d21e350e25513ca). Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phases 1–13. Do **not** bump FastAPI. Validation label: **light validated** (host mypy on SSO targets); full Backend Types CI **not** re-run.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 14 COMPLETE**; story **OPEN**.
