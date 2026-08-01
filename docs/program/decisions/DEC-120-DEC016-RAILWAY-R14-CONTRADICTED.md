@@ -136,9 +136,21 @@ Do **not** weaken RLS or DEC-085. Prefer docs/ops/code for DB URL wiring; avoid 
 | `SERVICE_VERSION` | Was masking **`3.1.0`**; set to **`5.1.0-rc1`** before tip deploy |
 | Live `/health` | **200** `version=5.1.0-rc1` `database=connected` (off 3.1.0) |
 | Role proof (SSH; no secrets) | `APP_ENGINE salesos_app`; `OWNER_ENGINE postgres`; `SESSION_USER salesos_app is_superuser=off rolbypassrls=False`; `pg_stat_activity` includes `salesos_app` |
-| Prod alembic | **Before:** `0051`, POLICY_COUNT **0**, RLS_ON **0**. **After:** `c9f4a21b6e08` (image tip head), POLICY_COUNT **59**, RLS_ON **59**. Path: 15 upgrades (`0051`→…→`b7e2…`→`c9f4…`). STOP not hit. Tip-now head `d1a8c35e7f09` (DEC-123 / 67 policies) **not** applied this land |
+| Prod alembic | **Before:** `0051`, POLICY_COUNT **0**, RLS_ON **0**. **After:** `c9f4a21b6e08` (image tip head), POLICY_COUNT **59**, RLS_ON **59**. Path: 15 upgrades (`0051`→…→`b7e2…`→`c9f4…`). STOP not hit. Tip head `d1a8c35e7f09` applied in follow-on align (below) |
 | Staging | **Unchanged** (C remains DONE) |
 | Password rotate | Still **human/ops** |
+
+### Prod tip RLS align — `d1a8c35e7f09` / POLICY_COUNT 67 (2026-08-01)
+
+| Fact | Detail |
+|---|---|
+| Image | Still deploy **`9664e9fc`** / tip **`b62252a`** (pre-DEC-123). Migration applied via owner SSH upload — image promote **not** required for DB head |
+| How | SalesOS SSH: uploaded tip `scripts/generate_rls_policies.py` (DB05_DEFERRED_8) + `d1a8c35e7f09` revision; `PYTHONPATH=/app alembic upgrade head` as owner `DATABASE_URL` user=`postgres` |
+| Before | `alembic_version=c9f4a21b6e08`; **POLICY_COUNT 59**; **RLS_ON 59**; deferred-8 tables exist, policies **0** |
+| After | `alembic_version=d1a8c35e7f09` (tip head); **POLICY_COUNT 67**; **RLS_ON 67**; all 8 deferred tables policies=1 |
+| Role | `APP_ENGINE salesos_app`; `SESSION_USER salesos_app is_superuser=off rolbypassrls=False`; `pg_stat_activity` includes `salesos_app` |
+| Health | **200** `version=5.1.0-rc1` `database=connected` |
+| Criterion 2.3 | **Not reopened / not re-CLOSED by this worker** — align only; executive status remains prior Orchestrator record |
 
 ### Slice E — bypass-probe — DONE (single-tenant caveat)
 
@@ -151,4 +163,4 @@ Do **not** weaken RLS or DEC-085. Prefer docs/ops/code for DB URL wiring; avoid 
 | Verdict | **PASS_WITH_SINGLE_TENANT_CAVEAT** — bare/wrong-tenant isolation proven; multi-tenant split **not** re-proven (only one live tenant). DEC-085 `set_config('app.tenant_id', …)` intact |
 | Phase 0 / criterion 2.3 | **Not CLOSED** by this worker — Architecture/Validation review still required. **Production GA = NO-GO** until executive close |
 
-**Validation (A–E):** **light validated** (Railway Tier-1 SSH/health/counts). **Not** Phase 0 GO by docs alone. **Production GA = NO-GO.** R-14 Railway remediations A–E evidence landed; executive close of S04-04 / criterion 2.3 still pending.
+**Validation (A–E + tip RLS align):** **light validated** (Railway Tier-1 SSH/health/counts). Prod DB now tip head `d1a8c35e7f09` / **67** policies. **Production GA = NO-GO.** Image may remain `b62252a` until next promote.
