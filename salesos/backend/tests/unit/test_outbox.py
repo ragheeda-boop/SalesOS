@@ -82,8 +82,6 @@ def _make_session() -> MagicMock:
     return session
 
 
-
-
 def _compiled_params(session: MagicMock) -> dict:
     stmt = session.execute.call_args.args[0]
     return dict(stmt.compile(dialect=postgresql.dialect()).params)
@@ -93,6 +91,7 @@ def _jsonish(value):
     if isinstance(value, str):
         return json.loads(value)
     return value
+
 
 def _make_session_factory(session: MagicMock | None = None) -> MagicMock:
     """Create a mock session factory yielding the given session."""

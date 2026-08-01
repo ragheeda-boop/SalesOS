@@ -10,7 +10,8 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import Column, DateTime, MetaData, String, insert, select
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.schema import Table
 
@@ -85,11 +86,7 @@ class AuditTrail:
             stmt = stmt.where(audit_log.c.entity_id == entity_id)
         if action:
             stmt = stmt.where(audit_log.c.action == action)
-        stmt = (
-            stmt.order_by(audit_log.c.performed_at.desc())
-            .limit(limit)
-            .offset(offset)
-        )
+        stmt = stmt.order_by(audit_log.c.performed_at.desc()).limit(limit).offset(offset)
         result = await self._session.execute(stmt)
         rows = result.fetchall()
         return [dict(row._mapping) for row in rows]

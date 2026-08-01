@@ -1,7 +1,8 @@
 """OpenAPI HTTP contracts for public probes (DEC-094 slice 1).
 
 Extends STORY-03-04 (`test_openapi_contract.py` csrf seed) with typed
-no-DB endpoints. Next slice: /health+/ready (DB fixtures), 401/422, auth list.
+no-DB endpoints. Slice 2 (/health+/health/ready) lives in
+`test_openapi_health_ready.py`.
 """
 
 from __future__ import annotations
@@ -50,7 +51,7 @@ async def test_health_live_response_matches_openapi(
         body=body,
     )
     assert body.get("status") == "alive"
-    assert isinstance(body.get("uptime_seconds"), (int, float))
+    assert isinstance(body.get("uptime_seconds"), int | float)
     assert body["uptime_seconds"] >= 0
 
 

@@ -314,7 +314,7 @@ class AgentMemoryUpdated(DomainEvent):
 
 EVENT_REGISTRY: dict[str, type[DomainEvent]] = {
     # getattr: dataclass field defaults are not visible on type[T] to mypy
-    cast(str, getattr(cls, "event_type")): cls
+    cast(str, getattr(cls, "event_type")): cls  # noqa: B009
     for cls in [
         # Activity Intelligence events
         CommunicationReceived,
