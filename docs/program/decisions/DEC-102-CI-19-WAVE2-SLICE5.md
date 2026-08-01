@@ -4,6 +4,7 @@
 > **Date:** 2026-08-01  
 > **Story:** CI-19 — Semgrep findings remediation (Wave 2 SQL honesty)  
 > **Prior:** Wave 2 Slice 4 COMPLETE (DEC-101 / land `9ab3516`)  
+> **Land SHA:** `179a477`  
 > **Validation label:** **light validated** (narrow pytest **58 passed** — DEC-085 guard + `test_postgres_memory` + `knowledge_graph_runtime/tests`) — **not** whole-pipeline CI GREEN  
 > **DEC-085:** `get_db()` untouched — still `SELECT set_config('app.tenant_id', :tenant_id, true)`  
 > **Conflict note:** Parallel Backend Unit pytest-fix agent owns Wave2/bind/RLS/ER / activity_intelligence / company service clusters. This slice does **not** touch those files.
