@@ -27,8 +27,7 @@ class _CircularBuffer:
 
     def __init__(self, capacity: int = 100_000) -> None:
         self._capacity = capacity
-        self._buf: list[tuple[float, float]] = [0.0, 0.0] * capacity  # placeholder
-        self._buf = [(0.0, 0.0)] * capacity
+        self._buf: list[tuple[float, float]] = [(0.0, 0.0)] * capacity
         self._head = 0
         self._count = 0
 

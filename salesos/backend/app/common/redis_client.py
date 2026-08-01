@@ -1,10 +1,12 @@
 """Async Redis client with graceful degradation — singleton pattern."""
 
-import logging
-from typing import Optional
+from __future__ import annotations
 
-from redis.asyncio import Redis
-from redis.exceptions import RedisError
+import logging
+from typing import Any, Optional, cast
+
+from redis.asyncio import Redis  # type: ignore[import-untyped]
+from redis.exceptions import RedisError  # type: ignore[import-untyped]
 
 from app.config import settings
 
@@ -12,9 +14,11 @@ logger = logging.getLogger(__name__)
 
 
 class AsyncRedisClient:
-    _instance: Optional["AsyncRedisClient"] = None
+    _instance: Optional[AsyncRedisClient] = None
+    _initialized: bool
+    _redis: Redis | None
 
-    def __new__(cls) -> "AsyncRedisClient":
+    def __new__(cls) -> AsyncRedisClient:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
@@ -24,7 +28,7 @@ class AsyncRedisClient:
         if self._initialized:
             return
         self._initialized = True
-        self._redis: Redis | None = None
+        self._redis = None
         self._connect()
 
     def _connect(self) -> None:
@@ -45,7 +49,7 @@ class AsyncRedisClient:
         if self._redis is None:
             return None
         try:
-            return await self._redis.get(key)
+            return cast(str | None, await self._redis.get(key))
         except RedisError as exc:
             logger.warning("Redis GET %s failed: %s", key, exc)
             return None
