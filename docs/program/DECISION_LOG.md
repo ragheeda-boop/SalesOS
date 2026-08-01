@@ -425,9 +425,20 @@
 **Date:** 2026-08-01
 **Context:** R-14 is PARTIALLY CLOSED (local/CI/staging/prod-template remediated per DEC-014/DEC-015); Railway remains the sole open environment, left untouched by explicit prior choice. Stop condition S04-04 blocks Phase 0 GO. Board story S04-04 references "DEC-016," but no Accepted DEC-016 exists yet.
 **Alternatives considered (draft):** (A) authorize Railway remediation now per `OPERATIONS_MANUAL.md` §14; (B) formally accept Phase 0 exit without Railway coverage (residual risk; requires DEC-008 carve-out); (C) defer Phase 0 GO indefinitely while continuing local/CI/non-Railway work.
-**Decision:** **Not decided.** Full ARB + Risk Manager package: [`docs/program/decisions/DEC-DRAFT-RAILWAY-R14-PHASE0.md`](decisions/DEC-DRAFT-RAILWAY-R14-PHASE0.md). Package **recommends Option A**; interim posture if unauthorized = Option C (not B).
-**Consequence:** Phase 0 exit remains **NO-GO**. S04-04 remains BLOCKED. No Railway changes authorized by this entry. Upon human accept, mint Accepted **DEC-016** (or next free ID) and mark this draft Superseded.
-**Status:** **DRAFT** (not Accepted).
+**Decision:** **Superseded** — human authorized **Option A**; see **DEC-016**.
+**Consequence:** Historical draft retained; execution + evidence live under DEC-016.
+**Status:** **Superseded** by DEC-016.
+
+---
+
+### DEC-016 — Authorize and execute Railway R-14 remediation (Option A); S04-04 CLOSED
+
+**Date:** 2026-08-01
+**Context:** Arabic standing approval for Option A. Railway MCP Unauthorized; Ops used Railway CLI on project `responsible-comfort`. Staging first, then production env/role only (no app image promote). Prior probe: `APP_POSTGRES_*` absent; `DATABASE_URL` present; owner role `postgres` on DB `railway`.
+**Alternatives considered:** (A) §14 remediation now — accepted; (B) Phase 0 GO with Railway residual — rejected; (C) defer — superseded by A.
+**Decision:** Accept Option A. Provision `salesos_app` (NOSUPERUSER NOBYPASSRLS) on Railway staging + production Postgres; set `APP_POSTGRES_USER`/`APP_POSTGRES_PASSWORD` plus `POSTGRES_HOST`/`PORT`/`DB` derived from existing plugin/`DATABASE_URL` components (app password per §14 hex — not committed); bypass-probe PASS both envs; health 200 both envs. Full record: [`docs/program/decisions/DEC-016-RAILWAY-R14-OPTION-A.md`](decisions/DEC-016-RAILWAY-R14-OPTION-A.md).
+**Consequence:** S04-04 **CLOSED**. R-14 Railway slice **Closed**. Phase 0 critical-path gate that was solely S04-04 is cleared for R-14. **CI GREEN not met** (unrelated). Secrets never committed.
+**Status:** Accepted. S04-04 **CLOSED**.
 
 ---
 
@@ -848,6 +859,7 @@
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. R-22 Open — mitigating. **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 18 COMPLETE**; story **OPEN**.
 
+**Addendum (2026-08-01 — field regression):** CI Observer found tip `98bbb21` re-surfaced **3** entity_resolution field errors (shared merge-loop `rel` losing typed `company_id`; classic `Column` assignment on Opportunity `company_id`; direct `merged_into_id` attr-defined). Prior local fix was lost before land. Re-applied mechanical fix: distinct `contact`/`branch`/`license_row` loop vars; `setattr` for Opportunity `company_id` and source `merged_into_id`. Host mypy `app/modules/entity_resolution --follow-imports=skip` **0**. Does **not** reopen Phase 18 COMPLETE; does **not** redo Phase 19 graphql/notion. CI-20 remains OPEN.
 
 ### DEC-080 — CI-20 Phase 19 complete: notion_sync + graphql mypy burn-down (4+4→0); CI-20 remains OPEN
 
@@ -885,4 +897,16 @@
 **Decision:** Restore Semgrep built-in defaults at the top of `.semgrepignore`, document the replace-vs-merge behavior, keep Wave 4 out-of-GA path excludes. Do **not** exclude `salesos/backend` app/runtime or product FE packages. Do **not** weaken `--severity ERROR --severity WARNING` or SARIF upload. Do **not** mark CI-19 CLOSED. Do **not** claim finding-zero GREEN.
 **Consequence:** Skip intent returns to **built-ins + Wave 4 paths**. Expected: re-exclude test/vendor/venv noise that caused the ~14 finding bump; Wave 5 (DEC-082) remediations remain. Field Code Scanning recount **not** yet re-verified this land. Validation: **light validated** (ignore inventory vs upstream default blob). **CI GREEN not met.**
 **Status:** Accepted. Wave 4 ignore regression **FIXED**; CI-19 **OPEN**.
+
+---
+
+### DEC-084 — CI-20 Phase 20 complete: webhooks + identity hosts + employee_360 mypy burn-down (3+2+3→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** After Phase 19 (DEC-080 / 21362f5) cleared notion_sync+graphql (**8→0**; expected **~26 → ~18**), next CI-104 / be7 residual clusters were pp/modules/webhooks (**3**: InMemory ctor annotations vs Postgres repos; socket_options object→typed), identity router remnants (**2**: 
+equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (**3**: signals dict|EmployeeSignals; User.is_active is True ColumnElement; untyped contracts). Also completed Phase-19 leftover graphql_ide_setting: GraphqlIde | None annotation (type alias was unused on tip).
+**Alternatives considered:** (a) close CI-20 — rejected (~10 remain); (b) clear config/excel/rules_engine instead — rejected (webhooks+identity were named user candidates; employee_360 was next-largest residual); (c) record Phase 20 COMPLETE only, keep CI-20 OPEN — approved.
+**Decision:** Accept Phase 20 as **COMPLETE**. Mechanical typing only (Protocol ctor params; _SocketOptions+cast; client host null-narrow; _to_employee_signals; is_(True); list[EmployeePortfolioItem]; GraphqlIde annotation). Do **not** mark CI-20 CLOSED. Do **not** bump FastAPI (CI-22 separate). Do **not** reopen Phases 1–19. Validation: **light validated** (host mypy --follow-imports=skip on six targets **0**). Overall expected **~18 → ~10** (field **~23 → ~15**).
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. R-22 Open — mitigating. **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 20 COMPLETE**; story **OPEN**.
 

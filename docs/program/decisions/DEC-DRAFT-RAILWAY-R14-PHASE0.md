@@ -1,11 +1,10 @@
 # DEC-DRAFT — Railway R-14 / Phase 0 Exit Gate
 
-> **Status:** **DRAFT** — for human resolution. Not Accepted. Not executed.  
-> **Date:** 2026-08-01  
+> **Status:** **SUPERSEDED** by [`DEC-016-RAILWAY-R14-OPTION-A.md`](DEC-016-RAILWAY-R14-OPTION-A.md)  
+> **Date:** 2026-08-01 (draft); Accepted Option A executed 2026-08-01  
 > **Board:** Architecture Review Board + Risk Manager (SalesOS / AQLIYA program)  
-> **Stop condition:** S04-04 — Railway R-14 remains **BLOCKED** on human authorization. **Phase 0 exit cannot GO.**  
-> **Authority chain:** `RISK_REGISTER.md` R-14 → DEC-013 / DEC-014 / DEC-015 → DEC-008 → this package → human accept/reject → (if accepted) numbered DEC entry in `DECISION_LOG.md`.  
-> **Board note:** Delivery board story S04-04 references “DEC-016”; no Accepted DEC-016 exists yet. Acceptance of one option below should mint **DEC-016** (or supersede with a new ID if numbering has moved).
+> **Stop condition:** Cleared — S04-04 **CLOSED** under DEC-016 (Railway staging + production §14 + bypass-probe + health evidence).  
+> **Authority chain:** `RISK_REGISTER.md` R-14 → DEC-013 / DEC-014 / DEC-015 → DEC-008 → this package → human accept Option A → **DEC-016**.
 
 ---
 
@@ -52,7 +51,7 @@ Requires **explicit supersession or carve-out of DEC-008** for the Railway envir
 
 Keep Phase 0 exit **NO-GO / deferred**. Do not authorize Railway changes. Continue Sprint 03 remainder and approved parallel local/CI work. S04-04 stays BLOCKED. R-14 stays **PARTIALLY CLOSED** (Railway OPEN). No false GO claim.
 
-This is the **current operating posture** until a human picks A or B.
+This was the **operating posture** until human accepted Option A.
 
 ---
 
@@ -137,21 +136,20 @@ Applies until human accept of A or B. Default = **Option C parallel rules**.
 
 | Field | Value |
 |---|---|
-| Chosen option | ☐ A  ☐ B  ☐ C |
-| Authorizing role(s) | Program Director / Chief Architect / Production owner: ________ |
-| Date | ________ |
-| If A: environments + order | ________ |
-| If B: DEC-008 carve-out ID | ________ |
-| Follow-on DEC ID when Accepted | DEC-016 (proposed) |
-| Evidence pointer (post-A) | ________ |
+| Chosen option | ☑ **A**  ☐ B  ☐ C |
+| Authorizing role(s) | Program Director / Ops — Arabic standing approval (Option A) |
+| Date | 2026-08-01 |
+| If A: environments + order | Railway staging → Railway production (env/role only; no app image promote) |
+| If B: DEC-008 carve-out ID | n/a |
+| Follow-on DEC ID when Accepted | **DEC-016** |
+| Evidence pointer (post-A) | [`DEC-016-RAILWAY-R14-OPTION-A.md`](DEC-016-RAILWAY-R14-OPTION-A.md) |
 
 ---
 
-## 7. Immediate program effects (unchanged until Accepted)
+## 7. Immediate program effects (post-Acceptance)
 
-- `SPRINT_05_DELIVERY_BOARD.md` — S04-04 remains **BLOCKED**.  
-- `RISK_REGISTER.md` R-14 — **PARTIALLY CLOSED**; Railway OPEN.  
-- `MILESTONES.md` M1 — cannot mark complete.  
-- This file — **DRAFT only**; pointer in `DECISION_LOG.md` as DRAFT (not Accepted).
+- `SPRINT_05_DELIVERY_BOARD.md` — S04-04 **CLOSED** (DEC-016).  
+- `RISK_REGISTER.md` R-14 — Railway **Closed** (full environment coverage).  
+- This file — **SUPERSEDED** by DEC-016.
 
-**Validation status of this package:** docs-only; **not validated** as an executed remediation. No Railway commands run under this draft.
+**Validation status:** Option A **executed** via Railway CLI; bypass-probe + health evidence recorded in DEC-016 (secrets redacted).
