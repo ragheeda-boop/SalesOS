@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-141 criterion 9.2 program↔engineering bridges READY FOR REVIEW; Phase 0 remains 35/54 until Orchestrator CLOSE; EOS Audit Complete 3/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
+> **Last updated:** 2026-08-01 (DEC-141a criterion 9.2 program↔engineering bridges VERIFIED/CLOSED; Phase 0 36/54; ADR-036 Applied Complete 3/4; EOS Audit Complete 3/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
 >
 > ## Operating State
 >
@@ -123,7 +123,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 6.2 | ADR-029 phantom resolved | Numbering gap closed or documented | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: path-exists + Status Not Issued + no Accepted-without-file) @ `a1ce473` (DEC-136a); disposition **Not Issued** @ `docs/adr/0029-number-never-issued.md`; `docs/adr/index.md` row registered (not Accepted); no binding architecture invented; residual **4.5 CLOSED** (DEC-140a); ADR Drift cluster COMPLETE **5/5** (DEC-139a); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 | 6.3 | ADR-033/034 status conflicts resolved | Index status matches file header status | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: index Status == file header Proposed for 033/034; no Accepted-without-evidence) @ `bcd7aa6` (DEC-137a); `docs/adr/index.md` Status **Proposed** matches file headers; dates → `2026-07-17`; no invented Accepted; residual **4.5 CLOSED** (DEC-140a); ADR Drift cluster COMPLETE **5/5** (DEC-139a); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 | 6.4 | ADR-032/0032 naming unified | Single naming convention across `docs/adr/` and `engineering-os/adr/` | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `8a3c92e` (DEC-138a); naming bridge `docs/adr/0032-widget-sdk-reconciliation.md` (canonical ID **ADR-032**; alias ADR-0032); index File/Status/date aligned (Status **Proposed** matches body; no invented Accepted); submodule filename retained as documented alias (no rename); DEC-085 untouched; residual **4.5 CLOSED** (DEC-140a); ADR Drift cluster COMPLETE **5/5** (DEC-139a); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
-| 6.5 | ADR-036 registered in all indexes | `docs/adr/index.md` + `27_ADR_INDEX.md` | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `aaeaff3` (DEC-139a); body `docs/adr/0036-engineering-organization-layer-separation.md` (Status **Accepted** matches file header + criterion 9.1; not invented); `docs/adr/index.md` Active ADRs row; `.engineering/27_ADR_INDEX.md` master row + conflict #13 RESOLVED; engineering-os has no separate ADR index (N/A); DEC-085 untouched; ADR Drift cluster COMPLETE **5/5**; residual **4.5 CLOSED** (DEC-140a); **9.2** OPEN (separate); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
+| 6.5 | ADR-036 registered in all indexes | `docs/adr/index.md` + `27_ADR_INDEX.md` | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `aaeaff3` (DEC-139a); body `docs/adr/0036-engineering-organization-layer-separation.md` (Status **Accepted** matches file header + criterion 9.1; not invented); `docs/adr/index.md` Active ADRs row; `.engineering/27_ADR_INDEX.md` master row + conflict #13 RESOLVED; engineering-os has no separate ADR index (N/A); DEC-085 untouched; ADR Drift cluster COMPLETE **5/5**; residual **4.5 CLOSED** (DEC-140a); **9.2 CLOSED** (DEC-141a); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 
 **Owner:** Human / Chief Architect  
 **Reference:** `27_ADR_INDEX.md` §4, `28_ADR_DEPENDENCY_MAP.md` §6
@@ -165,7 +165,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
 | 9.1 | Four-layer separation documented | ADR-036 Accepted | ✅ |
-| 9.2 | `docs/program/` ↔ `.engineering/` bidirectional references | Cross-references exist, no data duplication | 🟡 READY FOR REVIEW — Cursor COMPLETE (DEC-141); bridges `docs/program/ENGINEERING_LAYER_BRIDGE.md` ↔ `.engineering/33_PROGRAM_LAYER_BRIDGE.md` (pointers only; no catalog/sprint duplication); DEC-085 untouched; awaiting Arch+Val; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN |
+| 9.2 | `docs/program/` ↔ `.engineering/` bidirectional references | Cross-references exist, no data duplication | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `7b618da` (DEC-141a); bridges `docs/program/ENGINEERING_LAYER_BRIDGE.md` ↔ `.engineering/33_PROGRAM_LAYER_BRIDGE.md` (pointers only; no catalog/sprint duplication); DEC-085 untouched; residuals EOS **4.1/4.2/4.4/4.7/4.8** · Eng Stability **8.1–8.3** OPEN; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 | 9.3 | `.ai/` explicitly deferred | Documented with trigger condition | ✅ ADR-036 §Consequences |
 | 9.4 | No further architectural layers introduced before Phase 0 exit | ARB governance rule enforced | ✅ This checklist |
 
@@ -186,8 +186,8 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 6. ADR Drift | 5 | 5 | 0 | 0 |
 | 7. DB Schema | 6 | 6 | 0 | 0 |
 | 8. Engineering Stability | 4 | 1 | 0 | 3 |
-| 9. ADR-036 Applied | 4 | 2 | 0 | 2 |
-| **TOTAL** | **54** | **35** | **2** | **17** |
+| 9. ADR-036 Applied | 4 | 3 | 0 | 1 |
+| **TOTAL** | **54** | **36** | **2** | **16** |
 
 ---
 

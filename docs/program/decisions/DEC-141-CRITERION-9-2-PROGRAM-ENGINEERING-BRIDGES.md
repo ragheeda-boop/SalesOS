@@ -1,11 +1,11 @@
 # DEC-141 — Program ↔ Engineering layer bridges (Phase 0 criterion 9.2)
 
-> **Status:** **Cursor COMPLETE** / **READY FOR REVIEW** — awaiting Architecture + Validation  
+> **Status:** **VERIFIED/CLOSED** via DEC-141a (Arch PASS + Validation PASS light @ `7b618da`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / ADR-036 Applied (SalesOS / AQLIYA) — api-worker land  
+> **Board:** Backend Lead / ADR-036 Applied (SalesOS / AQLIYA) — Orchestrator CLOSE  
 > **Story / risk:** Phase 0 Exit Criterion **9.2** · `docs/program/` ↔ `.engineering/` bidirectional references  
-> **Authority:** PHASE_0_EXIT_CHECKLIST §9.2 · ADR-036 Phase 2 · DEC-140 residual  
-> **Out of scope this land:** fingerprint re-measure (4.2/4.7) · EvidenceLevel upgrade (4.4) · ARB re-audit (4.1/4.8) · Eng Stability 8.1–8.3 · inventing SoT · merging layers · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED
+> **Authority:** PHASE_0_EXIT_CHECKLIST §9.2 · ADR-036 Phase 2 · DEC-140 residual · DEC-141a  
+> **Out of scope this land:** fingerprint re-measure (4.2/4.7) · EvidenceLevel upgrade (4.4) · ARB re-audit (4.1/4.8) · Eng Stability 8.1–8.3 · inventing SoT · merging layers · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit
 
 ---
 
@@ -19,7 +19,7 @@ Resolve criterion **9.2** by adding **thin bidirectional bridge files** that poi
 | Observation | ADR-036 Accepted (9.1); `.engineering/` committed (4.5); ARB noted coordination gap; no dedicated program↔engineering bridge pair |
 | Disposition | Add program bridge + EOS bridge; wire Related / Agent Bootstrap / constitution §8 / ADR-036 Related; no catalog body copy |
 | Files | `docs/program/ENGINEERING_LAYER_BRIDGE.md` · `.engineering/33_PROGRAM_LAYER_BRIDGE.md` · crumbs · this DEC |
-| Criterion state | **READY FOR REVIEW** (not VERIFIED/CLOSED) |
+| Criterion state | **VERIFIED/CLOSED** (DEC-141a) |
 
 ### Gate definition (honest)
 
@@ -33,7 +33,7 @@ Resolve criterion **9.2** by adding **thin bidirectional bridge files** that poi
 | DEC-085 / auth untouched | **Yes** |
 | Fingerprint re-pin / ARB PASS | **No** — residuals **4.2/4.7/4.1/4.8** |
 
-**Not claimed:** Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED · closing 4.x / 8.x.
+**Not claimed:** Production GO · CI GREEN · Phase 0 exit · closing 4.x / 8.x.
 
 ---
 
@@ -58,16 +58,16 @@ Resolve criterion **9.2** by adding **thin bidirectional bridge files** that poi
 | Auth / DEC-085 | **Untouched** |
 | Label | **light validated** (filesystem + link presence; no full CI / no Production GO) |
 
-**Production GO not claimed. CI GREEN not met.** Awaiting Arch+Val + Orchestrator for CLOSE.
+**Production GO not claimed. CI GREEN not met.** Closed via DEC-141a after Arch+Val PASS.
 
 ---
 
 ## 4. Records
 
-- Phase 0 criterion **9.2** → **READY FOR REVIEW** (this land)
-- Phase 0 remains **35/54** until Orchestrator CLOSE
+- Phase 0 criterion **9.2** → **VERIFIED/CLOSED** (DEC-141a)
+- Phase 0 **35/54 → 36/54**; ADR-036 Applied Complete **2 → 3**
 - Residuals (non-blocking for 9.2): EOS **4.1/4.2/4.4/4.7/4.8** · Eng Stability **8.1–8.3**
-- **Not claimed:** Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED
+- **Not claimed:** Production GO · CI GREEN · Phase 0 exit
 
 ---
 
