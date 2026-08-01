@@ -25,7 +25,7 @@ class RevenueService:
         confidence: float,
         buying_intent: float = 0.5,
         relationship_strength: float = 0.5,
-        source_action_id: str = None,
+        source_action_id: str | None = None,
     ):
         risk = "low" if confidence >= 0.8 else "medium" if confidence >= 0.5 else "high"
         result = await self.db.execute(
@@ -71,8 +71,8 @@ class RevenueService:
         title: str,
         priority: str = "medium",
         source: str = "manual",
-        company_id: str = None,
-        due_date: str = None,
+        company_id: str | None = None,
+        due_date: str | None = None,
     ):
         result = await self.db.execute(
             text("""
@@ -130,7 +130,7 @@ class RevenueService:
         }
 
     async def list_opportunities(
-        self, tenant_id: str, stage: str = None, page: int = 1, limit: int = 20
+        self, tenant_id: str, stage: str | None = None, page: int = 1, limit: int = 20
     ):
         where = "WHERE tenant_id = :tenant_id"
         params = {"tenant_id": tenant_id}
@@ -151,7 +151,7 @@ class RevenueService:
         total = count_result.scalar()
         return {"opportunities": rows, "total": total, "page": page}
 
-    async def list_tasks(self, tenant_id: str, priority: str = None):
+    async def list_tasks(self, tenant_id: str, priority: str | None = None):
         where = "WHERE tenant_id = :tenant_id"
         params = {"tenant_id": tenant_id}
         if priority:
