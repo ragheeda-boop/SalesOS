@@ -27,7 +27,7 @@ class CacheService(_SdkCacheService):
 
     async def health(self) -> bool:
         try:
-            return await self._redis.ping()
+            return bool(await self._redis.ping())
         except Exception:
             return False
 

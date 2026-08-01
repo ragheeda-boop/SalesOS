@@ -39,7 +39,7 @@ async def get_optional_token(
 async def get_current_user_id(
     token_payload: dict = Depends(verify_token),
 ) -> str:
-    return token_payload.get("sub", "")
+    return str(token_payload.get("sub", "") or "")
 
 
 async def get_current_tenant_id(

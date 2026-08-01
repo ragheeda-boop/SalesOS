@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 
 from sqlalchemy import Boolean, Float, ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -42,7 +43,7 @@ class Contact(BaseModel):
     tags: Mapped[list | None] = mapped_column(JSONB, default=list)
     extra_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB, default=dict)
 
-    company: Mapped["Company"] = relationship(  # noqa: F821
+    company: Mapped[Any] = relationship(
         "app.modules.company.models.Company",
         back_populates="contacts",
     )

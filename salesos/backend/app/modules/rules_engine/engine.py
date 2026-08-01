@@ -24,9 +24,9 @@ def _evaluate_condition(cond: Condition, data: dict[str, Any]) -> bool:
 
     try:
         if cond.operator == ConditionOperator.equals:
-            return field_value == target
+            return bool(field_value == target)
         elif cond.operator == ConditionOperator.not_equals:
-            return field_value != target
+            return bool(field_value != target)
         elif cond.operator == ConditionOperator.greater_than:
             return field_value is not None and target is not None and field_value > target
         elif cond.operator == ConditionOperator.less_than:

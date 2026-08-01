@@ -86,9 +86,12 @@ def _get_client_ip(scope: dict) -> str:
         if header_bytes in headers:
             val = headers[header_bytes].decode().split(",")[0].strip()
             if val:
-                return val
+                return str(val)
     client = scope.get("client")
-    return client[0] if client else "unknown"
+    if not client:
+        return "unknown"
+    host = client[0]
+    return str(host) if host is not None else "unknown"
 
 
 _SEARCH_ENRICH_PREFIXES = ("/api/v1/search", "/api/v1/entity-resolution", "/api/v1/data-fabric")

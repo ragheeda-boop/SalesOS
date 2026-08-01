@@ -54,8 +54,8 @@ class ExcelImportService:
             return [], ["Empty spreadsheet"]
 
         headers = [str(h).strip() if h else f"column_{i}" for i, h in enumerate(rows[0])]
-        data = []
-        errors = []
+        data: list[dict[str, str]] = []
+        errors: list[str] = []
         for _i, row in enumerate(rows[1:], start=2):
             row_data = {}
             _ = []

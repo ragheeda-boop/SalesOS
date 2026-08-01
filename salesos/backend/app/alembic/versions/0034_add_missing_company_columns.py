@@ -13,6 +13,7 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.sql.schema import Column
 
 revision: str = "0034"
 down_revision: Union[str, None] = "0033"
@@ -29,7 +30,7 @@ def _col_exists(conn, table: str, column: str) -> bool:
 def upgrade() -> None:
     conn = op.get_bind()
 
-    additions = [
+    additions: list[tuple[str, Column]] = [
         ("fax", sa.Column("fax", sa.String(50), nullable=True)),
         ("website", sa.Column("website", sa.String(500), nullable=True)),
         ("currency", sa.Column("currency", sa.String(10), nullable=True, server_default="SAR")),
