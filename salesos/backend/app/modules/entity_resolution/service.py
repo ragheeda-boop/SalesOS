@@ -594,14 +594,14 @@ class EntityResolutionService:
         from app.modules.contact.models import Contact
 
         contact_stmt = select(Contact).where(Contact.company_id == source.id)
-        for rel in (await self.db.execute(contact_stmt)).scalars().all():
-            rel.company_id = target.id
+        for contact in (await self.db.execute(contact_stmt)).scalars().all():
+            contact.company_id = target.id
         branch_stmt = select(Branch).where(Branch.company_id == source.id)
-        for rel in (await self.db.execute(branch_stmt)).scalars().all():
-            rel.company_id = target.id
+        for branch in (await self.db.execute(branch_stmt)).scalars().all():
+            branch.company_id = target.id
         license_stmt = select(License).where(License.company_id == source.id)
-        for rel in (await self.db.execute(license_stmt)).scalars().all():
-            rel.company_id = target.id
+        for license_row in (await self.db.execute(license_stmt)).scalars().all():
+            license_row.company_id = target.id
 
         # Move opportunities
         opps_moved = False
@@ -612,7 +612,8 @@ class EntityResolutionService:
                 opp_stmt = select(Opportunity).where(Opportunity.company_id == source.id)
                 opps = (await self.db.execute(opp_stmt)).scalars().all()
                 for opp in opps:
-                    opp.company_id = target.id
+                    # Opportunity.company_id is classic Column (not Mapped) — avoid Column[UUID] assignment
+                    setattr(opp, "company_id", target.id)
                 opps_moved = len(opps) > 0
         except Exception:
             opps_moved = False
@@ -629,7 +630,7 @@ class EntityResolutionService:
         # Archive source (merged_into_id is not an ORM column — persist via setattr)
         source.is_active = False
         source.status = "merged"
-        source.merged_into_id = target.id
+        setattr(source, "merged_into_id", target.id)
         await self.db.flush()
 
         audit = AuditTrail(self.db)
