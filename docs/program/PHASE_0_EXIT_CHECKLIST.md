@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-130 Slice 5a 7.6 re-baseline READY FOR REVIEW — criterion 7.6 stays OPEN; 7.4 VERIFIED/CLOSED DEC-129a; Phase 0 24/54)
+> **Last updated:** 2026-08-01 (DEC-130b Slice 5b metadata classify READY FOR REVIEW — criterion 7.6 stays OPEN; remove_table 28→15; 7.4 VERIFIED/CLOSED DEC-129a; Phase 0 24/54)
 >
 > ## Operating State
 >
@@ -139,7 +139,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 7.3 | Index names aligned | `ix_rev_*` → `ix_*` rename (DEC-122) | ✅ Slice 3 |
 | 7.4 | Companies dead-column DROP resolved | `search_vector` FTS preserved; DEC decision recorded | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `4aacd6d` (DEC-129a); KEEP (no DROP; ORM restore); head `d1a8c35e7f09`; Docker **4 passed**; DEC-085 untouched; Orchestrator 2026-08-01 |
 | 7.5 | Deferred-8 tables have RLS enabled | RLS policies on tables currently without them | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `578e4f2` (DEC-123a); live POLICY_COUNT **67** (prod tip-align `d1a8c35e7f09` / crumb `c842245` cleared prior “prod may still be on 59” residual); Orchestrator 2026-08-01 |
-| 7.6 | `alembic check` exits clean | Zero drift between ORM and DB | ⬜ **OPEN** (phased) — Slice 5a COMPLETE (DEC-130 READY FOR REVIEW): live Docker `alembic check` @ `d1a8c35e7f09` **FAILED** exit 255; add_table **3** / remove_table **28** / remove_index **~100** / add_index **~37** / type **4** / remove_column **2** (companies KEEP-adjacent); historic “300+” superseded; **not CLOSED**; next Slice 5b metadata classify |
+| 7.6 | `alembic check` exits clean | Zero drift between ORM and DB | ⬜ **OPEN** (phased) — Slice 5b COMPLETE (DEC-130b READY FOR REVIEW): live Docker `alembic check` @ `d1a8c35e7f09` **FAILED** exit 255; `remove_table` **28→15** (13 FPs registered; 15 orphan KEEP); add_table **3** (admin → 5c); **not CLOSED**; next Slice 5c admin CREATE |
 
 **Owner:** Backend Lead  
 **Reference:** `13_DATABASE_CATALOG.md`, R-20, DB-05

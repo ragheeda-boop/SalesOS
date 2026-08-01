@@ -80,7 +80,26 @@ import app.modules.sso.models  # noqa: F401
 import app.modules.telemetry.models  # noqa: F401
 import domains.analytics.infrastructure.models  # noqa: F401
 import domains.commercial.infrastructure.models  # noqa: F401
+import domains.decision_center.postgres_repo  # noqa: F401  # DEC-130b FP
+import domains.marketplace.db_models  # noqa: F401  # DEC-130b FP
+import domains.revenue.analytics.postgres_repo  # noqa: F401  # DEC-130b FP
+import domains.scoring.infrastructure.postgres_repository  # noqa: F401  # DEC-130b FP
 import domains.timeline.models  # noqa: F401
+import runtime.feature_store  # noqa: F401  # DEC-130b FP company_features
+
+# DEC-130b: Core Table() objects live on private MetaData — copy onto Base so
+# alembic check stops proposing false remove_table for live GA paths.
+from domains.search.engine.vector_store import _collection_table as _vs_table  # noqa: E402
+from runtime.activity_runtime import activity_records as _activity_records  # noqa: E402
+from runtime.knowledge_graph_runtime.repository.sql_repository import (  # noqa: E402
+    graph_edges as _graph_edges,
+)
+from sdk.events.store import domain_events as _domain_events  # noqa: E402
+
+for _tbl in (_activity_records, _domain_events, _graph_edges, _vs_table("vectors")):
+    if _tbl.key not in Base.metadata.tables:
+        _tbl.to_metadata(Base.metadata)
+del _tbl, _activity_records, _domain_events, _graph_edges, _vs_table
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

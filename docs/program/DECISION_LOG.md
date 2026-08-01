@@ -1086,14 +1086,23 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-130b — DB-05 Slice 5b: classify `remove_table` + register false positives
+
+**Date:** 2026-08-01
+**Context:** DEC-130 Slice 5a pinned live `alembic check` FAILED with `remove_table`×28 (many metadata false positives). Criterion 7.6 stays OPEN; next land = classify + register FPs only (no DROP).
+**Alternatives considered:** (a) DROP the 28 tables — rejected; (b) mega-migration — rejected; (c) classify FP vs orphan KEEP vs true DROP DEC + register FPs — approved.
+**Decision:** Accept **Slice 5b** as Cursor COMPLETE / READY FOR REVIEW. Companion: [`decisions/DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md`](decisions/DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md). Registered **13** FPs into `Base.metadata` (70→83); marketplace Declarative `metadata` attr → `event_metadata` (column name unchanged); `company_features` on shared Base. Live Docker check @ `d1a8c35e7f09` still **FAILED** exit 255; `remove_table` **28→15** (orphan KEEP residual). No DDL. DEC-085 intact. Next: Slice **5c** admin CREATE trio.
+**Consequence:** Phase 0 remains **24/54**. Criterion **7.6 OPEN**. **Production GO not claimed. CI GREEN not met. Do not claim VERIFIED/CLOSED for 7.6.**
+**Status:** Accepted. Criterion **7.6 OPEN** (Slice 5b COMPLETE / READY FOR REVIEW).
+
 ### DEC-130 — DB-05 criterion 7.6: live `alembic check` re-baseline + phased plan
 
 **Date:** 2026-08-01
 **Context:** Phase 0 Exit Criterion 7.6 (`alembic check` exits clean) remains OPEN after 7.1–7.5 closed. Historic CI-15 “~300 drift lines” was never re-run at tip `d1a8c35e7f09`. Full clean is multi-slice; autogenerate proposes destructive `remove_table`/`remove_column` including metadata false positives and DEC-129 KEEP-adjacent columns.
 **Alternatives considered:** (a) claim 7.6 CLOSED — rejected (live check FAILED); (b) mega-migration from autogenerate — rejected (DROP risk); (c) Slice 5a live re-baseline + phased plan — approved.
-**Decision:** Accept **Slice 5a** as Cursor COMPLETE / READY FOR REVIEW (plan honesty only). Companion: [`decisions/DEC-130-DB-05-CRITERION-7-6-ALEMBIC-CHECK-PHASED.md`](decisions/DEC-130-DB-05-CRITERION-7-6-ALEMBIC-CHECK-PHASED.md). Live Docker `alembic check` @ head `d1a8c35e7f09` = **FAILED** exit 255 (add_table **3** global admin; remove_table **28**; remove_index **~100**; add_index **~37**; type **4**; remove_column **2** companies KEEP-adjacent). Criterion **7.6 stays OPEN**. DEC-085 intact. No DDL this land. Next: Slice 5b metadata classify.
+**Decision:** Accept **Slice 5a** as Cursor COMPLETE / READY FOR REVIEW (plan honesty only). Companion: [`decisions/DEC-130-DB-05-CRITERION-7-6-ALEMBIC-CHECK-PHASED.md`](decisions/DEC-130-DB-05-CRITERION-7-6-ALEMBIC-CHECK-PHASED.md). Live Docker `alembic check` @ head `d1a8c35e7f09` = **FAILED** exit 255 (add_table **3** global admin; remove_table **28**; remove_index **~100**; add_index **~37**; type **4**; remove_column **2** companies KEEP-adjacent). Criterion **7.6 stays OPEN**. DEC-085 intact. No DDL this land. Next: Slice 5b metadata classify → **landed as DEC-130b** (`remove_table` 28→15).
 **Consequence:** Phase 0 remains **24/54**. DB-05 residual = **7.6** only (phased). **Production GO not claimed. CI GREEN not met. Do not claim VERIFIED/CLOSED for 7.6.**
-**Status:** Accepted. Criterion **7.6 OPEN** (Slice 5a COMPLETE).
+**Status:** Accepted. Criterion **7.6 OPEN** (Slice 5a COMPLETE; Slice 5b → DEC-130b).
 
 ### DEC-129 — DB-05 companies dead-column KEEP (Phase 0 criterion 7.4)
 

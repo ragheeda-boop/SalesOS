@@ -10,18 +10,17 @@ from typing import Any, Callable, Optional
 
 from sqlalchemy import JSON, Column, DateTime, Float, Integer, String, UniqueConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import declarative_base, registry
 
 from runtime.event_runtime import EventRuntime
+from sdk.database import Base
 
-FeatureBase = declarative_base()
 
+class CompanyFeatureModel(Base):
+    """Company feature scores — registered on shared Base for alembic check (DEC-130b)."""
 
-class CompanyFeatureModel(FeatureBase):
     __tablename__ = "company_features"
     __table_args__ = (
         UniqueConstraint("tenant_id", "company_id", "feature_name", name="uq_company_feature"),
-        {"schema": "public"},
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)

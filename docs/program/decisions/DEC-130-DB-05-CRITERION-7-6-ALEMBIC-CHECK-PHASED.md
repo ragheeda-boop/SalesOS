@@ -1,6 +1,6 @@
 # DEC-130 — DB-05 criterion 7.6: live `alembic check` re-baseline + phased plan
 
-> **Status:** **Accepted** — Cursor packaging **COMPLETE** · Criterion **7.6 remains OPEN** (clean check **not** met) · Package = **READY FOR REVIEW** (Architecture / Validation: plan honesty + evidence only; do **not** CLOSE 7.6)  
+> **Status:** **Accepted** — Slice **5a** COMPLETE · Slice **5b** COMPLETE ([DEC-130b](DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md) READY FOR REVIEW) · Criterion **7.6 remains OPEN** (clean check **not** met) · do **not** CLOSE 7.6  
 > **Date:** 2026-08-01  
 > **Board:** Backend Platform / Database (SalesOS / AQLIYA)  
 > **Story / risk:** DB-05 / R-20 / Phase 0 Exit Criterion **7.6**  
@@ -64,7 +64,7 @@ docker compose exec -T backend alembic check     → FAILED exit 255
 | Slice | Scope | Exit for that slice | Closes 7.6? |
 |---|---|---|---|
 | **5a** | *(this DEC)* Live re-baseline + plan | Evidence pinned; 7.6 stays OPEN | **No** |
-| **5b** | Metadata completeness for `alembic check` — register missing ORM modules used by GA paths; classify each of the 28 `remove_table` as **FP (register)** vs **orphan KEEP** vs **true DROP DEC** | `remove_table` false positives ↓; **no DROP** | **No** |
+| **5b** | Metadata completeness — classify 28 `remove_table`; register FPs ([DEC-130b](DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md)) | `remove_table` **28 → 15**; **no DROP** | **No** (COMPLETE / READY FOR REVIEW) |
 | **5c** | Additive **CREATE** for global admin trio (`admin_plans`, `admin_feature_flags`, `admin_health_snapshots`) — no RLS | `add_table` for those three gone | **No** |
 | **5d** | Index / type / nullable residual batches (additive rename/create only; SET NOT NULL only with null inventory) | Index/type/null noise ↓ | **No** |
 | **5e** | Companies residual columns (`do_not_contact`, `embedding_vector`) — KEEP + ORM or explicit DROP DEC | Column DROP proposals gone | **No** |
