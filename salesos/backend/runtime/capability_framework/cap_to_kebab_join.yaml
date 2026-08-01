@@ -13,7 +13,9 @@
 #
 # decorator_only — SoT IDs with no primary CAP-### (honest residual)
 #
-# Not claimed: 5.3 validate exit 0 · Production GO · CI GREEN · VERIFIED/CLOSED
+# 5.3 (DEC-134): validate_capability_registries.py SoT-oriented exit 0 =
+# joined secondaries ⊆ SoT via this map (NOT 4-way identity equality).
+# Not claimed by this file alone: Production GO · CI GREEN · VERIFIED/CLOSED
 
 version: 1
 criterion: "5.2"
@@ -238,4 +240,5 @@ coverage:
   note: >
     Partial coverage is intentional and documented. Criterion 5.2 requires a join
     map automation can use — not 40/40 decorator registration. Criterion 5.3
-    (validate exit 0) remains OPEN.
+    (DEC-134) reorients validate exit 0 to SoT-oriented subset (via this map),
+    not 4-way identity equality.

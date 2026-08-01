@@ -16,6 +16,10 @@ authoritative for runtime IDs — they must converge toward this SoT (criteria 5
 ``CAP-###`` → kebab join map (DEC-133 / criterion 5.2):
 ``cap_to_kebab_join.yaml`` beside this module.
 
+Validate gate (DEC-134 / criterion 5.3): ``scripts/validate_capability_registries.py``
+exit 0 means joined secondaries ⊆ this SoT via the join map — **not** 4-way
+identity equality. Do not delete secondaries to force exit 0.
+
 Company360, Dynamic Navigation, Dynamic Search, Dynamic Permissions, AI — all read from here.
 """
 

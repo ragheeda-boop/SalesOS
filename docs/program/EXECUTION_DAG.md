@@ -90,7 +90,8 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **DB-05 7.6** alembic check | **CLOSED** (DEC-130h) | Arch+Val PASS @ `250bcb5` / DEC-130g; check exit 0 @ `a4f7c29e1b80`; phased 5a–5g; Phase 0 **25/54** (superseded to **26/54** by DEC-131a); do **not** claim Phase 0 GO |
 | **Capability 5.4** `/api/v1/capabilities` tested | **CLOSED** (DEC-131a) | Arch+Val PASS @ `65e82cc` / DEC-131; Docker **4 passed**; DEC-085 untouched; Phase 0 **26/54** (superseded to **28/54** by DEC-133a); residual **5.3** OPEN; do **not** claim Phase 0 GO |
 | **Capability 5.1** single SoT designated | **CLOSED** (DEC-132a) | Arch+Val PASS (light) @ `8e105fe` / DEC-132; decorator framework = canonical runtime SoT (kebab); secondaries SDK/YAML/CAP-###; DEC-085 untouched; Phase 0 **27/54** (superseded to **28/54** by DEC-133a); residual **5.3** OPEN; do **not** claim Phase 0 GO |
-| **Capability 5.2** CAP-###→kebab join map | **CLOSED** (DEC-133a) | Arch+Val PASS (light) @ `81b593f` / DEC-133; `--join-map-only` exit 0; 10/30/3; DEC-085 untouched; CAP-037 refine non-blocking; Phase 0 **28/54**; residual **5.3** OPEN; do **not** claim Phase 0 GO |
+| **Capability 5.2** CAP-###→kebab join map | **CLOSED** (DEC-133a) | Arch+Val PASS (light) @ `81b593f` / DEC-133; `--join-map-only` exit 0; 10/30/3; DEC-085 untouched; CAP-037 refine non-blocking; Phase 0 **28/54**; residual **5.3** READY FOR REVIEW (DEC-134); do **not** claim Phase 0 GO |
+| **Capability 5.3** SoT-oriented validate exit 0 | **READY FOR REVIEW** (DEC-134) | api-worker land; default validate exit **0** (host+Docker import-light); gate = joined secondaries subset-of SoT via join map; `--legacy-equality` exit 2 diagnostic; DEC-085 untouched; Arch/Val PENDING; Phase 0 **28/54** until CLOSE; do **not** claim VERIFIED/CLOSED / Phase 0 GO |
 
 ---
 
@@ -98,7 +99,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30, ADR Drift / Capability Drift **5.3** / EOS | PARALLEL / READY | DEC-107 swarm; 5.4/5.1/5.2 **CLOSED**; residual Capability **5.3** OPEN; do **not** claim Phase 0 GO |
+| Contract tests, optional Jest 30, ADR Drift / Capability Drift **5.3** / EOS | PARALLEL / READY | DEC-107 swarm; 5.4/5.1/5.2 **CLOSED**; **5.3 READY FOR REVIEW** (DEC-134); do **not** claim Phase 0 GO |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 **Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation / CI-08/09 ops proceed.

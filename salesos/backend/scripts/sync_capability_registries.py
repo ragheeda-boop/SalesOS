@@ -1,97 +1,149 @@
-"""Auto-sync capability registries: update Governance YAML from SDK registry.
+"""Helper notes for secondary registry sync (NOT the 5.3 close gate).
 
 Usage:
     python scripts/sync_capability_registries.py
 
-**SoT (DEC-132 / Phase 0 criterion 5.1):** Decorator framework is the canonical
-*runtime* source of truth. This helper currently appends missing SDK-derived
-entries into governance YAML (secondary→secondary). Criterion **5.3** should
-reorient sync toward decorator kebab IDs; do not treat this script as SoT.
+**SoT (DEC-132 / 5.1):** Decorator framework is the canonical *runtime* source
+of truth. This helper historically appended missing SDK-derived entries into
+governance YAML (secondary→secondary).
 
-Updates:
-    - engineering-os/kernel/capability-registry.yaml
-      with any capabilities from the SDK CapabilityRegistry that are missing.
+**DEC-134 / criterion 5.3:** Close gate is
+``validate_capability_registries.py`` (default SoT-oriented mode):
+joined secondaries subset-of decorator SoT via join map. Do **not** delete secondary
+SDK/YAML entries to force exit 0. Do **not** treat this sync helper as SoT.
+
+This script is import-light diagnostics only (source/YAML parse). It does not
+mutate YAML by default — mutation of governance YAML requires an explicit
+``--apply`` flag and remains secondary→secondary (not recommended for 5.3).
 """
 
+from __future__ import annotations
+
+import argparse
+import os
+import re
 import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 
-def get_sdk_capabilities() -> dict:
-    """Extract all registered SDK capabilities."""
-    from sdk.capability_registry import CapabilityRegistry
+def _resolve_repo_root() -> Path:
+    raw = os.environ.get("MUHIDE_REPO_ROOT") or os.environ.get("REPO_ROOT")
+    if raw:
+        candidate = Path(raw).resolve()
+        if (candidate / "engineering-os" / "kernel" / "capability-registry.yaml").exists():
+            return candidate
+    here = PROJECT_ROOT
+    for _ in range(6):
+        if (here / "engineering-os" / "kernel" / "capability-registry.yaml").exists():
+            return here
+        if here.parent == here:
+            break
+        here = here.parent
+    return PROJECT_ROOT.parent.parent
 
-    return {c.name: c for c in CapabilityRegistry.all()}
+
+REPO_ROOT = _resolve_repo_root()
 
 
-def get_decorator_capabilities() -> dict:
-    """Extract all decorator framework capabilities."""
-    from runtime.capability_framework import Capability
+def decorator_ids_from_source() -> set[str]:
+    init_path = PROJECT_ROOT / "runtime" / "capability_framework" / "__init__.py"
+    text = init_path.read_text(encoding="utf-8")
+    return set(re.findall(r'^\s*id="([a-z0-9]+(?:-[a-z0-9]+)*)"', text, re.MULTILINE))
 
-    return {c.id: c for c in Capability.all()}
+
+def sdk_ids_from_source() -> set[str]:
+    registry_path = PROJECT_ROOT / "modules" / "registry.py"
+    text = registry_path.read_text(encoding="utf-8")
+    return set(
+        re.findall(
+            r"CapabilityRegistry\.register\(\s*Capability\(\s*name=\"([^\"]+)\"",
+            text,
+            re.DOTALL,
+        )
+    )
 
 
 def get_yaml_capability_ids(yaml_path: Path) -> set[str]:
-    """Get set of capability IDs from YAML."""
-    import re
-
     if not yaml_path.exists():
         return set()
     content = yaml_path.read_text(encoding="utf-8")
     return set(re.findall(r'^\s+- id:\s+"([^"]+)"', content, re.MULTILINE))
 
 
-def main():
-    yaml_path = PROJECT_ROOT.parent / "engineering-os" / "kernel" / "capability-registry.yaml"
+def _to_kebab(raw: str) -> str:
+    return raw.strip().lower().replace("_", "-").replace(" ", "-")
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description="Capability secondary sync helper (DEC-134)")
+    parser.add_argument(
+        "--apply",
+        action="store_true",
+        help="Append missing SDK-aligned IDs into governance YAML (secondary; not 5.3 gate)",
+    )
+    args = parser.parse_args(argv)
+
+    yaml_path = REPO_ROOT / "engineering-os" / "kernel" / "capability-registry.yaml"
     if not yaml_path.exists():
-        print(f"❌ YAML not found: {yaml_path}")
+        print(f"YAML not found: {yaml_path}")
         sys.exit(1)
 
-    sdk_caps = get_sdk_capabilities()
-    decorator_caps = get_decorator_capabilities()
+    decorator_ids = decorator_ids_from_source()
+    sdk_ids = sdk_ids_from_source()
     gov_ids = get_yaml_capability_ids(yaml_path)
 
-    # Map SDK names to YAML kebab-case IDs
+    sdk_kebab = {_to_kebab(x) for x in sdk_ids}
+    gov_kebab = {_to_kebab(x) for x in gov_ids}
+
+    print("SoT (DEC-132): decorator-framework kebab IDs")
+    print(f"  sot={len(decorator_ids)} sdk={len(sdk_kebab)} yaml={len(gov_kebab)}")
+    print("5.3 gate: validate_capability_registries.py (SoT-oriented; do not delete secondaries)")
+
+    aligned_sdk = sorted(sdk_kebab & decorator_ids)
+    residual_sdk = sorted(sdk_kebab - decorator_ids)
+    print(f"\nSDK aligned to SoT ({len(aligned_sdk)}): {aligned_sdk}")
+    print(f"SDK secondary residual ({len(residual_sdk)}): {residual_sdk}")
+
+    aligned_gov = sorted(gov_kebab & decorator_ids)
+    residual_gov = sorted(gov_kebab - decorator_ids)
+    print(f"\nYAML aligned to SoT ({len(aligned_gov)}): {aligned_gov}")
+    print(f"YAML secondary residual ({len(residual_gov)}): {residual_gov}")
+
+    # Optional secondary→secondary append (legacy helper; off by default).
     name_to_yaml_id = {
-        "company intelligence": "company-360",
-        "search & discovery": "search",
-        "timeline & activity": "timeline",
-        "opportunity management": "opportunity",
-        "pipeline management": "pipeline",
-        "activity management": "activity",
-        "contract management": "contract",
-        "proposal management": "proposal",
-        "quote management": "quote",
-        "email intelligence": "email",
-        "meeting intelligence": "meeting",
-        "quota management": "quota",
-        "territory management": "territory",
-        "revenue analytics": "analytics",
-        "revenue forecasting": "forecast",
-        "decision context": "context",
-        "recommendation engine": "recommendation",
-        "entity resolution": "entity-resolution",
-        "infrastructure": "infrastructure",
-        "sales playbook": "playbook",
-        "ai copilot": "ai_copilot",
+        "company": "company",  # prefer SoT id if appending; do not invent company-360
+        "search": "search",
+        "timeline": "timeline",
+        "identity": "identity",
     }
+    missing_for_apply = []
+    for name in sdk_ids:
+        yaml_id = name_to_yaml_id.get(name.lower(), _to_kebab(name))
+        if yaml_id in decorator_ids and yaml_id not in gov_ids:
+            missing_for_apply.append((yaml_id, name))
 
-    missing_in_yaml = set()
-    for name, cap in sdk_caps.items():
-        yaml_id = name_to_yaml_id.get(name.lower())
-        if yaml_id and yaml_id not in gov_ids:
-            missing_in_yaml.add((yaml_id, name, cap))
+    if not args.apply:
+        if missing_for_apply:
+            print(
+                f"\nINFO {len(missing_for_apply)} SoT-aligned SDK IDs absent from YAML "
+                f"(run with --apply to append secondary mirrors): "
+                f"{[m[0] for m in missing_for_apply]}"
+            )
+        else:
+            print("\nINFO No SoT-aligned SDK IDs missing from YAML.")
+        print("Sync diagnostic complete (no mutation). Prefer validate_capability_registries.py.")
+        sys.exit(0)
 
-    if not missing_in_yaml:
-        print("✅ All SDK capabilities are present in Governance YAML.")
-    else:
-        print(f"Adding {len(missing_in_yaml)} missing capabilities to YAML...")
-        with yaml_path.open("a", encoding="utf-8") as f:
-            for yaml_id, name, cap in missing_in_yaml:
-                entry = f"""
+    if not missing_for_apply:
+        print("\nNothing to apply.")
+        sys.exit(0)
+
+    print(f"\nApplying {len(missing_for_apply)} secondary YAML append(s)...")
+    with yaml_path.open("a", encoding="utf-8") as f:
+        for yaml_id, name in missing_for_apply:
+            entry = f"""
   - id: "{yaml_id}"
     name: "{name}"
     owner: "platform"
@@ -107,25 +159,9 @@ def main():
     documentation: []
     frozen: false
 """
-                f.write(entry)
-                print(f"  ✓ Added '{yaml_id}' ({name})")
-
-    # Check decorator framework for gaps
-    decorator_ids = set(decorator_caps.keys())
-    sdk_yaml_ids = {name_to_yaml_id.get(n.lower(), n.lower().replace(" ", "_"))
-                     for n in sdk_caps}
-
-    # Activity Intelligence is a separate concept from SDK's "activity"
-    sdk_yaml_ids.add("activity-intelligence")
-    sdk_yaml_ids.add("workflow")
-
-    missing_in_decorator = sdk_yaml_ids - decorator_ids
-    if missing_in_decorator:
-        print(f"\n⚠ {len(missing_in_decorator)} capabilities missing from Decorator Framework (add manually to runtime/capability_framework/__init__.py):")
-        for c in sorted(missing_in_decorator):
-            print(f"  - {c}")
-
-    print("\n✅ Sync complete.")
+            f.write(entry)
+            print(f"  + Added '{yaml_id}' ({name})")
+    print("Apply complete (secondary only; SoT unchanged).")
 
 
 if __name__ == "__main__":

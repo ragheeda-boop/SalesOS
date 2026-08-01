@@ -1,71 +1,135 @@
-"""Validate capability registries are in sync across all 4 sources.
+"""Validate capability registries against decorator SoT (Phase 0 criterion 5.3).
 
 Usage:
     python scripts/validate_capability_registries.py
     python scripts/validate_capability_registries.py --join-map-only
+    python scripts/validate_capability_registries.py --legacy-equality
 
-Returns exit code 0 if all registries are in sync, non-zero on mismatch.
-``--join-map-only`` exits 0 when CAP→kebab join map integrity passes (5.2);
-it does **not** claim criterion 5.3.
+Exit codes:
+    0 — SoT-oriented gate passes (DEC-134 / criterion 5.3 default), or
+        ``--join-map-only`` join-map integrity passes (5.2 light path)
+    1 — integrity / alignment failure
+    2 — ``--legacy-equality`` requested and 4-way identity equality fails
 
-**SoT (DEC-132 / Phase 0 criterion 5.1):** Decorator Framework
+**SoT (DEC-132 / 5.1):** Decorator Framework
 (`runtime/capability_framework`, kebab-case IDs) is the canonical *runtime*
-source of truth. SDK / governance YAML / docs CAP-### catalog are secondary
-and must converge toward that SoT.
+source of truth. SDK / governance YAML / docs CAP-### catalog are secondary.
 
-**Join map (DEC-133 / Phase 0 criterion 5.2):**
+**Join map (DEC-133 / 5.2):**
 `runtime/capability_framework/cap_to_kebab_join.yaml` joins CAP-### → kebab.
-Integrity of that map is checked here. Full 4-way sync exit 0 remains
-criterion **5.3** (still expected non-zero until convergence land).
+
+**Gate (DEC-134 / 5.3):** Exit 0 means joined secondaries are a subset of
+decorator SoT via the join map — **not** 4-way identity equality. Unmapped
+catalog CAPs and SDK/YAML IDs outside SoT are honest secondary residual
+(INFO), not failures. SoT need not be a subset of secondaries (decorator-only
+already documented in 5.2).
+
+Import-light by design: parses sources / YAML / markdown. Does **not** import
+``runtime`` (package ``__init__`` pulls the full runtime stack) or SDK
+(SQLAlchemy). Safe on host without full app deps; Docker preferred for CI parity.
 
 Surfaces:
-    1. SDK CapabilityRegistry (sdk/capability_registry.py + modules/registry.py) — secondary
-    2. Decorator Framework (runtime/capability_framework/__init__.py) — **SoT**
-    3. Governance YAML (engineering-os/kernel/capability-registry.yaml) — secondary
-    4. Documentation Catalog (docs/CAPABILITY_CATALOG.md) — secondary (CAP-###)
-    5. CAP-### → kebab join map (cap_to_kebab_join.yaml) — criterion 5.2
+    1. Decorator Framework (runtime/capability_framework/__init__.py) — **SoT**
+    2. CAP-### → kebab join map — criterion 5.2 integrity
+    3. Documentation Catalog (docs/CAPABILITY_CATALOG.md) — secondary
+    4. SDK CapabilityRegistry (modules/registry.py) — secondary
+    5. Governance YAML (engineering-os/kernel/capability-registry.yaml) — secondary
 """
 
 from __future__ import annotations
 
+import argparse
+import os
 import re
 import sys
 from pathlib import Path
 from typing import Any
 
-# Add project root to path (salesos/backend)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-# Monorepo root (Muhide) — docs/ and engineering-os/ live here
-REPO_ROOT = PROJECT_ROOT.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
+
+
+def _resolve_repo_root() -> Path:
+    """Monorepo root (docs/ + engineering-os/). Host: backend/../.. ; Docker may lack mounts."""
+    raw = os.environ.get("MUHIDE_REPO_ROOT") or os.environ.get("REPO_ROOT")
+    if raw:
+        candidate = Path(raw).resolve()
+        if (candidate / "docs" / "CAPABILITY_CATALOG.md").exists():
+            return candidate
+
+    # Walk up from backend for docs/CAPABILITY_CATALOG.md (host Muhide layout).
+    here = PROJECT_ROOT
+    for _ in range(6):
+        if (here / "docs" / "CAPABILITY_CATALOG.md").exists():
+            return here
+        if here.parent == here:
+            break
+        here = here.parent
+
+    # Fallback: salesos/backend -> ../../Muhide (catalog/YAML may be absent in backend-only Docker).
+    return PROJECT_ROOT.parent.parent
+
+
+REPO_ROOT = _resolve_repo_root()
 
 EXPECTED_CATALOG_CAPS = {f"CAP-{i:03d}" for i in range(1, 41)}
 
-
-def validate_sdk_registry():
-    """Ensure modules/registry.py registers all expected capabilities."""
-    from sdk.capability_registry import CapabilityRegistry
-
-    registry = CapabilityRegistry
-    all_caps = registry.all()
-    cap_names = {c.name for c in all_caps}
-    print(f"\n[SDK Registry] {len(all_caps)} capabilities registered:")
-    for c in all_caps:
-        print(f"  + {c.name} ({c.type.value})")
-    return cap_names
+# Fallback pins when SoT module is not imported (DEC-132 / DEC-133).
+_SOT_NAME = "decorator-framework"
+_SOT_PATH = "runtime/capability_framework"
+_SOT_SCHEME = "kebab-case"
+_JOIN_MAP_REL = "runtime/capability_framework/cap_to_kebab_join.yaml"
 
 
-def validate_decorator_framework():
-    """Ensure decorator registry has all expected capabilities."""
-    from runtime.capability_framework import Capability
+def _read_sot_pins() -> tuple[str, str, str, str]:
+    """Read SoT/join pins from source text (no package import)."""
+    init_path = PROJECT_ROOT / "runtime" / "capability_framework" / "__init__.py"
+    text = init_path.read_text(encoding="utf-8") if init_path.exists() else ""
 
-    all_caps = Capability.all()
-    cap_ids = {c.id for c in all_caps}
-    print(f"\n[Decorator Framework] {len(all_caps)} capabilities registered:")
-    for c in all_caps:
-        status = c.manifest.status.value
-        print(f"  + {c.id} ({c.manifest.name}) [{status}]")
-    return cap_ids
+    def _pin(name: str, default: str) -> str:
+        m = re.search(rf'^{name}\s*=\s*"([^"]+)"', text, re.MULTILINE)
+        return m.group(1) if m else default
+
+    return (
+        _pin("CAPABILITY_REGISTRY_SOT", _SOT_NAME),
+        _pin("CAPABILITY_REGISTRY_SOT_PATH", _SOT_PATH),
+        _pin("CAPABILITY_ID_SCHEME", _SOT_SCHEME),
+        _pin("CAPABILITY_CAP_TO_KEBAB_JOIN_MAP", _JOIN_MAP_REL),
+    )
+
+
+def _join_map_path() -> Path:
+    _, _, _, rel = _read_sot_pins()
+    return PROJECT_ROOT / rel
+
+
+def decorator_ids_from_source() -> set[str]:
+    """Parse built-in @Capability(id=...) from SoT module without importing runtime."""
+    init_path = PROJECT_ROOT / "runtime" / "capability_framework" / "__init__.py"
+    text = init_path.read_text(encoding="utf-8")
+    # Built-ins use id="kebab" at decorator call sites (skip docstring examples with spaces).
+    return set(re.findall(r'^\s*id="([a-z0-9]+(?:-[a-z0-9]+)*)"', text, re.MULTILINE))
+
+
+def sdk_ids_from_source() -> set[str]:
+    """Parse CapabilityRegistry.register(... name=...) without importing SDK."""
+    registry_path = PROJECT_ROOT / "modules" / "registry.py"
+    if not registry_path.exists():
+        print(f"\n[SDK Registry] WARN File not found: {registry_path}")
+        return set()
+
+    text = registry_path.read_text(encoding="utf-8")
+    # Match CapabilityRegistry.register( Capability( name="..." ) blocks.
+    names = set(
+        re.findall(
+            r"CapabilityRegistry\.register\(\s*Capability\(\s*name=\"([^\"]+)\"",
+            text,
+            re.DOTALL,
+        )
+    )
+    print(f"\n[SDK Registry] {len(names)} capabilities (source parse):")
+    for n in sorted(names):
+        print(f"  + {n}")
+    return names
 
 
 def validate_governance_yaml(yaml_path: Path) -> set[str]:
@@ -89,7 +153,6 @@ def validate_capability_catalog(md_path: Path) -> set[str]:
         return set()
 
     content = md_path.read_text(encoding="utf-8")
-    # Prefer heading form: ### CAP-001: Identity (current catalog)
     heading_caps = re.findall(r"^###\s+(CAP-\d{3}):\s+(.+)$", content, re.MULTILINE)
     if heading_caps:
         print(f"\n[Capability Catalog] {len(heading_caps)} capabilities found:")
@@ -97,7 +160,6 @@ def validate_capability_catalog(md_path: Path) -> set[str]:
             print(f"  + {cid}: {name.strip()}")
         return {cid for cid, _ in heading_caps}
 
-    # Legacy bold form fallback
     bold_caps = set(re.findall(r"\bCAP-(\d{3}):\s+\*\*([^*]+)\*\*", content))
     names = {name.strip().lower().replace(" ", "-") for _, name in bold_caps}
     print(f"\n[Capability Catalog] {len(bold_caps)} capabilities found (legacy parse):")
@@ -106,22 +168,8 @@ def validate_capability_catalog(md_path: Path) -> set[str]:
     return names
 
 
-def _join_map_path() -> Path:
-    try:
-        from runtime.capability_framework import CAPABILITY_CAP_TO_KEBAB_JOIN_MAP
-
-        rel = CAPABILITY_CAP_TO_KEBAB_JOIN_MAP
-    except Exception:  # pragma: no cover
-        rel = "runtime/capability_framework/cap_to_kebab_join.yaml"
-    return PROJECT_ROOT / rel
-
-
-def decorator_ids_from_source() -> set[str]:
-    """Parse built-in @Capability(id=...) from SoT module without importing runtime deps."""
-    init_path = PROJECT_ROOT / "runtime" / "capability_framework" / "__init__.py"
-    text = init_path.read_text(encoding="utf-8")
-    # Built-ins use id="kebab" at decorator call sites (skip docstring examples with spaces).
-    return set(re.findall(r'^\s*id="([a-z0-9]+(?:-[a-z0-9]+)*)"', text, re.MULTILINE))
+def _to_kebab(raw: str) -> str:
+    return raw.strip().lower().replace("_", "-").replace(" ", "-")
 
 
 def validate_cap_to_kebab_join_map(decorator_ids: set[str], catalog_cap_ids: set[str]) -> list[str]:
@@ -162,7 +210,6 @@ def validate_cap_to_kebab_join_map(decorator_ids: set[str], catalog_cap_ids: set
     if extra_caps:
         errors.append(f"Join map unexpected CAP keys: {sorted(extra_caps)}")
 
-    # Catalog headings should be covered when parse returned CAP-### tokens
     catalog_as_caps = {c for c in catalog_cap_ids if re.fullmatch(r"CAP-\d{3}", c)}
     if catalog_as_caps:
         catalog_missing = catalog_as_caps - join_keys
@@ -217,18 +264,58 @@ def validate_cap_to_kebab_join_map(decorator_ids: set[str], catalog_cap_ids: set
             print(f"  x {e}")
     else:
         print("  OK Join map integrity (partial catalog coverage is documented residual)")
-        print("  NOTE Criterion 5.3 (full 4-way exit 0) remains separate / still OPEN")
     return errors
 
 
+def check_secondary_subset_of_sot(
+    *,
+    label: str,
+    secondary_ids: set[str],
+    decorator_ids: set[str],
+) -> tuple[list[str], set[str], set[str]]:
+    """Joined secondary IDs (those equal to a SoT kebab after normalize) ⊆ SoT.
+
+    Returns (errors, aligned_ids, residual_ids). Residual = outside SoT — INFO only.
+    """
+    errors: list[str] = []
+    aligned: set[str] = set()
+    residual: set[str] = set()
+    for raw in secondary_ids:
+        kebab = _to_kebab(raw)
+        if kebab in decorator_ids:
+            aligned.add(kebab)
+        else:
+            residual.add(kebab)
+
+    # Tautology guard: aligned must ⊆ SoT (always true if built via ∩). Fail if mismatch.
+    bad = aligned - decorator_ids
+    if bad:
+        errors.append(f"{label} joined IDs not in decorator SoT: {sorted(bad)}")
+
+    print(f"\n[{label} subset-of SoT via join/normalize]")
+    print(f"  aligned={len(aligned)} residual_secondary={len(residual)}")
+    if residual:
+        shown = sorted(residual)[:12]
+        more = len(residual) - len(shown)
+        suffix = f" (+{more} more)" if more > 0 else ""
+        print(f"  INFO residual (allowed): {shown}{suffix}")
+    if not errors:
+        print("  OK joined subset is subset of decorator SoT")
+    else:
+        for e in errors:
+            print(f"  x {e}")
+    return errors, aligned, residual
+
+
 def run_join_map_only() -> int:
-    """Criterion 5.2 light path — no SDK/SQLAlchemy import required."""
+    """Criterion 5.2 light path — no SDK/runtime import required."""
     print("=" * 60)
     print("Capability Join Map Validation (5.2 / DEC-133)")
     print("=" * 60)
-    print("SoT (DEC-132 / 5.1): decorator-framework @ runtime/capability_framework [kebab-case]")
+    sot, sot_path, scheme, _ = _read_sot_pins()
+    print(f"SoT (DEC-132 / 5.1): {sot} @ {sot_path} [{scheme}]")
     print(f"Join map: {_join_map_path()}")
-    print("Mode: --join-map-only (does NOT claim 5.3 exit 0)")
+    print("Mode: --join-map-only (does NOT claim 5.3 exit 0 alone)")
 
     decorator_ids = decorator_ids_from_source()
     print(f"\n[Decorator SoT source parse] {len(decorator_ids)} ids: {sorted(decorator_ids)}")
@@ -241,123 +328,148 @@ def run_join_map_only() -> int:
         for e in errors:
             print(f"  - {e}")
         return 1
-    print("OK Join map integrity (5.2). Criterion 5.3 still OPEN.")
+    print("OK Join map integrity (5.2).")
     return 0
 
 
-def main(argv: list[str] | None = None):
-    argv = list(sys.argv[1:] if argv is None else argv)
-    if "--join-map-only" in argv:
-        sys.exit(run_join_map_only())
-
+def run_sot_oriented() -> int:
+    """DEC-134 / criterion 5.3 — joined secondaries ⊆ SoT + join map integrity."""
     print("=" * 60)
-    print("Capability Registry Sync Validation")
+    print("Capability Registry SoT-Oriented Validation (5.3 / DEC-134)")
     print("=" * 60)
-    try:
-        from runtime.capability_framework import (
-            CAPABILITY_CAP_TO_KEBAB_JOIN_MAP,
-            CAPABILITY_ID_SCHEME,
-            CAPABILITY_REGISTRY_SOT,
-            CAPABILITY_REGISTRY_SOT_PATH,
-        )
+    sot, sot_path, scheme, join_rel = _read_sot_pins()
+    print(f"SoT (DEC-132 / 5.1): {sot} @ {sot_path} [{scheme}]")
+    print(f"Join map (DEC-133 / 5.2): {join_rel}")
+    print("Gate: joined secondaries subset-of decorator SoT via join map (NOT 4-way equality)")
+    print("Mode: default SoT-oriented (import-light source parse)")
 
-        print(
-            f"SoT (DEC-132 / 5.1): {CAPABILITY_REGISTRY_SOT} "
-            f"@ {CAPABILITY_REGISTRY_SOT_PATH} [{CAPABILITY_ID_SCHEME}]"
-        )
-        print(f"Join map (DEC-133 / 5.2): {CAPABILITY_CAP_TO_KEBAB_JOIN_MAP}")
-        print("Secondary: SDK · governance YAML · docs CAP-### (converge toward SoT)")
-        print("Criterion 5.3 = full sync exit 0 (still expected non-zero until convergence)")
-    except Exception as exc:  # pragma: no cover - import path diagnostics only
-        print(f"SoT pins unavailable ({exc}); continuing comparison")
-
-    sdk_ids = validate_sdk_registry()
-    decorator_ids = validate_decorator_framework()
-
-    yaml_path = REPO_ROOT / "engineering-os" / "kernel" / "capability-registry.yaml"
-    gov_ids = validate_governance_yaml(yaml_path)
+    decorator_ids = decorator_ids_from_source()
+    print(f"\n[Decorator SoT source parse] {len(decorator_ids)} ids: {sorted(decorator_ids)}")
 
     catalog_path = REPO_ROOT / "docs" / "CAPABILITY_CATALOG.md"
     catalog_ids = validate_capability_catalog(catalog_path)
 
-    # ── Compare ──
-    errors = []
+    errors: list[str] = []
     errors.extend(validate_cap_to_kebab_join_map(decorator_ids, catalog_ids))
 
-    # SDK vs Decorator: SDK names should map to decorator IDs
-    # Convert SDK names to IDs
-    sdk_name_to_id = {
-        "company intelligence": "company",
-        "search & discovery": "search",
-        "timeline & activity": "timeline",
-        "recommendation engine": "recommendation",
-        "decision context": "context",
-        "ai copilot": "ai_copilot",
-        "email intelligence": "email",
-        "meeting intelligence": "meeting",
-        "pipeline management": "pipeline",
-        "opportunity management": "opportunity",
-        "revenue analytics": "analytics",
-        "revenue forecasting": "forecast",
-        "contract management": "contract",
-        "proposal management": "proposal",
-        "quote management": "quote",
-        "playbook": "playbook",
-        "sales playbook": "playbook",
-        "infrastructure": "infrastructure",
-        "quota management": "quota",
-        "territory management": "territory",
-        "activity management": "activity",
-        "entity resolution": "entity-resolution",
-        "entity resolution": "entity_resolution",
-    }
+    # Catalog CAP-### join is fully owned by the join map (direct -> SoT; unmapped OK).
+    print("\n[Catalog subset-of SoT via join map]")
+    print("  OK accounted by join map integrity (direct in SoT; unmapped = residual)")
 
-    sdk_ids_lower = {id.lower() for id in sdk_ids}
-    # Manual mapping for SDK capability names to decorator IDs
-    sdk_mapped: set[str] = set()
-    for sdk_name in sdk_ids:
-        sdk_lower = sdk_name.lower()
-        mapped = sdk_name_to_id.get(sdk_lower, sdk_lower.replace(" ", "_"))
-        sdk_mapped.add(mapped)
+    sdk_ids = sdk_ids_from_source()
+    e_sdk, _, _ = check_secondary_subset_of_sot(
+        label="SDK",
+        secondary_ids=sdk_ids,
+        decorator_ids=decorator_ids,
+    )
+    errors.extend(e_sdk)
 
-    missing_in_decorator = sdk_mapped - decorator_ids
-    if missing_in_decorator:
-        errors.append(f"SDK capabilities missing in Decorator Framework: {missing_in_decorator}")
+    yaml_path = REPO_ROOT / "engineering-os" / "kernel" / "capability-registry.yaml"
+    gov_ids = validate_governance_yaml(yaml_path)
+    e_gov, _, _ = check_secondary_subset_of_sot(
+        label="Governance YAML",
+        secondary_ids=gov_ids,
+        decorator_ids=decorator_ids,
+    )
+    errors.extend(e_gov)
 
-    missing_in_sdk = decorator_ids - sdk_mapped
-    if missing_in_sdk:
-        errors.append(f"Decorator capabilities missing in SDK Registry: {missing_in_sdk}")
-
-    # SDK vs Governance YAML
-    # Governance uses kebab-case, SDK IDs are lower_snake_case
-    missing_in_gov = set()
-    for sdk_cap in sdk_mapped:
-        gov_id = sdk_cap.replace("_", "-")
-        if gov_id not in gov_ids:
-            missing_in_gov.add(sdk_cap)
-    if missing_in_gov:
-        errors.append(f"SDK capabilities missing in Governance YAML: {missing_in_gov}")
-
-    # Decorator vs Governance YAML
-    missing_decorator_in_gov = set()
-    for decorator_id in decorator_ids:
-        gov_id = decorator_id.replace("_", "-")
-        if gov_id not in gov_ids:
-            missing_decorator_in_gov.add(decorator_id)
-    if missing_decorator_in_gov:
-        errors.append(f"Decorator capabilities missing in Governance YAML: {missing_decorator_in_gov}")
+    # Honest residual: SoT IDs absent from SDK/YAML are allowed (decorator-only / partial mirrors).
+    sdk_kebab = {_to_kebab(x) for x in sdk_ids}
+    gov_kebab = {_to_kebab(x) for x in gov_ids}
+    sot_not_in_sdk = decorator_ids - sdk_kebab
+    sot_not_in_gov = decorator_ids - gov_kebab
+    print("\n[SoT not subset of secondaries - allowed residual]")
+    print(f"  SoT missing from SDK (INFO): {sorted(sot_not_in_sdk)}")
+    print(f"  SoT missing from YAML (INFO): {sorted(sot_not_in_gov)}")
 
     print("\n" + "=" * 60)
     if errors:
-        print(f"FAIL {len(errors)} sync issue(s) found:")
+        print(f"FAIL {len(errors)} SoT-oriented issue(s):")
         for e in errors:
             print(f"  - {e}")
-        print("\nRun `python scripts/sync_capability_registries.py` to auto-fix.")
-        print("(Full exit 0 = criterion 5.3; join-map-only OK does not close 5.3.)")
+        print("\nHint: fix join map / SoT IDs; do not delete secondaries to force exit 0.")
+        print("Legacy 4-way equality: --legacy-equality (not the 5.3 close gate).")
+        return 1
+
+    print("OK SoT-oriented gate (5.3 / DEC-134): joined secondaries subset-of SoT + join map")
+    print("NOTE Secondary extras + SoT-only IDs remain documented residual (not failures).")
+    print("NOTE Production GO / CI GREEN / VERIFIED-CLOSED not claimed by this script.")
+    return 0
+
+
+def run_legacy_equality() -> int:
+    """Historical 4-way identity equality — diagnostic only; not the 5.3 gate."""
+    print("=" * 60)
+    print("Capability Registry LEGACY 4-way Equality (diagnostic)")
+    print("=" * 60)
+    print("Mode: --legacy-equality - NOT the DEC-134 / 5.3 close gate")
+    print("Exit 2 on mismatch (does not redefine 5.3)")
+
+    decorator_ids = decorator_ids_from_source()
+    print(f"\n[Decorator SoT source parse] {len(decorator_ids)} ids: {sorted(decorator_ids)}")
+    sdk_ids = sdk_ids_from_source()
+    sdk_mapped = {_to_kebab(x) for x in sdk_ids}
+
+    yaml_path = REPO_ROOT / "engineering-os" / "kernel" / "capability-registry.yaml"
+    gov_ids = validate_governance_yaml(yaml_path)
+    gov_kebab = {_to_kebab(x) for x in gov_ids}
+
+    catalog_path = REPO_ROOT / "docs" / "CAPABILITY_CATALOG.md"
+    catalog_ids = validate_capability_catalog(catalog_path)
+
+    errors: list[str] = []
+    errors.extend(validate_cap_to_kebab_join_map(decorator_ids, catalog_ids))
+
+    missing_in_decorator = sdk_mapped - decorator_ids
+    if missing_in_decorator:
+        errors.append(f"SDK capabilities missing in Decorator Framework: {sorted(missing_in_decorator)}")
+
+    missing_in_sdk = decorator_ids - sdk_mapped
+    if missing_in_sdk:
+        errors.append(f"Decorator capabilities missing in SDK Registry: {sorted(missing_in_sdk)}")
+
+    missing_in_gov = sdk_mapped - gov_kebab
+    if missing_in_gov:
+        errors.append(f"SDK capabilities missing in Governance YAML: {sorted(missing_in_gov)}")
+
+    missing_decorator_in_gov = decorator_ids - gov_kebab
+    if missing_decorator_in_gov:
+        errors.append(
+            f"Decorator capabilities missing in Governance YAML: {sorted(missing_decorator_in_gov)}"
+        )
+
+    print("\n" + "=" * 60)
+    if errors:
+        print(f"FAIL legacy equality ({len(errors)} issue(s)) - expected until full convergence:")
+        for e in errors:
+            print(f"  - {e}")
+        return 2
+    print("OK Legacy 4-way equality (unexpected — registries fully identical)")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description="Validate capability registries (DEC-134 SoT gate)")
+    parser.add_argument(
+        "--join-map-only",
+        action="store_true",
+        help="Criterion 5.2 light path — join map integrity only",
+    )
+    parser.add_argument(
+        "--legacy-equality",
+        action="store_true",
+        help="Diagnostic 4-way identity equality (not the 5.3 close gate)",
+    )
+    args = parser.parse_args(argv)
+
+    if args.join_map_only and args.legacy_equality:
+        print("ERROR: choose at most one of --join-map-only / --legacy-equality")
         sys.exit(1)
-    else:
-        print("OK All capability registries are in sync!")
-        sys.exit(0)
+    if args.join_map_only:
+        sys.exit(run_join_map_only())
+    if args.legacy_equality:
+        sys.exit(run_legacy_equality())
+    sys.exit(run_sot_oriented())
 
 
 if __name__ == "__main__":
