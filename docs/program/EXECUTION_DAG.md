@@ -114,7 +114,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | Contract tests expansion slice 1 (DEC-094) | `93a00d7` | LANDED | `/ping` + `/health/live` typed + OpenAPI HTTP contracts |
 | Contract tests expansion slice 2 (DEC-094) | `0ac07bc` | LANDED | `/health` + `/health/ready` + honest DB/cache fixtures |
 | Contract tests expansion slice 3 (DEC-094) | `bdc6fd2` | LANDED | Auth list `GET /api/v1/decisions` OpenAPI contract |
-| Contract tests expansion slice 4 (DEC-106) | *(this land)* | LANDED | 401 `DetailStringError` + 422 `HTTPValidationError` on decisions list |
+| Contract tests expansion slice 4 (DEC-106) | `448c301` | LANDED | 401 `DetailStringError` + 422 `HTTPValidationError` on decisions list |
 | STORY-02-04 §17.2 relabel | `932f722` | DONE | docs-only |
 | Card primitives (Jest debt related) | `9577c98` | Progress note only | **CI GREEN not met** |
 
