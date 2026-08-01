@@ -815,6 +815,8 @@
 **Consequence:** CI-19 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-24 remains Open (mitigating). Validation: **light validated** (path inventory vs triage Bucket C / live alert paths; field Code Scanning closure **not** yet re-verified). **CI GREEN not met.**
 **Status:** Accepted. CI-19 **Wave 4 COMPLETE**; story **OPEN**.
 
+**Addendum (DEC-083, 2026-08-01):** Root `.semgrepignore` **replaces** Semgrep built-in defaults (`use_default_semgrepignore = not root_semgrepignore_exists`). DEC-076 Wave 4 excludes alone therefore dropped skips for `tests/`, `node_modules/`, `.venv/`, etc. → Observer-reported live open findings regression **~116 → ~130**. Fix: prepend upstream `default.semgrepignore` blob, then keep Wave 4 path excludes. Severity gates + SARIF upload **unchanged**. Does **not** claim finding-zero or CI GREEN. See **DEC-083**.
+
 ---
 
 ### DEC-077 — Jest-debt / R-23 CLOSED: Stage 3 field verify 0 failing suites
@@ -874,3 +876,13 @@
 **Decision:** Accept Phase 1 as **COMPLETE**. Evidence: host poetry lock → fastapi **0.141.1** / starlette **1.3.1** / pydantic **2.13.4**; rom app.main import app **exit 0**; pytest tests/unit/test_middleware.py **37 passed**. Do **not** mark CI-22 CLOSED. Do **not** weaken security gates. Do **not** touch Railway. Validation: **light validated** (host smoke; full CI pip-audit **not** re-verified this land).
 **Consequence:** CI-22 **IN PROGRESS / OPEN**. R-21 mitigating (starlette floor met in lock; ecdsa accepted residual remains). **CI GREEN not met.**
 **Status:** Accepted. CI-22 **Phase 1 COMPLETE**; story **OPEN**.
+
+### DEC-083 — CI-19 Wave 4 follow-up: restore Semgrep built-in defaults in root `.semgrepignore`; CI-19 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI Observer found Wave 4 regression after DEC-076 (`5c27470`): creating a repo-root `.semgrepignore` disables Semgrep's built-in default ignore set. Wave 4 path excludes landed correctly, but `tests/`, `node_modules/`, `.venv/`, `build/`, `dist/`, etc. were no longer skipped → live open Semgrep findings **~116 → ~130**. ERROR/WARNING severity flags and SARIF upload were never intended to change.
+**Alternatives considered:** (a) delete root `.semgrepignore` and use only CLI `--exclude` — rejected (loses durable Wave 4 path policy); (b) weaken severity gates / blanket rule suppressions to hide the +14 — rejected; (c) prepend upstream `default.semgrepignore` patterns, then keep DEC-076 Wave 4 excludes — approved.
+**Decision:** Restore Semgrep built-in defaults at the top of `.semgrepignore`, document the replace-vs-merge behavior, keep Wave 4 out-of-GA path excludes. Do **not** exclude `salesos/backend` app/runtime or product FE packages. Do **not** weaken `--severity ERROR --severity WARNING` or SARIF upload. Do **not** mark CI-19 CLOSED. Do **not** claim finding-zero GREEN.
+**Consequence:** Skip intent returns to **built-ins + Wave 4 paths**. Expected: re-exclude test/vendor/venv noise that caused the ~14 finding bump; Wave 5 (DEC-082) remediations remain. Field Code Scanning recount **not** yet re-verified this land. Validation: **light validated** (ignore inventory vs upstream default blob). **CI GREEN not met.**
+**Status:** Accepted. Wave 4 ignore regression **FIXED**; CI-19 **OPEN**.
+

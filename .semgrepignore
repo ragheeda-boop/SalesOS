@@ -2,6 +2,47 @@
 # Authority: salesos/docs/audit/ga-engineering-audit/CI_19_SEMGREP_TRIAGE.md §4 Wave 4
 # Do NOT use this file to hide findings in salesos/backend app/runtime or product FE packages.
 # Severity gates (--severity ERROR --severity WARNING) remain unchanged.
+#
+# IMPORTANT: A root .semgrepignore replaces Semgrep built-in defaults
+# (see Semgrep Semgrepignore.ml: use_default_semgrepignore = not root_semgrepignore_exists).
+# Section below is the upstream default.semgrepignore blob — keep in sync when upgrading Semgrep.
+# Regression: DEC-076 land alone raised live open findings ~116→~130 by scanning tests/node_modules/.venv.
+# Fix: DEC-083 restores defaults, then keeps Wave 4 path excludes.
+
+# --- Semgrep built-in defaults (src/targeting/default.semgrepignore) ---
+# Administrative folder or file used by popular version control systems
+.git
+.svn
+.hg
+_darcs
+CVS
+
+# Paths to files and folders that are typically large and ignorable
+build/
+vendor/
+dist/
+*.min.js
+.env/
+.tox/
+
+# Package managers
+node_modules/
+.npm/
+.yarn/
+.venv/
+_opam/
+_build/
+_cargo/
+# Note that PHP composer uses vendor/ and C++ conan uses build/
+# .venv is used both by Go and Python.
+
+# Common test paths
+test/
+tests/
+testsuite/
+*_test.go
+
+# --- CI-19 Wave 4 path excludes (DEC-076) ---
 
 # Abandoned Taqeem scraper HTML/JSON (missing-integrity, BiDi) — not SalesOS GA runtime
 taqeem_scraper/
