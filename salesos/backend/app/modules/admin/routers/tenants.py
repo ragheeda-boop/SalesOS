@@ -8,7 +8,8 @@ from sqlalchemy import func as sa_func
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_db_session, require_role_dep
+from app.dependencies import get_db_session
+from app.owner_auth import require_owner_role_dep
 from app.modules.identity.models import Tenant, User
 
 from ..schemas import (
@@ -24,7 +25,7 @@ from ..services import TenantProvisioningService
 
 router = APIRouter(
     tags=["Admin - Tenants"],
-    dependencies=[Depends(require_role_dep("admin"))],
+    dependencies=[Depends(require_owner_role_dep("admin"))],
 )
 
 

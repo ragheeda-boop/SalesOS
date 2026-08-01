@@ -6,7 +6,8 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_db_session, require_role_dep
+from app.dependencies import get_db_session
+from app.owner_auth import require_owner_role_dep
 
 from ..db_models import FeatureFlagModel
 from ..schemas import (
@@ -22,7 +23,7 @@ from ._dependencies import AdminRepositories, get_admin_repos
 
 router = APIRouter(
     tags=["Admin - Feature Flags"],
-    dependencies=[Depends(require_role_dep("admin"))],
+    dependencies=[Depends(require_owner_role_dep("admin"))],
 )
 
 

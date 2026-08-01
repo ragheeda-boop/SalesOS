@@ -67,8 +67,8 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **STORY-02-02** browser/E2E verify (if scoped) | READY / PARALLEL | Middleware LANDED (`3f4b3c8`); DEC-088 verify: unit **light validated** (14/14); browser still **not validated** — PARTIAL | Not a board CLOSE; restore FE/compose then redirect probe |
 | **DB-05** Schema reconciliation program | READY (program) | BACKLOG; R-20 / R-09 | Multi-sprint; unblocks 8 RLS-deferred tables |
 | **Sprint 04 Category B RLS + inventory** | READY (planning) | DEC-044 deferred Category B | Settle canonical count |
-| **JWT audience consumption** | READY / PARALLEL / **OPEN** | Groundwork DONE (`2379e5f`); mint/verify **light validated** (DEC-091) | Keep OPEN — no endpoint wires `decode_owner_*` (EPIC-04); tenant API enforces `salesos-api` only |
-| **Contract tests expansion** | IN PROGRESS / PARALLEL | Slice 1 LANDED (DEC-089): `/ping` + `/health/live` + csrf | Next: `/health`+`/ready` (DB fixtures), 401/422, one auth list |
+| **JWT audience consumption** | **CLOSED** (DEC-093) | Owner admin deps wire `decode_owner_*` via `owner_auth.py`; **14/14** unit PASS | Tenant `verify_token` unchanged (`salesos-api`); groundwork `2379e5f` |
+| **Contract tests expansion** | IN PROGRESS / PARALLEL | Slice 1 LANDED (DEC-094): `/ping` + `/health/live` + csrf | Next: `/health`+`/ready` (DB fixtures), 401/422, one auth list |
 | **CI-16** Backend dependency security | CLOSED | Slices 1+3 + ecdsa Option A; starlette → CI-22 | Story closed; residual via CI-22 |
 | **Jest-debt** | CLOSED (DEC-077) | Stage 3 field 0 failures | R-23 Closed |
 
@@ -92,8 +92,8 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | Track | Class | Justification |
 |---|---|---|
 | **CI-20**, **CI-19 Wave 2**, **CI-22**, **CI-14** | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. |
-| Contract tests expansion (post STORY-03-04) | PARALLEL | Framework LANDED (`623077c`) |
-| JWT audience **consumption** | PARALLEL / **OPEN** | Groundwork DONE (`2379e5f`); DEC-091 keep OPEN until Owner endpoints consume |
+| Contract tests expansion (post STORY-03-04) | PARALLEL | Slice 1 DEC-093 (`/ping`+`/health/live`); framework `623077c` |
+| JWT audience **consumption** | **CLOSED** (DEC-093) | Owner Platform admin consumes `salesos-owner-platform`; tenant path untouched |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 ---
@@ -108,7 +108,8 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | CI-21 Gitleaks JWT fixture neutralize | `b03ffbf` | CLOSED | fixture replaced; scanner not weakened |
 | STORY-02-03 JWT audience groundwork | `2379e5f` | DONE | **light validated** — host pytest **7/7** (DEC-091); prior Docker **15** w/ write-protection (`deae7de`) |
 | STORY-02-02 server-side middleware | `3f4b3c8` | PARTIAL (DEC-088) | Jest redirect helpers **14/14 PASS** (**light validated**); browser/E2E **not validated** |
-| STORY-03-04 OpenAPI contract framework | `623077c` | DONE | **not validated** |
+| STORY-03-04 OpenAPI contract framework | `623077c` | DONE | Framework land; pytest via DEC-093 |
+| Contract tests expansion slice 1 (DEC-093) | *(this land)* | IN PROGRESS | `/ping` + `/health/live` typed + OpenAPI HTTP contracts; next slice documented |
 | STORY-02-04 §17.2 relabel | `932f722` | DONE | docs-only |
 | Card primitives (Jest debt related) | `9577c98` | Progress note only | **CI GREEN not met** |
 

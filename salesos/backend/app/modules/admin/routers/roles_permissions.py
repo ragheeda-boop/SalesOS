@@ -4,7 +4,7 @@ import hashlib
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.dependencies import require_role_dep
+from app.owner_auth import require_owner_role_dep
 
 from ..db_models import RoleModel
 from ..schemas import (
@@ -17,7 +17,7 @@ from ._dependencies import AdminRepositories, get_admin_repos
 
 router = APIRouter(
     tags=["Admin - Roles & Permissions"],
-    dependencies=[Depends(require_role_dep("admin"))],
+    dependencies=[Depends(require_owner_role_dep("admin"))],
 )
 
 

@@ -3,14 +3,14 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.common.schemas import PaginatedResponse
-from app.dependencies import require_role_dep
+from app.owner_auth import require_owner_role_dep
 
 from ..schemas import JobDetailResponse, JobResponse
 from ._dependencies import AdminRepositories, get_admin_repos
 
 router = APIRouter(
     tags=["Admin - Jobs"],
-    dependencies=[Depends(require_role_dep("admin"))],
+    dependencies=[Depends(require_owner_role_dep("admin"))],
 )
 
 

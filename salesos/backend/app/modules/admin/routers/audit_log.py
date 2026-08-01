@@ -8,13 +8,14 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_db_session, require_role_dep, verify_token
+from app.dependencies import get_db_session
+from app.owner_auth import get_current_tenant_id, require_owner_role_dep
 
 from ..services import AuditCSVExportService
 
 router = APIRouter(
     tags=["Admin - Audit Log"],
-    dependencies=[Depends(require_role_dep("admin"))],
+    dependencies=[Depends(require_owner_role_dep("admin"))],
 )
 
 
@@ -30,8 +31,7 @@ async def query_audit_logs(
     page: int = Query(1, ge=1),
     size: int = Query(50, ge=1, le=200),
     db: AsyncSession = Depends(get_db_session),
-    token: dict = Depends(verify_token),
-    tenant_id: str = Depends(get_current_tenant_id),
+    tenant_id: str = Depends(get_owner_scoped_tenant_id),
 ):
     from app.modules.audit.service import AuditService, PostgresAuditRepository
 
@@ -82,8 +82,7 @@ async def query_audit_logs(
 @router.get("/audit/stats")
 async def audit_stats(
     days: int = Query(30, ge=1, le=365),
-    token: dict = Depends(verify_token),
-    tenant_id: str = Depends(get_current_tenant_id),
+    tenant_id: str = Depends(get_owner_scoped_tenant_id),
     db: AsyncSession = Depends(get_db_session),
 ):
     from app.modules.audit.service import AuditService, PostgresAuditRepository
@@ -101,8 +100,7 @@ async def export_audit_csv(
     date_from: str | None = Query(None),
     date_to: str | None = Query(None),
     db: AsyncSession = Depends(get_db_session),
-    token: dict = Depends(verify_token),
-    tenant_id: str = Depends(get_current_tenant_id),
+    tenant_id: str = Depends(get_owner_scoped_tenant_id),
 ):
     from app.modules.audit.service import AuditService, PostgresAuditRepository
 

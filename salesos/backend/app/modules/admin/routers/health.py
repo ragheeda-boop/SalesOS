@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Query
 
-from app.dependencies import require_role_dep
+from app.owner_auth import require_owner_role_dep
 
 from ..schemas import (
     DetailedHealthResponse,
@@ -13,7 +13,7 @@ from ._dependencies import AdminRepositories, get_admin_repos
 
 router = APIRouter(
     tags=["Admin - Health"],
-    dependencies=[Depends(require_role_dep("admin"))],
+    dependencies=[Depends(require_owner_role_dep("admin"))],
 )
 
 

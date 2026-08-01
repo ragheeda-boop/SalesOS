@@ -6,11 +6,12 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_tenant_id, get_db_session, require_role_dep, verify_token
+from app.dependencies import get_db_session
+from app.owner_auth import get_current_tenant_id, require_owner_role_dep
 
 router = APIRouter(
     tags=["Admin - AI Audit Log"],
-    dependencies=[Depends(require_role_dep("admin"))],
+    dependencies=[Depends(require_owner_role_dep("admin"))],
 )
 
 
@@ -28,8 +29,7 @@ async def query_ai_audit_logs(
     page: int = Query(1, ge=1),
     size: int = Query(50, ge=1, le=200),
     db: AsyncSession = Depends(get_db_session),
-    token: dict = Depends(verify_token),
-    tenant_id: str = Depends(get_current_tenant_id),
+    tenant_id: str = Depends(get_owner_scoped_tenant_id),
 ):
     from app.modules.audit.service import AuditService, PostgresAuditRepository
 
@@ -82,8 +82,7 @@ async def query_ai_audit_logs(
 async def ai_audit_summary(
     days: int = Query(30, ge=1, le=365),
     db: AsyncSession = Depends(get_db_session),
-    token: dict = Depends(verify_token),
-    tenant_id: str = Depends(get_current_tenant_id),
+    tenant_id: str = Depends(get_owner_scoped_tenant_id),
 ):
     from app.modules.audit.service import AuditService, PostgresAuditRepository
 

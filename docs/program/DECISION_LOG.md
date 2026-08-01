@@ -964,3 +964,12 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Status:** Accepted. CI-20 **Phase 21 COMPLETE**; story **OPEN**.
 
 ---
+
+### DEC-093 — JWT audience consumption CLOSED on Owner Platform admin
+
+**Date:** 2026-08-01
+**Context:** DEC-091 kept JWT audience consumption OPEN (no router used `decode_owner_*`). User authorized consumption wiring on Owner Platform surfaces without weakening tenant `salesos-api`.
+**Alternatives considered:** (a) dual-accept tenant+owner on admin — rejected; (b) wait for full EPIC-04 console — rejected (Platform admin is the consumable surface); (c) patch shared `dependencies.py` only — rejected after parallel overwrite risk.
+**Decision:** Close consumption. Add `app/owner_auth.py` (`verify_owner_token` → `decode_owner_access_token`); wire `app/modules/admin` to `require_owner_role_dep`. Tenant `verify_token` unchanged. Package: [decisions/DEC-093-JWT-AUDIENCE-CONSUMPTION-CLOSED.md](decisions/DEC-093-JWT-AUDIENCE-CONSUMPTION-CLOSED.md). Supersedes DEC-091 consumption-OPEN clause.
+**Consequence:** Host pytest `tests/unit/test_jwt_audience_split.py` **14/14 PASS** (**light validated**). Owner login mint UX still future. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted.

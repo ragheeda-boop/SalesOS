@@ -8,7 +8,7 @@
 |---|---|---|---|---|
 | STORY-04-01 (Tenant extension) | BE-Lead | P0 | Low | Migration applied; `plan_id`/`region`/`data_residency`/`provisioning_status`/`trial_ends_at` present |
 | STORY-04-02 (provisioning workflow) | BE1 | P0 | Medium | Idempotent provisioning job creates a tenant + seeds default Studio config + assigns first admin |
-| STORY-02-03 (JWT audience split, consume) | BE2 | P1 | Medium | Owner-audience token type exists (unused by any endpoint yet). **Status 2026-08-01 (DEC-091):** mint/verify helpers **DONE** + **light validated** (7/7); endpoint consumption still **OPEN** — keep board READY until Owner Platform deps wire `decode_owner_*` |
+| STORY-02-03 (JWT audience split, consume) | BE2 | P1 | Medium | Owner-audience consumption **CLOSED** (DEC-093): Platform admin wires `decode_owner_*` via `owner_auth.py`; host pytest **14/14 PASS**. Groundwork `2379e5f`; DEC-091 OPEN superseded. |
 
 **Expected Demo:** Provision a brand-new test tenant end-to-end via a script (no UI yet), show it isolated from Muhide's tenant in the RLS test suite.
 

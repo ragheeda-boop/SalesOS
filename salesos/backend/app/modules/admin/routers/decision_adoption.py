@@ -3,11 +3,11 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from app.dependencies import require_role_dep
+from app.owner_auth import require_owner_role_dep
 
 router = APIRouter(
     tags=["Admin - Decision Adoption"],
-    dependencies=[Depends(require_role_dep("admin"))],
+    dependencies=[Depends(require_owner_role_dep("admin"))],
 )
 
 

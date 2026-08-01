@@ -1,7 +1,7 @@
 # DEC-091 — JWT audience enforcement verify; consumption remains OPEN
 
 **Date:** 2026-08-01  
-**Status:** Accepted  
+**Status:** Accepted (consumption-OPEN clause **Superseded by DEC-093**)  
 **Product:** SalesOS  
 **Owners:** Backend / Security  
 **Related:** STORY-02-03 (`2379e5f`); Phase 0 DEC-008 gate GO (DEC-086); `EXECUTION_DAG.md` JWT consumption track
@@ -37,3 +37,9 @@ Board lists **JWT audience consumption** as READY / PARALLEL after STORY-02-03 g
 ## Follow-ups
 
 - EPIC-04 / Owner Admin: wire `decode_owner_access_token` into owner-only deps; add adversarial HTTP cross-audience tests; then CLOSE consumption on board.
+
+---
+
+## Supersession
+
+**JWT audience consumption OPEN** decision superseded by [DEC-093](DEC-093-JWT-AUDIENCE-CONSUMPTION-CLOSED.md) after Owner Platform admin wired decode_owner_* via pp/owner_auth.py (**14/14** unit tests).

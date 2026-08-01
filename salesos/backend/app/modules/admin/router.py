@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
-from app.dependencies import require_role_dep
+from app.owner_auth import require_owner_role_dep
 
 router = APIRouter(
     prefix="/api/v1/admin",
     tags=["Admin"],
-    dependencies=[Depends(require_role_dep("admin"))],
+    dependencies=[Depends(require_owner_role_dep("admin"))],
 )
 
 from .routers.ai_audit import router as ai_audit_router

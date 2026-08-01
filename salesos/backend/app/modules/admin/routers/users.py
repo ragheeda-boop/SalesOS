@@ -8,7 +8,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_db_session, require_role_dep
+from app.dependencies import get_db_session
+from app.owner_auth import require_owner_role_dep
 from app.modules.identity.models import Tenant, User
 
 from ..pg_repositories import PostgresRoleRepository
@@ -20,7 +21,7 @@ from ..schemas import (
 
 router = APIRouter(
     tags=["Admin - Users"],
-    dependencies=[Depends(require_role_dep("admin"))],
+    dependencies=[Depends(require_owner_role_dep("admin"))],
 )
 
 
