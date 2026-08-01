@@ -610,3 +610,14 @@
 **Decision:** Accept **Option A**. Do **not** bump ecdsa. Do **not** start CI-22. Do **not** implement Option B in this land. Prefer docs-only (no `pip-audit` ignore in this commit; named ignore for PYSEC-2026-1325 may follow under this DEC if authorized separately).
 **Consequence:** CI-16 **CLOSED** for slice scope (Slices 1+3 complete; Slice 2 transferred to CI-22; ecdsa accepted residual). R-21 remains **Open — mitigating** (ecdsa accepted + monitor; starlette → CI-22). Program Complete/Closed count **20/21** style update on board (CI-16 added to closed set). **CI GREEN not met** (`pip-audit` still red on ecdsa ± starlette).
 **Status:** Accepted. CI-16 **CLOSED** (accepted residual on ecdsa).
+
+---
+
+### DEC-058 — CI-20 Phase 8 complete: app/main.py + sdk/ mypy burn-down; CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1–7 (DEC-046–050, DEC-053, DEC-055) cleared admin/company/entity_resolution/identity/revenue_execution/sso/routers; overall expected **~308 → ~157**. Phase 8 targeted CI hotspots `app/main.py` (**15**) and `sdk/` (**31**, incl. `sdk/database.py` **10**) and landed on `master` at `3e7fadb` (`3e7fadbd9ee0d6a6eb665c799c123aa36cdf9d07`) — mechanical typing only (`QueuePool` cast, `dict[str, Any]` health checks, `cast`/`assert`/annotations across sdk database/graph/security/cache/outbox/pagination/permissions/queue/vector + PEP 695 → `Generic`). Host light mypy: `app/main.py` **3 → 0**, `sdk/` **33 → 0**; CI-list clearance **15 + 31**; overall expected **~157 → ~111**.
+**Alternatives considered:** (a) close entire CI-20 on Phase 8 land — rejected (residual ~111 errors remain; phased story); (b) record Phase 8 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
+**Decision:** Accept Phase 8 as **COMPLETE** at `3e7fadb`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Validation label: **light validated** (host mypy on `app/main.py` + `sdk/`); full Backend Types CI **not** re-run.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 8 COMPLETE**; story **OPEN**.
