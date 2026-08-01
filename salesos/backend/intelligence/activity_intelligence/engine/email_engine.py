@@ -60,7 +60,7 @@ class EmailEngine:
                                    bool_or(direction IN ('outbound', 'sent')) AS has_out
                             FROM employee_email_events
                             WHERE tenant_id = :tid
-                              AND related_company_ids @> to_jsonb(:company_id::text)
+                              AND related_company_ids @> to_jsonb(CAST(:company_id AS text))
                               AND thread_id IS NOT NULL AND thread_id <> ''
                             GROUP BY thread_id
                         ) t

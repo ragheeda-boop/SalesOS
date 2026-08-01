@@ -17,12 +17,12 @@ from intelligence.activity_intelligence.contracts.repository import EmailReader,
 _SQL_EMAIL_COUNT = sa_text("""
     SELECT COUNT(*) AS c FROM employee_email_events
     WHERE tenant_id = :tid
-      AND related_company_ids @> to_jsonb(:company_id::text)
+      AND related_company_ids @> to_jsonb(CAST(:company_id AS text))
 """)
 _SQL_EMAIL_COUNT_DIRECTION = sa_text("""
     SELECT COUNT(*) AS c FROM employee_email_events
     WHERE tenant_id = :tid
-      AND related_company_ids @> to_jsonb(:company_id::text)
+      AND related_company_ids @> to_jsonb(CAST(:company_id AS text))
       AND direction = :direction
 """)
 _SQL_EMAIL_COUNT_EMPLOYEE = sa_text("""
@@ -62,7 +62,7 @@ class PostgresEmailReader(EmailReader):
                     SELECT id::text, subject, direction, from_address, timestamp_utc AS sent_at
                     FROM employee_email_events
                     WHERE tenant_id = :tid
-                      AND related_company_ids @> to_jsonb(:company_id::text)
+                      AND related_company_ids @> to_jsonb(CAST(:company_id AS text))
                     ORDER BY timestamp_utc DESC
                     LIMIT :lim
                 """),
@@ -90,7 +90,7 @@ class PostgresEmailReader(EmailReader):
                     SELECT id::text, subject, direction, from_address, timestamp_utc AS sent_at
                     FROM employee_email_events
                     WHERE tenant_id = :tid
-                      AND related_company_ids @> to_jsonb(:company_id::text)
+                      AND related_company_ids @> to_jsonb(CAST(:company_id AS text))
                     ORDER BY timestamp_utc DESC
                     LIMIT 1
                 """),
@@ -141,7 +141,7 @@ class PostgresMeetingReader(MeetingReader):
                            CASE WHEN is_cancelled THEN 'cancelled' ELSE 'completed' END AS status
                     FROM employee_calendar_events
                     WHERE tenant_id = :tid
-                      AND related_company_ids @> to_jsonb(:company_id::text)
+                      AND related_company_ids @> to_jsonb(CAST(:company_id AS text))
                     ORDER BY start_utc DESC
                     LIMIT :lim
                 """),
@@ -157,7 +157,7 @@ class PostgresMeetingReader(MeetingReader):
                     SELECT COUNT(*) AS c
                     FROM employee_calendar_events
                     WHERE tenant_id = :tid
-                      AND related_company_ids @> to_jsonb(:company_id::text)
+                      AND related_company_ids @> to_jsonb(CAST(:company_id AS text))
                       AND is_cancelled = false
                 """),
                 {"tid": tenant_id, "company_id": company_id},
@@ -173,7 +173,7 @@ class PostgresMeetingReader(MeetingReader):
                            CASE WHEN is_cancelled THEN 'cancelled' ELSE 'completed' END AS status
                     FROM employee_calendar_events
                     WHERE tenant_id = :tid
-                      AND related_company_ids @> to_jsonb(:company_id::text)
+                      AND related_company_ids @> to_jsonb(CAST(:company_id AS text))
                     ORDER BY start_utc DESC
                     LIMIT 1
                 """),

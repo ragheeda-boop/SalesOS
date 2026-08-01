@@ -404,57 +404,66 @@ def _make_timeline_entry(
 
 @pytest.mark.asyncio
 async def test_timeline_runtime_get_timeline_with_domain(db_session: AsyncSession):
+    import uuid
+    from contextlib import asynccontextmanager
     from datetime import datetime
 
     from runtime.timeline_runtime import TimelineRuntime
 
+    @asynccontextmanager
     async def session_factory():
-        return db_session
+        yield db_session
 
     tl = TimelineRuntime(session_factory=session_factory)
     _ = datetime.now(UTC)
+    entity_id = f"comp-domain-{uuid.uuid4().hex[:8]}"
 
     await tl.record(
-        "company", "comp-1", "email.sent", {"domain": "crm", "subject": "Hello"}, tenant_id="t1"
+        "company", entity_id, "email.sent", {"domain": "crm", "subject": "Hello"}, tenant_id="t1"
     )
     await tl.record(
-        "company", "comp-1", "email.opened", {"domain": "crm", "subject": "Hello"}, tenant_id="t1"
+        "company", entity_id, "email.opened", {"domain": "crm", "subject": "Hello"}, tenant_id="t1"
     )
     await tl.record(
         "company",
-        "comp-1",
+        entity_id,
         "enrich.completed",
         {"domain": "enrichment", "source": "balady"},
         tenant_id="t1",
     )
     await tl.record(
-        "company", "comp-1", "meeting.held", {"domain": "crm", "title": "QBR"}, tenant_id="t1"
+        "company", entity_id, "meeting.held", {"domain": "crm", "title": "QBR"}, tenant_id="t1"
     )
 
     # Filter by domain
-    crm_events, total = await tl.get_timeline("company", "comp-1", domain="crm")
+    crm_events, total = await tl.get_timeline("company", entity_id, domain="crm")
     assert total == 3
     assert len(crm_events) == 3
 
-    enrich_events, total2 = await tl.get_timeline("company", "comp-1", domain="enrichment")
+    enrich_events, total2 = await tl.get_timeline("company", entity_id, domain="enrichment")
     assert total2 == 1
     assert len(enrich_events) == 1
 
 
 @pytest.mark.asyncio
 async def test_timeline_runtime_filter_by_event_type(db_session: AsyncSession):
+    import uuid
+    from contextlib import asynccontextmanager
+
     from runtime.timeline_runtime import TimelineRuntime
 
+    @asynccontextmanager
     async def session_factory():
-        return db_session
+        yield db_session
 
     tl = TimelineRuntime(session_factory=session_factory)
-    await tl.record("company", "comp-2", "email.sent", {"domain": "crm"}, tenant_id="t1")
-    await tl.record("company", "comp-2", "meeting.held", {"domain": "crm"}, tenant_id="t1")
-    await tl.record("company", "comp-2", "call.held", {"domain": "crm"}, tenant_id="t1")
+    entity_id = f"comp-events-{uuid.uuid4().hex[:8]}"
+    await tl.record("company", entity_id, "email.sent", {"domain": "crm"}, tenant_id="t1")
+    await tl.record("company", entity_id, "meeting.held", {"domain": "crm"}, tenant_id="t1")
+    await tl.record("company", entity_id, "call.held", {"domain": "crm"}, tenant_id="t1")
 
     events, total = await tl.get_timeline(
-        "company", "comp-2", event_types=["email.sent", "meeting.held"]
+        "company", entity_id, event_types=["email.sent", "meeting.held"]
     )
     assert total == 2
     assert len(events) == 2
@@ -463,68 +472,73 @@ async def test_timeline_runtime_filter_by_event_type(db_session: AsyncSession):
 @pytest.mark.asyncio
 async def test_timeline_runtime_keyset_cursor(db_session: AsyncSession):
     import json
+    import uuid
+    from contextlib import asynccontextmanager
 
     from runtime.timeline_runtime import TimelineRuntime
 
+    @asynccontextmanager
     async def session_factory():
-        return db_session
+        yield db_session
 
     tl = TimelineRuntime(session_factory=session_factory)
+    entity_id = f"comp-cursor-{uuid.uuid4().hex[:8]}"
     for i in range(5):
-        await tl.record("company", "comp-3", f"event.{i}", {"domain": "crm"}, tenant_id="t1")
+        await tl.record("company", entity_id, f"event.{i}", {"domain": "crm"}, tenant_id="t1")
 
-    page1, total = await tl.get_timeline("company", "comp-3", limit=2)
+    page1, total = await tl.get_timeline("company", entity_id, limit=2)
     assert total == 5
     assert len(page1) == 2
 
     last = page1[-1]
     cursor = json.dumps({"created_at": last.get("created_at"), "id": str(last.get("id", ""))})
-    page2, total2 = await tl.get_timeline("company", "comp-3", limit=2, cursor=cursor)
+    page2, total2 = await tl.get_timeline("company", entity_id, limit=2, cursor=cursor)
     assert total2 == 5
     assert len(page2) == 2
-
 
 # ── B-2 Knowledge Graph Insights Tests ─────────────────────────────────
 
 
 @pytest.mark.asyncio
 async def test_kg_engine_get_company_insights_basic(db_session: AsyncSession, test_tenant: str):
-    from sqlalchemy import text as sa_text
+    from contextlib import asynccontextmanager
 
     from runtime.knowledge_graph_runtime import EdgeType, KnowledgeGraphEngine
 
+    @asynccontextmanager
     async def session_factory():
-        return db_session
+        yield db_session
 
     kg = KnowledgeGraphEngine(session_factory=session_factory, logger=None)
     kg.metrics.neo4j_available = False
 
-    # Create test companies
-    import uuid
-
-    c1 = str(uuid.uuid4())
-    c2 = str(uuid.uuid4())
-    c3 = str(uuid.uuid4())
-
-    for cid, name_ar, name_en, industry, city in [
-        (c1, "شركة أ", "Company A", "تقنية", "الرياض"),
-        (c2, "شركة ب", "Company B", "تقنية", "الرياض"),
-        (c3, "شركة ج", "Company C", "مقاولات", "جدة"),
-    ]:
-        await db_session.execute(
-            sa_text("""
-                INSERT INTO companies (id, tenant_id, name_ar, name_en, industry, city, is_active)
-                VALUES (:id, :tid, :name_ar, :name_en, :industry, :city, true)
-            """),
-            {
-                "id": cid,
-                "tid": test_tenant,
-                "name_ar": name_ar,
-                "name_en": name_en,
-                "industry": industry,
-                "city": city,
-            },
-        )
+    service = CompanyService(db_session)
+    company_a = await service.create_company(
+        tenant_id=test_tenant,
+        name_ar="شركة أ",
+        cr_number="CR-KG-A",
+        name_en="Company A",
+        city="الرياض",
+    )
+    company_b = await service.create_company(
+        tenant_id=test_tenant,
+        name_ar="شركة ب",
+        cr_number="CR-KG-B",
+        name_en="Company B",
+        city="الرياض",
+    )
+    company_c = await service.create_company(
+        tenant_id=test_tenant,
+        name_ar="شركة ج",
+        cr_number="CR-KG-C",
+        name_en="Company C",
+        city="جدة",
+    )
+    company_a.industry = "تقنية"
+    company_b.industry = "تقنية"
+    company_c.industry = "مقاولات"
+    c1 = str(company_a.id)
+    c2 = str(company_b.id)
     await db_session.commit()
 
     # Create competitor edges

@@ -187,7 +187,7 @@ async def get_company_engagement(
                    MAX(timestamp_utc) as last_email
             FROM employee_email_events
             WHERE tenant_id = :tid AND timestamp_utc >= :since
-              AND related_company_ids @> to_jsonb(:company_id::text)
+              AND related_company_ids @> to_jsonb(CAST(:company_id AS text))
         """),
         {"tid": tenant_id, "since": since, "company_id": company_id},
     )).mappings().one()
@@ -199,7 +199,7 @@ async def get_company_engagement(
                    MAX(start_utc) as last_meeting
             FROM employee_calendar_events
             WHERE tenant_id = :tid AND start_utc >= :since
-              AND related_company_ids @> to_jsonb(:company_id::text)
+              AND related_company_ids @> to_jsonb(CAST(:company_id AS text))
         """),
         {"tid": tenant_id, "since": since, "company_id": company_id},
     )).mappings().one()

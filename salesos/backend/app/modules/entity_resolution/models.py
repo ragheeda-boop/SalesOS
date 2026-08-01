@@ -3,11 +3,11 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.common.models import BaseModel
+from app.common.models import Base, BaseModel
 
 
 class GoldenRecord(BaseModel):
@@ -59,10 +59,25 @@ class EntityResolutionConflict(BaseModel):
         return f"<Conflict {self.field_name}: {self.source_a_source} vs {self.source_b_source}>"
 
 
-class EntityResolutionLog(BaseModel):
+class EntityResolutionLog(Base):
+    """Resolution batch log.
+
+    Schema honesty (alembic 0001_baseline): column is ``performed_at``, not
+    BaseModel ``created_at``/``updated_at``. CI runs alembic before pytest, so
+    mapping must match the migrated table.
+    """
+
     __tablename__ = "entity_resolution_log"
 
-    tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("tenants.id"),
+        nullable=False,
+        index=True,
+    )
     operation: Mapped[str] = mapped_column(String(50), nullable=False)
     source_slug: Mapped[str | None] = mapped_column(String(100), nullable=True)
     records_processed: Mapped[int] = mapped_column(Integer, default=0)
@@ -71,6 +86,16 @@ class EntityResolutionLog(BaseModel):
     records_merged: Mapped[int] = mapped_column(Integer, default=0)
     confidence_threshold: Mapped[float | None] = mapped_column(Float, nullable=True)
     details: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    performed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    @property
+    def created_at(self) -> datetime:
+        """Alias for API/schema consumers that still read ``created_at``."""
+        return self.performed_at
 
     def __repr__(self) -> str:
         return f"<ResolutionLog {self.operation}: {self.records_processed} records>"

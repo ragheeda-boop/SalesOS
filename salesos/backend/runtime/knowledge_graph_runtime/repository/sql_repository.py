@@ -51,7 +51,8 @@ companies = Table(
     Column("capital", String),
     Column("legal_form", String),
     Column("is_active", Boolean),
-    Column("parent_company_id", PGUUID(as_uuid=True)),
+    # Note: companies.parent_company_id is not in the migrated schema; hierarchy
+    # is modeled via graph_edges (SUBSIDIARY_OF), not a companies FK column.
 )
 
 contacts = Table(

@@ -319,7 +319,9 @@ class CompanyService:
 
     async def add_contact(self, company_id: str, data: dict) -> Contact:
         company = await self.get_company(company_id)
-        contact = Contact(company_id=company.id, **data)
+        payload = dict(data)
+        payload.setdefault("tenant_id", company.tenant_id)
+        contact = Contact(company_id=company.id, **payload)
         self.db.add(contact)
         await self.db.flush()
 
@@ -976,7 +978,8 @@ class CompanyService:
             count_base = count_base.where(condition)
 
         total = await self.db.scalar(count_base) or 0
-        base = base.order_by(Company.created_at.desc())
+        # Stable keyset order: created_at + id (matches build_keyset_condition).
+        base = base.order_by(Company.created_at.desc(), Company.id.desc())
 
         if cursor:
             from sdk.pagination import build_keyset_condition, decode_cursor
@@ -991,9 +994,12 @@ class CompanyService:
             )
             base = base.where(condition)
 
+        # Fetch one extra row for has-more detection, then trim to page_size.
         base = base.limit(page_size + 1)
         result = await self.db.execute(base)
         rows = list(result.scalars().all())
+        if len(rows) > page_size:
+            rows = rows[:page_size]
         return rows, total
 
     async def search_companies_cursored(

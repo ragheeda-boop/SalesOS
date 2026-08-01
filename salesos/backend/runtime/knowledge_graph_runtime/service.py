@@ -452,15 +452,23 @@ class KnowledgeGraphEngine:
                         "reason": (edge.get("properties") or {}).get("reason"),
                     }
                 )
-            parent_subq = (
-                select(companies.c.parent_company_id)
-                .where(companies.c.id == company_id)
-                .scalar_subquery()
-            )
+            # Hierarchy via graph_edges (no companies.parent_company_id in schema).
             parent_row = await session.execute(
                 select(
                     companies.c.id, companies.c.name_ar, companies.c.name_en
-                ).where(companies.c.id == parent_subq)
+                )
+                .select_from(
+                    graph_edges.join(
+                        companies,
+                        _id_text(companies.c.id) == graph_edges.c.target_id,
+                    )
+                )
+                .where(
+                    graph_edges.c.source_id == company_id,
+                    graph_edges.c.edge_type == EdgeType.SUBSIDIARY_OF.value,
+                    companies.c.tenant_id == tenant_id,
+                )
+                .limit(1)
             )
             p = parent_row.mappings().one_or_none()
             if p:
@@ -476,8 +484,16 @@ class KnowledgeGraphEngine:
                     companies.c.name_en,
                     companies.c.industry,
                     companies.c.city,
-                ).where(
-                    companies.c.parent_company_id == company_id,
+                )
+                .select_from(
+                    graph_edges.join(
+                        companies,
+                        _id_text(companies.c.id) == graph_edges.c.source_id,
+                    )
+                )
+                .where(
+                    graph_edges.c.target_id == company_id,
+                    graph_edges.c.edge_type == EdgeType.SUBSIDIARY_OF.value,
                     companies.c.tenant_id == tenant_id,
                 )
             )
@@ -569,17 +585,8 @@ class KnowledgeGraphEngine:
                     )
                     count += 1
 
-            subs = await session.execute(
-                select(companies.c.id).where(
-                    companies.c.parent_company_id == company_id,
-                    companies.c.tenant_id == tenant_id,
-                )
-            )
-            for sub in subs.mappings().all():
-                await self.create_edge(
-                    company_id, sub["id"], EdgeType.SUBSIDIARY_OF, tenant_id=tenant_id
-                )
-                count += 1
+            # Subsidiary inference requires explicit graph edges; companies has no
+            # parent_company_id column in the migrated schema.
 
         return count
 
@@ -627,17 +634,7 @@ class KnowledgeGraphEngine:
                     )
                     stats["competitors"] += 1
 
-            sub_rows = await session.execute(
-                select(companies.c.id).where(
-                    companies.c.parent_company_id == company_id,
-                    companies.c.tenant_id == tenant_id,
-                )
-            )
-            for sub in sub_rows.mappings().all():
-                await self.create_edge(
-                    company_id, sub["id"], EdgeType.SUBSIDIARY_OF, tenant_id=tenant_id
-                )
-                stats["subsidiaries"] += 1
+            # Subsidiary enrichment is edge-driven (graph_edges.SUBSIDIARY_OF).
 
             if city:
                 partner_rows = await session.execute(

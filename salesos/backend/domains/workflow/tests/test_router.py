@@ -3,34 +3,26 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
-from unittest.mock import patch
 
 import pytest
 from fastapi import FastAPI
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 
+from app.dependencies import get_current_tenant_id, get_db_session, require_permission, verify_token
+from app.routers.workflows import router as workflow_router
+from domains.workflow.engine import WorkflowEngine
 from domains.workflow.models import (
+    JobExecution,
+    ScheduledJob,
+    WebhookEndpoint,
     Workflow,
-    WorkflowStep,
     WorkflowExecution,
     WorkflowExecutionStep,
-    WebhookEndpoint,
-    ScheduledJob,
-    JobExecution,
+    WorkflowStep,
     WorkflowTemplate,
 )
 from domains.workflow.repository import InMemoryWorkflowRepository
-from domains.workflow.engine import WorkflowEngine
 from domains.workflow.service import WorkflowService
-
-# Patch require_permission and verify_token at module level BEFORE any router imports
-_patcher1 = patch("app.dependencies.require_permission", return_value=True)
-_patcher2 = patch("app.dependencies.verify_token", return_value={"sub": "test-user", "tenant_id": "tenant-1"})
-_patcher1.start()
-_patcher2.start()
-
-from app.routers.workflows import router as workflow_router
-from app.dependencies import get_current_tenant_id, verify_token
 
 
 # ── Helpers ──
@@ -92,22 +84,42 @@ def app(svc: WorkflowService) -> FastAPI:
     async def _fake_tenant_id() -> str:
         return "tenant-1"
 
-    application.dependency_overrides = {}
-    application.dependency_overrides[get_current_tenant_id] = _fake_tenant_id
-    application.dependency_overrides[verify_token] = lambda: {"sub": "test-user", "tenant_id": "tenant-1"}
+    async def _fake_token() -> dict:
+        return {"sub": "test-user", "tenant_id": "tenant-1"}
 
-    # Override _get_service in the router to use our test service directly
+    async def _allow() -> bool:
+        return True
+
     import app.routers.workflows as wr
+
+    application.dependency_overrides[get_current_tenant_id] = _fake_tenant_id
+    application.dependency_overrides[verify_token] = _fake_token
+    application.dependency_overrides[require_permission] = _allow
     application.dependency_overrides[wr._get_service] = lambda: svc
 
     application.include_router(workflow_router, prefix="/api/v1")
+
+    def _override_auth_deps(dependant) -> None:
+        for dependency in getattr(dependant, "dependencies", []) or []:
+            call = dependency.call
+            if call is None:
+                continue
+            name = getattr(call, "__name__", "")
+            if name in ("_require_permission", "require_permission"):
+                application.dependency_overrides[call] = _allow
+            elif name == "verify_token" or call is verify_token:
+                application.dependency_overrides[call] = _fake_token
+            elif name in ("get_db_session", "get_db") or call is get_db_session:
+                # Service is overridden; avoid real DB for auth/RBAC paths.
+                pass
+            nested = getattr(dependency, "dependant", None)
+            if nested is not None:
+                _override_auth_deps(nested)
+
     for route in application.routes:
         dependant = getattr(route, "dependant", None)
-        if not dependant:
-            continue
-        for dependency in dependant.dependencies:
-            if getattr(dependency.call, "__name__", "") == "_require_permission":
-                application.dependency_overrides[dependency.call] = lambda: True
+        if dependant is not None:
+            _override_auth_deps(dependant)
 
     return application
 
