@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-135a criterion 6.1 ADR-025..028 index VERIFIED/CLOSED; Phase 0 30/54; ADR Drift Complete 1/5; Capability Drift Complete 4/4)
+> **Last updated:** 2026-08-01 (DEC-136 criterion 6.2 ADR-029 phantom READY FOR REVIEW; Phase 0 30/54 until Orchestrator CLOSE; ADR Drift Complete 1/5; Capability Drift Complete 4/4)
 >
 > ## Operating State
 >
@@ -120,7 +120,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
 | 6.1 | ADR-025/026/027/028: files exist OR index corrected | No index entry claiming "Accepted" without a file | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: path-exists + Status Accepted) @ `4997ae4` (DEC-135a); files @ `salesos/backend/docs/adr/0025..0028-*.md`; `docs/adr/index.md` File column + location registered; residual `.engineering/27` re-pin (4.5) + **6.2–6.5** OPEN; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
-| 6.2 | ADR-029 phantom resolved | Numbering gap closed or documented | ⬜ |
+| 6.2 | ADR-029 phantom resolved | Numbering gap closed or documented | ⬜ READY FOR REVIEW (DEC-136) — disposition **Not Issued** @ `docs/adr/0029-number-never-issued.md`; `docs/adr/index.md` row registered (not Accepted); no binding architecture invented; `.engineering/27` conflict #2 re-pin residual (4.5); Arch/Val PENDING; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN |
 | 6.3 | ADR-033/034 status conflicts resolved | Index status matches file header status | ⬜ Index: Accepted / File: Proposed |
 | 6.4 | ADR-032/0032 naming unified | Single naming convention across `docs/adr/` and `engineering-os/adr/` | ⬜ |
 | 6.5 | ADR-036 registered in all indexes | `docs/adr/index.md` + `27_ADR_INDEX.md` | ⬜ Only `docs/adr/index.md` updated |

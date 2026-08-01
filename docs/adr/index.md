@@ -1,7 +1,7 @@
 # Architecture Decision Records (ADR) Index
 
 > **Purpose**: Central registry of all architectural decisions for SalesOS.
-> **Last updated**: 2026-08-01 (DEC-135 — criterion 6.1: ADR-025..028 paths registered)
+> **Last updated**: 2026-08-01 (DEC-136 — criterion 6.2: ADR-029 Not Issued disposition)
 
 ---
 
@@ -16,6 +16,7 @@
 | ADR-026 | Hybrid Search (Full-text + Semantic) | 2026-07-12 | ✅ Accepted | Search | `salesos/backend/docs/adr/0026-hybrid-search.md` |
 | ADR-027 | Feature Store Implementation | 2026-07-12 | ✅ Accepted | Feature Store | `salesos/backend/docs/adr/0027-feature-store.md` |
 | ADR-028 | Knowledge Graph Integration | 2026-07-12 | ✅ Accepted | Knowledge Graph | `salesos/backend/docs/adr/0028-knowledge-graph-integration.md` |
+| ADR-029 | Number Never Issued | 2026-08-01 | 🚫 Not Issued | Governance | `docs/adr/0029-number-never-issued.md` |
 | ADR-030 | Unified Provider Architecture | 2026-07-08 | ✅ Accepted | Architecture | `docs/adr/0030-unified-provider-architecture.md` |
 | ADR-031 | Webhook Auth API Key Assessment | 2026-07-09 | ✅ Accepted | Security | `docs/adr/0031-webhook-auth-api-key-assessment.md` |
 | ADR-032 | Widget SDK Reconciliation | 2026-07-10 | ✅ Accepted | Widget SDK | `engineering-os/adr/ADR-0032-widget-sdk-reconciliation.md` |
@@ -29,7 +30,7 @@
 
 | Location | Scope |
 |----------|-------|
-| `docs/adr/` | Product-root ADRs (ADR-030 to ADR-035) |
+| `docs/adr/` | Product-root ADRs (ADR-029 disposition; ADR-030 to ADR-035; ADR-036 file may lag multi-index — criterion 6.5) |
 | `salesos/backend/docs/adr/` | Backend domain ADRs (ADR-021..028; **ADR-025..028** canonical for criterion 6.1) |
 | `engineering-os/adr/` | Engineering-platform ADRs (ADR-001 to ADR-003, ADR-032) |
 | `salesos/docs/ARCHITECTURE_BOOK.md` | Comprehensive architecture reference |
@@ -57,6 +58,7 @@ graph LR
 | Accepted | Approved and in effect |
 | Rejected | Considered and declined with rationale |
 | Superseded | Replaced by a newer ADR |
+| Not Issued | Number reserved / never authored — meta-disposition only (ADR-029); not a binding architecture decision |
 
 ---
 

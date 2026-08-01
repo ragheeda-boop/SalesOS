@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-136 — Phase 0 criterion 6.2 ADR-029 phantom READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** ADR Drift checklist **6.2** OPEN — EOS recorded ADR-029 as PHANTOM (no file, no canonical index row; sequence 028→030). Criterion **6.1 CLOSED** (DEC-135a). No evidence an ADR-029 body was ever authored.
+**Alternatives considered:** (a) invent retrospective architecture ADR — rejected; (b) renumber 030+ — rejected; (c) leave silent — rejected; (d) meta-record Not Issued + index row — approved.
+**Decision:** Accept criterion **6.2** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-136-CRITERION-6-2-ADR-029-PHANTOM.md`](decisions/DEC-136-CRITERION-6-2-ADR-029-PHANTOM.md). File `docs/adr/0029-number-never-issued.md`; index status **Not Issued** (not Accepted). DEC-085 intact. Do **not** claim VERIFIED/CLOSED until Arch+Val.
+**Consequence:** Phase 0 criterion **6.2** = READY FOR REVIEW. Phase 0 remains **30/54** until Orchestrator CLOSE. Residuals **6.3–6.5** OPEN; `.engineering/27` conflict #2 re-pin → **4.5**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **READY FOR REVIEW**.
+
 ### DEC-135 — Phase 0 criterion 6.1 ADR-025..028 index path READY FOR REVIEW
 
 **Date:** 2026-08-01
