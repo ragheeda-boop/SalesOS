@@ -3,6 +3,8 @@ WORKDIR /app
 # CI-14 Slice 2: honor legacy-peer-deps for eslint 10 vs eslint-config-next peers
 COPY package.json package-lock.json .npmrc ./
 COPY packages packages/
+# postinstall needs this script before full COPY .
+COPY scripts/ci14-stub-rushstack-eslint-patch.js scripts/
 RUN npm install --no-audit --no-fund --workspaces --include-workspace-root
 COPY . .
 RUN NODE_ENV=production ./node_modules/.bin/next build
