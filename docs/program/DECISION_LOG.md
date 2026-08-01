@@ -1108,6 +1108,7 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Decision:** Accept **2.3 CLOSED CONDITIONAL** with residual *multi-tenant live split not re-proven*. Do **not** gate on prod alembic tip `d1a8`/67 (7.5 scope). Optional follow-up: second-tenant Slice E on staging for unconditional upgrade.
 **Consequence:** Phase 0 **→ 20/54**. Blocked list drops R-14 as hard block. Residual remains documented. **Production GO not claimed. CI GREEN not met.**
 **Status:** Accepted. Criterion **2.3 CLOSED CONDITIONAL**.
+**Hygiene (2026-08-01):** Prod tip-align `d1a8c35e7f09` / POLICY_COUNT **67** (crumb `c842245`) is 7.5 hygiene only — does **not** reopen 2.3; does **not** upgrade to unconditional CLOSED.
 
 ### DEC-124 — Decision Center cross-tenant IDOR (Phase 0 criterion 1.1)
 
@@ -1131,7 +1132,7 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 **Context:** Architecture PASS + Validation PASS on tip land `578e4f2` (Docker 13/13; `tenant_isolation_%`=67; alembic `d1a8c35e7f09`).
 **Decision:** Criterion **7.5 VERIFIED → CLOSED**. Phase 0 **17/54 → 18/54**.
-**Consequence:** Residual DB-05 = 7.4 · 7.6. Prod Railway may still be on 59 policies until separate migrate — does not reopen 7.5.
+**Consequence:** Residual DB-05 = 7.4 · 7.6. Prior residual “prod may still be on 59 until migrate” **cleared** (2026-08-01 tip-align: alembic `d1a8c35e7f09`, POLICY_COUNT **67**, crumb `c842245`) — does not reopen 7.5; does not upgrade 2.3 CONDITIONAL.
 **Status:** Accepted. Criterion **7.5 CLOSED**.
 
 ### DEC-122 — DB-05 Slice 3: index rename + nullable triage (additive; companies DROP STOP)

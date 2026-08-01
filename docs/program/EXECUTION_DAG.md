@@ -29,7 +29,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
                                           (production GA still NO-GO)
 ```
 
-**Phase 0 (DEC-008 tenant-isolation / R-14) critical-path gate = BLOCKED (executive close pending).** DEC-120 A–E Tier-1 evidence landed on Railway prod (`9664e9fc`, `salesos_app`, policies **59**, E bare/wrong-tenant **0** vs owner **141221**, single-tenant caveat). S04-04 remains **REOPENED** until Architecture/Validation close criterion **2.3**. STORY-02-01 **CLOSED** (DEC-044). Local/CI/compose R-14 remediations retained.
+**Phase 0 (DEC-008 tenant-isolation / R-14) critical-path gate = NO-GO residual (multi-tenant).** DEC-120 A–E + tip RLS align on Railway prod (`9664e9fc`, `salesos_app`, alembic `d1a8c35e7f09`, policies **67**, E bare/wrong-tenant **0** vs owner **141221**, single-tenant caveat). Criterion **2.3 CLOSED CONDITIONAL** (DEC-126; residual *multi-tenant live split not re-proven*). Tip-align does not upgrade 2.3. STORY-02-01 **CLOSED** (DEC-044). Local/CI/compose R-14 remediations retained.
 
 **Does not equal production GO.** ga-engineering-audit executive summary remains **production no-go**. **CI GREEN not met.**
 
@@ -65,7 +65,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **S04-04 remediation A** | READY | Wiring commit identified | `5e7023f` introduced `app_database_url` / `APP_POSTGRES_*` consumption |
 | **S04-04 remediation B** | READY (path choice) | Image promote | GHCR path BLOCKED (CI-08); alternate Railway GitHub build/redeploy |
 | **S04-04 remediation A–E** | **Evidence landed** | Prod `9664e9fc` / `salesos_app` / alembic `d1a8` / policies **67** / E bare=0 | Single-tenant caveat residual; tip RLS align via owner SSH |
-| **DB-05** Schema reconciliation | IN PROGRESS | Slice 0–3 CLOSED; Slice 4 Cursor COMPLETE (DEC-123); criterion 7.5 **READY FOR REVIEW** | Next: Claude arch review → OpenCode validation → Orchestrator VERIFIED/CLOSED; residual 7.4 / 7.6; POLICY_COUNT 67 local |
+| **DB-05** Schema reconciliation | IN PROGRESS | Slice 0–3 CLOSED; Slice 4 / criterion 7.5 **CLOSED** (DEC-123a); prod tip `d1a8` / POLICY_COUNT **67** | Residual 7.4 / 7.6; prior “prod on 59” residual cleared (`c842245`) |
 | **Optional Jest 30 evidence** | BACKLOG | DEC-108 deferred | STOP silent major |
 | **STORY-02-02** browser/E2E | **CLOSED** (DEC-095) | Redirect AC | **CI GREEN not met** |
 | **Sprint 04 Category B (B1–B7)** | **CLOSED** (COMPLETE) | DEC-110; B1–B7 CLOSED (DEC-112/114/115/116/117/118/119); live policies **59** | Does not restore Phase 0 GO (DEC-120) |
