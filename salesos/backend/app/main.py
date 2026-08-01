@@ -10,7 +10,7 @@ from app.boot.exceptions import register_exception_handlers
 from app.boot.middleware import setup_middleware
 from app.boot.routers import register_routers
 from app.boot.startup import init_startup_services, shutdown_services
-from app.common.schemas import HealthResponse
+from app.common.schemas import HealthLiveResponse, HealthResponse, PingResponse
 from app.config import settings
 from app.database import get_db
 
@@ -39,14 +39,14 @@ setup_middleware(app)
 register_exception_handlers(app)
 
 
-@app.get("/ping")
+@app.get("/ping", response_model=PingResponse)
 async def ping():
-    return {"ping": "pong"}
+    return PingResponse(ping="pong")
 
 
-@app.get("/health/live")
+@app.get("/health/live", response_model=HealthLiveResponse)
 async def health_live():
-    return {"status": "alive", "uptime_seconds": time.time() - _start_time}
+    return HealthLiveResponse(status="alive", uptime_seconds=time.time() - _start_time)
 
 
 @app.get("/health/detailed")

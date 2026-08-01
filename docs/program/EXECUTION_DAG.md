@@ -109,7 +109,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | STORY-02-03 JWT audience groundwork | `2379e5f` | DONE | **light validated** — host pytest **7/7** (DEC-091); prior Docker **15** w/ write-protection (`deae7de`) |
 | STORY-02-02 server-side middleware | `3f4b3c8` | **DONE** (DEC-095) | Jest **14/14** (DEC-088) + live redirect probe **browser-validated** (DEC-095) |
 | STORY-03-04 OpenAPI contract framework | `623077c` | DONE | Framework land; pytest via DEC-093 |
-| Contract tests expansion slice 1 (DEC-093) | *(this land)* | IN PROGRESS | `/ping` + `/health/live` typed + OpenAPI HTTP contracts; next slice documented |
+| Contract tests expansion slice 1 (DEC-094) | ca85927 | IN PROGRESS | `/ping` + `/health/live` typed + OpenAPI HTTP contracts; next slice documented |
 | STORY-02-04 §17.2 relabel | `932f722` | DONE | docs-only |
 | Card primitives (Jest debt related) | `9577c98` | Progress note only | **CI GREEN not met** |
 

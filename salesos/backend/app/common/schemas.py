@@ -61,6 +61,19 @@ class HealthResponse(BaseModel):
     uptime_seconds: float = 0.0
 
 
+class PingResponse(BaseModel):
+    """GET /ping — process-local liveness (no dependency checks)."""
+
+    ping: str
+
+
+class HealthLiveResponse(BaseModel):
+    """GET /health/live — Kubernetes-style liveness (no DB/cache)."""
+
+    status: str
+    uptime_seconds: float
+
+
 class AuditLogEntry(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
