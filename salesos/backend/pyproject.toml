@@ -47,6 +47,9 @@ celery = "^5.4"
 # FastAPI/starlette majors (extras only).
 strawberry-graphql = ">=0.315.7,<1.0.0"
 jsonschema = "^4.22"
+# Required for pydantic EmailStr (identity/signup schemas). Was a FastAPI[standard]
+# transitive under 0.111; not installed with bare fastapi>=0.136.
+email-validator = ">=2.0,<3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2"

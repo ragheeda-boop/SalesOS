@@ -9,8 +9,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Layer cache: install deps from pyproject before copying application source
-COPY pyproject.toml .
+# Layer cache: install deps from lock before copying application source (CI-22 lock-faithful)
+COPY pyproject.toml poetry.lock ./
 RUN pip install --no-cache-dir "poetry==1.8.3" \
     && poetry config virtualenvs.create false \
     && poetry install --only main --no-root --no-interaction

@@ -16,6 +16,7 @@
 | `fastapi` | 0.111.1 | **0.141.1** | `>=0.136.0,<0.142.0` |
 | `starlette` | 0.37.2 | **1.3.1** | **explicit** `>=1.3.1,<2.0` (FastAPI alone only requires ≥0.46) |
 | `pydantic` | 2.8.2 | **2.13.4** | `>=2.9,<3` |
+| `email-validator` | transitive only (FastAPI extras) | **2.3.0** (direct) | `>=2.0,<3` — required for pydantic `EmailStr` under bare fastapi≥0.136 |
 
 ## 2. Minimal app fixes (C3 lite)
 
@@ -23,6 +24,7 @@ FastAPI ≥0.136 rejects `Request | None = None` / `Request = None` as route par
 
 - `app/application/dashboard/router.py` → `request: Request`
 - `runtime/knowledge_graph_runtime/router.py` → `request: Request` (2 sites)
+- `Dockerfile`: copy `poetry.lock` with `pyproject.toml` (lock-faithful image install)
 
 No auth/CSRF/RBAC middleware logic changed.
 
@@ -34,11 +36,11 @@ Accept CI-22 **Phase 1** as COMPLETE for the cascade land. Move board **REGISTER
 
 | Check | Result |
 |---|---|
-| Poetry lock | **fastapi 0.141.1 / starlette 1.3.1 / pydantic 2.13.4** |
-| Host import `app.main` | **PASS** (`FastAPI SalesOS API`) |
-| Host mypy `dashboard/router.py --follow-imports=skip` | **0** errors |
-| Host pytest `tests/unit/test_middleware.py` | **37 passed** in 1.83s |
-| Docker in-container poetry install | **OOM (137)** on running compose backend — not used for gate |
+| Poetry lock | **fastapi 0.141.1 / starlette 1.3.1 / pydantic 2.13.4 / email-validator 2.3.0** |
+| Host import `app.main` | **PASS** (`FastAPI SalesOS API`, 78 routes) |
+| Host mypy `main.py` + `dashboard/router.py --follow-imports=skip` | **0** errors |
+| Host pytest graphql introspection + middleware + post_middleware | **49 passed** |
+| Host `pip-audit` (poetry export) | **NO starlette**; residual **ecdsa 0.19.2** only (DEC-057 accepted) |
 | Label | **light validated** |
 
-**CI GREEN not met.** Field `pip-audit` / full CI corroboration may trail.
+**CI GREEN not met.** Field Security Scan / full CI corroboration may trail.
