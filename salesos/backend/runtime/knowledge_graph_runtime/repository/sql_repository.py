@@ -1,5 +1,7 @@
 """SQL-backed graph repository implementation (fallback store).
 
+CI-19 Wave 2 Core (no sqlalchemy.text)
+
 All query paths require a non-empty tenant_id — unscoped SQL is refused.
 """
 
@@ -7,11 +9,96 @@ from __future__ import annotations
 
 from typing import Any, Callable, Optional
 
-from sqlalchemy import text as sa_text
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Integer,
+    MetaData,
+    String,
+    Table,
+    cast,
+    delete,
+    exists,
+    func,
+    literal,
+    or_,
+    select,
+    type_coerce,
+    update,
+)
+from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models import EdgeType, GraphEdge, GraphNode, GraphPath, NodeLabel
 from .base import GraphRepository
+
+_kg_metadata = MetaData()
+
+companies = Table(
+    "companies",
+    _kg_metadata,
+    Column("id", PGUUID(as_uuid=True), primary_key=True),
+    Column("tenant_id", PGUUID(as_uuid=True)),
+    Column("name_ar", String),
+    Column("name_en", String),
+    Column("cr_number", String),
+    Column("industry", String),
+    Column("city", String),
+    Column("region", String),
+    Column("employees_count", Integer),
+    Column("capital", String),
+    Column("legal_form", String),
+    Column("is_active", Boolean),
+    Column("parent_company_id", PGUUID(as_uuid=True)),
+)
+
+contacts = Table(
+    "contacts",
+    _kg_metadata,
+    Column("id", PGUUID(as_uuid=True), primary_key=True),
+    Column("tenant_id", PGUUID(as_uuid=True)),
+    Column("company_id", PGUUID(as_uuid=True)),
+    Column("position", String),
+)
+
+licenses = Table(
+    "licenses",
+    _kg_metadata,
+    Column("id", String(64), primary_key=True),
+    Column("company_id", PGUUID(as_uuid=True)),
+)
+
+branches = Table(
+    "branches",
+    _kg_metadata,
+    Column("id", String(64), primary_key=True),
+    Column("company_id", PGUUID(as_uuid=True)),
+)
+
+graph_edges = Table(
+    "graph_edges",
+    _kg_metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("source_id", String(64), nullable=False),
+    Column("target_id", String(64), nullable=False),
+    Column("edge_type", String(50), nullable=False),
+    Column("properties", JSONB, nullable=True),
+    Column("created_at", DateTime(timezone=True)),
+)
+
+golden_records = Table(
+    "golden_records",
+    _kg_metadata,
+    Column("id", PGUUID(as_uuid=True), primary_key=True),
+    Column("tenant_id", PGUUID(as_uuid=True)),
+    Column("is_active", Boolean),
+)
+
+
+def _id_text(col):
+    return cast(col, String)
 
 
 class SqlGraphRepository(GraphRepository):
@@ -50,15 +137,25 @@ class SqlGraphRepository(GraphRepository):
     ) -> GraphEdge:
         tid = self._require_tenant(tenant_id)
         props = {**(properties or {}), "tenant_id": tid}
-        async with self._session_factory() as session:
-            await session.execute(
-                sa_text(
-                    "INSERT INTO graph_edges (source_id, target_id, edge_type, properties) "
-                    "VALUES (:src, :tgt, :type, :props) "
-                    "ON CONFLICT (source_id, target_id, edge_type) DO NOTHING"
-                ),
-                {"src": source_id, "tgt": target_id, "type": edge_type.value, "props": props},
+        stmt = (
+            pg_insert(graph_edges)
+            .values(
+                source_id=source_id,
+                target_id=target_id,
+                edge_type=edge_type.value,
+                # asyncpg needs an explicit JSONB bind (plain dict → encode error).
+                properties=type_coerce(props, JSONB),
             )
+            .on_conflict_do_nothing(
+                index_elements=[
+                    graph_edges.c.source_id,
+                    graph_edges.c.target_id,
+                    graph_edges.c.edge_type,
+                ]
+            )
+        )
+        async with self._session_factory() as session:
+            await session.execute(stmt)
             await session.commit()
         return GraphEdge(source_id=source_id, target_id=target_id, type=edge_type, properties=props)
 
@@ -69,11 +166,12 @@ class SqlGraphRepository(GraphRepository):
         tenant_id: str = "",
     ) -> Optional[GraphNode]:
         tid = self._require_tenant(tenant_id)
+        stmt = select(companies).where(
+            companies.c.id == node_id,
+            companies.c.tenant_id == tid,
+        )
         async with self._session_factory() as session:
-            row = await session.execute(
-                sa_text("SELECT * FROM companies WHERE id = :id AND tenant_id = :tid"),
-                {"id": node_id, "tid": tid},
-            )
+            row = await session.execute(stmt)
             r = row.mappings().one_or_none()
             return GraphNode(id=r["id"], labels=[NodeLabel.COMPANY], properties=dict(r)) if r else None
 
@@ -83,23 +181,28 @@ class SqlGraphRepository(GraphRepository):
         self, company_id: str, tenant_id: str = "", limit: int = 10
     ) -> list[GraphNode]:
         tid = self._require_tenant(tenant_id)
-        async with self._session_factory() as session:
-            rows = await session.execute(
-                sa_text(
-                    """
-                    SELECT ge.*
-                    FROM graph_edges ge
-                    JOIN companies c_src ON c_src.id::text = ge.source_id
-                    JOIN companies c_tgt ON c_tgt.id::text = ge.target_id
-                    WHERE (ge.source_id = :cid OR ge.target_id = :cid)
-                      AND ge.edge_type = 'COMPETITOR_OF'
-                      AND c_src.tenant_id = :tid
-                      AND c_tgt.tenant_id = :tid
-                    LIMIT :lim
-                    """
-                ),
-                {"cid": company_id, "tid": tid, "lim": limit},
+        c_src = companies.alias("c_src")
+        c_tgt = companies.alias("c_tgt")
+        stmt = (
+            select(graph_edges)
+            .select_from(
+                graph_edges.join(
+                    c_src, _id_text(c_src.c.id) == graph_edges.c.source_id
+                ).join(c_tgt, _id_text(c_tgt.c.id) == graph_edges.c.target_id)
             )
+            .where(
+                or_(
+                    graph_edges.c.source_id == company_id,
+                    graph_edges.c.target_id == company_id,
+                ),
+                graph_edges.c.edge_type == "COMPETITOR_OF",
+                c_src.c.tenant_id == tid,
+                c_tgt.c.tenant_id == tid,
+            )
+            .limit(limit)
+        )
+        async with self._session_factory() as session:
+            rows = await session.execute(stmt)
             return [
                 GraphNode(
                     id=(r["target_id"] if r["source_id"] == company_id else r["source_id"]),
@@ -113,21 +216,33 @@ class SqlGraphRepository(GraphRepository):
         self, source_id: str, target_id: str, max_depth: int = 6, tenant_id: str = ""
     ) -> Optional[GraphPath]:
         tid = self._require_tenant(tenant_id)
-        async with self._session_factory() as session:
-            row = await session.execute(
-                sa_text(
-                    """
-                    SELECT ge.*
-                    FROM graph_edges ge
-                    JOIN companies c_src ON c_src.id::text = ge.source_id AND c_src.tenant_id = :tid
-                    JOIN companies c_tgt ON c_tgt.id::text = ge.target_id AND c_tgt.tenant_id = :tid
-                    WHERE (ge.source_id = :src AND ge.target_id = :tgt)
-                       OR (ge.source_id = :tgt AND ge.target_id = :src)
-                    LIMIT 1
-                    """
-                ),
-                {"src": source_id, "tgt": target_id, "tid": tid},
+        c_src = companies.alias("c_src")
+        c_tgt = companies.alias("c_tgt")
+        stmt = (
+            select(graph_edges)
+            .select_from(
+                graph_edges.join(
+                    c_src,
+                    (_id_text(c_src.c.id) == graph_edges.c.source_id)
+                    & (c_src.c.tenant_id == tid),
+                ).join(
+                    c_tgt,
+                    (_id_text(c_tgt.c.id) == graph_edges.c.target_id)
+                    & (c_tgt.c.tenant_id == tid),
+                )
             )
+            .where(
+                or_(
+                    (graph_edges.c.source_id == source_id)
+                    & (graph_edges.c.target_id == target_id),
+                    (graph_edges.c.source_id == target_id)
+                    & (graph_edges.c.target_id == source_id),
+                )
+            )
+            .limit(1)
+        )
+        async with self._session_factory() as session:
+            row = await session.execute(stmt)
             edge = row.mappings().one_or_none()
             if not edge:
                 return None
@@ -136,7 +251,13 @@ class SqlGraphRepository(GraphRepository):
                     GraphNode(id=source_id, labels=[NodeLabel.COMPANY], properties={}),
                     GraphNode(id=target_id, labels=[NodeLabel.COMPANY], properties={}),
                 ],
-                edges=[GraphEdge(source_id=edge["source_id"], target_id=edge["target_id"], type=EdgeType(edge["edge_type"]))],
+                edges=[
+                    GraphEdge(
+                        source_id=edge["source_id"],
+                        target_id=edge["target_id"],
+                        type=EdgeType(edge["edge_type"]),
+                    )
+                ],
                 length=1,
             )
 
@@ -144,20 +265,31 @@ class SqlGraphRepository(GraphRepository):
         self, company_id: str, depth: int = 2, tenant_id: str = ""
     ) -> list[dict]:
         tid = self._require_tenant(tenant_id)
-        async with self._session_factory() as session:
-            rows = await session.execute(
-                sa_text(
-                    """
-                    SELECT ge.*
-                    FROM graph_edges ge
-                    JOIN companies c_src ON c_src.id::text = ge.source_id AND c_src.tenant_id = :tid
-                    JOIN companies c_tgt ON c_tgt.id::text = ge.target_id AND c_tgt.tenant_id = :tid
-                    WHERE ge.source_id = :cid OR ge.target_id = :cid
-                    LIMIT 50
-                    """
-                ),
-                {"cid": company_id, "tid": tid},
+        c_src = companies.alias("c_src")
+        c_tgt = companies.alias("c_tgt")
+        stmt = (
+            select(graph_edges)
+            .select_from(
+                graph_edges.join(
+                    c_src,
+                    (_id_text(c_src.c.id) == graph_edges.c.source_id)
+                    & (c_src.c.tenant_id == tid),
+                ).join(
+                    c_tgt,
+                    (_id_text(c_tgt.c.id) == graph_edges.c.target_id)
+                    & (c_tgt.c.tenant_id == tid),
+                )
             )
+            .where(
+                or_(
+                    graph_edges.c.source_id == company_id,
+                    graph_edges.c.target_id == company_id,
+                )
+            )
+            .limit(50)
+        )
+        async with self._session_factory() as session:
+            rows = await session.execute(stmt)
             return [
                 {
                     "node": GraphNode(
@@ -174,20 +306,25 @@ class SqlGraphRepository(GraphRepository):
         self, company_id: str, tenant_id: str = ""
     ) -> list[GraphNode]:
         tid = self._require_tenant(tenant_id)
+        position = contacts.c.position
+        stmt = select(contacts).where(
+            contacts.c.company_id == company_id,
+            contacts.c.tenant_id == tid,
+            or_(
+                position.ilike("%CEO%"),
+                position.ilike("%CTO%"),
+                position.ilike("%VP%"),
+                position.ilike("%Director%"),
+                position.ilike("%Head%"),
+                position.ilike("%President%"),
+            ),
+        )
         async with self._session_factory() as session:
-            rows = await session.execute(
-                sa_text(
-                    """
-                    SELECT * FROM contacts
-                    WHERE company_id = :cid AND tenant_id = :tid
-                      AND (position ILIKE '%CEO%' OR position ILIKE '%CTO%' OR position ILIKE '%VP%'
-                           OR position ILIKE '%Director%' OR position ILIKE '%Head%'
-                           OR position ILIKE '%President%')
-                    """
-                ),
-                {"cid": company_id, "tid": tid},
-            )
-            return [GraphNode(id=r["id"], labels=[NodeLabel.PERSON], properties=dict(r)) for r in rows.mappings().all()]
+            rows = await session.execute(stmt)
+            return [
+                GraphNode(id=r["id"], labels=[NodeLabel.PERSON], properties=dict(r))
+                for r in rows.mappings().all()
+            ]
 
     async def search(
         self,
@@ -197,20 +334,32 @@ class SqlGraphRepository(GraphRepository):
         tenant_id: str = "",
     ) -> list[GraphNode]:
         tid = self._require_tenant(tenant_id)
-        async with self._session_factory() as session:
-            rows = await session.execute(
-                sa_text(
-                    """
-                    SELECT id, name_ar, name_en, cr_number, industry, city
-                    FROM companies
-                    WHERE tenant_id = :tid
-                      AND (name_ar ILIKE :q OR name_en ILIKE :q OR cr_number ILIKE :q)
-                    LIMIT :lim
-                    """
-                ),
-                {"q": f"%{query}%", "lim": limit, "tid": tid},
+        pattern = f"%{query}%"
+        stmt = (
+            select(
+                companies.c.id,
+                companies.c.name_ar,
+                companies.c.name_en,
+                companies.c.cr_number,
+                companies.c.industry,
+                companies.c.city,
             )
-            return [GraphNode(id=r["id"], labels=[NodeLabel.COMPANY], properties=dict(r)) for r in rows.mappings().all()]
+            .where(
+                companies.c.tenant_id == tid,
+                or_(
+                    companies.c.name_ar.ilike(pattern),
+                    companies.c.name_en.ilike(pattern),
+                    companies.c.cr_number.ilike(pattern),
+                ),
+            )
+            .limit(limit)
+        )
+        async with self._session_factory() as session:
+            rows = await session.execute(stmt)
+            return [
+                GraphNode(id=r["id"], labels=[NodeLabel.COMPANY], properties=dict(r))
+                for r in rows.mappings().all()
+            ]
 
     # ── Entity operations ───────────────────────────────────────
 
@@ -228,28 +377,43 @@ class SqlGraphRepository(GraphRepository):
         self, entity_id: str, depth: int = 2, tenant_id: str = ""
     ) -> dict:
         tid = self._require_tenant(tenant_id)
-        async with self._session_factory() as session:
-            rows = await session.execute(
-                sa_text(
-                    """
-                    SELECT ge.*
-                    FROM graph_edges ge
-                    JOIN companies c_src ON c_src.id::text = ge.source_id AND c_src.tenant_id = :tid
-                    JOIN companies c_tgt ON c_tgt.id::text = ge.target_id AND c_tgt.tenant_id = :tid
-                    WHERE ge.source_id = :eid OR ge.target_id = :eid
-                    LIMIT :lim
-                    """
-                ),
-                {"eid": entity_id, "tid": tid, "lim": 50 * depth},
+        c_src = companies.alias("c_src")
+        c_tgt = companies.alias("c_tgt")
+        stmt = (
+            select(graph_edges)
+            .select_from(
+                graph_edges.join(
+                    c_src,
+                    (_id_text(c_src.c.id) == graph_edges.c.source_id)
+                    & (c_src.c.tenant_id == tid),
+                ).join(
+                    c_tgt,
+                    (_id_text(c_tgt.c.id) == graph_edges.c.target_id)
+                    & (c_tgt.c.tenant_id == tid),
+                )
             )
+            .where(
+                or_(
+                    graph_edges.c.source_id == entity_id,
+                    graph_edges.c.target_id == entity_id,
+                )
+            )
+            .limit(50 * depth)
+        )
+        async with self._session_factory() as session:
+            rows = await session.execute(stmt)
             nodes: dict[str, dict] = {}
             edges: list[dict] = []
             for row in rows.mappings().all():
                 src, tgt = row["source_id"], row["target_id"]
                 if src not in nodes:
-                    nodes[src] = GraphNode(id=src, labels=[NodeLabel.COMPANY], properties={}).to_dict()
+                    nodes[src] = GraphNode(
+                        id=src, labels=[NodeLabel.COMPANY], properties={}
+                    ).to_dict()
                 if tgt not in nodes:
-                    nodes[tgt] = GraphNode(id=tgt, labels=[NodeLabel.COMPANY], properties={}).to_dict()
+                    nodes[tgt] = GraphNode(
+                        id=tgt, labels=[NodeLabel.COMPANY], properties={}
+                    ).to_dict()
                 edges.append({"source": src, "target": tgt, "type": row["edge_type"]})
             return {"nodes": list(nodes.values()), "edges": edges}
 
@@ -258,33 +422,54 @@ class SqlGraphRepository(GraphRepository):
     ) -> dict:
         tid = self._require_tenant(tenant_id)
         async with self._session_factory() as session:
-            owned = await session.execute(
-                sa_text(
-                    "SELECT COUNT(*) FROM companies WHERE id IN (:surviving, :absorbed) AND tenant_id = :tid"
-                ),
-                {"surviving": surviving_id, "absorbed": absorbed_id, "tid": tid},
+            owned = await session.scalar(
+                select(func.count())
+                .select_from(companies)
+                .where(
+                    companies.c.id.in_([surviving_id, absorbed_id]),
+                    companies.c.tenant_id == tid,
+                )
             )
-            if (owned.scalar() or 0) < 2:
+            if (owned or 0) < 2:
                 return {"edges_rewired": 0, "node_deleted": False, "error": "tenant_mismatch"}
+
+            e2 = graph_edges.alias("e2")
             await session.execute(
-                sa_text(
-                    "UPDATE graph_edges SET source_id = :surviving WHERE source_id = :absorbed "
-                    "AND NOT EXISTS (SELECT 1 FROM graph_edges e2 WHERE e2.source_id = :surviving "
-                    "AND e2.target_id = graph_edges.target_id)"
-                ),
-                {"surviving": surviving_id, "absorbed": absorbed_id},
+                update(graph_edges)
+                .where(
+                    graph_edges.c.source_id == absorbed_id,
+                    ~exists(
+                        select(literal(1)).where(
+                            e2.c.source_id == surviving_id,
+                            e2.c.target_id == graph_edges.c.target_id,
+                        )
+                    ),
+                )
+                .values(source_id=surviving_id)
             )
             await session.execute(
-                sa_text(
-                    "UPDATE graph_edges SET target_id = :surviving WHERE target_id = :absorbed "
-                    "AND NOT EXISTS (SELECT 1 FROM graph_edges e2 WHERE e2.source_id = graph_edges.source_id "
-                    "AND e2.target_id = :surviving)"
-                ),
-                {"surviving": surviving_id, "absorbed": absorbed_id},
+                update(graph_edges)
+                .where(
+                    graph_edges.c.target_id == absorbed_id,
+                    ~exists(
+                        select(literal(1)).where(
+                            e2.c.source_id == graph_edges.c.source_id,
+                            e2.c.target_id == surviving_id,
+                        )
+                    ),
+                )
+                .values(target_id=surviving_id)
             )
             result = await session.execute(
-                sa_text("DELETE FROM graph_edges WHERE source_id = :absorbed OR target_id = :absorbed"),
-                {"absorbed": absorbed_id},
+                delete(graph_edges).where(
+                    or_(
+                        graph_edges.c.source_id == absorbed_id,
+                        graph_edges.c.target_id == absorbed_id,
+                    )
+                )
             )
             await session.commit()
-        return {"edges_rewired": result.rowcount if result.rowcount else 0, "node_deleted": True}
+        return {
+            "edges_rewired": result.rowcount if result.rowcount else 0,
+            "node_deleted": True,
+        }

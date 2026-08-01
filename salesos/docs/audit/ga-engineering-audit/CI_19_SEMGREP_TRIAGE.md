@@ -141,7 +141,7 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 - **Acceptance:** those 8 Code Scanning alerts closed or fixed; Security Scan still uploads Semgrep SARIF.
 - **Remediation landed (2026-08-01):** commit `d5c9b57` (`d5c9b5746a346c6773e4205f03284c8186b7f3ca`) — `fix(ci): CI-19 wave 1 remediate GHA script injection`. Files: `.github/workflows/deploy.yml`, `deploy-staging.yml`, `deploy-production.yml`, `sales-os/.github/workflows/run.yml` (env:/process.env pattern). **Wave 1 only** — Waves 2–5 still open; CI-19 story **not** closed; **CI GREEN not met**.
 
-### Wave 2 — Runtime SQL honesty pass (`salesos/backend` hot paths) → **IN PROGRESS** (Slice 1–4 landed — DEC-091 / DEC-097 / DEC-099 / DEC-101)
+### Wave 2 — Runtime SQL honesty pass (`salesos/backend` hot paths) → **IN PROGRESS** (Slice 1–5 landed — DEC-091 / DEC-097 / DEC-099 / DEC-101 / DEC-102)
 
 - Inventory: live Code Scanning (tip baseline) **72** `avoid-sqlalchemy-text` + **4** alembic raw/formatted = **76** SQL-cluster; earlier tip estimate ~108 was stale vs post–Wave 4/5 open set (**85** Semgrep OSS open total).
 - Per finding: (a) parameterized `text()` → dismiss FP with reason, (b) refactor to Core expression API, or (c) fix true concat SQLi. **No** Semgrep suppress / severity drop.
@@ -169,7 +169,13 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
   - `app/modules/contact/search_repository.py` (**1**)
   - Also local: `runtime/admin_router.py` metrics/health counts (Core)
   - Expected cleared this slice: **14**. Narrow pytest: `test_search_runtime` + DEC-085 guard (**14 passed**, **light validated**). DEC-085 `get_db` untouched.
-- **Remainder (not this slice):** ~**18** `avoid-sqlalchemy-text` — alembic RLS/tenant migrations, `activity_runtime`, kg service/sql_repository, integration-test helpers, etc. + non-SQL residuals.
+- **Slice 5 COMPLETE (DEC-102):** Core rewrite for:
+  - `runtime/activity_runtime/__init__.py` (**3** CS — allowlisted Core filters/insert/stats)
+  - `runtime/knowledge_graph_runtime/repository/sql_repository.py` (full Core; tenant-required paths preserved)
+  - `runtime/knowledge_graph_runtime/service.py` (**2** CS — removes f-string dynamic `OR` filters → Core `or_`)
+  - `intelligence/memory/postgres_store.py` (**2** CS — Core insert/query/delete)
+  - Expected cleared this slice (live CS densest non-stale): **7**. Also clears unscanned sql_repository `text()` on next SARIF. Narrow pytest: DEC-085 + memory + kg tests (**58 passed**, **light validated**). DEC-085 `get_db` untouched.
+- **Remainder (Slice 6 / residual package):** ~**11** live CS after Slice 4/5 land (excl. stale Slice 4 SARIF lag): alembic RLS migrations (**7** — **out of Wave 2 app honesty**; do not churn RLS DDL), `database.py` init_db DDL (**1** — leave near `get_db`), benchmark (**2**), mcp_server (**1**). Plus optional other runtime `text()` not yet open in CS (nba/feature_store/etc.) if field Semgrep resurfaces them.
 - **Wave 2 NOT CLOSED.** **CI-19 NOT CLOSED.**
 
 ### Wave 3 — Supply-chain & infra hardening → **SHA-pin + residual COMPLETE** (`DEC-069` / `DEC-074`)

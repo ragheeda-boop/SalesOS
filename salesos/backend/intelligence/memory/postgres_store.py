@@ -1,14 +1,71 @@
+"""Postgres-backed episodic memory store.
+
+CI-19 Wave 2 Core (no sqlalchemy.text)
+"""
+
 from __future__ import annotations
 
-import json
 import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Integer,
+    MetaData,
+    String,
+    Table,
+    Text,
+    and_,
+    delete,
+    func,
+    select,
+    true,
+)
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from .base import MemoryEntry, MemoryScope, MemoryStore
+
+_memory_metadata = MetaData()
+
+episodic_memory = Table(
+    "episodic_memory",
+    _memory_metadata,
+    Column("id", String(64), primary_key=True),
+    Column("agent_id", String(128), nullable=False),
+    Column("scope", String(64), nullable=False),
+    Column("type", String(64), nullable=False),
+    Column("content", Text, nullable=False),
+    Column("metadata", JSONB, nullable=True),
+    Column("timestamp", DateTime(timezone=True), nullable=False),
+    Column("ttl_seconds", Integer, nullable=True),
+    Column("session_id", String(128), nullable=True),
+    Column("conversation_id", String(128), nullable=True),
+)
+
+
+def _query_where(
+    *,
+    agent_id: str | None = None,
+    scope: MemoryScope | None = None,
+    session_id: str | None = None,
+    conversation_id: str | None = None,
+    since: datetime | None = None,
+):
+    conditions = []
+    if agent_id is not None:
+        conditions.append(episodic_memory.c.agent_id == agent_id)
+    if scope is not None:
+        conditions.append(episodic_memory.c.scope == scope.value)
+    if session_id is not None:
+        conditions.append(episodic_memory.c.session_id == session_id)
+    if conversation_id is not None:
+        conditions.append(episodic_memory.c.conversation_id == conversation_id)
+    if since is not None:
+        conditions.append(episodic_memory.c.timestamp >= since)
+    return and_(*conditions) if conditions else true()
 
 
 class PostgresMemoryStore(MemoryStore):
@@ -18,36 +75,34 @@ class PostgresMemoryStore(MemoryStore):
     async def store(self, entry: MemoryEntry) -> None:
         if not entry.id:
             entry.id = uuid.uuid4().hex[:12]
+        stmt = pg_insert(episodic_memory).values(
+            id=entry.id,
+            agent_id=entry.agent_id,
+            scope=entry.scope.value,
+            type=entry.type.value,
+            content=entry.content,
+            metadata=entry.metadata or {},
+            timestamp=entry.timestamp,
+            ttl_seconds=entry.ttl_seconds,
+            session_id=entry.session_id,
+            conversation_id=entry.conversation_id,
+        )
+        stmt = stmt.on_conflict_do_update(
+            index_elements=[episodic_memory.c.id],
+            set_={
+                "content": stmt.excluded.content,
+                "metadata": stmt.excluded["metadata"],
+                "ttl_seconds": stmt.excluded.ttl_seconds,
+            },
+        )
         async with self._session_factory() as session:
-            await session.execute(
-                text("""
-                    INSERT INTO episodic_memory (id, agent_id, scope, type, content, metadata, timestamp, ttl_seconds, session_id, conversation_id)
-                    VALUES (:id, :agent_id, :scope, :type, :content, :metadata::jsonb, :timestamp, :ttl_seconds, :session_id, :conversation_id)
-                    ON CONFLICT (id) DO UPDATE SET
-                        content = EXCLUDED.content,
-                        metadata = EXCLUDED.metadata,
-                        ttl_seconds = EXCLUDED.ttl_seconds
-                """),
-                {
-                    "id": entry.id,
-                    "agent_id": entry.agent_id,
-                    "scope": entry.scope.value,
-                    "type": entry.type.value,
-                    "content": entry.content,
-                    "metadata": json.dumps(entry.metadata),
-                    "timestamp": entry.timestamp,
-                    "ttl_seconds": entry.ttl_seconds,
-                    "session_id": entry.session_id,
-                    "conversation_id": entry.conversation_id,
-                },
-            )
+            await session.execute(stmt)
             await session.commit()
 
     async def get(self, entry_id: str) -> MemoryEntry | None:
         async with self._session_factory() as session:
             row = await session.execute(
-                text("SELECT * FROM episodic_memory WHERE id = :id"),
-                {"id": entry_id},
+                select(episodic_memory).where(episodic_memory.c.id == entry_id)
             )
             data = row.mappings().first()
             return self._row_to_entry(dict(data)) if data else None
@@ -61,70 +116,48 @@ class PostgresMemoryStore(MemoryStore):
         limit: int = 50,
         since: datetime | None = None,
     ) -> list[MemoryEntry]:
-        conditions = []
-        params: dict[str, Any] = {}
-
-        if agent_id:
-            conditions.append("agent_id = :agent_id")
-            params["agent_id"] = agent_id
-        if scope:
-            conditions.append("scope = :scope")
-            params["scope"] = scope.value
-        if session_id:
-            conditions.append("session_id = :session_id")
-            params["session_id"] = session_id
-        if conversation_id:
-            conditions.append("conversation_id = :conversation_id")
-            params["conversation_id"] = conversation_id
-        if since:
-            conditions.append("timestamp >= :since")
-            params["since"] = since
-
-        where = " AND ".join(conditions) if conditions else "TRUE"
-        sql = f"SELECT * FROM episodic_memory WHERE {where} ORDER BY timestamp DESC LIMIT :limit"
-        params["limit"] = limit
-
+        where = _query_where(
+            agent_id=agent_id,
+            scope=scope,
+            session_id=session_id,
+            conversation_id=conversation_id,
+            since=since,
+        )
+        stmt = (
+            select(episodic_memory)
+            .where(where)
+            .order_by(episodic_memory.c.timestamp.desc())
+            .limit(limit)
+        )
         async with self._session_factory() as session:
-            rows = await session.execute(text(sql), params)
+            rows = await session.execute(stmt)
             return [self._row_to_entry(dict(r)) for r in rows.mappings().all()]
 
     async def delete(self, entry_id: str) -> bool:
         async with self._session_factory() as session:
             result = await session.execute(
-                text("DELETE FROM episodic_memory WHERE id = :id"),
-                {"id": entry_id},
+                delete(episodic_memory).where(episodic_memory.c.id == entry_id)
             )
             await session.commit()
             return result.rowcount > 0
 
     async def clear(self, agent_id: str | None = None, scope: MemoryScope | None = None) -> int:
-        conditions = []
-        params: dict[str, Any] = {}
-
-        if agent_id:
-            conditions.append("agent_id = :agent_id")
-            params["agent_id"] = agent_id
-        if scope:
-            conditions.append("scope = :scope")
-            params["scope"] = scope.value
-
-        where = " AND ".join(conditions) if conditions else "TRUE"
-        sql = f"DELETE FROM episodic_memory WHERE {where}"
-
+        where = _query_where(agent_id=agent_id, scope=scope)
         async with self._session_factory() as session:
-            result = await session.execute(text(sql), params)
+            result = await session.execute(delete(episodic_memory).where(where))
             await session.commit()
             return result.rowcount
 
     async def cleanup_expired(self) -> int:
+        ttl = episodic_memory.c.ttl_seconds
+        # timestamp + make_interval(secs => ttl_seconds) < NOW()
+        expiry = episodic_memory.c.timestamp + func.make_interval(0, 0, 0, 0, 0, 0, ttl)
+        stmt = delete(episodic_memory).where(
+            ttl.is_not(None),
+            expiry < func.now(),
+        )
         async with self._session_factory() as session:
-            result = await session.execute(
-                text("""
-                    DELETE FROM episodic_memory
-                    WHERE ttl_seconds IS NOT NULL
-                    AND (timestamp + make_interval(secs => ttl_seconds)) < NOW()
-                """),
-            )
+            result = await session.execute(stmt)
             await session.commit()
             return result.rowcount
 

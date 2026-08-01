@@ -1062,6 +1062,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** CI-19 OPEN. R-24 mitigating (Slice 1+2+3). Validation: **light validated** (narrow pytest **50 passed**). **CI GREEN not met.**
 **Status:** Accepted. Wave 2 Slice 3 COMPLETE; story OPEN.
 
+### DEC-102 — CI-19 Wave 2 Slice 5 COMPLETE: activity_runtime + kg + memory Core honesty; CI-19 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** After Wave 2 Slice 4 (DEC-101 / 9ab3516), densest non-alembic remainder was activity_runtime (3), kg service f-string filters (2), memory postgres_store (2), plus kg sql_repository local density. Prefer Core over sqlalchemy.text; no Semgrep suppress. Alembic RLS migrations deferred (residual — churn risk). DEC-085 get_db/set_config untouched. Parallel pytest-fix agent owns activity_intelligence / company / ER / Wave2 bind-RLS tests — no overlap.
+**Alternatives considered:** (a) close CI-19 — rejected (~11 text remain); (b) churn alembic RLS now — rejected; (c) nosemgrep — rejected; (d) Slice 5 Core + keep OPEN — approved.
+**Decision:** Accept Wave 2 Slice 5 COMPLETE. Companion: [decisions/DEC-102-CI-19-WAVE2-SLICE5.md](decisions/DEC-102-CI-19-WAVE2-SLICE5.md). Expected clear **7**. Do not close CI-19. Do not weaken Semgrep gates.
+**Consequence:** CI-19 OPEN. R-24 mitigating (Slice 1–5). Validation: **light validated** (narrow pytest **58 passed**). **CI GREEN not met.** Slice 6 / residual package next (alembic + init_db/benchmark/mcp).
+**Status:** Accepted. Wave 2 Slice 5 COMPLETE; story OPEN.
+
 ### DEC-101 — CI-19 Wave 2 Slice 4 COMPLETE: search_runtime + vector/search/tasks Core honesty; CI-19 remains OPEN
 
 **Date:** 2026-08-01

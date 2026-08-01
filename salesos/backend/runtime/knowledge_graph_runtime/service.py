@@ -1,4 +1,7 @@
-"""Knowledge Graph service — business logic and coordination layer."""
+"""Knowledge Graph service — business logic and coordination layer.
+
+CI-19 Wave 2 Core (no sqlalchemy.text)
+"""
 
 from __future__ import annotations
 
@@ -6,7 +9,8 @@ import asyncio
 import time
 from typing import Any, Callable, Optional
 
-from sqlalchemy import text as sa_text
+from sqlalchemy import cast, func, or_, select
+from sqlalchemy import String as SAString
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -17,6 +21,18 @@ from .repository import (
     RouterGraphRepository,
     SqlGraphRepository,
 )
+from .repository.sql_repository import (
+    branches,
+    companies,
+    contacts,
+    golden_records,
+    graph_edges,
+    licenses,
+)
+
+
+def _id_text(col):
+    return cast(col, SAString)
 
 
 class KnowledgeGraphEngine:
@@ -176,12 +192,14 @@ class KnowledgeGraphEngine:
         async with self._session_factory() as session:
             # licenses/branches have no tenant_id column — scope via companies join
             rows = await session.execute(
-                sa_text(
-                    "SELECT l.* FROM licenses l "
-                    "JOIN companies c ON c.id = l.company_id "
-                    "WHERE l.company_id = :cid AND c.tenant_id = :tid"
-                ),
-                {"cid": company_id, "tid": tenant_id},
+                select(licenses)
+                .select_from(
+                    licenses.join(companies, companies.c.id == licenses.c.company_id)
+                )
+                .where(
+                    licenses.c.company_id == company_id,
+                    companies.c.tenant_id == tenant_id,
+                )
             )
             for lic in rows.mappings().all():
                 lic_node = await self.repo.upsert_license(dict(lic), tenant_id)
@@ -190,12 +208,14 @@ class KnowledgeGraphEngine:
                 stats["edges"] += 1
 
             rows = await session.execute(
-                sa_text(
-                    "SELECT b.* FROM branches b "
-                    "JOIN companies c ON c.id = b.company_id "
-                    "WHERE b.company_id = :cid AND c.tenant_id = :tid"
-                ),
-                {"cid": company_id, "tid": tenant_id},
+                select(branches)
+                .select_from(
+                    branches.join(companies, companies.c.id == branches.c.company_id)
+                )
+                .where(
+                    branches.c.company_id == company_id,
+                    companies.c.tenant_id == tenant_id,
+                )
             )
             for branch in rows.mappings().all():
                 branch_node = await self.repo.upsert_branch(dict(branch), tenant_id)
@@ -204,8 +224,10 @@ class KnowledgeGraphEngine:
                 stats["edges"] += 1
 
             rows = await session.execute(
-                sa_text("SELECT * FROM contacts WHERE company_id = :cid AND tenant_id = :tid"),
-                {"cid": company_id, "tid": tenant_id},
+                select(contacts).where(
+                    contacts.c.company_id == company_id,
+                    contacts.c.tenant_id == tenant_id,
+                )
             )
             for contact in rows.mappings().all():
                 person_node = await self.upsert_person(dict(contact), tenant_id)
@@ -272,8 +294,10 @@ class KnowledgeGraphEngine:
         stats = {"companies": 0, "nodes": 0, "edges": 0}
         async with self._session_factory() as session:
             rows = await session.execute(
-                sa_text("SELECT * FROM golden_records WHERE tenant_id = :tid AND is_active = true"),
-                {"tid": tenant_id},
+                select(golden_records).where(
+                    golden_records.c.tenant_id == tenant_id,
+                    golden_records.c.is_active.is_(True),
+                )
             )
             for row in rows.mappings().all():
                 record = dict(row)
@@ -293,8 +317,20 @@ class KnowledgeGraphEngine:
         parent: dict | None = None
         async with self._session_factory() as session:
             row = await session.execute(
-                sa_text("SELECT id, name_ar, name_en, industry, city, region, employees_count, capital, legal_form FROM companies WHERE id = :cid AND tenant_id = :tid"),
-                {"cid": company_id, "tid": tenant_id},
+                select(
+                    companies.c.id,
+                    companies.c.name_ar,
+                    companies.c.name_en,
+                    companies.c.industry,
+                    companies.c.city,
+                    companies.c.region,
+                    companies.c.employees_count,
+                    companies.c.capital,
+                    companies.c.legal_form,
+                ).where(
+                    companies.c.id == company_id,
+                    companies.c.tenant_id == tenant_id,
+                )
             )
             company = row.mappings().one_or_none()
             if not company:
@@ -302,57 +338,170 @@ class KnowledgeGraphEngine:
             industry = company.get("industry") or ""
             city = company.get("city") or ""
             region = company.get("region") or ""
+            c_peer = companies.alias("c")
             edges = await session.execute(
-                sa_text(
-                    "SELECT ge.source_id, ge.target_id, c.name_ar, c.name_en, c.industry, c.city "
-                    "FROM graph_edges ge "
-                    "JOIN companies c ON (c.id::text = ge.target_id OR c.id::text = ge.source_id) "
-                    "WHERE (ge.source_id = :cid OR ge.target_id = :cid) "
-                    "AND ge.edge_type = 'COMPETITOR_OF' AND c.id::text != :cid AND c.tenant_id = :tid"
-                ),
-                {"cid": company_id, "tid": tenant_id},
+                select(
+                    graph_edges.c.source_id,
+                    graph_edges.c.target_id,
+                    c_peer.c.name_ar,
+                    c_peer.c.name_en,
+                    c_peer.c.industry,
+                    c_peer.c.city,
+                )
+                .select_from(
+                    graph_edges.join(
+                        c_peer,
+                        or_(
+                            _id_text(c_peer.c.id) == graph_edges.c.target_id,
+                            _id_text(c_peer.c.id) == graph_edges.c.source_id,
+                        ),
+                    )
+                )
+                .where(
+                    or_(
+                        graph_edges.c.source_id == company_id,
+                        graph_edges.c.target_id == company_id,
+                    ),
+                    graph_edges.c.edge_type == "COMPETITOR_OF",
+                    _id_text(c_peer.c.id) != company_id,
+                    c_peer.c.tenant_id == tenant_id,
+                )
             )
             for edge in edges.mappings().all():
                 comp_id = edge["target_id"] if edge["source_id"] == company_id else edge["source_id"]
-                competitors_direct.append({"id": comp_id, "name_ar": edge.get("name_ar"), "name_en": edge.get("name_en"), "industry": edge.get("industry"), "city": edge.get("city")})
+                competitors_direct.append(
+                    {
+                        "id": comp_id,
+                        "name_ar": edge.get("name_ar"),
+                        "name_en": edge.get("name_en"),
+                        "industry": edge.get("industry"),
+                        "city": edge.get("city"),
+                    }
+                )
             if industry or city:
-                conditions, params = [], {"cid": company_id, "tid": tenant_id}
+                match_conds = []
                 if industry:
-                    conditions.append("c.industry = :industry")
-                    params["industry"] = industry
+                    match_conds.append(companies.c.industry == industry)
                 if city:
-                    conditions.append("c.city = :city")
-                    params["city"] = city
+                    match_conds.append(companies.c.city == city)
                 existing = {c["id"] for c in competitors_direct}
                 indirect_rows = await session.execute(
-                    sa_text(f"SELECT id, name_ar, name_en, industry, city FROM companies c WHERE c.id != :cid AND c.tenant_id = :tid AND ({' OR '.join(conditions)}) LIMIT 20"),
-                    params,
+                    select(
+                        companies.c.id,
+                        companies.c.name_ar,
+                        companies.c.name_en,
+                        companies.c.industry,
+                        companies.c.city,
+                    )
+                    .where(
+                        companies.c.id != company_id,
+                        companies.c.tenant_id == tenant_id,
+                        or_(*match_conds),
+                    )
+                    .limit(20)
                 )
                 for r in indirect_rows.mappings().all():
                     if r["id"] not in existing:
-                        competitors_indirect.append({"id": r["id"], "name_ar": r.get("name_ar"), "name_en": r.get("name_en"), "industry": r.get("industry"), "city": r.get("city")})
+                        competitors_indirect.append(
+                            {
+                                "id": r["id"],
+                                "name_ar": r.get("name_ar"),
+                                "name_en": r.get("name_en"),
+                                "industry": r.get("industry"),
+                                "city": r.get("city"),
+                            }
+                        )
             partner_edges = await session.execute(
-                sa_text(
-                    "SELECT ge.source_id, ge.target_id, ge.properties, c.name_ar, c.name_en, c.industry, c.city "
-                    "FROM graph_edges ge "
-                    "JOIN companies c ON (c.id::text = ge.target_id OR c.id::text = ge.source_id) "
-                    "WHERE (ge.source_id = :cid OR ge.target_id = :cid) "
-                    "AND ge.edge_type = 'PARTNER_WITH' AND c.id::text != :cid AND c.tenant_id = :tid"
-                ),
-                {"cid": company_id, "tid": tenant_id},
+                select(
+                    graph_edges.c.source_id,
+                    graph_edges.c.target_id,
+                    graph_edges.c.properties,
+                    c_peer.c.name_ar,
+                    c_peer.c.name_en,
+                    c_peer.c.industry,
+                    c_peer.c.city,
+                )
+                .select_from(
+                    graph_edges.join(
+                        c_peer,
+                        or_(
+                            _id_text(c_peer.c.id) == graph_edges.c.target_id,
+                            _id_text(c_peer.c.id) == graph_edges.c.source_id,
+                        ),
+                    )
+                )
+                .where(
+                    or_(
+                        graph_edges.c.source_id == company_id,
+                        graph_edges.c.target_id == company_id,
+                    ),
+                    graph_edges.c.edge_type == "PARTNER_WITH",
+                    _id_text(c_peer.c.id) != company_id,
+                    c_peer.c.tenant_id == tenant_id,
+                )
             )
             for edge in partner_edges.mappings().all():
                 pid = edge["target_id"] if edge["source_id"] == company_id else edge["source_id"]
-                partners.append({"id": pid, "name_ar": edge.get("name_ar"), "name_en": edge.get("name_en"), "industry": edge.get("industry"), "city": edge.get("city"), "reason": edge.get("properties", {}).get("reason")})
-            parent_row = await session.execute(sa_text("SELECT id, name_ar, name_en FROM companies WHERE id = (SELECT parent_company_id FROM companies WHERE id = :cid)"), {"cid": company_id})
+                partners.append(
+                    {
+                        "id": pid,
+                        "name_ar": edge.get("name_ar"),
+                        "name_en": edge.get("name_en"),
+                        "industry": edge.get("industry"),
+                        "city": edge.get("city"),
+                        "reason": (edge.get("properties") or {}).get("reason"),
+                    }
+                )
+            parent_subq = (
+                select(companies.c.parent_company_id)
+                .where(companies.c.id == company_id)
+                .scalar_subquery()
+            )
+            parent_row = await session.execute(
+                select(
+                    companies.c.id, companies.c.name_ar, companies.c.name_en
+                ).where(companies.c.id == parent_subq)
+            )
             p = parent_row.mappings().one_or_none()
             if p:
-                parent = {"id": str(p["id"]), "name_ar": p.get("name_ar"), "name_en": p.get("name_en")}
-            sub_rows = await session.execute(sa_text("SELECT id, name_ar, name_en, industry, city FROM companies WHERE parent_company_id = :cid AND tenant_id = :tid"), {"cid": company_id, "tid": tenant_id})
-            subsidiaries = [{"id": str(r["id"]), "name_ar": r.get("name_ar"), "name_en": r.get("name_en"), "industry": r.get("industry"), "city": r.get("city")} for r in sub_rows.mappings().all()]
+                parent = {
+                    "id": str(p["id"]),
+                    "name_ar": p.get("name_ar"),
+                    "name_en": p.get("name_en"),
+                }
+            sub_rows = await session.execute(
+                select(
+                    companies.c.id,
+                    companies.c.name_ar,
+                    companies.c.name_en,
+                    companies.c.industry,
+                    companies.c.city,
+                ).where(
+                    companies.c.parent_company_id == company_id,
+                    companies.c.tenant_id == tenant_id,
+                )
+            )
+            subsidiaries = [
+                {
+                    "id": str(r["id"]),
+                    "name_ar": r.get("name_ar"),
+                    "name_en": r.get("name_en"),
+                    "industry": r.get("industry"),
+                    "city": r.get("city"),
+                }
+                for r in sub_rows.mappings().all()
+            ]
             total_same_industry = 0
             if industry:
-                cnt = await session.scalar(sa_text("SELECT COUNT(*) FROM companies WHERE tenant_id = :tid AND industry = :industry AND is_active = true"), {"tid": tenant_id, "industry": industry})
+                cnt = await session.scalar(
+                    select(func.count())
+                    .select_from(companies)
+                    .where(
+                        companies.c.tenant_id == tenant_id,
+                        companies.c.industry == industry,
+                        companies.c.is_active.is_(True),
+                    )
+                )
                 total_same_industry = cnt or 0
             cmp_count = len(competitors_direct)
             ptn_count = len(partners)
@@ -361,8 +510,29 @@ class KnowledgeGraphEngine:
             "competitors": {"direct": competitors_direct, "indirect": competitors_indirect},
             "partners": partners,
             "hierarchy": {"parent": parent, "subsidiaries": subsidiaries},
-            "market_position": {"industry": industry, "city": city, "region": region, "employees_count": company.get("employees_count"), "capital": company.get("capital"), "legal_form": company.get("legal_form"), "total_competitors": cmp_count + len(competitors_indirect), "direct_competitors": cmp_count, "indirect_competitors": len(competitors_indirect), "total_partners": ptn_count, "total_subsidiaries": len(subsidiaries), "has_parent": parent is not None, "total_companies_in_industry": total_same_industry},
-            "relationship_strength_scores": {"competitive_intensity": min(1.0, cmp_count / 20.0), "partnership_density": min(1.0, ptn_count / 10.0), "hierarchy_depth": 1 if subsidiaries else (2 if parent else 0), "network_reach": min(1.0, (cmp_count + ptn_count + len(subsidiaries)) / 30.0)},
+            "market_position": {
+                "industry": industry,
+                "city": city,
+                "region": region,
+                "employees_count": company.get("employees_count"),
+                "capital": company.get("capital"),
+                "legal_form": company.get("legal_form"),
+                "total_competitors": cmp_count + len(competitors_indirect),
+                "direct_competitors": cmp_count,
+                "indirect_competitors": len(competitors_indirect),
+                "total_partners": ptn_count,
+                "total_subsidiaries": len(subsidiaries),
+                "has_parent": parent is not None,
+                "total_companies_in_industry": total_same_industry,
+            },
+            "relationship_strength_scores": {
+                "competitive_intensity": min(1.0, cmp_count / 20.0),
+                "partnership_density": min(1.0, ptn_count / 10.0),
+                "hierarchy_depth": 1 if subsidiaries else (2 if parent else 0),
+                "network_reach": min(
+                    1.0, (cmp_count + ptn_count + len(subsidiaries)) / 30.0
+                ),
+            },
         }
 
     # ── Relationship inference (internal) ───────────────────────
@@ -371,8 +541,10 @@ class KnowledgeGraphEngine:
         count = 0
         async with self._session_factory() as session:
             row = await session.execute(
-                sa_text("SELECT industry, city FROM companies WHERE id = :cid AND tenant_id = :tid"),
-                {"cid": company_id, "tid": tenant_id},
+                select(companies.c.industry, companies.c.city).where(
+                    companies.c.id == company_id,
+                    companies.c.tenant_id == tenant_id,
+                )
             )
             company = row.mappings().one_or_none()
             if not company:
@@ -380,26 +552,33 @@ class KnowledgeGraphEngine:
 
             if company.get("industry") or company.get("city"):
                 comps = await session.execute(
-                    sa_text("""
-                        SELECT id FROM companies
-                        WHERE tenant_id = :tid AND id != :cid
-                          AND (industry = :industry OR city = :city)
-                        LIMIT 20
-                    """),
-                    {"tid": tenant_id, "cid": company_id,
-                     "industry": company.get("industry", ""),
-                     "city": company.get("city", "")},
+                    select(companies.c.id)
+                    .where(
+                        companies.c.tenant_id == tenant_id,
+                        companies.c.id != company_id,
+                        or_(
+                            companies.c.industry == company.get("industry", ""),
+                            companies.c.city == company.get("city", ""),
+                        ),
+                    )
+                    .limit(20)
                 )
                 for comp in comps.mappings().all():
-                    await self.create_edge(company_id, comp["id"], EdgeType.COMPETITOR_OF, tenant_id=tenant_id)
+                    await self.create_edge(
+                        company_id, comp["id"], EdgeType.COMPETITOR_OF, tenant_id=tenant_id
+                    )
                     count += 1
 
             subs = await session.execute(
-                sa_text("SELECT id FROM companies WHERE parent_company_id = :cid AND tenant_id = :tid"),
-                {"cid": company_id, "tid": tenant_id},
+                select(companies.c.id).where(
+                    companies.c.parent_company_id == company_id,
+                    companies.c.tenant_id == tenant_id,
+                )
             )
             for sub in subs.mappings().all():
-                await self.create_edge(company_id, sub["id"], EdgeType.SUBSIDIARY_OF, tenant_id=tenant_id)
+                await self.create_edge(
+                    company_id, sub["id"], EdgeType.SUBSIDIARY_OF, tenant_id=tenant_id
+                )
                 count += 1
 
         return count
@@ -408,8 +587,10 @@ class KnowledgeGraphEngine:
         stats = {"competitors": 0, "partners": 0, "subsidiaries": 0}
         async with self._session_factory() as session:
             row = await session.execute(
-                sa_text("SELECT industry, city FROM companies WHERE id = :cid AND tenant_id = :tid"),
-                {"cid": company_id, "tid": tenant_id},
+                select(companies.c.industry, companies.c.city).where(
+                    companies.c.id == company_id,
+                    companies.c.tenant_id == tenant_id,
+                )
             )
             company = row.mappings().one_or_none()
             if not company:
@@ -419,38 +600,57 @@ class KnowledgeGraphEngine:
             city = company.get("city") or ""
 
             if industry or city:
-                conditions = []
-                params: dict = {"cid": company_id, "tid": tenant_id}
+                match_conds = []
                 if industry:
-                    conditions.append("c.industry = :industry")
-                    params["industry"] = industry
+                    match_conds.append(companies.c.industry == industry)
                 if city:
-                    conditions.append("c.city = :city")
-                    params["city"] = city
-                where = " OR ".join(conditions)
+                    match_conds.append(companies.c.city == city)
                 comp_rows = await session.execute(
-                    sa_text(f"SELECT id, industry, city FROM companies c WHERE c.id != :cid AND c.tenant_id = :tid AND ({where}) LIMIT 30"),
-                    params,
+                    select(
+                        companies.c.id, companies.c.industry, companies.c.city
+                    )
+                    .where(
+                        companies.c.id != company_id,
+                        companies.c.tenant_id == tenant_id,
+                        or_(*match_conds),
+                    )
+                    .limit(30)
                 )
                 for comp in comp_rows.mappings().all():
                     reason = "same_industry" if comp.get("industry") == industry else "same_city"
                     await self.create_edge(
-                        company_id, comp["id"], EdgeType.COMPETITOR_OF, {"reason": reason}, tenant_id=tenant_id
+                        company_id,
+                        comp["id"],
+                        EdgeType.COMPETITOR_OF,
+                        {"reason": reason},
+                        tenant_id=tenant_id,
                     )
                     stats["competitors"] += 1
 
             sub_rows = await session.execute(
-                sa_text("SELECT id FROM companies WHERE parent_company_id = :cid AND tenant_id = :tid"),
-                {"cid": company_id, "tid": tenant_id},
+                select(companies.c.id).where(
+                    companies.c.parent_company_id == company_id,
+                    companies.c.tenant_id == tenant_id,
+                )
             )
             for sub in sub_rows.mappings().all():
-                await self.create_edge(company_id, sub["id"], EdgeType.SUBSIDIARY_OF, tenant_id=tenant_id)
+                await self.create_edge(
+                    company_id, sub["id"], EdgeType.SUBSIDIARY_OF, tenant_id=tenant_id
+                )
                 stats["subsidiaries"] += 1
 
             if city:
                 partner_rows = await session.execute(
-                    sa_text("SELECT id, industry FROM companies c WHERE c.id != :cid AND c.tenant_id = :tid AND c.city = :city AND c.industry != :industry AND c.industry IS NOT NULL AND c.industry != '' LIMIT 15"),
-                    {"cid": company_id, "tid": tenant_id, "city": city, "industry": industry},
+                    select(companies.c.id, companies.c.industry)
+                    .where(
+                        companies.c.id != company_id,
+                        companies.c.tenant_id == tenant_id,
+                        companies.c.city == city,
+                        companies.c.industry != industry,
+                        companies.c.industry.is_not(None),
+                        companies.c.industry != "",
+                    )
+                    .limit(15)
                 )
                 for partner in partner_rows.mappings().all():
                     await self.create_edge(

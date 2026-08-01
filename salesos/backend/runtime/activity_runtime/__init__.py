@@ -3,6 +3,8 @@
 Every business action (email, meeting, task, contract, proposal,
 comment, approval, file upload, note) becomes one ActivityRecord.
 
+CI-19 Wave 2 Core (no sqlalchemy.text)
+
 Schema:
   actor       — who performed the action
   action      — what was done (e.g. "email.sent", "meeting.completed")
@@ -22,8 +24,37 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
-from sqlalchemy import text as sa_text
+from sqlalchemy import (
+    Column,
+    DateTime,
+    MetaData,
+    String,
+    Table,
+    and_,
+    func,
+    insert,
+    select,
+    true,
+)
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
+
+_activity_metadata = MetaData()
+
+activity_records = Table(
+    "activity_records",
+    _activity_metadata,
+    Column("id", String(64), primary_key=True),
+    Column("actor", String(255), nullable=False),
+    Column("action", String(100), nullable=False),
+    Column("entity_type", String(50), nullable=False),
+    Column("entity_id", String(64), nullable=False),
+    Column("target_type", String(50), nullable=True),
+    Column("target_id", String(64), nullable=True),
+    Column("metadata", JSONB, nullable=True),
+    Column("tenant_id", String(36), nullable=True),
+    Column("timestamp", DateTime(timezone=True), nullable=False),
+)
 
 
 @dataclass
@@ -68,6 +99,56 @@ class ActivityMetrics:
         }
 
 
+def _insert_values(record: ActivityRecord) -> dict[str, Any]:
+    return {
+        "id": record.id,
+        "actor": record.actor,
+        "action": record.action,
+        "entity_type": record.entity_type,
+        "entity_id": record.entity_id,
+        "target_type": record.target_type,
+        "target_id": record.target_id,
+        "metadata": record.metadata or {},
+        "tenant_id": record.tenant_id,
+        "timestamp": record.timestamp,
+    }
+
+
+def _filter_where(
+    *,
+    tenant_id: Optional[str] = None,
+    actor: Optional[str] = None,
+    action: Optional[str] = None,
+    entity_type: Optional[str] = None,
+    entity_id: Optional[str] = None,
+    target_type: Optional[str] = None,
+    target_id: Optional[str] = None,
+    since: Optional[datetime] = None,
+    until: Optional[datetime] = None,
+):
+    """Build allowlisted Core WHERE from optional equality / range filters."""
+    conditions = []
+    if tenant_id is not None:
+        conditions.append(activity_records.c.tenant_id == tenant_id)
+    if actor is not None:
+        conditions.append(activity_records.c.actor == actor)
+    if action is not None:
+        conditions.append(activity_records.c.action == action)
+    if entity_type is not None:
+        conditions.append(activity_records.c.entity_type == entity_type)
+    if entity_id is not None:
+        conditions.append(activity_records.c.entity_id == entity_id)
+    if target_type is not None:
+        conditions.append(activity_records.c.target_type == target_type)
+    if target_id is not None:
+        conditions.append(activity_records.c.target_id == target_id)
+    if since is not None:
+        conditions.append(activity_records.c.timestamp >= since)
+    if until is not None:
+        conditions.append(activity_records.c.timestamp <= until)
+    return and_(*conditions) if conditions else true()
+
+
 class ActivityRuntime:
     """Unified activity spine — every business action becomes an ActivityRecord.
 
@@ -107,28 +188,7 @@ class ActivityRuntime:
         self.metrics.ingested += 1
 
         async with self._session_factory() as session:
-            await session.execute(
-                sa_text("""
-                    INSERT INTO activity_records
-                        (id, actor, action, entity_type, entity_id,
-                         target_type, target_id, metadata, tenant_id, timestamp)
-                    VALUES
-                        (:id, :actor, :action, :et, :eid,
-                         :tt, :tid, :meta, :ten, :ts)
-                """),
-                {
-                    "id": record.id,
-                    "actor": record.actor,
-                    "action": record.action,
-                    "et": record.entity_type,
-                    "eid": record.entity_id,
-                    "tt": record.target_type,
-                    "tid": record.target_id,
-                    "meta": record.metadata or {},
-                    "ten": record.tenant_id,
-                    "ts": record.timestamp,
-                },
-            )
+            await session.execute(insert(activity_records).values(**_insert_values(record)))
             await session.commit()
 
         return record
@@ -154,28 +214,7 @@ class ActivityRuntime:
 
         async with self._session_factory() as session:
             for a in activities:
-                await session.execute(
-                    sa_text("""
-                        INSERT INTO activity_records
-                            (id, actor, action, entity_type, entity_id,
-                             target_type, target_id, metadata, tenant_id, timestamp)
-                        VALUES
-                            (:id, :actor, :action, :et, :eid,
-                             :tt, :tid, :meta, :ten, :ts)
-                    """),
-                    {
-                        "id": a.id,
-                        "actor": a.actor,
-                        "action": a.action,
-                        "et": a.entity_type,
-                        "eid": a.entity_id,
-                        "tt": a.target_type,
-                        "tid": a.target_id,
-                        "meta": a.metadata or {},
-                        "ten": a.tenant_id,
-                        "ts": a.timestamp,
-                    },
-                )
+                await session.execute(insert(activity_records).values(**_insert_values(a)))
             await session.commit()
 
         return activities
@@ -198,48 +237,32 @@ class ActivityRuntime:
         t0 = time.monotonic()
         self.metrics.queries += 1
 
-        conditions = []
-        params: dict = {}
-        idx = 0
-
-        def _add(field: str, param: str, value: Any) -> None:
-            nonlocal idx
-            if value is not None:
-                conditions.append(f"{field} = :{param}")
-                params[param] = value
-
-        _add("tenant_id", "ten", tenant_id)
-        _add("actor", "actor", actor)
-        _add("action", "action", action)
-        _add("entity_type", "et", entity_type)
-        _add("entity_id", "eid", entity_id)
-        _add("target_type", "tt", target_type)
-        _add("target_id", "tid", target_id)
-
-        if since:
-            conditions.append("timestamp >= :since")
-            params["since"] = since
-        if until:
-            conditions.append("timestamp <= :until")
-            params["until"] = until
-
-        where_clause = " AND ".join(conditions) if conditions else "TRUE"
-
-        count_sql = f"SELECT COUNT(*) FROM activity_records WHERE {where_clause}"
-        query_sql = f"""
-            SELECT * FROM activity_records
-            WHERE {where_clause}
-            ORDER BY timestamp DESC
-            LIMIT :lim OFFSET :off
-        """
-        params["lim"] = limit
-        params["off"] = offset
+        where = _filter_where(
+            tenant_id=tenant_id,
+            actor=actor,
+            action=action,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            target_type=target_type,
+            target_id=target_id,
+            since=since,
+            until=until,
+        )
 
         async with self._session_factory() as session:
-            count_row = await session.execute(sa_text(count_sql), params)
-            total = count_row.scalar() or 0
+            total = (
+                await session.scalar(
+                    select(func.count()).select_from(activity_records).where(where)
+                )
+            ) or 0
 
-            rows = await session.execute(sa_text(query_sql), params)
+            rows = await session.execute(
+                select(activity_records)
+                .where(where)
+                .order_by(activity_records.c.timestamp.desc())
+                .limit(limit)
+                .offset(offset)
+            )
             results = [dict(r) for r in rows.mappings().all()]
 
         elapsed = (time.monotonic() - t0) * 1000
@@ -300,57 +323,41 @@ class ActivityRuntime:
         t0 = time.monotonic()
         self.metrics.queries += 1
 
-        conditions = []
-        params: dict = {}
-        if tenant_id:
-            conditions.append("tenant_id = :ten")
-            params["ten"] = tenant_id
-        if since:
-            conditions.append("timestamp >= :since")
-            params["since"] = since
-        if until:
-            conditions.append("timestamp <= :until")
-            params["until"] = until
-        where = " AND ".join(conditions) if conditions else "TRUE"
+        where = _filter_where(tenant_id=tenant_id, since=since, until=until)
+        action_col = activity_records.c.action
+        entity_type_col = activity_records.c.entity_type
+        cnt = func.count().label("cnt")
 
         async with self._session_factory() as session:
-            # Total count
-            row = await session.execute(
-                sa_text("SELECT COUNT(*) FROM activity_records WHERE " + where), params
-            )
-            total = row.scalar() or 0
+            total = (
+                await session.scalar(
+                    select(func.count()).select_from(activity_records).where(where)
+                )
+            ) or 0
 
-            # By action
             breakdown = await session.execute(
-                sa_text(
-                    "SELECT action, COUNT(*) as cnt "
-                    "FROM activity_records WHERE " + where + " "
-                    "GROUP BY action ORDER BY cnt DESC"
-                ),
-                params,
+                select(action_col, cnt)
+                .where(where)
+                .group_by(action_col)
+                .order_by(cnt.desc())
             )
             by_action = {r["action"]: r["cnt"] for r in breakdown.mappings().all()}
 
-            # By entity type
             et_breakdown = await session.execute(
-                sa_text(
-                    "SELECT entity_type, COUNT(*) as cnt "
-                    "FROM activity_records WHERE " + where + " "
-                    "GROUP BY entity_type ORDER BY cnt DESC"
-                ),
-                params,
+                select(entity_type_col, cnt)
+                .where(where)
+                .group_by(entity_type_col)
+                .order_by(cnt.desc())
             )
-            by_entity_type = {r["entity_type"]: r["cnt"] for r in et_breakdown.mappings().all()}
+            by_entity_type = {
+                r["entity_type"]: r["cnt"] for r in et_breakdown.mappings().all()
+            }
 
-            # Time range
             time_range = await session.execute(
-                sa_text(
-                    "SELECT "
-                    "MIN(timestamp) as first_ts, "
-                    "MAX(timestamp) as last_ts "
-                    "FROM activity_records WHERE " + where
-                ),
-                params,
+                select(
+                    func.min(activity_records.c.timestamp).label("first_ts"),
+                    func.max(activity_records.c.timestamp).label("last_ts"),
+                ).where(where)
             )
             tr = dict(time_range.mappings().one())
 
