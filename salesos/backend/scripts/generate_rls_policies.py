@@ -33,8 +33,8 @@ SESSION_VAR = "app.tenant_id"
 # R-09) are excluded — RLS on them will be added after CREATE TABLE lands.
 # Tables without a tenant_id column (keyed via parent FK) are excluded from
 # ALL_TENANT_TABLES — Category B inventory + slices pinned in DEC-110.
-# B1–B5 join children use generate_join_policy_sql() /
-# CATEGORY_B1_JOIN_TABLES … CATEGORY_B5_JOIN_TABLES (DEC-110).
+# B1–B6 join children use generate_join_policy_sql() /
+# CATEGORY_B1_JOIN_TABLES … CATEGORY_B6_JOIN_TABLES (DEC-110).
 ALL_TENANT_TABLES: list[str] = [
     # ── Identity / Auth ──
     "users",                      # app/modules/identity/models.py — uuid
@@ -140,6 +140,14 @@ CATEGORY_B5_JOIN_TABLES: list[tuple[str, str, str]] = [
     # (child_table, parent_table, child_fk_column)
     ("password_reset_tokens", "users", "user_id"),
     ("refresh_token_families", "users", "user_id"),
+]
+
+# DEC-110 Slice B6 (S04-CATB-06): webhook deliveries — no tenant_id; isolate via
+# webhook_subscriptions (Category A). FK is String(36)=String(36) (0039 / ORM).
+# Distinct from deferred-8 webhook_endpoints (DB-05 CREATE; no RLS this land).
+CATEGORY_B6_JOIN_TABLES: list[tuple[str, str, str]] = [
+    # (child_table, parent_table, child_fk_column)
+    ("webhook_deliveries", "webhook_subscriptions", "subscription_id"),
 ]
 
 

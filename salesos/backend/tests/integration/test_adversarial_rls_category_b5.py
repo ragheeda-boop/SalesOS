@@ -3,7 +3,7 @@
 Tables: password_reset_tokens, refresh_token_families — no tenant_id;
 isolate via users.id (UUID FK). Auth-path careful checks: own-tenant visible
 with GUC set; cross-tenant hidden; unset GUC fail-closed (no permissive bypass).
-POLICY_COUNT live = 47 Category A (DEC-044) + 2 B1 + 2 B2 + 2 B3 + 2 B4 + 2 B5 = 57.
+POLICY_COUNT live = 47 Category A (DEC-044) + 2 B1 + 2 B2 + 2 B3 + 2 B4 + 2 B5 + 1 B6 = 58.
 
 Does NOT cover B6–B7. Does NOT enable R-09 / DB-05 deferred tables.
 """
@@ -18,7 +18,7 @@ from sqlalchemy import text
 
 from app.database import engine
 
-POLICY_COUNT = 57  # 47 Category A + B1 + B2 + B3 + B4 + B5 (DEC-117)
+POLICY_COUNT = 58  # 47 Category A + B1 + B2 + B3 + B4 + B5 + B6 (DEC-118)
 
 
 @pytest_asyncio.fixture(autouse=True)

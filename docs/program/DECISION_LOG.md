@@ -1085,6 +1085,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-118 — Category B Slice B6: webhook-deliveries join RLS (`webhook_deliveries`)
+
+**Date:** 2026-08-01
+**Context:** DEC-110 pinned B6 = `webhook_deliveries` via `webhook_subscriptions` (`subscription_id`). B5 CLOSED DEC-117 (`f5c0d43e1d05`, POLICY_COUNT 57). Category A 47 intact (DEC-044). DEC-085 set_config must not regress. Parent FK confirmed in ORM + `0039` (String(36)=String(36)). Deferred-8 `webhook_endpoints` is not the join parent and stays without ENABLE RLS.
+**Alternatives considered:** (a) fold B6 into ALL_TENANT_TABLES / reopen STORY-02-01 — rejected; (b) join via deferred `webhook_endpoints` — rejected (wrong parent; DEC-110 inventory); (c) ENABLE RLS on `webhook_endpoints` in same land — rejected (DB-05 / R-09); (d) expand to B7 in same land — rejected (DEC-110 slices); (e) additive join-policy migration + adversarial 1-table suite — approved.
+**Decision:** Accept B6 **CLOSED**. Companion: [`decisions/DEC-118-CATEGORY-B6-WEBHOOK-DELIVERIES-RLS.md`](decisions/DEC-118-CATEGORY-B6-WEBHOOK-DELIVERIES-RLS.md). Alembic `a6d1e54f2e06` (down `f5c0d43e1d05`); live `POLICY_COUNT` **58**; `ALL_TENANT_TABLES` remains **47**.
+**Consequence:** DAG Category B execution advances B6 CLOSED; B7 READY. Production GA **NO-GO**. **CI GREEN not met**. Validation: **build validated** (Docker `python -m pytest` **5 passed** in 2.98s).
+**Status:** Accepted. Slice B6 **CLOSED**.
+
 ### DEC-117 — Category B Slice B5: identity-token-children join RLS (`password_reset_tokens`, `refresh_token_families`)
 
 **Date:** 2026-08-01

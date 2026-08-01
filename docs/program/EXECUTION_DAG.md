@@ -64,7 +64,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **DB-05** Schema reconciliation program | IN PROGRESS | Slice 0+1 CLOSED (DEC-111/113); R-20 / R-09 | Head `b8d4f02a1c06`; P0 CREATE done; next Slice 2 emails/meetings; no RLS on eight yet |
 | **Optional Jest 30 evidence** | BACKLOG (not CI-14) | DEC-108 deferred; authorize dedicated package | STOP silent major; Stage 3 **0**-fail gate |
 | **STORY-02-02** browser/E2E verify (if scoped) | **CLOSED** (DEC-095) | Live Next redirect: `/dashboard` → **307** `/login?callbackUrl=%2Fdashboard`; `/`+`/login` **200** | Optional authenticated `smoke-ui.ps1` not run; **CI GREEN not met** |
-| **Sprint 04 Category B RLS execution (B1–B7)** | IN PROGRESS | DEC-110 planning CLOSED; B1 CLOSED DEC-112; B2 CLOSED DEC-114; B3 CLOSED DEC-115; B4 CLOSED DEC-116; B5 CLOSED DEC-117 | Live policies **57**; B6–B7 READY; A=47 intact; A-deferred CREATE via DEC-113 |
+| **Sprint 04 Category B RLS execution (B1–B7)** | IN PROGRESS | DEC-110 planning CLOSED; B1 CLOSED DEC-112; B2 CLOSED DEC-114; B3 CLOSED DEC-115; B4 CLOSED DEC-116; B5 CLOSED DEC-117; B6 CLOSED DEC-118 | Live policies **58**; B7 READY; A=47 intact; A-deferred CREATE via DEC-113 |
 | **JWT audience consumption** | **CLOSED** (DEC-093) | Owner admin deps wire `decode_owner_*` via `owner_auth.py`; **14/14** unit PASS | Tenant `verify_token` unchanged (`salesos-api`); groundwork `2379e5f` |
 | **Contract tests expansion** | IN PROGRESS / PARALLEL | Slice 1–4 LANDED (DEC-094 + DEC-106): probes + health/ready + auth list + **401/422** | Optional further typed endpoints; park OK |
 
@@ -91,12 +91,12 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30 backlog, DB-05 Slice 2+, Category B B6–B7 | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. CI-14/CI-19/CI-20/CI-22 CLOSED. DB-05 Slice 0+1 CLOSED (DEC-111/113). B1 CLOSED DEC-112. B2 CLOSED DEC-114. B3 CLOSED DEC-115. B4 CLOSED DEC-116. B5 CLOSED DEC-117. |
+| Contract tests, optional Jest 30 backlog, DB-05 Slice 2+, Category B B7 | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. CI-14/CI-19/CI-20/CI-22 CLOSED. DB-05 Slice 0+1 CLOSED (DEC-111/113). B1 CLOSED DEC-112. B2 CLOSED DEC-114. B3 CLOSED DEC-115. B4 CLOSED DEC-116. B5 CLOSED DEC-117. B6 CLOSED DEC-118. |
 | Contract tests expansion (post STORY-03-04) | PARALLEL | Slice 1–4 DEC-094/106 (probes + health/ready + auth list + 401/422); framework `623077c` |
 | JWT audience **consumption** | **CLOSED** (DEC-093) | Owner Platform admin consumes `salesos-owner-platform`; tenant path untouched |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
-**Category B (DEC-110/112/114/115/116/117):** planning CLOSED; B1 CLOSED (`branches`/`licenses`, POLICY_COUNT 49); B2 CLOSED (`commercial_activities`/`commercial_quote_lines`, POLICY_COUNT 51); B3 CLOSED (`analytics_report_executions`/`analytics_report_shares`, POLICY_COUNT 53); B4 CLOSED (`decision_center_audits`/`decision_center_feedback`, POLICY_COUNT 55); B5 CLOSED (`password_reset_tokens`/`refresh_token_families`, POLICY_COUNT **57**); B6–B7 READY. Do not reopen STORY-02-01.
+**Category B (DEC-110/112/114/115/116/117/118):** planning CLOSED; B1 CLOSED (`branches`/`licenses`, POLICY_COUNT 49); B2 CLOSED (`commercial_activities`/`commercial_quote_lines`, POLICY_COUNT 51); B3 CLOSED (`analytics_report_executions`/`analytics_report_shares`, POLICY_COUNT 53); B4 CLOSED (`decision_center_audits`/`decision_center_feedback`, POLICY_COUNT 55); B5 CLOSED (`password_reset_tokens`/`refresh_token_families`, POLICY_COUNT 57); B6 CLOSED (`webhook_deliveries`, POLICY_COUNT **58**); B7 READY. Do not reopen STORY-02-01.
 
 **Swarm dispatch (DEC-107):** While waiting on ops (CI-08 GHCR, CI-09 VPS), keep agents on independent PARALLEL READY ownership — do **not** idle solely because those ops leaves are BLOCKED. CI-14 preferred path during that wait was **DEC-108** executive AC close (not silent Jest 30); swarm policy = DEC-107. Honesty: DEC-104 **code path** vs **full incl. publish**.
 
