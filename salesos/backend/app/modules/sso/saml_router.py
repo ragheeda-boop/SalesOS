@@ -25,7 +25,8 @@ async def saml_metadata(
     tenant_id: str = Query(..., description="Tenant ID to identify SP config"),
     service: SAMLService = Depends(get_service),
 ):
-    await check_rate_limit_by_key(f"saml-metadata:{request.client.host}", limit=30, window=60)
+    client_host = request.client.host if request.client else "unknown"
+    await check_rate_limit_by_key(f"saml-metadata:{client_host}", limit=30, window=60)
     metadata = service.get_saml_metadata(tenant_id)
     return Response(content=metadata, media_type="application/xml")
 
@@ -36,9 +37,8 @@ async def saml_login(
     tenant_id: str = Form(...),
     service: SAMLService = Depends(get_service),
 ):
-    await check_rate_limit_by_key(
-        f"saml-login:{request.client.host}", limit=_SAML_RATE_LIMIT, window=60
-    )
+    client_host = request.client.host if request.client else "unknown"
+    await check_rate_limit_by_key(f"saml-login:{client_host}", limit=_SAML_RATE_LIMIT, window=60)
     try:
         redirect_url = service.initiate_saml_login(tenant_id)
     except ValueError as e:
@@ -55,8 +55,9 @@ async def saml_callback(
     RelayState: str = Form(""),
     service: SAMLService = Depends(get_service),
 ):
+    client_host = request.client.host if request.client else "unknown"
     await check_rate_limit_by_key(
-        f"saml-callback:{request.client.host}", limit=_SAML_RATE_LIMIT, window=60
+        f"saml-callback:{client_host}", limit=_SAML_RATE_LIMIT, window=60
     )
 
     try:
@@ -91,8 +92,9 @@ async def saml_idp_initiated(
     RelayState: str = Form(""),
     service: SAMLService = Depends(get_service),
 ):
+    client_host = request.client.host if request.client else "unknown"
     await check_rate_limit_by_key(
-        f"saml-idp-init:{request.client.host}", limit=_SAML_RATE_LIMIT, window=60
+        f"saml-idp-init:{client_host}", limit=_SAML_RATE_LIMIT, window=60
     )
 
     try:

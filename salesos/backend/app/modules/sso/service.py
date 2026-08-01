@@ -70,13 +70,13 @@ class OAuthService:
     def _encrypt(self, plaintext: str | None) -> str | None:
         if not plaintext:
             return plaintext
-        return encrypt_token(plaintext, self._encryption_secret)
+        return cast(str, encrypt_token(plaintext, self._encryption_secret))
 
     def _decrypt(self, ciphertext: str | None) -> str | None:
         if not ciphertext:
             return ciphertext
         try:
-            return decrypt_token(ciphertext, self._encryption_secret)
+            return cast(str, decrypt_token(ciphertext, self._encryption_secret))
         except Exception:
             if self.logger:
                 self.logger.warn("sso.token_decrypt_failed")

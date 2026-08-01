@@ -445,15 +445,15 @@ class SAMLService:
                 raise UnauthorizedError("No tenant found for SAML user and no RelayState provided")
             tenant_id = str(tenant.id)
         else:
-            result = await self.db.execute(select(Tenant).where(Tenant.id == tenant_id))
-            tenant = result.scalar_one_or_none()
+            tenant_result = await self.db.execute(select(Tenant).where(Tenant.id == tenant_id))
+            tenant = tenant_result.scalar_one_or_none()
             if not tenant:
                 raise UnauthorizedError(f"Tenant {tenant_id} not found")
 
-        result = await self.db.execute(
+        user_result = await self.db.execute(
             select(User).where(User.email == email, User.tenant_id == tenant.id)
         )
-        user = result.scalar_one_or_none()
+        user = user_result.scalar_one_or_none()
 
         if not user:
             user = User(

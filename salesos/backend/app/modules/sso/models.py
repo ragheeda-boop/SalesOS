@@ -17,9 +17,9 @@ class SSOConnection(Base):
     )
     provider: Mapped[str] = mapped_column(String(50), nullable=False)
     provider_user_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    provider_email: Mapped[str] = mapped_column(String(255), nullable=True)
-    access_token: Mapped[str] = mapped_column(Text, nullable=True)
-    refresh_token: Mapped[str] = mapped_column(Text, nullable=True)
+    provider_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    access_token: Mapped[str | None] = mapped_column(Text, nullable=True)
+    refresh_token: Mapped[str | None] = mapped_column(Text, nullable=True)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
