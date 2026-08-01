@@ -8,6 +8,7 @@
 > **Amends (consequence):** CI-09 reframed from ops VPS-secret provision; governance land = **BLOCKED BY GOVERNANCE**; follow-on workflow land = **READY_FOR_REVIEW** — does **not** close CI-09  
 > **Out of scope (governance land):** Editing `.github/workflows/*` · provisioning secret *values* · inventing ARB **4.1/4.8** PASS · Phase 0 exit · CI GREEN · Production GO · DEC-085  
 > **Follow-on (2026-08-02, devops/ci-worker):** Workflow migration **implemented** — see §6. CI-09 / **3.11** → **BLOCKED** (Validation CONDITIONAL — §6 secrets missing; not CLOSED).  
+> **Validation field-verify (2026-08-02):** **VALIDATION_PASS** — Deploy [30723120473](https://github.com/ragheeda-boop/SalesOS/actions/runs/30723120473) @ c3507ed SUCCESS (Railway up ✓; health HTTP 200 ✓; Vercel FE ✓). CI-09 / **3.11** → **READY_FOR_REVIEW** (Orchestrator CLOSE / CLOSED CONDITIONAL; not auto-CLOSED).
 > **Amend (2026-08-02, devops/ci-worker + user ruling):** **Single-env current state** — production Railway only; staging secrets **optional / deferred** until a staging environment is created. See §1a / §6.
 
 ---
@@ -68,7 +69,7 @@ Cross-link: Architecture Validation session conclusion — verdict **hybrid** (B
 ```text
 CI-09
 Status: BLOCKED
-Reason: Validation CONDITIONAL — workflow land OK; production DEC-149 §6 RAILWAY_* secret/var names still missing (gh inventory empty).
+Reason: VALIDATION_PASS — Deploy 30723120473 Railway up + health HTTP 200 + Vercel FE; recommend Orchestrator CLOSE/CLOSED CONDITIONAL.
 Staging: deferred (single-env) — RAILWAY_STAGING_* not required until staging exists; deploy-staging soft-skip / dispatch-only.
 Not CLOSED — pending Validation field-verify of Deploy Production + production secret/var names provisioned.
 Do not provision unused VPS_*. Do not invent staging secrets.
