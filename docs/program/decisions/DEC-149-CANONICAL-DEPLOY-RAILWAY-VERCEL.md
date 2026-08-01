@@ -7,7 +7,7 @@
 > **Authority:** Architecture Validation session (hybrid) · user governance ruling · EXEC-ARCHITECTURE-PRODUCT-REVIEW · GA_STATUS · DEC-016 / DEC-120 · deploy configs  
 > **Amends (consequence):** CI-09 reframed from ops VPS-secret provision; governance land = **BLOCKED BY GOVERNANCE**; follow-on workflow land = **READY_FOR_REVIEW** — does **not** close CI-09  
 > **Out of scope (governance land):** Editing `.github/workflows/*` · provisioning secret *values* · inventing ARB **4.1/4.8** PASS · Phase 0 exit · CI GREEN · Production GO · DEC-085  
-> **Follow-on (2026-08-02, devops/ci-worker):** Workflow migration **implemented** — see §6. CI-09 / **3.11** → **READY_FOR_REVIEW** (not CLOSED).
+> **Follow-on (2026-08-02, devops/ci-worker):** Workflow migration **implemented** — see §6. CI-09 / **3.11** → **BLOCKED** (Validation CONDITIONAL — §6 secrets missing; not CLOSED).
 
 ---
 
@@ -24,8 +24,8 @@
 |---|---|
 | Prior VPS assumption (CI-09 / **3.11**) | **Superseded as the closure path** — do **not** create a VPS or add unused `VPS_HOST` / `VPS_USER` / `VPS_SSH_KEY` solely to close the criterion |
 | Workflow migration (`deploy.yml`, `deploy-staging.yml`, related) | **Implemented** (devops/ci-worker follow-on) — Railway+Vercel active; VPS SSH removed; K8s `deploy-production.yml` quarantined |
-| CI-09 / **3.11** | Remains **OPEN** — status **READY_FOR_REVIEW** (implementation landed; **not CLOSED**; Validation still required) |
-| Validation label | **docs / light validated** (workflows aligned to DEC; live deploy field-verify **PENDING** Validation — do not claim CI GREEN / Production GO) |
+| CI-09 / **3.11** | Remains **OPEN** - status **BLOCKED** (Validation CONDITIONAL @ 85d91e8: DEC-149 §6 RAILWAY_* names **missing**; deploy secret-gate FAILURE; **not CLOSED**) |
+| Validation label | **light validated (negative)** — workflows align; live deploy **blocked** on missing §6 secrets (30722044834/30722044830); do not claim CI GREEN / Production GO |
 
 **Honesty:** Governance land resolved the **intended canonical target**. Follow-on workflow land makes Railway+Vercel the **active GHA path**. CI-09 / **3.11** close only after Validation — **not** automatic.
 
@@ -53,8 +53,8 @@ Cross-link: Architecture Validation session conclusion — verdict **hybrid** (B
 
 ```text
 CI-09
-Status: READY_FOR_REVIEW
-Reason: DEC-149 Accepted; workflow migration landed (Railway BE + Vercel FE).
+Status: BLOCKED
+Reason: Validation CONDITIONAL @ 85d91e8 — workflow land OK; required DEC-149 §6 RAILWAY_* secret/var names missing (gh inventory empty).
 Not CLOSED — pending Validation field-verify of deploy runs + required secret/var names provisioned.
 Do not provision unused VPS_*.
 ```

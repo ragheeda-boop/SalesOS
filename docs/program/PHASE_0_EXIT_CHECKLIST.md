@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-02 (devops/ci-worker DEC-149 workflow migration: Railway+Vercel active in `deploy.yml` / `deploy-staging.yml`; K8s `deploy-production.yml` quarantined; CI-09 / **3.11** → **READY_FOR_REVIEW** — **not CLOSED**; do **not** provision `VPS_*`; CI-08 GHCR still BLOCKED separately; DEC-085 untouched; Phase 0 still **NO-GO**)
+> **Last updated:** 2026-08-02 (devops/ci-worker DEC-149 workflow migration: Railway+Vercel active in `deploy.yml` / `deploy-staging.yml`; K8s `deploy-production.yml` quarantined; CI-09 / **3.11** → **BLOCKED** (Validation — DEC-149 §6 secrets missing) — **not CLOSED**; do **not** provision `VPS_*`; CI-08 GHCR still BLOCKED separately; DEC-085 untouched; Phase 0 still **NO-GO**)
 >
 > ## Operating State
 >
@@ -22,7 +22,7 @@
 
 ## Current Verdict
 
-**Phase 0 = NO-GO** (CI-08; CI-09 **READY_FOR_REVIEW** not CLOSED; EOS ARB **4.1/4.8**; CI GREEN publish **3.9** not met)
+**Phase 0 = NO-GO** (CI-08; CI-09 **BLOCKED** on DEC-149 §6 secrets — not CLOSED; EOS ARB **4.1/4.8**; CI GREEN publish **3.9** not met)
 
 Blocked on: **CI-08** (GHCR 403), **CI GREEN not met** (full/publish **3.9**), **CI-09** (DEC-149 workflow migration **READY_FOR_REVIEW** — Validation field-verify PENDING; not VPS provision), EOS **ARB** re-audit. R-14 Railway **2.3 CLOSED CONDITIONAL** (multi-tenant live split residual). Security **1.5** / CI **3.5** / CI **3.8 CLOSED CONDITIONAL** (tip field-verify PENDING push). See §Remaining 9.
 
@@ -76,7 +76,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met** (full/publish **3.9**), *
 | 3.8 | Full pipeline: CI GREEN (code path) | Stages 1–5 all green on same run | ✅ VERIFIED/CLOSED **CONDITIONAL** — Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL @ `14fce5f` (DEC-148a); local ruff 0.4.10 check+format exit 0; last push `c842245` / `30704321096` Stage 1 FAILURE (6× E501) → Stages 3 BE/4 SKIPPED; residual: *tip Stages 1–5 same-run field-verify tip `d1dcce4`/`30720732268` Stage1 SUCCESS Stage2 mypy FAILURE — Stages 1-5 same-run still PENDING; CONDITIONAL stands* (Stage 3/4 may still fail when unblocked); historical Stages 1–5 SUCCESS @ `7ba137b` / `30689682988` (not tip); does **not** close **3.6–3.11** ops / **3.9** full CI GREEN; DEC-085 untouched; Orchestrator 2026-08-02; do **not** claim Production GO / CI GREEN / unconditional CLOSED |
 | 3.9 | Full pipeline: CI GREEN (incl. publish) | Stages 1–7 all green on same run | ⬜ CI-08 BLOCKED |
 | 3.10 | CI-08 GHCR 403 resolved | Stage 6 push succeeds (DEC-104 Option A) | OPEN Ops/human — **field 2026-08-02:** `gh api user/packages` shows `salesos/backend` + `salesos/frontend` **linked** `repository=ragheeda-boop/SalesOS` (private); workflow `packages: write` + login OK; Deploy Staging [`30721601875`](https://github.com/ragheeda-boop/SalesOS/actions/runs/30721601875) @ tip `7f1482e` Build&Push BE+FE still **403 Forbidden** on blob HEAD — link alone insufficient (verify Package → Manage Actions access **Write**, not Read); do **not** CLOSE |
-| 3.11 | CI-09 deploy path (Railway+Vercel; was VPS SSH) | Canonical deploy functional under accepted topology | ⬜ **READY_FOR_REVIEW** (DEC-149 follow-on) — Workflows migrated: `deploy.yml` / `deploy-staging.yml` → Railway BE + Vercel FE; `deploy-production.yml` (K8s) quarantined. **Not CLOSED.** Do **not** provision unused `VPS_*`. Next: Validation field-verify + ops provision Railway/Vercel secret **names** (DEC-149 §6). Owner: Validation / DevOps |
+| 3.11 | CI-09 deploy path (Railway+Vercel; was VPS SSH) | Canonical deploy functional under accepted topology | ❌ **BLOCKED** (Validation — secrets) - DEC-149 @ 85d91e8 ARCHITECTURE_PASS; field Deploy Prod 30722044834 / Staging 30722044830 FAILURE at Require Railway secrets; gh inventory: all DEC-149 §6 required RAILWAY_* **MISSING** (repo+env secrets/vars total 0). FE jobs SUCCESS (Git/echo). Health SKIPPED. **Not CLOSED.** Do **not** provision VPS_*. Ops: provision §6 names then re-field-verify. Disposition **VALIDATION_CONDITIONAL**. Owner: DevOps then Validation |
 
 **Owner:** DevOps/SRE Lead  
 **Reference:** `SPRINT_05_DELIVERY_BOARD.md`, `12_CI_CATALOG.md`, DEC-104
@@ -180,7 +180,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met** (full/publish **3.9**), *
 |---------|-------|----------|---------|------|
 | 1. Security P0 | 5 | 5 | 0 | 0 |
 | 2. RLS & Tenant Isolation | 7 | 6 | 0 | 1 |
-| 3. CI/CD Green | 11 | 6 | 2 (CI-08 ops; CI-09 READY_FOR_REVIEW DEC-149) | 3 |
+| 3. CI/CD Green | 11 | 6 | 2 (CI-08 ops; CI-09 BLOCKED secrets DEC-149) | 3 |
 | 4. EOS Audit Pass | 8 | 6 | 0 | 2 |
 | 5. Capability Drift | 4 | 4 | 0 | 0 |
 | 6. ADR Drift | 5 | 5 | 0 | 0 |
@@ -203,7 +203,7 @@ No Phase 0 criterion is Cursor-closeable without ARB invent, ops (CI-08), Valida
 | 3.7 | Stage 7 E2E green | DevOps / Backend | **Stage-6-dep** | Playwright needs real services + Stage 6 path; do not fake local green as 3.7 CLOSE |
 | 3.9 | CI GREEN (incl. publish) | DevOps / ops | **ops (CI-08)** | Needs Stages 1–7 same-run; blocked behind 3.6/3.7/3.10 |
 | 3.10 | CI-08 GHCR 403 resolved | Ops / human | **ops** | Packages linked to SalesOS (API); Actions Write role still insufficient — field 403 @ `30721601875`; confirm Manage Actions access = **Write** |
-| 3.11 | CI-09 (Railway+Vercel deploy) | Validation / DevOps | **READY_FOR_REVIEW (DEC-149)** | Workflows migrated; **not CLOSED** — field-verify deploy runs + provision Railway/Vercel secret names (DEC-149 §6); do **not** provision `VPS_*` |
+| 3.11 | CI-09 (Railway+Vercel deploy) | DevOps → Validation | **BLOCKED (secrets / DEC-149 §6)** | Field-verify @ 85d91e8: deploy secret-gate FAILURE; all required RAILWAY_* names **missing**; **not CLOSED**; do **not** provision VPS_* |
 | 4.1 | B1–B7 findings resolved | OpenCode / **ARB** | **ARB** | v3.1 corrected; independent re-audit PASS required — **do not invent** |
 | 4.8 | Independent ARB re-audit = PASS | OpenCode / **ARB** | **ARB** | New validation report, no CRITICAL — **do not invent** |
 | 3.8 residual | tip Stages 1-5 same-run | Validation / push | **push field-verify** | Criterion **CLOSED CONDITIONAL** (DEC-148a); prior `d1dcce4` / `30720732268` Stage 2 mypy FAILURE; backend-types fix for `roles_permissions.py` 4× `arg-type` pushed — tip Stages 1-5 same-run PENDING field-verify; CONDITIONAL stands |
@@ -218,7 +218,7 @@ Adjacent non-blocking residuals (not counted in the 9): **8.3** tip `test-archit
 | Item | Blocked By | Action Needed |
 |------|-----------|---------------|
 | CI-08 GHCR 403 | Package↔repo link done; Actions package Write still 403 on push | Human/ops: Package settings → Manage Actions access → SalesOS **Write** (re-verify); re-run Deploy Staging |
-| CI-09 (criterion 3.11) | Validation — DEC-149 workflow migration landed | **READY_FOR_REVIEW** (not CLOSED). Active path Railway+Vercel; K8s quarantined. Do **not** provision unused `VPS_*`. Next: Validation field-verify + ops provision secret names (DEC-149 §6) |
+| CI-09 (criterion 3.11) | DevOps (provision) → Validation (re-verify) | **BLOCKED** — Validation CONDITIONAL @ 85d91e8: secret names missing (DEC-149 §6). Deploy 30722044834/30722044830 FAILURE at Require Railway secrets. **Not CLOSED.** Do **not** provision unused VPS_* |
 | R-14 multi-tenant residual (non-blocking for 2.3 CONDITIONAL) | Second-tenant fixture (prefer staging) | Optional: re-run Slice E differential for unconditional PASS |
 | 1.5 post-align Security Scan pip-audit (non-blocking for 1.5 CONDITIONAL) | Push tip containing `fa266b5` | Field-verify Security Scan pip-audit SUCCESS with poetry export + 1 ignored (ecdsa) — does **not** upgrade to unconditional CLOSED until observed |
 | 8.3 tip `test-architecture` (non-blocking for 8.3 CONDITIONAL) | Push tip containing `868a98c` | Field-verify Stage 5 `test-architecture` SUCCESS — does **not** upgrade to unconditional CLOSED until observed |
