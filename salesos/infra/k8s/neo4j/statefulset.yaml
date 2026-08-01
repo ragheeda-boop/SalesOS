@@ -22,6 +22,8 @@ spec:
       terminationGracePeriodSeconds: 120
       containers:
         - name: neo4j
+          securityContext:
+            allowPrivilegeEscalation: false
           image: neo4j:5-community
           ports:
             - containerPort: 7474

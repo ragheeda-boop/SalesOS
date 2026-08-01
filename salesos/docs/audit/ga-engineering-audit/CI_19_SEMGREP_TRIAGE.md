@@ -149,12 +149,17 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 - Defer demo `asyncpg-sqli` to Wave 4 or quarantine.  
 - **Program note (2026-08-01):** prior honesty-rewrite attempt was **user-aborted**. Board does **not** authorize execute-now; **skipped** in favor of Wave 3 SHA pins. Wave 2 remains REGISTERED (not CLOSED).
 
-### Wave 3 — Supply-chain & infra hardening → **SHA-pin slice COMPLETE** (`DEC-069`)
+### Wave 3 — Supply-chain & infra hardening → **SHA-pin + residual COMPLETE** (`DEC-069` / `DEC-074`)
 
 - **SHA-pin slice (COMPLETE):** Pin all `uses:` Action refs in root `.github/workflows/*.yml` + `sales-os/.github/workflows/run.yml` to full 40-char commit SHAs (115 replacements; 0 mutable tags remain in those files). Floating `aquasecurity/trivy-action@master` → pinned `v0.29.0` SHA (same tag already used in `deploy-production.yml`). Version comments retained (`# v4`, etc.).  
 - **Files:** `security-scan.yml`, `ci.yml`, `docker-smoke.yml`, `deploy.yml`, `deploy-staging.yml`, `deploy-production.yml`, `sales-os/.github/workflows/run.yml`.  
-- **Security effect:** strengthens supply-chain integrity; **does not** weaken Semgrep gates / severity / upload path.  
-- **Still open (Wave 3 residual / next executable slice):** K8s `securityContext` / `allowPrivilegeEscalation: false` (15); Dockerfile USER (2); Terraform encryption (2).
+- **Residual slice (COMPLETE — DEC-074):**  
+  - K8s: 15× `allowPrivilegeEscalation: false` on containers across `salesos/infra/k8s/` (backend/frontend/celery×2/migrate/redis/postgres/neo4j/kafka/zookeeper/grafana/prometheus/alertmanager/backup/restore-test). App images (backend/frontend/celery/migrate) also get `runAsNonRoot: true` + `capabilities.drop: [ALL]`.  
+  - Docker: `USER postgres` on `infra/docker/backup/Dockerfile`; `USER alertmanager` on `infra/docker/monitoring/alertmanager/Dockerfile` (writable dirs chowned).  
+  - Terraform: DynamoDB `server_side_encryption { enabled = true }`; Secrets Manager CMK (`aws_kms_key` + rotation + `kms_key_id`).  
+- **Architecture STOP (documented, not blocking residual):** data-store pods (postgres/neo4j/kafka/zookeeper/redis) intentionally **omit** `runAsNonRoot` — official images often start as root to fix volume perms then drop; forcing non-root without UID/`fsGroup` alignment risks broken PVCs. Residual Semgrep rule only required `allowPrivilegeEscalation: false`.  
+- **Security effect:** strengthens supply-chain + runtime/infra hardening; **does not** weaken Semgrep gates / severity / upload path.  
+- **Wave 3 fully complete** for triage-scoped hardening items. Next: Wave 4 path excludes / Wave 5 residuals.
 
 ### Wave 4 — Noise reduction (no weakening)
 
@@ -174,11 +179,11 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 |-------|---------------:|-------------|
 | **READY (Wave 1)** | **8** | **COMPLETE** at `d5c9b57` (env:/process.env) |
 | SQL honesty / FP review (Wave 2) | **~77** | **SKIPPED / deferred** (aborted honesty rewrite); REGISTERED — no mass `nosec` |
-| Hardening backlog (Wave 3) | **~139** → SHA pins **115 done** | **SHA-pin COMPLETE** (`DEC-069`); residual K8s/Docker/TF (~19) next |
+| Hardening backlog (Wave 3) | **~139** → SHA pins **115** + residual **19** done | **Wave 3 COMPLETE** (`DEC-069` SHA-pin + `DEC-074` K8s/Docker/TF) |
 | **Noise / exclude (Wave 4)** | **~30** | Path excludes + doc redact |
 | Residual singletons (Wave 5) | **~6** | Case-by-case |
 
-**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 SHA-pin slice COMPLETE** under `DEC-069` (115 Action pins). Wave 2 skipped/deferred. Next executable: Wave 3 residual (K8s/Docker/TF) or Wave 4 path excludes — CI-19 remains OPEN. **CI GREEN not met.**
+**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 COMPLETE** under `DEC-069` (115 Action pins) + `DEC-074` (15 K8s + 2 Docker USER + 2 TF encryption). Wave 2 skipped/deferred. Next executable: Wave 4 path excludes or Wave 5 residuals — CI-19 remains OPEN. **CI GREEN not met.**
 
 ---
 
@@ -207,4 +212,4 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 
 ---
 
-*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 SHA-pin COMPLETE (`DEC-069`, 115 pins). Wave 2 skipped/deferred. Next: Wave 3 residual (K8s/Docker/TF) + Waves 4–5 (CI-19 still OPEN).*
+*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`DEC-069` SHA-pin + `DEC-074` K8s/Docker/TF). Wave 2 skipped/deferred. Next: Waves 4–5 (CI-19 still OPEN).*

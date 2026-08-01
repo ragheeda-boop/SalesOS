@@ -58,6 +58,12 @@ spec:
               app: backend
       containers:
         - name: backend
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
           image: ghcr.io/ragheeda-boop/salesos/backend:latest
           imagePullPolicy: Always
           ports:

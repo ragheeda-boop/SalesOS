@@ -38,6 +38,10 @@ resource "aws_dynamodb_table" "terraform_locks" {
     type = "S"
   }
 
+  server_side_encryption {
+    enabled = true
+  }
+
   tags = local.common_tags
 }
 
@@ -183,8 +187,22 @@ resource "random_password" "rds_password" {
   special = false
 }
 
+resource "aws_kms_key" "secrets" {
+  description             = "SalesOS Secrets Manager CMK"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+  tags                    = local.common_tags
+}
+
+resource "aws_kms_alias" "secrets" {
+  name          = "alias/${local.name_prefix}-secrets"
+  target_key_id = aws_kms_key.secrets.key_id
+}
+
 resource "aws_secretsmanager_secret" "salesos" {
-  name = "${local.name_prefix}-secrets"
+  name       = "${local.name_prefix}-secrets"
+  kms_key_id = aws_kms_key.secrets.arn
+  tags       = local.common_tags
 }
 
 resource "aws_secretsmanager_secret_version" "salesos" {

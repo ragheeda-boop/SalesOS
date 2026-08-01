@@ -24,6 +24,8 @@ spec:
           serviceAccountName: backup
           containers:
             - name: backup
+              securityContext:
+                allowPrivilegeEscalation: false
               image: ghcr.io/ragheeda-boop/salesos/backup:latest
               imagePullPolicy: IfNotPresent
               env:

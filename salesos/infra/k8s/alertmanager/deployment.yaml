@@ -26,6 +26,8 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: alertmanager
+          securityContext:
+            allowPrivilegeEscalation: false
           image: prom/alertmanager:v0.28.1
           args:
             - "--config.file=/etc/alertmanager/alertmanager.yml"

@@ -23,6 +23,8 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: grafana
+          securityContext:
+            allowPrivilegeEscalation: false
           image: grafana/grafana:11.6.0
           ports:
             - containerPort: 3000

@@ -24,6 +24,12 @@ spec:
       serviceAccountName: salesos-backend
       containers:
         - name: worker
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
           image: ghcr.io/ragheeda-boop/salesos/backend:latest
           command:
             - celery
@@ -84,6 +90,12 @@ spec:
       serviceAccountName: salesos-backend
       containers:
         - name: beat
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
           image: ghcr.io/ragheeda-boop/salesos/backend:latest
           command:
             - celery

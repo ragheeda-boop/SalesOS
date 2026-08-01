@@ -22,6 +22,8 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: kafka
+          securityContext:
+            allowPrivilegeEscalation: false
           image: confluentinc/cp-kafka:7.0.0
           ports:
             - containerPort: 9092
@@ -122,6 +124,8 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: zookeeper
+          securityContext:
+            allowPrivilegeEscalation: false
           image: confluentinc/cp-zookeeper:7.0.0
           ports:
             - containerPort: 2181

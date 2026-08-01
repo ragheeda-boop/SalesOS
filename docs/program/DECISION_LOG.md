@@ -786,3 +786,14 @@
 **Consequence:** CI-22 stays **REGISTERED / READY**. Validation **not validated** (docs). **CI GREEN not met.**
 **Status:** Accepted. CI-22 **PLAN COMPLETE**; no code.
 
+---
+
+### DEC-074 — CI-19 Wave 3 residual COMPLETE: K8s securityContext + Dockerfile USER + TF encryption; CI-19 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** After Wave 3 SHA-pin COMPLETE (`556304d` / DEC-069), triage residual was 19 Semgrep OSS alerts: 15× `allow-privilege-escalation-no-securitycontext` under `salesos/infra/k8s/`, 2× Dockerfile `missing-user` (`infra/docker/backup`, `infra/docker/monitoring/alertmanager`), 2× Terraform encryption (`aws-dynamodb-table-unencrypted`, `aws-secretsmanager-secret-unencrypted` in `main.tf`). Wave 2 SQL honesty remains skipped/deferred (not authorized).
+**Alternatives considered:** (a) close entire CI-19 — rejected (Waves 4–5 remain; Wave 2 deferred); (b) force `runAsNonRoot` on postgres/neo4j/kafka/zookeeper/redis — **STOP** (architecture): official images often start as root to fix volume ownership then drop; without UID/`fsGroup` redesign this risks broken PVCs — documented STOP, remediations continue with `allowPrivilegeEscalation: false` only for data stores; (c) record Wave 3 residual COMPLETE, keep CI-19 OPEN — approved.
+**Decision:** Accept Wave 3 **residual** as **COMPLETE**. App containers (backend/frontend/celery/migrate) get `allowPrivilegeEscalation: false` + `runAsNonRoot: true` + `capabilities.drop: [ALL]`. Data-store/monitoring/backup containers get `allowPrivilegeEscalation: false`. Backup image `USER postgres`; alertmanager custom image `USER alertmanager` with chowned writable dirs. DynamoDB `server_side_encryption { enabled = true }`; Secrets Manager dedicated CMK with rotation + `kms_key_id`. Do **not** mark CI-19 CLOSED. Do **not** weaken Semgrep. Do **not** execute Wave 2. Next: Wave 4 path excludes or Wave 5 residuals.
+**Consequence:** CI-19 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-24 remains Open (mitigating). Validation: **light validated** (local inventory vs Code Scanning alert paths #591–#609; field Code Scanning closure **not** yet re-verified). **CI GREEN not met.**
+**Status:** Accepted. CI-19 **Wave 3 residual COMPLETE**; story **OPEN**.
+

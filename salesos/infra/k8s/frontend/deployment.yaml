@@ -45,6 +45,12 @@ spec:
               app: frontend
       containers:
         - name: frontend
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
           image: ghcr.io/ragheeda-boop/salesos/frontend:latest
           imagePullPolicy: Always
           ports:

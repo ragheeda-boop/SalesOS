@@ -22,6 +22,8 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: postgres
+          securityContext:
+            allowPrivilegeEscalation: false
           image: pgvector/pgvector:pg16
           ports:
             - containerPort: 5432
