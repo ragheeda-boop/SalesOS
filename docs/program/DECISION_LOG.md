@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** Engineering Stability **8.3** OPEN after DEC-143a — residual noted `test_architecture` not an independent workflow gate; checklist named non-existent `arch-compliance.py` while live gate is `arch-compliance.ps1` (already Stage 5 success on gh). Backend unit stage can skip on lint failure and leave layering unenforced.
 **Alternatives considered:** (a) docs-only while fitness only inside skippable unit stage — rejected; (b) invent `arch-compliance.py` duplicate — rejected; (c) claim VERIFIED/CLOSED / CI GREEN — rejected; (d) wire independent `test-architecture` critical job + evidence existing `arch-compliance.ps1` — approved.
-**Decision:** Accept criterion **8.3** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-144-CRITERION-8-3-ARCH-RULES-IN-CI.md`](decisions/DEC-144-CRITERION-8-3-ARCH-RULES-IN-CI.md). Docker **36 passed**; local ps1 **95.8%**; gh Arch Compliance success @ run `30704321096`. Tip `test-architecture` field-verify PENDING push. DEC-085 intact.
-**Consequence:** Phase 0 criterion **8.3** = READY FOR REVIEW (not CLOSED). Phase 0 remains **40/54**. Residual **8.2** and EOS **4.1/4.8** OPEN. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criterion **READY FOR REVIEW** (awaiting Arch+Val + Orchestrator).
+**Decision:** Accept criterion **8.3** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-144-CRITERION-8-3-ARCH-RULES-IN-CI.md`](decisions/DEC-144-CRITERION-8-3-ARCH-RULES-IN-CI.md). Docker **36 passed**; local ps1 **95.8%**; gh Arch Compliance success @ run `30704321096`. Tip `test-architecture` field-verify PENDING push. DEC-085 intact. Closed CONDITIONAL via DEC-144a after Arch CONDITIONAL + Val PASS_CONDITIONAL.
+**Consequence:** Phase 0 criterion **8.3** = READY FOR REVIEW then **CLOSED CONDITIONAL** via DEC-144a. Residual **8.2** and EOS **4.1/4.8** OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED CONDITIONAL via DEC-144a**.
+
+### DEC-144a — Orchestrator VERIFIED/CLOSED CONDITIONAL criterion 8.3 (2026-08-01)
+
+**Context:** Architecture CONDITIONAL ([architecture review 8.3](cc92b9e3-46fa-4667-a960-5c034898212c)) + Validation PASS_CONDITIONAL ([Validate 8.3](5952494b-5830-40ac-991a-b979a010db5a): wiring + Docker **36 passed** + ps1 **95.8%** + pre-land gh; tip `test-architecture` field-verify PENDING push) on land `868a98c` / DEC-144.
+**Decision:** Accept **8.3 VERIFIED → CLOSED CONDITIONAL** (same honesty pattern as 1.5 DEC-128a / 2.3 DEC-126). Residual: *tip `test-architecture` SUCCESS PENDING until tip containing `868a98c` is pushed*. Phase 0 **40/54 → 41/54**. Eng Stability Complete **2 → 3** / Open **2 → 1**. Residual Eng Stability **8.2** and EOS **4.1/4.8** remain OPEN (non-blocking for 8.3). Do **not** push. Do **not** claim Production GO / CI GREEN / unconditional CLOSED.
+**Consequence:** Next PARALLEL READY: Eng Stability **8.2**, EOS Audit **4.1/4.8** (ARB). **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **8.3 CLOSED CONDITIONAL**.
 
 ### DEC-143 — Phase 0 criterion 8.1 engineering-os submodule clean READY FOR REVIEW
 

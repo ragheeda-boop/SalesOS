@@ -1,11 +1,11 @@
 # DEC-144 — Architecture rules enforced in CI (Phase 0 criterion 8.3)
 
-> **Status:** **READY FOR REVIEW** (Cursor COMPLETE — awaiting Arch + Validation)  
+> **Status:** **Accepted** — Cursor packaging **COMPLETE** · Criterion 8.3 = **VERIFIED/CLOSED CONDITIONAL** (DEC-144a; Architecture CONDITIONAL · Validation PASS_CONDITIONAL). Residual: tip `test-architecture` SUCCESS PENDING until tip containing `868a98c` is pushed.  
 > **Date:** 2026-08-01  
 > **Board:** Backend Lead / Engineering Stability (SalesOS / AQLIYA) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **8.3** · Architecture rules enforced in CI  
-> **Authority:** PHASE_0_EXIT_CHECKLIST §8.3 · DEC-143 residual · `.engineering/17_TESTING_MAP.md`  
-> **Out of scope this land:** Eng Stability **8.2** · EOS **4.1/4.8** ARB · inventing `arch-compliance.py` · CI-08/CI-09 ops · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED
+> **Authority:** PHASE_0_EXIT_CHECKLIST §8.3 · DEC-143 residual · `.engineering/17_TESTING_MAP.md` · DEC-144a Orchestrator  
+> **Out of scope this land:** Eng Stability **8.2** · EOS **4.1/4.8** ARB · inventing `arch-compliance.py` · CI-08/CI-09 ops · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit · unconditional CLOSED
 
 ---
 
@@ -32,7 +32,7 @@ Checklist evidence text corrected: `test_architecture.py` + `arch-compliance.ps1
 | Full CI GREEN / Production GO | **No** |
 | Agent coordination at scale (8.2) | **No** — residual **8.2** |
 
-**Not claimed:** Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED · closing 8.2 / 4.1 / 4.8.
+**Not claimed:** Production GO · CI GREEN · Phase 0 exit · unconditional CLOSED · closing 8.2 / 4.1 / 4.8.
 
 ---
 
@@ -63,10 +63,11 @@ Checklist evidence text corrected: `test_architecture.py` + `arch-compliance.ps1
 
 ## 4. Records
 
-- Phase 0 criterion **8.3** → **READY FOR REVIEW** (this DEC)
-- Phase 0 remains **40/54** until Arch+Val+Orchestrator CLOSE
-- Residuals (non-blocking for 8.3 land): Eng Stability **8.2** · EOS **4.1** / **4.8** ARB · CI-08/CI-09 ops · tip field-verify `test-architecture`
-- **Not claimed:** Production GO · CI GREEN · Phase 0 exit
+- Phase 0 criterion **8.3** → **VERIFIED/CLOSED CONDITIONAL** (DEC-144a; Phase 0 **41/54**)
+- Eng Stability Complete **2 → 3** / Open **2 → 1**
+- Residual (non-blocking for 8.3 CONDITIONAL): *tip `test-architecture` SUCCESS PENDING until tip containing `868a98c` is pushed*
+- Residuals (cluster): Eng Stability **8.2** · EOS **4.1** / **4.8** ARB · CI-08/CI-09 ops
+- **Not claimed:** Production GO · CI GREEN · Phase 0 exit · unconditional CLOSED
 
 ---
 
@@ -100,7 +101,7 @@ Checklist evidence text corrected: `test_architecture.py` + `arch-compliance.ps1
 | Tip CI field-verify pending | MED | Prefer not push; Orchestrator may keep CONDITIONAL until job success observed |
 | Medium DP-5.1 FE residuals | LOW | % gate still PASS; do not invent Decision Platform GA |
 | Poetry install cost on runner | LOW | Same cache key as other backend jobs |
-| Overclaim CLOSED / CI GREEN | LOW | Land is READY FOR REVIEW only |
+| Overclaim unconditional CLOSED / CI GREEN | LOW | CLOSED CONDITIONAL only; tip field-verify PENDING |
 
 ---
 
@@ -108,6 +109,6 @@ Checklist evidence text corrected: `test_architecture.py` + `arch-compliance.ps1
 
 | Question | Recommendation |
 |---|---|
-| Close 8.3? | **After** Arch PASS + Validation (incl. tip `test-architecture` success if required) + Orchestrator DEC-144a |
+| Close 8.3? | **CLOSED CONDITIONAL** via DEC-144a (Arch CONDITIONAL + Val PASS_CONDITIONAL); tip SUCCESS does not auto-upgrade |
 | Next PARALLEL | Eng Stability **8.2** · EOS **4.1/4.8** ARB |
-| Do not | Claim Phase 0 GO · CI GREEN · invent `arch-compliance.py` · weaken auth / DEC-085 |
+| Do not | Claim Phase 0 GO · CI GREEN · unconditional CLOSED · invent `arch-compliance.py` · weaken auth / DEC-085 |

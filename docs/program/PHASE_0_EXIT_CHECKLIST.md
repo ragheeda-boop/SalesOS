@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-144 criterion 8.3 arch rules in CI **READY FOR REVIEW**; `test-architecture` job wired + `arch-compliance.ps1` evidenced; Phase 0 remains **40/54** until Arch+Val CLOSE; Eng Stability Open **8.2** + **8.3 RFR**; residuals EOS **4.1/4.8**; ADR-036 Applied Complete 3/4; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
+> **Last updated:** 2026-08-01 (DEC-144a criterion 8.3 arch rules in CI **VERIFIED/CLOSED CONDITIONAL**; tip `test-architecture` SUCCESS PENDING until tip containing `868a98c` is pushed; Phase 0 **40/54 → 41/54**; Eng Stability Complete **2 → 3** / Open **2 → 1** (**8.2** OPEN); residuals EOS **4.1/4.8**; ADR-036 Applied Complete 3/4; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
 >
 > ## Operating State
 >
@@ -152,7 +152,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 |---|-----------|-------------------|--------|
 | 8.1 | `engineering-os/` submodule clean | No uncommitted changes | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: pin `b82b9fb`, clean tree) @ `89502ef` (DEC-143a); discarded malformed unreviewed `capability-registry.yaml` append (outside YAML fence); parent gitlink unchanged; DEC-085 untouched; residuals Eng Stability **8.2/8.3** · EOS **4.1/4.8** OPEN; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 | 8.2 | Agent coordination protocol exercised | Multi-agent parallel work completed without conflict | ⬜ Not tested at scale |
-| 8.3 | Architecture rules enforced in CI | `test_architecture.py` + `arch-compliance.ps1` green (critical CI jobs) | 🟡 READY FOR REVIEW — DEC-144; independent `test-architecture` job wired; Docker **36 passed**; local ps1 **95.8%** PASS; gh `arch-compliance` success @ run `30704321096`; tip `test-architecture` field-verify PENDING push; DEC-085 untouched; residual **8.2** · EOS **4.1/4.8** OPEN; do **not** claim Production GO / CI GREEN / VERIFIED/CLOSED |
+| 8.3 | Architecture rules enforced in CI | `test_architecture.py` + `arch-compliance.ps1` green (critical CI jobs) | ✅ VERIFIED/CLOSED CONDITIONAL — Arch CONDITIONAL + Validation PASS_CONDITIONAL @ `868a98c` (DEC-144a); independent `test-architecture` job wired; Docker **36 passed**; local ps1 **95.8%** PASS; gh `arch-compliance` success @ run `30704321096`; residual: *tip `test-architecture` SUCCESS PENDING until tip containing `868a98c` is pushed*; DEC-085 untouched; Eng Stability residual **8.2** · EOS **4.1/4.8** OPEN; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN / unconditional CLOSED |
 | 8.4 | No stale locks in `22_FILE_LOCKS.json` | All bootstrap locks released | ✅ VERIFIED (ARB 2026-08-01; zero write locks; TTL rule active) |
 
 **Owner:** OpenCode / Chief Architect  
@@ -185,9 +185,9 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 5. Capability Drift | 4 | 4 | 0 | 0 |
 | 6. ADR Drift | 5 | 5 | 0 | 0 |
 | 7. DB Schema | 6 | 6 | 0 | 0 |
-| 8. Engineering Stability | 4 | 2 | 0 | 2 |
+| 8. Engineering Stability | 4 | 3 | 0 | 1 |
 | 9. ADR-036 Applied | 4 | 3 | 0 | 1 |
-| **TOTAL** | **54** | **40** | **2** | **12** |
+| **TOTAL** | **54** | **41** | **2** | **11** |
 
 ---
 
@@ -199,6 +199,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | CI-09 VPS SSH/secrets | Secret provisioning | Ops: provision VPS_HOST, VPS_USER, VPS_SSH_KEY |
 | R-14 multi-tenant residual (non-blocking for 2.3 CONDITIONAL) | Second-tenant fixture (prefer staging) | Optional: re-run Slice E differential for unconditional PASS |
 | 1.5 post-align Security Scan pip-audit (non-blocking for 1.5 CONDITIONAL) | Push tip containing `fa266b5` | Field-verify Security Scan pip-audit SUCCESS with poetry export + 1 ignored (ecdsa) — does **not** upgrade to unconditional CLOSED until observed |
+| 8.3 tip `test-architecture` (non-blocking for 8.3 CONDITIONAL) | Push tip containing `868a98c` | Field-verify Stage 5 `test-architecture` SUCCESS — does **not** upgrade to unconditional CLOSED until observed |
 
 ---
 
