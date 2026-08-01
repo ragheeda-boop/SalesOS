@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-130 — DB-05 criterion 7.6: live `alembic check` re-baseline + phased plan
+
+**Date:** 2026-08-01
+**Context:** Phase 0 Exit Criterion 7.6 (`alembic check` exits clean) remains OPEN after 7.1–7.5 closed. Historic CI-15 “~300 drift lines” was never re-run at tip `d1a8c35e7f09`. Full clean is multi-slice; autogenerate proposes destructive `remove_table`/`remove_column` including metadata false positives and DEC-129 KEEP-adjacent columns.
+**Alternatives considered:** (a) claim 7.6 CLOSED — rejected (live check FAILED); (b) mega-migration from autogenerate — rejected (DROP risk); (c) Slice 5a live re-baseline + phased plan — approved.
+**Decision:** Accept **Slice 5a** as Cursor COMPLETE / READY FOR REVIEW (plan honesty only). Companion: [`decisions/DEC-130-DB-05-CRITERION-7-6-ALEMBIC-CHECK-PHASED.md`](decisions/DEC-130-DB-05-CRITERION-7-6-ALEMBIC-CHECK-PHASED.md). Live Docker `alembic check` @ head `d1a8c35e7f09` = **FAILED** exit 255 (add_table **3** global admin; remove_table **28**; remove_index **~100**; add_index **~37**; type **4**; remove_column **2** companies KEEP-adjacent). Criterion **7.6 stays OPEN**. DEC-085 intact. No DDL this land. Next: Slice 5b metadata classify.
+**Consequence:** Phase 0 remains **24/54**. DB-05 residual = **7.6** only (phased). **Production GO not claimed. CI GREEN not met. Do not claim VERIFIED/CLOSED for 7.6.**
+**Status:** Accepted. Criterion **7.6 OPEN** (Slice 5a COMPLETE).
+
 ### DEC-129 — DB-05 companies dead-column KEEP (Phase 0 criterion 7.4)
 
 **Date:** 2026-08-01
