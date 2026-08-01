@@ -33,8 +33,8 @@ SESSION_VAR = "app.tenant_id"
 # R-09) are excluded — RLS on them will be added after CREATE TABLE lands.
 # Tables without a tenant_id column (keyed via parent FK) are excluded from
 # ALL_TENANT_TABLES — Category B inventory + slices pinned in DEC-110.
-# B1–B4 join children use generate_join_policy_sql() /
-# CATEGORY_B1_JOIN_TABLES … CATEGORY_B4_JOIN_TABLES (DEC-110).
+# B1–B5 join children use generate_join_policy_sql() /
+# CATEGORY_B1_JOIN_TABLES … CATEGORY_B5_JOIN_TABLES (DEC-110).
 ALL_TENANT_TABLES: list[str] = [
     # ── Identity / Auth ──
     "users",                      # app/modules/identity/models.py — uuid
@@ -130,6 +130,16 @@ CATEGORY_B4_JOIN_TABLES: list[tuple[str, str, str]] = [
     # (child_table, parent_table, child_fk_column)
     ("decision_center_audits", "decision_center_decisions", "decision_id"),
     ("decision_center_feedback", "decision_center_decisions", "decision_id"),
+]
+
+# DEC-110 Slice B5 (S04-CATB-05): identity token children — no tenant_id; isolate
+# via users (Category A). Both FKs are UUID matching users.id (0012 / ORM).
+# Auth paths that set app.tenant_id (JWT refresh) see own-tenant rows; unset GUC
+# fails closed — do not add permissive exceptions (would weaken tenant isolation).
+CATEGORY_B5_JOIN_TABLES: list[tuple[str, str, str]] = [
+    # (child_table, parent_table, child_fk_column)
+    ("password_reset_tokens", "users", "user_id"),
+    ("refresh_token_families", "users", "user_id"),
 ]
 
 

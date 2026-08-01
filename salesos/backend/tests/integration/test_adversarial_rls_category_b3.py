@@ -2,7 +2,7 @@
 
 Tables: analytics_report_executions, analytics_report_shares — no tenant_id;
 isolate via analytics_reports.
-POLICY_COUNT live = 47 Category A (DEC-044) + 2 B1 + 2 B2 + 2 B3 + 2 B4 = 55 (after DEC-116).
+POLICY_COUNT live = 47 Category A (DEC-044) + 2 B1 + 2 B2 + 2 B3 + 2 B4 + 2 B5 = 57 (after DEC-117).
 
 Does NOT cover B4–B7. Does NOT enable R-09 / DB-05 deferred tables.
 """
@@ -17,7 +17,7 @@ from sqlalchemy import text
 
 from app.database import engine
 
-POLICY_COUNT = 55  # 47 Category A + B1 + B2 + B3 + B4 (DEC-116)
+POLICY_COUNT = 57  # 47 Category A + B1 + B2 + B3 + B4 + B5 (DEC-117)
 
 
 @pytest_asyncio.fixture(autouse=True)

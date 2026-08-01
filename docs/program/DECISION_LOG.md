@@ -1085,6 +1085,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-117 — Category B Slice B5: identity-token-children join RLS (`password_reset_tokens`, `refresh_token_families`)
+
+**Date:** 2026-08-01
+**Context:** DEC-110 pinned B5 = identity tokens via `users`. B4 CLOSED DEC-116 (`e4b9c32d0c04`, POLICY_COUNT 55). Category A 47 intact (DEC-044). DEC-085 set_config must not regress. Parent FKs confirmed in ORM + `0012` (UUID=UUID). Auth-path: JWT refresh sets tenant GUC; unset GUC fail-closed — no permissive bypass.
+**Alternatives considered:** (a) fold B5 into ALL_TENANT_TABLES / reopen STORY-02-01 — rejected; (b) expand to B6 webhook children in same land — rejected (DEC-110 slices); (c) add permissive auth-bypass policies for token_hash lookup without tenant — rejected (weakens isolation); (d) additive join-policy migration + adversarial 2-table suite with auth-path careful checks — approved.
+**Decision:** Accept B5 **CLOSED**. Companion: [`decisions/DEC-117-CATEGORY-B5-IDENTITY-TOKEN-CHILDREN-RLS.md`](decisions/DEC-117-CATEGORY-B5-IDENTITY-TOKEN-CHILDREN-RLS.md). Alembic `f5c0d43e1d05` (down `e4b9c32d0c04`); live `POLICY_COUNT` **57**; `ALL_TENANT_TABLES` remains **47**.
+**Consequence:** DAG Category B execution advances B5 CLOSED; B6–B7 READY. Production GA **NO-GO**. **CI GREEN not met**. Validation: **build validated** (Docker `python -m pytest` **10 passed** in 5.47s).
+**Status:** Accepted. Slice B5 **CLOSED**.
+
 ### DEC-116 — Category B Slice B4: decision-center-children join RLS (`decision_center_audits`, `decision_center_feedback`)
 
 **Date:** 2026-08-01

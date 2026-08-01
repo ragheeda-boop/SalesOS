@@ -125,7 +125,7 @@ Do **not** fold into Category B count or Sprint 04 join-policy slices:
 | **B2** | `S04-CATB-02` | Commercial children: `commercial_activities`, `commercial_quote_lines` | B1 or parallel if disjoint migration | **CLOSED DEC-114** — `c221d15f8b02`; `POLICY_COUNT` **51** |
 | **B3** | `S04-CATB-03` | Analytics children: `analytics_report_executions`, `analytics_report_shares` | Parents in Category A | **CLOSED DEC-115** — `d3f8a21c9b03`; `POLICY_COUNT` **53** |
 | **B4** | `S04-CATB-04` | Decision Center children: `decision_center_audits`, `decision_center_feedback` | Parents in Category A | **CLOSED DEC-116** — `e4b9c32d0c04`; `POLICY_COUNT` **55** |
-| **B5** | `S04-CATB-05` | Identity join: `password_reset_tokens`, `refresh_token_families` | Parent `users` RLS live | POLICY_COUNT **+2**; careful auth-path tests |
+| **B5** | `S04-CATB-05` | Identity join: `password_reset_tokens`, `refresh_token_families` | Parent `users` RLS live | **CLOSED DEC-117** — `f5c0d43e1d05`; `POLICY_COUNT` **57** |
 | **B6** | `S04-CATB-06` | Webhooks: `webhook_deliveries` | Parent `webhook_subscriptions` RLS live | POLICY_COUNT **+1** |
 | **B7** | `S04-CATB-07` | Admin join: `admin_role_permissions` | Design for nullable `admin_roles.tenant_id` | POLICY_COUNT **+1** or defer if owner-global roles dominate |
 
