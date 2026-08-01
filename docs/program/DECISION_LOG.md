@@ -1085,13 +1085,22 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-115 — Category B Slice B3: analytics-children join RLS (`analytics_report_executions`, `analytics_report_shares`)
+
+**Date:** 2026-08-01
+**Context:** DEC-110 pinned B3 = analytics children via `analytics_reports`. B2 CLOSED DEC-114 (`c221d15f8b02`, POLICY_COUNT 51). Category A 47 intact (DEC-044). DEC-085 set_config must not regress. Parent FKs confirmed in ORM + `0014_analytics` / `77214759646c`.
+**Alternatives considered:** (a) fold B3 into ALL_TENANT_TABLES / reopen STORY-02-01 — rejected; (b) expand to B4 decision-center children in same land — rejected (DEC-110 slices); (c) additive join-policy migration + adversarial 2-table suite — approved.
+**Decision:** Accept B3 **CLOSED**. Companion: [`decisions/DEC-115-CATEGORY-B3-ANALYTICS-CHILDREN-RLS.md`](decisions/DEC-115-CATEGORY-B3-ANALYTICS-CHILDREN-RLS.md). Alembic `d3f8a21c9b03` (down `c221d15f8b02`); live `POLICY_COUNT` **53**; `ALL_TENANT_TABLES` remains **47**.
+**Consequence:** DAG Category B execution advances B3 CLOSED; B4–B7 READY. Production GA **NO-GO**. **CI GREEN not met**. Validation: **build validated** (Docker `python -m pytest` **7 passed** in 9.78s).
+**Status:** Accepted. Slice B3 **CLOSED**.
+
 ### DEC-114 — Category B Slice B2: commercial-children join RLS (`commercial_activities`, `commercial_quote_lines`)
 
 **Date:** 2026-08-01
 **Context:** DEC-110 pinned B2 = commercial children via `commercial_activity_sessions` / `commercial_quotes`. B1 CLOSED DEC-112 (`b110c04e7a01`, POLICY_COUNT 49). Category A 47 intact (DEC-044). DEC-085 set_config must not regress. Parent FKs confirmed in ORM + `0007_commercial_domain`.
 **Alternatives considered:** (a) fold B2 into ALL_TENANT_TABLES / reopen STORY-02-01 — rejected; (b) expand to B3 analytics in same land — rejected (DEC-110 slices); (c) additive join-policy migration + adversarial 2-table suite — approved.
 **Decision:** Accept B2 **CLOSED**. Companion: [`decisions/DEC-114-CATEGORY-B2-COMMERCIAL-CHILDREN-RLS.md`](decisions/DEC-114-CATEGORY-B2-COMMERCIAL-CHILDREN-RLS.md). Alembic `c221d15f8b02` (down `b110c04e7a01`); live `POLICY_COUNT` **51**; `ALL_TENANT_TABLES` remains **47**.
-**Consequence:** DAG Category B execution advances B2 CLOSED; B3–B7 READY. Production GA **NO-GO**. **CI GREEN not met**. Validation: **build validated** (Docker one-off pytest — see companion).
+**Consequence:** DAG Category B execution advances B2 CLOSED; B3–B7 READY. Production GA **NO-GO**. **CI GREEN not met**. Validation: **build validated** (Docker `python -m pytest` **7 passed** in 7.10s).
 **Status:** Accepted. Slice B2 **CLOSED**.
 
 ### DEC-112 — Category B Slice B1: company-children join RLS (`branches`, `licenses`)

@@ -123,7 +123,7 @@ Do **not** fold into Category B count or Sprint 04 join-policy slices:
 | **B0** | *(this DEC)* | Inventory + slices pinned | — | **CLOSED** by DEC-110 |
 | **B1** | `S04-CATB-01` | Company children: `branches`, `licenses` | Category A `companies` intact; DEC-085 | **CLOSED DEC-112** — `b110c04e7a01`; `POLICY_COUNT` **49** |
 | **B2** | `S04-CATB-02` | Commercial children: `commercial_activities`, `commercial_quote_lines` | B1 or parallel if disjoint migration | **CLOSED DEC-114** — `c221d15f8b02`; `POLICY_COUNT` **51** |
-| **B3** | `S04-CATB-03` | Analytics children: `analytics_report_executions`, `analytics_report_shares` | Parents in Category A | POLICY_COUNT **+2** |
+| **B3** | `S04-CATB-03` | Analytics children: `analytics_report_executions`, `analytics_report_shares` | Parents in Category A | **CLOSED DEC-115** — `d3f8a21c9b03`; `POLICY_COUNT` **53** |
 | **B4** | `S04-CATB-04` | Decision Center children: `decision_center_audits`, `decision_center_feedback` | Parents in Category A | POLICY_COUNT **+2** |
 | **B5** | `S04-CATB-05` | Identity join: `password_reset_tokens`, `refresh_token_families` | Parent `users` RLS live | POLICY_COUNT **+2**; careful auth-path tests |
 | **B6** | `S04-CATB-06` | Webhooks: `webhook_deliveries` | Parent `webhook_subscriptions` RLS live | POLICY_COUNT **+1** |

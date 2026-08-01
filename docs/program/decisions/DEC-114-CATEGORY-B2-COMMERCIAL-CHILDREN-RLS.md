@@ -53,9 +53,9 @@ FORCE ROW LEVEL SECURITY required. Fail-closed if GUC unset.
 
 | Check | Result |
 |---|---|
-| Docker `pytest` B2 + B1 + POLICY_COUNT + DEC-085 | **10 passed** (`test_adversarial_rls_category_b{1,2}`, S04-01/06 intact, `test_dec085_set_config_guard`) |
-| Live `pg_policies` count after apply | **51** |
-| Alembic revision | `c221d15f8b02` (down `b110c04e7a01`) |
+| Docker `python -m pytest` B2 + POLICY_COUNT + DEC-085 | **7 passed** in 7.10s |
+| Live `pg_policies` count after apply | **51** (`commercial_activities` + `commercial_quote_lines` policies present) |
+| Alembic revision | `c221d15f8b02` (down `b110c04e7a01`); local DB stamped after SQL apply (same DDL as migration) |
 | Validation label | **build validated** (Docker python pytest + policy count evidence) |
 
 ---
