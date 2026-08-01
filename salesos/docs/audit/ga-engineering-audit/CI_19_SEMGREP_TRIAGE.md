@@ -181,7 +181,8 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
   - `mcp_server/salesos_client.py` (**1**) — Core market-intelligence aggregate (also local: resources + decision-history)
   - **Alembic RLS residual ACCEPTED** (**7** `avoid-sqlalchemy-text` on `0afbf3e6ae53` + `065d1d3a466b`; plus **4** raw/formatted on `0020_add_tenant_id`) — **do not churn** migrations for Semgrep cosmetics (RLS / DEC-085 risk)
   - Expected cleared this slice (in-scope app): **4**. Wave 2 app-honesty track **COMPLETE**. **No Slice 7** unless field Semgrep resurfaces non-alembic app `text()`.
-- **Wave 2 app track COMPLETE** (alembic residual documented). **CI-19 NOT CLOSED** (park pending CS field-verify of app text = 0 / residual-only).
+- **Wave 2 field-verify COMPLETE (2026-08-01):** Security Scan run [`30686789458`](https://github.com/ragheeda-boop/SalesOS/actions/runs/30686789458) @ tip `abaae85` (`abaae852b45719bbefb59350c72f86a5ca3130fc`; includes land `3d49ae1` + DEC-103 crumb) — workflow **SUCCESS**; `sast-scan` job `91334080531` **SUCCESS** (Semgrep CLI **19** blocking findings total — not Wave-2-only). Live Code Scanning @ tip: **`avoid-sqlalchemy-text` app/runtime = 0**; alembic residual **7** (`0afbf3e6ae53`×4 + `065d1d3a466b`×3); `0020` raw/formatted **4** (`formatted-sql-query`×2 + `sqlalchemy-execute-raw-query`×2). Slice 6 app alerts **fixed**: #513 / #523 / #524 / #542 (`fixed_at=2026-08-01T05:58:15Z`). **No Slice 7.** Wave 2 **PARKED COMPLETE** (accepted alembic residual). **CI-19 story remains OPEN** (executive residual-close / non-SQL Semgrep leftovers — not falsely CLOSED). **CI GREEN not met.**
+- **Wave 2 app track COMPLETE** (alembic residual documented + field-confirmed). **CI-19 NOT CLOSED.**
 
 ### Wave 3 — Supply-chain & infra hardening → **SHA-pin + residual COMPLETE** (`DEC-069` / `DEC-074`)
 
@@ -228,12 +229,12 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 | Label | Count (approx) | Next action |
 |-------|---------------:|-------------|
 | **READY (Wave 1)** | **8** | **COMPLETE** at `d5c9b57` (env:/process.env) |
-| SQL honesty / FP review (Wave 2) | **~76 → app 0 + alembic residual** | **Slice 1–6 COMPLETE** (DEC-091/097/099/101/102/103); alembic RLS **accepted residual** — no mass `nosec` |
+| SQL honesty / FP review (Wave 2) | **app 0 + alembic residual 7(+4)** | **Slice 1–6 COMPLETE** + **field-verify** run `30686789458` / `abaae85` (DEC-091/097/099/101/102/103); alembic RLS **accepted residual** — no mass `nosec`; **PARKED** |
 | Hardening backlog (Wave 3) | **~139** → SHA pins **115** + residual **19** done | **Wave 3 COMPLETE** (`DEC-069` SHA-pin + `DEC-074` K8s/Docker/TF) |
 | **Noise / exclude (Wave 4)** | **~30** | **COMPLETE** (`DEC-076`) — `.semgrepignore` + secrets-doc redact |
 | Residual singletons (Wave 5) | **8** | **COMPLETE** (`DEC-082`) — xml/websocket/urllib/regexp×3/prototype×2 |
 
-**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 COMPLETE** under `DEC-069` (`556304d`) + `DEC-074` (`465c638`). **Wave 4 COMPLETE** under `DEC-076` (`5c27470`). **Wave 5 COMPLETE** under `DEC-082`. **Wave 2 Slice 1–6 COMPLETE** (DEC-091/097/099/101/102/**103**). Wave 2 app-honesty **COMPLETE**; alembic RLS **accepted residual** (DEC-103). CI-19 remains OPEN pending CS field-verify (app text = 0 / residual-only) or executive park. **CI GREEN not met.**
+**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 COMPLETE** under `DEC-069` (`556304d`) + `DEC-074` (`465c638`). **Wave 4 COMPLETE** under `DEC-076` (`5c27470`). **Wave 5 COMPLETE** under `DEC-082`. **Wave 2 Slice 1–6 COMPLETE** (DEC-091/097/099/101/102/**103**) + **CS field-verify** `30686789458` / `abaae85` (app text **0**; alembic residual only). Wave 2 **PARKED COMPLETE**; alembic RLS **accepted residual** (DEC-103). CI-19 remains **OPEN** pending executive residual-close of story (non-SQL Semgrep leftovers remain; do not falsely CLOSE). **CI GREEN not met.**
 
 ---
 
@@ -252,6 +253,7 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 | Wave 4 path excludes | `.semgrepignore` (DEC-076) |
 | Wave 5 residual fixes | DEC-082 — coverage regex parse; `wss://` pentest brief; `http.client` pipeline; FE RegExp/prototype hardening |
 | Local raw dumps | `.tmp-ci19/` **absent** at close — not committed |
+| Wave 2 Slice 6 field-verify | Security Scan `30686789458` / sast `91334080531` @ `abaae85`; CS app text **0**; alembic residual **7**+**4** |
 
 ---
 
@@ -264,4 +266,4 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 
 ---
 
-*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`556304d` / DEC-069 + `465c638` / DEC-074). Wave 4 COMPLETE (`5c27470` / DEC-076). Wave 5 COMPLETE (DEC-082). Wave 2 Slice 1–6 COMPLETE (DEC-091/097/099/101/102/103). App SQL honesty complete; alembic residual accepted (DEC-103). CI-19 still OPEN (park pending field-verify).*
+*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`556304d` / DEC-069 + `465c638` / DEC-074). Wave 4 COMPLETE (`5c27470` / DEC-076). Wave 5 COMPLETE (DEC-082). Wave 2 Slice 1–6 COMPLETE (DEC-091/097/099/101/102/103) + field-verify `30686789458` / `abaae85`. App SQL honesty complete; alembic residual accepted (DEC-103). Wave 2 PARKED. CI-19 still OPEN (executive residual-close; not falsely CLOSED).*

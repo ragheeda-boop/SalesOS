@@ -61,17 +61,18 @@ Accept **CI-19 Wave 2 Slice 6** as **COMPLETE** and formalize the **Wave 2 resid
 - Narrow pytest (`docker compose exec backend`): `tests/unit/test_dec085_set_config_guard.py` → **2 passed**
 - `get_db()` body unchanged (DEC-085 hard stop intact); only `init_db` / `_run_migrations_if_needed` DDL/head-check paths changed
 - py_compile + `SalesOSClient` import OK on touched modules
+- **Field-verify (2026-08-01):** Security Scan run [`30686789458`](https://github.com/ragheeda-boop/SalesOS/actions/runs/30686789458) @ tip `abaae85` (`abaae852b45719bbefb59350c72f86a5ca3130fc`; includes land `3d49ae1`) — workflow **SUCCESS**; `sast-scan` job `91334080531` **SUCCESS**. Live Code Scanning: app `avoid-sqlalchemy-text` **0** (alerts #513/#523/#524/#542 **fixed** at `2026-08-01T05:58:15Z`); alembic residual **7** + `0020` raw/formatted **4**. Validation label upgraded for Wave 2 park: **build validated** (field CS). Semgrep CLI total on tip = **19** blocking (includes non-Wave-2 rules) — **not** whole-pipeline / finding-zero GREEN.
 
 ---
 
 ## Residual package summary (program board)
 
-**Cleared this slice (app):** **4**  
+**Cleared this slice (app):** **4** (field-confirmed fixed)  
 **Remaining accepted residual (alembic):** **7** `avoid-sqlalchemy-text` (RLS) + **4** raw/formatted on `0020`  
-**Wave 2:** parkable as app-complete with alembic residual  
-**CI-19:** OPEN (not falsely closed)  
+**Wave 2:** **PARKED COMPLETE** (app-complete with alembic residual; field-verified)  
+**CI-19:** OPEN (not falsely closed — executive residual-close still required)  
 **CI GREEN:** not met  
-**Slice 7:** not required unless field scan resurfaces non-alembic app `text()`
+**Slice 7:** **not required** (field Semgrep residual-only)
 
 ---
 
