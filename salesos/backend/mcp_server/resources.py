@@ -34,27 +34,43 @@ def register_resources(mcp: FastMCP, api_key: str) -> None:
     async def recent_search() -> str:
         """Recent search activity and top searches."""
         try:
+            from sqlalchemy import Column, DateTime, Float, Integer, MetaData, String, Table, select
+
             from app.database import async_session as db_session
-            from sqlalchemy import text
+
+            # CI-19 Slice 6: allowlisted Core Table (no sqlalchemy.text).
+            search_log = Table(
+                "search_log",
+                MetaData(),
+                Column("query", String),
+                Column("strategy", String),
+                Column("total", Integer),
+                Column("took_ms", Float),
+                Column("created_at", DateTime),
+                Column("tenant_id", String),
+            )
             async with db_session() as db:
                 rows = await db.execute(
-                    text("""
-                        SELECT query, strategy, total, took_ms, created_at
-                        FROM search_log
-                        WHERE tenant_id = :tid
-                        ORDER BY created_at DESC LIMIT 10
-                    """),
-                    {"tid": "default"},
+                    select(
+                        search_log.c.query,
+                        search_log.c.strategy,
+                        search_log.c.total,
+                        search_log.c.took_ms,
+                        search_log.c.created_at,
+                    )
+                    .where(search_log.c.tenant_id == "default")
+                    .order_by(search_log.c.created_at.desc())
+                    .limit(10)
                 )
                 results = [
                     {
-                        "query": r["query"],
-                        "strategy": r["strategy"],
-                        "total": r["total"],
-                        "took_ms": round(float(r["took_ms"]), 2) if r["took_ms"] else None,
-                        "created_at": str(r["created_at"]) if r["created_at"] else None,
+                        "query": r.query,
+                        "strategy": r.strategy,
+                        "total": r.total,
+                        "took_ms": round(float(r.took_ms), 2) if r.took_ms else None,
+                        "created_at": str(r.created_at) if r.created_at else None,
                     }
-                    for r in rows.mappings().all()
+                    for r in rows.all()
                 ]
                 return str(results) if results else "No recent searches"
         except Exception as e:

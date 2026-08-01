@@ -1062,6 +1062,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** CI-19 OPEN. R-24 mitigating (Slice 1+2+3). Validation: **light validated** (narrow pytest **50 passed**). **CI GREEN not met.**
 **Status:** Accepted. Wave 2 Slice 3 COMPLETE; story OPEN.
 
+
+### DEC-103 — CI-19 Wave 2 Slice 6 COMPLETE: residual package (app clear + alembic RLS accepted); CI-19 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** After Wave 2 Slice 5 (DEC-102 / 179a477), remaining in-scope app avoid-sqlalchemy-text were init_db DDL (1), benchmark (2), mcp_server (1). Alembic RLS (7) + 0020 raw/formatted (4) intentionally not churned (DEC-085 / RLS risk). Prefer exec_driver_sql / Core; no Semgrep suppress. get_db body untouched.
+**Alternatives considered:** (a) close CI-19 now — rejected until CS field-verify of app text=0; (b) rewrite alembic RLS migrations for Semgrep — rejected; (c) nosemgrep — rejected; (d) Slice 6 app fixes + formal alembic residual accept — approved.
+**Decision:** Accept Wave 2 Slice 6 COMPLETE and alembic residual package. Companion: [decisions/DEC-103-CI-19-WAVE2-SLICE6.md](decisions/DEC-103-CI-19-WAVE2-SLICE6.md). Expected clear **4** app alerts. Wave 2 app-honesty COMPLETE. Do not close CI-19. Do not weaken Semgrep gates. No Slice 7 unless field resurfaces non-alembic app text.
+**Consequence:** CI-19 OPEN (park pending field-verify). R-24 mitigating (Slice 1–6; alembic residual accepted). Validation: **light validated** (DEC-085 guard **2 passed**). **CI GREEN not met.**
+**Status:** Accepted. Wave 2 Slice 6 COMPLETE; story OPEN.
+
 ### DEC-102 — CI-19 Wave 2 Slice 5 COMPLETE: activity_runtime + kg + memory Core honesty; CI-19 remains OPEN
 
 **Date:** 2026-08-01

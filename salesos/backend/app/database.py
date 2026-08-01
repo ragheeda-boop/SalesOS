@@ -111,6 +111,10 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
                 raise
 
 
+# CI-19 Wave 2: allowlisted bootstrap DDL identifiers (no sqlalchemy.text).
+_ALLOWED_EXTENSIONS = frozenset({"pg_trgm", "uuid-ossp", "vector"})
+
+
 async def init_db():
     """Initialize database: ensure extensions, schemas, and Alembic migrations are up to date."""
     _extensions = [
@@ -120,15 +124,20 @@ async def init_db():
     ]
     async with owner_engine.begin() as conn:
         for ext_name, ext_name_dq in _extensions:
+            if ext_name_dq not in _ALLOWED_EXTENSIONS:
+                raise ValueError(f"Disallowed extension name: {ext_name_dq!r}")
             try:
-                await conn.execute(sa_text(f'CREATE EXTENSION IF NOT EXISTS "{ext_name_dq}"'))
+                # Allowlisted DDL via exec_driver_sql (CI-19 Slice 2 pattern) — not sa_text.
+                await conn.exec_driver_sql(
+                    f'CREATE EXTENSION IF NOT EXISTS "{ext_name_dq}"'
+                )
             except Exception as exc:
                 import logging
 
                 logging.getLogger("salesos.db").warning(
                     "Could not create extension %s (%s) — skipping", ext_name, exc
                 )
-        await conn.execute(sa_text("CREATE SCHEMA IF NOT EXISTS audit"))
+        await conn.exec_driver_sql("CREATE SCHEMA IF NOT EXISTS audit")
     try:
         await _run_migrations_if_needed()
     except Exception as exc:
@@ -146,6 +155,7 @@ async def _run_migrations_if_needed() -> None:
 
     from alembic.config import Config as AlembicConfig
     from alembic.script import ScriptDirectory
+    from sqlalchemy import column, select, table
 
     log = logging.getLogger("salesos.db")
     try:
@@ -153,10 +163,9 @@ async def _run_migrations_if_needed() -> None:
         _cfg.set_main_option("sqlalchemy.url", settings.resolved_database_url)
         _script = ScriptDirectory.from_config(_cfg)
         _head = _script.get_current_head()
+        _alembic_version = table("alembic_version", column("version_num"))
         async with owner_engine.connect() as conn:
-            from sqlalchemy import text as sa_text
-
-            _result = await conn.execute(sa_text("SELECT version_num FROM alembic_version LIMIT 1"))
+            _result = await conn.execute(select(_alembic_version.c.version_num).limit(1))
             _row = _result.fetchone()
         current = _row[0] if _row is not None else None
         log.info("Alembic current=%s head=%s", current, _head)

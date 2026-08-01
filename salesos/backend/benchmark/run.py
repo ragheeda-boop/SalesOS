@@ -27,7 +27,7 @@ from pathlib import Path
 # Ensure backend is on sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from sqlalchemy import text
+from sqlalchemy import Column, MetaData, String, Table, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from benchmark.data_generator import DataGenerator
@@ -38,39 +38,92 @@ from benchmark.runner import run_benchmark
 DATASET_SIZES = [100, 1_000, 10_000, 100_000]
 DEFAULT_DSN = "sqlite+aiosqlite:///./benchmark.db"
 
+# CI-19 Slice 6: fixed DDL strings (no sqlalchemy.text / no f-string text()).
+_COMPANIES_DDL_PG = """
+CREATE TABLE companies (
+    id UUID PRIMARY KEY,
+    tenant_id UUID NOT NULL,
+    name_ar VARCHAR(500) NOT NULL,
+    name_en VARCHAR(500),
+    cr_number VARCHAR(50) NOT NULL,
+    cr_type VARCHAR(50),
+    status VARCHAR(50) DEFAULT 'active',
+    city VARCHAR(200),
+    region VARCHAR(200),
+    phone VARCHAR(50),
+    email VARCHAR(255),
+    address TEXT,
+    activity_description TEXT,
+    activity_code VARCHAR(50),
+    legal_form VARCHAR(100),
+    capital FLOAT,
+    employees_count INTEGER,
+    is_active BOOLEAN DEFAULT TRUE,
+    confidence_score FLOAT DEFAULT 0.0,
+    latitude FLOAT,
+    longitude FLOAT,
+    created_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ
+)
+"""
+
+_COMPANIES_DDL_SQLITE = """
+CREATE TABLE companies (
+    id TEXT PRIMARY KEY,
+    tenant_id TEXT NOT NULL,
+    name_ar VARCHAR(500) NOT NULL,
+    name_en VARCHAR(500),
+    cr_number VARCHAR(50) NOT NULL,
+    cr_type VARCHAR(50),
+    status VARCHAR(50) DEFAULT 'active',
+    city VARCHAR(200),
+    region VARCHAR(200),
+    phone VARCHAR(50),
+    email VARCHAR(255),
+    address TEXT,
+    activity_description TEXT,
+    activity_code VARCHAR(50),
+    legal_form VARCHAR(100),
+    capital FLOAT,
+    employees_count INTEGER,
+    is_active BOOLEAN DEFAULT TRUE,
+    confidence_score FLOAT DEFAULT 0.0,
+    latitude FLOAT,
+    longitude FLOAT,
+    created_at TEXT,
+    updated_at TEXT
+)
+"""
+
+_BENCHMARK_INDEXES = (
+    "CREATE INDEX IF NOT EXISTS idx_companies_tenant_name_ar "
+    "ON companies(tenant_id, name_ar)",
+    "CREATE INDEX IF NOT EXISTS idx_companies_tenant_cr "
+    "ON companies(tenant_id, cr_number)",
+    "CREATE INDEX IF NOT EXISTS idx_companies_tenant_city "
+    "ON companies(tenant_id, city)",
+    "CREATE INDEX IF NOT EXISTS idx_companies_tenant_created "
+    "ON companies(tenant_id, created_at)",
+    "CREATE INDEX IF NOT EXISTS idx_companies_name_ar_trgm "
+    "ON companies USING GIN (name_ar gin_trgm_ops)",
+    "CREATE INDEX IF NOT EXISTS idx_companies_cr_number_trgm "
+    "ON companies USING GIN (cr_number gin_trgm_ops)",
+    "CREATE INDEX IF NOT EXISTS idx_companies_city_trgm "
+    "ON companies USING GIN (city gin_trgm_ops)",
+)
+
+_companies_count = Table(
+    "companies",
+    MetaData(),
+    Column("id", String, primary_key=True),
+)
+
 
 async def ensure_tables(db: AsyncSession, engine_is_pg: bool = False) -> None:
     """Drop and recreate companies table."""
-    await db.execute(text("DROP TABLE IF EXISTS companies CASCADE"))
-    col_type = "UUID" if engine_is_pg else "TEXT"
-    ts_type = "TIMESTAMPTZ" if engine_is_pg else "TEXT"
-    await db.execute(text(f"""
-        CREATE TABLE companies (
-            id {col_type} PRIMARY KEY,
-            tenant_id {col_type} NOT NULL,
-            name_ar VARCHAR(500) NOT NULL,
-            name_en VARCHAR(500),
-            cr_number VARCHAR(50) NOT NULL,
-            cr_type VARCHAR(50),
-            status VARCHAR(50) DEFAULT 'active',
-            city VARCHAR(200),
-            region VARCHAR(200),
-            phone VARCHAR(50),
-            email VARCHAR(255),
-            address TEXT,
-            activity_description TEXT,
-            activity_code VARCHAR(50),
-            legal_form VARCHAR(100),
-            capital FLOAT,
-            employees_count INTEGER,
-            is_active BOOLEAN DEFAULT TRUE,
-            confidence_score FLOAT DEFAULT 0.0,
-            latitude FLOAT,
-            longitude FLOAT,
-            created_at {ts_type},
-            updated_at {ts_type}
-        )
-    """))
+    conn = await db.connection()
+    await conn.exec_driver_sql("DROP TABLE IF EXISTS companies CASCADE")
+    await conn.exec_driver_sql(_COMPANIES_DDL_PG if engine_is_pg else _COMPANIES_DDL_SQLITE)
     await db.commit()
 
 
@@ -79,29 +132,18 @@ async def ensure_indexes(db: AsyncSession, engine_is_pg: bool) -> None:
     if not engine_is_pg:
         return
 
-    indexes = [
-        # Composite B-tree for tenant-scoped exact search and sorting
-        "CREATE INDEX IF NOT EXISTS idx_companies_tenant_name_ar ON companies(tenant_id, name_ar)",
-        "CREATE INDEX IF NOT EXISTS idx_companies_tenant_cr ON companies(tenant_id, cr_number)",
-        "CREATE INDEX IF NOT EXISTS idx_companies_tenant_city ON companies(tenant_id, city)",
-        "CREATE INDEX IF NOT EXISTS idx_companies_tenant_created ON companies(tenant_id, created_at)",
-        # GIN trigram for ILIKE / partial search
-        "CREATE INDEX IF NOT EXISTS idx_companies_name_ar_trgm ON companies USING GIN (name_ar gin_trgm_ops)",
-        "CREATE INDEX IF NOT EXISTS idx_companies_cr_number_trgm ON companies USING GIN (cr_number gin_trgm_ops)",
-        "CREATE INDEX IF NOT EXISTS idx_companies_city_trgm ON companies USING GIN (city gin_trgm_ops)",
-    ]
-    for idx in indexes:
+    conn = await db.connection()
+    for idx in _BENCHMARK_INDEXES:
         try:
-            await db.execute(text(idx))
+            await conn.exec_driver_sql(idx)
         except Exception as e:
             print(f"  [WARN] Index: {e}")
     await db.commit()
 
 
 async def get_company_count(db: AsyncSession) -> int:
-    result = await db.execute(text("SELECT COUNT(*) FROM companies"))
+    result = await db.execute(select(func.count()).select_from(_companies_count))
     return result.scalar() or 0
-
 
 async def main():
     parser = argparse.ArgumentParser(description="SalesOS Benchmark")

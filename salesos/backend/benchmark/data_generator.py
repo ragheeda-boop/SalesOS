@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import random
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 COMPANY_NAME_TEMPLATES_AR = [
@@ -101,7 +101,7 @@ class DataGenerator:
             "name": f"Tenant {self._rng.randint(1, 1000)}",
             "slug": f"tenant-{self._rng.randint(1, 1000)}",
             "is_active": True,
-            "created_at": datetime.now(timezone.utc) - timedelta(days=self._rng.randint(1, 365)),
+            "created_at": datetime.now(UTC) - timedelta(days=self._rng.randint(1, 365)),
         }
 
     def generate_company(self, tenant_id: uuid.UUID, index: int) -> dict[str, Any]:
@@ -114,7 +114,7 @@ class DataGenerator:
         cr_prefix = self._pick(CR_PREFIXES)
         cr_number = f"{cr_prefix}{self._rng.randint(1000000, 9999999)}"
 
-        created_at = datetime.now(timezone.utc) - timedelta(days=self._rng.randint(1, 730))
+        created_at = datetime.now(UTC) - timedelta(days=self._rng.randint(1, 730))
         updated_at = created_at + timedelta(days=self._rng.randint(0, 60))
 
         return {
@@ -162,51 +162,92 @@ class DataGenerator:
     @staticmethod
     def seed_database(db_session, companies: list[dict[str, Any]]) -> None:
         """Sync seed — for use with sync engines."""
-        from sqlalchemy import text
+        from sqlalchemy import (
+            Boolean,
+            Column,
+            DateTime,
+            Float,
+            Integer,
+            MetaData,
+            String,
+            Table,
+            insert,
+        )
 
+        companies_t = Table(
+            "companies",
+            MetaData(),
+            Column("id", String, primary_key=True),
+            Column("tenant_id", String),
+            Column("name_ar", String),
+            Column("name_en", String),
+            Column("cr_number", String),
+            Column("cr_type", String),
+            Column("status", String),
+            Column("city", String),
+            Column("region", String),
+            Column("phone", String),
+            Column("email", String),
+            Column("address", String),
+            Column("activity_description", String),
+            Column("activity_code", String),
+            Column("legal_form", String),
+            Column("capital", Float),
+            Column("employees_count", Integer),
+            Column("is_active", Boolean),
+            Column("confidence_score", Float),
+            Column("latitude", Float),
+            Column("longitude", Float),
+            Column("created_at", DateTime),
+            Column("updated_at", DateTime),
+        )
         for c in companies:
-            db_session.execute(
-                text("""
-                INSERT INTO companies (
-                    id, tenant_id, name_ar, name_en, cr_number, cr_type,
-                    status, city, region, phone, email, address,
-                    activity_description, activity_code, legal_form,
-                    capital, employees_count, is_active, confidence_score,
-                    latitude, longitude, created_at, updated_at
-                ) VALUES (
-                    :id, :tenant_id, :name_ar, :name_en, :cr_number, :cr_type,
-                    :status, :city, :region, :phone, :email, :address,
-                    :activity_description, :activity_code, :legal_form,
-                    :capital, :employees_count, :is_active, :confidence_score,
-                    :latitude, :longitude, :created_at, :updated_at
-                )
-                """),
-                DataGenerator._serialize(c),
-            )
+            db_session.execute(insert(companies_t).values(**DataGenerator._serialize(c)))
         db_session.commit()
 
     @staticmethod
     async def async_seed_database(db_session, companies: list[dict[str, Any]]) -> None:
         """Async seed — bulk insert for speed."""
-        from sqlalchemy import text
+        from sqlalchemy import (
+            Boolean,
+            Column,
+            DateTime,
+            Float,
+            Integer,
+            MetaData,
+            String,
+            Table,
+            insert,
+        )
 
+        companies_t = Table(
+            "companies",
+            MetaData(),
+            Column("id", String, primary_key=True),
+            Column("tenant_id", String),
+            Column("name_ar", String),
+            Column("name_en", String),
+            Column("cr_number", String),
+            Column("cr_type", String),
+            Column("status", String),
+            Column("city", String),
+            Column("region", String),
+            Column("phone", String),
+            Column("email", String),
+            Column("address", String),
+            Column("activity_description", String),
+            Column("activity_code", String),
+            Column("legal_form", String),
+            Column("capital", Float),
+            Column("employees_count", Integer),
+            Column("is_active", Boolean),
+            Column("confidence_score", Float),
+            Column("latitude", Float),
+            Column("longitude", Float),
+            Column("created_at", DateTime),
+            Column("updated_at", DateTime),
+        )
         serialized = [DataGenerator._serialize(c) for c in companies]
-        stmt = text("""
-            INSERT INTO companies (
-                id, tenant_id, name_ar, name_en, cr_number, cr_type,
-                status, city, region, phone, email, address,
-                activity_description, activity_code, legal_form,
-                capital, employees_count, is_active, confidence_score,
-                latitude, longitude, created_at, updated_at
-            ) VALUES (
-                :id, :tenant_id, :name_ar, :name_en, :cr_number, :cr_type,
-                :status, :city, :region, :phone, :email, :address,
-                :activity_description, :activity_code, :legal_form,
-                :capital, :employees_count, :is_active, :confidence_score,
-                :latitude, :longitude, :created_at, :updated_at
-            )
-        """)
-        # Use executemany via conn.execute with list of params
         conn = await db_session.connection()
-        await conn.execute(stmt, serialized)
+        await conn.execute(insert(companies_t), serialized)
         await db_session.commit()

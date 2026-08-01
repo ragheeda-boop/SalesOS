@@ -3,18 +3,20 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
-from sqlalchemy import or_
+from sqlalchemy import String, and_, cast, func, or_, select
 
 from app.database import async_session
+from app.modules.company.models import Company
 from app.modules.company.service import CompanyService
 from app.modules.executive.service import ExecutiveService
+from domains.commercial.infrastructure.models import OpportunityModel
 from domains.commercial.infrastructure.postgres_repositories import (
     PostgresOpportunityRepository,
 )
 from domains.commercial.opportunity.contracts.repository import OpportunityQuery
 from domains.workflow import InMemoryWorkflowRepository, WorkflowEngine
+from runtime.feature_store import CompanyFeatureModel
 from runtime.nba_engine import NBAEngine
 from runtime.pipeline_analytics import PipelineAnalytics
 from runtime.search_runtime import SearchRuntime, SearchStrategy
@@ -159,26 +161,36 @@ class SalesOSClient:
 
     async def get_decision_history(self, company_id: str, limit: int = 10) -> list[dict]:
         async with async_session() as session:
-            from sqlalchemy import text
+            # CI-19 Slice 6: Core over company_features (no sqlalchemy.text).
+            # NBA rows store score/explanation/confidence (not action/reason columns).
             rows = await session.execute(
-                text("""
-                    SELECT id, company_id, action, reason, confidence, created_at
-                    FROM company_features
-                    WHERE company_id = :cid AND tenant_id = :tid AND feature_name = 'nba'
-                    ORDER BY computed_at DESC LIMIT :lim
-                """),
-                {"cid": company_id, "tid": self._tenant_id, "lim": limit},
+                select(
+                    CompanyFeatureModel.id,
+                    CompanyFeatureModel.company_id,
+                    CompanyFeatureModel.explanation,
+                    CompanyFeatureModel.confidence,
+                    CompanyFeatureModel.computed_at,
+                    CompanyFeatureModel.score,
+                )
+                .where(
+                    CompanyFeatureModel.company_id == company_id,
+                    CompanyFeatureModel.tenant_id == self._tenant_id,
+                    CompanyFeatureModel.feature_name == "nba",
+                )
+                .order_by(CompanyFeatureModel.computed_at.desc())
+                .limit(limit)
             )
             return [
                 {
-                    "id": r["id"],
-                    "company_id": r["company_id"],
-                    "action": r["action"],
-                    "reason": r["reason"],
-                    "confidence": float(r["confidence"]),
-                    "created_at": str(r["created_at"]) if r["created_at"] else None,
+                    "id": r.id,
+                    "company_id": r.company_id,
+                    "action": "nba",
+                    "reason": r.explanation,
+                    "confidence": float(r.confidence) if r.confidence is not None else 0.0,
+                    "score": float(r.score) if r.score is not None else 0.0,
+                    "created_at": str(r.computed_at) if r.computed_at else None,
                 }
-                for r in rows.mappings().all()
+                for r in rows.all()
             ]
 
     async def search(self, query: str, domain: str = "all") -> dict:
@@ -206,7 +218,7 @@ class SalesOSClient:
         async with async_session() as db:
             from app.modules.identity.models import User
 
-            stmt = __import__("sqlalchemy", fromlist=["select"]).select(User).where(
+            stmt = select(User).where(
                 User.tenant_id == self._tenant_id,
                 or_(
                     User.full_name.ilike(f"%{query}%"),
@@ -267,35 +279,41 @@ class SalesOSClient:
 
     async def get_market_intelligence(self, industry: str | None = None) -> dict:
         async with async_session() as db:
-            from sqlalchemy import text
-
-            industry_filter = ""
-            params: dict[str, Any] = {"tid": self._tenant_id}
-            if industry:
-                industry_filter = " AND c.industry = :industry"
-                params["industry"] = industry
-
-            rows = await db.execute(
-                text(f"""
-                    SELECT c.industry, COUNT(*) as company_count,
-                           COUNT(DISTINCT o.id) as opportunity_count,
-                           COALESCE(SUM(o.value), 0) as total_pipeline_value
-                    FROM companies c
-                    LEFT JOIN commercial_opportunities o ON o.company_id::text = c.id::text AND o.tenant_id = :tid
-                    WHERE c.tenant_id = :tid{industry_filter}
-                    GROUP BY c.industry
-                    ORDER BY total_pipeline_value DESC
-                """),
-                params,
+            # CI-19 Slice 6: Core aggregate (clears avoid-sqlalchemy-text #542).
+            pipeline_value = func.coalesce(func.sum(OpportunityModel.value), 0).label(
+                "total_pipeline_value"
             )
+            stmt = (
+                select(
+                    Company.industry,
+                    func.count().label("company_count"),
+                    func.count(func.distinct(OpportunityModel.id)).label("opportunity_count"),
+                    pipeline_value,
+                )
+                .select_from(Company)
+                .outerjoin(
+                    OpportunityModel,
+                    and_(
+                        cast(OpportunityModel.company_id, String)
+                        == cast(Company.id, String),
+                        OpportunityModel.tenant_id == self._tenant_id,
+                    ),
+                )
+                .where(cast(Company.tenant_id, String) == self._tenant_id)
+            )
+            if industry:
+                stmt = stmt.where(Company.industry == industry)
+            stmt = stmt.group_by(Company.industry).order_by(pipeline_value.desc())
+
+            rows = await db.execute(stmt)
             industries = [
                 {
-                    "industry": r["industry"],
-                    "company_count": r["company_count"],
-                    "opportunity_count": r["opportunity_count"],
-                    "total_pipeline_value": float(r["total_pipeline_value"]),
+                    "industry": r.industry,
+                    "company_count": r.company_count,
+                    "opportunity_count": r.opportunity_count,
+                    "total_pipeline_value": float(r.total_pipeline_value),
                 }
-                for r in rows.mappings().all()
+                for r in rows.all()
             ]
 
             total_companies = sum(i["company_count"] for i in industries)
