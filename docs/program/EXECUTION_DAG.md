@@ -52,7 +52,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 |---|---|---|---|
 | **CI-08** GHCR 403 | BLOCKED | Org-level GHCR access | Outside repo scope; R-17 — remaining board **P0**; not Phase 0 RLS gate |
 | **CI-09** VPS SSH/secrets | BLOCKED | Ops secret provisioning | R-17 — P2; not Phase 0 RLS gate |
-| **CI GREEN** (overall workflow) | BLOCKED | Residual reds: MyPy (CI-20), pip-audit (R-21; starlette → CI-22; ecdsa accepted residual DEC-057), npm audit (CI-14), Trivy fs, Semgrep residual (CI-19 Wave 2), etc. (**Jest-debt / R-23 CLOSED** DEC-077) | Parallel honesty track; **blocks production GO**, not DEC-008 Phase 0 exit |
+| **CI GREEN** (overall workflow) | BLOCKED | Residual reds: Backend Lint, pip-audit/Secrets Scan residuals, npm audit (CI-14), Trivy fs, Semgrep residual (CI-19 Wave 2), etc. (**CI-20 / Backend Types CLOSED** DEC-096 field **0**; **Jest-debt / R-23 CLOSED** DEC-077) | Parallel honesty track; **blocks production GO**, not DEC-008 Phase 0 exit |
 
 ---
 
@@ -60,7 +60,6 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Item | Class | Why ready now | Notes |
 |---|---|---|---|
-| **CI-20** Backend Types (MyPy) | IN PROGRESS / READY | Phase 21 COMPLETE (DEC-092 / 17c1eee; residual clusters → host **0**); Phase 20 @ c4fb067; field Backend Types pending; Backend Lint green | Field-verify 0 then close; **CI GREEN not met** |
 | **CI-19** Semgrep Wave 2 residual | IN PROGRESS / READY | Waves 1/3/4/5 COMPLETE; Wave 2 deferred (~108 `avoid-sqlalchemy-text`) | R-24; authorize Wave 2 when ready |
 | **CI-22** FastAPI / Starlette / Pydantic | IN PROGRESS / READY | Phase 1 COMPLETE (DEC-081 @ `442af64`); further phases | R-21 starlette / pip-audit path |
 | **CI-14** Frontend Dependency Modernization | IN PROGRESS / READY (Sprint 06) | Slice 1 COMPLETE; Slice 2 STOP; Slice 3 pending | R-18; STOP silent majors |
@@ -84,6 +83,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **S04-01 / S04-05 / S04-06** | **COMPLETE** | Adversarial read / write / remaining suites |
 | **CI-16** Backend dependency security | **CLOSED** | DEC-057 ecdsa residual; starlette → CI-22 |
 | **Jest-debt** / **R-23** | **CLOSED** | DEC-077; Stage 3 **0** failing suites |
+| **CI-20** Backend Types (MyPy) / **R-22** | **CLOSED** | DEC-096; field Types **0** on `220d91a` (run `30684023356` / job `91326366120`) |
 
 ---
 
@@ -91,7 +91,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| **CI-20**, **CI-19 Wave 2**, **CI-22**, **CI-14** | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. |
+| **CI-19 Wave 2**, **CI-22**, **CI-14** | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. CI-20 CLOSED (DEC-096). |
 | Contract tests expansion (post STORY-03-04) | PARALLEL | Slice 1 DEC-094 (`/ping`+`/health/live`); framework `623077c` |
 | JWT audience **consumption** | **CLOSED** (DEC-093) | Owner Platform admin consumes `salesos-owner-platform`; tenant path untouched |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
@@ -117,7 +117,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 ## Board progress fraction
 
-**21/21** Complete/Closed on tracked Sprint 05 board fraction (includes **S04-04** / **CI-16**). Adjacent closed: **Jest-debt / R-23**. Pending: none. In progress: CI-19 (Wave 2 deferred), CI-20 (phased OPEN), CI-14, CI-22. Blocked (critical path Phase 0): **none**. Also blocked (ops): CI-08 (P0), CI-09 (P2).
+**22/22** Complete/Closed on tracked Sprint 05 board fraction (includes **S04-04** / **CI-16** / **CI-20**). Adjacent closed: **Jest-debt / R-23**. Pending: none. In progress: CI-19 (Wave 2 Slice 1 COMPLETE / remainder OPEN), CI-14, CI-22. Blocked (critical path Phase 0): **none**. Also blocked (ops): CI-08 (P0), CI-09 (P2).
 
 ---
 

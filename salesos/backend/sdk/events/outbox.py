@@ -221,7 +221,8 @@ class EventOutbox:
 
     async def cleanup_delivered(self, older_than_hours: int = 24) -> int:
         """Delete delivered entries older than the given threshold."""
-        cutoff = func.now() - func.make_interval(hours=older_than_hours)
+        # PostgreSQL make_interval(years, months, weeks, days, hours, mins, secs)
+        cutoff = func.now() - func.make_interval(0, 0, 0, 0, older_than_hours)
         stmt = delete(event_outbox).where(
             event_outbox.c.status == "delivered",
             event_outbox.c.updated_at < cutoff,
