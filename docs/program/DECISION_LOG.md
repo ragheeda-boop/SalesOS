@@ -1032,6 +1032,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** CI-19 OPEN. R-24 mitigating (Slice 1+2). Validation: **light validated** (AST parse). **CI GREEN not met.**
 **Status:** Accepted. Wave 2 Slice 2 COMPLETE; story OPEN.
 
+
+### DEC-098 - CI Stage 5 Secrets Scan (Trivy) named ignore for DEC-057 ecdsa residual (CVE-2024-23342)
+
+**Date:** 2026-08-01
+**Context:** CI run 30684813480 @ c8c1bce Stage 5 Secrets Scan **FAILURE** with sole HIGH ecdsa **CVE-2024-23342** (poetry.lock). Same accepted residual as DEC-090 pip-audit **PYSEC-2026-1325** (different ID namespace). DEC-090 left Trivy red by design; tip Lint+Types SUCCESS. DEC-085 set_config untouched. .trivyignore was gitignored; un-ignore + track after signed DEC.
+**Alternatives considered:** (a) leave Secrets Scan red despite accepted residual - rejected (policy mismatch with DEC-090); (b) blanket ignore / severity drop / exit-code 0 - rejected (silent weaken); (c) Option B PyJWT now - rejected; (d) named .trivyignore CVE-2024-23342 only + keep exit-code 1 - approved.
+**Decision:** Land named ignore in .trivyignore + wire trivyignores: .trivyignore on CI Secrets Scan Trivy legs; stop gitignoring .trivyignore. Package: [docs/program/decisions/DEC-098-CI-TRIVY-ECDSA-NAMED-IGNORE.md](decisions/DEC-098-CI-TRIVY-ECDSA-NAMED-IGNORE.md). Update R-21 + board. Do not weaken other findings. Do not claim whole-pipeline CI GREEN.
+**Consequence:** Stage 5 Secrets Scan expected **green**; R-21 Open - mitigating (monitor ecdsa). **CI GREEN not met.**
+**Status:** Accepted.
+
 ### DEC-099 — CI-19 Wave 2 Slice 3 COMPLETE: postgres_repo + timeline_runtime Core honesty; CI-19 remains OPEN
 
 **Date:** 2026-08-01
