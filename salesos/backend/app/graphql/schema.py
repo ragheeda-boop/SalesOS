@@ -40,7 +40,7 @@ extensions = [
 
 schema = strawberry.Schema(query=Query, mutation=Mutation, extensions=extensions)
 
-graphql_ide_setting = None if settings.env == "production" else "graphiql"
+graphql_ide_setting: GraphqlIde | None = None if settings.env == "production" else "graphiql"
 
 graphql_router = GraphQLRouter(
     schema,
