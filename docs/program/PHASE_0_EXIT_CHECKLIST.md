@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-143 criterion 8.1 engineering-os clean READY FOR REVIEW @ pin `b82b9fb`; Phase 0 **39/54** until Orchestrator CLOSE; residuals Eng Stability **8.2/8.3** · EOS **4.1/4.8**; ADR-036 Applied Complete 3/4; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
+> **Last updated:** 2026-08-01 (DEC-143a criterion 8.1 engineering-os clean **VERIFIED/CLOSED** @ pin `b82b9fb`; Phase 0 **39/54 → 40/54**; Eng Stability Complete **1 → 2** / Open **3 → 2**; residuals Eng Stability **8.2/8.3** · EOS **4.1/4.8**; ADR-036 Applied Complete 3/4; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
 >
 > ## Operating State
 >
@@ -150,7 +150,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
-| 8.1 | `engineering-os/` submodule clean | No uncommitted changes | 🟡 READY FOR REVIEW — clean @ pin `b82b9fb` (DEC-143); discarded malformed unreviewed `capability-registry.yaml` append (outside YAML fence); parent gitlink unchanged; Arch+Val + Orchestrator CLOSE pending; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN |
+| 8.1 | `engineering-os/` submodule clean | No uncommitted changes | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: pin `b82b9fb`, clean tree) @ `89502ef` (DEC-143a); discarded malformed unreviewed `capability-registry.yaml` append (outside YAML fence); parent gitlink unchanged; DEC-085 untouched; residuals Eng Stability **8.2/8.3** · EOS **4.1/4.8** OPEN; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 | 8.2 | Agent coordination protocol exercised | Multi-agent parallel work completed without conflict | ⬜ Not tested at scale |
 | 8.3 | Architecture rules enforced in CI | `test_architecture.py` + `arch-compliance.py` green | ⬜ |
 | 8.4 | No stale locks in `22_FILE_LOCKS.json` | All bootstrap locks released | ✅ VERIFIED (ARB 2026-08-01; zero write locks; TTL rule active) |
@@ -165,7 +165,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
 | 9.1 | Four-layer separation documented | ADR-036 Accepted | ✅ |
-| 9.2 | `docs/program/` ↔ `.engineering/` bidirectional references | Cross-references exist, no data duplication | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `7b618da` (DEC-141a); bridges `docs/program/ENGINEERING_LAYER_BRIDGE.md` ↔ `.engineering/33_PROGRAM_LAYER_BRIDGE.md` (pointers only; no catalog/sprint duplication); DEC-085 untouched; residuals EOS **4.1/4.8** · Eng Stability **8.1–8.3** OPEN (**4.2/4.4/4.7 CLOSED** DEC-142a); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
+| 9.2 | `docs/program/` ↔ `.engineering/` bidirectional references | Cross-references exist, no data duplication | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `7b618da` (DEC-141a); bridges `docs/program/ENGINEERING_LAYER_BRIDGE.md` ↔ `.engineering/33_PROGRAM_LAYER_BRIDGE.md` (pointers only; no catalog/sprint duplication); DEC-085 untouched; residuals EOS **4.1/4.8** · Eng Stability **8.2/8.3** OPEN (**4.2/4.4/4.7 CLOSED** DEC-142a; **8.1 CLOSED** DEC-143a); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 | 9.3 | `.ai/` explicitly deferred | Documented with trigger condition | ✅ ADR-036 §Consequences |
 | 9.4 | No further architectural layers introduced before Phase 0 exit | ARB governance rule enforced | ✅ This checklist |
 
@@ -185,9 +185,9 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 5. Capability Drift | 4 | 4 | 0 | 0 |
 | 6. ADR Drift | 5 | 5 | 0 | 0 |
 | 7. DB Schema | 6 | 6 | 0 | 0 |
-| 8. Engineering Stability | 4 | 1 | 0 | 3 |
+| 8. Engineering Stability | 4 | 2 | 0 | 2 |
 | 9. ADR-036 Applied | 4 | 3 | 0 | 1 |
-| **TOTAL** | **54** | **39** | **2** | **13** |
+| **TOTAL** | **54** | **40** | **2** | **12** |
 
 ---
 

@@ -1,11 +1,11 @@
 # DEC-143 — engineering-os submodule clean (Phase 0 criterion 8.1)
 
-> **Status:** **READY FOR REVIEW** (Cursor COMPLETE — Arch + Validation + Orchestrator CLOSE pending)  
+> **Status:** **VERIFIED/CLOSED** via DEC-143a (Arch PASS + Validation PASS light @ `89502ef`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / Engineering Stability (SalesOS / AQLIYA) — api-worker land  
+> **Board:** Backend Lead / Engineering Stability (SalesOS / AQLIYA) — api-worker land + Orchestrator CLOSE  
 > **Story / risk:** Phase 0 Exit Criterion **8.1** · `engineering-os/` submodule clean  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §8.1 · `.engineering/27_ADR_INDEX.md` conflict #11 · DEC-142 residual  
-> **Out of scope this land:** Eng Stability **8.2** / **8.3** · EOS **4.1/4.8** ARB · inventing capability SoT · submodule remote push · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED
+> **Out of scope this land:** Eng Stability **8.2** / **8.3** · EOS **4.1/4.8** ARB · inventing capability SoT · submodule remote push · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit
 
 ---
 
@@ -20,7 +20,7 @@ Resolve criterion **8.1** by restoring a **clean** `engineering-os/` working tre
 | Disposition | **Discard** — restore to HEAD (`git restore`) |
 | Rationale | Append sat **outside** the documented YAML fenced block (after closing fence at workflow `frozen: false`); EOS conflict #11 = “Unreviewed governance drift”; Capability Drift cluster already **CLOSED** (DEC-134a) with YAML as **secondary** SoT |
 | Parent gitlink | **Unchanged** — still `b82b9fb` (no submodule commit / no push) |
-| Criterion state | **READY FOR REVIEW** (not VERIFIED/CLOSED) |
+| Criterion state | **VERIFIED/CLOSED** (DEC-143a) |
 
 ### Gate definition (honest)
 
@@ -34,7 +34,7 @@ Resolve criterion **8.1** by restoring a **clean** `engineering-os/` working tre
 | Agent coordination at scale (8.2) | **No** — residual **8.2** |
 | Arch rules green in CI (8.3) | **No** — residual **8.3** (`test_architecture` not in workflows; gate is `arch-compliance.ps1`) |
 
-**Not claimed:** Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED · closing 8.2 / 8.3 / 4.1 / 4.8.
+**Not claimed:** Production GO · CI GREEN · Phase 0 exit · closing 8.2 / 8.3 / 4.1 / 4.8.
 
 ---
 
@@ -45,7 +45,7 @@ Resolve criterion **8.1** by restoring a **clean** `engineering-os/` working tre
 | (a) Commit malformed append as-is inside submodule | Rejected — content outside YAML fence; unreviewed governance drift |
 | (b) Move append inside fence + commit + update parent gitlink | Rejected this land — expands secondary YAML SoT without Arch review; prefers submodule push for clone fetchability (user: prefer not push) |
 | (c) Docs-only checklist note while tree stays dirty | Rejected — 8.1 requires no uncommitted changes |
-| (d) Claim VERIFIED/CLOSED in this land | Rejected — Arch+Val + Orchestrator gate |
+| (d) Claim VERIFIED/CLOSED in this land | Rejected at land — Arch+Val + Orchestrator gate (CLOSED via DEC-143a) |
 | (e) Discard malformed unreviewed drift; keep pin `b82b9fb` | **Approved** |
 
 ---
@@ -65,11 +65,11 @@ Resolve criterion **8.1** by restoring a **clean** `engineering-os/` working tre
 
 ## 4. Records
 
-- Phase 0 criterion **8.1** → **READY FOR REVIEW** (this DEC)
-- Phase 0 remains **39/54** until Orchestrator CLOSE (DEC-143a)
+- Phase 0 criterion **8.1** → **VERIFIED/CLOSED** (DEC-143a)
+- Phase 0 **39/54 → 40/54**; Eng Stability Complete **1 → 2** / Open **3 → 2**
 - Residuals (non-blocking for 8.1): Eng Stability **8.2** / **8.3** · EOS **4.1** / **4.8** ARB · CI-08/CI-09 ops
 - `.engineering/27_ADR_INDEX.md` conflict #11 → **RESOLVED (DEC-143)**
-- **Not claimed:** Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED
+- **Not claimed:** Production GO · CI GREEN · Phase 0 exit
 
 ---
 
@@ -99,7 +99,7 @@ Resolve criterion **8.1** by restoring a **clean** `engineering-os/` working tre
 | Surface | Level | Note |
 |---------|-------|------|
 | Loss of uncommitted capability stubs | LOW | Unreviewed + malformed (outside fence); secondary YAML SoT; can re-land via reviewed submodule commit later |
-| Overclaim CLOSED / Production GO | LOW | Status = READY FOR REVIEW only |
+| Overclaim CLOSED / Production GO | LOW | CLOSED via DEC-143a after Arch+Val; Production GO / CI GREEN not claimed |
 | Historical EOS prose still says “DIRTY” in older catalogs | LOW | Bootstrap snapshots; conflict #11 is the living conflict register |
 
 ---
@@ -108,6 +108,6 @@ Resolve criterion **8.1** by restoring a **clean** `engineering-os/` working tre
 
 | Question | Recommendation |
 |---|---|
-| Close 8.1? | **After** Arch PASS + Validation PASS (light: submodule clean @ `b82b9fb`) → Orchestrator DEC-143a |
+| Close 8.1? | **Done** — DEC-143a (Arch PASS + Validation PASS light @ `89502ef`) |
 | Next PARALLEL | Eng Stability **8.2** / **8.3** · EOS **4.1/4.8** ARB |
 | Do not | Claim Phase 0 GO · CI GREEN · invent ARB PASS · weaken auth / DEC-085 · silently commit unreviewed YAML expansions |
