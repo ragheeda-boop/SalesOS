@@ -731,3 +731,14 @@
 **Decision:** Accept Phase 14 as **COMPLETE** at 1f14337 (1f1433703bc5802ba106a7618d21e350e25513ca). Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phases 1–13. Do **not** bump FastAPI. Validation label: **light validated** (host mypy on SSO targets); full Backend Types CI **not** re-run.
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 14 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-069 — CI-19 Wave 3 SHA-pin COMPLETE: pin all root GHA Actions to commit SHAs; CI-19 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-19 triage (`CI_19_SEMGREP_TRIAGE.md`) scoped Wave 3 as supply-chain/infra hardening, led by pinning ~115 `mutable-action-tag` Action refs. Wave 1 COMPLETE (`d5c9b57` / DEC-043). Wave 2 SQL honesty rewrite was user-aborted and is **not** authorized to execute now — skipped/deferred. Program preferred Wave 3 SHA pins. Engineering pinned every `uses:` ref in `.github/workflows/{security-scan,ci,docker-smoke,deploy,deploy-staging,deploy-production}.yml` and `sales-os/.github/workflows/run.yml` to full 40-char commit SHAs (115 replacements). Floating `aquasecurity/trivy-action@master` pinned to the same `v0.29.0` commit already used in `deploy-production.yml`. Semgrep `sast-scan` severity flags and SARIF upload path **unchanged** (no gate weaken, no finding suppression).
+**Alternatives considered:** (a) close entire CI-19 on SHA-pin land — rejected (Wave 2 deferred; Wave 3 residual K8s/Docker/TF + Waves 4–5 remain); (b) pin only `security-scan.yml` — rejected (same mechanical risk class across all workflows; full pin clears the 115-tag backlog in-repo); (c) record Wave 3 SHA-pin COMPLETE only, keep CI-19 OPEN, R-24 mitigating — approved.
+**Decision:** Accept Wave 3 **SHA-pin slice** as **COMPLETE**. Update Sprint 05 board + triage + R-24. Do **not** mark CI-19 CLOSED. Do **not** execute Wave 2 now. Do **not** weaken Semgrep. Next executable slice: Wave 3 residual (K8s `securityContext` / Dockerfile USER / Terraform encryption) or Wave 4 path excludes.
+**Consequence:** CI-19 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-24 remains Open (mitigating). Validation: **light validated** (local inventory — 0 mutable tags in scoped workflows; field Code Scanning closure **not** yet re-verified). **CI GREEN not met.**
+**Status:** Accepted. CI-19 **Wave 3 SHA-pin COMPLETE**; story **OPEN**.

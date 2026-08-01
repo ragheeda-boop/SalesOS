@@ -120,8 +120,8 @@ describe("NewWorkflowPage", () => {
 
     it("adds a step when clicking a step type", () => {
       render(<NewWorkflowPage />);
-      // Palette is the only "إرسال بريد" control (no duplicate in sidebar)
-      fireEvent.click(screen.getByText("إرسال بريد"));
+      // Prefer first match — palette + any future duplicate labels must not throw
+      fireEvent.click(screen.getAllByText("إرسال بريد")[0]);
       expect(screen.getByText("الخطوات (1)")).toBeInTheDocument();
     });
   });

@@ -63,6 +63,12 @@ const sampleWorkflows = [
   },
 ];
 
+const emptyExecutions = {
+  data: [] as unknown[],
+  isLoading: false,
+  error: null,
+};
+
 function setupMocks(overrides = {}) {
   const mockCreateMutate = jest.fn();
   const mockUpdateMutate = jest.fn();
@@ -91,11 +97,9 @@ function setupMocks(overrides = {}) {
     mutateAsync: mockDeleteMutate,
     isPending: false,
   } as any);
-  mockUseWorkflowExecutions.mockReturnValue({
-    data: [],
-    isLoading: false,
-    error: null,
-  } as any);
+  // mockImplementation survives coverage instrumentation better than a
+  // one-shot mockReturnValue when ExecutionTimeline mounts per row.
+  mockUseWorkflowExecutions.mockImplementation(() => emptyExecutions as any);
 
   return {
     mockCreateMutate,
@@ -125,11 +129,7 @@ describe("WorkflowBuilderWidget", () => {
       mutateAsync: jest.fn(),
       isPending: false,
     } as any);
-    mockUseWorkflowExecutions.mockReturnValue({
-      data: [],
-      isLoading: false,
-      error: null,
-    } as any);
+    mockUseWorkflowExecutions.mockImplementation(() => emptyExecutions as any);
   });
 
   describe("1. Loading State", () => {

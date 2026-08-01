@@ -48,7 +48,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 | Item | Class | Why ready now | Notes |
 |---|---|---|---|
 | **CI-20** Backend Types (MyPy) | IN PROGRESS / PARALLEL (phased) | Phase 1–9 COMPLETE through demo_mode (`821aad5`; ~100 expected; field-verify `30677025355` **104**); Phase 10 COMPLETE at `ca76f9c` (communication_hub 11→0; ~100→~89 / field **93**); Phase 11 COMPLETE at `86b4094` (work_intelligence 5→0; ~89→~84 / field **88**); Phase 12 COMPLETE at `e44b7f3` (boot/startup 7→0 + database 7→0; ~84→~70 / field ~74 expected); Phase 13 COMPLETE at `5edb6d6` (app/application 9→0; ~70→~61 / field ~65 expected); Phase 14 COMPLETE at 1f14337 (SSO remnants 11→0; ~61→~50 / field ~54 expected); story OPEN; Backend Lint already green | DEC-038 register; DEC-046–050 Phases 1–5; DEC-053 Phase 6; DEC-055 Phase 7; DEC-058 Phase 8; DEC-059 Phase 9; DEC-060 Phase 10; DEC-061 Phase 11; DEC-064 Phase 12; DEC-066 Phase 13; DEC-068 Phase 14 — **not CLOSED** |
-| **CI-19** Semgrep Waves 2–5 | READY / PARALLEL | Wave 1 COMPLETE (`d5c9b57`); Waves 2–5 REGISTERED | SQL honesty, SHA pins, noise excludes, residual; R-24 |
+| **CI-19** Semgrep Waves 2–5 | IN PROGRESS / PARALLEL | Wave 1 COMPLETE (`d5c9b57`); Wave 3 SHA-pin COMPLETE (DEC-069, 115 pins); Wave 2 deferred; Wave 3 residual + Waves 4–5 REGISTERED | Next: K8s/Docker/TF or Wave 4 excludes; R-24 mitigating |
 | **CI-16** Backend dependency security | CLOSED | Slice 1 COMPLETE (`1e73a2f` multipart); Slice 2 → **CI-22** (DEC-052/054); Slice 3 COMPLETE (`d3f1eef` strawberry); **ecdsa** Accepted residual **Option A** (DEC-057); R-21 mitigating (starlette open) | Not part of CI-02; story **CLOSED** (slice scope) |
 | **CI-22** FastAPI / Starlette / Pydantic modernization | REGISTERED / PARALLEL | DEC-054; DEC-052 follow-on; scoped cascade (FastAPI ~0.135+, pydantic ≥2.9, starlette ≥1.3.1); **NOT** CI-16 slice work | No package bumps at registration; R-21 starlette leg |
 | **CI-14** Frontend Dependency Modernization | IN PROGRESS / PARALLEL (Sprint 06) | **plan DEC-062**; **Slice 1 COMPLETE DEC-063** (sharp **0.35.3** under next **15.5.22**); **Slice 2 STOP DEC-065** (ESLint 9→10 silent major blocked); dep CI-13 closed; Slice 3 pending | Majors — R-18 mitigating; STOP silent Next/React/ESLint/Jest / Next↓14 |
@@ -98,7 +98,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 
 ## Board progress fraction
 
-**19/20** Complete/Closed on `SPRINT_05_DELIVERY_BOARD.md` (S04-06 closed DEC-045). Pending: none. In progress: CI-19 Wave 1 done / Waves 2–5 READY. Blocked (critical path): **S04-04 only**. Also blocked (non-critical-path ops): CI-08, CI-09.
+**19/20** Complete/Closed on `SPRINT_05_DELIVERY_BOARD.md` (S04-06 closed DEC-045). Pending: none. In progress: CI-19 Wave 1 + Wave 3 SHA-pin done / Wave 2 deferred / residual+Waves 4–5 READY. Blocked (critical path): **S04-04 only**. Also blocked (non-critical-path ops): CI-08, CI-09.
 
 ---
 

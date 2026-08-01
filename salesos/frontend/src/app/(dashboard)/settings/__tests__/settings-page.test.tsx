@@ -98,11 +98,13 @@ jest.mock("lucide-react", () => ({
   Trash2: () => null,
 }));
 
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import SettingsPage from "../page";
 
 const mockUseQuery = useQuery as jest.Mock;
 const mockUseMutation = useMutation as jest.Mock;
+const mockUseQueryClient = useQueryClient as jest.Mock;
+const mockQueryClient = { invalidateQueries: jest.fn() };
 
 const mockProfile = {
   full_name: "Ahmed Ali",
@@ -156,6 +158,9 @@ describe("SettingsPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
+    // Re-bind after clearAllMocks under --coverage CI — otherwise
+    // useQueryClient factory surfaces as "is not a function".
+    mockUseQueryClient.mockReturnValue(mockQueryClient);
     mockQueries();
     mockMutations();
   });

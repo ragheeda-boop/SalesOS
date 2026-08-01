@@ -141,18 +141,20 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 - **Acceptance:** those 8 Code Scanning alerts closed or fixed; Security Scan still uploads Semgrep SARIF.
 - **Remediation landed (2026-08-01):** commit `d5c9b57` (`d5c9b5746a346c6773e4205f03284c8186b7f3ca`) — `fix(ci): CI-19 wave 1 remediate GHA script injection`. Files: `.github/workflows/deploy.yml`, `deploy-staging.yml`, `deploy-production.yml`, `sales-os/.github/workflows/run.yml` (env:/process.env pattern). **Wave 1 only** — Waves 2–5 still open; CI-19 story **not** closed; **CI GREEN not met**.
 
-### Wave 2 — Runtime SQL honesty pass (`salesos/backend` hot paths)
+### Wave 2 — Runtime SQL honesty pass (`salesos/backend` hot paths) → **SKIPPED / deferred** (program)
 
 - Inventory 69 `avoid-sqlalchemy-text` by file.  
 - Per finding: (a) parameterized `text()` → dismiss FP with reason, (b) refactor to Core expression API, or (c) fix true concat SQLi.  
 - Include alembic `0020_add_tenant_id.py` raw SQL (2+2).  
-- Defer demo `asyncpg-sqli` to Wave 4 or quarantine.
+- Defer demo `asyncpg-sqli` to Wave 4 or quarantine.  
+- **Program note (2026-08-01):** prior honesty-rewrite attempt was **user-aborted**. Board does **not** authorize execute-now; **skipped** in favor of Wave 3 SHA pins. Wave 2 remains REGISTERED (not CLOSED).
 
-### Wave 3 — Supply-chain & infra hardening
+### Wave 3 — Supply-chain & infra hardening → **SHA-pin slice COMPLETE** (`DEC-069`)
 
-- Pin Actions to full SHAs (chip away at 115), workflow-by-workflow.  
-- K8s `securityContext` / `allowPrivilegeEscalation: false` (15).  
-- Dockerfile USER (2); Terraform encryption (2).
+- **SHA-pin slice (COMPLETE):** Pin all `uses:` Action refs in root `.github/workflows/*.yml` + `sales-os/.github/workflows/run.yml` to full 40-char commit SHAs (115 replacements; 0 mutable tags remain in those files). Floating `aquasecurity/trivy-action@master` → pinned `v0.29.0` SHA (same tag already used in `deploy-production.yml`). Version comments retained (`# v4`, etc.).  
+- **Files:** `security-scan.yml`, `ci.yml`, `docker-smoke.yml`, `deploy.yml`, `deploy-staging.yml`, `deploy-production.yml`, `sales-os/.github/workflows/run.yml`.  
+- **Security effect:** strengthens supply-chain integrity; **does not** weaken Semgrep gates / severity / upload path.  
+- **Still open (Wave 3 residual / next executable slice):** K8s `securityContext` / `allowPrivilegeEscalation: false` (15); Dockerfile USER (2); Terraform encryption (2).
 
 ### Wave 4 — Noise reduction (no weakening)
 
@@ -170,13 +172,13 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 
 | Label | Count (approx) | Next action |
 |-------|---------------:|-------------|
-| **READY (Wave 1)** | **8** | **COMPLETE** at `d5c9b57` (env:/process.env); Waves 2–5 still open |
-| Hardening backlog (Waves 3) | **~139** | Schedule after Wave 1 |
-| SQL honesty / FP review (Wave 2) | **~77** | Human proof per file — no mass fix |
+| **READY (Wave 1)** | **8** | **COMPLETE** at `d5c9b57` (env:/process.env) |
+| SQL honesty / FP review (Wave 2) | **~77** | **SKIPPED / deferred** (aborted honesty rewrite); REGISTERED — no mass `nosec` |
+| Hardening backlog (Wave 3) | **~139** → SHA pins **115 done** | **SHA-pin COMPLETE** (`DEC-069`); residual K8s/Docker/TF (~19) next |
 | **Noise / exclude (Wave 4)** | **~30** | Path excludes + doc redact |
 | Residual singletons (Wave 5) | **~6** | Case-by-case |
 
-**Wave 1 COMPLETE** at `d5c9b57`. Do **not** start with mass SHA-pinning of 115 Actions or blanket `nosec` on 69 `sqlalchemy.text` calls. Next: Wave 2 SQL honesty (human proof) — CI-19 remains OPEN.
+**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 SHA-pin slice COMPLETE** under `DEC-069` (115 Action pins). Wave 2 skipped/deferred. Next executable: Wave 3 residual (K8s/Docker/TF) or Wave 4 path excludes — CI-19 remains OPEN. **CI GREEN not met.**
 
 ---
 
@@ -205,4 +207,4 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 
 ---
 
-*Security Team Alpha — CI-19 triage. Wave 1 GHA injection remediation landed `d5c9b57`. Next: Waves 2–5 (CI-19 still OPEN).*
+*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 SHA-pin COMPLETE (`DEC-069`, 115 pins). Wave 2 skipped/deferred. Next: Wave 3 residual (K8s/Docker/TF) + Waves 4–5 (CI-19 still OPEN).*

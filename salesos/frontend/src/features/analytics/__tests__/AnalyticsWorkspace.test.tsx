@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AnalyticsWorkspace } from "../AnalyticsWorkspace";
 
 jest.mock("@/lib/i18n", () => ({
@@ -103,23 +104,38 @@ const dashboardFixture = {
   },
 };
 
+function renderWorkspace() {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={client}>
+      <AnalyticsWorkspace />
+    </QueryClientProvider>,
+  );
+}
+
 describe("AnalyticsWorkspace", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseExecutiveDashboard.mockReturnValue({
-      data: dashboardFixture,
-      isLoading: false,
-      error: null,
-    } as ReturnType<typeof useExecutiveDashboard>);
+    // mockImplementation holds under --coverage better than one-shot return
+    mockUseExecutiveDashboard.mockImplementation(
+      () =>
+        ({
+          data: dashboardFixture,
+          isLoading: false,
+          error: null,
+        }) as ReturnType<typeof useExecutiveDashboard>,
+    );
   });
 
   it("renders title", () => {
-    render(<AnalyticsWorkspace />);
+    renderWorkspace();
     expect(screen.getByText("Analytics")).toBeInTheDocument();
   });
 
   it("renders KPI cards from executive dashboard data", () => {
-    render(<AnalyticsWorkspace />);
+    renderWorkspace();
     expect(screen.getAllByText("$12.5M").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("$42.0M")).toBeInTheDocument();
     expect(screen.getByText("33%")).toBeInTheDocument();
@@ -127,19 +143,19 @@ describe("AnalyticsWorkspace", () => {
   });
 
   it("renders export control", () => {
-    render(<AnalyticsWorkspace />);
+    renderWorkspace();
     expect(screen.getByText("Export")).toBeInTheDocument();
   });
 
   it("renders chart sections", () => {
-    render(<AnalyticsWorkspace />);
+    renderWorkspace();
     expect(screen.getByText("Pipeline Stages")).toBeInTheDocument();
     expect(screen.getByText("Growth")).toBeInTheDocument();
     expect(screen.getByText("Risk Overview")).toBeInTheDocument();
   });
 
   it("has accessible region", () => {
-    render(<AnalyticsWorkspace />);
+    renderWorkspace();
     expect(
       screen.getByRole("region", { name: "Analytics" }),
     ).toBeInTheDocument();

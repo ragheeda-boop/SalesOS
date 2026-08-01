@@ -1,5 +1,20 @@
 import { render, screen } from "@testing-library/react";
 
+// Pin Arabic admin.tab.* copy so this suite does not depend on jest.setup
+// mock ordering under full-suite --coverage runs.
+jest.mock("@/lib/i18n", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const ar = require("@/lib/i18n/ar.json") as Record<string, string>;
+  return {
+    useTranslation: () => ({
+      t: (key: string) => ar[key] ?? key,
+      locale: "ar" as const,
+      setLocale: () => {},
+      dir: "rtl" as const,
+    }),
+  };
+});
+
 jest.mock("@/lib/hooks/adminQueries", () => ({
   useAdminTenants: () => ({ data: [], isLoading: false }),
   useAdminPlans: () => ({ data: [], isLoading: false }),
