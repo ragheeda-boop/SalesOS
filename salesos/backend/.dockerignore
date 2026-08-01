@@ -17,7 +17,8 @@ tests/
 /pipeline/
 /benchmark/
 /benchmarks/
-/scripts/
+# Keep scripts/ in image context — Alembic RLS revisions import
+# scripts.generate_rls_policies (DEC-120 Slice C). Exclude heavy/dev-only later if needed.
 /data/
 /.local/
 /.cache/

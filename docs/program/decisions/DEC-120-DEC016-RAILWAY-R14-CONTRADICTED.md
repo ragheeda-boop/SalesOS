@@ -115,12 +115,23 @@ Do **not** weaken RLS or DEC-085. Prefer docs/ops/code for DB URL wiring; avoid 
 | Production | **Not promoted.** Prod remains **`3.1.0`** |
 | Password rotate | Still **human/ops** (tunnel exposure) — dashboard / `railway variables set` without echoing values |
 
-### Slice C/D prep (not closed)
+### Slice C — staging Alembic → tip RLS head DONE
+
+| Fact | Detail |
+|---|---|
+| Tip / head | Repo tip at land includes B7; Alembic head **`b7e2f65a3f07`** (path `0049` → … → `b7e2f65a3f07`, 16 upgrades) |
+| Before | `alembic_version=0049`; `tenant_isolation_%` **0**; `rls_on=0`; public tables 83 |
+| After | `alembic_version=b7e2f65a3f07` (head); **POLICY_COUNT 59**; **RLS_ON_TABLES 59** |
+| How | Staging SSH on SalesOS (`98bf85bf`): owner `DATABASE_URL` user=`postgres`. Image lacked `/app/scripts` (`.dockerignore` `/scripts/` + no Dockerfile COPY) and lacked B7 file (pre-B7 image). Uploaded tip `scripts/` + `b7e2…` revision; `PYTHONPATH=/app alembic upgrade head`. Backup note: pre-state snapshot file; no `pg_dump` in image; staging low-data |
+| App after | `APP_ENGINE salesos_app`; `OWNER_HINT postgres`; `/health` **200** `database=connected`; `pg_stat_activity` includes `salesos_app` |
+| Image follow-on | Dockerfile + `.dockerignore` fixed so future builds ship `scripts/` + `PYTHONPATH=/app` (preDeploy `alembic upgrade head` can load RLS revisions) |
+| Production | **Not migrated. Not promoted.** |
+
+### Slice D/E prep (not closed)
 
 | Item | Note |
 |---|---|
-| C | Staging `alembic_version` = **`0049`**; tip RLS head now includes B7 (`b7e2…` @ `291bf3d`). Policies `tenant_isolation_%` = **0**. Staging first + backup; change-control before `upgrade head` |
-| D | Staging request path uses `salesos_app` after tip image; residual `postgres` sessions remain (owner + other services). Prod still needs tip image + proof |
-| E | READY after C + D/prod image |
+| D | Prod still **`3.1.0`** / needs tip image + `salesos_app` runtime proof. Do **not** promote until change-control |
+| E | Bypass-probe READY after D (and staging probe fixtures if needed). **Not claimed PASS** |
 
-**Validation (A+B):** **light validated**. **Not** bypass-probe PASS. **Production GA = NO-GO.**
+**Validation (A+B+C):** **light validated**. **Not** bypass-probe PASS. **Production GA = NO-GO.** R-14 remains **REOPENED** until E.

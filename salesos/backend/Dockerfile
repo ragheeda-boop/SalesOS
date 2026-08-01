@@ -23,6 +23,8 @@ COPY runtime/ runtime/
 COPY sdk/ sdk/
 COPY modules/ modules/
 COPY design_tokens/ design_tokens/
+# Required for alembic RLS revisions (generate_rls_policies) — DEC-120 Slice C
+COPY scripts/ scripts/
 
 RUN poetry install --only main --no-interaction
 
@@ -47,7 +49,10 @@ COPY --from=builder /app/runtime ./runtime
 COPY --from=builder /app/sdk ./sdk
 COPY --from=builder /app/modules ./modules
 COPY --from=builder /app/design_tokens ./design_tokens
+COPY --from=builder /app/scripts ./scripts
 COPY --from=builder /app/alembic.ini .
+
+ENV PYTHONPATH="/app"
 
 RUN mkdir -p /data/jwks && chown -R salesos:salesos /app /data/jwks
 

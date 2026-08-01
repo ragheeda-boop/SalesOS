@@ -1102,7 +1102,8 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Alternatives considered:** (a) leave DEC-016 CLOSED despite Tier-1 — rejected (dishonest); (b) reopen S04-04 / R-14 Railway + withdraw Phase 0 GO + encode remediation A–E — approved; (c) claim Production GO — rejected.
 **Decision:** Accept **DEC-120**. S04-04 **REOPENED**; R-14 Railway **REOPENED**; Phase 0 (DEC-008 / R-14) = **NO-GO** (DEC-086 GO withdrawn). Dual honesty: env provision ≠ runtime RLS. Remediation READY: A (`5e7023f` wiring) → B (image promote; GHCR alt) → C (alembic) → D (`salesos_app` runtime) → E (bypass-probe + `pg_stat_activity`). **Rotate Postgres passwords** — required human/ops (do not commit secrets). Companion: [`decisions/DEC-120-DEC016-RAILWAY-R14-CONTRADICTED.md`](decisions/DEC-120-DEC016-RAILWAY-R14-CONTRADICTED.md).
 **Consequence:** Phase 0 critical path blocked on S04-04 again. STORY-02-01 stays CLOSED. **Production GA = NO-GO.** Prior Phase 0 R-14 GO **withdrawn**. Validation: **docs / light validated**.
-**Status:** Accepted. S04-04 **REOPENED**.
+**Progress (2026-08-01):** Slice **A VERIFIED**; **B** staging tip image `98bf85bf`; **C DONE** — staging Alembic **`0049` → `b7e2f65a3f07`**, **POLICY_COUNT 59**; `APP_ENGINE salesos_app` retained. Dockerfile/`.dockerignore` ship `scripts/` for future preDeploy. **D/E open.** Bypass-probe **not** claimed. Prod **not** migrated.
+**Status:** Accepted. S04-04 **REOPENED**. Remediation A–C progressed; D–E remaining.
 
 ### DEC-119 — Category B Slice B7: admin_role_permissions join RLS (`admin_role_permissions`)
 
