@@ -538,6 +538,26 @@ class TestWebhookSSRF:
                     "tenant-1", url, ["company.created"], "secret-12345678"
                 )
 
+    def test_rejects_link_local_and_metadata_hostnames(self):
+        from app.modules.webhooks.url_safety import UnsafeWebhookURLError, validate_webhook_url
+
+        for url in (
+            "https://169.254.169.254/latest/meta-data/",
+            "https://169.254.0.1/hook",
+            "https://metadata.google.internal/computeMetadata/v1/",
+            "https://metadata/latest/meta-data/",
+            "https://[fe80::1]/hook",
+            "https://[fc00::1]/hook",
+        ):
+            with pytest.raises(UnsafeWebhookURLError):
+                validate_webhook_url(url, resolve_dns=False)
+
+    def test_rejects_credentials_in_url(self):
+        from app.modules.webhooks.url_safety import UnsafeWebhookURLError, validate_webhook_url
+
+        with pytest.raises(UnsafeWebhookURLError, match="credentials"):
+            validate_webhook_url("https://user:pass@example.com/hook", resolve_dns=False)
+
     def test_validate_blocks_dns_rebinding_to_private(self):
         from app.modules.webhooks.url_safety import UnsafeWebhookURLError, validate_webhook_url
 

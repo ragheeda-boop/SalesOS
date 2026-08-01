@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
+from app.modules.webhooks.url_safety import UnsafeWebhookURLError
 from domains.workflow.engine import WorkflowEngine
 from domains.workflow.models import (
     JobExecution,
@@ -522,6 +523,8 @@ async def create_webhook(
             "auth_type": ep.auth_type,
             "status": ep.status,
         }
+    except UnsafeWebhookURLError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except Exception as exc:
         logger.error("create_webhook failed: %s", exc)
         raise HTTPException(status_code=500, detail="Internal server error") from exc
@@ -600,6 +603,8 @@ async def update_webhook(
             "auth_type": ep.auth_type,
             "status": ep.status,
         }
+    except UnsafeWebhookURLError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
     except WorkflowValidationError:
         raise HTTPException(status_code=404, detail="Webhook not found") from None
     except Exception as exc:

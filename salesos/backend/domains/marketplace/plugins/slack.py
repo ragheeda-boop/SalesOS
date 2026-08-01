@@ -117,12 +117,31 @@ def format_slack_message(event_type: str, payload: dict) -> SlackNotification:
 
 
 async def send_slack_notification(config: dict, notification: SlackNotification) -> dict:
-    """Send a notification to Slack via webhook."""
+    """Send a notification to Slack via webhook.
+
+    Integration Hub outbound path — reuses webhook SSRF allowlist
+    (HTTPS + public IP only; blocks localhost/metadata/RFC1918).
+    """
     import httpx
+
+    from app.modules.webhooks.url_safety import (
+        UnsafeWebhookURLError,
+        analyze_webhook_url,
+        build_pinned_async_transport,
+    )
 
     webhook_url = config.get("webhook_url")
     if not webhook_url:
         return {"success": False, "error": "No webhook URL configured"}
+
+    try:
+        target = analyze_webhook_url(webhook_url, resolve_dns=True)
+        if not target.allowed_ips:
+            raise UnsafeWebhookURLError(
+                "Webhook delivery requires DNS-validated public IPs (pinning required)"
+            )
+    except UnsafeWebhookURLError as e:
+        return {"success": False, "error": f"SSRF blocked: {e}"}
 
     payload: dict[str, Any] = {
         "text": notification.text,
@@ -133,8 +152,11 @@ async def send_slack_notification(config: dict, notification: SlackNotification)
     if notification.attachments:
         payload["attachments"] = notification.attachments
 
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        response = await client.post(webhook_url, json=payload)
+    transport = build_pinned_async_transport(target.allowed_ips)
+    async with httpx.AsyncClient(
+        timeout=10.0, follow_redirects=False, transport=transport
+    ) as client:
+        response = await client.post(target.url, json=payload)
 
     if response.status_code == 200:
         return {"success": True, "status_code": response.status_code}

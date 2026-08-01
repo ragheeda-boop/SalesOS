@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-125 — Webhook SSRF URL allowlist (Phase 0 criterion 1.2)
+
+**Date:** 2026-08-01
+**Context:** Phase 0 Exit Criterion 1.2 (GA-P0-SEC-02 / PROD-W2-002 / STORY-01-02) still OPEN on the checklist despite Sprint 01 / Wave 2 url_safety.py allowlist + pinned delivery. Evidence required: regression PASS + re-verify against Integration Hub caller. DEC-085 get_db/set_config must not regress.
+**Alternatives considered:** (a) claim CLOSED from prior Wave 2 notes alone — rejected (checklist open; workflow router mapped SSRF to 500; Slack Hub caller unpinned); (b) rewrite allowlist as static SaaS domain list — rejected (tenant webhooks need public-HTTPS semantics); (c) wire 400 mapping + Slack pin + HTTP/Slack regressions + package READY FOR REVIEW — approved.
+**Decision:** Accept criterion **1.2** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [decisions/DEC-125-WEBHOOK-SSRF-URL-ALLOWLIST.md](decisions/DEC-125-WEBHOOK-SSRF-URL-ALLOWLIST.md). Narrow Docker pytest **32 passed**. DEC-085 intact. **Criterion CLOSED/VERIFIED reserved for Execution Orchestrator after Architecture + Validation PASS.**
+**Consequence:** Phase 0 criterion **1.2** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). Next: Architecture Reviewer sign. Residual: staging SSRF pentest still OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Cursor COMPLETE. Criterion **not** CLOSED.
+
 ### DEC-124 — Decision Center cross-tenant IDOR (Phase 0 criterion 1.1)
 
 **Date:** 2026-08-01
@@ -1102,6 +1111,12 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Alternatives considered:** (a) fold deferred-8 into ALL_TENANT_TABLES (expand DEC-044 47) — rejected (preserve Category A count; separate inventory); (b) join-style Category B policies — rejected (tables have tenant_id); (c) permissive OR IS NULL for nullable admin_ai_costs/admin_jobs — rejected (weakens isolation); (d) additive FORCE RLS via generate_policy_sql on DB05_DEFERRED_8_TENANT_TABLES — approved.
 **Decision:** Accept Slice 4 implementation as **Cursor COMPLETE** / criterion **READY FOR REVIEW**. Companion: [`decisions/DEC-123-DB-05-SLICE-4-DEFERRED-8-RLS.md`](decisions/DEC-123-DB-05-SLICE-4-DEFERRED-8-RLS.md). Alembic `d1a8c35e7f09` (down `c9f4a21b6e08`). Live policy count **67**. DEC-085 intact. ALL_TENANT_TABLES 47 intact. **Criterion CLOSED/VERIFIED reserved for Execution Orchestrator after Claude + OpenCode PASS.**
 **Consequence:** Phase 0 criterion **7.5** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). Assigned: Claude Code (architecture only). DB-05 residual = 7.4 companies DEC STOP · 7.6 alembic check. **Production GO not claimed. CI GREEN not met. R-14 GO not claimed.**
+
+### DEC-123a — Orchestrator VERIFIED/CLOSED criterion 7.5 (2026-08-01)
+
+**Context:** Architecture PASS (architecture/adr-worker) + Validation PASS on tip land `578e4f2` (Docker 13/13; `tenant_isolation_%`=67; alembic `d1a8c35e7f09`). Origin ancestry confirmed through later tip commits.
+**Decision:** Execution Orchestrator records criterion **7.5 VERIFIED → CLOSED**. Phase 0 progress **17/54 → 18/54**. Residual DB-05 = 7.4 · 7.6. Production Railway may still be on 59 policies until separate migrate under ops — does not reopen 7.5 tip evidence.
+**Consequence:** Next READY: Security pipeline (1.1/1.2 validation), 2.3 CONDITIONAL path, 7.6/7.4. **Production GO not claimed. CI GREEN not met.**
 **Status:** Accepted. Cursor COMPLETE. Criterion **not** CLOSED.
 
 ### DEC-122 — DB-05 Slice 3: index rename + nullable triage (additive; companies DROP STOP)

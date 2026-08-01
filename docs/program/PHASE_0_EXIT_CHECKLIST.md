@@ -35,7 +35,7 @@ Blocked on: **R-14 Railway** (S04-04), **CI-08** (GHCR 403), **CI GREEN not met*
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
 | 1.1 | Decision Center cross-tenant IDOR fixed | Regression test PASS, independent review signed | 🟡 READY FOR REVIEW — Cursor COMPLETE (DEC-124); Architecture Review PENDING; Validation PENDING |
-| 1.2 | Webhook SSRF fixed (URL allowlist) | Regression test PASS, re-verified against Integration Hub caller | ⬜ |
+| 1.2 | Webhook SSRF fixed (URL allowlist) | Regression test PASS, re-verified against Integration Hub caller | 🟡 READY FOR REVIEW — Cursor COMPLETE (DEC-125); Architecture Review PENDING; Validation PENDING |
 | 1.3 | CSRF bypass via `X-API-Key` fixed | Regression test PASS | ⬜ |
 | 1.4 | Cross-tenant regression test template established | Harness reusable by every subsequent epic | ✅ STORY-01-04 (Sprint 02) |
 | 1.5 | SAST + dependency vulnerability scan wired into CI | `security-scan.yml` + `ci.yml` security jobs green | ⬜ Partial (pip-audit findings remain) |
@@ -138,7 +138,7 @@ Blocked on: **R-14 Railway** (S04-04), **CI-08** (GHCR 403), **CI GREEN not met*
 | 7.2 | ORM↔DB type alignment complete | `emails`/`meetings` UUID aligned (DEC-121) | ✅ Slice 2 |
 | 7.3 | Index names aligned | `ix_rev_*` → `ix_*` rename (DEC-122) | ✅ Slice 3 |
 | 7.4 | Companies dead-column DROP resolved | `search_vector` FTS preserved; DEC decision recorded | ⬜ DEC stopped |
-| 7.5 | Deferred-8 tables have RLS enabled | RLS policies on tables currently without them | 🟡 READY FOR REVIEW — Cursor COMPLETE (DEC-123); Architecture Review PENDING; Validation PENDING |
+| 7.5 | Deferred-8 tables have RLS enabled | RLS policies on tables currently without them | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `578e4f2` (DEC-123); live POLICY_COUNT **67**; Orchestrator 2026-08-01 |
 | 7.6 | `alembic check` exits clean | Zero drift between ORM and DB | ⬜ 300+ drift lines remain |
 
 **Owner:** Backend Lead  
@@ -184,10 +184,10 @@ Blocked on: **R-14 Railway** (S04-04), **CI-08** (GHCR 403), **CI GREEN not met*
 | 4. EOS Audit Pass | 8 | 2 | 0 | 6 |
 | 5. Capability Drift | 4 | 0 | 0 | 4 |
 | 6. ADR Drift | 5 | 0 | 0 | 5 |
-| 7. DB Schema | 6 | 3 | 0 | 3 |
+| 7. DB Schema | 6 | 4 | 0 | 2 |
 | 8. Engineering Stability | 4 | 1 | 0 | 3 |
 | 9. ADR-036 Applied | 4 | 2 | 0 | 2 |
-| **TOTAL** | **54** | **17** | **3** | **34** |
+| **TOTAL** | **54** | **18** | **3** | **33** |
 
 ---
 

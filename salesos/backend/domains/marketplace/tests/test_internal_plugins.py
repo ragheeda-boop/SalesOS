@@ -89,6 +89,78 @@ class TestSlackPlugin:
     def test_verify_signature_empty(self):
         assert verify_slack_signature(b"test", "", "secret") is False
 
+    @pytest.mark.asyncio
+    async def test_send_blocks_ssrf_targets(self):
+        """Integration Hub Slack caller must refuse SSRF destinations."""
+        from domains.marketplace.plugins.slack import send_slack_notification
+
+        notification = SlackNotification(channel="#alerts", text="probe")
+        for url in (
+            "https://127.0.0.1/hook",
+            "https://169.254.169.254/latest/meta-data/",
+            "https://10.0.0.1/hook",
+            "http://hooks.slack.com/services/T/B/X",
+        ):
+            result = await send_slack_notification({"webhook_url": url}, notification)
+            assert result["success"] is False
+            assert "SSRF blocked" in result["error"]
+
+    @pytest.mark.asyncio
+    async def test_send_pins_public_slack_url(self):
+        """Allowed Slack HTTPS URL uses pinned transport (no hostname dial)."""
+        from unittest.mock import AsyncMock, patch
+
+        from domains.marketplace.plugins.slack import send_slack_notification
+
+        notification = SlackNotification(channel="#alerts", text="ok")
+        mock_response = AsyncMock()
+        mock_response.status_code = 200
+        mock_response.text = "ok"
+
+        captured: dict = {}
+
+        class _FakeClient:
+            def __init__(self, **kwargs):
+                captured["kwargs"] = kwargs
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return None
+
+            async def post(self, url, json=None):
+                captured["url"] = url
+                return mock_response
+
+        with (
+            patch(
+                "app.modules.webhooks.url_safety.analyze_webhook_url",
+            ) as analyze,
+            patch(
+                "app.modules.webhooks.url_safety.build_pinned_async_transport",
+                return_value=object(),
+            ) as build_pin,
+            patch("httpx.AsyncClient", _FakeClient),
+        ):
+            from app.modules.webhooks.url_safety import SafeWebhookTarget
+
+            analyze.return_value = SafeWebhookTarget(
+                url="https://hooks.slack.com/services/T/B/X",
+                hostname="hooks.slack.com",
+                port=443,
+                allowed_ips=("3.3.3.3",),
+            )
+            result = await send_slack_notification(
+                {"webhook_url": "https://hooks.slack.com/services/T/B/X"},
+                notification,
+            )
+
+        assert result["success"] is True
+        assert build_pin.call_args.args[0] == ("3.3.3.3",)
+        assert captured["kwargs"].get("transport") is not None
+        assert captured["kwargs"].get("follow_redirects") is False
+
 
 class TestSalesforcePlugin:
     def test_manifest_exists(self):

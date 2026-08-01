@@ -27,6 +27,10 @@ _BLOCKED_HOSTNAMES = frozenset(
         "metadata.google.internal",
         "metadata.google",
         "instance-data",
+        # Cloud IMDS / link-local metadata host aliases
+        "metadata",
+        "metadata.azure.com",
+        "metadata.azure.internal",
     }
 )
 
