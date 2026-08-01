@@ -127,7 +127,7 @@ Do **not** fold into Category B count or Sprint 04 join-policy slices:
 | **B4** | `S04-CATB-04` | Decision Center children: `decision_center_audits`, `decision_center_feedback` | Parents in Category A | **CLOSED DEC-116** — `e4b9c32d0c04`; `POLICY_COUNT` **55** |
 | **B5** | `S04-CATB-05` | Identity join: `password_reset_tokens`, `refresh_token_families` | Parent `users` RLS live | **CLOSED DEC-117** — `f5c0d43e1d05`; `POLICY_COUNT` **57** |
 | **B6** | `S04-CATB-06` | Webhooks: `webhook_deliveries` | Parent `webhook_subscriptions` RLS live | **CLOSED DEC-118** — `a6d1e54f2e06`; `POLICY_COUNT` **58** |
-| **B7** | `S04-CATB-07` | Admin join: `admin_role_permissions` | Design for nullable `admin_roles.tenant_id` | POLICY_COUNT **+1** or defer if owner-global roles dominate |
+| **B7** | `S04-CATB-07` | Admin join: `admin_role_permissions` | Design for nullable `admin_roles.tenant_id` | **CLOSED DEC-119** — `b7e2f65a3f07`; `POLICY_COUNT` **59**; fail-closed join (no NULL bypass) |
 
 **Ordering preference:** B1 → B2 → B6 (high tenant data surface) before B5/B7 (auth/admin edge cases). B3/B4 may interleave if migrations confirmed.
 

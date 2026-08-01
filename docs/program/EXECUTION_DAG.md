@@ -68,7 +68,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **DB-05** Schema reconciliation | IN PROGRESS | Slice 0+1 CLOSED (DEC-111/113) | Next Slice 2; no RLS on eight yet |
 | **Optional Jest 30 evidence** | BACKLOG | DEC-108 deferred | STOP silent major |
 | **STORY-02-02** browser/E2E | **CLOSED** (DEC-095) | Redirect AC | **CI GREEN not met** |
-| **Sprint 04 Category B (B1–B7)** | IN PROGRESS / PARALLEL | DEC-110; B1–B6 CLOSED tip; B7 may be in flight | Do not claim Phase 0 GO |
+| **Sprint 04 Category B (B1–B7)** | **CLOSED** (COMPLETE) | DEC-110; B1–B7 CLOSED (DEC-112/114/115/116/117/118/119); live policies **59** | Does not restore Phase 0 GO (DEC-120) |
 | **JWT audience consumption** | **CLOSED** (DEC-093) | 14/14 unit PASS | |
 | **Contract tests expansion** | IN PROGRESS / PARALLEL | DEC-094 + DEC-106 | Park OK |
 
@@ -91,7 +91,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30, DB-05 Slice 2+, Category B | PARALLEL / READY | DEC-107 swarm — do not idle on CI-08 alone; do **not** claim Phase 0 GO |
+| Contract tests, optional Jest 30, DB-05 Slice 2+ | PARALLEL / READY | DEC-107 swarm — do not idle on CI-08 alone; Category B B1–B7 COMPLETE (DEC-119); do **not** claim Phase 0 GO |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 **Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation / CI-08/09 ops proceed.
@@ -104,7 +104,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 |---|---|---|---|
 | DEC-120 Railway R-14 reopen + Principal Audit | *(this land)* | **Accepted / REOPENED** | **docs / light validated** (encodes Tier-1 audit) |
 | S04-04 / DEC-016 Railway R-14 (historical close) | `7232979` | **Superseded consequence** | Infra verified; security closure contradicted |
-| S04-05 / S04-06 / Category B B1–B6 / CI closes | tip | As prior | See board |
+| S04-05 / S04-06 / Category B B1–B7 COMPLETE / CI closes | tip | As prior | See board; Cat B = DEC-119 POLICY_COUNT **59** |
 
 ---
 

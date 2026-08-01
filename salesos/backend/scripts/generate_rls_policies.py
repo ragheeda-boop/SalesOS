@@ -33,8 +33,8 @@ SESSION_VAR = "app.tenant_id"
 # R-09) are excluded — RLS on them will be added after CREATE TABLE lands.
 # Tables without a tenant_id column (keyed via parent FK) are excluded from
 # ALL_TENANT_TABLES — Category B inventory + slices pinned in DEC-110.
-# B1–B6 join children use generate_join_policy_sql() /
-# CATEGORY_B1_JOIN_TABLES … CATEGORY_B6_JOIN_TABLES (DEC-110).
+# B1–B7 join children use generate_join_policy_sql() /
+# CATEGORY_B1_JOIN_TABLES … CATEGORY_B7_JOIN_TABLES (DEC-110).
 ALL_TENANT_TABLES: list[str] = [
     # ── Identity / Auth ──
     "users",                      # app/modules/identity/models.py — uuid
@@ -148,6 +148,17 @@ CATEGORY_B5_JOIN_TABLES: list[tuple[str, str, str]] = [
 CATEGORY_B6_JOIN_TABLES: list[tuple[str, str, str]] = [
     # (child_table, parent_table, child_fk_column)
     ("webhook_deliveries", "webhook_subscriptions", "subscription_id"),
+]
+
+# DEC-110 Slice B7 (S04-CATB-07): admin role-permissions — no tenant_id; isolate
+# via admin_roles (Category A; nullable tenant_id). FK is String(100)=String(100)
+# (0037 / ORM). Match parent Category A fail-closed equality — do NOT add
+# `OR p.tenant_id IS NULL` (would leak global/owner role permission maps to
+# every tenant session). NULL-tenant parent roles stay invisible under tenant
+# GUC, same as admin_roles itself.
+CATEGORY_B7_JOIN_TABLES: list[tuple[str, str, str]] = [
+    # (child_table, parent_table, child_fk_column)
+    ("admin_role_permissions", "admin_roles", "role_id"),
 ]
 
 

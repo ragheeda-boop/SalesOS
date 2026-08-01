@@ -2,7 +2,7 @@
 
 Extends S04-01 (read 7/7) and S04-05 (write 8/8) without re-testing those sampled
 tables. Targets Category A tenant tables that already have CREATE TABLE + RLS
-(POLICY_COUNT 58 = 47 Category A + B1–B6) but were not in the original sample:
+(POLICY_COUNT 59 = 47 Category A + B1–B7) but were not in the original sample:
 
   contacts, company_features, commercial_opportunities, opportunities,
   tasks, tenant_configs, webhook_subscriptions
@@ -22,8 +22,8 @@ from sqlalchemy.exc import DBAPIError
 from app.database import engine
 
 RLS_REJECT = "(?i)row-level security"
-# 47 Category A + B1–B6 (DEC-112…DEC-118)
-POLICY_COUNT = 58
+# 47 Category A + B1–B7 (DEC-112…DEC-119)
+POLICY_COUNT = 59
 
 
 @pytest_asyncio.fixture(autouse=True)

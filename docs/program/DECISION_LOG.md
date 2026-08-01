@@ -1095,6 +1095,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** Phase 0 critical path blocked on S04-04 again. STORY-02-01 stays CLOSED. **Production GA = NO-GO.** Prior Phase 0 R-14 GO **withdrawn**. Validation: **docs / light validated**.
 **Status:** Accepted. S04-04 **REOPENED**.
 
+### DEC-119 — Category B Slice B7: admin_role_permissions join RLS (`admin_role_permissions`)
+
+**Date:** 2026-08-01
+**Context:** DEC-110 pinned B7 = `admin_role_permissions` via `admin_roles` (`role_id`) with **nullable** parent `tenant_id`. B6 CLOSED DEC-118 (`a6d1e54f2e06`, POLICY_COUNT 58). Category A 47 intact (DEC-044). DEC-085 set_config must not regress. Parent FK confirmed in ORM + `0037` (String(100)=String(100)). Seeded/owner roles often omit tenant_id; Category A already fail-closes those under tenant GUC. Numbering: DEC-120 reserved this slot for parallel B7.
+**Alternatives considered:** (a) defer because owner-global roles dominate — rejected (leaves child unprotected while parent is Category A; DEC-110 allowed +1); (b) add permissive `OR p.tenant_id IS NULL` so tenants see global role maps — rejected (cross-tenant leak / weakens isolation); (c) ENABLE RLS on deferred-8 admin billing in same land — rejected (DB-05 / R-09); (d) additive fail-closed join matching parent Category A + adversarial suite — approved.
+**Decision:** Accept B7 **CLOSED**. Companion: [`decisions/DEC-119-CATEGORY-B7-ADMIN-ROLE-PERMISSIONS-RLS.md`](decisions/DEC-119-CATEGORY-B7-ADMIN-ROLE-PERMISSIONS-RLS.md). Alembic `b7e2f65a3f07` (down `a6d1e54f2e06`); live `POLICY_COUNT` **59**; `ALL_TENANT_TABLES` remains **47**. **Category B execution track COMPLETE (B1–B7).**
+**Consequence:** DAG Category B execution CLOSED. Does **not** restore Phase 0 R-14 GO (DEC-120). Production GA **NO-GO**. **CI GREEN not met**. Validation: **build validated** (Docker `python -m pytest` **5 passed** in 16.84s).
+**Status:** Accepted. Slice B7 **CLOSED**. Category B execution **COMPLETE**.
+
 ### DEC-118 — Category B Slice B6: webhook-deliveries join RLS (`webhook_deliveries`)
 
 **Date:** 2026-08-01

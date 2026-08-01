@@ -2,9 +2,9 @@
 
 Table: webhook_deliveries — no tenant_id; isolate via
 webhook_subscriptions.id (subscription_id). Parent is Category A (DEC-044).
-POLICY_COUNT live = 47 Category A + 2 B1 + 2 B2 + 2 B3 + 2 B4 + 2 B5 + 1 B6 = 58.
+POLICY_COUNT live = 47 Category A + 2 B1 + 2 B2 + 2 B3 + 2 B4 + 2 B5 + 1 B6 + 1 B7 = 59.
 
-Does NOT cover B7. Does NOT enable R-09 / DB-05 deferred tables
+B7 closed separately (DEC-119). Does NOT enable R-09 / DB-05 deferred tables
 (including webhook_endpoints).
 """
 
@@ -18,7 +18,7 @@ from sqlalchemy import text
 
 from app.database import engine
 
-POLICY_COUNT = 58  # 47 Category A + B1 + B2 + B3 + B4 + B5 + B6 (DEC-118)
+POLICY_COUNT = 59  # 47 Category A + B1 + B2 + B3 + B4 + B5 + B6 + B7 (DEC-119)
 
 
 @pytest_asyncio.fixture(autouse=True)

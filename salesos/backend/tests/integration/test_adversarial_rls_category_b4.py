@@ -2,7 +2,7 @@
 
 Tables: decision_center_audits, decision_center_feedback — no tenant_id;
 isolate via decision_center_decisions (parent id UUID; child decision_id varchar).
-POLICY_COUNT live = 47 Category A (DEC-044) + 2 B1 + 2 B2 + 2 B3 + 2 B4 + 2 B5 + 1 B6 = 58 (after DEC-118).
+POLICY_COUNT live = 47 Category A (DEC-044) + 2 B1 + 2 B2 + 2 B3 + 2 B4 + 2 B5 + 1 B6 + 1 B7 = 59 (after DEC-119).
 
 Does NOT cover B6–B7. Does NOT enable R-09 / DB-05 deferred tables.
 """
@@ -17,7 +17,7 @@ from sqlalchemy import text
 
 from app.database import engine
 
-POLICY_COUNT = 58  # 47 Category A + B1 + B2 + B3 + B4 + B5 + B6 (DEC-118)
+POLICY_COUNT = 59  # 47 Category A + B1 + B2 + B3 + B4 + B5 + B6 + B7 (DEC-119)
 
 
 @pytest_asyncio.fixture(autouse=True)
