@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-135 — Phase 0 criterion 6.1 ADR-025..028 index path READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** ADR Drift checklist **6.1** OPEN — index claimed ADR-025/026/027/028 Accepted with “no files” / engineering-os phantom. Capability Drift **COMPLETE 4/4** (DEC-134a). Files already present under `salesos/backend/docs/adr/` with `**Status:** Accepted`.
+**Alternatives considered:** (a) leave phantom Accepted — rejected; (b) downgrade/remove index rows — rejected (files Accepted); (c) duplicate into `docs/adr/` or submodule — rejected; (d) index correction to existing backend paths — approved.
+**Decision:** Accept criterion **6.1** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-135-CRITERION-6-1-ADR-025-028-INDEX.md`](decisions/DEC-135-CRITERION-6-1-ADR-025-028-INDEX.md). Register File paths + `salesos/backend/docs/adr/` location in `docs/adr/index.md`; dates → file headers. DEC-085 intact. Do **not** claim VERIFIED/CLOSED until Arch+Val PASS.
+**Consequence:** Phase 0 criterion **6.1** = READY FOR REVIEW. Phase 0 remains **29/54** until Orchestrator CLOSE. Residuals **6.2–6.5** OPEN; `.engineering/27` re-pin → **4.5**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **READY FOR REVIEW**.
+
 ### DEC-134 — Phase 0 criterion 5.3 SoT-oriented validate READY FOR REVIEW
 
 **Date:** 2026-08-01

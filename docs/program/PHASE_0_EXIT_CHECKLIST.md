@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-134a criterion 5.3 VERIFIED/CLOSED; Capability Drift Complete 4/4; Phase 0 29/54)
+> **Last updated:** 2026-08-01 (DEC-135 criterion 6.1 ADR-025..028 index READY FOR REVIEW; Phase 0 29/54 until Orchestrator CLOSE; Capability Drift Complete 4/4)
 >
 > ## Operating State
 >
@@ -119,7 +119,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
-| 6.1 | ADR-025/026/027/028: files exist OR index corrected | No index entry claiming "Accepted" without a file | ⬜ 4 ADRs indexed Accepted with no files |
+| 6.1 | ADR-025/026/027/028: files exist OR index corrected | No index entry claiming "Accepted" without a file | ⬜ READY FOR REVIEW (DEC-135) — files exist @ `salesos/backend/docs/adr/0025..0028-*.md` (Status Accepted); `docs/adr/index.md` File column + location row registered; dates aligned to file headers; `.engineering/27` re-pin residual (4.5); Arch/Val PENDING; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN |
 | 6.2 | ADR-029 phantom resolved | Numbering gap closed or documented | ⬜ |
 | 6.3 | ADR-033/034 status conflicts resolved | Index status matches file header status | ⬜ Index: Accepted / File: Proposed |
 | 6.4 | ADR-032/0032 naming unified | Single naming convention across `docs/adr/` and `engineering-os/adr/` | ⬜ |
