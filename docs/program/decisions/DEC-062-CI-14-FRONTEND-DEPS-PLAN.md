@@ -1,6 +1,6 @@
 # DEC-062 — CI-14 Frontend Dependency Modernization: planning inventory (safe vs STOP)
 
-> **Status:** **Accepted** — planning complete; **Slice 1 PASS** (sharp; §9); **Slice 2 STOP** (ESLint major; §10 / DEC-065)  
+> **Status:** **Accepted** — planning complete; **Slice 1 PASS** (sharp; §9 / field verify §10); **Slice 2 STOP** (ESLint major; §11 / DEC-065)  
 > **Date:** 2026-08-01  
 > **Board:** Frontend / Deps (SalesOS / AQLIYA)  
 > **Story / risk:** CI-14 / R-18 (30 residual high npm advisories after CI-11)  
@@ -124,20 +124,44 @@ Executed under **DEC-063** (authorized Slice 1 only).
 | STOP triggers | Not hit — no Next↓14, no `--force`, no major toolchain bumps |
 | Narrow validation | `npx tsc --noEmit` **exit 0**; prettier **not present** in frontend deps; full `next lint` / Jest **not** run (low-load) |
 
-**Label:** **light validated** (lock + `npm ls` + tsc). Story CI-14 remains **OPEN** (Cluster A / Slice 2–3 pending). Trivy/npm-audit field clear for sharp **not** re-proven on CI this land — expected residual high count drops for Cluster B only after CI Observer. **CI GREEN not met.**
+**Label:** **build validated** for Cluster B sharp clear on CI (see section 10). Story CI-14 remains **OPEN** (Cluster A / Slice 2-3 pending). **CI GREEN not met** (backend gates + Prettier + Cluster A).
 
 ---
 
-## 10. Slice 2 outcome (2026-08-01) — **STOP**
+## 10. CI Observer - Slice 1 field verify (2026-08-01)
+
+SHA: `435ba5d9988e1525dee00850835aa06f4b08e33f` (tip = land commit).
+
+| Run | Workflow | ID | Outcome (sharp-relevant) |
+|---|---|---|---|
+| Slice 1 | CI | [30678336063](https://github.com/ragheeda-boop/SalesOS/actions/runs/30678336063) | `Stage 5: npm audit` **success** - `found 0 vulnerabilities`; `Stage 5: Secrets Scan` Trivy fs still **failure** on **backend** HIGH only (ecdsa/starlette x4); `package-lock.json` npm **0** findings (no `sharp` / GHSA-f88m) |
+| Slice 1 | Security Scan | [30678336073](https://github.com/ragheeda-boop/SalesOS/actions/runs/30678336073) | **success** (npm-audit + secret-scan/Trivy + sast + report) |
+| Pre-Slice baseline | CI | [30678290258](https://github.com/ragheeda-boop/SalesOS/actions/runs/30678290258) (`be7db9d`) | `npm audit` **failure** - `sharp <0.35.0` HIGH GHSA-f88m (2 high); Trivy npm `package-lock` **1** HIGH (`sharp` 0.34.5 -> 0.35.0) |
+
+### Classification
+
+| Signal | Verdict |
+|---|---|
+| `sharp` / GHSA-f88m / libvips CVEs | **cleared** (npm audit + Trivy npm) |
+| Overall CI / Security | Not green - **pre-existing** red (Backend Lint/Types, pip-audit, Prettier on 2 test files, Trivy backend Poetry) |
+| Frontend Types | **success** (unchanged vs prior) |
+| Frontend Lint | **failure** - Prettier on `settings-page.test.tsx` / `AnalyticsWorkspace.test.tsx` - **pre-existing**, not Slice-1 regression |
+| Override regression | **none** observed |
+
+**Sharp CVE gate improved:** yes - CI `npm audit --audit-level=high` red->green for sharp; Trivy `package-lock` HIGH 1->0. No code fix this observer pass (document only). No majors / CI-22 / backend work.
+
+---
+
+## 11. Slice 2 outcome (2026-08-01) - **STOP**
 
 Attempted under Frontend Deps session on tip **`435ba5d`** (post Slice 1). Full package: [`DEC-065-CI-14-SLICE-2-ESLINT-STOP.md`](DEC-065-CI-14-SLICE-2-ESLINT-STOP.md).
 
 | Check | Result |
 |---|---|
-| Slice 2 definition | ESLint **9 → 10** + eslint-config-next aligned to Next 15.5.x (DEC-062 §5) |
-| Auto-safe? | **No** — DEC-062 matrix: **STOP until dedicated slice**; session forbids silent ESLint majors |
-| Architecture | `eslint.config.mjs` already FlatCompat + `@typescript-eslint` + custom-rules — ESLint 10 is a compat cascade |
+| Slice 2 definition | ESLint **9 -> 10** + eslint-config-next aligned to Next 15.5.x (DEC-062 section 5) |
+| Auto-safe? | **No** - DEC-062 matrix: **STOP until dedicated slice**; session forbids silent ESLint majors |
+| Architecture | `eslint.config.mjs` already FlatCompat + `@typescript-eslint` + custom-rules - ESLint 10 is a compat cascade |
 | Package / lock land | **None** |
-| STOP triggers avoided | No Next↓14; no React/ESLint/Jest bump; no `--force`; no audit nonsense pins |
+| STOP triggers avoided | No Next->14; no React/ESLint/Jest bump; no `--force`; no audit nonsense pins |
 
-**Label:** **not validated** (docs-only STOP). **Next:** authorize dedicated Slice 2 evidence package (named eslint 10 + next-aligned eslint-config-next + lint-green gate) before any lock change — see DEC-065 §4. Slice 3 (Jest) still pending and separately gated. **CI GREEN not met.**
+**Label:** **not validated** for Cluster A (no package land). Slice 2 **STOPPED** per DEC-065. CI-14 remains **OPEN** for Slice 2 (dedicated) / Slice 3. **CI GREEN not met.**
