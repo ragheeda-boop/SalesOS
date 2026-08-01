@@ -51,7 +51,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | Item | Class | Blocked on | Notes |
 |---|---|---|---|
 | **S04-04 / Railway R-14** | BLOCKED (critical path) | Remediation slices A–E + live re-proof (DEC-120) | Dual honesty: env ≠ runtime RLS; password rotate human/ops |
-| **CI-08** GHCR 403 | BLOCKED | Org-level GHCR access (DEC-104 Option A) | Also blocks primary image promote path for Railway; alternate = Railway build-from-GitHub |
+| **CI-08** GHCR 403 | BLOCKED | Packages linked to SalesOS (API) but Deploy Staging `30721601875` push still **403** (DEC-104 Option A incomplete — Actions access Write) | Also blocks primary image promote path for Railway; alternate = Railway build-from-GitHub |
 | **CI-09** deploy path (was VPS SSH) | **BLOCKED BY GOVERNANCE** | Deployment Decision (DEC-149 Accepted: Railway+Vercel); workflow migration deferred | Governance Queue — Chief Architect / ARB; do **not** provision unused `VPS_*`; R-17 SSH leg = governance mismatch — P2 |
 | **CI GREEN (full incl. publish)** | BLOCKED | Stage 6 GHCR push (CI-08) + Stage 7 + residual reds | Blocks production GO |
 | **CI GREEN (code path)** | REPORTING ONLY | Stages 1–5 on a named run | DEC-104 interim honesty |
