@@ -1,11 +1,11 @@
 # DEC-135 — ADR-025/026/027/028 index path correction (Phase 0 criterion 6.1)
 
-> **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **6.1 READY FOR REVIEW** (Arch/Val PENDING; do **not** claim VERIFIED/CLOSED)  
+> **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **6.1 VERIFIED/CLOSED** (DEC-135a; Arch+Val PASS @ `4997ae4`)  
 > **Date:** 2026-08-01  
 > **Board:** Backend Lead / ADR Drift (SalesOS / AQLIYA) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **6.1** · `.engineering/27_ADR_INDEX.md` §4 conflict #1  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §6.1 · DEC-134a “Architecture next” (ADR Drift **6.x**) · ARB review protocol  
-> **Out of scope this land:** ADR-029 phantom · ADR-033/034 status · ADR-032 naming · ADR-036 multi-index · inventing new ADR bodies · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · VERIFIED/CLOSED (Orchestrator)
+> **Out of scope this land:** ADR-029 phantom · ADR-033/034 status · ADR-032 naming · ADR-036 multi-index · inventing new ADR bodies · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN
 
 ---
 
@@ -19,7 +19,7 @@ Resolve criterion **6.1** by **index correction to existing files** (checklist: 
 | Disposition | **Files exist** under `salesos/backend/docs/adr/` with `**Status:** Accepted` |
 | Index action | Register explicit **File** paths for ADR-025..028 in `docs/adr/index.md`; add location row for `salesos/backend/docs/adr/` |
 | Dates | Align index dates to file headers (`2026-07-12`) — prior index dates `2026-07-01`..`04` were location-unknown placeholders |
-| Criterion state | **READY FOR REVIEW** (not VERIFIED/CLOSED) |
+| Criterion state | **VERIFIED/CLOSED** (DEC-135a) |
 
 ### Gate definition (honest)
 
@@ -58,17 +58,18 @@ Resolve criterion **6.1** by **index correction to existing files** (checklist: 
 | Auth / DEC-085 | **Untouched** |
 | Label | **light validated** (filesystem + header Status; no full CI / no Production GO) |
 
-**Production GO not claimed. CI GREEN not met.** CLOSED only via Orchestrator after Arch+Val PASS.
+**Production GO not claimed. CI GREEN not met.** Closed via Orchestrator DEC-135a after Arch+Val PASS.
 
 ---
 
 ## 4. Records
 
-- Phase 0 criterion **6.1** → **READY FOR REVIEW** (DEC-135)
-- Phase 0 remains **29/54** until Orchestrator CLOSE
+- Phase 0 criterion **6.1** → **VERIFIED/CLOSED** (DEC-135a)
+- Phase 0 **29/54 → 30/54**
+- ADR Drift Complete **0 → 1** / Open **5 → 4**
 - ADR Drift residual: **6.2** (029 phantom), **6.3** (033/034 status), **6.4** (032 naming), **6.5** (036 all indexes)
 - EOS **4.5** / `.engineering/` re-pin of `27_ADR_INDEX.md` §2/§4 conflict #1 = follow-on (do not claim 4.5 from this land)
-- **Not claimed:** Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED
+- **Not claimed:** Production GO · CI GREEN · Phase 0 exit
 
 ---
 
@@ -101,7 +102,7 @@ Resolve criterion **6.1** by **index correction to existing files** (checklist: 
 |---------|-------|------|
 | Title wording drift (index short title vs file H1) | LOW residual | Non-blocking; IDs + paths authoritative |
 | `.engineering/27` still says NO FILE until 4.5 re-pin | MEDIUM residual | Documented; index + files are SoT for 6.1 |
-| Overclaim VERIFIED/CLOSED | LOW | Arch/Val PENDING |
+| Overclaim VERIFIED/CLOSED | LOW | Closed honestly via DEC-135a after Arch+Val PASS |
 
 ---
 
@@ -109,6 +110,6 @@ Resolve criterion **6.1** by **index correction to existing files** (checklist: 
 
 | Question | Recommendation |
 |---|---|
-| Close 6.1? | After Arch PASS + Validation PASS (light path-exists + Status Accepted) → Orchestrator DEC-135a |
+| Close 6.1? | **Done** — DEC-135a (Arch PASS + Validation PASS light) |
 | Next PARALLEL | **6.3** (033/034 index↔file status) or **6.2** (029 phantom doc) — both docs-only; **6.5** after ADR-036 + `27_ADR_INDEX` |
 | Do not | Duplicate ADR bodies · claim Production GO / CI GREEN · close 6.2–6.5 in this land |

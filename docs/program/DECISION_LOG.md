@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** ADR Drift checklist **6.1** OPEN — index claimed ADR-025/026/027/028 Accepted with “no files” / engineering-os phantom. Capability Drift **COMPLETE 4/4** (DEC-134a). Files already present under `salesos/backend/docs/adr/` with `**Status:** Accepted`.
 **Alternatives considered:** (a) leave phantom Accepted — rejected; (b) downgrade/remove index rows — rejected (files Accepted); (c) duplicate into `docs/adr/` or submodule — rejected; (d) index correction to existing backend paths — approved.
-**Decision:** Accept criterion **6.1** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-135-CRITERION-6-1-ADR-025-028-INDEX.md`](decisions/DEC-135-CRITERION-6-1-ADR-025-028-INDEX.md). Register File paths + `salesos/backend/docs/adr/` location in `docs/adr/index.md`; dates → file headers. DEC-085 intact. Do **not** claim VERIFIED/CLOSED until Arch+Val PASS.
-**Consequence:** Phase 0 criterion **6.1** = READY FOR REVIEW. Phase 0 remains **29/54** until Orchestrator CLOSE. Residuals **6.2–6.5** OPEN; `.engineering/27` re-pin → **4.5**. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criterion **READY FOR REVIEW**.
+**Decision:** Accept criterion **6.1** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-135-CRITERION-6-1-ADR-025-028-INDEX.md`](decisions/DEC-135-CRITERION-6-1-ADR-025-028-INDEX.md). Register File paths + `salesos/backend/docs/adr/` location in `docs/adr/index.md`; dates → file headers. DEC-085 intact. Closed via DEC-135a after Arch+Val PASS.
+**Consequence:** Phase 0 criterion **6.1** = READY FOR REVIEW then **CLOSED** via DEC-135a. Residuals **6.2–6.5** OPEN; `.engineering/27` re-pin → **4.5**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED via DEC-135a**.
+
+### DEC-135a — Orchestrator VERIFIED/CLOSED criterion 6.1 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 6.1](a70624e6-0cba-4a8c-9a8b-6db6249c999a)) + Validation PASS (light) ([Validate 6.1](56e2a584-75bd-420e-9e7b-a135376b83da): path-exists + Status Accepted; DEC-085 untouched) on land `4997ae4` / DEC-135.
+**Decision:** Execution Orchestrator records criterion **6.1 VERIFIED → CLOSED**. Phase 0 **29/54 → 30/54**. ADR Drift Complete **0 → 1** / Open **5 → 4**. Residuals **6.2–6.5** remain OPEN; `.engineering/27` re-pin → **4.5** (non-blocking for 6.1). Do **not** push. Do **not** claim Production GO / CI GREEN.
+**Consequence:** ADR Drift residual = **6.2–6.5** only. Next PARALLEL READY: ADR Drift **6.2–6.5**, EOS Audit **4.x**, Engineering Stability **8.1–8.3**, ADR-036 **9.2**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **6.1 CLOSED**.
 
 ### DEC-134 — Phase 0 criterion 5.3 SoT-oriented validate READY FOR REVIEW
 
