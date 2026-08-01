@@ -97,8 +97,7 @@ class PostgresInvoiceRepository:
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def list_transactions(self, tenant_id: str | None = None) ->
-        builtins.list[TransactionModel]:
+    async def list_transactions(self, tenant_id: str | None = None) -> builtins.list[TransactionModel]:
         stmt = select(TransactionModel)
         if tenant_id:
             tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
