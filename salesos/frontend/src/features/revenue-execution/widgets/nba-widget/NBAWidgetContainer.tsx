@@ -30,7 +30,8 @@ export function NBAWidgetContainer({ opportunityId }: NBAWidgetContainerProps) {
 
   useEffect(() => {
     load();
-  }, [load]);
+    // opportunityId: reload when the opportunity changes even if getNBA identity is stable
+  }, [load, opportunityId]);
 
   const handleAccept = async () => {
     if (!recommendation) return;
