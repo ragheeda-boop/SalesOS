@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-02 (backend/api-worker **BLOCKED inventory** — no Cursor-closeable Phase 0 criterion left; DEC-148a **3.8 CLOSED CONDITIONAL**; Phase 0 **45/54**; hard OPEN ⬜ **7** + scoreboard Blocked **2** = **9** remaining with owners ARB/ops/push field-verify; do **not** invent EOS **4.1/4.8** ARB; skip ops CI-08/CI-09; **3.7** Stage-6-dep; optional contract/Jest 30 parked)
+> **Last updated:** 2026-08-02 (devops/ci-worker **Phase 1 Ops** — tip `d1dcce4` pushed; CI `30720732268` Stage 1 SUCCESS / Stage 2 mypy FAILURE / Stage 6 SKIPPED; Security Scan `30720732260` SUCCESS; Deploy Staging `30720732248` still GHCR **403** after Actions workflow perms **write**; packages unlinked human-block; CI-09 secrets missing; Phase 0 still **NO-GO**; DEC-085 untouched)
 >
 > ## Operating State
 >
@@ -73,10 +73,10 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met** (full/publish **3.9**), *
 | 3.5 | Stage 5: Security Scan green | pip-audit (named ignore only), Bandit, Gitleaks, Semgrep residual-only | ✅ VERIFIED/CLOSED **CONDITIONAL** — Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL @ `5d558af` / pin `a6488f2` (DEC-147a); CI Stage 5 + Security Scan SUCCESS @ `c842245` (`30704321096` / `30704321107`); ecdsa named ignore (DEC-057/090/098); Semgrep residual **11** alembic (DEC-105); residual: *post-align Security Scan pip-audit field-verify PENDING until tip containing `fa266b5` is pushed*; does **not** auto-close **3.8**; DEC-085 untouched; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN / finding-zero / unconditional CLOSED |
 | 3.6 | Stage 6: Docker Build + Push green | Backend + Frontend images build + push | ⬜ CI-08 BLOCKED (GHCR 403) |
 | 3.7 | Stage 7: E2E green | Playwright specs PASS with real backend services | ⬜ CI e2e job has no services |
-| 3.8 | Full pipeline: CI GREEN (code path) | Stages 1–5 all green on same run | ✅ VERIFIED/CLOSED **CONDITIONAL** — Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL @ `14fce5f` (DEC-148a); local ruff 0.4.10 check+format exit 0; last push `c842245` / `30704321096` Stage 1 FAILURE (6× E501) → Stages 3 BE/4 SKIPPED; residual: *tip Stages 1–5 same-run field-verify PENDING until tip containing `14fce5f` is pushed* (Stage 3/4 may still fail when unblocked); historical Stages 1–5 SUCCESS @ `7ba137b` / `30689682988` (not tip); does **not** close **3.6–3.11** ops / **3.9** full CI GREEN; DEC-085 untouched; Orchestrator 2026-08-02; do **not** claim Production GO / CI GREEN / unconditional CLOSED |
+| 3.8 | Full pipeline: CI GREEN (code path) | Stages 1–5 all green on same run | ✅ VERIFIED/CLOSED **CONDITIONAL** — Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL @ `14fce5f` (DEC-148a); local ruff 0.4.10 check+format exit 0; last push `c842245` / `30704321096` Stage 1 FAILURE (6× E501) → Stages 3 BE/4 SKIPPED; residual: *tip Stages 1–5 same-run field-verify tip `d1dcce4`/`30720732268` Stage1 SUCCESS Stage2 mypy FAILURE — Stages 1-5 same-run still PENDING; CONDITIONAL stands* (Stage 3/4 may still fail when unblocked); historical Stages 1–5 SUCCESS @ `7ba137b` / `30689682988` (not tip); does **not** close **3.6–3.11** ops / **3.9** full CI GREEN; DEC-085 untouched; Orchestrator 2026-08-02; do **not** claim Production GO / CI GREEN / unconditional CLOSED |
 | 3.9 | Full pipeline: CI GREEN (incl. publish) | Stages 1–7 all green on same run | ⬜ CI-08 BLOCKED |
-| 3.10 | CI-08 GHCR 403 resolved | Stage 6 push succeeds (DEC-104 Option A) | ⬜ Ops/human |
-| 3.11 | CI-09 VPS SSH/secrets provisioned | Deploy workflows functional | ⬜ Ops/human |
+| 3.10 | CI-08 GHCR 403 resolved | Stage 6 push succeeds (DEC-104 Option A) | OPEN Ops/human — partial: Actions workflow perms **write** applied; packages still unlinked (`repository:null`); Deploy Staging `30720732248` @ `d1dcce4` still **403**; package-repo Actions Write link human UI required; do not CLOSE |
+| 3.11 | CI-09 VPS SSH/secrets provisioned | Deploy workflows functional | OPEN Ops/human — gh secret list + env secrets empty; provision **VPS_HOST**, **VPS_USER**, **VPS_SSH_KEY**; staging rollback `30720732248`: missing server host |
 
 **Owner:** DevOps/SRE Lead  
 **Reference:** `SPRINT_05_DELIVERY_BOARD.md`, `12_CI_CATALOG.md`, DEC-104
@@ -202,11 +202,11 @@ No Phase 0 criterion is Cursor-closeable without ARB invent, ops secrets, Stage-
 | 3.6 | Stage 6 Docker Build + Push | DevOps / ops | **ops (CI-08)** | GHCR 403 — human Packages write; Stage 6 push |
 | 3.7 | Stage 7 E2E green | DevOps / Backend | **Stage-6-dep** | Playwright needs real services + Stage 6 path; do not fake local green as 3.7 CLOSE |
 | 3.9 | CI GREEN (incl. publish) | DevOps / ops | **ops (CI-08)** | Needs Stages 1–7 same-run; blocked behind 3.6/3.7/3.10 |
-| 3.10 | CI-08 GHCR 403 resolved | Ops / human | **ops** | Grant GHCR write to Actions |
-| 3.11 | CI-09 VPS SSH/secrets | Ops / human | **ops** | Provision `VPS_HOST` / `VPS_USER` / `VPS_SSH_KEY` |
+| 3.10 | CI-08 GHCR 403 resolved | Ops / human | **ops** | Actions workflow perms **write** done; still need package-repo Actions Write link (UI); field 403 @ `30720732248` |
+| 3.11 | CI-09 VPS SSH/secrets | Ops / human | **ops** | **MISSING** all three at repo+env (`gh`); provision `VPS_HOST` / `VPS_USER` / `VPS_SSH_KEY` |
 | 4.1 | B1–B7 findings resolved | OpenCode / **ARB** | **ARB** | v3.1 corrected; independent re-audit PASS required — **do not invent** |
 | 4.8 | Independent ARB re-audit = PASS | OpenCode / **ARB** | **ARB** | New validation report, no CRITICAL — **do not invent** |
-| 3.8 residual | tip Stages 1–5 same-run | Validation / push | **push field-verify** | Criterion **CLOSED CONDITIONAL** (DEC-148a); PENDING push tip containing `14fce5f` — prefer not push from Cursor; does **not** upgrade to unconditional CLOSED until observed |
+| 3.8 residual | tip Stages 1-5 same-run | Validation / push | **push field-verify** | Criterion **CLOSED CONDITIONAL** (DEC-148a); tip `d1dcce4` / `30720732268` Stage 1 SUCCESS / Stage 2 mypy FAILURE -> Stages 1-5 same-run still PENDING; CONDITIONAL stands |
 | 3.5 / 1.5 residual | Security Scan pip-audit post-align | Validation / push | **push field-verify** | Criteria **CLOSED CONDITIONAL**; PENDING push tip containing `fa266b5` — field-verify poetry export + 1 ignored (ecdsa); does **not** auto-close **3.8** |
 
 Adjacent non-blocking residuals (not counted in the 9): **8.3** tip `test-architecture` PENDING push `868a98c`; **8.2** at-scale soak; **2.3** multi-tenant live split.
@@ -224,7 +224,7 @@ Adjacent non-blocking residuals (not counted in the 9): **8.3** tip `test-archit
 | 8.3 tip `test-architecture` (non-blocking for 8.3 CONDITIONAL) | Push tip containing `868a98c` | Field-verify Stage 5 `test-architecture` SUCCESS — does **not** upgrade to unconditional CLOSED until observed |
 | 8.2 at-scale soak (non-blocking for 8.2 CONDITIONAL) | Live soak at `max_parallel_workers=8` | Concurrent-writer soak at worker ceiling — does **not** upgrade to unconditional CLOSED until field-proven |
 | 3.5 post-align Security Scan pip-audit (non-blocking for 3.5 CLOSED CONDITIONAL) | Push tip containing `fa266b5` | Field-verify Security Scan pip-audit SUCCESS with poetry export + 1 ignored (ecdsa) — same residual as 1.5 DEC-128a; does **not** upgrade to unconditional CLOSED until observed; does **not** auto-close **3.8** |
-| 3.8 tip Stages 1–5 same-run (non-blocking for 3.8 CLOSED CONDITIONAL) | Push tip containing `14fce5f` | Field-verify Stages 1–5 SUCCESS on same named run — Stage 3/4 may still fail when Lint unblocks; does **not** upgrade to unconditional CLOSED until observed; does **not** close **3.6–3.11** / **3.9** full CI GREEN |
+| 3.8 tip Stages 1-5 same-run (non-blocking for 3.8 CLOSED CONDITIONAL) | Push tip containing `14fce5f` (done: `d1dcce4`) | Field-verify: Stage 1 SUCCESS @ `30720732268`; Stage 2 mypy FAILURE blocks Stages 1-5 same-run SUCCESS; CONDITIONAL stands; does **not** close **3.6-3.11** / **3.9** full CI GREEN |
 | EOS **4.1** / **4.8** | Independent ARB | ARB re-audit PASS — Cursor must **not** invent ARB close |
 | CI **3.7** | Stage 6 + E2E services | Stage-6-dep — park until CI-08 unblocks publish path |
 
