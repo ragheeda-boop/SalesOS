@@ -103,7 +103,8 @@ Current audit classification (2026-07-22): **production no-go** (Production Read
 1. If docs disagree → prefer **executable evidence** + ga-engineering-audit.  
 2. If `PROJECT_BIBLE.md` maturity scores conflict with audit → **audit wins** for GO/NO-GO.  
 3. Parallel code agents may own `TenantList` / security endpoints — **do not conflict**; leave those files alone unless assigned.  
-4. Only commit when the user explicitly asks.
+4. Only commit when the user explicitly asks.  
+5. **Swarm dispatch (DEC-107):** While waiting on CI field / ops (GHCR, VPS), keep ≥2–3 PARALLEL READY agents busy on independent ownership — never pause the swarm solely because CI-08/CI-09 are BLOCKED. See `docs/program/decisions/DEC-107-SWARM-ALWAYS-ON-PARALLEL-READY.md`.
 
 ---
 

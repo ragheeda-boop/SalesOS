@@ -1,6 +1,6 @@
 # DEC-100 — CI-14 Slice 3 STOP: Jest 29→30 is a silent major; no patch/minor path; audit already 0
 
-> **Status:** **Accepted** — Slice 3 **STOPPED**; CI-14 remains **OPEN**  
+> **Status:** **Accepted** — Slice 3 **STOPPED**; story later **CLOSED** via DEC-108 executive AC (not via Jest 30)  
 > **Date:** 2026-08-01  
 > **Board:** Frontend / Deps (SalesOS / AQLIYA)  
 > **Story / risk:** CI-14 / R-18 Cluster A (Jest leg)  
@@ -64,7 +64,7 @@ Authorize a **dedicated Slice 3 evidence package** before any lock change:
 
 **Alternate (executive):** revise CI-14 AC to **CLOSED** without Jest major — security modernization complete (sharp + eslint 10; audit 0); Jest 30 becomes optional tech-debt backlog.
 
-Until one of those is Accepted, Slice 3 remains **BLOCKED / STOPPED**.
+**Executed:** **DEC-108** Accepted — CI-14 **CLOSED** on revised AC; Slice 3 remains **STOPPED** (no Jest lock land).
 
 ---
 

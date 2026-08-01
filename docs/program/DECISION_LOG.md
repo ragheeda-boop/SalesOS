@@ -1079,8 +1079,8 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Context:** Live Semgrep OSS open @ tip a02c8f1 = **19**. Wave 2 PARKED (DEC-103): app text **0**; alembic residual **11**. Non-alembic leftovers: logger x4, prototype #835, triage-doc WS FP #834, DynamoDB CMK #608, GHA workflow secret env #417. Do not churn alembic RLS. DEC-085 untouched. CI-08 GHCR out of scope (DEC-104).
 **Alternatives considered:** (a) leave CI-19 OPEN indefinitely with 19 open - rejected (executive residual-close authorized once non-alembic burned); (b) nosemgrep / severity drop - rejected; (c) rewrite alembic RLS for Semgrep - rejected (DEC-103); (d) burn 8 non-alembic + CLOSE with alembic residual - approved.
 **Decision:** Accept CI-19 **CLOSED with documented residual**. Companion: [decisions/DEC-105-CI-19-EXECUTIVE-RESIDUAL-CLOSE.md](decisions/DEC-105-CI-19-EXECUTIVE-RESIDUAL-CLOSE.md). Expected clear **8**; remaining accepted **11** alembic. R-24 Closed - mitigating residual. Do not claim finding-zero or whole-pipeline CI GREEN.
-**Consequence:** Program Complete/Closed absorbs CI-19. Semgrep gates unchanged. **CI GREEN not met** (CI-08). Validation: **light validated** (inventory + diffs; field CS lag expected).
-**Status:** Accepted. CI-19 **CLOSED** with residual.
+**Consequence:** Program Complete/Closed absorbs CI-19. Semgrep gates unchanged. **CI GREEN not met** (CI-08). **Field-verify (2026-08-01):** Security Scan `30693735860` / sast `91352893256` @ `b9062d6` **SUCCESS** - Semgrep CLI **11** blocking; CS open Semgrep **11** alembic-only; burns **8** fixed; unexpected **0**. Validation: **build validated**. Do **not** reopen CI-19.
+**Status:** Accepted. CI-19 **CLOSED** with residual (field-verified).
 
 
 ### DEC-106 — Contract tests expansion slice 4 (401 / 422) COMPLETE

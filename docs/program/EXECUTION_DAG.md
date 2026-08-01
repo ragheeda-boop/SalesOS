@@ -61,17 +61,13 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Item | Class | Why ready now | Notes |
 |---|---|---|---|
-| **CI-19** Semgrep Wave 2 residual | IN PROGRESS / READY | Waves 1/3/4/5 COMPLETE; Wave 2 Slice 1–5 COMPLETE (DEC-091/097/099/101/102); remainder ~11 `avoid-sqlalchemy-text` (alembic residual + init_db/benchmark/mcp)| R-24; Slice 6 / residual package next |
 | **CI-22** FastAPI / Starlette / Pydantic | IN PROGRESS / READY | Phase 1 COMPLETE (DEC-081 @ `442af64`); further phases | R-21 starlette / pip-audit path |
-| **CI-14** Frontend Dependency Modernization | IN PROGRESS / READY (Sprint 06) | Slice 1 COMPLETE; Slice 2 STOP; Slice 3 pending | R-18; STOP silent majors |
-| **STORY-02-02** browser/E2E verify (if scoped) | **CLOSED** (DEC-095) | Live Next redirect: `/dashboard` → **307** `/login?callbackUrl=%2Fdashboard`; `/`+`/login` **200** | Optional authenticated `smoke-ui.ps1` not run; **CI GREEN not met** |
 | **DB-05** Schema reconciliation program | READY (program) | BACKLOG; R-20 / R-09 | Multi-sprint; unblocks 8 RLS-deferred tables |
+| **Optional Jest 30 evidence** | BACKLOG (not CI-14) | DEC-108 deferred; authorize dedicated package | STOP silent major; Stage 3 **0**-fail gate |
+| **STORY-02-02** browser/E2E verify (if scoped) | **CLOSED** (DEC-095) | Live Next redirect: `/dashboard` → **307** `/login?callbackUrl=%2Fdashboard`; `/`+`/login` **200** | Optional authenticated `smoke-ui.ps1` not run; **CI GREEN not met** |
 | **Sprint 04 Category B RLS + inventory** | READY (planning) | DEC-044 deferred Category B | Settle canonical count |
 | **JWT audience consumption** | **CLOSED** (DEC-093) | Owner admin deps wire `decode_owner_*` via `owner_auth.py`; **14/14** unit PASS | Tenant `verify_token` unchanged (`salesos-api`); groundwork `2379e5f` |
 | **Contract tests expansion** | IN PROGRESS / PARALLEL | Slice 1–4 LANDED (DEC-094 + DEC-106): probes + health/ready + auth list + **401/422** | Optional further typed endpoints; park OK |
-
-| **CI-16** Backend dependency security | CLOSED | Slices 1+3 + ecdsa Option A; starlette → CI-22 | Story closed; residual via CI-22 |
-| **Jest-debt** | CLOSED (DEC-077) | Stage 3 field 0 failures | R-23 Closed |
 
 ---
 
@@ -86,6 +82,8 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **CI-16** Backend dependency security | **CLOSED** | DEC-057 ecdsa residual; starlette → CI-22 |
 | **Jest-debt** / **R-23** | **CLOSED** | DEC-077; Stage 3 **0** failing suites |
 | **CI-20** Backend Types (MyPy) / **R-22** | **CLOSED** | DEC-096; field Types **0** on `220d91a` (run `30684023356` / job `91326366120`); tip `af4835f` (`30684308678` / `91327119501`) |
+| **CI-19** Semgrep findings / **R-24** | **CLOSED** | DEC-105 residual-close (alembic residual accepted) |
+| **CI-14** Frontend Dependency Modernization / **R-18** | **CLOSED** | DEC-108 executive AC (sharp + eslint 10 + audit 0; Jest 30 backlog) |
 
 ---
 
@@ -93,10 +91,12 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| **CI-19 Wave 2**, **CI-22**, **CI-14** | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. CI-20 CLOSED (DEC-096). |
+| **CI-22**, contract tests, optional Jest 30 backlog | PARALLEL / READY | Unblocked Sprint 05/06 execution. Railway gate closed. CI-14/CI-19/CI-20 CLOSED. |
 | Contract tests expansion (post STORY-03-04) | PARALLEL | Slice 1–4 DEC-094/106 (probes + health/ready + auth list + 401/422); framework `623077c` |
 | JWT audience **consumption** | **CLOSED** (DEC-093) | Owner Platform admin consumes `salesos-owner-platform`; tenant path untouched |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
+
+**Swarm dispatch (DEC-107):** While waiting on ops (CI-08 GHCR, CI-09 VPS), keep agents on independent PARALLEL READY ownership — do **not** idle solely because those ops leaves are BLOCKED. CI-14 preferred path during that wait was **DEC-108** executive AC close (not silent Jest 30); swarm policy = DEC-107. Honesty: DEC-104 **code path** vs **full incl. publish**.
 
 ---
 
@@ -115,6 +115,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | Contract tests expansion slice 2 (DEC-094) | `0ac07bc` | LANDED | `/health` + `/health/ready` + honest DB/cache fixtures |
 | Contract tests expansion slice 3 (DEC-094) | `bdc6fd2` | LANDED | Auth list `GET /api/v1/decisions` OpenAPI contract |
 | Contract tests expansion slice 4 (DEC-106) | `448c301` | LANDED | 401 `DetailStringError` + 422 `HTTPValidationError` on decisions list |
+| CI-14 executive AC close (DEC-108) | *(this land)* | **CLOSED** | docs-only; security AC met without Jest major |
 | STORY-02-04 §17.2 relabel | `932f722` | DONE | docs-only |
 | Card primitives (Jest debt related) | `9577c98` | Progress note only | **CI GREEN not met** |
 
@@ -122,7 +123,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 ## Board progress fraction
 
-**22/22** Complete/Closed on tracked Sprint 05 board fraction (includes **S04-04** / **CI-16** / **CI-20**). Adjacent closed: **Jest-debt / R-23**. Pending: none. In progress: CI-19 (Wave 2 Slice 1–5 COMPLETE / residual OPEN), CI-14, CI-22. Blocked (critical path Phase 0): **none**. Also blocked (ops): CI-08 (P0), CI-09 (P2).
+**24/24** Complete/Closed on tracked Sprint 05 board fraction (includes **S04-04** / **CI-16** / **CI-20** / **CI-19** / **CI-14**). Adjacent closed: **Jest-debt / R-23**. Pending: none. In progress: **CI-22**. Blocked (critical path Phase 0): **none**. Also blocked (ops): CI-08 (P0), CI-09 (P2).
 
 ---
 

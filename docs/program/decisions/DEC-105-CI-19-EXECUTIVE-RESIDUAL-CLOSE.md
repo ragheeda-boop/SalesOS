@@ -56,17 +56,18 @@
 | Semgrep ERROR/WARNING + SARIF upload | **Unchanged** |
 | Whole-pipeline CI GREEN | **Not met** (CI-08 GHCR 403 blocks Stage 6 publish) |
 | Production GO / External pilot | **NO-GO** |
-| Validation this land | **light validated** (inventory + targeted diffs); field CS closure expected after Security Scan SARIF on tip — upgrade when re-verified |
+| Validation this land | **build validated** — field-verify Security Scan [`30693735860`](https://github.com/ragheeda-boop/SalesOS/actions/runs/30693735860) / sast `91352893256` @ `b9062d6` (see §4) |
 
 ---
 
-## 4. Expected post-land Code Scanning
+## 4. Post-land Code Scanning (field-verify)
 
-| Bucket | Expected |
-|---|---|
-| Cleared this land (target) | **8** |
-| Remaining accepted residual | **11** (alembic) |
-| Semgrep CLI blocking (field tip last known) | Was **19** @ Wave 2 verify; target **~11** after this land |
+| Bucket | Expected | Field @ `b9062d6` |
+|---|---|---|
+| Cleared this land (target) | **8** | **8 fixed** (#417/#515/#516/#546/#547/#608/#834/#835; `fixed_at=2026-08-01T09:27:31Z`) |
+| Remaining accepted residual | **11** (alembic) | **11** open Semgrep OSS — alembic-only (`0afbf3e6ae53` x4 + `065d1d3a466b` x3 text + `0020` raw/formatted x4) |
+| Semgrep CLI blocking | target **~11** | **11** (11 blocking) — Security Scan **SUCCESS** |
+| Unexpected non-alembic | **0** | **0** (do **not** reopen burns / CI-19) |
 
 ---
 

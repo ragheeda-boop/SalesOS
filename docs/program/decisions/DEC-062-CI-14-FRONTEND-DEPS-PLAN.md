@@ -1,6 +1,6 @@
 # DEC-062 — CI-14 Frontend Dependency Modernization: planning inventory (safe vs STOP)
 
-> **Status:** **Accepted** — planning complete; **Slice 1 PASS** (sharp; §9 / field verify §10); **Slice 2 PASS** (ESLint 10; §11 / DEC-072); **Slice 3 STOP** (Jest; §12 / DEC-100)  
+> **Status:** **Accepted** — planning complete; **Slice 1 PASS** (sharp; §9 / field verify §10); **Slice 2 PASS** (ESLint 10; §11 / DEC-072); **Slice 3 STOP** (Jest; §12 / DEC-100); **story CLOSED** (DEC-108 executive AC)  
 > **Date:** 2026-08-01  
 > **Board:** Frontend / Deps (SalesOS / AQLIYA)  
 > **Story / risk:** CI-14 / R-18 (30 residual high npm advisories after CI-11 — **cleared** post Slice 1+2; host audit **0**)  
@@ -181,5 +181,5 @@ Attempted under Frontend Deps session on tip **`240f9a8`** (post Slice 2 PASS). 
 | Package / lock land | **None** |
 | STOP triggers avoided | No jest→25; no `--force`; no Next/React bump |
 
-**Label:** **light validated** (audit + registry probe; no suite re-run). Slice 3 **STOPPED** per DEC-100. CI-14 remains **OPEN** for dedicated Jest 30 evidence package **or** executive AC close. R-18 advisory residual **Closed**. **CI GREEN not met.**
+**Label:** **light validated** (audit + registry probe; no suite re-run). Slice 3 **STOPPED** per DEC-100. **CI-14 CLOSED** under **DEC-108** (executive AC: security modernization complete; Jest 30 optional backlog). R-18 advisory residual **Closed**. **CI GREEN not met.**
 
