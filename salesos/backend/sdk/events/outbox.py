@@ -1,5 +1,7 @@
 """Transactional Outbox Pattern for reliable Kafka delivery.
 
+CI-19 Wave 2 Core (no sqlalchemy.text)
+
 The outbox pattern ensures at-least-once delivery by storing events
 in a PostgreSQL table within the same transaction as the business data.
 A background relay then publishes outboxed events to Kafka.
@@ -22,8 +24,25 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import cast
 
-from sqlalchemy import text
+from sqlalchemy import (
+    BigInteger,
+    Column,
+    DateTime,
+    Index,
+    Integer,
+    MetaData,
+    String,
+    Text,
+    case,
+    delete,
+    func,
+    insert,
+    select,
+    update,
+)
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.schema import Table
 
 from sdk.events.base import DomainEvent
 from sdk.events.kafka_producer import KafkaProducer
@@ -37,25 +56,25 @@ DEFAULT_RELAY_INTERVAL = 1.0  # seconds
 DLQ_TOPIC = "salesos.dlq"
 DLQ_ALERT_THRESHOLD = 1000
 
-OUTBOX_CREATE_SQL = f"""
-CREATE TABLE IF NOT EXISTS {OUTBOX_TABLE} (
-    id              BIGSERIAL PRIMARY KEY,
-    event_id        VARCHAR(64) NOT NULL UNIQUE,
-    event_type      VARCHAR(128) NOT NULL,
-    topic           VARCHAR(128) NOT NULL,
-    key             VARCHAR(128),
-    payload         JSONB NOT NULL,
-    headers         JSONB NOT NULL DEFAULT '{{}}',
-    status          VARCHAR(16) NOT NULL DEFAULT 'pending',
-    retry_count     INTEGER NOT NULL DEFAULT 0,
-    last_error      TEXT,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
+_outbox_metadata = MetaData()
 
-CREATE INDEX IF NOT EXISTS idx_outbox_status_created
-    ON {OUTBOX_TABLE} (status, created_at);
-"""
+event_outbox = Table(
+    OUTBOX_TABLE,
+    _outbox_metadata,
+    Column("id", BigInteger, primary_key=True, autoincrement=True),
+    Column("event_id", String(64), nullable=False, unique=True),
+    Column("event_type", String(128), nullable=False),
+    Column("topic", String(128), nullable=False),
+    Column("key", String(128)),
+    Column("payload", JSONB, nullable=False),
+    Column("headers", JSONB, nullable=False),
+    Column("status", String(16), nullable=False, server_default="pending"),
+    Column("retry_count", Integer, nullable=False, server_default="0"),
+    Column("last_error", Text),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=func.now()),
+    Column("updated_at", DateTime(timezone=True), nullable=False, server_default=func.now()),
+    Index("idx_outbox_status_created", "status", "created_at"),
+)
 
 
 @dataclass
@@ -85,7 +104,11 @@ class EventOutbox:
 
     async def ensure_table(self) -> None:
         """Create the outbox table if it does not exist."""
-        await self._session.execute(text(OUTBOX_CREATE_SQL))
+
+        def _create_all(sync_connection) -> None:
+            _outbox_metadata.create_all(sync_connection, checkfirst=True)
+
+        await self._session.run_sync(_create_all)
         await self._session.commit()
 
     async def write(self, event: DomainEvent) -> int:
@@ -95,7 +118,7 @@ class EventOutbox:
         """
         topic = event_type_to_topic(event.event_type)
         payload = event.to_dict()
-        headers = {
+        headers: dict = {
             "event_type": event.event_type,
             "tenant_id": event.tenant_id or "",
             "event_id": event.event_id,
@@ -109,24 +132,19 @@ class EventOutbox:
             if cid is not None:
                 headers["correlation_id"] = str(cid)
 
-        stmt = text(f"""
-            INSERT INTO {OUTBOX_TABLE}
-                (event_id, event_type, topic, key, payload, headers)
-            VALUES
-                (:event_id, :event_type, :topic, :key, :payload::jsonb, :headers::jsonb)
-            RETURNING id
-        """)
-        result = await self._session.execute(
-            stmt,
-            {
-                "event_id": event.event_id,
-                "event_type": event.event_type,
-                "topic": topic,
-                "key": event.aggregate_id or event.event_id,
-                "payload": json.dumps(payload),
-                "headers": json.dumps(headers),
-            },
+        stmt = (
+            insert(event_outbox)
+            .values(
+                event_id=event.event_id,
+                event_type=event.event_type,
+                topic=topic,
+                key=event.aggregate_id or event.event_id,
+                payload=payload,
+                headers=headers,
+            )
+            .returning(event_outbox.c.id)
         )
+        result = await self._session.execute(stmt)
         row = result.fetchone()
         outbox_id = cast(int, row[0] if row else 0)
         logger.debug(
@@ -136,68 +154,79 @@ class EventOutbox:
 
     async def mark_delivered(self, outbox_id: int) -> None:
         """Mark an outbox entry as delivered to Kafka."""
-        stmt = text(f"""
-            UPDATE {OUTBOX_TABLE}
-            SET status = 'delivered', updated_at = NOW()
-            WHERE id = :id
-        """)
-        await self._session.execute(stmt, {"id": outbox_id})
+        stmt = (
+            update(event_outbox)
+            .where(event_outbox.c.id == outbox_id)
+            .values(status="delivered", updated_at=func.now())
+        )
+        await self._session.execute(stmt)
 
     async def mark_failed(self, outbox_id: int, error: str) -> None:
         """Increment retry count; mark as failed if max retries exceeded."""
-        stmt = text(f"""
-            UPDATE {OUTBOX_TABLE}
-            SET status = CASE
-                    WHEN retry_count + 1 >= :max_retry THEN 'failed'
-                    ELSE 'pending'
-                END,
-                retry_count = retry_count + 1,
-                last_error = :error,
-                updated_at = NOW()
-            WHERE id = :id
-        """)
-        await self._session.execute(
-            stmt,
-            {"id": outbox_id, "max_retry": MAX_RETRY_COUNT, "error": error},
+        new_retry = event_outbox.c.retry_count + 1
+        stmt = (
+            update(event_outbox)
+            .where(event_outbox.c.id == outbox_id)
+            .values(
+                status=case(
+                    (new_retry >= MAX_RETRY_COUNT, "failed"),
+                    else_="pending",
+                ),
+                retry_count=new_retry,
+                last_error=error,
+                updated_at=func.now(),
+            )
         )
+        await self._session.execute(stmt)
 
     async def mark_dlq(self, outbox_id: int, error: str) -> None:
         """Mark an entry as dead-lettered after exhausting retries."""
-        stmt = text(f"""
-            UPDATE {OUTBOX_TABLE}
-            SET status = 'dlq', last_error = :error, updated_at = NOW()
-            WHERE id = :id
-        """)
-        await self._session.execute(stmt, {"id": outbox_id, "error": error})
+        stmt = (
+            update(event_outbox)
+            .where(event_outbox.c.id == outbox_id)
+            .values(status="dlq", last_error=error, updated_at=func.now())
+        )
+        await self._session.execute(stmt)
 
     async def fetch_pending(self, batch_size: int = 50) -> list[OutboxEntry]:
         """Fetch pending outbox entries ordered by creation time."""
-        stmt = text(f"""
-            SELECT id, event_id, event_type, topic, key, payload, headers,
-                   status, retry_count, last_error, created_at, updated_at
-            FROM {OUTBOX_TABLE}
-            WHERE status = 'pending'
-            ORDER BY created_at ASC
-            LIMIT :limit
-            FOR UPDATE SKIP LOCKED
-        """)
-        result = await self._session.execute(stmt, {"limit": batch_size})
+        stmt = (
+            select(
+                event_outbox.c.id,
+                event_outbox.c.event_id,
+                event_outbox.c.event_type,
+                event_outbox.c.topic,
+                event_outbox.c.key,
+                event_outbox.c.payload,
+                event_outbox.c.headers,
+                event_outbox.c.status,
+                event_outbox.c.retry_count,
+                event_outbox.c.last_error,
+                event_outbox.c.created_at,
+                event_outbox.c.updated_at,
+            )
+            .where(event_outbox.c.status == "pending")
+            .order_by(event_outbox.c.created_at.asc())
+            .limit(batch_size)
+            .with_for_update(skip_locked=True)
+        )
+        result = await self._session.execute(stmt)
         return [self._row_to_entry(row) for row in result.fetchall()]
 
     async def fetch_dlq_count(self) -> int:
         """Count entries in dead letter queue."""
-        stmt = text(f"SELECT COUNT(*) FROM {OUTBOX_TABLE} WHERE status = 'dlq'")
+        stmt = select(func.count()).select_from(event_outbox).where(event_outbox.c.status == "dlq")
         result = await self._session.execute(stmt)
         return result.scalar() or 0
 
     async def cleanup_delivered(self, older_than_hours: int = 24) -> int:
         """Delete delivered entries older than the given threshold."""
-        stmt = text(f"""
-            DELETE FROM {OUTBOX_TABLE}
-            WHERE status = 'delivered'
-              AND updated_at < NOW() - (:hours || ' hours')::interval
-        """)
-        result = await self._session.execute(stmt, {"hours": str(older_than_hours)})
+        cutoff = func.now() - func.make_interval(hours=older_than_hours)
+        stmt = delete(event_outbox).where(
+            event_outbox.c.status == "delivered",
+            event_outbox.c.updated_at < cutoff,
+        )
+        result = await self._session.execute(stmt)
         deleted = cast(int, getattr(result, "rowcount", 0) or 0)
         if deleted:
             logger.info("Cleaned up %d delivered outbox entries", deleted)
@@ -272,11 +301,14 @@ class OutboxRelay:
             self._task = None
         await self._producer.close()
         logger.info(
-            "OutboxRelay stopped (relayed=%d, failed=%d)", self._total_relayed, self._total_failed
+            "OutboxRelay stopped (relayed=%d, failed=%d, dlq=%d)",
+            self._total_relayed,
+            self._total_failed,
+            self._dlq_count,
         )
 
     async def _relay_loop(self) -> None:
-        """Main loop: poll outbox → publish to Kafka."""
+        """Poll outbox and relay events until stopped."""
         while self._running:
             try:
                 await self._relay_batch()

@@ -994,3 +994,12 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** No middleware code change. No `app/database.py` edits. **Production GO not claimed. CI GREEN not met.**
 **Status:** Accepted. Story **DONE / CLOSED**.
 
+### DEC-091 — CI-19 Wave 2 Slice 1 COMPLETE: SQLAlchemy Core honesty (outbox/revenue/store/audit); CI-19 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** User authorized Wave 2 after Waves 1/3/4/5. Live Semgrep OSS open **85** (avoid-sqlalchemy-text **72**). Prefer Core over text(); no Semgrep suppress.
+**Alternatives considered:** (a) close CI-19 — rejected (~59 text remain); (b) nosemgrep — rejected; (c) Slice 1 Core + keep OPEN — approved.
+**Decision:** Accept Wave 2 Slice 1 COMPLETE. Core rewrites: outbox (8), revenue_execution service (3), store (1), audit (1). Expected clear **13**. Do not close CI-19. Do not weaken Semgrep gates.
+**Consequence:** CI-19 OPEN. R-24 mitigating. Validation: light validated. CI GREEN not met.
+**Status:** Accepted. Wave 2 Slice 1 COMPLETE; story OPEN.
+
