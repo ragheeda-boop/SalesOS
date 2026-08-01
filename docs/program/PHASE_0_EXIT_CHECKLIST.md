@@ -166,7 +166,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 |---|-----------|-------------------|--------|
 | 9.1 | Four-layer separation documented | ADR-036 Accepted | ✅ |
 | 9.2 | `docs/program/` ↔ `.engineering/` bidirectional references | Cross-references exist, no data duplication | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `7b618da` (DEC-141a); bridges `docs/program/ENGINEERING_LAYER_BRIDGE.md` ↔ `.engineering/33_PROGRAM_LAYER_BRIDGE.md` (pointers only; no catalog/sprint duplication); DEC-085 untouched; residuals EOS **4.1/4.8** · Eng Stability **8.2/8.3** OPEN (**4.2/4.4/4.7 CLOSED** DEC-142a; **8.1 CLOSED** DEC-143a); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
-| 9.3 | `.ai/` explicitly deferred | Documented with trigger condition | 🟡 READY FOR REVIEW — DEC-146 @ land SHA (pending); org baseline ≠ Agent OS runtime; triggers pinned in ADR-036 §`.ai/` Runtime deferral + `.ai/README`; `runtime-spec.yaml` `status: SPECIFICATION`; DEC-085 untouched; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN until Arch+Val+Orchestrator |
+| 9.3 | `.ai/` explicitly deferred | Documented with trigger condition | 🟡 READY FOR REVIEW — DEC-146 @ `922528f`; org baseline ≠ Agent OS runtime; triggers pinned in ADR-036 §`.ai/` Runtime deferral + `.ai/README`; `runtime-spec.yaml` `status: SPECIFICATION`; DEC-085 untouched; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN until Arch+Val+Orchestrator |
 | 9.4 | No further architectural layers introduced before Phase 0 exit | ARB governance rule enforced | ✅ This checklist |
 
 **Owner:** CTO  
