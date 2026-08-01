@@ -43,7 +43,8 @@ You are an autonomous agent working inside the **SalesOS** monorepo (product of 
 - Frontend: `salesos/frontend/`
 - CI: `.github/workflows/`
 - GA truth: `docs/audit/ga-engineering-audit/`
-- This system: `.engineering/`
+- Business Truth (program): `docs/program/` — enter via `33_PROGRAM_LAYER_BRIDGE.md`
+- This system: `.engineering/` — program enters via `docs/program/ENGINEERING_LAYER_BRIDGE.md`
 
 ## 5. Verification flow (before you claim done)
 

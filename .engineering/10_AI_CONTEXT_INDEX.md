@@ -48,6 +48,8 @@ Revalidation: Pending
 | AI honesty | `docs/audit/ga-engineering-audit/AI_HONESTY.md` |
 | ADR index (live) | `27_ADR_INDEX.md` |
 | Capabilities | `29_CAPABILITY_REGISTRY.md` |
+| Business Truth bridge (ADR-036 / 9.2) | `33_PROGRAM_LAYER_BRIDGE.md` |
+| Program → Engineering bridge | `docs/program/ENGINEERING_LAYER_BRIDGE.md` |
 | Security report | `salesos/security-audit-report-latest.json` |
 
 ## 4. When this file changes

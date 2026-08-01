@@ -109,3 +109,5 @@ Current classification (2026-07-30 / frozen): **production no-go**.
 | Live state | `21_RUNTIME_STATE.json` |
 | Change protocol | `25_CHANGE_PROTOCOL.md` |
 | Coordination | `26_AGENT_COORDINATION.md` |
+| Business Truth layer (ADR-036 / criterion 9.2) | `33_PROGRAM_LAYER_BRIDGE.md` → `docs/program/` (pointers only; no duplication) |
+| Reciprocal program bridge | `docs/program/ENGINEERING_LAYER_BRIDGE.md` |

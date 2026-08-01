@@ -124,3 +124,5 @@ SalesOS adopts **four independent layers**, each with a clear responsibility. La
 - `.engineering/32_EOS_VALIDATION_AUDIT.md` — ARB audit that identified the gaps
 - `.engineering/27_ADR_INDEX.md` — Current ADR state (including known conflicts)
 - `docs/program/DECISION_LOG.md` — Program decisions (DEC-001 through DEC-122)
+- `docs/program/ENGINEERING_LAYER_BRIDGE.md` — Program → Engineering pointers (criterion 9.2 / DEC-141)
+- `.engineering/33_PROGRAM_LAYER_BRIDGE.md` — Engineering → Program pointers (criterion 9.2 / DEC-141)

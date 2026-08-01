@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-140a criterion 4.5 `.engineering/` committed VERIFIED/CLOSED; Phase 0 35/54; EOS Audit Complete 3/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
+> **Last updated:** 2026-08-01 (DEC-141 criterion 9.2 program↔engineering bridges READY FOR REVIEW; Phase 0 remains 35/54 until Orchestrator CLOSE; EOS Audit Complete 3/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
 >
 > ## Operating State
 >
@@ -165,7 +165,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
 | 9.1 | Four-layer separation documented | ADR-036 Accepted | ✅ |
-| 9.2 | `docs/program/` ↔ `.engineering/` bidirectional references | Cross-references exist, no data duplication | ⬜ |
+| 9.2 | `docs/program/` ↔ `.engineering/` bidirectional references | Cross-references exist, no data duplication | 🟡 READY FOR REVIEW — Cursor COMPLETE (DEC-141); bridges `docs/program/ENGINEERING_LAYER_BRIDGE.md` ↔ `.engineering/33_PROGRAM_LAYER_BRIDGE.md` (pointers only; no catalog/sprint duplication); DEC-085 untouched; awaiting Arch+Val; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN |
 | 9.3 | `.ai/` explicitly deferred | Documented with trigger condition | ✅ ADR-036 §Consequences |
 | 9.4 | No further architectural layers introduced before Phase 0 exit | ARB governance rule enforced | ✅ This checklist |
 
@@ -272,6 +272,7 @@ New agents joining during EXECUTION state need only:
 
 1. `docs/program/PHASE_0_EXIT_CHECKLIST.md` — what must close, what's allowed
 2. `.engineering/21_RUNTIME_STATE.json` — operating state, blockers, locks
+3. Layer bridges (ADR-036 / criterion 9.2): `docs/program/ENGINEERING_LAYER_BRIDGE.md` ↔ `.engineering/33_PROGRAM_LAYER_BRIDGE.md`
 
 ---
 
@@ -281,5 +282,7 @@ New agents joining during EXECUTION state need only:
 - `docs/program/EXECUTION_DAG.md` — Live READY/BLOCKED/PARALLEL state
 - `docs/program/SPRINT_05_DELIVERY_BOARD.md` — Per-story status
 - `docs/program/RISK_REGISTER.md` — R-01 through R-26
+- `docs/program/ENGINEERING_LAYER_BRIDGE.md` — Program → Engineering Spec (pointers only)
+- `.engineering/33_PROGRAM_LAYER_BRIDGE.md` — Engineering Spec → Program (pointers only)
 - `.engineering/32_EOS_VALIDATION_AUDIT.md` — ARB audit findings
 - `docs/adr/0036-engineering-organization-layer-separation.md` — Layer separation

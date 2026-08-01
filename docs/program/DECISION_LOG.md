@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-141 — Phase 0 criterion 9.2 program↔engineering bridges READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** ADR-036 Applied checklist **9.2** OPEN — layers documented (9.1) and `.engineering/` committed (4.5), but no dedicated bidirectional bridge pair; ARB coordination gap residual.
+**Alternatives considered:** (a) merge layers — rejected (ADR-036); (b) duplicate catalogs/sprint tables — rejected; (c) checklist note only — rejected; (d) claim VERIFIED/CLOSED — rejected; (e) thin reciprocal bridges + Related wiring — approved.
+**Decision:** Accept criterion **9.2** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-141-CRITERION-9-2-PROGRAM-ENGINEERING-BRIDGES.md`](decisions/DEC-141-CRITERION-9-2-PROGRAM-ENGINEERING-BRIDGES.md). Bridges `docs/program/ENGINEERING_LAYER_BRIDGE.md` ↔ `.engineering/33_PROGRAM_LAYER_BRIDGE.md` (pointers only). DEC-085 intact.
+**Consequence:** Phase 0 criterion **9.2** = READY FOR REVIEW (not CLOSED). Phase 0 remains **35/54** until Orchestrator CLOSE. Residuals **4.1/4.2/4.4/4.7/4.8** and **8.1–8.3** OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **READY FOR REVIEW** (awaiting Arch+Val + DEC-141a).
+
 ### DEC-140 — Phase 0 criterion 4.5 `.engineering/` tree commit READY FOR REVIEW
 
 **Date:** 2026-08-01
