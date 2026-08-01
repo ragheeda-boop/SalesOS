@@ -1086,12 +1086,21 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-130f — DB-05 Slice 5f: orphan KEEP metadata register + vectors residual columns
+
+**Date:** 2026-08-01
+**Context:** DEC-130 / DEC-130e residual — `remove_table`×15 orphan KEEP (no ORM) + `remove_column`×2 vectors timestamps. Criterion 7.6 stays OPEN; next land = metadata KEEP register (no DROP) + Core Table column restore.
+**Alternatives considered:** (a) DROP 15 orphan tables — rejected (live paths; no dedicated DROP DEC); (b) document-only KEEP leaving remove_table×15 — rejected; (c) metadata KEEP stubs + vectors Core timestamps (no DDL) — approved.
+**Decision:** Accept **Slice 5f** as Cursor COMPLETE / READY FOR REVIEW. Companion: [`decisions/DEC-130f-DB-05-SLICE-5F-ORPHAN-KEEP-REGISTER.md`](decisions/DEC-130f-DB-05-SLICE-5F-ORPHAN-KEEP-REGISTER.md). Alembic head **unchanged** `a4f7c29e1b80`. Live Docker check still **FAILED** exit 255; `remove_table` **15→0**; `remove_column` **2→0**. True DROP DEC **0**. DEC-085 intact. Next: Slice **5g+** residual index/FK/comment noise.
+**Consequence:** Phase 0 remains **24/54**. Criterion **7.6 OPEN**. **Production GO not claimed. CI GREEN not met. Do not claim VERIFIED/CLOSED for 7.6.**
+**Status:** Accepted. Criterion **7.6 OPEN** (Slice 5f COMPLETE / READY FOR REVIEW).
+
 ### DEC-130e — DB-05 Slice 5e: companies residual columns KEEP (ORM)
 
 **Date:** 2026-08-01
 **Context:** DEC-130 / DEC-130d residual — `remove_column`×4 including companies KEEP-adjacent `do_not_contact` + `embedding_vector`. Criterion 7.6 stays OPEN; next land = DEC-129-pattern ORM restore (no DROP; columns already live).
 **Alternatives considered:** (a) DROP residual companies columns — rejected; (b) additive CREATE — rejected (live already); (c) KEEP + ORM restore (no DDL) — approved.
-**Decision:** Accept **Slice 5e** as Cursor COMPLETE / READY FOR REVIEW. Companion: [`decisions/DEC-130e-DB-05-SLICE-5E-COMPANIES-RESIDUAL-KEEP.md`](decisions/DEC-130e-DB-05-SLICE-5E-COMPANIES-RESIDUAL-KEEP.md). Alembic head **unchanged** `a4f7c29e1b80`. Live Docker check still **FAILED** exit 255; `remove_column` **4→2** (companies pair cleared; residual vectors cols). DEC-085 intact. 7.4 KEEP stands. Next: Slice **5f+** orphan KEEP / vectors.
+**Decision:** Accept **Slice 5e** as Cursor COMPLETE / READY FOR REVIEW. Companion: [`decisions/DEC-130e-DB-05-SLICE-5E-COMPANIES-RESIDUAL-KEEP.md`](decisions/DEC-130e-DB-05-SLICE-5E-COMPANIES-RESIDUAL-KEEP.md). Alembic head **unchanged** `a4f7c29e1b80`. Live Docker check still **FAILED** exit 255; `remove_column` **4→2** (companies pair cleared; residual vectors cols). DEC-085 intact. 7.4 KEEP stands. Next: Slice **5f+** orphan KEEP / vectors → **landed as DEC-130f** (`remove_table` 15→0; `remove_column` 2→0).
 **Consequence:** Phase 0 remains **24/54**. Criterion **7.6 OPEN**. **Production GO not claimed. CI GREEN not met. Do not claim VERIFIED/CLOSED for 7.6.**
 **Status:** Accepted. Criterion **7.6 OPEN** (Slice 5e COMPLETE / READY FOR REVIEW).
 

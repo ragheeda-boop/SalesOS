@@ -70,6 +70,8 @@ docker compose exec -T backend alembic check     → FAILED exit 255
 | **5e** | Companies residual columns (`do_not_contact`, `embedding_vector`) — KEEP + ORM or explicit DROP DEC | Column DROP proposals gone | **No** |
 | **5f+** | Remaining orphan/legacy table policy + final `alembic check` | **exit 0** | **Yes** (only then) |
 
+**Slice 5f landed (DEC-130f):** orphan KEEP metadata register — `remove_table` **15→0**; vectors residual columns — `remove_column` **2→0**; check still FAILED; next **5g+** residual index/FK/comment toward exit 0.
+
 **Hard stops (all slices):** no production migrate · no Prisma · no DEC-085 edits · no DROP of FTS/KEEP columns (7.4) · no blind DROP of the 28 “removed” tables.
 
 ---

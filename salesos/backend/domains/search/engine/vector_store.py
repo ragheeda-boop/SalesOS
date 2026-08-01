@@ -12,7 +12,20 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
-from sqlalchemy import Column, MetaData, String, Table, bindparam, delete, func, literal, select
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Index,
+    MetaData,
+    String,
+    Table,
+    Text,
+    bindparam,
+    delete,
+    func,
+    literal,
+    select,
+)
 from sqlalchemy.dialects.postgresql import JSONB, insert as pg_insert
 
 _ALLOWED_COLLECTIONS = frozenset({
@@ -31,13 +44,21 @@ def _validate_collection(name: str) -> str:
 
 
 def _collection_table(name: str) -> Table:
+    """Core Table for PgVectorStore collections.
+
+    DEC-130f: include live ``created_at`` / ``updated_at`` so alembic check does
+    not propose ``remove_column`` DROP (columns from migration 0010).
+    """
     table_name = _validate_collection(name)
     return Table(
         table_name,
         _vector_store_metadata,
-        Column("id", String, primary_key=True),
-        Column("embedding", String),
-        Column("metadata", JSONB),
+        Column("id", Text, primary_key=True),
+        Column("embedding", String, nullable=False),
+        Column("metadata", JSONB, nullable=False),
+        Column("created_at", DateTime(timezone=True)),
+        Column("updated_at", DateTime(timezone=True)),
+        Index("ix_vectors_created_at", "created_at"),
         extend_existing=True,
     )
 

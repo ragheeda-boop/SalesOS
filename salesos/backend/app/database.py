@@ -101,6 +101,11 @@ for _tbl in (_activity_records, _domain_events, _graph_edges, _vs_table("vectors
         _tbl.to_metadata(Base.metadata)
 del _tbl, _activity_records, _domain_events, _graph_edges, _vs_table
 
+# DEC-130f: orphan KEEP stubs (raw-SQL live tables; no DROP without dedicated DEC).
+from app.db05_orphan_keep import register_orphan_keep_tables  # noqa: E402
+
+register_orphan_keep_tables(Base.metadata)
+
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
