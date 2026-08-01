@@ -4,7 +4,7 @@ import time
 
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel
-from sqlalchemy import text
+from sqlalchemy import Column, MetaData, String, Table, func, literal, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -13,6 +13,22 @@ from app.common.schemas import PaginatedResponse
 from app.dependencies import get_current_tenant_id, get_db_session, require_role_dep
 
 router = APIRouter(prefix="/api/v1/admin")
+
+_admin_metadata = MetaData()
+_companies = Table("companies", _admin_metadata, Column("id", String, primary_key=True))
+_golden_records = Table("golden_records", _admin_metadata, Column("id", String, primary_key=True))
+_conflicts = Table(
+    "entity_resolution_conflicts",
+    _admin_metadata,
+    Column("id", String, primary_key=True),
+    Column("status", String),
+)
+_dlq = Table(
+    "dead_letter_queue",
+    _admin_metadata,
+    Column("id", String, primary_key=True),
+    Column("status", String),
+)
 
 
 @router.get("/metrics")
@@ -29,25 +45,29 @@ async def system_metrics(
     ]
 
     try:
-        row = await db.execute(text("SELECT COUNT(*) FROM companies"))
+        row = await db.execute(select(func.count()).select_from(_companies))
         count = row.scalar() or 0
         lines.append("# HELP salesos_companies_total Total companies in database")
         lines.append("# TYPE salesos_companies_total gauge")
         lines.append(f"salesos_companies_total {count}")
 
-        row = await db.execute(text("SELECT COUNT(*) FROM golden_records"))
+        row = await db.execute(select(func.count()).select_from(_golden_records))
         count = row.scalar() or 0
         lines.append("# HELP salesos_golden_records_total Total golden records")
         lines.append("# TYPE salesos_golden_records_total gauge")
         lines.append(f"salesos_golden_records_total {count}")
 
-        row = await db.execute(text("SELECT COUNT(*) FROM entity_resolution_conflicts WHERE status = 'open'"))
+        row = await db.execute(
+            select(func.count()).select_from(_conflicts).where(_conflicts.c.status == "open")
+        )
         count = row.scalar() or 0
         lines.append("# HELP salesos_open_conflicts_total Open entity resolution conflicts")
         lines.append("# TYPE salesos_open_conflicts_total gauge")
         lines.append(f"salesos_open_conflicts_total {count}")
 
-        row = await db.execute(text("SELECT COUNT(*) FROM dead_letter_queue WHERE status = 'failed'"))
+        row = await db.execute(
+            select(func.count()).select_from(_dlq).where(_dlq.c.status == "failed")
+        )
         count = row.scalar() or 0
         lines.append("# HELP salesos_dlq_failed_total Dead letter queue failed records")
         lines.append("# TYPE salesos_dlq_failed_total gauge")
@@ -118,7 +138,7 @@ async def full_health(
     result = {"status": "ok", "checks": {}}
 
     try:
-        await db.execute(text("SELECT 1"))
+        await db.execute(select(literal(1)))
         result["checks"]["postgres"] = "connected"
     except Exception as e:
         result["checks"]["postgres"] = f"error: {e}"
@@ -147,7 +167,9 @@ async def full_health(
 
     # Check dead letter queue count
     try:
-        row = await db.execute(text("SELECT COUNT(*) FROM dead_letter_queue WHERE status = 'failed'"))
+        row = await db.execute(
+            select(func.count()).select_from(_dlq).where(_dlq.c.status == "failed")
+        )
         result["dlq_failed_count"] = row.scalar() or 0
     except Exception:
         result["dlq_failed_count"] = -1

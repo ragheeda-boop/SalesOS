@@ -1,5 +1,7 @@
 """Search Runtime — unified search orchestrator combining full-text, semantic, and graph search.
 
+CI-19 Wave 2 Core (no sqlalchemy.text)
+
 Search strategies:
   1. Full-Text (PostgreSQL ILIKE + tsvector) — fast, exact, structured filters
   2. Semantic (pgvector + OpenAI embeddings) — meaning-based similarity
@@ -14,12 +16,52 @@ import hashlib
 import json
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Optional, ClassVar
+from typing import Any, Callable, ClassVar, Optional
 
-from sqlalchemy import func, or_, select, text as sa_text
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    MetaData,
+    String,
+    Table,
+    bindparam,
+    case,
+    cast,
+    func,
+    literal,
+    select,
+)
+from sqlalchemy.dialects.postgresql import TSVECTOR
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.ext.asyncio import AsyncSession
+
+_search_metadata = MetaData()
+
+companies = Table(
+    "companies",
+    _search_metadata,
+    Column("id", PGUUID(as_uuid=True), primary_key=True),
+    Column("tenant_id", PGUUID(as_uuid=True)),
+    Column("name_ar", String),
+    Column("name_en", String),
+    Column("cr_number", String),
+    Column("city", String),
+    Column("region", String),
+    Column("industry", String),
+    Column("status", String),
+    Column("legal_form", String),
+    Column("activity", String),
+    Column("is_active", Boolean),
+    Column("phone", String),
+    Column("email", String),
+    Column("activity_description", String),
+    Column("created_at", DateTime(timezone=True)),
+    Column("updated_at", DateTime(timezone=True)),
+    Column("search_vector", TSVECTOR),
+    Column("embedding", String),  # pgvector column; String avoids dialect dependency
+)
 
 
 class SearchStrategy(str, Enum):
@@ -124,6 +166,12 @@ class SearchCache:
     @property
     def size(self) -> int:
         return len(self._data)
+
+
+async def _apply_statement_timeout(session: AsyncSession) -> None:
+    await session.execute(
+        select(func.set_config("statement_timeout", "5000", True))
+    )
 
 
 class SearchRuntime:
@@ -245,7 +293,7 @@ class SearchRuntime:
 
     async def suggest(self, query: str, tenant_id: str, field: str = "name_ar", limit: int = 10) -> list[str]:
         """Auto-complete suggestions for a field."""
-        col = self._safe_col(field, self.ALLOWED_SUGGEST_FIELDS)
+        col_name = self._safe_col(field, self.ALLOWED_SUGGEST_FIELDS)
         self.metrics.searches += 1
 
         # Delegate to PostgresSearchRepository when available (VIO-103 compliance)
@@ -254,15 +302,18 @@ class SearchRuntime:
                 prefix=query, tenant_id=tenant_id, field=field, limit=limit,
             )
 
-        async with self._session_factory() as session:
-            rows = await session.execute(
-                sa_text(f"""
-                    SELECT DISTINCT c.{col} FROM companies c
-                    WHERE c.tenant_id = :tid AND c.{col} ILIKE :prefix
-                    LIMIT :lim
-                """),
-                {"tid": tenant_id, "prefix": f"{query}%", "lim": limit},
+        col = companies.c[col_name]
+        stmt = (
+            select(col)
+            .distinct()
+            .where(
+                companies.c.tenant_id == tenant_id,
+                col.ilike(f"{query}%"),
             )
+            .limit(limit)
+        )
+        async with self._session_factory() as session:
+            rows = await session.execute(stmt)
             return [str(r[0]) for r in rows if r[0]]
 
     async def similar_to(self, company_id: str, tenant_id: str, limit: int = 10) -> SearchResult:
@@ -276,8 +327,10 @@ class SearchRuntime:
 
         async with self._session_factory() as session:
             row = await session.execute(
-                sa_text("SELECT * FROM companies WHERE id = :cid AND tenant_id = :tid"),
-                {"cid": company_id, "tid": tenant_id},
+                select(companies).where(
+                    companies.c.id == company_id,
+                    companies.c.tenant_id == tenant_id,
+                )
             )
             company = row.mappings().one_or_none()
             if not company:
@@ -286,18 +339,27 @@ class SearchRuntime:
             text = f"{company['name_ar']} {company.get('name_en', '')} {company.get('activity_description', '')} {company.get('city', '')}"
             embedding = await self._embedding_service.embed(text)
 
-            # Find nearest neighbors by L2 distance
-            neighbors = await session.execute(
-                sa_text("""
-                    SELECT c.id, c.name_ar, c.name_en, c.cr_number, c.city, c.industry,
-                           1 / (1 + (c.embedding <-> :emb)) as similarity
-                    FROM companies c
-                    WHERE c.tenant_id = :tid AND c.id != :cid AND c.embedding IS NOT NULL
-                    ORDER BY c.embedding <-> :emb
-                    LIMIT :lim
-                """),
-                {"emb": embedding, "tid": tenant_id, "cid": company_id, "lim": limit},
+            distance = companies.c.embedding.op("<->")(bindparam("emb"))
+            similarity = (literal(1.0) / (literal(1.0) + distance)).label("similarity")
+            neighbors_stmt = (
+                select(
+                    cast(companies.c.id, String).label("id"),
+                    companies.c.name_ar,
+                    companies.c.name_en,
+                    companies.c.cr_number,
+                    companies.c.city,
+                    companies.c.industry,
+                    similarity,
+                )
+                .where(
+                    companies.c.tenant_id == tenant_id,
+                    companies.c.id != company_id,
+                    companies.c.embedding.is_not(None),
+                )
+                .order_by(distance)
+                .limit(limit)
             )
+            neighbors = await session.execute(neighbors_stmt, {"emb": embedding})
             items = [
                 SearchResultItem(
                     id=r["id"], type="company", score=float(r["similarity"]),
@@ -342,51 +404,57 @@ class SearchRuntime:
             return SearchResult(items=items, total=total, query=query,
                                strategy=SearchStrategy.FULLTEXT, took_ms=0)
 
-        # Fallback: inline SQL (legacy path)
-        async with self._session_factory() as session:
-            await session.execute(sa_text("SET statement_timeout = '5s'"))
+        # Fallback: SQLAlchemy Core (legacy path)
+        tsq = func.plainto_tsquery("arabic", query)
+        rank_expr = func.ts_rank(companies.c.search_vector, tsq)
+        conditions = [
+            companies.c.tenant_id == tenant_id,
+            companies.c.search_vector.op("@@")(tsq),
+        ]
 
-            tsq = "plainto_tsquery('arabic', :q)"
-            conditions = [
-                "c.tenant_id = :tid",
-                f"c.tsv @@ {tsq}",
-            ]
-            params: dict = {"tid": tenant_id, "q": query, "lim": limit, "off": offset}
+        if filters:
+            for field_name, value in filters.items():
+                col_name = self._safe_col(field_name, self.ALLOWED_FILTER_FIELDS)
+                conditions.append(companies.c[col_name] == value)
 
-            if filters:
-                for field, value in filters.items():
-                    col = self._safe_col(field, self.ALLOWED_FILTER_FIELDS)
-                    conditions.append(f"c.{col} = :{col}")
-                    params[col] = value
+        boost = case(
+            (companies.c.name_ar == query, 10),
+            (companies.c.cr_number == query, 8),
+            else_=5,
+        )
+        order_score = boost + func.coalesce(rank_expr, 0)
 
-            where_clause = " AND ".join(conditions)
-
-            # Count
-            count_row = await session.execute(
-                sa_text(f"SELECT COUNT(*) FROM companies c WHERE {where_clause}"), params
+        count_stmt = (
+            select(func.count())
+            .select_from(companies)
+            .where(*conditions)
+        )
+        results_stmt = (
+            select(
+                cast(companies.c.id, String).label("id"),
+                companies.c.name_ar,
+                companies.c.name_en,
+                companies.c.cr_number,
+                companies.c.city,
+                companies.c.region,
+                companies.c.industry,
+                companies.c.status,
+                companies.c.activity_description,
+                rank_expr.label("relevance"),
             )
+            .where(*conditions)
+            .order_by(order_score.desc(), companies.c.updated_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+
+        async with self._session_factory() as session:
+            await _apply_statement_timeout(session)
+
+            count_row = await session.execute(count_stmt)
             total = count_row.scalar() or 0
 
-            # Results
-            rows = await session.execute(
-                sa_text(f"""
-                    SELECT c.id, c.name_ar, c.name_en, c.cr_number, c.city,
-                           c.region, c.industry, c.status, c.activity_description,
-                           ts_rank(c.tsv, {tsq}) AS relevance
-                    FROM companies c
-                    WHERE {where_clause}
-                    ORDER BY
-                        CASE
-                            WHEN c.name_ar = :q THEN 10
-                            WHEN c.cr_number = :q THEN 8
-                            ELSE 5
-                        END + COALESCE(ts_rank(c.tsv, {tsq}), 0) DESC,
-                        c.updated_at DESC
-                    LIMIT :lim OFFSET :off
-                """),
-                params,
-            )
-
+            rows = await session.execute(results_stmt)
             items = [
                 SearchResultItem(
                     id=r["id"], type="company",
@@ -408,19 +476,29 @@ class SearchRuntime:
                                strategy=SearchStrategy.SEMANTIC, took_ms=0)
 
         embedding = await self._embedding_service.embed(query)
-        async with self._session_factory() as session:
-            rows = await session.execute(
-                sa_text("""
-                    SELECT c.id, c.name_ar, c.name_en, c.cr_number, c.city, c.industry,
-                           c.activity_description,
-                           1 / (1 + (c.embedding <-> :emb)) as similarity
-                    FROM companies c
-                    WHERE c.tenant_id = :tid AND c.embedding IS NOT NULL
-                    ORDER BY c.embedding <-> :emb
-                    LIMIT :lim OFFSET :off
-                """),
-                {"emb": embedding, "tid": tenant_id, "lim": limit, "off": offset},
+        distance = companies.c.embedding.op("<->")(bindparam("emb"))
+        similarity = (literal(1.0) / (literal(1.0) + distance)).label("similarity")
+        stmt = (
+            select(
+                cast(companies.c.id, String).label("id"),
+                companies.c.name_ar,
+                companies.c.name_en,
+                companies.c.cr_number,
+                companies.c.city,
+                companies.c.industry,
+                companies.c.activity_description,
+                similarity,
             )
+            .where(
+                companies.c.tenant_id == tenant_id,
+                companies.c.embedding.is_not(None),
+            )
+            .order_by(distance)
+            .limit(limit)
+            .offset(offset)
+        )
+        async with self._session_factory() as session:
+            rows = await session.execute(stmt, {"emb": embedding})
             items = [
                 SearchResultItem(
                     id=r["id"], type="company", score=float(r["similarity"]),
@@ -509,31 +587,32 @@ class SearchRuntime:
     def _find_matched(self, query: str, row: dict) -> list[str]:
         fields = []
         ql = query.lower()
-        for field in ("name_ar", "name_en", "cr_number", "city", "activity_description"):
-            val = str(row.get(field, "")).lower()
+        for field_name in ("name_ar", "name_en", "cr_number", "city", "activity_description"):
+            val = str(row.get(field_name, "")).lower()
             if ql in val:
-                fields.append(field)
+                fields.append(field_name)
         return fields
 
     async def _get_facets(self, query: str, tenant_id: str) -> dict[str, dict[str, int]]:
-        async def _facet_for_field(field: str) -> tuple[str, dict[str, int]]:
-            col = self._safe_col(field, self.ALLOWED_FACET_FIELDS)
-            async with self._session_factory() as session:
-                rows = await session.execute(
-                    sa_text(f"""
-                        SELECT c.{col}, COUNT(*) as cnt
-                        FROM companies c
-                        WHERE c.tenant_id = :tid
-                          AND c.tsv @@ plainto_tsquery('arabic', :q)
-                          AND c.{col} IS NOT NULL
-                        GROUP BY c.{col}
-                        ORDER BY cnt DESC
-                        LIMIT 20
-                    """),
-                    {"tid": tenant_id, "q": query},
+        async def _facet_for_field(field_name: str) -> tuple[str, dict[str, int]]:
+            col_name = self._safe_col(field_name, self.ALLOWED_FACET_FIELDS)
+            col = companies.c[col_name]
+            tsq = func.plainto_tsquery("arabic", query)
+            stmt = (
+                select(col, func.count().label("cnt"))
+                .where(
+                    companies.c.tenant_id == tenant_id,
+                    companies.c.search_vector.op("@@")(tsq),
+                    col.is_not(None),
                 )
+                .group_by(col)
+                .order_by(func.count().desc())
+                .limit(20)
+            )
+            async with self._session_factory() as session:
+                rows = await session.execute(stmt)
                 data = {str(r[0]): r[1] for r in rows}
-                return field, data
+                return field_name, data
 
         results = await asyncio.gather(
             *[_facet_for_field(f) for f in self.ALLOWED_FACET_FIELDS],
@@ -543,9 +622,9 @@ class SearchRuntime:
         for r in results:
             if isinstance(r, Exception):
                 continue
-            field, data = r
+            field_name, data = r
             if data:
-                facets[field] = data
+                facets[field_name] = data
         return facets
 
     async def close(self) -> None:

@@ -13,7 +13,7 @@ import logging
 import uuid
 from typing import Any
 
-from sqlalchemy import func, or_, select, text
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from domains.search.contracts.models import SearchQuery, SearchResult, SearchSort
@@ -89,8 +89,15 @@ class ContactSearchRepository(SearchRepository[Any]):
     async def search(self, query: SearchQuery) -> SearchResult[Any]:
         safe_page_size = min(query.page_size, MAX_PAGE_SIZE)
 
+        # set_config (not SET LOCAL / sqlalchemy.text) — aligns with DEC-085 spirit
         await self.db.execute(
-            text(f"SET LOCAL statement_timeout = " f"'{int(SEARCH_TIMEOUT_SECONDS * 1000)}'")
+            select(
+                func.set_config(
+                    "statement_timeout",
+                    str(int(SEARCH_TIMEOUT_SECONDS * 1000)),
+                    True,
+                )
+            )
         )
 
         base = self._build_base(query)
@@ -128,11 +135,12 @@ class ContactSearchRepository(SearchRepository[Any]):
             if hasattr(Contact, field):
                 col = getattr(Contact, field)
                 sub = base.subquery()
+                cnt = func.count().label("cnt")
                 fq = (
-                    select(col, func.count().label("cnt"))
+                    select(col, cnt)
                     .select_from(sub)
                     .group_by(col)
-                    .order_by(text("cnt desc"))
+                    .order_by(cnt.desc())
                     .limit(20)
                 )
                 r = await self.db.execute(fq)

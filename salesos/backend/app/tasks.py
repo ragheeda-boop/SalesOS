@@ -1,9 +1,15 @@
-"""Background task definitions for SalesOS workers."""
+"""Background task definitions for SalesOS workers.
+
+CI-19 Wave 2: entity SQL helpers use SQLAlchemy Core only (no sqlalchemy.text).
+"""
 
 import asyncio
 import datetime as _datetime
 import logging
 from typing import Any
+
+from sqlalchemy import Column, MetaData, String, Table, select, update
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 
 from app.celery_app import celery_app
 from app.config import settings
@@ -11,12 +17,33 @@ from app.config import settings
 logger = logging.getLogger("salesos.tasks")
 
 _ALLOWED_TABLES = frozenset({"companies", "contacts"})
+_tasks_metadata = MetaData()
 
 
 def _validate_table(name: str) -> str:
     if name not in _ALLOWED_TABLES:
         raise ValueError(f"Invalid table name: {name}")
     return name
+
+
+def _entity_table(name: str) -> Table:
+    """Allowlisted Core table for Celery entity helpers."""
+    table_name = _validate_table(name)
+    return Table(
+        table_name,
+        _tasks_metadata,
+        Column("id", PGUUID(as_uuid=True), primary_key=True),
+        Column("tenant_id", PGUUID(as_uuid=True)),
+        Column("name_ar", String),
+        Column("name_en", String),
+        Column("activity_description", String),
+        Column("city", String),
+        Column("industry", String),
+        Column("position", String),
+        Column("department", String),
+        Column("embedding", String),
+        extend_existing=True,
+    )
 
 
 def _run_async(coro):
@@ -29,8 +56,6 @@ def _run_async(coro):
 
 async def _get_entity_tenant(entity_id: str, entity_type: str) -> str | None:
     """Look up the tenant_id for an entity from PostgreSQL."""
-    from sqlalchemy import text
-
     from app.database import async_session
 
     table_map = {
@@ -38,11 +63,10 @@ async def _get_entity_tenant(entity_id: str, entity_type: str) -> str | None:
         "person": "contacts",
         "contact": "contacts",
     }
-    table = _validate_table(table_map.get(entity_type.lower(), "companies"))
+    tbl = _entity_table(table_map.get(entity_type.lower(), "companies"))
     async with async_session() as session:
         result = await session.execute(
-            text(f"SELECT tenant_id FROM {table} WHERE id = :id LIMIT 1"),
-            {"id": entity_id},
+            select(tbl.c.tenant_id).where(tbl.c.id == entity_id).limit(1)
         )
         row = result.mappings().one_or_none()
         return row["tenant_id"] if row else None
@@ -50,15 +74,11 @@ async def _get_entity_tenant(entity_id: str, entity_type: str) -> str | None:
 
 async def _load_company_record(company_id: str) -> dict[str, Any] | None:
     """Load a company row as a plain dict."""
-    from sqlalchemy import text
-
     from app.database import async_session
 
+    tbl = _entity_table("companies")
     async with async_session() as session:
-        result = await session.execute(
-            text("SELECT * FROM companies WHERE id = :id LIMIT 1"),
-            {"id": company_id},
-        )
+        result = await session.execute(select(tbl).where(tbl.c.id == company_id).limit(1))
         row = result.mappings().one_or_none()
         return dict(row) if row else None
 
@@ -106,8 +126,6 @@ def _sync_to_graph(entity_id: str, entity_type: str):
 
 def _generate_embedding(entity_id: str, entity_type: str):
     """Generate vector embedding for entity and store in companies.embedding + vector store."""
-    from sqlalchemy import text
-
     from app.config import settings
     from app.database import async_session
     from sdk.vector import OpenAIEmbeddingService
@@ -123,19 +141,16 @@ def _generate_embedding(entity_id: str, entity_type: str):
             return
 
         async with async_session() as session:
-            # Load entity text fields for embedding
-            table = _validate_table("companies" if entity_type.lower() == "company" else "contacts")
-            result = await session.execute(
-                text(f"SELECT * FROM {table} WHERE id = :id LIMIT 1"),
-                {"id": entity_id},
+            tbl = _entity_table(
+                "companies" if entity_type.lower() == "company" else "contacts"
             )
+            result = await session.execute(select(tbl).where(tbl.c.id == entity_id).limit(1))
             row = result.mappings().one_or_none()
             if not row:
                 logger.warning("Embedding skipped: %s %s not found", entity_type, entity_id)
                 return
 
             row_dict = dict(row)
-            # Build embedding text from available fields
             text_parts = [
                 row_dict.get("name_ar", ""),
                 row_dict.get("name_en", ""),
@@ -153,10 +168,8 @@ def _generate_embedding(entity_id: str, entity_type: str):
             svc = OpenAIEmbeddingService(api_key=settings.openai_api_key)
             embedding = await svc.embed(text_to_embed)
 
-            # Store in entity table
             await session.execute(
-                text(f"UPDATE {table} SET embedding = :emb WHERE id = :id"),
-                {"emb": embedding, "id": entity_id},
+                update(tbl).where(tbl.c.id == entity_id).values(embedding=str(embedding))
             )
             await session.commit()
             logger.info("Embedding generated and stored for %s %s", entity_type, entity_id)
@@ -376,14 +389,14 @@ def enrich_company_task(self, company_id: str, tenant_id: str) -> dict:
 
 async def _run_enrichment_pipeline(company_id: str, tenant_id: str) -> dict:
     """Run the full enrichment pipeline for a company."""
-    from sqlalchemy import text
-
     from app.database import async_session
 
+    tbl = _entity_table("companies")
     async with async_session() as session:
         row = await session.execute(
-            text("SELECT * FROM companies WHERE id = :id AND tenant_id = :tid LIMIT 1"),
-            {"id": company_id, "tid": tenant_id},
+            select(tbl)
+            .where(tbl.c.id == company_id, tbl.c.tenant_id == tenant_id)
+            .limit(1)
         )
         company = row.mappings().one_or_none()
         if not company:

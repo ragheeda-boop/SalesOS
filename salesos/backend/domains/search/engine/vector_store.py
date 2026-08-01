@@ -1,20 +1,26 @@
 """Vector store abstraction for semantic search.
 
 Supports both pgvector (production) and in-memory (development/demo).
+
+CI-19 Wave 2: PgVectorStore uses SQLAlchemy Core only (no sqlalchemy.text).
 """
 
 from __future__ import annotations
 
 import math
-import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
+
+from sqlalchemy import Column, MetaData, String, Table, bindparam, delete, func, literal, select
+from sqlalchemy.dialects.postgresql import JSONB, insert as pg_insert
 
 _ALLOWED_COLLECTIONS = frozenset({
     "vectors", "company_embeddings", "contact_embeddings",
     "document_embeddings",
 })
+
+_vector_store_metadata = MetaData()
 
 
 def _validate_collection(name: str) -> str:
@@ -22,6 +28,18 @@ def _validate_collection(name: str) -> str:
     if name not in _ALLOWED_COLLECTIONS:
         raise ValueError(f"Invalid collection name: {name}")
     return name
+
+
+def _collection_table(name: str) -> Table:
+    table_name = _validate_collection(name)
+    return Table(
+        table_name,
+        _vector_store_metadata,
+        Column("id", String, primary_key=True),
+        Column("embedding", String),
+        Column("metadata", JSONB),
+        extend_existing=True,
+    )
 
 
 @dataclass
@@ -99,51 +117,41 @@ class PgVectorStore(VectorStore):
     def __init__(self, session_factory, collection: str = "vectors"):
         self._session_factory = session_factory
         self._collection = _validate_collection(collection)
+        self._table = _collection_table(self._collection)
 
     async def search(self, vector: list[float], top_k: int = 10) -> list[VectorRecord]:
-        from sqlalchemy import text
-
+        tbl = self._table
+        distance = tbl.c.embedding.op("<=>")(bindparam("vector"))
+        score = (literal(1) - distance).label("score")
+        stmt = select(tbl.c.id, tbl.c.metadata, score).order_by(distance).limit(top_k)
         async with self._session_factory() as session:
-            stmt = text(
-                "SELECT id, metadata, 1 - (embedding <=> :vector::vector) AS score "
-                "FROM " + self._collection + " "
-                "ORDER BY embedding <=> :vector::vector "
-                "LIMIT :top_k"
-            )
-            result = await session.execute(stmt, {"vector": vector, "top_k": top_k})
+            result = await session.execute(stmt, {"vector": str(vector)})
             return [
                 VectorRecord(id=str(r.id), vector=[], metadata=r.metadata or {}, score=float(r.score))
                 for r in result
             ]
 
     async def upsert(self, record: VectorRecord) -> None:
-        from sqlalchemy import text
-
+        tbl = self._table
+        stmt = pg_insert(tbl).values(
+            id=record.id,
+            embedding=str(record.vector),
+            metadata=record.metadata,
+        )
+        stmt = stmt.on_conflict_do_update(
+            index_elements=[tbl.c.id],
+            set_={"embedding": stmt.excluded.embedding, "metadata": stmt.excluded.metadata},
+        )
         async with self._session_factory() as session:
-            await session.execute(
-                text(
-                    "INSERT INTO " + self._collection + " (id, embedding, metadata) "
-                    "VALUES (:id, :vector::vector, :metadata::jsonb) "
-                    "ON CONFLICT (id) DO UPDATE "
-                    "SET embedding = :vector::vector, metadata = :metadata::jsonb"
-                ),
-                {"id": record.id, "vector": record.vector, "metadata": record.metadata},
-            )
+            await session.execute(stmt)
             await session.commit()
 
     async def delete(self, record_id: str) -> None:
-        from sqlalchemy import text
-
         async with self._session_factory() as session:
-            await session.execute(
-                text("DELETE FROM " + self._collection + " WHERE id = :id"),
-                {"id": record_id},
-            )
+            await session.execute(delete(self._table).where(self._table.c.id == record_id))
             await session.commit()
 
     async def count(self) -> int:
-        from sqlalchemy import text
-
         async with self._session_factory() as session:
-            result = await session.execute(text("SELECT COUNT(*) FROM " + self._collection))
+            result = await session.execute(select(func.count()).select_from(self._table))
             return result.scalar() or 0

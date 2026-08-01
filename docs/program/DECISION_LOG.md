@@ -1062,6 +1062,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** CI-19 OPEN. R-24 mitigating (Slice 1+2+3). Validation: **light validated** (narrow pytest **50 passed**). **CI GREEN not met.**
 **Status:** Accepted. Wave 2 Slice 3 COMPLETE; story OPEN.
 
+### DEC-101 — CI-19 Wave 2 Slice 4 COMPLETE: search_runtime + vector/search/tasks Core honesty; CI-19 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** After Wave 2 Slice 3 (DEC-099 / 1f53dce), densest remainder was search_runtime (4) then sdk/search / ector_store / 	asks / contact search. Prefer Core over sqlalchemy.text; no Semgrep suppress. DEC-085 get_db/set_config untouched; search/contact timeouts use set_config (not SET LOCAL). DEC-100 reserved by CI-14 Jest STOP — this slice is DEC-101. Parallel Backend Unit pytest-fix agent owns prior Wave 2 fallout (to_jsonb/timeline); this slice does not touch those files.
+**Alternatives considered:** (a) close CI-19 — rejected (~18 text remain after this slice); (b) nosemgrep / severity drop — rejected; (c) abort for conflict with pytest-fix agent — rejected (no file overlap); (d) Slice 4 Core + keep OPEN — approved.
+**Decision:** Accept Wave 2 Slice 4 COMPLETE. Companion: [decisions/DEC-101-CI-19-WAVE2-SLICE4.md](decisions/DEC-101-CI-19-WAVE2-SLICE4.md). Expected clear **14**. Do not close CI-19. Do not weaken Semgrep gates.
+**Consequence:** CI-19 OPEN. R-24 mitigating (Slice 1–4). Validation: **light validated** (narrow pytest **14 passed**). **CI GREEN not met.**
+**Status:** Accepted. Wave 2 Slice 4 COMPLETE; story OPEN.
+
 ### DEC-100 — CI-14 Slice 3 STOP: Jest 29→30 silent major; no patch/minor; audit already 0
 
 **Date:** 2026-08-01
