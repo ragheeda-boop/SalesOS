@@ -313,7 +313,7 @@ class AgentMemoryUpdated(DomainEvent):
 # ── Registry ───────────────────────────────────────────────────────────────
 
 EVENT_REGISTRY: dict[str, type[DomainEvent]] = {
-    cast(str, getattr(cls, "event_type")): cls
+    cast(str, cls.event_type): cls
     for cls in [
         # Activity Intelligence events
         CommunicationReceived,

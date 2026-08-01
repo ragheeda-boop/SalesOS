@@ -56,9 +56,7 @@ async def saml_callback(
     service: SAMLService = Depends(get_service),
 ):
     client_host = request.client.host if request.client else "unknown"
-    await check_rate_limit_by_key(
-        f"saml-callback:{client_host}", limit=_SAML_RATE_LIMIT, window=60
-    )
+    await check_rate_limit_by_key(f"saml-callback:{client_host}", limit=_SAML_RATE_LIMIT, window=60)
 
     try:
         xml_data = decode_saml_response(SAMLResponse)
@@ -93,9 +91,7 @@ async def saml_idp_initiated(
     service: SAMLService = Depends(get_service),
 ):
     client_host = request.client.host if request.client else "unknown"
-    await check_rate_limit_by_key(
-        f"saml-idp-init:{client_host}", limit=_SAML_RATE_LIMIT, window=60
-    )
+    await check_rate_limit_by_key(f"saml-idp-init:{client_host}", limit=_SAML_RATE_LIMIT, window=60)
 
     try:
         xml_data = decode_saml_response(SAMLResponse)

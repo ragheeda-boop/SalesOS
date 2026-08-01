@@ -19,7 +19,6 @@ from app.dependencies import (
 )
 from domains.analytics.engine import CUBE_REGISTRY, ReportEngine
 from domains.analytics.infrastructure.postgres_repository import PostgresReportRepository
-from domains.analytics.repository import InMemoryReportRepository
 from domains.analytics.models import (
     CubeType,
     Granularity,
@@ -29,6 +28,7 @@ from domains.analytics.models import (
     ScheduleCadence,
     VisualizationType,
 )
+from domains.analytics.repository import InMemoryReportRepository
 from domains.analytics.schemas import (
     ReportCreate,
     ReportShareCreate,

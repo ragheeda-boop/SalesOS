@@ -219,9 +219,7 @@ class TenantProvisioningService:
             role_id = str(rd["id"])
             existing_perms_for_role = await self.role_repo.get_permissions(role_id)
             if not existing_perms_for_role:
-                await self.role_repo.set_permissions(
-                    role_id, cast(list[str], rd["permissions"])
-                )
+                await self.role_repo.set_permissions(role_id, cast(list[str], rd["permissions"]))
 
     async def provision_tenant(self, tenant_id: str, admin_user_id: str | None = None) -> dict:
         """Provision a new tenant with default roles, permissions, and optionally an admin user."""

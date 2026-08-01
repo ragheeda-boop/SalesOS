@@ -1,6 +1,6 @@
 import uuid
-from typing import Any
 from datetime import UTC, datetime
+from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy import or_, select

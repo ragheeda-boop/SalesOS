@@ -171,9 +171,7 @@ class GoogleOAuthService:
         base = cast(str | None, getattr(settings, "google_redirect_uri", None))
         if base:
             return base
-        api_url = cast(
-            str, getattr(settings, "next_public_api_url", "http://localhost:8000")
-        )
+        api_url = cast(str, getattr(settings, "next_public_api_url", "http://localhost:8000"))
         return f"{api_url}/api/v1/integrations/google/callback"
 
     def generate_authorization_url(self) -> tuple[str, str]:

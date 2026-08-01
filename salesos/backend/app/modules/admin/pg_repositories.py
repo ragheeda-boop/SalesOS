@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import List
 
 from sqlalchemy import delete as sa_delete
 from sqlalchemy import func as sa_func
@@ -77,7 +76,7 @@ class PostgresLicenseRepository:
         await self._session.flush()
         return license_
 
-    async def find_by_tenant(self, tenant_id: str | uuid.UUID) -> List[LicenseModel]:
+    async def find_by_tenant(self, tenant_id: str | uuid.UUID) -> list[LicenseModel]:
         tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
         stmt = select(LicenseModel).where(LicenseModel.tenant_id == tid)
         result = await self._session.execute(stmt)
@@ -155,7 +154,7 @@ class PostgresFeatureFlagRepository:
         await self._session.flush()
         return flag
 
-    async def get_tenants_for_flag(self, flag_id: uuid.UUID) -> List[dict]:
+    async def get_tenants_for_flag(self, flag_id: uuid.UUID) -> list[dict]:
         flag = await self.get(flag_id)
         if not flag:
             return []
@@ -166,7 +165,7 @@ class PostgresFeatureFlagRepository:
         ]
 
     async def evaluate(
-        self, flag_key: str, tenant_id: str, tenant_ids_all: List[str] | None = None
+        self, flag_key: str, tenant_id: str, tenant_ids_all: list[str] | None = None
     ) -> dict:
         """Evaluate a feature flag for a specific tenant.
 
@@ -193,7 +192,7 @@ class PostgresFeatureFlagRepository:
             return {"enabled": False, "reason": "zero_rollout"}
 
         if tenant_ids_all:
-            sorted_ids: List[str] = sorted(tenant_ids_all)
+            sorted_ids: list[str] = sorted(tenant_ids_all)
             try:
                 idx = sorted_ids.index(tenant_id)
             except ValueError:
@@ -506,7 +505,7 @@ class PostgresRoleRepository:
         await self._session.flush()
         return True
 
-    async def set_permissions(self, role_id: str, permission_ids: List[str]) -> None:
+    async def set_permissions(self, role_id: str, permission_ids: list[str]) -> None:
         await self._session.execute(
             sa_delete(RolePermissionModel).where(RolePermissionModel.role_id == role_id)
         )
@@ -514,14 +513,14 @@ class PostgresRoleRepository:
             self._session.add(RolePermissionModel(role_id=role_id, permission_id=pid))
         await self._session.flush()
 
-    async def get_permissions(self, role_id: str) -> List[str]:
+    async def get_permissions(self, role_id: str) -> list[str]:
         stmt = select(RolePermissionModel.permission_id).where(
             RolePermissionModel.role_id == role_id
         )
         result = await self._session.execute(stmt)
         return [row[0] for row in result]
 
-    async def get_roles_with_permissions(self, tenant_id: str | None = None) -> List[dict]:
+    async def get_roles_with_permissions(self, tenant_id: str | None = None) -> list[dict]:
         roles = await self.list(tenant_id)
         result = []
         for role in roles:

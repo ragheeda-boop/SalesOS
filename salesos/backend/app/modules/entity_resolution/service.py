@@ -629,7 +629,7 @@ class EntityResolutionService:
         # Archive source (merged_into_id is not an ORM column — persist via setattr)
         source.is_active = False
         source.status = "merged"
-        setattr(source, "merged_into_id", target.id)
+        source.merged_into_id = target.id
         await self.db.flush()
 
         audit = AuditTrail(self.db)

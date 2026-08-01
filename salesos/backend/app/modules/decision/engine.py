@@ -358,9 +358,7 @@ def _generate_recommendation(
     ts = _now_iso()
     confidence_score = next((s for s in scores if s.type == "confidence"), None)
     value = confidence_score.value if confidence_score else 0.5
-    conf_label: ConfidenceLabel = (
-        "high" if value >= 0.7 else "medium" if value >= 0.4 else "low"
-    )
+    conf_label: ConfidenceLabel = "high" if value >= 0.7 else "medium" if value >= 0.4 else "low"
 
     if value >= 0.7:
         action, action_label = "pursue", "Pursue Immediately"

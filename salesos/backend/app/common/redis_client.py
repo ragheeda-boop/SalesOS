@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional, cast
+from typing import cast
 
 from redis.asyncio import Redis  # type: ignore[import-untyped]
 from redis.exceptions import RedisError  # type: ignore[import-untyped]
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class AsyncRedisClient:
-    _instance: Optional[AsyncRedisClient] = None
+    _instance: AsyncRedisClient | None = None
     _initialized: bool
     _redis: Redis | None
 

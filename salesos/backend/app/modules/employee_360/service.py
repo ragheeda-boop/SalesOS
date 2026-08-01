@@ -20,6 +20,7 @@ from .schemas import (
     EmployeePortfolioItem,
     EmployeeProfile,
     EmployeeSignals,
+    EmployeeSignalSummary,
     EmployeeTimeline,
     PeerComparison,
     PerformanceInsights,
@@ -27,6 +28,30 @@ from .schemas import (
     ScoreTrend,
     TimelineEvent,
 )
+
+
+def _to_employee_signals(signal_data: dict | None) -> EmployeeSignals:
+    if not signal_data:
+        return EmployeeSignals()
+    summary = signal_data.get("summary")
+    if isinstance(summary, EmployeeSignalSummary):
+        signals_summary = summary
+    elif isinstance(summary, dict):
+        signals_summary = EmployeeSignalSummary(**summary)
+    elif summary is not None:
+        signals_summary = EmployeeSignalSummary(
+            total_signals=int(getattr(summary, "total_signals", 0) or 0),
+            by_source=dict(getattr(summary, "by_source", {}) or {}),
+            by_type=dict(getattr(summary, "by_type", {}) or {}),
+            recent_signals=list(getattr(summary, "recent_signals", []) or []),
+        )
+    else:
+        signals_summary = EmployeeSignalSummary()
+    score = signal_data.get("score")
+    return EmployeeSignals(
+        signals=signals_summary,
+        score=score if isinstance(score, dict) else None,
+    )
 
 
 class Employee360Service:
@@ -121,7 +146,7 @@ class Employee360Service:
             activity_intelligence=activity,
             kpis=kpis,
             ai_coach=ai_coach,
-            signals=signal_data or EmployeeSignals(),
+            signals=_to_employee_signals(signal_data),
             timeline=timeline,
             performance=performance,
         )
@@ -142,7 +167,7 @@ class Employee360Service:
             select(User)
             .where(
                 User.tenant_id == tenant_id,
-                User.is_active is True,
+                User.is_active.is_(True),
             )
             .order_by(User.full_name)
             .limit(10)
@@ -173,7 +198,7 @@ class Employee360Service:
         companies = []
         contacts_list = []
         pipeline = []
-        contracts = []
+        contracts: list[EmployeePortfolioItem] = []
 
         try:
             from domains.commercial.infrastructure.postgres_repositories import (

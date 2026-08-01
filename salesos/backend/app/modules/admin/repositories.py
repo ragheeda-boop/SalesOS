@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import List
 
 from .models import (
     AICostRecord,
@@ -135,7 +134,7 @@ class InMemoryLicenseRepository:
         self._licenses[license.id] = license
         return license
 
-    async def find_by_tenant(self, tenant_id: str | uuid.UUID) -> List[License]:
+    async def find_by_tenant(self, tenant_id: str | uuid.UUID) -> list[License]:
         tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
         return [lic for lic in self._licenses.values() if lic.tenant_id == tid]
 
@@ -322,7 +321,7 @@ class InMemoryFeatureFlagRepository:
         flag.updated_at = datetime.now(UTC)
         return flag
 
-    async def get_tenants_for_flag(self, flag_id: uuid.UUID) -> List[dict]:
+    async def get_tenants_for_flag(self, flag_id: uuid.UUID) -> list[dict]:
         flag = self._flags.get(flag_id)
         if not flag:
             return []
@@ -649,7 +648,7 @@ class InMemoryAICostRepository:
 
 
 class InMemoryHealthRepository:
-    _history: List[HealthSnapshot]
+    _history: list[HealthSnapshot]
     _start_time: datetime
 
     def __init__(self) -> None:

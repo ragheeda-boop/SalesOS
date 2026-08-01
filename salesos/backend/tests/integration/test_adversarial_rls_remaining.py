@@ -52,7 +52,8 @@ async def _create_company(session, tid: str, cr_suffix: str) -> str:
     await session.execute(
         text(
             f"INSERT INTO companies (id, tenant_id, cr_number, name_ar, name_en) "
-            f"VALUES ('{cid}'::uuid, '{tid}'::uuid, 'C{cr_suffix}-{tid[:8]}', '{cr_suffix}', '{cr_suffix}')"
+            f"VALUES ('{cid}'::uuid, '{tid}'::uuid, "
+            f"'C{cr_suffix}-{tid[:8]}', '{cr_suffix}', '{cr_suffix}')"
         )
     )
     return cid
@@ -133,7 +134,9 @@ async def test_company_features_isolation():
             conn, tb, f"SELECT count(*) FROM company_features WHERE tenant_id='{ta}'", 0, "cross"
         )
         await _fc(
-            conn, f"SELECT count(*) FROM company_features WHERE tenant_id='{ta}'", "company_features"
+            conn,
+            f"SELECT count(*) FROM company_features WHERE tenant_id='{ta}'",
+            "company_features",
         )
         await conn.rollback()
 
@@ -195,7 +198,9 @@ async def test_opportunities_isolation():
             conn, tb, f"SELECT count(*) FROM opportunities WHERE tenant_id='{ta}'::uuid", 0, "cross"
         )
         await _fc(
-            conn, f"SELECT count(*) FROM opportunities WHERE tenant_id='{ta}'::uuid", "opportunities"
+            conn,
+            f"SELECT count(*) FROM opportunities WHERE tenant_id='{ta}'::uuid",
+            "opportunities",
         )
         await conn.rollback()
 
@@ -330,7 +335,11 @@ async def test_contacts_write_fail_closed():
             "contacts B untouched",
         )
         await _rw(
-            conn, ta, f"DELETE FROM contacts WHERE tenant_id='{tb}'::uuid", 0, "contacts cross delete"
+            conn,
+            ta,
+            f"DELETE FROM contacts WHERE tenant_id='{tb}'::uuid",
+            0,
+            "contacts cross delete",
         )
         with pytest.raises(DBAPIError, match=RLS_REJECT):
             await _ins(
@@ -603,14 +612,20 @@ async def test_webhook_subscriptions_write_fail_closed():
         await _rw(
             conn,
             ta,
-            f"UPDATE webhook_subscriptions SET url='https://a2.example/hook' WHERE tenant_id='{ta}'",
+            (
+                "UPDATE webhook_subscriptions SET url='https://a2.example/hook' "
+                f"WHERE tenant_id='{ta}'"
+            ),
             1,
             "wh own update",
         )
         await _rw(
             conn,
             ta,
-            f"UPDATE webhook_subscriptions SET url='https://mut.example/hook' WHERE tenant_id='{tb}'",
+            (
+                "UPDATE webhook_subscriptions SET url='https://mut.example/hook' "
+                f"WHERE tenant_id='{tb}'"
+            ),
             0,
             "wh cross update",
         )

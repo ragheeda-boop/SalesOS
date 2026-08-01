@@ -127,7 +127,8 @@ async def test_post_with_auth_header():
             "/api/v1/echo",
             json={"status": "authorized"},
             headers={
-                # Intentionally non-JWT: real-looking JWTs trip Gitleaks; middleware only needs Bearer present.
+                # Intentionally non-JWT: real-looking JWTs trip Gitleaks;
+                # middleware only needs Bearer present.
                 "Authorization": "Bearer test-fake-token-not-a-jwt",
                 "X-Tenant-Id": "tenant-1",
             },

@@ -188,10 +188,7 @@ class PermissionEnforcer:
     def check(user_role: str, resource: str, action: PermissionAction | str) -> None:
         from sdk.exceptions import PermissionDeniedError
 
-        if isinstance(action, PermissionAction):
-            resolved = action
-        else:
-            resolved = PermissionAction(action)
+        resolved = action if isinstance(action, PermissionAction) else PermissionAction(action)
         action_str = resolved.value
         if not PermissionRegistry.has_permission(user_role, resource, resolved):
             raise PermissionDeniedError(user_role, f"{resource}.{action_str}")
