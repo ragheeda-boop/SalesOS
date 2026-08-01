@@ -127,11 +127,22 @@ Do **not** weaken RLS or DEC-085. Prefer docs/ops/code for DB URL wiring; avoid 
 | Image follow-on | Dockerfile + `.dockerignore` fixed so future builds ship `scripts/` + `PYTHONPATH=/app` (preDeploy `alembic upgrade head` can load RLS revisions) |
 | Production | **Not migrated. Not promoted.** |
 
-### Slice D/E prep (not closed)
+### Slice D — production tip image + role proof — NOT STARTED / STOPPED
+
+| Fact | Detail |
+|---|---|
+| User stop (2026-08-01) | Finish in-hand; **do not** start Slice E; **do not** promote further envs |
+| Deploy attempted? | **No** — no prod `railway up` this session; no mid-flight migrate |
+| Live prod deploy | **`1328309a-b887-4977-8e06-29ba93148682` SUCCESS** (unchanged; DEC-016-era) |
+| Live `/health` | **200** `version=3.1.0` `database=connected` (re-probed) |
+| Role proof | **Not run** (no tip image; auditor claim of `postgres` sessions still the last Tier-1) |
+| Prod alembic | **Not run** — before state not changed; tip head may now include post-`b7e2…` revisions (e.g. DB-05) — D2 must inventory carefully |
+| Staging | **Unchanged** by this stop (C remains DONE) |
+
+### Slice E — bypass-probe — NOT STARTED (READY after D)
 
 | Item | Note |
 |---|---|
-| D | Prod still **`3.1.0`** / needs tip image + `salesos_app` runtime proof. Do **not** promote until change-control |
-| E | Bypass-probe READY after D (and staging probe fixtures if needed). **Not claimed PASS** |
+| E | READY after D1+D2. **Not claimed PASS.** Do not start until D closed with evidence |
 
-**Validation (A+B+C):** **light validated**. **Not** bypass-probe PASS. **Production GA = NO-GO.** R-14 remains **REOPENED** until E.
+**Validation (A+B+C; D stop note):** **docs / light validated** (prod health re-probe). **Not** bypass-probe PASS. **Production GA = NO-GO.** R-14 remains **REOPENED** until E.
