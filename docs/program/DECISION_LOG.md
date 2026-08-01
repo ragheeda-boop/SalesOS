@@ -1063,6 +1063,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Status:** Accepted. Wave 2 Slice 3 COMPLETE; story OPEN.
 
 
+### DEC-104 — CI-08 / R-17 GHCR 403: prefer org Packages write (A); interim dual CI-GREEN honesty (D); no unauthorized push soften
+
+**Date:** 2026-08-01
+**Context:** Stage 6 Backend+Frontend Docker **image builds succeed** on field run `30690622307` @ `927276f` (jobs `91345633439` / `91345633450`); both fail only on **GHCR push 403**. Stage 7 skipped. Stages 1–5 green on tip path. Workflow already declares `packages: write` (ci.yml top-level + Stage 6 jobs; deploy-staging/production same pattern) and uses `GITHUB_TOKEN` — not a missing YAML permission. Triage #15/#16 same class. No alternate registry approved in PRODUCTION_PLAN / staging runbooks (all `ghcr.io/ragheeda-boop/salesos/*`).
+**Alternatives considered:** (A) org/account grants GHCR Packages write for Actions — **preferred**; (B) split build-attest vs push / `continue-on-error` — **rejected without separate AC DEC** (would mask publish; Stage 7 ≠ deployable images); (C) alternate registry — **rejected** (not approved in docs); (D) park Stage 6/7 ops-blocked + redefine **CI GREEN (code path)** vs **CI GREEN (full incl. publish)** — **accepted as interim honesty**.
+**Decision:** Close CI-08 only via **Option A** (human ops). Adopt **Option D** labels for reporting. Do **not** implement B/C in this land. Do **not** invent credentials or weaken security. Companion: [`decisions/DEC-104-CI-08-GHCR-OPS-OPTIONS.md`](decisions/DEC-104-CI-08-GHCR-OPS-OPTIONS.md).
+**Consequence:** CI-08 remains **BLOCKED** (ops). R-17 Open — mitigating (direction set; GHCR leg awaiting field push SUCCESS). Stage 7 remains gated. Production GA / full publish GREEN **not** claimed. Validation: **docs only / not validated** (pipeline).
+**Status:** Accepted (program direction). Ops execution pending.
+
 ### DEC-103 — CI-19 Wave 2 Slice 6 COMPLETE: residual package (app clear + alembic RLS accepted); CI-19 remains OPEN
 
 **Date:** 2026-08-01

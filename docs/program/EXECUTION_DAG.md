@@ -50,9 +50,10 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Item | Class | Blocked on | Notes |
 |---|---|---|---|
-| **CI-08** GHCR 403 | BLOCKED | Org-level GHCR access | Outside repo scope; R-17 — remaining board **P0**; not Phase 0 RLS gate |
+| **CI-08** GHCR 403 | BLOCKED | Org-level GHCR access (DEC-104 Option A) | Outside repo scope; R-17 — remaining board **P0**; Stage 6 build proven / push 403; not Phase 0 RLS gate |
 | **CI-09** VPS SSH/secrets | BLOCKED | Ops secret provisioning | R-17 — P2; not Phase 0 RLS gate |
-| **CI GREEN** (overall workflow) | BLOCKED | Residual reds: Backend Lint, pip-audit/Secrets Scan residuals, npm audit (CI-14), Trivy fs, Semgrep residual (CI-19 Wave 2), etc. (**CI-20 / Backend Types CLOSED** DEC-096 field **0**; **Jest-debt / R-23 CLOSED** DEC-077) | Parallel honesty track; **blocks production GO**, not DEC-008 Phase 0 exit |
+| **CI GREEN (full incl. publish)** | BLOCKED | Stage 6 GHCR push (CI-08) + Stage 7 + any residual non-publish reds | DEC-104 Option D: do **not** equate Stages 1–5 green with full publish GREEN; **blocks production GO**, not DEC-008 Phase 0 exit |
+| **CI GREEN (code path)** | REPORTING ONLY | Stages 1–5 (+ non-publish gates) on a named run | DEC-104 interim honesty — **not** a closed production gate; claim only with run IDs |
 
 ---
 
