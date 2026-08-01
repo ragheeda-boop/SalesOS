@@ -17,7 +17,8 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat
 
 # Copy package files first (layer cache optimization)
-COPY package.json package-lock.json* ./
+# CI-14 Slice 2: honor legacy-peer-deps for eslint 10 vs eslint-config-next peers
+COPY package.json package-lock.json* .npmrc ./
 COPY packages packages/
 
 # Install all dependencies (including dev for build)

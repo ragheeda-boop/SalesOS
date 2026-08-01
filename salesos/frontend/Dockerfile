@@ -1,6 +1,7 @@
 FROM node:22-alpine AS build
 WORKDIR /app
-COPY package.json package-lock.json ./
+# CI-14 Slice 2: honor legacy-peer-deps for eslint 10 vs eslint-config-next peers
+COPY package.json package-lock.json .npmrc ./
 COPY packages packages/
 RUN npm install --no-audit --no-fund --workspaces --include-workspace-root
 COPY . .
