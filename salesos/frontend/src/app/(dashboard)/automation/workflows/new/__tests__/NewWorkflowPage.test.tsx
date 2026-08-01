@@ -120,9 +120,8 @@ describe("NewWorkflowPage", () => {
 
     it("adds a step when clicking a step type", () => {
       render(<NewWorkflowPage />);
-      const addButtons = screen.getAllByText("إرسال بريد");
-      // Click the palette button (second one, first is in sidebar)
-      fireEvent.click(addButtons[1]);
+      // Palette is the only "إرسال بريد" control (no duplicate in sidebar)
+      fireEvent.click(screen.getByText("إرسال بريد"));
       expect(screen.getByText("الخطوات (1)")).toBeInTheDocument();
     });
   });

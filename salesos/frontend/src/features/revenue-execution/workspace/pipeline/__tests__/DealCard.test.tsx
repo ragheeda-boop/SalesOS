@@ -87,11 +87,9 @@ describe("DealCard", () => {
   });
 
   it("renders score badge with fallback when healthScore missing", () => {
-    const { container } = render(<DealCard opportunity={makeOpp()} />);
-    const badge = container.querySelector(
-      '[class*="rounded-full"][class*="text-[10px]"]',
-    );
-    expect(badge).not.toBeNull();
+    render(<DealCard opportunity={makeOpp()} />);
+    // Missing healthScore renders an em-dash placeholder (not a rounded Badge)
+    expect(screen.getByText("—")).toBeInTheDocument();
   });
 
   it("renders GripVertical drag handle", () => {

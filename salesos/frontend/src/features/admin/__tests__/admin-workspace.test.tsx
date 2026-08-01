@@ -40,15 +40,19 @@ describe("AdminWorkspace", () => {
 
   it("renders sidebar navigation tabs", () => {
     render(<AdminWorkspace />);
-    expect(screen.getByText("الرئيسية")).toBeInTheDocument();
-    expect(screen.getByText("العملاء")).toBeInTheDocument();
-    expect(screen.getByText("الباقات والتراخيص")).toBeInTheDocument();
-    const usersInSidebar = screen.getAllByText("المستخدمين");
-    expect(usersInSidebar.length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("الميزات")).toBeInTheDocument();
-    expect(screen.getByText("الوظائف")).toBeInTheDocument();
-    expect(screen.getByText("تكاليف AI")).toBeInTheDocument();
-    const healthItems = screen.getAllByText("صحة النظام");
-    expect(healthItems.length).toBeGreaterThanOrEqual(1);
+    // Labels come from ar.json via useTranslation (admin.tab.*)
+    // Sidebar + overview quick-actions can render the same labels twice
+    expect(screen.getAllByText("نظرة عامة").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("العملاء").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("الباقات").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("المستخدمين").length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("الميزات التجريبية").length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("الوظائف الخلفية").length,
+    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("تكاليف AI").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("صحة النظام").length).toBeGreaterThanOrEqual(1);
   });
 });
