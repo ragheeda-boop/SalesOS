@@ -60,4 +60,10 @@ describe('StateRuntime', () => {
     expect(rt.get('a')).toBeUndefined()
     expect(rt.get('b')).toBeUndefined()
   })
+
+  it('rejects prototype-pollution path keys', () => {
+    expect(() => rt.set('__proto__.polluted', true)).toThrow(/blocked path key/)
+    expect(() => rt.set('a.constructor', true)).toThrow(/blocked path key/)
+    expect(() => rt.get('prototype.x')).toThrow(/blocked path key/)
+  })
 })

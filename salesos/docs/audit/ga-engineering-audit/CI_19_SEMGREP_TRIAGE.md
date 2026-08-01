@@ -174,9 +174,18 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 - **Explicitly not excluded:** `salesos/backend` app/runtime, product FE packages (e.g. prototype-pollution in `packages/runtime` → Wave 5), `.github/workflows`.
 - **Honesty:** path excludes only for out-of-product / non-runtime noise — **no** severity drop, **no** blanket rule ignore.
 
-### Wave 5 — Residual audit rules
+### Wave 5 — Residual audit rules → **COMPLETE** (`DEC-082`)
 
-- Singleton/error rules (xml, websocket, urllib, regexp, FE prototype-pollution) — case-by-case.
+- **Scope:** singleton / small-cluster residual rules left after Waves 1/3/4 (xml, websocket, urllib, non-literal regexp ×3, FE prototype-pollution ×2). Real code/doc fixes — **no** severity drop, **no** blanket rule ignore, **no** Wave 2 SQL work.
+- **Remediations:**
+  - `use-defused-xml-parse` — `salesos/backend/scripts/check_diff_coverage.py`: replace `xml.etree.ElementTree` with Cobertura regex parse (local CI XML; no new dep).
+  - `detect-insecure-websocket` — `salesos/docs/pentest/PENTEST_BRIEF.md`: document `wss://` (not `ws://`).
+  - `dynamic-urllib-use-detected` — root `website_li_pipeline.py`: replace `urllib.request.urlopen` with `http.client` (no `file://`).
+  - `detect-non-literal-regexp` ×3 — forms: `pattern?: RegExp` (no `new RegExp(string)`); search-highlight: literal `indexOf` split; session test: cookie parse without RegExp.
+  - `prototype-pollution-loop` ×2 — `packages/runtime` `StateRuntime`: block `__proto__`/`constructor`/`prototype`; null-prototype nested objects; `hasOwnProperty` walks.
+- **Architecture STOP:** none for this slice.
+- **Out of Wave 5:** Wave 2 `avoid-sqlalchemy-text` (~108 still open); logger-credential / gha-workflow-env-secret / misc secret-detectors (not triage Wave 5 singletons).
+- **Security effect:** clears residual audit surface without weakening Semgrep ERROR/WARNING gates / SARIF upload.
 
 ---
 
@@ -188,9 +197,9 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 | SQL honesty / FP review (Wave 2) | **~77** | **SKIPPED / deferred** (aborted honesty rewrite); REGISTERED — no mass `nosec` |
 | Hardening backlog (Wave 3) | **~139** → SHA pins **115** + residual **19** done | **Wave 3 COMPLETE** (`DEC-069` SHA-pin + `DEC-074` K8s/Docker/TF) |
 | **Noise / exclude (Wave 4)** | **~30** | **COMPLETE** (`DEC-076`) — `.semgrepignore` + secrets-doc redact |
-| Residual singletons (Wave 5) | **~6+** | Case-by-case (incl. FE prototype-pollution left in-scope) |
+| Residual singletons (Wave 5) | **8** | **COMPLETE** (`DEC-082`) — xml/websocket/urllib/regexp×3/prototype×2 |
 
-**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 COMPLETE** under `DEC-069` (`556304d`) + `DEC-074` (`465c638`). **Wave 4 COMPLETE** under `DEC-076`. Wave 2 skipped/deferred. Next executable: Wave 5 residuals — CI-19 remains OPEN. **CI GREEN not met.**
+**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 COMPLETE** under `DEC-069` (`556304d`) + `DEC-074` (`465c638`). **Wave 4 COMPLETE** under `DEC-076` (`5c27470`). **Wave 5 COMPLETE** under `DEC-082`. Wave 2 skipped/deferred. CI-19 remains OPEN (Wave 2 SQL honesty + non-Wave-5 residuals). **CI GREEN not met.**
 
 ---
 
@@ -207,6 +216,7 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 | Spot-check secrets doc | `salesos/docs/PILOT_SECRETS_GUIDE.md` → Wave 4 `CHANGE_ME_*` redact |
 | Semgrep upload config | `.github/workflows/security-scan.yml` `sast-scan` job |
 | Wave 4 path excludes | `.semgrepignore` (DEC-076) |
+| Wave 5 residual fixes | DEC-082 — coverage regex parse; `wss://` pentest brief; `http.client` pipeline; FE RegExp/prototype hardening |
 | Local raw dumps | `.tmp-ci19/` **absent** at close — not committed |
 
 ---
@@ -220,4 +230,4 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 
 ---
 
-*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`556304d` / DEC-069 + `465c638` / DEC-074). Wave 4 COMPLETE (DEC-076 `.semgrepignore`). Wave 2 skipped/deferred. Next: Wave 5 (CI-19 still OPEN).*
+*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`556304d` / DEC-069 + `465c638` / DEC-074). Wave 4 COMPLETE (`5c27470` / DEC-076). Wave 5 COMPLETE (DEC-082). Wave 2 skipped/deferred. CI-19 still OPEN (Wave 2 SQL).*

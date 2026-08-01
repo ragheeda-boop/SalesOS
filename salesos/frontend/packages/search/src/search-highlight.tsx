@@ -8,8 +8,38 @@ interface SearchHighlightProps {
   className?: string
 }
 
-function escapeRegex(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+/** Split `text` on case-insensitive literal highlight terms without RegExp (ReDoS-safe). */
+function splitByHighlights(text: string, highlights: string[]): string[] {
+  const terms = highlights.map((h) => h.trim()).filter(Boolean)
+  if (terms.length === 0) return [text]
+
+  const lower = text.toLowerCase()
+  const parts: string[] = []
+  let cursor = 0
+
+  while (cursor < text.length) {
+    let bestIdx = -1
+    let bestLen = 0
+    for (const term of terms) {
+      const idx = lower.indexOf(term.toLowerCase(), cursor)
+      if (idx === -1) continue
+      if (bestIdx === -1 || idx < bestIdx || (idx === bestIdx && term.length > bestLen)) {
+        bestIdx = idx
+        bestLen = term.length
+      }
+    }
+    if (bestIdx === -1) {
+      parts.push(text.slice(cursor))
+      break
+    }
+    if (bestIdx > cursor) {
+      parts.push(text.slice(cursor, bestIdx))
+    }
+    parts.push(text.slice(bestIdx, bestIdx + bestLen))
+    cursor = bestIdx + bestLen
+  }
+
+  return parts
 }
 
 export function SearchHighlight({ text, highlights, className }: SearchHighlightProps) {
@@ -17,15 +47,10 @@ export function SearchHighlight({ text, highlights, className }: SearchHighlight
     return <span className={className}>{text}</span>
   }
 
-  const pattern = highlights
-    .filter(Boolean)
-    .map((h) => escapeRegex(h.trim()))
-    .join('|')
-
-  if (!pattern) return <span className={className}>{text}</span>
-
-  const regex = new RegExp(`(${pattern})`, 'gi')
-  const parts = text.split(regex)
+  const parts = splitByHighlights(text, highlights)
+  if (parts.length === 1 && parts[0] === text) {
+    return <span className={className}>{text}</span>
+  }
 
   return (
     <span className={className}>

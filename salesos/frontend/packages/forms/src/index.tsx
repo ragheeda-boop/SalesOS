@@ -15,7 +15,8 @@ export interface FormFieldDefinition {
   maxLength?: number
   minimum?: number
   maximum?: number
-  pattern?: string
+  /** Precompiled pattern only — never pass a raw string into `RegExp()` (ReDoS). */
+  pattern?: RegExp
   options?: { label: string; value: string }[]
   defaultValue?: unknown
   order?: number
@@ -45,7 +46,7 @@ function buildZodSchema(fields: FormFieldDefinition[]): z.ZodObject<z.ZodRawShap
         schema = z.string()
         if (field.minLength) schema = (schema as z.ZodString).min(field.minLength)
         if (field.maxLength) schema = (schema as z.ZodString).max(field.maxLength)
-        if (field.pattern) schema = (schema as z.ZodString).regex(new RegExp(field.pattern))
+        if (field.pattern) schema = (schema as z.ZodString).regex(field.pattern)
         break
       case 'number':
         schema = z.coerce.number()

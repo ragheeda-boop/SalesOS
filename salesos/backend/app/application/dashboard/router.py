@@ -39,15 +39,15 @@ def _build_decision_provider():
 
 @router.get("/dashboard", response_model=DashboardDTO)
 async def get_dashboard(
+    request: Request,
     query: DashboardQuery = Depends(),
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
-    request: Request | None = None,
     # Sales home aggregates company/ops signals — gate on company.READ (user+manager+admin).
     # Keep executive.READ on /executive/dashboard only; do not conflate the two surfaces.
     _: None = Depends(require_permission_dep("company", PermissionAction.READ)),
 ):
-    cache = getattr(request.app.state, "cache", None) if request else None
+    cache = getattr(request.app.state, "cache", None)
     cache_key = f"dashboard:{tenant_id}:{query.period}:{','.join(sorted(query.fields)) if query.fields else 'all'}"  # noqa: E501
 
     if cache:

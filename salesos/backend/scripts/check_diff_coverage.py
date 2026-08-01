@@ -30,9 +30,20 @@ import argparse
 import re
 import subprocess
 import sys
-import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
+
+# Cobertura XML from coverage.py is local CI output (not untrusted network XML).
+# Parse with regex instead of xml.etree / defusedxml to avoid XXE-class parsers
+# (CI-19 Wave 5 — Semgrep use-defused-xml-parse) without adding a runtime dep.
+_CLASS_FILENAME_RE = re.compile(
+    r"<class\b(?P<attrs>[^>]*)>",
+    re.IGNORECASE,
+)
+_ATTR_FILENAME_RE = re.compile(r'\bfilename\s*=\s*"([^"]*)"', re.IGNORECASE)
+_LINE_TAG_RE = re.compile(r"<line\b([^/]*)/>", re.IGNORECASE)
+_ATTR_NUMBER_RE = re.compile(r'\bnumber\s*=\s*"(\d+)"', re.IGNORECASE)
+_ATTR_HITS_RE = re.compile(r'\bhits\s*=\s*"(\d+)"', re.IGNORECASE)
 
 # Must match the --cov= flags in .github/workflows/ci.yml's test-backend job
 # exactly — anything outside these top-level dirs (tests/, scripts/,
@@ -101,14 +112,24 @@ def _added_line_numbers(base_ref: str, path: str) -> set[int]:
 
 def _load_coverage(xml_path: Path) -> dict[str, dict[int, int]]:
     """Return {filename: {line_number: hits}} exactly as coverage.py's Cobertura XML reports it."""
-    root = ET.parse(xml_path).getroot()
+    payload = xml_path.read_text(encoding="utf-8", errors="replace")
     by_file: dict[str, dict[int, int]] = {}
-    for cls in root.iter("class"):
-        filename = cls.get("filename")
-        if filename is None:
+    parts = _CLASS_FILENAME_RE.split(payload)
+    for i in range(1, len(parts), 2):
+        attrs = parts[i]
+        body = parts[i + 1] if i + 1 < len(parts) else ""
+        fm = _ATTR_FILENAME_RE.search(attrs)
+        if fm is None:
             continue
-        lines_el = cls.find("lines")
-        lines = {int(ln.get("number")): int(ln.get("hits")) for ln in lines_el} if lines_el is not None else {}
+        filename = fm.group(1)
+        lines: dict[int, int] = {}
+        class_body = body.split("</class>", 1)[0]
+        for line_attrs in _LINE_TAG_RE.findall(class_body):
+            nm = _ATTR_NUMBER_RE.search(line_attrs)
+            hm = _ATTR_HITS_RE.search(line_attrs)
+            if nm is None or hm is None:
+                continue
+            lines[int(nm.group(1))] = int(hm.group(1))
         by_file[filename] = lines
     return by_file
 

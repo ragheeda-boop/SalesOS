@@ -2,10 +2,8 @@
 Website & LinkedIn First Enrichment Pipeline
 Focus: Discover + Validate only. No ICP, no outreach.
 """
-import openpyxl, json, re, sys, io, socket, time, ssl
+import openpyxl, json, re, sys, io, socket, time, ssl, http.client
 from datetime import datetime
-from urllib.request import Request, urlopen
-from urllib.error import URLError, HTTPError
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from collections import Counter
 
@@ -59,30 +57,39 @@ def check_domain_http(domain):
         result['error'] = 'DNS failed'
         return result
     
-    for proto in ['https', 'http']:
+    # Use http.client (not urllib) so dynamic URLs cannot open file:// (CI-19 Wave 5).
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html',
+        'Accept-Language': 'en-US,en;q=0.9',
+    }
+    for use_ssl in (True, False):
+        proto = 'https' if use_ssl else 'http'
+        conn = None
         try:
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
-            req = Request(f'{proto}://{domain}', headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'Accept': 'text/html',
-                'Accept-Language': 'en-US,en;q=0.9',
-            })
-            resp = urlopen(req, timeout=10, context=ctx)
-            result['http_ok'] = resp.status == 200
-            result['redirect'] = resp.url if resp.url.lower().rstrip('/') != f'{proto}://{domain}'.lower().rstrip('/') and resp.url.lower().rstrip('/') != f'{proto}://www.{domain}'.lower().rstrip('/') else ''
-            
+            if use_ssl:
+                ctx = ssl.create_default_context()
+                ctx.check_hostname = False
+                ctx.verify_mode = ssl.CERT_NONE
+                conn = http.client.HTTPSConnection(domain, timeout=10, context=ctx)
+            else:
+                conn = http.client.HTTPConnection(domain, timeout=10)
+            conn.request('GET', '/', headers=headers)
+            resp = conn.getresponse()
+            status = resp.status
+            location = resp.getheader('Location') or ''
             content = resp.read(131072).decode('utf-8', errors='replace')
-            # Extract title
+            result['http_ok'] = status == 200
+            if location:
+                loc_l = location.lower().rstrip('/')
+                base = f'{proto}://{domain}'.lower().rstrip('/')
+                www = f'{proto}://www.{domain}'.lower().rstrip('/')
+                if loc_l != base and loc_l != www:
+                    result['redirect'] = location
             m = re.search(r'<title[^>]*>(.*?)</title>', content, re.IGNORECASE | re.DOTALL)
             if m: result['title'] = m.group(1).strip()[:200]
-            
-            # Extract meta description
             m = re.search(r'<meta[^>]+name=["\']description["\'][^>]+content=["\']([^"\']+)["\']', content, re.IGNORECASE)
             if m: result['description'] = m.group(1).strip()[:300]
-            
-            # Check for parked indicators
             parked_kw = ['godaddy', 'sedo', 'hugedomains', 'domain parking', 'buy this domain', 'this domain is parked', 'domain is for sale']
             title_lower = (result['title'] or '').lower()
             if any(kw in title_lower for kw in parked_kw):
@@ -90,16 +97,18 @@ def check_domain_http(domain):
                 result['error'] = f'Parked domain: {result["title"][:100]}'
             else:
                 result['parked'] = False
-            break
-        except HTTPError as e:
-            if e.code == 404:
+            if status == 404:
                 continue
-            result['error'] = f'HTTP {e.code}'
-        except URLError as e:
-            result['error'] = f'URL Error: {e.reason}'
+            break
         except Exception as e:
             result['error'] = str(e)[:100]
-    
+        finally:
+            if conn is not None:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+
     return result
 
 # ===================== LOAD DATA =====================

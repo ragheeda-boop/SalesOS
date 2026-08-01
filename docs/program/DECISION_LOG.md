@@ -856,3 +856,21 @@
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. R-22 Open — mitigating. **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 19 COMPLETE**; story **OPEN**.
 
+### DEC-082 — CI-19 Wave 5 COMPLETE: residual singletons (xml/websocket/urllib/regexp/prototype); CI-19 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-19 triage Wave 5 scoped residual audit rules after Waves 1/3/4: use-defused-xml-parse, detect-insecure-websocket, dynamic-urllib-use-detected, detect-non-literal-regexp x3, prototype-pollution-loop x2 (8 Code Scanning alerts). Live open Semgrep after Wave 4 ~130. Wave 2 SQL honesty remains SKIPPED/deferred. Prefer real fixes over ignores; Semgrep ERROR/WARNING gates unchanged.
+**Alternatives considered:** (a) close CI-19 on Wave 5 land — rejected (Wave 2 ~108 avoid-sqlalchemy-text + non-Wave-5 residuals remain); (b) path-exclude / nosemgrep the FE packages — rejected (in-product runtime; triage left them in-scope); (c) real code/doc remediations + keep CI-19 OPEN — approved.
+**Decision:** Accept Wave 5 as COMPLETE. Remediations: Cobertura regex parse in check_diff_coverage.py (no xml.etree); pentest brief wss://; root website_li_pipeline.py to http.client; forms pattern as RegExp; search-highlight + session test without new RegExp(string); StateRuntime blocks __proto__/constructor/prototype + null-prototype nests. Architecture STOP: none. Do not mark CI-19 CLOSED. Do not execute Wave 2. Do not weaken Semgrep severity/SARIF upload.
+**Consequence:** CI-19 stays IN PROGRESS / OPEN. Cleared 8 Wave 5 findings (expected). R-24 Open — mitigating. Validation: light validated (local inventory vs alert paths #567/#582/#622/#583/#586/#627/#584/#585; field Code Scanning closure not yet re-verified). CI GREEN not met.
+**Status:** Accepted. CI-19 Wave 5 COMPLETE; story OPEN.
+
+
+### DEC-081 — CI-22 Phase 1 COMPLETE: FastAPI/Starlette/Pydantic cascade (starlette ≥1.3.1); CI-22 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** Standing approval authorized CI-22 execute after DEC-073 plan. Accidental early pin was reverted (2c44a79). Phase 1 cascade: astapi **0.111.1 → 0.141.1**, direct starlette **0.37.2 → 1.3.1**, pydantic **2.8.2 → 2.13.4**. C3 app fixes for FastAPI 0.14x: move Request ahead of defaulted params in dashboard + knowledge-graph path/search (reject Request | None = None / mid-signature Request = None).
+**Alternatives considered:** (a) close CI-22 on Phase 1 — rejected (field pip-audit / full suite not yet green; ecdsa residual remains R-21); (b) rollback on first import failure — rejected after C3 Request fixes restored smoke; (c) record Phase 1 COMPLETE, keep CI-22 OPEN — approved.
+**Decision:** Accept Phase 1 as **COMPLETE**. Evidence: host poetry lock → fastapi **0.141.1** / starlette **1.3.1** / pydantic **2.13.4**; rom app.main import app **exit 0**; pytest tests/unit/test_middleware.py **37 passed**. Do **not** mark CI-22 CLOSED. Do **not** weaken security gates. Do **not** touch Railway. Validation: **light validated** (host smoke; full CI pip-audit **not** re-verified this land).
+**Consequence:** CI-22 **IN PROGRESS / OPEN**. R-21 mitigating (starlette floor met in lock; ecdsa accepted residual remains). **CI GREEN not met.**
+**Status:** Accepted. CI-22 **Phase 1 COMPLETE**; story **OPEN**.

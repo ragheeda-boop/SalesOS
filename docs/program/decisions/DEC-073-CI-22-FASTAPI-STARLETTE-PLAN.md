@@ -1,6 +1,6 @@
 # DEC-073 — CI-22 FastAPI / Starlette / Pydantic modernization: planning evidence (no package bump)
 
-> **Status:** **Accepted** — plan/evidence COMPLETE; **no** FastAPI/Starlette/Pydantic bump in this land  
+> **Status:** **Accepted** — plan COMPLETE; **Phase 1 EXECUTED** under DEC-081 (fastapi 0.141.1 / starlette 1.3.1 / pydantic 2.13.4)  
 > **Date:** 2026-08-01  
 > **Board:** Backend / Deps (SalesOS / AQLIYA)  
 > **Story / risk:** CI-22 / R-21 starlette leg  

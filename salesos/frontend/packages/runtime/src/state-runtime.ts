@@ -1,4 +1,4 @@
-import { useState, useCallback, useSyncExternalStore } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 
 export interface StateRuntimeOptions {
   name?: string
@@ -7,8 +7,28 @@ export interface StateRuntimeOptions {
 
 type Listener = (value?: unknown) => void
 
+const BLOCKED_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+
+function assertSafeKey(key: string): void {
+  if (!key || BLOCKED_KEYS.has(key)) {
+    throw new Error(`StateRuntime: blocked path key "${key}"`)
+  }
+}
+
+function assertSafePath(path: string): string[] {
+  const keys = path.split('.')
+  for (const key of keys) {
+    assertSafeKey(key)
+  }
+  return keys
+}
+
+function emptyObject(): Record<string, unknown> {
+  return Object.create(null) as Record<string, unknown>
+}
+
 export class StateRuntime {
-  private store: Record<string, unknown> = {}
+  private store: Record<string, unknown> = emptyObject()
   private listeners = new Map<string, Set<Listener>>()
   private name: string
   private debug: boolean
@@ -35,13 +55,17 @@ export class StateRuntime {
 
   set<T = unknown>(path: string, value: T): void {
     this.log(`set ${path} =`, value)
-    const keys = path.split('.')
+    const keys = assertSafePath(path)
     let current: Record<string, unknown> = this.store
     for (let i = 0; i < keys.length - 1; i++) {
-      if (!(keys[i] in current) || typeof current[keys[i]] !== 'object') {
-        current[keys[i]] = {}
+      const key = keys[i]
+      const next = Object.prototype.hasOwnProperty.call(current, key)
+        ? current[key]
+        : undefined
+      if (next === null || typeof next !== 'object' || Array.isArray(next)) {
+        current[key] = emptyObject()
       }
-      current = current[keys[i]] as Record<string, unknown>
+      current = current[key] as Record<string, unknown>
     }
     current[keys[keys.length - 1]] = value
     this.notify(path, value)
@@ -53,6 +77,7 @@ export class StateRuntime {
   }
 
   subscribe(path: string, listener: Listener): () => void {
+    assertSafePath(path)
     if (!this.listeners.has(path)) {
       this.listeners.set(path, new Set())
     }
@@ -73,16 +98,19 @@ export class StateRuntime {
 
   clear(path?: string): void {
     if (path) {
-      const keys = path.split('.')
+      const keys = assertSafePath(path)
       let current: Record<string, unknown> = this.store
       for (let i = 0; i < keys.length - 1; i++) {
-        if (!(keys[i] in current)) return
-        current = current[keys[i]] as Record<string, unknown>
+        const key = keys[i]
+        if (!Object.prototype.hasOwnProperty.call(current, key)) return
+        const next = current[key]
+        if (next === null || typeof next !== 'object') return
+        current = next as Record<string, unknown>
       }
       delete current[keys[keys.length - 1]]
       this.notify(path)
     } else {
-      this.store = {}
+      this.store = emptyObject()
       this.listeners.forEach((listeners) => listeners.forEach((fn) => fn()))
     }
   }
@@ -92,8 +120,9 @@ export class StateRuntime {
   }
 
   private resolve(path: string): unknown {
-    return path.split('.').reduce<unknown>((acc, key) => {
-      if (acc && typeof acc === 'object' && key in acc) {
+    const keys = assertSafePath(path)
+    return keys.reduce<unknown>((acc, key) => {
+      if (acc && typeof acc === 'object' && Object.prototype.hasOwnProperty.call(acc, key)) {
         return (acc as Record<string, unknown>)[key]
       }
       return undefined

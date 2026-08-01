@@ -65,9 +65,9 @@ async def find_competitors(
 
 @router.get("/graph/path")
 async def find_path(
+    request: Request,
     source: str = Query(..., description="Source entity ID"),
     target: str = Query(..., description="Target entity ID"),
-    request: Request = None,
     max_depth: int = Query(6, ge=1, le=10),
     tenant_id: str = Depends(get_current_tenant_id),
 ):
@@ -109,8 +109,8 @@ async def decision_makers(
 
 @router.get("/graph/search")
 async def graph_search(
+    request: Request,
     q: str = Query(..., description="Search query"),
-    request: Request = None,
     limit: int = Query(20, ge=1, le=100),
     tenant_id: str = Depends(get_current_tenant_id),
 ):
