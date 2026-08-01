@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** CI **3.5** remained Open after Security P0 **1.5** CLOSED CONDITIONAL (DEC-128a explicitly did not auto-close 3.5/3.8). Stage 5 + Security Scan are field-green under named residuals (ecdsa DEC-057/090/098; Semgrep alembic **11** DEC-105) on last pushed tip `c842245`.
 **Alternatives considered:** (a) leave 3.5 open because 1.5 overlaps — rejected; (b) claim VERIFIED/CLOSED / CI GREEN / finding-zero — rejected; (c) soften Semgrep/`--strict` — rejected; (d) land 3.8 instead — rejected (tip Backend Lint red on last push); (e) package READY FOR REVIEW CONDITIONAL with gh evidence — approved.
-**Decision:** Accept criterion **3.5** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-147-CRITERION-3-5-STAGE5-SECURITY-SCAN.md`](decisions/DEC-147-CRITERION-3-5-STAGE5-SECURITY-SCAN.md). Residual: *post-align Security Scan pip-audit PENDING until tip containing `fa266b5` is pushed*. Does **not** auto-close **3.8**. DEC-085 intact. Do **not** self-CLOSE.
-**Consequence:** Phase 0 criterion **3.5** = READY FOR REVIEW (Phase 0 remains **43/54** until Arch+Val+Orchestrator). Adjacent **3.7** BLOCKED (Stage 6/CI-08 + no E2E services). **3.8** OPEN tip code-path. Ops CI-08/09 BLOCKED. EOS **4.1/4.8** ARB. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criterion **READY FOR REVIEW** (Arch+Val+Orchestrator PENDING).
+**Decision:** Accept criterion **3.5** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-147-CRITERION-3-5-STAGE5-SECURITY-SCAN.md`](decisions/DEC-147-CRITERION-3-5-STAGE5-SECURITY-SCAN.md). Residual: *post-align Security Scan pip-audit PENDING until tip containing `fa266b5` is pushed*. Does **not** auto-close **3.8**. DEC-085 intact. Closed CONDITIONAL via DEC-147a after Arch+Val PASS_CONDITIONAL.
+**Consequence:** Phase 0 criterion **3.5** = READY FOR REVIEW then **CLOSED CONDITIONAL** via DEC-147a. Adjacent **3.7** BLOCKED (Stage 6/CI-08 + no E2E services). **3.8** OPEN tip code-path. Ops CI-08/09 BLOCKED. EOS **4.1/4.8** ARB. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED CONDITIONAL via DEC-147a**.
+
+### DEC-147a — Orchestrator VERIFIED/CLOSED CONDITIONAL criterion 3.5 (2026-08-01)
+
+**Context:** Architecture PASS_CONDITIONAL ([architecture review 3.5](2b6f29b5-9a86-45fc-9d4d-b86e60be2885)) + Validation PASS_CONDITIONAL ([Validate 3.5](f0560da7-8d34-4b84-9f69-03c729eba3cb)) on land `5d558af` / tip pin `a6488f2` / DEC-147.
+**Decision:** Accept **3.5 VERIFIED → CLOSED CONDITIONAL** (same honesty pattern as 1.5 DEC-128a). Residuals: *post-align Security Scan pip-audit PENDING until tip containing `fa266b5` is pushed*; named ecdsa ignore (DEC-057/090/098); Semgrep alembic **11** (DEC-105). Does **not** auto-close **3.8**. Phase 0 **43/54 → 44/54**. CI/CD Complete **4 → 5** / Open **5 → 4**. Residual CI **3.7/3.8** + ops CI-08/09 and EOS **4.1/4.8** remain OPEN (non-blocking for 3.5). Do **not** push. Do **not** claim Production GO / CI GREEN / finding-zero / unconditional CLOSED.
+**Consequence:** CI/CD cluster Complete **5/11**. Next PARALLEL READY: EOS Audit **4.1/4.8** (ARB — do not invent); CI **3.7/3.8** (non-GHCR); optional contract tests / Jest 30. BLOCKED: ops CI-08/CI-09. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **3.5 CLOSED CONDITIONAL**.
 
 ### DEC-146 — Phase 0 criterion 9.3 `.ai/` Agent OS runtime deferred READY FOR REVIEW
 
@@ -1108,7 +1115,7 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 **Context:** Architecture PASS ([architecture review 9.3](99de754a-e7ac-4cd6-9ee8-a68ab3b1d98a)) + Validation PASS (light) ([Validate 9.3](47ce25d2-b34a-453f-84eb-fcc456ec6897)) on land `922528f` / tip pin `1f99628` / DEC-146.
 **Decision:** Execution Orchestrator records criterion **9.3 VERIFIED → CLOSED**. Phase 0 **42/54 → 43/54**. ADR-036 Applied Complete **3 → 4** / Open **1 → 0** (cluster **COMPLETE 4/4**). Residuals EOS **4.1/4.8** ARB and CI **3.x** + CI-08/09 remain OPEN (non-blocking for 9.3). Do **not** push. Do **not** claim Production GO / CI GREEN.
-**Consequence:** ADR-036 Applied cluster **COMPLETE 4/4**. Next PARALLEL READY: EOS Audit **4.1/4.8** (ARB — do not invent); CI **3.5/3.7/3.8** (non-GHCR); optional contract tests / Jest 30. BLOCKED: ops CI-08/CI-09. **Production GO not claimed. CI GREEN not met.**
+**Consequence:** ADR-036 Applied cluster **COMPLETE 4/4**. Next PARALLEL READY (post DEC-147a): EOS Audit **4.1/4.8** (ARB — do not invent); CI **3.7/3.8** (non-GHCR); optional contract tests / Jest 30. BLOCKED: ops CI-08/CI-09. **Production GO not claimed. CI GREEN not met.**
 **Status:** Accepted. Criterion **9.3 CLOSED**. ADR-036 Applied **COMPLETE 4/4**.
 
 ### DEC-145 — Phase 0 criterion 8.2 agent coordination protocol READY FOR REVIEW

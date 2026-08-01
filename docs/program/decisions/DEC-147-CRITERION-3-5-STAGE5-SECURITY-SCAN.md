@@ -1,6 +1,6 @@
 # DEC-147 — Phase 0 criterion 3.5: Stage 5 Security Scan green (READY FOR REVIEW CONDITIONAL)
 
-> **Status:** **Accepted** — Cursor packaging **COMPLETE** · Criterion 3.5 = **READY FOR REVIEW** (Architecture PENDING · Validation PENDING). Expected close path: **VERIFIED/CLOSED CONDITIONAL** after Arch+Val+Orchestrator — not self-CLOSED.  
+> **Status:** **Accepted** — Criterion 3.5 = **VERIFIED/CLOSED CONDITIONAL** via DEC-147a (Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL · Orchestrator 2026-08-01)  
 > **Date:** 2026-08-01  
 > **Board:** Backend Lead / CI-adjacent (SalesOS / AQLIYA) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **3.5** · Stage 5 Security Scan green under named accepted residuals  
@@ -19,7 +19,7 @@ Package criterion **3.5** as **Cursor COMPLETE** / **READY FOR REVIEW CONDITIONA
 | Overlap | Criterion **1.5** CLOSED CONDITIONAL (DEC-128a) wires scans; **3.5** is Stage 5 / Security Scan **green under residual** — explicitly left open by DEC-128 |
 | This land | Docs packaging + gh corroboration only (no workflow soften; no finding-zero claim) |
 | DEC-085 | **Intact** (not touched) |
-| Criterion state | **READY FOR REVIEW** — do **not** claim VERIFIED/CLOSED until Arch+Val+Orchestrator |
+| Criterion state | **VERIFIED/CLOSED CONDITIONAL** (DEC-147a) |
 
 ### Gate definition (honest)
 
@@ -31,9 +31,10 @@ Package criterion **3.5** as **Cursor COMPLETE** / **READY FOR REVIEW CONDITIONA
 | Semgrep residual-only (alembic) | **Yes** — DEC-105 field-verify `30693735860` CLI **11** / CS **11** alembic-only |
 | Tip containing `fa266b5` Security Scan pip-audit (poetry-export align) | **Pending push** — same residual as DEC-128a |
 | Stages 1–5 same-run tip green (**3.8**) | **No** — last pushed tip Stage 1 Backend Lint **failure**; local tip unpushed |
+| VERIFIED/CLOSED CONDITIONAL (criterion 3.5) | **Yes** — DEC-147a after Arch PASS_CONDITIONAL + Val PASS_CONDITIONAL |
 | Production GO / CI GREEN / unconditional CLOSED | **No** |
 
-**Not claimed:** finding-zero Semgrep · zero ignored advisories · Production GO · CI GREEN · **3.7/3.8/3.9** closed · Phase 0 exit.
+**Not claimed:** finding-zero Semgrep · zero ignored advisories · Production GO · CI GREEN · unconditional CLOSED · **3.7/3.8/3.9** closed · Phase 0 exit.
 
 ---
 
@@ -92,10 +93,11 @@ Package criterion **3.5** as **Cursor COMPLETE** / **READY FOR REVIEW CONDITIONA
 
 ## 6. Records
 
-- Phase 0 criterion **3.5** → **READY FOR REVIEW** (Phase 0 remains **43/54** until Orchestrator CLOSE)
-- Expected Orchestrator path: **VERIFIED/CLOSED CONDITIONAL** with residual *post-align Security Scan pip-audit field-verify PENDING until tip containing `fa266b5` is pushed*
+- Phase 0 criterion **3.5** → **VERIFIED/CLOSED CONDITIONAL** (DEC-147a; Phase 0 **43/54 → 44/54**)
+- CI/CD Complete **4 → 5** / Open **5 → 4**
+- Residual: *post-align Security Scan pip-audit field-verify PENDING until tip containing `fa266b5` is pushed*; named ecdsa; Semgrep alembic **11**
 - Adjacent **3.7** BLOCKED (E2E needs Stage 6 builds → CI-08; job has no backend services)
-- Adjacent **3.8** OPEN (tip code-path not green on last push)
+- Adjacent **3.8** OPEN (tip code-path not green on last push) — **not** auto-closed
 - Ops **3.6 / 3.9 / 3.10** CI-08 BLOCKED · **3.11** CI-09 BLOCKED
 - EOS **4.1 / 4.8** ARB — do not invent
 - **Not claimed:** Unconditional CLOSED · Production GO · CI GREEN · Semgrep finding-zero · Phase 0 exit
@@ -142,8 +144,8 @@ Package criterion **3.5** as **Cursor COMPLETE** / **READY FOR REVIEW CONDITIONA
 
 | Track | Note |
 |---|---|
-| Architecture / Validation / Orchestrator | Gate 3.5 → CLOSED CONDITIONAL |
+| Close 3.5? | **Done** — DEC-147a VERIFIED/CLOSED CONDITIONAL |
 | **3.8** tip code-path | Needs Backend Lint green + Stages 1–5 same run on pushed tip (incl. `test-architecture`) |
 | **3.7** | BLOCKED behind Stage 6 / CI-08 unless E2E `needs:` redesigned + services added |
 | EOS **4.1/4.8** | ARB — do not invent |
-| Ops CI-08 / CI-09 | Human/ops |
+| Ops CI-08 / CI-09 | Human/ops BLOCKED |
