@@ -47,7 +47,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 
 | Item | Class | Why ready now | Notes |
 |---|---|---|---|
-| **CI-20** Backend Types (MyPy) | IN PROGRESS / PARALLEL (phased) | Phase 1 COMPLETE at `65296174` (admin 34→0; ~308→~274 expected); story OPEN; Backend Lint already green | DEC-038 register; DEC-046 Phase 1 — **not CLOSED** |
+| **CI-20** Backend Types (MyPy) | IN PROGRESS / PARALLEL (phased) | Phase 1 COMPLETE at `65296174` (admin 34→0; ~308→~274); Phase 2 COMPLETE at `01b6a8ae` (company 25→0; ~274→~249 expected); story OPEN; Backend Lint already green | DEC-038 register; DEC-046 Phase 1; DEC-047 Phase 2 — **not CLOSED** |
 | **CI-19** Semgrep Waves 2–5 | READY / PARALLEL | Wave 1 COMPLETE (`d5c9b57`); Waves 2–5 REGISTERED | SQL honesty, SHA pins, noise excludes, residual; R-24 |
 | **CI-16** Backend dependency security | READY / PARALLEL (backlog pull) | BACKLOG; R-21 | Not part of CI-02; Sprint 05/06 eligible |
 | **CI-14** Frontend Dependency Modernization | READY / PARALLEL (Sprint 06) | REGISTERED; dep CI-13 baseline closed | Majors — R-18 |
