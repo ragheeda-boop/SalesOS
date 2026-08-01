@@ -92,3 +92,7 @@ Validation label for this disposition package: **light validated** (static grep 
 - R-21: ecdsa → accepted residual (monitor); starlette → CI-22; risk remains **Open — mitigating** until starlette cleared (and optional ecdsa ignore if authorized).  
 - Update `SPRINT_05_DELIVERY_BOARD.md`, `RISK_REGISTER.md`, `EXECUTION_DAG.md`, `DECISION_LOG.md`.  
 - Prefer **docs-only** commit (no allowlist / workflow code in this land).
+
+### Follow-on (2026-08-01) — DEC-090
+
+Named CI `--ignore-vuln PYSEC-2026-1325` authorized and landed under **DEC-090** after CI-22 Phase 1 cleared starlette (evidence run `30681284601`: sole remaining finding was ecdsa). `--strict` retained. See [`DEC-090-CI-PIP-AUDIT-ECDSA-NAMED-IGNORE.md`](DEC-090-CI-PIP-AUDIT-ECDSA-NAMED-IGNORE.md).

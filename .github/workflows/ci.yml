@@ -330,8 +330,10 @@ jobs:
         run: |
           cd salesos/backend
           poetry export -f requirements.txt --without-hashes -o /tmp/requirements.txt
-          pip-audit -r /tmp/requirements.txt --desc on -f json -o pip-audit-report.json || true
-          pip-audit -r /tmp/requirements.txt --desc on --strict
+          # DEC-057 Option A + DEC-090: named ignore for ecdsa Minerva (PYSEC-2026-1325) only.
+          # JWT paths are RS256/HS256 (no ES*); upstream has no planned fix. --strict retained.
+          pip-audit -r /tmp/requirements.txt --desc on --ignore-vuln PYSEC-2026-1325 -f json -o pip-audit-report.json || true
+          pip-audit -r /tmp/requirements.txt --desc on --ignore-vuln PYSEC-2026-1325 --strict
       - name: Upload pip-audit report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

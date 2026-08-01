@@ -890,6 +890,7 @@
 **Consequence:** CI-19 stays IN PROGRESS / OPEN. Cleared 8 Wave 5 findings (expected). R-24 Open — mitigating. Validation: light validated (local inventory vs alert paths #567/#582/#622/#583/#586/#627/#584/#585; field Code Scanning closure not yet re-verified). CI GREEN not met.
 **Status:** Accepted. CI-19 Wave 5 COMPLETE; story OPEN.
 
+**Addendum (2026-08-01) — alert #836 httpsconnection-detected:** Wave 5 urllib→http.client cleared dynamic-urllib-use-detected but introduced Code Scanning alert #836 (HTTPSConnection + prior CERT_NONE). Field net for Wave 5 was **−5** vs claimed **−8**. Real fix: root website_li_pipeline.py now uses **httpx** with TLS verify on, hostname-only URL construction, and SSRF blocks aligned with salesos/backend/app/modules/webhooks/url_safety.py (private/loopback/link-local/reserved + metadata hostnames). No nosemgrep; Semgrep ERROR/WARNING gates unchanged. Does not close CI-19; does not claim Wave 5 finding-zero.
 
 ### DEC-081 — CI-22 Phase 1 COMPLETE: FastAPI/Starlette/Pydantic cascade (starlette ≥1.3.1); CI-22 remains OPEN
 
@@ -942,3 +943,13 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Decision:** Keep STORY-02-02 **PARTIAL**. Evidence: Jest `middleware-auth` + `session` **14/14 PASS** (**light validated**). Playwright smoke harness present (`playwright.smoke.config.ts` / `e2e/smoke-auth-ui.spec.ts` / `scripts/smoke-ui.ps1`) but **not run** — local FE `node_modules` incomplete (no `.bin` / broken `next`); compose FE/BE not on `:3000`/`:8000` (Docker Desktop API 500 during full up; no frontend image). Full companion: [`decisions/DEC-088-STORY-02-02-BROWSER-VERIFY.md`](decisions/DEC-088-STORY-02-02-BROWSER-VERIFY.md).
 **Consequence:** No browser-pass claim. Remains: restore FE tooling or compose frontend, then unauthenticated `/dashboard` → `/login?callbackUrl` probe (+ optional authenticated `smoke-ui.ps1`). **CI GREEN not met.**
 **Status:** Accepted (records). Story **PARTIAL** — not CLOSED.
+
+
+### DEC-090 — CI Stage 5 pip-audit named ignore for DEC-057 ecdsa residual (PYSEC-2026-1325)
+
+**Date:** 2026-08-01
+**Context:** CI run 30681284601 @ 2c7587 Stage 5 pip-audit **FAILURE** with sole finding ecdsa 0.19.2 **PYSEC-2026-1325**. Tip e993e83 (CI-22 Phase 1 follow-up) host pip-audit: **NO starlette**; residual ecdsa only. DEC-057 Option A accepted (RS256/HS256; no ES*). Numbering: DEC-088 = STORY-02-02; DEC-089 = contract-tests expansion; this CI policy is **DEC-090**.
+**Alternatives considered:** (a) leave Stage 5 red despite accepted residual — rejected (policy mismatch); (b) disable --strict / broad ignore — rejected (silent weaken); (c) Option B PyJWT now — rejected; (d) named --ignore-vuln PYSEC-2026-1325 only + keep --strict — approved.
+**Decision:** Land named ignore on CI security-pip-audit only. Package: [docs/program/decisions/DEC-090-CI-PIP-AUDIT-ECDSA-NAMED-IGNORE.md](decisions/DEC-090-CI-PIP-AUDIT-ECDSA-NAMED-IGNORE.md). Update R-21 + board. Do not weaken other audits. Do not claim whole-pipeline CI GREEN.
+**Consequence:** Stage 5 pip-audit expected **green**; R-21 Open — mitigating (monitor ecdsa). **CI GREEN not met.**
+**Status:** Accepted.
