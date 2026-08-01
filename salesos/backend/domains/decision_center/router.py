@@ -54,6 +54,12 @@ class DecisionListResponse(BaseModel):
     has_next: bool = False
 
 
+class DetailStringError(BaseModel):
+    """Honest FastAPI HTTPException JSON when ``detail`` is a string (e.g. UnauthorizedError)."""
+
+    detail: str
+
+
 class AuditResponse(BaseModel):
     decisionId: str
     inputContext: dict[str, Any]
@@ -140,7 +146,16 @@ async def create_decision(
     return DecisionResponse(**decision.to_dict())
 
 
-@router.get("/decisions", response_model=DecisionListResponse)
+@router.get(
+    "/decisions",
+    response_model=DecisionListResponse,
+    responses={
+        401: {
+            "description": "Missing or invalid Bearer token",
+            "model": DetailStringError,
+        },
+    },
+)
 async def list_decisions(
     request: Request,
     tenant_id: str = Depends(get_current_tenant_id),

@@ -1,9 +1,9 @@
 # DEC-094 — Contract tests expansion (post STORY-03-04)
 
-> **Status:** **Accepted** (slice 1 + slice 2 + slice 3 landed)
+> **Status:** **Accepted** (slice 1 + slice 2 + slice 3 + slice 4 landed)
 > **Date:** 2026-08-01
 > **Story adjacency:** STORY-03-04 OpenAPI contract framework (`623077c`)
-> **Validation label:** **light validated** — host `poetry run pytest tests/contract/ -m contract` → **11 passed**, 31 deselected
+> **Validation label:** **light validated** — host `poetry run pytest tests/contract/ -m contract` → **14 passed**, 31 deselected (slice 4 @ DEC-106)
 
 ---
 
@@ -54,9 +54,19 @@ Narrow mark: `@pytest.mark.contract` on OpenAPI HTTP tests only; `tests/contract
 
 ---
 
+### Slice 4 (auth/validation errors) — landed (DEC-106)
+
+| Endpoint | Why | Change |
+|---|---|---|
+| `GET /api/v1/decisions` **401** | Missing/invalid Bearer → `UnauthorizedError` string `detail` | `DetailStringError` + `responses={401: …}` on `list_decisions` + contract test |
+| `GET /api/v1/decisions` **422** | Query bounds (`limit` ge=1 le=200) | Assert live body against FastAPI auto `HTTPValidationError` (already in OpenAPI) |
+
+**Rejected:** inventing `ErrorResponse`; documenting 401 without matching runtime shape. Did **not** edit `get_db()` (DEC-085).
+
 ## Next slice (not this land)
 
-1. Identity auth error contracts (`401` / `422`) — only after OpenAPI documents the **actual** error shapes (FastAPI `{"detail": ...}` / `HTTPValidationError`); do not force `ErrorResponse` without wiring
+1. Optional: one more typed authenticated write/read with honest OpenAPI schemas (still no invented envelopes)
+2. Or park contract expansion — surface coverage remains intentionally narrow
 
 Do **not** claim full API surface coverage. Do **not** claim CI GREEN.
 
