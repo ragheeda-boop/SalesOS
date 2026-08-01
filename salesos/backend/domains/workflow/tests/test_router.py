@@ -9,7 +9,6 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from app.dependencies import get_current_tenant_id, get_db_session, require_permission, verify_token
-from app.routers.workflows import router as workflow_router
 from domains.workflow.engine import WorkflowEngine
 from domains.workflow.models import (
     JobExecution,
@@ -79,6 +78,15 @@ def svc(repo: InMemoryWorkflowRepository, engine: WorkflowEngine) -> WorkflowSer
 
 @pytest.fixture
 def wf_app(svc: WorkflowService) -> FastAPI:
+    """Isolated FastAPI app with workflow routes + auth/RBAC overrides.
+
+    FastAPI 0.141+ mounts ``include_router`` as an opaque ``_IncludedRouter``
+    on ``app.routes`` (no per-route ``dependant``). Permission factories
+    (``require_permission_dep``) create unique ``_require_permission``
+    closures per endpoint — overrides must walk ``wr.router.routes``, not
+    ``application.routes``, or RBAC hits IdentityService and returns 404
+    ("User with id ... not found") under the full CI suite.
+    """
     application = FastAPI()
 
     async def _fake_tenant_id() -> str:
@@ -100,8 +108,8 @@ def wf_app(svc: WorkflowService) -> FastAPI:
     application.include_router(wr.router, prefix="/api/v1")
     assert any(
         getattr(route, "path", "").rstrip("/").endswith("/workflows")
-        for route in application.routes
-    ), f"workflow routes not mounted: {[getattr(r, 'path', None) for r in application.routes]}"
+        for route in wr.router.routes
+    ), f"workflow routes missing on source router: {[getattr(r, 'path', None) for r in wr.router.routes]}"
 
     def _override_auth_deps(dependant) -> None:
         for dependency in getattr(dependant, "dependencies", []) or []:
@@ -116,14 +124,24 @@ def wf_app(svc: WorkflowService) -> FastAPI:
             elif name in ("get_db_session", "get_db") or call is get_db_session:
                 # Service is overridden; avoid real DB for auth/RBAC paths.
                 pass
-            nested = getattr(dependency, "dependant", None)
-            if nested is not None:
-                _override_auth_deps(nested)
+            # Dependant nests via .dependencies (items are Dependant); older
+            # code looked for a non-existent .dependant attribute.
+            _override_auth_deps(dependency)
 
-    for route in application.routes:
+    # Walk the source router — application.routes is _IncludedRouter on 0.141+.
+    for route in wr.router.routes:
         dependant = getattr(route, "dependant", None)
         if dependant is not None:
             _override_auth_deps(dependant)
+
+    perm_overrides = [
+        k
+        for k in application.dependency_overrides
+        if getattr(k, "__name__", "") == "_require_permission"
+    ]
+    assert perm_overrides, (
+        "no _require_permission overrides registered — RBAC will 404 under IdentityService"
+    )
 
     return application
 
