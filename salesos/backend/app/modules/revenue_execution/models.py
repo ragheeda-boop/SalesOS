@@ -10,7 +10,9 @@ class Opportunity(Base):
     __tablename__ = "opportunities"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False, index=True)
-    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"), index=True)
+    # Index name owned by __table_args__ (ix_opportunities_company) — no index=True
+    # (avoids duplicate ix_opportunities_company_id vs rename target).
+    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"))
     title = Column(String(500), nullable=False)
     stage = Column(String(20), default="identified")
     estimated_value = Column(Numeric(15, 2))
@@ -29,7 +31,6 @@ class Opportunity(Base):
 
     __table_args__ = (
         Index("ix_opportunities_tenant_stage", "tenant_id", "stage"),
-        Index("ix_opportunities_tenant_status", "tenant_id", "stage"),
         Index("ix_opportunities_company", "company_id"),
     )
 

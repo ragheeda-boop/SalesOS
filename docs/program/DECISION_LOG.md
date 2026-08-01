@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-122 — DB-05 Slice 3: index rename + nullable triage (additive; companies DROP STOP)
+
+**Date:** 2026-08-01
+**Context:** DEC-111 P1 flagged index rename (`ix_rev_*`→`ix_*`), companies ORM-removed columns, and nullable/type deltas after Slice 2 UUID authority CLOSED (DEC-121). Live Docker confirmed `ix_rev_*` on opportunities/tasks, webhook short names, workflow short/long index twins, missing notification composites.
+**Alternatives considered:** (a) DROP companies dead columns this land — **rejected STOP** (`search_vector` live FTS; `parent_company_id` still referenced; prod nulls unknown); (b) rename-only + additive CREATE + ORM duplicate cleanup — approved; (c) SET NOT NULL across workflow/notifications — deferred (needs prod null inventory).
+**Decision:** Accept Slice 3 **CLOSED**. Companion: [`decisions/DEC-122-DB-05-SLICE-3-INDEX-NULLABLE-TRIAGE.md`](decisions/DEC-122-DB-05-SLICE-3-INDEX-NULLABLE-TRIAGE.md). Alembic `c9f4a21b6e08` (down `b7e2f65a3f07`). No ENABLE RLS on deferred-8. DEC-085 intact.
+**Consequence:** DB-05 next = Slice 4+ (companies dead-column dedicated DEC; contacts index naming; governed RLS for deferred-8). **Production GO not claimed. CI GREEN not met. R-14 GO not claimed.**
+**Status:** Accepted. Slice 3 **CLOSED**.
+
 ### DEC-121 — DB-05 Slice 2: emails/meetings type authority (Alembic UUID wins)
 
 **Date:** 2026-08-01
@@ -1102,7 +1111,7 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Alternatives considered:** (a) leave DEC-016 CLOSED despite Tier-1 — rejected (dishonest); (b) reopen S04-04 / R-14 Railway + withdraw Phase 0 GO + encode remediation A–E — approved; (c) claim Production GO — rejected.
 **Decision:** Accept **DEC-120**. S04-04 **REOPENED**; R-14 Railway **REOPENED**; Phase 0 (DEC-008 / R-14) = **NO-GO** (DEC-086 GO withdrawn). Dual honesty: env provision ≠ runtime RLS. Remediation READY: A (`5e7023f` wiring) → B (image promote; GHCR alt) → C (alembic) → D (`salesos_app` runtime) → E (bypass-probe + `pg_stat_activity`). **Rotate Postgres passwords** — required human/ops (do not commit secrets). Companion: [`decisions/DEC-120-DEC016-RAILWAY-R14-CONTRADICTED.md`](decisions/DEC-120-DEC016-RAILWAY-R14-CONTRADICTED.md).
 **Consequence:** Phase 0 critical path blocked on S04-04 again. STORY-02-01 stays CLOSED. **Production GA = NO-GO.** Prior Phase 0 R-14 GO **withdrawn**. Validation: **docs / light validated**.
-**Progress (2026-08-01):** Slice **A VERIFIED**; **B** staging tip image `98bf85bf`; **C DONE** — staging Alembic **`0049` → `b7e2f65a3f07`**, **POLICY_COUNT 59**; `APP_ENGINE salesos_app` retained. Dockerfile/`.dockerignore` ship `scripts/` for future preDeploy. **D NOT STARTED / STOPPED** (user stop order 2026-08-01): no prod `railway up`; no alembic on prod; live prod still deploy **`1328309a`**, `/health` **`3.1.0`**. **E not started.** Bypass-probe **not** claimed. Prod **not** migrated.
+**Progress (2026-08-01):** Slice **A VERIFIED**; **B** staging tip image `98bf85bf`; **C DONE** — staging Alembic **`0049` → `b7e2f65a3f07`**, **POLICY_COUNT 59**; `APP_ENGINE salesos_app` retained. Dockerfile/`.dockerignore` ship `scripts/` for future preDeploy. **D NOT STARTED / STOPPED** (user stop order 2026-08-01): no prod railway up; no alembic on prod; live prod still deploy **1328309a**, /health **3.1.0**. **E not started.** Bypass-probe **not** claimed. Prod **not** migrated.
 **Status:** Accepted. S04-04 **REOPENED**. Remediation A–C progressed; **D READY** (next); E READY after D.
 
 ### DEC-119 — Category B Slice B7: admin_role_permissions join RLS (`admin_role_permissions`)
