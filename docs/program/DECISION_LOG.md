@@ -598,3 +598,15 @@
 **Decision:** Accept Slice 3 as **COMPLETE** at `d3f1eef` (`d3f1eeff7f6ac0d5210e14a4f3d3f650b7cca6da`). Constraint `strawberry-graphql = ">=0.315.7,<1.0.0"`; lock **0.323.2**. Do **not** mark CI-16 CLOSED. Validation: **light validated** (`poetry update strawberry-graphql`; import `app.graphql.schema` + GraphQLRouter; `pytest tests/unit/test_graphql.py::test_graphql_schema_introspection` **1 passed**; `pip-audit` export shows **NO strawberry findings** — residual **ecdsa** + **starlette** only). No security-gate weakening.
 **Consequence:** CI-16 stays **IN PROGRESS / OPEN**. R-21 **Open — mitigating**. Residual CI-16 package: **ecdsa** (often no fix / out of scope). Starlette remains on **CI-22**. Program Complete/Closed count unchanged (**19/20**). **CI GREEN not met.**
 **Status:** Accepted. CI-16 **Slice 3 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-057 — CI-16 ecdsa disposition: accept residual risk (Option A); CI-16 CLOSED for slice scope
+
+**Date:** 2026-08-01
+**Context:** After Slice 1 (multipart @ `1e73a2f`) and Slice 3 (strawberry @ `d3f1eef`), CI-16 residuals were **ecdsa** (PYSEC-2026-1325 / CVE-2024-23342 Minerva; upstream **no planned fix**) and **starlette** (already owned by **CI-22** per DEC-052/DEC-054). Blind ecdsa bump is invalid. Full package: [`docs/program/decisions/DEC-057-CI-16-ECDSA-DISPOSITION.md`](decisions/DEC-057-CI-16-ECDSA-DISPOSITION.md).
+**Usage evidence:** JWT paths use **RS256** (`app/modules/identity/jwks.py`, `jwt_algorithm` default) and **HS256** (`sdk/security.py`, webhook PyJWT). Grep: **no** `ES256`/`ES384`/`ES512` and **no** direct `import ecdsa`. `ecdsa` enters only as hard transitive of `python-jose` (lock 0.19.2) despite extras `[cryptography]`.
+**Alternatives considered:** (A) accept residual risk + monitor — **approved**; (B) migrate JWT off python-jose to PyJWT/cryptography — deferred (correct hygiene, not clearly small/safe for unattended residual close; touches identity mint/verify); (C) pin/replace dependency path under jose — rejected (hard dep; fork/override risk without call-site migration).
+**Decision:** Accept **Option A**. Do **not** bump ecdsa. Do **not** start CI-22. Do **not** implement Option B in this land. Prefer docs-only (no `pip-audit` ignore in this commit; named ignore for PYSEC-2026-1325 may follow under this DEC if authorized separately).
+**Consequence:** CI-16 **CLOSED** for slice scope (Slices 1+3 complete; Slice 2 transferred to CI-22; ecdsa accepted residual). R-21 remains **Open — mitigating** (ecdsa accepted + monitor; starlette → CI-22). Program Complete/Closed count **20/21** style update on board (CI-16 added to closed set). **CI GREEN not met** (`pip-audit` still red on ecdsa ± starlette).
+**Status:** Accepted. CI-16 **CLOSED** (accepted residual on ecdsa).

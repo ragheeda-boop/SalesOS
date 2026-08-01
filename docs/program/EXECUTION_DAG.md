@@ -39,7 +39,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 | **Phase 0 exit** | BLOCKED | **S04-04 only** (critical path) | **NO-GO** — DEC-040 / DEC-044; STORY-02-01 closed; do not reopen |
 | **CI-08** GHCR 403 | BLOCKED | Org-level GHCR access | Outside repo scope; R-17 — not Phase 0 critical path |
 | **CI-09** VPS SSH/secrets | BLOCKED | Ops secret provisioning | R-17 — not Phase 0 critical path |
-| **CI GREEN** (overall workflow) | BLOCKED | Residual reds: MyPy (CI-20), pip-audit (CI-16/R-21; starlette → CI-22), npm audit (CI-14), Jest debt, Trivy fs, etc. | Parallel honesty track; **not** the Phase 0 critical-path gate |
+| **CI GREEN** (overall workflow) | BLOCKED | Residual reds: MyPy (CI-20), pip-audit (R-21; starlette → CI-22; ecdsa accepted residual DEC-057), npm audit (CI-14), Jest debt, Trivy fs, etc. | Parallel honesty track; **not** the Phase 0 critical-path gate |
 
 ---
 
@@ -49,7 +49,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 |---|---|---|---|
 | **CI-20** Backend Types (MyPy) | IN PROGRESS / PARALLEL (phased) | Phase 1 COMPLETE at `65296174` (admin 34→0; ~308→~274); Phase 2 COMPLETE at `01b6a8ae` (company 25→0; ~274→~249 expected); Phase 3 COMPLETE at `e5b4471` (entity_resolution 14→0; ~249→~235 expected); Phase 4 COMPLETE at `4b3a436` (identity 16→0; ~235→~219 expected); Phase 5 COMPLETE at `7d8126e` (revenue_execution 10→0; ~219→~209 expected); Phase 6 COMPLETE at `38127af` (sso 8→0; ~209→~201 expected); Phase 7 COMPLETE at `802cde5` (app/routers 44→0; ~201→~157 expected); story OPEN; Backend Lint already green | DEC-038 register; DEC-046–050 Phases 1–5; DEC-053 Phase 6; DEC-055 Phase 7 — **not CLOSED** |
 | **CI-19** Semgrep Waves 2–5 | READY / PARALLEL | Wave 1 COMPLETE (`d5c9b57`); Waves 2–5 REGISTERED | SQL honesty, SHA pins, noise excludes, residual; R-24 |
-| **CI-16** Backend dependency security | IN PROGRESS / PARALLEL | Slice 1 COMPLETE at `1e73a2f` (multipart); **Slice 2 BLOCKED** (DEC-052) — starlette → **CI-22**; **Slice 3 COMPLETE** at `d3f1eef` (strawberry 0.243.1→0.323.2); residual **ecdsa** OPEN; R-21 mitigating | Not part of CI-02; story **not CLOSED** |
+| **CI-16** Backend dependency security | CLOSED | Slice 1 COMPLETE (`1e73a2f` multipart); Slice 2 → **CI-22** (DEC-052/054); Slice 3 COMPLETE (`d3f1eef` strawberry); **ecdsa** Accepted residual **Option A** (DEC-057); R-21 mitigating (starlette open) | Not part of CI-02; story **CLOSED** (slice scope) |
 | **CI-22** FastAPI / Starlette / Pydantic modernization | REGISTERED / PARALLEL | DEC-054; DEC-052 follow-on; scoped cascade (FastAPI ~0.135+, pydantic ≥2.9, starlette ≥1.3.1); **NOT** CI-16 slice work | No package bumps at registration; R-21 starlette leg |
 | **CI-14** Frontend Dependency Modernization | READY / PARALLEL (Sprint 06) | REGISTERED; dep CI-13 baseline closed | Majors — R-18 |
 | **Jest-debt** (Sprint 01 suite remediation) | READY / PARALLEL | FE-only; Card primitives `9577c98` progress only | 33 failing suites; does not close via Card primitives alone |
@@ -66,6 +66,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 |---|---|---|
 | **STORY-02-01** (RLS rollout) | **DONE** (revised AC) | DEC-044 Option B: **47** policies (`065d1d3a466b` + `company_features`). Draft RLS-72 **Superseded**. R-25 Closed-as-accepted-scope. **Do not reopen.** Not Phase 0 GO |
 | **S04-06** Adversarial suite (remaining) | **COMPLETE** | DEC-045; commit `119df9e`; Docker **15/15 PASS** (**build validated**); POLICY_COUNT 47 intact; inventory not reopened |
+| **CI-16** Backend dependency security | **CLOSED** | DEC-057 Option A: ecdsa accepted residual; Slices 1+3 complete; starlette → CI-22. **CI GREEN not met** |
 
 ---
 
@@ -73,7 +74,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 
 | Track | Class | Justification |
 |---|---|---|
-| **CI-20**, **CI-19 Waves 2–5**, **CI-16**, **CI-22**, **CI-14**, **Jest-debt** | PARALLEL / READY | Explicitly unblocked for Sprint 05/06 execution while S04-04 waits on human auth |
+| **CI-20**, **CI-19 Waves 2–5**, **CI-22**, **CI-14**, **Jest-debt** | PARALLEL / READY | Explicitly unblocked for Sprint 05/06 execution while S04-04 waits on human auth |
 | Contract tests expansion (post STORY-03-04) | PARALLEL | Framework LANDED (`623077c`); more endpoints can add without Railway |
 | JWT audience **consumption** (EPIC-04 / Sprint 04 STORY-02-03 consume) | PARALLEL | Groundwork DONE (`2379e5f`); consumption is separate story |
 | Owner Admin / commercial FE that does not claim Phase 0 GO | PARALLEL | Must not weaken auth/CSRF/RBAC; must not market Phase 0 complete |
