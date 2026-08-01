@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-138 — Phase 0 criterion 6.4 ADR-032/0032 naming READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** ADR Drift checklist **6.4** OPEN — registry ID `ADR-032` vs body/filename `ADR-0032`; index Status Accepted vs file Proposed. Criterion **6.3 CLOSED** (DEC-137a).
+**Alternatives considered:** (a) rename submodule file ADR-0032→ADR-032 — deferred (docs-only; dirty unrelated submodule work); (b) flip registry to ADR-0032 — rejected (breaks ADR-NNN series); (c) leave dual IDs — rejected; (d) duplicate body under docs/adr — rejected; (e) naming bridge + alias + index File/Status/date align — approved.
+**Decision:** Accept criterion **6.4** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-138-CRITERION-6-4-ADR-032-NAMING.md`](decisions/DEC-138-CRITERION-6-4-ADR-032-NAMING.md). Bridge `docs/adr/0032-widget-sdk-reconciliation.md` (canonical **ADR-032**; alias ADR-0032); index Status → **📝 Proposed**; date → `2026-07-17`. DEC-085 intact. Do **not** claim VERIFIED/CLOSED until Arch+Val + Orchestrator DEC-138a.
+**Consequence:** Phase 0 criterion **6.4** = READY FOR REVIEW. Phase 0 remains **32/54**. Residual **6.5** OPEN; `.engineering/27` re-pin → **4.5**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **READY FOR REVIEW** (not CLOSED).
+
 ### DEC-137 — Phase 0 criterion 6.3 ADR-033/034 index↔file status READY FOR REVIEW
 
 **Date:** 2026-08-01

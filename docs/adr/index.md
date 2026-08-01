@@ -1,7 +1,7 @@
 # Architecture Decision Records (ADR) Index
 
 > **Purpose**: Central registry of all architectural decisions for SalesOS.
-> **Last updated**: 2026-08-01 (DEC-137 — criterion 6.3: ADR-033/034 index Status → Proposed)
+> **Last updated**: 2026-08-01 (DEC-138 — criterion 6.4: ADR-032/0032 naming unified)
 
 ---
 
@@ -19,7 +19,7 @@
 | ADR-029 | Number Never Issued | 2026-08-01 | 🚫 Not Issued | Governance | `docs/adr/0029-number-never-issued.md` |
 | ADR-030 | Unified Provider Architecture | 2026-07-08 | ✅ Accepted | Architecture | `docs/adr/0030-unified-provider-architecture.md` |
 | ADR-031 | Webhook Auth API Key Assessment | 2026-07-09 | ✅ Accepted | Security | `docs/adr/0031-webhook-auth-api-key-assessment.md` |
-| ADR-032 | Widget SDK Reconciliation | 2026-07-10 | ✅ Accepted | Widget SDK | `engineering-os/adr/ADR-0032-widget-sdk-reconciliation.md` |
+| ADR-032 | Widget SDK Reconciliation | 2026-07-17 | 📝 Proposed | Widget SDK | `docs/adr/0032-widget-sdk-reconciliation.md` (body: `engineering-os/adr/ADR-0032-widget-sdk-reconciliation.md`; alias ADR-0032) |
 | ADR-033 | Decision Engine Lifecycle | 2026-07-17 | 📝 Proposed | Decision Engine | `docs/adr/0033-decision-engine-lifecycle.md` |
 | ADR-034 | Repository Pattern Compliance | 2026-07-17 | 📝 Proposed | Architecture | `docs/adr/0034-repository-pattern-compliance.md` |
 | ADR-035 | Sprint 0 Architecture Reconciliation | 2026-07-17 | 📝 Proposed | Architecture | `docs/adr/0035-sprint-0-architecture-reconciliation.md` |
@@ -30,12 +30,23 @@
 
 | Location | Scope |
 |----------|-------|
-| `docs/adr/` | Product-root ADRs (ADR-029 disposition; ADR-030 to ADR-035; ADR-036 file may lag multi-index — criterion 6.5) |
+| `docs/adr/` | Product-root ADRs (ADR-029 disposition; ADR-030 to ADR-035 incl. **ADR-032** naming bridge; ADR-036 file may lag multi-index — criterion 6.5) |
 | `salesos/backend/docs/adr/` | Backend domain ADRs (ADR-021..028; **ADR-025..028** canonical for criterion 6.1) |
-| `engineering-os/adr/` | Engineering-platform ADRs (ADR-001 to ADR-003, ADR-032) |
+| `engineering-os/adr/` | Engineering-platform ADRs (ADR-001 to ADR-003, ADR-012; ADR-032 body filename historically `ADR-0032-*` — alias per DEC-138) |
 | `salesos/docs/ARCHITECTURE_BOOK.md` | Comprehensive architecture reference |
 | `salesos/docs/DECISION_PLATFORM_ARCHITECTURE.md` | Decision Platform decisions |
 | `docs/vnext/DECISIONS.md` | Pending vNext architectural decisions |
+
+---
+
+## Naming convention (DEC-138 / criterion 6.4)
+
+| Surface | Convention | Example |
+|---------|------------|---------|
+| Registry / citation ID | `ADR-NNN` (3-digit zero-padded) | **ADR-032** |
+| `docs/adr/` filename | `NNNN-slug.md` (4-digit) | `0032-widget-sdk-reconciliation.md` |
+| `engineering-os/adr/` filename | `ADR-NNN-slug.md` (prefer 3-digit) | `ADR-003-…`; historical **`ADR-0032-…` = alias of ADR-032** |
+| Alias | Legacy `ADR-0032` citations map to **ADR-032** | Not a second ADR |
 
 ---
 
