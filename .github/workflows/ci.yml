@@ -113,6 +113,10 @@ jobs:
     name: "Stage 3: Backend Unit Tests"
     runs-on: ubuntu-latest
     needs: [lint-backend, typecheck-backend]
+    env:
+      # CI-only placeholders (>=32 chars). Required by Settings when alembic/env imports app.config.
+      SECRET_KEY: ci-unit-test-secret-key-do-not-use-in-prod
+      JWT_SECRET_KEY: ci-unit-test-jwt-secret-do-not-use-in-prod
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -235,6 +239,10 @@ jobs:
     name: "Stage 4: Integration Tests"
     runs-on: ubuntu-latest
     needs: [test-backend, test-frontend]
+    env:
+      # CI-only placeholders (>=32 chars). Required by Settings when alembic/env imports app.config.
+      SECRET_KEY: ci-unit-test-secret-key-do-not-use-in-prod
+      JWT_SECRET_KEY: ci-unit-test-jwt-secret-do-not-use-in-prod
     services:
       postgres:
         image: pgvector/pgvector:pg16
