@@ -13,6 +13,9 @@ IDs (e.g. ``identity``, ``data-fabric``). Exposed via ``GET /api/v1/capabilities
 Secondary registries (SDK, governance YAML, docs CAP-### catalog) are **not**
 authoritative for runtime IDs — they must converge toward this SoT (criteria 5.2–5.3).
 
+``CAP-###`` → kebab join map (DEC-133 / criterion 5.2):
+``cap_to_kebab_join.yaml`` beside this module.
+
 Company360, Dynamic Navigation, Dynamic Search, Dynamic Permissions, AI — all read from here.
 """
 
@@ -29,6 +32,8 @@ from typing import Any, Callable, Optional
 CAPABILITY_REGISTRY_SOT = "decorator-framework"
 CAPABILITY_REGISTRY_SOT_PATH = "runtime/capability_framework"
 CAPABILITY_ID_SCHEME = "kebab-case"
+# DEC-133 / Phase 0 criterion 5.2 — CAP-### → kebab join map (relative to this package).
+CAPABILITY_CAP_TO_KEBAB_JOIN_MAP = "runtime/capability_framework/cap_to_kebab_join.yaml"
 
 
 class CapabilityStatus(str, Enum):

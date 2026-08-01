@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-132a criterion 5.1 SoT VERIFIED/CLOSED — decorator framework canonical; Phase 0 27/54; residuals 5.2–5.3 OPEN; 5.4 CLOSED)
+> **Last updated:** 2026-08-01 (DEC-133 criterion 5.2 CAP→kebab join map READY FOR REVIEW; Phase 0 still 27/54 until Arch+Val CLOSE; residual 5.3 OPEN; 5.1/5.4 CLOSED)
 >
 > ## Operating State
 >
@@ -106,8 +106,8 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
 | 5.1 | Single source of truth established | One registry (catalog / decorator / SDK / YAML) designated canonical | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `8e105fe` (DEC-132a); decorator framework = canonical runtime SoT (kebab IDs); pins `CAPABILITY_REGISTRY_SOT*`; secondaries = SDK / YAML / CAP-### catalog; DEC-085 untouched; Orchestrator 2026-08-01 |
-| 5.2 | `CAP-###` mapped to runtime kebab IDs | Automation can join registries | ⬜ `CAP-###` absent from backend code (unblocked by 5.1 SoT join key) |
-| 5.3 | Registry sync/validate scripts aligned | `validate_capability_registries.py` exits 0 | ⬜ SoT documented in script; exit still non-zero until convergence land |
+| 5.2 | `CAP-###` mapped to runtime kebab IDs | Automation can join registries | 🔄 READY FOR REVIEW — DEC-133 Cursor COMPLETE; join map `cap_to_kebab_join.yaml` (10 direct / 30 unmapped / 3 decorator-only); validate hook integrity; Arch+Val PENDING; do **not** claim VERIFIED/CLOSED |
+| 5.3 | Registry sync/validate scripts aligned | `validate_capability_registries.py` exits 0 | ⬜ Join map integrity checked (5.2); full 4-way sync exit still non-zero until convergence land |
 | 5.4 | `/api/v1/capabilities` tested | Test exercises decorator registry endpoint | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `65e82cc` (DEC-131a); ASGI contract `tests/contract/test_capabilities_api.py`; Docker **4 passed**; DEC-085 untouched; Orchestrator 2026-08-01 |
 
 **Owner:** Shared / Chief Architect  

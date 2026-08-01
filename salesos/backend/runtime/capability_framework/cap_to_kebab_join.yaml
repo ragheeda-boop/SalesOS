@@ -1,0 +1,241 @@
+# CAP-### → runtime kebab join map
+# DEC-133 / Phase 0 criterion 5.2
+#
+# Canonical runtime SoT (DEC-132 / 5.1): decorator framework kebab IDs
+# at runtime/capability_framework (GET /api/v1/capabilities).
+#
+# This map is the machine-readable join key between docs CAPABILITY_CATALOG.md
+# (CAP-###) and the runtime SoT. It does NOT make CAP-### the SoT.
+#
+# join values:
+#   direct   — CAP has a primary decorator kebab ID
+#   unmapped — catalog capability with no decorator registration (honest residual)
+#
+# decorator_only — SoT IDs with no primary CAP-### (honest residual)
+#
+# Not claimed: 5.3 validate exit 0 · Production GO · CI GREEN · VERIFIED/CLOSED
+
+version: 1
+criterion: "5.2"
+dec: "DEC-133"
+sot: decorator-framework
+sot_path: runtime/capability_framework
+id_scheme: kebab-case
+catalog: docs/CAPABILITY_CATALOG.md
+
+# Every CAP-001..040 appears exactly once.
+joins:
+  CAP-001:
+    name: Identity
+    runtime_id: identity
+    join: direct
+  CAP-002:
+    name: Company
+    runtime_id: company
+    join: direct
+  CAP-003:
+    name: Search
+    runtime_id: search
+    join: direct
+  CAP-004:
+    name: Timeline
+    runtime_id: timeline
+    join: direct
+  CAP-005:
+    name: Data Fabric
+    runtime_id: data-fabric
+    join: direct
+  CAP-006:
+    name: Feature Store
+    runtime_id: feature-store
+    join: direct
+  CAP-007:
+    name: Knowledge Graph
+    runtime_id: knowledge-graph
+    join: direct
+  CAP-008:
+    name: Revenue Graph
+    runtime_id: null
+    join: unmapped
+    note: vision / no decorator registration
+  CAP-009:
+    name: Workflow Engine
+    runtime_id: workflow
+    join: direct
+  CAP-010:
+    name: Semantic Cache
+    runtime_id: null
+    join: unmapped
+    note: vision / no decorator registration
+  CAP-011:
+    name: Company Intelligence
+    runtime_id: null
+    join: unmapped
+    note: business layer; related runtime company (CAP-002) is not a 1:1 identity
+    related_runtime_ids: [company]
+  CAP-012:
+    name: Opportunity Management
+    runtime_id: null
+    join: unmapped
+    note: SDK/domain surface; no decorator registration
+  CAP-013:
+    name: Pipeline Intelligence
+    runtime_id: null
+    join: unmapped
+    note: SDK/domain surface; no decorator registration
+  CAP-014:
+    name: Forecast
+    runtime_id: null
+    join: unmapped
+    note: SDK/domain surface; no decorator registration
+  CAP-015:
+    name: Analytics & KPIs
+    runtime_id: null
+    join: unmapped
+    note: SDK/domain surface; no decorator registration
+  CAP-016:
+    name: Recommendation
+    runtime_id: decision-engine
+    join: direct
+    note: primary join to decision-engine (recommendation / decision center family)
+  CAP-017:
+    name: GTM Intelligence
+    runtime_id: null
+    join: unmapped
+    note: vision / no decorator registration
+  CAP-018:
+    name: Marketing Intelligence
+    runtime_id: null
+    join: unmapped
+    note: vision / no decorator registration
+  CAP-019:
+    name: Customer Success
+    runtime_id: null
+    join: unmapped
+    note: FE-heavy; no decorator registration
+  CAP-020:
+    name: Customer Health Engine
+    runtime_id: null
+    join: unmapped
+    note: vision / no decorator registration
+  CAP-021:
+    name: Revenue Brain
+    runtime_id: null
+    join: unmapped
+    note: NBA runtime exists; no decorator registration
+  CAP-022:
+    name: AI Copilot
+    runtime_id: null
+    join: unmapped
+    note: feature_ai_copilot default False; no decorator registration
+  CAP-023:
+    name: Scoring Engine
+    runtime_id: null
+    join: unmapped
+    note: domain surface; no decorator registration
+  CAP-024:
+    name: Company DNA
+    runtime_id: null
+    join: unmapped
+    note: vision / no decorator registration
+  CAP-025:
+    name: AI Memory
+    runtime_id: null
+    join: unmapped
+    note: vision / no decorator registration
+  CAP-026:
+    name: Agent Runtime
+    runtime_id: null
+    join: unmapped
+    note: stub runtime; no decorator registration
+  CAP-027:
+    name: Prompt Studio
+    runtime_id: null
+    join: unmapped
+    note: vision / no decorator registration
+  CAP-028:
+    name: AI Governance Portal
+    runtime_id: null
+    join: unmapped
+    note: vision / no decorator registration
+  CAP-029:
+    name: AI Playground
+    runtime_id: null
+    join: unmapped
+    note: vision / no decorator registration
+  CAP-030:
+    name: Experiment Engine
+    runtime_id: null
+    join: unmapped
+    note: vision / no decorator registration
+  CAP-031:
+    name: Simulation Engine
+    runtime_id: null
+    join: unmapped
+    note: stub runtime; no decorator registration
+  CAP-032:
+    name: Digital Twin Engine
+    runtime_id: null
+    join: unmapped
+    note: vision / no decorator registration
+  CAP-033:
+    name: Entity Resolution
+    runtime_id: null
+    join: unmapped
+    note: module/API exists; no decorator registration
+  CAP-034:
+    name: Company 360
+    runtime_id: null
+    join: unmapped
+    note: application/FE; related company (CAP-002)
+    related_runtime_ids: [company]
+  CAP-035:
+    name: Deal Room
+    runtime_id: null
+    join: unmapped
+    note: vision / no decorator registration
+  CAP-036:
+    name: AI Copilot UI
+    runtime_id: null
+    join: unmapped
+    note: FE surface; no decorator registration
+  CAP-037:
+    name: REST API
+    runtime_id: capability-framework
+    join: direct
+    note: platform REST surface joined to capability-framework registry host
+  CAP-038:
+    name: GraphQL API
+    runtime_id: null
+    join: unmapped
+    note: GraphQL schema exists; no decorator registration
+  CAP-039:
+    name: MCP Server
+    runtime_id: null
+    join: unmapped
+    note: MCP router exists; no decorator registration
+  CAP-040:
+    name: Agent SDK
+    runtime_id: null
+    join: unmapped
+    note: SDK packages; no decorator registration
+
+# Decorator SoT IDs with no primary CAP-### join (honest residual for 5.2)
+decorator_only:
+  - id: event-runtime
+    note: runtime bus capability; no CAP-### card
+  - id: activity-intelligence
+    note: adjacent to Timeline (CAP-004) but distinct SoT ID
+  - id: marketplace
+    note: draft marketplace; no CAP-### card
+
+coverage:
+  catalog_caps: 40
+  direct_joins: 10
+  unmapped_caps: 30
+  decorator_sot_ids: 13
+  decorator_only: 3
+  note: >
+    Partial coverage is intentional and documented. Criterion 5.2 requires a join
+    map automation can use — not 40/40 decorator registration. Criterion 5.3
+    (validate exit 0) remains OPEN.

@@ -4,7 +4,8 @@
 > Version 1.0 | Last Updated: 2026-06-30
 > Owner: CTO / Chief Architect
 
-> **Registry role (DEC-132 / Phase 0 criterion 5.1):** This catalog is the **product/planning inventory** (`CAP-###` numbering). It is **not** the canonical *runtime* source of truth. Runtime SoT = decorator framework at `salesos/backend/runtime/capability_framework` (kebab-case IDs; `GET /api/v1/capabilities`). Criterion **5.2** maps `CAP-###` → those kebab IDs. Criterion **5.3** = `validate_capability_registries.py` exit 0. **Production GO not claimed.**
+> **Registry role (DEC-132 / Phase 0 criterion 5.1):** This catalog is the **product/planning inventory** (`CAP-###` numbering). It is **not** the canonical *runtime* source of truth. Runtime SoT = decorator framework at `salesos/backend/runtime/capability_framework` (kebab-case IDs; `GET /api/v1/capabilities`).  
+> **Join map (DEC-133 / criterion 5.2 READY FOR REVIEW):** `salesos/backend/runtime/capability_framework/cap_to_kebab_join.yaml` — `CAP-###` → kebab (10 direct / 30 unmapped / 3 decorator-only; honest residual). Criterion **5.3** = `validate_capability_registries.py` exit 0 (still OPEN). **Production GO not claimed.**
 
 ---
 

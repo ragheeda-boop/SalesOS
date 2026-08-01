@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-133 — Phase 0 criterion 5.2 CAP-###→kebab join map READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** Capability Drift checklist **5.2** OPEN — `CAP-###` absent from backend; automation could not join catalog to decorator SoT after DEC-132a designated kebab IDs. Criterion **5.1**/**5.4** CLOSED. Residual **5.3** (validate exit 0) needs the join map first.
+**Alternatives considered:** (a) embed CAP-### into every `@Capability` — deferred; (b) name-heuristic slugify only — rejected (fragile); (c) explicit YAML join map + validate hook — approved; (d) wait for full 5.3 sync — rejected (checklist separates 5.2).
+**Decision:** Accept criterion **5.2** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-133-CRITERION-5-2-CAP-TO-KEBAB-JOIN.md`](decisions/DEC-133-CRITERION-5-2-CAP-TO-KEBAB-JOIN.md). Map `cap_to_kebab_join.yaml` (10 direct / 30 unmapped / 3 decorator-only); pin `CAPABILITY_CAP_TO_KEBAB_JOIN_MAP`; validate integrity hook. DEC-085 intact. Arch+Val PENDING — do **not** claim VERIFIED/CLOSED.
+**Consequence:** Phase 0 criterion **5.2** = READY FOR REVIEW. Phase 0 remains **27/54**. Residual **5.3** still OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **READY FOR REVIEW** (not CLOSED).
+
 ### DEC-132 — Phase 0 criterion 5.1 capability registry SoT READY FOR REVIEW
 
 **Date:** 2026-08-01
