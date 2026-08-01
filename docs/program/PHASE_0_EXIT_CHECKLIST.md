@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-139 criterion 6.5 ADR-036 multi-index READY FOR REVIEW; Phase 0 33/54; ADR Drift Complete 4/5; Capability Drift Complete 4/4)
+> **Last updated:** 2026-08-01 (DEC-139a criterion 6.5 ADR-036 multi-index VERIFIED/CLOSED; Phase 0 34/54; ADR Drift Complete 5/5 COMPLETE; Capability Drift Complete 4/4)
 >
 > ## Operating State
 >
@@ -119,11 +119,11 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
-| 6.1 | ADR-025/026/027/028: files exist OR index corrected | No index entry claiming "Accepted" without a file | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: path-exists + Status Accepted) @ `4997ae4` (DEC-135a); files @ `salesos/backend/docs/adr/0025..0028-*.md`; `docs/adr/index.md` File column + location registered; residual broader EOS tree re-pin (**4.5**) + **6.5 READY FOR REVIEW** (DEC-139); 6.2–6.4 CLOSED; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
-| 6.2 | ADR-029 phantom resolved | Numbering gap closed or documented | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: path-exists + Status Not Issued + no Accepted-without-file) @ `a1ce473` (DEC-136a); disposition **Not Issued** @ `docs/adr/0029-number-never-issued.md`; `docs/adr/index.md` row registered (not Accepted); no binding architecture invented; residual broader EOS tree re-pin (**4.5**) + **6.5 READY FOR REVIEW** (DEC-139); 6.3–6.4 CLOSED; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
-| 6.3 | ADR-033/034 status conflicts resolved | Index status matches file header status | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: index Status == file header Proposed for 033/034; no Accepted-without-evidence) @ `bcd7aa6` (DEC-137a); `docs/adr/index.md` Status **Proposed** matches file headers; dates → `2026-07-17`; no invented Accepted; residual broader EOS tree re-pin (**4.5**) + **6.5 READY FOR REVIEW** (DEC-139); 6.4 CLOSED DEC-138a; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
-| 6.4 | ADR-032/0032 naming unified | Single naming convention across `docs/adr/` and `engineering-os/adr/` | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `8a3c92e` (DEC-138a); naming bridge `docs/adr/0032-widget-sdk-reconciliation.md` (canonical ID **ADR-032**; alias ADR-0032); index File/Status/date aligned (Status **Proposed** matches body; no invented Accepted); submodule filename retained as documented alias (no rename); DEC-085 untouched; residual broader EOS tree re-pin (**4.5**) + **6.5 READY FOR REVIEW** (DEC-139); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
-| 6.5 | ADR-036 registered in all indexes | `docs/adr/index.md` + `27_ADR_INDEX.md` | 🟡 READY FOR REVIEW — Cursor COMPLETE @ DEC-139; body `docs/adr/0036-engineering-organization-layer-separation.md` (Status **Accepted** matches file header + criterion 9.1; not invented); `docs/adr/index.md` Active ADRs row; `.engineering/27_ADR_INDEX.md` master row + conflict #13 RESOLVED; engineering-os has no separate ADR index (N/A); DEC-085 untouched; Phase 0 remains **33/54** until Orchestrator CLOSE; residual broader EOS tree re-pin (**4.5**) + **9.2**; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN |
+| 6.1 | ADR-025/026/027/028: files exist OR index corrected | No index entry claiming "Accepted" without a file | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: path-exists + Status Accepted) @ `4997ae4` (DEC-135a); files @ `salesos/backend/docs/adr/0025..0028-*.md`; `docs/adr/index.md` File column + location registered; residual broader EOS tree re-pin (**4.5**); ADR Drift cluster COMPLETE **5/5** (DEC-139a); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
+| 6.2 | ADR-029 phantom resolved | Numbering gap closed or documented | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: path-exists + Status Not Issued + no Accepted-without-file) @ `a1ce473` (DEC-136a); disposition **Not Issued** @ `docs/adr/0029-number-never-issued.md`; `docs/adr/index.md` row registered (not Accepted); no binding architecture invented; residual broader EOS tree re-pin (**4.5**); ADR Drift cluster COMPLETE **5/5** (DEC-139a); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
+| 6.3 | ADR-033/034 status conflicts resolved | Index status matches file header status | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: index Status == file header Proposed for 033/034; no Accepted-without-evidence) @ `bcd7aa6` (DEC-137a); `docs/adr/index.md` Status **Proposed** matches file headers; dates → `2026-07-17`; no invented Accepted; residual broader EOS tree re-pin (**4.5**); ADR Drift cluster COMPLETE **5/5** (DEC-139a); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
+| 6.4 | ADR-032/0032 naming unified | Single naming convention across `docs/adr/` and `engineering-os/adr/` | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `8a3c92e` (DEC-138a); naming bridge `docs/adr/0032-widget-sdk-reconciliation.md` (canonical ID **ADR-032**; alias ADR-0032); index File/Status/date aligned (Status **Proposed** matches body; no invented Accepted); submodule filename retained as documented alias (no rename); DEC-085 untouched; residual broader EOS tree re-pin (**4.5**); ADR Drift cluster COMPLETE **5/5** (DEC-139a); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
+| 6.5 | ADR-036 registered in all indexes | `docs/adr/index.md` + `27_ADR_INDEX.md` | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `aaeaff3` (DEC-139a); body `docs/adr/0036-engineering-organization-layer-separation.md` (Status **Accepted** matches file header + criterion 9.1; not invented); `docs/adr/index.md` Active ADRs row; `.engineering/27_ADR_INDEX.md` master row + conflict #13 RESOLVED; engineering-os has no separate ADR index (N/A); DEC-085 untouched; ADR Drift cluster COMPLETE **5/5**; residual broader EOS tree re-pin (**4.5**) + **9.2** OPEN (separate criteria); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 
 **Owner:** Human / Chief Architect  
 **Reference:** `27_ADR_INDEX.md` §4, `28_ADR_DEPENDENCY_MAP.md` §6
@@ -183,11 +183,11 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 3. CI/CD Green | 11 | 3 | 2 (CI-08, CI-09) | 6 |
 | 4. EOS Audit Pass | 8 | 2 | 0 | 6 |
 | 5. Capability Drift | 4 | 4 | 0 | 0 |
-| 6. ADR Drift | 5 | 4 | 0 | 1 |
+| 6. ADR Drift | 5 | 5 | 0 | 0 |
 | 7. DB Schema | 6 | 6 | 0 | 0 |
 | 8. Engineering Stability | 4 | 1 | 0 | 3 |
 | 9. ADR-036 Applied | 4 | 2 | 0 | 2 |
-| **TOTAL** | **54** | **33** | **2** | **19** |
+| **TOTAL** | **54** | **34** | **2** | **18** |
 
 ---
 

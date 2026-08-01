@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** ADR Drift checklist **6.5** OPEN — ADR-036 body existed (Status Accepted; criterion 9.1 ✅) but was missing from Active ADRs + `.engineering/27_ADR_INDEX.md`. Criterion **6.4 CLOSED** (DEC-138a).
 **Alternatives considered:** (a) register as Proposed despite file Accepted — rejected (invents conflict); (b) leave `.engineering/27` untracked for 4.5 only — rejected (checklist requires both indexes); (c) duplicate under engineering-os — rejected (no separate index); (d) claim VERIFIED/CLOSED — rejected; (e) dual-index registration with Status Accepted from file/9.1 — approved.
-**Decision:** Accept criterion **6.5** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-139-CRITERION-6-5-ADR-036-MULTI-INDEX.md`](decisions/DEC-139-CRITERION-6-5-ADR-036-MULTI-INDEX.md). Register ADR-036 in `docs/adr/index.md` + `.engineering/27_ADR_INDEX.md`; commit ADR body. DEC-085 intact. Do **not** claim VERIFIED/CLOSED until Arch+Val + Orchestrator DEC-139a.
-**Consequence:** Phase 0 criterion **6.5** = READY FOR REVIEW. Phase 0 remains **33/54**. Residual broader EOS tree re-pin → **4.5**; **9.2** OPEN. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criterion **READY FOR REVIEW** (not CLOSED).
+**Decision:** Accept criterion **6.5** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-139-CRITERION-6-5-ADR-036-MULTI-INDEX.md`](decisions/DEC-139-CRITERION-6-5-ADR-036-MULTI-INDEX.md). Register ADR-036 in `docs/adr/index.md` + `.engineering/27_ADR_INDEX.md`; commit ADR body. DEC-085 intact. Closed via DEC-139a after Arch+Val PASS.
+**Consequence:** Phase 0 criterion **6.5** = READY FOR REVIEW then **CLOSED** via DEC-139a. Residual broader EOS tree re-pin → **4.5**; **9.2** OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED via DEC-139a**.
+
+### DEC-139a — Orchestrator VERIFIED/CLOSED criterion 6.5 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 6.5](f69fbb04-a53a-40ee-a16b-ffd7600d9091)) + Validation PASS (light) ([Validate 6.5](ee6b2db5-d77b-4543-bfff-2f58b5d3ae68): ADR-036 body Status Accepted matches file header + 9.1; `docs/adr/index.md` + `.engineering/27_ADR_INDEX.md` registered; engineering-os index N/A; DEC-085 untouched) on land `aaeaff3` / DEC-139.
+**Decision:** Execution Orchestrator records criterion **6.5 VERIFIED → CLOSED**. Phase 0 **33/54 → 34/54**. ADR Drift Complete **4 → 5** / Open **1 → 0** (cluster **COMPLETE 5/5**). Residuals **4.5** (broader `.engineering/` re-pin) and **9.2** (program↔engineering cross-refs) remain OPEN as separate criteria (non-blocking for 6.5). Do **not** push. Do **not** claim Production GO / CI GREEN.
+**Consequence:** ADR Drift cluster COMPLETE. Next PARALLEL READY: EOS Audit **4.x** (esp. **4.5**), Engineering Stability **8.1–8.3**, ADR-036 Applied **9.2**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **6.5 CLOSED**. ADR Drift cluster **COMPLETE 5/5**.
 
 ### DEC-138 — Phase 0 criterion 6.4 ADR-032/0032 naming READY FOR REVIEW
 

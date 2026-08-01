@@ -1,11 +1,11 @@
 # DEC-139 — ADR-036 multi-index registration (Phase 0 criterion 6.5)
 
-> **Status:** **Accepted** — Criterion **6.5 READY FOR REVIEW** (Cursor COMPLETE; awaiting Arch+Val + Orchestrator DEC-139a)  
+> **Status:** **Accepted** — Criterion **6.5 VERIFIED/CLOSED** via DEC-139a (Arch+Val PASS @ `aaeaff3`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / ADR Drift (SalesOS / AQLIYA) — api-worker land  
+> **Board:** Backend Lead / ADR Drift (SalesOS / AQLIYA) — api-worker land + Orchestrator CLOSE  
 > **Story / risk:** Phase 0 Exit Criterion **6.5** · ADR-036 present in all ADR indexes  
-> **Authority:** PHASE_0_EXIT_CHECKLIST §6.5 · ADR-036 body · criterion 9.1 (Accepted already checked)  
-> **Out of scope this land:** inventing Accepted without file/ARB evidence · advancing ADR-032/033/034 to Accepted · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · VERIFIED/CLOSED · Phase 0 exit · criterion 9.2 cross-refs
+> **Authority:** PHASE_0_EXIT_CHECKLIST §6.5 · DEC-139a · ADR-036 body · criterion 9.1 (Accepted already checked)  
+> **Out of scope this land:** inventing Accepted without file/ARB evidence · advancing ADR-032/033/034 to Accepted · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit · criterion 9.2 cross-refs
 
 ---
 
@@ -19,7 +19,7 @@ Resolve criterion **6.5** by registering **ADR-036** in both required indexes �
 | Observation | Body @ `docs/adr/0036-engineering-organization-layer-separation.md` (untracked); header **Status: Accepted** (CTO / ARB); criterion **9.1** already ✅; Active ADRs table + `.engineering/27` lacked ADR-036 |
 | Disposition | Add index rows; Status **✅ Accepted** matches file header + 9.1 (not invented); engineering-os has no separate ADR index (files only) |
 | Files | ADR body · `docs/adr/index.md` · `.engineering/27_ADR_INDEX.md` · this DEC |
-| Criterion state | **READY FOR REVIEW** (not VERIFIED/CLOSED) |
+| Criterion state | **VERIFIED/CLOSED** (DEC-139a) |
 
 ### Gate definition (honest)
 
@@ -33,7 +33,7 @@ Resolve criterion **6.5** by registering **ADR-036** in both required indexes �
 | DEC-085 / auth untouched | **Yes** |
 | `.engineering/27` committed for 6.5 evidence | **Yes** — broader EOS tree re-pin remains **4.5** |
 
-**Not claimed:** Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED · closing 9.2.
+**Not claimed:** Production GO · CI GREEN · Phase 0 exit · closing 9.2 / 4.5.
 
 ---
 
@@ -59,17 +59,17 @@ Resolve criterion **6.5** by registering **ADR-036** in both required indexes �
 | Auth / DEC-085 | **Untouched** |
 | Label | **light validated** (filesystem + dual-index row presence; no full CI / no Production GO) |
 
-**Production GO not claimed. CI GREEN not met.** Awaiting Arch+Val + Orchestrator DEC-139a for CLOSE.
+**Production GO not claimed. CI GREEN not met.** Closed via DEC-139a after Arch+Val PASS.
 
 ---
 
 ## 4. Records
 
-- Phase 0 criterion **6.5** → **READY FOR REVIEW**
-- Phase 0 remains **33/54** until Orchestrator CLOSE
-- ADR Drift Complete remains **4/5** / Open **1** until CLOSE
-- Residual after CLOSE (expected): ADR Drift cluster COMPLETE; EOS **4.5** broader `.engineering/` re-pin; **9.2** OPEN
-- **Not claimed:** Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED
+- Phase 0 criterion **6.5** → **VERIFIED/CLOSED** (DEC-139a)
+- Phase 0 **33/54 → 34/54**
+- ADR Drift Complete **4 → 5** / Open **1 → 0** (cluster **COMPLETE 5/5**)
+- Residual: EOS **4.5** broader `.engineering/` re-pin; **9.2** OPEN (separate criteria)
+- **Not claimed:** Production GO · CI GREEN · Phase 0 exit
 
 ---
 
@@ -100,7 +100,7 @@ Resolve criterion **6.5** by registering **ADR-036** in both required indexes �
 |---------|-------|------|
 | Accepted without separate ARB minutes in-repo | LOW | File header cites CTO/ARB; criterion 9.1 already ✅ |
 | Committing `.engineering/27` before full EOS 4.5 | LOW | Required for 6.5 evidence; other `.engineering/` files still **4.5** |
-| Overclaim Production GO / CI GREEN | LOW | READY FOR REVIEW only |
+| Overclaim Production GO / CI GREEN | LOW | CLOSED via DEC-139a only; no GO/GREEN claims |
 
 ---
 
@@ -108,6 +108,6 @@ Resolve criterion **6.5** by registering **ADR-036** in both required indexes �
 
 | Question | Recommendation |
 |---|---|
-| Close 6.5? | **Arch review + Validation (light)** → Orchestrator DEC-139a |
+| Close 6.5? | **Done** — DEC-139a VERIFIED/CLOSED; ADR Drift **COMPLETE 5/5** |
 | Next PARALLEL | EOS Audit **4.x** (incl. broader `.engineering/` re-pin **4.5**); Engineering Stability **8.1–8.3**; ADR-036 Applied **9.2** (program↔engineering cross-refs) |
-| Do not | Invent Accepted for other ADRs · claim Production GO / CI GREEN · claim VERIFIED/CLOSED without Arch+Val |
+| Do not | Invent Accepted for other ADRs · claim Production GO / CI GREEN · claim Phase 0 exit |
