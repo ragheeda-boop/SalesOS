@@ -464,6 +464,36 @@ jobs:
         with:
           sarif_file: trivy-results.sarif
 
+  # DEC-144 / Phase 0 criterion 8.3: backend architecture fitness rules as an
+  # independent critical gate (does not depend on lint/unit — those can skip
+  # and still leave layering unenforced). Narrow pytest path only.
+  test-architecture:
+    name: "Stage 5: Architecture Rules"
+    runs-on: ubuntu-latest
+    env:
+      SECRET_KEY: ci-unit-test-secret-key-do-not-use-in-prod
+      JWT_SECRET_KEY: ci-unit-test-jwt-secret-do-not-use-in-prod
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Cache Poetry deps
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-${{ runner.os }}-${{ hashFiles('salesos/backend/poetry.lock') }}
+          restore-keys: poetry-${{ runner.os }}-
+      - name: Install dependencies
+        run: cd salesos/backend && poetry install --no-interaction
+      - name: Run architecture fitness tests
+        run: |
+          cd salesos/backend
+          poetry run pytest -v --tb=short tests/test_architecture.py
+
   arch-compliance:
     name: "Stage 5: Arch Compliance"
     runs-on: ubuntu-latest
@@ -502,6 +532,7 @@ jobs:
       - security-npm-audit
       - security-bandit
       - security-secrets-scan
+      - test-architecture
       - arch-compliance
     runs-on: ubuntu-latest
     permissions:
@@ -552,6 +583,7 @@ jobs:
       - security-npm-audit
       - security-bandit
       - security-secrets-scan
+      - test-architecture
       - arch-compliance
     runs-on: ubuntu-latest
     permissions:
@@ -649,6 +681,7 @@ jobs:
       - security-npm-audit
       - security-bandit
       - security-secrets-scan
+      - test-architecture
       - arch-compliance
       - build-backend
       - build-frontend
@@ -672,7 +705,8 @@ jobs:
           echo "| 5 Security | npm-audit | ${{ needs.security-npm-audit.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 5 Security | bandit | ${{ needs.security-bandit.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 5 Security | secrets-scan | ${{ needs.security-secrets-scan.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| 5 Security | arch-compliance | ${{ needs.arch-compliance.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 5 Arch | test-architecture | ${{ needs.test-architecture.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 5 Arch | arch-compliance | ${{ needs.arch-compliance.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 6 Build | build-backend | ${{ needs.build-backend.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 6 Build | build-frontend | ${{ needs.build-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| 7 E2E | e2e | ${{ needs.e2e.result }} |" >> $GITHUB_STEP_SUMMARY
@@ -683,6 +717,7 @@ jobs:
           needs.test-backend.result == 'failure' ||
           needs.integration-backend.result == 'failure' ||
           needs.security-secrets-scan.result == 'failure' ||
+          needs.test-architecture.result == 'failure' ||
           needs.arch-compliance.result == 'failure'
         run: |
           echo "::error::One or more critical CI jobs failed"

@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-144 — Phase 0 criterion 8.3 architecture rules enforced in CI READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** Engineering Stability **8.3** OPEN after DEC-143a — residual noted `test_architecture` not an independent workflow gate; checklist named non-existent `arch-compliance.py` while live gate is `arch-compliance.ps1` (already Stage 5 success on gh). Backend unit stage can skip on lint failure and leave layering unenforced.
+**Alternatives considered:** (a) docs-only while fitness only inside skippable unit stage — rejected; (b) invent `arch-compliance.py` duplicate — rejected; (c) claim VERIFIED/CLOSED / CI GREEN — rejected; (d) wire independent `test-architecture` critical job + evidence existing `arch-compliance.ps1` — approved.
+**Decision:** Accept criterion **8.3** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-144-CRITERION-8-3-ARCH-RULES-IN-CI.md`](decisions/DEC-144-CRITERION-8-3-ARCH-RULES-IN-CI.md). Docker **36 passed**; local ps1 **95.8%**; gh Arch Compliance success @ run `30704321096`. Tip `test-architecture` field-verify PENDING push. DEC-085 intact.
+**Consequence:** Phase 0 criterion **8.3** = READY FOR REVIEW (not CLOSED). Phase 0 remains **40/54**. Residual **8.2** and EOS **4.1/4.8** OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **READY FOR REVIEW** (awaiting Arch+Val + Orchestrator).
+
 ### DEC-143 — Phase 0 criterion 8.1 engineering-os submodule clean READY FOR REVIEW
 
 **Date:** 2026-08-01
