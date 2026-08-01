@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-143 — Phase 0 criterion 8.1 engineering-os submodule clean READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** Engineering Stability **8.1** OPEN — `engineering-os/kernel/capability-registry.yaml` dirty (+365); EOS conflict #11 “Unreviewed governance drift”; append sat outside the YAML fenced block; Capability Drift cluster already CLOSED (DEC-134a) with YAML secondary.
+**Alternatives considered:** (a) commit malformed append — rejected; (b) in-fence commit + gitlink advance — rejected this land (unreviewed SoT expand; prefer not push); (c) docs-only while dirty — rejected; (d) claim VERIFIED/CLOSED — rejected; (e) discard malformed unreviewed drift; keep pin `b82b9fb` — approved.
+**Decision:** Accept criterion **8.1** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-143-CRITERION-8-1-ENGINEERING-OS-CLEAN.md`](decisions/DEC-143-CRITERION-8-1-ENGINEERING-OS-CLEAN.md). Working tree clean @ `b82b9fb`; parent gitlink unchanged; conflict #11 RESOLVED note. DEC-085 intact. Do **not** claim VERIFIED/CLOSED until Arch+Val + Orchestrator.
+**Consequence:** Phase 0 criterion **8.1** = READY FOR REVIEW. Phase 0 remains **39/54**. Residuals **8.2/8.3** and EOS **4.1/4.8** OPEN. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **READY FOR REVIEW** (not CLOSED).
+
 ### DEC-142 — Phase 0 criteria 4.2 / 4.4 / 4.7 fingerprint re-pin READY FOR REVIEW
 
 **Date:** 2026-08-01

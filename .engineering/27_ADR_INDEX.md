@@ -64,7 +64,7 @@ D-001 Monorepo vs Multi-repo (Proposed, rec: hybrid) Â· D-002 REST-first vs Gr
 | 8 | ADR-033 endpoint citations don't match code (`/api/v1/decisions/{evaluate,recommend,context/{id}}` not found; actual `/api/v1/decision/evaluate`, `/api/v1/decision/next-best-action`) | MEDIUM | Contract drift; tests written against cited paths would fail |
 | 9 | ADR-Data-001 artifacts missing: `data/reports/identity_quality_report.md` absent, planned v3 script absent (actual is `phase4_identity_v4.py`) | MEDIUM | Evidence chain broken; implementation already at v4 |
 | 10 | Numbering style drift: `ADR-0032` (submodule) vs `ADR-032` (index) vs `ADR-Data-001` (separate namespace) | **RESOLVED (DEC-138)** for ADR-032/0032 alias; ADR-Data-001 separate namespace remains | LOW→closed for 6.4 alias; Data-001 residual informational |
-| 11 | Submodule dirty: `engineering-os/kernel/capability-registry.yaml` uncommitted change | LOW | Unreviewed governance drift (pre-existing) |
+| 11 | Submodule dirty: `engineering-os/kernel/capability-registry.yaml` uncommitted change | **RESOLVED (DEC-143)** — working tree clean @ pin `b82b9fb`; malformed unreviewed append discarded (outside YAML fence); no submodule SHA advance | LOW→closed for 8.1 clean tree; secondary YAML SoT unchanged (DEC-132/134) |
 | 12 | Capability registry 4-way mismatch (catalog 40 / YAML ~22 / SDK ~25 / decorator 14) | HIGH | See 29; known audit finding DEBT-ARC-003 / E-21 (Capability Drift cluster CLOSED DEC-134a — residual INFO) |
 | 13 | ADR-036 body exists / criterion 9.1 Accepted but missing from `docs/adr/index.md` + this file | **RESOLVED (DEC-139)** — registered in both indexes; Status Accepted matches file header (CTO/ARB); not invented | HIGH→closed for 6.5 multi-index |
 
