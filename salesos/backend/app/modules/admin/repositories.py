@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import builtins
 
+
 import uuid
 from datetime import UTC, datetime, timedelta
 
