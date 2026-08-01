@@ -1,4 +1,4 @@
-"""Tests for the Workflow router — validates all REST endpoints through FastAPI TestClient."""
+﻿"""Tests for the Workflow router â€” validates all REST endpoints through FastAPI TestClient."""
 from __future__ import annotations
 
 import uuid
@@ -25,7 +25,7 @@ from domains.workflow.repository import InMemoryWorkflowRepository
 from domains.workflow.service import WorkflowService
 
 
-# ── Helpers ──
+# â”€â”€ Helpers â”€â”€
 
 def _make_wf(override: dict | None = None) -> Workflow:
     base = {
@@ -60,7 +60,7 @@ def _make_execution(override: dict | None = None) -> WorkflowExecution:
     return WorkflowExecution(**base)
 
 
-# ── Fixtures ──
+# â”€â”€ Fixtures â”€â”€
 
 @pytest.fixture
 def repo() -> InMemoryWorkflowRepository:
@@ -78,7 +78,7 @@ def svc(repo: InMemoryWorkflowRepository, engine: WorkflowEngine) -> WorkflowSer
 
 
 @pytest.fixture
-def app(svc: WorkflowService) -> FastAPI:
+def wf_app(svc: WorkflowService) -> FastAPI:
     application = FastAPI()
 
     async def _fake_tenant_id() -> str:
@@ -124,16 +124,16 @@ def app(svc: WorkflowService) -> FastAPI:
     return application
 
 
-# ── Workflow CRUD Tests ──
+# â”€â”€ Workflow CRUD Tests â”€â”€
 
 @pytest.mark.asyncio
-async def test_list_workflows(app: FastAPI, svc: WorkflowService):
+async def test_list_workflows(wf_app: FastAPI, svc: WorkflowService):
     wf1 = await svc.create(tenant_id="tenant-1", name="WF 1",
         steps=[{"step_type": "send_email", "config": {"to": "a@b.com"}}])
     wf2 = await svc.create(tenant_id="tenant-1", name="WF 2",
         steps=[{"step_type": "send_email", "config": {"to": "b@c.com"}}])
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get(
             "/api/v1/workflows",
@@ -147,8 +147,8 @@ async def test_list_workflows(app: FastAPI, svc: WorkflowService):
 
 
 @pytest.mark.asyncio
-async def test_create_workflow(app: FastAPI):
-    transport = ASGITransport(app=app)
+async def test_create_workflow(wf_app: FastAPI):
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
             "/api/v1/workflows",
@@ -162,8 +162,8 @@ async def test_create_workflow(app: FastAPI):
 
 
 @pytest.mark.asyncio
-async def test_create_workflow_with_template(app: FastAPI):
-    transport = ASGITransport(app=app)
+async def test_create_workflow_with_template(wf_app: FastAPI):
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
             "/api/v1/workflows",
@@ -177,7 +177,7 @@ async def test_create_workflow_with_template(app: FastAPI):
 
 
 @pytest.mark.asyncio
-async def test_create_workflow_with_all_step_types(app: FastAPI):
+async def test_create_workflow_with_all_step_types(wf_app: FastAPI):
     steps = [
         {"step_type": "send_email", "config": {"to": "a@b.com"}, "order": 0},
         {"step_type": "update_crm", "config": {"entity": "lead", "entity_id": "l1"}, "order": 1},
@@ -187,7 +187,7 @@ async def test_create_workflow_with_all_step_types(app: FastAPI):
         {"step_type": "set_variable", "config": {"name": "x", "value": "1"}, "order": 5},
         {"step_type": "log_message", "config": {"message": "test"}, "order": 6},
     ]
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
             "/api/v1/workflows",
@@ -201,8 +201,8 @@ async def test_create_workflow_with_all_step_types(app: FastAPI):
 
 
 @pytest.mark.asyncio
-async def test_get_workflow_not_found(app: FastAPI):
-    transport = ASGITransport(app=app)
+async def test_get_workflow_not_found(wf_app: FastAPI):
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get(
             "/api/v1/workflows/nonexistent",
@@ -212,12 +212,12 @@ async def test_get_workflow_not_found(app: FastAPI):
 
 
 @pytest.mark.asyncio
-async def test_execute_workflow(app: FastAPI, svc: WorkflowService):
+async def test_execute_workflow(wf_app: FastAPI, svc: WorkflowService):
     wf = await svc.create(tenant_id="tenant-1", name="Exec",
         status="active",
         steps=[{"step_type": "send_email", "config": {"to": "a@b.com", "subject": "Hi", "body": "Test"}}])
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/workflows/{wf.id}/execute",
@@ -232,10 +232,10 @@ async def test_execute_workflow(app: FastAPI, svc: WorkflowService):
 
 
 @pytest.mark.asyncio
-async def test_execute_workflow_not_active(app: FastAPI, svc: WorkflowService):
+async def test_execute_workflow_not_active(wf_app: FastAPI, svc: WorkflowService):
     wf = await svc.create(tenant_id="tenant-1", name="Draft", status="draft")
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/workflows/{wf.id}/execute",
@@ -246,10 +246,10 @@ async def test_execute_workflow_not_active(app: FastAPI, svc: WorkflowService):
 
 
 @pytest.mark.asyncio
-async def test_update_workflow(app: FastAPI, svc: WorkflowService):
+async def test_update_workflow(wf_app: FastAPI, svc: WorkflowService):
     wf = await svc.create(tenant_id="tenant-1", name="Original")
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.put(
             f"/api/v1/workflows/{wf.id}",
@@ -263,10 +263,10 @@ async def test_update_workflow(app: FastAPI, svc: WorkflowService):
 
 
 @pytest.mark.asyncio
-async def test_delete_workflow(app: FastAPI, svc: WorkflowService):
+async def test_delete_workflow(wf_app: FastAPI, svc: WorkflowService):
     wf = await svc.create(tenant_id="tenant-1", name="Delete me")
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.delete(
             f"/api/v1/workflows/{wf.id}",
@@ -279,12 +279,12 @@ async def test_delete_workflow(app: FastAPI, svc: WorkflowService):
 
 
 @pytest.mark.asyncio
-async def test_list_executions(app: FastAPI, svc: WorkflowService):
+async def test_list_executions(wf_app: FastAPI, svc: WorkflowService):
     wf = await svc.create(tenant_id="tenant-1", name="Exec", status="active",
         steps=[{"step_type": "send_email", "config": {"to": "a@b.com", "subject": "Hi", "body": "Test"}}])
     await svc.execute(wf.id, "tenant-1")
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get(
             "/api/v1/workflows/executions",
@@ -297,8 +297,8 @@ async def test_list_executions(app: FastAPI, svc: WorkflowService):
 
 
 @pytest.mark.asyncio
-async def test_get_execution_not_found(app: FastAPI):
-    transport = ASGITransport(app=app)
+async def test_get_execution_not_found(wf_app: FastAPI):
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get(
             "/api/v1/workflows/executions/nonexistent",
@@ -307,11 +307,11 @@ async def test_get_execution_not_found(app: FastAPI):
     assert response.status_code == 404
 
 
-# ── Webhook Endpoint Tests ──
+# â”€â”€ Webhook Endpoint Tests â”€â”€
 
 @pytest.mark.asyncio
-async def test_create_webhook(app: FastAPI):
-    transport = ASGITransport(app=app)
+async def test_create_webhook(wf_app: FastAPI):
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
             "/api/v1/webhooks",
@@ -325,11 +325,11 @@ async def test_create_webhook(app: FastAPI):
 
 
 @pytest.mark.asyncio
-async def test_list_webhooks(app: FastAPI, svc: WorkflowService):
+async def test_list_webhooks(wf_app: FastAPI, svc: WorkflowService):
     await svc.create_webhook("tenant-1", "https://example.com/a-webhook", "A")
     await svc.create_webhook("tenant-1", "https://example.com/b-webhook", "B")
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get(
             "/api/v1/webhooks",
@@ -342,10 +342,10 @@ async def test_list_webhooks(app: FastAPI, svc: WorkflowService):
 
 
 @pytest.mark.asyncio
-async def test_get_webhook(app: FastAPI, svc: WorkflowService):
+async def test_get_webhook(wf_app: FastAPI, svc: WorkflowService):
     ep = await svc.create_webhook("tenant-1", "https://example.com/get-test", "Test")
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get(
             f"/api/v1/webhooks/{ep.id}",
@@ -358,10 +358,10 @@ async def test_get_webhook(app: FastAPI, svc: WorkflowService):
 
 
 @pytest.mark.asyncio
-async def test_delete_webhook(app: FastAPI, svc: WorkflowService):
+async def test_delete_webhook(wf_app: FastAPI, svc: WorkflowService):
     ep = await svc.create_webhook("tenant-1", "https://example.com/del-test", "Del")
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.delete(
             f"/api/v1/webhooks/{ep.id}",
@@ -373,11 +373,11 @@ async def test_delete_webhook(app: FastAPI, svc: WorkflowService):
         assert data["deleted"] is True
 
 
-# ── Scheduled Job Tests ──
+# â”€â”€ Scheduled Job Tests â”€â”€
 
 @pytest.mark.asyncio
-async def test_create_cron_job(app: FastAPI):
-    transport = ASGITransport(app=app)
+async def test_create_cron_job(wf_app: FastAPI):
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
             "/api/v1/jobs",
@@ -392,8 +392,8 @@ async def test_create_cron_job(app: FastAPI):
 
 
 @pytest.mark.asyncio
-async def test_create_interval_job(app: FastAPI):
-    transport = ASGITransport(app=app)
+async def test_create_interval_job(wf_app: FastAPI):
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.post(
             "/api/v1/jobs",
@@ -407,11 +407,11 @@ async def test_create_interval_job(app: FastAPI):
 
 
 @pytest.mark.asyncio
-async def test_list_jobs(app: FastAPI, svc: WorkflowService):
+async def test_list_jobs(wf_app: FastAPI, svc: WorkflowService):
     await svc.create_job("tenant-1", "Job 1", "cron", "0 * * * *")
     await svc.create_job("tenant-1", "Job 2", "interval", "1h")
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get(
             "/api/v1/jobs",
@@ -424,10 +424,10 @@ async def test_list_jobs(app: FastAPI, svc: WorkflowService):
 
 
 @pytest.mark.asyncio
-async def test_get_job(app: FastAPI, svc: WorkflowService):
+async def test_get_job(wf_app: FastAPI, svc: WorkflowService):
     job = await svc.create_job("tenant-1", "Test Job", "cron", "0 * * * *")
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get(
             f"/api/v1/jobs/{job.id}",
@@ -440,10 +440,10 @@ async def test_get_job(app: FastAPI, svc: WorkflowService):
 
 
 @pytest.mark.asyncio
-async def test_delete_job(app: FastAPI, svc: WorkflowService):
+async def test_delete_job(wf_app: FastAPI, svc: WorkflowService):
     job = await svc.create_job("tenant-1", "Delete me", "cron", "0 * * * *")
 
-    transport = ASGITransport(app=app)
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.delete(
             f"/api/v1/jobs/{job.id}",
@@ -455,11 +455,11 @@ async def test_delete_job(app: FastAPI, svc: WorkflowService):
         assert data["deleted"] is True
 
 
-# ── Template Tests ──
+# â”€â”€ Template Tests â”€â”€
 
 @pytest.mark.asyncio
-async def test_list_templates(app: FastAPI):
-    transport = ASGITransport(app=app)
+async def test_list_templates(wf_app: FastAPI):
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get(
             "/api/v1/workflows/templates",
@@ -475,8 +475,8 @@ async def test_list_templates(app: FastAPI):
 
 
 @pytest.mark.asyncio
-async def test_get_template_not_found(app: FastAPI):
-    transport = ASGITransport(app=app)
+async def test_get_template_not_found(wf_app: FastAPI):
+    transport = ASGITransport(app=wf_app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get(
             "/api/v1/workflows/templates/nonexistent",

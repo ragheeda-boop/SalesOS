@@ -14,6 +14,11 @@ from app.database import get_db
 @pytest.mark.asyncio
 async def test_get_db_yields_app_engine_session():
     """Verify get_db() yields a session connected as salesos_app."""
+    # Adversarial suites dispose the shared engine between tests; recreate the
+    # pool on this event loop to avoid asyncpg "Future attached to a different loop".
+    from app.database import engine
+
+    await engine.dispose()
     async for session in get_db():
         result = await session.execute(text("SELECT current_user"))
         user = result.scalar()
