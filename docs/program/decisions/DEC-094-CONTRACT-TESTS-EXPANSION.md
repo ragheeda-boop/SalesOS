@@ -34,7 +34,7 @@ Honest fixtures in `tests/contract/conftest.py` (`contract_db_client`):
 
 Does **not** edit `get_db()` tenant GUC (DEC-085 `set_config` preserved). Does **not** require real Postgres.
 
-### Slice 3 (authenticated list) — this land
+### Slice 3 (authenticated list) — landed @ `bdc6fd2`
 
 | Endpoint | Why | Change |
 |---|---|---|

@@ -994,6 +994,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** Host poetry run pytest tests/contract/ -m contract -> **9 passed**, 31 deselected (**light validated**). Track remains **IN PROGRESS**. **CI GREEN not met.**
 **Status:** Accepted. Slice 2 landed; next slice (401/422, auth list) open.
 
+### DEC-094 addendum — Contract tests expansion slice 3 (auth list)
+
+**Date:** 2026-08-01
+**Context:** Slice 2 closed health/ready. Next authorized: one high-value authenticated list OpenAPI contract if honestly typed; 401/422 deferred.
+**Alternatives considered:** (a) company GET /api/v1/companies via CursorResponse — rejected (data: list untyped items in OpenAPI); (b) invent tighter OpenAPI item schemas for CursorResponse — rejected (dishonest); (c) GET /api/v1/decisions with existing DecisionListResponse / DecisionResponse + honest verify_token + in-memory Decision Center — approved.
+**Decision:** Land slice 3: contract test for authenticated GET /api/v1/decisions (cursor fields + typed items). Fixture contract_auth_client overrides verify_token only; attaches DecisionCenterService(InMemoryDecisionCenterRepository). No new response_model. Do **not** edit get_db SET LOCAL (DEC-085). 401/422 still deferred pending honest OpenAPI error docs. Companion: [decisions/DEC-094-CONTRACT-TESTS-EXPANSION.md](decisions/DEC-094-CONTRACT-TESTS-EXPANSION.md).
+**Consequence:** Host poetry run pytest tests/contract/ -m contract → **11 passed**, 31 deselected (**light validated**). Code tree landed @ `bdc6fd2` (commit subject raced with parallel CI-19; content is DEC-094 auth-list contract). Track remains **IN PROGRESS**. **CI GREEN not met.**
+**Status:** Accepted. Slice 3 landed; next slice (401/422) open.
+
 ### DEC-095 — STORY-02-02 browser redirect verify CLOSED
 
 **Date:** 2026-08-01

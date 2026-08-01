@@ -111,7 +111,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | STORY-03-04 OpenAPI contract framework | `623077c` | DONE | Framework land; pytest via DEC-093 |
 | Contract tests expansion slice 1 (DEC-094) | `93a00d7` | LANDED | `/ping` + `/health/live` typed + OpenAPI HTTP contracts |
 | Contract tests expansion slice 2 (DEC-094) | `0ac07bc` | LANDED | `/health` + `/health/ready` + honest DB/cache fixtures |
-| Contract tests expansion slice 3 (DEC-094) | *(this land)* | LANDED | Auth list `GET /api/v1/decisions` OpenAPI contract; next: 401/422 |
+| Contract tests expansion slice 3 (DEC-094) | `bdc6fd2` | LANDED | Auth list `GET /api/v1/decisions` OpenAPI contract; next: 401/422 |
 | STORY-02-04 §17.2 relabel | `932f722` | DONE | docs-only |
 | Card primitives (Jest debt related) | `9577c98` | Progress note only | **CI GREEN not met** |
 
