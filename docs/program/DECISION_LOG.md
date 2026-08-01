@@ -651,7 +651,7 @@
 **Date:** 2026-08-01
 **Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1–10 (DEC-046–050, DEC-053, DEC-055, DEC-058–060) cleared admin/company/entity_resolution/identity/revenue_execution/sso/routers/main+sdk/demo_mode/communication_hub; overall expected **~308 → ~89** (field-verify after Phase 10: **93**). Phase 11 targeted module `app/modules/work_intelligence` (**5** errors on CI run `30677025355` / tip corroboration inventory: `float`+`object` on `ACTIVITY_WEIGHTS["hours"]`, untyped `daily_counts`) and landed on `master` at `86b4094` (`86b40948bb21491d7d4c11df0c449086b4a6d010`) — mechanical typing only (`TypedDict` for activity weights; `dict[str, int]` for `daily_counts`). Docker light mypy: `app/modules/work_intelligence` **0** errors (`--no-error-summary`, empty stdout); overall expected **~89 → ~84** (field **93 → ~88**).
 **Alternatives considered:** (a) close entire CI-20 on Phase 11 land — rejected (residual ~84 remain; phased story); (b) clear `app/application` (9) or residual sso/entity_resolution hotspots instead — deferred (parallel WIP on boot/database; Phase 10 just landed hub); (c) record Phase 11 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
-**Decision:** Accept Phase 11 as **COMPLETE** at `86b4094`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phases 1–10. Validation label: **light validated** (Docker mypy on `app/modules/work_intelligence`).
+**Decision:** Accept Phase 11 as **COMPLETE** at `86b4094`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phases 1–10. Validation label: **light validated** (Docker mypy on `app/modules/work_intelligence`). CI Observer field-verified Backend Types on `30677732725` (`77aa7af` incl. `86b4094`; job `91308290962`): **88** errors / **0** work_intelligence vs prior tip `30677457937` (`deab399`): **93** / **5** WI — classified **pre-existing** residual; no Phase 11 work_intelligence regression; no WI code fix. Types SHA `86b4094` had **0** check-runs (superseded by docs tip).
 **Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
 **Status:** Accepted. CI-20 **Phase 11 COMPLETE**; story **OPEN**.
 
@@ -664,4 +664,26 @@
 **Alternatives considered:** (a) silent majors / `npm audit --force` now — rejected; (b) invent a patch land without audit evidence — rejected; (c) accept planning inventory + gated slices, no package bumps in this land — approved.
 **Decision:** Accept CI-14 **plan** as documented in [`decisions/DEC-062-CI-14-FRONTEND-DEPS-PLAN.md`](decisions/DEC-062-CI-14-FRONTEND-DEPS-PLAN.md). **STOP** without dedicated evidence: Next/React/ESLint/Jest majors, Next downgrade for sharp, audit’s jest→25 / ts-jest→27 / eslint-config-next→0.2.4, `--force`. **Next executable slice (when authorized):** Slice 1 = `sharp ≥0.35.0` override under next 15.5.x only. Do **not** start CI-22; no backend dep bumps; no Railway.
 **Consequence:** CI-14 remains **OPEN / READY** (plan Accepted; execution not started). R-18 unchanged (Open). Program Complete/Closed count unchanged (**20/21**). Validation: **not validated** (docs only). **CI GREEN not met.**
-**Status:** Accepted. CI-14 **PLAN COMPLETE**; story **OPEN** (Slice 1 pending authorization).
+**Status:** Accepted. CI-14 **PLAN COMPLETE**; Slice 1 execution recorded in **DEC-063**.
+
+---
+
+### DEC-063 — CI-14 Slice 1 COMPLETE: `overrides.sharp >=0.35.0` under next 15.5.x (no Next downgrade)
+
+**Date:** 2026-08-01
+**Context:** DEC-062 authorized Slice 1 as the preferred first executable for CI-14 / R-18 Cluster B (`sharp <0.35.0` / Trivy GHSA-f88m-g3jw-g9cj). npm historically frames next→14.2.35 — **STOP**. Baseline lock: sharp **0.34.5**, next **15.5.22**.
+**Alternatives considered:** (a) Next↓14 for audit framing — **STOP**; (b) `npm audit fix --force` — **STOP**; (c) `overrides.sharp >=0.35.0` only + lock refresh under next 15.5.x — approved.
+**Decision:** Land Slice 1: `salesos/frontend/package.json` `overrides.sharp` = `>=0.35.0`; refresh `package-lock.json`. Do not bump Next/React/ESLint/Jest. Do not start Slice 2/3, CI-22, backend deps, or Railway.
+**Consequence:** Lock resolves **sharp 0.35.3** under **next 15.5.22** (`npm ls sharp`). Unchanged: react **19.2.7**, eslint **9.39.5**, jest **29.7.0**. Narrow check: `npx tsc --noEmit` exit 0; prettier not in frontend deps; full lint/Jest/npm-audit CI **not** re-run. Validation: **light validated**. CI-14 remains **OPEN** (Cluster A / Slice 2–3 pending). R-18 mitigating (sharp floor cleared in lock; toolchain cluster remains). Program Complete/Closed count unchanged (**20/21**). **CI GREEN not met.**
+**Status:** Accepted. CI-14 **Slice 1 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-064 — CI-20 Phase 12 complete: boot/startup + database mypy burn-down (7+7→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1–11 (DEC-046–050, DEC-053, DEC-055, DEC-058–061) cleared admin/company/entity_resolution/identity/revenue_execution/sso/routers/main+sdk/demo_mode/communication_hub/work_intelligence; overall expected **~308 → ~84** (field-verify after Phase 11: **88**). Phase 12 targeted deferred hotspots `app/boot/startup.py` (**7**) and `app/database.py` (**7**) from the CI-104 / Phase-10 inventory and landed on `master` at `e44b7f3` (`e44b7f3d705dd0252396d84ab6ca8c19ea0d7f3a`) — mechanical typing only (`QueuePool` cast + `AsyncGenerator` return on database; `KafkaEventBus | EventRuntime` annotation; `cast(Redis)` / `cast(EventRuntime|ContextBuilder|PolicyEngine|RecommendationEngine)` on boot getattr paths). Host light mypy (`--follow-imports=silent`): both targets **0** errors; overall expected **~84 → ~70** (field **88 → ~74**). Do **not** touch `work_intelligence` or `app/application` (parallel ownership).
+**Alternatives considered:** (a) close entire CI-20 on Phase 12 land — rejected (residual ~70 remain; phased story); (b) clear only one of boot/database — rejected (both feasible in one session); (c) record Phase 12 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
+**Decision:** Accept Phase 12 as **COMPLETE** at `e44b7f3`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phases 1–11. Validation label: **light validated** (host mypy on `app/boot/startup.py` + `app/database.py`); full Backend Types CI **not** re-run.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 12 COMPLETE**; story **OPEN**.
