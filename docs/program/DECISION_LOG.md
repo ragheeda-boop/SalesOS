@@ -1072,6 +1072,26 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** CI-08 remains **BLOCKED** (ops). R-17 Open — mitigating (direction set; GHCR leg awaiting field push SUCCESS). Stage 7 remains gated. Production GA / full publish GREEN **not** claimed. Validation: **docs only / not validated** (pipeline).
 **Status:** Accepted (program direction). Ops execution pending.
 
+
+### DEC-105 - CI-19 executive residual-close: non-alembic burn + alembic residual; story CLOSED with residual
+
+**Date:** 2026-08-01
+**Context:** Live Semgrep OSS open @ tip a02c8f1 = **19**. Wave 2 PARKED (DEC-103): app text **0**; alembic residual **11**. Non-alembic leftovers: logger x4, prototype #835, triage-doc WS FP #834, DynamoDB CMK #608, GHA workflow secret env #417. Do not churn alembic RLS. DEC-085 untouched. CI-08 GHCR out of scope (DEC-104).
+**Alternatives considered:** (a) leave CI-19 OPEN indefinitely with 19 open - rejected (executive residual-close authorized once non-alembic burned); (b) nosemgrep / severity drop - rejected; (c) rewrite alembic RLS for Semgrep - rejected (DEC-103); (d) burn 8 non-alembic + CLOSE with alembic residual - approved.
+**Decision:** Accept CI-19 **CLOSED with documented residual**. Companion: [decisions/DEC-105-CI-19-EXECUTIVE-RESIDUAL-CLOSE.md](decisions/DEC-105-CI-19-EXECUTIVE-RESIDUAL-CLOSE.md). Expected clear **8**; remaining accepted **11** alembic. R-24 Closed - mitigating residual. Do not claim finding-zero or whole-pipeline CI GREEN.
+**Consequence:** Program Complete/Closed absorbs CI-19. Semgrep gates unchanged. **CI GREEN not met** (CI-08). Validation: **light validated** (inventory + diffs; field CS lag expected).
+**Status:** Accepted. CI-19 **CLOSED** with residual.
+
+
+### DEC-106 — Contract tests expansion slice 4 (401 / 422) COMPLETE
+
+**Date:** 2026-08-01
+**Context:** DEC-094 slices 1–3 landed (probes + health/ready + auth decisions list). Next slice was identity auth error contracts only after OpenAPI documents actual FastAPI shapes (`{"detail": string}` / `HTTPValidationError`) — not invented `ErrorResponse`. Tip OpenAPI already auto-documents **422** on `GET /api/v1/decisions`; **401** was undocumented despite router-level `verify_token` / `UnauthorizedError`.
+**Alternatives considered:** (a) invent custom ErrorResponse envelope — rejected; (b) document 401 without runtime match — rejected; (c) wire honest `DetailStringError` + assert 401/422 against OpenAPI — approved.
+**Decision:** Land slice 4: `DetailStringError` + `responses={401: …}` on `list_decisions`; contract tests in `tests/contract/test_openapi_auth_errors.py`. Companion: [`decisions/DEC-106-CONTRACT-TESTS-401-422.md`](decisions/DEC-106-CONTRACT-TESTS-401-422.md). Update DEC-094. Do **not** edit `get_db` (DEC-085).
+**Consequence:** Host `poetry run pytest tests/contract/ -m contract` → **14 passed**, 31 deselected (**light validated**). Contract track remains **IN PROGRESS** (narrow surface). **CI GREEN not met** (CI-08).
+**Status:** Accepted. DEC-094 slice 4 COMPLETE.
+
 ### DEC-103 — CI-19 Wave 2 Slice 6 COMPLETE: residual package (app clear + alembic RLS accepted); CI-19 remains OPEN
 
 **Date:** 2026-08-01

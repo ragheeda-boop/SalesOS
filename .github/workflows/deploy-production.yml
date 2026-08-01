@@ -27,7 +27,7 @@ env:
   IMAGE_NAMESPACE: ragheeda-boop/salesos
   IMAGE_TAG: ${{ github.sha }}
   KUBE_NAMESPACE: salesos
-  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+  # SLACK_WEBHOOK scoped at notify step only (not workflow-level — Semgrep gha-workflow-env-secret)
   K8S_MANIFESTS_DIR: salesos/infra/k8s
 
 jobs:

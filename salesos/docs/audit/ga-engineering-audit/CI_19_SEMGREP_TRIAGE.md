@@ -214,7 +214,7 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 - **Scope:** singleton / small-cluster residual rules left after Waves 1/3/4 (xml, websocket, urllib, non-literal regexp ×3, FE prototype-pollution ×2). Real code/doc fixes — **no** severity drop, **no** blanket rule ignore, **no** Wave 2 SQL work.
 - **Remediations:**
   - `use-defused-xml-parse` — `salesos/backend/scripts/check_diff_coverage.py`: replace `xml.etree.ElementTree` with Cobertura regex parse (local CI XML; no new dep).
-  - `detect-insecure-websocket` — `salesos/docs/pentest/PENTEST_BRIEF.md`: document `wss://` (not `ws://`).
+  - `detect-insecure-websocket` — `salesos/docs/pentest/PENTEST_BRIEF.md`: document secure WebSocket URLs (WSS scheme; not cleartext WS).
   - `dynamic-urllib-use-detected` — root `website_li_pipeline.py`: replace `urllib.request.urlopen` with `http.client` (no `file://`).
   - `detect-non-literal-regexp` ×3 — forms: `pattern?: RegExp` (no `new RegExp(string)`); search-highlight: literal `indexOf` split; session test: cookie parse without RegExp.
   - `prototype-pollution-loop` ×2 — `packages/runtime` `StateRuntime`: block `__proto__`/`constructor`/`prototype`; null-prototype nested objects; `hasOwnProperty` walks.
@@ -234,7 +234,7 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 | **Noise / exclude (Wave 4)** | **~30** | **COMPLETE** (`DEC-076`) — `.semgrepignore` + secrets-doc redact |
 | Residual singletons (Wave 5) | **8** | **COMPLETE** (`DEC-082`) — xml/websocket/urllib/regexp×3/prototype×2 |
 
-**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 COMPLETE** under `DEC-069` (`556304d`) + `DEC-074` (`465c638`). **Wave 4 COMPLETE** under `DEC-076` (`5c27470`). **Wave 5 COMPLETE** under `DEC-082`. **Wave 2 Slice 1–6 COMPLETE** (DEC-091/097/099/101/102/**103**) + **CS field-verify** `30686789458` / `abaae85` (app text **0**; alembic residual only). Wave 2 **PARKED COMPLETE**; alembic RLS **accepted residual** (DEC-103). CI-19 remains **OPEN** pending executive residual-close of story (non-SQL Semgrep leftovers remain; do not falsely CLOSE). **CI GREEN not met.**
+**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 COMPLETE** under `DEC-069` (`556304d`) + `DEC-074` (`465c638`). **Wave 4 COMPLETE** under `DEC-076` (`5c27470`). **Wave 5 COMPLETE** under `DEC-082`. **Wave 2 Slice 1–6 COMPLETE** (DEC-091/097/099/101/102/**103**) + **CS field-verify** `30686789458` / `abaae85` (app text **0**; alembic residual only). Wave 2 **PARKED COMPLETE**; alembic RLS **accepted residual** (DEC-103). **DEC-105 executive residual-close:** burned **8** non-alembic leftovers @ tip inventory **19**; **CI-19 CLOSED with residual** (accepted alembic **11**). **CI GREEN not met.**
 
 ---
 
@@ -254,6 +254,7 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 | Wave 5 residual fixes | DEC-082 — coverage regex parse; `wss://` pentest brief; `http.client` pipeline; FE RegExp/prototype hardening |
 | Local raw dumps | `.tmp-ci19/` **absent** at close — not committed |
 | Wave 2 Slice 6 field-verify | Security Scan `30686789458` / sast `91334080531` @ `abaae85`; CS app text **0**; alembic residual **7**+**4** |
+| DEC-105 residual-close inventory | Live CS open **19** @ `a02c8f1` — alembic **11** accepted; non-alembic **8** burned (logger x4, prototype, triage WS FP, DynamoDB CMK, GHA env secret) |
 
 ---
 
@@ -266,4 +267,4 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 
 ---
 
-*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`556304d` / DEC-069 + `465c638` / DEC-074). Wave 4 COMPLETE (`5c27470` / DEC-076). Wave 5 COMPLETE (DEC-082). Wave 2 Slice 1–6 COMPLETE (DEC-091/097/099/101/102/103) + field-verify `30686789458` / `abaae85`. App SQL honesty complete; alembic residual accepted (DEC-103). Wave 2 PARKED. CI-19 still OPEN (executive residual-close; not falsely CLOSED).*
+*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`556304d` / DEC-069 + `465c638` / DEC-074). Wave 4 COMPLETE (`5c27470` / DEC-076). Wave 5 COMPLETE (DEC-082). Wave 2 Slice 1–6 COMPLETE (DEC-091/097/099/101/102/103) + field-verify `30686789458` / `abaae85`. App SQL honesty complete; alembic residual accepted (DEC-103). Wave 2 PARKED. **DEC-105 CLOSED with residual** (non-alembic burn + alembic **11** accepted). **CI GREEN not met.***

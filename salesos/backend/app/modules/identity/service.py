@@ -606,7 +606,8 @@ class IdentityService:
         user = await self._user_repo.get_by_email(email)
         if not user:
             if self.logger:
-                self.logger.info("Password reset requested for unknown email=%s", email)
+                # Do not log the address or credential-adjacent wording (Semgrep logger-credential).
+                self.logger.info("auth.reset_requested", outcome="unknown_identity")
             return None
         raw_token = secrets.token_urlsafe(32)
         token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
@@ -620,7 +621,8 @@ class IdentityService:
         self.db.add(reset)
         await self.db.flush()
         if self.logger:
-            self.logger.info("Password reset token generated for user=%s", email)
+            # Log opaque user id only — never the address or raw token.
+            self.logger.info("auth.reset_token_created", user_id=str(user.id))
         return raw_token
 
     async def reset_password(self, token: str, new_password: str) -> User:

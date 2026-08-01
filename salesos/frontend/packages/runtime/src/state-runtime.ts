@@ -27,6 +27,34 @@ function emptyObject(): Record<string, unknown> {
   return Object.create(null) as Record<string, unknown>
 }
 
+/** Safe nest: blocked keys + hasOwnProperty; avoids obj=obj[key] pollution loop. */
+function ensureChild(
+  parent: Record<string, unknown>,
+  key: string
+): Record<string, unknown> {
+  assertSafeKey(key)
+  const next = Object.prototype.hasOwnProperty.call(parent, key)
+    ? parent[key]
+    : undefined
+  if (next === null || typeof next !== 'object' || Array.isArray(next)) {
+    const created = emptyObject()
+    parent[key] = created
+    return created
+  }
+  return next as Record<string, unknown>
+}
+
+function readChild(
+  parent: Record<string, unknown>,
+  key: string
+): Record<string, unknown> | undefined {
+  assertSafeKey(key)
+  if (!Object.prototype.hasOwnProperty.call(parent, key)) return undefined
+  const next = parent[key]
+  if (next === null || typeof next !== 'object' || Array.isArray(next)) return undefined
+  return next as Record<string, unknown>
+}
+
 export class StateRuntime {
   private store: Record<string, unknown> = emptyObject()
   private listeners = new Map<string, Set<Listener>>()
@@ -58,16 +86,11 @@ export class StateRuntime {
     const keys = assertSafePath(path)
     let current: Record<string, unknown> = this.store
     for (let i = 0; i < keys.length - 1; i++) {
-      const key = keys[i]
-      const next = Object.prototype.hasOwnProperty.call(current, key)
-        ? current[key]
-        : undefined
-      if (next === null || typeof next !== 'object' || Array.isArray(next)) {
-        current[key] = emptyObject()
-      }
-      current = current[key] as Record<string, unknown>
+      current = ensureChild(current, keys[i])
     }
-    current[keys[keys.length - 1]] = value
+    const leaf = keys[keys.length - 1]
+    assertSafeKey(leaf)
+    current[leaf] = value
     this.notify(path, value)
   }
 
@@ -101,13 +124,13 @@ export class StateRuntime {
       const keys = assertSafePath(path)
       let current: Record<string, unknown> = this.store
       for (let i = 0; i < keys.length - 1; i++) {
-        const key = keys[i]
-        if (!Object.prototype.hasOwnProperty.call(current, key)) return
-        const next = current[key]
-        if (next === null || typeof next !== 'object') return
-        current = next as Record<string, unknown>
+        const next = readChild(current, keys[i])
+        if (!next) return
+        current = next
       }
-      delete current[keys[keys.length - 1]]
+      const leaf = keys[keys.length - 1]
+      assertSafeKey(leaf)
+      delete current[leaf]
       this.notify(path)
     } else {
       this.store = emptyObject()

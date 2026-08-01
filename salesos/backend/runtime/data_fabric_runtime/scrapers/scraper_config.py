@@ -142,26 +142,30 @@ def validate_scraper_keys() -> bool:
         if status == KeyStatus.MISSING:
             if scraper.required:
                 logger.warning(
-                    "Scraper '%s' API key is MISSING. Set %s env var. "
+                    "Scraper '%s' auth config is MISSING. Set %s. "
                     "Scraper will operate in mock mode.",
-                    scraper.slug, scraper.env_var,
+                    scraper.slug,
+                    scraper.env_var,
                 )
                 all_valid = False
             else:
                 logger.debug(
-                    "Optional scraper '%s' API key not set (%s).",
-                    scraper.slug, scraper.env_var,
+                    "Optional scraper '%s' auth config not set (%s).",
+                    scraper.slug,
+                    scraper.env_var,
                 )
         elif status == KeyStatus.PLACEHOLDER:
             logger.warning(
-                "Scraper '%s' API key appears to be a PLACEHOLDER. "
-                "Check %s env var — still set to a demo/example value. "
+                "Scraper '%s' auth config appears to be a PLACEHOLDER. "
+                "Check %s — still set to a demo/example value. "
                 "%s",
-                scraper.slug, scraper.env_var, scraper.description,
+                scraper.slug,
+                scraper.env_var,
+                scraper.description,
             )
             all_valid = False
         else:
-            logger.debug("Scraper '%s' API key is valid.", scraper.slug)
+            logger.debug("Scraper '%s' auth config is valid.", scraper.slug)
 
     return all_valid
 

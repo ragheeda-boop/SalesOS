@@ -39,7 +39,8 @@ resource "aws_dynamodb_table" "terraform_locks" {
   }
 
   server_side_encryption {
-    enabled = true
+    enabled     = true
+    kms_key_arn = aws_kms_key.terraform_locks.arn
   }
 
   tags = local.common_tags
@@ -185,6 +186,18 @@ resource "aws_elasticache_replication_group" "redis" {
 resource "random_password" "rds_password" {
   length  = 24
   special = false
+}
+
+resource "aws_kms_key" "terraform_locks" {
+  description             = "SalesOS Terraform DynamoDB lock-table CMK"
+  deletion_window_in_days = 30
+  enable_key_rotation     = true
+  tags                    = local.common_tags
+}
+
+resource "aws_kms_alias" "terraform_locks" {
+  name          = "alias/${local.name_prefix}-terraform-locks"
+  target_key_id = aws_kms_key.terraform_locks.key_id
 }
 
 resource "aws_kms_key" "secrets" {
