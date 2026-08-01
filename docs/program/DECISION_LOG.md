@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** Phase 0 Exit Criterion 1.3 (PROD-W5-001 / STORY-01-03) still OPEN on the checklist despite Sprint 01 removal of `api_key_authenticated` CSRF bypass and unit regressions. Evidence required: regression PASS. Stale middleware docstring still claimed API-key skip. DEC-085 get_db/set_config must not regress.
 **Alternatives considered:** (a) claim CLOSED from Sprint 01/02 audit notes alone — rejected (checklist ⬜; docstring dishonest; no Phase 0 HTTP contract); (b) reintroduce API-key CSRF waiver for machine clients — rejected (weakens 1.3); (c) docstring honesty + HTTP ASGI contract + package READY FOR REVIEW — approved.
-**Decision:** Accept criterion **1.3** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [decisions/DEC-127-CSRF-X-API-KEY-BYPASS.md](decisions/DEC-127-CSRF-X-API-KEY-BYPASS.md). Narrow Docker pytest **11 passed**. DEC-085 intact.
-**Consequence:** Phase 0 criterion **1.3** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). Next: Architecture Reviewer sign. **Production GO not claimed. CI GREEN not met. Criterion CLOSED not claimed.**
-**Status:** Accepted. Criterion **READY FOR REVIEW** (not CLOSED).
+**Decision:** Accept criterion **1.3** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [decisions/DEC-127-CSRF-X-API-KEY-BYPASS.md](decisions/DEC-127-CSRF-X-API-KEY-BYPASS.md). Narrow Docker pytest **11 passed**. DEC-085 intact. Closed via DEC-127a after Arch+Val PASS.
+**Consequence:** Phase 0 criterion **1.3** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). Next: Architecture Reviewer sign. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED via DEC-127a**.
+
+### DEC-127a — Orchestrator VERIFIED/CLOSED criterion 1.3 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 1.3](ba5c77f8-1391-41db-ac5b-8ac791576e42)) + Validation PASS ([Validate 1.3](c7257393-470f-47ec-8ca5-e60e71dbea95): Docker CSRF suite **11 passed**; DEC-085 untouched) on land `5db0756` / DEC-127.
+**Decision:** Execution Orchestrator records criterion **1.3 VERIFIED → CLOSED**. Phase 0 **21/54 → 22/54**.
+**Consequence:** Security P0 remaining OPEN: **1.5** only (1.1–1.4 CLOSED). **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **1.3 CLOSED**.
 
 ### DEC-125 — Webhook SSRF URL allowlist (Phase 0 criterion 1.2)
 

@@ -84,6 +84,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **S04-01 / S04-05 / S04-06** | **COMPLETE** | Adversarial suites |
 | **CI-16 / CI-20 / CI-19 / CI-22 / CI-14** | **CLOSED** | As previously recorded |
 | **Jest-debt** / **R-23** | **CLOSED** | DEC-077 |
+| **Security P0 1.3** CSRF X-API-Key | **CLOSED** (DEC-127a) | Arch+Val PASS @ `5db0756`; Phase 0 **22/54**; Security OPEN residual **1.5** |
 
 ---
 
