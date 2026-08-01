@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** ADR-036 Applied Open **1** after DEC-141a (9.2 CLOSED) — checklist 9.3 had bare ✅ without packaged triggers; DEC-145 committed `.ai/` org baseline, creating risk of overclaiming a live Agent OS while full runtime remains deferred.
 **Alternatives considered:** (a) treat bare checklist ✅ as CLOSED — rejected; (b) self-CLOSE VERIFIED — rejected; (c) invent running scheduler — rejected; (d) remove org baseline — rejected (breaks 8.2 / ARB-003); (e) explicit deferral + triggers + READY FOR REVIEW — approved.
-**Decision:** Accept criterion **9.3** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-146-CRITERION-9-3-AI-RUNTIME-DEFERRED.md`](decisions/DEC-146-CRITERION-9-3-AI-RUNTIME-DEFERRED.md). Triggers pinned in ADR-036 §`.ai/` Runtime deferral + `.ai/README`; `runtime-spec.yaml` remains SPECIFICATION. DEC-085 intact. Do **not** self-CLOSE.
-**Consequence:** Phase 0 criterion **9.3** = READY FOR REVIEW. Phase 0 remains **42/54**. Residual EOS **4.1/4.8** ARB. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criterion **READY FOR REVIEW** (awaiting Arch+Val+Orchestrator).
+**Decision:** Accept criterion **9.3** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-146-CRITERION-9-3-AI-RUNTIME-DEFERRED.md`](decisions/DEC-146-CRITERION-9-3-AI-RUNTIME-DEFERRED.md). Triggers pinned in ADR-036 §`.ai/` Runtime deferral + `.ai/README`; `runtime-spec.yaml` remains SPECIFICATION. DEC-085 intact. Closed via DEC-146a after Arch+Val PASS.
+**Consequence:** Phase 0 criterion **9.3** = READY FOR REVIEW then **CLOSED** via DEC-146a. Residual EOS **4.1/4.8** ARB. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED via DEC-146a**.
+
+### DEC-146a — Orchestrator VERIFIED/CLOSED criterion 9.3 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 9.3](99de754a-e7ac-4cd6-9ee8-a68ab3b1d98a)) + Validation PASS (light) ([Validate 9.3](47ce25d2-b34a-453f-84eb-fcc456ec6897)) on land `922528f` / tip pin `1f99628` / DEC-146.
+**Decision:** Execution Orchestrator records criterion **9.3 VERIFIED → CLOSED**. Phase 0 **42/54 → 43/54**. ADR-036 Applied Complete **3 → 4** / Open **1 → 0** (cluster **COMPLETE 4/4**). Residuals EOS **4.1/4.8** ARB and CI **3.x** + CI-08/09 remain OPEN (non-blocking for 9.3). Do **not** push. Do **not** claim Production GO / CI GREEN.
+**Consequence:** ADR-036 Applied cluster **COMPLETE 4/4**. Next PARALLEL READY: EOS Audit **4.1/4.8** (ARB — do not invent); CI **3.5/3.7/3.8** (non-GHCR); optional contract tests / Jest 30. BLOCKED: ops CI-08/CI-09. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **9.3 CLOSED**. ADR-036 Applied **COMPLETE 4/4**.
 
 ### DEC-145 — Phase 0 criterion 8.2 agent coordination protocol READY FOR REVIEW
 

@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-146 criterion 9.3 `.ai/` runtime deferred **READY FOR REVIEW**; Eng Stability **COMPLETE 4/4**; Phase 0 **42/54**; residuals EOS **4.1/4.8** ARB; ADR-036 Applied Complete 3/4 · 9.3 RFR; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
+> **Last updated:** 2026-08-01 (DEC-146a criterion 9.3 `.ai/` runtime deferred **VERIFIED/CLOSED**; ADR-036 Applied **COMPLETE 4/4**; Eng Stability **COMPLETE 4/4**; Phase 0 **43/54**; residuals EOS **4.1/4.8** ARB · CI **3.x** + CI-08/09; EOS Audit Complete 6/8; ADR Drift Complete 5/5; Capability Drift Complete 4/4)
 >
 > ## Operating State
 >
@@ -166,7 +166,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 |---|-----------|-------------------|--------|
 | 9.1 | Four-layer separation documented | ADR-036 Accepted | ✅ |
 | 9.2 | `docs/program/` ↔ `.engineering/` bidirectional references | Cross-references exist, no data duplication | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `7b618da` (DEC-141a); bridges `docs/program/ENGINEERING_LAYER_BRIDGE.md` ↔ `.engineering/33_PROGRAM_LAYER_BRIDGE.md` (pointers only; no catalog/sprint duplication); DEC-085 untouched; residuals EOS **4.1/4.8** · Eng Stability **8.2/8.3** OPEN (**4.2/4.4/4.7 CLOSED** DEC-142a; **8.1 CLOSED** DEC-143a); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
-| 9.3 | `.ai/` explicitly deferred | Documented with trigger condition | 🟡 READY FOR REVIEW — DEC-146 @ `922528f`; org baseline ≠ Agent OS runtime; triggers pinned in ADR-036 §`.ai/` Runtime deferral + `.ai/README`; `runtime-spec.yaml` `status: SPECIFICATION`; DEC-085 untouched; do **not** claim VERIFIED/CLOSED / Production GO / CI GREEN until Arch+Val+Orchestrator |
+| 9.3 | `.ai/` explicitly deferred | Documented with trigger condition | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `922528f` / tip pin `1f99628` (DEC-146a); org baseline ≠ Agent OS runtime; triggers pinned in ADR-036 §`.ai/` Runtime deferral + `.ai/README`; `runtime-spec.yaml` `status: SPECIFICATION`; DEC-085 untouched; ADR-036 Applied cluster **COMPLETE 4/4**; residual EOS **4.1/4.8** ARB · CI **3.x** + CI-08/09; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 | 9.4 | No further architectural layers introduced before Phase 0 exit | ARB governance rule enforced | ✅ This checklist |
 
 **Owner:** CTO  
@@ -186,8 +186,8 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 6. ADR Drift | 5 | 5 | 0 | 0 |
 | 7. DB Schema | 6 | 6 | 0 | 0 |
 | 8. Engineering Stability | 4 | 4 | 0 | 0 |
-| 9. ADR-036 Applied | 4 | 3 | 0 | 1 |
-| **TOTAL** | **54** | **42** | **2** | **10** |
+| 9. ADR-036 Applied | 4 | 4 | 0 | 0 |
+| **TOTAL** | **54** | **43** | **2** | **9** |
 
 ---
 
