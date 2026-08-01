@@ -121,9 +121,7 @@ async def test_owner_scoped_tenant_id_requires_header():
 async def test_owner_scoped_tenant_id_from_header():
     token = create_owner_access_token("owner-dep-4")
     payload = await verify_owner_token(authorization=f"Bearer {token}")
-    tenant = await get_owner_scoped_tenant_id(
-        x_tenant_id="tenant-scoped-1", _token_payload=payload
-    )
+    tenant = await get_owner_scoped_tenant_id(x_tenant_id="tenant-scoped-1", _token_payload=payload)
     assert tenant == "tenant-scoped-1"
 
 

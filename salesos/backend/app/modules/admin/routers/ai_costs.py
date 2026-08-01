@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.schemas import PaginatedResponse
 from app.dependencies import get_db_session
-from app.owner_auth import require_owner_role_dep
 from app.modules.identity.models import Tenant
+from app.owner_auth import require_owner_role_dep
 
 from ..schemas import AICostResponse, AICostSummary, AIUsageResponse
 from ._dependencies import AdminRepositories, get_admin_repos

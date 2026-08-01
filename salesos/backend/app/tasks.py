@@ -455,17 +455,15 @@ async def _run_enrichment_pipeline(company_id: str, tenant_id: str) -> dict:
             logger.warning("Feature store unavailable for %s: %s", company_id, e)
             return {}
 
-    scrape_result: object
     feature_result: object
     try:
-        scrape_result, feature_result = await asyncio.gather(
+        _scrape_result, feature_result = await asyncio.gather(
             _run_scrapers(),
             _run_features(),
             return_exceptions=True,
         )
     except Exception as e:
         logger.warning("Enrichment pipeline aborted for %s: %s", company_id, e)
-        scrape_result = None
         feature_result = {}
 
     features = feature_result if isinstance(feature_result, dict) else {}

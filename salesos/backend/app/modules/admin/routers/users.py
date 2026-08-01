@@ -9,8 +9,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db_session
-from app.owner_auth import require_owner_role_dep
 from app.modules.identity.models import Tenant, User
+from app.owner_auth import require_owner_role_dep
 
 from ..pg_repositories import PostgresRoleRepository
 from ..schemas import (
