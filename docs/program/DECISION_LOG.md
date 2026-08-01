@@ -698,3 +698,14 @@
 **Decision:** **STOP** CI-14 Slice 2. Do **not** change `package.json` / `package-lock.json` for ESLint. Do **not** start Slice 3 / CI-22 / backend deps / Railway. Full package: [`decisions/DEC-065-CI-14-SLICE-2-ESLINT-STOP.md`](decisions/DEC-065-CI-14-SLICE-2-ESLINT-STOP.md). Companion plan §10 updated.
 **Consequence:** CI-14 remains **IN PROGRESS / OPEN** (Slice 1 PASS; Slice 2 BLOCKED; Slice 3 pending). R-18 **Open — mitigating** (sharp floor retained; Cluster A unchanged). Program Complete/Closed count unchanged (**20/21**). Validation: **not validated** (docs only). **CI GREEN not met.**
 **Status:** Accepted. CI-14 **Slice 2 STOPPED**; story **OPEN**. Next: authorize dedicated Slice 2 evidence package (named eslint 10 + next-aligned eslint-config-next + lint-green gate) before any lock change.
+
+---
+
+### DEC-066 — CI-20 Phase 13 complete: app/application mypy burn-down (9→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1–12 (DEC-046–050, DEC-053, DEC-055, DEC-058–061, DEC-064) cleared admin/company/entity_resolution/identity/revenue_execution/sso/routers/main+sdk/demo_mode/communication_hub/work_intelligence/boot+database; overall expected **~308 → ~70** (field after Phase 11: **88**; Phase 12 expected field **~74**). Phase 13 targeted `app/application` (**9** errors on CI-104 inventory: `decision_provider` `no-any-return` ×6, `dashboard_aggregator` `BaseException` assignment, `data_quality` `no-any-return`, `router` implicit Optional `Request`) and landed on `master` at `5edb6d6` (`5edb6d61534dc97ebde16d450507338b01167edf`) — mechanical typing only (`cast` on dict/model getters; `isinstance(..., BaseException)` narrow; `Request | None`; `cast(QualitySummary, cached)`). Host light mypy (`--follow-imports=skip` on the four files): **0** errors (exit 0); overall expected **~70 → ~61** (field **~74 → ~65**). Did **not** edit `app/boot/startup.py` or `app/database.py` (Phase 12 ownership).
+**Alternatives considered:** (a) close entire CI-20 on Phase 13 land — rejected (residual ~61 remain; phased story); (b) record Phase 13 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
+**Decision:** Accept Phase 13 as **COMPLETE** at `5edb6d6`. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phases 1–12. Do **not** bump FastAPI. Validation label: **light validated** (host mypy on `app/application` targets); full Backend Types CI **not** re-run.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 13 COMPLETE**; story **OPEN**.
