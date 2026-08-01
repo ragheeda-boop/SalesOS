@@ -540,3 +540,16 @@
 **Decision:** Accept Slice 1 as **COMPLETE** at `1e73a2f` (`1e73a2f92000be74f8d6be8ddccb2b9daeadb010`). Constraint `python-multipart = ">=0.0.27,<0.1.0"`; lock **0.0.32**. Do **not** mark CI-16 CLOSED. Validation: **light validated** (`poetry update python-multipart`; import `multipart` + `app.main` → FastAPI). No security-gate weakening.
 **Consequence:** CI-16 moves **BACKLOG → IN PROGRESS**. R-21 status **Open — mitigating**. Residual packages still fail `pip-audit --strict`. Program Complete/Closed count unchanged (**19/20**). **CI GREEN not met.**
 **Status:** Accepted. CI-16 **Slice 1 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-052 — CI-16 Slice 2 STOP: starlette bump blocked on FastAPI/pydantic cascade; CI-16 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-16 Slice 2 authorized a narrow `starlette` bump (do **not** bump strawberry/ecdsa; do **not** re-bump `python-multipart`) to a version that satisfies `pip-audit` while remaining compatible with the FastAPI pin in `salesos/backend/pyproject.toml`. Current lock: **fastapi 0.111.1**, **starlette 0.37.2** (via FastAPI `starlette>=0.37.2,<0.38.0`). Project pins: `fastapi = "^0.111"` (Poetry → `>=0.111,<0.112`), `pydantic = ">=2.7,<2.9"`. No further `0.37.x` releases exist after 0.37.2.
+**Evidence (advisory fixed floors):** PYSEC-2026-1943 → **0.40.0**; PYSEC-2026-1941 → **0.47.2**; PYSEC-2026-161 → **1.0.1**; PYSEC-2026-2280/2281 → **1.1.0**; PYSEC-2026-248 → **1.3.0**; PYSEC-2026-249 → **1.3.1**. Clearing **all** current starlette `pip-audit` findings requires **starlette ≥ 1.3.1**.
+**Compatibility wall:** FastAPI `0.111.x` admits only `starlette <0.38.0` — no patched candidate. Expanding FastAPI alone is insufficient without a dedicated cascade: e.g. `0.115.12` still caps starlette `<0.47.0`; `0.118–0.128` can reach `0.47.2` (clears 1941/1943 only) but **not** 1.3.1; `0.135+` opens `starlette>=0.46.0` (may resolve to 1.x) and from `0.136+` requires **pydantic ≥ 2.9.0**, which collides with the project `pydantic <2.9` pin. Starlette 1.x also introduces breaking ASGI/lifespan API changes.
+**Alternatives considered:** (a) force-pin starlette ≥1.3.1 under FastAPI 0.111 — **impossible** (solver conflict); (b) silent FastAPI major/minor cascade + pydantic floor lift in this slice — **rejected** (blast radius; stop-rule); (c) STOP Slice 2, keep CI-16 OPEN, register dedicated FastAPI/starlette modernization follow-on — **approved**.
+**Decision:** **STOP** CI-16 Slice 2. Do **not** change `poetry.lock` / FastAPI / starlette / pydantic in this commit. Record blocker; leave CI-16 **IN PROGRESS / OPEN** and R-21 **Open — mitigating** (Slice 1 multipart progress retained). Recommend a dedicated story (or CI-16 Slice 2b with explicit executive scope) for FastAPI ≥0.135 (or later) + pydantic ≥2.9 + starlette ≥1.3.1 with compatibility/regression plan.
+**Consequence:** No security-gate green for starlette. Residual R-21 packages: **starlette 0.37.2**, **strawberry-graphql**, **ecdsa**. Program Complete/Closed count unchanged (**19/20**). **CI GREEN not met.**
+**Status:** Accepted. CI-16 **Slice 2 BLOCKED**; story **OPEN**.
