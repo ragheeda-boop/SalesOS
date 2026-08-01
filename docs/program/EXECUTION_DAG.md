@@ -84,8 +84,8 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **S04-01 / S04-05 / S04-06** | **COMPLETE** | Adversarial suites |
 | **CI-16 / CI-20 / CI-19 / CI-22 / CI-14** | **CLOSED** | As previously recorded |
 | **Jest-debt** / **R-23** | **CLOSED** | DEC-077 |
-| **Security P0 1.3** CSRF X-API-Key | **CLOSED** (DEC-127a) | Arch+Val PASS @ `5db0756`; Phase 0 **22/54** |
-| **Security P0 1.5** SAST + deps | **READY FOR REVIEW** (DEC-128) | Cursor COMPLETE; ecdsa + CI-19 Semgrep residual; Architecture PENDING |
+| **Security P0 1.3** CSRF X-API-Key | **CLOSED** (DEC-127a) | Arch+Val PASS @ `5db0756`; Phase 0 **22/54** (superseded to **23/54**) |
+| **Security P0 1.5** SAST + deps | **CLOSED CONDITIONAL** (DEC-128a) | Arch PASS + Val PASS_CONDITIONAL @ `fa266b5`; residual: post-align Security Scan pip-audit field-verify PENDING; Phase 0 **23/54** |
 
 ---
 
@@ -93,7 +93,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30, DB-05 7.4/7.6 | PARALLEL / READY | DEC-107 swarm — do not idle on CI-08 alone; Category B B1–B7 COMPLETE (DEC-119); deferred-8 RLS DEC-123; Security 1.5 DEC-128 READY FOR REVIEW — do **not** claim Phase 0 GO |
+| Contract tests, optional Jest 30, DB-05 7.4/7.6 | PARALLEL / READY | DEC-107 swarm — do not idle on CI-08 alone; Category B B1–B7 COMPLETE (DEC-119); deferred-8 RLS DEC-123; Security 1.5 CLOSED CONDITIONAL (DEC-128a) — do **not** claim Phase 0 GO |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 **Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation / CI-08/09 ops proceed.

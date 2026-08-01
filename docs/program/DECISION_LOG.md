@@ -1093,7 +1093,14 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Alternatives considered:** (a) claim CLOSED/finding-zero from board story closes alone — rejected (checklist Partial; security-scan lock parity dishonest); (b) reopen CI-16 for ecdsa / PyJWT now — rejected (DEC-057 Option A); (c) reopen CI-19 for alembic Semgrep churn — rejected (DEC-105); (d) package READY FOR REVIEW + align security-scan pip-audit to DEC-090 — approved.
 **Decision:** Accept criterion **1.5** as **Cursor COMPLETE** / **READY FOR REVIEW** with documented residual (ecdsa named ignore + CI-19 Semgrep alembic **11**). Companion: [decisions/DEC-128-CRITERION-1-5-SAST-DEPS-RESIDUAL.md](decisions/DEC-128-CRITERION-1-5-SAST-DEPS-RESIDUAL.md). Align `security-scan.yml` pip-audit to poetry export + `--ignore-vuln PYSEC-2026-1325` + `--strict`. DEC-085 intact. Do **not** mark VERIFIED/CLOSED.
 **Consequence:** Phase 0 criterion **1.5** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). Phase 0 remains **22/54** until Orchestrator CLOSE. Adjacent **3.5** not auto-closed. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Criterion **READY FOR REVIEW** (not CLOSED).
+**Status:** Accepted. Criterion **CLOSED CONDITIONAL via DEC-128a**.
+
+### DEC-128a — Orchestrator VERIFIED/CLOSED CONDITIONAL criterion 1.5 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 1.5](66828f20-228e-491f-a499-50c808d04c44)) + Validation PASS_CONDITIONAL ([Validate 1.5](ff24e413-5483-4530-a507-dc64c5ed3fda): workflow honesty + named single ignore PASS; pre-land Stage 5 / Security Scan corroboration PASS via gh; post-align Security Scan pip-audit @ `fa266b5` = PENDING push field-verify; DEC-085 untouched) on land `fa266b5` / DEC-128.
+**Decision:** Accept **1.5 VERIFIED → CLOSED CONDITIONAL** (same honesty pattern as 2.3 DEC-126). Residual: *post-align Security Scan pip-audit field-verify PENDING until tip containing `fa266b5` is pushed and Security Scan pip-audit SUCCESS with poetry export + 1 ignored (ecdsa)*. Do **not** push. Do **not** claim Production GO / CI GREEN / finding-zero / unconditional CLOSED.
+**Consequence:** Phase 0 **22/54 → 23/54**. Security P0 Complete **4 → 5**, Open **1 → 0**. Adjacent **3.5** / **3.8** not auto-closed. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **1.5 CLOSED CONDITIONAL**.
 
 ### DEC-127 — CSRF X-API-Key bypass (Phase 0 criterion 1.3)
 

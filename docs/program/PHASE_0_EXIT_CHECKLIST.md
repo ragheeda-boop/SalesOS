@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (criterion 1.5 READY FOR REVIEW DEC-128; 1.3 VERIFIED/CLOSED DEC-127a; Security Cursor residual packaging; prod tip-align `d1a8`/67)
+> **Last updated:** 2026-08-01 (criterion 1.5 VERIFIED/CLOSED CONDITIONAL DEC-128a; Security P0 Complete 5/5; Phase 0 23/54)
 >
 > ## Operating State
 >
@@ -24,7 +24,7 @@
 
 **Phase 0 = NO-GO** (CI-08/CI-09; Security residuals; Capability/ADR drift)
 
-Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSED CONDITIONAL** (multi-tenant live split residual).
+Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSED CONDITIONAL** (multi-tenant live split residual). Security **1.5 CLOSED CONDITIONAL** (post-align Security Scan pip-audit field-verify PENDING).
 
 ---
 
@@ -38,7 +38,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 1.2 | Webhook SSRF fixed (URL allowlist) | Regression test PASS, re-verified against Integration Hub caller | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (Docker SSRF suite 32 passed, 54 deselected) @ `fd8699d` (DEC-125); Orchestrator DEC-125a 2026-08-01; residual: staging SSRF pentest OPEN (non-blocking) |
 | 1.3 | CSRF bypass via `X-API-Key` fixed | Regression test PASS | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (Docker CSRF suite 11 passed; DEC-085 untouched) @ `5db0756` (DEC-127); Orchestrator DEC-127a 2026-08-01 |
 | 1.4 | Cross-tenant regression test template established | Harness reusable by every subsequent epic | ✅ STORY-01-04 (Sprint 02) |
-| 1.5 | SAST + dependency vulnerability scan wired into CI | `security-scan.yml` + `ci.yml` security jobs green | ⬜ READY FOR REVIEW — Cursor COMPLETE DEC-128 (ecdsa named ignore + CI-19 Semgrep alembic residual; Architecture PENDING · Validation PENDING). Not CLOSED/VERIFIED |
+| 1.5 | SAST + dependency vulnerability scan wired into CI | `security-scan.yml` + `ci.yml` security jobs green | ✅ VERIFIED/CLOSED **CONDITIONAL** — Arch PASS + Validation PASS_CONDITIONAL @ `fa266b5` (DEC-128); workflow honesty + named single ignore PASS; pre-land Stage 5 / Security Scan corroboration PASS via gh; residual: *post-align Security Scan pip-audit field-verify PENDING until tip containing `fa266b5` is pushed and Security Scan pip-audit SUCCESS with poetry export + 1 ignored (ecdsa)*. DEC-085 untouched. Orchestrator DEC-128a 2026-08-01 |
 
 **Owner:** Security Eng / CTO  
 **Reference:** `PROGRAM_PLAN.md` EPIC-01, `CANONICAL_ARCHITECTURE.md` §14
@@ -70,7 +70,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 3.2 | Stage 2: Backend Types green | MyPy exits 0 (DEC-096) | ✅ CI-20 |
 | 3.3 | Stage 3: Frontend Unit Tests green | 196/196 suites PASS (DEC-077) | ✅ Jest-debt |
 | 3.4 | Stage 4: Backend Unit + Integration green | `pytest` 2700+ PASS, `-n auto` | ✅ CI-22 follow-on |
-| 3.5 | Stage 5: Security Scan green | pip-audit (named ignore only), Bandit, Gitleaks, Semgrep residual-only | ⬜ ecdsa residual accepted (DEC-057/090/098); CI-19 residual (DEC-105); overlaps 1.5 READY FOR REVIEW — does **not** auto-close 3.5/3.8 |
+| 3.5 | Stage 5: Security Scan green | pip-audit (named ignore only), Bandit, Gitleaks, Semgrep residual-only | ⬜ ecdsa residual accepted (DEC-057/090/098); CI-19 residual (DEC-105); overlaps 1.5 CLOSED CONDITIONAL (DEC-128a) — does **not** auto-close 3.5/3.8 |
 | 3.6 | Stage 6: Docker Build + Push green | Backend + Frontend images build + push | ⬜ CI-08 BLOCKED (GHCR 403) |
 | 3.7 | Stage 7: E2E green | Playwright specs PASS with real backend services | ⬜ CI e2e job has no services |
 | 3.8 | Full pipeline: CI GREEN (code path) | Stages 1–5 all green on same run | ⬜ |
@@ -178,7 +178,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 
 | Cluster | Items | Complete | Blocked | Open |
 |---------|-------|----------|---------|------|
-| 1. Security P0 | 5 | 4 | 0 | 1 |
+| 1. Security P0 | 5 | 5 | 0 | 0 |
 | 2. RLS & Tenant Isolation | 7 | 6 | 0 | 1 |
 | 3. CI/CD Green | 11 | 3 | 2 (CI-08, CI-09) | 6 |
 | 4. EOS Audit Pass | 8 | 2 | 0 | 6 |
@@ -187,7 +187,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 7. DB Schema | 6 | 4 | 0 | 2 |
 | 8. Engineering Stability | 4 | 1 | 0 | 3 |
 | 9. ADR-036 Applied | 4 | 2 | 0 | 2 |
-| **TOTAL** | **54** | **22** | **2** | **30** |
+| **TOTAL** | **54** | **23** | **2** | **29** |
 
 ---
 
@@ -198,6 +198,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | CI-08 GHCR 403 | Org-level Packages write permission | Human/ops: grant GHCR write to Actions |
 | CI-09 VPS SSH/secrets | Secret provisioning | Ops: provision VPS_HOST, VPS_USER, VPS_SSH_KEY |
 | R-14 multi-tenant residual (non-blocking for 2.3 CONDITIONAL) | Second-tenant fixture (prefer staging) | Optional: re-run Slice E differential for unconditional PASS |
+| 1.5 post-align Security Scan pip-audit (non-blocking for 1.5 CONDITIONAL) | Push tip containing `fa266b5` | Field-verify Security Scan pip-audit SUCCESS with poetry export + 1 ignored (ecdsa) — does **not** upgrade to unconditional CLOSED until observed |
 
 ---
 

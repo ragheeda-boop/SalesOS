@@ -1,11 +1,11 @@
 # DEC-128 — Phase 0 criterion 1.5: SAST + dependency scan wired; READY FOR REVIEW with residual
 
-> **Status:** **Accepted** — Cursor packaging **COMPLETE** · Criterion 1.5 = **READY FOR REVIEW** (Architecture PENDING · Validation PENDING). Only Execution Orchestrator may mark VERIFIED/CLOSED.  
+> **Status:** **Accepted** — Cursor packaging **COMPLETE** · Criterion 1.5 = **VERIFIED/CLOSED CONDITIONAL** (DEC-128a; Architecture PASS · Validation PASS_CONDITIONAL). Residual: post-align Security Scan pip-audit field-verify PENDING.  
 > **Date:** 2026-08-01  
 > **Board:** Backend Lead / Security P0 (SalesOS / AQLIYA)  
 > **Story / risk:** Phase 0 Exit Criterion **1.5** · R-21 (ecdsa mitigating) · R-24 Closed mitigating (CI-19 Semgrep alembic)  
-> **Authority:** PHASE_0_EXIT_CHECKLIST §1.5 · CI-02/16/17/18/19/21/22 CLOSED · DEC-057/090/098/105/109 · DEC-085 `set_config`  
-> **Out of scope this land:** Criterion CLOSED/VERIFIED · Production GO · whole-pipeline CI GREEN · CI-08 GHCR · PyJWT (DEC-057 Option B) · alembic Semgrep churn · DEC-085 / auth / CSRF / RBAC weaken
+> **Authority:** PHASE_0_EXIT_CHECKLIST §1.5 · CI-02/16/17/18/19/21/22 CLOSED · DEC-057/090/098/105/109 · DEC-085 `set_config` · DEC-128a Orchestrator  
+> **Out of scope this land:** Unconditional CLOSED · Production GO · whole-pipeline CI GREEN · CI-08 GHCR · PyJWT (DEC-057 Option B) · alembic Semgrep churn · DEC-085 / auth / CSRF / RBAC weaken
 
 ---
 
@@ -19,7 +19,7 @@ Accept criterion **1.5** as **Cursor COMPLETE** / **READY FOR REVIEW**: SAST + d
 | Prior checklist status | ⬜ Partial (pip-audit findings remain) — **stale** vs closed CI-16/22 + DEC-090 |
 | This land | (1) Package executive residual for 1.5; (2) Align `security-scan.yml` pip-audit to poetry export + DEC-090 named ignore (replace stale `PYSEC-2024-1`) |
 | DEC-085 | **Intact** (not touched) |
-| Criterion state | **READY FOR REVIEW** (not CLOSED / not VERIFIED) |
+| Criterion state | **VERIFIED/CLOSED CONDITIONAL** (DEC-128a) — residual post-align Security Scan pip-audit PENDING |
 
 ### Stories already CLOSED (do not reopen)
 
@@ -58,7 +58,7 @@ Accept criterion **1.5** as **Cursor COMPLETE** / **READY FOR REVIEW**: SAST + d
 | Security Scan workflow | [`30704321107`](https://github.com/ragheeda-boop/SalesOS/actions/runs/30704321107) @ `c842245` | **SUCCESS** (secret-scan, pip-audit, npm-audit, sast-scan, sbom, report) |
 | CI-19 Semgrep residual | [`30693735860`](https://github.com/ragheeda-boop/SalesOS/actions/runs/30693735860) / sast `91352893256` @ `b9062d6` | CLI **11** blocking; CS open **11** alembic-only |
 
-**Post-land field-verify (Validation / push):** Security Scan `pip-audit` after poetry-export alignment — expected green with **1 ignored** (ecdsa). Not claimed until observed.
+**Post-land field-verify (Validation / push):** Security Scan `pip-audit` after poetry-export alignment — expected green with **1 ignored** (ecdsa). **PENDING** until tip containing `fa266b5` is pushed and observed SUCCESS (DEC-128a residual; does not block CLOSED CONDITIONAL).
 
 ---
 
@@ -66,22 +66,24 @@ Accept criterion **1.5** as **Cursor COMPLETE** / **READY FOR REVIEW**: SAST + d
 
 | Check | Result |
 |---|---|
-| Checklist packaging | **READY FOR REVIEW** (this DEC) |
+| Checklist packaging | **VERIFIED/CLOSED CONDITIONAL** (DEC-128a) |
 | Workflow honesty land | `security-scan.yml` pip-audit → poetry export + `PYSEC-2026-1325` |
+| Architecture | **PASS** ([architecture review 1.5](66828f20-228e-491f-a499-50c808d04c44)) |
+| Validation | **PASS_CONDITIONAL** ([Validate 1.5](ff24e413-5483-4530-a507-dc64c5ed3fda)) |
 | Narrow Docker pytest | **Not required** (no app/runtime change) |
 | Production / Railway | **Not run** |
-| Label | **light validated** (field Stage 5 + Security Scan evidence cited; post-align Security Scan pip-audit PENDING push) |
+| Label | **light validated** (field Stage 5 + Security Scan corroboration; post-align Security Scan pip-audit PENDING push) |
 
-**Production GO not claimed. CI GREEN not met. Criterion CLOSED not claimed.**
+**Production GO not claimed. CI GREEN not met. Unconditional CLOSED not claimed.**
 
 ---
 
 ## 5. Records
 
-- Phase 0 criterion **1.5** → **READY FOR REVIEW** (Cursor COMPLETE)
-- Assigned next: Architecture Reviewer (independent review sign)
+- Phase 0 criterion **1.5** → **VERIFIED/CLOSED CONDITIONAL** (DEC-128a; Phase 0 **23/54**)
+- Residual explicit: *post-align Security Scan pip-audit field-verify PENDING until tip containing `fa266b5` is pushed and Security Scan pip-audit SUCCESS with poetry export + 1 ignored (ecdsa)*
 - Adjacent checklist **3.5** remains open/residual narrative (Stage 5 cluster overlaps; does **not** auto-close 3.5 / 3.8)
-- **Not claimed:** Criterion CLOSED · VERIFIED · Production GO · CI GREEN · Semgrep finding-zero
+- **Not claimed:** Unconditional CLOSED · Production GO · CI GREEN · Semgrep finding-zero
 
 ---
 
