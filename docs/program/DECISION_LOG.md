@@ -728,9 +728,9 @@
 **Date:** 2026-08-01
 **Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1–13 (DEC-046–050, DEC-053, DEC-055, DEC-058–061, DEC-064, DEC-066) cleared admin/company/entity_resolution/identity/revenue_execution/sso-initial/routers/main+sdk/demo_mode/communication_hub/work_intelligence/boot+database/application; overall expected **~308 → ~61** (field after Phase 13 expected **~65**). Phase 6 cleared an earlier SSO slice (**8→0**), but CI-104 still listed **11** SSO residuals (`Mapped[str]` vs nullable tokens; `result` reuse typing `User` as `Tenant | None`; `request.client` union-attr on SAML rate-limit keys). Phase 14 targeted those remnants (did **not** redo `app/application` / Phase 13 / DEC-066; did **not** collide with DEC-067 Jest holdout docs) — mechanical typing only (`Mapped[str | None]` for nullable SSO columns; separate `tenant_result`/`user_result`; `request.client.host if request.client else "unknown"`; `cast` on encrypt/decrypt returns). Host light mypy (`--follow-imports=skip` on four SSO targets): **0** errors (exit 0); overall expected **~61 → ~50** (field **~65 → ~54**).
 **Alternatives considered:** (a) close entire CI-20 on Phase 14 land — rejected (residual ~50 remain; phased story); (b) clear decision (~5) or `app/startup.py` (~4) instead — rejected (SSO 11 was largest non-application residual); (c) record Phase 14 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
-**Decision:** Accept Phase 14 as **COMPLETE** at 1f14337 (1f1433703bc5802ba106a7618d21e350e25513ca). Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phases 1–13. Do **not** bump FastAPI. Validation label: **light validated** (host mypy on SSO targets); full Backend Types CI **not** re-run.
-**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
-**Status:** Accepted. CI-20 **Phase 14 COMPLETE**; story **OPEN**.
+**Decision:** Accept Phase 14 as **COMPLETE** at 1f14337 (1f1433703bc5802ba106a7618d21e350e25513ca). Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phases 1–13. Do **not** bump FastAPI. Validation label: **light validated** (host mypy on SSO targets). CI Observer field-verified Backend Types on 30679062993 (1f14337; job 91312218365): **54** errors / **0** SSO vs prior tip 30678653664 (1bf30d2 Phase-13 docs): **65** / **11** SSO — classified **pre-existing** residual; no Phase 14 SSO regression; no SSO code fix. Docs tip 30679120749 (1aa1d69; job 91312387818) and later tip 30679150001 (1ec68c; job 91312497351) also **54** / **0** SSO.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). Field residual **54** (non-SSO). **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 14 COMPLETE**; story **OPEN**. Field-verify recorded.
 
 ---
 
@@ -739,6 +739,29 @@
 **Date:** 2026-08-01
 **Context:** CI-19 triage (`CI_19_SEMGREP_TRIAGE.md`) scoped Wave 3 as supply-chain/infra hardening, led by pinning ~115 `mutable-action-tag` Action refs. Wave 1 COMPLETE (`d5c9b57` / DEC-043). Wave 2 SQL honesty rewrite was user-aborted and is **not** authorized to execute now — skipped/deferred. Program preferred Wave 3 SHA pins. Engineering pinned every `uses:` ref in `.github/workflows/{security-scan,ci,docker-smoke,deploy,deploy-staging,deploy-production}.yml` and `sales-os/.github/workflows/run.yml` to full 40-char commit SHAs (115 replacements). Floating `aquasecurity/trivy-action@master` pinned to the same `v0.29.0` commit already used in `deploy-production.yml`. Semgrep `sast-scan` severity flags and SARIF upload path **unchanged** (no gate weaken, no finding suppression).
 **Alternatives considered:** (a) close entire CI-19 on SHA-pin land — rejected (Wave 2 deferred; Wave 3 residual K8s/Docker/TF + Waves 4–5 remain); (b) pin only `security-scan.yml` — rejected (same mechanical risk class across all workflows; full pin clears the 115-tag backlog in-repo); (c) record Wave 3 SHA-pin COMPLETE only, keep CI-19 OPEN, R-24 mitigating — approved.
-**Decision:** Accept Wave 3 **SHA-pin slice** as **COMPLETE**. Update Sprint 05 board + triage + R-24. Do **not** mark CI-19 CLOSED. Do **not** execute Wave 2 now. Do **not** weaken Semgrep. Next executable slice: Wave 3 residual (K8s `securityContext` / Dockerfile USER / Terraform encryption) or Wave 4 path excludes.
+**Decision:** Accept Wave 3 **SHA-pin slice** as **COMPLETE** at `556304d` (`556304d55f87857e23d115230c09706ee2e0e3dc`). Update Sprint 05 board + triage + R-24. Do **not** mark CI-19 CLOSED. Do **not** execute Wave 2 now. Do **not** weaken Semgrep. Next executable slice: Wave 3 residual (K8s `securityContext` / Dockerfile USER / Terraform encryption) or Wave 4 path excludes. **Honesty:** commit `556304d` also included 6 incidental FE Jest test file edits that rode along from a parallel dirty index — not part of Wave 3 scope.
 **Consequence:** CI-19 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-24 remains Open (mitigating). Validation: **light validated** (local inventory — 0 mutable tags in scoped workflows; field Code Scanning closure **not** yet re-verified). **CI GREEN not met.**
-**Status:** Accepted. CI-19 **Wave 3 SHA-pin COMPLETE**; story **OPEN**.
+**Status:** Accepted. CI-19 **Wave 3 SHA-pin COMPLETE** at `556304d`; story **OPEN**.
+
+---
+
+### DEC-070 — CI-20 Phase 16 complete: app/startup.py mypy burn-down (4→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1–14 (DEC-046–050, DEC-053, DEC-055, DEC-058–061, DEC-064, DEC-066, DEC-068) cleared admin/company/entity_resolution/identity/revenue_execution/sso(+remnants)/routers/main+sdk/demo_mode/communication_hub/work_intelligence/boot+database/application; overall expected **~308 → ~50** (field after Phase 14 expected **~54**). Parallel Phase 15 work targeted other residuals; this phase cleared `app/startup.py` (**4** on CI-104: `KafkaEventBus`/`EventRuntime` assignment; `Redis | None` to `SdkCacheService`; `KafkaEventBus` to `FeatureStore`/`DecisionEngine`; `async_sessionmaker` to `PostgresFeatureStoreRepository`) — mechanical typing only (`KafkaEventBus | EventRuntime` annotation; `cast(Redis)`; `cast(EventRuntime)`; `async_session()` held as `_fs_repo_session`). Did **not** redo SSO (Phase 14 / DEC-068) or touch `app/modules/decision` (parallel ownership). Host light mypy (`--follow-imports=skip` and `silent` on `app/startup.py`): **0** errors (exit 0); overall expected **~50 → ~46** (field **~54 → ~50**).
+**Alternatives considered:** (a) close entire CI-20 on Phase 16 land — rejected (residual ~46 remain; phased story); (b) clear `decision` (~5) instead — rejected (prefer `app/startup.py` to avoid parallel Phase 15 file conflicts); (c) record Phase 16 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
+**Decision:** Accept Phase 16 as **COMPLETE** at `26156df` (`26156dfd3a004e364cd4f414896a3e4f292b8485`). Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen CI-16 / Phases 1–14. Do **not** bump FastAPI. Validation label: **light validated** (host mypy on `app/startup.py`); full Backend Types CI **not** re-run.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 16 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-071 — CI-20 Phase 15 complete: sla_monitor + redis_client mypy burn-down (2+3→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 residual inventory (CI-104 / be7) still listed pp/metrics/sla_monitor.py (**2** list-item) and pp/common/redis_client.py (**3** has-type / no-any-return). Phase 16 (26156df / DEC-070) cleared pp/startup.py in parallel; Phase 15 lands the sla/redis slice at 7fed3dc — mechanical typing only (remove dual _buf init; annotate _initialized/_redis; cast on Redis GET). Host light mypy (--follow-imports=skip + pyproject): **0** errors. Overall expected **~46 → ~41** (field **~50 → ~45**) after Phase 16 baseline.
+**Alternatives considered:** (a) close CI-20 — rejected; (b) fold into Phase 16 — rejected (file ownership race); (c) record Phase 15 COMPLETE, keep CI-20 OPEN — approved.
+**Decision:** Accept Phase 15 as **COMPLETE** at 7fed3dc. Update Sprint 05 board + R-22. Do **not** mark CI-20 CLOSED. Do **not** bump FastAPI. Validation: **light validated**.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 15 COMPLETE**; story **OPEN**.
+
