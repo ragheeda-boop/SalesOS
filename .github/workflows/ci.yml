@@ -414,7 +414,7 @@ jobs:
           fi
           echo "No forbidden files detected."
       - name: Run Trivy filesystem scan (blocking gate, visible findings)
-        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # v0.29.0 (was @master)
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -423,7 +423,7 @@ jobs:
           exit-code: 1
       - name: Export Trivy SARIF for code scanning
         if: always()
-        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # v0.29.0 (was @master)
+        uses: aquasecurity/trivy-action@a9c7b0f06e461e9d4b4d1711f154ee024b8d7ab8 # v0.36.0
         with:
           scan-type: fs
           scan-ref: .

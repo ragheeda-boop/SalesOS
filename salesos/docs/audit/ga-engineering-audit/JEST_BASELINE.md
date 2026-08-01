@@ -1,4 +1,4 @@
-﻿# Jest Suite Baseline (CI-13)
+# Jest Suite Baseline (CI-13)
 
 > **Purpose:** Fixed-point baseline of the frontend Jest suite, captured from a real GitHub Actions run, so that CI-14 (Frontend Dependency Modernization — the Jest/ESLint/ts-jest major leg) and the Sprint 01 Jest-debt story can be measured before/after without re-deriving the failing inventory each time.
 > **Source of truth:** Real CI run evidence (not local claims). Command evidence: CI job `Stage 3: Frontend Unit Tests` (`.github/workflows/ci.yml` → `npm run test -- --coverage --forceExit`).
@@ -74,7 +74,7 @@ Representative log evidence (run `30664173050`): `TypeError: Cannot read propert
 ## 5. Use for CI-14 (dependency contract)
 
 - Historical baseline gate (CI-13 capture): failing suites `<= 33`, failing tests `<= 163`; **no new failures** beyond the §3 inventory.
-- **Post-remediation expected ceiling (local / CI-like evidence; full Stage 3 inventory not re-run):** failing suites **`≤0`** after `4fdc1d8` (−3) + `5bba606` H2/H3 (−2) + `556304d` six-holdout re-fix (−6) vs §8 field count **11**. Field verify §8 (`30677189129` / `1c33c1b`): **11** remains CI-authoritative until next Stage 3 capture. Do **not** claim Stage 3 green from light evidence alone.
+- **Post-remediation expected ceiling (local / CI-like evidence; full Stage 3 inventory not re-run):** failing suites **`<=0`** after `4fdc1d8` (-3) + `5bba606` H2/H3 (-2) + `556304d` six-holdout re-fix (-6) vs section 8 field count **11**. Field verify section 8 (`30677189129` / `1c33c1b`): **11** was CI-authoritative until section 10. **Section 10 field verify** (`30679804383` / `465c638`, Stage 3 job `91314523292`): **0** failing suites - supersedes section 8 for Stage 3 counts. Do **not** claim whole-pipeline CI GREEN from Stage 3 alone.
 - Remediation of remaining suites is the Sprint 01 Jest-debt story (separate from CI-14's dependency modernization).
 - Any suite in this list that becomes green should be removed from this baseline with a note.
 
@@ -92,7 +92,7 @@ Representative log evidence (run `30664173050`): `TypeError: Cannot read propert
 | 2026-08-01 | `5bba606` | §8 residual — NBAWidget refetch + AutomationAnalytics async wait | 2 | Narrow Jest: **2 suites / 27 tests passed** — `NBAWidget`, `AutomationAnalyticsPage` (**light validated**) | Targets section 8 #2/#3. |
 | 2026-08-01 | `556304d` | §8 six-holdout re-fix (CI-like) | 6 | CI-like Jest: **6 suites / 54 tests passed** — `settings-page`, `WorkflowBuilder`, `AnalyticsWorkspace`, `admin-workspace`, `DealCard`, `NewWorkflowPage` (`--coverage --forceExit`, **light validated**) | Hardened mocks/selectors + Prettier-clean. Root causes: re-bind `useQueryClient` after `clearAllMocks`; `useWorkflowExecutions` `mockImplementation`; executiveDashboard mockImplementation; pinned `admin.tab.*` i18n; tolerant em-dash / palette clicks. (Landed in same tip as CI-19 Wave 3 SHA-pin.) Expected field ceiling **11 → ≤0** with `4fdc1d8`+`5bba606`. Full Stage 3 inventory not re-run. |
 
-**Revised expected failing-suite ceiling (post holdout re-fix, light):** **≤0** vs section 8 field count **11**. Do **not** claim Stage 3 green until next field verify.
+**Revised expected failing-suite ceiling (post holdout re-fix, light):** **≤0** vs section 8 field count **11**. **Met** by §10 field verify (`30679804383`): **0** failing suites. Do **not** claim whole-pipeline CI GREEN.
 
 ## 7. Record
 
@@ -159,8 +159,9 @@ Do **not** claim full CI GREEN. Backend Stage 1/2 and Stage 5 gates remain red o
 | Minus §6 residual H2/H3 (`5bba606`) — light PASS | **−2** |
 | Minus §6 six-holdout re-fix (`556304d`) — H1/H4–H8 CI-like PASS | **−6** |
 | **Expected next field ceiling** | **≤0** |
+| **Section 10 field verify (30679804383 / 465c638)** | **0** |
 
-Do **not** treat light-validated ceilings as Stage 3 truth until next field verify.
+§10 field-verified **0** failing suites (holds). Still do **not** treat Stage 3 alone as whole-pipeline GREEN.
 
 ### 9.2 Holdout inventory (H1–H8)
 
@@ -175,11 +176,44 @@ Do **not** treat light-validated ceilings as Stage 3 truth until next field veri
 | H7 | `src/features/admin/__tests__/admin-workspace.test.tsx` | **re-fixed** in `556304d` |
 | H8 | `src/features/analytics/__tests__/AnalyticsWorkspace.test.tsx` | **re-fixed** in `556304d` |
 
-**Pending field verify:** Onboarding, widget.store, lib/analytics (`4fdc1d8`); H1–H8 remediations above.
+**Field verify section 10:** Onboarding / widget.store / lib/analytics (`4fdc1d8`) + H1-H8 held under full Stage 3 — **0** failing suites.
 
 ### 9.3 Next Stage 3 field-verify recipe
 
-1. Tip SHA must include `4fdc1d8` + `5bba606` + `556304d` + Prettier tip (`9ec79e9` or successor) so Stage 1 Frontend Lint is green and Stage 3 runs.  
+**Completed 2026-08-01** — see **§10**. Prior steps (kept for audit trail):
+
+1. Tip SHA must include `4fdc1d8` + `5bba606` + `556304d` + Prettier tip (`11470b1` Onboarding format fix after `9ec79e9`) so Stage 1 Frontend Lint is green and Stage 3 runs.  
 2. Capture GitHub Actions CI → job `Stage 3: Frontend Unit Tests` (run id, counts, failing paths).  
 3. Append a new §10 field-verify block; expected failing paths **empty** if remediations hold (or name any true regression).  
-4. Update R-23 / board with the captured count. **Never** claim Stage 3 green from narrow Jest alone.
+4. Update R-23 / board with the captured count. **Never** claim Stage 3 green from narrow Jest alone / whole-pipeline GREEN from Stage 3 alone.
+
+## 10. Field verify - Stage 3 after holdout harden + Prettier Onboarding gate (`465c638`)
+
+| Field | Value |
+|---|---|
+| CI run | `30679804383` (workflow: CI, commit `465c638`, master; includes `556304d` holdouts + `11470b1` Onboarding Prettier) |
+| Captured | 2026-08-01 |
+| Job | `Stage 3: Frontend Unit Tests` (job id `91314523292`, conclusion: `success`) |
+| Stage 1 Frontend Lint | **success** (ESLint + Prettier check) — prior tip red on `Onboarding.test.tsx` until `11470b1` |
+| Command | `cd salesos/frontend && npm run test -- --coverage --forceExit` |
+
+### Counts (field-verified)
+
+```
+Test Suites: 196 passed, 196 total
+Tests:       1 skipped, 2278 passed, 2279 total
+```
+
+- vs §8 field verify (`30677189129` / `1c33c1b`): **11 → 0** failing suites.
+- vs light expected ceiling **≤0** (`4fdc1d8` + `5bba606` + `556304d`): **met**.
+- Failing suite paths: **none**.
+
+### Classification
+
+| Class | Finding |
+|---|---|
+| Holdout regression (H1-H8 + Onboarding/widget.store/analytics) | **None** — Stage 3 job success; 0 failed suites |
+| Stage 3 field ceiling | **0** (authoritative supersedes §8 **11**) |
+| Whole-pipeline CI | **Still failure** on this run — Backend Lint/Types, pip-audit, Secrets Scan red; Stage 3/6+ downstream skipped or out of FE scope |
+
+**Do not claim whole-pipeline GREEN.** Stage 3 Frontend Unit Tests field-verified success only.
