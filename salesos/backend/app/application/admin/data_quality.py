@@ -18,7 +18,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, Depends, Query
 
@@ -174,7 +174,7 @@ class DataQualityService:
         cache_key = f"summary:{tenant_id}"
         cached = self._get_cache(cache_key)
         if cached:
-            return cached
+            return cast(QualitySummary, cached)
 
         async with self._session_factory() as session:
             completeness = await self._calc_completeness(session, tenant_id)

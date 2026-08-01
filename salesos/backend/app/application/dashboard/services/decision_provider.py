@@ -9,7 +9,7 @@ Flow: Widget Signals → DecisionContext → RecommendationEngine → Scored Dec
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 from sdk.scoring.interfaces import (
     DecisionFactor,
@@ -191,24 +191,24 @@ class DashboardDecisionProvider:
 
         return factors
 
-    def _extract_items(self, data: Any) -> list:
+    def _extract_items(self, data: Any) -> list[Any]:
         """Extract items list from widget data (dict or pydantic model)."""
         if isinstance(data, dict):
-            return data.get("items", [])
+            return cast(list[Any], data.get("items", []))
         if hasattr(data, "items") and not callable(getattr(data, "items", None)):
-            return data.items
+            return cast(list[Any], data.items)
         if hasattr(data, "model_dump"):
-            return data.model_dump().get("items", [])
+            return cast(list[Any], data.model_dump().get("items", []))
         return []
 
     def _extract_total(self, data: Any) -> int:
         """Extract total count from widget data."""
         if isinstance(data, dict):
-            return data.get("total", 0)
+            return cast(int, data.get("total", 0))
         if hasattr(data, "total") and not callable(getattr(data, "total", None)):
-            return data.total
+            return cast(int, data.total)
         if hasattr(data, "model_dump"):
-            return data.model_dump().get("total", 0)
+            return cast(int, data.model_dump().get("total", 0))
         return 0
 
     def _factors_from_decision_queue(self, data: Any) -> list[DecisionFactor]:

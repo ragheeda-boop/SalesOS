@@ -59,7 +59,7 @@ class DashboardAggregator:
         if tasks:
             done = await asyncio.gather(*tasks.values(), return_exceptions=True)
             for key, result in zip(tasks.keys(), done, strict=False):
-                if isinstance(result, Exception):
+                if isinstance(result, BaseException):
                     from app.application.dashboard.dto.widget_contract import (
                         DashboardWidget,
                         WidgetAction,

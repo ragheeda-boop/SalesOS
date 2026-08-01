@@ -42,7 +42,7 @@ async def get_dashboard(
     query: DashboardQuery = Depends(),
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
-    request: Request = None,
+    request: Request | None = None,
     # Sales home aggregates company/ops signals — gate on company.READ (user+manager+admin).
     # Keep executive.READ on /executive/dashboard only; do not conflate the two surfaces.
     _: None = Depends(require_permission_dep("company", PermissionAction.READ)),
