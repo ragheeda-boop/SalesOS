@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import logging
 import os
-from typing import Any
+from typing import Any, cast
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
@@ -44,21 +44,30 @@ def _load_or_generate_rsa() -> tuple[rsa.RSAPrivateKey, rsa.RSAPublicKey]:
 
     if os.path.exists(private_path) and os.path.exists(public_path):
         with open(public_path, "rb") as f:
-            public_key = serialization.load_pem_public_key(f.read(), backend=default_backend())
+            public_key = cast(
+                rsa.RSAPublicKey,
+                serialization.load_pem_public_key(f.read(), backend=default_backend()),
+            )
         with open(private_path, "rb") as f:
             private_data = f.read()
         # Try encrypted first, fall back to unencrypted for migration.
         try:
-            private_key = serialization.load_pem_private_key(
-                private_data, password=_encryption_passphrase(), backend=default_backend()
+            private_key = cast(
+                rsa.RSAPrivateKey,
+                serialization.load_pem_private_key(
+                    private_data, password=_encryption_passphrase(), backend=default_backend()
+                ),
             )
             logger.info("JWKS RSA keys loaded successfully (encrypted)")
             return private_key, public_key
         except (ValueError, TypeError):
             pass
         try:
-            private_key = serialization.load_pem_private_key(
-                private_data, password=None, backend=default_backend()
+            private_key = cast(
+                rsa.RSAPrivateKey,
+                serialization.load_pem_private_key(
+                    private_data, password=None, backend=default_backend()
+                ),
             )
             logger.warning(
                 "JWKS private key was unencrypted — re-saving with SECRET_KEY encryption"
@@ -138,12 +147,12 @@ def _ensure_keys():
 
 def get_private_key() -> rsa.RSAPrivateKey:
     _ensure_keys()
-    return _private_key
+    return cast(rsa.RSAPrivateKey, _private_key)
 
 
 def get_public_key() -> rsa.RSAPublicKey:
     _ensure_keys()
-    return _public_key
+    return cast(rsa.RSAPublicKey, _public_key)
 
 
 def get_jwks() -> dict[str, list[dict[str, Any]]]:
@@ -152,7 +161,7 @@ def get_jwks() -> dict[str, list[dict[str, Any]]]:
         return _jwks_cache
 
     _ensure_keys()
-    pub_numbers = _public_key.public_numbers()
+    pub_numbers = cast(rsa.RSAPublicKey, _public_key).public_numbers()
 
     # RFC 7517 JWK representation of RSA public key
     n = _b64url(pub_numbers.n.to_bytes((pub_numbers.n.bit_length() + 7) // 8, "big"))
@@ -181,7 +190,7 @@ def create_rs256_token_payload(payload: dict) -> str:
         encryption_algorithm=serialization.NoEncryption(),
     )
     token_payload = {**payload, "kid": _KID}
-    return jwt.encode(token_payload, pem_private, algorithm="RS256")
+    return cast(str, jwt.encode(token_payload, pem_private, algorithm="RS256"))
 
 
 def decode_token(token: str, *, audience: str | None = None) -> dict:
@@ -193,11 +202,14 @@ def decode_token(token: str, *, audience: str | None = None) -> dict:
         format=serialization.PublicFormat.SubjectPublicKeyInfo,
     )
     try:
-        return jwt.decode(
-            token,
-            pem_public,
-            algorithms=["RS256"],
-            audience=audience if audience is not None else settings.jwt_audience,
+        return cast(
+            dict[Any, Any],
+            jwt.decode(
+                token,
+                pem_public,
+                algorithms=["RS256"],
+                audience=audience if audience is not None else settings.jwt_audience,
+            ),
         )
     except JWTError:
         raise ValueError("Invalid or expired token") from None

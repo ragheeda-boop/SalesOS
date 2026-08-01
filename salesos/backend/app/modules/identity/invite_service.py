@@ -61,7 +61,7 @@ class InviteService:
             entity_type="user_invite",
             entity_id=email,
             action="invited",
-            details={"invited_by": invited_by, "role": role},
+            changes={"invited_by": invited_by, "role": role},
         )
 
         if self.event_bus:
@@ -139,7 +139,7 @@ class InviteService:
             entity_type="user",
             entity_id=str(user.id),
             action="invite_accepted",
-            details={"email": data["email"]},
+            changes={"email": data["email"]},
         )
 
         return {

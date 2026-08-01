@@ -1,6 +1,7 @@
 """PostgreSQL repositories for Identity module (Tenant, User)."""
 
 import uuid
+from typing import cast
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,11 +19,11 @@ class TenantRepository(SqlAlchemyRepository[Tenant, uuid.UUID]):
 
     async def get_by_slug(self, slug: str) -> Tenant | None:
         result = await self._session.execute(select(Tenant).where(Tenant.slug == slug))
-        return result.scalar_one_or_none()
+        return cast(Tenant | None, result.scalar_one_or_none())
 
     async def get_by_domain(self, domain: str) -> Tenant | None:
         result = await self._session.execute(select(Tenant).where(Tenant.domain == domain))
-        return result.scalar_one_or_none()
+        return cast(Tenant | None, result.scalar_one_or_none())
 
     async def find_all_active(self, page: int = 1, page_size: int = 20) -> tuple[list[Tenant], int]:
         return await self.find_all(page=page, page_size=page_size)
@@ -40,7 +41,7 @@ class UserRepository(SqlAlchemyRepository[User, uuid.UUID]):
 
     async def get_by_email(self, email: str) -> User | None:
         result = await self._session.execute(select(User).where(User.email == email))
-        return result.scalar_one_or_none()
+        return cast(User | None, result.scalar_one_or_none())
 
     async def find_by_tenant(
         self, tenant_id: str, page: int = 1, page_size: int = 20

@@ -59,7 +59,7 @@ class User(BaseModel):
     def is_locked(self) -> bool:
         if self.locked_until is None:
             return False
-        return self.locked_until > datetime.now(UTC)
+        return bool(self.locked_until > datetime.now(UTC))
 
     def __repr__(self) -> str:
         return f"<User {self.email}>"
