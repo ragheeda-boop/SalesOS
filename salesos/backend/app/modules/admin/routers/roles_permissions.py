@@ -64,7 +64,7 @@ async def create_role(body: RoleCreate, repos: AdminRepositories = Depends(get_a
     return RoleResponse(
         id=created.id,
         name=created.name,
-        description=created.description,
+        description=created.description or "",
         is_system=created.is_system,
         tenant_id=created.tenant_id,
         permissions=body.permissions,
@@ -89,7 +89,7 @@ async def update_role(
     return RoleResponse(
         id=updated.id,
         name=updated.name,
-        description=updated.description,
+        description=updated.description or "",
         is_system=updated.is_system,
         tenant_id=updated.tenant_id,
         permissions=permissions,
@@ -114,8 +114,8 @@ async def list_permissions(repos: AdminRepositories = Depends(get_admin_repos)):
             id=p.id,
             key=p.key,
             name=p.name,
-            description=p.description,
-            group=p.group,
+            description=p.description or "",
+            group=p.group or "general",
         )
         for p in perms
     ]
