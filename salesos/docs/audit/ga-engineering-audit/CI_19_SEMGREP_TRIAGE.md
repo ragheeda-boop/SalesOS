@@ -234,7 +234,7 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 | **Noise / exclude (Wave 4)** | **~30** | **COMPLETE** (`DEC-076`) — `.semgrepignore` + secrets-doc redact |
 | Residual singletons (Wave 5) | **8** | **COMPLETE** (`DEC-082`) — xml/websocket/urllib/regexp×3/prototype×2 |
 
-**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 COMPLETE** under `DEC-069` (`556304d`) + `DEC-074` (`465c638`). **Wave 4 COMPLETE** under `DEC-076` (`5c27470`). **Wave 5 COMPLETE** under `DEC-082`. **Wave 2 Slice 1–6 COMPLETE** (DEC-091/097/099/101/102/**103**) + **CS field-verify** `30686789458` / `abaae85` (app text **0**; alembic residual only). Wave 2 **PARKED COMPLETE**; alembic RLS **accepted residual** (DEC-103). **DEC-105 executive residual-close:** burned **8** non-alembic leftovers @ tip inventory **19**; **CI-19 CLOSED with residual** (accepted alembic **11**). **CI GREEN not met.**
+**Wave 1 COMPLETE** at `d5c9b57`. **Wave 3 COMPLETE** under `DEC-069` (`556304d`) + `DEC-074` (`465c638`). **Wave 4 COMPLETE** under `DEC-076` (`5c27470`). **Wave 5 COMPLETE** under `DEC-082`. **Wave 2 Slice 1–6 COMPLETE** (DEC-091/097/099/101/102/**103**) + **CS field-verify** `30686789458` / `abaae85` (app text **0**; alembic residual only). Wave 2 **PARKED COMPLETE**; alembic RLS **accepted residual** (DEC-103). **DEC-105 executive residual-close:** burned **8** non-alembic leftovers @ tip inventory **19**; **CI-19 CLOSED with residual** (accepted alembic **11**). **DEC-105 field-verify COMPLETE** — Security Scan [`30693735860`](https://github.com/ragheeda-boop/SalesOS/actions/runs/30693735860) / sast `91352893256` @ `b9062d6`: CLI **11** blocking; CS open Semgrep **11** alembic-only; burns #417/#515/#516/#546/#547/#608/#834/#835 **fixed**; unexpected non-alembic **0**. Do **not** reopen. **CI GREEN not met.**
 
 ---
 
@@ -255,6 +255,7 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 | Local raw dumps | `.tmp-ci19/` **absent** at close — not committed |
 | Wave 2 Slice 6 field-verify | Security Scan `30686789458` / sast `91334080531` @ `abaae85`; CS app text **0**; alembic residual **7**+**4** |
 | DEC-105 residual-close inventory | Live CS open **19** @ `a02c8f1` — alembic **11** accepted; non-alembic **8** burned (logger x4, prototype, triage WS FP, DynamoDB CMK, GHA env secret) |
+| DEC-105 field-verify | Security Scan `30693735860` / sast `91352893256` @ `b9062d6` **SUCCESS**; CLI **11** blocking; CS Semgrep open **11** alembic-only; burns **8** fixed @ `2026-08-01T09:27:31Z`; unexpected **0** |
 
 ---
 
@@ -267,4 +268,4 @@ Buckets are **triage judgments grounded in rule IDs + sample paths + spot-checks
 
 ---
 
-*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`556304d` / DEC-069 + `465c638` / DEC-074). Wave 4 COMPLETE (`5c27470` / DEC-076). Wave 5 COMPLETE (DEC-082). Wave 2 Slice 1–6 COMPLETE (DEC-091/097/099/101/102/103) + field-verify `30686789458` / `abaae85`. App SQL honesty complete; alembic residual accepted (DEC-103). Wave 2 PARKED. **DEC-105 CLOSED with residual** (non-alembic burn + alembic **11** accepted). **CI GREEN not met.***
+*Security Team Alpha — CI-19. Wave 1 COMPLETE `d5c9b57`. Wave 3 COMPLETE (`556304d` / DEC-069 + `465c638` / DEC-074). Wave 4 COMPLETE (`5c27470` / DEC-076). Wave 5 COMPLETE (DEC-082). Wave 2 Slice 1–6 COMPLETE (DEC-091/097/099/101/102/103) + field-verify `30686789458` / `abaae85`. App SQL honesty complete; alembic residual accepted (DEC-103). Wave 2 PARKED. **DEC-105 CLOSED with residual** (non-alembic burn + alembic **11** accepted) + **field-verify** `30693735860` / `91352893256` @ `b9062d6` (CLI/CS **11** alembic-only; burns fixed). **CI GREEN not met.***
