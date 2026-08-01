@@ -33,7 +33,8 @@ SESSION_VAR = "app.tenant_id"
 # R-09) are excluded — RLS on them will be added after CREATE TABLE lands.
 # Tables without a tenant_id column (keyed via parent FK) are excluded from
 # ALL_TENANT_TABLES — Category B inventory + slices pinned in DEC-110.
-# B1 company children use generate_join_policy_sql() / CATEGORY_B1_JOIN_TABLES.
+# B1/B2 join children use generate_join_policy_sql() /
+# CATEGORY_B1_JOIN_TABLES / CATEGORY_B2_JOIN_TABLES (DEC-110).
 ALL_TENANT_TABLES: list[str] = [
     # ── Identity / Auth ──
     "users",                      # app/modules/identity/models.py — uuid
@@ -104,6 +105,14 @@ CATEGORY_B1_JOIN_TABLES: list[tuple[str, str, str]] = [
     # (child_table, parent_table, child_fk_column)
     ("branches", "companies", "company_id"),
     ("licenses", "companies", "company_id"),
+]
+
+# DEC-110 Slice B2 (S04-CATB-02): commercial children — no tenant_id; isolate via
+# commercial_activity_sessions / commercial_quotes (both Category A).
+CATEGORY_B2_JOIN_TABLES: list[tuple[str, str, str]] = [
+    # (child_table, parent_table, child_fk_column)
+    ("commercial_activities", "commercial_activity_sessions", "session_id"),
+    ("commercial_quote_lines", "commercial_quotes", "quote_id"),
 ]
 
 
