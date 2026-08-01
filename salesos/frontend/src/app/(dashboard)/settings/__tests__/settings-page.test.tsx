@@ -3,6 +3,9 @@ import { render, screen, fireEvent } from "@testing-library/react";
 jest.mock("@tanstack/react-query", () => ({
   useQuery: jest.fn(),
   useMutation: jest.fn(),
+  useQueryClient: jest.fn(() => ({
+    invalidateQueries: jest.fn(),
+  })),
 }));
 
 jest.mock("@/lib/api", () => ({
@@ -110,29 +113,67 @@ const mockProfile = {
   created_at: "2024-01-15T00:00:00Z",
 };
 
+const mockNotifPrefs = {
+  email_notifications: true,
+  app_notifications: true,
+  opportunity_alerts: true,
+  company_updates: false,
+  weekly_summary: true,
+};
+
+function mockQueries(profile = mockProfile) {
+  mockUseQuery.mockImplementation(
+    (opts: { queryKey?: readonly unknown[] }) => {
+      const key = (opts.queryKey ?? []).join(":");
+      if (key.includes("api-keys")) {
+        return { data: [], isLoading: false };
+      }
+      if (key.includes("notifications")) {
+        return { data: mockNotifPrefs, isLoading: false };
+      }
+      return { data: profile, isLoading: false };
+    },
+  );
+}
+
+function mockMutations() {
+  mockUseMutation.mockImplementation(
+    (opts: {
+      onSuccess?: (data: unknown) => void;
+      mutationFn?: (arg: unknown) => unknown;
+    }) => ({
+      mutate: (arg: unknown) => {
+        if (typeof arg === "string") {
+          opts.onSuccess?.({ key: `sk-test-${arg.replace(/\s+/g, "-")}` });
+          return;
+        }
+        opts.onSuccess?.(undefined);
+      },
+      isPending: false,
+    }),
+  );
+}
+
 describe("SettingsPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
+    mockQueries();
+    mockMutations();
   });
 
   it("shows loading state", () => {
     mockUseQuery.mockReturnValue({ data: undefined, isLoading: true });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     expect(screen.getByTestId("loader")).toBeInTheDocument();
   });
 
   it("renders page title", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     expect(screen.getByText("settings.title")).toBeInTheDocument();
   });
 
   it("renders tabs", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     expect(
       screen.getAllByText("settings.profile").length,
@@ -146,16 +187,12 @@ describe("SettingsPage", () => {
   });
 
   it("renders profile form with user data", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     expect(screen.getByText("Ahmed Ali")).toBeInTheDocument();
     expect(screen.getByText("settings.role.admin")).toBeInTheDocument();
   });
 
   it("renders API keys tab content", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     expect(
       screen.getAllByText("settings.api_keys").length,
@@ -163,8 +200,6 @@ describe("SettingsPage", () => {
   });
 
   it("renders notification toggles", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     expect(
       screen.getByText("settings.notif.email_notifications"),
@@ -178,15 +213,11 @@ describe("SettingsPage", () => {
   });
 
   it("renders save button for profile", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     expect(screen.getByText("settings.save_changes")).toBeInTheDocument();
   });
 
   it("renders password change section", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     expect(
       screen.getByTestId("input-settings.current_password"),
@@ -200,15 +231,11 @@ describe("SettingsPage", () => {
   });
 
   it("renders password update button", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     expect(screen.getByText("settings.update_password")).toBeInTheDocument();
   });
 
   it("creates API key", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     const nameInput = screen.getByPlaceholderText("settings.api_key_name");
     fireEvent.change(nameInput, { target: { value: "My Key" } });
@@ -217,15 +244,11 @@ describe("SettingsPage", () => {
   });
 
   it("shows empty API keys state", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     expect(screen.queryByText("nosk-")).not.toBeInTheDocument();
   });
 
   it("revokes API key", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     const nameInput = screen.getByPlaceholderText("settings.api_key_name");
     fireEvent.change(nameInput, { target: { value: "Test Key" } });
@@ -235,25 +258,17 @@ describe("SettingsPage", () => {
   });
 
   it("renders active profile badge", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     expect(screen.getByText("settings.active")).toBeInTheDocument();
   });
 
   it("shows inactive badge when profile is inactive", () => {
-    mockUseQuery.mockReturnValue({
-      data: { ...mockProfile, is_active: false },
-      isLoading: false,
-    });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
+    mockQueries({ ...mockProfile, is_active: false });
     render(<SettingsPage />);
     expect(screen.getByText("settings.inactive")).toBeInTheDocument();
   });
 
   it("calls getCurrentUser on mount", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     expect(mockUseQuery).toHaveBeenCalledWith(
       expect.objectContaining({ queryKey: ["profile", "me"] }),
@@ -261,16 +276,12 @@ describe("SettingsPage", () => {
   });
 
   it("renders profile email as disabled input", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     const emailInput = screen.getByDisplayValue("ahmed@company.com");
     expect(emailInput).toBeDisabled();
   });
 
   it("toggles notification preference", () => {
-    mockUseQuery.mockReturnValue({ data: mockProfile, isLoading: false });
-    mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
     render(<SettingsPage />);
     const toggles = screen.getAllByRole("switch");
     expect(toggles.length).toBeGreaterThan(0);

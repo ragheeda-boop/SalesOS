@@ -16,6 +16,7 @@ import {
   useUpdateWorkflow,
   useExecuteWorkflow,
   useDeleteWorkflow,
+  useWorkflowExecutions,
 } from "@/lib/workflowQueries";
 
 const mockUseWorkflows = useWorkflows as jest.MockedFunction<
@@ -32,6 +33,9 @@ const mockUseExecuteWorkflow = useExecuteWorkflow as jest.MockedFunction<
 >;
 const mockUseDeleteWorkflow = useDeleteWorkflow as jest.MockedFunction<
   typeof useDeleteWorkflow
+>;
+const mockUseWorkflowExecutions = useWorkflowExecutions as jest.MockedFunction<
+  typeof useWorkflowExecutions
 >;
 
 const sampleWorkflows = [
@@ -87,6 +91,11 @@ function setupMocks(overrides = {}) {
     mutateAsync: mockDeleteMutate,
     isPending: false,
   } as any);
+  mockUseWorkflowExecutions.mockReturnValue({
+    data: [],
+    isLoading: false,
+    error: null,
+  } as any);
 
   return {
     mockCreateMutate,
@@ -115,6 +124,11 @@ describe("WorkflowBuilderWidget", () => {
     mockUseDeleteWorkflow.mockReturnValue({
       mutateAsync: jest.fn(),
       isPending: false,
+    } as any);
+    mockUseWorkflowExecutions.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
     } as any);
   });
 

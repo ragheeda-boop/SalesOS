@@ -287,12 +287,12 @@ export function AnalyticsWorkspace() {
 
         <Card>
           <CardHeader>
-            <h3 className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-[var(--muhide-orange)]" />
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">
                 {t("analytics.risk_overview")}
               </h3>
-            </h3>
+            </div>
           </CardHeader>
           <CardContent>
             {riskData.some((d) => d.value > 0) ? (
@@ -309,12 +309,12 @@ export function AnalyticsWorkspace() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <h3 className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-[var(--muhide-orange)]" />
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">
                 {t("analytics.team_overview")}
               </h3>
-            </h3>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -340,12 +340,12 @@ export function AnalyticsWorkspace() {
 
         <Card>
           <CardHeader>
-            <h3 className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4 text-[var(--muhide-orange)]" />
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">
                 {t("analytics.renewals")}
               </h3>
-            </h3>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
