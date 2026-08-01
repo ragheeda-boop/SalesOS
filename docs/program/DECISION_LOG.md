@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-150 — After DEC-149: Is Stage 6 GHCR still a required Phase 0 exit criterion? (Proposed)
+
+**Date:** 2026-08-02
+**Context:** DEC-149 Accepted + DEC-149a CLOSED CONDITIONAL established canonical live deploy = Railway (BE) + Vercel (FE); staging deferred; `railway up` does **not** require GHCR. Checklist **3.6/3.9/3.10** and `ci.yml` Stage 6 still require GHCR `:latest`/SHA push. User ruling: Cursor must **not** decide Stage 6 necessity and must **not** fix GHCR — prepare ARB decision paper only.
+**Alternatives considered:** (A) Stage 6 remains required capability — keep 3.6/3.9/3.10 + CI-08 until push SUCCESS (DEC-104 Option A) — for ARB; (B) Stage 6 GHCR obsolete vs DEC-149 live path — governance rewrite only (rewrite 3.6/3.9/3.10, retire CI-08) — for ARB; (c) Cursor Accept A or B / fix GHCR / edit workflows — **rejected** this land.
+**Decision:** **Proposed only — pending ARB / Chief Architect.** Companion: [`decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md`](decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md). Recommendation: **none / defer to ARB**. CI-08 → **BLOCKED BY GOVERNANCE (Stage 6 necessity)** pending answer; do **not** CLOSE or mark obsolete. Honesty: GHCR 403 may be moot if Option B later Accepted.
+**Consequence:** Docs crumbs on board / checklist / DAG / R-17. App + workflows unchanged. Phase 0 remains **46/54 NO-GO**. **Production GO not claimed. CI GREEN not met. No 4.1/4.8 invent.**
+**Status:** Proposed — pending ARB/Chief Architect.
+
 ### DEC-149 — Canonical deploy topology: Backend → Railway; Frontend → Vercel
 
 **Date:** 2026-08-02
