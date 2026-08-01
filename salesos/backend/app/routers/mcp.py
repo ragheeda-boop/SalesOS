@@ -4,19 +4,23 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import Callable
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
 from app.dependencies import verify_token
 
+create_server: Callable[..., Any] | None
 try:
-    from mcp_server.server import create_server
+    from mcp_server.server import create_server as _create_server
 
+    create_server = _create_server
     _mcp_available = True
 except ImportError:
-    _mcp_available = False
     create_server = None
+    _mcp_available = False
 
 logger = logging.getLogger(__name__)
 

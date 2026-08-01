@@ -94,6 +94,7 @@ async def list_opportunities(
         svc = getattr(request.app.state, "opportunity_service", None)
         if not svc:
             raise HTTPException(status_code=503, detail="Opportunity service not initialized")
+        from domains.commercial.opportunity.contracts.models import OpportunityStatus
         from domains.commercial.opportunity.contracts.repository import OpportunityQuery
 
         offset = 0
@@ -102,14 +103,21 @@ async def list_opportunities(
                 offset = int(cursor)
             except (ValueError, TypeError):
                 offset = 0
+        page = (offset // limit) + 1 if limit else 1
+        status_enum: OpportunityStatus | None = None
+        if status:
+            try:
+                status_enum = OpportunityStatus(status)
+            except ValueError:
+                status_enum = None
         query = OpportunityQuery(
             tenant_id=tenant_id,
-            stage=stage,
-            status=status,
-            company_id=company_id,
-            owner_id=owner_id,
-            limit=limit,
-            offset=offset,
+            stage=stage or "",
+            status=status_enum,
+            company_id=company_id or "",
+            owner_id=owner_id or "",
+            page=page,
+            page_size=limit,
         )
         result = await svc.query(query)
         next_cursor = str(offset + limit) if offset + limit < result.total else None

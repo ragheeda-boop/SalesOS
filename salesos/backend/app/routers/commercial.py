@@ -3,6 +3,7 @@
 import logging
 import os
 from datetime import UTC
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -835,7 +836,10 @@ async def workspace(
     """Rich aggregated workspace — powers the main dashboard UI."""
     from datetime import datetime
 
-    result = {"tenant_id": tenant_id, "generated_at": datetime.now(UTC).isoformat()}
+    result: dict[str, Any] = {
+        "tenant_id": tenant_id,
+        "generated_at": datetime.now(UTC).isoformat(),
+    }
 
     # Forecast
     try:

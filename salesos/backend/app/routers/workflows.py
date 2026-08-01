@@ -4,12 +4,20 @@ from __future__ import annotations
 
 import logging
 from datetime import UTC
+from typing import Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_tenant_id, get_db_session, require_permission_dep
 from domains.workflow.engine import WorkflowEngine
+from domains.workflow.models import (
+    JobExecution,
+    ScheduledJob,
+    WebhookEndpoint,
+    WorkflowExecution,
+    WorkflowTemplate,
+)
 from domains.workflow.postgres_repo import PostgresWorkflowRepository
 from domains.workflow.schemas import (
     ScheduledJobCreate,
@@ -114,8 +122,9 @@ async def workflow_analytics(
     from datetime import datetime, timedelta
 
     try:
-        workflows = await svc.list(tenant_id)
-        executions = await svc.list_executions(tenant_id)
+        # Service method named `list` shadows builtin `list` in annotations → mypy list?
+        workflows = cast(list[Any], await svc.list(tenant_id) or [])
+        executions = cast(list[WorkflowExecution], await svc.list_executions(tenant_id) or [])
     except Exception as exc:
         if _is_missing_relation(exc):
             logger.warning("workflow_analytics: tables missing — empty payload (%s)", exc)
@@ -168,7 +177,7 @@ async def workflow_analytics(
                 "success_rate": round(ok / len(runs), 4) if runs else 0.0,
             }
         )
-    top_workflows.sort(key=lambda x: x["runs"], reverse=True)
+    top_workflows.sort(key=lambda x: int(x["runs"]), reverse=True)
 
     active = sum(1 for w in workflows if w.status == "active")
     draft = sum(1 for w in workflows if w.status == "draft")
@@ -242,7 +251,9 @@ async def list_executions(
     _rbac: None = Depends(require_permission_dep("workflow", PermissionAction.READ)),
 ):
     try:
-        executions = await svc.list_executions(tenant_id, workflow_id)
+        executions = cast(
+            list[WorkflowExecution], await svc.list_executions(tenant_id, workflow_id) or []
+        )
         offset = 0
         if cursor:
             try:
@@ -318,7 +329,7 @@ async def list_templates(
     _rbac: None = Depends(require_permission_dep("workflow", PermissionAction.READ)),
 ):
     try:
-        templates = await svc.list_templates()
+        templates = cast(list[WorkflowTemplate], await svc.list_templates() or [])
         return [
             {
                 "id": t.id,
@@ -523,7 +534,7 @@ async def list_webhooks(
     _rbac: None = Depends(require_permission_dep("workflow", PermissionAction.READ)),
 ):
     try:
-        webhooks = await svc.list_webhooks(tenant_id)
+        webhooks = cast(list[WebhookEndpoint], await svc.list_webhooks(tenant_id) or [])
         return [
             {
                 "id": ep.id,
@@ -655,7 +666,7 @@ async def list_jobs(
     _rbac: None = Depends(require_permission_dep("workflow", PermissionAction.READ)),
 ):
     try:
-        jobs = await svc.list_jobs(tenant_id)
+        jobs = cast(list[ScheduledJob], await svc.list_jobs(tenant_id) or [])
         return [
             {
                 "id": j.id,
@@ -755,7 +766,7 @@ async def list_job_executions(
     _rbac: None = Depends(require_permission_dep("workflow", PermissionAction.READ)),
 ):
     try:
-        executions = await svc.list_job_executions(job_id)
+        executions = cast(list[JobExecution], await svc.list_job_executions(job_id) or [])
         return [
             {
                 "id": e.id,

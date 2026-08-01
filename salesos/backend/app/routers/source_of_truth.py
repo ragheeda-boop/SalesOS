@@ -4,6 +4,8 @@ Aggregates all registries into one discoverable endpoint so the platform
 never needs hardcoded knowledge of what exists.
 """
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 
 from app.dependencies import get_optional_token
@@ -19,9 +21,9 @@ router = APIRouter(
 )
 
 
-def _get_all_modules() -> list[dict]:
+def _get_all_modules() -> list[dict[str, Any]]:
     seen = set()
-    modules = []
+    modules: list[dict[str, Any]] = []
 
     for name, fm in FeatureRegistry.all().items():
         seen.add(name)
@@ -115,8 +117,8 @@ def _get_all_products() -> list[dict]:
     ]
 
 
-def _get_all_pages() -> list[dict]:
-    pages = []
+def _get_all_pages() -> list[dict[str, Any]]:
+    pages: list[dict[str, Any]] = []
     seen_routes = set()
 
     from runtime.capability_framework import Capability

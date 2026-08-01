@@ -11,6 +11,7 @@ Registration ≠ GA; see docs/audit/ga-engineering-audit/AI_HONESTY.md
 """
 
 import time as _time
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
@@ -192,7 +193,7 @@ async def copilot_query(
     _rbac=Depends(require_permission_dep("copilot", PermissionAction.READ)),
     _flag=Depends(require_ai_copilot_enabled),
 ):
-    logger: StructuredLogger = getattr(request.app.state, "logger", None)
+    logger: StructuredLogger | None = getattr(request.app.state, "logger", None)
     conversation_id = f"conv_{user_id}_{int(_time.time())}"
 
     # B-4: Detect Arabic and enrich context
@@ -372,7 +373,7 @@ async def telemetry_dashboard(
         bucket_minutes=1440 if days > 7 else 60,
     )
 
-    tools = [
+    tools: list[dict[str, Any]] = [
         {
             "tool_name": s.tool_name,
             "total_calls": s.total_calls,
@@ -386,7 +387,7 @@ async def telemetry_dashboard(
         }
         for s in by_tool.values()
     ]
-    tools.sort(key=lambda t: t["total_calls"], reverse=True)
+    tools.sort(key=lambda t: int(t["total_calls"]), reverse=True)
 
     latency_distribution = [
         {
@@ -399,7 +400,7 @@ async def telemetry_dashboard(
     ] or [{"label": "overall", "p50": 0, "p95": 0, "p99": 0}]
 
     # Result-count histogram from overall buckets
-    result_histogram = [
+    result_histogram: list[dict[str, Any]] = [
         {"label": "0", "count": 0},
         {"label": "1-5", "count": 0},
         {"label": "6-20", "count": 0},

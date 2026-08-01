@@ -5,7 +5,7 @@ from __future__ import annotations
 import io
 import logging
 import uuid
-from typing import Any
+from typing import Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
@@ -19,6 +19,7 @@ from app.dependencies import (
 )
 from domains.analytics.engine import CUBE_REGISTRY, ReportEngine
 from domains.analytics.infrastructure.postgres_repository import PostgresReportRepository
+from domains.analytics.repository import InMemoryReportRepository
 from domains.analytics.models import (
     CubeType,
     Granularity,
@@ -44,7 +45,8 @@ router = APIRouter()
 
 def _get_engine(db) -> ReportEngine:
     repo = PostgresReportRepository(session=db)
-    return ReportEngine(repository=repo)
+    # ReportEngine annotates InMemoryReportRepository; Postgres repo is duck-typed.
+    return ReportEngine(repository=cast(InMemoryReportRepository | None, repo))
 
 
 # ── B-1: Unified Analytics ──────────────────────────────────────────────────
