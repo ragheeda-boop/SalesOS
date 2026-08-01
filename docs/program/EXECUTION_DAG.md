@@ -60,7 +60,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Item | Class | Why ready now | Notes |
 |---|---|---|---|
-| **CI-20** Backend Types (MyPy) | IN PROGRESS / READY | Phased burn-down OPEN; Backend Lint already green | Continue phases; **CI GREEN not met** |
+| **CI-20** Backend Types (MyPy) | IN PROGRESS / READY | Phase 20 COMPLETE (DEC-084 / c4fb067 webhooks+identity; employee_360 in 7800fe1); expected **~10** remain; Backend Lint green | Continue phases; **CI GREEN not met** |
 | **CI-19** Semgrep Wave 2 residual | IN PROGRESS / READY | Waves 1/3/4/5 COMPLETE; Wave 2 deferred (~108 `avoid-sqlalchemy-text`) | R-24; authorize Wave 2 when ready |
 | **CI-22** FastAPI / Starlette / Pydantic | IN PROGRESS / READY | Phase 1 COMPLETE (DEC-081 @ `442af64`); further phases | R-21 starlette / pip-audit path |
 | **CI-14** Frontend Dependency Modernization | IN PROGRESS / READY (Sprint 06) | Slice 1 COMPLETE; Slice 2 STOP; Slice 3 pending | R-18; STOP silent majors |

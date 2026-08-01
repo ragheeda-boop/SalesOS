@@ -932,3 +932,14 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** S04-07's SQL-injection fix is now actually functional rather than merely present in a form that would error on the vector it was meant to close. No test currently exercises this exact code path end-to-end (real `get_db()`, real tenant_id, real request) — `tests/unit/test_owner_engine_isolation.py` is the closest existing test but asserts on the connecting *role*, not on `set_config` succeeding; adding a dedicated regression test for this specific line is recommended follow-up, not done in this entry. Registered as **R-26** in `RISK_REGISTER.md`. Validation: **light validated** (direct isolated reproduction against local Postgres, both the failure and the fix; full backend test suite not re-run end-to-end in this pass because `app/application/dashboard/router.py`'s CI-22 Phase 1 `Request` positioning fix was landing concurrently and blocked pytest collection for part of this session — confirmed resolved separately, unrelated to this fix). **CI GREEN not met.**
 **Status:** Accepted and applied. Not yet independently field-verified against a live CI run.
 
+---
+
+### DEC-085 — STORY-02-02 browser/E2E verify attempted; status remains **PARTIAL**
+
+**Date:** 2026-08-01
+**Context:** Board listed STORY-02-02 browser/E2E verify as READY after Jest-debt R-23 CLOSED. Middleware code already on master at `3f4b3c8`. Frontend/QA authorized run+push on tip around `f2c7587` / current master.
+**Alternatives considered:** (a) close STORY-02-02 on unit evidence alone — rejected (AC requires server-side redirect verified in browser/E2E); (b) claim browser pass without harness execution — rejected; (c) record honest PARTIAL + light-validated units + blockers — approved.
+**Decision:** Keep STORY-02-02 **PARTIAL**. Evidence: Jest `middleware-auth` + `session` **14/14 PASS** (**light validated**). Playwright smoke harness present (`playwright.smoke.config.ts` / `e2e/smoke-auth-ui.spec.ts` / `scripts/smoke-ui.ps1`) but **not run** — local FE `node_modules` incomplete (no `.bin` / broken `next`); compose FE/BE not on `:3000`/`:8000` (Docker Desktop API 500 during full up; no frontend image). Full companion: [`decisions/DEC-085-STORY-02-02-BROWSER-VERIFY.md`](decisions/DEC-085-STORY-02-02-BROWSER-VERIFY.md).
+**Consequence:** No browser-pass claim. Remains: restore FE tooling or compose frontend, then unauthenticated `/dashboard` → `/login?callbackUrl` probe (+ optional authenticated `smoke-ui.ps1`). **CI GREEN not met.**
+**Status:** Accepted (records). Story **PARTIAL** — not CLOSED.
+
