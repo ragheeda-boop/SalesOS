@@ -1,7 +1,7 @@
 # Architecture Decision Records (ADR) Index
 
 > **Purpose**: Central registry of all architectural decisions for SalesOS.
-> **Last updated**: 2026-08-01 (DEC-136 — criterion 6.2: ADR-029 Not Issued disposition)
+> **Last updated**: 2026-08-01 (DEC-137 — criterion 6.3: ADR-033/034 index Status → Proposed)
 
 ---
 
@@ -20,8 +20,8 @@
 | ADR-030 | Unified Provider Architecture | 2026-07-08 | ✅ Accepted | Architecture | `docs/adr/0030-unified-provider-architecture.md` |
 | ADR-031 | Webhook Auth API Key Assessment | 2026-07-09 | ✅ Accepted | Security | `docs/adr/0031-webhook-auth-api-key-assessment.md` |
 | ADR-032 | Widget SDK Reconciliation | 2026-07-10 | ✅ Accepted | Widget SDK | `engineering-os/adr/ADR-0032-widget-sdk-reconciliation.md` |
-| ADR-033 | Decision Engine Lifecycle | 2026-07-11 | ✅ Accepted | Decision Engine | `docs/adr/0033-decision-engine-lifecycle.md` |
-| ADR-034 | Repository Pattern Compliance | 2026-07-12 | ✅ Accepted | Architecture | `docs/adr/0034-repository-pattern-compliance.md` |
+| ADR-033 | Decision Engine Lifecycle | 2026-07-17 | 📝 Proposed | Decision Engine | `docs/adr/0033-decision-engine-lifecycle.md` |
+| ADR-034 | Repository Pattern Compliance | 2026-07-17 | 📝 Proposed | Architecture | `docs/adr/0034-repository-pattern-compliance.md` |
 | ADR-035 | Sprint 0 Architecture Reconciliation | 2026-07-17 | 📝 Proposed | Architecture | `docs/adr/0035-sprint-0-architecture-reconciliation.md` |
 
 ---

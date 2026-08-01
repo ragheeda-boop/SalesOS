@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-137 — Phase 0 criterion 6.3 ADR-033/034 index↔file status READY FOR REVIEW
+
+**Date:** 2026-08-01
+**Context:** ADR Drift checklist **6.3** OPEN — index claimed ADR-033/034 ✅ Accepted while file headers are `**Status**: Proposed`. Criterion **6.2 CLOSED** (DEC-136a). No ARB acceptance evidence to invent Accepted.
+**Alternatives considered:** (a) flip file headers to Accepted — rejected (invents binding Accepted); (b) leave mismatch — rejected; (c) remove index rows — rejected (files exist; Proposed valid); (d) align index Status + dates to file headers — approved.
+**Decision:** Accept criterion **6.3** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-137-CRITERION-6-3-ADR-033-034-STATUS.md`](decisions/DEC-137-CRITERION-6-3-ADR-033-034-STATUS.md). `docs/adr/index.md` Status → **📝 Proposed** for ADR-033/034; dates → `2026-07-17`. DEC-085 intact. Do **not** mark VERIFIED/CLOSED.
+**Consequence:** Phase 0 criterion **6.3** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). Phase 0 remains **31/54** until Orchestrator CLOSE. Residuals **6.4–6.5** OPEN; `.engineering/27` re-pin → **4.5**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **6.3 OPEN** (READY FOR REVIEW).
+
 ### DEC-136 — Phase 0 criterion 6.2 ADR-029 phantom READY FOR REVIEW
 
 **Date:** 2026-08-01

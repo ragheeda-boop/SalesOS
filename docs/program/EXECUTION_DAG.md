@@ -94,6 +94,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **Capability 5.3** SoT-oriented validate exit 0 | **CLOSED** (DEC-134a) | Arch+Val PASS (light) @ `6a98999` / DEC-134; host+Docker default exit **0**; `--legacy-equality` exit 2 diagnostic; DEC-085 untouched; INFO residuals SDK/YAML extras + unmapped CAPs; Phase 0 **29/54** (superseded to **31/54** by DEC-136a); Capability Drift COMPLETE **4/4**; do **not** claim Phase 0 GO |
 | **ADR Drift 6.1** ADR-025..028 index paths | **CLOSED** (DEC-135a) | Arch+Val PASS (light) @ `4997ae4` / DEC-135; path-exists + Status Accepted; `docs/adr/index.md` File paths registered; Phase 0 **30/54** (superseded to **31/54** by DEC-136a); ADR Drift Complete **1/5** (superseded to **2/5**); residual `.engineering/27` re-pin (4.5) + **6.3–6.5**; do **not** claim Phase 0 GO |
 | **ADR Drift 6.2** ADR-029 phantom | **CLOSED** (DEC-136a) | Arch+Val PASS (light) @ `a1ce473` / DEC-136; Not Issued disposition @ `docs/adr/0029-number-never-issued.md` + index row; numbering gap documented; DEC-085 untouched; Phase 0 **31/54**; ADR Drift Complete **2/5**; residual `.engineering/27` conflict #2 (4.5) + **6.3–6.5**; do **not** claim Phase 0 GO |
+| **ADR Drift 6.3** ADR-033/034 status | **READY FOR REVIEW** (DEC-137) | Index Status **Proposed** for ADR-033/034 matches file headers; dates → `2026-07-17`; no invented Accepted; DEC-085 untouched; Phase 0 remains **31/54** until CLOSE; residual `.engineering/27` re-pin (4.5) + **6.4–6.5**; Arch/Val PENDING; do **not** claim VERIFIED/CLOSED / Phase 0 GO |
 
 ---
 
@@ -101,7 +102,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30, ADR Drift **6.3–6.5** / EOS **4.x** / Eng Stability **8.x** | PARALLEL / READY | DEC-107 swarm; Capability Drift **COMPLETE 4/4** (DEC-134a); **6.1 CLOSED** (DEC-135a); **6.2 CLOSED** (DEC-136a); ADR Drift residual **6.3–6.5**; do **not** claim Phase 0 GO |
+| Contract tests, optional Jest 30, ADR Drift **6.4–6.5** / EOS **4.x** / Eng Stability **8.x** | PARALLEL / READY | DEC-107 swarm; Capability Drift **COMPLETE 4/4** (DEC-134a); **6.1 CLOSED** (DEC-135a); **6.2 CLOSED** (DEC-136a); **6.3 READY FOR REVIEW** (DEC-137); ADR Drift residual **6.3–6.5**; do **not** claim Phase 0 GO |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 **Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation / CI-08/09 ops proceed.
