@@ -16,9 +16,10 @@ import asyncio
 import contextlib
 import os
 import time
-from typing import Any
+from typing import Any, cast
 
 from fastapi import FastAPI
+from redis.asyncio import Redis  # type: ignore[import-untyped]
 
 from app.cache import CacheService
 from app.common.logging_config import configure_logging
@@ -81,6 +82,7 @@ async def _init_event_runtime(app: FastAPI, logger: StructuredLogger) -> None:
     from sdk.events.kafka_bus import KafkaEventBus
 
     try:
+        event_runtime: KafkaEventBus | EventRuntime
         if settings.event_bus_type == "kafka":
             event_runtime = KafkaEventBus(
                 bootstrap_servers=settings.kafka_bootstrap_servers,
@@ -153,7 +155,7 @@ async def _init_sdk_cache(app: FastAPI, logger: StructuredLogger) -> None:
         app.state._sdk_redis_client = rc
         healthy = await rc.health() if hasattr(rc, "health") else False
         if healthy:
-            app.state._sdk_cache_service = SdkCacheService(rc._redis)
+            app.state._sdk_cache_service = SdkCacheService(cast(Redis, rc._redis))
             logger.info("  sdk cache: connected")
         else:
             app.state._sdk_cache_service = None
@@ -319,7 +321,9 @@ async def _init_feature_store(app: FastAPI, logger: StructuredLogger) -> None:
     )
 
     try:
-        event_runtime = getattr(app.state, "event_runtime", None)
+        from runtime.event_runtime import EventRuntime
+
+        event_runtime = cast(EventRuntime, getattr(app.state, "event_runtime", None))
         cache_svc = getattr(app.state, "_sdk_cache_service", None)
         fs = FeatureStore(
             session_factory=async_session,
@@ -386,13 +390,17 @@ async def _init_context_builder(app: FastAPI, logger: StructuredLogger) -> None:
 
 
 async def _init_decision_engine(app: FastAPI, logger: StructuredLogger) -> None:
+    from runtime.context_runtime import ContextBuilder
     from runtime.decision_runtime import DecisionEngine
+    from runtime.event_runtime import EventRuntime
+    from runtime.policy_runtime import PolicyEngine
+    from runtime.recommendation_runtime import RecommendationEngine
 
     try:
-        cb = getattr(app.state, "context_builder", None)
-        pe = getattr(app.state, "policy_engine", None)
-        re = getattr(app.state, "recommendation_engine", None)
-        er = getattr(app.state, "event_runtime", None)
+        cb = cast(ContextBuilder, getattr(app.state, "context_builder", None))
+        pe = cast(PolicyEngine, getattr(app.state, "policy_engine", None))
+        re = cast(RecommendationEngine, getattr(app.state, "recommendation_engine", None))
+        er = cast(EventRuntime, getattr(app.state, "event_runtime", None))
         fs = getattr(app.state, "feature_store", None)
         de = DecisionEngine(
             session_factory=async_session,

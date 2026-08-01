@@ -1,8 +1,10 @@
+from collections.abc import AsyncGenerator
 from contextvars import ContextVar
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import text as sa_text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import QueuePool
 
 from app.common.models import Base  # noqa: F401
 from app.config import settings
@@ -53,7 +55,7 @@ owner_engine = create_async_engine(
 
 def get_pool_metrics() -> dict[str, Any]:
     """Return live connection pool metrics for the metrics endpoint."""
-    pool = engine.pool
+    pool = cast(QueuePool, engine.pool)
     return {
         "pool_size": pool.size(),
         "checked_in": pool.checkedin(),
@@ -81,7 +83,7 @@ import domains.commercial.infrastructure.models  # noqa: F401
 import domains.timeline.models  # noqa: F401
 
 
-async def get_db() -> AsyncSession:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with async_session() as session:
         tenant_id = _current_tenant_id.get(None)
         if tenant_id:
