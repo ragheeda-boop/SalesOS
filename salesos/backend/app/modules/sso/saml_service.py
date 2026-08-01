@@ -14,7 +14,7 @@ import secrets
 import time
 import zlib
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, cast
 from xml.etree import ElementTree as ET
 
 from cryptography import x509
@@ -73,6 +73,7 @@ def decode_saml_response(saml_response: str) -> str:
     except (binascii.Error, ValueError) as e:
         raise ValueError(f"Invalid base64 in SAMLResponse: {e}") from e
 
+    xml_data: bytes | str
     try:
         xml_data = zlib.decompress(decoded, -15)
     except zlib.error:
@@ -190,6 +191,7 @@ def _verify_assertion_signature(assertion_el: ET.Element, ns: dict, idp_cert_pem
         logger.warning("Failed to decode SAML SignatureValue")
         return False
 
+    hash_algo: hashes.HashAlgorithm
     if "sha256" in sig_algo.lower():
         hash_algo = hashes.SHA256()
     elif "sha384" in sig_algo.lower():
@@ -223,7 +225,7 @@ def _canonicalize_element(el: ET.Element) -> bytes | None:
     """
     try:
         xml_str = ET.tostring(el, encoding="utf-8", method="xml")
-        return xml_str
+        return cast(bytes, xml_str)
     except Exception:
         logger.warning("Failed to canonicalize SAML element", exc_info=True)
         return None
@@ -477,4 +479,4 @@ class SAMLService:
         if not domain:
             return None
         result = await self.db.execute(select(Tenant).where(Tenant.domain == domain))
-        return result.scalar_one_or_none()
+        return cast(Tenant | None, result.scalar_one_or_none())

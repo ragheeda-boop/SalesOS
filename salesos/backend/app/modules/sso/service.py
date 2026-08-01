@@ -1,7 +1,7 @@
 import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, cast
 
 import httpx
 from sqlalchemy import select
@@ -211,7 +211,7 @@ class OAuthService:
                 headers=headers,
             )
             resp.raise_for_status()
-            data = resp.json()
+            data = cast(dict[str, Any], resp.json())
             if "error" in data:
                 raise UnauthorizedError(
                     f"OAuth token exchange failed: {data.get('error_description', data['error'])}"
@@ -227,7 +227,7 @@ class OAuthService:
                 headers["Accept"] = "application/vnd.github+json"
             resp = await client.get(config["userinfo_url"], headers=headers)
             resp.raise_for_status()
-            return resp.json()
+            return cast(dict[str, Any], resp.json())
 
     async def _fetch_github_emails(self, access_token: str) -> list[dict[str, Any]]:
         async with httpx.AsyncClient() as client:
@@ -239,7 +239,7 @@ class OAuthService:
                 },
             )
             resp.raise_for_status()
-            return resp.json()
+            return cast(list[dict[str, Any]], resp.json())
 
     async def get_connections_for_user(self, user_id: str) -> list[SSOConnection]:
         result = await self.db.execute(
