@@ -814,3 +814,25 @@
 **Decision:** Accept Wave 4 as **COMPLETE**. Add `.semgrepignore` excluding: `taqeem_scraper/`, `taqeem_facilities.json`, `companies.json`, `recovered_contacts.json`, `sales-os/`, `crm_pipeline.py`, `salesos/backend/demo/`, `salesos/frontend/scripts/`, `salesos/scripts/`. Redact `salesos/docs/PILOT_SECRETS_GUIDE.md` examples to `CHANGE_ME_*` (no live credential claim). Do **not** exclude `salesos/backend` app/runtime or product FE packages. Do **not** mark CI-19 CLOSED. Do **not** execute Wave 2. Do **not** weaken ERROR/WARNING severity or SARIF upload. Next: Wave 5 residual singletons.
 **Consequence:** CI-19 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-24 remains Open (mitigating). Validation: **light validated** (path inventory vs triage Bucket C / live alert paths; field Code Scanning closure **not** yet re-verified). **CI GREEN not met.**
 **Status:** Accepted. CI-19 **Wave 4 COMPLETE**; story **OPEN**.
+
+---
+
+### DEC-077 — Jest-debt / R-23 CLOSED: Stage 3 field verify 0 failing suites
+
+**Date:** 2026-08-01
+**Context:** Sprint 01 Jest-debt (not CI-14) remediations landed via `4fdc1d8` + `5bba606` + `556304d` + Prettier Onboarding gate `11470b1`. Prior §8 field verify `30677189129` / `1c33c1b` left **11** failing suites. Holdout support DEC-067 kept R-23 Open until full Stage 3 re-verify. Authoritative §10 field evidence: GHA run `30679804383` @ `465c638` — Stage 1 Frontend Lint **SUCCESS**; Stage 3 Frontend Unit Tests job `91314523292` **SUCCESS** — **0** failing suites / **196** passed (2278 passed / 1 skipped / 2279 tests). Whole pipeline on that run still **FAILURE** (Backend Lint/Types, pip-audit, Secrets Scan) — out of Jest-debt scope.
+**Alternatives considered:** (a) keep R-23 Open/Monitoring despite Stage 3 success — rejected (debt class field-cleared); (b) claim whole-pipeline CI GREEN — rejected (other gates red); (c) close Jest-debt / R-23 on §10 evidence only; do not start CI-14 Slice 3 — approved.
+**Decision:** Close Sprint 01 **Jest-debt** and **R-23** as **Closed — Stage 3 field-verified**. Update board, DAG, `JEST_BASELINE.md` §7/§10. Do **not** claim CI GREEN. Do **not** auto-start CI-14 Slice 3 (Jest major).
+**Consequence:** R-23 removed from open ≥15 cluster. Stage 3 no longer a Jest-debt blocker. Program Sprint 05 board fraction unchanged (**20/21**). Validation: **build validated** (GHA Stage 3 success). **CI GREEN not met.**
+**Status:** Accepted. Jest-debt / R-23 **CLOSED**.
+
+---
+
+### DEC-078 — CI-20 Phase 17 complete: decision mypy burn-down (5→0); CI-20 remains OPEN
+
+**Date:** 2026-08-01
+**Context:** CI-20 (DEC-038) tracks Backend Types remediation after CI run `30670339985` surfaced **308 mypy errors**. Phase 1–16 (DEC-046–050, DEC-053, DEC-055, DEC-058–061, DEC-064, DEC-066, DEC-068, DEC-070, DEC-071) cleared admin/company/entity_resolution/identity/revenue_execution/sso(+remnants)/routers/main+sdk/demo_mode/communication_hub/work_intelligence/boot+database/application/startup/sla+redis; overall expected **~308 → ~41** (field after Phase 14 **54**; after Phase 15–16 expected **~45**). DEC-070 deferred `app/modules/decision` (~5 on CI-104 / be7: Literal `confidence_label`/`source`/`risk`/`trend` + `sum` over `float | None`) to parallel ownership. Phase 17 mechanical typing landed in `d5e4de2` (`d5e4de20d4c22207bb4364110bc9936a5e3c1c07`) with the DEC-071–073 docs commit — annotate `ConfidenceLabel` / `DecisionSource` / `RiskLevel` / `Literal['up','down','stable']`; narrow `time_to_execution` before `sum`; `list(result.scores)` for `get_scores`. Did **not** redo SSO / startup / application / Phase 15 files. Host light mypy (`--follow-imports=skip` on decision targets): **0** errors (exit 0). Overall expected **~41 → ~36** (field **~45 → ~41**).
+**Alternatives considered:** (a) close entire CI-20 on Phase 17 land — rejected (residual ~36 remain; phased story); (b) clear entity_resolution remnants / graphql / notion_sync instead — deferred (parallel WIP; decision was largest named residual post Phase 14); (c) record Phase 17 COMPLETE only, keep CI-20 OPEN, R-22 mitigating — approved.
+**Decision:** Accept Phase 17 as **COMPLETE** at `d5e4de2` (types) with this DEC recording. Update Sprint 05 board + R-22 + EXECUTION_DAG. Do **not** mark CI-20 CLOSED. Do **not** start CI-22. Do **not** reopen Phases 1–16. Do **not** bump FastAPI. Validation label: **light validated** (host mypy on `app/modules/decision`); full Backend Types CI **not** re-run.
+**Consequence:** CI-20 stays **IN PROGRESS / OPEN**. Program Complete/Closed count unchanged (**20/21**). R-22 remains Open (mitigating). **CI GREEN not met.**
+**Status:** Accepted. CI-20 **Phase 17 COMPLETE**; story **OPEN**.

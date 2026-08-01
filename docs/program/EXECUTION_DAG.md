@@ -39,7 +39,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 | **Phase 0 exit** | BLOCKED | **S04-04 only** (critical path) | **NO-GO** — DEC-040 / DEC-044; STORY-02-01 closed; do not reopen |
 | **CI-08** GHCR 403 | BLOCKED | Org-level GHCR access | Outside repo scope; R-17 — not Phase 0 critical path |
 | **CI-09** VPS SSH/secrets | BLOCKED | Ops secret provisioning | R-17 — not Phase 0 critical path |
-| **CI GREEN** (overall workflow) | BLOCKED | Residual reds: MyPy (CI-20), pip-audit (R-21; starlette → CI-22; ecdsa accepted residual DEC-057), npm audit (CI-14), Jest debt, Trivy fs, etc. | Parallel honesty track; **not** the Phase 0 critical-path gate |
+| **CI GREEN** (overall workflow) | BLOCKED | Residual reds: MyPy (CI-20), pip-audit (R-21; starlette → CI-22; ecdsa accepted residual DEC-057), npm audit (CI-14), Trivy fs, etc. (**Jest-debt / R-23 CLOSED** DEC-077 — Stage 3 field 0 failures) | Parallel honesty track; **not** the Phase 0 critical-path gate |
 
 ---
 
@@ -47,12 +47,12 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 
 | Item | Class | Why ready now | Notes |
 |---|---|---|---|
-| **CI-20** Backend Types (MyPy) | IN PROGRESS / PARALLEL (phased) | Phase 1–9 COMPLETE through demo_mode (`821aad5`; ~100 expected; field-verify `30677025355` **104**); Phase 10 COMPLETE at `ca76f9c` (communication_hub 11→0; ~100→~89 / field **93**); Phase 11 COMPLETE at `86b4094` (work_intelligence 5→0; ~89→~84 / field **88**); Phase 12 COMPLETE at `e44b7f3` (boot/startup 7→0 + database 7→0; ~84→~70 / field ~74 expected); Phase 13 COMPLETE at `5edb6d6` (app/application 9→0; ~70→~61 / field ~65 expected); Phase 14 COMPLETE at 1f14337 (SSO remnants 11→0; ~61→~50 / field-verify `30679062993` **54** / 0 SSO); Phase 16 COMPLETE at `26156df` (app/startup.py 4→0; ~50→~46 / field ~50 expected); story OPEN; Backend Lint already green | DEC-038 register; DEC-046–050 Phases 1–5; DEC-053 Phase 6; DEC-055 Phase 7; DEC-058 Phase 8; DEC-059 Phase 9; DEC-060 Phase 10; DEC-061 Phase 11; DEC-064 Phase 12; DEC-066 Phase 13; DEC-068 Phase 14; DEC-070 Phase 16 — **not CLOSED** |
+| **CI-20** Backend Types (MyPy) | IN PROGRESS / PARALLEL (phased) | Phase 1–9 COMPLETE through demo_mode (`821aad5`; ~100 expected; field-verify `30677025355` **104**); Phase 10 COMPLETE at `ca76f9c` (communication_hub 11→0; ~100→~89 / field **93**); Phase 11 COMPLETE at `86b4094` (work_intelligence 5→0; ~89→~84 / field **88**); Phase 12 COMPLETE at `e44b7f3` (boot/startup 7→0 + database 7→0; ~84→~70 / field ~74 expected); Phase 13 COMPLETE at `5edb6d6` (app/application 9→0; ~70→~61 / field ~65 expected); Phase 14 COMPLETE at 1f14337 (SSO remnants 11→0; ~61→~50 / field-verify `30679062993` **54** / 0 SSO); Phase 15 COMPLETE at `7fed3dc` (sla+redis 5→0; ~46→~41 / field ~45 expected); Phase 16 COMPLETE at `26156df` (app/startup.py 4→0; ~50→~46 / field ~50 expected); Phase 17 COMPLETE at `d5e4de2` (decision 5→0; ~41→~36 / field ~41 expected); story OPEN; Backend Lint already green | DEC-038 register; DEC-046–050 Phases 1–5; DEC-053 Phase 6; DEC-055 Phase 7; DEC-058 Phase 8; DEC-059 Phase 9; DEC-060 Phase 10; DEC-061 Phase 11; DEC-064 Phase 12; DEC-066 Phase 13; DEC-068 Phase 14; DEC-071 Phase 15; DEC-070 Phase 16; DEC-078 Phase 17 — **not CLOSED** |
 | **CI-19** Semgrep Waves 2–5 | IN PROGRESS / PARALLEL | Wave 1 COMPLETE (`d5c9b57`); Wave 3 COMPLETE (DEC-069 SHA-pin + DEC-074 K8s/Docker/TF); Wave 2 deferred; Waves 4–5 REGISTERED | Next: Wave 4 path excludes or Wave 5 residuals; R-24 mitigating |
 | **CI-16** Backend dependency security | CLOSED | Slice 1 COMPLETE (`1e73a2f` multipart); Slice 2 → **CI-22** (DEC-052/054); Slice 3 COMPLETE (`d3f1eef` strawberry); **ecdsa** Accepted residual **Option A** (DEC-057); R-21 mitigating (starlette open) | Not part of CI-02; story **CLOSED** (slice scope) |
 | **CI-22** FastAPI / Starlette / Pydantic modernization | REGISTERED / PARALLEL | DEC-054; DEC-052 follow-on; scoped cascade (FastAPI ~0.135+, pydantic ≥2.9, starlette ≥1.3.1); **NOT** CI-16 slice work | No package bumps at registration; R-21 starlette leg |
 | **CI-14** Frontend Dependency Modernization | IN PROGRESS / PARALLEL (Sprint 06) | **plan DEC-062**; **Slice 1 COMPLETE DEC-063** (sharp **0.35.3** under next **15.5.22**); **Slice 2 STOP DEC-065** (ESLint 9→10 silent major blocked); dep CI-13 closed; Slice 3 pending | Majors — R-18 mitigating; STOP silent Next/React/ESLint/Jest / Next↓14 |
-| **Jest-debt** (Sprint 01 suite remediation) | READY / PARALLEL | FE-only; §10 field verify `30679804383` / `465c638`: **0** failing suites (supersedes §8 **11**); path `4fdc1d8`+`5bba606`+`556304d`+`11470b1`; holdouts DEC-067 / `JEST_BASELINE.md` §9–§10 | R-23 remains Open — mitigating (monitor); Stage 3 job success does **not** claim whole-pipeline CI GREEN |
+| **Jest-debt** (Sprint 01 suite remediation) | **CLOSED** (DEC-077) | §10 field verify `30679804383` / `465c638`: **0** failing suites; Stage 3 job **success**; path `4fdc1d8`+`5bba606`+`556304d`+`11470b1` | R-23 **Closed**; not CI-14; **whole-pipeline CI GREEN not met** |
 | **STORY-02-02** browser/E2E verify (if scoped) | READY / PARALLEL | Middleware code LANDED (`3f4b3c8`); status PARTIAL until redirect verified | Not a board CLOSE; validation gap only |
 | **DB-05** Schema reconciliation program | READY (program) | BACKLOG; R-20 / R-09 | Multi-sprint; unblocks 8 RLS-deferred tables |
 | **Sprint 04 Category B RLS + inventory** | READY (planning) | DEC-044 deferred Category B here | Settle canonical count (may be 69/72/other) |
@@ -67,6 +67,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 | **STORY-02-01** (RLS rollout) | **DONE** (revised AC) | DEC-044 Option B: **47** policies (`065d1d3a466b` + `company_features`). Draft RLS-72 **Superseded**. R-25 Closed-as-accepted-scope. **Do not reopen.** Not Phase 0 GO |
 | **S04-06** Adversarial suite (remaining) | **COMPLETE** | DEC-045; commit `119df9e`; Docker **15/15 PASS** (**build validated**); POLICY_COUNT 47 intact; inventory not reopened |
 | **CI-16** Backend dependency security | **CLOSED** | DEC-057 Option A: ecdsa accepted residual; Slices 1+3 complete; starlette → CI-22. **CI GREEN not met** |
+| **Jest-debt** (Sprint 01) / **R-23** | **CLOSED** | DEC-077; GHA `30679804383` / `465c638` Stage 3 **0** failing suites. **CI GREEN not met** |
 
 ---
 
@@ -74,7 +75,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 revised AC @ 47) �
 
 | Track | Class | Justification |
 |---|---|---|
-| **CI-20**, **CI-19 Waves 2–5**, **CI-22**, **CI-14**, **Jest-debt** | PARALLEL / READY | Explicitly unblocked for Sprint 05/06 execution while S04-04 waits on human auth |
+| **CI-20**, **CI-19 Wave 5**, **CI-22**, **CI-14** | PARALLEL / READY | Explicitly unblocked for Sprint 05/06 execution while S04-04 waits on human auth. **Jest-debt CLOSED** (DEC-077) |
 | Contract tests expansion (post STORY-03-04) | PARALLEL | Framework LANDED (`623077c`); more endpoints can add without Railway |
 | JWT audience **consumption** (EPIC-04 / Sprint 04 STORY-02-03 consume) | PARALLEL | Groundwork DONE (`2379e5f`); consumption is separate story |
 | Owner Admin / commercial FE that does not claim Phase 0 GO | PARALLEL | Must not weaken auth/CSRF/RBAC; must not market Phase 0 complete |
