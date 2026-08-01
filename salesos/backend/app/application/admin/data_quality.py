@@ -20,10 +20,9 @@ import logging
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, cast
-
 from functools import reduce
 from operator import add
+from typing import Any, cast
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import (
@@ -35,12 +34,14 @@ from sqlalchemy import (
     Table,
     and_,
     case,
-    cast as sa_cast,
     func,
     literal,
     or_,
     select,
     union_all,
+)
+from sqlalchemy import (
+    cast as sa_cast,
 )
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -72,7 +73,6 @@ CORE_FIELDS = [
 ]
 
 _ALLOWED_QUALITY_FIELDS = frozenset(CORE_FIELDS)
-
 
 
 _dq_metadata = MetaData()
@@ -116,6 +116,7 @@ def _apply_tenant(stmt, tenant_id: str | None):
     if tenant_id:
         return stmt.where(companies.c.tenant_id == tenant_id)
     return stmt
+
 
 # ── Field freshness max valid hours ────────────────────────────────
 FIELD_FRESHNESS_HOURS: dict[str, float] = {
@@ -295,14 +296,10 @@ class DataQualityService:
         filled_exprs = []
         for f in CORE_FIELDS:
             col = _field_col(f)
-            filled_exprs.append(
-                case((and_(col.is_not(None), col != ""), 1), else_=0)
-            )
+            filled_exprs.append(case((and_(col.is_not(None), col != ""), 1), else_=0))
         filled_sum = reduce(add, filled_exprs)
         total_fields = len(CORE_FIELDS)
-        stmt = select(
-            func.avg(sa_cast(filled_sum, Float) / total_fields)
-        ).select_from(companies)
+        stmt = select(func.avg(sa_cast(filled_sum, Float) / total_fields)).select_from(companies)
         stmt = _apply_tenant(stmt, tenant_id)
         result = await session.execute(stmt)
         row = result.first()
@@ -311,9 +308,7 @@ class DataQualityService:
     async def _calc_accuracy(self, session: Any, tenant_id: str | None) -> float:
         """Calculate accuracy score based on source reliability and field validation."""
         stmt = select(
-            func.avg(
-                case((companies.c.email.like("%@%.%"), 0.15), else_=0)
-            ),
+            func.avg(case((companies.c.email.like("%@%.%"), 0.15), else_=0)),
             func.avg(
                 case(
                     (
@@ -326,9 +321,7 @@ class DataQualityService:
                     else_=0,
                 )
             ),
-            func.avg(
-                case((companies.c.website.like("%.%"), 0.10), else_=0)
-            ),
+            func.avg(case((companies.c.website.like("%.%"), 0.10), else_=0)),
             func.avg(
                 case(
                     (
@@ -427,9 +420,7 @@ class DataQualityService:
             col = _field_col(f)
             part = select(
                 literal(f).label("field_name"),
-                func.sum(
-                    case((and_(col.is_not(None), col != ""), 1), else_=0)
-                ).label("filled"),
+                func.sum(case((and_(col.is_not(None), col != ""), 1), else_=0)).label("filled"),
                 func.count().label("total"),
             ).select_from(companies)
             part = _apply_tenant(part, tenant_id)
@@ -466,9 +457,7 @@ class DataQualityService:
             (companies.c.updated_at >= now - func.make_interval(0, 0, 0, 30), "stale"),
             else_="expired",
         ).label("grade")
-        age_hours = (
-            func.extract("epoch", now - companies.c.updated_at) / 3600
-        ).label("age_hours")
+        age_hours = (func.extract("epoch", now - companies.c.updated_at) / 3600).label("age_hours")
 
         sub = select(grade, age_hours).select_from(companies)
         sub = _apply_tenant(sub, tenant_id).subquery("sub")

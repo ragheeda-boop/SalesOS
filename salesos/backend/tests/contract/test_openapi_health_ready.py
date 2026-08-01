@@ -34,7 +34,7 @@ async def test_health_response_matches_openapi(
     assert body["version"] == settings.service_version
     assert body["database"] == "connected"
     assert body["cache"] == "connected"
-    assert isinstance(body["uptime_seconds"], (int, float))
+    assert isinstance(body["uptime_seconds"], int | float)
     assert body["uptime_seconds"] >= 0
 
 
