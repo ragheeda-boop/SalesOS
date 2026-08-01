@@ -33,3 +33,17 @@ Linked project metadata lives in `salesos/frontend/.vercel/project.json` (gitign
 ## Build settings
 
 Repo ships `salesos/frontend/vercel.json` (Next.js, security headers). Local validation (when approved): `npm run lint`, `npx tsc --noEmit`, `npm run build`.
+
+## GitHub Actions (DEC-149)
+
+Canonical FE production path remains **Vercel Git integration** (push `master` → project `sales-os`).
+
+Optional CLI trigger from `.github/workflows/deploy.yml` / `deploy-staging.yml` when these secret **names** are set (values out-of-band — do not invent):
+
+| Secret | Purpose |
+|--------|---------|
+| `VERCEL_TOKEN` | Vercel CLI auth |
+| `VERCEL_ORG_ID` | Team / org id (CLI env) |
+| `VERCEL_PROJECT_ID` | Project id for `sales-os` |
+
+If those secrets are absent, Actions skip CLI and rely on Git integration. Backend deploy is Railway (see DEC-149 §6) — not Vercel.

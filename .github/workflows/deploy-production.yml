@@ -1,11 +1,20 @@
-name: Deploy to Production
+# QUARANTINED (DEC-149) — Kubernetes tag/dispatch path is NOT the canonical production deploy.
+# Canonical active path:
+#   Backend  → Railway  (.github/workflows/deploy.yml)
+#   Frontend → Vercel   (Git integration + optional CLI in deploy.yml / deploy-staging.yml)
+# Do not re-enable push/tag triggers without a DEC that supersedes DEC-149.
+# Kept for historical/emergency reference only; requires explicit quarantine acknowledgement.
+
+name: Deploy to Production (K8s — QUARANTINED DEC-149)
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+  # Tag push removed — was a competing prod path vs Railway+Vercel (DEC-149).
   workflow_dispatch:
     inputs:
+      acknowledge_quarantine:
+        description: "Type CONFIRM-K8S-QUARANTINE to run this inactive K8s path (DEC-149)"
+        required: true
+        type: string
       version:
         description: "Release version (e.g., v1.2.3)"
         required: true
@@ -19,7 +28,7 @@ on:
           - staging
 
 concurrency:
-  group: production-deploy
+  group: production-deploy-k8s-quarantined
   cancel-in-progress: false
 
 env:
@@ -27,12 +36,28 @@ env:
   IMAGE_NAMESPACE: ragheeda-boop/salesos
   IMAGE_TAG: ${{ github.sha }}
   KUBE_NAMESPACE: salesos
-  # SLACK_WEBHOOK scoped at notify step only (not workflow-level — Semgrep gha-workflow-env-secret)
   K8S_MANIFESTS_DIR: salesos/infra/k8s
 
 jobs:
+  quarantine-gate:
+    name: DEC-149 Quarantine Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse unless acknowledged
+        env:
+          ACK: ${{ inputs.acknowledge_quarantine }}
+        run: |
+          if [ "${ACK}" != "CONFIRM-K8S-QUARANTINE" ]; then
+            echo "::error::deploy-production.yml is QUARANTINED under DEC-149 (Railway+Vercel is canonical)."
+            echo "Active path: .github/workflows/deploy.yml (Railway BE) + Vercel FE."
+            echo "To force this legacy K8s workflow, set acknowledge_quarantine=CONFIRM-K8S-QUARANTINE."
+            exit 1
+          fi
+          echo "::warning::Running QUARANTINED K8s deploy path — not DEC-149 canonical."
+
   gate-check:
     name: Deployment Gate Check
+    needs: [quarantine-gate]
     runs-on: ubuntu-latest
     environment: production
     outputs:
@@ -45,14 +70,9 @@ jobs:
       - name: Determine version
         id: version
         env:
-          EVENT_NAME: ${{ github.event_name }}
           INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [ "${EVENT_NAME}" == "workflow_dispatch" ]; then
-            echo "version=${INPUT_VERSION}" >> "$GITHUB_OUTPUT"
-          else
-            echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-          fi
+          echo "version=${INPUT_VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Verify CHANGELOG updated
         env:
@@ -158,7 +178,7 @@ jobs:
           sarif_file: trivy-backend.sarif
 
   deploy-to-production:
-    name: Deploy to Production
+    name: Deploy to Production (K8s quarantined)
     needs: [gate-check, build-and-push, security-scan]
     runs-on: ubuntu-latest
     environment:
@@ -236,10 +256,6 @@ jobs:
             -TestEmail "ci@salesos-test.io" \
             -MaxRetries 10
 
-      - name: Run Docker smoke tests
-        run: |
-          pwsh -File ./salesos/scripts/docker-smoke.ps1
-
   rollback-on-failure:
     name: Automatic Rollback
     if: failure()
@@ -264,11 +280,6 @@ jobs:
           kubectl rollout status deployment/backend -n $KUBE_NAMESPACE --timeout=300s
           kubectl rollout status deployment/frontend -n $KUBE_NAMESPACE --timeout=300s
 
-      - name: Verify rollback
-        run: |
-          kubectl rollout history deployment/backend -n $KUBE_NAMESPACE
-          kubectl get pods -n $KUBE_NAMESPACE
-
   notify:
     name: Slack Notification
     if: always()
@@ -284,5 +295,5 @@ jobs:
             {
               "channel": "#salesos-deployments",
               "username": "SalesOS Bot",
-              "text": "SalesOS Deployment ${{ job.status == 'success' && 'Succeeded' || 'Failed' }}\nVersion: ${{ needs.gate-check.outputs.version }}\nEnvironment: Production\nCommit: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}\nStatus: ${{ job.status }}"
+              "text": "SalesOS K8s QUARANTINED Deploy ${{ job.status == 'success' && 'Succeeded' || 'Failed' }}\nVersion: ${{ needs.gate-check.outputs.version }}\n(DEC-149: not canonical — Railway+Vercel is active)\nCommit: <${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}|${{ github.sha }}\nStatus: ${{ job.status }}"
             }

@@ -1,3 +1,9 @@
+# Deploy Staging — DEC-149 canonical path
+# Backend → Railway staging (`railway up`, DEC-120 Slice B pattern — no GHCR/SSH)
+# Frontend → Vercel (Git on develop/master primary; optional CLI preview/prod-of-project)
+# Supersedes STAGING_* SSH + GHCR image pull on VPS.
+# CI Stage 6 GHCR publish (ci.yml) remains orthogonal (CI-08); this workflow does not push GHCR.
+
 name: Deploy Staging
 
 on:
@@ -5,12 +11,13 @@ on:
     branches: [develop, master]
   workflow_dispatch:
     inputs:
-      version:
-        description: "Image tag to deploy (e.g. abc1234). Leave empty for latest develop commit."
+      skip_backend:
+        description: "Skip Railway staging backend deploy"
         required: false
-        type: string
-      skip_tests:
-        description: "Skip pre-deploy tests (emergency only)"
+        type: boolean
+        default: false
+      skip_frontend_cli:
+        description: "Skip optional Vercel CLI"
         required: false
         type: boolean
         default: false
@@ -20,312 +27,146 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAMESPACE: ragheeda-boop/salesos
-  STAGING_COMPOSE: salesos/infra/staging/docker-compose.staging.yml
-  STAGING_ENV: .env.staging
-  HEALTH_ENDPOINT: "http://localhost:8000/health"
-  SMOKE_RETRIES: 6
-  SMOKE_WAIT: 10
+  SMOKE_RETRIES: 12
+  SMOKE_WAIT: 15
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
-  # ──────────────────────────────────────────────
-  # Version Resolution
-  # ──────────────────────────────────────────────
   resolve-version:
     name: Resolve Version
     runs-on: ubuntu-latest
     outputs:
-      image_tag: ${{ steps.tag.outputs.tag }}
       short_tag: ${{ steps.tag.outputs.short }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - id: tag
         env:
-          INPUT_VERSION: ${{ inputs.version }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
-          if [ -n "${INPUT_VERSION}" ]; then
-            TAG="${INPUT_VERSION}"
-          else
-            TAG="${COMMIT_SHA}"
-          fi
-          SHORT=$(echo "$TAG" | cut -c1-7)
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          SHORT=$(echo "${COMMIT_SHA}" | cut -c1-7)
           echo "short=$SHORT" >> "$GITHUB_OUTPUT"
-          echo "Deploying tag: $TAG (short: $SHORT)"
+          echo "Deploying: $SHORT"
 
-  # ──────────────────────────────────────────────
-  # Build & Push Images
-  # ──────────────────────────────────────────────
-  build-backend:
-    name: Build & Push Backend
+  deploy-backend-railway:
+    name: Deploy Backend (Railway Staging)
     needs: resolve-version
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
-      - name: Build and push backend
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
-        with:
-          context: ./salesos/backend
-          file: ./salesos/backend/Dockerfile
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:staging
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/backend:${{ needs.resolve-version.outputs.short_tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          platforms: linux/amd64
-          provenance: true
-          sbom: true
-
-  build-frontend:
-    name: Build & Push Frontend
-    needs: resolve-version
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
-      - name: Build and push frontend
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
-        with:
-          context: ./salesos/frontend
-          file: ./salesos/frontend/Dockerfile
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:staging
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/frontend:${{ needs.resolve-version.outputs.short_tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          platforms: linux/amd64
-          provenance: true
-          sbom: true
-
-  # ──────────────────────────────────────────────
-  # Deploy to Staging VPS
-  # ──────────────────────────────────────────────
-  deploy-staging:
-    name: Deploy to Staging
-    needs: [resolve-version, build-backend, build-frontend]
+    if: ${{ !inputs.skip_backend }}
     runs-on: ubuntu-latest
     environment: staging
-    outputs:
-      deploy_status: ${{ steps.deploy.outputs.status }}
-      previous_tag: ${{ steps.deploy.outputs.previous_tag }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Deploy to staging VPS
-        id: deploy
-        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
+      - name: Require Railway staging secrets
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          RAILWAY_STAGING_SERVICE_ID: ${{ secrets.RAILWAY_STAGING_SERVICE_ID }}
+          RAILWAY_STAGING_ENVIRONMENT_ID: ${{ secrets.RAILWAY_STAGING_ENVIRONMENT_ID }}
+        run: |
+          missing=0
+          for name in RAILWAY_TOKEN RAILWAY_PROJECT_ID RAILWAY_STAGING_SERVICE_ID RAILWAY_STAGING_ENVIRONMENT_ID; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing secret: ${name} (DEC-149 staging — GitHub Environment 'staging')"
+              missing=1
+            fi
+          done
+          exit $missing
+      - name: Setup Node (Railway CLI)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            cd /opt/salesos-staging
+          node-version: "20"
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+      - name: Railway up (salesos backend → staging)
+        working-directory: salesos
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          set -euo pipefail
+          railway up --ci --detach \
+            --project "${{ secrets.RAILWAY_PROJECT_ID }}" \
+            --environment "${{ secrets.RAILWAY_STAGING_ENVIRONMENT_ID }}" \
+            --service "${{ secrets.RAILWAY_STAGING_SERVICE_ID }}"
 
-            SHORT_TAG="${{ needs.resolve-version.outputs.short_tag }}"
-            echo "=== Staging Deploy ==="
-            echo "Image tag: $SHORT_TAG"
-
-            CURRENT_IMG=$(docker compose -f ${{ env.STAGING_COMPOSE }} images backend 2>/dev/null | awk 'NR>1 {print $2}' | head -1 || echo "none")
-            echo "Previous image: $CURRENT_IMG"
-            echo "previous_tag=$CURRENT_IMG" >> $GITHUB_OUTPUT
-
-            export IMAGE_TAG=$SHORT_TAG
-            export REGISTRY=${{ env.REGISTRY }}
-            export IMAGE_NAMESPACE=${{ env.IMAGE_NAMESPACE }}
-
-            docker compose -f ${{ env.STAGING_COMPOSE }} pull backend frontend
-
-            echo "Running database migrations..."
-            docker compose -f ${{ env.STAGING_COMPOSE }} up -d migrations
-            docker compose -f ${{ env.STAGING_COMPOSE }} wait migrations
-
-            echo "Starting services..."
-            docker compose -f ${{ env.STAGING_COMPOSE }} up -d backend frontend
-
-            echo "status=deployed" >> $GITHUB_OUTPUT
-            echo "Staging deployment complete: $SHORT_TAG"
-
-  # ──────────────────────────────────────────────
-  # Health Check Gate
-  # ──────────────────────────────────────────────
   health-check:
-    name: Health Check Gate
-    needs: [deploy-staging, resolve-version]
+    name: Staging Health Gate
+    needs: [resolve-version, deploy-backend-railway]
+    if: ${{ !inputs.skip_backend && needs.deploy-backend-railway.result == 'success' }}
     runs-on: ubuntu-latest
     environment: staging
     steps:
       - name: Wait for stabilization
-        run: sleep ${{ env.SMOKE_WAIT }}
-      - name: Verify backend health
-        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            echo "Checking backend health..."
-            for i in $(seq 1 ${{ env.SMOKE_RETRIES }}); do
-              STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.HEALTH_ENDPOINT }} 2>/dev/null || echo "000")
-              echo "Attempt $i: HTTP $STATUS"
-              if [ "$STATUS" = "200" ]; then
-                echo "Health check PASSED"
-                exit 0
-              fi
-              sleep 10
-            done
-            echo "::error::Health check failed after ${{ env.SMOKE_RETRIES }} attempts"
+        run: sleep "${{ env.SMOKE_WAIT }}"
+      - name: Probe staging /health
+        env:
+          HEALTH_URL_VAR: ${{ vars.RAILWAY_STAGING_HEALTH_URL }}
+          HEALTH_URL_SECRET: ${{ secrets.RAILWAY_STAGING_HEALTH_URL }}
+        run: |
+          set -euo pipefail
+          HEALTH_URL="${HEALTH_URL_VAR:-${HEALTH_URL_SECRET:-}}"
+          if [ -z "${HEALTH_URL}" ]; then
+            echo "::error::Set vars.RAILWAY_STAGING_HEALTH_URL (or secret) to staging public /health URL"
             exit 1
+          fi
+          case "${HEALTH_URL}" in
+            */health) ENDPOINT="${HEALTH_URL}" ;;
+            */) ENDPOINT="${HEALTH_URL}health" ;;
+            *) ENDPOINT="${HEALTH_URL}/health" ;;
+          esac
+          echo "Probing: ${ENDPOINT}"
+          for i in $(seq 1 "${{ env.SMOKE_RETRIES }}"); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${ENDPOINT}" 2>/dev/null || echo "000")
+            echo "Attempt $i: HTTP $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "Health check PASSED"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::Staging health check failed"
+          exit 1
 
-  # ──────────────────────────────────────────────
-  # Smoke Tests
-  # ──────────────────────────────────────────────
-  smoke-tests:
-    name: Post-deploy Smoke Tests
-    needs: [deploy-staging, health-check, resolve-version]
+  frontend-vercel:
+    name: Frontend (Vercel)
+    needs: resolve-version
+    if: ${{ !inputs.skip_frontend_cli }}
     runs-on: ubuntu-latest
     environment: staging
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Run smoke tests via SSH
-        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            cd /opt/salesos-staging
-            echo "=== Running Smoke Tests ==="
-
-            HEALTH=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.HEALTH_ENDPOINT }})
-            if [ "$HEALTH" != "200" ]; then echo "FAIL: health -> $HEALTH"; exit 1; fi
-            echo "PASS: /health"
-
-            PING=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8000/ping")
-            if [ "$PING" != "200" ]; then echo "FAIL: /ping -> $PING"; exit 1; fi
-            echo "PASS: /ping"
-
-            DETAILED=$(curl -s http://localhost:8000/health/detailed)
-            DB_STATUS=$(echo "$DETAILED" | python3 -c "import sys,json; print(json.load(sys.stdin)['checks']['database']['status'])" 2>/dev/null || echo "unknown")
-            if [ "$DB_STATUS" != "connected" ]; then echo "FAIL: database status=$DB_STATUS"; exit 1; fi
-            echo "PASS: database connected"
-
-            FE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000)
-            if [ "$FE" != "200" ]; then echo "FAIL: frontend -> $FE"; exit 1; fi
-            echo "PASS: frontend"
-
-            ALL_HEALTHY=$(docker compose -f ${{ env.STAGING_COMPOSE }} ps --format "{{.Status}}" | grep -v "healthy" | wc -l)
-            if [ "$ALL_HEALTHY" -gt 0 ]; then
-              echo "WARN: $ALL_HEALTHY service(s) not healthy"
-              docker compose -f ${{ env.STAGING_COMPOSE }} ps
-            fi
-
-            echo "All smoke tests passed"
-
-  # ──────────────────────────────────────────────
-  # Staging Rollback (on failure)
-  # ──────────────────────────────────────────────
-  rollback:
-    name: Rollback Staging
-    if: failure()
-    needs: [deploy-staging, health-check, smoke-tests, resolve-version]
-    runs-on: ubuntu-latest
-    environment: staging
-    steps:
-      - name: Rollback to previous tag
-        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            cd /opt/salesos-staging
-
-            PREV_TAG="${{ needs.deploy-staging.outputs.previous_tag }}"
-            echo "ROLLING BACK to: $PREV_TAG"
-
-            export IMAGE_TAG=$PREV_TAG
-            export REGISTRY=${{ env.REGISTRY }}
-            export IMAGE_NAMESPACE=${{ env.IMAGE_NAMESPACE }}
-
-            docker compose -f ${{ env.STAGING_COMPOSE }} pull backend frontend
-            docker compose -f ${{ env.STAGING_COMPOSE }} up -d backend frontend
-
-            echo "Rollback complete — restored to $PREV_TAG"
-
-      - name: Smoke tests after rollback
-        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
-        with:
-          host: ${{ secrets.STAGING_HOST }}
-          username: ${{ secrets.STAGING_USER }}
-          key: ${{ secrets.STAGING_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            cd /opt/salesos-staging
-            echo "=== Post-rollback smoke tests ==="
-            for i in $(seq 1 6); do
-              STATUS=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.HEALTH_ENDPOINT }} 2>/dev/null || echo "000")
-              if [ "$STATUS" = "200" ]; then
-                echo "PASS: Backend healthy after rollback"
-                exit 0
-              fi
-              sleep 10
-            done
-            echo "FAIL: Backend not healthy after rollback"
-            exit 1
-
-      - name: Log rollback
-        env:
-          REF_NAME: ${{ github.ref_name }}
-          COMMIT_SHA: ${{ github.sha }}
-          PREVIOUS_TAG: ${{ needs.deploy-staging.outputs.previous_tag }}
+      - name: Primary path — Vercel Git integration
         run: |
-          echo "::warning::Rollback triggered for staging"
-          echo "REF: ${REF_NAME}"
-          echo "COMMIT: ${COMMIT_SHA}"
-          echo "PREVIOUS_TAG: ${PREVIOUS_TAG}"
+          echo "DEC-149: FE staging/preview via Vercel Git (Root Directory salesos/frontend)."
+          echo "Optional CLI when VERCEL_* secrets are set."
+      - name: Optional Vercel CLI deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN}" ] || [ -z "${VERCEL_ORG_ID}" ] || [ -z "${VERCEL_PROJECT_ID}" ]; then
+            echo "VERCEL_* secrets incomplete — skip CLI (Git path remains primary)."
+            exit 0
+          fi
+          npm install -g vercel@39
+          # Approach B (VERCEL_DEPLOY.md): monorepo root + Root Directory salesos/frontend
+          vercel deploy --yes --token "${VERCEL_TOKEN}"
 
-  # ──────────────────────────────────────────────
-  # Notification
-  # ──────────────────────────────────────────────
   notify:
     name: Deploy Notification
     if: always()
-    needs: [deploy-staging, health-check, smoke-tests, resolve-version]
+    needs: [resolve-version, deploy-backend-railway, health-check, frontend-vercel]
     runs-on: ubuntu-latest
     steps:
       - name: Determine status
         id: status
         run: |
-          if [ "${{ needs.smoke-tests.result }}" = "success" ]; then
-            echo "status=success" >> $GITHUB_OUTPUT
+          if [ "${{ needs.health-check.result }}" = "success" ] || [ "${{ needs.deploy-backend-railway.result }}" = "skipped" ]; then
+            echo "status=success" >> "$GITHUB_OUTPUT"
           else
-            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "status=failure" >> "$GITHUB_OUTPUT"
           fi
       - name: Slack notification
         if: env.SLACK_WEBHOOK_URL != ''
@@ -339,7 +180,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ steps.status.outputs.status == 'success' && ':white_check_mark:' || ':x:' }} *SalesOS Staging Deploy* — `${{ needs.resolve-version.outputs.short_tag }}`\nStatus: *${{ steps.status.outputs.status }}*\nRef: `${{ github.ref_name }}`\nRun: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
+                    "text": "*SalesOS Staging Deploy (DEC-149 Railway+Vercel)* — `${{ needs.resolve-version.outputs.short_tag }}`\nStatus: *${{ steps.status.outputs.status }}*\nRef: `${{ github.ref_name }}`\nRun: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
                   }
                 }]
               }]

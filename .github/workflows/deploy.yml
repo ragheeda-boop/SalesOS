@@ -1,3 +1,11 @@
+# Deploy Production — DEC-149 canonical path
+# Backend → Railway (CLI `railway up`, DEC-120 alternate promote — no GHCR/SSH)
+# Frontend → Vercel (Git integration primary per salesos/frontend/docs/VERCEL_DEPLOY.md;
+#   optional CLI when VERCEL_* secrets are set)
+# Supersedes VPS blue/green (appleboy/ssh-action + VPS_*). Do not reintroduce VPS as default.
+# Orthogonal: CI Stage 6 GHCR publish (ci.yml) remains separate (CI-08 / DEC-104).
+# Quarantined alternate: deploy-production.yml (K8s) — not active.
+
 name: Deploy Production
 
 on:
@@ -5,12 +13,13 @@ on:
     branches: [master]
   workflow_dispatch:
     inputs:
-      version:
-        description: "Image tag to deploy (e.g. abc1234). Leave empty for latest main."
+      skip_backend:
+        description: "Skip Railway backend deploy"
         required: false
-        type: string
-      skip_tests:
-        description: "Skip pre-deploy tests (emergency only)"
+        type: boolean
+        default: false
+      skip_frontend_cli:
+        description: "Skip optional Vercel CLI (Git integration still applies on push)"
         required: false
         type: boolean
         default: false
@@ -20,277 +29,157 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAMESPACE: ragheeda-boop/salesos
-  DEPLOY_HOST: /opt/salesos
-  HEALTH_ENDPOINT: "http://localhost:8000/health"
   HEALTH_WAIT: 30
-  HEALTH_RETRIES: 6
+  HEALTH_RETRIES: 12
 
 permissions:
   contents: read
-  packages: read
   id-token: write
 
 jobs:
-  # ──────────────────────────────────────────────
-  # Pre-deploy validation
-  # ──────────────────────────────────────────────
   pre-deploy-check:
     name: Pre-deploy Validation
     runs-on: ubuntu-latest
-    if: ${{ !inputs.skip_tests }}
+    outputs:
+      short_sha: ${{ steps.version.outputs.short_sha }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Verify CI passed on this commit
+      - name: Verify branch
         env:
-          COMMIT_SHA: ${{ github.sha }}
           GIT_REF: ${{ github.ref }}
         run: |
-          echo "Checking CI status for commit ${COMMIT_SHA}..."
           if [[ "${GIT_REF}" != "refs/heads/master" ]]; then
-            echo "::error::Deploy only allowed from master branch"
+            echo "::error::Deploy only allowed from master branch (DEC-149 / CI-01)"
             exit 1
           fi
           echo "Branch check passed."
-      - name: Resolve deploy version
+      - name: Resolve version
         id: version
         env:
-          INPUT_VERSION: ${{ inputs.version }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
-          if [ -n "${INPUT_VERSION}" ]; then
-            echo "image_tag=${INPUT_VERSION}" >> "$GITHUB_OUTPUT"
-            echo "Deploying tag: ${INPUT_VERSION}"
-          else
-            SHORT="$(echo "${COMMIT_SHA}" | cut -c1-7)"
-            echo "image_tag=${SHORT}" >> "$GITHUB_OUTPUT"
-            echo "Deploying tag: ${SHORT}"
-          fi
+          SHORT="$(echo "${COMMIT_SHA}" | cut -c1-7)"
+          echo "short_sha=${SHORT}" >> "$GITHUB_OUTPUT"
+          echo "Deploying commit: ${SHORT}"
 
-  # ──────────────────────────────────────────────
-  # Stage 1: Deploy to BLUE (idle slot)
-  # ──────────────────────────────────────────────
-  deploy-blue:
-    name: Deploy Blue Slot
+  deploy-backend-railway:
+    name: Deploy Backend (Railway)
     needs: pre-deploy-check
+    if: ${{ !inputs.skip_backend }}
     runs-on: ubuntu-latest
-    outputs:
-      image_tag: ${{ needs.pre-deploy-check.outputs.image_tag || github.sha }}
-      deploy_status: ${{ steps.deploy.outputs.status }}
+    environment: production
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Deploy to blue slot
-        id: deploy
-        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            cd /opt/salesos
-            IMAGE_TAG="${{ needs.pre-deploy-check.outputs.image_tag || github.sha }}"
-            SHORT_TAG=$(echo "$IMAGE_TAG" | cut -c1-7)
-            export IMAGE_TAG
-
-            echo "=== Blue-Green Deploy ==="
-            echo "Image tag: $SHORT_TAG"
-
-            CURRENT_SLOT=$(docker compose -f docker-compose.prod.yml ps --format json | \
-              grep '"backend"' | grep -o '"Slot":"[^"]*"' | cut -d'"' -f4 || echo "none")
-            echo "Current live slot: $CURRENT_SLOT"
-
-            if [ "$CURRENT_SLOT" = "blue" ]; then
-              DEPLOY_SLOT="green"
-            else
-              DEPLOY_SLOT="blue"
-            fi
-            echo "Deploying to: $DEPLOY_SLOT"
-            echo "slot=$DEPLOY_SLOT" >> $GITHUB_OUTPUT
-
-            docker compose -f docker-compose.prod.yml pull
-
-            SLOT_ENV="DEPLOY_SLOT=$DEPLOY_SLOT"
-            docker compose -f docker-compose.prod.yml run --rm $SLOT_ENV migrations
-
-            docker compose -f docker-compose.prod.yml up -d --no-deps \
-              --scale backend-${DEPLOY_SLOT}=1 \
-              backend-${DEPLOY_SLOT}
-
-            echo "Blue slot deployed successfully"
-            echo "status=deployed" >> $GITHUB_OUTPUT
-
-  # ──────────────────────────────────────────────
-  # Stage 2: Health Check Gate (30s wait)
-  # ──────────────────────────────────────────────
-  health-check:
-    name: Health Check Gate
-    needs: deploy-blue
-    runs-on: ubuntu-latest
-    steps:
-      - name: Wait for deployment stabilization
-        run: |
-          echo "Waiting ${{ env.HEALTH_WAIT }}s for deployment to stabilize..."
-          sleep ${{ env.HEALTH_WAIT }}
-
-      - name: Verify blue slot health
-        id: health
-        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            cd /opt/salesos
-            SLOT="${{ needs.deploy-blue.outputs.slot }}"
-            HEALTH_URL="${{ secrets.VPS_HEALTH_ENDPOINT || 'http://localhost:8000/health' }}"
-
-            echo "Health checking slot: $SLOT"
-            echo "Endpoint: $HEALTH_URL"
-
-            for i in $(seq 1 ${{ env.HEALTH_RETRIES }}); do
-              STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" 2>/dev/null || echo "000")
-              echo "Attempt $i: HTTP $STATUS"
-              if [ "$STATUS" = "200" ]; then
-                echo "Health check PASSED"
-                echo "health_ok=true" >> $GITHUB_OUTPUT
-                exit 0
-              fi
-              sleep 10
-            done
-            echo "::error::Health check failed after ${{ env.HEALTH_RETRIES }} attempts"
-            echo "health_ok=false" >> $GITHUB_OUTPUT
-            exit 1
-
-  # ──────────────────────────────────────────────
-  # Stage 3: Smoke Tests
-  # ──────────────────────────────────────────────
-  smoke-tests:
-    name: Post-deploy Smoke Tests
-    needs: [deploy-blue, health-check]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run smoke tests
-        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            BASE="${{ secrets.VPS_HEALTH_ENDPOINT || 'http://localhost:8000' }}"
-            ENDPOINTS="/health /health/ready /ping"
-            FAILURES=0
-
-            for EP in $ENDPOINTS; do
-              URL="${BASE}${EP}"
-              STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL" 2>/dev/null || echo "000")
-              if [ "$STATUS" = "200" ]; then
-                echo "PASS: $URL -> $STATUS"
-              else
-                echo "FAIL: $URL -> $STATUS"
-                FAILURES=$((FAILURES + 1))
-              fi
-            done
-
-            if [ "$FAILURES" -gt 0 ]; then
-              echo "::error::$FAILURES smoke test(s) failed"
-              exit 1
-            fi
-            echo "All smoke tests passed"
-
-  # ──────────────────────────────────────────────
-  # Stage 4: Switch traffic (blue-green cutover)
-  # ──────────────────────────────────────────────
-  cutover:
-    name: Blue-Green Cutover
-    needs: [deploy-blue, health-check, smoke-tests]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Switch traffic to new slot
-        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            cd /opt/salesos
-            NEW_SLOT="${{ needs.deploy-blue.outputs.slot }}"
-            echo "Switching traffic to: $NEW_SLOT"
-
-            if [ "$NEW_SLOT" = "blue" ]; then
-              docker compose -f docker-compose.prod.yml up -d --no-deps \
-                --scale backend-green=0 \
-                --scale backend-blue=1 \
-                backend-blue caddy
-            else
-              docker compose -f docker-compose.prod.yml up -d --no-deps \
-                --scale backend-blue=0 \
-                --scale backend-green=1 \
-                backend-green caddy
-            fi
-
-            echo "Cutover complete — traffic now on $NEW_SLOT"
-
-  # ──────────────────────────────────────────────
-  # Rollback on failure
-  # ──────────────────────────────────────────────
-  rollback:
-    name: Automatic Rollback
-    if: failure()
-    needs: [deploy-blue, health-check, smoke-tests, cutover]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Rollback to previous slot
-        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: |
-            set -euo pipefail
-            cd /opt/salesos
-            FAILED_SLOT="${{ needs.deploy-blue.outputs.slot }}"
-
-            if [ "$FAILED_SLOT" = "blue" ]; then
-              PREV_SLOT="green"
-            else
-              PREV_SLOT="blue"
-            fi
-
-            echo "ROLLING BACK: $FAILED_SLOT -> $PREV_SLOT"
-            docker compose -f docker-compose.prod.yml up -d --no-deps \
-              --scale "backend-${FAILED_SLOT}=0" \
-              --scale "backend-${PREV_SLOT}=1" \
-              "backend-${PREV_SLOT}" caddy
-
-            echo "Rollback complete — traffic restored to $PREV_SLOT"
-
-      - name: Log rollback
+      - name: Require Railway secrets (names only — values via GitHub Environments)
         env:
-          REF_NAME: ${{ github.ref_name }}
-          COMMIT_SHA: ${{ github.sha }}
-          FAILED_SLOT: ${{ needs.deploy-blue.outputs.slot }}
-          WORKFLOW_NAME: ${{ github.workflow }}
-          RUN_ID: ${{ github.run_id }}
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
+          RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
         run: |
-          echo "::error::Automatic rollback triggered"
-          echo "REF: ${REF_NAME}"
-          echo "COMMIT: ${COMMIT_SHA}"
-          echo "FAILED_SLOT: ${FAILED_SLOT}"
-          echo "WORKFLOW: ${WORKFLOW_NAME}"
-          echo "RUN: ${RUN_ID}"
+          missing=0
+          for name in RAILWAY_TOKEN RAILWAY_PROJECT_ID RAILWAY_SERVICE_ID RAILWAY_ENVIRONMENT_ID; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing secret: ${name} (DEC-149 — provision in GitHub Environment 'production'; do not invent VPS_*)"
+              missing=1
+            fi
+          done
+          exit $missing
+      - name: Setup Node (Railway CLI)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "20"
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+      - name: Railway up (salesos backend)
+        working-directory: salesos
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          set -euo pipefail
+          echo "DEC-149: railway up — project/service/environment from secrets (no values echoed)"
+          railway up --ci --detach \
+            --project "${{ secrets.RAILWAY_PROJECT_ID }}" \
+            --environment "${{ secrets.RAILWAY_ENVIRONMENT_ID }}" \
+            --service "${{ secrets.RAILWAY_SERVICE_ID }}"
 
-  # ──────────────────────────────────────────────
-  # Notifications
-  # ──────────────────────────────────────────────
+  health-check:
+    name: Backend Health Gate
+    needs: [pre-deploy-check, deploy-backend-railway]
+    if: ${{ !inputs.skip_backend && needs.deploy-backend-railway.result == 'success' }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Wait for stabilization
+        run: |
+          echo "Waiting ${{ env.HEALTH_WAIT }}s..."
+          sleep "${{ env.HEALTH_WAIT }}"
+      - name: Probe public /health
+        env:
+          HEALTH_URL_VAR: ${{ vars.RAILWAY_HEALTH_URL }}
+          HEALTH_URL_SECRET: ${{ secrets.RAILWAY_HEALTH_URL }}
+        run: |
+          set -euo pipefail
+          HEALTH_URL="${HEALTH_URL_VAR:-${HEALTH_URL_SECRET:-}}"
+          if [ -z "${HEALTH_URL}" ]; then
+            echo "::error::Set vars.RAILWAY_HEALTH_URL (or secret RAILWAY_HEALTH_URL) to the public backend /health URL"
+            exit 1
+          fi
+          case "${HEALTH_URL}" in
+            */health) ENDPOINT="${HEALTH_URL}" ;;
+            */) ENDPOINT="${HEALTH_URL}health" ;;
+            *) ENDPOINT="${HEALTH_URL}/health" ;;
+          esac
+          echo "Probing: ${ENDPOINT}"
+          for i in $(seq 1 "${{ env.HEALTH_RETRIES }}"); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${ENDPOINT}" 2>/dev/null || echo "000")
+            echo "Attempt $i: HTTP $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "Health check PASSED"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::Health check failed after ${{ env.HEALTH_RETRIES }} attempts"
+          exit 1
+
+  frontend-vercel:
+    name: Frontend (Vercel)
+    needs: pre-deploy-check
+    if: ${{ !inputs.skip_frontend_cli }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Primary path — Vercel Git integration
+        run: |
+          echo "DEC-149 / VERCEL_DEPLOY.md: Production FE deploys via Vercel GitHub integration"
+          echo "  Project: sales-os | Root Directory: salesos/frontend | Branch: master"
+          echo "Push to master triggers Vercel independently of this job."
+          echo "Optional CLI below runs only when VERCEL_TOKEN + org/project IDs are set."
+      - name: Optional Vercel CLI production deploy
+        id: vercel_cli
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN}" ] || [ -z "${VERCEL_ORG_ID}" ] || [ -z "${VERCEL_PROJECT_ID}" ]; then
+            echo "VERCEL_TOKEN / VERCEL_ORG_ID / VERCEL_PROJECT_ID not all set — skipping CLI (Git path remains primary)."
+            echo "cli=skipped" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          npm install -g vercel@39
+          # Approach B (VERCEL_DEPLOY.md): monorepo root + project Root Directory = salesos/frontend
+          # VERCEL_ORG_ID / VERCEL_PROJECT_ID are read from the environment by the CLI.
+          vercel deploy --prod --yes --token "${VERCEL_TOKEN}"
+          echo "cli=deployed" >> "$GITHUB_OUTPUT"
+
   notify:
     name: Deploy Notification
     if: always()
-    needs: [deploy-blue, health-check, smoke-tests, cutover]
+    needs: [pre-deploy-check, deploy-backend-railway, health-check, frontend-vercel]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -298,16 +187,16 @@ jobs:
       - name: Determine status
         id: status
         run: |
-          if [ "${{ needs.smoke-tests.result }}" = "success" ] && [ "${{ needs.cutover.result }}" = "success" ]; then
-            echo "status=success" >> $GITHUB_OUTPUT
-            echo "emoji=:white_check_mark:" >> $GITHUB_OUTPUT
-            echo "color=#36a64f" >> $GITHUB_OUTPUT
+          be="${{ needs.deploy-backend-railway.result }}"
+          health="${{ needs.health-check.result }}"
+          fe="${{ needs.frontend-vercel.result }}"
+          if [ "$be" = "success" ] && [ "$health" = "success" ] && { [ "$fe" = "success" ] || [ "$fe" = "skipped" ]; }; then
+            echo "status=success" >> "$GITHUB_OUTPUT"
+          elif [ "$be" = "skipped" ] && { [ "$fe" = "success" ] || [ "$fe" = "skipped" ]; }; then
+            echo "status=partial" >> "$GITHUB_OUTPUT"
           else
-            echo "status=failure" >> $GITHUB_OUTPUT
-            echo "emoji=:x:" >> $GITHUB_OUTPUT
-            echo "color=#ff0000" >> $GITHUB_OUTPUT
+            echo "status=failure" >> "$GITHUB_OUTPUT"
           fi
-
       - name: Slack notification
         if: env.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@6c661ce58804a1a20f6dc5fbee7f0381b469e001 # v1.25.0
@@ -315,12 +204,12 @@ jobs:
           payload: |
             {
               "attachments": [{
-                "color": "${{ steps.status.outputs.color }}",
+                "color": "${{ steps.status.outputs.status == 'success' && '#36a64f' || '#ff0000' }}",
                 "blocks": [{
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ steps.status.outputs.emoji }} *SalesOS Production Deploy* — `${{ needs.deploy-blue.outputs.image_tag }}`\nStatus: *${{ steps.status.outputs.status }}*\nRef: `${{ github.ref_name }}`\nRun: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
+                    "text": "*SalesOS Production Deploy (DEC-149 Railway+Vercel)* — `${{ needs.pre-deploy-check.outputs.short_sha }}`\nStatus: *${{ steps.status.outputs.status }}*\nRef: `${{ github.ref_name }}`\nRun: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View>"
                   }
                 }]
               }]
@@ -328,52 +217,17 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-
-      - name: Teams notification
-        if: env.TEAMS_WEBHOOK_URL != ''
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
-        env:
-          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
-          DEPLOY_STATUS: ${{ steps.status.outputs.status }}
-          IMAGE_TAG: ${{ needs.deploy-blue.outputs.image_tag }}
-          REF_NAME: ${{ github.ref_name }}
-          SERVER_URL: ${{ github.server_url }}
-          REPOSITORY: ${{ github.repository }}
-          RUN_ID: ${{ github.run_id }}
-        with:
-          script: |
-            const status = process.env.DEPLOY_STATUS;
-            const tag = process.env.IMAGE_TAG;
-            const emoji = status === 'success' ? '✅' : '❌';
-            const payload = {
-              '@type': 'MessageCard',
-              '@context': 'http://schema.org/extensions',
-              themeColor: status === 'success' ? '36a64f' : 'ff0000',
-              summary: `Deploy ${status}: ${tag}`,
-              sections: [{
-                activityTitle: `${emoji} SalesOS Production Deploy — ${tag}`,
-                text: `Status: **${status}**\nRef: \`${process.env.REF_NAME}\`\nRun: [View](${process.env.SERVER_URL}/${process.env.REPOSITORY}/actions/runs/${process.env.RUN_ID})`,
-                markdown: true
-              }]
-            };
-            const http = require('https');
-            const url = new URL(process.env.TEAMS_WEBHOOK_URL);
-            const options = { hostname: url.hostname, path: url.pathname, method: 'POST', headers: { 'Content-Type': 'application/json' } };
-            const req = http.request(options, (res) => { console.log(`Teams response: ${res.statusCode}`); });
-            req.write(JSON.stringify(payload));
-            req.end();
-
       - name: GitHub commit comment
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         env:
           DEPLOY_STATUS: ${{ steps.status.outputs.status }}
-          IMAGE_TAG: ${{ needs.deploy-blue.outputs.image_tag }}
+          SHORT_SHA: ${{ needs.pre-deploy-check.outputs.short_sha }}
         with:
           script: |
             const status = process.env.DEPLOY_STATUS;
-            const tag = process.env.IMAGE_TAG;
-            const emoji = status === 'success' ? '✅' : '❌';
-            const message = `${emoji} Production deploy **${status}** — \`${tag}\`\nRun: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const tag = process.env.SHORT_SHA;
+            const emoji = status === 'success' ? '✅' : (status === 'partial' ? '⚠️' : '❌');
+            const message = `${emoji} Production deploy **${status}** (DEC-149 Railway+Vercel) — \`${tag}\`\nRun: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             await github.rest.repos.createCommitComment({
               owner: context.repo.owner,
               repo: context.repo.repo,

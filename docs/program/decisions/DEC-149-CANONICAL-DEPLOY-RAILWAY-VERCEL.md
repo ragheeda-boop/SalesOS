@@ -5,8 +5,9 @@
 > **Board:** Chief Architect / ARB + Execution Orchestrator (SalesOS / AQLIYA) — program/governance scribe land  
 > **Story / risk:** CI-09 / Phase 0 criterion **3.11** / **R-17** (SSH/VPS leg)  
 > **Authority:** Architecture Validation session (hybrid) · user governance ruling · EXEC-ARCHITECTURE-PRODUCT-REVIEW · GA_STATUS · DEC-016 / DEC-120 · deploy configs  
-> **Amends (consequence):** CI-09 reframed from ops VPS-secret provision to **BLOCKED BY GOVERNANCE**; does **not** close CI-09 or mark it obsolete  
-> **Out of scope this land:** Editing `.github/workflows/*` · provisioning `VPS_*` / unused secrets · inventing ARB **4.1/4.8** PASS · Phase 0 exit · CI GREEN · Production GO · DEC-085
+> **Amends (consequence):** CI-09 reframed from ops VPS-secret provision; governance land = **BLOCKED BY GOVERNANCE**; follow-on workflow land = **READY_FOR_REVIEW** — does **not** close CI-09  
+> **Out of scope (governance land):** Editing `.github/workflows/*` · provisioning secret *values* · inventing ARB **4.1/4.8** PASS · Phase 0 exit · CI GREEN · Production GO · DEC-085  
+> **Follow-on (2026-08-02, devops/ci-worker):** Workflow migration **implemented** — see §6. CI-09 / **3.11** → **READY_FOR_REVIEW** (not CLOSED).
 
 ---
 
@@ -22,17 +23,17 @@
 | Field | Value |
 |---|---|
 | Prior VPS assumption (CI-09 / **3.11**) | **Superseded as the closure path** — do **not** create a VPS or add unused `VPS_HOST` / `VPS_USER` / `VPS_SSH_KEY` solely to close the criterion |
-| Workflow migration (`deploy.yml`, `deploy-staging.yml`, related) | **Deferred** until assigned to Backend/DevOps **after** this DEC (this land does **not** modify workflows) |
-| CI-09 / **3.11** | Remains **OPEN** — status **BLOCKED BY GOVERNANCE** (not CLOSED, not obsolete) |
-| Validation label | **docs / light validated** (encodes Architecture Validation hybrid evidence; this land does **not** re-probe live deploys) |
+| Workflow migration (`deploy.yml`, `deploy-staging.yml`, related) | **Implemented** (devops/ci-worker follow-on) — Railway+Vercel active; VPS SSH removed; K8s `deploy-production.yml` quarantined |
+| CI-09 / **3.11** | Remains **OPEN** — status **READY_FOR_REVIEW** (implementation landed; **not CLOSED**; Validation still required) |
+| Validation label | **docs / light validated** (workflows aligned to DEC; live deploy field-verify **PENDING** Validation — do not claim CI GREEN / Production GO) |
 
-**Honesty:** Live/audit topology (Railway + Vercel) and GitHub Actions deploy paths (still VPS/SSH, plus K8s alternate) were **hybrid**. This DEC resolves the **intended canonical target**. Implementation of workflow alignment is a follow-on assignment, not automatic close of CI-09.
+**Honesty:** Governance land resolved the **intended canonical target**. Follow-on workflow land makes Railway+Vercel the **active GHA path**. CI-09 / **3.11** close only after Validation — **not** automatic.
 
 ---
 
 ## 2. Evidence pointers (Architecture Impact)
 
-Cross-link: Architecture Validation session conclusion — verdict **hybrid** (Backend→Railway + Frontend→Vercel live/intended; GHA still VPS/SSH). Parent transcript: [Architecture Validation hybrid](6baea6ce-bf54-441d-92bb-961d9b609cc3). Evidence agent: [Deploy target vs CI-09](23ee1e07-fb76-48d0-8860-9d463b22a911).
+Cross-link: Architecture Validation session conclusion — verdict **hybrid** (Backend→Railway + Frontend→Vercel live/intended; GHA was VPS/SSH). Parent transcript: [Architecture Validation hybrid](6baea6ce-bf54-441d-92bb-961d9b609cc3). Evidence agent: [Deploy target vs CI-09](23ee1e07-fb76-48d0-8860-9d463b22a911).
 
 | Surface | Path / pointer |
 |---|---|
@@ -43,7 +44,8 @@ Cross-link: Architecture Validation session conclusion — verdict **hybrid** (B
 | Exec architecture | `docs/audit/ga-engineering-audit/EXEC-ARCHITECTURE-PRODUCT-REVIEW-2026-07-30.md` — Railway as live deploy target |
 | GA scoreboard | `docs/audit/ga-engineering-audit/GA_STATUS.md` — Railway BE + Vercel FE live |
 | Railway R-14 | DEC-016 / DEC-120 — Railway Postgres / `APP_POSTGRES_*` path |
-| Still VPS-encoded (unchanged this land) | `.github/workflows/deploy.yml` (`VPS_*`); `.github/workflows/deploy-staging.yml` (`STAGING_*`) |
+| Active GHA (post migration) | `.github/workflows/deploy.yml` (Railway+Vercel); `.github/workflows/deploy-staging.yml` (Railway+Vercel) |
+| Quarantined | `.github/workflows/deploy-production.yml` (K8s — DEC-149) |
 
 ---
 
@@ -51,33 +53,33 @@ Cross-link: Architecture Validation session conclusion — verdict **hybrid** (B
 
 ```text
 CI-09
-Status: BLOCKED BY GOVERNANCE
-Reason: Current criterion assumes VPS deployment.
-Project deployment architecture is Railway + Vercel.
-Criterion requires formal governance update before implementation.
+Status: READY_FOR_REVIEW
+Reason: DEC-149 Accepted; workflow migration landed (Railway BE + Vercel FE).
+Not CLOSED — pending Validation field-verify of deploy runs + required secret/var names provisioned.
+Do not provision unused VPS_*.
 ```
 
 | Field | Value |
 |---|---|
-| Queue | **Governance Queue** (moved off Ops secret-provision queue) |
-| Owner | **Chief Architect / ARB** |
-| Dependency | **Deployment Decision** — this DEC (**Accepted**) names the target |
-| Next action | **Assign workflow migration** to Backend/DevOps (Railway + Vercel); revise **3.11** AC evidence to match; do **not** provision unused `VPS_*` |
-| Explicit non-actions | Do **not** close CI-09; do **not** mark obsolete; do **not** modify workflows in this land |
+| Queue | **Validation Queue** (was Governance Queue until DEC Accepted + workflows landed) |
+| Owner | **Validation** (close gate); DevOps owns secret-name provision |
+| Dependency | DEC-149 **Accepted** + workflow migration **landed** |
+| Next action | Validation: field-verify Deploy Production / Staging on Railway+Vercel path; ops provision secret **names** in §6 (values out-of-band). Do **not** invent `VPS_*` |
+| Explicit non-actions | Do **not** close CI-09 without Validation; do **not** mark obsolete; do **not** claim CI GREEN / Production GO |
 
 ---
 
 ## 4. Consequence
 
 1. Canonical deploy = **Railway (backend) + Vercel (frontend)**.  
-2. CI-09 / **3.11** → **BLOCKED BY GOVERNANCE** on board, checklist, DAG; R-17 SSH/VPS leg noted as **governance mismatch**, not “missing ops secrets to invent.”  
-3. Workflow migration remains **READY only after assignment** — no `.github/workflows/*` edits under this DEC.  
-4. CI-08 (GHCR) remains a **separate** ops blocker if GHCR stays on a chosen promote path (DEC-104).  
+2. CI-09 / **3.11** → **READY_FOR_REVIEW** (implementation landed; **not CLOSED**).  
+3. Active GHA path = `deploy.yml` / `deploy-staging.yml` (Railway+Vercel). K8s `deploy-production.yml` **quarantined**.  
+4. CI-08 (GHCR) remains a **separate** ops blocker for Stage 6 publish (DEC-104); Railway `railway up` path does **not** require GHCR.  
 5. Phase 0 remains **NO-GO**. **CI GREEN not met.** **Production GO not claimed.** DEC-085 untouched.
 
 ---
 
-## 5. Records touched this land
+## 5. Records touched (governance land)
 
 | File | Change |
 |---|---|
@@ -88,4 +90,37 @@ Criterion requires formal governance update before implementation.
 | `RISK_REGISTER.md` | R-17 SSH/VPS leg → governance note |
 | `DECISION_LOG.md` | DEC-149 entry |
 
-**Workflows unchanged. CI-09 not CLOSED. No VPS secrets requested.**
+**Governance land:** Workflows unchanged. CI-09 not CLOSED. No VPS secrets requested.
+
+---
+
+## 6. Workflow migration (2026-08-02 follow-on — READY_FOR_REVIEW)
+
+| Workflow | Change |
+|---|---|
+| `deploy.yml` | **Active prod path:** Railway `railway up` (cwd `salesos/`) + public `/health` gate; FE = Vercel Git (primary) + optional CLI |
+| `deploy-staging.yml` | **Active staging path:** Railway staging `railway up` + health; FE = Vercel Git / optional CLI; **no** GHCR build/push, **no** SSH |
+| `deploy-production.yml` | **Quarantined** (K8s) — tag push removed; `workflow_dispatch` requires `CONFIRM-K8S-QUARANTINE` |
+| `ci.yml` Stage 6 | **Unchanged** (GHCR publish orthogonal — CI-08) |
+
+### Required GitHub secret / variable **names** (values out-of-band — do not invent)
+
+| Name | Scope | Purpose |
+|---|---|---|
+| `RAILWAY_TOKEN` | secret (`production` + `staging` envs) | Railway CLI auth |
+| `RAILWAY_PROJECT_ID` | secret | Railway project |
+| `RAILWAY_SERVICE_ID` | secret (`production`) | Backend service (prod) |
+| `RAILWAY_ENVIRONMENT_ID` | secret (`production`) | Production environment |
+| `RAILWAY_STAGING_SERVICE_ID` | secret (`staging`) | Backend service (staging) |
+| `RAILWAY_STAGING_ENVIRONMENT_ID` | secret (`staging`) | Staging environment |
+| `RAILWAY_HEALTH_URL` | var or secret (`production`) | Public backend base or `/health` URL |
+| `RAILWAY_STAGING_HEALTH_URL` | var or secret (`staging`) | Staging public health URL |
+| `VERCEL_TOKEN` | secret (optional CLI) | Vercel CLI; Git integration may suffice alone |
+| `VERCEL_ORG_ID` | secret (optional CLI) | Vercel team/org id |
+| `VERCEL_PROJECT_ID` | secret (optional CLI) | Project `sales-os` id (see `VERCEL_DEPLOY.md`) |
+
+**Do not** provision `VPS_HOST` / `VPS_USER` / `VPS_SSH_KEY` / `STAGING_HOST` / `STAGING_USER` / `STAGING_SSH_KEY` for CI-09 close.
+
+**Rollback:** Restore prior VPS/SSH workflow revisions from git history; re-enable K8s only with a superseding DEC. Prefer Railway dashboard redeploy / Vercel prior deployment for runtime rollback.
+
+**CI-09 not CLOSED. No Production GO. CI GREEN not met.**
