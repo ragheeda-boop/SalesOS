@@ -1083,6 +1083,24 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Status:** Accepted. CI-19 **CLOSED** with residual (field-verified).
 
 
+### DEC-108 - CI-14 executive AC close: security modernization COMPLETE; Jest 30 optional backlog
+
+**Date:** 2026-08-01
+**Context:** CI-14 Slice 1 PASS (DEC-063 sharp **0.35.3**), Slice 2 PASS (DEC-072 eslint **10.8.0**), Slice 3 STOP (DEC-100: no jest 29.x patch; host npm audit **0**; silent Jest 29->30 forbidden without Stage 3 evidence). DEC-100 executive alternate: revise AC and CLOSE without Jest major. R-18 already Closed. Swarm left CI-14 PARALLEL/READY idle during CI-08 GHCR wait - preferred path is executive close (DEC-107 always-on READY), not silent Jest 30.
+**Alternatives considered:** (a) silent Jest 29->30 now - rejected (DEC-100 STOP; no security driver; Stage 3 regression risk); (b) leave CI-14 OPEN indefinitely awaiting Jest 30 evidence - rejected (security AC already met; idle during ops wait); (c) revise AC: sharp + eslint 10 + audit 0 = CLOSED; Jest 30 -> optional backlog - approved.
+**Decision:** Accept revised CI-14 AC. **CLOSE CI-14**. Companion: [decisions/DEC-108-CI-14-EXECUTIVE-AC-CLOSE.md](decisions/DEC-108-CI-14-EXECUTIVE-AC-CLOSE.md). Do not bump Jest. Do not claim whole-pipeline CI GREEN. DEC-085 untouched. CI-19 CLOSED residual (DEC-105) - do not reopen.
+**Consequence:** Program Complete/Closed absorbs CI-14. R-18 remains Closed. Optional Jest 30 is tech-debt backlog only. **CI GREEN not met** (CI-08). Validation: **docs only / light validated**.
+**Status:** Accepted. CI-14 **CLOSED**.
+
+### DEC-107 - Swarm always-on parallel READY dispatch (no idle on GHCR/ops)
+
+**Date:** 2026-08-01
+**Context:** Engineering Swarm concurrency diagnosis showed READY-idle while CI-08/CI-09 ops leaves were BLOCKED and EXECUTION_DAG still listed independent PARALLEL tracks. No repo max_agents cap; under-utilization is behavioral. Stage 6 build proven / push 403 (DEC-104).
+**Alternatives considered:** (a) pause whole swarm until GHCR Packages write - rejected; (b) change GHA concurrency/needs in this land - rejected (note-only throughput tax); (c) always-on >=2-3 PARALLEL READY agents on disjoint ownership while ops waits - approved.
+**Decision:** Accept always-on parallel READY policy. Companion: [decisions/DEC-107-SWARM-ALWAYS-ON-PARALLEL-READY.md](decisions/DEC-107-SWARM-ALWAYS-ON-PARALLEL-READY.md). Retain DEC-104 dual honesty labels. Do not claim full publish CI GREEN.
+**Consequence:** Orchestrators must not idle solely on CI-08/CI-09. Preferred CI-14 path during that wait = executive AC close (DEC-108), not silent Jest 30. Validation: **docs only / not validated**.
+**Status:** Accepted (orchestrator policy).
+
 ### DEC-106 — Contract tests expansion slice 4 (401 / 422) COMPLETE
 
 **Date:** 2026-08-01
