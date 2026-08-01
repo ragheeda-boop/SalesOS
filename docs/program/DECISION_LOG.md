@@ -1091,9 +1091,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Date:** 2026-08-01
 **Context:** Phase 0 Exit Criterion 1.2 (GA-P0-SEC-02 / PROD-W2-002 / STORY-01-02) still OPEN on the checklist despite Sprint 01 / Wave 2 url_safety.py allowlist + pinned delivery. Evidence required: regression PASS + re-verify against Integration Hub caller. DEC-085 get_db/set_config must not regress.
 **Alternatives considered:** (a) claim CLOSED from prior Wave 2 notes alone — rejected (checklist open; workflow router mapped SSRF to 500; Slack Hub caller unpinned); (b) rewrite allowlist as static SaaS domain list — rejected (tenant webhooks need public-HTTPS semantics); (c) wire 400 mapping + Slack pin + HTTP/Slack regressions + package READY FOR REVIEW — approved.
-**Decision:** Accept criterion **1.2** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [decisions/DEC-125-WEBHOOK-SSRF-URL-ALLOWLIST.md](decisions/DEC-125-WEBHOOK-SSRF-URL-ALLOWLIST.md). Narrow Docker pytest **32 passed**. DEC-085 intact. **Criterion CLOSED/VERIFIED reserved for Execution Orchestrator after Architecture + Validation PASS.**
+**Decision:** Accept criterion **1.2** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [decisions/DEC-125-WEBHOOK-SSRF-URL-ALLOWLIST.md](decisions/DEC-125-WEBHOOK-SSRF-URL-ALLOWLIST.md). Narrow Docker pytest **32 passed**. DEC-085 intact. Closed via DEC-125a after Arch+Val PASS.
 **Consequence:** Phase 0 criterion **1.2** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). Next: Architecture Reviewer sign. Residual: staging SSRF pentest still OPEN. **Production GO not claimed. CI GREEN not met.**
-**Status:** Accepted. Cursor COMPLETE. Criterion **READY FOR REVIEW** (Architecture IN PROGRESS).
+**Status:** Accepted. Criterion **CLOSED via DEC-125a**.
+
+### DEC-125a — Orchestrator VERIFIED/CLOSED criterion 1.2 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 1.2](35dc3738-8f72-40bc-99c8-ed844cf97397)) + Validation PASS ([Validate 1.2](b99c7a6b-5f10-47b6-bbfa-10a34fc041a2): Docker narrow SSRF suite **32 passed**, 54 deselected; DEC-085 untouched) on land `fd8699d` / DEC-125.
+**Decision:** Execution Orchestrator records criterion **1.2 VERIFIED → CLOSED**. Phase 0 **20/54 → 21/54**. Residual: staging SSRF pentest remains OPEN (does not block CLOSED; Architecture accepted).
+**Consequence:** Security P0 remaining OPEN: 1.3–1.5 (1.4 already CLOSED). **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **1.2 CLOSED**.
 
 ### DEC-124a — Orchestrator VERIFIED/CLOSED criterion 1.1 (2026-08-01)
 

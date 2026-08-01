@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (prod tip-align `d1a8`/67; DEC-120/123a/126 honesty)
+> **Last updated:** 2026-08-01 (criterion 1.2 VERIFIED/CLOSED DEC-125a; prod tip-align `d1a8`/67)
 >
 > ## Operating State
 >
@@ -35,7 +35,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
 | 1.1 | Decision Center cross-tenant IDOR fixed | Regression test PASS, independent review signed | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `31f3aee` (DEC-124); Orchestrator 2026-08-01 |
-| 1.2 | Webhook SSRF fixed (URL allowlist) | Regression test PASS, re-verified against Integration Hub caller | 🟡 READY FOR REVIEW — Cursor COMPLETE (DEC-125 @ `fd8699d`); Architecture IN PROGRESS · Validation PENDING |
+| 1.2 | Webhook SSRF fixed (URL allowlist) | Regression test PASS, re-verified against Integration Hub caller | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (Docker SSRF suite 32 passed, 54 deselected) @ `fd8699d` (DEC-125); Orchestrator DEC-125a 2026-08-01; residual: staging SSRF pentest OPEN (non-blocking) |
 | 1.3 | CSRF bypass via `X-API-Key` fixed | Regression test PASS | ⬜ |
 | 1.4 | Cross-tenant regression test template established | Harness reusable by every subsequent epic | ✅ STORY-01-04 (Sprint 02) |
 | 1.5 | SAST + dependency vulnerability scan wired into CI | `security-scan.yml` + `ci.yml` security jobs green | ⬜ Partial (pip-audit findings remain) |
@@ -178,7 +178,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 
 | Cluster | Items | Complete | Blocked | Open |
 |---------|-------|----------|---------|------|
-| 1. Security P0 | 5 | 2 | 0 | 3 |
+| 1. Security P0 | 5 | 3 | 0 | 2 |
 | 2. RLS & Tenant Isolation | 7 | 6 | 0 | 1 |
 | 3. CI/CD Green | 11 | 3 | 2 (CI-08, CI-09) | 6 |
 | 4. EOS Audit Pass | 8 | 2 | 0 | 6 |
@@ -187,7 +187,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 7. DB Schema | 6 | 4 | 0 | 2 |
 | 8. Engineering Stability | 4 | 1 | 0 | 3 |
 | 9. ADR-036 Applied | 4 | 2 | 0 | 2 |
-| **TOTAL** | **54** | **20** | **2** | **32** |
+| **TOTAL** | **54** | **21** | **2** | **31** |
 
 ---
 

@@ -1,11 +1,11 @@
 # DEC-125 — Webhook SSRF URL allowlist (Phase 0 criterion 1.2)
 
-> **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion 1.2 = **READY FOR REVIEW** (Architecture PENDING · Validation PENDING). Only Execution Orchestrator may mark VERIFIED/CLOSED.  
+> **Status:** **Accepted** — Cursor COMPLETE · Arch PASS · Validation PASS · Criterion **1.2 VERIFIED/CLOSED** via **DEC-125a** (Orchestrator 2026-08-01). Residual: staging SSRF pentest OPEN (non-blocking).  
 > **Date:** 2026-08-01  
 > **Board:** Backend Lead / Security P0 (SalesOS / AQLIYA)  
 > **Story / risk:** GA-P0-SEC-02 / PROD-W2-002 / STORY-01-02 / Phase 0 Exit Criterion **1.2**  
-> **Authority:** PHASE_0_EXIT_CHECKLIST §1.2 · PRODUCTION_PLAN PROD-W2-002 · DEC-085 `set_config` · ARB review protocol (Cursor ≠ CLOSED)  
-> **Out of scope this land:** CSRF X-API-Key (1.3) · Railway R-14 (2.3) · staging SSRF pentest · frontend · `.ai/` org design · Criterion CLOSED/VERIFIED claims · Production GO
+> **Authority:** PHASE_0_EXIT_CHECKLIST §1.2 · PRODUCTION_PLAN PROD-W2-002 · DEC-085 `set_config` · ARB review protocol  
+> **Out of scope this land:** CSRF X-API-Key (1.3) · Railway R-14 (2.3) · staging SSRF pentest · frontend · `.ai/` org design · Production GO
 
 ---
 
@@ -19,7 +19,7 @@ Accept webhook outbound URL allowlist (public HTTPS + DNS/IP public-only + pinne
 | App fix (prior Sprint 01 / Wave 2) | `app/modules/webhooks/url_safety.py` HTTPS-only, blocked metadata hosts, RFC1918/link-local/loopback/reserved IP deny, DNS check, `_PinnedIPBackend` |
 | This land | (1) Workflow router maps `UnsafeWebhookURLError` → **400** (was 500); (2) Slack Integration Hub caller reuses `analyze_webhook_url` + pinned transport; (3) HTTP contract + unit + Slack regressions |
 | DEC-085 | **Intact** (`get_db` still `set_config`; not touched) |
-| Criterion state | **READY FOR REVIEW** (not CLOSED / not VERIFIED) |
+| Criterion state | **VERIFIED/CLOSED** (DEC-125a); residual staging SSRF pentest OPEN |
 
 **Allowlist semantics (existing pattern, enforced):** outbound destinations must be **HTTPS** to a host that is not localhost/metadata and whose resolved IPs are **public** (non-private, non-link-local, non-loopback, non-reserved). Delivery dials **pre-validated IPs only**.
 
@@ -35,16 +35,16 @@ Accept webhook outbound URL allowlist (public HTTPS + DNS/IP public-only + pinne
 | Production / Railway / staging pentest | **Not run** |
 | Label | **build validated** (narrow Docker pytest) |
 
-**Production GO not claimed. CI GREEN not met. Criterion CLOSED not claimed. Staging SSRF pentest still OPEN.**
+**Production GO not claimed. CI GREEN not met. Staging SSRF pentest still OPEN (non-blocking residual).**
 
 ---
 
 ## 3. Records
 
-- Phase 0 criterion **1.2** → **READY FOR REVIEW** (Cursor COMPLETE)
-- Assigned next: Architecture Reviewer (independent review sign)
-- Prior notes: Sprint 01 service-layer fix + Wave 2 pin redesign already in tree; checklist 1.2 remained ⬜ pending HTTP + Integration Hub re-verify
-- **Not claimed:** Criterion CLOSED · VERIFIED · Production GO · CI GREEN · staging pentest PASS
+- Phase 0 criterion **1.2** → **VERIFIED/CLOSED** (DEC-125a; Phase 0 **21/54**)
+- Prior: Architecture PASS + Validation PASS (Docker SSRF suite 32 passed, 54 deselected) @ `fd8699d`
+- Residual: staging SSRF pentest OPEN (does not block CLOSED)
+- **Not claimed:** Production GO · CI GREEN · staging pentest PASS
 
 ---
 
