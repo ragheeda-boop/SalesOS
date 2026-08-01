@@ -1,10 +1,10 @@
 # DEC-062 — CI-14 Frontend Dependency Modernization: planning inventory (safe vs STOP)
 
-> **Status:** **Accepted** — planning complete; **Slice 1 PASS** (sharp; §9 / field verify §10); **Slice 2 PASS** (ESLint 10; §11 / DEC-072)  
+> **Status:** **Accepted** — planning complete; **Slice 1 PASS** (sharp; §9 / field verify §10); **Slice 2 PASS** (ESLint 10; §11 / DEC-072); **Slice 3 STOP** (Jest; §12 / DEC-100)  
 > **Date:** 2026-08-01  
 > **Board:** Frontend / Deps (SalesOS / AQLIYA)  
-> **Story / risk:** CI-14 / R-18 (30 residual high npm advisories after CI-11)  
-> **Authority:** DEC-018 (story register) · DEC-019 (CI-11 closed, residual → CI-14) · DEC-035 (CI-13 Jest baseline contract) · lock evidence on `master` · Slice 1 **DEC-063** · Slice 2 STOP **DEC-065**  
+> **Story / risk:** CI-14 / R-18 (30 residual high npm advisories after CI-11 — **cleared** post Slice 1+2; host audit **0**)  
+> **Authority:** DEC-018 (story register) · DEC-019 (CI-11 closed, residual → CI-14) · DEC-035 (CI-13 Jest baseline contract) · lock evidence on `master` · Slice 1 **DEC-063** · Slice 2 **DEC-072** · Slice 3 STOP **DEC-100**  
 > **Out of scope:** CI-22 · backend Poetry bumps · Railway · `npm audit --force` · silent Next/React/ESLint/Jest majors
 
 ---
@@ -165,3 +165,21 @@ Executed under standing approval after DEC-065 / early DEC-072 STOP. Full packag
 | STOP triggers avoided | No Next↓14; no React/Jest major; no `npm audit --force`; no eslint-config-next@0.2.4 |
 
 **Label:** **build validated** for Cluster A ESLint leg. CI-14 remains **OPEN** for Slice 3 (Jest). **CI GREEN not met.**
+
+---
+
+## 12. Slice 3 outcome (2026-08-01) — **STOP**
+
+Attempted under Frontend Deps session on tip **`240f9a8`** (post Slice 2 PASS). Full package: [`DEC-100-CI-14-SLICE-3-JEST-STOP.md`](DEC-100-CI-14-SLICE-3-JEST-STOP.md).
+
+| Check | Result |
+|---|---|
+| Slice 3 definition | Jest ecosystem major **29 → 30+** (DEC-062 section 5); never audit jest→25 |
+| Patch/minor available? | **No** — registry latest jest **29.x** = **29.7.0** (already locked) |
+| Host `npm audit --audit-level=high` | **0** vulnerabilities (Slice 1+2 cleared R-18 advisory residual) |
+| Auto-safe major? | **No** — DEC-062 matrix STOP until dedicated slice; Stage 3 field **0** (DEC-077) must not regress |
+| Package / lock land | **None** |
+| STOP triggers avoided | No jest→25; no `--force`; no Next/React bump |
+
+**Label:** **light validated** (audit + registry probe; no suite re-run). Slice 3 **STOPPED** per DEC-100. CI-14 remains **OPEN** for dedicated Jest 30 evidence package **or** executive AC close. R-18 advisory residual **Closed**. **CI GREEN not met.**
+

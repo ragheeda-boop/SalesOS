@@ -1062,3 +1062,12 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** CI-19 OPEN. R-24 mitigating (Slice 1+2+3). Validation: **light validated** (narrow pytest **50 passed**). **CI GREEN not met.**
 **Status:** Accepted. Wave 2 Slice 3 COMPLETE; story OPEN.
 
+### DEC-100 — CI-14 Slice 3 STOP: Jest 29→30 silent major; no patch/minor; audit already 0
+
+**Date:** 2026-08-01
+**Context:** CI-14 Slice 2 PASS at `240f9a8` (DEC-072: eslint **10.8.0**). DEC-062 defines Slice 3 as Jest ecosystem major (**29 → 30+**); forbids audit jest→25. Session prefers patch/minor when audit allows; forbids silent Jest majors without evidence. Tip lock: jest / jest-environment-jsdom **29.7.0**, ts-jest **29.4.12**, next **15.5.22**. Host `npm audit --audit-level=high` → **0** vulnerabilities. Registry latest jest **29.x** = **29.7.0** (already locked). Stage 3 field **0** (DEC-077) must not regress under jsdom 26 / Jest 30.
+**Alternatives considered:** (a) silent jest 30 bump now — **rejected** (major; no Stage 3 evidence package); (b) `npm audit fix --force` / jest→25 — **STOP**; (c) STOP Slice 3, docs-only, close R-18 advisory residual on audit **0**, keep CI-14 OPEN with named next executable — **approved**.
+**Decision:** **STOP** CI-14 Slice 3. Do **not** change `package.json` / `package-lock.json` for Jest. Full package: [`decisions/DEC-100-CI-14-SLICE-3-JEST-STOP.md`](decisions/DEC-100-CI-14-SLICE-3-JEST-STOP.md). Companion plan DEC-062 §12 updated. **Close R-18** (high npm advisory residual cleared by Slice 1+2).
+**Consequence:** CI-14 remains **IN PROGRESS / OPEN** (Slice 1+2 PASS; Slice 3 BLOCKED). R-18 **Closed**. Next executable: dedicated Jest 30 evidence package (pins + Docker Stage 3 **0** fail) **or** executive AC close of CI-14 without Jest major. Validation: **light validated** (audit + registry). **CI GREEN not met.**
+**Status:** Accepted. CI-14 **Slice 3 STOPPED**; story **OPEN**. R-18 **Closed**.
+
