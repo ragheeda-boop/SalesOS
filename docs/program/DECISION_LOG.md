@@ -1083,6 +1083,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Status:** Accepted. CI-19 **CLOSED** with residual (field-verified).
 
 
+
+### DEC-109 — CI-22 executive close: FastAPI/Starlette/Pydantic COMPLETE; starlette floor cleared
+
+**Date:** 2026-08-01
+**Context:** CI-22 Phase 1 COMPLETE (DEC-081 @ `442af64`): fastapi **0.141.1** / starlette **1.3.1** / pydantic **2.13.4**. Story stayed OPEN for field pip-audit corroboration + compatibility residuals. Field: Stage 5 pip-audit `30688863161` @ `3084e5b` job `91339902722` **SUCCESS** — `No known vulnerabilities found, 1 ignored` (ecdsa PYSEC-2026-1325 / DEC-090). Backend Unit same run **0 failed** / 2700 passed after FastAPI 0.141 RBAC override fix. Stages 1–5 green corroboration `30689682988` @ `7ba137b`. ecdsa residual owned by DEC-057 (not CI-22).
+**Alternatives considered:** (a) leave CI-22 OPEN indefinitely awaiting further FastAPI majors — rejected (AC met; idle during GHCR wait); (b) reopen CI-16 for ecdsa — rejected (DEC-057 Option A); (c) executive CLOSE with documented non-CI-22 residuals — approved.
+**Decision:** **CLOSE CI-22**. Companion: [`decisions/DEC-109-CI-22-EXECUTIVE-CLOSE.md`](decisions/DEC-109-CI-22-EXECUTIVE-CLOSE.md). Do **not** claim whole-pipeline CI GREEN. DEC-085 untouched.
+**Consequence:** R-21 starlette leg **cleared**. Program Complete/Closed absorbs CI-22. Residual ecdsa monitored under DEC-057/090/098. **CI GREEN not met** (CI-08). Validation: **build validated** (field pip-audit + Unit + Stages 1–5).
+**Status:** Accepted. CI-22 **CLOSED**.
+
 ### DEC-108 - CI-14 executive AC close: security modernization COMPLETE; Jest 30 optional backlog
 
 **Date:** 2026-08-01
