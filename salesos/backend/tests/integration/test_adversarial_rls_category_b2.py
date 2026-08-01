@@ -17,7 +17,7 @@ from sqlalchemy import text
 
 from app.database import engine
 
-POLICY_COUNT = 59  # 47 Category A + B1 + B2 + B3 + B4 + B5 + B6 + B7 (DEC-119)
+POLICY_COUNT = 67  # 59 prior (DEC-119) + 8 deferred-8 (DEC-123)
 
 
 @pytest_asyncio.fixture(autouse=True)

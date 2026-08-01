@@ -20,7 +20,7 @@ from sqlalchemy import text
 
 from app.database import engine
 
-POLICY_COUNT = 59  # 47 Category A + B1–B7 (DEC-119)
+POLICY_COUNT = 67  # 59 prior (DEC-119) + 8 deferred-8 (DEC-123)
 
 
 @pytest_asyncio.fixture(autouse=True)
@@ -142,7 +142,7 @@ async def test_rls_policies_intact_after_b7():
             )
         )
         assert r2.scalar() == 1, "missing admin_role_permissions policy"
-        # Deferred-8 admin billing tables must remain without tenant_isolation.
+        # Deferred-8 admin billing RLS is owned by DB-05 Slice 4 (DEC-123 / 7.5).
         for tbl in (
             "admin_licenses",
             "admin_invoices",
@@ -154,8 +154,8 @@ async def test_rls_policies_intact_after_b7():
                 text(
                     "SELECT count(*) FROM pg_policies "
                     f"WHERE tablename = '{tbl}' "
-                    "AND policyname LIKE 'tenant_isolation_%'"
+                    f"AND policyname = 'tenant_isolation_{tbl}'"
                 )
             )
-            assert r3.scalar() == 0, f"{tbl} must not gain Category B RLS"
+            assert r3.scalar() == 1, f"{tbl} missing deferred-8 RLS (DEC-123)"
         await conn.rollback()

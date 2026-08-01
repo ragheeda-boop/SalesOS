@@ -144,7 +144,7 @@ CATEGORY_B5_JOIN_TABLES: list[tuple[str, str, str]] = [
 
 # DEC-110 Slice B6 (S04-CATB-06): webhook deliveries — no tenant_id; isolate via
 # webhook_subscriptions (Category A). FK is String(36)=String(36) (0039 / ORM).
-# Distinct from deferred-8 webhook_endpoints (DB-05 CREATE; no RLS this land).
+# Distinct from deferred-8 webhook_endpoints (DB-05 CREATE; RLS = Slice 4 / 7.5).
 CATEGORY_B6_JOIN_TABLES: list[tuple[str, str, str]] = [
     # (child_table, parent_table, child_fk_column)
     ("webhook_deliveries", "webhook_subscriptions", "subscription_id"),
@@ -159,6 +159,23 @@ CATEGORY_B6_JOIN_TABLES: list[tuple[str, str, str]] = [
 CATEGORY_B7_JOIN_TABLES: list[tuple[str, str, str]] = [
     # (child_table, parent_table, child_fk_column)
     ("admin_role_permissions", "admin_roles", "role_id"),
+]
+
+# DEC-110 deferred-8 / DB-05 Slice 4 (Phase 0 criterion 7.5): Category A tables
+# that received CREATE in DEC-113 but had no ENABLE RLS. Same tenant_id policy
+# template as ALL_TENANT_TABLES — do NOT fold into ALL_TENANT_TABLES (DEC-044
+# Category A count 47 stays intact; these are additive governed handoff).
+# Nullable tenant_id (admin_ai_costs, admin_jobs): fail-closed equality only —
+# no OR IS NULL (NULL-tenant rows invisible under tenant GUC).
+DB05_DEFERRED_8_TENANT_TABLES: list[str] = [
+    "admin_licenses",
+    "admin_invoices",
+    "admin_transactions",
+    "admin_ai_costs",
+    "admin_jobs",
+    "webhook_endpoints",
+    "scoring_scorecards",
+    "revenue_analytics_snapshots",
 ]
 
 

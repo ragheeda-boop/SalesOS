@@ -18,7 +18,7 @@ from sqlalchemy import text
 
 from app.database import engine
 
-POLICY_COUNT = 59  # 47 Category A + B1 + B2 + B3 + B4 + B5 + B6 + B7 (DEC-119)
+POLICY_COUNT = 67  # 59 prior (DEC-119) + 8 deferred-8 (DEC-123)
 
 
 @pytest_asyncio.fixture(autouse=True)
@@ -124,13 +124,14 @@ async def test_rls_policies_intact_after_b6():
             )
         )
         assert r2.scalar() == 1, "missing webhook_deliveries policy"
-        # Deferred-8 webhook_endpoints must remain without tenant_isolation policy.
+        # Deferred-8 webhook_endpoints RLS is owned by DB-05 Slice 4 (DEC-123 / 7.5),
+        # not Category B — assert policy present after Slice 4 land.
         r3 = await conn.execute(
             text(
                 "SELECT count(*) FROM pg_policies "
                 "WHERE tablename = 'webhook_endpoints' "
-                "AND policyname LIKE 'tenant_isolation_%'"
+                "AND policyname = 'tenant_isolation_webhook_endpoints'"
             )
         )
-        assert r3.scalar() == 0, "webhook_endpoints must not gain Category B RLS"
+        assert r3.scalar() == 1, "webhook_endpoints missing deferred-8 RLS (DEC-123)"
         await conn.rollback()

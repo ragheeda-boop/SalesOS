@@ -1086,6 +1086,24 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-124 — Decision Center cross-tenant IDOR (Phase 0 criterion 1.1)
+
+**Date:** 2026-08-01
+**Context:** Phase 0 Exit Criterion 1.1 (GA-P0-SEC-01 / PROD-W2-001) still OPEN on the checklist despite Sprint 01 / Wave 2 app-layer fix (`get_decision` / audit / feedback require `(id, tenant_id)`). Evidence required: regression PASS + independent review. DEC-085 `get_db`/`set_config` must not regress.
+**Alternatives considered:** (a) claim CLOSED from prior Wave 2 notes alone — rejected (checklist ⬜; no HTTP router proof in suite); (b) re-open and rewrite repo filters — rejected (filters already correct on dedicated `tenant_id` column); (c) add HTTP ASGI contract regression + package READY FOR REVIEW — approved.
+**Decision:** Accept criterion **1.1** as **Cursor COMPLETE** / **READY FOR REVIEW**. Companion: [`decisions/DEC-124-DECISION-CENTER-CROSS-TENANT-IDOR.md`](decisions/DEC-124-DECISION-CENTER-CROSS-TENANT-IDOR.md). Narrow Docker pytest **9 passed** (service + postgres + harness + new HTTP contract). DEC-085 intact. **Criterion CLOSED/VERIFIED reserved for Execution Orchestrator after Architecture + Validation PASS.**
+**Consequence:** Phase 0 criterion **1.1** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). Next: Architecture Reviewer sign. Residual: R-14 Railway BYPASSRLS weakens DB-layer backstop; template `tenant_id IS NULL` shared-global behavior out of GA-P0-SEC-01 scope. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Cursor COMPLETE. Criterion **not** CLOSED.
+
+### DEC-123 — DB-05 Slice 4: ENABLE RLS on deferred-8 (Phase 0 criterion 7.5)
+
+**Date:** 2026-08-01
+**Context:** DEC-110 pinned eight Category A deferred tables with CREATE (DEC-113) but no RLS. Category B B1–B7 COMPLETE (DEC-119, POLICY_COUNT 59). DEC-122 closed Slice 3 indexes and STOPPED companies DROP. Phase 0 Exit Criterion 7.5 requires RLS on deferred-8.
+**Alternatives considered:** (a) fold deferred-8 into ALL_TENANT_TABLES (expand DEC-044 47) — rejected (preserve Category A count; separate inventory); (b) join-style Category B policies — rejected (tables have tenant_id); (c) permissive OR IS NULL for nullable admin_ai_costs/admin_jobs — rejected (weakens isolation); (d) additive FORCE RLS via generate_policy_sql on DB05_DEFERRED_8_TENANT_TABLES — approved.
+**Decision:** Accept Slice 4 implementation as **Cursor COMPLETE** / criterion **READY FOR REVIEW**. Companion: [`decisions/DEC-123-DB-05-SLICE-4-DEFERRED-8-RLS.md`](decisions/DEC-123-DB-05-SLICE-4-DEFERRED-8-RLS.md). Alembic `d1a8c35e7f09` (down `c9f4a21b6e08`). Live policy count **67**. DEC-085 intact. ALL_TENANT_TABLES 47 intact. **Criterion CLOSED/VERIFIED reserved for Execution Orchestrator after Claude + OpenCode PASS.**
+**Consequence:** Phase 0 criterion **7.5** = READY FOR REVIEW (Architecture PENDING · Validation PENDING). Assigned: Claude Code (architecture only). DB-05 residual = 7.4 companies DEC STOP · 7.6 alembic check. **Production GO not claimed. CI GREEN not met. R-14 GO not claimed.**
+**Status:** Accepted. Cursor COMPLETE. Criterion **not** CLOSED.
+
 ### DEC-122 — DB-05 Slice 3: index rename + nullable triage (additive; companies DROP STOP)
 
 **Date:** 2026-08-01
