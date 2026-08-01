@@ -7,7 +7,8 @@
 > **Authority:** Architecture Validation session (hybrid) · user governance ruling · EXEC-ARCHITECTURE-PRODUCT-REVIEW · GA_STATUS · DEC-016 / DEC-120 · deploy configs  
 > **Amends (consequence):** CI-09 reframed from ops VPS-secret provision; governance land = **BLOCKED BY GOVERNANCE**; follow-on workflow land = **READY_FOR_REVIEW** — does **not** close CI-09  
 > **Out of scope (governance land):** Editing `.github/workflows/*` · provisioning secret *values* · inventing ARB **4.1/4.8** PASS · Phase 0 exit · CI GREEN · Production GO · DEC-085  
-> **Follow-on (2026-08-02, devops/ci-worker):** Workflow migration **implemented** — see §6. CI-09 / **3.11** → **BLOCKED** (Validation CONDITIONAL — §6 secrets missing; not CLOSED).
+> **Follow-on (2026-08-02, devops/ci-worker):** Workflow migration **implemented** — see §6. CI-09 / **3.11** → **BLOCKED** (Validation CONDITIONAL — §6 secrets missing; not CLOSED).  
+> **Amend (2026-08-02, devops/ci-worker + user ruling):** **Single-env current state** — production Railway only; staging secrets **optional / deferred** until a staging environment is created. See §1a / §6.
 
 ---
 
@@ -24,10 +25,22 @@
 |---|---|
 | Prior VPS assumption (CI-09 / **3.11**) | **Superseded as the closure path** — do **not** create a VPS or add unused `VPS_HOST` / `VPS_USER` / `VPS_SSH_KEY` solely to close the criterion |
 | Workflow migration (`deploy.yml`, `deploy-staging.yml`, related) | **Implemented** (devops/ci-worker follow-on) — Railway+Vercel active; VPS SSH removed; K8s `deploy-production.yml` quarantined |
-| CI-09 / **3.11** | Remains **OPEN** - status **BLOCKED** (Validation CONDITIONAL @ 85d91e8: DEC-149 §6 RAILWAY_* names **missing**; deploy secret-gate FAILURE; **not CLOSED**) |
-| Validation label | **light validated (negative)** — workflows align; live deploy **blocked** on missing §6 secrets (30722044834/30722044830); do not claim CI GREEN / Production GO |
+| Operating environments (current) | **One environment only** — production Railway / live path. Staging Railway **not provisioned**; `RAILWAY_STAGING_*` **not required** until staging exists |
+| CI-09 / **3.11** | Remains **OPEN** — status **BLOCKED** (Validation CONDITIONAL: production `RAILWAY_*` names still missing for live deploy close; staging deferred — **not CLOSED**) |
+| Validation label | **light validated (negative)** — workflows align; production deploy still needs §6 **production** secrets; staging soft-skip / dispatch-only; do not claim CI GREEN / Production GO |
 
 **Honesty:** Governance land resolved the **intended canonical target**. Follow-on workflow land makes Railway+Vercel the **active GHA path**. CI-09 / **3.11** close only after Validation — **not** automatic.
+
+### 1a. Single-environment operating state (user ruling 2026-08-02)
+
+```text
+Current: production Railway (+ Vercel FE) only.
+Staging: deferred — do not require RAILWAY_STAGING_* / RAILWAY_STAGING_HEALTH_URL
+         until a Railway staging environment is actually created.
+deploy-staging.yml: workflow_dispatch only + CONFIRM-STAGING-DEPLOY;
+                    soft-skips when staging IDs absent (does not fail master push path).
+deploy.yml: production RAILWAY_* required; does not demand staging vars.
+```
 
 ---
 
@@ -44,7 +57,8 @@ Cross-link: Architecture Validation session conclusion — verdict **hybrid** (B
 | Exec architecture | `docs/audit/ga-engineering-audit/EXEC-ARCHITECTURE-PRODUCT-REVIEW-2026-07-30.md` — Railway as live deploy target |
 | GA scoreboard | `docs/audit/ga-engineering-audit/GA_STATUS.md` — Railway BE + Vercel FE live |
 | Railway R-14 | DEC-016 / DEC-120 — Railway Postgres / `APP_POSTGRES_*` path |
-| Active GHA (post migration) | `.github/workflows/deploy.yml` (Railway+Vercel); `.github/workflows/deploy-staging.yml` (Railway+Vercel) |
+| Active GHA (post migration) | `.github/workflows/deploy.yml` (production Railway+Vercel) |
+| Staging GHA (deferred) | `.github/workflows/deploy-staging.yml` — dispatch + soft-skip until staging exists |
 | Quarantined | `.github/workflows/deploy-production.yml` (K8s — DEC-149) |
 
 ---
@@ -54,18 +68,19 @@ Cross-link: Architecture Validation session conclusion — verdict **hybrid** (B
 ```text
 CI-09
 Status: BLOCKED
-Reason: Validation CONDITIONAL @ 85d91e8 — workflow land OK; required DEC-149 §6 RAILWAY_* secret/var names missing (gh inventory empty).
-Not CLOSED — pending Validation field-verify of deploy runs + required secret/var names provisioned.
-Do not provision unused VPS_*.
+Reason: Validation CONDITIONAL — workflow land OK; production DEC-149 §6 RAILWAY_* secret/var names still missing (gh inventory empty).
+Staging: deferred (single-env) — RAILWAY_STAGING_* not required until staging exists; deploy-staging soft-skip / dispatch-only.
+Not CLOSED — pending Validation field-verify of Deploy Production + production secret/var names provisioned.
+Do not provision unused VPS_*. Do not invent staging secrets.
 ```
 
 | Field | Value |
 |---|---|
 | Queue | **Validation Queue** (was Governance Queue until DEC Accepted + workflows landed) |
-| Owner | **Validation** (close gate); DevOps owns secret-name provision |
-| Dependency | DEC-149 **Accepted** + workflow migration **landed** |
-| Next action | Validation: field-verify Deploy Production / Staging on Railway+Vercel path; ops provision secret **names** in §6 (values out-of-band). Do **not** invent `VPS_*` |
-| Explicit non-actions | Do **not** close CI-09 without Validation; do **not** mark obsolete; do **not** claim CI GREEN / Production GO |
+| Owner | **Validation** (close gate); DevOps owns **production** secret-name provision |
+| Dependency | DEC-149 **Accepted** + workflow migration **landed** + single-env amend |
+| Next action | Ops: provision §6 **production** names (values out-of-band). Validation: field-verify Deploy Production. Staging: defer until Railway staging exists — then provision `RAILWAY_STAGING_*` and re-enable auto path if desired. Do **not** invent `VPS_*` |
+| Explicit non-actions | Do **not** close CI-09 without Validation; do **not** mark obsolete; do **not** claim CI GREEN / Production GO; do **not** require staging vars while single-env |
 
 ---
 
@@ -73,9 +88,10 @@ Do not provision unused VPS_*.
 
 1. Canonical deploy = **Railway (backend) + Vercel (frontend)**.  
 2. CI-09 / **3.11** → **READY_FOR_REVIEW** (implementation landed; **not CLOSED**).  
-3. Active GHA path = `deploy.yml` / `deploy-staging.yml` (Railway+Vercel). K8s `deploy-production.yml` **quarantined**.  
+3. Active GHA path = `deploy.yml` (production Railway+Vercel). `deploy-staging.yml` = **deferred** (dispatch + soft-skip) until staging exists. K8s `deploy-production.yml` **quarantined**.  
 4. CI-08 (GHCR) remains a **separate** ops blocker for Stage 6 publish (DEC-104); Railway `railway up` path does **not** require GHCR.  
-5. Phase 0 remains **NO-GO**. **CI GREEN not met.** **Production GO not claimed.** DEC-085 untouched.
+5. Phase 0 remains **NO-GO**. **CI GREEN not met.** **Production GO not claimed.** DEC-085 untouched.  
+6. Single-env amend: staging secrets **not** a CI-09 close gate until staging is provisioned.
 
 ---
 
@@ -98,29 +114,39 @@ Do not provision unused VPS_*.
 
 | Workflow | Change |
 |---|---|
-| `deploy.yml` | **Active prod path:** Railway `railway up` (cwd `salesos/`) + public `/health` gate; FE = Vercel Git (primary) + optional CLI |
-| `deploy-staging.yml` | **Active staging path:** Railway staging `railway up` + health; FE = Vercel Git / optional CLI; **no** GHCR build/push, **no** SSH |
+| `deploy.yml` | **Active prod path:** Railway `railway up` (cwd `salesos/`) + public `/health` gate; FE = Vercel Git (primary) + optional CLI. **Production secrets only** — does not demand `RAILWAY_STAGING_*` |
+| `deploy-staging.yml` | **Deferred (single-env):** `workflow_dispatch` only + `CONFIRM-STAGING-DEPLOY`; **soft-skips** when `RAILWAY_STAGING_*` absent (notice, exit 0). No push trigger on `master`/`develop` (stops dual-fire). Re-enable auto path only after Railway staging exists |
 | `deploy-production.yml` | **Quarantined** (K8s) — tag push removed; `workflow_dispatch` requires `CONFIRM-K8S-QUARANTINE` |
 | `ci.yml` Stage 6 | **Unchanged** (GHCR publish orthogonal — CI-08) |
 
 ### Required GitHub secret / variable **names** (values out-of-band — do not invent)
 
+#### Production (required for Deploy Production / CI-09 close path)
+
 | Name | Scope | Purpose |
 |---|---|---|
-| `RAILWAY_TOKEN` | secret (`production` + `staging` envs) | Railway CLI auth |
-| `RAILWAY_PROJECT_ID` | secret | Railway project |
+| `RAILWAY_TOKEN` | secret (`production`) | Railway CLI auth |
+| `RAILWAY_PROJECT_ID` | secret (`production`) | Railway project |
 | `RAILWAY_SERVICE_ID` | secret (`production`) | Backend service (prod) |
 | `RAILWAY_ENVIRONMENT_ID` | secret (`production`) | Production environment |
-| `RAILWAY_STAGING_SERVICE_ID` | secret (`staging`) | Backend service (staging) |
-| `RAILWAY_STAGING_ENVIRONMENT_ID` | secret (`staging`) | Staging environment |
 | `RAILWAY_HEALTH_URL` | var or secret (`production`) | Public backend base or `/health` URL |
-| `RAILWAY_STAGING_HEALTH_URL` | var or secret (`staging`) | Staging public health URL |
 | `VERCEL_TOKEN` | secret (optional CLI) | Vercel CLI; Git integration may suffice alone |
 | `VERCEL_ORG_ID` | secret (optional CLI) | Vercel team/org id |
 | `VERCEL_PROJECT_ID` | secret (optional CLI) | Project `sales-os` id (see `VERCEL_DEPLOY.md`) |
 
-**Do not** provision `VPS_HOST` / `VPS_USER` / `VPS_SSH_KEY` / `STAGING_HOST` / `STAGING_USER` / `STAGING_SSH_KEY` for CI-09 close.
+#### Staging (optional / deferred — not required until staging environment exists)
 
-**Rollback:** Restore prior VPS/SSH workflow revisions from git history; re-enable K8s only with a superseding DEC. Prefer Railway dashboard redeploy / Vercel prior deployment for runtime rollback.
+| Name | Scope | Purpose |
+|---|---|---|
+| `RAILWAY_TOKEN` | secret (`staging`) | Railway CLI auth (when staging env created) |
+| `RAILWAY_PROJECT_ID` | secret (`staging`) | Railway project |
+| `RAILWAY_STAGING_SERVICE_ID` | secret (`staging`) | Backend service (staging) |
+| `RAILWAY_STAGING_ENVIRONMENT_ID` | secret (`staging`) | Staging environment |
+| `RAILWAY_STAGING_HEALTH_URL` | var or secret (`staging`) | Staging public health URL |
+
+**Do not** provision `VPS_HOST` / `VPS_USER` / `VPS_SSH_KEY` / `STAGING_HOST` / `STAGING_USER` / `STAGING_SSH_KEY` for CI-09 close.  
+**Do not** invent or require `RAILWAY_STAGING_*` while operating single-env.
+
+**Rollback:** Restore prior workflow revisions from git history; re-enable staging push triggers only after staging exists + a program note. Prefer Railway dashboard redeploy / Vercel prior deployment for runtime rollback.
 
 **CI-09 not CLOSED. No Production GO. CI GREEN not met.**

@@ -2,9 +2,11 @@
 # Backend → Railway (CLI `railway up`, DEC-120 alternate promote — no GHCR/SSH)
 # Frontend → Vercel (Git integration primary per salesos/frontend/docs/VERCEL_DEPLOY.md;
 #   optional CLI when VERCEL_* secrets are set)
+# Single-env (2026-08-02): production Railway only — does NOT require RAILWAY_STAGING_*.
 # Supersedes VPS blue/green (appleboy/ssh-action + VPS_*). Do not reintroduce VPS as default.
 # Orthogonal: CI Stage 6 GHCR publish (ci.yml) remains separate (CI-08 / DEC-104).
 # Quarantined alternate: deploy-production.yml (K8s) — not active.
+# Staging: see deploy-staging.yml (deferred / dispatch-only until staging exists).
 
 name: Deploy Production
 
