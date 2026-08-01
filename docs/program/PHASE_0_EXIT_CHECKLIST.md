@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-01 (DEC-130g Slice 5g index/FK/comment READY FOR REVIEW — live Docker `alembic check` exit 0 @ a4f7c29e1b80; criterion 7.6 OPEN pending Arch+Val; Phase 0 24/54)
+> **Last updated:** 2026-08-01 (DEC-130h Orchestrator CLOSE 7.6 — Arch+Val PASS @ `250bcb5` / DEC-130g; Phase 0 25/54; DB Schema Complete 6/6)
 >
 > ## Operating State
 >
@@ -139,7 +139,7 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 7.3 | Index names aligned | `ix_rev_*` → `ix_*` rename (DEC-122) | ✅ Slice 3 |
 | 7.4 | Companies dead-column DROP resolved | `search_vector` FTS preserved; DEC decision recorded | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `4aacd6d` (DEC-129a); KEEP (no DROP; ORM restore); head `d1a8c35e7f09`; Docker **4 passed**; DEC-085 untouched; Orchestrator 2026-08-01 |
 | 7.5 | Deferred-8 tables have RLS enabled | RLS policies on tables currently without them | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `578e4f2` (DEC-123a); live POLICY_COUNT **67** (prod tip-align `d1a8c35e7f09` / crumb `c842245` cleared prior “prod may still be on 59” residual); Orchestrator 2026-08-01 |
-| 7.6 | `alembic check` exits clean | Zero drift between ORM and DB | ⬜ **OPEN** (READY FOR REVIEW) — Slice 5g COMPLETE (DEC-130g): live Docker `alembic check` @ `a4f7c29e1b80` **exit 0** (`No new upgrade operations detected`); head unchanged; no DDL / no DROP; `ix_graph_nodes_search` KEEP via `include_object`; **not CLOSED** — Orchestrator may CLOSE after Arch+Val PASS |
+| 7.6 | `alembic check` exits clean | Zero drift between ORM and DB | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `250bcb5` (DEC-130h); phased Slices 5a–5g (DEC-130…DEC-130g); live Docker `alembic check` **exit 0** @ head `a4f7c29e1b80`; True DROP DEC **0**; DEC-085 untouched; residual `ix_graph_nodes_search` KEEP via `include_object` (non-blocking); Orchestrator 2026-08-01 |
 
 **Owner:** Backend Lead  
 **Reference:** `13_DATABASE_CATALOG.md`, R-20, DB-05
@@ -184,10 +184,10 @@ Blocked on: **CI-08** (GHCR 403), **CI GREEN not met**. R-14 Railway **2.3 CLOSE
 | 4. EOS Audit Pass | 8 | 2 | 0 | 6 |
 | 5. Capability Drift | 4 | 0 | 0 | 4 |
 | 6. ADR Drift | 5 | 0 | 0 | 5 |
-| 7. DB Schema | 6 | 5 | 0 | 1 |
+| 7. DB Schema | 6 | 6 | 0 | 0 |
 | 8. Engineering Stability | 4 | 1 | 0 | 3 |
 | 9. ADR-036 Applied | 4 | 2 | 0 | 2 |
-| **TOTAL** | **54** | **24** | **2** | **28** |
+| **TOTAL** | **54** | **25** | **2** | **27** |
 
 ---
 

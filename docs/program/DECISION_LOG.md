@@ -1086,14 +1086,21 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-130h — Orchestrator VERIFIED/CLOSED criterion 7.6 (2026-08-01)
+
+**Context:** Architecture PASS ([architecture review 5g](fa5591a7-db18-4def-b2ea-be8881d3950f)) + Validation PASS ([Validate 7.6](3aed99ba-bebe-4567-b928-34e4edf9bd88): Docker `alembic check` **exit 0**; head `a4f7c29e1b80`; DEC-085 untouched; True DROP DEC **0**; residual expression GIN KEEP documented) on land `250bcb5` / DEC-130g. Phased path DEC-130 → DEC-130b → DEC-130c → DEC-130d → DEC-130e → DEC-130f → DEC-130g (Slices 5a–5g).
+**Decision:** Execution Orchestrator records criterion **7.6 VERIFIED → CLOSED**. Phase 0 **24/54 → 25/54**. DB Schema Complete **5 → 6** / Open **1 → 0**. Residual non-blocking: `ix_graph_nodes_search` KEEP filter via `include_object` (documented; not a re-open). Do **not** push. Do **not** claim Production GO / CI GREEN.
+**Consequence:** DB-05 / R-20 Phase 0 schema criteria **7.1–7.6 CLOSED**. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **7.6 CLOSED**.
+
 ### DEC-130g — DB-05 Slice 5g: residual index/FK/comment → alembic check exit 0
 
 **Date:** 2026-08-01
 **Context:** DEC-130 / DEC-130f residual — `remove_index`×~36 + FK/comment/type noise after orphan KEEP. Criterion 7.6 stays OPEN until Arch+Val; next land = metadata register + twin KEEP + expression include_object KEEP (no DROP).
 **Alternatives considered:** (a) blind DROP rename-twins / expression indexes — rejected; (b) DROP+CREATE graph_nodes GIN to match ORM text — rejected; (c) metadata register + twin KEEP + narrow include_object — approved.
-**Decision:** Accept **Slice 5g** as Cursor COMPLETE / READY FOR REVIEW. Companion: [`decisions/DEC-130g-DB-05-SLICE-5G-INDEX-FK-COMMENT.md`](decisions/DEC-130g-DB-05-SLICE-5G-INDEX-FK-COMMENT.md). Alembic head **unchanged** `a4f7c29e1b80`. Live Docker `alembic check` **exit 0** (`No new upgrade operations detected`). True DROP DEC **0**. DEC-085 intact. `ix_graph_nodes_search` KEEP via `include_object`. Orchestrator may CLOSE **7.6** after Arch+Val PASS.
-**Consequence:** Phase 0 remains **24/54** until Orchestrator close. Criterion **7.6 OPEN** (READY FOR REVIEW / check-clean evidenced). **Production GO not claimed. CI GREEN not met. Do not claim VERIFIED/CLOSED for 7.6 without Arch+Val.**
-**Status:** Accepted. Criterion **7.6 OPEN** (Slice 5g COMPLETE / READY FOR REVIEW — check exit 0).
+**Decision:** Accept **Slice 5g** as Cursor COMPLETE / READY FOR REVIEW. Companion: [`decisions/DEC-130g-DB-05-SLICE-5G-INDEX-FK-COMMENT.md`](decisions/DEC-130g-DB-05-SLICE-5G-INDEX-FK-COMMENT.md). Alembic head **unchanged** `a4f7c29e1b80`. Live Docker `alembic check` **exit 0** (`No new upgrade operations detected`). True DROP DEC **0**. DEC-085 intact. `ix_graph_nodes_search` KEEP via `include_object`. Closed via DEC-130h after Arch+Val PASS.
+**Consequence:** Phase 0 remains **24/54** until Orchestrator close (DEC-130h → **25/54**). Criterion **7.6** READY FOR REVIEW then **CLOSED** via DEC-130h. **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED via DEC-130h**.
 
 ### DEC-130f — DB-05 Slice 5f: orphan KEEP metadata register + vectors residual columns
 
@@ -1146,8 +1153,8 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Context:** Phase 0 Exit Criterion 7.6 (`alembic check` exits clean) remains OPEN after 7.1–7.5 closed. Historic CI-15 “~300 drift lines” was never re-run at tip `d1a8c35e7f09`. Full clean is multi-slice; autogenerate proposes destructive `remove_table`/`remove_column` including metadata false positives and DEC-129 KEEP-adjacent columns.
 **Alternatives considered:** (a) claim 7.6 CLOSED — rejected (live check FAILED); (b) mega-migration from autogenerate — rejected (DROP risk); (c) Slice 5a live re-baseline + phased plan — approved.
 **Decision:** Accept **Slice 5a** as Cursor COMPLETE / READY FOR REVIEW (plan honesty only). Companion: [`decisions/DEC-130-DB-05-CRITERION-7-6-ALEMBIC-CHECK-PHASED.md`](decisions/DEC-130-DB-05-CRITERION-7-6-ALEMBIC-CHECK-PHASED.md). Live Docker `alembic check` @ head `d1a8c35e7f09` = **FAILED** exit 255 (add_table **3** global admin; remove_table **28**; remove_index **~100**; add_index **~37**; type **4**; remove_column **2** companies KEEP-adjacent). Criterion **7.6 stays OPEN**. DEC-085 intact. No DDL this land. Next: Slice 5b metadata classify → **landed as DEC-130b** (`remove_table` 28→15).
-**Consequence:** Phase 0 remains **24/54**. DB-05 residual = **7.6** only (phased). **Production GO not claimed. CI GREEN not met. Do not claim VERIFIED/CLOSED for 7.6.**
-**Status:** Accepted. Criterion **7.6 OPEN** (Slice 5a COMPLETE; Slice 5b → DEC-130b).
+**Consequence:** Phase 0 remains **24/54** until Orchestrator close (superseded to **25/54** by DEC-130h). DB-05 residual was **7.6** only (phased; now CLOSED). **Production GO not claimed. CI GREEN not met.**
+**Status:** Accepted. Criterion **CLOSED via DEC-130h** (Slices 5a–5g).
 
 ### DEC-129 — DB-05 companies dead-column KEEP (Phase 0 criterion 7.4)
 

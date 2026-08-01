@@ -1,17 +1,17 @@
 # DEC-130g — DB-05 Slice 5g: residual index / FK / comment / type noise → `alembic check` exit 0
 
-> **Status:** **Accepted** — Cursor implementation **COMPLETE** · Package = **READY FOR REVIEW** (Architecture / Validation: check-clean honesty + evidence; Orchestrator may CLOSE criterion **7.6** only after Arch+Val PASS)  
+> **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **7.6 VERIFIED/CLOSED** via DEC-130h (Arch PASS + Validation PASS @ `250bcb5`)  
 > **Date:** 2026-08-01  
 > **Board:** Backend Platform / Database (SalesOS / AQLIYA)  
 > **Story / risk:** DB-05 / R-20 / Phase 0 Exit Criterion **7.6**  
 > **Authority:** DEC-130 Slice 5a plan · DEC-130f Slice 5f · DEC-129 KEEP · DEC-085 `set_config` · DEC-107 swarm READY  
-> **Out of scope this land:** DROP live indexes/tables · dedicated DROP DEC · production / Railway migrate · Prisma · DEC-085 edits · Production GO / CI GREEN · Criterion VERIFIED/CLOSED without Arch+Val
+> **Out of scope this land:** DROP live indexes/tables · dedicated DROP DEC · production / Railway migrate · Prisma · DEC-085 edits · Production GO / CI GREEN
 
 ---
 
 ## 1. Decision
 
-Ship **Slice 5g** = maximal honest metadata register for residual live indexes / FKs / comments / types after Slice 5f, plus narrow `include_object` KEEP for one expression GIN that cannot be mirrored without DROP+CREATE. **No blind DROP.** Live Docker `alembic check` **exit 0**. Criterion **7.6** stays formally **OPEN** until Architecture + Validation PASS; package is READY FOR REVIEW for the close path.
+Ship **Slice 5g** = maximal honest metadata register for residual live indexes / FKs / comments / types after Slice 5f, plus narrow `include_object` KEEP for one expression GIN that cannot be mirrored without DROP+CREATE. **No blind DROP.** Live Docker `alembic check` **exit 0**. Criterion **7.6 CLOSED** via DEC-130h after Architecture + Validation PASS.
 
 | Pin | Value |
 |---|---|
@@ -19,7 +19,7 @@ Ship **Slice 5g** = maximal honest metadata register for residual live indexes /
 | `alembic check` | **exit 0** — `No new upgrade operations detected` |
 | True DROP DEC | **0** |
 | DEC-085 | **Intact** (not touched) |
-| Criterion 7.6 | **OPEN** (READY FOR REVIEW — Orchestrator may CLOSE after Arch+Val PASS) |
+| Criterion 7.6 | **CLOSED** (DEC-130h) |
 
 ### Alternatives considered
 
@@ -93,20 +93,20 @@ Log capture (local, not committed): `.tmp-alembic-check-7-6-slice5g-final.txt`
 | DEC-085 | Untouched |
 | Label | **light validated** (Docker alembic check exit 0 + residual inventory) |
 
-**Production GO not claimed. CI GREEN not met. Criterion 7.6 not CLOSED by this package** — Orchestrator may CLOSE after Architecture + Validation PASS.
+**Production GO not claimed. CI GREEN not met. Criterion 7.6 CLOSED via DEC-130h** after Architecture + Validation PASS.
 
 ---
 
 ## 5. Records
 
-- Phase 0 criterion **7.6** → **OPEN** (READY FOR REVIEW / check-clean evidenced; close path unlocked)
-- Board DB-05 → Slice 5g COMPLETE; residual = Arch+Val for 7.6 close
-- `DECISION_LOG.md` DEC-130g
-- R-20 next-action → Arch+Val then Orchestrator CLOSE 7.6 (or residual if Val finds gaps)
-- **Not claimed:** Production GO · CI GREEN · 7.6 VERIFIED/CLOSED without Arch+Val
+- Phase 0 criterion **7.6** → **VERIFIED/CLOSED** (DEC-130h)
+- Board DB-05 → **COMPLETE**
+- `DECISION_LOG.md` DEC-130g + DEC-130h
+- R-20 → Closed — mitigating residual KEEP (`ix_graph_nodes_search`)
+- **Not claimed:** Production GO · CI GREEN
 
 ---
 
 ## 6. Architecture next?
 
-Architecture Reviewer: confirm (1) metadata register + rename-twin KEEP (no DROP) is sound, (2) `include_object` skip for `ix_graph_nodes_search` is honest KEEP vs DROP+CREATE, (3) dual unique tenants/users match live `*_key` + non-unique `ix_*`, (4) head pin `a4f7c29e1b80` unchanged (no DDL) is correct, (5) Docker `alembic check` exit 0 is sufficient evidence for READY FOR REVIEW toward 7.6 close. Validation: corroborate exit 0 + head pin + DEC-085 intact — do **not** claim Production GO / CI GREEN.
+Closed. Residual expression GIN KEEP stands (non-blocking). Next PARALLEL READY clusters: ADR Drift / Capability Drift / EOS / contract tests — do **not** claim Phase 0 GO.

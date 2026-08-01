@@ -1,11 +1,11 @@
 # DEC-130 — DB-05 criterion 7.6: live `alembic check` re-baseline + phased plan
 
-> **Status:** **Accepted** — Slice **5a** COMPLETE · Slice **5b** COMPLETE ([DEC-130b](DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md)) · Slice **5c** COMPLETE ([DEC-130c](DEC-130c-DB-05-SLICE-5C-ADMIN-GLOBAL-CREATE.md) READY FOR REVIEW) · Slice **5d** COMPLETE ([DEC-130d](DEC-130d-DB-05-SLICE-5D-INDEX-TYPE-NULLABLE.md) READY FOR REVIEW) · Slice **5e** COMPLETE ([DEC-130e](DEC-130e-DB-05-SLICE-5E-COMPANIES-RESIDUAL-KEEP.md) READY FOR REVIEW) · Slice **5f** COMPLETE ([DEC-130f](DEC-130f-DB-05-SLICE-5F-ORPHAN-KEEP-REGISTER.md) READY FOR REVIEW) · Slice **5g** COMPLETE ([DEC-130g](DEC-130g-DB-05-SLICE-5G-INDEX-FK-COMMENT.md) READY FOR REVIEW — live `alembic check` **exit 0**) · Criterion **7.6 remains OPEN** until Arch+Val + Orchestrator CLOSE · do **not** CLOSE 7.6 without that path  
+> **Status:** **Accepted** — Slice **5a** COMPLETE · Slice **5b** COMPLETE ([DEC-130b](DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md)) · Slice **5c** COMPLETE ([DEC-130c](DEC-130c-DB-05-SLICE-5C-ADMIN-GLOBAL-CREATE.md)) · Slice **5d** COMPLETE ([DEC-130d](DEC-130d-DB-05-SLICE-5D-INDEX-TYPE-NULLABLE.md)) · Slice **5e** COMPLETE ([DEC-130e](DEC-130e-DB-05-SLICE-5E-COMPANIES-RESIDUAL-KEEP.md)) · Slice **5f** COMPLETE ([DEC-130f](DEC-130f-DB-05-SLICE-5F-ORPHAN-KEEP-REGISTER.md)) · Slice **5g** COMPLETE ([DEC-130g](DEC-130g-DB-05-SLICE-5G-INDEX-FK-COMMENT.md) — live `alembic check` **exit 0**) · Criterion **7.6 VERIFIED/CLOSED** via [DEC-130h](../DECISION_LOG.md) (Arch+Val PASS @ `250bcb5`)  
 > **Date:** 2026-08-01  
 > **Board:** Backend Platform / Database (SalesOS / AQLIYA)  
 > **Story / risk:** DB-05 / R-20 / Phase 0 Exit Criterion **7.6**  
 > **Authority:** DEC-111 Slice 0 · DEC-113–123 · DEC-129 KEEP · DEC-085 `set_config` · DEC-107 swarm READY  
-> **Out of scope this land:** production / Railway migrate · Prisma · DEC-085 edits · Production GO / CI GREEN · Criterion VERIFIED/CLOSED without Arch+Val
+> **Out of scope this land:** production / Railway migrate · Prisma · DEC-085 edits · Production GO / CI GREEN
 
 ---
 
@@ -20,7 +20,7 @@
 | Historic CI-15 claim | “~300 drift lines” — **superseded by live counts below** |
 | Base.metadata size | **70** tables registered via `app/database.py` import side-effects |
 | DEC-085 | **Intact** (not touched) |
-| Criterion 7.6 | **OPEN** — phased residual |
+| Criterion 7.6 | **CLOSED** (DEC-130h) — phased residual cleared |
 
 ### Alternatives considered
 
@@ -73,7 +73,9 @@ docker compose exec -T backend alembic check     → FAILED exit 255
 
 **Slice 5f landed (DEC-130f):** orphan KEEP metadata register — `remove_table` **15→0**; vectors residual columns — `remove_column` **2→0**; check still FAILED; next **5g**.
 
-**Slice 5g landed (DEC-130g):** residual index/FK/comment/type metadata register + rename-twin KEEP + `include_object` KEEP for `ix_graph_nodes_search` — live Docker `alembic check` **exit 0**; head unchanged `a4f7c29e1b80`; 7.6 stays OPEN pending Arch+Val + Orchestrator CLOSE.
+**Slice 5g landed (DEC-130g):** residual index/FK/comment/type metadata register + rename-twin KEEP + `include_object` KEEP for `ix_graph_nodes_search` — live Docker `alembic check` **exit 0**; head unchanged `a4f7c29e1b80`.
+
+**Orchestrator CLOSE (DEC-130h):** Arch PASS + Validation PASS @ `250bcb5` → criterion **7.6 VERIFIED/CLOSED**; Phase 0 **25/54**; DB Schema **6/6**. Residual KEEP `ix_graph_nodes_search` non-blocking. **Production GO not claimed. CI GREEN not met.**
 
 **Hard stops (all slices):** no production migrate · no Prisma · no DEC-085 edits · no DROP of FTS/KEEP columns (7.4) · no blind DROP of the 28 “removed” tables.
 
@@ -90,20 +92,20 @@ docker compose exec -T backend alembic check     → FAILED exit 255
 | DEC-085 | Untouched |
 | Label | **light validated** (Docker alembic check + metadata count) |
 
-**Production GO not claimed. CI GREEN not met. Criterion 7.6 not CLOSED.**
+**Production GO not claimed. CI GREEN not met. Criterion 7.6 CLOSED via DEC-130h.**
 
 ---
 
 ## 5. Records
 
-- Phase 0 criterion **7.6** → **OPEN** (phased; Slice 5a COMPLETE) — checklist evidence refreshed from live check  
-- Board DB-05 → Slice 5a COMPLETE; residual = 7.6 clean check  
-- `DECISION_LOG.md` DEC-130  
-- R-20 next-action → Slice 5b metadata / classify remove_table  
-- **Not claimed:** Production GO · CI GREEN · `alembic check` clean · 7.6 VERIFIED/CLOSED
+- Phase 0 criterion **7.6** → **VERIFIED/CLOSED** (DEC-130h; Slices 5a–5g)  
+- Board DB-05 → **COMPLETE**; residual KEEP documented  
+- `DECISION_LOG.md` DEC-130…DEC-130h  
+- R-20 → **Closed — mitigating residual KEEP**  
+- **Not claimed:** Production GO · CI GREEN
 
 ---
 
 ## 6. Architecture next?
 
-Architecture Reviewer: confirm (1) phased plan is the honest path vs mega-migration, (2) KEEP / no-DROP stance for false `remove_table` + companies residual columns, (3) Slice 5b metadata registration is safe scope for next Backend land. Validation: corroborate Docker check FAILED + head pin only — do **not** treat this DEC as 7.6 close evidence.
+Closed path complete. Residual `ix_graph_nodes_search` KEEP stands until a dedicated DROP+CREATE DEC (not required for 7.6). Swarm: next PARALLEL READY = ADR Drift / Capability Drift / EOS / contract tests — do **not** claim Phase 0 GO.
