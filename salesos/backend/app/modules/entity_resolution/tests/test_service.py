@@ -71,6 +71,7 @@ async def test_resolve_records_higher_priority_overwrites(
     assert r2["records_matched"] == 1
     golden_repo = GoldenRecordRepository(db_session)
     golden = await golden_repo.get_by_cr_number(uuid.UUID(test_tenant), "CR-PRIO")
+    assert golden is not None
     assert golden.data["name_ar"]["value"] == "HighPriority"
     assert golden.data["name_ar"]["source"] == "BALADY"
 
@@ -112,6 +113,7 @@ async def test_get_golden_record(db_session: AsyncSession, test_tenant: str):
     )
     golden_repo = GoldenRecordRepository(db_session)
     golden = await golden_repo.get_by_cr_number(uuid.UUID(test_tenant), "CR-GET")
+    assert golden is not None
     result = await service.get_golden_record(str(golden.id))
     assert result is not None
     assert result.id == golden.id
@@ -187,6 +189,7 @@ async def test_resolve_conflict_use_source_b(db_session: AsyncSession, test_tena
     )
     golden_repo = GoldenRecordRepository(db_session)
     golden = await golden_repo.get_by_cr_number(uuid.UUID(test_tenant), "CR-RES")
+    assert golden is not None
     assert golden.data["name_ar"]["value"] == "ValueA"
     conflicts, _ = await service.list_conflicts(test_tenant)
     conflict = [c for c in conflicts if c.golden_record_id == golden.id][0]
@@ -195,6 +198,7 @@ async def test_resolve_conflict_use_source_b(db_session: AsyncSession, test_tena
     )
     assert resolved.status == "resolved"
     golden_after = await golden_repo.get(uuid.UUID(str(golden.id)))
+    assert golden_after is not None
     assert golden_after.data["name_ar"]["value"] == "ValueB"
 
 
@@ -209,6 +213,7 @@ async def test_resolve_conflict_merge(db_session: AsyncSession, test_tenant: str
     )
     golden_repo = GoldenRecordRepository(db_session)
     golden = await golden_repo.get_by_cr_number(uuid.UUID(test_tenant), "CR-MRG")
+    assert golden is not None
     conflicts, _ = await service.list_conflicts(test_tenant)
     conflict = [c for c in conflicts if c.golden_record_id == golden.id][0]
     resolved = await service.resolve_conflict(
@@ -219,6 +224,7 @@ async def test_resolve_conflict_merge(db_session: AsyncSession, test_tenant: str
     )
     assert resolved.status == "resolved"
     golden_after = await golden_repo.get(uuid.UUID(str(golden.id)))
+    assert golden_after is not None
     assert golden_after.data["name_ar"]["value"] == "Merged"
     assert golden_after.data["name_ar"]["source"] == "manual_merge"
 

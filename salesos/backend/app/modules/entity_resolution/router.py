@@ -183,8 +183,8 @@ async def list_conflicts(
     dependencies=[Depends(require_permission_dep("entity-resolution", PermissionAction.UPDATE))],
 )
 async def resolve_conflict(
-    conflict_id: str = Path(...),
-    body: ConflictResolveRequest = ...,
+    conflict_id: str,
+    body: ConflictResolveRequest,
     tenant_id: str = Depends(get_current_tenant_id),
     service: EntityResolutionService = Depends(get_service),
 ):

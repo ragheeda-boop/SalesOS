@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import builtins
 import uuid
 from datetime import UTC, datetime
+from typing import cast
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,7 +28,7 @@ class GoldenRecordRepository(SqlAlchemyRepository[GoldenRecord, uuid.UUID]):
                 GoldenRecord.cr_number == cr_number,
             )
         )
-        return result.scalar_one_or_none()
+        return cast(GoldenRecord | None, result.scalar_one_or_none())
 
     async def find_by_tenant(
         self, tenant_id: uuid.UUID, page: int = 1, page_size: int = 20
@@ -168,7 +170,7 @@ class DeadLetterRepository:
         stage: str | None = None,
         page: int = 1,
         page_size: int = 20,
-    ) -> tuple[list[DeadLetterRecord], int]:
+    ) -> tuple[builtins.list[DeadLetterRecord], int]:
         tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
         query = select(DeadLetterRecord).where(DeadLetterRecord.tenant_id == tid)
         count_query = (
@@ -190,7 +192,7 @@ class DeadLetterRepository:
         query = query.order_by(DeadLetterRecord.created_at.desc())
         query = query.offset((page - 1) * page_size).limit(page_size)
         result = await self._session.execute(query)
-        records = list(result.scalars().all())
+        records = builtins.list(result.scalars().all())
 
         return records, total
 
@@ -198,7 +200,7 @@ class DeadLetterRepository:
         self,
         tenant_id: str | uuid.UUID,
         limit: int = 50,
-    ) -> list[DeadLetterRecord]:
+    ) -> builtins.list[DeadLetterRecord]:
         tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id
         query = (
             select(DeadLetterRecord)
@@ -211,7 +213,7 @@ class DeadLetterRepository:
             .limit(limit)
         )
         result = await self._session.execute(query)
-        return list(result.scalars().all())
+        return builtins.list(result.scalars().all())
 
     async def mark_retried(self, entry_id: int) -> None:
         stmt = (
@@ -255,7 +257,7 @@ class DeadLetterRepository:
         if status:
             stmt = stmt.where(DeadLetterRecord.status == status)
         result = await self._session.execute(stmt)
-        return result.rowcount
+        return int(result.rowcount or 0)
 
     async def count_by_stage(self, tenant_id: str | uuid.UUID) -> dict[str, int]:
         tid = uuid.UUID(tenant_id) if isinstance(tenant_id, str) else tenant_id

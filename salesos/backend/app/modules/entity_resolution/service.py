@@ -694,4 +694,4 @@ class EntityResolutionService:
         scores = [
             entry.get("confidence", 0.0) for entry in data.values() if isinstance(entry, dict)
         ]
-        return round(sum(scores) / len(scores), 4) if scores else 0.0
+        return float(round(sum(scores) / len(scores), 4)) if scores else 0.0
