@@ -61,6 +61,11 @@ const FE_GATED = [
     title: "Studio detail + baseline_fields polish",
     status: "FE landed — detail/baseline/cmd",
   },
+  {
+    id: "FE-S08-11",
+    title: "Studio URL deep-link polish",
+    status: "FE landed — ?step=&connection=",
+  },
 ] as const;
 
 export default function AdminIntegrationsInventoryPage() {

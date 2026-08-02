@@ -20,7 +20,7 @@ describe("IntegrationsStudioShell — STORY-08-07 pointer", () => {
     for (const step of STUDIO_STEPS) {
       expect(
         screen.getByTestId(`integrations-studio-step-${step.id}`),
-      ).toHaveAttribute("href", "/integrations");
+      ).toHaveAttribute("href", `/integrations?step=${step.id}`);
     }
   });
 });

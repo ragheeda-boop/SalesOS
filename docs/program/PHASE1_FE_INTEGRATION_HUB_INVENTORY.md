@@ -15,6 +15,7 @@
 | FE-S08-08 | Conflict-policy + Odoo honesty |
 | FE-S08-09 | Active mapping GET + tenant nav |
 | FE-S08-10 | Connection detail + baseline_fields + cmd palette |
+| FE-S08-11 | URL deep-link + schedule/monitor polish |
 
 ## Blocked (do not invent)
 

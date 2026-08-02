@@ -57,7 +57,7 @@ export function IntegrationsStudioShell() {
         {STUDIO_STEPS.map((step, index) => (
           <li key={step.id}>
             <Link
-              href="/integrations"
+              href={`/integrations?step=${step.id}`}
               data-testid={`integrations-studio-step-${step.id}`}
               className="flex w-full min-h-[44px] items-center gap-2 rounded border border-[var(--border-default)] px-3 py-2 text-left text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
             >

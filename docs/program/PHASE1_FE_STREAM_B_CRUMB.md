@@ -25,6 +25,7 @@
 | FE-S08-08 Conflict-policy Studio + Odoo honesty | **LANDED** — crumb [`PHASE1_FE_S08_08_CONFLICT_POLICY_STUDIO_CRUMB.md`](PHASE1_FE_S08_08_CONFLICT_POLICY_STUDIO_CRUMB.md) |
 | FE-S08-09 Active mapping load + tenant Integrations nav | **LANDED** — crumb [`PHASE1_FE_S08_09_ACTIVE_MAPPING_NAV_CRUMB.md`](PHASE1_FE_S08_09_ACTIVE_MAPPING_NAV_CRUMB.md) |
 | FE-S08-10 Studio connection detail + baseline_fields polish | **LANDED** — crumb [`PHASE1_FE_S08_10_STUDIO_DETAIL_POLISH_CRUMB.md`](PHASE1_FE_S08_10_STUDIO_DETAIL_POLISH_CRUMB.md) |
+| FE-S08-11 Studio URL deep-link + schedule/monitor polish | **LANDED** — crumb [`PHASE1_FE_S08_11_STUDIO_URL_DEEPLINK_CRUMB.md`](PHASE1_FE_S08_11_STUDIO_URL_DEEPLINK_CRUMB.md) |
 
 ## Honesty
 

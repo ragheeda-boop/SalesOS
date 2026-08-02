@@ -1,3 +1,10 @@
+const replaceMock = jest.fn();
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: replaceMock }),
+  usePathname: () => "/integrations",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 import { fireEvent, render, screen } from "@testing-library/react";
 import { IntegrationsStudio } from "../IntegrationsStudio";
 
@@ -79,7 +86,7 @@ jest.mock("@salesos/ui", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
-describe("IntegrationsStudio — FE-S08-08/09/10", () => {
+describe("IntegrationsStudio — FE-S08-08..11", () => {
   it("renders conflict-policy step and Odoo honesty", () => {
     render(<IntegrationsStudio />);
     expect(screen.getByTestId("integrations-studio")).toBeInTheDocument();
@@ -154,5 +161,13 @@ describe("IntegrationsStudio — FE-S08-08/09/10", () => {
     expect(
       screen.getByTestId("integrations-studio-disconnect-submit"),
     ).not.toBeDisabled();
+  });
+
+  it("exposes monitor status filter and schedule result hook", () => {
+    render(<IntegrationsStudio />);
+    fireEvent.click(screen.getByTestId("integrations-studio-step-monitor"));
+    expect(
+      screen.getByTestId("integrations-studio-monitor-status-filter"),
+    ).toBeInTheDocument();
   });
 });

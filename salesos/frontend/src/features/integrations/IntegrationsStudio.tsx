@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Button, Input, Spinner, useToast } from "@salesos/ui";
 import {
   useActiveHubMapping,
@@ -15,9 +16,14 @@ import {
   useTestHubConnection,
 } from "@/lib/hooks/integrationHubQueries";
 import { STUDIO_STEPS } from "@/features/admin/IntegrationsStudioShell";
-import type { HubConnection } from "@/lib/api";
+import type { HubConnection, HubScheduleResult } from "@/lib/api";
+import {
+  buildStudioSearchParams,
+  parseStudioStep,
+  type StudioStepId,
+} from "@/features/integrations/studioUrl";
 
-export type StudioStepId = (typeof STUDIO_STEPS)[number]["id"];
+export type { StudioStepId };
 
 function getApiError(err: unknown): string {
   const detail = (err as { response?: { data?: { detail?: unknown } } })
@@ -42,13 +48,17 @@ function listFromCsv(raw: string): string[] {
  * STORY-08-07 / FE-S08-08 — Integrations Studio against Hub HTTP.
  * Connect / test / map / conflict-policy / schedule / monitor / disconnect.
  * Tip STORY-09-01: connector_key `odoo` dispatches OdooAdapter.test_connection.
- * Active mapping GET wired (FE-S08-09). Unlinked badge list API not live.
- * Not Production GO.
+ * Active mapping GET wired (FE-S08-09). URL deep-link FE-S08-11.
+ * Unlinked badge list API not live. Not Production GO.
  */
 export function IntegrationsStudio() {
   const { toast } = useToast();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<StudioStepId>("connect");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [urlHydrated, setUrlHydrated] = useState(false);
   const [name, setName] = useState("Fake connector");
   const [connectorKey, setConnectorKey] = useState("fake");
   const [credentialRef, setCredentialRef] = useState("vault:demo/fake");
@@ -61,6 +71,10 @@ export function IntegrationsStudio() {
   const [disconnectConfirmed, setDisconnectConfirmed] = useState(false);
   const [schedule, setSchedule] = useState("15m");
   const [lastTest, setLastTest] = useState<string>("");
+  const [lastSchedule, setLastSchedule] = useState<HubScheduleResult | null>(
+    null,
+  );
+  const [monitorStatusFilter, setMonitorStatusFilter] = useState("all");
   const [rulesJson, setRulesJson] = useState("[]");
   const [authoredCsv, setAuthoredCsv] = useState("");
   const [operationalCsv, setOperationalCsv] = useState("");
@@ -86,6 +100,14 @@ export function IntegrationsStudio() {
     () => connections.find((c) => c.id === selectedId),
     [connections, selectedId],
   );
+  const filteredSyncRuns = useMemo(() => {
+    const rows = syncRunsQuery.data || [];
+    if (monitorStatusFilter === "all") return rows;
+    return rows.filter(
+      (r) =>
+        (r.status || "").toLowerCase() === monitorStatusFilter.toLowerCase(),
+    );
+  }, [syncRunsQuery.data, monitorStatusFilter]);
 
   useEffect(() => {
     const policy = conflictQuery.data;
@@ -106,6 +128,28 @@ export function IntegrationsStudio() {
   useEffect(() => {
     setDisconnectConfirmed(false);
   }, [selectedId]);
+
+  useEffect(() => {
+    if (urlHydrated) return;
+    const parsed = parseStudioStep(searchParams.get("step"));
+    if (parsed) setStep(parsed);
+    const connection = searchParams.get("connection");
+    if (connection) setSelectedId(connection);
+    setUrlHydrated(true);
+  }, [searchParams, urlHydrated]);
+
+  useEffect(() => {
+    if (!urlHydrated) return;
+    const next = buildStudioSearchParams({
+      step,
+      connectionId: selectedId,
+    });
+    const current = searchParams.toString()
+      ? `?${searchParams.toString()}`
+      : "";
+    if (next === current) return;
+    router.replace(`${pathname}${next}`, { scroll: false });
+  }, [step, selectedId, urlHydrated, pathname, router, searchParams]);
 
   const needsConnection = step !== "connect";
 
@@ -186,7 +230,30 @@ export function IntegrationsStudio() {
               >
                 <div>
                   <dt className="text-[var(--text-muted)]">Id</dt>
-                  <dd className="font-mono break-all">{selected.id}</dd>
+                  <dd className="flex flex-wrap items-center gap-2 font-mono break-all">
+                    <span>{selected.id}</span>
+                    <Button
+                      data-testid="integrations-studio-copy-connection-id"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(selected.id);
+                          toast({
+                            variant: "success",
+                            title: "Connection id copied",
+                            description: selected.id,
+                          });
+                        } catch {
+                          toast({
+                            variant: "error",
+                            title: "Copy failed",
+                            description: selected.id,
+                          });
+                        }
+                      }}
+                    >
+                      Copy id
+                    </Button>
+                  </dd>
                 </div>
                 <div>
                   <dt className="text-[var(--text-muted)]">Connector</dt>
@@ -549,6 +616,7 @@ export function IntegrationsStudio() {
                       job_type: "interval",
                     },
                   });
+                  setLastSchedule(result);
                   toast({
                     variant: "success",
                     title: "Sync scheduled",
@@ -565,6 +633,15 @@ export function IntegrationsStudio() {
             >
               {scheduleMutation.isPending ? "Scheduling…" : "Schedule sync"}
             </Button>
+            {lastSchedule ? (
+              <p
+                className="text-xs text-[var(--text-muted)]"
+                data-testid="integrations-studio-schedule-result"
+              >
+                Last job {lastSchedule.job_id} · {lastSchedule.schedule} ·
+                next_run_at {lastSchedule.next_run_at || "n/a"}
+              </p>
+            ) : null}
           </div>
         ) : null}
 
@@ -586,6 +663,21 @@ export function IntegrationsStudio() {
             >
               {syncRunsQuery.isFetching ? "Refreshing…" : "Refresh sync runs"}
             </Button>
+            <label className="block text-xs text-[var(--text-muted)]">
+              Status filter (client-side on tip SyncRun rows)
+            </label>
+            <select
+              data-testid="integrations-studio-monitor-status-filter"
+              className="w-full max-w-xs rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
+              value={monitorStatusFilter}
+              onChange={(e) => setMonitorStatusFilter(e.target.value)}
+            >
+              <option value="all">All statuses</option>
+              <option value="success">success</option>
+              <option value="failed">failed</option>
+              <option value="running">running</option>
+              <option value="pending">pending</option>
+            </select>
             {!selectedId ? (
               <p className="text-sm text-[var(--text-muted)]">
                 Select a connection to view SyncRun history.
@@ -597,12 +689,12 @@ export function IntegrationsStudio() {
                 className="divide-y divide-[var(--border-default)] rounded border border-[var(--border-default)]"
                 data-testid="integrations-studio-sync-runs"
               >
-                {(syncRunsQuery.data || []).length === 0 ? (
+                {filteredSyncRuns.length === 0 ? (
                   <li className="px-3 py-2 text-sm text-[var(--text-muted)]">
                     No sync runs yet.
                   </li>
                 ) : (
-                  (syncRunsQuery.data || []).map((run) => (
+                  filteredSyncRuns.map((run) => (
                     <li
                       key={run.id}
                       className="px-3 py-2 text-sm"
