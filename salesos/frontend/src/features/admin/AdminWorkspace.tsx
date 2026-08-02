@@ -13,6 +13,7 @@ import {
   DollarSign,
   HeartPulse,
   CreditCard,
+  Settings,
 } from "lucide-react";
 import {
   useAdminTenants,
@@ -160,6 +161,14 @@ function AdminOverview({
         >
           <Flag className="h-4 w-4" />
           Flags
+        </Link>
+        <Link
+          href="/admin/config"
+          data-testid="owner-console-overview-config"
+          className="inline-flex items-center gap-2 rounded-md border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
+        >
+          <Settings className="h-4 w-4" />
+          Config
         </Link>
         <Link
           href="/admin/audit"

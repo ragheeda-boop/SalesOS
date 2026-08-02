@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAdminAuditLogs } from "@/lib/hooks/adminQueries";
 import type { AuditLogEntry } from "@/lib/api";
+import { OwnerOpsPageHonesty } from "@/features/admin/OwnerOpsPageHonesty";
 
 const ACTION_TYPE_LABELS: Record<string, string> = {
   create: "Create",
@@ -143,7 +144,8 @@ export default function AdminAuditPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="admin-audit-page">
+      <OwnerOpsPageHonesty surface="audit" />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

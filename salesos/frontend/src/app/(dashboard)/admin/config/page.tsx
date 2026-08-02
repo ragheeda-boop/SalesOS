@@ -29,6 +29,7 @@ import {
   useValidateAdminConfig,
 } from "@/lib/hooks/adminQueries";
 import type { AdminConfigVersion } from "@/lib/api";
+import { OwnerOpsPageHonesty } from "@/features/admin/OwnerOpsPageHonesty";
 
 export default function AdminConfigPage() {
   const { toast } = useToast();
@@ -107,7 +108,8 @@ export default function AdminConfigPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="admin-config-page">
+      <OwnerOpsPageHonesty surface="config" />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

@@ -248,4 +248,38 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(page.getByTestId("admin-billing-overview-link")).toBeVisible();
     await expect(page.getByTestId("admin-billing-tenants-link")).toBeVisible();
   });
+
+  test("admin flags/config/audit expose ops honesty hooks", async ({
+    page,
+  }) => {
+    for (const [path, pageId, honestyId, navId] of [
+      [
+        "/admin/flags",
+        "admin-flags-page",
+        "owner-ops-flags-honesty",
+        "owner-console-nav-flags",
+      ],
+      [
+        "/admin/config",
+        "admin-config-page",
+        "owner-ops-config-honesty",
+        "owner-console-nav-config",
+      ],
+      [
+        "/admin/audit",
+        "admin-audit-page",
+        "owner-ops-audit-honesty",
+        "owner-console-nav-audit",
+      ],
+    ] as const) {
+      await page.goto(path);
+      await page.waitForLoadState("networkidle");
+      await expect(page.getByTestId("owner-console-shell")).toBeVisible({
+        timeout: 8_000,
+      });
+      await expect(page.getByTestId(navId)).toBeVisible();
+      await expect(page.getByTestId(pageId)).toBeVisible();
+      await expect(page.getByTestId(honestyId)).toBeVisible();
+    }
+  });
 });

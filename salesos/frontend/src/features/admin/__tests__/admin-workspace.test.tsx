@@ -66,6 +66,10 @@ describe("AdminWorkspace", () => {
       "href",
       "/admin/flags",
     );
+    expect(screen.getByTestId("owner-console-overview-config")).toHaveAttribute(
+      "href",
+      "/admin/config",
+    );
     expect(screen.getByTestId("owner-console-overview-audit")).toHaveAttribute(
       "href",
       "/admin/audit",

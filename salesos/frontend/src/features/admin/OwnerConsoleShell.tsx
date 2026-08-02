@@ -51,8 +51,8 @@ function navActive(pathname: string, href: string): boolean {
 }
 
 /**
- * STORY-07 + FE-S07-04/06 — Owner Console chrome, audience/host honesty,
- * Ops nav (tenants/billing/flags/config/audit). TenantList.tsx untouched.
+ * STORY-07 + FE-S07-04/06/07 — Owner Console chrome, audience/host honesty,
+ * Ops nav + page honesty (flags/config/audit). TenantList.tsx untouched.
  * Not Production GO. No invented owner mint.
  */
 export function OwnerConsoleShell({ children }: { children: ReactNode }) {
@@ -150,11 +150,10 @@ export function OwnerConsoleShell({ children }: { children: ReactNode }) {
           className="mt-1 text-xs text-[var(--text-muted)]"
           data-testid="owner-console-readpath-honesty"
         >
-          Phase 1 read-path MVP: tenants status/plan/usage + billing
-          subscription/invoices/dunning. Deferred write actions (manual refund,
-          suspend override beyond existing lifecycle APIs) stay later-increment.
-          Owner login mint is DEC-093 follow-up — not invented here. Not
-          Production GO.
+          Phase 1 Ops surfaces: tenants + billing + flags/config/audit. Deferred
+          write actions (manual refund, suspend override beyond existing
+          lifecycle APIs) stay later-increment. Owner login mint is DEC-093
+          follow-up — not invented here. Not Production GO.
         </p>
       </header>
 

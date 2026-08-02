@@ -276,9 +276,10 @@
    - `/admin/billing` — platform invoices, dunning, apply-pending plan changes, Stripe readiness booleans only.
 3. If the audience banner warns about `salesos-api`, stop mutating admin APIs — mint path is not shipped; escalate to Backend for DEC-093 owner login when needed. FE-S07-06: a tenant-audience 401 on `/api/v1/admin/*` toasts honesty and **keeps** the tenant session (no forced `/login` bounce).
 4. Shell also links Flags (`/admin/flags`), Config (`/admin/config`), and Audit (`/admin/audit`).
-5. Prefer read-path Ops work in Phase 1. Existing lifecycle CTAs (suspend/activate/reprovision/delete) remain on tenants page; refund / ad-hoc suspend-override beyond those APIs are deferred.
+5. Each ops page shows an honesty strip (`owner-ops-*-honesty`) — owner audience required; no invented mint; Not Production GO.
+6. Prefer read-path Ops work in Phase 1. Existing lifecycle CTAs (suspend/activate/reprovision/delete) remain on tenants page; refund / ad-hoc suspend-override beyond those APIs are deferred.
 
-**Verification:** Shell testids `owner-console-shell`, `owner-console-audience-banner`, `owner-console-host-banner` visible; tenants/billing pages load; admin API calls succeed only with owner audience.
+**Verification:** Shell testids `owner-console-shell`, `owner-console-audience-banner`, `owner-console-host-banner` visible; tenants/billing/flags/config/audit pages load with honesty strips; admin API calls succeed only with owner audience.
 
 **Rollback:** N/A (read UI). If a mistaken write occurred via lifecycle APIs, use the existing activate/reprovision/retention procedures in §§12–13.
 

@@ -31,6 +31,7 @@ import {
   useToggleAdminFlagForTenant,
 } from "@/lib/hooks/adminQueries";
 import type { AdminFeatureFlag } from "@/lib/api";
+import { OwnerOpsPageHonesty } from "@/features/admin/OwnerOpsPageHonesty";
 
 export default function AdminFlagsPage() {
   const { toast } = useToast();
@@ -90,7 +91,8 @@ export default function AdminFlagsPage() {
   }, [showEdit, editForm, updateMutation, toast]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="admin-flags-page">
+      <OwnerOpsPageHonesty surface="flags" />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-primary)]">

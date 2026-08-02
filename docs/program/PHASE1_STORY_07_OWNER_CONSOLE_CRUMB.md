@@ -12,7 +12,8 @@
 | STORY-07-03 Owner-only auth shell + audience honesty | **LANDED** | `OwnerConsoleShell` + `ownerAudience.ts` |
 | FE-S07-04 Host honesty + overview deep-links + E2E shell hooks | **LANDED** | overview MVP links; host banner; e2e hooks |
 | FE-S07-05 Ops runbook + read-path honesty + billing E2E | **LANDED** | `OPERATIONS_MANUAL` §15; cross-audience Jest |
-| FE-S07-06 Ops nav + tenant-JWT admin 401 honesty toast | **LANDED** (this tip) | flags/config/audit nav; keep tenant session |
+| FE-S07-06 Ops nav + tenant-JWT admin 401 honesty toast | **LANDED** | flags/config/audit nav; keep tenant session |
+| FE-S07-07 Ops page honesty + config deep-link + EPIC-07 MVP close | **LANDED** (this tip) | flags/config/audit strips; DEC-093 residual |
 
 ## Honesty
 
@@ -23,4 +24,8 @@
 - `owner.salesos.io` host honesty classified (owner-target / local / shared-app) — **not** claimed as live separate deploy.
 - `TenantList.tsx` untouched. **No Production GO.**
 
-**Validation:** focused Jest (`ownerAudience.test.ts`). CI FE Lint/Types/Unit after land.
+**Validation:** focused Jest (`ownerAudience.test.ts`, `owner-ops-page-honesty.test.tsx`). CI FE Lint/Types/Unit after land.
+
+## EPIC-07 Stream B MVP status
+
+**CLOSED for Phase 1 FE MVP** on this tip — shell, audience/host honesty, tenants/billing/flags/config/audit nav + page honesty, ops runbook §15. Residuals (not blockers for this close): DEC-093 owner login mint (BE), deferred refund/suspend-override writes, separate `owner.salesos.io` deploy (not claimed live). **No Production GO.**
