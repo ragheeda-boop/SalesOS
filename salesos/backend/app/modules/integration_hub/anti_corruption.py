@@ -70,9 +70,7 @@ class OdooTranslator:
         self,
         raw: Mapping[str, Any],
         *,
-        mappings: list[Mapping[str, Any]]
-        | tuple[FieldMapEntry, ...]
-        | list[FieldMapEntry],
+        mappings: list[Mapping[str, Any]] | tuple[FieldMapEntry, ...] | list[FieldMapEntry],
         sync_run_id: str,
         source_updated_at: datetime | None = None,
         existing_canonical: Mapping[str, Any] | None = None,
@@ -101,9 +99,7 @@ class OdooTranslator:
 
     # --- six internal responsibilities (not public classes) -------------------
 
-    def _map(
-        self, raw: Mapping[str, Any], entries: tuple[FieldMapEntry, ...]
-    ) -> dict[str, Any]:
+    def _map(self, raw: Mapping[str, Any], entries: tuple[FieldMapEntry, ...]) -> dict[str, Any]:
         """Mapper — FieldMappingConfig-driven external → internal projection."""
         if not isinstance(raw, Mapping):
             raise AclValidationError("raw record must be an object")
@@ -113,13 +109,9 @@ class OdooTranslator:
                 out[entry.internal] = raw.get(entry.external)
         return out
 
-    def _validate(
-        self, mapped: Mapping[str, Any], entries: tuple[FieldMapEntry, ...]
-    ) -> None:
+    def _validate(self, mapped: Mapping[str, Any], entries: tuple[FieldMapEntry, ...]) -> None:
         """Validator — required presence + business rules (loud failure)."""
-        required = {
-            e.internal for e in entries if e.direction in {"pull", "bidirectional"}
-        }
+        required = {e.internal for e in entries if e.direction in {"pull", "bidirectional"}}
         for key in sorted(required):
             val = mapped.get(key)
             if val is None or (isinstance(val, str) and not val.strip()):
@@ -133,8 +125,7 @@ class OdooTranslator:
             digits = re.sub(r"\D", "", str(cr))
             if not _CR_RE.match(digits):
                 raise AclValidationError(
-                    f"ACL Validator rejected record: cr_number {cr!r} "
-                    "must be 10 digits",
+                    f"ACL Validator rejected record: cr_number {cr!r} " "must be 10 digits",
                     field="cr_number",
                 )
         amount = mapped.get("amount")
@@ -161,8 +152,7 @@ class OdooTranslator:
         if not key:
             if self._strict_stages:
                 raise AclValidationError(
-                    "ACL Transformer rejected record: empty stage "
-                    "(not silently passed through)",
+                    "ACL Transformer rejected record: empty stage " "(not silently passed through)",
                     field="stage",
                 )
             return out
