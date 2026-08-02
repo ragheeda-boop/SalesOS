@@ -181,6 +181,16 @@ def register_routers(app: FastAPI) -> None:
     )
     app.include_router(marketplace_router)
 
+    # EPIC-14 / STORY-14-02 — Chaos resilience fault-injection harness (CI).
+    from app.modules.chaos_resilience.router import router as chaos_resilience_router
+
+    app.include_router(
+        chaos_resilience_router,
+        prefix="/api/v1",
+        tags=["Chaos Resilience"],
+        dependencies=_auth,
+    )
+
     app.include_router(sso_router, prefix="/api/v1", tags=["SSO"])
     # Mount without router-level auth so Google OAuth /callback can complete
     # without a Bearer header. Protected routes declare Depends(verify_token).
@@ -327,6 +337,17 @@ def register_routers(app: FastAPI) -> None:
 
     app.include_router(
         lookalike_router,
+        prefix="/api/v1",
+        tags=["GTM Intelligence"],
+        dependencies=_auth,
+    )
+    # DOM-023 / CAP-101 — STORY-11-07 Website Intelligence (fixture + prompt registry).
+    from app.modules.gtm.website_intelligence_router import (
+        router as website_intelligence_router,
+    )
+
+    app.include_router(
+        website_intelligence_router,
         prefix="/api/v1",
         tags=["GTM Intelligence"],
         dependencies=_auth,
