@@ -127,6 +127,12 @@ export const tenantStudioKeys = {
     [...tenantStudioKeys.all, "form-schema", tenantId, objectKey] as const,
   scoringRules: (tenantId: string) =>
     [...tenantStudioKeys.all, "scoring-rules", tenantId] as const,
+  permissionsCatalog: (tenantId: string) =>
+    [...tenantStudioKeys.all, "permissions-catalog", tenantId] as const,
+  permissionsCeiling: (tenantId: string) =>
+    [...tenantStudioKeys.all, "permissions-ceiling", tenantId] as const,
+  customRoles: (tenantId: string) =>
+    [...tenantStudioKeys.all, "custom-roles", tenantId] as const,
 };
 
 export const opportunityKeys = {

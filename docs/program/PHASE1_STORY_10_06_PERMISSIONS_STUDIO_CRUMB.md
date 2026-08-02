@@ -21,7 +21,7 @@
 
 ## Non-goals
 
-- FE `/studio/permissions` page wire-up
+- FE `/studio/permissions` page wire-up — **LANDED FE-S10-06** (Stream B)
 - Postgres role persistence / new RLS
 - Mutating Owner Admin `/admin/roles` (separate plane)
 - Production GO

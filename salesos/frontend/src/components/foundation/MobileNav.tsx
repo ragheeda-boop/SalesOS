@@ -20,6 +20,7 @@ import {
   Plug,
   FormInput,
   Gauge,
+  KeyRound,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
@@ -49,6 +50,11 @@ export function MobileNav() {
       href: "/studio/scoring",
       key: "nav.scoring_rules",
       icon: Gauge,
+    },
+    {
+      href: "/studio/permissions",
+      key: "nav.permissions_studio",
+      icon: KeyRound,
     },
     { href: "/settings", key: "nav.settings", icon: Settings },
     { href: "/admin", key: "nav.admin", icon: Shield },

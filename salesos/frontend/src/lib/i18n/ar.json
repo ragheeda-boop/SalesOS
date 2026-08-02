@@ -1125,5 +1125,6 @@
   "admin.plan_manager.no_licenses": "لا توجد تراخيص",
   "nav.custom_fields": "الحقول المخصصة",
   "nav.scoring_rules": "قواعد التسجيل",
+  "nav.permissions_studio": "استوديو الصلاحيات",
   "nav.integrations": "التكاملات"
 }

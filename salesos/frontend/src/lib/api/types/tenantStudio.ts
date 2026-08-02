@@ -174,3 +174,69 @@ export interface ScoringEvaluateResponse {
   explanation: string[];
   dimension_weights_used: Record<string, number>;
 }
+
+/** Tip STORY-10-06 Permissions Studio (custom roles + entitlement ceiling). */
+export type StudioPlanTier = "starter" | "growth" | "enterprise";
+
+export const STUDIO_PLAN_TIERS: StudioPlanTier[] = [
+  "starter",
+  "growth",
+  "enterprise",
+];
+
+export interface StudioPermissionCatalogItem {
+  key: string;
+  name: string;
+  description: string;
+  domain: string;
+  group: string;
+  requires_publish: boolean;
+  within_ceiling: boolean;
+  ceiling_reason?: string | null;
+}
+
+export interface PermissionsCeilingSummary {
+  enabled_domains: string[];
+  publish_domains: string[];
+  grantable_permissions: string[];
+  entitlements?: Record<string, unknown>;
+  version?: number;
+}
+
+export interface SetPermissionsCeilingBody {
+  plan_tier?: string | null;
+  entitlements?: Record<string, unknown> | null;
+}
+
+export interface CeilingCheckRequest {
+  permissions: string[];
+  plan_tier?: string | null;
+  entitlements?: Record<string, unknown> | null;
+}
+
+export interface CeilingCheckResponse {
+  allowed: boolean;
+  rejected: string[];
+  reasons: Record<string, string>;
+  grantable: string[];
+}
+
+export interface CustomRoleUpsert {
+  id?: string | null;
+  name: string;
+  description?: string;
+  permissions: string[];
+  plan_tier?: string | null;
+  entitlements?: Record<string, unknown> | null;
+}
+
+export interface CustomRole {
+  id: string;
+  tenant_id: string;
+  name: string;
+  description: string;
+  permissions: string[];
+  schema_version: number;
+  created_at?: string;
+  updated_at?: string;
+}

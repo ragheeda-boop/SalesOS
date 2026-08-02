@@ -1125,5 +1125,6 @@
   "admin.plan_manager.no_licenses": "No licenses found",
   "nav.custom_fields": "Custom Fields",
   "nav.scoring_rules": "Scoring Rules",
+  "nav.permissions_studio": "Permissions Studio",
   "nav.integrations": "Integrations"
 }

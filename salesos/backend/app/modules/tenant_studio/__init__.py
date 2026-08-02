@@ -1,6 +1,7 @@
-"""Tenant Studio — CAP-082/083/085/003 (STORY-10-01..10-04, 10-06).
+"""Tenant Studio — CAP-082/083/085/003/093 (STORY-10-01..10-04, 10-06, 10-08).
 
-Custom fields + Workflow Builder + Scoring Rules + Permissions. Not Production GO.
+Custom fields + Workflow + Scoring + Permissions + Notification Rules.
+Not Production GO.
 """
 
 from app.modules.tenant_studio.auto_render import (
@@ -16,6 +17,13 @@ from app.modules.tenant_studio.definitions import (
     CustomFieldDefinitionError,
     CustomObjectSchema,
     build_field_definition,
+)
+from app.modules.tenant_studio.notification_rules import (
+    NotificationRule,
+    NotificationRuleError,
+)
+from app.modules.tenant_studio.notification_rules_engine import (
+    route_notification_event,
 )
 from app.modules.tenant_studio.permission_ceiling import (
     PermissionCeilingError,
@@ -51,6 +59,8 @@ __all__ = [
     "CustomRole",
     "CustomRoleError",
     "MemCustomFieldDefinitionService",
+    "NotificationRule",
+    "NotificationRuleError",
     "PLATFORM_DEFAULT_WEIGHTS",
     "PermissionCeilingError",
     "RESERVED_COLUMNS",
@@ -69,4 +79,5 @@ __all__ = [
     "merge_custom_field_values",
     "read_custom_field_values",
     "reserved_for",
+    "route_notification_event",
 ]
