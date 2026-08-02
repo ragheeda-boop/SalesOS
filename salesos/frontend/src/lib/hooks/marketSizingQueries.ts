@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   computeMarketSizing,
+  getMarketSizing,
   getMarketSizingMeta,
   listMarketSizing,
   type MarketSizingComputeBody,
@@ -28,15 +29,26 @@ export function useMarketSizingList() {
   });
 }
 
+export function useMarketSizingDetail(snapshotId: string | null) {
+  const tenantId = getTenantId();
+  return useQuery({
+    queryKey: gtmKeys.marketSizingDetail(tenantId, snapshotId ?? ""),
+    queryFn: () => getMarketSizing(tenantId, snapshotId as string),
+    enabled: Boolean(snapshotId),
+    staleTime: 10_000,
+  });
+}
+
 export function useComputeMarketSizing() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: MarketSizingComputeBody) =>
       computeMarketSizing(getTenantId(), body),
-    onSuccess: () => {
+    onSuccess: (row) => {
       qc.invalidateQueries({
         queryKey: gtmKeys.marketSizingList(getTenantId()),
       });
+      qc.setQueryData(gtmKeys.marketSizingDetail(getTenantId(), row.id), row);
     },
   });
 }

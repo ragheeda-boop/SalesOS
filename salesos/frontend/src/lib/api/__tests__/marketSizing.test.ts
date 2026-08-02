@@ -1,5 +1,6 @@
 import {
   computeMarketSizing,
+  getMarketSizing,
   getMarketSizingMeta,
   listMarketSizing,
 } from "../marketSizing";
@@ -84,5 +85,34 @@ describe("marketSizing API — FE-S11-02", () => {
     );
     expect(row.som).toBe(5);
     expect(row.invariant_ok).toBe(true);
+  });
+
+  it("GETs tip snapshot detail", async () => {
+    mocked.get.mockResolvedValueOnce({
+      data: {
+        id: "ms1",
+        tenant_id: "tenant-1",
+        name: "Pilot",
+        criteria: {
+          industries: ["tech"],
+          cities: ["riyadh"],
+          employees_min: 10,
+          employees_max: 100,
+        },
+        tam: 50,
+        sam: 20,
+        som: 5,
+        universe_size: 250,
+        dataset_scale_hint: 141221,
+        schema_version: 1,
+        invariant_ok: true,
+      },
+    });
+    const row = await getMarketSizing("tenant-1", "ms1");
+    expect(mocked.get).toHaveBeenCalledWith(
+      "/api/v1/gtm/market-sizing/ms1",
+      expect.any(Object),
+    );
+    expect(row.id).toBe("ms1");
   });
 });

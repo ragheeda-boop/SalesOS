@@ -16,3 +16,4 @@ export * from "./api/workflowStudio";
 export * from "./api/notificationRulesStudio";
 export * from "./api/brandingStudio";
 export * from "./api/marketSizing";
+export * from "./api/leadDiscovery";

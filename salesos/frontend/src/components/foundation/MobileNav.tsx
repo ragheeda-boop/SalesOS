@@ -24,6 +24,7 @@ import {
   Bell,
   Palette,
   Target,
+  Radar,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { TenantBrandMark } from "@/features/tenant-studio/TenantBrandMark";
@@ -79,6 +80,11 @@ export function MobileNav() {
       href: "/gtm/market-sizing",
       key: "nav.market_sizing",
       icon: Target,
+    },
+    {
+      href: "/gtm/lead-discovery",
+      key: "nav.lead_discovery",
+      icon: Radar,
     },
     { href: "/settings", key: "nav.settings", icon: Settings },
     { href: "/admin", key: "nav.admin", icon: Shield },

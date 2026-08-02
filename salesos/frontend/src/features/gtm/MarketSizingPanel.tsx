@@ -4,9 +4,11 @@ import { useState } from "react";
 import { Button, Input, Spinner, useToast } from "@salesos/ui";
 import {
   useComputeMarketSizing,
+  useMarketSizingDetail,
   useMarketSizingList,
   useMarketSizingMeta,
 } from "@/lib/hooks/marketSizingQueries";
+import type { MarketSizingSnapshot } from "@/lib/api";
 import {
   MARKET_SIZING_HONESTY,
   MARKET_SIZING_NON_GOALS,
@@ -35,9 +37,59 @@ function parseOptionalInt(raw: string): number | null {
   return Math.trunc(n);
 }
 
+function pctOf(part: number, whole: number): number {
+  if (!whole || whole <= 0) return 0;
+  return Math.max(0, Math.min(100, (part / whole) * 100));
+}
+
+function NestedBands({ row }: { row: MarketSizingSnapshot }) {
+  const base = Math.max(row.universe_size, row.tam, 1);
+  return (
+    <div
+      className="space-y-2 rounded border border-[var(--border-default)] p-3"
+      data-testid="market-sizing-bands"
+    >
+      <p className="text-xs font-semibold text-[var(--text-primary)]">
+        Nested bands (SOM ≤ SAM ≤ TAM ≤ universe) — tip snapshot {row.id}
+      </p>
+      {(
+        [
+          ["Universe", row.universe_size, "var(--text-muted)"],
+          ["TAM", row.tam, "var(--muhide-orange)"],
+          ["SAM", row.sam, "#2563eb"],
+          ["SOM", row.som, "#16a34a"],
+        ] as const
+      ).map(([label, value, color]) => (
+        <div
+          key={label}
+          data-testid={`market-sizing-band-${label.toLowerCase()}`}
+        >
+          <div className="mb-0.5 flex justify-between text-xs text-[var(--text-muted)]">
+            <span>{label}</span>
+            <span className="font-mono">{value}</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded bg-[var(--bg-tertiary)]">
+            <div
+              className="h-full rounded"
+              style={{
+                width: `${pctOf(value, base)}%`,
+                backgroundColor: color,
+              }}
+            />
+          </div>
+        </div>
+      ))}
+      <p className="font-mono text-xs text-[var(--text-muted)]">
+        invariant {row.invariant_ok ? "ok" : "FAIL"} · hint{" "}
+        {row.dataset_scale_hint} (scale hint only — live 141221 not claimed)
+      </p>
+    </div>
+  );
+}
+
 /**
- * FE-S11-02 — TAM/SAM/SOM Market Sizing against tip STORY-11-02 HTTP.
- * Gov-dataset-shaped in-memory universe. Not Production GO / RAG GO.
+ * FE-S11-02 / FE-S11-02b — TAM/SAM/SOM Market Sizing against tip STORY-11-02 HTTP.
+ * Detail GET + nested bands polish. Not Production GO / RAG GO.
  */
 export function MarketSizingPanel() {
   const { toast } = useToast();
@@ -45,11 +97,33 @@ export function MarketSizingPanel() {
   const listQuery = useMarketSizingList();
   const computeMutation = useComputeMarketSizing();
 
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const detailQuery = useMarketSizingDetail(selectedId);
+
   const [name, setName] = useState("Pilot market");
   const [industries, setIndustries] = useState("technology, software");
   const [cities, setCities] = useState("riyadh, jeddah");
   const [employeesMin, setEmployeesMin] = useState("10");
   const [employeesMax, setEmployeesMax] = useState("500");
+
+  function loadCriteria(row: MarketSizingSnapshot) {
+    setSelectedId(row.id);
+    setName(row.name);
+    setIndustries((row.criteria.industries ?? []).join(", "));
+    setCities((row.criteria.cities ?? []).join(", "));
+    setEmployeesMin(
+      row.criteria.employees_min == null
+        ? ""
+        : String(row.criteria.employees_min),
+    );
+    setEmployeesMax(
+      row.criteria.employees_max == null
+        ? ""
+        : String(row.criteria.employees_max),
+    );
+  }
+
+  const activeDetail = detailQuery.data;
 
   return (
     <div className="space-y-4" data-testid="market-sizing-panel">
@@ -62,13 +136,18 @@ export function MarketSizingPanel() {
       </p>
 
       {metaQuery.data ? (
-        <p
-          className="font-mono text-xs text-[var(--text-muted)]"
+        <div
+          className="space-y-1 font-mono text-xs text-[var(--text-muted)]"
           data-testid="market-sizing-meta"
         >
-          scale_hint {metaQuery.data.dataset_scale_hint} ·{" "}
-          {metaQuery.data.invariant}
-        </p>
+          <p>
+            scale_hint {metaQuery.data.dataset_scale_hint} ·{" "}
+            {metaQuery.data.invariant}
+          </p>
+          <p data-testid="market-sizing-meta-honesty">
+            tip /meta: {metaQuery.data.honesty}
+          </p>
+        </div>
       ) : metaQuery.isError ? (
         <p className="text-sm text-[var(--text-danger)]">
           {getApiError(metaQuery.error)}
@@ -82,6 +161,7 @@ export function MarketSizingPanel() {
           onClick={() => {
             void listQuery.refetch();
             void metaQuery.refetch();
+            if (selectedId) void detailQuery.refetch();
           }}
         >
           {listQuery.isFetching ? "Refreshing…" : "Refresh snapshots"}
@@ -112,22 +192,47 @@ export function MarketSizingPanel() {
           </li>
         ) : (
           (listQuery.data ?? []).map((row) => (
-            <li
-              key={row.id}
-              className="px-3 py-2 text-sm"
-              data-testid="market-sizing-row"
-            >
-              <span className="font-medium">{row.name}</span> · TAM {row.tam} ·
-              SAM {row.sam} · SOM {row.som}
-              <span className="mt-0.5 block font-mono text-xs text-[var(--text-muted)]">
-                {row.id} · universe {row.universe_size} · hint{" "}
-                {row.dataset_scale_hint} · invariant{" "}
-                {row.invariant_ok ? "ok" : "FAIL"}
-              </span>
+            <li key={row.id} className="px-1 py-1 text-sm">
+              <button
+                type="button"
+                className={`w-full rounded px-2 py-2 text-start hover:bg-[var(--bg-tertiary)] ${
+                  selectedId === row.id
+                    ? "bg-[var(--bg-tertiary)] ring-1 ring-[var(--border-default)]"
+                    : ""
+                }`}
+                data-testid="market-sizing-row"
+                onClick={() => loadCriteria(row)}
+              >
+                <span className="font-medium">{row.name}</span> · TAM {row.tam}{" "}
+                · SAM {row.sam} · SOM {row.som}
+                <span className="mt-0.5 block font-mono text-xs text-[var(--text-muted)]">
+                  {row.id} · universe {row.universe_size} · hint{" "}
+                  {row.dataset_scale_hint} · invariant{" "}
+                  {row.invariant_ok ? "ok" : "FAIL"} · click → tip GET detail
+                </span>
+              </button>
             </li>
           ))
         )}
       </ul>
+
+      {selectedId ? (
+        detailQuery.isLoading ? (
+          <Spinner
+            className="h-5 w-5"
+            data-testid="market-sizing-detail-loading"
+          />
+        ) : detailQuery.isError ? (
+          <p
+            className="text-sm text-[var(--text-danger)]"
+            data-testid="market-sizing-detail-error"
+          >
+            {getApiError(detailQuery.error)}
+          </p>
+        ) : activeDetail ? (
+          <NestedBands row={activeDetail} />
+        ) : null
+      ) : null}
 
       <form
         className="space-y-3 rounded border border-[var(--border-default)] p-3"
@@ -150,9 +255,11 @@ export function MarketSizingPanel() {
               cities: splitCsv(cities),
               employees_min: parseOptionalInt(employeesMin),
               employees_max: parseOptionalInt(employeesMax),
+              id: selectedId ?? undefined,
             },
             {
               onSuccess: (row) => {
+                setSelectedId(row.id);
                 toast({
                   variant: "success",
                   title: "Market sized",
@@ -172,6 +279,11 @@ export function MarketSizingPanel() {
       >
         <h2 className="text-sm font-semibold text-[var(--text-primary)]">
           Compute TAM / SAM / SOM (tip POST)
+          {selectedId ? (
+            <span className="ms-2 font-mono text-xs font-normal text-[var(--text-muted)]">
+              upsert id {selectedId}
+            </span>
+          ) : null}
         </h2>
         <Input
           label="name"

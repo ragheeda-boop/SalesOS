@@ -154,6 +154,14 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.gtm.lead-discovery",
+    label: "GTM · Lead Discovery",
+    description: "Gov-first lead discovery (tip STORY-11-03)",
+    category: "تنقل",
+    handler: () => router.push("/gtm/lead-discovery"),
+  });
+
+  registerCommand({
     id: "go.settings",
     label: "الإعدادات",
     description: "الانتقال إلى الإعدادات",

@@ -38,6 +38,7 @@ import {
   KeyRound,
   Palette,
   Target,
+  Radar,
 } from "lucide-react";
 import {
   LazyCommandBar,
@@ -91,6 +92,7 @@ const NAV_KEYS = [
   { href: "/studio/notifications", key: "nav.notification_rules", icon: Bell },
   { href: "/studio/branding", key: "nav.branding_studio", icon: Palette },
   { href: "/gtm/market-sizing", key: "nav.market_sizing", icon: Target },
+  { href: "/gtm/lead-discovery", key: "nav.lead_discovery", icon: Radar },
   { href: "/settings", key: "nav.settings", icon: Settings },
   { href: "/admin", key: "nav.admin", icon: Shield },
 ];

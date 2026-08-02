@@ -41,8 +41,10 @@
 | FE-S10-07 | Branding Studio (tip 10-07 GET/PUT) |
 | FE-S10-07b | Branding chrome — tip display_name + colors on shell |
 | FE-S11-02 | Market Sizing TAM/SAM/SOM (tip 11-02) |
+| FE-S11-02b | Market Sizing detail GET + nested bands |
+| FE-S11-03 | Lead Discovery gov-first UI (tip 11-03) |
 | FE-S10-05 | Territory config — **BLOCKED** (no tip `/studio/territories` BE) |
-| FE-S11-01 / FE-S11-03 | ICP / Lead Discovery — **STANDBY** (no tip BE yet) |
+| FE-S11-01 | ICP Engine — **STANDBY** (no tip BE yet) |
 
 ## Blocked (do not invent)
 
