@@ -4,7 +4,7 @@
 # Do NOT auto-run on push (avoids dual-fire with deploy.yml on master).
 # Manual dispatch only; soft-skips when staging IDs absent (does not fail default path).
 # Frontend → Vercel (Git primary; optional CLI). No GHCR/SSH.
-# Orthogonal: CI Stage 6 GHCR publish (ci.yml) remains CI-08.
+# CI Stage 6 GHCR publish (ci.yml) quarantined under DEC-150 Option B — not Phase 0 required.
 
 name: Deploy Staging
 

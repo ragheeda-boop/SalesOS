@@ -519,11 +519,16 @@ jobs:
           path: salesos/reports/arch-compliance-report.json
 
   # ──────────────────────────────────────────────
-  # Stage 6: Build
+  # Stage 6: Build + GHCR Push — QUARANTINED (DEC-150 Option B)
+  # GHCR publish is no longer a required Phase 0 capability after DEC-149
+  # (canonical deploy = Railway BE + Vercel FE). Jobs kept for historical /
+  # emergency reference only; forced inactive via `if: false` (same pattern
+  # family as K8s deploy-production.yml quarantine). Do not remove Stages 1–5.
+  # To re-enable: ARB must reverse DEC-150 B and restore Phase 0 GHCR AC.
   # ──────────────────────────────────────────────
   build-backend:
-    name: "Stage 6: Build Backend"
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    name: "Stage 6: Build Backend (QUARANTINED DEC-150 B)"
+    if: false
     needs:
       - test-backend
       - test-frontend
@@ -573,8 +578,8 @@ jobs:
           sbom: true
 
   build-frontend:
-    name: "Stage 6: Build Frontend"
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    name: "Stage 6: Build Frontend (QUARANTINED DEC-150 B)"
+    if: false
     needs:
       - test-backend
       - test-frontend
@@ -625,11 +630,23 @@ jobs:
 
   # ──────────────────────────────────────────────
   # Stage 7: E2E Tests
+  # DEC-150 B: decoupled from quarantined Stage 6 GHCR (no longer needs
+  # build-backend/build-frontend). Still gated on Stages 1–5 / arch. Criterion
+  # 3.7 remains OPEN until Playwright has real backend services.
   # ──────────────────────────────────────────────
   e2e:
     name: "Stage 7: E2E Tests"
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-    needs: [build-backend, build-frontend]
+    needs:
+      - test-backend
+      - test-frontend
+      - integration-backend
+      - security-pip-audit
+      - security-npm-audit
+      - security-bandit
+      - security-secrets-scan
+      - test-architecture
+      - arch-compliance
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4

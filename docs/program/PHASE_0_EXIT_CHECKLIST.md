@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-02 (DEC-150 Proposed: Stage 6 GHCR necessity pending ARB — CI-08 **BLOCKED BY GOVERNANCE**; prior DEC-149a: **3.11 CLOSED CONDITIONAL**; Phase 0 **46/54 NO-GO**; no Production GO)
+> **Last updated:** 2026-08-02 (DEC-150 **Option B Accepted**: Stage 6 GHCR publish **no longer** a Phase 0 required capability after DEC-149; **3.6/3.10 CLOSED — SUPERSEDED**; prior DEC-149a: **3.11 CLOSED CONDITIONAL**; Phase 0 **48/54 NO-GO**; no Production GO)
 >
 > ## Operating State
 >
@@ -22,9 +22,9 @@
 
 ## Current Verdict
 
-**Phase 0 = NO-GO** (CI-08; EOS ARB **4.1/4.8**; CI GREEN publish **3.9** not met; CI-09 / **3.11 CLOSED CONDITIONAL** — does not clear Phase 0)
+**Phase 0 = NO-GO** (EOS ARB **4.1/4.8**; CI GREEN under DEC-149 topology **3.9** not met; Stage 7 E2E **3.7** OPEN; CI-09 / **3.11 CLOSED CONDITIONAL** — does not clear Phase 0)
 
-Blocked on: **CI-08** (**BLOCKED BY GOVERNANCE** — Stage 6 necessity pending DEC-150; field GHCR 403 residual may be moot if Option B), **CI GREEN not met** (full/publish **3.9** under current AC), EOS **ARB** re-audit. CI-09 / **3.11 CLOSED CONDITIONAL** (DEC-149a; FE Git-primary; staging deferred). R-14 Railway **2.3 CLOSED CONDITIONAL** (multi-tenant live split residual). Security **1.5** / CI GREEN path residuals unchanged.
+Blocked on: **CI GREEN not met** (**3.9** redefined post–DEC-150 B — Stages 1–5 + Railway/Vercel deploy evidence; **does not** require Stage 6 GHCR), Stage 7 E2E **3.7** (no real services — **not** GHCR-dep), EOS **ARB** re-audit. **CI-08 / Stage 6 GHCR publish retired as Phase 0 gate** (DEC-150 Option B Accepted; residual GHCR 403 = legacy/non-blocking). CI-09 / **3.11 CLOSED CONDITIONAL** (DEC-149a; FE Git-primary; staging deferred). R-14 Railway **2.3 CLOSED CONDITIONAL** (multi-tenant live split residual). Security **1.5** / CI GREEN path residuals unchanged.
 
 ---
 
@@ -71,12 +71,12 @@ Blocked on: **CI-08** (**BLOCKED BY GOVERNANCE** — Stage 6 necessity pending D
 | 3.3 | Stage 3: Frontend Unit Tests green | 196/196 suites PASS (DEC-077) | ✅ Jest-debt |
 | 3.4 | Stage 4: Backend Unit + Integration green | `pytest` 2700+ PASS, `-n auto` | ✅ CI-22 follow-on |
 | 3.5 | Stage 5: Security Scan green | pip-audit (named ignore only), Bandit, Gitleaks, Semgrep residual-only | ✅ VERIFIED/CLOSED **CONDITIONAL** — Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL @ `5d558af` / pin `a6488f2` (DEC-147a); CI Stage 5 + Security Scan SUCCESS @ `c842245` (`30704321096` / `30704321107`); ecdsa named ignore (DEC-057/090/098); Semgrep residual **11** alembic (DEC-105); residual: *post-align Security Scan pip-audit field-verify PENDING until tip containing `fa266b5` is pushed*; does **not** auto-close **3.8**; DEC-085 untouched; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN / finding-zero / unconditional CLOSED |
-| 3.6 | Stage 6: Docker Build + Push green | Backend + Frontend images build + push | ☐ CI-08 **BLOCKED BY GOVERNANCE** (Stage 6 necessity pending DEC-150) — field GHCR 403 @ `30721601875` residual; may be moot if DEC-150 Option B; do **not** CLOSE |
-| 3.7 | Stage 7: E2E green | Playwright specs PASS with real backend services | ⬜ CI e2e job has no services |
-| 3.8 | Full pipeline: CI GREEN (code path) | Stages 1–5 all green on same run | ✅ VERIFIED/CLOSED **CONDITIONAL** — Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL @ `14fce5f` (DEC-148a); local ruff 0.4.10 check+format exit 0; last push `c842245` / `30704321096` Stage 1 FAILURE (6× E501) → Stages 3 BE/4 SKIPPED; residual: *tip Stages 1–5 same-run field-verify tip `d1dcce4`/`30720732268` Stage1 SUCCESS Stage2 mypy FAILURE — Stages 1-5 same-run still PENDING; CONDITIONAL stands* (Stage 3/4 may still fail when unblocked); historical Stages 1–5 SUCCESS @ `7ba137b` / `30689682988` (not tip); does **not** close **3.6–3.11** ops / **3.9** full CI GREEN; DEC-085 untouched; Orchestrator 2026-08-02; do **not** claim Production GO / CI GREEN / unconditional CLOSED |
-| 3.9 | Full pipeline: CI GREEN (incl. publish) | Stages 1–7 all green on same run | ⬜ CI-08 **BLOCKED BY GOVERNANCE** pending DEC-150 (subject to ARB; do **not** CLOSE) |
-| 3.10 | CI-08 GHCR 403 resolved | Stage 6 push succeeds (DEC-104 Option A) | OPEN — **BLOCKED BY GOVERNANCE** pending DEC-150 (Stage 6 necessity). Field residual 2026-08-02: packages linked; Deploy Staging [`30721601875`](https://github.com/ragheeda-boop/SalesOS/actions/runs/30721601875) @ `7f1482e` still **403**. Honesty: 403 may be moot if DEC-150 Option B retires GHCR as exit criterion. Do **not** CLOSE / do **not** mark obsolete. Companion [`decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md`](decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md) |
-| 3.11 | CI-09 deploy path (Railway+Vercel; was VPS SSH) | Canonical deploy functional under accepted topology | ✅ VERIFIED/CLOSED **CONDITIONAL** (DEC-149a) — Arch prior PASS + Validation PASS @ `c3507ed` / [30723120473](https://github.com/ragheeda-boop/SalesOS/actions/runs/30723120473): Railway up ✓; Health Gate HTTP 200 ✓; Vercel FE Git-primary ✓; DEC-149 §6 production names present (repo). Residuals: *FE verified via Git-primary (not Vercel CLI prod); staging deferred (single-env DEC-149); no VPS*. Does **not** close **3.6/3.9/3.10** CI-08 / full CI GREEN. DEC-085 untouched. Orchestrator 2026-08-02; do **not** claim Production GO / CI GREEN / unconditional CLOSED |
+| 3.6 | Canonical deploy validation (Railway+Vercel) — *was Stage 6 GHCR Docker Build+Push* | Live deploy evidence under DEC-149 topology (not GHCR `:latest`/SHA push) | ✅ **CLOSED — SUPERSEDED** (DEC-150 **Option B** Accepted) — Stage 6 GHCR publish **no longer** a Phase 0 required capability after DEC-149. Deploy validation evidence lives at **3.11** / CI-09 (DEC-149a CLOSED CONDITIONAL @ `c3507ed` / [30723120473](https://github.com/ragheeda-boop/SalesOS/actions/runs/30723120473)). Traceability: DEC-150 B + DEC-149. Residual field GHCR 403 @ `30721601875` = **legacy/non-blocking** (not a close gate). Do **not** claim field GHCR green / Production GO / full CI GREEN. Companion [`decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md`](decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md) |
+| 3.7 | Stage 7: E2E green | Playwright specs PASS with real backend services | ⬜ OPEN — CI e2e job has no real backend services. **Reframe (DEC-150 B):** no longer Stage-6-GHCR-dep; Stage 6 GHCR quarantined; E2E may run after Stages 1–5 when services exist. Do **not** fake local green as 3.7 CLOSE |
+| 3.8 | Full pipeline: CI GREEN (code path) | Stages 1–5 all green on same run | ✅ VERIFIED/CLOSED **CONDITIONAL** — Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL @ `14fce5f` (DEC-148a); local ruff 0.4.10 check+format exit 0; last push `c842245` / `30704321096` Stage 1 FAILURE (6× E501) → Stages 3 BE/4 SKIPPED; residual: *tip Stages 1–5 same-run field-verify tip `d1dcce4`/`30720732268` Stage1 SUCCESS Stage2 mypy FAILURE — Stages 1-5 same-run still PENDING; CONDITIONAL stands* (Stage 3/4 may still fail when unblocked); historical Stages 1–5 SUCCESS @ `7ba137b` / `30689682988` (not tip); does **not** auto-close **3.9** (topology CI GREEN) / **3.7**; DEC-085 untouched; Orchestrator 2026-08-02; do **not** claim Production GO / CI GREEN / unconditional CLOSED |
+| 3.9 | Full pipeline: CI GREEN (DEC-149 topology) | Stages 1–5 same-run green **and** Deploy Production (Railway+Vercel) evidence — **does not** require Stage 6 GHCR / Stages 1–7 GHCR publish | ⬜ OPEN — GHCR publish gate **retired** (DEC-150 B). Remaining: tip Stages 1–5 same-run still PENDING (3.8 residual); deploy path **3.11 CLOSED CONDITIONAL** (DEC-149a) does **not** auto-close unconditional **3.9**. Do **not** claim CI GREEN / Production GO |
+| 3.10 | CI-08 GHCR 403 resolved — *retired as Phase 0 exit* | N/A — Stage 6 GHCR push SUCCESS no longer required (was DEC-104 Option A) | ✅ **CLOSED — SUPERSEDED** (DEC-150 **Option B** Accepted) — CI-08 mandatory GHCR publish retired as Phase 0 exit criterion. Field residual GHCR 403 @ [`30721601875`](https://github.com/ragheeda-boop/SalesOS/actions/runs/30721601875) = **legacy/non-blocking** tech debt (not ops close gate). Traceability: DEC-150 B + DEC-149. Do **not** claim field GHCR green. Companion [`decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md`](decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md) |
+| 3.11 | CI-09 deploy path (Railway+Vercel; was VPS SSH) | Canonical deploy functional under accepted topology | ✅ VERIFIED/CLOSED **CONDITIONAL** (DEC-149a) — Arch prior PASS + Validation PASS @ `c3507ed` / [30723120473](https://github.com/ragheeda-boop/SalesOS/actions/runs/30723120473): Railway up ✓; Health Gate HTTP 200 ✓; Vercel FE Git-primary ✓; DEC-149 §6 production names present (repo). Residuals: *FE verified via Git-primary (not Vercel CLI prod); staging deferred (single-env DEC-149); no VPS*. Canonical deploy evidence for post–DEC-150 B **3.6** supersession. Does **not** auto-close **3.9** / **3.7**. DEC-085 untouched. Orchestrator 2026-08-02; do **not** claim Production GO / CI GREEN / unconditional CLOSED |
 
 **Owner:** DevOps/SRE Lead  
 **Reference:** `SPRINT_05_DELIVERY_BOARD.md`, `12_CI_CATALOG.md`, DEC-104
@@ -180,35 +180,33 @@ Blocked on: **CI-08** (**BLOCKED BY GOVERNANCE** — Stage 6 necessity pending D
 |---------|-------|----------|---------|------|
 | 1. Security P0 | 5 | 5 | 0 | 0 |
 | 2. RLS & Tenant Isolation | 7 | 6 | 0 | 1 |
-| 3. CI/CD Green | 11 | 7 | 1 (CI-08 governance DEC-150) | 3 |
+| 3. CI/CD Green | 11 | 9 | 0 | 2 |
 | 4. EOS Audit Pass | 8 | 6 | 0 | 2 |
 | 5. Capability Drift | 4 | 4 | 0 | 0 |
 | 6. ADR Drift | 5 | 5 | 0 | 0 |
 | 7. DB Schema | 6 | 6 | 0 | 0 |
 | 8. Engineering Stability | 4 | 4 | 0 | 0 |
 | 9. ADR-036 Applied | 4 | 4 | 0 | 0 |
-| **TOTAL** | **54** | **46** | **1** | **7** |
+| **TOTAL** | **54** | **48** | **0** | **5** |
 
-**Scoreboard honesty (2026-08-02):** Phase 0 pin **45/54 → 46/54** (DEC-149a closes **3.11** CONDITIONAL). RLS cluster Open **1** = **2.3** CLOSED CONDITIONAL multi-tenant residual tracked as scoreboard open (criterion row stays ✅ CONDITIONAL — **not** a hard ⬜; do **not** fake unconditional CLOSE). Hard OPEN ⬜ rows = **6** (**3.6**, **3.7**, **3.9**, **3.10**, **4.1**, **4.8**). Cluster Open cells (1+3+2=6) + scoreboard nuance vs TOTAL Open **7** = pre-existing arithmetic debt (2.3 residual). CI-09 / **3.11** no longer hard OPEN.
+**Scoreboard honesty (2026-08-02):** Phase 0 pin **46/54 → 48/54** (DEC-150 Option B closes **3.6** / **3.10** as **CLOSED — SUPERSEDED**; not field GHCR green). RLS cluster Open **1** = **2.3** CLOSED CONDITIONAL multi-tenant residual tracked as scoreboard open (criterion row stays ✅ CONDITIONAL — **not** a hard ⬜; do **not** fake unconditional CLOSE). Hard OPEN ⬜ rows = **4** (**3.7**, **3.9**, **4.1**, **4.8**). Cluster Open cells (1+2+2=5) matches TOTAL Open **5** (prior 2.3 arithmetic debt absorbed). CI-08 / Stage 6 GHCR no longer Blocked. **Phase 0 remains NO-GO. No Production GO. No CI GREEN.**
 
 ---
 
-## Remaining 8 — Cursor BLOCKED inventory (2026-08-02)
+## Remaining — Cursor BLOCKED inventory (2026-08-02, post DEC-150 B)
 
-No Phase 0 criterion is Cursor-closeable without ARB invent, ops (CI-08), Stage-6 dependency, or human push. CI-09 / **3.11 CLOSED CONDITIONAL** (DEC-149a). Optional contract-test expansion / Jest 30 = PARALLEL backlog only (does **not** close any row below). DEC-085 untouched. **No fake CLOSE. No Production GO. No CI GREEN.**
+No Phase 0 criterion is Cursor-closeable without ARB invent (EOS), E2E services work (**3.7**), tip field-verify (**3.9** / **3.8** residual), or human push. **3.6 / 3.10 CLOSED — SUPERSEDED** (DEC-150 Option B). CI-09 / **3.11 CLOSED CONDITIONAL** (DEC-149a). Optional contract-test expansion / Jest 30 = PARALLEL backlog only. DEC-085 untouched. **No fake CLOSE. No Production GO. No CI GREEN.**
 
 | # | Criterion | Owner | Block class | Why blocked / next action |
 |---|-----------|-------|-------------|---------------------------|
-| 3.6 | Stage 6 Docker Build + Push | DevOps / **ARB** | **governance (DEC-150) + ops residual** | Stage 6 necessity pending DEC-150; field GHCR 403 @ `30721601875` may be moot if Option B; do **not** CLOSE |
-| 3.7 | Stage 7 E2E green | DevOps / Backend | **Stage-6-dep** | Playwright needs real services + Stage 6 path; do not fake local green as 3.7 CLOSE; may follow DEC-150 rewrite of 3.6 |
-| 3.9 | CI GREEN (incl. publish) | DevOps / **ARB** | **governance (DEC-150) + ops residual** | Needs Stages 1–7 same-run under current AC; blocked behind 3.6/3.7/3.10 until DEC-150 |
-| 3.10 | CI-08 GHCR 403 resolved | Ops / **ARB** | **governance (DEC-150)** | BLOCKED BY GOVERNANCE (Stage 6 necessity); field 403 residual; do **not** CLOSE or mark obsolete pending ARB |
+| 3.7 | Stage 7 E2E green | DevOps / Backend | **E2E services** | Playwright needs real backend services; **decoupled from GHCR Stage 6** (DEC-150 B); do not fake local green as 3.7 CLOSE |
+| 3.9 | CI GREEN (DEC-149 topology) | DevOps / Validation | **tip field-verify** | Needs tip Stages 1–5 same-run + retained Railway/Vercel deploy evidence; **does not** require Stage 6 GHCR; 3.11 CONDITIONAL does not auto-close 3.9 |
 | 4.1 | B1–B7 findings resolved | OpenCode / **ARB** | **ARB** | v3.1 corrected; independent re-audit PASS required — **do not invent** |
 | 4.8 | Independent ARB re-audit = PASS | OpenCode / **ARB** | **ARB** | New validation report, no CRITICAL — **do not invent** |
-| 3.8 residual | tip Stages 1-5 same-run | Validation / push | **push field-verify** | Criterion **CLOSED CONDITIONAL** (DEC-148a); prior `d1dcce4` / `30720732268` Stage 2 mypy FAILURE; backend-types fix for `roles_permissions.py` 4× `arg-type` pushed — tip Stages 1-5 same-run PENDING field-verify; CONDITIONAL stands |
+| 3.8 residual | tip Stages 1-5 same-run | Validation / push | **push field-verify** | Criterion **CLOSED CONDITIONAL** (DEC-148a); prior `d1dcce4` / `30720732268` Stage 2 mypy FAILURE; tip Stages 1-5 same-run PENDING field-verify; CONDITIONAL stands; gates **3.9** |
 | 3.5 / 1.5 residual | Security Scan pip-audit post-align | Validation / push | **push field-verify** | Criteria **CLOSED CONDITIONAL**; PENDING push tip containing `fa266b5` — field-verify poetry export + 1 ignored (ecdsa); does **not** auto-close **3.8** |
 
-Adjacent non-blocking residuals (not counted in the 9): **8.3** tip `test-architecture` PENDING push `868a98c`; **8.2** at-scale soak; **2.3** multi-tenant live split.
+Adjacent non-blocking residuals: **8.3** tip `test-architecture` PENDING push `868a98c`; **8.2** at-scale soak; **2.3** multi-tenant live split; legacy GHCR 403 (retired Phase 0 gate).
 
 ---
 
@@ -216,16 +214,16 @@ Adjacent non-blocking residuals (not counted in the 9): **8.3** tip `test-archit
 
 | Item | Blocked By | Action Needed |
 |------|-----------|---------------|
-| CI-08 GHCR 403 | **BLOCKED BY GOVERNANCE** (Stage 6 necessity pending DEC-150); field 403 residual | ARB decide DEC-150 Option A (keep + ops Option A) or B (retire criteria — governance only). Do **not** CLOSE / obsolete. No GHCR fix until ARB answers |
+| CI-08 GHCR 403 (mandatory Phase 0) | **GOVERNANCE COMPLETED** (DEC-150 Option B) | Stage 6 GHCR publish retired as Phase 0 gate. Residual field 403 = legacy/non-blocking. No ops GHCR fix required for Phase 0 exit. |
 | CI-09 (criterion 3.11) | **CLOSED CONDITIONAL** (DEC-149a) | Deploy 30723120473 @ c3507ed SUCCESS; FE Git-primary; staging deferred; no VPS. Residual for unconditional: optional Vercel CLI + staging when provisioned. No Production GO. |
 | R-14 multi-tenant residual (non-blocking for 2.3 CONDITIONAL) | Second-tenant fixture (prefer staging) | Optional: re-run Slice E differential for unconditional PASS |
 | 1.5 post-align Security Scan pip-audit (non-blocking for 1.5 CONDITIONAL) | Push tip containing `fa266b5` | Field-verify Security Scan pip-audit SUCCESS with poetry export + 1 ignored (ecdsa) — does **not** upgrade to unconditional CLOSED until observed |
 | 8.3 tip `test-architecture` (non-blocking for 8.3 CONDITIONAL) | Push tip containing `868a98c` | Field-verify Stage 5 `test-architecture` SUCCESS — does **not** upgrade to unconditional CLOSED until observed |
 | 8.2 at-scale soak (non-blocking for 8.2 CONDITIONAL) | Live soak at `max_parallel_workers=8` | Concurrent-writer soak at worker ceiling — does **not** upgrade to unconditional CLOSED until field-proven |
 | 3.5 post-align Security Scan pip-audit (non-blocking for 3.5 CLOSED CONDITIONAL) | Push tip containing `fa266b5` | Field-verify Security Scan pip-audit SUCCESS with poetry export + 1 ignored (ecdsa) — same residual as 1.5 DEC-128a; does **not** upgrade to unconditional CLOSED until observed; does **not** auto-close **3.8** |
-| 3.8 tip Stages 1-5 same-run (non-blocking for 3.8 CLOSED CONDITIONAL) | Push tip containing `14fce5f` (done: `d1dcce4`) + mypy fix | Prior: Stage 1 SUCCESS / Stage 2 mypy FAILURE @ `30720732268`; backend-types coalesced nullable ORM fields in `roles_permissions.py`; tip Stages 1-5 same-run PENDING field-verify; CONDITIONAL stands; does **not** close **3.6-3.11** / **3.9** full CI GREEN |
+| 3.8 tip Stages 1-5 same-run (non-blocking for 3.8 CLOSED CONDITIONAL) | Push tip containing `14fce5f` (done: `d1dcce4`) + mypy fix | Prior: Stage 1 SUCCESS / Stage 2 mypy FAILURE @ `30720732268`; tip Stages 1-5 same-run PENDING field-verify; CONDITIONAL stands; gates **3.9** (topology CI GREEN — no GHCR) |
 | EOS **4.1** / **4.8** | Independent ARB | ARB re-audit PASS — Cursor must **not** invent ARB close |
-| CI **3.7** | Stage 6 + E2E services | Stage-6-dep — park until CI-08 unblocks publish path |
+| CI **3.7** | E2E services (not GHCR) | Decoupled from Stage 6 (DEC-150 B); park until Playwright has real backend services |
 
 ---
 

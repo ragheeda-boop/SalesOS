@@ -51,9 +51,10 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | Item | Class | Blocked on | Notes |
 |---|---|---|---|
 | **S04-04 / Railway R-14** | BLOCKED (critical path) | Remediation slices A–E + live re-proof (DEC-120) | Dual honesty: env ≠ runtime RLS; password rotate human/ops |
-| **CI-08** GHCR 403 | **BLOCKED BY GOVERNANCE** | Stage 6 necessity pending **DEC-150** (ARB); field Deploy Staging `30721601875` push still **403** (may be moot if Option B) | Do **not** CLOSE / obsolete. DEC-149 live path = Railway+Vercel (no GHCR). Alternate promote = Railway GitHub build (DEC-120) |
-| **CI GREEN (full incl. publish)** | BLOCKED | Stage 6 GHCR push (CI-08) + Stage 7 + residual reds — **subject to DEC-150** | Blocks production GO under current AC — CI-09 CLOSED CONDITIONAL (DEC-149a) does **not** clear this |
-| **CI GREEN (code path)** | REPORTING ONLY | Stages 1–5 on a named run | DEC-104 interim honesty |
+| **CI-08** GHCR 403 (mandatory Phase 0) | **GOVERNANCE COMPLETED** | **DEC-150 Option B Accepted** — Stage 6 GHCR publish retired as Phase 0 gate | Residual field 403 @ `30721601875` = **legacy/non-blocking**. Canonical deploy = Railway+Vercel (DEC-149 / **3.11**) |
+| **CI GREEN (DEC-149 topology)** | BLOCKED (tip field-verify) | Tip Stages 1–5 same-run PENDING + retain Deploy Production evidence | **Does not** require Stage 6 GHCR (DEC-150 B). Criterion **3.9** OPEN; **3.11** CLOSED CONDITIONAL does not auto-close 3.9 |
+| **CI GREEN (code path)** | REPORTING ONLY | Stages 1–5 on a named run | DEC-104 / DEC-148a interim honesty |
+| **Stage 7 E2E (3.7)** | BLOCKED (services) | Playwright needs real backend services | **Decoupled from GHCR Stage 6** (DEC-150 B); Stage 6 quarantined in `ci.yml` |
 
 ---
 
@@ -62,7 +63,8 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | Item | Class | Why ready now | Notes |
 |---|---|---|---|
 | **S04-04 remediation A** | READY | Wiring commit identified | `5e7023f` introduced `app_database_url` / `APP_POSTGRES_*` consumption |
-| **S04-04 remediation B** | READY (path choice) | Image promote | GHCR path BLOCKED (CI-08); alternate Railway GitHub build/redeploy |
+| **S04-04 remediation B** | READY (path choice) | Image promote | Canonical = Railway GitHub build/redeploy (DEC-149); GHCR Stage 6 quarantined (DEC-150 B) — not critical path |
+| **Canonical deploy validation (DEC-149)** | **CLOSED CONDITIONAL** | Railway+Vercel Deploy Production | Criterion **3.11** / CI-09 (DEC-149a); evidence run `30723120473` @ `c3507ed` — critical-path deploy gate (replaces Stage 6 GHCR) |
 | **S04-04 remediation A–E** | **Evidence landed** | Prod `9664e9fc` / `salesos_app` / alembic `d1a8` / policies **67** / E bare=0 | Single-tenant caveat residual; tip RLS align via owner SSH |
 | **DB-05** Schema reconciliation | **COMPLETE** | Slice 0–4 CLOSED (7.1–7.5); **Slice 5a–5g COMPLETE**; **7.6 CLOSED** (DEC-130h) @ `250bcb5`; head `a4f7c29e1b80`; check exit 0; prod tip was `d1a8` / POLICY_COUNT **67** | Phase 0 DB Schema **6/6**; residual KEEP `ix_graph_nodes_search` non-blocking; prior “prod on 59” residual cleared (`c842245`) |
 | **Optional Jest 30 evidence** | BACKLOG | DEC-108 deferred | STOP silent major |
@@ -105,7 +107,8 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **ADR-036 Applied 9.3** `.ai/` runtime deferred | **CLOSED** (DEC-146a) | Arch PASS + Val PASS (light) @ `922528f` / tip pin `1f99628` / DEC-146; org baseline ≠ Agent OS; triggers in ADR-036 + `.ai/README`; `runtime-spec.yaml` SPECIFICATION; DEC-085 untouched; Phase 0 **42/54 → 43/54**; ADR-036 Applied Complete **3 → 4** / Open **1 → 0** (cluster **COMPLETE 4/4**); residual EOS **4.1/4.8** ARB · CI **3.x** + CI-08/09; do **not** claim Phase 0 GO / CI GREEN |
 | **CI/CD 3.5** Stage 5 Security Scan | **CLOSED CONDITIONAL** (DEC-147a) | Arch PASS_CONDITIONAL + Val PASS_CONDITIONAL @ `5d558af` / pin `a6488f2` / DEC-147; gh Stage 5 + Security Scan SUCCESS @ `c842245` (`30704321096` / `30704321107`); ecdsa named ignore; Semgrep **11** alembic residual; residual: *post-align Security Scan pip-audit PENDING until tip containing `fa266b5` is pushed*; does **not** auto-close **3.8**; DEC-085 untouched; Phase 0 **43/54 → 44/54**; CI/CD Complete **4 → 5** / Open **5 → 4**; do **not** claim Phase 0 GO / CI GREEN / finding-zero / unconditional CLOSED |
 | **CI/CD 3.8** CI GREEN (code path) | **CLOSED CONDITIONAL** (DEC-148a) | Arch PASS_CONDITIONAL + Val PASS_CONDITIONAL @ `14fce5f` / DEC-148; local ruff 0.4.10 check+format exit 0; last push `c842245` / `30704321096` Stage 1 Lint FAILURE (6× E501) → Stages 3 BE/4 SKIPPED; residual: *tip Stages 1–5 same-run PENDING until tip containing `14fce5f` is pushed* (Stage 3/4 may still fail when unblocked); historical Stages 1–5 SUCCESS @ `7ba137b` / `30689682988` (not tip); does **not** close **3.6–3.11** / **3.9**; DEC-085 untouched; Phase 0 **44/54 → 45/54**; CI/CD Complete **5 → 6** / Open **4 → 3**; do **not** claim Phase 0 GO / CI GREEN / unconditional CLOSED |
-| **CI/CD 3.11** / CI-09 deploy (Railway+Vercel) | **CLOSED CONDITIONAL** (DEC-149a) | Arch prior PASS (DEC-149 + single-env) + Val PASS @ `c3507ed` / `30723120473`; Railway up ✓; Health Gate HTTP 200 ✓; Vercel FE Git-primary ✓; §6 production secret names present (repo); residuals: *FE Git-primary (not CLI); staging deferred; no VPS*; does **not** close **3.6/3.9/3.10** CI-08 / full CI GREEN; DEC-085 untouched; Phase 0 **45/54 → 46/54**; CI/CD Complete **6 → 7** / Blocked **2 → 1**; do **not** claim Phase 0 GO / CI GREEN / unconditional CLOSED |
+| **CI/CD 3.11** / CI-09 deploy (Railway+Vercel) | **CLOSED CONDITIONAL** (DEC-149a) | Arch prior PASS (DEC-149 + single-env) + Val PASS @ `c3507ed` / `30723120473`; Railway up ✓; Health Gate HTTP 200 ✓; Vercel FE Git-primary ✓; §6 production secret names present (repo); residuals: *FE Git-primary (not CLI); staging deferred; no VPS*; canonical deploy evidence for post–DEC-150 B **3.6** supersession; does **not** auto-close **3.9** / **3.7**; DEC-085 untouched; Phase 0 **45/54 → 46/54** (superseded to **48/54** by DEC-150 B); CI/CD Complete **6 → 7** (superseded to **9**); do **not** claim Phase 0 GO / CI GREEN / unconditional CLOSED |
+| **CI/CD 3.6 / 3.10** Stage 6 GHCR / CI-08 | **CLOSED — SUPERSEDED** (DEC-150 B) | ARB Option B Accepted; GHCR publish not Phase 0 required after DEC-149; residual 403 legacy/non-blocking; Stage 6 quarantined in `ci.yml`; Phase 0 **46/54 → 48/54**; CI/CD Complete **7 → 9** / Blocked **1 → 0**; do **not** claim field GHCR green / Phase 0 GO / CI GREEN |
 
 ---
 
@@ -113,11 +116,11 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30 | PARALLEL / PARKED | Do **not** close Phase 0 rows; DEC-094/106 expansion + Jest 30 = backlog only while hard OPEN are ARB/ops |
-| EOS **4.1/4.8**, CI **3.6/3.7/3.9/3.10**, tip field-verify | **BLOCKED** (Cursor) | **2026-08-02 BLOCKED inventory:** no Cursor-closeable criterion; **4.1/4.8** ARB (do not invent); **3.6/3.9/3.10** CI-08 **BLOCKED BY GOVERNANCE** pending DEC-150 (Stage 6 necessity; field 403 may be moot if Option B); **3.11** CI-09 **CLOSED CONDITIONAL** (DEC-149a); **3.7** Stage-6-dep; **3.8** / **3.5** tip push field-verify PENDING; Phase 0 **46/54**; do **not** claim Phase 0 GO / CI GREEN / fake CLOSE |
+| Contract tests, optional Jest 30 | PARALLEL / PARKED | Do **not** close Phase 0 rows; DEC-094/106 expansion + Jest 30 = backlog only while hard OPEN are ARB/E2E/tip |
+| EOS **4.1/4.8**, CI **3.7/3.9**, tip field-verify | **BLOCKED** (Cursor) | **2026-08-02 BLOCKED inventory (post DEC-150 B):** no Cursor-closeable criterion; **4.1/4.8** ARB (do not invent); **3.6/3.10 CLOSED — SUPERSEDED** (DEC-150 B); **3.11** CI-09 **CLOSED CONDITIONAL** (DEC-149a); **3.7** E2E services (not GHCR-dep); **3.9** tip Stages 1–5 + deploy topology (no GHCR); **3.8** / **3.5** tip push field-verify PENDING; Phase 0 **48/54**; do **not** claim Phase 0 GO / CI GREEN / fake CLOSE |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
-**Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation / CI-08 ops proceed.
+**Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation proceeds. CI-08 is **not** an ops wait — GOVERNANCE COMPLETED (DEC-150 B).
 
 ---
 
@@ -133,7 +136,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 ## Board progress fraction
 
-**25/25** Complete/Closed on tracked Sprint 05 board fraction including **CI-09 CLOSED CONDITIONAL** (DEC-149a; **S04-04 REOPENED**). Adjacent closed: **Jest-debt / R-23**. **Phase 0 critical path blocked:** **S04-04 / Railway R-14**. Also blocked: CI-08 (**BLOCKED BY GOVERNANCE** pending DEC-150). Phase 0 **46/54 NO-GO**.
+**26/26** Complete/Closed on tracked Sprint 05 board fraction including **CI-09 CLOSED CONDITIONAL** (DEC-149a) + **CI-08 GOVERNANCE COMPLETED** (DEC-150 B; **S04-04 REOPENED**). Adjacent closed: **Jest-debt / R-23**. **Phase 0 critical path blocked:** **S04-04 / Railway R-14**. Canonical deploy validation path = DEC-149 Railway+Vercel (**3.11**). Stage 6 GHCR **removed from critical path**. Phase 0 **48/54 NO-GO**.
 
 ---
 
