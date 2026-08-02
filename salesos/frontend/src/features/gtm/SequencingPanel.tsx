@@ -54,10 +54,14 @@ export function SequencingPanel() {
   const [step1Subject, setStep1Subject] = useState("Intro");
   const [step1Body, setStep1Body] = useState("Hello — tip step 1.");
   const [step1Day, setStep1Day] = useState("0");
+  const [step1Channel, setStep1Channel] = useState("email");
   const [step2Subject, setStep2Subject] = useState("Follow-up");
   const [step2Body, setStep2Body] = useState("Checking in — tip step 2.");
   const [step2Day, setStep2Day] = useState("3");
+  const [step2Channel, setStep2Channel] = useState("email");
   const [contactEmail, setContactEmail] = useState("pilot@example.com");
+  const [linkedinHandle, setLinkedinHandle] = useState("");
+  const [whatsappHandle, setWhatsappHandle] = useState("");
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -68,6 +72,10 @@ export function SequencingPanel() {
     if (enr) setSelectedEnrollId(enr);
     const email = searchParams.get("email");
     if (email?.trim()) setContactEmail(email.trim());
+    const li = searchParams.get("linkedin");
+    if (li?.trim()) setLinkedinHandle(li.trim());
+    const wa = searchParams.get("whatsapp");
+    if (wa?.trim()) setWhatsappHandle(wa.trim());
     setHydrated(true);
   }, [searchParams, hydrated]);
 
@@ -80,11 +88,13 @@ export function SequencingPanel() {
       setStep1Subject(s0.subject);
       setStep1Body(s0.body);
       setStep1Day(String(s0.day_offset));
+      setStep1Channel(s0.channel || "email");
     }
     if (s1) {
       setStep2Subject(s1.subject);
       setStep2Body(s1.body);
       setStep2Day(String(s1.day_offset));
+      setStep2Channel(s1.channel || "email");
     }
   }
 
@@ -92,6 +102,8 @@ export function SequencingPanel() {
     setSelectedEnrollId(row.id);
     setSelectedSeqId(row.sequence_id);
     setContactEmail(row.contact_email);
+    setLinkedinHandle(row.contact_handles?.linkedin ?? "");
+    setWhatsappHandle(row.contact_handles?.whatsapp ?? "");
   }
 
   function onEnrollAction(
@@ -259,7 +271,7 @@ export function SequencingPanel() {
           const steps = [
             {
               day_offset: Number(step1Day) || 0,
-              channel: "email",
+              channel: step1Channel,
               subject: step1Subject.trim(),
               body: step1Body,
             },
@@ -267,7 +279,7 @@ export function SequencingPanel() {
           if (step2Subject.trim()) {
             steps.push({
               day_offset: Number(step2Day) || 0,
-              channel: "email",
+              channel: step2Channel,
               subject: step2Subject.trim(),
               body: step2Body,
             });
@@ -279,7 +291,7 @@ export function SequencingPanel() {
                 setSelectedSeqId(row.id);
                 toast({
                   title: "Sequence created",
-                  description: `${row.step_count} email step(s)`,
+                  description: `${row.step_count} step(s)`,
                   variant: "success",
                 });
               },
@@ -294,13 +306,28 @@ export function SequencingPanel() {
           );
         }}
       >
-        <h2 className="text-sm font-semibold">Create sequence (email only)</h2>
+        <h2 className="text-sm font-semibold">
+          Create sequence (tip channels)
+        </h2>
         <Input
           label="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           data-testid="sequencing-name"
         />
+        <label className="block text-xs text-[var(--text-muted)]">
+          step1 channel
+          <select
+            className="mt-1 w-full rounded border border-[var(--border-default)] bg-transparent px-2 py-1.5 text-sm"
+            value={step1Channel}
+            onChange={(e) => setStep1Channel(e.target.value)}
+            data-testid="sequencing-step1-channel"
+          >
+            <option value="email">email</option>
+            <option value="linkedin">linkedin (partner)</option>
+            <option value="whatsapp">whatsapp (partner)</option>
+          </select>
+        </label>
         <Input
           label="step1 subject"
           value={step1Subject}
@@ -320,6 +347,19 @@ export function SequencingPanel() {
           className="max-w-[8rem]"
           data-testid="sequencing-step1-day"
         />
+        <label className="block text-xs text-[var(--text-muted)]">
+          step2 channel
+          <select
+            className="mt-1 w-full rounded border border-[var(--border-default)] bg-transparent px-2 py-1.5 text-sm"
+            value={step2Channel}
+            onChange={(e) => setStep2Channel(e.target.value)}
+            data-testid="sequencing-step2-channel"
+          >
+            <option value="email">email</option>
+            <option value="linkedin">linkedin (partner)</option>
+            <option value="whatsapp">whatsapp (partner)</option>
+          </select>
+        </label>
         <Input
           label="step2 subject (optional)"
           value={step2Subject}
@@ -365,7 +405,15 @@ export function SequencingPanel() {
             enrollMutation.mutate(
               {
                 sequenceId: selectedSeqId,
-                body: { contact_email: contactEmail.trim() },
+                body: {
+                  contact_email: contactEmail.trim(),
+                  ...(linkedinHandle.trim()
+                    ? { linkedin: linkedinHandle.trim() }
+                    : {}),
+                  ...(whatsappHandle.trim()
+                    ? { whatsapp: whatsappHandle.trim() }
+                    : {}),
+                },
               },
               {
                 onSuccess: (row) => {
@@ -398,6 +446,18 @@ export function SequencingPanel() {
             value={contactEmail}
             onChange={(e) => setContactEmail(e.target.value)}
             data-testid="sequencing-email"
+          />
+          <Input
+            label="linkedin handle (optional URN)"
+            value={linkedinHandle}
+            onChange={(e) => setLinkedinHandle(e.target.value)}
+            data-testid="sequencing-linkedin"
+          />
+          <Input
+            label="whatsapp handle (optional E.164)"
+            value={whatsappHandle}
+            onChange={(e) => setWhatsappHandle(e.target.value)}
+            data-testid="sequencing-whatsapp"
           />
           <Button
             type="submit"
@@ -440,6 +500,24 @@ export function SequencingPanel() {
                   </li>
                 ))}
               </ul>
+              {activeEnroll.contact_handles &&
+              Object.keys(activeEnroll.contact_handles).length > 0 ? (
+                <p
+                  className="font-mono text-xs text-[var(--text-muted)]"
+                  data-testid="sequencing-handles"
+                >
+                  handles: {JSON.stringify(activeEnroll.contact_handles)}
+                </p>
+              ) : null}
+              {activeEnroll.last_send &&
+              Object.keys(activeEnroll.last_send).length > 0 ? (
+                <p
+                  className="font-mono text-xs text-[var(--text-muted)]"
+                  data-testid="sequencing-last-send"
+                >
+                  last_send: {JSON.stringify(activeEnroll.last_send)}
+                </p>
+              ) : null}
               <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"

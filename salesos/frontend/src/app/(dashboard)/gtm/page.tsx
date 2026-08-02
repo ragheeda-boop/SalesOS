@@ -3,8 +3,9 @@
 import { GtmHub } from "@/features/gtm/GtmHub";
 
 /**
- * FE-S11-03b — GTM Intelligence hub (tip STORY-11-02/03 pages).
- * Not Production GO / RAG GO. ICP / territories not invented.
+ * FE-S11-03b (+ honesty sync) — GTM Intelligence hub for tip GTM pages.
+ * Tip ICP / lookalikes / enrichment / verification / sequences landed.
+ * Territories not invented. Not Production GO / RAG GO.
  */
 export default function GtmHubPage() {
   return (
@@ -14,7 +15,9 @@ export default function GtmHubPage() {
           GTM Intelligence
         </h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Tip market sizing and lead discovery — no invented ICP or territories.
+          Tip GTM pages: ICP, market sizing, lead discovery, lookalikes,
+          enrichment, verification, sequences. Territories Studio not on tip —
+          not invented. Not Production GO / RAG GO.
         </p>
       </div>
       <GtmHub />

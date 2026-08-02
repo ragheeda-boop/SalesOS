@@ -90,10 +90,18 @@ describe("sequences API — FE-S11-09", () => {
         bound_to_task_activity: true,
       },
     });
-    await enrollContact("tenant-1", "seq1", { contact_email: "a@b.com" });
+    await enrollContact("tenant-1", "seq1", {
+      contact_email: "a@b.com",
+      linkedin: "urn:li:person:abc",
+      whatsapp: "+966500000000",
+    });
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/gtm/sequences/seq1/enrollments",
-      expect.objectContaining({ contact_email: "a@b.com" }),
+      expect.objectContaining({
+        contact_email: "a@b.com",
+        linkedin: "urn:li:person:abc",
+        whatsapp: "+966500000000",
+      }),
       expect.any(Object),
     );
 

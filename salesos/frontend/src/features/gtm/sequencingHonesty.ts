@@ -1,10 +1,11 @@
-/** Tip STORY-11-09 Sequencing honesty (mirror BE crumb).
- * Email-only in-memory state machine. Live SMTP / LinkedIn / WhatsApp not claimed.
+/** Tip STORY-11-09 / 11-09b Sequencing honesty (mirror BE crumb).
+ * Email + partner LinkedIn/WhatsApp channel shapes (CI Mem* senders).
+ * Live SMTP / LinkedIn / WhatsApp network not claimed.
  * Not Production GO / RAG GO.
  */
 
 export const SEQUENCING_HONESTY =
-  "Tip POST/GET /api/v1/gtm/sequences (+ enrollments / advance / pause / resume / cancel). Email-first SequenceDefinition + enrollment state machine with Task/Activity-shaped bindings (CI in-memory). Tip may advertise LinkedIn/WhatsApp partner channel shapes; this UI creates email steps only. Live SMTP / LinkedIn / WhatsApp network not claimed.";
+  "Tip POST/GET /api/v1/gtm/sequences (+ enrollments / advance / pause / resume / cancel). SequenceDefinition steps may use email / linkedin / whatsapp channel shapes with Task/Activity-shaped bindings (CI Mem*PartnerSender / recorded email). Live SMTP / LinkedIn / WhatsApp network not claimed.";
 
 export const SEQUENCING_NON_GOALS = [
   "Live SMTP / mailbox delivery",

@@ -46,6 +46,8 @@ export interface SequenceDefinition {
 
 export interface EnrollBody {
   contact_email: string;
+  linkedin?: string;
+  whatsapp?: string;
   id?: string;
 }
 
@@ -75,11 +77,13 @@ export interface SequenceEnrollment {
   tenant_id: string;
   sequence_id: string;
   contact_email: string;
+  contact_handles?: Record<string, string>;
   status: string;
   current_step_index: number;
   step_states: EnrollmentStepState[];
   task_bindings: BoundTaskRef[];
   activity_bindings: BoundActivityRef[];
+  last_send?: Record<string, unknown>;
   schema_version: number;
   created_at?: string;
   updated_at?: string;
