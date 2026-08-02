@@ -1,3 +1,4 @@
+import { createElement } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { CustomFieldsStudio } from "../CustomFieldsStudio";
 
@@ -34,22 +35,19 @@ jest.mock("@/lib/hooks/tenantStudioQueries", () => ({
   }),
 }));
 
-jest.mock("@salesos/ui", () => {
-  const React = require("react");
-  return {
-    Button: ({ children, ...props }: Record<string, unknown>) =>
-      React.createElement("button", props, children),
-    Input: ({ label, ...props }: Record<string, unknown>) =>
-      React.createElement(
-        "label",
-        null,
-        label,
-        React.createElement("input", props),
-      ),
-    Spinner: () => React.createElement("div", { "data-testid": "spinner" }),
-    useToast: () => ({ toast: jest.fn() }),
-  };
-});
+jest.mock("@salesos/ui", () => ({
+  Button: ({ children, ...props }: Record<string, unknown>) =>
+    createElement("button", props, children),
+  Input: ({ label, ...props }: Record<string, unknown>) =>
+    createElement(
+      "label",
+      null,
+      label,
+      createElement("input", props),
+    ),
+  Spinner: () => createElement("div", { "data-testid": "spinner" }),
+  useToast: () => ({ toast: jest.fn() }),
+}));
 
 describe("CustomFieldsStudio — FE-S10-01", () => {
   it("lists tip schema fields and shows in-memory honesty", () => {
