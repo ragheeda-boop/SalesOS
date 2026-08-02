@@ -18,7 +18,8 @@
 | FE-S07-04 Host honesty + overview deep-links + E2E hooks | **LANDED** |
 | FE-S07-05 Ops runbook + read-path honesty + billing E2E | **LANDED** |
 | FE-S07-06 Ops nav + tenant-JWT admin 401 honesty | **LANDED** |
-| FE-S07-07 Ops page honesty + EPIC-07 MVP close | **LANDED** (this tip) |
+| FE-S07-07 Ops page honesty + EPIC-07 MVP close | **LANDED** |
+| FE-S08-00 Integration Hub inventory honesty stub | **LANDED** (this tip) — crumb [`PHASE1_FE_INTEGRATION_HUB_INVENTORY.md`](PHASE1_FE_INTEGRATION_HUB_INVENTORY.md) |
 
 ## Honesty
 

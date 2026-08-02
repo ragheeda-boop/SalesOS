@@ -249,6 +249,23 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(page.getByTestId("admin-billing-tenants-link")).toBeVisible();
   });
 
+  test("admin integrations inventory exposes honesty stub hooks", async ({
+    page,
+  }) => {
+    await page.goto("/admin/integrations");
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByTestId("owner-console-shell")).toBeVisible({
+      timeout: 8_000,
+    });
+    await expect(
+      page.getByTestId("owner-console-nav-integrations"),
+    ).toBeVisible();
+    await expect(page.getByTestId("admin-integrations-page")).toBeVisible();
+    await expect(
+      page.getByTestId("owner-ops-integrations-honesty"),
+    ).toBeVisible();
+  });
+
   test("admin flags/config/audit expose ops honesty hooks", async ({
     page,
   }) => {

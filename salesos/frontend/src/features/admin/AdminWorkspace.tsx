@@ -14,6 +14,7 @@ import {
   HeartPulse,
   CreditCard,
   Settings,
+  Plug,
 } from "lucide-react";
 import {
   useAdminTenants,
@@ -176,6 +177,14 @@ function AdminOverview({
           className="inline-flex items-center gap-2 rounded-md border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
         >
           Audit
+        </Link>
+        <Link
+          href="/admin/integrations"
+          data-testid="owner-console-overview-integrations"
+          className="inline-flex items-center gap-2 rounded-md border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
+        >
+          <Plug className="h-4 w-4" />
+          Integrations (FE-S08-00)
         </Link>
       </div>
 

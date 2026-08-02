@@ -43,6 +43,11 @@ const OWNER_NAV = [
     label: "Audit",
     testId: "owner-console-nav-audit",
   },
+  {
+    href: "/admin/integrations",
+    label: "Integrations",
+    testId: "owner-console-nav-integrations",
+  },
 ] as const;
 
 function navActive(pathname: string, href: string): boolean {
@@ -51,9 +56,8 @@ function navActive(pathname: string, href: string): boolean {
 }
 
 /**
- * STORY-07 + FE-S07-04/06/07 — Owner Console chrome, audience/host honesty,
- * Ops nav + page honesty (flags/config/audit). TenantList.tsx untouched.
- * Not Production GO. No invented owner mint.
+ * STORY-07 + FE-S07/FE-S08-00 — Owner Console chrome + Integration Hub inventory.
+ * Ops nav + page honesty. TenantList.tsx untouched. Not Production GO.
  */
 export function OwnerConsoleShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() || "/admin";

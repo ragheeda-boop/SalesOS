@@ -74,6 +74,9 @@ describe("AdminWorkspace", () => {
       "href",
       "/admin/audit",
     );
+    expect(
+      screen.getByTestId("owner-console-overview-integrations"),
+    ).toHaveAttribute("href", "/admin/integrations");
   });
 
   it("renders sidebar navigation tabs", () => {
