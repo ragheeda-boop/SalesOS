@@ -74,6 +74,18 @@ class StripeWebhookService:
 
         result = "ignored"
         applied_to: str | None = None
+        invoice_synced: str | None = None
+
+        if event_type.startswith("invoice.") and isinstance(data_obj.get("id"), str):
+            from app.modules.billing.stripe_invoice_sync import upsert_platform_invoice_from_stripe
+
+            inv_row = await upsert_platform_invoice_from_stripe(self.session, data_obj)
+            if inv_row is not None:
+                invoice_synced = inv_row.stripe_invoice_id
+                if tenant_id is None:
+                    tenant_id = str(inv_row.tenant_id)
+                if result == "ignored":
+                    result = "invoice_synced"
 
         if sm_event is not None and tenant_id:
             applied = await self._apply_to_tenant(tenant_id, sm_event, data_obj)
@@ -99,6 +111,7 @@ class StripeWebhookService:
             "result": result,
             "subscription_status": applied_to,
             "tenant_id": tenant_id,
+            "invoice_synced": invoice_synced,
         }
 
     async def _apply_to_tenant(

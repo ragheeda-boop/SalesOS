@@ -23,6 +23,9 @@ class PlanModel(Base):
     max_api_calls: Mapped[int] = mapped_column(Integer, default=1000)
     features: Mapped[list] = mapped_column(JSONB, default=list)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    # STORY-05-02b — Stripe Price bindings (price_… ids only; secrets stay in env)
+    stripe_price_id_monthly: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    stripe_price_id_yearly: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

@@ -41,26 +41,29 @@ async def _resolve_tenant_name(db: AsyncSession, tenant_id: str) -> str:
 # ─── Plans ────────────────────────────────────────────────────────
 
 
+def _plan_response(p: PlanModel) -> PlanResponse:
+    return PlanResponse(
+        id=p.id,
+        name=p.name,
+        tier=PlanTier(p.tier),
+        price_monthly=p.price_monthly,
+        price_yearly=p.price_yearly,
+        max_users=p.max_users,
+        max_storage_mb=p.max_storage_mb,
+        max_api_calls=p.max_api_calls,
+        features=p.features or [],
+        is_active=p.is_active,
+        stripe_price_id_monthly=getattr(p, "stripe_price_id_monthly", None),
+        stripe_price_id_yearly=getattr(p, "stripe_price_id_yearly", None),
+        created_at=p.created_at,
+        updated_at=p.updated_at,
+    )
+
+
 @router.get("/plans", response_model=list[PlanResponse])
 async def list_plans(repos: AdminRepositories = Depends(get_admin_repos)):
     plans = await repos.plans.list()
-    return [
-        PlanResponse(
-            id=p.id,
-            name=p.name,
-            tier=PlanTier(p.tier),
-            price_monthly=p.price_monthly,
-            price_yearly=p.price_yearly,
-            max_users=p.max_users,
-            max_storage_mb=p.max_storage_mb,
-            max_api_calls=p.max_api_calls,
-            features=p.features,
-            is_active=p.is_active,
-            created_at=p.created_at,
-            updated_at=p.updated_at,
-        )
-        for p in plans
-    ]
+    return [_plan_response(p) for p in plans]
 
 
 @router.post("/plans", response_model=PlanResponse, status_code=201)
@@ -75,22 +78,11 @@ async def create_plan(body: PlanCreate, repos: AdminRepositories = Depends(get_a
         max_storage_mb=body.max_storage_mb,
         max_api_calls=body.max_api_calls,
         features=body.features,
+        stripe_price_id_monthly=body.stripe_price_id_monthly,
+        stripe_price_id_yearly=body.stripe_price_id_yearly,
     )
     created = await repos.plans.create(plan)
-    return PlanResponse(
-        id=created.id,
-        name=created.name,
-        tier=PlanTier(created.tier),
-        price_monthly=created.price_monthly,
-        price_yearly=created.price_yearly,
-        max_users=created.max_users,
-        max_storage_mb=created.max_storage_mb,
-        max_api_calls=created.max_api_calls,
-        features=created.features,
-        is_active=created.is_active,
-        created_at=created.created_at,
-        updated_at=created.updated_at,
-    )
+    return _plan_response(created)
 
 
 @router.put("/plans/{plan_id}", response_model=PlanResponse)
@@ -101,20 +93,7 @@ async def update_plan(
     plan = await repos.plans.update(plan_id, data)
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
-    return PlanResponse(
-        id=plan.id,
-        name=plan.name,
-        tier=PlanTier(plan.tier),
-        price_monthly=plan.price_monthly,
-        price_yearly=plan.price_yearly,
-        max_users=plan.max_users,
-        max_storage_mb=plan.max_storage_mb,
-        max_api_calls=plan.max_api_calls,
-        features=plan.features,
-        is_active=plan.is_active,
-        created_at=plan.created_at,
-        updated_at=plan.updated_at,
-    )
+    return _plan_response(plan)
 
 
 # ─── Licenses ─────────────────────────────────────────────────────

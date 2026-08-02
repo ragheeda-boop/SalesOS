@@ -67,3 +67,37 @@ class StripeWebhookEventModel(Base):
     processed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+class PlatformBillingInvoiceModel(Base):
+    """OBJ-323 PlatformBillingInvoice — Owner-plane Stripe invoice mirror.
+
+    DEC-003 rename path: separate from legacy ``admin_invoices``.
+    No RLS (Owner cross-tenant). Not Production GO.
+    """
+
+    __tablename__ = "platform_billing_invoices"
+    __table_args__ = (
+        Index("ix_platform_billing_invoices_tenant_id", "tenant_id"),
+        Index("ix_platform_billing_invoices_status", "status"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    stripe_invoice_id: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
+    amount: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    currency: Mapped[str] = mapped_column(String(10), nullable=False, default="SAR")
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="open")
+    description: Mapped[str] = mapped_column(String(2000), nullable=False, default="")
+    due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    hosted_invoice_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )

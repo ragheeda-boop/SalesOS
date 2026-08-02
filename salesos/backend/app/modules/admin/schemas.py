@@ -41,6 +41,8 @@ class PlanCreate(BaseModel):
     max_storage_mb: int = 100
     max_api_calls: int = 1000
     features: list[str] = []
+    stripe_price_id_monthly: str | None = Field(None, max_length=128)
+    stripe_price_id_yearly: str | None = Field(None, max_length=128)
 
 
 class PlanResponse(BaseModel):
@@ -54,6 +56,8 @@ class PlanResponse(BaseModel):
     max_api_calls: int
     features: list[str]
     is_active: bool
+    stripe_price_id_monthly: str | None = None
+    stripe_price_id_yearly: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -67,6 +71,8 @@ class PlanUpdate(BaseModel):
     max_api_calls: int | None = None
     features: list[str] | None = None
     is_active: bool | None = None
+    stripe_price_id_monthly: str | None = Field(None, max_length=128)
+    stripe_price_id_yearly: str | None = Field(None, max_length=128)
 
 
 class TenantCreate(BaseModel):
