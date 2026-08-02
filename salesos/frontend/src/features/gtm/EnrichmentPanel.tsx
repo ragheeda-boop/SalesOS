@@ -165,7 +165,7 @@ export function EnrichmentPanel() {
             toast({
               title: "Company required",
               description: "Provide a company_name seed.",
-              variant: "destructive",
+              variant: "error",
             });
             return;
           }
@@ -198,7 +198,7 @@ export function EnrichmentPanel() {
                 toast({
                   title: "Enrichment failed",
                   description: getApiError(err),
-                  variant: "destructive",
+                  variant: "error",
                 });
               },
             },
