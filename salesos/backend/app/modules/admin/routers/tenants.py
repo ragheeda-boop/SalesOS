@@ -12,6 +12,12 @@ from sqlalchemy.sql import Select
 
 from app.dependencies import get_db_session
 from app.modules.identity.models import Tenant, User
+from app.modules.identity.tenant_lifecycle_guard import (
+    clear_deletion_requested,
+    get_deletion_requested_at,
+    retention_elapsed,
+    stamp_deletion_requested,
+)
 from app.owner_auth import require_owner_role_dep
 
 from ..schemas import (
@@ -386,6 +392,7 @@ async def activate_tenant(
     prior = tenant.provisioning_status
     tenant.is_active = True
     tenant.provisioning_status = "active"
+    clear_deletion_requested(tenant)
     tenant.updated_at = datetime.now(UTC)
     await db.flush()
     return TenantLifecycleResponse(
@@ -459,7 +466,7 @@ async def reprovision_tenant(
 
 @router.delete("/tenants/{tenant_id}", response_model=TenantLifecycleResponse)
 async def soft_delete_tenant(tenant_id: str, db: AsyncSession = Depends(get_db_session)):
-    """Soft-delete: is_active=false only — does not set provisioning=suspended."""
+    """Soft-delete: is_active=false + retention stamp; does not set provisioning=suspended."""
     try:
         tid = uuid.UUID(tenant_id)
     except ValueError:
@@ -470,6 +477,7 @@ async def soft_delete_tenant(tenant_id: str, db: AsyncSession = Depends(get_db_s
     prior = tenant.provisioning_status
     tenant.is_active = False
     # Keep provisioning_status unchanged so Inactive ≠ Suspended (FE-S04-14 honesty).
+    stamp_deletion_requested(tenant)
     tenant.updated_at = datetime.now(UTC)
     await db.flush()
     return TenantLifecycleResponse(
@@ -495,6 +503,20 @@ async def hard_delete_tenant(
     tenant = await db.get(Tenant, tid)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
+    # STORY-04-04 — when soft-deleted, honor retention unless force_immediate.
+    # Direct Owner hard-delete (no soft-delete stamp) remains allowed with confirm.
+    if (
+        not body.force_immediate
+        and get_deletion_requested_at(tenant) is not None
+        and not retention_elapsed(tenant)
+    ):
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Retention window not elapsed after soft-delete. Wait "
+                "tenant_deletion_retention_days, or pass force_immediate=true."
+            ),
+        )
     await db.delete(tenant)
     await db.flush()
     return {"message": "Tenant hard-deleted", "tenant_id": tenant_id}

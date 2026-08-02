@@ -18,10 +18,16 @@ from app.routers.metrics import MetricsMiddleware
 def setup_middleware(app: FastAPI) -> None:
     # Starlette: last add_middleware = outermost. Add security/app middleware
     # first, then CORS last so preflight and error responses always get ACAO.
+    from app.modules.identity.suspended_tenant_middleware import (
+        SuspendedTenantWriteGuardMiddleware,
+    )
+
     app.add_middleware(GZipMiddleware, minimum_size=1024)
     app.add_middleware(BodyCacheMiddleware, max_body_size=settings.max_body_size)
     app.add_middleware(RequestIDMiddleware)
     app.add_middleware(RequestLoggingMiddleware)
+    # Inner of TenantContext so ContextVar tenant_id is already set (STORY-04-03).
+    app.add_middleware(SuspendedTenantWriteGuardMiddleware)
     app.add_middleware(TenantContextMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(CsrfEnforcementMiddleware)

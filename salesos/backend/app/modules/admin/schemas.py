@@ -452,6 +452,10 @@ class TenantLifecycleResponse(BaseModel):
 
 class TenantHardDeleteRequest(BaseModel):
     confirm: bool = Field(..., description="Must be True to confirm hard delete")
+    force_immediate: bool = Field(
+        False,
+        description="STORY-04-04: bypass retention window (Owner override)",
+    )
 
 
 class AuditLogQueryResponse(BaseModel):

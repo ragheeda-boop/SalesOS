@@ -6,8 +6,8 @@
 
 | Story | Owner | Priority | Risk | Acceptance Criteria |
 |---|---|---|---|---|
-| STORY-04-03 (suspend/reactivate) | BE1 | P0 | Medium | Suspended tenant is read-only at both app and gateway layer |
-| STORY-04-04 (deletion + retention) | BE2 | P1 | Medium | Deletion honors a configurable retention window before hard delete |
+| STORY-04-03 (suspend/reactivate) | BE1 | P0 | Medium | **IN PROGRESS** — write-guard middleware + API-key gateway block @ Stream A; Owner `/activate` restores | Suspended tenant is read-only at both app and gateway layer |
+| STORY-04-04 (deletion + retention) | BE2 | P1 | Medium | **IN PROGRESS** — soft-delete stamps `deletion_requested_at`; hard-delete honors `tenant_deletion_retention_days` unless `force_immediate` | Deletion honors a configurable retention window before hard delete |
 | STORY-05-01 (Subscription state machine, design+build) | BE-Lead | P0 | High (R-05) | State machine diagram reviewed by CPO; all transitions unit-tested |
 
 **Expected Demo:** Full lifecycle demo: provision → suspend → reactivate → delete, on a synthetic test tenant.

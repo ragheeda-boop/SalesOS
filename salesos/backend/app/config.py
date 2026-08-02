@@ -140,6 +140,9 @@ class Settings(BaseSettings):
     feature_ai_copilot: bool = False
     feature_crm_kanban: bool = False
 
+    # STORY-04-04 — soft-delete retention before hard-delete (days). Not Production GO.
+    tenant_deletion_retention_days: int = 30
+
     log_level: str = "INFO"
     sentry_dsn: str = ""
     service_version: str = "5.1.0-rc1"

@@ -54,6 +54,27 @@ class ApiKeyMiddleware:
                             )
                             await resp(scope, receive, send)
                             return
+                        # STORY-04-03 gateway layer: suspended tenant API keys are
+                        # write-blocked here (defense in depth vs app middleware).
+                        method = scope.get("method", "GET").upper()
+                        if method in {"POST", "PUT", "PATCH", "DELETE"}:
+                            from app.modules.identity.tenant_lifecycle_guard import (
+                                fetch_tenant_by_id,
+                                is_tenant_suspended,
+                                path_skips_suspension_guard,
+                                suspension_write_blocked_detail,
+                            )
+
+                            path = scope.get("path", "") or ""
+                            if not path_skips_suspension_guard(path):
+                                tenant = await fetch_tenant_by_id(db, str(key_record.tenant_id))
+                                if is_tenant_suspended(tenant):
+                                    resp = JSONResponse(
+                                        {"detail": suspension_write_blocked_detail()},
+                                        status_code=403,
+                                    )
+                                    await resp(scope, receive, send)
+                                    return
                     else:
                         request.state.api_key_authenticated = False
         await self.app(scope, receive, send)
