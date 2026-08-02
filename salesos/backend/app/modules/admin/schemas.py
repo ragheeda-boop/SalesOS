@@ -252,6 +252,8 @@ class SubscriptionResponse(BaseModel):
     current_period_start: datetime | None = None
     current_period_end: datetime | None = None
     canceled_at: datetime | None = None
+    pending_plan_id: str | None = None
+    pending_effective_at: datetime | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 

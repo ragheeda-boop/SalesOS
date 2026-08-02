@@ -7,6 +7,7 @@ import { RuntimeContext } from "@salesos/hooks";
 import { ToastViewport } from "@salesos/ui";
 import { I18nProvider } from "@/lib/i18n";
 import { AuthSessionSync } from "@/components/foundation/AuthSessionSync";
+import { EntitlementDenialListener } from "@/components/foundation/EntitlementDenialListener";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -48,6 +49,7 @@ export function Providers({ children }: { children: ReactNode }) {
         <RuntimeContext.Provider value={runtime}>
           <QueryClientProvider client={queryClient}>
             <AuthSessionSync />
+            <EntitlementDenialListener />
             {children}
           </QueryClientProvider>
         </RuntimeContext.Provider>

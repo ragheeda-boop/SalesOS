@@ -1,5 +1,10 @@
 import axios from "axios";
 import { clearAuthTokens } from "@/lib/auth/session";
+import {
+  ENTITLEMENT_DENIED_EVENT,
+  formatEntitlementDeniedMessage,
+  isEntitlementDeniedPayload,
+} from "@/lib/api/entitlementErrors";
 
 // Browser: same-origin so Next.js rewrites proxy to Railway (avoids CORS Network Error).
 // Server: absolute backend URL for SSR / Route Handlers.
@@ -73,7 +78,18 @@ api.interceptors.response.use(
     }
 
     if (status === 403) {
-      console.warn("[API] 403 Forbidden:", error.response?.data);
+      const data = error.response?.data;
+      if (isEntitlementDeniedPayload(data)) {
+        const message = formatEntitlementDeniedMessage(data);
+        console.warn("[API] 403 entitlement denied:", message, data);
+        window.dispatchEvent(
+          new CustomEvent(ENTITLEMENT_DENIED_EVENT, {
+            detail: { ...data, message },
+          }),
+        );
+      } else {
+        console.warn("[API] 403 Forbidden:", data);
+      }
     }
 
     return Promise.reject(error);

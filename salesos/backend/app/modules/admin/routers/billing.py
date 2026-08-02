@@ -37,6 +37,8 @@ def _subscription_response(row) -> SubscriptionResponse:
         current_period_start=row.current_period_start,
         current_period_end=row.current_period_end,
         canceled_at=row.canceled_at,
+        pending_plan_id=getattr(row, "pending_plan_id", None),
+        pending_effective_at=getattr(row, "pending_effective_at", None),
         created_at=row.created_at,
         updated_at=row.updated_at,
     )

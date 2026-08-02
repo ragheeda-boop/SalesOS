@@ -254,6 +254,8 @@ export function formatSubscriptionSummary(sub: {
   plan_id?: string | null;
   seats?: number | null;
   current_period_end?: string | null;
+  pending_plan_id?: string | null;
+  pending_effective_at?: string | null;
 }): string {
   const parts = [`status=${sub.status}`];
   if (sub.billing_cycle) parts.push(`cycle=${sub.billing_cycle}`);
@@ -261,6 +263,12 @@ export function formatSubscriptionSummary(sub: {
   if (typeof sub.seats === "number") parts.push(`seats=${sub.seats}`);
   if (sub.current_period_end) {
     parts.push(`period_end=${sub.current_period_end}`);
+  }
+  if (sub.pending_plan_id) {
+    parts.push(`pending_plan=${sub.pending_plan_id}`);
+  }
+  if (sub.pending_effective_at) {
+    parts.push(`pending_at=${sub.pending_effective_at}`);
   }
   return parts.join(" · ");
 }
@@ -345,6 +353,84 @@ export const ADMIN_USAGE_METRIC_OPTIONS = [
   { label: "api_calls", value: "api_calls" },
   { label: "storage_mb", value: "storage_mb" },
 ] as const;
+
+export function dunningGraceDaysRemaining(
+  graceEndsAt: string | null | undefined,
+  nowMs: number = Date.now(),
+): number | null {
+  if (!graceEndsAt) return null;
+  const end = Date.parse(graceEndsAt);
+  if (Number.isNaN(end)) return null;
+  return Math.ceil((end - nowMs) / 86_400_000);
+}
+
+export function formatDunningCaseRow(c: {
+  status: string;
+  failure_count?: number;
+  grace_ends_at?: string | null;
+  last_stripe_invoice_id?: string | null;
+}): string {
+  const remaining = dunningGraceDaysRemaining(c.grace_ends_at);
+  const grace =
+    remaining == null
+      ? ""
+      : remaining >= 0
+        ? ` · grace ~${remaining}d left`
+        : ` · grace elapsed ${Math.abs(remaining)}d ago`;
+  const inv = c.last_stripe_invoice_id
+    ? ` · inv=${c.last_stripe_invoice_id}`
+    : "";
+  const fails =
+    typeof c.failure_count === "number" ? ` · fails=${c.failure_count}` : "";
+  return `status=${c.status}${fails}${grace}${inv}`;
+}
+
+export const ADMIN_DUNNING_STATUS_OPTIONS = [
+  { label: "All statuses", value: "" },
+  { label: "open", value: "open" },
+  { label: "suspended", value: "suspended" },
+  { label: "cleared", value: "cleared" },
+] as const;
+
+/** FE-S05-06 — pending plan honesty from subscription or quote. */
+export function formatPendingPlanHonesty(sub: {
+  pending_plan_id?: string | null;
+  pending_effective_at?: string | null;
+  plan_id?: string | null;
+}): string | null {
+  if (!sub.pending_plan_id) return null;
+  const when = sub.pending_effective_at
+    ? ` effective ${sub.pending_effective_at}`
+    : " (period-end pending)";
+  return `Pending plan change: ${sub.plan_id || "current"} → ${sub.pending_plan_id}${when}. Downgrades defer unless downgrade_immediate.`;
+}
+
+export function formatPlanChangeQuote(q: {
+  direction: string;
+  timing: string;
+  amount_due_now: number;
+  from_plan_id?: string | null;
+  to_plan_id: string;
+  remaining_fraction?: number;
+  applied?: string | null;
+  pending_plan_id?: string | null;
+  pending_effective_at?: string | null;
+}): string {
+  const parts = [
+    `direction=${q.direction}`,
+    `timing=${q.timing}`,
+    `due_now=${q.amount_due_now}`,
+    `from=${q.from_plan_id || "—"}`,
+    `to=${q.to_plan_id}`,
+  ];
+  if (typeof q.remaining_fraction === "number") {
+    parts.push(`remain=${q.remaining_fraction}`);
+  }
+  if (q.applied) parts.push(`applied=${q.applied}`);
+  if (q.pending_plan_id) parts.push(`pending=${q.pending_plan_id}`);
+  if (q.pending_effective_at) parts.push(`pending_at=${q.pending_effective_at}`);
+  return parts.join(" · ");
+}
 
 /** FE-S04-38 — STORY-04-03 suspended tenants are write-blocked (tenant API). */
 export function suspendedWriteBlockDescription(tenant: {
@@ -446,3 +532,107 @@ export function sortAdminTenants<
   });
   return next;
 }
+
+/** FE-S06-02 — short honesty summary of Plan.entitlements. */
+export function formatPlanEntitlementsSummary(ents: {
+  domains?: Record<string, { enabled?: boolean } | null> | null;
+  quotas?: {
+    seats?: number;
+    ai_tokens_monthly?: number;
+    connectors?: number;
+    storage_mb?: number;
+    api_calls_monthly?: number;
+    ai_tokens_unlimited?: boolean;
+    connectors_unlimited?: boolean;
+  } | null;
+  deployment_tier?: string | null;
+  support_sla?: string | null;
+  version?: number | null;
+} | null | undefined): string {
+  if (!ents) return "entitlements=(tier default / unset)";
+  const domains = ents.domains || {};
+  const enabled = Object.entries(domains).filter(([, d]) => d && d.enabled);
+  const q = ents.quotas;
+  const seats = q?.seats ?? "—";
+  const ai = q?.ai_tokens_unlimited
+    ? "ai=unlimited"
+    : `ai=${q?.ai_tokens_monthly ?? "—"}`;
+  const conn = q?.connectors_unlimited
+    ? "connectors=unlimited"
+    : `connectors=${q?.connectors ?? "—"}`;
+  return (
+    `v${ents.version ?? 1} · domains_enabled=${enabled.length}/${Object.keys(domains).length}` +
+    ` · seats=${seats} · ${ai} · ${conn}` +
+    ` · storage_mb=${q?.storage_mb ?? "—"}` +
+    ` · deploy=${ents.deployment_tier || "pooled"}` +
+    ` · sla=${ents.support_sla || "community"}`
+  );
+}
+
+export function parsePlanEntitlementsJson(
+  raw: string,
+): { ok: true; value: Record<string, unknown> | null } | { ok: false; error: string } {
+  const trimmed = raw.trim();
+  if (!trimmed) return { ok: true, value: null };
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (parsed === null) return { ok: true, value: null };
+    if (typeof parsed !== "object" || Array.isArray(parsed)) {
+      return { ok: false, error: "entitlements must be a JSON object" };
+    }
+    return { ok: true, value: parsed as Record<string, unknown> };
+  } catch (e: unknown) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "invalid JSON",
+    };
+  }
+}
+
+/** FE-S05-02c — honesty banner from GET /billing/stripe/status booleans. */
+export function formatStripeStatusBanner(status: {
+  secret_key_configured?: boolean;
+  webhook_secret_configured?: boolean;
+  publishable_key_configured?: boolean;
+  checkout_ready?: boolean;
+  webhook_ready?: boolean;
+  sandbox_soak_ready?: boolean;
+  production_billing?: boolean;
+  production_go?: boolean;
+  honesty?: string | null;
+} | null | undefined): string {
+  if (!status) return "Stripe status unavailable.";
+  const flags = [
+    `secret=${status.secret_key_configured ? "yes" : "no"}`,
+    `webhook_secret=${status.webhook_secret_configured ? "yes" : "no"}`,
+    `publishable=${status.publishable_key_configured ? "yes" : "no"}`,
+    `checkout_ready=${status.checkout_ready ? "yes" : "no"}`,
+    `webhook_ready=${status.webhook_ready ? "yes" : "no"}`,
+    `sandbox_soak=${status.sandbox_soak_ready ? "yes" : "no"}`,
+    `production_billing=${status.production_billing ? "yes" : "no"}`,
+    `production_go=${status.production_go ? "yes" : "no"}`,
+  ];
+  const honesty =
+    status.honesty ||
+    "env-only secrets; empty STRIPE_* fail-closed 503. No invented keys.";
+  return `${flags.join(" · ")}. ${honesty}`;
+}
+
+export function stripeStatusTone(status: {
+  checkout_ready?: boolean;
+  sandbox_soak_ready?: boolean;
+  production_go?: boolean;
+} | null | undefined): "ok" | "warn" | "blocked" {
+  if (!status) return "blocked";
+  if (status.production_go) return "ok"; // never true on tip honesty
+  if (status.checkout_ready || status.sandbox_soak_ready) return "warn";
+  return "blocked";
+}
+
+export {
+  ENTITLEMENT_DENIED_EVENT,
+  formatEntitlementDeniedMessage,
+  getEntitlementDeniedFromError,
+  isEntitlementDeniedPayload,
+  type EntitlementDeniedPayload,
+} from "@/lib/api/entitlementErrors";

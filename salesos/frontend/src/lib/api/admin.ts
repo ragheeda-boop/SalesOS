@@ -9,7 +9,14 @@ import type {
   AdminFlagTenant,
   AdminHealthHistoryEntry,
   AdminBillingCatalogItem,
+  AdminDunningCase,
+  AdminDunningEvaluateRequest,
+  AdminDunningEvaluateResponse,
   AdminInvoice,
+  AdminPlanChangeApplyPendingRequest,
+  AdminPlanChangeApplyPendingResponse,
+  AdminPlanChangeQuote,
+  AdminPlanChangeRequest,
   AdminJob,
   AdminJobDetail,
   AdminLicense,
@@ -21,6 +28,7 @@ import type {
   AdminStripeCheckoutSessionResponse,
   AdminStripePortalSessionRequest,
   AdminStripePortalSessionResponse,
+  AdminStripeStatus,
   AdminSubscription,
   AdminUsageMeter,
   AdminUsageRollupRequest,
@@ -411,6 +419,18 @@ export async function createAdminStripePortalSession(
   return resp.data;
 }
 
+/** STORY-05-02c — env-only readiness booleans (never echo secrets). */
+export async function getAdminStripeStatus(): Promise<AdminStripeStatus> {
+  const resp = await api.get("/api/v1/admin/billing/stripe/status");
+  return resp.data;
+}
+
+/** STORY-05-02c — env-only readiness booleans (never echo secrets). */
+export async function getAdminStripeStatus(): Promise<AdminStripeStatus> {
+  const resp = await api.get("/api/v1/admin/billing/stripe/status");
+  return resp.data;
+}
+
 export async function listAdminPlatformInvoices(
   tenantId?: string,
 ): Promise<AdminPlatformInvoice[]> {
@@ -437,6 +457,55 @@ export async function rollupAdminUsage(
   data: AdminUsageRollupRequest = {},
 ): Promise<AdminUsageRollupResponse> {
   const resp = await api.post("/api/v1/admin/billing/usage/rollup", data);
+  return resp.data;
+}
+
+export async function listAdminDunningCases(params?: {
+  tenant_id?: string;
+  status?: string;
+  limit?: number;
+}): Promise<AdminDunningCase[]> {
+  const resp = await api.get("/api/v1/admin/billing/dunning", { params });
+  return resp.data;
+}
+
+export async function evaluateAdminDunning(
+  data: AdminDunningEvaluateRequest = {},
+): Promise<AdminDunningEvaluateResponse> {
+  const resp = await api.post("/api/v1/admin/billing/dunning/evaluate", data);
+  return resp.data;
+}
+
+export async function clearAdminDunning(
+  tenantId: string,
+): Promise<{ tenant_id: string; cleared: number }> {
+  const resp = await api.post(
+    `/api/v1/admin/billing/dunning/${tenantId}/clear`,
+  );
+  return resp.data;
+}
+
+export async function quoteAdminPlanChange(
+  data: AdminPlanChangeRequest,
+): Promise<AdminPlanChangeQuote> {
+  const resp = await api.post("/api/v1/admin/billing/plan-change/quote", data);
+  return resp.data;
+}
+
+export async function applyAdminPlanChange(
+  data: AdminPlanChangeRequest,
+): Promise<AdminPlanChangeQuote> {
+  const resp = await api.post("/api/v1/admin/billing/plan-change/apply", data);
+  return resp.data;
+}
+
+export async function applyPendingAdminPlanChanges(
+  data: AdminPlanChangeApplyPendingRequest = {},
+): Promise<AdminPlanChangeApplyPendingResponse> {
+  const resp = await api.post(
+    "/api/v1/admin/billing/plan-change/apply-pending",
+    data,
+  );
   return resp.data;
 }
 

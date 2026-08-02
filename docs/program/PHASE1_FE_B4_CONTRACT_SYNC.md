@@ -74,3 +74,7 @@
 | FE-S05-02 | Stripe Checkout entry + 503 empty-state | **LANDED** |
 | FE-S05-03 | Catalog + Portal + platform invoices UI | **LANDED** |
 | FE-S05-04 | UsageMeter list + Owner rollup | **LANDED** |
+| FE-S05-05 | Dunning list / evaluate / clear | **LANDED** |
+| FE-S05-06 | Plan-change quote / apply / pending | **LANDED** |
+| FE-S06-01 | `/admin/billing` read view | **LANDED** |
+| FE-S06-02 | Plan.entitlements editor/display | **LANDED** |

@@ -2,31 +2,43 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { Button, Input, Select, Spinner, useToast } from "@salesos/ui";
+import type { AdminPlanChangeQuote } from "@/lib/api/types/admin";
 import {
   useAdminBillingCatalog,
+  useAdminDunningCases,
   useAdminPlatformInvoices,
+  useAdminStripeStatus,
   useAdminTenantSubscription,
   useAdminUsageMeters,
+  useApplyAdminPlanChange,
+  useApplyPendingAdminPlanChanges,
+  useClearAdminDunning,
   useCreateAdminStripeCheckoutSession,
   useCreateAdminStripePortalSession,
+  useEvaluateAdminDunning,
+  useQuoteAdminPlanChange,
   useRollupAdminUsage,
 } from "@/lib/hooks/adminQueries";
 import {
   ADMIN_USAGE_METRIC_OPTIONS,
   catalogPriceIdForCycle,
+  formatDunningCaseRow,
+  formatPendingPlanHonesty,
+  formatPlanChangeQuote,
+  formatStripeStatusBanner,
   formatSubscriptionSummary,
   formatUsageMeterRow,
   getApiErrorDetail,
   isStripeBillingUnavailableError,
   stripeBillingUnavailableDescription,
+  stripeStatusTone,
 } from "@/features/admin/lib/formatProvisionToast";
 
 type BillingCycle = "monthly" | "yearly";
 
 /**
- * FE-S05-01..04 — Owner Console billing + UsageMeter against tip 0a5f198.
- * Catalog / Checkout / Portal / platform invoices / usage meters.
- * Honest 503 empty-states. No invented Stripe keys. Not Production GO.
+ * FE-S05-01..06 — billing + UsageMeter + dunning + plan-change (tip ca1fb19).
+ * Honest 503 / pending-plan empty-states. No invented Stripe keys. Not Production GO.
  */
 export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
   const { toast } = useToast();
@@ -43,6 +55,12 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
     error: catalogErr,
   } = useAdminBillingCatalog(true);
   const {
+    data: stripeStatus,
+    isLoading: stripeStatusLoading,
+    isError: stripeStatusError,
+    error: stripeStatusErr,
+  } = useAdminStripeStatus();
+  const {
     data: invoices,
     isLoading: invoicesLoading,
     isError: invoicesError,
@@ -56,9 +74,21 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
     error: usageErr,
     refetch: refetchUsage,
   } = useAdminUsageMeters(tenantId, metricFilter || undefined);
+  const {
+    data: dunningCases,
+    isLoading: dunningLoading,
+    isError: dunningError,
+    error: dunningErr,
+    refetch: refetchDunning,
+  } = useAdminDunningCases({ tenant_id: tenantId, limit: 20 });
   const checkoutMutation = useCreateAdminStripeCheckoutSession();
   const portalMutation = useCreateAdminStripePortalSession();
   const rollupMutation = useRollupAdminUsage();
+  const evaluateDunningMutation = useEvaluateAdminDunning();
+  const clearDunningMutation = useClearAdminDunning();
+  const quotePlanMutation = useQuoteAdminPlanChange();
+  const applyPlanMutation = useApplyAdminPlanChange();
+  const applyPendingPlanMutation = useApplyPendingAdminPlanChanges();
 
   const [selectedPlanId, setSelectedPlanId] = useState("");
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
@@ -66,6 +96,9 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
   const [billingUnavailableDetail, setBillingUnavailableDetail] = useState<
     string | null
   >(null);
+  const [planChangeTargetId, setPlanChangeTargetId] = useState("");
+  const [downgradeImmediate, setDowngradeImmediate] = useState(false);
+  const [planQuote, setPlanQuote] = useState<AdminPlanChangeQuote | null>(null);
 
   const planOptions = useMemo(
     () =>
@@ -229,6 +262,141 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
     }
   }, [rollupMutation, refetchUsage, toast]);
 
+  const handleEvaluateDunning = useCallback(async () => {
+    try {
+      const result = await evaluateDunningMutation.mutateAsync({});
+      await refetchDunning();
+      toast({
+        variant: "success",
+        title: "Dunning evaluate complete",
+        description: Object.entries(result)
+          .map(([k, v]) => `${k}=${String(v)}`)
+          .join(" · "),
+      });
+    } catch (err: unknown) {
+      toast({
+        variant: "error",
+        title: "Dunning evaluate failed",
+        description: getApiErrorDetail(err) || "evaluate failed",
+      });
+    }
+  }, [evaluateDunningMutation, refetchDunning, toast]);
+
+  const handleClearDunning = useCallback(async () => {
+    try {
+      const result = await clearDunningMutation.mutateAsync(tenantId);
+      await refetchDunning();
+      toast({
+        variant: "success",
+        title: "Dunning cleared",
+        description: `cleared=${result.cleared}`,
+      });
+    } catch (err: unknown) {
+      toast({
+        variant: "error",
+        title: "Clear dunning failed",
+        description: getApiErrorDetail(err) || "no open case or error",
+      });
+    }
+  }, [clearDunningMutation, tenantId, refetchDunning, toast]);
+
+  const handleQuotePlan = useCallback(async () => {
+    if (!planChangeTargetId) {
+      toast({
+        variant: "error",
+        title: "Select target plan",
+        description: "Pick a catalog plan UUID for quote/apply.",
+      });
+      return;
+    }
+    try {
+      const q = await quotePlanMutation.mutateAsync({
+        tenant_id: tenantId,
+        target_plan_id: planChangeTargetId,
+        downgrade_immediate: downgradeImmediate,
+      });
+      setPlanQuote(q);
+      toast({
+        variant: "success",
+        title: "Plan-change quote",
+        description: formatPlanChangeQuote(q),
+      });
+    } catch (err: unknown) {
+      setPlanQuote(null);
+      toast({
+        variant: "error",
+        title: "Quote failed",
+        description: getApiErrorDetail(err) || "plan-change quote failed",
+      });
+    }
+  }, [
+    planChangeTargetId,
+    quotePlanMutation,
+    tenantId,
+    downgradeImmediate,
+    toast,
+  ]);
+
+  const handleApplyPlan = useCallback(async () => {
+    if (!planChangeTargetId) {
+      toast({
+        variant: "error",
+        title: "Select target plan",
+        description: "Quote first, then apply.",
+      });
+      return;
+    }
+    try {
+      const q = await applyPlanMutation.mutateAsync({
+        tenant_id: tenantId,
+        target_plan_id: planChangeTargetId,
+        downgrade_immediate: downgradeImmediate,
+      });
+      setPlanQuote(q);
+      toast({
+        variant: "success",
+        title: "Plan-change applied",
+        description: formatPlanChangeQuote(q),
+      });
+    } catch (err: unknown) {
+      toast({
+        variant: "error",
+        title: "Apply failed",
+        description: getApiErrorDetail(err) || "plan-change apply failed",
+      });
+    }
+  }, [
+    planChangeTargetId,
+    applyPlanMutation,
+    tenantId,
+    downgradeImmediate,
+    toast,
+  ]);
+
+  const handleApplyPendingPlans = useCallback(async () => {
+    try {
+      const result = await applyPendingPlanMutation.mutateAsync({});
+      toast({
+        variant: "success",
+        title: "Pending plan changes applied",
+        description: Object.entries(result)
+          .map(([k, v]) => `${k}=${String(v)}`)
+          .join(" · "),
+      });
+    } catch (err: unknown) {
+      toast({
+        variant: "error",
+        title: "Apply-pending failed",
+        description: getApiErrorDetail(err) || "apply-pending failed",
+      });
+    }
+  }, [applyPendingPlanMutation, toast]);
+
+  const openDunning = (dunningCases || []).filter((c) => c.status === "open");
+  const pendingHonesty = subscription
+    ? formatPendingPlanHonesty(subscription)
+    : null;
+
   return (
     <div
       className="space-y-3 rounded-lg border border-[var(--border-default)] p-4"
@@ -239,10 +407,38 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
           Billing / usage
         </p>
         <p className="text-xs text-[var(--text-muted)]">
-          STORY-05-01/02/02b/03 — catalog, Checkout, Portal, platform invoices,
-          UsageMeter. Stripe paths fail-closed without secrets. No invented
-          keys. Not Production GO.
+          STORY-05-01..05 — catalog, Checkout, Portal, invoices, UsageMeter,
+          dunning, plan-change. Fail-closed Stripe. Pending-plan honesty. Not
+          Production GO.
         </p>
+      </div>
+
+      <div
+        className={
+          stripeStatusTone(stripeStatus) === "blocked"
+            ? "rounded border border-[var(--status-danger-border)] bg-[var(--status-danger-bg)] p-3 text-xs text-[var(--status-danger-text)]"
+            : stripeStatusTone(stripeStatus) === "warn"
+              ? "rounded border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] p-3 text-xs text-[var(--status-warning-text)]"
+              : "rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] p-3 text-xs text-[var(--text-secondary)]"
+        }
+        data-testid="admin-tenants-stripe-status"
+      >
+        <p className="mb-1 font-medium">Stripe readiness (STORY-05-02c)</p>
+        {stripeStatusLoading ? (
+          <p>Loading stripe/status…</p>
+        ) : stripeStatusError ? (
+          <p data-testid="admin-tenants-stripe-status-error">
+            Status unavailable
+            {getApiErrorDetail(stripeStatusErr)
+              ? `: ${getApiErrorDetail(stripeStatusErr)}`
+              : "."}{" "}
+            No invented keys.
+          </p>
+        ) : (
+          <p data-testid="admin-tenants-stripe-status-summary">
+            {formatStripeStatusBanner(stripeStatus)}
+          </p>
+        )}
       </div>
 
       <div data-testid="admin-tenants-subscription">
@@ -275,6 +471,14 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
             No subscription row for this tenant (GET 404).
           </p>
         )}
+        {pendingHonesty ? (
+          <p
+            className="mt-1 text-xs text-warning-700 dark:text-warning-400"
+            data-testid="admin-tenants-pending-plan"
+          >
+            {pendingHonesty}
+          </p>
+        ) : null}
       </div>
 
       {billingUnavailableDetail ? (
@@ -501,6 +705,156 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
                 className="border-b border-[var(--border-default)] py-1 font-mono"
               >
                 {formatUsageMeterRow(m)}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div
+        className="space-y-2 border-t border-[var(--border-default)] pt-3"
+        data-testid="admin-tenants-plan-change"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-medium text-[var(--text-secondary)]">
+            Plan change / proration (STORY-05-05)
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleApplyPendingPlans}
+            disabled={applyPendingPlanMutation.isPending}
+            data-testid="admin-tenants-plan-apply-pending"
+          >
+            {applyPendingPlanMutation.isPending
+              ? "Applying pending…"
+              : "Apply due pending"}
+          </Button>
+        </div>
+        <p className="text-xs text-[var(--text-muted)]">
+          Upgrade = immediate prorated charge. Downgrade = period-end unless
+          downgrade_immediate (credit now).
+        </p>
+        <div data-testid="admin-tenants-plan-change-target">
+          <Select
+            value={planChangeTargetId}
+            onChange={setPlanChangeTargetId}
+            options={[
+              { label: "Target plan…", value: "" },
+              ...planOptions,
+            ]}
+            placeholder="Target plan"
+          />
+        </div>
+        <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+          <input
+            type="checkbox"
+            checked={downgradeImmediate}
+            onChange={(e) => setDowngradeImmediate(e.target.checked)}
+            data-testid="admin-tenants-plan-downgrade-immediate"
+          />
+          Downgrade immediate (<code>downgrade_immediate=true</code>)
+        </label>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleQuotePlan}
+            disabled={quotePlanMutation.isPending}
+            data-testid="admin-tenants-plan-quote"
+          >
+            {quotePlanMutation.isPending ? "Quoting…" : "Quote"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleApplyPlan}
+            disabled={applyPlanMutation.isPending}
+            data-testid="admin-tenants-plan-apply"
+          >
+            {applyPlanMutation.isPending ? "Applying…" : "Apply"}
+          </Button>
+        </div>
+        {planQuote ? (
+          <p
+            className="text-xs font-mono text-[var(--text-secondary)]"
+            data-testid="admin-tenants-plan-quote-summary"
+          >
+            {formatPlanChangeQuote(planQuote)}
+          </p>
+        ) : (
+          <p
+            className="text-xs text-[var(--text-muted)]"
+            data-testid="admin-tenants-plan-quote-empty"
+          >
+            No quote yet — select target plan and Quote.
+          </p>
+        )}
+      </div>
+
+      <div
+        className="space-y-2 border-t border-[var(--border-default)] pt-3"
+        data-testid="admin-tenants-dunning"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-medium text-[var(--text-secondary)]">
+            Dunning (STORY-05-04)
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleEvaluateDunning}
+              disabled={evaluateDunningMutation.isPending}
+              data-testid="admin-tenants-dunning-evaluate"
+            >
+              {evaluateDunningMutation.isPending
+                ? "Evaluating…"
+                : "Evaluate grace"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleClearDunning}
+              disabled={
+                clearDunningMutation.isPending || openDunning.length === 0
+              }
+              data-testid="admin-tenants-dunning-clear"
+            >
+              {clearDunningMutation.isPending ? "Clearing…" : "Clear open"}
+            </Button>
+          </div>
+        </div>
+        {dunningLoading ? (
+          <p className="text-sm text-[var(--text-muted)]">Loading dunning…</p>
+        ) : dunningError ? (
+          <p
+            className="text-sm text-[var(--text-muted)]"
+            data-testid="admin-tenants-dunning-error"
+          >
+            Dunning unavailable
+            {getApiErrorDetail(dunningErr)
+              ? `: ${getApiErrorDetail(dunningErr)}`
+              : "."}
+          </p>
+        ) : !dunningCases || dunningCases.length === 0 ? (
+          <p
+            className="text-sm text-[var(--text-muted)]"
+            data-testid="admin-tenants-dunning-empty"
+          >
+            No dunning cases for this tenant.
+          </p>
+        ) : (
+          <ul
+            className="max-h-40 space-y-1 overflow-y-auto text-xs text-[var(--text-secondary)]"
+            data-testid="admin-tenants-dunning-list"
+          >
+            {dunningCases.map((c) => (
+              <li
+                key={c.id}
+                className="border-b border-[var(--border-default)] py-1 font-mono"
+              >
+                {formatDunningCaseRow(c)}
               </li>
             ))}
           </ul>

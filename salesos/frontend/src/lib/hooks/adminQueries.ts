@@ -31,9 +31,16 @@ import {
   listAdminBillingCatalog,
   createAdminStripeCheckoutSession,
   createAdminStripePortalSession,
+  getAdminStripeStatus,
   listAdminPlatformInvoices,
   listAdminUsageMeters,
   rollupAdminUsage,
+  listAdminDunningCases,
+  evaluateAdminDunning,
+  clearAdminDunning,
+  quoteAdminPlanChange,
+  applyAdminPlanChange,
+  applyPendingAdminPlanChanges,
   listAdminInvoices,
   listAdminTransactions,
   listAdminFeatureFlags,
@@ -59,6 +66,9 @@ import {
   validateAdminConfig,
 } from "@/lib/api";
 import type {
+  AdminDunningEvaluateRequest,
+  AdminPlanChangeApplyPendingRequest,
+  AdminPlanChangeRequest,
   AdminStripeCheckoutSessionRequest,
   AdminStripePortalSessionRequest,
   AdminTenantActivateRequest,
@@ -232,11 +242,20 @@ export function useAdminBillingCatalog(activeOnly = true) {
   });
 }
 
-export function useAdminPlatformInvoices(tenantId: string) {
+/** FE-S05-02c — Stripe readiness banner (booleans only). */
+export function useAdminStripeStatus() {
+  return useQuery({
+    queryKey: adminKeys.stripeStatus(),
+    queryFn: getAdminStripeStatus,
+    retry: false,
+    staleTime: 30_000,
+  });
+}
+
+export function useAdminPlatformInvoices(tenantId?: string) {
   return useQuery({
     queryKey: adminKeys.platformInvoices(tenantId),
     queryFn: () => listAdminPlatformInvoices(tenantId),
-    enabled: !!tenantId,
     retry: false,
   });
 }
@@ -276,6 +295,75 @@ export function useRollupAdminUsage() {
     mutationFn: (data: AdminUsageRollupRequest = {}) => rollupAdminUsage(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "billing", "usage"] });
+    },
+  });
+}
+
+export function useAdminDunningCases(filters?: {
+  tenant_id?: string;
+  status?: string;
+  limit?: number;
+}) {
+  const params = {
+    tenant_id: filters?.tenant_id,
+    status: filters?.status || undefined,
+    limit: filters?.limit ?? 100,
+  };
+  return useQuery({
+    queryKey: adminKeys.dunningCases(params),
+    queryFn: () => listAdminDunningCases(params),
+    retry: false,
+  });
+}
+
+export function useEvaluateAdminDunning() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: AdminDunningEvaluateRequest = {}) =>
+      evaluateAdminDunning(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "billing", "dunning"] });
+      qc.invalidateQueries({ queryKey: ["admin", "tenants"] });
+    },
+  });
+}
+
+export function useClearAdminDunning() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (tenantId: string) => clearAdminDunning(tenantId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "billing", "dunning"] });
+      qc.invalidateQueries({ queryKey: ["admin", "billing", "subscription"] });
+    },
+  });
+}
+
+export function useQuoteAdminPlanChange() {
+  return useMutation({
+    mutationFn: (data: AdminPlanChangeRequest) => quoteAdminPlanChange(data),
+  });
+}
+
+export function useApplyAdminPlanChange() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: AdminPlanChangeRequest) => applyAdminPlanChange(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "billing", "subscription"] });
+      qc.invalidateQueries({ queryKey: ["admin", "tenants"] });
+    },
+  });
+}
+
+export function useApplyPendingAdminPlanChanges() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: AdminPlanChangeApplyPendingRequest = {}) =>
+      applyPendingAdminPlanChanges(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "billing", "subscription"] });
+      qc.invalidateQueries({ queryKey: ["admin", "tenants"] });
     },
   });
 }

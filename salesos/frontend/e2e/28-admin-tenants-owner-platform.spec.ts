@@ -177,6 +177,9 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(
       page.getByTestId("admin-tenants-usage-meters"),
     ).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-plan-change")).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-plan-quote")).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-dunning")).toBeVisible();
   });
 
   test("admin tenants delete honesty + retention hooks without mutate", async ({

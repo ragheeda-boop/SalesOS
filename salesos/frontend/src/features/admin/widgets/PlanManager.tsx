@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Badge, Card, Spinner } from "@salesos/ui";
+import { Button, Badge, Card, Spinner, useToast } from "@salesos/ui";
 import { Plus } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import {
@@ -9,15 +9,28 @@ import {
   useAdminLicenses,
   useCreateAdminPlan,
   useCreateAdminLicense,
+  useUpdateAdminPlan,
 } from "@/lib/hooks/adminQueries";
 import { AdminPlan, AdminLicense } from "@/lib/api";
+import {
+  formatPlanEntitlementsSummary,
+  parsePlanEntitlementsJson,
+} from "@/features/admin/lib/formatProvisionToast";
 
+/**
+ * Owner plans UI — STORY-06-01 entitlements display/editor (tip 2f0e96c).
+ * Leave entitlements JSON empty on create → BE tier defaults. Not Production GO.
+ */
 export function PlanManager() {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const { data: plans, isLoading: plansLoading } = useAdminPlans();
   const { data: licenses, isLoading: licensesLoading } = useAdminLicenses();
   const [showCreatePlan, setShowCreatePlan] = useState(false);
   const [showCreateLicense, setShowCreateLicense] = useState(false);
+  const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
+  const [entitlementsJson, setEntitlementsJson] = useState("");
+  const [editEntitlementsJson, setEditEntitlementsJson] = useState("");
   const [planForm, setPlanForm] = useState({
     name: "",
     tier: "free" as "free" | "starter" | "growth" | "enterprise",
@@ -34,25 +47,102 @@ export function PlanManager() {
 
   const createPlanMutation = useCreateAdminPlan();
   const createLicenseMutation = useCreateAdminLicense();
+  const updatePlanMutation = useUpdateAdminPlan(editingPlanId || "");
 
   const handleCreatePlan = async () => {
-    await createPlanMutation.mutateAsync({
-      ...planForm,
-      features: planForm.features
-        .split(",")
-        .map((f: string) => f.trim())
-        .filter(Boolean),
-    });
-    setShowCreatePlan(false);
-    setPlanForm({
-      name: "",
-      tier: "free",
-      price_monthly: 0,
-      max_users: 1,
-      max_storage_mb: 100,
-      max_api_calls: 1000,
-      features: "",
-    });
+    const parsed = parsePlanEntitlementsJson(entitlementsJson);
+    if (!parsed.ok) {
+      toast({
+        variant: "error",
+        title: "Invalid entitlements JSON",
+        description: parsed.error,
+      });
+      return;
+    }
+    try {
+      await createPlanMutation.mutateAsync({
+        ...planForm,
+        features: planForm.features
+          .split(",")
+          .map((f: string) => f.trim())
+          .filter(Boolean),
+        ...(parsed.value ? { entitlements: parsed.value } : {}),
+      });
+      setShowCreatePlan(false);
+      setEntitlementsJson("");
+      setPlanForm({
+        name: "",
+        tier: "free",
+        price_monthly: 0,
+        max_users: 1,
+        max_storage_mb: 100,
+        max_api_calls: 1000,
+        features: "",
+      });
+      toast({
+        variant: "success",
+        title: "Plan created",
+        description: parsed.value
+          ? "Custom entitlements saved."
+          : "BE applied tier default entitlements.",
+      });
+    } catch (err: unknown) {
+      toast({
+        variant: "error",
+        title: "Create plan failed",
+        description:
+          err instanceof Error ? err.message : "create plan failed",
+      });
+    }
+  };
+
+  const openEditEntitlements = (plan: AdminPlan) => {
+    setEditingPlanId(plan.id);
+    setEditEntitlementsJson(
+      plan.entitlements
+        ? JSON.stringify(plan.entitlements, null, 2)
+        : "",
+    );
+  };
+
+  const handleSaveEntitlements = async () => {
+    if (!editingPlanId) return;
+    const parsed = parsePlanEntitlementsJson(editEntitlementsJson);
+    if (!parsed.ok) {
+      toast({
+        variant: "error",
+        title: "Invalid entitlements JSON",
+        description: parsed.error,
+      });
+      return;
+    }
+    if (!parsed.value) {
+      toast({
+        variant: "error",
+        title: "Entitlements required",
+        description: "Paste a JSON object or cancel. Empty clears not supported.",
+      });
+      return;
+    }
+    try {
+      await updatePlanMutation.mutateAsync({ entitlements: parsed.value });
+      setEditingPlanId(null);
+      setEditEntitlementsJson("");
+      toast({
+        variant: "success",
+        title: "Entitlements saved",
+        description: formatPlanEntitlementsSummary(
+          parsed.value as Parameters<typeof formatPlanEntitlementsSummary>[0],
+        ),
+      });
+    } catch (err: unknown) {
+      toast({
+        variant: "error",
+        title: "Update entitlements failed",
+        description:
+          err instanceof Error ? err.message : "update plan failed",
+      });
+    }
   };
 
   if (plansLoading || licensesLoading) {
@@ -64,7 +154,7 @@ export function PlanManager() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="admin-plan-manager">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">{t("admin.plan_manager.title")}</h2>
         <div className="flex gap-2">
@@ -72,7 +162,11 @@ export function PlanManager() {
             <Plus className="h-4 w-4" />
             {t("admin.plan_manager.new_license")}
           </Button>
-          <Button onClick={() => setShowCreatePlan(true)} className="gap-2">
+          <Button
+            onClick={() => setShowCreatePlan(true)}
+            className="gap-2"
+            data-testid="admin-plans-new"
+          >
             <Plus className="h-4 w-4" />
             {t("admin.plan_manager.new_plan")}
           </Button>
@@ -80,7 +174,7 @@ export function PlanManager() {
       </div>
 
       {showCreatePlan && (
-        <Card className="p-4 space-y-3">
+        <Card className="p-4 space-y-3" data-testid="admin-plans-create">
           <h3 className="font-semibold">
             {t("admin.plan_manager.new_plan_title")}
           </h3>
@@ -100,7 +194,10 @@ export function PlanManager() {
                 setPlanForm({
                   ...planForm,
                   tier: e.target.value as
-                    "free" | "starter" | "growth" | "enterprise",
+                    | "free"
+                    | "starter"
+                    | "growth"
+                    | "enterprise",
                 })
               }
             >
@@ -163,10 +260,24 @@ export function PlanManager() {
               }
             />
           </div>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
+              Entitlements JSON (optional — empty uses BE tier defaults)
+            </label>
+            <textarea
+              className="w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] p-2 font-mono text-xs text-[var(--text-primary)]"
+              rows={6}
+              placeholder='{"version":1,"domains":{...},"quotas":{...},"deployment_tier":"pooled","support_sla":"community"}'
+              value={entitlementsJson}
+              onChange={(e) => setEntitlementsJson(e.target.value)}
+              data-testid="admin-plans-entitlements-json"
+            />
+          </div>
           <div className="flex gap-2">
             <Button
               onClick={handleCreatePlan}
               disabled={createPlanMutation.isPending}
+              data-testid="admin-plans-create-submit"
             >
               {t("admin.plan_manager.create_btn")}
             </Button>
@@ -220,6 +331,46 @@ export function PlanManager() {
         </Card>
       )}
 
+      {editingPlanId && (
+        <Card
+          className="p-4 space-y-3"
+          data-testid="admin-plans-entitlements-edit"
+        >
+          <h3 className="font-semibold">
+            Edit entitlements — plan {editingPlanId}
+          </h3>
+          <p className="text-xs text-[var(--text-muted)]">
+            STORY-06-01 JSONB document. Domains keys must be DOM-* . Not
+            Production GO.
+          </p>
+          <textarea
+            className="w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] p-2 font-mono text-xs text-[var(--text-primary)]"
+            rows={12}
+            value={editEntitlementsJson}
+            onChange={(e) => setEditEntitlementsJson(e.target.value)}
+            data-testid="admin-plans-entitlements-edit-json"
+          />
+          <div className="flex gap-2">
+            <Button
+              onClick={handleSaveEntitlements}
+              disabled={updatePlanMutation.isPending}
+              data-testid="admin-plans-entitlements-save"
+            >
+              {updatePlanMutation.isPending ? "Saving…" : "Save entitlements"}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setEditingPlanId(null);
+                setEditEntitlementsJson("");
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-4">
           <h3 className="font-semibold mb-3">
@@ -229,7 +380,11 @@ export function PlanManager() {
           </h3>
           <div className="space-y-3">
             {plans?.map((plan: AdminPlan) => (
-              <div key={plan.id} className="border rounded-lg p-3">
+              <div
+                key={plan.id}
+                className="border rounded-lg p-3"
+                data-testid="admin-plans-row"
+              >
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-semibold">{plan.name}</span>
                   <Badge
@@ -253,6 +408,12 @@ export function PlanManager() {
                     {plan.max_users} مستخدم | {plan.max_storage_mb} MB |{" "}
                     {plan.max_api_calls.toLocaleString()} استدعاء
                   </p>
+                  <p
+                    className="font-mono text-xs"
+                    data-testid="admin-plans-entitlements-summary"
+                  >
+                    {formatPlanEntitlementsSummary(plan.entitlements)}
+                  </p>
                   {plan.features?.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {plan.features.map((f: string) => (
@@ -262,6 +423,15 @@ export function PlanManager() {
                       ))}
                     </div>
                   )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-2"
+                    onClick={() => openEditEntitlements(plan)}
+                    data-testid="admin-plans-entitlements-edit-open"
+                  >
+                    Edit entitlements
+                  </Button>
                 </div>
               </div>
             ))}

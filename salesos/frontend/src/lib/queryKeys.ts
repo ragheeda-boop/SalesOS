@@ -123,10 +123,13 @@ export const adminKeys = {
     ["admin", "billing", "subscription", tenantId] as const,
   billingCatalog: (activeOnly?: boolean) =>
     ["admin", "billing", "catalog", activeOnly] as const,
+  stripeStatus: () => ["admin", "billing", "stripe-status"] as const,
   platformInvoices: (tenantId?: string) =>
     ["admin", "billing", "platform-invoices", tenantId] as const,
   usageMeters: (filters?: Record<string, unknown>) =>
     ["admin", "billing", "usage", filters] as const,
+  dunningCases: (filters?: Record<string, unknown>) =>
+    ["admin", "billing", "dunning", filters] as const,
   invoices: (tenantId?: string) =>
     ["admin", "billing", "invoices", tenantId] as const,
   transactions: (tenantId?: string) =>

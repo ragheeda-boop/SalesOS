@@ -246,6 +246,33 @@ export interface AdminTenantUsage {
   period_end: string;
 }
 
+/** STORY-06-01 — Plan.entitlements JSON (CAP-070). */
+export interface AdminDomainEntitlement {
+  enabled: boolean;
+  mode?: "limited" | "full" | null;
+  quota?: number | null;
+  unlimited?: boolean;
+  publish?: boolean;
+}
+
+export interface AdminEntitlementQuotas {
+  seats: number;
+  ai_tokens_monthly: number;
+  connectors: number;
+  storage_mb: number;
+  api_calls_monthly: number;
+  ai_tokens_unlimited?: boolean;
+  connectors_unlimited?: boolean;
+}
+
+export interface AdminPlanEntitlements {
+  version: 1;
+  domains: Record<string, AdminDomainEntitlement>;
+  quotas: AdminEntitlementQuotas;
+  deployment_tier: "pooled" | "siloed";
+  support_sla: string;
+}
+
 export interface AdminPlan {
   id: string;
   name: string;
@@ -259,6 +286,7 @@ export interface AdminPlan {
   is_active: boolean;
   stripe_price_id_monthly?: string | null;
   stripe_price_id_yearly?: string | null;
+  entitlements?: AdminPlanEntitlements | null;
   created_at: string;
   updated_at: string;
 }
@@ -307,6 +335,9 @@ export interface AdminSubscription {
   current_period_start: string | null;
   current_period_end: string | null;
   canceled_at: string | null;
+  /** STORY-05-05 — deferred downgrade target. */
+  pending_plan_id?: string | null;
+  pending_effective_at?: string | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -352,6 +383,32 @@ export interface AdminStripePortalSessionResponse {
   stripe_customer_id?: string | null;
 }
 
+/** STORY-05-02c — GET /admin/billing/stripe/status (booleans only; never secrets). */
+export interface AdminStripeStatus {
+  secret_key_configured: boolean;
+  webhook_secret_configured: boolean;
+  publishable_key_configured: boolean;
+  checkout_ready: boolean;
+  webhook_ready: boolean;
+  sandbox_soak_ready: boolean;
+  production_billing: boolean;
+  production_go: boolean;
+  honesty: string;
+}
+
+/** STORY-05-02c — GET /admin/billing/stripe/status (booleans only; never secrets). */
+export interface AdminStripeStatus {
+  secret_key_configured: boolean;
+  webhook_secret_configured: boolean;
+  publishable_key_configured: boolean;
+  checkout_ready: boolean;
+  webhook_ready: boolean;
+  sandbox_soak_ready: boolean;
+  production_billing: boolean;
+  production_go: boolean;
+  honesty: string;
+}
+
 export interface AdminPlatformInvoice {
   id: string;
   tenant_id: string;
@@ -387,6 +444,66 @@ export interface AdminUsageRollupRequest {
 export interface AdminUsageRollupResponse {
   events_processed?: number;
   meters_upserted?: number;
+  [key: string]: unknown;
+}
+
+/** STORY-05-04 — GET /api/v1/admin/billing/dunning */
+export interface AdminDunningCase {
+  id: string;
+  tenant_id: string;
+  subscription_id: string | null;
+  status: string;
+  failed_at: string;
+  grace_ends_at: string;
+  suspended_at: string | null;
+  cleared_at: string | null;
+  failure_count: number;
+  last_stripe_invoice_id: string | null;
+}
+
+export interface AdminDunningEvaluateRequest {
+  now?: string | null;
+}
+
+export interface AdminDunningEvaluateResponse {
+  evaluated?: number;
+  suspended?: number;
+  [key: string]: unknown;
+}
+
+/** STORY-05-05 — POST /billing/plan-change/quote|apply */
+export interface AdminPlanChangeRequest {
+  tenant_id: string;
+  target_plan_id: string;
+  downgrade_immediate?: boolean;
+  now?: string | null;
+}
+
+export interface AdminPlanChangeQuote {
+  tenant_id: string;
+  subscription_id: string;
+  from_plan_id: string | null;
+  to_plan_id: string;
+  billing_cycle: string;
+  direction: string;
+  timing: string;
+  old_price: number;
+  new_price: number;
+  remaining_fraction: number;
+  amount_due_now: number;
+  period_start: string | null;
+  period_end: string | null;
+  pending_plan_id: string | null;
+  pending_effective_at: string | null;
+  applied?: string | null;
+}
+
+export interface AdminPlanChangeApplyPendingRequest {
+  now?: string | null;
+}
+
+export interface AdminPlanChangeApplyPendingResponse {
+  applied?: number;
   [key: string]: unknown;
 }
 

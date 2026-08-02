@@ -7,7 +7,16 @@ import {
   formatTenantUsagePeriod,
   formatTrialEndsLabel,
   catalogPriceIdForCycle,
+  dunningGraceDaysRemaining,
+  formatDunningCaseRow,
+  formatPendingPlanHonesty,
+  formatPlanChangeQuote,
+  formatEntitlementDeniedMessage,
+  formatPlanEntitlementsSummary,
+  formatStripeStatusBanner,
   formatSubscriptionSummary,
+  isEntitlementDeniedPayload,
+  parsePlanEntitlementsJson,
   formatUsageMeterRow,
   getDeletionRequestedAt,
   isStripeBillingUnavailableError,
@@ -300,6 +309,57 @@ describe("billing helpers — FE-S05-01..04", () => {
     expect(stripeBillingUnavailableDescription(null)).toContain(
       "STRIPE_SECRET_KEY",
     );
+  });
+
+  it("formats plan-change quote + pending honesty", () => {
+    expect(
+      formatPlanChangeQuote({
+        direction: "upgrade",
+        timing: "immediate",
+        amount_due_now: 12.5,
+        from_plan_id: "a",
+        to_plan_id: "b",
+        remaining_fraction: 0.5,
+      }),
+    ).toContain("due_now=12.5");
+    expect(
+      formatPendingPlanHonesty({
+        plan_id: "a",
+        pending_plan_id: "b",
+        pending_effective_at: "2026-09-01T00:00:00Z",
+      }),
+    ).toMatch(/pending/i);
+    expect(dunningGraceDaysRemaining("2026-08-17T00:00:00Z", Date.parse("2026-08-10T00:00:00Z"))).toBe(7);
+    expect(
+      formatDunningCaseRow({ status: "open", failure_count: 1 }),
+    ).toContain("status=open");
+  });
+
+  it("summarizes and parses plan entitlements JSON", () => {
+    expect(
+      formatPlanEntitlementsSummary({
+        version: 1,
+        domains: { "DOM-001": { enabled: true }, "DOM-011": { enabled: false } },
+        quotas: { seats: 5, ai_tokens_monthly: 1000, connectors: 1, storage_mb: 100, api_calls_monthly: 1000 },
+        deployment_tier: "pooled",
+        support_sla: "community",
+      }),
+    ).toContain("domains_enabled=1/2");
+    expect(parsePlanEntitlementsJson("").ok).toBe(true);
+    expect(parsePlanEntitlementsJson("{").ok).toBe(false);
+  });
+
+  it("formats honest upgrade messaging for entitlement 403s", () => {
+    const payload = {
+      detail:
+        "Plan entitlement required: DOM-011 (path /api/v1/forecast). Upgrade plan to access this capability.",
+      domain: "DOM-011",
+      path_prefix: "/api/v1/forecast",
+      plan_id: "plan-starter",
+      tier: "starter",
+    };
+    expect(isEntitlementDeniedPayload(payload)).toBe(true);
+    expect(formatEntitlementDeniedMessage(payload)).toContain("Upgrade");
   });
 });
 
