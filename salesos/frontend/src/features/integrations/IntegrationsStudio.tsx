@@ -57,6 +57,8 @@ export function IntegrationsStudio() {
   const [mappingJson, setMappingJson] = useState(
     '[{"external":"name","internal":"name"}]',
   );
+  const [baselineCsv, setBaselineCsv] = useState("");
+  const [disconnectConfirmed, setDisconnectConfirmed] = useState(false);
   const [schedule, setSchedule] = useState("15m");
   const [lastTest, setLastTest] = useState<string>("");
   const [rulesJson, setRulesJson] = useState("[]");
@@ -98,7 +100,12 @@ export function IntegrationsStudio() {
     if (!mapping) return;
     setMappingJson(JSON.stringify(mapping.mappings ?? [], null, 2));
     if (mapping.model) setModel(mapping.model);
+    setBaselineCsv(csvFromList(mapping.baseline_fields));
   }, [activeMappingQuery.data]);
+
+  useEffect(() => {
+    setDisconnectConfirmed(false);
+  }, [selectedId]);
 
   const needsConnection = step !== "connect";
 
@@ -109,10 +116,11 @@ export function IntegrationsStudio() {
         data-testid="integrations-studio-live-honesty"
       >
         Studio wired to `/api/v1/integrations/*` (STORY-08-06) including
-        conflict-policy (FE-S08-08) and active mapping GET (FE-S08-09).
-        `test_connection` dispatches Fake vs OdooAdapter by `connector_key`
-        (STORY-09-01). Unlinked cr_number badge list API not live. Do not paste
-        real secrets into credential_ref. Not Production GO.
+        conflict-policy (FE-S08-08) and active mapping GET (FE-S08-09) +
+        connection detail / baseline_fields (FE-S08-10). `test_connection`
+        dispatches Fake vs OdooAdapter by `connector_key` (STORY-09-01).
+        Unlinked cr_number badge list API not live. Do not paste real secrets
+        into credential_ref. Not Production GO.
       </p>
 
       <ol
@@ -170,6 +178,40 @@ export function IntegrationsStudio() {
                 ))}
               </select>
             )}
+
+            {selected ? (
+              <dl
+                className="grid gap-1 rounded border border-[var(--border-default)] px-3 py-2 text-xs text-[var(--text-secondary)] sm:grid-cols-2"
+                data-testid="integrations-studio-connection-detail"
+              >
+                <div>
+                  <dt className="text-[var(--text-muted)]">Id</dt>
+                  <dd className="font-mono break-all">{selected.id}</dd>
+                </div>
+                <div>
+                  <dt className="text-[var(--text-muted)]">Connector</dt>
+                  <dd data-testid="integrations-studio-connection-key">
+                    {selected.connector_key}
+                    {selected.is_active ? " · active" : " · inactive"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[var(--text-muted)]">Credential ref</dt>
+                  <dd className="font-mono break-all">
+                    {selected.credential_ref}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[var(--text-muted)]">Cursor state</dt>
+                  <dd
+                    className="font-mono break-all"
+                    data-testid="integrations-studio-connection-cursor"
+                  >
+                    {JSON.stringify(selected.cursor_state || {})}
+                  </dd>
+                </div>
+              </dl>
+            ) : null}
           </div>
         ) : null}
 
@@ -335,6 +377,16 @@ export function IntegrationsStudio() {
                       : "Select a connection"}
               </span>
             </div>
+            <Input
+              label="Baseline fields (csv)"
+              data-testid="integrations-studio-map-baseline"
+              value={baselineCsv}
+              onChange={(e) => setBaselineCsv(e.target.value)}
+            />
+            <p className="text-xs text-[var(--text-muted)]">
+              Tip `baseline_fields` on FieldMappingConfig — used for drift
+              detection. Not Production GO.
+            </p>
             <label className="block text-xs text-[var(--text-muted)]">
               Mappings JSON
             </label>
@@ -359,7 +411,12 @@ export function IntegrationsStudio() {
                   }
                   await mapMutation.mutateAsync({
                     connectionId: selectedId,
-                    body: { model: model.trim(), mappings, version: 1 },
+                    body: {
+                      model: model.trim(),
+                      mappings,
+                      baseline_fields: listFromCsv(baselineCsv),
+                      version: 1,
+                    },
                   });
                   toast({
                     variant: "success",
@@ -520,6 +577,15 @@ export function IntegrationsStudio() {
               Unlinked cr_number badge list API not live (STORY-09-01 residual).
               Monitor shows SyncRun counters only. Not Production GO.
             </p>
+            <Button
+              data-testid="integrations-studio-monitor-refresh"
+              disabled={!selectedId || syncRunsQuery.isFetching}
+              onClick={() => {
+                void syncRunsQuery.refetch();
+              }}
+            >
+              {syncRunsQuery.isFetching ? "Refreshing…" : "Refresh sync runs"}
+            </Button>
             {!selectedId ? (
               <p className="text-sm text-[var(--text-muted)]">
                 Select a connection to view SyncRun history.
@@ -565,10 +631,23 @@ export function IntegrationsStudio() {
             <p className="text-sm text-[var(--text-secondary)]">
               Deactivates the selected connection ({selected?.name || "none"}).
             </p>
+            <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+              <input
+                type="checkbox"
+                data-testid="integrations-studio-disconnect-confirm"
+                checked={disconnectConfirmed}
+                onChange={(e) => setDisconnectConfirmed(e.target.checked)}
+              />
+              Confirm disconnect (deactivates connection; not a hard delete)
+            </label>
             <Button
               variant="danger"
               data-testid="integrations-studio-disconnect-submit"
-              disabled={!selectedId || disconnectMutation.isPending}
+              disabled={
+                !selectedId ||
+                !disconnectConfirmed ||
+                disconnectMutation.isPending
+              }
               onClick={async () => {
                 if (!selectedId) return;
                 try {
@@ -580,6 +659,7 @@ export function IntegrationsStudio() {
                     description: result.message,
                   });
                   setSelectedId(null);
+                  setDisconnectConfirmed(false);
                 } catch (err) {
                   toast({
                     variant: "error",

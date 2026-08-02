@@ -32,6 +32,15 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.integrations",
+    label: "التكاملات",
+    description: "Integrations Studio (Hub HTTP)",
+    category: "تنقل",
+    shortcut: "G I",
+    handler: () => router.push("/integrations"),
+  });
+
+  registerCommand({
     id: "go.settings",
     label: "الإعدادات",
     description: "الانتقال إلى الإعدادات",

@@ -17,7 +17,12 @@ jest.mock("@/lib/hooks/integrationHubQueries", () => ({
     ],
     isLoading: false,
   }),
-  useHubSyncRuns: () => ({ data: [], isLoading: false }),
+  useHubSyncRuns: () => ({
+    data: [],
+    isLoading: false,
+    isFetching: false,
+    refetch: jest.fn(),
+  }),
   useActiveHubMapping: () => ({
     data: {
       id: "m1",
@@ -74,7 +79,7 @@ jest.mock("@salesos/ui", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
-describe("IntegrationsStudio — FE-S08-08/09", () => {
+describe("IntegrationsStudio — FE-S08-08/09/10", () => {
   it("renders conflict-policy step and Odoo honesty", () => {
     render(<IntegrationsStudio />);
     expect(screen.getByTestId("integrations-studio")).toBeInTheDocument();
@@ -113,5 +118,41 @@ describe("IntegrationsStudio — FE-S08-08/09", () => {
     expect(
       screen.getByTestId("integrations-studio-map-active-status"),
     ).toHaveTextContent(/Active v2/i);
+  });
+
+  it("shows connection detail and map baseline fields", () => {
+    render(<IntegrationsStudio />);
+    fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
+    fireEvent.change(
+      screen.getByTestId("integrations-studio-connection-select"),
+      { target: { value: "c1" } },
+    );
+    expect(
+      screen.getByTestId("integrations-studio-connection-detail"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("integrations-studio-connection-key"),
+    ).toHaveTextContent(/fake/);
+    expect(
+      screen.getByTestId("integrations-studio-map-baseline"),
+    ).toBeInTheDocument();
+  });
+
+  it("requires disconnect confirmation", () => {
+    render(<IntegrationsStudio />);
+    fireEvent.click(screen.getByTestId("integrations-studio-step-disconnect"));
+    fireEvent.change(
+      screen.getByTestId("integrations-studio-connection-select"),
+      { target: { value: "c1" } },
+    );
+    expect(
+      screen.getByTestId("integrations-studio-disconnect-submit"),
+    ).toBeDisabled();
+    fireEvent.click(
+      screen.getByTestId("integrations-studio-disconnect-confirm"),
+    );
+    expect(
+      screen.getByTestId("integrations-studio-disconnect-submit"),
+    ).not.toBeDisabled();
   });
 });

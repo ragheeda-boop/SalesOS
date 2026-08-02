@@ -56,6 +56,11 @@ const FE_GATED = [
     title: "Active mapping load + tenant Integrations nav",
     status: "FE landed — map GET + nav",
   },
+  {
+    id: "FE-S08-10",
+    title: "Studio detail + baseline_fields polish",
+    status: "FE landed — detail/baseline/cmd",
+  },
 ] as const;
 
 export default function AdminIntegrationsInventoryPage() {

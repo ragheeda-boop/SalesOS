@@ -24,6 +24,7 @@
 | STORY-08-07 Integrations Studio UI | **LANDED** (this tip) — `/integrations` against Hub HTTP; crumb [`PHASE1_STORY_08_07_INTEGRATIONS_STUDIO_CRUMB.md`](PHASE1_STORY_08_07_INTEGRATIONS_STUDIO_CRUMB.md) |
 | FE-S08-08 Conflict-policy Studio + Odoo honesty | **LANDED** — crumb [`PHASE1_FE_S08_08_CONFLICT_POLICY_STUDIO_CRUMB.md`](PHASE1_FE_S08_08_CONFLICT_POLICY_STUDIO_CRUMB.md) |
 | FE-S08-09 Active mapping load + tenant Integrations nav | **LANDED** — crumb [`PHASE1_FE_S08_09_ACTIVE_MAPPING_NAV_CRUMB.md`](PHASE1_FE_S08_09_ACTIVE_MAPPING_NAV_CRUMB.md) |
+| FE-S08-10 Studio connection detail + baseline_fields polish | **LANDED** — crumb [`PHASE1_FE_S08_10_STUDIO_DETAIL_POLISH_CRUMB.md`](PHASE1_FE_S08_10_STUDIO_DETAIL_POLISH_CRUMB.md) |
 
 ## Honesty
 
