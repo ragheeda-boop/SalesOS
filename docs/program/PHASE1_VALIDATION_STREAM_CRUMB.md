@@ -8,14 +8,20 @@
 | # | Task | Status | Evidence |
 |---|------|--------|----------|
 | D1 | Field-verify Phase 0 COMPLETE (54/54, 3.7 CLOSED, Open 0) | **PASS** | DEC-155 Stage 7 [30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801) @ `909230d`; tip `53a4aa7` |
-| D2 | Baseline tip CI Stages 1–5 + Deploy Prod | **OBSERVED — CI not green / tip in_progress** | tip `9fa6830`: CI [30727147746](https://github.com/ragheeda-boop/SalesOS/actions/runs/30727147746) **in_progress**; Deploy Prod [30727147748](https://github.com/ragheeda-boop/SalesOS/actions/runs/30727147748) success; Security Scan success. Prior tip `64b44e9` CI **failure** [30726994429](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726994429) |
+| D2 | Baseline tip CI Stages 1–5 + Deploy Prod | **OBSERVED — Stages 1–5 SUCCESS (tip-line)** | tip `37c6826` CI [30727445665](https://github.com/ragheeda-boop/SalesOS/actions/runs/30727445665) Stages 1–5 **SUCCESS** (Stage 6 quarantined SKIPPED; Stage 7 → standalone). Prior tip `9fa6830` CI [30727147746](https://github.com/ragheeda-boop/SalesOS/actions/runs/30727147746) was in_progress at prior crumb. **Not** whole-pipeline CI GREEN invent. |
 | D2b | FE Stream B land honesty (`a8fd06e` + `b6ea2ef`) | **PASS · light validated** | [`PHASE1_FE_VALIDATION_CRUMB.md`](PHASE1_FE_VALIDATION_CRUMB.md) — TenantList untouched; AI STUB + `feature_ai_copilot` False; no Production GO |
+| D2c | Tip-line standalone Stage 7 corroboration | **PASS · build validated (Stage 7 only)** | tip `9e242e0` standalone [30727782995](https://github.com/ragheeda-boop/SalesOS/actions/runs/30727782995) **SUCCESS** (`workflow_dispatch`). Affirms 3.7 CLOSED residual path on tip-line. **No Production GO.** |
 | D3 | Adversarial RLS after tenant schema migration | **READY (A2 landed)** | A2 @ `64b44e9` / Alembic `f6b2e84c1a90` — suite not run this crumb |
 | D4 | Honest labels | **STANDING** | Never invent Production GO / CI GREEN |
 
 ## D1 confirmation
 
 Score **54/54** · Open **0** · Hard OPEN **none** · Production GO language absent (correct)
+
+## D2c Stage 7 tip corroboration (2026-08-02)
+
+**PASS** · **build validated (Stage 7 only)** — standalone `e2e-stage7.yml` [30727782995](https://github.com/ragheeda-boop/SalesOS/actions/runs/30727782995) @ `9e242e0` **SUCCESS**.  
+Phase 1 **ACTIVE** · Checklist **54/54**. Does **not** invent Production GO / GA GO / Stages 1–7 whole-pipeline green.
 
 ## D2b FE spot-check (2026-08-02)
 
