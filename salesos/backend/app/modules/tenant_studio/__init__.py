@@ -1,6 +1,6 @@
-"""Tenant Studio — CAP-082/083 (STORY-10-01..10-03).
+"""Tenant Studio — CAP-082/083/085 (STORY-10-01..10-04).
 
-Custom fields + Workflow Builder canvas compiler. Not Production GO.
+Custom fields + Workflow Builder + Scoring Rules. Not Production GO.
 """
 
 from app.modules.tenant_studio.auto_render import (
@@ -21,6 +21,15 @@ from app.modules.tenant_studio.reserved_columns import (
     is_reserved,
     reserved_for,
 )
+from app.modules.tenant_studio.scoring_rules import (
+    PLATFORM_DEFAULT_WEIGHTS,
+    ScoringRule,
+    ScoringRuleError,
+)
+from app.modules.tenant_studio.scoring_rules_engine import (
+    evaluate_score,
+    get_effective_dimension_weights,
+)
 from app.modules.tenant_studio.service import MemCustomFieldDefinitionService
 from app.modules.tenant_studio.workflow_canvas import CanvasNode, WorkflowCanvas
 from app.modules.tenant_studio.workflow_compiler import (
@@ -35,13 +44,18 @@ __all__ = [
     "CustomFieldDefinitionError",
     "CustomObjectSchema",
     "MemCustomFieldDefinitionService",
+    "PLATFORM_DEFAULT_WEIGHTS",
     "RESERVED_COLUMNS",
+    "ScoringRule",
+    "ScoringRuleError",
     "WorkflowCanvas",
     "WorkflowCanvasCompileError",
     "auto_render_payload",
     "build_auto_render_form",
     "build_field_definition",
     "compile_canvas",
+    "evaluate_score",
+    "get_effective_dimension_weights",
     "is_reserved",
     "merge_custom_field_values",
     "read_custom_field_values",
