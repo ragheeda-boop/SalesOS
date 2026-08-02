@@ -227,6 +227,33 @@ class TransactionResponse(BaseModel):
     created_at: datetime
 
 
+class SubscriptionResponse(BaseModel):
+    """STORY-05-01 OBJ-321 — Owner-plane subscription view."""
+
+    id: UUID
+    tenant_id: UUID
+    plan_id: str | None = None
+    status: str
+    billing_cycle: str
+    seats: int
+    trial_ends_at: datetime | None = None
+    current_period_start: datetime | None = None
+    current_period_end: datetime | None = None
+    canceled_at: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+class SubscriptionTransitionRequest(BaseModel):
+    event: str = Field(
+        ...,
+        description=(
+            "activate|mark_past_due|suspend|reactivate|churn|"
+            "resubscribe_trial|resubscribe_active"
+        ),
+    )
+
+
 class FeatureFlagCreate(BaseModel):
     key: str = Field(..., min_length=1, max_length=100, pattern=r"^[a-z0-9_-]+$")
     name: str = Field(..., min_length=1, max_length=255)

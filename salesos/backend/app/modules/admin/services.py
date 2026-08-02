@@ -445,6 +445,16 @@ class TenantProvisioningService:
                     tenant.is_active = True
             await self.session.flush()
 
+            # STORY-05-01: attach Subscription (trial if trial_ends_at else active).
+            from app.modules.billing.service import SubscriptionService
+
+            sub_svc = SubscriptionService(self.session)
+            subscription, sub_created = await sub_svc.ensure_for_tenant(
+                tenant_id=tenant.id,
+                plan_id=tenant.plan_id,
+                trial_ends_at=tenant.trial_ends_at,
+            )
+
             return {
                 "tenant_id": str(tenant.id),
                 "slug": tenant.slug,
@@ -455,6 +465,9 @@ class TenantProvisioningService:
                 "permissions_provisioned": seed_result["permissions_provisioned"],
                 "studio_config": studio_result,
                 "admin_user_id": resolved_admin_id,
+                "subscription_id": str(subscription.id),
+                "subscription_status": subscription.status,
+                "subscription_created": sub_created,
             }
         except Exception:
             tenant.provisioning_status = "failed"

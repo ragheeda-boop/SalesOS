@@ -1,0 +1,52 @@
+"""OBJ-321 Subscription ORM — Owner-only table (no RLS).
+
+STORY-05-01: persistence for subscription status machine.
+Does NOT enable RLS (Owner reads across tenants by design).
+Does NOT touch DEC-085 set_config.
+"""
+
+from __future__ import annotations
+
+import uuid
+from datetime import datetime
+
+from sqlalchemy import DateTime, Index, Integer, String, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
+from sdk.database import Base
+
+
+class SubscriptionModel(Base):
+    """Platform subscription row (one current subscription per tenant)."""
+
+    __tablename__ = "subscriptions"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", name="uq_subscriptions_tenant_id"),
+        Index("ix_subscriptions_status", "status"),
+        Index("ix_subscriptions_plan_id", "plan_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    plan_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="trial")
+    billing_cycle: Mapped[str] = mapped_column(String(16), nullable=False, default="monthly")
+    seats: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    current_period_start: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    current_period_end: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    canceled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )

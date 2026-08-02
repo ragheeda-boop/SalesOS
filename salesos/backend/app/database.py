@@ -72,6 +72,7 @@ async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit
 # Register all models so Alembic can discover them
 import app.modules.api_keys.models  # noqa: F401
 import app.modules.audit.models  # noqa: F401
+import app.modules.billing.models  # noqa: F401  # STORY-05-01 OBJ-321
 import app.modules.communication_hub.models  # noqa: F401  # DEC-130g
 import app.modules.company.models  # noqa: F401
 import app.modules.contact.models  # noqa: F401

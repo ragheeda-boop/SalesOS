@@ -678,6 +678,9 @@ class TestTenantProvisioning:
         created_cfg.version = 1
         config_repo.create = AsyncMock(return_value=created_cfg)
 
+        sub = MagicMock()
+        sub.id = uuid.uuid4()
+        sub.status = "active"
         with (
             patch(
                 "app.modules.admin.services.PostgresPermissionRepository", return_value=perm_repo
@@ -686,6 +689,11 @@ class TestTenantProvisioning:
             patch(
                 "app.modules.admin.services.PostgresTenantConfigRepository",
                 return_value=config_repo,
+            ),
+            patch(
+                "app.modules.billing.service.SubscriptionService.ensure_for_tenant",
+                new_callable=AsyncMock,
+                return_value=(sub, True),
             ),
         ):
             svc = TenantProvisioningService(session)
@@ -701,6 +709,8 @@ class TestTenantProvisioning:
         assert result["idempotent"] is False
         assert result["provisioning_status"] == "active"
         assert result["studio_config"]["seeded"] is True
+        assert result["subscription_status"] == "active"
+        assert result["subscription_created"] is True
         assert session.add.call_count >= 1
         tenant_arg = session.add.call_args_list[0].args[0]
         assert getattr(tenant_arg, "plan_id", None) == "plan_starter_v1"
@@ -734,9 +744,11 @@ class TestTenantProvisioning:
         session.flush = AsyncMock()
 
         existing_tenant = MagicMock()
-        existing_tenant.id = "t-susp"
+        existing_tenant.id = uuid.uuid4()
         existing_tenant.slug = "acme-susp"
         existing_tenant.plan = "free"
+        existing_tenant.plan_id = None
+        existing_tenant.trial_ends_at = None
         existing_tenant.provisioning_status = "suspended"
         existing_tenant.is_active = False
         existing_tenant.name = "Acme"
@@ -756,6 +768,9 @@ class TestTenantProvisioning:
         existing_cfg.version = 1
         config_repo.get_latest = AsyncMock(return_value=existing_cfg)
 
+        sub = MagicMock()
+        sub.id = uuid.uuid4()
+        sub.status = "suspended"
         with (
             patch(
                 "app.modules.admin.services.PostgresPermissionRepository", return_value=perm_repo
@@ -764,6 +779,11 @@ class TestTenantProvisioning:
             patch(
                 "app.modules.admin.services.PostgresTenantConfigRepository",
                 return_value=config_repo,
+            ),
+            patch(
+                "app.modules.billing.service.SubscriptionService.ensure_for_tenant",
+                new_callable=AsyncMock,
+                return_value=(sub, False),
             ),
         ):
             svc = TenantProvisioningService(session)
