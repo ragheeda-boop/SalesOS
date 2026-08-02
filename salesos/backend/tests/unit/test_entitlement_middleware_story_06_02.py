@@ -26,6 +26,21 @@ def test_ungated_and_skip_paths() -> None:
     assert path_skips_entitlement_guard("/api/v1/auth/login") is True
 
 
+def test_owner_admin_auth_identity_skipped() -> None:
+    """CI safety: Owner/admin/auth must never be entitlement-gated."""
+    for path in (
+        "/api/v1/admin/tenants",
+        "/api/v1/admin/billing/catalog",
+        "/api/v1/admin/billing/stripe/status",
+        "/api/v1/auth/login",
+        "/api/v1/owner/me",
+        "/api/v1/identity/users",
+        "/api/v1/billing/stripe/webhook",
+        "/health",
+    ):
+        assert path_skips_entitlement_guard(path) is True
+
+
 def test_starter_blocks_three_combinations() -> None:
     e = default_entitlements_for_tier("starter")
     assert domain_enabled(e, "DOM-011") is False

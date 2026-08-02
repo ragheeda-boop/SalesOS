@@ -81,6 +81,33 @@ def stripe_webhook_configured() -> bool:
     return bool((settings.stripe_webhook_secret or "").strip())
 
 
+def stripe_secret_configured() -> bool:
+    return bool((settings.stripe_secret_key or "").strip())
+
+
+def stripe_publishable_configured() -> bool:
+    return bool((settings.stripe_publishable_key or "").strip())
+
+
+@owner_router.get("/billing/stripe/status")
+async def stripe_config_status() -> dict[str, Any]:
+    """STORY-05-02c — Owner readiness (booleans only; never echo secret values)."""
+    secret_ok = stripe_secret_configured()
+    webhook_ok = stripe_webhook_configured()
+    publishable_ok = stripe_publishable_configured()
+    return {
+        "secret_key_configured": secret_ok,
+        "webhook_secret_configured": webhook_ok,
+        "publishable_key_configured": publishable_ok,
+        "checkout_ready": secret_ok,
+        "webhook_ready": webhook_ok,
+        "sandbox_soak_ready": secret_ok and webhook_ok,
+        "production_billing": False,
+        "production_go": False,
+        "honesty": "env-only secrets; empty STRIPE_* fail-closed 503",
+    }
+
+
 async def _resolve_price_id(db: AsyncSession, body: CheckoutSessionRequest) -> str:
     if body.price_id and body.price_id.strip():
         return body.price_id.strip()
