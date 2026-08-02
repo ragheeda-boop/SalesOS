@@ -1126,5 +1126,6 @@
   "nav.custom_fields": "Custom Fields",
   "nav.scoring_rules": "Scoring Rules",
   "nav.permissions_studio": "Permissions Studio",
+  "nav.workflow_studio": "Workflow Studio",
   "nav.integrations": "Integrations"
 }

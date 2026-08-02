@@ -22,6 +22,6 @@ Canvas-to-execution-graph compiler passes equivalence suite — covered by
 ## Non-goals
 
 - `for_each` / loop canvas nodes (Sprint-13 debt — deferred)
-- FE `/studio/workflows` page wire-up
+- FE `/studio/workflows` page wire-up — **LANDED FE-S10-03** (Stream B)
 - Postgres canvas persistence / new RLS
 - Production GO

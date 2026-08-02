@@ -240,3 +240,56 @@ export interface CustomRole {
   created_at?: string;
   updated_at?: string;
 }
+
+/** Tip STORY-10-03 Workflow Builder canvas (no for_each). */
+export type WorkflowCanvasNodeKind = "action" | "branch";
+
+/** Action step types allowed on tip canvas (for_each / parallel deferred). */
+export const WORKFLOW_ACTION_STEP_TYPES = [
+  "send_email",
+  "update_crm",
+  "create_task",
+  "webhook",
+  "nba_recommend",
+  "set_variable",
+  "log_message",
+] as const;
+
+export type WorkflowActionStepType =
+  (typeof WORKFLOW_ACTION_STEP_TYPES)[number];
+
+export interface WorkflowCanvasNode {
+  id: string;
+  kind: WorkflowCanvasNodeKind;
+  step_type?: string;
+  config?: Record<string, unknown>;
+  condition?: string | null;
+  then_nodes?: WorkflowCanvasNode[];
+  else_nodes?: WorkflowCanvasNode[];
+}
+
+export interface WorkflowCanvasUpsert {
+  id?: string | null;
+  name: string;
+  description?: string;
+  trigger_type?: string;
+  nodes?: WorkflowCanvasNode[];
+}
+
+export interface WorkflowCanvas {
+  id: string;
+  tenant_id: string;
+  name: string;
+  description: string;
+  trigger_type: string;
+  nodes: WorkflowCanvasNode[];
+  schema_version: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface WorkflowCanvasCompileResult {
+  canvas_id?: string;
+  schema_version?: number;
+  workflow: Record<string, unknown>;
+}

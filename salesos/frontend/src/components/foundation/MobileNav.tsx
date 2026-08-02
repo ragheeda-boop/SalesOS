@@ -56,6 +56,11 @@ export function MobileNav() {
       key: "nav.permissions_studio",
       icon: KeyRound,
     },
+    {
+      href: "/studio/workflows",
+      key: "nav.workflow_studio",
+      icon: Workflow,
+    },
     { href: "/settings", key: "nav.settings", icon: Settings },
     { href: "/admin", key: "nav.admin", icon: Shield },
   ];

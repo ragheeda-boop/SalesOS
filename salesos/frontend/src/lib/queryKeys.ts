@@ -133,6 +133,8 @@ export const tenantStudioKeys = {
     [...tenantStudioKeys.all, "permissions-ceiling", tenantId] as const,
   customRoles: (tenantId: string) =>
     [...tenantStudioKeys.all, "custom-roles", tenantId] as const,
+  workflows: (tenantId: string) =>
+    [...tenantStudioKeys.all, "workflows", tenantId] as const,
 };
 
 export const opportunityKeys = {

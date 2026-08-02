@@ -1126,5 +1126,6 @@
   "nav.custom_fields": "الحقول المخصصة",
   "nav.scoring_rules": "قواعد التسجيل",
   "nav.permissions_studio": "استوديو الصلاحيات",
+  "nav.workflow_studio": "استوديو سير العمل",
   "nav.integrations": "التكاملات"
 }

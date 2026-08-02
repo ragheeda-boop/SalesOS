@@ -12,3 +12,4 @@ export * from "./api/integrationHub";
 export * from "./api/tenantStudio";
 export * from "./api/scoringRules";
 export * from "./api/permissionsStudio";
+export * from "./api/workflowStudio";
