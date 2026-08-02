@@ -163,7 +163,8 @@ def normalize_steps(raw_steps: list[dict[str, Any]] | None) -> list[SequenceStep
                 f"unsupported channel {channel!r}; email-only this sprint "
                 "(LinkedIn/WhatsApp deferred)"
             )
-        day = int(raw.get("day_offset") if raw.get("day_offset") is not None else i)
+        raw_day = raw.get("day_offset")
+        day = int(i if raw_day is None else raw_day)
         if day < 0:
             raise SequencingError("day_offset must be >= 0")
         subject = str(raw.get("subject") or "").strip()
