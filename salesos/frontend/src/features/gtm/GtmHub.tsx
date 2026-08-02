@@ -13,9 +13,13 @@ import {
   MARKET_SIZING_HONESTY,
   MARKET_SIZING_NON_GOALS,
 } from "@/features/gtm/marketSizingHonesty";
+import {
+  VERIFICATION_HONESTY,
+  VERIFICATION_NON_GOALS,
+} from "@/features/gtm/verificationHonesty";
 
 /**
- * FE-S11-03b / FE-S11-05 — Tip GTM Intelligence hub.
+ * Tip GTM Intelligence hub (FE-S11-03b + 01/05/06).
  * Tip pages only. Territories not linked. Not Production GO / RAG GO.
  */
 export function GtmHub() {
@@ -26,8 +30,8 @@ export function GtmHub() {
         data-testid="gtm-hub-honesty"
       >
         Tip GTM pages only: ICP profiles, market-sizing, lead-discovery,
-        enrichment. Live 141221 Postgres / live ERP / territories Studio not
-        claimed. Not Production GO / RAG GO.
+        enrichment, verification. Live 141221 Postgres / live ERP / territories
+        Studio not claimed. Not Production GO / RAG GO.
       </p>
 
       <ul className="space-y-3">
@@ -89,6 +93,21 @@ export function GtmHub() {
           <p className="mt-1 text-xs text-[var(--text-muted)]">
             {ENRICHMENT_HONESTY} Non-goals:{" "}
             {ENRICHMENT_NON_GOALS.slice(0, 2).join("; ")}.
+          </p>
+        </li>
+        <li
+          className="rounded border border-[var(--border-default)] p-4"
+          data-testid="gtm-hub-verification"
+        >
+          <Link
+            href="/gtm/verification"
+            className="text-base font-semibold text-[var(--text-primary)] underline"
+          >
+            Contact Verification
+          </Link>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
+            {VERIFICATION_HONESTY} Non-goals:{" "}
+            {VERIFICATION_NON_GOALS.slice(0, 2).join("; ")}.
           </p>
         </li>
       </ul>

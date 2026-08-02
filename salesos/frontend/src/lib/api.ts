@@ -19,3 +19,4 @@ export * from "./api/marketSizing";
 export * from "./api/leadDiscovery";
 export * from "./api/icpProfiles";
 export * from "./api/enrichment";
+export * from "./api/verification";

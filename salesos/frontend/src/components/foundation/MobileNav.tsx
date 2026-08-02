@@ -28,6 +28,7 @@ import {
   Crosshair,
   UserRoundSearch,
   Layers,
+  BadgeCheck,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { TenantBrandMark } from "@/features/tenant-studio/TenantBrandMark";
@@ -103,6 +104,11 @@ export function MobileNav() {
       href: "/gtm/enrichment",
       key: "nav.enrichment",
       icon: Layers,
+    },
+    {
+      href: "/gtm/verification",
+      key: "nav.verification",
+      icon: BadgeCheck,
     },
     { href: "/settings", key: "nav.settings", icon: Settings },
     { href: "/admin", key: "nav.admin", icon: Shield },

@@ -149,7 +149,7 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
     id: "go.gtm",
     label: "GTM · Intelligence Hub",
     description:
-      "GTM tip pages hub (ICP + market sizing + lead discovery + enrichment)",
+      "GTM tip pages hub (ICP + market sizing + lead discovery + enrichment + verification)",
     category: "تنقل",
     handler: () => router.push("/gtm"),
   });
@@ -184,6 +184,14 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
     description: "Multi-provider enrichment (tip STORY-11-05)",
     category: "تنقل",
     handler: () => router.push("/gtm/enrichment"),
+  });
+
+  registerCommand({
+    id: "go.gtm.verification",
+    label: "GTM · Contact Verification",
+    description: "Email/phone verification (tip STORY-11-06)",
+    category: "تنقل",
+    handler: () => router.push("/gtm/verification"),
   });
 
   registerCommand({

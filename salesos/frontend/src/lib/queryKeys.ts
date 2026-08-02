@@ -169,6 +169,12 @@ export const gtmKeys = {
     [...gtmKeys.all, "enrichment", tenantId] as const,
   enrichmentDetail: (tenantId: string, id: string) =>
     [...gtmKeys.all, "enrichment", tenantId, id] as const,
+  verificationMeta: (tenantId: string) =>
+    [...gtmKeys.all, "verification-meta", tenantId] as const,
+  verificationList: (tenantId: string) =>
+    [...gtmKeys.all, "verification", tenantId] as const,
+  verificationDetail: (tenantId: string, id: string) =>
+    [...gtmKeys.all, "verification", tenantId, id] as const,
 };
 
 export const opportunityKeys = {
