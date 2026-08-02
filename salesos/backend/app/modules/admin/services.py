@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import csv
 import io
+import uuid
+from datetime import datetime
 from typing import Any, cast
 
 import yaml  # type: ignore[import-untyped]
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.identity.models import Tenant, User
@@ -59,7 +62,56 @@ class FeatureFlagService:
 
 
 class TenantProvisioningService:
-    """Handles tenant creation with default roles, permissions, and admin user."""
+    """Handles tenant creation with default roles, permissions, and admin user.
+
+    STORY-04-02: idempotent ``provision_workflow`` creates tenant + Studio config
+    seed + first admin assignment. Hardcoded Studio templates per plan tier are
+    accepted debt until Tenant Studio (Phase 3).
+    """
+
+    STUDIO_CONFIG_KEY = "studio.defaults"
+
+    # Hardcoded per plan tier (Sprint-04 technical debt — not Studio-editable yet).
+    STUDIO_TEMPLATES: dict[str, str] = {
+        "free": (
+            "version: 1\n"
+            "tier: free\n"
+            "modules:\n"
+            "  - crm_basic\n"
+            "limits:\n"
+            "  max_users: 3\n"
+        ),
+        "starter": (
+            "version: 1\n"
+            "tier: starter\n"
+            "modules:\n"
+            "  - crm_basic\n"
+            "  - pipeline\n"
+            "limits:\n"
+            "  max_users: 10\n"
+        ),
+        "growth": (
+            "version: 1\n"
+            "tier: growth\n"
+            "modules:\n"
+            "  - crm_basic\n"
+            "  - pipeline\n"
+            "  - reports\n"
+            "limits:\n"
+            "  max_users: 50\n"
+        ),
+        "enterprise": (
+            "version: 1\n"
+            "tier: enterprise\n"
+            "modules:\n"
+            "  - crm_basic\n"
+            "  - pipeline\n"
+            "  - reports\n"
+            "  - integrations\n"
+            "limits:\n"
+            "  max_users: -1\n"
+        ),
+    }
 
     DEFAULT_ROLES = [
         {
@@ -226,10 +278,7 @@ class TenantProvisioningService:
         await self.seed_defaults()
 
         if admin_user_id:
-            admin_user = await self.session.get(User, admin_user_id)
-            if admin_user and admin_user.role != "admin":
-                admin_user.role = "admin"
-                await self.session.flush()
+            await self._assign_admin(admin_user_id)
 
         return {
             "tenant_id": tenant_id,
@@ -237,6 +286,164 @@ class TenantProvisioningService:
             "permissions_provisioned": len(self.DEFAULT_PERMISSIONS),
             "admin_user_id": admin_user_id,
         }
+
+    async def _assign_admin(self, admin_user_id: str) -> User | None:
+        try:
+            uid: uuid.UUID | str = uuid.UUID(admin_user_id)
+        except (ValueError, TypeError):
+            uid = admin_user_id
+        admin_user = await self.session.get(User, uid)
+        if admin_user and admin_user.role != "admin":
+            admin_user.role = "admin"
+            await self.session.flush()
+        return admin_user
+
+    def _studio_yaml_for_plan(self, plan: str) -> str:
+        return self.STUDIO_TEMPLATES.get(plan, self.STUDIO_TEMPLATES["free"])
+
+    async def seed_studio_config(self, tenant_id: str, plan: str = "free") -> dict[str, Any]:
+        """Seed default Studio YAML if missing (idempotent)."""
+        config_repo = PostgresTenantConfigRepository(self.session)
+        existing = await config_repo.get_latest(tenant_id, self.STUDIO_CONFIG_KEY)
+        if existing is not None:
+            return {
+                "seeded": False,
+                "idempotent": True,
+                "key": self.STUDIO_CONFIG_KEY,
+                "version": existing.version,
+            }
+
+        yaml_content = self._studio_yaml_for_plan(plan)
+        config = TenantConfigModel(
+            tenant_id=tenant_id,
+            key=self.STUDIO_CONFIG_KEY,
+            yaml_content=yaml_content,
+            version=1,
+            created_by="system:provisioning",
+        )
+        saved = await config_repo.create(config)
+        return {
+            "seeded": True,
+            "idempotent": False,
+            "key": self.STUDIO_CONFIG_KEY,
+            "version": saved.version,
+        }
+
+    async def provision_workflow(
+        self,
+        *,
+        name: str,
+        slug: str,
+        domain: str | None = None,
+        plan: str = "free",
+        plan_id: str | None = None,
+        region: str | None = None,
+        data_residency: str | None = None,
+        trial_ends_at: datetime | None = None,
+        admin_user_id: str | None = None,
+        admin_email: str | None = None,
+        admin_password: str | None = None,
+        admin_full_name: str | None = None,
+    ) -> dict[str, Any]:
+        """Idempotent STORY-04-02 workflow: tenant + roles + Studio seed + first admin.
+
+        Re-invoking with the same slug returns the existing tenant without
+        duplicating Studio config or roles.
+        """
+        existing = await self.session.execute(select(Tenant).where(Tenant.slug == slug))
+        tenant = existing.scalar_one_or_none()
+        created = False
+
+        if tenant is None:
+            tenant = Tenant(
+                name=name,
+                slug=slug,
+                domain=domain,
+                plan=plan or "free",
+                plan_id=plan_id,
+                region=region,
+                data_residency=data_residency,
+                provisioning_status="pending",
+                trial_ends_at=trial_ends_at,
+                is_active=True,
+                settings={},
+                features={},
+            )
+            self.session.add(tenant)
+            await self.session.flush()
+            created = True
+        else:
+            if plan_id is not None:
+                tenant.plan_id = plan_id
+            if region is not None:
+                tenant.region = region
+            if data_residency is not None:
+                tenant.data_residency = data_residency
+            if trial_ends_at is not None:
+                tenant.trial_ends_at = trial_ends_at
+
+        try:
+            seed_result = await self.provision_tenant(str(tenant.id), admin_user_id=admin_user_id)
+            studio_result = await self.seed_studio_config(str(tenant.id), plan=tenant.plan)
+
+            resolved_admin_id = admin_user_id
+            if admin_email and admin_password and admin_full_name and not admin_user_id:
+                resolved_admin_id = await self._ensure_first_admin(
+                    tenant_id=tenant.id,
+                    email=admin_email,
+                    password=admin_password,
+                    full_name=admin_full_name,
+                )
+
+            tenant.provisioning_status = "active"
+            await self.session.flush()
+
+            return {
+                "tenant_id": str(tenant.id),
+                "slug": tenant.slug,
+                "created": created,
+                "idempotent": not created,
+                "provisioning_status": tenant.provisioning_status,
+                "roles_provisioned": seed_result["roles_provisioned"],
+                "permissions_provisioned": seed_result["permissions_provisioned"],
+                "studio_config": studio_result,
+                "admin_user_id": resolved_admin_id,
+            }
+        except Exception:
+            tenant.provisioning_status = "failed"
+            await self.session.flush()
+            raise
+
+    async def _ensure_first_admin(
+        self,
+        *,
+        tenant_id: uuid.UUID,
+        email: str,
+        password: str,
+        full_name: str,
+    ) -> str:
+        """Create or promote first admin for the tenant (idempotent by email)."""
+        from app.modules.identity.service import IdentityService
+
+        result = await self.session.execute(select(User).where(User.email == email))
+        user = result.scalar_one_or_none()
+        if user is not None:
+            user.tenant_id = tenant_id
+            user.role = "admin"
+            user.is_active = True
+            await self.session.flush()
+            return str(user.id)
+
+        identity = IdentityService(db=self.session)
+        created_user = await identity.create_user(
+            email=email,
+            password=password,
+            full_name=full_name,
+            tenant_id=str(tenant_id),
+        )
+        created_user.role = "admin"
+        await self.session.flush()
+        return str(created_user.id)
 
 
 class ConfigEditorService:

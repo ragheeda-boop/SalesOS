@@ -21,6 +21,14 @@ class Tenant(BaseModel):
     slug: Mapped[str] = mapped_column(String(100), nullable=False)
     domain: Mapped[str | None] = mapped_column(String(255), unique=True)
     plan: Mapped[str] = mapped_column(String(50), default="free")
+    # STORY-04-01 Owner Platform extension (opaque catalog id; keep plan label)
+    plan_id: Mapped[str | None] = mapped_column(String(64), nullable=True, default=None)
+    region: Mapped[str | None] = mapped_column(String(32), nullable=True, default=None)
+    data_residency: Mapped[str | None] = mapped_column(String(32), nullable=True, default=None)
+    provisioning_status: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="pending", server_default="pending"
+    )
+    trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     settings: Mapped[dict | None] = mapped_column(type_=JSONB, default=dict)
     features: Mapped[dict | None] = mapped_column(type_=JSONB, default=dict)

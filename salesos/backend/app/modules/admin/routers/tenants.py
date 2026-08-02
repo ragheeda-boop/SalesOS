@@ -13,6 +13,7 @@ from app.modules.identity.models import Tenant, User
 from app.owner_auth import require_owner_role_dep
 
 from ..schemas import (
+    PROVISIONING_STATUS_VALUES,
     TenantCreate,
     TenantDetail,
     TenantHardDeleteRequest,
@@ -40,6 +41,53 @@ async def _resolve_tenant_name(db: AsyncSession, tenant_id: str) -> str:
     return tenant_id
 
 
+async def _user_count(db: AsyncSession, tenant_id: uuid.UUID) -> int:
+    stmt = select(sa_func.count()).where(User.tenant_id == tenant_id)
+    result = await db.execute(stmt)
+    return result.scalar() or 0
+
+
+def _to_list_item(t: Tenant, user_count: int) -> TenantListItem:
+    return TenantListItem(
+        id=t.id,
+        name=t.name,
+        slug=t.slug,
+        domain=t.domain,
+        plan=t.plan,
+        plan_id=t.plan_id,
+        region=t.region,
+        data_residency=t.data_residency,
+        provisioning_status=t.provisioning_status,
+        trial_ends_at=t.trial_ends_at,
+        is_active=t.is_active,
+        user_count=user_count,
+        created_at=t.created_at,
+        updated_at=t.updated_at,
+    )
+
+
+def _to_detail(t: Tenant, user_count: int) -> TenantDetail:
+    return TenantDetail(
+        id=t.id,
+        name=t.name,
+        slug=t.slug,
+        domain=t.domain,
+        plan=t.plan,
+        plan_id=t.plan_id,
+        region=t.region,
+        data_residency=t.data_residency,
+        provisioning_status=t.provisioning_status,
+        trial_ends_at=t.trial_ends_at,
+        is_active=t.is_active,
+        settings=t.settings or {},
+        features=t.features or {},
+        user_count=user_count,
+        subscription_ends_at=t.subscription_ends_at,
+        created_at=t.created_at,
+        updated_at=t.updated_at,
+    )
+
+
 @router.get("/tenants", response_model=list[TenantListItem])
 async def list_tenants(
     status: str | None = Query(None),
@@ -63,22 +111,7 @@ async def list_tenants(
 
     response = []
     for t in tenants:
-        user_count_stmt = select(sa_func.count()).where(User.tenant_id == t.id)
-        count_result = await db.execute(user_count_stmt)
-        user_count = count_result.scalar() or 0
-        response.append(
-            TenantListItem(
-                id=t.id,
-                name=t.name,
-                slug=t.slug,
-                domain=t.domain,
-                plan=t.plan,
-                is_active=t.is_active,
-                user_count=user_count,
-                created_at=t.created_at,
-                updated_at=t.updated_at,
-            )
-        )
+        response.append(_to_list_item(t, await _user_count(db, t.id)))
     return response
 
 
@@ -87,41 +120,33 @@ async def create_tenant(
     body: TenantCreate,
     db: AsyncSession = Depends(get_db_session),
 ):
+    """Create via STORY-04-02 idempotent provisioning workflow."""
     existing = await db.execute(select(Tenant).where(Tenant.slug == body.slug))
     if existing.scalar_one_or_none():
         raise HTTPException(
             status_code=409, detail=f"Tenant with slug '{body.slug}' already exists"
         )
 
-    tenant = Tenant(
+    provisioning = TenantProvisioningService(db)
+    result = await provisioning.provision_workflow(
         name=body.name,
         slug=body.slug,
         domain=body.domain,
-        plan="free",
-        is_active=True,
-        settings={},
-        features={},
+        plan=body.plan or "free",
+        plan_id=body.plan_id,
+        region=body.region,
+        data_residency=body.data_residency,
+        trial_ends_at=body.trial_ends_at,
+        admin_email=body.admin_email,
+        admin_password=body.admin_password,
+        admin_full_name=body.admin_full_name,
     )
-    db.add(tenant)
-    await db.flush()
 
-    provisioning = TenantProvisioningService(db)
-    await provisioning.provision_tenant(str(tenant.id))
+    tenant = await db.get(Tenant, uuid.UUID(result["tenant_id"]))
+    if not tenant:
+        raise HTTPException(status_code=500, detail="Provisioning failed to persist tenant")
 
-    return TenantDetail(
-        id=tenant.id,
-        name=tenant.name,
-        slug=tenant.slug,
-        domain=tenant.domain,
-        plan=tenant.plan,
-        is_active=tenant.is_active,
-        settings=tenant.settings or {},
-        features=tenant.features or {},
-        user_count=0,
-        subscription_ends_at=tenant.subscription_ends_at,
-        created_at=tenant.created_at,
-        updated_at=tenant.updated_at,
-    )
+    return _to_detail(tenant, await _user_count(db, tenant.id))
 
 
 @router.get("/tenants/{tenant_id}", response_model=TenantDetail)
@@ -134,24 +159,7 @@ async def get_tenant(tenant_id: str, db: AsyncSession = Depends(get_db_session))
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
-    user_count_stmt = select(sa_func.count()).where(User.tenant_id == tenant.id)
-    count_result = await db.execute(user_count_stmt)
-    user_count = count_result.scalar() or 0
-
-    return TenantDetail(
-        id=tenant.id,
-        name=tenant.name,
-        slug=tenant.slug,
-        domain=tenant.domain,
-        plan=tenant.plan,
-        is_active=tenant.is_active,
-        settings=tenant.settings or {},
-        features=tenant.features or {},
-        user_count=user_count,
-        subscription_ends_at=tenant.subscription_ends_at,
-        created_at=tenant.created_at,
-        updated_at=tenant.updated_at,
-    )
+    return _to_detail(tenant, await _user_count(db, tenant.id))
 
 
 @router.put("/tenants/{tenant_id}", response_model=TenantDetail)
@@ -169,8 +177,27 @@ async def update_tenant(
         tenant.name = body.name
     if body.is_active is not None:
         tenant.is_active = body.is_active
+    # plan = display/tier label; plan_id = opaque Owner Platform catalog id (STORY-04-01).
+    if body.plan is not None:
+        tenant.plan = body.plan
     if body.plan_id is not None:
-        tenant.plan = str(body.plan_id)
+        tenant.plan_id = body.plan_id
+    if body.region is not None:
+        tenant.region = body.region
+    if body.data_residency is not None:
+        tenant.data_residency = body.data_residency
+    if body.provisioning_status is not None:
+        if body.provisioning_status not in PROVISIONING_STATUS_VALUES:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Invalid provisioning_status '{body.provisioning_status}'. "
+                    f"Allowed: {sorted(PROVISIONING_STATUS_VALUES)}"
+                ),
+            )
+        tenant.provisioning_status = body.provisioning_status
+    if body.trial_ends_at is not None:
+        tenant.trial_ends_at = body.trial_ends_at
     if body.settings is not None:
         settings = dict(tenant.settings or {})
         settings.update(body.settings)
@@ -178,24 +205,7 @@ async def update_tenant(
     tenant.updated_at = datetime.now(UTC)
     await db.flush()
 
-    user_count_stmt = select(sa_func.count()).where(User.tenant_id == tenant.id)
-    count_result = await db.execute(user_count_stmt)
-    user_count = count_result.scalar() or 0
-
-    return TenantDetail(
-        id=tenant.id,
-        name=tenant.name,
-        slug=tenant.slug,
-        domain=tenant.domain,
-        plan=tenant.plan,
-        is_active=tenant.is_active,
-        settings=tenant.settings or {},
-        features=tenant.features or {},
-        user_count=user_count,
-        subscription_ends_at=tenant.subscription_ends_at,
-        created_at=tenant.created_at,
-        updated_at=tenant.updated_at,
-    )
+    return _to_detail(tenant, await _user_count(db, tenant.id))
 
 
 @router.post("/tenants/{tenant_id}/suspend")
@@ -210,6 +220,7 @@ async def suspend_tenant(
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
     tenant.is_active = False
+    tenant.provisioning_status = "suspended"
     tenant.updated_at = datetime.now(UTC)
     await db.flush()
     return {"message": "Tenant suspended", "tenant_id": tenant_id, "reason": body.reason}
@@ -258,9 +269,7 @@ async def get_tenant_usage(tenant_id: str, db: AsyncSession = Depends(get_db_ses
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
 
-    user_count_stmt = select(sa_func.count()).where(User.tenant_id == tid)
-    count_result = await db.execute(user_count_stmt)
-    user_count = count_result.scalar() or 0
+    user_count = await _user_count(db, tid)
 
     now = datetime.now(UTC)
     return TenantUsage(

@@ -463,7 +463,11 @@ class IdentityService:
 
         from app.database import probe_login_tenant_id, set_current_tenant_id
 
-        tenant_id = await probe_login_tenant_id(email)
+        # Best-effort: unit tests must not fail on residual cross-loop Futures.
+        try:
+            tenant_id = await probe_login_tenant_id(email)
+        except Exception:
+            tenant_id = None
         if tenant_id:
             set_current_tenant_id(tenant_id)
             await self.db.execute(

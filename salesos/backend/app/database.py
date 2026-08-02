@@ -1,3 +1,4 @@
+import os
 from collections.abc import AsyncGenerator
 from contextvars import ContextVar
 from typing import Any, cast

@@ -20,6 +20,18 @@ class TenantStatus(str, Enum):
     DELETED = "deleted"
 
 
+class ProvisioningStatus(str, Enum):
+    """App-validated provisioning states (STORY-04-01/04-02). Stored as string."""
+
+    PENDING = "pending"
+    ACTIVE = "active"
+    SUSPENDED = "suspended"
+    FAILED = "failed"
+
+
+PROVISIONING_STATUS_VALUES = frozenset(s.value for s in ProvisioningStatus)
+
+
 class PlanCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     tier: PlanTier = PlanTier.FREE
@@ -61,13 +73,27 @@ class TenantCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     slug: str = Field(..., min_length=2, max_length=100, pattern=r"^[a-z0-9-]+$")
     domain: str | None = None
-    plan_id: UUID | None = None
+    # Legacy: optional plan *label* (maps to tenants.plan). Prefer plan_id for catalog.
+    plan: str | None = Field(None, max_length=50)
+    # STORY-04-01: opaque catalog plan id (maps to tenants.plan_id String(64)).
+    plan_id: str | None = Field(None, max_length=64)
+    region: str | None = Field(None, max_length=32)
+    data_residency: str | None = Field(None, max_length=32)
+    trial_ends_at: datetime | None = None
+    admin_email: str | None = None
+    admin_password: str | None = None
+    admin_full_name: str | None = None
 
 
 class TenantUpdate(BaseModel):
     name: str | None = None
     is_active: bool | None = None
-    plan_id: UUID | None = None
+    plan: str | None = Field(None, max_length=50)
+    plan_id: str | None = Field(None, max_length=64)
+    region: str | None = Field(None, max_length=32)
+    data_residency: str | None = Field(None, max_length=32)
+    provisioning_status: str | None = Field(None, max_length=32)
+    trial_ends_at: datetime | None = None
     settings: dict | None = None
 
 
@@ -77,6 +103,11 @@ class TenantListItem(BaseModel):
     slug: str
     domain: str | None
     plan: str
+    plan_id: str | None = None
+    region: str | None = None
+    data_residency: str | None = None
+    provisioning_status: str = "pending"
+    trial_ends_at: datetime | None = None
     is_active: bool
     user_count: int
     created_at: datetime
@@ -89,6 +120,11 @@ class TenantDetail(BaseModel):
     slug: str
     domain: str | None
     plan: str
+    plan_id: str | None = None
+    region: str | None = None
+    data_residency: str | None = None
+    provisioning_status: str = "pending"
+    trial_ends_at: datetime | None = None
     is_active: bool
     settings: dict
     features: dict

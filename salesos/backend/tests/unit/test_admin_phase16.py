@@ -629,6 +629,75 @@ class TestTenantProvisioning:
         assert result["permissions_provisioned"] > 0
 
 
+
+    @pytest.mark.asyncio
+    async def test_seed_studio_config_idempotent(self):
+        session = AsyncMock(spec=AsyncSession)
+        config_repo = AsyncMock()
+        existing = MagicMock()
+        existing.version = 1
+        config_repo.get_latest = AsyncMock(return_value=existing)
+
+        with patch(
+            "app.modules.admin.services.PostgresTenantConfigRepository", return_value=config_repo
+        ):
+            svc = TenantProvisioningService(session)
+            result = await svc.seed_studio_config("t-1", plan="free")
+        assert result["seeded"] is False
+        assert result["idempotent"] is True
+        config_repo.create.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_provision_workflow_creates_tenant(self):
+        session = AsyncMock(spec=AsyncSession)
+        session.add = MagicMock()
+        session.flush = AsyncMock()
+
+        empty = MagicMock()
+        empty.scalar_one_or_none = MagicMock(return_value=None)
+        session.execute = AsyncMock(return_value=empty)
+
+        perm_repo = AsyncMock()
+        perm_repo.list = AsyncMock(return_value=[])
+        role_repo = AsyncMock()
+        role_repo.list = AsyncMock(return_value=[])
+        role_repo.get_permissions = AsyncMock(return_value=[])
+        role_repo.set_permissions = AsyncMock()
+        config_repo = AsyncMock()
+        config_repo.get_latest = AsyncMock(return_value=None)
+        created_cfg = MagicMock()
+        created_cfg.version = 1
+        config_repo.create = AsyncMock(return_value=created_cfg)
+
+        with (
+            patch(
+                "app.modules.admin.services.PostgresPermissionRepository", return_value=perm_repo
+            ),
+            patch("app.modules.admin.services.PostgresRoleRepository", return_value=role_repo),
+            patch(
+                "app.modules.admin.services.PostgresTenantConfigRepository",
+                return_value=config_repo,
+            ),
+        ):
+            svc = TenantProvisioningService(session)
+            result = await svc.provision_workflow(
+                name="Acme",
+                slug="acme-test",
+                plan="starter",
+                plan_id="plan_starter_v1",
+                region="me-central-1",
+            )
+
+        assert result["created"] is True
+        assert result["idempotent"] is False
+        assert result["provisioning_status"] == "active"
+        assert result["studio_config"]["seeded"] is True
+        assert session.add.call_count >= 1
+        tenant_arg = session.add.call_args_list[0].args[0]
+        assert getattr(tenant_arg, "plan_id", None) == "plan_starter_v1"
+        assert getattr(tenant_arg, "region", None) == "me-central-1"
+
+
 # ── Repository Unit Tests ───────────────────────────────────────────────────
 
 
