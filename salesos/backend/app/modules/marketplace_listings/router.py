@@ -17,6 +17,10 @@ from app.modules.marketplace_listings.models import (
     VALID_LISTING_TYPES,
     MarketplaceListingError,
 )
+from app.modules.marketplace_listings.pipeline import (
+    run_certification_pipeline,
+    submit_for_certification,
+)
 from app.modules.marketplace_listings.store import (
     DEFAULT_MARKETPLACE_LISTING_STORE,
     MemMarketplaceListingStore,
@@ -78,9 +82,29 @@ async def listings_meta() -> dict[str, Any]:
         "persistence": "memory",
         "policy_count_delta": 0,
         "honesty": (
-            "Catalog object only; certification pipeline is STORY-13-02. "
-            "Production pilot sync / R-02 soak not claimed. Not Production GO."
+            "Catalog + CAP-094 certify pipeline (STORY-13-02). "
+            "Live HubSpot/Odoo sync / R-02 soak not claimed. Not Production GO."
         ),
+        "certify_stages": [
+            "conformance",
+            "security_checklist",
+            "sandboxed_trial",
+        ],
+    }
+
+
+@router.get("/certify/meta", dependencies=_AUTH)
+async def certify_pipeline_meta() -> dict[str, Any]:
+    return {
+        "capability": "CAP-094",
+        "stages": ["conformance", "security_checklist", "sandboxed_trial"],
+        "conformance_suite": "certify_source_connector",
+        "via": "/api/v1/integrations/certify/{connector_key}",
+        "trial_sandbox": "marketplace_listings.trial_sandbox",
+        "not_domains_marketplace_sandbox": True,
+        "first_party_checklist_exception": False,
+        "feature_ai_copilot": False,
+        "honesty": ("CI pipeline only; production pilot sync OPEN. Not Production GO."),
     }
 
 
@@ -89,6 +113,56 @@ async def seed_first_party_listings() -> list[ListingResponse]:
     """Idempotent seed of Odoo + HubSpot connector listings."""
     rows = _STORE.seed_first_party_connectors()
     return [ListingResponse.model_validate(r.as_dict()) for r in rows]
+
+
+class CertifyBody(BaseModel):
+    real_tenant_ids: list[str] = Field(default_factory=list)
+    auto_submit: bool = True
+
+
+class CertifyReportResponse(BaseModel):
+    listing_id: str
+    ok: bool
+    status_before: str
+    status_after: str
+    stages: list[dict[str, Any]] = Field(default_factory=list)
+    ran_at: str = ""
+    honesty: str = ""
+
+
+@router.post(
+    "/{listing_id}/submit",
+    response_model=ListingResponse,
+    dependencies=_AUTH,
+)
+async def submit_listing(listing_id: str) -> ListingResponse:
+    try:
+        row = submit_for_certification(_STORE, listing_id)
+    except MarketplaceListingError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return ListingResponse.model_validate(row.as_dict())
+
+
+@router.post(
+    "/{listing_id}/certify",
+    response_model=CertifyReportResponse,
+    dependencies=_AUTH,
+)
+async def certify_listing(
+    listing_id: str,
+    body: CertifyBody | None = None,
+) -> CertifyReportResponse:
+    payload = body or CertifyBody()
+    try:
+        report = await run_certification_pipeline(
+            _STORE,
+            listing_id,
+            real_tenant_ids=list(payload.real_tenant_ids),
+            auto_submit=payload.auto_submit,
+        )
+    except MarketplaceListingError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return CertifyReportResponse.model_validate(report.as_dict())
 
 
 @router.post("", response_model=ListingResponse, dependencies=_AUTH)
