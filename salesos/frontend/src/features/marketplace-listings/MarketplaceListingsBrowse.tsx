@@ -86,7 +86,9 @@ export function MarketplaceListingsBrowse() {
             });
           }}
         >
-          {seedMutation.isPending ? "Seeding…" : "Seed first-party (Odoo/HubSpot)"}
+          {seedMutation.isPending
+            ? "Seeding…"
+            : "Seed first-party (Odoo/HubSpot)"}
         </Button>
       </div>
 
