@@ -6,8 +6,12 @@ import {
   getMarketplaceCertifyMeta,
   getMarketplaceListing,
   getMarketplaceListingsMeta,
+  installMarketplaceListing,
+  listMarketplaceCatalogInstalls,
   listMarketplaceListings,
+  publishMarketplaceListing,
   seedFirstPartyMarketplaceListings,
+  seedMarketplacePublishPack,
   submitMarketplaceListing,
   type MarketplaceCertifyBody,
 } from "@/lib/api";
@@ -29,6 +33,15 @@ export function useMarketplaceCertifyMeta() {
     queryKey: marketplaceListingsKeys.certifyMeta(tenantId),
     queryFn: () => getMarketplaceCertifyMeta(tenantId),
     staleTime: 60_000,
+  });
+}
+
+export function useMarketplaceCatalogInstalls() {
+  const tenantId = getTenantId();
+  return useQuery({
+    queryKey: marketplaceListingsKeys.installs(tenantId),
+    queryFn: () => listMarketplaceCatalogInstalls(tenantId),
+    staleTime: 10_000,
   });
 }
 
@@ -62,6 +75,38 @@ export function useSeedFirstPartyMarketplaceListings() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => seedFirstPartyMarketplaceListings(getTenantId()),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: marketplaceListingsKeys.all });
+    },
+  });
+}
+
+export function useSeedMarketplacePublishPack() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => seedMarketplacePublishPack(getTenantId()),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: marketplaceListingsKeys.all });
+    },
+  });
+}
+
+export function usePublishMarketplaceListing() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (listingIdOrSlug: string) =>
+      publishMarketplaceListing(getTenantId(), listingIdOrSlug),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: marketplaceListingsKeys.all });
+    },
+  });
+}
+
+export function useInstallMarketplaceListing() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (listingIdOrSlug: string) =>
+      installMarketplaceListing(getTenantId(), listingIdOrSlug),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: marketplaceListingsKeys.all });
     },

@@ -4,8 +4,8 @@ import Link from "next/link";
 import { MarketplaceListingsBrowse } from "@/features/marketplace-listings/MarketplaceListingsBrowse";
 
 /**
- * FE-S13-03 — tip MarketplaceListing browse + CAP-094 certify (STORY-13-01/02).
- * Separate from CAP-036 plugin stub at /marketplace. No invented install HTTP.
+ * FE-S13-04 — tip MarketplaceListing browse + certify + publish/install.
+ * Catalog install ≠ live ERP. Separate from CAP-036 stub.
  */
 export default function MarketplaceListingsPage() {
   return (
@@ -15,9 +15,9 @@ export default function MarketplaceListingsPage() {
           Marketplace Listings
         </h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Tip memory catalog + submit/certify against
-          /api/v1/marketplace/listings. Not the CAP-036 plugin stub. Sandboxed
-          trial is inside certify only — live HubSpot/Odoo sync not claimed.
+          Tip memory catalog + certify/publish/catalog-install against
+          /api/v1/marketplace/listings. Catalog install ≠ live HubSpot/Odoo
+          sync. Not the CAP-036 plugin stub.
         </p>
       </div>
       <MarketplaceListingsBrowse />

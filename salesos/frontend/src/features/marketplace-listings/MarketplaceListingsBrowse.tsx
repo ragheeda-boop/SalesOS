@@ -4,18 +4,26 @@ import { useState } from "react";
 import { Button, Input, Spinner, useToast } from "@salesos/ui";
 import {
   useCertifyMarketplaceListing,
+  useInstallMarketplaceListing,
+  useMarketplaceCatalogInstalls,
   useMarketplaceCertifyMeta,
   useMarketplaceListing,
   useMarketplaceListings,
   useMarketplaceListingsMeta,
+  usePublishMarketplaceListing,
   useSeedFirstPartyMarketplaceListings,
+  useSeedMarketplacePublishPack,
   useSubmitMarketplaceListing,
 } from "@/lib/hooks/marketplaceListingsQueries";
 import {
   MARKETPLACE_LISTINGS_HONESTY,
   MARKETPLACE_LISTINGS_NON_GOALS,
 } from "@/features/marketplace-listings/marketplaceListingsHonesty";
-import type { MarketplaceCertifyReport, MarketplaceListing } from "@/lib/api";
+import type {
+  MarketplaceCatalogInstall,
+  MarketplaceCertifyReport,
+  MarketplaceListing,
+} from "@/lib/api";
 
 function getApiError(err: unknown): string {
   const detail = (err as { response?: { data?: { detail?: unknown } } })
@@ -26,8 +34,8 @@ function getApiError(err: unknown): string {
 }
 
 /**
- * FE-S13-03 — Marketplace listings browse + tip certify (STORY-13-01/02).
- * No invented install HTTP. Not CAP-036 stub. Not Production GO.
+ * FE-S13-04 — Marketplace listings browse + certify + publish/install.
+ * Catalog install ≠ live ERP. Not CAP-036 stub. Not Production GO.
  */
 export function MarketplaceListingsBrowse() {
   const { toast } = useToast();
@@ -36,17 +44,23 @@ export function MarketplaceListingsBrowse() {
   const [detailKey, setDetailKey] = useState<string | null>(null);
   const [lastCertify, setLastCertify] =
     useState<MarketplaceCertifyReport | null>(null);
+  const [lastInstall, setLastInstall] =
+    useState<MarketplaceCatalogInstall | null>(null);
 
   const metaQuery = useMarketplaceListingsMeta();
   const certifyMetaQuery = useMarketplaceCertifyMeta();
+  const installsQuery = useMarketplaceCatalogInstalls();
   const listQuery = useMarketplaceListings({
     listing_type: listingType.trim() || undefined,
     status: status.trim() || undefined,
   });
   const detailQuery = useMarketplaceListing(detailKey);
   const seedMutation = useSeedFirstPartyMarketplaceListings();
+  const seedPackMutation = useSeedMarketplacePublishPack();
   const submitMutation = useSubmitMarketplaceListing();
   const certifyMutation = useCertifyMarketplaceListing();
+  const publishMutation = usePublishMarketplaceListing();
+  const installMutation = useInstallMarketplaceListing();
 
   const actionId =
     detailQuery.data?.id || detailQuery.data?.slug || detailKey || "";
@@ -92,7 +106,48 @@ export function MarketplaceListingsBrowse() {
     );
   }
 
-  const busy = submitMutation.isPending || certifyMutation.isPending;
+  function runPublish(id: string) {
+    publishMutation.mutate(id, {
+      onSuccess: (row: MarketplaceListing) => {
+        toast({
+          title: "Published",
+          description: `${row.slug} → ${row.status} · installable=${String(row.installable)}`,
+        });
+      },
+      onError: (err: unknown) => {
+        toast({
+          title: "Publish failed",
+          description: getApiError(err),
+          variant: "error",
+        });
+      },
+    });
+  }
+
+  function runInstall(id: string) {
+    installMutation.mutate(id, {
+      onSuccess: (rec: MarketplaceCatalogInstall) => {
+        setLastInstall(rec);
+        toast({
+          title: "Catalog install recorded",
+          description: `${rec.listing_slug} (not live ERP)`,
+        });
+      },
+      onError: (err: unknown) => {
+        toast({
+          title: "Install failed",
+          description: getApiError(err),
+          variant: "error",
+        });
+      },
+    });
+  }
+
+  const busy =
+    submitMutation.isPending ||
+    certifyMutation.isPending ||
+    publishMutation.isPending ||
+    installMutation.isPending;
 
   return (
     <div className="space-y-4" data-testid="marketplace-listings-browse">
@@ -113,6 +168,7 @@ export function MarketplaceListingsBrowse() {
           onClick={() => {
             void metaQuery.refetch();
             void certifyMetaQuery.refetch();
+            void installsQuery.refetch();
             void listQuery.refetch();
           }}
         >
@@ -121,14 +177,42 @@ export function MarketplaceListingsBrowse() {
         <Button
           type="button"
           size="sm"
+          data-testid="marketplace-listings-seed-pack"
+          disabled={seedPackMutation.isPending}
+          onClick={() => {
+            seedPackMutation.mutate(undefined, {
+              onSuccess: (rows: MarketplaceListing[]) => {
+                toast({
+                  title: "Seeded publish pack",
+                  description: `${rows.length} listing(s) (idempotent)`,
+                });
+              },
+              onError: (err: unknown) => {
+                toast({
+                  title: "Seed publish pack failed",
+                  description: getApiError(err),
+                  variant: "error",
+                });
+              },
+            });
+          }}
+        >
+          {seedPackMutation.isPending
+            ? "Seeding…"
+            : "Seed publish pack (13-04)"}
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="secondary"
           data-testid="marketplace-listings-seed"
           disabled={seedMutation.isPending}
           onClick={() => {
             seedMutation.mutate(undefined, {
               onSuccess: (rows: MarketplaceListing[]) => {
                 toast({
-                  title: "Seeded first-party connectors",
-                  description: `${rows.length} listing(s) (idempotent)`,
+                  title: "Seeded (seed-first-party alias)",
+                  description: `${rows.length} listing(s)`,
                 });
               },
               onError: (err: unknown) => {
@@ -141,9 +225,7 @@ export function MarketplaceListingsBrowse() {
             });
           }}
         >
-          {seedMutation.isPending
-            ? "Seeding…"
-            : "Seed first-party (Odoo/HubSpot)"}
+          {seedMutation.isPending ? "Seeding…" : "Seed first-party (alias)"}
         </Button>
       </div>
 
@@ -191,12 +273,6 @@ export function MarketplaceListingsBrowse() {
               {certifyMetaQuery.data.stages.join(", ")} · suite=
               {certifyMetaQuery.data.conformance_suite}
             </p>
-            <p>via={certifyMetaQuery.data.via}</p>
-            <p>sandbox={certifyMetaQuery.data.trial_sandbox}</p>
-            <p>
-              feature_ai_copilot=
-              {String(certifyMetaQuery.data.feature_ai_copilot)}
-            </p>
             <p>{certifyMetaQuery.data.honesty}</p>
           </div>
         ) : null}
@@ -239,8 +315,7 @@ export function MarketplaceListingsBrowse() {
               className="text-sm text-[var(--text-muted)]"
               data-testid="marketplace-listings-empty"
             >
-              No listings in memory catalog. Use Seed first-party or wait for
-              Owner upserts. Persistence is memory (process-local).
+              No listings in memory catalog. Use Seed publish pack (13-04).
             </p>
           ) : (
             <ul className="space-y-2 text-sm">
@@ -256,6 +331,7 @@ export function MarketplaceListingsBrowse() {
                       <span className="font-mono text-xs text-[var(--text-muted)]">
                         {row.slug} · {row.listing_type} · {row.version} ·{" "}
                         {row.status}
+                        {row.installable ? " · installable" : ""}
                       </span>
                       {row.description ? (
                         <p className="text-xs text-[var(--text-muted)]">
@@ -293,14 +369,72 @@ export function MarketplaceListingsBrowse() {
                       <Button
                         type="button"
                         size="sm"
+                        variant="secondary"
                         data-testid="marketplace-listings-row-certify"
                         disabled={busy}
                         onClick={() => runCertify(row.id, true)}
                       >
                         Certify
                       </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        data-testid="marketplace-listings-row-publish"
+                        disabled={busy}
+                        onClick={() => runPublish(row.id)}
+                      >
+                        Publish
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        data-testid="marketplace-listings-row-install"
+                        disabled={busy || row.installable === false}
+                        onClick={() => runInstall(row.id)}
+                      >
+                        Install
+                      </Button>
                     </div>
                   </div>
+                </li>
+              ))}
+            </ul>
+          )
+        ) : null}
+      </section>
+
+      <section
+        className="space-y-2 rounded border border-[var(--border-default)] p-4"
+        data-testid="marketplace-listings-installs"
+      >
+        <h2 className="text-sm font-semibold">
+          Catalog installs (tip GET /installs)
+        </h2>
+        <p className="text-xs text-[var(--text-muted)]">
+          Memory receipts only — not live HubSpot/Odoo/REST GO.
+        </p>
+        {installsQuery.isLoading ? (
+          <Spinner />
+        ) : installsQuery.isError ? (
+          <p className="text-sm text-[var(--text-danger)]">
+            {getApiError(installsQuery.error)}
+          </p>
+        ) : installsQuery.data ? (
+          installsQuery.data.length === 0 ? (
+            <p
+              className="text-sm text-[var(--text-muted)]"
+              data-testid="marketplace-listings-installs-empty"
+            >
+              No catalog installs for this tenant yet.
+            </p>
+          ) : (
+            <ul className="space-y-1 font-mono text-xs">
+              {installsQuery.data.map((rec: MarketplaceCatalogInstall) => (
+                <li key={rec.id} data-testid="marketplace-listings-install-row">
+                  {rec.listing_slug} · {rec.listing_type}
+                  {rec.connector_key ? ` · ${rec.connector_key}` : ""} ·{" "}
+                  {rec.installed_at}
                 </li>
               ))}
             </ul>
@@ -350,36 +484,45 @@ export function MarketplaceListingsBrowse() {
                   disabled={busy || !actionId}
                   onClick={() => runSubmit(actionId)}
                 >
-                  {submitMutation.isPending
-                    ? "Submitting…"
-                    : "Submit for certification"}
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  data-testid="marketplace-listings-detail-certify"
-                  disabled={busy || !actionId}
-                  onClick={() => runCertify(actionId, true)}
-                >
-                  {certifyMutation.isPending
-                    ? "Certifying…"
-                    : "Run certify (auto_submit)"}
+                  Submit
                 </Button>
                 <Button
                   type="button"
                   size="sm"
                   variant="secondary"
-                  data-testid="marketplace-listings-detail-certify-no-auto"
+                  data-testid="marketplace-listings-detail-certify"
                   disabled={busy || !actionId}
-                  onClick={() => runCertify(actionId, false)}
+                  onClick={() => runCertify(actionId, true)}
                 >
-                  Certify (no auto_submit)
+                  Certify
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  data-testid="marketplace-listings-detail-publish"
+                  disabled={busy || !actionId}
+                  onClick={() => runPublish(actionId)}
+                >
+                  {publishMutation.isPending ? "Publishing…" : "Publish"}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  data-testid="marketplace-listings-detail-install"
+                  disabled={
+                    busy || !actionId || detailQuery.data.installable === false
+                  }
+                  onClick={() => runInstall(actionId)}
+                >
+                  {installMutation.isPending
+                    ? "Installing…"
+                    : "Catalog install"}
                 </Button>
               </div>
               <p className="text-xs text-[var(--text-muted)]">
-                Tip certify stages: conformance → security_checklist →
-                sandboxed_trial. Trial install is pipeline-internal only — no
-                separate tenant install HTTP on tip.
+                Catalog install writes a tenant-scoped memory receipt. It does
+                not enable live ERP/CRM sync.
               </p>
             </>
           ) : null}
@@ -397,6 +540,21 @@ export function MarketplaceListingsBrowse() {
             data-testid="marketplace-listings-certify-report-result"
           >
             {JSON.stringify(lastCertify, null, 2)}
+          </pre>
+        </section>
+      ) : null}
+
+      {lastInstall ? (
+        <section
+          className="space-y-2 rounded border border-[var(--border-default)] p-4"
+          data-testid="marketplace-listings-install-report"
+        >
+          <h2 className="text-sm font-semibold">Last catalog install</h2>
+          <pre
+            className="overflow-x-auto rounded bg-[var(--bg-muted)] p-2 font-mono text-xs"
+            data-testid="marketplace-listings-install-report-result"
+          >
+            {JSON.stringify(lastInstall, null, 2)}
           </pre>
         </section>
       ) : null}

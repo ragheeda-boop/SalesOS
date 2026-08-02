@@ -1,6 +1,7 @@
 /**
- * Marketplace listings HTTP (STORY-13-01/02 / FE-S13-03).
- * Tip in-memory Owner catalog + CAP-094 certify. Not CAP-036 stub. Not Production GO.
+ * Marketplace listings HTTP (STORY-13-01/02/04 / FE-S13-04).
+ * Tip memory catalog + CAP-094 certify + publish pack / catalog install.
+ * Catalog install ≠ live ERP. Not CAP-036 stub. Not Production GO.
  */
 import api from "./client";
 
@@ -26,6 +27,7 @@ export interface MarketplaceListing {
   schema_version: number;
   created_at?: string;
   updated_at?: string;
+  installable?: boolean;
 }
 
 export interface MarketplaceListingsMeta {
@@ -37,6 +39,24 @@ export interface MarketplaceListingsMeta {
   policy_count_delta: number;
   honesty: string;
   certify_stages?: string[];
+  publish_pack?: {
+    story: string;
+    min_connectors: number;
+    min_playbooks: number;
+    seed_slugs: string[];
+    connector_keys: string[];
+  };
+}
+
+export interface MarketplaceCatalogInstall {
+  id: string;
+  tenant_id: string;
+  listing_id: string;
+  listing_slug: string;
+  listing_type: string;
+  connector_key: string;
+  installed_at: string;
+  honesty: string;
 }
 
 export interface MarketplaceCertifyMeta {
@@ -111,6 +131,50 @@ export async function seedFirstPartyMarketplaceListings(
 ): Promise<MarketplaceListing[]> {
   const resp = await api.post<MarketplaceListing[]>(
     `${BASE}/seed-first-party`,
+    {},
+    { headers: tenantHeaders(tenantId) },
+  );
+  return resp.data;
+}
+
+export async function seedMarketplacePublishPack(
+  tenantId: string,
+): Promise<MarketplaceListing[]> {
+  const resp = await api.post<MarketplaceListing[]>(
+    `${BASE}/seed-publish-pack`,
+    {},
+    { headers: tenantHeaders(tenantId) },
+  );
+  return resp.data;
+}
+
+export async function listMarketplaceCatalogInstalls(
+  tenantId: string,
+): Promise<MarketplaceCatalogInstall[]> {
+  const resp = await api.get<MarketplaceCatalogInstall[]>(`${BASE}/installs`, {
+    headers: tenantHeaders(tenantId),
+  });
+  return resp.data;
+}
+
+export async function publishMarketplaceListing(
+  tenantId: string,
+  listingIdOrSlug: string,
+): Promise<MarketplaceListing> {
+  const resp = await api.post<MarketplaceListing>(
+    `${BASE}/${encodeURIComponent(listingIdOrSlug)}/publish`,
+    {},
+    { headers: tenantHeaders(tenantId) },
+  );
+  return resp.data;
+}
+
+export async function installMarketplaceListing(
+  tenantId: string,
+  listingIdOrSlug: string,
+): Promise<MarketplaceCatalogInstall> {
+  const resp = await api.post<MarketplaceCatalogInstall>(
+    `${BASE}/${encodeURIComponent(listingIdOrSlug)}/install`,
     {},
     { headers: tenantHeaders(tenantId) },
   );

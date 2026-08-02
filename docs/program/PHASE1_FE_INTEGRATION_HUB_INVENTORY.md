@@ -56,10 +56,11 @@
 | FE-S12-04 | AI Model Tiers Studio UI (tip 12-04 GET-only) |
 | FE-S13-01b | Marketplace listings browse (tip 13-01 memory; not CAP-036) |
 | FE-S13-03 | Marketplace certify UX (tip 13-02 submit/certify; no invent /install) |
+| FE-S13-04 | Marketplace publish/install UX (tip 13-04; catalog install ≠ live ERP) |
 
 ## Blocked (do not invent)
 
 - FE-S11-07 Website Intelligence / FE-S11-08 AI Outreach — **STANDBY** until AI-Lead tip HTTP
-- Tenant product install HTTP beyond tip certify trial sandbox — **absent on tip**
+- Live HubSpot/Odoo/REST GO via catalog install — **not claimed**
 - Postgres custom-field / workflow persistence beyond tip in-memory stores
 - Workflow for_each / loop canvas nodes (deferred)
