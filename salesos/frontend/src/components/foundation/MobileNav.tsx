@@ -23,6 +23,7 @@ import {
   KeyRound,
   Bell,
   Palette,
+  MapPin,
   Target,
   Radar,
   Crosshair,
@@ -81,6 +82,11 @@ export function MobileNav() {
       href: "/studio/branding",
       key: "nav.branding_studio",
       icon: Palette,
+    },
+    {
+      href: "/studio/territories",
+      key: "nav.territories_studio",
+      icon: MapPin,
     },
     {
       href: "/gtm",

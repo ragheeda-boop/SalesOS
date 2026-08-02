@@ -15,6 +15,7 @@ export * from "./api/permissionsStudio";
 export * from "./api/workflowStudio";
 export * from "./api/notificationRulesStudio";
 export * from "./api/brandingStudio";
+export * from "./api/territoriesStudio";
 export * from "./api/marketSizing";
 export * from "./api/leadDiscovery";
 export * from "./api/icpProfiles";

@@ -143,6 +143,10 @@ export const tenantStudioKeys = {
     [...tenantStudioKeys.all, "notification-events", tenantId] as const,
   branding: (tenantId: string) =>
     [...tenantStudioKeys.all, "branding", tenantId] as const,
+  territoriesMeta: (tenantId: string) =>
+    [...tenantStudioKeys.all, "territories-meta", tenantId] as const,
+  territories: (tenantId: string) =>
+    [...tenantStudioKeys.all, "territories", tenantId] as const,
 };
 
 export const gtmKeys = {

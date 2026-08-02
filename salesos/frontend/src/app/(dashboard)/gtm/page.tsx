@@ -5,7 +5,7 @@ import { GtmHub } from "@/features/gtm/GtmHub";
 /**
  * FE-S11-03b (+ honesty sync) — GTM Intelligence hub for tip GTM pages.
  * Tip ICP / lookalikes / enrichment / verification / sequences landed.
- * Territories not invented. Not Production GO / RAG GO.
+ * Territories Studio tip path: /studio/territories. Not Production GO / RAG GO.
  */
 export default function GtmHubPage() {
   return (
@@ -16,8 +16,9 @@ export default function GtmHubPage() {
         </h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
           Tip GTM pages: ICP, market sizing, lead discovery, lookalikes,
-          enrichment, verification, sequences. Territories Studio not on tip —
-          not invented. Not Production GO / RAG GO.
+          enrichment, verification, sequences. Territories Studio is tip
+          /studio/territories. Live 141221 / live ERP not claimed. Not
+          Production GO / RAG GO.
         </p>
       </div>
       <GtmHub />

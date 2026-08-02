@@ -146,6 +146,14 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.studio.territories",
+    label: "Studio · Territories",
+    description: "Tenant Studio territory rules (tip STORY-10-05)",
+    category: "تنقل",
+    handler: () => router.push("/studio/territories"),
+  });
+
+  registerCommand({
     id: "go.gtm",
     label: "GTM · Intelligence Hub",
     description:

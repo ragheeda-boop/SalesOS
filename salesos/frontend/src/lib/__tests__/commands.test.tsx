@@ -13,7 +13,7 @@ describe("registerBuiltinCommands", () => {
   it("registers all builtin commands", () => {
     const mockRouter = { push: jest.fn() } as any;
     registerBuiltinCommands(mockRouter);
-    expect(registerCommand).toHaveBeenCalledTimes(31);
+    expect(registerCommand).toHaveBeenCalledTimes(32);
   });
 
   it("registers navigation commands with correct router pushes", () => {
@@ -65,6 +65,13 @@ describe("registerBuiltinCommands", () => {
     expect(studioBranding).toBeTruthy();
     studioBranding[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/studio/branding");
+
+    const studioTerritories = (registerCommand as jest.Mock).mock.calls.find(
+      (c: any) => c[0].id === "go.studio.territories",
+    );
+    expect(studioTerritories).toBeTruthy();
+    studioTerritories[0].handler();
+    expect(mockRouter.push).toHaveBeenCalledWith("/studio/territories");
 
     const gtmHub = (registerCommand as jest.Mock).mock.calls.find(
       (c: any) => c[0].id === "go.gtm",
