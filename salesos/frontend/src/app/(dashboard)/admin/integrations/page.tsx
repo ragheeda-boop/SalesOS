@@ -106,6 +106,11 @@ const FE_GATED = [
     title: "project.task / TaskCaseExtension VO Studio",
     status: "FE landed — project.task presets",
   },
+  {
+    id: "FE-S09-06",
+    title: "CustomerInvoice presets + payment honesty",
+    status: "FE landed — account.move presets",
+  },
 ] as const;
 
 export default function AdminIntegrationsInventoryPage() {

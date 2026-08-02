@@ -336,6 +336,7 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(
       page.getByTestId("integrations-studio-model-preset-helpdesk-ticket"),
       page.getByTestId("integrations-studio-model-preset-project-task"),
+      page.getByTestId("integrations-studio-model-preset-account-move"),
     ).toBeVisible();
   });
 

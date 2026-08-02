@@ -24,6 +24,7 @@
 | FE-S09-03 | InteractionNote presets + PII honesty (tip 09-03) |
 | FE-S09-04 | SupportTicket presets + stage honesty (tip 09-04) |
 | FE-S09-05 | project.task / TaskCaseExtension VO honesty (tip 09-05) |
+| FE-S09-06 | CustomerInvoice presets + payment honesty (tip 09-06) |
 
 ## Blocked (do not invent)
 

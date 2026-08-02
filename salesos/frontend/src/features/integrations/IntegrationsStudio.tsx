@@ -54,6 +54,12 @@ import {
   isTaskModel,
 } from "@/features/integrations/odooTaskHonesty";
 import {
+  CANONICAL_PAYMENT_STATES,
+  CUSTOMER_MOVE_TYPES,
+  DEFAULT_INVOICE_MAPPINGS,
+  isInvoiceModel,
+} from "@/features/integrations/odooInvoiceHonesty";
+import {
   TIP_OPERATIONAL_FIELDS,
   TIP_SALESOS_AUTHORED_FIELDS,
   tipDefaultConflictRules,
@@ -90,6 +96,7 @@ function listFromCsv(raw: string): string[] {
  * STORY-09-03 InteractionNote PII honesty (FE-S09-03).
  * STORY-09-04 SupportTicket stage honesty (FE-S09-04).
  * STORY-09-05 TaskCaseExtension VO honesty (FE-S09-05).
+ * STORY-09-06 CustomerInvoice payment honesty (FE-S09-06).
  * Unlinked badge list API not live. Not Production GO.
  */
 export function IntegrationsStudio() {
@@ -271,6 +278,13 @@ export function IntegrationsStudio() {
     if (isTaskModel(nextModel)) {
       setMappingJson(JSON.stringify(DEFAULT_TASK_MAPPINGS, null, 2));
       setBaselineCsv("name, stage");
+      return;
+    }
+    if (isInvoiceModel(nextModel)) {
+      setMappingJson(JSON.stringify(DEFAULT_INVOICE_MAPPINGS, null, 2));
+      setBaselineCsv(
+        "name, amount_total, amount_residual, payment_state, partner_external_id",
+      );
       return;
     }
     if (isPartnerModel(nextModel)) {
@@ -661,6 +675,19 @@ export function IntegrationsStudio() {
                 GO.
               </p>
             ) : null}
+            {isInvoiceModel(model) ? (
+              <p
+                className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+                data-testid="integrations-studio-invoice-payment-honesty"
+              >
+                STORY-09-06: Tip model <code>account.move</code> syncs
+                CustomerInvoice (≠ PlatformBillingInvoice / no
+                stripe_invoice_id). AR move types only:{" "}
+                {CUSTOMER_MOVE_TYPES.join(", ")}. Payment states translated to
+                canonical {CANONICAL_PAYMENT_STATES.join(", ")}. Unlinked badge
+                list still BE-blocked. Not Production GO / RAG GO.
+              </p>
+            ) : null}
             <Input
               label="Model"
               data-testid="integrations-studio-map-model"
@@ -925,6 +952,17 @@ export function IntegrationsStudio() {
                 optional TaskCaseExtension VO after STORY-09-05. No standalone
                 financing_cases aggregate. Unlinked badge list still BE-blocked.
                 Not Production GO / RAG GO.
+              </p>
+            ) : null}
+            {isInvoiceModel(model) ? (
+              <p
+                className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+                data-testid="integrations-studio-schedule-invoice-honesty"
+              >
+                Tip schedule model <code>account.move</code> pulls
+                CustomerInvoice AR rows after STORY-09-06 (not platform Stripe
+                invoices). No invoice list HTTP. Unlinked badge list still
+                BE-blocked. Not Production GO / RAG GO.
               </p>
             ) : null}
             <Input

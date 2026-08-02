@@ -61,6 +61,11 @@ export const HUB_MODEL_PRESETS = [
     label: "project.task (Task + CaseExtension VO)",
     model: "project.task",
   },
+  {
+    id: "account-move",
+    label: "account.move (CustomerInvoice)",
+    model: "account.move",
+  },
 ] as const;
 
 export function isOpportunityModel(model: string): boolean {

@@ -276,6 +276,27 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
     ).toContain("stage_id");
   });
 
+  it("applies account.move preset and CustomerInvoice payment honesty", () => {
+    render(<IntegrationsStudio />);
+    fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
+    fireEvent.click(
+      screen.getByTestId("integrations-studio-model-preset-account-move"),
+    );
+    expect(
+      screen.getByTestId("integrations-studio-invoice-payment-honesty"),
+    ).toHaveTextContent(/PlatformBillingInvoice|out_invoice/i);
+    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
+      "account.move",
+    );
+    expect(
+      (
+        screen.getByTestId(
+          "integrations-studio-map-json",
+        ) as HTMLTextAreaElement
+      ).value,
+    ).toContain("payment_state");
+  });
+
   it("applies mail.message note preset and PII honesty", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
