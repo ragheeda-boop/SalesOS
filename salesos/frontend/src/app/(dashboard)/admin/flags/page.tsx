@@ -104,8 +104,8 @@ export default function AdminFlagsPage() {
         STORY-09-07: Tip Grade-A key <code>{FLAG_ODOO_INTEGRATION}</code> gates
         Odoo Hub connect/test/schedule (HTTP 403 when off). Global default off;
         enable design partner <code>{MUHIDE_TENANT_SLUG}</code> via tenant
-        override (ops UUID — not invented here). Unlinked badges on tip
-        Monitor (FE-S09-08). Not Production GO / RAG GO.
+        override (ops UUID — not invented here). Unlinked badges on tip Monitor
+        (FE-S09-08). Not Production GO / RAG GO.
       </p>
       <div className="flex items-center justify-between">
         <div>

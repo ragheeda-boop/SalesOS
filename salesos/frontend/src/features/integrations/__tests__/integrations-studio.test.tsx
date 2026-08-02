@@ -433,5 +433,4 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
       screen.getByTestId("integrations-studio-sync-run-cursors"),
     ).toHaveTextContent(/2026-08-02 10:00:00/);
   });
-
 });
