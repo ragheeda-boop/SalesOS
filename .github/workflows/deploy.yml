@@ -165,6 +165,9 @@ jobs:
           print(f"Latest Railway deployment {latest.get('id')} status {status} verified.")
           PY
 
+  deploy-backend-health-gate:
+    name: Backend Health Gate
+    needs: deploy-backend-railway
     if: ${{ !inputs.skip_backend && needs.deploy-backend-railway.result == 'success' }}
     runs-on: ubuntu-latest
     environment: production
