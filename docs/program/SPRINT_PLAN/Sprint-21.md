@@ -6,7 +6,7 @@
 
 | Story | Owner | Priority | Risk | Acceptance Criteria |
 |---|---|---|---|---|
-| STORY-13-01 (MarketplaceListing object) | BE1 | P0 | Low | Single object across connector/app/playbook types |
+| STORY-13-01 (MarketplaceListing object) | BE1 | P0 | Low | **LANDED BE (Stream A):** single `MarketplaceListing` across connector/app/prompt_pack/playbook via `/api/v1/marketplace/listings` (+ seed Odoo/HubSpot). Crumb [`PHASE1_STORY_13_01_MARKETPLACE_LISTING_CRUMB.md`](../PHASE1_STORY_13_01_MARKETPLACE_LISTING_CRUMB.md). No new RLS. No Production GO. |
 | STORY-13-02 (certification pipeline) | BE-Lead, Security | P0 | Medium | Automated conformance + security checklist + sandboxed trial working |
 
 **Expected Demo:** Submit a test connector listing, watch it move through the certification pipeline stages live.

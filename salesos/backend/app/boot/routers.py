@@ -167,8 +167,18 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(extension_router, dependencies=_auth)
     app.include_router(plugin_router, dependencies=_auth)
 
+    # DOM-024 / CAP-071/072 — STORY-13-01 MarketplaceListing (OBJ-325).
+    from app.modules.marketplace_listings.router import (
+        router as marketplace_listings_router,
+    )
     from domains.marketplace.router import router as marketplace_router
 
+    app.include_router(
+        marketplace_listings_router,
+        prefix="/api/v1",
+        tags=["Marketplace Listings"],
+        dependencies=_auth,
+    )
     app.include_router(marketplace_router)
 
     app.include_router(sso_router, prefix="/api/v1", tags=["SSO"])
