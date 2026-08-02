@@ -93,6 +93,14 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     });
   });
 
+  test("admin tenants expose plan_id server filter hook", async ({ page }) => {
+    await page.goto("/admin/tenants");
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByTestId("admin-tenants-plan-id-filter")).toBeVisible({
+      timeout: 8_000,
+    });
+  });
+
   test("admin tenants detail lifecycle hooks open without mutate", async ({
     page,
   }) => {

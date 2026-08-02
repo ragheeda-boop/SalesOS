@@ -51,7 +51,6 @@ import {
   formatSuspendResultDescription,
   formatTrialEndsLabel,
   lifecycleStatusDescription,
-  matchesTrialFilter,
   sortAdminTenants,
   type TenantSortKey,
   type TrialFilter,
@@ -108,6 +107,7 @@ export default function AdminTenantsPage() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState("");
+  const [planIdFilter, setPlanIdFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [provisioningFilter, setProvisioningFilter] = useState("");
   const [regionFilter, setRegionFilter] = useState("");
@@ -133,20 +133,27 @@ export default function AdminTenantsPage() {
     trial_ends_at: "",
   });
 
+  // FE-S04-20 — wire Owner Platform filters to GET /admin/tenants query params
+  // (tip 0782fa4: plan_id|region|data_residency|provisioning_status|trial + search/plan/status)
   const { data: tenants, isLoading } = useAdminTenants({
     search: search || undefined,
     plan: planFilter || undefined,
-    // Backend status filter maps to is_active (active|suspended)
+    plan_id: planIdFilter.trim() || undefined,
     status: statusFilter || undefined,
+    provisioning_status: provisioningFilter || undefined,
+    region: regionFilter || undefined,
+    data_residency: residencyFilter || undefined,
+    trial: trialFilter || undefined,
   });
 
   const createMutation = useCreateAdminTenant();
   const deleteMutation = useDeleteAdminTenant();
   const hardDeleteMutation = useHardDeleteAdminTenant();
 
-  // FE-S04-12 — derive region / residency options from loaded list
+  // Keep current filter values in Select options (server-filtered lists shrink options)
   const regionOptions = useMemo(() => {
     const values = new Set<string>();
+    if (regionFilter) values.add(regionFilter);
     for (const t of tenants || []) {
       if (t.region) values.add(t.region);
     }
@@ -156,10 +163,11 @@ export default function AdminTenantsPage() {
         .sort()
         .map((v) => ({ label: v, value: v })),
     ];
-  }, [tenants]);
+  }, [tenants, regionFilter]);
 
   const residencyOptions = useMemo(() => {
     const values = new Set<string>();
+    if (residencyFilter) values.add(residencyFilter);
     for (const t of tenants || []) {
       if (t.data_residency) values.add(t.data_residency);
     }
@@ -169,60 +177,13 @@ export default function AdminTenantsPage() {
         .sort()
         .map((v) => ({ label: v, value: v })),
     ];
-  }, [tenants]);
+  }, [tenants, residencyFilter]);
 
+  // FE-S04-19 — client sort only; filter/search owned by API (FE-S04-20)
   const filteredTenants = useMemo(() => {
     if (!tenants) return [];
-    let list = tenants;
-    if (search) {
-      const q = search.toLowerCase();
-      list = list.filter(
-        (t: AdminTenantListItem) =>
-          t.name.toLowerCase().includes(q) ||
-          t.slug.toLowerCase().includes(q) ||
-          (t.domain || "").toLowerCase().includes(q) ||
-          // FE-S04-16 — opaque plan_id + geo fields in search
-          (t.plan_id || "").toLowerCase().includes(q) ||
-          (t.region || "").toLowerCase().includes(q) ||
-          (t.data_residency || "").toLowerCase().includes(q),
-      );
-    }
-    if (planFilter)
-      list = list.filter((t: AdminTenantListItem) => t.plan === planFilter);
-    // FE-S04-10 — client filter for provisioning_status (API has no query param yet)
-    if (provisioningFilter) {
-      list = list.filter(
-        (t: AdminTenantListItem) =>
-          (t.provisioning_status || "pending") === provisioningFilter,
-      );
-    }
-    // FE-S04-12 — client filters (API has no region/residency query params yet)
-    if (regionFilter) {
-      list = list.filter((t: AdminTenantListItem) => t.region === regionFilter);
-    }
-    if (residencyFilter) {
-      list = list.filter(
-        (t: AdminTenantListItem) => t.data_residency === residencyFilter,
-      );
-    }
-    // FE-S04-15 — client trial_ends_at filter
-    if (trialFilter) {
-      list = list.filter((t: AdminTenantListItem) =>
-        matchesTrialFilter(t.trial_ends_at, trialFilter),
-      );
-    }
-    // FE-S04-19 — client sort
-    return sortAdminTenants(list, sortKey);
-  }, [
-    tenants,
-    search,
-    planFilter,
-    provisioningFilter,
-    regionFilter,
-    residencyFilter,
-    trialFilter,
-    sortKey,
-  ]);
+    return sortAdminTenants(tenants, sortKey);
+  }, [tenants, sortKey]);
 
   const totalPages = Math.max(1, Math.ceil(filteredTenants.length / 20));
   const paginatedTenants = filteredTenants.slice((page - 1) * 20, page * 20);
@@ -345,6 +306,17 @@ export default function AdminTenantsPage() {
             }}
           />
         </div>
+        <div className="w-44" data-testid="admin-tenants-plan-id-filter">
+          <Input
+            placeholder="plan_id…"
+            value={planIdFilter}
+            onChange={(e) => {
+              setPlanIdFilter(e.target.value);
+              setPage(1);
+            }}
+            title="Opaque catalog plan_id (server filter)"
+          />
+        </div>
         <div className="w-48" data-testid="admin-tenants-status-filter">
           <Select
             options={STATUS_OPTIONS}
@@ -413,6 +385,7 @@ export default function AdminTenantsPage() {
         </div>
         {(search ||
           planFilter ||
+          planIdFilter ||
           statusFilter ||
           provisioningFilter ||
           regionFilter ||
@@ -426,6 +399,7 @@ export default function AdminTenantsPage() {
             onClick={() => {
               setSearch("");
               setPlanFilter("");
+              setPlanIdFilter("");
               setStatusFilter("");
               setProvisioningFilter("");
               setRegionFilter("");

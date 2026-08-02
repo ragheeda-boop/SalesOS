@@ -1323,6 +1323,34 @@ describe("listAdminTenants — contract", () => {
     expect(result[0]).toHaveProperty("provisioning_status", "active");
     expect(result[0]).toHaveProperty("plan_id", "cat-ent");
   });
+
+  it("FE-S04-20 — forwards Owner Platform server filter query params", async () => {
+    mockAxios.get.mockResolvedValueOnce(mockResponse([]));
+
+    await listAdminTenants({
+      search: "acme",
+      plan: "growth",
+      plan_id: "cat-1",
+      status: "active",
+      region: "me-central-1",
+      data_residency: "ae",
+      provisioning_status: "pending",
+      trial: "has_trial",
+    });
+
+    expect(mockAxios.get).toHaveBeenCalledWith("/api/v1/admin/tenants", {
+      params: {
+        search: "acme",
+        plan: "growth",
+        plan_id: "cat-1",
+        status: "active",
+        region: "me-central-1",
+        data_residency: "ae",
+        provisioning_status: "pending",
+        trial: "has_trial",
+      },
+    });
+  });
 });
 
 describe("listAdminPlans — contract", () => {

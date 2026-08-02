@@ -46,3 +46,4 @@
 | FE-S04-17 | Detail lifecycle honesty (soft-delete vs suspend) | **LANDED** |
 | FE-S04-18 | Copy tenant id/slug from detail | **LANDED** |
 | FE-S04-19 | Client list sort (created/name) | **LANDED** |
+| FE-S04-20 | Wire list hooks to server filter query params (`0782fa4`) | **LANDED** |
