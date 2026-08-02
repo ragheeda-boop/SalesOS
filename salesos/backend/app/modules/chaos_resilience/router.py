@@ -62,9 +62,11 @@ async def chaos_meta() -> dict[str, Any]:
         "honesty": (
             "CI fault-injection harness (connector/AI/DB). "
             "Live kills and Production GO not claimed. "
-            "STORY-14-06 AI failover hardening: /api/v1/chaos/ai-failover/*."
+            "STORY-14-06 AI failover hardening: /api/v1/chaos/ai-failover/*. "
+            "STORY-14-07 LLM regression: /api/v1/chaos/llm-regression/*."
         ),
         "ai_failover_hardening": "/api/v1/chaos/ai-failover",
+        "llm_regression_suite": "/api/v1/chaos/llm-regression",
     }
 
 

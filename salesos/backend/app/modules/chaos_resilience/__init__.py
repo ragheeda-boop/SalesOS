@@ -1,4 +1,4 @@
-"""STORY-14-02 / STORY-14-06 — Chaos + AI failover resilience harness."""
+"""STORY-14-02 / 14-06 / 14-07 — Chaos + AI failover + LLM regression harness."""
 
 from app.modules.chaos_resilience.ai_failover import VALID_AI_FAILOVER_SCENARIOS
 from app.modules.chaos_resilience.ai_failover_harness import (
@@ -11,13 +11,21 @@ from app.modules.chaos_resilience.harness import (
     DrillReport,
     MemChaosHarness,
 )
+from app.modules.chaos_resilience.llm_regression import VALID_LLM_REGRESSION_MODES
+from app.modules.chaos_resilience.llm_regression_harness import (
+    DEFAULT_LLM_REGRESSION_HARNESS,
+    MemLlmRegressionHarness,
+)
 
 __all__ = [
     "DEFAULT_AI_FAILOVER_HARNESS",
     "DEFAULT_CHAOS_HARNESS",
+    "DEFAULT_LLM_REGRESSION_HARNESS",
     "DrillReport",
     "MemAiFailoverHarness",
     "MemChaosHarness",
+    "MemLlmRegressionHarness",
     "VALID_AI_FAILOVER_SCENARIOS",
     "VALID_FAULT_KINDS",
+    "VALID_LLM_REGRESSION_MODES",
 ]

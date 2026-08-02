@@ -211,6 +211,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["Chaos Resilience"],
         dependencies=_auth,
     )
+    # EPIC-14 / STORY-14-07 — LLM regression suite (non-prod golden fixtures).
+    from app.modules.chaos_resilience.llm_regression_router import (
+        router as llm_regression_router,
+    )
+
+    app.include_router(
+        llm_regression_router,
+        prefix="/api/v1",
+        tags=["Chaos Resilience"],
+        dependencies=_auth,
+    )
 
     # EPIC-14 / STORY-14-03 — DR drill harness (backup/restore, RTO/RPO).
     from app.modules.dr_drill.router import router as dr_drill_router

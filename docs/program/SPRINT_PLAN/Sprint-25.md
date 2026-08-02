@@ -8,7 +8,7 @@
 | Story | Owner | Priority | Risk | Acceptance Criteria |
 |---|---|---|---|---|
 | STORY-14-05 (SOC2 Type I evidence) | Security, Program Director | P1 | Medium | Audit logging/access review/change management evidence assembled (Type I audit itself is post-GA) |
-| STORY-14-07 (LLM regression suite) | AI-Lead | P0 | Medium | Baseline established, detects a deliberately-injected quality regression in a test run |
+| STORY-14-07 (LLM regression suite) | AI-Lead | P0 | Medium | **LANDED BE (AI-Lead):** non-prod golden LLM regression via `/api/v1/chaos/llm-regression` — baseline + injected regression detection + promote gate. Crumb [`PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md`](../PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md). `feature_ai_copilot` False. No live LLM / Production GO. |
 | Full regression suite (final) | QA-Lead | P0 | High | 100% pass against the RC candidate build |
 
 **Expected Demo:** **Phase 6 Go/No-Go + Release Candidate declared.** Feature freeze begins; RC soak clock starts.
