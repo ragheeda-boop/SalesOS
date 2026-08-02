@@ -255,6 +255,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["GTM Intelligence"],
         dependencies=_auth,
     )
+    # DOM-023 / CAP-097 — STORY-11-03 Lead Discovery (gov-first + Hub fallback).
+    from app.modules.gtm.lead_discovery_router import (
+        router as lead_discovery_router,
+    )
+
+    app.include_router(
+        lead_discovery_router,
+        prefix="/api/v1",
+        tags=["GTM Intelligence"],
+        dependencies=_auth,
+    )
     app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
     app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
     app.include_router(admin_router)

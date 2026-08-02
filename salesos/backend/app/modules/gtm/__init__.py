@@ -1,5 +1,11 @@
-"""GTM Intelligence — CAP-096 Market Sizing (STORY-11-02). Not Production GO."""
+"""GTM Intelligence — CAP-096 Market Sizing + CAP-097 Lead Discovery. Not Production GO."""
 
+from app.modules.gtm.lead_discovery import (
+    DiscoveredLead,
+    LeadDiscoveryError,
+    LeadDiscoveryQuery,
+    LeadDiscoveryRun,
+)
 from app.modules.gtm.market_sizing import (
     GOVERNMENT_DATASET_SCALE_HINT,
     MarketSizingCriteria,
@@ -12,6 +18,10 @@ from app.modules.gtm.market_sizing_engine import (
 
 __all__ = [
     "GOVERNMENT_DATASET_SCALE_HINT",
+    "DiscoveredLead",
+    "LeadDiscoveryError",
+    "LeadDiscoveryQuery",
+    "LeadDiscoveryRun",
     "MarketSizingCriteria",
     "MarketSizingError",
     "MarketSizingSnapshot",
