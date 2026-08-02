@@ -53,3 +53,4 @@ def test_parse_empty_falls_back_free() -> None:
     e = parse_entitlements({})
     assert e.quotas.seats == 1
     assert domain_enabled(e, "DOM-011") is False
+    assert e.ai_model_tier.default == "economy"

@@ -18,6 +18,7 @@ from app.modules.admin.entitlement_cache import get_entitlement_cache
 from app.modules.admin.entitlements import (
     PlanEntitlements,
     default_entitlements_for_tier,
+    ensure_ai_model_tier_from_plan_tier,
     parse_entitlements,
 )
 from app.modules.billing.models import SubscriptionModel
@@ -68,10 +69,13 @@ async def _resolve_entitlements_from_db(
     plan = await _plan_by_id_or_tier(db, plan_ref)
     if plan is not None:
         tier_hint = str(plan.tier or tier_hint).lower()
+        raw = plan.entitlements if isinstance(plan.entitlements, dict) else {}
         try:
-            ents = parse_entitlements(plan.entitlements or {})
+            ents = parse_entitlements(raw or {})
         except (ValueError, TypeError, ValidationError):
             ents = default_entitlements_for_tier(tier_hint)
+        else:
+            ents = ensure_ai_model_tier_from_plan_tier(ents, tier_hint, raw=raw or {})
         return ents, {
             "plan_id": str(plan.id),
             "tier": plan.tier,

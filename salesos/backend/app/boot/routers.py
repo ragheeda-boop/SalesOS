@@ -338,6 +338,17 @@ def register_routers(app: FastAPI) -> None:
     app.include_router(monitoring_router, tags=["Monitoring"])
     app.include_router(cache_router, tags=["Cache"], dependencies=_auth)
     app.include_router(copilot_router, prefix="/api/v1", tags=["Copilot"], dependencies=_auth)
+    # STORY-12-04 — Per-plan AI model tier (Plan.entitlements; copilot flag unchanged).
+    from app.modules.admin.ai_model_tiers_router import (
+        router as ai_model_tiers_router,
+    )
+
+    app.include_router(
+        ai_model_tiers_router,
+        prefix="/api/v1",
+        tags=["AI Model Tiers"],
+        dependencies=_auth,
+    )
     app.include_router(commercial_router, prefix="/api/v1", tags=["Commercial"], dependencies=_auth)
 
     app.include_router(demo_router, tags=["Demo"])

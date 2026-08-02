@@ -1,20 +1,27 @@
-"""STORY-06-01 — Plan.entitlements schema (CAP-070 packaging).
+"""STORY-06-01 / STORY-12-04 — Plan.entitlements schema (CAP-070 packaging).
 
 Maps COMMERCIAL_LAUNCH_PLAN §2 packaging → structured JSONB on admin_plans.
-Feature flags remain a separate layer (DEC two-layer model). No request middleware
-here (STORY-06-02). Not Production GO.
+STORY-12-04 extends quotas-adjacent AI model tier defaults (Starter economy /
+Enterprise full). Feature flags remain a separate layer (DEC two-layer model).
+feature_ai_copilot stays False by default (AI honesty). Not Production GO.
 """
 
 from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 SCHEMA_VERSION = 1
 
 # Core CRM / revenue domains always entitled on paid-ish tiers (incl. free browse).
 CORE_DOMAINS = ("DOM-001", "DOM-002", "DOM-003", "DOM-004", "DOM-005", "DOM-006")
+
+# STORY-12-04 — commercial AI model tier ladder (entitlement, not live LLM enablement).
+AiModelTierName = Literal["economy", "standard", "full"]
+VALID_AI_MODEL_TIERS: frozenset[str] = frozenset({"economy", "standard", "full"})
+# Rank for ceiling checks (higher = more capable / costlier).
+AI_MODEL_TIER_RANK: dict[str, int] = {"economy": 0, "standard": 1, "full": 2}
 
 
 class DomainEntitlement(BaseModel):
@@ -74,6 +81,56 @@ def _default_quotas() -> EntitlementQuotas:
     )
 
 
+class AiModelTierEntitlement(BaseModel):
+    """STORY-12-04 — per-plan default + allowed AI model tiers.
+
+    Does not enable product AI; feature_ai_copilot remains a separate flag.
+    """
+
+    default: AiModelTierName = "economy"
+    allowed: list[AiModelTierName] = Field(default_factory=lambda: ["economy"])
+
+    @field_validator("allowed")
+    @classmethod
+    def _allowed_non_empty(cls, v: list[AiModelTierName]) -> list[AiModelTierName]:
+        if not v:
+            raise ValueError("ai_model_tier.allowed must be non-empty")
+        # Preserve order, drop dupes.
+        seen: set[str] = set()
+        out: list[AiModelTierName] = []
+        for item in v:
+            key = str(item).strip().lower()
+            if key not in VALID_AI_MODEL_TIERS:
+                raise ValueError(f"unknown AI model tier: {item}")
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(key)  # type: ignore[arg-type]
+        if not out:
+            raise ValueError("ai_model_tier.allowed must be non-empty")
+        return out
+
+    @field_validator("default")
+    @classmethod
+    def _default_known(cls, v: AiModelTierName) -> AiModelTierName:
+        key = str(v).strip().lower()
+        if key not in VALID_AI_MODEL_TIERS:
+            raise ValueError(f"unknown AI model tier: {v}")
+        return key  # type: ignore[return-value]
+
+    @model_validator(mode="after")
+    def _default_in_allowed(self) -> AiModelTierEntitlement:
+        if self.default not in self.allowed:
+            raise ValueError(
+                f"ai_model_tier.default {self.default!r} must be in allowed {self.allowed}"
+            )
+        return self
+
+
+def _default_ai_model_tier() -> AiModelTierEntitlement:
+    return AiModelTierEntitlement(default="economy", allowed=["economy"])
+
+
 class PlanEntitlements(BaseModel):
     """Canonical Plan.entitlements document (versioned)."""
 
@@ -82,6 +139,8 @@ class PlanEntitlements(BaseModel):
     quotas: EntitlementQuotas = Field(default_factory=_default_quotas)
     deployment_tier: Literal["pooled", "siloed"] = "pooled"
     support_sla: str = Field(default="community", min_length=1, max_length=64)
+    # STORY-12-04 — additive; absent on legacy JSONB → economy defaults via factory.
+    ai_model_tier: AiModelTierEntitlement = Field(default_factory=_default_ai_model_tier)
 
     @field_validator("domains")
     @classmethod
@@ -149,6 +208,11 @@ def default_entitlements_for_tier(tier: str) -> PlanEntitlements:
             ),
             deployment_tier="pooled",
             support_sla="community",
+            # Starter: smaller/cheaper default only.
+            ai_model_tier=AiModelTierEntitlement(
+                default="economy",
+                allowed=["economy"],
+            ),
         )
 
     if t == "growth":
@@ -170,6 +234,10 @@ def default_entitlements_for_tier(tier: str) -> PlanEntitlements:
             ),
             deployment_tier="pooled",
             support_sla="business_hours_p1",
+            ai_model_tier=AiModelTierEntitlement(
+                default="standard",
+                allowed=["economy", "standard"],
+            ),
         )
 
     if t == "enterprise":
@@ -193,6 +261,11 @@ def default_entitlements_for_tier(tier: str) -> PlanEntitlements:
             ),
             deployment_tier="pooled",  # siloed available via negotiated override
             support_sla="dedicated_p0",
+            # Enterprise: full tier access.
+            ai_model_tier=AiModelTierEntitlement(
+                default="full",
+                allowed=["economy", "standard", "full"],
+            ),
         )
 
     # free / unknown — browse-only packaging
@@ -214,4 +287,50 @@ def default_entitlements_for_tier(tier: str) -> PlanEntitlements:
         ),
         deployment_tier="pooled",
         support_sla="community",
+        ai_model_tier=AiModelTierEntitlement(default="economy", allowed=["economy"]),
     )
+
+
+def ai_model_tier_allowed(
+    entitlements: PlanEntitlements | dict[str, Any],
+    tier: str,
+) -> bool:
+    """True if ``tier`` is within the plan's allowed AI model tiers."""
+    doc = (
+        entitlements
+        if isinstance(entitlements, PlanEntitlements)
+        else parse_entitlements(entitlements)
+    )
+    key = str(tier or "").strip().lower()
+    return key in {str(t) for t in doc.ai_model_tier.allowed}
+
+
+def resolve_ai_model_tier(
+    entitlements: PlanEntitlements | dict[str, Any],
+    *,
+    requested: str | None = None,
+) -> str:
+    """Return requested tier if allowed, else plan default (never invents above ceiling)."""
+    doc = (
+        entitlements
+        if isinstance(entitlements, PlanEntitlements)
+        else parse_entitlements(entitlements)
+    )
+    if requested:
+        key = str(requested).strip().lower()
+        if key in VALID_AI_MODEL_TIERS and ai_model_tier_allowed(doc, key):
+            return key
+    return str(doc.ai_model_tier.default)
+
+
+def ensure_ai_model_tier_from_plan_tier(
+    entitlements: PlanEntitlements,
+    plan_tier: str | None,
+    *,
+    raw: dict[str, Any] | None = None,
+) -> PlanEntitlements:
+    """If legacy JSONB omitted ai_model_tier, fill from commercial tier defaults."""
+    if raw is not None and "ai_model_tier" in raw:
+        return entitlements
+    defaults = default_entitlements_for_tier(plan_tier or "free")
+    return entitlements.model_copy(update={"ai_model_tier": defaults.ai_model_tier})
