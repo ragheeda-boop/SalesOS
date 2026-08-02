@@ -1,24 +1,29 @@
-# Phase 1 — Frontend B1 Tenant surface inventory
+# Phase 1 — Frontend B1/B2 Tenant surface inventory
 
-> **Stream:** Frontend B1 — [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) §4.1  
+> **Stream:** Frontend B1 → B2 — [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) §4.1  
 > **Triggered:** 2026-08-02 **TRIGGER_POST_PHASE0_PLAN**  
-> **Status:** INVENTORY COMPLETE — stubs wait on A1 field contract  
-> **Honesty:** Decision package remains STUB; `feature_ai_copilot` default False.
+> **Status:** B1 COMPLETE · B2 READ-PATH LANDED (detail modal)  
+> **Honesty:** Decision package remains STUB; `feature_ai_copilot` default False. No Production GO.
 
 ## Surfaces touching Tenant
 
 | Path | Role |
 |------|------|
-| `salesos/frontend/src/app/(dashboard)/admin/tenants/page.tsx` | Admin tenant list/create/update/delete |
-| `salesos/frontend/src/features/admin/` queries/hooks (`useAdminTenants`, create/update/delete) | API client for admin tenants |
+| `salesos/frontend/src/app/(dashboard)/admin/tenants/page.tsx` | Admin tenant list/create/update/delete + B2 detail read-path |
+| `salesos/frontend/src/features/admin/widgets/TenantOwnerPlatformFields.tsx` | B2 Owner Platform field display |
+| `salesos/frontend/src/lib/api/types/admin.ts` | `AdminTenantOwnerPlatformFields` contract |
+| `salesos/frontend/src/features/admin/` queries/hooks | API client for admin tenants |
 | Admin tests under `features/admin/__tests__/` | Mock tenant fixtures |
 
-## Gap vs STORY-04-01 fields
+## STORY-04-01 fields (B2)
 
-Admin UI currently models name/plan-as-string style payloads (see test mocks). No FE fields yet for:
+Read-path wired for: `plan_id`, `region`, `data_residency`, `provisioning_status`, `trial_ends_at`.
 
-- `plan_id`, `region`, `data_residency`, `provisioning_status`, `trial_ends_at`
+Absent API values show placeholders until Backend A2 schema is migrated in the target env.
 
-## Next (B2)
+## Non-goals
 
-After A1 field contract stable: minimal read-path display (optional edit) — no fake GA AI, no heavy npm without approval.
+- No edit forms for Owner Platform fields in this land  
+- No TenantList widget edits (parallel-agent reserved)  
+- No heavy npm / full FE suite without approval  
+- No GA AI / Production GO

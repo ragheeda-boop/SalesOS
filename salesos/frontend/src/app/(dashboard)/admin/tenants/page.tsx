@@ -36,6 +36,11 @@ import {
   useAdminTenantUsage,
 } from "@/lib/hooks/adminQueries";
 import type { AdminTenantListItem } from "@/lib/api";
+import {
+  TenantOwnerPlatformFields,
+  provisioningStatusLabel,
+  provisioningStatusVariant,
+} from "@/features/admin/widgets/TenantOwnerPlatformFields";
 
 const PLAN_OPTIONS = [
   { label: "All Plans", value: "" },
@@ -305,6 +310,9 @@ export default function AdminTenantsPage() {
                     Status
                   </th>
                   <th className="p-3 font-medium text-[var(--text-muted)]">
+                    Provisioning
+                  </th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">
                     Created
                   </th>
                   <th className="p-3 font-medium text-[var(--text-muted)] text-right">
@@ -354,6 +362,15 @@ export default function AdminTenantsPage() {
                           <XCircle className="h-3.5 w-3.5" /> Suspended
                         </span>
                       )}
+                    </td>
+                    <td className="p-3">
+                      <Badge
+                        variant={provisioningStatusVariant(
+                          tenant.provisioning_status,
+                        )}
+                      >
+                        {provisioningStatusLabel(tenant.provisioning_status)}
+                      </Badge>
                     </td>
                     <td className="p-3 text-xs text-[var(--text-muted)]">
                       {new Date(tenant.created_at).toLocaleDateString()}
@@ -571,6 +588,9 @@ function TenantDetailModal({
                 {tenant?.is_active ? "Suspend" : "Activate"}
               </Button>
             </div>
+
+            {/* STORY-04-01 / B2 read-path — Owner Platform fields */}
+            {tenant && <TenantOwnerPlatformFields tenant={tenant} />}
 
             {/* Usage Stats */}
             {usage && (

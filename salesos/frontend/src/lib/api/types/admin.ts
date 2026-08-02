@@ -85,7 +85,17 @@ export interface TaskResponse {
   created_at?: string | null;
 }
 
-export interface AdminTenantListItem {
+/** STORY-04-01 Owner Platform fields (A1/A2 contract). */
+export interface AdminTenantOwnerPlatformFields {
+  plan_id?: string | null;
+  region?: string | null;
+  data_residency?: string | null;
+  /** pending | active | suspended | failed */
+  provisioning_status?: string | null;
+  trial_ends_at?: string | null;
+}
+
+export interface AdminTenantListItem extends AdminTenantOwnerPlatformFields {
   id: string;
   name: string;
   slug: string;
@@ -97,7 +107,7 @@ export interface AdminTenantListItem {
   updated_at: string;
 }
 
-export interface AdminTenantDetail {
+export interface AdminTenantDetail extends AdminTenantOwnerPlatformFields {
   id: string;
   name: string;
   slug: string;
