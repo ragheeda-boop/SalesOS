@@ -12,7 +12,7 @@
 | STORY-05-04 (dunning) | BE2 | P0 | High (R-05) | **LANDED BE (Stream A):** dunning_cases Alembic 8f4c67d9e15; grace (dunning_grace_days) → evaluate auto-suspend; webhook open/clear. Crumb [PHASE1_STORY_05_04_DUNNING_CRUMB.md](../PHASE1_STORY_05_04_DUNNING_CRUMB.md). No Production GO. |
 | STORY-05-05 (proration) | BE1 | P1 | Medium | **LANDED BE (Stream A):** quote/apply + deferred downgrade cols Alembic c9e5d78a0f26; Owner /billing/plan-change/*. Crumb [PHASE1_STORY_05_05_PRORATION_CRUMB.md](../PHASE1_STORY_05_05_PRORATION_CRUMB.md). No Production GO. |
 | STORY-06-01 (Plan.entitlements schema) | BE-Lead | P0 | Medium | **LANDED BE (Stream A):** dmin_plans.entitlements JSONB Alembic d0f6e89b1a37; v1 schema + tier defaults from commercial packaging. Crumb [PHASE1_STORY_06_01_PLAN_ENTITLEMENTS_CRUMB.md](../PHASE1_STORY_06_01_PLAN_ENTITLEMENTS_CRUMB.md). No Production GO. |
-| STORY-06-02 (entitlement middleware) | BE-Lead | P0 | Medium | At least 3 DOM/CAP combinations gated correctly |
+| STORY-06-02 (entitlement middleware) | BE-Lead | P0 | Medium | **LANDED BE (Stream A):** path→DOM gates (011/012/023/021) + EntitlementEnforcementMiddleware; flag entitlement_enforcement_enabled. Crumb [PHASE1_STORY_06_02_ENTITLEMENT_MIDDLEWARE_CRUMB.md](../PHASE1_STORY_06_02_ENTITLEMENT_MIDDLEWARE_CRUMB.md). No Production GO. |
 | STORY-07-01/02/03 (Owner Console MVP) | FE-Lead, FE1 | P1 | Low | `/tenants` and `/billing` read views live, audience-isolated |
 
 **Expected Demo:** **Phase 1 Go/No-Go + Alpha release.** Full commercial lifecycle demo end-to-end: provision tenant → subscribe → use a gated feature → downgrade → see entitlement change take effect → Owner Console shows accurate status throughout.

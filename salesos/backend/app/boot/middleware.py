@@ -21,12 +21,16 @@ def setup_middleware(app: FastAPI) -> None:
     from app.modules.identity.suspended_tenant_middleware import (
         SuspendedTenantWriteGuardMiddleware,
     )
+    from app.modules.admin.entitlement_middleware import (
+        EntitlementEnforcementMiddleware,
+    )
 
     app.add_middleware(GZipMiddleware, minimum_size=1024)
     app.add_middleware(BodyCacheMiddleware, max_body_size=settings.max_body_size)
     app.add_middleware(RequestIDMiddleware)
     app.add_middleware(RequestLoggingMiddleware)
-    # Inner of TenantContext so ContextVar tenant_id is already set (STORY-04-03).
+    # Inner of TenantContext so ContextVar tenant_id is already set (STORY-04-03 / 06-02).
+    app.add_middleware(EntitlementEnforcementMiddleware)
     app.add_middleware(SuspendedTenantWriteGuardMiddleware)
     app.add_middleware(TenantContextMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)

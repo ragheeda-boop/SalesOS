@@ -152,6 +152,9 @@ class Settings(BaseSettings):
     # STORY-05-04 — dunning grace before auto-suspend (days). Policy, not a secret.
     dunning_grace_days: int = 7
 
+    # STORY-06-02 — enforce Plan.entitlements on gated tenant paths. Policy, not a secret.
+    entitlement_enforcement_enabled: bool = True
+
     log_level: str = "INFO"
     sentry_dsn: str = ""
     service_version: str = "5.1.0-rc1"
