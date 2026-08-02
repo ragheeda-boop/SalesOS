@@ -96,6 +96,11 @@ const FE_GATED = [
     title: "InteractionNote presets + PII scrub honesty",
     status: "FE landed — mail.message presets",
   },
+  {
+    id: "FE-S09-04",
+    title: "SupportTicket presets + stage honesty",
+    status: "FE landed — helpdesk.ticket presets",
+  },
 ] as const;
 
 export default function AdminIntegrationsInventoryPage() {

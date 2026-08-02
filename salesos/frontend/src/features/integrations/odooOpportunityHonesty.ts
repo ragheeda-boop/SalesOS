@@ -51,6 +51,11 @@ export const HUB_MODEL_PRESETS = [
     label: "mail.message (InteractionNote)",
     model: "mail.message",
   },
+  {
+    id: "helpdesk-ticket",
+    label: "helpdesk.ticket (SupportTicket)",
+    model: "helpdesk.ticket",
+  },
 ] as const;
 
 export function isOpportunityModel(model: string): boolean {

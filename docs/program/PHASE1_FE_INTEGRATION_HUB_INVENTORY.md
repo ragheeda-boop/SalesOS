@@ -22,8 +22,8 @@
 | FE-S09-01 | Partner presets + cr_number join honesty (tip 09-01) |
 | FE-S09-02 | Opportunity presets + stage honesty (tip 09-02) |
 | FE-S09-03 | InteractionNote presets + PII honesty (tip 09-03) |
+| FE-S09-04 | SupportTicket presets + stage honesty (tip 09-04) |
 
 ## Blocked (do not invent)
 
 - Unlinked cr_number badge **list API** (STORY-09-01 residual / BE)
-- STORY-09-04 SupportTicket / `helpdesk.ticket` (WIP / not on tip)

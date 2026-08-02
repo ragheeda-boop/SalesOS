@@ -42,6 +42,11 @@ import {
   isNoteModel,
 } from "@/features/integrations/odooNoteHonesty";
 import {
+  CANONICAL_TICKET_STAGES,
+  DEFAULT_TICKET_MAPPINGS,
+  isTicketModel,
+} from "@/features/integrations/odooTicketHonesty";
+import {
   TIP_OPERATIONAL_FIELDS,
   TIP_SALESOS_AUTHORED_FIELDS,
   tipDefaultConflictRules,
@@ -76,6 +81,7 @@ function listFromCsv(raw: string): string[] {
  * STORY-09-02 opportunity stage honesty (FE-S09-02).
  * STORY-09-01 partner/cr_number honesty (FE-S09-01).
  * STORY-09-03 InteractionNote PII honesty (FE-S09-03).
+ * STORY-09-04 SupportTicket stage honesty (FE-S09-04).
  * Unlinked badge list API not live. Not Production GO.
  */
 export function IntegrationsStudio() {
@@ -249,6 +255,11 @@ export function IntegrationsStudio() {
       setBaselineCsv("subject, body");
       return;
     }
+    if (isTicketModel(nextModel)) {
+      setMappingJson(JSON.stringify(DEFAULT_TICKET_MAPPINGS, null, 2));
+      setBaselineCsv("name, stage, priority, partner_external_id");
+      return;
+    }
     if (isPartnerModel(nextModel)) {
       setMappingJson(JSON.stringify(DEFAULT_PARTNER_MAPPINGS, null, 2));
       setBaselineCsv("name, email, phone, cr_number");
@@ -267,9 +278,10 @@ export function IntegrationsStudio() {
         conflict-policy (FE-S08-08) and active mapping GET (FE-S08-09) +
         connection detail / baseline_fields (FE-S08-10). `test_connection`
         dispatches Fake vs OdooAdapter by `connector_key` (STORY-09-01).
-        Unlinked cr_number badge list API not live. STORY-09-04 SupportTicket /
-        helpdesk.ticket not on tip — do not invent. Do not paste real secrets
-        into credential_ref. Not Production GO / RAG GO.
+        Unlinked cr_number badge list API not live. STORY-09-04 helpdesk.ticket
+        SupportTicket sync is on tip (presets + stage honesty; no ticket list
+        HTTP). Do not paste real secrets into credential_ref. Not Production GO
+        / RAG GO.
       </p>
 
       <ol
@@ -609,6 +621,18 @@ export function IntegrationsStudio() {
                 Unlinked badge list still BE-blocked. Not RAG / Production GO.
               </p>
             ) : null}
+            {isTicketModel(model) ? (
+              <p
+                className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+                data-testid="integrations-studio-ticket-stage-honesty"
+              >
+                STORY-09-04: Tip model <code>helpdesk.ticket</code> stages are
+                translated to canonical {CANONICAL_TICKET_STAGES.join(", ")}.
+                Unmapped stages fail loudly (no raw passthrough). Description
+                scrubbed via AI-GR-001 before RAG-adjacent fields. Unlinked
+                badge list still BE-blocked. Not Production GO / RAG GO.
+              </p>
+            ) : null}
             <Input
               label="Model"
               data-testid="integrations-studio-map-model"
@@ -852,6 +876,16 @@ export function IntegrationsStudio() {
                 Tip schedule model <code>mail.message</code> pulls chatter notes
                 via OdooAdapter after STORY-09-03 (PII scrub before RAG; no note
                 list HTTP).
+              </p>
+            ) : null}
+            {isTicketModel(model) ? (
+              <p
+                className="text-xs text-[var(--text-muted)]"
+                data-testid="integrations-studio-schedule-ticket-hint"
+              >
+                Tip schedule model <code>helpdesk.ticket</code> pulls
+                SupportTicket rows via OdooAdapter after STORY-09-04 (strict
+                stages + description PII scrub; no ticket list HTTP).
               </p>
             ) : null}
             <Input

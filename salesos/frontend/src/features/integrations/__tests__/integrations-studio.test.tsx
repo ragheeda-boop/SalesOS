@@ -91,7 +91,7 @@ jest.mock("@salesos/ui", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
-describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..03", () => {
+describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
   it("renders conflict-policy step and Odoo honesty", () => {
     render(<IntegrationsStudio />);
     expect(screen.getByTestId("integrations-studio")).toBeInTheDocument();
@@ -232,6 +232,27 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..03", () => {
         ) as HTMLTextAreaElement
       ).value,
     ).toContain("x_studio_cr_number");
+  });
+
+  it("applies helpdesk.ticket preset and stage honesty", () => {
+    render(<IntegrationsStudio />);
+    fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
+    fireEvent.click(
+      screen.getByTestId("integrations-studio-model-preset-helpdesk-ticket"),
+    );
+    expect(
+      screen.getByTestId("integrations-studio-ticket-stage-honesty"),
+    ).toHaveTextContent(/translated/i);
+    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
+      "helpdesk.ticket",
+    );
+    expect(
+      (
+        screen.getByTestId(
+          "integrations-studio-map-json",
+        ) as HTMLTextAreaElement
+      ).value,
+    ).toContain("stage_id");
   });
 
   it("applies mail.message note preset and PII honesty", () => {
