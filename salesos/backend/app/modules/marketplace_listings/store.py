@@ -181,8 +181,7 @@ class MemMarketplaceListingStore:
                 "version": "1.0.0",
                 "status": "published",
                 "description": (
-                    "First-party GCC outbound sales playbook "
-                    "(certified catalog installable)."
+                    "First-party GCC outbound sales playbook " "(certified catalog installable)."
                 ),
                 "connector_key": "",
                 "tags": ["playbook", "gcc", "outbound", "first-party", "publish-pack"],

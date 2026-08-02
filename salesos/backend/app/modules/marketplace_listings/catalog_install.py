@@ -39,8 +39,7 @@ class CatalogInstallRecord:
             "connector_key": self.connector_key,
             "installed_at": self.installed_at,
             "honesty": (
-                "Catalog install receipt only; live ERP/CRM sync not claimed. "
-                "Not Production GO."
+                "Catalog install receipt only; live ERP/CRM sync not claimed. " "Not Production GO."
             ),
         }
 
