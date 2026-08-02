@@ -1,4 +1,4 @@
-"""STORY-11-09 — In-memory sequence definitions + enrollments (no Alembic / FORCE RLS)."""
+"""STORY-11-09 / 11-09b — In-memory sequences + multi-channel enrollments."""
 
 from __future__ import annotations
 
@@ -6,6 +6,10 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
+from app.modules.gtm.sequence_channels import (
+    CompliantChannelSender,
+    build_default_channel_senders,
+)
 from app.modules.gtm.sequencing import (
     SequenceDefinition,
     SequenceEnrollment,
@@ -27,6 +31,12 @@ class MemSequencingStore:
 
     _definitions: dict[str, SequenceDefinition] = field(default_factory=dict)
     _enrollments: dict[str, SequenceEnrollment] = field(default_factory=dict)
+    _senders: dict[str, CompliantChannelSender] = field(
+        default_factory=build_default_channel_senders
+    )
+
+    def bind_senders(self, senders: dict[str, CompliantChannelSender]) -> None:
+        self._senders = dict(senders)
 
     def create_definition(
         self,
@@ -43,6 +53,8 @@ class MemSequencingStore:
         if not nm:
             raise SequencingError("name required")
         parsed = normalize_steps(steps)
+        channels = {s.channel for s in parsed}
+        channel_label = next(iter(channels)) if len(channels) == 1 else "multi"
         rid = (definition_id or "").strip() or uuid.uuid4().hex[:12]
         if rid in self._definitions:
             raise SequencingError("sequence id already exists; use a new id")
@@ -52,7 +64,7 @@ class MemSequencingStore:
             tenant_id=tid,
             name=nm,
             steps=parsed,
-            channel="email",
+            channel=channel_label,
             schema_version=1,
             created_at=now,
             updated_at=now,
@@ -81,6 +93,7 @@ class MemSequencingStore:
         sequence_id: str,
         contact_email: str,
         enrollment_id: str | None = None,
+        contact_handles: dict[str, str] | None = None,
     ) -> SequenceEnrollment:
         definition = self.get_definition(sequence_id, tenant_id=tenant_id)
         if definition is None:
@@ -92,6 +105,7 @@ class MemSequencingStore:
             contact_email=contact_email,
             enrollment_id=enrollment_id,
             created_at=now,
+            contact_handles=contact_handles,
         )
         existing = self._enrollments.get(row.id)
         if existing and existing.tenant_id != str(tenant_id):
@@ -99,7 +113,7 @@ class MemSequencingStore:
         self._enrollments[row.id] = row
         return row
 
-    def advance(self, enrollment_id: str, *, tenant_id: str) -> SequenceEnrollment:
+    async def advance(self, enrollment_id: str, *, tenant_id: str) -> SequenceEnrollment:
         enrollment = self.get_enrollment(enrollment_id, tenant_id=tenant_id)
         if enrollment is None:
             raise KeyError("enrollment not found")
@@ -107,7 +121,12 @@ class MemSequencingStore:
         if definition is None:
             raise KeyError("sequence definition not found")
         now = datetime.now(UTC).isoformat()
-        updated = advance_enrollment(enrollment, definition, now_iso=now)
+        updated = await advance_enrollment(
+            enrollment,
+            definition,
+            now_iso=now,
+            senders=self._senders,
+        )
         self._enrollments[updated.id] = updated
         return updated
 

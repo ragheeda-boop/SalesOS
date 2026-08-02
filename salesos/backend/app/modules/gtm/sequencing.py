@@ -11,7 +11,7 @@ from typing import Any, Literal
 
 SequenceStatus = Literal["draft", "active", "paused", "completed", "cancelled"]
 StepRuntimeStatus = Literal["pending", "due", "sent", "skipped", "failed"]
-SUPPORTED_CHANNELS: tuple[str, ...] = ("email",)
+SUPPORTED_CHANNELS: tuple[str, ...] = ("email", "linkedin", "whatsapp")
 
 
 class SequencingError(ValueError):
@@ -130,6 +130,9 @@ class SequenceEnrollment:
     step_states: list[EnrollmentStepState] = field(default_factory=list)
     task_bindings: list[BoundTaskRef] = field(default_factory=list)
     activity_bindings: list[BoundActivityRef] = field(default_factory=list)
+    # Channel handles for LinkedIn URN / WhatsApp E.164 (partner API only).
+    contact_handles: dict[str, str] = field(default_factory=dict)
+    last_send: dict[str, Any] = field(default_factory=dict)
     schema_version: int = 1
     created_at: str = ""
     updated_at: str = ""
@@ -140,11 +143,13 @@ class SequenceEnrollment:
             "tenant_id": self.tenant_id,
             "sequence_id": self.sequence_id,
             "contact_email": self.contact_email,
+            "contact_handles": dict(self.contact_handles),
             "status": self.status,
             "current_step_index": self.current_step_index,
             "step_states": [s.as_dict() for s in self.step_states],
             "task_bindings": [t.as_dict() for t in self.task_bindings],
             "activity_bindings": [a.as_dict() for a in self.activity_bindings],
+            "last_send": dict(self.last_send),
             "schema_version": self.schema_version,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
@@ -160,8 +165,7 @@ def normalize_steps(raw_steps: list[dict[str, Any]] | None) -> list[SequenceStep
         channel = str(raw.get("channel") or "email").strip().lower() or "email"
         if channel not in SUPPORTED_CHANNELS:
             raise SequencingError(
-                f"unsupported channel {channel!r}; email-only this sprint "
-                "(LinkedIn/WhatsApp deferred)"
+                f"unsupported channel {channel!r}; supported: " f"{', '.join(SUPPORTED_CHANNELS)}"
             )
         raw_day = raw.get("day_offset")
         day = int(i if raw_day is None else raw_day)

@@ -7,7 +7,7 @@
 
 | Story | Owner | Priority | Risk | Acceptance Criteria |
 |---|---|---|---|---|
-| STORY-11-09 (Sequencing, LinkedIn + WhatsApp channels) | BE1 | P0 | Medium | LinkedIn via compliant partner API only — no ToS-risk automation |
+| STORY-11-09 (Sequencing, LinkedIn + WhatsApp channels) | BE1 | P0 | Medium | **LANDED BE (Stream A):** LinkedIn/WhatsApp via compliant partner sender ports on `/api/v1/gtm/sequences` (no ToS-risk automation). Crumb [`PHASE1_STORY_11_09B_SEQUENCING_MULTICHANNEL_CRUMB.md`](../PHASE1_STORY_11_09B_SEQUENCING_MULTICHANNEL_CRUMB.md). Live network sends not claimed. No new RLS. No Production GO. |
 | STORY-11-10 (second connector certification) | BE3 (new engineer, not OdooAdapter's author) | P0 | High (R-02) | Passes identical certification suite Odoo passed; syncs in production for a pilot tenant |
 | Partner Beta pilot onboarding (3-5 tenants) | Program Director, CS (contracted) | P0 | Medium | Pilots provisioned, billed in Stripe test mode |
 

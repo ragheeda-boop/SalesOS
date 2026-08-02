@@ -1,6 +1,6 @@
-"""STORY-11-09 — GTM Sequencing Engine HTTP (CAP-104, email channel).
+"""STORY-11-09 — GTM Sequencing Engine HTTP (CAP-104).
 
-SequenceDefinition + enrollment state machine bound to Task/Activity refs.
+Email + LinkedIn/WhatsApp via compliant partner senders; Task/Activity bindings.
 Not Production GO. DEC-085 untouched.
 """
 
@@ -40,6 +40,8 @@ class SequenceCreateBody(BaseModel):
 
 class EnrollBody(BaseModel):
     contact_email: str = Field(..., min_length=3, max_length=320)
+    linkedin: str = ""
+    whatsapp: str = ""
     id: str | None = None
 
 
@@ -60,11 +62,13 @@ class EnrollmentResponse(BaseModel):
     tenant_id: str
     sequence_id: str
     contact_email: str
+    contact_handles: dict[str, str] = Field(default_factory=dict)
     status: str
     current_step_index: int = 0
     step_states: list[dict[str, Any]]
     task_bindings: list[dict[str, Any]]
     activity_bindings: list[dict[str, Any]]
+    last_send: dict[str, Any] = Field(default_factory=dict)
     schema_version: int = 1
     created_at: str = ""
     updated_at: str = ""
@@ -75,12 +79,13 @@ class EnrollmentResponse(BaseModel):
 async def sequencing_meta() -> dict[str, Any]:
     return {
         "object": "SequenceDefinition",
-        "channel": "email",
-        "deferred_channels": ["linkedin", "whatsapp"],
+        "channels": ["email", "linkedin", "whatsapp"],
+        "linkedin_policy": "compliant partner API only — no ToS-risk automation",
         "binding": "Activity/Task-shaped refs (no parallel CRM model)",
         "honesty": (
-            "CI in-memory state machine; live SMTP send / LinkedIn / WhatsApp "
-            "not claimed this land."
+            "CI uses MemLinkedInPartnerSender / MemWhatsAppPartnerSender / "
+            "email recorded sender; live SMTP / LinkedIn / WhatsApp network "
+            "not claimed."
         ),
     }
 
@@ -140,11 +145,17 @@ async def enroll_contact(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> EnrollmentResponse:
     try:
+        handles = {
+            k: v
+            for k, v in {"linkedin": body.linkedin, "whatsapp": body.whatsapp}.items()
+            if v.strip()
+        }
         row = _STORE.enroll(
             tenant_id=str(tenant_id),
             sequence_id=sequence_id,
             contact_email=body.contact_email,
             enrollment_id=body.id,
+            contact_handles=handles or None,
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="sequence definition not found") from exc
@@ -180,7 +191,7 @@ async def advance_enrollment_http(
     tenant_id: str = Depends(get_current_tenant_id),
 ) -> EnrollmentResponse:
     try:
-        row = _STORE.advance(enrollment_id, tenant_id=str(tenant_id))
+        row = await _STORE.advance(enrollment_id, tenant_id=str(tenant_id))
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except SequencingError as exc:
