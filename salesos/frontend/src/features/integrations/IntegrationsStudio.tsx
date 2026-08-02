@@ -9,6 +9,7 @@ import {
   useCreateHubMapping,
   useDisconnectHubConnection,
   useHubConflictPolicy,
+  useHubConnection,
   useHubConnections,
   useHubSyncRuns,
   usePutHubConflictPolicy,
@@ -96,6 +97,8 @@ export function IntegrationsStudio() {
   const [baselineCsv, setBaselineCsv] = useState(
     "name, email, phone, cr_number",
   );
+  const [mappingVersion, setMappingVersion] = useState(1);
+  const [scheduleName, setScheduleName] = useState("");
   const [disconnectConfirmed, setDisconnectConfirmed] = useState(false);
   const [schedule, setSchedule] = useState("15m");
   const [scheduleJobType, setScheduleJobType] = useState<
@@ -115,6 +118,7 @@ export function IntegrationsStudio() {
   const [operationalCsv, setOperationalCsv] = useState("");
 
   const connectionsQuery = useHubConnections();
+  const connectionDetailQuery = useHubConnection(selectedId);
   const syncRunsQuery = useHubSyncRuns(selectedId);
   const conflictQuery = useHubConflictPolicy(
     step === "conflict" ? selectedId : null,
@@ -136,10 +140,15 @@ export function IntegrationsStudio() {
     const wantActive = connectionActiveFilter === "active";
     return connections.filter((c) => Boolean(c.is_active) === wantActive);
   }, [connections, connectionActiveFilter]);
-  const selected: HubConnection | undefined = useMemo(
-    () => connections.find((c) => c.id === selectedId),
-    [connections, selectedId],
-  );
+  const selected: HubConnection | undefined = useMemo(() => {
+    if (
+      connectionDetailQuery.data &&
+      connectionDetailQuery.data.id === selectedId
+    ) {
+      return connectionDetailQuery.data;
+    }
+    return connections.find((c) => c.id === selectedId);
+  }, [connections, selectedId, connectionDetailQuery.data]);
   const filteredSyncRuns = useMemo(() => {
     const rows = syncRunsQuery.data || [];
     return rows.filter((r) => {
@@ -184,6 +193,9 @@ export function IntegrationsStudio() {
     if (mapping.model && mapping.model !== model.trim()) return;
     setMappingJson(JSON.stringify(mapping.mappings ?? [], null, 2));
     setBaselineCsv(csvFromList(mapping.baseline_fields));
+    if (typeof mapping.version === "number") {
+      setMappingVersion(mapping.version);
+    }
   }, [activeMappingQuery.data, model]);
 
   useEffect(() => {
@@ -255,8 +267,9 @@ export function IntegrationsStudio() {
         conflict-policy (FE-S08-08) and active mapping GET (FE-S08-09) +
         connection detail / baseline_fields (FE-S08-10). `test_connection`
         dispatches Fake vs OdooAdapter by `connector_key` (STORY-09-01).
-        Unlinked cr_number badge list API not live. Do not paste real secrets
-        into credential_ref. Not Production GO.
+        Unlinked cr_number badge list API not live. STORY-09-04 SupportTicket /
+        helpdesk.ticket not on tip — do not invent. Do not paste real secrets
+        into credential_ref. Not Production GO / RAG GO.
       </p>
 
       <ol
@@ -369,6 +382,18 @@ export function IntegrationsStudio() {
                     {selected.connector_key}
                     {selected.is_active ? " · active" : " · inactive"}
                   </dd>
+                  <Button
+                    data-testid="integrations-studio-connection-refresh"
+                    disabled={connectionDetailQuery.isFetching}
+                    onClick={() => {
+                      void connectionDetailQuery.refetch();
+                      void connectionsQuery.refetch();
+                    }}
+                  >
+                    {connectionDetailQuery.isFetching
+                      ? "Refreshing…"
+                      : "Refresh connection"}
+                  </Button>
                 </div>
                 <div>
                   <dt className="text-[var(--text-muted)]">Credential ref</dt>
@@ -621,6 +646,16 @@ export function IntegrationsStudio() {
               value={baselineCsv}
               onChange={(e) => setBaselineCsv(e.target.value)}
             />
+            <Input
+              label="Mapping version (tip MappingCreate.version)"
+              data-testid="integrations-studio-map-version"
+              type="number"
+              value={String(mappingVersion)}
+              onChange={(e) => {
+                const n = Number.parseInt(e.target.value, 10);
+                setMappingVersion(Number.isFinite(n) && n > 0 ? n : 1);
+              }}
+            />
             <p className="text-xs text-[var(--text-muted)]">
               Tip `baseline_fields` on FieldMappingConfig — used for drift
               detection. Not Production GO.
@@ -653,7 +688,7 @@ export function IntegrationsStudio() {
                       model: model.trim(),
                       mappings,
                       baseline_fields: listFromCsv(baselineCsv),
-                      version: 1,
+                      version: mappingVersion,
                     },
                   });
                   toast({
@@ -831,6 +866,12 @@ export function IntegrationsStudio() {
               value={schedule}
               onChange={(e) => setSchedule(e.target.value)}
             />
+            <Input
+              label="Job name (optional tip ScheduleCreate.name)"
+              data-testid="integrations-studio-schedule-name"
+              value={scheduleName}
+              onChange={(e) => setScheduleName(e.target.value)}
+            />
             <label className="block text-xs text-[var(--text-muted)]">
               Job type (tip ScheduleCreate.job_type)
             </label>
@@ -864,6 +905,7 @@ export function IntegrationsStudio() {
                       model: model.trim(),
                       schedule: schedule.trim() || "15m",
                       job_type: scheduleJobType,
+                      name: scheduleName.trim() || null,
                     },
                   });
                   setLastSchedule(result);

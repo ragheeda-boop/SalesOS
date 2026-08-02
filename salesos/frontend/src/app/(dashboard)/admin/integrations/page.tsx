@@ -77,6 +77,11 @@ const FE_GATED = [
     status: "FE landed — job_type + tip defaults",
   },
   {
+    id: "FE-S08-14",
+    title: "Mapping version + schedule name + connection GET",
+    status: "FE landed — version/name/refresh/cmd",
+  },
+  {
     id: "FE-S09-01",
     title: "Partner model presets + cr_number join honesty",
     status: "FE landed — res.partner presets",

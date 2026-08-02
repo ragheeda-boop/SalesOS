@@ -1,6 +1,7 @@
 import {
   createHubConnection,
   getActiveHubMapping,
+  getHubConnection,
   getHubConflictPolicy,
   listHubConnections,
   putHubConflictPolicy,
@@ -126,5 +127,26 @@ describe("integrationHub API — STORY-08-07 / FE-S08-08/09", () => {
       }),
     );
     expect(row?.model).toBe("company");
+  });
+
+  it("getHubConnection fetches one connection", async () => {
+    mocked.get.mockResolvedValueOnce({
+      data: {
+        id: "c2",
+        tenant_id: "t1",
+        connector_key: "fake",
+        name: "Demo",
+        credential_ref: "vault:x",
+        connection_config: {},
+        cursor_state: {},
+        is_active: true,
+      },
+    });
+    const row = await getHubConnection("tenant-1", "c2");
+    expect(mocked.get).toHaveBeenCalledWith(
+      "/api/v1/integrations/connections/c2",
+      expect.any(Object),
+    );
+    expect(row.id).toBe("c2");
   });
 });

@@ -9,6 +9,11 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { IntegrationsStudio } from "../IntegrationsStudio";
 
 jest.mock("@/lib/hooks/integrationHubQueries", () => ({
+  useHubConnection: () => ({
+    data: undefined,
+    isFetching: false,
+    refetch: jest.fn(),
+  }),
   useHubConnections: () => ({
     data: [
       {
@@ -86,7 +91,7 @@ jest.mock("@salesos/ui", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
-describe("IntegrationsStudio — FE-S08-08..13 / FE-S09-01..03", () => {
+describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..03", () => {
   it("renders conflict-policy step and Odoo honesty", () => {
     render(<IntegrationsStudio />);
     expect(screen.getByTestId("integrations-studio")).toBeInTheDocument();
@@ -161,6 +166,18 @@ describe("IntegrationsStudio — FE-S08-08..13 / FE-S09-01..03", () => {
     expect(
       screen.getByTestId("integrations-studio-disconnect-submit"),
     ).not.toBeDisabled();
+  });
+
+  it("exposes mapping version and schedule name (FE-S08-14)", () => {
+    render(<IntegrationsStudio />);
+    fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
+    expect(
+      screen.getByTestId("integrations-studio-map-version"),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("integrations-studio-step-schedule"));
+    expect(
+      screen.getByTestId("integrations-studio-schedule-name"),
+    ).toBeInTheDocument();
   });
 
   it("exposes schedule job_type and conflict tip defaults (FE-S08-13)", () => {

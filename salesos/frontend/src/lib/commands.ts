@@ -41,6 +41,30 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.integrations.map",
+    label: "Integrations · Map",
+    description: "Studio Map step (tip ?step=map)",
+    category: "تنقل",
+    handler: () => router.push("/integrations?step=map"),
+  });
+
+  registerCommand({
+    id: "go.integrations.monitor",
+    label: "Integrations · Monitor",
+    description: "Studio Monitor step (tip ?step=monitor)",
+    category: "تنقل",
+    handler: () => router.push("/integrations?step=monitor"),
+  });
+
+  registerCommand({
+    id: "go.integrations.schedule",
+    label: "Integrations · Schedule",
+    description: "Studio Schedule step (tip ?step=schedule)",
+    category: "تنقل",
+    handler: () => router.push("/integrations?step=schedule"),
+  });
+
+  registerCommand({
     id: "go.settings",
     label: "الإعدادات",
     description: "الانتقال إلى الإعدادات",

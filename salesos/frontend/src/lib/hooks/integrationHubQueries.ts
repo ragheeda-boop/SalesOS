@@ -6,6 +6,7 @@ import {
   createHubMapping,
   disconnectHubConnection,
   getActiveHubMapping,
+  getHubConnection,
   getHubConflictPolicy,
   listHubConnections,
   listHubSyncRuns,
@@ -25,6 +26,16 @@ export function useHubConnections() {
   return useQuery({
     queryKey: integrationHubKeys.connections(tenantId),
     queryFn: () => listHubConnections(tenantId),
+    staleTime: 15_000,
+  });
+}
+
+export function useHubConnection(connectionId: string | null) {
+  const tenantId = getTenantId();
+  return useQuery({
+    queryKey: integrationHubKeys.connection(tenantId, connectionId || ""),
+    queryFn: () => getHubConnection(tenantId, connectionId!),
+    enabled: Boolean(connectionId),
     staleTime: 15_000,
   });
 }

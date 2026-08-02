@@ -91,6 +91,8 @@ export const integrationHubKeys = {
   all: ["integration-hub"] as const,
   connections: (tenantId: string) =>
     [...integrationHubKeys.all, "connections", tenantId] as const,
+  connection: (tenantId: string, connectionId: string) =>
+    [...integrationHubKeys.all, "connection", tenantId, connectionId] as const,
   syncRuns: (tenantId: string, connectionId: string) =>
     [...integrationHubKeys.all, "sync-runs", tenantId, connectionId] as const,
   activeMapping: (tenantId: string, connectionId: string, model: string) =>

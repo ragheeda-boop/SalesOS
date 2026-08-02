@@ -314,6 +314,14 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(
       page.getByTestId("integrations-studio-schedule-job-type"),
     ).toBeVisible();
+    await expect(
+      page.getByTestId("integrations-studio-schedule-name"),
+    ).toBeVisible();
+    await page.goto("/integrations?step=map");
+    await page.waitForLoadState("networkidle");
+    await expect(
+      page.getByTestId("integrations-studio-map-version"),
+    ).toBeVisible();
     await page.goto("/integrations?step=map");
     await page.waitForLoadState("networkidle");
     await expect(
