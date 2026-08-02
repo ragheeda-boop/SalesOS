@@ -2,7 +2,19 @@ import uuid
 from datetime import date
 from typing import Any
 
-from sqlalchemy import Boolean, Computed, Date, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import (
+    Boolean,
+    Computed,
+    Date,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    column,
+    desc,
+)
 from sqlalchemy.dialects.postgresql import JSONB, TSVECTOR, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import UserDefinedType
@@ -156,7 +168,8 @@ class Company(BaseModel):
         Index("idx_companies_search_vector", "search_vector", postgresql_using="gin"),
         # Live unique (0001) — register to silence remove_index (DEC-130g)
         Index("ix_companies_tenant_cr", "tenant_id", "cr_number", unique=True),
-        Index("ix_companies_confidence_score", "confidence_score"),
+        # Migration 0030 — B-tree DESC for ORDER BY confidence_score DESC.
+        Index("ix_companies_confidence_score", desc(column("confidence_score"))),
         Index("idx_companies_tenant_search", "tenant_id"),
         # Live GIN trigram indexes (0024/0029) — metadata register only (no DROP)
         Index(

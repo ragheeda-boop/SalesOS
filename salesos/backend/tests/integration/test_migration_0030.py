@@ -20,8 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 pytestmark = pytest.mark.asyncio
 
-# Serialize against parallel xdist workers that may recreate this index as ASC
-# (model Index("ix_companies_confidence_score", "confidence_score") without DESC).
+# Serialize against parallel xdist workers that may recreate this index as ASC.
 _INDEX_LOCK_KEY = 90300030
 
 

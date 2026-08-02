@@ -52,18 +52,39 @@ async def ensure_trigram_indexes(db_session: AsyncSession):
     await db_session.commit()
 
 
+# Serialize against xdist workers that may recreate this index as ASC
+# (historical 0030 create_index without DESC / ORM Index without DESC).
+_CONFIDENCE_INDEX_LOCK_KEY = 90300030
+
+
+async def _recreate_confidence_desc_index(db_session: AsyncSession) -> None:
+    """Force DESC index — CREATE IF NOT EXISTS is a no-op when ASC already exists."""
+    await db_session.rollback()
+    await db_session.execute(text(f"SELECT pg_advisory_lock({_CONFIDENCE_INDEX_LOCK_KEY})"))
+    try:
+        await db_session.execute(text("DROP INDEX IF EXISTS ix_companies_confidence_score"))
+        await db_session.execute(
+            text(
+                "CREATE INDEX ix_companies_confidence_score "
+                "ON companies USING btree (confidence_score DESC)"
+            )
+        )
+        await db_session.commit()
+    finally:
+        await db_session.execute(text(f"SELECT pg_advisory_unlock({_CONFIDENCE_INDEX_LOCK_KEY})"))
+
+
 @pytest.fixture
 async def ensure_confidence_index(db_session: AsyncSession):
-    await db_session.execute(
-        text(
-            "CREATE INDEX IF NOT EXISTS ix_companies_confidence_score "
-            "ON companies (confidence_score DESC)"
-        )
-    )
-    await db_session.commit()
+    await _recreate_confidence_desc_index(db_session)
     yield
-    await db_session.execute(text("DROP INDEX IF EXISTS ix_companies_confidence_score"))
-    await db_session.commit()
+    await db_session.rollback()
+    await db_session.execute(text(f"SELECT pg_advisory_lock({_CONFIDENCE_INDEX_LOCK_KEY})"))
+    try:
+        await db_session.execute(text("DROP INDEX IF EXISTS ix_companies_confidence_score"))
+        await db_session.commit()
+    finally:
+        await db_session.execute(text(f"SELECT pg_advisory_unlock({_CONFIDENCE_INDEX_LOCK_KEY})"))
 
 
 class TestMigration0029:
