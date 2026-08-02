@@ -44,8 +44,8 @@
 | FE-S11-02b | Market Sizing detail GET + nested bands |
 | FE-S11-03 | Lead Discovery gov-first UI (tip 11-03) |
 | FE-S11-03b | GTM hub + criteria handoff / deep-links |
+| FE-S11-01 | ICP Profiles UI (tip 11-01) |
 | FE-S10-05 | Territory config — **BLOCKED** (no tip `/studio/territories` BE) |
-| FE-S11-01 | ICP Engine — **READY** tip BE at `d5e40a8` (`/api/v1/gtm/icp-profiles`); FE UI not yet landed |
 
 ## Blocked (do not invent)
 

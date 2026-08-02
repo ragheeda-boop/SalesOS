@@ -26,6 +26,7 @@ import {
   Target,
   Radar,
   Crosshair,
+  UserRoundSearch,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { TenantBrandMark } from "@/features/tenant-studio/TenantBrandMark";
@@ -81,6 +82,11 @@ export function MobileNav() {
       href: "/gtm",
       key: "nav.gtm_hub",
       icon: Crosshair,
+    },
+    {
+      href: "/gtm/icp",
+      key: "nav.icp_profiles",
+      icon: UserRoundSearch,
     },
     {
       href: "/gtm/market-sizing",

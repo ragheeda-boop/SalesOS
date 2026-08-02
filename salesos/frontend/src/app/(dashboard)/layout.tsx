@@ -40,6 +40,7 @@ import {
   Target,
   Radar,
   Crosshair,
+  UserRoundSearch,
 } from "lucide-react";
 import {
   LazyCommandBar,
@@ -93,6 +94,7 @@ const NAV_KEYS = [
   { href: "/studio/notifications", key: "nav.notification_rules", icon: Bell },
   { href: "/studio/branding", key: "nav.branding_studio", icon: Palette },
   { href: "/gtm", key: "nav.gtm_hub", icon: Crosshair },
+  { href: "/gtm/icp", key: "nav.icp_profiles", icon: UserRoundSearch },
   { href: "/gtm/market-sizing", key: "nav.market_sizing", icon: Target },
   { href: "/gtm/lead-discovery", key: "nav.lead_discovery", icon: Radar },
   { href: "/settings", key: "nav.settings", icon: Settings },

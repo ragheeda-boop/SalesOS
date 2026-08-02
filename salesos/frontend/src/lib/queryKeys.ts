@@ -157,6 +157,12 @@ export const gtmKeys = {
     [...gtmKeys.all, "lead-discovery", tenantId] as const,
   leadDiscoveryDetail: (tenantId: string, id: string) =>
     [...gtmKeys.all, "lead-discovery", tenantId, id] as const,
+  icpMeta: (tenantId: string) =>
+    [...gtmKeys.all, "icp-meta", tenantId] as const,
+  icpList: (tenantId: string) =>
+    [...gtmKeys.all, "icp-profiles", tenantId] as const,
+  icpDetail: (tenantId: string, id: string) =>
+    [...gtmKeys.all, "icp-profiles", tenantId, id] as const,
 };
 
 export const opportunityKeys = {

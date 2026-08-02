@@ -21,12 +21,27 @@ export function GtmHub() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="gtm-hub-honesty"
       >
-        Tip GTM pages only: market-sizing + lead-discovery. Live 141221 Postgres
-        / live ERP / ICP Engine / territories Studio not claimed. Not Production
-        GO / RAG GO.
+        Tip GTM pages only: ICP profiles, market-sizing, lead-discovery. Live
+        141221 Postgres / live ERP / territories Studio not claimed. Not
+        Production GO / RAG GO.
       </p>
 
       <ul className="space-y-3">
+        <li
+          className="rounded border border-[var(--border-default)] p-4"
+          data-testid="gtm-hub-icp"
+        >
+          <Link
+            href="/gtm/icp"
+            className="text-base font-semibold text-[var(--text-primary)] underline"
+          >
+            ICP Profiles
+          </Link>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
+            Tip versioned ICPProfile + deterministic score — no ML backtest /
+            live 141221 claim.
+          </p>
+        </li>
         <li
           className="rounded border border-[var(--border-default)] p-4"
           data-testid="gtm-hub-market-sizing"

@@ -148,9 +148,17 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   registerCommand({
     id: "go.gtm",
     label: "GTM · Intelligence Hub",
-    description: "GTM tip pages hub (market sizing + lead discovery)",
+    description: "GTM tip pages hub (ICP + market sizing + lead discovery)",
     category: "تنقل",
     handler: () => router.push("/gtm"),
+  });
+
+  registerCommand({
+    id: "go.gtm.icp",
+    label: "GTM · ICP Profiles",
+    description: "Versioned ICP profiles (tip STORY-11-01)",
+    category: "تنقل",
+    handler: () => router.push("/gtm/icp"),
   });
 
   registerCommand({

@@ -13,7 +13,7 @@ describe("registerBuiltinCommands", () => {
   it("registers all builtin commands", () => {
     const mockRouter = { push: jest.fn() } as any;
     registerBuiltinCommands(mockRouter);
-    expect(registerCommand).toHaveBeenCalledTimes(26);
+    expect(registerCommand).toHaveBeenCalledTimes(27);
   });
 
   it("registers navigation commands with correct router pushes", () => {
@@ -72,6 +72,13 @@ describe("registerBuiltinCommands", () => {
     expect(gtmHub).toBeTruthy();
     gtmHub[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/gtm");
+
+    const gtmIcp = (registerCommand as jest.Mock).mock.calls.find(
+      (c: any) => c[0].id === "go.gtm.icp",
+    );
+    expect(gtmIcp).toBeTruthy();
+    gtmIcp[0].handler();
+    expect(mockRouter.push).toHaveBeenCalledWith("/gtm/icp");
 
     const gtmMarketSizing = (registerCommand as jest.Mock).mock.calls.find(
       (c: any) => c[0].id === "go.gtm.market-sizing",
