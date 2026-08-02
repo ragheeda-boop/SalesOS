@@ -8,6 +8,7 @@
 |---|---|---|---|---|
 | STORY-14-01 (load test, 50 tenants) | DevOps/SRE | P0 | High | SLOs held or documented remediation plan |
 | STORY-14-02 (chaos test) | DevOps/SRE, BE-Lead | P0 | High | **LANDED BE (Stream A):** CI fault-injection harness — connector/AI/DB drills graceful + practice postmortem each via `/api/v1/chaos/*`. Crumb [`PHASE1_STORY_14_02_CHAOS_RESILIENCE_CRUMB.md`](../PHASE1_STORY_14_02_CHAOS_RESILIENCE_CRUMB.md). No new RLS. Live kill / Production GO not claimed. |
+| STORY-14-03 (DR drill) | DevOps/SRE, BE-Lead | P0 | High | **LANDED BE (Stream A):** CI/non-prod backup/restore + PITR harness — RTO≤4h / RPO≤1h measured + practice postmortem via `/api/v1/dr/*`. Crumb [`PHASE1_STORY_14_03_DR_DRILL_CRUMB.md`](../PHASE1_STORY_14_03_DR_DRILL_CRUMB.md). No new RLS. Live prod restore / Production GO not claimed. |
 
 **Expected Demo:** Live chaos-test run: kill the primary AI provider connection mid-demo, show failover engaging within SLO.
 

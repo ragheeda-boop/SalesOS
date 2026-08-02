@@ -6,7 +6,7 @@
 
 | Story | Owner | Priority | Risk | Acceptance Criteria |
 |---|---|---|---|---|
-| STORY-14-03 (DR drill) | DevOps/SRE | P0 | High | RTO/RPO measured against target |
+| STORY-14-03 (DR drill) | DevOps/SRE, BE-Lead | P0 | High | **LANDED BE (Stream A):** CI/non-prod backup/restore + PITR — RTO≤4h / RPO≤1h measured + practice postmortem via `/api/v1/dr/*`. Crumb [`PHASE1_STORY_14_03_DR_DRILL_CRUMB.md`](../PHASE1_STORY_14_03_DR_DRILL_CRUMB.md). No new RLS. Live prod restore / Production GO not claimed. |
 | STORY-14-04 (penetration test) | Security (+ external firm) | P0 | Critical | Zero unresolved criticals |
 | STORY-14-06 (AI provider failover) | AI-Lead | P0 | Medium | Failover engages within defined SLO |
 

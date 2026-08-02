@@ -191,6 +191,16 @@ def register_routers(app: FastAPI) -> None:
         dependencies=_auth,
     )
 
+    # EPIC-14 / STORY-14-03 — DR drill harness (backup/restore, RTO/RPO).
+    from app.modules.dr_drill.router import router as dr_drill_router
+
+    app.include_router(
+        dr_drill_router,
+        prefix="/api/v1",
+        tags=["DR Drill"],
+        dependencies=_auth,
+    )
+
     app.include_router(sso_router, prefix="/api/v1", tags=["SSO"])
     # Mount without router-level auth so Google OAuth /callback can complete
     # without a Bearer header. Protected routes declare Depends(verify_token).
