@@ -123,6 +123,8 @@ export const tenantStudioKeys = {
   all: ["tenant-studio"] as const,
   customFields: (tenantId: string, objectKey: string) =>
     [...tenantStudioKeys.all, "custom-fields", tenantId, objectKey] as const,
+  formSchema: (tenantId: string, objectKey: string) =>
+    [...tenantStudioKeys.all, "form-schema", tenantId, objectKey] as const,
 };
 
 export const opportunityKeys = {

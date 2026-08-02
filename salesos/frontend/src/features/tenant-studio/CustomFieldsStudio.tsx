@@ -15,6 +15,7 @@ import {
   CUSTOM_FIELDS_HONESTY,
   CUSTOM_FIELDS_NON_GOALS,
 } from "@/features/tenant-studio/customFieldsHonesty";
+import { CustomFieldsAutoRender } from "@/features/tenant-studio/CustomFieldsAutoRender";
 
 function getApiError(err: unknown): string {
   const detail = (err as { response?: { data?: { detail?: unknown } } })
@@ -25,8 +26,8 @@ function getApiError(err: unknown): string {
 }
 
 /**
- * FE-S10-01 — Tenant Studio custom field definitions against tip STORY-10-01 HTTP.
- * Definition-only. Not Production GO / RAG GO. TenantList untouched.
+ * FE-S10-01/02 — Tenant Studio custom field definitions + auto-render preview.
+ * Tip STORY-10-01/10-02 HTTP. Not Production GO / RAG GO. TenantList untouched.
  */
 export function CustomFieldsStudio() {
   const { toast } = useToast();
@@ -223,6 +224,13 @@ export function CustomFieldsStudio() {
           {createMutation.isPending ? "Defining…" : "Define custom field"}
         </Button>
       </form>
+
+      <div data-testid="custom-fields-auto-preview">
+        <h2 className="mb-2 text-sm font-semibold text-[var(--text-primary)]">
+          Auto-render preview (tip form-schema)
+        </h2>
+        <CustomFieldsAutoRender objectKey={objectKey} />
+      </div>
     </div>
   );
 }

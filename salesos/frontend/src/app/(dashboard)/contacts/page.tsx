@@ -38,6 +38,7 @@ import type { Contact, Company } from "@/lib/api";
 import type { AxiosError } from "axios";
 import { ErrorFallback } from "@/components/foundation/error-boundary";
 import { useTranslation } from "@/lib/i18n";
+import { CustomFieldsAutoRender } from "@/features/tenant-studio/CustomFieldsAutoRender";
 
 export default function ContactsPage() {
   const { t } = useTranslation();
@@ -218,6 +219,9 @@ export default function ContactsPage() {
 
   return (
     <div className="mx-auto max-w-7xl">
+      <div className="mb-6">
+        <CustomFieldsAutoRender objectKey="contact" />
+      </div>
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-[var(--text-primary)]">

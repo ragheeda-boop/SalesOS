@@ -1,6 +1,6 @@
-/** Tip STORY-10-01 Tenant Studio custom field definition types.
- * Definition HTTP only — no value persistence / auto-render (STORY-10-02).
- * In-memory BE store on tip. Not Production GO / RAG GO.
+/** Tip STORY-10-01/10-02 Tenant Studio custom field types.
+ * Definitions + form-schema / values. In-memory BE — no Postgres claim.
+ * Not Production GO / RAG GO.
  */
 
 export type StudioObjectKey = "company" | "contact" | "opportunity";
@@ -46,4 +46,48 @@ export interface CustomObjectSchema {
   object_key: string;
   schema_version: number;
   fields: CustomFieldDefinition[];
+}
+
+/** Tip STORY-10-02 Form Engine auto-render field descriptor. */
+export interface AutoRenderFormField {
+  key: string;
+  type: string;
+  label: string;
+  label_ar?: string | null;
+  placeholder?: string | null;
+  required?: boolean;
+  default?: unknown;
+  enum?: { label: string; value: string }[] | null;
+  order?: number;
+  width?: string;
+  section?: string | null;
+  visible?: boolean;
+  disabled?: boolean;
+}
+
+/** Tip GET .../form-schema payload. */
+export interface CustomFieldsFormSchema {
+  id: string;
+  title: string;
+  description?: string | null;
+  fields: AutoRenderFormField[];
+  sections?: { id: string; label: string; fields: string[] }[];
+  object_key: string;
+  tenant_id: string;
+  schema_version: number;
+  values: Record<string, unknown>;
+  bag_key: string;
+  renderer: string;
+}
+
+export interface CustomFieldValuesRequest {
+  values: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+}
+
+export interface CustomFieldValuesResponse {
+  object_key: string;
+  bag_key: string;
+  values: Record<string, unknown>;
+  metadata: Record<string, unknown>;
 }

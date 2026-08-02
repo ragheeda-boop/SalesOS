@@ -1,4 +1,9 @@
-import { createCustomField, listCustomFieldSchema } from "../tenantStudio";
+import {
+  createCustomField,
+  getCustomFieldsFormSchema,
+  listCustomFieldSchema,
+  projectCustomFieldValues,
+} from "../tenantStudio";
 
 jest.mock("../client", () => ({
   __esModule: true,
@@ -15,7 +20,7 @@ const mocked = api as unknown as {
   post: jest.Mock;
 };
 
-describe("tenantStudio API — FE-S10-01", () => {
+describe("tenantStudio API — FE-S10-01/02", () => {
   beforeEach(() => {
     mocked.get.mockReset();
     mocked.post.mockReset();
@@ -70,5 +75,52 @@ describe("tenantStudio API — FE-S10-01", () => {
       }),
     );
     expect(row.field_key).toBe("nickname");
+  });
+
+  it("GETs tip form-schema for auto-render", async () => {
+    mocked.get.mockResolvedValue({
+      data: {
+        id: "custom-fields:company:v0",
+        title: "Custom fields (company)",
+        fields: [],
+        object_key: "company",
+        tenant_id: "t1",
+        schema_version: 0,
+        values: {},
+        bag_key: "custom_fields",
+        renderer: "custom_fields_auto",
+      },
+    });
+    const form = await getCustomFieldsFormSchema("tenant-1", "company");
+    expect(mocked.get).toHaveBeenCalledWith(
+      "/api/v1/studio/custom-fields/company/form-schema",
+      expect.objectContaining({
+        headers: { "X-Tenant-Id": "tenant-1" },
+      }),
+    );
+    expect(form.renderer).toBe("custom_fields_auto");
+  });
+
+  it("POSTs tip values projection", async () => {
+    mocked.post.mockResolvedValue({
+      data: {
+        object_key: "company",
+        bag_key: "custom_fields",
+        values: { segment_tier: "A" },
+        metadata: { custom_fields: { segment_tier: "A" } },
+      },
+    });
+    const row = await projectCustomFieldValues("tenant-1", "company", {
+      values: { segment_tier: "A" },
+      metadata: {},
+    });
+    expect(mocked.post).toHaveBeenCalledWith(
+      "/api/v1/studio/custom-fields/company/values",
+      expect.objectContaining({ values: { segment_tier: "A" } }),
+      expect.objectContaining({
+        headers: { "X-Tenant-Id": "tenant-1" },
+      }),
+    );
+    expect(row.metadata.custom_fields).toEqual({ segment_tier: "A" });
   });
 });

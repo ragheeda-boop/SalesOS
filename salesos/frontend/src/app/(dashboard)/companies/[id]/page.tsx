@@ -32,6 +32,7 @@ import {
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ErrorFallback } from "@/components/foundation/error-boundary";
 import { useTranslation } from "@/lib/i18n";
+import { CustomFieldsAutoRender } from "@/features/tenant-studio/CustomFieldsAutoRender";
 
 export default function CompanyPage() {
   const params = useParams();
@@ -237,6 +238,10 @@ export default function CompanyPage() {
           <CompanyWorkspace companyId={id} />
         </DecisionProvider>
       </ErrorBoundary>
+
+      <div className="mt-6">
+        <CustomFieldsAutoRender objectKey="company" />
+      </div>
 
       <Modal open={editOpen} onOpenChange={setEditOpen}>
         <ModalContent>

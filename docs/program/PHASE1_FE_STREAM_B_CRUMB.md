@@ -42,6 +42,7 @@
 | FE-S09-09 SyncRun cursor Monitor columns | **LANDED** — crumb [`PHASE1_FE_S09_09_SYNCRUN_CURSOR_MONITOR_CRUMB.md`](PHASE1_FE_S09_09_SYNCRUN_CURSOR_MONITOR_CRUMB.md)
 | FE-S09-10 Hub honesty sync | **LANDED** — folded with FE-S10-01
 | FE-S10-01 Custom field definition Studio | **LANDED** — crumb [`PHASE1_FE_S10_01_CUSTOM_FIELDS_STUDIO_CRUMB.md`](PHASE1_FE_S10_01_CUSTOM_FIELDS_STUDIO_CRUMB.md)
+| FE-S10-02 Custom field auto-render | **LANDED** — crumb [`PHASE1_FE_S10_02_CUSTOM_FIELDS_AUTO_RENDER_CRUMB.md`](PHASE1_FE_S10_02_CUSTOM_FIELDS_AUTO_RENDER_CRUMB.md)
 | FE-S09-10 Hub honesty sync (unlinked + cursors tip) | **LANDED** — crumb [`PHASE1_FE_S09_10_HUB_HONESTY_SYNC_CRUMB.md`](PHASE1_FE_S09_10_HUB_HONESTY_SYNC_CRUMB.md)
 
 ## Honesty

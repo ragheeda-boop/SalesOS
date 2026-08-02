@@ -2,7 +2,7 @@
 
 > **Date:** 2026-08-02  
 > **Owner:** Frontend Lead  
-> **Honesty:** Not Production GO. No invented Sprint-12 custom objects / owner mint.  
+> **Honesty:** Not Production GO. No invented Postgres persistence / owner mint.  
 > `TenantList.tsx` untouched.
 
 ## Landed track
@@ -32,10 +32,10 @@
 | FE-S09-09 | SyncRun cursor Monitor columns (tip 09-09) |
 | FE-S09-10 | Hub honesty sync (unlinked tip) |
 | FE-S10-01 | Custom field definition Studio (tip 10-01) |
-| FE-S09-10 | Hub honesty sync (unlinked + cursors tip) |
+| FE-S10-02 | Custom field auto-render form-schema (tip 10-02) |
+| FE-S10-03 | Workflow Builder Studio (tip 10-03) — next READY |
 
 ## Blocked (do not invent)
 
-- STORY-10-02 auto-render / value persistence until BE on tip
-- Postgres custom-field persistence beyond tip in-memory store
-- STORY-10-02 auto-render (and Postgres value persistence) until BE on tip
+- Postgres custom-field / workflow persistence beyond tip in-memory stores
+- Workflow for_each / loop canvas nodes (deferred)
