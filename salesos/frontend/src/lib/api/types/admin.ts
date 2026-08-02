@@ -90,10 +90,7 @@ export interface TaskResponse {
  * (`TenantListItem` / `TenantDetail` @ tip `64b44e9`).
  */
 export type AdminProvisioningStatus =
-  | "pending"
-  | "active"
-  | "suspended"
-  | "failed";
+  "pending" | "active" | "suspended" | "failed";
 
 export const ADMIN_PROVISIONING_STATUS_VALUES: readonly AdminProvisioningStatus[] =
   ["pending", "active", "suspended", "failed"] as const;
@@ -134,6 +131,17 @@ export interface AdminTenantUpdate {
   provisioning_status?: AdminProvisioningStatus | string | null;
   trial_ends_at?: string | null;
   settings?: Record<string, unknown>;
+}
+
+/** POST /api/v1/admin/tenants/{id}/suspend — mirrors TenantSuspendRequest. */
+export interface AdminTenantSuspendRequest {
+  reason?: string;
+}
+
+export interface AdminTenantSuspendResponse {
+  message: string;
+  tenant_id: string;
+  reason: string;
 }
 
 export interface AdminTenantListItem extends AdminTenantOwnerPlatformFields {
