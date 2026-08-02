@@ -6,6 +6,8 @@ Verifies:
   3. ORDER BY confidence_score DESC uses index scan
   4. Filtering by confidence_score range works
   5. Composite query (filter + sort) uses the index
+
+Companies schema uses name_ar + cr_number (not ``name``).
 """
 
 from __future__ import annotations
@@ -50,18 +52,47 @@ async def ensure_index(db_session: AsyncSession):
         await db_session.execute(text(f"SELECT pg_advisory_unlock({_INDEX_LOCK_KEY})"))
 
 
+async def _insert_company(
+    db_session: AsyncSession,
+    *,
+    tenant_id: uuid.UUID,
+    name_ar: str,
+    score: float,
+    cr_suffix: str | None = None,
+) -> None:
+    cr = cr_suffix or uuid.uuid4().hex[:10].upper()
+    await db_session.execute(
+        text(
+            "INSERT INTO companies (id, tenant_id, name_ar, cr_number, confidence_score) "
+            "VALUES (:id, :tid, :name_ar, :cr, :score)"
+        ),
+        {
+            "id": uuid.uuid4(),
+            "tid": tenant_id,
+            "name_ar": name_ar,
+            "cr": f"CR-CS-{cr}",
+            "score": score,
+        },
+    )
+
+
 class TestConfidenceScoreIndex:
     async def test_index_exists(self, db_session: AsyncSession, ensure_index):
         await _recreate_desc_index(db_session)
         r = await db_session.execute(
-            text("SELECT indexname FROM pg_indexes WHERE indexname='ix_companies_confidence_score'")
+            text(
+                "SELECT indexname FROM pg_indexes "
+                "WHERE indexname='ix_companies_confidence_score'"
+            )
         )
         assert r.fetchone() is not None, "confidence_score index does not exist"
 
     async def test_index_is_btree_desc(self, db_session: AsyncSession, ensure_index):
         await _recreate_desc_index(db_session)
         r = await db_session.execute(
-            text("SELECT indexdef FROM pg_indexes WHERE indexname='ix_companies_confidence_score'")
+            text(
+                "SELECT indexdef FROM pg_indexes " "WHERE indexname='ix_companies_confidence_score'"
+            )
         )
         indexdef = r.scalar()
         assert indexdef is not None
@@ -70,19 +101,13 @@ class TestConfidenceScoreIndex:
 
     async def test_order_by_desc_uses_index(self, db_session: AsyncSession, ensure_index):
         tenant_id = uuid.uuid4()
-        await db_session.execute(
-            text(
-                "INSERT INTO companies (id, tenant_id, name, confidence_score) "
-                "VALUES (:id, :tid, :name, :score)"
-            ),
-            {"id": uuid.uuid4(), "tid": tenant_id, "name": "IdxTest Co", "score": 0.95},
-        )
+        await _insert_company(db_session, tenant_id=tenant_id, name_ar="IdxTest Co", score=0.95)
         await db_session.commit()
 
         r = await db_session.execute(
             text(
                 "EXPLAIN (FORMAT TEXT) "
-                "SELECT name FROM companies "
+                "SELECT name_ar FROM companies "
                 "WHERE tenant_id = :tid "
                 "ORDER BY confidence_score DESC LIMIT 10"
             ),
@@ -102,17 +127,12 @@ class TestConfidenceScoreIndex:
     async def test_filter_by_score_range(self, db_session: AsyncSession, ensure_index):
         tenant_id = uuid.uuid4()
         for score in [0.3, 0.6, 0.9]:
-            await db_session.execute(
-                text(
-                    "INSERT INTO companies (id, tenant_id, name, confidence_score) "
-                    "VALUES (:id, :tid, :name, :score)"
-                ),
-                {
-                    "id": uuid.uuid4(),
-                    "tid": tenant_id,
-                    "name": f"Co-{score}",
-                    "score": score,
-                },
+            await _insert_company(
+                db_session,
+                tenant_id=tenant_id,
+                name_ar=f"Co-{score}",
+                score=score,
+                cr_suffix=f"{score}",
             )
         await db_session.commit()
 
@@ -134,18 +154,18 @@ class TestConfidenceScoreIndex:
     async def test_composite_filter_and_sort(self, db_session: AsyncSession, ensure_index):
         tenant_id = uuid.uuid4()
         for score, name in [(0.8, "Alpha"), (0.95, "Beta"), (0.4, "Gamma")]:
-            await db_session.execute(
-                text(
-                    "INSERT INTO companies (id, tenant_id, name, confidence_score) "
-                    "VALUES (:id, :tid, :name, :score)"
-                ),
-                {"id": uuid.uuid4(), "tid": tenant_id, "name": name, "score": score},
+            await _insert_company(
+                db_session,
+                tenant_id=tenant_id,
+                name_ar=name,
+                score=score,
+                cr_suffix=name,
             )
         await db_session.commit()
 
         r = await db_session.execute(
             text(
-                "SELECT name FROM companies "
+                "SELECT name_ar FROM companies "
                 "WHERE tenant_id = :tid AND confidence_score >= 0.5 "
                 "ORDER BY confidence_score DESC"
             ),
