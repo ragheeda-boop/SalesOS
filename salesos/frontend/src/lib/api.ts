@@ -10,3 +10,4 @@ export * from "./api/admin";
 export * from "./api/settings";
 export * from "./api/integrationHub";
 export * from "./api/tenantStudio";
+export * from "./api/scoringRules";

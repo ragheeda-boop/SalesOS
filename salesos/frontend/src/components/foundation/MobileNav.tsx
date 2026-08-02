@@ -19,6 +19,7 @@ import {
   Shield,
   Plug,
   FormInput,
+  Gauge,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
@@ -43,6 +44,11 @@ export function MobileNav() {
       href: "/studio/custom-fields",
       key: "nav.custom_fields",
       icon: FormInput,
+    },
+    {
+      href: "/studio/scoring",
+      key: "nav.scoring_rules",
+      icon: Gauge,
     },
     { href: "/settings", key: "nav.settings", icon: Settings },
     { href: "/admin", key: "nav.admin", icon: Shield },

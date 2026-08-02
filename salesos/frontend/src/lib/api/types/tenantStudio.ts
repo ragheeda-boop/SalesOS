@@ -91,3 +91,86 @@ export interface CustomFieldValuesResponse {
   values: Record<string, unknown>;
   metadata: Record<string, unknown>;
 }
+
+/** Tip STORY-10-04 Scoring Rules Studio (deterministic, in-memory). */
+export type ScoringTargetType = "lead" | "company" | "opportunity";
+
+export type ScoringBoostOp =
+  "eq" | "neq" | "gte" | "lte" | "gt" | "lt" | "contains" | "exists";
+
+export const SCORING_TARGET_TYPES: ScoringTargetType[] = [
+  "lead",
+  "company",
+  "opportunity",
+];
+
+export const SCORING_BOOST_OPS: ScoringBoostOp[] = [
+  "eq",
+  "neq",
+  "gte",
+  "lte",
+  "gt",
+  "lt",
+  "contains",
+  "exists",
+];
+
+/** Mirror tip PLATFORM_DEFAULT_WEIGHTS — form defaults only. */
+export const PLATFORM_DEFAULT_DIMENSION_WEIGHTS: Record<string, number> = {
+  buying_intent: 0.3,
+  engagement: 0.2,
+  fit: 0.15,
+  urgency: 0.15,
+  relationship: 0.1,
+  market_signal: 0.1,
+};
+
+export const SCORING_DIMENSIONS = Object.keys(
+  PLATFORM_DEFAULT_DIMENSION_WEIGHTS,
+);
+
+export interface ScoringBoost {
+  field: string;
+  op: ScoringBoostOp;
+  value?: unknown;
+  delta: number;
+}
+
+export interface ScoringRuleUpsert {
+  id?: string | null;
+  name: string;
+  target_type: ScoringTargetType;
+  dimension_weights: Record<string, number>;
+  boosts?: ScoringBoost[];
+  active?: boolean;
+}
+
+export interface ScoringRule {
+  id: string;
+  tenant_id: string;
+  name: string;
+  target_type: string;
+  dimension_weights: Record<string, number>;
+  boosts: ScoringBoost[];
+  active: boolean;
+  schema_version: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ScoringEvaluateRequest {
+  target_type: ScoringTargetType;
+  dimension_scores: Record<string, number>;
+  attributes?: Record<string, unknown>;
+  rule_id?: string | null;
+}
+
+export interface ScoringEvaluateResponse {
+  score: number;
+  source: string;
+  fallback_used: boolean;
+  fallback_reason?: string | null;
+  rule_id?: string | null;
+  explanation: string[];
+  dimension_weights_used: Record<string, number>;
+}

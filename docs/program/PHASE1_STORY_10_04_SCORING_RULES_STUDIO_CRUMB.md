@@ -21,7 +21,7 @@
 
 ## Non-goals
 
-- FE `/studio/scoring` page wire-up
+- FE `/studio/scoring` page wire-up — **LANDED FE-S10-04** (Stream B)
 - Postgres rule persistence / new RLS
 - LLM / AI Studio scoring
 - Production GO
