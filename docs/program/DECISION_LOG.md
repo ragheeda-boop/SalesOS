@@ -1087,6 +1087,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+
+### DEC-155 — Criterion 3.7 Stage 7 E2E CLOSED (Accepted)
+
+**Date:** 2026-08-02
+**Context:** Sole hard OPEN after DEC-154 (53/54). Standalone Stage 7 workflow + tenant GUC + JWKS prewarm.
+**Decision:** Accept **3.7 VERIFIED/CLOSED** on Stage 7 SUCCESS [30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801) @ `909230d`. Companion: [`decisions/DEC-155-CRITERION-3-7-STAGE7-E2E-CLOSED.md`](decisions/DEC-155-CRITERION-3-7-STAGE7-E2E-CLOSED.md).
+**Consequence:** Phase 0 **53/54 → 54/54**. **TRIGGER_POST_PHASE0_PLAN** fires. Production GA remains NO-GO. No Production GO invent.
+**Status:** Accepted.
+
 ### DEC-154 — Criterion 2.3 CLOSED CONDITIONAL accepted as Phase 0 Complete (Accepted)
 
 **Date:** 2026-08-02
