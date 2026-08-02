@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, FastAPI
+from fastapi import Depends, FastAPI
 
 from app.dependencies import verify_token
 
@@ -342,23 +342,16 @@ def register_routers(app: FastAPI) -> None:
         dependencies=_auth,
     )
     # DOM-023 / CAP-101 — STORY-11-07 Website Intelligence (fixture + prompt registry).
-    # Resilient import: tip race must not block chaos/other mounts if file absent.
-    website_intelligence_router: APIRouter | None
-    try:
-        from app.modules.gtm.website_intelligence_router import (
-            router as _website_intelligence_router,
-        )
+    from app.modules.gtm.website_intelligence_router import (
+        router as website_intelligence_router,
+    )
 
-        website_intelligence_router = _website_intelligence_router
-    except ModuleNotFoundError:
-        website_intelligence_router = None
-    if website_intelligence_router is not None:
-        app.include_router(
-            website_intelligence_router,
-            prefix="/api/v1",
-            tags=["GTM Intelligence"],
-            dependencies=_auth,
-        )
+    app.include_router(
+        website_intelligence_router,
+        prefix="/api/v1",
+        tags=["GTM Intelligence"],
+        dependencies=_auth,
+    )
     # DOM-023 / CAP-104 — STORY-11-09 Sequencing Engine (email channel).
     from app.modules.gtm.sequencing_router import (
         router as sequencing_router,
