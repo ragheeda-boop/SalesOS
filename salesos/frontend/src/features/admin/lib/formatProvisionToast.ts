@@ -692,3 +692,11 @@ export {
   isEntitlementDeniedPayload,
   type EntitlementDeniedPayload,
 } from "@/lib/api/entitlementErrors";
+
+export {
+  QUOTA_EXCEEDED_EVENT,
+  formatQuotaExceededMessage,
+  getQuotaExceededFromError,
+  isQuotaExceededPayload,
+  type QuotaExceededPayload,
+} from "@/lib/api/quotaErrors";

@@ -12,6 +12,8 @@
 | FE-S06-01 `/admin/billing` read view | **LANDED** |
 | FE-S06-02 Plan.entitlements editor/display | **LANDED** |
 | FE-S06-02b Honest 403 entitlement upgrade toast | **LANDED** |
+| FE-S06-03 Resolved entitlements on TenantBillingPanel | **LANDED** (this tip) |
+| FE-S06-03b Honest quota_exceeded toast (403/429) | **LANDED** (this tip) |
 
 ## Honesty
 
@@ -19,6 +21,7 @@
 - Entitlements: empty create → BE tier defaults; edit JSON (DOM-* keys).
 - Plan-change + pending_plan_* honesty; dunning evaluate/clear.
 - Entitlement 403 → warning toast (upgrade / Owner edit Plan.entitlements).
+- Quota `error=quota_exceeded` → warning toast (metric used/limit; seats/connectors/storage 403; ai_tokens 429). Upgrade or reduce usage. No fake GO.
 - `TenantList.tsx` untouched. **No Production GO.**
 
-**Validation:** focused Jest (formatProvisionToast helpers).
+**Validation:** focused Jest (formatProvisionToast helpers + quota parsers).

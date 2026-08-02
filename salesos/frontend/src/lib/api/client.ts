@@ -5,6 +5,11 @@ import {
   formatEntitlementDeniedMessage,
   isEntitlementDeniedPayload,
 } from "@/lib/api/entitlementErrors";
+import {
+  QUOTA_EXCEEDED_EVENT,
+  formatQuotaExceededMessage,
+  isQuotaExceededPayload,
+} from "@/lib/api/quotaErrors";
 
 // Browser: same-origin so Next.js rewrites proxy to Railway (avoids CORS Network Error).
 // Server: absolute backend URL for SSR / Route Handlers.
@@ -77,9 +82,17 @@ api.interceptors.response.use(
       }
     }
 
-    if (status === 403) {
+    if (status === 403 || status === 429) {
       const data = error.response?.data;
-      if (isEntitlementDeniedPayload(data)) {
+      if (isQuotaExceededPayload(data)) {
+        const message = formatQuotaExceededMessage(data);
+        console.warn(`[API] ${status} quota exceeded:`, message, data);
+        window.dispatchEvent(
+          new CustomEvent(QUOTA_EXCEEDED_EVENT, {
+            detail: { ...data, message, status },
+          }),
+        );
+      } else if (status === 403 && isEntitlementDeniedPayload(data)) {
         const message = formatEntitlementDeniedMessage(data);
         console.warn("[API] 403 entitlement denied:", message, data);
         window.dispatchEvent(
@@ -87,8 +100,10 @@ api.interceptors.response.use(
             detail: { ...data, message },
           }),
         );
-      } else {
+      } else if (status === 403) {
         console.warn("[API] 403 Forbidden:", data);
+      } else {
+        console.warn("[API] 429 Too Many Requests:", data);
       }
     }
 

@@ -6,6 +6,7 @@ import type { AdminPlanChangeQuote } from "@/lib/api/types/admin";
 import {
   useAdminBillingCatalog,
   useAdminDunningCases,
+  useAdminPlans,
   useAdminPlatformInvoices,
   useAdminStripeStatus,
   useAdminTenantSubscription,
@@ -25,11 +26,13 @@ import {
   formatDunningCaseRow,
   formatPendingPlanHonesty,
   formatPlanChangeQuote,
+  formatResolvedPlanEntitlementsHonesty,
   formatStripeStatusBanner,
   formatSubscriptionSummary,
   formatUsageMeterRow,
   getApiErrorDetail,
   isStripeBillingUnavailableError,
+  listDisabledEntitlementDomains,
   stripeBillingUnavailableDescription,
   stripeStatusTone,
 } from "@/features/admin/lib/formatProvisionToast";
@@ -37,7 +40,8 @@ import {
 type BillingCycle = "monthly" | "yearly";
 
 /**
- * FE-S05-01..06 — billing + UsageMeter + dunning + plan-change (tip ca1fb19).
+ * FE-S05-01..06 + FE-S06-03 — billing, UsageMeter, dunning, plan-change,
+ * and resolved Plan.entitlements honesty from Owner plans list.
  * Honest 503 / pending-plan empty-states. No invented Stripe keys. Not Production GO.
  */
 export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
@@ -54,6 +58,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
     isError: catalogError,
     error: catalogErr,
   } = useAdminBillingCatalog(true);
+  const { data: ownerPlans } = useAdminPlans();
   const {
     data: stripeStatus,
     isLoading: stripeStatusLoading,
@@ -117,6 +122,34 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
   const resolvedCatalogPrice = selectedPlan
     ? catalogPriceIdForCycle(selectedPlan, billingCycle)
     : null;
+
+  const resolvedPlan = useMemo(() => {
+    const planId = subscription?.plan_id;
+    if (!planId || !ownerPlans?.length) return null;
+    return ownerPlans.find((p) => p.id === planId) || null;
+  }, [ownerPlans, subscription?.plan_id]);
+
+  const resolvedEntitlementsHonesty = useMemo(() => {
+    if (!subscription?.plan_id) return null;
+    if (!resolvedPlan) {
+      return (
+        `Subscription plan_id=${subscription.plan_id} - Owner plans list has no match yet ` +
+        `(catalog checkout prices do not include entitlements JSON). Not Production GO.`
+      );
+    }
+    return formatResolvedPlanEntitlementsHonesty({
+      planId: resolvedPlan.id,
+      planName: resolvedPlan.name,
+      tier: resolvedPlan.tier,
+      entitlements: resolvedPlan.entitlements,
+      pendingPlanId: subscription.pending_plan_id,
+    });
+  }, [resolvedPlan, subscription]);
+
+  const disabledDomains = useMemo(
+    () => listDisabledEntitlementDomains(resolvedPlan?.entitlements),
+    [resolvedPlan],
+  );
 
   const markUnavailable = useCallback(
     (err: unknown) => {
@@ -478,6 +511,25 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
           >
             {pendingHonesty}
           </p>
+        ) : null}
+        {resolvedEntitlementsHonesty ? (
+          <div
+            className="mt-2 rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] p-2 text-xs text-[var(--text-secondary)]"
+            data-testid="admin-tenants-resolved-entitlements"
+          >
+            <p data-testid="admin-tenants-resolved-entitlements-summary">
+              {resolvedEntitlementsHonesty}
+            </p>
+            {disabledDomains.length > 0 ? (
+              <p
+                className="mt-1 font-mono"
+                data-testid="admin-tenants-resolved-entitlements-disabled"
+              >
+                Domains disabled (403 on gated paths):{" "}
+                {disabledDomains.join(", ")}
+              </p>
+            ) : null}
+          </div>
         ) : null}
       </div>
 

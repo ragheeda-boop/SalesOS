@@ -13,10 +13,12 @@ import {
   formatPlanChangeQuote,
   formatEntitlementDeniedMessage,
   formatPlanEntitlementsSummary,
+  formatQuotaExceededMessage,
   formatResolvedPlanEntitlementsHonesty,
   formatSubscriptionSummary,
   listDisabledEntitlementDomains,
   isEntitlementDeniedPayload,
+  isQuotaExceededPayload,
   parsePlanEntitlementsJson,
   formatUsageMeterRow,
   getDeletionRequestedAt,
@@ -406,6 +408,37 @@ describe("billing helpers — FE-S05-01..04", () => {
     };
     expect(isEntitlementDeniedPayload(payload)).toBe(true);
     expect(formatEntitlementDeniedMessage(payload)).toContain("Upgrade");
+  });
+
+  it("formats honest upgrade messaging for quota_exceeded 403/429", () => {
+    const seats = {
+      detail:
+        "Plan quota exceeded: seats (used 5 / limit 5). Upgrade plan or reduce usage.",
+      error: "quota_exceeded",
+      metric: "seats",
+      used: 5,
+      limit: 5,
+      plan_id: "plan-starter",
+      tier: "starter",
+    };
+    expect(isQuotaExceededPayload(seats)).toBe(true);
+    expect(formatQuotaExceededMessage(seats)).toContain("seats");
+    expect(formatQuotaExceededMessage(seats)).toContain("Not Production GO");
+
+    const tokens = {
+      detail:
+        "Plan quota exceeded: ai_tokens (used 10000 / limit 10000). Upgrade plan or reduce usage.",
+      error: "quota_exceeded",
+      metric: "ai_tokens",
+      used: 10000,
+      limit: 10000,
+      period: "2026-08",
+      plan_id: "plan-starter",
+      tier: "starter",
+    };
+    expect(isQuotaExceededPayload(tokens)).toBe(true);
+    expect(formatQuotaExceededMessage(tokens)).toContain("HTTP 429");
+    expect(formatQuotaExceededMessage(tokens)).toContain("period=2026-08");
   });
 });
 
