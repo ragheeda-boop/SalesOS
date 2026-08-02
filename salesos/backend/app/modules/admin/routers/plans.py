@@ -4,16 +4,17 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db_session
-from app.modules.identity.models import Tenant
-from app.owner_auth import require_owner_role_dep
 from app.modules.admin.entitlements import (
     default_entitlements_for_tier,
     entitlements_to_dict,
     parse_entitlements,
 )
+from app.modules.identity.models import Tenant
+from app.owner_auth import require_owner_role_dep
 
 from ..db_models import LicenseModel, PlanModel
 from ..schemas import (
@@ -50,7 +51,7 @@ def _plan_response(p: PlanModel) -> PlanResponse:
     raw_ents = getattr(p, "entitlements", None) or {}
     try:
         ents = parse_entitlements(raw_ents)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, ValidationError):
         ents = default_entitlements_for_tier(getattr(p, "tier", "free"))
     return PlanResponse(
         id=p.id,
