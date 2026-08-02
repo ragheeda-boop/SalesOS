@@ -44,6 +44,7 @@ import {
   Layers,
   BadgeCheck,
   Copy,
+  Mail,
 } from "lucide-react";
 import {
   LazyCommandBar,
@@ -103,6 +104,7 @@ const NAV_KEYS = [
   { href: "/gtm/enrichment", key: "nav.enrichment", icon: Layers },
   { href: "/gtm/verification", key: "nav.verification", icon: BadgeCheck },
   { href: "/gtm/lookalikes", key: "nav.lookalikes", icon: Copy },
+  { href: "/gtm/sequences", key: "nav.sequences", icon: Mail },
   { href: "/settings", key: "nav.settings", icon: Settings },
   { href: "/admin", key: "nav.admin", icon: Shield },
 ];

@@ -18,12 +18,16 @@ import {
   MARKET_SIZING_NON_GOALS,
 } from "@/features/gtm/marketSizingHonesty";
 import {
+  SEQUENCING_HONESTY,
+  SEQUENCING_NON_GOALS,
+} from "@/features/gtm/sequencingHonesty";
+import {
   VERIFICATION_HONESTY,
   VERIFICATION_NON_GOALS,
 } from "@/features/gtm/verificationHonesty";
 
 /**
- * Tip GTM Intelligence hub (FE-S11-03b + 01/04/05/06).
+ * Tip GTM Intelligence hub (FE-S11-03b + 01/04/05/06/09).
  * Tip pages only. Territories not linked. Not Production GO / RAG GO.
  */
 export function GtmHub() {
@@ -34,9 +38,10 @@ export function GtmHub() {
         data-testid="gtm-hub-honesty"
       >
         Tip GTM pages only: ICP, market-sizing, lead-discovery, lookalikes,
-        enrichment, verification — with tip query-param handoffs. Live 141221
-        Postgres / live ERP / territories Studio / live ML backtest not claimed.
-        Not Production GO / RAG GO.
+        enrichment, verification, sequences — with tip query-param handoffs.
+        Live 141221 Postgres / live ERP / territories Studio / live SMTP /
+        LinkedIn / WhatsApp / live ML backtest not claimed. Not Production GO /
+        RAG GO.
       </p>
 
       <ul className="space-y-3">
@@ -128,6 +133,21 @@ export function GtmHub() {
           <p className="mt-1 text-xs text-[var(--text-muted)]">
             {VERIFICATION_HONESTY} Non-goals:{" "}
             {VERIFICATION_NON_GOALS.slice(0, 2).join("; ")}.
+          </p>
+        </li>
+        <li
+          className="rounded border border-[var(--border-default)] p-4"
+          data-testid="gtm-hub-sequences"
+        >
+          <Link
+            href="/gtm/sequences"
+            className="text-base font-semibold text-[var(--text-primary)] underline"
+          >
+            Email Sequences
+          </Link>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
+            {SEQUENCING_HONESTY} Non-goals:{" "}
+            {SEQUENCING_NON_GOALS.slice(0, 2).join("; ")}.
           </p>
         </li>
       </ul>

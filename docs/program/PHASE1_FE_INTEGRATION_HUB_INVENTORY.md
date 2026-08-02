@@ -49,6 +49,7 @@
 | FE-S11-06 | Contact Verification UI (tip 11-06) |
 | FE-S11-06b | GTM enrichment↔verification / ICP / discovery handoffs |
 | FE-S11-04 | Lookalike Accounts UI (tip 11-04) |
+| FE-S11-09 | Email Sequencing UI (tip 11-09) |
 | FE-S10-05 | Territory config — **BLOCKED** (no tip `/studio/territories` BE) |
 
 ## Blocked (do not invent)

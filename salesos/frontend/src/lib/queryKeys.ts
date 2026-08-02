@@ -181,6 +181,16 @@ export const gtmKeys = {
     [...gtmKeys.all, "lookalikes", tenantId] as const,
   lookalikeDetail: (tenantId: string, id: string) =>
     [...gtmKeys.all, "lookalikes", tenantId, id] as const,
+  sequencingMeta: (tenantId: string) =>
+    [...gtmKeys.all, "sequencing-meta", tenantId] as const,
+  sequenceList: (tenantId: string) =>
+    [...gtmKeys.all, "sequences", tenantId] as const,
+  sequenceDetail: (tenantId: string, id: string) =>
+    [...gtmKeys.all, "sequences", tenantId, id] as const,
+  enrollmentList: (tenantId: string) =>
+    [...gtmKeys.all, "enrollments", tenantId] as const,
+  enrollmentDetail: (tenantId: string, id: string) =>
+    [...gtmKeys.all, "enrollments", tenantId, id] as const,
 };
 
 export const opportunityKeys = {

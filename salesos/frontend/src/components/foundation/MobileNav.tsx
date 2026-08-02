@@ -30,6 +30,7 @@ import {
   Layers,
   BadgeCheck,
   Copy,
+  Mail,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { TenantBrandMark } from "@/features/tenant-studio/TenantBrandMark";
@@ -115,6 +116,11 @@ export function MobileNav() {
       href: "/gtm/lookalikes",
       key: "nav.lookalikes",
       icon: Copy,
+    },
+    {
+      href: "/gtm/sequences",
+      key: "nav.sequences",
+      icon: Mail,
     },
     { href: "/settings", key: "nav.settings", icon: Settings },
     { href: "/admin", key: "nav.admin", icon: Shield },
