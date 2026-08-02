@@ -2,6 +2,10 @@
 
 import Link from "next/link";
 import {
+  ENRICHMENT_HONESTY,
+  ENRICHMENT_NON_GOALS,
+} from "@/features/gtm/enrichmentHonesty";
+import {
   LEAD_DISCOVERY_HONESTY,
   LEAD_DISCOVERY_NON_GOALS,
 } from "@/features/gtm/leadDiscoveryHonesty";
@@ -11,8 +15,8 @@ import {
 } from "@/features/gtm/marketSizingHonesty";
 
 /**
- * FE-S11-03b — Tip GTM Intelligence hub (market sizing + lead discovery).
- * No invented APIs. ICP / territories not linked. Not Production GO / RAG GO.
+ * FE-S11-03b / FE-S11-05 — Tip GTM Intelligence hub.
+ * Tip pages only. Territories not linked. Not Production GO / RAG GO.
  */
 export function GtmHub() {
   return (
@@ -21,9 +25,9 @@ export function GtmHub() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="gtm-hub-honesty"
       >
-        Tip GTM pages only: ICP profiles, market-sizing, lead-discovery. Live
-        141221 Postgres / live ERP / territories Studio not claimed. Not
-        Production GO / RAG GO.
+        Tip GTM pages only: ICP profiles, market-sizing, lead-discovery,
+        enrichment. Live 141221 Postgres / live ERP / territories Studio not
+        claimed. Not Production GO / RAG GO.
       </p>
 
       <ul className="space-y-3">
@@ -70,6 +74,21 @@ export function GtmHub() {
           <p className="mt-1 text-xs text-[var(--text-muted)]">
             {LEAD_DISCOVERY_HONESTY} Non-goals:{" "}
             {LEAD_DISCOVERY_NON_GOALS.slice(0, 2).join("; ")}.
+          </p>
+        </li>
+        <li
+          className="rounded border border-[var(--border-default)] p-4"
+          data-testid="gtm-hub-enrichment"
+        >
+          <Link
+            href="/gtm/enrichment"
+            className="text-base font-semibold text-[var(--text-primary)] underline"
+          >
+            Enrichment Waterfall
+          </Link>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
+            {ENRICHMENT_HONESTY} Non-goals:{" "}
+            {ENRICHMENT_NON_GOALS.slice(0, 2).join("; ")}.
           </p>
         </li>
       </ul>

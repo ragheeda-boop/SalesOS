@@ -41,6 +41,7 @@ import {
   Radar,
   Crosshair,
   UserRoundSearch,
+  Layers,
 } from "lucide-react";
 import {
   LazyCommandBar,
@@ -97,6 +98,7 @@ const NAV_KEYS = [
   { href: "/gtm/icp", key: "nav.icp_profiles", icon: UserRoundSearch },
   { href: "/gtm/market-sizing", key: "nav.market_sizing", icon: Target },
   { href: "/gtm/lead-discovery", key: "nav.lead_discovery", icon: Radar },
+  { href: "/gtm/enrichment", key: "nav.enrichment", icon: Layers },
   { href: "/settings", key: "nav.settings", icon: Settings },
   { href: "/admin", key: "nav.admin", icon: Shield },
 ];

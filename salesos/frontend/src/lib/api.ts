@@ -18,3 +18,4 @@ export * from "./api/brandingStudio";
 export * from "./api/marketSizing";
 export * from "./api/leadDiscovery";
 export * from "./api/icpProfiles";
+export * from "./api/enrichment";

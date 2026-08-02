@@ -27,6 +27,7 @@ import {
   Radar,
   Crosshair,
   UserRoundSearch,
+  Layers,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { TenantBrandMark } from "@/features/tenant-studio/TenantBrandMark";
@@ -97,6 +98,11 @@ export function MobileNav() {
       href: "/gtm/lead-discovery",
       key: "nav.lead_discovery",
       icon: Radar,
+    },
+    {
+      href: "/gtm/enrichment",
+      key: "nav.enrichment",
+      icon: Layers,
     },
     { href: "/settings", key: "nav.settings", icon: Settings },
     { href: "/admin", key: "nav.admin", icon: Shield },

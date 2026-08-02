@@ -163,6 +163,12 @@ export const gtmKeys = {
     [...gtmKeys.all, "icp-profiles", tenantId] as const,
   icpDetail: (tenantId: string, id: string) =>
     [...gtmKeys.all, "icp-profiles", tenantId, id] as const,
+  enrichmentMeta: (tenantId: string) =>
+    [...gtmKeys.all, "enrichment-meta", tenantId] as const,
+  enrichmentList: (tenantId: string) =>
+    [...gtmKeys.all, "enrichment", tenantId] as const,
+  enrichmentDetail: (tenantId: string, id: string) =>
+    [...gtmKeys.all, "enrichment", tenantId, id] as const,
 };
 
 export const opportunityKeys = {

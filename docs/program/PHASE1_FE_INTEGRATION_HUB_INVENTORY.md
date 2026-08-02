@@ -45,6 +45,7 @@
 | FE-S11-03 | Lead Discovery gov-first UI (tip 11-03) |
 | FE-S11-03b | GTM hub + criteria handoff / deep-links |
 | FE-S11-01 | ICP Profiles UI (tip 11-01) |
+| FE-S11-05 | Enrichment Waterfall UI (tip 11-05) |
 | FE-S10-05 | Territory config — **BLOCKED** (no tip `/studio/territories` BE) |
 
 ## Blocked (do not invent)
