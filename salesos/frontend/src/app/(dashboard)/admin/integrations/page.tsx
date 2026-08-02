@@ -67,6 +67,11 @@ const FE_GATED = [
     status: "FE landed — ?step=&connection=",
   },
   {
+    id: "FE-S08-12",
+    title: "Monitor SyncRun model filter + tip fields",
+    status: "FE landed — runModel + finished_at",
+  },
+  {
     id: "FE-S09-01",
     title: "Partner model presets + cr_number join honesty",
     status: "FE landed — res.partner presets",

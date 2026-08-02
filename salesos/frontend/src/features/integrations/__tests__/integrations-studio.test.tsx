@@ -86,7 +86,7 @@ jest.mock("@salesos/ui", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
-describe("IntegrationsStudio — FE-S08-08..11 / FE-S09-01/02", () => {
+describe("IntegrationsStudio — FE-S08-08..12 / FE-S09-01/02", () => {
   it("renders conflict-policy step and Odoo honesty", () => {
     render(<IntegrationsStudio />);
     expect(screen.getByTestId("integrations-studio")).toBeInTheDocument();
@@ -163,11 +163,14 @@ describe("IntegrationsStudio — FE-S08-08..11 / FE-S09-01/02", () => {
     ).not.toBeDisabled();
   });
 
-  it("exposes monitor status filter and schedule result hook", () => {
+  it("exposes monitor status/model filters (FE-S08-12)", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-monitor"));
     expect(
       screen.getByTestId("integrations-studio-monitor-status-filter"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("integrations-studio-monitor-model-filter"),
     ).toBeInTheDocument();
   });
 

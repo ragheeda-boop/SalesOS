@@ -19,6 +19,8 @@ import { STUDIO_STEPS } from "@/features/admin/IntegrationsStudioShell";
 import type { HubConnection, HubScheduleResult } from "@/lib/api";
 import {
   buildStudioSearchParams,
+  parseRunModelFilter,
+  parseRunStatusFilter,
   parseStudioStep,
   type StudioStepId,
 } from "@/features/integrations/studioUrl";
@@ -90,6 +92,7 @@ export function IntegrationsStudio() {
     null,
   );
   const [monitorStatusFilter, setMonitorStatusFilter] = useState("all");
+  const [monitorModelFilter, setMonitorModelFilter] = useState("all");
   const [rulesJson, setRulesJson] = useState("[]");
   const [authoredCsv, setAuthoredCsv] = useState("");
   const [operationalCsv, setOperationalCsv] = useState("");
@@ -117,12 +120,31 @@ export function IntegrationsStudio() {
   );
   const filteredSyncRuns = useMemo(() => {
     const rows = syncRunsQuery.data || [];
-    if (monitorStatusFilter === "all") return rows;
-    return rows.filter(
-      (r) =>
-        (r.status || "").toLowerCase() === monitorStatusFilter.toLowerCase(),
-    );
-  }, [syncRunsQuery.data, monitorStatusFilter]);
+    return rows.filter((r) => {
+      if (monitorStatusFilter !== "all") {
+        if (
+          (r.status || "").toLowerCase() !== monitorStatusFilter.toLowerCase()
+        ) {
+          return false;
+        }
+      }
+      if (monitorModelFilter !== "all") {
+        if ((r.model || "").trim() !== monitorModelFilter.trim()) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [syncRunsQuery.data, monitorStatusFilter, monitorModelFilter]);
+
+  const monitorModelOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const row of syncRunsQuery.data || []) {
+      const m = (row.model || "").trim();
+      if (m) set.add(m);
+    }
+    return Array.from(set).sort();
+  }, [syncRunsQuery.data]);
 
   useEffect(() => {
     const policy = conflictQuery.data;
@@ -152,6 +174,8 @@ export function IntegrationsStudio() {
     if (parsed) setStep(parsed);
     const connection = searchParams.get("connection");
     if (connection) setSelectedId(connection);
+    setMonitorStatusFilter(parseRunStatusFilter(searchParams.get("runStatus")));
+    setMonitorModelFilter(parseRunModelFilter(searchParams.get("runModel")));
     setUrlHydrated(true);
   }, [searchParams, urlHydrated]);
 
@@ -160,13 +184,24 @@ export function IntegrationsStudio() {
     const next = buildStudioSearchParams({
       step,
       connectionId: selectedId,
+      runStatus: monitorStatusFilter,
+      runModel: monitorModelFilter,
     });
     const current = searchParams.toString()
       ? `?${searchParams.toString()}`
       : "";
     if (next === current) return;
     router.replace(`${pathname}${next}`, { scroll: false });
-  }, [step, selectedId, urlHydrated, pathname, router, searchParams]);
+  }, [
+    step,
+    selectedId,
+    monitorStatusFilter,
+    monitorModelFilter,
+    urlHydrated,
+    pathname,
+    router,
+    searchParams,
+  ]);
 
   function applyModelPreset(nextModel: string) {
     setModel(nextModel);
@@ -767,21 +802,50 @@ export function IntegrationsStudio() {
             >
               {syncRunsQuery.isFetching ? "Refreshing…" : "Refresh sync runs"}
             </Button>
-            <label className="block text-xs text-[var(--text-muted)]">
-              Status filter (client-side on tip SyncRun rows)
-            </label>
-            <select
-              data-testid="integrations-studio-monitor-status-filter"
-              className="w-full max-w-xs rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
-              value={monitorStatusFilter}
-              onChange={(e) => setMonitorStatusFilter(e.target.value)}
-            >
-              <option value="all">All statuses</option>
-              <option value="success">success</option>
-              <option value="failed">failed</option>
-              <option value="running">running</option>
-              <option value="pending">pending</option>
-            </select>
+            <div className="flex flex-wrap gap-3">
+              <div>
+                <label className="block text-xs text-[var(--text-muted)]">
+                  Status filter (client-side on tip SyncRun rows)
+                </label>
+                <select
+                  data-testid="integrations-studio-monitor-status-filter"
+                  className="w-full max-w-xs rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
+                  value={monitorStatusFilter}
+                  onChange={(e) => setMonitorStatusFilter(e.target.value)}
+                >
+                  <option value="all">All statuses</option>
+                  <option value="success">success</option>
+                  <option value="failed">failed</option>
+                  <option value="running">running</option>
+                  <option value="pending">pending</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-[var(--text-muted)]">
+                  Model filter (tip SyncRun.model)
+                </label>
+                <select
+                  data-testid="integrations-studio-monitor-model-filter"
+                  className="w-full max-w-xs rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
+                  value={monitorModelFilter}
+                  onChange={(e) => setMonitorModelFilter(e.target.value)}
+                >
+                  <option value="all">All models</option>
+                  {monitorModelOptions.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                  {HUB_MODEL_PRESETS.filter(
+                    (p) => !monitorModelOptions.includes(p.model),
+                  ).map((p) => (
+                    <option key={p.id} value={p.model}>
+                      {p.model}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
             {!selectedId ? (
               <p className="text-sm text-[var(--text-muted)]">
                 Select a connection to view SyncRun history.
@@ -808,9 +872,41 @@ export function IntegrationsStudio() {
                       {run.model} · pulled {run.records_pulled} / wrote{" "}
                       {run.records_written} / failed {run.records_failed}
                       <span className="mt-0.5 block text-xs text-[var(--text-muted)]">
-                        {run.started_at}
+                        started {run.started_at}
+                        {run.finished_at
+                          ? ` · finished ${run.finished_at}`
+                          : ""}
+                        {run.scheduled_job_id
+                          ? ` · job ${run.scheduled_job_id}`
+                          : ""}
                         {run.failure_class ? ` · ${run.failure_class}` : ""}
                       </span>
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-xs break-all">
+                          {run.id}
+                        </span>
+                        <Button
+                          data-testid="integrations-studio-copy-sync-run-id"
+                          onClick={async () => {
+                            try {
+                              await navigator.clipboard.writeText(run.id);
+                              toast({
+                                variant: "success",
+                                title: "SyncRun id copied",
+                                description: run.id,
+                              });
+                            } catch {
+                              toast({
+                                variant: "error",
+                                title: "Copy failed",
+                                description: run.id,
+                              });
+                            }
+                          }}
+                        >
+                          Copy run id
+                        </Button>
+                      </div>
                     </li>
                   ))
                 )}
