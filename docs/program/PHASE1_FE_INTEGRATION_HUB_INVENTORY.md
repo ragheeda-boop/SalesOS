@@ -53,6 +53,7 @@
 | FE-S11-09b | Sequencing multi-channel UI (tip 11-09b partner LI/WA) |
 | FE-S11-10 | Second connector certify UI (tip 11-10 HubSpot) |
 | FE-S10-05 | Territory Studio UI (tip 10-05 `/studio/territories`) |
+| FE-S12-04 | AI Model Tiers Studio UI (tip 12-04 GET-only) |
 
 ## Blocked (do not invent)
 

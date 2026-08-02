@@ -24,6 +24,7 @@ import {
   Bell,
   Palette,
   MapPin,
+  Cpu,
   Target,
   Radar,
   Crosshair,
@@ -87,6 +88,11 @@ export function MobileNav() {
       href: "/studio/territories",
       key: "nav.territories_studio",
       icon: MapPin,
+    },
+    {
+      href: "/studio/ai-model-tiers",
+      key: "nav.ai_model_tiers",
+      icon: Cpu,
     },
     {
       href: "/gtm",

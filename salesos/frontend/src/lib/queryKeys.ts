@@ -147,6 +147,22 @@ export const tenantStudioKeys = {
     [...tenantStudioKeys.all, "territories-meta", tenantId] as const,
   territories: (tenantId: string) =>
     [...tenantStudioKeys.all, "territories", tenantId] as const,
+  aiModelTiersCatalog: (tenantId: string) =>
+    [...tenantStudioKeys.all, "ai-model-tiers-catalog", tenantId] as const,
+  aiModelTiersDefaults: (tenantId: string, planTier: string) =>
+    [
+      ...tenantStudioKeys.all,
+      "ai-model-tiers-defaults",
+      tenantId,
+      planTier,
+    ] as const,
+  aiModelTiersResolve: (tenantId: string, requested: string) =>
+    [
+      ...tenantStudioKeys.all,
+      "ai-model-tiers-resolve",
+      tenantId,
+      requested,
+    ] as const,
 };
 
 export const gtmKeys = {

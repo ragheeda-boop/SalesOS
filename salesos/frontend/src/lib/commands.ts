@@ -154,6 +154,14 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.studio.ai-model-tiers",
+    label: "Studio · AI Model Tiers",
+    description: "Per-plan AI model tier catalog (tip STORY-12-04, GET-only)",
+    category: "تنقل",
+    handler: () => router.push("/studio/ai-model-tiers"),
+  });
+
+  registerCommand({
     id: "go.gtm",
     label: "GTM · Intelligence Hub",
     description:
