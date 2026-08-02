@@ -14,6 +14,8 @@ class UsageMetricKey(StrEnum):
     SEATS = "seats"
     AI_TOKENS = "ai_tokens"
     CONNECTOR_SYNCS = "connector_syncs"
+    # STORY-06-03 — concurrent connector count gauge (plan quotas.connectors).
+    CONNECTORS = "connectors"
     API_CALLS = "api_calls"
     STORAGE_MB = "storage_mb"
 
@@ -30,10 +32,27 @@ METRIC_KEYS = frozenset(m.value for m in UsageMetricKey)
 DEFAULT_OP: dict[str, UsageOp] = {
     UsageMetricKey.SEATS.value: UsageOp.SET,
     UsageMetricKey.STORAGE_MB.value: UsageOp.SET,
+    UsageMetricKey.CONNECTORS.value: UsageOp.SET,
     UsageMetricKey.AI_TOKENS.value: UsageOp.ADD,
     UsageMetricKey.CONNECTOR_SYNCS.value: UsageOp.ADD,
     UsageMetricKey.API_CALLS.value: UsageOp.ADD,
 }
+
+# STORY-06-03 — counters summed over UTC month; gauges take latest period value.
+QUOTA_COUNTER_METRICS: frozenset[str] = frozenset(
+    {
+        UsageMetricKey.AI_TOKENS.value,
+        UsageMetricKey.API_CALLS.value,
+        UsageMetricKey.CONNECTOR_SYNCS.value,
+    }
+)
+QUOTA_GAUGE_METRICS: frozenset[str] = frozenset(
+    {
+        UsageMetricKey.SEATS.value,
+        UsageMetricKey.STORAGE_MB.value,
+        UsageMetricKey.CONNECTORS.value,
+    }
+)
 
 
 def normalize_metric_key(key: str) -> str:
