@@ -103,12 +103,12 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
       - name: Railway up (salesos backend → staging)
-        working-directory: salesos
+        # Deploy from repo root so the root railway.json / Dockerfile.railway path is used.
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           set -euo pipefail
-          railway up --ci --detach \
+          railway up --ci -y \
             --project "${{ secrets.RAILWAY_PROJECT_ID }}" \
             --environment "${{ secrets.RAILWAY_STAGING_ENVIRONMENT_ID }}" \
             --service "${{ secrets.RAILWAY_STAGING_SERVICE_ID }}"

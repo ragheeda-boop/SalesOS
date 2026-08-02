@@ -98,17 +98,66 @@ jobs:
         # Health Gate can false-green on a stale process still serving /health 200
         # (evidence: tip 06a8923 Deploy 30760184115 / 30763336159; uptime ~29h; /api/v1/load/meta 404).
         # --ci streams build and waits for deploy terminal status before exit.
+        # Deploy from repo root so the root railway.json / Dockerfile.railway path is used.
         timeout-minutes: 25
-        working-directory: salesos
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           set -euo pipefail
           echo "DEC-149: railway up --ci (wait for roll; no --detach)"
-          railway up --ci \
+          railway up --ci -y \
             --project "${{ secrets.RAILWAY_PROJECT_ID }}" \
             --environment "${{ secrets.RAILWAY_ENVIRONMENT_ID }}" \
             --service "${{ secrets.RAILWAY_SERVICE_ID }}"
+      - name: Verify Railway active service
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
+          RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
+        run: |
+          set -euo pipefail
+          echo "Verifying Railway status for service $RAILWAY_SERVICE_ID / environment $RAILWAY_ENVIRONMENT_ID"
+          railway status --project "$RAILWAY_PROJECT_ID" --environment "$RAILWAY_ENVIRONMENT_ID" --json > railway_status.json
+          python3 - <<PY
+            import json
+            import os
+            from pathlib import Path
+            status = json.loads(Path('railway_status.json').read_text())
+            expected_service = os.environ['RAILWAY_SERVICE_ID']
+            actual_service = None
+            if isinstance(status, dict):
+                if 'service' in status and isinstance(status['service'], dict):
+                    actual_service = status['service'].get('id') or status['service'].get('name')
+                elif 'serviceId' in status:
+                    actual_service = status.get('serviceId')
+            if actual_service is None:
+                raise SystemExit('Railway status JSON did not include a service identifier')
+            if actual_service != expected_service:
+                raise SystemExit(f'Railway status service mismatch: expected {expected_service}, got {actual_service}')
+            print(f'Railway status service matches expected ID/name: {actual_service}')
+          PY
+      - name: Verify Railway deployment history includes success
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+          RAILWAY_SERVICE_ID: ${{ secrets.RAILWAY_SERVICE_ID }}
+          RAILWAY_ENVIRONMENT_ID: ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
+        run: |
+          set -euo pipefail
+          railway deployment list --project "$RAILWAY_PROJECT_ID" --environment "$RAILWAY_ENVIRONMENT_ID" --service "$RAILWAY_SERVICE_ID" --limit 5 --json > railway_deployments.json
+          python3 - <<PY
+            import json
+            from pathlib import Path
+            deploys = json.loads(Path('railway_deployments.json').read_text())
+            if not isinstance(deploys, list) or len(deploys) == 0:
+                raise SystemExit('Railway deployment list returned no deployments')
+            latest = deploys[0]
+            status = latest.get('status')
+            if status != 'SUCCESS':
+                raise SystemExit(f'Latest Railway deployment is not successful: {status}')
+            print(f"Latest Railway deployment {latest.get('id')} status {status} verified.")
+          PY
 
   health-check:
     name: Backend Health Gate
