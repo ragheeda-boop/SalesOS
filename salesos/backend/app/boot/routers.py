@@ -288,6 +288,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["GTM Intelligence"],
         dependencies=_auth,
     )
+    # DOM-023 / CAP-100 — STORY-11-06 Contact Verification (swap-in connector).
+    from app.modules.gtm.verification_router import (
+        router as gtm_verification_router,
+    )
+
+    app.include_router(
+        gtm_verification_router,
+        prefix="/api/v1",
+        tags=["GTM Intelligence"],
+        dependencies=_auth,
+    )
     app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
     app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
     app.include_router(admin_router)
