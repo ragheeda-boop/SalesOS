@@ -96,6 +96,47 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
     handler: () => router.push("/integrations?step=disconnect"),
   });
 
+  // Tenant Studio pages already on tip (FE-S10-01..08) — no invented branding/territories.
+  registerCommand({
+    id: "go.studio.custom-fields",
+    label: "Studio · Custom Fields",
+    description: "Tenant Studio custom fields (tip STORY-10-01/02)",
+    category: "تنقل",
+    handler: () => router.push("/studio/custom-fields"),
+  });
+
+  registerCommand({
+    id: "go.studio.scoring",
+    label: "Studio · Scoring Rules",
+    description: "Tenant Studio scoring rules (tip STORY-10-04)",
+    category: "تنقل",
+    handler: () => router.push("/studio/scoring"),
+  });
+
+  registerCommand({
+    id: "go.studio.permissions",
+    label: "Studio · Permissions",
+    description: "Tenant Studio permissions / custom roles (tip STORY-10-06)",
+    category: "تنقل",
+    handler: () => router.push("/studio/permissions"),
+  });
+
+  registerCommand({
+    id: "go.studio.workflows",
+    label: "Studio · Workflows",
+    description: "Tenant Studio workflow builder (tip STORY-10-03)",
+    category: "تنقل",
+    handler: () => router.push("/studio/workflows"),
+  });
+
+  registerCommand({
+    id: "go.studio.notifications",
+    label: "Studio · Notification Rules",
+    description: "Tenant Studio notification rules (tip STORY-10-08)",
+    category: "تنقل",
+    handler: () => router.push("/studio/notifications"),
+  });
+
   registerCommand({
     id: "go.settings",
     label: "الإعدادات",

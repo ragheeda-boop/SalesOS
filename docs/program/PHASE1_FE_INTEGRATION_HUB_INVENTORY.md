@@ -37,8 +37,9 @@
 | FE-S10-06 | Permissions Studio (tip 10-06) |
 | FE-S10-03 | Workflow Builder Studio (tip 10-03) |
 | FE-S10-08 | Notification Rules Studio (tip 10-08) |
+| FE-S10-cmd | Cmd palette deep-links for tip Studio pages |
 | FE-S10-05 | Territory config — **BLOCKED** (no tip `/studio/territories` BE) |
-| FE-S10-07 | Branding — READY when tip branding HTTP exists (board STORY-10-07) |
+| FE-S10-07 | Branding — **STANDBY** (wire the moment tip branding HTTP lands; do not invent) |
 
 ## Blocked (do not invent)
 

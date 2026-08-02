@@ -13,7 +13,7 @@ describe("registerBuiltinCommands", () => {
   it("registers all builtin commands", () => {
     const mockRouter = { push: jest.fn() } as any;
     registerBuiltinCommands(mockRouter);
-    expect(registerCommand).toHaveBeenCalledTimes(17);
+    expect(registerCommand).toHaveBeenCalledTimes(22);
   });
 
   it("registers navigation commands with correct router pushes", () => {
@@ -44,6 +44,20 @@ describe("registerBuiltinCommands", () => {
     expect(conflictCall).toBeTruthy();
     conflictCall[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/integrations?step=conflict");
+
+    const studioWorkflows = (registerCommand as jest.Mock).mock.calls.find(
+      (c: any) => c[0].id === "go.studio.workflows",
+    );
+    expect(studioWorkflows).toBeTruthy();
+    studioWorkflows[0].handler();
+    expect(mockRouter.push).toHaveBeenCalledWith("/studio/workflows");
+
+    const studioNotifications = (registerCommand as jest.Mock).mock.calls.find(
+      (c: any) => c[0].id === "go.studio.notifications",
+    );
+    expect(studioNotifications).toBeTruthy();
+    studioNotifications[0].handler();
+    expect(mockRouter.push).toHaveBeenCalledWith("/studio/notifications");
   });
 
   it("registers action commands that dispatch custom events", () => {
