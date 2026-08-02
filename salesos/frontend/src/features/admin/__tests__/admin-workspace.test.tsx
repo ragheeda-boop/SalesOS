@@ -53,6 +53,17 @@ describe("AdminWorkspace", () => {
     expect(screen.getByText("إجراءات سريعة")).toBeInTheDocument();
   });
 
+  it("exposes EPIC-07 MVP deep-links on overview", () => {
+    render(<AdminWorkspace />);
+    expect(screen.getByTestId("owner-console-mvp-links")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("owner-console-overview-tenants"),
+    ).toHaveAttribute("href", "/admin/tenants");
+    expect(
+      screen.getByTestId("owner-console-overview-billing"),
+    ).toHaveAttribute("href", "/admin/billing");
+  });
+
   it("renders sidebar navigation tabs", () => {
     render(<AdminWorkspace />);
     // Labels come from ar.json via useTranslation (admin.tab.*)

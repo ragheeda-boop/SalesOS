@@ -260,3 +260,27 @@
 **Verification:** `SELECT rolname, rolsuper, rolbypassrls FROM pg_roles WHERE rolname = 'salesos_app'` returns `f, f`; the bypass-probe in step 5 isolates under `salesos_app`.
 
 **Rollback:** Fully reversible — unset `APP_POSTGRES_PASSWORD` (or don't set it) to fall back to the owner role immediately, no redeploy of the role itself required. `DROP ROLE salesos_app` only if the role must be removed entirely (rare; harmless to leave provisioned-but-unused).
+
+---
+
+## 15. Owner Console (Platform Ops) — EPIC-07 / FE-S07
+
+**Trigger:** Platform Ops/Support/CS need tenant status, plan, usage, or billing without opening a DB session.
+
+**Preconditions:** Access to the SalesOS Next app `/admin/*` routes. A JWT with audience `salesos-owner-platform` is required for `/api/v1/admin/*` (DEC-093 / `owner_auth`). Tenant audience `salesos-api` tokens are rejected by admin APIs. **Owner login mint remains a BE follow-up — do not invent tokens or Stripe keys.**
+
+**Steps:**
+1. Open Owner Console overview at `/admin` (shell shows audience + host honesty; target host `owner.salesos.io` is named, not claimed as a live separate deploy).
+2. Use shell nav or overview deep-links:
+   - `/admin/tenants` — list + detail (status, plan, usage snapshot, billing panel).
+   - `/admin/billing` — platform invoices, dunning, apply-pending plan changes, Stripe readiness booleans only.
+3. If the audience banner warns about `salesos-api`, stop mutating admin APIs — mint path is not shipped; escalate to Backend for DEC-093 owner login when needed.
+4. Prefer read-path Ops work in Phase 1. Existing lifecycle CTAs (suspend/activate/reprovision/delete) remain on tenants page; refund / ad-hoc suspend-override beyond those APIs are deferred.
+
+**Verification:** Shell testids `owner-console-shell`, `owner-console-audience-banner`, `owner-console-host-banner` visible; tenants/billing pages load; admin API calls succeed only with owner audience.
+
+**Rollback:** N/A (read UI). If a mistaken write occurred via lifecycle APIs, use the existing activate/reprovision/retention procedures in §§12–13.
+
+**Escalation:** Audience/auth failures → Backend (owner mint / DEC-093). Billing 503 / Stripe unavailable → DevOps (env secrets; no invented keys). **Not Production GO.**
+
+**Crumb:** [`PHASE1_STORY_07_OWNER_CONSOLE_CRUMB.md`](PHASE1_STORY_07_OWNER_CONSOLE_CRUMB.md).

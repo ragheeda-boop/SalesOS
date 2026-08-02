@@ -229,4 +229,20 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
       timeout: 5_000,
     });
   });
+
+  test("admin billing exposes Owner Console shell hooks", async ({ page }) => {
+    await page.goto("/admin/billing");
+    await page.waitForLoadState("networkidle");
+    await expect(page).toHaveURL(/admin\/billing/, { timeout: 8_000 });
+    await expect(page.getByTestId("owner-console-shell")).toBeVisible({
+      timeout: 8_000,
+    });
+    await expect(page.getByTestId("owner-console-nav-billing")).toBeVisible();
+    await expect(
+      page.getByTestId("owner-console-readpath-honesty"),
+    ).toBeVisible();
+    await expect(page.getByTestId("admin-billing-page")).toBeVisible();
+    await expect(page.getByTestId("admin-billing-overview-link")).toBeVisible();
+    await expect(page.getByTestId("admin-billing-tenants-link")).toBeVisible();
+  });
 });

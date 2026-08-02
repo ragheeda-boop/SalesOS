@@ -51,4 +51,18 @@ describe("ownerAudience — STORY-07-03", () => {
       "Not Production GO",
     );
   });
+
+  it("keeps tenant and owner audiences distinct (cross-audience FE regression)", () => {
+    expect(TENANT_JWT_AUDIENCE).not.toBe(OWNER_JWT_AUDIENCE);
+    const owner = fakeJwt({ aud: OWNER_JWT_AUDIENCE, sub: "o2" });
+    const tenant = fakeJwt({
+      aud: TENANT_JWT_AUDIENCE,
+      sub: "u2",
+      tenant_id: "t2",
+    });
+    expect(isOwnerConsoleAudience(owner)).toBe(true);
+    expect(isOwnerConsoleAudience(tenant)).toBe(false);
+    expect(formatOwnerAudienceHonesty("tenant")).toMatch(/admin/i);
+    expect(formatOwnerAudienceHonesty("owner")).not.toMatch(/DEC-093/);
+  });
 });

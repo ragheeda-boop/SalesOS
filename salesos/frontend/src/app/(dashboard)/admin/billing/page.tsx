@@ -118,6 +118,13 @@ export default function AdminBillingPage() {
               : "Apply due pending plans"}
           </Button>
           <Link
+            href="/admin"
+            className="text-sm text-[var(--muhide-orange)] underline"
+            data-testid="admin-billing-overview-link"
+          >
+            Owner overview
+          </Link>
+          <Link
             href="/admin/tenants"
             className="text-sm text-[var(--muhide-orange)] underline"
             data-testid="admin-billing-tenants-link"

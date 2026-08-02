@@ -15,7 +15,8 @@
 | FE-S06-03 Resolved entitlements on TenantBillingPanel | **LANDED** |
 | FE-S06-03b Honest quota_exceeded toast (403/429) | **LANDED** |
 | FE-S07-01/02/03 Owner Console MVP shell + audience | **LANDED** — crumb [`PHASE1_STORY_07_OWNER_CONSOLE_CRUMB.md`](PHASE1_STORY_07_OWNER_CONSOLE_CRUMB.md) |
-| FE-S07-04 Host honesty + overview deep-links + E2E hooks | **LANDED** (this tip) |
+| FE-S07-04 Host honesty + overview deep-links + E2E hooks | **LANDED** |
+| FE-S07-05 Ops runbook + read-path honesty + billing E2E | **LANDED** (this tip) |
 
 ## Honesty
 

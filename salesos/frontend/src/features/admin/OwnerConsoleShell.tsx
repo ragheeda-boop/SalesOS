@@ -131,6 +131,16 @@ export function OwnerConsoleShell({ children }: { children: ReactNode }) {
         >
           {hostHonesty}
         </p>
+        <p
+          className="mt-1 text-xs text-[var(--text-muted)]"
+          data-testid="owner-console-readpath-honesty"
+        >
+          Phase 1 read-path MVP: tenants status/plan/usage + billing
+          subscription/invoices/dunning. Deferred write actions (manual refund,
+          suspend override beyond existing lifecycle APIs) stay later-increment.
+          Owner login mint is DEC-093 follow-up — not invented here. Not
+          Production GO.
+        </p>
       </header>
 
       {!ownerOk ? (
