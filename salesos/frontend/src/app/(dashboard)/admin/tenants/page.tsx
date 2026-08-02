@@ -49,6 +49,9 @@ import {
   activityStatusLabel,
   formatProvisionResultDescription,
   formatSuspendResultDescription,
+  formatTrialEndsLabel,
+  matchesTrialFilter,
+  type TrialFilter,
 } from "@/features/admin/lib/formatProvisionToast";
 
 const PLAN_OPTIONS = [
@@ -74,6 +77,13 @@ const PROVISIONING_FILTER_OPTIONS = [
   { label: "Failed", value: "failed" },
 ];
 
+const TRIAL_FILTER_OPTIONS: { label: string; value: TrialFilter }[] = [
+  { label: "All trials", value: "" },
+  { label: "Has trial", value: "has_trial" },
+  { label: "Trial expired", value: "expired" },
+  { label: "No trial", value: "none" },
+];
+
 const PLAN_VARIANT: Record<
   string,
   "success" | "warning" | "default" | "danger"
@@ -92,6 +102,7 @@ export default function AdminTenantsPage() {
   const [provisioningFilter, setProvisioningFilter] = useState("");
   const [regionFilter, setRegionFilter] = useState("");
   const [residencyFilter, setResidencyFilter] = useState("");
+  const [trialFilter, setTrialFilter] = useState<TrialFilter>("");
   const [page, setPage] = useState(1);
   const [showCreate, setShowCreate] = useState(false);
   const [showDetail, setShowDetail] = useState<string | null>(null);
@@ -179,6 +190,12 @@ export default function AdminTenantsPage() {
         (t: AdminTenantListItem) => t.data_residency === residencyFilter,
       );
     }
+    // FE-S04-15 — client trial_ends_at filter
+    if (trialFilter) {
+      list = list.filter((t: AdminTenantListItem) =>
+        matchesTrialFilter(t.trial_ends_at, trialFilter),
+      );
+    }
     return list;
   }, [
     tenants,
@@ -187,6 +204,7 @@ export default function AdminTenantsPage() {
     provisioningFilter,
     regionFilter,
     residencyFilter,
+    trialFilter,
   ]);
 
   const totalPages = Math.max(1, Math.ceil(filteredTenants.length / 20));
@@ -354,6 +372,17 @@ export default function AdminTenantsPage() {
             }}
           />
         </div>
+        <div className="w-44" data-testid="admin-tenants-trial-filter">
+          <Select
+            options={TRIAL_FILTER_OPTIONS}
+            placeholder="Trial"
+            value={trialFilter}
+            onChange={(v) => {
+              setTrialFilter(v as TrialFilter);
+              setPage(1);
+            }}
+          />
+        </div>
       </div>
 
       {/* Create Modal */}
@@ -508,9 +537,16 @@ export default function AdminTenantsPage() {
             <p className="mt-2">Loading tenants...</p>
           </div>
         ) : paginatedTenants.length === 0 ? (
-          <div className="py-20 text-center text-[var(--text-muted)]">
+          <div
+            className="py-20 text-center text-[var(--text-muted)]"
+            data-testid="admin-tenants-empty"
+          >
             <Building2 className="mx-auto mb-2 h-10 w-10 opacity-40" />
-            <p>No tenants found</p>
+            <p>
+              {(tenants?.length ?? 0) > 0
+                ? "No tenants match the current filters"
+                : "No tenants found"}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -540,6 +576,9 @@ export default function AdminTenantsPage() {
                   </th>
                   <th className="p-3 font-medium text-[var(--text-muted)]">
                     Provisioning
+                  </th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">
+                    Trial ends
                   </th>
                   <th className="p-3 font-medium text-[var(--text-muted)]">
                     Created
@@ -614,6 +653,12 @@ export default function AdminTenantsPage() {
                       >
                         {provisioningStatusLabel(tenant.provisioning_status)}
                       </Badge>
+                    </td>
+                    <td
+                      className="p-3 text-xs text-[var(--text-muted)]"
+                      data-testid="admin-tenants-row-trial"
+                    >
+                      {formatTrialEndsLabel(tenant.trial_ends_at)}
                     </td>
                     <td className="p-3 text-xs text-[var(--text-muted)]">
                       {new Date(tenant.created_at).toLocaleDateString()}

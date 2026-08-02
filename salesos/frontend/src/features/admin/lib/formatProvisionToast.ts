@@ -45,3 +45,34 @@ export function activityStatusLabel(tenant: {
   if ((tenant.provisioning_status || "") === "suspended") return "Suspended";
   return "Inactive";
 }
+
+export type TrialFilter = "" | "has_trial" | "expired" | "none";
+
+/** FE-S04-15 — classify trial_ends_at for list filter/column. */
+export function trialBucket(
+  trialEndsAt: string | null | undefined,
+  nowMs: number = Date.now(),
+): Exclude<TrialFilter, ""> {
+  if (!trialEndsAt) return "none";
+  const ends = Date.parse(trialEndsAt);
+  if (Number.isNaN(ends)) return "none";
+  return ends < nowMs ? "expired" : "has_trial";
+}
+
+export function formatTrialEndsLabel(
+  trialEndsAt: string | null | undefined,
+): string {
+  if (!trialEndsAt) return "—";
+  const ends = Date.parse(trialEndsAt);
+  if (Number.isNaN(ends)) return "—";
+  return new Date(ends).toLocaleDateString();
+}
+
+export function matchesTrialFilter(
+  trialEndsAt: string | null | undefined,
+  filter: TrialFilter,
+  nowMs: number = Date.now(),
+): boolean {
+  if (!filter) return true;
+  return trialBucket(trialEndsAt, nowMs) === filter;
+}

@@ -66,6 +66,14 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     ).toBeVisible();
   });
 
+  test("admin tenants expose trial filter hook", async ({ page }) => {
+    await page.goto("/admin/tenants");
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByTestId("admin-tenants-trial-filter")).toBeVisible({
+      timeout: 8_000,
+    });
+  });
+
   test("admin tenants delete modal opens without mutate", async ({ page }) => {
     await page.goto("/admin/tenants");
     await page.waitForLoadState("networkidle");

@@ -9,7 +9,7 @@
 | STORY-04-01 (Tenant extension) | BE-Lead | P0 | Low | **IN PROGRESS** (A2 `64b44e9` / `f6b2e84c1a90`; FE B4 sync) | Migration applied; `plan_id`/`region`/`data_residency`/`provisioning_status`/`trial_ends_at` present |
 | STORY-04-02 (provisioning workflow) | BE1 | P0 | Medium | **IN PROGRESS** (A3 skeleton + FE create wires `admin_email`) | Idempotent provisioning job creates a tenant + seeds default Studio config + assigns first admin |
 | STORY-02-03 (JWT audience split, consume) | BE2 | P1 | Medium | **CLOSED** (DEC-093) | Owner-audience consumption **CLOSED** (DEC-093): Platform admin wires `decode_owner_*` via `owner_auth.py`; host pytest **14/14 PASS**. Groundwork `2379e5f`; DEC-091 OPEN superseded. |
-| FE Stream B (Owner Console tenants) | FE-Lead | P1 | Low | **B1–B5 + B4 + FE-S04-06..14** ([`PHASE1_FE_STREAM_B_CRUMB.md`](../PHASE1_FE_STREAM_B_CRUMB.md)) | Admin `/admin/tenants` Owner Platform CRUD/suspend/filters/region; `TenantList` untouched; no Production GO |
+| FE Stream B (Owner Console tenants) | FE-Lead | P1 | Low | **B1–B5 + B4 + FE-S04-06..15** ([`PHASE1_FE_STREAM_B_CRUMB.md`](../PHASE1_FE_STREAM_B_CRUMB.md)) | Admin `/admin/tenants` Owner Platform CRUD/suspend/filters/region/trial; `TenantList` untouched; no Production GO |
 
 **Expected Demo:** Provision a brand-new test tenant end-to-end via a script (no UI yet), show it isolated from Muhide's tenant in the RLS test suite.
 

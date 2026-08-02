@@ -1,5 +1,8 @@
 import {
   activityStatusLabel,
+  formatTrialEndsLabel,
+  matchesTrialFilter,
+  trialBucket,
   formatProvisionResultDescription,
   formatSuspendResultDescription,
 } from "../formatProvisionToast";
@@ -62,5 +65,31 @@ describe("activityStatusLabel — FE-S04-13", () => {
     expect(
       activityStatusLabel({ is_active: false, provisioning_status: "active" }),
     ).toBe("Inactive");
+  });
+});
+
+describe("trial helpers — FE-S04-15", () => {
+  const now = Date.parse("2026-08-02T00:00:00.000Z");
+
+  it("buckets none / has_trial / expired", () => {
+    expect(trialBucket(null, now)).toBe("none");
+    expect(trialBucket("2026-09-01T00:00:00.000Z", now)).toBe("has_trial");
+    expect(trialBucket("2026-07-01T00:00:00.000Z", now)).toBe("expired");
+  });
+
+  it("matches trial filter", () => {
+    expect(matchesTrialFilter(null, "", now)).toBe(true);
+    expect(matchesTrialFilter(null, "none", now)).toBe(true);
+    expect(
+      matchesTrialFilter("2026-09-01T00:00:00.000Z", "has_trial", now),
+    ).toBe(true);
+    expect(matchesTrialFilter("2026-07-01T00:00:00.000Z", "expired", now)).toBe(
+      true,
+    );
+  });
+
+  it("formats trial label", () => {
+    expect(formatTrialEndsLabel(null)).toBe("—");
+    expect(formatTrialEndsLabel("not-a-date")).toBe("—");
   });
 });
