@@ -167,7 +167,19 @@ async def register(
     service: IdentityService = Depends(get_service),
     db: AsyncSession = Depends(get_db_session),
 ):
+    from sqlalchemy import text as sa_text
+
+    from app.database import set_current_tenant_id
+
     tenant_id = str(body.tenant_id) if body.tenant_id else str(uuid4())
+    # RLS on users/device_sessions (FORCE) requires app.tenant_id GUC before
+    # INSERT/SELECT. Self-service register has no JWT yet — pin GUC to the
+    # tenant being created/joined so WITH CHECK and email uniqueness work.
+    set_current_tenant_id(tenant_id)
+    await db.execute(
+        sa_text("SELECT set_config('app.tenant_id', :tenant_id, true)"),
+        {"tenant_id": tenant_id},
+    )
     if not body.tenant_id:
         from app.modules.identity.models import Tenant
 

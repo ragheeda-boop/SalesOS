@@ -455,6 +455,24 @@ class IdentityService:
         return user
 
     async def authenticate(self, email: str, password: str) -> User:
+        # Email is globally unique, but FORCE RLS on users hides rows until
+        # app.tenant_id is set. Probe via owner_engine (same split as init_db /
+        # Alembic), then pin GUC on the request session before app-role reads.
+        from sqlalchemy import text as sa_text
+        from sqlalchemy.ext.asyncio import AsyncSession as _AsyncSession
+
+        from app.database import owner_engine, set_current_tenant_id
+
+        async with _AsyncSession(owner_engine, expire_on_commit=False) as owner_db:
+            probe = await UserRepository(owner_db).get_by_email(email)
+            tenant_id = str(probe.tenant_id) if probe and probe.tenant_id else None
+        if tenant_id:
+            set_current_tenant_id(tenant_id)
+            await self.db.execute(
+                sa_text("SELECT set_config('app.tenant_id', :tenant_id, true)"),
+                {"tenant_id": tenant_id},
+            )
+
         user = await self._user_repo.get_by_email(email)
 
         _MAX_FAILED_ATTEMPTS = 5

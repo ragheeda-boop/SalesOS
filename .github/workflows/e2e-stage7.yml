@@ -37,13 +37,15 @@ jobs:
     env:
       SECRET_KEY: ci-e2e-test-secret-key-do-not-use-in-prod!!
       JWT_SECRET_KEY: ci-e2e-test-jwt-secret-do-not-use-in-prod
-      E2E_USER_EMAIL: e2e.ci@example.com
-      E2E_USER_PASSWORD: E2eCiPass123!
+      # Password meets identity complexity; quote to keep ! safe in YAML.
+      E2E_USER_EMAIL: e2e.ci+stage7@example.com
+      E2E_USER_PASSWORD: "E2eCiPassw0rd!"
       API_BASE_URL: http://127.0.0.1:8000
       NEXT_PUBLIC_API_URL: http://localhost:8000
       API_URL: http://localhost:8000
       BASE_URL: http://localhost:3000
       SALESOS_JWKS_ALLOW_REGENERATE: "1"
+      SALESOS_JWKS_KEY_DIR: /tmp/salesos-e2e-jwks
       EVENT_BUS_TYPE: in_memory
     services:
       postgres:
@@ -105,13 +107,21 @@ jobs:
             -v ON_ERROR_STOP=1 -f infra/docker/postgres/init/02-app-role.sql
           PGPASSWORD=salesos_test psql -h localhost -U salesos -d salesos_test \
             -v ON_ERROR_STOP=1 -c "ALTER ROLE salesos_app WITH PASSWORD 'ci_app_role_test_password';"
+      - name: Pre-warm JWKS RSA keys on disk
+        # RSA-4096 sync gen on first token mint blocked the asyncio loop (~120s)
+        # and Stage 7 register timed out (runs 30725710618 / 30725711300).
+        run: |
+          cd salesos/backend
+          mkdir -p "${SALESOS_JWKS_KEY_DIR}"
+          poetry run python -c "from app.modules.identity.jwks import get_private_key; get_private_key(); print('jwks prewarm ok')"
       - name: Start backend API
         run: |
           cd salesos/backend
-          # Explicit override avoids default postgres:6432 rewrite when
-          # APP_POSTGRES_PASSWORD is set (same trap as Stage 3 unit job).
+          # Owner role for disposable register bootstrap. salesos_app + RLS
+          # without tenant GUC hung register on tip 8600f68. RLS remains
+          # covered by Stage 3/4 adversarial suites (DEC-085 untouched).
+          # Startup also warms JWKS when SALESOS_JWKS_ALLOW_REGENERATE=1.
           DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
-          APP_DATABASE_URL_OVERRIDE=postgresql+asyncpg://salesos_app:ci_app_role_test_password@localhost:5432/salesos_test \
           TEST_DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
           POSTGRES_USER=salesos \
           POSTGRES_HOST=localhost \
@@ -119,16 +129,17 @@ jobs:
           POSTGRES_DB=salesos_test \
           POSTGRES_PASSWORD=salesos_test \
           REDIS_URL=redis://localhost:6379/0 \
-          APP_POSTGRES_USER=salesos_app \
-          APP_POSTGRES_PASSWORD=ci_app_role_test_password \
           ALLOWED_HOSTS=http://localhost:3000,http://127.0.0.1:3000 \
           NEO4J_PASSWORD= \
           poetry run uvicorn app.main:app --host 127.0.0.1 --port 8000 \
             > /tmp/salesos-e2e-backend.log 2>&1 &
           echo $! > /tmp/salesos-e2e-backend.pid
-          for i in $(seq 1 90); do
+          for i in $(seq 1 120); do
             if curl -fsS --max-time 5 http://127.0.0.1:8000/health/live >/dev/null 2>&1; then
               echo "backend live after ${i} attempts"
+              curl -fsS --max-time 30 \
+                http://127.0.0.1:8000/api/v1/identity/.well-known/jwks.json \
+                >/tmp/e2e-jwks.json || true
               exit 0
             fi
             sleep 2
@@ -138,12 +149,29 @@ jobs:
           exit 1
       - name: Register disposable E2E user
         run: |
-          code=$(curl -sS --max-time 120 -o /tmp/e2e-register.json -w "%{http_code}" \
+          python - <<'PY'
+          import json, os
+          payload = {
+              "email": os.environ["E2E_USER_EMAIL"],
+              "password": os.environ["E2E_USER_PASSWORD"],
+              "full_name": "CI E2E User",
+          }
+          open("/tmp/e2e-register-body.json", "w", encoding="utf-8").write(json.dumps(payload))
+          PY
+          set +e
+          code=$(curl -sS --max-time 90 -o /tmp/e2e-register.json -w "%{http_code}" \
             -X POST http://127.0.0.1:8000/api/v1/identity/register \
             -H 'Content-Type: application/json' \
-            -d "{\"email\":\"${E2E_USER_EMAIL}\",\"password\":\"${E2E_USER_PASSWORD}\",\"full_name\":\"CI E2E User\"}")
-          echo "register HTTP ${code}"
+            --data-binary @/tmp/e2e-register-body.json)
+          curl_rc=$?
+          set -e
+          echo "register HTTP ${code} curl_rc=${curl_rc}"
           cat /tmp/e2e-register.json || true
+          if [ "$curl_rc" -ne 0 ]; then
+            echo "::error::E2E user register curl failed (rc=${curl_rc})"
+            tail -n 200 /tmp/salesos-e2e-backend.log || true
+            exit 1
+          fi
           if [ "$code" != "200" ] && [ "$code" != "201" ] && [ "$code" != "409" ]; then
             echo "::error::E2E user register failed (HTTP ${code})"
             tail -n 200 /tmp/salesos-e2e-backend.log || true
