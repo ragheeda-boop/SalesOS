@@ -96,7 +96,7 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
     handler: () => router.push("/integrations?step=disconnect"),
   });
 
-  // Tenant Studio pages already on tip (FE-S10-01..08) — no invented branding/territories.
+  // Tenant Studio pages on tip (FE-S10-01..08) — territories still BE-blocked.
   registerCommand({
     id: "go.studio.custom-fields",
     label: "Studio · Custom Fields",
@@ -135,6 +135,14 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
     description: "Tenant Studio notification rules (tip STORY-10-08)",
     category: "تنقل",
     handler: () => router.push("/studio/notifications"),
+  });
+
+  registerCommand({
+    id: "go.studio.branding",
+    label: "Studio · Branding",
+    description: "Tenant Studio branding & languages (tip STORY-10-07)",
+    category: "تنقل",
+    handler: () => router.push("/studio/branding"),
   });
 
   registerCommand({

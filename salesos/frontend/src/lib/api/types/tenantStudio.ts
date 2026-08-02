@@ -365,3 +365,30 @@ export interface NotificationRuleCompileResult {
   rule: NotificationRule;
   engine_rule: Record<string, unknown>;
 }
+
+/** Tip STORY-10-07 Branding & Languages Studio. */
+export const BRANDING_LOCALES = ["ar", "en"] as const;
+
+export type BrandingLocale = (typeof BRANDING_LOCALES)[number];
+
+export interface BrandingUpsert {
+  display_name?: string;
+  logo_url?: string;
+  primary_color?: string;
+  secondary_color?: string;
+  default_locale?: string;
+  supported_locales?: string[];
+}
+
+export interface BrandingConfig {
+  tenant_id: string;
+  display_name: string;
+  logo_url: string;
+  primary_color: string;
+  secondary_color: string;
+  default_locale: string;
+  supported_locales: string[];
+  schema_version: number;
+  created_at?: string;
+  updated_at?: string;
+}

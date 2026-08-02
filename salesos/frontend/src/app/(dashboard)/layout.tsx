@@ -36,6 +36,7 @@ import {
   FormInput,
   Gauge,
   KeyRound,
+  Palette,
 } from "lucide-react";
 import {
   LazyCommandBar,
@@ -86,6 +87,7 @@ const NAV_KEYS = [
   },
   { href: "/studio/workflows", key: "nav.workflow_studio", icon: Workflow },
   { href: "/studio/notifications", key: "nav.notification_rules", icon: Bell },
+  { href: "/studio/branding", key: "nav.branding_studio", icon: Palette },
   { href: "/settings", key: "nav.settings", icon: Settings },
   { href: "/admin", key: "nav.admin", icon: Shield },
 ];

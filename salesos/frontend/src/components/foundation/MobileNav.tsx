@@ -22,6 +22,7 @@ import {
   Gauge,
   KeyRound,
   Bell,
+  Palette,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
@@ -66,6 +67,11 @@ export function MobileNav() {
       href: "/studio/notifications",
       key: "nav.notification_rules",
       icon: Bell,
+    },
+    {
+      href: "/studio/branding",
+      key: "nav.branding_studio",
+      icon: Palette,
     },
     { href: "/settings", key: "nav.settings", icon: Settings },
     { href: "/admin", key: "nav.admin", icon: Shield },

@@ -139,6 +139,8 @@ export const tenantStudioKeys = {
     [...tenantStudioKeys.all, "notification-rules", tenantId] as const,
   notificationEvents: (tenantId: string) =>
     [...tenantStudioKeys.all, "notification-events", tenantId] as const,
+  branding: (tenantId: string) =>
+    [...tenantStudioKeys.all, "branding", tenantId] as const,
 };
 
 export const opportunityKeys = {
