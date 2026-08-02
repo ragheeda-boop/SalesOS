@@ -1,4 +1,5 @@
 import {
+  activityStatusLabel,
   formatProvisionResultDescription,
   formatSuspendResultDescription,
 } from "../formatProvisionToast";
@@ -38,5 +39,28 @@ describe("formatSuspendResultDescription", () => {
     expect(formatSuspendResultDescription("t-1", "Owner Console")).toBe(
       "tenant_id=t-1 · reason=Owner Console · provisioning=suspended",
     );
+  });
+});
+
+describe("activityStatusLabel — FE-S04-13", () => {
+  it("labels active tenants", () => {
+    expect(
+      activityStatusLabel({ is_active: true, provisioning_status: "active" }),
+    ).toBe("Active");
+  });
+
+  it("labels suspend path as Suspended", () => {
+    expect(
+      activityStatusLabel({
+        is_active: false,
+        provisioning_status: "suspended",
+      }),
+    ).toBe("Suspended");
+  });
+
+  it("labels soft-delete as Inactive (not Suspended)", () => {
+    expect(
+      activityStatusLabel({ is_active: false, provisioning_status: "active" }),
+    ).toBe("Inactive");
   });
 });

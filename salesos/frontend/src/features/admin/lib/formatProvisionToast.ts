@@ -35,3 +35,13 @@ export function formatSuspendResultDescription(
     ? `tenant_id=${tenantId} · reason=${r} · provisioning=suspended`
     : `tenant_id=${tenantId} · provisioning=suspended`;
 }
+
+/** FE-S04-13 — soft-delete inactive vs suspend (both may set is_active=false). */
+export function activityStatusLabel(tenant: {
+  is_active: boolean;
+  provisioning_status?: string | null;
+}): string {
+  if (tenant.is_active) return "Active";
+  if ((tenant.provisioning_status || "") === "suspended") return "Suspended";
+  return "Inactive";
+}

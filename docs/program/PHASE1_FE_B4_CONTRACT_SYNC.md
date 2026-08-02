@@ -38,3 +38,6 @@
 | FE-S04-09 | Soft-delete honesty (not “permanent”) | **LANDED** |
 | FE-S04-10 | List filter by activity + provisioning_status | **LANDED** |
 | FE-S04-11 | Hard-delete API + confirm checkbox | **LANDED** |
+| FE-S04-12 | Region + data_residency list columns/filters | **LANDED** |
+| FE-S04-13 | Inactive vs Suspended list honesty | **LANDED** — `activityStatusLabel` |
+| FE-S04-14 | E2E region/residency + delete modal (cancel, no mutate) | **HOOKS LANDED** |

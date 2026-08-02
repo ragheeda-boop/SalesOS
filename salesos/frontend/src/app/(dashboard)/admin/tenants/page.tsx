@@ -46,6 +46,7 @@ import {
   type TenantOwnerPlatformWritePayload,
 } from "@/features/admin/widgets/TenantOwnerPlatformFields";
 import {
+  activityStatusLabel,
   formatProvisionResultDescription,
   formatSuspendResultDescription,
 } from "@/features/admin/lib/formatProvisionToast";
@@ -61,7 +62,8 @@ const PLAN_OPTIONS = [
 const STATUS_OPTIONS = [
   { label: "All activity", value: "" },
   { label: "Active", value: "active" },
-  { label: "Suspended / inactive", value: "suspended" },
+  // API status=suspended → is_active=false (covers soft-delete + suspend)
+  { label: "Inactive (is_active=false)", value: "suspended" },
 ];
 
 const PROVISIONING_FILTER_OPTIONS = [
@@ -88,6 +90,8 @@ export default function AdminTenantsPage() {
   const [planFilter, setPlanFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [provisioningFilter, setProvisioningFilter] = useState("");
+  const [regionFilter, setRegionFilter] = useState("");
+  const [residencyFilter, setResidencyFilter] = useState("");
   const [page, setPage] = useState(1);
   const [showCreate, setShowCreate] = useState(false);
   const [showDetail, setShowDetail] = useState<string | null>(null);
@@ -118,6 +122,33 @@ export default function AdminTenantsPage() {
   const deleteMutation = useDeleteAdminTenant();
   const hardDeleteMutation = useHardDeleteAdminTenant();
 
+  // FE-S04-12 — derive region / residency options from loaded list
+  const regionOptions = useMemo(() => {
+    const values = new Set<string>();
+    for (const t of tenants || []) {
+      if (t.region) values.add(t.region);
+    }
+    return [
+      { label: "All regions", value: "" },
+      ...Array.from(values)
+        .sort()
+        .map((v) => ({ label: v, value: v })),
+    ];
+  }, [tenants]);
+
+  const residencyOptions = useMemo(() => {
+    const values = new Set<string>();
+    for (const t of tenants || []) {
+      if (t.data_residency) values.add(t.data_residency);
+    }
+    return [
+      { label: "All residency", value: "" },
+      ...Array.from(values)
+        .sort()
+        .map((v) => ({ label: v, value: v })),
+    ];
+  }, [tenants]);
+
   const filteredTenants = useMemo(() => {
     if (!tenants) return [];
     let list = tenants;
@@ -139,8 +170,24 @@ export default function AdminTenantsPage() {
           (t.provisioning_status || "pending") === provisioningFilter,
       );
     }
+    // FE-S04-12 — client filters (API has no region/residency query params yet)
+    if (regionFilter) {
+      list = list.filter((t: AdminTenantListItem) => t.region === regionFilter);
+    }
+    if (residencyFilter) {
+      list = list.filter(
+        (t: AdminTenantListItem) => t.data_residency === residencyFilter,
+      );
+    }
     return list;
-  }, [tenants, search, planFilter, provisioningFilter]);
+  }, [
+    tenants,
+    search,
+    planFilter,
+    provisioningFilter,
+    regionFilter,
+    residencyFilter,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(filteredTenants.length / 20));
   const paginatedTenants = filteredTenants.slice((page - 1) * 20, page * 20);
@@ -281,6 +328,28 @@ export default function AdminTenantsPage() {
             value={provisioningFilter}
             onChange={(v) => {
               setProvisioningFilter(v);
+              setPage(1);
+            }}
+          />
+        </div>
+        <div className="w-44" data-testid="admin-tenants-region-filter">
+          <Select
+            options={regionOptions}
+            placeholder="Region"
+            value={regionFilter}
+            onChange={(v) => {
+              setRegionFilter(v);
+              setPage(1);
+            }}
+          />
+        </div>
+        <div className="w-44" data-testid="admin-tenants-residency-filter">
+          <Select
+            options={residencyOptions}
+            placeholder="Residency"
+            value={residencyFilter}
+            onChange={(v) => {
+              setResidencyFilter(v);
               setPage(1);
             }}
           />
@@ -461,6 +530,12 @@ export default function AdminTenantsPage() {
                     Users
                   </th>
                   <th className="p-3 font-medium text-[var(--text-muted)]">
+                    Region
+                  </th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">
+                    Residency
+                  </th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">
                     Status
                   </th>
                   <th className="p-3 font-medium text-[var(--text-muted)]">
@@ -506,14 +581,28 @@ export default function AdminTenantsPage() {
                     <td className="p-3 text-sm text-[var(--text-secondary)]">
                       {tenant.user_count}
                     </td>
+                    <td
+                      className="p-3 text-sm text-[var(--text-secondary)]"
+                      data-testid="admin-tenants-row-region"
+                    >
+                      {tenant.region || "—"}
+                    </td>
+                    <td
+                      className="p-3 text-sm text-[var(--text-secondary)]"
+                      data-testid="admin-tenants-row-residency"
+                    >
+                      {tenant.data_residency || "—"}
+                    </td>
                     <td className="p-3">
                       {tenant.is_active ? (
                         <span className="inline-flex items-center gap-1 text-sm text-success-600">
-                          <CheckCircle className="h-3.5 w-3.5" /> Active
+                          <CheckCircle className="h-3.5 w-3.5" />{" "}
+                          {activityStatusLabel(tenant)}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-sm text-danger-600">
-                          <XCircle className="h-3.5 w-3.5" /> Suspended
+                          <XCircle className="h-3.5 w-3.5" />{" "}
+                          {activityStatusLabel(tenant)}
                         </span>
                       )}
                     </td>
@@ -543,6 +632,7 @@ export default function AdminTenantsPage() {
                           variant="ghost"
                           onClick={() => setShowDeleteConfirm(tenant.id)}
                           className="text-danger-600 hover:text-danger-700"
+                          data-testid="admin-tenants-delete-open"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

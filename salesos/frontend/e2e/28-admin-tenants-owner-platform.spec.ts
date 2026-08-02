@@ -52,4 +52,37 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
       page.getByTestId("admin-tenants-provisioning-filter"),
     ).toBeVisible();
   });
+
+  test("admin tenants expose region/residency filter hooks", async ({
+    page,
+  }) => {
+    await page.goto("/admin/tenants");
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByTestId("admin-tenants-region-filter")).toBeVisible({
+      timeout: 8_000,
+    });
+    await expect(
+      page.getByTestId("admin-tenants-residency-filter"),
+    ).toBeVisible();
+  });
+
+  test("admin tenants delete modal opens without mutate", async ({ page }) => {
+    await page.goto("/admin/tenants");
+    await page.waitForLoadState("networkidle");
+    const deleteBtn = page.getByTestId("admin-tenants-delete-open").first();
+    const hasRow = await deleteBtn.isVisible().catch(() => false);
+    test.skip(!hasRow, "No tenant rows to open delete modal");
+    await deleteBtn.click();
+    await expect(page.getByTestId("admin-tenants-delete-modal")).toBeVisible({
+      timeout: 5_000,
+    });
+    await expect(
+      page.getByTestId("admin-tenants-hard-delete-confirm"),
+    ).toBeVisible();
+    // Cancel — no soft/hard delete
+    await page.getByRole("button", { name: /Cancel/i }).click();
+    await expect(page.getByTestId("admin-tenants-delete-modal")).toBeHidden({
+      timeout: 5_000,
+    });
+  });
 });
