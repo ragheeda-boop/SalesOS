@@ -39,12 +39,7 @@ jest.mock("@salesos/ui", () => ({
   Button: ({ children, ...props }: Record<string, unknown>) =>
     createElement("button", props, children),
   Input: ({ label, ...props }: Record<string, unknown>) =>
-    createElement(
-      "label",
-      null,
-      label,
-      createElement("input", props),
-    ),
+    createElement("label", null, label, createElement("input", props)),
   Spinner: () => createElement("div", { "data-testid": "spinner" }),
   useToast: () => ({ toast: jest.fn() }),
 }));
