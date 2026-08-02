@@ -6,6 +6,7 @@ Not Production GO. DEC-085 untouched. No Alembic / FORCE RLS.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
@@ -98,7 +99,7 @@ class NotificationRule:
         }
 
 
-def _parse_conditions(raw: list[dict[str, Any]] | list[RouteCondition]) -> list[RouteCondition]:
+def _parse_conditions(raw: Sequence[Any] | None) -> list[RouteCondition]:
     out: list[RouteCondition] = []
     for item in raw or []:
         if isinstance(item, RouteCondition):
@@ -117,9 +118,7 @@ def _parse_conditions(raw: list[dict[str, Any]] | list[RouteCondition]) -> list[
     return out
 
 
-def _parse_recipients(
-    raw: list[dict[str, Any]] | list[RouteRecipient],
-) -> list[RouteRecipient]:
+def _parse_recipients(raw: Sequence[Any] | None) -> list[RouteRecipient]:
     out: list[RouteRecipient] = []
     for item in raw or []:
         if isinstance(item, RouteRecipient):
@@ -157,8 +156,8 @@ def build_notification_rule(
     name: str,
     event_type: str,
     channels: list[str],
-    recipients: list[dict[str, Any]] | list[RouteRecipient],
-    conditions: list[dict[str, Any]] | list[RouteCondition] | None = None,
+    recipients: Sequence[Any],
+    conditions: Sequence[Any] | None = None,
     message_template: str = "",
     priority: int = 100,
     active: bool = True,
@@ -174,7 +173,7 @@ def build_notification_rule(
     et = (event_type or "").strip()
     if et not in VALID_EVENT_TYPES:
         raise NotificationRuleError(f"event_type must be one of {sorted(VALID_EVENT_TYPES)}")
-    recs = _parse_recipients(list(recipients))
+    recs = _parse_recipients(recipients)
     if not recs:
         raise NotificationRuleError("recipients required (non-empty)")
     return NotificationRule(
@@ -184,7 +183,7 @@ def build_notification_rule(
         event_type=et,
         channels=_parse_channels(list(channels)),
         recipients=recs,
-        conditions=_parse_conditions(list(conditions or [])),
+        conditions=_parse_conditions(conditions),
         message_template=(message_template or "").strip(),
         priority=int(priority),
         active=bool(active),
