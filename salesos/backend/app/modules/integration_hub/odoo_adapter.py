@@ -1,4 +1,4 @@
-"""STORY-09-01..09-04 — OdooAdapter (partner, lead, message, helpdesk.ticket).
+"""STORY-09-01..09-05 — OdooAdapter (partner/lead/message/ticket/task).
 
 Vendor-specific code lives here only. Uses vault ``credential_ref`` +
 non-secret config; never invents passwords. Injectable RPC for tests /
@@ -196,6 +196,21 @@ _TICKET_FIELDS = (
     "write_date",
 )
 
+_TASK_FIELDS = (
+    "id",
+    "name",
+    "stage_id",
+    "description",
+    "partner_id",
+    "user_id",
+    "x_studio_financing_amount_requested",
+    "x_studio_approved_financing_amount",
+    "x_studio_unified_agreement_status",
+    "x_studio_coverage_value",
+    "x_studio_policy_provider",
+    "write_date",
+)
+
 
 def _fields_for_model(model: str) -> tuple[str, ...]:
     key = (model or "").strip()
@@ -205,11 +220,13 @@ def _fields_for_model(model: str) -> tuple[str, ...]:
         return _MESSAGE_FIELDS
     if key == "helpdesk.ticket":
         return _TICKET_FIELDS
+    if key == "project.task":
+        return _TASK_FIELDS
     return _PARTNER_FIELDS
 
 
 class OdooAdapter:
-    """SourceConnector for Odoo — partner, opportunity, notes, SupportTicket."""
+    """SourceConnector for Odoo — partner through TaskCaseExtension path."""
 
     def __init__(
         self,

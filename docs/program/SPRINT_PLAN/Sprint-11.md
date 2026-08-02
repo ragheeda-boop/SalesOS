@@ -13,7 +13,7 @@
 | STORY-09-03 (InteractionNote/TimelineEvent + PII scrubbing) | BE-Lead, AI-Lead | P0 | High | **LANDED BE (Stream A):** `mail.message` pull + `sync_interaction_notes` + AI-GR-001 `scrub_pii_for_rag` before RAG. Crumb [`PHASE1_STORY_09_03_INTERACTION_NOTE_PII_CRUMB.md`](../PHASE1_STORY_09_03_INTERACTION_NOTE_PII_CRUMB.md). No new RLS. Live ≥100 prod-note audit residual. No Production GO. |
 | FE-S09-03 (InteractionNote Studio presets + PII honesty) | FE-Lead | P1 | Low | **LANDED FE (Stream B):** Map/Schedule `mail.message` tip presets + AI-GR-001 PII honesty (no RAG GO). Crumb [`PHASE1_FE_S09_03_NOTE_STUDIO_HONESTY_CRUMB.md`](../PHASE1_FE_S09_03_NOTE_STUDIO_HONESTY_CRUMB.md). No Production GO. |
 | STORY-09-04 (SupportTicket) | BE2 | P1 | Medium | **BE-OPEN / not on tip** — do not invent FE `helpdesk.ticket` Studio until BE lands on tip. No Production GO. |
-| STORY-09-05 (TaskCaseExtension) | BE1 | P0 | High | Modeled as Value Object on `Task`, not standalone aggregate; JSON Schema validated per case_type |
+| STORY-09-05 (TaskCaseExtension) | BE1 | P0 | High | **LANDED BE (Stream A):** `TaskCaseExtension` VO on Task (no aggregate id) + per-`case_type` JSON Schema; `project.task` sync. Crumb [`PHASE1_STORY_09_05_TASK_CASE_EXTENSION_CRUMB.md`](../PHASE1_STORY_09_05_TASK_CASE_EXTENSION_CRUMB.md). No new RLS. No Production GO. |
 | STORY-09-06 (CustomerInvoice) | BE2 | P1 | Medium | Distinct from `PlatformBillingInvoice`, no naming collision |
 | STORY-09-07 (incremental sync, feature flag) | BE3 | P0 | High | `write_date` cursor working; `feature_odoo_integration` flag live for Muhide |
 

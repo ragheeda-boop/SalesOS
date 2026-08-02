@@ -1,7 +1,7 @@
-"""Integration Hub framework (STORY-08-01..09-04).
+"""Integration Hub framework (STORY-08-01..09-05).
 
 SourceConnector + Hub HTTP + ConflictResolutionPolicy + OdooAdapter
-(res.partner + crm.lead + mail.message + helpdesk.ticket).
+(res.partner + crm.lead + mail.message + helpdesk.ticket + project.task).
 Not Production GO.
 """
 
@@ -42,6 +42,8 @@ from app.modules.integration_hub.sync_schedule import (
     schedule_connection_sync,
     tick_with_sync_logging,
 )
+from app.modules.integration_hub.task_case_extension import TaskCaseExtension
+from app.modules.integration_hub.task_sync import sync_project_tasks
 from app.modules.integration_hub.ticket_sync import sync_support_tickets
 
 __all__ = [
@@ -64,6 +66,7 @@ __all__ = [
     "SourceConnector",
     "SyncRunModel",
     "SyncRunService",
+    "TaskCaseExtension",
     "assert_no_feedback_loop_pull",
     "certify_source_connector",
     "filter_mappings_for_pull",
@@ -73,6 +76,7 @@ __all__ = [
     "sync_interaction_notes",
     "sync_opportunity_records",
     "sync_partner_records",
+    "sync_project_tasks",
     "sync_support_tickets",
     "tick_with_sync_logging",
 ]
