@@ -725,8 +725,12 @@ jobs:
       - name: Start backend API
         run: |
           cd salesos/backend
+          # Explicit override avoids default postgres:6432 rewrite when
+          # APP_POSTGRES_PASSWORD is set (same trap as Stage 3 unit job).
           DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
+          APP_DATABASE_URL_OVERRIDE=postgresql+asyncpg://salesos_app:ci_app_role_test_password@localhost:5432/salesos_test \
           TEST_DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
+          POSTGRES_USER=salesos \
           POSTGRES_HOST=localhost \
           POSTGRES_PORT=5432 \
           POSTGRES_DB=salesos_test \
@@ -740,8 +744,8 @@ jobs:
             > /tmp/salesos-e2e-backend.log 2>&1 &
           echo $! > /tmp/salesos-e2e-backend.pid
           for i in $(seq 1 90); do
-            if curl -fsS http://127.0.0.1:8000/health >/dev/null 2>&1; then
-              echo "backend healthy after ${i} attempts"
+            if curl -fsS --max-time 5 http://127.0.0.1:8000/health/live >/dev/null 2>&1; then
+              echo "backend live after ${i} attempts"
               exit 0
             fi
             sleep 2
@@ -751,7 +755,7 @@ jobs:
           exit 1
       - name: Register disposable E2E user
         run: |
-          code=$(curl -sS -o /tmp/e2e-register.json -w "%{http_code}" \
+          code=$(curl -sS --max-time 120 -o /tmp/e2e-register.json -w "%{http_code}" \
             -X POST http://127.0.0.1:8000/api/v1/identity/register \
             -H 'Content-Type: application/json' \
             -d "{\"email\":\"${E2E_USER_EMAIL}\",\"password\":\"${E2E_USER_PASSWORD}\",\"full_name\":\"CI E2E User\"}")
@@ -759,6 +763,7 @@ jobs:
           cat /tmp/e2e-register.json || true
           if [ "$code" != "200" ] && [ "$code" != "201" ] && [ "$code" != "409" ]; then
             echo "::error::E2E user register failed (HTTP ${code})"
+            tail -n 200 /tmp/salesos-e2e-backend.log || true
             exit 1
           fi
       - name: Install Playwright
@@ -768,10 +773,8 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Setup .env for E2E
         run: |
-          cat > salesos/frontend/.env.local << EOF
-          NEXT_PUBLIC_API_URL=http://localhost:8000
-          API_URL=http://localhost:8000
-          EOF
+          printf '%s\n' 'NEXT_PUBLIC_API_URL=http://localhost:8000' 'API_URL=http://localhost:8000' \
+            > salesos/frontend/.env.local
       - name: Run E2E tests (smoke + real BE)
         # Gate = Wave 13 authenticated smoke against real postgres/redis/API.
         # Excludes visual baselines (no chromium-linux snapshots) and numbered
