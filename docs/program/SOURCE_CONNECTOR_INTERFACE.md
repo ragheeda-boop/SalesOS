@@ -26,7 +26,7 @@ Call `certify_source_connector(adapter)` (async). The reference `FakeSourceConne
 
 - `ExternalSystemConnection` persistence / Fernet credentials — STORY-08-02
 - Field mapping / drift — STORY-08-03
-- Anti-corruption translators — STORY-08-04
+- Anti-corruption translators — STORY-08-04 (**LANDED** — `OdooTranslator`)
 - Tenant UI / marketplace certification pipeline
 
 ## Entitlement
