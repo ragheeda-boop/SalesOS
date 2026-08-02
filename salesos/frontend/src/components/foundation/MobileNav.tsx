@@ -26,6 +26,7 @@ import {
   Target,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { TenantBrandMark } from "@/features/tenant-studio/TenantBrandMark";
 
 export function MobileNav() {
   const [open, setOpen] = useState(false);
@@ -137,9 +138,7 @@ export function MobileNav() {
             aria-label={t("a11y.navigation_menu")}
           >
             <div className="flex items-center justify-between border-b border-[var(--border-default)] px-4 h-14">
-              <span className="text-lg font-bold text-[var(--text-primary)]">
-                SalesOS
-              </span>
+              <TenantBrandMark />
               <button
                 onClick={close}
                 className="rounded-lg p-1.5 hover:bg-[var(--bg-secondary)]"

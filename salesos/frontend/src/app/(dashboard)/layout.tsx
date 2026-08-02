@@ -49,6 +49,7 @@ import { useTheme } from "@salesos/hooks";
 import { registerBuiltinCommands } from "@/lib/commands";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/foundation/LanguageSwitcher";
+import { TenantBrandMark } from "@/features/tenant-studio/TenantBrandMark";
 import { useAiCopilotEnabled } from "@/lib/hooks/useAiCopilotEnabled";
 import { clearAuthTokens } from "@/lib/auth/session";
 
@@ -267,9 +268,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
             )}
           >
             <div className="flex items-center justify-between border-b border-[var(--border-default)] px-4 h-14">
-              <span className="text-lg font-bold text-[var(--text-primary)]">
-                SalesOS
-              </span>
+              <TenantBrandMark />
               <button
                 onClick={closeMobileSidebar}
                 className="rounded-lg p-2 hover:bg-[var(--bg-tertiary)] dark:hover:bg-[var(--bg-secondary)] min-h-[44px] min-w-[44px] flex items-center justify-center"
@@ -318,8 +317,10 @@ function DashboardContent({ children }: { children: ReactNode }) {
               sidebarCollapsed && "justify-center px-0",
             )}
           >
-            {!sidebarCollapsed && (
-              <span className="text-lg font-bold">SalesOS</span>
+            {sidebarCollapsed ? (
+              <TenantBrandMark collapsed />
+            ) : (
+              <TenantBrandMark />
             )}
           </div>
           <nav className="flex-1 space-y-1 p-2">

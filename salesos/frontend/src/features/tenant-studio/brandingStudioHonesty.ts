@@ -4,7 +4,7 @@
  */
 
 export const BRANDING_STUDIO_HONESTY =
-  "Tip GET/PUT /api/v1/studio/branding. Display name, logo URL, colors, and locales are tenant-scoped in-memory — not Postgres. logo_url is https:// or /path only (no object upload / CDN).";
+  "Tip GET/PUT /api/v1/studio/branding. Display name, logo URL, colors, and locales are tenant-scoped in-memory — not Postgres. logo_url is https:// or /path only (no object upload / CDN). Dashboard chrome (FE-S10-07b) applies tip display_name + colors only.";
 
 export const BRANDING_STUDIO_NON_GOALS = [
   "Object upload / CDN provisioning",
