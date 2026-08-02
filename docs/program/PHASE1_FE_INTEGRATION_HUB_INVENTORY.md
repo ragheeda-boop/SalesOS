@@ -26,6 +26,7 @@
 | FE-S09-04 | SupportTicket presets + stage honesty (tip 09-04) |
 | FE-S09-05 | project.task / TaskCaseExtension VO honesty (tip 09-05) |
 | FE-S09-06 | CustomerInvoice presets + payment honesty (tip 09-06) |
+| FE-S09-07 | Odoo flag + write_date cursor honesty (tip 09-07) |
 
 ## Blocked (do not invent)
 

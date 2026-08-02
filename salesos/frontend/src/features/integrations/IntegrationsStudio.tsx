@@ -60,6 +60,13 @@ import {
   isInvoiceModel,
 } from "@/features/integrations/odooInvoiceHonesty";
 import {
+  CURSOR_STATE_HONESTY,
+  FLAG_ODOO_INTEGRATION,
+  MUHIDE_TENANT_SLUG,
+  ODOO_FLAG_GATED_ACTIONS,
+  isOdooConnectorKey,
+} from "@/features/integrations/odooIncrementalHonesty";
+import {
   TIP_OPERATIONAL_FIELDS,
   TIP_SALESOS_AUTHORED_FIELDS,
   tipDefaultConflictRules,
@@ -97,6 +104,7 @@ function listFromCsv(raw: string): string[] {
  * STORY-09-04 SupportTicket stage honesty (FE-S09-04).
  * STORY-09-05 TaskCaseExtension VO honesty (FE-S09-05).
  * STORY-09-06 CustomerInvoice payment honesty (FE-S09-06).
+ * STORY-09-07 feature_odoo_integration + write_date cursor (FE-S09-07).
  * Unlinked badge list API not live. Not Production GO.
  */
 export function IntegrationsStudio() {
@@ -306,9 +314,9 @@ export function IntegrationsStudio() {
         connection detail / baseline_fields (FE-S08-10). `test_connection`
         dispatches Fake vs OdooAdapter by `connector_key` (STORY-09-01).
         Unlinked cr_number badge list API not live. Tip Odoo models through
-        STORY-09-05 (`project.task` + TaskCaseExtension VO) have Studio presets
-        — no invented list HTTP. Do not paste real secrets into credential_ref.
-        Not Production GO / RAG GO.
+        STORY-09-07 (`feature_odoo_integration` Grade-A gate + write_date
+        cursor_state). Do not paste real secrets into credential_ref. Not
+        Production GO / RAG GO.
       </p>
 
       <ol
@@ -464,6 +472,31 @@ export function IntegrationsStudio() {
                         ? `updated ${selected.updated_at}`
                         : ""}
                     </dd>
+                  </div>
+                ) : null}
+                {selected && isOdooConnectorKey(selected.connector_key) ? (
+                  <div className="sm:col-span-2 space-y-2">
+                    <p
+                      className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+                      data-testid="integrations-studio-odoo-flag-honesty"
+                    >
+                      STORY-09-07: Tip Grade-A flag{" "}
+                      <code>{FLAG_ODOO_INTEGRATION}</code> gates Odoo{" "}
+                      {ODOO_FLAG_GATED_ACTIONS.join(", ")} (HTTP 403 when off).
+                      Global default off; design partner{" "}
+                      <code>{MUHIDE_TENANT_SLUG}</code> via tenant override (ops
+                      UUID — not invented here). Unlinked badge list still
+                      BE-blocked. Not Production GO / RAG GO.
+                    </p>
+                    <p
+                      className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+                      data-testid="integrations-studio-cursor-write-date-honesty"
+                    >
+                      {CURSOR_STATE_HONESTY}. SyncRun ORM may store
+                      cursor_before/after - those fields are <em>not</em> on tip
+                      SyncRunResponse (do not invent Monitor columns). Not
+                      Production GO.
+                    </p>
                   </div>
                 ) : null}
                 <div className="sm:col-span-2">

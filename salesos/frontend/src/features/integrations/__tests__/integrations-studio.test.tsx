@@ -26,6 +26,16 @@ jest.mock("@/lib/hooks/integrationHubQueries", () => ({
         cursor_state: {},
         is_active: true,
       },
+      {
+        id: "c-odoo",
+        tenant_id: "t1",
+        connector_key: "odoo",
+        name: "Odoo Demo",
+        credential_ref: "vault:demo/odoo",
+        connection_config: {},
+        cursor_state: { "res.partner": "2026-08-01 12:00:00" },
+        is_active: true,
+      },
     ],
     isLoading: false,
   }),
@@ -337,5 +347,26 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
         ) as HTMLTextAreaElement
       ).value,
     ).toContain("stage_id");
+  });
+  it("shows STORY-09-07 odoo flag + write_date cursor honesty when odoo selected", () => {
+    render(<IntegrationsStudio />);
+    fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
+    const select = screen.getByTestId(
+      "integrations-studio-connection-select",
+    ) as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: "c-odoo" } });
+    expect(
+      screen.getByTestId("integrations-studio-odoo-flag-honesty"),
+    ).toHaveTextContent(/feature_odoo_integration/i);
+    expect(
+      screen.getByTestId("integrations-studio-cursor-write-date-honesty"),
+    ).toHaveTextContent(/write_date/i);
+  });
+
+  it("mentions STORY-09-07 in live honesty banner", () => {
+    render(<IntegrationsStudio />);
+    expect(
+      screen.getByTestId("integrations-studio-live-honesty"),
+    ).toHaveTextContent(/feature_odoo_integration|STORY-09-07/i);
   });
 });

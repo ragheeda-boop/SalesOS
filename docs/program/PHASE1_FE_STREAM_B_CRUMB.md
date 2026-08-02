@@ -36,6 +36,7 @@
 | FE-S09-04 SupportTicket Studio presets + stage honesty | **LANDED** — crumb [`PHASE1_FE_S09_04_TICKET_STUDIO_HONESTY_CRUMB.md`](PHASE1_FE_S09_04_TICKET_STUDIO_HONESTY_CRUMB.md)
 | FE-S09-05 project.task / TaskCaseExtension Studio honesty | **LANDED** — crumb [`PHASE1_FE_S09_05_TASK_STUDIO_HONESTY_CRUMB.md`](PHASE1_FE_S09_05_TASK_STUDIO_HONESTY_CRUMB.md)
 | FE-S09-06 CustomerInvoice Studio presets + payment honesty | **LANDED** — crumb [`PHASE1_FE_S09_06_INVOICE_STUDIO_HONESTY_CRUMB.md`](PHASE1_FE_S09_06_INVOICE_STUDIO_HONESTY_CRUMB.md)
+| FE-S09-07 Odoo flag + write_date cursor Studio honesty | **LANDED** — crumb [`PHASE1_FE_S09_07_INCREMENTAL_FLAG_STUDIO_CRUMB.md`](PHASE1_FE_S09_07_INCREMENTAL_FLAG_STUDIO_CRUMB.md)
 
 ## Honesty
 
