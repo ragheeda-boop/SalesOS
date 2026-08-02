@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_tenant_id, get_db_session, verify_token
+from app.modules.admin.services import FeatureFlagService
 from app.modules.integration_hub.conflict_policy import ConflictResolutionPolicy
 from app.modules.integration_hub.conflict_policy_service import (
     ConflictResolutionPolicyService,
@@ -22,6 +23,11 @@ from app.modules.integration_hub.connection_service import ExternalSystemConnect
 from app.modules.integration_hub.fake_adapter import FakeSourceConnector
 from app.modules.integration_hub.field_mapping_service import FieldMappingConfigService
 from app.modules.integration_hub.odoo_adapter import OdooAdapter
+from app.modules.integration_hub.odoo_incremental_sync import (
+    FLAG_ODOO_INTEGRATION,
+    OdooIntegrationDisabledError,
+    assert_odoo_integration_enabled,
+)
 from app.modules.integration_hub.schemas import (
     ConflictPolicyResponse,
     ConflictPolicyUpsert,
@@ -53,6 +59,22 @@ def _tid(tenant_id: str) -> uuid.UUID:
         raise HTTPException(status_code=400, detail="invalid tenant_id") from exc
 
 
+async def _require_odoo_integration_if_needed(
+    db: AsyncSession,
+    *,
+    tenant_id: str,
+    connector_key: str,
+) -> None:
+    """STORY-09-07: gate Odoo connector paths on feature_odoo_integration."""
+    if (connector_key or "").strip().lower() != "odoo":
+        return
+    eval_result = await FeatureFlagService(db).is_enabled(FLAG_ODOO_INTEGRATION, str(tenant_id))
+    try:
+        assert_odoo_integration_enabled(eval_result)
+    except OdooIntegrationDisabledError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+
+
 @router.get("/connections", response_model=list[ConnectionResponse], dependencies=_AUTH)
 async def list_connections(
     tenant_id: str = Depends(get_current_tenant_id),
@@ -71,6 +93,9 @@ async def create_connection(
     tenant_id: str = Depends(get_current_tenant_id),
     db: AsyncSession = Depends(get_db_session),
 ) -> ConnectionResponse:
+    await _require_odoo_integration_if_needed(
+        db, tenant_id=tenant_id, connector_key=body.connector_key
+    )
     try:
         row = await ExternalSystemConnectionService(db).create(
             tenant_id=_tid(tenant_id),
@@ -128,6 +153,9 @@ async def test_connection(
     )
     if row is None:
         raise HTTPException(status_code=404, detail="connection not found")
+    await _require_odoo_integration_if_needed(
+        db, tenant_id=tenant_id, connector_key=row.connector_key
+    )
     # Dispatch by connector_key — live XML-RPC uses vault credential_ref only.
     if (row.connector_key or "").strip().lower() == "odoo":
         adapter: FakeSourceConnector | OdooAdapter = OdooAdapter()
@@ -295,6 +323,9 @@ async def schedule_sync(
         raise HTTPException(status_code=404, detail="connection not found")
     if not conn.is_active:
         raise HTTPException(status_code=400, detail="connection is disconnected")
+    await _require_odoo_integration_if_needed(
+        db, tenant_id=tenant_id, connector_key=conn.connector_key
+    )
     wf = WorkflowService(repository=PostgresWorkflowRepository(session=db))
     try:
         job = await schedule_connection_sync(

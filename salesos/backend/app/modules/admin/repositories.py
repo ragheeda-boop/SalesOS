@@ -275,9 +275,56 @@ class InMemoryFeatureFlagRepository:
                 description="Enable PDF export for reports",
                 enabled=True,
             ),
+            # STORY-09-07 / ARB: Odoo connector rollout — global off; Muhide via override.
+            FeatureFlag(
+                id=uuid.uuid4(),
+                key="feature_odoo_integration",
+                name="Odoo Integration",
+                description=(
+                    "EPIC-09 Odoo adapter — globally disabled; enable per-tenant "
+                    "(Muhide design partner first). Not Production GO."
+                ),
+                enabled=False,
+                rollout_percentage=100,
+            ),
         ]
         for f in flags:
             self._flags[f.id] = f
+
+    async def evaluate(
+        self,
+        flag_key: str,
+        tenant_id: str,
+        tenant_ids_all: builtins.list[str] | None = None,
+    ) -> dict:
+        """Mirror PostgresFeatureFlagRepository.evaluate for in-memory seeds."""
+        flag = await self.get_by_key(flag_key)
+        if not flag:
+            return {"enabled": False, "reason": "flag_not_found"}
+        if flag.is_ci_test:
+            return {"enabled": True, "reason": "ci_test_always_on"}
+        overrides = flag.tenant_overrides or {}
+        if tenant_id in overrides:
+            return {"enabled": bool(overrides[tenant_id]), "reason": "tenant_override"}
+        if not flag.enabled:
+            return {"enabled": False, "reason": "globally_disabled"}
+        if flag.rollout_percentage >= 100:
+            return {"enabled": True, "reason": "fully_rollout"}
+        if flag.rollout_percentage <= 0:
+            return {"enabled": False, "reason": "zero_rollout"}
+        if tenant_ids_all:
+            sorted_ids: builtins.list[str] = sorted(tenant_ids_all)
+            try:
+                idx = sorted_ids.index(tenant_id)
+            except ValueError:
+                return {"enabled": False, "reason": "tenant_not_in_rollout_set"}
+            ratio = idx / len(sorted_ids)
+            included = ratio < (flag.rollout_percentage / 100)
+            return {
+                "enabled": included,
+                "reason": f"gradual_rollout_{flag.rollout_percentage}pct",
+            }
+        return {"enabled": bool(flag.enabled), "reason": "global_default"}
 
     async def list(self) -> builtins.list[FeatureFlag]:
         return list(self._flags.values())

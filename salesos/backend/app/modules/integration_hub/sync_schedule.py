@@ -84,9 +84,13 @@ class SyncRunExecutor:
                 result = {
                     "records": list(payload.get("records") or []),
                     "cursor": dict(payload.get("cursor") or config.get("cursor") or {}),
+                    "cursor_before": dict(config.get("cursor") or {}),
                 }
             else:
                 result = await self._pull(tenant_id, connection_id, model)
+            # STORY-09-07: pull may supply cursor_before from persisted write_date.
+            if result.get("cursor_before") is not None:
+                run.cursor_before = dict(result.get("cursor_before") or {})
             records = list(result.get("records") or [])
             failed = list(result.get("failed") or [])
             run.records_pulled = len(records) + len(failed)

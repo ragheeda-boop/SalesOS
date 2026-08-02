@@ -1,8 +1,8 @@
-"""Integration Hub framework (STORY-08-01..09-06).
+"""Integration Hub framework (STORY-08-01..09-07).
 
 SourceConnector + Hub HTTP + ConflictResolutionPolicy + OdooAdapter
 (res.partner + crm.lead + mail.message + helpdesk.ticket + project.task
-+ account.move CustomerInvoice).
++ account.move CustomerInvoice) + write_date incremental + feature_odoo_integration.
 Not Production GO.
 """
 
@@ -38,6 +38,10 @@ from app.modules.integration_hub.models import (
 )
 from app.modules.integration_hub.note_sync import sync_interaction_notes
 from app.modules.integration_hub.odoo_adapter import OdooAdapter
+from app.modules.integration_hub.odoo_incremental_sync import (
+    FLAG_ODOO_INTEGRATION,
+    pull_odoo_incremental_for_sync,
+)
 from app.modules.integration_hub.opportunity_sync import sync_opportunity_records
 from app.modules.integration_hub.partner_sync import sync_partner_records
 from app.modules.integration_hub.source_connector import SourceConnector
@@ -62,6 +66,7 @@ __all__ = [
     "DriftJobResult",
     "ExternalSystemConnectionModel",
     "ExternalSystemConnectionService",
+    "FLAG_ODOO_INTEGRATION",
     "FakeSourceConnector",
     "FeedbackLoopExclusionError",
     "FieldMappingConfigModel",
@@ -77,6 +82,7 @@ __all__ = [
     "certify_source_connector",
     "filter_mappings_for_pull",
     "join_partner_by_cr_number",
+    "pull_odoo_incremental_for_sync",
     "run_field_drift_job",
     "schedule_connection_sync",
     "sync_customer_invoices",
