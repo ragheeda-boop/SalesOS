@@ -77,8 +77,8 @@ export function IntegrationsStudio() {
   const [credentialRef, setCredentialRef] = useState("vault:demo/fake");
   const [configJson, setConfigJson] = useState("{}");
   const [model, setModel] = useState("res.partner");
-  const [mappingJson, setMappingJson] = useState(
-    () => JSON.stringify(DEFAULT_PARTNER_MAPPINGS, null, 2),
+  const [mappingJson, setMappingJson] = useState(() =>
+    JSON.stringify(DEFAULT_PARTNER_MAPPINGS, null, 2),
   );
   const [baselineCsv, setBaselineCsv] = useState(
     "name, email, phone, cr_number",
@@ -465,9 +465,9 @@ export function IntegrationsStudio() {
                 STORY-09-01: Tip model <code>res.partner</code> maps{" "}
                 <code>x_studio_cr_number</code> → <code>cr_number</code> and
                 joins Company / Golden Record. Batch outcomes:{" "}
-                {PARTNER_JOIN_OUTCOMES.join(", ")}. Unlinked badge{" "}
-                <em>list</em> API still BE-blocked — Monitor shows SyncRun
-                counters only. Not Production GO.
+                {PARTNER_JOIN_OUTCOMES.join(", ")}. Unlinked badge <em>list</em>{" "}
+                API still BE-blocked — Monitor shows SyncRun counters only. Not
+                Production GO.
               </p>
             ) : null}
             {isOpportunityModel(model) ? (
@@ -675,9 +675,9 @@ export function IntegrationsStudio() {
                 className="text-xs text-[var(--text-muted)]"
                 data-testid="integrations-studio-schedule-partner-hint"
               >
-                Tip schedule model <code>res.partner</code> pulls company/contact
-                partners via OdooAdapter after STORY-09-01 (cr_number join in
-                batch; no badge list HTTP).
+                Tip schedule model <code>res.partner</code> pulls
+                company/contact partners via OdooAdapter after STORY-09-01
+                (cr_number join in batch; no badge list HTTP).
               </p>
             ) : null}
             {isOpportunityModel(model) ? (
