@@ -40,6 +40,7 @@ import {
   MapPin,
   Cpu,
   BookText,
+  Scale,
   Store,
   Target,
   Radar,
@@ -109,6 +110,11 @@ const NAV_KEYS = [
     href: "/studio/prompt-library",
     key: "nav.prompt_library",
     icon: BookText,
+  },
+  {
+    href: "/studio/ai-policies",
+    key: "nav.ai_policies",
+    icon: Scale,
   },
   {
     href: "/marketplace/listings",

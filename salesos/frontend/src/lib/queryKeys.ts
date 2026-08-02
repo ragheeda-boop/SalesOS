@@ -169,6 +169,12 @@ export const tenantStudioKeys = {
     [...tenantStudioKeys.all, "prompt-library", tenantId] as const,
   promptLibraryDetail: (tenantId: string, id: string) =>
     [...tenantStudioKeys.all, "prompt-library", tenantId, id] as const,
+  aiPoliciesMeta: (tenantId: string) =>
+    [...tenantStudioKeys.all, "ai-policies-meta", tenantId] as const,
+  aiPoliciesList: (tenantId: string) =>
+    [...tenantStudioKeys.all, "ai-policies", tenantId] as const,
+  aiPoliciesDetail: (tenantId: string, id: string) =>
+    [...tenantStudioKeys.all, "ai-policies", tenantId, id] as const,
 };
 
 export const marketplaceListingsKeys = {

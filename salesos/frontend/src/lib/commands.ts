@@ -171,6 +171,15 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.studio.ai-policies",
+    label: "Studio · AI Policies",
+    description:
+      "Tenant AI Policies + evaluate (tip STORY-12-02; feature_ai_copilot False)",
+    category: "تنقل",
+    handler: () => router.push("/studio/ai-policies"),
+  });
+
+  registerCommand({
     id: "go.marketplace.listings",
     label: "Marketplace · Listings",
     description:

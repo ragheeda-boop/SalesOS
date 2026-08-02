@@ -25,6 +25,7 @@ import {
   Palette,
   MapPin,
   Cpu,
+  Scale,
   Target,
   Radar,
   Crosshair,
@@ -93,6 +94,11 @@ export function MobileNav() {
       href: "/studio/ai-model-tiers",
       key: "nav.ai_model_tiers",
       icon: Cpu,
+    },
+    {
+      href: "/studio/ai-policies",
+      key: "nav.ai_policies",
+      icon: Scale,
     },
     {
       href: "/gtm",
