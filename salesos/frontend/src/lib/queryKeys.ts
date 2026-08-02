@@ -143,6 +143,16 @@ export const tenantStudioKeys = {
     [...tenantStudioKeys.all, "branding", tenantId] as const,
 };
 
+export const gtmKeys = {
+  all: ["gtm"] as const,
+  marketSizingMeta: (tenantId: string) =>
+    [...gtmKeys.all, "market-sizing-meta", tenantId] as const,
+  marketSizingList: (tenantId: string) =>
+    [...gtmKeys.all, "market-sizing", tenantId] as const,
+  marketSizingDetail: (tenantId: string, id: string) =>
+    [...gtmKeys.all, "market-sizing", tenantId, id] as const,
+};
+
 export const opportunityKeys = {
   all: ["opportunities"] as const,
   lists: () => [...opportunityKeys.all, "list"] as const,

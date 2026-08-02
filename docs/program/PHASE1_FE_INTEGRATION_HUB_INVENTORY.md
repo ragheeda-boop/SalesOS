@@ -39,6 +39,7 @@
 | FE-S10-08 | Notification Rules Studio (tip 10-08) |
 | FE-S10-cmd | Cmd palette deep-links for tip Studio pages |
 | FE-S10-07 | Branding Studio (tip 10-07 GET/PUT) |
+| FE-S11-02 | Market Sizing TAM/SAM/SOM (tip 11-02) |
 | FE-S10-05 | Territory config — **BLOCKED** (no tip `/studio/territories` BE) |
 
 ## Blocked (do not invent)

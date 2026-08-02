@@ -146,6 +146,14 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.gtm.market-sizing",
+    label: "GTM · Market Sizing",
+    description: "TAM/SAM/SOM market sizing (tip STORY-11-02)",
+    category: "تنقل",
+    handler: () => router.push("/gtm/market-sizing"),
+  });
+
+  registerCommand({
     id: "go.settings",
     label: "الإعدادات",
     description: "الانتقال إلى الإعدادات",
