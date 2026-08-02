@@ -317,6 +317,9 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(
       page.getByTestId("integrations-studio-model-preset-crm-lead"),
     ).toBeVisible();
+    await expect(
+      page.getByTestId("integrations-studio-model-preset-mail-message"),
+    ).toBeVisible();
   });
 
   test("admin flags/config/audit expose ops honesty hooks", async ({

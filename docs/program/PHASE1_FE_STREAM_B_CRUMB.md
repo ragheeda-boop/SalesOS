@@ -29,6 +29,7 @@
 | FE-S08-12 Monitor SyncRun model filter + tip fields | **LANDED** — crumb [`PHASE1_FE_S08_12_MONITOR_MODEL_FILTER_CRUMB.md`](PHASE1_FE_S08_12_MONITOR_MODEL_FILTER_CRUMB.md)
 | FE-S09-01 Partner Studio presets + cr_number join honesty | **LANDED** — crumb [`PHASE1_FE_S09_01_PARTNER_STUDIO_HONESTY_CRUMB.md`](PHASE1_FE_S09_01_PARTNER_STUDIO_HONESTY_CRUMB.md)
 | FE-S09-02 Opportunity Studio presets + stage honesty | **LANDED** — crumb [`PHASE1_FE_S09_02_OPPORTUNITY_STUDIO_HONESTY_CRUMB.md`](PHASE1_FE_S09_02_OPPORTUNITY_STUDIO_HONESTY_CRUMB.md) |
+| FE-S09-03 InteractionNote Studio presets + PII honesty | **LANDED** — crumb [`PHASE1_FE_S09_03_NOTE_STUDIO_HONESTY_CRUMB.md`](PHASE1_FE_S09_03_NOTE_STUDIO_HONESTY_CRUMB.md)
 
 ## Honesty
 

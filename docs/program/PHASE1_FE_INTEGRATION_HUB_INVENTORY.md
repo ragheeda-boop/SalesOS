@@ -19,6 +19,7 @@
 | FE-S08-12 | Monitor SyncRun model filter + tip fields |
 | FE-S09-01 | Partner presets + cr_number join honesty (tip 09-01) |
 | FE-S09-02 | Opportunity presets + stage honesty (tip 09-02) |
+| FE-S09-03 | InteractionNote presets + PII honesty (tip 09-03) |
 
 ## Blocked (do not invent)
 

@@ -35,6 +35,11 @@ import {
   PARTNER_JOIN_OUTCOMES,
   isPartnerModel,
 } from "@/features/integrations/odooPartnerHonesty";
+import {
+  DEFAULT_NOTE_MAPPINGS,
+  NOTE_PII_SCRUB_CATEGORIES,
+  isNoteModel,
+} from "@/features/integrations/odooNoteHonesty";
 
 export type { StudioStepId };
 
@@ -64,6 +69,7 @@ function listFromCsv(raw: string): string[] {
  * Active mapping GET (FE-S08-09). URL deep-link (FE-S08-11). STORY-09-02: schedule/map `crm.lead` uses translated stages (no raw Odoo stage passthrough).
  * STORY-09-02 opportunity stage honesty (FE-S09-02).
  * STORY-09-01 partner/cr_number honesty (FE-S09-01).
+ * STORY-09-03 InteractionNote PII honesty (FE-S09-03).
  * Unlinked badge list API not live. Not Production GO.
  */
 export function IntegrationsStudio() {
@@ -208,6 +214,11 @@ export function IntegrationsStudio() {
     if (isOpportunityModel(nextModel)) {
       setMappingJson(JSON.stringify(DEFAULT_OPPORTUNITY_MAPPINGS, null, 2));
       setBaselineCsv("name, stage, amount, partner_external_id");
+      return;
+    }
+    if (isNoteModel(nextModel)) {
+      setMappingJson(JSON.stringify(DEFAULT_NOTE_MAPPINGS, null, 2));
+      setBaselineCsv("subject, body");
       return;
     }
     if (isPartnerModel(nextModel)) {
@@ -517,6 +528,19 @@ export function IntegrationsStudio() {
                 still BE-blocked. Not Production GO.
               </p>
             ) : null}
+            {isNoteModel(model) ? (
+              <p
+                className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+                data-testid="integrations-studio-note-pii-honesty"
+              >
+                STORY-09-03: Tip model <code>mail.message</code> maps to
+                InteractionNote / TimelineEvent. Body is scrubbed via AI-GR-001
+                before RAG ({NOTE_PII_SCRUB_CATEGORIES.join(", ")}). Raw body
+                stays audit-only (<code>body_raw</code>); RAG uses
+                <code>rag_text</code> only. Fixture corpus ≠ live prod audit.
+                Unlinked badge list still BE-blocked. Not RAG / Production GO.
+              </p>
+            ) : null}
             <Input
               label="Model"
               data-testid="integrations-studio-map-model"
@@ -722,6 +746,16 @@ export function IntegrationsStudio() {
               >
                 Tip schedule model <code>crm.lead</code> pulls opportunities
                 (type=opportunity) via OdooAdapter after STORY-09-02.
+              </p>
+            ) : null}
+            {isNoteModel(model) ? (
+              <p
+                className="text-xs text-[var(--text-muted)]"
+                data-testid="integrations-studio-schedule-note-hint"
+              >
+                Tip schedule model <code>mail.message</code> pulls chatter notes
+                via OdooAdapter after STORY-09-03 (PII scrub before RAG; no note
+                list HTTP).
               </p>
             ) : null}
             <Input

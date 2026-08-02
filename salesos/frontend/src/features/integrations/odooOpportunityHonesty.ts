@@ -46,6 +46,11 @@ export const HUB_MODEL_PRESETS = [
     model: "res.partner",
   },
   { id: "crm-lead", label: "crm.lead (opportunity)", model: "crm.lead" },
+  {
+    id: "mail-message",
+    label: "mail.message (InteractionNote)",
+    model: "mail.message",
+  },
 ] as const;
 
 export function isOpportunityModel(model: string): boolean {
