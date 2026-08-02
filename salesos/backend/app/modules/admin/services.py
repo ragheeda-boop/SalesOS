@@ -329,6 +329,29 @@ class TenantProvisioningService:
             "version": saved.version,
         }
 
+    @staticmethod
+    def _normalize_slug(slug: str) -> str:
+        normalized = (slug or "").strip().lower()
+        if not normalized or len(normalized) < 2 or len(normalized) > 100:
+            raise ValueError("slug must be 2–100 chars")
+        if any(ch for ch in normalized if not (ch.isalnum() or ch == "-")):
+            raise ValueError("slug must match ^[a-z0-9-]+$")
+        return normalized
+
+    @staticmethod
+    def _validate_admin_triplet(
+        admin_email: str | None,
+        admin_password: str | None,
+        admin_full_name: str | None,
+    ) -> bool:
+        """Return True if all three present; raise if partially provided."""
+        present = [bool(admin_email), bool(admin_password), bool(admin_full_name)]
+        if any(present) and not all(present):
+            raise ValueError(
+                "admin_email, admin_password, and admin_full_name must be provided together"
+            )
+        return all(present)
+
     async def provision_workflow(
         self,
         *,
@@ -344,19 +367,31 @@ class TenantProvisioningService:
         admin_email: str | None = None,
         admin_password: str | None = None,
         admin_full_name: str | None = None,
+        force_active: bool = False,
     ) -> dict[str, Any]:
         """Idempotent STORY-04-02 workflow: tenant + roles + Studio seed + first admin.
 
         Re-invoking with the same slug returns the existing tenant without
-        duplicating Studio config or roles.
+        duplicating Studio config or roles. Suspended tenants stay suspended
+        on idempotent re-run unless ``force_active=True``.
         """
+        slug = self._normalize_slug(slug)
+        if plan_id is not None and len(plan_id) > 64:
+            raise ValueError("plan_id must be <= 64 chars")
+        if region is not None and len(region) > 32:
+            raise ValueError("region must be <= 32 chars")
+        if data_residency is not None and len(data_residency) > 32:
+            raise ValueError("data_residency must be <= 32 chars")
+        create_admin = self._validate_admin_triplet(admin_email, admin_password, admin_full_name)
+
         existing = await self.session.execute(select(Tenant).where(Tenant.slug == slug))
         tenant = existing.scalar_one_or_none()
         created = False
+        prior_status = None
 
         if tenant is None:
             tenant = Tenant(
-                name=name,
+                name=name.strip() if name else name,
                 slug=slug,
                 domain=domain,
                 plan=plan or "free",
@@ -373,6 +408,7 @@ class TenantProvisioningService:
             await self.session.flush()
             created = True
         else:
+            prior_status = tenant.provisioning_status
             if plan_id is not None:
                 tenant.plan_id = plan_id
             if region is not None:
@@ -381,21 +417,29 @@ class TenantProvisioningService:
                 tenant.data_residency = data_residency
             if trial_ends_at is not None:
                 tenant.trial_ends_at = trial_ends_at
+            if name and name.strip() and name.strip() != tenant.name:
+                tenant.name = name.strip()
 
         try:
             seed_result = await self.provision_tenant(str(tenant.id), admin_user_id=admin_user_id)
             studio_result = await self.seed_studio_config(str(tenant.id), plan=tenant.plan)
 
             resolved_admin_id = admin_user_id
-            if admin_email and admin_password and admin_full_name and not admin_user_id:
+            if create_admin and not admin_user_id:
                 resolved_admin_id = await self._ensure_first_admin(
                     tenant_id=tenant.id,
-                    email=admin_email,
-                    password=admin_password,
-                    full_name=admin_full_name,
+                    email=str(admin_email),
+                    password=str(admin_password),
+                    full_name=str(admin_full_name),
                 )
 
-            tenant.provisioning_status = "active"
+            # Do not silently reactivate a suspended tenant on idempotent re-run.
+            if prior_status == "suspended" and not force_active:
+                tenant.provisioning_status = "suspended"
+            else:
+                tenant.provisioning_status = "active"
+                if not tenant.is_active and force_active:
+                    tenant.is_active = True
             await self.session.flush()
 
             return {

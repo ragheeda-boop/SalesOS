@@ -695,6 +695,64 @@ class TestTenantProvisioning:
         assert getattr(tenant_arg, "plan_id", None) == "plan_starter_v1"
         assert getattr(tenant_arg, "region", None) == "me-central-1"
 
+    def test_normalize_slug_rejects_invalid(self):
+        with pytest.raises(ValueError):
+            TenantProvisioningService._normalize_slug("Bad Slug")
+        with pytest.raises(ValueError):
+            TenantProvisioningService._normalize_slug("a")
+        assert TenantProvisioningService._normalize_slug("  Acme-1  ") == "acme-1"
+
+    def test_admin_triplet_partial_rejected(self):
+        with pytest.raises(ValueError, match="together"):
+            TenantProvisioningService._validate_admin_triplet("a@b.c", "pw", None)
+        assert TenantProvisioningService._validate_admin_triplet("a@b.c", "pw", "Admin") is True
+
+    @pytest.mark.asyncio
+    async def test_provision_workflow_keeps_suspended_on_idempotent_rerun(self):
+        session = AsyncMock(spec=AsyncSession)
+        session.add = MagicMock()
+        session.flush = AsyncMock()
+
+        existing_tenant = MagicMock()
+        existing_tenant.id = "t-susp"
+        existing_tenant.slug = "acme-susp"
+        existing_tenant.plan = "free"
+        existing_tenant.provisioning_status = "suspended"
+        existing_tenant.is_active = False
+        existing_tenant.name = "Acme"
+
+        found = MagicMock()
+        found.scalar_one_or_none = MagicMock(return_value=existing_tenant)
+        session.execute = AsyncMock(return_value=found)
+
+        perm_repo = AsyncMock()
+        perm_repo.list = AsyncMock(return_value=[])
+        role_repo = AsyncMock()
+        role_repo.list = AsyncMock(return_value=[])
+        role_repo.get_permissions = AsyncMock(return_value=[])
+        role_repo.set_permissions = AsyncMock()
+        config_repo = AsyncMock()
+        existing_cfg = MagicMock()
+        existing_cfg.version = 1
+        config_repo.get_latest = AsyncMock(return_value=existing_cfg)
+
+        with (
+            patch(
+                "app.modules.admin.services.PostgresPermissionRepository", return_value=perm_repo
+            ),
+            patch("app.modules.admin.services.PostgresRoleRepository", return_value=role_repo),
+            patch(
+                "app.modules.admin.services.PostgresTenantConfigRepository",
+                return_value=config_repo,
+            ),
+        ):
+            svc = TenantProvisioningService(session)
+            result = await svc.provision_workflow(name="Acme", slug="acme-susp")
+
+        assert result["idempotent"] is True
+        assert result["provisioning_status"] == "suspended"
+        assert existing_tenant.provisioning_status == "suspended"
+
 
 # ── Repository Unit Tests ───────────────────────────────────────────────────
 

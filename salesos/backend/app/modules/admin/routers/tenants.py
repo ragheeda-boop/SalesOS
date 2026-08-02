@@ -128,19 +128,22 @@ async def create_tenant(
         )
 
     provisioning = TenantProvisioningService(db)
-    result = await provisioning.provision_workflow(
-        name=body.name,
-        slug=body.slug,
-        domain=body.domain,
-        plan=body.plan or "free",
-        plan_id=body.plan_id,
-        region=body.region,
-        data_residency=body.data_residency,
-        trial_ends_at=body.trial_ends_at,
-        admin_email=body.admin_email,
-        admin_password=body.admin_password,
-        admin_full_name=body.admin_full_name,
-    )
+    try:
+        result = await provisioning.provision_workflow(
+            name=body.name,
+            slug=body.slug,
+            domain=body.domain,
+            plan=body.plan or "free",
+            plan_id=body.plan_id,
+            region=body.region,
+            data_residency=body.data_residency,
+            trial_ends_at=body.trial_ends_at,
+            admin_email=body.admin_email,
+            admin_password=body.admin_password,
+            admin_full_name=body.admin_full_name,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     tenant = await db.get(Tenant, uuid.UUID(result["tenant_id"]))
     if not tenant:

@@ -125,9 +125,7 @@ async def test_story_04_01_owner_fields_persist_and_isolation():
         await _chk(
             conn, tb, f"SELECT count(*) FROM companies WHERE tenant_id='{ta}'::uuid", 0, "cross"
         )
-        await _fc(
-            conn, f"SELECT count(*) FROM companies WHERE tenant_id='{ta}'::uuid", "companies"
-        )
+        await _fc(conn, f"SELECT count(*) FROM companies WHERE tenant_id='{ta}'::uuid", "companies")
         await conn.rollback()
 
 

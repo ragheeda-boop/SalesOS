@@ -69,6 +69,15 @@ Suite skips if columns absent (pre-migrate). After upgrade: expect PASS; `POLICY
 
 Validation: **light validated** (local non-prod). Not production migrate.
 
+## Downgrade note
+
+`alembic downgrade -1` drops the five Owner Platform columns. Re-upgrade restores them with `pending` default; re-run backfill if existing tenants must be `active` again:
+
+```sql
+UPDATE tenants SET provisioning_status = 'active'
+WHERE provisioning_status = 'pending';
+```
+
 ## Forbidden
 
 - Production Railway migrate without explicit human/ops approval  
