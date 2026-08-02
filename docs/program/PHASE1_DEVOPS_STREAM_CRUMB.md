@@ -34,8 +34,21 @@
 | Tip FE types / smoke red (HardDelete exports) + D3 ruff format | `9e242e0` CI/Smoke red | `20ce9e8` — export Soft/HardDelete admin types + ruff D3 suite |
 | Tip-line full green proof | `78e4c26` (also `d9afff6` / `5d052cf`) | **CI + Deploy + Stage 7 + Smoke + Security SUCCESS**; Stage 6 skipped |
 
+## STORY-14-01 (50-tenant load) — STARTED 2026-08-02
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Pair | BE tip HTTP `/api/v1/load/*` @ `8a369f1`/`dd59a3f` (**GREEN**); BE CLOSED docs @ `594deaa` | Field soak residual remains DevOps |
+| DevOps script | `salesos/scripts/story_14_01_nonprod_load_harness.py` | tip-landed; companion + http; prod host refuse |
+| Companion run | **light validated** (exit 0, SLOs held on both profiles) | Local synthetic — not Production GO |
+| HTTP tip run | **not validated** | `SALESOS_TOKEN` absent — no `--mode http` run |
+| Field 2h soak | **not validated** | Residual |
+| Live prod kill | **not performed** | Forbidden |
+| Stage-4 coverage upload flake | Triaged on `3a25c76` [30759755215] | pytest **SUCCESS**; FinalizeArtifact 404 only — `continue-on-error` + unique artifact name |
+
 ## Forbidden
 
 - Reopen GHCR as mandatory gate  
 - New deploy topology superseding DEC-149 without ARB  
 - Production GO / Stages 1–7 invent without tip evidence  
+- Live prod kill under STORY-14-01  

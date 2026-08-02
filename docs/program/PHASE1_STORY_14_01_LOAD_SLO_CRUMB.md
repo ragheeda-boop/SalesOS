@@ -24,7 +24,7 @@
 | Script | `salesos/scripts/story_14_01_nonprod_load_harness.py` |
 | Modes | `companion` (local MemLoadSloHarness) · `http` (tip `/api/v1/load/*`) |
 | Safety | Refuses known prod host markers unless `--allow-deployed-nonprod` (operator-asserted non-prod only) |
-| Status | **light validated** companion run (exit 0, both profiles within_slo) against tip `dd59a3f`/`8a369f1`. Field 2h soak **not validated**. HTTP against deployed tip **not validated** (no non-prod token run yet) |
+| Status | Script tip-landed (DevOps). Companion **light validated** (exit 0, both profiles within_slo). `--mode http` **not validated** (no `SALESOS_TOKEN`). Field 2h soak **not validated**. No live prod kill / No Production GO |
 
 ## Non-goals
 
