@@ -7,9 +7,11 @@ on:
     branches: [master, main, develop]
 
 concurrency:
-  # false: docs/swarm thrashing was canceling Stage 3/4 before tip Stages 1–5
-  # same-run evidence for criterion 3.9 could land. Stage 7 lives in e2e-stage7.yml.
-  group: ci-${{ github.ref }}
+  # Per-SHA group: with cancel-in-progress false on a ref-wide group, rapid
+  # master pushes still cancel *pending* runs (GHA keeps one pending per group).
+  # SHA isolation lets tip Stages 1–5 finish for criterion 3.9 under swarm docs.
+  # Stage 7 evidence: e2e-stage7.yml (not this workflow).
+  group: ci-${{ github.workflow }}-${{ github.sha }}
   cancel-in-progress: false
 
 env:
