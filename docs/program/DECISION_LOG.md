@@ -1095,6 +1095,8 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** Checklist Operating State → `Governance = FROZEN`. Scoreboard pin unchanged **48/54 NO-GO**. Does **not** close any criterion. **No Phase 0 COMPLETE / Production GO / CI GREEN / 4.1/4.8 invent.** Validation: **governance freeze documentation only**.
 **Status:** Accepted.
 
+**Orchestration follow-on (2026-08-02, Execution Orchestrator — not a new DEC):** Operating State → `PARALLEL EXECUTION — FREEZE COMPLIANT`. Three freeze-compliant workstreams launched: **(A) 3.9** CI GREEN field-fix (DevOps / Validation); **(B) 3.7** Stage 7 E2E (DevOps / Backend); **(C) 4.1/4.8** ARB evidence pack (ARB / OpenCode — no invent PASS). Frozen stack reaffirmed: DEC-149 / DEC-150 B / DEC-151. Hard OPEN unchanged. Score **pinned 48/54**. Crumbs on checklist / board / DAG only — no architecture or topology change.
+
 ### DEC-150 — After DEC-149: Is Stage 6 GHCR still a required Phase 0 exit criterion? (Accepted — Option B)
 
 **Date:** 2026-08-02

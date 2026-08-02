@@ -3,7 +3,31 @@
 > **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-02** (post **DEC-151** Phase 0 Governance Freeze; prior DEC-150 B / DEC-149a / DEC-120).  
 > Authority: evidence + `SPRINT_05_DELIVERY_BOARD.md` + `RISK_REGISTER.md` + Sprint plans + `docs/audit/ga-engineering-audit/` + Principal Audit.  
 > Honesty labels: **CI GREEN not met**. **Phase 0 (DEC-008 RLS / R-14) exit = NO-GO** (DEC-086 GO **withdrawn** by DEC-120). **Production GA / External pilot = NO-GO**. STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies). **Do not reopen STORY-02-01.**  
-> **GOVERNANCE FROZEN** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md)): no org redesign / deploy-topology DEC superseding DEC-149 / criterion rewrite except hard OPEN **3.7 / 3.9 / 4.1 / 4.8** field evidence + non-architecture bugfix crumbs. Phase 0 **48/54 NO-GO**.
+> **Operating State: PARALLEL EXECUTION — FREEZE COMPLIANT** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md)): no org redesign / deploy-topology DEC superseding DEC-149 / criterion rewrite except hard OPEN **3.7 / 3.9 / 4.1 / 4.8** field evidence + non-architecture bugfix crumbs. Phase 0 **48/54 PINNED NO-GO**.
+
+---
+
+## Operating State — PARALLEL EXECUTION — FREEZE COMPLIANT
+
+```
+STATE = PARALLEL EXECUTION — FREEZE COMPLIANT
+Architecture = FROZEN
+Governance = FROZEN          # DEC-151
+Program = ACTIVE             # hard OPEN: 3.7, 3.9, 4.1, 4.8
+Engineering = STABILIZING
+AI Runtime = DEFERRED
+Score = 48/54 PINNED         # until evidence closes criteria
+```
+
+**Frozen reaffirm:** DEC-149 (Railway+Vercel) · DEC-150 B (GHCR retired) · DEC-151 (governance freeze).
+
+### Coordination map (three workstreams)
+
+| Stream | Criterion | Owner | Class | Mandate |
+|---|---|---|---|---|
+| **A** | **3.9** CI GREEN (DEC-149 topology) | DevOps / Validation | PARALLEL (field-fix) | Tip Stages 1–5 same-run + retain Deploy Production evidence; no GHCR |
+| **B** | **3.7** Stage 7 E2E | DevOps / Backend | PARALLEL (services) | Real backend services for Playwright; do not fake local green |
+| **C** | **4.1 / 4.8** ARB evidence pack | ARB / OpenCode | PARALLEL (evidence only) | Pack for independent ARB — **no invent PASS** |
 
 ---
 
@@ -111,18 +135,22 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **CI/CD 3.11** / CI-09 deploy (Railway+Vercel) | **CLOSED CONDITIONAL** (DEC-149a) | Arch prior PASS (DEC-149 + single-env) + Val PASS @ `c3507ed` / `30723120473`; Railway up ✓; Health Gate HTTP 200 ✓; Vercel FE Git-primary ✓; §6 production secret names present (repo); residuals: *FE Git-primary (not CLI); staging deferred; no VPS*; canonical deploy evidence for post–DEC-150 B **3.6** supersession; does **not** auto-close **3.9** / **3.7**; DEC-085 untouched; Phase 0 **45/54 → 46/54** (superseded to **48/54** by DEC-150 B); CI/CD Complete **6 → 7** (superseded to **9**); do **not** claim Phase 0 GO / CI GREEN / unconditional CLOSED |
 | **CI/CD 3.6 / 3.10** Stage 6 GHCR / CI-08 | **CLOSED — SUPERSEDED** (DEC-150 B) | ARB Option B Accepted; GHCR publish not Phase 0 required after DEC-149; residual 403 legacy/non-blocking; Stage 6 quarantined in `ci.yml`; Phase 0 **46/54 → 48/54**; CI/CD Complete **7 → 9** / Blocked **1 → 0**; do **not** claim field GHCR green / Phase 0 GO / CI GREEN |
 | **Phase 0 Governance Freeze** | **GOVERNANCE FROZEN** (DEC-151) | Org redesign / deploy-topology DEC superseding DEC-149 / criterion rewrite frozen; allowed hard OPEN **3.7 / 3.9 / 4.1 / 4.8** field evidence + bugfix crumbs; pin **48/54** unchanged; do **not** claim Phase 0 COMPLETE / Production GO / CI GREEN / invent 4.1/4.8 |
+| **EOS Audit 4.1 / 4.8** evidence pack | **READY FOR ARB** (not CLOSED) | Pack [`ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md`](ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md); B1–B7 + SHAs + Measured vs Open; ARB returns PASS/FAIL only; new report required for **4.8**; pin **48/54** unchanged; do **not** invent ARB PASS / Phase 0 GO |
 
 ---
 
-## PARALLEL (safe; Phase 0 still blocked on S04-04)
+## PARALLEL (freeze-compliant active streams; Phase 0 still NO-GO)
 
 | Track | Class | Justification |
 |---|---|---|
-| Contract tests, optional Jest 30 | PARALLEL / PARKED | Do **not** close Phase 0 rows; DEC-094/106 expansion + Jest 30 = backlog only while hard OPEN are ARB/E2E/tip |
-| EOS **4.1/4.8**, CI **3.7/3.9**, tip field-verify | **BLOCKED** (Cursor) | **2026-08-02 BLOCKED inventory (post DEC-150 B):** no Cursor-closeable criterion; **4.1/4.8** ARB (do not invent); **3.6/3.10 CLOSED — SUPERSEDED** (DEC-150 B); **3.11** CI-09 **CLOSED CONDITIONAL** (DEC-149a); **3.7** E2E services (not GHCR-dep); **3.9** tip Stages 1–5 + deploy topology (no GHCR); **3.8** / **3.5** tip push field-verify PENDING; Phase 0 **48/54**; do **not** claim Phase 0 GO / CI GREEN / fake CLOSE |
+| **Stream A — 3.9** CI GREEN field-fix | **PARALLEL ACTIVE** | Owner DevOps / Validation; tip Stages 1–5 + retained Railway/Vercel; no GHCR; score stays **48/54** until evidence CLOSE |
+| **Stream B — 3.7** Stage 7 E2E | **PARALLEL ACTIVE** | Owner DevOps / Backend; real services only; do not fake local green |
+| **Stream C — 4.1/4.8** ARB evidence pack | **READY FOR ARB** | Pack [`ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md`](ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md) assembled; ARB returns PASS/FAIL only — **no invent PASS** / not CLOSED |
+| Contract tests, optional Jest 30 | PARALLEL / PARKED | Do **not** close Phase 0 rows; DEC-094/106 + Jest 30 = backlog only |
+| Cursor invent CLOSE on hard OPEN | **FORBIDDEN** | **4.1/4.8** require ARB; **3.7/3.9** require field evidence; Phase 0 **48/54 PINNED** |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
-**Swarm dispatch (DEC-107):** Keep agents on independent PARALLEL READY ownership while S04-04 remediation proceeds. CI-08 is **not** an ops wait — GOVERNANCE COMPLETED (DEC-150 B).
+**Swarm dispatch (DEC-107 + DEC-151):** Keep ≥2–3 agents on the three freeze-compliant streams above. CI-08 is **not** an ops wait — GOVERNANCE COMPLETED (DEC-150 B). No architecture / topology DECs.
 
 ---
 
