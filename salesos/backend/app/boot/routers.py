@@ -190,6 +190,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["Chaos Resilience"],
         dependencies=_auth,
     )
+    # EPIC-14 / STORY-14-06 — AI provider failover harness (non-prod; builds on 14-02).
+    from app.modules.chaos_resilience.ai_failover_router import (
+        router as ai_failover_router,
+    )
+
+    app.include_router(
+        ai_failover_router,
+        prefix="/api/v1",
+        tags=["Chaos Resilience"],
+        dependencies=_auth,
+    )
 
     # EPIC-14 / STORY-14-03 — DR drill harness (backup/restore, RTO/RPO).
     from app.modules.dr_drill.router import router as dr_drill_router

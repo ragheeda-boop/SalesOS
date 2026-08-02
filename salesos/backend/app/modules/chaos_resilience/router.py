@@ -61,8 +61,10 @@ async def chaos_meta() -> dict[str, Any]:
         "stage6_ghcr": "quarantined",
         "honesty": (
             "CI fault-injection harness (connector/AI/DB). "
-            "Live kills and Production GO not claimed."
+            "Live kills and Production GO not claimed. "
+            "STORY-14-06 AI failover hardening: /api/v1/chaos/ai-failover/*."
         ),
+        "ai_failover_hardening": "/api/v1/chaos/ai-failover",
     }
 
 

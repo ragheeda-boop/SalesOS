@@ -17,7 +17,8 @@
 
 ## Non-goals
 
-- STORY-14-01 load test / 14-03 DR / 14-04 pentest / 14-06 live AI failover field
+- STORY-14-01 load test / 14-03 DR / 14-04 pentest
+- STORY-14-06 **CI/non-prod harness LANDED** — live AI failover field remains Ops residual
 - Live Odoo/HubSpot GO / R-02 invent-close
 - Production GO / enabling `feature_ai_copilot`
 - Marketplace 13-xx reopen
