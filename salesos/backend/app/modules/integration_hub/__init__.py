@@ -1,7 +1,7 @@
-"""Integration Hub framework (STORY-08-01..09-03).
+"""Integration Hub framework (STORY-08-01..09-04).
 
 SourceConnector + Hub HTTP + ConflictResolutionPolicy + OdooAdapter
-(res.partner + crm.lead + mail.message InteractionNotes).
+(res.partner + crm.lead + mail.message + helpdesk.ticket).
 Not Production GO.
 """
 
@@ -42,6 +42,7 @@ from app.modules.integration_hub.sync_schedule import (
     schedule_connection_sync,
     tick_with_sync_logging,
 )
+from app.modules.integration_hub.ticket_sync import sync_support_tickets
 
 __all__ = [
     "AclValidationError",
@@ -72,5 +73,6 @@ __all__ = [
     "sync_interaction_notes",
     "sync_opportunity_records",
     "sync_partner_records",
+    "sync_support_tickets",
     "tick_with_sync_logging",
 ]
