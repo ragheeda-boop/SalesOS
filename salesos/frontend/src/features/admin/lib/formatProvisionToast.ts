@@ -231,6 +231,35 @@ export function suspendedWriteBlockDescription(tenant: {
   );
 }
 
+/** FE-S04-40 — safe default reprovision (failed/pending). */
+export function canRetryReprovision(
+  provisioningStatus?: string | null,
+): boolean {
+  const s = provisioningStatus || "";
+  return s === "failed" || s === "pending";
+}
+
+/** FE-S04-41 — suspended needs force_active=true on /reprovision. */
+export function requiresForceActiveReprovision(
+  provisioningStatus?: string | null,
+): boolean {
+  return (provisioningStatus || "") === "suspended";
+}
+
+/** FE-S04-44 — usage period honesty. */
+export function formatTenantUsagePeriod(usage: {
+  period_start?: string | null;
+  period_end?: string | null;
+}): string {
+  const start = usage.period_start
+    ? new Date(usage.period_start).toLocaleDateString()
+    : "—";
+  const end = usage.period_end
+    ? new Date(usage.period_end).toLocaleDateString()
+    : "—";
+  return `Period ${start} – ${end}`;
+}
+
 export const ADMIN_TENANTS_PAGE_SIZES = [20, 50, 100] as const;
 export type AdminTenantsPageSize = (typeof ADMIN_TENANTS_PAGE_SIZES)[number];
 

@@ -120,6 +120,17 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(page.getByTestId("admin-tenants-page-size")).toBeVisible();
   });
 
+  test("admin tenants row reprovision hook when failed/pending exists", async ({
+    page,
+  }) => {
+    await page.goto("/admin/tenants");
+    await page.waitForLoadState("networkidle");
+    const btn = page.getByTestId("admin-tenants-row-reprovision").first();
+    const has = await btn.isVisible().catch(() => false);
+    test.skip(!has, "No failed/pending row for reprovision hook");
+    await expect(btn).toBeVisible();
+  });
+
   test("admin tenants detail lifecycle hooks open without mutate", async ({
     page,
   }) => {

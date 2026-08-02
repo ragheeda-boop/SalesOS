@@ -1,11 +1,14 @@
 import {
   activityStatusLabel,
   buildAdminTenantsFilterQuery,
+  canRetryReprovision,
   formatActivateResultDescription,
   formatReprovisionResultDescription,
+  formatTenantUsagePeriod,
   formatTrialEndsLabel,
   getDeletionRequestedAt,
   parseAdminTenantsPageSize,
+  requiresForceActiveReprovision,
   retentionHardDeleteDescription,
   suspendedWriteBlockDescription,
   lifecycleStatusDescription,
@@ -261,5 +264,30 @@ describe("buildAdminTenantsFilterQuery page_size — FE-S04-39", () => {
     expect(buildAdminTenantsFilterQuery({ page: 1, page_size: 50 })).toBe(
       "page_size=50",
     );
+  });
+});
+
+describe("reprovision gates — FE-S04-40/41", () => {
+  it("allows retry for failed/pending only", () => {
+    expect(canRetryReprovision("failed")).toBe(true);
+    expect(canRetryReprovision("pending")).toBe(true);
+    expect(canRetryReprovision("active")).toBe(false);
+    expect(canRetryReprovision("suspended")).toBe(false);
+  });
+
+  it("requires force_active only when suspended", () => {
+    expect(requiresForceActiveReprovision("suspended")).toBe(true);
+    expect(requiresForceActiveReprovision("failed")).toBe(false);
+  });
+});
+
+describe("formatTenantUsagePeriod — FE-S04-44", () => {
+  it("formats usage period range", () => {
+    expect(
+      formatTenantUsagePeriod({
+        period_start: "2026-01-01T00:00:00.000Z",
+        period_end: "2026-01-31T00:00:00.000Z",
+      }),
+    ).toMatch(/^Period /);
   });
 });

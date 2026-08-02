@@ -64,3 +64,8 @@
 | FE-S04-37 | Empty-state Clear filters CTA | **LANDED** |
 | FE-S04-38 | Suspend write-block honesty (STORY-04-03) | **LANDED** |
 | FE-S04-39 | Page size selector 20/50/100 + URL sync | **LANDED** |
+| FE-S04-40 | List-row reprovision for failed/pending | **LANDED** |
+| FE-S04-41 | Suspended reprovision via `force_active` | **LANDED** |
+| FE-S04-42 | Clamp page when filter results shrink | **LANDED** |
+| FE-S04-43 | Sort + page_size dismissible chips | **LANDED** |
+| FE-S04-44 | Usage period honesty in detail | **LANDED** |

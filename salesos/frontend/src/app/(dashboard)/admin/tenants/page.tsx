@@ -29,6 +29,7 @@ import {
   ChevronRight,
   X,
   Link2,
+  RefreshCw,
 } from "lucide-react";
 import { useDebounce } from "@salesos/hooks";
 import {
@@ -55,14 +56,17 @@ import {
   activityStatusLabel,
   ADMIN_TENANTS_PAGE_SIZES,
   buildAdminTenantsFilterQuery,
+  canRetryReprovision,
   formatActivateResultDescription,
   formatLifecycleResultDescription,
   formatProvisionResultDescription,
   formatReprovisionResultDescription,
+  formatTenantUsagePeriod,
   formatTrialEndsLabel,
   getDeletionRequestedAt,
   lifecycleStatusDescription,
   parseAdminTenantsPageSize,
+  requiresForceActiveReprovision,
   retentionHardDeleteDescription,
   suspendedWriteBlockDescription,
   TENANT_DELETION_RETENTION_DAYS,
@@ -258,6 +262,7 @@ export default function AdminTenantsPage() {
   const createMutation = useCreateAdminTenant();
   const deleteMutation = useDeleteAdminTenant();
   const hardDeleteMutation = useHardDeleteAdminTenant();
+  const rowReprovisionMutation = useReprovisionAdminTenant();
 
   const tenants = tenantsPage?.items ?? [];
   const totalCount = tenantsPage?.total ?? 0;
@@ -417,6 +422,22 @@ export default function AdminTenantsPage() {
         label: `trial=${trialFilter}`,
         clear: () => setTrialFilter(""),
       });
+    // FE-S04-43 — sort + page_size chips
+    if (sortKey !== "created_desc")
+      chips.push({
+        key: "sort",
+        label: `sort=${sortKey}`,
+        clear: () => setSortKey("created_desc"),
+      });
+    if (pageSize !== 20)
+      chips.push({
+        key: "page_size",
+        label: `page_size=${pageSize}`,
+        clear: () => {
+          setPageSize(20);
+          setPage(1);
+        },
+      });
     return chips;
   }, [
     search,
@@ -427,9 +448,16 @@ export default function AdminTenantsPage() {
     regionFilter,
     residencyFilter,
     trialFilter,
+    sortKey,
+    pageSize,
   ]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  // FE-S04-42 — clamp page when filters shrink the result set
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   const deleteTarget = useMemo(
     () =>
@@ -533,6 +561,38 @@ export default function AdminTenantsPage() {
       forceImmediate,
       toast,
     ],
+  );
+
+  // FE-S04-40 — list-row reprovision for failed/pending only
+  const handleRowReprovision = useCallback(
+    async (id: string) => {
+      try {
+        const result = await rowReprovisionMutation.mutateAsync({ id });
+        toast({
+          variant: "success",
+          title: "Tenant reprovisioned",
+          description: formatReprovisionResultDescription(result),
+        });
+      } catch (err: unknown) {
+        const detail =
+          typeof err === "object" &&
+          err !== null &&
+          "response" in err &&
+          typeof (err as { response?: { data?: { detail?: unknown } } })
+            .response?.data?.detail === "string"
+            ? String(
+                (err as { response?: { data?: { detail?: string } } }).response
+                  ?.data?.detail,
+              )
+            : "Failed to reprovision tenant";
+        toast({
+          variant: "error",
+          title: "Failed to reprovision",
+          description: detail,
+        });
+      }
+    },
+    [rowReprovisionMutation, toast],
   );
 
   return (
@@ -1049,6 +1109,24 @@ export default function AdminTenantsPage() {
                     </td>
                     <td className="p-3 text-right">
                       <div className="flex items-center justify-end gap-1">
+                        {canRetryReprovision(tenant.provisioning_status) && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            title="Reprovision (failed/pending)"
+                            onClick={() => handleRowReprovision(tenant.id)}
+                            disabled={rowReprovisionMutation.isPending}
+                            data-testid="admin-tenants-row-reprovision"
+                          >
+                            <RefreshCw
+                              className={`h-4 w-4 ${
+                                rowReprovisionMutation.isPending
+                                  ? "animate-spin"
+                                  : ""
+                              }`}
+                            />
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="ghost"
@@ -1269,10 +1347,14 @@ function TenantDetailModal({
   const [activateReason, setActivateReason] = useState(
     "Activated via Owner Console",
   );
+  const [forceActiveReprovision, setForceActiveReprovision] = useState(false);
 
+  const needsForceActive = requiresForceActiveReprovision(
+    tenant?.provisioning_status,
+  );
   const canReprovision =
-    tenant?.provisioning_status === "failed" ||
-    tenant?.provisioning_status === "pending";
+    canRetryReprovision(tenant?.provisioning_status) ||
+    (needsForceActive && forceActiveReprovision);
 
   const handleToggleActive = useCallback(async () => {
     if (!tenant) return;
@@ -1329,20 +1411,47 @@ function TenantDetailModal({
     [toast],
   );
 
-  // FE-S04-34 — POST /reprovision for failed/pending only (no force_active here)
+  // FE-S04-34/41 — reprovision failed/pending, or suspended with force_active
   const handleReprovision = useCallback(async () => {
     if (!tenant || !canReprovision) return;
     try {
-      const result = await reprovisionMutation.mutateAsync({ id: tenantId });
+      const result = await reprovisionMutation.mutateAsync({
+        id: tenantId,
+        force_active: needsForceActive ? forceActiveReprovision : false,
+      });
+      setForceActiveReprovision(false);
       toast({
         variant: "success",
         title: "Tenant reprovisioned",
         description: formatReprovisionResultDescription(result),
       });
-    } catch {
-      toast({ variant: "error", title: "Failed to reprovision tenant" });
+    } catch (err: unknown) {
+      const detail =
+        typeof err === "object" &&
+        err !== null &&
+        "response" in err &&
+        typeof (err as { response?: { data?: { detail?: unknown } } }).response
+          ?.data?.detail === "string"
+          ? String(
+              (err as { response?: { data?: { detail?: string } } }).response
+                ?.data?.detail,
+            )
+          : "Failed to reprovision tenant";
+      toast({
+        variant: "error",
+        title: "Failed to reprovision tenant",
+        description: detail,
+      });
     }
-  }, [tenant, canReprovision, tenantId, reprovisionMutation, toast]);
+  }, [
+    tenant,
+    canReprovision,
+    tenantId,
+    needsForceActive,
+    forceActiveReprovision,
+    reprovisionMutation,
+    toast,
+  ]);
 
   const handleSaveConfig = useCallback(async () => {
     try {
@@ -1508,31 +1617,53 @@ function TenantDetailModal({
                   />
                 </div>
               )}
-              {canReprovision && (
+              {(canRetryReprovision(tenant?.provisioning_status) ||
+                needsForceActive) && (
                 <div
-                  className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border-default)] pt-3"
+                  className="flex flex-col gap-3 border-t border-[var(--border-default)] pt-3"
                   data-testid="admin-tenants-reprovision"
                 >
-                  <p className="text-sm text-[var(--text-muted)]">
-                    Provisioning is <code>{tenant?.provisioning_status}</code> —
-                    re-run idempotent provision workflow.
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleReprovision}
-                    disabled={reprovisionMutation.isPending}
-                    data-testid="admin-tenants-reprovision-submit"
-                    leftIcon={
-                      reprovisionMutation.isPending ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : undefined
-                    }
-                  >
-                    {reprovisionMutation.isPending
-                      ? "Reprovisioning…"
-                      : "Reprovision"}
-                  </Button>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-sm text-[var(--text-muted)]">
+                      Provisioning is <code>{tenant?.provisioning_status}</code>{" "}
+                      — re-run idempotent provision workflow.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleReprovision}
+                      disabled={
+                        reprovisionMutation.isPending || !canReprovision
+                      }
+                      data-testid="admin-tenants-reprovision-submit"
+                      leftIcon={
+                        reprovisionMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-4 w-4" />
+                        )
+                      }
+                    >
+                      {reprovisionMutation.isPending
+                        ? "Reprovisioning…"
+                        : "Reprovision"}
+                    </Button>
+                  </div>
+                  {needsForceActive && (
+                    <label className="flex items-center gap-2 text-sm text-warning-700 dark:text-warning-400">
+                      <input
+                        type="checkbox"
+                        checked={forceActiveReprovision}
+                        onChange={(e) =>
+                          setForceActiveReprovision(e.target.checked)
+                        }
+                        data-testid="admin-tenants-reprovision-force-active"
+                      />
+                      Force active reprovision while suspended (
+                      <code>force_active=true</code>) — prefer Activate first
+                      when restoring access.
+                    </label>
+                  )}
                 </div>
               )}
             </div>
@@ -1547,28 +1678,35 @@ function TenantDetailModal({
               />
             )}
 
-            {/* Usage Stats */}
+            {/* FE-S04-44 — usage stats + period honesty */}
             {usage && (
-              <div className="grid grid-cols-3 gap-4">
-                <div className="rounded-lg border border-[var(--border-default)] p-3 text-center">
-                  <p className="text-2xl font-bold text-[var(--text-primary)]">
-                    {usage.api_calls.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-[var(--text-muted)]">API Calls</p>
-                </div>
-                <div className="rounded-lg border border-[var(--border-default)] p-3 text-center">
-                  <p className="text-2xl font-bold text-[var(--text-primary)]">
-                    {usage.storage_mb}MB
-                  </p>
-                  <p className="text-xs text-[var(--text-muted)]">Storage</p>
-                </div>
-                <div className="rounded-lg border border-[var(--border-default)] p-3 text-center">
-                  <p className="text-2xl font-bold text-[var(--text-primary)]">
-                    {usage.active_users}/{usage.total_users}
-                  </p>
-                  <p className="text-xs text-[var(--text-muted)]">
-                    Active Users
-                  </p>
+              <div className="space-y-2" data-testid="admin-tenants-usage">
+                <p className="text-xs text-[var(--text-muted)]">
+                  {formatTenantUsagePeriod(usage)}
+                </p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="rounded-lg border border-[var(--border-default)] p-3 text-center">
+                    <p className="text-2xl font-bold text-[var(--text-primary)]">
+                      {usage.api_calls.toLocaleString()}
+                    </p>
+                    <p className="text-xs text-[var(--text-muted)]">
+                      API Calls
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-[var(--border-default)] p-3 text-center">
+                    <p className="text-2xl font-bold text-[var(--text-primary)]">
+                      {usage.storage_mb}MB
+                    </p>
+                    <p className="text-xs text-[var(--text-muted)]">Storage</p>
+                  </div>
+                  <div className="rounded-lg border border-[var(--border-default)] p-3 text-center">
+                    <p className="text-2xl font-bold text-[var(--text-primary)]">
+                      {usage.active_users}/{usage.total_users}
+                    </p>
+                    <p className="text-xs text-[var(--text-muted)]">
+                      Active Users
+                    </p>
+                  </div>
                 </div>
               </div>
             )}

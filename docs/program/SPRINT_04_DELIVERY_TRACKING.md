@@ -11,7 +11,7 @@
 | STORY-04-01 Tenant extension | A1→A2 | **IN PROGRESS** | Alembic `f6b2e84c1a90` @ `64b44e9`; notes [`PHASE1_A2_NONPROD_MIGRATE_NOTES.md`](PHASE1_A2_NONPROD_MIGRATE_NOTES.md) |
 | STORY-04-02 Provisioning workflow | A3 | **IN PROGRESS** | `provision_workflow` + `scripts/provision_tenant.py` |
 | STORY-02-03 JWT audience | A4 | **CLOSED** (DEC-093) — reaffirm after migrate | [`PHASE1_A4_JWT_OWNER_AUDIENCE_CRUMB.md`](PHASE1_A4_JWT_OWNER_AUDIENCE_CRUMB.md); admin tenants still `require_owner_role_dep` |
-| FE Owner Console tenants | B1–B5 + FE-S04-06..39 | **LANDED** | tip `39e7115` + FE-S04-30/36–39 (geo free-text, copy URL, page size, suspend honesty) |
+| FE Owner Console tenants | B1–B5 + FE-S04-06..44 | **LANDED** | tip `d7c378a` + FE-S04-40…44 (row reprovision, force_active, page clamp, chips, usage) |
 | D3 adversarial after A2 | Validation | **SUITE LANDED** (skip if pre-migrate) | `tests/integration/test_adversarial_rls_story_04_01.py` |
 
 ## Gates still open
