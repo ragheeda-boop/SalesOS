@@ -72,3 +72,7 @@ class MemCustomFieldDefinitionService:
         schema.schema_version = candidate.schema_version
         schema.fields[candidate.field_key] = candidate
         return candidate
+
+
+# Process-local singleton shared by Studio HTTP (no Alembic).
+DEFAULT_STORE = MemCustomFieldDefinitionService()

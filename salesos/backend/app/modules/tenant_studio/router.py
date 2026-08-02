@@ -1,6 +1,6 @@
-"""STORY-10-01 — Tenant Studio custom field definition HTTP (CAP-082).
+"""STORY-10-01/10-02 — Tenant Studio custom field HTTP (CAP-082).
 
-Definition CRUD only — no value persistence / FE auto-render (STORY-10-02).
+Definitions + auto-render form schema for Company/Contact/Opportunity UI.
 Not Production GO. DEC-085 untouched.
 """
 
@@ -12,14 +12,19 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from app.dependencies import get_current_tenant_id, verify_token
+from app.modules.tenant_studio.auto_render import (
+    CUSTOM_FIELDS_BAG_KEY,
+    auto_render_payload,
+    merge_custom_field_values,
+    read_custom_field_values,
+)
 from app.modules.tenant_studio.definitions import CustomFieldDefinitionError
-from app.modules.tenant_studio.service import MemCustomFieldDefinitionService
+from app.modules.tenant_studio.service import DEFAULT_STORE, MemCustomFieldDefinitionService
 
 router = APIRouter(prefix="/studio/custom-fields", tags=["Tenant Studio"])
 _AUTH = [Depends(verify_token)]
 
-# Process-local store for definition land (no Alembic). Follow-on: Postgres + RLS.
-_STORE = MemCustomFieldDefinitionService()
+_STORE = DEFAULT_STORE
 
 
 class CustomFieldCreate(BaseModel):
@@ -50,6 +55,20 @@ class CustomObjectSchemaResponse(BaseModel):
     fields: list[CustomFieldResponse]
 
 
+class CustomFieldValuesBody(BaseModel):
+    """Merge custom field values into a metadata bag (known keys only)."""
+
+    values: dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class CustomFieldValuesResponse(BaseModel):
+    object_key: str
+    bag_key: str = CUSTOM_FIELDS_BAG_KEY
+    values: dict[str, Any]
+    metadata: dict[str, Any]
+
+
 @router.post("", response_model=CustomFieldResponse, dependencies=_AUTH)
 async def define_custom_field(
     body: CustomFieldCreate,
@@ -78,10 +97,46 @@ async def get_custom_field_schema(
     return CustomObjectSchemaResponse.model_validate(schema.as_dict())
 
 
+@router.get("/{object_key}/form-schema", dependencies=_AUTH)
+async def get_auto_render_form_schema(
+    object_key: Literal["company", "contact", "opportunity"],
+    tenant_id: str = Depends(get_current_tenant_id),
+) -> dict[str, Any]:
+    """STORY-10-02 — Form Engine schema for generic FE auto-render."""
+    schema = _STORE.get_schema(tenant_id=str(tenant_id), object_key=object_key)
+    return auto_render_payload(schema)
+
+
+@router.post(
+    "/{object_key}/values",
+    response_model=CustomFieldValuesResponse,
+    dependencies=_AUTH,
+)
+async def project_custom_field_values(
+    object_key: Literal["company", "contact", "opportunity"],
+    body: CustomFieldValuesBody,
+    tenant_id: str = Depends(get_current_tenant_id),
+) -> CustomFieldValuesResponse:
+    """Merge/filter custom field values against tip definitions (no ORM write)."""
+    schema = _STORE.get_schema(tenant_id=str(tenant_id), object_key=object_key)
+    defs = list(schema.fields.values())
+    merged = merge_custom_field_values(body.metadata, body.values, definitions=defs)
+    values = read_custom_field_values(merged, definitions=defs)
+    return CustomFieldValuesResponse(
+        object_key=object_key,
+        bag_key=CUSTOM_FIELDS_BAG_KEY,
+        values=values,
+        metadata=merged,
+    )
+
+
 def _reset_store_for_tests() -> MemCustomFieldDefinitionService:
     """Test helper — replace process store."""
     global _STORE
-    _STORE = MemCustomFieldDefinitionService()
+    from app.modules.tenant_studio import service as svc_mod
+
+    svc_mod.DEFAULT_STORE = MemCustomFieldDefinitionService()
+    _STORE = svc_mod.DEFAULT_STORE
     return _STORE
 
 
