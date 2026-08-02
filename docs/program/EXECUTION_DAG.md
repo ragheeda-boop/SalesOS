@@ -1,13 +1,13 @@
 # Execution DAG — Current Program State
 
-> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-02** (tip pin `96b2c7a`; post **DEC-154** 2.3 Complete; Continuous Autonomous Mode chasing Stage 7; **ARMED** for post-54/54 parallel — not triggered; DEC-153 **4.1/4.8 CLOSED**; DEC-152 **3.9 CLOSED CONDITIONAL**; prior DEC-150 B / DEC-149a / DEC-120).  
+> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-02** (tip pin `a3add3f`; post **DEC-154** 2.3 Complete; Continuous Autonomous Mode chasing Stage 7; **ARMED** for post-54/54 parallel — not triggered; DEC-155 CLOSE **WITHDRAWN**; DEC-153 **4.1/4.8 CLOSED**; DEC-152 **3.9 CLOSED CONDITIONAL**; prior DEC-150 B / DEC-149a / DEC-120).  
 > Authority: evidence + `SPRINT_05_DELIVERY_BOARD.md` + `RISK_REGISTER.md` + Sprint plans + `docs/audit/ga-engineering-audit/` + Principal Audit.  
 > Honesty labels: **Stages 1–7 CI GREEN not met** (Stage 7 not SUCCESS on tip). **Phase 0 (DEC-008 RLS / R-14) exit = NO-GO** (DEC-086 GO **withdrawn** by DEC-120). **Production GA / External pilot = NO-GO**. STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies). **Do not reopen STORY-02-01.**  
 > **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** + **ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md); plan [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md)): hard OPEN ⬜ = **3.7** only. Phase 0 **53/54 NO-GO**. Sprint **26/26**. Trigger parallel streams **only** on true **54/54** — no human wait after trigger. Never invent Production GO / Phase 0 COMPLETE.
 
 ---
 
-> **2026-08-02 TRIGGER:** Phase 0 **54/54** — 3.7 CLOSED DEC-155 ([30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801) @ `909230d`). Post-54/54 plan **ACTIVE**. Production GA NO-GO unchanged.
+> **Orchestrator pin (2026-08-02):** Score **53/54 NO-GO** after DEC-154. Hard OPEN **3.7** only. Post-54/54 plan **ARMED** (not triggered). Premature DEC-155 / TRIGGER_POST_PHASE0_PLAN **WITHDRAWN**.
 
 ## Operating State — CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT + ARMED POST-54/54
 
@@ -24,7 +24,7 @@ Loop = chase Stage 7 → field-verify → land crumbs → push
 Post54 = ARMED               # trigger only on true 54/54 → spawn BE/FE/DevOps/Validation
 ```
 
-**Frozen reaffirm:** DEC-149 (Railway+Vercel) · DEC-150 B (GHCR retired) · DEC-151 (governance freeze). Tip pin: `96b2c7a` (DEC-154 land `4fd25ea`; DEC-153 `8ff782f` / Stage 7 harden `d973cba`).
+**Frozen reaffirm:** DEC-149 (Railway+Vercel) · DEC-150 B (GHCR retired) · DEC-151 (governance freeze). Tip pin: `a3add3f` (DEC-154 land `4fd25ea`; DEC-155 CLOSE WITHDRAWN — hard OPEN **3.7**).
 
 ### Orchestrator trigger protocol (short)
 
@@ -157,8 +157,8 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | Track | Class | Justification |
 |---|---|---|
 | **Stream A — 3.9** CI GREEN field-fix | **CLOSED CONDITIONAL** | DEC-152 @ `5fafbe9` / `30724762973` + Deploy `30724762967` |
-| **Stream B — 3.7** Stage 7 E2E | **ACTIVE — primary chase** | Sole hard OPEN; tip pin `96b2c7a`; await Stage 7 SUCCESS; do not invent CLOSE |
-| **Stream C — 4.1/4.8** ARB re-audit | **CLOSED** (DEC-153 @ `8ff782f`) | ARB PASS / CRITICAL **0**; score superseded to **53/54** by DEC-154 |
+| **Stream B — 3.7** Stage 7 E2E | **ACTIVE — primary chase** | Sole hard OPEN; tip `8ff782f`/`d973cba`; await Stage 7 SUCCESS; do not invent CLOSE |
+| **Stream C — 4.1/4.8** ARB re-audit | **CLOSED** (DEC-153 @ `8ff782f`) | ARB PASS / CRITICAL **0**; score **51/54** |
 | **Stream D — freeze-compliant backlog** | **QUEUED** | Docs consistency / CONDITIONAL residual crumbs after 3.7 progress |
 | Contract tests, optional Jest 30 | PARALLEL / PARKED | Do **not** close Phase 0 rows; DEC-094/106 + Jest 30 = backlog only |
 | Cursor invent CLOSE on hard OPEN | **FORBIDDEN** | **3.7** requires tip Stage 7 field SUCCESS; score **53/54** (not 54/54); no Production GO |
@@ -180,7 +180,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 ## Board progress fraction
 
-**26/26** Complete/Closed on tracked Sprint 05 board fraction including **CI-09 CLOSED CONDITIONAL** (DEC-149a) + **CI-08 GOVERNANCE COMPLETED** (DEC-150 B) + **S04-04 CLOSED CONDITIONAL** (DEC-154). Adjacent closed: **Jest-debt / R-23**; checklist **3.9 CLOSED CONDITIONAL** (DEC-152); **4.1/4.8 CLOSED** (DEC-153). Canonical deploy = DEC-149 Railway+Vercel (**3.11**). Stage 6 GHCR **off critical path**. **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** + **ARMED FOR POST-54/54** (DEC-151). Phase 0 **53/54 NO-GO**. Hard OPEN: **3.7** only. **Do not invent 3.7 CLOSE / Production GO / 54/54.**
+**26/26** Complete/Closed on tracked Sprint 05 board fraction including **CI-09 CLOSED CONDITIONAL** (DEC-149a) + **CI-08 GOVERNANCE COMPLETED** (DEC-150 B; **S04-04 CLOSED CONDITIONAL** (DEC-154)). Adjacent closed: **Jest-debt / R-23**; checklist **3.9 CLOSED CONDITIONAL** (DEC-152). Canonical deploy = DEC-149 Railway+Vercel (**3.11**). Stage 6 GHCR **off critical path**. **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** + **ARMED FOR POST-54/54** (DEC-151). Phase 0 **53/54 NO-GO**. Hard OPEN: **3.7** only. **Do not invent 3.7 CLOSE / Production GO / 54/54.**
 
 ---
 

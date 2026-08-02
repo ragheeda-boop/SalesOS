@@ -1,6 +1,6 @@
 # DEC-155 — Criterion 3.7 Stage 7 E2E CLOSED (field evidence)
 
-**Status:** Accepted (field evidence)  
+**Status:** WITHDRAWN (2026-08-02 Orchestrator pin — do not close 3.7; tip remains 53/54)  
 **Date:** 2026-08-02  
 **Authority:** DEC-151 Governance Freeze — allowed field evidence for hard OPEN **3.7**; DEC-150 B (Stage 6 GHCR decoupled)
 
@@ -40,3 +40,8 @@ Phase 0 **53/54 → 54/54**. Hard OPEN ⬜ → **0**. Triggers post-54/54 parall
 - No Stage 6 GHCR un-quarantine  
 - DEC-085 untouched  
 - Numbered E2E suite debt remains optional backlog
+
+
+## Withdrawal
+
+**WITHDRAWN** by Execution Orchestrator pin wave: mandate was pin tip **53/54** after DEC-154 with hard OPEN **3.7** only and plan **ARMED** (not triggered). Stage 7 run [30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801) retained as chase evidence; does **not** authorize CLOSE / 54/54 / TRIGGER_POST_PHASE0_PLAN under that mandate.
