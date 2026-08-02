@@ -1,12 +1,37 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { IntegrationsStudio } from "../IntegrationsStudio";
 
 jest.mock("@/lib/hooks/integrationHubQueries", () => ({
-  useHubConnections: () => ({ data: [], isLoading: false }),
+  useHubConnections: () => ({
+    data: [
+      {
+        id: "c1",
+        tenant_id: "t1",
+        connector_key: "fake",
+        name: "Demo",
+        credential_ref: "vault:demo/fake",
+        connection_config: {},
+        cursor_state: {},
+        is_active: true,
+      },
+    ],
+    isLoading: false,
+  }),
   useHubSyncRuns: () => ({ data: [], isLoading: false }),
+  useHubConflictPolicy: () => ({
+    data: {
+      id: "p1",
+      connection_id: "c1",
+      rules: [],
+      salesos_authored_fields: ["risk_score"],
+      operational_fields: ["name"],
+    },
+    isLoading: false,
+  }),
   useCreateHubConnection: () => ({ mutateAsync: jest.fn(), isPending: false }),
   useTestHubConnection: () => ({ mutateAsync: jest.fn(), isPending: false }),
   useCreateHubMapping: () => ({ mutateAsync: jest.fn(), isPending: false }),
+  usePutHubConflictPolicy: () => ({ mutateAsync: jest.fn(), isPending: false }),
   useScheduleHubSync: () => ({ mutateAsync: jest.fn(), isPending: false }),
   useDisconnectHubConnection: () => ({
     mutateAsync: jest.fn(),
@@ -35,21 +60,29 @@ jest.mock("@salesos/ui", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
-describe("IntegrationsStudio — STORY-08-07", () => {
-  it("renders live Hub honesty and enabled connect panel", () => {
+describe("IntegrationsStudio — FE-S08-08", () => {
+  it("renders conflict-policy step and Odoo honesty", () => {
     render(<IntegrationsStudio />);
     expect(screen.getByTestId("integrations-studio")).toBeInTheDocument();
     expect(
       screen.getByTestId("integrations-studio-live-honesty"),
-    ).toHaveTextContent(/STORY-08-06/);
+    ).toHaveTextContent(/conflict-policy/i);
     expect(
       screen.getByTestId("integrations-studio-live-honesty"),
-    ).toHaveTextContent(/Not Production GO/);
+    ).toHaveTextContent(/OdooAdapter/i);
     expect(
-      screen.getByTestId("integrations-studio-step-connect"),
-    ).not.toBeDisabled();
+      screen.getByTestId("integrations-studio-step-conflict"),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("integrations-studio-step-conflict"));
     expect(
-      screen.getByTestId("integrations-studio-connect-submit"),
+      screen.getByTestId("integrations-studio-conflict"),
+    ).toBeInTheDocument();
+    fireEvent.change(
+      screen.getByTestId("integrations-studio-connection-select"),
+      { target: { value: "c1" } },
+    );
+    expect(
+      screen.getByTestId("integrations-studio-conflict-submit"),
     ).toBeInTheDocument();
   });
 });

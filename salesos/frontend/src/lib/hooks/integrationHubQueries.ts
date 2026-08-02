@@ -5,10 +5,13 @@ import {
   createHubConnection,
   createHubMapping,
   disconnectHubConnection,
+  getHubConflictPolicy,
   listHubConnections,
   listHubSyncRuns,
+  putHubConflictPolicy,
   scheduleHubSync,
   testHubConnection,
+  type HubConflictPolicyUpsert,
   type HubConnectionCreate,
   type HubMappingCreate,
   type HubScheduleCreate,
@@ -33,6 +36,16 @@ export function useHubSyncRuns(connectionId: string | null) {
     enabled: Boolean(connectionId),
     staleTime: 10_000,
     refetchInterval: connectionId ? 30_000 : false,
+  });
+}
+
+export function useHubConflictPolicy(connectionId: string | null) {
+  const tenantId = getTenantId();
+  return useQuery({
+    queryKey: integrationHubKeys.conflictPolicy(tenantId, connectionId || ""),
+    queryFn: () => getHubConflictPolicy(tenantId, connectionId!),
+    enabled: Boolean(connectionId),
+    staleTime: 15_000,
   });
 }
 
@@ -72,6 +85,27 @@ export function useCreateHubMapping() {
           getTenantId(),
           vars.connectionId,
           vars.body.model,
+        ),
+      });
+    },
+  });
+}
+
+export function usePutHubConflictPolicy() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      connectionId,
+      body,
+    }: {
+      connectionId: string;
+      body: HubConflictPolicyUpsert;
+    }) => putHubConflictPolicy(getTenantId(), connectionId, body),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({
+        queryKey: integrationHubKeys.conflictPolicy(
+          getTenantId(),
+          vars.connectionId,
         ),
       });
     },

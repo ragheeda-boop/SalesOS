@@ -46,6 +46,11 @@ const FE_GATED = [
     title: "Integrations Studio UI",
     status: "FE landed — /integrations",
   },
+  {
+    id: "FE-S08-08",
+    title: "Conflict-policy Studio + Odoo honesty",
+    status: "FE landed — conflict step",
+  },
 ] as const;
 
 export default function AdminIntegrationsInventoryPage() {
@@ -65,9 +70,9 @@ export default function AdminIntegrationsInventoryPage() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="owner-ops-integrations-honesty"
       >
-        FE inventory: BE 08-01..06 landed including Hub HTTP. Tenant Studio
-        (STORY-08-07) is at `/integrations`. Owner mint remains DEC-093
-        follow-up. Not Production GO.
+        FE inventory: BE 08-01..06 + STORY-09-01 OdooAdapter landed. Tenant
+        Studio (STORY-08-07 / FE-S08-08 conflict-policy) is at `/integrations`.
+        Owner mint remains DEC-093 follow-up. Not Production GO.
       </p>
 
       <IntegrationsStudioShell />

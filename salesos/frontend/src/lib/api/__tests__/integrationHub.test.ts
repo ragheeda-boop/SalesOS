@@ -1,6 +1,8 @@
 import {
   createHubConnection,
+  getHubConflictPolicy,
   listHubConnections,
+  putHubConflictPolicy,
   testHubConnection,
 } from "../integrationHub";
 
@@ -9,6 +11,7 @@ jest.mock("../client", () => ({
   default: {
     get: jest.fn(),
     post: jest.fn(),
+    put: jest.fn(),
   },
 }));
 
@@ -17,12 +20,14 @@ import api from "../client";
 const mocked = api as unknown as {
   get: jest.Mock;
   post: jest.Mock;
+  put: jest.Mock;
 };
 
-describe("integrationHub API — STORY-08-07", () => {
+describe("integrationHub API — STORY-08-07 / FE-S08-08", () => {
   beforeEach(() => {
     mocked.get.mockReset();
     mocked.post.mockReset();
+    mocked.put.mockReset();
   });
 
   it("lists connections against Hub HTTP path", async () => {
@@ -60,5 +65,43 @@ describe("integrationHub API — STORY-08-07", () => {
       expect.any(Object),
     );
     expect(test.ok).toBe(true);
+  });
+
+  it("gets and puts conflict-policy on tip Hub HTTP", async () => {
+    mocked.get.mockResolvedValue({
+      data: {
+        id: "p1",
+        connection_id: "c2",
+        rules: [],
+        salesos_authored_fields: ["risk_score"],
+        operational_fields: ["name"],
+      },
+    });
+    mocked.put.mockResolvedValue({
+      data: {
+        id: "p1",
+        connection_id: "c2",
+        rules: [{ internal: "name", winner: "source" }],
+        salesos_authored_fields: ["risk_score"],
+        operational_fields: ["name"],
+      },
+    });
+    const got = await getHubConflictPolicy("tenant-1", "c2");
+    expect(mocked.get).toHaveBeenCalledWith(
+      "/api/v1/integrations/connections/c2/conflict-policy",
+      expect.any(Object),
+    );
+    expect(got.salesos_authored_fields).toContain("risk_score");
+    const put = await putHubConflictPolicy("tenant-1", "c2", {
+      rules: [{ internal: "name", winner: "source" }],
+      salesos_authored_fields: ["risk_score"],
+      operational_fields: ["name"],
+    });
+    expect(mocked.put).toHaveBeenCalledWith(
+      "/api/v1/integrations/connections/c2/conflict-policy",
+      expect.objectContaining({ rules: expect.any(Array) }),
+      expect.any(Object),
+    );
+    expect(put.rules[0].internal).toBe("name");
   });
 });

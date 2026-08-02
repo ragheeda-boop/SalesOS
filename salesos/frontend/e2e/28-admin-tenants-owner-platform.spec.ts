@@ -291,6 +291,9 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(
       page.getByTestId("integrations-studio-connect-submit"),
     ).toBeVisible();
+    await expect(
+      page.getByTestId("integrations-studio-step-conflict"),
+    ).toBeVisible();
   });
 
   test("admin flags/config/audit expose ops honesty hooks", async ({

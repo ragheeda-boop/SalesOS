@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, Input, Spinner, useToast } from "@salesos/ui";
 import {
   useCreateHubConnection,
   useCreateHubMapping,
   useDisconnectHubConnection,
+  useHubConflictPolicy,
   useHubConnections,
   useHubSyncRuns,
+  usePutHubConflictPolicy,
   useScheduleHubSync,
   useTestHubConnection,
 } from "@/lib/hooks/integrationHubQueries";
@@ -24,10 +26,22 @@ function getApiError(err: unknown): string {
   return "Request failed";
 }
 
+function csvFromList(values: string[] | undefined): string {
+  return (values || []).join(", ");
+}
+
+function listFromCsv(raw: string): string[] {
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 /**
- * STORY-08-07 — Integrations Studio against Hub HTTP (STORY-08-06).
- * Connect / test / map / schedule / monitor / disconnect. Fake adapter only
- * for test_connection until Odoo GA. Not Production GO. No invented secrets.
+ * STORY-08-07 / FE-S08-08 — Integrations Studio against Hub HTTP.
+ * Connect / test / map / conflict-policy / schedule / monitor / disconnect.
+ * Tip STORY-09-01: connector_key `odoo` dispatches OdooAdapter.test_connection.
+ * Unlinked cr_number badge list API not live. Not Production GO.
  */
 export function IntegrationsStudio() {
   const { toast } = useToast();
@@ -42,12 +56,19 @@ export function IntegrationsStudio() {
   );
   const [schedule, setSchedule] = useState("15m");
   const [lastTest, setLastTest] = useState<string>("");
+  const [rulesJson, setRulesJson] = useState("[]");
+  const [authoredCsv, setAuthoredCsv] = useState("");
+  const [operationalCsv, setOperationalCsv] = useState("");
 
   const connectionsQuery = useHubConnections();
   const syncRunsQuery = useHubSyncRuns(selectedId);
+  const conflictQuery = useHubConflictPolicy(
+    step === "conflict" ? selectedId : null,
+  );
   const createMutation = useCreateHubConnection();
   const testMutation = useTestHubConnection();
   const mapMutation = useCreateHubMapping();
+  const conflictMutation = usePutHubConflictPolicy();
   const scheduleMutation = useScheduleHubSync();
   const disconnectMutation = useDisconnectHubConnection();
 
@@ -57,6 +78,14 @@ export function IntegrationsStudio() {
     [connections, selectedId],
   );
 
+  useEffect(() => {
+    const policy = conflictQuery.data;
+    if (!policy) return;
+    setRulesJson(JSON.stringify(policy.rules ?? [], null, 2));
+    setAuthoredCsv(csvFromList(policy.salesos_authored_fields));
+    setOperationalCsv(csvFromList(policy.operational_fields));
+  }, [conflictQuery.data]);
+
   const needsConnection = step !== "connect";
 
   return (
@@ -65,10 +94,11 @@ export function IntegrationsStudio() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="integrations-studio-live-honesty"
       >
-        STORY-08-07 Studio wired to `/api/v1/integrations/*` (STORY-08-06).
-        DOM-021 entitlement gated. `test_connection` uses FakeSourceConnector
-        until Odoo adapter GA. Do not paste real secrets into credential_ref in
-        demos. Not Production GO.
+        Studio wired to `/api/v1/integrations/*` (STORY-08-06) including
+        conflict-policy (FE-S08-08). `test_connection` dispatches Fake vs
+        OdooAdapter by `connector_key` (STORY-09-01). Unlinked cr_number badge
+        list API not live. Do not paste real secrets into credential_ref. Not
+        Production GO.
       </p>
 
       <ol
@@ -144,7 +174,9 @@ export function IntegrationsStudio() {
               onChange={(e) => setConnectorKey(e.target.value)}
             />
             <p className="text-xs text-[var(--text-muted)]">
-              Use connector key <code>fake</code> until Odoo adapter GA.
+              Tip keys: <code>fake</code> (certify) or <code>odoo</code>{" "}
+              (STORY-09-01 OdooAdapter). Live XML-RPC needs vault credential_ref
+              only — no passwords in this form.
             </p>
             <Input
               label="Credential ref"
@@ -190,7 +222,9 @@ export function IntegrationsStudio() {
         {step === "test" ? (
           <div className="space-y-3" data-testid="integrations-studio-test">
             <p className="text-sm text-[var(--text-secondary)]">
-              Runs FakeSourceConnector.test_connection for the selected row.
+              Dispatches by selected{" "}
+              <code>{selected?.connector_key || "connector_key"}</code>:{" "}
+              <code>odoo</code> → OdooAdapter, else FakeSourceConnector.
             </p>
             <Button
               data-testid="integrations-studio-test-submit"
@@ -283,6 +317,87 @@ export function IntegrationsStudio() {
           </div>
         ) : null}
 
+        {step === "conflict" ? (
+          <div className="space-y-3" data-testid="integrations-studio-conflict">
+            <p className="text-sm text-[var(--text-secondary)]">
+              ConflictResolutionPolicy (OBJ-333) via GET/PUT{" "}
+              <code>/conflict-policy</code>. SalesOS-authored fields stay
+              exclude_from_pull (feedback-loop exclusion).
+            </p>
+            {!selectedId ? (
+              <p className="text-sm text-[var(--text-muted)]">
+                Select a connection to load policy.
+              </p>
+            ) : conflictQuery.isLoading ? (
+              <Spinner className="h-5 w-5" />
+            ) : (
+              <>
+                <label className="block text-xs text-[var(--text-muted)]">
+                  Rules JSON
+                </label>
+                <textarea
+                  data-testid="integrations-studio-conflict-rules"
+                  className="min-h-[120px] w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 font-mono text-xs"
+                  value={rulesJson}
+                  onChange={(e) => setRulesJson(e.target.value)}
+                />
+                <Input
+                  label="SalesOS-authored fields (csv)"
+                  data-testid="integrations-studio-conflict-authored"
+                  value={authoredCsv}
+                  onChange={(e) => setAuthoredCsv(e.target.value)}
+                />
+                <Input
+                  label="Operational fields (csv)"
+                  data-testid="integrations-studio-conflict-operational"
+                  value={operationalCsv}
+                  onChange={(e) => setOperationalCsv(e.target.value)}
+                />
+                <Button
+                  data-testid="integrations-studio-conflict-submit"
+                  disabled={conflictMutation.isPending}
+                  onClick={async () => {
+                    if (!selectedId) return;
+                    try {
+                      const rules = JSON.parse(rulesJson) as Array<{
+                        internal: string;
+                        winner: "source" | "salesos";
+                        exclude_from_pull?: boolean;
+                      }>;
+                      if (!Array.isArray(rules)) {
+                        throw new Error("rules must be a JSON array");
+                      }
+                      await conflictMutation.mutateAsync({
+                        connectionId: selectedId,
+                        body: {
+                          rules,
+                          salesos_authored_fields: listFromCsv(authoredCsv),
+                          operational_fields: listFromCsv(operationalCsv),
+                        },
+                      });
+                      toast({
+                        variant: "success",
+                        title: "Conflict policy saved",
+                        description: selectedId,
+                      });
+                    } catch (err) {
+                      toast({
+                        variant: "error",
+                        title: "Conflict policy failed",
+                        description: getApiError(err),
+                      });
+                    }
+                  }}
+                >
+                  {conflictMutation.isPending
+                    ? "Saving…"
+                    : "Save conflict policy"}
+                </Button>
+              </>
+            )}
+          </div>
+        ) : null}
+
         {step === "schedule" ? (
           <div className="space-y-3" data-testid="integrations-studio-schedule">
             <Input
@@ -335,6 +450,13 @@ export function IntegrationsStudio() {
 
         {step === "monitor" ? (
           <div className="space-y-3" data-testid="integrations-studio-monitor">
+            <p
+              className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+              data-testid="integrations-studio-unlinked-honesty"
+            >
+              Unlinked cr_number badge list API not live (STORY-09-01 residual).
+              Monitor shows SyncRun counters only. Not Production GO.
+            </p>
             {!selectedId ? (
               <p className="text-sm text-[var(--text-muted)]">
                 Select a connection to view SyncRun history.

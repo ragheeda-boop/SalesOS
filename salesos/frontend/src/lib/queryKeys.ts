@@ -101,6 +101,13 @@ export const integrationHubKeys = {
       connectionId,
       model,
     ] as const,
+  conflictPolicy: (tenantId: string, connectionId: string) =>
+    [
+      ...integrationHubKeys.all,
+      "conflict-policy",
+      tenantId,
+      connectionId,
+    ] as const,
 };
 
 export const opportunityKeys = {

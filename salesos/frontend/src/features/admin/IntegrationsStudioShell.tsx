@@ -1,5 +1,5 @@
 /**
- * FE-S08-01 / STORY-08-07 — Studio step ids + Owner Console pointer.
+ * FE-S08-01 / STORY-08-07 / FE-S08-08 — Studio step ids + Owner Console pointer.
  * Live Studio is IntegrationsStudio against Hub HTTP. Not Production GO.
  */
 
@@ -9,6 +9,7 @@ export const STUDIO_STEPS = [
   { id: "connect", label: "Connect" },
   { id: "test", label: "Test" },
   { id: "map", label: "Map" },
+  { id: "conflict", label: "Conflict" },
   { id: "schedule", label: "Schedule" },
   { id: "monitor", label: "Monitor" },
   { id: "disconnect", label: "Disconnect" },
@@ -27,7 +28,7 @@ export function IntegrationsStudioShell() {
           Integrations Studio
         </h2>
         <p className="mt-1 text-xs text-[var(--text-muted)]">
-          STORY-08-07 tenant Studio is live at{" "}
+          STORY-08-07 / FE-S08-08 tenant Studio is live at{" "}
           <Link
             href="/integrations"
             className="underline"
@@ -43,8 +44,9 @@ export function IntegrationsStudioShell() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="integrations-studio-api-honesty"
       >
-        Hub HTTP is live on tip (STORY-08-06). Owner Console inventory stays
-        read-path; mutate Studio flow uses tenant JWT + DOM-021 at
+        Hub HTTP is live on tip (STORY-08-06) including conflict-policy.
+        OdooAdapter certify path landed (STORY-09-01). Owner Console inventory
+        stays read-path; mutate Studio flow uses tenant JWT + DOM-021 at
         `/integrations`. Not Production GO.
       </p>
 

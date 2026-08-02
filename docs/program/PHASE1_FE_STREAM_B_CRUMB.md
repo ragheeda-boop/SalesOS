@@ -22,6 +22,7 @@
 | FE-S08-00 Integration Hub inventory honesty stub | **LANDED** — crumb [`PHASE1_FE_INTEGRATION_HUB_INVENTORY.md`](PHASE1_FE_INTEGRATION_HUB_INVENTORY.md) |
 | FE-S08-01 Thin Studio shell (API not live) | **LANDED** — superseded by STORY-08-07 live Studio |
 | STORY-08-07 Integrations Studio UI | **LANDED** (this tip) — `/integrations` against Hub HTTP; crumb [`PHASE1_STORY_08_07_INTEGRATIONS_STUDIO_CRUMB.md`](PHASE1_STORY_08_07_INTEGRATIONS_STUDIO_CRUMB.md) |
+| FE-S08-08 Conflict-policy Studio + Odoo honesty | **LANDED** — crumb [`PHASE1_FE_S08_08_CONFLICT_POLICY_STUDIO_CRUMB.md`](PHASE1_FE_S08_08_CONFLICT_POLICY_STUDIO_CRUMB.md) |
 
 ## Honesty
 

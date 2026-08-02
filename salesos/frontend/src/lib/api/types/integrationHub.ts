@@ -1,4 +1,4 @@
-/** STORY-08-06 Hub HTTP types for STORY-08-07 Studio. Not Production GO. */
+/** STORY-08-06 Hub HTTP types for Studio FE. Not Production GO. */
 
 export interface HubConnectionCreate {
   connector_key: string;
@@ -41,6 +41,26 @@ export interface HubMapping {
   mappings: Record<string, unknown>[];
   baseline_fields: string[];
   is_active: boolean;
+}
+
+export interface HubConflictRule {
+  internal: string;
+  winner: "source" | "salesos";
+  exclude_from_pull?: boolean;
+}
+
+export interface HubConflictPolicyUpsert {
+  rules: HubConflictRule[];
+  salesos_authored_fields?: string[] | null;
+  operational_fields?: string[] | null;
+}
+
+export interface HubConflictPolicy {
+  id: string;
+  connection_id: string;
+  rules: HubConflictRule[];
+  salesos_authored_fields: string[];
+  operational_fields: string[];
 }
 
 export interface HubScheduleCreate {

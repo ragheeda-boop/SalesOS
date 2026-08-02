@@ -1,9 +1,11 @@
 /**
- * STORY-08-07 — Integration Hub HTTP client (DOM-021).
- * Endpoints from tip STORY-08-06. No invented routes/secrets. Not Production GO.
+ * Integration Hub HTTP client (DOM-021).
+ * Tip endpoints only (STORY-08-06 / FE-S08-08 conflict-policy). Not Production GO.
  */
 import api from "./client";
 import type {
+  HubConflictPolicy,
+  HubConflictPolicyUpsert,
   HubConnection,
   HubConnectionCreate,
   HubConnectionTestResult,
@@ -101,6 +103,30 @@ export async function getActiveHubMapping(
       headers: tenantHeaders(tenantId),
       params: { model },
     },
+  );
+  return resp.data;
+}
+
+export async function getHubConflictPolicy(
+  tenantId: string,
+  connectionId: string,
+): Promise<HubConflictPolicy> {
+  const resp = await api.get<HubConflictPolicy>(
+    `${BASE}/connections/${connectionId}/conflict-policy`,
+    { headers: tenantHeaders(tenantId) },
+  );
+  return resp.data;
+}
+
+export async function putHubConflictPolicy(
+  tenantId: string,
+  connectionId: string,
+  body: HubConflictPolicyUpsert,
+): Promise<HubConflictPolicy> {
+  const resp = await api.put<HubConflictPolicy>(
+    `${BASE}/connections/${connectionId}/conflict-policy`,
+    body,
+    { headers: tenantHeaders(tenantId) },
   );
   return resp.data;
 }
