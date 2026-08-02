@@ -13,7 +13,7 @@ describe("odooOpportunityHonesty — FE-S09-02", () => {
 
   it("provides tip crm.lead mapping preset including stage_id→stage", () => {
     expect(isOpportunityModel("crm.lead")).toBe(true);
-    expect(isOpportunityModel("company")).toBe(false);
+    expect(isOpportunityModel("res.partner")).toBe(false);
     expect(
       DEFAULT_OPPORTUNITY_MAPPINGS.some(
         (m) => m.external === "stage_id" && m.internal === "stage",

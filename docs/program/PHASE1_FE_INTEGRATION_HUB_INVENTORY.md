@@ -16,6 +16,7 @@
 | FE-S08-09 | Active mapping GET + tenant nav |
 | FE-S08-10 | Connection detail + baseline_fields + cmd palette |
 | FE-S08-11 | URL deep-link + schedule/monitor polish |
+| FE-S09-01 | Partner presets + cr_number join honesty (tip 09-01) |
 | FE-S09-02 | Opportunity presets + stage honesty (tip 09-02) |
 
 ## Blocked (do not invent)

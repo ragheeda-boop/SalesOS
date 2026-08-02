@@ -39,8 +39,12 @@ export const DEFAULT_OPPORTUNITY_MAPPINGS = [
 ] as const;
 
 export const HUB_MODEL_PRESETS = [
-  { id: "company", label: "company", model: "company" },
   // id avoids dots (Testing Library CSS testid selectors)
+  {
+    id: "res-partner",
+    label: "res.partner (company/contact)",
+    model: "res.partner",
+  },
   { id: "crm-lead", label: "crm.lead (opportunity)", model: "crm.lead" },
 ] as const;
 

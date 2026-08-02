@@ -67,6 +67,11 @@ const FE_GATED = [
     status: "FE landed — ?step=&connection=",
   },
   {
+    id: "FE-S09-01",
+    title: "Partner model presets + cr_number join honesty",
+    status: "FE landed — res.partner presets",
+  },
+  {
     id: "FE-S09-02",
     title: "Opportunity model presets + stage honesty",
     status: "FE landed — crm.lead presets",
@@ -91,9 +96,9 @@ export default function AdminIntegrationsInventoryPage() {
         data-testid="owner-ops-integrations-honesty"
       >
         FE inventory: BE 08-01..06 + STORY-09-01/09-02 OdooAdapter landed.
-        Tenant Studio (through FE-S09-02 opportunity presets) is at
-        `/integrations`. Owner mint remains DEC-093 follow-up. Not Production
-        GO.
+        Tenant Studio (through FE-S09-01 partner + FE-S09-02 opportunity
+        presets) is at `/integrations`. Unlinked badge list still BE-blocked.
+        Owner mint remains DEC-093 follow-up. Not Production GO.
       </p>
 
       <IntegrationsStudioShell />

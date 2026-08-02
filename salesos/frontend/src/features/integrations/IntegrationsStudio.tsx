@@ -28,6 +28,11 @@ import {
   HUB_MODEL_PRESETS,
   isOpportunityModel,
 } from "@/features/integrations/odooOpportunityHonesty";
+import {
+  DEFAULT_PARTNER_MAPPINGS,
+  PARTNER_JOIN_OUTCOMES,
+  isPartnerModel,
+} from "@/features/integrations/odooPartnerHonesty";
 
 export type { StudioStepId };
 
@@ -56,6 +61,7 @@ function listFromCsv(raw: string): string[] {
  * Tip STORY-09-01: connector_key `odoo` dispatches OdooAdapter.test_connection.
  * Active mapping GET (FE-S08-09). URL deep-link (FE-S08-11). STORY-09-02: schedule/map `crm.lead` uses translated stages (no raw Odoo stage passthrough).
  * STORY-09-02 opportunity stage honesty (FE-S09-02).
+ * STORY-09-01 partner/cr_number honesty (FE-S09-01).
  * Unlinked badge list API not live. Not Production GO.
  */
 export function IntegrationsStudio() {
@@ -70,11 +76,13 @@ export function IntegrationsStudio() {
   const [connectorKey, setConnectorKey] = useState("fake");
   const [credentialRef, setCredentialRef] = useState("vault:demo/fake");
   const [configJson, setConfigJson] = useState("{}");
-  const [model, setModel] = useState("company");
+  const [model, setModel] = useState("res.partner");
   const [mappingJson, setMappingJson] = useState(
-    '[{"external":"name","internal":"name"}]',
+    () => JSON.stringify(DEFAULT_PARTNER_MAPPINGS, null, 2),
   );
-  const [baselineCsv, setBaselineCsv] = useState("");
+  const [baselineCsv, setBaselineCsv] = useState(
+    "name, email, phone, cr_number",
+  );
   const [disconnectConfirmed, setDisconnectConfirmed] = useState(false);
   const [schedule, setSchedule] = useState("15m");
   const [lastTest, setLastTest] = useState<string>("");
@@ -165,6 +173,11 @@ export function IntegrationsStudio() {
     if (isOpportunityModel(nextModel)) {
       setMappingJson(JSON.stringify(DEFAULT_OPPORTUNITY_MAPPINGS, null, 2));
       setBaselineCsv("name, stage, amount, partner_external_id");
+      return;
+    }
+    if (isPartnerModel(nextModel)) {
+      setMappingJson(JSON.stringify(DEFAULT_PARTNER_MAPPINGS, null, 2));
+      setBaselineCsv("name, email, phone, cr_number");
     }
   }
 
@@ -444,6 +457,19 @@ export function IntegrationsStudio() {
                 </Button>
               ))}
             </div>
+            {isPartnerModel(model) ? (
+              <p
+                className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+                data-testid="integrations-studio-partner-join-honesty"
+              >
+                STORY-09-01: Tip model <code>res.partner</code> maps{" "}
+                <code>x_studio_cr_number</code> → <code>cr_number</code> and
+                joins Company / Golden Record. Batch outcomes:{" "}
+                {PARTNER_JOIN_OUTCOMES.join(", ")}. Unlinked badge{" "}
+                <em>list</em> API still BE-blocked — Monitor shows SyncRun
+                counters only. Not Production GO.
+              </p>
+            ) : null}
             {isOpportunityModel(model) ? (
               <p
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
@@ -644,6 +670,16 @@ export function IntegrationsStudio() {
                 </Button>
               ))}
             </div>
+            {isPartnerModel(model) ? (
+              <p
+                className="text-xs text-[var(--text-muted)]"
+                data-testid="integrations-studio-schedule-partner-hint"
+              >
+                Tip schedule model <code>res.partner</code> pulls company/contact
+                partners via OdooAdapter after STORY-09-01 (cr_number join in
+                batch; no badge list HTTP).
+              </p>
+            ) : null}
             {isOpportunityModel(model) ? (
               <p
                 className="text-xs text-[var(--text-muted)]"
@@ -717,8 +753,10 @@ export function IntegrationsStudio() {
               className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
               data-testid="integrations-studio-unlinked-honesty"
             >
-              Unlinked cr_number badge list API not live (STORY-09-01 residual).
-              Monitor shows SyncRun counters only. Not Production GO.
+              Unlinked cr_number badge list API not live (STORY-09-01 residual /
+              FE-S09-01 honesty). Join outcomes exist in BE batch only (
+              {PARTNER_JOIN_OUTCOMES.join(", ")}). Monitor shows SyncRun
+              counters only. Not Production GO.
             </p>
             <Button
               data-testid="integrations-studio-monitor-refresh"

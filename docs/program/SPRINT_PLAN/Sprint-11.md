@@ -8,6 +8,8 @@
 | Story | Owner | Priority | Risk | Acceptance Criteria |
 |---|---|---|---|---|
 | STORY-09-02 (Opportunity sync, translated stages) | BE3 | P0 | Medium | **LANDED BE (Stream A):** `crm.lead` pull + `sync_opportunity_records` with `strict_stages` ACL (no raw passthrough). Crumb [`PHASE1_STORY_09_02_ODOO_OPPORTUNITY_SYNC_CRUMB.md`](../PHASE1_STORY_09_02_ODOO_OPPORTUNITY_SYNC_CRUMB.md). No new RLS. No Production GO. |
+| FE-S09-01 (Partner Studio presets + cr_number join honesty) | FE-Lead | P1 | Low | **LANDED FE (Stream B):** Map/Schedule `res.partner` tip presets + join-outcome honesty; badge list still BE-blocked. Crumb [`PHASE1_FE_S09_01_PARTNER_STUDIO_HONESTY_CRUMB.md`](../PHASE1_FE_S09_01_PARTNER_STUDIO_HONESTY_CRUMB.md). No Production GO. |
+| FE-S09-02 (Opportunity Studio presets + stage honesty) | FE-Lead | P1 | Low | **LANDED FE (Stream B):** Map/Schedule `crm.lead` tip presets + translated stage honesty. Crumb [`PHASE1_FE_S09_02_OPPORTUNITY_STUDIO_HONESTY_CRUMB.md`](../PHASE1_FE_S09_02_OPPORTUNITY_STUDIO_HONESTY_CRUMB.md). No Production GO. |
 | STORY-09-03 (InteractionNote/TimelineEvent + PII scrubbing) | BE-Lead, AI-Lead | P0 | High | PII scrubbing verified against real production note samples before RAG |
 | STORY-09-04 (SupportTicket) | BE2 | P1 | Medium | `helpdesk.ticket` synced correctly |
 | STORY-09-05 (TaskCaseExtension) | BE1 | P0 | High | Modeled as Value Object on `Task`, not standalone aggregate; JSON Schema validated per case_type |

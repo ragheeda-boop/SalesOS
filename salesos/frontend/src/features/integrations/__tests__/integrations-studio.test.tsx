@@ -86,7 +86,7 @@ jest.mock("@salesos/ui", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
-describe("IntegrationsStudio — FE-S08-08..11 / FE-S09-02", () => {
+describe("IntegrationsStudio — FE-S08-08..11 / FE-S09-01/02", () => {
   it("renders conflict-policy step and Odoo honesty", () => {
     render(<IntegrationsStudio />);
     expect(screen.getByTestId("integrations-studio")).toBeInTheDocument();
@@ -169,6 +169,27 @@ describe("IntegrationsStudio — FE-S08-08..11 / FE-S09-02", () => {
     expect(
       screen.getByTestId("integrations-studio-monitor-status-filter"),
     ).toBeInTheDocument();
+  });
+
+  it("applies res.partner preset and cr_number join honesty", () => {
+    render(<IntegrationsStudio />);
+    fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
+    fireEvent.click(
+      screen.getByTestId("integrations-studio-model-preset-res-partner"),
+    );
+    expect(
+      screen.getByTestId("integrations-studio-partner-join-honesty"),
+    ).toHaveTextContent(/cr_number/i);
+    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
+      "res.partner",
+    );
+    expect(
+      (
+        screen.getByTestId(
+          "integrations-studio-map-json",
+        ) as HTMLTextAreaElement
+      ).value,
+    ).toContain("x_studio_cr_number");
   });
 
   it("applies crm.lead opportunity preset and stage honesty", () => {

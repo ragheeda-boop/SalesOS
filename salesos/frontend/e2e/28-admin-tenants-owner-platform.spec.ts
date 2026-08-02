@@ -309,6 +309,9 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await page.goto("/integrations?step=map");
     await page.waitForLoadState("networkidle");
     await expect(
+      page.getByTestId("integrations-studio-model-preset-res-partner"),
+    ).toBeVisible();
+    await expect(
       page.getByTestId("integrations-studio-model-preset-crm-lead"),
     ).toBeVisible();
   });
