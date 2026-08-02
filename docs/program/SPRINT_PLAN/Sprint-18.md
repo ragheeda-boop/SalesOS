@@ -8,7 +8,7 @@
 |---|---|---|---|---|
 | STORY-11-07 (Website Intelligence) | AI-Lead | P0 | Medium | Reuses existing LLM spend, no separate vendor call |
 | STORY-11-08 (AI Outreach) | AI-Lead | P0 | Medium | Routed through governed Prompt Registry, not a disconnected tool |
-| STORY-11-09 (Sequencing Engine, email channel) | BE1, FE2 | P0 | Medium | Bound to existing Activity/Task objects |
+| STORY-11-09 (Sequencing Engine, email channel) | BE1, FE2 | P0 | Medium | **LANDED BE (Stream A):** email-only `SequenceDefinition` + enrollment state machine via `/api/v1/gtm/sequences`, bound to Task/Activity-shaped refs. Crumb [`PHASE1_STORY_11_09_SEQUENCING_CRUMB.md`](../PHASE1_STORY_11_09_SEQUENCING_CRUMB.md). Live SMTP / LinkedIn / WhatsApp not claimed. No new RLS. No Production GO. |
 
 **Expected Demo:** End-to-end GTM flow: ICP → Lead Discovery → Enrichment → Website Intelligence → AI-drafted outreach → email sequence sent to a test inbox.
 
