@@ -70,11 +70,13 @@ class OdooTranslator:
         existing_canonical: Mapping[str, Any] | None = None,
     ) -> CanonicalRecord:
         """Run Mapper→…→Versioning. Validator failures raise ``AclValidationError``."""
-        entries = (
-            parse_field_mappings(list(mappings))
-            if mappings and isinstance(mappings[0], dict)
-            else tuple(mappings)  # type: ignore[arg-type]
-        )
+        entries: tuple[FieldMapEntry, ...]
+        if not mappings:
+            entries = ()
+        elif isinstance(mappings[0], FieldMapEntry):
+            entries = tuple(mappings)
+        else:
+            entries = parse_field_mappings(list(mappings))
         if not (sync_run_id or "").strip():
             raise ValueError("sync_run_id is required")
         mapped = self._map(raw, entries)
