@@ -3,7 +3,7 @@
 > **Honesty:** Not Production GO. Live prod traffic / prod kill not performed.  
 > **POLICY_COUNT unchanged at 71** (no Alembic / FORCE RLS).  
 > `feature_ai_copilot` remains **False**. Stage 6 GHCR stays quarantined.  
-> BE tip HTTP companion for DevOps non-prod field load harness.  
+> **BE status: CLOSED** (tip HTTP companion complete). DevOps owns field 50-tenant / 2h soak residual.  
 > Does **not** reopen marketplace 13-xx. Does not re-land 14-02/14-03.
 
 ## Landed
@@ -16,6 +16,15 @@
 | Postmortems | Practice postmortem per run |
 | HTTP | `/api/v1/load/meta`, `/run/{profile}`, `/run-all`, `/runs`, `/remediation`, `/postmortems` |
 | Tests | `tests/unit/test_story_14_01_load_slo.py` |
+
+## DevOps field harness (Stream C) — STARTED
+
+| Piece | Detail |
+|-------|--------|
+| Script | `salesos/scripts/story_14_01_nonprod_load_harness.py` |
+| Modes | `companion` (local MemLoadSloHarness) · `http` (tip `/api/v1/load/*`) |
+| Safety | Refuses known prod host markers unless `--allow-deployed-nonprod` (operator-asserted non-prod only) |
+| Status | **light validated** companion run (exit 0, both profiles within_slo) against tip `dd59a3f`/`8a369f1`. Field 2h soak **not validated**. HTTP against deployed tip **not validated** (no non-prod token run yet) |
 
 ## Non-goals
 
