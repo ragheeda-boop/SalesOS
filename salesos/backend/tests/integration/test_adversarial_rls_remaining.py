@@ -23,7 +23,7 @@ from app.database import engine
 
 RLS_REJECT = "(?i)row-level security"
 # 47 Category A + B1–B7 (DEC-112…DEC-119)
-POLICY_COUNT = 70  # 69 prior + STORY-08-05 sync_runs tenant_isolation policy
+POLICY_COUNT = 71  # 70 prior + STORY-08-06 conflict_resolution_policies tenant_isolation
 
 
 @pytest_asyncio.fixture(autouse=True)

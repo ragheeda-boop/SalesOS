@@ -126,3 +126,23 @@ class SyncRunService:
             )
         )
         return q.scalar_one_or_none()
+
+    async def list_for_connection(
+        self,
+        *,
+        tenant_id: uuid.UUID | str,
+        connection_id: uuid.UUID | str,
+        limit: int = 50,
+    ) -> list[SyncRunModel]:
+        tid = uuid.UUID(str(tenant_id))
+        cid = uuid.UUID(str(connection_id))
+        q = (
+            select(SyncRunModel)
+            .where(
+                SyncRunModel.tenant_id == tid,
+                SyncRunModel.connection_id == cid,
+            )
+            .order_by(SyncRunModel.started_at.desc())
+            .limit(max(1, min(int(limit), 200)))
+        )
+        return list((await self.session.execute(q)).scalars().all())

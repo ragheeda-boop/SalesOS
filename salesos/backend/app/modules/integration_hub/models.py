@@ -170,3 +170,54 @@ class SyncRunModel(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
+
+
+class ConflictResolutionPolicyModel(Base):
+    """OBJ-333 ConflictResolutionPolicy — per-connection field winners + pull exclusion."""
+
+    __tablename__ = "conflict_resolution_policies"
+    __table_args__ = (
+        Index("ix_conflict_resolution_policies_tenant_id", "tenant_id"),
+        Index(
+            "ix_conflict_resolution_policies_tenant_connection",
+            "tenant_id",
+            "connection_id",
+        ),
+        UniqueConstraint(
+            "connection_id",
+            name="uq_conflict_resolution_policies_connection",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("tenants.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    connection_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("external_system_connections.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    rules: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'[]'::jsonb")
+    )
+    salesos_authored_fields: Mapped[list[str]] = mapped_column(
+        JSONB,
+        nullable=False,
+        server_default=text('\'["risk_score","ai_sentiment","ai_score"]\'::jsonb'),
+    )
+    operational_fields: Mapped[list[str]] = mapped_column(
+        JSONB,
+        nullable=False,
+        server_default=text(
+            '\'["name","email","phone","cr_number","stage","amount","currency"]\'::jsonb'
+        ),
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )

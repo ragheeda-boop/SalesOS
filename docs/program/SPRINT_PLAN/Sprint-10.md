@@ -7,7 +7,7 @@
 | Story | Owner | Priority | Risk | Acceptance Criteria |
 |---|---|---|---|---|
 | STORY-08-05 (SyncRun + scheduling) | BE2 | P0 | Medium | **LANDED BE (Stream A):** `sync_runs` Alembic `c4d8e21a9f07` + monthly partitions + FORCE RLS (POLICY_COUNT 70); CAP-028 `schedule_connection_sync` tick logs SyncRun. Crumb [`PHASE1_STORY_08_05_SYNC_RUN_CRUMB.md`](../PHASE1_STORY_08_05_SYNC_RUN_CRUMB.md). No Production GO. |
-| STORY-08-06 (ConflictResolutionPolicy) | BE-Lead | P1 | Medium | Write-back feedback-loop exclusion rule verified with a dedicated test |
+| STORY-08-06 (ConflictResolutionPolicy) | BE-Lead | P1 | Medium | **LANDED BE (Stream A):** OBJ-333 + FORCE RLS (POLICY_COUNT 71); feedback-loop exclusion test; Hub HTTP `/api/v1/integrations/*` for FE-08-07. Crumb [`PHASE1_STORY_08_06_CONFLICT_POLICY_HUB_HTTP_CRUMB.md`](../PHASE1_STORY_08_06_CONFLICT_POLICY_HUB_HTTP_CRUMB.md). No Production GO. |
 | STORY-08-07 (Integrations Studio UI) | FE-Lead, FE2 | P0 | Medium | Connect/test/map/schedule/monitor/disconnect flow usable end-to-end in staging |
 | STORY-09-01 (Odoo Company/Contact sync) | BE3 | P0 | Medium | `cr_number` join against the 141,221-company dataset working in staging |
 

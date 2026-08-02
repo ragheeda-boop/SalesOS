@@ -132,3 +132,17 @@ class ExternalSystemConnectionService:
         row.cursor_state = state
         await self.session.flush()
         return row
+
+    async def disconnect(
+        self,
+        connection_id: uuid.UUID | str,
+        *,
+        tenant_id: uuid.UUID | str,
+    ) -> ExternalSystemConnectionModel | None:
+        """Deactivate connection; keep history for SyncRun / audit (no hard delete)."""
+        row = await self.get_for_tenant(connection_id, tenant_id=tenant_id)
+        if row is None:
+            return None
+        row.is_active = False
+        await self.session.flush()
+        return row

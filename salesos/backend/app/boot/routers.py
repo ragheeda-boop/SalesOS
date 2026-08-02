@@ -31,6 +31,7 @@ def register_routers(app: FastAPI) -> None:
     from app.modules.excel_import.router import router as excel_import_router
     from app.modules.executive.router import router as executive_router
     from app.modules.identity.router import router as identity_router
+    from app.modules.integration_hub.router import router as integration_hub_router
     from app.modules.monitoring.router import router as monitoring_router
     from app.modules.notion_sync.router import router as notion_sync_router
     from app.modules.revenue_execution.router import router as revenue_execution_router
@@ -174,6 +175,13 @@ def register_routers(app: FastAPI) -> None:
     # Mount without router-level auth so Google OAuth /callback can complete
     # without a Bearer header. Protected routes declare Depends(verify_token).
     app.include_router(communication_hub_router, prefix="/api/v1", tags=["Communication Hub"])
+    # DOM-021 Integration Hub (STORY-08-06) — Studio FE STORY-08-07 surfaces.
+    app.include_router(
+        integration_hub_router,
+        prefix="/api/v1",
+        tags=["Integration Hub"],
+        dependencies=_auth,
+    )
     app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
     app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
     app.include_router(admin_router)
