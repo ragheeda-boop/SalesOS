@@ -27,6 +27,7 @@ _INDEX_LOCK_KEY = 90300030
 
 async def _recreate_desc_index(db_session: AsyncSession) -> None:
     """Force DESC index — CREATE IF NOT EXISTS is a no-op when ASC already exists."""
+    await db_session.rollback()
     await db_session.execute(text(f"SELECT pg_advisory_lock({_INDEX_LOCK_KEY})"))
     try:
         await db_session.execute(text("DROP INDEX IF EXISTS ix_companies_confidence_score"))
@@ -44,6 +45,8 @@ async def _recreate_desc_index(db_session: AsyncSession) -> None:
 async def ensure_index(db_session: AsyncSession):
     await _recreate_desc_index(db_session)
     yield
+    # Clear aborted txn from a failed body before teardown DDL.
+    await db_session.rollback()
     await db_session.execute(text(f"SELECT pg_advisory_lock({_INDEX_LOCK_KEY})"))
     try:
         await db_session.execute(text("DROP INDEX IF EXISTS ix_companies_confidence_score"))
