@@ -366,9 +366,7 @@ async def suspend_tenant(
     tenant.is_active = False
     tenant.provisioning_status = "suspended"
     tenant.updated_at = datetime.now(UTC)
-    sub = await SubscriptionService(db).sync_tenant_lifecycle(
-        tenant_id=tenant.id, action="suspend"
-    )
+    sub = await SubscriptionService(db).sync_tenant_lifecycle(tenant_id=tenant.id, action="suspend")
     await db.flush()
     return TenantLifecycleResponse(
         message="Tenant suspended",
@@ -492,9 +490,7 @@ async def soft_delete_tenant(tenant_id: str, db: AsyncSession = Depends(get_db_s
     stamp_deletion_requested(tenant)
     tenant.updated_at = datetime.now(UTC)
     # Soft-delete enters retention; subscription churns (hard-delete still gated).
-    sub = await SubscriptionService(db).sync_tenant_lifecycle(
-        tenant_id=tenant.id, action="churn"
-    )
+    sub = await SubscriptionService(db).sync_tenant_lifecycle(tenant_id=tenant.id, action="churn")
     await db.flush()
     return TenantLifecycleResponse(
         message="Tenant soft-deleted",
