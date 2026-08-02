@@ -645,14 +645,7 @@ function TenantDetailModal({
     } catch {
       toast({ variant: "error", title: "Failed to update status" });
     }
-  }, [
-    tenant,
-    tenantId,
-    suspendReason,
-    suspendMutation,
-    updateMutation,
-    toast,
-  ]);
+  }, [tenant, tenantId, suspendReason, suspendMutation, updateMutation, toast]);
 
   const handleSaveConfig = useCallback(async () => {
     try {

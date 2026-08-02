@@ -317,10 +317,7 @@ export function useUpdateAdminTenant(id: string) {
 export function useSuspendAdminTenant() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-      ...data
-    }: AdminTenantSuspendRequest & { id: string }) =>
+    mutationFn: ({ id, ...data }: AdminTenantSuspendRequest & { id: string }) =>
       suspendAdminTenant(id, data),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: adminKeys.tenants() });
