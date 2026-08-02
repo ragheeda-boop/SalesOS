@@ -12,8 +12,9 @@
 | FE-S06-01 `/admin/billing` read view | **LANDED** |
 | FE-S06-02 Plan.entitlements editor/display | **LANDED** |
 | FE-S06-02b Honest 403 entitlement upgrade toast | **LANDED** |
-| FE-S06-03 Resolved entitlements on TenantBillingPanel | **LANDED** (this tip) |
-| FE-S06-03b Honest quota_exceeded toast (403/429) | **LANDED** (this tip) |
+| FE-S06-03 Resolved entitlements on TenantBillingPanel | **LANDED** |
+| FE-S06-03b Honest quota_exceeded toast (403/429) | **LANDED** |
+| FE-S07-01/02/03 Owner Console MVP shell + audience | **LANDED** (this tip) — crumb [`PHASE1_STORY_07_OWNER_CONSOLE_CRUMB.md`](PHASE1_STORY_07_OWNER_CONSOLE_CRUMB.md) |
 
 ## Honesty
 
