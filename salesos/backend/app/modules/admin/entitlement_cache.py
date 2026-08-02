@@ -83,12 +83,13 @@ def deserialize_entitlement_cache(
     if not isinstance(data, dict):
         return None
     ents_raw = data.get("entitlements")
-    meta = data.get("meta") if isinstance(data.get("meta"), dict) else {}
+    meta_raw = data.get("meta")
+    meta: dict[str, Any] = dict(meta_raw) if isinstance(meta_raw, dict) else {}
     try:
         ents = parse_entitlements(ents_raw)
     except (ValueError, TypeError):
         return None
-    return ents, dict(meta)
+    return ents, meta
 
 
 class EntitlementCache:
@@ -104,9 +105,7 @@ class EntitlementCache:
         self._clock = clock or time.monotonic
         self._memory: dict[str, _MemoryEntry] = {}
 
-    async def get(
-        self, tenant_id: str
-    ) -> tuple[PlanEntitlements, dict[str, Any]] | None:
+    async def get(self, tenant_id: str) -> tuple[PlanEntitlements, dict[str, Any]] | None:
         key = entitlement_cache_key(tenant_id)
         now = float(self._clock())
         mem = self._memory.get(key)
@@ -145,9 +144,7 @@ class EntitlementCache:
         key = entitlement_cache_key(tenant_id)
         payload = serialize_entitlement_cache(entitlements, meta)
         now = float(self._clock())
-        self._memory[key] = _MemoryEntry(
-            payload=payload, expires_at=now + float(self.ttl_seconds)
-        )
+        self._memory[key] = _MemoryEntry(payload=payload, expires_at=now + float(self.ttl_seconds))
         if self._redis is not None:
             try:
                 await self._redis.set(key, payload, ttl=self.ttl_seconds)
