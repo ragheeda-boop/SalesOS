@@ -26,7 +26,9 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  X,
 } from "lucide-react";
+import { useDebounce } from "@salesos/hooks";
 import {
   useAdminTenants,
   useCreateAdminTenant,
@@ -133,12 +135,16 @@ export default function AdminTenantsPage() {
     trial_ends_at: "",
   });
 
+  // FE-S04-21 — debounce free-text server params (match companies/contacts pattern)
+  const debouncedSearch = useDebounce(search, 400);
+  const debouncedPlanId = useDebounce(planIdFilter, 400);
+
   // FE-S04-20 — wire Owner Platform filters to GET /admin/tenants query params
   // (tip 0782fa4: plan_id|region|data_residency|provisioning_status|trial + search/plan/status)
   const { data: tenants, isLoading } = useAdminTenants({
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     plan: planFilter || undefined,
-    plan_id: planIdFilter.trim() || undefined,
+    plan_id: debouncedPlanId.trim() || undefined,
     status: statusFilter || undefined,
     provisioning_status: provisioningFilter || undefined,
     region: regionFilter || undefined,
@@ -184,6 +190,69 @@ export default function AdminTenantsPage() {
     if (!tenants) return [];
     return sortAdminTenants(tenants, sortKey);
   }, [tenants, sortKey]);
+
+  // FE-S04-22 — active server-filter chips (dismissible)
+  const activeFilterChips = useMemo(() => {
+    const chips: { key: string; label: string; clear: () => void }[] = [];
+    if (search.trim())
+      chips.push({
+        key: "search",
+        label: `search=${search.trim()}`,
+        clear: () => setSearch(""),
+      });
+    if (planFilter)
+      chips.push({
+        key: "plan",
+        label: `plan=${planFilter}`,
+        clear: () => setPlanFilter(""),
+      });
+    if (planIdFilter.trim())
+      chips.push({
+        key: "plan_id",
+        label: `plan_id=${planIdFilter.trim()}`,
+        clear: () => setPlanIdFilter(""),
+      });
+    if (statusFilter)
+      chips.push({
+        key: "status",
+        label: `status=${statusFilter}`,
+        clear: () => setStatusFilter(""),
+      });
+    if (provisioningFilter)
+      chips.push({
+        key: "provisioning",
+        label: `provisioning=${provisioningFilter}`,
+        clear: () => setProvisioningFilter(""),
+      });
+    if (regionFilter)
+      chips.push({
+        key: "region",
+        label: `region=${regionFilter}`,
+        clear: () => setRegionFilter(""),
+      });
+    if (residencyFilter)
+      chips.push({
+        key: "residency",
+        label: `residency=${residencyFilter}`,
+        clear: () => setResidencyFilter(""),
+      });
+    if (trialFilter)
+      chips.push({
+        key: "trial",
+        label: `trial=${trialFilter}`,
+        clear: () => setTrialFilter(""),
+      });
+    return chips;
+  }, [
+    search,
+    planFilter,
+    planIdFilter,
+    statusFilter,
+    provisioningFilter,
+    regionFilter,
+    residencyFilter,
+    trialFilter,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(filteredTenants.length / 20));
   const paginatedTenants = filteredTenants.slice((page - 1) * 20, page * 20);
@@ -413,6 +482,30 @@ export default function AdminTenantsPage() {
           </Button>
         )}
       </div>
+
+      {/* FE-S04-22 — active filter chips */}
+      {activeFilterChips.length > 0 && (
+        <div
+          className="flex flex-wrap gap-2"
+          data-testid="admin-tenants-filter-chips"
+        >
+          {activeFilterChips.map((chip) => (
+            <button
+              key={chip.key}
+              type="button"
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--border-default)] bg-[var(--bg-secondary)] px-2.5 py-1 text-xs text-[var(--text-secondary)] hover:border-[var(--muhide-orange)]"
+              onClick={() => {
+                chip.clear();
+                setPage(1);
+              }}
+              data-testid={`admin-tenants-chip-${chip.key}`}
+            >
+              <span className="font-mono">{chip.label}</span>
+              <X className="h-3 w-3" />
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Create Modal */}
       <Modal open={showCreate} onOpenChange={setShowCreate}>
@@ -778,6 +871,11 @@ export default function AdminTenantsPage() {
         <TenantDetailModal
           tenantId={showDetail}
           onClose={() => setShowDetail(null)}
+          onRequestDelete={(id) => {
+            setShowDetail(null);
+            setHardDeleteConfirm(false);
+            setShowDeleteConfirm(id);
+          }}
         />
       )}
 
@@ -867,9 +965,11 @@ export default function AdminTenantsPage() {
 function TenantDetailModal({
   tenantId,
   onClose,
+  onRequestDelete,
 }: {
   tenantId: string;
   onClose: () => void;
+  onRequestDelete: (id: string) => void;
 }) {
   const { toast } = useToast();
   const { data: tenant, isLoading } = useAdminTenantDetail(tenantId);
@@ -1121,6 +1221,15 @@ function TenantDetailModal({
           </div>
         </ModalBody>
         <ModalFooter>
+          <Button
+            variant="outline"
+            className="text-danger-600"
+            data-testid="admin-tenants-detail-delete"
+            onClick={() => onRequestDelete(tenantId)}
+            leftIcon={<Trash2 className="h-4 w-4" />}
+          >
+            Soft / hard delete…
+          </Button>
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>

@@ -47,3 +47,6 @@
 | FE-S04-18 | Copy tenant id/slug from detail | **LANDED** |
 | FE-S04-19 | Client list sort (created/name) | **LANDED** |
 | FE-S04-20 | Wire list hooks to server filter query params (`0782fa4`) | **LANDED** |
+| FE-S04-21 | Debounce search + plan_id (400ms) | **LANDED** |
+| FE-S04-22 | Active filter chips (dismissible) | **LANDED** |
+| FE-S04-23 | Detail modal → soft/hard delete entry | **LANDED** |

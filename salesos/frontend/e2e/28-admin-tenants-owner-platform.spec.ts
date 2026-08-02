@@ -117,6 +117,7 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
       page.getByTestId("admin-tenants-lifecycle-copy"),
     ).toBeVisible();
     await expect(page.getByTestId("admin-tenants-copy-ids")).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-detail-delete")).toBeVisible();
   });
 
   test("admin tenants delete modal opens without mutate", async ({ page }) => {
