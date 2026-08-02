@@ -22,8 +22,7 @@ class PracticePostmortem:
     residuals: list[str] = field(default_factory=list)
     written_at: str = ""
     honesty: str = (
-        "Practice postmortem (load/SLO harness), not a production incident. "
-        "Not Production GO."
+        "Practice postmortem (load/SLO harness), not a production incident. " "Not Production GO."
     )
 
     def as_dict(self) -> dict[str, Any]:

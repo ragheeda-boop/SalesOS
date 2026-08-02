@@ -13,8 +13,7 @@ def build_remediation_plan(outcome: LoadOutcome) -> dict[str, Any]:
     items: list[str] = []
     if outcome.tenants < TARGET_TENANTS:
         items.append(
-            f"Scale simulated concurrency to {TARGET_TENANTS} tenants "
-            "(pooled-tier checklist)."
+            f"Scale simulated concurrency to {TARGET_TENANTS} tenants " "(pooled-tier checklist)."
         )
     if outcome.p95_latency_ms > P95_LATENCY_MS_MAX:
         items.append(
