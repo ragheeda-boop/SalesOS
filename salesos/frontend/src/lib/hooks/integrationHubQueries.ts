@@ -1,0 +1,104 @@
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  createHubConnection,
+  createHubMapping,
+  disconnectHubConnection,
+  listHubConnections,
+  listHubSyncRuns,
+  scheduleHubSync,
+  testHubConnection,
+  type HubConnectionCreate,
+  type HubMappingCreate,
+  type HubScheduleCreate,
+} from "@/lib/api";
+import { integrationHubKeys } from "@/lib/queryKeys";
+import { getTenantId } from "./useTenant";
+
+export function useHubConnections() {
+  const tenantId = getTenantId();
+  return useQuery({
+    queryKey: integrationHubKeys.connections(tenantId),
+    queryFn: () => listHubConnections(tenantId),
+    staleTime: 15_000,
+  });
+}
+
+export function useHubSyncRuns(connectionId: string | null) {
+  const tenantId = getTenantId();
+  return useQuery({
+    queryKey: integrationHubKeys.syncRuns(tenantId, connectionId || ""),
+    queryFn: () => listHubSyncRuns(tenantId, connectionId!),
+    enabled: Boolean(connectionId),
+    staleTime: 10_000,
+    refetchInterval: connectionId ? 30_000 : false,
+  });
+}
+
+export function useCreateHubConnection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: HubConnectionCreate) =>
+      createHubConnection(getTenantId(), body),
+    onSuccess: () => {
+      qc.invalidateQueries({
+        queryKey: integrationHubKeys.connections(getTenantId()),
+      });
+    },
+  });
+}
+
+export function useTestHubConnection() {
+  return useMutation({
+    mutationFn: (connectionId: string) =>
+      testHubConnection(getTenantId(), connectionId),
+  });
+}
+
+export function useCreateHubMapping() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      connectionId,
+      body,
+    }: {
+      connectionId: string;
+      body: HubMappingCreate;
+    }) => createHubMapping(getTenantId(), connectionId, body),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({
+        queryKey: integrationHubKeys.activeMapping(
+          getTenantId(),
+          vars.connectionId,
+          vars.body.model,
+        ),
+      });
+    },
+  });
+}
+
+export function useScheduleHubSync() {
+  return useMutation({
+    mutationFn: ({
+      connectionId,
+      body,
+    }: {
+      connectionId: string;
+      body: HubScheduleCreate;
+    }) => scheduleHubSync(getTenantId(), connectionId, body),
+  });
+}
+
+export function useDisconnectHubConnection() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (connectionId: string) =>
+      disconnectHubConnection(getTenantId(), connectionId),
+    onSuccess: () => {
+      qc.invalidateQueries({
+        queryKey: integrationHubKeys.connections(getTenantId()),
+      });
+    },
+  });
+}

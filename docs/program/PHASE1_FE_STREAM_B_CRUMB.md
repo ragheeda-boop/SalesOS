@@ -20,7 +20,8 @@
 | FE-S07-06 Ops nav + tenant-JWT admin 401 honesty | **LANDED** |
 | FE-S07-07 Ops page honesty + EPIC-07 MVP close | **LANDED** |
 | FE-S08-00 Integration Hub inventory honesty stub | **LANDED** — crumb [`PHASE1_FE_INTEGRATION_HUB_INVENTORY.md`](PHASE1_FE_INTEGRATION_HUB_INVENTORY.md) |
-| FE-S08-01 Thin Studio shell (API not live) | **LANDED** (this tip) — disabled steps; no invented Hub HTTP; standby for 08-07 |
+| FE-S08-01 Thin Studio shell (API not live) | **LANDED** — superseded by STORY-08-07 live Studio |
+| STORY-08-07 Integrations Studio UI | **LANDED** (this tip) — `/integrations` against Hub HTTP; crumb [`PHASE1_STORY_08_07_INTEGRATIONS_STUDIO_CRUMB.md`](PHASE1_STORY_08_07_INTEGRATIONS_STUDIO_CRUMB.md) |
 
 ## Honesty
 

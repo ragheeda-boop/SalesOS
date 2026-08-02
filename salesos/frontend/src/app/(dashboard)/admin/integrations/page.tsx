@@ -4,9 +4,8 @@ import Link from "next/link";
 import { IntegrationsStudioShell } from "@/features/admin/IntegrationsStudioShell";
 
 /**
- * FE-S08-00/01 — Integration Hub inventory + thin Studio prep shell.
- * BE STORY-08-01..05 landed; no Hub HTTP. Studio steps disabled (API not live).
- * STORY-08-07 full flow waits Hub HTTP. Not Production GO.
+ * FE-S08-00/01 + STORY-08-07 pointer — Integration Hub Owner inventory.
+ * Live Studio is tenant `/integrations` against Hub HTTP. Not Production GO.
  */
 const BE_LANDED = [
   {
@@ -39,13 +38,13 @@ const BE_LANDED = [
 const FE_GATED = [
   {
     id: "STORY-08-06",
-    title: "ConflictResolutionPolicy",
-    status: "BE next — FE waits",
+    title: "ConflictResolutionPolicy + Hub HTTP",
+    status: "BE landed",
   },
   {
     id: "STORY-08-07",
     title: "Integrations Studio UI",
-    status: "FE blocked on Hub HTTP APIs",
+    status: "FE landed — /integrations",
   },
 ] as const;
 
@@ -66,9 +65,8 @@ export default function AdminIntegrationsInventoryPage() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="owner-ops-integrations-honesty"
       >
-        FE-S08-00/01: BE framework stories 08-01..05 are code-landed; Hub HTTP
-        is not live. Thin Studio chrome is prep-only (disabled steps). Full
-        STORY-08-07 waits Hub HTTP. No invented APIs. Owner mint remains DEC-093
+        FE inventory: BE 08-01..06 landed including Hub HTTP. Tenant Studio
+        (STORY-08-07) is at `/integrations`. Owner mint remains DEC-093
         follow-up. Not Production GO.
       </p>
 
@@ -76,7 +74,7 @@ export default function AdminIntegrationsInventoryPage() {
 
       <section data-testid="admin-integrations-be-landed">
         <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-          Backend landed (no FE HTTP yet)
+          Backend landed
         </h2>
         <ul className="mt-2 space-y-2">
           {BE_LANDED.map((item) => (

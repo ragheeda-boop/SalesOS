@@ -7,7 +7,7 @@
 
 ## Why this story
 
-EPIC-07 Owner Console FE MVP closed (FE-S07-07). BE STORY-08-01..05 landed framework + SyncRun without Owner/tenant Hub HTTP. STORY-08-07 Integrations Studio UI remains blocked on Hub HTTP APIs.
+EPIC-07 Owner Console FE MVP closed (FE-S07-07). BE STORY-08-01..06 landed including Hub HTTP. STORY-08-07 Studio is at `/integrations`.
 
 ## Landed
 
@@ -26,4 +26,4 @@ EPIC-07 Owner Console FE MVP closed (FE-S07-07). BE STORY-08-01..05 landed frame
 
 ## Next FE
 
-**Standby for Hub HTTP.** The moment BE exposes Integration Hub HTTP (after STORY-08-06 as needed), resume full STORY-08-07 Studio wiring on this shell — do not invent APIs meanwhile.
+**STORY-08-07 LANDED** after Hub HTTP `f1d06aa` — see [`PHASE1_STORY_08_07_INTEGRATIONS_STUDIO_CRUMB.md`](PHASE1_STORY_08_07_INTEGRATIONS_STUDIO_CRUMB.md).

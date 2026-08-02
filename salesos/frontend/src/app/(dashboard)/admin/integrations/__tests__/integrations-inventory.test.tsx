@@ -20,7 +20,7 @@ describe("AdminIntegrationsInventoryPage — FE-S08-00/01", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByTestId("admin-integrations-item-STORY-08-07"),
-    ).toHaveTextContent(/blocked/i);
+    ).toHaveTextContent(/landed/i);
     expect(
       screen.getByTestId("admin-integrations-overview-link"),
     ).toHaveAttribute("href", "/admin");

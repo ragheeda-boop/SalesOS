@@ -87,6 +87,22 @@ export const taskKeys = {
   detail: (id: string) => [...taskKeys.details(), id] as const,
 };
 
+export const integrationHubKeys = {
+  all: ["integration-hub"] as const,
+  connections: (tenantId: string) =>
+    [...integrationHubKeys.all, "connections", tenantId] as const,
+  syncRuns: (tenantId: string, connectionId: string) =>
+    [...integrationHubKeys.all, "sync-runs", tenantId, connectionId] as const,
+  activeMapping: (tenantId: string, connectionId: string, model: string) =>
+    [
+      ...integrationHubKeys.all,
+      "mapping",
+      tenantId,
+      connectionId,
+      model,
+    ] as const,
+};
+
 export const opportunityKeys = {
   all: ["opportunities"] as const,
   lists: () => [...opportunityKeys.all, "list"] as const,

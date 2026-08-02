@@ -29,6 +29,7 @@ export const PROTECTED_PREFIXES = [
   "/admin",
   "/marketplace",
   "/knowledge",
+  "/integrations",
   "/rag",
   "/ai",
   "/copilot",
