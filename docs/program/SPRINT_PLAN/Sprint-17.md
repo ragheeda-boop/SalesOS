@@ -11,6 +11,7 @@
 | FE-S11-05 (Enrichment Waterfall UI) | FE-Lead | P0 | Medium | **LANDED FE (Stream B):** `/gtm/enrichment` against tip enrichment HTTP. Crumb [`PHASE1_FE_S11_05_ENRICHMENT_CRUMB.md`](../PHASE1_FE_S11_05_ENRICHMENT_CRUMB.md). Live Clearbit/Apollo/ERP / 141221 not claimed. No Production GO. |
 | STORY-11-06 (Contact Verification) | BE3 | P1 | Low | **LANDED BE (Stream A):** single `VerificationConnector` swap-in via `/api/v1/gtm/verification` (CI: fake_verify). Crumb [`PHASE1_STORY_11_06_CONTACT_VERIFICATION_CRUMB.md`](../PHASE1_STORY_11_06_CONTACT_VERIFICATION_CRUMB.md). Live vendor verification not claimed. No new RLS. No Production GO. |
 | FE-S11-06 (Contact Verification UI) | FE-Lead | P1 | Low | **LANDED FE (Stream B):** `/gtm/verification` against tip verification HTTP. Crumb [`PHASE1_FE_S11_06_VERIFICATION_CRUMB.md`](../PHASE1_FE_S11_06_VERIFICATION_CRUMB.md). Live NeverBounce/ZeroBounce/Twilio / 141221 not claimed. No Production GO. |
+| FE-S11-06b (GTM pipeline handoffs) | FE-Lead | P1 | Low | **LANDED FE (Stream B):** tip query-param handoffs enrichment↔verification↔discovery↔ICP. Crumb [`PHASE1_FE_S11_06B_GTM_PIPELINE_HANDOFF_CRUMB.md`](../PHASE1_FE_S11_06B_GTM_PIPELINE_HANDOFF_CRUMB.md). No invented APIs / territories / lookalikes. No Production GO. |
 
 **Expected Demo:** Feed a seed account through Lookalikes, show ranked similar accounts from the tenant's real pipeline history.
 

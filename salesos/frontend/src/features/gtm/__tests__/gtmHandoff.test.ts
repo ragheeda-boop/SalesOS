@@ -1,11 +1,15 @@
 import {
+  buildEnrichmentHref,
+  buildIcpProfileHref,
   buildLeadDiscoveryHref,
   buildLeadDiscoveryRunHref,
   buildMarketSizingHref,
+  buildVerificationHref,
+  contactFieldsFromFilled,
   parseGtmCriteriaFromSearch,
 } from "../gtmHandoff";
 
-describe("gtmHandoff — FE-S11-03b", () => {
+describe("gtmHandoff — FE-S11-03b / FE-S11-06b", () => {
   it("builds lead-discovery href from tip criteria fields", () => {
     expect(
       buildLeadDiscoveryHref({
@@ -39,5 +43,35 @@ describe("gtmHandoff — FE-S11-03b", () => {
     expect(buildLeadDiscoveryRunHref("run1")).toBe(
       "/gtm/lead-discovery?run=run1",
     );
+  });
+
+  it("builds enrichment + verification + icp deep-links", () => {
+    expect(
+      buildEnrichmentHref({
+        company_name: "Acme Pilot Co",
+        domain: "acme.example",
+      }),
+    ).toBe("/gtm/enrichment?company_name=Acme+Pilot+Co&domain=acme.example");
+    expect(buildEnrichmentHref({ run: "enr1" })).toBe(
+      "/gtm/enrichment?run=enr1",
+    );
+    expect(
+      buildVerificationHref({
+        email: "a@b.com",
+        phone: "+9665",
+      }),
+    ).toBe("/gtm/verification?email=a%40b.com&phone=%2B9665");
+    expect(buildIcpProfileHref("icp1")).toBe("/gtm/icp?profile=icp1");
+  });
+
+  it("extracts tip contact fields from enrichment filled", () => {
+    expect(
+      contactFieldsFromFilled({
+        email: "x@y.com",
+        phone: "+1",
+        industry: "tech",
+      }),
+    ).toEqual({ email: "x@y.com", phone: "+1" });
+    expect(contactFieldsFromFilled({})).toEqual({});
   });
 });

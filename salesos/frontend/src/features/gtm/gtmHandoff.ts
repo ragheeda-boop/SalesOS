@@ -1,6 +1,7 @@
 /**
- * FE-S11-03b — Tip-only GTM criteria handoff between market-sizing ↔ lead-discovery.
- * Query keys mirror tip HTTP filter fields only. Not Production GO / RAG GO.
+ * FE-S11-03b / FE-S11-06b — Tip-only GTM handoffs between tip GTM pages.
+ * Query keys mirror tip HTTP / existing deep-link fields only.
+ * Not Production GO / RAG GO. No territories / lookalike invent.
  */
 
 export type GtmCriteriaHandoff = {
@@ -49,4 +50,55 @@ export function buildLeadDiscoveryRunHref(runId?: string | null): string {
     return `/gtm/lead-discovery?run=${encodeURIComponent(runId.trim())}`;
   }
   return "/gtm/lead-discovery";
+}
+
+export type EnrichmentHandoff = {
+  company_name?: string;
+  domain?: string;
+  run?: string;
+};
+
+export function buildEnrichmentHref(seed: EnrichmentHandoff = {}): string {
+  const params = new URLSearchParams();
+  if (seed.run?.trim()) params.set("run", seed.run.trim());
+  if (seed.company_name?.trim())
+    params.set("company_name", seed.company_name.trim());
+  if (seed.domain?.trim()) params.set("domain", seed.domain.trim());
+  const qs = params.toString();
+  return qs ? `/gtm/enrichment?${qs}` : "/gtm/enrichment";
+}
+
+export type VerificationHandoff = {
+  email?: string;
+  phone?: string;
+  run?: string;
+};
+
+export function buildVerificationHref(seed: VerificationHandoff = {}): string {
+  const params = new URLSearchParams();
+  if (seed.run?.trim()) params.set("run", seed.run.trim());
+  if (seed.email?.trim()) params.set("email", seed.email.trim());
+  if (seed.phone?.trim()) params.set("phone", seed.phone.trim());
+  const qs = params.toString();
+  return qs ? `/gtm/verification?${qs}` : "/gtm/verification";
+}
+
+export function buildIcpProfileHref(profileId?: string | null): string {
+  if (profileId?.trim()) {
+    return `/gtm/icp?profile=${encodeURIComponent(profileId.trim())}`;
+  }
+  return "/gtm/icp";
+}
+
+/** Pull tip enrichable contact fields from an enrichment filled map. */
+export function contactFieldsFromFilled(
+  filled: Record<string, unknown> | null | undefined,
+): VerificationHandoff {
+  if (!filled) return {};
+  const email = filled.email == null ? "" : String(filled.email).trim();
+  const phone = filled.phone == null ? "" : String(filled.phone).trim();
+  return {
+    email: email || undefined,
+    phone: phone || undefined,
+  };
 }

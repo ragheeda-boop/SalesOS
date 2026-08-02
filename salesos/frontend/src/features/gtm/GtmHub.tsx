@@ -30,8 +30,9 @@ export function GtmHub() {
         data-testid="gtm-hub-honesty"
       >
         Tip GTM pages only: ICP profiles, market-sizing, lead-discovery,
-        enrichment, verification. Live 141221 Postgres / live ERP / territories
-        Studio not claimed. Not Production GO / RAG GO.
+        enrichment, verification — with tip query-param handoffs between them.
+        Live 141221 Postgres / live ERP / territories Studio / lookalikes not
+        claimed. Not Production GO / RAG GO.
       </p>
 
       <ul className="space-y-3">

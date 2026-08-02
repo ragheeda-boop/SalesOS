@@ -15,6 +15,10 @@ import {
   VERIFICATION_HONESTY,
   VERIFICATION_NON_GOALS,
 } from "@/features/gtm/verificationHonesty";
+import {
+  buildEnrichmentHref,
+  buildIcpProfileHref,
+} from "@/features/gtm/gtmHandoff";
 
 function getApiError(err: unknown): string {
   const detail = (err as { response?: { data?: { detail?: unknown } } })
@@ -256,8 +260,16 @@ export function VerificationPanel() {
 
       <p className="text-xs text-[var(--text-muted)]">
         Related:{" "}
-        <Link href="/gtm/enrichment" className="underline">
+        <Link
+          href={buildEnrichmentHref()}
+          className="underline"
+          data-testid="verification-handoff-enrichment"
+        >
           /gtm/enrichment
+        </Link>
+        {" · "}
+        <Link href={buildIcpProfileHref()} className="underline">
+          /gtm/icp
         </Link>
         {" · "}
         <Link href="/gtm" className="underline">

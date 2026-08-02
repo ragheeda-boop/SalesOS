@@ -17,7 +17,10 @@ import {
   ICP_PROFILES_HONESTY,
   ICP_PROFILES_NON_GOALS,
 } from "@/features/gtm/icpProfilesHonesty";
-import { buildLeadDiscoveryHref } from "@/features/gtm/gtmHandoff";
+import {
+  buildEnrichmentHref,
+  buildLeadDiscoveryHref,
+} from "@/features/gtm/gtmHandoff";
 
 function getApiError(err: unknown): string {
   const detail = (err as { response?: { data?: { detail?: unknown } } })
@@ -467,6 +470,15 @@ export function IcpProfilesPanel() {
             data-testid="icp-handoff-lead-discovery"
           >
             Open Lead Discovery with these filters →
+          </Link>
+          <Link
+            href={buildEnrichmentHref({
+              company_name: name.trim() || "Pilot ICP company",
+            })}
+            className="text-sm underline text-[var(--text-primary)]"
+            data-testid="icp-handoff-enrichment"
+          >
+            Enrich a seed company →
           </Link>
         </div>
       </form>

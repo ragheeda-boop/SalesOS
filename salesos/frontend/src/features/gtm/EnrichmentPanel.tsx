@@ -15,6 +15,12 @@ import {
   ENRICHMENT_HONESTY,
   ENRICHMENT_NON_GOALS,
 } from "@/features/gtm/enrichmentHonesty";
+import {
+  buildIcpProfileHref,
+  buildLeadDiscoveryHref,
+  buildVerificationHref,
+  contactFieldsFromFilled,
+} from "@/features/gtm/gtmHandoff";
 
 function getApiError(err: unknown): string {
   const detail = (err as { response?: { data?: { detail?: unknown } } })
@@ -295,6 +301,38 @@ export function EnrichmentPanel() {
                   Missing: {active.missing_fields.join(", ")}
                 </p>
               ) : null}
+              {(() => {
+                const contact = contactFieldsFromFilled(active.filled);
+                if (!contact.email && !contact.phone) return null;
+                return (
+                  <Link
+                    href={buildVerificationHref(contact)}
+                    className="inline-flex text-sm underline text-[var(--text-primary)]"
+                    data-testid="enrichment-handoff-verification"
+                  >
+                    Verify filled email/phone →
+                  </Link>
+                );
+              })()}
+              <Link
+                href={buildLeadDiscoveryHref({
+                  name: `${active.request.company_name} discovery`,
+                  industries:
+                    active.filled.industry == null
+                      ? ""
+                      : String(active.filled.industry),
+                  cities:
+                    active.filled.city == null
+                      ? ""
+                      : String(active.filled.city),
+                  employees_min: "",
+                  employees_max: "",
+                })}
+                className="block text-sm underline text-[var(--text-primary)]"
+                data-testid="enrichment-handoff-lead-discovery"
+              >
+                Open Lead Discovery with filled industry/city →
+              </Link>
             </>
           ) : null}
         </div>
@@ -302,12 +340,16 @@ export function EnrichmentPanel() {
 
       <p className="text-xs text-[var(--text-muted)]">
         Related:{" "}
-        <Link href="/gtm/icp" className="underline">
+        <Link href={buildIcpProfileHref()} className="underline">
           /gtm/icp
         </Link>
         {" · "}
         <Link href="/gtm/lead-discovery" className="underline">
           /gtm/lead-discovery
+        </Link>
+        {" · "}
+        <Link href={buildVerificationHref()} className="underline">
+          /gtm/verification
         </Link>
         .
       </p>

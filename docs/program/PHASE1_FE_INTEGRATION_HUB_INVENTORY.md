@@ -47,6 +47,7 @@
 | FE-S11-01 | ICP Profiles UI (tip 11-01) |
 | FE-S11-05 | Enrichment Waterfall UI (tip 11-05) |
 | FE-S11-06 | Contact Verification UI (tip 11-06) |
+| FE-S11-06b | GTM enrichment↔verification / ICP / discovery handoffs |
 | FE-S10-05 | Territory config — **BLOCKED** (no tip `/studio/territories` BE) |
 
 ## Blocked (do not invent)

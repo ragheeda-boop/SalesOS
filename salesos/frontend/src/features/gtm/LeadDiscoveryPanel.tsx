@@ -15,7 +15,10 @@ import {
   LEAD_DISCOVERY_HONESTY,
   LEAD_DISCOVERY_NON_GOALS,
 } from "@/features/gtm/leadDiscoveryHonesty";
-import { parseGtmCriteriaFromSearch } from "@/features/gtm/gtmHandoff";
+import {
+  buildEnrichmentHref,
+  parseGtmCriteriaFromSearch,
+} from "@/features/gtm/gtmHandoff";
 
 function getApiError(err: unknown): string {
   const detail = (err as { response?: { data?: { detail?: unknown } } })
@@ -214,7 +217,16 @@ export function LeadDiscoveryPanel() {
                       {lead.company_name}
                     </span>{" "}
                     · {lead.source} · {lead.industry || "—"} ·{" "}
-                    {lead.city || "—"} · emp {lead.employees_count ?? "—"}
+                    {lead.city || "—"} · emp {lead.employees_count ?? "—"}{" "}
+                    <Link
+                      href={buildEnrichmentHref({
+                        company_name: lead.company_name,
+                      })}
+                      className="font-sans underline text-[var(--text-primary)]"
+                      data-testid="lead-discovery-handoff-enrichment"
+                    >
+                      Enrich →
+                    </Link>
                   </li>
                 ))
               )}
