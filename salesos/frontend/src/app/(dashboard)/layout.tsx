@@ -32,6 +32,7 @@ import {
   ListChecks,
   Bot,
   LogOut,
+  Plug,
 } from "lucide-react";
 import {
   LazyCommandBar,
@@ -72,6 +73,7 @@ const NAV_KEYS = [
     key: "nav.customer_success",
     icon: HeartHandshake,
   },
+  { href: "/integrations", key: "nav.integrations", icon: Plug },
   { href: "/settings", key: "nav.settings", icon: Settings },
   { href: "/admin", key: "nav.admin", icon: Shield },
 ];

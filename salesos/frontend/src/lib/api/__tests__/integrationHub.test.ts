@@ -1,5 +1,6 @@
 import {
   createHubConnection,
+  getActiveHubMapping,
   getHubConflictPolicy,
   listHubConnections,
   putHubConflictPolicy,
@@ -23,7 +24,7 @@ const mocked = api as unknown as {
   put: jest.Mock;
 };
 
-describe("integrationHub API — STORY-08-07 / FE-S08-08", () => {
+describe("integrationHub API — STORY-08-07 / FE-S08-08/09", () => {
   beforeEach(() => {
     mocked.get.mockReset();
     mocked.post.mockReset();
@@ -103,5 +104,27 @@ describe("integrationHub API — STORY-08-07 / FE-S08-08", () => {
       expect.any(Object),
     );
     expect(put.rules[0].internal).toBe("name");
+  });
+
+  it("loads active mapping against tip Hub HTTP", async () => {
+    mocked.get.mockResolvedValue({
+      data: {
+        id: "m1",
+        connection_id: "c2",
+        model: "company",
+        version: 1,
+        mappings: [{ external: "name", internal: "name" }],
+        baseline_fields: [],
+        is_active: true,
+      },
+    });
+    const row = await getActiveHubMapping("tenant-1", "c2", "company");
+    expect(mocked.get).toHaveBeenCalledWith(
+      "/api/v1/integrations/connections/c2/mappings/active",
+      expect.objectContaining({
+        params: { model: "company" },
+      }),
+    );
+    expect(row?.model).toBe("company");
   });
 });

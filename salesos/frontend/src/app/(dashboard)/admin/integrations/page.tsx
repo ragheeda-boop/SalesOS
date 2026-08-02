@@ -51,6 +51,11 @@ const FE_GATED = [
     title: "Conflict-policy Studio + Odoo honesty",
     status: "FE landed — conflict step",
   },
+  {
+    id: "FE-S08-09",
+    title: "Active mapping load + tenant Integrations nav",
+    status: "FE landed — map GET + nav",
+  },
 ] as const;
 
 export default function AdminIntegrationsInventoryPage() {

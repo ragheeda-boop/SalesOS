@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button, Input, Spinner, useToast } from "@salesos/ui";
 import {
+  useActiveHubMapping,
   useCreateHubConnection,
   useCreateHubMapping,
   useDisconnectHubConnection,
@@ -41,7 +42,8 @@ function listFromCsv(raw: string): string[] {
  * STORY-08-07 / FE-S08-08 — Integrations Studio against Hub HTTP.
  * Connect / test / map / conflict-policy / schedule / monitor / disconnect.
  * Tip STORY-09-01: connector_key `odoo` dispatches OdooAdapter.test_connection.
- * Unlinked cr_number badge list API not live. Not Production GO.
+ * Active mapping GET wired (FE-S08-09). Unlinked badge list API not live.
+ * Not Production GO.
  */
 export function IntegrationsStudio() {
   const { toast } = useToast();
@@ -50,6 +52,7 @@ export function IntegrationsStudio() {
   const [name, setName] = useState("Fake connector");
   const [connectorKey, setConnectorKey] = useState("fake");
   const [credentialRef, setCredentialRef] = useState("vault:demo/fake");
+  const [configJson, setConfigJson] = useState("{}");
   const [model, setModel] = useState("company");
   const [mappingJson, setMappingJson] = useState(
     '[{"external":"name","internal":"name"}]',
@@ -64,6 +67,10 @@ export function IntegrationsStudio() {
   const syncRunsQuery = useHubSyncRuns(selectedId);
   const conflictQuery = useHubConflictPolicy(
     step === "conflict" ? selectedId : null,
+  );
+  const activeMappingQuery = useActiveHubMapping(
+    step === "map" ? selectedId : null,
+    model,
   );
   const createMutation = useCreateHubConnection();
   const testMutation = useTestHubConnection();
@@ -86,6 +93,13 @@ export function IntegrationsStudio() {
     setOperationalCsv(csvFromList(policy.operational_fields));
   }, [conflictQuery.data]);
 
+  useEffect(() => {
+    const mapping = activeMappingQuery.data;
+    if (!mapping) return;
+    setMappingJson(JSON.stringify(mapping.mappings ?? [], null, 2));
+    if (mapping.model) setModel(mapping.model);
+  }, [activeMappingQuery.data]);
+
   const needsConnection = step !== "connect";
 
   return (
@@ -95,10 +109,10 @@ export function IntegrationsStudio() {
         data-testid="integrations-studio-live-honesty"
       >
         Studio wired to `/api/v1/integrations/*` (STORY-08-06) including
-        conflict-policy (FE-S08-08). `test_connection` dispatches Fake vs
-        OdooAdapter by `connector_key` (STORY-09-01). Unlinked cr_number badge
-        list API not live. Do not paste real secrets into credential_ref. Not
-        Production GO.
+        conflict-policy (FE-S08-08) and active mapping GET (FE-S08-09).
+        `test_connection` dispatches Fake vs OdooAdapter by `connector_key`
+        (STORY-09-01). Unlinked cr_number badge list API not live. Do not paste
+        real secrets into credential_ref. Not Production GO.
       </p>
 
       <ol
@@ -187,16 +201,40 @@ export function IntegrationsStudio() {
             <p className="text-xs text-[var(--text-muted)]">
               Reference only — do not invent production secrets.
             </p>
+            <label className="block text-xs text-[var(--text-muted)]">
+              Connection config JSON (non-secret)
+            </label>
+            <textarea
+              data-testid="integrations-studio-connect-config"
+              className="min-h-[72px] w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 font-mono text-xs"
+              value={configJson}
+              onChange={(e) => setConfigJson(e.target.value)}
+            />
+            <p className="text-xs text-[var(--text-muted)]">
+              Tip accepts non-secret `connection_config` only — never paste
+              passwords here.
+            </p>
             <Button
               data-testid="integrations-studio-connect-submit"
               disabled={createMutation.isPending}
               onClick={async () => {
                 try {
+                  const parsedConfig = JSON.parse(configJson || "{}") as Record<
+                    string,
+                    unknown
+                  >;
+                  if (
+                    parsedConfig === null ||
+                    typeof parsedConfig !== "object" ||
+                    Array.isArray(parsedConfig)
+                  ) {
+                    throw new Error("connection_config must be a JSON object");
+                  }
                   const row = await createMutation.mutateAsync({
                     name: name.trim(),
                     connector_key: connectorKey.trim(),
                     credential_ref: credentialRef.trim(),
-                    connection_config: {},
+                    connection_config: parsedConfig,
                   });
                   setSelectedId(row.id);
                   setStep("test");
@@ -272,6 +310,31 @@ export function IntegrationsStudio() {
               value={model}
               onChange={(e) => setModel(e.target.value)}
             />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                data-testid="integrations-studio-map-load"
+                disabled={!selectedId || activeMappingQuery.isFetching}
+                onClick={() => {
+                  void activeMappingQuery.refetch();
+                }}
+              >
+                {activeMappingQuery.isFetching
+                  ? "Loading…"
+                  : "Load active mapping"}
+              </Button>
+              <span
+                className="text-xs text-[var(--text-muted)]"
+                data-testid="integrations-studio-map-active-status"
+              >
+                {activeMappingQuery.isLoading
+                  ? "Loading active mapping…"
+                  : activeMappingQuery.data
+                    ? `Active v${activeMappingQuery.data.version} · ${activeMappingQuery.data.model}`
+                    : selectedId
+                      ? "No active mapping for this model"
+                      : "Select a connection"}
+              </span>
+            </div>
             <label className="block text-xs text-[var(--text-muted)]">
               Mappings JSON
             </label>

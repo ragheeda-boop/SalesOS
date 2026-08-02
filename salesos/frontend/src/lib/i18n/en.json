@@ -23,7 +23,6 @@
   "nav.graph": "Knowledge Graph",
   "nav.rules": "Business Rules",
   "nav.signals": "Signals",
-
   "signals.marketplace": "Marketplace",
   "signals.feed": "Signal Feed",
   "signals.subscriptions": "Subscriptions",
@@ -34,7 +33,6 @@
   "signals.channel": "Channel",
   "signals.no_subscriptions": "No active subscriptions. Browse the marketplace to subscribe.",
   "nav.analytics": "Analytics",
-
   "common.create": "Create",
   "common.edit": "Edit",
   "common.delete": "Delete",
@@ -64,7 +62,6 @@
   "common.saving": "Saving...",
   "common.deleting": "Deleting...",
   "common.retry": "Retry",
-
   "status.active": "Active",
   "status.inactive": "Inactive",
   "status.draft": "Draft",
@@ -81,7 +78,6 @@
   "status.success": "Success",
   "status.suspended": "Suspended",
   "status.expired": "Expired",
-
   "opportunities.title": "Opportunities",
   "opportunities.stage.prospecting": "Prospecting",
   "opportunities.stage.qualification": "Qualification",
@@ -94,7 +90,6 @@
   "opportunities.close_won": "Close Won",
   "opportunities.close_lost": "Close Lost",
   "opportunities.advance": "Advance Stage",
-
   "pipeline.title": "Pipeline",
   "pipeline.stages": "Stages",
   "pipeline.stage.prospecting": "Prospecting",
@@ -104,13 +99,11 @@
   "pipeline.total_value": "Total Value",
   "pipeline.deals_count": "Deals",
   "pipeline.by_stage": "By Stage",
-
   "nba.title": "NBA Recommendations",
   "nba.recommendations": "Recommendations",
   "nba.score": "Score",
   "nba.priority": "Priority",
   "nba.apply": "Apply Recommendation",
-
   "workflows.title": "Workflows",
   "workflows.rules": "Rules",
   "workflows.triggers": "Triggers",
@@ -119,14 +112,12 @@
   "workflows.steps": "Steps",
   "workflows.activate": "Activate",
   "workflows.deactivate": "Deactivate",
-
   "rag.title": "AI Assistant",
   "rag.query": "Ask a question...",
   "rag.ask": "Ask",
   "rag.source": "Source",
   "rag.response": "Response",
   "rag.clear": "Clear conversation",
-
   "monitoring.title": "System Monitoring",
   "monitoring.api_requests": "API Requests",
   "monitoring.errors": "Errors",
@@ -142,7 +133,6 @@
   "monitoring.status.healthy": "Healthy",
   "monitoring.status.degraded": "Degraded",
   "monitoring.status.unhealthy": "Unhealthy",
-
   "settings.title": "Settings",
   "settings.profile": "Profile",
   "settings.security": "Security",
@@ -154,8 +144,7 @@
   "settings.current_password": "Current Password",
   "settings.new_password": "New Password",
   "settings.update_password": "Update Password",
-  "settings.saved": "Saved successfully",
-
+  "settings.saved": "Changes saved",
   "admin.title": "Admin Panel",
   "admin.subtitle": "Overview of platform status and all tenants",
   "admin.total_tenants": "Total Tenants",
@@ -209,7 +198,6 @@
   "admin.tab.ai_audit": "AI Audit Log",
   "admin.action.ai_audit": "AI Audit Log",
   "admin.action.ai_audit_desc": "Track AI calls and costs",
-
   "dashboard.title": "Dashboard",
   "dashboard.welcome": "Welcome, {name}",
   "dashboard.overview": "Overview",
@@ -223,12 +211,10 @@
   "dashboard.summary": "Dashboard Summary",
   "dashboard.overview_subtitle": "Overview of your key metrics",
   "dashboard.load_error": "Failed to load dashboard",
-
   "auth.login": "Login",
   "auth.logout": "Logout",
   "auth.profile": "My Profile",
   "auth.register": "Sign Up",
-
   "register.title": "Create New Account",
   "register.fill_all_fields": "Please fill in all required fields",
   "register.passwords_dont_match": "Passwords do not match",
@@ -236,7 +222,6 @@
   "register.failed": "Failed to create account",
   "register.creating": "Creating account...",
   "register.has_account": "Already have an account?",
-
   "error.network": "Network error. Please check your connection.",
   "error.not_found": "Resource not found",
   "error.unauthorized": "Unauthorized. Please log in again.",
@@ -251,7 +236,6 @@
   "error.retry": "Try again",
   "error.generic": "Something went wrong",
   "error.unexpected": "An unexpected error occurred",
-
   "time.today": "Today",
   "time.yesterday": "Yesterday",
   "time.this_week": "This week",
@@ -266,7 +250,6 @@
   "time.minutes_ago": "{count} minute(s) ago",
   "time.hours_ago": "{count} hour(s) ago",
   "time.days_ago": "{count} day(s) ago",
-
   "labels.name": "Name",
   "labels.email": "Email",
   "labels.phone": "Phone",
@@ -289,18 +272,14 @@
   "labels.position": "Position",
   "labels.city": "City",
   "labels.region": "Region",
-
   "a11y.skip_to_content": "Skip to main content",
-
   "tabs.overview": "Overview",
   "tabs.activity": "Activities",
   "tabs.deals": "Deals",
   "tabs.timeline": "Timeline",
-
   "360.hierarchy": "Hierarchy",
   "360.financial": "Financial",
   "360.insights": "Insights",
-
   "companies.back_to_list": "Back to Companies",
   "companies.add_contact": "Add Contact",
   "companies.edit_title": "Edit Company Details",
@@ -324,7 +303,6 @@
   "companies.empty_hint": "Add your first company to get started.",
   "companies.pagination": "Total {total} companies — page {page} of {totalPages}",
   "companies.remove_filter": "Remove filter: {label}",
-
   "forecast.title": "Revenue Forecast",
   "forecast.total_expected": "Total Expected",
   "forecast.weighted": "Weighted Average",
@@ -332,7 +310,6 @@
   "forecast.pessimistic": "Pessimistic Scenario",
   "forecast.baseline": "Baseline Scenario",
   "forecast.optimistic": "Optimistic Scenario",
-
   "decisions.title": "Decision Center",
   "decisions.subtitle": "Review, filter, and manage all decision intelligence across your organization",
   "decisions.score": "Score",
@@ -402,7 +379,6 @@
   "decisions.no_templates": "No templates",
   "decisions.no_templates_hint": "Create your first decision template to get started",
   "decisions.usage": "Usage",
-
   "ai.title": "AI Prompt Registry",
   "ai.experimental_badge": "Preview — not GA",
   "ai.honesty_hint": "Experimental AI tooling. Not production-ready; do not market as AI-native GA.",
@@ -415,7 +391,6 @@
   "ai.activate": "Activate",
   "ai.active": "Active",
   "ai.accuracy": "Accuracy",
-
   "graph.title": "Knowledge Graph",
   "graph.search_placeholder": "Search for an entity or relationship...",
   "graph.no_results": "No entities found. Try a different search.",
@@ -438,7 +413,6 @@
   "graph.zoom_in": "Zoom In",
   "graph.zoom_out": "Zoom Out",
   "graph.reset_view": "Reset View",
-
   "meetings.title": "Meeting Intelligence",
   "meetings.select_opportunity": "Select an opportunity...",
   "meetings.select_prompt": "Select an opportunity to view meeting intelligence",
@@ -448,7 +422,6 @@
   "meetings.risks": "Risks",
   "meetings.past_meetings": "Past Meetings",
   "meetings.attendees": "Attendees",
-
   "copilot.title": "AI Copilot",
   "copilot.subtitle": "Experimental assistant (feature-flagged). Not production GA.",
   "copilot.disabled_ga": "AI Copilot is disabled (feature_ai_copilot=False). Enable only in a lab after evidence validation — not a GA surface.",
@@ -458,7 +431,6 @@
   "copilot.history_note": "Conversations are saved automatically",
   "copilot.sample_q3_analysis": "Q3 company performance analysis",
   "copilot.sample_deal_compare": "Compare two deals in negotiation stage",
-
   "rules.title": "Business Rules",
   "rules.create": "New Rule",
   "rules.edit_rule": "Edit Rule",
@@ -482,7 +454,6 @@
   "rules.action.send_email": "Send Email",
   "rules.action.assign_to": "Assign To",
   "rules.confirm_delete": "Are you sure you want to delete this rule?",
-
   "analytics.title": "Analytics",
   "analytics.subtitle": "Key performance indicators and advanced analytics dashboards",
   "analytics.revenue": "Revenue",
@@ -538,7 +509,6 @@
   "analytics.shown_recommendations": "Shown Recommendations",
   "analytics.executed_recommendations": "Executed Recommendations",
   "analytics.acceptance_rate": "Acceptance Rate",
-
   "mission.action.review_signals": "Review {count} signal(s)",
   "mission.action.pending_decisions": "{count} pending decision(s) need action",
   "mission.action.follow_deals": "Follow up {count} active deal(s)",
@@ -554,7 +524,6 @@
   "mission.aria.pipeline_value": "Pipeline value {value} SAR",
   "mission.aria.signals_today": "{count} new signal(s) today",
   "mission.aria.decisions_pending": "{count} pending decisions",
-
   "activity.email_sent": "Email Sent",
   "activity.email_received": "Email Received",
   "activity.meeting_created": "New Meeting",
@@ -577,7 +546,6 @@
   "activity.filter.contracts": "Contracts",
   "activity.filter.notes": "Notes",
   "activity.filter.opportunities": "Opportunities",
-
   "activities.subtitle": "Comprehensive log of all activities on the platform",
   "activities.count_unit": "activities",
   "activities.search_placeholder": "Search activities...",
@@ -586,7 +554,6 @@
   "activities.empty": "No activities found",
   "activities.try_different_search": "Try changing your search criteria",
   "activities.empty_hint": "Activities will appear here when you start working",
-
   "employee.load_error": "Failed to load data",
   "employee.load_error_hint": "Check your server connection and try again",
   "employee.call": "Call",
@@ -679,13 +646,11 @@
   "employees.score_loading": "Loading score...",
   "employees.upload_csv": "Upload CSV",
   "nav.employees": "Employees",
-
   "auth.login_title": "Sign In to SalesOS",
   "auth.logging_in": "Signing in...",
   "auth.login_fill_all": "Please enter email and password",
   "auth.login_failed": "Login failed",
   "auth.no_account": "Don't have an account?",
-
   "a11y.open_sidebar": "Open sidebar",
   "a11y.expand_sidebar": "Expand sidebar",
   "a11y.collapse_sidebar": "Collapse sidebar",
@@ -703,7 +668,6 @@
   "a11y.close_menu": "Close menu",
   "a11y.navigation_menu": "Navigation menu",
   "a11y.user_menu": "User menu",
-
   "automation.title": "Automation",
   "automation.workflows": "Workflows",
   "automation.templates": "Templates",
@@ -727,7 +691,6 @@
   "automation.tmpl.meeting_prep.description": "Send a preparation summary 24 hours before the meeting",
   "automation.tmpl.lost_deal.name": "Lost Deal Analysis",
   "automation.tmpl.lost_deal.description": "Analyze reasons for losing a deal and schedule follow-up",
-
   "search.title": "Advanced Search",
   "search.subtitle": "Search companies and commercial records",
   "search.placeholder": "Search by company name, CR number, activity...",
@@ -761,14 +724,8 @@
   "search.no_saved": "No saved searches",
   "search.prev_page": "Previous page",
   "search.next_page": "Next page",
-
-  "settings.title": "Settings",
   "settings.subtitle": "Account and system settings",
-  "settings.profile": "Profile",
-  "settings.security": "Security",
-  "settings.notifications": "Notifications",
   "settings.api_keys": "API Keys",
-  "settings.data": "Data Settings",
   "settings.profile_title": "Profile",
   "settings.name_en": "Name (English)",
   "settings.name_ar": "Name (Arabic)",
@@ -777,19 +734,14 @@
   "settings.member_since": "Member since",
   "settings.active": "Active",
   "settings.inactive": "Inactive",
-  "settings.save_changes": "Save Changes",
-  "settings.saved": "Changes saved",
   "settings.save_failed": "Save failed",
   "settings.save_error": "An error occurred while saving changes",
   "settings.security_title": "Security",
-  "settings.current_password": "Current Password",
-  "settings.new_password": "New Password",
   "settings.confirm_password": "Confirm Password",
   "settings.password_updated": "Password updated",
   "settings.password_update_failed": "Failed to update password",
   "settings.password_mismatch": "Passwords do not match",
   "settings.password_min_length": "Password must be at least 12 characters",
-  "settings.update_password": "Update Password",
   "settings.notifications_title": "Notifications",
   "settings.notif.email_notifications": "Email Notifications",
   "settings.notif.app_notifications": "App Notifications",
@@ -814,7 +766,6 @@
   "settings.role.admin": "Admin",
   "settings.role.manager": "Team Manager",
   "settings.role.user": "User",
-
   "copilot.welcome": "Hello! I'm the SalesOS AI assistant. I can help you analyze data and answer your questions.",
   "copilot.no_response": "No response found.",
   "copilot.connection_error": "Sorry, there was an error connecting to the AI assistant. Please check your server connection.",
@@ -858,7 +809,6 @@
   "copilot.telemetry_p50": "p50",
   "copilot.telemetry_p95": "p95",
   "copilot.telemetry_p99": "p99",
-
   "command.placeholder": "Type a command or search...",
   "command.title": "Command Bar",
   "command.search_label": "Search commands",
@@ -866,12 +816,10 @@
   "command.no_results": "No results",
   "command.default_category": "General",
   "command.available": "{count} commands available",
-
   "tabs.intelligence": "Intelligence",
   "tabs.decision_makers": "Decision Makers",
   "tabs.government_data": "Government Data",
   "tabs.documents": "Documents",
-
   "company.health": "Health",
   "company.load_error": "Failed to load company data",
   "company.load_error_hint": "Please check your connection and try again.",
@@ -880,12 +828,10 @@
   "company.assigned_team": "Assigned Team",
   "company.opportunities": "Opportunities",
   "company.activity_log": "Activity Log",
-
   "pipeline.drag_here": "Drag opportunity here",
   "pipeline.open_count": "open opportunities worth",
   "pipeline.drag_here_won": "Drag opportunity here to close as won",
   "pipeline.drag_here_lost": "Drag opportunity here to close as lost",
-
   "opportunities.create_title": "Create New Opportunity",
   "opportunities.search_company": "Search for a company...",
   "opportunities.name": "Opportunity Name",
@@ -901,7 +847,6 @@
   "opportunities.loss_reason": "Loss Reason",
   "opportunities.loss_reason_example": "e.g., Price too high",
   "opportunities.confirm_loss": "Confirm Loss",
-
   "executive.title": "Executive Dashboard",
   "executive.subtitle": "Comprehensive view of platform performance and key metrics",
   "executive.booked_revenue": "Booked Revenue",
@@ -930,7 +875,6 @@
   "executive.due_90d": "Due in 90 Days",
   "executive.sync_status": "Sync Status:",
   "executive.data_completeness": "Data Completeness:",
-
   "status.healthy": "Healthy",
   "status.warning": "Warning",
   "status.critical": "Critical",
@@ -940,7 +884,6 @@
   "common.load_error": "Failed to load data",
   "common.creating": "Creating...",
   "common.optional": "Optional",
-
   "contacts.title": "Contacts",
   "contacts.total": "Total {count} contacts",
   "contacts.new": "New Contact",
@@ -948,7 +891,7 @@
   "contacts.name_required": "Name *",
   "contacts.full_name_placeholder": "Full name",
   "contacts.mobile": "Mobile",
-  "contacts.position_placeholder": "Job title",
+  "contacts.position_placeholder": "Job Title",
   "contacts.department": "Department",
   "contacts.department_placeholder": "Department",
   "contacts.company": "Company",
@@ -966,17 +909,16 @@
   "contacts.confirm_delete_message": "Are you sure you want to delete {name}?",
   "contacts.added": "Added",
   "contacts.added_success": "Contact added successfully",
-  "contacts.add_failed": "Failed to add",
-  "contacts.add_error": "An error occurred while adding the contact",
+  "contacts.add_failed": "Add Failed",
+  "contacts.add_error": "An error occurred while adding contact",
   "contacts.updated": "Updated",
   "contacts.updated_success": "Contact updated successfully",
-  "contacts.update_failed": "Failed to update",
-  "contacts.update_error": "An error occurred while updating the contact",
+  "contacts.update_failed": "Update Failed",
+  "contacts.update_error": "An error occurred while updating contact",
   "contacts.deleted": "Deleted",
   "contacts.deleted_success": "Contact deleted successfully",
-  "contacts.delete_failed": "Failed to delete",
-  "contacts.delete_error": "An error occurred while deleting the contact",
-
+  "contacts.delete_failed": "Delete Failed",
+  "contacts.delete_error": "An error occurred while deleting contact",
   "emp360.overview": "Overview",
   "emp360.signals": "Signals",
   "emp360.scoring": "Scoring",
@@ -1061,16 +1003,13 @@
   "emp360.vs_peers": "vs peers",
   "emp360.load_error": "Failed to load employee profile",
   "emp360.load_error_hint": "Please retry or contact support if this continues",
-
   "error.component_failed": "Failed to display this component. Please try again.",
-
   "feedback.quick_rate": "Quick Rate",
   "feedback.thank_you": "Thank you for your feedback!",
   "feedback.question": "What do you think of SalesOS?",
   "feedback.nps_prompt": "How likely are you to recommend SalesOS to a colleague?",
   "feedback.tell_us_more": "Tell us more...",
   "common.send": "Send",
-
   "cs.nba_acceptance": "NBA Acceptance",
   "cs.total_views": "Total Views",
   "cs.acceptance_rate": "Acceptance Rate: {rate}%",
@@ -1096,10 +1035,6 @@
   "cs.adoption_chart_label": "Feature Adoption Chart",
   "cs.loading_error": "Failed to load customer success data",
   "cs.no_data": "No data available",
-
-  "contacts.title": "Contacts",
-  "contacts.total": "Total {count} contacts",
-  "contacts.new": "New Contact",
   "contacts.add": "Add Contact",
   "contacts.edit": "Edit Contact",
   "contacts.delete_confirm": "Confirm Delete",
@@ -1109,36 +1044,18 @@
   "contacts.email": "Email",
   "contacts.phone": "Mobile Number",
   "contacts.position": "Position",
-  "contacts.position_placeholder": "Job Title",
-  "contacts.department": "Department",
-  "contacts.company": "Company",
   "contacts.company_search": "Search for a company...",
-  "contacts.source": "Source",
-  "contacts.source_placeholder": "Contact source",
   "contacts.cancel": "Cancel",
   "contacts.save": "Save",
-  "contacts.save_changes": "Save Changes",
   "contacts.delete": "Delete",
-  "contacts.search_placeholder": "Search contacts...",
-  "contacts.load_error": "Failed to load contacts",
   "contacts.load_error_hint": "Make sure backend is running",
   "contacts.no_contacts": "No contacts found",
-  "contacts.added": "Added",
   "contacts.added_desc": "Contact added successfully",
-  "contacts.add_failed": "Add Failed",
-  "contacts.add_error": "An error occurred while adding contact",
-  "contacts.updated": "Updated",
   "contacts.updated_desc": "Contact updated successfully",
-  "contacts.update_failed": "Update Failed",
-  "contacts.update_error": "An error occurred while updating contact",
-  "contacts.deleted": "Deleted",
   "contacts.deleted_desc": "Contact deleted successfully",
-  "contacts.delete_failed": "Delete Failed",
-  "contacts.delete_error": "An error occurred while deleting contact",
   "contacts.page_of": "Page {page} of {total}",
   "contacts.edit_tooltip": "Edit",
   "contacts.delete_tooltip": "Delete",
-
   "customer_success.title": "Customer Success",
   "customer_success.overview": "Overview",
   "customer_success.tenants": "Tenants",
@@ -1148,7 +1065,6 @@
   "customer_success.current_tenant": "Current Tenant",
   "customer_success.tenant_list": "Tenant List",
   "customer_success.error": "Failed to load customer success data. Please try again later.",
-
   "admin.tenant_list.title": "Tenant Management",
   "admin.tenant_list.new_tenant": "New Tenant",
   "admin.tenant_list.search_placeholder": "Search for tenant...",
@@ -1171,7 +1087,6 @@
   "admin.tenant_list.slug_placeholder": "Slug",
   "admin.tenant_list.create_btn": "Create",
   "admin.tenant_list.cancel": "Cancel",
-
   "admin.user_list.title": "User Management",
   "admin.user_list.search_placeholder": "Search for user...",
   "admin.user_list.all_roles": "All Roles",
@@ -1187,7 +1102,6 @@
   "admin.user_list.deactivate": "Deactivate",
   "admin.user_list.no_users": "No users found",
   "admin.user_list.loading": "Loading...",
-
   "admin.plan_manager.title": "Plans & Licenses",
   "admin.plan_manager.new_plan": "New Plan",
   "admin.plan_manager.new_license": "New License",
@@ -1208,5 +1122,6 @@
   "admin.plan_manager.licenses_section": "Licenses ({count})",
   "admin.plan_manager.active": "Active",
   "admin.plan_manager.inactive": "Inactive",
-  "admin.plan_manager.no_licenses": "No licenses found"
+  "admin.plan_manager.no_licenses": "No licenses found",
+  "nav.integrations": "Integrations"
 }

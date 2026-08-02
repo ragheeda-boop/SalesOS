@@ -17,6 +17,7 @@ import {
   MessageSquareText,
   Activity,
   Shield,
+  Plug,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
@@ -36,6 +37,7 @@ export function MobileNav() {
     { href: "/automation", key: "nav.workflows", icon: Workflow },
     { href: "/rag", key: "nav.rag", icon: MessageSquareText },
     { href: "/monitoring", key: "nav.monitoring", icon: Activity },
+    { href: "/integrations", key: "nav.integrations", icon: Plug },
     { href: "/settings", key: "nav.settings", icon: Settings },
     { href: "/admin", key: "nav.admin", icon: Shield },
   ];

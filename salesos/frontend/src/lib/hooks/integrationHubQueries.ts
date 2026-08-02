@@ -5,6 +5,7 @@ import {
   createHubConnection,
   createHubMapping,
   disconnectHubConnection,
+  getActiveHubMapping,
   getHubConflictPolicy,
   listHubConnections,
   listHubSyncRuns,
@@ -45,6 +46,24 @@ export function useHubConflictPolicy(connectionId: string | null) {
     queryKey: integrationHubKeys.conflictPolicy(tenantId, connectionId || ""),
     queryFn: () => getHubConflictPolicy(tenantId, connectionId!),
     enabled: Boolean(connectionId),
+    staleTime: 15_000,
+  });
+}
+
+export function useActiveHubMapping(
+  connectionId: string | null,
+  model: string,
+) {
+  const tenantId = getTenantId();
+  const trimmed = model.trim();
+  return useQuery({
+    queryKey: integrationHubKeys.activeMapping(
+      tenantId,
+      connectionId || "",
+      trimmed,
+    ),
+    queryFn: () => getActiveHubMapping(tenantId, connectionId!, trimmed),
+    enabled: Boolean(connectionId && trimmed),
     staleTime: 15_000,
   });
 }

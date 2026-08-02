@@ -18,6 +18,20 @@ jest.mock("@/lib/hooks/integrationHubQueries", () => ({
     isLoading: false,
   }),
   useHubSyncRuns: () => ({ data: [], isLoading: false }),
+  useActiveHubMapping: () => ({
+    data: {
+      id: "m1",
+      connection_id: "c1",
+      model: "company",
+      version: 2,
+      mappings: [{ external: "name", internal: "name" }],
+      baseline_fields: [],
+      is_active: true,
+    },
+    isLoading: false,
+    isFetching: false,
+    refetch: jest.fn(),
+  }),
   useHubConflictPolicy: () => ({
     data: {
       id: "p1",
@@ -60,7 +74,7 @@ jest.mock("@salesos/ui", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
-describe("IntegrationsStudio — FE-S08-08", () => {
+describe("IntegrationsStudio — FE-S08-08/09", () => {
   it("renders conflict-policy step and Odoo honesty", () => {
     render(<IntegrationsStudio />);
     expect(screen.getByTestId("integrations-studio")).toBeInTheDocument();
@@ -84,5 +98,20 @@ describe("IntegrationsStudio — FE-S08-08", () => {
     expect(
       screen.getByTestId("integrations-studio-conflict-submit"),
     ).toBeInTheDocument();
+  });
+
+  it("loads active mapping on Map step", () => {
+    render(<IntegrationsStudio />);
+    fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
+    fireEvent.change(
+      screen.getByTestId("integrations-studio-connection-select"),
+      { target: { value: "c1" } },
+    );
+    expect(
+      screen.getByTestId("integrations-studio-map-load"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("integrations-studio-map-active-status"),
+    ).toHaveTextContent(/Active v2/i);
   });
 });

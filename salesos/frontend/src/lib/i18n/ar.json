@@ -23,7 +23,6 @@
   "nav.graph": "الرسم البياني",
   "nav.rules": "قواعد الأعمال",
   "nav.signals": "الإشارات",
-
   "signals.marketplace": "السوق",
   "signals.feed": "تغذية الإشارات",
   "signals.subscriptions": "الاشتراكات",
@@ -34,7 +33,6 @@
   "signals.channel": "القناة",
   "signals.no_subscriptions": "لا توجد اشتراكات نشطة. تصفح السوق للاشتراك.",
   "nav.analytics": "تحليلات متقدمة",
-
   "common.create": "إنشاء",
   "common.edit": "تعديل",
   "common.delete": "حذف",
@@ -64,7 +62,6 @@
   "common.saving": "جارٍ الحفظ...",
   "common.deleting": "جارٍ الحذف...",
   "common.retry": "إعادة المحاولة",
-
   "status.active": "مفعل",
   "status.inactive": "غير مفعل",
   "status.draft": "مسودة",
@@ -81,7 +78,6 @@
   "status.success": "نجاح",
   "status.suspended": "معلق",
   "status.expired": "منتهي",
-
   "opportunities.title": "الفرص",
   "opportunities.stage.prospecting": "استكشاف",
   "opportunities.stage.qualification": "تأهيل",
@@ -94,7 +90,6 @@
   "opportunities.close_won": "إغلاق بنجاح",
   "opportunities.close_lost": "إغلاق بخسارة",
   "opportunities.advance": "تقدم المرحلة",
-
   "pipeline.title": "خط الأنابيب",
   "pipeline.stages": "المراحل",
   "pipeline.stage.prospecting": "استكشاف",
@@ -104,13 +99,11 @@
   "pipeline.total_value": "القيمة الإجمالية",
   "pipeline.deals_count": "الصفقات",
   "pipeline.by_stage": "حسب المرحلة",
-
   "nba.title": "توصيات NBA",
   "nba.recommendations": "التوصيات",
   "nba.score": "الدرجة",
   "nba.priority": "الأولوية",
   "nba.apply": "تطبيق التوصية",
-
   "workflows.title": "سير العمل",
   "workflows.rules": "القواعد",
   "workflows.triggers": "المحفزات",
@@ -119,14 +112,12 @@
   "workflows.steps": "الخطوات",
   "workflows.activate": "تفعيل",
   "workflows.deactivate": "إلغاء التفعيل",
-
   "rag.title": "المساعد الذكي",
   "rag.query": "اسأل سؤالاً...",
   "rag.ask": "اسأل",
   "rag.source": "المصدر",
   "rag.response": "الرد",
   "rag.clear": "مسح المحادثة",
-
   "monitoring.title": "مراقبة النظام",
   "monitoring.api_requests": "طلبات API",
   "monitoring.errors": "الأخطاء",
@@ -142,7 +133,6 @@
   "monitoring.status.healthy": "سليم",
   "monitoring.status.degraded": "متدهور",
   "monitoring.status.unhealthy": "معطل",
-
   "settings.title": "الإعدادات",
   "settings.profile": "الملف الشخصي",
   "settings.security": "الأمان",
@@ -154,8 +144,7 @@
   "settings.current_password": "كلمة المرور الحالية",
   "settings.new_password": "كلمة المرور الجديدة",
   "settings.update_password": "تحديث كلمة المرور",
-  "settings.saved": "تم الحفظ بنجاح",
-
+  "settings.saved": "تم حفظ التغييرات",
   "admin.title": "لوحة الإدارة",
   "admin.subtitle": "نظرة عامة على حالة المنصة وجميع العملاء",
   "admin.total_tenants": "إجمالي العملاء",
@@ -209,7 +198,6 @@
   "admin.tab.ai_audit": "سجل تدقيق AI",
   "admin.action.ai_audit": "سجل تدقيق الذكاء الاصطناعي",
   "admin.action.ai_audit_desc": "تتبع استدعاءات AI والتكاليف",
-
   "dashboard.title": "لوحة المعلومات",
   "dashboard.welcome": "مرحباً، {name}",
   "dashboard.overview": "نظرة عامة",
@@ -223,12 +211,10 @@
   "dashboard.summary": "ملخص لوحة المعلومات",
   "dashboard.overview_subtitle": "نظرة عامة على مؤشراتك الرئيسية",
   "dashboard.load_error": "فشل تحميل لوحة المعلومات",
-
   "auth.login": "تسجيل الدخول",
   "auth.logout": "تسجيل الخروج",
   "auth.profile": "ملفي الشخصي",
   "auth.register": "إنشاء حساب",
-
   "register.title": "إنشاء حساب جديد",
   "register.fill_all_fields": "يرجى ملء جميع الحقول المطلوبة",
   "register.passwords_dont_match": "كلمة المرور غير متطابقة",
@@ -236,7 +222,6 @@
   "register.failed": "فشل إنشاء الحساب",
   "register.creating": "جاري إنشاء الحساب...",
   "register.has_account": "لديك حساب بالفعل؟",
-
   "error.network": "خطأ في الشبكة. يرجى التحقق من اتصالك.",
   "error.not_found": "الموارد غير موجودة",
   "error.unauthorized": "غير مصرح. يرجى تسجيل الدخول مرة أخرى.",
@@ -251,7 +236,6 @@
   "error.show_details": "عرض التفاصيل",
   "error.retry": "حاول مرة أخرى",
   "error.unexpected": "حدث خطأ غير متوقع",
-
   "time.today": "اليوم",
   "time.yesterday": "أمس",
   "time.this_week": "هذا الأسبوع",
@@ -266,7 +250,6 @@
   "time.minutes_ago": "منذ {count} دقيقة",
   "time.hours_ago": "منذ {count} ساعة",
   "time.days_ago": "منذ {count} يوم",
-
   "labels.name": "الاسم",
   "labels.email": "البريد الإلكتروني",
   "labels.phone": "رقم الجوال",
@@ -289,14 +272,11 @@
   "labels.position": "المسمى الوظيفي",
   "labels.city": "المدينة",
   "labels.region": "المنطقة",
-
   "a11y.skip_to_content": "تخطي إلى المحتوى الرئيسي",
-
   "tabs.overview": "نظرة عامة",
   "tabs.activity": "النشاطات",
   "tabs.deals": "الصفقات",
   "tabs.timeline": "الجدول الزمني",
-
   "companies.back_to_list": "العودة إلى الشركات",
   "companies.add_contact": "إضافة جهة اتصال",
   "companies.edit_title": "تعديل بيانات الشركة",
@@ -320,7 +300,6 @@
   "companies.empty_hint": "قم بإضافة أول شركة للبدء.",
   "companies.pagination": "إجمالي {total} شركة — صفحة {page} من {totalPages}",
   "companies.remove_filter": "إزالة الفلتر: {label}",
-
   "forecast.title": "توقعات الإيرادات",
   "forecast.total_expected": "الإجمالي المتوقع",
   "forecast.weighted": "المتوسط المرجح",
@@ -328,7 +307,6 @@
   "forecast.pessimistic": "السيناريو المتشائم",
   "forecast.baseline": "السيناريو الأساسي",
   "forecast.optimistic": "السيناريو المتفائل",
-
   "decisions.title": "مركز القرارات",
   "decisions.subtitle": "مراجعة وتصفية وإدارة جميع قرارات الذكاء عبر مؤسستك",
   "decisions.score": "الدرجة",
@@ -398,7 +376,6 @@
   "decisions.no_templates": "لا توجد قوالب",
   "decisions.no_templates_hint": "أنشئ قالب قرارك الأول للبدء",
   "decisions.usage": "الاستخدام",
-
   "ai.title": "سجل الأوامر الذكية",
   "ai.experimental_badge": "تجريبي — ليس GA",
   "ai.honesty_hint": "أدوات ذكاء اصطناعي تجريبية. ليست جاهزة للإنتاج؛ لا تُسوَّق كـ AI-native GA.",
@@ -411,7 +388,6 @@
   "ai.activate": "تفعيل",
   "ai.active": "نشط",
   "ai.accuracy": "الدقة",
-
   "graph.title": "الرسم البياني المعرفي",
   "graph.search_placeholder": "ابحث عن كيان أو علاقة...",
   "graph.no_results": "لم يتم العثور على كيانات. جرب بحثاً مختلفاً.",
@@ -434,7 +410,6 @@
   "graph.zoom_in": "تكبير",
   "graph.zoom_out": "تصغير",
   "graph.reset_view": "إعادة تعيين العرض",
-
   "meetings.title": "ذكاء الاجتماعات",
   "meetings.select_opportunity": "اختر فرصة...",
   "meetings.select_prompt": "اختر فرصة لعرض معلومات الاجتماع",
@@ -444,7 +419,6 @@
   "meetings.risks": "المخاطر",
   "meetings.past_meetings": "الاجتماعات السابقة",
   "meetings.attendees": "الحضور",
-
   "copilot.title": "المساعد الذكي",
   "copilot.subtitle": "مساعد تجريبي (خلف علم ميزة). ليس GA للإنتاج.",
   "copilot.disabled_ga": "المساعد الذكي معطّل (feature_ai_copilot=False). فعّله في المختبر فقط بعد إثبات — ليس سطحاً للـ GA.",
@@ -454,7 +428,6 @@
   "copilot.history_note": "المحادثات تحفظ تلقائياً",
   "copilot.sample_q3_analysis": "تحليل أداء الشركات في الربع الثالث",
   "copilot.sample_deal_compare": "مقارنة بين فرصتين في مرحلة التفاوض",
-
   "rules.title": "قواعد الأعمال",
   "rules.create": "قاعدة جديدة",
   "rules.edit_rule": "تعديل القاعدة",
@@ -478,7 +451,6 @@
   "rules.action.send_email": "إرسال بريد",
   "rules.action.assign_to": "تعيين إلى",
   "rules.confirm_delete": "هل أنت متأكد من حذف هذه القاعدة؟",
-
   "analytics.title": "تحليلات متقدمة",
   "analytics.subtitle": "مؤشرات الأداء الرئيسية والرسوم البيانية للتحليل المتقدم",
   "analytics.revenue": "الإيرادات",
@@ -534,7 +506,6 @@
   "analytics.shown_recommendations": "التوصيات المعروضة",
   "analytics.executed_recommendations": "التوصيات المنفذة",
   "analytics.acceptance_rate": "معدل القبول",
-
   "mission.action.review_signals": "مراجعة {count} إشارة شرائية",
   "mission.action.pending_decisions": "{count} قرارات معلقة تحتاج اتخاذ",
   "mission.action.follow_deals": "متابعة {count} صفقة نشطة",
@@ -550,7 +521,6 @@
   "mission.aria.pipeline_value": "قيمة الأنابيب {value} ريال",
   "mission.aria.signals_today": "{count} إشارة جديدة اليوم",
   "mission.aria.decisions_pending": "{count} قرارات معلقة",
-
   "activity.email_sent": "إرسال بريد",
   "activity.email_received": "استلام بريد",
   "activity.meeting_created": "اجتماع جديد",
@@ -573,7 +543,6 @@
   "activity.filter.contracts": "عقود",
   "activity.filter.notes": "ملاحظات",
   "activity.filter.opportunities": "فرص",
-
   "activities.subtitle": "سجل شامل لجميع النشاطات في المنصة",
   "activities.count_unit": "نشاط",
   "activities.search_placeholder": "بحث في النشاطات...",
@@ -582,7 +551,6 @@
   "activities.empty": "لا توجد نشاطات",
   "activities.try_different_search": "جرب تغيير معايير البحث",
   "activities.empty_hint": "ستظهر النشاطات هنا عندما تبدأ العمل",
-
   "employee.load_error": "فشل تحميل البيانات",
   "employee.load_error_hint": "تأكد من اتصال الخادم وحاول مرة أخرى",
   "employee.call": "اتصال",
@@ -675,13 +643,11 @@
   "employees.score_loading": "جاري تحميل النتيجة...",
   "employees.upload_csv": "رفع ملف CSV",
   "nav.employees": "الموظفون",
-
   "auth.login_title": "تسجيل الدخول إلى سيلز أو إس",
   "auth.logging_in": "جاري تسجيل الدخول...",
   "auth.login_fill_all": "يرجى إدخال البريد الإلكتروني وكلمة المرور",
   "auth.login_failed": "فشل تسجيل الدخول",
   "auth.no_account": "ليس لديك حساب؟",
-
   "a11y.open_sidebar": "فتح القائمة الجانبية",
   "a11y.expand_sidebar": "توسيع القائمة",
   "a11y.collapse_sidebar": "طي القائمة",
@@ -699,7 +665,6 @@
   "a11y.close_menu": "إغلاق القائمة",
   "a11y.navigation_menu": "قائمة التنقل",
   "a11y.user_menu": "قائمة المستخدم",
-
   "automation.title": "الأتمتة",
   "automation.workflows": "سير العمل",
   "automation.templates": "القوالب",
@@ -723,7 +688,6 @@
   "automation.tmpl.meeting_prep.description": "إرسال ملخص تحضيري قبل الاجتماع ب 24 ساعة",
   "automation.tmpl.lost_deal.name": "تحليل الصفقة الخاسرة",
   "automation.tmpl.lost_deal.description": "تحليل أسباب خسارة الصفقة وجدولة متابعة",
-
   "search.title": "البحث المتقدم",
   "search.subtitle": "ابحث في الشركات والسجلات التجارية",
   "search.placeholder": "ابحث باسم الشركة، رقم السجل، النشاط...",
@@ -757,14 +721,8 @@
   "search.no_saved": "لا توجد بحثات محفوظة",
   "search.prev_page": "الصفحة السابقة",
   "search.next_page": "الصفحة التالية",
-
-  "settings.title": "الإعدادات",
   "settings.subtitle": "إعدادات الحساب والنظام",
-  "settings.profile": "الملف الشخصي",
-  "settings.security": "الأمان",
-  "settings.notifications": "الإشعارات",
   "settings.api_keys": "API Keys",
-  "settings.data": "إعدادات البيانات",
   "settings.profile_title": "الملف الشخصي",
   "settings.name_en": "الاسم بالإنجليزية",
   "settings.name_ar": "الاسم بالعربية",
@@ -773,19 +731,14 @@
   "settings.member_since": "عضو منذ",
   "settings.active": "نشط",
   "settings.inactive": "غير نشط",
-  "settings.save_changes": "حفظ التغييرات",
-  "settings.saved": "تم حفظ التغييرات",
   "settings.save_failed": "فشل الحفظ",
   "settings.save_error": "حدث خطأ أثناء حفظ التغييرات",
   "settings.security_title": "الأمان",
-  "settings.current_password": "كلمة المرور الحالية",
-  "settings.new_password": "كلمة المرور الجديدة",
   "settings.confirm_password": "تأكيد كلمة المرور",
   "settings.password_updated": "تم تحديث كلمة المرور",
   "settings.password_update_failed": "فشل تحديث كلمة المرور",
   "settings.password_mismatch": "كلمتا المرور غير متطابقتين",
   "settings.password_min_length": "كلمة المرور يجب أن تكون 12 حرفًا على الأقل",
-  "settings.update_password": "تحديث كلمة المرور",
   "settings.notifications_title": "الإشعارات",
   "settings.notif.email_notifications": "إشعارات البريد الإلكتروني",
   "settings.notif.app_notifications": "إشعارات التطبيق",
@@ -810,7 +763,6 @@
   "settings.role.admin": "مدير",
   "settings.role.manager": "مدير فريق",
   "settings.role.user": "مستخدم",
-
   "copilot.welcome": "مرحباً! أنا المساعد الذكي لـ SalesOS. يمكنني مساعدتك في تحليل البيانات والإجابة على أسئلتك.",
   "copilot.no_response": "لم يتم العثور على رد.",
   "copilot.connection_error": "عذراً، حدث خطأ في الاتصال بالمساعد الذكي. يرجى التحقق من اتصال الخادم.",
@@ -854,7 +806,6 @@
   "copilot.telemetry_p50": "p50",
   "copilot.telemetry_p95": "p95",
   "copilot.telemetry_p99": "p99",
-
   "command.placeholder": "اكتب أمر أو ابحث...",
   "command.title": "شريط الأوامر",
   "command.search_label": "بحث الأوامر",
@@ -862,17 +813,13 @@
   "command.no_results": "لا توجد نتائج",
   "command.default_category": "عام",
   "command.available": "{count} أمر متاح",
-
   "tabs.intelligence": "الذكاء",
   "tabs.decision_makers": "صناع القرار",
   "tabs.government_data": "البيانات الحكومية",
   "tabs.documents": "المستندات",
-  "tabs.activity": "النشاطات",
-
   "360.hierarchy": "الهيكل التنظيمي",
   "360.financial": "المالية",
   "360.insights": "الرؤى",
-
   "company.health": "صحة",
   "company.load_error": "فشل تحميل بيانات الشركة",
   "company.load_error_hint": "تأكد من اتصال الخادم وحاول مرة أخرى",
@@ -881,12 +828,10 @@
   "company.assigned_team": "الفريق المعين",
   "company.opportunities": "الفرص",
   "company.activity_log": "سجل النشاطات",
-
   "pipeline.drag_here": "اسحب الفرصة هنا",
   "pipeline.open_count": "فرصة مفتوحة بقيمة",
   "pipeline.drag_here_won": "اسحب الفرصة هنا للإغلاق بالفوز",
   "pipeline.drag_here_lost": "اسحب الفرصة هنا للإغلاق بالخسارة",
-
   "opportunities.create_title": "إنشاء فرصة جديدة",
   "opportunities.search_company": "ابحث عن شركة...",
   "opportunities.name": "اسم الفرصة",
@@ -902,7 +847,6 @@
   "opportunities.loss_reason": "سبب الخسارة",
   "opportunities.loss_reason_example": "مثلاً: السعر مرتفع",
   "opportunities.confirm_loss": "تأكيد الخسارة",
-
   "executive.title": "لوحة القيادة التنفيذية",
   "executive.subtitle": "نظرة شاملة على أداء المنصة والمؤشرات الرئيسية",
   "executive.booked_revenue": "الإيرادات المسجلة",
@@ -931,7 +875,6 @@
   "executive.due_90d": "خلال 90 يوم",
   "executive.sync_status": "حالة المزامنة:",
   "executive.data_completeness": "اكتمال البيانات:",
-
   "status.healthy": "صحي",
   "status.warning": "تحذير",
   "status.critical": "حرج",
@@ -941,7 +884,6 @@
   "common.load_error": "فشل تحميل البيانات",
   "common.creating": "جاري الإنشاء...",
   "common.optional": "اختياري",
-
   "contacts.title": "جهات الاتصال",
   "contacts.total": "إجمالي {count} جهة اتصال",
   "contacts.new": "جهة اتصال جديدة",
@@ -977,7 +919,6 @@
   "contacts.deleted_success": "تم حذف جهة الاتصال بنجاح",
   "contacts.delete_failed": "فشل الحذف",
   "contacts.delete_error": "حدث خطأ أثناء حذف جهة الاتصال",
-
   "emp360.overview": "نظرة عامة",
   "emp360.signals": "الإشارات",
   "emp360.scoring": "النتيجة",
@@ -1062,16 +1003,13 @@
   "emp360.vs_peers": "مقارنة بالأقران",
   "emp360.load_error": "فشل تحميل ملف الموظف",
   "emp360.load_error_hint": "أعد المحاولة أو تواصل مع الدعم إذا استمر الخطأ",
-
   "error.component_failed": "فشل في عرض هذا المكون. يرجى المحاولة مرة أخرى.",
-
   "feedback.quick_rate": "تقييم سريع",
   "feedback.thank_you": "شكرًا لتقييمك!",
   "feedback.question": "ما رأيك في SalesOS؟",
   "feedback.nps_prompt": "ما مدى احتمالية أن توصي بـ SalesOS لزميلك؟",
   "feedback.tell_us_more": "أخبرنا أكثر...",
   "common.send": "إرسال",
-
   "cs.nba_acceptance": "قبول NBA",
   "cs.total_views": "إجمالي المشاهدات",
   "cs.acceptance_rate": "معدل القبول: {rate}%",
@@ -1097,10 +1035,6 @@
   "cs.adoption_chart_label": "مخطط تبني الميزات",
   "cs.loading_error": "خطأ في تحميل بيانات نجاح العملاء",
   "cs.no_data": "لا توجد بيانات",
-
-  "contacts.title": "جهات الاتصال",
-  "contacts.total": "إجمالي {count} جهة اتصال",
-  "contacts.new": "جهة اتصال جديدة",
   "contacts.add": "إضافة جهة اتصال",
   "contacts.edit": "تعديل جهة الاتصال",
   "contacts.delete_confirm": "تأكيد الحذف",
@@ -1110,36 +1044,18 @@
   "contacts.email": "البريد الإلكتروني",
   "contacts.phone": "رقم الجوال",
   "contacts.position": "المنصب",
-  "contacts.position_placeholder": "المسمى الوظيفي",
-  "contacts.department": "القسم",
-  "contacts.company": "الشركة",
   "contacts.company_search": "ابحث عن شركة...",
-  "contacts.source": "المصدر",
-  "contacts.source_placeholder": "مصدر جهة الاتصال",
   "contacts.cancel": "إلغاء",
   "contacts.save": "حفظ",
-  "contacts.save_changes": "حفظ التعديلات",
   "contacts.delete": "حذف",
-  "contacts.search_placeholder": "بحث عن جهة اتصال...",
-  "contacts.load_error": "فشل تحميل جهات الاتصال",
   "contacts.load_error_hint": "تأكد من تشغيل الخادم الخلفي",
   "contacts.no_contacts": "لا توجد جهات اتصال",
-  "contacts.added": "تمت الإضافة",
   "contacts.added_desc": "تم إضافة جهة الاتصال بنجاح",
-  "contacts.add_failed": "فشل الإضافة",
-  "contacts.add_error": "حدث خطأ أثناء إضافة جهة الاتصال",
-  "contacts.updated": "تم التعديل",
   "contacts.updated_desc": "تم تعديل جهة الاتصال بنجاح",
-  "contacts.update_failed": "فشل التعديل",
-  "contacts.update_error": "حدث خطأ أثناء تعديل جهة الاتصال",
-  "contacts.deleted": "تم الحذف",
   "contacts.deleted_desc": "تم حذف جهة الاتصال بنجاح",
-  "contacts.delete_failed": "فشل الحذف",
-  "contacts.delete_error": "حدث خطأ أثناء حذف جهة الاتصال",
   "contacts.page_of": "صفحة {page} من {total}",
   "contacts.edit_tooltip": "تعديل",
   "contacts.delete_tooltip": "حذف",
-
   "customer_success.title": "نجاح العملاء",
   "customer_success.overview": "نظرة عامة",
   "customer_success.tenants": "العملاء",
@@ -1149,7 +1065,6 @@
   "customer_success.current_tenant": "المستأجر الحالي",
   "customer_success.tenant_list": "قائمة العملاء",
   "customer_success.error": "فشل تحميل بيانات نجاح العملاء. يرجى المحاولة مرة أخرى لاحقاً.",
-
   "admin.tenant_list.title": "إدارة العملاء",
   "admin.tenant_list.new_tenant": "عميل جديد",
   "admin.tenant_list.search_placeholder": "بحث عن عميل...",
@@ -1172,7 +1087,6 @@
   "admin.tenant_list.slug_placeholder": "المعرف (slug)",
   "admin.tenant_list.create_btn": "إنشاء",
   "admin.tenant_list.cancel": "إلغاء",
-
   "admin.user_list.title": "إدارة المستخدمين",
   "admin.user_list.search_placeholder": "بحث عن مستخدم...",
   "admin.user_list.all_roles": "كل الأدوار",
@@ -1188,7 +1102,6 @@
   "admin.user_list.deactivate": "تعطيل",
   "admin.user_list.no_users": "لا يوجد مستخدمين",
   "admin.user_list.loading": "جاري التحميل...",
-
   "admin.plan_manager.title": "الباقات والتراخيص",
   "admin.plan_manager.new_plan": "باقة جديدة",
   "admin.plan_manager.new_license": "ترخيص جديد",
@@ -1209,5 +1122,6 @@
   "admin.plan_manager.licenses_section": "التراخيص ({count})",
   "admin.plan_manager.active": "نشط",
   "admin.plan_manager.inactive": "غير نشط",
-  "admin.plan_manager.no_licenses": "لا توجد تراخيص"
+  "admin.plan_manager.no_licenses": "لا توجد تراخيص",
+  "nav.integrations": "التكاملات"
 }
