@@ -244,7 +244,7 @@ Activate only after §0 trigger. Goal: start **Phase 1 — Owner Platform Core**
 
 ## 5. Launch trigger checklist (when 54/54 fires)
 
-Copy/paste for Orchestrator:
+Copy/paste for Orchestrator. **On gate pass: spawn streams immediately — do not wait for human.**
 
 - [ ] Tip Stage 7 job **SUCCESS** (named run URL + SHA) → close **3.7**  
 - [ ] Checklist **3.7** cell = ✅ VERIFIED/CLOSED with evidence  
@@ -253,7 +253,7 @@ Copy/paste for Orchestrator:
 - [ ] Operating State Score = **54/54**; Phase 0 = COMPLETE (NO Production GO language)  
 - [ ] Board + DAG + DECISION_LOG crumbs landed + pushed  
 - [ ] This file status → **ACTIVE**; first crumbs for STORY-04-01 pre-task package  
-- [ ] Spawn ≥2–3 PARALLEL READY agents (Backend A1, Frontend B1, Validation D2)  
+- [ ] Spawn Backend / Frontend / DevOps / Validation streams per §4 (≥2–3 PARALLEL READY: A1, B1, C1 observe, D2) **without human wait**  
 - [ ] Confirm DEC-085 / auth / CSRF / RLS untouched by exit land  
 - [ ] Confirm AI copilot flag still default False  
 
