@@ -61,6 +61,7 @@
 | FE-S11-08 | AI Outreach UI (tip 11-08 draft_only; no live SMTP/LI/WA) |
 | FE-S12-01 | Prompt Library Studio UI (tip 12-01; feature_ai_copilot False) |
 | FE-S12-02 | AI Policies Studio UI (tip 12-02; feature_ai_copilot False; no live LLM) |
+| FE-S12-03 | AI Memory Studio UI (tip 12-03 conversation opt-in; feature_ai_copilot False) |
 
 ## Blocked (do not invent)
 

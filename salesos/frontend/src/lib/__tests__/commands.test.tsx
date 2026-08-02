@@ -13,7 +13,7 @@ describe("registerBuiltinCommands", () => {
   it("registers all builtin commands", () => {
     const mockRouter = { push: jest.fn() } as any;
     registerBuiltinCommands(mockRouter);
-    expect(registerCommand).toHaveBeenCalledTimes(38);
+    expect(registerCommand).toHaveBeenCalledTimes(39);
   });
 
   it("registers navigation commands with correct router pushes", () => {
@@ -93,6 +93,13 @@ describe("registerBuiltinCommands", () => {
     expect(studioAiPolicies).toBeTruthy();
     studioAiPolicies[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/studio/ai-policies");
+
+    const studioAiMemory = (registerCommand as jest.Mock).mock.calls.find(
+      (c: any) => c[0].id === "go.studio.ai-memory",
+    );
+    expect(studioAiMemory).toBeTruthy();
+    studioAiMemory[0].handler();
+    expect(mockRouter.push).toHaveBeenCalledWith("/studio/ai-memory");
 
     const marketplaceListings = (registerCommand as jest.Mock).mock.calls.find(
       (c: any) => c[0].id === "go.marketplace.listings",

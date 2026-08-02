@@ -26,6 +26,7 @@ import {
   MapPin,
   Cpu,
   Scale,
+  BrainCircuit,
   Target,
   Radar,
   Crosshair,
@@ -99,6 +100,11 @@ export function MobileNav() {
       href: "/studio/ai-policies",
       key: "nav.ai_policies",
       icon: Scale,
+    },
+    {
+      href: "/studio/ai-memory",
+      key: "nav.ai_memory",
+      icon: BrainCircuit,
     },
     {
       href: "/gtm",

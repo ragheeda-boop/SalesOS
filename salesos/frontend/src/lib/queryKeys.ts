@@ -175,6 +175,14 @@ export const tenantStudioKeys = {
     [...tenantStudioKeys.all, "ai-policies", tenantId] as const,
   aiPoliciesDetail: (tenantId: string, id: string) =>
     [...tenantStudioKeys.all, "ai-policies", tenantId, id] as const,
+  aiMemoryMeta: (tenantId: string) =>
+    [...tenantStudioKeys.all, "ai-memory-meta", tenantId] as const,
+  aiMemorySettings: (tenantId: string) =>
+    [...tenantStudioKeys.all, "ai-memory-settings", tenantId] as const,
+  aiMemoryList: (tenantId: string) =>
+    [...tenantStudioKeys.all, "ai-memory", tenantId] as const,
+  aiMemoryDetail: (tenantId: string, id: string) =>
+    [...tenantStudioKeys.all, "ai-memory", tenantId, id] as const,
 };
 
 export const marketplaceListingsKeys = {

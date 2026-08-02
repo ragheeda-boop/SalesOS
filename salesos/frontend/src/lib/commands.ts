@@ -180,6 +180,15 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.studio.ai-memory",
+    label: "Studio · AI Memory",
+    description:
+      "Conversation-level AI Memory opt-in (tip STORY-12-03; feature_ai_copilot False)",
+    category: "تنقل",
+    handler: () => router.push("/studio/ai-memory"),
+  });
+
+  registerCommand({
     id: "go.marketplace.listings",
     label: "Marketplace · Listings",
     description:

@@ -41,6 +41,7 @@ import {
   Cpu,
   BookText,
   Scale,
+  BrainCircuit,
   Store,
   Target,
   Radar,
@@ -115,6 +116,11 @@ const NAV_KEYS = [
     href: "/studio/ai-policies",
     key: "nav.ai_policies",
     icon: Scale,
+  },
+  {
+    href: "/studio/ai-memory",
+    key: "nav.ai_memory",
+    icon: BrainCircuit,
   },
   {
     href: "/marketplace/listings",
