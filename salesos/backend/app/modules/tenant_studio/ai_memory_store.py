@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from app.modules.tenant_studio.ai_memory import (
     DEFAULT_MAX_TURNS,
@@ -17,6 +17,7 @@ from app.modules.tenant_studio.ai_memory import (
     normalize_conversation_id,
     normalize_role,
 )
+from app.modules.tenant_studio.ai_memory_crypto import decrypt_content, encrypt_content
 from app.modules.tenant_studio.ai_memory_engine import (
     adversarial_probe_cross_tenant_cache,
     assert_cache_key_tenant_bound,
@@ -77,6 +78,35 @@ class MemAiMemoryStore:
             raise AiMemoryError("AI Memory is opt-in; enable via settings first")
         return settings
 
+    def _is_expired(self, row: ConversationMemory, settings: TenantMemorySettings) -> bool:
+        if not row.updated_at:
+            return False
+        try:
+            updated = datetime.fromisoformat(row.updated_at)
+        except ValueError:
+            return False
+        if updated.tzinfo is None:
+            updated = updated.replace(tzinfo=UTC)
+        age = datetime.now(UTC) - updated
+        return age > timedelta(hours=int(settings.retention_hours))
+
+    def _purge_if_expired(
+        self,
+        *,
+        tenant_id: str,
+        conversation_id: str,
+    ) -> None:
+        tid = str(tenant_id)
+        cid = normalize_conversation_id(conversation_id)
+        key = (tid, cid)
+        row = self._by_conv.get(key)
+        if row is None:
+            return
+        settings = self.get_settings(tenant_id=tid)
+        if self._is_expired(row, settings):
+            self._by_conv.pop(key, None)
+            self._provider_cache.pop(row.provider_cache_key, None)
+
     def append_turn(
         self,
         *,
@@ -90,6 +120,7 @@ class MemAiMemoryStore:
             raise AiMemoryError("tenant_id required")
         settings = self._require_opt_in(tid)
         cid = normalize_conversation_id(conversation_id)
+        self._purge_if_expired(tenant_id=tid, conversation_id=cid)
         r = normalize_role(role)
         body = normalize_content(content)
         now = datetime.now(UTC).isoformat()
@@ -98,7 +129,9 @@ class MemAiMemoryStore:
         cache_key = provider_cache_key(tenant_id=tid, conversation_id=cid)
         assert_cache_key_tenant_bound(cache_key, tenant_id=tid)
 
-        turn = MemoryTurn(role=r, content=body, created_at=now)
+        envelope = encrypt_content(tenant_id=tid, plaintext=body)
+        # Owner API surface returns plaintext; at-rest keeps envelope.
+        turn = MemoryTurn(role=r, content=body, created_at=now, encryption=envelope)
         if existing is None:
             row = ConversationMemory(
                 id=uuid.uuid4().hex[:12],
@@ -138,10 +171,30 @@ class MemAiMemoryStore:
     ) -> ConversationMemory | None:
         tid = str(tenant_id)
         cid = normalize_conversation_id(conversation_id)
-        return self._by_conv.get((tid, cid))
+        self._purge_if_expired(tenant_id=tid, conversation_id=cid)
+        row = self._by_conv.get((tid, cid))
+        if row is None:
+            return None
+        # Fail closed if stored envelopes cannot decrypt under this tenant.
+        for turn in row.turns:
+            if turn.encryption:
+                plain = decrypt_content(tenant_id=tid, envelope=turn.encryption)
+                if plain != turn.content:
+                    raise AiMemoryError("encryption integrity mismatch")
+        return row
 
     def list_for_tenant(self, *, tenant_id: str) -> list[ConversationMemory]:
         tid = str(tenant_id)
+        settings = self.get_settings(tenant_id=tid)
+        expired_keys = [
+            key
+            for key, m in self._by_conv.items()
+            if key[0] == tid and self._is_expired(m, settings)
+        ]
+        for key in expired_keys:
+            row = self._by_conv.pop(key, None)
+            if row is not None:
+                self._provider_cache.pop(row.provider_cache_key, None)
         return sorted(
             [m for (t, _), m in self._by_conv.items() if t == tid],
             key=lambda m: m.updated_at or "",

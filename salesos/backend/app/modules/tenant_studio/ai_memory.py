@@ -26,12 +26,15 @@ class MemoryTurn:
     role: str
     content: str
     created_at: str = ""
+    # At-rest envelope (alg + ciphertext); content is plaintext for owner reads.
+    encryption: dict[str, str] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return {
             "role": self.role,
             "content": self.content,
             "created_at": self.created_at,
+            "encryption": dict(self.encryption),
         }
 
 

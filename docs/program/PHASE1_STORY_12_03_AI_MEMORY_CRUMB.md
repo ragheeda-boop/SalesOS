@@ -5,6 +5,7 @@
 > Conversation-level only (DEC-007 — cross-session long-term deferred).  
 > **Opt-in** per tenant (default disabled).  
 > Adversarial cross-tenant + provider-cache isolation covered in CI.  
+> Encryption: tenant-bound fixture HMAC envelope (not KMS).  
 > Live LLM / RAG GO — **not claimed**. `feature_ai_copilot` remains **False**.
 
 ## Landed
@@ -13,9 +14,10 @@
 |-------|--------|
 | Models | `ConversationMemory` / `MemoryTurn` / `TenantMemorySettings` |
 | Engine | Tenant-bound `provider_cache_key` + adversarial probe |
-| Store | In-memory opt-in settings, turns, delete, provider-cache map |
-| HTTP | `/api/v1/studio/ai-memory` — `/meta`, `/settings`, conversations CRUD turns, `/adversarial/probe` |
-| Tests | Opt-in gate, round-trip, max_turns trim, cross-tenant DB + cache isolation, flag False |
+| Crypto | `fixture-hmac-sha256-v1` tenant-bound at-rest envelope |
+| Store | Opt-in settings, encrypted turns, retention purge, delete, provider-cache map |
+| HTTP | `/api/v1/studio/ai-memory` — `/meta`, `/settings`, conversations turns CRUD, `/adversarial/probe` |
+| Tests | Opt-in, round-trip, trim, encryption boundary, retention purge, cross-tenant DB + cache, flag False |
 
 ## Acceptance
 
@@ -31,4 +33,4 @@ Conversation-level memory with adversarial cross-tenant isolation (incl. provide
 - Live LLM / enabling `feature_ai_copilot`
 - RAG GO / Production GO
 - FE invent
-- Postgres persistence / Alembic
+- Postgres persistence / Alembic / new FORCE RLS

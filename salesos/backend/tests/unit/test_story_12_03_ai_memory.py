@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from app.config import settings
-from app.modules.tenant_studio.ai_memory import AiMemoryError
+from app.modules.tenant_studio.ai_memory import AiMemoryError, ConversationMemory
 from app.modules.tenant_studio.ai_memory_engine import (
     adversarial_probe_cross_tenant_cache,
     provider_cache_key,
@@ -102,3 +102,39 @@ def test_settings_default_disabled() -> None:
     s = store.get_settings(tenant_id="fresh")
     assert s.enabled is False
     assert s.as_dict()["cross_session"] is False
+
+
+def test_encryption_envelope_tenant_bound() -> None:
+    from app.modules.tenant_studio.ai_memory_crypto import decrypt_content, encrypt_content
+
+    env = encrypt_content(tenant_id="t-a", plaintext="secret")
+    assert env["alg"] == "fixture-hmac-sha256-v1"
+    assert decrypt_content(tenant_id="t-a", envelope=env) == "secret"
+    with pytest.raises(AiMemoryError, match="tenant boundary"):
+        decrypt_content(tenant_id="t-b", envelope=env)
+
+
+def test_retention_purge_expires_conversation() -> None:
+    from datetime import UTC, datetime, timedelta
+
+    store = MemAiMemoryStore()
+    store.set_settings(tenant_id="t1", enabled=True, retention_hours=1)
+    row = store.append_turn(
+        tenant_id="t1",
+        conversation_id="old",
+        role="user",
+        content="stale",
+    )
+    # Force updated_at into the past beyond retention.
+    stale = datetime.now(UTC) - timedelta(hours=2)
+    store._by_conv[("t1", "old")] = ConversationMemory(
+        id=row.id,
+        tenant_id="t1",
+        conversation_id="old",
+        turns=list(row.turns),
+        provider_cache_key=row.provider_cache_key,
+        schema_version=row.schema_version,
+        created_at=row.created_at,
+        updated_at=stale.isoformat(),
+    )
+    assert store.get_conversation(tenant_id="t1", conversation_id="old") is None

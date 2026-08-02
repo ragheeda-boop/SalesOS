@@ -50,6 +50,7 @@ class MemoryTurnResponse(BaseModel):
     role: str
     content: str
     created_at: str = ""
+    encryption: dict[str, str] = Field(default_factory=dict)
 
 
 class ConversationMemoryResponse(BaseModel):
@@ -90,6 +91,9 @@ async def ai_memory_meta() -> dict[str, Any]:
             "memory deferred (DEC-007)."
         ),
         "provider_cache": "tenant-bound fixture keys (pcm:…:t=<tenant_id>:…)",
+        "encryption": "fixture-hmac-sha256-v1 tenant-bound at-rest envelope (not KMS)",
+        "deletion_policy": "DELETE /conversations/{id} + retention_hours auto-purge",
+        "policy_count_delta": 0,
         "feature_ai_copilot": bool(settings.feature_ai_copilot),
         "honesty": (
             "In-memory CI store; opt-in per tenant. Live LLM / RAG GO / "
