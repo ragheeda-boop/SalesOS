@@ -18,13 +18,12 @@
 
 AI Policies UI backend: data-class-to-model-tier rules extending existing AI-GR-* — covered in CI.
 
-## Parked
+## Follow-on
 
-- STORY-12-03 AI Memory MVP — **PARK** until BE pair
+- STORY-12-03 AI Memory MVP — **UNPARKED / LANDED** (conversation-level tip HTTP)
 
 ## Non-goals
 
 - Live LLM / enabling `feature_ai_copilot`
 - RAG GO / Production GO
 - Reinventing guardrail implementations
-- AI Memory (12-03)

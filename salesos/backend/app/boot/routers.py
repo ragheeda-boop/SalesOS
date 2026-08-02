@@ -423,6 +423,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["AI Studio"],
         dependencies=_auth,
     )
+    # DOM-012 / CAP-063 — STORY-12-03 AI Memory MVP (conversation-level; opt-in).
+    from app.modules.tenant_studio.ai_memory_router import (
+        router as ai_memory_router,
+    )
+
+    app.include_router(
+        ai_memory_router,
+        prefix="/api/v1",
+        tags=["AI Studio"],
+        dependencies=_auth,
+    )
     app.include_router(commercial_router, prefix="/api/v1", tags=["Commercial"], dependencies=_auth)
 
     app.include_router(demo_router, tags=["Demo"])
