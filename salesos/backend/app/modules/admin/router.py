@@ -10,6 +10,8 @@ router = APIRouter(
     dependencies=[Depends(require_owner_role_dep("admin"))],
 )
 
+from app.modules.billing.stripe_router import owner_router as stripe_owner_router
+
 from .routers.ai_audit import router as ai_audit_router
 from .routers.ai_costs import router as ai_costs_router
 from .routers.audit_log import router as audit_log_router
@@ -28,6 +30,7 @@ router.include_router(tenants_router)
 router.include_router(plans_router)
 router.include_router(users_router)
 router.include_router(billing_router)
+router.include_router(stripe_owner_router)
 router.include_router(feature_flags_router)
 router.include_router(roles_permissions_router)
 router.include_router(jobs_router)

@@ -29,6 +29,7 @@ SKIP_PATH_PREFIXES = (
     "/api/v1/admin",
     "/api/v1/auth",
     "/api/v1/owner",
+    "/api/v1/billing/stripe/webhook",
     "/api/health",
 )
 

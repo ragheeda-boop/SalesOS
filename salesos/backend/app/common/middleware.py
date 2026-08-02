@@ -465,6 +465,8 @@ class CsrfEnforcementMiddleware:
             "/api/v1/identity/reset-password",
             "/api/v1/identity/refresh",
             "/csrf-token",
+            # STORY-05-02 — Stripe signs body; CSRF cookie not applicable.
+            "/api/v1/billing/stripe/webhook",
         }
     )
 

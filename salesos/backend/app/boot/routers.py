@@ -85,6 +85,11 @@ def register_routers(app: FastAPI) -> None:
 
     app.include_router(employee_webhook_router, prefix="/api/v1", tags=["Employee Webhooks"])
 
+    # STORY-05-02 — public Stripe webhook (signature-verified; no JWT/CSRF cookie).
+    from app.modules.billing.stripe_router import webhook_router as stripe_webhook_router
+
+    app.include_router(stripe_webhook_router, prefix="/api/v1", tags=["Billing - Stripe Webhooks"])
+
     app.include_router(executive_router, prefix="/api/v1", tags=["Executive"], dependencies=_auth)
     app.include_router(dashboard_router, prefix="/api/v1", tags=["Dashboard"], dependencies=_auth)
     app.include_router(

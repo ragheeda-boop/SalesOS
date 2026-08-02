@@ -143,6 +143,12 @@ class Settings(BaseSettings):
     # STORY-04-04 — soft-delete retention before hard-delete (days). Not Production GO.
     tenant_deletion_retention_days: int = 30
 
+    # STORY-05-02 — Stripe sandbox/live credentials from env only. Never invent defaults.
+    # Empty = fail-closed (webhook 503, checkout 503). Not Production GO.
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_publishable_key: str = ""
+
     log_level: str = "INFO"
     sentry_dsn: str = ""
     service_version: str = "5.1.0-rc1"
