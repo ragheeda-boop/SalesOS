@@ -60,8 +60,8 @@ def test_single_object_across_types() -> None:
         "playbook",
         "prompt_pack",
     }
-    assert len(store.list()) == 3
-    assert len(store.list(listing_type="connector")) == 1
+    assert len(store.list_listings()) == 3
+    assert len(store.list_listings(listing_type="connector")) == 1
 
 
 def test_slug_unique() -> None:
@@ -92,7 +92,7 @@ def test_seed_first_party_odoo_hubspot() -> None:
     assert all(r.first_party for r in rows)
     # idempotent
     again = store.seed_first_party_connectors()
-    assert len(store.list()) == 2
+    assert len(store.list_listings()) == 2
     assert {r.slug for r in again} == {"connector-odoo", "connector-hubspot"}
 
 

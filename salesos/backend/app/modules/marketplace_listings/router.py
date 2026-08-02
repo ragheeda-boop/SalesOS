@@ -118,7 +118,7 @@ async def list_listings(
     listing_type: str | None = Query(None),
     status: str | None = Query(None),
 ) -> list[ListingResponse]:
-    rows = _STORE.list(listing_type=listing_type, status=status)
+    rows = _STORE.list_listings(listing_type=listing_type, status=status)
     return [ListingResponse.model_validate(r.as_dict()) for r in rows]
 
 

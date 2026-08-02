@@ -86,7 +86,7 @@ class MemMarketplaceListingStore:
         rid = self._slug_index.get((slug or "").strip().lower())
         return self._by_id.get(rid) if rid else None
 
-    def list(
+    def list_listings(
         self,
         *,
         listing_type: str | None = None,
