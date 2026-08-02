@@ -62,13 +62,15 @@ async def _ins(session, tid: str, sql: str, params: dict | None = None):
 async def _chk(session, tid: str, sql: str, expected: int, label: str):
     await session.execute(text(f"SET LOCAL app.tenant_id = '{tid}'"))
     r = await session.execute(text(sql))
-    assert r.scalar() == expected, f"[{label}] exp={expected} got={r.scalar()}"
+    got = r.scalar()
+    assert got == expected, f"[{label}] exp={expected} got={got}"
 
 
 async def _fc(session, sql: str, label: str):
     await session.execute(text("RESET app.tenant_id"))
     r = await session.execute(text(sql))
-    assert r.scalar() == 0, f"[{label}] fail-closed violation: {r.scalar()}"
+    got = r.scalar()
+    assert got == 0, f"[{label}] fail-closed violation: {got}"
 
 
 async def _rw(session, tid: str, sql: str, expected: int, label: str):

@@ -20,7 +20,7 @@ from sqlalchemy import text
 
 from app.database import engine
 
-POLICY_COUNT = 67  # 59 prior (DEC-119) + 8 deferred-8 (DEC-123)
+POLICY_COUNT = 69  # 67 prior + STORY-08-02/08-03 tenant_isolation policies
 
 
 @pytest_asyncio.fixture(autouse=True)
@@ -50,13 +50,15 @@ async def _ins(session, tid: str, sql: str):
 async def _chk(session, tid: str, sql: str, expected: int, label: str):
     await session.execute(text(f"SET LOCAL app.tenant_id = '{tid}'"))
     r = await session.execute(text(sql))
-    assert r.scalar() == expected, f"[{label}] exp={expected} got={r.scalar()}"
+    got = r.scalar()
+    assert got == expected, f"[{label}] exp={expected} got={got}"
 
 
 async def _fc(session, sql: str, label: str):
     await session.execute(text("RESET app.tenant_id"))
     r = await session.execute(text(sql))
-    assert r.scalar() == 0, f"[{label}] fail-closed violation: {r.scalar()}"
+    got = r.scalar()
+    assert got == 0, f"[{label}] fail-closed violation: {got}"
 
 
 @pytest.mark.asyncio
@@ -133,7 +135,8 @@ async def test_rls_policies_intact_after_b7():
         r = await conn.execute(
             text("SELECT count(*) FROM pg_policies WHERE policyname LIKE 'tenant_isolation_%'")
         )
-        assert r.scalar() == POLICY_COUNT, f"policies changed: {r.scalar()}"
+        count = r.scalar()
+        assert count == POLICY_COUNT, f"policies changed: {count}"
         r2 = await conn.execute(
             text(
                 "SELECT count(*) FROM pg_policies "
