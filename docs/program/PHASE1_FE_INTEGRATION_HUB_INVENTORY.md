@@ -23,6 +23,7 @@
 | FE-S09-02 | Opportunity presets + stage honesty (tip 09-02) |
 | FE-S09-03 | InteractionNote presets + PII honesty (tip 09-03) |
 | FE-S09-04 | SupportTicket presets + stage honesty (tip 09-04) |
+| FE-S09-05 | project.task / TaskCaseExtension VO honesty (tip 09-05) |
 
 ## Blocked (do not invent)
 

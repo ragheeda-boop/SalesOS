@@ -101,6 +101,11 @@ const FE_GATED = [
     title: "SupportTicket presets + stage honesty",
     status: "FE landed — helpdesk.ticket presets",
   },
+  {
+    id: "FE-S09-05",
+    title: "project.task / TaskCaseExtension VO Studio",
+    status: "FE landed — project.task presets",
+  },
 ] as const;
 
 export default function AdminIntegrationsInventoryPage() {

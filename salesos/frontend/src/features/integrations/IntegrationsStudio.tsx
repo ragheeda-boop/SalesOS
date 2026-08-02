@@ -47,6 +47,13 @@ import {
   isTicketModel,
 } from "@/features/integrations/odooTicketHonesty";
 import {
+  DEFAULT_TASK_MAPPINGS,
+  TASK_CASE_TYPES,
+  TASK_FINANCING_FIELDS,
+  TASK_INSURANCE_FIELDS,
+  isTaskModel,
+} from "@/features/integrations/odooTaskHonesty";
+import {
   TIP_OPERATIONAL_FIELDS,
   TIP_SALESOS_AUTHORED_FIELDS,
   tipDefaultConflictRules,
@@ -82,6 +89,7 @@ function listFromCsv(raw: string): string[] {
  * STORY-09-01 partner/cr_number honesty (FE-S09-01).
  * STORY-09-03 InteractionNote PII honesty (FE-S09-03).
  * STORY-09-04 SupportTicket stage honesty (FE-S09-04).
+ * STORY-09-05 TaskCaseExtension VO honesty (FE-S09-05).
  * Unlinked badge list API not live. Not Production GO.
  */
 export function IntegrationsStudio() {
@@ -260,6 +268,11 @@ export function IntegrationsStudio() {
       setBaselineCsv("name, stage, priority, partner_external_id");
       return;
     }
+    if (isTaskModel(nextModel)) {
+      setMappingJson(JSON.stringify(DEFAULT_TASK_MAPPINGS, null, 2));
+      setBaselineCsv("name, stage");
+      return;
+    }
     if (isPartnerModel(nextModel)) {
       setMappingJson(JSON.stringify(DEFAULT_PARTNER_MAPPINGS, null, 2));
       setBaselineCsv("name, email, phone, cr_number");
@@ -278,10 +291,10 @@ export function IntegrationsStudio() {
         conflict-policy (FE-S08-08) and active mapping GET (FE-S08-09) +
         connection detail / baseline_fields (FE-S08-10). `test_connection`
         dispatches Fake vs OdooAdapter by `connector_key` (STORY-09-01).
-        Unlinked cr_number badge list API not live. STORY-09-04 helpdesk.ticket
-        SupportTicket sync is on tip (presets + stage honesty; no ticket list
-        HTTP). Do not paste real secrets into credential_ref. Not Production GO
-        / RAG GO.
+        Unlinked cr_number badge list API not live. Tip Odoo models through
+        STORY-09-05 (`project.task` + TaskCaseExtension VO) have Studio presets
+        — no invented list HTTP. Do not paste real secrets into credential_ref.
+        Not Production GO / RAG GO.
       </p>
 
       <ol
@@ -633,6 +646,21 @@ export function IntegrationsStudio() {
                 badge list still BE-blocked. Not Production GO / RAG GO.
               </p>
             ) : null}
+            {isTaskModel(model) ? (
+              <p
+                className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+                data-testid="integrations-studio-task-case-honesty"
+              >
+                STORY-09-05: Tip model <code>project.task</code> syncs Task with
+                optional TaskCaseExtension Value Object (case_type{" "}
+                {TASK_CASE_TYPES.join(", ")} — no independent id). Classify via
+                financing fields ({TASK_FINANCING_FIELDS.join(", ")}) or
+                insurance ({TASK_INSURANCE_FIELDS.join(", ")}); plain chores get
+                no extension. Stages are soft-mapped (not strict ticket ACL).
+                Unlinked badge list still BE-blocked. Not Production GO / RAG
+                GO.
+              </p>
+            ) : null}
             <Input
               label="Model"
               data-testid="integrations-studio-map-model"
@@ -886,6 +914,17 @@ export function IntegrationsStudio() {
                 Tip schedule model <code>helpdesk.ticket</code> pulls
                 SupportTicket rows via OdooAdapter after STORY-09-04 (strict
                 stages + description PII scrub; no ticket list HTTP).
+              </p>
+            ) : null}
+            {isTaskModel(model) ? (
+              <p
+                className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+                data-testid="integrations-studio-schedule-task-honesty"
+              >
+                Tip schedule model <code>project.task</code> pulls Task +
+                optional TaskCaseExtension VO after STORY-09-05. No standalone
+                financing_cases aggregate. Unlinked badge list still BE-blocked.
+                Not Production GO / RAG GO.
               </p>
             ) : null}
             <Input

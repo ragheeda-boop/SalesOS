@@ -56,6 +56,11 @@ export const HUB_MODEL_PRESETS = [
     label: "helpdesk.ticket (SupportTicket)",
     model: "helpdesk.ticket",
   },
+  {
+    id: "project-task",
+    label: "project.task (Task + CaseExtension VO)",
+    model: "project.task",
+  },
 ] as const;
 
 export function isOpportunityModel(model: string): boolean {

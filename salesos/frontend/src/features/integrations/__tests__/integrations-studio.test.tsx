@@ -255,6 +255,27 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
     ).toContain("stage_id");
   });
 
+  it("applies project.task preset and TaskCaseExtension VO honesty", () => {
+    render(<IntegrationsStudio />);
+    fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
+    fireEvent.click(
+      screen.getByTestId("integrations-studio-model-preset-project-task"),
+    );
+    expect(
+      screen.getByTestId("integrations-studio-task-case-honesty"),
+    ).toHaveTextContent(/Value Object|no independent id/i);
+    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
+      "project.task",
+    );
+    expect(
+      (
+        screen.getByTestId(
+          "integrations-studio-map-json",
+        ) as HTMLTextAreaElement
+      ).value,
+    ).toContain("stage_id");
+  });
+
   it("applies mail.message note preset and PII honesty", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
