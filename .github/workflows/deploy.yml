@@ -261,7 +261,7 @@ jobs:
   notify:
     name: Deploy Notification
     if: always()
-    needs: [pre-deploy-check, deploy-backend-railway, health-check, frontend-vercel]
+    needs: [pre-deploy-check, deploy-backend-railway, deploy-backend-health-gate, frontend-vercel]
     runs-on: ubuntu-latest
     permissions:
       contents: write
