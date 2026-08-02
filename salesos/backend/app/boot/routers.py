@@ -412,6 +412,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["AI Studio"],
         dependencies=_auth,
     )
+    # DOM-022 / CAP-091 — STORY-12-02 AI Policies (reuses AI-GR-*; no live LLM).
+    from app.modules.tenant_studio.ai_policies_router import (
+        router as ai_policies_router,
+    )
+
+    app.include_router(
+        ai_policies_router,
+        prefix="/api/v1",
+        tags=["AI Studio"],
+        dependencies=_auth,
+    )
     app.include_router(commercial_router, prefix="/api/v1", tags=["Commercial"], dependencies=_auth)
 
     app.include_router(demo_router, tags=["Demo"])
