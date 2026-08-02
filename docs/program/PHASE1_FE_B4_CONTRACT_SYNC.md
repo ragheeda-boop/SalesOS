@@ -42,3 +42,4 @@
 | FE-S04-13 | Inactive vs Suspended list honesty | **LANDED** — `activityStatusLabel` |
 | FE-S04-14 | E2E region/residency + delete modal (cancel, no mutate) | **HOOKS LANDED** |
 | FE-S04-15 | Trial ends column + filter (has/expired/none) | **LANDED** |
+| FE-S04-16 | Opaque plan_id column + search + clear filters | **LANDED** |

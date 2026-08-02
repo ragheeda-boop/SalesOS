@@ -74,6 +74,17 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     });
   });
 
+  test("admin tenants expose plan_id column hook when rows exist", async ({
+    page,
+  }) => {
+    await page.goto("/admin/tenants");
+    await page.waitForLoadState("networkidle");
+    const planIdCell = page.getByTestId("admin-tenants-row-plan-id").first();
+    const hasRow = await planIdCell.isVisible().catch(() => false);
+    test.skip(!hasRow, "No tenant rows for plan_id column hook");
+    await expect(planIdCell).toBeVisible();
+  });
+
   test("admin tenants delete modal opens without mutate", async ({ page }) => {
     await page.goto("/admin/tenants");
     await page.waitForLoadState("networkidle");

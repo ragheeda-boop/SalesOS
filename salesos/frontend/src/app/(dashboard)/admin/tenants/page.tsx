@@ -169,7 +169,11 @@ export default function AdminTenantsPage() {
         (t: AdminTenantListItem) =>
           t.name.toLowerCase().includes(q) ||
           t.slug.toLowerCase().includes(q) ||
-          (t.domain || "").toLowerCase().includes(q),
+          (t.domain || "").toLowerCase().includes(q) ||
+          // FE-S04-16 — opaque plan_id + geo fields in search
+          (t.plan_id || "").toLowerCase().includes(q) ||
+          (t.region || "").toLowerCase().includes(q) ||
+          (t.data_residency || "").toLowerCase().includes(q),
       );
     }
     if (planFilter)
@@ -383,6 +387,31 @@ export default function AdminTenantsPage() {
             }}
           />
         </div>
+        {(search ||
+          planFilter ||
+          statusFilter ||
+          provisioningFilter ||
+          regionFilter ||
+          residencyFilter ||
+          trialFilter) && (
+          <Button
+            variant="outline"
+            size="sm"
+            data-testid="admin-tenants-clear-filters"
+            onClick={() => {
+              setSearch("");
+              setPlanFilter("");
+              setStatusFilter("");
+              setProvisioningFilter("");
+              setRegionFilter("");
+              setResidencyFilter("");
+              setTrialFilter("");
+              setPage(1);
+            }}
+          >
+            Clear filters
+          </Button>
+        )}
       </div>
 
       {/* Create Modal */}
@@ -563,6 +592,9 @@ export default function AdminTenantsPage() {
                     Plan
                   </th>
                   <th className="p-3 font-medium text-[var(--text-muted)]">
+                    Plan ID
+                  </th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">
                     Users
                   </th>
                   <th className="p-3 font-medium text-[var(--text-muted)]">
@@ -616,6 +648,13 @@ export default function AdminTenantsPage() {
                       <Badge variant={PLAN_VARIANT[tenant.plan] || "default"}>
                         {tenant.plan}
                       </Badge>
+                    </td>
+                    <td
+                      className="p-3 text-xs font-mono text-[var(--text-muted)]"
+                      data-testid="admin-tenants-row-plan-id"
+                      title="Opaque catalog plan_id (not License UUID)"
+                    >
+                      {tenant.plan_id || "—"}
                     </td>
                     <td className="p-3 text-sm text-[var(--text-secondary)]">
                       {tenant.user_count}
