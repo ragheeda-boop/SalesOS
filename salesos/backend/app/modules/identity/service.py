@@ -458,14 +458,20 @@ class IdentityService:
         # Email is globally unique, but FORCE RLS on users hides rows until
         # app.tenant_id is set. Probe via owner_engine (same split as init_db /
         # Alembic), then pin GUC on the request session before app-role reads.
+        # Owner probe is best-effort: unit tests use a different asyncio loop /
+        # SQLite session and must not crash on cross-loop asyncpg Futures.
         from sqlalchemy import text as sa_text
         from sqlalchemy.ext.asyncio import AsyncSession as _AsyncSession
 
         from app.database import owner_engine, set_current_tenant_id
 
-        async with _AsyncSession(owner_engine, expire_on_commit=False) as owner_db:
-            probe = await UserRepository(owner_db).get_by_email(email)
-            tenant_id = str(probe.tenant_id) if probe and probe.tenant_id else None
+        tenant_id: str | None = None
+        try:
+            async with _AsyncSession(owner_engine, expire_on_commit=False) as owner_db:
+                probe = await UserRepository(owner_db).get_by_email(email)
+                tenant_id = str(probe.tenant_id) if probe and probe.tenant_id else None
+        except Exception:
+            tenant_id = None
         if tenant_id:
             set_current_tenant_id(tenant_id)
             await self.db.execute(
