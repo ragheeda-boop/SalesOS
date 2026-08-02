@@ -8,7 +8,7 @@
 
 | Story | Owner | Priority | Risk | Acceptance Criteria |
 |---|---|---|---|---|
-| STORY-08-03 (FieldMappingConfig + drift detection) | BE1 | P0 | Medium | Drift-detection job alerts loudly on a simulated field rename |
+| STORY-08-03 (FieldMappingConfig + drift detection) | BE1 | P0 | Medium | **LANDED BE (Stream A):** `field_mapping_configs` Alembic `f2b8c79d3e06` + FORCE RLS; `run_field_drift_job` loud rename alert. Crumb [`PHASE1_STORY_08_03_FIELD_MAPPING_DRIFT_CRUMB.md`](../PHASE1_STORY_08_03_FIELD_MAPPING_DRIFT_CRUMB.md). No Production GO. |
 | STORY-08-04 (Anti-Corruption Layer) | BE-Lead | P0 | Medium | `OdooTranslator`-pattern class passes unit tests for all 6 internal responsibilities |
 | BE3 onboarding | BE3 | — | — | Ramp-up, paired with BE2 on Integration Hub |
 
