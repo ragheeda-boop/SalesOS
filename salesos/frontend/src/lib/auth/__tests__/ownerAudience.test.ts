@@ -1,8 +1,11 @@
 import {
+  OWNER_CONSOLE_HOST,
   OWNER_JWT_AUDIENCE,
   TENANT_JWT_AUDIENCE,
   classifyJwtAudience,
+  classifyOwnerHost,
   formatOwnerAudienceHonesty,
+  formatOwnerHostHonesty,
   getJwtAudience,
   isOwnerConsoleAudience,
 } from "../ownerAudience";
@@ -35,5 +38,17 @@ describe("ownerAudience — STORY-07-03", () => {
     expect(formatOwnerAudienceHonesty("tenant")).toContain("DEC-093");
     expect(formatOwnerAudienceHonesty("tenant")).toContain("Not Production GO");
     expect(formatOwnerAudienceHonesty("missing")).toContain("No access token");
+  });
+
+  it("classifies Owner Console host honesty without inventing deploy GO", () => {
+    expect(classifyOwnerHost(OWNER_CONSOLE_HOST)).toBe("owner-target");
+    expect(classifyOwnerHost("localhost")).toBe("local");
+    expect(classifyOwnerHost("app.example.com")).toBe("shared-app");
+    expect(formatOwnerHostHonesty("local", "localhost")).toContain(
+      OWNER_CONSOLE_HOST,
+    );
+    expect(formatOwnerHostHonesty("shared-app", "app.example.com")).toContain(
+      "Not Production GO",
+    );
   });
 });

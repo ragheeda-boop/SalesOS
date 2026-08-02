@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { cn } from "@salesos/ui";
 import {
   LayoutDashboard,
@@ -11,6 +12,7 @@ import {
   Briefcase,
   DollarSign,
   HeartPulse,
+  CreditCard,
 } from "lucide-react";
 import {
   useAdminTenants,
@@ -127,9 +129,31 @@ function AdminOverview({
   const healthStatus = health?.overall_status || "unknown";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="owner-console-overview">
       <h1 className="text-2xl font-bold">{t("admin.title")}</h1>
       <p className="text-[var(--text-muted)]">{t("admin.subtitle")}</p>
+
+      <div
+        className="flex flex-wrap gap-2"
+        data-testid="owner-console-mvp-links"
+      >
+        <Link
+          href="/admin/tenants"
+          data-testid="owner-console-overview-tenants"
+          className="inline-flex items-center gap-2 rounded-md border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
+        >
+          <Building2 className="h-4 w-4" />
+          Tenants (STORY-07-01)
+        </Link>
+        <Link
+          href="/admin/billing"
+          data-testid="owner-console-overview-billing"
+          className="inline-flex items-center gap-2 rounded-md border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
+        >
+          <CreditCard className="h-4 w-4" />
+          Billing (STORY-07-02)
+        </Link>
+      </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <OverviewCard

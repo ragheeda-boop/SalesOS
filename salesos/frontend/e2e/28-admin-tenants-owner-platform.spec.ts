@@ -26,6 +26,14 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await page.goto("/admin/tenants");
     await page.waitForLoadState("networkidle");
     await expect(page).toHaveURL(/admin\/tenants/, { timeout: 8_000 });
+    await expect(page.getByTestId("owner-console-shell")).toBeVisible({
+      timeout: 8_000,
+    });
+    await expect(page.getByTestId("owner-console-nav-tenants")).toBeVisible();
+    await expect(
+      page.getByTestId("owner-console-audience-banner"),
+    ).toBeVisible();
+    await expect(page.getByTestId("owner-console-host-banner")).toBeVisible();
     await expect(page.getByTestId("admin-tenants-page")).toBeVisible({
       timeout: 8_000,
     });
@@ -174,9 +182,7 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(
       page.getByTestId("admin-tenants-platform-invoices"),
     ).toBeVisible();
-    await expect(
-      page.getByTestId("admin-tenants-usage-meters"),
-    ).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-usage-meters")).toBeVisible();
     await expect(page.getByTestId("admin-tenants-plan-change")).toBeVisible();
     await expect(page.getByTestId("admin-tenants-plan-quote")).toBeVisible();
     await expect(page.getByTestId("admin-tenants-dunning")).toBeVisible();

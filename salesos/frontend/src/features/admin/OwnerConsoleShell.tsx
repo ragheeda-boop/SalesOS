@@ -6,9 +6,12 @@ import { usePathname } from "next/navigation";
 import { cn } from "@salesos/ui";
 import { ACCESS_TOKEN_KEY } from "@/lib/auth/session";
 import {
+  OWNER_CONSOLE_HOST,
   OWNER_JWT_AUDIENCE,
   classifyJwtAudience,
+  classifyOwnerHost,
   formatOwnerAudienceHonesty,
+  formatOwnerHostHonesty,
   getJwtAudience,
   type JwtAudienceKind,
 } from "@/lib/auth/ownerAudience";
@@ -33,17 +36,19 @@ function navActive(pathname: string, href: string): boolean {
 }
 
 /**
- * STORY-07-01/02/03 — Owner Console chrome + JWT audience gate.
+ * STORY-07-01/02/03 + FE-S07-04 — Owner Console chrome, JWT audience + host honesty.
  * Read-path MVP links for /admin/tenants + /admin/billing.
- * TenantList.tsx untouched. Not Production GO.
+ * TenantList.tsx untouched. Not Production GO. No invented owner mint.
  */
 export function OwnerConsoleShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() || "/admin";
   const [token, setToken] = useState<string | null>(null);
+  const [hostname, setHostname] = useState<string>("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     setToken(localStorage.getItem(ACCESS_TOKEN_KEY));
+    setHostname(window.location.hostname || "");
     const onStorage = () => setToken(localStorage.getItem(ACCESS_TOKEN_KEY));
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
@@ -57,6 +62,11 @@ export function OwnerConsoleShell({ children }: { children: ReactNode }) {
   const honesty = useMemo(
     () => formatOwnerAudienceHonesty(kind, aud),
     [kind, aud],
+  );
+  const hostKind = useMemo(() => classifyOwnerHost(hostname), [hostname]);
+  const hostHonesty = useMemo(
+    () => formatOwnerHostHonesty(hostKind, hostname),
+    [hostKind, hostname],
   );
   const ownerOk = kind === "owner";
 
@@ -76,8 +86,8 @@ export function OwnerConsoleShell({ children }: { children: ReactNode }) {
             </h1>
             <p className="text-xs text-[var(--text-muted)]">
               Audience target: <code>{OWNER_JWT_AUDIENCE}</code>. Host target:{" "}
-              <code>owner.salesos.io</code> (separate deploy; not claimed live).
-              Not Production GO.
+              <code>{OWNER_CONSOLE_HOST}</code> (separate deploy; not claimed
+              live). Not Production GO.
             </p>
           </div>
           <nav
@@ -114,6 +124,12 @@ export function OwnerConsoleShell({ children }: { children: ReactNode }) {
           data-testid="owner-console-audience-banner"
         >
           {honesty}
+        </p>
+        <p
+          className="mt-1 text-xs text-[var(--text-muted)]"
+          data-testid="owner-console-host-banner"
+        >
+          {hostHonesty}
         </p>
       </header>
 
