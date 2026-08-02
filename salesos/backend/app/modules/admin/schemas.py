@@ -6,6 +6,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.modules.admin.entitlements import PlanEntitlements
+
 
 class PlanTier(str, Enum):
     FREE = "free"
@@ -43,6 +45,7 @@ class PlanCreate(BaseModel):
     features: list[str] = []
     stripe_price_id_monthly: str | None = Field(None, max_length=128)
     stripe_price_id_yearly: str | None = Field(None, max_length=128)
+    entitlements: PlanEntitlements | None = None
 
 
 class PlanResponse(BaseModel):
@@ -58,6 +61,7 @@ class PlanResponse(BaseModel):
     is_active: bool
     stripe_price_id_monthly: str | None = None
     stripe_price_id_yearly: str | None = None
+    entitlements: PlanEntitlements | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -73,6 +77,7 @@ class PlanUpdate(BaseModel):
     is_active: bool | None = None
     stripe_price_id_monthly: str | None = Field(None, max_length=128)
     stripe_price_id_yearly: str | None = Field(None, max_length=128)
+    entitlements: PlanEntitlements | None = None
 
 
 class TenantCreate(BaseModel):

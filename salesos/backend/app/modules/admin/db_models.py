@@ -26,6 +26,8 @@ class PlanModel(Base):
     # STORY-05-02b — Stripe Price bindings (price_… ids only; secrets stay in env)
     stripe_price_id_monthly: Mapped[str | None] = mapped_column(String(128), nullable=True)
     stripe_price_id_yearly: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    # STORY-06-01 — CAP-070 commercial packaging (feature flags stay separate)
+    entitlements: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

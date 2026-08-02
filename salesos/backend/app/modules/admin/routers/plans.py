@@ -9,6 +9,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependencies import get_db_session
 from app.modules.identity.models import Tenant
 from app.owner_auth import require_owner_role_dep
+from app.modules.admin.entitlements import (
+    default_entitlements_for_tier,
+    entitlements_to_dict,
+    parse_entitlements,
+)
 
 from ..db_models import LicenseModel, PlanModel
 from ..schemas import (
@@ -42,6 +47,11 @@ async def _resolve_tenant_name(db: AsyncSession, tenant_id: str) -> str:
 
 
 def _plan_response(p: PlanModel) -> PlanResponse:
+    raw_ents = getattr(p, "entitlements", None) or {}
+    try:
+        ents = parse_entitlements(raw_ents)
+    except (ValueError, TypeError):
+        ents = default_entitlements_for_tier(getattr(p, "tier", "free"))
     return PlanResponse(
         id=p.id,
         name=p.name,
@@ -55,6 +65,7 @@ def _plan_response(p: PlanModel) -> PlanResponse:
         is_active=p.is_active,
         stripe_price_id_monthly=getattr(p, "stripe_price_id_monthly", None),
         stripe_price_id_yearly=getattr(p, "stripe_price_id_yearly", None),
+        entitlements=ents,
         created_at=p.created_at,
         updated_at=p.updated_at,
     )
@@ -68,6 +79,10 @@ async def list_plans(repos: AdminRepositories = Depends(get_admin_repos)):
 
 @router.post("/plans", response_model=PlanResponse, status_code=201)
 async def create_plan(body: PlanCreate, repos: AdminRepositories = Depends(get_admin_repos)):
+    if body.entitlements is None:
+        ents_doc = default_entitlements_for_tier(body.tier.value)
+    else:
+        ents_doc = parse_entitlements(body.entitlements)
     plan = PlanModel(
         id=uuid.uuid4(),
         name=body.name,
@@ -80,6 +95,7 @@ async def create_plan(body: PlanCreate, repos: AdminRepositories = Depends(get_a
         features=body.features,
         stripe_price_id_monthly=body.stripe_price_id_monthly,
         stripe_price_id_yearly=body.stripe_price_id_yearly,
+        entitlements=entitlements_to_dict(ents_doc),
     )
     created = await repos.plans.create(plan)
     return _plan_response(created)
@@ -90,6 +106,8 @@ async def update_plan(
     plan_id: uuid.UUID, body: PlanUpdate, repos: AdminRepositories = Depends(get_admin_repos)
 ):
     data = body.model_dump(exclude_none=True)
+    if "entitlements" in data and data["entitlements"] is not None:
+        data["entitlements"] = entitlements_to_dict(parse_entitlements(data["entitlements"]))
     plan = await repos.plans.update(plan_id, data)
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
