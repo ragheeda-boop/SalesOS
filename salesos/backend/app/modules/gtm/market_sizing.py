@@ -64,6 +64,10 @@ class MarketSizingSnapshot:
     schema_version: int = 1
     created_at: str = ""
 
+    @property
+    def invariant_ok(self) -> bool:
+        return self.som <= self.sam <= self.tam <= self.universe_size
+
     def as_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
@@ -78,7 +82,7 @@ class MarketSizingSnapshot:
             "schema_version": self.schema_version,
             "created_at": self.created_at,
             # Honesty: invariant proven; live 141221 requires DB universe adapter.
-            "invariant_ok": self.som <= self.sam <= self.tam <= self.universe_size,
+            "invariant_ok": self.invariant_ok,
         }
 
 
