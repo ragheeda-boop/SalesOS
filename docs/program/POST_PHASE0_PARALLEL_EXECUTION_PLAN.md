@@ -12,9 +12,9 @@
 | Field | Value |
 |-------|--------|
 | Operating state (now) | `CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT` + **ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION** (DEC-151) |
-| Phase 0 tip pin | **51/54 NO-GO** (tip `8600f68` — **not** 54/54) |
+| Phase 0 tip pin | **53/54 NO-GO** (DEC-154 2.3 Complete — **not** 54/54) |
 | Hard OPEN ⬜ | **3.7** Stage 7 E2E only |
-| Sprint 05 delivery board | **26/26** stories Complete/Closed/Governance Completed (**S04-04 REOPENED** residual ≠ Phase 0 score) |
+| Sprint 05 delivery board | **26/26** stories Complete/Closed/Governance Completed (**S04-04 CLOSED CONDITIONAL** DEC-154) |
 | This plan | **ARMED** — no post–Phase 0 feature implementation until trigger fires |
 | Production GO | **Not claimed** by this document |
 
@@ -81,8 +81,8 @@ Canonical living board: `docs/program/SPRINT_05_DELIVERY_BOARD.md`.
 
 | Artifact | Role | Status vs Phase 0 |
 |----------|------|-------------------|
-| `EXECUTION_DAG.md` | READY / BLOCKED / PARALLEL classification | Hard OPEN chase = **3.7**; Phase 0 **51/54 NO-GO** |
-| `PHASE_0_EXIT_CHECKLIST.md` | Authoritative 54-criterion scoreboard | Tip pin **51/54** |
+| `EXECUTION_DAG.md` | READY / BLOCKED / PARALLEL classification | Hard OPEN chase = **3.7**; Phase 0 **53/54 NO-GO** |
+| `PHASE_0_EXIT_CHECKLIST.md` | Authoritative 54-criterion scoreboard | Tip pin **53/54** |
 | `docs/audit/ga-engineering-audit/PRODUCTION_PLAN.md` Waves 0–14 | GA engineering remediation waves | **Orthogonal** — does not auto-clear on 54/54; Production GO still audit-governed |
 | Wave 0–2 (build/security) | Partially absorbed into Phase 0 / CI board | Do not re-open closed Security P0 without evidence |
 | Waves 3–14 | Test green → hypercare | Resume as Phase 1+ / GA track after 54/54 — **no Production GO claim from Phase 0 exit alone** |

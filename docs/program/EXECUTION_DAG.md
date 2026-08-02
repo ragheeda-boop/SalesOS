@@ -3,7 +3,7 @@
 > **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-02** (tip `8600f68` standalone Stage 7 wf; post **DEC-153**; Continuous Autonomous Mode chasing Stage 7; **ARMED** for post-54/54 parallel — not triggered; DEC-152 **3.9 CLOSED CONDITIONAL**; prior DEC-150 B / DEC-149a / DEC-120).  
 > Authority: evidence + `SPRINT_05_DELIVERY_BOARD.md` + `RISK_REGISTER.md` + Sprint plans + `docs/audit/ga-engineering-audit/` + Principal Audit.  
 > Honesty labels: **Stages 1–7 CI GREEN not met** (Stage 7 not SUCCESS on tip). **Phase 0 (DEC-008 RLS / R-14) exit = NO-GO** (DEC-086 GO **withdrawn** by DEC-120). **Production GA / External pilot = NO-GO**. STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies). **Do not reopen STORY-02-01.**  
-> **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** + **ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md); plan [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md)): hard OPEN ⬜ = **3.7** only. Phase 0 **51/54 NO-GO**. Sprint **26/26**. Trigger parallel streams **only** on true **54/54** — no human wait after trigger. Never invent Production GO / Phase 0 COMPLETE.
+> **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** + **ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md); plan [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md)): hard OPEN ⬜ = **3.7** only. Phase 0 **53/54 NO-GO**. Sprint **26/26**. Trigger parallel streams **only** on true **54/54** — no human wait after trigger. Never invent Production GO / Phase 0 COMPLETE.
 
 ---
 
@@ -17,7 +17,7 @@ Governance = FROZEN          # DEC-151
 Program = ACTIVE             # hard OPEN: 3.7 only — chasing Stage 7
 Engineering = STABILIZING
 AI Runtime = DEFERRED
-Score = 51/54                # tip 8600f68; NOT 54/54
+Score = 53/54                # DEC-154 2.3 Complete; NOT 54/54
 Loop = chase Stage 7 → field-verify → land crumbs → push
 Post54 = ARMED               # trigger only on true 54/54 → spawn BE/FE/DevOps/Validation
 ```
@@ -56,7 +56,7 @@ On **true 54/54** (checklist evidence; no invent): Orchestrator spawns Backend /
 ```
 Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► closed
                                                │
-                                               └── Railway R-14 (S04-04) ──► REOPENED (DEC-120)
+                                               └── Railway R-14 (S04-04) ──► CLOSED CONDITIONAL (DEC-154)
                                                      │
                                                      ▼
                                           Phase 0 (DEC-008) exit = NO-GO
@@ -84,7 +84,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Item | Class | Blocked on | Notes |
 |---|---|---|---|
-| **S04-04 / Railway R-14** | BLOCKED (critical path) | Remediation slices A–E + live re-proof (DEC-120) | Dual honesty: env ≠ runtime RLS; password rotate human/ops |
+| **S04-04 / Railway R-14** | **CLOSED CONDITIONAL** (DEC-154) | Multi-tenant residual → Phase 1 (optional unconditional) | A–E + tip-align retained; password rotate human/ops; not Phase 0 Open |
 | **CI-08** GHCR 403 (mandatory Phase 0) | **GOVERNANCE COMPLETED** | **DEC-150 Option B Accepted** — Stage 6 GHCR publish retired as Phase 0 gate | Residual field 403 @ `30721601875` = **legacy/non-blocking**. Canonical deploy = Railway+Vercel (DEC-149 / **3.11**) |
 | **CI GREEN (DEC-149 topology)** | **CLOSED CONDITIONAL** (DEC-152) | Residual Stage 7 overall-red orthogonal | Criterion **3.9** not hard OPEN; does **not** auto-close **3.7** |
 | **CI GREEN (code path)** | REPORTING ONLY | Stages 1–5 on a named run | DEC-104 / DEC-148a / DEC-152 tip evidence |
@@ -113,8 +113,8 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Item | Class | Notes |
 |---|---|---|
-| **S04-04** Railway R-14 | **REOPENED** (DEC-120) | Was CLOSED DEC-016; contradicted by Tier-1 audit |
-| **R-14** Railway | **REOPENED** | Local/CI/compose retained; Railway live isolation not proven |
+| **S04-04** Railway R-14 | **CLOSED CONDITIONAL** (DEC-154) | Was REOPENED DEC-120; A–E evidence; Complete CONDITIONAL; multi-tenant → Phase 1 |
+| **R-14** Railway | **Monitoring CONDITIONAL** (DEC-154) | Local/CI/compose retained; Phase 0 scoreboard Complete; residual multi-tenant Phase 1 |
 | **STORY-02-01** (RLS rollout) | **DONE** (revised AC) | DEC-044 @ **47**. **Do not reopen.** |
 | **S04-01 / S04-05 / S04-06** | **COMPLETE** | Adversarial suites |
 | **CI-16 / CI-20 / CI-19 / CI-22 / CI-14** | **CLOSED** | As previously recorded |
@@ -145,6 +145,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **CI/CD 3.6 / 3.10** Stage 6 GHCR / CI-08 | **CLOSED — SUPERSEDED** (DEC-150 B) | ARB Option B Accepted; GHCR publish not Phase 0 required after DEC-149; residual 403 legacy/non-blocking; Stage 6 quarantined in `ci.yml`; Phase 0 **46/54 → 48/54**; CI/CD Complete **7 → 9** / Blocked **1 → 0**; do **not** claim field GHCR green / Phase 0 GO / CI GREEN |
 | **Phase 0 Governance Freeze** | **GOVERNANCE FROZEN** (DEC-151) | Org redesign / deploy-topology DEC superseding DEC-149 / criterion rewrite frozen; residual hard OPEN field evidence = **3.7** only (**4.1/4.8 CLOSED** DEC-153); Continuous Autonomous Mode chasing Stage 7; do **not** invent 3.7 CLOSE / Phase 0 COMPLETE / Production GO |
 | **CI/CD 3.9** topology CI GREEN | **CLOSED CONDITIONAL** (DEC-152) | Tip `5fafbe9` Stages 1–5 + Deploy Prod SUCCESS; Stage 7 FAILURE orthogonal; Phase 0 **48/54 → 49/54**; do **not** claim Stages 1–7 green / Production GO |
+| **RLS 2.3 / S04-04** scoreboard Complete | **CLOSED CONDITIONAL** (DEC-154) | CONDITIONAL accepted as Complete; multi-tenant residual Phase 1; Phase 0 **51/54 → 53/54**; do **not** claim unconditional / Production GO / 54/54 |
 | **EOS Audit 4.1 / 4.8** ARB re-audit | **CLOSED** (DEC-153) | ARB PASS @ tip `74f698b` / [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md); CRITICAL **0**; Phase 0 **49/54 → 51/54**; do **not** claim Phase 0 GO / Production GO |
 
 ---
@@ -158,7 +159,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **Stream C — 4.1/4.8** ARB re-audit | **CLOSED** (DEC-153 @ `8ff782f`) | ARB PASS / CRITICAL **0**; score **51/54** |
 | **Stream D — freeze-compliant backlog** | **QUEUED** | Docs consistency / CONDITIONAL residual crumbs after 3.7 progress |
 | Contract tests, optional Jest 30 | PARALLEL / PARKED | Do **not** close Phase 0 rows; DEC-094/106 + Jest 30 = backlog only |
-| Cursor invent CLOSE on hard OPEN | **FORBIDDEN** | **3.7** requires tip Stage 7 field SUCCESS; score **51/54** (not 54/54); no Production GO |
+| Cursor invent CLOSE on hard OPEN | **FORBIDDEN** | **3.7** requires tip Stage 7 field SUCCESS; score **53/54** (not 54/54); no Production GO |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 **Swarm dispatch (DEC-107 + DEC-151 Continuous Autonomous):** All capacity on **Stream B (Stage 7)**; A/C closed; queue D after 3.7 progress. CI-08 is **not** an ops wait — GOVERNANCE COMPLETED (DEC-150 B). No architecture / topology DECs. **Never invent 3.7 CLOSE / Production GO / Phase 0 COMPLETE unless 54/54.**
@@ -177,7 +178,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 ## Board progress fraction
 
-**26/26** Complete/Closed on tracked Sprint 05 board fraction including **CI-09 CLOSED CONDITIONAL** (DEC-149a) + **CI-08 GOVERNANCE COMPLETED** (DEC-150 B; **S04-04 REOPENED**). Adjacent closed: **Jest-debt / R-23**; checklist **3.9 CLOSED CONDITIONAL** (DEC-152). **Phase 0 critical path blocked:** **S04-04 / Railway R-14**. Canonical deploy = DEC-149 Railway+Vercel (**3.11**). Stage 6 GHCR **off critical path**. **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** (DEC-151). Phase 0 **51/54 NO-GO**. Hard OPEN: **3.7** only (**4.1/4.8 CLOSED** DEC-153).
+**26/26** Complete/Closed on tracked Sprint 05 board fraction including **CI-09 CLOSED CONDITIONAL** (DEC-149a) + **CI-08 GOVERNANCE COMPLETED** (DEC-150 B; **S04-04 CLOSED CONDITIONAL** (DEC-154)). Adjacent closed: **Jest-debt / R-23**; checklist **3.9 CLOSED CONDITIONAL** (DEC-152). **Phase 0 critical path blocked:** **S04-04 / Railway R-14**. Canonical deploy = DEC-149 Railway+Vercel (**3.11**). Stage 6 GHCR **off critical path**. **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** (DEC-151). Phase 0 **53/54 NO-GO**. Hard OPEN: **3.7** only (**4.1/4.8 CLOSED** DEC-153).
 
 ---
 

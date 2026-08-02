@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-02 (**CONTINUOUS AUTONOMOUS MODE** under [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md); **ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION** — trigger only on true 54/54; tip `8600f68`; Phase 0 **51/54 NO-GO**; hard OPEN **3.7**; no Production GO)
+> **Last updated:** 2026-08-02 (**CONTINUOUS AUTONOMOUS MODE** under [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md); **ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION** — trigger only on true 54/54; Phase 0 **53/54 NO-GO**; hard OPEN **3.7**; **2.3** Open disposed DEC-154; no Production GO)
 >
 > ## Operating State
 >
@@ -15,12 +15,12 @@
 > Program = ACTIVE             # residual hard OPEN only: 3.7
 > Engineering = STABILIZING
 > AI Runtime = DEFERRED
-> Score = 51/54               # tip 8600f68; DEC-153 4.1/4.8; DEC-152 3.9 CONDITIONAL; NOT 54/54
+> Score = 53/54               # DEC-154 2.3 Complete; DEC-153 4.1/4.8; DEC-152 3.9 CONDITIONAL; NOT 54/54
 > Loop = chase Stage 7 → field-verify → land crumbs → push
 > Post54 = ARMED              # plan POST_PHASE0_PARALLEL_EXECUTION_PLAN — trigger ≠ fire
 > ```
 >
-> **ARMED (not triggered):** Post–Phase 0 parallel sprint is **armed** per [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md). Orchestrator trigger fires **only** on true checklist **54/54** → spawn Backend / Frontend / DevOps / Validation streams **without waiting for human**. **Do not** fire on 51/54 or invent CLOSE.
+> **ARMED (not triggered):** Post–Phase 0 parallel sprint is **armed** per [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md). Orchestrator trigger fires **only** on true checklist **54/54** → spawn Backend / Frontend / DevOps / Validation streams **without waiting for human**. **Do not** fire on 53/54 or invent CLOSE.
 >
 > ### Orchestrator trigger protocol (short)
 >
@@ -30,7 +30,7 @@
 >
 > **Governance freeze (DEC-151):** No organizational redesign, deployment-topology DECs superseding DEC-149, or criterion rewrites except completing hard OPEN **3.7** with tip Stage 7 field evidence, plus bugfixes / evidence crumbs that do not change architecture or supersede DEC-149/150. Forbidden without ARB reverse: new deploy topology, reopening GHCR as Phase 0 gate. **Do not invent 3.7 CLOSE.** Never invent Production GO / Phase 0 COMPLETE unless score truly **54/54** with evidence.
 >
-> **Frozen stack (reaffirm):** [DEC-149](decisions/DEC-149-CANONICAL-DEPLOY-RAILWAY-VERCEL.md) Railway+Vercel canonical deploy · [DEC-150](decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md) Option B Stage 6 GHCR retired · [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md) governance freeze. Tip pin `8600f68` (standalone Stage 7 wf; DEC-153 land `8ff782f` / `d973cba`). **Hard OPEN ⬜:** **3.7** only. **4.1/4.8 CLOSED** ([DEC-153](decisions/DEC-153-CRITERION-4-1-4-8-ARB-REAUDIT-PASS.md)). **3.9 CLOSED CONDITIONAL** ([DEC-152](decisions/DEC-152-CRITERION-3-9-CI-GREEN-TOPOLOGY-FIELD-VERIFY.md)). Sprint **26/26**.
+> **Frozen stack (reaffirm):** [DEC-149](decisions/DEC-149-CANONICAL-DEPLOY-RAILWAY-VERCEL.md) Railway+Vercel canonical deploy · [DEC-150](decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md) Option B Stage 6 GHCR retired · [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md) governance freeze. Tip pin `8600f68` (standalone Stage 7 wf; DEC-153 land `8ff782f` / `d973cba`). **Hard OPEN ⬜:** **3.7** only. **2.3** scoreboard Complete ([DEC-154](decisions/DEC-154-CRITERION-2-3-CONDITIONAL-SCOREBOARD-COMPLETE.md); remains CLOSED CONDITIONAL). **4.1/4.8 CLOSED** ([DEC-153](decisions/DEC-153-CRITERION-4-1-4-8-ARB-REAUDIT-PASS.md)). **3.9 CLOSED CONDITIONAL** ([DEC-152](decisions/DEC-152-CRITERION-3-9-CI-GREEN-TOPOLOGY-FIELD-VERIFY.md)). Sprint **26/26**.
 >
 > ### Coordination map — continuous autonomous workstreams (2026-08-02)
 >
@@ -49,9 +49,9 @@
 
 ## Current Verdict
 
-**Phase 0 = NO-GO** (Stage 7 E2E **3.7** OPEN; **4.1/4.8 CLOSED** DEC-153 ARB PASS; **3.9 CLOSED CONDITIONAL** DEC-152 — does not clear Phase 0)
+**Phase 0 = NO-GO** (Stage 7 E2E **3.7** OPEN; score **53/54**; **4.1/4.8 CLOSED** DEC-153 ARB PASS; **3.9 CLOSED CONDITIONAL** DEC-152; **2.3** Complete via DEC-154 — does not clear Phase 0)
 
-Blocked on: Stage 7 E2E **3.7** (real services — **not** GHCR-dep). **4.1/4.8 CLOSED** (DEC-153): re-audit [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md) PASS / CRITICAL **0**. **3.9 CLOSED CONDITIONAL** (DEC-152). **CI-08 / Stage 6 GHCR publish retired as Phase 0 gate** (DEC-150 Option B). CI-09 / **3.11 CLOSED CONDITIONAL** (DEC-149a). R-14 Railway **2.3 CLOSED CONDITIONAL**. Do **not** claim Stages 1–7 whole-pipeline green / Production GO / Phase 0 COMPLETE.
+Blocked on: Stage 7 E2E **3.7** (real services — **not** GHCR-dep). **4.1/4.8 CLOSED** (DEC-153): re-audit [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md) PASS / CRITICAL **0**. **3.9 CLOSED CONDITIONAL** (DEC-152). **CI-08 / Stage 6 GHCR publish retired as Phase 0 gate** (DEC-150 Option B). CI-09 / **3.11 CLOSED CONDITIONAL** (DEC-149a). R-14 Railway **2.3 CLOSED CONDITIONAL** — scoreboard Complete ([decisions/DEC-154-CRITERION-2-3-CONDITIONAL-SCOREBOARD-COMPLETE.md](decisions/DEC-154-CRITERION-2-3-CONDITIONAL-SCOREBOARD-COMPLETE.md)); multi-tenant residual Phase 1. Do **not** claim Stages 1–7 whole-pipeline green / Production GO / Phase 0 COMPLETE.
 
 ---
 
@@ -78,7 +78,7 @@ Blocked on: Stage 7 E2E **3.7** (real services — **not** GHCR-dep). **4.1/4.8 
 |---|-----------|-------------------|--------|
 | 2.1 | RLS policies on all Category-A tables | 47 policies verified (DEC-044) | ✅ STORY-02-01 DONE |
 | 2.2 | RLS policies on all Category-B join tables | 59 total policies live (DEC-119: B1–B7 COMPLETE) | ✅ Category B COMPLETE |
-| 2.3 | R-14 Railway: `salesos_app` role live, BYPASSRLS removed | Slices D (prod image) + E (bypass-probe PASS) | ✅ VERIFIED/CLOSED **CONDITIONAL** — D+E @ `9664e9fc` / crumb `84c5163`; tip-align `d1a8c35e7f09` / crumb `c842245`; `salesos_app`; `rolbypassrls=False`; policies **67**; bare/wrong-tenant=0; residual: *multi-tenant live split not re-proven* (1 tenant) — tip-align does **not** clear this. Arch CONDITIONAL + Validation PASS_CONDITIONAL. Orchestrator 2026-08-01 |
+| 2.3 | R-14 Railway: `salesos_app` role live, BYPASSRLS removed | Slices D (prod image) + E (bypass-probe PASS) | ✅ VERIFIED/CLOSED **CONDITIONAL** — **Phase 0 Complete** ([DEC-154](decisions/DEC-154-CRITERION-2-3-CONDITIONAL-SCOREBOARD-COMPLETE.md); was special-case scoreboard Open). D+E @ `9664e9fc` / crumb `84c5163`; tip-align `d1a8c35e7f09` / crumb `c842245`; `salesos_app`; `rolbypassrls=False`; policies **67**; bare/wrong-tenant=0. Residual *multi-tenant live split not re-proven* (1 tenant) → **Phase 1 / tech debt** (non-blocking; same class as 1.5/3.9/8.2). Not unconditional CLOSED. No Production GO. |
 | 2.4 | R-14 Local/CI/Compose/Staging | Bypass-probe isolates on `salesos_app` | ✅ DEC-014/015 + Slice C |
 | 2.5 | Cross-tenant adversarial suite 100% PASS | `test_adversarial_rls.py` 7/7 + remaining 15/15 | ✅ S04-01, S04-05, S04-06 |
 | 2.6 | `middleware.ts` server-side auth live | Browser redirect probe PASS (DEC-095) | ✅ STORY-02-02 |
@@ -206,7 +206,7 @@ Blocked on: Stage 7 E2E **3.7** (real services — **not** GHCR-dep). **4.1/4.8 
 | Cluster | Items | Complete | Blocked | Open |
 |---------|-------|----------|---------|------|
 | 1. Security P0 | 5 | 5 | 0 | 0 |
-| 2. RLS & Tenant Isolation | 7 | 6 | 0 | 1 |
+| 2. RLS & Tenant Isolation | 7 | 7 | 0 | 0 |
 | 3. CI/CD Green | 11 | 10 | 0 | 1 |
 | 4. EOS Audit Pass | 8 | 8 | 0 | 0 |
 | 5. Capability Drift | 4 | 4 | 0 | 0 |
@@ -214,9 +214,9 @@ Blocked on: Stage 7 E2E **3.7** (real services — **not** GHCR-dep). **4.1/4.8 
 | 7. DB Schema | 6 | 6 | 0 | 0 |
 | 8. Engineering Stability | 4 | 4 | 0 | 0 |
 | 9. ADR-036 Applied | 4 | 4 | 0 | 0 |
-| **TOTAL** | **54** | **51** | **0** | **2** |
+| **TOTAL** | **54** | **53** | **0** | **1** |
 
-**Scoreboard honesty (2026-08-02):** Phase 0 **49/54 → 51/54** (DEC-153 closes **4.1** / **4.8** ARB PASS — CRITICAL **0** @ [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md); prior DEC-152 **3.9 CLOSED CONDITIONAL**). RLS cluster Open **1** = **2.3** CLOSED CONDITIONAL multi-tenant residual tracked as scoreboard open. Hard OPEN ⬜ rows = **1** (**3.7**). Cluster Open cells (1+1=2) matches TOTAL Open **2**. Stage 6 GHCR remains quarantined. **CONTINUOUS AUTONOMOUS MODE** under [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md) — score lifts only with evidence. **Phase 0 remains NO-GO. No Production GO. No Stages 1–7 CI GREEN. No Phase 0 COMPLETE until 54/54.**
+**Scoreboard honesty (2026-08-02):** Phase 0 **51/54 → 53/54** ([decisions/DEC-154-CRITERION-2-3-CONDITIONAL-SCOREBOARD-COMPLETE.md](decisions/DEC-154-CRITERION-2-3-CONDITIONAL-SCOREBOARD-COMPLETE.md) disposes **2.3** Open — CLOSED CONDITIONAL counts as Complete; multi-tenant residual → Phase 1 tech debt). Prior DEC-153 **4.1/4.8**; DEC-152 **3.9 CONDITIONAL**. Hard OPEN ⬜ = **1** (**3.7** only). TOTAL Complete **53** + Open **1** = **54** (arithmetic reconciled). Stage 6 GHCR remains quarantined. **CONTINUOUS AUTONOMOUS MODE** under [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md) — **do not invent 3.7 CLOSE / 54/54**. **Phase 0 remains NO-GO. No Production GO. No Stages 1–7 CI GREEN. No Phase 0 COMPLETE until 54/54.**
 
 ---
 
@@ -231,7 +231,7 @@ Blocked on: Stage 7 E2E **3.7** (real services — **not** GHCR-dep). **4.1/4.8 
 | 3.8 residual | tip Stages 1-5 same-run | Validation | **field-verify cleared** | Cleared @ `5fafbe9` / `30724762973` Stages 1–5 SUCCESS; CONDITIONAL stands (Stage 7 red orthogonal) |
 | 3.5 / 1.5 residual | Security Scan pip-audit post-align | Validation | **field-verify cleared** | Tip `5fafbe9` Security Scan [30724762982](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762982) SUCCESS; CONDITIONAL stands |
 
-Adjacent non-blocking residuals: **8.3** tip `test-architecture` PENDING push `868a98c`; **8.2** at-scale soak; **2.3** multi-tenant live split; legacy GHCR 403 (retired Phase 0 gate).
+Adjacent non-blocking residuals: **8.3** tip `test-architecture` PENDING push `868a98c`; **8.2** at-scale soak; **2.3** multi-tenant live split (DEC-154 Phase 1 / optional unconditional); legacy GHCR 403 (retired Phase 0 gate).
 
 ---
 
@@ -241,7 +241,7 @@ Adjacent non-blocking residuals: **8.3** tip `test-architecture` PENDING push `8
 |------|-----------|---------------|
 | CI-08 GHCR 403 (mandatory Phase 0) | **GOVERNANCE COMPLETED** (DEC-150 Option B) | Stage 6 GHCR publish retired as Phase 0 gate. Residual field 403 = legacy/non-blocking. No ops GHCR fix required for Phase 0 exit. |
 | CI-09 (criterion 3.11) | **CLOSED CONDITIONAL** (DEC-149a) | Deploy 30723120473 @ c3507ed SUCCESS; FE Git-primary; staging deferred; no VPS. Residual for unconditional: optional Vercel CLI + staging when provisioned. No Production GO. |
-| R-14 multi-tenant residual (non-blocking for 2.3 CONDITIONAL) | Second-tenant fixture (prefer staging) | Optional: re-run Slice E differential for unconditional PASS |
+| R-14 multi-tenant residual (non-blocking; **2.3** Complete via DEC-154) | Second-tenant fixture (prefer staging) | Optional Phase 1: re-run Slice E differential for unconditional PASS — not Phase 0 Open |
 | 1.5 / 3.5 post-align Security Scan pip-audit | **Field-verify cleared** @ `5fafbe9` / [30724762982](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762982) | CONDITIONAL stands; does **not** upgrade to unconditional CLOSED |
 | 8.3 tip `test-architecture` (non-blocking for 8.3 CONDITIONAL) | Tip Stage 5 Architecture Rules SUCCESS @ `5fafbe9` / `30724762973` | CONDITIONAL stands — does **not** upgrade to unconditional CLOSED |
 | 8.2 at-scale soak (non-blocking for 8.2 CONDITIONAL) | Live soak at `max_parallel_workers=8` | Concurrent-writer soak at worker ceiling — does **not** upgrade to unconditional CLOSED until field-proven |

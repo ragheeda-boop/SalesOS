@@ -1086,6 +1086,16 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+
+### DEC-154 — Criterion 2.3 CLOSED CONDITIONAL accepted as Phase 0 Complete (Accepted)
+
+**Date:** 2026-08-02
+**Context:** Post-54 plan ARMED @ `39c5392`. Gap to 54/54 included special-case scoreboard **Open** for **2.3** despite DEC-126 CLOSED CONDITIONAL (multi-tenant residual). Peer CONDITIONALs (1.5, 3.5, 3.8, 3.9, 3.11, 8.2, 8.3) already count as Complete. Plan §3 path (b) authorizes ARB/Orchestrator accept CONDITIONAL as Complete with residual logged outside Open. Path (a) multi-tenant live re-proof deferred (single live tenant; staging fixture).
+**Alternatives considered:** (a) field-verify unconditional via second-tenant Slice E — **deferred** (ops/fixture; freeze); (b) accept CONDITIONAL as Complete + residual Phase 1 — **approved**; (c) invent unconditional / Production GO — **rejected**.
+**Decision:** Accept **2.3** as Phase 0 scoreboard **Complete** while remaining **CLOSED CONDITIONAL**. S04-04 → **CLOSED CONDITIONAL**. Multi-tenant residual → Phase 1 tech debt. Companion: [`decisions/DEC-154-CRITERION-2-3-CONDITIONAL-SCOREBOARD-COMPLETE.md`](decisions/DEC-154-CRITERION-2-3-CONDITIONAL-SCOREBOARD-COMPLETE.md).
+**Consequence:** Phase 0 **51/54 → 53/54 NO-GO**. RLS Complete **7/7**. Open **1** = **3.7** only. Arithmetic reconciled (Complete **53** + Open **1** = **54**). **No Production GO / Phase 0 COMPLETE / 54/54 / unconditional 2.3.** Validation: **docs / light validated** (reuses DEC-120 Tier-1; no new Railway probe).
+**Status:** Accepted (CLOSED CONDITIONAL Complete).
+
 ### DEC-153 — Criteria 4.1 / 4.8 EOS independent ARB re-audit PASS (Accepted — CLOSED)
 
 **Date:** 2026-08-02
