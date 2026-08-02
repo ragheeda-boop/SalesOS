@@ -117,6 +117,8 @@ export const integrationHubKeys = {
       tenantId,
       connectionId,
     ] as const,
+  certifyMeta: (tenantId: string) =>
+    [...integrationHubKeys.all, "certify-meta", tenantId] as const,
 };
 
 export const tenantStudioKeys = {

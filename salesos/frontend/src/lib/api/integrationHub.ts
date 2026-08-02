@@ -175,3 +175,41 @@ export async function listHubUnlinkedBadges(
   );
   return resp.data;
 }
+
+/** STORY-11-10 / FE-S11-10 — SourceConnector certification meta. */
+export interface CertifyMeta {
+  suite: string;
+  certifiable: string[];
+  second_connector_key: string;
+  second_connector_target: string;
+  honesty: string;
+}
+
+export interface CertifyResult {
+  ok: boolean;
+  connector_key: string;
+  pulled?: number;
+  is_second_connector?: boolean;
+  second_connector_target?: string;
+  honesty?: string;
+  [key: string]: unknown;
+}
+
+export async function getCertifyMeta(tenantId: string): Promise<CertifyMeta> {
+  const resp = await api.get<CertifyMeta>(`${BASE}/certify/meta`, {
+    headers: tenantHeaders(tenantId),
+  });
+  return resp.data;
+}
+
+export async function certifyConnector(
+  tenantId: string,
+  connectorKey: string,
+): Promise<CertifyResult> {
+  const resp = await api.post<CertifyResult>(
+    `${BASE}/certify/${encodeURIComponent(connectorKey)}`,
+    {},
+    { headers: tenantHeaders(tenantId) },
+  );
+  return resp.data;
+}

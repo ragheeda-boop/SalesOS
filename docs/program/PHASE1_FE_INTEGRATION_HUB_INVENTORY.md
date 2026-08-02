@@ -51,7 +51,8 @@
 | FE-S11-04 | Lookalike Accounts UI (tip 11-04) |
 | FE-S11-09 | Email Sequencing UI (tip 11-09) |
 | FE-S11-09b | Sequencing multi-channel UI (tip 11-09b partner LI/WA) |
-| FE-S10-05 | Territory config — **UNBLOCKED BE** tip `/api/v1/studio/territories` (STORY-10-05) |
+| FE-S11-10 | Second connector certify UI (tip 11-10 HubSpot) |
+| FE-S10-05 | Territory Studio UI — **READY** tip `/api/v1/studio/territories` (STORY-10-05 `85156e4`) |
 
 ## Blocked (do not invent)
 

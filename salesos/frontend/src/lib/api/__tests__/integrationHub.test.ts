@@ -1,6 +1,8 @@
 import {
+  certifyConnector,
   createHubConnection,
   getActiveHubMapping,
+  getCertifyMeta,
   getHubConnection,
   getHubConflictPolicy,
   listHubConnections,
@@ -176,5 +178,41 @@ describe("integrationHub API — STORY-08-07 / FE-S08-08/09", () => {
     );
     expect(row.count).toBe(1);
     expect(row.items[0].status).toBe("unlinked");
+  });
+
+  it("GETs certify meta + POSTs hubspot certify (FE-S11-10)", async () => {
+    mocked.get.mockResolvedValueOnce({
+      data: {
+        suite: "certify_source_connector",
+        certifiable: ["fake", "odoo", "hubspot"],
+        second_connector_key: "hubspot",
+        second_connector_target: "HubSpot",
+        honesty: "CI only; live not claimed",
+      },
+    });
+    const meta = await getCertifyMeta("tenant-1");
+    expect(mocked.get).toHaveBeenCalledWith(
+      "/api/v1/integrations/certify/meta",
+      expect.any(Object),
+    );
+    expect(meta.second_connector_key).toBe("hubspot");
+
+    mocked.post.mockResolvedValueOnce({
+      data: {
+        ok: true,
+        connector_key: "hubspot",
+        pulled: 1,
+        is_second_connector: true,
+        honesty: "CI certification only; live not claimed",
+      },
+    });
+    const result = await certifyConnector("tenant-1", "hubspot");
+    expect(mocked.post).toHaveBeenCalledWith(
+      "/api/v1/integrations/certify/hubspot",
+      {},
+      expect.any(Object),
+    );
+    expect(result.ok).toBe(true);
+    expect(result.is_second_connector).toBe(true);
   });
 });

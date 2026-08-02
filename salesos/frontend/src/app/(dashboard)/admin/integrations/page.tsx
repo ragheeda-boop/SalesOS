@@ -131,6 +131,11 @@ const FE_GATED = [
     title: "Unlinked badge Monitor list",
     status: "FE landed — tip GET unlinked-badges",
   },
+  {
+    id: "FE-S11-10",
+    title: "Second connector certify (HubSpot)",
+    status: "FE landed — tip certify/meta + certify/hubspot",
+  },
 ] as const;
 
 export default function AdminIntegrationsInventoryPage() {

@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { IntegrationsStudio } from "@/features/integrations/IntegrationsStudio";
+import { SecondConnectorCertPanel } from "@/features/integrations/SecondConnectorCertPanel";
 
 /**
- * STORY-08-07 — Tenant Integrations Studio (DOM-021).
- * Hub HTTP from STORY-08-06. Not Production GO.
+ * STORY-08-07 + FE-S11-10 — Tenant Integrations Studio + tip certify.
+ * Hub HTTP from STORY-08-06 / 11-10. Not Production GO.
  */
 export default function IntegrationsPage() {
   return (
@@ -16,9 +17,11 @@ export default function IntegrationsPage() {
         </h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
           Connect, test, map, schedule, monitor, and disconnect Integration Hub
-          connections for this tenant.
+          connections for this tenant. Tip certify suite includes HubSpot
+          (STORY-11-10) — live HubSpot network not claimed.
         </p>
       </div>
+      <SecondConnectorCertPanel />
       <IntegrationsStudio />
       <p className="text-xs text-[var(--text-muted)]">
         Owner inventory:{" "}

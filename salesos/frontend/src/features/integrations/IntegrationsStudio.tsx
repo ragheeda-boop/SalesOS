@@ -542,9 +542,10 @@ export function IntegrationsStudio() {
               onChange={(e) => setConnectorKey(e.target.value)}
             />
             <p className="text-xs text-[var(--text-muted)]">
-              Tip keys: <code>fake</code> (certify) or <code>odoo</code>{" "}
-              (STORY-09-01 OdooAdapter). Live XML-RPC needs vault credential_ref
-              only — no passwords in this form.
+              Tip keys: <code>fake</code>, <code>odoo</code> (STORY-09-01), or{" "}
+              <code>hubspot</code> (STORY-11-10 CI adapter). Live HubSpot /
+              XML-RPC needs vault credential_ref only — no passwords in this
+              form. Live HubSpot network not claimed.
             </p>
             <Input
               label="Credential ref"

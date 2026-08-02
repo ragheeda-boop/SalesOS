@@ -6,6 +6,8 @@ import {
   createHubMapping,
   disconnectHubConnection,
   getActiveHubMapping,
+  getCertifyMeta,
+  certifyConnector,
   getHubConnection,
   getHubConflictPolicy,
   listHubConnections,
@@ -175,5 +177,21 @@ export function useDisconnectHubConnection() {
         queryKey: integrationHubKeys.connections(getTenantId()),
       });
     },
+  });
+}
+
+export function useCertifyMeta() {
+  const tenantId = getTenantId();
+  return useQuery({
+    queryKey: integrationHubKeys.certifyMeta(tenantId),
+    queryFn: () => getCertifyMeta(tenantId),
+    staleTime: 60_000,
+  });
+}
+
+export function useCertifyConnector() {
+  return useMutation({
+    mutationFn: (connectorKey: string) =>
+      certifyConnector(getTenantId(), connectorKey),
   });
 }
