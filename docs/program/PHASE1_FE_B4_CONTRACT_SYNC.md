@@ -59,3 +59,8 @@
 | FE-S04-33 | Server `page`/`page_size` + `X-Total-Count` (`e9ef08d`) | **LANDED** |
 | FE-S04-34 | Reprovision failed/pending via `POST .../reprovision` (`e9ef08d`) | **LANDED** |
 | FE-S04-35 | Soft-delete retention + hard-delete `force_immediate` (`fd5af4d`) | **LANDED** |
+| FE-S04-30 | Free-text region/residency filters (debounced) | **LANDED** |
+| FE-S04-36 | Copy filter URL button | **LANDED** |
+| FE-S04-37 | Empty-state Clear filters CTA | **LANDED** |
+| FE-S04-38 | Suspend write-block honesty (STORY-04-03) | **LANDED** |
+| FE-S04-39 | Page size selector 20/50/100 + URL sync | **LANDED** |

@@ -109,6 +109,17 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     });
   });
 
+  test("admin tenants expose copy filter URL + page size hooks", async ({
+    page,
+  }) => {
+    await page.goto("/admin/tenants");
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByTestId("admin-tenants-copy-filter-url")).toBeVisible(
+      { timeout: 8_000 },
+    );
+    await expect(page.getByTestId("admin-tenants-page-size")).toBeVisible();
+  });
+
   test("admin tenants detail lifecycle hooks open without mutate", async ({
     page,
   }) => {

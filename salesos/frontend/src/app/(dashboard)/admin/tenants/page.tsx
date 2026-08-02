@@ -28,6 +28,7 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Link2,
 } from "lucide-react";
 import { useDebounce } from "@salesos/hooks";
 import {
@@ -52,6 +53,7 @@ import {
 } from "@/features/admin/widgets/TenantOwnerPlatformFields";
 import {
   activityStatusLabel,
+  ADMIN_TENANTS_PAGE_SIZES,
   buildAdminTenantsFilterQuery,
   formatActivateResultDescription,
   formatLifecycleResultDescription,
@@ -60,15 +62,21 @@ import {
   formatTrialEndsLabel,
   getDeletionRequestedAt,
   lifecycleStatusDescription,
+  parseAdminTenantsPageSize,
   retentionHardDeleteDescription,
+  suspendedWriteBlockDescription,
   TENANT_DELETION_RETENTION_DAYS,
   trialBadgeLabel,
   trialBadgeVariant,
+  type AdminTenantsPageSize,
   type TenantSortKey,
   type TrialFilter,
 } from "@/features/admin/lib/formatProvisionToast";
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE_OPTIONS = ADMIN_TENANTS_PAGE_SIZES.map((n) => ({
+  label: `${n} / page`,
+  value: String(n),
+}));
 
 const SORT_KEYS: TenantSortKey[] = [
   "created_desc",
@@ -168,6 +176,9 @@ export default function AdminTenantsPage() {
     parseSortKey(searchParams.get("sort")),
   );
   const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
+  const [pageSize, setPageSize] = useState<AdminTenantsPageSize>(
+    parseAdminTenantsPageSize(searchParams.get("page_size")),
+  );
   const [showCreate, setShowCreate] = useState(false);
   const [showDetail, setShowDetail] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
@@ -187,11 +198,13 @@ export default function AdminTenantsPage() {
     trial_ends_at: "",
   });
 
-  // FE-S04-21 — debounce free-text server params (match companies/contacts pattern)
+  // FE-S04-21/30 — debounce free-text server params
   const debouncedSearch = useDebounce(search, 400);
   const debouncedPlanId = useDebounce(planIdFilter, 400);
+  const debouncedRegion = useDebounce(regionFilter, 400);
+  const debouncedResidency = useDebounce(residencyFilter, 400);
 
-  // FE-S04-24/29/33 — mirror server filters + page into URL
+  // FE-S04-24/29/33/39 — mirror server filters + page/page_size into URL
   useEffect(() => {
     const qs = buildAdminTenantsFilterQuery({
       search: debouncedSearch,
@@ -199,12 +212,12 @@ export default function AdminTenantsPage() {
       plan_id: debouncedPlanId,
       status: statusFilter,
       provisioning_status: provisioningFilter,
-      region: regionFilter,
-      data_residency: residencyFilter,
+      region: debouncedRegion,
+      data_residency: debouncedResidency,
       trial: trialFilter,
       sort: sortKey,
       page,
-      page_size: PAGE_SIZE,
+      page_size: pageSize,
     });
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }, [
@@ -213,16 +226,17 @@ export default function AdminTenantsPage() {
     debouncedPlanId,
     statusFilter,
     provisioningFilter,
-    regionFilter,
-    residencyFilter,
+    debouncedRegion,
+    debouncedResidency,
     trialFilter,
     sortKey,
     page,
+    pageSize,
     pathname,
     router,
   ]);
 
-  // FE-S04-20/28/33 — filters + sort + server page/page_size (tip e9ef08d)
+  // FE-S04-20/28/33/39 — filters + sort + server page/page_size (tip e9ef08d)
   const {
     data: tenantsPage,
     isLoading,
@@ -233,12 +247,12 @@ export default function AdminTenantsPage() {
     plan_id: debouncedPlanId.trim() || undefined,
     status: statusFilter || undefined,
     provisioning_status: provisioningFilter || undefined,
-    region: regionFilter || undefined,
-    data_residency: residencyFilter || undefined,
+    region: debouncedRegion.trim() || undefined,
+    data_residency: debouncedResidency.trim() || undefined,
     trial: trialFilter || undefined,
     sort: sortKey,
     page,
-    page_size: PAGE_SIZE,
+    page_size: pageSize,
   });
 
   const createMutation = useCreateAdminTenant();
@@ -289,8 +303,68 @@ export default function AdminTenantsPage() {
     regionFilter ||
     residencyFilter ||
     trialFilter ||
-    sortKey !== "created_desc",
+    sortKey !== "created_desc" ||
+    pageSize !== 20,
   );
+
+  const clearAllFilters = useCallback(() => {
+    setSearch("");
+    setPlanFilter("");
+    setPlanIdFilter("");
+    setStatusFilter("");
+    setProvisioningFilter("");
+    setRegionFilter("");
+    setResidencyFilter("");
+    setTrialFilter("");
+    setSortKey("created_desc");
+    setPageSize(20);
+    setPage(1);
+  }, []);
+
+  // FE-S04-36 — copy shareable filter URL (built from current filters)
+  const handleCopyFilterUrl = useCallback(async () => {
+    try {
+      const qs = buildAdminTenantsFilterQuery({
+        search: debouncedSearch,
+        plan: planFilter,
+        plan_id: debouncedPlanId,
+        status: statusFilter,
+        provisioning_status: provisioningFilter,
+        region: debouncedRegion,
+        data_residency: debouncedResidency,
+        trial: trialFilter,
+        sort: sortKey,
+        page,
+        page_size: pageSize,
+      });
+      const origin =
+        typeof window !== "undefined" ? window.location.origin : "";
+      await navigator.clipboard.writeText(
+        `${origin}${pathname}${qs ? `?${qs}` : ""}`,
+      );
+      toast({
+        variant: "success",
+        title: "Filter URL copied",
+        description: "Shareable Owner Console view link",
+      });
+    } catch {
+      toast({ variant: "error", title: "Failed to copy filter URL" });
+    }
+  }, [
+    debouncedSearch,
+    planFilter,
+    debouncedPlanId,
+    statusFilter,
+    provisioningFilter,
+    debouncedRegion,
+    debouncedResidency,
+    trialFilter,
+    sortKey,
+    page,
+    pageSize,
+    pathname,
+    toast,
+  ]);
 
   // FE-S04-22 — active server-filter chips (dismissible)
   const activeFilterChips = useMemo(() => {
@@ -355,7 +429,7 @@ export default function AdminTenantsPage() {
     trialFilter,
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const deleteTarget = useMemo(
     () =>
@@ -538,26 +612,42 @@ export default function AdminTenantsPage() {
           />
         </div>
         <div className="w-44" data-testid="admin-tenants-region-filter">
-          <Select
-            options={regionOptions}
-            placeholder="Region"
+          <Input
+            list="admin-tenants-region-suggestions"
+            placeholder="Region…"
             value={regionFilter}
-            onChange={(v) => {
-              setRegionFilter(v);
+            onChange={(e) => {
+              setRegionFilter(e.target.value);
               setPage(1);
             }}
+            title="Free-text region (server filter, debounced)"
           />
+          <datalist id="admin-tenants-region-suggestions">
+            {regionOptions
+              .filter((o) => o.value)
+              .map((o) => (
+                <option key={o.value} value={o.value} />
+              ))}
+          </datalist>
         </div>
         <div className="w-44" data-testid="admin-tenants-residency-filter">
-          <Select
-            options={residencyOptions}
-            placeholder="Residency"
+          <Input
+            list="admin-tenants-residency-suggestions"
+            placeholder="Residency…"
             value={residencyFilter}
-            onChange={(v) => {
-              setResidencyFilter(v);
+            onChange={(e) => {
+              setResidencyFilter(e.target.value);
               setPage(1);
             }}
+            title="Free-text data_residency (server filter, debounced)"
           />
+          <datalist id="admin-tenants-residency-suggestions">
+            {residencyOptions
+              .filter((o) => o.value)
+              .map((o) => (
+                <option key={o.value} value={o.value} />
+              ))}
+          </datalist>
         </div>
         <div className="w-44" data-testid="admin-tenants-trial-filter">
           <Select
@@ -581,27 +671,36 @@ export default function AdminTenantsPage() {
             }}
           />
         </div>
+        <div className="w-36" data-testid="admin-tenants-page-size">
+          <Select
+            options={PAGE_SIZE_OPTIONS}
+            placeholder="Page size"
+            value={String(pageSize)}
+            onChange={(v) => {
+              setPageSize(parseAdminTenantsPageSize(v));
+              setPage(1);
+            }}
+          />
+        </div>
         {hasActiveFilters && (
           <Button
             variant="outline"
             size="sm"
             data-testid="admin-tenants-clear-filters"
-            onClick={() => {
-              setSearch("");
-              setPlanFilter("");
-              setPlanIdFilter("");
-              setStatusFilter("");
-              setProvisioningFilter("");
-              setRegionFilter("");
-              setResidencyFilter("");
-              setTrialFilter("");
-              setSortKey("created_desc");
-              setPage(1);
-            }}
+            onClick={clearAllFilters}
           >
             Clear filters
           </Button>
         )}
+        <Button
+          variant="outline"
+          size="sm"
+          data-testid="admin-tenants-copy-filter-url"
+          onClick={handleCopyFilterUrl}
+          leftIcon={<Link2 className="h-4 w-4" />}
+        >
+          Copy filter URL
+        </Button>
       </div>
 
       {/* FE-S04-26/33 — result count from X-Total-Count */}
@@ -801,6 +900,17 @@ export default function AdminTenantsPage() {
                 ? "No tenants match the current filters"
                 : "No tenants found"}
             </p>
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                data-testid="admin-tenants-empty-clear"
+                onClick={clearAllFilters}
+              >
+                Clear filters
+              </Button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -966,15 +1076,15 @@ export default function AdminTenantsPage() {
         )}
       </div>
 
-      {/* FE-S04-33 — server pagination (page/page_size + X-Total-Count) */}
-      {totalCount > PAGE_SIZE && (
+      {/* FE-S04-33/39 — server pagination (page/page_size + X-Total-Count) */}
+      {totalCount > pageSize && (
         <div
           className="flex items-center justify-between"
           data-testid="admin-tenants-pagination"
         >
           <p className="text-sm text-[var(--text-muted)]">
-            Showing {(page - 1) * PAGE_SIZE + 1}-
-            {Math.min(page * PAGE_SIZE, totalCount)} of {totalCount}
+            Showing {(page - 1) * pageSize + 1}-
+            {Math.min(page * pageSize, totalCount)} of {totalCount}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -1342,6 +1452,19 @@ function TenantDetailModal({
                       })}
                     </p>
                   )}
+                  {(() => {
+                    const suspendHonesty = tenant
+                      ? suspendedWriteBlockDescription(tenant)
+                      : null;
+                    return suspendHonesty ? (
+                      <p
+                        className="mt-1 text-xs text-warning-700 dark:text-warning-400"
+                        data-testid="admin-tenants-suspend-write-block"
+                      >
+                        {suspendHonesty}
+                      </p>
+                    ) : null;
+                  })()}
                 </div>
                 <Button
                   variant={tenant?.is_active ? "outline" : "primary"}

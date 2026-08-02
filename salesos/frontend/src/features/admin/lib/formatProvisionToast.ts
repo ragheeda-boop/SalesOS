@@ -220,6 +220,29 @@ export function retentionHardDeleteDescription(options?: {
   return `Retention: soft-delete stamps deletion_requested_at; hard-delete waits ~${days} days unless force_immediate=true. Active tenants may hard-delete with confirm only.`;
 }
 
+/** FE-S04-38 — STORY-04-03 suspended tenants are write-blocked (tenant API). */
+export function suspendedWriteBlockDescription(tenant: {
+  provisioning_status?: string | null;
+}): string | null {
+  if ((tenant.provisioning_status || "") !== "suspended") return null;
+  return (
+    "Suspended (STORY-04-03): tenant API writes are blocked (read-only). " +
+    "Owner Console /activate restores writes. Admin Owner paths remain available."
+  );
+}
+
+export const ADMIN_TENANTS_PAGE_SIZES = [20, 50, 100] as const;
+export type AdminTenantsPageSize = (typeof ADMIN_TENANTS_PAGE_SIZES)[number];
+
+export function parseAdminTenantsPageSize(
+  value: string | null | undefined,
+): AdminTenantsPageSize {
+  const n = Number(value);
+  return (ADMIN_TENANTS_PAGE_SIZES as readonly number[]).includes(n)
+    ? (n as AdminTenantsPageSize)
+    : 20;
+}
+
 /** FE-S04-34 — toast from TenantReprovisionResponse. */
 export function formatReprovisionResultDescription(result: {
   tenant_id: string;

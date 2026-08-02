@@ -5,7 +5,9 @@ import {
   formatReprovisionResultDescription,
   formatTrialEndsLabel,
   getDeletionRequestedAt,
+  parseAdminTenantsPageSize,
   retentionHardDeleteDescription,
+  suspendedWriteBlockDescription,
   lifecycleStatusDescription,
   matchesTrialFilter,
   sortAdminTenants,
@@ -230,6 +232,34 @@ describe("retention helpers — FE-S04-35", () => {
     ).toContain("force_immediate=true");
     expect(retentionHardDeleteDescription({ isInactive: true })).toContain(
       "soft-delete stamp",
+    );
+  });
+});
+
+describe("suspendedWriteBlockDescription — FE-S04-38", () => {
+  it("returns honesty only when provisioning=suspended", () => {
+    expect(
+      suspendedWriteBlockDescription({ provisioning_status: "suspended" }),
+    ).toContain("STORY-04-03");
+    expect(
+      suspendedWriteBlockDescription({ provisioning_status: "active" }),
+    ).toBeNull();
+  });
+});
+
+describe("parseAdminTenantsPageSize — FE-S04-39", () => {
+  it("accepts 20/50/100 and defaults to 20", () => {
+    expect(parseAdminTenantsPageSize("50")).toBe(50);
+    expect(parseAdminTenantsPageSize("100")).toBe(100);
+    expect(parseAdminTenantsPageSize("7")).toBe(20);
+    expect(parseAdminTenantsPageSize(null)).toBe(20);
+  });
+});
+
+describe("buildAdminTenantsFilterQuery page_size — FE-S04-39", () => {
+  it("includes non-default page_size", () => {
+    expect(buildAdminTenantsFilterQuery({ page: 1, page_size: 50 })).toBe(
+      "page_size=50",
     );
   });
 });
