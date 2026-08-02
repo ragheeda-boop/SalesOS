@@ -41,11 +41,43 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.integrations.connect",
+    label: "Integrations · Connect",
+    description: "Studio Connect step (tip ?step=connect)",
+    category: "تنقل",
+    handler: () => router.push("/integrations?step=connect"),
+  });
+
+  registerCommand({
+    id: "go.integrations.test",
+    label: "Integrations · Test",
+    description: "Studio Test step (tip ?step=test)",
+    category: "تنقل",
+    handler: () => router.push("/integrations?step=test"),
+  });
+
+  registerCommand({
     id: "go.integrations.map",
     label: "Integrations · Map",
     description: "Studio Map step (tip ?step=map)",
     category: "تنقل",
     handler: () => router.push("/integrations?step=map"),
+  });
+
+  registerCommand({
+    id: "go.integrations.conflict",
+    label: "Integrations · Conflict",
+    description: "Studio Conflict step (tip ?step=conflict)",
+    category: "تنقل",
+    handler: () => router.push("/integrations?step=conflict"),
+  });
+
+  registerCommand({
+    id: "go.integrations.schedule",
+    label: "Integrations · Schedule",
+    description: "Studio Schedule step (tip ?step=schedule)",
+    category: "تنقل",
+    handler: () => router.push("/integrations?step=schedule"),
   });
 
   registerCommand({
@@ -57,11 +89,11 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
-    id: "go.integrations.schedule",
-    label: "Integrations · Schedule",
-    description: "Studio Schedule step (tip ?step=schedule)",
+    id: "go.integrations.disconnect",
+    label: "Integrations · Disconnect",
+    description: "Studio Disconnect step (tip ?step=disconnect)",
     category: "تنقل",
-    handler: () => router.push("/integrations?step=schedule"),
+    handler: () => router.push("/integrations?step=disconnect"),
   });
 
   registerCommand({

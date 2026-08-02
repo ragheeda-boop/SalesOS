@@ -111,6 +111,11 @@ const FE_GATED = [
     title: "CustomerInvoice presets + payment honesty",
     status: "FE landed — account.move presets",
   },
+  {
+    id: "FE-S08-15",
+    title: "Cmd palette Studio steps + tip field polish",
+    status: "FE landed — tip ?step= deep-links",
+  },
 ] as const;
 
 export default function AdminIntegrationsInventoryPage() {
@@ -131,10 +136,9 @@ export default function AdminIntegrationsInventoryPage() {
         data-testid="owner-ops-integrations-honesty"
       >
         FE inventory: BE 08-01..06 + STORY-09-01/09-02 OdooAdapter landed.
-        Tenant Studio (through FE-S09-01..03 partner / opportunity /
-        InteractionNote presets) is at `/integrations`. Unlinked badge list
-        still BE-blocked. Owner mint remains DEC-093 follow-up. Not Production
-        GO / RAG GO.
+        Tenant Studio (through FE-S09-06 CustomerInvoice + FE-S08-15 cmd
+        deep-links) is at `/integrations`. Unlinked badge list still BE-blocked.
+        Owner mint remains DEC-093 follow-up. Not Production GO / RAG GO.
       </p>
 
       <IntegrationsStudioShell />

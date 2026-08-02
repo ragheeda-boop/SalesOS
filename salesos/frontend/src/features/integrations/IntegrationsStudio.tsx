@@ -449,6 +449,23 @@ export function IntegrationsStudio() {
                     {JSON.stringify(selected.cursor_state || {})}
                   </dd>
                 </div>
+                {selected.created_at || selected.updated_at ? (
+                  <div className="sm:col-span-2">
+                    <dt className="text-[var(--text-muted)]">Timestamps</dt>
+                    <dd
+                      className="font-mono break-all"
+                      data-testid="integrations-studio-connection-timestamps"
+                    >
+                      {selected.created_at
+                        ? `created ${selected.created_at}`
+                        : ""}
+                      {selected.created_at && selected.updated_at ? " · " : ""}
+                      {selected.updated_at
+                        ? `updated ${selected.updated_at}`
+                        : ""}
+                    </dd>
+                  </div>
+                ) : null}
                 <div className="sm:col-span-2">
                   <dt className="text-[var(--text-muted)]">
                     Connection config (non-secret tip field)
@@ -713,7 +730,17 @@ export function IntegrationsStudio() {
                 {activeMappingQuery.isLoading
                   ? "Loading active mapping…"
                   : activeMappingQuery.data
-                    ? `Active v${activeMappingQuery.data.version} · ${activeMappingQuery.data.model}`
+                    ? `Active v${activeMappingQuery.data.version} · ${
+                        activeMappingQuery.data.model
+                      }${
+                        activeMappingQuery.data.is_active
+                          ? " · is_active"
+                          : " · inactive"
+                      }${
+                        activeMappingQuery.data.id
+                          ? ` · ${activeMappingQuery.data.id.slice(0, 8)}`
+                          : ""
+                      }`
                     : selectedId
                       ? "No active mapping for this model"
                       : "Select a connection"}
