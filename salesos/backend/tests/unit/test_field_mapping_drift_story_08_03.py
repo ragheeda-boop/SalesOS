@@ -20,9 +20,10 @@ def test_parse_and_missing_mapped_field() -> None:
     maps = parse_field_mappings(
         [{"internal": "name", "external": "display_name", "direction": "pull"}]
     )
+    # Empty remote → pure missing (not rename heuristic: missing+one-new).
     alerts = detect_field_drift(
         mappings=maps,
-        remote_schema={"other": {"type": "char"}},
+        remote_schema={},
         baseline_fields={"display_name"},
     )
     assert any(a.kind == "missing_mapped_field" and a.severity == "critical" for a in alerts)
