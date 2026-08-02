@@ -11,17 +11,18 @@
 | Gateway | `ApiKeyMiddleware` — same write block for `X-API-Key` callers |
 | Skip | `/api/v1/admin`, `/api/v1/auth`, health/docs (Owner can still activate) |
 
-## STORY-04-04 — Retention (interim LANDED)
+## STORY-04-04 — Retention (LANDED column cutover)
 
 | Item | Detail |
 |------|--------|
-| Soft-delete | Stamps `settings.deletion_requested_at` (no Alembic yet) |
-| Activate | Clears deletion stamp |
+| Soft-delete | Stamps `tenants.deleted_at` + settings dual-write |
+| Activate | Clears column + settings stamp |
 | Hard-delete | If stamp present, enforce `tenant_deletion_retention_days` (default 30) unless `force_immediate=true` |
+| Alembic | `d4b0e23f5a91` |
 | Config | `Settings.tenant_deletion_retention_days` |
 
 ## Non-goals
 
-- Dedicated `deleted_at` column migration (follow-on)  
 - Gateway edge proxy outside this FastAPI process  
+- Dropping settings dual-write key  
 - Production GO / GA GO

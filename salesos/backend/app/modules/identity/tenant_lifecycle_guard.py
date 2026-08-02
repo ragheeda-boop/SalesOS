@@ -54,6 +54,13 @@ def suspension_write_blocked_detail() -> str:
 
 
 def get_deletion_requested_at(tenant: Tenant) -> datetime | None:
+    """Prefer ``tenants.deleted_at``; fall back to settings stamp (pre-column rows)."""
+    col = getattr(tenant, "deleted_at", None)
+    if isinstance(col, datetime):
+        dt = col
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=UTC)
+        return dt
     raw = (tenant.settings or {}).get(DELETION_REQUESTED_AT_KEY)
     if not raw or not isinstance(raw, str):
         return None
@@ -67,13 +74,16 @@ def get_deletion_requested_at(tenant: Tenant) -> datetime | None:
 
 
 def stamp_deletion_requested(tenant: Tenant, *, now: datetime | None = None) -> None:
+    """Dual-write column + settings during STORY-04-04 column cutover."""
     clock = now or datetime.now(UTC)
+    tenant.deleted_at = clock
     data = dict(tenant.settings or {})
     data[DELETION_REQUESTED_AT_KEY] = clock.isoformat()
     tenant.settings = data
 
 
 def clear_deletion_requested(tenant: Tenant) -> None:
+    tenant.deleted_at = None
     data = dict(tenant.settings or {})
     data.pop(DELETION_REQUESTED_AT_KEY, None)
     tenant.settings = data
@@ -116,8 +126,10 @@ async def fetch_tenant_by_id(db: AsyncSession, tenant_id: str) -> Tenant | None:
 
 
 def lifecycle_settings_snapshot(tenant: Tenant) -> dict[str, Any]:
+    requested = get_deletion_requested_at(tenant)
     return {
         "provisioning_status": tenant.provisioning_status,
         "is_active": tenant.is_active,
+        "deleted_at": requested.isoformat() if requested else None,
         "deletion_requested_at": (tenant.settings or {}).get(DELETION_REQUESTED_AT_KEY),
     }

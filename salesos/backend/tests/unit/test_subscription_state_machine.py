@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import uuid
 from datetime import UTC, datetime
 
 import pytest
@@ -16,7 +17,6 @@ from app.modules.billing.state_machine import (
     can_transition,
     transition_matrix,
 )
-
 
 # Happy-path matrix from TEST_STRATEGY + architecture §16
 _HAPPY_PATH: list[tuple[str, str, str]] = [
@@ -104,7 +104,31 @@ def test_allowed_events_and_matrix_cover_all_defined() -> None:
 
 def test_initial_status_for_provision() -> None:
     assert initial_status_for_provision(trial_ends_at=None) == SubscriptionStatus.ACTIVE
-    assert (
-        initial_status_for_provision(trial_ends_at=datetime.now(UTC))
-        == SubscriptionStatus.TRIAL
-    )
+    assert initial_status_for_provision(trial_ends_at=datetime.now(UTC)) == SubscriptionStatus.TRIAL
+
+
+@pytest.mark.asyncio
+async def test_sync_tenant_lifecycle_best_effort() -> None:
+    from unittest.mock import AsyncMock, MagicMock
+
+    from app.modules.billing.service import SubscriptionService
+
+    session = AsyncMock()
+    svc = SubscriptionService(session)
+
+    # No row → None
+    svc.get_by_tenant = AsyncMock(return_value=None)
+    assert await svc.sync_tenant_lifecycle(tenant_id=uuid.uuid4(), action="suspend") is None
+
+    row = MagicMock()
+    row.status = "active"
+    svc.get_by_tenant = AsyncMock(return_value=row)
+    svc.apply_event = AsyncMock(return_value=row)
+    out = await svc.sync_tenant_lifecycle(tenant_id=uuid.uuid4(), action="suspend")
+    assert out is row
+    svc.apply_event.assert_awaited_once()
+
+    row.status = "churned"
+    svc.apply_event = AsyncMock(return_value=row)
+    await svc.sync_tenant_lifecycle(tenant_id=uuid.uuid4(), action="activate")
+    assert svc.apply_event.await_args.kwargs["event"] == SubscriptionEvent.RESUBSCRIBE_ACTIVE

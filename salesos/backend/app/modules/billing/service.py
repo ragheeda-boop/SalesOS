@@ -18,6 +18,7 @@ from app.modules.billing.state_machine import (
     SubscriptionStatus,
     SubscriptionTransitionError,
     apply_transition,
+    can_transition,
 )
 
 
@@ -97,6 +98,37 @@ class SubscriptionService:
                 row.current_period_start = now
         await self.session.flush()
         return row
+
+    async def sync_tenant_lifecycle(
+        self,
+        *,
+        tenant_id: uuid.UUID | str,
+        action: str,
+    ) -> SubscriptionModel | None:
+        """Best-effort SM sync for Owner tenant lifecycle (no raise if no row / illegal).
+
+        action: suspend | activate | churn
+        """
+        row = await self.get_by_tenant(tenant_id)
+        if row is None:
+            return None
+        if action == "suspend":
+            event: SubscriptionEvent | None = SubscriptionEvent.SUSPEND
+        elif action == "activate":
+            # Suspended → reactivate; churned (post soft-delete) → resubscribe active.
+            if can_transition(row.status, SubscriptionEvent.REACTIVATE):
+                event = SubscriptionEvent.REACTIVATE
+            elif can_transition(row.status, SubscriptionEvent.RESUBSCRIBE_ACTIVE):
+                event = SubscriptionEvent.RESUBSCRIBE_ACTIVE
+            else:
+                return row
+        elif action == "churn":
+            event = SubscriptionEvent.CHURN
+        else:
+            return row
+        if event is None or not can_transition(row.status, event):
+            return row
+        return await self.apply_event(tenant_id=tenant_id, event=event)
 
     def to_dict(self, row: SubscriptionModel) -> dict[str, Any]:
         return {

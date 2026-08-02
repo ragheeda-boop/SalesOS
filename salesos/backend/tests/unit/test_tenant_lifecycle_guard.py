@@ -29,7 +29,7 @@ def test_is_tenant_suspended():
 
 
 def test_retention_window():
-    tenant = SimpleNamespace(settings={})
+    tenant = SimpleNamespace(settings={}, deleted_at=None)
     stamp_deletion_requested(tenant, now=datetime(2026, 7, 1, tzinfo=UTC))
     assert get_deletion_requested_at(tenant) is not None
     assert (
@@ -54,9 +54,22 @@ def test_retention_window():
 
 
 def test_stamp_idempotent_overwrite():
-    tenant = SimpleNamespace(settings={"other": 1})
+    tenant = SimpleNamespace(settings={"other": 1}, deleted_at=None)
     t0 = datetime(2026, 6, 1, tzinfo=UTC)
     stamp_deletion_requested(tenant, now=t0)
     stamp_deletion_requested(tenant, now=t0 + timedelta(days=1))
     assert get_deletion_requested_at(tenant) == t0 + timedelta(days=1)
+    assert tenant.deleted_at == t0 + timedelta(days=1)
     assert tenant.settings["other"] == 1
+
+
+def test_deleted_at_column_preferred_over_settings():
+    col = datetime(2026, 7, 15, tzinfo=UTC)
+    tenant = SimpleNamespace(
+        deleted_at=col,
+        settings={"deletion_requested_at": "2026-01-01T00:00:00+00:00"},
+    )
+    assert get_deletion_requested_at(tenant) == col
+    clear_deletion_requested(tenant)
+    assert tenant.deleted_at is None
+    assert "deletion_requested_at" not in tenant.settings

@@ -29,6 +29,8 @@ class Tenant(BaseModel):
         String(32), nullable=False, default="pending", server_default="pending"
     )
     trial_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # STORY-04-04: soft-delete retention clock (column; settings key kept as dual-write)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     settings: Mapped[dict | None] = mapped_column(type_=JSONB, default=dict)
     features: Mapped[dict | None] = mapped_column(type_=JSONB, default=dict)

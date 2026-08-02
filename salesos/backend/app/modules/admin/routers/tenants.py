@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
 from app.dependencies import get_db_session
+from app.modules.billing.service import SubscriptionService
 from app.modules.identity.models import Tenant, User
 from app.modules.identity.tenant_lifecycle_guard import (
     clear_deletion_requested,
@@ -177,6 +178,7 @@ def _to_detail(t: Tenant, user_count: int) -> TenantDetail:
         data_residency=t.data_residency,
         provisioning_status=t.provisioning_status,
         trial_ends_at=t.trial_ends_at,
+        deleted_at=t.deleted_at,
         is_active=t.is_active,
         settings=t.settings or {},
         features=t.features or {},
@@ -364,6 +366,9 @@ async def suspend_tenant(
     tenant.is_active = False
     tenant.provisioning_status = "suspended"
     tenant.updated_at = datetime.now(UTC)
+    sub = await SubscriptionService(db).sync_tenant_lifecycle(
+        tenant_id=tenant.id, action="suspend"
+    )
     await db.flush()
     return TenantLifecycleResponse(
         message="Tenant suspended",
@@ -372,6 +377,8 @@ async def suspend_tenant(
         provisioning_status="suspended",
         prior_provisioning_status=prior,
         reason=body.reason or "",
+        deleted_at=get_deletion_requested_at(tenant),
+        subscription_status=sub.status if sub else None,
     )
 
 
@@ -394,6 +401,9 @@ async def activate_tenant(
     tenant.provisioning_status = "active"
     clear_deletion_requested(tenant)
     tenant.updated_at = datetime.now(UTC)
+    sub = await SubscriptionService(db).sync_tenant_lifecycle(
+        tenant_id=tenant.id, action="activate"
+    )
     await db.flush()
     return TenantLifecycleResponse(
         message="Tenant activated",
@@ -402,6 +412,8 @@ async def activate_tenant(
         provisioning_status="active",
         prior_provisioning_status=prior,
         reason=body.reason or "",
+        deleted_at=None,
+        subscription_status=sub.status if sub else None,
     )
 
 
@@ -479,6 +491,10 @@ async def soft_delete_tenant(tenant_id: str, db: AsyncSession = Depends(get_db_s
     # Keep provisioning_status unchanged so Inactive ≠ Suspended (FE-S04-14 honesty).
     stamp_deletion_requested(tenant)
     tenant.updated_at = datetime.now(UTC)
+    # Soft-delete enters retention; subscription churns (hard-delete still gated).
+    sub = await SubscriptionService(db).sync_tenant_lifecycle(
+        tenant_id=tenant.id, action="churn"
+    )
     await db.flush()
     return TenantLifecycleResponse(
         message="Tenant soft-deleted",
@@ -487,6 +503,8 @@ async def soft_delete_tenant(tenant_id: str, db: AsyncSession = Depends(get_db_s
         provisioning_status=tenant.provisioning_status or "pending",
         prior_provisioning_status=prior,
         reason="",
+        deleted_at=get_deletion_requested_at(tenant),
+        subscription_status=sub.status if sub else None,
     )
 
 

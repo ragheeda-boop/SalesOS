@@ -125,6 +125,7 @@ class TenantDetail(BaseModel):
     data_residency: str | None = None
     provisioning_status: str = "pending"
     trial_ends_at: datetime | None = None
+    deleted_at: datetime | None = None
     is_active: bool
     settings: dict
     features: dict
@@ -475,6 +476,8 @@ class TenantLifecycleResponse(BaseModel):
     provisioning_status: str
     reason: str = ""
     prior_provisioning_status: str | None = None
+    deleted_at: datetime | None = None
+    subscription_status: str | None = None
 
 
 class TenantHardDeleteRequest(BaseModel):
