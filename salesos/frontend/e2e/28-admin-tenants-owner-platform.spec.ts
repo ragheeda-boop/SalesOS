@@ -269,8 +269,28 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
       page.getByTestId("integrations-studio-api-honesty"),
     ).toBeVisible();
     await expect(
+      page.getByTestId("integrations-studio-tenant-link"),
+    ).toHaveAttribute("href", "/integrations");
+  });
+
+  test("integrations studio page exposes Hub HTTP flow hooks", async ({
+    page,
+  }) => {
+    await page.goto("/integrations");
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByTestId("integrations-page")).toBeVisible({
+      timeout: 8_000,
+    });
+    await expect(page.getByTestId("integrations-studio")).toBeVisible();
+    await expect(
+      page.getByTestId("integrations-studio-live-honesty"),
+    ).toBeVisible();
+    await expect(
       page.getByTestId("integrations-studio-step-connect"),
-    ).toBeDisabled();
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("integrations-studio-connect-submit"),
+    ).toBeVisible();
   });
 
   test("admin flags/config/audit expose ops honesty hooks", async ({

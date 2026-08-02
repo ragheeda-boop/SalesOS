@@ -4,20 +4,23 @@ import {
   STUDIO_STEPS,
 } from "../IntegrationsStudioShell";
 
-describe("IntegrationsStudioShell — FE-S08-01", () => {
-  it("renders disabled Studio steps with API-not-live honesty", () => {
+describe("IntegrationsStudioShell — STORY-08-07 pointer", () => {
+  it("points Owner Console prep to live tenant Studio", () => {
     render(<IntegrationsStudioShell />);
     expect(screen.getByTestId("integrations-studio-shell")).toBeInTheDocument();
     expect(
       screen.getByTestId("integrations-studio-api-honesty"),
-    ).toHaveTextContent(/Hub HTTP API not live/);
+    ).toHaveTextContent(/Hub HTTP is live/);
     expect(
       screen.getByTestId("integrations-studio-api-honesty"),
     ).toHaveTextContent(/Not Production GO/);
+    expect(
+      screen.getByTestId("integrations-studio-tenant-link"),
+    ).toHaveAttribute("href", "/integrations");
     for (const step of STUDIO_STEPS) {
-      const btn = screen.getByTestId(`integrations-studio-step-${step.id}`);
-      expect(btn).toBeDisabled();
-      expect(btn).toHaveTextContent(/API not live/i);
+      expect(
+        screen.getByTestId(`integrations-studio-step-${step.id}`),
+      ).toHaveAttribute("href", "/integrations");
     }
   });
 });
