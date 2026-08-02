@@ -158,6 +158,10 @@ class Settings(BaseSettings):
     # STORY-06-03 — enforce UsageMeter quotas on gated paths. Policy, not a secret.
     quota_enforcement_enabled: bool = True
 
+    # STORY-08-02 — optional Fernet key for connector credentials; empty → secret_key.
+    # Policy/env only — never invent or commit real key material.
+    integration_hub_encryption_key: str = ""
+
     log_level: str = "INFO"
     sentry_dsn: str = ""
     service_version: str = "5.1.0-rc1"
