@@ -70,7 +70,8 @@ _NATIONAL_ID_RE = re.compile(r"(?<!\d)[12]\d{9}(?!\d)")
 _IBAN_RE = re.compile(r"\bSA[0-9A-Z]{22}\b", re.IGNORECASE)
 _CARD_RE = re.compile(r"(?<!\d)(?:\d[ \-]*){13,19}(?!\d)")
 _LABELED_NAME_RE = re.compile(
-    r"(?i)(?:\bname\b|\bcontact\b|\bfull\s*name\b|\bالاسم\b|\bاسم\b)\s*[:：]\s*" r"([^\n,<]{2,80})"
+    r"(?i)(?:\bname\b|\bcontact\b|\bfull\s*name\b|\bالاسم\b|\bاسم\b)\s*[:：]\s*"
+    r"([A-Za-z\u0600-\u06FF][A-Za-z\u0600-\u06FF\s\-'.]{0,60})"
 )
 
 _PLACEHOLDERS = {
