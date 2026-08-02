@@ -119,23 +119,26 @@ jobs:
           set -euo pipefail
           echo "Verifying Railway status for service $RAILWAY_SERVICE_ID / environment $RAILWAY_ENVIRONMENT_ID"
           railway status --project "$RAILWAY_PROJECT_ID" --environment "$RAILWAY_ENVIRONMENT_ID" --json > railway_status.json
-          python3 - <<PY
-            import json
-            import os
-            from pathlib import Path
-            status = json.loads(Path('railway_status.json').read_text())
-            expected_service = os.environ['RAILWAY_SERVICE_ID']
-            actual_service = None
-            if isinstance(status, dict):
-                if 'service' in status and isinstance(status['service'], dict):
-                    actual_service = status['service'].get('id') or status['service'].get('name')
-                elif 'serviceId' in status:
-                    actual_service = status.get('serviceId')
-            if actual_service is None:
-                raise SystemExit('Railway status JSON did not include a service identifier')
-            if actual_service != expected_service:
-                raise SystemExit(f'Railway status service mismatch: expected {expected_service}, got {actual_service}')
-            print(f'Railway status service matches expected ID/name: {actual_service}')
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+
+          status = json.loads(Path("railway_status.json").read_text())
+          expected_service = os.environ["RAILWAY_SERVICE_ID"]
+          actual_service = None
+
+          if isinstance(status, dict):
+              if "service" in status and isinstance(status["service"], dict):
+                  actual_service = status["service"].get("id") or status["service"].get("name")
+              elif "serviceId" in status:
+                  actual_service = status.get("serviceId")
+
+          if actual_service is None:
+              raise SystemExit("Railway status JSON did not include a service identifier")
+          if actual_service != expected_service:
+              raise SystemExit(f"Railway status service mismatch: expected {expected_service}, got {actual_service}")
+
+          print(f"Railway status service matches expected ID/name: {actual_service}")
           PY
       - name: Verify Railway deployment history includes success
         env:
@@ -146,22 +149,22 @@ jobs:
         run: |
           set -euo pipefail
           railway deployment list --project "$RAILWAY_PROJECT_ID" --environment "$RAILWAY_ENVIRONMENT_ID" --service "$RAILWAY_SERVICE_ID" --limit 5 --json > railway_deployments.json
-          python3 - <<PY
-            import json
-            from pathlib import Path
-            deploys = json.loads(Path('railway_deployments.json').read_text())
-            if not isinstance(deploys, list) or len(deploys) == 0:
-                raise SystemExit('Railway deployment list returned no deployments')
-            latest = deploys[0]
-            status = latest.get('status')
-            if status != 'SUCCESS':
-                raise SystemExit(f'Latest Railway deployment is not successful: {status}')
-            print(f"Latest Railway deployment {latest.get('id')} status {status} verified.")
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          deploys = json.loads(Path("railway_deployments.json").read_text())
+          if not isinstance(deploys, list) or len(deploys) == 0:
+              raise SystemExit("Railway deployment list returned no deployments")
+
+          latest = deploys[0]
+          status = latest.get("status")
+          if status != "SUCCESS":
+              raise SystemExit(f"Latest Railway deployment is not successful: {status}")
+
+          print(f"Latest Railway deployment {latest.get('id')} status {status} verified.")
           PY
 
-  health-check:
-    name: Backend Health Gate
-    needs: [pre-deploy-check, deploy-backend-railway]
     if: ${{ !inputs.skip_backend && needs.deploy-backend-railway.result == 'success' }}
     runs-on: ubuntu-latest
     environment: production
