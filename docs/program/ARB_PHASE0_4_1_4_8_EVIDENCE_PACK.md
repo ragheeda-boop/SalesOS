@@ -4,7 +4,7 @@
 > **Authority:** [PHASE_0_EXIT_CHECKLIST.md](PHASE_0_EXIT_CHECKLIST.md) §4 · [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md) Governance Freeze · prior EOS FAIL audit `.engineering/32_EOS_VALIDATION_AUDIT.md`  
 > **Scribe:** program/ARB preparation (Cursor) — **2026-08-02**  
 > **Pack tip at assembly:** `5fafbe9` (`5fafbe9c55c8e3017891944a3005b05dce3a99e1`) — DEC-151 land  
-> **Status of 4.1 / 4.8:** **CLOSED** via DEC-153 — ARB **PASS** / **PASS** (report `.engineering/34_EOS_REAUDIT_2026-08-02.md` @ tip `74f698b`)
+> **Status of 4.1 / 4.8:** **CLOSED** via DEC-153 — ARB **PASS** / **PASS** (report `.engineering/34_EOS_REAUDIT_2026-08-02.md`; first land `74f698b` / corroboration tip `d973cba`)
 
 ---
 
@@ -29,8 +29,8 @@ Source: `docs/program/PHASE_0_EXIT_CHECKLIST.md` §4 EngineeringOS Audit Pass.
 
 | # | Criterion | Evidence required (verbatim) | Pre-ARB status |
 |---|-----------|------------------------------|----------------|
-| **4.1** | All B1–B7 findings resolved | **ARB re-audit returns PASS** | ⬜ OPEN — v3.1/DEC-142 corrections claimed; **not re-audited** |
-| **4.8** | Independent ARB re-audit = PASS | **New validation report with no CRITICAL findings** | ⬜ OPEN |
+| **4.1** | All B1–B7 findings resolved | **ARB re-audit returns PASS** | ✅ CLOSED — Independent **PASS** (DEC-153) |
+| **4.8** | Independent ARB re-audit = PASS | **New validation report with no CRITICAL findings** | ✅ CLOSED — Independent **PASS**, CRITICAL **0** (DEC-153) |
 
 Owner: OpenCode / **ARB**. Reference: `.engineering/32_EOS_VALIDATION_AUDIT.md`, `.engineering/00_PROJECT_CONSTITUTION.md`.
 
@@ -45,7 +45,7 @@ Owner: OpenCode / **ARB**. Reference: `.engineering/32_EOS_VALIDATION_AUDIT.md`,
 | 4.6 | Lock protocol verified | ✅ VERIFIED (ARB 2026-08-01; B6) | `21` mirrors `22` |
 | 4.7 | Staleness protocol active | ✅ CLOSED (DEC-142a) | `measure_fingerprint.py` + Revalidation **Active** |
 
-**Honesty:** Closing 4.2–4.7 does **not** auto-close 4.1/4.8. Historical ARB FAIL in `32` remains the last independent verdict until a **new** report.
+**Honesty:** Closing 4.2–4.7 did **not** auto-close 4.1/4.8. Historical ARB FAIL in `32` remains on disk; superseded for 4.1/4.8 verdict only by `.engineering/34_EOS_REAUDIT_2026-08-02.md`.
 
 ---
 
@@ -130,27 +130,26 @@ Compare output to `_metadata.repository_commit` / counts in `23`. Material drift
 | `.engineering/` in git | Measured — DEC-140a CLOSED |
 | Fingerprint re-pin @ `9fa8e9f` | Measured — DEC-142a CLOSED |
 | EvidenceLevel **Measured** + Revalidation Active | Measured — DEC-142a CLOSED |
-| Invented CRM row removed (catalog claim) | Program-corrected — **ARB must confirm** (ties to 4.3 prior VERIFIED) |
-| Bootstrap lock released | Program-corrected — **ARB must confirm** (ties to 4.6 prior VERIFIED) |
+| Invented CRM row removed (catalog claim) | ARB-confirmed RESOLVED (B4) |
+| Bootstrap lock released | ARB-confirmed RESOLVED (B6) |
 | Eng Stability 8.1–8.3 | CLOSED / CLOSED CONDITIONAL (orthogonal) |
-| Phase 0 scoreboard | **48/54 NO-GO** (DEC-150 B + DEC-151 freeze) |
+| Phase 0 scoreboard | **51/54 NO-GO** (DEC-153 closed 4.1/4.8; DEC-152 3.9 CONDITIONAL) |
 
-### Open — ARB only
+### ARB-closed (this pack)
 
 | Item | State |
 |------|--------|
-| **4.1** B1–B7 resolved | **OPEN / READY FOR ARB** |
-| **4.8** New independent report, 0 CRITICAL | **OPEN / READY FOR ARB** |
-| New validation report artifact | **Missing** until ARB authors it (recommend path: `.engineering/34_EOS_REAUDIT_<date>.md` or ARB-chosen equivalent; do not overwrite `32`) |
-| Official EOS adoption as SoT | **Not claimed** pending 4.1+4.8 |
+| **4.1** B1–B7 resolved | **CLOSED — PASS** (DEC-153) |
+| **4.8** New independent report, 0 CRITICAL | **CLOSED — PASS** (`.engineering/34_EOS_REAUDIT_2026-08-02.md`) |
+| New validation report artifact | Present — do not overwrite historical FAIL `32` |
+| Official EOS adoption as SoT | Measured SoT with Active revalidation — **not** Production GO |
 
 ### Explicit non-claims by this pack
 
-1. No ARB PASS / Independent Audit PASS.  
-2. No Phase 0 COMPLETE / Phase 0 GO.  
-3. No Production GO / full CI GREEN.  
-4. No “Repository Verified” upgrade invented here.  
-5. Tip `5fafbe9` ≠ fingerprint pin `9fa8e9f` — disclosed for ARB judgment.
+1. No Phase 0 COMPLETE / Phase 0 GO (score **51/54**; hard OPEN **3.7**).  
+2. No Production GO / full CI GREEN (Stages 1–7).  
+3. No “Repository Verified” upgrade invented here (EvidenceLevel stays **Measured**).  
+4. Fingerprint pin `9fa8e9f` ≠ tip — disclosed; Active revalidation; non-CRITICAL.
 
 ---
 
@@ -160,13 +159,13 @@ Compare output to `_metadata.repository_commit` / counts in `23`. Material drift
 
 | Finding | ARB PASS? | CRITICAL remaining? | Notes |
 |---------|-----------|---------------------|-------|
-| B1 | ☑ PASS | ☐ N | tip head `a4f7c29e1b80` |
+| B1 | ☑ PASS | ☐ N | tip head `a4f7c29e1b80` (69 revs; pin has file) |
 | B2 | ☑ PASS | ☐ N | FastAPI `>=0.136.0,<0.142.0` |
-| B3 | ☑ PASS | ☐ N | counts match tip |
-| B4 | ☑ PASS | ☐ N | no CRM module/route |
-| B5 | ☑ PASS | ☐ N | catalog head aligned |
-| B6 | ☑ PASS | ☐ N | lock `free` |
-| B7 | ☑ PASS | ☐ N | Measured only |
+| B3 | ☑ PASS | ☐ N | modules/domains/runtime/pages/migrations/tests match tip |
+| B4 | ☑ PASS | ☐ N | no CRM module/route; catalog B4 fix only |
+| B5 | ☑ PASS | ☐ N | catalog head `a4f7c29e1b80` / 69 |
+| B6 | ☑ PASS | ☐ N | lock `free`; `21.locked_files=[]` |
+| B7 | ☑ PASS | ☐ N | Measured only (0 live Repository Verified) |
 
 **4.1 overall:** ☑ **PASS** ☐ FAIL — see `.engineering/34_EOS_REAUDIT_2026-08-02.md`
 
@@ -175,7 +174,7 @@ Compare output to `_metadata.repository_commit` / counts in `23`. Material drift
 | Gate | Result |
 |------|--------|
 | New validation report path | `.engineering/34_EOS_REAUDIT_2026-08-02.md` |
-| Report commit SHA | *(land commit after DEC-153 push)* |
+| Report commit SHA | first land `8ff782f` / close `d973cba` (`d973cba302a76a470141d954ba36c61cd39163d5`); measurement corroboration this pack update |
 | CRITICAL findings count | **0** |
 | **4.8 overall** | ☑ **PASS** ☐ FAIL |
 
@@ -190,7 +189,7 @@ While Governance = FROZEN:
 
 - Completing **4.1 / 4.8** with honest ARB evidence is **allowed** and does **not** require thaw.
 - Cursor / Orchestrator must **not** invent PASS to clear the freeze inventory.
-- Phase 0 remains **NO-GO** until all hard OPEN criteria (including **3.7**, **3.9**) meet checklist evidence — ARB PASS on 4.1/4.8 alone is not Production GO.
+- Phase 0 remains **NO-GO** until all hard OPEN criteria (residual **3.7**) meet checklist evidence — ARB PASS on 4.1/4.8 alone is not Production GO.
 
 ---
 
@@ -203,4 +202,4 @@ While Governance = FROZEN:
 
 ---
 
-*End of pack. Validation label for this assembly: **documentation / evidence-pack only** — not validated as ARB PASS.*
+*End of pack. Post-ARB: **4.1 PASS · 4.8 PASS** (CRITICAL **0**) recorded via DEC-153 + `.engineering/34_EOS_REAUDIT_2026-08-02.md`. Phase 0 remains **51/54 NO-GO**.*
