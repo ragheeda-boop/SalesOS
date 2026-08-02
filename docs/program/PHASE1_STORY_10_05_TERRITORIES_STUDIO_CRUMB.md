@@ -22,7 +22,10 @@
 
 ## Non-goals
 
-- FE `/studio/territories` page (FE-S10-05)
 - Postgres `territory_rule_sets` persistence / new RLS (deferred)
 - Live CAP-017 revenue repository mutation / 141221
 - Production GO
+
+## FE follow-up
+
+- FE `/studio/territories` — **LANDED FE-S10-05** (Stream B)

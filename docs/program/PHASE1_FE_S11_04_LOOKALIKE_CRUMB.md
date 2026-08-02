@@ -5,7 +5,7 @@
 > **Tip base:** STORY-11-04 `f3a99cc` / tip `01f634b`+  
 > **Honesty:** Not Production GO / RAG GO. Tip won/lost Opportunity fixtures only.  
 > Live Opportunity ML backtest / 141221 — **not claimed**.  
-> `TenantList.tsx` untouched. FE-S10-05 territories still BLOCKED.
+> `TenantList.tsx` untouched. FE-S10-05 territories LANDED (see PHASE1_FE_S10_05_TERRITORIES_STUDIO_CRUMB.md).
 
 ## Landed
 

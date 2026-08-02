@@ -4,7 +4,7 @@
 > **Owner:** Frontend Lead  
 > **Tip base:** STORY-10-07 `80d4aa2` / FE-S10-07 `2b521fc`+  
 > **Honesty:** Not Production GO / RAG GO. Tip in-memory branding only.  
-> `TenantList.tsx` untouched. FE-S10-05 territories still BLOCKED.
+> `TenantList.tsx` untouched. FE-S10-05 territories LANDED (see PHASE1_FE_S10_05_TERRITORIES_STUDIO_CRUMB.md).
 
 ## Landed
 

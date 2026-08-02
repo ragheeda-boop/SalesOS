@@ -56,5 +56,6 @@
 
 ## Blocked (do not invent)
 
+- FE-S11-07 Website Intelligence / FE-S11-08 AI Outreach — **STANDBY** until AI-Lead tip HTTP
 - Postgres custom-field / workflow persistence beyond tip in-memory stores
 - Workflow for_each / loop canvas nodes (deferred)

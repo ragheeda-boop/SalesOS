@@ -5,7 +5,7 @@
 > **Tip base:** STORY-11-03 `3661c1b`  
 > **Honesty:** Not Production GO / RAG GO. Tip gov-first + FakeSourceConnector only.  
 > Live 141221 Postgres / live ERP **not claimed**. `TenantList.tsx` untouched.  
-> FE-S10-05 territories still BLOCKED.
+> FE-S10-05 territories LANDED (see PHASE1_FE_S10_05_TERRITORIES_STUDIO_CRUMB.md).
 
 ## Landed
 

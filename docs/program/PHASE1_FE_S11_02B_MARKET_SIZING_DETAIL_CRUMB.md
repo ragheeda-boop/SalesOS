@@ -5,7 +5,7 @@
 > **Tip base:** STORY-11-02 `4f69d1f` / FE-S11-02 `d96a940`+  
 > **Honesty:** Not Production GO / RAG GO. Tip in-memory gov-dataset-shaped universe only.  
 > Live 141221 Postgres adapter **not claimed**. `TenantList.tsx` untouched.  
-> FE-S10-05 territories still BLOCKED. FE-S11-03 Lead Discovery **STANDBY** until tip HTTP lands (local WIP ignored).
+> FE-S10-05 territories LANDED. FE-S11-03 Lead Discovery LANDED (tip HTTP).
 
 ## Landed
 

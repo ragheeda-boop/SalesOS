@@ -6,7 +6,7 @@
 > **Honesty:** Not Production GO / RAG GO. Tip CI state machine; FE creates **email** steps only.  
 > Live SMTP / LinkedIn / WhatsApp network — **not claimed**.  
 > Tip may list partner LinkedIn/WhatsApp channel shapes — FE does not invent live sends.  
-> `TenantList.tsx` untouched. FE-S10-05 territories still BLOCKED.
+> `TenantList.tsx` untouched. FE-S10-05 territories LANDED (see PHASE1_FE_S10_05_TERRITORIES_STUDIO_CRUMB.md).
 
 ## Landed
 

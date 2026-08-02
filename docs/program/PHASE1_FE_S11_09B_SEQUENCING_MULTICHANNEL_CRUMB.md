@@ -5,7 +5,7 @@
 > **Tip base:** STORY-11-09b `5a6b295` / tip after FE-S11-09  
 > **Honesty:** Not Production GO / RAG GO. Tip Mem*PartnerSender / recorded email only.  
 > Live SMTP / LinkedIn / WhatsApp network — **not claimed**.  
-> `TenantList.tsx` untouched. FE-S10-05 territories still BLOCKED.
+> `TenantList.tsx` untouched. FE-S10-05 territories LANDED (see PHASE1_FE_S10_05_TERRITORIES_STUDIO_CRUMB.md).
 
 ## Landed
 

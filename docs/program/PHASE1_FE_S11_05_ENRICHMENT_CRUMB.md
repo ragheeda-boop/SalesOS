@@ -5,7 +5,7 @@
 > **Tip base:** STORY-11-05 `96b9f8b` / tip after FE-S11-01 `df21966`+  
 > **Honesty:** Not Production GO / RAG GO. Tip ≥2 FakeEnrichment providers only.  
 > Live Clearbit/Apollo/ERP — **not claimed**. Live 141221 — **not claimed**.  
-> `TenantList.tsx` untouched. FE-S10-05 territories still BLOCKED. Lookalike (11-04) not on tip.
+> `TenantList.tsx` untouched. FE-S10-05 territories LANDED (PHASE1_FE_S10_05). FE-S11-04 lookalikes LANDED.
 
 ## Landed
 

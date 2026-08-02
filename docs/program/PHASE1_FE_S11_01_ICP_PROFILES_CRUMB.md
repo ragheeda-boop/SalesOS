@@ -5,7 +5,7 @@
 > **Tip base:** STORY-11-01 `d5e40a8` / tip `96b9f8b`+ (post FE-S11-03b + STORY-11-05 BE)  
 > **Honesty:** Not Production GO / RAG GO. Tip in-memory versioned ICP only.  
 > Deterministic fit — **no** ML / won-lost backtest. Live 141221 **not claimed**.  
-> `TenantList.tsx` untouched. FE-S10-05 territories still BLOCKED.
+> `TenantList.tsx` untouched. FE-S10-05 territories LANDED (see PHASE1_FE_S10_05_TERRITORIES_STUDIO_CRUMB.md).
 
 ## Landed
 
