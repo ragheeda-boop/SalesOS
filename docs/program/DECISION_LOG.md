@@ -1086,16 +1086,25 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-152 — Criterion 3.9 CI GREEN (DEC-149 topology) field-verify (Accepted — CLOSED CONDITIONAL)
+
+**Date:** 2026-08-02
+**Context:** Under DEC-151 freeze, stream A required tip Stages 1–5 same-run + Railway/Vercel deploy evidence (no Stage 6 GHCR). Tip `5fafbe9` (includes Stage 4 xdist fix `3547177`) delivered field evidence.
+**Alternatives considered:** (a) leave 3.9 OPEN despite green Stages 1–5 — **rejected** (evidence met); (b) unconditional CLOSED ignoring Stage 7 overall-red / FE Git-primary — **rejected** (honesty); (c) CLOSED CONDITIONAL with explicit residuals — **approved**.
+**Decision:** Accept **3.9 VERIFIED → CLOSED CONDITIONAL**. Evidence: CI [30724762973](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762973) Stages 1–5 SUCCESS; Deploy [30724762967](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762967) SUCCESS; Security Scan [30724762982](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762982) SUCCESS; Stage 6 SKIPPED (quarantined). Residuals: Stage 7 FAILURE (**3.7** OPEN); FE Git-primary; staging deferred. Companion: [`decisions/DEC-152-CRITERION-3-9-CI-GREEN-TOPOLOGY-FIELD-VERIFY.md`](decisions/DEC-152-CRITERION-3-9-CI-GREEN-TOPOLOGY-FIELD-VERIFY.md).
+**Consequence:** Phase 0 **48/54 → 49/54 NO-GO**. Hard OPEN → **3.7**, **4.1**, **4.8**. Does **not** close **3.7** / invent **4.1/4.8** / Production GO / Stages 1–7 green. DEC-085 untouched. Validation: **build validated** (gh field evidence).
+**Status:** Accepted (CLOSED CONDITIONAL).
+
 ### DEC-151 — Phase 0 Governance Freeze (Accepted)
 
 **Date:** 2026-08-02
 **Context:** Tip after DEC-150 Option B @ `a734853`: Phase 0 **48/54 NO-GO**; canonical deploy Railway+Vercel (DEC-149 / DEC-149a CLOSED CONDITIONAL); Stage 6 GHCR retired as Phase 0 gate (DEC-150 B); CI-08 GOVERNANCE COMPLETED; hard OPEN **3.7**, **3.9**, **4.1**, **4.8**. Architecture already FROZEN (EEC-001); AI Runtime DEFERRED (DEC-146). User directive: freeze further organizational redesign, deployment-topology DECs, and criterion rewrites.
 **Alternatives considered:** (a) continue open-ended governance redesign of deploy/org/criteria — **rejected**; (b) declare Phase 0 COMPLETE — **rejected** (48/54; hard OPEN remain); (c) freeze with allowed residual field evidence + bugfix crumbs only — **approved**.
 **Decision:** **Accepted.** Phase 0 Governance Freeze. Frozen: org redesign, new deploy-topology DECs superseding DEC-149, criterion rewrites, inventing ARB PASS, reopening GHCR as Phase 0 gate without ARB reverse. Allowed: field evidence for **3.7 / 3.9 / 4.1 / 4.8**; bugfixes / evidence crumbs that do not change architecture or supersede DEC-149/150. Companion: [`decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md`](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md).
-**Consequence:** Checklist Operating State → `Governance = FROZEN`. Scoreboard pin unchanged **48/54 NO-GO**. Does **not** close any criterion. **No Phase 0 COMPLETE / Production GO / CI GREEN / 4.1/4.8 invent.** Validation: **governance freeze documentation only**.
+**Consequence:** Checklist Operating State → `Governance = FROZEN`. Scoreboard pin unchanged **48/54 NO-GO** (later **49/54** via DEC-152). Does **not** close any criterion by itself. **No Phase 0 COMPLETE / Production GO / CI GREEN / 4.1/4.8 invent.** Validation: **governance freeze documentation only**.
 **Status:** Accepted.
 
-**Orchestration follow-on (2026-08-02, Execution Orchestrator — not a new DEC):** Operating State → `PARALLEL EXECUTION — FREEZE COMPLIANT`. Three freeze-compliant workstreams launched: **(A) 3.9** CI GREEN field-fix (DevOps / Validation); **(B) 3.7** Stage 7 E2E (DevOps / Backend); **(C) 4.1/4.8** ARB evidence pack (ARB / OpenCode — no invent PASS). Frozen stack reaffirmed: DEC-149 / DEC-150 B / DEC-151. Hard OPEN unchanged. Score **pinned 48/54**. Crumbs on checklist / board / DAG only — no architecture or topology change.
+**Orchestration follow-on (2026-08-02, Execution Orchestrator — not a new DEC):** Operating State escalated → `CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT` (was PARALLEL EXECUTION). Streams: **(A) 3.9 CLOSED CONDITIONAL** DEC-152; **(B) 3.7 ACTIVE**; **(C) 4.1/4.8 READY FOR ARB** (no invent PASS); **(D) QUEUED** freeze-compliant backlog. Score **49/54**. Loop: identify next OPEN → assign/fix → land crumbs → push. Never invent Production GO / Phase 0 COMPLETE unless **54/54**.
 
 ### DEC-150 — After DEC-149: Is Stage 6 GHCR still a required Phase 0 exit criterion? (Accepted — Option B)
 
