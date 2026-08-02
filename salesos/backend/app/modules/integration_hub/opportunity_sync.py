@@ -146,10 +146,12 @@ async def sync_opportunity_records(
                 )
             # Optional fields: map + normalize without making ACL require them.
             for internal, external in _OPTIONAL_OPPORTUNITY_EXTERNALS:
-                if external in payload and payload.get(external) not in (None, False, ""):
-                    canonical.payload[internal] = payload.get(external)
+                val = payload.get(external)
+                if external in payload and val not in (None, False, ""):
+                    canonical.payload[internal] = val
+            opt_keys = ("note", "currency", "name")
             extras = acl._normalize(
-                {k: canonical.payload[k] for k in ("note", "currency", "name") if k in canonical.payload}
+                {k: canonical.payload[k] for k in opt_keys if k in canonical.payload}
             )
             for key in ("note", "currency"):
                 if key in extras:
