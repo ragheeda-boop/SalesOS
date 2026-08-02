@@ -13,6 +13,7 @@ router = APIRouter(
 from app.modules.billing.stripe_router import owner_router as stripe_owner_router
 from app.modules.billing.usage_meter_router import router as usage_meter_router
 from app.modules.billing.dunning_router import router as dunning_router
+from app.modules.billing.proration_router import router as proration_router
 
 from .routers.ai_audit import router as ai_audit_router
 from .routers.ai_costs import router as ai_costs_router
@@ -35,6 +36,7 @@ router.include_router(billing_router)
 router.include_router(stripe_owner_router)
 router.include_router(usage_meter_router)
 router.include_router(dunning_router)
+router.include_router(proration_router)
 router.include_router(feature_flags_router)
 router.include_router(roles_permissions_router)
 router.include_router(jobs_router)

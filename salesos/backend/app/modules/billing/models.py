@@ -44,6 +44,11 @@ class SubscriptionModel(Base):
     # STORY-05-02 â€” Stripe ids (sandbox/prod secrets live in env, not here)
     stripe_customer_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     stripe_subscription_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    # STORY-05-05 — deferred downgrade target (period-end apply)
+    pending_plan_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    pending_effective_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
