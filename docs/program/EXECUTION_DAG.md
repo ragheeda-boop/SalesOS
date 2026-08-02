@@ -1,26 +1,32 @@
 # Execution DAG — Current Program State
 
-> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-02** (post **DEC-153** tip `8ff782f` / `d973cba`; Continuous Autonomous Mode chasing Stage 7; DEC-152 **3.9 CLOSED CONDITIONAL**; prior DEC-150 B / DEC-149a / DEC-120).  
+> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-02** (tip `8600f68` standalone Stage 7 wf; post **DEC-153**; Continuous Autonomous Mode chasing Stage 7; **ARMED** for post-54/54 parallel — not triggered; DEC-152 **3.9 CLOSED CONDITIONAL**; prior DEC-150 B / DEC-149a / DEC-120).  
 > Authority: evidence + `SPRINT_05_DELIVERY_BOARD.md` + `RISK_REGISTER.md` + Sprint plans + `docs/audit/ga-engineering-audit/` + Principal Audit.  
-> Honesty labels: **Stages 1–7 CI GREEN not met** (Stage 7 red). **Phase 0 (DEC-008 RLS / R-14) exit = NO-GO** (DEC-086 GO **withdrawn** by DEC-120). **Production GA / External pilot = NO-GO**. STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies). **Do not reopen STORY-02-01.**  
-> **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md)): hard OPEN ⬜ = **3.7** only — chase tip Stage 7 SUCCESS; no invent CLOSE. Phase 0 **51/54 NO-GO**. Sprint **26/26**. Never invent Production GO / Phase 0 COMPLETE unless **54/54**.
+> Honesty labels: **Stages 1–7 CI GREEN not met** (Stage 7 not SUCCESS on tip). **Phase 0 (DEC-008 RLS / R-14) exit = NO-GO** (DEC-086 GO **withdrawn** by DEC-120). **Production GA / External pilot = NO-GO**. STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies). **Do not reopen STORY-02-01.**  
+> **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** + **ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md); plan [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md)): hard OPEN ⬜ = **3.7** only. Phase 0 **51/54 NO-GO**. Sprint **26/26**. Trigger parallel streams **only** on true **54/54** — no human wait after trigger. Never invent Production GO / Phase 0 COMPLETE.
 
 ---
 
-## Operating State — CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT
+## Operating State — CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT + ARMED POST-54/54
 
 ```
 STATE = CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT
+       + ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION
 Architecture = FROZEN
 Governance = FROZEN          # DEC-151
 Program = ACTIVE             # hard OPEN: 3.7 only — chasing Stage 7
 Engineering = STABILIZING
 AI Runtime = DEFERRED
-Score = 51/54                # DEC-153 closed 4.1/4.8; DEC-152 3.9 CONDITIONAL
+Score = 51/54                # tip 8600f68; NOT 54/54
 Loop = chase Stage 7 → field-verify → land crumbs → push
+Post54 = ARMED               # trigger only on true 54/54 → spawn BE/FE/DevOps/Validation
 ```
 
-**Frozen reaffirm:** DEC-149 (Railway+Vercel) · DEC-150 B (GHCR retired) · DEC-151 (governance freeze). Tip pin for DEC-153 land: `8ff782f` (+ `d973cba` Stage 7 psql harden).
+**Frozen reaffirm:** DEC-149 (Railway+Vercel) · DEC-150 B (GHCR retired) · DEC-151 (governance freeze). Tip pin: `8600f68` (DEC-153 land `8ff782f` / `d973cba`).
+
+### Orchestrator trigger protocol (short)
+
+On **true 54/54** (checklist evidence; no invent): Orchestrator spawns Backend / Frontend / DevOps / Validation streams per [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) **without waiting for human**. While score &lt; 54/54 → remain ARMED; primary chase = Stream B (**3.7**).
 
 ### Coordination map (continuous streams)
 
@@ -30,6 +36,7 @@ Loop = chase Stage 7 → field-verify → land crumbs → push
 | **B** | **3.7** Stage 7 E2E | DevOps / Backend | **ACTIVE — primary chase** | Services + smoke-auth-ui @ `9e1dc46` / harden `d973cba`; await tip Stage 7 SUCCESS; **do not invent CLOSE** |
 | **C** | **4.1 / 4.8** ARB re-audit | ARB / OpenCode | **CLOSED** (DEC-153 @ `8ff782f`) | ARB PASS / CRITICAL **0** @ `.engineering/34_EOS_REAUDIT_2026-08-02.md` |
 | **D** | Freeze-compliant backlog | Orchestrator / Validation | **QUEUED** | Docs consistency / CONDITIONAL residual crumbs after 3.7 progress |
+| **Post-54/54** | Phase 1 parallel launch | Program Planner | **ARMED** | [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) — execute only on tip **54/54**; no Phase 1 impl / no Production GO invent |
 
 ---
 

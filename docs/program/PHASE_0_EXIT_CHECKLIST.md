@@ -3,24 +3,34 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-02 (**CONTINUOUS AUTONOMOUS MODE** under [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md); **4.1/4.8 CLOSED** DEC-153 ARB PASS; **3.9 CLOSED CONDITIONAL** DEC-152; Phase 0 **51/54 NO-GO**; no Production GO)
+> **Last updated:** 2026-08-02 (**CONTINUOUS AUTONOMOUS MODE** under [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md); **ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION** — trigger only on true 54/54; tip `8600f68`; Phase 0 **51/54 NO-GO**; hard OPEN **3.7**; no Production GO)
 >
 > ## Operating State
 >
 > ```
 > STATE = CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT
+>        + ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION
 > Architecture = FROZEN
 > Governance = FROZEN          # DEC-151 — Phase 0 Governance Freeze
 > Program = ACTIVE             # residual hard OPEN only: 3.7
 > Engineering = STABILIZING
 > AI Runtime = DEFERRED
-> Score = 51/54               # DEC-153 closed 4.1/4.8 ARB PASS; DEC-152 3.9 CONDITIONAL; lift only with evidence
+> Score = 51/54               # tip 8600f68; DEC-153 4.1/4.8; DEC-152 3.9 CONDITIONAL; NOT 54/54
 > Loop = chase Stage 7 → field-verify → land crumbs → push
+> Post54 = ARMED              # plan POST_PHASE0_PARALLEL_EXECUTION_PLAN — trigger ≠ fire
 > ```
+>
+> **ARMED (not triggered):** Post–Phase 0 parallel sprint is **armed** per [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md). Orchestrator trigger fires **only** on true checklist **54/54** → spawn Backend / Frontend / DevOps / Validation streams **without waiting for human**. **Do not** fire on 51/54 or invent CLOSE.
+>
+> ### Orchestrator trigger protocol (short)
+>
+> 1. Score &lt; 54/54 → remain ARMED; continue **3.7** chase (Stream B).  
+> 2. True **54/54** (all hard ⬜ closed with evidence) → Orchestrator spawns Backend / FE / DevOps / Validation per plan **immediately** (no human wait).  
+> 3. Forbidden: fake 54/54, CONDITIONAL-as-exit, Production GO substitute.
 >
 > **Governance freeze (DEC-151):** No organizational redesign, deployment-topology DECs superseding DEC-149, or criterion rewrites except completing hard OPEN **3.7** with tip Stage 7 field evidence, plus bugfixes / evidence crumbs that do not change architecture or supersede DEC-149/150. Forbidden without ARB reverse: new deploy topology, reopening GHCR as Phase 0 gate. **Do not invent 3.7 CLOSE.** Never invent Production GO / Phase 0 COMPLETE unless score truly **54/54** with evidence.
 >
-> **Frozen stack (reaffirm):** [DEC-149](decisions/DEC-149-CANONICAL-DEPLOY-RAILWAY-VERCEL.md) Railway+Vercel canonical deploy · [DEC-150](decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md) Option B Stage 6 GHCR retired · [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md) governance freeze. Tip DEC-153 land `8ff782f` (+ `d973cba`). **Hard OPEN ⬜:** **3.7** only. **4.1/4.8 CLOSED** ([DEC-153](decisions/DEC-153-CRITERION-4-1-4-8-ARB-REAUDIT-PASS.md)). **3.9 CLOSED CONDITIONAL** ([DEC-152](decisions/DEC-152-CRITERION-3-9-CI-GREEN-TOPOLOGY-FIELD-VERIFY.md)). Sprint **26/26**.
+> **Frozen stack (reaffirm):** [DEC-149](decisions/DEC-149-CANONICAL-DEPLOY-RAILWAY-VERCEL.md) Railway+Vercel canonical deploy · [DEC-150](decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md) Option B Stage 6 GHCR retired · [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md) governance freeze. Tip pin `8600f68` (standalone Stage 7 wf; DEC-153 land `8ff782f` / `d973cba`). **Hard OPEN ⬜:** **3.7** only. **4.1/4.8 CLOSED** ([DEC-153](decisions/DEC-153-CRITERION-4-1-4-8-ARB-REAUDIT-PASS.md)). **3.9 CLOSED CONDITIONAL** ([DEC-152](decisions/DEC-152-CRITERION-3-9-CI-GREEN-TOPOLOGY-FIELD-VERIFY.md)). Sprint **26/26**.
 >
 > ### Coordination map — continuous autonomous workstreams (2026-08-02)
 >
@@ -30,6 +40,7 @@
 > | **B** | **3.7** Stage 7 E2E | DevOps / Backend | **ACTIVE — primary chase** (sole hard OPEN) | Tip Stage 7 SUCCESS with real services (`9e1dc46`/`d973cba`); do **not** invent CLOSE |
 > | **C** | **4.1 / 4.8** ARB re-audit | ARB / OpenCode | **CLOSED** DEC-153 @ `8ff782f` — PASS @ [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md) | CRITICAL **0**; pack [`ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md`](ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md) |
 > | **D** | Freeze-compliant backlog | Orchestrator / Validation | **QUEUED** after 3.7 progress | Docs consistency, CONDITIONAL residual field-verify crumbs — no architecture |
+> | **Post-54/54** | Phase 1 parallel plan | Program Planner | **ARMED** | [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) — launch only when Score **54/54**; no Phase 1 impl / no Production GO invent |
 >
 > **Sprint success = number of exit criteria CLOSED, not number of stories completed.**
 > **Rule: No work accepted unless it directly closes a criterion from this checklist.**
@@ -320,6 +331,7 @@ New agents joining during EXECUTION state need only:
 - `docs/program/PRODUCT_ROADMAP.md` — Phase 0 Go/No-Go Criteria
 - `docs/program/EXECUTION_DAG.md` — Live READY/BLOCKED/PARALLEL state
 - `docs/program/SPRINT_05_DELIVERY_BOARD.md` — Per-story status
+- `docs/program/POST_PHASE0_PARALLEL_EXECUTION_PLAN.md` — ARMED post-54/54 streams + Orchestrator trigger
 - `docs/program/RISK_REGISTER.md` — R-01 through R-26
 - `docs/program/ENGINEERING_LAYER_BRIDGE.md` — Program → Engineering Spec (pointers only)
 - `.engineering/33_PROGRAM_LAYER_BRIDGE.md` — Engineering Spec → Program (pointers only)
