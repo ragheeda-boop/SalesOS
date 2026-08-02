@@ -1,4 +1,4 @@
-"""GTM Intelligence — CAP-095..101 + CAP-104. Not Production GO."""
+"""GTM Intelligence — CAP-095..101 + CAP-103..104. Not Production GO."""
 
 from app.modules.gtm.enrichment import EnrichmentError, EnrichmentResult
 from app.modules.gtm.icp import ICPError, ICPProfile
@@ -18,6 +18,7 @@ from app.modules.gtm.market_sizing import (
 from app.modules.gtm.market_sizing_engine import (
     compute_tam_sam_som,
 )
+from app.modules.gtm.outreach import OutreachDraft, OutreachError
 from app.modules.gtm.sequencing import SequenceDefinition, SequencingError
 from app.modules.gtm.verification import VerificationError, VerificationResult
 from app.modules.gtm.website_intelligence import (
@@ -40,6 +41,8 @@ __all__ = [
     "MarketSizingCriteria",
     "MarketSizingError",
     "MarketSizingSnapshot",
+    "OutreachDraft",
+    "OutreachError",
     "SequenceDefinition",
     "SequencingError",
     "VerificationError",

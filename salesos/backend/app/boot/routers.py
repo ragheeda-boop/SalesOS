@@ -352,6 +352,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["GTM Intelligence"],
         dependencies=_auth,
     )
+    # DOM-023 / CAP-103 — STORY-11-08 AI Outreach (Prompt Registry path; draft_only).
+    from app.modules.gtm.outreach_router import (
+        router as outreach_router,
+    )
+
+    app.include_router(
+        outreach_router,
+        prefix="/api/v1",
+        tags=["GTM Intelligence"],
+        dependencies=_auth,
+    )
     # DOM-023 / CAP-104 — STORY-11-09 Sequencing Engine (email channel).
     from app.modules.gtm.sequencing_router import (
         router as sequencing_router,
