@@ -14,7 +14,7 @@
 | STORY-11-03 (Lead Discovery) | BE2 | P0 | Medium | **LANDED BE (Stream A):** gov-first + Integration Hub provider fallback via `/api/v1/gtm/lead-discovery` (CI: gov-dataset-shaped universe + FakeSourceConnector). Crumb [`PHASE1_STORY_11_03_LEAD_DISCOVERY_CRUMB.md`](../PHASE1_STORY_11_03_LEAD_DISCOVERY_CRUMB.md). Live 141221 / live ERP not claimed. No new RLS. No Production GO. |
 | FE-S11-03 (Lead Discovery UI) | FE-Lead | P0 | Medium | **LANDED FE (Stream B):** `/gtm/lead-discovery` against tip lead-discovery HTTP. Crumb [`PHASE1_FE_S11_03_LEAD_DISCOVERY_CRUMB.md`](../PHASE1_FE_S11_03_LEAD_DISCOVERY_CRUMB.md). Live 141221 / live ERP not claimed. No Production GO. |
 | FE-S11-03b (GTM hub + handoff) | FE-Lead | P1 | Low | **LANDED FE (Stream B):** `/gtm` hub + criteria handoff + `?snapshot=`/`?run=` deep-links. Crumb [`PHASE1_FE_S11_03B_GTM_HUB_HANDOFF_CRUMB.md`](../PHASE1_FE_S11_03B_GTM_HUB_HANDOFF_CRUMB.md). No invented ICP/territories. No Production GO. |
-| Second-connector decision | Chief Architect, Program Director | P0 | High (R-02) | SAP or HubSpot selected based on actual pilot pipeline demand, documented rationale |
+| Second-connector decision | Chief Architect, Program Director | P0 | High (R-02) | **PROVISIONAL (Stream A):** HubSpot selected for STORY-11-10 certification scaffolding (CI). Formal Chief Architect Accept may refine SAP vs HubSpot. Live pilot sync not claimed. |
 
 **Expected Demo:** Run ICP scoring + TAM/SAM/SOM for a real pilot tenant's target market, show Lead Discovery sourcing hits from the government dataset first.
 

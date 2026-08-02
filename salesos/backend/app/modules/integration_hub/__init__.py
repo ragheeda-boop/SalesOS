@@ -31,6 +31,7 @@ from app.modules.integration_hub.customer_invoice_sync import (
 from app.modules.integration_hub.drift_job import DriftJobResult, run_field_drift_job
 from app.modules.integration_hub.fake_adapter import FakeSourceConnector
 from app.modules.integration_hub.field_mapping_service import FieldMappingConfigService
+from app.modules.integration_hub.hubspot_adapter import HubSpotAdapter
 from app.modules.integration_hub.models import (
     ConflictResolutionPolicyModel,
     ExternalSystemConnectionModel,
@@ -77,6 +78,7 @@ __all__ = [
     "FeedbackLoopExclusionError",
     "FieldMappingConfigModel",
     "FieldMappingConfigService",
+    "HubSpotAdapter",
     "KIND_INTEGRATION_HUB_SYNC",
     "KIND_UNLINKED_BADGE",
     "OdooAdapter",

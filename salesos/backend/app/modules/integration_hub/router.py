@@ -409,3 +409,37 @@ async def list_unlinked_badges(
         count=len(items),
         items=[UnlinkedBadgeItemResponse.model_validate(i.as_dict()) for i in items],
     )
+
+
+@router.get("/certify/meta", dependencies=_AUTH)
+async def certify_meta() -> dict:
+    """STORY-11-10 — second-connector certification surface (R-02)."""
+    from app.modules.integration_hub.second_connector import (
+        SECOND_CONNECTOR_KEY,
+        SECOND_CONNECTOR_TARGET,
+    )
+
+    return {
+        "suite": "certify_source_connector",
+        "certifiable": ["fake", "odoo", "hubspot"],
+        "second_connector_key": SECOND_CONNECTOR_KEY,
+        "second_connector_target": SECOND_CONNECTOR_TARGET,
+        "honesty": (
+            "Identical suite to Fake/Odoo. HubSpot adapter is in-memory CI; "
+            "live HubSpot API / production pilot sync not claimed. "
+            "Chief Architect SAP-vs-HubSpot formal decision may still refine target."
+        ),
+    }
+
+
+@router.post("/certify/{connector_key}", dependencies=_AUTH)
+async def certify_connector(connector_key: str) -> dict:
+    """STORY-11-10 — run SourceConnector certification suite for a named adapter."""
+    from app.modules.integration_hub.second_connector import certify_named_connector
+
+    try:
+        return await certify_named_connector(connector_key)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except AssertionError as exc:
+        raise HTTPException(status_code=400, detail=f"certification failed: {exc}") from exc
