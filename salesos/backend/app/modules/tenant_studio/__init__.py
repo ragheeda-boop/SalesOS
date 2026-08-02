@@ -1,6 +1,6 @@
-"""Tenant Studio — CAP-082/083/085/003/093/092 (STORY-10-01..10-04, 10-06..10-08).
+"""Tenant Studio — CAP-082/083/085/087/003/093/092 (STORY-10-01..10-08).
 
-Custom fields + Workflow + Scoring + Permissions + Notifications + Branding.
+Custom fields + Workflow + Scoring + Territories + Permissions + Notifications + Branding.
 Not Production GO.
 """
 
@@ -45,6 +45,8 @@ from app.modules.tenant_studio.scoring_rules_engine import (
     get_effective_dimension_weights,
 )
 from app.modules.tenant_studio.service import MemCustomFieldDefinitionService
+from app.modules.tenant_studio.territories import TerritoryRule, TerritoryRuleError
+from app.modules.tenant_studio.territories_engine import assign_territory
 from app.modules.tenant_studio.workflow_canvas import CanvasNode, WorkflowCanvas
 from app.modules.tenant_studio.workflow_compiler import (
     WorkflowCanvasCompileError,
@@ -69,9 +71,12 @@ __all__ = [
     "RESERVED_COLUMNS",
     "ScoringRule",
     "ScoringRuleError",
+    "TerritoryRule",
+    "TerritoryRuleError",
     "WorkflowCanvas",
     "WorkflowCanvasCompileError",
     "assert_within_ceiling",
+    "assign_territory",
     "auto_render_payload",
     "build_auto_render_form",
     "build_field_definition",

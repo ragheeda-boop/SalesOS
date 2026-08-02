@@ -211,6 +211,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["Tenant Studio"],
         dependencies=_auth,
     )
+    # DOM-022 / CAP-087 — STORY-10-05 Territory Rules Studio (geography/industry/size).
+    from app.modules.tenant_studio.territories_router import (
+        router as territories_studio_router,
+    )
+
+    app.include_router(
+        territories_studio_router,
+        prefix="/api/v1",
+        tags=["Tenant Studio"],
+        dependencies=_auth,
+    )
     # DOM-022 / CAP-003 — STORY-10-06 Permissions Studio (entitlement ceiling).
     from app.modules.tenant_studio.permissions_router import (
         router as permissions_studio_router,
