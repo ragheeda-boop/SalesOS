@@ -33,6 +33,7 @@ import {
   useUpdateAdminTenant,
   useSuspendAdminTenant,
   useDeleteAdminTenant,
+  useHardDeleteAdminTenant,
   useAdminTenantDetail,
   useAdminTenantUsage,
 } from "@/lib/hooks/adminQueries";
@@ -57,6 +58,20 @@ const PLAN_OPTIONS = [
   { label: "Enterprise", value: "enterprise" },
 ];
 
+const STATUS_OPTIONS = [
+  { label: "All activity", value: "" },
+  { label: "Active", value: "active" },
+  { label: "Suspended / inactive", value: "suspended" },
+];
+
+const PROVISIONING_FILTER_OPTIONS = [
+  { label: "All provisioning", value: "" },
+  { label: "Pending", value: "pending" },
+  { label: "Active", value: "active" },
+  { label: "Suspended", value: "suspended" },
+  { label: "Failed", value: "failed" },
+];
+
 const PLAN_VARIANT: Record<
   string,
   "success" | "warning" | "default" | "danger"
@@ -71,12 +86,15 @@ export default function AdminTenantsPage() {
   const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [planFilter, setPlanFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [provisioningFilter, setProvisioningFilter] = useState("");
   const [page, setPage] = useState(1);
   const [showCreate, setShowCreate] = useState(false);
   const [showDetail, setShowDetail] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
     null,
   );
+  const [hardDeleteConfirm, setHardDeleteConfirm] = useState(false);
 
   const [createForm, setCreateForm] = useState({
     name: "",
@@ -92,10 +110,13 @@ export default function AdminTenantsPage() {
   const { data: tenants, isLoading } = useAdminTenants({
     search: search || undefined,
     plan: planFilter || undefined,
+    // Backend status filter maps to is_active (active|suspended)
+    status: statusFilter || undefined,
   });
 
   const createMutation = useCreateAdminTenant();
   const deleteMutation = useDeleteAdminTenant();
+  const hardDeleteMutation = useHardDeleteAdminTenant();
 
   const filteredTenants = useMemo(() => {
     if (!tenants) return [];
@@ -111,8 +132,15 @@ export default function AdminTenantsPage() {
     }
     if (planFilter)
       list = list.filter((t: AdminTenantListItem) => t.plan === planFilter);
+    // FE-S04-10 — client filter for provisioning_status (API has no query param yet)
+    if (provisioningFilter) {
+      list = list.filter(
+        (t: AdminTenantListItem) =>
+          (t.provisioning_status || "pending") === provisioningFilter,
+      );
+    }
     return list;
-  }, [tenants, search, planFilter]);
+  }, [tenants, search, planFilter, provisioningFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredTenants.length / 20));
   const paginatedTenants = filteredTenants.slice((page - 1) * 20, page * 20);
@@ -158,12 +186,28 @@ export default function AdminTenantsPage() {
   const handleDelete = useCallback(
     async (id: string) => {
       try {
-        await deleteMutation.mutateAsync(id);
+        if (hardDeleteConfirm) {
+          // FE-S04-11
+          const result = await hardDeleteMutation.mutateAsync({
+            id,
+            confirm: true,
+          });
+          setShowDeleteConfirm(null);
+          setHardDeleteConfirm(false);
+          toast({
+            variant: "success",
+            title: "Tenant hard-deleted",
+            description: `${result.message} · tenant_id=${result.tenant_id}`,
+          });
+          return;
+        }
+        // FE-S04-09 — soft-delete honesty
+        const result = await deleteMutation.mutateAsync(id);
         setShowDeleteConfirm(null);
         toast({
           variant: "success",
-          title: "Tenant deleted",
-          description: "The tenant has been permanently removed.",
+          title: "Tenant soft-deleted",
+          description: `${result.message} · is_active=false (recoverable via Activate)`,
         });
       } catch {
         toast({
@@ -173,7 +217,7 @@ export default function AdminTenantsPage() {
         });
       }
     },
-    [deleteMutation, toast],
+    [deleteMutation, hardDeleteMutation, hardDeleteConfirm, toast],
   );
 
   return (
@@ -215,6 +259,28 @@ export default function AdminTenantsPage() {
             value={planFilter}
             onChange={(v) => {
               setPlanFilter(v);
+              setPage(1);
+            }}
+          />
+        </div>
+        <div className="w-48" data-testid="admin-tenants-status-filter">
+          <Select
+            options={STATUS_OPTIONS}
+            placeholder="Activity"
+            value={statusFilter}
+            onChange={(v) => {
+              setStatusFilter(v);
+              setPage(1);
+            }}
+          />
+        </div>
+        <div className="w-48" data-testid="admin-tenants-provisioning-filter">
+          <Select
+            options={PROVISIONING_FILTER_OPTIONS}
+            placeholder="Provisioning"
+            value={provisioningFilter}
+            onChange={(v) => {
+              setProvisioningFilter(v);
               setPage(1);
             }}
           />
@@ -540,17 +606,25 @@ export default function AdminTenantsPage() {
         />
       )}
 
-      {/* Delete Confirmation */}
+      {/* Delete Confirmation — FE-S04-09 soft / FE-S04-11 hard */}
       <Modal
         open={!!showDeleteConfirm}
-        onOpenChange={(open) => !open && setShowDeleteConfirm(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowDeleteConfirm(null);
+            setHardDeleteConfirm(false);
+          }
+        }}
       >
-        <ModalContent>
-          <ModalHeader>Confirm Deletion</ModalHeader>
+        <ModalContent data-testid="admin-tenants-delete-modal">
+          <ModalHeader>
+            {hardDeleteConfirm ? "Confirm Hard Delete" : "Confirm Soft Delete"}
+          </ModalHeader>
           <ModalBody>
             <div className="space-y-3">
               <p className="text-[var(--text-secondary)]">
-                Are you sure you want to delete tenant{" "}
+                {hardDeleteConfirm ? "Permanently remove" : "Soft-delete"}{" "}
+                tenant{" "}
                 <strong>
                   {
                     tenants?.find(
@@ -560,16 +634,28 @@ export default function AdminTenantsPage() {
                 </strong>
                 ?
               </p>
-              <p className="text-sm text-danger-600">
-                This action cannot be undone. All data will be permanently
-                removed.
+              <p className="text-sm text-[var(--text-muted)]">
+                Soft-delete sets <code>is_active=false</code> (recoverable via
+                Activate). Hard-delete permanently removes the row.
               </p>
+              <label className="flex items-center gap-2 text-sm text-danger-600">
+                <input
+                  type="checkbox"
+                  checked={hardDeleteConfirm}
+                  onChange={(e) => setHardDeleteConfirm(e.target.checked)}
+                  data-testid="admin-tenants-hard-delete-confirm"
+                />
+                Hard-delete (permanent — requires API confirm)
+              </label>
             </div>
           </ModalBody>
           <ModalFooter>
             <Button
               variant="outline"
-              onClick={() => setShowDeleteConfirm(null)}
+              onClick={() => {
+                setShowDeleteConfirm(null);
+                setHardDeleteConfirm(false);
+              }}
             >
               Cancel
             </Button>
@@ -577,17 +663,24 @@ export default function AdminTenantsPage() {
               onClick={() =>
                 showDeleteConfirm && handleDelete(showDeleteConfirm)
               }
-              disabled={deleteMutation.isPending}
+              disabled={
+                deleteMutation.isPending || hardDeleteMutation.isPending
+              }
               className="bg-danger-600 text-white hover:bg-danger-700"
+              data-testid="admin-tenants-delete-submit"
               leftIcon={
-                deleteMutation.isPending ? (
+                deleteMutation.isPending || hardDeleteMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Trash2 className="h-4 w-4" />
                 )
               }
             >
-              {deleteMutation.isPending ? "Deleting..." : "Delete Tenant"}
+              {deleteMutation.isPending || hardDeleteMutation.isPending
+                ? "Working..."
+                : hardDeleteConfirm
+                  ? "Hard Delete"
+                  : "Soft Delete"}
             </Button>
           </ModalFooter>
         </ModalContent>

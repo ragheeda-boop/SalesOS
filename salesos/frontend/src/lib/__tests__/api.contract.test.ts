@@ -72,6 +72,7 @@ import {
   createAdminTenant,
   updateAdminTenant,
   deleteAdminTenant,
+  hardDeleteAdminTenant,
   suspendAdminTenant,
   getAdminTenantUsage,
   listAdminLicenses,
@@ -1975,12 +1976,37 @@ describe("updateAdminTenant — contract", () => {
 });
 
 describe("deleteAdminTenant — contract", () => {
-  it("sends DELETE and returns void", async () => {
-    mockAxios.delete.mockResolvedValueOnce(mockResponse(undefined));
+  it("soft-deletes and returns message", async () => {
+    mockAxios.delete.mockResolvedValueOnce(
+      mockResponse({
+        message: "Tenant soft-deleted",
+        tenant_id: "t-1",
+      }),
+    );
 
-    await deleteAdminTenant("t-1");
+    const result = await deleteAdminTenant("t-1");
 
+    expect(result.message).toBe("Tenant soft-deleted");
     expect(mockAxios.delete).toHaveBeenCalledWith("/api/v1/admin/tenants/t-1");
+  });
+});
+
+describe("hardDeleteAdminTenant — contract", () => {
+  it("DELETEs /hard-delete with confirm", async () => {
+    mockAxios.delete.mockResolvedValueOnce(
+      mockResponse({
+        message: "Tenant hard-deleted",
+        tenant_id: "t-1",
+      }),
+    );
+
+    const result = await hardDeleteAdminTenant("t-1", { confirm: true });
+
+    expect(result.message).toBe("Tenant hard-deleted");
+    expect(mockAxios.delete).toHaveBeenCalledWith(
+      "/api/v1/admin/tenants/t-1/hard-delete",
+      { data: { confirm: true } },
+    );
   });
 });
 

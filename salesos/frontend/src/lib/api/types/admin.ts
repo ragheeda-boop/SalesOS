@@ -144,6 +144,22 @@ export interface AdminTenantSuspendResponse {
   reason: string;
 }
 
+/** DELETE /api/v1/admin/tenants/{id} — soft-delete (is_active=false). */
+export interface AdminTenantSoftDeleteResponse {
+  message: string;
+  tenant_id: string;
+}
+
+/** DELETE /api/v1/admin/tenants/{id}/hard-delete — mirrors TenantHardDeleteRequest. */
+export interface AdminTenantHardDeleteRequest {
+  confirm: boolean;
+}
+
+export interface AdminTenantHardDeleteResponse {
+  message: string;
+  tenant_id: string;
+}
+
 export interface AdminTenantListItem extends AdminTenantOwnerPlatformFields {
   id: string;
   name: string;

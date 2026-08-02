@@ -13,6 +13,7 @@ import {
   getAdminTenant,
   updateAdminTenant,
   deleteAdminTenant,
+  hardDeleteAdminTenant,
   suspendAdminTenant,
   getAdminTenantUsage,
   listAdminPlans,
@@ -50,6 +51,7 @@ import {
 } from "@/lib/api";
 import type {
   AdminTenantCreate,
+  AdminTenantHardDeleteRequest,
   AdminTenantSuspendRequest,
   AdminTenantUpdate,
 } from "@/lib/api/types/admin";
@@ -332,6 +334,21 @@ export function useDeleteAdminTenant() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => deleteAdminTenant(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: adminKeys.tenants() });
+    },
+  });
+}
+
+/** FE-S04-11 — hard-delete (confirm required). */
+export function useHardDeleteAdminTenant() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...data
+    }: AdminTenantHardDeleteRequest & { id: string }) =>
+      hardDeleteAdminTenant(id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: adminKeys.tenants() });
     },
