@@ -14,7 +14,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from html import unescape
-from typing import Any
+from typing import Any, cast
 
 from app.modules.integration_hub.field_mapping import FieldMapEntry, parse_field_mappings
 
@@ -74,7 +74,8 @@ class OdooTranslator:
         if not mappings:
             entries = ()
         elif isinstance(mappings[0], FieldMapEntry):
-            entries = tuple(mappings)
+            # isinstance narrows element 0 only; cast the homogeneous FieldMapEntry path.
+            entries = cast(tuple[FieldMapEntry, ...], tuple(mappings))
         else:
             entries = parse_field_mappings(list(mappings))
         if not (sync_run_id or "").strip():
