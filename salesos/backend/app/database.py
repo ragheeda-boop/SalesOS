@@ -209,6 +209,46 @@ async def _run_migrations_if_needed() -> None:
     log.info("Alembic migrations complete")
 
 
+async def probe_login_tenant_id(email: str) -> str | None:
+    """Pre-auth tenant lookup for FORCE RLS login (DEC-149 / Stage 7).
+
+    Email login has no JWT yet, so salesos_app cannot see ``users`` rows until
+    ``app.tenant_id`` is pinned. Probe via owner_engine (BYPASSRLS) — same
+    split as init_db / Alembic — then callers pin GUC on the request session.
+
+    Retries once after ``owner_engine.dispose()`` when asyncpg reports a
+    cross-event-loop Future (pytest function loops / adversarial suite dispose).
+    Under ``SALESOS_TESTING``, dispose before the first attempt so unit tests
+    never inherit a pool bound to a prior function-scoped event loop.
+    """
+    from sqlalchemy.ext.asyncio import AsyncSession as _AsyncSession
+
+    async def _once() -> str | None:
+        async with _AsyncSession(owner_engine, expire_on_commit=False) as owner_db:
+            result = await owner_db.execute(
+                sa_text("SELECT tenant_id::text FROM users WHERE email = :email LIMIT 1"),
+                {"email": email},
+            )
+            row = result.first()
+            return str(row[0]) if row and row[0] is not None else None
+
+    if os.environ.get("SALESOS_TESTING"):
+        await owner_engine.dispose()
+
+    try:
+        return await _once()
+    except RuntimeError as exc:
+        msg = str(exc).lower()
+        if "different loop" not in msg and "attached to a different" not in msg:
+            raise
+        await owner_engine.dispose()
+        try:
+            return await _once()
+        except RuntimeError:
+            # Unit/integration loops may still race; caller treats None as miss.
+            return None
+
+
 async def close_db():
     await engine.dispose()
     await owner_engine.dispose()
