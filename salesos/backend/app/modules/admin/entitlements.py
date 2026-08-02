@@ -24,6 +24,10 @@ VALID_AI_MODEL_TIERS: frozenset[str] = frozenset({"economy", "standard", "full"}
 AI_MODEL_TIER_RANK: dict[str, int] = {"economy": 0, "standard": 1, "full": 2}
 
 
+def _economy_allowed_tiers() -> list[AiModelTierName]:
+    return ["economy"]
+
+
 class DomainEntitlement(BaseModel):
     """Per-domain commercial gate."""
 
@@ -88,7 +92,7 @@ class AiModelTierEntitlement(BaseModel):
     """
 
     default: AiModelTierName = "economy"
-    allowed: list[AiModelTierName] = Field(default_factory=lambda: ["economy"])
+    allowed: list[AiModelTierName] = Field(default_factory=_economy_allowed_tiers)
 
     @field_validator("allowed")
     @classmethod
