@@ -26,6 +26,6 @@
 
 ## Non-goals
 
-- STORY-06-04 adversarial matrix
+- STORY-06-04 adversarial matrix → **LANDED** ([PHASE1_STORY_06_04_ENTITLEMENT_BYPASS_SUITE_CRUMB.md](PHASE1_STORY_06_04_ENTITLEMENT_BYPASS_SUITE_CRUMB.md))
 - Real-time (sub-hour) metering
 - Production GO / Stripe metered push
