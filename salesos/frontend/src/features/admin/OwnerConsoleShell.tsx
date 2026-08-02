@@ -28,6 +28,21 @@ const OWNER_NAV = [
     label: "Billing",
     testId: "owner-console-nav-billing",
   },
+  {
+    href: "/admin/flags",
+    label: "Flags",
+    testId: "owner-console-nav-flags",
+  },
+  {
+    href: "/admin/config",
+    label: "Config",
+    testId: "owner-console-nav-config",
+  },
+  {
+    href: "/admin/audit",
+    label: "Audit",
+    testId: "owner-console-nav-audit",
+  },
 ] as const;
 
 function navActive(pathname: string, href: string): boolean {
@@ -36,9 +51,9 @@ function navActive(pathname: string, href: string): boolean {
 }
 
 /**
- * STORY-07-01/02/03 + FE-S07-04 — Owner Console chrome, JWT audience + host honesty.
- * Read-path MVP links for /admin/tenants + /admin/billing.
- * TenantList.tsx untouched. Not Production GO. No invented owner mint.
+ * STORY-07 + FE-S07-04/06 — Owner Console chrome, audience/host honesty,
+ * Ops nav (tenants/billing/flags/config/audit). TenantList.tsx untouched.
+ * Not Production GO. No invented owner mint.
  */
 export function OwnerConsoleShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() || "/admin";

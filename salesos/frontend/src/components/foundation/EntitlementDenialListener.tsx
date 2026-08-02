@@ -10,10 +10,11 @@ import {
   QUOTA_EXCEEDED_EVENT,
   type QuotaExceededPayload,
 } from "@/lib/api/quotaErrors";
+import { OWNER_AUTH_DENIED_EVENT } from "@/lib/auth/ownerAudience";
 
 /**
- * STORY-06-02 / FE-S06-03b — toast honest upgrade messaging on
- * entitlement 403s and quota_exceeded 403/429s from the API client.
+ * STORY-06-02 / FE-S06-03b / FE-S07-06 — toast honest messaging for
+ * entitlement 403s, quota_exceeded 403/429s, and owner-audience 401s.
  */
 export function EntitlementDenialListener() {
   const { toast } = useToast();
@@ -53,11 +54,24 @@ export function EntitlementDenialListener() {
         duration: 8000,
       });
     };
+    const onOwnerAuth = (event: Event) => {
+      const detail = (event as CustomEvent<{ message?: string }>).detail;
+      toast({
+        variant: "warning",
+        title: "Owner audience required",
+        description:
+          detail?.message ||
+          "Admin APIs require salesos-owner-platform JWT. Owner login mint is DEC-093 follow-up. Not Production GO.",
+        duration: 8000,
+      });
+    };
     window.addEventListener(ENTITLEMENT_DENIED_EVENT, onDenied);
     window.addEventListener(QUOTA_EXCEEDED_EVENT, onQuota);
+    window.addEventListener(OWNER_AUTH_DENIED_EVENT, onOwnerAuth);
     return () => {
       window.removeEventListener(ENTITLEMENT_DENIED_EVENT, onDenied);
       window.removeEventListener(QUOTA_EXCEEDED_EVENT, onQuota);
+      window.removeEventListener(OWNER_AUTH_DENIED_EVENT, onOwnerAuth);
     };
   }, [toast]);
 

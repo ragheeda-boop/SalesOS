@@ -274,8 +274,9 @@
 2. Use shell nav or overview deep-links:
    - `/admin/tenants` — list + detail (status, plan, usage snapshot, billing panel).
    - `/admin/billing` — platform invoices, dunning, apply-pending plan changes, Stripe readiness booleans only.
-3. If the audience banner warns about `salesos-api`, stop mutating admin APIs — mint path is not shipped; escalate to Backend for DEC-093 owner login when needed.
-4. Prefer read-path Ops work in Phase 1. Existing lifecycle CTAs (suspend/activate/reprovision/delete) remain on tenants page; refund / ad-hoc suspend-override beyond those APIs are deferred.
+3. If the audience banner warns about `salesos-api`, stop mutating admin APIs — mint path is not shipped; escalate to Backend for DEC-093 owner login when needed. FE-S07-06: a tenant-audience 401 on `/api/v1/admin/*` toasts honesty and **keeps** the tenant session (no forced `/login` bounce).
+4. Shell also links Flags (`/admin/flags`), Config (`/admin/config`), and Audit (`/admin/audit`).
+5. Prefer read-path Ops work in Phase 1. Existing lifecycle CTAs (suspend/activate/reprovision/delete) remain on tenants page; refund / ad-hoc suspend-override beyond those APIs are deferred.
 
 **Verification:** Shell testids `owner-console-shell`, `owner-console-audience-banner`, `owner-console-host-banner` visible; tenants/billing pages load; admin API calls succeed only with owner audience.
 

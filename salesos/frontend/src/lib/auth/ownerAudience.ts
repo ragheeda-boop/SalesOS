@@ -124,3 +124,39 @@ export function formatOwnerHostHonesty(
     `Target separate host ${OWNER_CONSOLE_HOST} is not claimed live. Not Production GO.`
   );
 }
+
+/** FE-S07-06 — admin API path for owner-audience enforcement UX. */
+export const OWNER_AUTH_DENIED_EVENT = "salesos:owner-auth-denied";
+
+export function isAdminApiPath(url: string | null | undefined): boolean {
+  if (!url) return false;
+  return url.includes("/api/v1/admin");
+}
+
+/**
+ * Tenant-audience sessions hitting Owner admin APIs should toast honesty
+ * instead of clearing the tenant session / bouncing to /login.
+ * Expired owner tokens still follow the normal 401 → login path.
+ */
+export function shouldSurfaceOwnerAudienceDenial(options: {
+  status?: number;
+  url?: string | null;
+  token?: string | null;
+}): boolean {
+  if (options.status !== 401) return false;
+  if (!isAdminApiPath(options.url)) return false;
+  return classifyJwtAudience(options.token) === "tenant";
+}
+
+export function formatOwnerAuthDeniedMessage(
+  kind: JwtAudienceKind = "tenant",
+): string {
+  if (kind === "tenant") {
+    return (
+      `Owner admin API rejected tenant JWT (${TENANT_JWT_AUDIENCE}). ` +
+      `Requires ${OWNER_JWT_AUDIENCE}. Owner login mint remains DEC-093 follow-up — not invented. ` +
+      `Tenant session kept. Not Production GO.`
+    );
+  }
+  return formatOwnerAudienceHonesty(kind);
+}

@@ -30,6 +30,9 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
       timeout: 8_000,
     });
     await expect(page.getByTestId("owner-console-nav-tenants")).toBeVisible();
+    await expect(page.getByTestId("owner-console-nav-flags")).toBeVisible();
+    await expect(page.getByTestId("owner-console-nav-config")).toBeVisible();
+    await expect(page.getByTestId("owner-console-nav-audit")).toBeVisible();
     await expect(
       page.getByTestId("owner-console-audience-banner"),
     ).toBeVisible();

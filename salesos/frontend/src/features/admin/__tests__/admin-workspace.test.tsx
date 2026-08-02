@@ -62,6 +62,14 @@ describe("AdminWorkspace", () => {
     expect(
       screen.getByTestId("owner-console-overview-billing"),
     ).toHaveAttribute("href", "/admin/billing");
+    expect(screen.getByTestId("owner-console-overview-flags")).toHaveAttribute(
+      "href",
+      "/admin/flags",
+    );
+    expect(screen.getByTestId("owner-console-overview-audit")).toHaveAttribute(
+      "href",
+      "/admin/audit",
+    );
   });
 
   it("renders sidebar navigation tabs", () => {

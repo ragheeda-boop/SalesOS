@@ -16,7 +16,8 @@
 | FE-S06-03b Honest quota_exceeded toast (403/429) | **LANDED** |
 | FE-S07-01/02/03 Owner Console MVP shell + audience | **LANDED** — crumb [`PHASE1_STORY_07_OWNER_CONSOLE_CRUMB.md`](PHASE1_STORY_07_OWNER_CONSOLE_CRUMB.md) |
 | FE-S07-04 Host honesty + overview deep-links + E2E hooks | **LANDED** |
-| FE-S07-05 Ops runbook + read-path honesty + billing E2E | **LANDED** (this tip) |
+| FE-S07-05 Ops runbook + read-path honesty + billing E2E | **LANDED** |
+| FE-S07-06 Ops nav + tenant-JWT admin 401 honesty | **LANDED** (this tip) |
 
 ## Honesty
 

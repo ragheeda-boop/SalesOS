@@ -153,6 +153,21 @@ function AdminOverview({
           <CreditCard className="h-4 w-4" />
           Billing (STORY-07-02)
         </Link>
+        <Link
+          href="/admin/flags"
+          data-testid="owner-console-overview-flags"
+          className="inline-flex items-center gap-2 rounded-md border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
+        >
+          <Flag className="h-4 w-4" />
+          Flags
+        </Link>
+        <Link
+          href="/admin/audit"
+          data-testid="owner-console-overview-audit"
+          className="inline-flex items-center gap-2 rounded-md border border-[var(--border-default)] px-3 py-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
+        >
+          Audit
+        </Link>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

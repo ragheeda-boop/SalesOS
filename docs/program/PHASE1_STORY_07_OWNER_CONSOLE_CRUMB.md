@@ -11,7 +11,8 @@
 | STORY-07-02 `/billing` subscription/invoices/dunning | **LANDED** (FE-S06-01 + shell nav) | `/admin/billing` |
 | STORY-07-03 Owner-only auth shell + audience honesty | **LANDED** | `OwnerConsoleShell` + `ownerAudience.ts` |
 | FE-S07-04 Host honesty + overview deep-links + E2E shell hooks | **LANDED** | overview MVP links; host banner; e2e hooks |
-| FE-S07-05 Ops runbook + read-path honesty + billing E2E | **LANDED** (this tip) | `OPERATIONS_MANUAL` §15; cross-audience Jest |
+| FE-S07-05 Ops runbook + read-path honesty + billing E2E | **LANDED** | `OPERATIONS_MANUAL` §15; cross-audience Jest |
+| FE-S07-06 Ops nav + tenant-JWT admin 401 honesty toast | **LANDED** (this tip) | flags/config/audit nav; keep tenant session |
 
 ## Honesty
 

@@ -5,9 +5,12 @@ import {
   classifyJwtAudience,
   classifyOwnerHost,
   formatOwnerAudienceHonesty,
+  formatOwnerAuthDeniedMessage,
   formatOwnerHostHonesty,
   getJwtAudience,
+  isAdminApiPath,
   isOwnerConsoleAudience,
+  shouldSurfaceOwnerAudienceDenial,
 } from "../ownerAudience";
 
 function fakeJwt(payload: Record<string, unknown>): string {
@@ -64,5 +67,41 @@ describe("ownerAudience — STORY-07-03", () => {
     expect(isOwnerConsoleAudience(tenant)).toBe(false);
     expect(formatOwnerAudienceHonesty("tenant")).toMatch(/admin/i);
     expect(formatOwnerAudienceHonesty("owner")).not.toMatch(/DEC-093/);
+  });
+
+  it("surfaces owner-audience denial for tenant JWT on admin APIs only", () => {
+    const tenant = fakeJwt({
+      aud: TENANT_JWT_AUDIENCE,
+      sub: "u3",
+      tenant_id: "t3",
+    });
+    const owner = fakeJwt({ aud: OWNER_JWT_AUDIENCE, sub: "o3" });
+    expect(isAdminApiPath("/api/v1/admin/tenants")).toBe(true);
+    expect(isAdminApiPath("/api/v1/identity/login")).toBe(false);
+    expect(
+      shouldSurfaceOwnerAudienceDenial({
+        status: 401,
+        url: "/api/v1/admin/billing/dunning",
+        token: tenant,
+      }),
+    ).toBe(true);
+    expect(
+      shouldSurfaceOwnerAudienceDenial({
+        status: 401,
+        url: "/api/v1/admin/tenants",
+        token: owner,
+      }),
+    ).toBe(false);
+    expect(
+      shouldSurfaceOwnerAudienceDenial({
+        status: 401,
+        url: "/api/v1/identity/me",
+        token: tenant,
+      }),
+    ).toBe(false);
+    expect(formatOwnerAuthDeniedMessage("tenant")).toContain("DEC-093");
+    expect(formatOwnerAuthDeniedMessage("tenant")).toContain(
+      "Tenant session kept",
+    );
   });
 });

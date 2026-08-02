@@ -1,5 +1,5 @@
 import axios from "axios";
-import { clearAuthTokens } from "@/lib/auth/session";
+import { clearAuthTokens, ACCESS_TOKEN_KEY } from "@/lib/auth/session";
 import {
   ENTITLEMENT_DENIED_EVENT,
   formatEntitlementDeniedMessage,
@@ -10,6 +10,11 @@ import {
   formatQuotaExceededMessage,
   isQuotaExceededPayload,
 } from "@/lib/api/quotaErrors";
+import {
+  OWNER_AUTH_DENIED_EVENT,
+  formatOwnerAuthDeniedMessage,
+  shouldSurfaceOwnerAudienceDenial,
+} from "@/lib/auth/ownerAudience";
 
 // Browser: same-origin so Next.js rewrites proxy to Railway (avoids CORS Network Error).
 // Server: absolute backend URL for SSR / Route Handlers.
@@ -62,6 +67,28 @@ api.interceptors.response.use(
     const status = error.response?.status;
 
     if (status === 401) {
+      const requestUrl =
+        typeof error.config?.url === "string" ? error.config.url : "";
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem(ACCESS_TOKEN_KEY)
+          : null;
+      if (
+        shouldSurfaceOwnerAudienceDenial({
+          status,
+          url: requestUrl,
+          token,
+        })
+      ) {
+        const message = formatOwnerAuthDeniedMessage("tenant");
+        console.warn("[API] 401 owner audience required:", message);
+        window.dispatchEvent(
+          new CustomEvent(OWNER_AUTH_DENIED_EVENT, {
+            detail: { message, status, url: requestUrl },
+          }),
+        );
+        return Promise.reject(error);
+      }
       clearAuthTokens();
       window.location.href = "/login";
       return Promise.reject(error);
