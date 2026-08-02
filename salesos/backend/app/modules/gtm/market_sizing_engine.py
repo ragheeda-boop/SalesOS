@@ -42,12 +42,10 @@ def _match_record(
     employees_min: int | None,
     employees_max: int | None,
 ) -> bool:
-    if industries:
-        if _norm(row.industry) not in industries:
-            return False
-    if cities:
-        if _norm(row.city) not in cities:
-            return False
+    if industries and _norm(row.industry) not in industries:
+        return False
+    if cities and _norm(row.city) not in cities:
+        return False
     if employees_min is not None or employees_max is not None:
         emp = row.employees_count
         if emp is None:
