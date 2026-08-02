@@ -396,19 +396,6 @@ export interface AdminStripeStatus {
   honesty: string;
 }
 
-/** STORY-05-02c — GET /admin/billing/stripe/status (booleans only; never secrets). */
-export interface AdminStripeStatus {
-  secret_key_configured: boolean;
-  webhook_secret_configured: boolean;
-  publishable_key_configured: boolean;
-  checkout_ready: boolean;
-  webhook_ready: boolean;
-  sandbox_soak_ready: boolean;
-  production_billing: boolean;
-  production_go: boolean;
-  honesty: string;
-}
-
 export interface AdminPlatformInvoice {
   id: string;
   tenant_id: string;
