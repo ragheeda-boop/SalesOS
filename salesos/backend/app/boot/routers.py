@@ -401,6 +401,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["AI Model Tiers"],
         dependencies=_auth,
     )
+    # DOM-022 / CAP-089 — STORY-12-01 Prompt Library (extends CAP-023; no live LLM).
+    from app.modules.tenant_studio.prompt_library_router import (
+        router as prompt_library_router,
+    )
+
+    app.include_router(
+        prompt_library_router,
+        prefix="/api/v1",
+        tags=["AI Studio"],
+        dependencies=_auth,
+    )
     app.include_router(commercial_router, prefix="/api/v1", tags=["Commercial"], dependencies=_auth)
 
     app.include_router(demo_router, tags=["Demo"])
