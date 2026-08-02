@@ -23,6 +23,7 @@ export * from "./api/leadDiscovery";
 export * from "./api/icpProfiles";
 export * from "./api/enrichment";
 export * from "./api/websiteIntelligence";
+export * from "./api/outreach";
 export * from "./api/verification";
 export * from "./api/lookalikes";
 export * from "./api/sequences";

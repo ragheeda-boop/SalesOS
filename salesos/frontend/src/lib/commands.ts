@@ -221,6 +221,15 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.gtm.outreach",
+    label: "GTM · AI Outreach",
+    description:
+      "AI outreach drafts (tip STORY-11-08; draft_only; no live send)",
+    category: "تنقل",
+    handler: () => router.push("/gtm/outreach"),
+  });
+
+  registerCommand({
     id: "go.gtm.verification",
     label: "GTM · Contact Verification",
     description: "Email/phone verification (tip STORY-11-06)",

@@ -16,9 +16,9 @@ export default function GtmHubPage() {
         </h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
           Tip GTM pages: ICP, market sizing, lead discovery, lookalikes,
-          enrichment, website intelligence, verification, sequences. Territories
-          Studio is tip /studio/territories. Live 141221 / live ERP not claimed.
-          Not Production GO / RAG GO.
+          enrichment, website intelligence, AI outreach, verification,
+          sequences. Territories Studio is tip /studio/territories. Live 141221
+          / live ERP not claimed. Not Production GO / RAG GO.
         </p>
       </div>
       <GtmHub />

@@ -29,9 +29,13 @@ import {
   WEBSITE_INTEL_HONESTY,
   WEBSITE_INTEL_NON_GOALS,
 } from "@/features/gtm/websiteIntelligenceHonesty";
+import {
+  OUTREACH_HONESTY,
+  OUTREACH_NON_GOALS,
+} from "@/features/gtm/outreachHonesty";
 
 /**
- * Tip GTM Intelligence hub (FE-S11-03b + 01/04/05/06/07/09).
+ * Tip GTM Intelligence hub (FE-S11-03b + 01/04/05/06/07/08/09).
  * Tip pages only. Territories not linked. Not Production GO / RAG GO.
  */
 export function GtmHub() {
@@ -42,10 +46,10 @@ export function GtmHub() {
         data-testid="gtm-hub-honesty"
       >
         Tip GTM pages: ICP, market sizing, lead discovery, lookalikes,
-        enrichment, website intelligence, verification, sequences. Territories
-        Studio is tip `/studio/territories` (FE-S10-05). Live 141221 Postgres /
-        live ERP / live SMTP / LinkedIn / WhatsApp / live ML not claimed. Not
-        Production GO / RAG GO.
+        enrichment, website intelligence, AI outreach, verification, sequences.
+        Territories Studio is tip `/studio/territories` (FE-S10-05). Live 141221
+        Postgres / live ERP / live SMTP / LinkedIn / WhatsApp / live ML not
+        claimed. Not Production GO / RAG GO.
       </p>
 
       <ul className="space-y-3">
@@ -137,6 +141,21 @@ export function GtmHub() {
           <p className="mt-1 text-xs text-[var(--text-muted)]">
             {WEBSITE_INTEL_HONESTY} Non-goals:{" "}
             {WEBSITE_INTEL_NON_GOALS.slice(0, 2).join("; ")}.
+          </p>
+        </li>
+        <li
+          className="rounded border border-[var(--border-default)] p-4"
+          data-testid="gtm-hub-outreach"
+        >
+          <Link
+            href="/gtm/outreach"
+            className="text-base font-semibold text-[var(--text-primary)] underline"
+          >
+            AI Outreach
+          </Link>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
+            {OUTREACH_HONESTY} Non-goals:{" "}
+            {OUTREACH_NON_GOALS.slice(0, 2).join("; ")}.
           </p>
         </li>
         <li

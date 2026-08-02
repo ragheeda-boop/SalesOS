@@ -217,6 +217,12 @@ export const gtmKeys = {
     [...gtmKeys.all, "website-intel", tenantId] as const,
   websiteIntelDetail: (tenantId: string, id: string) =>
     [...gtmKeys.all, "website-intel", tenantId, id] as const,
+  outreachMeta: (tenantId: string) =>
+    [...gtmKeys.all, "outreach-meta", tenantId] as const,
+  outreachList: (tenantId: string) =>
+    [...gtmKeys.all, "outreach", tenantId] as const,
+  outreachDetail: (tenantId: string, id: string) =>
+    [...gtmKeys.all, "outreach", tenantId, id] as const,
   verificationMeta: (tenantId: string) =>
     [...gtmKeys.all, "verification-meta", tenantId] as const,
   verificationList: (tenantId: string) =>
