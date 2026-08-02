@@ -1,7 +1,7 @@
 import type { AdminTenantDetail } from "@/lib/api";
 
 /**
- * FE-S04-07 - surface Owner Platform / provision_workflow result fields in toast copy.
+ * FE-S04-07 — surface Owner Platform / provision_workflow result fields in toast copy.
  * Create API returns TenantDetail (not full workflow dict); summarize available fields.
  */
 export function formatProvisionResultDescription(
@@ -26,7 +26,7 @@ export function formatProvisionResultDescription(
   return parts.join(" · ");
 }
 
-/** FE-S04-28 - toast from TenantLifecycleResponse (suspend/activate/soft-delete). */
+/** FE-S04-28 — toast from TenantLifecycleResponse (suspend/activate/soft-delete). */
 export function formatLifecycleResultDescription(result: {
   tenant_id: string;
   is_active?: boolean;
@@ -65,7 +65,7 @@ export function formatSuspendResultDescription(
   });
 }
 
-/** FE-S04-27 - activate toast from POST /activate response. */
+/** FE-S04-27 — activate toast from POST /activate response. */
 export function formatActivateResultDescription(result: {
   tenant_id: string;
   prior_provisioning_status?: string | null;
@@ -75,12 +75,12 @@ export function formatActivateResultDescription(result: {
 }): string {
   return formatLifecycleResultDescription({
     ...result,
-    is_active: result.is_active · true,
+    is_active: result.is_active ?? true,
     provisioning_status: result.provisioning_status || "active",
   });
 }
 
-/** FE-S04-13 - soft-delete inactive vs suspend (both may set is_active=false). */
+/** FE-S04-13 — soft-delete inactive vs suspend (both may set is_active=false). */
 export function activityStatusLabel(tenant: {
   is_active: boolean;
   provisioning_status?: string | null;
@@ -92,7 +92,7 @@ export function activityStatusLabel(tenant: {
 
 export type TrialFilter = "" | "has_trial" | "expired" | "none";
 
-/** FE-S04-15 - classify trial_ends_at for list filter/column. */
+/** FE-S04-15 — classify trial_ends_at for list filter/column. */
 export function trialBucket(
   trialEndsAt: string | null | undefined,
   nowMs: number = Date.now(),
@@ -106,13 +106,13 @@ export function trialBucket(
 export function formatTrialEndsLabel(
   trialEndsAt: string | null | undefined,
 ): string {
-  if (!trialEndsAt) return "-";
+  if (!trialEndsAt) return "—";
   const ends = Date.parse(trialEndsAt);
-  if (Number.isNaN(ends)) return "-";
+  if (Number.isNaN(ends)) return "—";
   return new Date(ends).toLocaleDateString();
 }
 
-/** FE-S04-25 - list trial honesty badge. */
+/** FE-S04-25 — list trial honesty badge. */
 export function trialBadgeLabel(
   trialEndsAt: string | null | undefined,
   nowMs: number = Date.now(),
@@ -142,7 +142,7 @@ export function matchesTrialFilter(
   return trialBucket(trialEndsAt, nowMs) === filter;
 }
 
-/** FE-S04-17 - detail-panel lifecycle copy (soft-delete vs suspend). */
+/** FE-S04-17 — detail-panel lifecycle copy (soft-delete vs suspend). */
 export function lifecycleStatusDescription(tenant: {
   is_active: boolean;
   provisioning_status?: string | null;
@@ -161,7 +161,7 @@ export function lifecycleStatusDescription(tenant: {
 export type TenantSortKey =
   "created_desc" | "created_asc" | "name_asc" | "name_desc";
 
-/** FE-S04-29/33 - shareable Owner Console filter query (mirrors URL sync). */
+/** FE-S04-29/33 — shareable Owner Console filter query (mirrors URL sync). */
 export function buildAdminTenantsFilterQuery(filters: {
   search?: string;
   plan?: string;
@@ -198,7 +198,7 @@ export function buildAdminTenantsFilterQuery(filters: {
   return params.toString();
 }
 
-/** STORY-04-04 / FE-S04-35 - default retention days (settings.tenant_deletion_retention_days). */
+/** STORY-04-04 / FE-S04-35 — default retention days (settings.tenant_deletion_retention_days). */
 export const TENANT_DELETION_RETENTION_DAYS = 30;
 
 /** Soft-delete may dual-write settings.deletion_requested_at (tip fd5af4d). */
@@ -235,7 +235,7 @@ export function retentionHardDeleteDescription(options?: {
   retentionDays?: number;
   isInactive?: boolean;
 }): string {
-  const days = options?.retentionDays · TENANT_DELETION_RETENTION_DAYS;
+  const days = options?.retentionDays ?? TENANT_DELETION_RETENTION_DAYS;
   const stamp = options?.deletionRequestedAt;
   if (stamp) {
     const remaining = retentionDaysRemaining(stamp, days);
@@ -281,11 +281,11 @@ export function formatUsageMeterRow(meter: {
 }): string {
   const start = meter.period_start
     ? new Date(meter.period_start).toLocaleString()
-    : "-";
+    : "—";
   const end = meter.period_end
     ? new Date(meter.period_end).toLocaleString()
-    : "-";
-  return `${meter.metric_key}=${meter.quantity} · ${start} - ${end}`;
+    : "—";
+  return `${meter.metric_key}=${meter.quantity} · ${start} – ${end}`;
 }
 
 export function getApiErrorStatus(err: unknown): number | null {
@@ -327,7 +327,7 @@ export function stripeBillingUnavailableDescription(
   if (detail && detail.trim()) return detail.trim();
   return (
     "Stripe billing unavailable: STRIPE_SECRET_KEY not configured " +
-    "(503 fail-closed). No invented keys - set real env secrets in ops."
+    "(503 fail-closed). No invented keys — set real env secrets in ops."
   );
 }
 
@@ -392,7 +392,7 @@ export const ADMIN_DUNNING_STATUS_OPTIONS = [
   { label: "cleared", value: "cleared" },
 ] as const;
 
-/** FE-S05-06 - pending plan honesty from subscription or quote. */
+/** FE-S05-06 — pending plan honesty from subscription or quote. */
 export function formatPendingPlanHonesty(sub: {
   pending_plan_id?: string | null;
   pending_effective_at?: string | null;
@@ -402,7 +402,7 @@ export function formatPendingPlanHonesty(sub: {
   const when = sub.pending_effective_at
     ? ` effective ${sub.pending_effective_at}`
     : " (period-end pending)";
-  return `Pending plan change: ${sub.plan_id || "current"} - ${sub.pending_plan_id}${when}. Downgrades defer unless downgrade_immediate.`;
+  return `Pending plan change: ${sub.plan_id || "current"} → ${sub.pending_plan_id}${when}. Downgrades defer unless downgrade_immediate.`;
 }
 
 export function formatPlanChangeQuote(q: {
@@ -420,7 +420,7 @@ export function formatPlanChangeQuote(q: {
     `direction=${q.direction}`,
     `timing=${q.timing}`,
     `due_now=${q.amount_due_now}`,
-    `from=${q.from_plan_id || "-"}`,
+    `from=${q.from_plan_id || "—"}`,
     `to=${q.to_plan_id}`,
   ];
   if (typeof q.remaining_fraction === "number") {
@@ -433,7 +433,7 @@ export function formatPlanChangeQuote(q: {
   return parts.join(" · ");
 }
 
-/** FE-S04-38 - STORY-04-03 suspended tenants are write-blocked (tenant API). */
+/** FE-S04-38 — STORY-04-03 suspended tenants are write-blocked (tenant API). */
 export function suspendedWriteBlockDescription(tenant: {
   provisioning_status?: string | null;
 }): string | null {
@@ -444,7 +444,7 @@ export function suspendedWriteBlockDescription(tenant: {
   );
 }
 
-/** FE-S04-40 - safe default reprovision (failed/pending). */
+/** FE-S04-40 — safe default reprovision (failed/pending). */
 export function canRetryReprovision(
   provisioningStatus?: string | null,
 ): boolean {
@@ -452,25 +452,25 @@ export function canRetryReprovision(
   return s === "failed" || s === "pending";
 }
 
-/** FE-S04-41 - suspended needs force_active=true on /reprovision. */
+/** FE-S04-41 — suspended needs force_active=true on /reprovision. */
 export function requiresForceActiveReprovision(
   provisioningStatus?: string | null,
 ): boolean {
   return (provisioningStatus || "") === "suspended";
 }
 
-/** FE-S04-44 - usage period honesty. */
+/** FE-S04-44 — usage period honesty. */
 export function formatTenantUsagePeriod(usage: {
   period_start?: string | null;
   period_end?: string | null;
 }): string {
   const start = usage.period_start
     ? new Date(usage.period_start).toLocaleDateString()
-    : "-";
+    : "—";
   const end = usage.period_end
     ? new Date(usage.period_end).toLocaleDateString()
-    : "-";
-  return `Period ${start} - ${end}`;
+    : "—";
+  return `Period ${start} – ${end}`;
 }
 
 export const ADMIN_TENANTS_PAGE_SIZES = [20, 50, 100] as const;
@@ -485,7 +485,7 @@ export function parseAdminTenantsPageSize(
     : 20;
 }
 
-/** FE-S04-34 - toast from TenantReprovisionResponse. */
+/** FE-S04-34 — toast from TenantReprovisionResponse. */
 export function formatReprovisionResultDescription(result: {
   tenant_id: string;
   slug: string;
@@ -513,7 +513,7 @@ export function formatReprovisionResultDescription(result: {
   return parts.join(" · ");
 }
 
-/** FE-S04-19 - client-side list sort. */
+/** FE-S04-19 — client-side list sort. */
 export function sortAdminTenants<
   T extends { name: string; created_at: string },
 >(list: T[], sort: TenantSortKey): T[] {
@@ -534,7 +534,7 @@ export function sortAdminTenants<
   return next;
 }
 
-/** FE-S06-02 - short honesty summary of Plan.entitlements. */
+/** FE-S06-02 — short honesty summary of Plan.entitlements. */
 export function formatPlanEntitlementsSummary(
   ents:
     | {
@@ -559,17 +559,17 @@ export function formatPlanEntitlementsSummary(
   const domains = ents.domains || {};
   const enabled = Object.entries(domains).filter(([, d]) => d && d.enabled);
   const q = ents.quotas;
-  const seats = q?.seats · "-";
+  const seats = q?.seats ?? "—";
   const ai = q?.ai_tokens_unlimited
     ? "ai=unlimited"
-    : `ai=${q?.ai_tokens_monthly · "-"}`;
+    : `ai=${q?.ai_tokens_monthly ?? "—"}`;
   const conn = q?.connectors_unlimited
     ? "connectors=unlimited"
-    : `connectors=${q?.connectors · "-"}`;
+    : `connectors=${q?.connectors ?? "—"}`;
   return (
-    `v${ents.version · 1} · domains_enabled=${enabled.length}/${Object.keys(domains).length}` +
+    `v${ents.version ?? 1} · domains_enabled=${enabled.length}/${Object.keys(domains).length}` +
     ` · seats=${seats} · ${ai} · ${conn}` +
-    ` · storage_mb=${q?.storage_mb · "-"}` +
+    ` · storage_mb=${q?.storage_mb ?? "—"}` +
     ` · deploy=${ents.deployment_tier || "pooled"}` +
     ` · sla=${ents.support_sla || "community"}`
   );
@@ -597,7 +597,7 @@ export function parsePlanEntitlementsJson(
   }
 }
 
-/** FE-S05-02c - honesty banner from GET /billing/stripe/status booleans. */
+/** FE-S05-02c — honesty banner from GET /billing/stripe/status booleans. */
 export function formatStripeStatusBanner(
   status:
     | {
@@ -647,7 +647,7 @@ export function stripeStatusTone(
   return "blocked";
 }
 
-/** FE-S06-03 - Owner honesty for entitlements resolved from Owner plans list. */
+/** FE-S06-03 — Owner honesty for entitlements resolved from Owner plans list. */
 export function formatResolvedPlanEntitlementsHonesty(options: {
   planId?: string | null;
   planName?: string | null;
