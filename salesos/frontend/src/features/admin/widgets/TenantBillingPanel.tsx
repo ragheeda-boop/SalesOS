@@ -87,7 +87,9 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
 
   const markUnavailable = useCallback(
     (err: unknown) => {
-      const detail = stripeBillingUnavailableDescription(getApiErrorDetail(err));
+      const detail = stripeBillingUnavailableDescription(
+        getApiErrorDetail(err),
+      );
       setBillingUnavailableDetail(detail);
       toast({
         variant: "error",
@@ -321,10 +323,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
               <Select
                 value={selectedPlanId}
                 onChange={setSelectedPlanId}
-                options={[
-                  { label: "Select plan…", value: "" },
-                  ...planOptions,
-                ]}
+                options={[{ label: "Select plan…", value: "" }, ...planOptions]}
                 placeholder="Select plan…"
               />
             </div>
@@ -488,8 +487,8 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
             className="text-sm text-[var(--text-muted)]"
             data-testid="admin-tenants-usage-empty"
           >
-            No rolled-up usage meters yet. Record events via API then Run
-            rollup (STORY-05-03). Not Production GO.
+            No rolled-up usage meters yet. Record events via API then Run rollup
+            (STORY-05-03). Not Production GO.
           </p>
         ) : (
           <ul

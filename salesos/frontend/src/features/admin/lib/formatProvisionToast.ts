@@ -239,8 +239,7 @@ export function retentionHardDeleteDescription(options?: {
   const stamp = options?.deletionRequestedAt;
   if (stamp) {
     const remaining = retentionDaysRemaining(stamp, days);
-    const remainingPart =
-      remaining == null ? "" : ` ~${remaining}d remaining.`;
+    const remainingPart = remaining == null ? "" : ` ~${remaining}d remaining.`;
     return `Retention: soft-delete stamped ${stamp} (tenants.deleted_at). Hard-delete blocked until ~${days} days elapse unless force_immediate=true.${remainingPart}`;
   }
   if (options?.isInactive) {

@@ -368,11 +368,7 @@ export interface AdminPlatformInvoice {
 
 /** STORY-05-03 — GET /api/v1/admin/billing/usage */
 export type AdminUsageMetricKey =
-  | "seats"
-  | "ai_tokens"
-  | "connector_syncs"
-  | "api_calls"
-  | "storage_mb";
+  "seats" | "ai_tokens" | "connector_syncs" | "api_calls" | "storage_mb";
 
 export interface AdminUsageMeter {
   id: string;
