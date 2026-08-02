@@ -40,6 +40,11 @@ import {
   NOTE_PII_SCRUB_CATEGORIES,
   isNoteModel,
 } from "@/features/integrations/odooNoteHonesty";
+import {
+  TIP_OPERATIONAL_FIELDS,
+  TIP_SALESOS_AUTHORED_FIELDS,
+  tipDefaultConflictRules,
+} from "@/features/integrations/hubConflictDefaults";
 
 export type { StudioStepId };
 
@@ -93,6 +98,12 @@ export function IntegrationsStudio() {
   );
   const [disconnectConfirmed, setDisconnectConfirmed] = useState(false);
   const [schedule, setSchedule] = useState("15m");
+  const [scheduleJobType, setScheduleJobType] = useState<
+    "interval" | "cron" | "one_time"
+  >("interval");
+  const [connectionActiveFilter, setConnectionActiveFilter] = useState<
+    "all" | "active" | "inactive"
+  >("all");
   const [lastTest, setLastTest] = useState<string>("");
   const [lastSchedule, setLastSchedule] = useState<HubScheduleResult | null>(
     null,
@@ -120,6 +131,11 @@ export function IntegrationsStudio() {
   const disconnectMutation = useDisconnectHubConnection();
 
   const connections = connectionsQuery.data || [];
+  const filteredConnections = useMemo(() => {
+    if (connectionActiveFilter === "all") return connections;
+    const wantActive = connectionActiveFilter === "active";
+    return connections.filter((c) => Boolean(c.is_active) === wantActive);
+  }, [connections, connectionActiveFilter]);
   const selected: HubConnection | undefined = useMemo(
     () => connections.find((c) => c.id === selectedId),
     [connections, selectedId],
@@ -283,20 +299,36 @@ export function IntegrationsStudio() {
             {connectionsQuery.isLoading ? (
               <Spinner className="h-5 w-5" />
             ) : (
-              <select
-                data-testid="integrations-studio-connection-select"
-                className="w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
-                value={selectedId || ""}
-                onChange={(e) => setSelectedId(e.target.value || null)}
-              >
-                <option value="">Select a connection…</option>
-                {connections.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.connector_key})
-                    {c.is_active ? "" : " · inactive"}
-                  </option>
-                ))}
-              </select>
+              <div className="space-y-2">
+                <select
+                  data-testid="integrations-studio-connection-active-filter"
+                  className="w-full max-w-xs rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
+                  value={connectionActiveFilter}
+                  onChange={(e) =>
+                    setConnectionActiveFilter(
+                      e.target.value as "all" | "active" | "inactive",
+                    )
+                  }
+                >
+                  <option value="all">All connections</option>
+                  <option value="active">Active only</option>
+                  <option value="inactive">Inactive only</option>
+                </select>
+                <select
+                  data-testid="integrations-studio-connection-select"
+                  className="w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
+                  value={selectedId || ""}
+                  onChange={(e) => setSelectedId(e.target.value || null)}
+                >
+                  <option value="">Select a connection…</option>
+                  {filteredConnections.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.connector_key})
+                      {c.is_active ? "" : " · inactive"}
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
 
             {selected ? (
@@ -351,6 +383,17 @@ export function IntegrationsStudio() {
                     data-testid="integrations-studio-connection-cursor"
                   >
                     {JSON.stringify(selected.cursor_state || {})}
+                  </dd>
+                </div>
+                <div className="sm:col-span-2">
+                  <dt className="text-[var(--text-muted)]">
+                    Connection config (non-secret tip field)
+                  </dt>
+                  <dd
+                    className="font-mono break-all"
+                    data-testid="integrations-studio-connection-config"
+                  >
+                    {JSON.stringify(selected.connection_config || {})}
                   </dd>
                 </div>
               </dl>
@@ -669,6 +712,24 @@ export function IntegrationsStudio() {
                   onChange={(e) => setOperationalCsv(e.target.value)}
                 />
                 <Button
+                  data-testid="integrations-studio-conflict-tip-defaults"
+                  onClick={() => {
+                    setRulesJson(
+                      JSON.stringify(tipDefaultConflictRules(), null, 2),
+                    );
+                    setAuthoredCsv(TIP_SALESOS_AUTHORED_FIELDS.join(", "));
+                    setOperationalCsv(TIP_OPERATIONAL_FIELDS.join(", "));
+                    toast({
+                      variant: "success",
+                      title: "Tip conflict defaults loaded",
+                      description:
+                        "STORY-08-06 ConflictResolutionPolicy.default()",
+                    });
+                  }}
+                >
+                  Load tip defaults
+                </Button>
+                <Button
                   data-testid="integrations-studio-conflict-submit"
                   disabled={conflictMutation.isPending}
                   onClick={async () => {
@@ -770,8 +831,26 @@ export function IntegrationsStudio() {
               value={schedule}
               onChange={(e) => setSchedule(e.target.value)}
             />
+            <label className="block text-xs text-[var(--text-muted)]">
+              Job type (tip ScheduleCreate.job_type)
+            </label>
+            <select
+              data-testid="integrations-studio-schedule-job-type"
+              className="w-full max-w-xs rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
+              value={scheduleJobType}
+              onChange={(e) =>
+                setScheduleJobType(
+                  e.target.value as "interval" | "cron" | "one_time",
+                )
+              }
+            >
+              <option value="interval">interval</option>
+              <option value="cron">cron</option>
+              <option value="one_time">one_time</option>
+            </select>
             <p className="text-xs text-[var(--text-muted)]">
-              CAP-028 interval string, e.g. 15m.
+              CAP-028 schedule string for interval (e.g. 15m) or cron
+              expression.
             </p>
             <Button
               data-testid="integrations-studio-schedule-submit"
@@ -784,7 +863,7 @@ export function IntegrationsStudio() {
                     body: {
                       model: model.trim(),
                       schedule: schedule.trim() || "15m",
-                      job_type: "interval",
+                      job_type: scheduleJobType,
                     },
                   });
                   setLastSchedule(result);
@@ -809,8 +888,9 @@ export function IntegrationsStudio() {
                 className="text-xs text-[var(--text-muted)]"
                 data-testid="integrations-studio-schedule-result"
               >
-                Last job {lastSchedule.job_id} · {lastSchedule.schedule} ·
-                next_run_at {lastSchedule.next_run_at || "n/a"}
+                Last job {lastSchedule.job_id} · {lastSchedule.job_type} ·{" "}
+                {lastSchedule.schedule} · next_run_at{" "}
+                {lastSchedule.next_run_at || "n/a"}
               </p>
             ) : null}
           </div>

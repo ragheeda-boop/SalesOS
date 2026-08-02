@@ -17,6 +17,7 @@
 | FE-S08-10 | Connection detail + baseline_fields + cmd palette |
 | FE-S08-11 | URL deep-link + schedule/monitor polish |
 | FE-S08-12 | Monitor SyncRun model filter + tip fields |
+| FE-S08-13 | Schedule job_type + conflict tip defaults + connection polish |
 | FE-S09-01 | Partner presets + cr_number join honesty (tip 09-01) |
 | FE-S09-02 | Opportunity presets + stage honesty (tip 09-02) |
 | FE-S09-03 | InteractionNote presets + PII honesty (tip 09-03) |
