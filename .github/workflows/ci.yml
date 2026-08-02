@@ -630,9 +630,10 @@ jobs:
 
   # ──────────────────────────────────────────────
   # Stage 7: E2E Tests
-  # DEC-150 B: decoupled from quarantined Stage 6 GHCR (no longer needs
-  # build-backend/build-frontend). Still gated on Stages 1–5 / arch. Criterion
-  # 3.7 remains OPEN until Playwright has real backend services.
+  # DEC-150 B: decoupled from quarantined Stage 6 GHCR. DEC-151: services
+  # wired for criterion 3.7 (postgres/redis + host uvicorn + disposable
+  # register). Gate = Wave 13 smoke-auth-ui with real BE (not visual
+  # baselines / numbered suite selector debt). Stage 6 stays quarantined.
   # ──────────────────────────────────────────────
   e2e:
     name: "Stage 7: E2E Tests"
@@ -648,13 +649,114 @@ jobs:
       - test-architecture
       - arch-compliance
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      # CI-only placeholders (>=32 chars). Required by Settings / JWKS.
+      SECRET_KEY: ci-e2e-test-secret-key-do-not-use-in-prod!!
+      JWT_SECRET_KEY: ci-e2e-test-jwt-secret-do-not-use-in-prod
+      E2E_USER_EMAIL: e2e.ci@example.com
+      E2E_USER_PASSWORD: E2eCiPass123!
+      API_BASE_URL: http://127.0.0.1:8000
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      API_URL: http://localhost:8000
+      BASE_URL: http://localhost:3000
+      SALESOS_JWKS_ALLOW_REGENERATE: "1"
+      EVENT_BUS_TYPE: in_memory
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: salesos
+          POSTGRES_PASSWORD: salesos_test
+          POSTGRES_DB: salesos_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: salesos/frontend/package-lock.json
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Cache Poetry deps
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-e2e-${{ runner.os }}-${{ hashFiles('salesos/backend/poetry.lock') }}
+          restore-keys: poetry-e2e-${{ runner.os }}-
+      - name: Install backend dependencies
+        run: cd salesos/backend && poetry install --no-interaction
+      - name: Run migrations
+        run: |
+          cd salesos/backend
+          DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
+          poetry run alembic upgrade head
+      - name: Provision salesos_app role (R-14)
+        run: |
+          cd salesos
+          PGPASSWORD=salesos_test psql -h localhost -U salesos -d salesos_test \
+            -v ON_ERROR_STOP=1 -f infra/docker/postgres/init/02-app-role.sql
+          PGPASSWORD=salesos_test psql -h localhost -U salesos -d salesos_test \
+            -v ON_ERROR_STOP=1 -c "ALTER ROLE salesos_app WITH PASSWORD 'ci_app_role_test_password';"
+      - name: Start backend API
+        run: |
+          cd salesos/backend
+          DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
+          TEST_DATABASE_URL=postgresql+asyncpg://salesos:salesos_test@localhost:5432/salesos_test \
+          POSTGRES_HOST=localhost \
+          POSTGRES_PORT=5432 \
+          POSTGRES_DB=salesos_test \
+          POSTGRES_PASSWORD=salesos_test \
+          REDIS_URL=redis://localhost:6379/0 \
+          APP_POSTGRES_USER=salesos_app \
+          APP_POSTGRES_PASSWORD=ci_app_role_test_password \
+          ALLOWED_HOSTS=http://localhost:3000,http://127.0.0.1:3000 \
+          NEO4J_PASSWORD= \
+          poetry run uvicorn app.main:app --host 127.0.0.1 --port 8000 \
+            > /tmp/salesos-e2e-backend.log 2>&1 &
+          echo $! > /tmp/salesos-e2e-backend.pid
+          for i in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:8000/health >/dev/null 2>&1; then
+              echo "backend healthy after ${i} attempts"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "backend failed to become healthy"
+          tail -n 200 /tmp/salesos-e2e-backend.log || true
+          exit 1
+      - name: Register disposable E2E user
+        run: |
+          code=$(curl -sS -o /tmp/e2e-register.json -w "%{http_code}" \
+            -X POST http://127.0.0.1:8000/api/v1/identity/register \
+            -H 'Content-Type: application/json' \
+            -d "{\"email\":\"${E2E_USER_EMAIL}\",\"password\":\"${E2E_USER_PASSWORD}\",\"full_name\":\"CI E2E User\"}")
+          echo "register HTTP ${code}"
+          cat /tmp/e2e-register.json || true
+          if [ "$code" != "200" ] && [ "$code" != "201" ] && [ "$code" != "409" ]; then
+            echo "::error::E2E user register failed (HTTP ${code})"
+            exit 1
+          fi
       - name: Install Playwright
         run: |
           cd salesos/frontend
@@ -662,14 +764,25 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Setup .env for E2E
         run: |
-          cat > salesos/frontend/.env.test << 'EOF'
+          cat > salesos/frontend/.env.local << EOF
           NEXT_PUBLIC_API_URL=http://localhost:8000
           API_URL=http://localhost:8000
           EOF
-      - name: Run E2E tests
+      - name: Run E2E tests (smoke + real BE)
+        # Gate = Wave 13 authenticated smoke against real postgres/redis/API.
+        # Excludes visual baselines (no chromium-linux snapshots) and numbered
+        # 01–27 suite (getByLabel / RTL / data debt — residual for 3.7 CONDITIONAL).
         run: |
           cd salesos/frontend
-          npx playwright test --config playwright.config.ts --project=chromium
+          npx playwright test --config playwright.config.ts --project=chromium \
+            e2e/smoke-auth-ui.spec.ts
+      - name: Upload backend log on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: e2e-backend-log
+          path: /tmp/salesos-e2e-backend.log
+          retention-days: 7
       - name: Upload E2E results
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
