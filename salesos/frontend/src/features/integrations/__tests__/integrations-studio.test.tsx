@@ -40,7 +40,21 @@ jest.mock("@/lib/hooks/integrationHubQueries", () => ({
     isLoading: false,
   }),
   useHubSyncRuns: () => ({
-    data: [],
+    data: [
+      {
+        id: "run-cursor-1",
+        connection_id: "c1",
+        model: "res.partner",
+        status: "success",
+        records_pulled: 2,
+        records_written: 1,
+        records_failed: 1,
+        started_at: "2026-08-02T10:00:00Z",
+        finished_at: "2026-08-02T10:01:00Z",
+        cursor_before: { "res.partner": "2026-08-01 00:00:00" },
+        cursor_after: { "res.partner": "2026-08-02 10:00:00" },
+      },
+    ],
     isLoading: false,
     isFetching: false,
     refetch: jest.fn(),
@@ -405,4 +419,19 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
       screen.getByTestId("integrations-studio-unlinked-badge-row"),
     ).toHaveTextContent(/ext-1/);
   });
+  it("shows tip SyncRun cursor_before/after on Monitor (FE-S09-09)", () => {
+    render(<IntegrationsStudio />);
+    fireEvent.click(screen.getByTestId("integrations-studio-step-monitor"));
+    fireEvent.change(
+      screen.getByTestId("integrations-studio-connection-select"),
+      { target: { value: "c1" } },
+    );
+    expect(
+      screen.getByTestId("integrations-studio-sync-run-cursors"),
+    ).toHaveTextContent(/cursor_before/);
+    expect(
+      screen.getByTestId("integrations-studio-sync-run-cursors"),
+    ).toHaveTextContent(/2026-08-02 10:00:00/);
+  });
+
 });

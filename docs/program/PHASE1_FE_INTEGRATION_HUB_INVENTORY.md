@@ -2,7 +2,7 @@
 
 > **Date:** 2026-08-02  
 > **Owner:** Frontend Lead  
-> **Honesty:** Not Production GO. No invented Hub HTTP / unlinked badge list / owner mint.  
+> **Honesty:** Not Production GO. No invented Sprint-12 custom objects / owner mint.  
 > `TenantList.tsx` untouched.
 
 ## Landed track
@@ -29,9 +29,8 @@
 | FE-S09-07 | Odoo flag + write_date cursor honesty (tip 09-07) |
 | FE-S09-07b | Owner /admin/flags Odoo gate honesty |
 | FE-S09-08 | Unlinked badge Monitor list (tip 09-08) |
+| FE-S09-09 | SyncRun cursor Monitor columns (tip 09-09) |
 
 ## Blocked (do not invent)
 
-- SyncRun HTTP `cursor_before`/`cursor_after` (ORM-only until BE schema)
 - Sprint-12 custom objects (STORY-10) until BE on tip
-- SyncRun HTTP `cursor_before`/`cursor_after` (ORM-only until BE schema)

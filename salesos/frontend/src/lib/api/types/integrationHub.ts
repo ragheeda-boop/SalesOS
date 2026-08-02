@@ -91,6 +91,9 @@ export interface HubSyncRun {
   scheduled_job_id?: string | null;
   started_at: string;
   finished_at?: string | null;
+  /** Tip STORY-09-09 SyncRunResponse cursor watermarks. */
+  cursor_before?: Record<string, unknown>;
+  cursor_after?: Record<string, unknown>;
 }
 
 export interface HubDisconnectResult {

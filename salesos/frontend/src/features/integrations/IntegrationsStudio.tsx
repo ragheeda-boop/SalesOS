@@ -62,6 +62,7 @@ import {
 } from "@/features/integrations/odooInvoiceHonesty";
 import {
   CURSOR_STATE_HONESTY,
+  SYNCRUN_CURSOR_HONESTY,
   FLAG_ODOO_INTEGRATION,
   MUHIDE_TENANT_SLUG,
   ODOO_FLAG_GATED_ACTIONS,
@@ -487,17 +488,15 @@ export function IntegrationsStudio() {
                       {ODOO_FLAG_GATED_ACTIONS.join(", ")} (HTTP 403 when off).
                       Global default off; design partner{" "}
                       <code>{MUHIDE_TENANT_SLUG}</code> via tenant override (ops
-                      UUID — not invented here). Unlinked badge list still
-                      BE-blocked. Not Production GO / RAG GO.
+                      UUID — not invented here). Unlinked badges on tip
+                      Monitor (FE-S09-08). Not Production GO / RAG GO.
                     </p>
                     <p
                       className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                       data-testid="integrations-studio-cursor-write-date-honesty"
                     >
-                      {CURSOR_STATE_HONESTY}. SyncRun ORM may store
-                      cursor_before/after - those fields are <em>not</em> on tip
-                      SyncRunResponse (do not invent Monitor columns). Not
-                      Production GO.
+                      {CURSOR_STATE_HONESTY}. {SYNCRUN_CURSOR_HONESTY}{" "}
+                      (STORY-09-09). Not Production GO.
                     </p>
                   </div>
                 ) : null}
@@ -1283,6 +1282,20 @@ export function IntegrationsStudio() {
                           : ""}
                         {run.failure_class ? ` · ${run.failure_class}` : ""}
                       </span>
+                      {((run.cursor_before &&
+                        Object.keys(run.cursor_before).length > 0) ||
+                      (run.cursor_after &&
+                        Object.keys(run.cursor_after).length > 0)) ? (
+                        <p
+                          className="mt-1 font-mono text-[10px] text-[var(--text-muted)] break-all"
+                          data-testid="integrations-studio-sync-run-cursors"
+                        >
+                          cursor_before{" "}
+                          {JSON.stringify(run.cursor_before || {})}
+                          {" · "}cursor_after{" "}
+                          {JSON.stringify(run.cursor_after || {})}
+                        </p>
+                      ) : null}
                       <div className="mt-1 flex flex-wrap items-center gap-2">
                         <span className="font-mono text-xs break-all">
                           {run.id}

@@ -151,9 +151,9 @@ export default function AdminIntegrationsInventoryPage() {
         data-testid="owner-ops-integrations-honesty"
       >
         FE inventory: BE 08-01..06 + STORY-09-01/09-02 OdooAdapter landed.
-        Tenant Studio (through FE-S09-07 Odoo flag / write_date cursor honesty)
-        is at `/integrations`. Unlinked badge list still BE-blocked. Owner mint
-        remains DEC-093 follow-up. Not Production GO / RAG GO.
+        Tenant Studio (through FE-S09-09 SyncRun cursors + FE-S09-08 unlinked
+        badges) is at `/integrations`. Owner mint remains DEC-093 follow-up.
+        Not Production GO / RAG GO.
       </p>
 
       <IntegrationsStudioShell />

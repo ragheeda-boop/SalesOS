@@ -1,5 +1,5 @@
 /** Tip STORY-09-07 Odoo incremental + feature flag honesty (mirror BE).
- * Not an invented HTTP API. Unlinked badge list still BE-blocked.
+ * Tip SyncRunResponse includes cursor_before/after (STORY-09-09).
  * Not Production GO / RAG GO.
  */
 
@@ -16,13 +16,13 @@ export const ODOO_FLAG_GATED_ACTIONS = [
   "schedule",
 ] as const;
 
-/**
- * Tip cursor_state is a per-model watermark map on ConnectionResponse.
- * SyncRun cursor_before/after exist on ORM but are NOT on SyncRunResponse —
- * do not invent Monitor fields.
- */
+/** Tip cursor_state is a per-model watermark map on ConnectionResponse. */
 export const CURSOR_STATE_HONESTY =
   "cursor_state holds per-model write_date watermarks (opaque strings)";
+
+/** Tip SyncRunResponse cursor fields (STORY-09-09) — Monitor may display. */
+export const SYNCRUN_CURSOR_HONESTY =
+  "SyncRunResponse.cursor_before/after expose write_date watermarks on GET .../sync-runs";
 
 export function isOdooConnectorKey(connectorKey: string): boolean {
   return connectorKey.trim().toLowerCase() === "odoo";

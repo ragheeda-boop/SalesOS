@@ -1,5 +1,6 @@
 import {
   CURSOR_STATE_HONESTY,
+  SYNCRUN_CURSOR_HONESTY,
   FLAG_ODOO_INTEGRATION,
   MUHIDE_TENANT_SLUG,
   ODOO_FLAG_GATED_ACTIONS,
@@ -19,6 +20,7 @@ describe("odooIncrementalHonesty — FE-S09-07", () => {
     expect(isOdooConnectorKey("odoo")).toBe(true);
     expect(isOdooConnectorKey("fake")).toBe(false);
     expect(CURSOR_STATE_HONESTY).toMatch(/write_date/);
-    expect(CURSOR_STATE_HONESTY).not.toMatch(/cursor_before/);
+    expect(SYNCRUN_CURSOR_HONESTY).toMatch(/cursor_before/);
+    expect(SYNCRUN_CURSOR_HONESTY).toMatch(/sync-runs/);
   });
 });
