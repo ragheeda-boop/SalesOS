@@ -1,6 +1,6 @@
 /**
  * Integration Hub HTTP client (DOM-021).
- * Tip endpoints only (STORY-08-06 / FE-S08-08 conflict-policy). Not Production GO.
+ * Tip endpoints only (STORY-08-06..09-08). Not Production GO.
  */
 import api from "./client";
 import type {
@@ -15,6 +15,7 @@ import type {
   HubScheduleCreate,
   HubScheduleResult,
   HubSyncRun,
+  HubUnlinkedBadgeList,
 } from "./types/integrationHub";
 
 const BASE = "/api/v1/integrations";
@@ -154,6 +155,22 @@ export async function listHubSyncRuns(
     {
       headers: tenantHeaders(tenantId),
       params: { limit },
+    },
+  );
+  return resp.data;
+}
+
+export async function listHubUnlinkedBadges(
+  tenantId: string,
+  connectionId: string,
+  limit = 100,
+  syncRunLimit = 50,
+): Promise<HubUnlinkedBadgeList> {
+  const resp = await api.get<HubUnlinkedBadgeList>(
+    `${BASE}/connections/${connectionId}/unlinked-badges`,
+    {
+      headers: tenantHeaders(tenantId),
+      params: { limit, sync_run_limit: syncRunLimit },
     },
   );
   return resp.data;

@@ -126,6 +126,11 @@ const FE_GATED = [
     title: "Owner flags Odoo gate honesty",
     status: "FE landed — /admin/flags callout",
   },
+  {
+    id: "FE-S09-08",
+    title: "Unlinked badge Monitor list",
+    status: "FE landed — tip GET unlinked-badges",
+  },
 ] as const;
 
 export default function AdminIntegrationsInventoryPage() {

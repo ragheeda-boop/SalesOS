@@ -28,8 +28,10 @@
 | FE-S09-06 | CustomerInvoice presets + payment honesty (tip 09-06) |
 | FE-S09-07 | Odoo flag + write_date cursor honesty (tip 09-07) |
 | FE-S09-07b | Owner /admin/flags Odoo gate honesty |
+| FE-S09-08 | Unlinked badge Monitor list (tip 09-08) |
 
 ## Blocked (do not invent)
 
-- Unlinked cr_number badge **list API** (STORY-09-01 residual / BE)
+- SyncRun HTTP `cursor_before`/`cursor_after` (ORM-only until BE schema)
+- Sprint-12 custom objects (STORY-10) until BE on tip
 - SyncRun HTTP `cursor_before`/`cursor_after` (ORM-only until BE schema)

@@ -6,6 +6,7 @@ import {
   listHubConnections,
   putHubConflictPolicy,
   testHubConnection,
+  listHubUnlinkedBadges,
 } from "../integrationHub";
 
 jest.mock("../client", () => ({
@@ -148,5 +149,32 @@ describe("integrationHub API — STORY-08-07 / FE-S08-08/09", () => {
       expect.any(Object),
     );
     expect(row.id).toBe("c2");
+  });
+  it("lists unlinked badges on tip Hub HTTP (STORY-09-08)", async () => {
+    mocked.get.mockResolvedValue({
+      data: {
+        connection_id: "c2",
+        count: 1,
+        items: [
+          {
+            kind: "unlinked_badge",
+            external_id: "p1",
+            status: "unlinked",
+            cr_number: "123",
+            message: "no match",
+          },
+        ],
+      },
+    });
+    const row = await listHubUnlinkedBadges("tenant-1", "c2");
+    expect(mocked.get).toHaveBeenCalledWith(
+      "/api/v1/integrations/connections/c2/unlinked-badges",
+      expect.objectContaining({
+        headers: { "X-Tenant-Id": "tenant-1" },
+        params: { limit: 100, sync_run_limit: 50 },
+      }),
+    );
+    expect(row.count).toBe(1);
+    expect(row.items[0].status).toBe("unlinked");
   });
 });

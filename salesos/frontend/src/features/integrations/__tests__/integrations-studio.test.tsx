@@ -45,6 +45,25 @@ jest.mock("@/lib/hooks/integrationHubQueries", () => ({
     isFetching: false,
     refetch: jest.fn(),
   }),
+  useHubUnlinkedBadges: () => ({
+    data: {
+      connection_id: "c1",
+      count: 1,
+      items: [
+        {
+          kind: "unlinked_badge",
+          external_id: "ext-1",
+          status: "unlinked",
+          cr_number: "1010123456",
+          message: "no golden match",
+          sync_run_id: "run-1",
+        },
+      ],
+    },
+    isLoading: false,
+    isFetching: false,
+    refetch: jest.fn(),
+  }),
   useActiveHubMapping: () => ({
     data: {
       id: "m1",
@@ -368,5 +387,22 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
     expect(
       screen.getByTestId("integrations-studio-live-honesty"),
     ).toHaveTextContent(/feature_odoo_integration|STORY-09-07/i);
+  });
+  it("lists tip unlinked badges on Monitor (FE-S09-08)", () => {
+    render(<IntegrationsStudio />);
+    fireEvent.click(screen.getByTestId("integrations-studio-step-monitor"));
+    fireEvent.change(
+      screen.getByTestId("integrations-studio-connection-select"),
+      { target: { value: "c1" } },
+    );
+    expect(
+      screen.getByTestId("integrations-studio-unlinked-honesty"),
+    ).toHaveTextContent(/unlinked-badges/i);
+    expect(
+      screen.getByTestId("integrations-studio-unlinked-count"),
+    ).toHaveTextContent(/1 badge/);
+    expect(
+      screen.getByTestId("integrations-studio-unlinked-badge-row"),
+    ).toHaveTextContent(/ext-1/);
   });
 });

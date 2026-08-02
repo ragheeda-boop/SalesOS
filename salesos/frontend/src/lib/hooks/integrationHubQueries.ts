@@ -10,6 +10,7 @@ import {
   getHubConflictPolicy,
   listHubConnections,
   listHubSyncRuns,
+  listHubUnlinkedBadges,
   putHubConflictPolicy,
   scheduleHubSync,
   testHubConnection,
@@ -48,6 +49,16 @@ export function useHubSyncRuns(connectionId: string | null) {
     enabled: Boolean(connectionId),
     staleTime: 10_000,
     refetchInterval: connectionId ? 30_000 : false,
+  });
+}
+
+export function useHubUnlinkedBadges(connectionId: string | null) {
+  const tenantId = getTenantId();
+  return useQuery({
+    queryKey: integrationHubKeys.unlinkedBadges(tenantId, connectionId || ""),
+    queryFn: () => listHubUnlinkedBadges(tenantId, connectionId!),
+    enabled: Boolean(connectionId),
+    staleTime: 10_000,
   });
 }
 

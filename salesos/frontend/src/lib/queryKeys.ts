@@ -95,6 +95,13 @@ export const integrationHubKeys = {
     [...integrationHubKeys.all, "connection", tenantId, connectionId] as const,
   syncRuns: (tenantId: string, connectionId: string) =>
     [...integrationHubKeys.all, "sync-runs", tenantId, connectionId] as const,
+  unlinkedBadges: (tenantId: string, connectionId: string) =>
+    [
+      ...integrationHubKeys.all,
+      "unlinked-badges",
+      tenantId,
+      connectionId,
+    ] as const,
   activeMapping: (tenantId: string, connectionId: string, model: string) =>
     [
       ...integrationHubKeys.all,

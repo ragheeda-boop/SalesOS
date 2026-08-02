@@ -98,3 +98,21 @@ export interface HubDisconnectResult {
   is_active: boolean;
   message: string;
 }
+
+/** Tip STORY-09-08 UnlinkedBadgeItemResponse (from SyncRun.error_log). */
+export interface HubUnlinkedBadgeItem {
+  kind: "unlinked_badge";
+  external_id: string;
+  status: "unlinked" | "invalid_cr";
+  cr_number?: string | null;
+  message?: string;
+  model?: string;
+  sync_run_id?: string | null;
+  recorded_at?: string | null;
+}
+
+export interface HubUnlinkedBadgeList {
+  connection_id: string;
+  count: number;
+  items: HubUnlinkedBadgeItem[];
+}

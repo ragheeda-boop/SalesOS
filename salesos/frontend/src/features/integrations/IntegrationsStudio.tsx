@@ -12,6 +12,7 @@ import {
   useHubConnection,
   useHubConnections,
   useHubSyncRuns,
+  useHubUnlinkedBadges,
   usePutHubConflictPolicy,
   useScheduleHubSync,
   useTestHubConnection,
@@ -149,6 +150,7 @@ export function IntegrationsStudio() {
   const connectionsQuery = useHubConnections();
   const connectionDetailQuery = useHubConnection(selectedId);
   const syncRunsQuery = useHubSyncRuns(selectedId);
+  const unlinkedBadgesQuery = useHubUnlinkedBadges(selectedId);
   const conflictQuery = useHubConflictPolicy(
     step === "conflict" ? selectedId : null,
   );
@@ -668,9 +670,8 @@ export function IntegrationsStudio() {
                 STORY-09-01: Tip model <code>res.partner</code> maps{" "}
                 <code>x_studio_cr_number</code> → <code>cr_number</code> and
                 joins Company / Golden Record. Batch outcomes:{" "}
-                {PARTNER_JOIN_OUTCOMES.join(", ")}. Unlinked badge <em>list</em>{" "}
-                API still BE-blocked — Monitor shows SyncRun counters only. Not
-                Production GO.
+                {PARTNER_JOIN_OUTCOMES.join(", ")}. Unlinked badge list is on
+                tip Monitor (STORY-09-08). Not Production GO.
               </p>
             ) : null}
             {isOpportunityModel(model) ? (
@@ -1115,11 +1116,85 @@ export function IntegrationsStudio() {
               className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
               data-testid="integrations-studio-unlinked-honesty"
             >
-              Unlinked cr_number badge list API not live (STORY-09-01 residual /
-              FE-S09-01 honesty). Join outcomes exist in BE batch only (
-              {PARTNER_JOIN_OUTCOMES.join(", ")}). Monitor shows SyncRun
-              counters only. Not Production GO.
+              STORY-09-08: Tip <code>GET .../unlinked-badges</code> lists
+              SyncRun <code>error_log</code> entries with{" "}
+              <code>kind=unlinked_badge</code> (join outcomes{" "}
+              {PARTNER_JOIN_OUTCOMES.join(", ")}). Sourced from partner sync
+              residuals — not a dedicated badge table. Not Production GO / RAG
+              GO.
             </p>
+            <div
+              className="space-y-2"
+              data-testid="integrations-studio-unlinked-badges"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm font-medium">Unlinked badges</h3>
+                <Button
+                  data-testid="integrations-studio-unlinked-refresh"
+                  disabled={!selectedId || unlinkedBadgesQuery.isFetching}
+                  onClick={() => {
+                    void unlinkedBadgesQuery.refetch();
+                  }}
+                >
+                  {unlinkedBadgesQuery.isFetching
+                    ? "Refreshing…"
+                    : "Refresh badges"}
+                </Button>
+                <span
+                  className="text-xs text-[var(--text-muted)]"
+                  data-testid="integrations-studio-unlinked-count"
+                >
+                  {unlinkedBadgesQuery.isLoading
+                    ? "Loading…"
+                    : `${unlinkedBadgesQuery.data?.count ?? 0} badge(s)`}
+                </span>
+              </div>
+              {!selectedId ? (
+                <p className="text-sm text-[var(--text-muted)]">
+                  Select a connection to list unlinked badges.
+                </p>
+              ) : unlinkedBadgesQuery.isLoading ? (
+                <Spinner className="h-5 w-5" />
+              ) : (unlinkedBadgesQuery.data?.items || []).length === 0 ? (
+                <p className="text-sm text-[var(--text-muted)]">
+                  No unlinked badges in recent SyncRun error_log.
+                </p>
+              ) : (
+                <ul className="divide-y divide-[var(--border-default)] rounded border border-[var(--border-default)] text-sm">
+                  {(unlinkedBadgesQuery.data?.items || []).map((b) => (
+                    <li
+                      key={`${b.sync_run_id || "run"}-${b.external_id}-${b.status}`}
+                      className="px-3 py-2"
+                      data-testid="integrations-studio-unlinked-badge-row"
+                    >
+                      <span className="font-mono text-xs">{b.external_id}</span>
+                      <span className="mx-2 text-[var(--text-muted)]">·</span>
+                      <span>{b.status}</span>
+                      {b.cr_number ? (
+                        <>
+                          <span className="mx-2 text-[var(--text-muted)]">
+                            ·
+                          </span>
+                          <span className="font-mono text-xs">
+                            cr {b.cr_number}
+                          </span>
+                        </>
+                      ) : null}
+                      {b.message ? (
+                        <p className="mt-1 text-xs text-[var(--text-muted)]">
+                          {b.message}
+                        </p>
+                      ) : null}
+                      {b.sync_run_id ? (
+                        <p className="mt-0.5 font-mono text-[10px] text-[var(--text-disabled)]">
+                          sync_run {b.sync_run_id}
+                        </p>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <Button
               data-testid="integrations-studio-monitor-refresh"
               disabled={!selectedId || syncRunsQuery.isFetching}
