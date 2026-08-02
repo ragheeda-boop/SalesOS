@@ -9,17 +9,18 @@
 
 | # | Task | Status | Notes |
 |---|------|--------|-------|
-| C1 | Keep DEC-149 Railway+Vercel deploy green on tip after Phase 0 exit land | **OBSERVED GREEN** @ `53a4aa7` | Deploy Production [30726307079](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726307079): Pre-deploy ✓ · Railway ✓ · Health Gate ✓ · Vercel FE ✓ · Notify ✓. Stage 6 GHCR **SKIPPED** (DEC-150 B). |
-| C2 | Protect Stage 7 E2E from docs-push cancel (standalone workflow retention) | **STANDING** | `.github/workflows/e2e-stage7.yml` path filters + own concurrency (`cancel-in-progress: false`). Docs tip `53a4aa7` did not cancel prior Stage 7 SUCCESS [30726226400](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726226400) @ `96b2c7a`. |
+| C1 | Keep DEC-149 Railway+Vercel deploy green on tip after Phase 0 exit land | **GREEN** | Tip-line Deploy Production SUCCESS retained through swarm (e.g. `20ce9e8` [30727889654](https://github.com/ragheeda-boop/SalesOS/actions/runs/30727889654), `0c29bf2` [30728176198](https://github.com/ragheeda-boop/SalesOS/actions/runs/30728176198), `0782fa4` [30728358293](https://github.com/ragheeda-boop/SalesOS/actions/runs/30728358293)): Pre-deploy ✓ · Railway ✓ · Health Gate ✓ · Vercel FE ✓ · Notify ✓. Stage 6 GHCR **SKIPPED**. |
+| C2 | Protect Stage 7 E2E from docs-push cancel (standalone workflow retention) | **STANDING + GREEN** | `.github/workflows/e2e-stage7.yml` path filters + own concurrency. Field SUCCESS @ `20ce9e8` [30727889655](https://github.com/ragheeda-boop/SalesOS/actions/runs/30727889655); @ `0c29bf2` [30728176218](https://github.com/ragheeda-boop/SalesOS/actions/runs/30728176218). |
 | C3 | Staging remains deferred (single-env DEC-149) unless ARB unfreezes topology | **HELD** | No topology supersede. |
 | C4 | Legacy GHCR 403 = tech debt backlog — **not** Phase 1 blocker | **TECH DEBT** | Do not reopen as gate. |
 
-## CI chase (Stream C NEVER-STOP)
+## CI chase (Stream C NEVER-STOP) — CLOSED for this wave
 
-| Item | Evidence | Action |
-|------|----------|--------|
-| Tip Stage 3 Backend Unit red | `53a4aa7` / `96b2c7a` CI: `test_authenticate_failure` asyncpg cross-loop after Stage 7 GUC pin | Land dispose/retry probe helper in `database.probe_login_tenant_id` (no request-path `owner_engine` import) |
-| Prior tip patch | `62bbafb` bare `except Exception` | Supersede with loop-aware dispose/retry (keeps Stage 7 pin path; isolation test clean) |
+| Item | Evidence | Resolution |
+|------|----------|------------|
+| Tip Stage 3 Backend Unit red after Stage 7 GUC pin | `test_authenticate_failure` asyncpg cross-loop | `69da589` — `database.probe_login_tenant_id` dispose/retry; no request-path `owner_engine` import |
+| Tip FE types / smoke red (HardDelete exports) + D3 ruff format | `9e242e0` CI/Smoke red | `20ce9e8` — export Soft/HardDelete admin types + ruff D3 suite |
+| Tip-line full green proof | `20ce9e8` / `0c29bf2` | **CI SUCCESS** + Deploy + Stage 7 + Docker Smoke + Security (Stage 6 skipped) |
 
 ## Forbidden
 
