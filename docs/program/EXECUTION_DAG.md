@@ -1,47 +1,46 @@
 # Execution DAG — Current Program State
 
-> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-02** (tip pin `a3add3f`; post **DEC-154** 2.3 Complete; Continuous Autonomous Mode chasing Stage 7; **ARMED** for post-54/54 parallel — not triggered; DEC-155 CLOSE **WITHDRAWN**; DEC-153 **4.1/4.8 CLOSED**; DEC-152 **3.9 CLOSED CONDITIONAL**; prior DEC-150 B / DEC-149a / DEC-120).  
+> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-02** (evidence tip `53a4aa7`; Phase 0 **54/54 COMPLETE**; DEC-155 **3.7 CLOSED**; DEC-154 **2.3 Complete**; plan **ACTIVE**; Operating State **PHASE 1 PARALLEL EXECUTION ACTIVE**; DEC-153 **4.1/4.8 CLOSED**; DEC-152 **3.9 CLOSED CONDITIONAL**).  
 > Authority: evidence + `SPRINT_05_DELIVERY_BOARD.md` + `RISK_REGISTER.md` + Sprint plans + `docs/audit/ga-engineering-audit/` + Principal Audit.  
-> Honesty labels: **Stages 1–7 CI GREEN not met** (Stage 7 not SUCCESS on tip). **Phase 0 (DEC-008 RLS / R-14) exit = NO-GO** (DEC-086 GO **withdrawn** by DEC-120). **Production GA / External pilot = NO-GO**. STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies). **Do not reopen STORY-02-01.**  
-> **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** + **ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md); plan [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md)): hard OPEN ⬜ = **3.7** only. Phase 0 **53/54 NO-GO**. Sprint **26/26**. Trigger parallel streams **only** on true **54/54** — no human wait after trigger. Never invent Production GO / Phase 0 COMPLETE.
+> Honesty labels: **Production GA / External pilot = NO-GO**. Phase 0 checklist COMPLETE ≠ Production GO. STORY-02-01 **DONE** (DEC-044). **Do not reopen STORY-02-01.**  
+> **Operating State: PHASE 1 PARALLEL EXECUTION ACTIVE** ([`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) **ACTIVE**; [`PHASE1_STREAM_LAUNCH_CRUMB.md`](PHASE1_STREAM_LAUNCH_CRUMB.md)). Hard OPEN ⬜ = **none**. Score **54/54**. Never invent Production GO.
 
 ---
 
-> **Orchestrator pin (2026-08-02):** Score **53/54 NO-GO** after DEC-154. Hard OPEN **3.7** only. Post-54/54 plan **ARMED** (not triggered). Premature DEC-155 / TRIGGER_POST_PHASE0_PLAN **WITHDRAWN**.
+> **2026-08-02 TRIGGER (Watchdog confirmed):** Phase 0 **54/54** — 3.7 CLOSED DEC-155 ([30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801) @ `909230d`). Premature withdraw `a08d7c0` **reversed**. Plan **ACTIVE**. Operating State → **PHASE 1 PARALLEL EXECUTION ACTIVE**. Production GA NO-GO unchanged.
 
-## Operating State — CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT + ARMED POST-54/54
+## Operating State — PHASE 1 PARALLEL EXECUTION ACTIVE
 
 ```
-STATE = CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT
-       + ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION
+STATE = PHASE 1 PARALLEL EXECUTION ACTIVE
 Architecture = FROZEN
-Governance = FROZEN          # DEC-151
-Program = ACTIVE             # hard OPEN: 3.7 only — chasing Stage 7
+Governance = PHASE 1 DELIVERY  # DEC-151 freeze lifted for Phase 1 delivery; not Production GO
+Program = ACTIVE
 Engineering = STABILIZING
 AI Runtime = DEFERRED
-Score = 53/54                # DEC-154 2.3 Complete; NOT 54/54
-Loop = chase Stage 7 → field-verify → land crumbs → push
-Post54 = ARMED               # trigger only on true 54/54 → spawn BE/FE/DevOps/Validation
+Score = 54/54
+Loop = integrate stream returns → board/DAG → reassign next S04 stories → push
+Post54 = ACTIVE
+Tip = 53a4aa7
 ```
 
-**Frozen reaffirm:** DEC-149 (Railway+Vercel) · DEC-150 B (GHCR retired) · DEC-151 (governance freeze). Tip pin: `a3add3f` (DEC-154 land `4fd25ea`; DEC-155 CLOSE WITHDRAWN — hard OPEN **3.7**).
+**Frozen reaffirm:** DEC-149 · DEC-150 B · DEC-151 history (Phase 1 delivery mode). Evidence tip: `53a4aa7`.
 
 ### Orchestrator trigger protocol (short)
 
-On **true 54/54** (checklist evidence; no invent): Orchestrator spawns Backend / Frontend / DevOps / Validation streams per [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) **without waiting for human**. While score &lt; 54/54 → remain ARMED; primary chase = Stream B (**3.7**).
+**FIRED** on tip **54/54** (Watchdog). Streams Backend / Frontend / DevOps / Validation ACTIVE. Never-stop: integrate returns, resolve conflicts, reassign next Sprint 04 stories. Never invent Production GO.
 
-### Coordination map (continuous streams)
+### Coordination map (Phase 1 streams)
 
-| Stream | Criterion | Owner | Class | Mandate |
+| Stream | Mandate | Owner | Class | Artifact |
 |---|---|---|---|---|
-| **A** | **3.9** CI GREEN (DEC-149 topology) | DevOps / Validation | **CLOSED CONDITIONAL** (DEC-152) | Tip `5fafbe9` Stages 1–5 + Deploy Prod SUCCESS; Stage 7 orthogonal |
-| **B** | **3.7** Stage 7 E2E | DevOps / Backend | **ACTIVE — primary chase** | Services + smoke-auth-ui @ `9e1dc46` / harden `d973cba`; await tip Stage 7 SUCCESS; **do not invent CLOSE** |
-| **C** | **4.1 / 4.8** ARB re-audit | ARB / OpenCode | **CLOSED** (DEC-153 @ `8ff782f`) | ARB PASS / CRITICAL **0** @ `.engineering/34_EOS_REAUDIT_2026-08-02.md` |
-| **D** | Freeze-compliant backlog | Orchestrator / Validation | **QUEUED** | Docs consistency / CONDITIONAL residual crumbs after 3.7 progress |
-| **Post-54/54** | Phase 1 parallel launch | Program Planner | **ARMED** | [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) — execute only on tip **54/54**; no Phase 1 impl / no Production GO invent |
+| **A Backend** | A1 STORY-04-01 → A2 Alembic draft | Backend | **ACTIVE** | [`PHASE1_STORY_04_01_PRETASK.md`](PHASE1_STORY_04_01_PRETASK.md) |
+| **B Frontend** | B1 Tenant inventory → B2 stubs | Frontend | **ACTIVE** | [`PHASE1_FE_TENANT_SURFACE_INVENTORY.md`](PHASE1_FE_TENANT_SURFACE_INVENTORY.md) |
+| **C DevOps** | C1 tip deploy observe + C2 Stage 7 protect | DevOps | **ACTIVE** | [`PHASE1_DEVOPS_STREAM_CRUMB.md`](PHASE1_DEVOPS_STREAM_CRUMB.md) |
+| **D Validation** | D1 54/54 verify (PASS) + D2 tip CI/Deploy | Validation | **ACTIVE** | [`PHASE1_VALIDATION_STREAM_CRUMB.md`](PHASE1_VALIDATION_STREAM_CRUMB.md) |
+| **Post-54/54** | Phase 1 parallel launch | Orchestrator | **ACTIVE** | [`PHASE1_STREAM_LAUNCH_CRUMB.md`](PHASE1_STREAM_LAUNCH_CRUMB.md) |
 
 ---
-
 ## Legend
 
 | Class | Meaning |
@@ -90,7 +89,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **CI-08** GHCR 403 (mandatory Phase 0) | **GOVERNANCE COMPLETED** | **DEC-150 Option B Accepted** — Stage 6 GHCR publish retired as Phase 0 gate | Residual field 403 @ `30721601875` = **legacy/non-blocking**. Canonical deploy = Railway+Vercel (DEC-149 / **3.11**) |
 | **CI GREEN (DEC-149 topology)** | **CLOSED CONDITIONAL** (DEC-152) | Residual Stage 7 overall-red orthogonal | Criterion **3.9** not hard OPEN; does **not** auto-close **3.7** |
 | **CI GREEN (code path)** | REPORTING ONLY | Stages 1–5 on a named run | DEC-104 / DEC-148a / DEC-152 tip evidence |
-| **Stage 7 E2E (3.7)** | **ACTIVE chase** (sole hard OPEN) | Tip Stage 7 SUCCESS with real backend services | Services wired `9e1dc46` + harden `d973cba`; **decoupled from GHCR** (DEC-150 B); **do not invent CLOSE** |
+| **Stage 7 E2E (3.7)** | **CLOSED** (DEC-155) | Tip Stage 7 SUCCESS | [30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801) @ `909230d` |
 
 ---
 
@@ -152,19 +151,18 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 ---
 
-## PARALLEL (continuous autonomous streams; Phase 0 still NO-GO)
+## PARALLEL (Phase 1 streams — never invent Production GO)
 
 | Track | Class | Justification |
 |---|---|---|
-| **Stream A — 3.9** CI GREEN field-fix | **CLOSED CONDITIONAL** | DEC-152 @ `5fafbe9` / `30724762973` + Deploy `30724762967` |
-| **Stream B — 3.7** Stage 7 E2E | **ACTIVE — primary chase** | Sole hard OPEN; tip `8ff782f`/`d973cba`; await Stage 7 SUCCESS; do not invent CLOSE |
-| **Stream C — 4.1/4.8** ARB re-audit | **CLOSED** (DEC-153 @ `8ff782f`) | ARB PASS / CRITICAL **0**; score **51/54** |
-| **Stream D — freeze-compliant backlog** | **QUEUED** | Docs consistency / CONDITIONAL residual crumbs after 3.7 progress |
-| Contract tests, optional Jest 30 | PARALLEL / PARKED | Do **not** close Phase 0 rows; DEC-094/106 + Jest 30 = backlog only |
-| Cursor invent CLOSE on hard OPEN | **FORBIDDEN** | **3.7** requires tip Stage 7 field SUCCESS; score **53/54** (not 54/54); no Production GO |
-| Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
+| **A Backend** STORY-04-01/04-02 | **ACTIVE** | A1 pre-task; next A2 Alembic draft (non-prod) |
+| **B Frontend** Owner Console Tenant | **ACTIVE** | B1 inventory; B2 waits A1 field contract |
+| **C DevOps** DEC-149 deploy + Stage 7 protect | **ACTIVE** | Observe tip Deploy; retain e2e-stage7.yml |
+| **D Validation** D1/D2 | **ACTIVE** | D1 PASS (54/54); D2 observe tip CI/Deploy |
+| Contract tests, optional Jest 30 | PARALLEL / PARKED | DEC-094/106 + Jest 30 = backlog only |
+| Production GO invent | **FORBIDDEN** | ga-engineering-audit remains **production no-go** |
 
-**Swarm dispatch (DEC-107 + DEC-151 Continuous Autonomous):** All capacity on **Stream B (Stage 7)**; A/C closed; queue D after 3.7 progress. CI-08 is **not** an ops wait — GOVERNANCE COMPLETED (DEC-150 B). No architecture / topology DECs. **Never invent 3.7 CLOSE / Production GO / Phase 0 COMPLETE unless 54/54.**
+**Swarm dispatch (DEC-107 never-stop):** Keep ≥2–3 PARALLEL READY on A/B/C/D. Integrate board on return; reassign next calendar Sprint 04 stories. **Never invent Production GO.**
 
 ---
 
@@ -180,7 +178,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 ## Board progress fraction
 
-**26/26** Complete/Closed on tracked Sprint 05 board fraction including **CI-09 CLOSED CONDITIONAL** (DEC-149a) + **CI-08 GOVERNANCE COMPLETED** (DEC-150 B; **S04-04 CLOSED CONDITIONAL** (DEC-154)). Adjacent closed: **Jest-debt / R-23**; checklist **3.9 CLOSED CONDITIONAL** (DEC-152). Canonical deploy = DEC-149 Railway+Vercel (**3.11**). Stage 6 GHCR **off critical path**. **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** + **ARMED FOR POST-54/54** (DEC-151). Phase 0 **53/54 NO-GO**. Hard OPEN: **3.7** only. **Do not invent 3.7 CLOSE / Production GO / 54/54.**
+**26/26** Complete/Closed on tracked Sprint 05 board fraction including **CI-09 CLOSED CONDITIONAL** (DEC-149a) + **CI-08 GOVERNANCE COMPLETED** (DEC-150 B) + **S04-04 CLOSED CONDITIONAL** (DEC-154). Adjacent closed: **Jest-debt / R-23**; checklist **3.9 CLOSED CONDITIONAL** (DEC-152); **4.1/4.8 CLOSED** (DEC-153). Canonical deploy = DEC-149 Railway+Vercel (**3.11**). Stage 6 GHCR **off critical path**. **Operating State: PHASE 1 PARALLEL EXECUTION ACTIVE**. Phase 0 checklist **54/54 COMPLETE**. Hard OPEN: **none**. Evidence tip `53a4aa7`. **No Production GO.**
 
 ---
 

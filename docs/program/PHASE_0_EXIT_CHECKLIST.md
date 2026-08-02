@@ -3,44 +3,43 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-02 (**CONTINUOUS AUTONOMOUS MODE** under [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md); **ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION** — trigger only on true 54/54; Phase 0 **53/54 NO-GO**; hard OPEN **3.7**; **2.3** Open disposed DEC-154; no Production GO)
+> **Last updated:** 2026-08-02 (**PHASE 1 PARALLEL EXECUTION ACTIVE**; Phase 0 checklist **54/54**; **3.7 CLOSED** DEC-155 @ Stage 7 [30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801); tip pin `53a4aa7` (Watchdog-confirmed; withdraw `a08d7c0` reversed); **TRIGGER_POST_PHASE0_PLAN** fired; Production GA remains NO-GO)
 >
 > ## Operating State
 >
 > ```
-> STATE = CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT
->        + ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION
-> Architecture = FROZEN
-> Governance = FROZEN          # DEC-151 — Phase 0 Governance Freeze
-> Program = ACTIVE             # residual hard OPEN only: 3.7
+> STATE = PHASE 1 PARALLEL EXECUTION ACTIVE
+> Architecture = FROZEN          # topology/org still needs ADR/ARB
+> Governance = PHASE 1 DELIVERY  # DEC-151 freeze lifted for Phase 1 delivery (plan §4.3); not Production GO
+> Program = ACTIVE               # Owner Platform calendar Sprint 04 streams
 > Engineering = STABILIZING
 > AI Runtime = DEFERRED
-> Score = 53/54               # DEC-154 2.3 Complete; DEC-153 4.1/4.8; DEC-152 3.9 CONDITIONAL; NOT 54/54
-> Loop = chase Stage 7 → field-verify → land crumbs → push
-> Post54 = ARMED              # plan POST_PHASE0_PARALLEL_EXECUTION_PLAN — trigger ≠ fire
+> Score = 54/54                  # DEC-155 closed 3.7; Open cells 0
+> Post54 = ACTIVE                # TRIGGER_POST_PHASE0_PLAN fired @ tip 53a4aa7
+> Tip = 53a4aa7
 > ```
 >
-> **ARMED (not triggered):** Post–Phase 0 parallel sprint is **armed** per [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md). Orchestrator trigger fires **only** on true checklist **54/54** → spawn Backend / Frontend / DevOps / Validation streams **without waiting for human**. **Do not** fire on 53/54 or invent CLOSE.
+> **TRIGGERED (54/54):** Watchdog confirmed. Plan [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) **ACTIVE**. Operating State → **PHASE 1 PARALLEL EXECUTION ACTIVE**. Streams A/B/C/D launched per [`PHASE1_STREAM_LAUNCH_CRUMB.md`](PHASE1_STREAM_LAUNCH_CRUMB.md). Premature withdraw of DEC-155 (`a08d7c0`) **reversed**. **No Production GO.**
 >
 > ### Orchestrator trigger protocol (short)
 >
-> 1. Score &lt; 54/54 → remain ARMED; continue **3.7** chase (Stream B).  
-> 2. True **54/54** (all hard ⬜ closed with evidence) → Orchestrator spawns Backend / FE / DevOps / Validation per plan **immediately** (no human wait).  
-> 3. Forbidden: fake 54/54, CONDITIONAL-as-exit, Production GO substitute.
+> 1. Score &lt; 54/54 → remain ARMED; continue **3.7** chase (historical).  
+> 2. True **54/54** (all hard ⬜ closed with evidence) → Orchestrator spawns Backend / FE / DevOps / Validation per plan **immediately** (no human wait). **FIRED.**  
+> 3. Forbidden: fake 54/54, CONDITIONAL-as-exit, Production GO substitute, unauthorized withdraw of field-closed criteria.
 >
-> **Governance freeze (DEC-151):** No organizational redesign, deployment-topology DECs superseding DEC-149, or criterion rewrites except completing hard OPEN **3.7** with tip Stage 7 field evidence, plus bugfixes / evidence crumbs that do not change architecture or supersede DEC-149/150. Forbidden without ARB reverse: new deploy topology, reopening GHCR as Phase 0 gate. **Do not invent 3.7 CLOSE.** Never invent Production GO / Phase 0 COMPLETE unless score truly **54/54** with evidence.
+> **Governance (post DEC-151 / plan §4.3):** Phase 1 Owner Platform delivery unfrozen. Still frozen without ARB: organizational redesign, deploy-topology DECs superseding DEC-149, reopening GHCR as mandatory gate, AI Runtime enablement. Never invent Production GO / GA GO.
 >
-> **Frozen stack (reaffirm):** [DEC-149](decisions/DEC-149-CANONICAL-DEPLOY-RAILWAY-VERCEL.md) Railway+Vercel canonical deploy · [DEC-150](decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md) Option B Stage 6 GHCR retired · [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md) governance freeze. Tip pin `a3add3f` (DEC-154 land `4fd25ea`; Orchestrator pin restores **53/54** — DEC-155 CLOSE **WITHDRAWN**). **Hard OPEN ⬜:** **3.7** only. **2.3** scoreboard Complete ([DEC-154](decisions/DEC-154-CRITERION-2-3-CONDITIONAL-SCOREBOARD-COMPLETE.md); remains CLOSED CONDITIONAL). **4.1/4.8 CLOSED** ([DEC-153](decisions/DEC-153-CRITERION-4-1-4-8-ARB-REAUDIT-PASS.md)). **3.9 CLOSED CONDITIONAL** ([DEC-152](decisions/DEC-152-CRITERION-3-9-CI-GREEN-TOPOLOGY-FIELD-VERIFY.md)). Sprint **26/26**.
+> **Frozen stack (reaffirm):** [DEC-149](decisions/DEC-149-CANONICAL-DEPLOY-RAILWAY-VERCEL.md) Railway+Vercel canonical deploy · [DEC-150](decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md) Option B Stage 6 GHCR retired · [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md) Phase 0 freeze history (delivery mode now). Evidence tip `53a4aa7` (DEC-155). **Hard OPEN ⬜:** **none** (3.7 CLOSED DEC-155). **2.3** scoreboard Complete ([DEC-154](decisions/DEC-154-CRITERION-2-3-CONDITIONAL-SCOREBOARD-COMPLETE.md); remains CLOSED CONDITIONAL). **4.1/4.8 CLOSED** ([DEC-153](decisions/DEC-153-CRITERION-4-1-4-8-ARB-REAUDIT-PASS.md)). **3.9 CLOSED CONDITIONAL** ([DEC-152](decisions/DEC-152-CRITERION-3-9-CI-GREEN-TOPOLOGY-FIELD-VERIFY.md)). Sprint 05 board **26/26**.
 >
-> ### Coordination map — continuous autonomous workstreams (2026-08-02)
+> ### Coordination map — Phase 1 parallel streams (2026-08-02)
 >
-> | Stream | Criterion | Owner | Status | Close rule |
-> |--------|-----------|-------|--------|------------|
-> | **A** | **3.9** CI GREEN (DEC-149 topology) | DevOps / Validation | **CLOSED CONDITIONAL** DEC-152 @ `5fafbe9` / [30724762973](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762973) + Deploy [30724762967](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762967) | Residuals: Stage 7 overall-red; FE Git-primary — do not reopen hard ⬜ |
-> | **B** | **3.7** Stage 7 E2E | DevOps / Backend | **ACTIVE — primary chase** (sole hard OPEN) | Tip Stage 7 SUCCESS with real services (`9e1dc46`/`d973cba`); do **not** invent CLOSE |
-> | **C** | **4.1 / 4.8** ARB re-audit | ARB / OpenCode | **CLOSED** DEC-153 @ `8ff782f` — PASS @ [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md) | CRITICAL **0**; pack [`ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md`](ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md) |
-> | **D** | Freeze-compliant backlog | Orchestrator / Validation | **QUEUED** after 3.7 progress | Docs consistency, CONDITIONAL residual field-verify crumbs — no architecture |
-> | **Post-54/54** | Phase 1 parallel plan | Program Planner | **ARMED** | [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) — launch only when Score **54/54**; no Phase 1 impl / no Production GO invent |
+> | Stream | Mandate | Owner | Status | Artifact |
+> |--------|---------|-------|--------|----------|
+> | **A Backend** | A1 STORY-04-01 pre-task → A2 Alembic draft | Backend | **ACTIVE** | [`PHASE1_STORY_04_01_PRETASK.md`](PHASE1_STORY_04_01_PRETASK.md) |
+> | **B Frontend** | B1 Tenant surface inventory → B2 stubs | Frontend | **ACTIVE** | [`PHASE1_FE_TENANT_SURFACE_INVENTORY.md`](PHASE1_FE_TENANT_SURFACE_INVENTORY.md) |
+> | **C DevOps** | C1 tip deploy observe + C2 Stage 7 protect | DevOps | **ACTIVE** | [`PHASE1_DEVOPS_STREAM_CRUMB.md`](PHASE1_DEVOPS_STREAM_CRUMB.md) |
+> | **D Validation** | D1 54/54 verify + D2 tip CI/Deploy | Validation | **ACTIVE** | [`PHASE1_VALIDATION_STREAM_CRUMB.md`](PHASE1_VALIDATION_STREAM_CRUMB.md) — D1 PASS |
+> | **Post-54/54** | Phase 1 parallel plan | Orchestrator | **ACTIVE** | [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) + [`PHASE1_STREAM_LAUNCH_CRUMB.md`](PHASE1_STREAM_LAUNCH_CRUMB.md) — no Production GO |
 >
 > **Sprint success = number of exit criteria CLOSED, not number of stories completed.**
 > **Rule: No work accepted unless it directly closes a criterion from this checklist.**
@@ -49,9 +48,9 @@
 
 ## Current Verdict
 
-**Phase 0 = NO-GO** (Stage 7 E2E **3.7** OPEN; score **53/54**; **4.1/4.8 CLOSED** DEC-153 ARB PASS; **3.9 CLOSED CONDITIONAL** DEC-152; **2.3** Complete via DEC-154 — does not clear Phase 0)
+**Phase 0 = COMPLETE (checklist 54/54)** — **3.7 CLOSED** DEC-155; **2.3** Complete DEC-154; **4.1/4.8 CLOSED** DEC-153; **3.9 CLOSED CONDITIONAL** DEC-152. **Production GA = NO-GO** (ga-engineering-audit). **No Production GO claim.**
 
-Blocked on: Stage 7 E2E **3.7** (real services — **not** GHCR-dep). **4.1/4.8 CLOSED** (DEC-153): re-audit [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md) PASS / CRITICAL **0**. **3.9 CLOSED CONDITIONAL** (DEC-152). **CI-08 / Stage 6 GHCR publish retired as Phase 0 gate** (DEC-150 Option B). CI-09 / **3.11 CLOSED CONDITIONAL** (DEC-149a). R-14 Railway **2.3 CLOSED CONDITIONAL** — scoreboard Complete ([decisions/DEC-154-CRITERION-2-3-CONDITIONAL-SCOREBOARD-COMPLETE.md](decisions/DEC-154-CRITERION-2-3-CONDITIONAL-SCOREBOARD-COMPLETE.md)); multi-tenant residual Phase 1. Do **not** claim Stages 1–7 whole-pipeline green / Production GO / Phase 0 COMPLETE.
+**Phase 0 exit cleared.** Prior blocker Stage 7 E2E **3.7** is **CLOSED** (DEC-155) @ [30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801). Operating State = **PHASE 1 PARALLEL EXECUTION ACTIVE**. **Production GA remains NO-GO**. Do **not** claim Production GO / GA GO.
 
 ---
 
@@ -99,7 +98,7 @@ Blocked on: Stage 7 E2E **3.7** (real services — **not** GHCR-dep). **4.1/4.8 
 | 3.4 | Stage 4: Backend Unit + Integration green | `pytest` 2700+ PASS, `-n auto` | ✅ CI-22 follow-on |
 | 3.5 | Stage 5: Security Scan green | pip-audit (named ignore only), Bandit, Gitleaks, Semgrep residual-only | ✅ VERIFIED/CLOSED **CONDITIONAL** — Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL @ `5d558af` / pin `a6488f2` (DEC-147a); CI Stage 5 + Security Scan SUCCESS @ `c842245` (`30704321096` / `30704321107`); ecdsa named ignore (DEC-057/090/098); Semgrep residual **11** alembic (DEC-105); residual: *post-align Security Scan pip-audit field-verify PENDING until tip containing `fa266b5` is pushed*; does **not** auto-close **3.8**; DEC-085 untouched; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN / finding-zero / unconditional CLOSED |
 | 3.6 | Canonical deploy validation (Railway+Vercel) — *was Stage 6 GHCR Docker Build+Push* | Live deploy evidence under DEC-149 topology (not GHCR `:latest`/SHA push) | ✅ **CLOSED — SUPERSEDED** (DEC-150 **Option B** Accepted) — Stage 6 GHCR publish **no longer** a Phase 0 required capability after DEC-149. Deploy validation evidence lives at **3.11** / CI-09 (DEC-149a CLOSED CONDITIONAL @ `c3507ed` / [30723120473](https://github.com/ragheeda-boop/SalesOS/actions/runs/30723120473)). Traceability: DEC-150 B + DEC-149. Residual field GHCR 403 @ `30721601875` = **legacy/non-blocking** (not a close gate). Do **not** claim field GHCR green / Production GO / full CI GREEN. Companion [`decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md`](decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md) |
-| 3.7 | Stage 7: E2E green | Playwright specs PASS with real backend services | ⬜ OPEN — CI e2e job has no real backend services. **Reframe (DEC-150 B):** no longer Stage-6-GHCR-dep; Stage 6 GHCR quarantined; E2E may run after Stages 1–5 when services exist. Do **not** fake local green as 3.7 CLOSE |
+| 3.7 | Stage 7: E2E green | Playwright specs PASS with real backend services | ✅ VERIFIED/CLOSED (DEC-155) — Stage 7 E2E **SUCCESS** [30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801) @ `909230d` / `909230d91ebaddb98a73a9bbf1fb97fe5b5262f5`; real postgres/redis + uvicorn + `e2e/smoke-auth-ui.spec.ts` (chromium). Residual: numbered 01–27 / visual suites not in gate. Companion [`decisions/DEC-155-CRITERION-3-7-STAGE7-E2E-CLOSED.md`](decisions/DEC-155-CRITERION-3-7-STAGE7-E2E-CLOSED.md). **No Production GO.** |
 | 3.8 | Full pipeline: CI GREEN (code path) | Stages 1–5 all green on same run | ✅ VERIFIED/CLOSED **CONDITIONAL** — tip field-verify cleared @ `5fafbe9` / [30724762973](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762973): Stages 1–5 all **SUCCESS** (includes Stage 4 xdist fix `3547177`); prior DEC-148a residual PENDING cleared. Overall CI workflow still **failure** (Stage 7 only → **3.7**). Does **not** auto-close **3.7**; DEC-085 untouched; do **not** claim Stages 1–7 / Production GO / unconditional CLOSED |
 | 3.9 | Full pipeline: CI GREEN (DEC-149 topology) | Stages 1–5 same-run green **and** Deploy Production (Railway+Vercel) evidence — **does not** require Stage 6 GHCR / Stages 1–7 GHCR publish | ✅ VERIFIED/CLOSED **CONDITIONAL** (DEC-152) — tip `5fafbe9`: CI Stages 1–5 same-run **SUCCESS** [30724762973](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762973); Deploy Production **SUCCESS** [30724762967](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762967) (Railway + Health Gate + Vercel FE); Security Scan **SUCCESS** [30724762982](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762982); Stage 6 **SKIPPED** (quarantined DEC-150 B). Residuals: *overall CI red on Stage 7 (**3.7** OPEN); FE Git-primary (3.11); staging deferred*. Does **not** close **3.7** / invent **4.1/4.8**. Companion [`decisions/DEC-152-CRITERION-3-9-CI-GREEN-TOPOLOGY-FIELD-VERIFY.md`](decisions/DEC-152-CRITERION-3-9-CI-GREEN-TOPOLOGY-FIELD-VERIFY.md). Do **not** claim Production GO / Stages 1–7 green / unconditional CLOSED |
 | 3.10 | CI-08 GHCR 403 resolved — *retired as Phase 0 exit* | N/A — Stage 6 GHCR push SUCCESS no longer required (was DEC-104 Option A) | ✅ **CLOSED — SUPERSEDED** (DEC-150 **Option B** Accepted) — CI-08 mandatory GHCR publish retired as Phase 0 exit criterion. Field residual GHCR 403 @ [`30721601875`](https://github.com/ragheeda-boop/SalesOS/actions/runs/30721601875) = **legacy/non-blocking** tech debt (not ops close gate). Traceability: DEC-150 B + DEC-149. Do **not** claim field GHCR green. Companion [`decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md`](decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md) |
@@ -207,26 +206,26 @@ Blocked on: Stage 7 E2E **3.7** (real services — **not** GHCR-dep). **4.1/4.8 
 |---------|-------|----------|---------|------|
 | 1. Security P0 | 5 | 5 | 0 | 0 |
 | 2. RLS & Tenant Isolation | 7 | 7 | 0 | 0 |
-| 3. CI/CD Green | 11 | 10 | 0 | 1 |
+| 3. CI/CD Green | 11 | 11 | 0 | 0 |
 | 4. EOS Audit Pass | 8 | 8 | 0 | 0 |
 | 5. Capability Drift | 4 | 4 | 0 | 0 |
 | 6. ADR Drift | 5 | 5 | 0 | 0 |
 | 7. DB Schema | 6 | 6 | 0 | 0 |
 | 8. Engineering Stability | 4 | 4 | 0 | 0 |
 | 9. ADR-036 Applied | 4 | 4 | 0 | 0 |
-| **TOTAL** | **54** | **53** | **0** | **1** |
+| **TOTAL** | **54** | **54** | **0** | **0** |
 
-**Scoreboard honesty (2026-08-02):** Phase 0 **51/54 → 53/54** ([decisions/DEC-154-CRITERION-2-3-CONDITIONAL-SCOREBOARD-COMPLETE.md](decisions/DEC-154-CRITERION-2-3-CONDITIONAL-SCOREBOARD-COMPLETE.md) disposes **2.3** Open — CLOSED CONDITIONAL counts as Complete; multi-tenant residual → Phase 1 tech debt). Prior DEC-153 **4.1/4.8**; DEC-152 **3.9 CONDITIONAL**. Hard OPEN ⬜ = **1** (**3.7** only). TOTAL Complete **53** + Open **1** = **54** (arithmetic reconciled). Stage 6 GHCR remains quarantined. **CONTINUOUS AUTONOMOUS MODE** under [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md) — **do not invent 3.7 CLOSE / 54/54**. **Phase 0 remains NO-GO. No Production GO. No Stages 1–7 CI GREEN. No Phase 0 COMPLETE until 54/54.**
+**Scoreboard honesty (2026-08-02):** Phase 0 **53/54 → 54/54 COMPLETE** (checklist). **3.7 CLOSED** DEC-155 — Stage 7 [30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801) @ `909230d` SUCCESS. **2.3** Complete DEC-154. TOTAL Complete **54** + Open **0**. **TRIGGER_POST_PHASE0_PLAN** fired. **Production GA remains NO-GO** (ga-engineering-audit). **No Production GO / Stages 1–7 invent from checklist alone.**
 
 ---
 
 ## Remaining — Cursor BLOCKED inventory (2026-08-02, post DEC-152 / DEC-151 GOVERNANCE FROZEN)
 
-**GOVERNANCE FROZEN** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md)). Residual hard OPEN: **3.7** (E2E services). **4.1/4.8 CLOSED** (DEC-153 ARB PASS). **3.9 CLOSED CONDITIONAL** (DEC-152). **3.6 / 3.10 CLOSED — SUPERSEDED** (DEC-150 Option B). CI-09 / **3.11 CLOSED CONDITIONAL** (DEC-149a). Optional contract-test expansion / Jest 30 = PARALLEL backlog only. DEC-085 untouched. **No fake CLOSE. No Phase 0 COMPLETE. No Production GO.**
+**Phase 0 checklist COMPLETE 54/54.** Governance freeze history retained ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md)). Hard OPEN: **none**. **4.1/4.8 CLOSED** (DEC-153 ARB PASS). **3.9 CLOSED CONDITIONAL** (DEC-152). **3.6 / 3.10 CLOSED — SUPERSEDED** (DEC-150 Option B). CI-09 / **3.11 CLOSED CONDITIONAL** (DEC-149a). Optional contract-test expansion / Jest 30 = PARALLEL backlog only. DEC-085 untouched. **No fake CLOSE. No Phase 0 COMPLETE. No Production GO.**
 
 | # | Criterion | Owner | Block class | Why blocked / next action |
 |---|-----------|-------|-------------|---------------------------|
-| 3.7 | Stage 7 E2E green | DevOps / Backend | **ACTIVE — primary chase** | Sole hard OPEN; services + smoke-auth-ui @ `9e1dc46` / harden `d973cba`; await tip Stage 7 SUCCESS; **decoupled from GHCR** (DEC-150 B); **do not invent CLOSE** |
+| 3.7 | Stage 7 E2E green | DevOps / Backend | **CLOSED** DEC-155 | [30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801) @ `909230d` SUCCESS |
 | 3.9 residual | topology CI GREEN | DevOps | **CONDITIONAL stands** | **CLOSED CONDITIONAL** DEC-152 @ `5fafbe9`; residual Stage 7 overall-red + FE Git-primary — does **not** reopen hard ⬜ |
 | 3.8 residual | tip Stages 1-5 same-run | Validation | **field-verify cleared** | Cleared @ `5fafbe9` / `30724762973` Stages 1–5 SUCCESS; CONDITIONAL stands (Stage 7 red orthogonal) |
 | 3.5 / 1.5 residual | Security Scan pip-audit post-align | Validation | **field-verify cleared** | Tip `5fafbe9` Security Scan [30724762982](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762982) SUCCESS; CONDITIONAL stands |

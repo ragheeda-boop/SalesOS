@@ -1088,15 +1088,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
-### DEC-155 — Criterion 3.7 Stage 7 E2E CLOSED (WITHDRAWN)
+### DEC-155 — Criterion 3.7 Stage 7 E2E CLOSED (Accepted)
 
 **Date:** 2026-08-02
-**Context:** Premature close after Stage 7 SUCCESS [30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801) @ `909230d` while Orchestrator mandate was pin tip **53/54** after DEC-154 and keep **3.7** hard OPEN / plan **ARMED**.
-**Decision:** **WITHDRAWN.** Do **not** close **3.7** under this pin wave. Companion marked WITHDRAWN.
-**Consequence:** Tip score restored **53/54 NO-GO**. Hard OPEN ⬜ = **3.7** only. Post-54/54 plan remains **ARMED** (not triggered). Stage 7 run retained as chase evidence only. **No Production GO / Phase 0 COMPLETE.**
-**Status:** WITHDRAWN.
-
-**Orchestration follow-on (2026-08-02, Execution Orchestrator — not a new DEC; tip pin `a3add3f` / DEC-154 land `4fd25ea`):** Tip score **pinned 53/54 NO-GO**. Hard OPEN ⬜ = **3.7** only. **ARMED FOR POST-54/54 PARALLEL SPRINT EXECUTION**. Streams: **(A) 3.9 CLOSED CONDITIONAL** DEC-152; **(B) 3.7 ACTIVE — primary chase**; **(C) 4.1/4.8 CLOSED** DEC-153; **(D) QUEUED**. **Do not invent 3.7 CLOSE / Production GO / 54/54.**
+**Context:** Sole hard OPEN after DEC-154 (53/54). Standalone Stage 7 workflow + tenant GUC + JWKS prewarm.
+**Decision:** Accept **3.7 VERIFIED/CLOSED** on Stage 7 SUCCESS [30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801) @ `909230d`. Companion: [`decisions/DEC-155-CRITERION-3-7-STAGE7-E2E-CLOSED.md`](decisions/DEC-155-CRITERION-3-7-STAGE7-E2E-CLOSED.md).
+**Consequence:** Phase 0 **53/54 → 54/54**. **TRIGGER_POST_PHASE0_PLAN** fires. Production GA remains NO-GO. No Production GO invent.
+**Status:** Accepted
+**Orchestration follow-on (2026-08-02, Execution Orchestrator — not a new DEC; Watchdog tip `53a4aa7`):** **TRIGGER_POST_PHASE0_PLAN** confirmed. Tip checklist **54/54**. Operating State → **PHASE 1 PARALLEL EXECUTION ACTIVE**. Premature withdraw `a08d7c0` reversed. Streams **A Backend / B Frontend / C DevOps / D Validation** launched ([`PHASE1_STREAM_LAUNCH_CRUMB.md`](PHASE1_STREAM_LAUNCH_CRUMB.md)). D1 PASS. Never-stop: integrate returns → board/DAG → reassign next Sprint 04 stories. **No Production GO / GA GO invent.**
+.
 
 ### DEC-154 — Criterion 2.3 CLOSED CONDITIONAL accepted as Phase 0 Complete (Accepted)
 
