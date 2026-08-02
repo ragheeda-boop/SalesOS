@@ -32,6 +32,10 @@ import {
 } from "@/lib/hooks/adminQueries";
 import type { AdminFeatureFlag } from "@/lib/api";
 import { OwnerOpsPageHonesty } from "@/features/admin/OwnerOpsPageHonesty";
+import {
+  FLAG_ODOO_INTEGRATION,
+  MUHIDE_TENANT_SLUG,
+} from "@/features/integrations/odooIncrementalHonesty";
 
 export default function AdminFlagsPage() {
   const { toast } = useToast();
@@ -93,6 +97,16 @@ export default function AdminFlagsPage() {
   return (
     <div className="space-y-6" data-testid="admin-flags-page">
       <OwnerOpsPageHonesty surface="flags" />
+      <p
+        className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+        data-testid="admin-flags-odoo-honesty"
+      >
+        STORY-09-07: Tip Grade-A key <code>{FLAG_ODOO_INTEGRATION}</code> gates
+        Odoo Hub connect/test/schedule (HTTP 403 when off). Global default off;
+        enable design partner <code>{MUHIDE_TENANT_SLUG}</code> via tenant
+        override (ops UUID — not invented here). Unlinked badge list still
+        BE-blocked. Not Production GO / RAG GO.
+      </p>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-primary)]">
@@ -170,6 +184,14 @@ export default function AdminFlagsPage() {
                       {flag.enabled ? "Enabled" : "Disabled"}
                     </Badge>
                     {flag.is_global && <Badge variant="default">Global</Badge>}
+                    {flag.key === FLAG_ODOO_INTEGRATION ? (
+                      <Badge
+                        variant="default"
+                        data-testid="admin-flags-odoo-gate-badge"
+                      >
+                        Odoo Hub gate
+                      </Badge>
+                    ) : null}
                     <Button
                       size="sm"
                       variant="ghost"

@@ -37,6 +37,7 @@
 | FE-S09-05 project.task / TaskCaseExtension Studio honesty | **LANDED** — crumb [`PHASE1_FE_S09_05_TASK_STUDIO_HONESTY_CRUMB.md`](PHASE1_FE_S09_05_TASK_STUDIO_HONESTY_CRUMB.md)
 | FE-S09-06 CustomerInvoice Studio presets + payment honesty | **LANDED** — crumb [`PHASE1_FE_S09_06_INVOICE_STUDIO_HONESTY_CRUMB.md`](PHASE1_FE_S09_06_INVOICE_STUDIO_HONESTY_CRUMB.md)
 | FE-S09-07 Odoo flag + write_date cursor Studio honesty | **LANDED** — crumb [`PHASE1_FE_S09_07_INCREMENTAL_FLAG_STUDIO_CRUMB.md`](PHASE1_FE_S09_07_INCREMENTAL_FLAG_STUDIO_CRUMB.md)
+| FE-S09-07b Owner flags Odoo gate honesty | **LANDED** — crumb [`PHASE1_FE_S09_07B_OWNER_FLAGS_ODOO_HONESTY_CRUMB.md`](PHASE1_FE_S09_07B_OWNER_FLAGS_ODOO_HONESTY_CRUMB.md)
 
 ## Honesty
 

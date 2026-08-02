@@ -121,6 +121,11 @@ const FE_GATED = [
     title: "Odoo flag + write_date cursor honesty",
     status: "FE landed — feature_odoo_integration honesty",
   },
+  {
+    id: "FE-S09-07b",
+    title: "Owner flags Odoo gate honesty",
+    status: "FE landed — /admin/flags callout",
+  },
 ] as const;
 
 export default function AdminIntegrationsInventoryPage() {

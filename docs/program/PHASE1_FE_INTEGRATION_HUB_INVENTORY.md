@@ -27,7 +27,9 @@
 | FE-S09-05 | project.task / TaskCaseExtension VO honesty (tip 09-05) |
 | FE-S09-06 | CustomerInvoice presets + payment honesty (tip 09-06) |
 | FE-S09-07 | Odoo flag + write_date cursor honesty (tip 09-07) |
+| FE-S09-07b | Owner /admin/flags Odoo gate honesty |
 
 ## Blocked (do not invent)
 
 - Unlinked cr_number badge **list API** (STORY-09-01 residual / BE)
+- SyncRun HTTP `cursor_before`/`cursor_after` (ORM-only until BE schema)
