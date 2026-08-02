@@ -23,6 +23,7 @@ from app.modules.admin.pg_repositories import (
     PostgresTenantConfigRepository,
 )
 from app.modules.admin.routers.tenants import apply_tenant_list_filters
+from app.modules.admin.schemas import TenantActivateRequest
 from app.modules.admin.services import (
     AuditCSVExportService,
     ConfigEditorService,
@@ -808,6 +809,10 @@ class TestTenantListFilters:
             apply_tenant_list_filters(select(Tenant), provisioning_status="bogus")
         with pytest.raises(ValueError, match="trial"):
             apply_tenant_list_filters(select(Tenant), trial="soon")
+
+    def test_activate_request_defaults(self):
+        assert TenantActivateRequest().reason == ""
+        assert TenantActivateRequest(reason="restore").reason == "restore"
 
 
 # ── Repository Unit Tests ───────────────────────────────────────────────────

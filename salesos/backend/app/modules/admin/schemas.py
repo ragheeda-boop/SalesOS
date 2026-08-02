@@ -411,6 +411,12 @@ class TenantSuspendRequest(BaseModel):
     reason: str = ""
 
 
+class TenantActivateRequest(BaseModel):
+    """Optional note for lifecycle restore (soft-delete or suspend → active)."""
+
+    reason: str = ""
+
+
 class TenantHardDeleteRequest(BaseModel):
     confirm: bool = Field(..., description="Must be True to confirm hard delete")
 

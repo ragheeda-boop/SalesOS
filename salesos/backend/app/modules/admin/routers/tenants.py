@@ -16,6 +16,7 @@ from app.owner_auth import require_owner_role_dep
 
 from ..schemas import (
     PROVISIONING_STATUS_VALUES,
+    TenantActivateRequest,
     TenantCreate,
     TenantDetail,
     TenantHardDeleteRequest,
@@ -316,6 +317,35 @@ async def suspend_tenant(
     tenant.updated_at = datetime.now(UTC)
     await db.flush()
     return {"message": "Tenant suspended", "tenant_id": tenant_id, "reason": body.reason}
+
+
+@router.post("/tenants/{tenant_id}/activate")
+async def activate_tenant(
+    tenant_id: str,
+    body: TenantActivateRequest,
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Restore soft-deleted or suspended tenant (FE-S04-17 lifecycle parity)."""
+    try:
+        tid = uuid.UUID(tenant_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Tenant not found") from None
+    tenant = await db.get(Tenant, tid)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    prior = tenant.provisioning_status
+    tenant.is_active = True
+    tenant.provisioning_status = "active"
+    tenant.updated_at = datetime.now(UTC)
+    await db.flush()
+    return {
+        "message": "Tenant activated",
+        "tenant_id": tenant_id,
+        "prior_provisioning_status": prior,
+        "provisioning_status": tenant.provisioning_status,
+        "is_active": True,
+        "reason": body.reason or "",
+    }
 
 
 @router.delete("/tenants/{tenant_id}")
