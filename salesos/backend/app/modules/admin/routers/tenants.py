@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func as sa_func
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import Select
 
 from app.dependencies import get_db_session
 from app.modules.identity.models import Tenant, User
@@ -28,6 +30,76 @@ router = APIRouter(
     tags=["Admin - Tenants"],
     dependencies=[Depends(require_owner_role_dep("admin"))],
 )
+
+# FE-S04-15 trial filter buckets (Stream B client filter → server query param).
+TRIAL_FILTER_VALUES = frozenset({"has_trial", "expired", "none"})
+
+
+def apply_tenant_list_filters(
+    stmt: Select[Any],
+    *,
+    status: str | None = None,
+    plan: str | None = None,
+    plan_id: str | None = None,
+    region: str | None = None,
+    data_residency: str | None = None,
+    provisioning_status: str | None = None,
+    trial: str | None = None,
+    search: str | None = None,
+    now: datetime | None = None,
+) -> Select[Any]:
+    """Apply Owner Platform list filters for GET /admin/tenants.
+
+    Raises ``ValueError`` for invalid ``provisioning_status`` / ``trial`` values.
+    """
+    if status == "active":
+        stmt = stmt.where(Tenant.is_active.is_(True))
+    elif status == "suspended":
+        stmt = stmt.where(Tenant.is_active.is_(False))
+    if plan:
+        stmt = stmt.where(Tenant.plan == plan)
+    if plan_id:
+        stmt = stmt.where(Tenant.plan_id == plan_id)
+    if region:
+        stmt = stmt.where(Tenant.region == region)
+    if data_residency:
+        stmt = stmt.where(Tenant.data_residency == data_residency)
+    if provisioning_status:
+        if provisioning_status not in PROVISIONING_STATUS_VALUES:
+            raise ValueError(
+                f"Invalid provisioning_status '{provisioning_status}'. "
+                f"Allowed: {sorted(PROVISIONING_STATUS_VALUES)}"
+            )
+        stmt = stmt.where(Tenant.provisioning_status == provisioning_status)
+    if trial:
+        if trial not in TRIAL_FILTER_VALUES:
+            raise ValueError(f"Invalid trial '{trial}'. Allowed: {sorted(TRIAL_FILTER_VALUES)}")
+        clock = now or datetime.now(UTC)
+        if trial == "none":
+            stmt = stmt.where(Tenant.trial_ends_at.is_(None))
+        elif trial == "has_trial":
+            stmt = stmt.where(
+                Tenant.trial_ends_at.is_not(None),
+                Tenant.trial_ends_at >= clock,
+            )
+        else:  # expired
+            stmt = stmt.where(
+                Tenant.trial_ends_at.is_not(None),
+                Tenant.trial_ends_at < clock,
+            )
+    if search:
+        pattern = f"%{search}%"
+        stmt = stmt.where(
+            or_(
+                Tenant.name.ilike(pattern),
+                Tenant.slug.ilike(pattern),
+                Tenant.domain.ilike(pattern),
+                Tenant.plan_id.ilike(pattern),
+                Tenant.region.ilike(pattern),
+                Tenant.data_residency.ilike(pattern),
+            )
+        )
+    return stmt
 
 
 async def _resolve_tenant_name(db: AsyncSession, tenant_id: str) -> str:
@@ -90,21 +162,34 @@ def _to_detail(t: Tenant, user_count: int) -> TenantDetail:
 
 @router.get("/tenants", response_model=list[TenantListItem])
 async def list_tenants(
-    status: str | None = Query(None),
-    plan: str | None = Query(None),
-    search: str | None = Query(None),
+    status: str | None = Query(None, description="is_active: active|suspended"),
+    plan: str | None = Query(None, description="Display/tier plan label"),
+    plan_id: str | None = Query(None, description="Opaque Owner Platform plan catalog id"),
+    region: str | None = Query(None),
+    data_residency: str | None = Query(None),
+    provisioning_status: str | None = Query(None, description="pending|active|suspended|failed"),
+    trial: str | None = Query(None, description="Trial bucket: has_trial|expired|none (FE-S04-15)"),
+    search: str | None = Query(
+        None,
+        description="ilike name|slug|domain|plan_id|region|data_residency",
+    ),
     db: AsyncSession = Depends(get_db_session),
 ):
     stmt = select(Tenant)
-    if status == "active":
-        stmt = stmt.where(Tenant.is_active.is_(True))
-    elif status == "suspended":
-        stmt = stmt.where(Tenant.is_active.is_(False))
-    if plan:
-        stmt = stmt.where(Tenant.plan == plan)
-    if search:
-        pattern = f"%{search}%"
-        stmt = stmt.where(Tenant.name.ilike(pattern) | Tenant.slug.ilike(pattern))
+    try:
+        stmt = apply_tenant_list_filters(
+            stmt,
+            status=status,
+            plan=plan,
+            plan_id=plan_id,
+            region=region,
+            data_residency=data_residency,
+            provisioning_status=provisioning_status,
+            trial=trial,
+            search=search,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     stmt = stmt.order_by(Tenant.created_at.desc())
     result = await db.execute(stmt)
     tenants = result.scalars().all()

@@ -76,3 +76,43 @@ export function matchesTrialFilter(
   if (!filter) return true;
   return trialBucket(trialEndsAt, nowMs) === filter;
 }
+
+/** FE-S04-17 — detail-panel lifecycle copy (soft-delete vs suspend). */
+export function lifecycleStatusDescription(tenant: {
+  is_active: boolean;
+  provisioning_status?: string | null;
+}): string {
+  const label = activityStatusLabel(tenant);
+  const prov = tenant.provisioning_status || "pending";
+  if (label === "Active") {
+    return `Active · provisioning=${prov}`;
+  }
+  if (label === "Suspended") {
+    return `Suspended via /suspend · provisioning=suspended · Activate restores is_active`;
+  }
+  return `Inactive (soft-deleted) · is_active=false · provisioning=${prov} · Activate restores access`;
+}
+
+export type TenantSortKey =
+  "created_desc" | "created_asc" | "name_asc" | "name_desc";
+
+/** FE-S04-19 — client-side list sort. */
+export function sortAdminTenants<
+  T extends { name: string; created_at: string },
+>(list: T[], sort: TenantSortKey): T[] {
+  const next = [...list];
+  next.sort((a, b) => {
+    switch (sort) {
+      case "created_asc":
+        return Date.parse(a.created_at) - Date.parse(b.created_at);
+      case "name_asc":
+        return a.name.localeCompare(b.name);
+      case "name_desc":
+        return b.name.localeCompare(a.name);
+      case "created_desc":
+      default:
+        return Date.parse(b.created_at) - Date.parse(a.created_at);
+    }
+  });
+  return next;
+}

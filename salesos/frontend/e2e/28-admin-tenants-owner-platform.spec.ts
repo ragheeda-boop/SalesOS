@@ -85,6 +85,32 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(planIdCell).toBeVisible();
   });
 
+  test("admin tenants expose sort hook", async ({ page }) => {
+    await page.goto("/admin/tenants");
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByTestId("admin-tenants-sort")).toBeVisible({
+      timeout: 8_000,
+    });
+  });
+
+  test("admin tenants detail lifecycle hooks open without mutate", async ({
+    page,
+  }) => {
+    await page.goto("/admin/tenants");
+    await page.waitForLoadState("networkidle");
+    const detailBtn = page.getByTestId("admin-tenants-detail-open").first();
+    const hasRow = await detailBtn.isVisible().catch(() => false);
+    test.skip(!hasRow, "No tenant rows to open detail");
+    await detailBtn.click();
+    await expect(page.getByTestId("admin-tenants-status")).toBeVisible({
+      timeout: 8_000,
+    });
+    await expect(
+      page.getByTestId("admin-tenants-lifecycle-copy"),
+    ).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-copy-ids")).toBeVisible();
+  });
+
   test("admin tenants delete modal opens without mutate", async ({ page }) => {
     await page.goto("/admin/tenants");
     await page.waitForLoadState("networkidle");

@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.admin.db_models import (
@@ -21,12 +22,14 @@ from app.modules.admin.pg_repositories import (
     PostgresRoleRepository,
     PostgresTenantConfigRepository,
 )
+from app.modules.admin.routers.tenants import apply_tenant_list_filters
 from app.modules.admin.services import (
     AuditCSVExportService,
     ConfigEditorService,
     FeatureFlagService,
     TenantProvisioningService,
 )
+from app.modules.identity.models import Tenant
 
 # ── Fake SQLAlchemy helpers ──────────────────────────────────────────────────
 
@@ -708,6 +711,15 @@ class TestTenantProvisioning:
         assert TenantProvisioningService._validate_admin_triplet("a@b.c", "pw", "Admin") is True
 
     @pytest.mark.asyncio
+    async def test_provision_workflow_rejects_empty_name_and_long_plan_id(self):
+        session = AsyncMock(spec=AsyncSession)
+        svc = TenantProvisioningService(session)
+        with pytest.raises(ValueError, match="name must"):
+            await svc.provision_workflow(name="  ", slug="ok-slug")
+        with pytest.raises(ValueError, match="plan_id"):
+            await svc.provision_workflow(name="Acme", slug="ok-slug", plan_id="x" * 65)
+
+    @pytest.mark.asyncio
     async def test_provision_workflow_keeps_suspended_on_idempotent_rerun(self):
         session = AsyncMock(spec=AsyncSession)
         session.add = MagicMock()
@@ -752,6 +764,50 @@ class TestTenantProvisioning:
         assert result["idempotent"] is True
         assert result["provisioning_status"] == "suspended"
         assert existing_tenant.provisioning_status == "suspended"
+
+
+class TestTenantListFilters:
+    """GET /admin/tenants Owner Platform query params (FE-S04-10/12/15/16)."""
+
+    def test_owner_platform_filters_compile(self):
+        now = datetime(2026, 8, 2, tzinfo=UTC)
+        stmt = apply_tenant_list_filters(
+            select(Tenant),
+            plan_id="plan_starter_v1",
+            region="me-central-1",
+            data_residency="ae",
+            provisioning_status="active",
+            trial="has_trial",
+            search="acme",
+            now=now,
+        )
+        sql = str(stmt.compile(compile_kwargs={"literal_binds": True}))
+        assert "plan_id" in sql
+        assert "me-central-1" in sql
+        assert "data_residency" in sql
+        assert "provisioning_status" in sql
+        assert "trial_ends_at" in sql
+
+    def test_trial_none_and_expired(self):
+        now = datetime(2026, 8, 2, tzinfo=UTC)
+        none_sql = str(
+            apply_tenant_list_filters(select(Tenant), trial="none", now=now).compile(
+                compile_kwargs={"literal_binds": True}
+            )
+        )
+        assert "IS NULL" in none_sql.upper() or "is null" in none_sql.lower()
+        expired_sql = str(
+            apply_tenant_list_filters(select(Tenant), trial="expired", now=now).compile(
+                compile_kwargs={"literal_binds": True}
+            )
+        )
+        assert "trial_ends_at" in expired_sql
+
+    def test_invalid_filter_values_raise(self):
+        with pytest.raises(ValueError, match="provisioning_status"):
+            apply_tenant_list_filters(select(Tenant), provisioning_status="bogus")
+        with pytest.raises(ValueError, match="trial"):
+            apply_tenant_list_filters(select(Tenant), trial="soon")
 
 
 # ── Repository Unit Tests ───────────────────────────────────────────────────

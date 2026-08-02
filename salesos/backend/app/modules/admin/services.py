@@ -376,6 +376,9 @@ class TenantProvisioningService:
         on idempotent re-run unless ``force_active=True``.
         """
         slug = self._normalize_slug(slug)
+        name_clean = (name or "").strip()
+        if not name_clean or len(name_clean) > 255:
+            raise ValueError("name must be 1–255 chars")
         if plan_id is not None and len(plan_id) > 64:
             raise ValueError("plan_id must be <= 64 chars")
         if region is not None and len(region) > 32:
@@ -391,7 +394,7 @@ class TenantProvisioningService:
 
         if tenant is None:
             tenant = Tenant(
-                name=name.strip() if name else name,
+                name=name_clean,
                 slug=slug,
                 domain=domain,
                 plan=plan or "free",
@@ -417,8 +420,8 @@ class TenantProvisioningService:
                 tenant.data_residency = data_residency
             if trial_ends_at is not None:
                 tenant.trial_ends_at = trial_ends_at
-            if name and name.strip() and name.strip() != tenant.name:
-                tenant.name = name.strip()
+            if name_clean != tenant.name:
+                tenant.name = name_clean
 
         try:
             seed_result = await self.provision_tenant(str(tenant.id), admin_user_id=admin_user_id)

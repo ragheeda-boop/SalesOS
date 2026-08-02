@@ -1,7 +1,7 @@
 # Phase 1 — Frontend B1 inventory + B2/B4/B5 Owner Platform UI
 
 > **Stream:** Frontend B1–B5 — [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) §4.1  
-> **Status:** **B1–B5 + B4 + FE-S04-06..11 COMPLETE** (soft/hard delete + filters)  
+> **Status:** **B1–B5 + B4 + FE-S04-06..19 COMPLETE** (filters/lifecycle/sort)  
 
 > **Backend contract:** A2 @ `64b44e9` — [`PHASE1_FE_B4_CONTRACT_SYNC.md`](PHASE1_FE_B4_CONTRACT_SYNC.md)  
 > **Honesty:** Decision STUB; `feature_ai_copilot` default **False**. **No Production GO.**

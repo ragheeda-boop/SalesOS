@@ -1,7 +1,9 @@
 import {
   activityStatusLabel,
   formatTrialEndsLabel,
+  lifecycleStatusDescription,
   matchesTrialFilter,
+  sortAdminTenants,
   trialBucket,
   formatProvisionResultDescription,
   formatSuspendResultDescription,
@@ -91,5 +93,49 @@ describe("trial helpers — FE-S04-15", () => {
   it("formats trial label", () => {
     expect(formatTrialEndsLabel(null)).toBe("—");
     expect(formatTrialEndsLabel("not-a-date")).toBe("—");
+  });
+});
+
+describe("lifecycleStatusDescription — FE-S04-17", () => {
+  it("describes active / suspended / soft-deleted", () => {
+    expect(
+      lifecycleStatusDescription({
+        is_active: true,
+        provisioning_status: "active",
+      }),
+    ).toContain("Active");
+    expect(
+      lifecycleStatusDescription({
+        is_active: false,
+        provisioning_status: "suspended",
+      }),
+    ).toContain("/suspend");
+    expect(
+      lifecycleStatusDescription({
+        is_active: false,
+        provisioning_status: "active",
+      }),
+    ).toContain("soft-deleted");
+  });
+});
+
+describe("sortAdminTenants — FE-S04-19", () => {
+  const rows = [
+    { name: "Beta", created_at: "2026-01-02T00:00:00.000Z" },
+    { name: "Alpha", created_at: "2026-01-03T00:00:00.000Z" },
+    { name: "Gamma", created_at: "2026-01-01T00:00:00.000Z" },
+  ];
+
+  it("sorts by name and created_at", () => {
+    expect(sortAdminTenants(rows, "name_asc").map((r) => r.name)).toEqual([
+      "Alpha",
+      "Beta",
+      "Gamma",
+    ]);
+    expect(sortAdminTenants(rows, "created_desc").map((r) => r.name)).toEqual([
+      "Alpha",
+      "Beta",
+      "Gamma",
+    ]);
   });
 });

@@ -50,7 +50,10 @@ import {
   formatProvisionResultDescription,
   formatSuspendResultDescription,
   formatTrialEndsLabel,
+  lifecycleStatusDescription,
   matchesTrialFilter,
+  sortAdminTenants,
+  type TenantSortKey,
   type TrialFilter,
 } from "@/features/admin/lib/formatProvisionToast";
 
@@ -84,6 +87,13 @@ const TRIAL_FILTER_OPTIONS: { label: string; value: TrialFilter }[] = [
   { label: "No trial", value: "none" },
 ];
 
+const SORT_OPTIONS: { label: string; value: TenantSortKey }[] = [
+  { label: "Newest first", value: "created_desc" },
+  { label: "Oldest first", value: "created_asc" },
+  { label: "Name A–Z", value: "name_asc" },
+  { label: "Name Z–A", value: "name_desc" },
+];
+
 const PLAN_VARIANT: Record<
   string,
   "success" | "warning" | "default" | "danger"
@@ -103,6 +113,7 @@ export default function AdminTenantsPage() {
   const [regionFilter, setRegionFilter] = useState("");
   const [residencyFilter, setResidencyFilter] = useState("");
   const [trialFilter, setTrialFilter] = useState<TrialFilter>("");
+  const [sortKey, setSortKey] = useState<TenantSortKey>("created_desc");
   const [page, setPage] = useState(1);
   const [showCreate, setShowCreate] = useState(false);
   const [showDetail, setShowDetail] = useState<string | null>(null);
@@ -200,7 +211,8 @@ export default function AdminTenantsPage() {
         matchesTrialFilter(t.trial_ends_at, trialFilter),
       );
     }
-    return list;
+    // FE-S04-19 — client sort
+    return sortAdminTenants(list, sortKey);
   }, [
     tenants,
     search,
@@ -209,6 +221,7 @@ export default function AdminTenantsPage() {
     regionFilter,
     residencyFilter,
     trialFilter,
+    sortKey,
   ]);
 
   const totalPages = Math.max(1, Math.ceil(filteredTenants.length / 20));
@@ -387,13 +400,25 @@ export default function AdminTenantsPage() {
             }}
           />
         </div>
+        <div className="w-44" data-testid="admin-tenants-sort">
+          <Select
+            options={SORT_OPTIONS}
+            placeholder="Sort"
+            value={sortKey}
+            onChange={(v) => {
+              setSortKey(v as TenantSortKey);
+              setPage(1);
+            }}
+          />
+        </div>
         {(search ||
           planFilter ||
           statusFilter ||
           provisioningFilter ||
           regionFilter ||
           residencyFilter ||
-          trialFilter) && (
+          trialFilter ||
+          sortKey !== "created_desc") && (
           <Button
             variant="outline"
             size="sm"
@@ -406,6 +431,7 @@ export default function AdminTenantsPage() {
               setRegionFilter("");
               setResidencyFilter("");
               setTrialFilter("");
+              setSortKey("created_desc");
               setPage(1);
             }}
           >
@@ -708,6 +734,7 @@ export default function AdminTenantsPage() {
                           size="sm"
                           variant="ghost"
                           onClick={() => setShowDetail(tenant.id)}
+                          data-testid="admin-tenants-detail-open"
                         >
                           <Settings className="h-4 w-4" />
                         </Button>
@@ -899,6 +926,7 @@ function TenantDetailModal({
           ),
         });
       } else {
+        // FE-S04-17 — Activate recovers both soft-delete and suspend
         await updateMutation.mutateAsync({
           is_active: true,
           provisioning_status: "active",
@@ -906,13 +934,30 @@ function TenantDetailModal({
         toast({
           variant: "success",
           title: "Tenant activated",
-          description: "is_active=true · provisioning=active",
+          description:
+            "is_active=true · provisioning=active (lifecycle restore)",
         });
       }
     } catch {
       toast({ variant: "error", title: "Failed to update status" });
     }
   }, [tenant, tenantId, suspendReason, suspendMutation, updateMutation, toast]);
+
+  const handleCopy = useCallback(
+    async (label: string, value: string) => {
+      try {
+        await navigator.clipboard.writeText(value);
+        toast({
+          variant: "success",
+          title: `${label} copied`,
+          description: value,
+        });
+      } catch {
+        toast({ variant: "error", title: `Failed to copy ${label}` });
+      }
+    },
+    [toast],
+  );
 
   const handleSaveConfig = useCallback(async () => {
     try {
@@ -968,7 +1013,33 @@ function TenantDetailModal({
         <ModalHeader>{tenant?.name || "Tenant Details"}</ModalHeader>
         <ModalBody>
           <div className="space-y-6">
-            {/* Status Toggle — FE-S04-06 suspend via POST /suspend */}
+            {/* FE-S04-18 — copy id/slug for ops */}
+            {tenant && (
+              <div
+                className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-muted)]"
+                data-testid="admin-tenants-copy-ids"
+              >
+                <span className="font-mono">id={tenant.id}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  data-testid="admin-tenants-copy-id"
+                  onClick={() => handleCopy("Tenant id", tenant.id)}
+                >
+                  Copy id
+                </Button>
+                <span className="font-mono">slug={tenant.slug}</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  data-testid="admin-tenants-copy-slug"
+                  onClick={() => handleCopy("Tenant slug", tenant.slug)}
+                >
+                  Copy slug
+                </Button>
+              </div>
+            )}
+            {/* FE-S04-17 lifecycle honesty + FE-S04-06 suspend via POST /suspend */}
             <div
               className="space-y-3 rounded-lg border border-[var(--border-default)] p-4"
               data-testid="admin-tenants-status"
@@ -976,13 +1047,13 @@ function TenantDetailModal({
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="font-medium text-[var(--text-primary)]">
-                    Tenant Status
+                    Tenant lifecycle
                   </p>
-                  <p className="text-sm text-[var(--text-muted)]">
-                    {tenant?.is_active ? "Active" : "Suspended"}
-                    {tenant?.provisioning_status
-                      ? ` · provisioning=${tenant.provisioning_status}`
-                      : ""}
+                  <p
+                    className="text-sm text-[var(--text-muted)]"
+                    data-testid="admin-tenants-lifecycle-copy"
+                  >
+                    {tenant ? lifecycleStatusDescription(tenant) : "Loading…"}
                   </p>
                 </div>
                 <Button
@@ -993,7 +1064,11 @@ function TenantDetailModal({
                   }
                   data-testid="admin-tenants-suspend-toggle"
                 >
-                  {tenant?.is_active ? "Suspend" : "Activate"}
+                  {tenant?.is_active
+                    ? "Suspend"
+                    : tenant && activityStatusLabel(tenant) === "Suspended"
+                      ? "Activate (unsuspend)"
+                      : "Activate (recover soft-delete)"}
                 </Button>
               </div>
               {tenant?.is_active && (

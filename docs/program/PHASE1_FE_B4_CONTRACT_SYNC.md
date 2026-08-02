@@ -43,3 +43,6 @@
 | FE-S04-14 | E2E region/residency + delete modal (cancel, no mutate) | **HOOKS LANDED** |
 | FE-S04-15 | Trial ends column + filter (has/expired/none) | **LANDED** |
 | FE-S04-16 | Opaque plan_id column + search + clear filters | **LANDED** |
+| FE-S04-17 | Detail lifecycle honesty (soft-delete vs suspend) | **LANDED** |
+| FE-S04-18 | Copy tenant id/slug from detail | **LANDED** |
+| FE-S04-19 | Client list sort (created/name) | **LANDED** |
