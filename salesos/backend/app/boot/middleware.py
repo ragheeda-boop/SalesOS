@@ -18,11 +18,11 @@ from app.routers.metrics import MetricsMiddleware
 def setup_middleware(app: FastAPI) -> None:
     # Starlette: last add_middleware = outermost. Add security/app middleware
     # first, then CORS last so preflight and error responses always get ACAO.
-    from app.modules.identity.suspended_tenant_middleware import (
-        SuspendedTenantWriteGuardMiddleware,
-    )
     from app.modules.admin.entitlement_middleware import (
         EntitlementEnforcementMiddleware,
+    )
+    from app.modules.identity.suspended_tenant_middleware import (
+        SuspendedTenantWriteGuardMiddleware,
     )
 
     app.add_middleware(GZipMiddleware, minimum_size=1024)
