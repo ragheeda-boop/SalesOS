@@ -140,7 +140,9 @@ def collect_unlinked_badges_from_error_logs(
         sync_run_id = str(getattr(run, "id", "") or "") or None
         model = str(getattr(run, "model", "") or "res.partner")
         started = getattr(run, "started_at", None)
-        recorded_at = started.isoformat() if hasattr(started, "isoformat") else None
+        recorded_at = (
+            started.isoformat() if started is not None and hasattr(started, "isoformat") else None
+        )
         for raw in list(getattr(run, "error_log", None) or []):
             if not isinstance(raw, Mapping):
                 continue
