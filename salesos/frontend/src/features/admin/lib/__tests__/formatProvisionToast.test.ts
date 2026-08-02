@@ -14,7 +14,6 @@ import {
   formatEntitlementDeniedMessage,
   formatPlanEntitlementsSummary,
   formatResolvedPlanEntitlementsHonesty,
-  formatStripeStatusBanner,
   formatSubscriptionSummary,
   listDisabledEntitlementDomains,
   isEntitlementDeniedPayload,
