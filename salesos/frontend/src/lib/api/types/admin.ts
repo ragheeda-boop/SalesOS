@@ -160,14 +160,48 @@ export type AdminTenantActivateResponse = AdminTenantLifecycleResponse;
 /** DELETE /api/v1/admin/tenants/{id} — soft-delete (is_active=false; provisioning unchanged). */
 export type AdminTenantSoftDeleteResponse = AdminTenantLifecycleResponse;
 
-/** DELETE /api/v1/admin/tenants/{id}/hard-delete — mirrors TenantHardDeleteRequest. */
+/** DELETE /api/v1/admin/tenants/{id}/hard-delete — mirrors TenantHardDeleteRequest (fd5af4d). */
 export interface AdminTenantHardDeleteRequest {
   confirm: boolean;
+  /** STORY-04-04 — bypass soft-delete retention window (Owner override). */
+  force_immediate?: boolean;
 }
 
 export interface AdminTenantHardDeleteResponse {
   message: string;
   tenant_id: string;
+}
+
+/** POST /api/v1/admin/tenants/{id}/reprovision — tip e9ef08d. */
+export interface AdminTenantReprovisionRequest {
+  force_active?: boolean;
+  admin_email?: string | null;
+  admin_password?: string | null;
+  admin_full_name?: string | null;
+}
+
+export interface AdminTenantReprovisionResponse {
+  message: string;
+  tenant_id: string;
+  slug: string;
+  created: boolean;
+  idempotent: boolean;
+  provisioning_status: string;
+  roles_provisioned: number;
+  permissions_provisioned: number;
+  studio_config: Record<string, unknown>;
+  admin_user_id?: string | null;
+}
+
+/**
+ * FE-S04-33 — list body + X-Total-Count (tip e9ef08d).
+ * Body remains list[TenantListItem]; total from header.
+ */
+export interface AdminTenantListResult {
+  items: AdminTenantListItem[];
+  total: number;
+  page?: number;
+  page_size?: number;
 }
 
 export interface AdminTenantListItem extends AdminTenantOwnerPlatformFields {

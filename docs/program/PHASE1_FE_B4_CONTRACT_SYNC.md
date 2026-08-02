@@ -55,3 +55,7 @@
 | FE-S04-26 | Result count honesty | **LANDED** |
 | FE-S04-27 | Wire Activate to `POST .../activate` (`d9d1472`) | **LANDED** |
 | FE-S04-28 | Wire sort to `GET ...?sort=` + `TenantLifecycleResponse` types (`5d052cf`) | **LANDED** |
+| FE-S04-29 | Shareable filter URL query helper | **LANDED** |
+| FE-S04-33 | Server `page`/`page_size` + `X-Total-Count` (`e9ef08d`) | **LANDED** |
+| FE-S04-34 | Reprovision failed/pending via `POST .../reprovision` (`e9ef08d`) | **LANDED** |
+| FE-S04-35 | Soft-delete retention + hard-delete `force_immediate` (`fd5af4d`) | **LANDED** |

@@ -31,11 +31,12 @@ import {
 } from "lucide-react";
 import { useDebounce } from "@salesos/hooks";
 import {
-  useAdminTenants,
+  useAdminTenantsPaged,
   useCreateAdminTenant,
   useUpdateAdminTenant,
   useSuspendAdminTenant,
   useActivateAdminTenant,
+  useReprovisionAdminTenant,
   useDeleteAdminTenant,
   useHardDeleteAdminTenant,
   useAdminTenantDetail,
@@ -51,16 +52,23 @@ import {
 } from "@/features/admin/widgets/TenantOwnerPlatformFields";
 import {
   activityStatusLabel,
+  buildAdminTenantsFilterQuery,
   formatActivateResultDescription,
   formatLifecycleResultDescription,
   formatProvisionResultDescription,
+  formatReprovisionResultDescription,
   formatTrialEndsLabel,
+  getDeletionRequestedAt,
   lifecycleStatusDescription,
+  retentionHardDeleteDescription,
+  TENANT_DELETION_RETENTION_DAYS,
   trialBadgeLabel,
   trialBadgeVariant,
   type TenantSortKey,
   type TrialFilter,
 } from "@/features/admin/lib/formatProvisionToast";
+
+const PAGE_SIZE = 20;
 
 const SORT_KEYS: TenantSortKey[] = [
   "created_desc",
@@ -166,6 +174,7 @@ export default function AdminTenantsPage() {
     null,
   );
   const [hardDeleteConfirm, setHardDeleteConfirm] = useState(false);
+  const [forceImmediate, setForceImmediate] = useState(false);
 
   const [createForm, setCreateForm] = useState({
     name: "",
@@ -182,21 +191,21 @@ export default function AdminTenantsPage() {
   const debouncedSearch = useDebounce(search, 400);
   const debouncedPlanId = useDebounce(planIdFilter, 400);
 
-  // FE-S04-24 — mirror server filters into URL (replace, no history spam)
+  // FE-S04-24/29/33 — mirror server filters + page into URL
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (debouncedSearch) params.set("search", debouncedSearch);
-    if (planFilter) params.set("plan", planFilter);
-    if (debouncedPlanId.trim()) params.set("plan_id", debouncedPlanId.trim());
-    if (statusFilter) params.set("status", statusFilter);
-    if (provisioningFilter)
-      params.set("provisioning_status", provisioningFilter);
-    if (regionFilter) params.set("region", regionFilter);
-    if (residencyFilter) params.set("data_residency", residencyFilter);
-    if (trialFilter) params.set("trial", trialFilter);
-    if (sortKey !== "created_desc") params.set("sort", sortKey);
-    if (page > 1) params.set("page", String(page));
-    const qs = params.toString();
+    const qs = buildAdminTenantsFilterQuery({
+      search: debouncedSearch,
+      plan: planFilter,
+      plan_id: debouncedPlanId,
+      status: statusFilter,
+      provisioning_status: provisioningFilter,
+      region: regionFilter,
+      data_residency: residencyFilter,
+      trial: trialFilter,
+      sort: sortKey,
+      page,
+      page_size: PAGE_SIZE,
+    });
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }, [
     debouncedSearch,
@@ -213,8 +222,12 @@ export default function AdminTenantsPage() {
     router,
   ]);
 
-  // FE-S04-20 filters + FE-S04-28 server sort (tip 5d052cf)
-  const { data: tenants, isLoading } = useAdminTenants({
+  // FE-S04-20/28/33 — filters + sort + server page/page_size (tip e9ef08d)
+  const {
+    data: tenantsPage,
+    isLoading,
+    isFetching,
+  } = useAdminTenantsPaged({
     search: debouncedSearch || undefined,
     plan: planFilter || undefined,
     plan_id: debouncedPlanId.trim() || undefined,
@@ -224,17 +237,22 @@ export default function AdminTenantsPage() {
     data_residency: residencyFilter || undefined,
     trial: trialFilter || undefined,
     sort: sortKey,
+    page,
+    page_size: PAGE_SIZE,
   });
 
   const createMutation = useCreateAdminTenant();
   const deleteMutation = useDeleteAdminTenant();
   const hardDeleteMutation = useHardDeleteAdminTenant();
 
+  const tenants = tenantsPage?.items ?? [];
+  const totalCount = tenantsPage?.total ?? 0;
+
   // Keep current filter values in Select options (server-filtered lists shrink options)
   const regionOptions = useMemo(() => {
     const values = new Set<string>();
     if (regionFilter) values.add(regionFilter);
-    for (const t of tenants || []) {
+    for (const t of tenants) {
       if (t.region) values.add(t.region);
     }
     return [
@@ -248,7 +266,7 @@ export default function AdminTenantsPage() {
   const residencyOptions = useMemo(() => {
     const values = new Set<string>();
     if (residencyFilter) values.add(residencyFilter);
-    for (const t of tenants || []) {
+    for (const t of tenants) {
       if (t.data_residency) values.add(t.data_residency);
     }
     return [
@@ -259,8 +277,20 @@ export default function AdminTenantsPage() {
     ];
   }, [tenants, residencyFilter]);
 
-  // Server owns sort (FE-S04-28); list is already ordered
-  const filteredTenants = tenants ?? [];
+  // Server owns sort + page (FE-S04-28/33); items are current page
+  const paginatedTenants = tenants;
+
+  const hasActiveFilters = Boolean(
+    search ||
+    planFilter ||
+    planIdFilter ||
+    statusFilter ||
+    provisioningFilter ||
+    regionFilter ||
+    residencyFilter ||
+    trialFilter ||
+    sortKey !== "created_desc",
+  );
 
   // FE-S04-22 — active server-filter chips (dismissible)
   const activeFilterChips = useMemo(() => {
@@ -325,8 +355,14 @@ export default function AdminTenantsPage() {
     trialFilter,
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredTenants.length / 20));
-  const paginatedTenants = filteredTenants.slice((page - 1) * 20, page * 20);
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
+  const deleteTarget = useMemo(
+    () =>
+      tenants.find((t: AdminTenantListItem) => t.id === showDeleteConfirm) ??
+      null,
+    [tenants, showDeleteConfirm],
+  );
 
   const handleCreate = useCallback(async () => {
     if (!createForm.name || !createForm.slug) return;
@@ -370,37 +406,59 @@ export default function AdminTenantsPage() {
     async (id: string) => {
       try {
         if (hardDeleteConfirm) {
-          // FE-S04-11
+          // FE-S04-11/35 — confirm + force_immediate (STORY-04-04 / tip fd5af4d)
+          const usedForce = forceImmediate;
           const result = await hardDeleteMutation.mutateAsync({
             id,
             confirm: true,
+            force_immediate: usedForce,
           });
           setShowDeleteConfirm(null);
           setHardDeleteConfirm(false);
+          setForceImmediate(false);
           toast({
             variant: "success",
             title: "Tenant hard-deleted",
-            description: `${result.message} · tenant_id=${result.tenant_id}`,
+            description: `${result.message} · tenant_id=${result.tenant_id}${
+              usedForce ? " · force_immediate" : ""
+            }`,
           });
           return;
         }
-        // FE-S04-09 — soft-delete honesty
+        // FE-S04-09 — soft-delete stamps retention (settings.deletion_requested_at)
         const result = await deleteMutation.mutateAsync(id);
         setShowDeleteConfirm(null);
         toast({
           variant: "success",
           title: "Tenant soft-deleted",
-          description: `${formatLifecycleResultDescription(result)} (recoverable via Activate)`,
+          description: `${formatLifecycleResultDescription(result)} · retention ~${TENANT_DELETION_RETENTION_DAYS}d (recoverable via Activate)`,
         });
-      } catch {
+      } catch (err: unknown) {
+        const detail =
+          typeof err === "object" &&
+          err !== null &&
+          "response" in err &&
+          typeof (err as { response?: { data?: { detail?: unknown } } })
+            .response?.data?.detail === "string"
+            ? String(
+                (err as { response?: { data?: { detail?: string } } }).response
+                  ?.data?.detail,
+              )
+            : "An error occurred while deleting the tenant.";
         toast({
           variant: "error",
           title: "Failed to delete",
-          description: "An error occurred while deleting the tenant.",
+          description: detail,
         });
       }
     },
-    [deleteMutation, hardDeleteMutation, hardDeleteConfirm, toast],
+    [
+      deleteMutation,
+      hardDeleteMutation,
+      hardDeleteConfirm,
+      forceImmediate,
+      toast,
+    ],
   );
 
   return (
@@ -523,15 +581,7 @@ export default function AdminTenantsPage() {
             }}
           />
         </div>
-        {(search ||
-          planFilter ||
-          planIdFilter ||
-          statusFilter ||
-          provisioningFilter ||
-          regionFilter ||
-          residencyFilter ||
-          trialFilter ||
-          sortKey !== "created_desc") && (
+        {hasActiveFilters && (
           <Button
             variant="outline"
             size="sm"
@@ -554,14 +604,15 @@ export default function AdminTenantsPage() {
         )}
       </div>
 
-      {/* FE-S04-26 — result count honesty */}
+      {/* FE-S04-26/33 — result count from X-Total-Count */}
       <p
         className="text-sm text-[var(--text-muted)]"
         data-testid="admin-tenants-result-count"
       >
         {isLoading
           ? "Loading tenants…"
-          : `${filteredTenants.length} tenant${filteredTenants.length === 1 ? "" : "s"}`}
+          : `${totalCount} tenant${totalCount === 1 ? "" : "s"}`}
+        {isFetching && !isLoading ? " · updating…" : ""}
       </p>
 
       {/* FE-S04-22 — active filter chips */}
@@ -746,7 +797,7 @@ export default function AdminTenantsPage() {
           >
             <Building2 className="mx-auto mb-2 h-10 w-10 opacity-40" />
             <p>
-              {(tenants?.length ?? 0) > 0
+              {hasActiveFilters
                 ? "No tenants match the current filters"
                 : "No tenants found"}
             </p>
@@ -915,13 +966,15 @@ export default function AdminTenantsPage() {
         )}
       </div>
 
-      {/* Pagination */}
-      {filteredTenants.length > 20 && (
-        <div className="flex items-center justify-between">
+      {/* FE-S04-33 — server pagination (page/page_size + X-Total-Count) */}
+      {totalCount > PAGE_SIZE && (
+        <div
+          className="flex items-center justify-between"
+          data-testid="admin-tenants-pagination"
+        >
           <p className="text-sm text-[var(--text-muted)]">
-            Showing {(page - 1) * 20 + 1}-
-            {Math.min(page * 20, filteredTenants.length)} of{" "}
-            {filteredTenants.length}
+            Showing {(page - 1) * PAGE_SIZE + 1}-
+            {Math.min(page * PAGE_SIZE, totalCount)} of {totalCount}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -977,6 +1030,7 @@ export default function AdminTenantsPage() {
           if (!open) {
             setShowDeleteConfirm(null);
             setHardDeleteConfirm(false);
+            setForceImmediate(false);
           }
         }}
       >
@@ -988,29 +1042,56 @@ export default function AdminTenantsPage() {
             <div className="space-y-3">
               <p className="text-[var(--text-secondary)]">
                 {hardDeleteConfirm ? "Permanently remove" : "Soft-delete"}{" "}
-                tenant{" "}
-                <strong>
-                  {
-                    tenants?.find(
-                      (t: AdminTenantListItem) => t.id === showDeleteConfirm,
-                    )?.name
-                  }
-                </strong>
-                ?
+                tenant <strong>{deleteTarget?.name}</strong>?
               </p>
-              <p className="text-sm text-[var(--text-muted)]">
-                Soft-delete sets <code>is_active=false</code> (recoverable via
-                Activate). Hard-delete permanently removes the row.
+              <p
+                className="text-sm text-[var(--text-muted)]"
+                data-testid="admin-tenants-delete-honesty"
+              >
+                Soft-delete sets <code>is_active=false</code> only —{" "}
+                <code>provisioning_status</code> stays{" "}
+                <code>{deleteTarget?.provisioning_status || "pending"}</code>{" "}
+                (Inactive ≠ Suspended). Stamps{" "}
+                <code>settings.deletion_requested_at</code> for STORY-04-04
+                retention (~{TENANT_DELETION_RETENTION_DAYS}d). Recoverable via
+                Activate.
               </p>
               <label className="flex items-center gap-2 text-sm text-danger-600">
                 <input
                   type="checkbox"
                   checked={hardDeleteConfirm}
-                  onChange={(e) => setHardDeleteConfirm(e.target.checked)}
+                  onChange={(e) => {
+                    setHardDeleteConfirm(e.target.checked);
+                    if (!e.target.checked) setForceImmediate(false);
+                  }}
                   data-testid="admin-tenants-hard-delete-confirm"
                 />
                 Hard-delete (permanent — requires API confirm)
               </label>
+              {hardDeleteConfirm && (
+                <>
+                  <p
+                    className="text-sm text-[var(--text-muted)]"
+                    data-testid="admin-tenants-retention-honesty"
+                  >
+                    {retentionHardDeleteDescription({
+                      isInactive: deleteTarget
+                        ? !deleteTarget.is_active
+                        : false,
+                    })}
+                  </p>
+                  <label className="flex items-center gap-2 text-sm text-danger-600">
+                    <input
+                      type="checkbox"
+                      checked={forceImmediate}
+                      onChange={(e) => setForceImmediate(e.target.checked)}
+                      data-testid="admin-tenants-force-immediate"
+                    />
+                    Force immediate (bypass retention —{" "}
+                    <code>force_immediate=true</code>)
+                  </label>
+                </>
+              )}
             </div>
           </ModalBody>
           <ModalFooter>
@@ -1019,6 +1100,7 @@ export default function AdminTenantsPage() {
               onClick={() => {
                 setShowDeleteConfirm(null);
                 setHardDeleteConfirm(false);
+                setForceImmediate(false);
               }}
             >
               Cancel
@@ -1068,6 +1150,7 @@ function TenantDetailModal({
   const updateMutation = useUpdateAdminTenant(tenantId);
   const suspendMutation = useSuspendAdminTenant();
   const activateMutation = useActivateAdminTenant();
+  const reprovisionMutation = useReprovisionAdminTenant();
 
   const [configJson, setConfigJson] = useState("");
   const [suspendReason, setSuspendReason] = useState(
@@ -1076,6 +1159,10 @@ function TenantDetailModal({
   const [activateReason, setActivateReason] = useState(
     "Activated via Owner Console",
   );
+
+  const canReprovision =
+    tenant?.provisioning_status === "failed" ||
+    tenant?.provisioning_status === "pending";
 
   const handleToggleActive = useCallback(async () => {
     if (!tenant) return;
@@ -1131,6 +1218,21 @@ function TenantDetailModal({
     },
     [toast],
   );
+
+  // FE-S04-34 — POST /reprovision for failed/pending only (no force_active here)
+  const handleReprovision = useCallback(async () => {
+    if (!tenant || !canReprovision) return;
+    try {
+      const result = await reprovisionMutation.mutateAsync({ id: tenantId });
+      toast({
+        variant: "success",
+        title: "Tenant reprovisioned",
+        description: formatReprovisionResultDescription(result),
+      });
+    } catch {
+      toast({ variant: "error", title: "Failed to reprovision tenant" });
+    }
+  }, [tenant, canReprovision, tenantId, reprovisionMutation, toast]);
 
   const handleSaveConfig = useCallback(async () => {
     try {
@@ -1228,6 +1330,18 @@ function TenantDetailModal({
                   >
                     {tenant ? lifecycleStatusDescription(tenant) : "Loading…"}
                   </p>
+                  {tenant && getDeletionRequestedAt(tenant.settings) && (
+                    <p
+                      className="mt-1 text-xs text-[var(--text-muted)]"
+                      data-testid="admin-tenants-retention-stamp"
+                    >
+                      {retentionHardDeleteDescription({
+                        deletionRequestedAt: getDeletionRequestedAt(
+                          tenant.settings,
+                        ),
+                      })}
+                    </p>
+                  )}
                 </div>
                 <Button
                   variant={tenant?.is_active ? "outline" : "primary"}
@@ -1269,6 +1383,33 @@ function TenantDetailModal({
                     placeholder="Reason for activate"
                     data-testid="admin-tenants-activate-reason"
                   />
+                </div>
+              )}
+              {canReprovision && (
+                <div
+                  className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border-default)] pt-3"
+                  data-testid="admin-tenants-reprovision"
+                >
+                  <p className="text-sm text-[var(--text-muted)]">
+                    Provisioning is <code>{tenant?.provisioning_status}</code> —
+                    re-run idempotent provision workflow.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleReprovision}
+                    disabled={reprovisionMutation.isPending}
+                    data-testid="admin-tenants-reprovision-submit"
+                    leftIcon={
+                      reprovisionMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : undefined
+                    }
+                  >
+                    {reprovisionMutation.isPending
+                      ? "Reprovisioning…"
+                      : "Reprovision"}
+                  </Button>
                 </div>
               )}
             </div>

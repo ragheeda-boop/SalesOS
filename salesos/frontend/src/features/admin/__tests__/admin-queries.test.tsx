@@ -3,24 +3,29 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 
 jest.mock("@/lib/api", () => ({
-  listAdminTenants: jest.fn().mockResolvedValue([
-    {
-      id: "1",
-      name: "Test Tenant",
-      slug: "test",
-      plan: "growth",
-      plan_id: null,
-      region: null,
-      data_residency: null,
-      provisioning_status: "active",
-      trial_ends_at: null,
-      is_active: true,
-      user_count: 5,
-      created_at: "2026-01-01T00:00:00Z",
-      updated_at: "2026-01-01T00:00:00Z",
-      domain: null,
-    },
-  ]),
+  listAdminTenants: jest.fn().mockResolvedValue({
+    items: [
+      {
+        id: "1",
+        name: "Test Tenant",
+        slug: "test",
+        plan: "growth",
+        plan_id: null,
+        region: null,
+        data_residency: null,
+        provisioning_status: "active",
+        trial_ends_at: null,
+        is_active: true,
+        user_count: 5,
+        created_at: "2026-01-01T00:00:00Z",
+        updated_at: "2026-01-01T00:00:00Z",
+        domain: null,
+      },
+    ],
+    total: 1,
+    page: 1,
+    page_size: 20,
+  }),
   listAdminPlans: jest.fn().mockResolvedValue([
     {
       id: "1",

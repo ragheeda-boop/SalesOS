@@ -18,10 +18,13 @@ import type {
   AdminTenantCreate,
   AdminTenantDetail,
   AdminTenantListItem,
+  AdminTenantListResult,
   AdminTenantActivateRequest,
   AdminTenantActivateResponse,
   AdminTenantHardDeleteRequest,
   AdminTenantHardDeleteResponse,
+  AdminTenantReprovisionRequest,
+  AdminTenantReprovisionResponse,
   AdminTenantSoftDeleteResponse,
   AdminTenantSuspendRequest,
   AdminTenantSuspendResponse,
@@ -159,11 +162,41 @@ export async function createTask(
   return response.data;
 }
 
+function headerTotalCount(headers: unknown): number {
+  if (!headers || typeof headers !== "object") return 0;
+  const h = headers as Record<string, unknown>;
+  const raw = h["x-total-count"] ?? h["X-Total-Count"];
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** FE-S04-33 — items + X-Total-Count; page/page_size when provided (tip e9ef08d). */
 export async function listAdminTenants(
-  params?: Record<string, string | undefined>,
-): Promise<AdminTenantListItem[]> {
-  const resp = await api.get("/api/v1/admin/tenants", { params });
-  return resp.data;
+  params?: Record<string, string | number | undefined>,
+): Promise<AdminTenantListResult> {
+  const resp = await api.get<AdminTenantListItem[]>("/api/v1/admin/tenants", {
+    params,
+  });
+  const items = Array.isArray(resp.data) ? resp.data : [];
+  const total = headerTotalCount(resp.headers);
+  const page =
+    typeof params?.page === "number"
+      ? params.page
+      : params?.page
+        ? Number(params.page)
+        : undefined;
+  const page_size =
+    typeof params?.page_size === "number"
+      ? params.page_size
+      : params?.page_size
+        ? Number(params.page_size)
+        : undefined;
+  return {
+    items,
+    total: total || items.length,
+    page: Number.isFinite(page) ? page : undefined,
+    page_size: Number.isFinite(page_size) ? page_size : undefined,
+  };
 }
 
 export async function createAdminTenant(
@@ -197,13 +230,16 @@ export async function deleteAdminTenant(
 /** Alias for honesty in call sites. */
 export const softDeleteAdminTenant = deleteAdminTenant;
 
-/** FE-S04-11 — hard-delete requires confirm: true. */
+/** FE-S04-11/35 — hard-delete confirm + optional force_immediate (tip fd5af4d). */
 export async function hardDeleteAdminTenant(
   id: string,
   data: AdminTenantHardDeleteRequest,
 ): Promise<AdminTenantHardDeleteResponse> {
   const resp = await api.delete(`/api/v1/admin/tenants/${id}/hard-delete`, {
-    data,
+    data: {
+      confirm: data.confirm,
+      force_immediate: data.force_immediate ?? false,
+    },
   });
   return resp.data;
 }
@@ -227,6 +263,21 @@ export async function activateAdminTenant(
   const resp = await api.post(`/api/v1/admin/tenants/${id}/activate`, {
     reason: data.reason ?? "",
   });
+  return resp.data;
+}
+
+/** FE-S04-34 — retry provision_workflow for failed/pending (tip e9ef08d). */
+export async function reprovisionAdminTenant(
+  id: string,
+  data: AdminTenantReprovisionRequest = {},
+): Promise<AdminTenantReprovisionResponse> {
+  const body: AdminTenantReprovisionRequest = {
+    force_active: data.force_active ?? false,
+  };
+  if (data.admin_email != null) body.admin_email = data.admin_email;
+  if (data.admin_password != null) body.admin_password = data.admin_password;
+  if (data.admin_full_name != null) body.admin_full_name = data.admin_full_name;
+  const resp = await api.post(`/api/v1/admin/tenants/${id}/reprovision`, body);
   return resp.data;
 }
 

@@ -155,6 +155,99 @@ export function lifecycleStatusDescription(tenant: {
 export type TenantSortKey =
   "created_desc" | "created_asc" | "name_asc" | "name_desc";
 
+/** FE-S04-29/33 — shareable Owner Console filter query (mirrors URL sync). */
+export function buildAdminTenantsFilterQuery(filters: {
+  search?: string;
+  plan?: string;
+  plan_id?: string;
+  status?: string;
+  provisioning_status?: string;
+  region?: string;
+  data_residency?: string;
+  trial?: TrialFilter;
+  sort?: TenantSortKey;
+  page?: number;
+  page_size?: number;
+}): string {
+  const params = new URLSearchParams();
+  const search = filters.search?.trim();
+  if (search) params.set("search", search);
+  if (filters.plan) params.set("plan", filters.plan);
+  const planId = filters.plan_id?.trim();
+  if (planId) params.set("plan_id", planId);
+  if (filters.status) params.set("status", filters.status);
+  if (filters.provisioning_status)
+    params.set("provisioning_status", filters.provisioning_status);
+  const region = filters.region?.trim();
+  if (region) params.set("region", region);
+  const residency = filters.data_residency?.trim();
+  if (residency) params.set("data_residency", residency);
+  if (filters.trial) params.set("trial", filters.trial);
+  if (filters.sort && filters.sort !== "created_desc")
+    params.set("sort", filters.sort);
+  if (filters.page && filters.page > 1)
+    params.set("page", String(filters.page));
+  if (filters.page_size && filters.page_size !== 20)
+    params.set("page_size", String(filters.page_size));
+  return params.toString();
+}
+
+/** STORY-04-04 / FE-S04-35 — default retention days (settings.tenant_deletion_retention_days). */
+export const TENANT_DELETION_RETENTION_DAYS = 30;
+
+/** Soft-delete stamps settings.deletion_requested_at (tip fd5af4d). */
+export function getDeletionRequestedAt(
+  settings: Record<string, unknown> | null | undefined,
+): string | null {
+  const raw = settings?.deletion_requested_at;
+  return typeof raw === "string" && raw.trim() ? raw : null;
+}
+
+/** FE-S04-35 — Owner Console retention honesty copy. */
+export function retentionHardDeleteDescription(options?: {
+  deletionRequestedAt?: string | null;
+  retentionDays?: number;
+  isInactive?: boolean;
+}): string {
+  const days = options?.retentionDays ?? TENANT_DELETION_RETENTION_DAYS;
+  const stamp = options?.deletionRequestedAt;
+  if (stamp) {
+    return `Retention: soft-delete stamped ${stamp}. Hard-delete blocked until ~${days} days elapse unless force_immediate=true.`;
+  }
+  if (options?.isInactive) {
+    return `Retention: inactive tenants may carry a soft-delete stamp. Hard-delete waits ~${days} days after soft-delete unless force_immediate=true. Direct hard-delete (no stamp) is allowed with confirm.`;
+  }
+  return `Retention: soft-delete stamps deletion_requested_at; hard-delete waits ~${days} days unless force_immediate=true. Active tenants may hard-delete with confirm only.`;
+}
+
+/** FE-S04-34 — toast from TenantReprovisionResponse. */
+export function formatReprovisionResultDescription(result: {
+  tenant_id: string;
+  slug: string;
+  provisioning_status?: string;
+  created?: boolean;
+  idempotent?: boolean;
+  roles_provisioned?: number;
+  permissions_provisioned?: number;
+}): string {
+  const parts = [
+    `tenant_id=${result.tenant_id}`,
+    `slug=${result.slug}`,
+    `provisioning=${result.provisioning_status || "pending"}`,
+  ];
+  if (typeof result.created === "boolean") {
+    parts.push(`created=${result.created}`);
+  }
+  if (typeof result.idempotent === "boolean") {
+    parts.push(`idempotent=${result.idempotent}`);
+  }
+  if (typeof result.roles_provisioned === "number")
+    parts.push(`roles=${result.roles_provisioned}`);
+  if (typeof result.permissions_provisioned === "number")
+    parts.push(`permissions=${result.permissions_provisioned}`);
+  return parts.join(" · ");
+}
+
 /** FE-S04-19 — client-side list sort. */
 export function sortAdminTenants<
   T extends { name: string; created_at: string },

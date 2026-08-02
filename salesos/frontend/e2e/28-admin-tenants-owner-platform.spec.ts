@@ -132,6 +132,36 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     const hasActivate = await activateReason.isVisible().catch(() => false);
     const hasSuspend = await suspendReason.isVisible().catch(() => false);
     expect(hasActivate || hasSuspend).toBeTruthy();
+    // Reprovision only when provisioning failed/pending — assert hook exists if shown
+    const reprovision = page.getByTestId("admin-tenants-reprovision");
+    const hasReprovision = await reprovision.isVisible().catch(() => false);
+    if (hasReprovision) {
+      await expect(
+        page.getByTestId("admin-tenants-reprovision-submit"),
+      ).toBeVisible();
+    }
+  });
+
+  test("admin tenants delete honesty + retention hooks without mutate", async ({
+    page,
+  }) => {
+    await page.goto("/admin/tenants");
+    await page.waitForLoadState("networkidle");
+    const deleteBtn = page.getByTestId("admin-tenants-delete-open").first();
+    const hasRow = await deleteBtn.isVisible().catch(() => false);
+    test.skip(!hasRow, "No tenant rows to open delete modal");
+    await deleteBtn.click();
+    await expect(page.getByTestId("admin-tenants-delete-honesty")).toBeVisible({
+      timeout: 5_000,
+    });
+    await page.getByTestId("admin-tenants-hard-delete-confirm").check();
+    await expect(
+      page.getByTestId("admin-tenants-retention-honesty"),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("admin-tenants-force-immediate"),
+    ).toBeVisible();
+    await page.getByRole("button", { name: /Cancel/i }).click();
   });
 
   test("admin tenants delete modal opens without mutate", async ({ page }) => {

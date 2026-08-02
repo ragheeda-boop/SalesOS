@@ -1,7 +1,11 @@
 import {
   activityStatusLabel,
+  buildAdminTenantsFilterQuery,
   formatActivateResultDescription,
+  formatReprovisionResultDescription,
   formatTrialEndsLabel,
+  getDeletionRequestedAt,
+  retentionHardDeleteDescription,
   lifecycleStatusDescription,
   matchesTrialFilter,
   sortAdminTenants,
@@ -166,5 +170,66 @@ describe("sortAdminTenants — FE-S04-19", () => {
       "Beta",
       "Gamma",
     ]);
+  });
+});
+
+describe("buildAdminTenantsFilterQuery — FE-S04-29/33", () => {
+  it("omits default sort and page 1; includes page>1", () => {
+    expect(
+      buildAdminTenantsFilterQuery({
+        search: " acme ",
+        sort: "created_desc",
+        page: 1,
+        page_size: 20,
+      }),
+    ).toBe("search=acme");
+    expect(
+      buildAdminTenantsFilterQuery({
+        status: "active",
+        sort: "name_asc",
+        page: 2,
+      }),
+    ).toBe("status=active&sort=name_asc&page=2");
+  });
+});
+
+describe("formatReprovisionResultDescription — FE-S04-34", () => {
+  it("summarizes reprovision response", () => {
+    expect(
+      formatReprovisionResultDescription({
+        tenant_id: "t-1",
+        slug: "acme",
+        provisioning_status: "active",
+        created: false,
+        idempotent: true,
+        roles_provisioned: 3,
+        permissions_provisioned: 12,
+      }),
+    ).toBe(
+      "tenant_id=t-1 · slug=acme · provisioning=active · created=false · idempotent=true · roles=3 · permissions=12",
+    );
+  });
+});
+
+describe("retention helpers — FE-S04-35", () => {
+  it("reads deletion_requested_at from settings", () => {
+    expect(
+      getDeletionRequestedAt({
+        deletion_requested_at: "2026-08-01T00:00:00+00:00",
+      }),
+    ).toBe("2026-08-01T00:00:00+00:00");
+    expect(getDeletionRequestedAt({})).toBeNull();
+  });
+
+  it("describes retention / force_immediate honesty", () => {
+    expect(
+      retentionHardDeleteDescription({
+        deletionRequestedAt: "2026-08-01T00:00:00Z",
+        retentionDays: 30,
+      }),
+    ).toContain("force_immediate=true");
+    expect(retentionHardDeleteDescription({ isInactive: true })).toContain(
+      "soft-delete stamp",
+    );
   });
 });

@@ -16,6 +16,7 @@ import {
   hardDeleteAdminTenant,
   suspendAdminTenant,
   activateAdminTenant,
+  reprovisionAdminTenant,
   getAdminTenantUsage,
   listAdminPlans,
   createAdminPlan,
@@ -54,6 +55,7 @@ import type {
   AdminTenantActivateRequest,
   AdminTenantCreate,
   AdminTenantHardDeleteRequest,
+  AdminTenantReprovisionRequest,
   AdminTenantSuspendRequest,
   AdminTenantUpdate,
 } from "@/lib/api/types/admin";
@@ -158,9 +160,31 @@ export function usePurgeDlq() {
 
 // ─── Admin Portal Hooks ──────────────────────────────────────
 
-export function useAdminTenants(filters?: Record<string, string | undefined>) {
+/**
+ * Legacy array shape for TenantList / AdminWorkspace (no page → BE returns all).
+ * Owner Console uses useAdminTenantsPaged for total + server page.
+ */
+export function useAdminTenants(
+  filters?: Record<string, string | number | undefined>,
+) {
   return useQuery({
     queryKey: adminKeys.tenants(filters as Record<string, unknown>),
+    queryFn: async () => {
+      const result = await listAdminTenants(filters);
+      return result.items;
+    },
+  });
+}
+
+/** FE-S04-33 — items + X-Total-Count with page/page_size (tip e9ef08d). */
+export function useAdminTenantsPaged(
+  filters?: Record<string, string | number | undefined>,
+) {
+  return useQuery({
+    queryKey: adminKeys.tenants({
+      ...(filters as Record<string, unknown>),
+      __paged: true,
+    }),
     queryFn: () => listAdminTenants(filters),
   });
 }
@@ -341,6 +365,24 @@ export function useActivateAdminTenant() {
       ...data
     }: AdminTenantActivateRequest & { id: string }) =>
       activateAdminTenant(id, data),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: adminKeys.tenants() });
+      qc.invalidateQueries({
+        queryKey: adminKeys.tenantDetail(variables.id),
+      });
+    },
+  });
+}
+
+/** FE-S04-34 — POST /reprovision for failed/pending (tip e9ef08d). */
+export function useReprovisionAdminTenant() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...data
+    }: AdminTenantReprovisionRequest & { id: string }) =>
+      reprovisionAdminTenant(id, data),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: adminKeys.tenants() });
       qc.invalidateQueries({

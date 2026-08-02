@@ -75,6 +75,7 @@ import {
   hardDeleteAdminTenant,
   suspendAdminTenant,
   activateAdminTenant,
+  reprovisionAdminTenant,
   getAdminTenantUsage,
   listAdminLicenses,
   createAdminLicense,
@@ -1295,7 +1296,7 @@ describe("getCopilotTelemetry — contract", () => {
 // ─── Admin API Contracts ──────────────────────────────────────
 
 describe("listAdminTenants — contract", () => {
-  it("returns AdminTenantListItem[]", async () => {
+  it("returns AdminTenantListResult with items + X-Total-Count", async () => {
     const payload = [
       {
         id: "t-1",
@@ -1314,19 +1315,28 @@ describe("listAdminTenants — contract", () => {
         updated_at: "2026-07-16",
       },
     ];
-    mockAxios.get.mockResolvedValueOnce(mockResponse(payload));
+    mockAxios.get.mockResolvedValueOnce({
+      data: payload,
+      headers: { "x-total-count": "42" },
+    });
 
-    const result = await listAdminTenants();
+    const result = await listAdminTenants({ page: 1, page_size: 20 });
 
-    expect(Array.isArray(result)).toBe(true);
-    expect(result[0]).toHaveProperty("slug");
-    expect(result[0]).toHaveProperty("user_count");
-    expect(result[0]).toHaveProperty("provisioning_status", "active");
-    expect(result[0]).toHaveProperty("plan_id", "cat-ent");
+    expect(Array.isArray(result.items)).toBe(true);
+    expect(result.total).toBe(42);
+    expect(result.page).toBe(1);
+    expect(result.page_size).toBe(20);
+    expect(result.items[0]).toHaveProperty("slug");
+    expect(result.items[0]).toHaveProperty("user_count");
+    expect(result.items[0]).toHaveProperty("provisioning_status", "active");
+    expect(result.items[0]).toHaveProperty("plan_id", "cat-ent");
   });
 
-  it("FE-S04-20/28 — forwards Owner Platform filters + sort query params", async () => {
-    mockAxios.get.mockResolvedValueOnce(mockResponse([]));
+  it("FE-S04-20/28/33 — forwards filters + sort + page params", async () => {
+    mockAxios.get.mockResolvedValueOnce({
+      data: [],
+      headers: { "x-total-count": "0" },
+    });
 
     await listAdminTenants({
       search: "acme",
@@ -1338,6 +1348,8 @@ describe("listAdminTenants — contract", () => {
       provisioning_status: "pending",
       trial: "has_trial",
       sort: "name_asc",
+      page: 2,
+      page_size: 20,
     });
 
     expect(mockAxios.get).toHaveBeenCalledWith("/api/v1/admin/tenants", {
@@ -1351,8 +1363,38 @@ describe("listAdminTenants — contract", () => {
         provisioning_status: "pending",
         trial: "has_trial",
         sort: "name_asc",
+        page: 2,
+        page_size: 20,
       },
     });
+  });
+});
+
+describe("reprovisionAdminTenant — contract", () => {
+  it("FE-S04-34 — POST /reprovision", async () => {
+    mockAxios.post.mockResolvedValueOnce(
+      mockResponse({
+        message: "Tenant reprovisioned",
+        tenant_id: "t-1",
+        slug: "acme",
+        created: false,
+        idempotent: true,
+        provisioning_status: "active",
+        roles_provisioned: 3,
+        permissions_provisioned: 12,
+        studio_config: {},
+        admin_user_id: null,
+      }),
+    );
+
+    const result = await reprovisionAdminTenant("t-1");
+
+    expect(mockAxios.post).toHaveBeenCalledWith(
+      "/api/v1/admin/tenants/t-1/reprovision",
+      { force_active: false },
+    );
+    expect(result.idempotent).toBe(true);
+    expect(result.provisioning_status).toBe("active");
   });
 });
 
@@ -2029,7 +2071,7 @@ describe("deleteAdminTenant — contract", () => {
 });
 
 describe("hardDeleteAdminTenant — contract", () => {
-  it("DELETEs /hard-delete with confirm", async () => {
+  it("FE-S04-35 — DELETEs /hard-delete with confirm + force_immediate", async () => {
     mockAxios.delete.mockResolvedValueOnce(
       mockResponse({
         message: "Tenant hard-deleted",
@@ -2037,12 +2079,31 @@ describe("hardDeleteAdminTenant — contract", () => {
       }),
     );
 
-    const result = await hardDeleteAdminTenant("t-1", { confirm: true });
+    const result = await hardDeleteAdminTenant("t-1", {
+      confirm: true,
+      force_immediate: true,
+    });
 
     expect(result.message).toBe("Tenant hard-deleted");
     expect(mockAxios.delete).toHaveBeenCalledWith(
       "/api/v1/admin/tenants/t-1/hard-delete",
-      { data: { confirm: true } },
+      { data: { confirm: true, force_immediate: true } },
+    );
+  });
+
+  it("defaults force_immediate to false", async () => {
+    mockAxios.delete.mockResolvedValueOnce(
+      mockResponse({
+        message: "Tenant hard-deleted",
+        tenant_id: "t-1",
+      }),
+    );
+
+    await hardDeleteAdminTenant("t-1", { confirm: true });
+
+    expect(mockAxios.delete).toHaveBeenCalledWith(
+      "/api/v1/admin/tenants/t-1/hard-delete",
+      { data: { confirm: true, force_immediate: false } },
     );
   });
 });
