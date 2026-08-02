@@ -107,9 +107,7 @@ class InMemoryOdooRpc:
                 watermark = str(clause[2])
         if watermark:
             # Strictly after cursor watermark (exclude already-pulled row).
-            ordered = [
-                r for r in ordered if str(r.get("write_date") or "") > watermark
-            ]
+            ordered = [r for r in ordered if str(r.get("write_date") or "") > watermark]
         return list(ordered[offset : offset + limit])
 
     async def write(

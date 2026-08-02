@@ -30,7 +30,6 @@ def test_framework_modules_have_no_odoo_leakage() -> None:
             assert "class OdooAdapter" not in text
 
 
-
 @pytest.mark.asyncio
 async def test_fake_adapter_certifies() -> None:
     result = await certify_source_connector(FakeSourceConnector())
