@@ -299,6 +299,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["GTM Intelligence"],
         dependencies=_auth,
     )
+    # DOM-023 / CAP-098 — STORY-11-04 Lookalike Accounts.
+    from app.modules.gtm.lookalike_router import (
+        router as lookalike_router,
+    )
+
+    app.include_router(
+        lookalike_router,
+        prefix="/api/v1",
+        tags=["GTM Intelligence"],
+        dependencies=_auth,
+    )
     app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
     app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
     app.include_router(admin_router)

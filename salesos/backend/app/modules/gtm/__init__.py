@@ -1,4 +1,4 @@
-"""GTM Intelligence — CAP-095/096/097/099/100. Not Production GO."""
+"""GTM Intelligence — CAP-095/096/097/098/099/100. Not Production GO."""
 
 from app.modules.gtm.enrichment import EnrichmentError, EnrichmentResult
 from app.modules.gtm.icp import ICPError, ICPProfile
@@ -8,6 +8,7 @@ from app.modules.gtm.lead_discovery import (
     LeadDiscoveryQuery,
     LeadDiscoveryRun,
 )
+from app.modules.gtm.lookalike import LookalikeError, LookalikeModel
 from app.modules.gtm.market_sizing import (
     GOVERNMENT_DATASET_SCALE_HINT,
     MarketSizingCriteria,
@@ -29,6 +30,8 @@ __all__ = [
     "LeadDiscoveryError",
     "LeadDiscoveryQuery",
     "LeadDiscoveryRun",
+    "LookalikeError",
+    "LookalikeModel",
     "MarketSizingCriteria",
     "MarketSizingError",
     "MarketSizingSnapshot",
