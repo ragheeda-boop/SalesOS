@@ -1,9 +1,9 @@
 # Execution DAG — Current Program State
 
-> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-02** (post **DEC-151** Continuous Autonomous Mode; DEC-152 **3.9 CLOSED CONDITIONAL**; prior DEC-150 B / DEC-149a / DEC-120).  
+> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-02** (post **DEC-153** tip `8ff782f` / `d973cba`; Continuous Autonomous Mode chasing Stage 7; DEC-152 **3.9 CLOSED CONDITIONAL**; prior DEC-150 B / DEC-149a / DEC-120).  
 > Authority: evidence + `SPRINT_05_DELIVERY_BOARD.md` + `RISK_REGISTER.md` + Sprint plans + `docs/audit/ga-engineering-audit/` + Principal Audit.  
 > Honesty labels: **Stages 1–7 CI GREEN not met** (Stage 7 red). **Phase 0 (DEC-008 RLS / R-14) exit = NO-GO** (DEC-086 GO **withdrawn** by DEC-120). **Production GA / External pilot = NO-GO**. STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies). **Do not reopen STORY-02-01.**  
-> **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md)): no org redesign / deploy-topology DEC superseding DEC-149 / criterion rewrite except hard OPEN **3.7** field evidence + non-architecture bugfix crumbs. Phase 0 **51/54 NO-GO** (DEC-153 closed **4.1/4.8**). Never invent Production GO / Phase 0 COMPLETE unless **54/54**.
+> **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md)): hard OPEN ⬜ = **3.7** only — chase tip Stage 7 SUCCESS; no invent CLOSE. Phase 0 **51/54 NO-GO**. Sprint **26/26**. Never invent Production GO / Phase 0 COMPLETE unless **54/54**.
 
 ---
 
@@ -13,22 +13,22 @@
 STATE = CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT
 Architecture = FROZEN
 Governance = FROZEN          # DEC-151
-Program = ACTIVE             # hard OPEN: 3.7
+Program = ACTIVE             # hard OPEN: 3.7 only — chasing Stage 7
 Engineering = STABILIZING
 AI Runtime = DEFERRED
 Score = 51/54                # DEC-153 closed 4.1/4.8; DEC-152 3.9 CONDITIONAL
-Loop = identify next OPEN → assign/fix → land crumbs → push
+Loop = chase Stage 7 → field-verify → land crumbs → push
 ```
 
-**Frozen reaffirm:** DEC-149 (Railway+Vercel) · DEC-150 B (GHCR retired) · DEC-151 (governance freeze).
+**Frozen reaffirm:** DEC-149 (Railway+Vercel) · DEC-150 B (GHCR retired) · DEC-151 (governance freeze). Tip pin for DEC-153 land: `8ff782f` (+ `d973cba` Stage 7 psql harden).
 
 ### Coordination map (continuous streams)
 
 | Stream | Criterion | Owner | Class | Mandate |
 |---|---|---|---|---|
 | **A** | **3.9** CI GREEN (DEC-149 topology) | DevOps / Validation | **CLOSED CONDITIONAL** (DEC-152) | Tip `5fafbe9` Stages 1–5 + Deploy Prod SUCCESS; Stage 7 orthogonal |
-| **B** | **3.7** Stage 7 E2E | DevOps / Backend | **ACTIVE / field-verify** | Services + smoke-auth-ui wired `9e1dc46`; await tip Stage 7 SUCCESS; do not fake local green |
-| **C** | **4.1 / 4.8** ARB re-audit | ARB / OpenCode | **CLOSED** (DEC-153) | ARB PASS / CRITICAL **0** @ `.engineering/34_EOS_REAUDIT_2026-08-02.md` |
+| **B** | **3.7** Stage 7 E2E | DevOps / Backend | **ACTIVE — primary chase** | Services + smoke-auth-ui @ `9e1dc46` / harden `d973cba`; await tip Stage 7 SUCCESS; **do not invent CLOSE** |
+| **C** | **4.1 / 4.8** ARB re-audit | ARB / OpenCode | **CLOSED** (DEC-153 @ `8ff782f`) | ARB PASS / CRITICAL **0** @ `.engineering/34_EOS_REAUDIT_2026-08-02.md` |
 | **D** | Freeze-compliant backlog | Orchestrator / Validation | **QUEUED** | Docs consistency / CONDITIONAL residual crumbs after 3.7 progress |
 
 ---
@@ -79,9 +79,9 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 |---|---|---|---|
 | **S04-04 / Railway R-14** | BLOCKED (critical path) | Remediation slices A–E + live re-proof (DEC-120) | Dual honesty: env ≠ runtime RLS; password rotate human/ops |
 | **CI-08** GHCR 403 (mandatory Phase 0) | **GOVERNANCE COMPLETED** | **DEC-150 Option B Accepted** — Stage 6 GHCR publish retired as Phase 0 gate | Residual field 403 @ `30721601875` = **legacy/non-blocking**. Canonical deploy = Railway+Vercel (DEC-149 / **3.11**) |
-| **CI GREEN (DEC-149 topology)** | BLOCKED (tip field-verify) | Tip Stages 1–5 same-run PENDING + retain Deploy Production evidence | **Does not** require Stage 6 GHCR (DEC-150 B). Criterion **3.9** OPEN; **3.11** CLOSED CONDITIONAL does not auto-close 3.9 |
-| **CI GREEN (code path)** | REPORTING ONLY | Stages 1–5 on a named run | DEC-104 / DEC-148a interim honesty |
-| **Stage 7 E2E (3.7)** | BLOCKED (services) | Playwright needs real backend services | **Decoupled from GHCR Stage 6** (DEC-150 B); Stage 6 quarantined in `ci.yml` |
+| **CI GREEN (DEC-149 topology)** | **CLOSED CONDITIONAL** (DEC-152) | Residual Stage 7 overall-red orthogonal | Criterion **3.9** not hard OPEN; does **not** auto-close **3.7** |
+| **CI GREEN (code path)** | REPORTING ONLY | Stages 1–5 on a named run | DEC-104 / DEC-148a / DEC-152 tip evidence |
+| **Stage 7 E2E (3.7)** | **ACTIVE chase** (sole hard OPEN) | Tip Stage 7 SUCCESS with real backend services | Services wired `9e1dc46` + harden `d973cba`; **decoupled from GHCR** (DEC-150 B); **do not invent CLOSE** |
 
 ---
 
@@ -136,7 +136,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **CI/CD 3.8** CI GREEN (code path) | **CLOSED CONDITIONAL** (DEC-148a) | Arch PASS_CONDITIONAL + Val PASS_CONDITIONAL @ `14fce5f` / DEC-148; local ruff 0.4.10 check+format exit 0; last push `c842245` / `30704321096` Stage 1 Lint FAILURE (6× E501) → Stages 3 BE/4 SKIPPED; residual: *tip Stages 1–5 same-run PENDING until tip containing `14fce5f` is pushed* (Stage 3/4 may still fail when unblocked); historical Stages 1–5 SUCCESS @ `7ba137b` / `30689682988` (not tip); does **not** close **3.6–3.11** / **3.9**; DEC-085 untouched; Phase 0 **44/54 → 45/54**; CI/CD Complete **5 → 6** / Open **4 → 3**; do **not** claim Phase 0 GO / CI GREEN / unconditional CLOSED |
 | **CI/CD 3.11** / CI-09 deploy (Railway+Vercel) | **CLOSED CONDITIONAL** (DEC-149a) | Arch prior PASS (DEC-149 + single-env) + Val PASS @ `c3507ed` / `30723120473`; Railway up ✓; Health Gate HTTP 200 ✓; Vercel FE Git-primary ✓; §6 production secret names present (repo); residuals: *FE Git-primary (not CLI); staging deferred; no VPS*; canonical deploy evidence for post–DEC-150 B **3.6** supersession; does **not** auto-close **3.9** / **3.7**; DEC-085 untouched; Phase 0 **45/54 → 46/54** (superseded to **48/54** by DEC-150 B); CI/CD Complete **6 → 7** (superseded to **9**); do **not** claim Phase 0 GO / CI GREEN / unconditional CLOSED |
 | **CI/CD 3.6 / 3.10** Stage 6 GHCR / CI-08 | **CLOSED — SUPERSEDED** (DEC-150 B) | ARB Option B Accepted; GHCR publish not Phase 0 required after DEC-149; residual 403 legacy/non-blocking; Stage 6 quarantined in `ci.yml`; Phase 0 **46/54 → 48/54**; CI/CD Complete **7 → 9** / Blocked **1 → 0**; do **not** claim field GHCR green / Phase 0 GO / CI GREEN |
-| **Phase 0 Governance Freeze** | **GOVERNANCE FROZEN** (DEC-151) | Org redesign / deploy-topology DEC superseding DEC-149 / criterion rewrite frozen; allowed hard OPEN **3.7 / 4.1 / 4.8** field evidence + bugfix crumbs; Continuous Autonomous Mode; do **not** claim Phase 0 COMPLETE / Production GO / invent 4.1/4.8 |
+| **Phase 0 Governance Freeze** | **GOVERNANCE FROZEN** (DEC-151) | Org redesign / deploy-topology DEC superseding DEC-149 / criterion rewrite frozen; residual hard OPEN field evidence = **3.7** only (**4.1/4.8 CLOSED** DEC-153); Continuous Autonomous Mode chasing Stage 7; do **not** invent 3.7 CLOSE / Phase 0 COMPLETE / Production GO |
 | **CI/CD 3.9** topology CI GREEN | **CLOSED CONDITIONAL** (DEC-152) | Tip `5fafbe9` Stages 1–5 + Deploy Prod SUCCESS; Stage 7 FAILURE orthogonal; Phase 0 **48/54 → 49/54**; do **not** claim Stages 1–7 green / Production GO |
 | **EOS Audit 4.1 / 4.8** ARB re-audit | **CLOSED** (DEC-153) | ARB PASS @ tip `74f698b` / [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md); CRITICAL **0**; Phase 0 **49/54 → 51/54**; do **not** claim Phase 0 GO / Production GO |
 
@@ -146,15 +146,15 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 | Track | Class | Justification |
 |---|---|---|
-| **Stream A — 3.9** CI GREEN field-fix | **CLOSED CONDITIONAL** | DEC-152 @ `5fafbe9` / `30724762973` + Deploy `30724762967`; score **49/54** |
-| **Stream B — 3.7** Stage 7 E2E | **ACTIVE / BLOCKED (services)** | Owner DevOps / Backend; tip Stage 7 FAILURE; real services only; do not fake local green |
-| **Stream C — 4.1/4.8** ARB re-audit | **CLOSED** (DEC-153) | ARB PASS / CRITICAL **0**; residual hard OPEN **3.7** only; score **51/54** |
+| **Stream A — 3.9** CI GREEN field-fix | **CLOSED CONDITIONAL** | DEC-152 @ `5fafbe9` / `30724762973` + Deploy `30724762967` |
+| **Stream B — 3.7** Stage 7 E2E | **ACTIVE — primary chase** | Sole hard OPEN; tip `8ff782f`/`d973cba`; await Stage 7 SUCCESS; do not invent CLOSE |
+| **Stream C — 4.1/4.8** ARB re-audit | **CLOSED** (DEC-153 @ `8ff782f`) | ARB PASS / CRITICAL **0**; score **51/54** |
 | **Stream D — freeze-compliant backlog** | **QUEUED** | Docs consistency / CONDITIONAL residual crumbs after 3.7 progress |
 | Contract tests, optional Jest 30 | PARALLEL / PARKED | Do **not** close Phase 0 rows; DEC-094/106 + Jest 30 = backlog only |
-| Cursor invent CLOSE on hard OPEN | **FORBIDDEN** | **3.7** requires field evidence; score **51/54** (not 54/54); do not invent Phase 0 COMPLETE |
+| Cursor invent CLOSE on hard OPEN | **FORBIDDEN** | **3.7** requires tip Stage 7 field SUCCESS; score **51/54** (not 54/54); no Production GO |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
-**Swarm dispatch (DEC-107 + DEC-151 Continuous Autonomous):** Keep agents on Streams B+C; queue D after 3.7 progress. CI-08 is **not** an ops wait — GOVERNANCE COMPLETED (DEC-150 B). No architecture / topology DECs. Never invent Production GO / Phase 0 COMPLETE unless **54/54**.
+**Swarm dispatch (DEC-107 + DEC-151 Continuous Autonomous):** All capacity on **Stream B (Stage 7)**; A/C closed; queue D after 3.7 progress. CI-08 is **not** an ops wait — GOVERNANCE COMPLETED (DEC-150 B). No architecture / topology DECs. **Never invent 3.7 CLOSE / Production GO / Phase 0 COMPLETE unless 54/54.**
 
 ---
 

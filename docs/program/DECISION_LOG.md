@@ -1095,6 +1095,8 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** Phase 0 **49/54 → 51/54 NO-GO**. EOS Audit Complete **8/8**. Hard OPEN ⬜ → **3.7** only. **No Production GO / Phase 0 COMPLETE / Stages 1–7 green.** Validation: **build validated** (git + Alembic parse + catalog/lock/EvidenceLevel scans).
 **Status:** Accepted (CLOSED).
 
+**Orchestration follow-on (2026-08-02, Execution Orchestrator — not a new DEC; post DEC-153 tip `8ff782f` / `d973cba`):** CONTINUOUS AUTONOMOUS MODE remains. Score **51/54**. Sprint **26/26**. Hard OPEN ⬜ = **3.7** only. Streams: **(A) 3.9 CLOSED CONDITIONAL** DEC-152; **(B) 3.7 ACTIVE — primary chase Stage 7**; **(C) 4.1/4.8 CLOSED** DEC-153; **(D) QUEUED**. Loop: chase tip Stage 7 SUCCESS → land crumbs → push. **Do not invent 3.7 CLOSE / Production GO / Phase 0 COMPLETE unless 54/54.**
+
 ### DEC-152 — Criterion 3.9 CI GREEN (DEC-149 topology) field-verify (Accepted — CLOSED CONDITIONAL)
 
 **Date:** 2026-08-02
@@ -1113,7 +1115,7 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** Checklist Operating State → `Governance = FROZEN`. Scoreboard pin unchanged **48/54 NO-GO** (later **49/54** via DEC-152). Does **not** close any criterion by itself. **No Phase 0 COMPLETE / Production GO / CI GREEN / 4.1/4.8 invent.** Validation: **governance freeze documentation only**.
 **Status:** Accepted.
 
-**Orchestration follow-on (2026-08-02, Execution Orchestrator — not a new DEC):** Operating State escalated → `CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT` (was PARALLEL EXECUTION). Streams: **(A) 3.9 CLOSED CONDITIONAL** DEC-152; **(B) 3.7 ACTIVE**; **(C) 4.1/4.8 READY FOR ARB** (no invent PASS); **(D) QUEUED** freeze-compliant backlog. Score **49/54**. Loop: identify next OPEN → assign/fix → land crumbs → push. Never invent Production GO / Phase 0 COMPLETE unless **54/54**.
+**Orchestration follow-on (2026-08-02, Execution Orchestrator — not a new DEC):** Operating State escalated → `CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT` (was PARALLEL EXECUTION). Historical at escalate: Streams **(A) 3.9 CLOSED CONDITIONAL** DEC-152; **(B) 3.7 ACTIVE**; **(C) 4.1/4.8 READY FOR ARB** (no invent PASS); **(D) QUEUED**; score **49/54**. **Superseded post DEC-153:** Stream C **CLOSED**; hard OPEN **3.7** only; score **51/54**; primary chase Stage 7 (see DEC-153 orchestration follow-on). Never invent Production GO / Phase 0 COMPLETE unless **54/54**.
 
 ### DEC-150 — After DEC-149: Is Stage 6 GHCR still a required Phase 0 exit criterion? (Accepted — Option B)
 

@@ -15,20 +15,20 @@
 > Engineering = STABILIZING
 > AI Runtime = DEFERRED
 > Score = 51/54               # DEC-153 closed 4.1/4.8 ARB PASS; DEC-152 3.9 CONDITIONAL; lift only with evidence
-> Loop = identify next OPEN → assign/fix → land crumbs → push
+> Loop = chase Stage 7 → field-verify → land crumbs → push
 > ```
 >
-> **Governance freeze (DEC-151):** No organizational redesign, deployment-topology DECs superseding DEC-149, or criterion rewrites except completing hard OPEN **3.7** with field evidence, plus bugfixes / evidence crumbs that do not change architecture or supersede DEC-149/150. Forbidden without ARB reverse: new deploy topology, reopening GHCR as Phase 0 gate. Never invent Production GO / Phase 0 COMPLETE unless score truly **54/54** with evidence.
+> **Governance freeze (DEC-151):** No organizational redesign, deployment-topology DECs superseding DEC-149, or criterion rewrites except completing hard OPEN **3.7** with tip Stage 7 field evidence, plus bugfixes / evidence crumbs that do not change architecture or supersede DEC-149/150. Forbidden without ARB reverse: new deploy topology, reopening GHCR as Phase 0 gate. **Do not invent 3.7 CLOSE.** Never invent Production GO / Phase 0 COMPLETE unless score truly **54/54** with evidence.
 >
-> **Frozen stack (reaffirm):** [DEC-149](decisions/DEC-149-CANONICAL-DEPLOY-RAILWAY-VERCEL.md) Railway+Vercel canonical deploy · [DEC-150](decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md) Option B Stage 6 GHCR retired · [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md) governance freeze. **Hard OPEN ⬜:** **3.7** only. **4.1/4.8 CLOSED** ([DEC-153](decisions/DEC-153-CRITERION-4-1-4-8-ARB-REAUDIT-PASS.md)). **3.9 CLOSED CONDITIONAL** ([DEC-152](decisions/DEC-152-CRITERION-3-9-CI-GREEN-TOPOLOGY-FIELD-VERIFY.md)).
+> **Frozen stack (reaffirm):** [DEC-149](decisions/DEC-149-CANONICAL-DEPLOY-RAILWAY-VERCEL.md) Railway+Vercel canonical deploy · [DEC-150](decisions/DEC-150-STAGE-6-GHCR-POST-DEC-149.md) Option B Stage 6 GHCR retired · [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md) governance freeze. Tip DEC-153 land `8ff782f` (+ `d973cba`). **Hard OPEN ⬜:** **3.7** only. **4.1/4.8 CLOSED** ([DEC-153](decisions/DEC-153-CRITERION-4-1-4-8-ARB-REAUDIT-PASS.md)). **3.9 CLOSED CONDITIONAL** ([DEC-152](decisions/DEC-152-CRITERION-3-9-CI-GREEN-TOPOLOGY-FIELD-VERIFY.md)). Sprint **26/26**.
 >
 > ### Coordination map — continuous autonomous workstreams (2026-08-02)
 >
 > | Stream | Criterion | Owner | Status | Close rule |
 > |--------|-----------|-------|--------|------------|
 > | **A** | **3.9** CI GREEN (DEC-149 topology) | DevOps / Validation | **CLOSED CONDITIONAL** DEC-152 @ `5fafbe9` / [30724762973](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762973) + Deploy [30724762967](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762967) | Residuals: Stage 7 overall-red; FE Git-primary — do not reopen hard ⬜ |
-> | **B** | **3.7** Stage 7 E2E | DevOps / Backend | **ACTIVE / OPEN** — tip Stage 7 FAILURE @ same CI run | Real backend services only; do **not** fake local green as CLOSE |
-> | **C** | **4.1 / 4.8** ARB re-audit | ARB / OpenCode | **CLOSED** DEC-153 — PASS @ [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md) | CRITICAL **0**; pack [`ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md`](ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md) |
+> | **B** | **3.7** Stage 7 E2E | DevOps / Backend | **ACTIVE — primary chase** (sole hard OPEN) | Tip Stage 7 SUCCESS with real services (`9e1dc46`/`d973cba`); do **not** invent CLOSE |
+> | **C** | **4.1 / 4.8** ARB re-audit | ARB / OpenCode | **CLOSED** DEC-153 @ `8ff782f` — PASS @ [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md) | CRITICAL **0**; pack [`ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md`](ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md) |
 > | **D** | Freeze-compliant backlog | Orchestrator / Validation | **QUEUED** after 3.7 progress | Docs consistency, CONDITIONAL residual field-verify crumbs — no architecture |
 >
 > **Sprint success = number of exit criteria CLOSED, not number of stories completed.**
@@ -103,14 +103,14 @@ Blocked on: Stage 7 E2E **3.7** (real services — **not** GHCR-dep). **4.1/4.8 
 
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
-| 4.1 | All B1–B7 findings resolved | ARB re-audit returns PASS | ✅ VERIFIED/CLOSED — Independent **PASS** @ tip `74f698b` / [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md) (DEC-153); B1–B7 remediated (pin head `a4f7c29e1b80`, FastAPI `>=0.136.0,<0.142.0`, no CRM, lock free, EvidenceLevel Measured); tip fingerprint re-pin residual non-CRITICAL under Active revalidation; pack [`ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md`](ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md); historical FAIL `32` intact; do **not** claim Production GO / Phase 0 COMPLETE |
+| 4.1 | All B1–B7 findings resolved | ARB re-audit returns PASS | ✅ VERIFIED/CLOSED — Independent **PASS** @ tip `d973cba` (first land `74f698b`) / [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md) (DEC-153); B1–B7 remediated (pin head `a4f7c29e1b80`, FastAPI `>=0.136.0,<0.142.0`, no CRM, lock free, EvidenceLevel Measured); tip fingerprint re-pin residual non-CRITICAL under Active revalidation; pack [`ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md`](ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md); historical FAIL `32` intact; do **not** claim Production GO / Phase 0 COMPLETE |
 | 4.2 | Fingerprint matches pinned commit | Alembic head, framework versions, structural counts verified | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `637d051` (DEC-142a); re-measure pin `9fa8e9f`; Alembic head `a4f7c29e1b80`; FastAPI `>=0.136.0,<0.142.0`; migrations **69**; DEC-085 untouched; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 | 4.3 | No invented surfaces | All cataloged API/Module paths exist in repo | ✅ VERIFIED (ARB 2026-08-01; B4 confirmed; filesystem audit PASS) |
 | 4.4 | EvidenceLevel justified | Counts use measured methods, not narrative | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `637d051` (DEC-142a); EvidenceLevel **Measured** (methods in `23` + `.engineering/measure_fingerprint.py`); not ARB “Repository Verified”; DEC-085 untouched; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 | 4.5 | `.engineering/` committed to git | Not untracked | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: 33 tracked, 0 untracked; DEC-085 untouched) @ `5b2e4c2` (DEC-140a); pin residual cleared by DEC-142a (**4.2/4.7 CLOSED**); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 | 4.6 | Lock protocol verified | `21_RUNTIME_STATE.json` mirrors `22_FILE_LOCKS.json` | ✅ VERIFIED (ARB 2026-08-01; 21 mirrors 22; bootstrap lock released) |
 | 4.7 | Staleness protocol active | Fingerprint re-validated at current HEAD | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `637d051` (DEC-142a); Revalidation **Active**; `measure_fingerprint.py` + `23.comparison_protocol`; re-validated at tip `9fa8e9f`; DEC-085 untouched; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
-| 4.8 | Independent ARB re-audit = PASS | New validation report with no CRITICAL findings | ✅ VERIFIED/CLOSED — ARB **PASS** @ tip `74f698b` / [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md) (DEC-153); CRITICAL count **0**; non-blocking: pin lag 33 commits / tracked 3252→3286 / bootstrap B5–B6 label swap; pack [`ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md`](ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md); do **not** claim Production GO / Phase 0 COMPLETE |
+| 4.8 | Independent ARB re-audit = PASS | New validation report with no CRITICAL findings | ✅ VERIFIED/CLOSED — ARB **PASS** @ tip `d973cba` (first land `74f698b`) / [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md) (DEC-153); CRITICAL count **0**; non-blocking: pin lag 35 commits / tracked 3252→3288 / bootstrap B5–B6 label swap; pack [`ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md`](ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md); do **not** claim Production GO / Phase 0 COMPLETE |
 
 **Owner:** OpenCode / ARB  
 **Reference:** `34_EOS_REAUDIT_2026-08-02.md`, `32_EOS_VALIDATION_AUDIT.md`, `00_PROJECT_CONSTITUTION.md`
@@ -215,7 +215,7 @@ Blocked on: Stage 7 E2E **3.7** (real services — **not** GHCR-dep). **4.1/4.8 
 
 | # | Criterion | Owner | Block class | Why blocked / next action |
 |---|-----------|-------|-------------|---------------------------|
-| 3.7 | Stage 7 E2E green | DevOps / Backend | **E2E field-verify** | Services + smoke-auth-ui wired @ `9e1dc46` (+ psql client harden); prior `5fafbe9` Stage 7 FAILURE was full visual suite (no BE); **decoupled from GHCR** (DEC-150 B); do not fake local green as CLOSE |
+| 3.7 | Stage 7 E2E green | DevOps / Backend | **ACTIVE — primary chase** | Sole hard OPEN; services + smoke-auth-ui @ `9e1dc46` / harden `d973cba`; await tip Stage 7 SUCCESS; **decoupled from GHCR** (DEC-150 B); **do not invent CLOSE** |
 | 3.9 residual | topology CI GREEN | DevOps | **CONDITIONAL stands** | **CLOSED CONDITIONAL** DEC-152 @ `5fafbe9`; residual Stage 7 overall-red + FE Git-primary — does **not** reopen hard ⬜ |
 | 3.8 residual | tip Stages 1-5 same-run | Validation | **field-verify cleared** | Cleared @ `5fafbe9` / `30724762973` Stages 1–5 SUCCESS; CONDITIONAL stands (Stage 7 red orthogonal) |
 | 3.5 / 1.5 residual | Security Scan pip-audit post-align | Validation | **field-verify cleared** | Tip `5fafbe9` Security Scan [30724762982](https://github.com/ragheeda-boop/SalesOS/actions/runs/30724762982) SUCCESS; CONDITIONAL stands |
