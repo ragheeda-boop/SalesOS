@@ -1,8 +1,9 @@
 /**
- * FE-S08-01 — thin Integrations Studio chrome (STORY-08-07 prep).
- * Steps are disabled; Hub HTTP is not live. No invented API clients.
- * Resume full Studio when BE Hub HTTP lands. Not Production GO.
+ * FE-S08-01 / STORY-08-07 — Studio step ids + Owner Console pointer.
+ * Live Studio is IntegrationsStudio against Hub HTTP. Not Production GO.
  */
+
+import Link from "next/link";
 
 export const STUDIO_STEPS = [
   { id: "connect", label: "Connect" },
@@ -13,6 +14,7 @@ export const STUDIO_STEPS = [
   { id: "disconnect", label: "Disconnect" },
 ] as const;
 
+/** Owner Console prep pointer — live flow is tenant `/integrations`. */
 export function IntegrationsStudioShell() {
   return (
     <section
@@ -22,11 +24,18 @@ export function IntegrationsStudioShell() {
     >
       <div>
         <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-          Integrations Studio (prep)
+          Integrations Studio
         </h2>
         <p className="mt-1 text-xs text-[var(--text-muted)]">
-          STORY-08-07 flow chrome only. Actions stay disabled until Hub HTTP
-          exists.
+          STORY-08-07 tenant Studio is live at{" "}
+          <Link
+            href="/integrations"
+            className="underline"
+            data-testid="integrations-studio-tenant-link"
+          >
+            /integrations
+          </Link>
+          .
         </p>
       </div>
 
@@ -34,9 +43,9 @@ export function IntegrationsStudioShell() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="integrations-studio-api-honesty"
       >
-        Hub HTTP API not live. Connect/test/map/schedule/monitor/disconnect
-        cannot call Backend yet (blocked on Hub HTTP + STORY-08-06). No invented
-        endpoints. Not Production GO.
+        Hub HTTP is live on tip (STORY-08-06). Owner Console inventory stays
+        read-path; mutate Studio flow uses tenant JWT + DOM-021 at
+        `/integrations`. Not Production GO.
       </p>
 
       <ol
@@ -45,23 +54,21 @@ export function IntegrationsStudioShell() {
       >
         {STUDIO_STEPS.map((step, index) => (
           <li key={step.id}>
-            <button
-              type="button"
-              disabled
+            <Link
+              href="/integrations"
               data-testid={`integrations-studio-step-${step.id}`}
-              className="flex w-full min-h-[44px] cursor-not-allowed items-center gap-2 rounded border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-left text-sm text-[var(--text-muted)] opacity-80"
-              title="Hub HTTP API not live"
+              className="flex w-full min-h-[44px] items-center gap-2 rounded border border-[var(--border-default)] px-3 py-2 text-left text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
             >
               <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[var(--border-default)] text-xs">
                 {index + 1}
               </span>
               <span>
-                <span className="font-medium text-[var(--text-secondary)]">
+                <span className="font-medium text-[var(--text-primary)]">
                   {step.label}
                 </span>
-                <span className="mt-0.5 block text-xs">API not live</span>
+                <span className="mt-0.5 block text-xs">Open Studio</span>
               </span>
-            </button>
+            </Link>
           </li>
         ))}
       </ol>
