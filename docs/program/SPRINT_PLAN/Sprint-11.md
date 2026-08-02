@@ -7,7 +7,7 @@
 
 | Story | Owner | Priority | Risk | Acceptance Criteria |
 |---|---|---|---|---|
-| STORY-09-02 (Opportunity sync, translated stages) | BE3 | P0 | Medium | Odoo stage semantics translated, not passed through raw |
+| STORY-09-02 (Opportunity sync, translated stages) | BE3 | P0 | Medium | **LANDED BE (Stream A):** `crm.lead` pull + `sync_opportunity_records` with `strict_stages` ACL (no raw passthrough). Crumb [`PHASE1_STORY_09_02_ODOO_OPPORTUNITY_SYNC_CRUMB.md`](../PHASE1_STORY_09_02_ODOO_OPPORTUNITY_SYNC_CRUMB.md). No new RLS. No Production GO. |
 | STORY-09-03 (InteractionNote/TimelineEvent + PII scrubbing) | BE-Lead, AI-Lead | P0 | High | PII scrubbing verified against real production note samples before RAG |
 | STORY-09-04 (SupportTicket) | BE2 | P1 | Medium | `helpdesk.ticket` synced correctly |
 | STORY-09-05 (TaskCaseExtension) | BE1 | P0 | High | Modeled as Value Object on `Task`, not standalone aggregate; JSON Schema validated per case_type |

@@ -23,4 +23,4 @@ covered by `test_cr_number_join_matches_company_dataset` + partner sync batch.
 
 - Live XML-RPC password material in repo (vault `credential_ref` only)
 - Unlinked-record UI badge (stub residual)
-- STORY-09-02 Opportunity sync
+- STORY-09-02 Opportunity sync (see `PHASE1_STORY_09_02_ODOO_OPPORTUNITY_SYNC_CRUMB.md`)

@@ -1,4 +1,4 @@
-"""STORY-09-01 — OdooAdapter (SourceConnector for res.partner).
+"""STORY-09-01/09-02 — OdooAdapter (SourceConnector for res.partner + crm.lead).
 
 Vendor-specific code lives here only. Uses vault ``credential_ref`` +
 non-secret config; never invents passwords. Injectable RPC for tests /
@@ -95,19 +95,18 @@ class InMemoryOdooRpc:
         _ = credential_ref, config, fields
         bucket = self._rows.get(model, {})
         ordered = sorted(bucket.values(), key=lambda r: str(r.get("write_date") or ""))
-        # Domain support: [['write_date', '>', watermark]]
-        watermark = None
+        # Domain support: [['write_date', '>', watermark], ['type', '=', 'opportunity']]
         for clause in domain:
-            if (
-                isinstance(clause, list | tuple)
-                and len(clause) == 3
-                and clause[0] == "write_date"
-                and clause[1] == ">"
-            ):
-                watermark = str(clause[2])
-        if watermark:
-            # Strictly after cursor watermark (exclude already-pulled row).
-            ordered = [r for r in ordered if str(r.get("write_date") or "") > watermark]
+            if not (isinstance(clause, list | tuple) and len(clause) == 3):
+                continue
+            field, op, value = clause[0], clause[1], clause[2]
+            if field == "write_date" and op == ">":
+                watermark = str(value)
+                ordered = [
+                    r for r in ordered if str(r.get("write_date") or "") > watermark
+                ]
+            elif op == "=":
+                ordered = [r for r in ordered if r.get(field) == value]
         return list(ordered[offset : offset + limit])
 
     async def write(
@@ -162,9 +161,28 @@ _PARTNER_FIELDS = (
     "write_date",
 )
 
+_OPPORTUNITY_FIELDS = (
+    "id",
+    "name",
+    "type",
+    "stage_id",
+    "expected_revenue",
+    "partner_id",
+    "currency_id",
+    "description",
+    "write_date",
+)
+
+
+def _fields_for_model(model: str) -> tuple[str, ...]:
+    key = (model or "").strip()
+    if key == "crm.lead":
+        return _OPPORTUNITY_FIELDS
+    return _PARTNER_FIELDS
+
 
 class OdooAdapter:
-    """SourceConnector for Odoo — Company/Contact via ``res.partner``."""
+    """SourceConnector for Odoo — Company/Contact + Opportunity (``crm.lead``)."""
 
     def __init__(
         self,
@@ -213,12 +231,15 @@ class OdooAdapter:
         domain: list[Any] = []
         if cursor and cursor.watermark:
             domain.append(["write_date", ">", cursor.watermark])
+        # STORY-09-02: crm.lead opportunities only (exclude type=lead).
+        if model_key == "crm.lead":
+            domain.append(["type", "=", "opportunity"])
         rows = await self._rpc.search_read(
             credential_ref=credential_ref,
             config=config,
             model=model_key,
             domain=domain,
-            fields=list(_PARTNER_FIELDS),
+            fields=list(_fields_for_model(model_key)),
             limit=lim,
             offset=0,
         )

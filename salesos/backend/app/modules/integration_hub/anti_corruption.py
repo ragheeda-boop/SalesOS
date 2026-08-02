@@ -53,12 +53,15 @@ class OdooTranslator:
         stage_map: Mapping[str, str] | None = None,
         operational_fields: frozenset[str] | None = None,
         salesos_authored_fields: frozenset[str] | None = None,
+        strict_stages: bool = False,
     ) -> None:
         self._stage_map = dict(stage_map or {})
         self._operational = operational_fields or _DEFAULT_OPERATIONAL
         self._salesos_authored = salesos_authored_fields or frozenset(
             {"risk_score", "ai_sentiment", "ai_score"}
         )
+        # STORY-09-02: Opportunity sync requires translated stages (no raw passthrough).
+        self._strict_stages = bool(strict_stages)
 
     def translate(
         self,
@@ -140,9 +143,36 @@ class OdooTranslator:
         """Transformer — external enums → canonical enums (no passthrough stages)."""
         out = dict(mapped)
         stage = out.get("stage")
-        if stage is not None and self._stage_map:
-            key = str(stage).strip()
-            out["stage"] = self._stage_map.get(key, key)
+        if stage is None:
+            return out
+        key = _external_stage_key(stage)
+        if not key:
+            if self._strict_stages:
+                raise AclValidationError(
+                    "ACL Transformer rejected record: empty stage " "(not silently passed through)",
+                    field="stage",
+                )
+            return out
+        if self._stage_map:
+            if key in self._stage_map:
+                out["stage"] = self._stage_map[key]
+            elif self._strict_stages:
+                raise AclValidationError(
+                    f"ACL Transformer rejected record: Odoo stage {key!r} "
+                    f"has no canonical mapping (raw passthrough forbidden)",
+                    field="stage",
+                )
+            else:
+                # Legacy soft path (STORY-08-04 tests): leave key when unmapped.
+                out["stage"] = key
+        elif self._strict_stages:
+            raise AclValidationError(
+                "ACL Transformer rejected record: stage_map required "
+                "for strict stage translation",
+                field="stage",
+            )
+        else:
+            out["stage"] = key
         return out
 
     def _normalize(self, data: Mapping[str, Any]) -> dict[str, Any]:
@@ -196,3 +226,12 @@ class OdooTranslator:
             sync_run_id=sync_run_id,
             meta={"acl": "OdooTranslator", "stages": 6},
         )
+
+
+def _external_stage_key(stage: Any) -> str:
+    """Normalize Odoo stage_id many2one ``[id, name]`` or scalar to map key."""
+    if isinstance(stage, list | tuple) and stage:
+        return str(stage[0]).strip()
+    if isinstance(stage, Mapping) and "id" in stage:
+        return str(stage["id"]).strip()
+    return str(stage).strip()

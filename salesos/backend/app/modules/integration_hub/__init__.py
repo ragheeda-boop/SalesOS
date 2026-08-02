@@ -1,6 +1,7 @@
-"""Integration Hub framework (STORY-08-01..09-01).
+"""Integration Hub framework (STORY-08-01..09-02).
 
-SourceConnector + Hub HTTP + ConflictResolutionPolicy + OdooAdapter (res.partner).
+SourceConnector + Hub HTTP + ConflictResolutionPolicy + OdooAdapter
+(res.partner + crm.lead opportunities).
 Not Production GO.
 """
 
@@ -31,6 +32,7 @@ from app.modules.integration_hub.models import (
     SyncRunModel,
 )
 from app.modules.integration_hub.odoo_adapter import OdooAdapter
+from app.modules.integration_hub.opportunity_sync import sync_opportunity_records
 from app.modules.integration_hub.partner_sync import sync_partner_records
 from app.modules.integration_hub.source_connector import SourceConnector
 from app.modules.integration_hub.sync_run_service import SyncRunService
@@ -66,6 +68,7 @@ __all__ = [
     "join_partner_by_cr_number",
     "run_field_drift_job",
     "schedule_connection_sync",
+    "sync_opportunity_records",
     "sync_partner_records",
     "tick_with_sync_logging",
 ]
