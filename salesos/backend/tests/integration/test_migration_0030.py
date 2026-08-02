@@ -116,9 +116,19 @@ class TestConfidenceScoreIndex:
 
     async def test_order_by_desc_uses_index(self, db_session: AsyncSession, ensure_index):
         tenant_id = uuid.uuid4()
-        await _insert_company(db_session, tenant_id=tenant_id, name_ar="IdxTest Co", score=0.95)
+        # Enough rows that seqscan is not the obvious winner when seqscan is on;
+        # still force enable_seqscan=off so tiny CI DBs don't flake on planner cost.
+        for i, score in enumerate([0.95, 0.80, 0.70, 0.60, 0.50]):
+            await _insert_company(
+                db_session,
+                tenant_id=tenant_id,
+                name_ar=f"IdxTest-{i}",
+                score=score,
+                cr_suffix=f"IDX{i}",
+            )
         await db_session.commit()
 
+        await db_session.execute(text("SET LOCAL enable_seqscan = off"))
         r = await db_session.execute(
             text(
                 "EXPLAIN (FORMAT TEXT) "
