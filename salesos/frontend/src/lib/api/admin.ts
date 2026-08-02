@@ -18,6 +18,9 @@ import type {
   AdminTenantCreate,
   AdminTenantDetail,
   AdminTenantListItem,
+  AdminTenantHardDeleteRequest,
+  AdminTenantHardDeleteResponse,
+  AdminTenantSoftDeleteResponse,
   AdminTenantSuspendRequest,
   AdminTenantSuspendResponse,
   AdminTenantUpdate,
@@ -181,8 +184,26 @@ export async function updateAdminTenant(
   return resp.data;
 }
 
-export async function deleteAdminTenant(id: string): Promise<void> {
-  await api.delete(`/api/v1/admin/tenants/${id}`);
+/** FE-S04-09 — soft-delete (is_active=false); not permanent. */
+export async function deleteAdminTenant(
+  id: string,
+): Promise<AdminTenantSoftDeleteResponse> {
+  const resp = await api.delete(`/api/v1/admin/tenants/${id}`);
+  return resp.data;
+}
+
+/** Alias for honesty in call sites. */
+export const softDeleteAdminTenant = deleteAdminTenant;
+
+/** FE-S04-11 — hard-delete requires confirm: true. */
+export async function hardDeleteAdminTenant(
+  id: string,
+  data: AdminTenantHardDeleteRequest,
+): Promise<AdminTenantHardDeleteResponse> {
+  const resp = await api.delete(`/api/v1/admin/tenants/${id}/hard-delete`, {
+    data,
+  });
+  return resp.data;
 }
 
 /** FE-S04-06 — suspend sets is_active=false + provisioning_status=suspended. */
