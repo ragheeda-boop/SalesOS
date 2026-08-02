@@ -1,9 +1,9 @@
-"""Integration Hub framework (STORY-08-01..09-07 + unlinked badge list).
+"""Integration Hub framework (STORY-08-01..09-09).
 
 SourceConnector + Hub HTTP + ConflictResolutionPolicy + OdooAdapter
 (res.partner + crm.lead + mail.message + helpdesk.ticket + project.task
 + account.move CustomerInvoice) + write_date incremental + feature_odoo_integration
-+ unlinked cr_number badge list API.
++ unlinked cr_number badge list API + SyncRun cursor HTTP.
 Not Production GO.
 """
 

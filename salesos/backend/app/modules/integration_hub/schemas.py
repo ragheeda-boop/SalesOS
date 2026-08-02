@@ -95,6 +95,8 @@ class ScheduleResponse(BaseModel):
 
 
 class SyncRunResponse(BaseModel):
+    """STORY-08-05 SyncRun + STORY-09-09 cursor HTTP (write_date watermarks)."""
+
     id: UUID
     connection_id: UUID
     model: str
@@ -104,6 +106,9 @@ class SyncRunResponse(BaseModel):
     records_written: int
     records_failed: int
     scheduled_job_id: str | None = None
+    # STORY-09-09 — expose ORM cursor JSON for Studio Monitor (was honesty-blocked).
+    cursor_before: dict[str, Any] = Field(default_factory=dict)
+    cursor_after: dict[str, Any] = Field(default_factory=dict)
     started_at: datetime
     finished_at: datetime | None = None
 

@@ -23,6 +23,7 @@
 | FE-S09-07b (Owner flags Odoo gate honesty) | FE-Lead | P2 | Low | **LANDED FE (Stream B):** `/admin/flags` tip callout + row badge for `feature_odoo_integration`. Crumb [`PHASE1_FE_S09_07B_OWNER_FLAGS_ODOO_HONESTY_CRUMB.md`](../PHASE1_FE_S09_07B_OWNER_FLAGS_ODOO_HONESTY_CRUMB.md). No Production GO. |
 | STORY-09-08 (unlinked cr_number badge list API) | BE2 | P0 | Medium | **LANDED BE (Stream A):** `GET .../unlinked-badges` from SyncRun `error_log` (09-01 residual / FE Monitor unblock). Crumb [`PHASE1_STORY_09_08_UNLINKED_BADGE_LIST_CRUMB.md`](../PHASE1_STORY_09_08_UNLINKED_BADGE_LIST_CRUMB.md). No new RLS. No Production GO. |
 | FE-S09-08 (Unlinked badge Monitor list) | FE-Lead | P0 | Low | **LANDED FE (Stream B):** Studio Monitor lists tip `GET .../unlinked-badges`. Crumb [`PHASE1_FE_S09_08_UNLINKED_BADGE_MONITOR_CRUMB.md`](../PHASE1_FE_S09_08_UNLINKED_BADGE_MONITOR_CRUMB.md). No Production GO. |
+| STORY-09-09 (SyncRun cursor HTTP) | BE2 | P1 | Low | **LANDED BE (Stream A):** `SyncRunResponse.cursor_before`/`cursor_after` on `GET .../sync-runs`. Crumb [`PHASE1_STORY_09_09_SYNCRUN_CURSOR_HTTP_CRUMB.md`](../PHASE1_STORY_09_09_SYNCRUN_CURSOR_HTTP_CRUMB.md). No new RLS. No Production GO. |
 
 **Expected Demo:** **Phase 2 Go/No-Go + Private Alpha release** (Muhide as first external design partner on real data). Live Company 360 page for a real Muhide customer, populated from real Odoo data, Golden Record matched, InteractionNote feeding AI Coach with PII scrubbed.
 
