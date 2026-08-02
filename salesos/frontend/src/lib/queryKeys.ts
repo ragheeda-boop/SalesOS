@@ -163,6 +163,12 @@ export const tenantStudioKeys = {
       tenantId,
       requested,
     ] as const,
+  promptLibraryMeta: (tenantId: string) =>
+    [...tenantStudioKeys.all, "prompt-library-meta", tenantId] as const,
+  promptLibraryList: (tenantId: string) =>
+    [...tenantStudioKeys.all, "prompt-library", tenantId] as const,
+  promptLibraryDetail: (tenantId: string, id: string) =>
+    [...tenantStudioKeys.all, "prompt-library", tenantId, id] as const,
 };
 
 export const marketplaceListingsKeys = {

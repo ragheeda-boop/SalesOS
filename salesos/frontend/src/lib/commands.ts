@@ -162,6 +162,15 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.studio.prompt-library",
+    label: "Studio · Prompt Library",
+    description:
+      "Tenant prompt library CRUD/version/rollback (tip STORY-12-01)",
+    category: "تنقل",
+    handler: () => router.push("/studio/prompt-library"),
+  });
+
+  registerCommand({
     id: "go.marketplace.listings",
     label: "Marketplace · Listings",
     description:

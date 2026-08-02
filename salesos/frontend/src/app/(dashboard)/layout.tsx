@@ -39,6 +39,7 @@ import {
   Palette,
   MapPin,
   Cpu,
+  BookText,
   Store,
   Target,
   Radar,
@@ -104,6 +105,11 @@ const NAV_KEYS = [
   { href: "/studio/branding", key: "nav.branding_studio", icon: Palette },
   { href: "/studio/territories", key: "nav.territories_studio", icon: MapPin },
   { href: "/studio/ai-model-tiers", key: "nav.ai_model_tiers", icon: Cpu },
+  {
+    href: "/studio/prompt-library",
+    key: "nav.prompt_library",
+    icon: BookText,
+  },
   {
     href: "/marketplace/listings",
     key: "nav.marketplace_listings",

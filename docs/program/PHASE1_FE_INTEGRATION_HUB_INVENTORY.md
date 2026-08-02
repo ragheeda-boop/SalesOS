@@ -59,6 +59,7 @@
 | FE-S13-04 | Marketplace publish/install UX (tip 13-04; catalog install ≠ live ERP) |
 | FE-S11-07 | Website Intelligence UI (tip 11-07 fixture; feature_ai_copilot False) |
 | FE-S11-08 | AI Outreach UI (tip 11-08 draft_only; no live SMTP/LI/WA) |
+| FE-S12-01 | Prompt Library Studio UI (tip 12-01; feature_ai_copilot False) |
 
 ## Blocked (do not invent)
 

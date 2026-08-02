@@ -17,6 +17,7 @@ export * from "./api/notificationRulesStudio";
 export * from "./api/brandingStudio";
 export * from "./api/territoriesStudio";
 export * from "./api/aiModelTiersStudio";
+export * from "./api/promptLibrary";
 export * from "./api/marketplaceListings";
 export * from "./api/marketSizing";
 export * from "./api/leadDiscovery";
