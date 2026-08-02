@@ -13,6 +13,7 @@ import {
   getAdminTenant,
   updateAdminTenant,
   deleteAdminTenant,
+  suspendAdminTenant,
   getAdminTenantUsage,
   listAdminPlans,
   createAdminPlan,
@@ -47,7 +48,11 @@ import {
   saveAdminConfig,
   validateAdminConfig,
 } from "@/lib/api";
-import type { AdminTenantCreate } from "@/lib/api/types/admin";
+import type {
+  AdminTenantCreate,
+  AdminTenantSuspendRequest,
+  AdminTenantUpdate,
+} from "@/lib/api/types/admin";
 import { adminKeys } from "@/lib/queryKeys";
 import { useTenant } from "./useTenant";
 
@@ -301,10 +306,27 @@ export function useCreateAdminTenant() {
 export function useUpdateAdminTenant(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: Record<string, unknown>) => updateAdminTenant(id, data),
+    mutationFn: (data: AdminTenantUpdate) => updateAdminTenant(id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: adminKeys.tenants() });
       qc.invalidateQueries({ queryKey: adminKeys.tenantDetail(id) });
+    },
+  });
+}
+
+export function useSuspendAdminTenant() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...data
+    }: AdminTenantSuspendRequest & { id: string }) =>
+      suspendAdminTenant(id, data),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: adminKeys.tenants() });
+      qc.invalidateQueries({
+        queryKey: adminKeys.tenantDetail(variables.id),
+      });
     },
   });
 }

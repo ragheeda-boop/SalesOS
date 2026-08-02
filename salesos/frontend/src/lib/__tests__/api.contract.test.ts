@@ -72,6 +72,7 @@ import {
   createAdminTenant,
   updateAdminTenant,
   deleteAdminTenant,
+  suspendAdminTenant,
   getAdminTenantUsage,
   listAdminLicenses,
   createAdminLicense,
@@ -1980,6 +1981,28 @@ describe("deleteAdminTenant — contract", () => {
     await deleteAdminTenant("t-1");
 
     expect(mockAxios.delete).toHaveBeenCalledWith("/api/v1/admin/tenants/t-1");
+  });
+});
+
+describe("suspendAdminTenant — contract", () => {
+  it("POSTs /suspend with reason", async () => {
+    mockAxios.post.mockResolvedValueOnce(
+      mockResponse({
+        message: "Tenant suspended",
+        tenant_id: "t-1",
+        reason: "Owner Console",
+      }),
+    );
+
+    const result = await suspendAdminTenant("t-1", {
+      reason: "Owner Console",
+    });
+
+    expect(result.message).toBe("Tenant suspended");
+    expect(mockAxios.post).toHaveBeenCalledWith(
+      "/api/v1/admin/tenants/t-1/suspend",
+      { reason: "Owner Console" },
+    );
   });
 });
 

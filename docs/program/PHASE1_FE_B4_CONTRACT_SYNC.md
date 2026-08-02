@@ -30,8 +30,8 @@
 
 ## Next FE stories (Sprint-04+)
 
-| ID | Item | Notes |
-|----|------|-------|
-| FE-S04-06 | Suspend path uses `/suspend` (sets provisioning_status) | optional parity |
-| FE-S04-07 | Surface provision_workflow result fields in toast | light UX |
-| FE-S04-08 | E2E admin tenant create smoke | needs Stage 7 / approval |
+| ID | Item | Status |
+|----|------|--------|
+| FE-S04-06 | Suspend path uses `/suspend` (sets provisioning_status) | **LANDED** — `suspendAdminTenant` + detail toggle |
+| FE-S04-07 | Surface provision_workflow result fields in toast | **LANDED** — `formatProvisionResultDescription` |
+| FE-S04-08 | E2E admin tenant create smoke | **HOOKS LANDED** — `28-admin-tenants-owner-platform.spec.ts` (nav+modal; no mutate; creds skip) |

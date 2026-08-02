@@ -31,6 +31,7 @@ import {
   useAdminTenants,
   useCreateAdminTenant,
   useUpdateAdminTenant,
+  useSuspendAdminTenant,
   useDeleteAdminTenant,
   useAdminTenantDetail,
   useAdminTenantUsage,
@@ -43,6 +44,10 @@ import {
   provisioningStatusVariant,
   type TenantOwnerPlatformWritePayload,
 } from "@/features/admin/widgets/TenantOwnerPlatformFields";
+import {
+  formatProvisionResultDescription,
+  formatSuspendResultDescription,
+} from "@/features/admin/lib/formatProvisionToast";
 
 const PLAN_OPTIONS = [
   { label: "All Plans", value: "" },
@@ -115,7 +120,7 @@ export default function AdminTenantsPage() {
   const handleCreate = useCallback(async () => {
     if (!createForm.name || !createForm.slug) return;
     try {
-      await createMutation.mutateAsync({
+      const created = await createMutation.mutateAsync({
         name: createForm.name,
         slug: createForm.slug,
         domain: createForm.domain || undefined,
@@ -138,9 +143,8 @@ export default function AdminTenantsPage() {
       });
       toast({
         variant: "success",
-        title: "Tenant created",
-        description:
-          "Provisioned via Admin API (STORY-04-02 workflow). Confirm Studio seed in target env.",
+        title: "Tenant provisioned",
+        description: formatProvisionResultDescription(created),
       });
     } catch {
       toast({
@@ -173,7 +177,7 @@ export default function AdminTenantsPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="admin-tenants-page">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-primary)]">
@@ -186,6 +190,7 @@ export default function AdminTenantsPage() {
         <Button
           onClick={() => setShowCreate(true)}
           leftIcon={<Plus className="h-4 w-4" />}
+          data-testid="admin-tenants-new"
         >
           New Tenant
         </Button>
@@ -219,7 +224,7 @@ export default function AdminTenantsPage() {
       {/* Create Modal */}
       <Modal open={showCreate} onOpenChange={setShowCreate}>
         <ModalTrigger />
-        <ModalContent>
+        <ModalContent data-testid="admin-tenants-create-modal">
           <ModalHeader>Create New Tenant</ModalHeader>
           <ModalBody>
             <div className="space-y-4">
@@ -233,6 +238,7 @@ export default function AdminTenantsPage() {
                     setCreateForm({ ...createForm, name: e.target.value })
                   }
                   placeholder="Acme Corp"
+                  data-testid="admin-tenants-create-name"
                 />
               </div>
               <div>
@@ -245,6 +251,7 @@ export default function AdminTenantsPage() {
                     setCreateForm({ ...createForm, slug: e.target.value })
                   }
                   placeholder="acme-corp"
+                  data-testid="admin-tenants-create-slug"
                 />
               </div>
               <div>
@@ -350,6 +357,7 @@ export default function AdminTenantsPage() {
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : undefined
               }
+              data-testid="admin-tenants-create-submit"
             >
               {createMutation.isPending ? "Creating..." : "Create Tenant"}
             </Button>
@@ -599,21 +607,52 @@ function TenantDetailModal({
   const { data: tenant, isLoading } = useAdminTenantDetail(tenantId);
   const { data: usage } = useAdminTenantUsage(tenantId);
   const updateMutation = useUpdateAdminTenant(tenantId);
+  const suspendMutation = useSuspendAdminTenant();
 
   const [configJson, setConfigJson] = useState("");
+  const [suspendReason, setSuspendReason] = useState(
+    "Suspended via Owner Console",
+  );
 
   const handleToggleActive = useCallback(async () => {
     if (!tenant) return;
     try {
-      await updateMutation.mutateAsync({ is_active: !tenant.is_active });
-      toast({
-        variant: "success",
-        title: tenant.is_active ? "Tenant suspended" : "Tenant activated",
-      });
+      if (tenant.is_active) {
+        // FE-S04-06 — use /suspend so provisioning_status becomes suspended
+        const result = await suspendMutation.mutateAsync({
+          id: tenantId,
+          reason: suspendReason,
+        });
+        toast({
+          variant: "success",
+          title: "Tenant suspended",
+          description: formatSuspendResultDescription(
+            result.tenant_id,
+            result.reason,
+          ),
+        });
+      } else {
+        await updateMutation.mutateAsync({
+          is_active: true,
+          provisioning_status: "active",
+        });
+        toast({
+          variant: "success",
+          title: "Tenant activated",
+          description: "is_active=true · provisioning=active",
+        });
+      }
     } catch {
       toast({ variant: "error", title: "Failed to update status" });
     }
-  }, [tenant, updateMutation, toast]);
+  }, [
+    tenant,
+    tenantId,
+    suspendReason,
+    suspendMutation,
+    updateMutation,
+    toast,
+  ]);
 
   const handleSaveConfig = useCallback(async () => {
     try {
@@ -669,23 +708,47 @@ function TenantDetailModal({
         <ModalHeader>{tenant?.name || "Tenant Details"}</ModalHeader>
         <ModalBody>
           <div className="space-y-6">
-            {/* Status Toggle */}
-            <div className="flex items-center justify-between rounded-lg border border-[var(--border-default)] p-4">
-              <div>
-                <p className="font-medium text-[var(--text-primary)]">
-                  Tenant Status
-                </p>
-                <p className="text-sm text-[var(--text-muted)]">
-                  {tenant?.is_active ? "Active" : "Suspended"}
-                </p>
+            {/* Status Toggle — FE-S04-06 suspend via POST /suspend */}
+            <div
+              className="space-y-3 rounded-lg border border-[var(--border-default)] p-4"
+              data-testid="admin-tenants-status"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-medium text-[var(--text-primary)]">
+                    Tenant Status
+                  </p>
+                  <p className="text-sm text-[var(--text-muted)]">
+                    {tenant?.is_active ? "Active" : "Suspended"}
+                    {tenant?.provisioning_status
+                      ? ` · provisioning=${tenant.provisioning_status}`
+                      : ""}
+                  </p>
+                </div>
+                <Button
+                  variant={tenant?.is_active ? "outline" : "primary"}
+                  onClick={handleToggleActive}
+                  disabled={
+                    updateMutation.isPending || suspendMutation.isPending
+                  }
+                  data-testid="admin-tenants-suspend-toggle"
+                >
+                  {tenant?.is_active ? "Suspend" : "Activate"}
+                </Button>
               </div>
-              <Button
-                variant={tenant?.is_active ? "outline" : "primary"}
-                onClick={handleToggleActive}
-                disabled={updateMutation.isPending}
-              >
-                {tenant?.is_active ? "Suspend" : "Activate"}
-              </Button>
+              {tenant?.is_active && (
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
+                    Suspend reason
+                  </label>
+                  <Input
+                    value={suspendReason}
+                    onChange={(e) => setSuspendReason(e.target.value)}
+                    placeholder="Reason for suspend"
+                    data-testid="admin-tenants-suspend-reason"
+                  />
+                </div>
+              )}
             </div>
 
             {/* STORY-04-01 B2 read + B5 write-path — Owner Platform fields */}

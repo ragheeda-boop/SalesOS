@@ -1,19 +1,18 @@
-# Phase 1 — Frontend Stream B crumb (B1–B5 + B4 sync)
+# Phase 1 — Frontend Stream B crumb (B1–B5 + B4 + FE-S04-06..08)
 
 > **Date:** 2026-08-02  
 > **Owner:** Frontend Lead  
-> **Evidence:** B2 `a8fd06e` · B5 `b6ea2ef` · Backend A2 `64b44e9` · B4 sync `825c18e` · tip follow `9fa6830`  
-> **Plan:** [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) §4.1 B + Sprint-04 FE  
+> **Evidence:** B4 sync `825c18e` · tip base `af07a1d` · this land = FE-S04-06/07/08  
+> **Plan:** [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) §4.1 B + [`PHASE1_FE_B4_CONTRACT_SYNC.md`](PHASE1_FE_B4_CONTRACT_SYNC.md)  
 
 | Task | Status |
 |------|--------|
-| B1 Inventory | **COMPLETE** |
-| B2 Read-path stubs | **COMPLETE** @ `a8fd06e` |
-| B3 AI honesty | **AFFIRMED** — `feature_ai_copilot` default False; Decision STUB |
-| B4 Contract sync (A2 ready) | **LANDED** — [`PHASE1_FE_B4_CONTRACT_SYNC.md`](PHASE1_FE_B4_CONTRACT_SYNC.md) |
-| B4b FE lint/tsc holdouts | Skipped (not blocking; needs approval) |
-| B5 Write-path + tests | **COMPLETE** @ `b6ea2ef` |
+| B1–B5 + B4 contract sync | **COMPLETE** |
+| FE-S04-06 Suspend `/suspend` parity | **LANDED** |
+| FE-S04-07 Provision toast fields | **LANDED** |
+| FE-S04-08 E2E hooks | **LANDED** (smoke nav+modal; mutate deferred) |
+| B4b FE lint/tsc holdouts | Skipped (needs approval) |
 
-**Files:** `types/admin.ts` · `api/admin.ts` · `admin/tenants/page.tsx` · contract + admin-queries tests · inventory/board crumbs.  
+**Files:** `suspendAdminTenant` · `useSuspendAdminTenant` · `formatProvisionToast` · `admin/tenants/page.tsx` · `e2e/28-admin-tenants-owner-platform.spec.ts` · contract tests.  
 **Non-touch:** `TenantList.tsx`.  
-**Validation:** **light validated** — focused Jest **3 suites / 102 tests PASS**. **No Production GO.**
+**Validation:** **light validated** — focused Jest (formatProvisionToast + api.contract + TenantOwnerPlatformFields). Playwright not run (low-load). **No Production GO.**

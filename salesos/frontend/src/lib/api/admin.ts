@@ -18,6 +18,8 @@ import type {
   AdminTenantCreate,
   AdminTenantDetail,
   AdminTenantListItem,
+  AdminTenantSuspendRequest,
+  AdminTenantSuspendResponse,
   AdminTenantUpdate,
   AdminTenantUsage,
   AdminTransaction,
@@ -181,6 +183,17 @@ export async function updateAdminTenant(
 
 export async function deleteAdminTenant(id: string): Promise<void> {
   await api.delete(`/api/v1/admin/tenants/${id}`);
+}
+
+/** FE-S04-06 — suspend sets is_active=false + provisioning_status=suspended. */
+export async function suspendAdminTenant(
+  id: string,
+  data: AdminTenantSuspendRequest = {},
+): Promise<AdminTenantSuspendResponse> {
+  const resp = await api.post(`/api/v1/admin/tenants/${id}/suspend`, {
+    reason: data.reason ?? "",
+  });
+  return resp.data;
 }
 
 export async function getAdminTenantUsage(
