@@ -4,7 +4,7 @@
 > **Authority:** [PHASE_0_EXIT_CHECKLIST.md](PHASE_0_EXIT_CHECKLIST.md) §4 · [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md) Governance Freeze · prior EOS FAIL audit `.engineering/32_EOS_VALIDATION_AUDIT.md`  
 > **Scribe:** program/ARB preparation (Cursor) — **2026-08-02**  
 > **Pack tip at assembly:** `5fafbe9` (`5fafbe9c55c8e3017891944a3005b05dce3a99e1`) — DEC-151 land  
-> **Status of 4.1 / 4.8:** **READY FOR ARB** (not CLOSED · not PASS · not FAIL)
+> **Status of 4.1 / 4.8:** **CLOSED** via DEC-153 — ARB **PASS** / **PASS** (report `.engineering/34_EOS_REAUDIT_2026-08-02.md` @ tip `74f698b`)
 
 ---
 
@@ -160,24 +160,24 @@ Compare output to `_metadata.repository_commit` / counts in `23`. Material drift
 
 | Finding | ARB PASS? | CRITICAL remaining? | Notes |
 |---------|-----------|---------------------|-------|
-| B1 | ☐ PASS ☐ FAIL | ☐ Y ☐ N | |
-| B2 | ☐ PASS ☐ FAIL | ☐ Y ☐ N | |
-| B3 | ☐ PASS ☐ FAIL | ☐ Y ☐ N | |
-| B4 | ☐ PASS ☐ FAIL | ☐ Y ☐ N | |
-| B5 | ☐ PASS ☐ FAIL | ☐ Y ☐ N | |
-| B6 | ☐ PASS ☐ FAIL | ☐ Y ☐ N | |
-| B7 | ☐ PASS ☐ FAIL | ☐ Y ☐ N | |
+| B1 | ☑ PASS | ☐ N | tip head `a4f7c29e1b80` |
+| B2 | ☑ PASS | ☐ N | FastAPI `>=0.136.0,<0.142.0` |
+| B3 | ☑ PASS | ☐ N | counts match tip |
+| B4 | ☑ PASS | ☐ N | no CRM module/route |
+| B5 | ☑ PASS | ☐ N | catalog head aligned |
+| B6 | ☑ PASS | ☐ N | lock `free` |
+| B7 | ☑ PASS | ☐ N | Measured only |
 
-**4.1 overall:** ☐ **PASS** ☐ **FAIL**
+**4.1 overall:** ☑ **PASS** ☐ FAIL — see `.engineering/34_EOS_REAUDIT_2026-08-02.md`
 
 ### 5.2 Criterion 4.8 — Independent re-audit
 
 | Gate | Result |
 |------|--------|
-| New validation report path | ______________________________ |
-| Report commit SHA | ______________________________ |
-| CRITICAL findings count | ____ |
-| **4.8 overall** | ☐ **PASS** ☐ **FAIL** |
+| New validation report path | `.engineering/34_EOS_REAUDIT_2026-08-02.md` |
+| Report commit SHA | *(land commit after DEC-153 push)* |
+| CRITICAL findings count | **0** |
+| **4.8 overall** | ☑ **PASS** ☐ FAIL |
 
 **PASS rule (checklist):** new report **and** CRITICAL count = **0**.  
 **FAIL** if any CRITICAL remains, or if no new independent report is produced.

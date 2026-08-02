@@ -3,7 +3,7 @@
 > **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-02** (post **DEC-151** Continuous Autonomous Mode; DEC-152 **3.9 CLOSED CONDITIONAL**; prior DEC-150 B / DEC-149a / DEC-120).  
 > Authority: evidence + `SPRINT_05_DELIVERY_BOARD.md` + `RISK_REGISTER.md` + Sprint plans + `docs/audit/ga-engineering-audit/` + Principal Audit.  
 > Honesty labels: **Stages 1–7 CI GREEN not met** (Stage 7 red). **Phase 0 (DEC-008 RLS / R-14) exit = NO-GO** (DEC-086 GO **withdrawn** by DEC-120). **Production GA / External pilot = NO-GO**. STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies). **Do not reopen STORY-02-01.**  
-> **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md)): no org redesign / deploy-topology DEC superseding DEC-149 / criterion rewrite except hard OPEN **3.7 / 4.1 / 4.8** field evidence + non-architecture bugfix crumbs. Phase 0 **49/54 NO-GO**. Never invent Production GO / Phase 0 COMPLETE unless **54/54**.
+> **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md)): no org redesign / deploy-topology DEC superseding DEC-149 / criterion rewrite except hard OPEN **3.7** field evidence + non-architecture bugfix crumbs. Phase 0 **51/54 NO-GO** (DEC-153 closed **4.1/4.8**). Never invent Production GO / Phase 0 COMPLETE unless **54/54**.
 
 ---
 
@@ -13,10 +13,10 @@
 STATE = CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT
 Architecture = FROZEN
 Governance = FROZEN          # DEC-151
-Program = ACTIVE             # hard OPEN: 3.7, 4.1, 4.8
+Program = ACTIVE             # hard OPEN: 3.7
 Engineering = STABILIZING
 AI Runtime = DEFERRED
-Score = 49/54                # DEC-152 closed 3.9 CONDITIONAL
+Score = 51/54                # DEC-153 closed 4.1/4.8; DEC-152 3.9 CONDITIONAL
 Loop = identify next OPEN → assign/fix → land crumbs → push
 ```
 
@@ -27,8 +27,8 @@ Loop = identify next OPEN → assign/fix → land crumbs → push
 | Stream | Criterion | Owner | Class | Mandate |
 |---|---|---|---|---|
 | **A** | **3.9** CI GREEN (DEC-149 topology) | DevOps / Validation | **CLOSED CONDITIONAL** (DEC-152) | Tip `5fafbe9` Stages 1–5 + Deploy Prod SUCCESS; Stage 7 orthogonal |
-| **B** | **3.7** Stage 7 E2E | DevOps / Backend | **ACTIVE / BLOCKED (services)** | Real backend services for Playwright; do not fake local green |
-| **C** | **4.1 / 4.8** ARB evidence pack | ARB / OpenCode | **READY FOR ARB** | Pack landed — **no invent PASS**; await ARB PASS/FAIL |
+| **B** | **3.7** Stage 7 E2E | DevOps / Backend | **ACTIVE / field-verify** | Services + smoke-auth-ui wired `9e1dc46`; await tip Stage 7 SUCCESS; do not fake local green |
+| **C** | **4.1 / 4.8** ARB re-audit | ARB / OpenCode | **CLOSED** (DEC-153) | ARB PASS / CRITICAL **0** @ `.engineering/34_EOS_REAUDIT_2026-08-02.md` |
 | **D** | Freeze-compliant backlog | Orchestrator / Validation | **QUEUED** | Docs consistency / CONDITIONAL residual crumbs after 3.7 progress |
 
 ---
@@ -138,7 +138,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **CI/CD 3.6 / 3.10** Stage 6 GHCR / CI-08 | **CLOSED — SUPERSEDED** (DEC-150 B) | ARB Option B Accepted; GHCR publish not Phase 0 required after DEC-149; residual 403 legacy/non-blocking; Stage 6 quarantined in `ci.yml`; Phase 0 **46/54 → 48/54**; CI/CD Complete **7 → 9** / Blocked **1 → 0**; do **not** claim field GHCR green / Phase 0 GO / CI GREEN |
 | **Phase 0 Governance Freeze** | **GOVERNANCE FROZEN** (DEC-151) | Org redesign / deploy-topology DEC superseding DEC-149 / criterion rewrite frozen; allowed hard OPEN **3.7 / 4.1 / 4.8** field evidence + bugfix crumbs; Continuous Autonomous Mode; do **not** claim Phase 0 COMPLETE / Production GO / invent 4.1/4.8 |
 | **CI/CD 3.9** topology CI GREEN | **CLOSED CONDITIONAL** (DEC-152) | Tip `5fafbe9` Stages 1–5 + Deploy Prod SUCCESS; Stage 7 FAILURE orthogonal; Phase 0 **48/54 → 49/54**; do **not** claim Stages 1–7 green / Production GO |
-| **EOS Audit 4.1 / 4.8** evidence pack | **READY FOR ARB** (not CLOSED) | Pack [`ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md`](ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md); B1–B7 + SHAs + Measured vs Open; ARB returns PASS/FAIL only; new report required for **4.8**; score **49/54**; do **not** invent ARB PASS / Phase 0 GO |
+| **EOS Audit 4.1 / 4.8** ARB re-audit | **CLOSED** (DEC-153) | ARB PASS @ tip `74f698b` / [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md); CRITICAL **0**; Phase 0 **49/54 → 51/54**; do **not** claim Phase 0 GO / Production GO |
 
 ---
 
@@ -148,10 +148,10 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 |---|---|---|
 | **Stream A — 3.9** CI GREEN field-fix | **CLOSED CONDITIONAL** | DEC-152 @ `5fafbe9` / `30724762973` + Deploy `30724762967`; score **49/54** |
 | **Stream B — 3.7** Stage 7 E2E | **ACTIVE / BLOCKED (services)** | Owner DevOps / Backend; tip Stage 7 FAILURE; real services only; do not fake local green |
-| **Stream C — 4.1/4.8** ARB evidence pack | **READY FOR ARB** | Pack assembled; ARB returns PASS/FAIL only — **no invent PASS** / not CLOSED |
+| **Stream C — 4.1/4.8** ARB re-audit | **CLOSED** (DEC-153) | ARB PASS / CRITICAL **0**; residual hard OPEN **3.7** only; score **51/54** |
 | **Stream D — freeze-compliant backlog** | **QUEUED** | Docs consistency / CONDITIONAL residual crumbs after 3.7 progress |
 | Contract tests, optional Jest 30 | PARALLEL / PARKED | Do **not** close Phase 0 rows; DEC-094/106 + Jest 30 = backlog only |
-| Cursor invent CLOSE on hard OPEN | **FORBIDDEN** | **4.1/4.8** require ARB; **3.7** requires field evidence; score **49/54** (not 54/54) |
+| Cursor invent CLOSE on hard OPEN | **FORBIDDEN** | **3.7** requires field evidence; score **51/54** (not 54/54); do not invent Phase 0 COMPLETE |
 | Owner Admin / commercial FE | PARALLEL | Must not weaken auth/CSRF/RBAC; must **not** market production GO |
 
 **Swarm dispatch (DEC-107 + DEC-151 Continuous Autonomous):** Keep agents on Streams B+C; queue D after 3.7 progress. CI-08 is **not** an ops wait — GOVERNANCE COMPLETED (DEC-150 B). No architecture / topology DECs. Never invent Production GO / Phase 0 COMPLETE unless **54/54**.
@@ -170,7 +170,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 ## Board progress fraction
 
-**26/26** Complete/Closed on tracked Sprint 05 board fraction including **CI-09 CLOSED CONDITIONAL** (DEC-149a) + **CI-08 GOVERNANCE COMPLETED** (DEC-150 B; **S04-04 REOPENED**). Adjacent closed: **Jest-debt / R-23**; checklist **3.9 CLOSED CONDITIONAL** (DEC-152). **Phase 0 critical path blocked:** **S04-04 / Railway R-14**. Canonical deploy = DEC-149 Railway+Vercel (**3.11**). Stage 6 GHCR **off critical path**. **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** (DEC-151). Phase 0 **49/54 NO-GO**. Hard OPEN: **3.7**, **4.1**, **4.8**.
+**26/26** Complete/Closed on tracked Sprint 05 board fraction including **CI-09 CLOSED CONDITIONAL** (DEC-149a) + **CI-08 GOVERNANCE COMPLETED** (DEC-150 B; **S04-04 REOPENED**). Adjacent closed: **Jest-debt / R-23**; checklist **3.9 CLOSED CONDITIONAL** (DEC-152). **Phase 0 critical path blocked:** **S04-04 / Railway R-14**. Canonical deploy = DEC-149 Railway+Vercel (**3.11**). Stage 6 GHCR **off critical path**. **Operating State: CONTINUOUS AUTONOMOUS MODE — FREEZE COMPLIANT** (DEC-151). Phase 0 **51/54 NO-GO**. Hard OPEN: **3.7** only (**4.1/4.8 CLOSED** DEC-153).
 
 ---
 
