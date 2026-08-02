@@ -25,9 +25,13 @@ import {
   VERIFICATION_HONESTY,
   VERIFICATION_NON_GOALS,
 } from "@/features/gtm/verificationHonesty";
+import {
+  WEBSITE_INTEL_HONESTY,
+  WEBSITE_INTEL_NON_GOALS,
+} from "@/features/gtm/websiteIntelligenceHonesty";
 
 /**
- * Tip GTM Intelligence hub (FE-S11-03b + 01/04/05/06/09).
+ * Tip GTM Intelligence hub (FE-S11-03b + 01/04/05/06/07/09).
  * Tip pages only. Territories not linked. Not Production GO / RAG GO.
  */
 export function GtmHub() {
@@ -38,9 +42,9 @@ export function GtmHub() {
         data-testid="gtm-hub-honesty"
       >
         Tip GTM pages: ICP, market sizing, lead discovery, lookalikes,
-        enrichment, verification, sequences. Territories Studio is tip
-        `/studio/territories` (FE-S10-05). Live 141221 Postgres / live ERP /
-        live SMTP / LinkedIn / WhatsApp / live ML backtest not claimed. Not
+        enrichment, website intelligence, verification, sequences. Territories
+        Studio is tip `/studio/territories` (FE-S10-05). Live 141221 Postgres /
+        live ERP / live SMTP / LinkedIn / WhatsApp / live ML not claimed. Not
         Production GO / RAG GO.
       </p>
 
@@ -118,6 +122,21 @@ export function GtmHub() {
           <p className="mt-1 text-xs text-[var(--text-muted)]">
             {ENRICHMENT_HONESTY} Non-goals:{" "}
             {ENRICHMENT_NON_GOALS.slice(0, 2).join("; ")}.
+          </p>
+        </li>
+        <li
+          className="rounded border border-[var(--border-default)] p-4"
+          data-testid="gtm-hub-website-intelligence"
+        >
+          <Link
+            href="/gtm/website-intelligence"
+            className="text-base font-semibold text-[var(--text-primary)] underline"
+          >
+            Website Intelligence
+          </Link>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
+            {WEBSITE_INTEL_HONESTY} Non-goals:{" "}
+            {WEBSITE_INTEL_NON_GOALS.slice(0, 2).join("; ")}.
           </p>
         </li>
         <li

@@ -212,6 +212,15 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.gtm.website-intelligence",
+    label: "GTM · Website Intelligence",
+    description:
+      "Website intelligence fixture analyze (tip STORY-11-07; no live ML)",
+    category: "تنقل",
+    handler: () => router.push("/gtm/website-intelligence"),
+  });
+
+  registerCommand({
     id: "go.gtm.verification",
     label: "GTM · Contact Verification",
     description: "Email/phone verification (tip STORY-11-06)",
