@@ -61,7 +61,13 @@ Suite skips if columns absent (pre-migrate). After upgrade: expect PASS; `POLICY
 
 ## Local tip pin (2026-08-02)
 
-Host Docker DB observed at `a4f7c29e1b80` before A2 apply (backend container restart flaky). Upgrade still required on local non-prod before D3 can run unskipped.
+| Step | Result |
+|------|--------|
+| Pre | `alembic_version=a4f7c29e1b80`, Owner Platform cols **0** |
+| Apply | Non-prod SQL/Alembic path → `f6b2e84c1a90`, cols **5** (plan_id/region/data_residency/provisioning_status/trial_ends_at); backfill `UPDATE 14` rows → `active` |
+| Backend container | Restart flaky during session — prefer `docker exec … alembic upgrade head` when healthy; SQL idempotent apply used as fallback for local proof only |
+
+Validation: **light validated** (local non-prod). Not production migrate.
 
 ## Forbidden
 
