@@ -706,6 +706,10 @@ jobs:
           restore-keys: poetry-e2e-${{ runner.os }}-
       - name: Install backend dependencies
         run: cd salesos/backend && poetry install --no-interaction
+      - name: Install PostgreSQL client (psql)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
       - name: Run migrations
         run: |
           cd salesos/backend

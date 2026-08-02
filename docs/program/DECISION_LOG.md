@@ -1095,13 +1095,6 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** Phase 0 **49/54 → 51/54 NO-GO**. EOS Audit Complete **8/8**. Hard OPEN ⬜ → **3.7** only. **No Production GO / Phase 0 COMPLETE / Stages 1–7 green.** Validation: **build validated** (git + Alembic parse + catalog/lock/EvidenceLevel scans).
 **Status:** Accepted (CLOSED).
 
-### DEC-153 — Criteria 4.1 / 4.8 Independent EOS Re-Audit PASS (Accepted — CLOSED)
-
-**Date:** 2026-08-02
-**Context:** Evidence pack READY FOR ARB under DEC-151 Stream C. USER full autonomous authority allowed honest independent PASS/FAIL from file evidence.
-**Decision:** Accept **4.1** and **4.8** **VERIFIED → CLOSED** on independent report [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md) (**PASS** / **PASS**; CRITICAL **0**). Historical FAIL `32` retained. Companion: [`decisions/DEC-153-CRITERION-4-1-4-8-ARB-REAUDIT-PASS.md`](decisions/DEC-153-CRITERION-4-1-4-8-ARB-REAUDIT-PASS.md).
-**Consequence:** Phase 0 **49/54 → 51/54 NO-GO**. Hard OPEN → **3.7** only. Fingerprint tip re-pin residual non-blocking. **No Production GO / Phase 0 COMPLETE / Stages 1–7 green.** Validation: **light validated** (file/blob evidence).
-
 ### DEC-152 — Criterion 3.9 CI GREEN (DEC-149 topology) field-verify (Accepted — CLOSED CONDITIONAL)
 
 **Date:** 2026-08-02
