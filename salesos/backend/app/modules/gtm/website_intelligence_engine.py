@@ -20,7 +20,8 @@ from app.modules.gtm.website_intelligence import (
 )
 
 # CAP-023-shaped prompt catalog entry (in-module; not live Studio Prompt Library).
-GOVERNED_WEBSITE_PROMPT = {
+# All values are str so mypy accepts dict[str, str] spend-path bindings.
+GOVERNED_WEBSITE_PROMPT: dict[str, str] = {
     "id": WEBSITE_INTEL_PROMPT_ID,
     "version": WEBSITE_INTEL_PROMPT_VERSION,
     "template": (
@@ -30,7 +31,7 @@ GOVERNED_WEBSITE_PROMPT = {
     ),
     "domain": "gtm",
     "category": "website_intelligence",
-    "active": True,
+    "active": "true",
 }
 
 
@@ -173,6 +174,6 @@ async def run_website_intelligence(
     """Execute analysis through governed prompt + analyzer adapter."""
     if not isinstance(analyzer, WebsiteAnalyzer):
         raise WebsiteIntelligenceError("analyzer must implement WebsiteAnalyzer")
-    bound = prompt or dict(GOVERNED_WEBSITE_PROMPT)
+    bound: dict[str, str] = {**prompt} if prompt is not None else {**GOVERNED_WEBSITE_PROMPT}
     summary, signals = await analyzer.analyze(request, prompt=bound)
     return summary, signals, bound
