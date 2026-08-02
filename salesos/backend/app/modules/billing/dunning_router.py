@@ -65,9 +65,7 @@ async def list_dunning_cases(
     tenant_id: uuid.UUID | None = Query(None),
     limit: int = Query(100, ge=1, le=500),
 ) -> list[DunningCaseResponse]:
-    rows = await DunningService(db).list_cases(
-        status=status, tenant_id=tenant_id, limit=limit
-    )
+    rows = await DunningService(db).list_cases(status=status, tenant_id=tenant_id, limit=limit)
     return [_case_response(r) for r in rows]
 
 

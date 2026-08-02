@@ -161,6 +161,7 @@ class UsageMeterModel(Base):
         nullable=False,
     )
 
+
 class DunningCaseModel(Base):
     """STORY-05-04 — Open grace / auto-suspend ledger. Owner-only, no RLS."""
 
@@ -189,4 +190,3 @@ class DunningCaseModel(Base):
         onupdate=func.now(),
         nullable=False,
     )
-

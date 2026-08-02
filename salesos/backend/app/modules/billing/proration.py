@@ -81,9 +81,7 @@ def quote_plan_change(
     now: datetime | None = None,
 ) -> ProrationQuote:
     direction = classify_direction(float(old_price), float(new_price))
-    frac = remaining_period_fraction(
-        period_start=period_start, period_end=period_end, now=now
-    )
+    frac = remaining_period_fraction(period_start=period_start, period_end=period_end, now=now)
     delta = float(new_price) - float(old_price)
 
     if direction == PlanChangeDirection.UPGRADE:

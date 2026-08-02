@@ -32,14 +32,18 @@ class DomainEntitlement(BaseModel):
 
 
 class EntitlementQuotas(BaseModel):
-    seats: int = Field(1, ge=0)
-    ai_tokens_monthly: int = Field(0, ge=0)
-    connectors: int = Field(0, ge=0)
-    storage_mb: int = Field(100, ge=0)
-    api_calls_monthly: int = Field(1000, ge=0)
+    seats: int = Field(default=1, ge=0)
+    ai_tokens_monthly: int = Field(default=0, ge=0)
+    connectors: int = Field(default=0, ge=0)
+    storage_mb: int = Field(default=100, ge=0)
+    api_calls_monthly: int = Field(default=1000, ge=0)
     # -1 = negotiated / unlimited (Enterprise AI tokens).
     ai_tokens_unlimited: bool = False
     connectors_unlimited: bool = False
+
+
+def _default_quotas() -> EntitlementQuotas:
+    return EntitlementQuotas()
 
 
 class PlanEntitlements(BaseModel):
@@ -47,7 +51,7 @@ class PlanEntitlements(BaseModel):
 
     version: Literal[1] = 1
     domains: dict[str, DomainEntitlement] = Field(default_factory=dict)
-    quotas: EntitlementQuotas = Field(default_factory=lambda: EntitlementQuotas())
+    quotas: EntitlementQuotas = Field(default_factory=_default_quotas)
     deployment_tier: Literal["pooled", "siloed"] = "pooled"
     support_sla: str = Field("community", min_length=1, max_length=64)
 
