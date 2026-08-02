@@ -222,6 +222,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["Tenant Studio"],
         dependencies=_auth,
     )
+    # DOM-022 / CAP-093 — STORY-10-08 Notification Rules Studio.
+    from app.modules.tenant_studio.notification_rules_router import (
+        router as notification_rules_router,
+    )
+
+    app.include_router(
+        notification_rules_router,
+        prefix="/api/v1",
+        tags=["Tenant Studio"],
+        dependencies=_auth,
+    )
     app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
     app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
     app.include_router(admin_router)
