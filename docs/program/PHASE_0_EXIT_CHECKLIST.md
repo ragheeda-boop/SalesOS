@@ -3,17 +3,20 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-02 (DEC-150 **Option B Accepted**: Stage 6 GHCR publish **no longer** a Phase 0 required capability after DEC-149; **3.6/3.10 CLOSED — SUPERSEDED**; prior DEC-149a: **3.11 CLOSED CONDITIONAL**; Phase 0 **48/54 NO-GO**; no Production GO)
+> **Last updated:** 2026-08-02 (**GOVERNANCE FROZEN** — [DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md); prior DEC-150 **Option B**: Stage 6 GHCR retired as Phase 0 gate; **3.6/3.10 CLOSED — SUPERSEDED**; DEC-149a: **3.11 CLOSED CONDITIONAL**; Phase 0 **48/54 NO-GO**; no Production GO)
 >
 > ## Operating State
 >
 > ```
 > STATE = EXECUTION
 > Architecture = FROZEN
-> Program = ACTIVE
+> Governance = FROZEN          # DEC-151 — Phase 0 Governance Freeze
+> Program = ACTIVE             # residual hard OPEN only: 3.7, 3.9, 4.1, 4.8
 > Engineering = STABILIZING
 > AI Runtime = DEFERRED
 > ```
+>
+> **Governance freeze (DEC-151):** No organizational redesign, deployment-topology DECs superseding DEC-149, or criterion rewrites except completing hard OPEN **3.7 / 3.9 / 4.1 / 4.8** with field evidence, plus bugfixes / evidence crumbs that do not change architecture or supersede DEC-149/150. Forbidden without ARB reverse: new deploy topology, reopening GHCR as Phase 0 gate, inventing ARB PASS on **4.1/4.8**.
 >
 > **Sprint success = number of exit criteria CLOSED, not number of stories completed.**
 > **Rule: No work accepted unless it directly closes a criterion from this checklist.**
@@ -189,13 +192,13 @@ Blocked on: **CI GREEN not met** (**3.9** redefined post–DEC-150 B — Stages 
 | 9. ADR-036 Applied | 4 | 4 | 0 | 0 |
 | **TOTAL** | **54** | **48** | **0** | **5** |
 
-**Scoreboard honesty (2026-08-02):** Phase 0 pin **46/54 → 48/54** (DEC-150 Option B closes **3.6** / **3.10** as **CLOSED — SUPERSEDED**; not field GHCR green). RLS cluster Open **1** = **2.3** CLOSED CONDITIONAL multi-tenant residual tracked as scoreboard open (criterion row stays ✅ CONDITIONAL — **not** a hard ⬜; do **not** fake unconditional CLOSE). Hard OPEN ⬜ rows = **4** (**3.7**, **3.9**, **4.1**, **4.8**). Cluster Open cells (1+2+2=5) matches TOTAL Open **5** (prior 2.3 arithmetic debt absorbed). CI-08 / Stage 6 GHCR no longer Blocked. **Phase 0 remains NO-GO. No Production GO. No CI GREEN.**
+**Scoreboard honesty (2026-08-02):** Phase 0 pin **46/54 → 48/54** (DEC-150 Option B closes **3.6** / **3.10** as **CLOSED — SUPERSEDED**; not field GHCR green). RLS cluster Open **1** = **2.3** CLOSED CONDITIONAL multi-tenant residual tracked as scoreboard open (criterion row stays ✅ CONDITIONAL — **not** a hard ⬜; do **not** fake unconditional CLOSE). Hard OPEN ⬜ rows = **4** (**3.7**, **3.9**, **4.1**, **4.8**). Cluster Open cells (1+2+2=5) matches TOTAL Open **5** (prior 2.3 arithmetic debt absorbed). CI-08 / Stage 6 GHCR no longer Blocked. **GOVERNANCE FROZEN** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md)) — pin unchanged by freeze. **Phase 0 remains NO-GO. No Production GO. No CI GREEN.**
 
 ---
 
-## Remaining — Cursor BLOCKED inventory (2026-08-02, post DEC-150 B)
+## Remaining — Cursor BLOCKED inventory (2026-08-02, post DEC-151 GOVERNANCE FROZEN)
 
-No Phase 0 criterion is Cursor-closeable without ARB invent (EOS), E2E services work (**3.7**), tip field-verify (**3.9** / **3.8** residual), or human push. **3.6 / 3.10 CLOSED — SUPERSEDED** (DEC-150 Option B). CI-09 / **3.11 CLOSED CONDITIONAL** (DEC-149a). Optional contract-test expansion / Jest 30 = PARALLEL backlog only. DEC-085 untouched. **No fake CLOSE. No Production GO. No CI GREEN.**
+**GOVERNANCE FROZEN** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md)). No Phase 0 criterion is Cursor-closeable without ARB invent (EOS), E2E services work (**3.7**), tip field-verify (**3.9** / **3.8** residual), or human push. **3.6 / 3.10 CLOSED — SUPERSEDED** (DEC-150 Option B). CI-09 / **3.11 CLOSED CONDITIONAL** (DEC-149a). Optional contract-test expansion / Jest 30 = PARALLEL backlog only. DEC-085 untouched. **No fake CLOSE. No Phase 0 COMPLETE. No Production GO. No CI GREEN.**
 
 | # | Criterion | Owner | Block class | Why blocked / next action |
 |---|-----------|-------|-------------|---------------------------|

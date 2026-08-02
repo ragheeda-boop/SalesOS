@@ -1,8 +1,9 @@
 # Execution DAG — Current Program State
 
-> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-01** (post **DEC-120** Railway R-14 reopen).  
+> **Living classification** of what is READY / BLOCKED / PARALLEL as of records close **2026-08-02** (post **DEC-151** Phase 0 Governance Freeze; prior DEC-150 B / DEC-149a / DEC-120).  
 > Authority: evidence + `SPRINT_05_DELIVERY_BOARD.md` + `RISK_REGISTER.md` + Sprint plans + `docs/audit/ga-engineering-audit/` + Principal Audit.  
-> Honesty labels: **CI GREEN not met**. **Phase 0 (DEC-008 RLS / R-14) exit = NO-GO** (DEC-086 GO **withdrawn** by DEC-120). **Production GA / External pilot = NO-GO**. STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies). **Do not reopen STORY-02-01.**
+> Honesty labels: **CI GREEN not met**. **Phase 0 (DEC-008 RLS / R-14) exit = NO-GO** (DEC-086 GO **withdrawn** by DEC-120). **Production GA / External pilot = NO-GO**. STORY-02-01 **DONE** under revised AC (DEC-044 — 47 policies). **Do not reopen STORY-02-01.**  
+> **GOVERNANCE FROZEN** ([DEC-151](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md)): no org redesign / deploy-topology DEC superseding DEC-149 / criterion rewrite except hard OPEN **3.7 / 3.9 / 4.1 / 4.8** field evidence + non-architecture bugfix crumbs. Phase 0 **48/54 NO-GO**.
 
 ---
 
@@ -109,6 +110,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 | **CI/CD 3.8** CI GREEN (code path) | **CLOSED CONDITIONAL** (DEC-148a) | Arch PASS_CONDITIONAL + Val PASS_CONDITIONAL @ `14fce5f` / DEC-148; local ruff 0.4.10 check+format exit 0; last push `c842245` / `30704321096` Stage 1 Lint FAILURE (6× E501) → Stages 3 BE/4 SKIPPED; residual: *tip Stages 1–5 same-run PENDING until tip containing `14fce5f` is pushed* (Stage 3/4 may still fail when unblocked); historical Stages 1–5 SUCCESS @ `7ba137b` / `30689682988` (not tip); does **not** close **3.6–3.11** / **3.9**; DEC-085 untouched; Phase 0 **44/54 → 45/54**; CI/CD Complete **5 → 6** / Open **4 → 3**; do **not** claim Phase 0 GO / CI GREEN / unconditional CLOSED |
 | **CI/CD 3.11** / CI-09 deploy (Railway+Vercel) | **CLOSED CONDITIONAL** (DEC-149a) | Arch prior PASS (DEC-149 + single-env) + Val PASS @ `c3507ed` / `30723120473`; Railway up ✓; Health Gate HTTP 200 ✓; Vercel FE Git-primary ✓; §6 production secret names present (repo); residuals: *FE Git-primary (not CLI); staging deferred; no VPS*; canonical deploy evidence for post–DEC-150 B **3.6** supersession; does **not** auto-close **3.9** / **3.7**; DEC-085 untouched; Phase 0 **45/54 → 46/54** (superseded to **48/54** by DEC-150 B); CI/CD Complete **6 → 7** (superseded to **9**); do **not** claim Phase 0 GO / CI GREEN / unconditional CLOSED |
 | **CI/CD 3.6 / 3.10** Stage 6 GHCR / CI-08 | **CLOSED — SUPERSEDED** (DEC-150 B) | ARB Option B Accepted; GHCR publish not Phase 0 required after DEC-149; residual 403 legacy/non-blocking; Stage 6 quarantined in `ci.yml`; Phase 0 **46/54 → 48/54**; CI/CD Complete **7 → 9** / Blocked **1 → 0**; do **not** claim field GHCR green / Phase 0 GO / CI GREEN |
+| **Phase 0 Governance Freeze** | **GOVERNANCE FROZEN** (DEC-151) | Org redesign / deploy-topology DEC superseding DEC-149 / criterion rewrite frozen; allowed hard OPEN **3.7 / 3.9 / 4.1 / 4.8** field evidence + bugfix crumbs; pin **48/54** unchanged; do **not** claim Phase 0 COMPLETE / Production GO / CI GREEN / invent 4.1/4.8 |
 
 ---
 
@@ -136,7 +138,7 @@ Security P0 (historical) → RLS / STORY-02-01 (DONE, DEC-044 @ 47) ──► cl
 
 ## Board progress fraction
 
-**26/26** Complete/Closed on tracked Sprint 05 board fraction including **CI-09 CLOSED CONDITIONAL** (DEC-149a) + **CI-08 GOVERNANCE COMPLETED** (DEC-150 B; **S04-04 REOPENED**). Adjacent closed: **Jest-debt / R-23**. **Phase 0 critical path blocked:** **S04-04 / Railway R-14**. Canonical deploy validation path = DEC-149 Railway+Vercel (**3.11**). Stage 6 GHCR **removed from critical path**. Phase 0 **48/54 NO-GO**.
+**26/26** Complete/Closed on tracked Sprint 05 board fraction including **CI-09 CLOSED CONDITIONAL** (DEC-149a) + **CI-08 GOVERNANCE COMPLETED** (DEC-150 B; **S04-04 REOPENED**). Adjacent closed: **Jest-debt / R-23**. **Phase 0 critical path blocked:** **S04-04 / Railway R-14**. Canonical deploy validation path = DEC-149 Railway+Vercel (**3.11**). Stage 6 GHCR **removed from critical path**. **GOVERNANCE FROZEN** (DEC-151). Phase 0 **48/54 NO-GO**.
 
 ---
 

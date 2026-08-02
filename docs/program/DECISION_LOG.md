@@ -1086,6 +1086,15 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 
 
 
+### DEC-151 — Phase 0 Governance Freeze (Accepted)
+
+**Date:** 2026-08-02
+**Context:** Tip after DEC-150 Option B @ `a734853`: Phase 0 **48/54 NO-GO**; canonical deploy Railway+Vercel (DEC-149 / DEC-149a CLOSED CONDITIONAL); Stage 6 GHCR retired as Phase 0 gate (DEC-150 B); CI-08 GOVERNANCE COMPLETED; hard OPEN **3.7**, **3.9**, **4.1**, **4.8**. Architecture already FROZEN (EEC-001); AI Runtime DEFERRED (DEC-146). User directive: freeze further organizational redesign, deployment-topology DECs, and criterion rewrites.
+**Alternatives considered:** (a) continue open-ended governance redesign of deploy/org/criteria — **rejected**; (b) declare Phase 0 COMPLETE — **rejected** (48/54; hard OPEN remain); (c) freeze with allowed residual field evidence + bugfix crumbs only — **approved**.
+**Decision:** **Accepted.** Phase 0 Governance Freeze. Frozen: org redesign, new deploy-topology DECs superseding DEC-149, criterion rewrites, inventing ARB PASS, reopening GHCR as Phase 0 gate without ARB reverse. Allowed: field evidence for **3.7 / 3.9 / 4.1 / 4.8**; bugfixes / evidence crumbs that do not change architecture or supersede DEC-149/150. Companion: [`decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md`](decisions/DEC-151-PHASE-0-GOVERNANCE-FREEZE.md).
+**Consequence:** Checklist Operating State → `Governance = FROZEN`. Scoreboard pin unchanged **48/54 NO-GO**. Does **not** close any criterion. **No Phase 0 COMPLETE / Production GO / CI GREEN / 4.1/4.8 invent.** Validation: **governance freeze documentation only**.
+**Status:** Accepted.
+
 ### DEC-150 — After DEC-149: Is Stage 6 GHCR still a required Phase 0 exit criterion? (Accepted — Option B)
 
 **Date:** 2026-08-02
