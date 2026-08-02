@@ -90,7 +90,9 @@ class UsageMeterService:
         for ev in events:
             start, end = hour_bucket(ev.recorded_at)
             key = (ev.tenant_id, ev.metric_key, start)
-            slot = buckets.setdefault(key, {"add": 0.0, "set": 0.0, "has_set": 0.0, "end": end.timestamp()})
+            slot = buckets.setdefault(
+                key, {"add": 0.0, "set": 0.0, "has_set": 0.0, "end": end.timestamp()}
+            )
             if ev.op == "set":
                 slot["set"] = max(slot["set"], float(ev.quantity))
                 slot["has_set"] = 1.0

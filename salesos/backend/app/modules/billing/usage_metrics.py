@@ -54,10 +54,7 @@ def normalize_op(op: str | None, *, metric_key: str) -> str:
 
 def hour_bucket(at: datetime) -> tuple[datetime, datetime]:
     """Return [period_start, period_end) for the UTC hour containing ``at``."""
-    if at.tzinfo is None:
-        at = at.replace(tzinfo=UTC)
-    else:
-        at = at.astimezone(UTC)
+    at = at.replace(tzinfo=UTC) if at.tzinfo is None else at.astimezone(UTC)
     start = at.replace(minute=0, second=0, microsecond=0)
     return start, start + timedelta(hours=1)
 

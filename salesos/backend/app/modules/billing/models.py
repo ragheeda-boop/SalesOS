@@ -1,4 +1,4 @@
-"""OBJ-321 Subscription ORM — Owner-only table (no RLS).
+"""OBJ-321 Subscription ORM â€” Owner-only table (no RLS).
 
 STORY-05-01: persistence for subscription status machine.
 Does NOT enable RLS (Owner reads across tenants by design).
@@ -41,7 +41,7 @@ class SubscriptionModel(Base):
         DateTime(timezone=True), nullable=True
     )
     canceled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    # STORY-05-02 — Stripe ids (sandbox/prod secrets live in env, not here)
+    # STORY-05-02 â€” Stripe ids (sandbox/prod secrets live in env, not here)
     stripe_customer_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     stripe_subscription_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -70,7 +70,7 @@ class StripeWebhookEventModel(Base):
 
 
 class PlatformBillingInvoiceModel(Base):
-    """OBJ-323 PlatformBillingInvoice — Owner-plane Stripe invoice mirror.
+    """OBJ-323 PlatformBillingInvoice â€” Owner-plane Stripe invoice mirror.
 
     DEC-003 rename path: separate from legacy ``admin_invoices``.
     No RLS (Owner cross-tenant). Not Production GO.
@@ -92,6 +92,60 @@ class PlatformBillingInvoiceModel(Base):
     due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     hosted_invoice_url: Mapped[str | None] = mapped_column(String(1024), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+
+class UsageMeterEventModel(Base):
+    """Raw usage events awaiting hourly rollup (STORY-05-03). Owner-only, no RLS."""
+
+    __tablename__ = "usage_meter_events"
+    __table_args__ = (
+        Index("ix_usage_meter_events_tenant_metric", "tenant_id", "metric_key"),
+        Index("ix_usage_meter_events_pending", "rolled_up_at", "recorded_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    metric_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    quantity: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    op: Mapped[str] = mapped_column(String(8), nullable=False, default="add")
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    rolled_up_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    source: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class UsageMeterModel(Base):
+    """OBJ-324 UsageMeter — hourly rolled-up quantities. Owner-only, no RLS."""
+
+    __tablename__ = "usage_meters"
+    __table_args__ = (
+        UniqueConstraint(
+            "tenant_id",
+            "metric_key",
+            "period_start",
+            name="uq_usage_meters_tenant_metric_period",
+        ),
+        Index("ix_usage_meters_tenant_id", "tenant_id"),
+        Index("ix_usage_meters_metric_period", "metric_key", "period_start"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    metric_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    period_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    period_end: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    quantity: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
