@@ -37,7 +37,9 @@ _STATUS_BY_METRIC: dict[str, int] = {
 }
 
 
-def limits_from_entitlements(entitlements: PlanEntitlements | dict[str, Any]) -> dict[str, QuotaLimit]:
+def limits_from_entitlements(
+    entitlements: PlanEntitlements | dict[str, Any],
+) -> dict[str, QuotaLimit]:
     doc = (
         entitlements
         if isinstance(entitlements, PlanEntitlements)

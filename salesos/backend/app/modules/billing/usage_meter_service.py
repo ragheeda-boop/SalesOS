@@ -176,10 +176,7 @@ class UsageMeterService:
     ) -> dict[str, Any]:
         """STORY-06-03 — UTC-month counters + latest gauge values for enforcement."""
         at = now or datetime.now(UTC)
-        if at.tzinfo is None:
-            at = at.replace(tzinfo=UTC)
-        else:
-            at = at.astimezone(UTC)
+        at = at.replace(tzinfo=UTC) if at.tzinfo is None else at.astimezone(UTC)
         month_start = at.replace(day=1, minute=0, second=0, microsecond=0, hour=0)
         if month_start.month == 12:
             month_end = month_start.replace(year=month_start.year + 1, month=1)

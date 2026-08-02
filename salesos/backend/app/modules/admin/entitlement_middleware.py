@@ -73,7 +73,8 @@ class EntitlementEnforcementMiddleware:
                         {
                             "detail": (
                                 f"Plan entitlement required: {gate.domain} "
-                                f"(path {gate.path_prefix}). Upgrade plan to access this capability."
+                                f"(path {gate.path_prefix}). "
+                                "Upgrade plan to access this capability."
                             ),
                             "domain": gate.domain,
                             "path_prefix": gate.path_prefix,
