@@ -161,6 +161,11 @@ export async function createAdminTenant(data: {
   name: string;
   slug: string;
   domain?: string;
+  /** STORY-04-01 Owner Platform (opaque catalog id). */
+  plan_id?: string;
+  region?: string;
+  data_residency?: string;
+  trial_ends_at?: string | null;
 }): Promise<AdminTenantDetail> {
   const resp = await api.post("/api/v1/admin/tenants", data);
   return resp.data;

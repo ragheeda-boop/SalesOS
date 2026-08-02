@@ -1,29 +1,45 @@
-# Phase 1 — Frontend B1/B2 Tenant surface inventory
+# Phase 1 — Frontend B1 inventory + B2/B5 Owner Platform UI
 
-> **Stream:** Frontend B1 → B2 — [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) §4.1  
-> **Triggered:** 2026-08-02 **TRIGGER_POST_PHASE0_PLAN**  
-> **Status:** B1 COMPLETE · B2 READ-PATH LANDED (detail modal)  
-> **Honesty:** Decision package remains STUB; `feature_ai_copilot` default False. No Production GO.
+> **Stream:** Frontend B1–B5 — [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) §4.1  
+> **Status:** **B1 COMPLETE** · **B2 COMPLETE** · **B3 AFFIRMED** · **B5 WRITE-PATH LANDED**  
+> **Contract:** [`PHASE1_STORY_04_01_PRETASK.md`](PHASE1_STORY_04_01_PRETASK.md) A1  
+> **Honesty:** Decision package remains STUB; `feature_ai_copilot` default **False**. **No Production GO.**
 
-## Surfaces touching Tenant
+## Surfaces touching Tenant (Owner Console = Platform admin)
 
-| Path | Role |
-|------|------|
-| `salesos/frontend/src/app/(dashboard)/admin/tenants/page.tsx` | Admin tenant list/create/update/delete + B2 detail read-path |
-| `salesos/frontend/src/features/admin/widgets/TenantOwnerPlatformFields.tsx` | B2 Owner Platform field display |
-| `salesos/frontend/src/lib/api/types/admin.ts` | `AdminTenantOwnerPlatformFields` contract |
-| `salesos/frontend/src/features/admin/` queries/hooks | API client for admin tenants |
-| Admin tests under `features/admin/__tests__/` | Mock tenant fixtures |
+| Path | Role | Touch |
+|------|------|-------|
+| `salesos/frontend/src/app/(dashboard)/admin/tenants/page.tsx` | Tenant Management | B2 list/detail · B5 create+edit Owner Platform |
+| `salesos/frontend/src/features/admin/widgets/TenantOwnerPlatformFields.tsx` | Read + write Owner Platform panel | B2/B5 |
+| `.../widgets/__tests__/TenantOwnerPlatformFields.test.tsx` | Unit tests | B5 |
+| `salesos/frontend/src/lib/api/types/admin.ts` | Optional STORY-04-01 fields | B2 |
+| `salesos/frontend/src/lib/api/admin.ts` | create/update payloads | B5 create fields |
+| `salesos/frontend/src/features/admin/widgets/TenantList.tsx` | Embedded table | **RESERVED — untouched** |
 
-## STORY-04-01 fields (B2)
+## Field mapping
 
-Read-path wired for: `plan_id`, `region`, `data_residency`, `provisioning_status`, `trial_ends_at`.
+| Field | Read | Write (detail) | Create |
+|-------|------|----------------|--------|
+| `plan_id` | yes | yes | optional |
+| `region` | yes | yes | optional |
+| `data_residency` | yes | yes | optional |
+| `provisioning_status` | badge | select | default via API/backend |
+| `trial_ends_at` | yes | date input | not on create form yet |
 
-Absent API values show placeholders until Backend A2 schema is migrated in the target env.
+## Provisioning honesty
+
+Sprint-04 expected demo is **script-first** (`provision_tenant` / STORY-04-02). FE exposes status correction + create field pass-through; does **not** claim full idempotent Studio seed UI.
+
+## Validation
+
+| Label | Notes |
+|-------|-------|
+| **light validated** | Focused Jest `TenantOwnerPlatformFields` **6/6 PASS**; full FE suite not run |
+| **not validated** | Browser / production migrate |
 
 ## Non-goals
 
-- No edit forms for Owner Platform fields in this land  
-- No TenantList widget edits (parallel-agent reserved)  
-- No heavy npm / full FE suite without approval  
-- No GA AI / Production GO
+- `TenantList.tsx` edits  
+- GA AI enablement  
+- Production GO  
+- B4 heavy npm holdout burn unless approved  

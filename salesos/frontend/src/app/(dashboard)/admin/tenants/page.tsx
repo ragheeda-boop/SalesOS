@@ -40,6 +40,7 @@ import {
   TenantOwnerPlatformFields,
   provisioningStatusLabel,
   provisioningStatusVariant,
+  type TenantOwnerPlatformWritePayload,
 } from "@/features/admin/widgets/TenantOwnerPlatformFields";
 
 const PLAN_OPTIONS = [
@@ -76,6 +77,9 @@ export default function AdminTenantsPage() {
     slug: "",
     domain: "",
     admin_email: "",
+    plan_id: "",
+    region: "",
+    data_residency: "",
   });
 
   const { data: tenants, isLoading } = useAdminTenants({
@@ -113,13 +117,25 @@ export default function AdminTenantsPage() {
         name: createForm.name,
         slug: createForm.slug,
         domain: createForm.domain || undefined,
+        plan_id: createForm.plan_id || undefined,
+        region: createForm.region || undefined,
+        data_residency: createForm.data_residency || undefined,
       });
       setShowCreate(false);
-      setCreateForm({ name: "", slug: "", domain: "", admin_email: "" });
+      setCreateForm({
+        name: "",
+        slug: "",
+        domain: "",
+        admin_email: "",
+        plan_id: "",
+        region: "",
+        data_residency: "",
+      });
       toast({
         variant: "success",
         title: "Tenant created",
-        description: "The tenant has been provisioned successfully.",
+        description:
+          "Create request sent. Full Studio seed / admin assign remains STORY-04-02 script path.",
       });
     } catch {
       toast({
@@ -254,6 +270,50 @@ export default function AdminTenantsPage() {
                   placeholder="admin@acme.com"
                 />
               </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
+                  Plan ID
+                </label>
+                <Input
+                  value={createForm.plan_id}
+                  onChange={(e) =>
+                    setCreateForm({ ...createForm, plan_id: e.target.value })
+                  }
+                  placeholder="opaque catalog id"
+                  className="font-mono text-xs"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
+                  Region
+                </label>
+                <Input
+                  value={createForm.region}
+                  onChange={(e) =>
+                    setCreateForm({ ...createForm, region: e.target.value })
+                  }
+                  placeholder="me-central-1"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
+                  Data residency
+                </label>
+                <Input
+                  value={createForm.data_residency}
+                  onChange={(e) =>
+                    setCreateForm({
+                      ...createForm,
+                      data_residency: e.target.value,
+                    })
+                  }
+                  placeholder="policy tag"
+                />
+              </div>
+              <p className="text-xs text-[var(--text-muted)]">
+                Owner Platform fields (STORY-04-01). Idempotent Studio seed /
+                first-admin assign stays on the STORY-04-02 script path.
+              </p>
             </div>
           </ModalBody>
           <ModalFooter>
@@ -549,6 +609,25 @@ function TenantDetailModal({
     }
   }, [configJson, updateMutation, toast]);
 
+  const handleSaveOwnerPlatform = useCallback(
+    async (payload: TenantOwnerPlatformWritePayload) => {
+      try {
+        await updateMutation.mutateAsync({ ...payload });
+        toast({
+          variant: "success",
+          title: "Owner Platform saved",
+          description: "STORY-04-01 fields updated.",
+        });
+      } catch {
+        toast({
+          variant: "error",
+          title: "Failed to save Owner Platform fields",
+        });
+      }
+    },
+    [updateMutation, toast],
+  );
+
   if (isLoading) {
     return (
       <Modal open onOpenChange={(open) => !open && onClose()}>
@@ -589,8 +668,15 @@ function TenantDetailModal({
               </Button>
             </div>
 
-            {/* STORY-04-01 / B2 read-path — Owner Platform fields */}
-            {tenant && <TenantOwnerPlatformFields tenant={tenant} />}
+            {/* STORY-04-01 B2 read + B5 write-path — Owner Platform fields */}
+            {tenant && (
+              <TenantOwnerPlatformFields
+                tenant={tenant}
+                editable
+                saving={updateMutation.isPending}
+                onSave={handleSaveOwnerPlatform}
+              />
+            )}
 
             {/* Usage Stats */}
             {usage && (
