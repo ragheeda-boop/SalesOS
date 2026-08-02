@@ -58,9 +58,7 @@ async def resolve_tenant_id_for_invoice(
     if isinstance(customer, str) and customer.startswith("cus_"):
         row = (
             await session.execute(
-                select(SubscriptionModel).where(
-                    SubscriptionModel.stripe_customer_id == customer
-                )
+                select(SubscriptionModel).where(SubscriptionModel.stripe_customer_id == customer)
             )
         ).scalar_one_or_none()
         if row is not None:
@@ -89,22 +87,27 @@ async def upsert_platform_invoice_from_stripe(
 
     currency = str(invoice.get("currency") or "sar").upper()
     amount = stripe_amount_to_major(invoice.get("amount_due"), currency)
-    if invoice.get("amount_paid") is not None and map_stripe_invoice_status(
-        invoice.get("status")
-    ) == "paid":
+    if (
+        invoice.get("amount_paid") is not None
+        and map_stripe_invoice_status(invoice.get("status")) == "paid"
+    ):
         amount = stripe_amount_to_major(invoice.get("amount_paid"), currency)
     status = map_stripe_invoice_status(
         invoice.get("status") if isinstance(invoice.get("status"), str) else None
     )
     description = ""
-    lines = (invoice.get("lines") or {}).get("data") if isinstance(invoice.get("lines"), dict) else None
+    lines = (
+        (invoice.get("lines") or {}).get("data") if isinstance(invoice.get("lines"), dict) else None
+    )
     if isinstance(lines, list) and lines:
         first = lines[0] if isinstance(lines[0], dict) else {}
         description = str(first.get("description") or "")[:2000]
     due = parse_unix_ts(invoice.get("due_date"))
-    paid_at = parse_unix_ts(invoice.get("status_transitions", {}).get("paid_at")) if isinstance(
-        invoice.get("status_transitions"), dict
-    ) else None
+    paid_at = (
+        parse_unix_ts(invoice.get("status_transitions", {}).get("paid_at"))
+        if isinstance(invoice.get("status_transitions"), dict)
+        else None
+    )
     if status == "paid" and paid_at is None:
         paid_at = parse_unix_ts(invoice.get("created"))
 
