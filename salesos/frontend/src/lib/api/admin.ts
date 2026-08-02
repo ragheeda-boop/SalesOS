@@ -18,6 +18,8 @@ import type {
   AdminTenantCreate,
   AdminTenantDetail,
   AdminTenantListItem,
+  AdminTenantActivateRequest,
+  AdminTenantActivateResponse,
   AdminTenantHardDeleteRequest,
   AdminTenantHardDeleteResponse,
   AdminTenantSoftDeleteResponse,
@@ -212,6 +214,17 @@ export async function suspendAdminTenant(
   data: AdminTenantSuspendRequest = {},
 ): Promise<AdminTenantSuspendResponse> {
   const resp = await api.post(`/api/v1/admin/tenants/${id}/suspend`, {
+    reason: data.reason ?? "",
+  });
+  return resp.data;
+}
+
+/** FE-S04-27 — activate via POST /activate (tip d9d1472); not PUT is_active. */
+export async function activateAdminTenant(
+  id: string,
+  data: AdminTenantActivateRequest = {},
+): Promise<AdminTenantActivateResponse> {
+  const resp = await api.post(`/api/v1/admin/tenants/${id}/activate`, {
     reason: data.reason ?? "",
   });
   return resp.data;

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Input,
   Button,
@@ -34,6 +35,7 @@ import {
   useCreateAdminTenant,
   useUpdateAdminTenant,
   useSuspendAdminTenant,
+  useActivateAdminTenant,
   useDeleteAdminTenant,
   useHardDeleteAdminTenant,
   useAdminTenantDetail,
@@ -49,14 +51,36 @@ import {
 } from "@/features/admin/widgets/TenantOwnerPlatformFields";
 import {
   activityStatusLabel,
+  formatActivateResultDescription,
+  formatLifecycleResultDescription,
   formatProvisionResultDescription,
-  formatSuspendResultDescription,
   formatTrialEndsLabel,
   lifecycleStatusDescription,
-  sortAdminTenants,
+  trialBadgeLabel,
+  trialBadgeVariant,
   type TenantSortKey,
   type TrialFilter,
 } from "@/features/admin/lib/formatProvisionToast";
+
+const SORT_KEYS: TenantSortKey[] = [
+  "created_desc",
+  "created_asc",
+  "name_asc",
+  "name_desc",
+];
+
+function parseSortKey(value: string | null): TenantSortKey {
+  return SORT_KEYS.includes(value as TenantSortKey)
+    ? (value as TenantSortKey)
+    : "created_desc";
+}
+
+function parseTrialFilter(value: string | null): TrialFilter {
+  if (value === "has_trial" || value === "expired" || value === "none") {
+    return value;
+  }
+  return "";
+}
 
 const PLAN_OPTIONS = [
   { label: "All Plans", value: "" },
@@ -107,16 +131,35 @@ const PLAN_VARIANT: Record<
 
 export default function AdminTenantsPage() {
   const { toast } = useToast();
-  const [search, setSearch] = useState("");
-  const [planFilter, setPlanFilter] = useState("");
-  const [planIdFilter, setPlanIdFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [provisioningFilter, setProvisioningFilter] = useState("");
-  const [regionFilter, setRegionFilter] = useState("");
-  const [residencyFilter, setResidencyFilter] = useState("");
-  const [trialFilter, setTrialFilter] = useState<TrialFilter>("");
-  const [sortKey, setSortKey] = useState<TenantSortKey>("created_desc");
-  const [page, setPage] = useState(1);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // FE-S04-24 — hydrate filters from URL (shareable Owner Console views)
+  const [search, setSearch] = useState(searchParams.get("search") || "");
+  const [planFilter, setPlanFilter] = useState(searchParams.get("plan") || "");
+  const [planIdFilter, setPlanIdFilter] = useState(
+    searchParams.get("plan_id") || "",
+  );
+  const [statusFilter, setStatusFilter] = useState(
+    searchParams.get("status") || "",
+  );
+  const [provisioningFilter, setProvisioningFilter] = useState(
+    searchParams.get("provisioning_status") || "",
+  );
+  const [regionFilter, setRegionFilter] = useState(
+    searchParams.get("region") || "",
+  );
+  const [residencyFilter, setResidencyFilter] = useState(
+    searchParams.get("data_residency") || "",
+  );
+  const [trialFilter, setTrialFilter] = useState<TrialFilter>(
+    parseTrialFilter(searchParams.get("trial")),
+  );
+  const [sortKey, setSortKey] = useState<TenantSortKey>(
+    parseSortKey(searchParams.get("sort")),
+  );
+  const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
   const [showCreate, setShowCreate] = useState(false);
   const [showDetail, setShowDetail] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
@@ -139,8 +182,38 @@ export default function AdminTenantsPage() {
   const debouncedSearch = useDebounce(search, 400);
   const debouncedPlanId = useDebounce(planIdFilter, 400);
 
-  // FE-S04-20 — wire Owner Platform filters to GET /admin/tenants query params
-  // (tip 0782fa4: plan_id|region|data_residency|provisioning_status|trial + search/plan/status)
+  // FE-S04-24 — mirror server filters into URL (replace, no history spam)
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (debouncedSearch) params.set("search", debouncedSearch);
+    if (planFilter) params.set("plan", planFilter);
+    if (debouncedPlanId.trim()) params.set("plan_id", debouncedPlanId.trim());
+    if (statusFilter) params.set("status", statusFilter);
+    if (provisioningFilter)
+      params.set("provisioning_status", provisioningFilter);
+    if (regionFilter) params.set("region", regionFilter);
+    if (residencyFilter) params.set("data_residency", residencyFilter);
+    if (trialFilter) params.set("trial", trialFilter);
+    if (sortKey !== "created_desc") params.set("sort", sortKey);
+    if (page > 1) params.set("page", String(page));
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [
+    debouncedSearch,
+    planFilter,
+    debouncedPlanId,
+    statusFilter,
+    provisioningFilter,
+    regionFilter,
+    residencyFilter,
+    trialFilter,
+    sortKey,
+    page,
+    pathname,
+    router,
+  ]);
+
+  // FE-S04-20 filters + FE-S04-28 server sort (tip 5d052cf)
   const { data: tenants, isLoading } = useAdminTenants({
     search: debouncedSearch || undefined,
     plan: planFilter || undefined,
@@ -150,6 +223,7 @@ export default function AdminTenantsPage() {
     region: regionFilter || undefined,
     data_residency: residencyFilter || undefined,
     trial: trialFilter || undefined,
+    sort: sortKey,
   });
 
   const createMutation = useCreateAdminTenant();
@@ -185,11 +259,8 @@ export default function AdminTenantsPage() {
     ];
   }, [tenants, residencyFilter]);
 
-  // FE-S04-19 — client sort only; filter/search owned by API (FE-S04-20)
-  const filteredTenants = useMemo(() => {
-    if (!tenants) return [];
-    return sortAdminTenants(tenants, sortKey);
-  }, [tenants, sortKey]);
+  // Server owns sort (FE-S04-28); list is already ordered
+  const filteredTenants = tenants ?? [];
 
   // FE-S04-22 — active server-filter chips (dismissible)
   const activeFilterChips = useMemo(() => {
@@ -319,7 +390,7 @@ export default function AdminTenantsPage() {
         toast({
           variant: "success",
           title: "Tenant soft-deleted",
-          description: `${result.message} · is_active=false (recoverable via Activate)`,
+          description: `${formatLifecycleResultDescription(result)} (recoverable via Activate)`,
         });
       } catch {
         toast({
@@ -482,6 +553,16 @@ export default function AdminTenantsPage() {
           </Button>
         )}
       </div>
+
+      {/* FE-S04-26 — result count honesty */}
+      <p
+        className="text-sm text-[var(--text-muted)]"
+        data-testid="admin-tenants-result-count"
+      >
+        {isLoading
+          ? "Loading tenants…"
+          : `${filteredTenants.length} tenant${filteredTenants.length === 1 ? "" : "s"}`}
+      </p>
 
       {/* FE-S04-22 — active filter chips */}
       {activeFilterChips.length > 0 && (
@@ -790,7 +871,17 @@ export default function AdminTenantsPage() {
                       className="p-3 text-xs text-[var(--text-muted)]"
                       data-testid="admin-tenants-row-trial"
                     >
-                      {formatTrialEndsLabel(tenant.trial_ends_at)}
+                      <div className="flex flex-col gap-1">
+                        <span>
+                          {formatTrialEndsLabel(tenant.trial_ends_at)}
+                        </span>
+                        <Badge
+                          variant={trialBadgeVariant(tenant.trial_ends_at)}
+                          data-testid="admin-tenants-row-trial-badge"
+                        >
+                          {trialBadgeLabel(tenant.trial_ends_at)}
+                        </Badge>
+                      </div>
                     </td>
                     <td className="p-3 text-xs text-[var(--text-muted)]">
                       {new Date(tenant.created_at).toLocaleDateString()}
@@ -976,10 +1067,14 @@ function TenantDetailModal({
   const { data: usage } = useAdminTenantUsage(tenantId);
   const updateMutation = useUpdateAdminTenant(tenantId);
   const suspendMutation = useSuspendAdminTenant();
+  const activateMutation = useActivateAdminTenant();
 
   const [configJson, setConfigJson] = useState("");
   const [suspendReason, setSuspendReason] = useState(
     "Suspended via Owner Console",
+  );
+  const [activateReason, setActivateReason] = useState(
+    "Activated via Owner Console",
   );
 
   const handleToggleActive = useCallback(async () => {
@@ -994,28 +1089,32 @@ function TenantDetailModal({
         toast({
           variant: "success",
           title: "Tenant suspended",
-          description: formatSuspendResultDescription(
-            result.tenant_id,
-            result.reason,
-          ),
+          description: formatLifecycleResultDescription(result),
         });
       } else {
-        // FE-S04-17 — Activate recovers both soft-delete and suspend
-        await updateMutation.mutateAsync({
-          is_active: true,
-          provisioning_status: "active",
+        // FE-S04-27 — POST /activate (tip d9d1472); not PUT is_active
+        const result = await activateMutation.mutateAsync({
+          id: tenantId,
+          reason: activateReason,
         });
         toast({
           variant: "success",
           title: "Tenant activated",
-          description:
-            "is_active=true · provisioning=active (lifecycle restore)",
+          description: formatActivateResultDescription(result),
         });
       }
     } catch {
       toast({ variant: "error", title: "Failed to update status" });
     }
-  }, [tenant, tenantId, suspendReason, suspendMutation, updateMutation, toast]);
+  }, [
+    tenant,
+    tenantId,
+    suspendReason,
+    activateReason,
+    suspendMutation,
+    activateMutation,
+    toast,
+  ]);
 
   const handleCopy = useCallback(
     async (label: string, value: string) => {
@@ -1134,7 +1233,9 @@ function TenantDetailModal({
                   variant={tenant?.is_active ? "outline" : "primary"}
                   onClick={handleToggleActive}
                   disabled={
-                    updateMutation.isPending || suspendMutation.isPending
+                    updateMutation.isPending ||
+                    suspendMutation.isPending ||
+                    activateMutation.isPending
                   }
                   data-testid="admin-tenants-suspend-toggle"
                 >
@@ -1145,7 +1246,7 @@ function TenantDetailModal({
                       : "Activate (recover soft-delete)"}
                 </Button>
               </div>
-              {tenant?.is_active && (
+              {tenant?.is_active ? (
                 <div>
                   <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
                     Suspend reason
@@ -1155,6 +1256,18 @@ function TenantDetailModal({
                     onChange={(e) => setSuspendReason(e.target.value)}
                     placeholder="Reason for suspend"
                     data-testid="admin-tenants-suspend-reason"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
+                    Activate reason
+                  </label>
+                  <Input
+                    value={activateReason}
+                    onChange={(e) => setActivateReason(e.target.value)}
+                    placeholder="Reason for activate"
+                    data-testid="admin-tenants-activate-reason"
                   />
                 </div>
               )}

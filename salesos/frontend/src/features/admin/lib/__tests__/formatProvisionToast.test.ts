@@ -1,9 +1,12 @@
 import {
   activityStatusLabel,
+  formatActivateResultDescription,
   formatTrialEndsLabel,
   lifecycleStatusDescription,
   matchesTrialFilter,
   sortAdminTenants,
+  trialBadgeLabel,
+  trialBadgeVariant,
   trialBucket,
   formatProvisionResultDescription,
   formatSuspendResultDescription,
@@ -42,7 +45,22 @@ describe("formatProvisionResultDescription", () => {
 describe("formatSuspendResultDescription", () => {
   it("includes reason when provided", () => {
     expect(formatSuspendResultDescription("t-1", "Owner Console")).toBe(
-      "tenant_id=t-1 · reason=Owner Console · provisioning=suspended",
+      "tenant_id=t-1 · is_active=false · provisioning=suspended · reason=Owner Console",
+    );
+  });
+});
+
+describe("formatActivateResultDescription — FE-S04-27", () => {
+  it("summarizes activate response fields", () => {
+    expect(
+      formatActivateResultDescription({
+        tenant_id: "t-1",
+        prior_provisioning_status: "suspended",
+        provisioning_status: "active",
+        reason: "Owner Console",
+      }),
+    ).toBe(
+      "tenant_id=t-1 · is_active=true · prior=suspended · provisioning=active · reason=Owner Console",
     );
   });
 });
@@ -93,6 +111,17 @@ describe("trial helpers — FE-S04-15", () => {
   it("formats trial label", () => {
     expect(formatTrialEndsLabel(null)).toBe("—");
     expect(formatTrialEndsLabel("not-a-date")).toBe("—");
+  });
+
+  it("FE-S04-25 trial badge label/variant", () => {
+    expect(trialBadgeLabel(null, now)).toBe("No trial");
+    expect(trialBadgeVariant(null, now)).toBe("default");
+    expect(trialBadgeLabel("2026-09-01T00:00:00.000Z", now)).toBe(
+      "Active trial",
+    );
+    expect(trialBadgeVariant("2026-09-01T00:00:00.000Z", now)).toBe("success");
+    expect(trialBadgeLabel("2026-07-01T00:00:00.000Z", now)).toBe("Expired");
+    expect(trialBadgeVariant("2026-07-01T00:00:00.000Z", now)).toBe("warning");
   });
 });
 

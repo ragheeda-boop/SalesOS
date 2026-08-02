@@ -74,6 +74,7 @@ import {
   deleteAdminTenant,
   hardDeleteAdminTenant,
   suspendAdminTenant,
+  activateAdminTenant,
   getAdminTenantUsage,
   listAdminLicenses,
   createAdminLicense,
@@ -1324,7 +1325,7 @@ describe("listAdminTenants — contract", () => {
     expect(result[0]).toHaveProperty("plan_id", "cat-ent");
   });
 
-  it("FE-S04-20 — forwards Owner Platform server filter query params", async () => {
+  it("FE-S04-20/28 — forwards Owner Platform filters + sort query params", async () => {
     mockAxios.get.mockResolvedValueOnce(mockResponse([]));
 
     await listAdminTenants({
@@ -1336,6 +1337,7 @@ describe("listAdminTenants — contract", () => {
       data_residency: "ae",
       provisioning_status: "pending",
       trial: "has_trial",
+      sort: "name_asc",
     });
 
     expect(mockAxios.get).toHaveBeenCalledWith("/api/v1/admin/tenants", {
@@ -1348,6 +1350,7 @@ describe("listAdminTenants — contract", () => {
         data_residency: "ae",
         provisioning_status: "pending",
         trial: "has_trial",
+        sort: "name_asc",
       },
     });
   });
@@ -2004,17 +2007,23 @@ describe("updateAdminTenant — contract", () => {
 });
 
 describe("deleteAdminTenant — contract", () => {
-  it("soft-deletes and returns message", async () => {
+  it("soft-deletes and returns TenantLifecycleResponse", async () => {
     mockAxios.delete.mockResolvedValueOnce(
       mockResponse({
         message: "Tenant soft-deleted",
         tenant_id: "t-1",
+        is_active: false,
+        provisioning_status: "active",
+        reason: "",
+        prior_provisioning_status: "active",
       }),
     );
 
     const result = await deleteAdminTenant("t-1");
 
     expect(result.message).toBe("Tenant soft-deleted");
+    expect(result.is_active).toBe(false);
+    expect(result.provisioning_status).toBe("active");
     expect(mockAxios.delete).toHaveBeenCalledWith("/api/v1/admin/tenants/t-1");
   });
 });
@@ -2039,11 +2048,14 @@ describe("hardDeleteAdminTenant — contract", () => {
 });
 
 describe("suspendAdminTenant — contract", () => {
-  it("POSTs /suspend with reason", async () => {
+  it("POSTs /suspend with TenantLifecycleResponse", async () => {
     mockAxios.post.mockResolvedValueOnce(
       mockResponse({
         message: "Tenant suspended",
         tenant_id: "t-1",
+        is_active: false,
+        provisioning_status: "suspended",
+        prior_provisioning_status: "active",
         reason: "Owner Console",
       }),
     );
@@ -2053,8 +2065,37 @@ describe("suspendAdminTenant — contract", () => {
     });
 
     expect(result.message).toBe("Tenant suspended");
+    expect(result.is_active).toBe(false);
+    expect(result.provisioning_status).toBe("suspended");
     expect(mockAxios.post).toHaveBeenCalledWith(
       "/api/v1/admin/tenants/t-1/suspend",
+      { reason: "Owner Console" },
+    );
+  });
+});
+
+describe("activateAdminTenant — contract", () => {
+  it("FE-S04-27 POSTs /activate with TenantLifecycleResponse", async () => {
+    mockAxios.post.mockResolvedValueOnce(
+      mockResponse({
+        message: "Tenant activated",
+        tenant_id: "t-1",
+        prior_provisioning_status: "suspended",
+        provisioning_status: "active",
+        is_active: true,
+        reason: "Owner Console",
+      }),
+    );
+
+    const result = await activateAdminTenant("t-1", {
+      reason: "Owner Console",
+    });
+
+    expect(result.message).toBe("Tenant activated");
+    expect(result.is_active).toBe(true);
+    expect(result.provisioning_status).toBe("active");
+    expect(mockAxios.post).toHaveBeenCalledWith(
+      "/api/v1/admin/tenants/t-1/activate",
       { reason: "Owner Console" },
     );
   });

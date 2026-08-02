@@ -26,14 +26,52 @@ export function formatProvisionResultDescription(
   return parts.join(" · ");
 }
 
+/** FE-S04-28 — toast from TenantLifecycleResponse (suspend/activate/soft-delete). */
+export function formatLifecycleResultDescription(result: {
+  tenant_id: string;
+  is_active?: boolean;
+  provisioning_status?: string | null;
+  prior_provisioning_status?: string | null;
+  reason?: string;
+}): string {
+  const parts = [`tenant_id=${result.tenant_id}`];
+  if (typeof result.is_active === "boolean") {
+    parts.push(`is_active=${result.is_active}`);
+  }
+  if (result.prior_provisioning_status != null) {
+    parts.push(`prior=${result.prior_provisioning_status || "unknown"}`);
+  }
+  parts.push(`provisioning=${result.provisioning_status || "pending"}`);
+  const r = result.reason?.trim();
+  if (r) parts.push(`reason=${r}`);
+  return parts.join(" · ");
+}
+
 export function formatSuspendResultDescription(
   tenantId: string,
   reason?: string,
 ): string {
-  const r = reason?.trim();
-  return r
-    ? `tenant_id=${tenantId} · reason=${r} · provisioning=suspended`
-    : `tenant_id=${tenantId} · provisioning=suspended`;
+  return formatLifecycleResultDescription({
+    tenant_id: tenantId,
+    is_active: false,
+    provisioning_status: "suspended",
+    reason,
+  });
+}
+
+/** FE-S04-27 — activate toast from POST /activate response. */
+export function formatActivateResultDescription(result: {
+  tenant_id: string;
+  prior_provisioning_status?: string | null;
+  provisioning_status?: string;
+  reason?: string;
+  is_active?: boolean;
+}): string {
+  return formatLifecycleResultDescription({
+    ...result,
+    is_active: result.is_active ?? true,
+    provisioning_status: result.provisioning_status || "active",
+  });
 }
 
 /** FE-S04-13 — soft-delete inactive vs suspend (both may set is_active=false). */
@@ -66,6 +104,27 @@ export function formatTrialEndsLabel(
   const ends = Date.parse(trialEndsAt);
   if (Number.isNaN(ends)) return "—";
   return new Date(ends).toLocaleDateString();
+}
+
+/** FE-S04-25 — list trial honesty badge. */
+export function trialBadgeLabel(
+  trialEndsAt: string | null | undefined,
+  nowMs: number = Date.now(),
+): string {
+  const bucket = trialBucket(trialEndsAt, nowMs);
+  if (bucket === "has_trial") return "Active trial";
+  if (bucket === "expired") return "Expired";
+  return "No trial";
+}
+
+export function trialBadgeVariant(
+  trialEndsAt: string | null | undefined,
+  nowMs: number = Date.now(),
+): "success" | "warning" | "default" {
+  const bucket = trialBucket(trialEndsAt, nowMs);
+  if (bucket === "has_trial") return "success";
+  if (bucket === "expired") return "warning";
+  return "default";
 }
 
 export function matchesTrialFilter(

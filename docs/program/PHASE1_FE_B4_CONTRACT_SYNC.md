@@ -50,3 +50,8 @@
 | FE-S04-21 | Debounce search + plan_id (400ms) | **LANDED** |
 | FE-S04-22 | Active filter chips (dismissible) | **LANDED** |
 | FE-S04-23 | Detail modal → soft/hard delete entry | **LANDED** |
+| FE-S04-24 | URL query sync for filters/sort/page | **LANDED** |
+| FE-S04-25 | Trial badge (active/expired/none) | **LANDED** |
+| FE-S04-26 | Result count honesty | **LANDED** |
+| FE-S04-27 | Wire Activate to `POST .../activate` (`d9d1472`) | **LANDED** |
+| FE-S04-28 | Wire sort to `GET ...?sort=` + `TenantLifecycleResponse` types (`5d052cf`) | **LANDED** |

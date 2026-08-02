@@ -138,17 +138,27 @@ export interface AdminTenantSuspendRequest {
   reason?: string;
 }
 
-export interface AdminTenantSuspendResponse {
-  message: string;
-  tenant_id: string;
-  reason: string;
+/** POST /api/v1/admin/tenants/{id}/activate — mirrors TenantActivateRequest. */
+export interface AdminTenantActivateRequest {
+  reason?: string;
 }
 
-/** DELETE /api/v1/admin/tenants/{id} — soft-delete (is_active=false). */
-export interface AdminTenantSoftDeleteResponse {
+/**
+ * Shared suspend / activate / soft-delete shape — mirrors TenantLifecycleResponse (5d052cf).
+ */
+export interface AdminTenantLifecycleResponse {
   message: string;
   tenant_id: string;
+  is_active: boolean;
+  provisioning_status: string;
+  reason: string;
+  prior_provisioning_status?: string | null;
 }
+
+export type AdminTenantSuspendResponse = AdminTenantLifecycleResponse;
+export type AdminTenantActivateResponse = AdminTenantLifecycleResponse;
+/** DELETE /api/v1/admin/tenants/{id} — soft-delete (is_active=false; provisioning unchanged). */
+export type AdminTenantSoftDeleteResponse = AdminTenantLifecycleResponse;
 
 /** DELETE /api/v1/admin/tenants/{id}/hard-delete — mirrors TenantHardDeleteRequest. */
 export interface AdminTenantHardDeleteRequest {

@@ -15,6 +15,7 @@ import {
   deleteAdminTenant,
   hardDeleteAdminTenant,
   suspendAdminTenant,
+  activateAdminTenant,
   getAdminTenantUsage,
   listAdminPlans,
   createAdminPlan,
@@ -50,6 +51,7 @@ import {
   validateAdminConfig,
 } from "@/lib/api";
 import type {
+  AdminTenantActivateRequest,
   AdminTenantCreate,
   AdminTenantHardDeleteRequest,
   AdminTenantSuspendRequest,
@@ -321,6 +323,24 @@ export function useSuspendAdminTenant() {
   return useMutation({
     mutationFn: ({ id, ...data }: AdminTenantSuspendRequest & { id: string }) =>
       suspendAdminTenant(id, data),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: adminKeys.tenants() });
+      qc.invalidateQueries({
+        queryKey: adminKeys.tenantDetail(variables.id),
+      });
+    },
+  });
+}
+
+/** FE-S04-27 — POST /activate (soft-delete or suspend → active). */
+export function useActivateAdminTenant() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...data
+    }: AdminTenantActivateRequest & { id: string }) =>
+      activateAdminTenant(id, data),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: adminKeys.tenants() });
       qc.invalidateQueries({

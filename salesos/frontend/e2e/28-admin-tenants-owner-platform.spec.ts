@@ -101,6 +101,14 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     });
   });
 
+  test("admin tenants expose result count hook", async ({ page }) => {
+    await page.goto("/admin/tenants");
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByTestId("admin-tenants-result-count")).toBeVisible({
+      timeout: 8_000,
+    });
+  });
+
   test("admin tenants detail lifecycle hooks open without mutate", async ({
     page,
   }) => {
@@ -118,6 +126,12 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     ).toBeVisible();
     await expect(page.getByTestId("admin-tenants-copy-ids")).toBeVisible();
     await expect(page.getByTestId("admin-tenants-detail-delete")).toBeVisible();
+    // Activate reason shown when tenant inactive; suspend reason when active
+    const activateReason = page.getByTestId("admin-tenants-activate-reason");
+    const suspendReason = page.getByTestId("admin-tenants-suspend-reason");
+    const hasActivate = await activateReason.isVisible().catch(() => false);
+    const hasSuspend = await suspendReason.isVisible().catch(() => false);
+    expect(hasActivate || hasSuspend).toBeTruthy();
   });
 
   test("admin tenants delete modal opens without mutate", async ({ page }) => {
