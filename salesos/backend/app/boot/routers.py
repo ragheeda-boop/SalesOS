@@ -244,6 +244,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["Tenant Studio"],
         dependencies=_auth,
     )
+    # DOM-023 / CAP-096 — STORY-11-02 TAM/SAM/SOM Market Sizing.
+    from app.modules.gtm.market_sizing_router import (
+        router as market_sizing_router,
+    )
+
+    app.include_router(
+        market_sizing_router,
+        prefix="/api/v1",
+        tags=["GTM Intelligence"],
+        dependencies=_auth,
+    )
     app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
     app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
     app.include_router(admin_router)

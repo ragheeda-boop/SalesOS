@@ -7,7 +7,7 @@
 | Story | Owner | Priority | Risk | Acceptance Criteria |
 |---|---|---|---|---|
 | STORY-11-01 (ICP Engine) | AI-Lead | P0 | Medium | `ICPProfile` versioned object, reusable across sessions |
-| STORY-11-02 (TAM/SAM/SOM) | BE1 | P0 | Medium | Computed against real 141,221-company dataset for ≥1 tenant |
+| STORY-11-02 (TAM/SAM/SOM) | BE1 | P0 | Medium | **LANDED BE (Stream A):** TAM/SAM/SOM via `/api/v1/gtm/market-sizing` against gov-dataset-shaped universe (CI fixture; scale hint 141221). Crumb [`PHASE1_STORY_11_02_MARKET_SIZING_CRUMB.md`](../PHASE1_STORY_11_02_MARKET_SIZING_CRUMB.md). Live 141221 Postgres adapter not claimed. No new RLS. No Production GO. |
 | STORY-11-03 (Lead Discovery) | BE2 | P0 | Medium | Government-data-first, provider-fallback sourcing working |
 | Second-connector decision | Chief Architect, Program Director | P0 | High (R-02) | SAP or HubSpot selected based on actual pilot pipeline demand, documented rationale |
 
