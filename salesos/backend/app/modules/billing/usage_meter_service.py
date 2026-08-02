@@ -224,4 +224,3 @@ class UsageMeterService:
                 usage[metric_key] = float(row.quantity or 0.0)
 
         return {"usage": usage, "period": period, "month_start": month_start.isoformat()}
-
