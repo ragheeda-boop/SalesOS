@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { IntegrationsStudioShell } from "@/features/admin/IntegrationsStudioShell";
 
 /**
- * FE-S08-00 — Integration Hub Owner Console inventory (honesty stub).
- * BE STORY-08-01..05 landed framework/SyncRun; no Hub HTTP surface yet.
- * STORY-08-07 Integrations Studio UI waits Hub HTTP APIs. Not Production GO.
+ * FE-S08-00/01 — Integration Hub inventory + thin Studio prep shell.
+ * BE STORY-08-01..05 landed; no Hub HTTP. Studio steps disabled (API not live).
+ * STORY-08-07 full flow waits Hub HTTP. Not Production GO.
  */
 const BE_LANDED = [
   {
@@ -65,10 +66,13 @@ export default function AdminIntegrationsInventoryPage() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="owner-ops-integrations-honesty"
       >
-        FE-S08-00 honesty stub: BE framework stories 08-01..05 are code-landed;
-        Owner/tenant Hub HTTP + Studio UI (STORY-08-07) are not shipped. Do not
-        claim Odoo GA. Owner mint remains DEC-093 follow-up. Not Production GO.
+        FE-S08-00/01: BE framework stories 08-01..05 are code-landed; Hub HTTP
+        is not live. Thin Studio chrome is prep-only (disabled steps). Full
+        STORY-08-07 waits Hub HTTP. No invented APIs. Owner mint remains DEC-093
+        follow-up. Not Production GO.
       </p>
+
+      <IntegrationsStudioShell />
 
       <section data-testid="admin-integrations-be-landed">
         <h2 className="text-sm font-semibold text-[var(--text-primary)]">

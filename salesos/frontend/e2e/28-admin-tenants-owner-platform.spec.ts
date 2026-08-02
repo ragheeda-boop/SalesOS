@@ -264,6 +264,13 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(
       page.getByTestId("owner-ops-integrations-honesty"),
     ).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-shell")).toBeVisible();
+    await expect(
+      page.getByTestId("integrations-studio-api-honesty"),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("integrations-studio-step-connect"),
+    ).toBeDisabled();
   });
 
   test("admin flags/config/audit expose ops honesty hooks", async ({
