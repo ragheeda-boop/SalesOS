@@ -40,9 +40,12 @@ from app.modules.integration_hub.schemas import (
     ScheduleCreate,
     ScheduleResponse,
     SyncRunResponse,
+    UnlinkedBadgeItemResponse,
+    UnlinkedBadgeListResponse,
 )
 from app.modules.integration_hub.sync_run_service import SyncRunService
 from app.modules.integration_hub.sync_schedule import schedule_connection_sync
+from app.modules.integration_hub.unlinked_badge import collect_unlinked_badges_from_error_logs
 from domains.workflow.postgres_repo import PostgresWorkflowRepository
 from domains.workflow.service import WorkflowService, WorkflowValidationError
 
@@ -372,3 +375,37 @@ async def list_sync_runs(
         limit=limit,
     )
     return [SyncRunResponse.model_validate(r) for r in rows]
+
+
+@router.get(
+    "/connections/{connection_id}/unlinked-badges",
+    response_model=UnlinkedBadgeListResponse,
+    dependencies=_AUTH,
+)
+async def list_unlinked_badges(
+    connection_id: uuid.UUID,
+    tenant_id: str = Depends(get_current_tenant_id),
+    db: AsyncSession = Depends(get_db_session),
+    limit: int = Query(100, ge=1, le=500),
+    sync_run_limit: int = Query(50, ge=1, le=200),
+) -> UnlinkedBadgeListResponse:
+    """STORY-09-01 residual — list unlinked cr_number badges for Studio Monitor.
+
+    Sources SyncRun.error_log entries with kind=unlinked_badge (never silent skip).
+    """
+    conn = await ExternalSystemConnectionService(db).get_for_tenant(
+        connection_id, tenant_id=_tid(tenant_id)
+    )
+    if conn is None:
+        raise HTTPException(status_code=404, detail="connection not found")
+    runs = await SyncRunService(db).list_for_connection(
+        tenant_id=_tid(tenant_id),
+        connection_id=connection_id,
+        limit=sync_run_limit,
+    )
+    items = collect_unlinked_badges_from_error_logs(runs, limit=limit)
+    return UnlinkedBadgeListResponse(
+        connection_id=connection_id,
+        count=len(items),
+        items=[UnlinkedBadgeItemResponse.model_validate(i.as_dict()) for i in items],
+    )

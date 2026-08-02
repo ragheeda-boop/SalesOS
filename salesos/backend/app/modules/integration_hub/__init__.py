@@ -1,8 +1,9 @@
-"""Integration Hub framework (STORY-08-01..09-07).
+"""Integration Hub framework (STORY-08-01..09-07 + unlinked badge list).
 
 SourceConnector + Hub HTTP + ConflictResolutionPolicy + OdooAdapter
 (res.partner + crm.lead + mail.message + helpdesk.ticket + project.task
-+ account.move CustomerInvoice) + write_date incremental + feature_odoo_integration.
++ account.move CustomerInvoice) + write_date incremental + feature_odoo_integration
++ unlinked cr_number badge list API.
 Not Production GO.
 """
 
@@ -54,6 +55,11 @@ from app.modules.integration_hub.sync_schedule import (
 from app.modules.integration_hub.task_case_extension import TaskCaseExtension
 from app.modules.integration_hub.task_sync import sync_project_tasks
 from app.modules.integration_hub.ticket_sync import sync_support_tickets
+from app.modules.integration_hub.unlinked_badge import (
+    KIND_UNLINKED_BADGE,
+    badge_items_from_partner_batch,
+    collect_unlinked_badges_from_error_logs,
+)
 
 __all__ = [
     "AclValidationError",
@@ -72,6 +78,7 @@ __all__ = [
     "FieldMappingConfigModel",
     "FieldMappingConfigService",
     "KIND_INTEGRATION_HUB_SYNC",
+    "KIND_UNLINKED_BADGE",
     "OdooAdapter",
     "OdooTranslator",
     "SourceConnector",
@@ -79,7 +86,9 @@ __all__ = [
     "SyncRunService",
     "TaskCaseExtension",
     "assert_no_feedback_loop_pull",
+    "badge_items_from_partner_batch",
     "certify_source_connector",
+    "collect_unlinked_badges_from_error_logs",
     "filter_mappings_for_pull",
     "join_partner_by_cr_number",
     "pull_odoo_incremental_for_sync",

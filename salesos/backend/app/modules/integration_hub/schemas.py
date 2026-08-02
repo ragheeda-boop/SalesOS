@@ -114,3 +114,22 @@ class DisconnectResponse(BaseModel):
     id: UUID
     is_active: bool
     message: str
+
+
+class UnlinkedBadgeItemResponse(BaseModel):
+    """STORY-09-01 residual — visible unlinked cr_number badge for Studio Monitor."""
+
+    kind: Literal["unlinked_badge"] = "unlinked_badge"
+    external_id: str
+    status: Literal["unlinked", "invalid_cr"]
+    cr_number: str | None = None
+    message: str = ""
+    model: str = "res.partner"
+    sync_run_id: str | None = None
+    recorded_at: str | None = None
+
+
+class UnlinkedBadgeListResponse(BaseModel):
+    connection_id: UUID
+    count: int
+    items: list[UnlinkedBadgeItemResponse]

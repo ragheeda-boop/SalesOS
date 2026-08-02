@@ -93,6 +93,7 @@ class SyncRunExecutor:
                 run.cursor_before = dict(result.get("cursor_before") or {})
             records = list(result.get("records") or [])
             failed = list(result.get("failed") or [])
+            unlinked_badges = list(result.get("unlinked_badges") or [])
             run.records_pulled = len(records) + len(failed)
             run.records_written = len(records)
             run.records_failed = len(failed)
@@ -100,13 +101,19 @@ class SyncRunExecutor:
             if failed and records:
                 run.status = "partial"
                 run.failure_class = "malformed_data"
-                run.error_log = [{"kind": "malformed_data", "count": len(failed)}]
+                run.error_log = [
+                    {"kind": "malformed_data", "count": len(failed)},
+                    *[b for b in unlinked_badges if isinstance(b, dict)],
+                ]
             elif failed and not records:
                 run.status = "failed"
                 run.failure_class = str(result.get("failure_class") or "malformed_data")
-                run.error_log = list(result.get("errors") or [{"kind": run.failure_class}])
+                run.error_log = list(result.get("errors") or [{"kind": run.failure_class}]) + [
+                    b for b in unlinked_badges if isinstance(b, dict)
+                ]
             else:
                 run.status = "succeeded"
+                run.error_log = [b for b in unlinked_badges if isinstance(b, dict)]
             run.finished_at = datetime.now(UTC)
             return {
                 "sync_run_id": str(run.id),
@@ -114,6 +121,7 @@ class SyncRunExecutor:
                 "records_pulled": run.records_pulled,
                 "records_written": run.records_written,
                 "records_failed": run.records_failed,
+                "unlinked_badge_count": len(unlinked_badges),
             }
         except ConnectionError as exc:
             run.status = "failed"
