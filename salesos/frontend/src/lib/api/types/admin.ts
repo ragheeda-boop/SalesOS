@@ -85,14 +85,55 @@ export interface TaskResponse {
   created_at?: string | null;
 }
 
-/** STORY-04-01 Owner Platform fields (A1/A2 contract). */
+/**
+ * STORY-04-01 Owner Platform fields — synced to Backend A2
+ * (`TenantListItem` / `TenantDetail` @ tip `64b44e9`).
+ */
+export type AdminProvisioningStatus =
+  | "pending"
+  | "active"
+  | "suspended"
+  | "failed";
+
+export const ADMIN_PROVISIONING_STATUS_VALUES: readonly AdminProvisioningStatus[] =
+  ["pending", "active", "suspended", "failed"] as const;
+
 export interface AdminTenantOwnerPlatformFields {
+  /** Opaque catalog id (String(64)); not License.plan_id UUID. */
+  plan_id: string | null;
+  region: string | null;
+  data_residency: string | null;
+  provisioning_status: AdminProvisioningStatus | string;
+  trial_ends_at: string | null;
+}
+
+/** POST /api/v1/admin/tenants — mirrors backend TenantCreate. */
+export interface AdminTenantCreate {
+  name: string;
+  slug: string;
+  domain?: string;
+  /** Legacy display/tier label (tenants.plan). */
+  plan?: string;
+  plan_id?: string;
+  region?: string;
+  data_residency?: string;
+  trial_ends_at?: string | null;
+  admin_email?: string;
+  admin_password?: string;
+  admin_full_name?: string;
+}
+
+/** PUT /api/v1/admin/tenants/{id} — mirrors backend TenantUpdate. */
+export interface AdminTenantUpdate {
+  name?: string;
+  is_active?: boolean;
+  plan?: string;
   plan_id?: string | null;
   region?: string | null;
   data_residency?: string | null;
-  /** pending | active | suspended | failed */
-  provisioning_status?: string | null;
+  provisioning_status?: AdminProvisioningStatus | string | null;
   trial_ends_at?: string | null;
+  settings?: Record<string, unknown>;
 }
 
 export interface AdminTenantListItem extends AdminTenantOwnerPlatformFields {

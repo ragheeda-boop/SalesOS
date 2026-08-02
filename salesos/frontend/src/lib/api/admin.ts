@@ -15,8 +15,10 @@ import type {
   AdminPermission,
   AdminPlan,
   AdminRole,
+  AdminTenantCreate,
   AdminTenantDetail,
   AdminTenantListItem,
+  AdminTenantUpdate,
   AdminTenantUsage,
   AdminTransaction,
   AdminUser,
@@ -157,16 +159,9 @@ export async function listAdminTenants(
   return resp.data;
 }
 
-export async function createAdminTenant(data: {
-  name: string;
-  slug: string;
-  domain?: string;
-  /** STORY-04-01 Owner Platform (opaque catalog id). */
-  plan_id?: string;
-  region?: string;
-  data_residency?: string;
-  trial_ends_at?: string | null;
-}): Promise<AdminTenantDetail> {
+export async function createAdminTenant(
+  data: AdminTenantCreate,
+): Promise<AdminTenantDetail> {
   const resp = await api.post("/api/v1/admin/tenants", data);
   return resp.data;
 }
@@ -178,7 +173,7 @@ export async function getAdminTenant(id: string): Promise<AdminTenantDetail> {
 
 export async function updateAdminTenant(
   id: string,
-  data: Record<string, unknown>,
+  data: AdminTenantUpdate,
 ): Promise<AdminTenantDetail> {
   const resp = await api.put(`/api/v1/admin/tenants/${id}`, data);
   return resp.data;

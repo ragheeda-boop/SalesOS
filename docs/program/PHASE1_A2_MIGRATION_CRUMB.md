@@ -18,8 +18,12 @@
 
 Existing rows → `provisioning_status='active'`. New defaults → `pending`.
 
+## FE contract (B2/B5)
+
+Aligned with tip `b6ea2ef` write-path: create accepts `plan_id`/`region`/`data_residency`/`trial_ends_at`; update accepts same + `provisioning_status`; JSON `null` clears nullable Owner Platform fields via `model_fields_set`.
+
 ## Next
 
-1. Non-prod Docker `alembic upgrade head` / `downgrade -1` / re-upgrade proof (explicit approval).  
+1. Non-prod Docker `alembic upgrade head` / `downgrade -1` / re-upgrade proof.  
 2. D3 adversarial RLS after migrate.  
 3. Keep tip Stages 1–5 green.

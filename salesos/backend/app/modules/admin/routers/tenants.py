@@ -173,20 +173,24 @@ async def update_tenant(
     tenant = await db.get(Tenant, tid)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
-    if body.name is not None:
+    # Use model_fields_set so FE write-path can clear Owner Platform fields with JSON null
+    # (buildOwnerPlatformWritePayload sends null for empty strings).
+    fields_set = body.model_fields_set
+
+    if "name" in fields_set and body.name is not None:
         tenant.name = body.name
-    if body.is_active is not None:
+    if "is_active" in fields_set and body.is_active is not None:
         tenant.is_active = body.is_active
     # plan = display/tier label; plan_id = opaque Owner Platform catalog id (STORY-04-01).
-    if body.plan is not None:
+    if "plan" in fields_set and body.plan is not None:
         tenant.plan = body.plan
-    if body.plan_id is not None:
+    if "plan_id" in fields_set:
         tenant.plan_id = body.plan_id
-    if body.region is not None:
+    if "region" in fields_set:
         tenant.region = body.region
-    if body.data_residency is not None:
+    if "data_residency" in fields_set:
         tenant.data_residency = body.data_residency
-    if body.provisioning_status is not None:
+    if "provisioning_status" in fields_set and body.provisioning_status is not None:
         if body.provisioning_status not in PROVISIONING_STATUS_VALUES:
             raise HTTPException(
                 status_code=400,
@@ -196,9 +200,9 @@ async def update_tenant(
                 ),
             )
         tenant.provisioning_status = body.provisioning_status
-    if body.trial_ends_at is not None:
+    if "trial_ends_at" in fields_set:
         tenant.trial_ends_at = body.trial_ends_at
-    if body.settings is not None:
+    if "settings" in fields_set and body.settings is not None:
         settings = dict(tenant.settings or {})
         settings.update(body.settings)
         tenant.settings = settings

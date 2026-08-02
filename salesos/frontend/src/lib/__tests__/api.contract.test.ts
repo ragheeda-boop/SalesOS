@@ -1300,6 +1300,11 @@ describe("listAdminTenants — contract", () => {
         slug: "salesos",
         domain: null,
         plan: "enterprise",
+        plan_id: "cat-ent",
+        region: "me-central-1",
+        data_residency: "ae",
+        provisioning_status: "active",
+        trial_ends_at: null,
         is_active: true,
         user_count: 10,
         created_at: "2026-01-01",
@@ -1313,6 +1318,8 @@ describe("listAdminTenants — contract", () => {
     expect(Array.isArray(result)).toBe(true);
     expect(result[0]).toHaveProperty("slug");
     expect(result[0]).toHaveProperty("user_count");
+    expect(result[0]).toHaveProperty("provisioning_status", "active");
+    expect(result[0]).toHaveProperty("plan_id", "cat-ent");
   });
 });
 
@@ -1860,6 +1867,11 @@ describe("getAdminTenant — contract", () => {
       slug: "salesos",
       domain: null,
       plan: "enterprise",
+      plan_id: null,
+      region: null,
+      data_residency: null,
+      provisioning_status: "pending",
+      trial_ends_at: null,
       is_active: true,
       settings: {},
       features: {},
@@ -1875,6 +1887,7 @@ describe("getAdminTenant — contract", () => {
     expect(result).toHaveProperty("slug");
     expect(result).toHaveProperty("settings");
     expect(result).toHaveProperty("features");
+    expect(result).toHaveProperty("provisioning_status", "pending");
   });
 });
 
@@ -1886,6 +1899,11 @@ describe("createAdminTenant — contract", () => {
       slug: "newco",
       domain: null,
       plan: "starter",
+      plan_id: "cat-1",
+      region: "me-central-1",
+      data_residency: "ae",
+      provisioning_status: "active",
+      trial_ends_at: null,
       is_active: true,
       settings: {},
       features: {},
@@ -1896,12 +1914,23 @@ describe("createAdminTenant — contract", () => {
     };
     mockAxios.post.mockResolvedValueOnce(mockResponse(payload));
 
-    const result = await createAdminTenant({ name: "NewCo", slug: "newco" });
+    const result = await createAdminTenant({
+      name: "NewCo",
+      slug: "newco",
+      plan_id: "cat-1",
+      region: "me-central-1",
+      data_residency: "ae",
+      admin_email: "admin@newco.test",
+    });
 
     expect(result.name).toBe("NewCo");
     expect(mockAxios.post).toHaveBeenCalledWith("/api/v1/admin/tenants", {
       name: "NewCo",
       slug: "newco",
+      plan_id: "cat-1",
+      region: "me-central-1",
+      data_residency: "ae",
+      admin_email: "admin@newco.test",
     });
   });
 });
@@ -1914,6 +1943,11 @@ describe("updateAdminTenant — contract", () => {
       slug: "salesos",
       domain: null,
       plan: "enterprise",
+      plan_id: "cat-ent",
+      region: "me-central-1",
+      data_residency: "ae",
+      provisioning_status: "active",
+      trial_ends_at: null,
       is_active: true,
       settings: {},
       features: {},
@@ -1924,9 +1958,18 @@ describe("updateAdminTenant — contract", () => {
     };
     mockAxios.put.mockResolvedValueOnce(mockResponse(payload));
 
-    const result = await updateAdminTenant("t-1", { name: "UpdatedCo" });
+    const result = await updateAdminTenant("t-1", {
+      name: "UpdatedCo",
+      region: "me-central-1",
+      provisioning_status: "active",
+    });
 
     expect(result.name).toBe("UpdatedCo");
+    expect(mockAxios.put).toHaveBeenCalledWith("/api/v1/admin/tenants/t-1", {
+      name: "UpdatedCo",
+      region: "me-central-1",
+      provisioning_status: "active",
+    });
   });
 });
 

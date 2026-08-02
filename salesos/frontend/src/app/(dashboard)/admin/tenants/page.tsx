@@ -38,6 +38,7 @@ import {
 import type { AdminTenantListItem } from "@/lib/api";
 import {
   TenantOwnerPlatformFields,
+  fromDateInputValue,
   provisioningStatusLabel,
   provisioningStatusVariant,
   type TenantOwnerPlatformWritePayload,
@@ -80,6 +81,7 @@ export default function AdminTenantsPage() {
     plan_id: "",
     region: "",
     data_residency: "",
+    trial_ends_at: "",
   });
 
   const { data: tenants, isLoading } = useAdminTenants({
@@ -120,6 +122,8 @@ export default function AdminTenantsPage() {
         plan_id: createForm.plan_id || undefined,
         region: createForm.region || undefined,
         data_residency: createForm.data_residency || undefined,
+        trial_ends_at: fromDateInputValue(createForm.trial_ends_at),
+        admin_email: createForm.admin_email || undefined,
       });
       setShowCreate(false);
       setCreateForm({
@@ -130,12 +134,13 @@ export default function AdminTenantsPage() {
         plan_id: "",
         region: "",
         data_residency: "",
+        trial_ends_at: "",
       });
       toast({
         variant: "success",
         title: "Tenant created",
         description:
-          "Create request sent. Full Studio seed / admin assign remains STORY-04-02 script path.",
+          "Provisioned via Admin API (STORY-04-02 workflow). Confirm Studio seed in target env.",
       });
     } catch {
       toast({
@@ -310,9 +315,24 @@ export default function AdminTenantsPage() {
                   placeholder="policy tag"
                 />
               </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
+                  Trial ends
+                </label>
+                <Input
+                  type="date"
+                  value={createForm.trial_ends_at}
+                  onChange={(e) =>
+                    setCreateForm({
+                      ...createForm,
+                      trial_ends_at: e.target.value,
+                    })
+                  }
+                />
+              </div>
               <p className="text-xs text-[var(--text-muted)]">
-                Owner Platform fields (STORY-04-01). Idempotent Studio seed /
-                first-admin assign stays on the STORY-04-02 script path.
+                Owner Platform fields synced to Backend A2. Create uses
+                provision_workflow (admin_email optional for first admin).
               </p>
             </div>
           </ModalBody>

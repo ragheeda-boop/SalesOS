@@ -1,18 +1,19 @@
-# Phase 1 — Frontend Stream B crumb (B1–B5)
+# Phase 1 — Frontend Stream B crumb (B1–B5 + B4 sync)
 
 > **Date:** 2026-08-02  
 > **Owner:** Frontend Lead  
-> **Evidence tip:** Phase 1 ACTIVE (`c19b098`); B2 land `a8fd06e`; this land = write-path follow-on  
-> **Plan:** [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) §4.1 B + Sprint-04 FE follow-on  
+> **Evidence:** B2 `a8fd06e` · B5 `b6ea2ef` · Backend A2 `64b44e9` · this land = B4 contract sync  
+> **Plan:** [`POST_PHASE0_PARALLEL_EXECUTION_PLAN.md`](POST_PHASE0_PARALLEL_EXECUTION_PLAN.md) §4.1 B + Sprint-04 FE  
 
 | Task | Status |
 |------|--------|
-| B1 Inventory Owner Console / admin Tenant surfaces | **COMPLETE** — [`PHASE1_FE_TENANT_SURFACE_INVENTORY.md`](PHASE1_FE_TENANT_SURFACE_INVENTORY.md) |
-| B2 Minimal FE read-path stubs | **COMPLETE** @ `a8fd06e` |
-| B3 AI honesty (plan standing rule) | **AFFIRMED** — `feature_ai_copilot` default False (`config.py`); Decision package remains STUB; not enabled |
-| B4 FE lint/tsc holdouts | Skipped (not blocking; needs approval) |
-| B5 Write-path / provisioning UI + tests (Sprint-04 follow-on) | **LANDED** — edit+create Owner Platform fields; widget unit tests |
+| B1 Inventory | **COMPLETE** |
+| B2 Read-path stubs | **COMPLETE** @ `a8fd06e` |
+| B3 AI honesty | **AFFIRMED** — `feature_ai_copilot` default False; Decision STUB |
+| B4 Contract sync (A2 ready) | **LANDED** — [`PHASE1_FE_B4_CONTRACT_SYNC.md`](PHASE1_FE_B4_CONTRACT_SYNC.md) |
+| B4b FE lint/tsc holdouts | Skipped (not blocking; needs approval) |
+| B5 Write-path + tests | **COMPLETE** @ `b6ea2ef` |
 
-**Files:** `TenantOwnerPlatformFields.tsx` (+ `__tests__`) · `admin/tenants/page.tsx` · `lib/api/admin.ts` create payload · inventory + board crumb.  
-**Non-touch:** `TenantList.tsx`. Full STORY-04-02 Studio seed / first-admin remains script-first.  
-**Validation:** **light validated** — focused Jest `TenantOwnerPlatformFields` **6/6 PASS**. **No Production GO.**
+**Files:** `types/admin.ts` · `api/admin.ts` · `admin/tenants/page.tsx` · contract + admin-queries tests · inventory/board crumbs.  
+**Non-touch:** `TenantList.tsx`.  
+**Validation:** focused Jest (Owner Platform + admin tenant contracts + admin-queries). **No Production GO.**
