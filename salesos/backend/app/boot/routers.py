@@ -244,6 +244,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["Tenant Studio"],
         dependencies=_auth,
     )
+    # DOM-023 / CAP-095 — STORY-11-01 ICP Engine (versioned ICPProfile).
+    from app.modules.gtm.icp_router import (
+        router as icp_router,
+    )
+
+    app.include_router(
+        icp_router,
+        prefix="/api/v1",
+        tags=["GTM Intelligence"],
+        dependencies=_auth,
+    )
     # DOM-023 / CAP-096 — STORY-11-02 TAM/SAM/SOM Market Sizing.
     from app.modules.gtm.market_sizing_router import (
         router as market_sizing_router,
