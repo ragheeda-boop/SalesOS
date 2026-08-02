@@ -33,8 +33,12 @@
 | Backend Lint/Types CI | Pending tip push evidence |
 | Production GO | **Not claimed** |
 
+## Follow-on (TTL soak)
+
+Redis/memory entitlement cache TTL ≤60s + plan-downgrade soak → **LANDED**  
+[`PHASE1_STORY_06_04_ENTITLEMENT_CACHE_TTL_CRUMB.md`](PHASE1_STORY_06_04_ENTITLEMENT_CACHE_TTL_CRUMB.md).
+
 ## Non-goals
 
-- Live Redis cache TTL soak (≤60s downgrade) — deferred ops soak
 - Production GO / Stripe secrets / Stage 6 GHCR green
 - Weakening auth/CSRF/RBAC/DEC-085

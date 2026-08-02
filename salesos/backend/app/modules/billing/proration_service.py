@@ -14,6 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.admin.db_models import PlanModel
+from app.modules.admin.entitlement_cache import invalidate_entitlement_cache_for_tenant
 from app.modules.billing.models import SubscriptionModel
 from app.modules.billing.proration import PlanChangeTiming, quote_plan_change
 from app.modules.billing.service import SubscriptionService
@@ -161,6 +162,7 @@ class ProrationService:
         if tenant is not None:
             tenant.plan_id = str(target.id)
         await self.session.flush()
+        await invalidate_entitlement_cache_for_tenant(str(tid))
         preview["applied"] = "immediate"
         preview["from_plan_id"] = preview["from_plan_id"]
         preview["to_plan_id"] = str(target.id)
@@ -191,6 +193,7 @@ class ProrationService:
             if tenant is not None:
                 tenant.plan_id = new_plan
             applied.append(str(sub.tenant_id))
+            await invalidate_entitlement_cache_for_tenant(str(sub.tenant_id))
         await self.session.flush()
         return {
             "evaluated_at": clock.isoformat(),

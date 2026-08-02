@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
 
 from app.dependencies import get_db_session
+from app.modules.admin.entitlement_cache import invalidate_entitlement_cache_for_tenant
 from app.modules.billing.service import SubscriptionService
 from app.modules.identity.models import Tenant, User
 from app.modules.identity.tenant_lifecycle_guard import (
@@ -321,10 +322,13 @@ async def update_tenant(
     if "is_active" in fields_set and body.is_active is not None:
         tenant.is_active = body.is_active
     # plan = display/tier label; plan_id = opaque Owner Platform catalog id (STORY-04-01).
+    plan_changed = False
     if "plan" in fields_set and body.plan is not None:
         tenant.plan = body.plan
+        plan_changed = True
     if "plan_id" in fields_set:
         tenant.plan_id = body.plan_id
+        plan_changed = True
     if "region" in fields_set:
         tenant.region = body.region
     if "data_residency" in fields_set:
@@ -347,6 +351,8 @@ async def update_tenant(
         tenant.settings = settings
     tenant.updated_at = datetime.now(UTC)
     await db.flush()
+    if plan_changed:
+        await invalidate_entitlement_cache_for_tenant(str(tenant.id))
 
     return _to_detail(tenant, await _user_count(db, tenant.id))
 

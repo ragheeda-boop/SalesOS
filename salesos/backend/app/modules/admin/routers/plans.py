@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db_session
+from app.modules.admin.entitlement_cache import invalidate_all_entitlement_caches
 from app.modules.admin.entitlements import (
     default_entitlements_for_tier,
     entitlements_to_dict,
@@ -107,11 +108,14 @@ async def update_plan(
     plan_id: uuid.UUID, body: PlanUpdate, repos: AdminRepositories = Depends(get_admin_repos)
 ):
     data = body.model_dump(exclude_none=True)
-    if "entitlements" in data and data["entitlements"] is not None:
+    ents_changed = "entitlements" in data and data["entitlements"] is not None
+    if ents_changed:
         data["entitlements"] = entitlements_to_dict(parse_entitlements(data["entitlements"]))
     plan = await repos.plans.update(plan_id, data)
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
+    if ents_changed or "tier" in data:
+        await invalidate_all_entitlement_caches()
     return _plan_response(plan)
 
 

@@ -155,6 +155,9 @@ class Settings(BaseSettings):
     # STORY-06-02 — enforce Plan.entitlements on gated tenant paths. Policy, not a secret.
     entitlement_enforcement_enabled: bool = True
 
+    # STORY-06-02/06-04 — entitlement resolve cache TTL (seconds). Clamped to 1..60.
+    entitlement_cache_ttl_seconds: int = 60
+
     # STORY-06-03 — enforce UsageMeter quotas on gated paths. Policy, not a secret.
     quota_enforcement_enabled: bool = True
 

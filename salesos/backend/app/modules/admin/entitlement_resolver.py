@@ -1,6 +1,7 @@
 """STORY-06-02 — Resolve Plan.entitlements for a tenant (read-only).
 
-Does not call DEC-085 set_config. Does not invent Stripe secrets.
+Uses short-TTL entitlement cache (<=60s). Does not call DEC-085 set_config.
+Does not invent Stripe secrets.
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.admin.db_models import PlanModel
+from app.modules.admin.entitlement_cache import get_entitlement_cache
 from app.modules.admin.entitlements import (
     PlanEntitlements,
     default_entitlements_for_tier,
@@ -37,11 +39,10 @@ async def _plan_by_id_or_tier(db: AsyncSession, plan_ref: str | None) -> PlanMod
     return result.scalar_one_or_none()
 
 
-async def resolve_entitlements_for_tenant(
+async def _resolve_entitlements_from_db(
     db: AsyncSession,
     tenant_id: str | uuid.UUID,
 ) -> tuple[PlanEntitlements, dict[str, Any]]:
-    """Return (entitlements, meta) for enforcement decisions."""
     tenant = await fetch_tenant_by_id(db, str(tenant_id))
     plan_ref: str | None = None
     tier_hint = "free"
@@ -82,3 +83,23 @@ async def resolve_entitlements_for_tenant(
         "tier": tier_hint,
         "source": "tier_default",
     }
+
+
+async def resolve_entitlements_for_tenant(
+    db: AsyncSession,
+    tenant_id: str | uuid.UUID,
+    *,
+    skip_cache: bool = False,
+) -> tuple[PlanEntitlements, dict[str, Any]]:
+    """Return (entitlements, meta) for enforcement decisions."""
+    tid = str(tenant_id)
+    cache = get_entitlement_cache()
+    if not skip_cache:
+        hit = await cache.get(tid)
+        if hit is not None:
+            return hit
+
+    ents, meta = await _resolve_entitlements_from_db(db, tid)
+    meta = {**meta, "cache": "miss"}
+    await cache.set(tid, ents, meta)
+    return ents, meta
