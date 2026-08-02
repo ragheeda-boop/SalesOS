@@ -3,14 +3,15 @@
 import { useState } from "react";
 import { Button, Input, Spinner, useToast } from "@salesos/ui";
 import {
-  useAiModelTiersCatalog,
-  useAiModelTiersDefaults,
+  useAiModelTierCatalog,
+  useAiModelTierDefaults,
   useAiModelTiersResolve,
 } from "@/lib/hooks/aiModelTiersStudioQueries";
 import {
   AI_MODEL_TIERS_HONESTY,
   AI_MODEL_TIERS_NON_GOALS,
 } from "@/features/tenant-studio/aiModelTiersHonesty";
+import type { AiModelTierCatalogEntry } from "@/lib/api";
 
 function getApiError(err: unknown): string {
   const detail = (err as { response?: { data?: { detail?: unknown } } })
@@ -30,8 +31,8 @@ export function AiModelTiersStudio() {
   const [requestedTier, setRequestedTier] = useState("");
   const [activeRequested, setActiveRequested] = useState<string | null>(null);
 
-  const catalogQuery = useAiModelTiersCatalog();
-  const defaultsQuery = useAiModelTiersDefaults(planTier);
+  const catalogQuery = useAiModelTierCatalog();
+  const defaultsQuery = useAiModelTierDefaults(planTier);
   const resolveQuery = useAiModelTiersResolve(activeRequested);
 
   return (
@@ -81,7 +82,7 @@ export function AiModelTiersStudio() {
               · {catalogQuery.data.honesty}
             </p>
             <ul className="space-y-2 text-sm">
-              {catalogQuery.data.catalog.map((row) => (
+              {catalogQuery.data.catalog.map((row: AiModelTierCatalogEntry) => (
                 <li
                   key={row.tier}
                   className="rounded border border-[var(--border-default)] px-3 py-2"
@@ -119,7 +120,7 @@ export function AiModelTiersStudio() {
             size="sm"
             data-testid="ai-model-tiers-defaults-load"
             onClick={() => {
-              void defaultsQuery.refetch().then((r) => {
+              void defaultsQuery.refetch().then((r: { error: unknown }) => {
                 if (r.error) {
                   toast({
                     title: "Defaults failed",
