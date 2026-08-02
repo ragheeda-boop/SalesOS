@@ -24,7 +24,7 @@ class DomainEntitlement(BaseModel):
     # Optional soft mode: limited | full (Tenant Studio DOM-022).
     mode: Literal["limited", "full"] | None = None
     # Numeric quota when domain is metered (e.g. connectors on DOM-021).
-    quota: int | None = Field(None, ge=0)
+    quota: int | None = None
     # Unlimited sentinel (Enterprise connectors / negotiated).
     unlimited: bool = False
     # Marketplace publish rights (DOM-024 Enterprise post-GA).
@@ -47,13 +47,15 @@ class PlanEntitlements(BaseModel):
 
     version: Literal[1] = 1
     domains: dict[str, DomainEntitlement] = Field(default_factory=dict)
-    quotas: EntitlementQuotas = Field(default_factory=EntitlementQuotas)
+    quotas: EntitlementQuotas = Field(default_factory=lambda: EntitlementQuotas())
     deployment_tier: Literal["pooled", "siloed"] = "pooled"
     support_sla: str = Field("community", min_length=1, max_length=64)
 
     @field_validator("domains")
     @classmethod
-    def _normalize_domain_keys(cls, v: dict[str, DomainEntitlement]) -> dict[str, DomainEntitlement]:
+    def _normalize_domain_keys(
+        cls, v: dict[str, DomainEntitlement]
+    ) -> dict[str, DomainEntitlement]:
         out: dict[str, DomainEntitlement] = {}
         for key, ent in v.items():
             k = str(key).strip().upper()

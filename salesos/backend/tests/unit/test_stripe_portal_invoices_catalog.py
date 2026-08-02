@@ -41,3 +41,15 @@ def test_require_stripe_secret_fail_closed(monkeypatch) -> None:
         raise AssertionError("expected StripeNotConfiguredError")
     except stripe_client.StripeNotConfiguredError:
         pass
+
+
+def test_stripe_status_booleans_empty_env(monkeypatch) -> None:
+    """STORY-05-02c — readiness uses presence flags only (no secret echo)."""
+    from app.modules.billing import stripe_router
+
+    monkeypatch.setattr(stripe_router.settings, "stripe_secret_key", "")
+    monkeypatch.setattr(stripe_router.settings, "stripe_webhook_secret", "")
+    monkeypatch.setattr(stripe_router.settings, "stripe_publishable_key", "")
+    assert stripe_router.stripe_secret_configured() is False
+    assert stripe_router.stripe_webhook_configured() is False
+    assert stripe_router.stripe_publishable_configured() is False

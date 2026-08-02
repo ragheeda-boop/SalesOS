@@ -6,8 +6,8 @@
 
 | Story | Owner | Priority | Risk | Acceptance Criteria |
 |---|---|---|---|---|
-| STORY-05-02 (Stripe integration) | BE-Lead, BE2 | P0 | High (R-05) | **IN PROGRESS (Stream A):** webhook+checkout `f7fffb8`; portal + `platform_billing_invoices` + plan Stripe Price catalog Alembic `f6d2a45b7c03`. Crumbs [`PHASE1_STORY_05_02_STRIPE_CRUMB.md`](../PHASE1_STORY_05_02_STRIPE_CRUMB.md), [`PHASE1_STORY_05_02B_PORTAL_INVOICES_CATALOG_CRUMB.md`](../PHASE1_STORY_05_02B_PORTAL_INVOICES_CATALOG_CRUMB.md). Sandbox soak residual. No Production GO. |
-| STORY-05-03 (usage metering) | BE1 | P0 | Medium | **IN PROGRESS (Stream A):** `usage_meter_events` + `usage_meters` Alembic `a7e3b56c8d04`; Owner record/rollup/list APIs. Crumb [`PHASE1_STORY_05_03_USAGE_METER_CRUMB.md`](../PHASE1_STORY_05_03_USAGE_METER_CRUMB.md). No Production GO. |
+| STORY-05-02 (Stripe integration) | BE-Lead, BE2 | P0 | High (R-05) | **LANDED BE (Stream A):** webhook+checkout+portal+invoices+catalog; readiness `GET /billing/stripe/status` (05-02c). Crumbs [`PHASE1_STORY_05_02_STRIPE_CRUMB.md`](../PHASE1_STORY_05_02_STRIPE_CRUMB.md), [`PHASE1_STORY_05_02B_PORTAL_INVOICES_CATALOG_CRUMB.md`](../PHASE1_STORY_05_02B_PORTAL_INVOICES_CATALOG_CRUMB.md), [`PHASE1_STORY_05_02C_SANDBOX_READINESS_CRUMB.md`](../PHASE1_STORY_05_02C_SANDBOX_READINESS_CRUMB.md). **Ops residual:** live sandbox soak needs real env keys. No Production GO. |
+| STORY-05-03 (usage metering) | BE1 | P0 | Medium | **LANDED BE (Stream A):** events + hourly meters Alembic `a7e3b56c8d04`. Crumb [`PHASE1_STORY_05_03_USAGE_METER_CRUMB.md`](../PHASE1_STORY_05_03_USAGE_METER_CRUMB.md). No Production GO. |
 
 **Expected Demo:** Full trial→active subscription cycle against Stripe sandbox, shown live including a simulated webhook replay proving idempotency.
 

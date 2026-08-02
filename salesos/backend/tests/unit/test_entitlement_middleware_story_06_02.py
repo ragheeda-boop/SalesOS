@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from app.modules.admin.entitlement_gates import (
-    required_domain_for_path,
     path_skips_entitlement_guard,
+    required_domain_for_path,
 )
 from app.modules.admin.entitlements import (
     default_entitlements_for_tier,

@@ -55,7 +55,7 @@ def required_domain_for_path(path: str) -> EntitlementGateMatch | None:
     path = path.split("?", 1)[0]
     best: EntitlementGateMatch | None = None
     for prefix, domain in ENTITLEMENT_PATH_GATES:
-        if path == prefix or path.startswith(prefix + "/"):
-            if best is None or len(prefix) > len(best.path_prefix):
-                best = EntitlementGateMatch(path_prefix=prefix, domain=domain)
+        matched = path == prefix or path.startswith(prefix + "/")
+        if matched and (best is None or len(prefix) > len(best.path_prefix)):
+            best = EntitlementGateMatch(path_prefix=prefix, domain=domain)
     return best

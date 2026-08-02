@@ -19,7 +19,6 @@ from app.modules.admin.entitlements import (
     parse_entitlements,
 )
 from app.modules.billing.models import SubscriptionModel
-from app.modules.identity.models import Tenant
 from app.modules.identity.tenant_lifecycle_guard import fetch_tenant_by_id
 
 
