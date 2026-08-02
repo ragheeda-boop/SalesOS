@@ -181,6 +181,16 @@ def register_routers(app: FastAPI) -> None:
     )
     app.include_router(marketplace_router)
 
+    # EPIC-14 / STORY-14-01 — Load/SLO harness companion (50-tenant pooled tier).
+    from app.modules.load_slo.router import router as load_slo_router
+
+    app.include_router(
+        load_slo_router,
+        prefix="/api/v1",
+        tags=["Load SLO"],
+        dependencies=_auth,
+    )
+
     # EPIC-14 / STORY-14-02 — Chaos resilience fault-injection harness (CI).
     from app.modules.chaos_resilience.router import router as chaos_resilience_router
 
