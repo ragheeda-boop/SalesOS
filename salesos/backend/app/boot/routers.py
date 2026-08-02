@@ -184,9 +184,19 @@ def register_routers(app: FastAPI) -> None:
     )
     # DOM-022 Tenant Studio — STORY-10-01 CAP-082 custom field definitions.
     from app.modules.tenant_studio.router import router as tenant_studio_router
+    from app.modules.tenant_studio.workflow_builder_router import (
+        router as workflow_builder_router,
+    )
 
     app.include_router(
         tenant_studio_router,
+        prefix="/api/v1",
+        tags=["Tenant Studio"],
+        dependencies=_auth,
+    )
+    # DOM-022 / CAP-083 — STORY-10-03 Workflow Builder canvas → Workflow Engine.
+    app.include_router(
+        workflow_builder_router,
         prefix="/api/v1",
         tags=["Tenant Studio"],
         dependencies=_auth,
