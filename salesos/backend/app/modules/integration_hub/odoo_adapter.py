@@ -105,6 +105,9 @@ class InMemoryOdooRpc:
                 ordered = [r for r in ordered if str(r.get("write_date") or "") > watermark]
             elif op == "=":
                 ordered = [r for r in ordered if r.get(field) == value]
+            elif op == "in":
+                allowed = set(value) if isinstance(value, list | tuple | set) else {value}
+                ordered = [r for r in ordered if r.get(field) in allowed]
         return list(ordered[offset : offset + limit])
 
     async def write(
@@ -211,6 +214,22 @@ _TASK_FIELDS = (
     "write_date",
 )
 
+# STORY-09-06 — account.move customer AR (OBJ-021), not platform Stripe invoices.
+_INVOICE_FIELDS = (
+    "id",
+    "name",
+    "move_type",
+    "amount_total",
+    "amount_residual",
+    "payment_state",
+    "partner_id",
+    "invoice_date",
+    "invoice_date_due",
+    "currency_id",
+    "ref",
+    "write_date",
+)
+
 
 def _fields_for_model(model: str) -> tuple[str, ...]:
     key = (model or "").strip()
@@ -222,11 +241,13 @@ def _fields_for_model(model: str) -> tuple[str, ...]:
         return _TICKET_FIELDS
     if key == "project.task":
         return _TASK_FIELDS
+    if key == "account.move":
+        return _INVOICE_FIELDS
     return _PARTNER_FIELDS
 
 
 class OdooAdapter:
-    """SourceConnector for Odoo — partner through TaskCaseExtension path."""
+    """SourceConnector for Odoo — partner through CustomerInvoice path."""
 
     def __init__(
         self,
@@ -278,6 +299,9 @@ class OdooAdapter:
         # STORY-09-02: crm.lead opportunities only (exclude type=lead).
         if model_key == "crm.lead":
             domain.append(["type", "=", "opportunity"])
+        # STORY-09-06: customer AR only (out_invoice / out_refund).
+        if model_key == "account.move":
+            domain.append(["move_type", "in", ["out_invoice", "out_refund"]])
         rows = await self._rpc.search_read(
             credential_ref=credential_ref,
             config=config,

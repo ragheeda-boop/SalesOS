@@ -1,7 +1,8 @@
-"""Integration Hub framework (STORY-08-01..09-05).
+"""Integration Hub framework (STORY-08-01..09-06).
 
 SourceConnector + Hub HTTP + ConflictResolutionPolicy + OdooAdapter
-(res.partner + crm.lead + mail.message + helpdesk.ticket + project.task).
+(res.partner + crm.lead + mail.message + helpdesk.ticket + project.task
++ account.move CustomerInvoice).
 Not Production GO.
 """
 
@@ -22,6 +23,10 @@ from app.modules.integration_hub.conflict_policy_service import (
 )
 from app.modules.integration_hub.connection_service import ExternalSystemConnectionService
 from app.modules.integration_hub.cr_number_join import CrJoinResult, join_partner_by_cr_number
+from app.modules.integration_hub.customer_invoice_sync import (
+    CustomerInvoice,
+    sync_customer_invoices,
+)
 from app.modules.integration_hub.drift_job import DriftJobResult, run_field_drift_job
 from app.modules.integration_hub.fake_adapter import FakeSourceConnector
 from app.modules.integration_hub.field_mapping_service import FieldMappingConfigService
@@ -53,6 +58,7 @@ __all__ = [
     "ConflictResolutionPolicyModel",
     "ConflictResolutionPolicyService",
     "CrJoinResult",
+    "CustomerInvoice",
     "DriftJobResult",
     "ExternalSystemConnectionModel",
     "ExternalSystemConnectionService",
@@ -73,6 +79,7 @@ __all__ = [
     "join_partner_by_cr_number",
     "run_field_drift_job",
     "schedule_connection_sync",
+    "sync_customer_invoices",
     "sync_interaction_notes",
     "sync_opportunity_records",
     "sync_partner_records",
