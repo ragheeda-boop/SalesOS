@@ -149,6 +149,9 @@ class Settings(BaseSettings):
     stripe_webhook_secret: str = ""
     stripe_publishable_key: str = ""
 
+    # STORY-05-04 — dunning grace before auto-suspend (days). Policy, not a secret.
+    dunning_grace_days: int = 7
+
     log_level: str = "INFO"
     sentry_dsn: str = ""
     service_version: str = "5.1.0-rc1"

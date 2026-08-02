@@ -124,7 +124,7 @@ class StripeWebhookService:
         if sub is None:
             sub, _ = await self.subs.ensure_for_tenant(tenant_id=tenant_id)
         self._stamp_stripe_ids(sub, data_obj)
-        return await self._transition(sub, sm_event)
+        return await self._transition(sub, sm_event, data_obj=data_obj)
 
     async def _apply_by_stripe_ids(
         self,
@@ -144,7 +144,7 @@ class StripeWebhookService:
         if row is None:
             return {"result": "subscription_not_found"}
         self._stamp_stripe_ids(row, data_obj)
-        out = await self._transition(row, sm_event)
+        out = await self._transition(row, sm_event, data_obj=data_obj)
         out["tenant_id"] = str(row.tenant_id)
         return out
 
@@ -159,9 +159,14 @@ class StripeWebhookService:
             sub.stripe_subscription_id = str(data_obj["id"])
 
     async def _transition(
-        self, sub: SubscriptionModel, sm_event: SubscriptionEvent
+        self,
+        sub: SubscriptionModel,
+        sm_event: SubscriptionEvent,
+        *,
+        data_obj: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         event = sm_event
+        payload = data_obj or {}
         if sm_event == SubscriptionEvent.ACTIVATE:
             if can_transition(sub.status, SubscriptionEvent.REACTIVATE):
                 event = SubscriptionEvent.REACTIVATE
@@ -175,4 +180,21 @@ class StripeWebhookService:
             updated = await self.subs.apply_event(tenant_id=sub.tenant_id, event=event)
         except SubscriptionTransitionError:
             return {"result": "illegal", "subscription_status": sub.status}
+
+        # STORY-05-04 — open/clear dunning around past_due / recovery.
+        from app.modules.billing.dunning_service import DunningService
+
+        dunning = DunningService(self.session)
+        if event == SubscriptionEvent.MARK_PAST_DUE:
+            inv_id = payload.get("id") if isinstance(payload.get("id"), str) else None
+            if inv_id and not str(inv_id).startswith("in_"):
+                inv_id = None
+            await dunning.open_or_bump(tenant_id=sub.tenant_id, stripe_invoice_id=inv_id)
+        elif event in {
+            SubscriptionEvent.ACTIVATE,
+            SubscriptionEvent.REACTIVATE,
+            SubscriptionEvent.RESUBSCRIBE_ACTIVE,
+        }:
+            await dunning.clear_for_tenant(sub.tenant_id)
+
         return {"result": "applied", "subscription_status": updated.status}

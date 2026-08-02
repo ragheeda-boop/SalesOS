@@ -9,7 +9,7 @@
 
 | Story | Owner | Priority | Risk | Acceptance Criteria |
 |---|---|---|---|---|
-| STORY-05-04 (dunning) | BE2 | P0 | High (R-05) | Failed payment → grace period → auto-suspend, no manual steps |
+| STORY-05-04 (dunning) | BE2 | P0 | High (R-05) | **LANDED BE (Stream A):** dunning_cases Alembic 8f4c67d9e15; grace (dunning_grace_days) → evaluate auto-suspend; webhook open/clear. Crumb [PHASE1_STORY_05_04_DUNNING_CRUMB.md](../PHASE1_STORY_05_04_DUNNING_CRUMB.md). No Production GO. |
 | STORY-05-05 (proration) | BE1 | P1 | Medium | Upgrade/downgrade mid-cycle bills correctly in both directions |
 | STORY-06-01 (Plan.entitlements schema) | BE-Lead | P0 | Medium | Entitlements JSONB schema reviewed and documented |
 | STORY-06-02 (entitlement middleware) | BE-Lead | P0 | Medium | At least 3 DOM/CAP combinations gated correctly |
