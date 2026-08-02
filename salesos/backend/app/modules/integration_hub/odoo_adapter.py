@@ -102,9 +102,7 @@ class InMemoryOdooRpc:
             field, op, value = clause[0], clause[1], clause[2]
             if field == "write_date" and op == ">":
                 watermark = str(value)
-                ordered = [
-                    r for r in ordered if str(r.get("write_date") or "") > watermark
-                ]
+                ordered = [r for r in ordered if str(r.get("write_date") or "") > watermark]
             elif op == "=":
                 ordered = [r for r in ordered if r.get(field) == value]
         return list(ordered[offset : offset + limit])
