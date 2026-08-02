@@ -119,6 +119,14 @@ export const adminKeys = {
   users: (filters?: Record<string, unknown>) =>
     ["admin", "users", filters] as const,
   userDetail: (id: string) => ["admin", "users", id] as const,
+  tenantSubscription: (tenantId: string) =>
+    ["admin", "billing", "subscription", tenantId] as const,
+  billingCatalog: (activeOnly?: boolean) =>
+    ["admin", "billing", "catalog", activeOnly] as const,
+  platformInvoices: (tenantId?: string) =>
+    ["admin", "billing", "platform-invoices", tenantId] as const,
+  usageMeters: (filters?: Record<string, unknown>) =>
+    ["admin", "billing", "usage", filters] as const,
   invoices: (tenantId?: string) =>
     ["admin", "billing", "invoices", tenantId] as const,
   transactions: (tenantId?: string) =>

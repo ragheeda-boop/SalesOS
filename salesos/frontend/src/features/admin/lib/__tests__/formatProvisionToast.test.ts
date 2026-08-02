@@ -6,10 +6,17 @@ import {
   formatReprovisionResultDescription,
   formatTenantUsagePeriod,
   formatTrialEndsLabel,
+  catalogPriceIdForCycle,
+  formatSubscriptionSummary,
+  formatUsageMeterRow,
   getDeletionRequestedAt,
+  isStripeBillingUnavailableError,
   parseAdminTenantsPageSize,
   requiresForceActiveReprovision,
+  resolveTenantDeletedAt,
+  retentionDaysRemaining,
   retentionHardDeleteDescription,
+  stripeBillingUnavailableDescription,
   suspendedWriteBlockDescription,
   lifecycleStatusDescription,
   matchesTrialFilter,
@@ -216,7 +223,7 @@ describe("formatReprovisionResultDescription — FE-S04-34", () => {
   });
 });
 
-describe("retention helpers — FE-S04-35", () => {
+describe("retention helpers — FE-S04-35/45", () => {
   it("reads deletion_requested_at from settings", () => {
     expect(
       getDeletionRequestedAt({
@@ -226,15 +233,72 @@ describe("retention helpers — FE-S04-35", () => {
     expect(getDeletionRequestedAt({})).toBeNull();
   });
 
+  it("prefers tenants.deleted_at over settings dual-write", () => {
+    expect(
+      resolveTenantDeletedAt({
+        deleted_at: "2026-08-02T00:00:00Z",
+        settings: { deletion_requested_at: "2026-08-01T00:00:00Z" },
+      }),
+    ).toBe("2026-08-02T00:00:00Z");
+  });
+
+  it("computes retention days remaining", () => {
+    const now = Date.parse("2026-08-10T00:00:00Z");
+    expect(retentionDaysRemaining("2026-08-01T00:00:00Z", 30, now)).toBe(21);
+  });
+
   it("describes retention / force_immediate honesty", () => {
     expect(
       retentionHardDeleteDescription({
         deletionRequestedAt: "2026-08-01T00:00:00Z",
         retentionDays: 30,
       }),
-    ).toContain("force_immediate=true");
-    expect(retentionHardDeleteDescription({ isInactive: true })).toContain(
-      "soft-delete stamp",
+    ).toContain("tenants.deleted_at");
+  });
+});
+
+describe("billing helpers — FE-S05-01..04", () => {
+  it("summarizes subscription + catalog + usage row", () => {
+    expect(
+      formatSubscriptionSummary({
+        status: "active",
+        billing_cycle: "monthly",
+        plan_id: "pro",
+        seats: 5,
+      }),
+    ).toBe("status=active · cycle=monthly · plan_id=pro · seats=5");
+    expect(
+      catalogPriceIdForCycle(
+        {
+          stripe_price_id_monthly: "price_m",
+          stripe_price_id_yearly: "price_y",
+        },
+        "yearly",
+      ),
+    ).toBe("price_y");
+    expect(
+      formatUsageMeterRow({
+        metric_key: "api_calls",
+        quantity: 12,
+        period_start: "2026-08-02T10:00:00Z",
+        period_end: "2026-08-02T11:00:00Z",
+      }),
+    ).toContain("api_calls=12");
+  });
+
+  it("detects Stripe 503 unavailable", () => {
+    expect(
+      isStripeBillingUnavailableError({
+        response: {
+          status: 503,
+          data: {
+            detail: "Stripe secret key not configured (STRIPE_SECRET_KEY)",
+          },
+        },
+      }),
+    ).toBe(true);
+    expect(stripeBillingUnavailableDescription(null)).toContain(
+      "STRIPE_SECRET_KEY",
     );
   });
 });

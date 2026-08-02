@@ -33,6 +33,8 @@ export function formatLifecycleResultDescription(result: {
   provisioning_status?: string | null;
   prior_provisioning_status?: string | null;
   reason?: string;
+  deleted_at?: string | null;
+  subscription_status?: string | null;
 }): string {
   const parts = [`tenant_id=${result.tenant_id}`];
   if (typeof result.is_active === "boolean") {
@@ -42,6 +44,10 @@ export function formatLifecycleResultDescription(result: {
     parts.push(`prior=${result.prior_provisioning_status || "unknown"}`);
   }
   parts.push(`provisioning=${result.provisioning_status || "pending"}`);
+  if (result.deleted_at) parts.push(`deleted_at=${result.deleted_at}`);
+  if (result.subscription_status) {
+    parts.push(`subscription=${result.subscription_status}`);
+  }
   const r = result.reason?.trim();
   if (r) parts.push(`reason=${r}`);
   return parts.join(" · ");
@@ -195,7 +201,7 @@ export function buildAdminTenantsFilterQuery(filters: {
 /** STORY-04-04 / FE-S04-35 — default retention days (settings.tenant_deletion_retention_days). */
 export const TENANT_DELETION_RETENTION_DAYS = 30;
 
-/** Soft-delete stamps settings.deletion_requested_at (tip fd5af4d). */
+/** Soft-delete may dual-write settings.deletion_requested_at (tip fd5af4d). */
 export function getDeletionRequestedAt(
   settings: Record<string, unknown> | null | undefined,
 ): string | null {
@@ -203,7 +209,27 @@ export function getDeletionRequestedAt(
   return typeof raw === "string" && raw.trim() ? raw : null;
 }
 
-/** FE-S04-35 — Owner Console retention honesty copy. */
+export function resolveTenantDeletedAt(tenant: {
+  deleted_at?: string | null;
+  settings?: Record<string, unknown> | null;
+}): string | null {
+  const col = tenant.deleted_at;
+  if (typeof col === "string" && col.trim()) return col;
+  return getDeletionRequestedAt(tenant.settings);
+}
+
+export function retentionDaysRemaining(
+  deletedAt: string | null | undefined,
+  retentionDays: number = TENANT_DELETION_RETENTION_DAYS,
+  nowMs: number = Date.now(),
+): number | null {
+  if (!deletedAt) return null;
+  const start = Date.parse(deletedAt);
+  if (Number.isNaN(start)) return null;
+  const end = start + retentionDays * 86_400_000;
+  return Math.max(0, Math.ceil((end - nowMs) / 86_400_000));
+}
+
 export function retentionHardDeleteDescription(options?: {
   deletionRequestedAt?: string | null;
   retentionDays?: number;
@@ -212,13 +238,114 @@ export function retentionHardDeleteDescription(options?: {
   const days = options?.retentionDays ?? TENANT_DELETION_RETENTION_DAYS;
   const stamp = options?.deletionRequestedAt;
   if (stamp) {
-    return `Retention: soft-delete stamped ${stamp}. Hard-delete blocked until ~${days} days elapse unless force_immediate=true.`;
+    const remaining = retentionDaysRemaining(stamp, days);
+    const remainingPart =
+      remaining == null ? "" : ` ~${remaining}d remaining.`;
+    return `Retention: soft-delete stamped ${stamp} (tenants.deleted_at). Hard-delete blocked until ~${days} days elapse unless force_immediate=true.${remainingPart}`;
   }
   if (options?.isInactive) {
-    return `Retention: inactive tenants may carry a soft-delete stamp. Hard-delete waits ~${days} days after soft-delete unless force_immediate=true. Direct hard-delete (no stamp) is allowed with confirm.`;
+    return `Retention: inactive tenants may carry tenants.deleted_at. Hard-delete waits ~${days} days after soft-delete unless force_immediate=true. Direct hard-delete (no stamp) is allowed with confirm.`;
   }
-  return `Retention: soft-delete stamps deletion_requested_at; hard-delete waits ~${days} days unless force_immediate=true. Active tenants may hard-delete with confirm only.`;
+  return `Retention: soft-delete stamps tenants.deleted_at (+ settings dual-write); hard-delete waits ~${days} days unless force_immediate=true. Active tenants may hard-delete with confirm only.`;
 }
+
+export function formatSubscriptionSummary(sub: {
+  status: string;
+  billing_cycle?: string | null;
+  plan_id?: string | null;
+  seats?: number | null;
+  current_period_end?: string | null;
+}): string {
+  const parts = [`status=${sub.status}`];
+  if (sub.billing_cycle) parts.push(`cycle=${sub.billing_cycle}`);
+  if (sub.plan_id) parts.push(`plan_id=${sub.plan_id}`);
+  if (typeof sub.seats === "number") parts.push(`seats=${sub.seats}`);
+  if (sub.current_period_end) {
+    parts.push(`period_end=${sub.current_period_end}`);
+  }
+  return parts.join(" · ");
+}
+
+export function formatUsageMeterRow(meter: {
+  metric_key: string;
+  quantity: number;
+  period_start?: string | null;
+  period_end?: string | null;
+}): string {
+  const start = meter.period_start
+    ? new Date(meter.period_start).toLocaleString()
+    : "—";
+  const end = meter.period_end
+    ? new Date(meter.period_end).toLocaleString()
+    : "—";
+  return `${meter.metric_key}=${meter.quantity} · ${start} – ${end}`;
+}
+
+export function getApiErrorStatus(err: unknown): number | null {
+  if (
+    typeof err === "object" &&
+    err !== null &&
+    "response" in err &&
+    typeof (err as { response?: { status?: unknown } }).response?.status ===
+      "number"
+  ) {
+    return (err as { response: { status: number } }).response.status;
+  }
+  return null;
+}
+
+export function getApiErrorDetail(err: unknown): string | null {
+  if (
+    typeof err === "object" &&
+    err !== null &&
+    "response" in err &&
+    typeof (err as { response?: { data?: { detail?: unknown } } }).response
+      ?.data?.detail === "string"
+  ) {
+    return (err as { response: { data: { detail: string } } }).response.data
+      .detail;
+  }
+  return null;
+}
+
+export function isStripeBillingUnavailableError(err: unknown): boolean {
+  if (getApiErrorStatus(err) === 503) return true;
+  const detail = getApiErrorDetail(err) || "";
+  return detail.includes("STRIPE_SECRET_KEY");
+}
+
+export function stripeBillingUnavailableDescription(
+  detail?: string | null,
+): string {
+  if (detail && detail.trim()) return detail.trim();
+  return (
+    "Stripe billing unavailable: STRIPE_SECRET_KEY not configured " +
+    "(503 fail-closed). No invented keys — set real env secrets in ops."
+  );
+}
+
+export function catalogPriceIdForCycle(
+  item: {
+    stripe_price_id_monthly?: string | null;
+    stripe_price_id_yearly?: string | null;
+  },
+  cycle: "monthly" | "yearly",
+): string | null {
+  const raw =
+    cycle === "yearly"
+      ? item.stripe_price_id_yearly
+      : item.stripe_price_id_monthly;
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
+}
+
+export const ADMIN_USAGE_METRIC_OPTIONS = [
+  { label: "All metrics", value: "" },
+  { label: "seats", value: "seats" },
+  { label: "ai_tokens", value: "ai_tokens" },
+  { label: "connector_syncs", value: "connector_syncs" },
+  { label: "api_calls", value: "api_calls" },
+  { label: "storage_mb", value: "storage_mb" },
+] as const;
 
 /** FE-S04-38 — STORY-04-03 suspended tenants are write-blocked (tenant API). */
 export function suspendedWriteBlockDescription(tenant: {

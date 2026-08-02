@@ -52,6 +52,7 @@ import {
   provisioningStatusVariant,
   type TenantOwnerPlatformWritePayload,
 } from "@/features/admin/widgets/TenantOwnerPlatformFields";
+import { TenantBillingPanel } from "@/features/admin/widgets/TenantBillingPanel";
 import {
   activityStatusLabel,
   ADMIN_TENANTS_PAGE_SIZES,
@@ -63,10 +64,10 @@ import {
   formatReprovisionResultDescription,
   formatTenantUsagePeriod,
   formatTrialEndsLabel,
-  getDeletionRequestedAt,
   lifecycleStatusDescription,
   parseAdminTenantsPageSize,
   requiresForceActiveReprovision,
+  resolveTenantDeletedAt,
   retentionHardDeleteDescription,
   suspendedWriteBlockDescription,
   TENANT_DELETION_RETENTION_DAYS,
@@ -1239,10 +1240,9 @@ export default function AdminTenantsPage() {
                 Soft-delete sets <code>is_active=false</code> only —{" "}
                 <code>provisioning_status</code> stays{" "}
                 <code>{deleteTarget?.provisioning_status || "pending"}</code>{" "}
-                (Inactive ≠ Suspended). Stamps{" "}
-                <code>settings.deletion_requested_at</code> for STORY-04-04
-                retention (~{TENANT_DELETION_RETENTION_DAYS}d). Recoverable via
-                Activate.
+                (Inactive ≠ Suspended). Stamps <code>tenants.deleted_at</code>{" "}
+                (+ settings dual-write) for STORY-04-04 retention (~
+                {TENANT_DELETION_RETENTION_DAYS}d). Recoverable via Activate.
               </p>
               <label className="flex items-center gap-2 text-sm text-danger-600">
                 <input
@@ -1335,6 +1335,7 @@ function TenantDetailModal({
   const { toast } = useToast();
   const { data: tenant, isLoading } = useAdminTenantDetail(tenantId);
   const { data: usage } = useAdminTenantUsage(tenantId);
+  const deletedAt = tenant ? resolveTenantDeletedAt(tenant) : null;
   const updateMutation = useUpdateAdminTenant(tenantId);
   const suspendMutation = useSuspendAdminTenant();
   const activateMutation = useActivateAdminTenant();
@@ -1549,15 +1550,13 @@ function TenantDetailModal({
                   >
                     {tenant ? lifecycleStatusDescription(tenant) : "Loading…"}
                   </p>
-                  {tenant && getDeletionRequestedAt(tenant.settings) && (
+                  {tenant && deletedAt && (
                     <p
                       className="mt-1 text-xs text-[var(--text-muted)]"
                       data-testid="admin-tenants-retention-stamp"
                     >
                       {retentionHardDeleteDescription({
-                        deletionRequestedAt: getDeletionRequestedAt(
-                          tenant.settings,
-                        ),
+                        deletionRequestedAt: deletedAt,
                       })}
                     </p>
                   )}
@@ -1677,6 +1676,8 @@ function TenantDetailModal({
                 onSave={handleSaveOwnerPlatform}
               />
             )}
+
+            <TenantBillingPanel tenantId={tenantId} />
 
             {/* FE-S04-44 — usage stats + period honesty */}
             {usage && (

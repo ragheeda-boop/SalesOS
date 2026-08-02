@@ -162,6 +162,21 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
         page.getByTestId("admin-tenants-reprovision-submit"),
       ).toBeVisible();
     }
+    await expect(page.getByTestId("admin-tenants-billing")).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-subscription")).toBeVisible();
+    await expect(
+      page.getByTestId("admin-tenants-billing-catalog"),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("admin-tenants-checkout-create"),
+    ).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-portal-open")).toBeVisible();
+    await expect(
+      page.getByTestId("admin-tenants-platform-invoices"),
+    ).toBeVisible();
+    await expect(
+      page.getByTestId("admin-tenants-usage-meters"),
+    ).toBeVisible();
   });
 
   test("admin tenants delete honesty + retention hooks without mutate", async ({

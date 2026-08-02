@@ -8,13 +8,23 @@ import type {
   AdminFeatureFlag,
   AdminFlagTenant,
   AdminHealthHistoryEntry,
+  AdminBillingCatalogItem,
   AdminInvoice,
   AdminJob,
   AdminJobDetail,
   AdminLicense,
   AdminPermission,
   AdminPlan,
+  AdminPlatformInvoice,
   AdminRole,
+  AdminStripeCheckoutSessionRequest,
+  AdminStripeCheckoutSessionResponse,
+  AdminStripePortalSessionRequest,
+  AdminStripePortalSessionResponse,
+  AdminSubscription,
+  AdminUsageMeter,
+  AdminUsageRollupRequest,
+  AdminUsageRollupResponse,
   AdminTenantCreate,
   AdminTenantDetail,
   AdminTenantListItem,
@@ -343,6 +353,91 @@ export async function updateAdminUser(
 
 export async function deactivateAdminUser(id: string): Promise<void> {
   await api.delete(`/api/v1/admin/users/${id}`);
+}
+
+function axiosStatus(err: unknown): number | null {
+  if (
+    typeof err === "object" &&
+    err !== null &&
+    "response" in err &&
+    typeof (err as { response?: { status?: unknown } }).response?.status ===
+      "number"
+  ) {
+    return (err as { response: { status: number } }).response.status;
+  }
+  return null;
+}
+
+export async function getAdminTenantSubscription(
+  tenantId: string,
+): Promise<AdminSubscription | null> {
+  try {
+    const resp = await api.get(
+      `/api/v1/admin/billing/subscriptions/${tenantId}`,
+    );
+    return resp.data;
+  } catch (err: unknown) {
+    if (axiosStatus(err) === 404) return null;
+    throw err;
+  }
+}
+
+export async function listAdminBillingCatalog(
+  activeOnly = true,
+): Promise<AdminBillingCatalogItem[]> {
+  const resp = await api.get("/api/v1/admin/billing/catalog", {
+    params: { active_only: activeOnly },
+  });
+  return resp.data;
+}
+
+export async function createAdminStripeCheckoutSession(
+  data: AdminStripeCheckoutSessionRequest,
+): Promise<AdminStripeCheckoutSessionResponse> {
+  const resp = await api.post(
+    "/api/v1/admin/billing/stripe/checkout-session",
+    data,
+  );
+  return resp.data;
+}
+
+export async function createAdminStripePortalSession(
+  data: AdminStripePortalSessionRequest,
+): Promise<AdminStripePortalSessionResponse> {
+  const resp = await api.post(
+    "/api/v1/admin/billing/stripe/portal-session",
+    data,
+  );
+  return resp.data;
+}
+
+export async function listAdminPlatformInvoices(
+  tenantId?: string,
+): Promise<AdminPlatformInvoice[]> {
+  const resp = await api.get("/api/v1/admin/billing/platform-invoices", {
+    params: tenantId ? { tenant_id: tenantId } : undefined,
+  });
+  return resp.data;
+}
+
+/** STORY-05-03 — list rolled-up usage meters. */
+export async function listAdminUsageMeters(params?: {
+  tenant_id?: string;
+  metric_key?: string;
+  period_from?: string;
+  period_to?: string;
+  limit?: number;
+}): Promise<AdminUsageMeter[]> {
+  const resp = await api.get("/api/v1/admin/billing/usage", { params });
+  return resp.data;
+}
+
+/** STORY-05-03 — Owner rollup pending events into hourly meters. */
+export async function rollupAdminUsage(
+  data: AdminUsageRollupRequest = {},
+): Promise<AdminUsageRollupResponse> {
+  const resp = await api.post("/api/v1/admin/billing/usage/rollup", data);
+  return resp.data;
 }
 
 export async function listAdminInvoices(

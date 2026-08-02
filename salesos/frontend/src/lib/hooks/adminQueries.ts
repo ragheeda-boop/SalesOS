@@ -27,6 +27,13 @@ import {
   getAdminUser,
   updateAdminUser,
   deactivateAdminUser,
+  getAdminTenantSubscription,
+  listAdminBillingCatalog,
+  createAdminStripeCheckoutSession,
+  createAdminStripePortalSession,
+  listAdminPlatformInvoices,
+  listAdminUsageMeters,
+  rollupAdminUsage,
   listAdminInvoices,
   listAdminTransactions,
   listAdminFeatureFlags,
@@ -52,12 +59,15 @@ import {
   validateAdminConfig,
 } from "@/lib/api";
 import type {
+  AdminStripeCheckoutSessionRequest,
+  AdminStripePortalSessionRequest,
   AdminTenantActivateRequest,
   AdminTenantCreate,
   AdminTenantHardDeleteRequest,
   AdminTenantReprovisionRequest,
   AdminTenantSuspendRequest,
   AdminTenantUpdate,
+  AdminUsageRollupRequest,
 } from "@/lib/api/types/admin";
 import { adminKeys } from "@/lib/queryKeys";
 import { useTenant } from "./useTenant";
@@ -202,6 +212,71 @@ export function useAdminTenantUsage(id: string) {
     queryKey: adminKeys.tenantUsage(id),
     queryFn: () => getAdminTenantUsage(id),
     enabled: !!id,
+  });
+}
+
+export function useAdminTenantSubscription(tenantId: string) {
+  return useQuery({
+    queryKey: adminKeys.tenantSubscription(tenantId),
+    queryFn: () => getAdminTenantSubscription(tenantId),
+    enabled: !!tenantId,
+    retry: false,
+  });
+}
+
+export function useAdminBillingCatalog(activeOnly = true) {
+  return useQuery({
+    queryKey: adminKeys.billingCatalog(activeOnly),
+    queryFn: () => listAdminBillingCatalog(activeOnly),
+    retry: false,
+  });
+}
+
+export function useAdminPlatformInvoices(tenantId: string) {
+  return useQuery({
+    queryKey: adminKeys.platformInvoices(tenantId),
+    queryFn: () => listAdminPlatformInvoices(tenantId),
+    enabled: !!tenantId,
+    retry: false,
+  });
+}
+
+/** FE-S05-04 — STORY-05-03 rolled-up usage meters. */
+export function useAdminUsageMeters(tenantId: string, metricKey?: string) {
+  const filters = {
+    tenant_id: tenantId,
+    metric_key: metricKey || undefined,
+    limit: 50,
+  };
+  return useQuery({
+    queryKey: adminKeys.usageMeters(filters),
+    queryFn: () => listAdminUsageMeters(filters),
+    enabled: !!tenantId,
+    retry: false,
+  });
+}
+
+export function useCreateAdminStripeCheckoutSession() {
+  return useMutation({
+    mutationFn: (data: AdminStripeCheckoutSessionRequest) =>
+      createAdminStripeCheckoutSession(data),
+  });
+}
+
+export function useCreateAdminStripePortalSession() {
+  return useMutation({
+    mutationFn: (data: AdminStripePortalSessionRequest) =>
+      createAdminStripePortalSession(data),
+  });
+}
+
+export function useRollupAdminUsage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: AdminUsageRollupRequest = {}) => rollupAdminUsage(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "billing", "usage"] });
+    },
   });
 }
 

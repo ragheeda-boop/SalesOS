@@ -69,3 +69,8 @@
 | FE-S04-42 | Clamp page when filter results shrink | **LANDED** |
 | FE-S04-43 | Sort + page_size dismissible chips | **LANDED** |
 | FE-S04-44 | Usage period honesty in detail | **LANDED** |
+| FE-S04-45 | Surface `tenants.deleted_at` + retention | **LANDED** |
+| FE-S05-01 | Owner subscription GET (404 empty) | **LANDED** |
+| FE-S05-02 | Stripe Checkout entry + 503 empty-state | **LANDED** |
+| FE-S05-03 | Catalog + Portal + platform invoices UI | **LANDED** |
+| FE-S05-04 | UsageMeter list + Owner rollup | **LANDED** |

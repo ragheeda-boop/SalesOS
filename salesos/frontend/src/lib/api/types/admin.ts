@@ -144,7 +144,8 @@ export interface AdminTenantActivateRequest {
 }
 
 /**
- * Shared suspend / activate / soft-delete shape — mirrors TenantLifecycleResponse (5d052cf).
+ * Shared suspend / activate / soft-delete shape — mirrors TenantLifecycleResponse
+ * (5d052cf + STORY-04-04 deleted_at / subscription_status @ 18dc387).
  */
 export interface AdminTenantLifecycleResponse {
   message: string;
@@ -153,6 +154,8 @@ export interface AdminTenantLifecycleResponse {
   provisioning_status: string;
   reason: string;
   prior_provisioning_status?: string | null;
+  deleted_at?: string | null;
+  subscription_status?: string | null;
 }
 
 export type AdminTenantSuspendResponse = AdminTenantLifecycleResponse;
@@ -227,6 +230,7 @@ export interface AdminTenantDetail extends AdminTenantOwnerPlatformFields {
   features: Record<string, unknown>;
   user_count: number;
   subscription_ends_at: string | null;
+  deleted_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -253,6 +257,8 @@ export interface AdminPlan {
   max_api_calls: number;
   features: string[];
   is_active: boolean;
+  stripe_price_id_monthly?: string | null;
+  stripe_price_id_yearly?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -288,6 +294,104 @@ export interface AdminUser {
 export interface AdminUserDetail extends AdminUser {
   permissions: string[];
   updated_at: string;
+}
+
+export interface AdminSubscription {
+  id: string;
+  tenant_id: string;
+  plan_id: string | null;
+  status: string;
+  billing_cycle: string;
+  seats: number;
+  trial_ends_at: string | null;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  canceled_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface AdminBillingCatalogItem {
+  id: string;
+  name: string;
+  tier: string;
+  price_monthly: number;
+  price_yearly: number;
+  stripe_price_id_monthly: string | null;
+  stripe_price_id_yearly: string | null;
+  is_active: boolean;
+}
+
+export interface AdminStripeCheckoutSessionRequest {
+  tenant_id: string;
+  success_url: string;
+  cancel_url: string;
+  price_id?: string | null;
+  plan_id?: string | null;
+  billing_cycle?: "monthly" | "yearly";
+  mode?: "subscription" | "payment";
+}
+
+export interface AdminStripeCheckoutSessionResponse {
+  id: string | null;
+  url: string | null;
+  mode: string | null;
+  tenant_id: string;
+  price_id?: string | null;
+}
+
+export interface AdminStripePortalSessionRequest {
+  tenant_id: string;
+  return_url: string;
+}
+
+export interface AdminStripePortalSessionResponse {
+  id: string | null;
+  url: string | null;
+  tenant_id: string;
+  stripe_customer_id?: string | null;
+}
+
+export interface AdminPlatformInvoice {
+  id: string;
+  tenant_id: string;
+  stripe_invoice_id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  description: string;
+  due_date: string | null;
+  paid_at: string | null;
+  hosted_invoice_url: string | null;
+  created_at: string | null;
+}
+
+/** STORY-05-03 — GET /api/v1/admin/billing/usage */
+export type AdminUsageMetricKey =
+  | "seats"
+  | "ai_tokens"
+  | "connector_syncs"
+  | "api_calls"
+  | "storage_mb";
+
+export interface AdminUsageMeter {
+  id: string;
+  tenant_id: string;
+  metric_key: string;
+  period_start: string;
+  period_end: string;
+  quantity: number;
+}
+
+export interface AdminUsageRollupRequest {
+  through?: string | null;
+  limit?: number;
+}
+
+export interface AdminUsageRollupResponse {
+  events_processed?: number;
+  meters_upserted?: number;
+  [key: string]: unknown;
 }
 
 export interface AdminInvoice {
