@@ -1,6 +1,6 @@
-"""Tenant Studio — CAP-082/083/085/003/093 (STORY-10-01..10-04, 10-06, 10-08).
+"""Tenant Studio — CAP-082/083/085/003/093/092 (STORY-10-01..10-04, 10-06..10-08).
 
-Custom fields + Workflow + Scoring + Permissions + Notification Rules.
+Custom fields + Workflow + Scoring + Permissions + Notifications + Branding.
 Not Production GO.
 """
 
@@ -11,6 +11,7 @@ from app.modules.tenant_studio.auto_render import (
     merge_custom_field_values,
     read_custom_field_values,
 )
+from app.modules.tenant_studio.branding import BrandingConfig, BrandingError
 from app.modules.tenant_studio.custom_roles import CustomRole, CustomRoleError
 from app.modules.tenant_studio.definitions import (
     CustomFieldDefinition,
@@ -52,6 +53,8 @@ from app.modules.tenant_studio.workflow_compiler import (
 
 __all__ = [
     "CUSTOM_FIELDS_BAG_KEY",
+    "BrandingConfig",
+    "BrandingError",
     "CanvasNode",
     "CustomFieldDefinition",
     "CustomFieldDefinitionError",
