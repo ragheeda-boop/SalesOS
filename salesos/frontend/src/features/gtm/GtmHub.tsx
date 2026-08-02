@@ -10,6 +10,10 @@ import {
   LEAD_DISCOVERY_NON_GOALS,
 } from "@/features/gtm/leadDiscoveryHonesty";
 import {
+  LOOKALIKE_HONESTY,
+  LOOKALIKE_NON_GOALS,
+} from "@/features/gtm/lookalikeHonesty";
+import {
   MARKET_SIZING_HONESTY,
   MARKET_SIZING_NON_GOALS,
 } from "@/features/gtm/marketSizingHonesty";
@@ -19,7 +23,7 @@ import {
 } from "@/features/gtm/verificationHonesty";
 
 /**
- * Tip GTM Intelligence hub (FE-S11-03b + 01/05/06).
+ * Tip GTM Intelligence hub (FE-S11-03b + 01/04/05/06).
  * Tip pages only. Territories not linked. Not Production GO / RAG GO.
  */
 export function GtmHub() {
@@ -29,10 +33,10 @@ export function GtmHub() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="gtm-hub-honesty"
       >
-        Tip GTM pages only: ICP profiles, market-sizing, lead-discovery,
-        enrichment, verification — with tip query-param handoffs between them.
-        Live 141221 Postgres / live ERP / territories Studio / lookalikes not
-        claimed. Not Production GO / RAG GO.
+        Tip GTM pages only: ICP, market-sizing, lead-discovery, lookalikes,
+        enrichment, verification — with tip query-param handoffs. Live 141221
+        Postgres / live ERP / territories Studio / live ML backtest not claimed.
+        Not Production GO / RAG GO.
       </p>
 
       <ul className="space-y-3">
@@ -79,6 +83,21 @@ export function GtmHub() {
           <p className="mt-1 text-xs text-[var(--text-muted)]">
             {LEAD_DISCOVERY_HONESTY} Non-goals:{" "}
             {LEAD_DISCOVERY_NON_GOALS.slice(0, 2).join("; ")}.
+          </p>
+        </li>
+        <li
+          className="rounded border border-[var(--border-default)] p-4"
+          data-testid="gtm-hub-lookalikes"
+        >
+          <Link
+            href="/gtm/lookalikes"
+            className="text-base font-semibold text-[var(--text-primary)] underline"
+          >
+            Lookalike Accounts
+          </Link>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
+            {LOOKALIKE_HONESTY} Non-goals:{" "}
+            {LOOKALIKE_NON_GOALS.slice(0, 2).join("; ")}.
           </p>
         </li>
         <li

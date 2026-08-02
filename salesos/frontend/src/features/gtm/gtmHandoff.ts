@@ -90,6 +90,27 @@ export function buildIcpProfileHref(profileId?: string | null): string {
   return "/gtm/icp";
 }
 
+export type LookalikeHandoff = {
+  company_name?: string;
+  industry?: string;
+  city?: string;
+  employees_count?: string;
+  model?: string;
+};
+
+export function buildLookalikeHref(seed: LookalikeHandoff = {}): string {
+  const params = new URLSearchParams();
+  if (seed.model?.trim()) params.set("model", seed.model.trim());
+  if (seed.company_name?.trim())
+    params.set("company_name", seed.company_name.trim());
+  if (seed.industry?.trim()) params.set("industry", seed.industry.trim());
+  if (seed.city?.trim()) params.set("city", seed.city.trim());
+  if (seed.employees_count?.trim())
+    params.set("employees_count", seed.employees_count.trim());
+  const qs = params.toString();
+  return qs ? `/gtm/lookalikes?${qs}` : "/gtm/lookalikes";
+}
+
 /** Pull tip enrichable contact fields from an enrichment filled map. */
 export function contactFieldsFromFilled(
   filled: Record<string, unknown> | null | undefined,

@@ -175,6 +175,12 @@ export const gtmKeys = {
     [...gtmKeys.all, "verification", tenantId] as const,
   verificationDetail: (tenantId: string, id: string) =>
     [...gtmKeys.all, "verification", tenantId, id] as const,
+  lookalikeMeta: (tenantId: string) =>
+    [...gtmKeys.all, "lookalike-meta", tenantId] as const,
+  lookalikeList: (tenantId: string) =>
+    [...gtmKeys.all, "lookalikes", tenantId] as const,
+  lookalikeDetail: (tenantId: string, id: string) =>
+    [...gtmKeys.all, "lookalikes", tenantId, id] as const,
 };
 
 export const opportunityKeys = {

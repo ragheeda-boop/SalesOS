@@ -29,6 +29,7 @@ import {
   UserRoundSearch,
   Layers,
   BadgeCheck,
+  Copy,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { TenantBrandMark } from "@/features/tenant-studio/TenantBrandMark";
@@ -109,6 +110,11 @@ export function MobileNav() {
       href: "/gtm/verification",
       key: "nav.verification",
       icon: BadgeCheck,
+    },
+    {
+      href: "/gtm/lookalikes",
+      key: "nav.lookalikes",
+      icon: Copy,
     },
     { href: "/settings", key: "nav.settings", icon: Settings },
     { href: "/admin", key: "nav.admin", icon: Shield },

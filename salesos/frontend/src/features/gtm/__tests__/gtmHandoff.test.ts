@@ -3,6 +3,7 @@ import {
   buildIcpProfileHref,
   buildLeadDiscoveryHref,
   buildLeadDiscoveryRunHref,
+  buildLookalikeHref,
   buildMarketSizingHref,
   buildVerificationHref,
   contactFieldsFromFilled,
@@ -62,6 +63,13 @@ describe("gtmHandoff — FE-S11-03b / FE-S11-06b", () => {
       }),
     ).toBe("/gtm/verification?email=a%40b.com&phone=%2B9665");
     expect(buildIcpProfileHref("icp1")).toBe("/gtm/icp?profile=icp1");
+    expect(
+      buildLookalikeHref({
+        company_name: "Acme",
+        industry: "technology",
+        city: "riyadh",
+      }),
+    ).toBe("/gtm/lookalikes?company_name=Acme&industry=technology&city=riyadh");
   });
 
   it("extracts tip contact fields from enrichment filled", () => {
