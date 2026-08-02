@@ -30,8 +30,7 @@ async def _recreate_desc_index(db_session: AsyncSession) -> None:
         await db_session.execute(text("DROP INDEX IF EXISTS ix_companies_confidence_score"))
         await db_session.execute(
             text(
-                "CREATE INDEX ix_companies_confidence_score "
-                "ON companies (confidence_score DESC)"
+                "CREATE INDEX ix_companies_confidence_score " "ON companies (confidence_score DESC)"
             )
         )
         await db_session.commit()
@@ -90,9 +89,9 @@ class TestConfidenceScoreIndex:
             {"tid": tenant_id},
         )
         plan = "\n".join(row[0] for row in r.fetchall())
-        assert "ix_companies_confidence_score" in plan or "Index" in plan, (
-            f"Query plan does not use confidence_score index:\n{plan}"
-        )
+        assert (
+            "ix_companies_confidence_score" in plan or "Index" in plan
+        ), f"Query plan does not use confidence_score index:\n{plan}"
 
         await db_session.execute(
             text("DELETE FROM companies WHERE tenant_id = :tid"),
