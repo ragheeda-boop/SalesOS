@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from contextlib import suppress
 from typing import Any
 
 from sqlalchemy import select
@@ -69,9 +70,7 @@ class StripeWebhookService:
 
         tenant_id = extract_tenant_id_from_stripe_object(data_obj)
         stripe_status = data_obj.get("status") if isinstance(data_obj.get("status"), str) else None
-        sm_event = map_stripe_event_to_subscription_event(
-            event_type, stripe_status=stripe_status
-        )
+        sm_event = map_stripe_event_to_subscription_event(event_type, stripe_status=stripe_status)
 
         result = "ignored"
         applied_to: str | None = None
@@ -88,10 +87,8 @@ class StripeWebhookService:
 
         claim.result = result
         if tenant_id:
-            try:
+            with suppress(ValueError):
                 claim.tenant_id = uuid.UUID(str(tenant_id))
-            except ValueError:
-                pass
         await self.session.flush()
 
         return {

@@ -8,6 +8,7 @@ import time
 
 import pytest
 
+from app.modules.billing.state_machine import SubscriptionEvent
 from app.modules.billing.stripe_events import (
     extract_tenant_id_from_stripe_object,
     map_stripe_event_to_subscription_event,
@@ -16,7 +17,6 @@ from app.modules.billing.stripe_signature import (
     StripeSignatureError,
     verify_stripe_signature,
 )
-from app.modules.billing.state_machine import SubscriptionEvent
 
 
 def _sign(payload: bytes, secret: str, ts: int | None = None) -> str:
@@ -30,9 +30,7 @@ def test_verify_signature_ok() -> None:
     secret = "whsec_test_fixture_not_a_real_key"
     payload = b'{"id":"evt_1","type":"invoice.paid"}'
     header = _sign(payload, secret)
-    verify_stripe_signature(
-        payload=payload, signature_header=header, webhook_secret=secret
-    )
+    verify_stripe_signature(payload=payload, signature_header=header, webhook_secret=secret)
 
 
 def test_verify_fail_closed_empty_secret() -> None:
@@ -55,9 +53,7 @@ def test_verify_mismatch_and_tolerance() -> None:
         )
     old = _sign(payload, secret, ts=int(time.time()) - 10_000)
     with pytest.raises(StripeSignatureError, match="tolerance"):
-        verify_stripe_signature(
-            payload=payload, signature_header=old, webhook_secret=secret
-        )
+        verify_stripe_signature(payload=payload, signature_header=old, webhook_secret=secret)
 
 
 @pytest.mark.parametrize(

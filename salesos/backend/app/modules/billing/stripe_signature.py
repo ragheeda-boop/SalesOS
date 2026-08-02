@@ -59,7 +59,7 @@ def verify_stripe_signature(
     if abs(int(clock) - ts) > int(tolerance_seconds):
         raise StripeSignatureError("signature timestamp outside tolerance")
 
-    signed = f"{ts}.".encode("utf-8") + payload
-    expected = hmac.new(secret.encode("utf-8"), signed, hashlib.sha256).hexdigest()
+    signed = f"{ts}.".encode() + payload
+    expected = hmac.new(secret.encode(), signed, hashlib.sha256).hexdigest()
     if not any(hmac.compare_digest(expected, sig) for sig in v1s):
         raise StripeSignatureError("signature mismatch")
