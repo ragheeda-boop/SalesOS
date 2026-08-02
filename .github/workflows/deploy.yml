@@ -94,13 +94,18 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
       - name: Railway up (salesos backend)
+        # STORY-14-01 field: do NOT use --detach. Detach returns after upload and
+        # Health Gate can false-green on a stale process still serving /health 200
+        # (evidence: tip 06a8923 Deploy 30760184115 / 30763336159; uptime ~29h; /api/v1/load/meta 404).
+        # --ci streams build and waits for deploy terminal status before exit.
+        timeout-minutes: 25
         working-directory: salesos
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           set -euo pipefail
-          echo "DEC-149: railway up — project/service/environment from secrets (no values echoed)"
-          railway up --ci --detach \
+          echo "DEC-149: railway up --ci (wait for roll; no --detach)"
+          railway up --ci \
             --project "${{ secrets.RAILWAY_PROJECT_ID }}" \
             --environment "${{ secrets.RAILWAY_ENVIRONMENT_ID }}" \
             --service "${{ secrets.RAILWAY_SERVICE_ID }}"
@@ -116,10 +121,13 @@ jobs:
         run: |
           echo "Waiting ${{ env.HEALTH_WAIT }}s..."
           sleep "${{ env.HEALTH_WAIT }}"
-      - name: Probe public /health
+      - name: Probe public /health (require fresh process + tip route fingerprint)
         env:
           HEALTH_URL_VAR: ${{ vars.RAILWAY_HEALTH_URL }}
           HEALTH_URL_SECRET: ${{ secrets.RAILWAY_HEALTH_URL }}
+          # Process older than this many seconds after a successful railway up --ci
+          # is treated as a failed roll (stale instance still answering /health).
+          MAX_UPTIME_SECONDS: "900"
         run: |
           set -euo pipefail
           HEALTH_URL="${HEALTH_URL_VAR:-${HEALTH_URL_SECRET:-}}"
@@ -132,17 +140,34 @@ jobs:
             */) ENDPOINT="${HEALTH_URL}health" ;;
             *) ENDPOINT="${HEALTH_URL}/health" ;;
           esac
+          BASE="${ENDPOINT%/health}"
           echo "Probing: ${ENDPOINT}"
           for i in $(seq 1 "${{ env.HEALTH_RETRIES }}"); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${ENDPOINT}" 2>/dev/null || echo "000")
+            BODY_FILE="$(mktemp)"
+            STATUS=$(curl -sS -o "${BODY_FILE}" -w "%{http_code}" "${ENDPOINT}" 2>/dev/null || echo "000")
             echo "Attempt $i: HTTP $STATUS"
             if [ "$STATUS" = "200" ]; then
-              echo "Health check PASSED"
-              exit 0
+              UPTIME=$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(float(d.get('uptime_seconds') or 1e12))" "${BODY_FILE}" 2>/dev/null || echo "1000000000000")
+              echo "uptime_seconds=${UPTIME} (max allowed ${MAX_UPTIME_SECONDS})"
+              # Tip ≥ 8a369f1 fingerprint: load router mounted (401/403 = present; 404 = stale/wrong service)
+              LOAD_CODE=$(curl -sS -o /dev/null -w "%{http_code}" "${BASE}/api/v1/load/meta" 2>/dev/null || echo "000")
+              echo "GET /api/v1/load/meta -> HTTP ${LOAD_CODE}"
+              if awk -v u="$UPTIME" -v m="$MAX_UPTIME_SECONDS" 'BEGIN{exit !(u < m+0)}'; then
+                if [ "${LOAD_CODE}" != "404" ] && [ "${LOAD_CODE}" != "000" ]; then
+                  echo "Health gate PASSED (fresh process + load route present; HTTP ${LOAD_CODE} on /api/v1/load/meta)"
+                  echo "NOTE: database readiness is Phase 2 — not claimed by this gate. No Production GO."
+                  rm -f "${BODY_FILE}"
+                  exit 0
+                fi
+                echo "Fresh uptime but /api/v1/load/meta still ${LOAD_CODE} — tip load_slo not on this service"
+              else
+                echo "Stale process still serving /health (uptime ${UPTIME}s) — railway roll did not replace runtime"
+              fi
             fi
+            rm -f "${BODY_FILE}"
             sleep 10
           done
-          echo "::error::Health check failed after ${{ env.HEALTH_RETRIES }} attempts"
+          echo "::error::Health gate failed: need HTTP 200, uptime_seconds < ${MAX_UPTIME_SECONDS}, and /api/v1/load/meta != 404"
           exit 1
 
   frontend-vercel:
