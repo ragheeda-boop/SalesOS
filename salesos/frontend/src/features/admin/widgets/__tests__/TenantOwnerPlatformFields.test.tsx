@@ -53,7 +53,9 @@ describe("TenantOwnerPlatformFields", () => {
         }}
       />,
     );
-    expect(screen.getByTestId("tenant-owner-platform-fields")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("tenant-owner-platform-fields"),
+    ).toBeInTheDocument();
     expect(screen.getByText("Owner Platform")).toBeInTheDocument();
     expect(screen.getByText("pending")).toBeInTheDocument();
   });
@@ -91,14 +93,18 @@ describe("TenantOwnerPlatformFields", () => {
       />,
     );
 
-    expect(screen.getByTestId("tenant-owner-platform-edit")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("tenant-owner-platform-edit"),
+    ).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText("opaque catalog id"), {
       target: { value: "new-plan" },
     });
     fireEvent.change(screen.getByPlaceholderText("me-central-1"), {
       target: { value: "me-central-1" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Save Owner Platform/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Save Owner Platform/i }),
+    );
 
     await waitFor(() => {
       expect(onSave).toHaveBeenCalledWith(

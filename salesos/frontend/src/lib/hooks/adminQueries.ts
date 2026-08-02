@@ -47,6 +47,7 @@ import {
   saveAdminConfig,
   validateAdminConfig,
 } from "@/lib/api";
+import type { AdminTenantCreate } from "@/lib/api/types/admin";
 import { adminKeys } from "@/lib/queryKeys";
 import { useTenant } from "./useTenant";
 
@@ -290,8 +291,7 @@ export function useAdminHealthHistory(hours?: number) {
 export function useCreateAdminTenant() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; slug: string; domain?: string }) =>
-      createAdminTenant(data),
+    mutationFn: (data: AdminTenantCreate) => createAdminTenant(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: adminKeys.tenants() });
     },

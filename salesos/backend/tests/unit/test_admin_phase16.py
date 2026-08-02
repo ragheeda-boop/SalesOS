@@ -628,8 +628,6 @@ class TestTenantProvisioning:
         assert result["roles_provisioned"] > 0
         assert result["permissions_provisioned"] > 0
 
-
-
     @pytest.mark.asyncio
     async def test_seed_studio_config_idempotent(self):
         session = AsyncMock(spec=AsyncSession)
