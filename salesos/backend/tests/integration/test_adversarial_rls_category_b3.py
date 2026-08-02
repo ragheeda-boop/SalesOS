@@ -18,7 +18,7 @@ from sqlalchemy import text
 
 from app.database import engine
 
-POLICY_COUNT = 69  # 67 prior + STORY-08-02/08-03 tenant_isolation policies
+POLICY_COUNT = 70  # 69 prior + STORY-08-05 sync_runs tenant_isolation policy
 
 
 @pytest_asyncio.fixture(autouse=True)

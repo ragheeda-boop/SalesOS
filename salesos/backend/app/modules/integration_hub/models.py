@@ -118,3 +118,55 @@ class FieldMappingConfigModel(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
+
+
+class SyncRunModel(Base):
+    """OBJ-332 SyncRun — one row per scheduled sync execution (observability)."""
+
+    __tablename__ = "sync_runs"
+    __table_args__ = (
+        Index("ix_sync_runs_tenant_started", "tenant_id", "started_at"),
+        Index("ix_sync_runs_tenant_connection", "tenant_id", "connection_id"),
+        Index("ix_sync_runs_tenant_updated", "tenant_id", "updated_at"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # Partition key — composite PK with id (monthly RANGE).
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), primary_key=True, server_default=func.now()
+    )
+    tenant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("tenants.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    connection_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("external_system_connections.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    scheduled_job_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    model: Mapped[str] = mapped_column(String(128), nullable=False)
+    status: Mapped[str] = mapped_column(String(32), nullable=False)
+    failure_class: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    cursor_before: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'{}'::jsonb")
+    )
+    cursor_after: Mapped[dict[str, Any]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'{}'::jsonb")
+    )
+    records_pulled: Mapped[int] = mapped_column(Integer(), nullable=False, server_default=text("0"))
+    records_written: Mapped[int] = mapped_column(
+        Integer(), nullable=False, server_default=text("0")
+    )
+    records_failed: Mapped[int] = mapped_column(Integer(), nullable=False, server_default=text("0"))
+    error_log: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'[]'::jsonb")
+    )
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )

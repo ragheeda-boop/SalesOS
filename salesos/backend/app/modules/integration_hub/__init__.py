@@ -1,6 +1,6 @@
-"""Integration Hub framework (STORY-08-01..08-04).
+"""Integration Hub framework (STORY-08-01..08-05).
 
-SourceConnector + ExternalSystemConnection + FieldMappingConfig/drift + ACL.
+SourceConnector + ExternalSystemConnection + FieldMappingConfig/drift + ACL + SyncRun.
 No Odoo/vendor leakage in this package. Not Production GO.
 """
 
@@ -17,8 +17,15 @@ from app.modules.integration_hub.field_mapping_service import FieldMappingConfig
 from app.modules.integration_hub.models import (
     ExternalSystemConnectionModel,
     FieldMappingConfigModel,
+    SyncRunModel,
 )
 from app.modules.integration_hub.source_connector import SourceConnector
+from app.modules.integration_hub.sync_run_service import SyncRunService
+from app.modules.integration_hub.sync_schedule import (
+    KIND_INTEGRATION_HUB_SYNC,
+    schedule_connection_sync,
+    tick_with_sync_logging,
+)
 from app.modules.integration_hub.types import (
     ConnectionTestResult,
     IncrementalCursor,
@@ -39,12 +46,17 @@ __all__ = [
     "FieldMappingConfigModel",
     "FieldMappingConfigService",
     "IncrementalCursor",
+    "KIND_INTEGRATION_HUB_SYNC",
     "OdooTranslator",
     "PullIncrementalResult",
     "PullRecord",
     "SourceConnector",
+    "SyncRunModel",
+    "SyncRunService",
     "WriteBackRequest",
     "WriteBackResult",
     "certify_source_connector",
     "run_field_drift_job",
+    "schedule_connection_sync",
+    "tick_with_sync_logging",
 ]
