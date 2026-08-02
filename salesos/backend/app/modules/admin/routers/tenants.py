@@ -4,7 +4,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy import func as sa_func
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,6 +22,8 @@ from ..schemas import (
     TenantHardDeleteRequest,
     TenantLifecycleResponse,
     TenantListItem,
+    TenantReprovisionRequest,
+    TenantReprovisionResponse,
     TenantSuspendRequest,
     TenantUpdate,
     TenantUsage,
@@ -181,6 +183,7 @@ def _to_detail(t: Tenant, user_count: int) -> TenantDetail:
 
 @router.get("/tenants", response_model=list[TenantListItem])
 async def list_tenants(
+    response: Response,
     status: str | None = Query(None, description="is_active: active|suspended"),
     plan: str | None = Query(None, description="Display/tier plan label"),
     plan_id: str | None = Query(None, description="Opaque Owner Platform plan catalog id"),
@@ -195,6 +198,10 @@ async def list_tenants(
     sort: str | None = Query(
         None,
         description="FE-S04-19: created_desc|created_asc|name_asc|name_desc",
+    ),
+    page: int | None = Query(None, ge=1, description="1-based page; omit = return all"),
+    page_size: int | None = Query(
+        None, ge=1, le=100, description="Page size when page set (default 20)"
     ),
     db: AsyncSession = Depends(get_db_session),
 ):
@@ -211,16 +218,29 @@ async def list_tenants(
             trial=trial,
             search=search,
         )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    count_stmt = select(sa_func.count()).select_from(stmt.order_by(None).subquery())
+    total = int((await db.execute(count_stmt)).scalar() or 0)
+    response.headers["X-Total-Count"] = str(total)
+
+    try:
         stmt = apply_tenant_list_sort(stmt, sort)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    if page is not None:
+        size = page_size or 20
+        stmt = stmt.offset((page - 1) * size).limit(size)
+
     result = await db.execute(stmt)
     tenants = result.scalars().all()
 
-    response = []
+    items = []
     for t in tenants:
-        response.append(_to_list_item(t, await _user_count(db, t.id)))
-    return response
+        items.append(_to_list_item(t, await _user_count(db, t.id)))
+    return items
 
 
 @router.post("/tenants", response_model=TenantDetail, status_code=201)
@@ -375,6 +395,65 @@ async def activate_tenant(
         provisioning_status="active",
         prior_provisioning_status=prior,
         reason=body.reason or "",
+    )
+
+
+@router.post("/tenants/{tenant_id}/reprovision", response_model=TenantReprovisionResponse)
+async def reprovision_tenant(
+    tenant_id: str,
+    body: TenantReprovisionRequest,
+    db: AsyncSession = Depends(get_db_session),
+):
+    """Re-run idempotent provision_workflow for failed/pending (or force_active)."""
+    try:
+        tid = uuid.UUID(tenant_id)
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Tenant not found") from None
+    tenant = await db.get(Tenant, tid)
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+
+    # Default: allow retry for failed/pending; suspended needs explicit force_active.
+    if tenant.provisioning_status == "suspended" and not body.force_active:
+        raise HTTPException(
+            status_code=409,
+            detail="Tenant is suspended; pass force_active=true to reprovision",
+        )
+
+    force_active = body.force_active or tenant.provisioning_status in {
+        "failed",
+        "pending",
+    }
+    provisioning = TenantProvisioningService(db)
+    try:
+        result = await provisioning.provision_workflow(
+            name=tenant.name,
+            slug=tenant.slug,
+            domain=tenant.domain,
+            plan=tenant.plan or "free",
+            plan_id=tenant.plan_id,
+            region=tenant.region,
+            data_residency=tenant.data_residency,
+            trial_ends_at=tenant.trial_ends_at,
+            admin_email=body.admin_email,
+            admin_password=body.admin_password,
+            admin_full_name=body.admin_full_name,
+            force_active=force_active,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return TenantReprovisionResponse(
+        message="Tenant reprovisioned",
+        tenant_id=result["tenant_id"],
+        slug=result["slug"],
+        created=bool(result.get("created")),
+        idempotent=bool(result.get("idempotent")),
+        provisioning_status=result["provisioning_status"],
+        roles_provisioned=int(result.get("roles_provisioned") or 0),
+        permissions_provisioned=int(result.get("permissions_provisioned") or 0),
+        studio_config=result.get("studio_config") or {},
+        admin_user_id=result.get("admin_user_id"),
     )
 
 

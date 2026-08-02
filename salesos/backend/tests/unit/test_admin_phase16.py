@@ -26,7 +26,11 @@ from app.modules.admin.routers.tenants import (
     apply_tenant_list_filters,
     apply_tenant_list_sort,
 )
-from app.modules.admin.schemas import TenantActivateRequest, TenantLifecycleResponse
+from app.modules.admin.schemas import (
+    TenantActivateRequest,
+    TenantLifecycleResponse,
+    TenantReprovisionRequest,
+)
 from app.modules.admin.services import (
     AuditCSVExportService,
     ConfigEditorService,
@@ -838,6 +842,11 @@ class TestTenantListFilters:
         )
         assert body.is_active is False
         assert body.provisioning_status == "active"
+
+    def test_reprovision_request_defaults(self):
+        req = TenantReprovisionRequest()
+        assert req.force_active is False
+        assert req.admin_email is None
 
 
 # ── Repository Unit Tests ───────────────────────────────────────────────────

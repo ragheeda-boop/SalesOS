@@ -417,6 +417,28 @@ class TenantActivateRequest(BaseModel):
     reason: str = ""
 
 
+class TenantReprovisionRequest(BaseModel):
+    """Re-run STORY-04-02 workflow for an existing tenant (failed/pending retry)."""
+
+    force_active: bool = False
+    admin_email: str | None = None
+    admin_password: str | None = None
+    admin_full_name: str | None = None
+
+
+class TenantReprovisionResponse(BaseModel):
+    message: str
+    tenant_id: str
+    slug: str
+    created: bool
+    idempotent: bool
+    provisioning_status: str
+    roles_provisioned: int
+    permissions_provisioned: int
+    studio_config: dict
+    admin_user_id: str | None = None
+
+
 class TenantLifecycleResponse(BaseModel):
     """Shared shape for suspend / activate / soft-delete lifecycle actions."""
 

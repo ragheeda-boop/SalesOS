@@ -51,4 +51,6 @@ def setup_middleware(app: FastAPI) -> None:
         allow_credentials=True,
         allow_methods=[m.strip() for m in settings.cors_allow_methods.split(",") if m.strip()],
         allow_headers=[h.strip() for h in settings.cors_allow_headers.split(",") if h.strip()],
+        # Admin tenant list pagination (Stream A) — FE may read total without body wrap.
+        expose_headers=["X-Total-Count"],
     )
