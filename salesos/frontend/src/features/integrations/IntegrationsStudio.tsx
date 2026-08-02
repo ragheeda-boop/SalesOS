@@ -22,6 +22,12 @@ import {
   parseStudioStep,
   type StudioStepId,
 } from "@/features/integrations/studioUrl";
+import {
+  CANONICAL_OPPORTUNITY_STAGES,
+  DEFAULT_OPPORTUNITY_MAPPINGS,
+  HUB_MODEL_PRESETS,
+  isOpportunityModel,
+} from "@/features/integrations/odooOpportunityHonesty";
 
 export type { StudioStepId };
 
@@ -48,7 +54,8 @@ function listFromCsv(raw: string): string[] {
  * STORY-08-07 / FE-S08-08 — Integrations Studio against Hub HTTP.
  * Connect / test / map / conflict-policy / schedule / monitor / disconnect.
  * Tip STORY-09-01: connector_key `odoo` dispatches OdooAdapter.test_connection.
- * Active mapping GET wired (FE-S08-09). URL deep-link FE-S08-11.
+ * Active mapping GET (FE-S08-09). URL deep-link (FE-S08-11). STORY-09-02: schedule/map `crm.lead` uses translated stages (no raw Odoo stage passthrough).
+ * STORY-09-02 opportunity stage honesty (FE-S09-02).
  * Unlinked badge list API not live. Not Production GO.
  */
 export function IntegrationsStudio() {
@@ -120,10 +127,12 @@ export function IntegrationsStudio() {
   useEffect(() => {
     const mapping = activeMappingQuery.data;
     if (!mapping) return;
+    // Do not overwrite user/model presets (e.g. crm.lead) with a mismatched
+    // active mapping payload from another model.
+    if (mapping.model && mapping.model !== model.trim()) return;
     setMappingJson(JSON.stringify(mapping.mappings ?? [], null, 2));
-    if (mapping.model) setModel(mapping.model);
     setBaselineCsv(csvFromList(mapping.baseline_fields));
-  }, [activeMappingQuery.data]);
+  }, [activeMappingQuery.data, model]);
 
   useEffect(() => {
     setDisconnectConfirmed(false);
@@ -150,6 +159,14 @@ export function IntegrationsStudio() {
     if (next === current) return;
     router.replace(`${pathname}${next}`, { scroll: false });
   }, [step, selectedId, urlHydrated, pathname, router, searchParams]);
+
+  function applyModelPreset(nextModel: string) {
+    setModel(nextModel);
+    if (isOpportunityModel(nextModel)) {
+      setMappingJson(JSON.stringify(DEFAULT_OPPORTUNITY_MAPPINGS, null, 2));
+      setBaselineCsv("name, stage, amount, partner_external_id");
+    }
+  }
 
   const needsConnection = step !== "connect";
 
@@ -413,6 +430,32 @@ export function IntegrationsStudio() {
 
         {step === "map" ? (
           <div className="space-y-3" data-testid="integrations-studio-map">
+            <div
+              className="flex flex-wrap gap-2"
+              data-testid="integrations-studio-model-presets"
+            >
+              {HUB_MODEL_PRESETS.map((preset) => (
+                <Button
+                  key={preset.id}
+                  data-testid={`integrations-studio-model-preset-${preset.id}`}
+                  onClick={() => applyModelPreset(preset.model)}
+                >
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
+            {isOpportunityModel(model) ? (
+              <p
+                className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+                data-testid="integrations-studio-opportunity-stage-honesty"
+              >
+                STORY-09-02: Odoo `crm.lead` stages are translated to canonical{" "}
+                {CANONICAL_OPPORTUNITY_STAGES.join(", ")}. Unmapped stages fail
+                loudly (no raw passthrough). Tenant stage maps live in mapping /
+                connection_config — not invented here. Unlinked badge list API
+                still BE-blocked. Not Production GO.
+              </p>
+            ) : null}
             <Input
               label="Model"
               data-testid="integrations-studio-map-model"
@@ -587,6 +630,29 @@ export function IntegrationsStudio() {
 
         {step === "schedule" ? (
           <div className="space-y-3" data-testid="integrations-studio-schedule">
+            <div
+              className="flex flex-wrap gap-2"
+              data-testid="integrations-studio-schedule-model-presets"
+            >
+              {HUB_MODEL_PRESETS.map((preset) => (
+                <Button
+                  key={preset.id}
+                  data-testid={`integrations-studio-schedule-preset-${preset.id}`}
+                  onClick={() => applyModelPreset(preset.model)}
+                >
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
+            {isOpportunityModel(model) ? (
+              <p
+                className="text-xs text-[var(--text-muted)]"
+                data-testid="integrations-studio-schedule-opportunity-hint"
+              >
+                Tip schedule model <code>crm.lead</code> pulls opportunities
+                (type=opportunity) via OdooAdapter after STORY-09-02.
+              </p>
+            ) : null}
             <Input
               label="Model"
               data-testid="integrations-studio-schedule-model"

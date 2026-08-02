@@ -66,6 +66,11 @@ const FE_GATED = [
     title: "Studio URL deep-link polish",
     status: "FE landed — ?step=&connection=",
   },
+  {
+    id: "FE-S09-02",
+    title: "Opportunity model presets + stage honesty",
+    status: "FE landed — crm.lead presets",
+  },
 ] as const;
 
 export default function AdminIntegrationsInventoryPage() {
@@ -85,9 +90,10 @@ export default function AdminIntegrationsInventoryPage() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="owner-ops-integrations-honesty"
       >
-        FE inventory: BE 08-01..06 + STORY-09-01 OdooAdapter landed. Tenant
-        Studio (STORY-08-07 / FE-S08-08 conflict-policy) is at `/integrations`.
-        Owner mint remains DEC-093 follow-up. Not Production GO.
+        FE inventory: BE 08-01..06 + STORY-09-01/09-02 OdooAdapter landed.
+        Tenant Studio (through FE-S09-02 opportunity presets) is at
+        `/integrations`. Owner mint remains DEC-093 follow-up. Not Production
+        GO.
       </p>
 
       <IntegrationsStudioShell />

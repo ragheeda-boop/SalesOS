@@ -86,7 +86,7 @@ jest.mock("@salesos/ui", () => ({
   useToast: () => ({ toast: jest.fn() }),
 }));
 
-describe("IntegrationsStudio — FE-S08-08..11", () => {
+describe("IntegrationsStudio — FE-S08-08..11 / FE-S09-02", () => {
   it("renders conflict-policy step and Odoo honesty", () => {
     render(<IntegrationsStudio />);
     expect(screen.getByTestId("integrations-studio")).toBeInTheDocument();
@@ -169,5 +169,26 @@ describe("IntegrationsStudio — FE-S08-08..11", () => {
     expect(
       screen.getByTestId("integrations-studio-monitor-status-filter"),
     ).toBeInTheDocument();
+  });
+
+  it("applies crm.lead opportunity preset and stage honesty", () => {
+    render(<IntegrationsStudio />);
+    fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
+    fireEvent.click(
+      screen.getByTestId("integrations-studio-model-preset-crm-lead"),
+    );
+    expect(
+      screen.getByTestId("integrations-studio-opportunity-stage-honesty"),
+    ).toHaveTextContent(/translated/i);
+    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
+      "crm.lead",
+    );
+    expect(
+      (
+        screen.getByTestId(
+          "integrations-studio-map-json",
+        ) as HTMLTextAreaElement
+      ).value,
+    ).toContain("stage_id");
   });
 });
