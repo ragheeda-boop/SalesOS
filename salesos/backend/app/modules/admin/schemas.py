@@ -417,6 +417,17 @@ class TenantActivateRequest(BaseModel):
     reason: str = ""
 
 
+class TenantLifecycleResponse(BaseModel):
+    """Shared shape for suspend / activate / soft-delete lifecycle actions."""
+
+    message: str
+    tenant_id: str
+    is_active: bool
+    provisioning_status: str
+    reason: str = ""
+    prior_provisioning_status: str | None = None
+
+
 class TenantHardDeleteRequest(BaseModel):
     confirm: bool = Field(..., description="Must be True to confirm hard delete")
 

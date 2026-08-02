@@ -22,8 +22,11 @@ from app.modules.admin.pg_repositories import (
     PostgresRoleRepository,
     PostgresTenantConfigRepository,
 )
-from app.modules.admin.routers.tenants import apply_tenant_list_filters
-from app.modules.admin.schemas import TenantActivateRequest
+from app.modules.admin.routers.tenants import (
+    apply_tenant_list_filters,
+    apply_tenant_list_sort,
+)
+from app.modules.admin.schemas import TenantActivateRequest, TenantLifecycleResponse
 from app.modules.admin.services import (
     AuditCSVExportService,
     ConfigEditorService,
@@ -813,6 +816,28 @@ class TestTenantListFilters:
     def test_activate_request_defaults(self):
         assert TenantActivateRequest().reason == ""
         assert TenantActivateRequest(reason="restore").reason == "restore"
+
+    def test_sort_keys_compile(self):
+        for key in ("created_desc", "created_asc", "name_asc", "name_desc"):
+            sql = str(
+                apply_tenant_list_sort(select(Tenant), key).compile(
+                    compile_kwargs={"literal_binds": True}
+                )
+            )
+            assert "ORDER BY" in sql.upper()
+        with pytest.raises(ValueError, match="sort"):
+            apply_tenant_list_sort(select(Tenant), "slug_asc")
+
+    def test_lifecycle_response_shape(self):
+        body = TenantLifecycleResponse(
+            message="Tenant soft-deleted",
+            tenant_id="t-1",
+            is_active=False,
+            provisioning_status="active",
+            prior_provisioning_status="active",
+        )
+        assert body.is_active is False
+        assert body.provisioning_status == "active"
 
 
 # ── Repository Unit Tests ───────────────────────────────────────────────────

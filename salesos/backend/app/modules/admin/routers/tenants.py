@@ -20,6 +20,7 @@ from ..schemas import (
     TenantCreate,
     TenantDetail,
     TenantHardDeleteRequest,
+    TenantLifecycleResponse,
     TenantListItem,
     TenantSuspendRequest,
     TenantUpdate,
@@ -34,6 +35,9 @@ router = APIRouter(
 
 # FE-S04-15 trial filter buckets (Stream B client filter → server query param).
 TRIAL_FILTER_VALUES = frozenset({"has_trial", "expired", "none"})
+
+# FE-S04-19 sort keys (Stream B client sort → server query param).
+TENANT_SORT_VALUES = frozenset({"created_desc", "created_asc", "name_asc", "name_desc"})
 
 
 def apply_tenant_list_filters(
@@ -101,6 +105,20 @@ def apply_tenant_list_filters(
             )
         )
     return stmt
+
+
+def apply_tenant_list_sort(stmt: Select[Any], sort: str | None = None) -> Select[Any]:
+    """Order GET /admin/tenants. Default created_desc. Raises ValueError if invalid."""
+    key = sort or "created_desc"
+    if key not in TENANT_SORT_VALUES:
+        raise ValueError(f"Invalid sort '{key}'. Allowed: {sorted(TENANT_SORT_VALUES)}")
+    if key == "created_asc":
+        return stmt.order_by(Tenant.created_at.asc())
+    if key == "name_asc":
+        return stmt.order_by(Tenant.name.asc(), Tenant.created_at.desc())
+    if key == "name_desc":
+        return stmt.order_by(Tenant.name.desc(), Tenant.created_at.desc())
+    return stmt.order_by(Tenant.created_at.desc())
 
 
 async def _resolve_tenant_name(db: AsyncSession, tenant_id: str) -> str:
@@ -174,6 +192,10 @@ async def list_tenants(
         None,
         description="ilike name|slug|domain|plan_id|region|data_residency",
     ),
+    sort: str | None = Query(
+        None,
+        description="FE-S04-19: created_desc|created_asc|name_asc|name_desc",
+    ),
     db: AsyncSession = Depends(get_db_session),
 ):
     stmt = select(Tenant)
@@ -189,9 +211,9 @@ async def list_tenants(
             trial=trial,
             search=search,
         )
+        stmt = apply_tenant_list_sort(stmt, sort)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    stmt = stmt.order_by(Tenant.created_at.desc())
     result = await db.execute(stmt)
     tenants = result.scalars().all()
 
@@ -301,7 +323,7 @@ async def update_tenant(
     return _to_detail(tenant, await _user_count(db, tenant.id))
 
 
-@router.post("/tenants/{tenant_id}/suspend")
+@router.post("/tenants/{tenant_id}/suspend", response_model=TenantLifecycleResponse)
 async def suspend_tenant(
     tenant_id: str, body: TenantSuspendRequest, db: AsyncSession = Depends(get_db_session)
 ):
@@ -312,14 +334,22 @@ async def suspend_tenant(
     tenant = await db.get(Tenant, tid)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
+    prior = tenant.provisioning_status
     tenant.is_active = False
     tenant.provisioning_status = "suspended"
     tenant.updated_at = datetime.now(UTC)
     await db.flush()
-    return {"message": "Tenant suspended", "tenant_id": tenant_id, "reason": body.reason}
+    return TenantLifecycleResponse(
+        message="Tenant suspended",
+        tenant_id=tenant_id,
+        is_active=False,
+        provisioning_status="suspended",
+        prior_provisioning_status=prior,
+        reason=body.reason or "",
+    )
 
 
-@router.post("/tenants/{tenant_id}/activate")
+@router.post("/tenants/{tenant_id}/activate", response_model=TenantLifecycleResponse)
 async def activate_tenant(
     tenant_id: str,
     body: TenantActivateRequest,
@@ -338,18 +368,19 @@ async def activate_tenant(
     tenant.provisioning_status = "active"
     tenant.updated_at = datetime.now(UTC)
     await db.flush()
-    return {
-        "message": "Tenant activated",
-        "tenant_id": tenant_id,
-        "prior_provisioning_status": prior,
-        "provisioning_status": tenant.provisioning_status,
-        "is_active": True,
-        "reason": body.reason or "",
-    }
+    return TenantLifecycleResponse(
+        message="Tenant activated",
+        tenant_id=tenant_id,
+        is_active=True,
+        provisioning_status="active",
+        prior_provisioning_status=prior,
+        reason=body.reason or "",
+    )
 
 
-@router.delete("/tenants/{tenant_id}")
+@router.delete("/tenants/{tenant_id}", response_model=TenantLifecycleResponse)
 async def soft_delete_tenant(tenant_id: str, db: AsyncSession = Depends(get_db_session)):
+    """Soft-delete: is_active=false only — does not set provisioning=suspended."""
     try:
         tid = uuid.UUID(tenant_id)
     except ValueError:
@@ -357,10 +388,19 @@ async def soft_delete_tenant(tenant_id: str, db: AsyncSession = Depends(get_db_s
     tenant = await db.get(Tenant, tid)
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
+    prior = tenant.provisioning_status
     tenant.is_active = False
+    # Keep provisioning_status unchanged so Inactive ≠ Suspended (FE-S04-14 honesty).
     tenant.updated_at = datetime.now(UTC)
     await db.flush()
-    return {"message": "Tenant soft-deleted", "tenant_id": tenant_id}
+    return TenantLifecycleResponse(
+        message="Tenant soft-deleted",
+        tenant_id=tenant_id,
+        is_active=False,
+        provisioning_status=tenant.provisioning_status or "pending",
+        prior_provisioning_status=prior,
+        reason="",
+    )
 
 
 @router.delete("/tenants/{tenant_id}/hard-delete")
