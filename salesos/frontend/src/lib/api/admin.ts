@@ -425,11 +425,6 @@ export async function getAdminStripeStatus(): Promise<AdminStripeStatus> {
   return resp.data;
 }
 
-/** STORY-05-02c — env-only readiness booleans (never echo secrets). */
-export async function getAdminStripeStatus(): Promise<AdminStripeStatus> {
-  const resp = await api.get("/api/v1/admin/billing/stripe/status");
-  return resp.data;
-}
 
 export async function listAdminPlatformInvoices(
   tenantId?: string,
