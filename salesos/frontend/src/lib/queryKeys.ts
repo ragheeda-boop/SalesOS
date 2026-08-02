@@ -169,6 +169,8 @@ export const marketplaceListingsKeys = {
   all: ["marketplace-listings"] as const,
   meta: (tenantId: string) =>
     [...marketplaceListingsKeys.all, "meta", tenantId] as const,
+  certifyMeta: (tenantId: string) =>
+    [...marketplaceListingsKeys.all, "certify-meta", tenantId] as const,
   list: (tenantId: string, listingType: string, status: string) =>
     [
       ...marketplaceListingsKeys.all,

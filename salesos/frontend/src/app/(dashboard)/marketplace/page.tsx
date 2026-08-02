@@ -473,7 +473,7 @@ export default function MarketplacePage() {
         data-testid="marketplace-cap036-honesty"
       >
         CAP-036 plugin stub — not tip MarketplaceListing catalog. Tip memory
-        listings (STORY-13-01 browse, no install/certify):{" "}
+        listings + CAP-094 certify (submit/certify; no invented /install):{" "}
         <Link
           href="/marketplace/listings"
           className="underline font-medium"

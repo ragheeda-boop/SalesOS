@@ -2,10 +2,14 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  certifyMarketplaceListing,
+  getMarketplaceCertifyMeta,
   getMarketplaceListing,
   getMarketplaceListingsMeta,
   listMarketplaceListings,
   seedFirstPartyMarketplaceListings,
+  submitMarketplaceListing,
+  type MarketplaceCertifyBody,
 } from "@/lib/api";
 import { marketplaceListingsKeys } from "@/lib/queryKeys";
 import { getTenantId } from "./useTenant";
@@ -15,6 +19,15 @@ export function useMarketplaceListingsMeta() {
   return useQuery({
     queryKey: marketplaceListingsKeys.meta(tenantId),
     queryFn: () => getMarketplaceListingsMeta(tenantId),
+    staleTime: 60_000,
+  });
+}
+
+export function useMarketplaceCertifyMeta() {
+  const tenantId = getTenantId();
+  return useQuery({
+    queryKey: marketplaceListingsKeys.certifyMeta(tenantId),
+    queryFn: () => getMarketplaceCertifyMeta(tenantId),
     staleTime: 60_000,
   });
 }
@@ -49,6 +62,33 @@ export function useSeedFirstPartyMarketplaceListings() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => seedFirstPartyMarketplaceListings(getTenantId()),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: marketplaceListingsKeys.all });
+    },
+  });
+}
+
+export function useSubmitMarketplaceListing() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (listingIdOrSlug: string) =>
+      submitMarketplaceListing(getTenantId(), listingIdOrSlug),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: marketplaceListingsKeys.all });
+    },
+  });
+}
+
+export function useCertifyMarketplaceListing() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      listingIdOrSlug,
+      body,
+    }: {
+      listingIdOrSlug: string;
+      body?: MarketplaceCertifyBody;
+    }) => certifyMarketplaceListing(getTenantId(), listingIdOrSlug, body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: marketplaceListingsKeys.all });
     },

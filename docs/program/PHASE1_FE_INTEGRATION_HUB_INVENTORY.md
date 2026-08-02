@@ -55,10 +55,11 @@
 | FE-S10-05 | Territory Studio UI (tip 10-05 `/studio/territories`) |
 | FE-S12-04 | AI Model Tiers Studio UI (tip 12-04 GET-only) |
 | FE-S13-01b | Marketplace listings browse (tip 13-01 memory; not CAP-036) |
+| FE-S13-03 | Marketplace certify UX (tip 13-02 submit/certify; no invent /install) |
 
 ## Blocked (do not invent)
 
 - FE-S11-07 Website Intelligence / FE-S11-08 AI Outreach — **STANDBY** until AI-Lead tip HTTP
-- Marketplace install/certify UI — **STANDBY** until STORY-13-02 transitions
+- Tenant product install HTTP beyond tip certify trial sandbox — **absent on tip**
 - Postgres custom-field / workflow persistence beyond tip in-memory stores
 - Workflow for_each / loop canvas nodes (deferred)
