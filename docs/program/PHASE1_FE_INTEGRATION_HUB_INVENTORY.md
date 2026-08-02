@@ -54,9 +54,11 @@
 | FE-S11-10 | Second connector certify UI (tip 11-10 HubSpot) |
 | FE-S10-05 | Territory Studio UI (tip 10-05 `/studio/territories`) |
 | FE-S12-04 | AI Model Tiers Studio UI (tip 12-04 GET-only) |
+| FE-S13-01b | Marketplace listings browse (tip 13-01 memory; not CAP-036) |
 
 ## Blocked (do not invent)
 
 - FE-S11-07 Website Intelligence / FE-S11-08 AI Outreach — **STANDBY** until AI-Lead tip HTTP
+- Marketplace install/certify UI — **STANDBY** until STORY-13-02 transitions
 - Postgres custom-field / workflow persistence beyond tip in-memory stores
 - Workflow for_each / loop canvas nodes (deferred)

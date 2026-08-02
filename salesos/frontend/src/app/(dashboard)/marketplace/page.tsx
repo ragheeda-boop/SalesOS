@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Search,
@@ -467,6 +468,21 @@ export default function MarketplacePage() {
 
   return (
     <div className="space-y-6">
+      <p
+        className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
+        data-testid="marketplace-cap036-honesty"
+      >
+        CAP-036 plugin stub — not tip MarketplaceListing catalog. Tip memory
+        listings (STORY-13-01 browse, no install/certify):{" "}
+        <Link
+          href="/marketplace/listings"
+          className="underline font-medium"
+          data-testid="marketplace-tip-listings-link"
+        >
+          /marketplace/listings
+        </Link>
+        . Not Production GO.
+      </p>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

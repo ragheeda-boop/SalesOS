@@ -162,6 +162,15 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.marketplace.listings",
+    label: "Marketplace · Listings",
+    description:
+      "Tip MarketplaceListing catalog (STORY-13-01, memory; not CAP-036 stub)",
+    category: "تنقل",
+    handler: () => router.push("/marketplace/listings"),
+  });
+
+  registerCommand({
     id: "go.gtm",
     label: "GTM · Intelligence Hub",
     description:

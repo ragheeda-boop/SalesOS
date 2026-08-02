@@ -165,6 +165,22 @@ export const tenantStudioKeys = {
     ] as const,
 };
 
+export const marketplaceListingsKeys = {
+  all: ["marketplace-listings"] as const,
+  meta: (tenantId: string) =>
+    [...marketplaceListingsKeys.all, "meta", tenantId] as const,
+  list: (tenantId: string, listingType: string, status: string) =>
+    [
+      ...marketplaceListingsKeys.all,
+      "list",
+      tenantId,
+      listingType,
+      status,
+    ] as const,
+  detail: (tenantId: string, idOrSlug: string) =>
+    [...marketplaceListingsKeys.all, "detail", tenantId, idOrSlug] as const,
+};
+
 export const gtmKeys = {
   all: ["gtm"] as const,
   marketSizingMeta: (tenantId: string) =>
