@@ -739,10 +739,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
           <Select
             value={planChangeTargetId}
             onChange={setPlanChangeTargetId}
-            options={[
-              { label: "Target plan…", value: "" },
-              ...planOptions,
-            ]}
+            options={[{ label: "Target plan…", value: "" }, ...planOptions]}
             placeholder="Target plan"
           />
         </div>

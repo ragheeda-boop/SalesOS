@@ -428,7 +428,8 @@ export function formatPlanChangeQuote(q: {
   }
   if (q.applied) parts.push(`applied=${q.applied}`);
   if (q.pending_plan_id) parts.push(`pending=${q.pending_plan_id}`);
-  if (q.pending_effective_at) parts.push(`pending_at=${q.pending_effective_at}`);
+  if (q.pending_effective_at)
+    parts.push(`pending_at=${q.pending_effective_at}`);
   return parts.join(" · ");
 }
 
@@ -534,21 +535,26 @@ export function sortAdminTenants<
 }
 
 /** FE-S06-02 — short honesty summary of Plan.entitlements. */
-export function formatPlanEntitlementsSummary(ents: {
-  domains?: Record<string, { enabled?: boolean } | null> | null;
-  quotas?: {
-    seats?: number;
-    ai_tokens_monthly?: number;
-    connectors?: number;
-    storage_mb?: number;
-    api_calls_monthly?: number;
-    ai_tokens_unlimited?: boolean;
-    connectors_unlimited?: boolean;
-  } | null;
-  deployment_tier?: string | null;
-  support_sla?: string | null;
-  version?: number | null;
-} | null | undefined): string {
+export function formatPlanEntitlementsSummary(
+  ents:
+    | {
+        domains?: Record<string, { enabled?: boolean } | null> | null;
+        quotas?: {
+          seats?: number;
+          ai_tokens_monthly?: number;
+          connectors?: number;
+          storage_mb?: number;
+          api_calls_monthly?: number;
+          ai_tokens_unlimited?: boolean;
+          connectors_unlimited?: boolean;
+        } | null;
+        deployment_tier?: string | null;
+        support_sla?: string | null;
+        version?: number | null;
+      }
+    | null
+    | undefined,
+): string {
   if (!ents) return "entitlements=(tier default / unset)";
   const domains = ents.domains || {};
   const enabled = Object.entries(domains).filter(([, d]) => d && d.enabled);
@@ -571,7 +577,9 @@ export function formatPlanEntitlementsSummary(ents: {
 
 export function parsePlanEntitlementsJson(
   raw: string,
-): { ok: true; value: Record<string, unknown> | null } | { ok: false; error: string } {
+):
+  | { ok: true; value: Record<string, unknown> | null }
+  | { ok: false; error: string } {
   const trimmed = raw.trim();
   if (!trimmed) return { ok: true, value: null };
   try {
@@ -590,17 +598,22 @@ export function parsePlanEntitlementsJson(
 }
 
 /** FE-S05-02c — honesty banner from GET /billing/stripe/status booleans. */
-export function formatStripeStatusBanner(status: {
-  secret_key_configured?: boolean;
-  webhook_secret_configured?: boolean;
-  publishable_key_configured?: boolean;
-  checkout_ready?: boolean;
-  webhook_ready?: boolean;
-  sandbox_soak_ready?: boolean;
-  production_billing?: boolean;
-  production_go?: boolean;
-  honesty?: string | null;
-} | null | undefined): string {
+export function formatStripeStatusBanner(
+  status:
+    | {
+        secret_key_configured?: boolean;
+        webhook_secret_configured?: boolean;
+        publishable_key_configured?: boolean;
+        checkout_ready?: boolean;
+        webhook_ready?: boolean;
+        sandbox_soak_ready?: boolean;
+        production_billing?: boolean;
+        production_go?: boolean;
+        honesty?: string | null;
+      }
+    | null
+    | undefined,
+): string {
   if (!status) return "Stripe status unavailable.";
   const flags = [
     `secret=${status.secret_key_configured ? "yes" : "no"}`,
@@ -618,11 +631,16 @@ export function formatStripeStatusBanner(status: {
   return `${flags.join(" · ")}. ${honesty}`;
 }
 
-export function stripeStatusTone(status: {
-  checkout_ready?: boolean;
-  sandbox_soak_ready?: boolean;
-  production_go?: boolean;
-} | null | undefined): "ok" | "warn" | "blocked" {
+export function stripeStatusTone(
+  status:
+    | {
+        checkout_ready?: boolean;
+        sandbox_soak_ready?: boolean;
+        production_go?: boolean;
+      }
+    | null
+    | undefined,
+): "ok" | "warn" | "blocked" {
   if (!status) return "blocked";
   if (status.production_go) return "ok"; // never true on tip honesty
   if (status.checkout_ready || status.sandbox_soak_ready) return "warn";

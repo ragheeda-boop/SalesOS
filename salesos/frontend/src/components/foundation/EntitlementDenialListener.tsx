@@ -16,8 +16,9 @@ export function EntitlementDenialListener() {
 
   useEffect(() => {
     const onDenied = (event: Event) => {
-      const detail = (event as CustomEvent<EntitlementDeniedPayload & { message?: string }>)
-        .detail;
+      const detail = (
+        event as CustomEvent<EntitlementDeniedPayload & { message?: string }>
+      ).detail;
       if (!detail) return;
       toast({
         variant: "warning",

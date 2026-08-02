@@ -13,7 +13,10 @@ import {
   formatPlanChangeQuote,
   formatEntitlementDeniedMessage,
   formatPlanEntitlementsSummary,
+  formatResolvedPlanEntitlementsHonesty,
+  formatStripeStatusBanner,
   formatSubscriptionSummary,
+  listDisabledEntitlementDomains,
   isEntitlementDeniedPayload,
   parsePlanEntitlementsJson,
   formatUsageMeterRow,
@@ -48,7 +51,7 @@ describe("formatProvisionResultDescription", () => {
         trial_ends_at: null,
       }),
     ).toBe(
-      "slug=acme ?? provisioning=active ?? plan_id=cat-1 ?? region=me-central-1 ?? residency=ae",
+      "slug=acme · provisioning=active · plan_id=cat-1 · region=me-central-1 · residency=ae",
     );
   });
 
@@ -62,19 +65,19 @@ describe("formatProvisionResultDescription", () => {
         provisioning_status: "",
         trial_ends_at: null,
       }),
-    ).toBe("slug=x ?? provisioning=pending");
+    ).toBe("slug=x · provisioning=pending");
   });
 });
 
 describe("formatSuspendResultDescription", () => {
   it("includes reason when provided", () => {
     expect(formatSuspendResultDescription("t-1", "Owner Console")).toBe(
-      "tenant_id=t-1 ?? is_active=false ?? provisioning=suspended ?? reason=Owner Console",
+      "tenant_id=t-1 · is_active=false · provisioning=suspended · reason=Owner Console",
     );
   });
 });
 
-describe("formatActivateResultDescription ??? FE-S04-27", () => {
+describe("formatActivateResultDescription — FE-S04-27", () => {
   it("summarizes activate response fields", () => {
     expect(
       formatActivateResultDescription({
@@ -84,12 +87,12 @@ describe("formatActivateResultDescription ??? FE-S04-27", () => {
         reason: "Owner Console",
       }),
     ).toBe(
-      "tenant_id=t-1 ?? is_active=true ?? prior=suspended ?? provisioning=active ?? reason=Owner Console",
+      "tenant_id=t-1 · is_active=true · prior=suspended · provisioning=active · reason=Owner Console",
     );
   });
 });
 
-describe("activityStatusLabel ??? FE-S04-13", () => {
+describe("activityStatusLabel — FE-S04-13", () => {
   it("labels active tenants", () => {
     expect(
       activityStatusLabel({ is_active: true, provisioning_status: "active" }),
@@ -112,7 +115,7 @@ describe("activityStatusLabel ??? FE-S04-13", () => {
   });
 });
 
-describe("trial helpers ??? FE-S04-15", () => {
+describe("trial helpers — FE-S04-15", () => {
   const now = Date.parse("2026-08-02T00:00:00.000Z");
 
   it("buckets none / has_trial / expired", () => {
@@ -133,8 +136,8 @@ describe("trial helpers ??? FE-S04-15", () => {
   });
 
   it("formats trial label", () => {
-    expect(formatTrialEndsLabel(null)).toBe("???");
-    expect(formatTrialEndsLabel("not-a-date")).toBe("???");
+    expect(formatTrialEndsLabel(null)).toBe("—");
+    expect(formatTrialEndsLabel("not-a-date")).toBe("—");
   });
 
   it("FE-S04-25 trial badge label/variant", () => {
@@ -149,7 +152,7 @@ describe("trial helpers ??? FE-S04-15", () => {
   });
 });
 
-describe("lifecycleStatusDescription ??? FE-S04-17", () => {
+describe("lifecycleStatusDescription — FE-S04-17", () => {
   it("describes active / suspended / soft-deleted", () => {
     expect(
       lifecycleStatusDescription({
@@ -172,7 +175,7 @@ describe("lifecycleStatusDescription ??? FE-S04-17", () => {
   });
 });
 
-describe("sortAdminTenants ??? FE-S04-19", () => {
+describe("sortAdminTenants — FE-S04-19", () => {
   const rows = [
     { name: "Beta", created_at: "2026-01-02T00:00:00.000Z" },
     { name: "Alpha", created_at: "2026-01-03T00:00:00.000Z" },
@@ -193,7 +196,7 @@ describe("sortAdminTenants ??? FE-S04-19", () => {
   });
 });
 
-describe("buildAdminTenantsFilterQuery ??? FE-S04-29/33", () => {
+describe("buildAdminTenantsFilterQuery — FE-S04-29/33", () => {
   it("omits default sort and page 1; includes page>1", () => {
     expect(
       buildAdminTenantsFilterQuery({
@@ -213,7 +216,7 @@ describe("buildAdminTenantsFilterQuery ??? FE-S04-29/33", () => {
   });
 });
 
-describe("formatReprovisionResultDescription ??? FE-S04-34", () => {
+describe("formatReprovisionResultDescription — FE-S04-34", () => {
   it("summarizes reprovision response", () => {
     expect(
       formatReprovisionResultDescription({
@@ -226,12 +229,12 @@ describe("formatReprovisionResultDescription ??? FE-S04-34", () => {
         permissions_provisioned: 12,
       }),
     ).toBe(
-      "tenant_id=t-1 ?? slug=acme ?? provisioning=active ?? created=false ?? idempotent=true ?? roles=3 ?? permissions=12",
+      "tenant_id=t-1 · slug=acme · provisioning=active · created=false · idempotent=true · roles=3 · permissions=12",
     );
   });
 });
 
-describe("retention helpers ??? FE-S04-35/45", () => {
+describe("retention helpers — FE-S04-35/45", () => {
   it("reads deletion_requested_at from settings", () => {
     expect(
       getDeletionRequestedAt({
@@ -265,7 +268,7 @@ describe("retention helpers ??? FE-S04-35/45", () => {
   });
 });
 
-describe("billing helpers ??? FE-S05-01..04", () => {
+describe("billing helpers — FE-S05-01..04", () => {
   it("summarizes subscription + catalog + usage row", () => {
     expect(
       formatSubscriptionSummary({
@@ -274,7 +277,7 @@ describe("billing helpers ??? FE-S05-01..04", () => {
         plan_id: "pro",
         seats: 5,
       }),
-    ).toBe("status=active ?? cycle=monthly ?? plan_id=pro ?? seats=5");
+    ).toBe("status=active · cycle=monthly · plan_id=pro · seats=5");
     expect(
       catalogPriceIdForCycle(
         {
@@ -334,6 +337,34 @@ describe("billing helpers ??? FE-S05-01..04", () => {
     ).toContain("status=open");
   });
 
+  it("formats resolved entitlements honesty", () => {
+    expect(
+      formatResolvedPlanEntitlementsHonesty({
+        planId: "p1",
+        planName: "Starter",
+        tier: "starter",
+        entitlements: {
+          version: 1,
+          domains: { "DOM-011": { enabled: false } },
+          quotas: {
+            seats: 5,
+            ai_tokens_monthly: 1,
+            connectors: 1,
+            storage_mb: 100,
+            api_calls_monthly: 1000,
+          },
+          deployment_tier: "pooled",
+          support_sla: "community",
+        },
+      }),
+    ).toContain("Resolved entitlements");
+    expect(
+      listDisabledEntitlementDomains({
+        domains: { "DOM-011": { enabled: false }, "DOM-001": { enabled: true } },
+      }),
+    ).toEqual(["DOM-011"]);
+  });
+
   it("summarizes and parses plan entitlements JSON", () => {
     expect(
       formatPlanEntitlementsSummary({
@@ -362,7 +393,7 @@ describe("billing helpers ??? FE-S05-01..04", () => {
   });
 });
 
-describe("suspendedWriteBlockDescription ??? FE-S04-38", () => {
+describe("suspendedWriteBlockDescription — FE-S04-38", () => {
   it("returns honesty only when provisioning=suspended", () => {
     expect(
       suspendedWriteBlockDescription({ provisioning_status: "suspended" }),
@@ -373,7 +404,7 @@ describe("suspendedWriteBlockDescription ??? FE-S04-38", () => {
   });
 });
 
-describe("parseAdminTenantsPageSize ??? FE-S04-39", () => {
+describe("parseAdminTenantsPageSize — FE-S04-39", () => {
   it("accepts 20/50/100 and defaults to 20", () => {
     expect(parseAdminTenantsPageSize("50")).toBe(50);
     expect(parseAdminTenantsPageSize("100")).toBe(100);
@@ -382,7 +413,7 @@ describe("parseAdminTenantsPageSize ??? FE-S04-39", () => {
   });
 });
 
-describe("buildAdminTenantsFilterQuery page_size ??? FE-S04-39", () => {
+describe("buildAdminTenantsFilterQuery page_size — FE-S04-39", () => {
   it("includes non-default page_size", () => {
     expect(buildAdminTenantsFilterQuery({ page: 1, page_size: 50 })).toBe(
       "page_size=50",
@@ -390,7 +421,7 @@ describe("buildAdminTenantsFilterQuery page_size ??? FE-S04-39", () => {
   });
 });
 
-describe("reprovision gates ??? FE-S04-40/41", () => {
+describe("reprovision gates — FE-S04-40/41", () => {
   it("allows retry for failed/pending only", () => {
     expect(canRetryReprovision("failed")).toBe(true);
     expect(canRetryReprovision("pending")).toBe(true);
@@ -404,7 +435,7 @@ describe("reprovision gates ??? FE-S04-40/41", () => {
   });
 });
 
-describe("formatTenantUsagePeriod ??? FE-S04-44", () => {
+describe("formatTenantUsagePeriod — FE-S04-44", () => {
   it("formats usage period range", () => {
     expect(
       formatTenantUsagePeriod({

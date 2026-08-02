@@ -45,11 +45,7 @@ export function formatEntitlementDeniedMessage(
 export function getEntitlementDeniedFromError(
   err: unknown,
 ): EntitlementDeniedPayload | null {
-  if (
-    typeof err !== "object" ||
-    err === null ||
-    !("response" in err)
-  ) {
+  if (typeof err !== "object" || err === null || !("response" in err)) {
     return null;
   }
   const response = (err as { response?: { status?: number; data?: unknown } })

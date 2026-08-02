@@ -109,7 +109,9 @@ jest.mock("@/lib/api", () => ({
   rollupAdminUsage: jest.fn().mockResolvedValue({ events_processed: 0 }),
   listAdminDunningCases: jest.fn().mockResolvedValue([]),
   evaluateAdminDunning: jest.fn().mockResolvedValue({ evaluated: 0 }),
-  clearAdminDunning: jest.fn().mockResolvedValue({ tenant_id: "1", cleared: 0 }),
+  clearAdminDunning: jest
+    .fn()
+    .mockResolvedValue({ tenant_id: "1", cleared: 0 }),
   quoteAdminPlanChange: jest.fn(),
   applyAdminPlanChange: jest.fn(),
   applyPendingAdminPlanChanges: jest.fn().mockResolvedValue({ applied: 0 }),

@@ -425,7 +425,6 @@ export async function getAdminStripeStatus(): Promise<AdminStripeStatus> {
   return resp.data;
 }
 
-
 export async function listAdminPlatformInvoices(
   tenantId?: string,
 ): Promise<AdminPlatformInvoice[]> {

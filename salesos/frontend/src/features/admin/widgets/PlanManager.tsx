@@ -90,8 +90,7 @@ export function PlanManager() {
       toast({
         variant: "error",
         title: "Create plan failed",
-        description:
-          err instanceof Error ? err.message : "create plan failed",
+        description: err instanceof Error ? err.message : "create plan failed",
       });
     }
   };
@@ -99,9 +98,7 @@ export function PlanManager() {
   const openEditEntitlements = (plan: AdminPlan) => {
     setEditingPlanId(plan.id);
     setEditEntitlementsJson(
-      plan.entitlements
-        ? JSON.stringify(plan.entitlements, null, 2)
-        : "",
+      plan.entitlements ? JSON.stringify(plan.entitlements, null, 2) : "",
     );
   };
 
@@ -120,7 +117,8 @@ export function PlanManager() {
       toast({
         variant: "error",
         title: "Entitlements required",
-        description: "Paste a JSON object or cancel. Empty clears not supported.",
+        description:
+          "Paste a JSON object or cancel. Empty clears not supported.",
       });
       return;
     }
@@ -139,8 +137,7 @@ export function PlanManager() {
       toast({
         variant: "error",
         title: "Update entitlements failed",
-        description:
-          err instanceof Error ? err.message : "update plan failed",
+        description: err instanceof Error ? err.message : "update plan failed",
       });
     }
   };
@@ -194,10 +191,7 @@ export function PlanManager() {
                 setPlanForm({
                   ...planForm,
                   tier: e.target.value as
-                    | "free"
-                    | "starter"
-                    | "growth"
-                    | "enterprise",
+                    "free" | "starter" | "growth" | "enterprise",
                 })
               }
             >
