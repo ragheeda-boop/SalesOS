@@ -1,4 +1,4 @@
-﻿"""STORY-05-02 — Stripe webhook + Owner checkout/portal/catalog (fail-closed).
+"""STORY-05-02 — Stripe webhook + Owner checkout/portal/catalog (fail-closed).
 
 No invented secrets. Empty STRIPE_* → 503. DEC-085 untouched. Not Production GO.
 """
@@ -224,9 +224,7 @@ async def list_platform_invoices(
     db: AsyncSession = Depends(get_db_session),
     tenant_id: str | None = Query(None),
 ) -> list[PlatformInvoiceResponse]:
-    q = select(PlatformBillingInvoiceModel).order_by(
-        PlatformBillingInvoiceModel.created_at.desc()
-    )
+    q = select(PlatformBillingInvoiceModel).order_by(PlatformBillingInvoiceModel.created_at.desc())
     if tenant_id:
         try:
             tid = uuid.UUID(tenant_id)
