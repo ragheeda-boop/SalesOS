@@ -146,6 +146,14 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   });
 
   registerCommand({
+    id: "go.gtm",
+    label: "GTM · Intelligence Hub",
+    description: "GTM tip pages hub (market sizing + lead discovery)",
+    category: "تنقل",
+    handler: () => router.push("/gtm"),
+  });
+
+  registerCommand({
     id: "go.gtm.market-sizing",
     label: "GTM · Market Sizing",
     description: "TAM/SAM/SOM market sizing (tip STORY-11-02)",

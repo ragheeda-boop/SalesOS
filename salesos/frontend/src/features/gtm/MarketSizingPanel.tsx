@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button, Input, Spinner, useToast } from "@salesos/ui";
 import {
   useComputeMarketSizing,
@@ -13,6 +15,7 @@ import {
   MARKET_SIZING_HONESTY,
   MARKET_SIZING_NON_GOALS,
 } from "@/features/gtm/marketSizingHonesty";
+import { buildLeadDiscoveryHref } from "@/features/gtm/gtmHandoff";
 
 function getApiError(err: unknown): string {
   const detail = (err as { response?: { data?: { detail?: unknown } } })
@@ -88,11 +91,12 @@ function NestedBands({ row }: { row: MarketSizingSnapshot }) {
 }
 
 /**
- * FE-S11-02 / FE-S11-02b — TAM/SAM/SOM Market Sizing against tip STORY-11-02 HTTP.
- * Detail GET + nested bands polish. Not Production GO / RAG GO.
+ * FE-S11-02 / FE-S11-02b / FE-S11-03b — TAM/SAM/SOM Market Sizing.
+ * Tip HTTP + handoff to lead-discovery. Not Production GO / RAG GO.
  */
 export function MarketSizingPanel() {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
   const metaQuery = useMarketSizingMeta();
   const listQuery = useMarketSizingList();
   const computeMutation = useComputeMarketSizing();
@@ -105,6 +109,33 @@ export function MarketSizingPanel() {
   const [cities, setCities] = useState("riyadh, jeddah");
   const [employeesMin, setEmployeesMin] = useState("10");
   const [employeesMax, setEmployeesMax] = useState("500");
+  const [snapshotHydrated, setSnapshotHydrated] = useState(false);
+
+  useEffect(() => {
+    const snap = searchParams.get("snapshot");
+    if (!snap || snapshotHydrated) return;
+    setSelectedId(snap);
+    setSnapshotHydrated(true);
+  }, [searchParams, snapshotHydrated]);
+
+  useEffect(() => {
+    const row = detailQuery.data;
+    if (!row || !snapshotHydrated) return;
+    if (selectedId !== row.id) return;
+    setName(row.name);
+    setIndustries((row.criteria.industries ?? []).join(", "));
+    setCities((row.criteria.cities ?? []).join(", "));
+    setEmployeesMin(
+      row.criteria.employees_min == null
+        ? ""
+        : String(row.criteria.employees_min),
+    );
+    setEmployeesMax(
+      row.criteria.employees_max == null
+        ? ""
+        : String(row.criteria.employees_max),
+    );
+  }, [detailQuery.data, selectedId, snapshotHydrated]);
 
   function loadCriteria(row: MarketSizingSnapshot) {
     setSelectedId(row.id);
@@ -327,6 +358,19 @@ export function MarketSizingPanel() {
         >
           {computeMutation.isPending ? "Computing…" : "Compute market size"}
         </Button>
+        <Link
+          href={buildLeadDiscoveryHref({
+            name: name.trim() ? `${name.trim()} discovery` : "Pilot discovery",
+            industries,
+            cities,
+            employees_min: employeesMin,
+            employees_max: employeesMax,
+          })}
+          className="ms-3 inline-flex text-sm underline text-[var(--text-primary)]"
+          data-testid="market-sizing-handoff-lead-discovery"
+        >
+          Open Lead Discovery with these filters →
+        </Link>
       </form>
     </div>
   );

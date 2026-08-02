@@ -25,6 +25,7 @@ import {
   Palette,
   Target,
   Radar,
+  Crosshair,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { TenantBrandMark } from "@/features/tenant-studio/TenantBrandMark";
@@ -75,6 +76,11 @@ export function MobileNav() {
       href: "/studio/branding",
       key: "nav.branding_studio",
       icon: Palette,
+    },
+    {
+      href: "/gtm",
+      key: "nav.gtm_hub",
+      icon: Crosshair,
     },
     {
       href: "/gtm/market-sizing",

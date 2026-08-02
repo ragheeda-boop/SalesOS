@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Button, Input, Spinner, useToast } from "@salesos/ui";
 import {
   useLeadDiscoveryDetail,
@@ -13,6 +15,7 @@ import {
   LEAD_DISCOVERY_HONESTY,
   LEAD_DISCOVERY_NON_GOALS,
 } from "@/features/gtm/leadDiscoveryHonesty";
+import { parseGtmCriteriaFromSearch } from "@/features/gtm/gtmHandoff";
 
 function getApiError(err: unknown): string {
   const detail = (err as { response?: { data?: { detail?: unknown } } })
@@ -38,11 +41,12 @@ function parseOptionalInt(raw: string): number | null {
 }
 
 /**
- * FE-S11-03 — Lead Discovery against tip STORY-11-03 HTTP.
- * Gov-first + Hub FakeSourceConnector fallback. Not Production GO / RAG GO.
+ * FE-S11-03 / FE-S11-03b — Lead Discovery against tip STORY-11-03 HTTP.
+ * Criteria handoff + ?run= deep-link. Not Production GO / RAG GO.
  */
 export function LeadDiscoveryPanel() {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
   const metaQuery = useLeadDiscoveryMeta();
   const listQuery = useLeadDiscoveryList();
   const runMutation = useRunLeadDiscovery();
@@ -57,6 +61,20 @@ export function LeadDiscoveryPanel() {
   const [employeesMax, setEmployeesMax] = useState("500");
   const [limit, setLimit] = useState("25");
   const [useFallback, setUseFallback] = useState(true);
+  const [queryHydrated, setQueryHydrated] = useState(false);
+
+  useEffect(() => {
+    if (queryHydrated) return;
+    const run = searchParams.get("run");
+    if (run) setSelectedId(run);
+    const handoff = parseGtmCriteriaFromSearch(searchParams);
+    if (handoff.name?.trim()) setName(handoff.name.trim());
+    if (handoff.industries.trim()) setIndustries(handoff.industries);
+    if (handoff.cities.trim()) setCities(handoff.cities);
+    if (handoff.employees_min.trim()) setEmployeesMin(handoff.employees_min);
+    if (handoff.employees_max.trim()) setEmployeesMax(handoff.employees_max);
+    setQueryHydrated(true);
+  }, [searchParams, queryHydrated]);
 
   function loadRun(row: LeadDiscoveryRun) {
     setSelectedId(row.id);
@@ -311,6 +329,13 @@ export function LeadDiscoveryPanel() {
         >
           {runMutation.isPending ? "Discovering…" : "Run lead discovery"}
         </Button>
+        <Link
+          href="/gtm/market-sizing"
+          className="ms-3 inline-flex text-sm underline text-[var(--text-primary)]"
+          data-testid="lead-discovery-handoff-market-sizing"
+        >
+          ← Market Sizing
+        </Link>
       </form>
     </div>
   );

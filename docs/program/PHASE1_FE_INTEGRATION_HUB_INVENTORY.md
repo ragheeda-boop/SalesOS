@@ -43,6 +43,7 @@
 | FE-S11-02 | Market Sizing TAM/SAM/SOM (tip 11-02) |
 | FE-S11-02b | Market Sizing detail GET + nested bands |
 | FE-S11-03 | Lead Discovery gov-first UI (tip 11-03) |
+| FE-S11-03b | GTM hub + criteria handoff / deep-links |
 | FE-S10-05 | Territory config — **BLOCKED** (no tip `/studio/territories` BE) |
 | FE-S11-01 | ICP Engine — **STANDBY** (no tip BE yet) |
 
