@@ -1,4 +1,4 @@
-"""STORY-13-01 — MarketplaceListing HTTP (CAP-071/072 / OBJ-325).
+"""STORY-13-01/02/04 — MarketplaceListing HTTP (OBJ-325 / CAP-094 / publish pack).
 
 Single object across connector/app/prompt_pack/playbook.
 Not Production GO. DEC-085 untouched. No FORCE RLS.
@@ -11,7 +11,12 @@ from typing import Any, Literal
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.dependencies import verify_token
+from app.dependencies import get_current_tenant_id, verify_token
+from app.modules.marketplace_listings.catalog_install import (
+    DEFAULT_CATALOG_INSTALL_STORE,
+    MemCatalogInstallStore,
+    listing_is_installable,
+)
 from app.modules.marketplace_listings.models import (
     VALID_LISTING_STATUSES,
     VALID_LISTING_TYPES,
@@ -21,6 +26,7 @@ from app.modules.marketplace_listings.pipeline import (
     run_certification_pipeline,
     submit_for_certification,
 )
+from app.modules.marketplace_listings.publish import publish_listing
 from app.modules.marketplace_listings.store import (
     DEFAULT_MARKETPLACE_LISTING_STORE,
     MemMarketplaceListingStore,
@@ -30,6 +36,7 @@ router = APIRouter(prefix="/marketplace/listings", tags=["Marketplace Listings"]
 _AUTH = [Depends(verify_token)]
 
 _STORE = DEFAULT_MARKETPLACE_LISTING_STORE
+_INSTALLS = DEFAULT_CATALOG_INSTALL_STORE
 
 
 class ListingUpsert(BaseModel):
@@ -70,6 +77,13 @@ class ListingResponse(BaseModel):
     schema_version: int = 1
     created_at: str = ""
     updated_at: str = ""
+    installable: bool = False
+
+
+def _listing_response(row: Any) -> ListingResponse:
+    data = row.as_dict()
+    data["installable"] = listing_is_installable(row)
+    return ListingResponse.model_validate(data)
 
 
 @router.get("/meta", dependencies=_AUTH)
@@ -81,9 +95,21 @@ async def listings_meta() -> dict[str, Any]:
         "obj_id": "OBJ-325",
         "persistence": "memory",
         "policy_count_delta": 0,
+        "publish_pack": {
+            "story": "STORY-13-04",
+            "min_connectors": 3,
+            "min_playbooks": 1,
+            "seed_slugs": [
+                "connector-odoo",
+                "connector-hubspot",
+                "connector-rest-csv",
+                "playbook-gcc-outbound",
+            ],
+            "connector_keys": ["odoo", "hubspot", "rest_csv"],
+        },
         "honesty": (
-            "Catalog + CAP-094 certify pipeline (STORY-13-02). "
-            "Live HubSpot/Odoo sync / R-02 soak not claimed. Not Production GO."
+            "Catalog + CAP-094 certify + STORY-13-04 publish pack. "
+            "Catalog install ≠ live HubSpot/Odoo sync. Not Production GO."
         ),
         "certify_stages": [
             "conformance",
@@ -110,9 +136,16 @@ async def certify_pipeline_meta() -> dict[str, Any]:
 
 @router.post("/seed-first-party", response_model=list[ListingResponse], dependencies=_AUTH)
 async def seed_first_party_listings() -> list[ListingResponse]:
-    """Idempotent seed of Odoo + HubSpot connector listings."""
-    rows = _STORE.seed_first_party_connectors()
-    return [ListingResponse.model_validate(r.as_dict()) for r in rows]
+    """Idempotent STORY-13-04 publish pack (≥3 connectors + ≥1 playbook)."""
+    rows = _STORE.seed_publish_pack()
+    return [_listing_response(r) for r in rows]
+
+
+@router.post("/seed-publish-pack", response_model=list[ListingResponse], dependencies=_AUTH)
+async def seed_publish_pack_listings() -> list[ListingResponse]:
+    """Explicit STORY-13-04 seed alias."""
+    rows = _STORE.seed_publish_pack()
+    return [_listing_response(r) for r in rows]
 
 
 class CertifyBody(BaseModel):
@@ -130,6 +163,25 @@ class CertifyReportResponse(BaseModel):
     honesty: str = ""
 
 
+class CatalogInstallResponse(BaseModel):
+    id: str
+    tenant_id: str
+    listing_id: str
+    listing_slug: str
+    listing_type: str
+    connector_key: str = ""
+    installed_at: str = ""
+    honesty: str = ""
+
+
+@router.get("/installs", response_model=list[CatalogInstallResponse], dependencies=_AUTH)
+async def list_catalog_installs(
+    tenant_id: str = Depends(get_current_tenant_id),
+) -> list[CatalogInstallResponse]:
+    rows = _INSTALLS.list_for_tenant(tenant_id=str(tenant_id))
+    return [CatalogInstallResponse.model_validate(r.as_dict()) for r in rows]
+
+
 @router.post(
     "/{listing_id}/submit",
     response_model=ListingResponse,
@@ -140,7 +192,7 @@ async def submit_listing(listing_id: str) -> ListingResponse:
         row = submit_for_certification(_STORE, listing_id)
     except MarketplaceListingError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return ListingResponse.model_validate(row.as_dict())
+    return _listing_response(row)
 
 
 @router.post(
@@ -165,6 +217,39 @@ async def certify_listing(
     return CertifyReportResponse.model_validate(report.as_dict())
 
 
+@router.post(
+    "/{listing_id}/publish",
+    response_model=ListingResponse,
+    dependencies=_AUTH,
+)
+async def publish_listing_route(listing_id: str) -> ListingResponse:
+    try:
+        row = publish_listing(_STORE, listing_id)
+    except MarketplaceListingError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return _listing_response(row)
+
+
+@router.post(
+    "/{listing_id}/install",
+    response_model=CatalogInstallResponse,
+    dependencies=_AUTH,
+)
+async def install_listing(
+    listing_id: str,
+    tenant_id: str = Depends(get_current_tenant_id),
+) -> CatalogInstallResponse:
+    """Catalog install receipt for published/certified listing (not live ERP GO)."""
+    row = _STORE.get(listing_id) or _STORE.get_by_slug(listing_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="marketplace listing not found")
+    try:
+        rec = _INSTALLS.install(row, tenant_id=str(tenant_id))
+    except MarketplaceListingError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return CatalogInstallResponse.model_validate(rec.as_dict())
+
+
 @router.post("", response_model=ListingResponse, dependencies=_AUTH)
 async def upsert_listing(body: ListingUpsert) -> ListingResponse:
     try:
@@ -184,7 +269,7 @@ async def upsert_listing(body: ListingUpsert) -> ListingResponse:
         )
     except MarketplaceListingError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return ListingResponse.model_validate(row.as_dict())
+    return _listing_response(row)
 
 
 @router.get("", response_model=list[ListingResponse], dependencies=_AUTH)
@@ -193,7 +278,7 @@ async def list_listings(
     status: str | None = Query(None),
 ) -> list[ListingResponse]:
     rows = _STORE.list_listings(listing_type=listing_type, status=status)
-    return [ListingResponse.model_validate(r.as_dict()) for r in rows]
+    return [_listing_response(r) for r in rows]
 
 
 @router.get("/{listing_id}", response_model=ListingResponse, dependencies=_AUTH)
@@ -204,7 +289,7 @@ async def get_listing(listing_id: str) -> ListingResponse:
         row = _STORE.get_by_slug(listing_id)
     if row is None:
         raise HTTPException(status_code=404, detail="marketplace listing not found")
-    return ListingResponse.model_validate(row.as_dict())
+    return _listing_response(row)
 
 
 @router.delete("/{listing_id}", dependencies=_AUTH)
@@ -218,3 +303,8 @@ async def delete_listing(listing_id: str) -> dict[str, Any]:
 def bind_store(store: MemMarketplaceListingStore) -> None:
     global _STORE  # noqa: PLW0603
     _STORE = store
+
+
+def bind_install_store(store: MemCatalogInstallStore) -> None:
+    global _INSTALLS  # noqa: PLW0603
+    _INSTALLS = store

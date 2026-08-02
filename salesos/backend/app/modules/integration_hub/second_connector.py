@@ -12,6 +12,7 @@ from app.modules.integration_hub.certify import certify_source_connector
 from app.modules.integration_hub.fake_adapter import FakeSourceConnector
 from app.modules.integration_hub.hubspot_adapter import HubSpotAdapter
 from app.modules.integration_hub.odoo_adapter import OdooAdapter
+from app.modules.integration_hub.rest_csv_adapter import RestCsvSourceConnector
 from app.modules.integration_hub.source_connector import SourceConnector
 
 # Provisional Stream A target for R-02 (SAP vs HubSpot board decision still open
@@ -24,6 +25,8 @@ def build_certifiable_adapter(connector_key: str) -> SourceConnector:
     key = (connector_key or "").strip().lower()
     if key in ("fake", "reference"):
         return FakeSourceConnector()
+    if key in ("rest_csv", "csv", "rest-csv"):
+        return RestCsvSourceConnector()
     if key == "hubspot":
         return HubSpotAdapter()
     if key == "odoo":

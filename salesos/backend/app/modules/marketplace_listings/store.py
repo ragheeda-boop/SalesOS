@@ -110,32 +110,88 @@ class MemMarketplaceListingStore:
         return True
 
     def seed_first_party_connectors(self) -> list[MarketplaceListing]:
-        """Seed Odoo + HubSpot listings (EPIC-08/11 certify paths)."""
-        seeds = [
+        """Backward-compatible alias — STORY-13-04 publish pack."""
+        return self.seed_publish_pack()
+
+    def seed_publish_pack(self) -> list[MarketplaceListing]:
+        """STORY-13-04 — ≥3 connectors + ≥1 playbook, published & installable.
+
+        Connectors: odoo, hubspot, rest_csv. Playbook: gcc-outbound.
+        Live ERP/CRM sync not claimed. Not Production GO.
+        """
+        seeds: list[dict[str, Any]] = [
             {
                 "slug": "connector-odoo",
                 "name": "Odoo ERP Connector",
                 "listing_type": "connector",
                 "version": "1.0.0",
-                "status": "certified",
+                "status": "published",
                 "description": "First-party Odoo SourceConnector (CI certified).",
                 "connector_key": "odoo",
-                "tags": ["erp", "odoo", "first-party"],
-                "manifest": {"certify_key": "odoo", "pipeline": "STORY-13-02-deferred"},
+                "tags": ["erp", "odoo", "first-party", "publish-pack"],
+                "manifest": {
+                    "certify_key": "odoo",
+                    "pipeline": "STORY-13-04",
+                    "installable": True,
+                    "certified": True,
+                    "honesty": "CI certification only; live Odoo sync not claimed",
+                },
             },
             {
                 "slug": "connector-hubspot",
                 "name": "HubSpot CRM Connector",
                 "listing_type": "connector",
                 "version": "1.0.0",
-                "status": "certified",
+                "status": "published",
                 "description": "First-party HubSpot SourceConnector (CI certified).",
                 "connector_key": "hubspot",
-                "tags": ["crm", "hubspot", "first-party"],
+                "tags": ["crm", "hubspot", "first-party", "publish-pack"],
                 "manifest": {
                     "certify_key": "hubspot",
-                    "pipeline": "STORY-13-02-deferred",
+                    "pipeline": "STORY-13-04",
+                    "installable": True,
+                    "certified": True,
                     "honesty": "CI certification only; production pilot sync OPEN",
+                },
+            },
+            {
+                "slug": "connector-rest-csv",
+                "name": "Generic REST/CSV Connector",
+                "listing_type": "connector",
+                "version": "1.0.0",
+                "status": "published",
+                "description": (
+                    "First-party generic REST/CSV SourceConnector "
+                    "(third publish-pack slot; CI certified)."
+                ),
+                "connector_key": "rest_csv",
+                "tags": ["rest", "csv", "first-party", "publish-pack"],
+                "manifest": {
+                    "certify_key": "rest_csv",
+                    "pipeline": "STORY-13-04",
+                    "installable": True,
+                    "certified": True,
+                    "honesty": "In-memory REST/CSV reference; not live network GO",
+                },
+            },
+            {
+                "slug": "playbook-gcc-outbound",
+                "name": "GCC Outbound Playbook",
+                "listing_type": "playbook",
+                "version": "1.0.0",
+                "status": "published",
+                "description": (
+                    "First-party GCC outbound sales playbook "
+                    "(certified catalog installable)."
+                ),
+                "connector_key": "",
+                "tags": ["playbook", "gcc", "outbound", "first-party", "publish-pack"],
+                "manifest": {
+                    "pipeline": "STORY-13-04",
+                    "installable": True,
+                    "certified": True,
+                    "steps": ["icp", "sequence", "handoff"],
+                    "honesty": "Catalog playbook only; AI Studio invent not claimed",
                 },
             },
         ]

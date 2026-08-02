@@ -82,18 +82,19 @@ def test_slug_unique() -> None:
 
 
 def test_seed_first_party_odoo_hubspot() -> None:
+    """STORY-13-04 expanded seed — keep smoke that first-party connectors exist."""
     store = MemMarketplaceListingStore()
     rows = store.seed_first_party_connectors()
-    assert len(rows) == 2
-    keys = {r.connector_key for r in rows}
-    assert keys == {"odoo", "hubspot"}
-    assert all(r.listing_type == "connector" for r in rows)
-    assert all(r.status == "certified" for r in rows)
+    connectors = [r for r in rows if r.listing_type == "connector"]
+    assert len(connectors) >= 3
+    keys = {r.connector_key for r in connectors}
+    assert {"odoo", "hubspot", "rest_csv"} <= keys
     assert all(r.first_party for r in rows)
     # idempotent
     again = store.seed_first_party_connectors()
-    assert len(store.list_listings()) == 2
-    assert {r.slug for r in again} == {"connector-odoo", "connector-hubspot"}
+    assert len(store.list_listings()) == len(again)
+    assert "connector-odoo" in {r.slug for r in again}
+    assert "connector-hubspot" in {r.slug for r in again}
 
 
 def test_semver_required() -> None:

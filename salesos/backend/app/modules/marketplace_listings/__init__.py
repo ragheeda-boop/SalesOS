@@ -1,4 +1,4 @@
-"""DOM-024 Marketplace listings — STORY-13-01/13-02."""
+"""DOM-024 Marketplace listings — STORY-13-01/13-02/13-04."""
 
 from app.modules.marketplace_listings.models import (
     MarketplaceListing,
