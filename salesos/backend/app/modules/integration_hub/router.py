@@ -21,6 +21,7 @@ from app.modules.integration_hub.conflict_policy_service import (
 from app.modules.integration_hub.connection_service import ExternalSystemConnectionService
 from app.modules.integration_hub.fake_adapter import FakeSourceConnector
 from app.modules.integration_hub.field_mapping_service import FieldMappingConfigService
+from app.modules.integration_hub.odoo_adapter import OdooAdapter
 from app.modules.integration_hub.schemas import (
     ConflictPolicyResponse,
     ConflictPolicyUpsert,
@@ -127,8 +128,11 @@ async def test_connection(
     )
     if row is None:
         raise HTTPException(status_code=404, detail="connection not found")
-    # Live ERP adapters land later; FakeSourceConnector certifies the contract.
-    adapter = FakeSourceConnector()
+    # Dispatch by connector_key — live XML-RPC uses vault credential_ref only.
+    if (row.connector_key or "").strip().lower() == "odoo":
+        adapter: FakeSourceConnector | OdooAdapter = OdooAdapter()
+    else:
+        adapter = FakeSourceConnector()
     result = await adapter.test_connection(
         credential_ref=row.credential_ref,
         config=row.connection_config or {},

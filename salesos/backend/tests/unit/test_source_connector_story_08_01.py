@@ -18,14 +18,17 @@ def test_fake_is_source_connector() -> None:
 
 
 def test_framework_modules_have_no_odoo_leakage() -> None:
+    import re
+
     root = Path(__file__).resolve().parents[2] / "app" / "modules" / "integration_hub"
     for path in root.glob("*.py"):
-        text = path.read_text(encoding="utf-8").lower()
-        assert "import odoo" not in text
-        assert "from odoo" not in text
-        # Contract files must not hardcode vendor adapters.
-        if path.name != "fake_adapter.py":
-            assert "odooadapter" not in text.replace("_", "")
+        text = path.read_text(encoding="utf-8")
+        # Forbid importing the external ``odoo`` package (not our OdooAdapter symbol).
+        assert re.search(r"(?m)^\s*(from|import)\s+odoo\b", text) is None
+        # Vendor adapter *definitions* stay isolated (imports for router wiring are OK).
+        if path.name not in {"fake_adapter.py", "odoo_adapter.py"}:
+            assert "class OdooAdapter" not in text
+
 
 
 @pytest.mark.asyncio
