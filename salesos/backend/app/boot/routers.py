@@ -182,6 +182,15 @@ def register_routers(app: FastAPI) -> None:
         tags=["Integration Hub"],
         dependencies=_auth,
     )
+    # DOM-022 Tenant Studio — STORY-10-01 CAP-082 custom field definitions.
+    from app.modules.tenant_studio.router import router as tenant_studio_router
+
+    app.include_router(
+        tenant_studio_router,
+        prefix="/api/v1",
+        tags=["Tenant Studio"],
+        dependencies=_auth,
+    )
     app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
     app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
     app.include_router(admin_router)

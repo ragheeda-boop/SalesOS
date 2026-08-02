@@ -6,7 +6,7 @@
 
 | Story | Owner | Priority | Risk | Acceptance Criteria |
 |---|---|---|---|---|
-| STORY-10-01 (Custom Object/Field definition) | BE-Lead | P0 | Medium | Collision-checked against reserved columns; versioned schema |
+| STORY-10-01 (Custom Object/Field definition) | BE-Lead | P0 | Medium | **LANDED BE (Stream A):** reserved-column collision + versioned schema + `GET/POST /api/v1/studio/custom-fields` (in-memory). Crumb [`PHASE1_STORY_10_01_CUSTOM_OBJECT_FIELD_CRUMB.md`](../PHASE1_STORY_10_01_CUSTOM_OBJECT_FIELD_CRUMB.md). No new RLS. No Production GO. |
 | STORY-10-02 (auto-render in existing UI) | FE-Lead | P0 | Medium | A custom field appears on Company/Contact/Opportunity pages with zero per-field frontend code |
 | Odoo 14-day soak monitoring | BE3 | P0 | High | Daily check-in; any sync failure triaged same-day |
 
