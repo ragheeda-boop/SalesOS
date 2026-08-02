@@ -15,7 +15,6 @@ import {
   CUSTOM_FIELDS_HONESTY,
   CUSTOM_FIELDS_NON_GOALS,
 } from "@/features/tenant-studio/customFieldsHonesty";
-import { CustomFieldsAutoRender } from "@/features/tenant-studio/CustomFieldsAutoRender";
 
 function getApiError(err: unknown): string {
   const detail = (err as { response?: { data?: { detail?: unknown } } })
@@ -224,10 +223,6 @@ export function CustomFieldsStudio() {
           {createMutation.isPending ? "Defining…" : "Define custom field"}
         </Button>
       </form>
-
-      <div data-testid="custom-fields-auto-preview">
-        <CustomFieldsAutoRender objectKey={objectKey} />
-      </div>
     </div>
   );
 }

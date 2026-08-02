@@ -33,27 +33,6 @@ jest.mock("@/lib/hooks/tenantStudioQueries", () => ({
     mutate,
     isPending: false,
   }),
-  useCustomFieldsFormSchema: () => ({
-    data: {
-      id: "custom-fields:company:v2",
-      title: "Custom fields (company)",
-      fields: [],
-      object_key: "company",
-      tenant_id: "t1",
-      schema_version: 2,
-      values: {},
-      bag_key: "custom_fields",
-      renderer: "custom_fields_auto",
-    },
-    isLoading: false,
-    isFetching: false,
-    isError: false,
-    refetch: jest.fn(),
-  }),
-  useProjectCustomFieldValues: () => ({
-    mutate: jest.fn(),
-    isPending: false,
-  }),
 }));
 
 jest.mock("@salesos/ui", () => ({
