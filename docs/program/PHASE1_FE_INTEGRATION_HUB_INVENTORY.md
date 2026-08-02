@@ -30,7 +30,12 @@
 | FE-S09-07b | Owner /admin/flags Odoo gate honesty |
 | FE-S09-08 | Unlinked badge Monitor list (tip 09-08) |
 | FE-S09-09 | SyncRun cursor Monitor columns (tip 09-09) |
+| FE-S09-10 | Hub honesty sync (unlinked tip) |
+| FE-S10-01 | Custom field definition Studio (tip 10-01) |
+| FE-S09-10 | Hub honesty sync (unlinked + cursors tip) |
 
 ## Blocked (do not invent)
 
-- Sprint-12 custom objects (STORY-10) until BE on tip
+- STORY-10-02 auto-render / value persistence until BE on tip
+- Postgres custom-field persistence beyond tip in-memory store
+- STORY-10-02 auto-render (and Postgres value persistence) until BE on tip

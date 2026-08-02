@@ -119,6 +119,12 @@ export const integrationHubKeys = {
     ] as const,
 };
 
+export const tenantStudioKeys = {
+  all: ["tenant-studio"] as const,
+  customFields: (tenantId: string, objectKey: string) =>
+    [...tenantStudioKeys.all, "custom-fields", tenantId, objectKey] as const,
+};
+
 export const opportunityKeys = {
   all: ["opportunities"] as const,
   lists: () => [...opportunityKeys.all, "list"] as const,

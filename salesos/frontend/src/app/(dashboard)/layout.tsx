@@ -33,6 +33,7 @@ import {
   Bot,
   LogOut,
   Plug,
+  FormInput,
 } from "lucide-react";
 import {
   LazyCommandBar,
@@ -74,6 +75,7 @@ const NAV_KEYS = [
     icon: HeartHandshake,
   },
   { href: "/integrations", key: "nav.integrations", icon: Plug },
+  { href: "/studio/custom-fields", key: "nav.custom_fields", icon: FormInput },
   { href: "/settings", key: "nav.settings", icon: Settings },
   { href: "/admin", key: "nav.admin", icon: Shield },
 ];

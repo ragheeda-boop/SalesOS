@@ -18,6 +18,7 @@ import {
   Activity,
   Shield,
   Plug,
+  FormInput,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
@@ -38,6 +39,11 @@ export function MobileNav() {
     { href: "/rag", key: "nav.rag", icon: MessageSquareText },
     { href: "/monitoring", key: "nav.monitoring", icon: Activity },
     { href: "/integrations", key: "nav.integrations", icon: Plug },
+    {
+      href: "/studio/custom-fields",
+      key: "nav.custom_fields",
+      icon: FormInput,
+    },
     { href: "/settings", key: "nav.settings", icon: Settings },
     { href: "/admin", key: "nav.admin", icon: Shield },
   ];

@@ -95,6 +95,17 @@ function listFromCsv(raw: string): string[] {
     .filter(Boolean);
 }
 
+/** Tip STORY-09-09 SyncRunResponse cursor watermarks for Monitor rows. */
+function syncRunHasCursors(run: {
+  cursor_before?: Record<string, unknown> | null;
+  cursor_after?: Record<string, unknown> | null;
+}): boolean {
+  return (
+    Object.keys(run.cursor_before ?? {}).length > 0 ||
+    Object.keys(run.cursor_after ?? {}).length > 0
+  );
+}
+
 /**
  * STORY-08-07 / FE-S08-08 — Integrations Studio against Hub HTTP.
  * Connect / test / map / conflict-policy / schedule / monitor / disconnect.
@@ -681,8 +692,8 @@ export function IntegrationsStudio() {
                 STORY-09-02: Odoo `crm.lead` stages are translated to canonical{" "}
                 {CANONICAL_OPPORTUNITY_STAGES.join(", ")}. Unmapped stages fail
                 loudly (no raw passthrough). Tenant stage maps live in mapping /
-                connection_config — not invented here. Unlinked badge list API
-                still BE-blocked. Not Production GO.
+                connection_config — not invented here. Unlinked badges on tip
+                Monitor (FE-S09-08). Not Production GO.
               </p>
             ) : null}
             {isNoteModel(model) ? (
@@ -695,7 +706,8 @@ export function IntegrationsStudio() {
                 before RAG ({NOTE_PII_SCRUB_CATEGORIES.join(", ")}). Raw body
                 stays audit-only (<code>body_raw</code>); RAG uses
                 <code>rag_text</code> only. Fixture corpus ≠ live prod audit.
-                Unlinked badge list still BE-blocked. Not RAG / Production GO.
+                Unlinked badges on tip Monitor (FE-S09-08). Not RAG / Production
+                GO.
               </p>
             ) : null}
             {isTicketModel(model) ? (
@@ -707,7 +719,7 @@ export function IntegrationsStudio() {
                 translated to canonical {CANONICAL_TICKET_STAGES.join(", ")}.
                 Unmapped stages fail loudly (no raw passthrough). Description
                 scrubbed via AI-GR-001 before RAG-adjacent fields. Unlinked
-                badge list still BE-blocked. Not Production GO / RAG GO.
+                badges on tip Monitor (FE-S09-08). Not Production GO / RAG GO.
               </p>
             ) : null}
             {isTaskModel(model) ? (
@@ -721,8 +733,8 @@ export function IntegrationsStudio() {
                 financing fields ({TASK_FINANCING_FIELDS.join(", ")}) or
                 insurance ({TASK_INSURANCE_FIELDS.join(", ")}); plain chores get
                 no extension. Stages are soft-mapped (not strict ticket ACL).
-                Unlinked badge list still BE-blocked. Not Production GO / RAG
-                GO.
+                Unlinked badges on tip Monitor (FE-S09-08). Not Production GO /
+                RAG GO.
               </p>
             ) : null}
             {isInvoiceModel(model) ? (
@@ -734,8 +746,8 @@ export function IntegrationsStudio() {
                 CustomerInvoice (≠ PlatformBillingInvoice / no
                 stripe_invoice_id). AR move types only:{" "}
                 {CUSTOMER_MOVE_TYPES.join(", ")}. Payment states translated to
-                canonical {CANONICAL_PAYMENT_STATES.join(", ")}. Unlinked badge
-                list still BE-blocked. Not Production GO / RAG GO.
+                canonical {CANONICAL_PAYMENT_STATES.join(", ")}. Unlinked badges
+                on tip Monitor (FE-S09-08). Not Production GO / RAG GO.
               </p>
             ) : null}
             <Input
@@ -1010,8 +1022,8 @@ export function IntegrationsStudio() {
               >
                 Tip schedule model <code>project.task</code> pulls Task +
                 optional TaskCaseExtension VO after STORY-09-05. No standalone
-                financing_cases aggregate. Unlinked badge list still BE-blocked.
-                Not Production GO / RAG GO.
+                financing_cases aggregate. Unlinked badges on tip Monitor
+                (FE-S09-08). Not Production GO / RAG GO.
               </p>
             ) : null}
             {isInvoiceModel(model) ? (
@@ -1021,8 +1033,8 @@ export function IntegrationsStudio() {
               >
                 Tip schedule model <code>account.move</code> pulls
                 CustomerInvoice AR rows after STORY-09-06 (not platform Stripe
-                invoices). No invoice list HTTP. Unlinked badge list still
-                BE-blocked. Not Production GO / RAG GO.
+                invoices). No invoice list HTTP. Unlinked badges on tip Monitor
+                (FE-S09-08). Not Production GO / RAG GO.
               </p>
             ) : null}
             <Input
@@ -1282,10 +1294,7 @@ export function IntegrationsStudio() {
                           : ""}
                         {run.failure_class ? ` · ${run.failure_class}` : ""}
                       </span>
-                      {(run.cursor_before &&
-                        Object.keys(run.cursor_before).length > 0) ||
-                      (run.cursor_after &&
-                        Object.keys(run.cursor_after).length > 0) ? (
+                      {syncRunHasCursors(run) ? (
                         <p
                           className="mt-1 font-mono text-[10px] text-[var(--text-muted)] break-all"
                           data-testid="integrations-studio-sync-run-cursors"

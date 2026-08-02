@@ -1123,5 +1123,6 @@
   "admin.plan_manager.active": "نشط",
   "admin.plan_manager.inactive": "غير نشط",
   "admin.plan_manager.no_licenses": "لا توجد تراخيص",
+  "nav.custom_fields": "الحقول المخصصة",
   "nav.integrations": "التكاملات"
 }

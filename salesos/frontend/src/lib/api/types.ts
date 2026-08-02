@@ -8,3 +8,4 @@ export * from "./types/activities";
 export * from "./types/admin";
 export * from "./types/settings";
 export * from "./types/integrationHub";
+export * from "./types/tenantStudio";

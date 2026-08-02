@@ -1,5 +1,5 @@
 /** Tip STORY-09-01 Odoo partner (company/contact) honesty constants (mirror BE).
- * Not an invented HTTP API. Unlinked badge list still BE-blocked.
+ * Not an invented HTTP API. Unlinked badges on tip Monitor (FE-S09-08).
  * Not Production GO.
  */
 

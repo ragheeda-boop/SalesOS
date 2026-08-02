@@ -1,5 +1,5 @@
 /** Tip STORY-08-06 ConflictResolutionPolicy.default() mirrors (honesty only).
- * Not Production GO. Unlinked badge list still BE-blocked.
+ * Not Production GO. Unlinked badges on tip Monitor (FE-S09-08).
  */
 
 export const TIP_SALESOS_AUTHORED_FIELDS = [
