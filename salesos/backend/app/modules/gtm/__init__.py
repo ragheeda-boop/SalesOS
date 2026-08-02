@@ -1,4 +1,4 @@
-"""GTM Intelligence — CAP-095..100 + CAP-104. Not Production GO."""
+"""GTM Intelligence — CAP-095..101 + CAP-104. Not Production GO."""
 
 from app.modules.gtm.enrichment import EnrichmentError, EnrichmentResult
 from app.modules.gtm.icp import ICPError, ICPProfile
@@ -20,6 +20,10 @@ from app.modules.gtm.market_sizing_engine import (
 )
 from app.modules.gtm.sequencing import SequenceDefinition, SequencingError
 from app.modules.gtm.verification import VerificationError, VerificationResult
+from app.modules.gtm.website_intelligence import (
+    WebsiteIntelligenceError,
+    WebsiteIntelligenceSnapshot,
+)
 
 __all__ = [
     "GOVERNMENT_DATASET_SCALE_HINT",
@@ -40,5 +44,7 @@ __all__ = [
     "SequencingError",
     "VerificationError",
     "VerificationResult",
+    "WebsiteIntelligenceError",
+    "WebsiteIntelligenceSnapshot",
     "compute_tam_sam_som",
 ]

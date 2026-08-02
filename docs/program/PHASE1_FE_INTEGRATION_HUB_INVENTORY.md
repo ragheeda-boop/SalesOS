@@ -60,7 +60,8 @@
 
 ## Blocked (do not invent)
 
-- FE-S11-07 Website Intelligence / FE-S11-08 AI Outreach — **STANDBY** until AI-Lead tip HTTP
+- FE-S11-07 Website Intelligence — **UNBLOCKED BE** tip `/api/v1/gtm/website-intelligence` (STORY-11-07); FE UI still pending FE-Lead
+- FE-S11-08 AI Outreach — **STANDBY** until AI-Lead tip HTTP (STORY-11-08 next)
 - Live HubSpot/Odoo/REST GO via catalog install — **not claimed**
 - Postgres custom-field / workflow persistence beyond tip in-memory stores
 - Workflow for_each / loop canvas nodes (deferred)
