@@ -60,6 +60,18 @@ async def _insert_company(
     score: float,
     cr_suffix: str | None = None,
 ) -> None:
+    # companies.tenant_id FK — create parent tenant first (CI flake root cause).
+    await db_session.execute(
+        text(
+            "INSERT INTO tenants (id, name, slug) VALUES (:id, :name, :slug) "
+            "ON CONFLICT (id) DO NOTHING"
+        ),
+        {
+            "id": tenant_id,
+            "name": f"mig0030-{tenant_id.hex[:8]}",
+            "slug": f"mig0030-{tenant_id.hex[:8]}",
+        },
+    )
     cr = cr_suffix or uuid.uuid4().hex[:10].upper()
     await db_session.execute(
         text(
