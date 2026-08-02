@@ -10,11 +10,13 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.billing.models import UsageMeterEventModel, UsageMeterModel
 from app.modules.billing.usage_metrics import (
+    QUOTA_COUNTER_METRICS,
+    QUOTA_GAUGE_METRICS,
     combine_quantities,
     hour_bucket,
     normalize_metric_key,
@@ -165,3 +167,64 @@ class UsageMeterService:
             q = q.where(UsageMeterModel.period_start < period_to)
         q = q.limit(max(1, min(int(limit), 1000)))
         return list((await self.session.execute(q)).scalars().all())
+
+    async def quota_usage_snapshot(
+        self,
+        *,
+        tenant_id: uuid.UUID | str,
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        """STORY-06-03 — UTC-month counters + latest gauge values for enforcement."""
+        at = now or datetime.now(UTC)
+        if at.tzinfo is None:
+            at = at.replace(tzinfo=UTC)
+        else:
+            at = at.astimezone(UTC)
+        month_start = at.replace(day=1, minute=0, second=0, microsecond=0, hour=0)
+        if month_start.month == 12:
+            month_end = month_start.replace(year=month_start.year + 1, month=1)
+        else:
+            month_end = month_start.replace(month=month_start.month + 1)
+        tid = uuid.UUID(str(tenant_id))
+        usage: dict[str, float] = {
+            "seats": 0.0,
+            "ai_tokens": 0.0,
+            "connectors": 0.0,
+            "storage_mb": 0.0,
+            "api_calls": 0.0,
+        }
+        period = f"{month_start.year:04d}-{month_start.month:02d}"
+
+        counter_rows = await self.session.execute(
+            select(
+                UsageMeterModel.metric_key,
+                func.coalesce(func.sum(UsageMeterModel.quantity), 0.0),
+            )
+            .where(
+                UsageMeterModel.tenant_id == tid,
+                UsageMeterModel.metric_key.in_(tuple(QUOTA_COUNTER_METRICS)),
+                UsageMeterModel.period_start >= month_start,
+                UsageMeterModel.period_start < month_end,
+            )
+            .group_by(UsageMeterModel.metric_key)
+        )
+        for metric_key, total in counter_rows.all():
+            usage[str(metric_key)] = float(total or 0.0)
+
+        for metric_key in QUOTA_GAUGE_METRICS:
+            row = (
+                await self.session.execute(
+                    select(UsageMeterModel)
+                    .where(
+                        UsageMeterModel.tenant_id == tid,
+                        UsageMeterModel.metric_key == metric_key,
+                    )
+                    .order_by(UsageMeterModel.period_start.desc())
+                    .limit(1)
+                )
+            ).scalar_one_or_none()
+            if row is not None:
+                usage[metric_key] = float(row.quantity or 0.0)
+
+        return {"usage": usage, "period": period, "month_start": month_start.isoformat()}
+

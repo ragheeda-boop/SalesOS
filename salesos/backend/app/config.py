@@ -155,6 +155,9 @@ class Settings(BaseSettings):
     # STORY-06-02 — enforce Plan.entitlements on gated tenant paths. Policy, not a secret.
     entitlement_enforcement_enabled: bool = True
 
+    # STORY-06-03 — enforce UsageMeter quotas on gated paths. Policy, not a secret.
+    quota_enforcement_enabled: bool = True
+
     log_level: str = "INFO"
     sentry_dsn: str = ""
     service_version: str = "5.1.0-rc1"
