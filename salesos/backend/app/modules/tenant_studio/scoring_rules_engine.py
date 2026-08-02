@@ -54,9 +54,9 @@ def _match_boost(boost: ScoringBoost, attributes: dict[str, Any]) -> bool:
     actual = attributes[key]
     expected = boost.value
     if boost.op == "eq":
-        return actual == expected
+        return bool(actual == expected)
     if boost.op == "neq":
-        return actual != expected
+        return bool(actual != expected)
     if boost.op == "contains":
         return str(expected) in str(actual)
     try:

@@ -6,6 +6,7 @@ Not Production GO. DEC-085 untouched. No Alembic / FORCE RLS.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
@@ -99,12 +100,12 @@ def validate_dimension_weights(weights: dict[str, float]) -> dict[str, float]:
     return cleaned
 
 
-def validate_boosts(raw_boosts: list[dict[str, Any]] | list[ScoringBoost]) -> list[ScoringBoost]:
+def validate_boosts(raw_boosts: Sequence[Any] | None) -> list[ScoringBoost]:
     out: list[ScoringBoost] = []
     for item in raw_boosts or []:
         if isinstance(item, ScoringBoost):
             boost = item
-        else:
+        elif isinstance(item, dict):
             field_name = str(item.get("field") or "").strip()
             op = str(item.get("op") or "").strip().lower()
             if not field_name:
@@ -121,6 +122,8 @@ def validate_boosts(raw_boosts: list[dict[str, Any]] | list[ScoringBoost]) -> li
                 value=item.get("value"),
                 delta=delta,
             )
+        else:
+            raise ScoringRuleError("boost must be a mapping or ScoringBoost")
         if boost.op not in VALID_BOOST_OPS:
             raise ScoringRuleError(f"unsupported boost op: {boost.op}")
         if not (boost.field or "").strip():
