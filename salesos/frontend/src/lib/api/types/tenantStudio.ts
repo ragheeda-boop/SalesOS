@@ -293,3 +293,75 @@ export interface WorkflowCanvasCompileResult {
   schema_version?: number;
   workflow: Record<string, unknown>;
 }
+
+/** Tip STORY-10-08 Notification Rules Studio. */
+export const NOTIFICATION_EVENT_TYPES = [
+  "opportunity.stage_changed",
+  "lead.assigned",
+  "task.overdue",
+  "sync.failed",
+  "score.threshold",
+] as const;
+
+export const NOTIFICATION_CHANNELS = ["in_app", "email"] as const;
+
+export interface NotificationEventsCatalog {
+  event_types: string[];
+  channels: string[];
+}
+
+export interface NotificationCondition {
+  field: string;
+  operator: string;
+  value?: unknown;
+}
+
+export interface NotificationRecipient {
+  kind: "role" | "user" | "owner";
+  value: string;
+}
+
+export interface NotificationRuleUpsert {
+  id?: string | null;
+  name: string;
+  event_type: string;
+  channels: string[];
+  recipients: NotificationRecipient[];
+  conditions?: NotificationCondition[];
+  message_template?: string;
+  priority?: number;
+  active?: boolean;
+}
+
+export interface NotificationRule {
+  id: string;
+  tenant_id: string;
+  name: string;
+  event_type: string;
+  channels: string[];
+  recipients: NotificationRecipient[];
+  conditions: NotificationCondition[];
+  message_template: string;
+  priority: number;
+  active: boolean;
+  schema_version: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface NotificationRouteRequest {
+  event_type: string;
+  payload?: Record<string, unknown>;
+  entity_id?: string;
+}
+
+export interface NotificationRouteResult {
+  matched_rule_ids?: string[];
+  actions?: unknown[];
+  [key: string]: unknown;
+}
+
+export interface NotificationRuleCompileResult {
+  rule: NotificationRule;
+  engine_rule: Record<string, unknown>;
+}

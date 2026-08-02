@@ -36,7 +36,9 @@
 | FE-S10-04 | Scoring Rules Studio (tip 10-04) |
 | FE-S10-06 | Permissions Studio (tip 10-06) |
 | FE-S10-03 | Workflow Builder Studio (tip 10-03) |
+| FE-S10-08 | Notification Rules Studio (tip 10-08) |
 | FE-S10-05 | Territory config — **BLOCKED** (no tip `/studio/territories` BE) |
+| FE-S10-07 | Branding — READY when tip branding HTTP exists (board STORY-10-07) |
 
 ## Blocked (do not invent)
 

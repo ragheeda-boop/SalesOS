@@ -21,6 +21,7 @@ import {
   FormInput,
   Gauge,
   KeyRound,
+  Bell,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
@@ -60,6 +61,11 @@ export function MobileNav() {
       href: "/studio/workflows",
       key: "nav.workflow_studio",
       icon: Workflow,
+    },
+    {
+      href: "/studio/notifications",
+      key: "nav.notification_rules",
+      icon: Bell,
     },
     { href: "/settings", key: "nav.settings", icon: Settings },
     { href: "/admin", key: "nav.admin", icon: Shield },

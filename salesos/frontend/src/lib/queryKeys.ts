@@ -135,6 +135,10 @@ export const tenantStudioKeys = {
     [...tenantStudioKeys.all, "custom-roles", tenantId] as const,
   workflows: (tenantId: string) =>
     [...tenantStudioKeys.all, "workflows", tenantId] as const,
+  notificationRules: (tenantId: string) =>
+    [...tenantStudioKeys.all, "notification-rules", tenantId] as const,
+  notificationEvents: (tenantId: string) =>
+    [...tenantStudioKeys.all, "notification-events", tenantId] as const,
 };
 
 export const opportunityKeys = {

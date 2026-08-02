@@ -1127,5 +1127,6 @@
   "nav.scoring_rules": "Scoring Rules",
   "nav.permissions_studio": "Permissions Studio",
   "nav.workflow_studio": "Workflow Studio",
+  "nav.notification_rules": "Notification Rules",
   "nav.integrations": "Integrations"
 }
