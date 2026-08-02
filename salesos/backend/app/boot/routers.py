@@ -277,6 +277,17 @@ def register_routers(app: FastAPI) -> None:
         tags=["GTM Intelligence"],
         dependencies=_auth,
     )
+    # DOM-023 / CAP-099 — STORY-11-05 Enrichment Waterfall (≥2 providers).
+    from app.modules.gtm.enrichment_router import (
+        router as enrichment_router,
+    )
+
+    app.include_router(
+        enrichment_router,
+        prefix="/api/v1",
+        tags=["GTM Intelligence"],
+        dependencies=_auth,
+    )
     app.include_router(audit_router, prefix="/api/v1", tags=["Audit"], dependencies=_auth)
     app.include_router(api_keys_router, prefix="/api/v1", tags=["API Keys"], dependencies=_auth)
     app.include_router(admin_router)

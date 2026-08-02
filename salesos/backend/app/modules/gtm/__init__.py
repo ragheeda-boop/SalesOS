@@ -1,8 +1,6 @@
-"""GTM Intelligence — CAP-095 ICP + CAP-096 Market Sizing + CAP-097 Lead Discovery.
+"""GTM Intelligence — CAP-095/096/097/099. Not Production GO."""
 
-Not Production GO.
-"""
-
+from app.modules.gtm.enrichment import EnrichmentError, EnrichmentResult
 from app.modules.gtm.icp import ICPError, ICPProfile
 from app.modules.gtm.lead_discovery import (
     DiscoveredLead,
@@ -23,6 +21,8 @@ from app.modules.gtm.market_sizing_engine import (
 __all__ = [
     "GOVERNMENT_DATASET_SCALE_HINT",
     "DiscoveredLead",
+    "EnrichmentError",
+    "EnrichmentResult",
     "ICPError",
     "ICPProfile",
     "LeadDiscoveryError",

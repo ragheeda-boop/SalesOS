@@ -7,7 +7,7 @@
 | Story | Owner | Priority | Risk | Acceptance Criteria |
 |---|---|---|---|---|
 | STORY-11-04 (Lookalike Accounts) | AI-Lead | P0 | Medium | Trained on tenant's own won/lost Opportunity history |
-| STORY-11-05 (Enrichment Waterfall) | BE2 | P0 | Medium | ≥2 swappable providers behind Integration Hub |
+| STORY-11-05 (Enrichment Waterfall) | BE2 | P0 | Medium | **LANDED BE (Stream A):** ≥2 swappable providers via `/api/v1/gtm/enrichment` (CI: fake_a/fake_b). Crumb [`PHASE1_STORY_11_05_ENRICHMENT_WATERFALL_CRUMB.md`](../PHASE1_STORY_11_05_ENRICHMENT_WATERFALL_CRUMB.md). Live vendor enrichment not claimed. No new RLS. No Production GO. |
 | STORY-11-06 (Contact Verification) | BE3 | P1 | Low | Single connector interface, commodity swap-in |
 
 **Expected Demo:** Feed a seed account through Lookalikes, show ranked similar accounts from the tenant's real pipeline history.
