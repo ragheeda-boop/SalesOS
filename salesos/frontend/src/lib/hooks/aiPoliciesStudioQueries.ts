@@ -58,8 +58,7 @@ export function useUpsertAiPolicy() {
 export function useDeleteAiPolicy() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (policyId: string) =>
-      deleteAiPolicy(getTenantId(), policyId),
+    mutationFn: (policyId: string) => deleteAiPolicy(getTenantId(), policyId),
     onSuccess: () => invalidateAll(qc),
   });
 }

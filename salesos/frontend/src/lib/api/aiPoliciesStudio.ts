@@ -75,9 +75,7 @@ export async function getAiPoliciesMeta(
   return resp.data;
 }
 
-export async function listAiPolicies(
-  tenantId: string,
-): Promise<AiPolicySet[]> {
+export async function listAiPolicies(tenantId: string): Promise<AiPolicySet[]> {
   const resp = await api.get<AiPolicySet[]>(BASE, {
     headers: tenantHeaders(tenantId),
   });
@@ -119,8 +117,12 @@ export async function evaluateAiPolicy(
   tenantId: string,
   body: AiPolicyEvaluateBody,
 ): Promise<AiPolicyEvaluateResult> {
-  const resp = await api.post<AiPolicyEvaluateResult>(`${BASE}/evaluate`, body, {
-    headers: tenantHeaders(tenantId),
-  });
+  const resp = await api.post<AiPolicyEvaluateResult>(
+    `${BASE}/evaluate`,
+    body,
+    {
+      headers: tenantHeaders(tenantId),
+    },
+  );
   return resp.data;
 }

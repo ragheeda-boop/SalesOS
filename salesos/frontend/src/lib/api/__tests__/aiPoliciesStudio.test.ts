@@ -68,22 +68,20 @@ describe("aiPoliciesStudio API — FE-S12-02", () => {
     mockedApi.get
       .mockResolvedValueOnce({ data: [row] })
       .mockResolvedValueOnce({ data: row });
-    mockedApi.post
-      .mockResolvedValueOnce({ data: row })
-      .mockResolvedValueOnce({
-        data: {
-          allowed: false,
-          data_class: "pii",
-          requested_model_tier: "full",
-          max_model_tier: "economy",
-          require_pii_scrub: true,
-          sanitized_preview: "",
-          redactions: {},
-          findings: ["AI-GR-004:tier"],
-          live_llm: false,
-          feature_ai_copilot: false,
-        },
-      });
+    mockedApi.post.mockResolvedValueOnce({ data: row }).mockResolvedValueOnce({
+      data: {
+        allowed: false,
+        data_class: "pii",
+        requested_model_tier: "full",
+        max_model_tier: "economy",
+        require_pii_scrub: true,
+        sanitized_preview: "",
+        redactions: {},
+        findings: ["AI-GR-004:tier"],
+        live_llm: false,
+        feature_ai_copilot: false,
+      },
+    });
     mockedApi.delete.mockResolvedValueOnce({
       data: { deleted: true, id: "pol-1" },
     });
