@@ -331,7 +331,12 @@ describe("billing helpers — FE-S05-01..04", () => {
         pending_effective_at: "2026-09-01T00:00:00Z",
       }),
     ).toMatch(/pending/i);
-    expect(dunningGraceDaysRemaining("2026-08-17T00:00:00Z", Date.parse("2026-08-10T00:00:00Z"))).toBe(7);
+    expect(
+      dunningGraceDaysRemaining(
+        "2026-08-17T00:00:00Z",
+        Date.parse("2026-08-10T00:00:00Z"),
+      ),
+    ).toBe(7);
     expect(
       formatDunningCaseRow({ status: "open", failure_count: 1 }),
     ).toContain("status=open");
@@ -360,7 +365,10 @@ describe("billing helpers — FE-S05-01..04", () => {
     ).toContain("Resolved entitlements");
     expect(
       listDisabledEntitlementDomains({
-        domains: { "DOM-011": { enabled: false }, "DOM-001": { enabled: true } },
+        domains: {
+          "DOM-011": { enabled: false },
+          "DOM-001": { enabled: true },
+        },
       }),
     ).toEqual(["DOM-011"]);
   });
@@ -369,8 +377,17 @@ describe("billing helpers — FE-S05-01..04", () => {
     expect(
       formatPlanEntitlementsSummary({
         version: 1,
-        domains: { "DOM-001": { enabled: true }, "DOM-011": { enabled: false } },
-        quotas: { seats: 5, ai_tokens_monthly: 1000, connectors: 1, storage_mb: 100, api_calls_monthly: 1000 },
+        domains: {
+          "DOM-001": { enabled: true },
+          "DOM-011": { enabled: false },
+        },
+        quotas: {
+          seats: 5,
+          ai_tokens_monthly: 1000,
+          connectors: 1,
+          storage_mb: 100,
+          api_calls_monthly: 1000,
+        },
         deployment_tier: "pooled",
         support_sla: "community",
       }),
