@@ -30,20 +30,48 @@ class DomainEntitlement(BaseModel):
     # Marketplace publish rights (DOM-024 Enterprise post-GA).
     publish: bool = False
 
+    @field_validator("quota")
+    @classmethod
+    def _quota_non_negative(cls, v: int | None) -> int | None:
+        if v is not None and v < 0:
+            raise ValueError("quota must be >= 0")
+        return v
+
 
 class EntitlementQuotas(BaseModel):
-    seats: int = Field(default=1, ge=0)
-    ai_tokens_monthly: int = Field(default=0, ge=0)
-    connectors: int = Field(default=0, ge=0)
-    storage_mb: int = Field(default=100, ge=0)
-    api_calls_monthly: int = Field(default=1000, ge=0)
-    # -1 = negotiated / unlimited (Enterprise AI tokens).
+    # Plain defaults — pydantic mypy plugin treats Field(default=...) as required.
+    seats: int = 1
+    ai_tokens_monthly: int = 0
+    connectors: int = 0
+    storage_mb: int = 100
+    api_calls_monthly: int = 1000
     ai_tokens_unlimited: bool = False
     connectors_unlimited: bool = False
 
+    @field_validator(
+        "seats",
+        "ai_tokens_monthly",
+        "connectors",
+        "storage_mb",
+        "api_calls_monthly",
+    )
+    @classmethod
+    def _non_negative(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("quota values must be >= 0")
+        return v
+
 
 def _default_quotas() -> EntitlementQuotas:
-    return EntitlementQuotas()
+    return EntitlementQuotas(
+        seats=1,
+        ai_tokens_monthly=0,
+        connectors=0,
+        storage_mb=100,
+        api_calls_monthly=1000,
+        ai_tokens_unlimited=False,
+        connectors_unlimited=False,
+    )
 
 
 class PlanEntitlements(BaseModel):
@@ -53,7 +81,7 @@ class PlanEntitlements(BaseModel):
     domains: dict[str, DomainEntitlement] = Field(default_factory=dict)
     quotas: EntitlementQuotas = Field(default_factory=_default_quotas)
     deployment_tier: Literal["pooled", "siloed"] = "pooled"
-    support_sla: str = Field("community", min_length=1, max_length=64)
+    support_sla: str = Field(default="community", min_length=1, max_length=64)
 
     @field_validator("domains")
     @classmethod
