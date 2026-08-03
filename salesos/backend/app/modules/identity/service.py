@@ -70,24 +70,36 @@ async def _publish_best_effort(
     """
     if event_bus is None:
         return
-    try:
-        await asyncio.wait_for(
-            event_bus.publish(event),
-            timeout=_EVENT_PUBLISH_TIMEOUT_SECONDS,
-        )
-    except TimeoutError:
-        if logger:
-            logger.warn(
-                "event.publish_timeout",
-                entity_type=entity_type,
-                aggregate_id=aggregate_id,
-                event_type=getattr(event, "event_type", ""),
-                timeout_seconds=_EVENT_PUBLISH_TIMEOUT_SECONDS,
+
+    async def _run() -> None:
+        try:
+            await asyncio.wait_for(
+                event_bus.publish(event),
+                timeout=_EVENT_PUBLISH_TIMEOUT_SECONDS,
             )
+        except TimeoutError:
+            if logger:
+                logger.warn(
+                    "event.publish_timeout",
+                    entity_type=entity_type,
+                    aggregate_id=aggregate_id,
+                    event_type=getattr(event, "event_type", ""),
+                    timeout_seconds=_EVENT_PUBLISH_TIMEOUT_SECONDS,
+                )
+        except Exception:
+            if logger:
+                logger.warn(
+                    "event.publish_failed",
+                    entity_type=entity_type,
+                    aggregate_id=aggregate_id,
+                )
+
+    try:
+        asyncio.get_running_loop().create_task(_run())
     except Exception:
         if logger:
             logger.warn(
-                "event.publish_failed",
+                "event.publish_schedule_failed",
                 entity_type=entity_type,
                 aggregate_id=aggregate_id,
             )
@@ -467,26 +479,65 @@ class IdentityService:
         full_name: str,
         full_name_ar: str | None = None,
         tenant_id: str | None = None,
+        *,
+        defer_side_effects: bool = False,
     ) -> User:
-        if await self._user_repo.exists_by_email(email):
+        # Bound DB awaits — Railway register hung ~60s on unbounded flush/select.
+        try:
+            exists = await asyncio.wait_for(
+                self._user_repo.exists_by_email(email),
+                timeout=8.0,
+            )
+        except TimeoutError as exc:
+            raise TimeoutError("register.exists_by_email_timeout") from exc
+        if exists:
             raise DuplicateError("User", "email", email)
 
         user = User(
             email=email,
-            password_hash=await _hash_password_async(password),
+            password_hash=await asyncio.wait_for(
+                _hash_password_async(password),
+                timeout=15.0,
+            ),
             full_name=full_name,
             full_name_ar=full_name_ar,
             tenant_id=tenant_id,
         )
-        await self._user_repo.save(user)
+        try:
+            await asyncio.wait_for(self._user_repo.save(user), timeout=8.0)
+        except TimeoutError as exc:
+            raise TimeoutError("register.user_save_timeout") from exc
 
-        audit = AuditTrail(self.db)
-        await audit.record(
-            tenant_id=str(user.tenant_id) if user.tenant_id else "",
-            entity_type="user",
-            entity_id=str(user.id),
-            action="created",
-        )
+        if not defer_side_effects:
+            await self._register_side_effects(user, email=email, full_name=full_name)
+
+        return user
+
+    async def _register_side_effects(
+        self,
+        user: User,
+        *,
+        email: str,
+        full_name: str,
+    ) -> None:
+        """Audit + UserRegistered — never block token mint (best-effort)."""
+        try:
+            audit = AuditTrail(self.db)
+            await asyncio.wait_for(
+                audit.record(
+                    tenant_id=str(user.tenant_id) if user.tenant_id else "",
+                    entity_type="user",
+                    entity_id=str(user.id),
+                    action="created",
+                ),
+                timeout=3.0,
+            )
+        except Exception:
+            if self.logger:
+                self.logger.warn(
+                    "register.audit_skipped",
+                    user_id=str(user.id),
+                )
         await _publish_best_effort(
             self.event_bus,
             UserRegistered(
@@ -499,8 +550,6 @@ class IdentityService:
             entity_type="user",
             aggregate_id=str(user.id),
         )
-
-        return user
 
     async def authenticate(self, email: str, password: str) -> User:
         # Email is globally unique, but FORCE RLS on users hides rows until

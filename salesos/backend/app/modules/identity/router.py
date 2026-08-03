@@ -1,3 +1,4 @@
+import asyncio
 from datetime import UTC, datetime
 from uuid import uuid4
 
@@ -176,38 +177,80 @@ async def register(
     # INSERT/SELECT. Self-service register has no JWT yet — pin GUC to the
     # tenant being created/joined so WITH CHECK and email uniqueness work.
     set_current_tenant_id(tenant_id)
-    await db.execute(
-        sa_text("SELECT set_config('app.tenant_id', :tenant_id, true)"),
-        {"tenant_id": tenant_id},
-    )
+    try:
+        await asyncio.wait_for(
+            db.execute(
+                sa_text("SELECT set_config('app.tenant_id', :tenant_id, true)"),
+                {"tenant_id": tenant_id},
+            ),
+            timeout=5.0,
+        )
+    except TimeoutError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="register.set_config_timeout — check DB connectivity",
+        ) from exc
     if not body.tenant_id:
         from app.modules.identity.models import Tenant
 
         tenant = Tenant(id=tenant_id, name=body.full_name, slug=tenant_id[:8], plan="free")
         db.add(tenant)
-        await db.flush()
-    user = await service.create_user(
-        email=body.email,
-        password=body.password,
-        full_name=body.full_name,
-        full_name_ar=body.full_name_ar,
-        tenant_id=tenant_id,
-    )
+        try:
+            # Prime hang site on Railway (selectin/deleted_at/lock). Bound hard.
+            await asyncio.wait_for(db.flush(), timeout=8.0)
+        except TimeoutError as exc:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "register.tenant_flush_timeout — verify tenants.deleted_at "
+                    "(alembic d4b0e23f5a91) and DB locks"
+                ),
+            ) from exc
+    try:
+        user = await service.create_user(
+            email=body.email,
+            password=body.password,
+            full_name=body.full_name,
+            full_name_ar=body.full_name_ar,
+            tenant_id=tenant_id,
+            defer_side_effects=True,
+        )
+    except TimeoutError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"register.user_timeout: {exc}",
+        ) from exc
     uid = str(user.id)
     tid = str(user.tenant_id)
-    refresh_token, family_id, family_pk, jti = await service.create_token_family(uid, tid)
-    device_name, device_type = _parse_device_info(request)
-    await service.create_device_session(
-        user_id=uid,
-        tenant_id=tid,
-        refresh_family_id=family_pk,
-        device_name=device_name,
-        device_type=device_type,
-        ip_address=request.client.host if request.client else "",
-    )
+    try:
+        refresh_token, family_id, family_pk, jti = await asyncio.wait_for(
+            service.create_token_family(uid, tid),
+            timeout=8.0,
+        )
+        device_name, device_type = _parse_device_info(request)
+        await asyncio.wait_for(
+            service.create_device_session(
+                user_id=uid,
+                tenant_id=tid,
+                refresh_family_id=family_pk,
+                device_name=device_name,
+                device_type=device_type,
+                ip_address=request.client.host if request.client else "",
+            ),
+            timeout=8.0,
+        )
+    except TimeoutError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="register.token_session_timeout",
+        ) from exc
     access_token = create_access_token(uid, tid)
     max_age = settings.jwt_refresh_token_expire_days * 86400
     _set_refresh_cookie(response, refresh_token, max_age)
+    # Audit + events AFTER tokens — never block 201 on EventRuntime/audit.
+    await service._register_side_effects(
+        user, email=body.email, full_name=body.full_name
+    )
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,

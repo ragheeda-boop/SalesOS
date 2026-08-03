@@ -36,7 +36,13 @@ class Tenant(BaseModel):
     features: Mapped[dict | None] = mapped_column(type_=JSONB, default=dict)
     subscription_ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    users: Mapped[list["User"]] = relationship("User", back_populates="tenant", lazy="selectin")
+    users: Mapped[list["User"]] = relationship(
+        "User",
+        back_populates="tenant",
+        # noload: selectin after Tenant flush hung Railway register (~60s).
+        # Do not reintroduce selectin without an explicit load strategy at call site.
+        lazy="noload",
+    )
 
     def __repr__(self) -> str:
         return f"<Tenant {self.slug}>"
