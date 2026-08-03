@@ -1,6 +1,17 @@
 import axios from "axios";
 import { clearAuthTokens, ACCESS_TOKEN_KEY } from "@/lib/auth/session";
 import {
+  CSRF_HEADER,
+  CSRF_TOKEN_PATH,
+  clearCachedCsrfCookie,
+  isCsrfExemptUrl,
+  isCsrfFailurePayload,
+  isMutatingMethod,
+  mirrorCsrfCookie,
+  readCookie,
+  CSRF_COOKIE,
+} from "@/lib/auth/csrf";
+import {
   ENTITLEMENT_DENIED_EVENT,
   formatEntitlementDeniedMessage,
   isEntitlementDeniedPayload,
@@ -30,7 +41,45 @@ const api = axios.create({
   },
 });
 
-api.interceptors.request.use((config) => {
+let csrfMintInFlight: Promise<string> | null = null;
+
+async function mintCsrfToken(): Promise<string> {
+  if (csrfMintInFlight) return csrfMintInFlight;
+  csrfMintInFlight = (async () => {
+    const resp = await api.get<{ csrf_token: string }>(CSRF_TOKEN_PATH);
+    const token = String(resp.data?.csrf_token || "");
+    if (!token) {
+      throw new Error("CSRF mint returned empty token");
+    }
+    // BE sets Secure cookie; mirror from body when jar drops it (http local).
+    if (!readCookie(CSRF_COOKIE)) {
+      mirrorCsrfCookie(token);
+    }
+    return token;
+  })().finally(() => {
+    csrfMintInFlight = null;
+  });
+  return csrfMintInFlight;
+}
+
+async function ensureCsrfHeader(config: {
+  method?: string;
+  url?: string;
+  headers?: Record<string, unknown>;
+}): Promise<void> {
+  if (typeof window === "undefined") return;
+  if (!isMutatingMethod(config.method)) return;
+  if (isCsrfExemptUrl(config.url)) return;
+
+  let token = readCookie(CSRF_COOKIE);
+  if (!token) {
+    token = await mintCsrfToken();
+  }
+  if (!config.headers) config.headers = {};
+  config.headers[CSRF_HEADER] = token;
+}
+
+api.interceptors.request.use(async (config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("access_token");
     if (token) {
@@ -55,6 +104,8 @@ api.interceptors.request.use((config) => {
         }
       }
     }
+
+    await ensureCsrfHeader(config);
   }
   return config;
 });
@@ -65,6 +116,28 @@ api.interceptors.response.use(
     if (typeof window === "undefined") return Promise.reject(error);
 
     const status = error.response?.status;
+    const original = error.config as
+      (typeof error.config & { _csrfRetry?: boolean }) | undefined;
+
+    if (
+      status === 403 &&
+      original &&
+      !original._csrfRetry &&
+      isMutatingMethod(original.method) &&
+      !isCsrfExemptUrl(original.url) &&
+      isCsrfFailurePayload(error.response?.data)
+    ) {
+      original._csrfRetry = true;
+      clearCachedCsrfCookie();
+      try {
+        const token = await mintCsrfToken();
+        original.headers = original.headers || {};
+        original.headers[CSRF_HEADER] = token;
+        return api.request(original);
+      } catch {
+        return Promise.reject(error);
+      }
+    }
 
     if (status === 401) {
       const requestUrl =
