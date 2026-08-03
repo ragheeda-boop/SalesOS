@@ -134,10 +134,10 @@ infra/k8s/secrets-generated.yaml
 *.bak?
 tmp-*
 
-# R-14 ops temp (may contain DB passwords — never commit)
+# R-14 ops temp (may contain DB passwords â€” never commit)
 salesos/backend/.tmp_r14*
 
 
-# Soak / probe temp evidence (may contain live JWTs — never commit)
-.tmp-1401*
-.tmp-*-token*
+# Soak / probe temp evidence (may contain live JWTs - never commit)
+.tmp-*
+.tmp_*
