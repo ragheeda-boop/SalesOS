@@ -66,6 +66,7 @@ import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/foundation/LanguageSwitcher";
 import { TenantBrandMark } from "@/features/tenant-studio/TenantBrandMark";
 import { useAiCopilotEnabled } from "@/lib/hooks/useAiCopilotEnabled";
+import { logoutSession } from "@/lib/api/identity";
 import { clearAuthTokens } from "@/lib/auth/session";
 
 const NAV_KEYS = [
@@ -159,8 +160,14 @@ function DashboardContent({ children }: { children: ReactNode }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const handleLogout = useCallback(() => {
-    clearAuthTokens();
-    window.location.href = "/login";
+    void (async () => {
+      try {
+        await logoutSession();
+      } finally {
+        clearAuthTokens();
+        window.location.href = "/login";
+      }
+    })();
   }, []);
 
   // AI routes intentionally absent from NAV_KEYS — gated via Ask AI / feature flag only

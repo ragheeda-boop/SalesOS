@@ -162,6 +162,34 @@ api.interceptors.response.use(
         );
         return Promise.reject(error);
       }
+
+      const original401 = error.config as
+        (typeof error.config & { _refreshRetry?: boolean }) | undefined;
+      const isRefreshCall =
+        typeof requestUrl === "string" &&
+        requestUrl.includes("/api/v1/identity/refresh");
+      if (
+        original401 &&
+        !original401._refreshRetry &&
+        !isRefreshCall &&
+        !requestUrl.includes("/api/v1/identity/login")
+      ) {
+        original401._refreshRetry = true;
+        try {
+          // Dynamic import avoids identity↔client cycle (FE-SEC-04 cookie-first).
+          const { refreshSession } = await import("@/lib/api/identity");
+          await refreshSession();
+          const nextToken = localStorage.getItem(ACCESS_TOKEN_KEY);
+          original401.headers = original401.headers || {};
+          if (nextToken) {
+            original401.headers.Authorization = `Bearer ${nextToken}`;
+          }
+          return api.request(original401);
+        } catch {
+          /* fall through to clear + login */
+        }
+      }
+
       clearAuthTokens();
       window.location.href = "/login";
       return Promise.reject(error);
