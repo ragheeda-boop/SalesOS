@@ -141,3 +141,10 @@ salesos/backend/.tmp_r14*
 # Soak / probe temp evidence (may contain live JWTs - never commit)
 .tmp-*
 .tmp_*
+
+# Local CI / GHA failure dumps at repo root (may contain workspace/service IDs)
+*_failure_context.txt
+/[0-9]*.err
+/[0-9]*_run.err
+/[0-9]*_run_snippet.txt
+/workflow-failure-snippet.txt
