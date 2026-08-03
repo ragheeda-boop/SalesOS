@@ -26,6 +26,8 @@ alembic = "^1.13"
 pydantic = ">=2.9,<3"
 pydantic-settings = ">=2.2,<2.5"
 python-jose = {extras = ["cryptography"], version = "^3.3"}
+# Stage 5 pip-audit: cryptography 49.0.0 / CVE-2026-69247 — floor ≥50.0.0.
+cryptography = ">=50.0.0"
 passlib = {extras = ["bcrypt"], version = "^1.7"}
 bcrypt = ">=4.0,<4.1"
 # CI-16 / R-21: Poetry caret ^0.0.9 means >=0.0.9,<0.0.10; 0.0.27+ fixes multipart DoS advisories.
