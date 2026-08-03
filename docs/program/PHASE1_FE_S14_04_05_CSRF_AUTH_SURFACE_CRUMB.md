@@ -2,9 +2,11 @@
 
 > **Date:** 2026-08-03  
 > **Owner:** Frontend Lead (support Security; Security owns pentest/SOC2 close)  
-> **Tip base:** near `4754b8b`  
+> **Tip base:** `34f4a81` (ancestry under absolute tip `118f1b5`+)  
 > **Honesty:** Not Production GO. `feature_ai_copilot` False. Decision STUB unchanged.  
-> `TenantList.tsx` untouched. Does **not** close 14-04/14-05.
+> `TenantList.tsx` untouched. Does **not** close 14-04/14-05.  
+> **Validation:** Focused Jest CSRF helpers — **4 PASS · light validated** (this tip).  
+> **Security ingest:** FE-SEC-01 → Fixed; FE-SEC-02/03/04 → Open residual in [`FINDINGS_TRACKER.md`](../../salesos/docs/pentest/FINDINGS_TRACKER.md). 14-04 in-repo pack **CLOSED (in-repo)**; AC zero-criticals still **not validated**.
 
 ## Sprint acceptance (FE-relevant)
 

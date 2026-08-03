@@ -11,7 +11,8 @@
 | Brief v1.1 | `salesos/docs/pentest/PENTEST_BRIEF.md` | light (docs) |
 | Threat model | `salesos/docs/pentest/THREAT_MODEL.md` | light (docs) |
 | Internal test plan | `salesos/docs/pentest/INTERNAL_TEST_PLAN.md` | light (docs) |
-| Findings tracker stub | `salesos/docs/pentest/FINDINGS_TRACKER.md` | stub — AC **not validated** |
+| Findings tracker | `salesos/docs/pentest/FINDINGS_TRACKER.md` | FE-SEC-02/03/04 Open residual; FE-SEC-01 Fixed @ `34f4a81` — AC **not validated** |
+| FE CSRF support crumb | `docs/program/PHASE1_FE_S14_04_05_CSRF_AUTH_SURFACE_CRUMB.md` | tip `34f4a81` — ≠ story close |
 | Vendor handoff | `salesos/docs/pentest/VENDOR_HANDOFF_CHECKLIST.md` | light (docs) |
 | Results template | `salesos/docs/pentest/PENTEST_RESULTS_TEMPLATE.md` | template |
 | Pack integrity harness | `salesos/scripts/story_14_04_inrepo_pentest_pack.py` | light when exit 0 |
