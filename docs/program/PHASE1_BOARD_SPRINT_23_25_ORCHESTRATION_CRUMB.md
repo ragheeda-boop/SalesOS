@@ -33,7 +33,7 @@
 | 2 | Sprint-25 RC regression evidence | QA | **CANDIDATE** @ `6a70dc8` / RC `26f2ab5` — **NOT VALIDATED** |
 | 3 | CODEOWNERS | Platform | **CLOSED (in-repo)** @ `958db92` · require-owners **residual** |
 | 4 | Go-Live / Hypercare runbooks | DevOps / Ops | **IN FLIGHT** |
-| 5 | CAB tip↔ticket scaffold | 14-05 PD | **IN FLIGHT** |
+| 5 | PD templates `06`–`09` (unsigned) | 14-05 | **LANDED** @ `682a50d` · signatures / screenshots / live 90d residual |
 
 ## FE residuals → 14-04 tracker
 
@@ -51,7 +51,7 @@ Register: [`salesos/docs/pentest/FINDINGS_TRACKER.md`](../../salesos/docs/pentes
 | Story | Rule |
 |-------|------|
 | **14-04** | CLOSED (in-repo) · handoff READY; firm/zero-criticals **NOT claimed**; FE-SEC-02 Open; FE-SEC-03 code Fixed @ `d9f0eba` (live not validated) |
-| **14-05** | CLOSED (evidence pack); Type I **NOT certified** |
+| **14-05** | CLOSED (evidence pack) · PD templates **LANDED** @ `682a50d` (unsigned); signatures residual; Type I **NOT certified** |
 | **QA** | Candidate RC **`26f2ab5`** · **NOT VALIDATED** · Board freeze pending |
 | **Soak** | IN PROGRESS ≠ PASS · **not validated** |
 
