@@ -248,9 +248,7 @@ async def register(
     max_age = settings.jwt_refresh_token_expire_days * 86400
     _set_refresh_cookie(response, refresh_token, max_age)
     # Audit + events AFTER tokens — never block 201 on EventRuntime/audit.
-    await service._register_side_effects(
-        user, email=body.email, full_name=body.full_name
-    )
+    await service._register_side_effects(user, email=body.email, full_name=body.full_name)
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
