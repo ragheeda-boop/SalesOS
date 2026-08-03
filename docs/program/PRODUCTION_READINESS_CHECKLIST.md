@@ -49,7 +49,7 @@
 | PII scrubbing before RAG ingestion | Verified against real production note samples (phone numbers, names) with zero leakage found in a manual audit sample of ≥100 records | Yes | AI Lead |
 | Per-plan token ceiling enforcement | Starter/Growth/Enterprise ceilings enforced, tested against a deliberate over-limit scenario | Yes | AI Lead |
 | AI provider failover | Engages within 30 seconds of primary provider unavailability, tested in a chaos drill | Yes | AI Lead |
-| LLM regression suite | Baseline established, detects a deliberately-injected quality regression in a test run | Yes | AI Lead |
+| LLM regression suite | Baseline established, detects a deliberately-injected quality regression in a test run — **CI/non-prod harness landed** (`/api/v1/chaos/llm-regression`; crumb `PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md`). Live continuous provider-watch = Ops residual. `feature_ai_copilot=False`; not live LLM GO | Yes | AI Lead |
 | AI Memory cross-tenant isolation | Adversarial test suite passes, including shared-provider-cache leakage scenarios | Yes | AI Lead |
 | Cross-session long-term AI Memory | N/A — conversation-level only at GA | **Post-GA acceptable** | AI Lead |
 
@@ -134,7 +134,7 @@
 | Item | Acceptance Criteria | Mandatory for GA? | Verification Owner |
 |---|---|---|---|
 | PDPL-aligned data handling | Retention/deletion policy documented and enforced by the tenant deletion workflow (EPIC-04) | Yes | Security |
-| SOC2 Type I evidence collection | Underway, audit logging/access review/change management evidence assembled | Yes | Security |
+| SOC2 Type I evidence collection | Underway — see `PHASE1_STORY_14_05_SOC2_EVIDENCE_CRUMB.md` (**pack not validated** until Security lands index). Include AI honesty: `feature_ai_copilot=False`, Decision STUB, `AI_HONESTY.md` | Yes | Security |
 | SOC2 Type I audit completed | N/A — Type I audit itself is post-GA | **Post-GA acceptable** | Security |
 | Data Processing Agreement (DPA) template | Drafted and legally reviewed, available for Enterprise contracts | Yes | CPO / Legal (external) |
 

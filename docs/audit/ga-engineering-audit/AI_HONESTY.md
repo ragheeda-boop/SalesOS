@@ -88,4 +88,18 @@ Forbidden until a new PRC with evidence:
 
 ---
 
+---
+
+## 6. Phase 6 harness residuals (Sprint 24–25 — not GA AI)
+
+Non-prod / CI-only surfaces landed for readiness evidence. **Do not** treat as live LLM or Production GO:
+
+| Story | Surface | Honesty |
+|-------|---------|---------|
+| STORY-14-06 | `/api/v1/chaos/ai-failover` | Fake providers; `feature_ai_copilot=False`; no live kill |
+| STORY-14-07 | `/api/v1/chaos/llm-regression` | Golden fixtures + similarity; detects injected regression; no live LLM |
+
+Program crumbs: `docs/program/PHASE1_STORY_14_06_AI_FAILOVER_CRUMB.md`, `docs/program/PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md`.  
+SOC2 Type I (STORY-14-05) evidence packs must index this file + flag/stub reality — not invent AI GA.
+
 *This file does not grant Production GO.*

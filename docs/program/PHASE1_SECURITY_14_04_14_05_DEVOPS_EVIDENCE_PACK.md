@@ -49,10 +49,12 @@ Do **not** reopen GHCR as a mandatory gate for 14-04/14-05 packs.
 1. CI SUCCESS + Security Scan SUCCESS URLs above (change-management / pipeline evidence)  
 2. Deploy + Health Gate SUCCESS (change deploy + runtime tip-live control)  
 3. Explicit Stage 6 SKIPPED note (DEC-150 B) — do not treat GHCR absence as unexplained gap  
-4. No Production GO claim in any of these packs
+4. No Production GO claim in any of these packs  
+5. **AI honesty (AI-Lead support):** cite [`AI_HONESTY.md`](../audit/ga-engineering-audit/AI_HONESTY.md) + 14-05 crumb AI honesty index — `feature_ai_copilot=False`, Decision package **STUB**, no live LLM GO. Non-prod harness crumbs: [`PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md`](./PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md), [`PHASE1_STORY_14_06_AI_FAILOVER_CRUMB.md`](./PHASE1_STORY_14_06_AI_FAILOVER_CRUMB.md)
 
 ## Forbidden
 
 - Claiming Production GO / GA GO from this pack  
 - Reopening Stage 6 GHCR as mandatory  
-- Inventing pentest or SOC2 Type I audit completion
+- Inventing pentest or SOC2 Type I audit completion  
+- Marketing live LLM / copilot GA / Decision STUB as production AI from this pack
