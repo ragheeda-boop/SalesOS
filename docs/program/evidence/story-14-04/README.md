@@ -20,6 +20,9 @@
 | BE support | `docs/program/PHASE1_STORY_14_04_05_BE_SECURITY_SUPPORT_CRUMB.md` | docs tip `d0070fa` |
 | Staging SSRF runbook | `docs/audit/ga-engineering-audit/runbooks/staging-ssrf-pentest.md` | residual-external |
 | Wave2 SSRF evidence (legacy path) | `docs/audit/ga-engineering-audit/evidence/wave2-pentest/` | use when staging run executes |
+| AI honesty (canonical) | `docs/audit/ga-engineering-audit/AI_HONESTY.md` | `feature_ai_copilot=False`; Decision package **STUB** — not live GA AI |
+| LLM regression harness (non-prod) | `docs/program/PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md` | CI fixtures only — **≠** live LLM GO |
+| AI failover harness (non-prod) | `docs/program/PHASE1_STORY_14_06_AI_FAILOVER_CRUMB.md` | Fake providers — **≠** live kill |
 
 ## Tip-line security gate pointers (from DevOps pack @ `4754b8b`)
 
@@ -47,3 +50,4 @@ Raw scanner projects: store offline / encrypted — do not commit `.burp` / cred
 | External firm pentest | **residual-external** |
 | Zero unresolved criticals | **not validated** |
 | Production GO | **not claimed** |
+| Live LLM / `feature_ai_copilot=True` / Decision STUB as GA | **not claimed** / **Forbidden** |
