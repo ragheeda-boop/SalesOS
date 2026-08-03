@@ -41,6 +41,7 @@ export const PUBLIC_EXACT_PATHS = new Set(["/", "/login", "/register"]);
 
 export const PUBLIC_PREFIXES = [
   "/api/",
+  "/fe-sec-02/",
   "/_next/",
   "/favicon",
   "/manifest",

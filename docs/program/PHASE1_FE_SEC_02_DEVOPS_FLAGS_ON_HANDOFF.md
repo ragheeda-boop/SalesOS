@@ -63,12 +63,14 @@
 **Probe A — bake (curl, no auth):**
 
 ```http
-GET https://salesos-production-96c0.up.railway.app/api/fe-sec-02/httponly-flag
+GET https://salesos-production-96c0.up.railway.app/fe-sec-02/httponly-flag
 ```
 
+- **Path note:** Must be `/fe-sec-02/httponly-flag` — **not** `/api/...`. Tip-live rewrites `/api/*` → FastAPI (Probe A under `/api` returned FastAPI **404**).  
 - **PASS bake:** `"next_public_httponly_access_cookie_baked": true`  
 - **FAIL / PARTIAL:** `false` while BE flag on (runtime-only env; client still mirrors).  
-- Note: `server_feature_httponly_access_cookie` alone does **not** satisfy #5 — browser persist uses `NEXT_PUBLIC`.
+- Note: `server_feature_httponly_access_cookie` alone does **not** satisfy #5 — browser persist uses `NEXT_PUBLIC`.  
+- Tip-live FE may lag if Vercel CLI deploy capped — path fix still required on next successful FE deploy.
 
 **Probe B — no JS-readable access cookie (browser, after login in flags-on window):**
 

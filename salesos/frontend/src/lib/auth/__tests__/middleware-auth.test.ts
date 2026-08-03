@@ -20,6 +20,10 @@ describe("middleware-auth", () => {
       expect(isPublicPath("/api/v1/identity/login")).toBe(true);
       expect(isPublicPath("/_next/static/chunk.js")).toBe(true);
     });
+
+    it("allows FE-SEC-02 bake probe outside /api rewrite", () => {
+      expect(isPublicPath("/fe-sec-02/httponly-flag")).toBe(true);
+    });
   });
 
   describe("isProtectedPath", () => {

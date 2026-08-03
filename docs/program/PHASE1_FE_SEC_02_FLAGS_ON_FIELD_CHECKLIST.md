@@ -16,7 +16,7 @@
 | 2 | Dual-path Jest (flag OFF + ON persist/middleware) PASS | FE | **landed** @ `79d5cb7` / `100cce8` |
 | 3 | https tip (not http) — BE cookie `Secure=True` | DevOps | **PASS** @ tip-live `bee3276` Deploy Active |
 | 4 | BE env `FEATURE_HTTPONLY_ACCESS_COOKIE=true` (or settings equiv) | BE/DevOps | **PASS** during window; restored **OFF** (confirmed) |
-| 5 | FE env `NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE=true` (same deploy) | FE/DevOps | **FAIL (bake prove)** @ `7900015` — Probe A tip-live **404** (`/api/*` rewrite → backend; probe route not on current Vercel prod). Probe B not validated. Flags restored OFF. |
+| 5 | FE env `NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE=true` (same deploy) | FE/DevOps | **PARTIAL/FAIL** — Probe A under `/api/*` → FastAPI 404; probe moved to `/fe-sec-02/httponly-flag`; tip-live prove pending FE deploy (Vercel may lag) |
 | 6 | Login → response Set-Cookie `salesos_access` HttpOnly | Field | **PASS** (HttpOnly; Secure; SameSite=Strict; Path=/) — reconfirmed flags-on @ `bbabe11`+ |
 | 7 | Next middleware allows `/dashboard` with only `salesos_access` (no JS `access_token` cookie) | Field | **PASS** (200 with cookie; 307→login without) — reconfirmed |
 | 8 | Axios mutating calls still succeed with Bearer from LS + CSRF | Field | **PASS** (`POST /load/run-all` 200 + CSRF) — reconfirmed |

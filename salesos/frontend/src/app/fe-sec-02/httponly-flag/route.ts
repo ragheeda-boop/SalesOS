@@ -1,5 +1,6 @@
 /**
  * FE-SEC-02 — tip-live bake probe for NEXT_PUBLIC httpOnly access flag.
+ * Path must NOT be under /api/* (Next rewrites /api to FastAPI → 404).
  * Public (no auth). Default false. Not a session oracle. No Production GO.
  */
 import { NextResponse } from "next/server";
@@ -14,6 +15,7 @@ export async function GET() {
 
   return NextResponse.json({
     feature: "FE-SEC-02",
+    probe_path: "/fe-sec-02/httponly-flag",
     /** Client bundle bake — required for #5 (skip document.cookie mirror). */
     next_public_httponly_access_cookie_baked: nextPublicBaked,
     next_public_raw: nextPublicRaw,
