@@ -19,7 +19,7 @@
 | FE-SEC-02 | BFF httpOnly vertical slice | **Open** @ **`63d60f8`** | Flags OFF · light validated · live flag-on **not validated** · **not Fixed** |
 | FE → Security | CSRF + logout + refresh | **LANDED** | FE-SEC-01/04 Fixed; FE-SEC-03 FE+BE code path @ `2148dd7`+`d9f0eba` |
 | AI honesty | 14-06/14-07 on 14-04 packs | **LANDED** @ **`a8966c0`** / **`9f92eb9`** | No live LLM GO |
-| Security 14-04 | Firm handoff | **CLOSED (in-repo)** · handoff **READY** | Firm/zero-criticals residual-external — **NOT claimed** |
+| Security 14-04 | Firm handoff | **CLOSED (in-repo)** · **handoff READY** | Tip `https://salesos-production-96c0.up.railway.app` · FE-SEC-02 Open · firm **residual-external** — **NOT claimed** |
 | Security 14-05 | SOC2 + PD templates | **CLOSED (pack)** @ `11d0d3f` · PD @ `682a50d` | Type I NOT certified |
 | CODEOWNERS | Gap #3 | **CLOSED (in-repo)** @ **`958db92`** | Require-owners branch protection **residual** |
 | Go-Live / Hypercare | Runbooks | **IN FLIGHT** | Launching |

@@ -1,53 +1,43 @@
-# Evidence — STORY-14-04 (penetration test)
+# Evidence — STORY-14-04
 
-> **Honesty:** In-repo pack evidence only. Not Production GO. Not zero-criticals.  
-> Firm report artifacts (when received) land here **redacted** or as pointers — never commit raw secrets.
+> **Honesty:** Not Production GO. Not zero-criticals. **handoff READY**; firm = **residual-external**.
+
+## Signed report intake checklist
+
+- [ ] Scope matches brief v1.2  
+- [ ] Redact secrets before commit  
+- [ ] Import to [`FINDINGS_TRACKER.md`](../../../../salesos/docs/pentest/FINDINGS_TRACKER.md)  
+- [ ] `FIRM_REPORT_SUMMARY.md` / `RETEST_NOTES.md` in this dir  
+- [ ] No Production GO in cover letter  
+- [ ] FE-SEC-02 **Open** cross-check  
+- [ ] [`AI_HONESTY.md`](../../../audit/ga-engineering-audit/AI_HONESTY.md) — **STUB** / `feature_ai_copilot=False`  
+- [ ] 14-07 llm-regression harness ≠ live LLM GO  
+
+## Tip-live
+
+`https://salesos-production-96c0.up.railway.app`
+
+## DevOps (Evidence #1 `26f2ab5`)
+
+| Workflow | URL |
+|----------|-----|
+| CI | https://github.com/ragheeda-boop/SalesOS/actions/runs/30840797767 |
+| Deploy | https://github.com/ragheeda-boop/SalesOS/actions/runs/30840798827 |
+| Pack | [`PHASE1_SECURITY_14_04_14_05_DEVOPS_EVIDENCE_PACK.md`](../../PHASE1_SECURITY_14_04_14_05_DEVOPS_EVIDENCE_PACK.md) |
 
 ## Index
 
-| Artifact | Path / URL | Label |
-|----------|------------|-------|
-| Pack README | `salesos/docs/pentest/README.md` | light (docs) |
-| Brief v1.1 | `salesos/docs/pentest/PENTEST_BRIEF.md` | light (docs) |
-| Threat model | `salesos/docs/pentest/THREAT_MODEL.md` | light (docs) |
-| Internal test plan | `salesos/docs/pentest/INTERNAL_TEST_PLAN.md` | light (docs) |
-| Findings tracker | `salesos/docs/pentest/FINDINGS_TRACKER.md` | FE-SEC-02/03/04 Open residual; FE-SEC-01 Fixed @ `34f4a81` — AC **not validated** |
-| FE CSRF support crumb | `docs/program/PHASE1_FE_S14_04_05_CSRF_AUTH_SURFACE_CRUMB.md` | tip `34f4a81` — ≠ story close |
-| Vendor handoff | `salesos/docs/pentest/VENDOR_HANDOFF_CHECKLIST.md` | light (docs) |
-| Results template | `salesos/docs/pentest/PENTEST_RESULTS_TEMPLATE.md` | template |
-| Pack integrity harness | `salesos/scripts/story_14_04_inrepo_pentest_pack.py` | light when exit 0 |
-| DevOps CI/Deploy pack | `docs/program/PHASE1_SECURITY_14_04_14_05_DEVOPS_EVIDENCE_PACK.md` | build validated (CI URLs @ `4754b8b`) |
-| BE support | `docs/program/PHASE1_STORY_14_04_05_BE_SECURITY_SUPPORT_CRUMB.md` | docs tip `d0070fa` |
-| Staging SSRF runbook | `docs/audit/ga-engineering-audit/runbooks/staging-ssrf-pentest.md` | residual-external |
-| Wave2 SSRF evidence (legacy path) | `docs/audit/ga-engineering-audit/evidence/wave2-pentest/` | use when staging run executes |
-| AI honesty (canonical) | `docs/audit/ga-engineering-audit/AI_HONESTY.md` | `feature_ai_copilot=False`; Decision package **STUB** — not live GA AI |
-| LLM regression harness (non-prod) | `docs/program/PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md` | CI fixtures only — **≠** live LLM GO |
-| AI failover harness (non-prod) | `docs/program/PHASE1_STORY_14_06_AI_FAILOVER_CRUMB.md` | Fake providers — **≠** live kill |
+| Item | Path |
+|------|------|
+| Brief v1.2 | `salesos/docs/pentest/PENTEST_BRIEF.md` |
+| Vendor | `salesos/docs/pentest/VENDOR_HANDOFF_CHECKLIST.md` |
+| 14-07 | `docs/program/PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md` |
+| AI_HONESTY | `docs/audit/ga-engineering-audit/AI_HONESTY.md` |
 
-## Tip-line security gate pointers (from DevOps pack @ `4754b8b`)
-
-| Workflow | Conclusion | URL |
-|----------|------------|-----|
-| Security Scan | SUCCESS | https://github.com/ragheeda-boop/SalesOS/actions/runs/30835461517 |
-| CI Stages 1–5 | SUCCESS | https://github.com/ragheeda-boop/SalesOS/actions/runs/30835457682 |
-| Deploy + Health Gate | SUCCESS | https://github.com/ragheeda-boop/SalesOS/actions/runs/30835457753 |
-| Stage 6 GHCR | SKIPPED (DEC-150) | same CI run |
-
-## Firm report drop zone
-
-Place redacted summaries as:
-
-- `FIRM_REPORT_SUMMARY.md` (no secrets, no full exploit PoCs against prod)
-- `RETEST_NOTES.md`
-
-Raw scanner projects: store offline / encrypted — do not commit `.burp` / credentialed ZAP DBs.
-
-## Validation snapshot
+## Validation
 
 | Claim | Label |
 |-------|-------|
-| In-repo pack landed | **CLOSED (in-repo) / IN_REPO_READY** |
-| External firm pentest | **residual-external** |
-| Zero unresolved criticals | **not validated** |
+| handoff READY | in-repo CLOSED |
+| Zero criticals | **not validated** |
 | Production GO | **not claimed** |
-| Live LLM / `feature_ai_copilot=True` / Decision STUB as GA | **not claimed** / **Forbidden** |
