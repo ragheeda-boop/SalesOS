@@ -174,9 +174,7 @@ async def test_company_360_with_contacts_and_branches(db_session: AsyncSession, 
     await service.add_branch(
         cid, {"name_ar": "فرع الرياض", "city": "الرياض"}, tenant_id=test_tenant
     )
-    await service.add_branch(
-        cid, {"name_ar": "فرع جدة", "city": "جدة"}, tenant_id=test_tenant
-    )
+    await service.add_branch(cid, {"name_ar": "فرع جدة", "city": "جدة"}, tenant_id=test_tenant)
     await service.add_contact(
         cid,
         {"name": "أحمد", "email": "a@test.com", "position": "مدير"},
@@ -514,9 +512,7 @@ async def test_timeline_runtime_keyset_cursor(db_session: AsyncSession):
     assert len(page1) == 2
 
     last = page1[-1]
-    cursor = json.dumps(
-        {"created_at": last.get("created_at"), "id": str(last.get("id", ""))}
-    )
+    cursor = json.dumps({"created_at": last.get("created_at"), "id": str(last.get("id", ""))})
     page2, total2 = await tl.get_timeline("company", entity_id, limit=2, cursor=cursor)
     assert total2 == 5
     assert len(page2) == 2
