@@ -199,8 +199,12 @@ async def create_tenant(
 async def get_tenant(
     tenant_id: str,
     service: IdentityService = Depends(get_service),
+    caller_tenant_id: str = Depends(get_current_tenant_id),
     _: None = Depends(require_permission_dep("tenant", PermissionAction.READ)),
 ):
+    # App-layer tenant assert — tenants table has no RLS; prevent cross-tenant metadata IDOR.
+    if str(tenant_id) != str(caller_tenant_id):
+        raise HTTPException(status_code=404, detail="Tenant not found")
     tenant = await service.get_tenant(tenant_id)
     return TenantResponse(
         id=tenant.id,

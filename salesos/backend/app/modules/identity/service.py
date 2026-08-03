@@ -830,7 +830,7 @@ class IdentityService:
     async def delete_user(self, user_id: str, tenant_id: str) -> None:
         """PDPL/Right to Erasure — permanently delete user and anonymize personal data."""
         user = await self._user_repo.get(uuid.UUID(user_id))
-        if not user:
+        if not user or str(user.tenant_id) != str(tenant_id):
             raise NotFoundError("User", user_id)
 
         # Revoke all sessions and tokens

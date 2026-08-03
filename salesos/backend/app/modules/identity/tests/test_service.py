@@ -53,6 +53,24 @@ async def test_get_tenant_not_found(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
+async def test_delete_user_rejects_cross_tenant(db_session: AsyncSession):
+    service = IdentityService(db_session)
+    t1 = await service.create_tenant(name="T1", slug="del-x-tenant-1")
+    t2 = await service.create_tenant(name="T2", slug="del-x-tenant-2")
+    user = await service.create_user(
+        email="x-tenant-del@test.com",
+        password="TestP@ss123",
+        full_name="X Tenant",
+        tenant_id=str(t1.id),
+    )
+    with pytest.raises(NotFoundError):
+        await service.delete_user(str(user.id), str(t2.id))
+    still = await service.get_user(str(user.id))
+    assert still.email == "x-tenant-del@test.com"
+    assert still.is_active is True
+
+
+@pytest.mark.asyncio
 async def test_create_user(db_session: AsyncSession):
     service = IdentityService(db_session)
     tenant = await service.create_tenant(name="Test", slug="test-company-2")
