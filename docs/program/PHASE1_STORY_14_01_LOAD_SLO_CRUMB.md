@@ -27,14 +27,14 @@
 | Railway HTTP tip path (phases 1–5) | **light / build validated** | Active `b95db185` on `https://salesos-production-96c0.up.railway.app`. Prior hang probes = deploy SUCCESS with **stale Active image** (missing tip). |
 | Phase 5 HTTP harness (Railway) | **PASS (exit 0)** — **corroborated 2×** | First: `.tmp-1401-http-harness-now.json`. Second Shell: `.tmp-1401-railway-soak-evidence.json` — both profiles within_slo (burst p95=180; sustained_sim p95=220); remediation `held`. **NOT Companion acceptance.** |
 | Auth token nuance (optional residual) | **note only** | Second run: register `access_token` alone → `/api/v1/load/meta` **401**; same-user **login** token → **200**. Earlier probe saw register JWT → meta 200 — treat as intermittent/claims nuance. Prefer login token for load harness; investigate register JWT claims only if Board cares. **Do not reopen 14-01 hang.** |
-| Field 2h soak | **not validated** | Harness `field_2h_soak=false`; `simulated_duration` 120s — not a real 2h soak |
+| Field 2h soak | **OPTIONAL — not required** | Board/crumb wording is “if Board requires/wants,” not a hard acceptance gate. Harness synthetic profiles set `field_2h_soak=false`. Optional wall-clock runner: `salesos/scripts/story_14_01_field_soak.py` (honest labeling; do not invent 2h PASS). |
 | Live prod kill / Production GO / GA GO | **not performed / not claimed** | Forbidden |
 | Stage 6 GHCR | **SKIPPED** | DEC-150 B |
-| Deploy log-stream false-RED | **CLOSED** @ `654b33e` | `deploy.yml`: if `railway up --ci` exits non-zero after log-stream drop, poll **newest** deployment only — SUCCESS ⇒ ok. Tip-line green CI [30834619146](https://github.com/ragheeda-boop/SalesOS/actions/runs/30834619146) + Deploy Health Gate [30834619512](https://github.com/ragheeda-boop/SalesOS/actions/runs/30834619512). |
-| Deploy stale-image / tip-live gate | **CLOSED (Health Gate)** | Already in `deploy.yml` Backend Health Gate: fresh `uptime_seconds` + `/api/v1/load/meta` ≠ 404 (landed with `railway up --ci` harden). Optional SHA tip-marker beyond load/meta presence — **not required** / not claimed as open residual. |
-| Tip CI (SIM105) | **CLOSED** | `d4aa0b9` → `c7dc44e` → superseded by tip-line `#1` `654b33e` |
+| Deploy log-stream false-RED | **CLOSED** @ `654b33e` | Newest-deploy SUCCESS poll after stream drop. |
+| Deploy stale-image / tip-live gate | **CLOSED/covered** since `c0e4f6a` | Health Gate: fresh `uptime_seconds` + `/api/v1/load/meta` ≠ 404. Docs tip `4754b8b`. Not a separate open residual. |
+| Tip CI (SIM105) | **CLOSED** | `d4aa0b9` → `c7dc44e` → tip-line advanced through `654b33e` |
 
-**Overall:** HTTP tip path on published env **light/build validated** (phases 1–5), corroborated by second Shell soak. Residuals: real 2h soak (if Board still requires) + optional login-token preference for harness + Security 14-04/14-05. **NOT Production GO. NOT Companion acceptance.** FE/AI STANDBY unless assigned.
+**Overall:** HTTP tip path on published env **light/build validated** (phases 1–5), corroborated by second Shell soak. Real 2h soak is **OPTIONAL** (not required). Security 14-04/14-05: DevOps evidence pack landed. **NOT Production GO. NOT Companion acceptance.** FE/AI STANDBY unless assigned.
 
 ## Field residual — HTTP Soak acceptance (authoritative)
 

@@ -59,18 +59,18 @@ NEVER-STOP: watch absolute tip onward; do not invent STORY-14-01 credentials.
 | Railway Active | `b95db185` | `https://salesos-production-96c0.up.railway.app` |
 | Railway HTTP tip path (1–5) | **PASS (light/build validated)** — **corroborated 2×** | harness exit 0; burst p95=180 / sustained_sim p95=220; remediation `held`; evidence `.tmp-1401-http-harness-now.json` + `.tmp-1401-railway-soak-evidence.json` |
 | Load auth nuance | **optional residual** | register access_token → meta **401**; login token → **200** (2nd run). Prefer login token for harness; do **not** reopen 14-01 hang |
-| Field 2h soak | **not validated** | Harness `field_2h_soak=false`; simulated 120s ≠ real 2h (Board residual if still required) |
-| Log-stream false-RED | **CLOSED** @ `654b33e` | Newest-deploy SUCCESS poll; Evidence #1 tip-line [30834619146](https://github.com/ragheeda-boop/SalesOS/actions/runs/30834619146) + Deploy [30834619512](https://github.com/ragheeda-boop/SalesOS/actions/runs/30834619512) |
-| Stale Active / tip-live Health Gate | **CLOSED** | Gate already requires fresh `uptime_seconds` + `/api/v1/load/meta` ≠ 404 — not a separate open residual. Optional SHA tip-marker beyond load/meta — not claimed. |
+| Field 2h soak | **OPTIONAL** | Not required for tip-path close (“if Board wants”). Runner `story_14_01_field_soak.py`; evidence `.tmp-1401-field-soak/` when executed. |
+| Stale Active / tip-live Health Gate | **CLOSED/covered** since `c0e4f6a` | Fresh `uptime_seconds` + `/api/v1/load/meta` ≠ 404. Docs alignment tip `4754b8b`. |
+| Log-stream false-RED | **CLOSED** @ `654b33e` | Newest-deploy SUCCESS poll |
+| Security support pack | **LANDED** | [`PHASE1_SECURITY_14_04_14_05_DEVOPS_EVIDENCE_PACK.md`](PHASE1_SECURITY_14_04_14_05_DEVOPS_EVIDENCE_PACK.md) — CI/Deploy/Health Gate + Stage 6 SKIPPED for 14-04/14-05 |
 | Stage 6 GHCR | **SKIPPED** | DEC-150 B |
 | Live prod kill / Production GO / GA GO | **not performed / not claimed** | Forbidden |
-| Stage-4 coverage upload flake | Triaged on `3a25c76` [30759755215]; harden landed `06a8923` | tip Stage 4 upload **SUCCESS** on [30760184122] |
 
 ## Evidence tip-line (Validation)
 
 | #1 pin | Class | Notes |
 |--------|-------|-------|
-| `654b33e` | **build validated** full tip-line | S1–5 + Deploy Health Gate + Smoke + Security; Stage 6 SKIPPED; S7 path-skipped this tip |
+| `4754b8b` | **build validated** full tip-line | S1–5 [30835457682](https://github.com/ragheeda-boop/SalesOS/actions/runs/30835457682) + Deploy Health Gate [30835457753](https://github.com/ragheeda-boop/SalesOS/actions/runs/30835457753); Stage 6 SKIPPED; docs: stale-image residual CLOSED/covered since `c0e4f6a` |
 
 ## Forbidden
 
