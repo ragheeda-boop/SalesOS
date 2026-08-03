@@ -1,41 +1,124 @@
 # Sprint 25 — Full regression suite (final) — inventory crumb
 
-> **Honesty:** **NOT VALIDATED** — inventory only. Does **not** claim 100% pass, RC soak start, or Production GO.  
+> **Honesty:** **NOT VALIDATED** — inventory + **candidate** RC pin only. Does **not** claim 100% pass, Board-declared RC / soak start, or Production GO.  
 > **Sprint:** 25 · Owner: QA-Lead · Priority: P0 · Risk: High  
 > **Story AC (plan text):** “100% pass against the RC candidate build”  
-> **This land:** Suite matrix invented from **existing** CI / workflow definitions + how to pin an RC SHA. **No suite execution** in this crumb (low-load; requires explicit approval).
+> **This land:** Suite matrix from **existing** CI / workflow definitions + candidate `RC_SHA` pin + empty results tables. **No suite execution** in this crumb (low-load; requires explicit approval).
 
 ## Status
 
 | Claim | Label |
 |-------|--------|
 | Suite inventory documented from workflows | **present** (this crumb) |
-| Full regression executed on an RC candidate | **not validated** |
-| 100% pass against RC candidate | **not validated** — **forbidden to claim** until Evidence records green runs on a pinned SHA |
+| Candidate RC SHA pinned | **present** — `26f2ab5` (see below) |
+| Evidence / QA-Lead **declares** RC (feature freeze + soak clock) | **not validated** — procedure documented; Board must freeze |
+| Full regression executed on pinned SHA | **not validated** |
+| 100% pass against RC candidate | **not validated** — **forbidden to claim** until Evidence records green runs on the pinned SHA for adopted matrix rows |
 | Production GO / Companion acceptance | **Forbidden** |
 | Stage 6 GHCR as regression gate | **SKIPPED** (DEC-150 B) — not required |
 
-## How to pin the RC candidate SHA
+## Candidate RC SHA (pinned)
 
-Board / Release must declare the RC tip before QA can claim pass/fail against it.
+| Field | Value |
+|-------|--------|
+| **Candidate `RC_SHA` (short)** | `26f2ab5` |
+| **Candidate `RC_SHA` (full)** | `26f2ab57372970b761a495eaf3949ed558830247` |
+| **Subject** | `fix(ci): extend Railway SUCCESS poll after log-stream drop` |
+| **Why this tip** | Absolute tip / Evidence #1 tip-line GREEN at land time (Board hub). Prefer this SHA **or a later full tip-line green tip** if Evidence advances #1 before Board freezes. |
+| **Tip-line context (≠ regression AC)** | CI [30840797767](https://github.com/ragheeda-boop/SalesOS/actions/runs/30840797767) SUCCESS · Deploy+Health Gate [30840798827](https://github.com/ragheeda-boop/SalesOS/actions/runs/30840798827) SUCCESS · Docker Smoke [30840797733](https://github.com/ragheeda-boop/SalesOS/actions/runs/30840797733) SUCCESS · Security Scan [30840796724](https://github.com/ragheeda-boop/SalesOS/actions/runs/30840796724) SUCCESS · Stage 6 **SKIPPED** |
+| **Regression suite status on this SHA** | **NOT VALIDATED** (tables below empty of pass claims) |
+| **RC soak clock** | **Not started** — candidate pin ≠ Board RC declare |
 
-1. **Declare** `RC_SHA` = the git commit Board freezes as Release Candidate (feature freeze). Prefer a full 40-char SHA.  
-2. **Verify tip identity:**
+Advance rule: if a **later** absolute tip earns full tip-line green before Board freezes, Evidence/QA-Lead **re-pins** this section to that SHA and clears any filled result rows back to **NOT VALIDATED** until re-run evidence exists for the new SHA.
+
+## How Evidence / QA-Lead declares RC
+
+Board owns freeze; Evidence #1 + QA-Lead own the SHA pin and evidence pack. Declare only with all steps below.
+
+1. **Confirm tip-line eligibility** (Evidence #1): absolute tip is full tip-line green (S1–5 + Deploy Health Gate when run; +S7 if path-triggered). Stage 6 SKIPPED OK. Do **not** use a nearby green tip.
+2. **Propose candidate** in this crumb (and Board hub): short + full SHA, subject, date/UTC, tip-line run URLs.
+3. **Board freezes** `RC_SHA` = feature freeze tip. Until Board says “RC declared,” status stays **candidate** — soak clock **does not** start from QA alone.
+4. **QA-Lead records declaration block** (fill when Board freezes — leave blank until then):
+
+   | Field | Value |
+   |-------|--------|
+   | Declared `RC_SHA` | _pending Board freeze_ |
+   | Declared by (Board) | _pending_ |
+   | Declared at (UTC) | _pending_ |
+   | QA-Lead ack | _pending_ |
+   | Soak clock start | _pending_ — **not started** |
+
+5. **Pin CI evidence to that exact SHA** (not “latest master”):
    ```text
    git rev-parse HEAD
    git log -1 --oneline
-   ```
-3. **Pin CI evidence to that SHA** (not “latest master”):
-   ```text
    gh run list --workflow=CI --commit <RC_SHA> --limit 5
    gh run list --workflow="Stage 7 E2E" --commit <RC_SHA> --limit 5
    gh run list --workflow="Security Scan" --commit <RC_SHA> --limit 5
    gh run list --workflow="Docker Smoke Test" --commit <RC_SHA> --limit 5
    ```
-4. **Record** in Evidence: `RC_SHA`, workflow run IDs/URLs, job conclusions, and date. Until that pack exists, status stays **not validated**.  
-5. **Do not** equate “green on some nearby tip” with “100% pass on RC” — SHA must match.
+6. **Fill results tables** below with run IDs/URLs/conclusions **only** after Board-approved suite evidence on the pinned SHA. Until then every row stays **NOT VALIDATED**.
+7. **Do not** equate tip-line green, “green on nearby tip,” or partial suite green with “100% pass on RC.”
 
 Optional tag (Board only): `git tag -a rc-<YYYYMMDD> <RC_SHA>` after declaration — not required for this inventory.
+
+## Results tables (empty — NOT VALIDATED)
+
+> Fill only after Board-approved runs on the pinned `RC_SHA`. Tip-line SUCCESS links above are **context**, not suite-row pass claims.
+
+### A. Primary CI — workflow `CI` (`.github/workflows/ci.yml`)
+
+| ID | Stage / job | Result | Run ID / URL | Notes |
+|----|-------------|--------|--------------|-------|
+| A1 | `lint-backend` | **NOT VALIDATED** | — | |
+| A2 | `lint-frontend` | **NOT VALIDATED** | — | |
+| A3 | `typecheck-backend` | **NOT VALIDATED** | — | |
+| A4 | `typecheck-frontend` | **NOT VALIDATED** | — | |
+| A5 | `test-backend` | **NOT VALIDATED** | — | pytest `-m "not e2e"` |
+| A6 | `test-frontend` | **NOT VALIDATED** | — | Jest |
+| A7 | `integration-backend` | **NOT VALIDATED** | — | |
+| A8 | `security-pip-audit` | **NOT VALIDATED** | — | |
+| A9 | `security-npm-audit` | **NOT VALIDATED** | — | |
+| A10 | `security-bandit` | **NOT VALIDATED** | — | |
+| A11 | `security-secrets-scan` | **NOT VALIDATED** | — | |
+| A12 | `test-architecture` | **NOT VALIDATED** | — | |
+| A13 | `arch-compliance` | **NOT VALIDATED** | — | |
+| A14 | Stage 6 `build-*` | **SKIPPED** | — | DEC-150 B — not a pass criterion |
+| A15 | Stage 7 `e2e` (in ci.yml) | **SKIPPED** | — | use workflow B |
+| A16 | `ci-summary` | **NOT VALIDATED** | — | aggregate only |
+
+### B. Stage 7 E2E — workflow `Stage 7 E2E`
+
+| ID | Job | Result | Run ID / URL | Notes |
+|----|-----|--------|--------------|-------|
+| B1 | `e2e` (`smoke-auth-ui.spec.ts`) | **NOT VALIDATED** | — | Not full Playwright 01–27 |
+
+### C. Docker Smoke Test
+
+| ID | Job | Result | Run ID / URL | Notes |
+|----|-----|--------|--------------|-------|
+| C1 | `smoke` | **NOT VALIDATED** | — | |
+
+### D. Security Scan
+
+| ID | Job | Result | Run ID / URL | Notes |
+|----|-----|--------|--------------|-------|
+| D1 | `secret-scan` / Gitleaks / Trivy | **NOT VALIDATED** | — | ≠ pentest substitute |
+| D2 | Remaining security-scan jobs | **NOT VALIDATED** | — | |
+
+### E. Deploy / field (optional Board gate)
+
+| ID | Workflow | Result | Run ID / URL | Notes |
+|----|----------|--------|--------------|-------|
+| E1 | Deploy Staging | **NOT VALIDATED** | — | if Board includes |
+| E2 | Deploy Production (health gate) | **NOT VALIDATED** | — | tip-line context ≠ AC |
+| E3 | Deploy to Production (K8s) | **OUT OF SCOPE** | — | Production GO forbidden |
+
+### Contract (in A5/A7)
+
+| ID | Slice | Result | Run ID / URL | Notes |
+|----|-------|--------|--------------|-------|
+| K1 | `tests/contract/ -m contract` | **NOT VALIDATED** | — | no separate workflow |
 
 ## Suite matrix (from existing workflows)
 
@@ -102,9 +185,43 @@ Tip-line Security Scan SUCCESS is **build validated for CI only** — not a pent
 | STORY-14-07 LLM regression | [`PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md`](./PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md) | Non-prod golden LLM harness — **not** the “Full regression suite (final)” AC |
 | STORY-14-01 load / soak | harness under `salesos/scripts/` | Perf/soak — Board-scoped residual; not claimed here |
 
+## Exact `gh` / workflow commands (list only — do not run full suites)
+
+Set once:
+
+```text
+set RC_SHA=26f2ab57372970b761a495eaf3949ed558830247
+```
+
+**List / inspect (read-only — preferred under low-load):**
+
+```text
+gh run list --workflow=CI --commit %RC_SHA% --limit 5
+gh run list --workflow="Stage 7 E2E" --commit %RC_SHA% --limit 5
+gh run list --workflow="Docker Smoke Test" --commit %RC_SHA% --limit 5
+gh run list --workflow="Security Scan" --commit %RC_SHA% --limit 5
+gh run list --workflow="Deploy Staging" --commit %RC_SHA% --limit 5
+gh run list --workflow="Deploy Production" --commit %RC_SHA% --limit 5
+
+gh run view <RUN_ID> --json conclusion,status,headSha,url,jobs
+gh run view <RUN_ID> --log-failed
+```
+
+**Re-dispatch (requires explicit approval — heavy; do not run from this crumb):**
+
+```text
+gh workflow run CI --ref %RC_SHA%
+gh workflow run "Stage 7 E2E" --ref %RC_SHA%
+gh workflow run "Docker Smoke Test" --ref %RC_SHA%
+gh workflow run "Security Scan" --ref %RC_SHA%
+gh workflow run "Deploy Staging" --ref %RC_SHA%
+```
+
+Job-level drill-down after a CI run exists: Actions UI → run → jobs A1–A13, or `gh api repos/{owner}/{repo}/actions/runs/<RUN_ID>/jobs`.
+
 ## Suggested RC “full regression” checklist (execution deferred)
 
-When Board pins `RC_SHA` and approves runs, Evidence should tick:
+When Board pins / freezes `RC_SHA` and approves runs, Evidence should tick:
 
 - [ ] A1–A13 green on `RC_SHA` (`CI` workflow) — Stage 6 SKIPPED OK  
 - [ ] B1 green on `RC_SHA` (`Stage 7 E2E`) — smoke-auth only unless Board expands scope  
@@ -114,23 +231,26 @@ When Board pins `RC_SHA` and approves runs, Evidence should tick:
 - [ ] Optional E1 staging smoke if Board requires field confirmation  
 - [ ] Pass matrix + run URLs attached — only then may QA move status off **not validated** toward an earned label  
 
-Until then: **inventory only**.
+Until then: **inventory + candidate pin only**.
 
 ## Explicit non-claims
 
 - **Not** 100% pass  
+- **Not** Board-declared RC / feature freeze complete  
 - **Not** RC soak clock started  
 - **Not** Production GO / GA GO  
 - **Not** full Playwright 01–27 suite (CI gate is `smoke-auth-ui` only)  
 - **Not** Stage 6 GHCR required  
-- **Not** live LLM / `feature_ai_copilot=True`
+- **Not** live LLM / `feature_ai_copilot=True`  
+- Tip-line green on candidate SHA ≠ filled regression results tables
 
 ## Board close criteria
 
 1. This inventory crumb is linked from Sprint-25.  
-2. Board declares `RC_SHA`.  
-3. QA attaches Evidence pack of green runs **on that SHA** for the matrix rows Board adopts.  
-4. Sprint-25 AC line updated only with an earned validation label — never invented 100% pass.
+2. Candidate `RC_SHA` pinned here (done: `26f2ab5` or later green tip).  
+3. Board declares / freezes `RC_SHA` (pending).  
+4. QA attaches Evidence pack of green runs **on that SHA** for the matrix rows Board adopts.  
+5. Sprint-25 AC line updated only with an earned validation label — never invented 100% pass.
 
 ## Non-goals
 
