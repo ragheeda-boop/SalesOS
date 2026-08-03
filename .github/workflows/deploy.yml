@@ -106,27 +106,34 @@ jobs:
           set -euo pipefail
           echo "DEC-149: railway up --ci (wait for roll; no --detach)"
           # railway up --ci can exit non-zero on build-log stream drop even when
-          # the deployment itself reaches SUCCESS (field: tip 1ab17535 GHA red /
-          # Railway deployment SUCCESS). Poll newest deployment only — never
-          # "any SUCCESS in last N" (false-green risk).
+          # the deployment itself reaches SUCCESS (field: tip 1ab17535 / 7bd1a67).
+          # Poll the streamed deployment id when known, else newest only — never
+          # "any SUCCESS in last N" (false-green risk). Poll window must cover a
+          # full Docker build after stream drop (field: 7bd1a67 timed out at ~3m
+          # while still BUILDING; da4f77f3 later SUCCESS Active).
           set +e
-          railway up --ci -y \
+          UP_OUT="$(railway up --ci -y \
             --project "${{ secrets.RAILWAY_PROJECT_ID }}" \
             --environment "${{ secrets.RAILWAY_ENVIRONMENT_ID }}" \
-            --service "${{ secrets.RAILWAY_SERVICE_ID }}"
+            --service "${{ secrets.RAILWAY_SERVICE_ID }}" 2>&1)"
           up_rc=$?
           set -e
+          printf '%s\n' "$UP_OUT"
           if [ "$up_rc" -eq 0 ]; then
             echo "railway up --ci exited 0"
             exit 0
           fi
-          echo "railway up --ci exited ${up_rc} — checking newest deployment status"
+          echo "railway up --ci exited ${up_rc} — checking deployment status"
+          TRACK_ID="$(printf '%s\n' "$UP_OUT" | python3 -c 'import re,sys; t=sys.stdin.read(); m=re.search(r"[?&]id=([0-9a-fA-F-]{36})", t); print(m.group(1) if m else "")')"
+          echo "track_deployment_id=${TRACK_ID:-<newest>}"
+          export TRACK_ID
           python3 - <<'PY'
-          import json, subprocess, sys, time
+          import json, os, subprocess, sys, time
 
           project = "${{ secrets.RAILWAY_PROJECT_ID }}"
           environment = "${{ secrets.RAILWAY_ENVIRONMENT_ID }}"
           service = "${{ secrets.RAILWAY_SERVICE_ID }}"
+          track_id = (os.environ.get("TRACK_ID") or "").strip()
           cmd = [
               "railway",
               "deployment",
@@ -138,11 +145,11 @@ jobs:
               "--service",
               service,
               "--limit",
-              "1",
+              "5",
               "--json",
           ]
 
-          def newest_status():
+          def list_items():
               raw = subprocess.check_output(cmd, text=True)
               data = json.loads(raw)
               if isinstance(data, list):
@@ -153,9 +160,26 @@ jobs:
                       items = [e.get("node") or {} for e in items]
               else:
                   items = []
+              return [i for i in items if isinstance(i, dict)]
+
+          def poll_target():
+              items = list_items()
               if not items:
                   return None, {}
-              item = items[0] if isinstance(items[0], dict) else {}
+              if track_id:
+                  for item in items:
+                      iid = str(item.get("id") or item.get("deploymentId") or "")
+                      if iid == track_id:
+                          status = (
+                              item.get("status")
+                              or item.get("state")
+                              or item.get("deploymentStatus")
+                              or ""
+                          )
+                          return str(status).upper(), item
+                  # Tracked id not in last 5 yet — keep waiting (not terminal)
+                  return "PENDING", {"id": track_id}
+              item = items[0]
               status = (
                   item.get("status")
                   or item.get("state")
@@ -164,20 +188,31 @@ jobs:
               )
               return str(status).upper(), item
 
-          # Short-poll while build/deploy still running after a stream drop.
-          for i in range(36):  # ~3 min
-              status, item = newest_status()
-              print(f"newest_poll={i} status={status!r} id={item.get('id') or item.get('deploymentId')}")
+          # ~20 min @ 5s — Docker builds often exceed the prior 3 min window.
+          for i in range(240):
+              status, item = poll_target()
+              print(
+                  f"deploy_poll={i} status={status!r} "
+                  f"id={item.get('id') or item.get('deploymentId')} "
+                  f"track={track_id or 'newest'}",
+                  flush=True,
+              )
               if status == "SUCCESS":
-                  print("newest deployment SUCCESS after railway up non-zero — treating as ok")
+                  print(
+                      "deployment SUCCESS after railway up non-zero — treating as ok",
+                      flush=True,
+                  )
                   sys.exit(0)
               if status in {"FAILED", "CRASHED", "REMOVED", "SKIPPED"}:
-                  print(f"newest deployment terminal failure: {status}")
+                  print(f"deployment terminal failure: {status}", flush=True)
                   sys.exit(1)
-              # BUILDING / DEPLOYING / INITIALIZING / QUEUED / etc. — keep waiting
+              # BUILDING / DEPLOYING / INITIALIZING / QUEUED / PENDING — keep waiting
               time.sleep(5)
-          status, _ = newest_status()
-          print(f"timed out waiting for newest deployment SUCCESS (last={status!r})")
+          status, _ = poll_target()
+          print(
+              f"timed out waiting for deployment SUCCESS (last={status!r})",
+              flush=True,
+          )
           sys.exit(1)
           PY
       - name: Verify Railway active service
