@@ -58,6 +58,10 @@ class WorkflowEventSubscriber:
         data = getattr(event, "data", {})
         if not event_type or not tenant_id:
             return
+        # Fast path: skip DB list for events that never trigger workflows
+        # (e.g. user.registered on register — was sequential 3x10s hang risk).
+        if event_type not in EVENT_TO_WORKFLOW_TRIGGER:
+            return
 
         logger.debug("Workflow subscriber received event: %s", event_type)
 

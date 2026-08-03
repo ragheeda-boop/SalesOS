@@ -340,10 +340,22 @@ class EventRuntime(EventBus):
                 try:
                     async with self._session_factory() as store_session:
                         event_store = PostgresEventStore(store_session)
-                        await event_store.append(event)
-                        await store_session.commit()
+
+                        async def _store() -> None:
+                            await event_store.append(event)
+                            await store_session.commit()
+
+                        await asyncio.wait_for(_store(), timeout=2.0)
                         lifecycle.stored_ms = (time.monotonic() - store_start) * 1000
                         span.set_attribute("event.stored_ms", lifecycle.stored_ms)
+                except TimeoutError:
+                    if self._logger:
+                        self._logger.warn(
+                            "event_runtime.store_timeout",
+                            event_type=event.event_type,
+                            event_id=event.event_id,
+                        )
+                    # Continue fan-out best-effort; do not block publishers forever.
                 except Exception as e:
                     if self._logger:
                         self._logger.error(

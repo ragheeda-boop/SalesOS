@@ -23,10 +23,6 @@ from sdk.events.domain_events import (
 )
 from sdk.telemetry import StructuredLogger
 
-# Register/login must not wait on EventRuntime store/fan-out or Kafka connect.
-# Field: Railway POST /register hung 30–180s / edge 499 while login 401 was fast.
-_EVENT_PUBLISH_TIMEOUT_SECONDS = 2.0
-
 from .models import (
     DeviceSession,
     PasswordResetToken,
@@ -36,6 +32,10 @@ from .models import (
     User,
 )
 from .repositories import TenantRepository, UserRepository
+
+# Register must not wait on EventRuntime store/fan-out (kafka=in_memory live).
+# Field: Railway POST /register hung / edge 499 while login 401 was fast.
+_EVENT_PUBLISH_TIMEOUT_SECONDS = 2.0
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
