@@ -12,6 +12,7 @@ describe("authSessionHonesty — FE-SEC-02", () => {
     expect(FE_SEC_02_REFRESH_MITIGATION).toMatch(/httponly/i);
     expect(FE_SEC_02_HTTPONLY_SLICE).toMatch(/salesos_access/);
     expect(FE_SEC_02_HTTPONLY_SLICE).toMatch(/flag OFF/i);
+    expect(FE_SEC_02_PROPOSED_NEXT).toMatch(/FLAGS_ON_FIELD_CHECKLIST/);
     expect(FE_SEC_02_PROPOSED_NEXT).toMatch(/verify_token|Bearer/);
   });
 });

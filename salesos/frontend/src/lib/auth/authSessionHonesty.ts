@@ -19,6 +19,6 @@ export const FE_SEC_02_HTTPONLY_SLICE =
   "access cookie mirror. TokenResponse body unchanged. verify_token still Bearer-only.";
 
 export const FE_SEC_02_PROPOSED_NEXT =
-  "Proposed follow-on: enable flags on https tip after dual-read field verify; " +
-  "optional Bearer-or-cookie verify_token with CSRF for cookie-auth mutations; " +
-  "then drop LS access. Do not enable feature_ai_copilot.";
+  "Proposed follow-on: (1) run PHASE1_FE_SEC_02_FLAGS_ON_FIELD_CHECKLIST.md on https tip, " +
+  "(2) optional Bearer-or-cookie verify_token with CSRF for cookie-auth mutations, " +
+  "(3) drop LS access. Do not enable feature_ai_copilot.";
