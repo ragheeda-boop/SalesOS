@@ -334,10 +334,7 @@ class IdentityService:
             select(RefreshTokenFamily).where(RefreshTokenFamily.id == family_key)
         )
         anchor = by_pk.scalar_one_or_none()
-        if anchor is not None:
-            logical_id = anchor.family_id
-        else:
-            logical_id = family_key
+        logical_id = anchor.family_id if anchor is not None else family_key
         fam_rows = await self.db.execute(
             select(RefreshTokenFamily).where(RefreshTokenFamily.family_id == logical_id)
         )
