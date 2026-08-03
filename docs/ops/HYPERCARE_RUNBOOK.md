@@ -78,7 +78,7 @@ Until then: keep this document as **PREPARE**. Do not post “hypercare day N”
 1. **No non-fixative changes** (features, refactors, flag experiments).  
 2. Hotfix require TL + on-call ack; prefer forward-fix with change ticket.  
 3. Any P0 security → incident channel + consider traffic cut / rollback.  
-4. AI flags stay **off** unless a **signed** exception exists ([AI_HONESTY.md](../audit/ga-engineering-audit/AI_HONESTY.md)).  
+4. AI flags stay **off** unless a **signed** exception exists ([AI_HONESTY.md](../audit/ga-engineering-audit/AI_HONESTY.md)). Non-prod harnesses 14-06/14-07 ≠ live LLM GO.  
 5. Schema: no new Alembic revisions unless emergency hotfix with dual CTO/TL ack.
 
 ### Days 4–14

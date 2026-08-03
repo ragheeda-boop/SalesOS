@@ -43,6 +43,8 @@
 | `salesos/docs/ONCALL_RUNBOOK.md` | On-call first-5-min |
 | [Sprint-26.md](../program/SPRINT_PLAN/Sprint-26.md) | Terminal sprint plan (prep pointer) |
 | [AI_HONESTY.md](../audit/ga-engineering-audit/AI_HONESTY.md) | Copilot / decision stub honesty |
+| [PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md](../program/PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md) | Non-prod LLM regression harness — **≠** live LLM GO |
+| [PHASE1_STORY_14_06_AI_FAILOVER_CRUMB.md](../program/PHASE1_STORY_14_06_AI_FAILOVER_CRUMB.md) | Non-prod fake-provider failover — **≠** live kill |
 
 Detailed evidence checkboxes live in the **audit checklist**. This ops runbook is the **procedure spine** operators follow once humans clear residual blockers.
 
@@ -61,7 +63,7 @@ Do **not** start T-0 while any row is open unless CTO formally accepts residual 
 | 5 | Local + staging deploy/rollback tabletop | DevOps | Wave 12 progress |
 | 6 | Backup/restore drill + RPO acceptance | DevOps / CTO | [DR_RUNBOOK.md](./DR_RUNBOOK.md); RPO **UNSIGNED** residual |
 | 7 | Feature freeze (hotfix-only) | Product / TL | Freeze note |
-| 8 | AI honesty: `feature_ai_copilot=False`; no AI-native GA marketing | Product | [AI_HONESTY.md](../audit/ga-engineering-audit/AI_HONESTY.md) |
+| 8 | AI honesty: `feature_ai_copilot=False`; Decision STUB; no AI-native GA / live LLM marketing | Product | [AI_HONESTY.md](../audit/ga-engineering-audit/AI_HONESTY.md); 14-06/14-07 harnesses are CI-only |
 | 9 | On-call primary + secondary named | DevOps | Roster in Hypercare runbook |
 | 10 | **Human GO** — CTO + Tech Lead | CTO / TL | Signed checklist / SIGN_HERE |
 
