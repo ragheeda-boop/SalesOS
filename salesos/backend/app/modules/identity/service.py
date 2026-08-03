@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 import secrets
 import uuid
@@ -12,6 +13,7 @@ from app.common.exceptions import DuplicateError, NotFoundError, UnauthorizedErr
 from app.config import settings
 from sdk.audit import AuditTrail
 from sdk.events import EventBus
+from sdk.events.base import DomainEvent
 from sdk.events.domain_events import (
     TenantCreated,
     UserLoggedIn,
@@ -20,6 +22,10 @@ from sdk.events.domain_events import (
     UserRoleChanged,
 )
 from sdk.telemetry import StructuredLogger
+
+# Register/login must not wait on EventRuntime store/fan-out or Kafka connect.
+# Field: Railway POST /register hung 30–180s / edge 499 while login 401 was fast.
+_EVENT_PUBLISH_TIMEOUT_SECONDS = 2.0
 
 from .models import (
     DeviceSession,
@@ -40,6 +46,51 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return cast(bool, pwd_context.verify(plain_password, hashed_password))
+
+
+async def _hash_password_async(password: str) -> str:
+    """Offload bcrypt so the event loop stays responsive during register."""
+    return await asyncio.to_thread(hash_password, password)
+
+
+async def _publish_best_effort(
+    event_bus: EventBus | None,
+    event: DomainEvent,
+    *,
+    logger: StructuredLogger | None = None,
+    entity_type: str = "user",
+    aggregate_id: str = "",
+) -> None:
+    """Publish domain events without blocking the HTTP response path.
+
+    EventRuntime (default in_memory bus) stores to Postgres then fans out to
+    wildcard subscribers (timeline/activity) with up to 10s×retries each —
+    that stalls register on Railway. KafkaEventBus can also stall on
+    AIOKafkaProducer.start when the broker is unreachable.
+    """
+    if event_bus is None:
+        return
+    try:
+        await asyncio.wait_for(
+            event_bus.publish(event),
+            timeout=_EVENT_PUBLISH_TIMEOUT_SECONDS,
+        )
+    except TimeoutError:
+        if logger:
+            logger.warn(
+                "event.publish_timeout",
+                entity_type=entity_type,
+                aggregate_id=aggregate_id,
+                event_type=getattr(event, "event_type", ""),
+                timeout_seconds=_EVENT_PUBLISH_TIMEOUT_SECONDS,
+            )
+    except Exception:
+        if logger:
+            logger.warn(
+                "event.publish_failed",
+                entity_type=entity_type,
+                aggregate_id=aggregate_id,
+            )
 
 
 def _hash_jti(jti: str) -> str:
@@ -422,7 +473,7 @@ class IdentityService:
 
         user = User(
             email=email,
-            password_hash=hash_password(password),
+            password_hash=await _hash_password_async(password),
             full_name=full_name,
             full_name_ar=full_name_ar,
             tenant_id=tenant_id,
@@ -436,21 +487,18 @@ class IdentityService:
             entity_id=str(user.id),
             action="created",
         )
-        if self.event_bus:
-            try:
-                await self.event_bus.publish(
-                    UserRegistered(
-                        tenant_id=str(user.tenant_id) if user.tenant_id else "",
-                        aggregate_id=str(user.id),
-                        aggregate_type="user",
-                        data={"email": email, "full_name": full_name},
-                    )
-                )
-            except Exception:
-                if self.logger:
-                    self.logger.warn(
-                        "event.publish_failed", entity_type="user", aggregate_id=str(user.id)
-                    )
+        await _publish_best_effort(
+            self.event_bus,
+            UserRegistered(
+                tenant_id=str(user.tenant_id) if user.tenant_id else "",
+                aggregate_id=str(user.id),
+                aggregate_type="user",
+                data={"email": email, "full_name": full_name},
+            ),
+            logger=self.logger,
+            entity_type="user",
+            aggregate_id=str(user.id),
+        )
 
         return user
 

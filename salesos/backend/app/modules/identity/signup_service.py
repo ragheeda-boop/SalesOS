@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.common.exceptions import DuplicateError
 from app.modules.identity.models import Tenant, User
 from app.modules.identity.repositories import TenantRepository, UserRepository
-from app.modules.identity.service import hash_password
+from app.modules.identity.service import _publish_best_effort, hash_password
 from sdk.audit import AuditTrail
 from sdk.events import EventBus
 from sdk.events.domain_events import TenantCreated, UserRegistered
@@ -91,27 +91,30 @@ class SignupService:
             action="created",
         )
 
-        if self.event_bus:
-            try:
-                await self.event_bus.publish(
-                    TenantCreated(
-                        tenant_id=str(tenant.id),
-                        aggregate_id=str(tenant.id),
-                        aggregate_type="tenant",
-                        data={"name": company_name, "slug": slug},
-                    )
-                )
-                await self.event_bus.publish(
-                    UserRegistered(
-                        tenant_id=str(tenant.id),
-                        aggregate_id=str(user.id),
-                        aggregate_type="user",
-                        data={"email": email},
-                    )
-                )
-            except Exception as e:
-                if self.logger:
-                    self.logger.warn("event.publish_failed", error=str(e))
+        await _publish_best_effort(
+            self.event_bus,
+            TenantCreated(
+                tenant_id=str(tenant.id),
+                aggregate_id=str(tenant.id),
+                aggregate_type="tenant",
+                data={"name": company_name, "slug": slug},
+            ),
+            logger=self.logger,
+            entity_type="tenant",
+            aggregate_id=str(tenant.id),
+        )
+        await _publish_best_effort(
+            self.event_bus,
+            UserRegistered(
+                tenant_id=str(tenant.id),
+                aggregate_id=str(user.id),
+                aggregate_type="user",
+                data={"email": email},
+            ),
+            logger=self.logger,
+            entity_type="user",
+            aggregate_id=str(user.id),
+        )
 
         return {
             "user_id": str(user.id),

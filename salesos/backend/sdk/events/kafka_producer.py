@@ -9,6 +9,8 @@ Provides a dedicated producer that:
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import json
 import logging
 from typing import Any
@@ -55,16 +57,28 @@ class KafkaProducer:
                 bootstrap_servers=self._bootstrap,
                 value_serializer=lambda v: json.dumps(v, default=str).encode("utf-8"),
                 acks="all",
+                request_timeout_ms=3000,
             )
-            await self._producer.start()
+            # Bound connect so identity register cannot hang on unreachable brokers.
+            await asyncio.wait_for(self._producer.start(), timeout=3.0)
             self._started = True
             logger.info("Kafka producer connected to %s", self._bootstrap)
             return True
         except ImportError:
             logger.warning("aiokafka not installed — producer unavailable")
             return False
+        except TimeoutError:
+            logger.warning("Kafka producer start timed out (3s) — unavailable")
+            with contextlib.suppress(Exception):
+                if self._producer is not None:
+                    await self._producer.stop()
+            self._producer = None
+            self._started = False
+            return False
         except Exception as exc:
             logger.warning("Kafka producer failed to start: %s", exc)
+            self._producer = None
+            self._started = False
             return False
 
     async def publish(self, event: DomainEvent) -> bool:
