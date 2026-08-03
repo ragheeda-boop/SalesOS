@@ -20,6 +20,10 @@
 | [APPENDIX-C-FINDINGS-REGISTER.md](./APPENDIX-C-FINDINGS-REGISTER.md) | سجل الإيجاد P0–P4 |
 | [REMEDIATION_PLAN.md](./REMEDIATION_PLAN.md) | ملحق إصلاح مركّز (يشير لهذه الخطة) |
 | `docs/ops/DR_RUNBOOK.md` | RPO/RTO والنسخ الاحتياطي |
+| [`docs/ops/GO_LIVE_RUNBOOK.md`](../../ops/GO_LIVE_RUNBOOK.md) | Wave 13 Go-Live ops spine — **draft landed** (not executed / UNSIGNED / no Production GO) |
+| [`docs/ops/HYPERCARE_RUNBOOK.md`](../../ops/HYPERCARE_RUNBOOK.md) | Wave 14 Hypercare ops spine — **draft landed** (clock not started / on-call TBD) |
+| [runbooks/go-live-checklist.md](./runbooks/go-live-checklist.md) | T-7 to T+1 checklist + human signatures (UNSIGNED) |
+| [runbooks/hypercare-14d.md](./runbooks/hypercare-14d.md) | Hypercare 14d template (PREPARE) |
 | `salesos/docs/ONCALL_RUNBOOK.md` | On-call |
 | `salesos/.github/workflows/deploy-production.yml` | مسار نشر الإنتاج (K8s/GHCR) |
 
@@ -124,8 +128,8 @@
 
 ### ز) Go-Live
 - [ ] Staging soak ≥ 48–72 ساعة بدون P0 جديدة
-- [ ] Runbook Go-Live (Wave 13) مكتمل وتوقيعات بشرية
-- [ ] خطة Hypercare (Wave 14) بمالك on-call
+- [ ] Runbook Go-Live (Wave 13) مكتمل وتوقيعات بشرية — **draft landed** (ops + checklist; not executed / UNSIGNED / no Production GO): [`docs/ops/GO_LIVE_RUNBOOK.md`](../../ops/GO_LIVE_RUNBOOK.md) · [runbooks/go-live-checklist.md](./runbooks/go-live-checklist.md)
+- [ ] خطة Hypercare (Wave 14) بمالك on-call — **draft landed** (template ready; on-call owner **TBD**; clock post-GO only): [`docs/ops/HYPERCARE_RUNBOOK.md`](../../ops/HYPERCARE_RUNBOOK.md) · [runbooks/hypercare-14d.md](./runbooks/hypercare-14d.md)
 
 **تصنيف بعد الاستيفاء المتوقع:** يُعاد تقييم Production Readiness بأدلة جديدة — **لا يُفترض سلفاً رقم معين**.
 
@@ -608,6 +612,10 @@
 | **Severity** | P0 للثقة التشغيلية قبل GO |
 | **المشكلة** | DR runbook موجود؛ **التمرين غير مُثبت** في التدقيق |
 | **الدليل** | `docs/ops/DR_RUNBOOK.md`؛ خدمة `backup` في compose |
+| [`docs/ops/GO_LIVE_RUNBOOK.md`](../../ops/GO_LIVE_RUNBOOK.md) | Wave 13 Go-Live ops spine — **draft landed** (not executed / UNSIGNED / no Production GO) |
+| [`docs/ops/HYPERCARE_RUNBOOK.md`](../../ops/HYPERCARE_RUNBOOK.md) | Wave 14 Hypercare ops spine — **draft landed** (clock not started / on-call TBD) |
+| [runbooks/go-live-checklist.md](./runbooks/go-live-checklist.md) | T-7 to T+1 checklist + human signatures (UNSIGNED) |
+| [runbooks/hypercare-14d.md](./runbooks/hypercare-14d.md) | Hypercare 14d template (PREPARE) |
 | **خطوات** | 1) `backup-db` على staging. 2) استعادة على DB نظيف. 3) مقارنة تعدادات/ smoke. 4) تسجيل الوقت الفعلي vs RTO. |
 | **قبول** | تقرير drill بتاريخ ومالك |
 | **الجهد** | M (2–3 أيام) |
@@ -683,6 +691,9 @@
 
 ### Wave 13 — Go-Live runbook (T-7 / T-1 / T-0 / T+1)
 
+> **Sprint-26 prep (2026-08-03):** ops draft **draft landed** — [`docs/ops/GO_LIVE_RUNBOOK.md`](../../ops/GO_LIVE_RUNBOOK.md). Execution + human signatures still **residual**. No cutover / Production GO claim.
+
+
 #### PROD-W13-001 — جدول الإطلاق
 | الزمن | الأنشطة |
 |-------|---------|
@@ -699,10 +710,15 @@
 | **قبول** | توقيع CTO + Tech Lead على قائمة T-0 |
 | **الجهد** | أسبوع تقويمي للتنسيق |
 | **المالك** | CTO / DevOps / TL |
+| **ops draft** | [`docs/ops/GO_LIVE_RUNBOOK.md`](../../ops/GO_LIVE_RUNBOOK.md) — **draft landed** / not executed |
+| **evidence checklist** | [runbooks/go-live-checklist.md](./runbooks/go-live-checklist.md) — UNSIGNED |
 
 ---
 
 ### Wave 14 — Hypercare (14 يوماً)
+
+> **Sprint-26 prep (2026-08-03):** ops draft **draft landed** — [`docs/ops/HYPERCARE_RUNBOOK.md`](../../ops/HYPERCARE_RUNBOOK.md). Clock **not started**; on-call names **TBD**. No GA / Production GO claim.
+
 
 #### PROD-W14-001 — نافذة Hypercare
 | الحقل | المحتوى |
@@ -713,6 +729,8 @@
 | **قبول** | تقريران Hypercare؛ لا P0 مفتوحة دون خطة |
 | **الجهد** | 14 يوم تقويمي × تغطية on-call |
 | **المالك** | DevOps / Backend / Frontend |
+| **ops draft** | [`docs/ops/HYPERCARE_RUNBOOK.md`](../../ops/HYPERCARE_RUNBOOK.md) — **draft landed** / clock not started |
+| **audit template** | [runbooks/hypercare-14d.md](./runbooks/hypercare-14d.md) — PREPARE |
 
 ---
 
@@ -842,6 +860,10 @@ W0 → W2 → W3 → W4 → W8 → W10 → W11 → W13 ≈ **6–9 أسابيع*
 ## 11. النسخ الاحتياطي والتعافي
 
 من `docs/ops/DR_RUNBOOK.md` (موثّق؛ التمرين **يحتاج تنفيذ**):
+| [`docs/ops/GO_LIVE_RUNBOOK.md`](../../ops/GO_LIVE_RUNBOOK.md) | Wave 13 Go-Live ops spine — **draft landed** (not executed / UNSIGNED / no Production GO) |
+| [`docs/ops/HYPERCARE_RUNBOOK.md`](../../ops/HYPERCARE_RUNBOOK.md) | Wave 14 Hypercare ops spine — **draft landed** (clock not started / on-call TBD) |
+| [runbooks/go-live-checklist.md](./runbooks/go-live-checklist.md) | T-7 to T+1 checklist + human signatures (UNSIGNED) |
+| [runbooks/hypercare-14d.md](./runbooks/hypercare-14d.md) | Hypercare 14d template (PREPARE) |
 
 | المقياس | الهدف الموثّق | القدرة الحالية المعلنة | فجوة |
 |---------|---------------|-------------------------|------|

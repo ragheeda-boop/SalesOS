@@ -4,6 +4,7 @@
 **Status:** PREPARE ONLY — **no Production GO** and **no cutover executed**  
 **Authority for current status:** [../GA_STATUS.md](../GA_STATUS.md) + [../00-EXECUTIVE-SUMMARY.md](../00-EXECUTIVE-SUMMARY.md) — **production no-go**  
 **Program:** [../PRODUCTION_PLAN.md](../PRODUCTION_PLAN.md)  
+**Ops spine (Sprint-26 prep):** [GO_LIVE_RUNBOOK.md](../../../ops/GO_LIVE_RUNBOOK.md) — **draft landed** (not executed / UNSIGNED)  
 **Human-review summary:** [../PROGRESS-WAVE14-GO-LIVE.md](../PROGRESS-WAVE14-GO-LIVE.md)
 
 > Complete every box with evidence links (CI run URL, screenshot, report path).  

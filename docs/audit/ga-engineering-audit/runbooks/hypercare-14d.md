@@ -2,7 +2,8 @@
 
 **ID:** PROD-W14-001  
 **Status:** PREPARE ONLY — applies **after** a real Production GO (not granted as of 2026-07-22 audit)  
-**Classification:** Operational prep template
+**Classification:** Operational prep template  
+**Ops spine (Sprint-26 prep):** [HYPERCARE_RUNBOOK.md](../../../ops/HYPERCARE_RUNBOOK.md) — **draft landed** (clock not started / on-call TBD)
 
 ---
 
