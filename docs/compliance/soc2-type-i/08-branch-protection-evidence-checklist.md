@@ -29,7 +29,7 @@ Mark each control as observed at capture time. Leave unchecked until screenshot 
 | 2 | Require a pull request before merging | On | ☐ | |
 | 3 | Required approving review count | ≥ 1 (org policy) | ☐ count: __ | |
 | 4 | Dismiss stale reviews on new commits | On (if policy) | ☐ / N/A | |
-| 5 | Require review from Code Owners | On **or** documented exception (no `CODEOWNERS` = gap) | ☐ / exception noted | |
+| 5 | Require review from Code Owners | On (file present: [`.github/CODEOWNERS`](../../../.github/CODEOWNERS)) **or** dated exception | ☐ / exception noted | |
 | 6 | Require status checks to pass | On — CI Stages 1–5 + Security Scan as applicable | ☐ | |
 | 7 | Require branches to be up to date before merge | Per org policy | ☐ / N/A | |
 | 8 | Restrict who can push / bypass | Named admins only; bypass audited | ☐ | |
@@ -54,7 +54,7 @@ Mark each control as observed at capture time. Leave unchecked until screenshot 
 | Security Scan | `.github/workflows/security-scan.yml` |
 | Deploy + Health Gate | `.github/workflows/deploy.yml` |
 | Change-mgmt evidence | [`03-change-management.md`](./03-change-management.md) |
-| CODEOWNERS | **gap** if absent at tip — note exception on row 5 |
+| CODEOWNERS | [`.github/CODEOWNERS`](../../../.github/CODEOWNERS) — enable row 5 in org settings; file alone ≠ enforced |
 
 ## Attestation (signatures — residual until executed)
 

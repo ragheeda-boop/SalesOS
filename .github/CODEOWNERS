@@ -1,0 +1,56 @@
+# CODEOWNERS — SalesOS / AQLIYA monorepo
+#
+# Purpose: privileged-path review owners for SOC2 change / access controls
+#   (STORY-14-05). Complements branch-protection checklist
+#   docs/compliance/soc2-type-i/08-branch-protection-evidence-checklist.md
+#
+# Logical streams (from .engineering/09_OWNERSHIP_MAP.md + Phase 1 crumbs):
+#   Security · Backend · Frontend · DevOps · docs (Human / Program)
+#
+# GitHub assignee reality (2026-08-03):
+#   Repo is user-owned (ragheeda-boop/SalesOS) — no org teams yet.
+#   All paths therefore route review requests to @ragheeda-boop.
+#   When GitHub org teams exist, replace handles with e.g.
+#   @ORG/security @ORG/backend @ORG/frontend @ORG/devops @ORG/docs
+#   without changing the path map below.
+#
+# Last matching pattern wins. Not Production GO. Not Type I certification.
+
+# Default — Program / Human (docs + catch-all)
+*                                              @ragheeda-boop
+
+# --- DevOps (CI, deploy, infra) ---
+.github/                                       @ragheeda-boop
+.github/workflows/                             @ragheeda-boop
+.github/dependabot.yml                         @ragheeda-boop
+salesos/infra/                                 @ragheeda-boop
+salesos/scripts/                               @ragheeda-boop
+salesos/docker-compose*.yml                    @ragheeda-boop
+salesos/Dockerfile*                            @ragheeda-boop
+
+# --- Backend ---
+salesos/backend/                               @ragheeda-boop
+
+# --- Frontend ---
+salesos/frontend/                              @ragheeda-boop
+
+# --- Security (privileged / auth / compliance) — last match wins ---
+salesos/backend/app/modules/identity/          @ragheeda-boop
+salesos/backend/app/owner_auth.py              @ragheeda-boop
+salesos/backend/app/modules/admin/             @ragheeda-boop
+salesos/backend/app/modules/sso/               @ragheeda-boop
+salesos/backend/app/modules/audit/             @ragheeda-boop
+salesos/frontend/src/lib/auth/                 @ragheeda-boop
+salesos/frontend/src/middleware.ts             @ragheeda-boop
+salesos/docs/pentest/                          @ragheeda-boop
+salesos/docs/INCIDENT_RESPONSE_PLAN.md         @ragheeda-boop
+salesos/docs/portal/architecture/security.md   @ragheeda-boop
+docs/compliance/                               @ragheeda-boop
+.github/workflows/security-scan.yml            @ragheeda-boop
+
+# --- Docs / governance ---
+docs/                                          @ragheeda-boop
+AGENTS.md                                      @ragheeda-boop
+.engineering/                                  @ragheeda-boop
+engineering-os/                                @ragheeda-boop
+.ai/                                           @ragheeda-boop

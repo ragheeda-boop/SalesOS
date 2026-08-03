@@ -48,7 +48,7 @@ Suggested fields: review period `YYYY-Qn`, system, reviewer, population source, 
 |------|-------|
 | Completed Qn access-review packet with signatures | **not validated** — Program Director |
 | IdP / SSO joiner-mover-leaver runbooks with samples | **gap** if SSO not in GA scope |
-| CODEOWNERS file for privileged path owners | **gap** (no `CODEOWNERS` found at tip) |
+| CODEOWNERS file for privileged path owners | **LANDED** — [`.github/CODEOWNERS`](../../../.github/CODEOWNERS) (logical Security / Backend / Frontend / DevOps / docs streams; GitHub reviews → `@ragheeda-boop` until org teams exist). Enabling “Require review from Code Owners” remains **residual** (org settings / checklist `08`) |
 | Branch-protection screenshot as access control for engineers | **residual** — GitHub org settings (external to git tree) |
 
 ## Linkage to change management

@@ -46,6 +46,7 @@ Do **not** reopen GHCR as a SOC2 gate.
 | Docker smoke | `.github/workflows/docker-smoke.yml` |
 | Staging deploy | `.github/workflows/deploy-staging.yml` |
 | Dependabot | `.github/dependabot.yml` |
+| CODEOWNERS | [`.github/CODEOWNERS`](../../../.github/CODEOWNERS) — path owners for PR review |
 | Health Gate land | commit `c0e4f6a` |
 | Log-stream false-RED close | commit `654b33e` |
 | Docs tip pin | `4754b8b` |
@@ -78,6 +79,6 @@ Do **not** reopen GHCR as a SOC2 gate.
 | Gap | Owner | Label |
 |-----|-------|-------|
 | Branch protection / required reviewers screenshots | Program Director / org admin | **residual-external** to git (checklist `08` LANDED) |
-| CODEOWNERS | Engineering | **gap** (file absent) |
+| CODEOWNERS org-team split + required-reviewers enforcement | Engineering / org admin | **partial** — file **LANDED** at [`.github/CODEOWNERS`](../../../.github/CODEOWNERS); GitHub team handles + branch “Require Code Owners” = residual (`08`) |
 | CAB / change-ticket archive for each prod deploy | Program Director | **not validated** (template `07` LANDED) |
 | Customer-facing change calendar | Product / PD | **not validated** |
