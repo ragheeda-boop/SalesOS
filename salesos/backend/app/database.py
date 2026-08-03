@@ -1,3 +1,4 @@
+import contextlib
 import os
 from collections.abc import AsyncGenerator
 from contextvars import ContextVar
@@ -153,10 +154,8 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         session = await asyncio.wait_for(cm.__aenter__(), timeout=8.0)
     except TimeoutError as exc:
         log.error("db_checkout_timeout")
-        try:
+        with contextlib.suppress(Exception):
             await cm.__aexit__(TimeoutError, exc, None)
-        except Exception:
-            pass
         raise HTTPException(
             status_code=503,
             detail="database.pool_checkout_timeout",
