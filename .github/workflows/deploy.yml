@@ -105,10 +105,81 @@ jobs:
         run: |
           set -euo pipefail
           echo "DEC-149: railway up --ci (wait for roll; no --detach)"
+          # railway up --ci can exit non-zero on build-log stream drop even when
+          # the deployment itself reaches SUCCESS (field: tip 1ab17535 GHA red /
+          # Railway deployment SUCCESS). Poll newest deployment only — never
+          # "any SUCCESS in last N" (false-green risk).
+          set +e
           railway up --ci -y \
             --project "${{ secrets.RAILWAY_PROJECT_ID }}" \
             --environment "${{ secrets.RAILWAY_ENVIRONMENT_ID }}" \
             --service "${{ secrets.RAILWAY_SERVICE_ID }}"
+          up_rc=$?
+          set -e
+          if [ "$up_rc" -eq 0 ]; then
+            echo "railway up --ci exited 0"
+            exit 0
+          fi
+          echo "railway up --ci exited ${up_rc} — checking newest deployment status"
+          python3 - <<'PY'
+          import json, subprocess, sys, time
+
+          project = "${{ secrets.RAILWAY_PROJECT_ID }}"
+          environment = "${{ secrets.RAILWAY_ENVIRONMENT_ID }}"
+          service = "${{ secrets.RAILWAY_SERVICE_ID }}"
+          cmd = [
+              "railway",
+              "deployment",
+              "list",
+              "--project",
+              project,
+              "--environment",
+              environment,
+              "--service",
+              service,
+              "--limit",
+              "1",
+              "--json",
+          ]
+
+          def newest_status():
+              raw = subprocess.check_output(cmd, text=True)
+              data = json.loads(raw)
+              if isinstance(data, list):
+                  items = data
+              elif isinstance(data, dict):
+                  items = data.get("deployments") or data.get("edges") or []
+                  if items and isinstance(items[0], dict) and "node" in items[0]:
+                      items = [e.get("node") or {} for e in items]
+              else:
+                  items = []
+              if not items:
+                  return None, {}
+              item = items[0] if isinstance(items[0], dict) else {}
+              status = (
+                  item.get("status")
+                  or item.get("state")
+                  or item.get("deploymentStatus")
+                  or ""
+              )
+              return str(status).upper(), item
+
+          # Short-poll while build/deploy still running after a stream drop.
+          for i in range(36):  # ~3 min
+              status, item = newest_status()
+              print(f"newest_poll={i} status={status!r} id={item.get('id') or item.get('deploymentId')}")
+              if status == "SUCCESS":
+                  print("newest deployment SUCCESS after railway up non-zero — treating as ok")
+                  sys.exit(0)
+              if status in {"FAILED", "CRASHED", "REMOVED", "SKIPPED"}:
+                  print(f"newest deployment terminal failure: {status}")
+                  sys.exit(1)
+              # BUILDING / DEPLOYING / INITIALIZING / QUEUED / etc. — keep waiting
+              time.sleep(5)
+          status, _ = newest_status()
+          print(f"timed out waiting for newest deployment SUCCESS (last={status!r})")
+          sys.exit(1)
+          PY
       - name: Verify Railway active service
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
