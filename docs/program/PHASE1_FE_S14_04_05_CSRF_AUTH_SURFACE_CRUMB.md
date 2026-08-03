@@ -10,7 +10,7 @@
 | ID | Severity | Status |
 |----|----------|--------|
 | FE-SEC-01 | Medium | **Fixed** (CSRF mint/attach) |
-| FE-SEC-02 | High | **Open** — checklist ready @ Evidence #1 `63f6ad2`; **flags OFF**; not Fixed until flags-on field verify |
+| FE-SEC-02 | High | **Open** — DevOps flags-on handoff READY @ lineage `100cce8`/`3fccbe6`; **flags OFF**; not Fixed until field #3–10 evidence |
 | FE-SEC-03 | Medium | **Fixed** @ `2148dd7` + `d9f0eba`; live tip-live @ `fe84441` **light validated** (logout 200 `sessions_revoked=1`; refresh 401) |
 | FE-SEC-04 | Low | **Fixed** (cookie-first refresh) |
 
@@ -24,10 +24,10 @@
 | FE flag | `NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE` default unset/false |
 | FE middleware | Dual-read: `salesos_access` then legacy `access_token` |
 | FE persist | When FE flag on: skip JS-writable access cookie mirror; keep LS for Bearer |
-| Flags-on plan | [`PHASE1_FE_SEC_02_FLAGS_ON_FIELD_CHECKLIST.md`](PHASE1_FE_SEC_02_FLAGS_ON_FIELD_CHECKLIST.md) |
+| Flags-on plan | [`PHASE1_FE_SEC_02_FLAGS_ON_FIELD_CHECKLIST.md`](PHASE1_FE_SEC_02_FLAGS_ON_FIELD_CHECKLIST.md) + DevOps handoff [`PHASE1_FE_SEC_02_DEVOPS_FLAGS_ON_HANDOFF.md`](PHASE1_FE_SEC_02_DEVOPS_FLAGS_ON_HANDOFF.md) |
 
-Enable only after coordinated https tip field verify (BE + FE flags together).
+Enable only after coordinated https tip field verify (BE + FE flags together) in a DevOps **explicit enable window**.
 
 ## Validation
 
-Focused Jest + BE unit cookie helpers — **light validated**. Dual-path flag Jest — **light validated** (`79d5cb7`). Middleware-only + flag-helper Jest — **light validated** (this tip). Flag-on live Railway — **not validated**. Evidence #1 tip `63f6ad2`. Stage 6 SKIPPED.
+Focused Jest + BE unit cookie helpers — **light validated**. Dual-path flag Jest — **light validated** (`79d5cb7`). Middleware-only + flag-helper Jest — **light validated** (`100cce8`). Flag-on live Railway — **not validated**. Soak r3 PASS closed (not Companion). Stage 6 SKIPPED.
