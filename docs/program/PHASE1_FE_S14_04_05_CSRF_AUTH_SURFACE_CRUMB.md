@@ -10,7 +10,7 @@
 | ID | Severity | Status |
 |----|----------|--------|
 | FE-SEC-01 | Medium | **Fixed** (CSRF mint/attach) |
-| FE-SEC-02 | High | **Open** — DevOps flags-on handoff READY @ lineage `100cce8`/`3fccbe6`; **flags OFF**; not Fixed until field #3–10 evidence |
+| FE-SEC-02 | High | **Open** — flags-on field window @ `bee3276` Deploy: suite **FAIL** (#10 refresh 401; #5 rebuild partial); flags **OFF**; not Fixed |
 | FE-SEC-03 | Medium | **Fixed** @ `2148dd7` + `d9f0eba`; live tip-live @ `fe84441` **light validated** (logout 200 `sessions_revoked=1`; refresh 401) |
 | FE-SEC-04 | Low | **Fixed** (cookie-first refresh) |
 
@@ -30,4 +30,4 @@ Enable only after coordinated https tip field verify (BE + FE flags together) in
 
 ## Validation
 
-Focused Jest + BE unit cookie helpers — **light validated**. Dual-path flag Jest — **light validated** (`79d5cb7`). Middleware-only + flag-helper Jest — **light validated** (`100cce8`). Flag-on live Railway — **not validated**. Soak r3 PASS closed (not Companion). Stage 6 SKIPPED.
+Focused Jest + BE unit cookie helpers — **light validated**. Dual-path flag Jest — **light validated** (`79d5cb7`). Middleware-only + flag-helper Jest — **light validated** (`100cce8`). Flag-on live Railway window @ `bee3276` — **FAIL (honest)** (#10); rows #3/#4/#6/#7/#8/#9 PASS evidence; flags restored OFF. Soak r3 PASS closed (not Companion). Stage 6 SKIPPED.

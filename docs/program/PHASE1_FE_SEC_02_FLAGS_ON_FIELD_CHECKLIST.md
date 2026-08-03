@@ -14,14 +14,14 @@
 |---|-------|-------|--------|
 | 1 | Tip includes `63d60f8` ancestry (`salesos_access` helpers + FE dual-read) | FE/BE | **landed** |
 | 2 | Dual-path Jest (flag OFF + ON persist/middleware) PASS | FE | **landed** @ `79d5cb7` / `100cce8` |
-| 3 | https tip (not http) — BE cookie `Secure=True` | DevOps | **not validated** — see handoff AC |
-| 4 | BE env `FEATURE_HTTPONLY_ACCESS_COOKIE=true` (or settings equiv) | BE/DevOps | **not enabled** |
-| 5 | FE env `NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE=true` (same deploy) | FE/DevOps | **not enabled** |
-| 6 | Login → response Set-Cookie `salesos_access` HttpOnly | Field | **not validated** |
-| 7 | Next middleware allows `/dashboard` with only `salesos_access` (no JS `access_token` cookie) | Field | **not validated** (unit @ `100cce8` only) |
-| 8 | Axios mutating calls still succeed with Bearer from LS + CSRF | Field | **not validated** |
-| 9 | Logout clears `salesos_access` + refresh cookie + LS | Field | **not validated** |
-| 10 | Refresh rotates `salesos_access` | Field | **not validated** |
+| 3 | https tip (not http) — BE cookie `Secure=True` | DevOps | **PASS** @ tip-live `bee3276` Deploy Active |
+| 4 | BE env `FEATURE_HTTPONLY_ACCESS_COOKIE=true` (or settings equiv) | BE/DevOps | **PASS** during window; restored **OFF** (confirmed) |
+| 5 | FE env `NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE=true` (same deploy) | FE/DevOps | **partial** — env set in window; Vercel CLI rebuild capped; env removed; Git deploy rebuild OFF pending |
+| 6 | Login → response Set-Cookie `salesos_access` HttpOnly | Field | **PASS** (HttpOnly; Secure; SameSite=Strict; Path=/) |
+| 7 | Next middleware allows `/dashboard` with only `salesos_access` (no JS `access_token` cookie) | Field | **PASS** (200 with cookie; 307→login without) |
+| 8 | Axios mutating calls still succeed with Bearer from LS + CSRF | Field | **PASS** (`POST /load/run-all` 200 + CSRF) |
+| 9 | Logout clears `salesos_access` + refresh cookie + LS | Field | **PASS** (Max-Age=0 access+refresh); LS clear not browser-proven |
+| 10 | Refresh rotates `salesos_access` | Field | **FAIL** — tip-live refresh 401 (also flags-OFF baseline) |
 | 11 | Security notes residual: LS access JWT still XSS-class until Bearer-or-cookie + drop LS | Security | open |
 
 ## Enable order (coordinated)
@@ -34,7 +34,7 @@
 
 ## Active handoff
 
-Soak r3 PASS closed (not Companion). FE-SEC-02 flags-on https verify is **QUEUED for DevOps** — acceptance criteria in the handoff doc. FE standby for verification support.
+Soak r3 PASS closed (not Companion). Flags-on https field window executed @ tip-live **`bee3276` Deploy** — **suite FAIL** (#10 refresh 401; #5 rebuild incomplete). Flags restored **OFF** (BE confirmed). Finding remains **Open**. Do **not** invent Fixed / tip-line green / Production GO.
 
 ## Non-goals until Board says otherwise
 
