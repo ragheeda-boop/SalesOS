@@ -10,7 +10,7 @@
 | Claim | Label |
 |-------|--------|
 | Suite inventory documented from workflows | **present** (this crumb) |
-| Candidate RC SHA pinned | **present** — `26f2ab5` (see below) |
+| Candidate RC SHA pinned | **present** — `fe84441` (re-pinned from `26f2ab5`; see below) |
 | Evidence / QA-Lead **declares** RC (feature freeze + soak clock) | **not validated** — procedure documented; Board must freeze |
 | Full regression executed on pinned SHA | **not validated** |
 | 100% pass against RC candidate | **not validated** — **forbidden to claim** until Evidence records green runs on the pinned SHA for adopted matrix rows |
@@ -21,15 +21,16 @@
 
 | Field | Value |
 |-------|--------|
-| **Candidate `RC_SHA` (short)** | `26f2ab5` |
-| **Candidate `RC_SHA` (full)** | `26f2ab57372970b761a495eaf3949ed558830247` |
-| **Subject** | `fix(ci): extend Railway SUCCESS poll after log-stream drop` |
-| **Why this tip** | Absolute tip / Evidence #1 tip-line GREEN at land time (Board hub). Prefer this SHA **or a later full tip-line green tip** if Evidence advances #1 before Board freezes. |
-| **Tip-line context (≠ regression AC)** | CI [30840797767](https://github.com/ragheeda-boop/SalesOS/actions/runs/30840797767) SUCCESS · Deploy+Health Gate [30840798827](https://github.com/ragheeda-boop/SalesOS/actions/runs/30840798827) SUCCESS · Docker Smoke [30840797733](https://github.com/ragheeda-boop/SalesOS/actions/runs/30840797733) SUCCESS · Security Scan [30840796724](https://github.com/ragheeda-boop/SalesOS/actions/runs/30840796724) SUCCESS · Stage 6 **SKIPPED** |
-| **Regression suite status on this SHA** | **NOT VALIDATED** (tables below empty of pass claims) |
+| **Candidate `RC_SHA` (short)** | `fe84441` |
+| **Candidate `RC_SHA` (full)** | `fe844410415a284382671d406bef3e4c2e62dce8` |
+| **Subject** | `docs(security): firm handoff READY for STORY-14-04 residual-external` |
+| **Prior candidate** | `26f2ab5` (`26f2ab57372970b761a495eaf3949ed558830247`) — superseded; Board freeze may still choose another later full tip-line green tip |
+| **Why this tip** | Evidence #1 absolute tip — full tip-line GREEN (Watchdog). Re-pinned so candidate RC tracks latest green tip before Board freezes. |
+| **Tip-line context (≠ regression AC)** | CI [30846452123](https://github.com/ragheeda-boop/SalesOS/actions/runs/30846452123) SUCCESS (S1–5) · Docker Smoke [30846452103](https://github.com/ragheeda-boop/SalesOS/actions/runs/30846452103) SUCCESS · Security Scan [30846452081](https://github.com/ragheeda-boop/SalesOS/actions/runs/30846452081) SUCCESS · Deploy+Health Gate [30846452115](https://github.com/ragheeda-boop/SalesOS/actions/runs/30846452115) SUCCESS · Stage 6 **SKIPPED** |
+| **Regression suite status on this SHA** | **NOT VALIDATED** (all suite rows below stay **NOT VALIDATED**; tip-line ≠ suite pass) |
 | **RC soak clock** | **Not started** — candidate pin ≠ Board RC declare |
 
-Advance rule: if a **later** absolute tip earns full tip-line green before Board freezes, Evidence/QA-Lead **re-pins** this section to that SHA and clears any filled result rows back to **NOT VALIDATED** until re-run evidence exists for the new SHA.
+Advance / re-pin rule: if a **later** absolute tip earns full tip-line green before Board freezes, Evidence/QA-Lead **re-pins** this section to that SHA and clears any filled result rows back to **NOT VALIDATED** until re-run evidence exists for the new SHA. Re-pin `26f2ab5` → `fe84441` applied; prior tip-line URLs for `26f2ab5` are **context only**, not AC evidence on this SHA.
 
 ## How Evidence / QA-Lead declares RC
 
@@ -190,7 +191,7 @@ Tip-line Security Scan SUCCESS is **build validated for CI only** — not a pent
 Set once:
 
 ```text
-set RC_SHA=26f2ab57372970b761a495eaf3949ed558830247
+set RC_SHA=fe844410415a284382671d406bef3e4c2e62dce8
 ```
 
 **List / inspect (read-only — preferred under low-load):**
@@ -219,19 +220,42 @@ gh workflow run "Deploy Staging" --ref %RC_SHA%
 
 Job-level drill-down after a CI run exists: Actions UI → run → jobs A1–A13, or `gh api repos/{owner}/{repo}/actions/runs/<RUN_ID>/jobs`.
 
+## Dispatch checklist (approval-gated — do not run from this crumb)
+
+> **Honesty:** Pre-execution gate only. Does **not** authorize suite runs, claim 100% pass, Board-declared RC / soak start, or Production GO. Tip-line green ≠ suite-row pass. All results tables remain **NOT VALIDATED** until Board-approved evidence on the pinned SHA.
+
+### Pre-flight
+
+- [ ] Board has **frozen** `RC_SHA` (candidate alone does not start soak)
+- [ ] Confirm pin: `git rev-parse` / `git log -1` match short + full SHA in this crumb (`fe84441` / `fe844410415a284382671d406bef3e4c2e62dce8` unless Board re-pins again)
+- [ ] Evidence #1 tip-line eligibility reviewed for that exact SHA (S1–5 + Deploy Health Gate when run; +S7 if path-triggered). Stage 6 **SKIPPED** OK
+- [ ] On any further re-pin: update Candidate RC block, clear A–E/K rows to **NOT VALIDATED**, re-dispatch only against the new SHA
+- [ ] Read-only `gh run list … --commit %RC_SHA%` first (low-load); **no** `gh workflow run` without explicit approval
+
+### Workflows to dispatch (Board-approved only)
+
+| Order | Workflow | Matrix | Notes |
+|-------|----------|--------|-------|
+| 1 | `CI` | A1–A13, A16 | A14 Stage 6 SKIPPED; A15 use B |
+| 2 | `Stage 7 E2E` | B1 | smoke-auth only — not Playwright 01–27 |
+| 3 | `Docker Smoke Test` | C1 | if Release Plan still requires |
+| 4 | `Security Scan` | D1–D2 | ≠ pentest substitute |
+| 5 | `Deploy Staging` *(optional)* | E1 | Board gate only |
+| — | Contract | K1 | via A5/A7 (no separate workflow) |
+
+### Post-dispatch (fill tables only with SHA-matched proof)
+
+- [ ] A1–A13 green on pinned `RC_SHA` — A14 SKIPPED OK  
+- [ ] B1 / C1 (if adopted) / D\* green on pinned `RC_SHA`  
+- [ ] K1 contract coverage acknowledged  
+- [ ] Optional E1 if Board requires  
+- [ ] Run IDs/URLs recorded — only then may status leave **not validated** toward an **earned** label  
+
+**Hard stops:** no suite runs without approval; no 100% pass / Production GO / soak-started invent; tip-line SUCCESS ≠ filled AC.
+
 ## Suggested RC “full regression” checklist (execution deferred)
 
-When Board pins / freezes `RC_SHA` and approves runs, Evidence should tick:
-
-- [ ] A1–A13 green on `RC_SHA` (`CI` workflow) — Stage 6 SKIPPED OK  
-- [ ] B1 green on `RC_SHA` (`Stage 7 E2E`) — smoke-auth only unless Board expands scope  
-- [ ] C1 green on `RC_SHA` (`Docker Smoke Test`) if still required by Release Plan  
-- [ ] D\* green on `RC_SHA` (`Security Scan`)  
-- [ ] Contract coverage acknowledged as part of A5/A7 (or explicit `tests/contract/ -m contract` evidence)  
-- [ ] Optional E1 staging smoke if Board requires field confirmation  
-- [ ] Pass matrix + run URLs attached — only then may QA move status off **not validated** toward an earned label  
-
-Until then: **inventory + candidate pin only**.
+When Board freezes `RC_SHA` and approves runs, Evidence should tick the dispatch checklist above. Until then: **inventory + candidate pin only** (`fe84441` · **NOT VALIDATED**).
 
 ## Explicit non-claims
 
@@ -247,7 +271,7 @@ Until then: **inventory + candidate pin only**.
 ## Board close criteria
 
 1. This inventory crumb is linked from Sprint-25.  
-2. Candidate `RC_SHA` pinned here (done: `26f2ab5` or later green tip).  
+2. Candidate `RC_SHA` pinned here (done: `fe84441`; was `26f2ab5`).  
 3. Board declares / freezes `RC_SHA` (pending).  
 4. QA attaches Evidence pack of green runs **on that SHA** for the matrix rows Board adopts.  
 5. Sprint-25 AC line updated only with an earned validation label — never invented 100% pass.
