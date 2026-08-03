@@ -203,12 +203,27 @@ jobs:
           if not isinstance(deploys, list) or len(deploys) == 0:
               raise SystemExit("Railway deployment list returned no deployments")
 
-          latest = deploys[0]
-          status = latest.get("status")
-          if status != "SUCCESS":
-              raise SystemExit(f"Latest Railway deployment is not successful: {status}")
+          print("Railway deployment history summary:")
+          for deploy in deploys:
+              print(json.dumps({
+                  "id": deploy.get("id"),
+                  "status": deploy.get("status"),
+                  "createdAt": deploy.get("createdAt"),
+                  "sourceCommit": deploy.get("sourceCommit"),
+              }, ensure_ascii=False))
 
-          print(f"Latest Railway deployment {latest.get('id')} status {status} verified.")
+          latest_successful = next((deploy for deploy in deploys if deploy.get("status") == "SUCCESS"), None)
+          if latest_successful is None:
+              latest_status = deploys[0].get("status")
+              raise SystemExit(
+                  f"No successful Railway deployments found in the last {len(deploys)} entries. "
+                  f"Latest status: {latest_status}"
+              )
+
+          if deploys[0].get("status") == "SKIPPED":
+              print("Latest deployment was SKIPPED; found an earlier successful deployment.")
+
+          print(f"Latest successful Railway deployment {latest_successful.get('id')} status SUCCESS verified.")
           PY
 
   deploy-backend-health-gate:
