@@ -4,7 +4,7 @@
 > **Story:** STORY-14-05 · Sprint-25 · Security + Program Director  
 > **Tip pin (change-mgmt CI):** `4754b8b` via DevOps pack  
 > **Honesty:** Not Production GO. `feature_ai_copilot` remains **False**. Stage 6 GHCR **SKIPPED** (DEC-150 B).  
-> **Assembled:** 2026-08-03
+> **Assembled:** 2026-08-03 · **PD templates LANDED** (unsigned) — signatures / live samples still residual.
 
 ## What this pack is
 
@@ -17,6 +17,15 @@ In-repo index of **controls design / process / pipeline evidence** suitable for 
 | Change management | [`03-change-management.md`](./03-change-management.md) | Tip-line / CI / deploy / PR evidence |
 | Gap inventory | [`04-gap-inventory.md`](./04-gap-inventory.md) | Explicit residuals for Program Director / auditor |
 | Controls mapping (TSC sketch) | [`05-controls-mapping.md`](./05-controls-mapping.md) | CC-ish mapping → repo pointers (not auditor-ready matrix) |
+
+### Program Director templates (unsigned)
+
+| Template | File | Closes in-repo? | Still residual |
+|----------|------|-----------------|----------------|
+| Quarterly access-review worksheet | [`06-access-review-worksheet-template.md`](./06-access-review-worksheet-template.md) | Template only | Signed / filled packet (PII offline) |
+| CAB ↔ deploy mapping | [`07-cab-deploy-mapping-template.md`](./07-cab-deploy-mapping-template.md) | Template only | Filled ticket archive + signatures |
+| Branch-protection evidence checklist | [`08-branch-protection-evidence-checklist.md`](./08-branch-protection-evidence-checklist.md) | Checklist only | Dated org screenshots |
+| 90d audit-log export runbook | [`09-audit-log-export-90d-runbook.md`](./09-audit-log-export-90d-runbook.md) | Runbook only | Live export sample (OPS-1) |
 
 ## Authoritative crumbs / support
 
@@ -41,6 +50,7 @@ In-repo index of **controls design / process / pipeline evidence** suitable for 
 | Stage 6 GHCR as compliance gate | **SKIPPED** — do not reopen |
 | Zero pentest criticals | Owned by STORY-14-04 — do not invent here |
 | Live LLM / copilot GA / Decision STUB as production AI | **Forbidden** — cite `AI_HONESTY.md`; harnesses are CI/non-prod only |
+| Templates = executed control samples | **Forbidden** — signatures / screenshots / live export still residual |
 
 ## Validation label (this pack)
 
@@ -48,10 +58,12 @@ In-repo index of **controls design / process / pipeline evidence** suitable for 
 |-------|---------|
 | **light validated** (assembly) | Paths, workflows, and tip-line URLs exist in-repo / linked; contents spot-checked against code/docs |
 | **not validated** (ops samples) | Live access-review worksheets, 90d log export samples, auditor walkthroughs |
+| **templates LANDED** | Unsigned worksheets / checklists / runbooks present under this directory |
 | **residual-external** | Formal Type I examination by CPA/auditor firm |
 
 ## How to use
 
 1. Security / Program Director: walk TSC mapping + gap inventory with auditor scoping.  
-2. DevOps: keep tip-line URLs current; Stage 6 stays quarantined.  
-3. Do **not** paste this README into customer contracts as “SOC2 Type I complete.”
+2. Program Director: copy templates `06`–`09` offline; execute + sign; keep PII out of git.  
+3. DevOps: keep tip-line URLs current; Stage 6 stays quarantined.  
+4. Do **not** paste this README into customer contracts as “SOC2 Type I complete.”

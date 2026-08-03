@@ -58,8 +58,13 @@ Reuse DevOps pack — do not duplicate URLs as “audit completeness proof”:
 - [`PHASE1_SECURITY_14_04_14_05_DEVOPS_EVIDENCE_PACK.md`](../../program/PHASE1_SECURITY_14_04_14_05_DEVOPS_EVIDENCE_PACK.md)
 - Tip `4754b8b`: CI SUCCESS + Security Scan SUCCESS (pipeline hygiene, not log-content attestation)
 
+## Export runbook (unsigned / ops)
+
+Procedure template: [`09-audit-log-export-90d-runbook.md`](./09-audit-log-export-90d-runbook.md) — **LANDED**.  
+Live published-env sample remains **not validated** (OPS-1).
+
 ## Gaps (see also `04-gap-inventory.md`)
 
-1. **Ops sample:** export of audit rows covering ≥90-day window from the published env — **not validated**.  
+1. **Ops sample:** export of audit rows covering ≥90-day window from the published env — **not validated** (runbook `09` LANDED).  
 2. **Completeness matrix:** which business events are intentional exceptions vs defects — needs Program Director sign-off with Security.  
 3. **Immutable / WORM store:** not evidenced as append-only external SIEM — **gap**.

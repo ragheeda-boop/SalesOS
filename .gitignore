@@ -137,3 +137,7 @@ tmp-*
 # R-14 ops temp (may contain DB passwords — never commit)
 salesos/backend/.tmp_r14*
 
+
+# Soak / probe temp evidence (may contain live JWTs — never commit)
+.tmp-1401*
+.tmp-*-token*

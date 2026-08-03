@@ -15,19 +15,12 @@ Cadence: **at least quarterly** (aligns with common SOC2 CC6.x expectations; exa
 | 3. Revoke / adjust excess privileges | Identity admin | Ticket + audit log of revoke |
 | 4. File packet under compliance evidence | Program Director | Stored with period label |
 
-### Suggested worksheet fields (template — not a filled sample)
+### Worksheet template (unsigned)
 
-| Field | Example |
-|-------|---------|
-| Review period | YYYY-Qn |
-| System | SalesOS / AQLIYA identity |
-| Reviewer | name / role |
-| Population source | admin users API / DB query / IdP export |
-| Findings count | n |
-| Remediation tickets | links |
-| Sign-off date | ISO date |
+Canonical blank worksheet: [`06-access-review-worksheet-template.md`](./06-access-review-worksheet-template.md) — **LANDED**.  
+Suggested fields: review period `YYYY-Qn`, system, reviewer, population source, findings count, remediation tickets, sign-off date.
 
-**No filled production worksheet is checked into this repo** (PII / privilege data). That absence is intentional — mark as **gap for auditor packet**, not as “control missing from design.”
+**No filled / signed production worksheet is checked into this repo** (PII / privilege data). Template ≠ executed sample — signatures remain **Program Director residual**.
 
 ## Technical enablers (implementation evidence)
 

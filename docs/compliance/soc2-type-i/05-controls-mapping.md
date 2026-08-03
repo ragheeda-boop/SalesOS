@@ -11,8 +11,8 @@ Common Trust Services Criteria themes mapped to **in-repo pointers**. Criterion 
 | CC2 / communication | Incident + disclosure | `salesos/docs/INCIDENT_RESPONSE_PLAN.md`, `salesos/docs/pentest/VULNERABILITY_DISCLOSURE_POLICY.md` | Policies present; drill samples **not validated** |
 | CC3 / risk | Security architecture audits | `docs/audit/11-security-architecture.md`, Wave 2 SEC progress | Historical findings — not all closed |
 | CC5 / monitoring | Health, metrics, Sentry (as documented) | `/health`, runbooks, CI | Partial — SIEM gap |
-| CC6 / logical access | Auth, CSRF, RBAC, RLS, access review | BE crumb §3.4; `02-access-review.md` | Design **light**; review worksheets **gap** |
-| CC7 / change | CI/CD, tip-line, Health Gate | `03-change-management.md` + DevOps pack @ `4754b8b` | Pipeline **build validated**; CAB **gap** |
+| CC6 / logical access | Auth, CSRF, RBAC, RLS, access review | BE crumb §3.4; `02-access-review.md`; worksheet `06` | Design **light**; template **LANDED**; signed worksheets **residual** |
+| CC7 / change | CI/CD, tip-line, Health Gate | `03-change-management.md` + DevOps pack @ `4754b8b`; CAB `07` / branch `08` | Pipeline **build validated**; templates **LANDED**; filled CAB / screenshots **residual** |
 | CC8 / change (vuln) | Scans | `.github/workflows/security-scan.yml`, CI bandit/Trivy | Pipeline **build validated** @ tip |
 | CC9 / risk mitigation | Rate limit, headers, entitlements | middleware stack | Design present |
 | Availability (A) | Health Gate, chaos/DR harnesses | Deploy gate; STORY-14-02/14-03 crumbs | Harness landed; live kill **not claimed** |

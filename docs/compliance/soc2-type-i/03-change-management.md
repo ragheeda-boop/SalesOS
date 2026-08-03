@@ -66,11 +66,18 @@ Do **not** reopen GHCR as a SOC2 gate.
 4. Stage 6 GHCR push remains **quarantined** by DEC-150 B — absence is **policy**, not silent failure.  
 5. Security Scan (gitleaks/Trivy/…) provides scheduled + push pipeline evidence.
 
+## PD templates (unsigned)
+
+| Template | Path | Status |
+|----------|------|--------|
+| CAB ↔ deploy mapping | [`07-cab-deploy-mapping-template.md`](./07-cab-deploy-mapping-template.md) | **LANDED** · filled archive residual |
+| Branch-protection checklist | [`08-branch-protection-evidence-checklist.md`](./08-branch-protection-evidence-checklist.md) | **LANDED** · screenshots residual |
+
 ## Gaps
 
 | Gap | Owner | Label |
 |-----|-------|-------|
-| Branch protection / required reviewers screenshots | Program Director / org admin | **residual-external** to git |
+| Branch protection / required reviewers screenshots | Program Director / org admin | **residual-external** to git (checklist `08` LANDED) |
 | CODEOWNERS | Engineering | **gap** (file absent) |
-| CAB / change-ticket archive for each prod deploy | Program Director | **not validated** |
+| CAB / change-ticket archive for each prod deploy | Program Director | **not validated** (template `07` LANDED) |
 | Customer-facing change calendar | Product / PD | **not validated** |

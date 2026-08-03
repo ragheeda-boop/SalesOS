@@ -3,34 +3,33 @@
 > **Role:** Validation/Evidence Stream board synthesis.  
 > **Honesty:** Never claim Production GO, Companion acceptance, or Stage 6 as a gate.  
 > **Evidence #1 tip-line:** advance only on absolute tip **full tip-line green** (S1–5 + Deploy Health Gate when run; +S7 if path-triggered).  
-> **Updated:** 2026-08-03T22:15Z · Evidence #1 pin **`26f2ab5`** · absolute tip moved to **`a8966c0`** — hold #1 until full tip-line green · soak ~1.4h IN PROGRESS ≠ PASS · Stage 6 SKIPPED · No Production GO
+> **Updated:** 2026-08-03T22:17Z · Evidence #1 pin **`26f2ab5`** · absolute tip **`a8966c0`** settling · Bugbot/Security review findings ingested · No Production GO
 
 ## Parallel streams
 
 | Stream | Story / work | Status | Crumb / notes |
 |--------|--------------|--------|---------------|
-| Watchdog tip-line | Evidence #1 | **pin `26f2ab5`** (hold) | Absolute tip **`a8966c0`** (`docs(ai): index 14-06/14-07 honesty…`). Advance #1 **only** on S1–5 + Deploy Health Gate green |
+| Watchdog tip-line | Evidence #1 | **pin `26f2ab5`** (hold) | Absolute tip **`a8966c0`** — Security Scan green; CI/Smoke/Deploy in progress. Advance #1 **only** on full tip-line green |
 | DevOps 14-01 | HTTP tip path | **CLOSED** (light/build validated) | Active `b95db185` · harness ×2 |
-| DevOps 14-01 | True 2h soak | **IN PROGRESS** (attempt 2) · **not PASS** | `.tmp-1401-field-soak-r2/` start `17:47:27Z` · ~**1.4h / 5120s**/7200 (~35m left) · iter 9 ok · remint_each_iter · `field_2h_soak_claim=false` · no `soak_final.json` · PID live ([soak survey](b8b5bb97-4d05-47db-885c-c4a813449ccb)) |
-| DevOps recover | Log-stream false-RED | **CLOSED** @ **`26f2ab5`** | 20m Railway SUCCESS poll — false-RED closed |
-| DevOps → Security | Support pack | **LANDED** @ `ea0b068` | ≠ pentest/SOC2 close |
-| BE lint unblock | company E501/format | **LANDED** @ **`7bd1a67`** | Stage 1 Backend Lint unblocked |
-| BE cookies / session | Logout + refresh support | **STANDBY** (hooks landed) | BE `d0070fa` readiness; FE uses logout/refresh @ `2148dd7`. BFF httpOnly access = FE-SEC-02 residual |
-| FE → Security | CSRF + logout + refresh | **LANDED** @ `34f4a81` / **`2148dd7`** · **light validated** | FE-SEC-01/03/04 Fixed. **FE-SEC-02 Open** (BFF httpOnly). ≠ story AC close |
-| FE-SEC-02 | Access JWT LS / BFF | **Open** residual | High; Sprint-25 / firm; no half-break |
-| Security 14-04 | Pentest in-repo + firm handoff | **CLOSED (in-repo) / IN_REPO_READY** · handoff **READY** | Brief v1.2 + vendor checklist + evidence intake. FE-SEC-02 Open. Firm/zero-criticals = **residual-external** — **NOT claimed** |
-| Security 14-05 | SOC2 pack + PD templates | **CLOSED (evidence pack)** @ `11d0d3f` · PD templates **LANDED** (`06`–`09`, unsigned) | Type I audit post-GA · NOT certified · signatures / screenshots / live 90d export still residual |
-| AI honesty | Align + restore | **LANDED** | `6e03ef8` + `d1d86cd` — no live LLM |
-| QA Sprint-25 | RC prep / regression inventory | **INVENTORY ONLY / not validated** @ `3c18bb2` | Pin RC_SHA to Evidence #1 `26f2ab5` when executing; no 100% pass claimed |
-| Reviews | Tip-line / crumbs | **ONGOING** | Honest labels; no Companion / Production GO |
+| DevOps 14-01 | True 2h soak | **IN PROGRESS** (attempt 2) · **not PASS** | `.tmp-1401-field-soak-r2/` ~1.4h/7200 · iter 9 ok · `field_2h_soak_claim=false` · no `soak_final.json` |
+| DevOps scrub | `.tmp-1401-*` JWT evidence | **IN FLIGHT** (HIGH) | Bugbot: JWT evidence must **not** be in git — scrub + gitignore in flight |
+| DevOps recover | Log-stream false-RED | **CLOSED** @ **`26f2ab5`** | 20m Railway SUCCESS poll |
+| BE logout revoke | `revoke_by_refresh_jti` wiring | **IN FLIGHT** (MEDIUM) | Not wired to `/logout` path — BE fixing; FE-SEC-03 honesty = **partial** until landed |
+| BE cookies / session | Refresh httpOnly + logout | **STANDBY** / partial | httpOnly refresh present; BFF access = FE-SEC-02 |
+| FE → Security | CSRF + logout + refresh | **LANDED** @ `34f4a81` / `2148dd7` · **light validated** | FE-SEC-01/04 Fixed. FE-SEC-03 **partial Fixed**. FE-SEC-02 **Open**. Live logout **not validated** |
+| FE-SEC-02 | Access JWT LS / BFF | **Open** residual (High) | Security review: no new medium+ in changed code; FE-SEC-02 still Open |
+| Security 14-04 | Firm handoff | **CLOSED (in-repo)** · handoff **READY** | Firm/zero-criticals residual-external — **NOT claimed** |
+| Security 14-05 | SOC2 + PD templates | **CLOSED (evidence pack)** @ `11d0d3f` | Type I NOT certified · PD signatures residual |
+| Reviews | Bugbot + Security Review | **LANDED findings** | HIGH tmp JWT scrub · MEDIUM logout JTI revoke · FE-SEC-02 Open · live logout not validated |
+| QA Sprint-25 | RC prep | **INVENTORY ONLY / not validated** | Prefer RC `26f2ab5` until #1 advances |
 
 ## FE residuals → 14-04 tracker
 
 | ID | Status | Notes |
 |----|--------|-------|
 | FE-SEC-01 | **Fixed** @ `34f4a81` | CSRF mint/attach on axios |
-| FE-SEC-02 | **Open** residual | Access JWT LS / XSS class — BFF httpOnly proposal; Sprint-25 / firm |
-| FE-SEC-03 | **Fixed** @ `2148dd7` | Logout → `POST /api/v1/identity/logout` revoke |
+| FE-SEC-02 | **Open** residual | Access JWT LS / XSS — BFF/httpOnly slice flags OFF; Security: no new medium+ in changed code |
+| FE-SEC-03 | **Partial Fixed** @ `2148dd7` | FE calls `/logout`; BE `revoke_by_refresh_jti` **not wired** — BE fixing · live logout **not validated** |
 | FE-SEC-04 | **Fixed** @ `2148dd7` | Cookie-first refresh (+ LS fallback) |
 
 Register: [`salesos/docs/pentest/FINDINGS_TRACKER.md`](../../salesos/docs/pentest/FINDINGS_TRACKER.md) — FE tip `2148dd7` light validated (Jest 9 PASS) ≠ story AC close · ≠ Production GO
@@ -39,8 +38,8 @@ Register: [`salesos/docs/pentest/FINDINGS_TRACKER.md`](../../salesos/docs/pentes
 
 | Story | Rule |
 |-------|------|
-| **14-04** | **CLOSED (in-repo) / IN_REPO_READY** · firm handoff **READY**; firm/zero-criticals AC = **residual-external** — **NOT claimed**; FE-SEC-02 Open (03/04 Fixed @ `2148dd7`) ≠ AC close |
-| **14-05** | **CLOSED (evidence pack)** @ `11d0d3f`; PD worksheets residual (PD-1…4 + 90d export); Type I post-GA **NOT certified** |
+| **14-04** | **CLOSED (in-repo)** · handoff READY; firm/zero-criticals **NOT claimed**; FE-SEC-02 Open; FE-SEC-03 **partial** until BE JTI revoke wired |
+| **14-05** | **CLOSED (evidence pack)** @ `11d0d3f`; PD templates **LANDED** (unsigned `06`–`09`); signatures / screenshots / live 90d export residual; Type I post-GA **NOT certified** |
 | **QA** | Candidate RC `26f2ab5` pinned — results **NOT VALIDATED**; 100% pass **forbidden**; Board RC declare pending |
 | **Soak** | Attempt 2 IN PROGRESS (~1.4h / 5120s of 7200) ≠ PASS · **not validated** |
 
