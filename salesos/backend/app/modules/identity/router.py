@@ -168,9 +168,19 @@ async def register(
     service: IdentityService = Depends(get_service),
     db: AsyncSession = Depends(get_db_session),
 ):
+    import logging
+    import time as _time
+
     from sqlalchemy import text as sa_text
 
     from app.database import set_current_tenant_id
+
+    log = logging.getLogger("salesos.identity.register")
+    t0 = _time.monotonic()
+    steps: list[str] = []
+
+    def _mark(step: str) -> None:
+        steps.append(f"{step}={(_time.monotonic() - t0) * 1000:.0f}ms")
 
     tenant_id = str(body.tenant_id) if body.tenant_id else str(uuid4())
     # RLS on users/device_sessions (FORCE) requires app.tenant_id GUC before
@@ -185,26 +195,50 @@ async def register(
             ),
             timeout=5.0,
         )
+        _mark("set_config")
     except TimeoutError as exc:
+        log.error("register_timeout step=set_config steps=%s", ",".join(steps))
         raise HTTPException(
             status_code=503,
             detail="register.set_config_timeout — check DB connectivity",
         ) from exc
     if not body.tenant_id:
-        from app.modules.identity.models import Tenant
-
-        tenant = Tenant(id=tenant_id, name=body.full_name, slug=tenant_id[:8], plan="free")
-        db.add(tenant)
+        # Raw INSERT — avoid ORM flush + relationship load (Railway hang/OOM).
         try:
-            # Prime hang site on Railway (selectin/deleted_at/lock). Bound hard.
-            await asyncio.wait_for(db.flush(), timeout=8.0)
+            await asyncio.wait_for(
+                db.execute(
+                    sa_text(
+                        "INSERT INTO tenants ("
+                        "id, name, slug, plan, is_active, provisioning_status, "
+                        "created_at, updated_at"
+                        ") VALUES ("
+                        "CAST(:id AS uuid), :name, :slug, 'free', true, 'pending', "
+                        "NOW(), NOW()"
+                        ")"
+                    ),
+                    {
+                        "id": tenant_id,
+                        "name": body.full_name,
+                        "slug": tenant_id[:8],
+                    },
+                ),
+                timeout=8.0,
+            )
+            _mark("tenant_insert")
         except TimeoutError as exc:
+            log.error("register_timeout step=tenant_insert steps=%s", ",".join(steps))
             raise HTTPException(
                 status_code=503,
                 detail=(
-                    "register.tenant_flush_timeout — verify tenants.deleted_at "
-                    "(alembic d4b0e23f5a91) and DB locks"
+                    "register.tenant_insert_timeout — verify tenants.deleted_at "
+                    "(alembic d4b0e23f5a91) and DB locks; check Railway OOM"
                 ),
+            ) from exc
+        except Exception as exc:
+            log.exception("register_tenant_insert_failed steps=%s", ",".join(steps))
+            raise HTTPException(
+                status_code=503,
+                detail=f"register.tenant_insert_failed: {type(exc).__name__}",
             ) from exc
     try:
         user = await service.create_user(
@@ -215,7 +249,9 @@ async def register(
             tenant_id=tenant_id,
             defer_side_effects=True,
         )
+        _mark("create_user")
     except TimeoutError as exc:
+        log.error("register_timeout step=create_user steps=%s err=%s", ",".join(steps), exc)
         raise HTTPException(
             status_code=503,
             detail=f"register.user_timeout: {exc}",
@@ -227,6 +263,7 @@ async def register(
             service.create_token_family(uid, tid),
             timeout=8.0,
         )
+        _mark("token_family")
         device_name, device_type = _parse_device_info(request)
         await asyncio.wait_for(
             service.create_device_session(
@@ -239,16 +276,26 @@ async def register(
             ),
             timeout=8.0,
         )
+        _mark("device_session")
     except TimeoutError as exc:
+        log.error("register_timeout step=token_session steps=%s", ",".join(steps))
         raise HTTPException(
             status_code=503,
             detail="register.token_session_timeout",
         ) from exc
     access_token = create_access_token(uid, tid)
+    _mark("access_token")
     max_age = settings.jwt_refresh_token_expire_days * 86400
     _set_refresh_cookie(response, refresh_token, max_age)
-    # Audit + events AFTER tokens — never block 201 on EventRuntime/audit.
-    await service._register_side_effects(user, email=body.email, full_name=body.full_name)
+    # Fire-and-forget side effects — do not await on request path.
+    try:
+        asyncio.get_running_loop().create_task(
+            service._register_side_effects(user, email=body.email, full_name=body.full_name)
+        )
+    except Exception:
+        log.warning("register_side_effects_schedule_failed")
+    _mark("done")
+    log.info("register_ok steps=%s", ",".join(steps))
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,

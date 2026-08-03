@@ -176,6 +176,39 @@ async def init_db():
         logging.getLogger("salesos.db").error(
             "Alembic migrations failed (%s) — app will start with degraded schema", exc
         )
+    await _verify_tenants_deleted_at()
+
+
+async def _verify_tenants_deleted_at() -> None:
+    """Warn (and attempt migrate) if tenants.deleted_at missing — register flush hang risk."""
+    import logging
+
+    from sqlalchemy import text as sa_text
+
+    log = logging.getLogger("salesos.db")
+    try:
+        async with owner_engine.connect() as conn:
+            row = await conn.execute(
+                sa_text(
+                    "SELECT 1 FROM information_schema.columns "
+                    "WHERE table_name='tenants' AND column_name='deleted_at' "
+                    "LIMIT 1"
+                )
+            )
+            present = row.fetchone() is not None
+        if present:
+            log.info("Schema check: tenants.deleted_at present")
+            return
+        log.error(
+            "Schema check: tenants.deleted_at MISSING — register may hang. "
+            "Running alembic upgrade head (d4b0e23f5a91)."
+        )
+        from app.alembic.env import run_async_migrations
+
+        await run_async_migrations()
+        log.info("Alembic upgrade after deleted_at miss complete")
+    except Exception as exc:
+        log.error("tenants.deleted_at verification failed (%s)", exc)
 
 
 async def _run_migrations_if_needed() -> None:
