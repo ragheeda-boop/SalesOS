@@ -18,6 +18,8 @@ from app.modules.identity.models import Tenant
 WRITE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
 # Owner Platform + auth + health — must remain reachable when a tenant is suspended.
+# Public identity auth must skip: X-Tenant-Id on register previously triggered an
+# unbounded fetch_tenant_by_id BEFORE the route handler (no register_* logs).
 SKIP_PATH_PREFIXES = (
     "/health",
     "/ready",
@@ -29,6 +31,11 @@ SKIP_PATH_PREFIXES = (
     "/api/v1/admin",
     "/api/v1/auth",
     "/api/v1/owner",
+    "/api/v1/identity/register",
+    "/api/v1/identity/login",
+    "/api/v1/identity/refresh",
+    "/api/v1/identity/forgot-password",
+    "/api/v1/identity/reset-password",
     "/api/v1/billing/stripe/webhook",
     "/api/health",
 )

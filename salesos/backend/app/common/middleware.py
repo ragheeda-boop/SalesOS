@@ -185,9 +185,13 @@ class RateLimitMiddleware:
         # --- Redis path ---
         if self._redis:
             try:
-                count = await self._redis.incr(key)
+                import asyncio
+
+                # Bound Redis awaits — hung Redis would block ALL routes
+                # (including register) before the handler; no register_enter log.
+                count = await asyncio.wait_for(self._redis.incr(key), timeout=2.0)
                 if count == 1:
-                    await self._redis.expire(key, self.window)
+                    await asyncio.wait_for(self._redis.expire(key, self.window), timeout=2.0)
                 if count > tier_rate:
                     retry_after = self.window
                     response = JSONResponse(

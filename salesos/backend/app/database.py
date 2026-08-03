@@ -33,6 +33,8 @@ def get_current_tenant_id_context() -> str | None:
 # `psql -U salesos_app` on an *existing* schema still raises "permission
 # denied for database" — Postgres checks the privilege before the
 # existence check), so a restricted role cannot run these calls.
+# command_timeout: asyncpg-level bound so asyncio.wait_for can observe failure
+# when a query stalls (Railway register: wait_for alone did not surface 503).
 engine = create_async_engine(
     settings.app_database_url,
     echo=settings.debug,
@@ -41,6 +43,7 @@ engine = create_async_engine(
     pool_pre_ping=True,
     pool_recycle=1800,
     pool_timeout=30,
+    connect_args={"command_timeout": 10},
 )
 
 owner_engine = create_async_engine(
@@ -115,32 +118,106 @@ from app.db05_orphan_keep import register_orphan_keep_tables  # noqa: E402
 register_orphan_keep_tables(Base.metadata)
 
 
+async def abort_db_session(session: AsyncSession) -> None:
+    """Force-drop a stuck asyncpg connection so the pool is not poisoned."""
+    import asyncio
+    import logging
+
+    log = logging.getLogger("salesos.db")
+    try:
+        conn = await asyncio.wait_for(session.connection(), timeout=1.0)
+        raw = await conn.get_raw_connection()
+        driver = getattr(raw, "driver_connection", None)
+        if driver is not None and hasattr(driver, "terminate"):
+            driver.terminate()
+            return
+    except Exception as exc:
+        log.warning("db_abort_terminate_failed err=%s", type(exc).__name__)
+    try:
+        await asyncio.wait_for(session.invalidate(), timeout=1.0)
+    except Exception as exc:
+        log.warning("db_abort_invalidate_failed err=%s", type(exc).__name__)
+
+
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session() as session:
+    import asyncio
+    import logging
+
+    from fastapi import HTTPException
+
+    log = logging.getLogger("salesos.db")
+    # Bound pool checkout — hung checkouts run BEFORE route handlers (no
+    # register_enter log). pool_timeout=30 alone still leaves clients at 499.
+    cm = async_session()
+    try:
+        session = await asyncio.wait_for(cm.__aenter__(), timeout=8.0)
+    except TimeoutError as exc:
+        log.error("db_checkout_timeout")
+        try:
+            await cm.__aexit__(TimeoutError, exc, None)
+        except Exception:
+            pass
+        raise HTTPException(
+            status_code=503,
+            detail="database.pool_checkout_timeout",
+        ) from exc
+
+    try:
         tenant_id = _current_tenant_id.get(None)
         if tenant_id:
             # HARD STOP — DEC-085 / R-26: ALWAYS use set_config(), NEVER SET LOCAL.
             # Postgres rejects bind params in SET/SET LOCAL ("syntax error at or
             # near $1"). Parallel agents reintroduced SET LOCAL a 4th time
             # (2026-08-01); do not revert for mypy/ruff/style. See DEC-085.
-            await session.execute(
-                sa_text("SELECT set_config('app.tenant_id', :tenant_id, true)"),
-                {"tenant_id": tenant_id},
-            )
+            # Bounded: X-Tenant-Id on register/login used to hang here pre-handler.
+            try:
+                await asyncio.wait_for(
+                    session.execute(
+                        sa_text("SELECT set_config('app.tenant_id', :tenant_id, true)"),
+                        {"tenant_id": tenant_id},
+                    ),
+                    timeout=5.0,
+                )
+            except TimeoutError as exc:
+                log.error("db_set_config_timeout tenant_len=%s", len(tenant_id))
+                await abort_db_session(session)
+                raise HTTPException(
+                    status_code=503,
+                    detail="database.set_config_timeout",
+                ) from exc
         try:
             yield session
         except Exception:
-            await session.rollback()
+            try:
+                await asyncio.wait_for(session.rollback(), timeout=3.0)
+            except Exception:
+                await abort_db_session(session)
             raise
         else:
             # Prefer rollback over raising when the session is already aborted
             # (e.g. swallowed DB errors mid-request). Re-raise unexpected commit
             # failures so write endpoints still fail closed.
             try:
-                await session.commit()
+                await asyncio.wait_for(session.commit(), timeout=10.0)
+            except TimeoutError as exc:
+                log.error("db_commit_timeout")
+                await abort_db_session(session)
+                raise HTTPException(
+                    status_code=503,
+                    detail="database.commit_timeout",
+                ) from exc
             except Exception:
-                await session.rollback()
+                try:
+                    await asyncio.wait_for(session.rollback(), timeout=3.0)
+                except Exception:
+                    await abort_db_session(session)
                 raise
+    finally:
+        try:
+            await asyncio.wait_for(cm.__aexit__(None, None, None), timeout=5.0)
+        except Exception as exc:
+            log.warning("db_session_exit_failed err=%s", type(exc).__name__)
+            await abort_db_session(session)
 
 
 # CI-19 Wave 2: allowlisted bootstrap DDL identifiers (no sqlalchemy.text).
