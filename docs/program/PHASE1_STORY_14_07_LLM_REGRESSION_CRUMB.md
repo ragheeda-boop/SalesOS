@@ -30,8 +30,9 @@
 |------|-------|
 | Suite proves | Non-prod golden quality gate + injected-regression detection in CI |
 | Suite does **not** prove | Live provider model watch, production LLM quality, SOC2 Type I audit |
-| Cite with | `feature_ai_copilot=False` + Decision **STUB** + [`AI_HONESTY.md`](../audit/ga-engineering-audit/AI_HONESTY.md) |
+| Cite with | `feature_ai_copilot=False` + Decision **STUB** + [`AI_HONESTY.md`](../audit/ga-engineering-audit/AI_HONESTY.md) §6–7 |
 | Checklist row | `PRODUCTION_READINESS_CHECKLIST.md` — LLM regression suite (AI Lead) — **CI harness landed**; live continuous watch = Ops residual |
+| Audit vs live | Production GA **NO-GO** (agree). Optional 14-01 soak r3 PASS ≠ Companion / ≠ GA soak. Tip-line HOLD/`bee3276` settling ≠ whole-pipeline green |
 
 Prior land CI [30759755215](https://github.com/ragheeda-boop/SalesOS/actions/runs/30759755215): Stages 1–3 green; overall FAILURE was Stage-4 **Upload integration coverage** FinalizeArtifact 404 (**infra flake**, tests OK) — DevOps/Watchdog; **do not product-reopen 14-07**.
 

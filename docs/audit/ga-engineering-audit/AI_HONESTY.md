@@ -1,13 +1,14 @@
 # AI Honesty Statement — SalesOS / AQLIYA (Wave 6–7 gate)
 
-**Date:** 2026-07-22  
+**Date:** 2026-07-22 (Phase 1 live reconciliation note: 2026-08-04)  
 **Status:** Documentation + **runtime/UI gates** — **not** an AI GA claim  
 **Classification:** AI surface is **not production-ready** for marketing as “AI-native GA”  
-**Authority:** [PRODUCTION_PLAN.md](./PRODUCTION_PLAN.md) PROD-W6-001 / W6-002 / W6-003; audit NO-GO  
+**Authority:** [PRODUCTION_PLAN.md](./PRODUCTION_PLAN.md) PROD-W6-001 / W6-002 / W6-003; audit **NO-GO** ([00-EXECUTIVE-SUMMARY.md](./00-EXECUTIVE-SUMMARY.md))  
 **Progress evidence:** [PROGRESS-WAVE6-7-AI-GATE.md](./PROGRESS-WAVE6-7-AI-GATE.md)
 
 > **Principle:** AI assists. Humans decide. Evidence governs.  
-> Do not ship release notes, sales decks, or PRC language that imply production AI agents/copilot while flags are off and stubs throw.
+> Do not ship release notes, sales decks, or PRC language that imply production AI agents/copilot while flags are off and stubs throw.  
+> **Agree with audit:** Production GA remains **NO-GO**. Live Phase 1 evidence does **not** overturn that.
 
 ---
 
@@ -101,5 +102,21 @@ Non-prod / CI-only surfaces landed for readiness evidence. **Do not** treat as l
 
 Program crumbs: `docs/program/PHASE1_STORY_14_06_AI_FAILOVER_CRUMB.md`, `docs/program/PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md`.  
 SOC2 Type I (STORY-14-05) evidence packs must index this file + flag/stub reality — not invent AI GA.
+
+---
+
+## 7. Phase 1 live evidence vs audit NO-GO (do not invent GO)
+
+Audit scoreboard: **Production GA = NO-GO**. AI-Lead **agrees**. The following live Phase 1 facts must **not** be marketed as overturning that:
+
+| Live fact | Honest label | Forbidden overclaim |
+|-----------|--------------|---------------------|
+| Optional STORY-14-01 field soak **r3 PASS** (wall 2h + `all_iters_ok`) | Optional load evidence only — see `PHASE1_STORY_14_01_LOAD_SLO_CRUMB.md` / board hub | **Not** Companion acceptance · **not** GA/staging soak closure · **not** Production GO |
+| Evidence #1 tip HOLD (`100cce8`) while abs tip / crypto fix (`bee3276`) settles; prior `6a21ff7` tip-line RED | Tip-line **settling / HOLD** — cite Watchdog | **Not** whole-pipeline green · **not** CI GREEN invented |
+| `feature_ai_copilot=False` + FE Decision package **STUB** | Standing AI honesty | **Not** live AI / AI-native GA |
+| 14-06 / 14-07 chaos harnesses | CI/non-prod fixtures only | **Not** live LLM / live provider kill |
+| External blockers (unsigned GO/RPO, OAuth, firm pentest) | **residual-external** / open | **Not** closed by AI crumbs or soak r3 |
+
+Board language for soak: use **“optional field soak r3 PASS (not Companion / not Production GO)”** — never “soak PASS → GA ready.”
 
 *This file does not grant Production GO.*

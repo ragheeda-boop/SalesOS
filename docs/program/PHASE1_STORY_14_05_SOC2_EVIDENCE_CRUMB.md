@@ -39,6 +39,8 @@ Canonical SoT: [`docs/audit/ga-engineering-audit/AI_HONESTY.md`](../audit/ga-eng
 | Decision FE package live GA | **Not claimed** — **STUB** throws; Decision Center HTTP ≠ stub as GA AI |
 | Live LLM / RAG GO | **Not claimed** |
 | Production GO from AI harnesses | **Forbidden** |
+| Optional 14-01 soak r3 PASS | **Not** Companion / **not** GA soak / **not** Production GO — see [`AI_HONESTY.md`](../audit/ga-engineering-audit/AI_HONESTY.md) §7 |
+| Tip-line whole-pipeline green | **Not claimed** while Evidence #1 HOLD / tip settling (`bee3276`) |
 
 **Harness residuals (non-prod / CI only — not live LLM GO):**
 
