@@ -3,7 +3,7 @@
 > **Honesty:** Not Production GO. Live prod traffic / prod kill not performed.  
 > **POLICY_COUNT unchanged at 71** (no Alembic / FORCE RLS).  
 > `feature_ai_copilot` remains **False**. Stage 6 GHCR stays quarantined.  
-> **BE status: CLOSED** (tip HTTP companion complete). DevOps owns field 50-tenant / 2h soak residual.  
+> **BE status: CLOSED** (tip HTTP companion complete). DevOps owns field residual.  
 > Does **not** reopen marketplace 13-xx. Does not re-land 14-02/14-03.
 
 ## Landed
@@ -16,12 +16,32 @@
 | Postmortems | Practice postmortem per run |
 | HTTP | `/api/v1/load/meta`, `/run/{profile}`, `/run-all`, `/runs`, `/remediation`, `/postmortems` |
 | Tests | `tests/unit/test_story_14_01_load_slo.py` |
+| Harness CSRF | `story_14_01_nonprod_load_harness.py --mode http` mints `GET /api/v1/identity/csrf-token` for POSTs (does not weaken CSRF) |
+
+## Status snapshot (2026-08-03 evening)
+
+| Gate | Verdict | Notes |
+|------|---------|-------|
+| Functional register hang (local) | **CLOSED** | Alembic `d4b0e23f5a91` / `tenants.deleted_at` present; `POST /register` → **201** + tokens |
+| Local Docker HTTP tip soak | **PASS (light validated)** | Both profiles `within_slo=true`; harness exit 0. Evidence `.tmp-1401-local-soak-evidence.json` |
+| Railway HTTP tip path (phases 1–5) | **light / build validated** | Active `b95db185` on `https://salesos-production-96c0.up.railway.app`. Prior hang probes = deploy SUCCESS with **stale Active image** (missing tip). |
+| Phase 5 HTTP harness (Railway) | **PASS (exit 0)** — **corroborated 2×** | First: `.tmp-1401-http-harness-now.json`. Second Shell: `.tmp-1401-railway-soak-evidence.json` — both profiles within_slo (burst p95=180; sustained_sim p95=220); remediation `held`. **NOT Companion acceptance.** |
+| Auth token nuance (optional residual) | **note only** | Second run: register `access_token` alone → `/api/v1/load/meta` **401**; same-user **login** token → **200**. Earlier probe saw register JWT → meta 200 — treat as intermittent/claims nuance. Prefer login token for load harness; investigate register JWT claims only if Board cares. **Do not reopen 14-01 hang.** |
+| Field 2h soak | **not validated** | Harness `field_2h_soak=false`; `simulated_duration` 120s — not a real 2h soak |
+| Live prod kill / Production GO / GA GO | **not performed / not claimed** | Forbidden |
+| Stage 6 GHCR | **SKIPPED** | DEC-150 B |
+| Deploy log-stream false-RED | **CLOSED** @ `654b33e` | `deploy.yml`: if `railway up --ci` exits non-zero after log-stream drop, poll **newest** deployment only — SUCCESS ⇒ ok. Tip-line green CI [30834619146](https://github.com/ragheeda-boop/SalesOS/actions/runs/30834619146) + Deploy Health Gate [30834619512](https://github.com/ragheeda-boop/SalesOS/actions/runs/30834619512). |
+| Deploy stale-image / tip-live gate | **CLOSED (Health Gate)** | Already in `deploy.yml` Backend Health Gate: fresh `uptime_seconds` + `/api/v1/load/meta` ≠ 404 (landed with `railway up --ci` harden). Optional SHA tip-marker beyond load/meta presence — **not required** / not claimed as open residual. |
+| Tip CI (SIM105) | **CLOSED** | `d4aa0b9` → `c7dc44e` → superseded by tip-line `#1` `654b33e` |
+
+**Overall:** HTTP tip path on published env **light/build validated** (phases 1–5), corroborated by second Shell soak. Residuals: real 2h soak (if Board still requires) + optional login-token preference for harness + Security 14-04/14-05. **NOT Production GO. NOT Companion acceptance.** FE/AI STANDBY unless assigned.
 
 ## Field residual — HTTP Soak acceptance (authoritative)
 
 > Acceptance = **HTTP Soak against published Railway URL**, not Companion mode, not docs-only close.  
 > Prefer `https://salesos-production-96c0.up.railway.app` until `api.salesos.com` DNS residual is fixed separately.  
-> No Production GO. Stage 6 GHCR quarantined. Credentials not invented.
+> No Production GO. Stage 6 GHCR quarantined. Credentials not invented.  
+> **2026-08-03 evening:** Railway Active `b95db185` HTTP tip path phases 1–5 **PASS (light/build validated)**. Does **not** claim real 2h soak, Companion acceptance, or Production GO.
 
 ### Root-cause verdict (2026-08-02 field) — **BOTH; A primary for 404**
 
@@ -32,7 +52,7 @@
 
 **Tip compare:** first `/api/v1/load/*` mount = `8a369f1`; origin tip `06a8923` ⊇ `8a369f1`. Published runtime **not proven ≥ `8a369f1`** — treat as **Phase 1 FAIL** (SHA/runtime mismatch).
 
-### Human operator unblock (required — agent cannot finish Phase 1)
+### Human operator unblock (required — agent cannot finish Railway Phase 1)
 
 | Blocker | Detail |
 |---------|--------|
@@ -44,17 +64,47 @@
 
 **Operator actions:** In Railway dashboard for the service that owns `salesos-production-96c0.up.railway.app`: confirm service ID matches GH secret; redeploy/restart from GitHub tip ≥ `8a369f1` (ideally `06a8923`); wait until new deployment **Active** and process uptime resets; then re-probe `GET /api/v1/load/meta` (401 OK, 404 FAIL).
 
-**CI harden (landed, parallel):** `deploy.yml` drops `railway up --detach`; uses `railway up --ci` (wait for roll) and Health Gate requires fresh `uptime_seconds` + `/api/v1/load/meta` ≠ 404. Does **not** claim Production GO or close STORY-14-01.
+**CI harden (landed):** `deploy.yml` uses `railway up --ci` (wait for roll); Health Gate requires fresh `uptime_seconds` + `/api/v1/load/meta` ≠ 404; `@654b33e` closes log-stream false-RED via newest-deployment SUCCESS poll. Does **not** claim Production GO.
 
 ### Phase progress
 
 | Phase | Status | Notes |
 |-------|--------|-------|
-| 1 Verify Railway runs commit with `load_slo` | **PARKED (human)** | Agent redeploy false-green [30763336159](https://github.com/ragheeda-boop/SalesOS/actions/runs/30763336159). Live URL still ~29h uptime + load 404. **Resume when operator** restarts service for `salesos-production-96c0.up.railway.app` onto tip ≥ `8a369f1` and confirms load/meta ≠ 404. |
-| 2 `/health/ready` → 200 | **BLOCKED** on Phase 1 + DB restore | database=unavailable residual |
-| 3 Non-prod test user | **BLOCKED** | needs ready |
-| 4 `SALESOS_TOKEN` | **BLOCKED** | needs ready + user |
-| 5 HTTP Soak harness | **not validated** | harness tip-landed; do not run as acceptance until Phases 1–4 |
+| 1 Verify Railway runs tip with `load_slo` | **PASS (light validated)** | Active `b95db185`; load routes present. Prior false hang = stale Active image. |
+| 2 `/health/ready` → 200 (Railway) | **PASS (prior)** | health/ready PASS on published env |
+| 3 Non-prod register (Railway tip-live) | **PASS** | `POST /register` → **201** ~1–2s + TOKEN |
+| 4 `SALESOS_TOKEN` + load/meta | **PASS** | Bearer; `GET /api/v1/load/meta` → **200** |
+| 5 HTTP Soak harness (local) | **PASS (light validated)** | Docker tip soak earlier same day |
+| 5b HTTP Soak (Railway published) | **PASS (light/build validated)** — **2×** | exit 0; both profiles within_slo; evidence `.tmp-1401-http-harness-now.json` + `.tmp-1401-railway-soak-evidence.json`; remediation `held` |
+
+### Railway published HTTP tip evidence (2026-08-03 evening) — Active `b95db185`
+
+| Endpoint / gate | Result |
+|-----------------|--------|
+| Active deploy | `b95db185` on `https://salesos-production-96c0.up.railway.app` |
+| health / ready / load mount | PASS (prior tip-live) |
+| `POST /register` | **201** ~1–2s + token |
+| `GET /api/v1/load/meta` (Bearer) | **200** with login token (second run); register access_token alone → **401** (claims nuance — not hang) |
+| Harness `--mode http` | **exit 0** ×2; evidence `.tmp-1401-http-harness-now.json`, `.tmp-1401-railway-soak-evidence.json` |
+| `pooled_50_tenant_burst` | within_slo; p95=180ms; error_rate=0.002 |
+| `pooled_50_tenant_sustained_sim` | within_slo; p95=220ms; error_rate=0.004 |
+| remediation | `held` |
+| `field_2h_soak` | **false** (simulated_duration 120s — not real 2h) |
+
+### Local Docker soak evidence (2026-08-03T14:35Z UTC)
+
+| Endpoint | HTTP | Latency / result |
+|----------|------|------------------|
+| `GET /health` | 200 | ok / database connected |
+| `GET /health/ready` | 200 | `ready` |
+| `GET /api/v1/load/meta` (no auth) | 401 | expected |
+| `POST /api/v1/identity/register` | 201 | ~4.7–8.4s this session (PERF-001) |
+| `GET /api/v1/load/meta` | 200 | target_tenants=50; p95≤500; error_rate≤0.01 |
+| `POST /api/v1/load/run-all` | 200 | ~292ms wall |
+| → `pooled_50_tenant_burst` | ok | tenants=50; p95=180ms; error_rate=0.002; within_slo |
+| → `pooled_50_tenant_sustained_sim` | ok | tenants=50; p95=220ms; error_rate=0.004; within_slo |
+| `GET /api/v1/load/remediation` | 200 | status=`held` |
+| Harness exit | 0 | SLOs held (not Production GO) |
 
 ### Domain residual (separate)
 
@@ -64,9 +114,14 @@
 
 | Piece | Detail |
 |-------|--------|
-| Script | `salesos/scripts/story_14_01_nonprod_load_harness.py` @ tip `06a8923` |
+| Script | `salesos/scripts/story_14_01_nonprod_load_harness.py` |
 | Companion | **not acceptance** (CI synthetic only; light validated locally) |
-| HTTP Soak | **not validated** — blocked Phase 1 (stale runtime) + Phase 2 (DB) |
+| HTTP Soak (local Docker) | **light validated** — PASS 2026-08-03 (CSRF-aware http mode) |
+| HTTP Soak (Railway) | **light/build validated** — PASS exit 0 ×2 on Active `b95db185`; evidence `.tmp-1401-http-harness-now.json` + `.tmp-1401-railway-soak-evidence.json` |
+| Field 2h soak | **not validated** — harness reports false; simulated 120s ≠ real 2h |
+| Log-stream false-RED | **CLOSED** @ `654b33e` — newest-deploy SUCCESS poll after stream drop |
+| Stale-image tip-live gate | **CLOSED (Health Gate)** — fresh `uptime_seconds` + `/api/v1/load/meta` ≠ 404 already required; optional SHA tip-marker not claimed open |
+| Load harness auth (optional) | Prefer **login** token for `/api/v1/load/*`; register JWT alone may 401 (intermittent/claims) — do **not** reopen hang |
 
 ## Non-goals
 
@@ -75,3 +130,4 @@
 - Enabling `feature_ai_copilot`
 - Inventing credentials / scraping `.env*`
 - Stage 6 GHCR reopen
+- Fixing PERF-001 register latency in this story

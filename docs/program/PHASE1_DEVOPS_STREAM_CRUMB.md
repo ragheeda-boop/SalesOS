@@ -34,17 +34,43 @@
 | Tip FE types / smoke red (HardDelete exports) + D3 ruff format | `9e242e0` CI/Smoke red | `20ce9e8` — export Soft/HardDelete admin types + ruff D3 suite |
 | Tip-line full green proof | `78e4c26` (also `d9afff6` / `5d052cf`) | **CI + Deploy + Stage 7 + Smoke + Security SUCCESS**; Stage 6 skipped |
 
-## STORY-14-01 (50-tenant load) — STARTED 2026-08-02
+## Tip protect pin — `06a8923` (2026-08-02)
+
+| Workflow | Conclusion | Run |
+|----------|------------|-----|
+| CI (Stages 1–5) | **SUCCESS** | [30760184122](https://github.com/ragheeda-boop/SalesOS/actions/runs/30760184122) |
+| Deploy Production | **SUCCESS** | [30760184115](https://github.com/ragheeda-boop/SalesOS/actions/runs/30760184115) |
+| Docker Smoke | **SUCCESS** | [30760184120](https://github.com/ragheeda-boop/SalesOS/actions/runs/30760184120) |
+| Security Scan | **SUCCESS** | [30760184181](https://github.com/ragheeda-boop/SalesOS/actions/runs/30760184181) |
+| Stage 7 E2E | **SUCCESS** | [30760184131](https://github.com/ragheeda-boop/SalesOS/actions/runs/30760184131) |
+| Stage 6 GHCR | **SKIPPED** (DEC-150 B) | same CI |
+
+NEVER-STOP: watch absolute tip onward; do not invent STORY-14-01 credentials.
+
+## STORY-14-01 (50-tenant load) — STARTED 2026-08-02 / UPDATE 2026-08-03 evening (HTTP tip PASS + deploy residuals closed)
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Pair | BE tip HTTP `/api/v1/load/*` @ `8a369f1`/`dd59a3f` (**GREEN**); BE CLOSED docs @ `594deaa` | Field soak residual remains DevOps |
-| DevOps script | `salesos/scripts/story_14_01_nonprod_load_harness.py` | tip-landed; companion + http; prod host refuse |
-| Companion run | **light validated** (exit 0, SLOs held on both profiles) | Local synthetic — not Production GO |
-| HTTP tip run | **not validated** | `SALESOS_TOKEN` absent — no `--mode http` run |
-| Field 2h soak | **not validated** | Residual |
-| Live prod kill | **not performed** | Forbidden |
-| Stage-4 coverage upload flake | Triaged on `3a25c76` [30759755215] | pytest **SUCCESS**; FinalizeArtifact 404 only — `continue-on-error` + unique artifact name |
+| Pair | BE tip HTTP `/api/v1/load/*` @ `8a369f1`/`dd59a3f` (**GREEN**); BE CLOSED docs @ `594deaa` | Published HTTP tip path phases 1–5 **light/build validated** |
+| DevOps script | `salesos/scripts/story_14_01_nonprod_load_harness.py` | companion + http; CSRF mint for POSTs; prod host refuse |
+| Companion run | **light validated** (exit 0, SLOs held on both profiles) | Local synthetic — **NOT Companion acceptance** |
+| Functional register hang (local) | **CLOSED** | `POST /register` → 201 + tokens on Docker; Alembic `d4b0e23f5a91` |
+| HTTP tip run (local Docker) | **PASS (light validated)** | Token from register; both profiles within_slo; evidence `.tmp-1401-local-soak-evidence.json` |
+| Railway Active | `b95db185` | `https://salesos-production-96c0.up.railway.app` |
+| Railway HTTP tip path (1–5) | **PASS (light/build validated)** — **corroborated 2×** | harness exit 0; burst p95=180 / sustained_sim p95=220; remediation `held`; evidence `.tmp-1401-http-harness-now.json` + `.tmp-1401-railway-soak-evidence.json` |
+| Load auth nuance | **optional residual** | register access_token → meta **401**; login token → **200** (2nd run). Prefer login token for harness; do **not** reopen 14-01 hang |
+| Field 2h soak | **not validated** | Harness `field_2h_soak=false`; simulated 120s ≠ real 2h (Board residual if still required) |
+| Log-stream false-RED | **CLOSED** @ `654b33e` | Newest-deploy SUCCESS poll; Evidence #1 tip-line [30834619146](https://github.com/ragheeda-boop/SalesOS/actions/runs/30834619146) + Deploy [30834619512](https://github.com/ragheeda-boop/SalesOS/actions/runs/30834619512) |
+| Stale Active / tip-live Health Gate | **CLOSED** | Gate already requires fresh `uptime_seconds` + `/api/v1/load/meta` ≠ 404 — not a separate open residual. Optional SHA tip-marker beyond load/meta — not claimed. |
+| Stage 6 GHCR | **SKIPPED** | DEC-150 B |
+| Live prod kill / Production GO / GA GO | **not performed / not claimed** | Forbidden |
+| Stage-4 coverage upload flake | Triaged on `3a25c76` [30759755215]; harden landed `06a8923` | tip Stage 4 upload **SUCCESS** on [30760184122] |
+
+## Evidence tip-line (Validation)
+
+| #1 pin | Class | Notes |
+|--------|-------|-------|
+| `654b33e` | **build validated** full tip-line | S1–5 + Deploy Health Gate + Smoke + Security; Stage 6 SKIPPED; S7 path-skipped this tip |
 
 ## Forbidden
 
@@ -52,3 +78,4 @@
 - New deploy topology superseding DEC-149 without ARB  
 - Production GO / Stages 1–7 invent without tip evidence  
 - Live prod kill under STORY-14-01  
+- Inventing / scraping credentials for `--mode http`  

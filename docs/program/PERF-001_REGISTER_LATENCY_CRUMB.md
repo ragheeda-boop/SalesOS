@@ -1,28 +1,25 @@
 # PERF-001 — Register hang / latency (Railway field)
 
-> **Status:** OPEN (cancellable-wait tip shipping)  
+> **Status:** Field tip-live OK on `8c7d65e` / Active `b95db185` (stale-image false FAIL cleared). Observability follow-up `d4aa0b9` on master (not required for field unblock).  
 > **Honesty:** Not Production GO. Do not weaken auth/CSRF/RBAC.
 
-## Field evidence (tip `8c7d65e` / deploy `b95db185` tip-live after stale-image redeploy)
+## Field result (2026-08-03)
 
-- HTTP **499** (60–180s); hang ~30s+ **with or without** `tenant_id` (no skip pivot)
-- **Last step = NONE** on earlier probes — zero lines: `register_ok` / `register_timeout` / `steps=` / `set_config` / `tenant_insert` / `create_user`
-- DB: no new users/tenants; `deleted_at` + `provisioning_status` present
-- Ruled out: hash/save/audit/publish/tokens; missing columns; completed tenant_insert
-- Chicken-egg: `/tenants` + invite are 401; no public signup alternate
+| Deploy | Tip markers | Register | Notes |
+|--------|-------------|----------|-------|
+| Prior Active SUCCESS | stale image (not tip) | hang / 499 | False FAIL — SUCCESS ≠ tip-live |
+| `b95db185` | `8c7d65e` tip-live | **201 ~2s + token** | load/meta 200; hang probes were stale |
 
-**Likely:** pre-first `_mark` — uncancellable `set_config`|`tenant_insert`, or `get_db`/middleware before handler.
+Chicken-egg (no public `/tenants`/invite) stands for alternate mint paths; register path itself is tip-live OK.
 
-## Tip fix (post-`8c7d65e`)
+## Follow-up tip `d4aa0b9` (nice-to-have, already on master)
 
-1. `register_enter` in `get_register_db` **before** pool checkout / set_config
-2. Per-step `register_step` + stdout flush; `register_timeout step=…` on fail
-3. App engine `command_timeout=10`; `abort_db_session` (asyncpg terminate)
-4. Bounded `get_db` checkout / ContextVar set_config / commit
-5. Suspension skip on public identity auth; Redis rate-limit 2s bound
-6. Explicit register commit; no same-session side-effect `create_task`
+`register_enter` before `get_db`, `command_timeout` / `abort_db_session`, bounded checkout/set_config/commit, suspension skip on public identity auth, Redis rate-limit 2s bound. Deploy when convenient — **not a field blocker**.
 
-## DevOps probe
+## Deploy health gate (DevOps-owned) — CLOSED/covered
 
-Expect `register_enter` then `register_step` / `register_ok` or `register_timeout step=…` / **503** within ~10s (not silent 499).  
-**Do not claim field fix until tip-live register result is reported.**
+Backend Health Gate in `deploy.yml` (landed `c0e4f6a`, present on tip `654b33e`) already rejects stale Active: `/health` 200 + `uptime_seconds` < 900 + `/api/v1/load/meta` ≠ 404. Log-stream false-RED closed @ `654b33e`. Optional SHA tip-marker beyond load/meta presence is **not** an open residual. No Production GO.
+
+## Standby
+
+Field tip-live + HTTP harness already PASS. Resume only on BE-caused harness fail. No Production GO.
