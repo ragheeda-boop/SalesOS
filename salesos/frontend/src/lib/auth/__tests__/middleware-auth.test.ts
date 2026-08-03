@@ -60,6 +60,20 @@ describe("middleware-auth", () => {
       expect(token).toBe("httponly-jwt");
     });
 
+    it("gates protected routes with only salesos_access (no legacy cookie)", () => {
+      const token = readAccessTokenFromRequest({
+        cookies: {
+          get: (name) =>
+            name === HTTPONLY_ACCESS_COOKIE
+              ? { value: "httponly-only" }
+              : undefined,
+        },
+        headers: { get: () => null },
+      });
+      expect(token).toBe("httponly-only");
+      expect(shouldRedirectToLogin("/dashboard", token)).toBe(false);
+    });
+
     it("reads token from legacy access_token cookie", () => {
       const token = readAccessTokenFromRequest({
         cookies: {

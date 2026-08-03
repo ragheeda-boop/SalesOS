@@ -10,7 +10,7 @@
 | ID | Severity | Status |
 |----|----------|--------|
 | FE-SEC-01 | Medium | **Fixed** (CSRF mint/attach) |
-| FE-SEC-02 | High | **Open** — checklist ready; **flags OFF**; not Fixed until flags-on verify |
+| FE-SEC-02 | High | **Open** — checklist ready @ Evidence #1 `63f6ad2`; **flags OFF**; not Fixed until flags-on field verify |
 | FE-SEC-03 | Medium | **Fixed** @ `2148dd7` + `d9f0eba`; live tip-live @ `fe84441` **light validated** (logout 200 `sessions_revoked=1`; refresh 401) |
 | FE-SEC-04 | Low | **Fixed** (cookie-first refresh) |
 
@@ -30,4 +30,4 @@ Enable only after coordinated https tip field verify (BE + FE flags together).
 
 ## Validation
 
-Focused Jest + BE unit cookie helpers — **light validated**. Dual-path flag Jest — **light validated** (this tip). Flag-on live Railway — **not validated**.
+Focused Jest + BE unit cookie helpers — **light validated**. Dual-path flag Jest — **light validated** (`79d5cb7`). Middleware-only + flag-helper Jest — **light validated** (this tip). Flag-on live Railway — **not validated**. Evidence #1 tip `63f6ad2`. Stage 6 SKIPPED.
