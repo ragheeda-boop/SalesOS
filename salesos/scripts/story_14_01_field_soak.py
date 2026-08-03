@@ -149,17 +149,13 @@ def main(argv: list[str] | None = None) -> int:
     h_code, health, _ = _http_json("GET", f"{args.base_url.rstrip('/')}/health", timeout=30)
     print(f"HEALTH status={h_code} uptime={health.get('uptime_seconds') if isinstance(health, dict) else None}")
 
-    token, email, mint_meta = mint_login_token(args.base_url.rstrip("/"))
-    print(f"TOKEN_MINTED source={mint_meta.get('token_source')} email={email} token_len={len(token)}")
-    # Never write raw token to evidence — only length + source
-    (evidence / "mint.json").write_text(
-        json.dumps({"email": email, **mint_meta, "token_len": len(token)}, indent=2) + "\n",
-        encoding="utf-8",
-    )
-
+    # Remint login JWT each iteration — tip-line Railway rolls regenerate JWKS
+    # and invalidate prior tokens mid-soak (field: attempt1 ITER2 exit 2 after
+    # uptime reset ~417s during docs Deploy churn).
     iterations: list[dict] = []
     exit_worst = 0
     i = 0
+    last_email = ""
     while True:
         elapsed = time.monotonic() - start_mono
         if elapsed >= planned and i > 0:
@@ -168,6 +164,56 @@ def main(argv: list[str] | None = None) -> int:
         iter_started = datetime.now(timezone.utc)
         out = evidence / f"iter_{i:03d}_harness.json"
         print(f"ITER {i} start_utc={iter_started.isoformat()} elapsed_s={elapsed:.0f}")
+        try:
+            token, email, mint_meta = mint_login_token(args.base_url.rstrip("/"))
+            last_email = email
+            print(
+                f"ITER {i} TOKEN_MINTED source={mint_meta.get('token_source')} "
+                f"email={email} token_len={len(token)}"
+            )
+            (evidence / f"iter_{i:03d}_mint.json").write_text(
+                json.dumps(
+                    {"email": email, **mint_meta, "token_len": len(token)},
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+        except SystemExit as exc:
+            print(f"ITER {i} MINT_FAIL {exc}")
+            summary = {
+                "iter": i,
+                "started_utc": iter_started.isoformat(),
+                "elapsed_since_soak_start_s": round(elapsed, 1),
+                "harness_exit": 12,
+                "ok": False,
+                "field_2h_soak_claim": False,
+                "profiles": [],
+                "error": str(exc)[:300],
+            }
+            iterations.append(summary)
+            exit_worst = 12
+            (evidence / "progress.json").write_text(
+                json.dumps(
+                    {
+                        "start_utc": start.isoformat(),
+                        "planned_duration_seconds": planned,
+                        "true_2h_wall_clock_planned": true_2h,
+                        "iterations_completed": i,
+                        "latest": summary,
+                        "remint_each_iter": True,
+                    },
+                    indent=2,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            elapsed = time.monotonic() - start_mono
+            if elapsed >= planned:
+                break
+            time.sleep(min(interval, max(0, planned - elapsed)))
+            continue
+
         rc, payload = run_harness(args.base_url.rstrip("/"), token, out)
         ok = bool(payload and payload.get("ok")) if payload else rc == 0
         summary = {
@@ -177,6 +223,7 @@ def main(argv: list[str] | None = None) -> int:
             "harness_exit": rc,
             "ok": ok,
             "field_2h_soak_claim": False,
+            "token_source": mint_meta.get("token_source"),
             "profiles": [],
         }
         if isinstance(payload, dict):
@@ -200,6 +247,8 @@ def main(argv: list[str] | None = None) -> int:
                     "true_2h_wall_clock_planned": true_2h,
                     "iterations_completed": i,
                     "latest": summary,
+                    "remint_each_iter": True,
+                    "restart_note": "attempt2: remint each iter after attempt1 ITER2 fail on JWKS/uptime reset",
                 },
                 indent=2,
             )
@@ -230,6 +279,7 @@ def main(argv: list[str] | None = None) -> int:
         "true_2h_wall_clock_achieved": achieved_2h,
         "field_2h_soak": achieved_2h,
         "interval_seconds": interval,
+        "remint_each_iter": True,
         "iterations": iterations,
         "all_iters_ok": all(x.get("ok") for x in iterations) if iterations else False,
         "honesty": {
@@ -240,10 +290,14 @@ def main(argv: list[str] | None = None) -> int:
             "note": (
                 "Periodic auth-gated HTTP harness over wall-clock duration; "
                 "not continuous k6/locust 50-tenant live traffic. "
+                "Login JWT reminted each iteration (JWKS rotates on Railway roll). "
                 "Do not invent 2h PASS unless true_2h_wall_clock_achieved."
             ),
         },
-        "mint": {"email": email, **mint_meta, "token_len": len(token)},
+        "mint_policy": {
+            "remint_each_iter": True,
+            "last_email": last_email,
+        },
         "health_at_start": health if isinstance(health, dict) else {"status_code": h_code},
     }
     final_path = evidence / "soak_final.json"
