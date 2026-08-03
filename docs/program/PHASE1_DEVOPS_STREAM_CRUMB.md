@@ -59,7 +59,7 @@ NEVER-STOP: watch absolute tip onward; do not invent STORY-14-01 credentials.
 | Railway Active | `b95db185` | `https://salesos-production-96c0.up.railway.app` |
 | Railway HTTP tip path (1–5) | **PASS (light/build validated)** — **corroborated 2×** | harness exit 0; burst p95=180 / sustained_sim p95=220; remediation `held`; evidence `.tmp-1401-http-harness-now.json` + `.tmp-1401-railway-soak-evidence.json` |
 | Load auth nuance | **optional residual** | register access_token → meta **401**; login token → **200** (2nd run). Prefer login token for harness; do **not** reopen 14-01 hang |
-| Field 2h soak | **OPTIONAL; r3 PASS (evidence); r2 FAIL retained** | r3 PASS evidence retained. FE-SEC-02 flags-on https window @ `bee3276` Deploy: **suite FAIL** (#10 refresh 401); #3/#4/#6/#7/#8/#9 PASS; flags restored **OFF**. Finding Open. Not tip-line green invent. |
+| Field 2h soak | **OPTIONAL; r3 PASS (evidence); r2 FAIL retained** | r3 PASS evidence retained. FE-SEC-02: #3/#4/#6–10 hard PASS prior; **#5 FAIL** @ tip `b022460` (route tip-live 200; bake blocked — free-tier cap / missing Actions `VERCEL_TOKEN`+); flags **OFF**; **STANDBY Board** (quota and/or secrets OOB — do not invent). Finding Open. No Production GO. |
 | Stale Active / tip-live Health Gate | **CLOSED/covered** since `c0e4f6a` | Fresh `uptime_seconds` + `/api/v1/load/meta` ≠ 404. Docs alignment tip `4754b8b`. |
 | Log-stream false-RED | **CLOSED** @ `654b33e` | Newest-deploy SUCCESS poll |
 | Security support pack | **LANDED** | [`PHASE1_SECURITY_14_04_14_05_DEVOPS_EVIDENCE_PACK.md`](PHASE1_SECURITY_14_04_14_05_DEVOPS_EVIDENCE_PACK.md) — CI/Deploy/Health Gate + Stage 6 SKIPPED for 14-04/14-05 |
