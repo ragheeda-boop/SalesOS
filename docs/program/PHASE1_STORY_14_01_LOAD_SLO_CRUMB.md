@@ -27,7 +27,7 @@
 | Railway HTTP tip path (phases 1–5) | **light / build validated** | Active `b95db185` on `https://salesos-production-96c0.up.railway.app`. Prior hang probes = deploy SUCCESS with **stale Active image** (missing tip). |
 | Phase 5 HTTP harness (Railway) | **PASS (exit 0)** — **corroborated 2×** | First: `.tmp-1401-http-harness-now.json`. Second Shell: `.tmp-1401-railway-soak-evidence.json` — both profiles within_slo (burst p95=180; sustained_sim p95=220); remediation `held`. **NOT Companion acceptance.** |
 | Auth token nuance (optional residual) | **note only** | Second run: register `access_token` alone → `/api/v1/load/meta` **401**; same-user **login** token → **200**. Earlier probe saw register JWT → meta 200 — treat as intermittent/claims nuance. Prefer login token for load harness; investigate register JWT claims only if Board cares. **Do not reopen 14-01 hang.** |
-| Field 2h soak (optional wall-clock) | **FAIL (honest)** — r2 complete | Start `2026-08-03T17:47:27Z` → end `19:47:27Z`. `true_2h_wall_clock_achieved=true` but `all_iters_ok=false`. ITER 1–10 ok; **ITER 11–12** `harness_exit=2` (empty profiles; mint ok). Root cause: HTTP harness POST `/api/v1/load/run-all` without CSRF → **403**; also tip-line deploy JWKS → **401** on `/load/meta` near fail window. Evidence `.tmp-1401-field-soak-r2/soak_final.json`. **Not PASS.** Fix: restore CSRF mint in harness + stderr capture / one remint-retry. |
+| Field 2h soak (optional wall-clock) | **FAIL (honest)** — r2 complete; **r3 IN PROGRESS** | **r2:** Start `2026-08-03T17:47:27Z` → end `19:47:27Z`. `true_2h_wall_clock_achieved=true` but `all_iters_ok=false`. ITER 1–10 ok; **ITER 11–12** `harness_exit=2` (empty profiles; mint ok). Root cause: HTTP harness POST `/api/v1/load/run-all` without CSRF → **403**; also tip-line deploy JWKS → **401** on `/load/meta` near fail window. Evidence `.tmp-1401-field-soak-r2/soak_final.json`. **Not PASS.** Fix tip `3506135` (CSRF mint + stderr / remint-retry). **r3:** started `2026-08-03T20:03:42Z` → `.tmp-1401-field-soak-r3/` (ITER 1 ok); do not invent PASS until `soak_final`. |
 | Live prod kill / Production GO / GA GO | **not performed / not claimed** | Forbidden |
 | Stage 6 GHCR | **SKIPPED** | DEC-150 B |
 | Deploy log-stream false-RED | **CLOSED** @ `654b33e` | Newest-deploy SUCCESS poll after stream drop. |
@@ -118,7 +118,7 @@
 | Companion | **not acceptance** (CI synthetic only; light validated locally) |
 | HTTP Soak (local Docker) | **light validated** — PASS 2026-08-03 (CSRF-aware http mode) |
 | HTTP Soak (Railway) | **light/build validated** — PASS exit 0 ×2 on Active `b95db185`; evidence `.tmp-1401-http-harness-now.json` + `.tmp-1401-railway-soak-evidence.json` |
-| Field 2h soak | **FAIL (optional r2)** — wall 2h yes, all_iters_ok no; CSRF/401 root cause; not invent PASS |
+| Field 2h soak | **FAIL (optional r2)** — wall 2h yes, all_iters_ok no; CSRF/401 root cause; not invent PASS. **r3 IN PROGRESS** after `3506135` (no PASS until soak_final) |
 | Log-stream false-RED | **CLOSED** @ `654b33e` — newest-deploy SUCCESS poll after stream drop |
 | Stale-image tip-live gate | **CLOSED (Health Gate)** — fresh `uptime_seconds` + `/api/v1/load/meta` ≠ 404 already required; optional SHA tip-marker not claimed open |
 | Load harness auth (optional) | Prefer **login** token for `/api/v1/load/*`; register JWT alone may 401 (intermittent/claims) — do **not** reopen hang |

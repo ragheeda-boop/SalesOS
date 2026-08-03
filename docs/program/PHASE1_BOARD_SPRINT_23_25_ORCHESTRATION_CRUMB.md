@@ -42,6 +42,7 @@
 | CODEOWNERS require-owners | File **CLOSED** @ `958db92` · org setting **residual** |
 | PD templates execution (14-05) | Templates **LANDED** (`06`–`09` / CAB=`07`) · signatures / screenshots / 90d export **residual** · Type I **NOT certified** |
 | 14-04 firm engagement | handoff **READY** @ `fe84441` · firm / zero-criticals **residual-external** |
+| Bugbot CI dump scrub | **IN FLIGHT** · MEDIUM Railway infra IDs in committed CI failure dump · LOW empty `*.err` · scrub shell running · #1 stays `fe84441` until tip-line green on scrub tip |
 
 ## FE residuals → 14-04 tracker
 
