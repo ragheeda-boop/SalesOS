@@ -253,6 +253,42 @@ async def test_revoke_by_refresh_jti_compromises_family(db_session: AsyncSession
 
 
 @pytest.mark.asyncio
+async def test_reuse_detection_revokes_device_session_via_logical_family(
+    db_session: AsyncSession,
+):
+    """Reuse path passes logical family_id — must still revoke DeviceSession (row PK FK)."""
+    service = IdentityService(db_session)
+    tenant = await service.create_tenant(name="Test", slug="sec-test-reuse-sess")
+    user = await service.create_user(
+        email="reuse-sess@test.com",
+        password="Test1234!",
+        full_name="Reuse Sess",
+        tenant_id=str(tenant.id),
+    )
+    uid = str(user.id)
+    tid = str(tenant.id)
+    _, family_id, family_pk, jti = await service.create_token_family(uid, tid)
+    session = await service.create_device_session(
+        user_id=uid,
+        tenant_id=tid,
+        refresh_family_id=family_pk,
+        device_name="Reuse Browser",
+        device_type="desktop",
+        ip_address="127.0.0.1",
+    )
+    await service.rotate_refresh_token(jti, uid, tid)
+    with pytest.raises(UnauthorizedError) as exc:
+        await service.rotate_refresh_token(jti, uid, tid)
+    assert "reuse" in str(exc.value).lower()
+    await db_session.refresh(session)
+    assert session.is_revoked is True
+    fam = await db_session.execute(
+        select(RefreshTokenFamily).where(RefreshTokenFamily.family_id == family_id)
+    )
+    assert any(r.is_compromised for r in fam.scalars().all())
+
+
+@pytest.mark.asyncio
 async def test_revoke_all_user_sessions(db_session: AsyncSession):
     service = IdentityService(db_session)
     tenant = await service.create_tenant(name="Test", slug="sec-test-5")
@@ -284,6 +320,12 @@ async def test_revoke_all_user_sessions(db_session: AsyncSession):
     )
     total = await service.revoke_all_user_sessions(uid)
     assert total == 2
+    fam = await db_session.execute(
+        select(RefreshTokenFamily).where(
+            RefreshTokenFamily.id.in_([fp1, fp2]),
+        )
+    )
+    assert all(r.is_compromised for r in fam.scalars().all())
 
 
 @pytest.mark.asyncio

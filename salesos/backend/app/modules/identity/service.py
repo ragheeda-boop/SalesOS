@@ -324,10 +324,30 @@ class IdentityService:
         await self.db.flush()
         return new_access, new_refresh
 
-    async def _revoke_family_sessions(self, family_id: str) -> None:
+    async def _revoke_family_sessions(self, family_key: str) -> None:
+        """Revoke device sessions for a refresh family.
+
+        ``family_key`` may be a ``refresh_token_families.id`` (row PK — what
+        ``DeviceSession.refresh_family_id`` stores) or the logical ``family_id``.
+        """
+        by_pk = await self.db.execute(
+            select(RefreshTokenFamily).where(RefreshTokenFamily.id == family_key)
+        )
+        anchor = by_pk.scalar_one_or_none()
+        if anchor is not None:
+            logical_id = anchor.family_id
+        else:
+            logical_id = family_key
+        fam_rows = await self.db.execute(
+            select(RefreshTokenFamily).where(RefreshTokenFamily.family_id == logical_id)
+        )
+        row_pks = [r.id for r in fam_rows.scalars().all()]
+        if not row_pks:
+            # Legacy/direct match: treat key as DeviceSession.refresh_family_id
+            row_pks = [family_key]
         result = await self.db.execute(
             select(DeviceSession).where(
-                DeviceSession.refresh_family_id == family_id,
+                DeviceSession.refresh_family_id.in_(row_pks),
                 DeviceSession.is_revoked.is_(False),
             )
         )
@@ -436,18 +456,25 @@ class IdentityService:
             )
         )
         sessions = list(result.scalars().all())
-        family_ids = {s.refresh_family_id for s in sessions}
+        row_pks = {s.refresh_family_id for s in sessions}
         for s in sessions:
             s.is_revoked = True
-        result2 = await self.db.execute(
-            select(RefreshTokenFamily).where(
-                RefreshTokenFamily.family_id.in_(family_ids),
-                RefreshTokenFamily.is_compromised.is_(False),
+        logical_ids: set[str] = set()
+        if row_pks:
+            pk_rows = await self.db.execute(
+                select(RefreshTokenFamily).where(RefreshTokenFamily.id.in_(row_pks))
             )
-        )
-        families = list(result2.scalars().all())
-        for f in families:
-            f.is_compromised = True
+            logical_ids = {r.family_id for r in pk_rows.scalars().all()}
+        if logical_ids:
+            result2 = await self.db.execute(
+                select(RefreshTokenFamily).where(
+                    RefreshTokenFamily.family_id.in_(logical_ids),
+                    RefreshTokenFamily.is_compromised.is_(False),
+                )
+            )
+            families = list(result2.scalars().all())
+            for f in families:
+                f.is_compromised = True
         await self.db.flush()
         return len(sessions)
 
