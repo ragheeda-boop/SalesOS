@@ -389,6 +389,45 @@ class IdentityService:
         await self.db.flush()
         return 1
 
+    async def revoke_by_refresh_jti(self, jti: str, user_id: str) -> int:
+        """Revoke device sessions for the refresh-token family of ``jti`` (FE-SEC-03).
+
+        ``DeviceSession.refresh_family_id`` FKs ``refresh_token_families.id`` (row PK),
+        so sessions are revoked via all row PKs sharing the logical ``family_id``.
+        """
+        token_hash = _hash_jti(jti)
+        uid = uuid.UUID(user_id)
+        result = await self.db.execute(
+            select(RefreshTokenFamily).where(
+                RefreshTokenFamily.token_hash == token_hash,
+                RefreshTokenFamily.user_id == uid,
+            )
+        )
+        family = result.scalar_one_or_none()
+        if not family:
+            return 0
+        fam_rows = await self.db.execute(
+            select(RefreshTokenFamily).where(
+                RefreshTokenFamily.family_id == family.family_id,
+                RefreshTokenFamily.user_id == uid,
+            )
+        )
+        rows = list(fam_rows.scalars().all())
+        for row in rows:
+            row.is_compromised = True
+        row_pks = [r.id for r in rows]
+        sess_result = await self.db.execute(
+            select(DeviceSession).where(
+                DeviceSession.refresh_family_id.in_(row_pks),
+                DeviceSession.user_id == uid,
+                DeviceSession.is_revoked.is_(False),
+            )
+        )
+        for session in sess_result.scalars().all():
+            session.is_revoked = True
+        await self.db.flush()
+        return 1
+
     async def revoke_all_user_sessions(self, user_id: str) -> int:
         result = await self.db.execute(
             select(DeviceSession).where(

@@ -69,6 +69,17 @@ Wave 2 Security P0s ([PROGRESS-WAVE2-SEC.md](../audit/ga-engineering-audit/PROGR
 | Suspended-tenant write guard | `SuspendedTenantWriteGuardMiddleware` |
 | Entitlement / quota | `EntitlementEnforcementMiddleware` |
 
+### 3.4.1 FE-SEC-02 / FE-SEC-03 cookie + logout contract (BE)
+
+| Surface | Contract |
+|---------|----------|
+| Refresh cookie | `refresh_token` · HttpOnly · Secure · SameSite=Strict · Path=`/api/v1/identity` — set on login/register/refresh; cleared on logout/logout-all |
+| Access cookie (opt-in) | `salesos_access` · HttpOnly · Secure · SameSite=Strict · Path=`/` — set only when `feature_httponly_access_cookie=True` (default **False**); body JWT always retained for Bearer |
+| Logout default | `POST /api/v1/identity/logout` — decode refresh (body or cookie); **require** `payload["sub"] ==` authenticated `user_id`; then `blacklist_token` + `revoke_by_refresh_jti` (family compromise + device sessions); clear refresh + access cookies |
+| CSRF / RBAC | Unchanged — logout remains Bearer-authenticated + CSRF-enforced |
+
+`feature_ai_copilot` remains **False**. Not Production GO.
+
 ### 3.5 Pentest prep pack (Security)
 
 | Artifact | Path |

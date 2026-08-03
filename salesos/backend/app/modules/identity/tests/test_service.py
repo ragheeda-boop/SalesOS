@@ -208,6 +208,51 @@ async def test_device_session_creation_and_revocation(db_session: AsyncSession):
 
 
 @pytest.mark.asyncio
+async def test_revoke_by_refresh_jti_compromises_family(db_session: AsyncSession):
+    """FE-SEC-03 — logout helper revokes sessions + marks family compromised."""
+    service = IdentityService(db_session)
+    tenant = await service.create_tenant(name="Test", slug="sec-test-jti")
+    user = await service.create_user(
+        email="jti-rev@test.com",
+        password="Test1234!",
+        full_name="Jti User",
+        tenant_id=str(tenant.id),
+    )
+    uid = str(user.id)
+    tid = str(tenant.id)
+    _refresh, family_id, family_pk, jti = await service.create_token_family(uid, tid)
+    session = await service.create_device_session(
+        user_id=uid,
+        tenant_id=tid,
+        refresh_family_id=family_pk,
+        device_name="Logout Browser",
+        device_type="desktop",
+        ip_address="127.0.0.1",
+    )
+    assert session.is_revoked is False
+
+    other = await service.create_user(
+        email="jti-other@test.com",
+        password="Test1234!",
+        full_name="Other",
+        tenant_id=tid,
+    )
+    assert await service.revoke_by_refresh_jti(jti, str(other.id)) == 0
+    await db_session.refresh(session)
+    assert session.is_revoked is False
+
+    assert await service.revoke_by_refresh_jti(jti, uid) == 1
+    await db_session.refresh(session)
+    assert session.is_revoked is True
+    fam = await db_session.execute(
+        select(RefreshTokenFamily).where(RefreshTokenFamily.family_id == family_id)
+    )
+    rows = list(fam.scalars().all())
+    assert rows
+    assert all(r.is_compromised for r in rows)
+
+
+@pytest.mark.asyncio
 async def test_revoke_all_user_sessions(db_session: AsyncSession):
     service = IdentityService(db_session)
     tenant = await service.create_tenant(name="Test", slug="sec-test-5")
