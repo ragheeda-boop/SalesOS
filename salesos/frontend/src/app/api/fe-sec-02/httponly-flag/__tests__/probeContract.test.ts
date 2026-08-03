@@ -6,8 +6,7 @@ function buildProbePayload(env: {
   NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE?: string;
   FEATURE_HTTPONLY_ACCESS_COOKIE?: string;
 }) {
-  const nextPublicRaw =
-    env.NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE ?? null;
+  const nextPublicRaw = env.NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE ?? null;
   return {
     feature: "FE-SEC-02",
     next_public_httponly_access_cookie_baked: nextPublicRaw === "true",
