@@ -42,12 +42,19 @@ class WebhookService:
         *,
         resolve_dns: bool = True,
     ):
-        self.subscription_repo: WebhookSubscriptionRepository = (
-            subscription_repo or InMemoryWebhookSubscriptionRepository()
-        )
-        self.delivery_repo: WebhookDeliveryRepository = (
-            delivery_repo or InMemoryWebhookDeliveryRepository()
-        )
+        import os
+
+        # Fail closed outside tests — InMemory default was a reaudit residual.
+        if subscription_repo is None or delivery_repo is None:
+            if os.environ.get("SALESOS_TESTING") != "true":
+                raise ValueError(
+                    "WebhookService requires Postgres repositories outside tests "
+                    "(refuse InMemory default)"
+                )
+            subscription_repo = subscription_repo or InMemoryWebhookSubscriptionRepository()
+            delivery_repo = delivery_repo or InMemoryWebhookDeliveryRepository()
+        self.subscription_repo: WebhookSubscriptionRepository = subscription_repo
+        self.delivery_repo: WebhookDeliveryRepository = delivery_repo
         self._resolve_dns = resolve_dns
 
     async def create_subscription(

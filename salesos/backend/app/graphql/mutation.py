@@ -70,8 +70,12 @@ async def _update_company(
     company_id: str,
     input: CompanyUpdateInput,
 ) -> CompanyType | None:
-    from app.database import async_session
+    from app.database import async_session, get_current_tenant_id_context
     from app.modules.company.service import CompanyService
+
+    tenant_id = get_current_tenant_id_context()
+    if not tenant_id:
+        return None
 
     async with async_session() as db:
         svc = CompanyService(db=db)
@@ -93,7 +97,7 @@ async def _update_company(
             if val is not None:
                 updates[field_name] = val
         try:
-            company = await svc.update_company(company_id, updates)
+            company = await svc.update_company(company_id, updates, tenant_id=tenant_id)
         except Exception:
             return None
         return CompanyType(

@@ -204,25 +204,27 @@ class CompanyService:
 
         return company
 
-    async def get_company(self, company_id: str) -> Company:
+    async def get_company(self, company_id: str, tenant_id: str) -> Company:
         try:
             cid = uuid.UUID(str(company_id))
+            tid = uuid.UUID(str(tenant_id))
         except (ValueError, TypeError, AttributeError):
             # Invalid UUID must be 404 (not asyncpg DataError → 500).
             raise NotFoundError("Company", company_id) from None
 
+        # App-layer tenant filter (defense-in-depth; RLS is not enough alone).
         result = await self.db.execute(
             select(Company)
             .options(selectinload(Company.branches), selectinload(Company.licenses))
-            .where(Company.id == cid)
+            .where(Company.id == cid, Company.tenant_id == tid)
         )
         company = result.scalar_one_or_none()
         if not company:
             raise NotFoundError("Company", company_id)
         return company
 
-    async def update_company(self, company_id: str, updates: dict) -> Company:
-        company = await self.get_company(company_id)
+    async def update_company(self, company_id: str, updates: dict, *, tenant_id: str) -> Company:
+        company = await self.get_company(company_id, tenant_id)
         for key, value in updates.items():
             if value is not None and hasattr(company, key):
                 setattr(company, key, value)
@@ -255,8 +257,8 @@ class CompanyService:
 
         return company
 
-    async def add_branch(self, company_id: str, data: dict) -> Branch:
-        company = await self.get_company(company_id)
+    async def add_branch(self, company_id: str, data: dict, *, tenant_id: str) -> Branch:
+        company = await self.get_company(company_id, tenant_id)
         branch = Branch(company_id=company.id, **data)
         self.db.add(branch)
         await self.db.flush()
@@ -286,8 +288,8 @@ class CompanyService:
 
         return branch
 
-    async def add_license(self, company_id: str, data: dict) -> License:
-        company = await self.get_company(company_id)
+    async def add_license(self, company_id: str, data: dict, *, tenant_id: str) -> License:
+        company = await self.get_company(company_id, tenant_id)
         license = License(company_id=company.id, **data)
         self.db.add(license)
         await self.db.flush()
@@ -317,8 +319,8 @@ class CompanyService:
 
         return license
 
-    async def add_contact(self, company_id: str, data: dict) -> Contact:
-        company = await self.get_company(company_id)
+    async def add_contact(self, company_id: str, data: dict, *, tenant_id: str) -> Contact:
+        company = await self.get_company(company_id, tenant_id)
         payload = dict(data)
         payload.setdefault("tenant_id", company.tenant_id)
         contact = Contact(company_id=company.id, **payload)
@@ -350,8 +352,8 @@ class CompanyService:
 
         return contact
 
-    async def delete_company(self, company_id: str) -> None:
-        company = await self.get_company(company_id)
+    async def delete_company(self, company_id: str, *, tenant_id: str) -> None:
+        company = await self.get_company(company_id, tenant_id)
         await self.db.delete(company)
         await self.db.flush()
 
@@ -388,7 +390,7 @@ class CompanyService:
         page: int = 1,
         page_size: int = 50,
     ) -> dict:
-        company = await self.get_company(company_id)
+        company = await self.get_company(company_id, tenant_id)
         session = db or self.db
         uid = uuid.UUID(company_id) if isinstance(company_id, str) else company_id
 
@@ -1025,7 +1027,9 @@ class CompanyService:
             cursor=cursor,
         )
 
-    async def bulk_update_companies(self, company_ids: list[str], updates: dict) -> dict:
+    async def bulk_update_companies(
+        self, company_ids: list[str], updates: dict, *, tenant_id: str
+    ) -> dict:
         allowed_fields = {"industry", "size", "status", "tags"}
         field_map = {"size": "employees_count"}
         field_updates = {k: v for k, v in updates.items() if k in allowed_fields}
@@ -1036,7 +1040,7 @@ class CompanyService:
 
         for cid in company_ids:
             try:
-                company = await self.get_company(cid)
+                company = await self.get_company(cid, tenant_id)
                 for key, value in field_updates.items():
                     model_key = field_map.get(key, key)
                     if key == "size":
@@ -1083,12 +1087,12 @@ class CompanyService:
 
         return {"updated": updated, "failed": failed, "errors": errors}
 
-    async def bulk_delete_companies(self, company_ids: list[str]) -> dict:
+    async def bulk_delete_companies(self, company_ids: list[str], *, tenant_id: str) -> dict:
         deleted = 0
 
         for cid in company_ids:
             try:
-                company = await self.get_company(cid)
+                company = await self.get_company(cid, tenant_id)
                 company.is_active = False
                 company.status = "deleted"
                 await self.db.flush()

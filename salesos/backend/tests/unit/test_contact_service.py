@@ -95,7 +95,7 @@ class TestContactGet:
         mock_result.scalar_one_or_none.return_value = mock_contact
         mock_db.execute.return_value = mock_result
 
-        result = await service.get(contact_id)
+        result = await service.get(contact_id, str(uuid.uuid4()))
         assert result == mock_contact
 
     @pytest.mark.asyncio
@@ -107,7 +107,7 @@ class TestContactGet:
         from app.common.exceptions import NotFoundError
 
         with pytest.raises(NotFoundError):
-            await service.get(str(uuid.uuid4()))
+            await service.get(str(uuid.uuid4()), str(uuid.uuid4()))
 
 
 class TestContactUpdate:
@@ -120,7 +120,7 @@ class TestContactUpdate:
         mock_result.scalar_one_or_none.return_value = mock_contact
         mock_db.execute.return_value = mock_result
 
-        _ = await service.update(contact_id, {"name": "Updated Name"})
+        _ = await service.update(contact_id, {"name": "Updated Name"}, str(uuid.uuid4()))
         mock_db.flush.assert_awaited_once()
 
     @pytest.mark.asyncio
@@ -132,7 +132,7 @@ class TestContactUpdate:
         from app.common.exceptions import NotFoundError
 
         with pytest.raises(NotFoundError):
-            await service.update(str(uuid.uuid4()), {"name": "No One"})
+            await service.update(str(uuid.uuid4()), {"name": "No One"}, str(uuid.uuid4()))
 
 
 class TestContactDelete:
@@ -144,7 +144,7 @@ class TestContactDelete:
         mock_result.scalar_one_or_none.return_value = mock_contact
         mock_db.execute.return_value = mock_result
 
-        await service.delete(contact_id)
+        await service.delete(contact_id, str(uuid.uuid4()))
         mock_db.delete.assert_awaited_once_with(mock_contact)
         mock_db.flush.assert_awaited_once()
 
@@ -157,7 +157,7 @@ class TestContactDelete:
         from app.common.exceptions import NotFoundError
 
         with pytest.raises(NotFoundError):
-            await service.delete(str(uuid.uuid4()))
+            await service.delete(str(uuid.uuid4()), str(uuid.uuid4()))
 
 
 class TestContactSearch:

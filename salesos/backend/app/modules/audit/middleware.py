@@ -49,7 +49,7 @@ class AuditMiddleware:
             or status_code == 403
         ):
             try:
-                tenant_id = raw_headers.get(b"x-tenant-id", b"").decode()
+                tenant_id = ""
                 auth = raw_headers.get(b"authorization", b"").decode()
                 user_id = None
                 if auth.startswith("Bearer "):
@@ -58,8 +58,14 @@ class AuditMiddleware:
 
                         payload = decode_access_token(auth.replace("Bearer ", ""))
                         user_id = payload.get("sub")
+                        # Prefer verified JWT tenant over client-controlled header (14-05).
+                        tid = payload.get("tenant_id")
+                        if tid:
+                            tenant_id = str(tid)
                     except Exception:
                         pass
+                if not tenant_id:
+                    tenant_id = raw_headers.get(b"x-tenant-id", b"").decode()
                 if not user_id:
                     api_key = raw_headers.get(b"x-api-key", b"").decode()
                     if api_key:

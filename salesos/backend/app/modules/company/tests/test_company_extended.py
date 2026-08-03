@@ -180,7 +180,7 @@ async def test_update_company_event_bus_failure(
         name_ar="شركة تحديث مع خطأ",
         cr_number="CR-EVTFAIL-002",
     )
-    updated = await service.update_company(str(company.id), {"name_ar": "تم التحديث"})
+    updated = await service.update_company(str(company.id), {"name_ar": "تم التحديث"}, tenant_id=test_tenant)
     assert updated.name_ar == "تم التحديث"
     mock_logger.warn.assert_called()
 
@@ -197,7 +197,7 @@ async def test_add_branch_event_bus_failure(
         name_ar="شركة فروع مع خطأ",
         cr_number="CR-EVTFAIL-003",
     )
-    branch = await service.add_branch(str(company.id), {"name_ar": "فرع جديد"})
+    branch = await service.add_branch(str(company.id), {"name_ar": "فرع جديد"}, tenant_id=test_tenant)
     assert branch is not None
     mock_logger.warn.assert_called()
 
@@ -215,7 +215,9 @@ async def test_add_license_event_bus_failure(
         cr_number="CR-EVTFAIL-004",
     )
     lic = await service.add_license(
-        str(company.id), {"license_number": "L-001", "license_type": "تجارية"}
+        str(company.id),
+        {"license_number": "L-001", "license_type": "تجارية"},
+        tenant_id=test_tenant,
     )
     assert lic is not None
     mock_logger.warn.assert_called()
@@ -233,7 +235,7 @@ async def test_add_contact_event_bus_failure(
         name_ar="شركة اتصال مع خطأ",
         cr_number="CR-EVTFAIL-005",
     )
-    contact = await service.add_contact(str(company.id), {"name": "أحمد", "email": "a@b.com"})
+    contact = await service.add_contact(str(company.id), {"name": "أحمد", "email": "a@b.com"}, tenant_id=test_tenant)
     assert contact is not None
     mock_logger.warn.assert_called()
 
@@ -250,7 +252,7 @@ async def test_delete_company_event_bus_failure(
         name_ar="شركة حذف مع خطأ",
         cr_number="CR-EVTFAIL-006",
     )
-    await service.delete_company(str(company.id))
+    await service.delete_company(str(company.id), tenant_id=test_tenant)
     mock_logger.warn.assert_called()
 
 

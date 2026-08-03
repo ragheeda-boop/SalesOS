@@ -43,7 +43,7 @@ async def get_contact(
     tenant_id: str = Depends(get_current_tenant_id),
     service: ContactService = Depends(get_service),
 ):
-    return await service.get(contact_id)
+    return await service.get(contact_id, tenant_id)
 
 
 @router.patch(
@@ -57,7 +57,7 @@ async def update_contact(
     tenant_id: str = Depends(get_current_tenant_id),
     service: ContactService = Depends(get_service),
 ):
-    return await service.update(contact_id, body.model_dump(exclude_unset=True))
+    return await service.update(contact_id, body.model_dump(exclude_unset=True), tenant_id)
 
 
 @router.delete(
@@ -70,7 +70,7 @@ async def delete_contact(
     tenant_id: str = Depends(get_current_tenant_id),
     service: ContactService = Depends(get_service),
 ):
-    await service.delete(contact_id)
+    await service.delete(contact_id, tenant_id)
 
 
 @router.get(

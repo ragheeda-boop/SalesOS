@@ -57,7 +57,7 @@ class SalesOSClient:
         async with async_session() as db:
             svc = CompanyService(db=db)
             try:
-                company = await svc.get_company(company_id)
+                company = await svc.get_company(company_id, self._tenant_id)
             except Exception:
                 return None
             return {

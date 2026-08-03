@@ -12,13 +12,17 @@ from app.graphql.types import (
 
 
 async def _get_company(info: Info, company_id: str) -> CompanyType | None:
-    from app.database import async_session
+    from app.database import async_session, get_current_tenant_id_context
     from app.modules.company.service import CompanyService
+
+    tenant_id = get_current_tenant_id_context()
+    if not tenant_id:
+        return None
 
     async with async_session() as db:
         svc = CompanyService(db=db)
         try:
-            company = await svc.get_company(company_id)
+            company = await svc.get_company(company_id, tenant_id)
         except Exception:
             return None
         return CompanyType(

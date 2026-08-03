@@ -52,6 +52,7 @@ class TestBulkUpdate:
             result = await service.bulk_update_companies(
                 [str(c1.id), str(c2.id)],
                 {"industry": "Healthcare", "status": "inactive", "tags": ["x", "y"]},
+                tenant_id="t1",
             )
 
         assert result["updated"] == 2
@@ -82,6 +83,7 @@ class TestBulkUpdate:
             result = await service.bulk_update_companies(
                 [str(c1.id)],
                 {"industry": "Healthcare", "name_ar": "Should Not Update"},
+                tenant_id="t1",
             )
 
         assert result["updated"] == 1
@@ -100,6 +102,7 @@ class TestBulkUpdate:
             result = await service.bulk_update_companies(
                 ["00000000-0000-0000-0000-000000000000"],
                 {"industry": "Healthcare"},
+                tenant_id="t1",
             )
 
         assert result["updated"] == 0
@@ -125,7 +128,7 @@ class TestBulkDelete:
 
         with patch.object(service, "get_company") as mock_get:
             mock_get.return_value = c1
-            result = await service.bulk_delete_companies([str(c1.id)])
+            result = await service.bulk_delete_companies([str(c1.id)], tenant_id="t1")
 
         assert result["deleted"] == 1
         assert c1.status == "deleted"
@@ -140,7 +143,9 @@ class TestBulkDelete:
 
         with patch.object(service, "get_company") as mock_get:
             mock_get.side_effect = NotFoundError("Company", "bad-id")
-            result = await service.bulk_delete_companies(["00000000-0000-0000-0000-000000000000"])
+            result = await service.bulk_delete_companies(
+                ["00000000-0000-0000-0000-000000000000"], tenant_id="t1"
+            )
 
         assert result["deleted"] == 0
 

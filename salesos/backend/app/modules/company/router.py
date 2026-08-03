@@ -195,9 +195,12 @@ async def search_companies(
 )
 async def bulk_update_companies(
     body: BulkEditRequest,
+    tenant_id: str = Depends(get_current_tenant_id),
     service: CompanyService = Depends(get_service),
 ):
-    result = await service.bulk_update_companies(body.company_ids, body.updates)
+    result = await service.bulk_update_companies(
+        body.company_ids, body.updates, tenant_id=tenant_id
+    )
     record_metric("company_bulk_updated_total", result["updated"])
     return BulkEditResponse(**result)
 
@@ -209,9 +212,10 @@ async def bulk_update_companies(
 )
 async def bulk_delete_companies(
     body: BulkDeleteRequest,
+    tenant_id: str = Depends(get_current_tenant_id),
     service: CompanyService = Depends(get_service),
 ):
-    result = await service.bulk_delete_companies(body.company_ids)
+    result = await service.bulk_delete_companies(body.company_ids, tenant_id=tenant_id)
     record_metric("company_bulk_deleted_total", result["deleted"])
     return BulkDeleteResponse(**result)
 
@@ -294,18 +298,19 @@ async def export_companies(
 async def get_company(
     company_id: str,
     request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
     service: CompanyService = Depends(get_service),
 ):
     cache = getattr(request.app.state, "cache", None)
+    ck = f"company:{tenant_id}:{company_id}"
     if cache:
-        ck = f"company:{company_id}"
         cached = await cache.get(ck)
         if cached:
             return CompanyResponse(**cached)
     # service returns SQLAlchemy Company — convert before cache/response
-    result = CompanyResponse.model_validate(await service.get_company(company_id))
+    result = CompanyResponse.model_validate(await service.get_company(company_id, tenant_id))
     if cache:
-        await cache.set(f"company:{company_id}", result.model_dump(mode="json"), ttl_seconds=300)
+        await cache.set(ck, result.model_dump(mode="json"), ttl_seconds=300)
     return result
 
 
@@ -318,13 +323,14 @@ async def update_company(
     company_id: str,
     body: CompanyUpdate,
     request: Request,
+    tenant_id: str = Depends(get_current_tenant_id),
     service: CompanyService = Depends(get_service),
 ):
     updates = body.model_dump(exclude_unset=True)
-    result = await service.update_company(company_id, updates)
+    result = await service.update_company(company_id, updates, tenant_id=tenant_id)
     cache = getattr(request.app.state, "cache", None)
     if cache:
-        await cache.delete(f"company:{company_id}")
+        await cache.delete(f"company:{tenant_id}:{company_id}")
         await cache.delete_pattern("company_list:*")
     return result
 
@@ -341,7 +347,7 @@ async def add_branch(
     tenant_id: str = Depends(get_current_tenant_id),
     service: CompanyService = Depends(get_service),
 ):
-    branch = await service.add_branch(company_id, body.model_dump())
+    branch = await service.add_branch(company_id, body.model_dump(), tenant_id=tenant_id)
     return branch
 
 
@@ -357,7 +363,7 @@ async def add_license(
     tenant_id: str = Depends(get_current_tenant_id),
     service: CompanyService = Depends(get_service),
 ):
-    license = await service.add_license(company_id, body.model_dump())
+    license = await service.add_license(company_id, body.model_dump(), tenant_id=tenant_id)
     return license
 
 
@@ -373,7 +379,7 @@ async def add_contact(
     tenant_id: str = Depends(get_current_tenant_id),
     service: CompanyService = Depends(get_service),
 ):
-    contact = await service.add_contact(company_id, body.model_dump())
+    contact = await service.add_contact(company_id, body.model_dump(), tenant_id=tenant_id)
     return contact
 
 
@@ -387,7 +393,7 @@ async def delete_company(
     tenant_id: str = Depends(get_current_tenant_id),
     service: CompanyService = Depends(get_service),
 ):
-    await service.delete_company(company_id)
+    await service.delete_company(company_id, tenant_id=tenant_id)
 
 
 @router.get(

@@ -34,23 +34,29 @@ class ContactService:
         await self.db.flush()
         return contact
 
-    async def get(self, contact_id: str) -> Contact:
-        result = await self.db.execute(select(Contact).where(Contact.id == contact_id))
+    async def get(self, contact_id: str, tenant_id: str) -> Contact:
+        # App-layer tenant filter (defense-in-depth; RLS is not enough alone).
+        result = await self.db.execute(
+            select(Contact).where(
+                Contact.id == contact_id,
+                Contact.tenant_id == uuid.UUID(tenant_id),
+            )
+        )
         contact = result.scalar_one_or_none()
         if not contact:
             raise NotFoundError("Contact", contact_id)
         return contact
 
-    async def update(self, contact_id: str, updates: dict) -> Contact:
-        contact = await self.get(contact_id)
+    async def update(self, contact_id: str, updates: dict, tenant_id: str) -> Contact:
+        contact = await self.get(contact_id, tenant_id)
         for key, value in updates.items():
             if value is not None and hasattr(contact, key):
                 setattr(contact, key, value)
         await self.db.flush()
         return contact
 
-    async def delete(self, contact_id: str) -> None:
-        contact = await self.get(contact_id)
+    async def delete(self, contact_id: str, tenant_id: str) -> None:
+        contact = await self.get(contact_id, tenant_id)
         await self.db.delete(contact)
         await self.db.flush()
 

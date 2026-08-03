@@ -15,24 +15,21 @@
 
 ---
 
-## 2. BE spot-check (tip ~`4754b8b`) — no new P0 ship required
+## 2. BE spot-check (tip ~`4754b8b`) — residual harden shipped
 
 Wave 2 Security P0s ([PROGRESS-WAVE2-SEC.md](../audit/ga-engineering-audit/PROGRESS-WAVE2-SEC.md)) remain in code:
 
 | Area | Status | Evidence |
 |------|--------|----------|
-| Decision Center IDOR | **FIXED** | `get_decision(id, tenant_id)` + `DecisionModel.tenant_id == tenant_id` in `domains/decision_center/` |
-| Webhook SSRF | **FIXED** (staging pentest residual OPEN) | `app/modules/webhooks/url_safety.py`; DEC-125 / DEC-125a |
-| CSRF (no API-key skip) | **FIXED** (criterion 1.3) | `CsrfEnforcementMiddleware` — public identity paths only |
-| Rate limits | Present | `RateLimitMiddleware` + Redis/in-memory (`app/common/middleware.py`) |
-| Security headers | Present | `SecurityHeadersMiddleware` (CSP, HSTS, X-Frame, etc.) |
-| Audit trail (mutating API) | Present | `AuditMiddleware` (`app/modules/audit/middleware.py`) |
-| Tenant GUC / RLS | Present | DEC-085 `set_config('app.tenant_id')` in `app/database.py` |
-| AI copilot | Default **False** | `app/config.py` → `feature_ai_copilot: bool = False` |
+| Decision Center IDOR | **FIXED** | `get_decision(id, tenant_id)` + `DecisionModel.tenant_id == tenant_id` |
+| Webhook SSRF | **FIXED** (staging pentest residual OPEN) | `url_safety.py`; DEC-125 |
+| CSRF (no API-key skip) | **FIXED** | `CsrfEnforcementMiddleware` |
+| Contact/company get-by-UUID IDOR | **HARDENED** (post-spot-check tip) | App-layer `tenant_id` on get/update/delete; company cache key includes tenant |
+| Audit attribution | **HARDENED** | Prefer JWT `tenant_id` over client `x-tenant-id` |
+| Webhook InMemory default | **HARDENED** | Refuse outside `SALESOS_TESTING=true` |
+| AI copilot | Default **False** | `feature_ai_copilot: bool = False` |
 
-**Residual (Security-owned, not BE blocker for this note):** staging SSRF pentest OPEN — [runbooks/staging-ssrf-pentest.md](../audit/ga-engineering-audit/runbooks/staging-ssrf-pentest.md).
-
-No additional minimal BE code tip from this pass (no clear unfixed auth/IDOR/tenant P0 found that is safe/small and Board-assigned).
+**Residual (Security-owned):** staging SSRF pentest OPEN.
 
 ---
 
