@@ -89,7 +89,11 @@ async def test_add_branch(db_session: AsyncSession, test_tenant: str):
     company = await service.create_company(
         tenant_id=test_tenant, name_ar="شركة الفروع", cr_number="CR-500"
     )
-    branch = await service.add_branch(str(company.id), {"name_ar": "فرع الرياض", "city": "الرياض", "phone": "0112345678"}, tenant_id=test_tenant)
+    branch = await service.add_branch(
+        str(company.id),
+        {"name_ar": "فرع الرياض", "city": "الرياض", "phone": "0112345678"},
+        tenant_id=test_tenant,
+    )
     assert branch.name_ar == "فرع الرياض"
     assert branch.company_id == company.id
 
@@ -167,10 +171,22 @@ async def test_company_360_with_contacts_and_branches(db_session: AsyncSession, 
         cr_number="360-002",
     )
     cid = str(company.id)
-    await service.add_branch(cid, {"name_ar": "فرع الرياض", "city": "الرياض"}, tenant_id=test_tenant)
-    await service.add_branch(cid, {"name_ar": "فرع جدة", "city": "جدة"}, tenant_id=test_tenant)
-    await service.add_contact(cid, {"name": "أحمد", "email": "a@test.com", "position": "مدير"}, tenant_id=test_tenant)
-    await service.add_contact(cid, {"name": "سارة", "email": "s@test.com", "position": "محلل"}, tenant_id=test_tenant)
+    await service.add_branch(
+        cid, {"name_ar": "فرع الرياض", "city": "الرياض"}, tenant_id=test_tenant
+    )
+    await service.add_branch(
+        cid, {"name_ar": "فرع جدة", "city": "جدة"}, tenant_id=test_tenant
+    )
+    await service.add_contact(
+        cid,
+        {"name": "أحمد", "email": "a@test.com", "position": "مدير"},
+        tenant_id=test_tenant,
+    )
+    await service.add_contact(
+        cid,
+        {"name": "سارة", "email": "s@test.com", "position": "محلل"},
+        tenant_id=test_tenant,
+    )
 
     result = await service.get_company_360(cid, test_tenant, db=db_session)
     assert len(result["branches"]) == 2
@@ -258,7 +274,11 @@ async def test_company_360_pagination(db_session: AsyncSession, test_tenant: str
     )
     cid = str(company.id)
     for i in range(5):
-        await service.add_contact(cid, {"name": f"جهة اتصال {i}", "email": f"c{i}@test.com"}, tenant_id=test_tenant)
+        await service.add_contact(
+            cid,
+            {"name": f"جهة اتصال {i}", "email": f"c{i}@test.com"},
+            tenant_id=test_tenant,
+        )
 
     result = await service.get_company_360(cid, test_tenant, db=db_session, page=1, page_size=2)
     assert len(result["contacts"]) == 2
@@ -293,8 +313,12 @@ async def test_company_360_crm_section(db_session: AsyncSession, test_tenant: st
         cr_number="CRM-001",
     )
     cid = str(company.id)
-    await service.add_contact(cid, {"name": "اتصال 1", "email": "c1@test.com"}, tenant_id=test_tenant)
-    await service.add_contact(cid, {"name": "اتصال 2", "email": "c2@test.com"}, tenant_id=test_tenant)
+    await service.add_contact(
+        cid, {"name": "اتصال 1", "email": "c1@test.com"}, tenant_id=test_tenant
+    )
+    await service.add_contact(
+        cid, {"name": "اتصال 2", "email": "c2@test.com"}, tenant_id=test_tenant
+    )
 
     result = await service.get_company_360(cid, test_tenant, db=db_session)
     assert result["crm"]["contacts_total"] == 2
@@ -490,7 +514,9 @@ async def test_timeline_runtime_keyset_cursor(db_session: AsyncSession):
     assert len(page1) == 2
 
     last = page1[-1]
-    cursor = json.dumps({"created_at": last.get("created_at"), "id": str(last.get("id", ""))}, tenant_id=test_tenant)
+    cursor = json.dumps(
+        {"created_at": last.get("created_at"), "id": str(last.get("id", ""))}
+    )
     page2, total2 = await tl.get_timeline("company", entity_id, limit=2, cursor=cursor)
     assert total2 == 5
     assert len(page2) == 2
