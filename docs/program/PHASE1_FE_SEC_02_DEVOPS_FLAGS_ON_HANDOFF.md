@@ -50,9 +50,35 @@
 - **PASS:** BE settings/`/meta` or deploy vars show httponly access cookie feature true; login without flag previously did **not** set `salesos_access`, with flag **does**.  
 - **FAIL:** Env set but no `salesos_access` on login.
 
-### #5 — FE flag enabled (same window)
-- **PASS:** After FE rebuild, client does **not** write JS-readable `access_token` cookie post-login (Application → Cookies: `access_token` absent or not set by document; `salesos_access` present as HttpOnly).  
-- **FAIL:** FE still mirrors `access_token` via `document.cookie` while FE flag claims on.
+### #5 — FE flag enabled (same window) — FE residual proof
+
+`NEXT_PUBLIC_*` is **build-time**. Setting Railway/runtime env alone without **FE image rebuild** ⇒ #5 PARTIAL (2026-08-04 window).
+
+**DevOps rebuild (required for #5 PASS):**
+
+1. Set `NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE=true` as a **build ARG/ENV** for the frontend image (not only runtime).  
+2. Rebuild + redeploy FE on https tip (same window as BE `FEATURE_HTTPONLY_ACCESS_COOKIE=true`).  
+3. After window: remove build ARG and rebuild FE again so default stays **OFF**.
+
+**Probe A — bake (curl, no auth):**
+
+```http
+GET https://salesos-production-96c0.up.railway.app/api/fe-sec-02/httponly-flag
+```
+
+- **PASS bake:** `"next_public_httponly_access_cookie_baked": true`  
+- **FAIL / PARTIAL:** `false` while BE flag on (runtime-only env; client still mirrors).  
+- Note: `server_feature_httponly_access_cookie` alone does **not** satisfy #5 — browser persist uses `NEXT_PUBLIC`.
+
+**Probe B — no JS-readable access cookie (browser, after login in flags-on window):**
+
+1. Login via UI (or flow that calls `persistAuthTokens`).  
+2. DevTools → Application → Cookies: `salesos_access` present **HttpOnly**; non-HttpOnly `access_token` **absent**.  
+3. Console: `document.cookie` must **not** match `/(?:^|; )access_token=/`.  
+4. Optional: `localStorage.access_token` may still exist (Bearer retained by design — #11 residual).
+
+**#5 PASS** = Probe A true **and** Probe B.  
+**#5 PARTIAL** = env claimed on without A+B. Do **not** invent Fixed from Probe A alone.
 
 ### #6 — Login Set-Cookie `salesos_access`
 - **PASS:** `POST /api/v1/identity/login` (or register) response includes `Set-Cookie: salesos_access=…; HttpOnly; Secure; SameSite=Strict; Path=/`. Body still returns `access_token` (Bearer retained by design).  
@@ -76,9 +102,9 @@
 - **PASS (flags-on):** Active session (post-login, pre-logout) → `POST /api/v1/identity/refresh` cookie-first `{}` **or** body `{refresh_token}` returns 200 + new tokens **and** `Set-Cookie: salesos_access=…`.  
 - **PASS (flags-OFF baseline):** Same 200 + refresh cookie rotate (no `salesos_access` required).  
 - **FAIL:** Refresh succeeds but no access cookie rotation while BE flag on.  
-- **Field FAIL (2026-08-04):** tip-live `https://salesos-production-96c0.up.railway.app` — fresh register/login then refresh returns **401** `Invalid or expired refresh token` for **both** cookie-first (with jar) and body token; `/users/me` with access Bearer **200**. Same on flags-OFF. Not FE-SEC-02-only.  
-- **Likely BE:** Category B5 FORCE RLS on `refresh_token_families` — cookie-first/body refresh often has **no** Bearer, so middleware never pins `app.tenant_id`; rotate lookup misses rows. BE must pin tenant from verified refresh JWT (login pattern).  
-- **FE fix (this tip):** axios 401 interceptor no longer clears LS on `/identity/refresh` 401 — preserves FE-SEC-04 body fallback after cookie-first miss. Does **not** alone make tip-live #10 PASS while BE RLS gap remains.
+- **Field FAIL (2026-08-04, pre-`bbabe11`):** tip-live refresh 401 — BE Category B5 RLS (no `app.tenant_id` pin).  
+- **Flags-OFF retest:** #10 PASS @ tip-live `bbabe11` (BE GUC pin).  
+- **Flags-on short window:** #3/#4/#6–10 hard PASS; #5 PARTIAL (see above). Flags restored OFF.
 
 ## Evidence capture (required for any PASS claim on #3–10)
 

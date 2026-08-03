@@ -16,7 +16,7 @@
 | 2 | Dual-path Jest (flag OFF + ON persist/middleware) PASS | FE | **landed** @ `79d5cb7` / `100cce8` |
 | 3 | https tip (not http) — BE cookie `Secure=True` | DevOps | **PASS** @ tip-live `bee3276` Deploy Active |
 | 4 | BE env `FEATURE_HTTPONLY_ACCESS_COOKIE=true` (or settings equiv) | BE/DevOps | **PASS** during window; restored **OFF** (confirmed) |
-| 5 | FE env `NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE=true` (same deploy) | FE/DevOps | **PARTIAL** @ `bbabe11`+ window — env set; NEXT_PUBLIC rebuild / no `document.cookie` `access_token` mirror **not browser-proven**; env removed after |
+| 5 | FE env `NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE=true` (same deploy) | FE/DevOps | **PARTIAL** — need FE **rebuild** + bake probe `/api/fe-sec-02/httponly-flag` + browser no `document.cookie` `access_token` (see handoff #5) |
 | 6 | Login → response Set-Cookie `salesos_access` HttpOnly | Field | **PASS** (HttpOnly; Secure; SameSite=Strict; Path=/) — reconfirmed flags-on @ `bbabe11`+ |
 | 7 | Next middleware allows `/dashboard` with only `salesos_access` (no JS `access_token` cookie) | Field | **PASS** (200 with cookie; 307→login without) — reconfirmed |
 | 8 | Axios mutating calls still succeed with Bearer from LS + CSRF | Field | **PASS** (`POST /load/run-all` 200 + CSRF) — reconfirmed |
