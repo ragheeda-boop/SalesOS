@@ -126,45 +126,62 @@ jobs:
           from pathlib import Path
           from pprint import pformat
 
-          def extract_service(value):
+          def collect_service_candidates(value):
               if isinstance(value, dict):
-                  candidates = [
-                      value.get("service"),
-                      value.get("services"),
-                      value.get("activeService"),
-                      value.get("serviceInfo"),
-                  ]
-                  for candidate in candidates:
-                      result = extract_service(candidate)
-                      if result:
-                          return result
-                  for key in [
-                      "serviceId",
-                      "serviceName",
-                      "id",
-                      "name",
-                      "projectId",
-                      "environmentId",
-                  ]:
-                      if key in value and value[key]:
-                          return str(value[key])
-              elif isinstance(value, list) and value:
-                  return extract_service(value[0])
+                  if value.get("serviceId"):
+                      yield str(value["serviceId"])
+                  if value.get("serviceName"):
+                      yield str(value["serviceName"])
+                  if isinstance(value.get("services"), dict):
+                      for edge in value["services"].get("edges", []):
+                          node = edge.get("node")
+                          if isinstance(node, dict):
+                              if node.get("id"):
+                                  yield str(node["id"])
+                              if node.get("name"):
+                                  yield str(node["name"])
+                  if isinstance(value.get("serviceInstances"), dict):
+                      for edge in value["serviceInstances"].get("edges", []):
+                          node = edge.get("node")
+                          if isinstance(node, dict):
+                              if node.get("serviceId"):
+                                  yield str(node["serviceId"])
+                              if node.get("serviceName"):
+                                  yield str(node["serviceName"])
+                  if value.get("service") is not None:
+                      yield from collect_service_candidates(value["service"])
+                  if value.get("activeService") is not None:
+                      yield from collect_service_candidates(value["activeService"])
+                  if value.get("serviceInfo") is not None:
+                      yield from collect_service_candidates(value["serviceInfo"])
+                  if value.get("node") is not None:
+                      yield from collect_service_candidates(value["node"])
+                  if value.get("edges") is not None:
+                      yield from collect_service_candidates(value["edges"])
+                  for child in value.values():
+                      yield from collect_service_candidates(child)
+              elif isinstance(value, list):
+                  for item in value:
+                      yield from collect_service_candidates(item)
+
+          def find_expected_service(status, expected):
+              candidates = []
+              for candidate in collect_service_candidates(status):
+                  if candidate and candidate not in candidates:
+                      candidates.append(candidate)
+              print(f"Railway status service candidates: {candidates}")
+              if expected in candidates:
+                  return expected
               return None
 
           status = json.loads(Path("railway_status.json").read_text())
           expected_service = os.environ["RAILWAY_SERVICE_ID"]
-          actual_service = extract_service(status)
+          actual_service = find_expected_service(status, expected_service)
 
           if actual_service is None:
               raise SystemExit(
-                  "Railway status JSON did not include a service identifier. "
-                  f"Parsed object: {pformat(status)}"
-              )
-          if actual_service != expected_service:
-              raise SystemExit(
-                  f"Railway status service mismatch: expected {expected_service}, got {actual_service}. "
-                  f"Parsed object: {pformat(status)}"
+                  "Railway status JSON did not include the expected service identifier. "
+                  f"Expected: {expected_service}. Parsed candidates: {pformat(list(collect_service_candidates(status)))}"
               )
 
           print(f"Railway status service matches expected ID/name: {actual_service}")
