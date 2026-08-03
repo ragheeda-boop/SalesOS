@@ -3,7 +3,7 @@
 > **Honesty:** Not Production GO. Type I **audit itself** is **post-GA** per `MASTER_EXECUTION_PLAN.md` A5 / Production Readiness.  
 > **Sprint:** 25 · Owner: Security, Program Director.  
 > **Land tip (pack):** `11d0d3f` — in-repo pack under [`docs/compliance/soc2-type-i/`](../compliance/soc2-type-i/README.md)  
-> **PD templates tip:** _(this commit)_ — unsigned worksheets / checklists / runbook under `06`–`09` · near HEAD `26f2ab5`  
+> **PD templates tip:** `682a50d` — unsigned worksheets / checklists / runbook under `06`–`09` · near Evidence #1 `26f2ab5` (tip advanced since)  
 > **Status:** **CLOSED (evidence pack)** — in-repo assembly **light validated** · PD **templates LANDED** (unsigned) · signatures / screenshots / live 90d export = **still residual** · Type I audit = **residual-external / post-GA** · **NOT certified**.
 
 ## In-repo pack (Security stream)
