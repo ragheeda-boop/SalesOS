@@ -139,6 +139,10 @@ class Settings(BaseSettings):
     # See docs/audit/ga-engineering-audit/AI_HONESTY.md
     feature_ai_copilot: bool = False
     feature_crm_kanban: bool = False
+    # FE-SEC-02 vertical slice — optional httpOnly access JWT cookie (salesos_access).
+    # Default False: body TokenResponse + Bearer unchanged; no half-break.
+    # When True: also Set-Cookie salesos_access (httponly) on login/register/refresh.
+    feature_httponly_access_cookie: bool = False
 
     # STORY-04-04 — soft-delete retention before hard-delete (days). Not Production GO.
     tenant_deletion_retention_days: int = 30

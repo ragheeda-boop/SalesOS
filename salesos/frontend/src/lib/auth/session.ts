@@ -2,7 +2,14 @@
  * Client/server auth session helpers.
  * Mirrors the existing localStorage `access_token` pattern with a cookie
  * so Next.js middleware can gate routes server-side.
+ *
+ * FE-SEC-02: when NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE=true, skip the
+ * JS-writable access cookie mirror — BE sets httpOnly `salesos_access` and
+ * middleware dual-reads it. localStorage access JWT retained for Bearer axios
+ * (verify_token is header-only) — no half-break.
  */
+
+import { isHttpOnlyAccessCookieEnabled } from "./httpOnlyAccessCookie";
 
 export const ACCESS_TOKEN_KEY = "access_token";
 export const REFRESH_TOKEN_KEY = "refresh_token";
@@ -29,6 +36,7 @@ function getJwtMaxAgeSeconds(token: string): number | null {
 
 export function setAccessTokenCookie(token: string): void {
   if (typeof document === "undefined") return;
+  if (isHttpOnlyAccessCookieEnabled()) return;
   const maxAge = getJwtMaxAgeSeconds(token) ?? 60 * 60 * 24 * 7;
   const secure = window.location.protocol === "https:" ? "; Secure" : "";
   document.cookie = `${ACCESS_TOKEN_KEY}=${encodeURIComponent(token)}; path=/; SameSite=Lax; max-age=${maxAge}${secure}`;
@@ -60,6 +68,7 @@ export function clearAuthTokens(): void {
 /** Bridge pre-middleware sessions: localStorage token → cookie for edge gating. */
 export function syncAccessTokenCookieFromStorage(): void {
   if (typeof window === "undefined") return;
+  if (isHttpOnlyAccessCookieEnabled()) return;
   const token = localStorage.getItem(ACCESS_TOKEN_KEY);
   if (token) {
     setAccessTokenCookie(token);

@@ -47,6 +47,8 @@ router = APIRouter()
 
 REFRESH_COOKIE = "refresh_token"
 CSRF_COOKIE = "csrf_token"
+# FE-SEC-02 — distinct from FE legacy non-httpOnly `access_token` document cookie.
+ACCESS_COOKIE = "salesos_access"
 
 
 def _set_refresh_cookie(response: Response, token: str, max_age: int) -> None:
@@ -65,6 +67,33 @@ def _clear_refresh_cookie(response: Response) -> None:
     response.delete_cookie(
         key=REFRESH_COOKIE,
         path="/api/v1/identity",
+        httponly=True,
+        samesite="strict",
+        secure=True,
+    )
+
+
+def _set_access_cookie(response: Response, token: str) -> None:
+    """Optional httpOnly access JWT for Next middleware dual-read (flag-gated)."""
+    if not settings.feature_httponly_access_cookie:
+        return
+    max_age = settings.jwt_access_token_expire_minutes * 60
+    response.set_cookie(
+        key=ACCESS_COOKIE,
+        value=token,
+        max_age=max_age,
+        httponly=True,
+        samesite="strict",
+        secure=True,
+        path="/",
+    )
+
+
+def _clear_access_cookie(response: Response) -> None:
+    """Always attempt clear — harmless if cookie absent or flag was off."""
+    response.delete_cookie(
+        key=ACCESS_COOKIE,
+        path="/",
         httponly=True,
         samesite="strict",
         secure=True,
@@ -340,6 +369,7 @@ async def register(
     _mark("access_token")
     max_age = settings.jwt_refresh_token_expire_days * 86400
     _set_refresh_cookie(response, refresh_token, max_age)
+    _set_access_cookie(response, access_token)
     # Commit BEFORE response so get_db's exit commit cannot hang the 201.
     # Do NOT create_task side effects on this session (races commit → hang).
     try:
@@ -385,6 +415,7 @@ async def login(
     access_token = create_access_token(uid, tid)
     max_age = settings.jwt_refresh_token_expire_days * 86400
     _set_refresh_cookie(response, refresh_token, max_age)
+    _set_access_cookie(response, access_token)
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
@@ -492,6 +523,7 @@ async def refresh_token(
     await service.blacklist_token(jti, "refresh", old_exp)
     max_age = settings.jwt_refresh_token_expire_days * 86400
     _set_refresh_cookie(response, new_refresh, max_age)
+    _set_access_cookie(response, new_access)
     return TokenResponse(
         access_token=new_access,
         refresh_token=new_refresh,
@@ -518,17 +550,21 @@ async def logout(
         if token:
             try:
                 payload = decode_refresh_token(token)
-                jti = payload["jti"]
-                old_exp = (
-                    datetime.fromtimestamp(payload["exp"], tz=UTC)
-                    if "exp" in payload
-                    else datetime.now(UTC)
-                )
-                await service.blacklist_token(jti, "refresh", old_exp)
-                revoked = 1
+                # FE-SEC-03: assert refresh subject matches authenticated user
+                if str(payload.get("sub", "")) == str(user_id):
+                    jti = payload["jti"]
+                    old_exp = (
+                        datetime.fromtimestamp(payload["exp"], tz=UTC)
+                        if "exp" in payload
+                        else datetime.now(UTC)
+                    )
+                    await service.blacklist_token(jti, "refresh", old_exp)
+                    family_revoked = await service.revoke_by_refresh_jti(jti, user_id)
+                    revoked = max(1, family_revoked)
             except Exception:
                 pass
     _clear_refresh_cookie(response)
+    _clear_access_cookie(response)
     return LogoutResponse(
         message="Logged out successfully",
         sessions_revoked=revoked,
@@ -543,6 +579,7 @@ async def logout_all(
 ):
     revoked = await service.revoke_all_user_sessions(user_id)
     _clear_refresh_cookie(response)
+    _clear_access_cookie(response)
     return LogoutResponse(
         message="All sessions revoked",
         sessions_revoked=revoked,

@@ -3,6 +3,7 @@ import {
   hasValidAccessToken,
   readAccessTokenFromCookieHeader,
 } from "./session";
+import { HTTPONLY_ACCESS_COOKIE } from "./httpOnlyAccessCookie";
 
 /** Routes that require an authenticated session (dashboard + v3 workspace). */
 export const PROTECTED_PREFIXES = [
@@ -58,17 +59,31 @@ export function isProtectedPath(pathname: string): boolean {
   );
 }
 
+function decodeCookieValue(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
+/**
+ * Dual-read for FE-SEC-02 vertical slice:
+ * 1) httpOnly `salesos_access` from BE (when flag on)
+ * 2) legacy non-httpOnly `access_token` (FE mirror / flag off)
+ */
 export function readAccessTokenFromRequest(request: {
   cookies: { get: (name: string) => { value: string } | undefined };
   headers: { get: (name: string) => string | null };
 }): string | null {
+  const httpOnly = request.cookies.get(HTTPONLY_ACCESS_COOKIE)?.value;
+  if (httpOnly) {
+    return decodeCookieValue(httpOnly);
+  }
+
   const fromCookie = request.cookies.get(ACCESS_TOKEN_KEY)?.value ?? null;
   if (fromCookie) {
-    try {
-      return decodeURIComponent(fromCookie);
-    } catch {
-      return fromCookie;
-    }
+    return decodeCookieValue(fromCookie);
   }
 
   return readAccessTokenFromCookieHeader(request.headers.get("cookie"));

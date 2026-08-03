@@ -6,6 +6,7 @@ import {
   shouldRedirectToLogin,
 } from "../middleware-auth";
 import { ACCESS_TOKEN_KEY } from "../session";
+import { HTTPONLY_ACCESS_COOKIE } from "../httpOnlyAccessCookie";
 
 describe("middleware-auth", () => {
   describe("isPublicPath", () => {
@@ -41,7 +42,25 @@ describe("middleware-auth", () => {
   });
 
   describe("readAccessTokenFromRequest", () => {
-    it("reads token from request cookies", () => {
+    it("prefers httpOnly salesos_access cookie (FE-SEC-02)", () => {
+      const token = readAccessTokenFromRequest({
+        cookies: {
+          get: (name) => {
+            if (name === HTTPONLY_ACCESS_COOKIE) {
+              return { value: "httponly-jwt" };
+            }
+            if (name === ACCESS_TOKEN_KEY) {
+              return { value: "legacy-jwt" };
+            }
+            return undefined;
+          },
+        },
+        headers: { get: () => null },
+      });
+      expect(token).toBe("httponly-jwt");
+    });
+
+    it("reads token from legacy access_token cookie", () => {
       const token = readAccessTokenFromRequest({
         cookies: {
           get: (name) =>
