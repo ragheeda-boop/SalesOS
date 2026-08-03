@@ -10,8 +10,8 @@
 | ID | Severity | Status |
 |----|----------|--------|
 | FE-SEC-01 | Medium | **Fixed** (CSRF mint/attach) |
-| FE-SEC-02 | High | **Open** — vertical slice landed; **flags OFF by default** |
-| FE-SEC-03 | Medium | **Fixed** (tip logout revoke) |
+| FE-SEC-02 | High | **Open** — checklist ready; **flags OFF**; not Fixed until flags-on verify |
+| FE-SEC-03 | Medium | **Fixed** @ `2148dd7` + `d9f0eba` (BE `revoke_by_refresh_jti` wired; live logout light/not validated) |
 | FE-SEC-04 | Low | **Fixed** (cookie-first refresh) |
 
 ## FE-SEC-02 vertical slice (this tip)
@@ -24,9 +24,10 @@
 | FE flag | `NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE` default unset/false |
 | FE middleware | Dual-read: `salesos_access` then legacy `access_token` |
 | FE persist | When FE flag on: skip JS-writable access cookie mirror; keep LS for Bearer |
+| Flags-on plan | [`PHASE1_FE_SEC_02_FLAGS_ON_FIELD_CHECKLIST.md`](PHASE1_FE_SEC_02_FLAGS_ON_FIELD_CHECKLIST.md) |
 
 Enable only after coordinated https tip field verify (BE + FE flags together).
 
 ## Validation
 
-Focused Jest + BE unit cookie helpers — **light validated**. Flag-on live Railway — **not validated**.
+Focused Jest + BE unit cookie helpers — **light validated**. Dual-path flag Jest — **light validated** (this tip). Flag-on live Railway — **not validated**.

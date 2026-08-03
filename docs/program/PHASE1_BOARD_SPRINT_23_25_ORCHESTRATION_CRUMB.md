@@ -3,7 +3,7 @@
 > **Role:** Validation/Evidence Stream board synthesis.  
 > **Honesty:** Never claim Production GO, Companion acceptance, Stage 6 as a gate, or GA cutover.  
 > **Evidence #1 tip-line:** advance only on absolute tip **full tip-line green** (S1–5 + Deploy Health Gate when run; +S7 if path-triggered).  
-> **Updated:** 2026-08-03T19:55Z · Evidence #1 **`fe84441`** (full tip-line GREEN). Soak r2 FINAL: wall-clock COMPLETED / **NOT PASS**. Next-5 feed below. Stage 6 SKIPPED. No Production GO / zero-criticals claim.
+> **Updated:** 2026-08-03T20:00Z · Evidence #1 **`fe84441`** (full tip-line GREEN). Soak r2 FINAL: wall-clock COMPLETED / **NOT PASS**. Bugbot scrub **IN FLIGHT** (MEDIUM Railway infra IDs in committed CI failure dump; LOW empty `*.err` CI artifacts) — [Bugbot](4504c007-d164-460f-bc86-347dde6ed2e9). Stage 6 SKIPPED. No Production GO / zero-criticals claim.
 
 ## Parallel streams
 
@@ -12,7 +12,8 @@
 | Watchdog tip-line | Evidence #1 | **pin `fe84441`** (advanced from `26f2ab5`) | Confirmed GREEN: CI [30846452123](https://github.com/ragheeda-boop/SalesOS/actions/runs/30846452123) S1–5 · Smoke [30846452103](https://github.com/ragheeda-boop/SalesOS/actions/runs/30846452103) · Security [30846452081](https://github.com/ragheeda-boop/SalesOS/actions/runs/30846452081) · Deploy+Health Gate [30846452115](https://github.com/ragheeda-boop/SalesOS/actions/runs/30846452115) SUCCESS · Stage 6 **SKIPPED** |
 | DevOps 14-01 | HTTP tip path | **CLOSED** (light/build validated) | Active `b95db185` · harness ×2 |
 | DevOps 14-01 | True 2h soak | **COMPLETED wall-clock · NOT PASS** | Attempt 2 `.tmp-1401-field-soak-r2/soak_final.json` · `true_2h_wall_clock_achieved=true` · `all_iters_ok=false` (iters 1–10 ok; 11–12 `harness_exit=2` empty profiles) · `production_go=false` · DevOps investigating · **do not invent PASS** |
-| DevOps scrub | `.tmp-*` JWT / temp evidence | **CLOSED** @ **`682a50d`** + **`4fd53f0`** | Ignore broadened (`.tmp-*` / `.tmp_*`); scrub residual **closed** |
+| DevOps scrub | `.tmp-*` JWT / temp evidence | **CLOSED** @ **`682a50d`** + **`4fd53f0`** | Ignore broadened (`.tmp-*` / `.tmp_*`); prior JWT scrub residual **closed** |
+| DevOps scrub | Bugbot CI dump / `*.err` | **IN FLIGHT** | [Bugbot](4504c007-d164-460f-bc86-347dde6ed2e9): **MEDIUM** Railway infra IDs in committed CI failure dump · **LOW** empty `*.err` CI artifacts · scrub shell in flight · **not Fixed** · do not invent CLOSED |
 | DevOps recover | Log-stream false-RED | **CLOSED** @ **`26f2ab5`** | 20m Railway SUCCESS poll |
 | BE logout revoke | `revoke_by_refresh_jti` | **Fixed** @ **`d9f0eba`** | FE-SEC-03 backend wired; Stage 2 green; live Railway logout **light / not validated** |
 | FE-SEC-02 | BFF httpOnly vertical slice | **Open** @ **`63d60f8`** | Flags OFF · light validated · live flag-on **not validated** · **not Fixed** |

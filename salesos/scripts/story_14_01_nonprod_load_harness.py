@@ -124,23 +124,46 @@ def run_companion() -> dict[str, Any]:
     }
 
 
+def _fetch_csrf(base_url: str) -> str:
+    """Mint CSRF via GET /api/v1/identity/csrf-token (cookie + header pair)."""
+    url = f"{base_url.rstrip('/')}/api/v1/identity/csrf-token"
+    req = Request(url, method="GET", headers={"Accept": "application/json"})
+    with urlopen(req, timeout=30) as resp:  # noqa: S310 — operator-supplied base URL
+        raw = resp.read().decode("utf-8")
+        payload = json.loads(raw) if raw else {}
+        token = payload.get("csrf_token") if isinstance(payload, dict) else None
+        if not token:
+            for hdr in resp.headers.get_all("Set-Cookie") or []:
+                if "csrf_token=" in hdr:
+                    token = hdr.split("csrf_token=", 1)[1].split(";", 1)[0]
+                    break
+        if not token:
+            raise SystemExit("ERROR: CSRF mint failed — empty csrf_token")
+        return str(token)
+
+
 def _http_json(
     method: str,
     url: str,
     *,
     token: str,
     body: dict[str, Any] | None = None,
+    csrf: str | None = None,
 ) -> Any:
     data = None if body is None else json.dumps(body).encode("utf-8")
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    if csrf and method.upper() in {"POST", "PUT", "PATCH", "DELETE"}:
+        headers["X-CSRF-Token"] = csrf
+        headers["Cookie"] = f"csrf_token={csrf}"
     req = Request(
         url,
         data=data,
         method=method,
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-        },
+        headers=headers,
     )
     with urlopen(req, timeout=60) as resp:  # noqa: S310 — operator-supplied base URL
         raw = resp.read().decode("utf-8")
@@ -149,8 +172,11 @@ def _http_json(
 
 def run_http(base_url: str, token: str) -> dict[str, Any]:
     root = base_url.rstrip("/")
+    csrf = _fetch_csrf(root)
     meta = _http_json("GET", f"{root}/api/v1/load/meta", token=token)
-    runs = _http_json("POST", f"{root}/api/v1/load/run-all", token=token)
+    runs = _http_json(
+        "POST", f"{root}/api/v1/load/run-all", token=token, csrf=csrf
+    )
     remediation = _http_json("GET", f"{root}/api/v1/load/remediation", token=token)
     postmortems = _http_json("GET", f"{root}/api/v1/load/postmortems", token=token)
     ok = bool(runs) and all(bool(r.get("ok")) for r in runs)
@@ -158,6 +184,7 @@ def run_http(base_url: str, token: str) -> dict[str, Any]:
         "mode": "http",
         "ok": ok,
         "base_url": root,
+        "csrf": "minted",
         "meta": meta,
         "runs": runs,
         "remediation": remediation,

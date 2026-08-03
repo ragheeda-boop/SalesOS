@@ -59,7 +59,7 @@ NEVER-STOP: watch absolute tip onward; do not invent STORY-14-01 credentials.
 | Railway Active | `b95db185` | `https://salesos-production-96c0.up.railway.app` |
 | Railway HTTP tip path (1–5) | **PASS (light/build validated)** — **corroborated 2×** | harness exit 0; burst p95=180 / sustained_sim p95=220; remediation `held`; evidence `.tmp-1401-http-harness-now.json` + `.tmp-1401-railway-soak-evidence.json` |
 | Load auth nuance | **optional residual** | register access_token → meta **401**; login token → **200** (2nd run). Prefer login token for harness; do **not** reopen 14-01 hang |
-| Field 2h soak | **OPTIONAL** | Not required for tip-path close (“if Board wants”). Runner `story_14_01_field_soak.py`; evidence `.tmp-1401-field-soak/` when executed. |
+| Field 2h soak | **OPTIONAL; r2 FAIL** | Wall-clock 7200s achieved; `all_iters_ok=false` (ITER 11–12 harness exit 2 — CSRF missing on POST `/load/run-all` + tip-line 401). Not invent PASS. Fix tip: CSRF harness + remint-retry. |
 | Stale Active / tip-live Health Gate | **CLOSED/covered** since `c0e4f6a` | Fresh `uptime_seconds` + `/api/v1/load/meta` ≠ 404. Docs alignment tip `4754b8b`. |
 | Log-stream false-RED | **CLOSED** @ `654b33e` | Newest-deploy SUCCESS poll |
 | Security support pack | **LANDED** | [`PHASE1_SECURITY_14_04_14_05_DEVOPS_EVIDENCE_PACK.md`](PHASE1_SECURITY_14_04_14_05_DEVOPS_EVIDENCE_PACK.md) — CI/Deploy/Health Gate + Stage 6 SKIPPED for 14-04/14-05 |

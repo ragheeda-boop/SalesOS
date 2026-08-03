@@ -85,7 +85,7 @@ def mint_login_token(base: str) -> tuple[str, str, dict]:
     }
 
 
-def run_harness(base: str, token: str, out_path: Path) -> tuple[int, dict | None]:
+def run_harness(base: str, token: str, out_path: Path) -> tuple[int, dict | None, str]:
     env = os.environ.copy()
     env["SALESOS_BASE_URL"] = base
     env["SALESOS_TOKEN"] = token
@@ -115,7 +115,9 @@ def run_harness(base: str, token: str, out_path: Path) -> tuple[int, dict | None
             payload = json.loads(out_path.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
             payload = None
-    return proc.returncode, payload
+    err = (proc.stderr or "").strip()
+    # Never echo tokens; stderr is HTTP ERROR / URL ERROR only from harness.
+    return proc.returncode, payload, err[:800]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -214,7 +216,37 @@ def main(argv: list[str] | None = None) -> int:
             time.sleep(min(interval, max(0, planned - elapsed)))
             continue
 
-        rc, payload = run_harness(args.base_url.rstrip("/"), token, out)
+        rc, payload, harness_err = run_harness(args.base_url.rstrip("/"), token, out)
+        if harness_err:
+            (evidence / f"iter_{i:03d}_harness.stderr.txt").write_text(
+                harness_err + "\n", encoding="utf-8"
+            )
+            print(f"ITER {i} harness_stderr={harness_err[:200]}")
+        # One remint+retry on HTTP/CSRF flake (tip-line JWKS roll or missing CSRF).
+        if rc != 0:
+            print(f"ITER {i} harness_exit={rc} — remint+retry once")
+            try:
+                token, email, mint_meta = mint_login_token(args.base_url.rstrip("/"))
+                last_email = email
+                print(
+                    f"ITER {i} RETRY_TOKEN source={mint_meta.get('token_source')} "
+                    f"token_len={len(token)}"
+                )
+            except SystemExit as exc:
+                print(f"ITER {i} RETRY_MINT_FAIL {exc}")
+            else:
+                retry_out = evidence / f"iter_{i:03d}_harness_retry.json"
+                rc2, payload2, err2 = run_harness(
+                    args.base_url.rstrip("/"), token, retry_out
+                )
+                if err2:
+                    (evidence / f"iter_{i:03d}_harness_retry.stderr.txt").write_text(
+                        err2 + "\n", encoding="utf-8"
+                    )
+                    print(f"ITER {i} retry_stderr={err2[:200]}")
+                if rc2 == 0:
+                    rc, payload, harness_err = rc2, payload2, err2
+                    out = retry_out
         ok = bool(payload and payload.get("ok")) if payload else rc == 0
         summary = {
             "iter": i,
@@ -224,6 +256,7 @@ def main(argv: list[str] | None = None) -> int:
             "ok": ok,
             "field_2h_soak_claim": False,
             "token_source": mint_meta.get("token_source"),
+            "harness_stderr": (harness_err or "")[:200] or None,
             "profiles": [],
         }
         if isinstance(payload, dict):
