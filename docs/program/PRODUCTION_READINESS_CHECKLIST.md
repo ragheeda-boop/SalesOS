@@ -134,7 +134,7 @@
 | Item | Acceptance Criteria | Mandatory for GA? | Verification Owner |
 |---|---|---|---|
 | PDPL-aligned data handling | Retention/deletion policy documented and enforced by the tenant deletion workflow (EPIC-04) | Yes | Security |
-| SOC2 Type I evidence collection | Underway — see `PHASE1_STORY_14_05_SOC2_EVIDENCE_CRUMB.md` (**pack not validated** until Security lands index). Include AI honesty: `feature_ai_copilot=False`, Decision STUB, `AI_HONESTY.md` | Yes | Security |
+| SOC2 Type I evidence collection | **CLOSED (evidence pack)** — `docs/compliance/soc2-type-i/` + crumb `PHASE1_STORY_14_05_SOC2_EVIDENCE_CRUMB.md`. Type I **audit** = post-GA. AI honesty indexed: `feature_ai_copilot=False`, Decision STUB, `AI_HONESTY.md` | Yes | Security |
 | SOC2 Type I audit completed | N/A — Type I audit itself is post-GA | **Post-GA acceptable** | Security |
 | Data Processing Agreement (DPA) template | Drafted and legally reviewed, available for Enterprise contracts | Yes | CPO / Legal (external) |
 

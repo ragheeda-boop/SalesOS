@@ -2,9 +2,9 @@
 
 > **Honesty:** Not Production GO. Type I **audit itself** is **post-GA** per `MASTER_EXECUTION_PLAN.md` A5 / Production Readiness.  
 > **Sprint:** 25 · Owner: Security, Program Director.  
-> **Status:** **CLOSED (evidence pack)** — in-repo assembly **light validated** · Type I audit = **residual-external / post-GA**.  
-> **Pack path:** [`docs/compliance/soc2-type-i/`](../compliance/soc2-type-i/README.md)  
-> **Board hub:** [`PHASE1_BOARD_SPRINT_23_25_ORCHESTRATION_CRUMB.md`](./PHASE1_BOARD_SPRINT_23_25_ORCHESTRATION_CRUMB.md)
+> **Land tip:** `11d0d3f` — in-repo pack under [`docs/compliance/soc2-type-i/`](../compliance/soc2-type-i/README.md)  
+> **Status:** **CLOSED (evidence pack)** — in-repo assembly **light validated** · Type I audit = **residual-external / post-GA** · **NOT certified**.  
+> Program Director residuals: signed access reviews, CAB mapping, branch-protection screenshots, 90d log export — see [`04-gap-inventory.md`](../compliance/soc2-type-i/04-gap-inventory.md).
 
 ## In-repo pack (Security stream)
 
@@ -17,6 +17,24 @@
 | Gap inventory | Explicit residuals | [`04-gap-inventory.md`](../compliance/soc2-type-i/04-gap-inventory.md) |
 | Log retention window | Ops residual (90d SOC2 Type I window per checklist) | Config default 90d present · live proof **not validated** / may be **residual-external** ops |
 | BE runtime hooks | Audit / headers / rate-limit / CSRF / RLS | [`PHASE1_STORY_14_04_05_BE_SECURITY_SUPPORT_CRUMB.md`](./PHASE1_STORY_14_04_05_BE_SECURITY_SUPPORT_CRUMB.md) (`d0070fa`) |
+| AI honesty / non-prod harnesses | Flag + stub + CI harness citations | See **AI honesty index** below · [`AI_HONESTY.md`](../audit/ga-engineering-audit/AI_HONESTY.md) |
+
+## AI honesty index (AI-Lead support — Security/Evidence)
+
+Canonical SoT: [`docs/audit/ga-engineering-audit/AI_HONESTY.md`](../audit/ga-engineering-audit/AI_HONESTY.md).  
+**Code check:** `feature_ai_copilot: bool = False` (`salesos/backend/app/config.py`); FE `@salesos` decision package remains **STUB** (`salesos/frontend/packages/platform/decision/index.ts`).
+
+| Claim | Evidence label |
+|-------|----------------|
+| Copilot / “AI-native GA” | **Not claimed** — flag default **False**; product API 403 when False |
+| Decision FE package live GA | **Not claimed** — **STUB** throws; Decision Center HTTP ≠ stub as GA AI |
+| Live LLM / RAG GO | **Not claimed** |
+| Production GO from AI harnesses | **Forbidden** |
+
+**Harness residuals (non-prod / CI only — not live LLM GO):**
+
+- STORY-14-07 — [`PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md`](./PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md) (`/api/v1/chaos/llm-regression`)
+- STORY-14-06 — [`PHASE1_STORY_14_06_AI_FAILOVER_CRUMB.md`](./PHASE1_STORY_14_06_AI_FAILOVER_CRUMB.md) (fake providers)
 
 ## Explicit non-claims
 
@@ -26,6 +44,7 @@
 | SOC2 Type II | **post-GA** — N/A at GA |
 | Production GO / Companion acceptance | **Forbidden** |
 | Stage 6 GHCR as compliance gate | **SKIPPED** (DEC-150 B) |
+| Live LLM / `feature_ai_copilot=True` / Decision STUB as GA | **Forbidden** |
 
 ## Product roadmap alignment
 
@@ -47,3 +66,4 @@ See [`04-gap-inventory.md`](../compliance/soc2-type-i/04-gap-inventory.md): sign
 - Inventing auditor sign-off  
 - Claiming Type I/II complete  
 - Reopening Stage 6 GHCR as a SOC2 gate  
+- Inventing live LLM / Production GO / Decision STUB as GA AI  

@@ -40,6 +40,7 @@
 | AUD-3 | Population completeness testing of audit events | **not validated** |
 | AUD-4 | STORY-14-04 external pentest / zero criticals | Separate story — **do not invent** here |
 | AUD-5 | Staging SSRF tabletop still OPEN per BE crumb | Security 14-04 residual |
+| AI-1 | Live LLM / continuous provider quality watch | **Ops residual** — 14-07 is CI/fixture harness only; `feature_ai_copilot=False`; Decision **STUB** |
 
 ## Forbidden claims checklist
 
@@ -48,6 +49,7 @@
 - [ ] Do **not** say “Production GO”
 - [ ] Do **not** treat Stage 6 skip as unexplained control failure
 - [ ] Do **not** claim Type II
+- [ ] Do **not** claim live LLM GO / “AI-native GA” / Decision STUB as production AI
 
 ## Board acceptance mapping
 

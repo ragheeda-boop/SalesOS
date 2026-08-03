@@ -26,6 +26,9 @@ In-repo index of **controls design / process / pipeline evidence** suitable for 
 | Board hub | [`docs/program/PHASE1_BOARD_SPRINT_23_25_ORCHESTRATION_CRUMB.md`](../../program/PHASE1_BOARD_SPRINT_23_25_ORCHESTRATION_CRUMB.md) |
 | DevOps CI/Deploy pack | [`docs/program/PHASE1_SECURITY_14_04_14_05_DEVOPS_EVIDENCE_PACK.md`](../../program/PHASE1_SECURITY_14_04_14_05_DEVOPS_EVIDENCE_PACK.md) |
 | BE runtime hooks | [`docs/program/PHASE1_STORY_14_04_05_BE_SECURITY_SUPPORT_CRUMB.md`](../../program/PHASE1_STORY_14_04_05_BE_SECURITY_SUPPORT_CRUMB.md) (`d0070fa`) |
+| AI honesty (canonical) | [`docs/audit/ga-engineering-audit/AI_HONESTY.md`](../audit/ga-engineering-audit/AI_HONESTY.md) — `feature_ai_copilot=False`; Decision package **STUB** |
+| LLM regression harness (non-prod) | [`docs/program/PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md`](../../program/PHASE1_STORY_14_07_LLM_REGRESSION_CRUMB.md) |
+| AI failover harness (non-prod) | [`docs/program/PHASE1_STORY_14_06_AI_FAILOVER_CRUMB.md`](../../program/PHASE1_STORY_14_06_AI_FAILOVER_CRUMB.md) |
 | Program A5 (Type I audit post-GA) | [`docs/program/MASTER_EXECUTION_PLAN.md`](../../program/MASTER_EXECUTION_PLAN.md) |
 
 ## Explicit non-claims
@@ -37,6 +40,7 @@ In-repo index of **controls design / process / pipeline evidence** suitable for 
 | Production GO / GA GO / Companion acceptance | **Forbidden** |
 | Stage 6 GHCR as compliance gate | **SKIPPED** — do not reopen |
 | Zero pentest criticals | Owned by STORY-14-04 — do not invent here |
+| Live LLM / copilot GA / Decision STUB as production AI | **Forbidden** — cite `AI_HONESTY.md`; harnesses are CI/non-prod only |
 
 ## Validation label (this pack)
 
