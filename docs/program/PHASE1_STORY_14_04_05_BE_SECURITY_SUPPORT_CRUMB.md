@@ -76,10 +76,16 @@ No additional minimal BE code tip from this pass (no clear unfixed auth/IDOR/ten
 
 | Artifact | Path |
 |----------|------|
+| Pack index (STORY-14-04) | `salesos/docs/pentest/README.md` |
 | External pentest brief | `salesos/docs/pentest/PENTEST_BRIEF.md` |
+| Threat model / test plan | `salesos/docs/pentest/THREAT_MODEL.md`, `INTERNAL_TEST_PLAN.md` |
+| Findings tracker | `salesos/docs/pentest/FINDINGS_TRACKER.md` |
+| Vendor handoff | `salesos/docs/pentest/VENDOR_HANDOFF_CHECKLIST.md` |
 | Results template | `salesos/docs/pentest/PENTEST_RESULTS_TEMPLATE.md` |
 | Vendors | `salesos/docs/pentest/PENTEST_VENDORS.md` |
 | Disclosure policy | `salesos/docs/pentest/VULNERABILITY_DISCLOSURE_POLICY.md` |
+| Evidence dir | `docs/program/evidence/story-14-04/` |
+| Story crumb | `docs/program/PHASE1_STORY_14_04_PENTEST_CRUMB.md` (**CLOSED in-repo / IN_REPO_READY**) |
 | Staging SSRF runbook | `docs/audit/ga-engineering-audit/runbooks/staging-ssrf-pentest.md` |
 | Wave 2 close-out | `docs/audit/ga-engineering-audit/PROGRESS-WAVE2-SEC.md` |
 
