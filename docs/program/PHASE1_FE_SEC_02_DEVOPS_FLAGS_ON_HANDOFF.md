@@ -69,11 +69,16 @@
 
 ### #9 — Logout clears access cookie + session
 - **PASS:** Logout → `salesos_access` cleared (Set-Cookie max-age=0 / deleted); refresh cookie cleared; LS tokens cleared; subsequent refresh **401** (aligns FE-SEC-03 light validate pattern).  
-- **FAIL:** `salesos_access` remains usable after logout.
+- **FAIL:** `salesos_access` remains usable after logout.  
+- **Order:** Run **#10 before #9**, or **re-login** after #9 — post-logout refresh 401 is expected and must not be scored as #10 FAIL.
 
 ### #10 — Refresh rotates `salesos_access`
-- **PASS:** `POST /api/v1/identity/refresh` (cookie-first empty body) returns new tokens **and** new `Set-Cookie: salesos_access=…`.  
-- **FAIL:** Refresh succeeds but no access cookie rotation while BE flag on.
+- **PASS (flags-on):** Active session (post-login, pre-logout) → `POST /api/v1/identity/refresh` cookie-first `{}` **or** body `{refresh_token}` returns 200 + new tokens **and** `Set-Cookie: salesos_access=…`.  
+- **PASS (flags-OFF baseline):** Same 200 + refresh cookie rotate (no `salesos_access` required).  
+- **FAIL:** Refresh succeeds but no access cookie rotation while BE flag on.  
+- **Field FAIL (2026-08-04):** tip-live `https://salesos-production-96c0.up.railway.app` — fresh register/login then refresh returns **401** `Invalid or expired refresh token` for **both** cookie-first (with jar) and body token; `/users/me` with access Bearer **200**. Same on flags-OFF. Not FE-SEC-02-only.  
+- **Likely BE:** Category B5 FORCE RLS on `refresh_token_families` — cookie-first/body refresh often has **no** Bearer, so middleware never pins `app.tenant_id`; rotate lookup misses rows. BE must pin tenant from verified refresh JWT (login pattern).  
+- **FE fix (this tip):** axios 401 interceptor no longer clears LS on `/identity/refresh` 401 — preserves FE-SEC-04 body fallback after cookie-first miss. Does **not** alone make tip-live #10 PASS while BE RLS gap remains.
 
 ## Evidence capture (required for any PASS claim on #3–10)
 

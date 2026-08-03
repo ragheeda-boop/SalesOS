@@ -21,7 +21,7 @@
 | 7 | Next middleware allows `/dashboard` with only `salesos_access` (no JS `access_token` cookie) | Field | **PASS** (200 with cookie; 307→login without) |
 | 8 | Axios mutating calls still succeed with Bearer from LS + CSRF | Field | **PASS** (`POST /load/run-all` 200 + CSRF) |
 | 9 | Logout clears `salesos_access` + refresh cookie + LS | Field | **PASS** (Max-Age=0 access+refresh); LS clear not browser-proven |
-| 10 | Refresh rotates `salesos_access` | Field | **FAIL** — tip-live refresh 401 (also flags-OFF baseline) |
+| 10 | Refresh rotates `salesos_access` | Field | **FAIL** — tip-live refresh 401 (also flags-OFF); BE root cause: refresh omitted `app.tenant_id` GUC pin under Category B5 RLS → family lookup empty → 401. Fix in `identity/router.py` `POST /refresh` (pin from verified refresh JWT). **Pending tip-live redeploy + field retest.** |
 | 11 | Security notes residual: LS access JWT still XSS-class until Bearer-or-cookie + drop LS | Security | open |
 
 ## Enable order (coordinated)
@@ -34,7 +34,7 @@
 
 ## Active handoff
 
-Soak r3 PASS closed (not Companion). Flags-on https field window executed @ tip-live **`bee3276` Deploy** — **suite FAIL** (#10 refresh 401; #5 rebuild incomplete). Flags restored **OFF** (BE confirmed). Finding remains **Open**. Do **not** invent Fixed / tip-line green / Production GO.
+Soak r3 PASS closed (not Companion). Flags-on https field window executed @ tip-live **`bee3276` Deploy** — **suite FAIL** (#10 refresh 401; #5 rebuild incomplete). Flags restored **OFF** (BE confirmed). BE GUC-pin fix for #10 landed (`identity/router.py` pin from verified refresh JWT) — **pending tip-live redeploy + field retest**. Finding remains **Open**. Do **not** invent Fixed / tip-line green / Production GO.
 
 ## Non-goals until Board says otherwise
 

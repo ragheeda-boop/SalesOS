@@ -512,11 +512,23 @@ async def refresh_token(
     response: Response,
     service: IdentityService = Depends(get_service),
 ):
+    from sqlalchemy import text as sa_text
+
+    from app.database import set_current_tenant_id
+
     token = _extract_refresh_token(request, body)
     payload = decode_refresh_token(token)
     uid = payload["sub"]
-    tid = payload["tenant_id"]
+    tid = str(payload["tenant_id"])
     jti = payload["jti"]
+    # Category B5 FORCE RLS on refresh_token_families (join users): unset GUC
+    # fails closed. Refresh has no Bearer; pin tenant from refresh JWT claims
+    # (same pattern as authenticate() email probe) before family lookup.
+    set_current_tenant_id(tid)
+    await service.db.execute(
+        sa_text("SELECT set_config('app.tenant_id', :tenant_id, true)"),
+        {"tenant_id": tid},
+    )
     blacklisted = await service.is_token_blacklisted(jti)
     if blacklisted:
         raise HTTPException(status_code=401, detail="Token revoked")
