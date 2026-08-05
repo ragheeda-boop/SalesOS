@@ -36,7 +36,7 @@ services:
     logging: *default-logging
 
   pgbouncer:
-    image: edoburu/pgbouncer:latest
+    image: edoburu/pgbouncer:1.23.1
     restart: always
     ports:
       - "6432:6432"

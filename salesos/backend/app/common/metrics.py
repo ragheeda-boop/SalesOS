@@ -18,6 +18,13 @@ Usage:
     logger.info(metrics.generate())
 """
 
+# DEPRECATED (ADR-102): This module's HTTP metrics duplicate those in
+# app/metrics/collector.py (ApplicationMetricsCollector).
+# Both emit salesos_http_requests_total and salesos_http_request_duration_seconds
+# with slightly different label sets, doubling metric cardinality.
+# TODO: Remove this module after confirming no consumers depend on its label format.
+# Preferred: app/metrics/collector.py
+
 import logging
 import threading
 import time

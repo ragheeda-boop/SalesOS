@@ -18,10 +18,10 @@ const eslintConfig = [
   ...fixupConfigRules(compat.extends("plugin:@typescript-eslint/recommended")),
   {
     rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-empty-interface": "warn",
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-empty-interface": "error",
       "@typescript-eslint/ban-ts-comment": ["warn", { "ts-expect-error": "allow-with-description" }],
-      "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/exhaustive-deps": "error",
       "@typescript-eslint/no-unused-vars": [
         "error",
         { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" },
@@ -119,8 +119,8 @@ const eslintConfig = [
       },
     },
     rules: {
-      "custom-rules/no-tailwind-color-classes": "warn",
-      "custom-rules/no-hardcoded-colors": "warn",
+      "custom-rules/no-tailwind-color-classes": "error",
+      "custom-rules/no-hardcoded-colors": "error",
     },
   },
 ];

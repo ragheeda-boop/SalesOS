@@ -437,7 +437,7 @@ jobs:
         id: status
         run: |
           be="${{ needs.deploy-backend-railway.result }}"
-          health="${{ needs.health-check.result }}"
+          health="${{ needs.deploy-backend-health-gate.result }}"
           fe="${{ needs.frontend-vercel.result }}"
           if [ "$be" = "success" ] && [ "$health" = "success" ] && { [ "$fe" = "success" ] || [ "$fe" = "skipped" ]; }; then
             echo "status=success" >> "$GITHUB_OUTPUT"

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.common.middleware import (
     BodyCacheMiddleware,
@@ -55,12 +56,17 @@ def setup_middleware(app: FastAPI) -> None:
     app.add_middleware(ApiKeyMiddleware)
 
     # Outermost — must wrap all other middleware for CORS on errors/OPTIONS.
+    allowed_hosts_list = [o.strip() for o in settings.allowed_hosts.split(",") if o.strip()]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[o.strip() for o in settings.allowed_hosts.split(",") if o.strip()],
+        allow_origins=allowed_hosts_list,
         allow_credentials=True,
         allow_methods=[m.strip() for m in settings.cors_allow_methods.split(",") if m.strip()],
         allow_headers=[h.strip() for h in settings.cors_allow_headers.split(",") if h.strip()],
         # Admin tenant list pagination (Stream A) — FE may read total without body wrap.
         expose_headers=["X-Total-Count"],
+    )
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=allowed_hosts_list,
     )

@@ -15,6 +15,8 @@
     "test:e2e:ui": "playwright test --ui --config playwright.config.ts",
     "test:e2e:chromium": "playwright test --project=chromium --config playwright.config.ts",
     "typecheck": "tsc --noEmit",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
     "dev:company": "cd apps/company-workspace && next dev",
     "dev:search": "cd apps/search && next dev",
     "build:packages": "tsc -b packages/*/tsconfig.json",

@@ -118,7 +118,17 @@ class Settings(BaseSettings):
     redis_url: str = "redis://redis:6379/0"
 
     jwt_secret_key: str  # Must be set via JWT_SECRET_KEY environment variable
+    # ADR-102: JWTs are always RS256 (RSA-4096 asymmetric via JWKS).
+    # The jwt_algorithm setting is informational; actual signing is hardcoded
+    # in sdk/auth/jwks.py. Setting this to anything other than RS256 has no effect.
     jwt_algorithm: str = "RS256"
+
+    @field_validator("jwt_algorithm")
+    @classmethod
+    def _validate_jwt_algorithm(cls, v: str) -> str:
+        if v != "RS256":
+            raise ValueError("JWT_ALGORITHM must be RS256. HS256 is not supported.")
+        return v
     jwt_access_token_expire_minutes: int = 30
     jwt_refresh_token_expire_days: int = 7
     jwt_issuer: str = "salesos"

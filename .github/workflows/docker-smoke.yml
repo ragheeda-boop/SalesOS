@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [master, main]
 
+concurrency:
+  group: docker-smoke-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   POSTGRES_PASSWORD: salesos_smoke_test
   NEO4J_PASSWORD: salesos_smoke_test

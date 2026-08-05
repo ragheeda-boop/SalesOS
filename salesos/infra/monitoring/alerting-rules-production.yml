@@ -26,53 +26,57 @@ groups:
           description: "P95 request latency exceeds 500ms SLA budget for 5 minutes"
           runbook: "https://wiki.salesos.com/runbooks/latency"
 
+      # ADR-102: Commented out — requires node-exporter (not deployed). Uncomment after deploying.
       # ── S2: Disk > 80% ──
-      - alert: ProductionDiskHigh
-        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.2
-        for: 10m
-        labels:
-          severity: warning
-          tier: "s2"
-        annotations:
-          summary: "PRODUCTION: Disk usage above 80% on {{ $labels.instance }}"
-          description: "Available disk space is {{ $value | humanizePercentage }} — scale up or clean up"
-          runbook: "https://wiki.salesos.com/runbooks/disk-space"
+      # - alert: ProductionDiskHigh
+      #   expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.2
+      #   for: 10m
+      #   labels:
+      #     severity: warning
+      #     tier: "s2"
+      #   annotations:
+      #     summary: "PRODUCTION: Disk usage above 80% on {{ $labels.instance }}"
+      #     description: "Available disk space is {{ $value | humanizePercentage }} — scale up or clean up"
+      #     runbook: "https://wiki.salesos.com/runbooks/disk-space"
 
+      # ADR-102: Commented out — requires kube-state-metrics (not deployed). Uncomment after deploying.
       # ── S1: Pod CrashLoop ──
-      - alert: ProductionPodCrashLooping
-        expr: rate(kube_pod_container_status_restarts_total[15m]) > 3
-        for: 3m
-        labels:
-          severity: critical
-          tier: "s1"
-        annotations:
-          summary: "PRODUCTION: Pod {{ $labels.pod }} is crash-looping"
-          description: "Container restarted more than 3 times in 15 minutes — possible OOM, panic, or misconfiguration"
-          runbook: "https://wiki.salesos.com/runbooks/crashloop"
+      # - alert: ProductionPodCrashLooping
+      #   expr: rate(kube_pod_container_status_restarts_total[15m]) > 3
+      #   for: 3m
+      #   labels:
+      #     severity: critical
+      #     tier: "s1"
+      #   annotations:
+      #     summary: "PRODUCTION: Pod {{ $labels.pod }} is crash-looping"
+      #     description: "Container restarted more than 3 times in 15 minutes — possible OOM, panic, or misconfiguration"
+      #     runbook: "https://wiki.salesos.com/runbooks/crashloop"
 
+      # ADR-102: Commented out — requires cert-manager (not deployed). Uncomment after deploying.
       # ── S2: Certificate Expiry < 30 days ──
-      - alert: ProductionCertificateExpiring
-        expr: (certmanager_certificate_expiration_seconds - time()) < 2592000
-        for: 1h
-        labels:
-          severity: warning
-          tier: "s2"
-        annotations:
-          summary: "PRODUCTION: TLS certificate for {{ $labels.name }} expires in {{ $value | humanizeDuration }}"
-          description: "Certificate expiry within 30 days — renew via cert-manager or manual process"
-          runbook: "https://wiki.salesos.com/runbooks/certificate-renewal"
+      # - alert: ProductionCertificateExpiring
+      #   expr: (certmanager_certificate_expiration_seconds - time()) < 2592000
+      #   for: 1h
+      #   labels:
+      #     severity: warning
+      #     tier: "s2"
+      #   annotations:
+      #     summary: "PRODUCTION: TLS certificate for {{ $labels.name }} expires in {{ $value | humanizeDuration }}"
+      #     description: "Certificate expiry within 30 days — renew via cert-manager or manual process"
+      #     runbook: "https://wiki.salesos.com/runbooks/certificate-renewal"
 
+      # ADR-102: Commented out — requires Kafka JMX exporter (not deployed). Uncomment after deploying.
       # ── S2: Kafka Consumer Lag > 1000 ──
-      - alert: ProductionKafkaConsumerLag
-        expr: kafka_consumer_lag > 1000
-        for: 5m
-        labels:
-          severity: warning
-          tier: "s2"
-        annotations:
-          summary: "PRODUCTION: Kafka consumer lag is {{ $value }} messages"
-          description: "Event processing backlog exceeds 1000 messages — consumer may be degraded"
-          runbook: "https://wiki.salesos.com/runbooks/kafka-lag"
+      # - alert: ProductionKafkaConsumerLag
+      #   expr: kafka_consumer_lag > 1000
+      #   for: 5m
+      #   labels:
+      #     severity: warning
+      #     tier: "s2"
+      #   annotations:
+      #     summary: "PRODUCTION: Kafka consumer lag is {{ $value }} messages"
+      #     description: "Event processing backlog exceeds 1000 messages — consumer may be degraded"
+      #     runbook: "https://wiki.salesos.com/runbooks/kafka-lag"
 
       # ── S2: Redis Memory > 80% ──
       - alert: ProductionRedisMemoryHigh
@@ -97,3 +101,31 @@ groups:
           summary: "PRODUCTION: PostgreSQL has {{ $value }} active connections"
           description: "Database connection count exceeds 80% of max_connections — risk of connection starvation"
           runbook: "https://wiki.salesos.com/runbooks/postgres-connections"
+
+      # ── Service Uptime Alerts (ADR-102) ────────────────────────
+      - alert: ProductionBackendDown
+        expr: up{job="salesos-backend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SalesOS Backend is DOWN"
+          description: "The salesos-backend /metrics endpoint has been unreachable for 2 minutes."
+
+      - alert: ProductionPostgresDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL exporter is DOWN"
+          description: "The postgres-exporter /metrics endpoint has been unreachable for 2 minutes."
+
+      - alert: ProductionRedisDown
+        expr: up{job="redis-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis exporter is DOWN"
+          description: "The redis-exporter /metrics endpoint has been unreachable for 2 minutes."

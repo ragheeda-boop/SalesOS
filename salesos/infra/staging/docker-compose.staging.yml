@@ -120,7 +120,7 @@ services:
     logging: *default-logging
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.0.0
+    image: confluentinc/cp-zookeeper:7.7.2
     restart: unless-stopped
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -145,7 +145,7 @@ services:
     logging: *default-logging
 
   kafka:
-    image: confluentinc/cp-kafka:7.0.0
+    image: confluentinc/cp-kafka:7.7.2
     restart: unless-stopped
     depends_on:
       zookeeper:

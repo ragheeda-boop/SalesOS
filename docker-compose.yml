@@ -82,7 +82,7 @@ services:
 
   # ── Optional Kafka (GA may run degraded with in_memory event bus) ──
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
+    image: confluentinc/cp-zookeeper:7.7.2
     profiles: ["kafka"]
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -91,7 +91,7 @@ services:
       - salesos
 
   kafka:
-    image: confluentinc/cp-kafka:7.5.0
+    image: confluentinc/cp-kafka:7.7.2
     profiles: ["kafka"]
     depends_on:
       - zookeeper
