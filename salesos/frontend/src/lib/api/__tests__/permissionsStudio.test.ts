@@ -38,7 +38,7 @@ describe("permissionsStudio API — FE-S10-06", () => {
       "/api/v1/studio/permissions/catalog",
       expect.objectContaining({
         headers: { "X-Tenant-Id": "tenant-1" },
-      }),
+      })
     );
   });
 
@@ -53,7 +53,7 @@ describe("permissionsStudio API — FE-S10-06", () => {
     const row = await getPermissionsCeiling("tenant-1");
     expect(mocked.get).toHaveBeenCalledWith(
       "/api/v1/studio/permissions/ceiling",
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(row.grantable_permissions).toContain("crm.companies.read");
   });
@@ -73,7 +73,7 @@ describe("permissionsStudio API — FE-S10-06", () => {
       { plan_tier: "starter" },
       expect.objectContaining({
         headers: { "X-Tenant-Id": "tenant-1" },
-      }),
+      })
     );
   });
 
@@ -93,7 +93,7 @@ describe("permissionsStudio API — FE-S10-06", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/studio/permissions/check",
       expect.objectContaining({ plan_tier: "starter" }),
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(row.allowed).toBe(false);
   });
@@ -101,10 +101,7 @@ describe("permissionsStudio API — FE-S10-06", () => {
   it("lists and upserts tip custom roles", async () => {
     mocked.get.mockResolvedValue({ data: [] });
     await listCustomRoles("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/studio/permissions/roles",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/studio/permissions/roles", expect.any(Object));
 
     mocked.post.mockResolvedValue({
       data: {
@@ -123,7 +120,7 @@ describe("permissionsStudio API — FE-S10-06", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/studio/permissions/roles",
       expect.objectContaining({ name: "Seller" }),
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(role.id).toBe("r1");
   });

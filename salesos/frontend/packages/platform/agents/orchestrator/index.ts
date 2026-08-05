@@ -24,22 +24,13 @@ function now(): string {
 }
 
 function resolvePriority(context: AgentContext, goal: string): TaskPriority {
-  if (
-    context.metadata?.priority === "critical" ||
-    context.metadata?.priority === "high"
-  ) {
+  if (context.metadata?.priority === "critical" || context.metadata?.priority === "high") {
     return context.metadata.priority as TaskPriority;
   }
-  if (
-    goal.toLowerCase().includes("critical") ||
-    goal.toLowerCase().includes("urgent")
-  ) {
+  if (goal.toLowerCase().includes("critical") || goal.toLowerCase().includes("urgent")) {
     return "critical";
   }
-  if (
-    goal.toLowerCase().includes("high") ||
-    goal.toLowerCase().includes("important")
-  ) {
+  if (goal.toLowerCase().includes("high") || goal.toLowerCase().includes("important")) {
     return "high";
   }
   return "medium";
@@ -48,7 +39,7 @@ function resolvePriority(context: AgentContext, goal: string): TaskPriority {
 export async function assignTask(
   agentId: string,
   context: AgentContext,
-  goal: string,
+  goal: string
 ): Promise<AgentTask> {
   const agent = registry.get(agentId);
   if (!agent) throw new Error(`Agent '${agentId}' is not registered`);
@@ -76,9 +67,7 @@ export async function executeTask(taskId: string): Promise<AgentResult> {
 
   const busyCount = agentBusyMap.get(task.agentId) ?? 0;
   if (busyCount >= agent.maxConcurrency) {
-    throw new Error(
-      `Agent '${task.agentId}' is at max concurrency (${agent.maxConcurrency})`,
-    );
+    throw new Error(`Agent '${task.agentId}' is at max concurrency (${agent.maxConcurrency})`);
   }
 
   task.status = "running";
@@ -190,11 +179,9 @@ export async function executeTask(taskId: string): Promise<AgentResult> {
 }
 
 export async function executeBatch(
-  batch: { agentId: string; context: AgentContext; goal: string }[],
+  batch: { agentId: string; context: AgentContext; goal: string }[]
 ): Promise<AgentResult[]> {
-  const assigned = await Promise.all(
-    batch.map((b) => assignTask(b.agentId, b.context, b.goal)),
-  );
+  const assigned = await Promise.all(batch.map((b) => assignTask(b.agentId, b.context, b.goal)));
   return Promise.all(assigned.map((t) => executeTask(t.id)));
 }
 
@@ -211,9 +198,7 @@ export function getAgentStatus(agentId: string): {
   busy: boolean;
   taskCount: number;
 } {
-  const agentTasks = Array.from(tasks.values()).filter(
-    (t) => t.agentId === agentId,
-  );
+  const agentTasks = Array.from(tasks.values()).filter((t) => t.agentId === agentId);
   const running = agentTasks.filter((t) => t.status === "running").length;
   return {
     busy: running > 0,

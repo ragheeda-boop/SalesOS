@@ -23,8 +23,7 @@ export function useWorkflowCanvases() {
 export function useUpsertWorkflowCanvas() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: WorkflowCanvasUpsert) =>
-      upsertWorkflowCanvas(getTenantId(), body),
+    mutationFn: (body: WorkflowCanvasUpsert) => upsertWorkflowCanvas(getTenantId(), body),
     onSuccess: () => {
       qc.invalidateQueries({
         queryKey: tenantStudioKeys.workflows(getTenantId()),
@@ -35,14 +34,12 @@ export function useUpsertWorkflowCanvas() {
 
 export function useCompileWorkflowCanvas() {
   return useMutation({
-    mutationFn: (canvasId: string) =>
-      compileWorkflowCanvas(getTenantId(), canvasId),
+    mutationFn: (canvasId: string) => compileWorkflowCanvas(getTenantId(), canvasId),
   });
 }
 
 export function useCompileWorkflowCanvasEphemeral() {
   return useMutation({
-    mutationFn: (body: WorkflowCanvasUpsert) =>
-      compileWorkflowCanvasEphemeral(getTenantId(), body),
+    mutationFn: (body: WorkflowCanvasUpsert) => compileWorkflowCanvasEphemeral(getTenantId(), body),
   });
 }

@@ -17,8 +17,7 @@ import {
 } from "@/features/gtm/websiteIntelligenceHonesty";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -71,16 +70,14 @@ export function WebsiteIntelligencePanel() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="website-intel-honesty"
       >
-        {WEBSITE_INTEL_HONESTY} Non-goals: {WEBSITE_INTEL_NON_GOALS.join("; ")}.
-        Not Production GO / RAG GO.
+        {WEBSITE_INTEL_HONESTY} Non-goals: {WEBSITE_INTEL_NON_GOALS.join("; ")}. Not Production GO /
+        RAG GO.
       </p>
 
       {metaQuery.isLoading ? (
         <Spinner />
       ) : metaQuery.isError ? (
-        <p className="text-sm text-[var(--text-danger)]">
-          {getApiError(metaQuery.error)}
-        </p>
+        <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
       ) : metaQuery.data ? (
         <div
           className="space-y-1 font-mono text-xs text-[var(--text-muted)]"
@@ -92,12 +89,10 @@ export function WebsiteIntelligencePanel() {
             {(metaQuery.data.analyzers_configured ?? []).join(", ") || "—"}
           </p>
           <p data-testid="website-intel-meta-flag">
-            feature_ai_copilot={String(metaQuery.data.feature_ai_copilot)} ·
-            spend={metaQuery.data.spend_path}
+            feature_ai_copilot={String(metaQuery.data.feature_ai_copilot)} · spend=
+            {metaQuery.data.spend_path}
           </p>
-          <p data-testid="website-intel-meta-honesty">
-            tip /meta: {metaQuery.data.honesty}
-          </p>
+          <p data-testid="website-intel-meta-honesty">tip /meta: {metaQuery.data.honesty}</p>
         </div>
       ) : null}
 
@@ -164,7 +159,7 @@ export function WebsiteIntelligencePanel() {
                       variant: "error",
                     });
                   },
-                },
+                }
               );
             }}
           >
@@ -195,14 +190,9 @@ export function WebsiteIntelligencePanel() {
         {listQuery.isLoading ? (
           <Spinner />
         ) : listQuery.isError ? (
-          <p className="text-sm text-[var(--text-danger)]">
-            {getApiError(listQuery.error)}
-          </p>
+          <p className="text-sm text-[var(--text-danger)]">{getApiError(listQuery.error)}</p>
         ) : listQuery.data?.length === 0 ? (
-          <p
-            className="text-sm text-[var(--text-muted)]"
-            data-testid="website-intel-empty"
-          >
+          <p className="text-sm text-[var(--text-muted)]" data-testid="website-intel-empty">
             No snapshots in memory store yet. Run analyze.
           </p>
         ) : (
@@ -215,16 +205,12 @@ export function WebsiteIntelligencePanel() {
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <span className="font-medium">
-                      {String(row.request?.url ?? row.id)}
-                    </span>{" "}
+                    <span className="font-medium">{String(row.request?.url ?? row.id)}</span>{" "}
                     <span className="font-mono text-xs text-[var(--text-muted)]">
                       {row.analyzer_key} · signals={row.signal_count}
                     </span>
                     {row.summary ? (
-                      <p className="text-xs text-[var(--text-muted)]">
-                        {row.summary}
-                      </p>
+                      <p className="text-xs text-[var(--text-muted)]">{row.summary}</p>
                     ) : null}
                   </div>
                   <Button
@@ -249,9 +235,7 @@ export function WebsiteIntelligencePanel() {
           data-testid="website-intel-detail"
         >
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold">
-              Detail (tip GET /{"{id}"})
-            </h2>
+            <h2 className="text-sm font-semibold">Detail (tip GET /{"{id}"})</h2>
             <Button
               type="button"
               size="sm"
@@ -265,26 +249,19 @@ export function WebsiteIntelligencePanel() {
           {detailQuery.isLoading ? (
             <Spinner />
           ) : detailQuery.isError ? (
-            <p className="text-sm text-[var(--text-danger)]">
-              {getApiError(detailQuery.error)}
-            </p>
+            <p className="text-sm text-[var(--text-danger)]">{getApiError(detailQuery.error)}</p>
           ) : active ? (
             <>
               <p className="font-mono text-xs text-[var(--text-muted)]">
-                {active.prompt_id}@{active.prompt_version} · {active.spend_path}{" "}
-                · {active.analyzer_key}
+                {active.prompt_id}@{active.prompt_version} · {active.spend_path} ·{" "}
+                {active.analyzer_key}
               </p>
               {active.signals?.length ? (
-                <ul
-                  className="space-y-1 text-sm"
-                  data-testid="website-intel-signals"
-                >
+                <ul className="space-y-1 text-sm" data-testid="website-intel-signals">
                   {active.signals.map((s) => (
                     <li key={`${s.key}-${s.value}`}>
                       <span className="font-medium">{s.key}</span>: {s.value}{" "}
-                      <span className="text-xs text-[var(--text-muted)]">
-                        ({s.confidence})
-                      </span>
+                      <span className="text-xs text-[var(--text-muted)]">({s.confidence})</span>
                     </li>
                   ))}
                 </ul>

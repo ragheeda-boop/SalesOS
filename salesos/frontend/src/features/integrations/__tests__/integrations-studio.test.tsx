@@ -138,299 +138,196 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
   it("renders conflict-policy step and Odoo honesty", () => {
     render(<IntegrationsStudio />);
     expect(screen.getByTestId("integrations-studio")).toBeInTheDocument();
-    expect(
-      screen.getByTestId("integrations-studio-live-honesty"),
-    ).toHaveTextContent(/credential/i);
-    expect(
-      screen.getByTestId("integrations-studio-live-honesty"),
-    ).toHaveTextContent(/HubSpot/i);
-    expect(
-      screen.getByTestId("integrations-studio-step-conflict"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("integrations-studio-live-honesty")).toHaveTextContent(/credential/i);
+    expect(screen.getByTestId("integrations-studio-live-honesty")).toHaveTextContent(/HubSpot/i);
+    expect(screen.getByTestId("integrations-studio-step-conflict")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("integrations-studio-step-conflict"));
-    expect(
-      screen.getByTestId("integrations-studio-conflict"),
-    ).toBeInTheDocument();
-    fireEvent.change(
-      screen.getByTestId("integrations-studio-connection-select"),
-      { target: { value: "c1" } },
-    );
-    expect(
-      screen.getByTestId("integrations-studio-conflict-submit"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("integrations-studio-conflict")).toBeInTheDocument();
+    fireEvent.change(screen.getByTestId("integrations-studio-connection-select"), {
+      target: { value: "c1" },
+    });
+    expect(screen.getByTestId("integrations-studio-conflict-submit")).toBeInTheDocument();
   });
 
   it("loads active mapping on Map step", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
-    fireEvent.change(
-      screen.getByTestId("integrations-studio-connection-select"),
-      { target: { value: "c1" } },
+    fireEvent.change(screen.getByTestId("integrations-studio-connection-select"), {
+      target: { value: "c1" },
+    });
+    expect(screen.getByTestId("integrations-studio-map-load")).toBeInTheDocument();
+    expect(screen.getByTestId("integrations-studio-map-active-status")).toHaveTextContent(
+      /Active v2/i
     );
-    expect(
-      screen.getByTestId("integrations-studio-map-load"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("integrations-studio-map-active-status"),
-    ).toHaveTextContent(/Active v2/i);
   });
 
   it("shows connection detail and map baseline fields", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
-    fireEvent.change(
-      screen.getByTestId("integrations-studio-connection-select"),
-      { target: { value: "c1" } },
-    );
-    expect(
-      screen.getByTestId("integrations-studio-connection-detail"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("integrations-studio-connection-key"),
-    ).toHaveTextContent(/fake/);
-    expect(
-      screen.getByTestId("integrations-studio-map-baseline"),
-    ).toBeInTheDocument();
+    fireEvent.change(screen.getByTestId("integrations-studio-connection-select"), {
+      target: { value: "c1" },
+    });
+    expect(screen.getByTestId("integrations-studio-connection-detail")).toBeInTheDocument();
+    expect(screen.getByTestId("integrations-studio-connection-key")).toHaveTextContent(/fake/);
+    expect(screen.getByTestId("integrations-studio-map-baseline")).toBeInTheDocument();
   });
 
   it("requires disconnect confirmation", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-disconnect"));
-    fireEvent.change(
-      screen.getByTestId("integrations-studio-connection-select"),
-      { target: { value: "c1" } },
-    );
-    expect(
-      screen.getByTestId("integrations-studio-disconnect-submit"),
-    ).toBeDisabled();
-    fireEvent.click(
-      screen.getByTestId("integrations-studio-disconnect-confirm"),
-    );
-    expect(
-      screen.getByTestId("integrations-studio-disconnect-submit"),
-    ).not.toBeDisabled();
+    fireEvent.change(screen.getByTestId("integrations-studio-connection-select"), {
+      target: { value: "c1" },
+    });
+    expect(screen.getByTestId("integrations-studio-disconnect-submit")).toBeDisabled();
+    fireEvent.click(screen.getByTestId("integrations-studio-disconnect-confirm"));
+    expect(screen.getByTestId("integrations-studio-disconnect-submit")).not.toBeDisabled();
   });
 
   it("exposes mapping version and schedule name (FE-S08-14)", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
-    expect(
-      screen.getByTestId("integrations-studio-map-version"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("integrations-studio-map-version")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("integrations-studio-step-schedule"));
-    expect(
-      screen.getByTestId("integrations-studio-schedule-name"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("integrations-studio-schedule-name")).toBeInTheDocument();
   });
 
   it("exposes schedule job_type and conflict tip defaults (FE-S08-13)", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-schedule"));
-    expect(
-      screen.getByTestId("integrations-studio-schedule-job-type"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("integrations-studio-connection-active-filter"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("integrations-studio-schedule-job-type")).toBeInTheDocument();
+    expect(screen.getByTestId("integrations-studio-connection-active-filter")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("integrations-studio-step-conflict"));
-    fireEvent.change(
-      screen.getByTestId("integrations-studio-connection-select"),
-      { target: { value: "c1" } },
-    );
-    expect(
-      screen.getByTestId("integrations-studio-conflict-tip-defaults"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("integrations-studio-connection-config"),
-    ).toBeInTheDocument();
+    fireEvent.change(screen.getByTestId("integrations-studio-connection-select"), {
+      target: { value: "c1" },
+    });
+    expect(screen.getByTestId("integrations-studio-conflict-tip-defaults")).toBeInTheDocument();
+    expect(screen.getByTestId("integrations-studio-connection-config")).toBeInTheDocument();
   });
 
   it("exposes monitor status/model filters (FE-S08-12)", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-monitor"));
-    expect(
-      screen.getByTestId("integrations-studio-monitor-status-filter"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("integrations-studio-monitor-model-filter"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("integrations-studio-monitor-status-filter")).toBeInTheDocument();
+    expect(screen.getByTestId("integrations-studio-monitor-model-filter")).toBeInTheDocument();
   });
 
   it("applies res.partner preset and cr_number join honesty", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
-    fireEvent.click(
-      screen.getByTestId("integrations-studio-model-preset-res-partner"),
+    fireEvent.click(screen.getByTestId("integrations-studio-model-preset-res-partner"));
+    expect(screen.getByTestId("integrations-studio-partner-join-honesty")).toHaveTextContent(
+      /registration|company|Monitor/i
     );
+    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue("res.partner");
     expect(
-      screen.getByTestId("integrations-studio-partner-join-honesty"),
-    ).toHaveTextContent(/registration|company|Monitor/i);
-    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
-      "res.partner",
-    );
-    expect(
-      (
-        screen.getByTestId(
-          "integrations-studio-map-json",
-        ) as HTMLTextAreaElement
-      ).value,
+      (screen.getByTestId("integrations-studio-map-json") as HTMLTextAreaElement).value
     ).toContain("x_studio_cr_number");
   });
 
   it("applies helpdesk.ticket preset and stage honesty", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
-    fireEvent.click(
-      screen.getByTestId("integrations-studio-model-preset-helpdesk-ticket"),
+    fireEvent.click(screen.getByTestId("integrations-studio-model-preset-helpdesk-ticket"));
+    expect(screen.getByTestId("integrations-studio-ticket-stage-honesty")).toHaveTextContent(
+      /stages|PII/i
     );
+    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue("helpdesk.ticket");
     expect(
-      screen.getByTestId("integrations-studio-ticket-stage-honesty"),
-    ).toHaveTextContent(/stages|PII/i);
-    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
-      "helpdesk.ticket",
-    );
-    expect(
-      (
-        screen.getByTestId(
-          "integrations-studio-map-json",
-        ) as HTMLTextAreaElement
-      ).value,
+      (screen.getByTestId("integrations-studio-map-json") as HTMLTextAreaElement).value
     ).toContain("stage_id");
   });
 
   it("applies project.task preset and TaskCaseExtension VO honesty", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
-    fireEvent.click(
-      screen.getByTestId("integrations-studio-model-preset-project-task"),
+    fireEvent.click(screen.getByTestId("integrations-studio-model-preset-project-task"));
+    expect(screen.getByTestId("integrations-studio-task-case-honesty")).toHaveTextContent(
+      /case extensions|financing/i
     );
+    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue("project.task");
     expect(
-      screen.getByTestId("integrations-studio-task-case-honesty"),
-    ).toHaveTextContent(/case extensions|financing/i);
-    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
-      "project.task",
-    );
-    expect(
-      (
-        screen.getByTestId(
-          "integrations-studio-map-json",
-        ) as HTMLTextAreaElement
-      ).value,
+      (screen.getByTestId("integrations-studio-map-json") as HTMLTextAreaElement).value
     ).toContain("stage_id");
   });
 
   it("applies account.move preset and CustomerInvoice payment honesty", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
-    fireEvent.click(
-      screen.getByTestId("integrations-studio-model-preset-account-move"),
+    fireEvent.click(screen.getByTestId("integrations-studio-model-preset-account-move"));
+    expect(screen.getByTestId("integrations-studio-invoice-payment-honesty")).toHaveTextContent(
+      /Stripe|Customer invoices|AR/i
     );
+    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue("account.move");
     expect(
-      screen.getByTestId("integrations-studio-invoice-payment-honesty"),
-    ).toHaveTextContent(/Stripe|Customer invoices|AR/i);
-    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
-      "account.move",
-    );
-    expect(
-      (
-        screen.getByTestId(
-          "integrations-studio-map-json",
-        ) as HTMLTextAreaElement
-      ).value,
+      (screen.getByTestId("integrations-studio-map-json") as HTMLTextAreaElement).value
     ).toContain("payment_state");
   });
 
   it("applies mail.message note preset and PII honesty", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
-    fireEvent.click(
-      screen.getByTestId("integrations-studio-model-preset-mail-message"),
+    fireEvent.click(screen.getByTestId("integrations-studio-model-preset-mail-message"));
+    expect(screen.getByTestId("integrations-studio-note-pii-honesty")).toHaveTextContent(
+      /PII-scrubbed|audit-only/i
     );
+    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue("mail.message");
     expect(
-      screen.getByTestId("integrations-studio-note-pii-honesty"),
-    ).toHaveTextContent(/PII-scrubbed|audit-only/i);
-    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
-      "mail.message",
-    );
-    expect(
-      (
-        screen.getByTestId(
-          "integrations-studio-map-json",
-        ) as HTMLTextAreaElement
-      ).value,
+      (screen.getByTestId("integrations-studio-map-json") as HTMLTextAreaElement).value
     ).toContain("body");
   });
 
   it("applies crm.lead opportunity preset and stage honesty", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
-    fireEvent.click(
-      screen.getByTestId("integrations-studio-model-preset-crm-lead"),
+    fireEvent.click(screen.getByTestId("integrations-studio-model-preset-crm-lead"));
+    expect(screen.getByTestId("integrations-studio-opportunity-stage-honesty")).toHaveTextContent(
+      /translated/i
     );
+    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue("crm.lead");
     expect(
-      screen.getByTestId("integrations-studio-opportunity-stage-honesty"),
-    ).toHaveTextContent(/translated/i);
-    expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
-      "crm.lead",
-    );
-    expect(
-      (
-        screen.getByTestId(
-          "integrations-studio-map-json",
-        ) as HTMLTextAreaElement
-      ).value,
+      (screen.getByTestId("integrations-studio-map-json") as HTMLTextAreaElement).value
     ).toContain("stage_id");
   });
   it("shows STORY-09-07 odoo flag + write_date cursor honesty when odoo selected", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-map"));
-    const select = screen.getByTestId(
-      "integrations-studio-connection-select",
-    ) as HTMLSelectElement;
+    const select = screen.getByTestId("integrations-studio-connection-select") as HTMLSelectElement;
     fireEvent.change(select, { target: { value: "c-odoo" } });
-    expect(
-      screen.getByTestId("integrations-studio-odoo-flag-honesty"),
-    ).toHaveTextContent(/feature_odoo_integration/i);
-    expect(
-      screen.getByTestId("integrations-studio-cursor-write-date-honesty"),
-    ).toHaveTextContent(/write_date/i);
+    expect(screen.getByTestId("integrations-studio-odoo-flag-honesty")).toHaveTextContent(
+      /feature_odoo_integration/i
+    );
+    expect(screen.getByTestId("integrations-studio-cursor-write-date-honesty")).toHaveTextContent(
+      /write_date/i
+    );
   });
 
   it("states operator limits in live honesty banner", () => {
     render(<IntegrationsStudio />);
-    expect(
-      screen.getByTestId("integrations-studio-live-honesty"),
-    ).toHaveTextContent(/credential|HubSpot|feature flag/i);
+    expect(screen.getByTestId("integrations-studio-live-honesty")).toHaveTextContent(
+      /credential|HubSpot|feature flag/i
+    );
   });
   it("lists tip unlinked badges on Monitor (FE-S09-08)", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-monitor"));
-    fireEvent.change(
-      screen.getByTestId("integrations-studio-connection-select"),
-      { target: { value: "c1" } },
+    fireEvent.change(screen.getByTestId("integrations-studio-connection-select"), {
+      target: { value: "c1" },
+    });
+    expect(screen.getByTestId("integrations-studio-unlinked-honesty")).toHaveTextContent(
+      /Unlinked badges|residuals/i
     );
-    expect(
-      screen.getByTestId("integrations-studio-unlinked-honesty"),
-    ).toHaveTextContent(/Unlinked badges|residuals/i);
-    expect(
-      screen.getByTestId("integrations-studio-unlinked-count"),
-    ).toHaveTextContent(/1 badge/);
-    expect(
-      screen.getByTestId("integrations-studio-unlinked-badge-row"),
-    ).toHaveTextContent(/ext-1/);
+    expect(screen.getByTestId("integrations-studio-unlinked-count")).toHaveTextContent(/1 badge/);
+    expect(screen.getByTestId("integrations-studio-unlinked-badge-row")).toHaveTextContent(/ext-1/);
   });
   it("shows tip SyncRun cursor_before/after on Monitor (FE-S09-09)", () => {
     render(<IntegrationsStudio />);
     fireEvent.click(screen.getByTestId("integrations-studio-step-monitor"));
-    fireEvent.change(
-      screen.getByTestId("integrations-studio-connection-select"),
-      { target: { value: "c1" } },
+    fireEvent.change(screen.getByTestId("integrations-studio-connection-select"), {
+      target: { value: "c1" },
+    });
+    expect(screen.getByTestId("integrations-studio-sync-run-cursors")).toHaveTextContent(
+      /Cursors:/i
     );
-    expect(
-      screen.getByTestId("integrations-studio-sync-run-cursors"),
-    ).toHaveTextContent(/Cursors:/i);
-    expect(
-      screen.getByTestId("integrations-studio-sync-run-cursors"),
-    ).toHaveTextContent(/before/);
+    expect(screen.getByTestId("integrations-studio-sync-run-cursors")).toHaveTextContent(/before/);
   });
 });

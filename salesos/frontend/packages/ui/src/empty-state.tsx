@@ -1,27 +1,34 @@
-import { type ReactNode } from 'react'
-import { cn } from './utils'
-import { Button } from './button'
+import { type ReactNode } from "react";
+import { cn } from "./utils";
+import { Button } from "./button";
 
 interface EmptyStateAction {
-  label: string
-  onClick: () => void
+  label: string;
+  onClick: () => void;
 }
 
 interface EmptyStateProps {
-  icon?: ReactNode
-  title: string
-  description?: string
-  action?: EmptyStateAction
-  learnMoreLink?: string
-  className?: string
+  icon?: ReactNode;
+  title: string;
+  description?: string;
+  action?: EmptyStateAction;
+  learnMoreLink?: string;
+  className?: string;
 }
 
-export function EmptyState({ icon, title, description, action, learnMoreLink, className }: EmptyStateProps) {
+export function EmptyState({
+  icon,
+  title,
+  description,
+  action,
+  learnMoreLink,
+  className,
+}: EmptyStateProps) {
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-4 py-16 text-center',
-        'rtl:text-right',
+        "flex flex-col items-center justify-center gap-4 py-16 text-center",
+        "rtl:text-right",
         className
       )}
       role="status"
@@ -33,9 +40,7 @@ export function EmptyState({ icon, title, description, action, learnMoreLink, cl
       )}
       <div className="max-w-sm">
         <h3 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h3>
-        {description && (
-          <p className="mt-2 text-sm text-[var(--text-muted)]">{description}</p>
-        )}
+        {description && <p className="mt-2 text-sm text-[var(--text-muted)]">{description}</p>}
       </div>
       <div className="flex items-center gap-3">
         {action && (
@@ -55,5 +60,5 @@ export function EmptyState({ icon, title, description, action, learnMoreLink, cl
         )}
       </div>
     </div>
-  )
+  );
 }

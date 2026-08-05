@@ -13,23 +13,18 @@ export type EntitlementDeniedPayload = {
 
 export const ENTITLEMENT_DENIED_EVENT = "salesos:entitlement-denied";
 
-export function isEntitlementDeniedPayload(
-  data: unknown,
-): data is EntitlementDeniedPayload {
+export function isEntitlementDeniedPayload(data: unknown): data is EntitlementDeniedPayload {
   if (!data || typeof data !== "object") return false;
   const d = data as EntitlementDeniedPayload;
   const detail = typeof d.detail === "string" ? d.detail : "";
   return (
     typeof d.domain === "string" &&
     d.domain.startsWith("DOM-") &&
-    (detail.includes("Plan entitlement required") ||
-      detail.toLowerCase().includes("upgrade plan"))
+    (detail.includes("Plan entitlement required") || detail.toLowerCase().includes("upgrade plan"))
   );
 }
 
-export function formatEntitlementDeniedMessage(
-  payload: EntitlementDeniedPayload,
-): string {
+export function formatEntitlementDeniedMessage(payload: EntitlementDeniedPayload): string {
   const domain = payload.domain || "unknown-domain";
   const tier = payload.tier || "unknown-tier";
   const prefix = payload.path_prefix || "gated-path";
@@ -42,14 +37,11 @@ export function formatEntitlementDeniedMessage(
   );
 }
 
-export function getEntitlementDeniedFromError(
-  err: unknown,
-): EntitlementDeniedPayload | null {
+export function getEntitlementDeniedFromError(err: unknown): EntitlementDeniedPayload | null {
   if (typeof err !== "object" || err === null || !("response" in err)) {
     return null;
   }
-  const response = (err as { response?: { status?: number; data?: unknown } })
-    .response;
+  const response = (err as { response?: { status?: number; data?: unknown } }).response;
   if (response?.status !== 403) return null;
   return isEntitlementDeniedPayload(response.data) ? response.data : null;
 }

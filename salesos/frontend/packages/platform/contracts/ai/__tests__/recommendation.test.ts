@@ -17,34 +17,34 @@ import type {
   Recommendation,
   PipelineTrace,
   Feedback,
-} from "../recommendation"
+} from "../recommendation";
 
 describe("Contract: AI Recommendation", () => {
   describe("1. Type exports exist", () => {
     it("exports all union types", () => {
-      const signalSource: SignalSource = "stage_change"
-      const entityType: SignalEntityType = "opportunity"
-      const stage: OpportunityStage = "discovery"
-      const status: RecommendationStatus = "pending"
-      const confidence: ConfidenceLabel = "high"
-      const source: RecommendationSource = "ai"
-      const evidenceType: EvidenceType = "ai_analysis"
-      const risk: RiskLevel = "medium"
-      const riskFactor: RiskFactorType = "engagement_drop"
-      const impact: ImpactCategory = "revenue"
+      const signalSource: SignalSource = "stage_change";
+      const entityType: SignalEntityType = "opportunity";
+      const stage: OpportunityStage = "discovery";
+      const status: RecommendationStatus = "pending";
+      const confidence: ConfidenceLabel = "high";
+      const source: RecommendationSource = "ai";
+      const evidenceType: EvidenceType = "ai_analysis";
+      const risk: RiskLevel = "medium";
+      const riskFactor: RiskFactorType = "engagement_drop";
+      const impact: ImpactCategory = "revenue";
 
-      expect(signalSource).toBe("stage_change")
-      expect(entityType).toBe("opportunity")
-      expect(stage).toBe("discovery")
-      expect(status).toBe("pending")
-      expect(confidence).toBe("high")
-      expect(source).toBe("ai")
-      expect(evidenceType).toBe("ai_analysis")
-      expect(risk).toBe("medium")
-      expect(riskFactor).toBe("engagement_drop")
-      expect(impact).toBe("revenue")
-    })
-  })
+      expect(signalSource).toBe("stage_change");
+      expect(entityType).toBe("opportunity");
+      expect(stage).toBe("discovery");
+      expect(status).toBe("pending");
+      expect(confidence).toBe("high");
+      expect(source).toBe("ai");
+      expect(evidenceType).toBe("ai_analysis");
+      expect(risk).toBe("medium");
+      expect(riskFactor).toBe("engagement_drop");
+      expect(impact).toBe("revenue");
+    });
+  });
 
   describe("2. Evidence interface", () => {
     it("is constructible with required fields", () => {
@@ -55,11 +55,11 @@ describe("Contract: AI Recommendation", () => {
         source: "crm",
         confidence: 0.85,
         timestamp: "2026-01-01T00:00:00Z",
-      }
-      expect(e.id).toBe("e1")
-      expect(e.type).toBe("signal")
-      expect(e.confidence).toBe(0.85)
-    })
+      };
+      expect(e.id).toBe("e1");
+      expect(e.type).toBe("signal");
+      expect(e.confidence).toBe(0.85);
+    });
 
     it("supports optional data field", () => {
       const e: Evidence = {
@@ -70,10 +70,10 @@ describe("Contract: AI Recommendation", () => {
         confidence: 1.0,
         timestamp: "2026-01-01T00:00:00Z",
         data: { key: "value" },
-      }
-      expect(e.data).toEqual({ key: "value" })
-    })
-  })
+      };
+      expect(e.data).toEqual({ key: "value" });
+    });
+  });
 
   describe("3. Confidence interface", () => {
     it("is constructible with all components", () => {
@@ -87,11 +87,11 @@ describe("Contract: AI Recommendation", () => {
           urgencyScore: 0.75,
           riskAdjustment: -0.1,
         },
-      }
-      expect(c.label).toBe("high")
-      expect(c.components.aiScore).toBe(0.9)
-    })
-  })
+      };
+      expect(c.label).toBe("high");
+      expect(c.components.aiScore).toBe(0.9);
+    });
+  });
 
   describe("4. Impact interface", () => {
     it("is constructible", () => {
@@ -100,18 +100,18 @@ describe("Contract: AI Recommendation", () => {
         estimatedRevenue: 50000,
         estimatedProbability: 0.7,
         category: "revenue",
-      }
-      expect(i.estimatedRevenue).toBe(50000)
-    })
+      };
+      expect(i.estimatedRevenue).toBe(50000);
+    });
 
     it("supports optional fields", () => {
       const i: Impact = {
         description: "Build relationship",
         category: "relationship",
-      }
-      expect(i.estimatedRevenue).toBeUndefined()
-    })
-  })
+      };
+      expect(i.estimatedRevenue).toBeUndefined();
+    });
+  });
 
   describe("5. Risk interface", () => {
     it("is constructible", () => {
@@ -120,10 +120,10 @@ describe("Contract: AI Recommendation", () => {
         level: "high",
         description: "Competitor entered deal",
         detectedAt: "2026-01-01T00:00:00Z",
-      }
-      expect(r.level).toBe("high")
-    })
-  })
+      };
+      expect(r.level).toBe("high");
+    });
+  });
 
   describe("6. Alternative interface", () => {
     it("is constructible", () => {
@@ -131,10 +131,10 @@ describe("Contract: AI Recommendation", () => {
         action: "Send proposal",
         reason: "Prospect engaged",
         confidence: 0.75,
-      }
-      expect(a.action).toBe("Send proposal")
-    })
-  })
+      };
+      expect(a.action).toBe("Send proposal");
+    });
+  });
 
   describe("7. Recommendation interface", () => {
     it("is constructible with all required fields", () => {
@@ -153,10 +153,10 @@ describe("Contract: AI Recommendation", () => {
         status: "pending",
         createdAt: "2026-01-01T00:00:00Z",
         updatedAt: "2026-01-01T00:00:00Z",
-      }
-      expect(r.id).toBe("rec-1")
-      expect(r.status).toBe("pending")
-    })
+      };
+      expect(r.id).toBe("rec-1");
+      expect(r.status).toBe("pending");
+    });
 
     it("supports optional dueBy", () => {
       const r: Recommendation = {
@@ -175,10 +175,10 @@ describe("Contract: AI Recommendation", () => {
         status: "accepted",
         createdAt: "2026-01-01T00:00:00Z",
         updatedAt: "2026-01-15T00:00:00Z",
-      }
-      expect(r.dueBy).toBe("2026-02-01T00:00:00Z")
-    })
-  })
+      };
+      expect(r.dueBy).toBe("2026-02-01T00:00:00Z");
+    });
+  });
 
   describe("8. PipelineTrace interface", () => {
     it("is constructible", () => {
@@ -190,10 +190,10 @@ describe("Contract: AI Recommendation", () => {
         riskMs: 8,
         confidenceMs: 3,
         totalMs: 198,
-      }
-      expect(t.totalMs).toBe(198)
-    })
-  })
+      };
+      expect(t.totalMs).toBe(198);
+    });
+  });
 
   describe("9. Feedback interface", () => {
     it("is constructible", () => {
@@ -205,9 +205,9 @@ describe("Contract: AI Recommendation", () => {
         action: "accepted",
         reason: "Good timing",
         timestamp: "2026-01-01T00:00:00Z",
-      }
-      expect(f.action).toBe("accepted")
-    })
+      };
+      expect(f.action).toBe("accepted");
+    });
 
     it("supports optional reason", () => {
       const f: Feedback = {
@@ -217,8 +217,8 @@ describe("Contract: AI Recommendation", () => {
         userId: "u-2",
         action: "dismissed",
         timestamp: "2026-01-01T00:00:00Z",
-      }
-      expect(f.reason).toBeUndefined()
-    })
-  })
-})
+      };
+      expect(f.reason).toBeUndefined();
+    });
+  });
+});

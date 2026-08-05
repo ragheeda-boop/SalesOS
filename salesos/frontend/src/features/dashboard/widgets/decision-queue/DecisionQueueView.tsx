@@ -39,10 +39,7 @@ function DecisionRow({
   onItemClick?: (id: string) => void;
 }) {
   const conf = PRIORITY_CONFIG[item.priority];
-  const handleClick = useCallback(
-    () => onItemClick?.(item.id),
-    [item.id, onItemClick],
-  );
+  const handleClick = useCallback(() => onItemClick?.(item.id), [item.id, onItemClick]);
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (onItemClick && (e.key === "Enter" || e.key === " ")) {
@@ -50,7 +47,7 @@ function DecisionRow({
         onItemClick(item.id);
       }
     },
-    [item.id, onItemClick],
+    [item.id, onItemClick]
   );
 
   return (
@@ -61,21 +58,16 @@ function DecisionRow({
         "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors motion-reduce:transition-none",
         conf.bg,
         onItemClick && "cursor-pointer hover:bg-[var(--bg-tertiary)]",
-        conf.ring,
+        conf.ring
       )}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       aria-label={`${item.title} - ${item.companyName} - ${conf.label}`}
     >
-      <span
-        className={cn("mt-0.5 h-2 w-2 shrink-0 rounded-full", conf.dot)}
-        aria-hidden="true"
-      />
+      <span className={cn("mt-0.5 h-2 w-2 shrink-0 rounded-full", conf.dot)} aria-hidden="true" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="truncate font-medium text-[var(--text-primary)]">
-            {item.title}
-          </span>
+          <span className="truncate font-medium text-[var(--text-primary)]">{item.title}</span>
           <span className="shrink-0 rounded-full bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">
             {TYPE_LABEL[item.type] ?? item.type}
           </span>
@@ -83,17 +75,13 @@ function DecisionRow({
         <div className="mt-0.5 flex items-center gap-2 text-xs text-[var(--text-muted)]">
           <span>{item.companyName}</span>
           {item.score > 0 && <span>· AI {item.score}%</span>}
-          {item.dueBy && (
-            <span>
-              · مستحق {new Date(item.dueBy).toLocaleDateString("ar-SA")}
-            </span>
-          )}
+          {item.dueBy && <span>· مستحق {new Date(item.dueBy).toLocaleDateString("ar-SA")}</span>}
         </div>
       </div>
       <span
         className={cn(
           "shrink-0 text-[10px] font-medium",
-          conf.dot.replace("bg-", "text-").replace("-500", "-600"),
+          conf.dot.replace("bg-", "text-").replace("-500", "-600")
         )}
       >
         {conf.label}
@@ -119,11 +107,7 @@ function SkeletonRows() {
   );
 }
 
-function DecisionSummary({
-  decision,
-}: {
-  decision: DecisionQueueViewProps["decision"];
-}) {
+function DecisionSummary({ decision }: { decision: DecisionQueueViewProps["decision"] }) {
   if (!decision) return null;
 
   return (
@@ -132,9 +116,7 @@ function DecisionSummary({
       aria-atomic="true"
       className="mb-2 rounded-lg bg-[var(--bg-secondary)] px-3 py-2 text-xs text-[var(--text-muted)]"
     >
-      <span className="font-medium text-[var(--text-primary)]">
-        ملخص القرارات:{" "}
-      </span>
+      <span className="font-medium text-[var(--text-primary)]">ملخص القرارات: </span>
       {decision.summary}
       <span className="ml-1 text-[10px] opacity-60">
         ({Math.round(decision.confidence * 100)}% ثقة)
@@ -152,9 +134,7 @@ export function DecisionQueueView({
   onItemClick,
 }: DecisionQueueViewProps) {
   const priorityOrder = { high: 0, medium: 1, low: 2 };
-  const sorted = [...items].sort(
-    (a, b) => priorityOrder[a.priority] - priorityOrder[b.priority],
-  );
+  const sorted = [...items].sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 
   if (isDecisionLoading && items.length === 0) {
     return <SkeletonRows />;
@@ -190,18 +170,14 @@ export function DecisionQueueView({
 
       {nbaItems && nbaItems.length > 0 && (
         <div className="mt-2 border-t border-[var(--border-secondary)] pt-2">
-          <div className="mb-1 text-[10px] font-semibold text-[var(--text-muted)]">
-            توصيات AI
-          </div>
+          <div className="mb-1 text-[10px] font-semibold text-[var(--text-muted)]">توصيات AI</div>
           {nbaItems.slice(0, 3).map((nba) => (
             <div
               key={nba.id}
               className="rounded-md px-2 py-1 text-xs text-[var(--text-muted)]"
               aria-label={`AI توصية: ${nba.action} لـ ${nba.company_name}`}
             >
-              <span className="font-medium text-[var(--text-primary)]">
-                {nba.company_name}
-              </span>
+              <span className="font-medium text-[var(--text-primary)]">{nba.company_name}</span>
               {" — "}
               {nba.action}
             </div>

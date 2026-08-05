@@ -27,15 +27,9 @@ export function PageHeader({
           </h1>
           {badge}
         </div>
-        {description ? (
-          <p className="text-sm text-[var(--text-secondary)]">{description}</p>
-        ) : null}
+        {description ? <p className="text-sm text-[var(--text-secondary)]">{description}</p> : null}
       </div>
-      {actions ? (
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          {actions}
-        </div>
-      ) : null}
+      {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
     </header>
   );
 }

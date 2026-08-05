@@ -48,10 +48,7 @@ export function useCreateContact() {
 export function useUpdateContact() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      id,
-      ...data
-    }: { id: string } & ContactUpdateRequest) => {
+    mutationFn: async ({ id, ...data }: { id: string } & ContactUpdateRequest) => {
       return updateContact(id, data, getTenantId());
     },
     onSuccess: (_, variables) => {

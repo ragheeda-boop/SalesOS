@@ -6,14 +6,7 @@ import api from "@/lib/api";
 import { cn } from "@salesos/ui";
 import { BarChart, LineChart, MetricCard } from "@salesos/charts";
 import { ExportShareBar } from "@/components/analytics";
-import {
-  ArrowLeft,
-  DollarSign,
-  TrendingUp,
-  TrendingDown,
-  Target,
-  RefreshCw,
-} from "lucide-react";
+import { ArrowLeft, DollarSign, TrendingUp, TrendingDown, Target, RefreshCw } from "lucide-react";
 
 interface RevenueMetrics {
   arr: number;
@@ -168,9 +161,7 @@ export default function RevenueAnalyticsPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)]">
-              Revenue Analytics
-            </h1>
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">Revenue Analytics</h1>
             <p className="text-sm text-[var(--text-muted)]">
               ARR, NRR, churn, and forecast tracking
             </p>
@@ -186,7 +177,7 @@ export default function RevenueAnalyticsPage() {
                   "px-3 py-1.5 text-xs font-medium transition",
                   dateRange === r.days
                     ? "bg-[var(--muhide-orange)] text-white"
-                    : "bg-[var(--bg-primary)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+                    : "bg-[var(--bg-primary)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
                 )}
               >
                 {r.label}
@@ -247,7 +238,7 @@ export default function RevenueAnalyticsPage() {
               "flex items-center gap-1 mt-1 text-xs",
               data.metrics.churn_trend >= 0
                 ? "text-[var(--status-success-text)]"
-                : "text-[var(--status-danger-text)]",
+                : "text-[var(--status-danger-text)]"
             )}
           >
             {data.metrics.churn_trend >= 0 ? (
@@ -268,7 +259,7 @@ export default function RevenueAnalyticsPage() {
               "flex items-center gap-1 mt-1 text-xs",
               data.metrics.expansion_trend >= 0
                 ? "text-[var(--status-success-text)]"
-                : "text-[var(--status-danger-text)]",
+                : "text-[var(--status-danger-text)]"
             )}
           >
             {data.metrics.expansion_trend >= 0 ? (
@@ -276,24 +267,18 @@ export default function RevenueAnalyticsPage() {
             ) : (
               <TrendingDown className="h-3 w-3" />
             )}
-            <span>
-              {Math.abs(data.metrics.expansion_trend)}% vs last period
-            </span>
+            <span>{Math.abs(data.metrics.expansion_trend)}% vs last period</span>
           </div>
         </div>
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-          <p className="text-xs text-[var(--text-muted)]">
-            Net Revenue Retention
-          </p>
-          <p className="text-2xl font-bold text-[var(--text-primary)]">
-            {data.metrics.nrr}%
-          </p>
+          <p className="text-xs text-[var(--text-muted)]">Net Revenue Retention</p>
+          <p className="text-2xl font-bold text-[var(--text-primary)]">{data.metrics.nrr}%</p>
           <div
             className={cn(
               "flex items-center gap-1 mt-1 text-xs",
               data.metrics.nrr_trend >= 0
                 ? "text-[var(--status-success-text)]"
-                : "text-[var(--status-danger-text)]",
+                : "text-[var(--status-danger-text)]"
             )}
           >
             {data.metrics.nrr_trend >= 0 ? (
@@ -309,9 +294,7 @@ export default function RevenueAnalyticsPage() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
-            ARR Trend
-          </h3>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">ARR Trend</h3>
           <LineChart
             series={[
               {
@@ -325,9 +308,7 @@ export default function RevenueAnalyticsPage() {
         </div>
 
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
-            NRR Trend
-          </h3>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">NRR Trend</h3>
           <LineChart
             series={[
               {
@@ -350,18 +331,15 @@ export default function RevenueAnalyticsPage() {
           <div className="space-y-2">
             {data.forecast_vs_actual.map((d) => {
               const maxVal = Math.max(
-                ...data.forecast_vs_actual.map((f) =>
-                  Math.max(f.forecast, f.actual),
-                ),
-                1,
+                ...data.forecast_vs_actual.map((f) => Math.max(f.forecast, f.actual)),
+                1
               );
               return (
                 <div key={d.month} className="space-y-1">
                   <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
                     <span>{d.month}</span>
                     <span>
-                      Actual: {formatCurrency(d.actual)} / Forecast:{" "}
-                      {formatCurrency(d.forecast)}
+                      Actual: {formatCurrency(d.actual)} / Forecast: {formatCurrency(d.forecast)}
                     </span>
                   </div>
                   <div className="relative h-5 rounded bg-[var(--bg-tertiary)] overflow-hidden">

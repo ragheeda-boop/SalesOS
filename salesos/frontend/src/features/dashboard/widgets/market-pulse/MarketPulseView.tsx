@@ -26,10 +26,7 @@ function TrendRow({
   onClick?: (name: string) => void;
 }) {
   const conf = DIRECTION_CONFIG[trend.direction];
-  const handleClick = useCallback(
-    () => onClick?.(trend.name),
-    [trend.name, onClick],
-  );
+  const handleClick = useCallback(() => onClick?.(trend.name), [trend.name, onClick]);
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (onClick && (e.key === "Enter" || e.key === " ")) {
@@ -37,7 +34,7 @@ function TrendRow({
         onClick(trend.name);
       }
     },
-    [trend.name, onClick],
+    [trend.name, onClick]
   );
 
   return (
@@ -47,7 +44,7 @@ function TrendRow({
       className={cn(
         "flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors motion-reduce:transition-none",
         onClick &&
-          "cursor-pointer hover:bg-[var(--bg-tertiary)] focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]",
+          "cursor-pointer hover:bg-[var(--bg-tertiary)] focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
       )}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
@@ -55,12 +52,8 @@ function TrendRow({
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-[var(--text-primary)]">
-            {trend.name}
-          </span>
-          <span className="text-xs text-[var(--text-muted)]">
-            {trend.description}
-          </span>
+          <span className="font-medium text-[var(--text-primary)]">{trend.name}</span>
+          <span className="text-xs text-[var(--text-muted)]">{trend.description}</span>
         </div>
       </div>
       <span className={cn("shrink-0 text-sm font-medium", conf.color)}>
@@ -78,10 +71,7 @@ function MoverRow({
   onClick?: (companyId: string) => void;
 }) {
   const isPositive = mover.scoreChange >= 0;
-  const handleClick = useCallback(
-    () => onClick?.(mover.companyId),
-    [mover.companyId, onClick],
-  );
+  const handleClick = useCallback(() => onClick?.(mover.companyId), [mover.companyId, onClick]);
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (onClick && (e.key === "Enter" || e.key === " ")) {
@@ -89,7 +79,7 @@ function MoverRow({
         onClick(mover.companyId);
       }
     },
-    [mover.companyId, onClick],
+    [mover.companyId, onClick]
   );
 
   return (
@@ -99,26 +89,22 @@ function MoverRow({
       className={cn(
         "flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors motion-reduce:transition-none",
         onClick &&
-          "cursor-pointer hover:bg-[var(--bg-tertiary)] focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]",
+          "cursor-pointer hover:bg-[var(--bg-tertiary)] focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
       )}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       aria-label={`${mover.companyName} - ${isPositive ? "تحسن" : "انخفاض"} ${Math.abs(mover.scoreChange)} نقطة`}
     >
       <div className="min-w-0 flex-1">
-        <div className="font-medium text-[var(--text-primary)]">
-          {mover.companyName}
-        </div>
-        <div className="mt-0.5 text-xs text-[var(--text-muted)]">
-          {mover.reason}
-        </div>
+        <div className="font-medium text-[var(--text-primary)]">{mover.companyName}</div>
+        <div className="mt-0.5 text-xs text-[var(--text-muted)]">{mover.reason}</div>
       </div>
       <span
         className={cn(
           "shrink-0 text-sm font-medium",
           isPositive
             ? "text-emerald-600 dark:text-emerald-400"
-            : "text-danger-600 dark:text-danger-400",
+            : "text-danger-600 dark:text-danger-400"
         )}
       >
         {isPositive ? "+" : ""}

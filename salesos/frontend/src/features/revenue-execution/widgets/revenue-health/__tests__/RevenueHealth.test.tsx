@@ -9,9 +9,7 @@ const sample: RevenueHealthData = {
   activeAccounts: 62,
   atRisk: 8,
   growthAccounts: 15,
-  healthDistribution: [
-    { label: "ممتاز", count: 25, value: 40, color: "bg-green-500" },
-  ],
+  healthDistribution: [{ label: "ممتاز", count: 25, value: 40, color: "bg-green-500" }],
 };
 function renderView(d: RevenueHealthData = sample) {
   return render(<RevenueHealthView data={d} />);
@@ -50,9 +48,7 @@ describe("RevenueHealthView", () => {
   });
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "صحة الإيرادات" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "صحة الإيرادات" })).toBeInTheDocument();
   });
 });
 describe("RevenueHealthWidget", () => {

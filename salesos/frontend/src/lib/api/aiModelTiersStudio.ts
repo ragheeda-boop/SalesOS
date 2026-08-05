@@ -51,9 +51,7 @@ export interface AiModelTierResolveResponse {
   honesty: string;
 }
 
-export async function getAiModelTierCatalog(
-  tenantId: string,
-): Promise<AiModelTierCatalogResponse> {
+export async function getAiModelTierCatalog(tenantId: string): Promise<AiModelTierCatalogResponse> {
   const resp = await api.get<AiModelTierCatalogResponse>(`${BASE}/catalog`, {
     headers: tenantHeaders(tenantId),
   });
@@ -62,7 +60,7 @@ export async function getAiModelTierCatalog(
 
 export async function getAiModelTierDefaults(
   tenantId: string,
-  planTier = "starter",
+  planTier = "starter"
 ): Promise<AiModelTierDefaultsResponse> {
   const resp = await api.get<AiModelTierDefaultsResponse>(`${BASE}/defaults`, {
     headers: tenantHeaders(tenantId),
@@ -73,14 +71,12 @@ export async function getAiModelTierDefaults(
 
 export async function resolveAiModelTiers(
   tenantId: string,
-  requestedTier?: string | null,
+  requestedTier?: string | null
 ): Promise<AiModelTierResolveResponse> {
   const resp = await api.get<AiModelTierResolveResponse>(BASE, {
     headers: tenantHeaders(tenantId),
     params:
-      requestedTier && requestedTier.trim()
-        ? { requested_tier: requestedTier.trim() }
-        : undefined,
+      requestedTier && requestedTier.trim() ? { requested_tier: requestedTier.trim() } : undefined,
   });
   return resp.data;
 }

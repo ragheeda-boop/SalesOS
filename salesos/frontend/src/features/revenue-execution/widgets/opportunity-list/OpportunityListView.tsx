@@ -24,8 +24,7 @@ const STAGE_STYLE: Record<string, string> = {
   developing:
     "bg-[var(--chart-purple-bg)] text-[var(--text-secondary)] dark:bg-[var(--bg-primary)]/20 dark:text-[var(--text-muted)]",
   proposing: "bg-[var(--status-warning-bg)] text-amber-700",
-  negotiating:
-    "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300",
+  negotiating: "bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300",
   closing: "bg-[var(--status-danger-bg)] text-red-700",
   won: "bg-[var(--status-success-bg)] text-[var(--status-success-text)]",
   lost: "bg-[var(--bg-tertiary)] text-[var(--text-muted)]",
@@ -37,58 +36,41 @@ const RISK_S = {
   high: "text-[var(--status-danger-text)]",
 };
 
-export function OpportunityListView({
-  opportunities,
-  onSelect,
-}: OpportunityListViewProps) {
+export function OpportunityListView({ opportunities, onSelect }: OpportunityListViewProps) {
   const [filter, setFilter] = useState<OpportunityStage | "all">("all");
   const [searchText, setSearchText] = useState("");
 
   const filtered = useMemo(() => {
-    let items =
-      filter === "all"
-        ? opportunities
-        : opportunities.filter((o) => o.stage === filter);
+    let items = filter === "all" ? opportunities : opportunities.filter((o) => o.stage === filter);
     if (searchText) {
       const lower = searchText.toLowerCase();
       items = items.filter(
-        (o) =>
-          o.companyName.toLowerCase().includes(lower) ||
-          o.title.toLowerCase().includes(lower),
+        (o) => o.companyName.toLowerCase().includes(lower) || o.title.toLowerCase().includes(lower)
       );
     }
     return items.sort(
       (a, b) =>
         new Date(b.lastActivityAt ?? b.createdAt).getTime() -
-        new Date(a.lastActivityAt ?? a.createdAt).getTime(),
+        new Date(a.lastActivityAt ?? a.createdAt).getTime()
     );
   }, [opportunities, filter, searchText]);
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: opportunities.length };
-    for (const s of STAGES)
-      c[s] = opportunities.filter((o) => o.stage === s).length;
+    for (const s of STAGES) c[s] = opportunities.filter((o) => o.stage === s).length;
     return c;
   }, [opportunities]);
 
   const totalValue = opportunities.reduce((s, o) => s + o.estimatedValue, 0);
-  const activeCount = opportunities.filter(
-    (o) => !["won", "lost"].includes(o.stage),
-  ).length;
+  const activeCount = opportunities.filter((o) => !["won", "lost"].includes(o.stage)).length;
 
   return (
-    <div
-      role="region"
-      aria-label="قائمة الفرص"
-      className="space-y-3/20 dark:rounded-lg dark:p-1"
-    >
+    <div role="region" aria-label="قائمة الفرص" className="space-y-3/20 dark:rounded-lg dark:p-1">
       {/* Metrics strip */}
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-lg bg-[var(--bg-tertiary)] p-2">
           <p className="text-[10px] text-[var(--text-muted)]">الفرص النشطة</p>
-          <p className="text-lg font-bold text-[var(--text-primary)]">
-            {activeCount}
-          </p>
+          <p className="text-lg font-bold text-[var(--text-primary)]">{activeCount}</p>
         </div>
         <div className="rounded-lg bg-[var(--bg-tertiary)] p-2">
           <p className="text-[10px] text-[var(--text-muted)]">إجمالي القيمة</p>
@@ -105,9 +87,7 @@ export function OpportunityListView({
             %
             {opportunities.length > 0
               ? Math.round(
-                  (opportunities.reduce((s, o) => s + o.confidence, 0) /
-                    opportunities.length) *
-                    100,
+                  (opportunities.reduce((s, o) => s + o.confidence, 0) / opportunities.length) * 100
                 )
               : 0}
           </p>
@@ -127,7 +107,7 @@ export function OpportunityListView({
               "shrink-0 rounded-lg px-2 py-1 text-[10px] font-medium transition whitespace-nowrap",
               filter === stage.id
                 ? "bg-primary-500 text-white"
-                : "bg-[var(--bg-tertiary)] text-[var(--text-muted)] hover:bg-primary-50 dark:hover:bg-primary-900/20",
+                : "bg-[var(--bg-tertiary)] text-[var(--text-muted)] hover:bg-primary-50 dark:hover:bg-primary-900/20"
             )}
           >
             {stage.label} {counts[stage.id] > 0 && `(${counts[stage.id]})`}
@@ -152,9 +132,7 @@ export function OpportunityListView({
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <Target className="mb-2 h-8 w-8 text-[var(--text-muted)] opacity-30" />
           <p className="text-sm text-[var(--text-muted)]">لا توجد فرص بعد</p>
-          <p className="text-xs text-[var(--text-muted)]">
-            سيتم إنشاء الفرص من توصيات AI
-          </p>
+          <p className="text-xs text-[var(--text-muted)]">سيتم إنشاء الفرص من توصيات AI</p>
         </div>
       ) : filtered.length === 0 ? (
         <p className="py-4 text-center text-xs text-[var(--text-muted)]">
@@ -167,7 +145,7 @@ export function OpportunityListView({
               key={opp.id}
               onClick={() => onSelect?.(opp)}
               className={cn(
-                "flex items-start gap-3 rounded-lg px-3 py-2.5 text-sm transition hover:bg-[var(--bg-tertiary)] cursor-pointer",
+                "flex items-start gap-3 rounded-lg px-3 py-2.5 text-sm transition hover:bg-[var(--bg-tertiary)] cursor-pointer"
               )}
             >
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--bg-tertiary)]">
@@ -181,7 +159,7 @@ export function OpportunityListView({
                   <span
                     className={cn(
                       "mr-auto rounded px-1 py-0.5 text-[9px] font-medium",
-                      STAGE_STYLE[opp.stage] ?? STAGE_STYLE.identified,
+                      STAGE_STYLE[opp.stage] ?? STAGE_STYLE.identified
                     )}
                   >
                     {STAGE_LABEL[opp.stage]}

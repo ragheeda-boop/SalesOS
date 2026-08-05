@@ -36,18 +36,12 @@ describe("marketSizing API — FE-S11-02", () => {
       },
     });
     const meta = await getMarketSizingMeta("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/market-sizing/meta",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/market-sizing/meta", expect.any(Object));
     expect(meta.dataset_scale_hint).toBe(141221);
 
     mocked.get.mockResolvedValueOnce({ data: [] });
     await listMarketSizing("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/market-sizing",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/market-sizing", expect.any(Object));
   });
 
   it("POSTs tip compute", async () => {
@@ -81,7 +75,7 @@ describe("marketSizing API — FE-S11-02", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/gtm/market-sizing",
       expect.objectContaining({ name: "Pilot" }),
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(row.som).toBe(5);
     expect(row.invariant_ok).toBe(true);
@@ -109,10 +103,7 @@ describe("marketSizing API — FE-S11-02", () => {
       },
     });
     const row = await getMarketSizing("tenant-1", "ms1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/market-sizing/ms1",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/market-sizing/ms1", expect.any(Object));
     expect(row.id).toBe("ms1");
   });
 });

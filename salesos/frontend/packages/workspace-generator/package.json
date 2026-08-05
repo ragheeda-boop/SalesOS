@@ -1,1 +1,6 @@
-{ "name": "@salesos/workspace-generator", "version": "5.0.0", "private": true, "main": "index.js" }
+{
+  "name": "@salesos/workspace-generator",
+  "version": "5.0.0",
+  "private": true,
+  "main": "index.js"
+}

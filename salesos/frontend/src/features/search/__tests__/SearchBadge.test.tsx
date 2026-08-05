@@ -8,9 +8,7 @@ describe("SearchBadge", () => {
   });
 
   it("renders with info variant", () => {
-    const { container } = render(
-      <SearchBadge label="معلومات" variant="info" />,
-    );
+    const { container } = render(<SearchBadge label="معلومات" variant="info" />);
     expect(container.firstChild).toBeInTheDocument();
   });
 

@@ -13,11 +13,7 @@ import { updateAdminRole } from "@/lib/api";
 import { adminKeys } from "@/lib/queryKeys";
 
 export function RoleManagerWidget() {
-  const {
-    data: roles,
-    isLoading: rolesLoading,
-    refetch: refetchRoles,
-  } = useAdminRoles();
+  const { data: roles, isLoading: rolesLoading, refetch: refetchRoles } = useAdminRoles();
   const { data: permissions, isLoading: permsLoading } = useAdminPermissions();
   const qc = useQueryClient();
   const createMutation = useCreateAdminRole();
@@ -37,31 +33,24 @@ export function RoleManagerWidget() {
   });
 
   const handleCreate = useCallback(
-    async (data: {
-      name: string;
-      description?: string;
-      permissions: string[];
-    }) => {
+    async (data: { name: string; description?: string; permissions: string[] }) => {
       await createMutation.mutateAsync(data);
     },
-    [createMutation],
+    [createMutation]
   );
 
   const handleUpdate = useCallback(
-    async (
-      id: string,
-      data: { name?: string; description?: string; permissions?: string[] },
-    ) => {
+    async (id: string, data: { name?: string; description?: string; permissions?: string[] }) => {
       await updateMutation.mutateAsync({ id, data });
     },
-    [updateMutation],
+    [updateMutation]
   );
 
   const handleDelete = useCallback(
     async (id: string) => {
       await deleteMutation.mutateAsync(id);
     },
-    [deleteMutation],
+    [deleteMutation]
   );
 
   return (

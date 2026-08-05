@@ -44,10 +44,9 @@ describe("aiPoliciesStudio API — FE-S12-02", () => {
     });
     const meta = await getAiPoliciesMeta("tenant-1");
     expect(meta.feature_ai_copilot).toBe(false);
-    expect(mockedApi.get).toHaveBeenCalledWith(
-      "/api/v1/studio/ai-policies/meta",
-      { headers: { "X-Tenant-Id": "tenant-1" } },
-    );
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/v1/studio/ai-policies/meta", {
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
   });
 
   it("lists / gets / upserts / deletes / evaluates", async () => {
@@ -65,9 +64,7 @@ describe("aiPoliciesStudio API — FE-S12-02", () => {
       ],
       schema_version: 1,
     };
-    mockedApi.get
-      .mockResolvedValueOnce({ data: [row] })
-      .mockResolvedValueOnce({ data: row });
+    mockedApi.get.mockResolvedValueOnce({ data: [row] }).mockResolvedValueOnce({ data: row });
     mockedApi.post.mockResolvedValueOnce({ data: row }).mockResolvedValueOnce({
       data: {
         allowed: false,
@@ -92,10 +89,9 @@ describe("aiPoliciesStudio API — FE-S12-02", () => {
     });
 
     await getAiPolicy("tenant-1", "pol-1");
-    expect(mockedApi.get).toHaveBeenCalledWith(
-      "/api/v1/studio/ai-policies/pol-1",
-      { headers: { "X-Tenant-Id": "tenant-1" } },
-    );
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/v1/studio/ai-policies/pol-1", {
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
 
     await upsertAiPolicy("tenant-1", {
       name: "Default",
@@ -104,7 +100,7 @@ describe("aiPoliciesStudio API — FE-S12-02", () => {
     expect(mockedApi.post).toHaveBeenCalledWith(
       "/api/v1/studio/ai-policies",
       { name: "Default", guardrails: { "AI-GR-001": true } },
-      { headers: { "X-Tenant-Id": "tenant-1" } },
+      { headers: { "X-Tenant-Id": "tenant-1" } }
     );
 
     await evaluateAiPolicy("tenant-1", {
@@ -121,13 +117,12 @@ describe("aiPoliciesStudio API — FE-S12-02", () => {
         sample_text: "ssn",
         policy_id: "pol-1",
       },
-      { headers: { "X-Tenant-Id": "tenant-1" } },
+      { headers: { "X-Tenant-Id": "tenant-1" } }
     );
 
     await deleteAiPolicy("tenant-1", "pol-1");
-    expect(mockedApi.delete).toHaveBeenCalledWith(
-      "/api/v1/studio/ai-policies/pol-1",
-      { headers: { "X-Tenant-Id": "tenant-1" } },
-    );
+    expect(mockedApi.delete).toHaveBeenCalledWith("/api/v1/studio/ai-policies/pol-1", {
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
   });
 });

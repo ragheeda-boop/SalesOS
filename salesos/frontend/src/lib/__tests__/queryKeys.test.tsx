@@ -46,12 +46,7 @@ describe("queryKeys", () => {
       ]);
     });
     it("suggestions includes query and field", () => {
-      expect(searchKeys.suggestions("acme", "name")).toEqual([
-        "search",
-        "suggest",
-        "acme",
-        "name",
-      ]);
+      expect(searchKeys.suggestions("acme", "name")).toEqual(["search", "suggest", "acme", "name"]);
     });
   });
 
@@ -100,11 +95,7 @@ describe("queryKeys", () => {
 
   describe("activityKeys", () => {
     it("entity returns scoped key", () => {
-      expect(activityKeys.entity("company", "c-1")).toEqual([
-        "activities",
-        "company",
-        "c-1",
-      ]);
+      expect(activityKeys.entity("company", "c-1")).toEqual(["activities", "company", "c-1"]);
     });
   });
 
@@ -143,25 +134,13 @@ describe("queryKeys", () => {
       expect(decisionKeys.evaluate()).toEqual(["decisions", "evaluate"]);
     });
     it("explain includes id", () => {
-      expect(decisionKeys.explain("dec-1")).toEqual([
-        "decisions",
-        "explain",
-        "dec-1",
-      ]);
+      expect(decisionKeys.explain("dec-1")).toEqual(["decisions", "explain", "dec-1"]);
     });
     it("history includes tenantId", () => {
-      expect(decisionKeys.history("t-1")).toEqual([
-        "decisions",
-        "history",
-        "t-1",
-      ]);
+      expect(decisionKeys.history("t-1")).toEqual(["decisions", "history", "t-1"]);
     });
     it("recommendations includes entityId", () => {
-      expect(decisionKeys.recommendations("e-1")).toEqual([
-        "decisions",
-        "recommendations",
-        "e-1",
-      ]);
+      expect(decisionKeys.recommendations("e-1")).toEqual(["decisions", "recommendations", "e-1"]);
     });
   });
 });

@@ -27,7 +27,7 @@ export function SearchSection({
       <div
         className={cn(
           "flex items-center gap-2 px-4 py-2",
-          collapsible && "cursor-pointer hover:bg-[var(--bg-tertiary)]",
+          collapsible && "cursor-pointer hover:bg-[var(--bg-tertiary)]"
         )}
       >
         {icon && <span className="text-[var(--text-muted)]">{icon}</span>}

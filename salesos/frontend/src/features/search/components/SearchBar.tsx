@@ -23,7 +23,7 @@ export function SearchBar({
     (v: string) => {
       if (v.trim().length >= 2) onSearch(v);
     },
-    [onSearch],
+    [onSearch]
   );
 
   return (

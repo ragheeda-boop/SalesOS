@@ -30,11 +30,7 @@ const localeScript = `
 })()
 `;
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
       <head>
@@ -42,10 +38,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#0a0a0a" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-          name="apple-mobile-web-app-status-bar-style"
-          content="black-translucent"
-        />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link
           rel="preconnect"
           href={process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}

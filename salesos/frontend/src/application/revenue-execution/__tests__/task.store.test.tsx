@@ -47,7 +47,7 @@ beforeEach(() => {
   mockedApi.__store.length = 0;
   jest.clearAllMocks();
   mockedApi.get.mockImplementation(() =>
-    Promise.resolve({ data: { items: mockedApi.__store } } as any),
+    Promise.resolve({ data: { items: mockedApi.__store } } as any)
   );
   mockedApi.post.mockImplementation((_url: string, input: any) => {
     const task = {

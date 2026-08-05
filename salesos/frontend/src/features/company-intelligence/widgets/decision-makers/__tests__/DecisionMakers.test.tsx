@@ -67,9 +67,7 @@ describe("DecisionMakersView", () => {
 
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "صناع القرار" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "صناع القرار" })).toBeInTheDocument();
   });
 });
 

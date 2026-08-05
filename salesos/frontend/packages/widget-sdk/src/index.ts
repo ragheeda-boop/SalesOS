@@ -1,10 +1,10 @@
-export { createWidget } from './create-widget'
-export { createDashboardWidget, setDashboardDependencies } from './create-dashboard-widget'
-export { createDecisionEnabledWidget } from './create-decision-widget'
-export { useWidgetLifecycle } from './widget-lifecycle'
-export { widgetTelemetry } from './widget-telemetry'
-export { setPermissionChecker, checkPermissions } from './widget-permissions'
-export { setFeatureFlagResolver, isFeatureEnabled } from './widget-feature-flags'
+export { createWidget } from "./create-widget";
+export { createDashboardWidget, setDashboardDependencies } from "./create-dashboard-widget";
+export { createDecisionEnabledWidget } from "./create-decision-widget";
+export { useWidgetLifecycle } from "./widget-lifecycle";
+export { widgetTelemetry } from "./widget-telemetry";
+export { setPermissionChecker, checkPermissions } from "./widget-permissions";
+export { setFeatureFlagResolver, isFeatureEnabled } from "./widget-feature-flags";
 export type {
   WidgetStatus,
   WidgetPriority,
@@ -23,8 +23,5 @@ export type {
   NBAFeedResponse,
   DecisionWidgetRenderContext,
   DecisionWidgetConfig,
-} from './types'
-export type {
-  DashboardContextValue,
-  WidgetConfigEntry,
-} from './create-dashboard-widget'
+} from "./types";
+export type { DashboardContextValue, WidgetConfigEntry } from "./create-dashboard-widget";

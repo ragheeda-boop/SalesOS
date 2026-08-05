@@ -22,7 +22,7 @@ function tenantHeaders(tenantId: string) {
 
 export async function listCustomFieldSchema(
   tenantId: string,
-  objectKey: StudioObjectKey,
+  objectKey: StudioObjectKey
 ): Promise<CustomObjectSchema> {
   const resp = await api.get<CustomObjectSchema>(`${BASE}/${objectKey}`, {
     headers: tenantHeaders(tenantId),
@@ -32,7 +32,7 @@ export async function listCustomFieldSchema(
 
 export async function createCustomField(
   tenantId: string,
-  body: CustomFieldCreate,
+  body: CustomFieldCreate
 ): Promise<CustomFieldDefinition> {
   const resp = await api.post<CustomFieldDefinition>(BASE, body, {
     headers: tenantHeaders(tenantId),
@@ -42,24 +42,21 @@ export async function createCustomField(
 
 export async function getCustomFieldsFormSchema(
   tenantId: string,
-  objectKey: StudioObjectKey,
+  objectKey: StudioObjectKey
 ): Promise<CustomFieldsFormSchema> {
-  const resp = await api.get<CustomFieldsFormSchema>(
-    `${BASE}/${objectKey}/form-schema`,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.get<CustomFieldsFormSchema>(`${BASE}/${objectKey}/form-schema`, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }
 
 export async function projectCustomFieldValues(
   tenantId: string,
   objectKey: StudioObjectKey,
-  body: CustomFieldValuesRequest,
+  body: CustomFieldValuesRequest
 ): Promise<CustomFieldValuesResponse> {
-  const resp = await api.post<CustomFieldValuesResponse>(
-    `${BASE}/${objectKey}/values`,
-    body,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.post<CustomFieldValuesResponse>(`${BASE}/${objectKey}/values`, body, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }

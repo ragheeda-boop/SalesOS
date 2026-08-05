@@ -26,9 +26,7 @@ interface OpportunityWorkspaceProps {
   opportunityId: string;
 }
 
-export function OpportunityWorkspace({
-  opportunityId,
-}: OpportunityWorkspaceProps) {
+export function OpportunityWorkspace({ opportunityId }: OpportunityWorkspaceProps) {
   // In a full implementation, this would use createWorkspaceProvider
   // from @salesos/workspace. For now, inline data fetching.
 
@@ -38,9 +36,7 @@ export function OpportunityWorkspace({
   useEffect(() => {
     const load = async () => {
       try {
-        const { data } = await api.get(
-          `/api/v1/opportunities/${opportunityId}`,
-        );
+        const { data } = await api.get(`/api/v1/opportunities/${opportunityId}`);
         setOpportunity(data);
       } finally {
         setLoading(false);
@@ -49,10 +45,7 @@ export function OpportunityWorkspace({
     load();
   }, [opportunityId]);
 
-  if (loading)
-    return (
-      <div className="animate-pulse h-96 bg-[var(--bg-tertiary)] rounded-xl" />
-    );
+  if (loading) return <div className="animate-pulse h-96 bg-[var(--bg-tertiary)] rounded-xl" />;
 
   if (!opportunity)
     return (
@@ -75,9 +68,7 @@ export function OpportunityWorkspace({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-display text-[var(--text-primary)]">
-            {opportunity.name}
-          </h1>
+          <h1 className="text-xl font-display text-[var(--text-primary)]">{opportunity.name}</h1>
           <div className="flex items-center gap-3 mt-1">
             <span className="text-sm px-2 py-0.5 rounded-full bg-[var(--bg-secondary)] text-[var(--text-secondary)]">
               {stageLabels[opportunity.stage] || opportunity.stage}
@@ -88,12 +79,9 @@ export function OpportunityWorkspace({
             <span
               className={cn(
                 "text-xs px-2 py-0.5 rounded-full",
-                opportunity.health === "healthy" &&
-                  "bg-success-100 text-success-700",
-                opportunity.health === "at_risk" &&
-                  "bg-warning-100 text-warning-700",
-                opportunity.health === "critical" &&
-                  "bg-danger-100 text-danger-700",
+                opportunity.health === "healthy" && "bg-success-100 text-success-700",
+                opportunity.health === "at_risk" && "bg-warning-100 text-warning-700",
+                opportunity.health === "critical" && "bg-danger-100 text-danger-700"
               )}
             >
               {opportunity.health === "healthy"
@@ -117,12 +105,8 @@ export function OpportunityWorkspace({
 
           {/* Timeline (placeholder — would use Activity Runtime) */}
           <section className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-              النشاطات
-            </h3>
-            <p className="text-sm text-[var(--text-muted)]">
-              سيتم عرض النشاطات قريبًا
-            </p>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">النشاطات</h3>
+            <p className="text-sm text-[var(--text-muted)]">سيتم عرض النشاطات قريبًا</p>
           </section>
         </div>
 
@@ -130,9 +114,7 @@ export function OpportunityWorkspace({
         <div className="space-y-6">
           {/* Company Snapshot */}
           <section className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-              الشركة
-            </h3>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">الشركة</h3>
             <p className="text-sm text-[var(--text-muted)]">
               معلومات الشركة من Company Intelligence
             </p>
@@ -140,12 +122,8 @@ export function OpportunityWorkspace({
 
           {/* Deal Health */}
           <section className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-              صحة الفرصة
-            </h3>
-            <p className="text-sm text-[var(--text-muted)]">
-              مؤشرات الصحة قريبًا
-            </p>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">صحة الفرصة</h3>
+            <p className="text-sm text-[var(--text-muted)]">مؤشرات الصحة قريبًا</p>
           </section>
         </div>
       </div>

@@ -122,9 +122,7 @@ describe("NBAView", () => {
 
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "أفضل إجراء تالي" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "أفضل إجراء تالي" })).toBeInTheDocument();
   });
 
   it("has dark mode variant classes", () => {

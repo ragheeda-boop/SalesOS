@@ -73,18 +73,14 @@ export interface PromptMetaPatchBody {
   category?: string;
 }
 
-export async function getPromptLibraryMeta(
-  tenantId: string,
-): Promise<PromptLibraryMeta> {
+export async function getPromptLibraryMeta(tenantId: string): Promise<PromptLibraryMeta> {
   const resp = await api.get<PromptLibraryMeta>(`${BASE}/meta`, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function listPromptLibrary(
-  tenantId: string,
-): Promise<PromptLibraryEntry[]> {
+export async function listPromptLibrary(tenantId: string): Promise<PromptLibraryEntry[]> {
   const resp = await api.get<PromptLibraryEntry[]>(BASE, {
     headers: tenantHeaders(tenantId),
   });
@@ -93,18 +89,17 @@ export async function listPromptLibrary(
 
 export async function getPromptLibraryEntry(
   tenantId: string,
-  entryId: string,
+  entryId: string
 ): Promise<PromptLibraryEntry> {
-  const resp = await api.get<PromptLibraryEntry>(
-    `${BASE}/${encodeURIComponent(entryId)}`,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.get<PromptLibraryEntry>(`${BASE}/${encodeURIComponent(entryId)}`, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }
 
 export async function createPromptLibraryEntry(
   tenantId: string,
-  body: PromptCreateBody,
+  body: PromptCreateBody
 ): Promise<PromptLibraryEntry> {
   const resp = await api.post<PromptLibraryEntry>(BASE, body, {
     headers: tenantHeaders(tenantId),
@@ -115,25 +110,23 @@ export async function createPromptLibraryEntry(
 export async function patchPromptLibraryMeta(
   tenantId: string,
   entryId: string,
-  body: PromptMetaPatchBody,
+  body: PromptMetaPatchBody
 ): Promise<PromptLibraryEntry> {
-  const resp = await api.patch<PromptLibraryEntry>(
-    `${BASE}/${encodeURIComponent(entryId)}`,
-    body,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.patch<PromptLibraryEntry>(`${BASE}/${encodeURIComponent(entryId)}`, body, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }
 
 export async function addPromptLibraryVersion(
   tenantId: string,
   entryId: string,
-  body: PromptVersionBody,
+  body: PromptVersionBody
 ): Promise<PromptLibraryEntry> {
   const resp = await api.post<PromptLibraryEntry>(
     `${BASE}/${encodeURIComponent(entryId)}/versions`,
     body,
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
@@ -141,23 +134,23 @@ export async function addPromptLibraryVersion(
 export async function rollbackPromptLibrary(
   tenantId: string,
   entryId: string,
-  body: PromptRollbackBody,
+  body: PromptRollbackBody
 ): Promise<PromptLibraryEntry> {
   const resp = await api.post<PromptLibraryEntry>(
     `${BASE}/${encodeURIComponent(entryId)}/rollback`,
     body,
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
 
 export async function deletePromptLibraryEntry(
   tenantId: string,
-  entryId: string,
+  entryId: string
 ): Promise<{ deleted: boolean; id: string }> {
   const resp = await api.delete<{ deleted: boolean; id: string }>(
     `${BASE}/${encodeURIComponent(entryId)}`,
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }

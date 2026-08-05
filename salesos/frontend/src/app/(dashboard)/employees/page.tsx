@@ -76,10 +76,8 @@ const ROLE_OPTIONS = [
 
 function TrendIcon({ trend }: { trend: string | null | undefined }) {
   if (!trend) return null;
-  if (trend === "up")
-    return <TrendingUp className="h-3.5 w-3.5 text-success-500" />;
-  if (trend === "down")
-    return <TrendingDown className="h-3.5 w-3.5 text-danger-500" />;
+  if (trend === "up") return <TrendingUp className="h-3.5 w-3.5 text-success-500" />;
+  if (trend === "down") return <TrendingDown className="h-3.5 w-3.5 text-danger-500" />;
   return <Minus className="h-3.5 w-3.5 text-[var(--text-disabled)]" />;
 }
 
@@ -90,16 +88,10 @@ export default function EmployeesPage() {
   const { toast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-  const [departmentFilter, setDepartmentFilter] = useState(
-    searchParams.get("department") || "",
-  );
+  const [departmentFilter, setDepartmentFilter] = useState(searchParams.get("department") || "");
   const [roleFilter, setRoleFilter] = useState(searchParams.get("role") || "");
-  const [signalMin, setSignalMin] = useState(
-    searchParams.get("signal_min") || "",
-  );
-  const [signalMax, setSignalMax] = useState(
-    searchParams.get("signal_max") || "",
-  );
+  const [signalMin, setSignalMin] = useState(searchParams.get("signal_min") || "");
+  const [signalMax, setSignalMax] = useState(searchParams.get("signal_max") || "");
   const [cursor, setCursor] = useState<string | null>(null);
   const [cursors, setCursors] = useState<string[]>([]);
   const debouncedQuery = useDebounce(searchQuery, 400);
@@ -127,15 +119,11 @@ export default function EmployeesPage() {
   if (signalMax) params.signal_count_max = Number(signalMax);
   if (cursor) params.cursor = cursor;
 
-  const activeFilterCount = [
-    departmentFilter,
-    roleFilter,
-    signalMin,
-    signalMax,
-  ].filter(Boolean).length;
+  const activeFilterCount = [departmentFilter, roleFilter, signalMin, signalMax].filter(
+    Boolean
+  ).length;
 
-  const { data, isLoading, isError, error, refetch } =
-    useEmployeeSearch(params);
+  const { data, isLoading, isError, error, refetch } = useEmployeeSearch(params);
   const bulkEdit = useBulkEditEmployees();
   const bulkDelete = useBulkDeleteEmployees();
 
@@ -221,10 +209,7 @@ export default function EmployeesPage() {
   ]);
 
   const handleBulkDelete = useCallback(async () => {
-    const ids =
-      selectAllAcross && data
-        ? data.data.map((e) => e.id)
-        : Array.from(selectedIds);
+    const ids = selectAllAcross && data ? data.data.map((e) => e.id) : Array.from(selectedIds);
     if (!ids.length) return;
     try {
       await bulkDelete.mutateAsync(ids);
@@ -242,14 +227,7 @@ export default function EmployeesPage() {
         description: "Bulk delete failed",
       });
     }
-  }, [
-    selectedIds,
-    selectAllAcross,
-    data,
-    bulkDelete,
-    handleClearSelection,
-    toast,
-  ]);
+  }, [selectedIds, selectAllAcross, data, bulkDelete, handleClearSelection, toast]);
 
   const handleBulkExport = useCallback(async () => {
     setExportLoading(true);
@@ -257,18 +235,14 @@ export default function EmployeesPage() {
       const exportParams = new URLSearchParams();
       exportParams.set("format", "csv");
       Object.entries(params).forEach(([k, v]) => {
-        if (v !== undefined && v !== "" && v !== null)
-          exportParams.set(k, String(v));
+        if (v !== undefined && v !== "" && v !== null) exportParams.set(k, String(v));
       });
-      const response = await fetch(
-        `/api/v1/employees/export?${exportParams.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-            "X-Tenant-Id": localStorage.getItem("tenant_id") || "default",
-          },
+      const response = await fetch(`/api/v1/employees/export?${exportParams.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "X-Tenant-Id": localStorage.getItem("tenant_id") || "default",
         },
-      );
+      });
       if (!response.ok) throw new Error("Export failed");
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -314,9 +288,7 @@ export default function EmployeesPage() {
           className="flex items-center gap-2 font-medium text-[var(--muhide-orange)] hover:underline"
         >
           <User className="h-4 w-4 shrink-0 text-[var(--text-disabled)]" />
-          <span className="truncate">
-            {row.original.full_name_ar || row.original.full_name}
-          </span>
+          <span className="truncate">{row.original.full_name_ar || row.original.full_name}</span>
         </Link>
       ),
     },
@@ -325,9 +297,7 @@ export default function EmployeesPage() {
       header: t("employees.role"),
       cell: ({ getValue }) => {
         const role = getValue() as string;
-        return (
-          <span className="text-sm text-[var(--text-secondary)]">{role}</span>
-        );
+        return <span className="text-sm text-[var(--text-secondary)]">{role}</span>;
       },
     },
     {
@@ -349,9 +319,7 @@ export default function EmployeesPage() {
       header: "Email",
       cell: ({ getValue }) => {
         const email = getValue() as string;
-        return (
-          <span className="text-sm text-[var(--text-muted)]">{email}</span>
-        );
+        return <span className="text-sm text-[var(--text-muted)]">{email}</span>;
       },
     },
     {
@@ -363,9 +331,7 @@ export default function EmployeesPage() {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setExpandedRow(
-                expandedRow === row.original.id ? null : row.original.id,
-              );
+              setExpandedRow(expandedRow === row.original.id ? null : row.original.id);
             }}
             className="inline-flex items-center gap-1.5 rounded-md bg-[var(--bg-tertiary)] px-2 py-1 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
           >
@@ -405,17 +371,10 @@ export default function EmployeesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            {t("employees.title")}
-          </h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            {t("employees.subtitle")}
-          </p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t("employees.title")}</h1>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">{t("employees.subtitle")}</p>
         </div>
-        <Button
-          leftIcon={<Plus className="h-4 w-4" />}
-          onClick={() => setShowAddModal(true)}
-        >
+        <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setShowAddModal(true)}>
           {t("employees.add_employee")}
         </Button>
       </div>
@@ -621,9 +580,7 @@ export default function EmployeesPage() {
           <div className="px-4 py-12">
             <ErrorFallback
               title={t("employees.load_error")}
-              message={
-                (error as Error)?.message || t("employees.check_backend")
-              }
+              message={(error as Error)?.message || t("employees.check_backend")}
               onRetry={() => refetch()}
               showDetails={process.env.NODE_ENV === "development"}
               errorDetails={String(error)}
@@ -683,9 +640,7 @@ export default function EmployeesPage() {
               disabled={!hasPrev && cursors.length === 0}
               leftIcon={<ChevronRight className="h-4 w-4" />}
             />
-            <span className="text-sm text-[var(--text-muted)]">
-              {cursors.length + 1}
-            </span>
+            <span className="text-sm text-[var(--text-muted)]">{cursors.length + 1}</span>
             <Button
               variant="outline"
               size="sm"
@@ -700,9 +655,7 @@ export default function EmployeesPage() {
       {/* Bulk Edit Modal (F-4) */}
       <Modal open={bulkEditOpen} onOpenChange={setBulkEditOpen}>
         <ModalContent>
-          <ModalHeader>
-            {t("employees.bulk_edit_title", { count: selectionCount })}
-          </ModalHeader>
+          <ModalHeader>{t("employees.bulk_edit_title", { count: selectionCount })}</ModalHeader>
           <ModalBody>
             <div className="space-y-4">
               <div>
@@ -751,9 +704,7 @@ export default function EmployeesPage() {
               onClick={handleBulkEdit}
               disabled={bulkEdit.isPending}
               leftIcon={
-                bulkEdit.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : undefined
+                bulkEdit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined
               }
             >
               {bulkEdit.isPending ? t("common.saving") : t("common.save")}
@@ -776,9 +727,7 @@ export default function EmployeesPage() {
                   }),
                 }}
               />
-              <p className="text-sm text-danger-600">
-                {t("employees.bulk_delete_warning")}
-              </p>
+              <p className="text-sm text-danger-600">{t("employees.bulk_delete_warning")}</p>
             </div>
           </ModalBody>
           <ModalFooter>
@@ -818,9 +767,7 @@ export default function EmployeesPage() {
             <Button variant="outline" onClick={() => setShowAddModal(false)}>
               {t("common.cancel")}
             </Button>
-            <Button onClick={() => setShowAddModal(false)}>
-              {t("common.save")}
-            </Button>
+            <Button onClick={() => setShowAddModal(false)}>{t("common.save")}</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>
@@ -838,8 +785,7 @@ function EmployeeDetailPanel({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
-  const { data: signals, isLoading: signalsLoading } =
-    useEmployeeSignals(employeeId);
+  const { data: signals, isLoading: signalsLoading } = useEmployeeSignals(employeeId);
   const [activeTab, setActiveTab] = useState<"signals" | "score">("signals");
 
   return (
@@ -848,12 +794,7 @@ function EmployeeDetailPanel({
         <h3 className="text-lg font-bold text-[var(--text-primary)]">
           {employee?.full_name_ar || employee?.full_name || employeeId}
         </h3>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onClose}
-          leftIcon={<X className="h-3 w-3" />}
-        >
+        <Button variant="outline" size="sm" onClick={onClose} leftIcon={<X className="h-3 w-3" />}>
           Close
         </Button>
       </div>
@@ -901,22 +842,13 @@ function EmployeeDetailPanel({
               </h4>
               <div className="space-y-1.5">
                 {signals.by_type.map((s) => (
-                  <div
-                    key={s.type}
-                    className="flex items-center justify-between text-xs"
-                  >
-                    <span className="text-[var(--text-secondary)]">
-                      {s.label}
-                    </span>
-                    <span className="font-medium text-[var(--text-primary)]">
-                      {s.count}
-                    </span>
+                  <div key={s.type} className="flex items-center justify-between text-xs">
+                    <span className="text-[var(--text-secondary)]">{s.label}</span>
+                    <span className="font-medium text-[var(--text-primary)]">{s.count}</span>
                   </div>
                 ))}
                 {signals.by_type.length === 0 && (
-                  <p className="text-xs text-[var(--text-disabled)]">
-                    No signals
-                  </p>
+                  <p className="text-xs text-[var(--text-disabled)]">No signals</p>
                 )}
               </div>
             </div>
@@ -929,22 +861,13 @@ function EmployeeDetailPanel({
               </h4>
               <div className="space-y-1.5">
                 {signals.by_source.map((s) => (
-                  <div
-                    key={s.source}
-                    className="flex items-center justify-between text-xs"
-                  >
-                    <span className="text-[var(--text-secondary)]">
-                      {s.label}
-                    </span>
-                    <span className="font-medium text-[var(--text-primary)]">
-                      {s.count}
-                    </span>
+                  <div key={s.source} className="flex items-center justify-between text-xs">
+                    <span className="text-[var(--text-secondary)]">{s.label}</span>
+                    <span className="font-medium text-[var(--text-primary)]">{s.count}</span>
                   </div>
                 ))}
                 {signals.by_source.length === 0 && (
-                  <p className="text-xs text-[var(--text-disabled)]">
-                    No sources
-                  </p>
+                  <p className="text-xs text-[var(--text-disabled)]">No sources</p>
                 )}
               </div>
             </div>
@@ -957,26 +880,19 @@ function EmployeeDetailPanel({
               </h4>
               <div className="space-y-1.5">
                 {signals.trend.map((p) => (
-                  <div
-                    key={p.date}
-                    className="flex items-center justify-between text-xs"
-                  >
+                  <div key={p.date} className="flex items-center justify-between text-xs">
                     <span className="text-[var(--text-muted)]">{p.date}</span>
                     <div className="flex items-center gap-1">
                       <div
                         className="h-2 rounded-full bg-[var(--muhide-orange)]"
                         style={{ width: `${Math.min(100, p.count * 10)}px` }}
                       />
-                      <span className="font-medium text-[var(--text-secondary)]">
-                        {p.count}
-                      </span>
+                      <span className="font-medium text-[var(--text-secondary)]">{p.count}</span>
                     </div>
                   </div>
                 ))}
                 {signals.trend.length === 0 && (
-                  <p className="text-xs text-[var(--text-disabled)]">
-                    No trend data
-                  </p>
+                  <p className="text-xs text-[var(--text-disabled)]">No trend data</p>
                 )}
               </div>
               <p className="mt-2 text-center text-[10px] text-[var(--text-disabled)]">
@@ -985,10 +901,7 @@ function EmployeeDetailPanel({
             </div>
           </div>
         ) : (
-          <EmptyState
-            icon={<Activity className="h-8 w-8" />}
-            title="No signal data"
-          />
+          <EmptyState icon={<Activity className="h-8 w-8" />} title="No signal data" />
         ))}
 
       {activeTab === "score" && <EmployeeScorePanel employeeId={employeeId} />}
@@ -1005,9 +918,7 @@ function EmployeeScorePanel({ employeeId }: { employeeId: string }) {
   }
 
   if (!scoreData) {
-    return (
-      <EmptyState icon={<Brain className="h-8 w-8" />} title="No score data" />
-    );
+    return <EmptyState icon={<Brain className="h-8 w-8" />} title="No score data" />;
   }
 
   const gaugeColor =
@@ -1053,19 +964,13 @@ function EmployeeScorePanel({ employeeId }: { employeeId: string }) {
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-2xl font-bold text-[var(--text-primary)]">
-              {scoreData.score}
-            </span>
+            <span className="text-2xl font-bold text-[var(--text-primary)]">{scoreData.score}</span>
           </div>
         </div>
         <div className="flex items-center gap-1 text-sm">
-          <span className="text-[var(--text-muted)]">
-            {t("employees.score_trend")}:
-          </span>
+          <span className="text-[var(--text-muted)]">{t("employees.score_trend")}:</span>
           {trendIcon}
-          <span className="text-xs text-[var(--text-disabled)] capitalize">
-            {scoreData.trend}
-          </span>
+          <span className="text-xs text-[var(--text-disabled)] capitalize">{scoreData.trend}</span>
         </div>
       </div>
 
@@ -1080,9 +985,7 @@ function EmployeeScorePanel({ employeeId }: { employeeId: string }) {
             <div key={f.name}>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-[var(--text-secondary)]">{f.label}</span>
-                <span className="font-medium text-[var(--text-primary)]">
-                  +{f.contribution}
-                </span>
+                <span className="font-medium text-[var(--text-primary)]">+{f.contribution}</span>
               </div>
               <div className="mt-0.5 h-1.5 w-full overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
                 <div
@@ -1093,18 +996,14 @@ function EmployeeScorePanel({ employeeId }: { employeeId: string }) {
             </div>
           ))}
           {scoreData.factors.length === 0 && (
-            <p className="text-xs text-[var(--text-disabled)]">
-              No factors available
-            </p>
+            <p className="text-xs text-[var(--text-disabled)]">No factors available</p>
           )}
         </div>
       </div>
 
       {/* Confidence (F-3) */}
       <div className="flex items-center gap-2 rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2">
-        <span className="text-xs text-[var(--text-muted)]">
-          {t("employees.score_confidence")}:
-        </span>
+        <span className="text-xs text-[var(--text-muted)]">{t("employees.score_confidence")}:</span>
         <div className="h-2 flex-1 overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
           <div
             className="h-full rounded-full bg-info-500"

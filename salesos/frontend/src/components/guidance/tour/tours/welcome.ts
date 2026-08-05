@@ -25,8 +25,7 @@ export const WELCOME_TOUR: TourStep[] = [
   {
     target: "[data-tour='search']",
     title: "البحث في كل شيء",
-    description:
-      "ابحث عن الشركات، جهات الاتصال، والفرص بسرعة من شريط البحث الذكي.",
+    description: "ابحث عن الشركات، جهات الاتصال، والفرص بسرعة من شريط البحث الذكي.",
     position: "bottom",
   },
   {

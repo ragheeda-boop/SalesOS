@@ -41,13 +41,8 @@ export function NBAWidgetView({
   if (error) {
     return (
       <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4 text-center">
-        <p className="text-sm text-[var(--text-muted)] mb-2">
-          تعذر تحميل التوصية
-        </p>
-        <button
-          onClick={onRetry}
-          className="text-sm text-[var(--muhide-orange)] hover:underline"
-        >
+        <p className="text-sm text-[var(--text-muted)] mb-2">تعذر تحميل التوصية</p>
+        <button onClick={onRetry} className="text-sm text-[var(--muhide-orange)] hover:underline">
           حاول مرة أخرى
         </button>
       </div>
@@ -57,9 +52,7 @@ export function NBAWidgetView({
   if (!recommendation) {
     return (
       <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4 text-center">
-        <p className="text-sm text-[var(--text-muted)]">
-          لا توجد توصيات متاحة حاليًا
-        </p>
+        <p className="text-sm text-[var(--text-muted)]">لا توجد توصيات متاحة حاليًا</p>
         <button
           onClick={onRefresh}
           className="text-sm text-[var(--muhide-orange)] hover:underline mt-1"

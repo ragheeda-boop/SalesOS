@@ -19,9 +19,7 @@ export default function DashboardError({
         <div className="rounded-full bg-[var(--status-danger-bg)] w-16 h-16 flex items-center justify-center mx-auto">
           <span className="text-2xl">!</span>
         </div>
-        <h1 className="text-xl font-display text-[var(--text-primary)]">
-          Something went wrong
-        </h1>
+        <h1 className="text-xl font-display text-[var(--text-primary)]">Something went wrong</h1>
         <p className="text-sm text-[var(--text-muted)]">
           An unexpected error occurred. Please try again.
         </p>

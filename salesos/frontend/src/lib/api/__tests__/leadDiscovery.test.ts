@@ -1,8 +1,4 @@
-import {
-  getLeadDiscoveryMeta,
-  listLeadDiscovery,
-  runLeadDiscovery,
-} from "../leadDiscovery";
+import { getLeadDiscoveryMeta, listLeadDiscovery, runLeadDiscovery } from "../leadDiscovery";
 
 jest.mock("../client", () => ({
   __esModule: true,
@@ -35,18 +31,12 @@ describe("leadDiscovery API — FE-S11-03", () => {
       },
     });
     const meta = await getLeadDiscoveryMeta("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/lead-discovery/meta",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/lead-discovery/meta", expect.any(Object));
     expect(meta.sourcing_order[0]).toBe("government");
 
     mocked.get.mockResolvedValueOnce({ data: [] });
     await listLeadDiscovery("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/lead-discovery",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/lead-discovery", expect.any(Object));
   });
 
   it("POSTs tip discover", async () => {
@@ -91,7 +81,7 @@ describe("leadDiscovery API — FE-S11-03", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/gtm/lead-discovery",
       expect.objectContaining({ name: "Pilot" }),
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(row.government_first_ok).toBe(true);
     expect(row.leads[0].source).toBe("government");

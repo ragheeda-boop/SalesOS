@@ -32,7 +32,7 @@ export default function V3ContactsPage() {
       page: 1,
       page_size: 50,
     }),
-    [debouncedQ],
+    [debouncedQ]
   );
 
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
@@ -53,9 +53,7 @@ export default function V3ContactsPage() {
         actions={
           <div className="flex flex-wrap gap-2">
             <GhostButtonLink href="/v3/companies">Companies</GhostButtonLink>
-            <GhostButtonLink href="/contacts">
-              Open legacy contacts
-            </GhostButtonLink>
+            <GhostButtonLink href="/contacts">Open legacy contacts</GhostButtonLink>
           </div>
         }
       />
@@ -77,14 +75,9 @@ export default function V3ContactsPage() {
                 className="w-full max-w-md rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm outline-none focus:border-[var(--muhide-orange)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
               />
             </label>
-            <p
-              className="text-[12px] text-[var(--text-muted)]"
-              aria-live="polite"
-            >
+            <p className="text-[12px] text-[var(--text-muted)]" aria-live="polite">
               {isFetching && !isLoading ? "Updating… · " : null}
-              {!isLoading && !isError
-                ? `${total} result${total === 1 ? "" : "s"}`
-                : null}
+              {!isLoading && !isError ? `${total} result${total === 1 ? "" : "s"}` : null}
             </p>
           </div>
 
@@ -93,9 +86,7 @@ export default function V3ContactsPage() {
           ) : isError ? (
             <ErrorState
               title="Could not load contacts"
-              description={
-                error instanceof Error ? error.message : "Request failed"
-              }
+              description={error instanceof Error ? error.message : "Request failed"}
               onRetry={() => void refetch()}
             />
           ) : items.length === 0 ? (
@@ -116,9 +107,7 @@ export default function V3ContactsPage() {
                     Clear search
                   </button>
                 ) : (
-                  <GhostButtonLink href="/contacts">
-                    Open legacy contacts
-                  </GhostButtonLink>
+                  <GhostButtonLink href="/contacts">Open legacy contacts</GhostButtonLink>
                 )
               }
             />
@@ -159,9 +148,7 @@ export default function V3ContactsPage() {
                             {contactDisplayName(contact)}
                           </Link>
                           {contact.is_primary ? (
-                            <p className="mt-0.5 text-[12px] text-[var(--text-muted)]">
-                              Primary
-                            </p>
+                            <p className="mt-0.5 text-[12px] text-[var(--text-muted)]">Primary</p>
                           ) : null}
                         </td>
                         <td className="px-3 py-2.5 text-[var(--text-secondary)]">

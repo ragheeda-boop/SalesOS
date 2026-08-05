@@ -1,17 +1,11 @@
 "use client";
 
-import {
-  useEmployeeSignals,
-  useEmployeeScore,
-} from "@/lib/hooks/employeeQueries";
+import { useEmployeeSignals, useEmployeeScore } from "@/lib/hooks/employeeQueries";
 import { Avatar, Badge } from "@salesos/ui";
 import { Phone, Mail, Users } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { StatBox } from "./employee-360-shared";
-import {
-  RecentActivityFeed,
-  OverviewSkeleton,
-} from "./employee-360-expandable";
+import { RecentActivityFeed, OverviewSkeleton } from "./employee-360-expandable";
 
 export { OverviewSkeleton };
 
@@ -44,8 +38,7 @@ function ProfileCard({
           />
           <div className="flex-1 pt-2">
             <h1 className="text-xl font-bold text-[var(--text-primary)]">
-              {(profile.full_name_ar as string) ||
-                (profile.full_name as string)}
+              {(profile.full_name_ar as string) || (profile.full_name as string)}
             </h1>
             <p className="text-sm text-[var(--text-muted)]">
               {profile.role as string}
@@ -79,14 +72,12 @@ function ProfileCard({
         <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-[var(--border-subtle)] pt-4">
           {profile.manager && (
             <div className="flex items-center gap-2 text-sm">
-              <span className="text-[var(--text-muted)]">
-                {t("employee.manager")}
-              </span>
+              <span className="text-[var(--text-muted)]">{t("employee.manager")}</span>
               <span className="font-medium text-[var(--text-primary)]">
                 {String(
                   (profile.manager as Record<string, unknown>).full_name ||
                     (profile.manager as Record<string, unknown>).name ||
-                    t("employee.unknown"),
+                    t("employee.unknown")
                 )}
               </span>
             </div>
@@ -101,27 +92,20 @@ function ProfileCard({
                   })}
                 </span>
                 <div className="flex -space-x-2">
-                  {(profile.team as Record<string, unknown>[])
-                    .slice(0, 5)
-                    .map((member, i) => (
-                      <span
-                        key={i}
-                        title={String(member.full_name || member.name)}
-                      >
-                        <Avatar
-                          size="sm"
-                          fallback={String(
-                            member.full_name || member.name || "",
-                          )
-                            .split("")
-                            .map((n: string) => n[0])
-                            .join("")
-                            .slice(0, 2)
-                            .toUpperCase()}
-                          className="h-6 w-6 border-2 border-white text-[8px]"
-                        />
-                      </span>
-                    ))}
+                  {(profile.team as Record<string, unknown>[]).slice(0, 5).map((member, i) => (
+                    <span key={i} title={String(member.full_name || member.name)}>
+                      <Avatar
+                        size="sm"
+                        fallback={String(member.full_name || member.name || "")
+                          .split("")
+                          .map((n: string) => n[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase()}
+                        className="h-6 w-6 border-2 border-white text-[8px]"
+                      />
+                    </span>
+                  ))}
                   {(profile.team as Record<string, unknown>[]).length > 5 && (
                     <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[var(--bg-tertiary)] text-[8px] font-bold text-[var(--text-secondary)]">
                       +{(profile.team as Record<string, unknown>[]).length - 5}
@@ -187,9 +171,7 @@ function QuickStatsRow({
         icon={Users}
         label={t("emp360.risk_level")}
         value={
-          <span className={riskLevel ? riskColor : "text-[var(--text-muted)]"}>
-            {riskLabel}
-          </span>
+          <span className={riskLevel ? riskColor : "text-[var(--text-muted)]"}>{riskLabel}</span>
         }
         color={
           riskLevel === "high"
@@ -204,9 +186,10 @@ function QuickStatsRow({
       <StatBox
         icon={Users}
         label={t("emp360.tenure")}
-        value={new Date(
-          (data.profile.created_at as string) || "",
-        ).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+        value={new Date((data.profile.created_at as string) || "").toLocaleDateString("en-US", {
+          month: "short",
+          year: "numeric",
+        })}
         color="bg-[var(--bg-secondary)] text-[var(--text-secondary)]/50"
       />
     </div>
@@ -221,16 +204,13 @@ export function EmployeeOverview({
   data: { profile: Record<string, unknown> } & Record<string, unknown>;
 }) {
   const { t } = useTranslation();
-  const { data: signals, isLoading: signalsLoading } =
-    useEmployeeSignals(employeeId);
-  const { data: scoreData, isLoading: scoreLoading } =
-    useEmployeeScore(employeeId);
+  const { data: signals, isLoading: signalsLoading } = useEmployeeSignals(employeeId);
+  const { data: scoreData, isLoading: scoreLoading } = useEmployeeScore(employeeId);
 
   if (signalsLoading || scoreLoading) return <OverviewSkeleton />;
 
   const emailCount = Number(
-    (data as { email_intelligence?: { total?: number } }).email_intelligence
-      ?.total ?? 0,
+    (data as { email_intelligence?: { total?: number } }).email_intelligence?.total ?? 0
   );
   const meetingCount = Number(
     (
@@ -238,23 +218,19 @@ export function EmployeeOverview({
         calendar_intelligence?: { total?: number; month_count?: number };
       }
     ).calendar_intelligence?.total ??
-      (data as { calendar_intelligence?: { month_count?: number } })
-        .calendar_intelligence?.month_count ??
-      0,
+      (data as { calendar_intelligence?: { month_count?: number } }).calendar_intelligence
+        ?.month_count ??
+      0
   );
-  const signalTotal = Number(
-    (signals as { total?: number } | undefined)?.total ?? 0,
-  );
-  const noSyncData =
-    emailCount === 0 && meetingCount === 0 && signalTotal === 0;
+  const signalTotal = Number((signals as { total?: number } | undefined)?.total ?? 0);
+  const noSyncData = emailCount === 0 && meetingCount === 0 && signalTotal === 0;
 
   return (
     <div className="space-y-4">
       {noSyncData && (
         <div className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-2 text-xs text-[var(--text-muted)]">
-          No Gmail/Calendar sync data for this employee yet. Empty signals and
-          timeline are honest — connect Google under Settings → Integrations,
-          then run Sync.
+          No Gmail/Calendar sync data for this employee yet. Empty signals and timeline are honest —
+          connect Google under Settings → Integrations, then run Sync.
         </div>
       )}
       <ProfileCard data={data} t={t} />

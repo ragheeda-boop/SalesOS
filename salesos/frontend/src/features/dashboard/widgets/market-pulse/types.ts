@@ -1,7 +1,4 @@
-import type {
-  MarketTrend,
-  CompanyMover,
-} from "@/application/dashboard/dashboard.dto";
+import type { MarketTrend, CompanyMover } from "@/application/dashboard/dashboard.dto";
 
 export interface MarketPulseViewProps {
   trends: MarketTrend[];

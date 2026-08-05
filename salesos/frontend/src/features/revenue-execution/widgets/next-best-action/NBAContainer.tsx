@@ -8,28 +8,18 @@ import type { NextBestAction } from "@/application/revenue-execution/nba.dto";
 import { NBAView } from "./NBAView";
 
 function mapDecisionToNBA(result: DecisionResult): NextBestAction {
-  const score =
-    result.scores.find((s) => s.type === "confidence")?.value ?? 0.5;
+  const score = result.scores.find((s) => s.type === "confidence")?.value ?? 0.5;
   const revScore = result.scores.find((s) => s.type === "revenue");
 
   return {
     actionId: result.decisionId ?? result.id,
     actionLabel: result.recommendation?.actionLabel ?? result.action,
-    actionType: (result.recommendation?.action ??
-      result.action) as NextBestAction["actionType"],
+    actionType: (result.recommendation?.action ?? result.action) as NextBestAction["actionType"],
     reasoning: result.recommendation?.reason ?? result.reasoning,
     confidence: result.recommendation?.confidence ?? result.confidence,
-    priority:
-      score >= 0.8
-        ? "critical"
-        : score >= 0.6
-          ? "high"
-          : score >= 0.4
-            ? "medium"
-            : "low",
+    priority: score >= 0.8 ? "critical" : score >= 0.6 ? "high" : score >= 0.4 ? "medium" : "low",
     score,
-    expectedRevenue:
-      typeof result.explainability?.expectedImpact === "string" ? 0 : 0,
+    expectedRevenue: typeof result.explainability?.expectedImpact === "string" ? 0 : 0,
     expectedImpact: score >= 0.7 ? "high" : score >= 0.4 ? "medium" : "low",
     estimatedTime: result.explainability?.expectedTime ?? "—",
     contextSummary: result.explainability?.why ?? "",
@@ -43,8 +33,7 @@ function mapDecisionToNBA(result: DecisionResult): NextBestAction {
     createsOpportunity: score >= 0.4,
     scoreBreakdown: {
       buyingIntent: result.scores.find((s) => s.type === "intent")?.value ?? 0,
-      relationshipStrength:
-        result.scores.find((s) => s.type === "relationship")?.value ?? 0,
+      relationshipStrength: result.scores.find((s) => s.type === "relationship")?.value ?? 0,
       signalRecency:
         result.scores
           .find((s) => s.type === "confidence")
@@ -69,7 +58,7 @@ function NBAWidgetInner({ action }: { action: NextBestAction }) {
         revenueImpact: a.expectedRevenue,
       });
     },
-    [decision],
+    [decision]
   );
 
   return <NBAView action={action} onExecute={handleExecute} />;

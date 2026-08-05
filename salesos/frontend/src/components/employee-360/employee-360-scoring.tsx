@@ -12,10 +12,7 @@ import type { Score } from "@salesos/decision-platform";
 
 export function EmployeeScoring({ employeeId }: { employeeId: string }) {
   const { t } = useTranslation();
-  const { data: decisionScores, isLoading: dpLoading } = useDecisionScores(
-    employeeId,
-    "employee",
-  );
+  const { data: decisionScores, isLoading: dpLoading } = useDecisionScores(employeeId, "employee");
   const {
     data: scoreData,
     isLoading: domainLoading,
@@ -54,12 +51,11 @@ export function EmployeeScoring({ employeeId }: { employeeId: string }) {
     ? scoreData.score
     : Math.round(
         (decisionScores!.reduce(
-          (sum: number, s: Score) =>
-            sum + (typeof s.value === "number" ? s.value : 0),
-          0,
+          (sum: number, s: Score) => sum + (typeof s.value === "number" ? s.value : 0),
+          0
         ) /
           decisionScores!.length) *
-          100,
+          100
       );
 
   const factors = hasDpScores
@@ -85,11 +81,7 @@ export function EmployeeScoring({ employeeId }: { employeeId: string }) {
         factors={factors}
       />
       {hasDomainScore && factors.length > 0 && (
-        <CoachingInsights
-          score={gaugeScore}
-          factors={factors}
-          trend={scoreData.trend}
-        />
+        <CoachingInsights score={gaugeScore} factors={factors} trend={scoreData.trend} />
       )}
     </div>
   );

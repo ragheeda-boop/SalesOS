@@ -61,11 +61,7 @@ export default function AIPage() {
   };
 
   if (loading)
-    return (
-      <div className="p-8 text-center text-[var(--text-muted)]">
-        {t("common.loading")}
-      </div>
-    );
+    return <div className="p-8 text-center text-[var(--text-muted)]">{t("common.loading")}</div>;
 
   return (
     <div className="p-6 space-y-6">
@@ -83,9 +79,7 @@ export default function AIPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-2 max-h-[70vh] overflow-y-auto">
           {prompts.length === 0 && (
-            <p className="text-[var(--text-muted)] p-4">
-              {t("common.no_results")}
-            </p>
+            <p className="text-[var(--text-muted)] p-4">{t("common.no_results")}</p>
           )}
           {prompts.map((p) => (
             <div
@@ -95,14 +89,12 @@ export default function AIPage() {
                 "rounded-lg border p-3 cursor-pointer hover:border-[var(--muhide-orange)] transition",
                 selected?.id === p.id &&
                   "border-[var(--muhide-orange)] bg-[var(--muhide-orange)]/5",
-                p.is_active && "border-l-4 border-l-green-500",
+                p.is_active && "border-l-4 border-l-green-500"
               )}
             >
               <div className="flex items-center justify-between">
                 <span className="font-medium text-sm">{p.name}</span>
-                <span className="text-xs text-[var(--text-disabled)]">
-                  v{p.version}
-                </span>
+                <span className="text-xs text-[var(--text-disabled)]">v{p.version}</span>
               </div>
               {p.metrics && (
                 <div className="flex gap-3 mt-1 text-xs text-[var(--text-muted)]">
@@ -133,7 +125,7 @@ export default function AIPage() {
                     "px-3 py-1 rounded text-sm",
                     selected.is_active
                       ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)]"
-                      : "bg-[var(--bg-tertiary)] hover:bg-[var(--muhide-orange)]/10 text-[var(--text-secondary)] hover:text-[var(--muhide-orange)]",
+                      : "bg-[var(--bg-tertiary)] hover:bg-[var(--muhide-orange)]/10 text-[var(--text-secondary)] hover:text-[var(--muhide-orange)]"
                   )}
                 >
                   {selected.is_active ? t("ai.active") : t("ai.activate")}

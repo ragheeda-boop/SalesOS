@@ -1,10 +1,7 @@
 "use client";
 
 import { type ReactNode } from "react";
-import type {
-  DashboardWidget,
-  WidgetStatus,
-} from "@/application/dashboard/widget.contract";
+import type { DashboardWidget, WidgetStatus } from "@/application/dashboard/widget.contract";
 import { DashboardErrorBoundary } from "../_layout/dashboard-error-boundary";
 import { getWidgetConfig, type WidgetId } from "../_registry/widget-config";
 
@@ -28,11 +25,7 @@ interface WidgetCardProps<T> {
   children: ReactNode;
 }
 
-export function WidgetCard<T>({
-  widget,
-  widgetId,
-  children,
-}: WidgetCardProps<T>) {
+export function WidgetCard<T>({ widget, widgetId, children }: WidgetCardProps<T>) {
   const config = getWidgetConfig(widgetId);
   const showStatus = widget.status !== "ready";
 
@@ -60,9 +53,7 @@ export function WidgetCard<T>({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <h3 style={{ margin: 0, fontSize: "0.9375rem", fontWeight: 600 }}>
-              {widget.title}
-            </h3>
+            <h3 style={{ margin: 0, fontSize: "0.9375rem", fontWeight: 600 }}>{widget.title}</h3>
             {showStatus && (
               <span
                 style={{
@@ -146,9 +137,7 @@ export function WidgetCard<T>({
           {widget.status === "degraded" && (
             <>
               <div style={{ position: "relative" }}>
-                <div style={{ opacity: 0.5, filter: "blur(0.5px)" }}>
-                  {children}
-                </div>
+                <div style={{ opacity: 0.5, filter: "blur(0.5px)" }}>{children}</div>
                 <div
                   style={{
                     position: "absolute",

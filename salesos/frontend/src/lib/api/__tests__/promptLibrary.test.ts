@@ -50,7 +50,7 @@ describe("promptLibrary API — FE-S12-01", () => {
     expect(meta.feature_ai_copilot).toBe(false);
     expect(mocked.get).toHaveBeenCalledWith(
       "/api/v1/studio/prompt-library/meta",
-      expect.any(Object),
+      expect.any(Object)
     );
 
     const entry = {
@@ -88,7 +88,7 @@ describe("promptLibrary API — FE-S12-01", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/studio/prompt-library",
       expect.objectContaining({ key: "gtm.intro.v1" }),
-      expect.any(Object),
+      expect.any(Object)
     );
 
     mocked.post.mockResolvedValueOnce({
@@ -102,7 +102,7 @@ describe("promptLibrary API — FE-S12-01", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/studio/prompt-library/pl-1/versions",
       expect.objectContaining({ version: "1.0.1" }),
-      expect.any(Object),
+      expect.any(Object)
     );
 
     mocked.post.mockResolvedValueOnce({ data: entry });
@@ -110,7 +110,7 @@ describe("promptLibrary API — FE-S12-01", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/studio/prompt-library/pl-1/rollback",
       { version: "1.0.0" },
-      expect.any(Object),
+      expect.any(Object)
     );
 
     mocked.delete.mockResolvedValueOnce({
@@ -119,7 +119,7 @@ describe("promptLibrary API — FE-S12-01", () => {
     await deletePromptLibraryEntry("tenant-1", "pl-1");
     expect(mocked.delete).toHaveBeenCalledWith(
       "/api/v1/studio/prompt-library/pl-1",
-      expect.any(Object),
+      expect.any(Object)
     );
   });
 });

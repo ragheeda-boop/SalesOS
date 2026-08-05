@@ -8,8 +8,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const nextPublicRaw =
-    process.env.NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE ?? null;
+  const nextPublicRaw = process.env.NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE ?? null;
   const nextPublicBaked = nextPublicRaw === "true";
   const serverFeature = process.env.FEATURE_HTTPONLY_ACCESS_COOKIE === "true";
 

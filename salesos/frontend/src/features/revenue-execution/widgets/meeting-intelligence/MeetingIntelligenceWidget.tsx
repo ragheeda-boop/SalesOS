@@ -51,10 +51,7 @@ export function MeetingIntelligenceWidget({ opportunityId }: Props) {
     load();
   }, [opportunityId]);
 
-  if (loading)
-    return (
-      <div className="animate-pulse h-64 bg-[var(--bg-tertiary)] rounded-xl" />
-    );
+  if (loading) return <div className="animate-pulse h-64 bg-[var(--bg-tertiary)] rounded-xl" />;
 
   return (
     <div className="space-y-4">
@@ -66,7 +63,7 @@ export function MeetingIntelligenceWidget({ opportunityId }: Props) {
             "px-3 py-1.5 text-sm rounded-lg",
             activeTab === "brief"
               ? "bg-[var(--muhide-orange)] text-white"
-              : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+              : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
           )}
         >
           تحضير الاجتماع
@@ -77,7 +74,7 @@ export function MeetingIntelligenceWidget({ opportunityId }: Props) {
             "px-3 py-1.5 text-sm rounded-lg",
             activeTab === "meetings"
               ? "bg-[var(--muhide-orange)] text-white"
-              : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+              : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
           )}
         >
           الاجتماعات السابقة
@@ -89,9 +86,7 @@ export function MeetingIntelligenceWidget({ opportunityId }: Props) {
           {/* AI Summary */}
           {brief.ai_summary && (
             <div className="rounded-xl border border-[var(--muhide-orange)]/20 bg-[var(--muhide-orange)]/5 p-4">
-              <h4 className="text-sm font-semibold text-[var(--muhide-orange)] mb-2">
-                ملخص ذكي
-              </h4>
+              <h4 className="text-sm font-semibold text-[var(--muhide-orange)] mb-2">ملخص ذكي</h4>
               <p className="text-sm text-[var(--text-primary)] leading-relaxed">
                 {brief.ai_summary}
               </p>
@@ -105,16 +100,11 @@ export function MeetingIntelligenceWidget({ opportunityId }: Props) {
             </h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <span className="text-[var(--text-muted)]">
-                الفرصة:{" "}
-                <span className="text-[var(--text-primary)]">
-                  {brief.opportunity_name}
-                </span>
+                الفرصة: <span className="text-[var(--text-primary)]">{brief.opportunity_name}</span>
               </span>
               <span className="text-[var(--text-muted)]">
                 المرحلة:{" "}
-                <span className="text-[var(--text-primary)]">
-                  {brief.opportunity_stage}
-                </span>
+                <span className="text-[var(--text-primary)]">{brief.opportunity_stage}</span>
               </span>
               <span className="text-[var(--text-muted)]">
                 القيمة:{" "}
@@ -148,9 +138,7 @@ export function MeetingIntelligenceWidget({ opportunityId }: Props) {
           {/* Talking Points */}
           {brief.talking_points.length > 0 && (
             <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-              <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">
-                نقاط الحديث
-              </h4>
+              <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">نقاط الحديث</h4>
               <ul className="space-y-1">
                 {brief.talking_points.map((p, i) => (
                   <li
@@ -216,23 +204,19 @@ export function MeetingIntelligenceWidget({ opportunityId }: Props) {
                 className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4"
               >
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-medium text-[var(--text-primary)]">
-                    {m.title}
-                  </h4>
+                  <h4 className="text-sm font-medium text-[var(--text-primary)]">{m.title}</h4>
                   <span
                     className={cn(
                       "text-xs",
-                      m.status === "completed"
-                        ? "text-success-600"
-                        : "text-warning-600",
+                      m.status === "completed" ? "text-success-600" : "text-warning-600"
                     )}
                   >
                     {m.status === "completed" ? "مكتمل" : "مجدول"}
                   </span>
                 </div>
                 <p className="text-xs text-[var(--text-muted)] mt-1">
-                  {new Date(m.meeting_date).toLocaleDateString("ar-SA")} •{" "}
-                  {m.duration_minutes} دقيقة
+                  {new Date(m.meeting_date).toLocaleDateString("ar-SA")} • {m.duration_minutes}{" "}
+                  دقيقة
                 </p>
                 {m.notes && (
                   <p className="text-xs text-[var(--text-secondary)] mt-2 line-clamp-2">

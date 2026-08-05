@@ -73,19 +73,13 @@ export function OwnerConsoleShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  const kind: JwtAudienceKind = useMemo(
-    () => classifyJwtAudience(token),
-    [token],
-  );
+  const kind: JwtAudienceKind = useMemo(() => classifyJwtAudience(token), [token]);
   const aud = useMemo(() => getJwtAudience(token), [token]);
-  const honesty = useMemo(
-    () => formatOwnerAudienceHonesty(kind, aud),
-    [kind, aud],
-  );
+  const honesty = useMemo(() => formatOwnerAudienceHonesty(kind, aud), [kind, aud]);
   const hostKind = useMemo(() => classifyOwnerHost(hostname), [hostname]);
   const hostHonesty = useMemo(
     () => formatOwnerHostHonesty(hostKind, hostname),
-    [hostKind, hostname],
+    [hostKind, hostname]
   );
   const ownerOk = kind === "owner";
 
@@ -100,13 +94,11 @@ export function OwnerConsoleShell({ children }: { children: ReactNode }) {
             <p className="text-xs uppercase tracking-wide text-[var(--text-muted)]">
               Owner Console (EPIC-07)
             </p>
-            <h1 className="text-lg font-semibold text-[var(--text-primary)]">
-              Platform Ops shell
-            </h1>
+            <h1 className="text-lg font-semibold text-[var(--text-primary)]">Platform Ops shell</h1>
             <p className="text-xs text-[var(--text-muted)]">
               Audience target: <code>{OWNER_JWT_AUDIENCE}</code>. Host target:{" "}
-              <code>{OWNER_CONSOLE_HOST}</code> (separate deploy; not claimed
-              live). Not Production GO.
+              <code>{OWNER_CONSOLE_HOST}</code> (separate deploy; not claimed live). Not Production
+              GO.
             </p>
           </div>
           <nav
@@ -125,7 +117,7 @@ export function OwnerConsoleShell({ children }: { children: ReactNode }) {
                     "rounded-md px-3 py-1.5 text-sm min-h-[36px] inline-flex items-center",
                     active
                       ? "bg-[var(--muhide-orange)]/15 text-[var(--muhide-orange)] font-medium"
-                      : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]",
+                      : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
                   )}
                 >
                   {item.label}
@@ -154,10 +146,9 @@ export function OwnerConsoleShell({ children }: { children: ReactNode }) {
           className="mt-1 text-xs text-[var(--text-muted)]"
           data-testid="owner-console-readpath-honesty"
         >
-          Phase 1 Ops surfaces: tenants + billing + flags/config/audit. Deferred
-          write actions (manual refund, suspend override beyond existing
-          lifecycle APIs) stay later-increment. Owner login mint is DEC-093
-          follow-up — not invented here. Not Production GO.
+          Phase 1 Ops surfaces: tenants + billing + flags/config/audit. Deferred write actions
+          (manual refund, suspend override beyond existing lifecycle APIs) stay later-increment.
+          Owner login mint is DEC-093 follow-up — not invented here. Not Production GO.
         </p>
       </header>
 
@@ -169,9 +160,8 @@ export function OwnerConsoleShell({ children }: { children: ReactNode }) {
           <p className="font-medium">Owner audience required for admin APIs</p>
           <p className="mt-1">{honesty}</p>
           <p className="mt-2 text-xs">
-            STORY-07-03: shell + nav stay available for Ops UX; BE `owner_auth`
-            still rejects tenant `salesos-api` tokens on `/api/v1/admin/*`.
-            Owner login mint remains DEC-093 follow-up.
+            STORY-07-03: shell + nav stay available for Ops UX; BE `owner_auth` still rejects tenant
+            `salesos-api` tokens on `/api/v1/admin/*`. Owner login mint remains DEC-093 follow-up.
           </p>
         </div>
       ) : null}

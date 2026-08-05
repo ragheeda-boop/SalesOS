@@ -16,11 +16,7 @@ export const DEFAULT_PARTNER_MAPPINGS = [
 ] as const;
 
 /** Tip CrJoinResult.status values from cr_number_join.py (batch outcomes only). */
-export const PARTNER_JOIN_OUTCOMES = [
-  "matched",
-  "unlinked",
-  "invalid_cr",
-] as const;
+export const PARTNER_JOIN_OUTCOMES = ["matched", "unlinked", "invalid_cr"] as const;
 
 export function isPartnerModel(model: string): boolean {
   const key = model.trim().toLowerCase();

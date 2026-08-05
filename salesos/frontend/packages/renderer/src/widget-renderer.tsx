@@ -1,13 +1,13 @@
-import { Card, CardHeader, CardContent, Spinner } from '@salesos/ui'
+import { Card, CardHeader, CardContent, Spinner } from "@salesos/ui";
 
 export interface WidgetRendererProps {
-  widgetId: string
-  entityType?: string
-  entityId?: string
-  context?: Record<string, unknown>
-  loading?: boolean
-  error?: string
-  children?: React.ReactNode
+  widgetId: string;
+  entityType?: string;
+  entityId?: string;
+  context?: Record<string, unknown>;
+  loading?: boolean;
+  error?: string;
+  children?: React.ReactNode;
 }
 
 export function WidgetRenderer({ widgetId, loading, error, children }: WidgetRendererProps) {
@@ -23,7 +23,7 @@ export function WidgetRenderer({ widgetId, loading, error, children }: WidgetRen
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
   if (error) {
@@ -35,12 +35,8 @@ export function WidgetRenderer({ widgetId, loading, error, children }: WidgetRen
           </div>
         </CardContent>
       </Card>
-    )
+    );
   }
 
-  return (
-    <Card data-widget-id={widgetId}>
-      {children}
-    </Card>
-  )
+  return <Card data-widget-id={widgetId}>{children}</Card>;
 }

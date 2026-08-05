@@ -67,10 +67,7 @@ describe("middleware-auth", () => {
     it("gates protected routes with only salesos_access (no legacy cookie)", () => {
       const token = readAccessTokenFromRequest({
         cookies: {
-          get: (name) =>
-            name === HTTPONLY_ACCESS_COOKIE
-              ? { value: "httponly-only" }
-              : undefined,
+          get: (name) => (name === HTTPONLY_ACCESS_COOKIE ? { value: "httponly-only" } : undefined),
         },
         headers: { get: () => null },
       });
@@ -81,8 +78,7 @@ describe("middleware-auth", () => {
     it("reads token from legacy access_token cookie", () => {
       const token = readAccessTokenFromRequest({
         cookies: {
-          get: (name) =>
-            name === ACCESS_TOKEN_KEY ? { value: "jwt-token" } : undefined,
+          get: (name) => (name === ACCESS_TOKEN_KEY ? { value: "jwt-token" } : undefined),
         },
         headers: { get: () => null },
       });
@@ -114,11 +110,7 @@ describe("middleware-auth", () => {
 
   describe("buildLoginRedirectUrl", () => {
     it("includes callbackUrl for protected path", () => {
-      const url = buildLoginRedirectUrl(
-        "http://localhost:3000",
-        "/companies",
-        "?tab=1",
-      );
+      const url = buildLoginRedirectUrl("http://localhost:3000", "/companies", "?tab=1");
       expect(url.pathname).toBe("/login");
       expect(url.searchParams.get("callbackUrl")).toBe("/companies?tab=1");
     });

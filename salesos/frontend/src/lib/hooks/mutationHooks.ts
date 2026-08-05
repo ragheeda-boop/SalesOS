@@ -8,13 +8,7 @@ import { getTenantId } from "./useTenant";
 
 export function useLogin() {
   return useMutation({
-    mutationFn: async ({
-      email,
-      password,
-    }: {
-      email: string;
-      password: string;
-    }) => {
+    mutationFn: async ({ email, password }: { email: string; password: string }) => {
       const response = await api.post("/api/v1/identity/login", {
         email,
         password,
@@ -126,13 +120,9 @@ export function useAddContact() {
       email?: string;
       phone?: string;
     }) => {
-      const response = await api.post(
-        `/api/v1/companies/${companyId}/contacts`,
-        data,
-        {
-          headers: { "X-Tenant-Id": getTenantId() },
-        },
-      );
+      const response = await api.post(`/api/v1/companies/${companyId}/contacts`, data, {
+        headers: { "X-Tenant-Id": getTenantId() },
+      });
       return response.data;
     },
     onSuccess: (_, variables) => {

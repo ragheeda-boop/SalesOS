@@ -13,13 +13,9 @@ jest.mock("next/navigation", () => ({
 }));
 
 jest.mock("next/link", () => {
-  const MockLink = ({
-    children,
-    href,
-  }: {
-    children: React.ReactNode;
-    href: string;
-  }) => <a href={href}>{children}</a>;
+  const MockLink = ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  );
   MockLink.displayName = "MockLink";
   return MockLink;
 });
@@ -51,11 +47,7 @@ jest.mock("@/lib/hooks/opportunityQueries", () => ({
 }));
 
 import api from "@/lib/api";
-import {
-  useAdvanceOpportunity,
-  useCloseWon,
-  useCloseLost,
-} from "@/lib/hooks/opportunityQueries";
+import { useAdvanceOpportunity, useCloseWon, useCloseLost } from "@/lib/hooks/opportunityQueries";
 
 const mockApiGet = api.get as jest.Mock;
 const mockUseAdvanceOpp = useAdvanceOpportunity as jest.Mock;
@@ -87,24 +79,15 @@ function setupApiMocks(
     health?: any[];
     forecast?: any;
     analytics?: any;
-  } = {},
+  } = {}
 ) {
-  const {
-    opportunities = [],
-    health = [],
-    forecast = null,
-    analytics = null,
-  } = overrides;
+  const { opportunities = [], health = [], forecast = null, analytics = null } = overrides;
 
   mockApiGet.mockImplementation((url: string) => {
-    if (url === "/api/v1/opportunities")
-      return Promise.resolve({ data: opportunities });
-    if (url === "/api/v1/pipeline/health")
-      return Promise.resolve({ data: health });
-    if (url === "/api/v1/pipeline/forecast")
-      return Promise.resolve({ data: forecast });
-    if (url === "/api/v1/pipeline/analytics")
-      return Promise.resolve({ data: analytics });
+    if (url === "/api/v1/opportunities") return Promise.resolve({ data: opportunities });
+    if (url === "/api/v1/pipeline/health") return Promise.resolve({ data: health });
+    if (url === "/api/v1/pipeline/forecast") return Promise.resolve({ data: forecast });
+    if (url === "/api/v1/pipeline/analytics") return Promise.resolve({ data: analytics });
     return Promise.resolve({ data: null });
   });
 }
@@ -169,9 +152,7 @@ describe("PipelineWorkspace", () => {
     await waitFor(() => {
       expect(screen.getByText("Lead")).toBeInTheDocument();
     });
-    expect(
-      screen.getAllByText("Drop deals here").length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Drop deals here").length).toBeGreaterThanOrEqual(1);
   });
 
   it("toggles between Kanban and Table view", async () => {

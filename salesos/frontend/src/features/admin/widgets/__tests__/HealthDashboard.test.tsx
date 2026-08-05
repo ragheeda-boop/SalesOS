@@ -62,10 +62,7 @@ jest.mock("@/lib/hooks/adminQueries", () => ({
   useAdminHealthHistory: jest.fn(),
 }));
 
-import {
-  useAdminDetailedHealth,
-  useAdminHealthHistory,
-} from "@/lib/hooks/adminQueries";
+import { useAdminDetailedHealth, useAdminHealthHistory } from "@/lib/hooks/adminQueries";
 
 const mockUseHealth = useAdminDetailedHealth as jest.Mock;
 const mockUseHistory = useAdminHealthHistory as jest.Mock;
@@ -73,7 +70,7 @@ const mockUseHistory = useAdminHealthHistory as jest.Mock;
 function setup(
   health: AdminDetailedHealth | null = healthyHealth,
   history: AdminHealthHistoryEntry[] = sampleHistory,
-  loading = false,
+  loading = false
 ) {
   mockUseHealth.mockReturnValue({ data: health, isLoading: loading });
   mockUseHistory.mockReturnValue({ data: history, isLoading: loading });
@@ -173,9 +170,7 @@ describe("HealthDashboard", () => {
 
   it("shows component status in history entries", () => {
     render(<HealthDashboard />);
-    expect(
-      screen.getAllByText("PostgreSQL: healthy").length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("PostgreSQL: healthy").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Redis: healthy")).toBeInTheDocument();
     expect(screen.getByText("Neo4j: unhealthy")).toBeInTheDocument();
   });

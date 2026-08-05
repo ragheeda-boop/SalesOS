@@ -7,14 +7,7 @@ import { cn } from "@salesos/ui";
 import { Badge } from "@salesos/ui";
 import { BarChart, LineChart, PieChart, MetricCard } from "@salesos/charts";
 import { ExportShareBar } from "@/components/analytics";
-import {
-  ArrowLeft,
-  Users,
-  Target,
-  RefreshCw,
-  Activity,
-  Brain,
-} from "lucide-react";
+import { ArrowLeft, Users, Target, RefreshCw, Activity, Brain } from "lucide-react";
 
 interface EmployeeMetrics {
   total_employees: number;
@@ -69,26 +62,20 @@ export default function EmployeesAnalyticsPage() {
 
       const totalEmployees = employees.length;
       const activeEmployees = employees.filter(
-        (e: { status?: string }) => e.status !== "inactive",
+        (e: { status?: string }) => e.status !== "inactive"
       ).length;
       const scores = employees
         .map((e: { score?: number | null }) => e.score)
         .filter((s: number | null | undefined): s is number => s != null);
       const avgScore =
         scores.length > 0
-          ? Math.round(
-              scores.reduce((a: number, b: number) => a + b, 0) / scores.length,
-            )
+          ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length)
           : 0;
 
-      const departments: Record<
-        string,
-        { count: number; total_score: number }
-      > = {};
+      const departments: Record<string, { count: number; total_score: number }> = {};
       employees.forEach((e: { department?: string; score?: number | null }) => {
         const dept = e.department || "Unknown";
-        if (!departments[dept])
-          departments[dept] = { count: 0, total_score: 0 };
+        if (!departments[dept]) departments[dept] = { count: 0, total_score: 0 };
         departments[dept].count++;
         if (e.score != null) departments[dept].total_score += e.score;
       });
@@ -130,13 +117,10 @@ export default function EmployeesAnalyticsPage() {
             score: number;
             department?: string;
           }) => ({
-            name:
-              e.name ||
-              `${e.first_name ?? ""} ${e.last_name ?? ""}`.trim() ||
-              "Unknown",
+            name: e.name || `${e.first_name ?? ""} ${e.last_name ?? ""}`.trim() || "Unknown",
             score: e.score,
             department: e.department || "Unknown",
-          }),
+          })
         );
 
       setData({
@@ -146,9 +130,8 @@ export default function EmployeesAnalyticsPage() {
         score_trend: 0,
         avg_signals:
           employees.reduce(
-            (sum: number, e: { signal_count?: number }) =>
-              sum + (e.signal_count ?? 0),
-            0,
+            (sum: number, e: { signal_count?: number }) => sum + (e.signal_count ?? 0),
+            0
           ) / Math.max(1, employees.length),
         signals_trend: 0,
         departments: deptData.length > 0 ? deptData : [],
@@ -215,9 +198,7 @@ export default function EmployeesAnalyticsPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)]">
-              Employee Analytics
-            </h1>
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">Employee Analytics</h1>
             <p className="text-sm text-[var(--text-muted)]">
               Performance scores, signals, and department breakdown
             </p>
@@ -233,7 +214,7 @@ export default function EmployeesAnalyticsPage() {
                   "px-3 py-1.5 text-xs font-medium transition",
                   dateRange === r.days
                     ? "bg-[var(--muhide-orange)] text-white"
-                    : "bg-[var(--bg-primary)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+                    : "bg-[var(--bg-primary)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
                 )}
               >
                 {r.label}
@@ -294,9 +275,7 @@ export default function EmployeesAnalyticsPage() {
       {/* Score Trend + Top Performers */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
-            Score Trend
-          </h3>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Score Trend</h3>
           {data.score_trend_over_time.length === 0 ? (
             <p className="text-sm text-[var(--text-muted)] py-10 text-center">
               No historical score series available. Trends are not invented.
@@ -316,9 +295,7 @@ export default function EmployeesAnalyticsPage() {
         </div>
 
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
-            Top Performers
-          </h3>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Top Performers</h3>
           <div className="space-y-3">
             {data.top_performers.map((emp, i) => (
               <div
@@ -332,7 +309,7 @@ export default function EmployeesAnalyticsPage() {
                       ? "bg-yellow-100 text-yellow-700"
                       : i === 1
                         ? "bg-gray-100 text-gray-600"
-                        : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]",
+                        : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]"
                   )}
                 >
                   {i + 1}
@@ -341,19 +318,11 @@ export default function EmployeesAnalyticsPage() {
                   <p className="text-sm font-medium text-[var(--text-primary)] truncate">
                     {emp.name}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)]">
-                    {emp.department}
-                  </p>
+                  <p className="text-xs text-[var(--text-muted)]">{emp.department}</p>
                 </div>
                 <div className="text-right">
                   <Badge
-                    variant={
-                      emp.score >= 80
-                        ? "success"
-                        : emp.score >= 60
-                          ? "warning"
-                          : "danger"
-                    }
+                    variant={emp.score >= 80 ? "success" : emp.score >= 60 ? "warning" : "danger"}
                   >
                     {emp.score}
                   </Badge>
@@ -393,15 +362,9 @@ export default function EmployeesAnalyticsPage() {
                   key={dept.name}
                   className="border-b border-[var(--border-default)] last:border-0 hover:bg-[var(--bg-secondary)]"
                 >
-                  <td className="px-3 py-2 font-medium text-[var(--text-primary)]">
-                    {dept.name}
-                  </td>
-                  <td className="px-3 py-2 text-[var(--text-secondary)]">
-                    {dept.count}
-                  </td>
-                  <td className="px-3 py-2 text-[var(--text-secondary)]">
-                    {dept.avg_score}
-                  </td>
+                  <td className="px-3 py-2 font-medium text-[var(--text-primary)]">{dept.name}</td>
+                  <td className="px-3 py-2 text-[var(--text-secondary)]">{dept.count}</td>
+                  <td className="px-3 py-2 text-[var(--text-secondary)]">{dept.avg_score}</td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-1">
                       <div className="h-1.5 w-20 rounded-full bg-[var(--bg-tertiary)] overflow-hidden">

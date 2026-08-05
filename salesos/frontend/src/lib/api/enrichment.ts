@@ -52,28 +52,21 @@ export interface EnrichmentMeta {
   honesty: string;
 }
 
-export async function getEnrichmentMeta(
-  tenantId: string,
-): Promise<EnrichmentMeta> {
+export async function getEnrichmentMeta(tenantId: string): Promise<EnrichmentMeta> {
   const resp = await api.get<EnrichmentMeta>(`${BASE}/meta`, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function listEnrichmentRuns(
-  tenantId: string,
-): Promise<EnrichmentRun[]> {
+export async function listEnrichmentRuns(tenantId: string): Promise<EnrichmentRun[]> {
   const resp = await api.get<EnrichmentRun[]>(BASE, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function getEnrichmentRun(
-  tenantId: string,
-  runId: string,
-): Promise<EnrichmentRun> {
+export async function getEnrichmentRun(tenantId: string, runId: string): Promise<EnrichmentRun> {
   const resp = await api.get<EnrichmentRun>(`${BASE}/${runId}`, {
     headers: tenantHeaders(tenantId),
   });
@@ -82,7 +75,7 @@ export async function getEnrichmentRun(
 
 export async function runEnrichment(
   tenantId: string,
-  body: EnrichmentBody,
+  body: EnrichmentBody
 ): Promise<EnrichmentRun> {
   const resp = await api.post<EnrichmentRun>(BASE, body, {
     headers: tenantHeaders(tenantId),

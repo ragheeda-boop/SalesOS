@@ -5,12 +5,7 @@ import type {
   CalendarMetricsDTO,
   FollowupDashboardDTO,
 } from "@/lib/api/types";
-export type {
-  CompanyEngagementDTO,
-  EmailMetricsDTO,
-  CalendarMetricsDTO,
-  FollowupDashboardDTO,
-};
+export type { CompanyEngagementDTO, EmailMetricsDTO, CalendarMetricsDTO, FollowupDashboardDTO };
 import type { Score, Recommendation } from "@salesos/decision-platform";
 
 export interface DashboardDTO {

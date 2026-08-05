@@ -12,8 +12,7 @@ function mapScoresToTerritory(scores: Score[]): TerritoryData {
   const territories = scores
     .filter(
       (s) =>
-        (s.type === "territory" || s.type === "region") &&
-        (s.metadata?.name as string | undefined),
+        (s.type === "territory" || s.type === "region") && (s.metadata?.name as string | undefined)
     )
     .map((s, i) => ({
       id: `territory-${i}`,
@@ -33,9 +32,7 @@ function mapScoresToTerritory(scores: Score[]): TerritoryData {
       region: t.name,
       covered: true,
       salesReps:
-        typeof t.deals === "number" && t.deals > 0
-          ? Math.max(1, Math.round(t.deals / 3))
-          : 0,
+        typeof t.deals === "number" && t.deals > 0 ? Math.max(1, Math.round(t.deals / 3)) : 0,
       opportunityValue: t.value,
     }));
 
@@ -72,12 +69,7 @@ export const TerritoryIntelligenceWidget = createWidget({
     const fetchData = useCallback(async () => {
       setState((prev) => ({ ...prev, status: "loading", error: null }));
       try {
-        const scores = await decision.getScores(
-          "territories",
-          "company",
-          "",
-          "",
-        );
+        const scores = await decision.getScores("territories", "company", "", "");
         const data = mapScoresToTerritory(scores);
         setState({
           data,

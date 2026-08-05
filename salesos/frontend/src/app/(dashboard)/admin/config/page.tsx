@@ -68,8 +68,7 @@ export default function AdminConfigPage() {
           });
         }
       },
-      onError: () =>
-        toast({ variant: "error", title: "Validation request failed" }),
+      onError: () => toast({ variant: "error", title: "Validation request failed" }),
     });
   }, [content, validateMutation, toast]);
 
@@ -113,9 +112,7 @@ export default function AdminConfigPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            System Config
-          </h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">System Config</h1>
           <p className="mt-1 text-sm text-[var(--text-muted)]">
             Edit the YAML configuration. Changes are validated before saving.
           </p>
@@ -180,9 +177,7 @@ export default function AdminConfigPage() {
           {isLoading ? (
             <Card className="p-12 text-center">
               <Spinner className="mx-auto h-6 w-6" />
-              <p className="mt-2 text-sm text-[var(--text-muted)]">
-                Loading config...
-              </p>
+              <p className="mt-2 text-sm text-[var(--text-muted)]">Loading config...</p>
             </Card>
           ) : (
             <Card className="overflow-hidden">
@@ -210,9 +205,7 @@ export default function AdminConfigPage() {
         <div className="lg:col-span-1">
           <Card className="p-4 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-[var(--text-primary)]">
-                Version History
-              </h3>
+              <h3 className="font-semibold text-[var(--text-primary)]">Version History</h3>
               <button
                 onClick={() => setShowVersions(!showVersions)}
                 className="text-[var(--text-muted)] hover:text-[var(--text-secondary)] dark:hover:text-[var(--text-disabled)]"
@@ -227,41 +220,36 @@ export default function AdminConfigPage() {
 
             {config?.versions?.length ? (
               <div className="space-y-2">
-                {(showVersions
-                  ? config.versions
-                  : config.versions.slice(0, 5)
-                ).map((v: AdminConfigVersion) => (
-                  <div
-                    key={v.version}
-                    className={`rounded-lg border p-3 transition ${
-                      v.version === config.version
-                        ? "border-[var(--muhide-orange)] bg-[var(--muhide-orange)]/5"
-                        : "border-[var(--border-default)]"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-[var(--text-primary)]">
-                        v{v.version}
-                      </span>
-                      {v.version === config.version && (
-                        <Badge variant="success" className="text-[10px]">
-                          Current
-                        </Badge>
-                      )}
+                {(showVersions ? config.versions : config.versions.slice(0, 5)).map(
+                  (v: AdminConfigVersion) => (
+                    <div
+                      key={v.version}
+                      className={`rounded-lg border p-3 transition ${
+                        v.version === config.version
+                          ? "border-[var(--muhide-orange)] bg-[var(--muhide-orange)]/5"
+                          : "border-[var(--border-default)]"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-[var(--text-primary)]">
+                          v{v.version}
+                        </span>
+                        {v.version === config.version && (
+                          <Badge variant="success" className="text-[10px]">
+                            Current
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="mt-1 text-xs text-[var(--text-muted)]">
+                        {formatDateTime(v.created_at)}
+                      </p>
+                      <p className="text-xs text-[var(--text-disabled)]">{v.created_by}</p>
                     </div>
-                    <p className="mt-1 text-xs text-[var(--text-muted)]">
-                      {formatDateTime(v.created_at)}
-                    </p>
-                    <p className="text-xs text-[var(--text-disabled)]">
-                      {v.created_by}
-                    </p>
-                  </div>
-                ))}
+                  )
+                )}
               </div>
             ) : (
-              <p className="text-sm text-[var(--text-muted)]">
-                No version history
-              </p>
+              <p className="text-sm text-[var(--text-muted)]">No version history</p>
             )}
           </Card>
         </div>
@@ -273,15 +261,11 @@ export default function AdminConfigPage() {
           <ModalHeader>Discard Changes?</ModalHeader>
           <ModalBody>
             <p className="text-sm text-[var(--text-secondary)]">
-              You have unsaved changes. Discarding will revert to the last saved
-              version.
+              You have unsaved changes. Discarding will revert to the last saved version.
             </p>
           </ModalBody>
           <ModalFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowDiscardConfirm(false)}
-            >
+            <Button variant="outline" onClick={() => setShowDiscardConfirm(false)}>
               Keep Editing
             </Button>
             <Button variant="danger" onClick={handleDiscard}>

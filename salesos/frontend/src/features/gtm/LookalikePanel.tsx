@@ -11,18 +11,11 @@ import {
   useRunLookalikes,
 } from "@/lib/hooks/lookalikeQueries";
 import type { LookalikeRun } from "@/lib/api";
-import {
-  LOOKALIKE_HONESTY,
-  LOOKALIKE_NON_GOALS,
-} from "@/features/gtm/lookalikeHonesty";
-import {
-  buildEnrichmentHref,
-  buildLeadDiscoveryHref,
-} from "@/features/gtm/gtmHandoff";
+import { LOOKALIKE_HONESTY, LOOKALIKE_NON_GOALS } from "@/features/gtm/lookalikeHonesty";
+import { buildEnrichmentHref, buildLeadDiscoveryHref } from "@/features/gtm/gtmHandoff";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -79,9 +72,7 @@ export function LookalikePanel() {
     setCompanyName(row.seed.company_name ?? "");
     setIndustry(row.seed.industry ?? "");
     setCity(row.seed.city ?? "");
-    setEmployees(
-      row.seed.employees_count == null ? "" : String(row.seed.employees_count),
-    );
+    setEmployees(row.seed.employees_count == null ? "" : String(row.seed.employees_count));
   }
 
   const active = detailQuery.data;
@@ -92,8 +83,7 @@ export function LookalikePanel() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="lookalike-honesty"
       >
-        {LOOKALIKE_HONESTY} Non-goals: {LOOKALIKE_NON_GOALS.join("; ")}. Not
-        Production GO / RAG GO.
+        {LOOKALIKE_HONESTY} Non-goals: {LOOKALIKE_NON_GOALS.join("; ")}. Not Production GO / RAG GO.
       </p>
 
       {metaQuery.data ? (
@@ -105,14 +95,10 @@ export function LookalikePanel() {
             {metaQuery.data.object} · {metaQuery.data.training} · features{" "}
             {(metaQuery.data.features ?? []).join(", ")}
           </p>
-          <p data-testid="lookalike-meta-honesty">
-            tip /meta: {metaQuery.data.honesty}
-          </p>
+          <p data-testid="lookalike-meta-honesty">tip /meta: {metaQuery.data.honesty}</p>
         </div>
       ) : metaQuery.isError ? (
-        <p className="text-sm text-[var(--text-danger)]">
-          {getApiError(metaQuery.error)}
-        </p>
+        <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
       ) : (
         <Spinner />
       )}
@@ -130,10 +116,7 @@ export function LookalikePanel() {
         >
           Refresh
         </Button>
-        <span
-          className="text-xs text-[var(--text-muted)]"
-          data-testid="lookalike-count"
-        >
+        <span className="text-xs text-[var(--text-muted)]" data-testid="lookalike-count">
           {listQuery.data?.length ?? 0} model(s)
         </span>
       </div>
@@ -152,15 +135,13 @@ export function LookalikePanel() {
               <button
                 type="button"
                 className={`w-full rounded px-2 py-1 text-left text-sm hover:bg-[var(--bg-muted)] ${
-                  selectedId === row.id
-                    ? "bg-[var(--bg-muted)] font-medium"
-                    : ""
+                  selectedId === row.id ? "bg-[var(--bg-muted)] font-medium" : ""
                 }`}
                 data-testid="lookalike-row"
                 onClick={() => loadRun(row)}
               >
-                {row.name} · {row.seed.company_name ?? "—"} · {row.hit_count}{" "}
-                hit(s) · won {row.trained_on_won}/lost {row.trained_on_lost}
+                {row.name} · {row.seed.company_name ?? "—"} · {row.hit_count} hit(s) · won{" "}
+                {row.trained_on_won}/lost {row.trained_on_lost}
               </button>
             </li>
           ))
@@ -205,7 +186,7 @@ export function LookalikePanel() {
                   variant: "error",
                 });
               },
-            },
+            }
           );
         }}
       >
@@ -252,11 +233,7 @@ export function LookalikePanel() {
             data-testid="lookalike-limit"
           />
         </div>
-        <Button
-          type="submit"
-          disabled={runMutation.isPending}
-          data-testid="lookalike-run"
-        >
+        <Button type="submit" disabled={runMutation.isPending} data-testid="lookalike-run">
           {runMutation.isPending ? "Running…" : "Find lookalikes"}
         </Button>
       </form>
@@ -269,15 +246,12 @@ export function LookalikePanel() {
           {detailQuery.isLoading ? (
             <Spinner />
           ) : detailQuery.isError ? (
-            <p className="text-sm text-[var(--text-danger)]">
-              {getApiError(detailQuery.error)}
-            </p>
+            <p className="text-sm text-[var(--text-danger)]">{getApiError(detailQuery.error)}</p>
           ) : active ? (
             <>
               <p className="font-mono text-xs text-[var(--text-muted)]">
-                model {active.id} · hits {active.hit_count} · trained won{" "}
-                {active.trained_on_won} / lost {active.trained_on_lost} · v
-                {active.schema_version}
+                model {active.id} · hits {active.hit_count} · trained won {active.trained_on_won} /
+                lost {active.trained_on_lost} · v{active.schema_version}
               </p>
               <ul className="space-y-2 text-sm" data-testid="lookalike-hits">
                 {active.hits.length === 0 ? (
@@ -296,9 +270,8 @@ export function LookalikePanel() {
                         </span>
                       </div>
                       <p className="text-xs text-[var(--text-muted)]">
-                        {h.industry || "—"} · {h.city || "—"} · emp{" "}
-                        {h.employees_count ?? "—"} · matched{" "}
-                        {(h.matched_features ?? []).join(", ") || "—"}
+                        {h.industry || "—"} · {h.city || "—"} · emp {h.employees_count ?? "—"} ·
+                        matched {(h.matched_features ?? []).join(", ") || "—"}
                       </p>
                       <Link
                         href={buildEnrichmentHref({

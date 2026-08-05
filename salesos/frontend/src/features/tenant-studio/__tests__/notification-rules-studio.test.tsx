@@ -67,15 +67,9 @@ jest.mock("@salesos/ui", () => ({
 describe("NotificationRulesStudio — FE-S10-08", () => {
   it("lists rules and shows RulesEngine honesty", () => {
     render(<NotificationRulesStudio />);
-    expect(screen.getByTestId("notification-rules-honesty")).toHaveTextContent(
-      /RulesEngine/i,
-    );
-    expect(screen.getByTestId("notification-rules-honesty")).toHaveTextContent(
-      /in-memory/i,
-    );
-    expect(screen.getByTestId("notification-rules-row")).toHaveTextContent(
-      "Won alert",
-    );
+    expect(screen.getByTestId("notification-rules-honesty")).toHaveTextContent(/RulesEngine/i);
+    expect(screen.getByTestId("notification-rules-honesty")).toHaveTextContent(/in-memory/i);
+    expect(screen.getByTestId("notification-rules-row")).toHaveTextContent("Won alert");
   });
 
   it("submits tip POST upsert", async () => {
@@ -91,7 +85,7 @@ describe("NotificationRulesStudio — FE-S10-08", () => {
           channels: expect.any(Array),
           recipients: expect.any(Array),
         }),
-        expect.any(Object),
+        expect.any(Object)
       );
     });
   });

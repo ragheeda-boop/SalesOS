@@ -65,9 +65,7 @@ describe("AuditLogView", () => {
   it("renders title and region role", () => {
     renderView();
     expect(screen.getByText("سجل التدقيق")).toBeInTheDocument();
-    expect(
-      screen.getByRole("region", { name: "سجل التدقيق" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "سجل التدقيق" })).toBeInTheDocument();
   });
 
   it("renders single audit log entry with all fields", () => {
@@ -157,9 +155,7 @@ describe("AuditLogView", () => {
     renderView({ onFilterChange });
     fireEvent.click(screen.getByText("فلتر"));
     const dateInputs = screen.getAllByRole("textbox", { hidden: false });
-    const dateFromInput = dateInputs.find(
-      (el) => el.getAttribute("type") === "date",
-    );
+    const dateFromInput = dateInputs.find((el) => el.getAttribute("type") === "date");
     if (dateFromInput) {
       fireEvent.change(dateFromInput, { target: { value: "2026-07-01" } });
       expect(onFilterChange).toHaveBeenCalledWith({ dateFrom: "2026-07-01" });

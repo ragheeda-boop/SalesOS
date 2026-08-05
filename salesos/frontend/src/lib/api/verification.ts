@@ -48,18 +48,14 @@ export interface VerificationMeta {
   honesty: string;
 }
 
-export async function getVerificationMeta(
-  tenantId: string,
-): Promise<VerificationMeta> {
+export async function getVerificationMeta(tenantId: string): Promise<VerificationMeta> {
   const resp = await api.get<VerificationMeta>(`${BASE}/meta`, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function listVerificationRuns(
-  tenantId: string,
-): Promise<VerificationRun[]> {
+export async function listVerificationRuns(tenantId: string): Promise<VerificationRun[]> {
   const resp = await api.get<VerificationRun[]>(BASE, {
     headers: tenantHeaders(tenantId),
   });
@@ -68,7 +64,7 @@ export async function listVerificationRuns(
 
 export async function getVerificationRun(
   tenantId: string,
-  runId: string,
+  runId: string
 ): Promise<VerificationRun> {
   const resp = await api.get<VerificationRun>(`${BASE}/${runId}`, {
     headers: tenantHeaders(tenantId),
@@ -78,7 +74,7 @@ export async function getVerificationRun(
 
 export async function runVerification(
   tenantId: string,
-  body: VerificationBody,
+  body: VerificationBody
 ): Promise<VerificationRun> {
   const resp = await api.post<VerificationRun>(BASE, body, {
     headers: tenantHeaders(tenantId),

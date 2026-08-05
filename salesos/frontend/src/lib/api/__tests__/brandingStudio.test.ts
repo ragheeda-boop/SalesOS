@@ -35,10 +35,7 @@ describe("brandingStudio API — FE-S10-07", () => {
       },
     });
     const row = await getBranding("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/studio/branding",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/studio/branding", expect.any(Object));
     expect(row.display_name).toBe("Acme");
   });
 
@@ -66,7 +63,7 @@ describe("brandingStudio API — FE-S10-07", () => {
     expect(mocked.put).toHaveBeenCalledWith(
       "/api/v1/studio/branding",
       expect.objectContaining({ display_name: "Acme AR" }),
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(row.primary_color).toBe("#112233");
   });

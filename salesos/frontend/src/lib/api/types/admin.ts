@@ -89,11 +89,14 @@ export interface TaskResponse {
  * STORY-04-01 Owner Platform fields — synced to Backend A2
  * (`TenantListItem` / `TenantDetail` @ tip `64b44e9`).
  */
-export type AdminProvisioningStatus =
-  "pending" | "active" | "suspended" | "failed";
+export type AdminProvisioningStatus = "pending" | "active" | "suspended" | "failed";
 
-export const ADMIN_PROVISIONING_STATUS_VALUES: readonly AdminProvisioningStatus[] =
-  ["pending", "active", "suspended", "failed"] as const;
+export const ADMIN_PROVISIONING_STATUS_VALUES: readonly AdminProvisioningStatus[] = [
+  "pending",
+  "active",
+  "suspended",
+  "failed",
+] as const;
 
 export interface AdminTenantOwnerPlatformFields {
   /** Opaque catalog id (String(64)); not License.plan_id UUID. */

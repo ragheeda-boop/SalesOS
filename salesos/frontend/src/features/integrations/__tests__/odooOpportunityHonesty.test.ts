@@ -15,9 +15,7 @@ describe("odooOpportunityHonesty — FE-S09-02", () => {
     expect(isOpportunityModel("crm.lead")).toBe(true);
     expect(isOpportunityModel("res.partner")).toBe(false);
     expect(
-      DEFAULT_OPPORTUNITY_MAPPINGS.some(
-        (m) => m.external === "stage_id" && m.internal === "stage",
-      ),
+      DEFAULT_OPPORTUNITY_MAPPINGS.some((m) => m.external === "stage_id" && m.internal === "stage")
     ).toBe(true);
   });
 });

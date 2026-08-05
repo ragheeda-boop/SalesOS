@@ -61,13 +61,7 @@ function formatCurrency(value: number): string {
   return `${value.toLocaleString()} SAR`;
 }
 
-function CoverageIndicator({
-  assigned,
-  total,
-}: {
-  assigned: number;
-  total: number;
-}) {
+function CoverageIndicator({ assigned, total }: { assigned: number; total: number }) {
   const percent = total > 0 ? (assigned / total) * 100 : 0;
   return (
     <div className="flex items-center gap-2">
@@ -75,11 +69,7 @@ function CoverageIndicator({
         <div
           className={cn(
             "h-full rounded-full transition-all",
-            percent >= 90
-              ? "bg-green-500"
-              : percent >= 70
-                ? "bg-amber-500"
-                : "bg-red-500",
+            percent >= 90 ? "bg-green-500" : percent >= 70 ? "bg-amber-500" : "bg-red-500"
           )}
           style={{ width: `${percent}%` }}
         />
@@ -114,10 +104,7 @@ function AssignModal({
           <h2 className="text-lg font-semibold text-[var(--text-primary)]">
             Assign Account: {accountName}
           </h2>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1 hover:bg-[var(--bg-secondary)]"
-          >
+          <button onClick={onClose} className="rounded-lg p-1 hover:bg-[var(--bg-secondary)]">
             <X className="h-5 w-5 text-[var(--text-muted)]" />
           </button>
         </div>
@@ -188,9 +175,7 @@ export default function TerritoryMapPage() {
   const [error, setError] = useState<string | null>(null);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<string>("");
-  const [rebalanceSuggestions, setRebalanceSuggestions] = useState<
-    RebalanceSuggestion[]
-  >([]);
+  const [rebalanceSuggestions, setRebalanceSuggestions] = useState<RebalanceSuggestion[]>([]);
 
   const fetchTerritories = useCallback(async () => {
     setLoading(true);
@@ -198,9 +183,7 @@ export default function TerritoryMapPage() {
     try {
       const [workspaceRes, decisionRes] = await Promise.all([
         api.get("/api/v1/workspace").catch(() => ({ data: null })),
-        api
-          .get("/api/v1/decision/evaluate?target_type=territory")
-          .catch(() => ({ data: null })),
+        api.get("/api/v1/decision/evaluate?target_type=territory").catch(() => ({ data: null })),
       ]);
 
       const workspace = workspaceRes.data;
@@ -220,10 +203,7 @@ export default function TerritoryMapPage() {
               rep_name: "Unassigned",
               rep_id: "none",
               account_count: recent.length,
-              total_value: recent.reduce(
-                (s, o) => s + (Number(o.value) || 0),
-                0,
-              ),
+              total_value: recent.reduce((s, o) => s + (Number(o.value) || 0), 0),
               accounts: recent.map((o) => ({
                 id: o.company_id || o.id,
                 name: o.name || "Opportunity",
@@ -284,9 +264,7 @@ export default function TerritoryMapPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)]">
-              Territory Map
-            </h1>
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">Territory Map</h1>
             <p className="text-sm text-[var(--text-muted)]">
               Account assignment, coverage gaps, and load balancing
             </p>
@@ -311,18 +289,14 @@ export default function TerritoryMapPage() {
                 {data.territories.length}
               </p>
               <p className="text-xs text-[var(--text-muted)] mt-1">
-                {formatCurrency(
-                  data.territories.reduce((s, t) => s + t.total_value, 0),
-                )}{" "}
-                total value
+                {formatCurrency(data.territories.reduce((s, t) => s + t.total_value, 0))} total
+                value
               </p>
             </div>
             <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-[var(--status-success-text)]" />
-                <p className="text-xs text-[var(--text-muted)]">
-                  Total Accounts
-                </p>
+                <p className="text-xs text-[var(--text-muted)]">Total Accounts</p>
               </div>
               <p className="text-2xl font-bold text-[var(--text-primary)] mt-1">
                 {data.total_accounts}
@@ -341,10 +315,7 @@ export default function TerritoryMapPage() {
                 {data.unassigned_accounts}
               </p>
               <p className="text-xs text-[var(--text-muted)] mt-1">
-                {formatCurrency(
-                  data.gaps.reduce((s, g) => s + g.potential_value, 0),
-                )}{" "}
-                at risk
+                {formatCurrency(data.gaps.reduce((s, g) => s + g.potential_value, 0))} at risk
               </p>
             </div>
           </div>
@@ -368,9 +339,7 @@ export default function TerritoryMapPage() {
                       <h3 className="text-sm font-semibold text-[var(--text-primary)]">
                         {territory.name}
                       </h3>
-                      <p className="text-xs text-[var(--text-muted)]">
-                        {territory.rep_name}
-                      </p>
+                      <p className="text-xs text-[var(--text-muted)]">{territory.rep_name}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -392,9 +361,7 @@ export default function TerritoryMapPage() {
                     >
                       <div className="flex items-center gap-2">
                         <BarChart3 className="h-3.5 w-3.5 text-[var(--text-muted)]" />
-                        <span className="text-sm text-[var(--text-primary)]">
-                          {account.name}
-                        </span>
+                        <span className="text-sm text-[var(--text-primary)]">{account.name}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-[var(--text-muted)]">
@@ -424,9 +391,7 @@ export default function TerritoryMapPage() {
           <div className="rounded-xl border border-[var(--status-warning-border)] bg-[var(--status-warning-bg)]/50 p-4 space-y-3">
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-[var(--status-warning-text)]" />
-              <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-                Coverage Gaps
-              </h3>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">Coverage Gaps</h3>
             </div>
             <div className="space-y-2">
               {data.gaps.map((gap, i) => (
@@ -435,12 +400,8 @@ export default function TerritoryMapPage() {
                   className="flex items-center justify-between rounded-lg bg-[var(--bg-primary)]/50/50 px-3 py-2"
                 >
                   <div>
-                    <p className="text-sm font-medium text-[var(--text-primary)]">
-                      {gap.region}
-                    </p>
-                    <p className="text-xs text-[var(--text-muted)]">
-                      {gap.reason}
-                    </p>
+                    <p className="text-sm font-medium text-[var(--text-primary)]">{gap.region}</p>
+                    <p className="text-xs text-[var(--text-muted)]">{gap.reason}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium text-[var(--status-warning-text)]">
@@ -479,17 +440,11 @@ export default function TerritoryMapPage() {
                   <ArrowLeftRight className="h-4 w-4 text-[var(--text-muted)] shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-[var(--text-primary)]">
-                      <span className="font-medium">
-                        {suggestion.account_name}
-                      </span>
+                      <span className="font-medium">{suggestion.account_name}</span>
                       {" →"}
-                      <span className="text-[var(--muhide-orange)]">
-                        {suggestion.to_territory}
-                      </span>
+                      <span className="text-[var(--muhide-orange)]">{suggestion.to_territory}</span>
                     </p>
-                    <p className="text-xs text-[var(--text-muted)]">
-                      {suggestion.reason}
-                    </p>
+                    <p className="text-xs text-[var(--text-muted)]">{suggestion.reason}</p>
                   </div>
                 </div>
               ))}

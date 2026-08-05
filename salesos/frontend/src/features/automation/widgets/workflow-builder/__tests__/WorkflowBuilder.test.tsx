@@ -19,21 +19,11 @@ import {
   useWorkflowExecutions,
 } from "@/lib/workflowQueries";
 
-const mockUseWorkflows = useWorkflows as jest.MockedFunction<
-  typeof useWorkflows
->;
-const mockUseCreateWorkflow = useCreateWorkflow as jest.MockedFunction<
-  typeof useCreateWorkflow
->;
-const mockUseUpdateWorkflow = useUpdateWorkflow as jest.MockedFunction<
-  typeof useUpdateWorkflow
->;
-const mockUseExecuteWorkflow = useExecuteWorkflow as jest.MockedFunction<
-  typeof useExecuteWorkflow
->;
-const mockUseDeleteWorkflow = useDeleteWorkflow as jest.MockedFunction<
-  typeof useDeleteWorkflow
->;
+const mockUseWorkflows = useWorkflows as jest.MockedFunction<typeof useWorkflows>;
+const mockUseCreateWorkflow = useCreateWorkflow as jest.MockedFunction<typeof useCreateWorkflow>;
+const mockUseUpdateWorkflow = useUpdateWorkflow as jest.MockedFunction<typeof useUpdateWorkflow>;
+const mockUseExecuteWorkflow = useExecuteWorkflow as jest.MockedFunction<typeof useExecuteWorkflow>;
+const mockUseDeleteWorkflow = useDeleteWorkflow as jest.MockedFunction<typeof useDeleteWorkflow>;
 const mockUseWorkflowExecutions = useWorkflowExecutions as jest.MockedFunction<
   typeof useWorkflowExecutions
 >;
@@ -197,9 +187,7 @@ describe("WorkflowBuilderWidget", () => {
       setupMocks();
       render(<WorkflowBuilderWidget />);
       fireEvent.click(screen.getByText("إنشاء سير عمل"));
-      expect(
-        screen.getAllByText("إنشاء سير عمل").length,
-      ).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("إنشاء سير عمل").length).toBeGreaterThanOrEqual(1);
     });
 
     it("creates workflow on save", async () => {

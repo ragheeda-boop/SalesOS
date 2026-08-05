@@ -27,20 +27,17 @@ export function useCompanySearch(params: CompanySearchParams) {
   });
 }
 
-export function useCompanySearchCursor(
-  baseParams: Omit<CompanySearchParams, "cursor">,
-) {
+export function useCompanySearchCursor(baseParams: Omit<CompanySearchParams, "cursor">) {
   return useInfiniteQuery({
     queryKey: [...companyKeys.lists(), "cursor", baseParams],
     queryFn: async ({ pageParam }: { pageParam: string | undefined }) => {
       const result = await searchCompaniesCursor(
         { ...baseParams, cursor: pageParam },
-        getTenantId(),
+        getTenantId()
       );
       return result;
     },
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) =>
-      lastPage.has_next ? lastPage.next_cursor : undefined,
+    getNextPageParam: (lastPage) => (lastPage.has_next ? lastPage.next_cursor : undefined),
   });
 }

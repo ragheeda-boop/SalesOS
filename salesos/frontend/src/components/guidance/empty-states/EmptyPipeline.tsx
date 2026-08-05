@@ -8,10 +8,7 @@ interface EmptyPipelineProps {
   onImport?: () => void;
 }
 
-export function EmptyPipeline({
-  onCreateOpportunity,
-  onImport,
-}: EmptyPipelineProps) {
+export function EmptyPipeline({ onCreateOpportunity, onImport }: EmptyPipelineProps) {
   return (
     <EmptyState
       icon={<TrendingUp className="h-12 w-12" />}
@@ -22,9 +19,7 @@ export function EmptyPipeline({
           ? { label: "إنشاء فرصة جديدة", onClick: onCreateOpportunity }
           : undefined
       }
-      secondaryAction={
-        onImport ? { label: "استيراد بيانات", onClick: onImport } : undefined
-      }
+      secondaryAction={onImport ? { label: "استيراد بيانات", onClick: onImport } : undefined}
       tourId="pipeline"
     />
   );

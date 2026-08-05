@@ -14,7 +14,7 @@ describe("WidgetRegistry", () => {
     render(
       <WidgetRegistry>
         <div data-testid="child">C</div>
-      </WidgetRegistry>,
+      </WidgetRegistry>
     );
     expect(screen.getByTestId("child")).toBeInTheDocument();
   });

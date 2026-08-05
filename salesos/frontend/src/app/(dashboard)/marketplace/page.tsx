@@ -83,10 +83,7 @@ const CATEGORY_MAP: Record<string, string> = {
 function getCategory(plugin: PluginManifest): string {
   if (plugin.category) return plugin.category;
   for (const [key, cat] of Object.entries(CATEGORY_MAP)) {
-    if (
-      plugin.id.toLowerCase().includes(key) ||
-      plugin.name.toLowerCase().includes(key)
-    ) {
+    if (plugin.id.toLowerCase().includes(key) || plugin.name.toLowerCase().includes(key)) {
       return cat;
     }
   }
@@ -185,8 +182,7 @@ const BUILTIN_PLUGINS: PluginManifest[] = [
     id: "zapier-automation",
     name: "Zapier Automation",
     version: "1.0.0",
-    description:
-      "Connect SalesOS to 5,000+ apps via Zapier. Trigger workflows on CRM events.",
+    description: "Connect SalesOS to 5,000+ apps via Zapier. Trigger workflows on CRM events.",
     author: "SalesOS",
     permissions: ["workflows.execute", "events.read"],
     hooks: ["opportunity.created", "contact.updated", "task.completed"],
@@ -200,8 +196,7 @@ const BUILTIN_PLUGINS: PluginManifest[] = [
     id: "gpt-assistant",
     name: "GPT Assistant",
     version: "2.0.0",
-    description:
-      "AI-powered assistant for email drafts, meeting summaries, and deal insights.",
+    description: "AI-powered assistant for email drafts, meeting summaries, and deal insights.",
     author: "SalesOS AI",
     permissions: ["ai.generate", "emails.read", "meetings.read"],
     hooks: ["email.compose", "meeting.summary", "deal.analysis"],
@@ -239,8 +234,7 @@ const BUILTIN_PLUGINS: PluginManifest[] = [
     id: "tableau-analytics",
     name: "Tableau Analytics",
     version: "1.1.0",
-    description:
-      "Export SalesOS data to Tableau for advanced visualization and reporting.",
+    description: "Export SalesOS data to Tableau for advanced visualization and reporting.",
     author: "SalesOS",
     permissions: ["data.export", "analytics.read"],
     hooks: ["report.export", "dashboard.sync"],
@@ -254,8 +248,7 @@ const BUILTIN_PLUGINS: PluginManifest[] = [
     id: "email-sync",
     name: "Email Sync",
     version: "1.0.0",
-    description:
-      "Sync emails from Outlook/Gmail to company timelines and contact records.",
+    description: "Sync emails from Outlook/Gmail to company timelines and contact records.",
     author: "SalesOS",
     permissions: ["emails.read", "emails.sync"],
     hooks: ["email.received", "email.sent"],
@@ -284,8 +277,7 @@ const BUILTIN_PLUGINS: PluginManifest[] = [
     id: "workflow-automation",
     name: "Workflow Engine",
     version: "1.0.0",
-    description:
-      "Create custom automated workflows with triggers, conditions, and actions.",
+    description: "Create custom automated workflows with triggers, conditions, and actions.",
     author: "SalesOS",
     permissions: ["workflows.manage", "workflows.execute"],
     hooks: ["workflow.trigger"],
@@ -304,9 +296,7 @@ export default function MarketplacePage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<CategoryId>("all");
-  const [selectedPlugin, setSelectedPlugin] = useState<PluginManifest | null>(
-    null,
-  );
+  const [selectedPlugin, setSelectedPlugin] = useState<PluginManifest | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const { data: remotePlugins, isLoading: remoteLoading } = useQuery({
@@ -337,8 +327,7 @@ export default function MarketplacePage() {
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.author.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory =
-        activeCategory === "all" || getCategory(p) === activeCategory;
+      const matchesCategory = activeCategory === "all" || getCategory(p) === activeCategory;
       return matchesSearch && matchesCategory;
     });
   }, [plugins, searchQuery, activeCategory]);
@@ -367,7 +356,7 @@ export default function MarketplacePage() {
           permissions: plugin.permissions,
           hooks: plugin.hooks,
         },
-        { headers: { "X-Tenant-Id": tenantId } },
+        { headers: { "X-Tenant-Id": tenantId } }
       );
     },
     onSuccess: () => {
@@ -394,8 +383,7 @@ export default function MarketplacePage() {
         headers: { "X-Tenant-Id": tenantId },
       });
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["marketplace", "plugins"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["marketplace", "plugins"] }),
   });
 
   const disableMutation = useMutation({
@@ -404,18 +392,17 @@ export default function MarketplacePage() {
         headers: { "X-Tenant-Id": tenantId },
       });
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["marketplace", "plugins"] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["marketplace", "plugins"] }),
   });
 
   const handleInstall = useCallback(
     (plugin: PluginManifest) => installMutation.mutate(plugin),
-    [installMutation],
+    [installMutation]
   );
 
   const handleUninstall = useCallback(
     (pluginId: string) => uninstallMutation.mutate(pluginId),
-    [uninstallMutation],
+    [uninstallMutation]
   );
 
   const handleToggleEnabled = useCallback(
@@ -427,14 +414,14 @@ export default function MarketplacePage() {
         enableMutation.mutate(plugin.id);
       }
     },
-    [enableMutation, disableMutation],
+    [enableMutation, disableMutation]
   );
 
   const handleConfigure = useCallback(
     (plugin: PluginManifest) => {
       router.push(`/marketplace/${plugin.id}/config`);
     },
-    [router],
+    [router]
   );
 
   function renderStars(rating: number) {
@@ -472,9 +459,8 @@ export default function MarketplacePage() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="marketplace-cap036-honesty"
       >
-        CAP-036 plugin stub — not tip MarketplaceListing catalog. Tip memory
-        listings + CAP-094 certify + STORY-13-04 publish/catalog-install
-        (catalog install ≠ live ERP):{" "}
+        CAP-036 plugin stub — not tip MarketplaceListing catalog. Tip memory listings + CAP-094
+        certify + STORY-13-04 publish/catalog-install (catalog install ≠ live ERP):{" "}
         <Link
           href="/marketplace/listings"
           className="underline font-medium"
@@ -487,9 +473,7 @@ export default function MarketplacePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            Marketplace
-          </h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Marketplace</h1>
           <p className="mt-1 text-sm text-[var(--text-secondary)]">
             Browse and install plugins to extend SalesOS
           </p>
@@ -536,19 +520,12 @@ export default function MarketplacePage() {
       </div>
 
       {/* Category Tabs */}
-      <Tabs
-        value={activeCategory}
-        onValueChange={(v) => setActiveCategory(v as CategoryId)}
-      >
+      <Tabs value={activeCategory} onValueChange={(v) => setActiveCategory(v as CategoryId)}>
         <TabsList className="flex-wrap">
           {CATEGORIES.map((cat) => {
             const Icon = cat.icon;
             return (
-              <Tab
-                key={cat.id}
-                value={cat.id}
-                className="flex items-center gap-1.5"
-              >
+              <Tab key={cat.id} value={cat.id} className="flex items-center gap-1.5">
                 <Icon className="h-3.5 w-3.5" />
                 {cat.label}
                 <span className="ml-1 text-[10px] text-[var(--text-muted)]">
@@ -621,11 +598,7 @@ export default function MarketplacePage() {
                           size="sm"
                           onChange={() => handleToggleEnabled(plugin)}
                         />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleConfigure(plugin)}
-                        >
+                        <Button size="sm" variant="ghost" onClick={() => handleConfigure(plugin)}>
                           <Settings className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -668,15 +641,9 @@ export default function MarketplacePage() {
                       <h3 className="text-sm font-semibold text-[var(--text-primary)]">
                         {plugin.name}
                       </h3>
-                      {plugin.installed && (
-                        <Badge variant="success">Installed</Badge>
-                      )}
-                      <span className="text-xs text-[var(--text-muted)]">
-                        v{plugin.version}
-                      </span>
-                      <span className="text-xs text-[var(--text-muted)]">
-                        by {plugin.author}
-                      </span>
+                      {plugin.installed && <Badge variant="success">Installed</Badge>}
+                      <span className="text-xs text-[var(--text-muted)]">v{plugin.version}</span>
+                      <span className="text-xs text-[var(--text-muted)]">by {plugin.author}</span>
                     </div>
                     <p className="mt-0.5 line-clamp-1 text-xs text-[var(--text-secondary)]">
                       {plugin.description}
@@ -686,9 +653,7 @@ export default function MarketplacePage() {
                     {plugin.rating && (
                       <div className="flex items-center gap-1">
                         <Star className="h-3 w-3 fill-amber-400 text-[var(--status-warning-text)]" />
-                        <span className="text-xs text-[var(--text-muted)]">
-                          {plugin.rating}
-                        </span>
+                        <span className="text-xs text-[var(--text-muted)]">{plugin.rating}</span>
                       </div>
                     )}
                     <div onClick={(e) => e.stopPropagation()}>
@@ -699,11 +664,7 @@ export default function MarketplacePage() {
                             size="sm"
                             onChange={() => handleToggleEnabled(plugin)}
                           />
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleConfigure(plugin)}
-                          >
+                          <Button size="sm" variant="ghost" onClick={() => handleConfigure(plugin)}>
                             <Settings className="h-3.5 w-3.5" />
                           </Button>
                         </div>
@@ -727,10 +688,7 @@ export default function MarketplacePage() {
       )}
 
       {/* Plugin Detail Modal */}
-      <Modal
-        open={!!selectedPlugin}
-        onOpenChange={(open) => !open && setSelectedPlugin(null)}
-      >
+      <Modal open={!!selectedPlugin} onOpenChange={(open) => !open && setSelectedPlugin(null)}>
         <ModalContent className="max-w-xl">
           {selectedPlugin && (
             <>
@@ -740,9 +698,7 @@ export default function MarketplacePage() {
                     {(() => {
                       const cat = getCategory(selectedPlugin);
                       const CatIcon = CATEGORY_ICONS[cat] || Puzzle;
-                      return (
-                        <CatIcon className="h-5 w-5 text-[var(--muhide-orange)]" />
-                      );
+                      return <CatIcon className="h-5 w-5 text-[var(--muhide-orange)]" />;
                     })()}
                   </div>
                   <div>
@@ -783,11 +739,7 @@ export default function MarketplacePage() {
                     </h4>
                     <div className="flex flex-wrap gap-1.5">
                       {selectedPlugin.permissions.map((perm) => (
-                        <Badge
-                          key={perm}
-                          variant="outline"
-                          className="text-[10px]"
-                        >
+                        <Badge key={perm} variant="outline" className="text-[10px]">
                           {perm}
                         </Badge>
                       ))}
@@ -801,11 +753,7 @@ export default function MarketplacePage() {
                       </h4>
                       <div className="flex flex-wrap gap-1.5">
                         {selectedPlugin.hooks.map((hook) => (
-                          <Badge
-                            key={hook}
-                            variant="default"
-                            className="text-[10px]"
-                          >
+                          <Badge key={hook} variant="default" className="text-[10px]">
                             {hook}
                           </Badge>
                         ))}
@@ -871,9 +819,7 @@ export default function MarketplacePage() {
                     disabled={installMutation.isPending}
                   >
                     <Download className="h-4 w-4" />
-                    {installMutation.isPending
-                      ? "Installing..."
-                      : "Install Plugin"}
+                    {installMutation.isPending ? "Installing..." : "Install Plugin"}
                   </Button>
                 )}
               </ModalFooter>

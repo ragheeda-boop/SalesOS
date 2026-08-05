@@ -20,16 +20,12 @@ import { QuickOverlay } from "../QuickOverlay";
 
 describe("QuickOverlay", () => {
   it("renders when open", () => {
-    const { container } = render(
-      <QuickOverlay open={true} onClose={jest.fn()} />,
-    );
+    const { container } = render(<QuickOverlay open={true} onClose={jest.fn()} />);
     expect(container.querySelector(".fixed")).toBeInTheDocument();
   });
 
   it("inner component returns null when closed", () => {
-    const { container } = render(
-      <QuickOverlay open={false} onClose={jest.fn()} />,
-    );
+    const { container } = render(<QuickOverlay open={false} onClose={jest.fn()} />);
     expect(container.querySelector(".fixed")).not.toBeInTheDocument();
   });
 });

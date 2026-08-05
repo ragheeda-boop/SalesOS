@@ -7,10 +7,7 @@ import {
   useScoringRules,
   useUpsertScoringRule,
 } from "@/lib/hooks/scoringRulesQueries";
-import type {
-  ScoringBoostOp,
-  ScoringTargetType,
-} from "@/lib/api/types/tenantStudio";
+import type { ScoringBoostOp, ScoringTargetType } from "@/lib/api/types/tenantStudio";
 import {
   PLATFORM_DEFAULT_DIMENSION_WEIGHTS,
   SCORING_BOOST_OPS,
@@ -23,8 +20,7 @@ import {
 } from "@/features/tenant-studio/scoringRulesHonesty";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -44,11 +40,8 @@ export function ScoringRulesStudio() {
   const [targetType, setTargetType] = useState<ScoringTargetType>("company");
   const [weights, setWeights] = useState<Record<string, string>>(() =>
     Object.fromEntries(
-      Object.entries(PLATFORM_DEFAULT_DIMENSION_WEIGHTS).map(([k, v]) => [
-        k,
-        String(v),
-      ]),
-    ),
+      Object.entries(PLATFORM_DEFAULT_DIMENSION_WEIGHTS).map(([k, v]) => [k, String(v)])
+    )
   );
   const [boostField, setBoostField] = useState("segment");
   const [boostOp, setBoostOp] = useState<ScoringBoostOp>("eq");
@@ -58,7 +51,7 @@ export function ScoringRulesStudio() {
 
   const [evalScores, setEvalScores] = useState(
     () =>
-      `{\n  "buying_intent": 80,\n  "engagement": 70,\n  "fit": 60,\n  "urgency": 50,\n  "relationship": 40,\n  "market_signal": 30\n}`,
+      `{\n  "buying_intent": 80,\n  "engagement": 70,\n  "fit": 60,\n  "urgency": 50,\n  "relationship": 40,\n  "market_signal": 30\n}`
   );
   const [evalAttrs, setEvalAttrs] = useState(`{\n  "segment": "enterprise"\n}`);
   const [evalRuleId, setEvalRuleId] = useState("");
@@ -81,8 +74,8 @@ export function ScoringRulesStudio() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="scoring-rules-honesty"
       >
-        {SCORING_RULES_HONESTY} Non-goals: {SCORING_RULES_NON_GOALS.join("; ")}.
-        Not Production GO / RAG GO.
+        {SCORING_RULES_HONESTY} Non-goals: {SCORING_RULES_NON_GOALS.join("; ")}. Not Production GO /
+        RAG GO.
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -95,16 +88,11 @@ export function ScoringRulesStudio() {
         >
           {listQuery.isFetching ? "Refreshing…" : "Refresh rules"}
         </Button>
-        <span
-          className="text-sm text-[var(--text-muted)]"
-          data-testid="scoring-rules-count"
-        >
+        <span className="text-sm text-[var(--text-muted)]" data-testid="scoring-rules-count">
           {listQuery.isLoading ? (
             <Spinner className="h-5 w-5" />
           ) : listQuery.isError ? (
-            <span className="text-[var(--text-danger)]">
-              {getApiError(listQuery.error)}
-            </span>
+            <span className="text-[var(--text-danger)]">{getApiError(listQuery.error)}</span>
           ) : (
             <>{listQuery.data?.length ?? 0} rule(s)</>
           )}
@@ -121,13 +109,9 @@ export function ScoringRulesStudio() {
           </li>
         ) : (
           (listQuery.data ?? []).map((rule) => (
-            <li
-              key={rule.id}
-              className="px-3 py-2 text-sm"
-              data-testid="scoring-rules-row"
-            >
-              <span className="font-medium">{rule.name}</span> ·{" "}
-              {rule.target_type} · {rule.active ? "active" : "inactive"}
+            <li key={rule.id} className="px-3 py-2 text-sm" data-testid="scoring-rules-row">
+              <span className="font-medium">{rule.name}</span> · {rule.target_type} ·{" "}
+              {rule.active ? "active" : "inactive"}
               <span className="mt-0.5 block font-mono text-xs text-[var(--text-muted)]">
                 {rule.id} · v{rule.schema_version} · weights{" "}
                 {JSON.stringify(rule.dimension_weights)}
@@ -175,13 +159,11 @@ export function ScoringRulesStudio() {
                   description: getApiError(err),
                 });
               },
-            },
+            }
           );
         }}
       >
-        <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-          Upsert rule (tip POST)
-        </h2>
+        <h2 className="text-sm font-semibold text-[var(--text-primary)]">Upsert rule (tip POST)</h2>
         <Input
           label="name"
           data-testid="scoring-rules-name"
@@ -189,9 +171,7 @@ export function ScoringRulesStudio() {
           onChange={(e) => setName(e.target.value)}
         />
         <div>
-          <label className="block text-xs text-[var(--text-muted)]">
-            target_type
-          </label>
+          <label className="block text-xs text-[var(--text-muted)]">target_type</label>
           <select
             data-testid="scoring-rules-target-type"
             className="w-full max-w-xs rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
@@ -218,9 +198,7 @@ export function ScoringRulesStudio() {
               step="0.01"
               min="0"
               value={weights[dim] ?? ""}
-              onChange={(e) =>
-                setWeights((prev) => ({ ...prev, [dim]: e.target.value }))
-              }
+              onChange={(e) => setWeights((prev) => ({ ...prev, [dim]: e.target.value }))}
             />
           ))}
         </div>
@@ -242,9 +220,7 @@ export function ScoringRulesStudio() {
               onChange={(e) => setBoostField(e.target.value)}
             />
             <div>
-              <label className="block text-xs text-[var(--text-muted)]">
-                boost.op
-              </label>
+              <label className="block text-xs text-[var(--text-muted)]">boost.op</label>
               <select
                 data-testid="scoring-rules-boost-op"
                 className="w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
@@ -320,9 +296,7 @@ export function ScoringRulesStudio() {
                   variant: "success",
                   title: `Score ${row.score}`,
                   description: `${row.source}${
-                    row.fallback_used
-                      ? ` · fallback: ${row.fallback_reason ?? "yes"}`
-                      : ""
+                    row.fallback_used ? ` · fallback: ${row.fallback_reason ?? "yes"}` : ""
                   }`,
                 });
               },
@@ -333,7 +307,7 @@ export function ScoringRulesStudio() {
                   description: getApiError(err),
                 });
               },
-            },
+            }
           );
         }}
       >
@@ -347,9 +321,7 @@ export function ScoringRulesStudio() {
           onChange={(e) => setEvalRuleId(e.target.value)}
         />
         <div>
-          <label className="block text-xs text-[var(--text-muted)]">
-            dimension_scores (JSON)
-          </label>
+          <label className="block text-xs text-[var(--text-muted)]">dimension_scores (JSON)</label>
           <textarea
             data-testid="scoring-rules-eval-scores"
             className="min-h-[120px] w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] p-2 font-mono text-xs"
@@ -358,9 +330,7 @@ export function ScoringRulesStudio() {
           />
         </div>
         <div>
-          <label className="block text-xs text-[var(--text-muted)]">
-            attributes (JSON)
-          </label>
+          <label className="block text-xs text-[var(--text-muted)]">attributes (JSON)</label>
           <textarea
             data-testid="scoring-rules-eval-attrs"
             className="min-h-[80px] w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] p-2 font-mono text-xs"

@@ -3,17 +3,12 @@
 import { useState } from "react";
 import { Card, Badge, Spinner } from "@salesos/ui";
 import { DollarSign, TrendingUp, Cpu, BarChart3 } from "lucide-react";
-import {
-  useAdminAICostSummary,
-  useAdminAIUsage,
-  useAdminAICosts,
-} from "@/lib/hooks/adminQueries";
+import { useAdminAICostSummary, useAdminAIUsage, useAdminAICosts } from "@/lib/hooks/adminQueries";
 import { AdminAICost } from "@/lib/api";
 
 export function AICostDashboard() {
   const [days, setDays] = useState(30);
-  const { data: summary, isLoading: summaryLoading } =
-    useAdminAICostSummary(days);
+  const { data: summary, isLoading: summaryLoading } = useAdminAICostSummary(days);
   const { isLoading: usageLoading } = useAdminAIUsage(days);
   const { data: costs, isLoading: costsLoading } = useAdminAICosts({ days });
 
@@ -72,36 +67,28 @@ export function AICostDashboard() {
               <h3 className="font-semibold mb-3">التكلفة حسب النموذج</h3>
               {summary?.by_model?.length ? (
                 <div className="space-y-2">
-                  {summary.by_model.map(
-                    (m: { model: string; cost: number; tokens: number }) => {
-                      const maxCost = Math.max(
-                        ...summary.by_model.map(
-                          (x: { cost: number }) => x.cost,
-                        ),
-                      );
-                      return (
-                        <div key={m.model}>
-                          <div className="flex justify-between text-sm mb-1">
-                            <span>{m.model}</span>
-                            <span className="font-mono">
-                              ${m.cost.toFixed(4)}
-                            </span>
-                          </div>
-                          <div className="h-2 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-[var(--muhide-orange)] rounded-full transition-all"
-                              style={{ width: `${(m.cost / maxCost) * 100}%` }}
-                            />
-                          </div>
+                  {summary.by_model.map((m: { model: string; cost: number; tokens: number }) => {
+                    const maxCost = Math.max(
+                      ...summary.by_model.map((x: { cost: number }) => x.cost)
+                    );
+                    return (
+                      <div key={m.model}>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>{m.model}</span>
+                          <span className="font-mono">${m.cost.toFixed(4)}</span>
                         </div>
-                      );
-                    },
-                  )}
+                        <div className="h-2 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-[var(--muhide-orange)] rounded-full transition-all"
+                            style={{ width: `${(m.cost / maxCost) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
-                <p className="text-sm text-[var(--text-muted)] text-center py-4">
-                  لا توجد بيانات
-                </p>
+                <p className="text-sm text-[var(--text-muted)] text-center py-4">لا توجد بيانات</p>
               )}
             </Card>
 
@@ -110,32 +97,24 @@ export function AICostDashboard() {
               {summary?.by_operation?.length ? (
                 <div className="space-y-2">
                   {summary.by_operation.map(
-                    (o: {
-                      operation: string;
-                      cost: number;
-                      tokens: number;
-                    }) => (
+                    (o: { operation: string; cost: number; tokens: number }) => (
                       <div
                         key={o.operation}
                         className="flex items-center justify-between p-2 rounded-lg border"
                       >
                         <Badge>{o.operation}</Badge>
                         <div className="text-left">
-                          <p className="text-sm font-mono">
-                            ${o.cost.toFixed(4)}
-                          </p>
+                          <p className="text-sm font-mono">${o.cost.toFixed(4)}</p>
                           <p className="text-xs text-[var(--text-muted)]">
                             {o.tokens.toLocaleString()} توكن
                           </p>
                         </div>
                       </div>
-                    ),
+                    )
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-[var(--text-muted)] text-center py-4">
-                  لا توجد بيانات
-                </p>
+                <p className="text-sm text-[var(--text-muted)] text-center py-4">لا توجد بيانات</p>
               )}
             </Card>
           </div>
@@ -154,31 +133,21 @@ export function AICostDashboard() {
                   </thead>
                   <tbody>
                     {summary.by_tenant.map(
-                      (t: {
-                        tenant_id: string;
-                        cost: number;
-                        tokens: number;
-                      }) => (
+                      (t: { tenant_id: string; cost: number; tokens: number }) => (
                         <tr key={t.tenant_id} className="border-b">
                           <td className="p-2 text-xs">
                             {t.tenant_id === "system" ? "النظام" : t.tenant_id}
                           </td>
-                          <td className="p-2 font-mono">
-                            ${t.cost.toFixed(4)}
-                          </td>
-                          <td className="p-2 font-mono">
-                            {t.tokens.toLocaleString()}
-                          </td>
+                          <td className="p-2 font-mono">${t.cost.toFixed(4)}</td>
+                          <td className="p-2 font-mono">{t.tokens.toLocaleString()}</td>
                         </tr>
-                      ),
+                      )
                     )}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <p className="text-sm text-[var(--text-muted)] text-center py-4">
-                لا توجد بيانات
-              </p>
+              <p className="text-sm text-[var(--text-muted)] text-center py-4">لا توجد بيانات</p>
             )}
           </Card>
 
@@ -206,9 +175,7 @@ export function AICostDashboard() {
                         <td className="p-2 text-xs text-[var(--text-muted)]">
                           {c.tenant_name || "-"}
                         </td>
-                        <td className="p-2 font-mono text-xs">
-                          ${c.cost.toFixed(4)}
-                        </td>
+                        <td className="p-2 font-mono text-xs">${c.cost.toFixed(4)}</td>
                         <td className="p-2 text-xs text-[var(--text-muted)]">
                           {new Date(c.created_at).toLocaleDateString("ar-SA")}
                         </td>
@@ -218,9 +185,7 @@ export function AICostDashboard() {
                 </table>
               </div>
             ) : (
-              <p className="text-sm text-[var(--text-muted)] text-center py-4">
-                لا توجد عمليات
-              </p>
+              <p className="text-sm text-[var(--text-muted)] text-center py-4">لا توجد عمليات</p>
             )}
           </Card>
         </>
@@ -243,8 +208,7 @@ function MetricCard({
   const colorMap: Record<string, string> = {
     red: "bg-danger-50 text-danger-600 dark:bg-danger-900/30",
     blue: "bg-info-50 text-info-600 dark:bg-info-900/30",
-    purple:
-      "bg-[var(--chart-purple-bg)] text-[var(--chart-purple)] dark:bg-[var(--bg-primary)]/30",
+    purple: "bg-[var(--chart-purple-bg)] text-[var(--chart-purple)] dark:bg-[var(--bg-primary)]/30",
     green: "bg-success-50 text-success-600 dark:bg-success-900/30",
   };
 

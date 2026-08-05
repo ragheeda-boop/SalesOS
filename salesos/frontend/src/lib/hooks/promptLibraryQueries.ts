@@ -53,8 +53,7 @@ function invalidateAll(qc: ReturnType<typeof useQueryClient>) {
 export function useCreatePromptLibraryEntry() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: PromptCreateBody) =>
-      createPromptLibraryEntry(getTenantId(), body),
+    mutationFn: (body: PromptCreateBody) => createPromptLibraryEntry(getTenantId(), body),
     onSuccess: () => invalidateAll(qc),
   });
 }
@@ -62,13 +61,8 @@ export function useCreatePromptLibraryEntry() {
 export function usePatchPromptLibraryMeta() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      entryId,
-      body,
-    }: {
-      entryId: string;
-      body: PromptMetaPatchBody;
-    }) => patchPromptLibraryMeta(getTenantId(), entryId, body),
+    mutationFn: ({ entryId, body }: { entryId: string; body: PromptMetaPatchBody }) =>
+      patchPromptLibraryMeta(getTenantId(), entryId, body),
     onSuccess: () => invalidateAll(qc),
   });
 }
@@ -76,13 +70,8 @@ export function usePatchPromptLibraryMeta() {
 export function useAddPromptLibraryVersion() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      entryId,
-      body,
-    }: {
-      entryId: string;
-      body: PromptVersionBody;
-    }) => addPromptLibraryVersion(getTenantId(), entryId, body),
+    mutationFn: ({ entryId, body }: { entryId: string; body: PromptVersionBody }) =>
+      addPromptLibraryVersion(getTenantId(), entryId, body),
     onSuccess: () => invalidateAll(qc),
   });
 }
@@ -90,13 +79,8 @@ export function useAddPromptLibraryVersion() {
 export function useRollbackPromptLibrary() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      entryId,
-      body,
-    }: {
-      entryId: string;
-      body: PromptRollbackBody;
-    }) => rollbackPromptLibrary(getTenantId(), entryId, body),
+    mutationFn: ({ entryId, body }: { entryId: string; body: PromptRollbackBody }) =>
+      rollbackPromptLibrary(getTenantId(), entryId, body),
     onSuccess: () => invalidateAll(qc),
   });
 }
@@ -104,8 +88,7 @@ export function useRollbackPromptLibrary() {
 export function useDeletePromptLibraryEntry() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (entryId: string) =>
-      deletePromptLibraryEntry(getTenantId(), entryId),
+    mutationFn: (entryId: string) => deletePromptLibraryEntry(getTenantId(), entryId),
     onSuccess: () => invalidateAll(qc),
   });
 }

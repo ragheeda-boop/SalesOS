@@ -7,12 +7,7 @@ jest.mock("../useTenant");
 
 import * as api from "@/lib/api";
 import { useTenant } from "../useTenant";
-import {
-  useAdminHealth,
-  useAdminMetrics,
-  useDlq,
-  useRetryDlq,
-} from "../adminQueries";
+import { useAdminHealth, useAdminMetrics, useDlq, useRetryDlq } from "../adminQueries";
 
 (useTenant as jest.Mock).mockReturnValue({ tenantId: "tenant-1" });
 
@@ -23,9 +18,7 @@ function createWrapper() {
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 }
 

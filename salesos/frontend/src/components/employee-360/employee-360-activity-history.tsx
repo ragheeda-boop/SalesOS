@@ -20,11 +20,7 @@ interface ActivityHistoryProps {
   maxItems?: number;
 }
 
-export function ActivityHistory({
-  events,
-  isLoading,
-  maxItems = 10,
-}: ActivityHistoryProps) {
+export function ActivityHistory({ events, isLoading, maxItems = 10 }: ActivityHistoryProps) {
   const { t } = useTranslation();
 
   if (isLoading) {
@@ -57,10 +53,7 @@ export function ActivityHistory({
           <h3 className="text-sm font-semibold">{t("emp360.activity_history")}</h3>
         </CardHeader>
         <CardContent>
-          <EmptyState
-            icon={<Clock className="h-8 w-8" />}
-            title={t("emp360.no_activity")}
-          />
+          <EmptyState icon={<Clock className="h-8 w-8" />} title={t("emp360.no_activity")} />
         </CardContent>
       </Card>
     );
@@ -84,32 +77,25 @@ export function ActivityHistory({
             const config = getActionConfig(event.action);
             const Icon = config.icon;
             return (
-              <div
-                key={event.id}
-                className="relative flex gap-3 pb-4 last:pb-0"
-              >
+              <div key={event.id} className="relative flex gap-3 pb-4 last:pb-0">
                 {idx < displayEvents.length - 1 && (
                   <div className="absolute right-[15px] top-10 bottom-0 w-px bg-[var(--bg-tertiary)]" />
                 )}
                 <div
                   className={cn(
                     "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                    config.color,
+                    config.color
                   )}
                 >
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-[var(--text-primary)]">
-                    {event.title}
-                  </p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{event.title}</p>
                   <p className="mt-0.5 text-xs text-[var(--text-muted)]">
                     <Badge variant="default" className="me-1 text-[10px]">
                       {event.source_label}
                     </Badge>
-                    {event.actor && (
-                      <span className="me-1">· {event.actor}</span>
-                    )}
+                    {event.actor && <span className="me-1">· {event.actor}</span>}
                     <span>· {formatRelativeTime(event.timestamp)}</span>
                   </p>
                 </div>

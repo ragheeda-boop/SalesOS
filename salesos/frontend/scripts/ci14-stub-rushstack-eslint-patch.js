@@ -12,12 +12,13 @@ const stub = `"use strict";
 module.exports = {};
 `;
 
-const roots = [
-  path.join(__dirname, "..", "node_modules", "@rushstack", "eslint-patch"),
-];
+const roots = [path.join(__dirname, "..", "node_modules", "@rushstack", "eslint-patch")];
 
 for (const root of roots) {
-  for (const rel of ["lib-commonjs/modern-module-resolution.js", "lib-esm/modern-module-resolution.js"]) {
+  for (const rel of [
+    "lib-commonjs/modern-module-resolution.js",
+    "lib-esm/modern-module-resolution.js",
+  ]) {
     const target = path.join(root, rel);
     if (!fs.existsSync(target)) continue;
     fs.writeFileSync(target, stub, "utf8");

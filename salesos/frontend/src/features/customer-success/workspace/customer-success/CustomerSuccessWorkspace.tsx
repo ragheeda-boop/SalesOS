@@ -13,36 +13,24 @@ import { TenantHealthList } from "../../widgets/customer-success/TenantHealthLis
 
 export function CustomerSuccessWorkspace() {
   const { t } = useTranslation();
-  const [activeView, setActiveView] = useState<"overview" | "tenants">(
-    "overview",
-  );
+  const [activeView, setActiveView] = useState<"overview" | "tenants">("overview");
   const { data, isLoading, error } = useTelemetryOverview();
 
   if (error) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center space-y-3">
-          <p className="text-sm text-[var(--status-danger-text)]">
-            {t("customer_success.error")}
-          </p>
+          <p className="text-sm text-[var(--status-danger-text)]">{t("customer_success.error")}</p>
         </div>
       </div>
     );
   }
 
   if (isLoading || !data) {
-    return (
-      <div className="animate-pulse h-96 bg-[var(--bg-tertiary)] rounded-xl" />
-    );
+    return <div className="animate-pulse h-96 bg-[var(--bg-tertiary)] rounded-xl" />;
   }
 
-  const {
-    feature_adoption,
-    search_success,
-    nba_acceptance,
-    active_users,
-    avg_adoption_pct,
-  } = data;
+  const { feature_adoption, search_success, nba_acceptance, active_users, avg_adoption_pct } = data;
 
   return (
     <div className="space-y-6">
@@ -59,12 +47,10 @@ export function CustomerSuccessWorkspace() {
                 "px-3 py-1.5 text-sm rounded-lg",
                 activeView === v
                   ? "bg-[var(--muhide-orange)] text-white"
-                  : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+                  : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
               )}
             >
-              {v === "overview"
-                ? t("customer_success.overview")
-                : t("customer_success.tenants")}
+              {v === "overview" ? t("customer_success.overview") : t("customer_success.tenants")}
             </button>
           ))}
         </div>
@@ -120,11 +106,7 @@ export function CustomerSuccessWorkspace() {
                           ? "warning"
                           : "critical",
                     color:
-                      avg_adoption_pct > 80
-                        ? "green"
-                        : avg_adoption_pct > 50
-                          ? "yellow"
-                          : "red",
+                      avg_adoption_pct > 80 ? "green" : avg_adoption_pct > 50 ? "yellow" : "red",
                     components: {
                       feature_adoption: {
                         weight: 0.4,
@@ -171,12 +153,7 @@ export function CustomerSuccessWorkspace() {
                     : avg_adoption_pct > 50
                       ? "warning"
                       : "critical",
-                color:
-                  avg_adoption_pct > 80
-                    ? "green"
-                    : avg_adoption_pct > 50
-                      ? "yellow"
-                      : "red",
+                color: avg_adoption_pct > 80 ? "green" : avg_adoption_pct > 50 ? "yellow" : "red",
                 components: {
                   feature_adoption: {
                     weight: 0.4,

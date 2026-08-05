@@ -13,8 +13,7 @@ function buildProbePayload(env: {
     probe_path: "/fe-sec-02/httponly-flag",
     next_public_httponly_access_cookie_baked: nextPublicRaw === "true",
     next_public_raw: nextPublicRaw,
-    server_feature_httponly_access_cookie:
-      env.FEATURE_HTTPONLY_ACCESS_COOKIE === "true",
+    server_feature_httponly_access_cookie: env.FEATURE_HTTPONLY_ACCESS_COOKIE === "true",
   };
 }
 
@@ -30,12 +29,12 @@ describe("FE-SEC-02 httponly-flag probe contract", () => {
     expect(
       buildProbePayload({
         NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE: "true",
-      }).next_public_httponly_access_cookie_baked,
+      }).next_public_httponly_access_cookie_baked
     ).toBe(true);
     expect(
       buildProbePayload({
         NEXT_PUBLIC_FEATURE_HTTPONLY_ACCESS_COOKIE: "false",
-      }).next_public_httponly_access_cookie_baked,
+      }).next_public_httponly_access_cookie_baked
     ).toBe(false);
   });
 });

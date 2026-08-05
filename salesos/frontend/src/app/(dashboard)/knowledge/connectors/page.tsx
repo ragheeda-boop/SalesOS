@@ -81,9 +81,7 @@ export default function ConnectorsPage() {
   const [syncHistory, setSyncHistory] = useState<SyncRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncingId, setSyncingId] = useState<string | null>(null);
-  const [selectedConnector, setSelectedConnector] = useState<string | null>(
-    null,
-  );
+  const [selectedConnector, setSelectedConnector] = useState<string | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -136,13 +134,10 @@ export default function ConnectorsPage() {
     async (connectorId: string) => {
       setHistoryLoading(true);
       try {
-        const res = await api.get(
-          `/api/v1/data-fabric/connectors/${connectorId}/syncs`,
-          {
-            params: { limit: 10 },
-            headers: { "X-Tenant-Id": tenantId },
-          },
-        );
+        const res = await api.get(`/api/v1/data-fabric/connectors/${connectorId}/syncs`, {
+          params: { limit: 10 },
+          headers: { "X-Tenant-Id": tenantId },
+        });
         setSyncHistory(res.data.syncs || res.data || []);
       } catch {
         setSyncHistory([]);
@@ -150,7 +145,7 @@ export default function ConnectorsPage() {
         setHistoryLoading(false);
       }
     },
-    [tenantId],
+    [tenantId]
   );
 
   const handleSelectConnector = useCallback(
@@ -159,20 +154,16 @@ export default function ConnectorsPage() {
       if (id !== selectedConnector) loadSyncHistory(id);
       else setSyncHistory([]);
     },
-    [selectedConnector, loadSyncHistory],
+    [selectedConnector, loadSyncHistory]
   );
 
   const handleSync = useCallback(
     async (connectorId: string) => {
       setSyncingId(connectorId);
       try {
-        await api.post(
-          `/api/v1/data-fabric/connectors/${connectorId}/sync`,
-          null,
-          {
-            headers: { "X-Tenant-Id": tenantId },
-          },
-        );
+        await api.post(`/api/v1/data-fabric/connectors/${connectorId}/sync`, null, {
+          headers: { "X-Tenant-Id": tenantId },
+        });
         setConnectors((prev) =>
           prev.map((c) =>
             c.id === connectorId
@@ -181,8 +172,8 @@ export default function ConnectorsPage() {
                   last_sync: new Date().toISOString(),
                   status: "active" as const,
                 }
-              : c,
-          ),
+              : c
+          )
         );
         if (selectedConnector === connectorId) loadSyncHistory(connectorId);
       } catch {
@@ -190,14 +181,14 @@ export default function ConnectorsPage() {
           prev.map((c) =>
             c.id === connectorId
               ? { ...c, status: "error" as const, error_message: "Sync failed" }
-              : c,
-          ),
+              : c
+          )
         );
       } finally {
         setSyncingId(null);
       }
     },
-    [tenantId, selectedConnector, loadSyncHistory],
+    [tenantId, selectedConnector, loadSyncHistory]
   );
 
   if (loading) {
@@ -264,9 +255,7 @@ export default function ConnectorsPage() {
                 <Icon className="h-4 w-4" />
                 {cfg.label}
               </div>
-              <p className="text-2xl font-bold text-[var(--text-primary)] mt-1">
-                {count}
-              </p>
+              <p className="text-2xl font-bold text-[var(--text-primary)] mt-1">{count}</p>
             </div>
           );
         })}
@@ -316,16 +305,13 @@ export default function ConnectorsPage() {
                         <Clock className="h-3 w-3" />
                         Last sync: {formatTimestamp(connector.last_sync)}
                       </span>
-                      <span>
-                        {connector.sync_count.toLocaleString()} syncs completed
-                      </span>
+                      <span>{connector.sync_count.toLocaleString()} syncs completed</span>
                     </div>
-                    {connector.error_message &&
-                      connector.status === "error" && (
-                        <p className="mt-1.5 text-xs text-[var(--status-danger-text)]">
-                          {connector.error_message}
-                        </p>
-                      )}
+                    {connector.error_message && connector.status === "error" && (
+                      <p className="mt-1.5 text-xs text-[var(--status-danger-text)]">
+                        {connector.error_message}
+                      </p>
+                    )}
                   </div>
 
                   <Button
@@ -384,12 +370,9 @@ export default function ConnectorsPage() {
                             />
                             <div className="flex-1 min-w-0">
                               <span className="text-[var(--text-primary)]">
-                                {sync.records_synced.toLocaleString()} records
-                                synced
+                                {sync.records_synced.toLocaleString()} records synced
                               </span>
-                              <span className="text-[var(--text-muted)] mx-2">
-                                |
-                              </span>
+                              <span className="text-[var(--text-muted)] mx-2">|</span>
                               <span className="text-[var(--text-secondary)]">
                                 {new Date(sync.started_at).toLocaleString()}
                               </span>

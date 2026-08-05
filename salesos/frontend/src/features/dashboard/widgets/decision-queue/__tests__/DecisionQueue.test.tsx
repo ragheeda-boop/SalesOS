@@ -71,9 +71,7 @@ describeWidgetContract({
       permissions: ["decisions:read"],
       featureFlag: { enabled: true },
     },
-    render: ({ data }) => (
-      <DecisionQueueView items={data.items ?? []} total={data.total ?? 0} />
-    ),
+    render: ({ data }) => <DecisionQueueView items={data.items ?? []} total={data.total ?? 0} />,
   },
 });
 
@@ -111,8 +109,7 @@ describe("DecisionQueueView", () => {
 
   it("renders AI scores", () => {
     renderView();
-    const aiScore = (n: number) =>
-      screen.getByText((c) => c.includes(`AI ${n}%`));
+    const aiScore = (n: number) => screen.getByText((c) => c.includes(`AI ${n}%`));
     expect(aiScore(92)).toBeInTheDocument();
     expect(aiScore(78)).toBeInTheDocument();
     expect(aiScore(65)).toBeInTheDocument();
@@ -175,19 +172,13 @@ describe("DecisionQueueView", () => {
   // 6. Accessibility
   it('has role="region" with aria-label', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "قرارات معلقة" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "قرارات معلقة" })).toBeInTheDocument();
   });
 
   it("each item has descriptive aria-label", () => {
     renderView();
-    expect(
-      screen.getByLabelText(/صفقة استراتيجية كبرى - ACME Corp - عاجل/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByLabelText(/تأخير في التسليم - Beta Ltd - عاجل/),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/صفقة استراتيجية كبرى - ACME Corp - عاجل/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/تأخير في التسليم - Beta Ltd - عاجل/)).toBeInTheDocument();
   });
 
   it('non-clickable items do not have role="button"', () => {
@@ -216,8 +207,7 @@ describe("DecisionQueueWidget (SDK integration)", () => {
   it("is a valid React component", () => {
     expect(DecisionQueueWidget).toBeDefined();
     expect(
-      typeof DecisionQueueWidget === "function" ||
-        typeof DecisionQueueWidget === "object",
+      typeof DecisionQueueWidget === "function" || typeof DecisionQueueWidget === "object"
     ).toBe(true);
   });
 });
@@ -271,9 +261,7 @@ describe("DecisionQueueView — DecisionProvider", () => {
 
   it("announces item count via aria-live", () => {
     renderView();
-    const live = document.querySelector(
-      '[aria-live="polite"][aria-atomic="true"].sr-only',
-    );
+    const live = document.querySelector('[aria-live="polite"][aria-atomic="true"].sr-only');
     expect(live).toBeInTheDocument();
     expect(live).toHaveTextContent("4 قرار معلق");
   });

@@ -57,20 +57,14 @@ export function V3AiPopup({ open, onClose, contextLabel }: V3AiPopupProps) {
         aria-modal="true"
         aria-labelledby={titleId}
         className={cn(
-          "relative z-10 flex max-h-[min(85vh,640px)] w-full max-w-lg flex-col overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)] shadow-[var(--shadow-card,0_12px_40px_rgba(0,0,0,0.18))]",
+          "relative z-10 flex max-h-[min(85vh,640px)] w-full max-w-lg flex-col overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)] shadow-[var(--shadow-card,0_12px_40px_rgba(0,0,0,0.18))]"
         )}
       >
         <header className="flex items-start justify-between gap-3 border-b border-[var(--border-default)] px-4 py-3">
           <div className="min-w-0 space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <Sparkles
-                className="h-4 w-4 text-[var(--muhide-orange)]"
-                aria-hidden
-              />
-              <h2
-                id={titleId}
-                className="text-sm font-semibold text-[var(--text-primary)]"
-              >
+              <Sparkles className="h-4 w-4 text-[var(--muhide-orange)]" aria-hidden />
+              <h2 id={titleId} className="text-sm font-semibold text-[var(--text-primary)]">
                 Ask AI
               </h2>
               <span className="rounded-full border border-[var(--border-default)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-[var(--text-muted)]">
@@ -100,15 +94,13 @@ export function V3AiPopup({ open, onClose, contextLabel }: V3AiPopupProps) {
 
         <div className="flex-1 space-y-3 overflow-auto px-4 py-4 text-sm leading-relaxed text-[var(--text-secondary)]">
           <p>
-            Copilot stays gated (
-            <code className="font-mono text-[12px]">feature_ai_copilot</code>{" "}
-            default off). This dialog does not generate account narratives or
-            take layout space on product pages.
+            Copilot stays gated (<code className="font-mono text-[12px]">feature_ai_copilot</code>{" "}
+            default off). This dialog does not generate account narratives or take layout space on
+            product pages.
           </p>
           <p className="text-[var(--text-muted)]">
-            Use Decision Center for evidence-backed decisions. When AI is
-            enabled later, actions with side effects will require human
-            approval.
+            Use Decision Center for evidence-backed decisions. When AI is enabled later, actions
+            with side effects will require human approval.
           </p>
           <label className="block space-y-1.5">
             <span className="text-[11px] font-medium uppercase tracking-wide text-[var(--text-muted)]">

@@ -11,11 +11,7 @@ import {
 } from "react";
 import api from "@/lib/api";
 import { getTenantId } from "@/lib/hooks/useTenant";
-import type {
-  AiInsightsContextType,
-  ContextualInsightData,
-  InlineSuggestionData,
-} from "./types";
+import type { AiInsightsContextType, ContextualInsightData, InlineSuggestionData } from "./types";
 import { getConfidenceLevel } from "./ConfidenceBadge";
 
 const AiInsightsContext = createContext<AiInsightsContextType>({
@@ -56,7 +52,7 @@ export function AiInsightsProvider({
         const res = await api.post(
           "/api/v1/copilot/contextual-insights",
           { page, entity_type: entityType, entity_id: entityId },
-          { headers: { "X-Tenant-Id": getTenantId() } },
+          { headers: { "X-Tenant-Id": getTenantId() } }
         );
 
         if (cancelled) return;
@@ -67,14 +63,14 @@ export function AiInsightsProvider({
             ...i,
             confidenceLevel: getConfidenceLevel(Number(i.confidence) || 0),
             timestamp: Date.now(),
-          }),
+          })
         );
-        const rawSuggestions: InlineSuggestionData[] = (
-          data.suggestions ?? []
-        ).map((s: Record<string, unknown>) => ({
-          ...s,
-          confidenceLevel: getConfidenceLevel(Number(s.confidence) || 0),
-        }));
+        const rawSuggestions: InlineSuggestionData[] = (data.suggestions ?? []).map(
+          (s: Record<string, unknown>) => ({
+            ...s,
+            confidenceLevel: getConfidenceLevel(Number(s.confidence) || 0),
+          })
+        );
 
         setInsights(rawInsights);
         setSuggestions(rawSuggestions);
@@ -135,14 +131,10 @@ export function AiInsightsProvider({
       dismissInsight,
       dismissSuggestion,
       isLoading,
-    ],
+    ]
   );
 
-  return (
-    <AiInsightsContext.Provider value={value}>
-      {children}
-    </AiInsightsContext.Provider>
-  );
+  return <AiInsightsContext.Provider value={value}>{children}</AiInsightsContext.Provider>;
 }
 
 export function useAiInsights() {

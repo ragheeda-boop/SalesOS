@@ -10,11 +10,7 @@ interface SearchSuggestionProps {
   highlighted?: boolean;
 }
 
-export function SearchSuggestion({
-  suggestion,
-  onClick,
-  highlighted,
-}: SearchSuggestionProps) {
+export function SearchSuggestion({ suggestion, onClick, highlighted }: SearchSuggestionProps) {
   const icon =
     suggestion.type === "recent" ? (
       <Clock className="h-3.5 w-3.5" />
@@ -30,9 +26,7 @@ export function SearchSuggestion({
       aria-selected={highlighted}
       className={cn(
         "flex w-full items-center gap-3 px-4 py-2 text-sm transition",
-        highlighted
-          ? "bg-primary-50 dark:bg-primary-900/20"
-          : "hover:bg-[var(--bg-tertiary)]",
+        highlighted ? "bg-primary-50 dark:bg-primary-900/20" : "hover:bg-[var(--bg-tertiary)]"
       )}
       onClick={() => onClick(suggestion)}
     >

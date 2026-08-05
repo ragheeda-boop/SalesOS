@@ -18,4 +18,4 @@ module.exports = {
   modulePathIgnorePatterns: ["<rootDir>/\\.next", "<rootDir>/src/\\.next"],
   testPathIgnorePatterns: ["/node_modules/", "/\\.next/", "/mocks/"],
   watchPathIgnorePatterns: ["/node_modules/", "/\\.next/"],
-}
+};

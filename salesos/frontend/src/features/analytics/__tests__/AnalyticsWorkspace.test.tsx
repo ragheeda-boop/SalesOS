@@ -7,8 +7,7 @@ jest.mock("@/lib/i18n", () => ({
     t: (key: string) => {
       const map: Record<string, string> = {
         "analytics.title": "Analytics",
-        "analytics.subtitle":
-          "Key performance indicators and advanced analytics dashboards",
+        "analytics.subtitle": "Key performance indicators and advanced analytics dashboards",
         "analytics.revenue": "Revenue",
         "analytics.pipeline": "Pipeline",
         "analytics.conversion": "Conversion Rate",
@@ -111,7 +110,7 @@ function renderWorkspace() {
   return render(
     <QueryClientProvider client={client}>
       <AnalyticsWorkspace />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 }
 
@@ -125,7 +124,7 @@ describe("AnalyticsWorkspace", () => {
           data: dashboardFixture,
           isLoading: false,
           error: null,
-        }) as ReturnType<typeof useExecutiveDashboard>,
+        }) as ReturnType<typeof useExecutiveDashboard>
     );
   });
 
@@ -156,8 +155,6 @@ describe("AnalyticsWorkspace", () => {
 
   it("has accessible region", () => {
     renderWorkspace();
-    expect(
-      screen.getByRole("region", { name: "Analytics" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Analytics" })).toBeInTheDocument();
   });
 });

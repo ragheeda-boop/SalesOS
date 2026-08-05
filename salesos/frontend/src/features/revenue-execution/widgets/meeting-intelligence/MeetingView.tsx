@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Calendar,
-  Users,
-  Activity,
-  AlertTriangle,
-  MessageSquare,
-  Target,
-} from "lucide-react";
+import { Calendar, Users, Activity, AlertTriangle, MessageSquare, Target } from "lucide-react";
 import type { MeetingViewProps } from "./types";
 
 export function MeetingView({ brief }: MeetingViewProps) {
@@ -29,12 +22,9 @@ export function MeetingView({ brief }: MeetingViewProps) {
       <div className="flex items-center gap-2">
         <Calendar className="h-4 w-4 text-primary-600" />
         <div>
-          <p className="text-xs font-bold text-[var(--text-primary)]">
-            {brief.meetingTitle}
-          </p>
+          <p className="text-xs font-bold text-[var(--text-primary)]">{brief.meetingTitle}</p>
           <p className="text-[9px] text-[var(--text-muted)]">
-            {brief.companyName} ·{" "}
-            {new Date(brief.date).toLocaleDateString("ar-SA")}
+            {brief.companyName} · {new Date(brief.date).toLocaleDateString("ar-SA")}
           </p>
         </div>
       </div>
@@ -46,8 +36,7 @@ export function MeetingView({ brief }: MeetingViewProps) {
           </p>
           {brief.attendees.map((a, i) => (
             <p key={i} className="text-[10px] text-[var(--text-primary)]">
-              {a.name}{" "}
-              <span className="text-[var(--text-muted)]">({a.role})</span>
+              {a.name} <span className="text-[var(--text-muted)]">({a.role})</span>
             </p>
           ))}
         </div>

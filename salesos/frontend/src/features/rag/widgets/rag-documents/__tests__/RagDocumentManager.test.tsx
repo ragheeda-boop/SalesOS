@@ -7,21 +7,11 @@ jest.mock("@/lib/ragQueries", () => ({
   useDeleteDocument: jest.fn(),
 }));
 
-import {
-  useRagDocuments,
-  useIngestDocument,
-  useDeleteDocument,
-} from "@/lib/ragQueries";
+import { useRagDocuments, useIngestDocument, useDeleteDocument } from "@/lib/ragQueries";
 
-const mockUseRagDocuments = useRagDocuments as jest.MockedFunction<
-  typeof useRagDocuments
->;
-const mockUseIngestDocument = useIngestDocument as jest.MockedFunction<
-  typeof useIngestDocument
->;
-const mockUseDeleteDocument = useDeleteDocument as jest.MockedFunction<
-  typeof useDeleteDocument
->;
+const mockUseRagDocuments = useRagDocuments as jest.MockedFunction<typeof useRagDocuments>;
+const mockUseIngestDocument = useIngestDocument as jest.MockedFunction<typeof useIngestDocument>;
+const mockUseDeleteDocument = useDeleteDocument as jest.MockedFunction<typeof useDeleteDocument>;
 
 const sampleDocs = [
   {
@@ -47,11 +37,7 @@ const sampleDocs = [
   },
 ];
 
-function setupMocks(
-  docOverrides = {},
-  ingestOverrides = {},
-  deleteOverrides = {},
-) {
+function setupMocks(docOverrides = {}, ingestOverrides = {}, deleteOverrides = {}) {
   const mockIngestMutate = jest.fn().mockResolvedValue({});
   const mockDeleteMutate = jest.fn().mockResolvedValue(undefined);
 
@@ -177,9 +163,7 @@ describe("RagDocumentManager", () => {
 
       const titleInput = document.querySelector("input") as HTMLInputElement;
       fireEvent.change(titleInput, { target: { value: "عنوان جديد" } });
-      const textarea = document.querySelector(
-        "textarea",
-      ) as HTMLTextAreaElement;
+      const textarea = document.querySelector("textarea") as HTMLTextAreaElement;
       fireEvent.change(textarea, { target: { value: "محتوى جديد" } });
 
       const submitBtn = screen.getByRole("button", { name: "إضافة" });
@@ -194,9 +178,7 @@ describe("RagDocumentManager", () => {
 
       const titleInput = document.querySelector("input") as HTMLInputElement;
       fireEvent.change(titleInput, { target: { value: "عنوان جديد" } });
-      const textarea = document.querySelector(
-        "textarea",
-      ) as HTMLTextAreaElement;
+      const textarea = document.querySelector("textarea") as HTMLTextAreaElement;
       fireEvent.change(textarea, { target: { value: "محتوى جديد" } });
 
       fireEvent.click(screen.getByRole("button", { name: "إضافة" }));
@@ -218,9 +200,7 @@ describe("RagDocumentManager", () => {
 
       const titleInput = document.querySelector("input") as HTMLInputElement;
       fireEvent.change(titleInput, { target: { value: "عنوان" } });
-      const textarea = document.querySelector(
-        "textarea",
-      ) as HTMLTextAreaElement;
+      const textarea = document.querySelector("textarea") as HTMLTextAreaElement;
       fireEvent.change(textarea, { target: { value: "محتوى" } });
 
       fireEvent.click(screen.getByRole("button", { name: "إضافة" }));

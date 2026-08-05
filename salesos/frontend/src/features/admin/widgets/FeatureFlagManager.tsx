@@ -75,16 +75,12 @@ export function FeatureFlagManager() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-4">
-          <h3 className="font-semibold mb-3">
-            جميع الميزات ({flags?.length || 0})
-          </h3>
+          <h3 className="font-semibold mb-3">جميع الميزات ({flags?.length || 0})</h3>
           <div className="space-y-2">
             {flags?.map((flag: AdminFeatureFlag) => (
               <button
                 key={flag.id}
-                onClick={() =>
-                  setSelectedFlag(selectedFlag === flag.id ? null : flag.id)
-                }
+                onClick={() => setSelectedFlag(selectedFlag === flag.id ? null : flag.id)}
                 className={`w-full flex items-center justify-between p-3 rounded-lg border text-right transition ${
                   selectedFlag === flag.id
                     ? "border-[var(--muhide-orange)] bg-[var(--muhide-orange)]/5"
@@ -93,13 +89,9 @@ export function FeatureFlagManager() {
               >
                 <div>
                   <p className="font-medium text-sm">{flag.name}</p>
-                  <p className="text-xs text-[var(--text-muted)] font-mono">
-                    {flag.key}
-                  </p>
+                  <p className="text-xs text-[var(--text-muted)] font-mono">{flag.key}</p>
                   {flag.description && (
-                    <p className="text-xs text-[var(--text-disabled)] mt-0.5">
-                      {flag.description}
-                    </p>
+                    <p className="text-xs text-[var(--text-disabled)] mt-0.5">{flag.description}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -148,35 +140,29 @@ function FlagTenantManager({ flagId }: { flagId: string }) {
         </p>
       ) : (
         <div className="space-y-2">
-          {tenants.map(
-            (t: {
-              tenant_name: string;
-              tenant_id: string;
-              enabled: boolean;
-            }) => (
-              <div
-                key={t.tenant_id}
-                className="flex items-center justify-between p-2 rounded-lg border"
+          {tenants.map((t: { tenant_name: string; tenant_id: string; enabled: boolean }) => (
+            <div
+              key={t.tenant_id}
+              className="flex items-center justify-between p-2 rounded-lg border"
+            >
+              <span className="text-sm">{t.tenant_name}</span>
+              <button
+                onClick={() =>
+                  toggleMutation.mutate({
+                    tenantId: t.tenant_id,
+                    enabled: !t.enabled,
+                  })
+                }
+                className={`px-3 py-1 rounded text-xs font-medium transition ${
+                  t.enabled
+                    ? "bg-success-100 text-success-700 dark:bg-success-900/30"
+                    : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]"
+                }`}
               >
-                <span className="text-sm">{t.tenant_name}</span>
-                <button
-                  onClick={() =>
-                    toggleMutation.mutate({
-                      tenantId: t.tenant_id,
-                      enabled: !t.enabled,
-                    })
-                  }
-                  className={`px-3 py-1 rounded text-xs font-medium transition ${
-                    t.enabled
-                      ? "bg-success-100 text-success-700 dark:bg-success-900/30"
-                      : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]"
-                  }`}
-                >
-                  {t.enabled ? "مفعل" : "معطل"}
-                </button>
-              </div>
-            ),
-          )}
+                {t.enabled ? "مفعل" : "معطل"}
+              </button>
+            </div>
+          ))}
         </div>
       )}
     </Card>

@@ -10,16 +10,12 @@ export function PlaybookView({ playbook, industry }: PlaybookViewProps) {
         <>
           <div className="flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-primary-600" />
-            <span className="text-xs font-bold text-[var(--text-primary)]">
-              {playbook.name}
-            </span>
+            <span className="text-xs font-bold text-[var(--text-primary)]">{playbook.name}</span>
             <span className="mr-auto rounded-full bg-[var(--color-success-bg)] px-1.5 py-0.5 text-[9px] font-medium text-[var(--color-success)]">
               %{playbook.successRate} نجاح
             </span>
           </div>
-          <p className="text-[10px] text-[var(--text-muted)]">
-            {playbook.description}
-          </p>
+          <p className="text-[10px] text-[var(--text-muted)]">{playbook.description}</p>
           <div className="flex items-center gap-2 text-[9px] text-[var(--text-muted)]">
             <Clock className="h-3 w-3" /> {playbook.estimatedDuration}
             <span>·</span>
@@ -35,15 +31,9 @@ export function PlaybookView({ playbook, industry }: PlaybookViewProps) {
                   {step.order}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-medium text-[var(--text-primary)]">
-                    {step.title}
-                  </p>
-                  <p className="text-[9px] text-[var(--text-muted)]">
-                    {step.description}
-                  </p>
-                  <p className="text-[8px] text-[var(--text-muted)]">
-                    {step.duration}
-                  </p>
+                  <p className="text-[10px] font-medium text-[var(--text-primary)]">{step.title}</p>
+                  <p className="text-[9px] text-[var(--text-muted)]">{step.description}</p>
+                  <p className="text-[8px] text-[var(--text-muted)]">{step.duration}</p>
                 </div>
               </div>
             ))}
@@ -52,9 +42,7 @@ export function PlaybookView({ playbook, industry }: PlaybookViewProps) {
       ) : (
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <BookOpen className="mb-2 h-8 w-8 text-[var(--text-muted)] opacity-30" />
-          <p className="text-sm text-[var(--text-muted)]">
-            لا يوجد دليل لعب متاح
-          </p>
+          <p className="text-sm text-[var(--text-muted)]">لا يوجد دليل لعب متاح</p>
           <p className="text-xs text-[var(--text-muted)]">للقطاع: {industry}</p>
         </div>
       )}

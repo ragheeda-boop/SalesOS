@@ -42,8 +42,7 @@ export function useLeadDiscoveryDetail(runId: string | null) {
 export function useRunLeadDiscovery() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: LeadDiscoveryBody) =>
-      runLeadDiscovery(getTenantId(), body),
+    mutationFn: (body: LeadDiscoveryBody) => runLeadDiscovery(getTenantId(), body),
     onSuccess: (row) => {
       qc.invalidateQueries({
         queryKey: gtmKeys.leadDiscoveryList(getTenantId()),

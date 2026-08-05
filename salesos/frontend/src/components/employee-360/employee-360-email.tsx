@@ -6,15 +6,7 @@ import {
   useEmailDailyVolume,
 } from "@/lib/hooks/employeeQueries";
 import { Card, CardContent, CardHeader, Skeleton } from "@salesos/ui";
-import {
-  Mail,
-  Send,
-  Inbox,
-  Clock,
-  Smile,
-  Frown,
-  BarChart3,
-} from "lucide-react";
+import { Mail, Send, Inbox, Clock, Smile, Frown, BarChart3 } from "lucide-react";
 
 export function EmailDashboard({ employeeId }: { employeeId: string }) {
   const { data: kpis, isLoading } = useEmailKPIs(employeeId);
@@ -116,9 +108,7 @@ export function EmailDashboard({ employeeId }: { employeeId: string }) {
               <div className="space-y-1 max-h-64 overflow-y-auto">
                 {dailyVolume.slice(-14).map((d, i) => (
                   <div key={i} className="flex items-center gap-2 text-xs">
-                    <span className="w-20 text-[var(--text-muted)]">
-                      {d.date?.slice(5)}
-                    </span>
+                    <span className="w-20 text-[var(--text-muted)]">{d.date?.slice(5)}</span>
                     <div className="flex-1 h-3 flex rounded-full overflow-hidden bg-[var(--bg-tertiary)]">
                       <div
                         className="h-full bg-blue-400"
@@ -133,9 +123,7 @@ export function EmailDashboard({ employeeId }: { employeeId: string }) {
                         }}
                       />
                     </div>
-                    <span className="w-12 text-right">
-                      {d.sent + d.received}
-                    </span>
+                    <span className="w-12 text-right">{d.sent + d.received}</span>
                   </div>
                 ))}
               </div>
@@ -149,16 +137,13 @@ export function EmailDashboard({ employeeId }: { employeeId: string }) {
           <div className="w-3 h-3 rounded bg-blue-400" /> Sent: {kpis.sent}
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-3 rounded bg-green-400" /> Received:{" "}
-          {kpis.received}
+          <div className="w-3 h-3 rounded bg-green-400" /> Received: {kpis.received}
         </div>
         <div className="flex items-center gap-1">
-          <Smile className="h-3 w-3 text-green-500" /> Positive:{" "}
-          {kpis.sentiment_positive}
+          <Smile className="h-3 w-3 text-green-500" /> Positive: {kpis.sentiment_positive}
         </div>
         <div className="flex items-center gap-1">
-          <Frown className="h-3 w-3 text-red-500" /> Negative:{" "}
-          {kpis.sentiment_negative}
+          <Frown className="h-3 w-3 text-red-500" /> Negative: {kpis.sentiment_negative}
         </div>
       </div>
     </div>
@@ -179,9 +164,7 @@ function EmailKPI({
   return (
     <div className={`rounded-xl border p-4 ${color}`}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-[var(--text-muted)]">
-          {label}
-        </span>
+        <span className="text-xs font-medium text-[var(--text-muted)]">{label}</span>
         <Icon className="h-4 w-4 opacity-50" />
       </div>
       <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>

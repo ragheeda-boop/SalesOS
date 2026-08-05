@@ -8,25 +8,16 @@ interface EmptyMeetingsProps {
   onAddMeeting?: () => void;
 }
 
-export function EmptyMeetings({
-  onConnectCalendar,
-  onAddMeeting,
-}: EmptyMeetingsProps) {
+export function EmptyMeetings({ onConnectCalendar, onAddMeeting }: EmptyMeetingsProps) {
   return (
     <EmptyState
       icon={<Video className="h-12 w-12" />}
       title="لا توجد اجتماعات مسجلة"
       description="قم بتوصيل التقويم الخاص بك لعرض الاجتماعات تلقائياً، أو أضف اجتماعاً يدوياً."
       action={
-        onConnectCalendar
-          ? { label: "توصيل التقويم", onClick: onConnectCalendar }
-          : undefined
+        onConnectCalendar ? { label: "توصيل التقويم", onClick: onConnectCalendar } : undefined
       }
-      secondaryAction={
-        onAddMeeting
-          ? { label: "إضافة اجتماع", onClick: onAddMeeting }
-          : undefined
-      }
+      secondaryAction={onAddMeeting ? { label: "إضافة اجتماع", onClick: onAddMeeting } : undefined}
     />
   );
 }

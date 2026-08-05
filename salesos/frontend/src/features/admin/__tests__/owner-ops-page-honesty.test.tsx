@@ -10,6 +10,6 @@ describe("OwnerOpsPageHonesty — FE-S07-07", () => {
       expect(el).toBeInTheDocument();
       expect(el.textContent).toMatch(/Not Production GO/);
       expect(el.textContent).not.toMatch(/Production ready/i);
-    },
+    }
   );
 });

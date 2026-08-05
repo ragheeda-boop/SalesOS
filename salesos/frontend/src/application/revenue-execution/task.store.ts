@@ -14,9 +14,7 @@ export async function saveTasks(_tasks: RevenueTask[]): Promise<void> {
   // Batch update not supported by backend — individual updates via completeTask
 }
 
-export async function addTask(
-  task: Omit<RevenueTask, "id" | "createdAt">,
-): Promise<RevenueTask[]> {
+export async function addTask(task: Omit<RevenueTask, "id" | "createdAt">): Promise<RevenueTask[]> {
   await api.post("/api/v1/tasks", task);
   const tasks = await loadTasks();
   return tasks;
@@ -29,14 +27,10 @@ export async function completeTask(id: string): Promise<RevenueTask[]> {
 
 export async function getOverdueTasks(): Promise<RevenueTask[]> {
   const tasks = await loadTasks();
-  return tasks.filter(
-    (t) => !t.completed && t.dueDate && new Date(t.dueDate) < new Date(),
-  );
+  return tasks.filter((t) => !t.completed && t.dueDate && new Date(t.dueDate) < new Date());
 }
 
-export async function getTasksByPriority(
-  priority: string,
-): Promise<RevenueTask[]> {
+export async function getTasksByPriority(priority: string): Promise<RevenueTask[]> {
   const tasks = await loadTasks();
   return tasks.filter((t) => t.priority === priority && !t.completed);
 }

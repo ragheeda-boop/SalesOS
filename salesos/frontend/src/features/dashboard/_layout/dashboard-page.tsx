@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  DashboardProvider,
-  useDashboardContext,
-} from "../_providers/dashboard-provider";
+import { DashboardProvider, useDashboardContext } from "../_providers/dashboard-provider";
 import { DashboardGrid } from "./dashboard-grid";
 import { DashboardLoading } from "./dashboard-loading";
 import { DashboardMetricsHeader } from "./dashboard-metrics-header";
@@ -21,13 +18,9 @@ function DashboardBody() {
     <>
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-primary)]">
-            {t("dashboard.title")}
-          </h1>
+          <h1 className="text-lg font-bold text-[var(--text-primary)]">{t("dashboard.title")}</h1>
           {!isLoading && !isError ? (
-            <p className="text-xs text-[var(--text-muted)]">
-              {t("dashboard.overview_subtitle")}
-            </p>
+            <p className="text-xs text-[var(--text-muted)]">{t("dashboard.overview_subtitle")}</p>
           ) : null}
         </div>
         {!isLoading && !isError && <QuickActionsBar />}
@@ -42,9 +35,7 @@ function DashboardBody() {
           <p className="text-sm font-semibold text-danger-800 dark:text-danger-200">
             {t("dashboard.load_error")}
           </p>
-          <p className="mt-1 text-xs text-danger-600 dark:text-danger-400">
-            {error?.message}
-          </p>
+          <p className="mt-1 text-xs text-danger-600 dark:text-danger-400">{error?.message}</p>
           <button
             onClick={() => refetch()}
             className="mt-3 rounded-lg bg-[var(--muhide-orange)] px-4 py-2 text-xs font-semibold text-white transition-colors hover:opacity-90"

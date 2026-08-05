@@ -1,8 +1,4 @@
-import {
-  getVerificationMeta,
-  listVerificationRuns,
-  runVerification,
-} from "../verification";
+import { getVerificationMeta, listVerificationRuns, runVerification } from "../verification";
 
 jest.mock("../client", () => ({
   __esModule: true,
@@ -36,18 +32,12 @@ describe("verification API — FE-S11-06", () => {
       },
     });
     const meta = await getVerificationMeta("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/verification/meta",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/verification/meta", expect.any(Object));
     expect(meta.connectors_configured).toEqual(["fake_verify"]);
 
     mocked.get.mockResolvedValueOnce({ data: [] });
     await listVerificationRuns("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/verification",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/verification", expect.any(Object));
   });
 
   it("POSTs run verification", async () => {
@@ -74,7 +64,7 @@ describe("verification API — FE-S11-06", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/gtm/verification",
       expect.objectContaining({ email: "a@b.com" }),
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(row.overall_status).toBe("valid");
   });

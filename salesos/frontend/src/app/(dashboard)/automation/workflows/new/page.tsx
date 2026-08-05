@@ -109,9 +109,7 @@ function StepConfigPanel({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span style={{ color: info.color }}>{info.icon}</span>
-          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-            إعدادات الخطوة
-          </h3>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">إعدادات الخطوة</h3>
         </div>
         <button
           onClick={onClose}
@@ -140,9 +138,7 @@ function StepConfigPanel({
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-[var(--text-muted)]">
-            التسمية
-          </label>
+          <label className="mb-1 block text-xs font-medium text-[var(--text-muted)]">التسمية</label>
           <Input
             value={step.label}
             onChange={(e) => onUpdate({ label: e.target.value })}
@@ -153,14 +149,10 @@ function StepConfigPanel({
         {step.type === "send_email" && (
           <>
             <div>
-              <label className="mb-1 block text-xs font-medium text-[var(--text-muted)]">
-                إلى
-              </label>
+              <label className="mb-1 block text-xs font-medium text-[var(--text-muted)]">إلى</label>
               <Input
                 value={(step.config.to as string) || ""}
-                onChange={(e) =>
-                  onUpdate({ config: { ...step.config, to: e.target.value } })
-                }
+                onChange={(e) => onUpdate({ config: { ...step.config, to: e.target.value } })}
                 placeholder="example@email.com"
               />
             </div>
@@ -184,9 +176,7 @@ function StepConfigPanel({
               </label>
               <Textarea
                 value={(step.config.body as string) || ""}
-                onChange={(e) =>
-                  onUpdate({ config: { ...step.config, body: e.target.value } })
-                }
+                onChange={(e) => onUpdate({ config: { ...step.config, body: e.target.value } })}
                 placeholder="محتوى البريد..."
                 rows={3}
               />
@@ -288,9 +278,7 @@ function StepConfigPanel({
               </label>
               <Input
                 value={(step.config.url as string) || ""}
-                onChange={(e) =>
-                  onUpdate({ config: { ...step.config, url: e.target.value } })
-                }
+                onChange={(e) => onUpdate({ config: { ...step.config, url: e.target.value } })}
                 placeholder="https://api.example.com/webhook"
               />
             </div>
@@ -388,7 +376,7 @@ function CanvasStep({
         "absolute rounded-xl border-2 bg-[var(--bg-primary)] p-3 shadow-sm cursor-pointer transition-all",
         isSelected
           ? "border-[var(--muhide-orange)] shadow-md"
-          : "border-[var(--border-default)] hover:border-[var(--text-muted)]",
+          : "border-[var(--border-default)] hover:border-[var(--text-muted)]"
       )}
       style={{ left: step.x, top: step.y, width: 220 }}
       onClick={(e) => {
@@ -405,9 +393,7 @@ function CanvasStep({
             {info.icon}
           </div>
           <div>
-            <p className="text-xs font-medium text-[var(--text-primary)]">
-              {step.label}
-            </p>
+            <p className="text-xs font-medium text-[var(--text-primary)]">{step.label}</p>
             <p className="text-[10px] text-[var(--text-muted)]">{info.label}</p>
           </div>
         </div>
@@ -425,9 +411,7 @@ function CanvasStep({
       {step.conditionExpression && (
         <div className="flex items-center gap-1 mt-1">
           <GitBranch className="h-3 w-3 text-warning-500" />
-          <span className="text-[10px] text-warning-600 truncate">
-            {step.conditionExpression}
-          </span>
+          <span className="text-[10px] text-warning-600 truncate">{step.conditionExpression}</span>
         </div>
       )}
 
@@ -473,8 +457,7 @@ function WorkflowCanvas({
       ref={canvasRef}
       className="relative flex-1 overflow-auto bg-[var(--bg-secondary)] rounded-xl border border-[var(--border-default)] min-h-[500px]"
       style={{
-        backgroundImage:
-          "radial-gradient(circle, var(--border-default) 1px, transparent 1px)",
+        backgroundImage: "radial-gradient(circle, var(--border-default) 1px, transparent 1px)",
         backgroundSize: "20px 20px",
       }}
       onClick={() => onSelectStep("")}
@@ -538,9 +521,7 @@ export default function NewWorkflowPage() {
   const [workflowName, setWorkflowName] = useState("");
   const [workflowDesc, setWorkflowDesc] = useState("");
   const [triggerType, setTriggerType] = useState<TriggerType>("manual");
-  const [status, setStatus] = useState<"draft" | "active" | "inactive">(
-    "draft",
-  );
+  const [status, setStatus] = useState<"draft" | "active" | "inactive">("draft");
   const [steps, setSteps] = useState<VisualStep[]>([]);
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
   const [showConfig, setShowConfig] = useState(false);
@@ -549,21 +530,17 @@ export default function NewWorkflowPage() {
 
   const deleteStep = useCallback(
     (id: string) => {
-      setSteps((prev) =>
-        prev.filter((s) => s.id !== id).map((s, i) => ({ ...s, order: i })),
-      );
+      setSteps((prev) => prev.filter((s) => s.id !== id).map((s, i) => ({ ...s, order: i })));
       if (selectedStepId === id) {
         setSelectedStepId(null);
         setShowConfig(false);
       }
     },
-    [selectedStepId],
+    [selectedStepId]
   );
 
   const updateStep = useCallback((id: string, updates: Partial<VisualStep>) => {
-    setSteps((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, ...updates } : s)),
-    );
+    setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
   }, []);
 
   const handleSave = useCallback(async () => {
@@ -594,16 +571,7 @@ export default function NewWorkflowPage() {
     } catch {
       toast({ variant: "error", title: "فشل إنشاء سير العمل" });
     }
-  }, [
-    workflowName,
-    workflowDesc,
-    triggerType,
-    status,
-    steps,
-    createWorkflow,
-    toast,
-    router,
-  ]);
+  }, [workflowName, workflowDesc, triggerType, status, steps, createWorkflow, toast, router]);
 
   const handleTestRun = useCallback(() => {
     if (steps.length === 0) {
@@ -625,12 +593,8 @@ export default function NewWorkflowPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-lg font-bold text-[var(--text-primary)]">
-              مُنشئ سير العمل
-            </h1>
-            <p className="text-xs text-[var(--text-muted)]">
-              صمم خطوات سير العمل بصرياً
-            </p>
+            <h1 className="text-lg font-bold text-[var(--text-primary)]">مُنشئ سير العمل</h1>
+            <p className="text-xs text-[var(--text-muted)]">صمم خطوات سير العمل بصرياً</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -760,12 +724,10 @@ export default function NewWorkflowPage() {
                         "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-right text-xs transition-colors",
                         selectedStepId === s.id
                           ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)]"
-                          : "text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]",
+                          : "text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]"
                       )}
                     >
-                      <span className="text-[10px] text-[var(--text-muted)] w-4">
-                        {i + 1}
-                      </span>
+                      <span className="text-[10px] text-[var(--text-muted)] w-4">{i + 1}</span>
                       <span style={{ color: info.color }}>{info.icon}</span>
                       <span className="truncate">{s.label}</span>
                     </button>

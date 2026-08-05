@@ -1,20 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import {
-  Building2,
-  Users,
-  DollarSign,
-  FileText,
-  X,
-  ArrowRight,
-} from "lucide-react";
+import { Building2, Users, DollarSign, FileText, X, ArrowRight } from "lucide-react";
 import { cn, Spinner } from "@salesos/ui";
 import Link from "next/link";
-import {
-  useUnifiedSearch,
-  type UnifiedSearchResult,
-} from "@/lib/hooks/useUnifiedSearch";
+import { useUnifiedSearch, type UnifiedSearchResult } from "@/lib/hooks/useUnifiedSearch";
 import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
 
 interface SearchPanelProps {
@@ -40,12 +30,11 @@ export function SearchPanel({ open, onClose }: SearchPanelProps) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const trapRef = useFocusTrap<HTMLDivElement>(open);
-  const { groupedResults, loading, totalCount, tookMs, suggestions } =
-    useUnifiedSearch({
-      query,
-      limit: 10,
-      enabled: open,
-    });
+  const { groupedResults, loading, totalCount, tookMs, suggestions } = useUnifiedSearch({
+    query,
+    limit: 10,
+    enabled: open,
+  });
 
   useEffect(() => {
     if (open) {
@@ -71,10 +60,7 @@ export function SearchPanel({ open, onClose }: SearchPanelProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 border-b border-[var(--border-default)] px-4">
-          <Building2
-            className="h-5 w-5 text-[var(--text-disabled)]"
-            aria-hidden="true"
-          />
+          <Building2 className="h-5 w-5 text-[var(--text-disabled)]" aria-hidden="true" />
           <input
             ref={inputRef}
             value={query}
@@ -95,11 +81,7 @@ export function SearchPanel({ open, onClose }: SearchPanelProps) {
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div
-          className="max-h-96 overflow-y-auto p-2"
-          role="list"
-          aria-label="نتائج البحث"
-        >
+        <div className="max-h-96 overflow-y-auto p-2" role="list" aria-label="نتائج البحث">
           <div aria-live="polite" aria-atomic="true" className="sr-only">
             {loading
               ? "جاري البحث..."
@@ -111,14 +93,9 @@ export function SearchPanel({ open, onClose }: SearchPanelProps) {
           </div>
 
           {loading && (
-            <div
-              className="flex items-center justify-center py-8"
-              role="status"
-            >
+            <div className="flex items-center justify-center py-8" role="status">
               <Spinner className="h-5 w-5 text-[var(--muhide-orange)]" />
-              <span className="ms-2 text-sm text-[var(--text-muted)]">
-                جاري البحث...
-              </span>
+              <span className="ms-2 text-sm text-[var(--text-muted)]">جاري البحث...</span>
             </div>
           )}
 
@@ -137,19 +114,13 @@ export function SearchPanel({ open, onClose }: SearchPanelProps) {
 
           {!loading &&
             Object.entries(groupedResults).map(([type, items]) => (
-              <div
-                key={type}
-                role="group"
-                aria-label={typeLabels[type] || type}
-              >
+              <div key={type} role="group" aria-label={typeLabels[type] || type}>
                 <div className="flex items-center gap-2 px-3 py-2">
                   {typeIcons[type]}
                   <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
                     {typeLabels[type] || type}
                   </span>
-                  <span className="text-[10px] text-[var(--text-disabled)]">
-                    ({items.length})
-                  </span>
+                  <span className="text-[10px] text-[var(--text-disabled)]">({items.length})</span>
                 </div>
                 {items.map((item: UnifiedSearchResult) => (
                   <Link
@@ -159,20 +130,16 @@ export function SearchPanel({ open, onClose }: SearchPanelProps) {
                     role="listitem"
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition",
-                      "hover:bg-[var(--bg-secondary)] dark:hover:bg-[var(--bg-secondary)]",
+                      "hover:bg-[var(--bg-secondary)] dark:hover:bg-[var(--bg-secondary)]"
                     )}
                   >
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--bg-tertiary)] text-[var(--text-secondary)]">
                       {typeIcons[item.type]}
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-[var(--text-primary)]">
-                        {item.title}
-                      </p>
+                      <p className="font-medium text-[var(--text-primary)]">{item.title}</p>
                       {item.subtitle && (
-                        <p className="text-xs text-[var(--text-muted)]">
-                          {item.subtitle}
-                        </p>
+                        <p className="text-xs text-[var(--text-muted)]">{item.subtitle}</p>
                       )}
                     </div>
                     <ArrowRight

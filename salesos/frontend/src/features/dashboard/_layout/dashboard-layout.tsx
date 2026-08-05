@@ -1,10 +1,7 @@
 "use client";
 
 import { type ReactNode } from "react";
-import {
-  DashboardProvider,
-  useDashboardContext,
-} from "../_providers/dashboard-provider";
+import { DashboardProvider, useDashboardContext } from "../_providers/dashboard-provider";
 import { DashboardGrid } from "./dashboard-grid";
 import { DashboardLoading } from "./dashboard-loading";
 

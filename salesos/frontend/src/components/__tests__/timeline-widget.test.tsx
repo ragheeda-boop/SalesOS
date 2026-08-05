@@ -51,13 +51,7 @@ describe("TimelineWidget", () => {
       data: { items: [], total: 0 },
       isLoading: false,
     });
-    render(
-      <TimelineWidget
-        entityType="company"
-        entityId="c1"
-        title="نشاطات مخصصة"
-      />,
-    );
+    render(<TimelineWidget entityType="company" entityId="c1" title="نشاطات مخصصة" />);
     expect(screen.getByText("نشاطات مخصصة")).toBeInTheDocument();
   });
 
@@ -118,9 +112,7 @@ describe("TimelineWidget", () => {
       },
       isLoading: false,
     });
-    const { container } = render(
-      <TimelineWidget entityType="company" entityId="c1" />,
-    );
+    const { container } = render(<TimelineWidget entityType="company" entityId="c1" />);
     const lines = container.querySelectorAll(".absolute.right-\\[15px\\]");
     expect(lines.length).toBe(1);
   });
@@ -133,9 +125,7 @@ describe("TimelineWidget", () => {
       },
       isLoading: false,
     });
-    const { container } = render(
-      <TimelineWidget entityType="company" entityId="c1" />,
-    );
+    const { container } = render(<TimelineWidget entityType="company" entityId="c1" />);
     const items = container.querySelectorAll(".relative.flex.gap-3");
     const lastItem = items[items.length - 1];
     expect(lastItem.querySelector(".absolute")).toBeNull();
@@ -147,11 +137,7 @@ describe("TimelineWidget", () => {
       isLoading: false,
     });
     const { container } = render(
-      <TimelineWidget
-        entityType="company"
-        entityId="c1"
-        className="my-custom"
-      />,
+      <TimelineWidget entityType="company" entityId="c1" className="my-custom" />
     );
     expect(container.firstChild).toHaveClass("my-custom");
   });

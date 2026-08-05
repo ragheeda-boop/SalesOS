@@ -66,7 +66,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary t={t}>
         <div>Safe content</div>
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
     expect(screen.getByText("Safe content")).toBeInTheDocument();
   });
@@ -78,7 +78,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary t={t}>
         <Bomb />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
     expect(screen.getByText("💥")).toBeInTheDocument();
   });
@@ -90,7 +90,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary t={t} fallback={<div>Custom fallback</div>}>
         <Bomb />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
     expect(screen.getByText("Custom fallback")).toBeInTheDocument();
   });
@@ -103,7 +103,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary t={t} onError={onError}>
         <Bomb />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
     expect(onError).toHaveBeenCalled();
   });
@@ -117,7 +117,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary t={t}>
         <Bomb />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
     expect(screen.getByText("💥")).toBeInTheDocument();
 
@@ -135,7 +135,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary t={t} fallback={<div>Custom fallback element</div>}>
         <Bomb />
-      </ErrorBoundary>,
+      </ErrorBoundary>
     );
     expect(screen.getByText("Custom fallback element")).toBeInTheDocument();
   });

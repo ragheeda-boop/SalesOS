@@ -1,26 +1,14 @@
 "use client";
 
 import { useEmployeeSignals } from "@/lib/hooks/employeeQueries";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Skeleton,
-  EmptyState,
-} from "@salesos/ui";
+import { Card, CardContent, CardHeader, Skeleton, EmptyState } from "@salesos/ui";
 import { Activity, BarChart3, TrendingUp } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { ErrorFallback } from "@/components/foundation/error-boundary";
 
 export function EmployeeSignals({ employeeId }: { employeeId: string }) {
   const { t } = useTranslation();
-  const {
-    data: signals,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useEmployeeSignals(employeeId);
+  const { data: signals, isLoading, isError, error, refetch } = useEmployeeSignals(employeeId);
 
   if (isLoading) {
     return (
@@ -62,18 +50,14 @@ export function EmployeeSignals({ employeeId }: { employeeId: string }) {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Activity className="h-4 w-4 text-info-600" />
-            <h3 className="text-sm font-semibold">
-              {t("emp360.signals_by_type")}
-            </h3>
+            <h3 className="text-sm font-semibold">{t("emp360.signals_by_type")}</h3>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             {signals.by_type.map((s) => (
               <div key={s.type} className="flex items-center justify-between">
-                <span className="text-sm text-[var(--text-secondary)]">
-                  {s.label}
-                </span>
+                <span className="text-sm text-[var(--text-secondary)]">{s.label}</span>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-24 overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
                     <div
@@ -90,9 +74,7 @@ export function EmployeeSignals({ employeeId }: { employeeId: string }) {
               </div>
             ))}
             {signals.by_type.length === 0 && (
-              <p className="text-xs text-[var(--text-disabled)]">
-                {t("emp360.no_data")}
-              </p>
+              <p className="text-xs text-[var(--text-disabled)]">{t("emp360.no_data")}</p>
             )}
           </div>
         </CardContent>
@@ -102,18 +84,14 @@ export function EmployeeSignals({ employeeId }: { employeeId: string }) {
         <CardHeader>
           <div className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-[var(--chart-purple)]" />
-            <h3 className="text-sm font-semibold">
-              {t("emp360.signals_by_source")}
-            </h3>
+            <h3 className="text-sm font-semibold">{t("emp360.signals_by_source")}</h3>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             {signals.by_source.map((s) => (
               <div key={s.source} className="flex items-center justify-between">
-                <span className="text-sm text-[var(--text-secondary)]">
-                  {s.label}
-                </span>
+                <span className="text-sm text-[var(--text-secondary)]">{s.label}</span>
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-24 overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
                     <div
@@ -130,9 +108,7 @@ export function EmployeeSignals({ employeeId }: { employeeId: string }) {
               </div>
             ))}
             {signals.by_source.length === 0 && (
-              <p className="text-xs text-[var(--text-disabled)]">
-                {t("emp360.no_data")}
-              </p>
+              <p className="text-xs text-[var(--text-disabled)]">{t("emp360.no_data")}</p>
             )}
           </div>
         </CardContent>
@@ -142,18 +118,13 @@ export function EmployeeSignals({ employeeId }: { employeeId: string }) {
         <CardHeader>
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-success-600" />
-            <h3 className="text-sm font-semibold">
-              {t("emp360.signals_trend")}
-            </h3>
+            <h3 className="text-sm font-semibold">{t("emp360.signals_trend")}</h3>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             {signals.trend.map((p) => (
-              <div
-                key={p.date}
-                className="flex items-center justify-between text-xs"
-              >
+              <div key={p.date} className="flex items-center justify-between text-xs">
                 <span className="text-[var(--text-muted)]">{p.date}</span>
                 <div className="flex items-center gap-1">
                   <div
@@ -167,9 +138,7 @@ export function EmployeeSignals({ employeeId }: { employeeId: string }) {
               </div>
             ))}
             {signals.trend.length === 0 && (
-              <p className="text-xs text-[var(--text-disabled)]">
-                {t("emp360.no_data")}
-              </p>
+              <p className="text-xs text-[var(--text-disabled)]">{t("emp360.no_data")}</p>
             )}
           </div>
           <p className="mt-3 text-center text-[10px] text-[var(--text-disabled)]">

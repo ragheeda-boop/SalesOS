@@ -1,6 +1,6 @@
 # 03 — Execution Guide | دليل التنفيذ
 
-**Pack:** Enterprise Audit Board v2.1  
+**Pack:** Enterprise Audit Board v2.2  
 **Role:** How to open and run a board without reinventing methodology  
 **Status:** Framework — run not opened until approved
 
@@ -84,10 +84,14 @@ Static explore → at most **light validated**. Heavy suites → only if approve
 2. Copy [09-AUDIT-RUN-TEMPLATE.md](./09-AUDIT-RUN-TEMPLATE.md) to e.g.  
    `docs/audit/ga-engineering-audit/ENTERPRISE-AUDIT-BOARD-RUN-YYYY-MM-DD.md`  
 3. Fill metadata; leave scores/findings empty until evidence exists.  
-4. Dispatch workstreams; collect findings per [06-FINDINGS-SCHEMA.md](./06-FINDINGS-SCHEMA.md).  
-5. Score per [07-SCORING-MODEL.md](./07-SCORING-MODEL.md); report per [08-REPORTING-STANDARD.md](./08-REPORTING-STANDARD.md).  
-6. Attach evidence appendix (commands, agent IDs, what was **not** run).  
-7. Verdict defaults to **production no-go** until synthesis rules and evidence say otherwise.
+4. **Register the run** in [history/RUNS-INDEX.md](./history/RUNS-INDEX.md) (Status: `open`) — see [12-AUDIT-HISTORY-REPOSITORY.md](./12-AUDIT-HISTORY-REPOSITORY.md).  
+5. Dispatch workstreams; collect findings per [06-FINDINGS-SCHEMA.md](./06-FINDINGS-SCHEMA.md).  
+6. Score per [07-SCORING-MODEL.md](./07-SCORING-MODEL.md); report per [08-REPORTING-STANDARD.md](./08-REPORTING-STANDARD.md).  
+7. Assess **Audit Maturity** ([10-AUDIT-MATURITY-MODEL.md](./10-AUDIT-MATURITY-MODEL.md)); fill **KPI snapshot** ([11-GOVERNANCE-KPI-DASHBOARD.md](./11-GOVERNANCE-KPI-DASHBOARD.md)) — use `—` / `not validated` when unmeasured.  
+8. Compare to prior pack run when one exists; else mark baseline.  
+9. Attach evidence appendix (commands, agent IDs, what was **not** run).  
+10. On close: update history index (Status: `closed`); **refresh KPI dashboard** row/snapshot.  
+11. Verdict defaults to **production no-go** until synthesis rules and evidence say otherwise.
 
 Do **not** invent the dated run file until a real run starts.
 
@@ -101,9 +105,21 @@ Do **not** invent the dated run file until a real run starts.
 | Axis scorecard | [07-SCORING-MODEL.md](./07-SCORING-MODEL.md) |
 | Decision Traceability Matrix | [08-REPORTING-STANDARD.md](./08-REPORTING-STANDARD.md) §DTM |
 | CEO / CTO / 30-60-90 / 12-mo | [08-REPORTING-STANDARD.md](./08-REPORTING-STANDARD.md) |
+| Audit Maturity Level | [10-AUDIT-MATURITY-MODEL.md](./10-AUDIT-MATURITY-MODEL.md) |
+| KPI snapshot | [11-GOVERNANCE-KPI-DASHBOARD.md](./11-GOVERNANCE-KPI-DASHBOARD.md) |
+| History registration | [history/RUNS-INDEX.md](./history/RUNS-INDEX.md) |
+| Prior-run comparison | [12-AUDIT-HISTORY-REPOSITORY.md](./12-AUDIT-HISTORY-REPOSITORY.md) (or “baseline”) |
 | GO / NO-GO | Explicit; no GO without evidence |
 | Evidence appendix | Commands + gaps |
 
 ---
 
-*Execution Guide — Enterprise Audit Board v2.1*
+## 7. After each run (mandatory close-out)
+
+1. Register / finalize row in [history/RUNS-INDEX.md](./history/RUNS-INDEX.md).  
+2. Refresh [11-GOVERNANCE-KPI-DASHBOARD.md](./11-GOVERNANCE-KPI-DASHBOARD.md) snapshot in the run body (and optional monthly note under `history/`).  
+3. Do not claim maturity promotion without exit-criteria evidence.
+
+---
+
+*Execution Guide — Enterprise Audit Board v2.2*

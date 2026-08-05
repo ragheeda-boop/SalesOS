@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { useTranslation } from "@/lib/i18n";
-import {
-  Building2,
-  Search,
-  Plus,
-  FileText,
-  CalendarClock,
-} from "lucide-react";
+import { Building2, Search, Plus, FileText, CalendarClock } from "lucide-react";
 
 interface QuickActionItem {
   href: string;

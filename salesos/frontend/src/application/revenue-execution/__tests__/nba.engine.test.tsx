@@ -41,9 +41,7 @@ const recommendation: AIRecommendation = {
   expectedRevenue: 500000,
   expectedImpact: "high",
   estimatedTime: "أسبوعين",
-  alternatives: [
-    { action: "send_proposal", actionLabel: "إرسال عرض", confidence: 0.7 },
-  ],
+  alternatives: [{ action: "send_proposal", actionLabel: "إرسال عرض", confidence: 0.7 }],
   risks: ["مورد بديل"],
 };
 
@@ -95,82 +93,40 @@ describe("deriveNextBestAction", () => {
   });
 
   it("includes recommendation data when available", () => {
-    const action = deriveNextBestAction(
-      dna,
-      recommendation,
-      timeline,
-      signals,
-      makers,
-    );
+    const action = deriveNextBestAction(dna, recommendation, timeline, signals, makers);
     expect(action!.reasoning).toContain("ارتفاع نية الشراء");
     expect(action!.expectedRevenue).toBe(500000);
   });
 
   it("calculates priority correctly for high intent", () => {
-    const action = deriveNextBestAction(
-      dna,
-      recommendation,
-      timeline,
-      signals,
-      makers,
-    );
+    const action = deriveNextBestAction(dna, recommendation, timeline, signals, makers);
     expect(["critical", "high"]).toContain(action!.priority);
   });
 
   it("includes risk information", () => {
-    const action = deriveNextBestAction(
-      dna,
-      recommendation,
-      timeline,
-      signals,
-      makers,
-    );
+    const action = deriveNextBestAction(dna, recommendation, timeline, signals, makers);
     expect(action!.risks.length).toBeGreaterThanOrEqual(1);
   });
 
   it("includes alternatives when available", () => {
-    const action = deriveNextBestAction(
-      dna,
-      recommendation,
-      timeline,
-      signals,
-      makers,
-    );
+    const action = deriveNextBestAction(dna, recommendation, timeline, signals, makers);
     expect(action!.alternatives.length).toBeGreaterThanOrEqual(1);
   });
 
   it("sets createsOpportunity for high scores", () => {
-    const action = deriveNextBestAction(
-      dna,
-      recommendation,
-      timeline,
-      signals,
-      makers,
-    );
+    const action = deriveNextBestAction(dna, recommendation, timeline, signals, makers);
     expect(action!.createsOpportunity).toBe(true);
   });
 
   it("includes score breakdown", () => {
-    const action = deriveNextBestAction(
-      dna,
-      recommendation,
-      timeline,
-      signals,
-      makers,
-    );
+    const action = deriveNextBestAction(dna, recommendation, timeline, signals, makers);
     expect(action!.scoreBreakdown.buyingIntent).toBeGreaterThan(0);
     expect(action!.scoreBreakdown.relationshipStrength).toBeGreaterThan(0);
     expect(action!.scoreBreakdown.aiConfidence).toBeGreaterThan(0);
   });
 
   it("assigns playbook based on industry", () => {
-    const action = deriveNextBestAction(
-      dna,
-      recommendation,
-      timeline,
-      signals,
-      makers,
-    );
+    const action = deriveNextBestAction(dna, recommendation, timeline, signals, makers);
     expect(action!.playbookId).toBe("playbook-energy");
   });
 

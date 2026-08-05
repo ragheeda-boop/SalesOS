@@ -15,14 +15,10 @@ import {
   LEAD_DISCOVERY_HONESTY,
   LEAD_DISCOVERY_NON_GOALS,
 } from "@/features/gtm/leadDiscoveryHonesty";
-import {
-  buildEnrichmentHref,
-  parseGtmCriteriaFromSearch,
-} from "@/features/gtm/gtmHandoff";
+import { buildEnrichmentHref, parseGtmCriteriaFromSearch } from "@/features/gtm/gtmHandoff";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -84,12 +80,8 @@ export function LeadDiscoveryPanel() {
     setName(row.name);
     setIndustries((row.query.industries ?? []).join(", "));
     setCities((row.query.cities ?? []).join(", "));
-    setEmployeesMin(
-      row.query.employees_min == null ? "" : String(row.query.employees_min),
-    );
-    setEmployeesMax(
-      row.query.employees_max == null ? "" : String(row.query.employees_max),
-    );
+    setEmployeesMin(row.query.employees_min == null ? "" : String(row.query.employees_min));
+    setEmployeesMax(row.query.employees_max == null ? "" : String(row.query.employees_max));
     setLimit(String(row.query.limit ?? 25));
   }
 
@@ -101,8 +93,8 @@ export function LeadDiscoveryPanel() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="lead-discovery-honesty"
       >
-        {LEAD_DISCOVERY_HONESTY} Non-goals:{" "}
-        {LEAD_DISCOVERY_NON_GOALS.join("; ")}. Not Production GO / RAG GO.
+        {LEAD_DISCOVERY_HONESTY} Non-goals: {LEAD_DISCOVERY_NON_GOALS.join("; ")}. Not Production GO
+        / RAG GO.
       </p>
 
       {metaQuery.data ? (
@@ -114,14 +106,10 @@ export function LeadDiscoveryPanel() {
             scale_hint {metaQuery.data.dataset_scale_hint} · order{" "}
             {metaQuery.data.sourcing_order.join(" → ")}
           </p>
-          <p data-testid="lead-discovery-meta-honesty">
-            tip /meta: {metaQuery.data.honesty}
-          </p>
+          <p data-testid="lead-discovery-meta-honesty">tip /meta: {metaQuery.data.honesty}</p>
         </div>
       ) : metaQuery.isError ? (
-        <p className="text-sm text-[var(--text-danger)]">
-          {getApiError(metaQuery.error)}
-        </p>
+        <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
@@ -136,16 +124,11 @@ export function LeadDiscoveryPanel() {
         >
           {listQuery.isFetching ? "Refreshing…" : "Refresh runs"}
         </Button>
-        <span
-          className="text-sm text-[var(--text-muted)]"
-          data-testid="lead-discovery-count"
-        >
+        <span className="text-sm text-[var(--text-muted)]" data-testid="lead-discovery-count">
           {listQuery.isLoading ? (
             <Spinner className="h-5 w-5" />
           ) : listQuery.isError ? (
-            <span className="text-[var(--text-danger)]">
-              {getApiError(listQuery.error)}
-            </span>
+            <span className="text-[var(--text-danger)]">{getApiError(listQuery.error)}</span>
           ) : (
             <>{listQuery.data?.length ?? 0} run(s)</>
           )}
@@ -173,12 +156,11 @@ export function LeadDiscoveryPanel() {
                 data-testid="lead-discovery-row"
                 onClick={() => loadRun(row)}
               >
-                <span className="font-medium">{row.name}</span> · gov{" "}
-                {row.government_hit_count} · provider {row.provider_hit_count} ·
-                total {row.total_hits}
+                <span className="font-medium">{row.name}</span> · gov {row.government_hit_count} ·
+                provider {row.provider_hit_count} · total {row.total_hits}
                 <span className="mt-0.5 block font-mono text-xs text-[var(--text-muted)]">
-                  {row.id} · gov_first {row.government_first_ok ? "ok" : "FAIL"}{" "}
-                  · provider_key {row.provider_key || "—"}
+                  {row.id} · gov_first {row.government_first_ok ? "ok" : "FAIL"} · provider_key{" "}
+                  {row.provider_key || "—"}
                 </span>
               </button>
             </li>
@@ -190,9 +172,7 @@ export function LeadDiscoveryPanel() {
         detailQuery.isLoading ? (
           <Spinner className="h-5 w-5" />
         ) : detailQuery.isError ? (
-          <p className="text-sm text-[var(--text-danger)]">
-            {getApiError(detailQuery.error)}
-          </p>
+          <p className="text-sm text-[var(--text-danger)]">{getApiError(detailQuery.error)}</p>
         ) : active ? (
           <div
             className="space-y-2 rounded border border-[var(--border-default)] p-3"
@@ -208,16 +188,12 @@ export function LeadDiscoveryPanel() {
                 <li className="text-[var(--text-muted)]">No leads in run.</li>
               ) : (
                 active.leads.map((lead) => (
-                  <li
-                    key={lead.id}
-                    className="font-mono text-xs"
-                    data-testid="lead-discovery-lead"
-                  >
+                  <li key={lead.id} className="font-mono text-xs" data-testid="lead-discovery-lead">
                     <span className="font-sans font-medium text-[var(--text-primary)]">
                       {lead.company_name}
                     </span>{" "}
-                    · {lead.source} · {lead.industry || "—"} ·{" "}
-                    {lead.city || "—"} · emp {lead.employees_count ?? "—"}{" "}
+                    · {lead.source} · {lead.industry || "—"} · {lead.city || "—"} · emp{" "}
+                    {lead.employees_count ?? "—"}{" "}
                     <Link
                       href={buildEnrichmentHref({
                         company_name: lead.company_name,
@@ -276,7 +252,7 @@ export function LeadDiscoveryPanel() {
                   description: getApiError(err),
                 });
               },
-            },
+            }
           );
         }}
       >
@@ -334,11 +310,7 @@ export function LeadDiscoveryPanel() {
           />
           use_provider_fallback (Hub FakeSourceConnector in CI)
         </label>
-        <Button
-          type="submit"
-          data-testid="lead-discovery-run"
-          disabled={runMutation.isPending}
-        >
+        <Button type="submit" data-testid="lead-discovery-run" disabled={runMutation.isPending}>
           {runMutation.isPending ? "Discovering…" : "Run lead discovery"}
         </Button>
         <Link

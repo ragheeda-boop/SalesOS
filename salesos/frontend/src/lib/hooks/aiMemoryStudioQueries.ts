@@ -61,8 +61,7 @@ function invalidateAll(qc: ReturnType<typeof useQueryClient>) {
 export function usePutAiMemorySettings() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: MemorySettingsBody) =>
-      putAiMemorySettings(getTenantId(), body),
+    mutationFn: (body: MemorySettingsBody) => putAiMemorySettings(getTenantId(), body),
     onSuccess: () => invalidateAll(qc),
   });
 }
@@ -70,13 +69,8 @@ export function usePutAiMemorySettings() {
 export function useAppendAiMemoryTurn() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      conversationId,
-      body,
-    }: {
-      conversationId: string;
-      body: MemoryTurnBody;
-    }) => appendAiMemoryTurn(getTenantId(), conversationId, body),
+    mutationFn: ({ conversationId, body }: { conversationId: string; body: MemoryTurnBody }) =>
+      appendAiMemoryTurn(getTenantId(), conversationId, body),
     onSuccess: () => invalidateAll(qc),
   });
 }
@@ -92,7 +86,6 @@ export function useDeleteAiMemoryConversation() {
 
 export function useProbeAiMemoryAdversarial() {
   return useMutation({
-    mutationFn: (body: AdversarialProbeBody) =>
-      probeAiMemoryAdversarial(getTenantId(), body),
+    mutationFn: (body: AdversarialProbeBody) => probeAiMemoryAdversarial(getTenantId(), body),
   });
 }

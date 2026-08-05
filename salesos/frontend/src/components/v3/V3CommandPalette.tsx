@@ -21,9 +21,7 @@ type V3CommandPaletteProps = {
 function matchesQuery(item: V3NavItem, query: string): boolean {
   if (!query) return true;
   const q = query.toLowerCase();
-  const hay = [item.label, item.href, ...(item.keywords ?? [])]
-    .join(" ")
-    .toLowerCase();
+  const hay = [item.label, item.href, ...(item.keywords ?? [])].join(" ").toLowerCase();
   return hay.includes(q);
 }
 
@@ -59,7 +57,7 @@ export function V3CommandPalette({ open, onClose }: V3CommandPaletteProps) {
       onClose();
       router.push(href);
     },
-    [onClose, router],
+    [onClose, router]
   );
 
   const handleKeyDown = useCallback(
@@ -78,7 +76,7 @@ export function V3CommandPalette({ open, onClose }: V3CommandPaletteProps) {
         onClose();
       }
     },
-    [items, selectedIndex, goTo, onClose],
+    [items, selectedIndex, goTo, onClose]
   );
 
   if (!open) return null;
@@ -91,20 +89,14 @@ export function V3CommandPalette({ open, onClose }: V3CommandPaletteProps) {
       aria-label="Command palette"
       onClick={onClose}
     >
-      <div
-        className="fixed inset-0 bg-[var(--muhide-ink)]/40 backdrop-blur-[2px]"
-        aria-hidden
-      />
+      <div className="fixed inset-0 bg-[var(--muhide-ink)]/40 backdrop-blur-[2px]" aria-hidden />
       <div
         ref={trapRef}
         className="relative w-full max-w-lg overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)] shadow-[var(--shadow-card)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2.5 border-b border-[var(--border-default)] px-3">
-          <Search
-            className="h-4 w-4 shrink-0 text-[var(--text-muted)]"
-            aria-hidden
-          />
+          <Search className="h-4 w-4 shrink-0 text-[var(--text-muted)]" aria-hidden />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -128,9 +120,7 @@ export function V3CommandPalette({ open, onClose }: V3CommandPaletteProps) {
           className="max-h-72 overflow-y-auto p-1.5"
         >
           {items.length === 0 && (
-            <li className="px-3 py-6 text-center text-sm text-[var(--text-muted)]">
-              No matches
-            </li>
+            <li className="px-3 py-6 text-center text-sm text-[var(--text-muted)]">No matches</li>
           )}
           {items.map((item, index) => {
             const Icon = item.icon;
@@ -145,16 +135,11 @@ export function V3CommandPalette({ open, onClose }: V3CommandPaletteProps) {
                     "flex w-full items-center gap-2.5 rounded-[var(--radius-md)] px-2.5 py-2 text-left text-[13px] transition-colors",
                     selected
                       ? "bg-[var(--bg-tertiary)] text-[var(--text-primary)]"
-                      : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]",
+                      : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
                   )}
                 >
-                  <Icon
-                    className="h-4 w-4 shrink-0 text-[var(--text-muted)]"
-                    aria-hidden
-                  />
-                  <span className="flex-1 truncate font-medium">
-                    {item.label}
-                  </span>
+                  <Icon className="h-4 w-4 shrink-0 text-[var(--text-muted)]" aria-hidden />
+                  <span className="flex-1 truncate font-medium">{item.label}</span>
                   <span className="truncate font-mono text-[11px] text-[var(--text-muted)]">
                     {item.href}
                   </span>

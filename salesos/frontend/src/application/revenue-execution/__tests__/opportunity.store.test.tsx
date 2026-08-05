@@ -17,12 +17,7 @@ jest.mock("@/lib/api", () => {
           stage: "identified",
           createdAt: "2026-07-11T12:00:00.000Z",
           winProbability: 0.1,
-          riskLevel:
-            input.confidence >= 0.9
-              ? "low"
-              : input.confidence <= 0.4
-                ? "high"
-                : "medium",
+          riskLevel: input.confidence >= 0.9 ? "low" : input.confidence <= 0.4 ? "high" : "medium",
           lastActivityAt: "2026-07-11T12:00:00.000Z",
           notes: [],
           tags: [],
@@ -67,7 +62,7 @@ beforeEach(() => {
   mockedApi.__store.length = 0;
   jest.clearAllMocks();
   mockedApi.get.mockImplementation(() =>
-    Promise.resolve({ data: { items: mockedApi.__store } } as any),
+    Promise.resolve({ data: { items: mockedApi.__store } } as any)
   );
   mockedApi.post.mockImplementation((_url: string, input: any) => {
     const opp = {
@@ -82,12 +77,7 @@ beforeEach(() => {
       stage: "identified",
       createdAt: "2026-07-11T12:00:00.000Z",
       winProbability: 0.1,
-      riskLevel:
-        input.confidence >= 0.9
-          ? "low"
-          : input.confidence <= 0.4
-            ? "high"
-            : "medium",
+      riskLevel: input.confidence >= 0.9 ? "low" : input.confidence <= 0.4 ? "high" : "medium",
       lastActivityAt: "2026-07-11T12:00:00.000Z",
       notes: [],
       tags: [],

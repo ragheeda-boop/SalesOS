@@ -9,15 +9,13 @@ import { test, expect } from "@playwright/test";
 test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
   test.skip(
     !process.env.E2E_USER_PASSWORD || !process.env.E2E_USER_EMAIL,
-    "Credentials env vars not set",
+    "Credentials env vars not set"
   );
 
   test.beforeEach(async ({ page }) => {
     await page.goto("/login");
     await page.getByLabel(/البريد|email/i).fill(process.env.E2E_USER_EMAIL!);
-    await page
-      .getByLabel(/كلمة المرور|password/i)
-      .fill(process.env.E2E_USER_PASSWORD!);
+    await page.getByLabel(/كلمة المرور|password/i).fill(process.env.E2E_USER_PASSWORD!);
     await page.getByRole("button", { name: /دخول|Sign in/i }).click();
     await page.waitForURL(/dashboard/, { timeout: 10_000 });
   });
@@ -33,9 +31,7 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(page.getByTestId("owner-console-nav-flags")).toBeVisible();
     await expect(page.getByTestId("owner-console-nav-config")).toBeVisible();
     await expect(page.getByTestId("owner-console-nav-audit")).toBeVisible();
-    await expect(
-      page.getByTestId("owner-console-audience-banner"),
-    ).toBeVisible();
+    await expect(page.getByTestId("owner-console-audience-banner")).toBeVisible();
     await expect(page.getByTestId("owner-console-host-banner")).toBeVisible();
     await expect(page.getByTestId("admin-tenants-page")).toBeVisible({
       timeout: 8_000,
@@ -51,30 +47,22 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(page.getByTestId("admin-tenants-create-submit")).toBeVisible();
   });
 
-  test("admin tenants filters expose activity + provisioning hooks", async ({
-    page,
-  }) => {
+  test("admin tenants filters expose activity + provisioning hooks", async ({ page }) => {
     await page.goto("/admin/tenants");
     await page.waitForLoadState("networkidle");
     await expect(page.getByTestId("admin-tenants-status-filter")).toBeVisible({
       timeout: 8_000,
     });
-    await expect(
-      page.getByTestId("admin-tenants-provisioning-filter"),
-    ).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-provisioning-filter")).toBeVisible();
   });
 
-  test("admin tenants expose region/residency filter hooks", async ({
-    page,
-  }) => {
+  test("admin tenants expose region/residency filter hooks", async ({ page }) => {
     await page.goto("/admin/tenants");
     await page.waitForLoadState("networkidle");
     await expect(page.getByTestId("admin-tenants-region-filter")).toBeVisible({
       timeout: 8_000,
     });
-    await expect(
-      page.getByTestId("admin-tenants-residency-filter"),
-    ).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-residency-filter")).toBeVisible();
   });
 
   test("admin tenants expose trial filter hook", async ({ page }) => {
@@ -85,9 +73,7 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     });
   });
 
-  test("admin tenants expose plan_id column hook when rows exist", async ({
-    page,
-  }) => {
+  test("admin tenants expose plan_id column hook when rows exist", async ({ page }) => {
     await page.goto("/admin/tenants");
     await page.waitForLoadState("networkidle");
     const planIdCell = page.getByTestId("admin-tenants-row-plan-id").first();
@@ -120,20 +106,14 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     });
   });
 
-  test("admin tenants expose copy filter URL + page size hooks", async ({
-    page,
-  }) => {
+  test("admin tenants expose copy filter URL + page size hooks", async ({ page }) => {
     await page.goto("/admin/tenants");
     await page.waitForLoadState("networkidle");
-    await expect(page.getByTestId("admin-tenants-copy-filter-url")).toBeVisible(
-      { timeout: 8_000 },
-    );
+    await expect(page.getByTestId("admin-tenants-copy-filter-url")).toBeVisible({ timeout: 8_000 });
     await expect(page.getByTestId("admin-tenants-page-size")).toBeVisible();
   });
 
-  test("admin tenants row reprovision hook when failed/pending exists", async ({
-    page,
-  }) => {
+  test("admin tenants row reprovision hook when failed/pending exists", async ({ page }) => {
     await page.goto("/admin/tenants");
     await page.waitForLoadState("networkidle");
     const btn = page.getByTestId("admin-tenants-row-reprovision").first();
@@ -142,9 +122,7 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(btn).toBeVisible();
   });
 
-  test("admin tenants detail lifecycle hooks open without mutate", async ({
-    page,
-  }) => {
+  test("admin tenants detail lifecycle hooks open without mutate", async ({ page }) => {
     await page.goto("/admin/tenants");
     await page.waitForLoadState("networkidle");
     const detailBtn = page.getByTestId("admin-tenants-detail-open").first();
@@ -154,9 +132,7 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(page.getByTestId("admin-tenants-status")).toBeVisible({
       timeout: 8_000,
     });
-    await expect(
-      page.getByTestId("admin-tenants-lifecycle-copy"),
-    ).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-lifecycle-copy")).toBeVisible();
     await expect(page.getByTestId("admin-tenants-copy-ids")).toBeVisible();
     await expect(page.getByTestId("admin-tenants-detail-delete")).toBeVisible();
     // Activate reason shown when tenant inactive; suspend reason when active
@@ -169,31 +145,21 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     const reprovision = page.getByTestId("admin-tenants-reprovision");
     const hasReprovision = await reprovision.isVisible().catch(() => false);
     if (hasReprovision) {
-      await expect(
-        page.getByTestId("admin-tenants-reprovision-submit"),
-      ).toBeVisible();
+      await expect(page.getByTestId("admin-tenants-reprovision-submit")).toBeVisible();
     }
     await expect(page.getByTestId("admin-tenants-billing")).toBeVisible();
     await expect(page.getByTestId("admin-tenants-subscription")).toBeVisible();
-    await expect(
-      page.getByTestId("admin-tenants-billing-catalog"),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("admin-tenants-checkout-create"),
-    ).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-billing-catalog")).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-checkout-create")).toBeVisible();
     await expect(page.getByTestId("admin-tenants-portal-open")).toBeVisible();
-    await expect(
-      page.getByTestId("admin-tenants-platform-invoices"),
-    ).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-platform-invoices")).toBeVisible();
     await expect(page.getByTestId("admin-tenants-usage-meters")).toBeVisible();
     await expect(page.getByTestId("admin-tenants-plan-change")).toBeVisible();
     await expect(page.getByTestId("admin-tenants-plan-quote")).toBeVisible();
     await expect(page.getByTestId("admin-tenants-dunning")).toBeVisible();
   });
 
-  test("admin tenants delete honesty + retention hooks without mutate", async ({
-    page,
-  }) => {
+  test("admin tenants delete honesty + retention hooks without mutate", async ({ page }) => {
     await page.goto("/admin/tenants");
     await page.waitForLoadState("networkidle");
     const deleteBtn = page.getByTestId("admin-tenants-delete-open").first();
@@ -204,12 +170,8 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
       timeout: 5_000,
     });
     await page.getByTestId("admin-tenants-hard-delete-confirm").check();
-    await expect(
-      page.getByTestId("admin-tenants-retention-honesty"),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("admin-tenants-force-immediate"),
-    ).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-retention-honesty")).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-force-immediate")).toBeVisible();
     await page.getByRole("button", { name: /Cancel/i }).click();
   });
 
@@ -223,9 +185,7 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
     await expect(page.getByTestId("admin-tenants-delete-modal")).toBeVisible({
       timeout: 5_000,
     });
-    await expect(
-      page.getByTestId("admin-tenants-hard-delete-confirm"),
-    ).toBeVisible();
+    await expect(page.getByTestId("admin-tenants-hard-delete-confirm")).toBeVisible();
     // Cancel — no soft/hard delete
     await page.getByRole("button", { name: /Cancel/i }).click();
     await expect(page.getByTestId("admin-tenants-delete-modal")).toBeHidden({
@@ -241,127 +201,76 @@ test.describe("FE-S04-08 Admin tenants Owner Platform hooks", () => {
       timeout: 8_000,
     });
     await expect(page.getByTestId("owner-console-nav-billing")).toBeVisible();
-    await expect(
-      page.getByTestId("owner-console-readpath-honesty"),
-    ).toBeVisible();
+    await expect(page.getByTestId("owner-console-readpath-honesty")).toBeVisible();
     await expect(page.getByTestId("admin-billing-page")).toBeVisible();
     await expect(page.getByTestId("admin-billing-overview-link")).toBeVisible();
     await expect(page.getByTestId("admin-billing-tenants-link")).toBeVisible();
   });
 
-  test("admin integrations inventory exposes honesty stub hooks", async ({
-    page,
-  }) => {
+  test("admin integrations inventory exposes honesty stub hooks", async ({ page }) => {
     await page.goto("/admin/integrations");
     await page.waitForLoadState("networkidle");
     await expect(page.getByTestId("owner-console-shell")).toBeVisible({
       timeout: 8_000,
     });
-    await expect(
-      page.getByTestId("owner-console-nav-integrations"),
-    ).toBeVisible();
+    await expect(page.getByTestId("owner-console-nav-integrations")).toBeVisible();
     await expect(page.getByTestId("admin-integrations-page")).toBeVisible();
-    await expect(
-      page.getByTestId("owner-ops-integrations-honesty"),
-    ).toBeVisible();
+    await expect(page.getByTestId("owner-ops-integrations-honesty")).toBeVisible();
     await expect(page.getByTestId("integrations-studio-shell")).toBeVisible();
-    await expect(
-      page.getByTestId("integrations-studio-api-honesty"),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("integrations-studio-tenant-link"),
-    ).toHaveAttribute("href", "/integrations");
+    await expect(page.getByTestId("integrations-studio-api-honesty")).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-tenant-link")).toHaveAttribute(
+      "href",
+      "/integrations"
+    );
   });
 
-  test("integrations studio page exposes Hub HTTP flow hooks", async ({
-    page,
-  }) => {
+  test("integrations studio page exposes Hub HTTP flow hooks", async ({ page }) => {
     await page.goto("/integrations");
     await page.waitForLoadState("networkidle");
     await expect(page.getByTestId("integrations-page")).toBeVisible({
       timeout: 8_000,
     });
     await expect(page.getByTestId("integrations-studio")).toBeVisible();
-    await expect(
-      page.getByTestId("integrations-studio-live-honesty"),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("integrations-studio-step-connect"),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("integrations-studio-connect-submit"),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("integrations-studio-step-conflict"),
-    ).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-live-honesty")).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-step-connect")).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-connect-submit")).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-step-conflict")).toBeVisible();
     await page.getByTestId("integrations-studio-step-map").click();
-    await expect(
-      page.getByTestId("integrations-studio-map-load"),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("integrations-studio-map-baseline"),
-    ).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-map-load")).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-map-baseline")).toBeVisible();
     await page.goto("/integrations?step=monitor");
     await page.waitForLoadState("networkidle");
-    await expect(
-      page.getByTestId("integrations-studio-monitor-status-filter"),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("integrations-studio-monitor-model-filter"),
-    ).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-monitor-status-filter")).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-monitor-model-filter")).toBeVisible();
     await page.goto("/integrations?step=schedule");
     await page.waitForLoadState("networkidle");
-    await expect(
-      page.getByTestId("integrations-studio-schedule-job-type"),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("integrations-studio-schedule-name"),
-    ).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-schedule-job-type")).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-schedule-name")).toBeVisible();
     await page.goto("/integrations?step=map");
     await page.waitForLoadState("networkidle");
-    await expect(
-      page.getByTestId("integrations-studio-map-version"),
-    ).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-map-version")).toBeVisible();
     await page.goto("/integrations?step=map");
     await page.waitForLoadState("networkidle");
-    await expect(
-      page.getByTestId("integrations-studio-model-preset-res-partner"),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("integrations-studio-model-preset-crm-lead"),
-    ).toBeVisible();
-    await expect(
-      page.getByTestId("integrations-studio-model-preset-mail-message"),
-    ).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-model-preset-res-partner")).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-model-preset-crm-lead")).toBeVisible();
+    await expect(page.getByTestId("integrations-studio-model-preset-mail-message")).toBeVisible();
     await expect(
       page.getByTestId("integrations-studio-model-preset-helpdesk-ticket"),
       page.getByTestId("integrations-studio-model-preset-project-task"),
-      page.getByTestId("integrations-studio-model-preset-account-move"),
+      page.getByTestId("integrations-studio-model-preset-account-move")
     ).toBeVisible();
   });
 
-  test("admin flags/config/audit expose ops honesty hooks", async ({
-    page,
-  }) => {
+  test("admin flags/config/audit expose ops honesty hooks", async ({ page }) => {
     for (const [path, pageId, honestyId, navId] of [
-      [
-        "/admin/flags",
-        "admin-flags-page",
-        "owner-ops-flags-honesty",
-        "owner-console-nav-flags",
-      ],
+      ["/admin/flags", "admin-flags-page", "owner-ops-flags-honesty", "owner-console-nav-flags"],
       [
         "/admin/config",
         "admin-config-page",
         "owner-ops-config-honesty",
         "owner-console-nav-config",
       ],
-      [
-        "/admin/audit",
-        "admin-audit-page",
-        "owner-ops-audit-honesty",
-        "owner-console-nav-audit",
-      ],
+      ["/admin/audit", "admin-audit-page", "owner-ops-audit-honesty", "owner-console-nav-audit"],
     ] as const) {
       await page.goto(path);
       await page.waitForLoadState("networkidle");

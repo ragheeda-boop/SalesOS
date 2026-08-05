@@ -52,9 +52,7 @@ const STAGE_LABELS: Record<string, string> = {
 export function RevenueWorkspace() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [selectedOppId, setSelectedOppId] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState<
-    "overview" | "pipeline" | "opportunity"
-  >("overview");
+  const [activeView, setActiveView] = useState<"overview" | "pipeline" | "opportunity">("overview");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -70,18 +68,14 @@ export function RevenueWorkspace() {
   }, []);
 
   if (loading || !data) {
-    return (
-      <div className="animate-pulse h-96 bg-[var(--bg-tertiary)] rounded-xl" />
-    );
+    return <div className="animate-pulse h-96 bg-[var(--bg-tertiary)] rounded-xl" />;
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-display text-[var(--text-primary)]">
-          منصة الإيرادات
-        </h1>
+        <h1 className="text-xl font-display text-[var(--text-primary)]">منصة الإيرادات</h1>
         <div className="flex gap-2">
           {(["overview", "pipeline", "opportunity"] as const).map((v) => (
             <button
@@ -91,14 +85,10 @@ export function RevenueWorkspace() {
                 "px-3 py-1.5 text-sm rounded-lg",
                 activeView === v
                   ? "bg-[var(--muhide-orange)] text-white"
-                  : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+                  : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
               )}
             >
-              {v === "overview"
-                ? "نظرة عامة"
-                : v === "pipeline"
-                  ? "الـ Pipeline"
-                  : "الفرصة"}
+              {v === "overview" ? "نظرة عامة" : v === "pipeline" ? "الـ Pipeline" : "الفرصة"}
             </button>
           ))}
         </div>
@@ -141,12 +131,7 @@ export function RevenueWorkspace() {
             )}
 
             {/* Active Opportunities */}
-            <div
-              className={cn(
-                "space-y-2",
-                selectedOppId ? "col-span-1" : "col-span-2",
-              )}
-            >
+            <div className={cn("space-y-2", selectedOppId ? "col-span-1" : "col-span-2")}>
               <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
                 الفرص النشطة
               </h3>
@@ -162,7 +147,7 @@ export function RevenueWorkspace() {
                       "w-full text-right rounded-xl border p-3 transition-colors",
                       selectedOppId === opp.id
                         ? "border-[var(--muhide-orange)] bg-[var(--muhide-orange)]/5"
-                        : "border-[var(--border-default)] bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)]",
+                        : "border-[var(--border-default)] bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)]"
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -172,8 +157,7 @@ export function RevenueWorkspace() {
                       <span
                         className="w-2 h-2 rounded-full shrink-0"
                         style={{
-                          backgroundColor:
-                            HEALTH_COLORS[opp.health] || "#9CA3AF",
+                          backgroundColor: HEALTH_COLORS[opp.health] || "#9CA3AF",
                         }}
                       />
                     </div>
@@ -201,16 +185,10 @@ export function RevenueWorkspace() {
                     key={s.id}
                     className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-3"
                   >
-                    <p className="text-xs font-medium text-[var(--text-primary)]">
-                      {s.title}
-                    </p>
+                    <p className="text-xs font-medium text-[var(--text-primary)]">{s.title}</p>
                     <div className="flex items-center justify-between mt-1">
-                      <span className="text-xs text-[var(--text-muted)]">
-                        {s.company_name}
-                      </span>
-                      <span className="text-xs text-[var(--text-muted)]">
-                        {s.signal_type}
-                      </span>
+                      <span className="text-xs text-[var(--text-muted)]">{s.company_name}</span>
+                      <span className="text-xs text-[var(--text-muted)]">{s.signal_type}</span>
                     </div>
                   </div>
                 ))}

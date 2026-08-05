@@ -2,8 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { AppShell, useAppShell } from "../app-shell";
 
 function TestConsumer() {
-  const { sidebarCollapsed, setSidebarCollapsed, commandOpen, setCommandOpen } =
-    useAppShell();
+  const { sidebarCollapsed, setSidebarCollapsed, commandOpen, setCommandOpen } = useAppShell();
   return (
     <div>
       <span data-testid="sidebar-collapsed">{String(sidebarCollapsed)}</span>
@@ -19,7 +18,7 @@ describe("AppShell", () => {
     render(
       <AppShell>
         <div>Content</div>
-      </AppShell>,
+      </AppShell>
     );
     expect(screen.getByText("Content")).toBeInTheDocument();
   });
@@ -28,7 +27,7 @@ describe("AppShell", () => {
     render(
       <AppShell>
         <TestConsumer />
-      </AppShell>,
+      </AppShell>
     );
     expect(screen.getByTestId("sidebar-collapsed")).toHaveTextContent("false");
     expect(screen.getByTestId("command-open")).toHaveTextContent("false");
@@ -38,7 +37,7 @@ describe("AppShell", () => {
     render(
       <AppShell defaultSidebarCollapsed={true}>
         <TestConsumer />
-      </AppShell>,
+      </AppShell>
     );
     expect(screen.getByTestId("sidebar-collapsed")).toHaveTextContent("true");
   });
@@ -47,7 +46,7 @@ describe("AppShell", () => {
     render(
       <AppShell>
         <TestConsumer />
-      </AppShell>,
+      </AppShell>
     );
     fireEvent.click(screen.getByText("Collapse"));
     expect(screen.getByTestId("sidebar-collapsed")).toHaveTextContent("true");
@@ -57,7 +56,7 @@ describe("AppShell", () => {
     const { container } = render(
       <AppShell>
         <div />
-      </AppShell>,
+      </AppShell>
     );
     const shell = container.querySelector('[aria-label="Application shell"]');
     expect(shell).toBeInTheDocument();
@@ -67,7 +66,7 @@ describe("AppShell", () => {
     render(
       <AppShell>
         <TestConsumer />
-      </AppShell>,
+      </AppShell>
     );
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
     expect(screen.getByTestId("command-open")).toHaveTextContent("true");
@@ -77,7 +76,7 @@ describe("AppShell", () => {
     render(
       <AppShell>
         <TestConsumer />
-      </AppShell>,
+      </AppShell>
     );
     fireEvent.click(screen.getByText("Open Cmd"));
     expect(screen.getByTestId("command-open")).toHaveTextContent("true");

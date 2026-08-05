@@ -1,11 +1,6 @@
 "use client";
 
-import type {
-  Workflow,
-  WorkflowStep,
-  StepType,
-  TriggerType,
-} from "@/lib/workflowQueries";
+import type { Workflow, WorkflowStep, StepType, TriggerType } from "@/lib/workflowQueries";
 import { WorkflowCanvas } from "./WorkflowCanvas";
 import { ExecutionTimeline } from "./ExecutionTimeline";
 
@@ -94,9 +89,7 @@ export function WorkflowBuilderView({
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-display text-[var(--text-primary)]">
-          سير العمل
-        </h2>
+        <h2 className="text-lg font-display text-[var(--text-primary)]">سير العمل</h2>
         <button
           onClick={onCreate}
           className="rounded-lg bg-[var(--muhide-orange)] px-3 py-1.5 text-sm text-white hover:opacity-90"
@@ -108,9 +101,7 @@ export function WorkflowBuilderView({
       {/* Empty state */}
       {(!workflows || workflows.length === 0) && !showForm && (
         <div className="rounded-xl border border-dashed border-[var(--border-default)] p-8 text-center">
-          <p className="text-sm text-[var(--text-muted)]">
-            لا توجد سير عمل بعد
-          </p>
+          <p className="text-sm text-[var(--text-muted)]">لا توجد سير عمل بعد</p>
           <button
             onClick={onCreate}
             className="mt-2 text-sm text-[var(--muhide-orange)] hover:underline"
@@ -128,9 +119,7 @@ export function WorkflowBuilderView({
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-[var(--text-primary)]">
-                {w.name}
-              </span>
+              <span className="text-sm font-medium text-[var(--text-primary)]">{w.name}</span>
               <span
                 className={`inline-block w-2 h-2 rounded-full ${STATUS_LABELS[w.status]?.color}`}
               />
@@ -153,11 +142,7 @@ export function WorkflowBuilderView({
               </button>
             </div>
           </div>
-          {w.description && (
-            <p className="text-xs text-[var(--text-secondary)]">
-              {w.description}
-            </p>
-          )}
+          {w.description && <p className="text-xs text-[var(--text-secondary)]">{w.description}</p>}
           <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
             <span>{TRIGGER_LABELS[w.trigger_type]}</span>
             <span>{w.steps.length} خطوة</span>
@@ -212,35 +197,25 @@ export function WorkflowBuilderView({
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs text-[var(--text-muted)] mb-1">
-                  الاسم
-                </label>
+                <label className="block text-xs text-[var(--text-muted)] mb-1">الاسم</label>
                 <input
                   value={editing.name || ""}
-                  onChange={(e) =>
-                    onEditingChange({ ...editing, name: e.target.value })
-                  }
+                  onChange={(e) => onEditingChange({ ...editing, name: e.target.value })}
                   className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)]"
                 />
               </div>
               <div>
-                <label className="block text-xs text-[var(--text-muted)] mb-1">
-                  الوصف
-                </label>
+                <label className="block text-xs text-[var(--text-muted)] mb-1">الوصف</label>
                 <textarea
                   value={editing.description || ""}
-                  onChange={(e) =>
-                    onEditingChange({ ...editing, description: e.target.value })
-                  }
+                  onChange={(e) => onEditingChange({ ...editing, description: e.target.value })}
                   rows={2}
                   className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-[var(--text-muted)] mb-1">
-                    نوع المشغل
-                  </label>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1">نوع المشغل</label>
                   <select
                     value={editing.trigger_type}
                     onChange={(e) =>
@@ -259,9 +234,7 @@ export function WorkflowBuilderView({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-[var(--text-muted)] mb-1">
-                    الحالة
-                  </label>
+                  <label className="block text-xs text-[var(--text-muted)] mb-1">الحالة</label>
                   <select
                     value={editing.status}
                     onChange={(e) =>
@@ -281,9 +254,7 @@ export function WorkflowBuilderView({
 
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs text-[var(--text-muted)]">
-                    الخطوات
-                  </label>
+                  <label className="text-xs text-[var(--text-muted)]">الخطوات</label>
                   <button
                     onClick={onAddStep}
                     className="text-xs text-[var(--muhide-orange)] hover:underline"

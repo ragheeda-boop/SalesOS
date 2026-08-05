@@ -7,26 +7,13 @@ jest.mock("@salesos/ui", () => {
   return {
     ...actual,
     Spinner: () => <span data-testid="spinner" />,
-    Badge: ({
-      children,
-      variant,
-    }: {
-      children: React.ReactNode;
-      variant?: string;
-    }) => (
+    Badge: ({ children, variant }: { children: React.ReactNode; variant?: string }) => (
       <span data-testid="badge" data-variant={variant}>
         {children}
       </span>
     ),
-    cn: (...args: (string | undefined | false)[]) =>
-      args.filter(Boolean).join(" "),
-    Card: ({
-      children,
-      className,
-    }: {
-      children: React.ReactNode;
-      className?: string;
-    }) => (
+    cn: (...args: (string | undefined | false)[]) => args.filter(Boolean).join(" "),
+    Card: ({ children, className }: { children: React.ReactNode; className?: string }) => (
       <div data-testid="card" className={className}>
         {children}
       </div>

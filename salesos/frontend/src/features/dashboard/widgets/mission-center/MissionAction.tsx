@@ -32,7 +32,7 @@ export function MissionAction({
         onAction?.(id);
       }
     },
-    [id, onAction],
+    [id, onAction]
   );
 
   return (
@@ -49,7 +49,7 @@ export function MissionAction({
           ? "bg-danger-50 hover:bg-danger-100 dark:bg-danger-900/20 dark:hover:bg-danger-900/30"
           : priority === "medium"
             ? "bg-warning-50 hover:bg-warning-100 dark:bg-warning-900/20 dark:hover:bg-warning-900/30"
-            : "bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]",
+            : "bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]"
       )}
       onClick={clickable ? handleActivate : undefined}
       onKeyDown={clickable ? handleKeyDown : undefined}
@@ -58,9 +58,7 @@ export function MissionAction({
         <Badge variant={config.variant} className="shrink-0">
           {config.label}
         </Badge>
-        <span className="truncate font-medium text-[var(--text-primary)]">
-          {title}
-        </span>
+        <span className="truncate font-medium text-[var(--text-primary)]">{title}</span>
       </div>
       <div className="flex items-center gap-2 shrink-0">
         {companyName && (
@@ -69,10 +67,7 @@ export function MissionAction({
           </span>
         )}
         {dueBy && (
-          <span
-            className="text-[10px] text-[var(--text-muted)]"
-            aria-label={`مستحق ${dueBy}`}
-          >
+          <span className="text-[10px] text-[var(--text-muted)]" aria-label={`مستحق ${dueBy}`}>
             {dueBy}
           </span>
         )}

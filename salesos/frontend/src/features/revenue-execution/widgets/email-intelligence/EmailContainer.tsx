@@ -14,11 +14,8 @@ function mapToEmails(result: DecisionResult): EmailSummary[] {
     summary: (e.description as string) ?? "",
     sender: (e.source as string) ?? "المرسل",
     date: new Date().toISOString().split("T")[0],
-    priority: (i === 0 ? "high" : i === 1 ? "medium" : "low") as
-      "high" | "medium" | "low",
-    ...(i === 0
-      ? { suggestedReply: result.recommendation?.actionLabel ?? "" }
-      : {}),
+    priority: (i === 0 ? "high" : i === 1 ? "medium" : "low") as "high" | "medium" | "low",
+    ...(i === 0 ? { suggestedReply: result.recommendation?.actionLabel ?? "" } : {}),
     actionItems: [result.recommendation?.actionLabel ?? ""],
   }));
 }

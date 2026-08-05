@@ -16,18 +16,14 @@ import {
 } from "../contactQueries";
 
 const mockedApi = api as jest.Mocked<typeof api>;
-const mockedGetTenantId = getTenantId as jest.MockedFunction<
-  typeof getTenantId
->;
+const mockedGetTenantId = getTenantId as jest.MockedFunction<typeof getTenantId>;
 
 function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 }
 
@@ -59,10 +55,7 @@ describe("useContactSearch", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(response);
-    expect(mockedApi.searchContacts).toHaveBeenCalledWith(
-      { q: "Ali" },
-      "tenant-1",
-    );
+    expect(mockedApi.searchContacts).toHaveBeenCalledWith({ q: "Ali" }, "tenant-1");
   });
 });
 
@@ -114,7 +107,7 @@ describe("useCreateContact", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(mockedApi.createContact).toHaveBeenCalledWith(
       { name: "Mohammed", email: "m@b.com" },
-      "tenant-1",
+      "tenant-1"
     );
   });
 });
@@ -144,7 +137,7 @@ describe("useUpdateContact", () => {
     expect(mockedApi.updateContact).toHaveBeenCalledWith(
       "c-1",
       { name: "Ali Updated" },
-      "tenant-1",
+      "tenant-1"
     );
   });
 });

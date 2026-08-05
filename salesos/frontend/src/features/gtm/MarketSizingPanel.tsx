@@ -11,15 +11,11 @@ import {
   useMarketSizingMeta,
 } from "@/lib/hooks/marketSizingQueries";
 import type { MarketSizingSnapshot } from "@/lib/api";
-import {
-  MARKET_SIZING_HONESTY,
-  MARKET_SIZING_NON_GOALS,
-} from "@/features/gtm/marketSizingHonesty";
+import { MARKET_SIZING_HONESTY, MARKET_SIZING_NON_GOALS } from "@/features/gtm/marketSizingHonesty";
 import { buildLeadDiscoveryHref } from "@/features/gtm/gtmHandoff";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -63,10 +59,7 @@ function NestedBands({ row }: { row: MarketSizingSnapshot }) {
           ["SOM", row.som, "#16a34a"],
         ] as const
       ).map(([label, value, color]) => (
-        <div
-          key={label}
-          data-testid={`market-sizing-band-${label.toLowerCase()}`}
-        >
+        <div key={label} data-testid={`market-sizing-band-${label.toLowerCase()}`}>
           <div className="mb-0.5 flex justify-between text-xs text-[var(--text-muted)]">
             <span>{label}</span>
             <span className="font-mono">{value}</span>
@@ -83,8 +76,8 @@ function NestedBands({ row }: { row: MarketSizingSnapshot }) {
         </div>
       ))}
       <p className="font-mono text-xs text-[var(--text-muted)]">
-        invariant {row.invariant_ok ? "ok" : "FAIL"} · hint{" "}
-        {row.dataset_scale_hint} (scale hint only — live 141221 not claimed)
+        invariant {row.invariant_ok ? "ok" : "FAIL"} · hint {row.dataset_scale_hint} (scale hint
+        only — live 141221 not claimed)
       </p>
     </div>
   );
@@ -125,16 +118,8 @@ export function MarketSizingPanel() {
     setName(row.name);
     setIndustries((row.criteria.industries ?? []).join(", "));
     setCities((row.criteria.cities ?? []).join(", "));
-    setEmployeesMin(
-      row.criteria.employees_min == null
-        ? ""
-        : String(row.criteria.employees_min),
-    );
-    setEmployeesMax(
-      row.criteria.employees_max == null
-        ? ""
-        : String(row.criteria.employees_max),
-    );
+    setEmployeesMin(row.criteria.employees_min == null ? "" : String(row.criteria.employees_min));
+    setEmployeesMax(row.criteria.employees_max == null ? "" : String(row.criteria.employees_max));
   }, [detailQuery.data, selectedId, snapshotHydrated]);
 
   function loadCriteria(row: MarketSizingSnapshot) {
@@ -142,16 +127,8 @@ export function MarketSizingPanel() {
     setName(row.name);
     setIndustries((row.criteria.industries ?? []).join(", "));
     setCities((row.criteria.cities ?? []).join(", "));
-    setEmployeesMin(
-      row.criteria.employees_min == null
-        ? ""
-        : String(row.criteria.employees_min),
-    );
-    setEmployeesMax(
-      row.criteria.employees_max == null
-        ? ""
-        : String(row.criteria.employees_max),
-    );
+    setEmployeesMin(row.criteria.employees_min == null ? "" : String(row.criteria.employees_min));
+    setEmployeesMax(row.criteria.employees_max == null ? "" : String(row.criteria.employees_max));
   }
 
   const activeDetail = detailQuery.data;
@@ -162,8 +139,8 @@ export function MarketSizingPanel() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="market-sizing-honesty"
       >
-        {MARKET_SIZING_HONESTY} Non-goals: {MARKET_SIZING_NON_GOALS.join("; ")}.
-        Not Production GO / RAG GO.
+        {MARKET_SIZING_HONESTY} Non-goals: {MARKET_SIZING_NON_GOALS.join("; ")}. Not Production GO /
+        RAG GO.
       </p>
 
       {metaQuery.data ? (
@@ -172,17 +149,12 @@ export function MarketSizingPanel() {
           data-testid="market-sizing-meta"
         >
           <p>
-            scale_hint {metaQuery.data.dataset_scale_hint} ·{" "}
-            {metaQuery.data.invariant}
+            scale_hint {metaQuery.data.dataset_scale_hint} · {metaQuery.data.invariant}
           </p>
-          <p data-testid="market-sizing-meta-honesty">
-            tip /meta: {metaQuery.data.honesty}
-          </p>
+          <p data-testid="market-sizing-meta-honesty">tip /meta: {metaQuery.data.honesty}</p>
         </div>
       ) : metaQuery.isError ? (
-        <p className="text-sm text-[var(--text-danger)]">
-          {getApiError(metaQuery.error)}
-        </p>
+        <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
@@ -197,16 +169,11 @@ export function MarketSizingPanel() {
         >
           {listQuery.isFetching ? "Refreshing…" : "Refresh snapshots"}
         </Button>
-        <span
-          className="text-sm text-[var(--text-muted)]"
-          data-testid="market-sizing-count"
-        >
+        <span className="text-sm text-[var(--text-muted)]" data-testid="market-sizing-count">
           {listQuery.isLoading ? (
             <Spinner className="h-5 w-5" />
           ) : listQuery.isError ? (
-            <span className="text-[var(--text-danger)]">
-              {getApiError(listQuery.error)}
-            </span>
+            <span className="text-[var(--text-danger)]">{getApiError(listQuery.error)}</span>
           ) : (
             <>{listQuery.data?.length ?? 0} snapshot(s)</>
           )}
@@ -234,12 +201,11 @@ export function MarketSizingPanel() {
                 data-testid="market-sizing-row"
                 onClick={() => loadCriteria(row)}
               >
-                <span className="font-medium">{row.name}</span> · TAM {row.tam}{" "}
-                · SAM {row.sam} · SOM {row.som}
+                <span className="font-medium">{row.name}</span> · TAM {row.tam} · SAM {row.sam} ·
+                SOM {row.som}
                 <span className="mt-0.5 block font-mono text-xs text-[var(--text-muted)]">
-                  {row.id} · universe {row.universe_size} · hint{" "}
-                  {row.dataset_scale_hint} · invariant{" "}
-                  {row.invariant_ok ? "ok" : "FAIL"} · click → tip GET detail
+                  {row.id} · universe {row.universe_size} · hint {row.dataset_scale_hint} ·
+                  invariant {row.invariant_ok ? "ok" : "FAIL"} · click → tip GET detail
                 </span>
               </button>
             </li>
@@ -249,15 +215,9 @@ export function MarketSizingPanel() {
 
       {selectedId ? (
         detailQuery.isLoading ? (
-          <Spinner
-            className="h-5 w-5"
-            data-testid="market-sizing-detail-loading"
-          />
+          <Spinner className="h-5 w-5" data-testid="market-sizing-detail-loading" />
         ) : detailQuery.isError ? (
-          <p
-            className="text-sm text-[var(--text-danger)]"
-            data-testid="market-sizing-detail-error"
-          >
+          <p className="text-sm text-[var(--text-danger)]" data-testid="market-sizing-detail-error">
             {getApiError(detailQuery.error)}
           </p>
         ) : activeDetail ? (
@@ -304,7 +264,7 @@ export function MarketSizingPanel() {
                   description: getApiError(err),
                 });
               },
-            },
+            }
           );
         }}
       >

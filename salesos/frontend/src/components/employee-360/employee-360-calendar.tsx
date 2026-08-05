@@ -1,14 +1,7 @@
 "use client";
 
 import { useCalendarKPIs } from "@/lib/hooks/employeeQueries";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Skeleton,
-  Badge,
-  cn,
-} from "@salesos/ui";
+import { Card, CardContent, CardHeader, Skeleton, Badge, cn } from "@salesos/ui";
 import { Calendar, Clock, Users, TrendingUp, Video } from "lucide-react";
 
 function KPICard({
@@ -27,9 +20,7 @@ function KPICard({
   return (
     <div className={cn("rounded-xl border p-4", color)}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-[var(--text-muted)]">
-          {label}
-        </span>
+        <span className="text-xs font-medium text-[var(--text-muted)]">{label}</span>
         <Icon className="h-4 w-4 opacity-50" />
       </div>
       <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
@@ -125,10 +116,7 @@ export function CalendarDashboard({ employeeId }: { employeeId: string }) {
                   key={i}
                   className="flex items-center gap-3 p-2 rounded-lg bg-[var(--bg-secondary)]"
                 >
-                  <Badge
-                    variant={m.is_internal ? "default" : "primary"}
-                    className="text-[10px]"
-                  >
+                  <Badge variant={m.is_internal ? "default" : "primary"} className="text-[10px]">
                     {m.is_internal ? "Internal" : "External"}
                   </Badge>
                   <span className="text-sm font-medium flex-1">{m.title}</span>

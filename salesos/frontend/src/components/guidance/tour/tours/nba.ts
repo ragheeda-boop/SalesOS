@@ -24,8 +24,7 @@ export const NBA_TOUR: TourStep[] = [
   {
     target: "[data-tour='nba-evidence']",
     title: "سلسلة الأدلة",
-    description:
-      "كل توصية مدعومة بأدلة من بيانات شركاتك. اضغط على 'لماذا' لمعرفة مصدر التوصية.",
+    description: "كل توصية مدعومة بأدلة من بيانات شركاتك. اضغط على 'لماذا' لمعرفة مصدر التوصية.",
     position: "bottom",
   },
 ];

@@ -20,22 +20,15 @@ export const AIRecommendationWidget = createWidget({
   },
   useData: () => {
     const { id: companyId } = useParams<{ id: string }>();
-    const { data, isLoading, isError, error, refetch } =
-      useCompanyIntelligence(companyId);
+    const { data, isLoading, isError, error, refetch } = useCompanyIntelligence(companyId);
     useDecisionSafe();
     return {
       data: data?.aiRecommendation ?? null,
-      status: isLoading
-        ? ("loading" as const)
-        : isError
-          ? ("error" as const)
-          : ("ready" as const),
+      status: isLoading ? ("loading" as const) : isError ? ("error" as const) : ("ready" as const),
       lastUpdated: null,
       error: error as Error | null,
       refetch,
     };
   },
-  render: ({ data }) => (
-    <AIRecommendationView recommendation={data as AIRecommendation | null} />
-  ),
+  render: ({ data }) => <AIRecommendationView recommendation={data as AIRecommendation | null} />,
 });

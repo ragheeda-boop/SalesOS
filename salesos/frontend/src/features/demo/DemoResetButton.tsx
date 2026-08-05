@@ -9,12 +9,7 @@ export function DemoResetButton() {
   const [error, setError] = useState<string | null>(null);
 
   const handleReset = async () => {
-    if (
-      !confirm(
-        "Reset all demo data? This will re-seed the environment with fresh data.",
-      )
-    )
-      return;
+    if (!confirm("Reset all demo data? This will re-seed the environment with fresh data.")) return;
 
     setResetting(true);
     setMessage(null);
@@ -24,7 +19,7 @@ export function DemoResetButton() {
       const res = await api.post("/api/v1/demo/reset");
       const data = res.data;
       setMessage(
-        `Demo reset complete: ${data.companies} companies, ${data.opportunities} opportunities, ${data.meetings} meetings`,
+        `Demo reset complete: ${data.companies} companies, ${data.opportunities} opportunities, ${data.meetings} meetings`
       );
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Reset failed";
@@ -44,12 +39,8 @@ export function DemoResetButton() {
         {resetting ? "Resetting..." : "Reset Demo Data"}
       </button>
 
-      {message && (
-        <p className="text-sm text-[var(--status-success-text)]">{message}</p>
-      )}
-      {error && (
-        <p className="text-sm text-[var(--status-danger-text)]">{error}</p>
-      )}
+      {message && <p className="text-sm text-[var(--status-success-text)]">{message}</p>}
+      {error && <p className="text-sm text-[var(--status-danger-text)]">{error}</p>}
     </div>
   );
 }

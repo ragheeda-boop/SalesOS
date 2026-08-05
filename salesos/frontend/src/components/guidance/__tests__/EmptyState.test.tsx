@@ -20,7 +20,7 @@ describe("EmptyState", () => {
         icon={<Book data-testid="icon" />}
         title="No data"
         description="No data available yet."
-      />,
+      />
     );
     expect(screen.getByText("No data")).toBeInTheDocument();
     expect(screen.getByText("No data available yet.")).toBeInTheDocument();
@@ -35,7 +35,7 @@ describe("EmptyState", () => {
         title="No data"
         description="No data"
         action={{ label: "Create", onClick: handleClick }}
-      />,
+      />
     );
     const btn = screen.getByText("Create");
     expect(btn).toBeInTheDocument();
@@ -53,7 +53,7 @@ describe("EmptyState", () => {
         description="No data"
         action={{ label: "Primary", onClick: handlePrimary }}
         secondaryAction={{ label: "Secondary", onClick: handleSecondary }}
-      />,
+      />
     );
     expect(screen.getByText("Primary")).toBeInTheDocument();
     expect(screen.getByText("Secondary")).toBeInTheDocument();
@@ -61,28 +61,15 @@ describe("EmptyState", () => {
 
   it("shows tour button when tourId is provided", () => {
     renderWithTour(
-      <EmptyState
-        icon={<Book />}
-        title="No data"
-        description="No data"
-        tourId="pipeline"
-      />,
+      <EmptyState icon={<Book />} title="No data" description="No data" tourId="pipeline" />
     );
     expect(screen.getByText("جولة تعريفية")).toBeInTheDocument();
   });
 
   it("does not show tour button if tour already completed", () => {
-    localStorage.setItem(
-      "salesos:completed-tours",
-      JSON.stringify(["pipeline"]),
-    );
+    localStorage.setItem("salesos:completed-tours", JSON.stringify(["pipeline"]));
     renderWithTour(
-      <EmptyState
-        icon={<Book />}
-        title="No data"
-        description="No data"
-        tourId="pipeline"
-      />,
+      <EmptyState icon={<Book />} title="No data" description="No data" tourId="pipeline" />
     );
     expect(screen.queryByText("جولة تعريفية")).not.toBeInTheDocument();
   });

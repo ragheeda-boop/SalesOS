@@ -63,12 +63,7 @@ function Badge({
     neutral: "bg-[var(--color-neutral-bg)] text-[var(--color-neutral)]",
   };
   return (
-    <span
-      className={cn(
-        "rounded-full px-1.5 py-0.5 text-[9px] font-medium",
-        v[variant],
-      )}
-    >
+    <span className={cn("rounded-full px-1.5 py-0.5 text-[9px] font-medium", v[variant])}>
       {label}
     </span>
   );
@@ -88,11 +83,7 @@ function MetricBox({
       <p className="text-[9px] text-[var(--text-muted)]">{label}</p>
       <p className="mt-0.5 text-xs font-bold text-[var(--text-primary)]">
         {value}
-        {trend && (
-          <span className={cn("mr-0.5 text-[10px]", TREND_C[trend])}>
-            {TREND[trend]}
-          </span>
-        )}
+        {trend && <span className={cn("mr-0.5 text-[10px]", TREND_C[trend])}>{TREND[trend]}</span>}
       </p>
     </div>
   );
@@ -105,9 +96,7 @@ export function CompanyDNAView({ dna }: CompanyDNAViewProps) {
         <span className="text-2xl" aria-hidden="true">
           🧬
         </span>
-        <p className="mt-2 text-sm text-[var(--text-muted)]">
-          جاري تحليل الشركة
-        </p>
+        <p className="mt-2 text-sm text-[var(--text-muted)]">جاري تحليل الشركة</p>
       </div>
     );
   }
@@ -122,17 +111,12 @@ export function CompanyDNAView({ dna }: CompanyDNAViewProps) {
           label={dna.size.label}
           variant={dna.size.label === "enterprise" ? "success" : "warning"}
         />
-        {dna.growthPattern === "accelerating" && (
-          <Badge label="متسارع" variant="success" />
-        )}
+        {dna.growthPattern === "accelerating" && <Badge label="متسارع" variant="success" />}
       </div>
 
       {/* Row 2: Key Metrics */}
       <div className="grid grid-cols-3 gap-1.5">
-        <MetricBox
-          label="الموظفون"
-          value={dna.size.employees.toLocaleString()}
-        />
+        <MetricBox label="الموظفون" value={dna.size.employees.toLocaleString()} />
         <MetricBox
           label="الإيرادات"
           value={`$${dna.financialHealth.revenue >= 1e9 ? (dna.financialHealth.revenue / 1e9).toFixed(1) + "B" : (dna.financialHealth.revenue / 1e6).toFixed(0) + "M"}`}

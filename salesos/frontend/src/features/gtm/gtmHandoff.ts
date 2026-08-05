@@ -15,20 +15,15 @@ export type GtmCriteriaHandoff = {
 export function buildLeadDiscoveryHref(criteria: GtmCriteriaHandoff): string {
   const params = new URLSearchParams();
   if (criteria.name?.trim()) params.set("name", criteria.name.trim());
-  if (criteria.industries.trim())
-    params.set("industries", criteria.industries.trim());
+  if (criteria.industries.trim()) params.set("industries", criteria.industries.trim());
   if (criteria.cities.trim()) params.set("cities", criteria.cities.trim());
-  if (criteria.employees_min.trim())
-    params.set("employees_min", criteria.employees_min.trim());
-  if (criteria.employees_max.trim())
-    params.set("employees_max", criteria.employees_max.trim());
+  if (criteria.employees_min.trim()) params.set("employees_min", criteria.employees_min.trim());
+  if (criteria.employees_max.trim()) params.set("employees_max", criteria.employees_max.trim());
   const qs = params.toString();
   return qs ? `/gtm/lead-discovery?${qs}` : "/gtm/lead-discovery";
 }
 
-export function parseGtmCriteriaFromSearch(
-  search: URLSearchParams,
-): GtmCriteriaHandoff {
+export function parseGtmCriteriaFromSearch(search: URLSearchParams): GtmCriteriaHandoff {
   return {
     name: search.get("name") ?? "",
     industries: search.get("industries") ?? "",
@@ -61,8 +56,7 @@ export type EnrichmentHandoff = {
 export function buildEnrichmentHref(seed: EnrichmentHandoff = {}): string {
   const params = new URLSearchParams();
   if (seed.run?.trim()) params.set("run", seed.run.trim());
-  if (seed.company_name?.trim())
-    params.set("company_name", seed.company_name.trim());
+  if (seed.company_name?.trim()) params.set("company_name", seed.company_name.trim());
   if (seed.domain?.trim()) params.set("domain", seed.domain.trim());
   const qs = params.toString();
   return qs ? `/gtm/enrichment?${qs}` : "/gtm/enrichment";
@@ -101,19 +95,17 @@ export type LookalikeHandoff = {
 export function buildLookalikeHref(seed: LookalikeHandoff = {}): string {
   const params = new URLSearchParams();
   if (seed.model?.trim()) params.set("model", seed.model.trim());
-  if (seed.company_name?.trim())
-    params.set("company_name", seed.company_name.trim());
+  if (seed.company_name?.trim()) params.set("company_name", seed.company_name.trim());
   if (seed.industry?.trim()) params.set("industry", seed.industry.trim());
   if (seed.city?.trim()) params.set("city", seed.city.trim());
-  if (seed.employees_count?.trim())
-    params.set("employees_count", seed.employees_count.trim());
+  if (seed.employees_count?.trim()) params.set("employees_count", seed.employees_count.trim());
   const qs = params.toString();
   return qs ? `/gtm/lookalikes?${qs}` : "/gtm/lookalikes";
 }
 
 /** Pull tip enrichable contact fields from an enrichment filled map. */
 export function contactFieldsFromFilled(
-  filled: Record<string, unknown> | null | undefined,
+  filled: Record<string, unknown> | null | undefined
 ): VerificationHandoff {
   if (!filled) return {};
   const email = filled.email == null ? "" : String(filled.email).trim();

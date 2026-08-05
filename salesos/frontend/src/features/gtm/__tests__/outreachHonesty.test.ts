@@ -6,8 +6,6 @@ describe("outreachHonesty — FE-S11-08", () => {
     expect(OUTREACH_HONESTY).toMatch(/draft_only/);
     expect(OUTREACH_HONESTY).toMatch(/feature_ai_copilot/);
     expect(OUTREACH_HONESTY).toMatch(/False|false/);
-    expect(OUTREACH_NON_GOALS.join(" ")).toMatch(
-      /SMTP|LinkedIn|WhatsApp|copilot/i,
-    );
+    expect(OUTREACH_NON_GOALS.join(" ")).toMatch(/SMTP|LinkedIn|WhatsApp|copilot/i);
   });
 });

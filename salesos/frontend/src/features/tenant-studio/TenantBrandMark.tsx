@@ -53,9 +53,7 @@ export function TenantBrandMark({
   className?: string;
 }) {
   const { displayName, primaryColor, logoUrlHint } = useTenantBrandingChrome();
-  const title = logoUrlHint
-    ? `${displayName} · logo ${logoUrlHint}`
-    : displayName;
+  const title = logoUrlHint ? `${displayName} · logo ${logoUrlHint}` : displayName;
 
   if (collapsed) {
     return (

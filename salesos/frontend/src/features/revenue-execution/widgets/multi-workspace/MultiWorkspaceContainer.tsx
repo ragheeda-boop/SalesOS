@@ -13,8 +13,7 @@ function mapHistoryToWorkspaces(history: DecisionHistoryItem[]): WorkspaceData {
     name: (h.context?.entityId as string) ?? `مساحة ${i + 1}`,
     type: (h.context?.entityType as string) ?? "dashboard",
     active: i === 0,
-    lastAccessed:
-      h.timestamp?.split("T")[0] ?? new Date().toISOString().split("T")[0],
+    lastAccessed: h.timestamp?.split("T")[0] ?? new Date().toISOString().split("T")[0],
   }));
 
   if (workspaces.length === 0) {

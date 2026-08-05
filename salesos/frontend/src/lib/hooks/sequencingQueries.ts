@@ -74,8 +74,7 @@ function invalidateEnrollments(qc: ReturnType<typeof useQueryClient>) {
 export function useCreateSequence() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: SequenceCreateBody) =>
-      createSequence(getTenantId(), body),
+    mutationFn: (body: SequenceCreateBody) => createSequence(getTenantId(), body),
     onSuccess: (row) => {
       qc.invalidateQueries({
         queryKey: gtmKeys.sequenceList(getTenantId()),
@@ -88,13 +87,8 @@ export function useCreateSequence() {
 export function useEnrollContact() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      sequenceId,
-      body,
-    }: {
-      sequenceId: string;
-      body: EnrollBody;
-    }) => enrollContact(getTenantId(), sequenceId, body),
+    mutationFn: ({ sequenceId, body }: { sequenceId: string; body: EnrollBody }) =>
+      enrollContact(getTenantId(), sequenceId, body),
     onSuccess: (row) => {
       invalidateEnrollments(qc);
       qc.setQueryData(gtmKeys.enrollmentDetail(getTenantId(), row.id), row);
@@ -105,8 +99,7 @@ export function useEnrollContact() {
 export function useAdvanceEnrollment() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (enrollmentId: string) =>
-      advanceEnrollment(getTenantId(), enrollmentId),
+    mutationFn: (enrollmentId: string) => advanceEnrollment(getTenantId(), enrollmentId),
     onSuccess: (row) => {
       invalidateEnrollments(qc);
       qc.setQueryData(gtmKeys.enrollmentDetail(getTenantId(), row.id), row);
@@ -117,8 +110,7 @@ export function useAdvanceEnrollment() {
 export function usePauseEnrollment() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (enrollmentId: string) =>
-      pauseEnrollment(getTenantId(), enrollmentId),
+    mutationFn: (enrollmentId: string) => pauseEnrollment(getTenantId(), enrollmentId),
     onSuccess: (row) => {
       invalidateEnrollments(qc);
       qc.setQueryData(gtmKeys.enrollmentDetail(getTenantId(), row.id), row);
@@ -129,8 +121,7 @@ export function usePauseEnrollment() {
 export function useResumeEnrollment() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (enrollmentId: string) =>
-      resumeEnrollment(getTenantId(), enrollmentId),
+    mutationFn: (enrollmentId: string) => resumeEnrollment(getTenantId(), enrollmentId),
     onSuccess: (row) => {
       invalidateEnrollments(qc);
       qc.setQueryData(gtmKeys.enrollmentDetail(getTenantId(), row.id), row);
@@ -141,8 +132,7 @@ export function useResumeEnrollment() {
 export function useCancelEnrollment() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (enrollmentId: string) =>
-      cancelEnrollment(getTenantId(), enrollmentId),
+    mutationFn: (enrollmentId: string) => cancelEnrollment(getTenantId(), enrollmentId),
     onSuccess: (row) => {
       invalidateEnrollments(qc);
       qc.setQueryData(gtmKeys.enrollmentDetail(getTenantId(), row.id), row);

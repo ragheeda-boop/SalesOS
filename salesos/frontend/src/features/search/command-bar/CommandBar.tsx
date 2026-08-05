@@ -2,11 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { cn } from "@salesos/ui";
-import {
-  SearchProvider,
-  useSearchContext,
-  searchTelemetry,
-} from "@salesos/search";
+import { SearchProvider, useSearchContext, searchTelemetry } from "@salesos/search";
 import type { SearchResult } from "@salesos/search";
 import { CommandBarInput } from "./CommandBarInput";
 import { CommandBarResults } from "./CommandBarResults";
@@ -17,10 +13,7 @@ interface CommandBarProps {
   onNavigate?: (query: string) => void;
 }
 
-function CommandBarInner({
-  onResultSelect,
-  onNavigate: _onNavigate,
-}: CommandBarProps) {
+function CommandBarInner({ onResultSelect, onNavigate: _onNavigate }: CommandBarProps) {
   const { query, search, setQuery, clearSearch } = useSearchContext();
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -71,7 +64,7 @@ function CommandBarInner({
     (value: string) => {
       setQuery({ text: value });
     },
-    [setQuery],
+    [setQuery]
   );
 
   const handleSearch = useCallback(() => {
@@ -96,21 +89,16 @@ function CommandBarInner({
           break;
       }
     },
-    [handleSearch],
+    [handleSearch]
   );
 
   const handleResultClick = useCallback(
     (result: SearchResult) => {
-      searchTelemetry.click(
-        result.id,
-        result.entityType,
-        highlightedIndex,
-        query.text,
-      );
+      searchTelemetry.click(result.id, result.entityType, highlightedIndex, query.text);
       onResultSelect?.(result);
       close();
     },
-    [highlightedIndex, query.text, onResultSelect, close],
+    [highlightedIndex, query.text, onResultSelect, close]
   );
 
   const handleSuggestionClick = useCallback(
@@ -118,7 +106,7 @@ function CommandBarInner({
       setQuery({ text });
       search(text);
     },
-    [setQuery, search],
+    [setQuery, search]
   );
 
   const handleHistoryClick = useCallback(
@@ -126,14 +114,14 @@ function CommandBarInner({
       setQuery({ text });
       search(text);
     },
-    [setQuery, search],
+    [setQuery, search]
   );
 
   const handleOverlayClick = useCallback(
     (e: React.MouseEvent) => {
       if (e.target === overlayRef.current) close();
     },
-    [close],
+    [close]
   );
 
   if (!open) return null;
@@ -149,7 +137,7 @@ function CommandBarInner({
         aria-label="البحث الشامل"
         className={cn(
           "w-full max-w-2xl overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-primary)] shadow-2xl",
-          "",
+          ""
         )}
       >
         <CommandBarInput

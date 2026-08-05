@@ -10,16 +10,12 @@ describe("odooTaskHonesty — FE-S09-05", () => {
     expect(isTaskModel("project.task")).toBe(true);
     expect(isTaskModel("helpdesk.ticket")).toBe(false);
     expect(
-      DEFAULT_TASK_MAPPINGS.some(
-        (m) => m.external === "stage_id" && m.internal === "stage",
-      ),
+      DEFAULT_TASK_MAPPINGS.some((m) => m.external === "stage_id" && m.internal === "stage")
     ).toBe(true);
   });
 
   it("exposes TaskCaseExtension VO case types (not aggregate)", () => {
-    expect(TASK_CASE_TYPES).toEqual(
-      expect.arrayContaining(["financing", "insurance", "generic"]),
-    );
+    expect(TASK_CASE_TYPES).toEqual(expect.arrayContaining(["financing", "insurance", "generic"]));
     expect(TASK_FINANCING_FIELDS[0]).toContain("financing");
   });
 });

@@ -18,8 +18,7 @@ import {
 } from "@/features/tenant-studio/promptLibraryHonesty";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -43,9 +42,7 @@ export function PromptLibraryStudio() {
 
   const [name, setName] = useState("GTM Intro Prompt");
   const [key, setKey] = useState("gtm.intro.v1");
-  const [template, setTemplate] = useState(
-    "Write a short intro for {{company_name}}.",
-  );
+  const [template, setTemplate] = useState("Write a short intro for {{company_name}}.");
   const [system, setSystem] = useState("");
   const [domain, setDomain] = useState("gtm");
   const [category, setCategory] = useState("general");
@@ -69,31 +66,27 @@ export function PromptLibraryStudio() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="prompt-library-honesty"
       >
-        {PROMPT_LIBRARY_HONESTY} Non-goals:{" "}
-        {PROMPT_LIBRARY_NON_GOALS.join("; ")}. Not Production GO / RAG GO.
+        {PROMPT_LIBRARY_HONESTY} Non-goals: {PROMPT_LIBRARY_NON_GOALS.join("; ")}. Not Production GO
+        / RAG GO.
       </p>
 
       {metaQuery.isLoading ? (
         <Spinner />
       ) : metaQuery.isError ? (
-        <p className="text-sm text-[var(--text-danger)]">
-          {getApiError(metaQuery.error)}
-        </p>
+        <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
       ) : metaQuery.data ? (
         <div
           className="space-y-1 font-mono text-xs text-[var(--text-muted)]"
           data-testid="prompt-library-meta"
         >
           <p>
-            {metaQuery.data.capability} · extends={metaQuery.data.extends} ·
-            ops={(metaQuery.data.operations ?? []).join(", ")}
+            {metaQuery.data.capability} · extends={metaQuery.data.extends} · ops=
+            {(metaQuery.data.operations ?? []).join(", ")}
           </p>
           <p data-testid="prompt-library-meta-flag">
             feature_ai_copilot={String(metaQuery.data.feature_ai_copilot)}
           </p>
-          <p data-testid="prompt-library-meta-honesty">
-            tip /meta: {metaQuery.data.honesty}
-          </p>
+          <p data-testid="prompt-library-meta-honesty">tip /meta: {metaQuery.data.honesty}</p>
         </div>
       ) : null}
 
@@ -175,7 +168,7 @@ export function PromptLibraryStudio() {
                       variant: "error",
                     });
                   },
-                },
+                }
               );
             }}
           >
@@ -206,14 +199,9 @@ export function PromptLibraryStudio() {
         {listQuery.isLoading ? (
           <Spinner />
         ) : listQuery.isError ? (
-          <p className="text-sm text-[var(--text-danger)]">
-            {getApiError(listQuery.error)}
-          </p>
+          <p className="text-sm text-[var(--text-danger)]">{getApiError(listQuery.error)}</p>
         ) : listQuery.data?.length === 0 ? (
-          <p
-            className="text-sm text-[var(--text-muted)]"
-            data-testid="prompt-library-empty"
-          >
+          <p className="text-sm text-[var(--text-muted)]" data-testid="prompt-library-empty">
             No prompts in memory library yet.
           </p>
         ) : (
@@ -242,9 +230,7 @@ export function PromptLibraryStudio() {
                         setSelectedId(row.id);
                         setRollbackVersion(row.active_version);
                         setNewTemplate(
-                          row.versions.find(
-                            (v) => v.version === row.active_version,
-                          )?.template ?? "",
+                          row.versions.find((v) => v.version === row.active_version)?.template ?? ""
                         );
                       }}
                     >
@@ -288,9 +274,7 @@ export function PromptLibraryStudio() {
           data-testid="prompt-library-detail"
         >
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold">
-              Detail / version / rollback
-            </h2>
+            <h2 className="text-sm font-semibold">Detail / version / rollback</h2>
             <Button
               type="button"
               size="sm"
@@ -304,9 +288,7 @@ export function PromptLibraryStudio() {
           {detailQuery.isLoading ? (
             <Spinner />
           ) : detailQuery.isError ? (
-            <p className="text-sm text-[var(--text-danger)]">
-              {getApiError(detailQuery.error)}
-            </p>
+            <p className="text-sm text-[var(--text-danger)]">{getApiError(detailQuery.error)}</p>
           ) : active ? (
             <>
               <p className="font-mono text-xs text-[var(--text-muted)]">
@@ -365,7 +347,7 @@ export function PromptLibraryStudio() {
                             variant: "error",
                           });
                         },
-                      },
+                      }
                     );
                   }}
                 >
@@ -406,7 +388,7 @@ export function PromptLibraryStudio() {
                             variant: "error",
                           });
                         },
-                      },
+                      }
                     );
                   }}
                 >

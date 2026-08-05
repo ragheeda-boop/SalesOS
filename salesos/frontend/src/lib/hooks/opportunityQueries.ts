@@ -44,13 +44,7 @@ export function useCreateOpportunity() {
 export function useAdvanceOpportunity() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      opportunityId,
-      toStage,
-    }: {
-      opportunityId: string;
-      toStage: string;
-    }) => {
+    mutationFn: async ({ opportunityId, toStage }: { opportunityId: string; toStage: string }) => {
       return advanceOpportunity(opportunityId, toStage);
     },
     onSuccess: () => {
@@ -62,13 +56,7 @@ export function useAdvanceOpportunity() {
 export function useCloseWon() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      opportunityId,
-      amount,
-    }: {
-      opportunityId: string;
-      amount?: number;
-    }) => {
+    mutationFn: async ({ opportunityId, amount }: { opportunityId: string; amount?: number }) => {
       return closeWon(opportunityId, amount);
     },
     onSuccess: () => {
@@ -80,13 +68,7 @@ export function useCloseWon() {
 export function useCloseLost() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      opportunityId,
-      reason,
-    }: {
-      opportunityId: string;
-      reason?: string;
-    }) => {
+    mutationFn: async ({ opportunityId, reason }: { opportunityId: string; reason?: string }) => {
       return closeLost(opportunityId, reason);
     },
     onSuccess: () => {

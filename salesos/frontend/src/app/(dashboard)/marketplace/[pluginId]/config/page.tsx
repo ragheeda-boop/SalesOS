@@ -59,7 +59,7 @@ function renderFormField(
   prop: SchemaProperty,
   value: unknown,
   onChange: (key: string, value: unknown) => void,
-  _required: boolean,
+  _required: boolean
 ) {
   const label = prop.title || key;
   const isPassword = prop.format === "password";
@@ -123,9 +123,7 @@ export default function PluginConfigPage() {
   const queryClient = useQueryClient();
 
   const [configValues, setConfigValues] = useState<Record<string, unknown>>({});
-  const [testStatus, setTestStatus] = useState<
-    "idle" | "testing" | "success" | "error"
-  >("idle");
+  const [testStatus, setTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
   const [testMessage, setTestMessage] = useState("");
 
   const { data: plugin, isLoading } = useQuery({
@@ -164,7 +162,7 @@ export default function PluginConfigPage() {
       await api.put(
         `/api/v1/plugins/${pluginId}/config`,
         { config },
-        { headers: { "X-Tenant-Id": tenantId } },
+        { headers: { "X-Tenant-Id": tenantId } }
       );
     },
     onSuccess: () => {
@@ -196,16 +194,14 @@ export default function PluginConfigPage() {
       const res = await api.post(
         `/api/v1/plugins/${pluginId}/test`,
         { config: configValues },
-        { headers: { "X-Tenant-Id": tenantId } },
+        { headers: { "X-Tenant-Id": tenantId } }
       );
       setTestStatus("success");
       setTestMessage(res.data?.message || "Connection successful");
     } catch (err: unknown) {
       setTestStatus("error");
       const axiosErr = err as { response?: { data?: { detail?: string } } };
-      setTestMessage(
-        axiosErr.response?.data?.detail || "Connection test failed",
-      );
+      setTestMessage(axiosErr.response?.data?.detail || "Connection test failed");
     }
   }, [pluginId, configValues, tenantId]);
 
@@ -249,12 +245,11 @@ export default function PluginConfigPage() {
   }
 
   const schema = plugin.config_schema as
-    | { properties?: Record<string, SchemaProperty>; required?: string[] }
-    | undefined;
+    { properties?: Record<string, SchemaProperty>; required?: string[] } | undefined;
   const properties = schema?.properties || {};
   const requiredFields = new Set(schema?.required || []);
   const isIntegration = plugin.hooks.some(
-    (h) => h.includes("sync") || h.includes("connect") || h.includes("send"),
+    (h) => h.includes("sync") || h.includes("connect") || h.includes("send")
   );
   const hasConfigSchema = Object.keys(properties).length > 0;
 
@@ -278,15 +273,11 @@ export default function PluginConfigPage() {
                 <Settings className="h-6 w-6 text-[var(--muhide-orange)]" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[var(--text-primary)]">
-                  {plugin.name}
-                </h1>
+                <h1 className="text-xl font-bold text-[var(--text-primary)]">{plugin.name}</h1>
                 <p className="mt-0.5 text-sm text-[var(--text-secondary)]">
                   v{plugin.version} by {plugin.author}
                 </p>
-                <p className="mt-1 text-sm text-[var(--text-muted)]">
-                  {plugin.description}
-                </p>
+                <p className="mt-1 text-sm text-[var(--text-muted)]">{plugin.description}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -326,8 +317,7 @@ export default function PluginConfigPage() {
               ))}
             </div>
             <p className="mt-2 text-xs text-[var(--text-muted)]">
-              These permissions are required for the plugin to function
-              correctly.
+              These permissions are required for the plugin to function correctly.
             </p>
           </CardContent>
         </Card>
@@ -339,9 +329,7 @@ export default function PluginConfigPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Settings className="h-4 w-4 text-[var(--muhide-orange)]" />
-              <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-                Configuration
-              </h2>
+              <h2 className="text-sm font-semibold text-[var(--text-primary)]">Configuration</h2>
             </div>
           </CardHeader>
           <CardContent>
@@ -353,12 +341,10 @@ export default function PluginConfigPage() {
                     prop,
                     configValues[key],
                     handleConfigChange,
-                    requiredFields.has(key),
+                    requiredFields.has(key)
                   )}
                   {prop.description && (
-                    <p className="mt-1 text-[10px] text-[var(--text-muted)]">
-                      {prop.description}
-                    </p>
+                    <p className="mt-1 text-[10px] text-[var(--text-muted)]">{prop.description}</p>
                   )}
                 </div>
               ))}
@@ -430,9 +416,7 @@ export default function PluginConfigPage() {
       {plugin.hooks.length > 0 && (
         <Card>
           <CardHeader>
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-              Hook Points
-            </h2>
+            <h2 className="text-sm font-semibold text-[var(--text-primary)]">Hook Points</h2>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -441,9 +425,7 @@ export default function PluginConfigPage() {
                   key={hook}
                   className="flex items-center justify-between rounded-lg border border-[var(--border-default)] px-3 py-2"
                 >
-                  <span className="text-sm text-[var(--text-primary)]">
-                    {hook}
-                  </span>
+                  <span className="text-sm text-[var(--text-primary)]">{hook}</span>
                   <Badge variant="success">Active</Badge>
                 </div>
               ))}

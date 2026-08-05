@@ -41,18 +41,12 @@ describe("icpProfiles API — FE-S11-01", () => {
       },
     });
     const meta = await getIcpMeta("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/icp-profiles/meta",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/icp-profiles/meta", expect.any(Object));
     expect(meta.object).toBe("ICPProfile");
 
     mocked.get.mockResolvedValueOnce({ data: [] });
     await listIcpProfiles("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/icp-profiles",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/icp-profiles", expect.any(Object));
   });
 
   it("POSTs create and PUTs update + score", async () => {
@@ -88,7 +82,7 @@ describe("icpProfiles API — FE-S11-01", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/gtm/icp-profiles",
       expect.objectContaining({ name: "Pilot" }),
-      expect.any(Object),
+      expect.any(Object)
     );
 
     mocked.put.mockResolvedValueOnce({
@@ -122,7 +116,7 @@ describe("icpProfiles API — FE-S11-01", () => {
     expect(mocked.put).toHaveBeenCalledWith(
       "/api/v1/gtm/icp-profiles/icp1",
       expect.objectContaining({ name: "Pilot v2" }),
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(updated.schema_version).toBe(2);
 
@@ -143,7 +137,7 @@ describe("icpProfiles API — FE-S11-01", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/gtm/icp-profiles/icp1/score",
       expect.objectContaining({ industry: "technology" }),
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(scored.fit_ratio).toBeCloseTo(0.66);
   });

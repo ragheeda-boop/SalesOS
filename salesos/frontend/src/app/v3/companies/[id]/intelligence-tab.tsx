@@ -13,13 +13,7 @@ import { DocumentIntelligenceView } from "@/features/company-intelligence/widget
 import { BuyingJourneyView } from "@/features/company-intelligence/widgets/buying-journey/BuyingJourneyView";
 import { GoldenRecordView } from "@/features/company-intelligence/widgets/golden-record/GoldenRecordView";
 
-function WidgetCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function WidgetCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)] p-3">
       <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">
@@ -31,8 +25,7 @@ function WidgetCard({
 }
 
 export function IntelligenceTab({ companyId }: { companyId: string }) {
-  const { data, isLoading, isError, error, refetch } =
-    useCompanyIntelligence(companyId);
+  const { data, isLoading, isError, error, refetch } = useCompanyIntelligence(companyId);
 
   if (isLoading) return <LoadingState label="Loading intelligence…" />;
   if (isError)

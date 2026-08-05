@@ -48,18 +48,14 @@ export interface MarketSizingMeta {
   honesty: string;
 }
 
-export async function getMarketSizingMeta(
-  tenantId: string,
-): Promise<MarketSizingMeta> {
+export async function getMarketSizingMeta(tenantId: string): Promise<MarketSizingMeta> {
   const resp = await api.get<MarketSizingMeta>(`${BASE}/meta`, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function listMarketSizing(
-  tenantId: string,
-): Promise<MarketSizingSnapshot[]> {
+export async function listMarketSizing(tenantId: string): Promise<MarketSizingSnapshot[]> {
   const resp = await api.get<MarketSizingSnapshot[]>(BASE, {
     headers: tenantHeaders(tenantId),
   });
@@ -68,7 +64,7 @@ export async function listMarketSizing(
 
 export async function getMarketSizing(
   tenantId: string,
-  snapshotId: string,
+  snapshotId: string
 ): Promise<MarketSizingSnapshot> {
   const resp = await api.get<MarketSizingSnapshot>(`${BASE}/${snapshotId}`, {
     headers: tenantHeaders(tenantId),
@@ -78,7 +74,7 @@ export async function getMarketSizing(
 
 export async function computeMarketSizing(
   tenantId: string,
-  body: MarketSizingComputeBody,
+  body: MarketSizingComputeBody
 ): Promise<MarketSizingSnapshot> {
   const resp = await api.post<MarketSizingSnapshot>(BASE, body, {
     headers: tenantHeaders(tenantId),

@@ -1,40 +1,37 @@
-import { createDashboardWidget, setDashboardDependencies } from './create-dashboard-widget'
+import { createDashboardWidget, setDashboardDependencies } from "./create-dashboard-widget";
 import type {
   WidgetMetadata,
   WidgetLifecycle,
   DecisionContextData,
   DecisionWidgetRenderContext,
   NBAFeedItem,
-} from './types'
-import type { DashboardContextValue } from './create-dashboard-widget'
+} from "./types";
+import type { DashboardContextValue } from "./create-dashboard-widget";
 
-type DashboardWidgetMeta = Omit<Partial<WidgetMetadata>, 'id'>
+type DashboardWidgetMeta = Omit<Partial<WidgetMetadata>, "id">;
 
 interface DecisionWidgetOverrides<T> {
-  metadata?: DashboardWidgetMeta
-  lifecycle?: WidgetLifecycle
-  fallback?: React.ReactNode
-  useDecision: (tenantId: string, context?: Record<string, string>) => DecisionContextData | null
-  useNBA?: () => NBAFeedItem[]
-  render: (ctx: DecisionWidgetRenderContext<T>) => React.ReactNode
+  metadata?: DashboardWidgetMeta;
+  lifecycle?: WidgetLifecycle;
+  fallback?: React.ReactNode;
+  useDecision: (tenantId: string, context?: Record<string, string>) => DecisionContextData | null;
+  useNBA?: () => NBAFeedItem[];
+  render: (ctx: DecisionWidgetRenderContext<T>) => React.ReactNode;
 }
 
-export function createDecisionEnabledWidget<T>(
-  id: string,
-  overrides: DecisionWidgetOverrides<T>,
-) {
+export function createDecisionEnabledWidget<T>(id: string, overrides: DecisionWidgetOverrides<T>) {
   return createDashboardWidget<T>(id, {
     metadata: {
-      title: overrides.metadata?.title ?? '',
+      title: overrides.metadata?.title ?? "",
       ...overrides.metadata,
     } as WidgetMetadata,
     lifecycle: overrides.lifecycle,
     fallback: overrides.fallback,
     render: (ctx) => {
-      const tenantId = (ctx.data as unknown as Record<string, string>)?.tenant_id ?? ''
-      const companyId = (ctx.data as unknown as Record<string, string>)?.company_id ?? ''
-      const decision = overrides.useDecision(tenantId, { company_id: companyId })
-      const nbaItems = overrides.useNBA?.() ?? []
+      const tenantId = (ctx.data as unknown as Record<string, string>)?.tenant_id ?? "";
+      const companyId = (ctx.data as unknown as Record<string, string>)?.company_id ?? "";
+      const decision = overrides.useDecision(tenantId, { company_id: companyId });
+      const nbaItems = overrides.useNBA?.() ?? [];
 
       const decisionCtx: DecisionWidgetRenderContext<T> = {
         data: ctx.data,
@@ -45,12 +42,12 @@ export function createDecisionEnabledWidget<T>(
         decision,
         nbaItems,
         isDecisionLoading: false,
-      }
+      };
 
-      return overrides.render(decisionCtx)
+      return overrides.render(decisionCtx);
     },
-  })
+  });
 }
 
-export { setDashboardDependencies }
-export type { DashboardContextValue } from './create-dashboard-widget'
+export { setDashboardDependencies };
+export type { DashboardContextValue } from "./create-dashboard-widget";

@@ -38,13 +38,7 @@ function GroupSection({
     return (
       <div className="space-y-0.5">
         {group.items.map((item) => (
-          <SidebarLink
-            key={item.href}
-            item={item}
-            collapsed
-            pathname={pathname}
-            t={t}
-          />
+          <SidebarLink key={item.href} item={item} collapsed pathname={pathname} t={t} />
         ))}
       </div>
     );
@@ -57,23 +51,14 @@ function GroupSection({
         className="flex w-full items-center gap-1 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition"
       >
         <ChevronRight
-          className={cn(
-            "h-3 w-3 shrink-0 transition-transform",
-            open && "rotate-90",
-          )}
+          className={cn("h-3 w-3 shrink-0 transition-transform", open && "rotate-90")}
         />
         <span className="truncate">{t(group.key)}</span>
       </button>
       {open && (
         <div className="space-y-0.5">
           {group.items.map((item) => (
-            <SidebarLink
-              key={item.href}
-              item={item}
-              collapsed={false}
-              pathname={pathname}
-              t={t}
-            />
+            <SidebarLink key={item.href} item={item} collapsed={false} pathname={pathname} t={t} />
           ))}
         </div>
       )}
@@ -104,7 +89,7 @@ function SidebarLink({
         active
           ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)] dark:bg-[var(--muhide-orange)]/20 dark:text-orange-300"
           : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] dark:hover:bg-[var(--bg-secondary)]",
-        collapsed && "justify-center px-2",
+        collapsed && "justify-center px-2"
       )}
       title={collapsed ? label : undefined}
       {...(active ? { "aria-current": "page" as const } : {})}
@@ -122,10 +107,7 @@ export function GroupedSidebar({ workspace, collapsed = false }: GroupedSidebarP
   return (
     <nav
       aria-label={t(workspace.key)}
-      className={cn(
-        "flex-1 space-y-2",
-        collapsed ? "p-2" : "p-2 overflow-y-auto",
-      )}
+      className={cn("flex-1 space-y-2", collapsed ? "p-2" : "p-2 overflow-y-auto")}
     >
       {workspace.groups.map((group) => (
         <GroupSection

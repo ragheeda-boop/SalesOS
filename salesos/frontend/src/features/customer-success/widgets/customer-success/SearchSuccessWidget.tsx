@@ -19,9 +19,7 @@ export function SearchSuccessWidget({
     <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
       <div className="flex items-center gap-2 mb-3">
         <Search className="h-4 w-4 text-[var(--text-muted)]" />
-        <p className="text-xs text-[var(--text-muted)]">
-          {t("cs.search_success")}
-        </p>
+        <p className="text-xs text-[var(--text-muted)]">{t("cs.search_success")}</p>
       </div>
       <p className="text-lg font-bold">{total_searches}</p>
       <div className="flex items-center gap-1 mt-1">

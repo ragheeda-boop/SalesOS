@@ -9,10 +9,7 @@ export function formatCurrencySAR(value: number | null | undefined): string {
   }).format(value);
 }
 
-export function formatPercent(
-  value: number | null | undefined,
-  { ratio = false } = {},
-): string {
+export function formatPercent(value: number | null | undefined, { ratio = false } = {}): string {
   if (value == null || Number.isNaN(value)) return "—";
   const pct = ratio ? value * 100 : value;
   return `${Math.round(pct)}%`;

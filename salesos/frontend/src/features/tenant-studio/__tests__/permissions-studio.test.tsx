@@ -90,18 +90,10 @@ jest.mock("@salesos/ui", () => ({
 describe("PermissionsStudio — FE-S10-06", () => {
   it("lists catalog/roles and shows ceiling honesty", () => {
     render(<PermissionsStudio />);
-    expect(screen.getByTestId("permissions-studio-honesty")).toHaveTextContent(
-      /ceiling/i,
-    );
-    expect(screen.getByTestId("permissions-studio-honesty")).toHaveTextContent(
-      /in-memory/i,
-    );
-    expect(screen.getByTestId("permissions-ceiling-meta")).toHaveTextContent(
-      /grantable\s*1/,
-    );
-    expect(screen.getByTestId("permissions-role-row")).toHaveTextContent(
-      "Seller",
-    );
+    expect(screen.getByTestId("permissions-studio-honesty")).toHaveTextContent(/ceiling/i);
+    expect(screen.getByTestId("permissions-studio-honesty")).toHaveTextContent(/in-memory/i);
+    expect(screen.getByTestId("permissions-ceiling-meta")).toHaveTextContent(/grantable\s*1/);
+    expect(screen.getByTestId("permissions-role-row")).toHaveTextContent("Seller");
     expect(screen.getByTestId("permissions-select-ai.rag.use")).toBeDisabled();
   });
 
@@ -111,16 +103,14 @@ describe("PermissionsStudio — FE-S10-06", () => {
     await waitFor(() => {
       expect(setCeilingMutate).toHaveBeenCalledWith(
         expect.objectContaining({ plan_tier: "starter" }),
-        expect.any(Object),
+        expect.any(Object)
       );
     });
   });
 
   it("submits tip POST custom role upsert", async () => {
     render(<PermissionsStudio />);
-    fireEvent.click(
-      screen.getByTestId("permissions-select-crm.companies.read"),
-    );
+    fireEvent.click(screen.getByTestId("permissions-select-crm.companies.read"));
     fireEvent.change(screen.getByTestId("permissions-role-name"), {
       target: { value: "Closer" },
     });
@@ -132,7 +122,7 @@ describe("PermissionsStudio — FE-S10-06", () => {
           permissions: ["crm.companies.read"],
           plan_tier: "starter",
         }),
-        expect.any(Object),
+        expect.any(Object)
       );
     });
   });

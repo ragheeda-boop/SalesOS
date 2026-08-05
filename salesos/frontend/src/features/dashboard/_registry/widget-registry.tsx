@@ -9,7 +9,7 @@ export interface RegistryEntry {
 }
 
 export function createRegistry(
-  entries: { id: WidgetId; Container: ComponentType }[],
+  entries: { id: WidgetId; Container: ComponentType }[]
 ): RegistryEntry[] {
   return entries.map((entry) => ({
     ...entry,

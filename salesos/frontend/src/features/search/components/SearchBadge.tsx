@@ -16,17 +16,13 @@ const VARIANT_STYLE: Record<string, string> = {
   neutral: "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]",
 };
 
-export function SearchBadge({
-  label,
-  variant = "neutral",
-  className,
-}: SearchBadgeProps) {
+export function SearchBadge({ label, variant = "neutral", className }: SearchBadgeProps) {
   return (
     <span
       className={cn(
         "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium",
         VARIANT_STYLE[variant],
-        className,
+        className
       )}
     >
       {label}

@@ -15,8 +15,8 @@ export default function BrandingStudioPage() {
           Branding & Languages Studio
         </h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Tenant display name, logo URL, colors, and ar/en locales via tip
-          GET/PUT /api/v1/studio/branding.
+          Tenant display name, logo URL, colors, and ar/en locales via tip GET/PUT
+          /api/v1/studio/branding.
         </p>
       </div>
       <BrandingStudio />

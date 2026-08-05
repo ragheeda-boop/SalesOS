@@ -1,11 +1,9 @@
 import { render, screen } from "@testing-library/react";
 
 jest.mock("../company-intelligence-provider", () => ({
-  CompanyIntelligenceProvider: ({
-    children,
-  }: {
-    children: React.ReactNode;
-  }) => <div data-testid="ci-provider">{children}</div>,
+  CompanyIntelligenceProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="ci-provider">{children}</div>
+  ),
   useCompanyIntelligenceContext: () => ({
     widgets: {},
     companyId: "c-1",
@@ -23,7 +21,7 @@ describe("CompanyIntelligenceProvider", () => {
     render(
       <CompanyIntelligenceProvider companyId="c-1">
         <div data-testid="child">Content</div>
-      </CompanyIntelligenceProvider>,
+      </CompanyIntelligenceProvider>
     );
     expect(screen.getByTestId("child")).toBeInTheDocument();
   });

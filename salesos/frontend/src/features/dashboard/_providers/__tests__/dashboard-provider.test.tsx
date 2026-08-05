@@ -18,7 +18,7 @@ describe("DashboardProvider", () => {
     render(
       <DashboardProvider>
         <div data-testid="child">Content</div>
-      </DashboardProvider>,
+      </DashboardProvider>
     );
     expect(screen.getByTestId("child")).toBeInTheDocument();
   });

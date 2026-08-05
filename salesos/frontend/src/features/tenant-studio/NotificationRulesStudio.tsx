@@ -9,18 +9,14 @@ import {
   useRouteNotificationEvent,
   useUpsertNotificationRule,
 } from "@/lib/hooks/notificationRulesQueries";
-import {
-  NOTIFICATION_CHANNELS,
-  NOTIFICATION_EVENT_TYPES,
-} from "@/lib/api/types/tenantStudio";
+import { NOTIFICATION_CHANNELS, NOTIFICATION_EVENT_TYPES } from "@/lib/api/types/tenantStudio";
 import {
   NOTIFICATION_RULES_HONESTY,
   NOTIFICATION_RULES_NON_GOALS,
 } from "@/features/tenant-studio/notificationRulesHonesty";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -39,17 +35,11 @@ export function NotificationRulesStudio() {
   const compileMutation = useCompileNotificationRule();
 
   const [name, setName] = useState("Stage alert");
-  const [eventType, setEventType] = useState<string>(
-    NOTIFICATION_EVENT_TYPES[0],
-  );
+  const [eventType, setEventType] = useState<string>(NOTIFICATION_EVENT_TYPES[0]);
   const [channel, setChannel] = useState<string>(NOTIFICATION_CHANNELS[0]);
-  const [recipientKind, setRecipientKind] = useState<"role" | "user" | "owner">(
-    "role",
-  );
+  const [recipientKind, setRecipientKind] = useState<"role" | "user" | "owner">("role");
   const [recipientValue, setRecipientValue] = useState("sales");
-  const [messageTemplate, setMessageTemplate] = useState(
-    "Opportunity stage changed",
-  );
+  const [messageTemplate, setMessageTemplate] = useState("Opportunity stage changed");
   const [routePayload, setRoutePayload] = useState('{\n  "stage": "won"\n}');
 
   const eventTypes = eventsQuery.data?.event_types?.length
@@ -65,8 +55,8 @@ export function NotificationRulesStudio() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="notification-rules-honesty"
       >
-        {NOTIFICATION_RULES_HONESTY} Non-goals:{" "}
-        {NOTIFICATION_RULES_NON_GOALS.join("; ")}. Not Production GO / RAG GO.
+        {NOTIFICATION_RULES_HONESTY} Non-goals: {NOTIFICATION_RULES_NON_GOALS.join("; ")}. Not
+        Production GO / RAG GO.
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -80,16 +70,11 @@ export function NotificationRulesStudio() {
         >
           Refresh
         </Button>
-        <span
-          className="text-sm text-[var(--text-muted)]"
-          data-testid="notification-rules-count"
-        >
+        <span className="text-sm text-[var(--text-muted)]" data-testid="notification-rules-count">
           {listQuery.isLoading ? (
             <Spinner className="h-5 w-5" />
           ) : listQuery.isError ? (
-            <span className="text-[var(--text-danger)]">
-              {getApiError(listQuery.error)}
-            </span>
+            <span className="text-[var(--text-danger)]">{getApiError(listQuery.error)}</span>
           ) : (
             <>{listQuery.data?.length ?? 0} rule(s)</>
           )}
@@ -112,8 +97,8 @@ export function NotificationRulesStudio() {
               data-testid="notification-rules-row"
             >
               <span>
-                <span className="font-medium">{rule.name}</span> ·{" "}
-                {rule.event_type} · {rule.channels.join(",")}
+                <span className="font-medium">{rule.name}</span> · {rule.event_type} ·{" "}
+                {rule.channels.join(",")}
                 <span className="mt-0.5 block font-mono text-xs text-[var(--text-muted)]">
                   {rule.id}
                 </span>
@@ -157,9 +142,7 @@ export function NotificationRulesStudio() {
               name: name.trim(),
               event_type: eventType,
               channels: [channel],
-              recipients: [
-                { kind: recipientKind, value: recipientValue.trim() },
-              ],
+              recipients: [{ kind: recipientKind, value: recipientValue.trim() }],
               message_template: messageTemplate,
               active: true,
             },
@@ -178,13 +161,11 @@ export function NotificationRulesStudio() {
                   description: getApiError(err),
                 });
               },
-            },
+            }
           );
         }}
       >
-        <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-          Upsert rule (tip POST)
-        </h2>
+        <h2 className="text-sm font-semibold text-[var(--text-primary)]">Upsert rule (tip POST)</h2>
         <Input
           label="name"
           data-testid="notification-rules-name"
@@ -192,9 +173,7 @@ export function NotificationRulesStudio() {
           onChange={(e) => setName(e.target.value)}
         />
         <div>
-          <label className="block text-xs text-[var(--text-muted)]">
-            event_type
-          </label>
+          <label className="block text-xs text-[var(--text-muted)]">event_type</label>
           <select
             data-testid="notification-rules-event-type"
             className="w-full max-w-md rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
@@ -209,9 +188,7 @@ export function NotificationRulesStudio() {
           </select>
         </div>
         <div>
-          <label className="block text-xs text-[var(--text-muted)]">
-            channel
-          </label>
+          <label className="block text-xs text-[var(--text-muted)]">channel</label>
           <select
             data-testid="notification-rules-channel"
             className="w-full max-w-xs rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
@@ -227,16 +204,12 @@ export function NotificationRulesStudio() {
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
           <div>
-            <label className="block text-xs text-[var(--text-muted)]">
-              recipient.kind
-            </label>
+            <label className="block text-xs text-[var(--text-muted)]">recipient.kind</label>
             <select
               data-testid="notification-rules-recipient-kind"
               className="w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
               value={recipientKind}
-              onChange={(e) =>
-                setRecipientKind(e.target.value as "role" | "user" | "owner")
-              }
+              onChange={(e) => setRecipientKind(e.target.value as "role" | "user" | "owner")}
             >
               <option value="role">role</option>
               <option value="user">user</option>
@@ -290,7 +263,7 @@ export function NotificationRulesStudio() {
                   description: getApiError(err),
                 });
               },
-            },
+            }
           );
         }}
       >
@@ -315,11 +288,7 @@ export function NotificationRulesStudio() {
             className="overflow-auto rounded border border-[var(--border-default)] bg-[var(--bg-primary)] p-2 font-mono text-[10px] text-[var(--text-muted)]"
             data-testid="notification-rules-result"
           >
-            {JSON.stringify(
-              routeMutation.data || compileMutation.data,
-              null,
-              2,
-            )}
+            {JSON.stringify(routeMutation.data || compileMutation.data, null, 2)}
           </pre>
         ) : null}
       </form>

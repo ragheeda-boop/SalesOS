@@ -43,37 +43,22 @@ function KPICard({
       <CardContent className="p-5">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-medium text-[var(--text-muted)]">
-              {title}
-            </p>
-            <p className="text-2xl font-bold text-[var(--text-primary)]">
-              {value}
-            </p>
-            {subtitle && (
-              <p className="text-xs text-[var(--text-muted)]">{subtitle}</p>
-            )}
+            <p className="text-xs font-medium text-[var(--text-muted)]">{title}</p>
+            <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
+            {subtitle && <p className="text-xs text-[var(--text-muted)]">{subtitle}</p>}
             {trend !== undefined && (
               <span
                 className={cn(
                   "inline-flex items-center gap-0.5 text-xs",
-                  trendUp ? "text-success-600" : "text-danger-600",
+                  trendUp ? "text-success-600" : "text-danger-600"
                 )}
               >
-                {trendUp ? (
-                  <ArrowUp className="h-3 w-3" />
-                ) : (
-                  <ArrowDown className="h-3 w-3" />
-                )}
+                {trendUp ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
                 {trend}%
               </span>
             )}
           </div>
-          <div
-            className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-xl",
-              color,
-            )}
-          >
+          <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl", color)}>
             <Icon className="h-5 w-5 text-white" />
           </div>
         </div>
@@ -98,9 +83,7 @@ function ProgressBar({
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
         <span className="text-[var(--text-secondary)]">{label}</span>
-        <span className="font-medium text-[var(--text-primary)]">
-          {formatNumber(value)}
-        </span>
+        <span className="font-medium text-[var(--text-primary)]">{formatNumber(value)}</span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
         <div
@@ -153,17 +136,13 @@ export function ExecutiveDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            {t("executive.title")}
-          </h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            {t("executive.subtitle")}
-          </p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t("executive.title")}</h1>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">{t("executive.subtitle")}</p>
         </div>
         <div
           className={cn(
             "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium",
-            healthColor,
+            healthColor
           )}
         >
           <Shield className="h-3 w-3" />
@@ -274,12 +253,9 @@ export function ExecutiveDashboard() {
 
             <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[var(--text-secondary)]">
-                  {t("executive.avg_deal_size")}
-                </span>
+                <span className="text-[var(--text-secondary)]">{t("executive.avg_deal_size")}</span>
                 <span className="font-bold text-[var(--text-primary)]">
-                  {formatNumber(d.pipeline.avg_deal_size)}{" "}
-                  {t("common.currency")}
+                  {formatNumber(d.pipeline.avg_deal_size)} {t("common.currency")}
                 </span>
               </div>
             </div>
@@ -396,17 +372,9 @@ export function ExecutiveDashboard() {
           <div className="flex flex-wrap items-center justify-between gap-4 text-sm">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-[var(--text-muted)]" />
-              <span className="text-[var(--text-secondary)]">
-                {t("executive.sync_status")}
-              </span>
-              <Badge
-                variant={
-                  d.health.sync_status === "synced" ? "success" : "warning"
-                }
-              >
-                {d.health.sync_status === "synced"
-                  ? t("status.synced")
-                  : t("status.unsynced")}
+              <span className="text-[var(--text-secondary)]">{t("executive.sync_status")}</span>
+              <Badge variant={d.health.sync_status === "synced" ? "success" : "warning"}>
+                {d.health.sync_status === "synced" ? t("status.synced") : t("status.unsynced")}
               </Badge>
             </div>
             <div className="flex items-center gap-2">

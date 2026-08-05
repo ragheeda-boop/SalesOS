@@ -2,15 +2,7 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useEmployeeTimeline } from "@/lib/hooks/employeeQueries";
-import {
-  Card,
-  CardContent,
-  Skeleton,
-  EmptyState,
-  Badge,
-  Button,
-  cn,
-} from "@salesos/ui";
+import { Card, CardContent, Skeleton, EmptyState, Badge, Button, cn } from "@salesos/ui";
 import { Clock, Filter, X, ChevronDown } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { ErrorFallback } from "@/components/foundation/error-boundary";
@@ -53,13 +45,10 @@ export function EmployeeTimeline({ employeeId }: { employeeId: string }) {
       from: dateFrom || undefined,
       to: dateTo || undefined,
     }),
-    [filters, selectedSources, selectedTypes, dateFrom, dateTo],
+    [filters, selectedSources, selectedTypes, dateFrom, dateTo]
   );
 
-  const { data, isLoading, isError, error, refetch } = useEmployeeTimeline(
-    employeeId,
-    queryParams,
-  );
+  const { data, isLoading, isError, error, refetch } = useEmployeeTimeline(employeeId, queryParams);
 
   useEffect(() => {
     if (data?.events) {
@@ -93,23 +82,18 @@ export function EmployeeTimeline({ employeeId }: { employeeId: string }) {
 
   const handleToggleSource = useCallback((source: string) => {
     setSelectedSources((prev) =>
-      prev.includes(source)
-        ? prev.filter((s) => s !== source)
-        : [...prev, source],
+      prev.includes(source) ? prev.filter((s) => s !== source) : [...prev, source]
     );
   }, []);
 
   const handleToggleType = useCallback((type: string) => {
     setSelectedTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     );
   }, []);
 
   const hasActiveFilters =
-    selectedSources.length > 0 ||
-    selectedTypes.length > 0 ||
-    dateFrom ||
-    dateTo;
+    selectedSources.length > 0 || selectedTypes.length > 0 || dateFrom || dateTo;
 
   if (isLoading && allEvents.length === 0) {
     return (
@@ -193,7 +177,7 @@ export function EmployeeTimeline({ employeeId }: { employeeId: string }) {
                         "inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
                         selectedSources.includes(source)
                           ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)] border border-[var(--muhide-orange)]/30"
-                          : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] dark:hover:bg-neutral-700 border border-transparent",
+                          : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] dark:hover:bg-neutral-700 border border-transparent"
                       )}
                     >
                       {source}
@@ -214,7 +198,7 @@ export function EmployeeTimeline({ employeeId }: { employeeId: string }) {
                         "inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium transition-colors",
                         selectedTypes.includes(type)
                           ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)] border border-[var(--muhide-orange)]/30"
-                          : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] dark:hover:bg-neutral-700 border border-transparent",
+                          : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] dark:hover:bg-neutral-700 border border-transparent"
                       )}
                     >
                       {type.replace(/_/g, " ")}
@@ -260,9 +244,7 @@ export function EmployeeTimeline({ employeeId }: { employeeId: string }) {
             icon={<Clock className="h-10 w-10" />}
             title={t("emp360.no_timeline_events")}
             description={
-              hasActiveFilters
-                ? t("emp360.try_different_filters")
-                : t("emp360.no_activity")
+              hasActiveFilters ? t("emp360.try_different_filters") : t("emp360.no_activity")
             }
           />
         </div>
@@ -272,32 +254,25 @@ export function EmployeeTimeline({ employeeId }: { employeeId: string }) {
             const config = getActionConfig(event.action);
             const Icon = config.icon;
             return (
-              <div
-                key={event.id}
-                className="relative flex gap-3 pb-4 last:pb-0"
-              >
+              <div key={event.id} className="relative flex gap-3 pb-4 last:pb-0">
                 {idx < allEvents.length - 1 && (
                   <div className="absolute right-[15px] top-10 bottom-0 w-px bg-[var(--bg-tertiary)]" />
                 )}
                 <div
                   className={cn(
                     "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                    config.color,
+                    config.color
                   )}
                 >
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-[var(--text-primary)]">
-                    {event.title}
-                  </p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{event.title}</p>
                   <p className="mt-0.5 text-xs text-[var(--text-muted)]">
                     <Badge variant="default" className="mr-1 text-[10px]">
                       {event.source_label}
                     </Badge>
-                    {event.actor && (
-                      <span className="mr-1">· {event.actor}</span>
-                    )}
+                    {event.actor && <span className="mr-1">· {event.actor}</span>}
                     <span>· {formatRelativeTime(event.timestamp)}</span>
                   </p>
                 </div>

@@ -11,12 +11,10 @@ export default function AiPoliciesPage() {
   return (
     <div className="space-y-6 p-6" data-testid="ai-policies-page">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          AI Policies
-        </h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">AI Policies</h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Tip CRUD + evaluate against /api/v1/studio/ai-policies. In-memory
-          CAP-091 reusing AI-GR-*. Live LLM not claimed.
+          Tip CRUD + evaluate against /api/v1/studio/ai-policies. In-memory CAP-091 reusing AI-GR-*.
+          Live LLM not claimed.
         </p>
       </div>
       <AiPoliciesStudio />

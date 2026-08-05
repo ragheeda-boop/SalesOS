@@ -11,9 +11,7 @@ const TYPE_L = {
   legal: "قانوني",
 };
 
-export function DocumentIntelligenceView({
-  documents,
-}: DocumentIntelligenceViewProps) {
+export function DocumentIntelligenceView({ documents }: DocumentIntelligenceViewProps) {
   if (documents.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -24,16 +22,9 @@ export function DocumentIntelligenceView({
   }
 
   return (
-    <div
-      role="region"
-      aria-label="المستندات"
-      className="space-y-1/20 dark:rounded-lg dark:p-1"
-    >
+    <div role="region" aria-label="المستندات" className="space-y-1/20 dark:rounded-lg dark:p-1">
       {documents.map((doc) => (
-        <div
-          key={doc.id}
-          className="rounded-lg px-3 py-2 transition hover:bg-[var(--bg-tertiary)]"
-        >
+        <div key={doc.id} className="rounded-lg px-3 py-2 transition hover:bg-[var(--bg-tertiary)]">
           <div className="flex items-start gap-2.5">
             <FileText className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-muted)]" />
             <div className="flex-1 min-w-0">

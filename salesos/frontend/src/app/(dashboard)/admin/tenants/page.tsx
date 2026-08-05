@@ -83,17 +83,10 @@ const PAGE_SIZE_OPTIONS = ADMIN_TENANTS_PAGE_SIZES.map((n) => ({
   value: String(n),
 }));
 
-const SORT_KEYS: TenantSortKey[] = [
-  "created_desc",
-  "created_asc",
-  "name_asc",
-  "name_desc",
-];
+const SORT_KEYS: TenantSortKey[] = ["created_desc", "created_asc", "name_asc", "name_desc"];
 
 function parseSortKey(value: string | null): TenantSortKey {
-  return SORT_KEYS.includes(value as TenantSortKey)
-    ? (value as TenantSortKey)
-    : "created_desc";
+  return SORT_KEYS.includes(value as TenantSortKey) ? (value as TenantSortKey) : "created_desc";
 }
 
 function parseTrialFilter(value: string | null): TrialFilter {
@@ -140,10 +133,7 @@ const SORT_OPTIONS: { label: string; value: TenantSortKey }[] = [
   { label: "Name Z–A", value: "name_desc" },
 ];
 
-const PLAN_VARIANT: Record<
-  string,
-  "success" | "warning" | "default" | "danger"
-> = {
+const PLAN_VARIANT: Record<string, "success" | "warning" | "default" | "danger"> = {
   enterprise: "success",
   growth: "warning",
   starter: "default",
@@ -159,36 +149,24 @@ export default function AdminTenantsPage() {
   // FE-S04-24 — hydrate filters from URL (shareable Owner Console views)
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [planFilter, setPlanFilter] = useState(searchParams.get("plan") || "");
-  const [planIdFilter, setPlanIdFilter] = useState(
-    searchParams.get("plan_id") || "",
-  );
-  const [statusFilter, setStatusFilter] = useState(
-    searchParams.get("status") || "",
-  );
+  const [planIdFilter, setPlanIdFilter] = useState(searchParams.get("plan_id") || "");
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "");
   const [provisioningFilter, setProvisioningFilter] = useState(
-    searchParams.get("provisioning_status") || "",
+    searchParams.get("provisioning_status") || ""
   );
-  const [regionFilter, setRegionFilter] = useState(
-    searchParams.get("region") || "",
-  );
-  const [residencyFilter, setResidencyFilter] = useState(
-    searchParams.get("data_residency") || "",
-  );
+  const [regionFilter, setRegionFilter] = useState(searchParams.get("region") || "");
+  const [residencyFilter, setResidencyFilter] = useState(searchParams.get("data_residency") || "");
   const [trialFilter, setTrialFilter] = useState<TrialFilter>(
-    parseTrialFilter(searchParams.get("trial")),
+    parseTrialFilter(searchParams.get("trial"))
   );
-  const [sortKey, setSortKey] = useState<TenantSortKey>(
-    parseSortKey(searchParams.get("sort")),
-  );
+  const [sortKey, setSortKey] = useState<TenantSortKey>(parseSortKey(searchParams.get("sort")));
   const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
   const [pageSize, setPageSize] = useState<AdminTenantsPageSize>(
-    parseAdminTenantsPageSize(searchParams.get("page_size")),
+    parseAdminTenantsPageSize(searchParams.get("page_size"))
   );
   const [showCreate, setShowCreate] = useState(false);
   const [showDetail, setShowDetail] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(
-    null,
-  );
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [hardDeleteConfirm, setHardDeleteConfirm] = useState(false);
   const [forceImmediate, setForceImmediate] = useState(false);
 
@@ -310,7 +288,7 @@ export default function AdminTenantsPage() {
     residencyFilter ||
     trialFilter ||
     sortKey !== "created_desc" ||
-    pageSize !== 20,
+    pageSize !== 20
   );
 
   const clearAllFilters = useCallback(() => {
@@ -343,11 +321,8 @@ export default function AdminTenantsPage() {
         page,
         page_size: pageSize,
       });
-      const origin =
-        typeof window !== "undefined" ? window.location.origin : "";
-      await navigator.clipboard.writeText(
-        `${origin}${pathname}${qs ? `?${qs}` : ""}`,
-      );
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      await navigator.clipboard.writeText(`${origin}${pathname}${qs ? `?${qs}` : ""}`);
       toast({
         variant: "success",
         title: "Filter URL copied",
@@ -461,10 +436,8 @@ export default function AdminTenantsPage() {
   }, [page, totalPages]);
 
   const deleteTarget = useMemo(
-    () =>
-      tenants.find((t: AdminTenantListItem) => t.id === showDeleteConfirm) ??
-      null,
-    [tenants, showDeleteConfirm],
+    () => tenants.find((t: AdminTenantListItem) => t.id === showDeleteConfirm) ?? null,
+    [tenants, showDeleteConfirm]
   );
 
   const handleCreate = useCallback(async () => {
@@ -541,12 +514,9 @@ export default function AdminTenantsPage() {
           typeof err === "object" &&
           err !== null &&
           "response" in err &&
-          typeof (err as { response?: { data?: { detail?: unknown } } })
-            .response?.data?.detail === "string"
-            ? String(
-                (err as { response?: { data?: { detail?: string } } }).response
-                  ?.data?.detail,
-              )
+          typeof (err as { response?: { data?: { detail?: unknown } } }).response?.data?.detail ===
+            "string"
+            ? String((err as { response?: { data?: { detail?: string } } }).response?.data?.detail)
             : "An error occurred while deleting the tenant.";
         toast({
           variant: "error",
@@ -555,13 +525,7 @@ export default function AdminTenantsPage() {
         });
       }
     },
-    [
-      deleteMutation,
-      hardDeleteMutation,
-      hardDeleteConfirm,
-      forceImmediate,
-      toast,
-    ],
+    [deleteMutation, hardDeleteMutation, hardDeleteConfirm, forceImmediate, toast]
   );
 
   // FE-S04-40 — list-row reprovision for failed/pending only
@@ -579,12 +543,9 @@ export default function AdminTenantsPage() {
           typeof err === "object" &&
           err !== null &&
           "response" in err &&
-          typeof (err as { response?: { data?: { detail?: unknown } } })
-            .response?.data?.detail === "string"
-            ? String(
-                (err as { response?: { data?: { detail?: string } } }).response
-                  ?.data?.detail,
-              )
+          typeof (err as { response?: { data?: { detail?: unknown } } }).response?.data?.detail ===
+            "string"
+            ? String((err as { response?: { data?: { detail?: string } } }).response?.data?.detail)
             : "Failed to reprovision tenant";
         toast({
           variant: "error",
@@ -593,16 +554,14 @@ export default function AdminTenantsPage() {
         });
       }
     },
-    [rowReprovisionMutation, toast],
+    [rowReprovisionMutation, toast]
   );
 
   return (
     <div className="space-y-6" data-testid="admin-tenants-page">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            Tenant Management
-          </h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Tenant Management</h1>
           <p className="mt-1 text-sm text-[var(--text-muted)]">
             Provision, configure, suspend, and delete tenants.
           </p>
@@ -765,22 +724,14 @@ export default function AdminTenantsPage() {
       </div>
 
       {/* FE-S04-26/33 — result count from X-Total-Count */}
-      <p
-        className="text-sm text-[var(--text-muted)]"
-        data-testid="admin-tenants-result-count"
-      >
-        {isLoading
-          ? "Loading tenants…"
-          : `${totalCount} tenant${totalCount === 1 ? "" : "s"}`}
+      <p className="text-sm text-[var(--text-muted)]" data-testid="admin-tenants-result-count">
+        {isLoading ? "Loading tenants…" : `${totalCount} tenant${totalCount === 1 ? "" : "s"}`}
         {isFetching && !isLoading ? " · updating…" : ""}
       </p>
 
       {/* FE-S04-22 — active filter chips */}
       {activeFilterChips.length > 0 && (
-        <div
-          className="flex flex-wrap gap-2"
-          data-testid="admin-tenants-filter-chips"
-        >
+        <div className="flex flex-wrap gap-2" data-testid="admin-tenants-filter-chips">
           {activeFilterChips.map((chip) => (
             <button
               key={chip.key}
@@ -812,9 +763,7 @@ export default function AdminTenantsPage() {
                 </label>
                 <Input
                   value={createForm.name}
-                  onChange={(e) =>
-                    setCreateForm({ ...createForm, name: e.target.value })
-                  }
+                  onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
                   placeholder="Acme Corp"
                   data-testid="admin-tenants-create-name"
                 />
@@ -825,9 +774,7 @@ export default function AdminTenantsPage() {
                 </label>
                 <Input
                   value={createForm.slug}
-                  onChange={(e) =>
-                    setCreateForm({ ...createForm, slug: e.target.value })
-                  }
+                  onChange={(e) => setCreateForm({ ...createForm, slug: e.target.value })}
                   placeholder="acme-corp"
                   data-testid="admin-tenants-create-slug"
                 />
@@ -838,9 +785,7 @@ export default function AdminTenantsPage() {
                 </label>
                 <Input
                   value={createForm.domain}
-                  onChange={(e) =>
-                    setCreateForm({ ...createForm, domain: e.target.value })
-                  }
+                  onChange={(e) => setCreateForm({ ...createForm, domain: e.target.value })}
                   placeholder="acme.example.com"
                 />
               </div>
@@ -866,9 +811,7 @@ export default function AdminTenantsPage() {
                 </label>
                 <Input
                   value={createForm.plan_id}
-                  onChange={(e) =>
-                    setCreateForm({ ...createForm, plan_id: e.target.value })
-                  }
+                  onChange={(e) => setCreateForm({ ...createForm, plan_id: e.target.value })}
                   placeholder="opaque catalog id"
                   className="font-mono text-xs"
                 />
@@ -879,9 +822,7 @@ export default function AdminTenantsPage() {
                 </label>
                 <Input
                   value={createForm.region}
-                  onChange={(e) =>
-                    setCreateForm({ ...createForm, region: e.target.value })
-                  }
+                  onChange={(e) => setCreateForm({ ...createForm, region: e.target.value })}
                   placeholder="me-central-1"
                 />
               </div>
@@ -916,8 +857,8 @@ export default function AdminTenantsPage() {
                 />
               </div>
               <p className="text-xs text-[var(--text-muted)]">
-                Owner Platform fields synced to Backend A2. Create uses
-                provision_workflow (admin_email optional for first admin).
+                Owner Platform fields synced to Backend A2. Create uses provision_workflow
+                (admin_email optional for first admin).
               </p>
             </div>
           </ModalBody>
@@ -927,13 +868,9 @@ export default function AdminTenantsPage() {
             </Button>
             <Button
               onClick={handleCreate}
-              disabled={
-                !createForm.name || !createForm.slug || createMutation.isPending
-              }
+              disabled={!createForm.name || !createForm.slug || createMutation.isPending}
               leftIcon={
-                createMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : undefined
+                createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined
               }
               data-testid="admin-tenants-create-submit"
             >
@@ -956,11 +893,7 @@ export default function AdminTenantsPage() {
             data-testid="admin-tenants-empty"
           >
             <Building2 className="mx-auto mb-2 h-10 w-10 opacity-40" />
-            <p>
-              {hasActiveFilters
-                ? "No tenants match the current filters"
-                : "No tenants found"}
-            </p>
+            <p>{hasActiveFilters ? "No tenants match the current filters" : "No tenants found"}</p>
             {hasActiveFilters && (
               <Button
                 variant="outline"
@@ -978,42 +911,18 @@ export default function AdminTenantsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left">
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Name
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Domain
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Plan
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Plan ID
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Users
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Region
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Residency
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Status
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Provisioning
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Trial ends
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Created
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)] text-right">
-                    Actions
-                  </th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Name</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Domain</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Plan</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Plan ID</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Users</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Region</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Residency</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Status</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Provisioning</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Trial ends</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Created</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -1028,9 +937,7 @@ export default function AdminTenantsPage() {
                           <Building2 className="h-4 w-4" />
                         </div>
                         <div>
-                          <p className="font-medium text-[var(--text-primary)]">
-                            {tenant.name}
-                          </p>
+                          <p className="font-medium text-[var(--text-primary)]">{tenant.name}</p>
                           <p className="text-xs text-[var(--text-muted)] font-mono">
                             {tenant.slug}
                           </p>
@@ -1041,9 +948,7 @@ export default function AdminTenantsPage() {
                       {tenant.domain || "-"}
                     </td>
                     <td className="p-3">
-                      <Badge variant={PLAN_VARIANT[tenant.plan] || "default"}>
-                        {tenant.plan}
-                      </Badge>
+                      <Badge variant={PLAN_VARIANT[tenant.plan] || "default"}>{tenant.plan}</Badge>
                     </td>
                     <td
                       className="p-3 text-xs font-mono text-[var(--text-muted)]"
@@ -1070,22 +975,16 @@ export default function AdminTenantsPage() {
                     <td className="p-3">
                       {tenant.is_active ? (
                         <span className="inline-flex items-center gap-1 text-sm text-success-600">
-                          <CheckCircle className="h-3.5 w-3.5" />{" "}
-                          {activityStatusLabel(tenant)}
+                          <CheckCircle className="h-3.5 w-3.5" /> {activityStatusLabel(tenant)}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 text-sm text-danger-600">
-                          <XCircle className="h-3.5 w-3.5" />{" "}
-                          {activityStatusLabel(tenant)}
+                          <XCircle className="h-3.5 w-3.5" /> {activityStatusLabel(tenant)}
                         </span>
                       )}
                     </td>
                     <td className="p-3">
-                      <Badge
-                        variant={provisioningStatusVariant(
-                          tenant.provisioning_status,
-                        )}
-                      >
+                      <Badge variant={provisioningStatusVariant(tenant.provisioning_status)}>
                         {provisioningStatusLabel(tenant.provisioning_status)}
                       </Badge>
                     </td>
@@ -1094,9 +993,7 @@ export default function AdminTenantsPage() {
                       data-testid="admin-tenants-row-trial"
                     >
                       <div className="flex flex-col gap-1">
-                        <span>
-                          {formatTrialEndsLabel(tenant.trial_ends_at)}
-                        </span>
+                        <span>{formatTrialEndsLabel(tenant.trial_ends_at)}</span>
                         <Badge
                           variant={trialBadgeVariant(tenant.trial_ends_at)}
                           data-testid="admin-tenants-row-trial-badge"
@@ -1121,9 +1018,7 @@ export default function AdminTenantsPage() {
                           >
                             <RefreshCw
                               className={`h-4 w-4 ${
-                                rowReprovisionMutation.isPending
-                                  ? "animate-spin"
-                                  : ""
+                                rowReprovisionMutation.isPending ? "animate-spin" : ""
                               }`}
                             />
                           </Button>
@@ -1157,13 +1052,10 @@ export default function AdminTenantsPage() {
 
       {/* FE-S04-33/39 — server pagination (page/page_size + X-Total-Count) */}
       {totalCount > pageSize && (
-        <div
-          className="flex items-center justify-between"
-          data-testid="admin-tenants-pagination"
-        >
+        <div className="flex items-center justify-between" data-testid="admin-tenants-pagination">
           <p className="text-sm text-[var(--text-muted)]">
-            Showing {(page - 1) * pageSize + 1}-
-            {Math.min(page * pageSize, totalCount)} of {totalCount}
+            Showing {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, totalCount)} of{" "}
+            {totalCount}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -1230,8 +1122,8 @@ export default function AdminTenantsPage() {
           <ModalBody>
             <div className="space-y-3">
               <p className="text-[var(--text-secondary)]">
-                {hardDeleteConfirm ? "Permanently remove" : "Soft-delete"}{" "}
-                tenant <strong>{deleteTarget?.name}</strong>?
+                {hardDeleteConfirm ? "Permanently remove" : "Soft-delete"} tenant{" "}
+                <strong>{deleteTarget?.name}</strong>?
               </p>
               <p
                 className="text-sm text-[var(--text-muted)]"
@@ -1239,9 +1131,9 @@ export default function AdminTenantsPage() {
               >
                 Soft-delete sets <code>is_active=false</code> only —{" "}
                 <code>provisioning_status</code> stays{" "}
-                <code>{deleteTarget?.provisioning_status || "pending"}</code>{" "}
-                (Inactive ≠ Suspended). Stamps <code>tenants.deleted_at</code>{" "}
-                (+ settings dual-write) for STORY-04-04 retention (~
+                <code>{deleteTarget?.provisioning_status || "pending"}</code> (Inactive ≠
+                Suspended). Stamps <code>tenants.deleted_at</code> (+ settings dual-write) for
+                STORY-04-04 retention (~
                 {TENANT_DELETION_RETENTION_DAYS}d). Recoverable via Activate.
               </p>
               <label className="flex items-center gap-2 text-sm text-danger-600">
@@ -1263,9 +1155,7 @@ export default function AdminTenantsPage() {
                     data-testid="admin-tenants-retention-honesty"
                   >
                     {retentionHardDeleteDescription({
-                      isInactive: deleteTarget
-                        ? !deleteTarget.is_active
-                        : false,
+                      isInactive: deleteTarget ? !deleteTarget.is_active : false,
                     })}
                   </p>
                   <label className="flex items-center gap-2 text-sm text-danger-600">
@@ -1275,8 +1165,7 @@ export default function AdminTenantsPage() {
                       onChange={(e) => setForceImmediate(e.target.checked)}
                       data-testid="admin-tenants-force-immediate"
                     />
-                    Force immediate (bypass retention —{" "}
-                    <code>force_immediate=true</code>)
+                    Force immediate (bypass retention — <code>force_immediate=true</code>)
                   </label>
                 </>
               )}
@@ -1294,12 +1183,8 @@ export default function AdminTenantsPage() {
               Cancel
             </Button>
             <Button
-              onClick={() =>
-                showDeleteConfirm && handleDelete(showDeleteConfirm)
-              }
-              disabled={
-                deleteMutation.isPending || hardDeleteMutation.isPending
-              }
+              onClick={() => showDeleteConfirm && handleDelete(showDeleteConfirm)}
+              disabled={deleteMutation.isPending || hardDeleteMutation.isPending}
               className="bg-danger-600 text-white hover:bg-danger-700"
               data-testid="admin-tenants-delete-submit"
               leftIcon={
@@ -1342,17 +1227,11 @@ function TenantDetailModal({
   const reprovisionMutation = useReprovisionAdminTenant();
 
   const [configJson, setConfigJson] = useState("");
-  const [suspendReason, setSuspendReason] = useState(
-    "Suspended via Owner Console",
-  );
-  const [activateReason, setActivateReason] = useState(
-    "Activated via Owner Console",
-  );
+  const [suspendReason, setSuspendReason] = useState("Suspended via Owner Console");
+  const [activateReason, setActivateReason] = useState("Activated via Owner Console");
   const [forceActiveReprovision, setForceActiveReprovision] = useState(false);
 
-  const needsForceActive = requiresForceActiveReprovision(
-    tenant?.provisioning_status,
-  );
+  const needsForceActive = requiresForceActiveReprovision(tenant?.provisioning_status);
   const canReprovision =
     canRetryReprovision(tenant?.provisioning_status) ||
     (needsForceActive && forceActiveReprovision);
@@ -1386,15 +1265,7 @@ function TenantDetailModal({
     } catch {
       toast({ variant: "error", title: "Failed to update status" });
     }
-  }, [
-    tenant,
-    tenantId,
-    suspendReason,
-    activateReason,
-    suspendMutation,
-    activateMutation,
-    toast,
-  ]);
+  }, [tenant, tenantId, suspendReason, activateReason, suspendMutation, activateMutation, toast]);
 
   const handleCopy = useCallback(
     async (label: string, value: string) => {
@@ -1409,7 +1280,7 @@ function TenantDetailModal({
         toast({ variant: "error", title: `Failed to copy ${label}` });
       }
     },
-    [toast],
+    [toast]
   );
 
   // FE-S04-34/41 — reprovision failed/pending, or suspended with force_active
@@ -1431,12 +1302,9 @@ function TenantDetailModal({
         typeof err === "object" &&
         err !== null &&
         "response" in err &&
-        typeof (err as { response?: { data?: { detail?: unknown } } }).response
-          ?.data?.detail === "string"
-          ? String(
-              (err as { response?: { data?: { detail?: string } } }).response
-                ?.data?.detail,
-            )
+        typeof (err as { response?: { data?: { detail?: unknown } } }).response?.data?.detail ===
+          "string"
+          ? String((err as { response?: { data?: { detail?: string } } }).response?.data?.detail)
           : "Failed to reprovision tenant";
       toast({
         variant: "error",
@@ -1484,7 +1352,7 @@ function TenantDetailModal({
         });
       }
     },
-    [updateMutation, toast],
+    [updateMutation, toast]
   );
 
   if (isLoading) {
@@ -1493,9 +1361,7 @@ function TenantDetailModal({
         <ModalContent>
           <div className="py-12 text-center">
             <Spinner className="mx-auto h-6 w-6" />
-            <p className="mt-2 text-sm text-[var(--text-muted)]">
-              Loading tenant details...
-            </p>
+            <p className="mt-2 text-sm text-[var(--text-muted)]">Loading tenant details...</p>
           </div>
         </ModalContent>
       </Modal>
@@ -1541,9 +1407,7 @@ function TenantDetailModal({
             >
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="font-medium text-[var(--text-primary)]">
-                    Tenant lifecycle
-                  </p>
+                  <p className="font-medium text-[var(--text-primary)]">Tenant lifecycle</p>
                   <p
                     className="text-sm text-[var(--text-muted)]"
                     data-testid="admin-tenants-lifecycle-copy"
@@ -1561,9 +1425,7 @@ function TenantDetailModal({
                     </p>
                   )}
                   {(() => {
-                    const suspendHonesty = tenant
-                      ? suspendedWriteBlockDescription(tenant)
-                      : null;
+                    const suspendHonesty = tenant ? suspendedWriteBlockDescription(tenant) : null;
                     return suspendHonesty ? (
                       <p
                         className="mt-1 text-xs text-warning-700 dark:text-warning-400"
@@ -1616,24 +1478,21 @@ function TenantDetailModal({
                   />
                 </div>
               )}
-              {(canRetryReprovision(tenant?.provisioning_status) ||
-                needsForceActive) && (
+              {(canRetryReprovision(tenant?.provisioning_status) || needsForceActive) && (
                 <div
                   className="flex flex-col gap-3 border-t border-[var(--border-default)] pt-3"
                   data-testid="admin-tenants-reprovision"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className="text-sm text-[var(--text-muted)]">
-                      Provisioning is <code>{tenant?.provisioning_status}</code>{" "}
-                      — re-run idempotent provision workflow.
+                      Provisioning is <code>{tenant?.provisioning_status}</code> — re-run idempotent
+                      provision workflow.
                     </p>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handleReprovision}
-                      disabled={
-                        reprovisionMutation.isPending || !canReprovision
-                      }
+                      disabled={reprovisionMutation.isPending || !canReprovision}
                       data-testid="admin-tenants-reprovision-submit"
                       leftIcon={
                         reprovisionMutation.isPending ? (
@@ -1643,9 +1502,7 @@ function TenantDetailModal({
                         )
                       }
                     >
-                      {reprovisionMutation.isPending
-                        ? "Reprovisioning…"
-                        : "Reprovision"}
+                      {reprovisionMutation.isPending ? "Reprovisioning…" : "Reprovision"}
                     </Button>
                   </div>
                   {needsForceActive && (
@@ -1653,14 +1510,11 @@ function TenantDetailModal({
                       <input
                         type="checkbox"
                         checked={forceActiveReprovision}
-                        onChange={(e) =>
-                          setForceActiveReprovision(e.target.checked)
-                        }
+                        onChange={(e) => setForceActiveReprovision(e.target.checked)}
                         data-testid="admin-tenants-reprovision-force-active"
                       />
-                      Force active reprovision while suspended (
-                      <code>force_active=true</code>) — prefer Activate first
-                      when restoring access.
+                      Force active reprovision while suspended (<code>force_active=true</code>) —
+                      prefer Activate first when restoring access.
                     </label>
                   )}
                 </div>
@@ -1682,17 +1536,13 @@ function TenantDetailModal({
             {/* FE-S04-44 — usage stats + period honesty */}
             {usage && (
               <div className="space-y-2" data-testid="admin-tenants-usage">
-                <p className="text-xs text-[var(--text-muted)]">
-                  {formatTenantUsagePeriod(usage)}
-                </p>
+                <p className="text-xs text-[var(--text-muted)]">{formatTenantUsagePeriod(usage)}</p>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="rounded-lg border border-[var(--border-default)] p-3 text-center">
                     <p className="text-2xl font-bold text-[var(--text-primary)]">
                       {usage.api_calls.toLocaleString()}
                     </p>
-                    <p className="text-xs text-[var(--text-muted)]">
-                      API Calls
-                    </p>
+                    <p className="text-xs text-[var(--text-muted)]">API Calls</p>
                   </div>
                   <div className="rounded-lg border border-[var(--border-default)] p-3 text-center">
                     <p className="text-2xl font-bold text-[var(--text-primary)]">
@@ -1704,9 +1554,7 @@ function TenantDetailModal({
                     <p className="text-2xl font-bold text-[var(--text-primary)]">
                       {usage.active_users}/{usage.total_users}
                     </p>
-                    <p className="text-xs text-[var(--text-muted)]">
-                      Active Users
-                    </p>
+                    <p className="text-xs text-[var(--text-muted)]">Active Users</p>
                   </div>
                 </div>
               </div>
@@ -1725,11 +1573,7 @@ function TenantDetailModal({
                 placeholder='{"theme":"light"}'
               />
               <div className="mt-2 flex gap-2">
-                <Button
-                  size="sm"
-                  onClick={handleSaveConfig}
-                  disabled={updateMutation.isPending}
-                >
+                <Button size="sm" onClick={handleSaveConfig} disabled={updateMutation.isPending}>
                   Save Configuration
                 </Button>
               </div>

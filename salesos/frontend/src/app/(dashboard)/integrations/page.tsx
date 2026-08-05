@@ -12,12 +12,10 @@ export default function IntegrationsPage() {
   return (
     <div className="space-y-6 p-6" data-testid="integrations-page">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          Integrations Studio
-        </h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Integrations Studio</h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Connect, test, map, schedule, monitor, and disconnect Integration Hub
-          connections for this tenant. Live HubSpot network is not claimed.
+          Connect, test, map, schedule, monitor, and disconnect Integration Hub connections for this
+          tenant. Live HubSpot network is not claimed.
         </p>
       </div>
       <SecondConnectorCertPanel />

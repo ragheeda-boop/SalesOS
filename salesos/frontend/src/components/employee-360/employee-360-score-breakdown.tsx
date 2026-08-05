@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Skeleton,
-  EmptyState,
-  Badge,
-} from "@salesos/ui";
+import { Card, CardContent, CardHeader, Skeleton, EmptyState, Badge } from "@salesos/ui";
 import { Brain, BarChart3, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
@@ -30,11 +23,7 @@ function GaugeCircle({ score, label }: { score: number; label: string }) {
   const circumference = 2 * Math.PI * 42;
   const strokeDasharray = `${(score / 100) * circumference} ${circumference}`;
   const gaugeColor =
-    score >= 70
-      ? "stroke-success-500"
-      : score >= 40
-        ? "stroke-warning-500"
-        : "stroke-danger-500";
+    score >= 70 ? "stroke-success-500" : score >= 40 ? "stroke-warning-500" : "stroke-danger-500";
 
   return (
     <div className="relative">
@@ -60,32 +49,20 @@ function GaugeCircle({ score, label }: { score: number; label: string }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-bold text-[var(--text-primary)]">
-          {score}
-        </span>
+        <span className="text-3xl font-bold text-[var(--text-primary)]">{score}</span>
         <span className="text-[10px] text-[var(--text-muted)]">{label}</span>
       </div>
     </div>
   );
 }
 
-function FactorBar({
-  label,
-  value,
-  maxValue,
-}: {
-  label: string;
-  value: number;
-  maxValue: number;
-}) {
+function FactorBar({ label, value, maxValue }: { label: string; value: number; maxValue: number }) {
   const width = maxValue > 0 ? (value / maxValue) * 100 : 0;
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-sm">
         <span className="text-[var(--text-secondary)]">{label}</span>
-        <span className="font-medium text-[var(--text-primary)]">
-          +{value}
-        </span>
+        <span className="font-medium text-[var(--text-primary)]">+{value}</span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
         <div
@@ -144,20 +121,14 @@ export function ScoreBreakdown({
           <GaugeCircle score={score} label={t("emp360.out_of_100")} />
           {trend && (
             <div className="mt-4 flex items-center justify-center gap-1.5 text-sm">
-              <span className="text-[var(--text-muted)]">
-                {t("emp360.trend")}:
-              </span>
+              <span className="text-[var(--text-muted)]">{t("emp360.trend")}:</span>
               {trendIcon}
-              <span className="text-xs text-[var(--text-disabled)] capitalize">
-                {trend}
-              </span>
+              <span className="text-xs text-[var(--text-disabled)] capitalize">{trend}</span>
             </div>
           )}
           {confidence !== undefined && (
             <div className="mt-3 flex items-center gap-2 text-xs">
-              <span className="text-[var(--text-muted)]">
-                {t("emp360.confidence")}:
-              </span>
+              <span className="text-[var(--text-muted)]">{t("emp360.confidence")}:</span>
               <div className="h-2 flex-1 overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
                 <div
                   className="h-full rounded-full bg-info-500"

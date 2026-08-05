@@ -4,10 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { BarChart, LineChart, MetricCard } from "@salesos/charts";
-import {
-  normalizePipelineAnalytics,
-  type PipelineAnalyticsView,
-} from "@/lib/pipelineAnalytics";
+import { normalizePipelineAnalytics, type PipelineAnalyticsView } from "@/lib/pipelineAnalytics";
 import { ArrowLeft, Clock, DollarSign, Target, BarChart3 } from "lucide-react";
 
 function formatCurrency(value: number): string {
@@ -35,11 +32,7 @@ const STAGE_LABELS: Record<string, string> = {
   closed_lost: "Closed Lost",
 };
 
-function FunnelChart({
-  data,
-}: {
-  data: { stage: string; count: number; value: number }[];
-}) {
+function FunnelChart({ data }: { data: { stage: string; count: number; value: number }[] }) {
   if (data.length === 0) {
     return (
       <p className="text-xs text-[var(--text-muted)] py-8 text-center">
@@ -50,9 +43,7 @@ function FunnelChart({
   const maxCount = Math.max(...data.map((d) => d.count), 1);
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-        Conversion Funnel
-      </h3>
+      <h3 className="text-sm font-semibold text-[var(--text-primary)]">Conversion Funnel</h3>
       <div className="space-y-1.5">
         {data.map((item) => {
           const pct = (item.count / maxCount) * 100;
@@ -86,11 +77,7 @@ function FunnelChart({
   );
 }
 
-function VelocityChart({
-  data,
-}: {
-  data: { stage: string; avg_days: number }[];
-}) {
+function VelocityChart({ data }: { data: { stage: string; avg_days: number }[] }) {
   if (data.length === 0) {
     return (
       <p className="text-xs text-[var(--text-muted)] py-8 text-center">
@@ -103,25 +90,13 @@ function VelocityChart({
     value: d.avg_days,
     color: STAGE_COLORS[d.stage] || "#6B7280",
   }));
-  return (
-    <BarChart
-      data={chartData}
-      title="Average Days per Stage (Velocity)"
-      height={220}
-    />
-  );
+  return <BarChart data={chartData} title="Average Days per Stage (Velocity)" height={220} />;
 }
 
-function StageDurationTable({
-  data,
-}: {
-  data: { stage: string; p50: number; p95: number }[];
-}) {
+function StageDurationTable({ data }: { data: { stage: string; p50: number; p95: number }[] }) {
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-        Stage Duration Breakdown
-      </h3>
+      <h3 className="text-sm font-semibold text-[var(--text-primary)]">Stage Duration Breakdown</h3>
       <div className="rounded-lg border border-[var(--border-default)] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -159,12 +134,8 @@ function StageDurationTable({
                     </span>
                   </span>
                 </td>
-                <td className="px-3 py-2 text-[var(--text-secondary)]">
-                  {item.p50}d
-                </td>
-                <td className="px-3 py-2 text-[var(--text-secondary)]">
-                  {item.p95}d
-                </td>
+                <td className="px-3 py-2 text-[var(--text-secondary)]">{item.p50}d</td>
+                <td className="px-3 py-2 text-[var(--text-secondary)]">{item.p95}d</td>
                 <td className="px-3 py-2">
                   <div className="flex items-center gap-1">
                     <div className="h-1.5 flex-1 rounded-full bg-[var(--bg-tertiary)] overflow-hidden">
@@ -172,8 +143,7 @@ function StageDurationTable({
                         className="h-full rounded-full"
                         style={{
                           width: `${Math.min((item.p50 / Math.max(item.p95, 1)) * 100, 100)}%`,
-                          backgroundColor:
-                            STAGE_COLORS[item.stage] || "#6B7280",
+                          backgroundColor: STAGE_COLORS[item.stage] || "#6B7280",
                         }}
                       />
                     </div>
@@ -183,10 +153,7 @@ function StageDurationTable({
             ))}
             {data.length === 0 && (
               <tr>
-                <td
-                  colSpan={4}
-                  className="px-3 py-6 text-center text-xs text-[var(--text-muted)]"
-                >
+                <td colSpan={4} className="px-3 py-6 text-center text-xs text-[var(--text-muted)]">
                   No stage duration data available
                 </td>
               </tr>
@@ -199,9 +166,7 @@ function StageDurationTable({
 }
 
 export default function PipelineAnalyticsPage() {
-  const [analytics, setAnalytics] = useState<PipelineAnalyticsView | null>(
-    null,
-  );
+  const [analytics, setAnalytics] = useState<PipelineAnalyticsView | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -262,9 +227,7 @@ export default function PipelineAnalyticsPage() {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">
-            Pipeline Analytics
-          </h1>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]">Pipeline Analytics</h1>
           <p className="text-sm text-[var(--text-muted)]">
             Conversion rates, velocity, and pipeline health
           </p>

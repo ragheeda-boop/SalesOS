@@ -18,15 +18,7 @@ jest.mock("../../../widgets/customer-success/AdoptionChart", () => ({
   ),
 }));
 jest.mock("../../../widgets/customer-success/ActiveUsersWidget", () => ({
-  ActiveUsersWidget: ({
-    dau,
-    wau,
-    mau,
-  }: {
-    dau: number;
-    wau: number;
-    mau: number;
-  }) => (
+  ActiveUsersWidget: ({ dau, wau, mau }: { dau: number; wau: number; mau: number }) => (
     <div data-testid="active-users-widget">
       DAU: {dau} WAU: {wau} MAU: {mau}
     </div>
@@ -59,14 +51,8 @@ jest.mock("../../../widgets/customer-success/NBAAcceptanceWidget", () => ({
   ),
 }));
 jest.mock("../../../widgets/customer-success/TenantHealthList", () => ({
-  TenantHealthList: ({
-    tenants,
-  }: {
-    tenants: Array<{ tenant_name: string }>;
-  }) => (
-    <div data-testid="tenant-health-list">
-      {tenants.map((t) => t.tenant_name).join(", ")}
-    </div>
+  TenantHealthList: ({ tenants }: { tenants: Array<{ tenant_name: string }> }) => (
+    <div data-testid="tenant-health-list">{tenants.map((t) => t.tenant_name).join(", ")}</div>
   ),
 }));
 
@@ -139,15 +125,9 @@ describe("CustomerSuccessWorkspace", () => {
     } as any);
     render(<CustomerSuccessWorkspace />);
     expect(screen.getByTestId("health-score-card")).toHaveTextContent("75%");
-    expect(screen.getByTestId("active-users-widget")).toHaveTextContent(
-      "DAU: 25",
-    );
-    expect(screen.getByTestId("search-success-widget")).toHaveTextContent(
-      "Searches: 1000",
-    );
-    expect(screen.getByTestId("nba-acceptance-widget")).toHaveTextContent(
-      "Views: 200",
-    );
+    expect(screen.getByTestId("active-users-widget")).toHaveTextContent("DAU: 25");
+    expect(screen.getByTestId("search-success-widget")).toHaveTextContent("Searches: 1000");
+    expect(screen.getByTestId("nba-acceptance-widget")).toHaveTextContent("Views: 200");
     expect(screen.getByTestId("adoption-chart")).toBeInTheDocument();
   });
 

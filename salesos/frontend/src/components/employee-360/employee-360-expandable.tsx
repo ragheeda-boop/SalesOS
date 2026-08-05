@@ -1,15 +1,7 @@
 "use client";
 
 import { useEmployeeTimeline } from "@/lib/hooks/employeeQueries";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Skeleton,
-  EmptyState,
-  Badge,
-  cn,
-} from "@salesos/ui";
+import { Card, CardContent, CardHeader, Skeleton, EmptyState, Badge, cn } from "@salesos/ui";
 import { Clock } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { formatRelativeTime, getActionConfig } from "./employee-360-shared";
@@ -36,9 +28,7 @@ export function RecentActivityFeed({ employeeId }: { employeeId: string }) {
     return (
       <Card>
         <CardHeader>
-          <h3 className="text-sm font-semibold">
-            {t("emp360.recent_activity")}
-          </h3>
+          <h3 className="text-sm font-semibold">{t("emp360.recent_activity")}</h3>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -63,15 +53,10 @@ export function RecentActivityFeed({ employeeId }: { employeeId: string }) {
     return (
       <Card>
         <CardHeader>
-          <h3 className="text-sm font-semibold">
-            {t("emp360.recent_activity")}
-          </h3>
+          <h3 className="text-sm font-semibold">{t("emp360.recent_activity")}</h3>
         </CardHeader>
         <CardContent>
-          <EmptyState
-            icon={<Clock className="h-8 w-8" />}
-            title={t("emp360.no_activity")}
-          />
+          <EmptyState icon={<Clock className="h-8 w-8" />} title={t("emp360.no_activity")} />
         </CardContent>
       </Card>
     );
@@ -88,25 +73,20 @@ export function RecentActivityFeed({ employeeId }: { employeeId: string }) {
             const config = getActionConfig(event.action);
             const Icon = config.icon;
             return (
-              <div
-                key={event.id}
-                className="relative flex gap-3 pb-4 last:pb-0"
-              >
+              <div key={event.id} className="relative flex gap-3 pb-4 last:pb-0">
                 {idx < events.length - 1 && (
                   <div className="absolute right-[15px] top-10 bottom-0 w-px bg-[var(--bg-tertiary)]" />
                 )}
                 <div
                   className={cn(
                     "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                    config.color,
+                    config.color
                   )}
                 >
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-[var(--text-primary)]">
-                    {event.title}
-                  </p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{event.title}</p>
                   <p className="mt-0.5 text-xs text-[var(--text-muted)]">
                     <span className="inline-flex items-center gap-1">
                       <Badge variant="default" className="text-[10px]">

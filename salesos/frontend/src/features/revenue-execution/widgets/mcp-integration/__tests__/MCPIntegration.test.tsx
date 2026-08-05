@@ -5,9 +5,7 @@ import { describeWidgetContract } from "@salesos/workspace/testing";
 import type { MCPData } from "../types";
 
 const sample: MCPData = {
-  connections: [
-    { id: "m1", name: "Odoo", type: "ERP", status: "connected", entities: 100 },
-  ],
+  connections: [{ id: "m1", name: "Odoo", type: "ERP", status: "connected", entities: 100 }],
   totalConnections: 1,
   activeConnections: 1,
   syncedEntities: 100,
@@ -46,9 +44,7 @@ describe("MCPView", () => {
   });
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "اتصالات MCP" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "اتصالات MCP" })).toBeInTheDocument();
   });
 });
 describe("MCPIntegrationWidget", () => {

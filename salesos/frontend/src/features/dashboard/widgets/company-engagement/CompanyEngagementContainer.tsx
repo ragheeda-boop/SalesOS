@@ -4,8 +4,9 @@ import { createDashboardWidget } from "@salesos/widget-sdk";
 import { CompanyEngagementView } from "./CompanyEngagementView";
 import type { CompanyEngagementDTO } from "@/lib/api/types";
 
-export const CompanyEngagementWidget =
-  createDashboardWidget<CompanyEngagementDTO>("companyEngagement", {
+export const CompanyEngagementWidget = createDashboardWidget<CompanyEngagementDTO>(
+  "companyEngagement",
+  {
     metadata: {
       title: "تفاعل الشركة",
       description: "ملخص التواصل والتفاعل مع الشركة",
@@ -18,12 +19,9 @@ export const CompanyEngagementWidget =
       <CompanyEngagementView
         engagement={data ?? null}
         isLoading={status === "loading"}
-        error={
-          status === "error"
-            ? new Error("Failed to load company engagement")
-            : null
-        }
+        error={status === "error" ? new Error("Failed to load company engagement") : null}
         onRefresh={refresh}
       />
     ),
-  });
+  }
+);

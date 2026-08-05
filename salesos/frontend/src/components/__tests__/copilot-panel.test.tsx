@@ -18,9 +18,7 @@ describe("CopilotPanel", () => {
   beforeEach(() => jest.clearAllMocks());
 
   it("renders nothing when closed", () => {
-    const { container } = render(
-      <CopilotPanel open={false} onClose={jest.fn()} />,
-    );
+    const { container } = render(<CopilotPanel open={false} onClose={jest.fn()} />);
     expect(container.innerHTML).toBe("");
   });
 
@@ -37,9 +35,7 @@ describe("CopilotPanel", () => {
 
   it("calls onClose when close button is clicked", () => {
     const onClose = jest.fn();
-    const { container } = render(
-      <CopilotPanel open={true} onClose={onClose} />,
-    );
+    const { container } = render(<CopilotPanel open={true} onClose={onClose} />);
     // Close control is the unlabeled X in the header (not send / feedback).
     const closeBtn = container.querySelector("svg.lucide-x")?.closest("button");
     expect(closeBtn).toBeTruthy();
@@ -129,7 +125,7 @@ describe("CopilotPanel", () => {
         entityType="company"
         entityId="c1"
         context={{ company_name: "أرامكو", cr_number: "1234", city: "الرياض" }}
-      />,
+      />
     );
     const input = screen.getByPlaceholderText("اسأل المساعد الذكي...");
     fireEvent.change(input, { target: { value: "سؤال" } });
@@ -143,7 +139,7 @@ describe("CopilotPanel", () => {
           cr_number: "1234",
           city: "الرياض",
         }),
-        expect.any(Object),
+        expect.any(Object)
       );
     });
   });

@@ -2,11 +2,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { CompanyHealthView } from "../CompanyHealthView";
 import { CompanyHealthWidget } from "../CompanyHealthContainer";
 import { describeWidgetContract } from "@salesos/widget-sdk/testing";
-import type {
-  CompanyHealthViewProps,
-  HealthMetric,
-  HealthAlert,
-} from "../types";
+import type { CompanyHealthViewProps, HealthMetric, HealthAlert } from "../types";
 
 const sampleMetrics: HealthMetric[] = [
   {
@@ -146,9 +142,7 @@ describe("CompanyHealthView", () => {
   it("renders alerts", () => {
     renderView();
     expect(screen.getByText("صفقة بقيمة 2M معرضة للخسارة")).toBeInTheDocument();
-    expect(
-      screen.getByText("تأخير في التسليم لأكثر من 14 يوم"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("تأخير في التسليم لأكثر من 14 يوم")).toBeInTheDocument();
   });
 
   it("shows empty state when no data", () => {
@@ -158,9 +152,7 @@ describe("CompanyHealthView", () => {
 
   it('has role="region" with aria-label', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "صحة الشركة: ACME Corp" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "صحة الشركة: ACME Corp" })).toBeInTheDocument();
   });
 
   it("calls onAlertClick when alert is clicked", () => {
@@ -200,8 +192,7 @@ describe("CompanyHealthWidget (SDK integration)", () => {
   it("is a valid React component", () => {
     expect(CompanyHealthWidget).toBeDefined();
     expect(
-      typeof CompanyHealthWidget === "function" ||
-        typeof CompanyHealthWidget === "object",
+      typeof CompanyHealthWidget === "function" || typeof CompanyHealthWidget === "object"
     ).toBe(true);
   });
 });

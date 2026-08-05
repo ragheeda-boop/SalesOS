@@ -11,20 +11,13 @@ interface SearchHistoryProps {
   className?: string;
 }
 
-export function SearchHistory({
-  entries,
-  onClick,
-  onClear,
-  className,
-}: SearchHistoryProps) {
+export function SearchHistory({ entries, onClick, onClear, className }: SearchHistoryProps) {
   if (entries.length === 0) return null;
 
   return (
     <div className={cn("space-y-1", className)}>
       <div className="flex items-center justify-between px-4 py-2">
-        <span className="text-xs font-semibold text-[var(--text-muted)] uppercase">
-          آخر البحوث
-        </span>
+        <span className="text-xs font-semibold text-[var(--text-muted)] uppercase">آخر البحوث</span>
         {onClear && (
           <button
             onClick={onClear}

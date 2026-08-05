@@ -17,9 +17,7 @@ function tenantHeaders(tenantId: string) {
   return { "X-Tenant-Id": tenantId };
 }
 
-export async function listScoringRules(
-  tenantId: string,
-): Promise<ScoringRule[]> {
+export async function listScoringRules(tenantId: string): Promise<ScoringRule[]> {
   const resp = await api.get<ScoringRule[]>(BASE, {
     headers: tenantHeaders(tenantId),
   });
@@ -28,7 +26,7 @@ export async function listScoringRules(
 
 export async function upsertScoringRule(
   tenantId: string,
-  body: ScoringRuleUpsert,
+  body: ScoringRuleUpsert
 ): Promise<ScoringRule> {
   const resp = await api.post<ScoringRule>(BASE, body, {
     headers: tenantHeaders(tenantId),
@@ -36,10 +34,7 @@ export async function upsertScoringRule(
   return resp.data;
 }
 
-export async function getScoringRule(
-  tenantId: string,
-  ruleId: string,
-): Promise<ScoringRule> {
+export async function getScoringRule(tenantId: string, ruleId: string): Promise<ScoringRule> {
   const resp = await api.get<ScoringRule>(`${BASE}/${ruleId}`, {
     headers: tenantHeaders(tenantId),
   });
@@ -48,12 +43,10 @@ export async function getScoringRule(
 
 export async function evaluateScoringRule(
   tenantId: string,
-  body: ScoringEvaluateRequest,
+  body: ScoringEvaluateRequest
 ): Promise<ScoringEvaluateResponse> {
-  const resp = await api.post<ScoringEvaluateResponse>(
-    `${BASE}/evaluate`,
-    body,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.post<ScoringEvaluateResponse>(`${BASE}/evaluate`, body, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }

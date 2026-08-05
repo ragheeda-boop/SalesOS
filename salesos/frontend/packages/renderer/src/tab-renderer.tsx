@@ -1,12 +1,12 @@
-import { SectionRenderer } from './section-renderer'
-import { WidgetRenderer } from './widget-renderer'
-import type { UISchemaTab } from './types'
+import { SectionRenderer } from "./section-renderer";
+import { WidgetRenderer } from "./widget-renderer";
+import type { UISchemaTab } from "./types";
 
 export interface TabRendererProps {
-  tab: UISchemaTab
-  entityType: string
-  entityId: string
-  context?: Record<string, unknown>
+  tab: UISchemaTab;
+  entityType: string;
+  entityId: string;
+  context?: Record<string, unknown>;
 }
 
 export function TabRenderer({ tab, entityType, entityId, context }: TabRendererProps) {
@@ -31,5 +31,5 @@ export function TabRenderer({ tab, entityType, entityId, context }: TabRendererP
         />
       ))}
     </div>
-  )
+  );
 }

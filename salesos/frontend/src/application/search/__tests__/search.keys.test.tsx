@@ -6,19 +6,11 @@ describe("searchKeys", () => {
   });
 
   it("results includes query", () => {
-    expect(searchKeys.results({ text: "test" })).toEqual([
-      "search",
-      "results",
-      { text: "test" },
-    ]);
+    expect(searchKeys.results({ text: "test" })).toEqual(["search", "results", { text: "test" }]);
   });
 
   it("suggestions includes prefix", () => {
-    expect(searchKeys.suggestions("acme")).toEqual([
-      "search",
-      "suggestions",
-      "acme",
-    ]);
+    expect(searchKeys.suggestions("acme")).toEqual(["search", "suggestions", "acme"]);
   });
 
   it("ai includes query", () => {

@@ -58,33 +58,24 @@ describe("CustomFieldsAutoRender — FE-S10-02", () => {
   it("renders tip form-schema fields generically", () => {
     render(<CustomFieldsAutoRender objectKey="company" />);
     expect(screen.getByTestId("custom-fields-auto-render")).toBeInTheDocument();
-    expect(screen.getByTestId("custom-fields-auto-honesty")).toHaveTextContent(
-      /form-schema/,
-    );
-    expect(
-      screen.getByTestId("custom-fields-auto-input-segment_tier"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("custom-fields-auto-input-renewal_date"),
-    ).toBeInTheDocument();
-    expect(screen.getByTestId("custom-fields-auto-meta")).toHaveTextContent(
-      /custom_fields_auto/,
-    );
+    expect(screen.getByTestId("custom-fields-auto-honesty")).toHaveTextContent(/form-schema/);
+    expect(screen.getByTestId("custom-fields-auto-input-segment_tier")).toBeInTheDocument();
+    expect(screen.getByTestId("custom-fields-auto-input-renewal_date")).toBeInTheDocument();
+    expect(screen.getByTestId("custom-fields-auto-meta")).toHaveTextContent(/custom_fields_auto/);
   });
 
   it("projects tip POST .../values payload", async () => {
     render(<CustomFieldsAutoRender objectKey="company" />);
-    fireEvent.change(
-      screen.getByTestId("custom-fields-auto-input-segment_tier"),
-      { target: { value: "A" } },
-    );
+    fireEvent.change(screen.getByTestId("custom-fields-auto-input-segment_tier"), {
+      target: { value: "A" },
+    });
     fireEvent.click(screen.getByTestId("custom-fields-auto-project"));
     await waitFor(() => {
       expect(mutate).toHaveBeenCalledWith(
         expect.objectContaining({
           values: expect.objectContaining({ segment_tier: "A" }),
         }),
-        expect.any(Object),
+        expect.any(Object)
       );
     });
   });

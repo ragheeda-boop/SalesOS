@@ -1,7 +1,4 @@
-import {
-  MARKET_SIZING_HONESTY,
-  MARKET_SIZING_NON_GOALS,
-} from "../marketSizingHonesty";
+import { MARKET_SIZING_HONESTY, MARKET_SIZING_NON_GOALS } from "../marketSizingHonesty";
 
 describe("marketSizingHonesty — FE-S11-02", () => {
   it("states tip HTTP + in-memory + no live 141221 claim", () => {

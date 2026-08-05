@@ -3,14 +3,10 @@ export interface RoleManagerViewProps {
   permissions: PermissionItem[];
   loading: boolean;
   onRefresh: () => void;
-  onCreateRole: (data: {
-    name: string;
-    description?: string;
-    permissions: string[];
-  }) => void;
+  onCreateRole: (data: { name: string; description?: string; permissions: string[] }) => void;
   onUpdateRole: (
     id: string,
-    data: { name?: string; description?: string; permissions?: string[] },
+    data: { name?: string; description?: string; permissions?: string[] }
   ) => void;
   onDeleteRole: (id: string) => void;
 }

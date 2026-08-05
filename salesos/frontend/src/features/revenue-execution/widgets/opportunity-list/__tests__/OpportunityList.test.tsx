@@ -102,9 +102,7 @@ describe("OpportunityListView", () => {
     renderView();
     const filters = screen.getAllByText(/قيد التأهيل/);
     fireEvent.click(filters[0]);
-    expect(
-      screen.queryByText("توسع في الطاقة المتجددة"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("توسع في الطاقة المتجددة")).not.toBeInTheDocument();
   });
 
   it("calls onSelect when opportunity clicked", () => {
@@ -121,9 +119,7 @@ describe("OpportunityListView", () => {
 
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "قائمة الفرص" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "قائمة الفرص" })).toBeInTheDocument();
   });
 });
 

@@ -36,7 +36,7 @@ describe("websiteIntelligence API — FE-S11-07", () => {
     const meta = await getWebsiteIntelligenceMeta("tenant-1");
     expect(mocked.get).toHaveBeenCalledWith(
       "/api/v1/gtm/website-intelligence/meta",
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(meta.feature_ai_copilot).toBe(false);
 
@@ -56,16 +56,13 @@ describe("websiteIntelligence API — FE-S11-07", () => {
 
     mocked.get.mockResolvedValueOnce({ data: [snap] });
     await listWebsiteIntelligence("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/website-intelligence",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/website-intelligence", expect.any(Object));
 
     mocked.get.mockResolvedValueOnce({ data: snap });
     await getWebsiteIntelligence("tenant-1", "wi-1");
     expect(mocked.get).toHaveBeenCalledWith(
       "/api/v1/gtm/website-intelligence/wi-1",
-      expect.any(Object),
+      expect.any(Object)
     );
 
     mocked.post.mockResolvedValueOnce({ data: snap });
@@ -76,7 +73,7 @@ describe("websiteIntelligence API — FE-S11-07", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/gtm/website-intelligence",
       { url: "https://acme.example", company_name: "Acme" },
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(row.signal_count).toBe(1);
   });

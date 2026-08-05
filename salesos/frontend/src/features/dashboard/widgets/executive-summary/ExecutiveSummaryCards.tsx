@@ -2,14 +2,7 @@
 
 import { Card, CardContent, cn } from "@salesos/ui";
 import { useDashboardContext } from "../../_providers/dashboard-provider";
-import {
-  DollarSign,
-  TrendingUp,
-  Users,
-  ArrowUp,
-  ArrowDown,
-  Target,
-} from "lucide-react";
+import { DollarSign, TrendingUp, Users, ArrowUp, ArrowDown, Target } from "lucide-react";
 import type { MissionCenterData } from "@/application/dashboard/dashboard.dto";
 
 interface ExecCardProps {
@@ -23,42 +16,23 @@ interface ExecCardProps {
   trendUp?: boolean;
 }
 
-function ExecCard({
-  title,
-  value,
-  subtitle,
-  icon,
-  color,
-  bgColor,
-  trend,
-  trendUp,
-}: ExecCardProps) {
+function ExecCard({ title, value, subtitle, icon, color, bgColor, trend, trendUp }: ExecCardProps) {
   return (
     <Card className="overflow-hidden transition-all hover:shadow-muhide-2">
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1 min-w-0 flex-1">
-            <p className="text-xs font-medium text-[var(--text-muted)] truncate">
-              {title}
-            </p>
-            <p className="text-2xl font-bold text-[var(--text-primary)] tabular-nums">
-              {value}
-            </p>
-            {subtitle && (
-              <p className="text-xs text-[var(--text-muted)] truncate">{subtitle}</p>
-            )}
+            <p className="text-xs font-medium text-[var(--text-muted)] truncate">{title}</p>
+            <p className="text-2xl font-bold text-[var(--text-primary)] tabular-nums">{value}</p>
+            {subtitle && <p className="text-xs text-[var(--text-muted)] truncate">{subtitle}</p>}
             {trend !== undefined && (
               <span
                 className={cn(
                   "inline-flex items-center gap-0.5 text-xs font-medium",
-                  trendUp ? "text-success-600" : "text-danger-600",
+                  trendUp ? "text-success-600" : "text-danger-600"
                 )}
               >
-                {trendUp ? (
-                  <ArrowUp className="h-3 w-3" />
-                ) : (
-                  <ArrowDown className="h-3 w-3" />
-                )}
+                {trendUp ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
                 {trend}%
               </span>
             )}
@@ -66,7 +40,7 @@ function ExecCard({
           <div
             className={cn(
               "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-              bgColor,
+              bgColor
             )}
           >
             {icon}

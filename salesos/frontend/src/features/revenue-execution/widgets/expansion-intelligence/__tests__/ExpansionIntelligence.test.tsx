@@ -55,9 +55,7 @@ describe("ExpansionView", () => {
   });
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "فرص التوسع" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "فرص التوسع" })).toBeInTheDocument();
   });
 });
 describe("ExpansionIntelligenceWidget", () => {

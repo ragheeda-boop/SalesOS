@@ -5,14 +5,7 @@ import api from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
 import { cn } from "@salesos/ui";
 import { safeArray } from "@/lib/utils";
-import {
-  Calendar,
-  Users,
-  AlertTriangle,
-  Lightbulb,
-  Target,
-  ChevronDown,
-} from "lucide-react";
+import { Calendar, Users, AlertTriangle, Lightbulb, Target, ChevronDown } from "lucide-react";
 
 interface Opportunity {
   id: string;
@@ -63,7 +56,7 @@ export default function MeetingsPage() {
             ? res.data.records
             : Array.isArray(res.data)
               ? res.data
-              : [],
+              : []
         );
         setLoading(false);
       })
@@ -82,9 +75,7 @@ export default function MeetingsPage() {
       ]);
       if (briefRes.status === "fulfilled") setBrief(briefRes.value.data);
       if (meetingsRes.status === "fulfilled")
-        setMeetings(
-          safeArray(meetingsRes.value.data.records || meetingsRes.value.data),
-        );
+        setMeetings(safeArray(meetingsRes.value.data.records || meetingsRes.value.data));
     } catch {
       /* graceful */
     }
@@ -100,17 +91,8 @@ export default function MeetingsPage() {
   const selectedOpp = opportunities.find((o) => o.id === selected);
 
   if (loading)
-    return (
-      <div className="p-8 text-center text-[var(--text-muted)]">
-        {t("common.loading")}
-      </div>
-    );
-  if (error)
-    return (
-      <div className="p-8 text-center text-[var(--status-danger-text)]">
-        {error}
-      </div>
-    );
+    return <div className="p-8 text-center text-[var(--text-muted)]">{t("common.loading")}</div>;
+  if (error) return <div className="p-8 text-center text-[var(--status-danger-text)]">{error}</div>;
 
   return (
     <div className="p-6 space-y-6">
@@ -123,22 +105,17 @@ export default function MeetingsPage() {
         >
           {selectedOpp ? (
             <span>
-              {selectedOpp.name}{" "}
-              {selectedOpp.company_name && `— ${selectedOpp.company_name}`}
+              {selectedOpp.name} {selectedOpp.company_name && `— ${selectedOpp.company_name}`}
             </span>
           ) : (
-            <span className="text-[var(--text-disabled)]">
-              {t("meetings.select_opportunity")}
-            </span>
+            <span className="text-[var(--text-disabled)]">{t("meetings.select_opportunity")}</span>
           )}
           <ChevronDown className="h-4 w-4 ms-auto text-[var(--text-disabled)]" />
         </button>
         {showDropdown && (
           <div className="absolute z-10 mt-1 w-full max-w-md max-h-60 overflow-y-auto border rounded-lg bg-[var(--bg-primary)] shadow-lg">
             {opportunities.length === 0 && (
-              <p className="p-3 text-sm text-[var(--text-muted)]">
-                {t("common.no_results")}
-              </p>
+              <p className="p-3 text-sm text-[var(--text-muted)]">{t("common.no_results")}</p>
             )}
             {opportunities.map((o) => (
               <button
@@ -148,9 +125,7 @@ export default function MeetingsPage() {
               >
                 <span className="font-medium">{o.name}</span>
                 {o.company_name && (
-                  <span className="text-[var(--text-disabled)] ms-2">
-                    — {o.company_name}
-                  </span>
+                  <span className="text-[var(--text-disabled)] ms-2">— {o.company_name}</span>
                 )}
               </button>
             ))}
@@ -159,9 +134,7 @@ export default function MeetingsPage() {
       </div>
 
       {selected && briefLoading && (
-        <div className="p-8 text-center text-[var(--text-muted)]">
-          {t("common.loading")}
-        </div>
+        <div className="p-8 text-center text-[var(--text-muted)]">{t("common.loading")}</div>
       )}
 
       {selected && !briefLoading && (
@@ -186,8 +159,7 @@ export default function MeetingsPage() {
                 {brief.talking_points && brief.talking_points.length > 0 && (
                   <div>
                     <h4 className="text-sm font-medium flex items-center gap-1">
-                      <Lightbulb className="h-4 w-4" />{" "}
-                      {t("meetings.talking_points")}
+                      <Lightbulb className="h-4 w-4" /> {t("meetings.talking_points")}
                     </h4>
                     <ul className="mt-1 space-y-1">
                       {brief.talking_points.map((p, i) => (
@@ -195,10 +167,7 @@ export default function MeetingsPage() {
                           key={i}
                           className="text-sm text-[var(--text-secondary)] flex items-start gap-2"
                         >
-                          <span className="text-[var(--muhide-orange)] mt-1">
-                            •
-                          </span>{" "}
-                          {p}
+                          <span className="text-[var(--muhide-orange)] mt-1">•</span> {p}
                         </li>
                       ))}
                     </ul>
@@ -208,15 +177,11 @@ export default function MeetingsPage() {
                 {brief.risks && brief.risks.length > 0 && (
                   <div className="p-3 bg-[var(--status-danger-bg)] rounded-lg border border-[var(--status-danger-border)]">
                     <h4 className="text-sm font-medium text-[var(--status-danger-text)] flex items-center gap-1">
-                      <AlertTriangle className="h-4 w-4" />{" "}
-                      {t("meetings.risks")}
+                      <AlertTriangle className="h-4 w-4" /> {t("meetings.risks")}
                     </h4>
                     <ul className="mt-1 space-y-1">
                       {brief.risks.map((r, i) => (
-                        <li
-                          key={i}
-                          className="text-sm text-[var(--status-danger-text)]"
-                        >
+                        <li key={i} className="text-sm text-[var(--status-danger-text)]">
                           • {r}
                         </li>
                       ))}
@@ -228,9 +193,7 @@ export default function MeetingsPage() {
 
             {meetings.length > 0 && (
               <div className="rounded-lg border p-4 bg-[var(--bg-primary)]">
-                <h3 className="font-bold mb-3">
-                  {t("meetings.past_meetings")}
-                </h3>
+                <h3 className="font-bold mb-3">{t("meetings.past_meetings")}</h3>
                 <div className="space-y-2">
                   {meetings.map((m) => (
                     <div
@@ -249,8 +212,7 @@ export default function MeetingsPage() {
                           "px-2 py-0.5 rounded text-xs font-medium",
                           m.status === "completed" &&
                             "bg-[var(--status-success-bg)] text-[var(--status-success-text)]",
-                          m.status === "scheduled" &&
-                            "bg-blue-100 text-blue-700",
+                          m.status === "scheduled" && "bg-blue-100 text-blue-700"
                         )}
                       >
                         {m.status}
@@ -262,9 +224,7 @@ export default function MeetingsPage() {
             )}
 
             {!brief && !briefLoading && meetings.length === 0 && (
-              <p className="text-[var(--text-muted)] p-8 text-center">
-                {t("common.no_results")}
-              </p>
+              <p className="text-[var(--text-muted)] p-8 text-center">{t("common.no_results")}</p>
             )}
           </div>
 
@@ -281,9 +241,7 @@ export default function MeetingsPage() {
                   >
                     <div>
                       <p className="text-sm font-medium">{a.name}</p>
-                      <p className="text-xs text-[var(--text-muted)]">
-                        {a.role}
-                      </p>
+                      <p className="text-xs text-[var(--text-muted)]">{a.role}</p>
                     </div>
                     <span className="text-xs px-2 py-0.5 rounded bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)]">
                       {a.influence}

@@ -56,7 +56,7 @@ describe("decisionHttp", () => {
       expect.objectContaining({
         method: "POST",
         credentials: "include",
-      }),
+      })
     );
     const init = fetchMock.mock.calls[0][1] as RequestInit;
     expect(init.headers).toMatchObject({
@@ -83,7 +83,7 @@ describe("decisionHttp", () => {
       evaluateDecision({
         actorId: "a1",
         entityType: "opportunity",
-      }),
+      })
     ).rejects.toThrow(/HTTP 503/);
   });
 });

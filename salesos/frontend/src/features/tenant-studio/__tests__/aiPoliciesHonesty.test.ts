@@ -1,7 +1,4 @@
-import {
-  AI_POLICIES_HONESTY,
-  AI_POLICIES_NON_GOALS,
-} from "../aiPoliciesHonesty";
+import { AI_POLICIES_HONESTY, AI_POLICIES_NON_GOALS } from "../aiPoliciesHonesty";
 
 describe("aiPoliciesHonesty — FE-S12-02", () => {
   it("keeps tip honesty labels", () => {

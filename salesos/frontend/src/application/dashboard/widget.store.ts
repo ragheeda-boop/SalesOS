@@ -66,11 +66,7 @@ export type WidgetMap = {
   companyScoring: DashboardWidget<CompanyScoringData>;
 };
 
-export function deriveStatus(
-  data: unknown,
-  isLoading: boolean,
-  isError: boolean,
-): WidgetStatus {
+export function deriveStatus(data: unknown, isLoading: boolean, isError: boolean): WidgetStatus {
   if (isLoading && !data) return "loading";
   if (isLoading && data) return "degraded";
   if (isError && !data) return "error";
@@ -84,7 +80,7 @@ function buildWidget<T>(
   id: WidgetId,
   data: T | null | undefined,
   isLoading: boolean,
-  isError: boolean,
+  isError: boolean
 ): DashboardWidget<T> {
   const meta = WIDGET_META[id];
   return {
@@ -101,7 +97,7 @@ function resolveFromDto<T>(
   id: WidgetId,
   widget: DashboardWidget<T> | null | undefined,
   isLoading: boolean,
-  isError: boolean,
+  isError: boolean
 ): DashboardWidget<T> {
   if (!widget) {
     return buildWidget<T>(id, null, isLoading, isError);
@@ -125,76 +121,36 @@ function resolveFromDto<T>(
 export function deriveWidgets(
   dto: DashboardDTO | undefined,
   isLoading: boolean,
-  isError: boolean,
+  isError: boolean
 ): WidgetMap {
   return {
-    missionCenter: resolveFromDto(
-      "missionCenter",
-      dto?.missionCenter,
-      isLoading,
-      isError,
-    ),
-    decisionQueue: resolveFromDto(
-      "decisionQueue",
-      dto?.decisionQueue,
-      isLoading,
-      isError,
-    ),
-    intelligenceFeed: resolveFromDto(
-      "intelligenceFeed",
-      dto?.intelligenceFeed,
-      isLoading,
-      isError,
-    ),
+    missionCenter: resolveFromDto("missionCenter", dto?.missionCenter, isLoading, isError),
+    decisionQueue: resolveFromDto("decisionQueue", dto?.decisionQueue, isLoading, isError),
+    intelligenceFeed: resolveFromDto("intelligenceFeed", dto?.intelligenceFeed, isLoading, isError),
     aiBrief: resolveFromDto("aiBrief", dto?.aiBrief, isLoading, isError),
-    marketPulse: resolveFromDto(
-      "marketPulse",
-      dto?.marketPulse,
-      isLoading,
-      isError,
-    ),
-    recentActivity: resolveFromDto(
-      "recentActivity",
-      dto?.recentActivity,
-      isLoading,
-      isError,
-    ),
+    marketPulse: resolveFromDto("marketPulse", dto?.marketPulse, isLoading, isError),
+    recentActivity: resolveFromDto("recentActivity", dto?.recentActivity, isLoading, isError),
     pipeline: resolveFromDto("pipeline", dto?.pipeline, isLoading, isError),
-    companyHealth: resolveFromDto(
-      "companyHealth",
-      dto?.companyHealth,
-      isLoading,
-      isError,
-    ),
+    companyHealth: resolveFromDto("companyHealth", dto?.companyHealth, isLoading, isError),
     companyEngagement: resolveFromDto(
       "companyEngagement",
       dto?.companyEngagement,
       isLoading,
-      isError,
+      isError
     ),
     emailIntelligence: resolveFromDto(
       "emailIntelligence",
       dto?.emailIntelligence,
       isLoading,
-      isError,
+      isError
     ),
     calendarIntelligence: resolveFromDto(
       "calendarIntelligence",
       dto?.calendarIntelligence,
       isLoading,
-      isError,
+      isError
     ),
-    followupCenter: resolveFromDto(
-      "followupCenter",
-      dto?.followupCenter,
-      isLoading,
-      isError,
-    ),
-    companyScoring: resolveFromDto(
-      "companyScoring",
-      dto?.companyScoring,
-      isLoading,
-      isError,
-    ),
+    followupCenter: resolveFromDto("followupCenter", dto?.followupCenter, isLoading, isError),
+    companyScoring: resolveFromDto("companyScoring", dto?.companyScoring, isLoading, isError),
   };
 }

@@ -10,11 +10,7 @@ export const FLAG_ODOO_INTEGRATION = "feature_odoo_integration" as const;
 export const MUHIDE_TENANT_SLUG = "muhide" as const;
 
 /** Hub paths gated when connector_key=odoo and flag evaluates off (tip 403). */
-export const ODOO_FLAG_GATED_ACTIONS = [
-  "connect",
-  "test_connection",
-  "schedule",
-] as const;
+export const ODOO_FLAG_GATED_ACTIONS = ["connect", "test_connection", "schedule"] as const;
 
 /** Tip cursor_state is a per-model watermark map on ConnectionResponse. */
 export const CURSOR_STATE_HONESTY =

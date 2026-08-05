@@ -7,13 +7,8 @@ import type { AdminTenantDetail } from "@/lib/api";
 export function formatProvisionResultDescription(
   tenant: Pick<
     AdminTenantDetail,
-    | "slug"
-    | "plan_id"
-    | "region"
-    | "data_residency"
-    | "provisioning_status"
-    | "trial_ends_at"
-  >,
+    "slug" | "plan_id" | "region" | "data_residency" | "provisioning_status" | "trial_ends_at"
+  >
 ): string {
   const parts: string[] = [
     `slug=${tenant.slug}`,
@@ -53,10 +48,7 @@ export function formatLifecycleResultDescription(result: {
   return parts.join(" · ");
 }
 
-export function formatSuspendResultDescription(
-  tenantId: string,
-  reason?: string,
-): string {
+export function formatSuspendResultDescription(tenantId: string, reason?: string): string {
   return formatLifecycleResultDescription({
     tenant_id: tenantId,
     is_active: false,
@@ -95,7 +87,7 @@ export type TrialFilter = "" | "has_trial" | "expired" | "none";
 /** FE-S04-15 — classify trial_ends_at for list filter/column. */
 export function trialBucket(
   trialEndsAt: string | null | undefined,
-  nowMs: number = Date.now(),
+  nowMs: number = Date.now()
 ): Exclude<TrialFilter, ""> {
   if (!trialEndsAt) return "none";
   const ends = Date.parse(trialEndsAt);
@@ -103,9 +95,7 @@ export function trialBucket(
   return ends < nowMs ? "expired" : "has_trial";
 }
 
-export function formatTrialEndsLabel(
-  trialEndsAt: string | null | undefined,
-): string {
+export function formatTrialEndsLabel(trialEndsAt: string | null | undefined): string {
   if (!trialEndsAt) return "—";
   const ends = Date.parse(trialEndsAt);
   if (Number.isNaN(ends)) return "—";
@@ -115,7 +105,7 @@ export function formatTrialEndsLabel(
 /** FE-S04-25 — list trial honesty badge. */
 export function trialBadgeLabel(
   trialEndsAt: string | null | undefined,
-  nowMs: number = Date.now(),
+  nowMs: number = Date.now()
 ): string {
   const bucket = trialBucket(trialEndsAt, nowMs);
   if (bucket === "has_trial") return "Active trial";
@@ -125,7 +115,7 @@ export function trialBadgeLabel(
 
 export function trialBadgeVariant(
   trialEndsAt: string | null | undefined,
-  nowMs: number = Date.now(),
+  nowMs: number = Date.now()
 ): "success" | "warning" | "default" {
   const bucket = trialBucket(trialEndsAt, nowMs);
   if (bucket === "has_trial") return "success";
@@ -136,7 +126,7 @@ export function trialBadgeVariant(
 export function matchesTrialFilter(
   trialEndsAt: string | null | undefined,
   filter: TrialFilter,
-  nowMs: number = Date.now(),
+  nowMs: number = Date.now()
 ): boolean {
   if (!filter) return true;
   return trialBucket(trialEndsAt, nowMs) === filter;
@@ -158,8 +148,7 @@ export function lifecycleStatusDescription(tenant: {
   return `Inactive (soft-deleted) · is_active=false · provisioning=${prov} · Activate restores access`;
 }
 
-export type TenantSortKey =
-  "created_desc" | "created_asc" | "name_asc" | "name_desc";
+export type TenantSortKey = "created_desc" | "created_asc" | "name_asc" | "name_desc";
 
 /** FE-S04-29/33 — shareable Owner Console filter query (mirrors URL sync). */
 export function buildAdminTenantsFilterQuery(filters: {
@@ -182,17 +171,14 @@ export function buildAdminTenantsFilterQuery(filters: {
   const planId = filters.plan_id?.trim();
   if (planId) params.set("plan_id", planId);
   if (filters.status) params.set("status", filters.status);
-  if (filters.provisioning_status)
-    params.set("provisioning_status", filters.provisioning_status);
+  if (filters.provisioning_status) params.set("provisioning_status", filters.provisioning_status);
   const region = filters.region?.trim();
   if (region) params.set("region", region);
   const residency = filters.data_residency?.trim();
   if (residency) params.set("data_residency", residency);
   if (filters.trial) params.set("trial", filters.trial);
-  if (filters.sort && filters.sort !== "created_desc")
-    params.set("sort", filters.sort);
-  if (filters.page && filters.page > 1)
-    params.set("page", String(filters.page));
+  if (filters.sort && filters.sort !== "created_desc") params.set("sort", filters.sort);
+  if (filters.page && filters.page > 1) params.set("page", String(filters.page));
   if (filters.page_size && filters.page_size !== 20)
     params.set("page_size", String(filters.page_size));
   return params.toString();
@@ -203,7 +189,7 @@ export const TENANT_DELETION_RETENTION_DAYS = 30;
 
 /** Soft-delete may dual-write settings.deletion_requested_at (tip fd5af4d). */
 export function getDeletionRequestedAt(
-  settings: Record<string, unknown> | null | undefined,
+  settings: Record<string, unknown> | null | undefined
 ): string | null {
   const raw = settings?.deletion_requested_at;
   return typeof raw === "string" && raw.trim() ? raw : null;
@@ -221,7 +207,7 @@ export function resolveTenantDeletedAt(tenant: {
 export function retentionDaysRemaining(
   deletedAt: string | null | undefined,
   retentionDays: number = TENANT_DELETION_RETENTION_DAYS,
-  nowMs: number = Date.now(),
+  nowMs: number = Date.now()
 ): number | null {
   if (!deletedAt) return null;
   const start = Date.parse(deletedAt);
@@ -279,12 +265,8 @@ export function formatUsageMeterRow(meter: {
   period_start?: string | null;
   period_end?: string | null;
 }): string {
-  const start = meter.period_start
-    ? new Date(meter.period_start).toLocaleString()
-    : "—";
-  const end = meter.period_end
-    ? new Date(meter.period_end).toLocaleString()
-    : "—";
+  const start = meter.period_start ? new Date(meter.period_start).toLocaleString() : "—";
+  const end = meter.period_end ? new Date(meter.period_end).toLocaleString() : "—";
   return `${meter.metric_key}=${meter.quantity} · ${start} – ${end}`;
 }
 
@@ -293,8 +275,7 @@ export function getApiErrorStatus(err: unknown): number | null {
     typeof err === "object" &&
     err !== null &&
     "response" in err &&
-    typeof (err as { response?: { status?: unknown } }).response?.status ===
-      "number"
+    typeof (err as { response?: { status?: unknown } }).response?.status === "number"
   ) {
     return (err as { response: { status: number } }).response.status;
   }
@@ -306,11 +287,10 @@ export function getApiErrorDetail(err: unknown): string | null {
     typeof err === "object" &&
     err !== null &&
     "response" in err &&
-    typeof (err as { response?: { data?: { detail?: unknown } } }).response
-      ?.data?.detail === "string"
+    typeof (err as { response?: { data?: { detail?: unknown } } }).response?.data?.detail ===
+      "string"
   ) {
-    return (err as { response: { data: { detail: string } } }).response.data
-      .detail;
+    return (err as { response: { data: { detail: string } } }).response.data.detail;
   }
   return null;
 }
@@ -321,9 +301,7 @@ export function isStripeBillingUnavailableError(err: unknown): boolean {
   return detail.includes("STRIPE_SECRET_KEY");
 }
 
-export function stripeBillingUnavailableDescription(
-  detail?: string | null,
-): string {
+export function stripeBillingUnavailableDescription(detail?: string | null): string {
   if (detail && detail.trim()) return detail.trim();
   return (
     "Stripe billing unavailable: STRIPE_SECRET_KEY not configured " +
@@ -336,12 +314,9 @@ export function catalogPriceIdForCycle(
     stripe_price_id_monthly?: string | null;
     stripe_price_id_yearly?: string | null;
   },
-  cycle: "monthly" | "yearly",
+  cycle: "monthly" | "yearly"
 ): string | null {
-  const raw =
-    cycle === "yearly"
-      ? item.stripe_price_id_yearly
-      : item.stripe_price_id_monthly;
+  const raw = cycle === "yearly" ? item.stripe_price_id_yearly : item.stripe_price_id_monthly;
   return typeof raw === "string" && raw.trim() ? raw.trim() : null;
 }
 
@@ -356,7 +331,7 @@ export const ADMIN_USAGE_METRIC_OPTIONS = [
 
 export function dunningGraceDaysRemaining(
   graceEndsAt: string | null | undefined,
-  nowMs: number = Date.now(),
+  nowMs: number = Date.now()
 ): number | null {
   if (!graceEndsAt) return null;
   const end = Date.parse(graceEndsAt);
@@ -377,11 +352,8 @@ export function formatDunningCaseRow(c: {
       : remaining >= 0
         ? ` · grace ~${remaining}d left`
         : ` · grace elapsed ${Math.abs(remaining)}d ago`;
-  const inv = c.last_stripe_invoice_id
-    ? ` · inv=${c.last_stripe_invoice_id}`
-    : "";
-  const fails =
-    typeof c.failure_count === "number" ? ` · fails=${c.failure_count}` : "";
+  const inv = c.last_stripe_invoice_id ? ` · inv=${c.last_stripe_invoice_id}` : "";
+  const fails = typeof c.failure_count === "number" ? ` · fails=${c.failure_count}` : "";
   return `status=${c.status}${fails}${grace}${inv}`;
 }
 
@@ -428,8 +400,7 @@ export function formatPlanChangeQuote(q: {
   }
   if (q.applied) parts.push(`applied=${q.applied}`);
   if (q.pending_plan_id) parts.push(`pending=${q.pending_plan_id}`);
-  if (q.pending_effective_at)
-    parts.push(`pending_at=${q.pending_effective_at}`);
+  if (q.pending_effective_at) parts.push(`pending_at=${q.pending_effective_at}`);
   return parts.join(" · ");
 }
 
@@ -445,17 +416,13 @@ export function suspendedWriteBlockDescription(tenant: {
 }
 
 /** FE-S04-40 — safe default reprovision (failed/pending). */
-export function canRetryReprovision(
-  provisioningStatus?: string | null,
-): boolean {
+export function canRetryReprovision(provisioningStatus?: string | null): boolean {
   const s = provisioningStatus || "";
   return s === "failed" || s === "pending";
 }
 
 /** FE-S04-41 — suspended needs force_active=true on /reprovision. */
-export function requiresForceActiveReprovision(
-  provisioningStatus?: string | null,
-): boolean {
+export function requiresForceActiveReprovision(provisioningStatus?: string | null): boolean {
   return (provisioningStatus || "") === "suspended";
 }
 
@@ -464,21 +431,15 @@ export function formatTenantUsagePeriod(usage: {
   period_start?: string | null;
   period_end?: string | null;
 }): string {
-  const start = usage.period_start
-    ? new Date(usage.period_start).toLocaleDateString()
-    : "—";
-  const end = usage.period_end
-    ? new Date(usage.period_end).toLocaleDateString()
-    : "—";
+  const start = usage.period_start ? new Date(usage.period_start).toLocaleDateString() : "—";
+  const end = usage.period_end ? new Date(usage.period_end).toLocaleDateString() : "—";
   return `Period ${start} – ${end}`;
 }
 
 export const ADMIN_TENANTS_PAGE_SIZES = [20, 50, 100] as const;
 export type AdminTenantsPageSize = (typeof ADMIN_TENANTS_PAGE_SIZES)[number];
 
-export function parseAdminTenantsPageSize(
-  value: string | null | undefined,
-): AdminTenantsPageSize {
+export function parseAdminTenantsPageSize(value: string | null | undefined): AdminTenantsPageSize {
   const n = Number(value);
   return (ADMIN_TENANTS_PAGE_SIZES as readonly number[]).includes(n)
     ? (n as AdminTenantsPageSize)
@@ -506,17 +467,17 @@ export function formatReprovisionResultDescription(result: {
   if (typeof result.idempotent === "boolean") {
     parts.push(`idempotent=${result.idempotent}`);
   }
-  if (typeof result.roles_provisioned === "number")
-    parts.push(`roles=${result.roles_provisioned}`);
+  if (typeof result.roles_provisioned === "number") parts.push(`roles=${result.roles_provisioned}`);
   if (typeof result.permissions_provisioned === "number")
     parts.push(`permissions=${result.permissions_provisioned}`);
   return parts.join(" · ");
 }
 
 /** FE-S04-19 — client-side list sort. */
-export function sortAdminTenants<
-  T extends { name: string; created_at: string },
->(list: T[], sort: TenantSortKey): T[] {
+export function sortAdminTenants<T extends { name: string; created_at: string }>(
+  list: T[],
+  sort: TenantSortKey
+): T[] {
   const next = [...list];
   next.sort((a, b) => {
     switch (sort) {
@@ -553,16 +514,14 @@ export function formatPlanEntitlementsSummary(
         version?: number | null;
       }
     | null
-    | undefined,
+    | undefined
 ): string {
   if (!ents) return "entitlements=(tier default / unset)";
   const domains = ents.domains || {};
   const enabled = Object.entries(domains).filter(([, d]) => d && d.enabled);
   const q = ents.quotas;
   const seats = q?.seats ?? "—";
-  const ai = q?.ai_tokens_unlimited
-    ? "ai=unlimited"
-    : `ai=${q?.ai_tokens_monthly ?? "—"}`;
+  const ai = q?.ai_tokens_unlimited ? "ai=unlimited" : `ai=${q?.ai_tokens_monthly ?? "—"}`;
   const conn = q?.connectors_unlimited
     ? "connectors=unlimited"
     : `connectors=${q?.connectors ?? "—"}`;
@@ -576,10 +535,8 @@ export function formatPlanEntitlementsSummary(
 }
 
 export function parsePlanEntitlementsJson(
-  raw: string,
-):
-  | { ok: true; value: Record<string, unknown> | null }
-  | { ok: false; error: string } {
+  raw: string
+): { ok: true; value: Record<string, unknown> | null } | { ok: false; error: string } {
   const trimmed = raw.trim();
   if (!trimmed) return { ok: true, value: null };
   try {
@@ -612,7 +569,7 @@ export function formatStripeStatusBanner(
         honesty?: string | null;
       }
     | null
-    | undefined,
+    | undefined
 ): string {
   if (!status) return "Stripe status unavailable.";
   const flags = [
@@ -626,8 +583,7 @@ export function formatStripeStatusBanner(
     `production_go=${status.production_go ? "yes" : "no"}`,
   ];
   const honesty =
-    status.honesty ||
-    "env-only secrets; empty STRIPE_* fail-closed 503. No invented keys.";
+    status.honesty || "env-only secrets; empty STRIPE_* fail-closed 503. No invented keys.";
   return `${flags.join(" · ")}. ${honesty}`;
 }
 
@@ -639,7 +595,7 @@ export function stripeStatusTone(
         production_go?: boolean;
       }
     | null
-    | undefined,
+    | undefined
 ): "ok" | "warn" | "blocked" {
   if (!status) return "blocked";
   if (status.production_go) return "ok"; // never true on tip honesty
@@ -676,7 +632,7 @@ export function listDisabledEntitlementDomains(
         domains?: Record<string, { enabled?: boolean } | null> | null;
       }
     | null
-    | undefined,
+    | undefined
 ): string[] {
   if (!ents?.domains) return [];
   return Object.entries(ents.domains)

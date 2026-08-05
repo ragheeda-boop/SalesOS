@@ -5,11 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useCompanySearch } from "@/lib/hooks/companyQueries";
-import {
-  useCreateCompany,
-  useUpdateCompany,
-  useDeleteCompany,
-} from "@/lib/hooks/mutationHooks";
+import { useCreateCompany, useUpdateCompany, useDeleteCompany } from "@/lib/hooks/mutationHooks";
 import { useDebounce } from "@salesos/hooks";
 import {
   DataTable,
@@ -58,10 +54,7 @@ const STATUS_OPTIONS = [
   { label: "Expired", value: "expired" },
 ];
 
-const STATUS_VARIANT: Record<
-  string,
-  "success" | "warning" | "danger" | "default"
-> = {
+const STATUS_VARIANT: Record<string, "success" | "warning" | "danger" | "default"> = {
   active: "success",
   inactive: "default",
   suspended: "warning",
@@ -105,9 +98,7 @@ export default function CompaniesPage() {
   const { toast } = useToast();
 
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-  const [statusFilter, _setStatusFilter] = useState(
-    searchParams.get("status") || "",
-  );
+  const [statusFilter, _setStatusFilter] = useState(searchParams.get("status") || "");
   const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
   const [modalOpen, setModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -130,30 +121,18 @@ export default function CompaniesPage() {
   const [editStatus, setEditStatus] = useState("");
   const [editTags, setEditTags] = useState("");
 
-  const [filterIndustry, setFilterIndustry] = useState(
-    searchParams.get("industry") || "",
-  );
-  const [filterSizeMin, setFilterSizeMin] = useState(
-    searchParams.get("size_min") || "",
-  );
-  const [filterSizeMax, setFilterSizeMax] = useState(
-    searchParams.get("size_max") || "",
-  );
-  const [filterRegion, setFilterRegion] = useState(
-    searchParams.get("region") || "",
-  );
+  const [filterIndustry, setFilterIndustry] = useState(searchParams.get("industry") || "");
+  const [filterSizeMin, setFilterSizeMin] = useState(searchParams.get("size_min") || "");
+  const [filterSizeMax, setFilterSizeMax] = useState(searchParams.get("size_max") || "");
+  const [filterRegion, setFilterRegion] = useState(searchParams.get("region") || "");
   const [filterDateFrom, setFilterDateFrom] = useState<Date | null>(
-    searchParams.get("date_from")
-      ? new Date(searchParams.get("date_from")!)
-      : null,
+    searchParams.get("date_from") ? new Date(searchParams.get("date_from")!) : null
   );
   const [filterDateTo, setFilterDateTo] = useState<Date | null>(
-    searchParams.get("date_to") ? new Date(searchParams.get("date_to")!) : null,
+    searchParams.get("date_to") ? new Date(searchParams.get("date_to")!) : null
   );
   const [filterStatusChips, setFilterStatusChips] = useState<string[]>(
-    searchParams.get("status")
-      ? searchParams.get("status")!.split(",").filter(Boolean)
-      : [],
+    searchParams.get("status") ? searchParams.get("status")!.split(",").filter(Boolean) : []
   );
 
   const [exportLoading, setExportLoading] = useState(false);
@@ -211,8 +190,7 @@ export default function CompaniesPage() {
     setSelectAllAcross(false);
   }, []);
 
-  const selectionCount =
-    selectAllAcross && data ? data.total : selectedIds.size;
+  const selectionCount = selectAllAcross && data ? data.total : selectedIds.size;
 
   const handleCreate = useCallback(async () => {
     if (!formData.name_ar || !formData.cr_number) return;
@@ -239,33 +217,26 @@ export default function CompaniesPage() {
         description: "The company has been added successfully.",
       });
     } catch (err) {
-      const status = (err as { response?: { status?: number } })?.response
-        ?.status;
+      const status = (err as { response?: { status?: number } })?.response?.status;
       const msg =
         status === 403
           ? "You don't have permission to create companies."
-          : (err as { response?: { data?: { detail?: string } } })?.response
-              ?.data?.detail || "An error occurred while creating the company.";
+          : (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+            "An error occurred while creating the company.";
       toast({ variant: "error", title: "Failed to create", description: msg });
     }
   }, [formData, createCompany, toast]);
 
   const handleBulkEdit = useCallback(async () => {
-    const ids =
-      selectAllAcross && data
-        ? data.items.map((c) => c.id)
-        : Array.from(selectedIds);
+    const ids = selectAllAcross && data ? data.items.map((c) => c.id) : Array.from(selectedIds);
     if (!ids.length) return;
     try {
       const payload: Record<string, unknown> = {};
       if (editIndustry) payload.industry = editIndustry;
       if (editSize) payload.size = Number(editSize);
       if (editStatus) payload.status = editStatus;
-      if (editTags)
-        payload.tags = editTags.split(",").map((t: string) => t.trim());
-      await Promise.all(
-        ids.map((id) => updateCompany.mutateAsync({ id, ...payload })),
-      );
+      if (editTags) payload.tags = editTags.split(",").map((t: string) => t.trim());
+      await Promise.all(ids.map((id) => updateCompany.mutateAsync({ id, ...payload })));
       setBulkEditOpen(false);
       setEditIndustry("");
       setEditSize("");
@@ -298,10 +269,7 @@ export default function CompaniesPage() {
   ]);
 
   const handleBulkDelete = useCallback(async () => {
-    const ids =
-      selectAllAcross && data
-        ? data.items.map((c) => c.id)
-        : Array.from(selectedIds);
+    const ids = selectAllAcross && data ? data.items.map((c) => c.id) : Array.from(selectedIds);
     if (!ids.length) return;
     try {
       await Promise.all(ids.map((id) => deleteCompany.mutateAsync({ id })));
@@ -319,14 +287,7 @@ export default function CompaniesPage() {
         description: "An error occurred while deleting companies.",
       });
     }
-  }, [
-    selectedIds,
-    selectAllAcross,
-    data,
-    deleteCompany,
-    handleClearSelection,
-    toast,
-  ]);
+  }, [selectedIds, selectAllAcross, data, deleteCompany, handleClearSelection, toast]);
 
   const handleBulkExport = useCallback(async () => {
     setExportLoading(true);
@@ -336,18 +297,14 @@ export default function CompaniesPage() {
       exportParams.set("format", "csv");
       if (ids.length) ids.forEach((id) => exportParams.append("ids", id));
       Object.entries(params).forEach(([k, v]) => {
-        if (v !== undefined && v !== "" && v !== null)
-          exportParams.set(k, String(v));
+        if (v !== undefined && v !== "" && v !== null) exportParams.set(k, String(v));
       });
-      const response = await fetch(
-        `/api/v1/companies/export?${exportParams.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-            "X-Tenant-Id": localStorage.getItem("tenant_id") || "default",
-          },
+      const response = await fetch(`/api/v1/companies/export?${exportParams.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "X-Tenant-Id": localStorage.getItem("tenant_id") || "default",
         },
-      );
+      });
       if (!response.ok) throw new Error("Export failed");
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -375,9 +332,7 @@ export default function CompaniesPage() {
 
   const handleFilterStatusToggle = useCallback((status: string) => {
     setFilterStatusChips((prev) =>
-      prev.includes(status)
-        ? prev.filter((s) => s !== status)
-        : [...prev, status],
+      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
     );
     setPage(1);
   }, []);
@@ -448,7 +403,7 @@ export default function CompaniesPage() {
       chips.push({
         label: `Status: ${s}`,
         onRemove: () => handleFilterStatusToggle(s),
-      }),
+      })
     );
     return chips;
   }, [
@@ -472,9 +427,7 @@ export default function CompaniesPage() {
           className="flex items-center gap-2 font-medium text-[var(--muhide-orange)] hover:underline"
         >
           <Building2 className="h-4 w-4 shrink-0" />
-          <span className="truncate">
-            {row.original.name_ar || row.original.name_en}
-          </span>
+          <span className="truncate">{row.original.name_ar || row.original.name_en}</span>
         </Link>
       ),
     },
@@ -493,9 +446,7 @@ export default function CompaniesPage() {
       header: t("labels.status"),
       cell: ({ getValue }) => {
         const status = getValue() as string;
-        return (
-          <Badge variant={STATUS_VARIANT[status] || "default"}>{status}</Badge>
-        );
+        return <Badge variant={STATUS_VARIANT[status] || "default"}>{status}</Badge>;
       },
     },
     {
@@ -533,22 +484,13 @@ export default function CompaniesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            {t("nav.companies")}
-          </h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            {t("companies.subtitle")}
-          </p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t("nav.companies")}</h1>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">{t("companies.subtitle")}</p>
         </div>
         <Modal open={modalOpen} onOpenChange={setModalOpen}>
           <ModalTrigger>
-            <Tooltip
-              content={isAdmin ? undefined : "Only admins can add companies"}
-            >
-              <Button
-                leftIcon={<Plus className="h-4 w-4" />}
-                disabled={!isAdmin}
-              >
+            <Tooltip content={isAdmin ? undefined : "Only admins can add companies"}>
+              <Button leftIcon={<Plus className="h-4 w-4" />} disabled={!isAdmin}>
                 {t("companies.add_company")}
               </Button>
             </Tooltip>
@@ -563,9 +505,7 @@ export default function CompaniesPage() {
                   </label>
                   <Input
                     value={formData.name_ar}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name_ar: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
                     placeholder="Al Amal Trading Co."
                   />
                 </div>
@@ -575,9 +515,7 @@ export default function CompaniesPage() {
                   </label>
                   <Input
                     value={formData.cr_number}
-                    onChange={(e) =>
-                      setFormData({ ...formData, cr_number: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, cr_number: e.target.value })}
                     placeholder="1234567890"
                   />
                 </div>
@@ -587,9 +525,7 @@ export default function CompaniesPage() {
                   </label>
                   <Input
                     value={formData.name_en}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name_en: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
                     placeholder="Al Amal Trading Co."
                   />
                 </div>
@@ -600,9 +536,7 @@ export default function CompaniesPage() {
                     </label>
                     <Input
                       value={formData.city}
-                      onChange={(e) =>
-                        setFormData({ ...formData, city: e.target.value })
-                      }
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                       placeholder="Riyadh"
                     />
                   </div>
@@ -612,9 +546,7 @@ export default function CompaniesPage() {
                     </label>
                     <Input
                       value={formData.region}
-                      onChange={(e) =>
-                        setFormData({ ...formData, region: e.target.value })
-                      }
+                      onChange={(e) => setFormData({ ...formData, region: e.target.value })}
                       placeholder="Riyadh Region"
                     />
                   </div>
@@ -627,20 +559,12 @@ export default function CompaniesPage() {
               </Button>
               <Button
                 onClick={handleCreate}
-                disabled={
-                  !formData.name_ar ||
-                  !formData.cr_number ||
-                  createCompany.isPending
-                }
+                disabled={!formData.name_ar || !formData.cr_number || createCompany.isPending}
                 leftIcon={
-                  createCompany.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : undefined
+                  createCompany.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined
                 }
               >
-                {createCompany.isPending
-                  ? t("common.saving")
-                  : t("common.save")}
+                {createCompany.isPending ? t("common.saving") : t("common.save")}
               </Button>
             </ModalFooter>
           </ModalContent>
@@ -783,9 +707,7 @@ export default function CompaniesPage() {
           <Checkbox checked onChange={() => handleClearSelection()} />
           <span className="text-sm font-medium text-[var(--text-secondary)]">
             {selectionCount} selected
-            {selectAllAcross && data
-              ? ` across all ${data.total} companies`
-              : ""}
+            {selectAllAcross && data ? ` across all ${data.total} companies` : ""}
           </span>
           {!selectAllAcross && data && data.total > data.items.length && (
             <button
@@ -831,9 +753,7 @@ export default function CompaniesPage() {
           <div className="px-4 py-12">
             <ErrorFallback
               title={t("companies.load_error")}
-              message={
-                (error as Error)?.message || t("companies.check_backend")
-              }
+              message={(error as Error)?.message || t("companies.check_backend")}
               onRetry={() => refetch()}
               showDetails={process.env.NODE_ENV === "development"}
               errorDetails={String(error)}
@@ -973,9 +893,7 @@ export default function CompaniesPage() {
               onClick={handleBulkEdit}
               disabled={updateCompany.isPending}
               leftIcon={
-                updateCompany.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : undefined
+                updateCompany.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined
               }
             >
               {updateCompany.isPending ? "Saving..." : "Save Changes"}
@@ -994,8 +912,7 @@ export default function CompaniesPage() {
                 Delete <strong>{selectionCount}</strong> companies?
               </p>
               <p className="text-sm text-danger-600">
-                This action cannot be undone. All associated data will be
-                permanently removed.
+                This action cannot be undone. All associated data will be permanently removed.
               </p>
             </div>
           </ModalBody>
@@ -1015,9 +932,7 @@ export default function CompaniesPage() {
                 )
               }
             >
-              {deleteCompany.isPending
-                ? "Deleting..."
-                : `Delete ${selectionCount} Companies`}
+              {deleteCompany.isPending ? "Deleting..." : `Delete ${selectionCount} Companies`}
             </Button>
           </ModalFooter>
         </ModalContent>

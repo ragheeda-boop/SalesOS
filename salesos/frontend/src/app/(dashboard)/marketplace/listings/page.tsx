@@ -11,13 +11,10 @@ export default function MarketplaceListingsPage() {
   return (
     <div className="space-y-6 p-6" data-testid="marketplace-listings-page">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          Marketplace Listings
-        </h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Marketplace Listings</h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Tip memory catalog + certify/publish/catalog-install against
-          /api/v1/marketplace/listings. Catalog install ≠ live HubSpot/Odoo
-          sync. Not the CAP-036 plugin stub.
+          Tip memory catalog + certify/publish/catalog-install against /api/v1/marketplace/listings.
+          Catalog install ≠ live HubSpot/Odoo sync. Not the CAP-036 plugin stub.
         </p>
       </div>
       <MarketplaceListingsBrowse />

@@ -9,19 +9,14 @@ import {
   useEvaluateAiPolicy,
   useUpsertAiPolicy,
 } from "@/lib/hooks/aiPoliciesStudioQueries";
-import type {
-  AiPolicyEvaluateResult,
-  AiPolicySet,
-  DataClassRule,
-} from "@/lib/api";
+import type { AiPolicyEvaluateResult, AiPolicySet, DataClassRule } from "@/lib/api";
 import {
   AI_POLICIES_HONESTY,
   AI_POLICIES_NON_GOALS,
 } from "@/features/tenant-studio/aiPoliciesHonesty";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -67,9 +62,7 @@ export function AiPoliciesStudio() {
   const [evalDataClass, setEvalDataClass] = useState("pii");
   const [evalTier, setEvalTier] = useState("full");
   const [evalSample, setEvalSample] = useState("");
-  const [evalResult, setEvalResult] = useState<AiPolicyEvaluateResult | null>(
-    null,
-  );
+  const [evalResult, setEvalResult] = useState<AiPolicyEvaluateResult | null>(null);
 
   const catalog = metaQuery.data?.guardrail_catalog ?? {};
   const dataClasses = metaQuery.data?.data_classes ?? FALLBACK_CLASSES;
@@ -89,7 +82,7 @@ export function AiPoliciesStudio() {
 
   const selected = useMemo(
     () => (listQuery.data ?? []).find((r) => r.id === selectedId) ?? null,
-    [listQuery.data, selectedId],
+    [listQuery.data, selectedId]
   );
 
   useEffect(() => {
@@ -99,23 +92,18 @@ export function AiPoliciesStudio() {
     setRules(
       selected.data_class_rules.length
         ? selected.data_class_rules.map((r) => ({ ...r }))
-        : defaultRules(),
+        : defaultRules()
     );
   }, [selected]);
 
-  const busy =
-    upsertMutation.isPending ||
-    deleteMutation.isPending ||
-    evaluateMutation.isPending;
+  const busy = upsertMutation.isPending || deleteMutation.isPending || evaluateMutation.isPending;
 
   function loadIntoForm(row: AiPolicySet) {
     setSelectedId(row.id);
     setName(row.name);
     setGuardrails({ ...row.guardrails });
     setRules(
-      row.data_class_rules.length
-        ? row.data_class_rules.map((r) => ({ ...r }))
-        : defaultRules(),
+      row.data_class_rules.length ? row.data_class_rules.map((r) => ({ ...r })) : defaultRules()
     );
     setEvalResult(null);
   }
@@ -136,16 +124,14 @@ export function AiPoliciesStudio() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="ai-policies-honesty"
       >
-        {AI_POLICIES_HONESTY} Non-goals: {AI_POLICIES_NON_GOALS.join("; ")}. Not
-        Production GO / RAG GO.
+        {AI_POLICIES_HONESTY} Non-goals: {AI_POLICIES_NON_GOALS.join("; ")}. Not Production GO / RAG
+        GO.
       </p>
 
       {metaQuery.isLoading ? (
         <Spinner />
       ) : metaQuery.isError ? (
-        <p className="text-sm text-[var(--text-danger)]">
-          {getApiError(metaQuery.error)}
-        </p>
+        <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
       ) : metaQuery.data ? (
         <div
           className="space-y-1 font-mono text-xs text-[var(--text-muted)]"
@@ -158,9 +144,7 @@ export function AiPoliciesStudio() {
           <p data-testid="ai-policies-meta-flag">
             feature_ai_copilot={String(metaQuery.data.feature_ai_copilot)}
           </p>
-          <p data-testid="ai-policies-meta-honesty">
-            tip /meta: {metaQuery.data.honesty}
-          </p>
+          <p data-testid="ai-policies-meta-honesty">tip /meta: {metaQuery.data.honesty}</p>
         </div>
       ) : null}
 
@@ -179,9 +163,7 @@ export function AiPoliciesStudio() {
         />
 
         <div data-testid="ai-policies-guardrails">
-          <p className="mb-2 text-xs font-medium text-[var(--text-muted)]">
-            AI-GR-* toggles
-          </p>
+          <p className="mb-2 text-xs font-medium text-[var(--text-muted)]">AI-GR-* toggles</p>
           <div className="grid gap-2 sm:grid-cols-2">
             {Object.entries(catalog).map(([id, label]) => (
               <label
@@ -285,7 +267,7 @@ export function AiPoliciesStudio() {
                       title: getApiError(err),
                       variant: "error",
                     }),
-                },
+                }
               );
             }}
           >
@@ -309,9 +291,7 @@ export function AiPoliciesStudio() {
         data-testid="ai-policies-list"
       >
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-            Policies
-          </h2>
+          <h2 className="text-sm font-semibold text-[var(--text-primary)]">Policies</h2>
           <Button
             variant="outline"
             size="sm"
@@ -325,14 +305,9 @@ export function AiPoliciesStudio() {
         {listQuery.isLoading ? (
           <Spinner />
         ) : listQuery.isError ? (
-          <p className="text-sm text-[var(--text-danger)]">
-            {getApiError(listQuery.error)}
-          </p>
+          <p className="text-sm text-[var(--text-danger)]">{getApiError(listQuery.error)}</p>
         ) : (listQuery.data ?? []).length === 0 ? (
-          <p
-            className="text-sm text-[var(--text-muted)]"
-            data-testid="ai-policies-empty"
-          >
+          <p className="text-sm text-[var(--text-muted)]" data-testid="ai-policies-empty">
             No policies yet (tip may auto-seed default on list).
           </p>
         ) : (
@@ -344,9 +319,7 @@ export function AiPoliciesStudio() {
                 data-testid="ai-policies-row"
               >
                 <div>
-                  <p className="font-medium text-[var(--text-primary)]">
-                    {row.name}
-                  </p>
+                  <p className="font-medium text-[var(--text-primary)]">{row.name}</p>
                   <p className="font-mono text-xs text-[var(--text-muted)]">
                     {row.id} · rules={row.data_class_rules.length}
                   </p>
@@ -454,7 +427,7 @@ export function AiPoliciesStudio() {
                     title: getApiError(err),
                     variant: "error",
                   }),
-              },
+              }
             );
           }}
         >

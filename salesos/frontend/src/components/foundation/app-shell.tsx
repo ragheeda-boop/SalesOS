@@ -1,11 +1,4 @@
-import {
-  useState,
-  createContext,
-  useContext,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
+import { useState, createContext, useContext, useEffect, useCallback, useRef } from "react";
 import { usePathname } from "next/navigation";
 
 interface AppShellContextType {
@@ -54,13 +47,8 @@ interface AppShellProps {
   defaultSidebarCollapsed?: boolean;
 }
 
-export function AppShell({
-  children,
-  defaultSidebarCollapsed = false,
-}: AppShellProps) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(
-    defaultSidebarCollapsed,
-  );
+export function AppShell({ children, defaultSidebarCollapsed = false }: AppShellProps) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(defaultSidebarCollapsed);
   const [commandOpen, setCommandOpen] = useState(false);
 
   const handleKeyDown = useCallback(
@@ -73,7 +61,7 @@ export function AppShell({
         setCommandOpen(false);
       }
     },
-    [commandOpen],
+    [commandOpen]
   );
 
   useEffect(() => {
@@ -95,17 +83,10 @@ export function AppShell({
         aria-label="Application shell"
       >
         <RouteAnnouncer />
-        <div
-          aria-live="polite"
-          aria-atomic="true"
-          className="sr-only"
-          role="status"
-        >
+        <div aria-live="polite" aria-atomic="true" className="sr-only" role="status">
           {commandOpen ? "Command palette opened. Press Escape to close." : ""}
         </div>
-        <span className="sr-only">
-          Press Ctrl+K or Cmd+K to open the command palette
-        </span>
+        <span className="sr-only">Press Ctrl+K or Cmd+K to open the command palette</span>
         {children}
       </div>
     </AppShellContext.Provider>

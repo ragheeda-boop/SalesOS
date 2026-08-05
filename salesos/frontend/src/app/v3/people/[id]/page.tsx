@@ -27,8 +27,7 @@ import { EmployeeTimeline } from "@/components/employee-360/employee-360-timelin
 import { EmployeeScoring } from "@/components/employee-360/employee-360-scoring";
 import { EmployeeSignals } from "@/components/employee-360/employee-360-signals";
 
-type TabId =
-  "overview" | "portfolio" | "activity" | "timeline" | "intelligence";
+type TabId = "overview" | "portfolio" | "activity" | "timeline" | "intelligence";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -42,18 +41,10 @@ function displayName(profile: EmployeeProfile): string {
   return profile.full_name?.trim() || profile.full_name_ar || "Person";
 }
 
-function Field({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number | null | undefined;
-}) {
+function Field({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
     <div className="space-y-0.5">
-      <dt className="text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">
-        {label}
-      </dt>
+      <dt className="text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">{label}</dt>
       <dd className="text-sm text-[var(--text-primary)]" dir="auto">
         {value ?? "—"}
       </dd>
@@ -81,10 +72,7 @@ function TabEmpty({
   );
 }
 
-function formatValue(
-  value: number | undefined | null,
-  currency = "SAR",
-): string {
+function formatValue(value: number | undefined | null, currency = "SAR"): string {
   if (value == null || Number.isNaN(value)) return "—";
   return new Intl.NumberFormat("en-SA", {
     style: "currency",
@@ -119,13 +107,7 @@ function recordLabel(item: Record<string, unknown>, ...keys: string[]): string {
   return "Untitled";
 }
 
-function OverviewTab({
-  profile,
-  kpis,
-}: {
-  profile: EmployeeProfile;
-  kpis: EmployeeKPIs;
-}) {
+function OverviewTab({ profile, kpis }: { profile: EmployeeProfile; kpis: EmployeeKPIs }) {
   return (
     <div className="space-y-6">
       <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -134,22 +116,12 @@ function OverviewTab({
         <Field label="Email" value={profile.email} />
         <Field label="Phone" value={profile.phone} />
         <Field label="Role" value={profile.role?.replace(/_/g, " ")} />
-        <Field
-          label="Status"
-          value={profile.is_active ? "Active" : "Inactive"}
-        />
+        <Field label="Status" value={profile.is_active ? "Active" : "Inactive"} />
         <Field
           label="Manager"
-          value={
-            profile.manager
-              ? recordLabel(profile.manager, "full_name", "name")
-              : null
-          }
+          value={profile.manager ? recordLabel(profile.manager, "full_name", "name") : null}
         />
-        <Field
-          label="Team size"
-          value={profile.team?.length ? profile.team.length : null}
-        />
+        <Field label="Team size" value={profile.team?.length ? profile.team.length : null} />
         <Field label="Created" value={profile.created_at} />
       </dl>
 
@@ -161,10 +133,7 @@ function OverviewTab({
           <Field label="Win rate" value={formatPct(kpis.win_rate)} />
           <Field label="Activities" value={kpis.activities} />
           <Field label="Response rate" value={formatPct(kpis.response_rate)} />
-          <Field
-            label="Follow-up rate"
-            value={formatPct(kpis.follow_up_rate)}
-          />
+          <Field label="Follow-up rate" value={formatPct(kpis.follow_up_rate)} />
           <Field label="Productivity" value={formatPct(kpis.productivity)} />
           <Field label="Forecast" value={formatValue(kpis.forecast)} />
         </dl>
@@ -172,16 +141,12 @@ function OverviewTab({
 
       {profile.team?.length ? (
         <section className="space-y-2">
-          <h2 className="text-sm font-medium text-[var(--text-primary)]">
-            Team
-          </h2>
+          <h2 className="text-sm font-medium text-[var(--text-primary)]">Team</h2>
           <ul className="divide-y divide-[var(--border-default)] rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)]">
             {profile.team.slice(0, 12).map((member, idx) => {
               const row = asRecord(member);
               const id = row ? recordId(row) : undefined;
-              const name = row
-                ? recordLabel(row, "full_name", "name")
-                : "Member";
+              const name = row ? recordLabel(row, "full_name", "name") : "Member";
               return (
                 <li key={id ?? `team-${idx}`} className="px-3 py-2 text-sm">
                   {id ? (
@@ -216,12 +181,7 @@ function PortfolioTab({
   const contracts = portfolio.contracts ?? [];
   const contacts = portfolio.contacts ?? [];
 
-  if (
-    !companies.length &&
-    !pipeline.length &&
-    !contracts.length &&
-    !contacts.length
-  ) {
+  if (!companies.length && !pipeline.length && !contracts.length && !contacts.length) {
     return (
       <TabEmpty
         title="No portfolio yet"
@@ -235,16 +195,13 @@ function PortfolioTab({
   return (
     <div className="space-y-6">
       <p className="text-[12px] text-[var(--text-muted)]">
-        Revenue {formatValue(portfolio.revenue)} · {pipeline.length} pipeline
-        item
+        Revenue {formatValue(portfolio.revenue)} · {pipeline.length} pipeline item
         {pipeline.length === 1 ? "" : "s"} · {companies.length} compan
         {companies.length === 1 ? "y" : "ies"}
       </p>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-medium text-[var(--text-primary)]">
-          Pipeline
-        </h2>
+        <h2 className="text-sm font-medium text-[var(--text-primary)]">Pipeline</h2>
         {pipeline.length ? (
           <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)]">
             <div className="overflow-x-auto">
@@ -304,16 +261,12 @@ function PortfolioTab({
             </div>
           </div>
         ) : (
-          <p className="text-sm text-[var(--text-secondary)]">
-            No pipeline items on this record.
-          </p>
+          <p className="text-sm text-[var(--text-secondary)]">No pipeline items on this record.</p>
         )}
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-medium text-[var(--text-primary)]">
-          Companies
-        </h2>
+        <h2 className="text-sm font-medium text-[var(--text-primary)]">Companies</h2>
         {companies.length ? (
           <ul className="divide-y divide-[var(--border-default)] rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)]">
             {companies.map((raw, idx) => {
@@ -339,19 +292,15 @@ function PortfolioTab({
             })}
           </ul>
         ) : (
-          <p className="text-sm text-[var(--text-secondary)]">
-            No companies on this record.
-          </p>
+          <p className="text-sm text-[var(--text-secondary)]">No companies on this record.</p>
         )}
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-medium text-[var(--text-primary)]">
-          Contracts
-        </h2>
+        <h2 className="text-sm font-medium text-[var(--text-primary)]">Contracts</h2>
         <p className="text-[12px] text-[var(--text-muted)]">
-          Portfolio contracts from Employee 360 — no Contracts list/detail
-          dual-run yet (commercial API is create/sign only).
+          Portfolio contracts from Employee 360 — no Contracts list/detail dual-run yet (commercial
+          API is create/sign only).
         </p>
         {contracts.length ? (
           <ul className="divide-y divide-[var(--border-default)] rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)]">
@@ -368,29 +317,20 @@ function PortfolioTab({
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-[var(--text-secondary)]">
-            No contracts on this record.
-          </p>
+          <p className="text-sm text-[var(--text-secondary)]">No contracts on this record.</p>
         )}
       </section>
 
       {contacts.length ? (
         <section className="space-y-2">
-          <h2 className="text-sm font-medium text-[var(--text-primary)]">
-            Contacts
-          </h2>
+          <h2 className="text-sm font-medium text-[var(--text-primary)]">Contacts</h2>
           <ul className="divide-y divide-[var(--border-default)] rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)]">
             {contacts.map((raw, idx) => {
               const row = asRecord(raw);
               const id = row ? recordId(row) : undefined;
-              const name = row
-                ? recordLabel(row, "name", "full_name")
-                : "Contact";
+              const name = row ? recordLabel(row, "name", "full_name") : "Contact";
               return (
-                <li
-                  key={id ?? `ct-${idx}`}
-                  className="px-3 py-2 text-sm font-medium"
-                >
+                <li key={id ?? `ct-${idx}`} className="px-3 py-2 text-sm font-medium">
                   {name}
                 </li>
               );
@@ -435,8 +375,7 @@ function ActivityTab({
       </dl>
 
       <p className="text-sm text-[var(--text-secondary)]">
-        Task counts above are activity-intelligence tallies (not the revenue
-        tasks table).{" "}
+        Task counts above are activity-intelligence tallies (not the revenue tasks table).{" "}
         <Link
           href="/v3/tasks"
           className="font-medium text-[var(--text-primary)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
@@ -446,9 +385,7 @@ function ActivityTab({
       </p>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-medium text-[var(--text-primary)]">
-          Recent
-        </h2>
+        <h2 className="text-sm font-medium text-[var(--text-primary)]">Recent</h2>
         {recent.length ? (
           <ul className="divide-y divide-[var(--border-default)] rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)]">
             {recent.map((raw, idx) => {
@@ -465,13 +402,9 @@ function ActivityTab({
                     : null;
               return (
                 <li key={id ?? `act-${idx}`} className="px-3 py-2 text-sm">
-                  <p className="font-medium text-[var(--text-primary)]">
-                    {title}
-                  </p>
+                  <p className="font-medium text-[var(--text-primary)]">{title}</p>
                   {when ? (
-                    <p className="mt-0.5 text-[12px] text-[var(--text-muted)]">
-                      {when}
-                    </p>
+                    <p className="mt-0.5 text-[12px] text-[var(--text-muted)]">{when}</p>
                   ) : null}
                 </li>
               );
@@ -511,19 +444,9 @@ export default function V3People360Page() {
       case "overview":
         return <OverviewTab profile={data.profile} kpis={data.kpis} />;
       case "portfolio":
-        return (
-          <PortfolioTab
-            portfolio={data.portfolio}
-            employeeId={data.profile.id}
-          />
-        );
+        return <PortfolioTab portfolio={data.portfolio} employeeId={data.profile.id} />;
       case "activity":
-        return (
-          <ActivityTab
-            activity={data.activity_intelligence}
-            employeeId={data.profile.id}
-          />
-        );
+        return <ActivityTab activity={data.activity_intelligence} employeeId={data.profile.id} />;
       case "timeline":
         return (
           <div className="space-y-4">
@@ -537,15 +460,11 @@ export default function V3People360Page() {
         return (
           <div className="space-y-6">
             <section>
-              <h2 className="text-sm font-medium text-[var(--text-primary)] mb-3">
-                التقييم
-              </h2>
+              <h2 className="text-sm font-medium text-[var(--text-primary)] mb-3">التقييم</h2>
               <EmployeeScoring employeeId={data.profile.id} />
             </section>
             <section>
-              <h2 className="text-sm font-medium text-[var(--text-primary)] mb-3">
-                الإشارات
-              </h2>
+              <h2 className="text-sm font-medium text-[var(--text-primary)] mb-3">الإشارات</h2>
               <EmployeeSignals employeeId={data.profile.id} />
             </section>
           </div>
@@ -561,10 +480,7 @@ export default function V3People360Page() {
         <LoadingState label="Checking session…" />
       ) : !hasToken ? (
         <>
-          <PageHeader
-            title="People 360"
-            description="Sign in to load this person."
-          />
+          <PageHeader title="People 360" description="Sign in to load this person." />
           <PermissionState nextPath={nextPath} />
         </>
       ) : isLoading ? (
@@ -588,9 +504,7 @@ export default function V3People360Page() {
           <ErrorState
             title="Could not load person"
             description={
-              error instanceof Error
-                ? error.message
-                : "Person not found or request failed"
+              error instanceof Error ? error.message : "Person not found or request failed"
             }
             onRetry={() => void refetch()}
           />
@@ -600,9 +514,8 @@ export default function V3People360Page() {
           <PageHeader
             title={title}
             description={
-              [profile.role?.replace(/_/g, " "), profile.email]
-                .filter(Boolean)
-                .join(" · ") || undefined
+              [profile.role?.replace(/_/g, " "), profile.email].filter(Boolean).join(" · ") ||
+              undefined
             }
             badge={
               <span className="flex flex-wrap items-center gap-1.5">
@@ -623,16 +536,12 @@ export default function V3People360Page() {
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() =>
-                    openV3AiPopup({ contextLabel: displayName(profile) })
-                  }
+                  onClick={() => openV3AiPopup({ contextLabel: displayName(profile) })}
                   className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-[12px] font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
                 >
                   Ask AI
                 </button>
-                <GhostButtonLink href="/v3/people">
-                  Back to list
-                </GhostButtonLink>
+                <GhostButtonLink href="/v3/people">Back to list</GhostButtonLink>
                 <GhostButtonLink href={legacyHref} primary>
                   Legacy employee 360
                 </GhostButtonLink>

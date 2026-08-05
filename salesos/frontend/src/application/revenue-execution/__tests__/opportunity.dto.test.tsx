@@ -1,8 +1,4 @@
-import {
-  calculateWinProbability,
-  STAGE_WEIGHT,
-  STAGE_LABEL,
-} from "../opportunity.dto";
+import { calculateWinProbability, STAGE_WEIGHT, STAGE_LABEL } from "../opportunity.dto";
 
 describe("STAGE_WEIGHT", () => {
   it("has correct weights", () => {

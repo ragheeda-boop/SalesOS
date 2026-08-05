@@ -15,17 +15,17 @@ export const space = {
   10: 40,
   12: 48,
   16: 64,
-} as const
+} as const;
 
 export const color = {
-  brand: '#F57C1E',
-  ink: '#151214',
-  paper: '#FAFAFA',
-  textMutedMinContrast: '#8C8374',
-} as const
+  brand: "#F57C1E",
+  ink: "#151214",
+  paper: "#FAFAFA",
+  textMutedMinContrast: "#8C8374",
+} as const;
 
 export const motion = {
   durationFast: 120,
   durationNormal: 200,
-  easeStandard: 'cubic-bezier(0.2, 0, 0, 1)',
-} as const
+  easeStandard: "cubic-bezier(0.2, 0, 0, 1)",
+} as const;

@@ -6,14 +6,9 @@
  * See PROD-W6-001 / AI_HONESTY.md — not Production GO / not AI-native GA.
  */
 
-import type {
-  DecisionContext,
-  DecisionResult,
-} from "@salesos/decision-platform";
+import type { DecisionContext, DecisionResult } from "@salesos/decision-platform";
 
-export type DecisionEvaluateFn = (
-  context: DecisionContext,
-) => Promise<DecisionResult>;
+export type DecisionEvaluateFn = (context: DecisionContext) => Promise<DecisionResult>;
 
 function toApiBody(context: DecisionContext) {
   return {
@@ -28,9 +23,7 @@ function toApiBody(context: DecisionContext) {
   };
 }
 
-async function defaultHttpEvaluate(
-  context: DecisionContext,
-): Promise<DecisionResult> {
+async function defaultHttpEvaluate(context: DecisionContext): Promise<DecisionResult> {
   const body = toApiBody(context);
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -56,7 +49,7 @@ async function defaultHttpEvaluate(
     throw new Error(
       `Decision Center evaluate failed: HTTP ${res.status}${
         detail ? ` ${detail.slice(0, 200)}` : ""
-      }`,
+      }`
     );
   }
 
@@ -70,8 +63,6 @@ export function setDecisionEvaluate(fn: DecisionEvaluateFn | null): void {
   evaluateImpl = fn ?? defaultHttpEvaluate;
 }
 
-export function evaluateDecision(
-  context: DecisionContext,
-): Promise<DecisionResult> {
+export function evaluateDecision(context: DecisionContext): Promise<DecisionResult> {
   return evaluateImpl(context);
 }

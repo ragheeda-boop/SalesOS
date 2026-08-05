@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useRef,
-  useEffect,
-  type KeyboardEvent,
-  type ChangeEvent,
-} from "react";
+import { useCallback, useRef, useEffect, type KeyboardEvent, type ChangeEvent } from "react";
 import { cn } from "@salesos/ui";
 import { Search, X } from "lucide-react";
 
@@ -41,7 +35,7 @@ export function SearchInput({
     (e: ChangeEvent<HTMLInputElement>) => {
       onChange(e.target.value);
     },
-    [onChange],
+    [onChange]
   );
 
   const handleKeyDown = useCallback(
@@ -49,7 +43,7 @@ export function SearchInput({
       if (e.key === "Enter") onSearch(value);
       if (e.key === "Escape") onChange("");
     },
-    [value, onSearch, onChange],
+    [value, onSearch, onChange]
   );
 
   const handleClear = useCallback(() => {
@@ -65,14 +59,14 @@ export function SearchInput({
       className={cn(
         "relative flex items-center",
         isHero ? "w-full" : isMinimal ? "w-auto" : "w-full max-w-xl",
-        className,
+        className
       )}
     >
       {!isMinimal && (
         <Search
           className={cn(
             "pointer-events-none absolute h-4 w-4 text-[var(--text-muted)]",
-            isHero ? "right-5 top-1/2 -translate-y-1/2 h-5 w-5" : "right-3",
+            isHero ? "right-5 top-1/2 -translate-y-1/2 h-5 w-5" : "right-3"
           )}
         />
       )}
@@ -92,7 +86,7 @@ export function SearchInput({
             ? "px-5 py-4 pr-14 text-lg"
             : isMinimal
               ? "border-none bg-transparent px-3 py-2 text-sm"
-              : "px-3 py-2.5 pr-10 text-sm",
+              : "px-3 py-2.5 pr-10 text-sm"
         )}
       />
       {value && (
@@ -101,7 +95,7 @@ export function SearchInput({
           aria-label="مسح البحث"
           className={cn(
             "absolute left-2 rounded-lg p-1 text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]",
-            isHero && "left-4",
+            isHero && "left-4"
           )}
         >
           <X className="h-4 w-4" />
@@ -111,7 +105,7 @@ export function SearchInput({
         <div
           className={cn(
             "absolute left-12 h-4 w-4 animate-spin rounded-full border-2 border-[var(--border-color)] border-t-primary-500",
-            isHero && "left-16",
+            isHero && "left-16"
           )}
         />
       )}

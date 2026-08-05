@@ -13,12 +13,10 @@ export default function OutreachPage() {
   return (
     <div className="space-y-6 p-6" data-testid="outreach-page">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          AI Outreach
-        </h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">AI Outreach</h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Tip POST/GET /api/v1/gtm/outreach — fixture drafts only. No live SMTP
-          / LinkedIn / WhatsApp. feature_ai_copilot remains False.
+          Tip POST/GET /api/v1/gtm/outreach — fixture drafts only. No live SMTP / LinkedIn /
+          WhatsApp. feature_ai_copilot remains False.
         </p>
       </div>
       <Suspense fallback={<Spinner />}>

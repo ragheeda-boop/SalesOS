@@ -22,9 +22,7 @@ export function SearchFilters({
     <aside className={cn("space-y-2", className)}>
       <div className="flex items-center gap-2 px-3 py-2">
         <ListFilter className="h-4 w-4 text-[var(--text-muted)]" />
-        <span className="text-xs font-semibold text-[var(--text-muted)] uppercase">
-          تصفية
-        </span>
+        <span className="text-xs font-semibold text-[var(--text-muted)] uppercase">تصفية</span>
       </div>
       {facets.map((facet) => (
         <SearchFacetGroup

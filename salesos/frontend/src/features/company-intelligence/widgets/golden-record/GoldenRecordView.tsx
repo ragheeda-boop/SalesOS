@@ -22,19 +22,13 @@ export function GoldenRecordView({ entries, dna }: GoldenRecordViewProps) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <Database className="mb-2 h-8 w-8 text-[var(--text-muted)] opacity-30" />
-        <p className="text-sm text-[var(--text-muted)]">
-          لا توجد بيانات السجل الذهبي
-        </p>
+        <p className="text-sm text-[var(--text-muted)]">لا توجد بيانات السجل الذهبي</p>
       </div>
     );
   }
 
   return (
-    <div
-      role="region"
-      aria-label="السجل الذهبي"
-      className="space-y-1/20 dark:rounded-lg dark:p-1"
-    >
+    <div role="region" aria-label="السجل الذهبي" className="space-y-1/20 dark:rounded-lg dark:p-1">
       {dna && (
         <div className="flex items-center gap-2 rounded-lg bg-[var(--status-success-bg)]/50 px-3 py-2">
           <CheckCircle className="h-4 w-4 shrink-0 text-[var(--status-success-text)]" />
@@ -47,8 +41,7 @@ export function GoldenRecordView({ entries, dna }: GoldenRecordViewProps) {
                   : "تعارض"}
             </p>
             <p className="text-[9px] text-[var(--status-success-text)]">
-              {dna.goldenRecordStatus.sources} مصادر · %
-              {Math.round(dna.confidenceScore * 100)} ثقة
+              {dna.goldenRecordStatus.sources} مصادر · %{Math.round(dna.confidenceScore * 100)} ثقة
             </p>
           </div>
         </div>
@@ -71,21 +64,14 @@ export function GoldenRecordView({ entries, dna }: GoldenRecordViewProps) {
               <span className="text-xs font-medium text-[var(--text-primary)]">
                 {entry.entityName}
               </span>
-              <span
-                className={cn(
-                  "mr-auto text-[9px] font-medium",
-                  STATUS_V[entry.status],
-                )}
-              >
+              <span className={cn("mr-auto text-[9px] font-medium", STATUS_V[entry.status])}>
                 {STATUS_L[entry.status]}
               </span>
             </div>
             <div className="flex items-center gap-2 text-[9px] text-[var(--text-muted)]">
               <span>{entry.source}</span>
               <span>%{Math.round(entry.confidence * 100)}</span>
-              {entry.conflicts.length > 0 && (
-                <span>{entry.conflicts.length} تعارض</span>
-              )}
+              {entry.conflicts.length > 0 && <span>{entry.conflicts.length} تعارض</span>}
             </div>
           </div>
         </div>

@@ -12,17 +12,13 @@ const sample: AIRecommendation = {
   expectedRevenue: 500000,
   expectedImpact: "high",
   estimatedTime: "أسبوعين",
-  alternatives: [
-    { action: "send_proposal", actionLabel: "إرسال عرض", confidence: 0.7 },
-  ],
+  alternatives: [{ action: "send_proposal", actionLabel: "إرسال عرض", confidence: 0.7 }],
   risks: ["مورد بديل قيد التقييم"],
 };
 
 function renderView(override?: AIRecommendation | null) {
   return render(
-    <AIRecommendationView
-      recommendation={override !== undefined ? override : sample}
-    />,
+    <AIRecommendationView recommendation={override !== undefined ? override : sample} />
   );
 }
 
@@ -78,9 +74,7 @@ describe("AIRecommendationView", () => {
 
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "توصيات AI" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "توصيات AI" })).toBeInTheDocument();
   });
 });
 

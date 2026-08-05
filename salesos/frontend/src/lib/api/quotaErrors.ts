@@ -16,16 +16,9 @@ export type QuotaExceededPayload = {
 
 export const QUOTA_EXCEEDED_EVENT = "salesos:quota-exceeded";
 
-const QUOTA_METRICS = new Set([
-  "seats",
-  "connectors",
-  "storage_mb",
-  "ai_tokens",
-]);
+const QUOTA_METRICS = new Set(["seats", "connectors", "storage_mb", "ai_tokens"]);
 
-export function isQuotaExceededPayload(
-  data: unknown,
-): data is QuotaExceededPayload {
+export function isQuotaExceededPayload(data: unknown): data is QuotaExceededPayload {
   if (!data || typeof data !== "object") return false;
   const d = data as QuotaExceededPayload;
   if (d.error !== "quota_exceeded") return false;
@@ -34,14 +27,11 @@ export function isQuotaExceededPayload(
   }
   const detail = typeof d.detail === "string" ? d.detail : "";
   return (
-    detail.toLowerCase().includes("quota exceeded") ||
-    detail.toLowerCase().includes("upgrade plan")
+    detail.toLowerCase().includes("quota exceeded") || detail.toLowerCase().includes("upgrade plan")
   );
 }
 
-export function formatQuotaExceededMessage(
-  payload: QuotaExceededPayload,
-): string {
+export function formatQuotaExceededMessage(payload: QuotaExceededPayload): string {
   const metric = payload.metric || "unknown";
   const used =
     typeof payload.used === "number" && Number.isFinite(payload.used)
@@ -67,14 +57,11 @@ export function formatQuotaExceededMessage(
   );
 }
 
-export function getQuotaExceededFromError(
-  err: unknown,
-): QuotaExceededPayload | null {
+export function getQuotaExceededFromError(err: unknown): QuotaExceededPayload | null {
   if (typeof err !== "object" || err === null || !("response" in err)) {
     return null;
   }
-  const response = (err as { response?: { status?: number; data?: unknown } })
-    .response;
+  const response = (err as { response?: { status?: number; data?: unknown } }).response;
   if (response?.status !== 403 && response?.status !== 429) return null;
   return isQuotaExceededPayload(response.data) ? response.data : null;
 }

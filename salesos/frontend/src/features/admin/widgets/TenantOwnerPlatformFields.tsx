@@ -33,10 +33,7 @@ export const PROVISIONING_STATUS_OPTIONS = [
   { label: "Failed", value: "failed" },
 ];
 
-const PROVISIONING_VARIANT: Record<
-  string,
-  "success" | "warning" | "default" | "danger"
-> = {
+const PROVISIONING_VARIANT: Record<string, "success" | "warning" | "default" | "danger"> = {
   active: "success",
   pending: "warning",
   suspended: "default",
@@ -72,14 +69,12 @@ export function fromDateInputValue(value: string): string | null {
 }
 
 export function buildOwnerPlatformWritePayload(
-  form: TenantOwnerPlatformWritePayload,
+  form: TenantOwnerPlatformWritePayload
 ): TenantOwnerPlatformWritePayload {
   return {
     plan_id: form.plan_id?.trim() ? form.plan_id.trim() : null,
     region: form.region?.trim() ? form.region.trim() : null,
-    data_residency: form.data_residency?.trim()
-      ? form.data_residency.trim()
-      : null,
+    data_residency: form.data_residency?.trim() ? form.data_residency.trim() : null,
     provisioning_status: form.provisioning_status?.trim()
       ? form.provisioning_status.trim()
       : "pending",
@@ -91,9 +86,7 @@ function FieldRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-4 border-b border-[var(--border-default)] py-2 last:border-b-0">
       <span className="text-sm text-[var(--text-muted)]">{label}</span>
-      <span className="text-sm font-medium text-[var(--text-primary)] text-right">
-        {value}
-      </span>
+      <span className="text-sm font-medium text-[var(--text-primary)] text-right">{value}</span>
     </div>
   );
 }
@@ -114,13 +107,9 @@ export function TenantOwnerPlatformFields({
 
   const [planId, setPlanId] = useState(tenant.plan_id ?? "");
   const [region, setRegion] = useState(tenant.region ?? "");
-  const [dataResidency, setDataResidency] = useState(
-    tenant.data_residency ?? "",
-  );
+  const [dataResidency, setDataResidency] = useState(tenant.data_residency ?? "");
   const [provisioningStatus, setProvisioningStatus] = useState(status);
-  const [trialEnds, setTrialEnds] = useState(
-    toDateInputValue(tenant.trial_ends_at),
-  );
+  const [trialEnds, setTrialEnds] = useState(toDateInputValue(tenant.trial_ends_at));
 
   useEffect(() => {
     setPlanId(tenant.plan_id ?? "");
@@ -139,7 +128,7 @@ export function TenantOwnerPlatformFields({
         data_residency: dataResidency,
         provisioning_status: provisioningStatus,
         trial_ends_at: fromDateInputValue(trialEnds),
-      }),
+      })
     );
   };
 
@@ -148,9 +137,7 @@ export function TenantOwnerPlatformFields({
       className="rounded-lg border border-[var(--border-default)] p-4"
       data-testid="tenant-owner-platform-fields"
     >
-      <p className="mb-3 text-sm font-medium text-[var(--text-primary)]">
-        Owner Platform
-      </p>
+      <p className="mb-3 text-sm font-medium text-[var(--text-primary)]">Owner Platform</p>
       <p className="mb-3 text-xs text-[var(--text-muted)]">
         STORY-04-01 fields
         {editable
@@ -162,23 +149,12 @@ export function TenantOwnerPlatformFields({
         <div className="space-y-0">
           <FieldRow
             label="Plan ID"
-            value={
-              <span className="font-mono text-xs">{tenant.plan_id || "—"}</span>
-            }
+            value={<span className="font-mono text-xs">{tenant.plan_id || "—"}</span>}
           />
           <FieldRow label="Region" value={tenant.region || "—"} />
-          <FieldRow
-            label="Data residency"
-            value={tenant.data_residency || "—"}
-          />
-          <FieldRow
-            label="Provisioning"
-            value={<Badge variant={variant}>{status}</Badge>}
-          />
-          <FieldRow
-            label="Trial ends"
-            value={formatIsoDate(tenant.trial_ends_at)}
-          />
+          <FieldRow label="Data residency" value={tenant.data_residency || "—"} />
+          <FieldRow label="Provisioning" value={<Badge variant={variant}>{status}</Badge>} />
+          <FieldRow label="Trial ends" value={formatIsoDate(tenant.trial_ends_at)} />
           {tenant.subscription_ends_at !== undefined && (
             <FieldRow
               label="Subscription ends"
@@ -234,11 +210,7 @@ export function TenantOwnerPlatformFields({
             <label className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
               Trial ends
             </label>
-            <Input
-              type="date"
-              value={trialEnds}
-              onChange={(e) => setTrialEnds(e.target.value)}
-            />
+            <Input type="date" value={trialEnds} onChange={(e) => setTrialEnds(e.target.value)} />
           </div>
           <div className="flex justify-end pt-1">
             <Button size="sm" onClick={handleSave} disabled={saving || !onSave}>
@@ -251,14 +223,12 @@ export function TenantOwnerPlatformFields({
   );
 }
 
-export function provisioningStatusLabel(
-  status: string | null | undefined,
-): string {
+export function provisioningStatusLabel(status: string | null | undefined): string {
   return status || "pending";
 }
 
 export function provisioningStatusVariant(
-  status: string | null | undefined,
+  status: string | null | undefined
 ): "success" | "warning" | "default" | "danger" {
   const key = status || "pending";
   return PROVISIONING_VARIANT[key] ?? "default";

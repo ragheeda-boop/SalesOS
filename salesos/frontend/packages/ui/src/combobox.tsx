@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import { useState, useRef, useCallback, useEffect, type KeyboardEvent } from 'react'
-import { cn } from './utils'
-import { Input } from './input'
-import { Spinner } from './spinner'
-import { ChevronDown } from 'lucide-react'
+import { useState, useRef, useCallback, useEffect, type KeyboardEvent } from "react";
+import { cn } from "./utils";
+import { Input } from "./input";
+import { Spinner } from "./spinner";
+import { ChevronDown } from "lucide-react";
 
 interface ComboboxOption {
-  label: string
-  value: string
+  label: string;
+  value: string;
 }
 
 interface ComboboxProps {
-  options: ComboboxOption[]
-  value?: string
-  onChange?: (value: string) => void
-  onSearch?: (query: string) => void
-  label?: string
-  placeholder?: string
-  disabled?: boolean
-  loading?: boolean
-  error?: string
-  className?: string
+  options: ComboboxOption[];
+  value?: string;
+  onChange?: (value: string) => void;
+  onSearch?: (query: string) => void;
+  label?: string;
+  placeholder?: string;
+  disabled?: boolean;
+  loading?: boolean;
+  error?: string;
+  className?: string;
 }
 
 export function Combobox({
@@ -30,93 +30,93 @@ export function Combobox({
   onChange,
   onSearch,
   label,
-  placeholder = 'Search...',
+  placeholder = "Search...",
   disabled = false,
   loading = false,
   error,
   className,
 }: ComboboxProps) {
-  const [open, setOpen] = useState(false)
-  const [search, setSearch] = useState('')
-  const [activeIndex, setActiveIndex] = useState(-1)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const listRef = useRef<HTMLUListElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const selectedOption = options.find((o) => o.value === value)
+  const selectedOption = options.find((o) => o.value === value);
   const filteredOptions = search
     ? options.filter((o) => o.label.toLowerCase().includes(search.toLowerCase()))
-    : options
+    : options;
 
   useEffect(() => {
-    setActiveIndex(-1)
-  }, [filteredOptions.length])
+    setActiveIndex(-1);
+  }, [filteredOptions.length]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false)
+        setOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const q = e.target.value
-      setSearch(q)
-      onSearch?.(q)
-      setOpen(true)
+      const q = e.target.value;
+      setSearch(q);
+      onSearch?.(q);
+      setOpen(true);
     },
     [onSearch]
-  )
+  );
 
   const selectOption = useCallback(
     (opt: ComboboxOption) => {
-      onChange?.(opt.value)
-      setSearch('')
-      setOpen(false)
-      inputRef.current?.focus()
+      onChange?.(opt.value);
+      setSearch("");
+      setOpen(false);
+      inputRef.current?.focus();
     },
     [onChange]
-  )
+  );
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault()
-          setActiveIndex((prev) => (prev + 1) % filteredOptions.length)
-          break
-        case 'ArrowUp':
-          e.preventDefault()
-          setActiveIndex((prev) => (prev - 1 + filteredOptions.length) % filteredOptions.length)
-          break
-        case 'Enter':
-          e.preventDefault()
+        case "ArrowDown":
+          e.preventDefault();
+          setActiveIndex((prev) => (prev + 1) % filteredOptions.length);
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setActiveIndex((prev) => (prev - 1 + filteredOptions.length) % filteredOptions.length);
+          break;
+        case "Enter":
+          e.preventDefault();
           if (activeIndex >= 0 && activeIndex < filteredOptions.length) {
-            selectOption(filteredOptions[activeIndex])
+            selectOption(filteredOptions[activeIndex]);
           }
-          break
-        case 'Escape':
-          e.preventDefault()
-          setOpen(false)
-          break
+          break;
+        case "Escape":
+          e.preventDefault();
+          setOpen(false);
+          break;
       }
     },
     [filteredOptions, activeIndex, selectOption]
-  )
+  );
 
   useEffect(() => {
     if (activeIndex >= 0 && listRef.current) {
-      const item = listRef.current.querySelector<HTMLLIElement>(`[data-index="${activeIndex}"]`)
-      item?.scrollIntoView({ block: 'nearest' })
+      const item = listRef.current.querySelector<HTMLLIElement>(`[data-index="${activeIndex}"]`);
+      item?.scrollIntoView({ block: "nearest" });
     }
-  }, [activeIndex])
+  }, [activeIndex]);
 
   return (
-    <div ref={containerRef} className={cn('relative', className)}>
+    <div ref={containerRef} className={cn("relative", className)}>
       <div className="relative">
         <Input
           ref={inputRef}
@@ -132,7 +132,7 @@ export function Combobox({
             loading ? (
               <Spinner className="h-4 w-4" />
             ) : (
-              <ChevronDown className={cn('h-4 w-4 transition-transform', open && 'rotate-180')} />
+              <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
             )
           }
           role="combobox"
@@ -161,13 +161,13 @@ export function Combobox({
                 role="option"
                 aria-selected={opt.value === value}
                 className={cn(
-                  'flex cursor-pointer items-center rounded-md px-3 py-2 text-sm outline-none hover:bg-[var(--bg-secondary)]',
-                  activeIndex === i && 'bg-[var(--bg-secondary)]',
-                  opt.value === value && 'font-medium text-[var(--muhide-orange)]'
+                  "flex cursor-pointer items-center rounded-md px-3 py-2 text-sm outline-none hover:bg-[var(--bg-secondary)]",
+                  activeIndex === i && "bg-[var(--bg-secondary)]",
+                  opt.value === value && "font-medium text-[var(--muhide-orange)]"
                 )}
                 onMouseDown={(e) => {
-                  e.preventDefault()
-                  selectOption(opt)
+                  e.preventDefault();
+                  selectOption(opt);
                 }}
                 onMouseEnter={() => setActiveIndex(i)}
               >
@@ -178,5 +178,5 @@ export function Combobox({
         </ul>
       )}
     </div>
-  )
+  );
 }

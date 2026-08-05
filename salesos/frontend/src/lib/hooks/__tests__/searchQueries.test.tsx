@@ -10,18 +10,14 @@ import { getTenantId } from "../useTenant";
 import { useSearch } from "../searchQueries";
 
 const mockedApi = api as jest.Mocked<typeof api>;
-const mockedGetTenantId = getTenantId as jest.MockedFunction<
-  typeof getTenantId
->;
+const mockedGetTenantId = getTenantId as jest.MockedFunction<typeof getTenantId>;
 
 function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 }
 
@@ -40,16 +36,15 @@ describe("useSearch", () => {
       items: [{ id: "1", type: "company", score: 0.9, data: {} }],
     };
     mockedApi.unifiedSearch.mockResolvedValue(response);
-    const { result } = renderHook(
-      () => useSearch({ q: "test", strategy: "hybrid" }),
-      { wrapper: createWrapper() },
-    );
+    const { result } = renderHook(() => useSearch({ q: "test", strategy: "hybrid" }), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(response);
     expect(mockedApi.unifiedSearch).toHaveBeenCalledWith(
       { q: "test", strategy: "hybrid" },
-      "tenant-1",
+      "tenant-1"
     );
   });
 

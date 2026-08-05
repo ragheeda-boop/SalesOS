@@ -10,9 +10,7 @@ import { getTenantId } from "../useTenant";
 import { useTasks, useCompleteTask } from "../taskQueries";
 
 const mockedApi = api as jest.Mocked<typeof api>;
-const mockedGetTenantId = getTenantId as jest.MockedFunction<
-  typeof getTenantId
->;
+const mockedGetTenantId = getTenantId as jest.MockedFunction<typeof getTenantId>;
 
 const sampleTasks = [
   {
@@ -39,9 +37,7 @@ function createWrapper() {
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 }
 

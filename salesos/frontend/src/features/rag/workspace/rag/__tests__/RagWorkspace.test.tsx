@@ -5,9 +5,7 @@ jest.mock("../../../widgets/rag-chat/RagChatWidget", () => ({
 }));
 
 jest.mock("../../../widgets/rag-documents/RagDocumentManager", () => ({
-  RagDocumentManager: () => (
-    <div data-testid="rag-document-manager">RagDocumentManager</div>
-  ),
+  RagDocumentManager: () => <div data-testid="rag-document-manager">RagDocumentManager</div>,
 }));
 
 import { RagWorkspace } from "../RagWorkspace";

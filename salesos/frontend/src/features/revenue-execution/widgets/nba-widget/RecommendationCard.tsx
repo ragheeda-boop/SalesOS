@@ -33,8 +33,7 @@ export function RecommendationCard({
   const confidence = rec?.confidence ?? 0;
   const confidenceLabel: "high" | "medium" | "low" =
     confidence >= 0.7 ? "high" : confidence >= 0.4 ? "medium" : "low";
-  const source = (rec?.scores?.[0]?.type ??
-    "rule") as keyof typeof SOURCE_LABELS;
+  const source = (rec?.scores?.[0]?.type ?? "rule") as keyof typeof SOURCE_LABELS;
   const potentialRisks = rec?.risks ?? [];
   const alternatives = rec?.alternatives ?? [];
 
@@ -46,15 +45,13 @@ export function RecommendationCard({
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-          الخطوة التالية
-        </h3>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)]">الخطوة التالية</h3>
         <span
           className={cn(
             "text-xs px-2 py-0.5 rounded-full font-medium",
             confidenceLabel === "high" && "bg-success-100 text-success-700",
             confidenceLabel === "medium" && "bg-warning-100 text-warning-700",
-            confidenceLabel === "low" && "bg-danger-100 text-danger-700",
+            confidenceLabel === "low" && "bg-danger-100 text-danger-700"
           )}
         >
           {CONFIDENCE_LABELS[confidenceLabel]} ({Math.round(confidence * 100)}%)
@@ -63,12 +60,8 @@ export function RecommendationCard({
 
       {/* Action + Reason */}
       <div className="mb-3">
-        <p className="text-base font-medium text-[var(--text-primary)]">
-          {reason}
-        </p>
-        <p className="text-xs text-[var(--text-muted)] mt-1">
-          المصدر: {SOURCE_LABELS[source]}
-        </p>
+        <p className="text-base font-medium text-[var(--text-primary)]">{reason}</p>
+        <p className="text-xs text-[var(--text-muted)] mt-1">المصدر: {SOURCE_LABELS[source]}</p>
       </div>
 
       {/* Evidence Trail */}
@@ -79,16 +72,13 @@ export function RecommendationCard({
           </summary>
           <div className="mt-2 space-y-1.5">
             {evidence.map((e, i) => (
-              <div
-                key={i}
-                className="flex items-start gap-2 text-xs text-[var(--text-secondary)]"
-              >
+              <div key={i} className="flex items-start gap-2 text-xs text-[var(--text-secondary)]">
                 <span
                   className={cn(
                     "mt-0.5 w-1.5 h-1.5 rounded-full flex-shrink-0",
                     e.type === "business_rule" && "bg-info-500",
                     e.type === "signal" && "bg-warning-500",
-                    e.type === "ai_analysis" && "bg-[var(--chart-purple)]",
+                    e.type === "ai_analysis" && "bg-[var(--chart-purple)]"
                   )}
                 />
                 <span>{e.description}</span>
@@ -108,8 +98,7 @@ export function RecommendationCard({
                 "flex items-center gap-2 text-xs px-2 py-1 rounded-md",
                 r.level === "high" && "bg-danger-50 text-danger-700",
                 r.level === "medium" && "bg-warning-50 text-warning-700",
-                r.level === "low" &&
-                  "bg-[var(--bg-secondary)] text-[var(--text-secondary)]",
+                r.level === "low" && "bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
               )}
             >
               <span>⚠️</span>
@@ -131,9 +120,7 @@ export function RecommendationCard({
                 key={i}
                 className="flex items-center justify-between text-xs py-1 px-2 rounded-md hover:bg-[var(--bg-secondary)]"
               >
-                <span className="text-[var(--text-secondary)]">
-                  {alt.reason}
-                </span>
+                <span className="text-[var(--text-secondary)]">{alt.reason}</span>
                 <span className="text-[var(--text-muted)]">
                   {Math.round((alt.confidence ?? 0) * 100)}%
                 </span>

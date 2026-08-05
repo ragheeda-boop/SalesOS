@@ -14,7 +14,7 @@ export function AIAnswerCard({ answer, className }: AIAnswerCardProps) {
     <div
       className={cn(
         "overflow-hidden rounded-xl border border-[var(--border-default)] bg-[var(--chart-purple-bg)] dark:border-[var(--border-strong)] dark:bg-[var(--bg-primary)]/10",
-        className,
+        className
       )}
     >
       <div className="flex items-center gap-2 border-b border-[var(--border-default)] px-4 py-2 dark:border-[var(--border-strong)]">

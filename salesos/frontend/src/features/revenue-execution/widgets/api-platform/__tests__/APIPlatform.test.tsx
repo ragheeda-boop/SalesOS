@@ -58,9 +58,7 @@ describe("APIView", () => {
   });
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "منصة API" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "منصة API" })).toBeInTheDocument();
   });
 });
 describe("APIPlatformWidget", () => {

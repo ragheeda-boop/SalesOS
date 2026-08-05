@@ -1,8 +1,4 @@
-import {
-  ACCESS_TOKEN_KEY,
-  hasValidAccessToken,
-  readAccessTokenFromCookieHeader,
-} from "./session";
+import { ACCESS_TOKEN_KEY, hasValidAccessToken, readAccessTokenFromCookieHeader } from "./session";
 import { HTTPONLY_ACCESS_COOKIE } from "./httpOnlyAccessCookie";
 
 /** Routes that require an authenticated session (dashboard + v3 workspace). */
@@ -56,7 +52,7 @@ export function isPublicPath(pathname: string): boolean {
 export function isProtectedPath(pathname: string): boolean {
   if (isPublicPath(pathname)) return false;
   return PROTECTED_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
   );
 }
 
@@ -90,18 +86,11 @@ export function readAccessTokenFromRequest(request: {
   return readAccessTokenFromCookieHeader(request.headers.get("cookie"));
 }
 
-export function shouldRedirectToLogin(
-  pathname: string,
-  token: string | null,
-): boolean {
+export function shouldRedirectToLogin(pathname: string, token: string | null): boolean {
   return isProtectedPath(pathname) && !hasValidAccessToken(token);
 }
 
-export function buildLoginRedirectUrl(
-  origin: string,
-  pathname: string,
-  search: string,
-): URL {
+export function buildLoginRedirectUrl(origin: string, pathname: string, search: string): URL {
   const loginUrl = new URL("/login", origin);
   const callback = `${pathname}${search}`;
   if (callback && callback !== "/login") {

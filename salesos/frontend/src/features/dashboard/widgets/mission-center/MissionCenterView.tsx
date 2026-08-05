@@ -10,7 +10,7 @@ import type { MissionCenterViewProps } from "./types";
 
 function deriveActions(
   props: MissionCenterViewProps,
-  t: (key: string, params?: Record<string, string | number>) => string,
+  t: (key: string, params?: Record<string, string | number>) => string
 ) {
   const actions: {
     id: string;
@@ -69,19 +69,11 @@ function EmptyStatePlaceholder() {
   );
 }
 
-function SummaryBanner({
-  metrics,
-}: {
-  metrics: { label: string; value: number }[];
-}) {
+function SummaryBanner({ metrics }: { metrics: { label: string; value: number }[] }) {
   const { t } = useTranslation();
   const activeMetrics = metrics.filter((m) => m.value > 0);
   return (
-    <div
-      className="text-xs text-[var(--text-muted)]"
-      aria-live="polite"
-      aria-atomic="true"
-    >
+    <div className="text-xs text-[var(--text-muted)]" aria-live="polite" aria-atomic="true">
       {activeMetrics.length > 0
         ? `${activeMetrics.map((m) => `${m.value} ${m.label}`).join("، ")}`
         : t("mission.summary.no_metrics")}
@@ -101,11 +93,7 @@ export function MissionCenterView(props: MissionCenterViewProps) {
 
   if (isAllZero) {
     return (
-      <div
-        className="flex flex-col gap-4"
-        role="region"
-        aria-label="Mission Center Dashboard"
-      >
+      <div className="flex flex-col gap-4" role="region" aria-label="Mission Center Dashboard">
         <SummaryBanner
           metrics={[
             {
@@ -122,11 +110,7 @@ export function MissionCenterView(props: MissionCenterViewProps) {
   }
 
   return (
-    <div
-      className="flex flex-col gap-4"
-      role="region"
-      aria-label="Mission Center Dashboard"
-    >
+    <div className="flex flex-col gap-4" role="region" aria-label="Mission Center Dashboard">
       <SummaryBanner
         metrics={[
           {
@@ -204,19 +188,10 @@ export function MissionCenterView(props: MissionCenterViewProps) {
         <Card className="border-0 shadow-none bg-[var(--bg-secondary)]">
           <CardContent className="p-3">
             <div className="flex items-center gap-1.5 mb-2">
-              <AlertTriangle
-                className="h-3.5 w-3.5 text-warning-500"
-                aria-hidden="true"
-              />
-              <span className="text-xs font-semibold text-[var(--text-primary)]">
-                Priorities
-              </span>
+              <AlertTriangle className="h-3.5 w-3.5 text-warning-500" aria-hidden="true" />
+              <span className="text-xs font-semibold text-[var(--text-primary)]">Priorities</span>
             </div>
-            <div
-              className="flex flex-col gap-1.5"
-              role="list"
-              aria-label="Priority actions"
-            >
+            <div className="flex flex-col gap-1.5" role="list" aria-label="Priority actions">
               {actions.map((action) => (
                 <div key={action.id} role="listitem">
                   <MissionAction
@@ -237,10 +212,7 @@ export function MissionCenterView(props: MissionCenterViewProps) {
         <Card className="border-0 shadow-none bg-gradient-to-br from-success-50 to-emerald-50 dark:from-success-950/30 dark:to-emerald-950/30">
           <CardContent className="p-3">
             <div className="flex items-center gap-1.5 mb-1">
-              <TrendingUp
-                className="h-3.5 w-3.5 text-success-600"
-                aria-hidden="true"
-              />
+              <TrendingUp className="h-3.5 w-3.5 text-success-600" aria-hidden="true" />
               <span className="text-xs font-semibold text-success-700 dark:text-success-300">
                 Revenue Opportunity
               </span>
@@ -257,11 +229,7 @@ export function MissionCenterView(props: MissionCenterViewProps) {
         <Card className="border-0 shadow-none bg-[var(--bg-secondary)]">
           <CardContent className="p-3">
             <MissionProgress
-              value={
-                props.activeDeals * 2 +
-                props.signalsToday +
-                props.decisionsPending
-              }
+              value={props.activeDeals * 2 + props.signalsToday + props.decisionsPending}
               max={100}
               label="Completion"
               barClassName="bg-[var(--muhide-orange)]"

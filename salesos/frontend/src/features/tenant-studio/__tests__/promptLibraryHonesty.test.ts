@@ -1,7 +1,4 @@
-import {
-  PROMPT_LIBRARY_HONESTY,
-  PROMPT_LIBRARY_NON_GOALS,
-} from "../promptLibraryHonesty";
+import { PROMPT_LIBRARY_HONESTY, PROMPT_LIBRARY_NON_GOALS } from "../promptLibraryHonesty";
 
 describe("promptLibraryHonesty — FE-S12-01", () => {
   it("states tip HTTP + copilot false + no live LLM", () => {

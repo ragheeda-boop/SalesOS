@@ -16,10 +16,7 @@ import {
 } from "@salesos/ui";
 import { Search, Shield, UserX, CheckCircle, XCircle, UserPlus } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
-import {
-  useAdminUsers,
-  useDeactivateAdminUser,
-} from "@/lib/hooks/adminQueries";
+import { useAdminUsers, useDeactivateAdminUser } from "@/lib/hooks/adminQueries";
 import { AdminUser } from "@/lib/api";
 import api from "@/lib/api";
 
@@ -43,7 +40,11 @@ export function UserList() {
   const [inviteSubmitting, setInviteSubmitting] = useState(false);
   const [inviteResult, setInviteResult] = useState<InviteResult | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
-  const { data: users, isLoading, refetch } = useAdminUsers({
+  const {
+    data: users,
+    isLoading,
+    refetch,
+  } = useAdminUsers({
     search: search || undefined,
     role: roleFilter || undefined,
   });
@@ -96,14 +97,10 @@ export function UserList() {
       });
       void refetch();
     } catch (err) {
-      const detail = (err as { response?: { data?: { detail?: unknown } } })
-        ?.response?.data?.detail;
+      const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data
+        ?.detail;
       const msg =
-        typeof detail === "string"
-          ? detail
-          : err instanceof Error
-            ? err.message
-            : "Request failed";
+        typeof detail === "string" ? detail : err instanceof Error ? err.message : "Request failed";
       setInviteError(msg);
       toast({
         title: "Invite failed",
@@ -119,11 +116,7 @@ export function UserList() {
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <h2 className="text-xl font-bold">{t("admin.user_list.title")}</h2>
-        <Button
-          size="sm"
-          onClick={() => setInviteOpen(true)}
-          data-testid="admin-invite-user-open"
-        >
+        <Button size="sm" onClick={() => setInviteOpen(true)} data-testid="admin-invite-user-open">
           <UserPlus className="h-4 w-4 ml-1" />
           Invite User
         </Button>
@@ -166,22 +159,12 @@ export function UserList() {
             <thead>
               <tr className="border-b text-right">
                 <th className="p-2 font-medium">{t("admin.user_list.name")}</th>
-                <th className="p-2 font-medium">
-                  {t("admin.user_list.email")}
-                </th>
+                <th className="p-2 font-medium">{t("admin.user_list.email")}</th>
                 <th className="p-2 font-medium">{t("admin.user_list.role")}</th>
-                <th className="p-2 font-medium">
-                  {t("admin.user_list.tenant")}
-                </th>
-                <th className="p-2 font-medium">
-                  {t("admin.user_list.status")}
-                </th>
-                <th className="p-2 font-medium">
-                  {t("admin.user_list.last_login")}
-                </th>
-                <th className="p-2 font-medium">
-                  {t("admin.user_list.actions")}
-                </th>
+                <th className="p-2 font-medium">{t("admin.user_list.tenant")}</th>
+                <th className="p-2 font-medium">{t("admin.user_list.status")}</th>
+                <th className="p-2 font-medium">{t("admin.user_list.last_login")}</th>
+                <th className="p-2 font-medium">{t("admin.user_list.actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -190,22 +173,13 @@ export function UserList() {
                   key={user.id}
                   className="border-b hover:bg-[var(--bg-secondary)] dark:hover:bg-[var(--bg-primary)]"
                 >
-                  <td
-                    className="p-2 font-medium"
-                    data-label={t("admin.user_list.name")}
-                  >
+                  <td className="p-2 font-medium" data-label={t("admin.user_list.name")}>
                     <div>{user.full_name}</div>
-                    {user.full_name_ar &&
-                      user.full_name_ar !== user.full_name && (
-                        <div className="text-xs text-[var(--text-muted)]">
-                          {user.full_name_ar}
-                        </div>
-                      )}
+                    {user.full_name_ar && user.full_name_ar !== user.full_name && (
+                      <div className="text-xs text-[var(--text-muted)]">{user.full_name_ar}</div>
+                    )}
                   </td>
-                  <td
-                    className="p-2 text-xs"
-                    data-label={t("admin.user_list.email")}
-                  >
+                  <td className="p-2 text-xs" data-label={t("admin.user_list.email")}>
                     {user.email}
                   </td>
                   <td className="p-2" data-label={t("admin.user_list.role")}>
@@ -230,13 +204,11 @@ export function UserList() {
                   <td className="p-2" data-label={t("admin.user_list.status")}>
                     {user.is_active ? (
                       <span className="flex items-center gap-1 text-success-600">
-                        <CheckCircle className="h-3.5 w-3.5" />{" "}
-                        {t("admin.user_list.active")}
+                        <CheckCircle className="h-3.5 w-3.5" /> {t("admin.user_list.active")}
                       </span>
                     ) : (
                       <span className="flex items-center gap-1 text-danger-600">
-                        <XCircle className="h-3.5 w-3.5" />{" "}
-                        {t("admin.user_list.inactive")}
+                        <XCircle className="h-3.5 w-3.5" /> {t("admin.user_list.inactive")}
                       </span>
                     )}
                   </td>
@@ -276,9 +248,8 @@ export function UserList() {
               <div className="space-y-3 text-sm" data-testid="admin-invite-result">
                 <p>{inviteResult.message}</p>
                 <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100">
-                  Email delivery:{" "}
-                  <code>{inviteResult.email_delivery}</code> — credentials were
-                  not emailed. Share them out of band.
+                  Email delivery: <code>{inviteResult.email_delivery}</code> — credentials were not
+                  emailed. Share them out of band.
                 </p>
                 {inviteResult.temporary_password ? (
                   <div>

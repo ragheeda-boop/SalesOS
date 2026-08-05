@@ -1,5 +1,4 @@
-type Measure =
-  "dashboard.load" | "widget.render" | "widget.load" | "widget.error";
+type Measure = "dashboard.load" | "widget.render" | "widget.load" | "widget.error";
 
 interface TelemetryEvent {
   measure: Measure;
@@ -13,10 +12,7 @@ const events: TelemetryEvent[] = [];
 
 export const dashboardTelemetry = {
   start(measure: Measure, widgetId?: string) {
-    if (
-      typeof performance === "undefined" ||
-      typeof performance.mark !== "function"
-    )
+    if (typeof performance === "undefined" || typeof performance.mark !== "function")
       return { end: () => {} };
     const start = performance.now();
     const label = widgetId ? `${measure}:${widgetId}` : measure;
@@ -36,9 +32,7 @@ export const dashboardTelemetry = {
         events.push(event);
         if (events.length > 100) events.shift();
         if (typeof window !== "undefined") {
-          window.dispatchEvent(
-            new CustomEvent("dashboard:telemetry", { detail: event }),
-          );
+          window.dispatchEvent(new CustomEvent("dashboard:telemetry", { detail: event }));
         }
       },
     };

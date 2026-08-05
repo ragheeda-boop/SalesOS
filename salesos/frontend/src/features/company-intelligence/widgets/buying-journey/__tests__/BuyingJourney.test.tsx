@@ -53,9 +53,7 @@ describe("BuyingJourneyView", () => {
 
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "رحلة الشراء" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "رحلة الشراء" })).toBeInTheDocument();
   });
 });
 

@@ -1,8 +1,4 @@
-import {
-  getEnrichmentMeta,
-  listEnrichmentRuns,
-  runEnrichment,
-} from "../enrichment";
+import { getEnrichmentMeta, listEnrichmentRuns, runEnrichment } from "../enrichment";
 
 jest.mock("../client", () => ({
   __esModule: true,
@@ -35,18 +31,12 @@ describe("enrichment API — FE-S11-05", () => {
       },
     });
     const meta = await getEnrichmentMeta("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/enrichment/meta",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/enrichment/meta", expect.any(Object));
     expect(meta.providers_configured).toEqual(["fake_a", "fake_b"]);
 
     mocked.get.mockResolvedValueOnce({ data: [] });
     await listEnrichmentRuns("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/enrichment",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/enrichment", expect.any(Object));
   });
 
   it("POSTs run enrichment", async () => {
@@ -62,9 +52,7 @@ describe("enrichment API — FE-S11-05", () => {
           provider_order: [],
         },
         filled: { industry: "technology", city: "riyadh" },
-        hits: [
-          { field: "industry", value: "technology", provider_key: "fake_a" },
-        ],
+        hits: [{ field: "industry", value: "technology", provider_key: "fake_a" }],
         providers_attempted: ["fake_a", "fake_b"],
         providers_configured: ["fake_a", "fake_b"],
         missing_fields: [],
@@ -79,7 +67,7 @@ describe("enrichment API — FE-S11-05", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/gtm/enrichment",
       expect.objectContaining({ company_name: "Acme" }),
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(row.complete).toBe(true);
     expect(row.filled.industry).toBe("technology");

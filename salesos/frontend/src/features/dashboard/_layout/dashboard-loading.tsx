@@ -10,11 +10,7 @@ export function DashboardLoading() {
     <DashboardGrid>
       {ids.map((id) => (
         <div key={id} style={{ gridColumn: WIDGET_CONFIG[id].gridColumn }}>
-          <Skeleton
-            variant="card"
-            height={WIDGET_CONFIG[id].minHeight}
-            className="w-full"
-          />
+          <Skeleton variant="card" height={WIDGET_CONFIG[id].minHeight} className="w-full" />
         </div>
       ))}
     </DashboardGrid>

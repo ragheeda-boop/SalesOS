@@ -18,14 +18,10 @@ import {
   useSequencingMeta,
 } from "@/lib/hooks/sequencingQueries";
 import type { SequenceDefinition, SequenceEnrollment } from "@/lib/api";
-import {
-  SEQUENCING_HONESTY,
-  SEQUENCING_NON_GOALS,
-} from "@/features/gtm/sequencingHonesty";
+import { SEQUENCING_HONESTY, SEQUENCING_NON_GOALS } from "@/features/gtm/sequencingHonesty";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -114,10 +110,10 @@ export function SequencingPanel() {
         opts: {
           onSuccess: (row: SequenceEnrollment) => void;
           onError: (err: unknown) => void;
-        },
+        }
       ) => void;
     },
-    id: string,
+    id: string
   ) {
     mut.mutate(id, {
       onSuccess: (row) => {
@@ -146,8 +142,8 @@ export function SequencingPanel() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="sequencing-honesty"
       >
-        {SEQUENCING_HONESTY} Non-goals: {SEQUENCING_NON_GOALS.join("; ")}. Not
-        Production GO / RAG GO.
+        {SEQUENCING_HONESTY} Non-goals: {SEQUENCING_NON_GOALS.join("; ")}. Not Production GO / RAG
+        GO.
       </p>
 
       {metaQuery.data ? (
@@ -158,21 +154,16 @@ export function SequencingPanel() {
           <p>
             {metaQuery.data.object} · channels{" "}
             {(
-              metaQuery.data.channels ??
-              (metaQuery.data.channel ? [metaQuery.data.channel] : [])
+              metaQuery.data.channels ?? (metaQuery.data.channel ? [metaQuery.data.channel] : [])
             ).join(", ") || "email"}
             {metaQuery.data.linkedin_policy
               ? ` · LI policy: ${metaQuery.data.linkedin_policy}`
               : ""}
           </p>
-          <p data-testid="sequencing-meta-honesty">
-            tip /meta: {metaQuery.data.honesty}
-          </p>
+          <p data-testid="sequencing-meta-honesty">tip /meta: {metaQuery.data.honesty}</p>
         </div>
       ) : metaQuery.isError ? (
-        <p className="text-sm text-[var(--text-danger)]">
-          {getApiError(metaQuery.error)}
-        </p>
+        <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
       ) : (
         <Spinner />
       )}
@@ -191,12 +182,9 @@ export function SequencingPanel() {
         >
           Refresh
         </Button>
-        <span
-          className="text-xs text-[var(--text-muted)]"
-          data-testid="sequencing-counts"
-        >
-          {listQuery.data?.length ?? 0} sequence(s) ·{" "}
-          {enrollmentsQuery.data?.length ?? 0} enrollment(s)
+        <span className="text-xs text-[var(--text-muted)]" data-testid="sequencing-counts">
+          {listQuery.data?.length ?? 0} sequence(s) · {enrollmentsQuery.data?.length ?? 0}{" "}
+          enrollment(s)
         </span>
       </div>
 
@@ -213,9 +201,7 @@ export function SequencingPanel() {
                 <button
                   type="button"
                   className={`w-full rounded px-2 py-1 text-left text-sm hover:bg-[var(--bg-muted)] ${
-                    selectedSeqId === row.id
-                      ? "bg-[var(--bg-muted)] font-medium"
-                      : ""
+                    selectedSeqId === row.id ? "bg-[var(--bg-muted)] font-medium" : ""
                   }`}
                   data-testid="sequencing-row"
                   onClick={() => loadSequence(row)}
@@ -231,18 +217,14 @@ export function SequencingPanel() {
           data-testid="sequencing-enrollment-list"
         >
           {(enrollmentsQuery.data ?? []).length === 0 ? (
-            <li className="text-xs text-[var(--text-muted)]">
-              No enrollments.
-            </li>
+            <li className="text-xs text-[var(--text-muted)]">No enrollments.</li>
           ) : (
             (enrollmentsQuery.data ?? []).map((row) => (
               <li key={row.id}>
                 <button
                   type="button"
                   className={`w-full rounded px-2 py-1 text-left text-sm hover:bg-[var(--bg-muted)] ${
-                    selectedEnrollId === row.id
-                      ? "bg-[var(--bg-muted)] font-medium"
-                      : ""
+                    selectedEnrollId === row.id ? "bg-[var(--bg-muted)] font-medium" : ""
                   }`}
                   data-testid="sequencing-enrollment-row"
                   onClick={() => loadEnrollment(row)}
@@ -302,13 +284,11 @@ export function SequencingPanel() {
                   variant: "error",
                 });
               },
-            },
+            }
           );
         }}
       >
-        <h2 className="text-sm font-semibold">
-          Create sequence (tip channels)
-        </h2>
+        <h2 className="text-sm font-semibold">Create sequence (tip channels)</h2>
         <Input
           label="name"
           value={name}
@@ -379,11 +359,7 @@ export function SequencingPanel() {
           className="max-w-[8rem]"
           data-testid="sequencing-step2-day"
         />
-        <Button
-          type="submit"
-          disabled={createMutation.isPending}
-          data-testid="sequencing-create"
-        >
+        <Button type="submit" disabled={createMutation.isPending} data-testid="sequencing-create">
           {createMutation.isPending ? "Creating…" : "Create sequence"}
         </Button>
       </form>
@@ -407,12 +383,8 @@ export function SequencingPanel() {
                 sequenceId: selectedSeqId,
                 body: {
                   contact_email: contactEmail.trim(),
-                  ...(linkedinHandle.trim()
-                    ? { linkedin: linkedinHandle.trim() }
-                    : {}),
-                  ...(whatsappHandle.trim()
-                    ? { whatsapp: whatsappHandle.trim() }
-                    : {}),
+                  ...(linkedinHandle.trim() ? { linkedin: linkedinHandle.trim() } : {}),
+                  ...(whatsappHandle.trim() ? { whatsapp: whatsappHandle.trim() } : {}),
                 },
               },
               {
@@ -431,7 +403,7 @@ export function SequencingPanel() {
                     variant: "error",
                   });
                 },
-              },
+              }
             );
           }}
         >
@@ -459,11 +431,7 @@ export function SequencingPanel() {
             onChange={(e) => setWhatsappHandle(e.target.value)}
             data-testid="sequencing-whatsapp"
           />
-          <Button
-            type="submit"
-            disabled={enrollMutation.isPending}
-            data-testid="sequencing-enroll"
-          >
+          <Button type="submit" disabled={enrollMutation.isPending} data-testid="sequencing-enroll">
             {enrollMutation.isPending ? "Enrolling…" : "Enroll"}
           </Button>
         </form>
@@ -477,23 +445,18 @@ export function SequencingPanel() {
           {enrollDetail.isLoading ? (
             <Spinner />
           ) : enrollDetail.isError ? (
-            <p className="text-sm text-[var(--text-danger)]">
-              {getApiError(enrollDetail.error)}
-            </p>
+            <p className="text-sm text-[var(--text-danger)]">{getApiError(enrollDetail.error)}</p>
           ) : activeEnroll ? (
             <>
               <p
                 className="font-mono text-xs text-[var(--text-muted)]"
                 data-testid="sequencing-enrollment-status"
               >
-                {activeEnroll.id} · {activeEnroll.status} · step{" "}
-                {activeEnroll.current_step_index} · bound=
+                {activeEnroll.id} · {activeEnroll.status} · step {activeEnroll.current_step_index} ·
+                bound=
                 {String(activeEnroll.bound_to_task_activity)}
               </p>
-              <ul
-                className="space-y-1 text-xs"
-                data-testid="sequencing-step-states"
-              >
+              <ul className="space-y-1 text-xs" data-testid="sequencing-step-states">
                 {activeEnroll.step_states.map((s) => (
                   <li key={s.step_id}>
                     {s.step_id}: {s.status} (day {s.day_offset})
@@ -509,8 +472,7 @@ export function SequencingPanel() {
                   handles: {JSON.stringify(activeEnroll.contact_handles)}
                 </p>
               ) : null}
-              {activeEnroll.last_send &&
-              Object.keys(activeEnroll.last_send).length > 0 ? (
+              {activeEnroll.last_send && Object.keys(activeEnroll.last_send).length > 0 ? (
                 <p
                   className="font-mono text-xs text-[var(--text-muted)]"
                   data-testid="sequencing-last-send"
@@ -524,9 +486,7 @@ export function SequencingPanel() {
                   size="sm"
                   data-testid="sequencing-advance"
                   disabled={advanceMutation.isPending}
-                  onClick={() =>
-                    onEnrollAction("Advanced", advanceMutation, activeEnroll.id)
-                  }
+                  onClick={() => onEnrollAction("Advanced", advanceMutation, activeEnroll.id)}
                 >
                   Advance
                 </Button>
@@ -536,9 +496,7 @@ export function SequencingPanel() {
                   variant="secondary"
                   data-testid="sequencing-pause"
                   disabled={pauseMutation.isPending}
-                  onClick={() =>
-                    onEnrollAction("Paused", pauseMutation, activeEnroll.id)
-                  }
+                  onClick={() => onEnrollAction("Paused", pauseMutation, activeEnroll.id)}
                 >
                   Pause
                 </Button>
@@ -548,9 +506,7 @@ export function SequencingPanel() {
                   variant="secondary"
                   data-testid="sequencing-resume"
                   disabled={resumeMutation.isPending}
-                  onClick={() =>
-                    onEnrollAction("Resumed", resumeMutation, activeEnroll.id)
-                  }
+                  onClick={() => onEnrollAction("Resumed", resumeMutation, activeEnroll.id)}
                 >
                   Resume
                 </Button>
@@ -560,18 +516,13 @@ export function SequencingPanel() {
                   variant="secondary"
                   data-testid="sequencing-cancel"
                   disabled={cancelMutation.isPending}
-                  onClick={() =>
-                    onEnrollAction("Cancelled", cancelMutation, activeEnroll.id)
-                  }
+                  onClick={() => onEnrollAction("Cancelled", cancelMutation, activeEnroll.id)}
                 >
                   Cancel
                 </Button>
               </div>
               {activeEnroll.task_bindings.length > 0 ? (
-                <ul
-                  className="space-y-1 text-xs"
-                  data-testid="sequencing-task-bindings"
-                >
+                <ul className="space-y-1 text-xs" data-testid="sequencing-task-bindings">
                   {activeEnroll.task_bindings.map((t) => (
                     <li key={t.task_id}>
                       task {t.task_id}: {t.title}
@@ -580,10 +531,7 @@ export function SequencingPanel() {
                 </ul>
               ) : null}
               {activeEnroll.activity_bindings.length > 0 ? (
-                <ul
-                  className="space-y-1 text-xs"
-                  data-testid="sequencing-activity-bindings"
-                >
+                <ul className="space-y-1 text-xs" data-testid="sequencing-activity-bindings">
                   {activeEnroll.activity_bindings.map((a) => (
                     <li key={a.activity_id}>
                       activity {a.activity_id}: {a.summary}

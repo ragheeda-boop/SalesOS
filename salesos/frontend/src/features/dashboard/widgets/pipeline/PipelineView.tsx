@@ -6,13 +6,7 @@ import type { PipelineViewProps, PipelineDeal, PipelineStage } from "./types";
 
 const VIRTUALIZE_THRESHOLD = 50;
 
-function StageBar({
-  stage,
-  maxValue,
-}: {
-  stage: PipelineStage;
-  maxValue: number;
-}) {
+function StageBar({ stage, maxValue }: { stage: PipelineStage; maxValue: number }) {
   const widthPercent = maxValue > 0 ? (stage.value / maxValue) * 100 : 0;
 
   return (
@@ -21,12 +15,8 @@ function StageBar({
       aria-label={`${stage.name}: ${stage.count} صفقة بقيمة ${stage.value.toLocaleString()} ريال`}
     >
       <div className="min-w-[80px]">
-        <div className="font-medium text-[var(--text-primary)]">
-          {stage.name}
-        </div>
-        <div className="text-[10px] text-[var(--text-muted)]">
-          {stage.count} صفقة
-        </div>
+        <div className="font-medium text-[var(--text-primary)]">{stage.name}</div>
+        <div className="text-[10px] text-[var(--text-muted)]">{stage.count} صفقة</div>
       </div>
       <div className="flex-1">
         <div className="h-2 overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
@@ -52,13 +42,7 @@ function StageBar({
   );
 }
 
-function DealRow({
-  deal,
-  onClick,
-}: {
-  deal: PipelineDeal;
-  onClick?: (id: string) => void;
-}) {
+function DealRow({ deal, onClick }: { deal: PipelineDeal; onClick?: (id: string) => void }) {
   const handleClick = useCallback(() => onClick?.(deal.id), [deal.id, onClick]);
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -67,7 +51,7 @@ function DealRow({
         onClick(deal.id);
       }
     },
-    [deal.id, onClick],
+    [deal.id, onClick]
   );
 
   return (
@@ -77,7 +61,7 @@ function DealRow({
       className={cn(
         "flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors motion-reduce:transition-none",
         onClick &&
-          "cursor-pointer hover:bg-[var(--bg-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--muhide-orange)] focus-visible:ring-offset-1",
+          "cursor-pointer hover:bg-[var(--bg-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--muhide-orange)] focus-visible:ring-offset-1"
       )}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
@@ -85,9 +69,7 @@ function DealRow({
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="truncate font-medium text-[var(--text-primary)]">
-            {deal.title}
-          </span>
+          <span className="truncate font-medium text-[var(--text-primary)]">{deal.title}</span>
           <span className="shrink-0 rounded-full bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">
             {deal.stage}
           </span>
@@ -126,10 +108,7 @@ function VirtualizedDealList({
   deals: PipelineDeal[];
   onDealClick?: (id: string) => void;
 }) {
-  const visibleDeals = useMemo(
-    () => deals.slice(0, VIRTUALIZE_THRESHOLD),
-    [deals],
-  );
+  const visibleDeals = useMemo(() => deals.slice(0, VIRTUALIZE_THRESHOLD), [deals]);
   const remaining = deals.length - VIRTUALIZE_THRESHOLD;
 
   return (
@@ -142,9 +121,7 @@ function VirtualizedDealList({
         ))}
       </div>
       {remaining > 0 && (
-        <div className="mt-1 px-3 text-[10px] text-[var(--text-muted)]">
-          +{remaining} صفقة أخرى
-        </div>
+        <div className="mt-1 px-3 text-[10px] text-[var(--text-muted)]">+{remaining} صفقة أخرى</div>
       )}
     </div>
   );
@@ -182,10 +159,7 @@ export function PipelineView({
   isDecisionLoading,
   onDealClick,
 }: PipelineViewProps) {
-  const maxValue = useMemo(
-    () => Math.max(...stages.map((s) => s.value), 1),
-    [stages],
-  );
+  const maxValue = useMemo(() => Math.max(...stages.map((s) => s.value), 1), [stages]);
 
   if (isDecisionLoading && stages.length === 0) {
     return <SkeletonStages />;
@@ -209,9 +183,7 @@ export function PipelineView({
           aria-atomic="true"
           className="rounded-lg bg-[var(--bg-secondary)] px-3 py-2 text-xs text-[var(--text-muted)]"
         >
-          <span className="font-medium text-[var(--text-primary)]">
-            ملخص الأنبوب:{" "}
-          </span>
+          <span className="font-medium text-[var(--text-primary)]">ملخص الأنبوب: </span>
           {decision.summary}
           <span className="ml-1 text-[10px] opacity-60">
             ({Math.round(decision.confidence * 100)}% ثقة)
@@ -221,16 +193,13 @@ export function PipelineView({
 
       <div>
         <div className="mb-1 flex items-center justify-between px-1">
-          <span className="text-xs font-semibold text-[var(--text-muted)]">
-            مراحل الأنبوب
-          </span>
+          <span className="text-xs font-semibold text-[var(--text-muted)]">مراحل الأنبوب</span>
           <span className="text-[10px] text-[var(--text-muted)]">
             {dealCount} صفقة — {(totalValue / 1_000_000).toFixed(1)}M ريال
           </span>
         </div>
         <div aria-live="polite" aria-atomic="true" className="sr-only">
-          إجمالي الأنبوب: {dealCount} صفقة بقيمة{" "}
-          {totalValue.toLocaleString("ar-SA")} ريال
+          إجمالي الأنبوب: {dealCount} صفقة بقيمة {totalValue.toLocaleString("ar-SA")} ريال
         </div>
         <div className="space-y-0.5">
           {stages.map((stage) => (
@@ -259,9 +228,7 @@ export function PipelineView({
               className="rounded-md px-2 py-1 text-xs text-[var(--text-muted)]"
               aria-label={`AI توصية: ${nba.action} لـ ${nba.company_name}`}
             >
-              <span className="font-medium text-[var(--text-primary)]">
-                {nba.company_name}
-              </span>
+              <span className="font-medium text-[var(--text-primary)]">{nba.company_name}</span>
               {" — "}
               {nba.action}
             </div>

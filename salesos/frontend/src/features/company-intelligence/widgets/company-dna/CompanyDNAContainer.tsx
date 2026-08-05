@@ -20,17 +20,12 @@ export const CompanyDNAWidget = createWidget({
   },
   useData: () => {
     const { id: companyId } = useParams<{ id: string }>();
-    const { data, isLoading, isError, error, refetch } =
-      useCompanyIntelligence(companyId);
+    const { data, isLoading, isError, error, refetch } = useCompanyIntelligence(companyId);
     const { data: decisionScores } = useDecisionScores(companyId, "company");
     const dna = data?.dna ?? null;
     return {
       data: dna ? { ...dna, decisionScores: decisionScores ?? [] } : null,
-      status: isLoading
-        ? ("loading" as const)
-        : isError
-          ? ("error" as const)
-          : ("ready" as const),
+      status: isLoading ? ("loading" as const) : isError ? ("error" as const) : ("ready" as const),
       lastUpdated: null,
       error: error as Error | null,
       refetch,

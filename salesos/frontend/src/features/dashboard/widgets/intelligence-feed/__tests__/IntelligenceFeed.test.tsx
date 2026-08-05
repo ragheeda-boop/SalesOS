@@ -155,9 +155,7 @@ describe("IntelligenceFeedView", () => {
   it("shows empty state when no items", () => {
     renderView({ items: [], total: 0, unseenCount: 0 });
     expect(screen.getByText("لا توجد إشارات جديدة")).toBeInTheDocument();
-    expect(
-      screen.getByText("ستظهر الإشارات الذكية هنا عند توفرها"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("ستظهر الإشارات الذكية هنا عند توفرها")).toBeInTheDocument();
   });
 
   it("does not render list in empty state", () => {
@@ -216,26 +214,18 @@ describe("IntelligenceFeedView", () => {
   // 5. Accessibility
   it('has role="region" with aria-label', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "Intelligence Feed" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Intelligence Feed" })).toBeInTheDocument();
   });
 
   it("each signal has descriptive aria-label", () => {
     renderView();
-    expect(
-      screen.getByLabelText(/مناقصة جديدة - ACME Corp/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByLabelText(/إطلاق منتج منافس - Beta Ltd/),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/مناقصة جديدة - ACME Corp/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/إطلاق منتج منافس - Beta Ltd/)).toBeInTheDocument();
   });
 
   it('signals list has role="list"', () => {
     renderView();
-    expect(
-      screen.getByRole("list", { name: "Intelligence signals" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "Intelligence signals" })).toBeInTheDocument();
   });
 
   it('each signal has role="listitem"', () => {
@@ -271,9 +261,7 @@ describe("IntelligenceFeedView", () => {
   // 6. Dark Mode
   it("uses CSS variables for backgrounds", () => {
     renderView();
-    expect(screen.getByText("مناقصة جديدة").className).toContain(
-      "text-[var(--text-primary)]",
-    );
+    expect(screen.getByText("مناقصة جديدة").className).toContain("text-[var(--text-primary)]");
   });
 
   it("has dark mode variant classes", () => {
@@ -296,8 +284,7 @@ describe("IntelligenceFeedWidget (SDK integration)", () => {
   it("is a valid React component", () => {
     expect(IntelligenceFeedWidget).toBeDefined();
     expect(
-      typeof IntelligenceFeedWidget === "function" ||
-        typeof IntelligenceFeedWidget === "object",
+      typeof IntelligenceFeedWidget === "function" || typeof IntelligenceFeedWidget === "object"
     ).toBe(true);
   });
 });

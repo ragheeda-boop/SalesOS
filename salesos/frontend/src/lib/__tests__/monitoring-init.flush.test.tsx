@@ -68,7 +68,7 @@ describe("monitoring-init interceptor registration", () => {
         "GET",
         "/api/v1/test",
         expect.any(Number),
-        200,
+        200
       );
     });
   });

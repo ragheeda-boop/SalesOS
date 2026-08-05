@@ -85,23 +85,13 @@ function MetricCard({
         <p className="text-xs text-[var(--text-muted)]">{label}</p>
         <span className="text-[var(--text-muted)]">{icon}</span>
       </div>
-      <p className="text-2xl font-bold text-[var(--text-primary)] mt-1">
-        {value}
-      </p>
+      <p className="text-2xl font-bold text-[var(--text-primary)] mt-1">{value}</p>
       {trend !== undefined && (
         <div className={cn("flex items-center gap-1 mt-1 text-xs", trendColor)}>
-          {trend >= 0 ? (
-            <TrendingUp className="h-3 w-3" />
-          ) : (
-            <TrendingDown className="h-3 w-3" />
-          )}
+          {trend >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
           <span>
             {Math.abs(trend).toFixed(1)}%
-            {trendLabel && (
-              <span className="text-[var(--text-muted)] ml-1">
-                {trendLabel}
-              </span>
-            )}
+            {trendLabel && <span className="text-[var(--text-muted)] ml-1">{trendLabel}</span>}
           </span>
         </div>
       )}
@@ -124,19 +114,11 @@ function MiniTrendChart({
   const max = Math.max(...values);
   const range = max - min || 1;
   const points = values
-    .map(
-      (v, i) =>
-        `${(i / (values.length - 1)) * 100},${100 - ((v - min) / range) * 80}`,
-    )
+    .map((v, i) => `${(i / (values.length - 1)) * 100},${100 - ((v - min) / range) * 80}`)
     .join("");
 
   return (
-    <svg
-      viewBox="0 0 100 100"
-      className="w-full"
-      style={{ height }}
-      preserveAspectRatio="none"
-    >
+    <svg viewBox="0 0 100 100" className="w-full" style={{ height }} preserveAspectRatio="none">
       <polyline fill="none" stroke={color} strokeWidth="2" points={points} />
     </svg>
   );
@@ -144,10 +126,7 @@ function MiniTrendChart({
 
 function ForecastVsActualChart({ data }: { data: ForecastVsActual[] }) {
   if (!data.length) return null;
-  const maxVal = Math.max(
-    ...data.map((d) => Math.max(d.forecast, d.actual)),
-    1,
-  );
+  const maxVal = Math.max(...data.map((d) => Math.max(d.forecast, d.actual)), 1);
 
   return (
     <div className="space-y-2">
@@ -156,8 +135,7 @@ function ForecastVsActualChart({ data }: { data: ForecastVsActual[] }) {
           <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
             <span>{d.month}</span>
             <span>
-              Actual: {formatCurrency(d.actual)} / Forecast:{" "}
-              {formatCurrency(d.forecast)}
+              Actual: {formatCurrency(d.actual)} / Forecast: {formatCurrency(d.forecast)}
             </span>
           </div>
           <div className="relative h-5 rounded bg-[var(--bg-tertiary)] overflow-hidden">
@@ -213,12 +191,9 @@ function EmptyStateComponent({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
       <BarChart3 className="h-12 w-12 text-[var(--text-muted)] mb-4" />
-      <h3 className="text-lg font-semibold text-[var(--text-primary)]">
-        No Revenue Data
-      </h3>
+      <h3 className="text-lg font-semibold text-[var(--text-primary)]">No Revenue Data</h3>
       <p className="text-sm text-[var(--text-muted)] mt-1 max-w-md">
-        Revenue metrics will appear here once opportunities and contracts are
-        processed.
+        Revenue metrics will appear here once opportunities and contracts are processed.
       </p>
       <button
         onClick={onRetry}
@@ -240,13 +215,12 @@ export default function RevenueDashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const [dashboardRes, forecastRes, analyticsRes, leaderboardRes] =
-        await Promise.all([
-          api.get("/api/v1/revenue/dashboard"),
-          api.get("/api/v1/forecast").catch(() => ({ data: null })),
-          api.get("/api/v1/analytics/kpis").catch(() => ({ data: null })),
-          api.get("/api/v1/workspace").catch(() => ({ data: null })),
-        ]);
+      const [dashboardRes, forecastRes, analyticsRes, leaderboardRes] = await Promise.all([
+        api.get("/api/v1/revenue/dashboard"),
+        api.get("/api/v1/forecast").catch(() => ({ data: null })),
+        api.get("/api/v1/analytics/kpis").catch(() => ({ data: null })),
+        api.get("/api/v1/workspace").catch(() => ({ data: null })),
+      ]);
 
       const dash = dashboardRes.data;
       const forecast = forecastRes.data;
@@ -266,10 +240,8 @@ export default function RevenueDashboardPage() {
         churn_trend: workspace?.kpis?.churn?.change ?? 0,
         expansion_revenue: workspace?.kpis?.forecast?.value ?? 0,
         expansion_trend: workspace?.kpis?.forecast?.change ?? 0,
-        total_pipe:
-          dash?.total_value ?? workspace?.opportunities?.total_value ?? 0,
-        forecast:
-          forecast?.total_weighted ?? workspace?.forecast?.total_weighted ?? 0,
+        total_pipe: dash?.total_value ?? workspace?.opportunities?.total_value ?? 0,
+        forecast: forecast?.total_weighted ?? workspace?.forecast?.total_weighted ?? 0,
       };
 
       // No synthetic trend invention — empty series until time-series API exists
@@ -281,8 +253,7 @@ export default function RevenueDashboardPage() {
       };
       const forecastVsActual: ForecastVsActual[] = [];
 
-      const activeOpps =
-        dash?.active_opportunities ?? workspace?.opportunities?.recent ?? [];
+      const activeOpps = dash?.active_opportunities ?? workspace?.opportunities?.recent ?? [];
       const leaderboard: RepLeaderboardEntry[] = (
         activeOpps as Array<{ id: string; name: string; value: number }>
       )
@@ -342,9 +313,7 @@ export default function RevenueDashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)]">
-              Revenue Dashboard
-            </h1>
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">Revenue Dashboard</h1>
             <p className="text-sm text-[var(--text-muted)]">
               Key metrics, trends, and forecast tracking
             </p>
@@ -421,9 +390,7 @@ export default function RevenueDashboardPage() {
               key={item.label}
               className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4"
             >
-              <p className="text-xs text-[var(--text-muted)] mb-2">
-                {item.label}
-              </p>
+              <p className="text-xs text-[var(--text-muted)] mb-2">{item.label}</p>
               <MiniTrendChart data={item.data} color={item.color} height={50} />
               <div className="flex justify-between text-[10px] text-[var(--text-muted)] mt-1">
                 <span>{item.data[0]?.month}</span>
@@ -471,7 +438,7 @@ export default function RevenueDashboardPage() {
                             ? "bg-gray-100 text-gray-600"
                             : i === 2
                               ? "bg-orange-100 text-orange-700"
-                              : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]",
+                              : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]"
                       )}
                     >
                       {i + 1}
@@ -497,7 +464,7 @@ export default function RevenueDashboardPage() {
                                 ? "bg-green-500"
                                 : rep.quota_attainment >= 75
                                   ? "bg-amber-500"
-                                  : "bg-red-500",
+                                  : "bg-red-500"
                             )}
                             style={{
                               width: `${Math.min(rep.quota_attainment, 100)}%`,

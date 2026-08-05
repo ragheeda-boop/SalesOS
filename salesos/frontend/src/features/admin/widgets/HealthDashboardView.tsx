@@ -1,14 +1,7 @@
 "use client";
 
 import { Card, Badge, Spinner } from "@salesos/ui";
-import {
-  HeartPulse,
-  CheckCircle,
-  XCircle,
-  Activity,
-  Clock,
-  Cpu,
-} from "lucide-react";
+import { HeartPulse, CheckCircle, XCircle, Activity, Clock, Cpu } from "lucide-react";
 import type { AdminHealthComponent, AdminHealthHistoryEntry } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
 
@@ -22,11 +15,7 @@ export interface HealthDashboardViewProps {
   loading: boolean;
 }
 
-export function HealthDashboardView({
-  health,
-  history,
-  loading,
-}: HealthDashboardViewProps) {
+export function HealthDashboardView({ health, history, loading }: HealthDashboardViewProps) {
   const { t, locale } = useTranslation();
 
   if (loading) {
@@ -60,58 +49,40 @@ export function HealthDashboardView({
           <div className="flex items-center gap-2 mb-2">
             <HeartPulse className="h-5 w-5 text-success-500" />
           </div>
-          <p className="text-2xl font-bold">
-            {Math.floor((health?.uptime_seconds || 0) / 86400)}d
-          </p>
-          <p className="text-xs text-[var(--text-muted)]">
-            {t("admin.health.uptime")}
-          </p>
+          <p className="text-2xl font-bold">{Math.floor((health?.uptime_seconds || 0) / 86400)}d</p>
+          <p className="text-xs text-[var(--text-muted)]">{t("admin.health.uptime")}</p>
         </div>
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
           <div className="flex items-center gap-2 mb-2">
             <Cpu className="h-5 w-5 text-[var(--muhide-orange)]" />
           </div>
-          <p className="text-2xl font-bold">
-            {health?.components?.length || 0}
-          </p>
-          <p className="text-xs text-[var(--text-muted)]">
-            {t("admin.health.system_components")}
-          </p>
+          <p className="text-2xl font-bold">{health?.components?.length || 0}</p>
+          <p className="text-xs text-[var(--text-muted)]">{t("admin.health.system_components")}</p>
         </div>
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle className="h-5 w-5 text-success-500" />
           </div>
           <p className="text-2xl font-bold">
-            {health?.components?.filter(
-              (c: AdminHealthComponent) => c.status === "healthy",
-            ).length || 0}
+            {health?.components?.filter((c: AdminHealthComponent) => c.status === "healthy")
+              .length || 0}
           </p>
-          <p className="text-xs text-[var(--text-muted)]">
-            {t("admin.health.healthy_count")}
-          </p>
+          <p className="text-xs text-[var(--text-muted)]">{t("admin.health.healthy_count")}</p>
         </div>
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
           <div className="flex items-center gap-2 mb-2">
             <Activity className="h-5 w-5 text-[var(--text-disabled)]" />
           </div>
           <p className="text-2xl font-bold">{history?.length || 0}</p>
-          <p className="text-xs text-[var(--text-muted)]">
-            {t("admin.health.past_checks")}
-          </p>
+          <p className="text-xs text-[var(--text-muted)]">{t("admin.health.past_checks")}</p>
         </div>
       </div>
 
       <Card className="p-4">
-        <h3 className="font-semibold mb-3">
-          {t("admin.health.component_status")}
-        </h3>
+        <h3 className="font-semibold mb-3">{t("admin.health.component_status")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {health?.components?.map((comp: AdminHealthComponent) => (
-            <div
-              key={comp.component}
-              className="flex items-start gap-3 p-3 rounded-lg border"
-            >
+            <div key={comp.component} className="flex items-start gap-3 p-3 rounded-lg border">
               <div className="mt-0.5">
                 {comp.status === "healthy" ? (
                   <CheckCircle className="h-5 w-5 text-success-500" />
@@ -122,9 +93,7 @@ export function HealthDashboardView({
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <p className="font-medium text-sm">{comp.component}</p>
-                  <Badge
-                    variant={comp.status === "healthy" ? "success" : "danger"}
-                  >
+                  <Badge variant={comp.status === "healthy" ? "success" : "danger"}>
                     {comp.status}
                   </Badge>
                 </div>
@@ -136,9 +105,7 @@ export function HealthDashboardView({
                   </p>
                 )}
                 {comp.details && (
-                  <p className="text-xs text-[var(--text-disabled)] mt-0.5">
-                    {comp.details}
-                  </p>
+                  <p className="text-xs text-[var(--text-disabled)] mt-0.5">{comp.details}</p>
                 )}
               </div>
             </div>
@@ -154,23 +121,16 @@ export function HealthDashboardView({
         {history?.length ? (
           <div className="space-y-2">
             {history.map((entry: AdminHealthHistoryEntry, i: number) => (
-              <div
-                key={i}
-                className="flex items-center gap-3 p-2 rounded-lg border text-sm"
-              >
+              <div key={i} className="flex items-center gap-3 p-2 rounded-lg border text-sm">
                 <span
                   className={`h-2 w-2 rounded-full shrink-0 ${entry.overall_status === "healthy" ? "bg-success-500" : "bg-danger-500"}`}
                 />
                 <span className="text-xs text-[var(--text-muted)] font-mono w-32">
                   {new Date(entry.timestamp).toLocaleTimeString(
-                    locale === "ar" ? "ar-SA" : "en-US",
+                    locale === "ar" ? "ar-SA" : "en-US"
                   )}
                 </span>
-                <Badge
-                  variant={
-                    entry.overall_status === "healthy" ? "success" : "danger"
-                  }
-                >
+                <Badge variant={entry.overall_status === "healthy" ? "success" : "danger"}>
                   {entry.overall_status}
                 </Badge>
                 <div className="flex gap-1 flex-wrap">

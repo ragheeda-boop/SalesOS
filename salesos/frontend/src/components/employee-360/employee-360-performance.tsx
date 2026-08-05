@@ -1,15 +1,7 @@
 "use client";
 
 import { useEmployeePerformance } from "@/lib/hooks/employeeQueries";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  Skeleton,
-  EmptyState,
-  Badge,
-  cn,
-} from "@salesos/ui";
+import { Card, CardContent, CardHeader, Skeleton, EmptyState, Badge, cn } from "@salesos/ui";
 import {
   TrendingUp,
   TrendingDown,
@@ -74,18 +66,13 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <TrendChart
-          data={performance.score_trend}
-          direction={performance.score_trend_direction}
-        />
+        <TrendChart data={performance.score_trend} direction={performance.score_trend_direction} />
 
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-[var(--chart-purple)]" />
-              <h3 className="text-sm font-semibold">
-                {t("emp360.peer_comparison")}
-              </h3>
+              <h3 className="text-sm font-semibold">{t("emp360.peer_comparison")}</h3>
             </div>
           </CardHeader>
           <CardContent>
@@ -97,11 +84,7 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
                   department_avg: number;
                   label: string;
                 }) => {
-                  const maxVal = Math.max(
-                    p.employee_value,
-                    p.department_avg,
-                    1,
-                  );
+                  const maxVal = Math.max(p.employee_value, p.department_avg, 1);
                   return (
                     <div key={p.metric}>
                       <p className="mb-1.5 text-xs font-medium text-[var(--text-secondary)]">
@@ -143,7 +126,7 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
                       </div>
                     </div>
                   );
-                },
+                }
               )}
               {performance.peer_comparison.length === 0 && (
                 <p className="py-4 text-center text-xs text-[var(--text-disabled)]">
@@ -160,9 +143,7 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Shield className="h-4 w-4 text-warning-600" />
-              <h3 className="text-sm font-semibold">
-                {t("emp360.risk_flags")}
-              </h3>
+              <h3 className="text-sm font-semibold">{t("emp360.risk_flags")}</h3>
             </div>
           </CardHeader>
           <CardContent>
@@ -178,9 +159,7 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
                     high: {
                       bg: "bg-danger-50 dark:bg-danger-900/20",
                       border: "border-danger-200 dark:border-danger-800",
-                      icon: (
-                        <AlertTriangle className="h-4 w-4 text-danger-600" />
-                      ),
+                      icon: <AlertTriangle className="h-4 w-4 text-danger-600" />,
                       badge: "danger" as const,
                     },
                     medium: {
@@ -192,9 +171,7 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
                     low: {
                       bg: "bg-success-50 dark:bg-success-900/20",
                       border: "border-success-200 dark:border-success-800",
-                      icon: (
-                        <CheckCircle className="h-4 w-4 text-success-600" />
-                      ),
+                      icon: <CheckCircle className="h-4 w-4 text-success-600" />,
                       badge: "success" as const,
                     },
                   };
@@ -205,7 +182,7 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
                       className={cn(
                         "flex items-start gap-3 rounded-lg border p-3",
                         cfg.bg,
-                        cfg.border,
+                        cfg.border
                       )}
                     >
                       {cfg.icon}
@@ -224,7 +201,7 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
                       </div>
                     </div>
                   );
-                },
+                }
               )}
             </div>
           </CardContent>
@@ -236,9 +213,7 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
           <CardHeader>
             <div className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-[var(--text-muted)]" />
-              <h3 className="text-sm font-semibold">
-                {t("emp360.factors_breakdown")}
-              </h3>
+              <h3 className="text-sm font-semibold">{t("emp360.factors_breakdown")}</h3>
             </div>
           </CardHeader>
           <CardContent>
@@ -247,9 +222,7 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
                 (f: { name: string; contribution: number; label: string }) => (
                   <div key={f.name}>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-[var(--text-secondary)]">
-                        {f.label}
-                      </span>
+                      <span className="text-[var(--text-secondary)]">{f.label}</span>
                       <span className="font-medium text-[var(--text-primary)]">
                         +{f.contribution}
                       </span>
@@ -263,7 +236,7 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
                       />
                     </div>
                   </div>
-                ),
+                )
               )}
             </div>
           </CardContent>

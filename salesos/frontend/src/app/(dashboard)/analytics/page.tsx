@@ -68,11 +68,7 @@ function LoadingSkeleton() {
 }
 
 export default function AnalyticsOverviewPage() {
-  const {
-    data: execData,
-    isLoading: execLoading,
-    error: execError,
-  } = useExecutiveDashboard();
+  const { data: execData, isLoading: execLoading, error: execError } = useExecutiveDashboard();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -174,12 +170,8 @@ export default function AnalyticsOverviewPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">
-            Analytics Overview
-          </h1>
-          <p className="text-sm text-[var(--text-muted)]">
-            Key metrics across all domains
-          </p>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]">Analytics Overview</h1>
+          <p className="text-sm text-[var(--text-muted)]">Key metrics across all domains</p>
         </div>
         <div className="flex items-center gap-2">
           <Link
@@ -222,9 +214,7 @@ export default function AnalyticsOverviewPage() {
 
       {/* Domain Dashboards */}
       <div>
-        <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-          Domain Dashboards
-        </h2>
+        <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Domain Dashboards</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {domains.map((domain) => (
             <Link
@@ -233,29 +223,16 @@ export default function AnalyticsOverviewPage() {
               className="group rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4 hover:border-[var(--muhide-orange)]/30 hover:shadow-sm transition-all"
             >
               <div className="flex items-start justify-between mb-3">
-                <div
-                  className={cn(
-                    "p-2 rounded-lg bg-[var(--bg-secondary)]",
-                    domain.color,
-                  )}
-                >
+                <div className={cn("p-2 rounded-lg bg-[var(--bg-secondary)]", domain.color)}>
                   {domain.icon}
                 </div>
                 <ChevronRight className="h-4 w-4 text-[var(--text-muted)] group-hover:text-[var(--muhide-orange)] transition" />
               </div>
-              <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-                {domain.title}
-              </h3>
-              <p className="text-xs text-[var(--text-muted)] mt-1">
-                {domain.description}
-              </p>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">{domain.title}</h3>
+              <p className="text-xs text-[var(--text-muted)] mt-1">{domain.description}</p>
               <div className="mt-3 pt-3 border-t border-[var(--border-default)]">
-                <p className="text-lg font-bold text-[var(--text-primary)]">
-                  {domain.metric}
-                </p>
-                <p className="text-[10px] text-[var(--text-muted)]">
-                  {domain.metric_label}
-                </p>
+                <p className="text-lg font-bold text-[var(--text-primary)]">{domain.metric}</p>
+                <p className="text-[10px] text-[var(--text-muted)]">{domain.metric_label}</p>
               </div>
             </Link>
           ))}
@@ -264,9 +241,7 @@ export default function AnalyticsOverviewPage() {
 
       {/* Quick Insights */}
       <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
-          Quick Insights
-        </h3>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Quick Insights</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="rounded-lg bg-[var(--bg-secondary)] p-3">
             <p className="text-xs text-[var(--text-muted)]">Revenue Growth</p>
@@ -275,33 +250,27 @@ export default function AnalyticsOverviewPage() {
                 "text-lg font-bold",
                 overviewMetrics.revenue_trend >= 0
                   ? "text-[var(--status-success-text)]"
-                  : "text-[var(--status-danger-text)]",
+                  : "text-[var(--status-danger-text)]"
               )}
             >
               {overviewMetrics.revenue_trend >= 0 ? "+" : ""}
               {overviewMetrics.revenue_trend}%
             </p>
-            <p className="text-[10px] text-[var(--text-muted)]">
-              vs last period
-            </p>
+            <p className="text-[10px] text-[var(--text-muted)]">vs last period</p>
           </div>
           <div className="rounded-lg bg-[var(--bg-secondary)] p-3">
             <p className="text-xs text-[var(--text-muted)]">Team Performance</p>
             <p className="text-lg font-bold text-[var(--text-primary)]">
               {overviewMetrics.active_employees} active
             </p>
-            <p className="text-[10px] text-[var(--text-muted)]">
-              employees this period
-            </p>
+            <p className="text-[10px] text-[var(--text-muted)]">employees this period</p>
           </div>
           <div className="rounded-lg bg-[var(--bg-secondary)] p-3">
             <p className="text-xs text-[var(--text-muted)]">Pipeline Health</p>
             <p className="text-lg font-bold text-[var(--text-primary)]">
               {overviewMetrics.conversion_rate}% conversion
             </p>
-            <p className="text-[10px] text-[var(--text-muted)]">
-              lead to close rate
-            </p>
+            <p className="text-[10px] text-[var(--text-muted)]">lead to close rate</p>
           </div>
         </div>
       </div>

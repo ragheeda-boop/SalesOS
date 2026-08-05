@@ -60,19 +60,10 @@ function CompletionGauge({ rate }: { rate: number }) {
 
   return (
     <div className="flex flex-col items-center space-y-2">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-        نسبة الإتمام
-      </h3>
+      <h3 className="text-sm font-semibold text-[var(--text-primary)]">نسبة الإتمام</h3>
       <div className="relative">
         <svg width={140} height={140} viewBox="0 0 140 140">
-          <circle
-            cx={70}
-            cy={70}
-            r={60}
-            fill="none"
-            stroke="var(--bg-tertiary)"
-            strokeWidth={10}
-          />
+          <circle cx={70} cy={70} r={60} fill="none" stroke="var(--bg-tertiary)" strokeWidth={10} />
           <circle
             cx={70}
             cy={70}
@@ -91,9 +82,7 @@ function CompletionGauge({ rate }: { rate: number }) {
           <span className="text-2xl font-bold" style={{ color }}>
             {rate}%
           </span>
-          <span className="text-[10px] text-[var(--text-muted)]">
-            نسبة النجاح
-          </span>
+          <span className="text-[10px] text-[var(--text-muted)]">نسبة النجاح</span>
         </div>
       </div>
     </div>
@@ -150,9 +139,7 @@ function TopWorkflowsTable({
 }) {
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-        أكثر سير العمل استخداماً
-      </h3>
+      <h3 className="text-sm font-semibold text-[var(--text-primary)]">أكثر سير العمل استخداماً</h3>
       <div className="rounded-lg border border-[var(--border-default)] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -178,13 +165,9 @@ function TopWorkflowsTable({
                 className="border-b border-[var(--border-default)] last:border-0 hover:bg-[var(--bg-secondary)]"
               >
                 <td className="px-3 py-2">
-                  <span className="text-sm font-medium text-[var(--text-primary)]">
-                    {wf.name}
-                  </span>
+                  <span className="text-sm font-medium text-[var(--text-primary)]">{wf.name}</span>
                 </td>
-                <td className="px-3 py-2 text-[var(--text-secondary)]">
-                  {wf.runs}
-                </td>
+                <td className="px-3 py-2 text-[var(--text-secondary)]">{wf.runs}</td>
                 <td className="px-3 py-2">
                   <Badge
                     variant={
@@ -225,11 +208,7 @@ function TopWorkflowsTable({
   );
 }
 
-function ExecutionHistoryTable({
-  executions,
-}: {
-  executions: WorkflowExecution[];
-}) {
+function ExecutionHistoryTable({ executions }: { executions: WorkflowExecution[] }) {
   const statusConfig: Record<
     string,
     { label: string; variant: "success" | "danger" | "warning" | "default" }
@@ -241,9 +220,7 @@ function ExecutionHistoryTable({
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-        سجل التنفيذ الأخير
-      </h3>
+      <h3 className="text-sm font-semibold text-[var(--text-primary)]">سجل التنفيذ الأخير</h3>
       <div className="rounded-lg border border-[var(--border-default)] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -287,10 +264,7 @@ function ExecutionHistoryTable({
             })}
             {executions.length === 0 && (
               <tr>
-                <td
-                  colSpan={4}
-                  className="px-3 py-6 text-center text-xs text-[var(--text-muted)]"
-                >
+                <td colSpan={4} className="px-3 py-6 text-center text-xs text-[var(--text-muted)]">
                   لا توجد تنفيذات بعد
                 </td>
               </tr>
@@ -305,9 +279,7 @@ function ExecutionHistoryTable({
 export default function AutomationAnalyticsPage() {
   const { data: workflows, isLoading: workflowsLoading } = useWorkflows();
 
-  const [analytics, setAnalytics] = useState<WorkflowAnalyticsSummary | null>(
-    null,
-  );
+  const [analytics, setAnalytics] = useState<WorkflowAnalyticsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -391,9 +363,7 @@ export default function AutomationAnalyticsPage() {
           <ArrowLeft className="h-4 w-4" />
         </Link>
         <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">
-            تحليلات الأتمتة
-          </h1>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]">تحليلات الأتمتة</h1>
           <p className="text-sm text-[var(--text-muted)]">
             معدلات الإتمام والمدة المتوسطة ونسبة الفشل
           </p>
@@ -451,9 +421,7 @@ export default function AutomationAnalyticsPage() {
 
       {/* Recent Executions */}
       <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-        <ExecutionHistoryTable
-          executions={analytics?.recent_executions ?? []}
-        />
+        <ExecutionHistoryTable executions={analytics?.recent_executions ?? []} />
       </div>
     </div>
   );

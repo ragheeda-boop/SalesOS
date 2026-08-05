@@ -23,9 +23,9 @@ export type AuthTokens = {
 
 function getJwtMaxAgeSeconds(token: string): number | null {
   try {
-    const payload = JSON.parse(
-      atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")),
-    ) as { exp?: number };
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))) as {
+      exp?: number;
+    };
     if (typeof payload.exp !== "number") return null;
     const seconds = payload.exp - Math.floor(Date.now() / 1000);
     return seconds > 0 ? seconds : null;
@@ -76,7 +76,7 @@ export function syncAccessTokenCookieFromStorage(): void {
 }
 
 export function readAccessTokenFromCookieHeader(
-  cookieHeader: string | null | undefined,
+  cookieHeader: string | null | undefined
 ): string | null {
   if (!cookieHeader) return null;
   const parts = cookieHeader.split(";");

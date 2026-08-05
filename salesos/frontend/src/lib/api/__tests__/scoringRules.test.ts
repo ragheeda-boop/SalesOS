@@ -1,8 +1,4 @@
-import {
-  evaluateScoringRule,
-  listScoringRules,
-  upsertScoringRule,
-} from "../scoringRules";
+import { evaluateScoringRule, listScoringRules, upsertScoringRule } from "../scoringRules";
 
 jest.mock("../client", () => ({
   __esModule: true,
@@ -32,7 +28,7 @@ describe("scoringRules API — FE-S10-04", () => {
       "/api/v1/studio/scoring-rules",
       expect.objectContaining({
         headers: { "X-Tenant-Id": "tenant-1" },
-      }),
+      })
     );
     expect(rows).toEqual([]);
   });
@@ -60,7 +56,7 @@ describe("scoringRules API — FE-S10-04", () => {
       expect.objectContaining({ name: "Override" }),
       expect.objectContaining({
         headers: { "X-Tenant-Id": "tenant-1" },
-      }),
+      })
     );
     expect(row.id).toBe("r1");
   });
@@ -85,7 +81,7 @@ describe("scoringRules API — FE-S10-04", () => {
       expect.objectContaining({ target_type: "company" }),
       expect.objectContaining({
         headers: { "X-Tenant-Id": "tenant-1" },
-      }),
+      })
     );
     expect(result.score).toBe(72.5);
   });

@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  createRegistry,
-  type RegistryEntry,
-} from "./_registry/widget-registry";
+import { createRegistry, type RegistryEntry } from "./_registry/widget-registry";
 import { withErrorBoundary } from "@/components/error-boundary";
 import { MissionCenterWidget } from "./widgets/mission-center";
 import { DecisionQueueWidget } from "./widgets/decision-queue";
@@ -21,55 +18,49 @@ import { CompanyScoringWidget } from "@/features/scoring/widgets/company-scoring
 
 const MissionCenterBounded = withErrorBoundary(
   MissionCenterWidget,
-  <WidgetFallback title="Mission Center" />,
+  <WidgetFallback title="Mission Center" />
 );
 const DecisionQueueBounded = withErrorBoundary(
   DecisionQueueWidget,
-  <WidgetFallback title="Decision Queue" />,
+  <WidgetFallback title="Decision Queue" />
 );
 const IntelligenceFeedBounded = withErrorBoundary(
   IntelligenceFeedWidget,
-  <WidgetFallback title="Intelligence Feed" />,
+  <WidgetFallback title="Intelligence Feed" />
 );
-const AIBriefBounded = withErrorBoundary(
-  AIBriefWidget,
-  <WidgetFallback title="AI Brief" />,
-);
+const AIBriefBounded = withErrorBoundary(AIBriefWidget, <WidgetFallback title="AI Brief" />);
 const MarketPulseBounded = withErrorBoundary(
   MarketPulseWidget,
-  <WidgetFallback title="Market Pulse" />,
+  <WidgetFallback title="Market Pulse" />
 );
 const RecentActivityBounded = withErrorBoundary(
   RecentActivityWidget,
-  <WidgetFallback title="Recent Activity" />,
+  <WidgetFallback title="Recent Activity" />
 );
-const PipelineBounded = withErrorBoundary(
-  PipelineWidget,
-  <WidgetFallback title="Pipeline" />,
-);
+const PipelineBounded = withErrorBoundary(PipelineWidget, <WidgetFallback title="Pipeline" />);
 const CompanyHealthBounded = withErrorBoundary(
   CompanyHealthWidget,
-  <WidgetFallback title="Company Health" />,
+  <WidgetFallback title="Company Health" />
 );
 const CompanyEngagementBounded = withErrorBoundary(
   CompanyEngagementWidget,
-  <WidgetFallback title="Company Engagement" />,
+  <WidgetFallback title="Company Engagement" />
 );
 const EmailIntelligenceBounded = withErrorBoundary(
   EmailIntelligenceWidget,
-  <WidgetFallback title="Email Intelligence" />,
+  <WidgetFallback title="Email Intelligence" />
 );
 const CalendarIntelligenceBounded = withErrorBoundary(
   CalendarIntelligenceWidget,
-  <WidgetFallback title="Calendar Intelligence" />,
+  <WidgetFallback title="Calendar Intelligence" />
 );
 const FollowupCenterBounded = withErrorBoundary(
   FollowupCenterWidget,
-  <WidgetFallback title="Follow-up Center" />,
+  <WidgetFallback title="Follow-up Center" />
 );
 const CompanyScoringBounded = withErrorBoundary(
   CompanyScoringWidget,
-  <WidgetFallback title="Company Scoring" />,
+  <WidgetFallback title="Company Scoring" />
 );
 
 function WidgetFallback({ title }: { title: string }) {
@@ -80,12 +71,8 @@ function WidgetFallback({ title }: { title: string }) {
       aria-label={`${title} widget loading error`}
     >
       <div className="text-center">
-        <p className="text-sm font-medium text-[var(--text-primary)]">
-          {title}
-        </p>
-        <p className="mt-1 text-xs text-[var(--text-muted)]">
-          حدث خطأ في تحميل هذا المكون
-        </p>
+        <p className="text-sm font-medium text-[var(--text-primary)]">{title}</p>
+        <p className="mt-1 text-xs text-[var(--text-muted)]">حدث خطأ في تحميل هذا المكون</p>
       </div>
     </div>
   );

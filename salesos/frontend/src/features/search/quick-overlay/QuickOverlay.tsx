@@ -20,13 +20,8 @@ interface QuickOverlayProps {
   onResultSelect?: (result: SearchResult) => void;
 }
 
-function QuickOverlayInner({
-  open,
-  onClose,
-  onResultSelect,
-}: QuickOverlayProps) {
-  const { query, results, total, isLoading, history, search, setQuery } =
-    useSearchContext();
+function QuickOverlayInner({ open, onClose, onResultSelect }: QuickOverlayProps) {
+  const { query, results, total, isLoading, history, search, setQuery } = useSearchContext();
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -43,21 +38,21 @@ function QuickOverlayInner({
     (value: string) => {
       setQuery({ text: value });
     },
-    [setQuery],
+    [setQuery]
   );
 
   const handleSearch = useCallback(
     (value: string) => {
       if (value.trim().length >= 2) search(value);
     },
-    [search],
+    [search]
   );
 
   const handleClickOverlay = useCallback(
     (e: React.MouseEvent) => {
       if (e.target === overlayRef.current) onClose();
     },
-    [onClose],
+    [onClose]
   );
 
   if (!open) return null;
@@ -73,7 +68,7 @@ function QuickOverlayInner({
       <div
         className={cn(
           "w-full max-w-xl overflow-hidden rounded-2xl border border-[var(--border-color)] bg-[var(--bg-primary)] shadow-xl",
-          "",
+          ""
         )}
       >
         <div className="px-4 py-3">
@@ -119,9 +114,7 @@ function QuickOverlayInner({
           )}
 
           {/* Empty */}
-          {hasInput && results.length === 0 && !isLoading && (
-            <SearchEmpty query={query.text} />
-          )}
+          {hasInput && results.length === 0 && !isLoading && <SearchEmpty query={query.text} />}
         </div>
       </div>
     </div>

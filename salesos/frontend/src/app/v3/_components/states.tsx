@@ -26,9 +26,7 @@ export function EmptyState({
     <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border-default)] bg-[var(--bg-primary)] px-4 py-12 text-center">
       <p className="text-sm font-medium text-[var(--text-primary)]">{title}</p>
       {description ? (
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">
-          {description}
-        </p>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">{description}</p>
       ) : null}
       {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
     </div>
@@ -49,13 +47,9 @@ export function ErrorState({
       className="rounded-[var(--radius-lg)] border border-[var(--status-danger-border,#fecaca)] bg-[var(--status-danger-bg,#fef2f2)] px-4 py-10 text-center"
       role="alert"
     >
-      <p className="text-sm font-medium text-[var(--status-danger,#991b1b)]">
-        {title}
-      </p>
+      <p className="text-sm font-medium text-[var(--status-danger,#991b1b)]">{title}</p>
       {description ? (
-        <p className="mt-1 text-sm text-[var(--status-danger,#991b1b)]/80">
-          {description}
-        </p>
+        <p className="mt-1 text-sm text-[var(--status-danger,#991b1b)]/80">{description}</p>
       ) : null}
       {onRetry ? (
         <button

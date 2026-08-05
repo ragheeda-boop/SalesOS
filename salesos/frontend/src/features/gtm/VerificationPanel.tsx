@@ -11,18 +11,11 @@ import {
   useVerificationMeta,
 } from "@/lib/hooks/verificationQueries";
 import type { VerificationRun } from "@/lib/api";
-import {
-  VERIFICATION_HONESTY,
-  VERIFICATION_NON_GOALS,
-} from "@/features/gtm/verificationHonesty";
-import {
-  buildEnrichmentHref,
-  buildIcpProfileHref,
-} from "@/features/gtm/gtmHandoff";
+import { VERIFICATION_HONESTY, VERIFICATION_NON_GOALS } from "@/features/gtm/verificationHonesty";
+import { buildEnrichmentHref, buildIcpProfileHref } from "@/features/gtm/gtmHandoff";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -73,8 +66,8 @@ export function VerificationPanel() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="verification-honesty"
       >
-        {VERIFICATION_HONESTY} Non-goals: {VERIFICATION_NON_GOALS.join("; ")}.
-        Not Production GO / RAG GO.
+        {VERIFICATION_HONESTY} Non-goals: {VERIFICATION_NON_GOALS.join("; ")}. Not Production GO /
+        RAG GO.
       </p>
 
       {metaQuery.data ? (
@@ -83,20 +76,15 @@ export function VerificationPanel() {
           data-testid="verification-meta"
         >
           <p>
-            connectors{" "}
-            {(metaQuery.data.connectors_configured ?? []).join(", ") || "—"} ·
-            channels {(metaQuery.data.channels ?? []).join(", ")} · statuses{" "}
+            connectors {(metaQuery.data.connectors_configured ?? []).join(", ") || "—"} · channels{" "}
+            {(metaQuery.data.channels ?? []).join(", ")} · statuses{" "}
             {(metaQuery.data.statuses ?? []).join(", ")}
           </p>
-          <p data-testid="verification-meta-honesty">
-            tip /meta: {metaQuery.data.honesty}
-          </p>
+          <p data-testid="verification-meta-honesty">tip /meta: {metaQuery.data.honesty}</p>
           <p>{metaQuery.data.interface}</p>
         </div>
       ) : metaQuery.isError ? (
-        <p className="text-sm text-[var(--text-danger)]">
-          {getApiError(metaQuery.error)}
-        </p>
+        <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
       ) : (
         <Spinner />
       )}
@@ -114,10 +102,7 @@ export function VerificationPanel() {
         >
           Refresh
         </Button>
-        <span
-          className="text-xs text-[var(--text-muted)]"
-          data-testid="verification-count"
-        >
+        <span className="text-xs text-[var(--text-muted)]" data-testid="verification-count">
           {listQuery.data?.length ?? 0} run(s)
         </span>
       </div>
@@ -136,9 +121,7 @@ export function VerificationPanel() {
               <button
                 type="button"
                 className={`w-full rounded px-2 py-1 text-left text-sm hover:bg-[var(--bg-muted)] ${
-                  selectedId === row.id
-                    ? "bg-[var(--bg-muted)] font-medium"
-                    : ""
+                  selectedId === row.id ? "bg-[var(--bg-muted)] font-medium" : ""
                 }`}
                 data-testid="verification-row"
                 onClick={() => loadRun(row)}
@@ -186,7 +169,7 @@ export function VerificationPanel() {
                   variant: "error",
                 });
               },
-            },
+            }
           );
         }}
       >
@@ -212,11 +195,7 @@ export function VerificationPanel() {
           placeholder="fake_verify"
           data-testid="verification-provider"
         />
-        <Button
-          type="submit"
-          disabled={runMutation.isPending}
-          data-testid="verification-run"
-        >
+        <Button type="submit" disabled={runMutation.isPending} data-testid="verification-run">
           {runMutation.isPending ? "Verifying…" : "Verify"}
         </Button>
       </form>
@@ -229,27 +208,20 @@ export function VerificationPanel() {
           {detailQuery.isLoading ? (
             <Spinner />
           ) : detailQuery.isError ? (
-            <p className="text-sm text-[var(--text-danger)]">
-              {getApiError(detailQuery.error)}
-            </p>
+            <p className="text-sm text-[var(--text-danger)]">{getApiError(detailQuery.error)}</p>
           ) : active ? (
             <>
               <p
                 className="font-mono text-xs text-[var(--text-muted)]"
                 data-testid="verification-overall"
               >
-                run {active.id} · overall={active.overall_status} · provider{" "}
-                {active.provider_key}
+                run {active.id} · overall={active.overall_status} · provider {active.provider_key}
               </p>
-              <ul
-                className="space-y-1 text-sm"
-                data-testid="verification-verdicts"
-              >
+              <ul className="space-y-1 text-sm" data-testid="verification-verdicts">
                 {active.verdicts.map((v, i) => (
                   <li key={`${v.channel}-${i}`}>
                     {v.channel}: {v.value} → {v.status}
-                    {v.reason ? ` (${v.reason})` : ""} · confidence{" "}
-                    {v.confidence}
+                    {v.reason ? ` (${v.reason})` : ""} · confidence {v.confidence}
                   </li>
                 ))}
               </ul>

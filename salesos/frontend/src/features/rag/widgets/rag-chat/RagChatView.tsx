@@ -43,20 +43,14 @@ export function RagChatView({
   return (
     <div className="flex h-full flex-col rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] overflow-hidden">
       <div className="border-b border-[var(--border-default)] px-4 py-3">
-        <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-          المساعد الذكي RAG
-        </h2>
-        <p className="text-xs text-[var(--text-muted)]">
-          اسأل عن المستندات والبيانات
-        </p>
+        <h2 className="text-sm font-semibold text-[var(--text-primary)]">المساعد الذكي RAG</h2>
+        <p className="text-xs text-[var(--text-muted)]">اسأل عن المستندات والبيانات</p>
       </div>
 
       <div ref={listRef} className="flex-1 overflow-auto space-y-3 p-4">
         {messages.length === 0 && (
           <div className="flex h-full items-center justify-center">
-            <p className="text-sm text-[var(--text-muted)] text-center">
-              اسأل سؤالاً للبدء
-            </p>
+            <p className="text-sm text-[var(--text-muted)] text-center">اسأل سؤالاً للبدء</p>
           </div>
         )}
 
@@ -80,9 +74,7 @@ export function RagChatView({
                 <div className="mt-2 border-t border-[var(--border-default)] pt-2">
                   <button
                     onClick={() =>
-                      setExpandedCitations(
-                        expandedCitations === msg.id ? null : msg.id,
-                      )
+                      setExpandedCitations(expandedCitations === msg.id ? null : msg.id)
                     }
                     className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                   >
@@ -97,9 +89,7 @@ export function RagChatView({
                           key={i}
                           className="rounded bg-[var(--bg-primary)] p-2 text-xs text-[var(--text-secondary)]"
                         >
-                          <p className="font-medium text-[var(--text-primary)]">
-                            {c.source}
-                          </p>
+                          <p className="font-medium text-[var(--text-primary)]">{c.source}</p>
                           <p className="line-clamp-2">{c.text}</p>
                         </div>
                       ))}

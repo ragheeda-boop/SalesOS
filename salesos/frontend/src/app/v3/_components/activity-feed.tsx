@@ -3,12 +3,7 @@
 import Link from "next/link";
 import type { ActivityRecord } from "@/lib/api";
 import { formatWhen } from "./format";
-import {
-  EmptyState,
-  ErrorState,
-  GhostButtonLink,
-  LoadingState,
-} from "./states";
+import { EmptyState, ErrorState, GhostButtonLink, LoadingState } from "./states";
 
 function actionLabel(action: string): string {
   return action.replace(/[._]/g, " ");
@@ -75,9 +70,7 @@ export function ActivityFeed({
         description={emptyDescription}
         action={
           emptyActionHref && emptyActionLabel ? (
-            <GhostButtonLink href={emptyActionHref}>
-              {emptyActionLabel}
-            </GhostButtonLink>
+            <GhostButtonLink href={emptyActionHref}>{emptyActionLabel}</GhostButtonLink>
           ) : undefined
         }
       />
@@ -87,18 +80,14 @@ export function ActivityFeed({
   return (
     <ul className="divide-y divide-[var(--border-default)] rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)]">
       {items.map((row) => {
-        const href = showEntity
-          ? entityHref(row.entity_type, row.entity_id)
-          : null;
+        const href = showEntity ? entityHref(row.entity_type, row.entity_id) : null;
         return (
           <li key={row.id} className="px-3 py-2.5 text-sm">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <p className="font-medium capitalize text-[var(--text-primary)]">
                 {actionLabel(row.action)}
               </p>
-              <p className="text-[12px] text-[var(--text-muted)]">
-                {formatWhen(row.timestamp)}
-              </p>
+              <p className="text-[12px] text-[var(--text-muted)]">{formatWhen(row.timestamp)}</p>
             </div>
             <p className="mt-0.5 text-[12px] text-[var(--text-secondary)]">
               {row.actor || "—"}

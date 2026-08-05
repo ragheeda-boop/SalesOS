@@ -44,10 +44,7 @@ const RESOURCE_LABELS: Record<string, string> = {
   settings: "Settings",
 };
 
-const ACTION_VARIANT: Record<
-  string,
-  "success" | "warning" | "danger" | "default"
-> = {
+const ACTION_VARIANT: Record<string, "success" | "warning" | "danger" | "default"> = {
   create: "success",
   update: "warning",
   delete: "danger",
@@ -149,9 +146,7 @@ export default function AdminAuditPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            Audit Log
-          </h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Audit Log</h1>
           <p className="mt-1 text-sm text-[var(--text-muted)]">
             Track all user actions, resource changes, and system events.
           </p>
@@ -201,9 +196,7 @@ export default function AdminAuditPage() {
             Clear all
           </Button>
         )}
-        <span className="text-sm text-[var(--text-muted)]">
-          {total.toLocaleString()} entries
-        </span>
+        <span className="text-sm text-[var(--text-muted)]">{total.toLocaleString()} entries</span>
       </div>
 
       {/* Filters Panel */}
@@ -322,24 +315,12 @@ export default function AdminAuditPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left">
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Timestamp
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    User
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Action
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Resource
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    Details
-                  </th>
-                  <th className="p-3 font-medium text-[var(--text-muted)]">
-                    IP
-                  </th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Timestamp</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">User</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Action</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Resource</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">Details</th>
+                  <th className="p-3 font-medium text-[var(--text-muted)]">IP</th>
                 </tr>
               </thead>
               <tbody>
@@ -355,24 +336,20 @@ export default function AdminAuditPage() {
                       <div className="text-sm font-medium text-[var(--text-primary)]">
                         {entry.actor_name}
                       </div>
-                      <div className="text-xs text-[var(--text-muted)]">
-                        {entry.actor_email}
-                      </div>
+                      <div className="text-xs text-[var(--text-muted)]">{entry.actor_email}</div>
                     </td>
                     <td className="p-3">
                       <Badge
                         variant={ACTION_VARIANT[entry.action_type] || "default"}
                         className="font-mono text-[10px]"
                       >
-                        {ACTION_TYPE_LABELS[entry.action_type] ||
-                          entry.action_type}
+                        {ACTION_TYPE_LABELS[entry.action_type] || entry.action_type}
                       </Badge>
                     </td>
                     <td className="p-3">
                       <div className="text-sm">
                         <span className="font-medium text-[var(--text-secondary)]">
-                          {RESOURCE_LABELS[entry.resource_type] ||
-                            entry.resource_type}
+                          {RESOURCE_LABELS[entry.resource_type] || entry.resource_type}
                         </span>
                         <span className="text-[var(--text-muted)] ml-1 text-xs">
                           {entry.resource}
@@ -380,9 +357,7 @@ export default function AdminAuditPage() {
                       </div>
                     </td>
                     <td className="p-3 text-xs text-[var(--text-secondary)] max-w-[200px] truncate">
-                      {entry.details
-                        ? JSON.stringify(entry.details).slice(0, 80)
-                        : "-"}
+                      {entry.details ? JSON.stringify(entry.details).slice(0, 80) : "-"}
                     </td>
                     <td className="p-3 text-xs text-[var(--text-muted)] font-mono">
                       {entry.ip_address || "-"}
@@ -400,8 +375,7 @@ export default function AdminAuditPage() {
         <div className="flex items-center justify-between">
           <p className="text-sm text-[var(--text-muted)]">
             Showing {(filters.page - 1) * filters.pageSize + 1}-
-            {Math.min(filters.page * filters.pageSize, total)} of{" "}
-            {total.toLocaleString()}
+            {Math.min(filters.page * filters.pageSize, total)} of {total.toLocaleString()}
           </p>
           <div className="flex items-center gap-2">
             <Button

@@ -21,9 +21,7 @@ export function RoleManagerView({
   const [editDescription, setEditDescription] = useState("");
   const [selectedPerms, setSelectedPerms] = useState<string[]>([]);
 
-  const groupedPermissions = permissions.reduce<
-    Record<string, PermissionItem[]>
-  >((acc, p) => {
+  const groupedPermissions = permissions.reduce<Record<string, PermissionItem[]>>((acc, p) => {
     const group = p.group || "other";
     if (!acc[group]) acc[group] = [];
     acc[group].push(p);
@@ -75,7 +73,7 @@ export function RoleManagerView({
 
   const togglePerm = (key: string) => {
     setSelectedPerms((prev) =>
-      prev.includes(key) ? prev.filter((p) => p !== key) : [...prev, key],
+      prev.includes(key) ? prev.filter((p) => p !== key) : [...prev, key]
     );
   };
 
@@ -113,9 +111,7 @@ export function RoleManagerView({
       {/* Create / Edit Form */}
       {(showCreate || editingRole) && (
         <Card className="p-4 space-y-3">
-          <h3 className="font-semibold">
-            {editingRole ? "تعديل الدور" : "دور جديد"}
-          </h3>
+          <h3 className="font-semibold">{editingRole ? "تعديل الدور" : "دور جديد"}</h3>
           <div className="grid grid-cols-2 gap-3">
             <Input
               placeholder="اسم الدور"
@@ -187,9 +183,7 @@ export function RoleManagerView({
                     {role.is_system && <Badge variant="default">نظامي</Badge>}
                   </div>
                   {role.description && (
-                    <p className="text-xs text-[var(--text-muted)] mt-0.5">
-                      {role.description}
-                    </p>
+                    <p className="text-xs text-[var(--text-muted)] mt-0.5">{role.description}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-1">
@@ -221,9 +215,7 @@ export function RoleManagerView({
 
               <div className="flex flex-wrap gap-1">
                 {role.permissions.length === 0 ? (
-                  <span className="text-xs text-[var(--text-disabled)]">
-                    لا توجد صلاحيات
-                  </span>
+                  <span className="text-xs text-[var(--text-disabled)]">لا توجد صلاحيات</span>
                 ) : (
                   role.permissions.slice(0, 8).map((perm) => (
                     <span

@@ -59,12 +59,10 @@ export interface WorkflowExecution {
 export const workflowKeys = {
   all: ["workflows"] as const,
   lists: () => [...workflowKeys.all, "list"] as const,
-  list: (filters?: Record<string, unknown>) =>
-    [...workflowKeys.lists(), filters] as const,
+  list: (filters?: Record<string, unknown>) => [...workflowKeys.lists(), filters] as const,
   details: () => [...workflowKeys.all, "detail"] as const,
   detail: (id: string) => [...workflowKeys.details(), id] as const,
-  executions: (workflowId: string) =>
-    [...workflowKeys.all, "executions", workflowId] as const,
+  executions: (workflowId: string) => [...workflowKeys.all, "executions", workflowId] as const,
   templates: () => [...workflowKeys.all, "templates"] as const,
 };
 
@@ -142,7 +140,7 @@ export function useExecuteWorkflow() {
         {},
         {
           headers: { "X-Tenant-Id": getTenantId() },
-        },
+        }
       );
       return res.data as WorkflowExecution;
     },

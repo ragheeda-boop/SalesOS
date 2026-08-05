@@ -65,16 +65,14 @@ describe("aiMemoryStudio API — FE-S12-03", () => {
 
     const meta = await getAiMemoryMeta("tenant-1");
     expect(meta.feature_ai_copilot).toBe(false);
-    expect(mockedApi.get).toHaveBeenCalledWith(
-      "/api/v1/studio/ai-memory/meta",
-      { headers: { "X-Tenant-Id": "tenant-1" } },
-    );
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/v1/studio/ai-memory/meta", {
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
 
     await getAiMemorySettings("tenant-1");
-    expect(mockedApi.get).toHaveBeenCalledWith(
-      "/api/v1/studio/ai-memory/settings",
-      { headers: { "X-Tenant-Id": "tenant-1" } },
-    );
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/v1/studio/ai-memory/settings", {
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
   });
 
   it("wires conversations CRUD + probe", async () => {
@@ -88,9 +86,7 @@ describe("aiMemoryStudio API — FE-S12-03", () => {
       schema_version: 1,
       scope: "conversation",
     };
-    mockedApi.get
-      .mockResolvedValueOnce({ data: [row] })
-      .mockResolvedValueOnce({ data: row });
+    mockedApi.get.mockResolvedValueOnce({ data: [row] }).mockResolvedValueOnce({ data: row });
     mockedApi.put.mockResolvedValueOnce({
       data: {
         tenant_id: "tenant-1",
@@ -117,14 +113,13 @@ describe("aiMemoryStudio API — FE-S12-03", () => {
     expect(mockedApi.put).toHaveBeenCalledWith(
       "/api/v1/studio/ai-memory/settings",
       { enabled: true, max_turns: 20, retention_hours: 12 },
-      { headers: { "X-Tenant-Id": "tenant-1" } },
+      { headers: { "X-Tenant-Id": "tenant-1" } }
     );
 
     await listAiMemoryConversations("tenant-1");
-    expect(mockedApi.get).toHaveBeenCalledWith(
-      "/api/v1/studio/ai-memory/conversations",
-      { headers: { "X-Tenant-Id": "tenant-1" } },
-    );
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/v1/studio/ai-memory/conversations", {
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
 
     await getAiMemoryConversation("tenant-1", "c1");
     await appendAiMemoryTurn("tenant-1", "c1", {
@@ -134,14 +129,13 @@ describe("aiMemoryStudio API — FE-S12-03", () => {
     expect(mockedApi.post).toHaveBeenCalledWith(
       "/api/v1/studio/ai-memory/conversations/c1/turns",
       { role: "user", content: "hi" },
-      { headers: { "X-Tenant-Id": "tenant-1" } },
+      { headers: { "X-Tenant-Id": "tenant-1" } }
     );
 
     await deleteAiMemoryConversation("tenant-1", "c1");
-    expect(mockedApi.delete).toHaveBeenCalledWith(
-      "/api/v1/studio/ai-memory/conversations/c1",
-      { headers: { "X-Tenant-Id": "tenant-1" } },
-    );
+    expect(mockedApi.delete).toHaveBeenCalledWith("/api/v1/studio/ai-memory/conversations/c1", {
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
 
     await probeAiMemoryAdversarial("tenant-1", {
       owner_tenant_id: "t-a",
@@ -155,7 +149,7 @@ describe("aiMemoryStudio API — FE-S12-03", () => {
         attacker_tenant_id: "t-b",
         conversation_id: "c1",
       },
-      { headers: { "X-Tenant-Id": "tenant-1" } },
+      { headers: { "X-Tenant-Id": "tenant-1" } }
     );
   });
 });

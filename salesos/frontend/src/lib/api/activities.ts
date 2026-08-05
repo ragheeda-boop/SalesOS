@@ -6,15 +6,12 @@ export async function getEntityActivities(
   entityId: string,
   tenantId: string,
   limit = 50,
-  offset = 0,
+  offset = 0
 ): Promise<EntityActivityResponse> {
-  const response = await api.get(
-    `/api/v1/activities/${entityType}/${entityId}`,
-    {
-      params: { limit, offset },
-      headers: { "X-Tenant-Id": tenantId },
-    },
-  );
+  const response = await api.get(`/api/v1/activities/${entityType}/${entityId}`, {
+    params: { limit, offset },
+    headers: { "X-Tenant-Id": tenantId },
+  });
   return response.data;
 }
 
@@ -26,7 +23,7 @@ export async function getGlobalActivities(
     entity_type?: string;
     limit?: number;
     offset?: number;
-  } = {},
+  } = {}
 ): Promise<ActivityQueryResponse> {
   const response = await api.get("/api/v1/activities", {
     params,
@@ -37,7 +34,7 @@ export async function getGlobalActivities(
 
 export async function queryActivities(
   params: Record<string, string | number | undefined>,
-  tenantId: string,
+  tenantId: string
 ): Promise<ActivityQueryResponse> {
   const response = await api.get("/api/v1/activities", {
     params,

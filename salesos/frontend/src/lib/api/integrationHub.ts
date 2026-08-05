@@ -24,10 +24,7 @@ function tenantHeaders(tenantId: string) {
   return { "X-Tenant-Id": tenantId };
 }
 
-export async function listHubConnections(
-  tenantId: string,
-  limit = 100,
-): Promise<HubConnection[]> {
+export async function listHubConnections(tenantId: string, limit = 100): Promise<HubConnection[]> {
   const resp = await api.get<HubConnection[]>(`${BASE}/connections`, {
     headers: tenantHeaders(tenantId),
     params: { limit },
@@ -37,7 +34,7 @@ export async function listHubConnections(
 
 export async function createHubConnection(
   tenantId: string,
-  body: HubConnectionCreate,
+  body: HubConnectionCreate
 ): Promise<HubConnection> {
   const resp = await api.post<HubConnection>(`${BASE}/connections`, body, {
     headers: tenantHeaders(tenantId),
@@ -47,35 +44,34 @@ export async function createHubConnection(
 
 export async function getHubConnection(
   tenantId: string,
-  connectionId: string,
+  connectionId: string
 ): Promise<HubConnection> {
-  const resp = await api.get<HubConnection>(
-    `${BASE}/connections/${connectionId}`,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.get<HubConnection>(`${BASE}/connections/${connectionId}`, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }
 
 export async function testHubConnection(
   tenantId: string,
-  connectionId: string,
+  connectionId: string
 ): Promise<HubConnectionTestResult> {
   const resp = await api.post<HubConnectionTestResult>(
     `${BASE}/connections/${connectionId}/test`,
     {},
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
 
 export async function disconnectHubConnection(
   tenantId: string,
-  connectionId: string,
+  connectionId: string
 ): Promise<HubDisconnectResult> {
   const resp = await api.post<HubDisconnectResult>(
     `${BASE}/connections/${connectionId}/disconnect`,
     {},
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
@@ -83,38 +79,36 @@ export async function disconnectHubConnection(
 export async function createHubMapping(
   tenantId: string,
   connectionId: string,
-  body: HubMappingCreate,
+  body: HubMappingCreate
 ): Promise<HubMapping> {
-  const resp = await api.post<HubMapping>(
-    `${BASE}/connections/${connectionId}/mappings`,
-    body,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.post<HubMapping>(`${BASE}/connections/${connectionId}/mappings`, body, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }
 
 export async function getActiveHubMapping(
   tenantId: string,
   connectionId: string,
-  model: string,
+  model: string
 ): Promise<HubMapping | null> {
   const resp = await api.get<HubMapping | null>(
     `${BASE}/connections/${connectionId}/mappings/active`,
     {
       headers: tenantHeaders(tenantId),
       params: { model },
-    },
+    }
   );
   return resp.data;
 }
 
 export async function getHubConflictPolicy(
   tenantId: string,
-  connectionId: string,
+  connectionId: string
 ): Promise<HubConflictPolicy> {
   const resp = await api.get<HubConflictPolicy>(
     `${BASE}/connections/${connectionId}/conflict-policy`,
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
@@ -122,12 +116,12 @@ export async function getHubConflictPolicy(
 export async function putHubConflictPolicy(
   tenantId: string,
   connectionId: string,
-  body: HubConflictPolicyUpsert,
+  body: HubConflictPolicyUpsert
 ): Promise<HubConflictPolicy> {
   const resp = await api.put<HubConflictPolicy>(
     `${BASE}/connections/${connectionId}/conflict-policy`,
     body,
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
@@ -135,12 +129,12 @@ export async function putHubConflictPolicy(
 export async function scheduleHubSync(
   tenantId: string,
   connectionId: string,
-  body: HubScheduleCreate,
+  body: HubScheduleCreate
 ): Promise<HubScheduleResult> {
   const resp = await api.post<HubScheduleResult>(
     `${BASE}/connections/${connectionId}/schedule`,
     body,
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
@@ -148,15 +142,12 @@ export async function scheduleHubSync(
 export async function listHubSyncRuns(
   tenantId: string,
   connectionId: string,
-  limit = 50,
+  limit = 50
 ): Promise<HubSyncRun[]> {
-  const resp = await api.get<HubSyncRun[]>(
-    `${BASE}/connections/${connectionId}/sync-runs`,
-    {
-      headers: tenantHeaders(tenantId),
-      params: { limit },
-    },
-  );
+  const resp = await api.get<HubSyncRun[]>(`${BASE}/connections/${connectionId}/sync-runs`, {
+    headers: tenantHeaders(tenantId),
+    params: { limit },
+  });
   return resp.data;
 }
 
@@ -164,14 +155,14 @@ export async function listHubUnlinkedBadges(
   tenantId: string,
   connectionId: string,
   limit = 100,
-  syncRunLimit = 50,
+  syncRunLimit = 50
 ): Promise<HubUnlinkedBadgeList> {
   const resp = await api.get<HubUnlinkedBadgeList>(
     `${BASE}/connections/${connectionId}/unlinked-badges`,
     {
       headers: tenantHeaders(tenantId),
       params: { limit, sync_run_limit: syncRunLimit },
-    },
+    }
   );
   return resp.data;
 }
@@ -204,12 +195,12 @@ export async function getCertifyMeta(tenantId: string): Promise<CertifyMeta> {
 
 export async function certifyConnector(
   tenantId: string,
-  connectorKey: string,
+  connectorKey: string
 ): Promise<CertifyResult> {
   const resp = await api.post<CertifyResult>(
     `${BASE}/certify/${encodeURIComponent(connectorKey)}`,
     {},
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }

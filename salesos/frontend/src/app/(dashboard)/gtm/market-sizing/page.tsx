@@ -14,8 +14,7 @@ export default function MarketSizingPage() {
           Market Sizing (TAM / SAM / SOM)
         </h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Compute nested market bands via tip POST/GET
-          /api/v1/gtm/market-sizing.
+          Compute nested market bands via tip POST/GET /api/v1/gtm/market-sizing.
         </p>
       </div>
       <MarketSizingPanel />

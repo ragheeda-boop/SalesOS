@@ -17,9 +17,7 @@ import {
 } from "@/lib/telemetryQueries";
 
 const mockedApi = api as jest.Mocked<typeof api>;
-const mockedGetTenantId = getTenantId as jest.MockedFunction<
-  typeof getTenantId
->;
+const mockedGetTenantId = getTenantId as jest.MockedFunction<typeof getTenantId>;
 
 beforeEach(() => {
   mockedGetTenantId.mockReturnValue("tenant-1");
@@ -34,10 +32,7 @@ describe("telemetryKeys", () => {
   it("generates consistent query keys", () => {
     expect(telemetryKeys.all).toEqual(["telemetry"]);
     expect(telemetryKeys.overview()).toEqual(["telemetry", "overview"]);
-    expect(telemetryKeys.featureAdoption()).toEqual([
-      "telemetry",
-      "feature-adoption",
-    ]);
+    expect(telemetryKeys.featureAdoption()).toEqual(["telemetry", "feature-adoption"]);
     expect(telemetryKeys.activeUsers()).toEqual(["telemetry", "active-users"]);
   });
 });

@@ -42,8 +42,7 @@ export function useMarketSizingDetail(snapshotId: string | null) {
 export function useComputeMarketSizing() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: MarketSizingComputeBody) =>
-      computeMarketSizing(getTenantId(), body),
+    mutationFn: (body: MarketSizingComputeBody) => computeMarketSizing(getTenantId(), body),
     onSuccess: (row) => {
       qc.invalidateQueries({
         queryKey: gtmKeys.marketSizingList(getTenantId()),

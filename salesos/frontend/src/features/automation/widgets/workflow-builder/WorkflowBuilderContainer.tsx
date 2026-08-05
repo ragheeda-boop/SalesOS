@@ -68,7 +68,7 @@ export function WorkflowBuilderContainer() {
         await deleteWorkflow.mutateAsync(id);
       }
     },
-    [deleteWorkflow],
+    [deleteWorkflow]
   );
 
   const handleExecute = useCallback(
@@ -81,7 +81,7 @@ export function WorkflowBuilderContainer() {
         setConfirmExecute(null);
       }
     },
-    [executeWorkflow],
+    [executeWorkflow]
   );
 
   const addStep = useCallback(() => {
@@ -95,23 +95,19 @@ export function WorkflowBuilderContainer() {
     (index: number) => {
       if (!editing) return;
       const steps =
-        editing.steps
-          ?.filter((_, i) => i !== index)
-          .map((s, i) => ({ ...s, order: i })) || [];
+        editing.steps?.filter((_, i) => i !== index).map((s, i) => ({ ...s, order: i })) || [];
       setEditing({ ...editing, steps });
     },
-    [editing],
+    [editing]
   );
 
   const updateStep = useCallback(
     (index: number, step: Partial<WorkflowStep>) => {
       if (!editing?.steps) return;
-      const steps = editing.steps.map((s, i) =>
-        i === index ? { ...s, ...step } : s,
-      );
+      const steps = editing.steps.map((s, i) => (i === index ? { ...s, ...step } : s));
       setEditing({ ...editing, steps });
     },
-    [editing],
+    [editing]
   );
 
   const viewProps: WorkflowBuilderViewProps = {
@@ -136,10 +132,7 @@ export function WorkflowBuilderContainer() {
     onAddStep: addStep,
     onRemoveStep: removeStep,
     onUpdateStep: updateStep,
-    onConfirmExecute: useCallback(
-      (id: string | null) => setConfirmExecute(id),
-      [],
-    ),
+    onConfirmExecute: useCallback((id: string | null) => setConfirmExecute(id), []),
   };
 
   return <WorkflowBuilderView {...viewProps} />;

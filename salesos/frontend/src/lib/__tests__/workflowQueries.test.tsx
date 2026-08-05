@@ -19,9 +19,7 @@ import {
 } from "@/lib/workflowQueries";
 
 const mockedApi = api as jest.Mocked<typeof api>;
-const mockedGetTenantId = getTenantId as jest.MockedFunction<
-  typeof getTenantId
->;
+const mockedGetTenantId = getTenantId as jest.MockedFunction<typeof getTenantId>;
 
 beforeEach(() => {
   mockedGetTenantId.mockReturnValue("tenant-1");
@@ -63,16 +61,8 @@ describe("workflowKeys", () => {
       "list",
       { status: "active" },
     ]);
-    expect(workflowKeys.detail("wf-1")).toEqual([
-      "workflows",
-      "detail",
-      "wf-1",
-    ]);
-    expect(workflowKeys.executions("wf-1")).toEqual([
-      "workflows",
-      "executions",
-      "wf-1",
-    ]);
+    expect(workflowKeys.detail("wf-1")).toEqual(["workflows", "detail", "wf-1"]);
+    expect(workflowKeys.executions("wf-1")).toEqual(["workflows", "executions", "wf-1"]);
   });
 });
 

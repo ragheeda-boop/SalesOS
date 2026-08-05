@@ -6,18 +6,8 @@ import api from "@/lib/api";
 import { cn } from "@salesos/ui";
 import { BarChart, LineChart, PieChart, MetricCard } from "@salesos/charts";
 import { ExportShareBar } from "@/components/analytics";
-import {
-  normalizePipelineAnalytics,
-  type PipelineAnalyticsView,
-} from "@/lib/pipelineAnalytics";
-import {
-  ArrowLeft,
-  Clock,
-  DollarSign,
-  Target,
-  BarChart3,
-  RefreshCw,
-} from "lucide-react";
+import { normalizePipelineAnalytics, type PipelineAnalyticsView } from "@/lib/pipelineAnalytics";
+import { ArrowLeft, Clock, DollarSign, Target, BarChart3, RefreshCw } from "lucide-react";
 
 const STAGE_COLORS: Record<string, string> = {
   lead: "#3B82F6",
@@ -68,9 +58,7 @@ function LoadingSkeleton() {
 }
 
 export default function PipelineAnalyticsOverviewPage() {
-  const [analytics, setAnalytics] = useState<PipelineAnalyticsView | null>(
-    null,
-  );
+  const [analytics, setAnalytics] = useState<PipelineAnalyticsView | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<7 | 30 | 90>(30);
@@ -131,16 +119,12 @@ export default function PipelineAnalyticsOverviewPage() {
       : [
           {
             label: "Won",
-            value: Math.round(
-              analytics.total_pipeline * (analytics.win_rate / 100),
-            ),
+            value: Math.round(analytics.total_pipeline * (analytics.win_rate / 100)),
             color: "#10B981",
           },
           {
             label: "Lost",
-            value: Math.round(
-              analytics.total_pipeline * (1 - analytics.win_rate / 100),
-            ),
+            value: Math.round(analytics.total_pipeline * (1 - analytics.win_rate / 100)),
             color: "#EF4444",
           },
         ];
@@ -156,9 +140,7 @@ export default function PipelineAnalyticsOverviewPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)]">
-              Pipeline Analytics
-            </h1>
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">Pipeline Analytics</h1>
             <p className="text-sm text-[var(--text-muted)]">
               Conversion, velocity, and pipeline health
             </p>
@@ -174,7 +156,7 @@ export default function PipelineAnalyticsOverviewPage() {
                   "px-3 py-1.5 text-xs font-medium transition",
                   dateRange === r.days
                     ? "bg-[var(--muhide-orange)] text-white"
-                    : "bg-[var(--bg-primary)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+                    : "bg-[var(--bg-primary)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
                 )}
               >
                 {r.label}
@@ -345,8 +327,7 @@ export default function PipelineAnalyticsOverviewPage() {
                       <span
                         className="h-2 w-2 rounded-full"
                         style={{
-                          backgroundColor:
-                            STAGE_COLORS[item.stage] || "#6B7280",
+                          backgroundColor: STAGE_COLORS[item.stage] || "#6B7280",
                         }}
                       />
                       <span className="text-[var(--text-primary)]">
@@ -354,12 +335,8 @@ export default function PipelineAnalyticsOverviewPage() {
                       </span>
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-[var(--text-secondary)]">
-                    {item.p50}d
-                  </td>
-                  <td className="px-3 py-2 text-[var(--text-secondary)]">
-                    {item.p95}d
-                  </td>
+                  <td className="px-3 py-2 text-[var(--text-secondary)]">{item.p50}d</td>
+                  <td className="px-3 py-2 text-[var(--text-secondary)]">{item.p95}d</td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-1">
                       <div className="h-1.5 flex-1 rounded-full bg-[var(--bg-tertiary)] overflow-hidden">
@@ -367,8 +344,7 @@ export default function PipelineAnalyticsOverviewPage() {
                           className="h-full rounded-full"
                           style={{
                             width: `${Math.min((item.p50 / Math.max(item.p95, 1)) * 100, 100)}%`,
-                            backgroundColor:
-                              STAGE_COLORS[item.stage] || "#6B7280",
+                            backgroundColor: STAGE_COLORS[item.stage] || "#6B7280",
                           }}
                         />
                       </div>

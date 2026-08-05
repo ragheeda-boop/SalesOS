@@ -30,7 +30,7 @@ function PriorityBadge({ priority }: { priority: string }) {
     <span
       className={cn(
         "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold",
-        PRIORITY_BADGE[priority] ?? PRIORITY_BADGE.low,
+        PRIORITY_BADGE[priority] ?? PRIORITY_BADGE.low
       )}
     >
       {priority === "high" ? "عالي" : priority === "medium" ? "متوسط" : "منخفض"}
@@ -45,7 +45,7 @@ function BriefItemRow({ item }: { item: MorningBriefItem }) {
         "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors",
         item.completed
           ? "bg-[var(--bg-tertiary)] opacity-60"
-          : "bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]",
+          : "bg-[var(--bg-secondary)] hover:bg-[var(--bg-tertiary)]"
       )}
     >
       <div
@@ -55,7 +55,7 @@ function BriefItemRow({ item }: { item: MorningBriefItem }) {
             ? "bg-danger-100 text-danger-600 dark:bg-danger-900/30 dark:text-danger-400"
             : item.type === "meeting"
               ? "bg-info-100 text-info-600 dark:bg-info-900/30 dark:text-info-400"
-              : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]",
+              : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]"
         )}
       >
         {item.completed ? (
@@ -68,21 +68,15 @@ function BriefItemRow({ item }: { item: MorningBriefItem }) {
         <p
           className={cn(
             "text-sm font-medium",
-            item.completed
-              ? "text-[var(--text-muted)] line-through"
-              : "text-[var(--text-primary)]",
+            item.completed ? "text-[var(--text-muted)] line-through" : "text-[var(--text-primary)]"
           )}
         >
           {item.title}
         </p>
-        {item.companyName && (
-          <p className="text-xs text-[var(--text-muted)]">{item.companyName}</p>
-        )}
+        {item.companyName && <p className="text-xs text-[var(--text-muted)]">{item.companyName}</p>}
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        {item.time && (
-          <span className="text-xs text-[var(--text-muted)]">{item.time}</span>
-        )}
+        {item.time && <span className="text-xs text-[var(--text-muted)]">{item.time}</span>}
         <PriorityBadge priority={item.priority} />
       </div>
     </div>
@@ -102,13 +96,9 @@ function StatPill({
 }) {
   return (
     <div className="flex items-center gap-2 rounded-lg bg-[var(--bg-secondary)] px-3 py-2">
-      <div className={cn("flex h-7 w-7 items-center justify-center rounded-md", color)}>
-        {icon}
-      </div>
+      <div className={cn("flex h-7 w-7 items-center justify-center rounded-md", color)}>{icon}</div>
       <div>
-        <p className="text-lg font-bold text-[var(--text-primary)] tabular-nums">
-          {value}
-        </p>
+        <p className="text-lg font-bold text-[var(--text-primary)] tabular-nums">{value}</p>
         <p className="text-[10px] text-[var(--text-muted)]">{label}</p>
       </div>
     </div>
@@ -120,9 +110,7 @@ export function MorningBriefView({ data }: { data: MorningBriefData }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-[var(--text-primary)]">
-            {data.greeting}
-          </h2>
+          <h2 className="text-lg font-bold text-[var(--text-primary)]">{data.greeting}</h2>
           <p className="text-xs text-[var(--text-muted)]">{data.date}</p>
         </div>
         <div className="flex items-center gap-2">
@@ -155,9 +143,7 @@ export function MorningBriefView({ data }: { data: MorningBriefData }) {
 
       {data.priorities.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-medium text-[var(--text-muted)]">
-            أولويات اليوم
-          </p>
+          <p className="text-xs font-medium text-[var(--text-muted)]">أولويات اليوم</p>
           <div className="space-y-1.5">
             {data.priorities.map((item) => (
               <BriefItemRow key={item.id} item={item} />

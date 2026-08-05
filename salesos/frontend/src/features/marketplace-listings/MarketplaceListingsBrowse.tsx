@@ -26,8 +26,7 @@ import type {
 } from "@/lib/api";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -42,10 +41,8 @@ export function MarketplaceListingsBrowse() {
   const [listingType, setListingType] = useState("");
   const [status, setStatus] = useState("");
   const [detailKey, setDetailKey] = useState<string | null>(null);
-  const [lastCertify, setLastCertify] =
-    useState<MarketplaceCertifyReport | null>(null);
-  const [lastInstall, setLastInstall] =
-    useState<MarketplaceCatalogInstall | null>(null);
+  const [lastCertify, setLastCertify] = useState<MarketplaceCertifyReport | null>(null);
+  const [lastInstall, setLastInstall] = useState<MarketplaceCatalogInstall | null>(null);
 
   const metaQuery = useMarketplaceListingsMeta();
   const certifyMetaQuery = useMarketplaceCertifyMeta();
@@ -62,8 +59,7 @@ export function MarketplaceListingsBrowse() {
   const publishMutation = usePublishMarketplaceListing();
   const installMutation = useInstallMarketplaceListing();
 
-  const actionId =
-    detailQuery.data?.id || detailQuery.data?.slug || detailKey || "";
+  const actionId = detailQuery.data?.id || detailQuery.data?.slug || detailKey || "";
 
   function runSubmit(id: string) {
     submitMutation.mutate(id, {
@@ -102,7 +98,7 @@ export function MarketplaceListingsBrowse() {
             variant: "error",
           });
         },
-      },
+      }
     );
   }
 
@@ -155,8 +151,7 @@ export function MarketplaceListingsBrowse() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="marketplace-listings-honesty"
       >
-        {MARKETPLACE_LISTINGS_HONESTY} Non-goals:{" "}
-        {MARKETPLACE_LISTINGS_NON_GOALS.join("; ")}.
+        {MARKETPLACE_LISTINGS_HONESTY} Non-goals: {MARKETPLACE_LISTINGS_NON_GOALS.join("; ")}.
       </p>
 
       <div className="flex flex-wrap gap-2">
@@ -197,9 +192,7 @@ export function MarketplaceListingsBrowse() {
             });
           }}
         >
-          {seedPackMutation.isPending
-            ? "Seeding…"
-            : "Seed publish pack (13-04)"}
+          {seedPackMutation.isPending ? "Seeding…" : "Seed publish pack (13-04)"}
         </Button>
         <Button
           type="button"
@@ -237,9 +230,7 @@ export function MarketplaceListingsBrowse() {
         {metaQuery.isLoading ? (
           <Spinner />
         ) : metaQuery.isError ? (
-          <p className="text-sm text-[var(--text-danger)]">
-            {getApiError(metaQuery.error)}
-          </p>
+          <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
         ) : metaQuery.data ? (
           <pre
             className="overflow-x-auto rounded bg-[var(--bg-muted)] p-2 font-mono text-xs"
@@ -254,15 +245,11 @@ export function MarketplaceListingsBrowse() {
         className="space-y-2 rounded border border-[var(--border-default)] p-4"
         data-testid="marketplace-listings-certify-meta"
       >
-        <h2 className="text-sm font-semibold">
-          Certify meta (tip GET /certify/meta)
-        </h2>
+        <h2 className="text-sm font-semibold">Certify meta (tip GET /certify/meta)</h2>
         {certifyMetaQuery.isLoading ? (
           <Spinner />
         ) : certifyMetaQuery.isError ? (
-          <p className="text-sm text-[var(--text-danger)]">
-            {getApiError(certifyMetaQuery.error)}
-          </p>
+          <p className="text-sm text-[var(--text-danger)]">{getApiError(certifyMetaQuery.error)}</p>
         ) : certifyMetaQuery.data ? (
           <div
             className="space-y-1 font-mono text-xs text-[var(--text-muted)]"
@@ -282,9 +269,7 @@ export function MarketplaceListingsBrowse() {
         className="space-y-3 rounded border border-[var(--border-default)] p-4"
         data-testid="marketplace-listings-list"
       >
-        <h2 className="text-sm font-semibold">
-          Catalog (tip GET /marketplace/listings)
-        </h2>
+        <h2 className="text-sm font-semibold">Catalog (tip GET /marketplace/listings)</h2>
         <div className="flex flex-wrap items-end gap-2">
           <Input
             label="listing_type (optional)"
@@ -306,9 +291,7 @@ export function MarketplaceListingsBrowse() {
         {listQuery.isLoading ? (
           <Spinner />
         ) : listQuery.isError ? (
-          <p className="text-sm text-[var(--text-danger)]">
-            {getApiError(listQuery.error)}
-          </p>
+          <p className="text-sm text-[var(--text-danger)]">{getApiError(listQuery.error)}</p>
         ) : listQuery.data ? (
           listQuery.data.length === 0 ? (
             <p
@@ -329,21 +312,16 @@ export function MarketplaceListingsBrowse() {
                     <div>
                       <span className="font-medium">{row.name}</span>{" "}
                       <span className="font-mono text-xs text-[var(--text-muted)]">
-                        {row.slug} · {row.listing_type} · {row.version} ·{" "}
-                        {row.status}
+                        {row.slug} · {row.listing_type} · {row.version} · {row.status}
                         {row.installable ? " · installable" : ""}
                       </span>
                       {row.description ? (
-                        <p className="text-xs text-[var(--text-muted)]">
-                          {row.description}
-                        </p>
+                        <p className="text-xs text-[var(--text-muted)]">{row.description}</p>
                       ) : null}
                       <p className="text-xs text-[var(--text-muted)]">
                         {row.publisher}
                         {row.first_party ? " · first-party" : ""}
-                        {row.connector_key
-                          ? ` · connector_key=${row.connector_key}`
-                          : ""}
+                        {row.connector_key ? ` · connector_key=${row.connector_key}` : ""}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -408,18 +386,14 @@ export function MarketplaceListingsBrowse() {
         className="space-y-2 rounded border border-[var(--border-default)] p-4"
         data-testid="marketplace-listings-installs"
       >
-        <h2 className="text-sm font-semibold">
-          Catalog installs (tip GET /installs)
-        </h2>
+        <h2 className="text-sm font-semibold">Catalog installs (tip GET /installs)</h2>
         <p className="text-xs text-[var(--text-muted)]">
           Memory receipts only — not live HubSpot/Odoo/REST GO.
         </p>
         {installsQuery.isLoading ? (
           <Spinner />
         ) : installsQuery.isError ? (
-          <p className="text-sm text-[var(--text-danger)]">
-            {getApiError(installsQuery.error)}
-          </p>
+          <p className="text-sm text-[var(--text-danger)]">{getApiError(installsQuery.error)}</p>
         ) : installsQuery.data ? (
           installsQuery.data.length === 0 ? (
             <p
@@ -433,8 +407,7 @@ export function MarketplaceListingsBrowse() {
               {installsQuery.data.map((rec: MarketplaceCatalogInstall) => (
                 <li key={rec.id} data-testid="marketplace-listings-install-row">
                   {rec.listing_slug} · {rec.listing_type}
-                  {rec.connector_key ? ` · ${rec.connector_key}` : ""} ·{" "}
-                  {rec.installed_at}
+                  {rec.connector_key ? ` · ${rec.connector_key}` : ""} · {rec.installed_at}
                 </li>
               ))}
             </ul>
@@ -448,9 +421,7 @@ export function MarketplaceListingsBrowse() {
           data-testid="marketplace-listings-detail"
         >
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold">
-              Detail (tip GET /{"{id|slug}"})
-            </h2>
+            <h2 className="text-sm font-semibold">Detail (tip GET /{"{id|slug}"})</h2>
             <Button
               type="button"
               size="sm"
@@ -464,9 +435,7 @@ export function MarketplaceListingsBrowse() {
           {detailQuery.isLoading ? (
             <Spinner />
           ) : detailQuery.isError ? (
-            <p className="text-sm text-[var(--text-danger)]">
-              {getApiError(detailQuery.error)}
-            </p>
+            <p className="text-sm text-[var(--text-danger)]">{getApiError(detailQuery.error)}</p>
           ) : detailQuery.data ? (
             <>
               <pre
@@ -510,19 +479,15 @@ export function MarketplaceListingsBrowse() {
                   type="button"
                   size="sm"
                   data-testid="marketplace-listings-detail-install"
-                  disabled={
-                    busy || !actionId || detailQuery.data.installable === false
-                  }
+                  disabled={busy || !actionId || detailQuery.data.installable === false}
                   onClick={() => runInstall(actionId)}
                 >
-                  {installMutation.isPending
-                    ? "Installing…"
-                    : "Catalog install"}
+                  {installMutation.isPending ? "Installing…" : "Catalog install"}
                 </Button>
               </div>
               <p className="text-xs text-[var(--text-muted)]">
-                Catalog install writes a tenant-scoped memory receipt. It does
-                not enable live ERP/CRM sync.
+                Catalog install writes a tenant-scoped memory receipt. It does not enable live
+                ERP/CRM sync.
               </p>
             </>
           ) : null}

@@ -9,26 +9,18 @@ jest.mock("@/lib/hooks/company360Queries", () => ({
 }));
 
 jest.mock("@salesos/ui", () => ({
-  Avatar: ({ fallback }: { fallback?: string }) => (
-    <span data-testid="avatar">{fallback}</span>
-  ),
+  Avatar: ({ fallback }: { fallback?: string }) => <span data-testid="avatar">{fallback}</span>,
   cn: (...args: string[]) => args.filter(Boolean).join(" "),
-  Tabs: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="tabs">{children}</div>
-  ),
+  Tabs: ({ children }: { children: React.ReactNode }) => <div data-testid="tabs">{children}</div>,
   TabsList: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="tabs-list">{children}</div>
   ),
   Tab: ({ children, value }: { children: React.ReactNode; value: string }) => (
     <button data-testid={`tab-${value}`}>{children}</button>
   ),
-  TabsPanel: ({
-    children,
-    value,
-  }: {
-    children: React.ReactNode;
-    value: string;
-  }) => <div data-testid={`panel-${value}`}>{children}</div>,
+  TabsPanel: ({ children, value }: { children: React.ReactNode; value: string }) => (
+    <div data-testid={`panel-${value}`}>{children}</div>
+  ),
 }));
 
 jest.mock("@salesos/design-language", () => ({
@@ -41,23 +33,13 @@ jest.mock("@salesos/design-language", () => ({
   },
 }));
 
-jest.mock(
-  "@/features/company-intelligence/widgets/smart-timeline/SmartTimelineContainer",
-  () => ({
-    SmartTimelineWidget: () => (
-      <div data-testid="smart-timeline-widget">SmartTimelineWidget</div>
-    ),
-  }),
-);
+jest.mock("@/features/company-intelligence/widgets/smart-timeline/SmartTimelineContainer", () => ({
+  SmartTimelineWidget: () => <div data-testid="smart-timeline-widget">SmartTimelineWidget</div>,
+}));
 
-jest.mock(
-  "@/features/company-intelligence/widgets/signals-feed/SignalsFeedContainer",
-  () => ({
-    SignalsFeedWidget: () => (
-      <div data-testid="signals-feed-widget">SignalsFeedWidget</div>
-    ),
-  }),
-);
+jest.mock("@/features/company-intelligence/widgets/signals-feed/SignalsFeedContainer", () => ({
+  SignalsFeedWidget: () => <div data-testid="signals-feed-widget">SignalsFeedWidget</div>,
+}));
 
 jest.mock(
   "@/features/company-intelligence/widgets/decision-makers/DecisionMakersContainer",
@@ -65,7 +47,7 @@ jest.mock(
     DecisionMakersWidget: () => (
       <div data-testid="decision-makers-widget">DecisionMakersWidget</div>
     ),
-  }),
+  })
 );
 
 jest.mock(
@@ -74,7 +56,7 @@ jest.mock(
     RelationshipGraphWidget: () => (
       <div data-testid="relationship-graph-widget">RelationshipGraphWidget</div>
     ),
-  }),
+  })
 );
 
 jest.mock(
@@ -83,57 +65,38 @@ jest.mock(
     AIRecommendationWidget: () => (
       <div data-testid="ai-recommendation-widget">AIRecommendationWidget</div>
     ),
-  }),
+  })
 );
 
-jest.mock(
-  "@/features/company-intelligence/widgets/company-dna/CompanyDNAContainer",
-  () => ({
-    CompanyDNAWidget: () => (
-      <div data-testid="company-dna-widget">CompanyDNAWidget</div>
-    ),
-  }),
-);
+jest.mock("@/features/company-intelligence/widgets/company-dna/CompanyDNAContainer", () => ({
+  CompanyDNAWidget: () => <div data-testid="company-dna-widget">CompanyDNAWidget</div>,
+}));
 
 jest.mock(
   "@/features/company-intelligence/widgets/government-intelligence/GovernmentIntelligenceContainer",
   () => ({
     GovernmentIntelligenceWidget: () => (
-      <div data-testid="government-intelligence-widget">
-        GovernmentIntelligenceWidget
-      </div>
+      <div data-testid="government-intelligence-widget">GovernmentIntelligenceWidget</div>
     ),
-  }),
+  })
 );
 
 jest.mock(
   "@/features/company-intelligence/widgets/document-intelligence/DocumentIntelligenceContainer",
   () => ({
     DocumentIntelligenceWidget: () => (
-      <div data-testid="document-intelligence-widget">
-        DocumentIntelligenceWidget
-      </div>
+      <div data-testid="document-intelligence-widget">DocumentIntelligenceWidget</div>
     ),
-  }),
+  })
 );
 
-jest.mock(
-  "@/features/company-intelligence/widgets/buying-journey/BuyingJourneyContainer",
-  () => ({
-    BuyingJourneyWidget: () => (
-      <div data-testid="buying-journey-widget">BuyingJourneyWidget</div>
-    ),
-  }),
-);
+jest.mock("@/features/company-intelligence/widgets/buying-journey/BuyingJourneyContainer", () => ({
+  BuyingJourneyWidget: () => <div data-testid="buying-journey-widget">BuyingJourneyWidget</div>,
+}));
 
-jest.mock(
-  "@/features/company-intelligence/widgets/golden-record/GoldenRecordContainer",
-  () => ({
-    GoldenRecordWidget: () => (
-      <div data-testid="golden-record-widget">GoldenRecordWidget</div>
-    ),
-  }),
-);
+jest.mock("@/features/company-intelligence/widgets/golden-record/GoldenRecordContainer", () => ({
+  GoldenRecordWidget: () => <div data-testid="golden-record-widget">GoldenRecordWidget</div>,
+}));
 
 jest.mock("@/lib/i18n", () => ({
   useTranslation: () => ({
@@ -146,9 +109,7 @@ jest.mock("@/lib/i18n", () => ({
 
 jest.mock("../timeline-widget", () => ({
   TimelineWidget: (props: Record<string, unknown>) => (
-    <div data-testid="timeline-widget">
-      TimelineWidget: {String(props.entityType)}
-    </div>
+    <div data-testid="timeline-widget">TimelineWidget: {String(props.entityType)}</div>
   ),
 }));
 
@@ -183,9 +144,7 @@ describe("CompanyWorkspace", () => {
     });
     mockUseCompany360.mockReturnValue({ data: undefined });
     const { container } = render(<CompanyWorkspace companyId="c1" />);
-    expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(
-      0,
-    );
+    expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(0);
   });
 
   it("shows error state", () => {
@@ -316,12 +275,8 @@ describe("CompanyWorkspace", () => {
     mockUseCompany360.mockReturnValue({ data: {} });
     render(<CompanyWorkspace companyId="c1" />);
     expect(screen.getByTestId("panel-overview")).toBeInTheDocument();
-    expect(
-      screen.getAllByTestId("company-dna-widget").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByTestId("ai-recommendation-widget").length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByTestId("company-dna-widget").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByTestId("ai-recommendation-widget").length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders health score ring", () => {
@@ -371,12 +326,8 @@ describe("CompanyWorkspace", () => {
       },
     });
     render(<CompanyWorkspace companyId="c1" />);
-    expect(
-      screen.getAllByText("company.assigned_team").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText("company.opportunities").length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("company.assigned_team").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("company.opportunities").length).toBeGreaterThanOrEqual(1);
   });
 
   it("does not render metrics when no overview data", () => {
@@ -405,9 +356,7 @@ describe("CompanyWorkspace", () => {
       },
     });
     render(<CompanyWorkspace companyId="c1" />);
-    expect(
-      screen.getAllByText("company.assigned_team").length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("company.assigned_team").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("أحمد السبيعي")).toBeInTheDocument();
     expect(screen.getByText("سارة المطيري")).toBeInTheDocument();
   });

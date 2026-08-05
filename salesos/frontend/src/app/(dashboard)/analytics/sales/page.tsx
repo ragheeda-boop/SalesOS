@@ -7,14 +7,7 @@ import { cn } from "@salesos/ui";
 import { Badge } from "@salesos/ui";
 import { BarChart, LineChart, PieChart, MetricCard } from "@salesos/charts";
 import { ExportShareBar } from "@/components/analytics";
-import {
-  ArrowLeft,
-  DollarSign,
-  Target,
-  Users,
-  BarChart3,
-  RefreshCw,
-} from "lucide-react";
+import { ArrowLeft, DollarSign, Target, Users, BarChart3, RefreshCw } from "lucide-react";
 import { normalizePipelineAnalytics } from "@/lib/pipelineAnalytics";
 
 interface SalesMetrics {
@@ -114,13 +107,11 @@ export default function SalesAnalyticsPage() {
 
       const revenueTrend: RevenueTrend[] = [];
 
-      const pipelineByStage: DealStage[] = pipeline.conversion_funnel.map(
-        (s) => ({
-          stage: s.stage,
-          count: s.count,
-          value: s.value,
-        }),
-      );
+      const pipelineByStage: DealStage[] = pipeline.conversion_funnel.map((s) => ({
+        stage: s.stage,
+        count: s.count,
+        value: s.value,
+      }));
 
       const topReps: SalesRep[] = (dash?.active_opportunities ?? [])
         .slice(0, 5)
@@ -192,12 +183,8 @@ export default function SalesAnalyticsPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)]">
-              Sales Analytics
-            </h1>
-            <p className="text-sm text-[var(--text-muted)]">
-              Revenue, deals, and rep performance
-            </p>
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">Sales Analytics</h1>
+            <p className="text-sm text-[var(--text-muted)]">Revenue, deals, and rep performance</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -210,7 +197,7 @@ export default function SalesAnalyticsPage() {
                   "px-3 py-1.5 text-xs font-medium transition",
                   dateRange === r.days
                     ? "bg-[var(--muhide-orange)] text-white"
-                    : "bg-[var(--bg-primary)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+                    : "bg-[var(--bg-primary)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
                 )}
               >
                 {r.label}
@@ -270,9 +257,7 @@ export default function SalesAnalyticsPage() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
-            Revenue Trend
-          </h3>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Revenue Trend</h3>
           <LineChart
             series={[
               {
@@ -296,16 +281,12 @@ export default function SalesAnalyticsPage() {
       {/* Won/Lost + Top Reps */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
-            Win/Loss Ratio
-          </h3>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Win/Loss Ratio</h3>
           <PieChart data={wonLostData} height={200} />
         </div>
 
         <div className="lg:col-span-2 rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
-            Top Sales Reps
-          </h3>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Top Sales Reps</h3>
           <div className="space-y-3">
             {data.top_reps.map((rep, i) => (
               <div
@@ -319,7 +300,7 @@ export default function SalesAnalyticsPage() {
                       ? "bg-yellow-100 text-yellow-700"
                       : i === 1
                         ? "bg-gray-100 text-gray-600"
-                        : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]",
+                        : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]"
                   )}
                 >
                   {i + 1}
@@ -328,9 +309,7 @@ export default function SalesAnalyticsPage() {
                   <p className="text-sm font-medium text-[var(--text-primary)] truncate">
                     {rep.name}
                   </p>
-                  <p className="text-xs text-[var(--text-muted)]">
-                    {rep.deals} deals closed
-                  </p>
+                  <p className="text-xs text-[var(--text-muted)]">{rep.deals} deals closed</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-[var(--text-primary)]">
@@ -338,11 +317,7 @@ export default function SalesAnalyticsPage() {
                   </p>
                   <Badge
                     variant={
-                      rep.win_rate >= 65
-                        ? "success"
-                        : rep.win_rate >= 50
-                          ? "warning"
-                          : "danger"
+                      rep.win_rate >= 65 ? "success" : rep.win_rate >= 50 ? "warning" : "danger"
                     }
                   >
                     {rep.win_rate}% win rate

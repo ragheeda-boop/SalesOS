@@ -1,10 +1,16 @@
-import { cn } from './utils'
-import { Loader2 } from 'lucide-react'
+import { cn } from "./utils";
+import { Loader2 } from "lucide-react";
 
 interface SpinnerProps {
-  className?: string
+  className?: string;
 }
 
 export function Spinner({ className }: SpinnerProps) {
-  return <Loader2 role="status" aria-label="Loading" className={cn('animate-spin text-[var(--text-muted)]', className)} />
+  return (
+    <Loader2
+      role="status"
+      aria-label="Loading"
+      className={cn("animate-spin text-[var(--text-muted)]", className)}
+    />
+  );
 }

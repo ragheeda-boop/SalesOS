@@ -50,10 +50,8 @@ describe("formatProvisionResultDescription", () => {
         data_residency: "ae",
         provisioning_status: "active",
         trial_ends_at: null,
-      }),
-    ).toBe(
-      "slug=acme · provisioning=active · plan_id=cat-1 · region=me-central-1 · residency=ae",
-    );
+      })
+    ).toBe("slug=acme · provisioning=active · plan_id=cat-1 · region=me-central-1 · residency=ae");
   });
 
   it("defaults provisioning when missing", () => {
@@ -65,7 +63,7 @@ describe("formatProvisionResultDescription", () => {
         data_residency: null,
         provisioning_status: "",
         trial_ends_at: null,
-      }),
+      })
     ).toBe("slug=x · provisioning=pending");
   });
 });
@@ -73,7 +71,7 @@ describe("formatProvisionResultDescription", () => {
 describe("formatSuspendResultDescription", () => {
   it("includes reason when provided", () => {
     expect(formatSuspendResultDescription("t-1", "Owner Console")).toBe(
-      "tenant_id=t-1 · is_active=false · provisioning=suspended · reason=Owner Console",
+      "tenant_id=t-1 · is_active=false · provisioning=suspended · reason=Owner Console"
     );
   });
 });
@@ -86,18 +84,16 @@ describe("formatActivateResultDescription — FE-S04-27", () => {
         prior_provisioning_status: "suspended",
         provisioning_status: "active",
         reason: "Owner Console",
-      }),
+      })
     ).toBe(
-      "tenant_id=t-1 · is_active=true · prior=suspended · provisioning=active · reason=Owner Console",
+      "tenant_id=t-1 · is_active=true · prior=suspended · provisioning=active · reason=Owner Console"
     );
   });
 });
 
 describe("activityStatusLabel — FE-S04-13", () => {
   it("labels active tenants", () => {
-    expect(
-      activityStatusLabel({ is_active: true, provisioning_status: "active" }),
-    ).toBe("Active");
+    expect(activityStatusLabel({ is_active: true, provisioning_status: "active" })).toBe("Active");
   });
 
   it("labels suspend path as Suspended", () => {
@@ -105,14 +101,14 @@ describe("activityStatusLabel — FE-S04-13", () => {
       activityStatusLabel({
         is_active: false,
         provisioning_status: "suspended",
-      }),
+      })
     ).toBe("Suspended");
   });
 
   it("labels soft-delete as Inactive (not Suspended)", () => {
-    expect(
-      activityStatusLabel({ is_active: false, provisioning_status: "active" }),
-    ).toBe("Inactive");
+    expect(activityStatusLabel({ is_active: false, provisioning_status: "active" })).toBe(
+      "Inactive"
+    );
   });
 });
 
@@ -128,12 +124,8 @@ describe("trial helpers — FE-S04-15", () => {
   it("matches trial filter", () => {
     expect(matchesTrialFilter(null, "", now)).toBe(true);
     expect(matchesTrialFilter(null, "none", now)).toBe(true);
-    expect(
-      matchesTrialFilter("2026-09-01T00:00:00.000Z", "has_trial", now),
-    ).toBe(true);
-    expect(matchesTrialFilter("2026-07-01T00:00:00.000Z", "expired", now)).toBe(
-      true,
-    );
+    expect(matchesTrialFilter("2026-09-01T00:00:00.000Z", "has_trial", now)).toBe(true);
+    expect(matchesTrialFilter("2026-07-01T00:00:00.000Z", "expired", now)).toBe(true);
   });
 
   it("formats trial label", () => {
@@ -144,9 +136,7 @@ describe("trial helpers — FE-S04-15", () => {
   it("FE-S04-25 trial badge label/variant", () => {
     expect(trialBadgeLabel(null, now)).toBe("No trial");
     expect(trialBadgeVariant(null, now)).toBe("default");
-    expect(trialBadgeLabel("2026-09-01T00:00:00.000Z", now)).toBe(
-      "Active trial",
-    );
+    expect(trialBadgeLabel("2026-09-01T00:00:00.000Z", now)).toBe("Active trial");
     expect(trialBadgeVariant("2026-09-01T00:00:00.000Z", now)).toBe("success");
     expect(trialBadgeLabel("2026-07-01T00:00:00.000Z", now)).toBe("Expired");
     expect(trialBadgeVariant("2026-07-01T00:00:00.000Z", now)).toBe("warning");
@@ -159,19 +149,19 @@ describe("lifecycleStatusDescription — FE-S04-17", () => {
       lifecycleStatusDescription({
         is_active: true,
         provisioning_status: "active",
-      }),
+      })
     ).toContain("Active");
     expect(
       lifecycleStatusDescription({
         is_active: false,
         provisioning_status: "suspended",
-      }),
+      })
     ).toContain("/suspend");
     expect(
       lifecycleStatusDescription({
         is_active: false,
         provisioning_status: "active",
-      }),
+      })
     ).toContain("soft-deleted");
   });
 });
@@ -205,14 +195,14 @@ describe("buildAdminTenantsFilterQuery — FE-S04-29/33", () => {
         sort: "created_desc",
         page: 1,
         page_size: 20,
-      }),
+      })
     ).toBe("search=acme");
     expect(
       buildAdminTenantsFilterQuery({
         status: "active",
         sort: "name_asc",
         page: 2,
-      }),
+      })
     ).toBe("status=active&sort=name_asc&page=2");
   });
 });
@@ -228,9 +218,9 @@ describe("formatReprovisionResultDescription — FE-S04-34", () => {
         idempotent: true,
         roles_provisioned: 3,
         permissions_provisioned: 12,
-      }),
+      })
     ).toBe(
-      "tenant_id=t-1 · slug=acme · provisioning=active · created=false · idempotent=true · roles=3 · permissions=12",
+      "tenant_id=t-1 · slug=acme · provisioning=active · created=false · idempotent=true · roles=3 · permissions=12"
     );
   });
 });
@@ -240,7 +230,7 @@ describe("retention helpers — FE-S04-35/45", () => {
     expect(
       getDeletionRequestedAt({
         deletion_requested_at: "2026-08-01T00:00:00+00:00",
-      }),
+      })
     ).toBe("2026-08-01T00:00:00+00:00");
     expect(getDeletionRequestedAt({})).toBeNull();
   });
@@ -250,7 +240,7 @@ describe("retention helpers — FE-S04-35/45", () => {
       resolveTenantDeletedAt({
         deleted_at: "2026-08-02T00:00:00Z",
         settings: { deletion_requested_at: "2026-08-01T00:00:00Z" },
-      }),
+      })
     ).toBe("2026-08-02T00:00:00Z");
   });
 
@@ -264,7 +254,7 @@ describe("retention helpers — FE-S04-35/45", () => {
       retentionHardDeleteDescription({
         deletionRequestedAt: "2026-08-01T00:00:00Z",
         retentionDays: 30,
-      }),
+      })
     ).toContain("tenants.deleted_at");
   });
 });
@@ -277,7 +267,7 @@ describe("billing helpers — FE-S05-01..04", () => {
         billing_cycle: "monthly",
         plan_id: "pro",
         seats: 5,
-      }),
+      })
     ).toBe("status=active · cycle=monthly · plan_id=pro · seats=5");
     expect(
       catalogPriceIdForCycle(
@@ -285,8 +275,8 @@ describe("billing helpers — FE-S05-01..04", () => {
           stripe_price_id_monthly: "price_m",
           stripe_price_id_yearly: "price_y",
         },
-        "yearly",
-      ),
+        "yearly"
+      )
     ).toBe("price_y");
     expect(
       formatUsageMeterRow({
@@ -294,7 +284,7 @@ describe("billing helpers — FE-S05-01..04", () => {
         quantity: 12,
         period_start: "2026-08-02T10:00:00Z",
         period_end: "2026-08-02T11:00:00Z",
-      }),
+      })
     ).toContain("api_calls=12");
   });
 
@@ -307,11 +297,9 @@ describe("billing helpers — FE-S05-01..04", () => {
             detail: "Stripe secret key not configured (STRIPE_SECRET_KEY)",
           },
         },
-      }),
+      })
     ).toBe(true);
-    expect(stripeBillingUnavailableDescription(null)).toContain(
-      "STRIPE_SECRET_KEY",
-    );
+    expect(stripeBillingUnavailableDescription(null)).toContain("STRIPE_SECRET_KEY");
   });
 
   it("formats plan-change quote + pending honesty", () => {
@@ -323,24 +311,19 @@ describe("billing helpers — FE-S05-01..04", () => {
         from_plan_id: "a",
         to_plan_id: "b",
         remaining_fraction: 0.5,
-      }),
+      })
     ).toContain("due_now=12.5");
     expect(
       formatPendingPlanHonesty({
         plan_id: "a",
         pending_plan_id: "b",
         pending_effective_at: "2026-09-01T00:00:00Z",
-      }),
+      })
     ).toMatch(/pending/i);
     expect(
-      dunningGraceDaysRemaining(
-        "2026-08-17T00:00:00Z",
-        Date.parse("2026-08-10T00:00:00Z"),
-      ),
+      dunningGraceDaysRemaining("2026-08-17T00:00:00Z", Date.parse("2026-08-10T00:00:00Z"))
     ).toBe(7);
-    expect(
-      formatDunningCaseRow({ status: "open", failure_count: 1 }),
-    ).toContain("status=open");
+    expect(formatDunningCaseRow({ status: "open", failure_count: 1 })).toContain("status=open");
   });
 
   it("formats resolved entitlements honesty", () => {
@@ -362,7 +345,7 @@ describe("billing helpers — FE-S05-01..04", () => {
           deployment_tier: "pooled",
           support_sla: "community",
         },
-      }),
+      })
     ).toContain("Resolved entitlements");
     expect(
       listDisabledEntitlementDomains({
@@ -370,7 +353,7 @@ describe("billing helpers — FE-S05-01..04", () => {
           "DOM-011": { enabled: false },
           "DOM-001": { enabled: true },
         },
-      }),
+      })
     ).toEqual(["DOM-011"]);
   });
 
@@ -391,7 +374,7 @@ describe("billing helpers — FE-S05-01..04", () => {
         },
         deployment_tier: "pooled",
         support_sla: "community",
-      }),
+      })
     ).toContain("domains_enabled=1/2");
     expect(parsePlanEntitlementsJson("").ok).toBe(true);
     expect(parsePlanEntitlementsJson("{").ok).toBe(false);
@@ -412,8 +395,7 @@ describe("billing helpers — FE-S05-01..04", () => {
 
   it("formats honest upgrade messaging for quota_exceeded 403/429", () => {
     const seats = {
-      detail:
-        "Plan quota exceeded: seats (used 5 / limit 5). Upgrade plan or reduce usage.",
+      detail: "Plan quota exceeded: seats (used 5 / limit 5). Upgrade plan or reduce usage.",
       error: "quota_exceeded",
       metric: "seats",
       used: 5,
@@ -444,12 +426,10 @@ describe("billing helpers — FE-S05-01..04", () => {
 
 describe("suspendedWriteBlockDescription — FE-S04-38", () => {
   it("returns honesty only when provisioning=suspended", () => {
-    expect(
-      suspendedWriteBlockDescription({ provisioning_status: "suspended" }),
-    ).toContain("STORY-04-03");
-    expect(
-      suspendedWriteBlockDescription({ provisioning_status: "active" }),
-    ).toBeNull();
+    expect(suspendedWriteBlockDescription({ provisioning_status: "suspended" })).toContain(
+      "STORY-04-03"
+    );
+    expect(suspendedWriteBlockDescription({ provisioning_status: "active" })).toBeNull();
   });
 });
 
@@ -464,9 +444,7 @@ describe("parseAdminTenantsPageSize — FE-S04-39", () => {
 
 describe("buildAdminTenantsFilterQuery page_size — FE-S04-39", () => {
   it("includes non-default page_size", () => {
-    expect(buildAdminTenantsFilterQuery({ page: 1, page_size: 50 })).toBe(
-      "page_size=50",
-    );
+    expect(buildAdminTenantsFilterQuery({ page: 1, page_size: 50 })).toBe("page_size=50");
   });
 });
 
@@ -490,7 +468,7 @@ describe("formatTenantUsagePeriod — FE-S04-44", () => {
       formatTenantUsagePeriod({
         period_start: "2026-01-01T00:00:00.000Z",
         period_end: "2026-01-31T00:00:00.000Z",
-      }),
+      })
     ).toMatch(/^Period /);
   });
 });

@@ -33,7 +33,7 @@ describe("notificationRulesStudio API — FE-S10-08", () => {
     const events = await listNotificationEvents("tenant-1");
     expect(mocked.get).toHaveBeenCalledWith(
       "/api/v1/studio/notification-rules/events",
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(events.event_types).toContain("lead.assigned");
 
@@ -41,7 +41,7 @@ describe("notificationRulesStudio API — FE-S10-08", () => {
     await listNotificationRules("tenant-1");
     expect(mocked.get).toHaveBeenCalledWith(
       "/api/v1/studio/notification-rules",
-      expect.any(Object),
+      expect.any(Object)
     );
   });
 
@@ -70,7 +70,7 @@ describe("notificationRulesStudio API — FE-S10-08", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/studio/notification-rules",
       expect.objectContaining({ name: "Alert" }),
-      expect.any(Object),
+      expect.any(Object)
     );
 
     mocked.post.mockResolvedValue({ data: { matched_rule_ids: ["nr1"] } });
@@ -81,7 +81,7 @@ describe("notificationRulesStudio API — FE-S10-08", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/studio/notification-rules/route",
       expect.objectContaining({ event_type: "sync.failed" }),
-      expect.any(Object),
+      expect.any(Object)
     );
   });
 });

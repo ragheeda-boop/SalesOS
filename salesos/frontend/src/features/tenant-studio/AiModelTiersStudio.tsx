@@ -14,8 +14,7 @@ import {
 import type { AiModelTierCatalogEntry } from "@/lib/api";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -41,8 +40,8 @@ export function AiModelTiersStudio() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="ai-model-tiers-honesty"
       >
-        {AI_MODEL_TIERS_HONESTY} Non-goals:{" "}
-        {AI_MODEL_TIERS_NON_GOALS.join("; ")}. Not Production GO / RAG GO.
+        {AI_MODEL_TIERS_HONESTY} Non-goals: {AI_MODEL_TIERS_NON_GOALS.join("; ")}. Not Production GO
+        / RAG GO.
       </p>
 
       <div className="flex flex-wrap gap-2">
@@ -69,17 +68,15 @@ export function AiModelTiersStudio() {
         {catalogQuery.isLoading ? (
           <Spinner />
         ) : catalogQuery.isError ? (
-          <p className="text-sm text-[var(--text-danger)]">
-            {getApiError(catalogQuery.error)}
-          </p>
+          <p className="text-sm text-[var(--text-danger)]">{getApiError(catalogQuery.error)}</p>
         ) : catalogQuery.data ? (
           <>
             <p
               className="font-mono text-xs text-[var(--text-muted)]"
               data-testid="ai-model-tiers-catalog-flag"
             >
-              feature_ai_copilot={String(catalogQuery.data.feature_ai_copilot)}{" "}
-              · {catalogQuery.data.honesty}
+              feature_ai_copilot={String(catalogQuery.data.feature_ai_copilot)} ·{" "}
+              {catalogQuery.data.honesty}
             </p>
             <ul className="space-y-2 text-sm">
               {catalogQuery.data.catalog.map((row: AiModelTierCatalogEntry) => (
@@ -88,11 +85,9 @@ export function AiModelTiersStudio() {
                   className="rounded border border-[var(--border-default)] px-3 py-2"
                   data-testid="ai-model-tiers-catalog-row"
                 >
-                  <span className="font-medium">{row.label}</span> ({row.tier})
-                  · {row.provider}/{row.model}
-                  <p className="text-xs text-[var(--text-muted)]">
-                    {row.description}
-                  </p>
+                  <span className="font-medium">{row.label}</span> ({row.tier}) · {row.provider}/
+                  {row.model}
+                  <p className="text-xs text-[var(--text-muted)]">{row.description}</p>
                 </li>
               ))}
             </ul>
@@ -104,9 +99,7 @@ export function AiModelTiersStudio() {
         className="space-y-3 rounded border border-[var(--border-default)] p-4"
         data-testid="ai-model-tiers-defaults"
       >
-        <h2 className="text-sm font-semibold">
-          Plan defaults (tip GET /defaults)
-        </h2>
+        <h2 className="text-sm font-semibold">Plan defaults (tip GET /defaults)</h2>
         <div className="flex flex-wrap items-end gap-2">
           <Input
             label="plan_tier"
@@ -137,9 +130,7 @@ export function AiModelTiersStudio() {
         {defaultsQuery.isLoading ? (
           <Spinner />
         ) : defaultsQuery.isError ? (
-          <p className="text-sm text-[var(--text-danger)]">
-            {getApiError(defaultsQuery.error)}
-          </p>
+          <p className="text-sm text-[var(--text-danger)]">{getApiError(defaultsQuery.error)}</p>
         ) : defaultsQuery.data ? (
           <pre
             className="overflow-x-auto rounded bg-[var(--bg-muted)] p-2 font-mono text-xs"
@@ -154,9 +145,7 @@ export function AiModelTiersStudio() {
         className="space-y-3 rounded border border-[var(--border-default)] p-4"
         data-testid="ai-model-tiers-resolve"
       >
-        <h2 className="text-sm font-semibold">
-          Tenant resolve (tip GET /ai-model-tiers)
-        </h2>
+        <h2 className="text-sm font-semibold">Tenant resolve (tip GET /ai-model-tiers)</h2>
         <div className="flex flex-wrap items-end gap-2">
           <Input
             label="requested_tier (optional)"
@@ -179,9 +168,7 @@ export function AiModelTiersStudio() {
         {resolveQuery.isLoading ? (
           <Spinner />
         ) : resolveQuery.isError ? (
-          <p className="text-sm text-[var(--text-danger)]">
-            {getApiError(resolveQuery.error)}
-          </p>
+          <p className="text-sm text-[var(--text-danger)]">{getApiError(resolveQuery.error)}</p>
         ) : resolveQuery.data ? (
           <>
             <p

@@ -96,9 +96,7 @@ describe("CompanyDNAView", () => {
 
   it('has role="region" with aria-label', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "الحمض النووي للشركة" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "الحمض النووي للشركة" })).toBeInTheDocument();
   });
 
   it("has dark mode variant classes", () => {

@@ -62,28 +62,21 @@ export interface LeadDiscoveryMeta {
   honesty: string;
 }
 
-export async function getLeadDiscoveryMeta(
-  tenantId: string,
-): Promise<LeadDiscoveryMeta> {
+export async function getLeadDiscoveryMeta(tenantId: string): Promise<LeadDiscoveryMeta> {
   const resp = await api.get<LeadDiscoveryMeta>(`${BASE}/meta`, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function listLeadDiscovery(
-  tenantId: string,
-): Promise<LeadDiscoveryRun[]> {
+export async function listLeadDiscovery(tenantId: string): Promise<LeadDiscoveryRun[]> {
   const resp = await api.get<LeadDiscoveryRun[]>(BASE, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function getLeadDiscovery(
-  tenantId: string,
-  runId: string,
-): Promise<LeadDiscoveryRun> {
+export async function getLeadDiscovery(tenantId: string, runId: string): Promise<LeadDiscoveryRun> {
   const resp = await api.get<LeadDiscoveryRun>(`${BASE}/${runId}`, {
     headers: tenantHeaders(tenantId),
   });
@@ -92,7 +85,7 @@ export async function getLeadDiscovery(
 
 export async function runLeadDiscovery(
   tenantId: string,
-  body: LeadDiscoveryBody,
+  body: LeadDiscoveryBody
 ): Promise<LeadDiscoveryRun> {
   const resp = await api.post<LeadDiscoveryRun>(BASE, body, {
     headers: tenantHeaders(tenantId),

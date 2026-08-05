@@ -29,10 +29,7 @@ export interface Rule {
   updated_at: string;
 }
 
-type RuleCreateInput = Omit<
-  Rule,
-  "id" | "tenant_id" | "created_at" | "updated_at"
->;
+type RuleCreateInput = Omit<Rule, "id" | "tenant_id" | "created_at" | "updated_at">;
 type RuleUpdateInput = Partial<RuleCreateInput>;
 
 const STORAGE_KEY = "salesos_rules";
@@ -101,13 +98,7 @@ export function useUpdateRule() {
   const tenantId = getTenantId();
 
   return useMutation({
-    mutationFn: async ({
-      id,
-      input,
-    }: {
-      id: string;
-      input: RuleUpdateInput;
-    }) => {
+    mutationFn: async ({ id, input }: { id: string; input: RuleUpdateInput }) => {
       const all = loadRules();
       const idx = all.findIndex((r) => r.id === id && r.tenant_id === tenantId);
       if (idx === -1) throw new Error("Rule not found");
@@ -132,9 +123,7 @@ export function useDeleteRule() {
   return useMutation({
     mutationFn: async (id: string) => {
       const all = loadRules();
-      const filtered = all.filter(
-        (r) => !(r.id === id && r.tenant_id === tenantId),
-      );
+      const filtered = all.filter((r) => !(r.id === id && r.tenant_id === tenantId));
       saveRules(filtered);
     },
     onSuccess: () => {

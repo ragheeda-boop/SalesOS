@@ -32,17 +32,11 @@ describe("sequences API — FE-S11-09", () => {
       },
     });
     const meta = await getSequencingMeta("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/sequences/meta",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/sequences/meta", expect.any(Object));
     expect(meta.channels).toContain("email");
     mocked.get.mockResolvedValueOnce({ data: [] });
     await listSequences("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/sequences",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/sequences", expect.any(Object));
   });
 
   it("POSTs create, enroll, advance", async () => {
@@ -72,7 +66,7 @@ describe("sequences API — FE-S11-09", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/gtm/sequences",
       expect.objectContaining({ name: "Pilot" }),
-      expect.any(Object),
+      expect.any(Object)
     );
 
     mocked.post.mockResolvedValueOnce({
@@ -102,7 +96,7 @@ describe("sequences API — FE-S11-09", () => {
         linkedin: "urn:li:person:abc",
         whatsapp: "+966500000000",
       }),
-      expect.any(Object),
+      expect.any(Object)
     );
 
     mocked.post.mockResolvedValueOnce({
@@ -132,7 +126,7 @@ describe("sequences API — FE-S11-09", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/gtm/sequences/enrollments/enr1/advance",
       {},
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(advanced.task_bindings).toHaveLength(1);
   });

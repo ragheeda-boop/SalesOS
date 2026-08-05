@@ -12,8 +12,7 @@ export function useFocusTrap<T extends HTMLElement>(active: boolean) {
   const trapFocus = useCallback((e: KeyboardEvent) => {
     if (e.key !== "Tab" || !containerRef.current) return;
 
-    const focusable =
-      containerRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS);
+    const focusable = containerRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS);
     if (focusable.length === 0) return;
 
     const first = focusable[0];
@@ -38,10 +37,7 @@ export function useFocusTrap<T extends HTMLElement>(active: boolean) {
     previousFocusRef.current = document.activeElement as HTMLElement;
 
     const timer = setTimeout(() => {
-      const focusable =
-        containerRef.current?.querySelectorAll<HTMLElement>(
-          FOCUSABLE_SELECTORS,
-        );
+      const focusable = containerRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS);
       if (focusable && focusable.length > 0) {
         focusable[0].focus();
       }

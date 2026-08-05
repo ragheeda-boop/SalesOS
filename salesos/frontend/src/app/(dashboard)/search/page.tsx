@@ -4,13 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useSearch } from "@/lib/hooks/searchQueries";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  Search,
-  Hash,
-  ChevronLeft,
-  ChevronRight,
-  BarChart3,
-} from "lucide-react";
+import { Search, Hash, ChevronLeft, ChevronRight, BarChart3 } from "lucide-react";
 import { Input, Spinner } from "@salesos/ui";
 import { Badge, cn } from "@salesos/ui";
 import { ErrorFallback } from "@/components/foundation/error-boundary";
@@ -43,7 +37,7 @@ export default function SearchPage() {
           offset: page * pageSize,
           include_facets: true,
         }
-      : { q: "", strategy },
+      : { q: "", strategy }
   );
 
   const handleSearch = useCallback(
@@ -52,7 +46,7 @@ export default function SearchPage() {
       setSearchQuery(query);
       setPage(0);
     },
-    [query],
+    [query]
   );
 
   const handleReRun = useCallback((q: string, s: string) => {
@@ -63,24 +57,20 @@ export default function SearchPage() {
   }, []);
 
   // Track search in history when results arrive
-  const trackHistory = useCallback(
-    (query: string, strategy: string, resultCount: number) => {
-      try {
-        const raw = localStorage.getItem("salesos-search-history");
-        const history = raw ? JSON.parse(raw) : [];
-        const entry = { query, strategy, timestamp: Date.now(), resultCount };
-        const updated = [
-          entry,
-          ...history.filter(
-            (h: { query: string; strategy: string }) =>
-              h.query !== query || h.strategy !== strategy,
-          ),
-        ].slice(0, 10);
-        localStorage.setItem("salesos-search-history", JSON.stringify(updated));
-      } catch {}
-    },
-    [],
-  );
+  const trackHistory = useCallback((query: string, strategy: string, resultCount: number) => {
+    try {
+      const raw = localStorage.getItem("salesos-search-history");
+      const history = raw ? JSON.parse(raw) : [];
+      const entry = { query, strategy, timestamp: Date.now(), resultCount };
+      const updated = [
+        entry,
+        ...history.filter(
+          (h: { query: string; strategy: string }) => h.query !== query || h.strategy !== strategy
+        ),
+      ].slice(0, 10);
+      localStorage.setItem("salesos-search-history", JSON.stringify(updated));
+    } catch {}
+  }, []);
 
   // Auto-track when search results arrive
   useEffect(() => {
@@ -93,12 +83,8 @@ export default function SearchPage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            {t("search.title")}
-          </h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            {t("search.subtitle")}
-          </p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t("search.title")}</h1>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">{t("search.subtitle")}</p>
         </div>
         <Link
           href="/search/analytics"
@@ -131,9 +117,7 @@ export default function SearchPage() {
 
       {/* Strategy toggle */}
       <div className="flex items-center gap-2">
-        <span className="text-xs font-medium text-[var(--text-muted)]">
-          {t("search.strategy")}
-        </span>
+        <span className="text-xs font-medium text-[var(--text-muted)]">{t("search.strategy")}</span>
         <div className="flex gap-1 rounded-lg bg-[var(--bg-tertiary)] p-1">
           {(["fulltext", "semantic", "hybrid"] as Strategy[]).map((s) => (
             <button
@@ -146,7 +130,7 @@ export default function SearchPage() {
                 "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
                 strategy === s
                   ? "bg-[var(--bg-primary)] text-[var(--muhide-orange)] shadow-muhide-1 dark:text-orange-300"
-                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] dark:hover:text-[var(--text-disabled)]",
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] dark:hover:text-[var(--text-disabled)]"
               )}
             >
               {t(STRATEGY_KEYS[s])}
@@ -189,9 +173,7 @@ export default function SearchPage() {
           {data.items.length === 0 ? (
             <div className="rounded-lg border border-dashed border-[var(--border-hover)] p-12 text-center">
               <Search className="mx-auto mb-3 h-10 w-10 text-[var(--text-disabled)]" />
-              <p className="text-[var(--text-muted)]">
-                {t("search.no_results")}
-              </p>
+              <p className="text-[var(--text-muted)]">{t("search.no_results")}</p>
             </div>
           ) : (
             <>
@@ -205,11 +187,7 @@ export default function SearchPage() {
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
                         <h3 className="font-semibold text-[var(--text-primary)]">
-                          {String(
-                            item.data?.name_ar ||
-                              item.data?.name_en ||
-                              "\u2014",
-                          )}
+                          {String(item.data?.name_ar || item.data?.name_en || "\u2014")}
                         </h3>
                         {!!item.data?.cr_number && (
                           <p className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
@@ -218,24 +196,13 @@ export default function SearchPage() {
                           </p>
                         )}
                         <div className="flex flex-wrap gap-2 text-xs text-[var(--text-muted)]">
-                          {!!item.data?.city && (
-                            <span>{String(item.data.city as string)}</span>
-                          )}
+                          {!!item.data?.city && <span>{String(item.data.city as string)}</span>}
                           {!!item.data?.industry && (
                             <span>{String(item.data.industry as string)}</span>
                           )}
                           {!!item.data?.status && (
-                            <Badge
-                              variant={
-                                item.data.status === "active"
-                                  ? "success"
-                                  : "default"
-                              }
-                            >
-                              {String(
-                                (item.data as Record<string, unknown>)
-                                  .status as string,
-                              )}
+                            <Badge variant={item.data.status === "active" ? "success" : "default"}>
+                              {String((item.data as Record<string, unknown>).status as string)}
                             </Badge>
                           )}
                         </div>
@@ -292,9 +259,7 @@ export default function SearchPage() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {Object.entries(data.facets).map(([field, values]) => (
               <div key={field}>
-                <p className="mb-1 text-xs font-medium text-[var(--text-muted)]">
-                  {field}
-                </p>
+                <p className="mb-1 text-xs font-medium text-[var(--text-muted)]">{field}</p>
                 <div className="space-y-1">
                   {Object.entries(values)
                     .slice(0, 5)
@@ -304,9 +269,7 @@ export default function SearchPage() {
                         className="flex items-center justify-between text-xs text-[var(--text-secondary)]"
                       >
                         <span>{value}</span>
-                        <span className="text-[var(--text-disabled)]">
-                          ({count})
-                        </span>
+                        <span className="text-[var(--text-disabled)]">({count})</span>
                       </div>
                     ))}
                 </div>
@@ -317,11 +280,7 @@ export default function SearchPage() {
       )}
 
       {/* Search History */}
-      <SearchHistory
-        onReRun={handleReRun}
-        currentQuery={searchQuery}
-        currentStrategy={strategy}
-      />
+      <SearchHistory onReRun={handleReRun} currentQuery={searchQuery} currentStrategy={strategy} />
     </div>
   );
 }

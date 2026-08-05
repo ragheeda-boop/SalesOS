@@ -10,7 +10,7 @@ describe("CommandBarInput", () => {
         onSearch={jest.fn()}
         onKeyDown={jest.fn()}
         inputRef={{ current: null }}
-      />,
+      />
     );
     expect(screen.getByRole("searchbox")).toBeInTheDocument();
   });
@@ -24,7 +24,7 @@ describe("CommandBarInput", () => {
         onSearch={jest.fn()}
         onKeyDown={jest.fn()}
         inputRef={{ current: null }}
-      />,
+      />
     );
     fireEvent.change(screen.getByRole("searchbox"), { target: { value: "x" } });
     expect(onChange).toHaveBeenCalledWith("x");

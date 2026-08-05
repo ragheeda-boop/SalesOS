@@ -1,8 +1,4 @@
-import {
-  REFRESH_TOKEN_KEY,
-  clearAuthTokens,
-  persistAuthTokens,
-} from "@/lib/auth/session";
+import { REFRESH_TOKEN_KEY, clearAuthTokens, persistAuthTokens } from "@/lib/auth/session";
 import api from "./client";
 import type { UserProfile } from "./types";
 
@@ -29,11 +25,7 @@ export async function login(email: string, password: string) {
   return response.data;
 }
 
-export async function register(
-  email: string,
-  password: string,
-  fullName: string,
-) {
+export async function register(email: string, password: string, fullName: string) {
   const response = await api.post("/api/v1/identity/register", {
     email,
     password,
@@ -51,7 +43,7 @@ export async function getCurrentUser(): Promise<UserProfile> {
 
 export async function changePassword(
   current_password: string,
-  new_password: string,
+  new_password: string
 ): Promise<{ message: string }> {
   const response = await api.post("/api/v1/identity/change-password", {
     current_password,
@@ -66,10 +58,7 @@ export async function changePassword(
  */
 export async function refreshSession(): Promise<TokenBundle> {
   try {
-    const cookieFirst = await api.post<TokenBundle>(
-      "/api/v1/identity/refresh",
-      {},
-    );
+    const cookieFirst = await api.post<TokenBundle>("/api/v1/identity/refresh", {});
     const data = cookieFirst.data;
     persistAuthTokens({
       access_token: data.access_token,
@@ -79,14 +68,11 @@ export async function refreshSession(): Promise<TokenBundle> {
     return data;
   } catch (err) {
     const lsRefresh =
-      typeof window !== "undefined"
-        ? localStorage.getItem(REFRESH_TOKEN_KEY)
-        : null;
+      typeof window !== "undefined" ? localStorage.getItem(REFRESH_TOKEN_KEY) : null;
     if (!lsRefresh) throw err;
-    const bodyFallback = await api.post<TokenBundle>(
-      "/api/v1/identity/refresh",
-      { refresh_token: lsRefresh },
-    );
+    const bodyFallback = await api.post<TokenBundle>("/api/v1/identity/refresh", {
+      refresh_token: lsRefresh,
+    });
     const data = bodyFallback.data;
     persistAuthTokens({
       access_token: data.access_token,
@@ -105,10 +91,7 @@ export async function logoutSession(options?: {
   all_sessions?: boolean;
   session_id?: string;
 }): Promise<LogoutResponse | null> {
-  const refresh =
-    typeof window !== "undefined"
-      ? localStorage.getItem(REFRESH_TOKEN_KEY)
-      : null;
+  const refresh = typeof window !== "undefined" ? localStorage.getItem(REFRESH_TOKEN_KEY) : null;
   try {
     const response = await api.post<LogoutResponse>("/api/v1/identity/logout", {
       refresh_token: refresh || undefined,

@@ -16,8 +16,7 @@ import {
 } from "@/features/tenant-studio/workflowStudioHonesty";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -39,7 +38,7 @@ const DEFAULT_NODES_JSON = JSON.stringify(
     },
   ],
   null,
-  2,
+  2
 );
 
 /**
@@ -81,16 +80,13 @@ export function WorkflowStudio() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="workflow-studio-honesty"
       >
-        {WORKFLOW_STUDIO_HONESTY} Non-goals:{" "}
-        {WORKFLOW_STUDIO_NON_GOALS.join("; ")}. Not Production GO / RAG GO.
+        {WORKFLOW_STUDIO_HONESTY} Non-goals: {WORKFLOW_STUDIO_NON_GOALS.join("; ")}. Not Production
+        GO / RAG GO.
       </p>
 
-      <p
-        className="text-xs text-[var(--text-muted)]"
-        data-testid="workflow-action-types"
-      >
-        Allowed action step_types: {WORKFLOW_ACTION_STEP_TYPES.join(", ")}. Use
-        kind=branch for if_else (for_each rejected on tip).
+      <p className="text-xs text-[var(--text-muted)]" data-testid="workflow-action-types">
+        Allowed action step_types: {WORKFLOW_ACTION_STEP_TYPES.join(", ")}. Use kind=branch for
+        if_else (for_each rejected on tip).
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -103,16 +99,11 @@ export function WorkflowStudio() {
         >
           {listQuery.isFetching ? "Refreshing…" : "Refresh canvases"}
         </Button>
-        <span
-          className="text-sm text-[var(--text-muted)]"
-          data-testid="workflow-count"
-        >
+        <span className="text-sm text-[var(--text-muted)]" data-testid="workflow-count">
           {listQuery.isLoading ? (
             <Spinner className="h-5 w-5" />
           ) : listQuery.isError ? (
-            <span className="text-[var(--text-danger)]">
-              {getApiError(listQuery.error)}
-            </span>
+            <span className="text-[var(--text-danger)]">{getApiError(listQuery.error)}</span>
           ) : (
             <>{listQuery.data?.length ?? 0} canvas(es)</>
           )}
@@ -135,8 +126,8 @@ export function WorkflowStudio() {
               data-testid="workflow-row"
             >
               <span>
-                <span className="font-medium">{row.name}</span> ·{" "}
-                {row.trigger_type} · {row.nodes?.length ?? 0} node(s)
+                <span className="font-medium">{row.name}</span> · {row.trigger_type} ·{" "}
+                {row.nodes?.length ?? 0} node(s)
                 <span className="mt-0.5 block font-mono text-xs text-[var(--text-muted)]">
                   {row.id}
                 </span>
@@ -201,7 +192,7 @@ export function WorkflowStudio() {
                   description: getApiError(err),
                 });
               },
-            },
+            }
           );
         }}
       >
@@ -227,9 +218,7 @@ export function WorkflowStudio() {
           onChange={(e) => setTriggerType(e.target.value)}
         />
         <div>
-          <label className="block text-xs text-[var(--text-muted)]">
-            nodes (JSON)
-          </label>
+          <label className="block text-xs text-[var(--text-muted)]">nodes (JSON)</label>
           <textarea
             data-testid="workflow-nodes-json"
             className="min-h-[160px] w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] p-2 font-mono text-xs"
@@ -273,13 +262,11 @@ export function WorkflowStudio() {
                       description: getApiError(err),
                     });
                   },
-                },
+                }
               );
             }}
           >
-            {ephemeralMutation.isPending
-              ? "Compiling…"
-              : "Compile unsaved (tip POST …/compile)"}
+            {ephemeralMutation.isPending ? "Compiling…" : "Compile unsaved (tip POST …/compile)"}
           </Button>
         </div>
       </form>
@@ -289,18 +276,11 @@ export function WorkflowStudio() {
           className="overflow-auto rounded border border-[var(--border-default)] bg-[var(--bg-primary)] p-2 font-mono text-[10px] text-[var(--text-muted)]"
           data-testid="workflow-compile-result"
         >
-          {JSON.stringify(
-            compileMutation.data || ephemeralMutation.data,
-            null,
-            2,
-          )}
+          {JSON.stringify(compileMutation.data || ephemeralMutation.data, null, 2)}
         </pre>
       )}
       {selectedId ? (
-        <p
-          className="text-xs text-[var(--text-muted)]"
-          data-testid="workflow-selected-id"
-        >
+        <p className="text-xs text-[var(--text-muted)]" data-testid="workflow-selected-id">
           Selected canvas: {selectedId}
         </p>
       ) : null}

@@ -97,7 +97,7 @@ export function AdminWorkspace() {
                   "w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-right transition min-h-[44px]",
                   active
                     ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)] dark:bg-[var(--muhide-orange)]/20 font-medium"
-                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] dark:hover:bg-[var(--bg-secondary)]",
+                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] dark:hover:bg-[var(--bg-secondary)]"
                 )}
               >
                 <Icon className="h-5 w-5 shrink-0" />
@@ -112,11 +112,7 @@ export function AdminWorkspace() {
   );
 }
 
-function AdminOverview({
-  onNavigate,
-}: {
-  onNavigate: (tab: AdminTab) => void;
-}) {
+function AdminOverview({ onNavigate }: { onNavigate: (tab: AdminTab) => void }) {
   const { t } = useTranslation();
   const { data: tenants } = useAdminTenants();
   const { data: plans } = useAdminPlans();
@@ -124,8 +120,7 @@ function AdminOverview({
   const { data: health } = useAdminDetailedHealth();
 
   const totalTenants = tenants?.length || 0;
-  const activeTenants =
-    tenants?.filter((t: { is_active: boolean }) => t.is_active).length || 0;
+  const activeTenants = tenants?.filter((t: { is_active: boolean }) => t.is_active).length || 0;
   const totalUsers = users?.length || 0;
   const totalPlans = plans?.length || 0;
   const healthStatus = health?.overall_status || "unknown";
@@ -135,10 +130,7 @@ function AdminOverview({
       <h1 className="text-2xl font-bold">{t("admin.title")}</h1>
       <p className="text-[var(--text-muted)]">{t("admin.subtitle")}</p>
 
-      <div
-        className="flex flex-wrap gap-2"
-        data-testid="owner-console-mvp-links"
-      >
+      <div className="flex flex-wrap gap-2" data-testid="owner-console-mvp-links">
         <Link
           href="/admin/tenants"
           data-testid="owner-console-overview-tenants"
@@ -219,11 +211,7 @@ function AdminOverview({
                 ? t("admin.degraded")
                 : t("admin.unknown")
           }
-          sub={
-            healthStatus === "healthy"
-              ? t("admin.all_services_ok")
-              : t("admin.issue_detected")
-          }
+          sub={healthStatus === "healthy" ? t("admin.all_services_ok") : t("admin.issue_detected")}
           icon={HeartPulse}
           status={healthStatus === "healthy" ? "ok" : "warning"}
           onClick={() => onNavigate("health")}
@@ -261,7 +249,7 @@ function OverviewCard({
             "h-5 w-5",
             status === "warning"
               ? "text-[var(--status-warning-text)]"
-              : "text-[var(--muhide-orange)]",
+              : "text-[var(--muhide-orange)]"
           )}
         />
         {status === "warning" && (
@@ -339,9 +327,7 @@ function QuickActions({ onNavigate }: { onNavigate: (tab: AdminTab) => void }) {
               </div>
               <div>
                 <p className="font-medium text-sm">{t(a.labelKey)}</p>
-                <p className="text-xs text-[var(--text-muted)]">
-                  {t(a.descKey)}
-                </p>
+                <p className="text-xs text-[var(--text-muted)]">{t(a.descKey)}</p>
               </div>
             </button>
           );

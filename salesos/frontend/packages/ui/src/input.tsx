@@ -1,23 +1,26 @@
-import { forwardRef, type ReactNode, type InputHTMLAttributes, useId } from 'react'
-import { cn } from './utils'
+import { forwardRef, type ReactNode, type InputHTMLAttributes, useId } from "react";
+import { cn } from "./utils";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string
-  error?: string
-  leftIcon?: ReactNode
-  rightIcon?: ReactNode
+  label?: string;
+  error?: string;
+  leftIcon?: ReactNode;
+  rightIcon?: ReactNode;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, leftIcon, rightIcon, id: externalId, ...props }, ref) => {
-    const generatedId = useId()
-    const id = externalId || generatedId
-    const errorId = `${id}-error`
+    const generatedId = useId();
+    const id = externalId || generatedId;
+    const errorId = `${id}-error`;
 
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={id} className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
+          <label
+            htmlFor={id}
+            className="mb-1 block text-sm font-medium text-[var(--text-secondary)]"
+          >
             {label}
           </label>
         )}
@@ -33,10 +36,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             aria-describedby={error ? errorId : undefined}
             aria-invalid={error ? true : undefined}
             className={cn(
-              'flex h-10 w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--muhide-orange)] focus:border-[var(--muhide-orange)] disabled:cursor-not-allowed disabled:opacity-50',
-              leftIcon && 'ps-10',
-              rightIcon && 'pe-10',
-              error && 'border-danger-500 focus:ring-danger-500 focus:border-danger-500',
+              "flex h-10 w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--muhide-orange)] focus:border-[var(--muhide-orange)] disabled:cursor-not-allowed disabled:opacity-50",
+              leftIcon && "ps-10",
+              rightIcon && "pe-10",
+              error && "border-danger-500 focus:ring-danger-500 focus:border-danger-500",
               className
             )}
             {...props}
@@ -47,9 +50,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
         </div>
-        {error && <p id={errorId} role="alert" className="mt-1 text-sm text-danger-600">{error}</p>}
+        {error && (
+          <p id={errorId} role="alert" className="mt-1 text-sm text-danger-600">
+            {error}
+          </p>
+        )}
       </div>
-    )
+    );
   }
-)
-Input.displayName = 'Input'
+);
+Input.displayName = "Input";

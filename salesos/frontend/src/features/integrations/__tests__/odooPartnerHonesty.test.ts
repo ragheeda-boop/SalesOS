@@ -11,17 +11,12 @@ describe("odooPartnerHonesty — FE-S09-01", () => {
     expect(isPartnerModel("crm.lead")).toBe(false);
     expect(
       DEFAULT_PARTNER_MAPPINGS.some(
-        (m) =>
-          m.external === "x_studio_cr_number" && m.internal === "cr_number",
-      ),
+        (m) => m.external === "x_studio_cr_number" && m.internal === "cr_number"
+      )
     ).toBe(true);
   });
 
   it("lists tip join outcomes without inventing a badge list API", () => {
-    expect(PARTNER_JOIN_OUTCOMES).toEqual([
-      "matched",
-      "unlinked",
-      "invalid_cr",
-    ]);
+    expect(PARTNER_JOIN_OUTCOMES).toEqual(["matched", "unlinked", "invalid_cr"]);
   });
 });

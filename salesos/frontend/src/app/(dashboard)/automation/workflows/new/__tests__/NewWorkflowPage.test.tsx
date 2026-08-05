@@ -20,11 +20,8 @@ jest.mock("@/lib/i18n", () => ({
 }));
 
 jest.mock("@salesos/ui", () => ({
-  cn: (...args: (string | undefined | false)[]) =>
-    args.filter(Boolean).join(" "),
-  Badge: ({ children, variant }: any) => (
-    <span data-variant={variant}>{children}</span>
-  ),
+  cn: (...args: (string | undefined | false)[]) => args.filter(Boolean).join(" "),
+  Badge: ({ children, variant }: any) => <span data-variant={variant}>{children}</span>,
   Button: ({ children, onClick, disabled, leftIcon, ...props }: any) => (
     <button onClick={onClick} disabled={disabled} {...props}>
       {leftIcon}
@@ -50,13 +47,7 @@ jest.mock("next/navigation", () => ({
 }));
 
 jest.mock("next/link", () => {
-  function MockLink({
-    children,
-    href,
-  }: {
-    children: React.ReactNode;
-    href: string;
-  }) {
+  function MockLink({ children, href }: { children: React.ReactNode; href: string }) {
     return <a href={href}>{children}</a>;
   }
   MockLink.displayName = "MockLink";
@@ -77,9 +68,7 @@ describe("NewWorkflowPage", () => {
     it("renders the back link to automation", () => {
       render(<NewWorkflowPage />);
       const links = screen.getAllByRole("link");
-      const backLink = links.find(
-        (l) => l.getAttribute("href") === "/automation",
-      );
+      const backLink = links.find((l) => l.getAttribute("href") === "/automation");
       expect(backLink).toBeTruthy();
     });
 
@@ -137,9 +126,7 @@ describe("NewWorkflowPage", () => {
     it("shows error toast when saving without name", () => {
       render(<NewWorkflowPage />);
       fireEvent.click(screen.getByText("حفظ"));
-      expect(mockToast).toHaveBeenCalledWith(
-        expect.objectContaining({ variant: "error" }),
-      );
+      expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({ variant: "error" }));
     });
   });
 
@@ -147,9 +134,7 @@ describe("NewWorkflowPage", () => {
     it("shows error when testing empty workflow", () => {
       render(<NewWorkflowPage />);
       fireEvent.click(screen.getByText("اختبار"));
-      expect(mockToast).toHaveBeenCalledWith(
-        expect.objectContaining({ variant: "error" }),
-      );
+      expect(mockToast).toHaveBeenCalledWith(expect.objectContaining({ variant: "error" }));
     });
   });
 });

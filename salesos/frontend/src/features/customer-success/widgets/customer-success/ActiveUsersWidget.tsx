@@ -15,9 +15,7 @@ export function ActiveUsersWidget({ dau, wau, mau }: ActiveUsersWidgetProps) {
     <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
       <div className="flex items-center gap-2 mb-3">
         <Users className="h-4 w-4 text-[var(--text-muted)]" />
-        <p className="text-xs text-[var(--text-muted)]">
-          {t("cs.active_users")}
-        </p>
+        <p className="text-xs text-[var(--text-muted)]">{t("cs.active_users")}</p>
       </div>
       <div className="grid grid-cols-3 gap-2">
         <div className="text-center">

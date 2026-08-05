@@ -3,18 +3,11 @@
 import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  getExecutiveDashboard,
-  searchCompanies,
-  type Company,
-} from "@/lib/api";
+import { getExecutiveDashboard, searchCompanies, type Company } from "@/lib/api";
 import { companyKeys, dashboardKeys } from "@/lib/queryKeys";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { PageHeader } from "../_components/page-header";
-import {
-  DomainWorkbench,
-  type DomainSection,
-} from "../_components/domain-workbench";
+import { DomainWorkbench, type DomainSection } from "../_components/domain-workbench";
 import { MetricCards } from "../_components/metric-cards";
 import {
   EmptyState,
@@ -44,9 +37,7 @@ function PreviewPanel({
     <div className="space-y-3 text-sm text-[var(--text-secondary)]">
       <div className="flex items-center gap-2">
         <PreviewBadge />
-        <span className="text-[12px] text-[var(--text-muted)]">
-          Not wired — no fake health AI
-        </span>
+        <span className="text-[12px] text-[var(--text-muted)]">Not wired — no fake health AI</span>
       </div>
       <p>{children}</p>
       {href ? <GhostButtonLink href={href}>{hrefLabel}</GhostButtonLink> : null}
@@ -75,7 +66,7 @@ export default function V3CsPage() {
     queryFn: () =>
       searchCompanies(
         { page: 1, page_size: 8, sort_by: "name_ar", sort_order: "asc" },
-        getTenantId(),
+        getTenantId()
       ),
     enabled,
     staleTime: 15_000,
@@ -92,9 +83,7 @@ export default function V3CsPage() {
         <ErrorState
           title="Could not load CS metrics"
           description={
-            execQuery.error instanceof Error
-              ? execQuery.error.message
-              : "Request failed"
+            execQuery.error instanceof Error ? execQuery.error.message : "Request failed"
           }
           onRetry={() => void execQuery.refetch()}
         />
@@ -102,11 +91,7 @@ export default function V3CsPage() {
         <EmptyState
           title="No CS metrics"
           description="Executive renewals/risk payload was empty."
-          action={
-            <GhostButtonLink href="/v3/companies">
-              Browse companies
-            </GhostButtonLink>
-          }
+          action={<GhostButtonLink href="/v3/companies">Browse companies</GhostButtonLink>}
         />
       ) : null;
 
@@ -140,34 +125,24 @@ export default function V3CsPage() {
           />
           <p className="text-[12px] text-[var(--text-muted)]">
             Portfolio snapshot from{" "}
-            <code className="font-mono">GET /api/v1/executive/dashboard</code> —
-            not a synthetic health score.
+            <code className="font-mono">GET /api/v1/executive/dashboard</code> — not a synthetic
+            health score.
           </p>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-medium text-[var(--text-primary)]">
-                Account sample
-              </h3>
-              <GhostButtonLink href="/v3/companies">
-                All companies
-              </GhostButtonLink>
+              <h3 className="text-sm font-medium text-[var(--text-primary)]">Account sample</h3>
+              <GhostButtonLink href="/v3/companies">All companies</GhostButtonLink>
             </div>
             {companiesQuery.isLoading ? (
               <LoadingState label="Loading companies…" />
             ) : companiesQuery.isError ? (
-              <p className="text-sm text-[var(--text-muted)]">
-                Could not load company sample.
-              </p>
+              <p className="text-sm text-[var(--text-muted)]">Could not load company sample.</p>
             ) : companies.length === 0 ? (
               <EmptyState
                 title="No companies"
                 description="CS objects attach to company 360 when present."
-                action={
-                  <GhostButtonLink href="/v3/companies">
-                    Open companies
-                  </GhostButtonLink>
-                }
+                action={<GhostButtonLink href="/v3/companies">Open companies</GhostButtonLink>}
               />
             ) : (
               <ul className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-default)]">
@@ -213,9 +188,7 @@ export default function V3CsPage() {
                   },
                   {
                     label: "Renewal value",
-                    value: formatCurrencySAR(
-                      data!.renewals.total_renewal_value,
-                    ),
+                    value: formatCurrencySAR(data!.renewals.total_renewal_value),
                   },
                   {
                     label: "At-risk listed",
@@ -229,16 +202,11 @@ export default function V3CsPage() {
                   {data!.renewals.at_risk.slice(0, 10).map((row, idx) => {
                     const label =
                       typeof row === "object" && row && "name" in row
-                        ? String(
-                            (row as { name?: unknown }).name ??
-                              `Risk ${idx + 1}`,
-                          )
+                        ? String((row as { name?: unknown }).name ?? `Risk ${idx + 1}`)
                         : `Risk ${idx + 1}`;
                     const companyId =
                       typeof row === "object" && row && "company_id" in row
-                        ? String(
-                            (row as { company_id?: unknown }).company_id ?? "",
-                          )
+                        ? String((row as { company_id?: unknown }).company_id ?? "")
                         : "";
                     return (
                       <li
@@ -253,9 +221,7 @@ export default function V3CsPage() {
                             {label}
                           </Link>
                         ) : (
-                          <span className="font-medium text-[var(--text-primary)]">
-                            {label}
-                          </span>
+                          <span className="font-medium text-[var(--text-primary)]">{label}</span>
                         )}
                       </li>
                     );
@@ -263,13 +229,10 @@ export default function V3CsPage() {
                 </ul>
               ) : (
                 <p className="text-sm text-[var(--text-muted)]">
-                  No at-risk renewal rows in this response. Counts above still
-                  reflect due windows.
+                  No at-risk renewal rows in this response. Counts above still reflect due windows.
                 </p>
               )}
-              <GhostButtonLink href="/v3/companies">
-                Review accounts
-              </GhostButtonLink>
+              <GhostButtonLink href="/v3/companies">Review accounts</GhostButtonLink>
             </div>
           ));
 
@@ -278,8 +241,7 @@ export default function V3CsPage() {
         id: "dashboard",
         label: "CS home",
         audience: "CSMs",
-        description:
-          "Portfolio renewal/risk snapshot plus a company sample linked to 360.",
+        description: "Portfolio renewal/risk snapshot plus a company sample linked to 360.",
         body: dashboardBody,
       },
       {
@@ -289,8 +251,8 @@ export default function V3CsPage() {
         description: "Implementation milestones and time-to-value trackers.",
         body: (
           <PreviewPanel href="/v3/companies">
-            Onboarding milestones are not dual-run yet. Track implementation
-            from company 360 when those objects ship.
+            Onboarding milestones are not dual-run yet. Track implementation from company 360 when
+            those objects ship.
           </PreviewPanel>
         ),
       },
@@ -298,13 +260,11 @@ export default function V3CsPage() {
         id: "health",
         label: "Health score",
         audience: "CS + Leaders",
-        description:
-          "Account health composition. Scores must cite evidence — never fake AI.",
+        description: "Account health composition. Scores must cite evidence — never fake AI.",
         body: (
           <PreviewPanel href="/v3/companies">
-            No fabricated health scores on this surface. Company 360 may show
-            confidence/health when the company API provides it — open an account
-            rather than inventing a CS score here.
+            No fabricated health scores on this surface. Company 360 may show confidence/health when
+            the company API provides it — open an account rather than inventing a CS score here.
           </PreviewPanel>
         ),
       },
@@ -312,20 +272,18 @@ export default function V3CsPage() {
         id: "renewals",
         label: "Renewals",
         audience: "CSMs",
-        description:
-          "Upcoming renewals and at-risk list from the executive API.",
+        description: "Upcoming renewals and at-risk list from the executive API.",
         body: renewalsBody,
       },
       {
         id: "expansion",
         label: "Expansion",
         audience: "CS + Sales",
-        description:
-          "Upsell / cross-sell opportunities linked to company records.",
+        description: "Upsell / cross-sell opportunities linked to company records.",
         body: (
           <PreviewPanel href="/v3/crm" hrefLabel="Open CRM pipeline">
-            Expansion opportunities are not a separate CS object yet. Use CRM
-            deals linked to companies for upsell coverage.
+            Expansion opportunities are not a separate CS object yet. Use CRM deals linked to
+            companies for upsell coverage.
           </PreviewPanel>
         ),
       },
@@ -336,8 +294,7 @@ export default function V3CsPage() {
         description: "Quarterly business review prep and follow-ups.",
         body: (
           <PreviewPanel href="/v3/companies">
-            QBR prep objects are Preview-only in Design Program IA — no
-            fabricated agenda content.
+            QBR prep objects are Preview-only in Design Program IA — no fabricated agenda content.
           </PreviewPanel>
         ),
       },
@@ -348,8 +305,7 @@ export default function V3CsPage() {
         description: "Survey responses and trend slices.",
         body: (
           <PreviewPanel>
-            Survey APIs are not wired on dual-run CS. Do not invent NPS/CSAT
-            numbers for demos.
+            Survey APIs are not wired on dual-run CS. Do not invent NPS/CSAT numbers for demos.
           </PreviewPanel>
         ),
       },
@@ -367,12 +323,10 @@ export default function V3CsPage() {
               </span>
             </div>
             <p>
-              Success plans attach to Companies. Start from a company record
-              when CS objects ship; this panel documents IA only.
+              Success plans attach to Companies. Start from a company record when CS objects ship;
+              this panel documents IA only.
             </p>
-            <GhostButtonLink href="/v3/companies">
-              Browse companies
-            </GhostButtonLink>
+            <GhostButtonLink href="/v3/companies">Browse companies</GhostButtonLink>
           </div>
         ),
       },
@@ -392,9 +346,7 @@ export default function V3CsPage() {
       <PageHeader
         title="Customer Success"
         description="CS domain — live renewals/risk from executive API; health/NPS stay Preview. No embedded AI insight rail."
-        actions={
-          <GhostButtonLink href="/v3/companies">Companies</GhostButtonLink>
-        }
+        actions={<GhostButtonLink href="/v3/companies">Companies</GhostButtonLink>}
       />
       {!ready ? (
         <LoadingState label="Checking session…" />

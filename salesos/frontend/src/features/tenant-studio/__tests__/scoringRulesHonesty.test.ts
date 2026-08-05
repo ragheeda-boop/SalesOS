@@ -1,7 +1,4 @@
-import {
-  SCORING_RULES_HONESTY,
-  SCORING_RULES_NON_GOALS,
-} from "../scoringRulesHonesty";
+import { SCORING_RULES_HONESTY, SCORING_RULES_NON_GOALS } from "../scoringRulesHonesty";
 
 describe("scoringRulesHonesty — FE-S10-04", () => {
   it("states tip HTTP + in-memory + fail-safe + not LLM", () => {

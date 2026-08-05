@@ -58,8 +58,7 @@ export function useCustomRoles() {
 export function useSetPermissionsCeiling() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: SetPermissionsCeilingBody) =>
-      setPermissionsCeiling(getTenantId(), body),
+    mutationFn: (body: SetPermissionsCeilingBody) => setPermissionsCeiling(getTenantId(), body),
     onSuccess: () => invalidatePermissions(qc),
   });
 }
@@ -67,15 +66,13 @@ export function useSetPermissionsCeiling() {
 export function useUpsertCustomRole() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: CustomRoleUpsert) =>
-      upsertCustomRole(getTenantId(), body),
+    mutationFn: (body: CustomRoleUpsert) => upsertCustomRole(getTenantId(), body),
     onSuccess: () => invalidatePermissions(qc),
   });
 }
 
 export function useCheckPermissionsCeiling() {
   return useMutation({
-    mutationFn: (body: CeilingCheckRequest) =>
-      checkPermissionsCeiling(getTenantId(), body),
+    mutationFn: (body: CeilingCheckRequest) => checkPermissionsCeiling(getTenantId(), body),
   });
 }

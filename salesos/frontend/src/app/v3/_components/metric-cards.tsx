@@ -21,9 +21,7 @@ export function MetricCards({ items }: { items: MetricCardItem[] }) {
             {item.value}
           </p>
           {item.hint ? (
-            <p className="mt-1 text-[12px] text-[var(--text-muted)]">
-              {item.hint}
-            </p>
+            <p className="mt-1 text-[12px] text-[var(--text-muted)]">{item.hint}</p>
           ) : null}
         </div>
       ))}

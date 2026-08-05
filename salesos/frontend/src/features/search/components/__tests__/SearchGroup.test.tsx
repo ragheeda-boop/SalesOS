@@ -6,7 +6,7 @@ describe("SearchGroup", () => {
     render(
       <SearchGroup label="Companies">
         <div>Child</div>
-      </SearchGroup>,
+      </SearchGroup>
     );
     expect(screen.getByText("Companies")).toBeInTheDocument();
     expect(screen.getByText("Child")).toBeInTheDocument();

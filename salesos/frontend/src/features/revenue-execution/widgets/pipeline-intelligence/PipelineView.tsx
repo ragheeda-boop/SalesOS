@@ -6,18 +6,12 @@ import type { PipelineViewProps } from "./types";
 
 export function PipelineView({ pipeline }: PipelineViewProps) {
   return (
-    <div
-      role="region"
-      aria-label="ذكاء الأنابيب"
-      className="space-y-3/20 dark:rounded-lg dark:p-1"
-    >
+    <div role="region" aria-label="ذكاء الأنابيب" className="space-y-3/20 dark:rounded-lg dark:p-1">
       {/* Metrics */}
       <div className="grid grid-cols-4 gap-2">
         <div className="rounded-lg bg-[var(--bg-tertiary)] p-2">
           <p className="text-[9px] text-[var(--text-muted)]">الصفقات</p>
-          <p className="text-sm font-bold text-[var(--text-primary)]">
-            {pipeline.totalDeals}
-          </p>
+          <p className="text-sm font-bold text-[var(--text-primary)]">{pipeline.totalDeals}</p>
         </div>
         <div className="rounded-lg bg-[var(--bg-tertiary)] p-2">
           <p className="text-[9px] text-[var(--text-muted)]">القيمة</p>
@@ -47,14 +41,9 @@ export function PipelineView({ pipeline }: PipelineViewProps) {
 
       {/* Stage bars */}
       <div className="space-y-1.5">
-        <p className="text-[10px] font-medium text-[var(--text-muted)]">
-          المراحل
-        </p>
+        <p className="text-[10px] font-medium text-[var(--text-muted)]">المراحل</p>
         {pipeline.stages.map((stage) => {
-          const pct =
-            pipeline.totalValue > 0
-              ? (stage.value / pipeline.totalValue) * 100
-              : 0;
+          const pct = pipeline.totalValue > 0 ? (stage.value / pipeline.totalValue) * 100 : 0;
           return (
             <div key={stage.id} className="flex items-center gap-2">
               <span className="w-20 text-[10px] text-[var(--text-muted)] truncate">
@@ -62,10 +51,7 @@ export function PipelineView({ pipeline }: PipelineViewProps) {
               </span>
               <div className="flex-1 h-5 rounded-lg bg-[var(--bg-tertiary)] overflow-hidden relative">
                 <div
-                  className={cn(
-                    "h-full rounded-lg transition-all",
-                    stage.color,
-                  )}
+                  className={cn("h-full rounded-lg transition-all", stage.color)}
                   style={{ width: `${pct}%` }}
                 />
               </div>

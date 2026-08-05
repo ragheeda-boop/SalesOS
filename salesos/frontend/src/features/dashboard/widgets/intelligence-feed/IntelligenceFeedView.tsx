@@ -29,10 +29,7 @@ function SignalRow({
   onItemClick?: (id: string) => void;
 }) {
   const cat = CATEGORY_CONFIG[signal.category];
-  const handleClick = useCallback(
-    () => onItemClick?.(signal.id),
-    [signal.id, onItemClick],
-  );
+  const handleClick = useCallback(() => onItemClick?.(signal.id), [signal.id, onItemClick]);
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (onItemClick && (e.key === "Enter" || e.key === " ")) {
@@ -40,7 +37,7 @@ function SignalRow({
         onItemClick(signal.id);
       }
     },
-    [signal.id, onItemClick],
+    [signal.id, onItemClick]
   );
 
   return (
@@ -49,27 +46,18 @@ function SignalRow({
       tabIndex={onItemClick ? 0 : undefined}
       className={cn(
         "flex items-start gap-2 rounded-lg px-3 py-2 text-sm transition-colors motion-reduce:transition-none",
-        signal.isUnseen
-          ? "bg-warning-50 dark:bg-warning-900/10"
-          : "bg-[var(--bg-secondary)]",
+        signal.isUnseen ? "bg-warning-50 dark:bg-warning-900/10" : "bg-[var(--bg-secondary)]",
         onItemClick &&
-          "cursor-pointer hover:bg-[var(--bg-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--muhide-orange)] focus-visible:ring-offset-1",
+          "cursor-pointer hover:bg-[var(--bg-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--muhide-orange)] focus-visible:ring-offset-1"
       )}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       aria-label={`${signal.title} - ${signal.companyName} - ${cat.label} - ${SEVERITY_LABEL[signal.severity]}`}
     >
-      <span
-        className={cn("mt-1 h-2 w-2 shrink-0 rounded-full", cat.dot)}
-        aria-hidden="true"
-      />
+      <span className={cn("mt-1 h-2 w-2 shrink-0 rounded-full", cat.dot)} aria-hidden="true" />
       <div className="min-w-0 flex-1">
-        <div className="truncate font-medium text-[var(--text-primary)]">
-          {signal.title}
-        </div>
-        <div className="mt-0.5 truncate text-xs text-[var(--text-muted)]">
-          {signal.companyName}
-        </div>
+        <div className="truncate font-medium text-[var(--text-primary)]">{signal.title}</div>
+        <div className="mt-0.5 truncate text-xs text-[var(--text-muted)]">{signal.companyName}</div>
       </div>
       <span className="shrink-0 text-[10px] text-[var(--text-muted)]">
         {SEVERITY_LABEL[signal.severity]}
@@ -104,11 +92,7 @@ export function IntelligenceFeedView({
       )}
 
       {items.length > 0 && (
-        <div
-          role="list"
-          aria-label="Intelligence signals"
-          className="space-y-1"
-        >
+        <div role="list" aria-label="Intelligence signals" className="space-y-1">
           {visible.map((signal) => (
             <div key={signal.id} role="listitem">
               <SignalRow signal={signal} onItemClick={onItemClick} />

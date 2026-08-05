@@ -40,10 +40,7 @@ function TestHarness() {
     <div>
       <div data-testid="is-active">{String(isActive)}</div>
       <div data-testid="current-step">{currentStep}</div>
-      <button
-        data-testid="start-tour"
-        onClick={() => startTour("test", MOCK_STEPS)}
-      >
+      <button data-testid="start-tour" onClick={() => startTour("test", MOCK_STEPS)}>
         Start
       </button>
       <button data-testid="next" onClick={nextStep}>
@@ -55,10 +52,7 @@ function TestHarness() {
       <button data-testid="end" onClick={endTour}>
         End
       </button>
-      <button
-        data-testid="mark-completed"
-        onClick={() => markTourCompleted("test")}
-      >
+      <button data-testid="mark-completed" onClick={() => markTourCompleted("test")}>
         Mark Complete
       </button>
       <div data-testid="should-show">{String(shouldShowTour("test"))}</div>
@@ -71,7 +65,7 @@ function renderHarness() {
   return render(
     <TourProvider>
       <TestHarness />
-    </TourProvider>,
+    </TourProvider>
   );
 }
 
@@ -119,9 +113,7 @@ describe("Tour", () => {
     renderHarness();
     expect(screen.getByTestId("should-show").textContent).toBe("true");
     fireEvent.click(screen.getByTestId("mark-completed"));
-    const stored = JSON.parse(
-      localStorage.getItem("salesos:completed-tours") || "[]",
-    );
+    const stored = JSON.parse(localStorage.getItem("salesos:completed-tours") || "[]");
     expect(stored).toContain("test");
   });
 

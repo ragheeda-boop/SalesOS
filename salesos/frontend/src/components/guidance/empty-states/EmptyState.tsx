@@ -39,16 +39,11 @@ export function EmptyState({
 
   return (
     <div
-      className={cn(
-        "flex flex-col items-center justify-center py-16 px-4 text-center",
-        className,
-      )}
+      className={cn("flex flex-col items-center justify-center py-16 px-4 text-center", className)}
       role="status"
     >
       <div className="mb-4 text-[var(--text-muted)]">{icon}</div>
-      <h3 className="text-lg font-semibold text-[var(--text-primary)]">
-        {title}
-      </h3>
+      <h3 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h3>
       <p className="mt-1.5 text-sm text-[var(--text-muted)] max-w-sm leading-relaxed">
         {description}
       </p>

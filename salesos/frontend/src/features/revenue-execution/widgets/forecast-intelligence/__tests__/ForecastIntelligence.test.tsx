@@ -64,9 +64,7 @@ describe("ForecastView", () => {
   });
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "التوقعات" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "التوقعات" })).toBeInTheDocument();
   });
 });
 

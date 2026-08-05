@@ -28,10 +28,7 @@ export function CompanyEngagementView({
 
   if (error) {
     return (
-      <div
-        className="flex items-center justify-center h-full text-destructive"
-        role="alert"
-      >
+      <div className="flex items-center justify-center h-full text-destructive" role="alert">
         <div className="flex flex-col items-center gap-3">
           <span>تعذر تحميل بيانات التفاعل</span>
           <button onClick={onRefresh} className="text-sm underline">
@@ -44,9 +41,7 @@ export function CompanyEngagementView({
 
   if (!engagement) {
     return (
-      <div className="flex items-center justify-center h-full text-muted">
-        لا توجد بيانات تفاعل
-      </div>
+      <div className="flex items-center justify-center h-full text-muted">لا توجد بيانات تفاعل</div>
     );
   }
 
@@ -64,9 +59,7 @@ export function CompanyEngagementView({
       <div className="flex items-center justify-between">
         <div>
           <div className="text-sm text-muted">صحة العلاقة</div>
-          <div className={`text-3xl font-bold ${healthColor} tabular-nums`}>
-            {healthPct}%
-          </div>
+          <div className={`text-3xl font-bold ${healthColor} tabular-nums`}>{healthPct}%</div>
         </div>
         <div className="text-right">
           <div className="text-xs text-muted">آخر تواصل</div>

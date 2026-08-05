@@ -2,15 +2,11 @@
 
 import { useState } from "react";
 import { Button, Spinner, useToast } from "@salesos/ui";
-import {
-  useCertifyConnector,
-  useCertifyMeta,
-} from "@/lib/hooks/integrationHubQueries";
+import { useCertifyConnector, useCertifyMeta } from "@/lib/hooks/integrationHubQueries";
 import type { CertifyResult } from "@/lib/api";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -24,11 +20,7 @@ export function SecondConnectorCertPanel() {
   const [lastResult, setLastResult] = useState<CertifyResult | null>(null);
   const [key, setKey] = useState("hubspot");
 
-  const certifiable = metaQuery.data?.certifiable ?? [
-    "fake",
-    "odoo",
-    "hubspot",
-  ];
+  const certifiable = metaQuery.data?.certifiable ?? ["fake", "odoo", "hubspot"];
 
   function runCert(connectorKey: string) {
     certifyMutation.mutate(connectorKey, {
@@ -55,9 +47,7 @@ export function SecondConnectorCertPanel() {
       className="space-y-3 rounded border border-[var(--border-default)] p-4"
       data-testid="second-connector-cert"
     >
-      <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-        Connector certification
-      </h2>
+      <h2 className="text-sm font-semibold text-[var(--text-primary)]">Connector certification</h2>
       <p
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="second-connector-honesty"
@@ -68,18 +58,15 @@ export function SecondConnectorCertPanel() {
       {metaQuery.isLoading ? (
         <Spinner />
       ) : metaQuery.isError ? (
-        <p className="text-sm text-[var(--text-danger)]">
-          {getApiError(metaQuery.error)}
-        </p>
+        <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
       ) : metaQuery.data ? (
         <div
           className="space-y-1 text-xs text-[var(--text-muted)]"
           data-testid="second-connector-meta"
         >
           <p>
-            Suite: {metaQuery.data.suite} · second connector:{" "}
-            {metaQuery.data.second_connector_key} (
-            {metaQuery.data.second_connector_target})
+            Suite: {metaQuery.data.suite} · second connector: {metaQuery.data.second_connector_key}{" "}
+            ({metaQuery.data.second_connector_target})
           </p>
           <p>Certifiable: {metaQuery.data.certifiable.join(", ")}</p>
         </div>

@@ -45,16 +45,13 @@ export function useMarketplaceCatalogInstalls() {
   });
 }
 
-export function useMarketplaceListings(filters: {
-  listing_type?: string;
-  status?: string;
-}) {
+export function useMarketplaceListings(filters: { listing_type?: string; status?: string }) {
   const tenantId = getTenantId();
   return useQuery({
     queryKey: marketplaceListingsKeys.list(
       tenantId,
       filters.listing_type || "",
-      filters.status || "",
+      filters.status || ""
     ),
     queryFn: () => listMarketplaceListings(tenantId, filters),
     staleTime: 10_000,

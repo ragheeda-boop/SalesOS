@@ -5,11 +5,7 @@ import type { ExpansionData } from "./types";
 
 export function ExpansionView({ data }: { data: ExpansionData }) {
   return (
-    <div
-      role="region"
-      aria-label="فرص التوسع"
-      className="space-y-2/20 dark:rounded-lg dark:p-1"
-    >
+    <div role="region" aria-label="فرص التوسع" className="space-y-2/20 dark:rounded-lg dark:p-1">
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded-lg bg-[var(--bg-tertiary)] p-2">
           <p className="text-[9px] text-[var(--text-muted)]">قيمة الفرص</p>
@@ -38,22 +34,16 @@ export function ExpansionView({ data }: { data: ExpansionData }) {
               <span className="text-[10px] font-medium text-[var(--text-primary)]">
                 {o.companyName}
               </span>
-              <span className="text-[9px] text-[var(--text-muted)]">
-                {o.product}
-              </span>
+              <span className="text-[9px] text-[var(--text-muted)]">{o.product}</span>
             </div>
             <p className="text-[9px] text-[var(--text-muted)]">{o.reason}</p>
           </div>
           <div className="text-right">
             <p className="text-[10px] font-medium text-[var(--text-primary)]">
               $
-              {o.value >= 1e6
-                ? (o.value / 1e6).toFixed(1) + "M"
-                : (o.value / 1e3).toFixed(0) + "K"}
+              {o.value >= 1e6 ? (o.value / 1e6).toFixed(1) + "M" : (o.value / 1e3).toFixed(0) + "K"}
             </p>
-            <p className="text-[8px] text-[var(--text-muted)]">
-              %{Math.round(o.confidence * 100)}
-            </p>
+            <p className="text-[8px] text-[var(--text-muted)]">%{Math.round(o.confidence * 100)}</p>
           </div>
         </div>
       ))}

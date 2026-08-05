@@ -52,9 +52,7 @@ describe("TerritoryView", () => {
   });
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "ذكاء المناطق" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "ذكاء المناطق" })).toBeInTheDocument();
   });
 });
 describe("TerritoryIntelligenceWidget", () => {

@@ -164,8 +164,7 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   registerCommand({
     id: "go.studio.prompt-library",
     label: "Studio · Prompt Library",
-    description:
-      "Tenant prompt library CRUD/version/rollback (tip STORY-12-01)",
+    description: "Tenant prompt library CRUD/version/rollback (tip STORY-12-01)",
     category: "تنقل",
     handler: () => router.push("/studio/prompt-library"),
   });
@@ -173,8 +172,7 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   registerCommand({
     id: "go.studio.ai-policies",
     label: "Studio · AI Policies",
-    description:
-      "Tenant AI Policies + evaluate (tip STORY-12-02; feature_ai_copilot False)",
+    description: "Tenant AI Policies + evaluate (tip STORY-12-02; feature_ai_copilot False)",
     category: "تنقل",
     handler: () => router.push("/studio/ai-policies"),
   });
@@ -182,8 +180,7 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   registerCommand({
     id: "go.studio.ai-memory",
     label: "Studio · AI Memory",
-    description:
-      "Conversation-level AI Memory opt-in (tip STORY-12-03; feature_ai_copilot False)",
+    description: "Conversation-level AI Memory opt-in (tip STORY-12-03; feature_ai_copilot False)",
     category: "تنقل",
     handler: () => router.push("/studio/ai-memory"),
   });
@@ -191,8 +188,7 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   registerCommand({
     id: "go.marketplace.listings",
     label: "Marketplace · Listings",
-    description:
-      "Tip MarketplaceListing catalog (STORY-13-01, memory; not CAP-036 stub)",
+    description: "Tip MarketplaceListing catalog (STORY-13-01, memory; not CAP-036 stub)",
     category: "تنقل",
     handler: () => router.push("/marketplace/listings"),
   });
@@ -241,8 +237,7 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   registerCommand({
     id: "go.gtm.website-intelligence",
     label: "GTM · Website Intelligence",
-    description:
-      "Website intelligence fixture analyze (tip STORY-11-07; no live ML)",
+    description: "Website intelligence fixture analyze (tip STORY-11-07; no live ML)",
     category: "تنقل",
     handler: () => router.push("/gtm/website-intelligence"),
   });
@@ -250,8 +245,7 @@ export function registerBuiltinCommands(router: ReturnType<typeof useRouter>) {
   registerCommand({
     id: "go.gtm.outreach",
     label: "GTM · AI Outreach",
-    description:
-      "AI outreach drafts (tip STORY-11-08; draft_only; no live send)",
+    description: "AI outreach drafts (tip STORY-11-08; draft_only; no live send)",
     category: "تنقل",
     handler: () => router.push("/gtm/outreach"),
   });

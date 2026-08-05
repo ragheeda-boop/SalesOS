@@ -4,11 +4,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { V3Shell } from "@/components/v3/V3Shell";
 import { V3Topbar } from "@/components/v3/V3Topbar";
 import { V3CommandPalette } from "@/components/v3/V3CommandPalette";
-import {
-  V3AiPopup,
-  V3_AI_OPEN_EVENT,
-  type V3AiOpenDetail,
-} from "@/components/v3/V3AiPopup";
+import { V3AiPopup, V3_AI_OPEN_EVENT, type V3AiOpenDetail } from "@/components/v3/V3AiPopup";
 import { ErrorBoundary } from "@/components/error-boundary";
 
 const SIDEBAR_KEY = "salesos_v3_sidebar_collapsed";
@@ -56,11 +52,7 @@ export default function V3Layout({ children }: { children: ReactNode }) {
         e.preventDefault();
         setCommandOpen((open) => !open);
       }
-      if (
-        (e.metaKey || e.ctrlKey) &&
-        e.shiftKey &&
-        e.key.toLowerCase() === "a"
-      ) {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "a") {
         e.preventDefault();
         openAi();
       }
@@ -91,29 +83,15 @@ export default function V3Layout({ children }: { children: ReactNode }) {
         <V3Shell collapsed={collapsed} onToggleCollapsed={toggleCollapsed} />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <V3Topbar
-            onOpenCommand={() => setCommandOpen(true)}
-            onOpenAi={() => openAi()}
-          />
-          <main
-            id="v3-main"
-            className="flex-1 overflow-auto p-5 md:p-6"
-            tabIndex={-1}
-          >
+          <V3Topbar onOpenCommand={() => setCommandOpen(true)} onOpenAi={() => openAi()} />
+          <main id="v3-main" className="flex-1 overflow-auto p-5 md:p-6" tabIndex={-1}>
             <ErrorBoundary>{children}</ErrorBoundary>
           </main>
         </div>
       </div>
 
-      <V3CommandPalette
-        open={commandOpen}
-        onClose={() => setCommandOpen(false)}
-      />
-      <V3AiPopup
-        open={aiOpen}
-        onClose={() => setAiOpen(false)}
-        contextLabel={aiContext}
-      />
+      <V3CommandPalette open={commandOpen} onClose={() => setCommandOpen(false)} />
+      <V3AiPopup open={aiOpen} onClose={() => setAiOpen(false)} contextLabel={aiContext} />
     </div>
   );
 }

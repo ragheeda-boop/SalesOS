@@ -1,12 +1,7 @@
 "use client";
 
 import { cn } from "@salesos/ui";
-import {
-  Sparkles,
-  Lightbulb,
-  ExternalLink,
-  X,
-} from "lucide-react";
+import { Sparkles, Lightbulb, ExternalLink, X } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { ConfidenceBadge, getConfidenceLevel } from "./ConfidenceBadge";
 import type { ContextualInsightData } from "./types";
@@ -24,7 +19,7 @@ export function ContextualInsight({ insight, onDismiss }: ContextualInsightProps
       className={cn(
         "group relative rounded-xl border p-4",
         "border-[var(--border-default)] bg-[var(--bg-primary)]",
-        "shadow-muhide-1 hover:shadow-muhide-2 transition-shadow",
+        "shadow-muhide-1 hover:shadow-muhide-2 transition-shadow"
       )}
     >
       <button
@@ -44,14 +39,9 @@ export function ContextualInsight({ insight, onDismiss }: ContextualInsightProps
             <h4 className="text-sm font-semibold text-[var(--text-primary)] truncate">
               {insight.title}
             </h4>
-            <ConfidenceBadge
-              level={insight.confidenceLevel}
-              score={insight.confidence}
-            />
+            <ConfidenceBadge level={insight.confidenceLevel} score={insight.confidence} />
           </div>
-          <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
-            {insight.content}
-          </p>
+          <p className="text-sm leading-relaxed text-[var(--text-secondary)]">{insight.content}</p>
 
           {insight.suggestion && (
             <div className="flex items-start gap-2 rounded-lg bg-[var(--bg-secondary)] px-3 py-2">

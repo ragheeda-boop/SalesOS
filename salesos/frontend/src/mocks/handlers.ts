@@ -104,10 +104,7 @@ export const handlers = [
       aiBrief: {
         data: {
           summary: "تم تحديد 3 فرص استراتيجية جديدة هذا الأسبوع",
-          highlights: [
-            "شراكة محتملة مع بنك الرياض",
-            "ارتفاع مؤشر الثقة في قطاع الطاقة",
-          ],
+          highlights: ["شراكة محتملة مع بنك الرياض", "ارتفاع مؤشر الثقة في قطاع الطاقة"],
           generatedAt: now,
         },
         status: "ready",
@@ -118,10 +115,7 @@ export const handlers = [
             { name: "قطاع الطاقة", change: 2.5 },
             { name: "قطاع التقنية", change: 1.8 },
           ],
-          trends: [
-            "ارتفاع الطلب على الطاقة النظيفة",
-            "توسع الاستثمار في التقنية المالية",
-          ],
+          trends: ["ارتفاع الطلب على الطاقة النظيفة", "توسع الاستثمار في التقنية المالية"],
         },
         status: "ready",
       },
@@ -317,24 +311,12 @@ export const handlers = [
     const results = Array.from({ length: 5 }, (_, i) => ({
       id: `result_${i + 1}`,
       entity_type: i === 0 ? "company" : i === 1 ? "person" : "signal",
-      title:
-        i === 0
-          ? "شركة أرامكو السعودية"
-          : i === 1
-            ? "د. أحمد السلمي"
-            : `إشارة ${i + 1}`,
-      subtitle:
-        i === 0
-          ? "شركة نفط وغاز وطنية"
-          : i === 1
-            ? "CEO — أرامكو السعودية"
-            : "إشارة ذكية",
+      title: i === 0 ? "شركة أرامكو السعودية" : i === 1 ? "د. أحمد السلمي" : `إشارة ${i + 1}`,
+      subtitle: i === 0 ? "شركة نفط وغاز وطنية" : i === 1 ? "CEO — أرامكو السعودية" : "إشارة ذكية",
       description: body.text ? `نتائج عن"${body.text}"` : "وصف النتيجة",
       score: Math.max(0, 0.95 - i * 0.1),
       confidence: 0.9,
-      highlights: [
-        { field: "title", text: body.text ?? "", snippets: [body.text ?? ""] },
-      ],
+      highlights: [{ field: "title", text: body.text ?? "", snippets: [body.text ?? ""] }],
       badges: [{ label: "نشط", variant: "success" }],
       actions: [{ id: "view", label: "عرض", handler: "navigate" }],
       source: "postgresql",

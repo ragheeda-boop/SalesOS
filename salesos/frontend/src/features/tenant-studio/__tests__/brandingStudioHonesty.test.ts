@@ -1,7 +1,4 @@
-import {
-  BRANDING_STUDIO_HONESTY,
-  BRANDING_STUDIO_NON_GOALS,
-} from "../brandingStudioHonesty";
+import { BRANDING_STUDIO_HONESTY, BRANDING_STUDIO_NON_GOALS } from "../brandingStudioHonesty";
 
 describe("brandingStudioHonesty — FE-S10-07", () => {
   it("states tip branding HTTP + in-memory + no upload", () => {

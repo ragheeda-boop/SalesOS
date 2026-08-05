@@ -1,11 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import {
-  getAiModelTierCatalog,
-  getAiModelTierDefaults,
-  resolveAiModelTiers,
-} from "@/lib/api";
+import { getAiModelTierCatalog, getAiModelTierDefaults, resolveAiModelTiers } from "@/lib/api";
 import { tenantStudioKeys } from "@/lib/queryKeys";
 import { getTenantId } from "./useTenant";
 
@@ -30,10 +26,7 @@ export function useAiModelTierDefaults(planTier: string) {
 export function useAiModelTiersResolve(requestedTier: string | null) {
   const tenantId = getTenantId();
   return useQuery({
-    queryKey: tenantStudioKeys.aiModelTiersResolve(
-      tenantId,
-      requestedTier || "",
-    ),
+    queryKey: tenantStudioKeys.aiModelTiersResolve(tenantId, requestedTier || ""),
     queryFn: () => resolveAiModelTiers(tenantId, requestedTier),
     staleTime: 15_000,
   });

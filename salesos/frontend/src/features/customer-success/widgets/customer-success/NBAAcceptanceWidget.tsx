@@ -21,14 +21,10 @@ export function NBAAcceptanceWidget({
     <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
       <div className="flex items-center gap-2 mb-3">
         <Sparkles className="h-4 w-4 text-[var(--text-muted)]" />
-        <p className="text-xs text-[var(--text-muted)]">
-          {t("cs.nba_acceptance")}
-        </p>
+        <p className="text-xs text-[var(--text-muted)]">{t("cs.nba_acceptance")}</p>
       </div>
       <p className="text-lg font-bold">{nba_views}</p>
-      <p className="text-[10px] text-[var(--text-muted)]">
-        {t("cs.total_views")}
-      </p>
+      <p className="text-[10px] text-[var(--text-muted)]">{t("cs.total_views")}</p>
       <div className="flex items-center gap-3 mt-2 text-xs">
         <span className="flex items-center gap-1 text-[var(--status-success-text)]">
           <ThumbsUp className="h-3 w-3" /> {nba_accepts}

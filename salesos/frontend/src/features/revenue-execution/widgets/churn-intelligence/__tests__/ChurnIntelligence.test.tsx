@@ -61,9 +61,7 @@ describe("ChurnView", () => {
   });
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "مخاطر التوقف" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "مخاطر التوقف" })).toBeInTheDocument();
   });
 });
 describe("ChurnIntelligenceWidget", () => {

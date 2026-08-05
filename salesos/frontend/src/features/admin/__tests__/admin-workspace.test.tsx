@@ -56,27 +56,30 @@ describe("AdminWorkspace", () => {
   it("exposes EPIC-07 MVP deep-links on overview", () => {
     render(<AdminWorkspace />);
     expect(screen.getByTestId("owner-console-mvp-links")).toBeInTheDocument();
-    expect(
-      screen.getByTestId("owner-console-overview-tenants"),
-    ).toHaveAttribute("href", "/admin/tenants");
-    expect(
-      screen.getByTestId("owner-console-overview-billing"),
-    ).toHaveAttribute("href", "/admin/billing");
+    expect(screen.getByTestId("owner-console-overview-tenants")).toHaveAttribute(
+      "href",
+      "/admin/tenants"
+    );
+    expect(screen.getByTestId("owner-console-overview-billing")).toHaveAttribute(
+      "href",
+      "/admin/billing"
+    );
     expect(screen.getByTestId("owner-console-overview-flags")).toHaveAttribute(
       "href",
-      "/admin/flags",
+      "/admin/flags"
     );
     expect(screen.getByTestId("owner-console-overview-config")).toHaveAttribute(
       "href",
-      "/admin/config",
+      "/admin/config"
     );
     expect(screen.getByTestId("owner-console-overview-audit")).toHaveAttribute(
       "href",
-      "/admin/audit",
+      "/admin/audit"
     );
-    expect(
-      screen.getByTestId("owner-console-overview-integrations"),
-    ).toHaveAttribute("href", "/admin/integrations");
+    expect(screen.getByTestId("owner-console-overview-integrations")).toHaveAttribute(
+      "href",
+      "/admin/integrations"
+    );
   });
 
   it("renders sidebar navigation tabs", () => {
@@ -87,12 +90,8 @@ describe("AdminWorkspace", () => {
     expect(screen.getAllByText("العملاء").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("الباقات").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("المستخدمين").length).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText("الميزات التجريبية").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText("الوظائف الخلفية").length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("الميزات التجريبية").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("الوظائف الخلفية").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("تكاليف AI").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("صحة النظام").length).toBeGreaterThanOrEqual(1);
   });

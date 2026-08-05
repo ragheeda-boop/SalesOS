@@ -10,11 +10,7 @@ export function middleware(request: NextRequest) {
   const token = readAccessTokenFromRequest(request);
 
   if (shouldRedirectToLogin(pathname, token)) {
-    const loginUrl = buildLoginRedirectUrl(
-      request.nextUrl.origin,
-      pathname,
-      search,
-    );
+    const loginUrl = buildLoginRedirectUrl(request.nextUrl.origin, pathname, search);
     return NextResponse.redirect(loginUrl);
   }
 

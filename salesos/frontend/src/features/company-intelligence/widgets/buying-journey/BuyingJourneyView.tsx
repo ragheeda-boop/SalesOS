@@ -4,13 +4,7 @@ import { cn } from "@salesos/ui";
 import { TrendingUp } from "lucide-react";
 import type { BuyingJourneyViewProps } from "./types";
 
-const STAGES = [
-  "awareness",
-  "interest",
-  "evaluation",
-  "decision",
-  "expansion",
-] as const;
+const STAGES = ["awareness", "interest", "evaluation", "decision", "expansion"] as const;
 const STAGE_L: Record<string, string> = {
   awareness: "وعي",
   interest: "اهتمام",
@@ -31,9 +25,7 @@ export function BuyingJourneyView({ journey }: BuyingJourneyViewProps) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <TrendingUp className="mb-2 h-8 w-8 text-[var(--text-muted)] opacity-30" />
-        <p className="text-sm text-[var(--text-muted)]">
-          رحلة الشراء غير متاحة
-        </p>
+        <p className="text-sm text-[var(--text-muted)]">رحلة الشراء غير متاحة</p>
       </div>
     );
   }
@@ -41,11 +33,7 @@ export function BuyingJourneyView({ journey }: BuyingJourneyViewProps) {
   const currentIdx = STAGES.indexOf(journey.currentStage);
 
   return (
-    <div
-      role="region"
-      aria-label="رحلة الشراء"
-      className="space-y-3/20 dark:rounded-lg dark:p-1"
-    >
+    <div role="region" aria-label="رحلة الشراء" className="space-y-3/20 dark:rounded-lg dark:p-1">
       {/* Stage visual */}
       <div className="flex items-center justify-between">
         {STAGES.map((stage, i) => {
@@ -60,7 +48,7 @@ export function BuyingJourneyView({ journey }: BuyingJourneyViewProps) {
                     ? "bg-primary-500 text-white ring-2 ring-primary-300 ring-offset-1 dark:ring-offset-neutral-900"
                     : isPast
                       ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)]"
-                      : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]",
+                      : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]"
                 )}
               >
                 {STAGE_I[stage]}
@@ -70,7 +58,7 @@ export function BuyingJourneyView({ journey }: BuyingJourneyViewProps) {
                   "mt-1 text-[8px]",
                   isActive
                     ? "font-semibold text-primary-600 dark:text-primary-400"
-                    : "text-[var(--text-muted)]",
+                    : "text-[var(--text-muted)]"
                 )}
               >
                 {STAGE_L[stage]}
@@ -94,9 +82,7 @@ export function BuyingJourneyView({ journey }: BuyingJourneyViewProps) {
 
       {/* Stage description */}
       <div className="rounded-lg bg-[var(--bg-tertiary)] p-2">
-        <p className="text-[10px] text-[var(--text-muted)]">
-          {journey.stageDescription}
-        </p>
+        <p className="text-[10px] text-[var(--text-muted)]">{journey.stageDescription}</p>
       </div>
 
       {/* Recommended action */}

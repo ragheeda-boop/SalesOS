@@ -16,8 +16,7 @@ import {
 } from "@/features/tenant-studio/territoriesStudioHonesty";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -45,18 +44,10 @@ export function TerritoriesStudio() {
   const [matchField, setMatchField] = useState("region");
   const [matchOp, setMatchOp] = useState("eq");
   const [matchValue, setMatchValue] = useState("Riyadh");
-  const [assignJson, setAssignJson] = useState(
-    '{\n  "region": "Riyadh",\n  "industry": "gov"\n}',
-  );
-  const [lastAssign, setLastAssign] = useState<TerritoryAssignResult | null>(
-    null,
-  );
+  const [assignJson, setAssignJson] = useState('{\n  "region": "Riyadh",\n  "industry": "gov"\n}');
+  const [lastAssign, setLastAssign] = useState<TerritoryAssignResult | null>(null);
 
-  const fields = metaQuery.data?.match_fields ?? [
-    "region",
-    "industry",
-    "employee_count",
-  ];
+  const fields = metaQuery.data?.match_fields ?? ["region", "industry", "employee_count"];
   const ops = metaQuery.data?.match_ops ?? ["eq", "gte", "contains"];
 
   useEffect(() => {
@@ -80,7 +71,7 @@ export function TerritoriesStudio() {
       setMatchValue(
         typeof c0.value === "string" || typeof c0.value === "number"
           ? String(c0.value)
-          : JSON.stringify(c0.value ?? ""),
+          : JSON.stringify(c0.value ?? "")
       );
     }
   }
@@ -105,8 +96,8 @@ export function TerritoriesStudio() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="territories-studio-honesty"
       >
-        {TERRITORIES_STUDIO_HONESTY} Non-goals:{" "}
-        {TERRITORIES_STUDIO_NON_GOALS.join("; ")}. Not Production GO / RAG GO.
+        {TERRITORIES_STUDIO_HONESTY} Non-goals: {TERRITORIES_STUDIO_NON_GOALS.join("; ")}. Not
+        Production GO / RAG GO.
       </p>
 
       {metaQuery.data ? (
@@ -120,9 +111,7 @@ export function TerritoriesStudio() {
           {metaQuery.data.match_fields.join(",")}
         </p>
       ) : metaQuery.isError ? (
-        <p className="text-sm text-[var(--text-danger)]">
-          {getApiError(metaQuery.error)}
-        </p>
+        <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
       ) : (
         <Spinner />
       )}
@@ -139,16 +128,11 @@ export function TerritoriesStudio() {
         >
           {listQuery.isFetching ? "Refreshing…" : "Refresh rules"}
         </Button>
-        <span
-          className="text-sm text-[var(--text-muted)]"
-          data-testid="territories-studio-count"
-        >
+        <span className="text-sm text-[var(--text-muted)]" data-testid="territories-studio-count">
           {listQuery.isLoading ? (
             <Spinner className="h-5 w-5" />
           ) : listQuery.isError ? (
-            <span className="text-[var(--text-danger)]">
-              {getApiError(listQuery.error)}
-            </span>
+            <span className="text-[var(--text-danger)]">{getApiError(listQuery.error)}</span>
           ) : (
             <>{listQuery.data?.length ?? 0} rule(s)</>
           )}
@@ -276,7 +260,7 @@ export function TerritoriesStudio() {
                   variant: "error",
                 });
               },
-            },
+            }
           );
         }}
       >
@@ -416,7 +400,7 @@ export function TerritoriesStudio() {
                   variant: "error",
                 });
               },
-            },
+            }
           );
         }}
       >

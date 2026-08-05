@@ -53,12 +53,8 @@ jest.mock("@salesos/ui", () => ({
 describe("WorkflowStudio — FE-S10-03", () => {
   it("lists canvases and shows for_each-deferred honesty", () => {
     render(<WorkflowStudio />);
-    expect(screen.getByTestId("workflow-studio-honesty")).toHaveTextContent(
-      /for_each/i,
-    );
-    expect(screen.getByTestId("workflow-studio-honesty")).toHaveTextContent(
-      /in-memory/i,
-    );
+    expect(screen.getByTestId("workflow-studio-honesty")).toHaveTextContent(/for_each/i);
+    expect(screen.getByTestId("workflow-studio-honesty")).toHaveTextContent(/in-memory/i);
     expect(screen.getByTestId("workflow-row")).toHaveTextContent("Demo");
   });
 
@@ -74,7 +70,7 @@ describe("WorkflowStudio — FE-S10-03", () => {
           name: "My flow",
           nodes: expect.any(Array),
         }),
-        expect.any(Object),
+        expect.any(Object)
       );
     });
   });

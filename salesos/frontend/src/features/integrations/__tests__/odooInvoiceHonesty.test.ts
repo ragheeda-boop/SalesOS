@@ -9,9 +9,7 @@ describe("odooInvoiceHonesty — FE-S09-06", () => {
   it("mirrors tip CustomerInvoice payment states (not platform billing)", () => {
     expect(CANONICAL_PAYMENT_STATES).toContain("paid");
     expect(CANONICAL_PAYMENT_STATES).not.toContain("stripe");
-    expect(CUSTOMER_MOVE_TYPES).toEqual(
-      expect.arrayContaining(["out_invoice", "out_refund"]),
-    );
+    expect(CUSTOMER_MOVE_TYPES).toEqual(expect.arrayContaining(["out_invoice", "out_refund"]));
   });
 
   it("provides tip account.move mapping preset including payment_state", () => {
@@ -19,8 +17,8 @@ describe("odooInvoiceHonesty — FE-S09-06", () => {
     expect(isInvoiceModel("project.task")).toBe(false);
     expect(
       DEFAULT_INVOICE_MAPPINGS.some(
-        (m) => m.external === "payment_state" && m.internal === "payment_state",
-      ),
+        (m) => m.external === "payment_state" && m.internal === "payment_state"
+      )
     ).toBe(true);
   });
 });

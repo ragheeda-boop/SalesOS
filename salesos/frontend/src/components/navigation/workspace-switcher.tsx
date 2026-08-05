@@ -23,15 +23,12 @@ export function WorkspaceSwitcher({
   const { t } = useTranslation();
   const Icon = current.icon;
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setOpen(false);
-        triggerRef.current?.focus();
-      }
-    },
-    [],
-  );
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setOpen(false);
+      triggerRef.current?.focus();
+    }
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -77,7 +74,7 @@ export function WorkspaceSwitcher({
                     "flex items-center gap-2 w-full px-3 py-2 text-sm transition",
                     ws.id === current.id
                       ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)]"
-                      : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]",
+                      : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
                   )}
                 >
                   <WsIcon className="h-4 w-4 shrink-0" />
@@ -109,7 +106,7 @@ export function WorkspaceSwitcher({
         <ChevronDown
           className={cn(
             "h-4 w-4 text-[var(--text-muted)] transition-transform",
-            open && "rotate-180",
+            open && "rotate-180"
           )}
         />
       </button>
@@ -134,7 +131,7 @@ export function WorkspaceSwitcher({
                   "flex items-center gap-2 w-full px-3 py-2 text-sm transition",
                   ws.id === current.id
                     ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)]"
-                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]",
+                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
                 )}
               >
                 <WsIcon className="h-4 w-4 shrink-0" />

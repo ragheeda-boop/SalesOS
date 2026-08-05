@@ -11,13 +11,10 @@ export default function PromptLibraryPage() {
   return (
     <div className="space-y-6 p-6" data-testid="prompt-library-page">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          Prompt Library
-        </h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Prompt Library</h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Tip CRUD + versioning + rollback against
-          /api/v1/studio/prompt-library. In-memory CAP-089. Live LLM not
-          claimed.
+          Tip CRUD + versioning + rollback against /api/v1/studio/prompt-library. In-memory CAP-089.
+          Live LLM not claimed.
         </p>
       </div>
       <PromptLibraryStudio />

@@ -1,55 +1,52 @@
-import { createWidget } from './create-widget'
-import type { WidgetConfig, WidgetMetadata, WidgetLifecycle, WidgetStatus } from './types'
+import { createWidget } from "./create-widget";
+import type { WidgetConfig, WidgetMetadata, WidgetLifecycle, WidgetStatus } from "./types";
 
 export interface DashboardContextValue {
-  widgets: Record<string, { data: unknown; status: WidgetStatus; lastUpdated: string | null }>
-  error: Error | null
-  refetch: () => void
+  widgets: Record<string, { data: unknown; status: WidgetStatus; lastUpdated: string | null }>;
+  error: Error | null;
+  refetch: () => void;
 }
 
 export interface WidgetConfigEntry {
-  refreshIntervalMs?: number
-  staleThresholdMs?: number
-  gridColumn?: string
-  minHeight?: string
+  refreshIntervalMs?: number;
+  staleThresholdMs?: number;
+  gridColumn?: string;
+  minHeight?: string;
 }
 
-type DashboardContextHook = () => DashboardContextValue
-type WidgetConfigGetter = (id: string) => WidgetConfigEntry
+type DashboardContextHook = () => DashboardContextValue;
+type WidgetConfigGetter = (id: string) => WidgetConfigEntry;
 
 let _useDashboardContext: DashboardContextHook = () => ({
   widgets: {},
   error: null,
   refetch: () => {},
-})
-let _getWidgetConfig: WidgetConfigGetter = () => ({})
+});
+let _getWidgetConfig: WidgetConfigGetter = () => ({});
 
 export function setDashboardDependencies(
   useDashboardContext: DashboardContextHook,
-  getWidgetConfig: WidgetConfigGetter,
+  getWidgetConfig: WidgetConfigGetter
 ) {
-  _useDashboardContext = useDashboardContext
-  _getWidgetConfig = getWidgetConfig
+  _useDashboardContext = useDashboardContext;
+  _getWidgetConfig = getWidgetConfig;
 }
 
-type DashboardWidgetMeta = Omit<Partial<WidgetMetadata>, 'id'>
+type DashboardWidgetMeta = Omit<Partial<WidgetMetadata>, "id">;
 interface DashboardWidgetOverrides<T> {
-  metadata?: DashboardWidgetMeta
-  lifecycle?: WidgetLifecycle
-  fallback?: React.ReactNode
-  render: WidgetConfig<T>['render']
+  metadata?: DashboardWidgetMeta;
+  lifecycle?: WidgetLifecycle;
+  fallback?: React.ReactNode;
+  render: WidgetConfig<T>["render"];
 }
 
-export function createDashboardWidget<T>(
-  id: string,
-  overrides: DashboardWidgetOverrides<T>,
-) {
-  const config = _getWidgetConfig(id)
+export function createDashboardWidget<T>(id: string, overrides: DashboardWidgetOverrides<T>) {
+  const config = _getWidgetConfig(id);
 
   return createWidget<T>({
     metadata: {
       id,
-      title: overrides.metadata?.title ?? '',
+      title: overrides.metadata?.title ?? "",
       refreshInterval: config.refreshIntervalMs,
       staleThreshold: config.staleThresholdMs,
       gridColumn: config.gridColumn,
@@ -59,16 +56,16 @@ export function createDashboardWidget<T>(
     lifecycle: overrides.lifecycle,
     fallback: overrides.fallback,
     useData: () => {
-      const ctx = _useDashboardContext()
-      const widget = ctx.widgets[id]
+      const ctx = _useDashboardContext();
+      const widget = ctx.widgets[id];
       return {
         data: widget?.data as T,
-        status: widget?.status ?? 'loading',
+        status: widget?.status ?? "loading",
         lastUpdated: widget?.lastUpdated ?? null,
         error: ctx.error,
         refetch: ctx.refetch,
-      }
+      };
     },
     render: overrides.render,
-  })
+  });
 }

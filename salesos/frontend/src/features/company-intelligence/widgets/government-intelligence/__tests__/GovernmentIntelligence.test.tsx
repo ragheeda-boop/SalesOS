@@ -65,9 +65,7 @@ describe("GovernmentIntelligenceView", () => {
 
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "البيانات الحكومية" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "البيانات الحكومية" })).toBeInTheDocument();
   });
 });
 

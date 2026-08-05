@@ -33,10 +33,7 @@ interface CustomerSuccessData {
     score: number;
     status: string;
     color: string;
-    components: Record<
-      string,
-      { weight: number; value: number; contribution: number }
-    >;
+    components: Record<string, { weight: number; value: number; contribution: number }>;
     user_count: number;
     last_active: string | null;
     renewal_risk: boolean;
@@ -69,9 +66,7 @@ export function CustomerSuccessView({ data }: CustomerSuccessViewProps) {
 
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-          <p className="text-xs text-[var(--text-muted)] mb-3">
-            {t("cs.feature_adoption")}
-          </p>
+          <p className="text-xs text-[var(--text-muted)] mb-3">{t("cs.feature_adoption")}</p>
           <AdoptionChart data={data.adoption} />
         </div>
         <SearchSuccessWidget
@@ -82,9 +77,7 @@ export function CustomerSuccessView({ data }: CustomerSuccessViewProps) {
       </div>
 
       <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-        <p className="text-xs text-[var(--text-muted)] mb-3">
-          {t("cs.tenant_health")}
-        </p>
+        <p className="text-xs text-[var(--text-muted)] mb-3">{t("cs.tenant_health")}</p>
         <TenantHealthList tenants={data.tenants} />
       </div>
     </div>

@@ -20,7 +20,7 @@ export function Providers({ children }: { children: ReactNode }) {
             refetchOnWindowFocus: false,
           },
         },
-      }),
+      })
   );
 
   const locale = (() => {
@@ -38,7 +38,7 @@ export function Providers({ children }: { children: ReactNode }) {
         locale,
         stateOptions: { name: "salesos", debug: false },
       }),
-    [locale],
+    [locale]
   );
 
   const [ready, setReady] = useState(false);

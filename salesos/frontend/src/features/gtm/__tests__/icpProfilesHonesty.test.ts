@@ -1,7 +1,4 @@
-import {
-  ICP_PROFILES_HONESTY,
-  ICP_PROFILES_NON_GOALS,
-} from "../icpProfilesHonesty";
+import { ICP_PROFILES_HONESTY, ICP_PROFILES_NON_GOALS } from "../icpProfilesHonesty";
 
 describe("icpProfilesHonesty — FE-S11-01", () => {
   it("states tip HTTP + deterministic + no ML/141221 claim", () => {

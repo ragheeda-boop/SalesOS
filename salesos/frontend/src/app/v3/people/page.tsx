@@ -30,7 +30,7 @@ export default function V3PeoplePage() {
       q: debouncedQ || undefined,
       page_size: 50,
     }),
-    [debouncedQ],
+    [debouncedQ]
   );
 
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
@@ -57,11 +57,7 @@ export default function V3PeoplePage() {
       <PageHeader
         title="People"
         description="Employees and owners — Design Program v3. Decision-maker graphs remain out of scope here."
-        actions={
-          <GhostButtonLink href="/employees">
-            Open legacy people
-          </GhostButtonLink>
-        }
+        actions={<GhostButtonLink href="/employees">Open legacy people</GhostButtonLink>}
       />
 
       {!ready ? (
@@ -83,9 +79,7 @@ export default function V3PeoplePage() {
                 />
               </label>
               <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                <span className="shrink-0 text-[12px] text-[var(--text-muted)]">
-                  Status
-                </span>
+                <span className="shrink-0 text-[12px] text-[var(--text-muted)]">Status</span>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as StatusFilter)}
@@ -97,10 +91,7 @@ export default function V3PeoplePage() {
                 </select>
               </label>
             </div>
-            <p
-              className="text-[12px] text-[var(--text-muted)]"
-              aria-live="polite"
-            >
+            <p className="text-[12px] text-[var(--text-muted)]" aria-live="polite">
               {isFetching && !isLoading ? "Updating… · " : null}
               {!isLoading && !isError ? totalLabel : null}
             </p>
@@ -111,9 +102,7 @@ export default function V3PeoplePage() {
           ) : isError ? (
             <ErrorState
               title="Could not load people"
-              description={
-                error instanceof Error ? error.message : "Request failed"
-              }
+              description={error instanceof Error ? error.message : "Request failed"}
               onRetry={() => void refetch()}
             />
           ) : filtered.length === 0 ? (
@@ -137,9 +126,7 @@ export default function V3PeoplePage() {
                     Clear filters
                   </button>
                 ) : (
-                  <GhostButtonLink href="/employees">
-                    Open legacy people
-                  </GhostButtonLink>
+                  <GhostButtonLink href="/employees">Open legacy people</GhostButtonLink>
                 )
               }
             />
@@ -180,10 +167,7 @@ export default function V3PeoplePage() {
                             {person.full_name || "Untitled"}
                           </Link>
                           {person.full_name_ar ? (
-                            <p
-                              className="mt-0.5 text-[12px] text-[var(--text-muted)]"
-                              dir="auto"
-                            >
+                            <p className="mt-0.5 text-[12px] text-[var(--text-muted)]" dir="auto">
                               {person.full_name_ar}
                             </p>
                           ) : null}

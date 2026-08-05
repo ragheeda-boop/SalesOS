@@ -98,9 +98,7 @@ describe("MissionCenterView", () => {
 
     it("derives high-priority actions from pending decisions", () => {
       renderView();
-      expect(
-        screen.getByText("3 قرارات معلقة تحتاج اتخاذ"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("3 قرارات معلقة تحتاج اتخاذ")).toBeInTheDocument();
     });
 
     it("derives medium-priority action from active deals", () => {
@@ -110,16 +108,12 @@ describe("MissionCenterView", () => {
 
     it("derives low-priority action when companies > 10", () => {
       renderView();
-      expect(
-        screen.getByText("مراجعة 42 شركة تحت المراقبة"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("مراجعة 42 شركة تحت المراقبة")).toBeInTheDocument();
     });
 
     it("does not show new-companies action when companies <= 10", () => {
       renderView({ companiesTracked: 5 });
-      expect(
-        screen.queryByText(/مراجعة.*شركة تحت المراقبة/),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/مراجعة.*شركة تحت المراقبة/)).not.toBeInTheDocument();
     });
 
     it("caps actions at 5 items", () => {
@@ -140,9 +134,7 @@ describe("MissionCenterView", () => {
         activeDeals: 0,
         companiesTracked: 5,
       });
-      expect(
-        screen.queryByRole("list", { name: "Priority actions" }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("list", { name: "Priority actions" })).not.toBeInTheDocument();
     });
   });
 
@@ -167,18 +159,12 @@ describe("MissionCenterView", () => {
 
     it("has correct aria-valuemin", () => {
       renderView();
-      expect(screen.getByRole("progressbar")).toHaveAttribute(
-        "aria-valuemin",
-        "0",
-      );
+      expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuemin", "0");
     });
 
     it("has correct aria-valuemax", () => {
       renderView();
-      expect(screen.getByRole("progressbar")).toHaveAttribute(
-        "aria-valuemax",
-        "100",
-      );
+      expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuemax", "100");
     });
   });
 
@@ -200,16 +186,12 @@ describe("MissionCenterView", () => {
 
     it("hints to add companies", () => {
       allZero();
-      expect(
-        screen.getByText("قم بإضافة شركات لبدء التتبع"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("قم بإضافة شركات لبدء التتبع")).toBeInTheDocument();
     });
 
     it("does not render metrics grid in empty state", () => {
       allZero();
-      expect(
-        screen.queryByRole("list", { name: "Key metrics" }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole("list", { name: "Key metrics" })).not.toBeInTheDocument();
     });
 
     it("does not render progress bar in empty state", () => {
@@ -234,31 +216,23 @@ describe("MissionCenterView", () => {
         signalsToday: 0,
         decisionsPending: 0,
       });
-      expect(
-        screen.getByText("لا توجد مؤشرات نشطة حالياً"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("لا توجد مؤشرات نشطة حالياً")).toBeInTheDocument();
     });
   });
 
   describe("7. Accessibility — Metrics", () => {
     it("each MissionMetric has aria-label", () => {
       renderView();
-      expect(
-        screen.getByLabelText("42 شركات تحت المراقبة"),
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText("42 شركات تحت المراقبة")).toBeInTheDocument();
       expect(screen.getByLabelText("8 صفقات نشطة")).toBeInTheDocument();
-      expect(
-        screen.getByLabelText("قيمة الأنابيب 12,500,000 ريال"),
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText("قيمة الأنابيب 12,500,000 ريال")).toBeInTheDocument();
       expect(screen.getByLabelText("15 إشارة جديدة اليوم")).toBeInTheDocument();
       expect(screen.getByLabelText("3 قرارات معلقة")).toBeInTheDocument();
     });
 
     it('metrics grid has role="list"', () => {
       renderView();
-      expect(
-        screen.getByRole("list", { name: "Key metrics" }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("list", { name: "Key metrics" })).toBeInTheDocument();
     });
 
     it('each metric has role="listitem"', () => {
@@ -271,9 +245,7 @@ describe("MissionCenterView", () => {
   describe("8. Accessibility — Actions", () => {
     it("each MissionAction has descriptive aria-label", () => {
       renderView();
-      expect(
-        screen.getByLabelText(/مراجعة 15 إشارة شرائية/),
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText(/مراجعة 15 إشارة شرائية/)).toBeInTheDocument();
     });
 
     it('actions without handler have no role="button"', () => {
@@ -297,19 +269,14 @@ describe("MissionCenterView", () => {
 
     it("progressbar has descriptive aria-label", () => {
       renderView();
-      expect(screen.getByRole("progressbar")).toHaveAttribute(
-        "aria-label",
-        "Completion",
-      );
+      expect(screen.getByRole("progressbar")).toHaveAttribute("aria-label", "Completion");
     });
   });
 
   describe("10. Accessibility — Role validation", () => {
     it("dashboard region has correct aria-label", () => {
       renderView();
-      expect(
-        screen.getByRole("region", { name: "Mission Center Dashboard" }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("region", { name: "Mission Center Dashboard" })).toBeInTheDocument();
     });
   });
 
@@ -317,12 +284,7 @@ describe("MissionCenterView", () => {
     it("action onKeyDown Enter triggers handler", () => {
       const onAction = jest.fn();
       render(
-        <MissionAction
-          id="test-action"
-          title="Test Action"
-          priority="high"
-          onAction={onAction}
-        />,
+        <MissionAction id="test-action" title="Test Action" priority="high" onAction={onAction} />
       );
       const button = screen.getByRole("button");
       fireEvent.keyDown(button, { key: "Enter" });
@@ -332,12 +294,7 @@ describe("MissionCenterView", () => {
     it("action onKeyDown Space triggers handler", () => {
       const onAction = jest.fn();
       render(
-        <MissionAction
-          id="test-action"
-          title="Test Action"
-          priority="high"
-          onAction={onAction}
-        />,
+        <MissionAction id="test-action" title="Test Action" priority="high" onAction={onAction} />
       );
       const button = screen.getByRole("button");
       fireEvent.keyDown(button, { key: " " });
@@ -368,9 +325,7 @@ describe("MissionCenterView", () => {
   describe("13. Reduced Motion", () => {
     it("progress bar has motion-reduce class", () => {
       renderView();
-      const innerBar = document.querySelector(
-        ".motion-reduce\\:transition-none",
-      );
+      const innerBar = document.querySelector(".motion-reduce\\:transition-none");
       expect(innerBar).toBeInTheDocument();
     });
 
@@ -384,9 +339,7 @@ describe("MissionCenterView", () => {
 
 describe("MissionMetric", () => {
   it("renders with valueClassName instead of color", () => {
-    render(
-      <MissionMetric label="Test" value={100} valueClassName="text-info-600" />,
-    );
+    render(<MissionMetric label="Test" value={100} valueClassName="text-info-600" />);
     const value = screen.getByText("100");
     expect(value.className).toContain("text-info-600");
   });
@@ -398,23 +351,13 @@ describe("MissionMetric", () => {
   });
 
   it("renders trend indicator", () => {
-    render(
-      <MissionMetric
-        label="Test"
-        value={100}
-        trend={{ direction: "up", value: 12 }}
-      />,
-    );
+    render(<MissionMetric label="Test" value={100} trend={{ direction: "up", value: 12 }} />);
     expect(screen.getByText("12%")).toBeInTheDocument();
   });
 
   it("trend has semantic color class for up direction", () => {
     const { container } = render(
-      <MissionMetric
-        label="Test"
-        value={100}
-        trend={{ direction: "up", value: 12 }}
-      />,
+      <MissionMetric label="Test" value={100} trend={{ direction: "up", value: 12 }} />
     );
     const trend = container.querySelector(".text-success-600");
     expect(trend).toBeInTheDocument();
@@ -428,29 +371,18 @@ describe("MissionAction", () => {
   });
 
   it("renders company name when provided", () => {
-    render(
-      <MissionAction
-        id="a"
-        title="Test"
-        priority="medium"
-        companyName="ACME"
-      />,
-    );
+    render(<MissionAction id="a" title="Test" priority="medium" companyName="ACME" />);
     expect(screen.getByText("ACME")).toBeInTheDocument();
   });
 
   it("has no button role when no onAction", () => {
-    const { container } = render(
-      <MissionAction id="a" title="Test" priority="low" />,
-    );
+    const { container } = render(<MissionAction id="a" title="Test" priority="low" />);
     expect(container.querySelector('[role="button"]')).not.toBeInTheDocument();
   });
 
   it("calls onAction on click", () => {
     const onAction = jest.fn();
-    render(
-      <MissionAction id="a" title="Test" priority="high" onAction={onAction} />,
-    );
+    render(<MissionAction id="a" title="Test" priority="high" onAction={onAction} />);
     fireEvent.click(screen.getByRole("button"));
     expect(onAction).toHaveBeenCalledWith("a");
   });
@@ -459,17 +391,13 @@ describe("MissionAction", () => {
 describe("MissionProgress", () => {
   it("clamps percentage to 100", () => {
     render(<MissionProgress value={200} max={100} label="Test" />);
-    const inner = screen
-      .getByRole("progressbar")
-      .querySelector('[style*="width"]');
+    const inner = screen.getByRole("progressbar").querySelector('[style*="width"]');
     expect(inner).toHaveStyle("width: 100%");
   });
 
   it("handles zero max without division errors", () => {
     render(<MissionProgress value={0} max={0} label="Test" />);
-    const inner = screen
-      .getByRole("progressbar")
-      .querySelector('[style*="width"]');
+    const inner = screen.getByRole("progressbar").querySelector('[style*="width"]');
     expect(inner).toHaveStyle("width: 0%");
   });
 
@@ -483,8 +411,7 @@ describe("MissionCenterWidget (SDK integration)", () => {
   it("is a valid React component", () => {
     expect(MissionCenterWidget).toBeDefined();
     expect(
-      typeof MissionCenterWidget === "function" ||
-        typeof MissionCenterWidget === "object",
+      typeof MissionCenterWidget === "function" || typeof MissionCenterWidget === "object"
     ).toBe(true);
   });
 });

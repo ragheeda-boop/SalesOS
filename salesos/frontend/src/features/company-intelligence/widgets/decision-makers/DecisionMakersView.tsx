@@ -22,11 +22,7 @@ export function DecisionMakersView({ makers }: DecisionMakersViewProps) {
   }
 
   return (
-    <div
-      role="region"
-      aria-label="صناع القرار"
-      className="space-y-1/20 dark:rounded-lg dark:p-1"
-    >
+    <div role="region" aria-label="صناع القرار" className="space-y-1/20 dark:rounded-lg dark:p-1">
       {makers.map((m) => (
         <div
           key={m.id}
@@ -43,12 +39,7 @@ export function DecisionMakersView({ makers }: DecisionMakersViewProps) {
               {m.connected && (
                 <Star className="h-3 w-3 shrink-0 fill-amber-400 text-[var(--status-warning-text)]" />
               )}
-              <span
-                className={cn(
-                  "mr-auto text-[10px] font-medium",
-                  INF_C[m.influence],
-                )}
-              >
+              <span className={cn("mr-auto text-[10px] font-medium", INF_C[m.influence])}>
                 {INF_L[m.influence]}
               </span>
             </div>
@@ -56,9 +47,7 @@ export function DecisionMakersView({ makers }: DecisionMakersViewProps) {
               {m.role} · {m.department}
             </p>
             {m.lastInteraction && (
-              <p className="text-[10px] text-[var(--text-muted)]">
-                آخر تواصل: {m.lastInteraction}
-              </p>
+              <p className="text-[10px] text-[var(--text-muted)]">آخر تواصل: {m.lastInteraction}</p>
             )}
           </div>
         </div>

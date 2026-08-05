@@ -177,16 +177,10 @@ export function WorkflowTemplates() {
             key={tmpl.id}
             className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4 space-y-3"
           >
-            <h3 className="text-sm font-medium text-[var(--text-primary)]">
-              {t(tmpl.nameKey)}
-            </h3>
-            <p className="text-xs text-[var(--text-secondary)]">
-              {t(tmpl.descriptionKey)}
-            </p>
+            <h3 className="text-sm font-medium text-[var(--text-primary)]">{t(tmpl.nameKey)}</h3>
+            <p className="text-xs text-[var(--text-secondary)]">{t(tmpl.descriptionKey)}</p>
             <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
-              <span>
-                {t("automation.steps_count", { count: tmpl.steps.length })}
-              </span>
+              <span>{t("automation.steps_count", { count: tmpl.steps.length })}</span>
               <span>•</span>
               <span>{triggerLabel(tmpl.trigger_type)}</span>
             </div>
@@ -195,9 +189,7 @@ export function WorkflowTemplates() {
               disabled={createWorkflow.isPending}
               className="rounded-lg bg-[var(--muhide-orange)] px-3 py-1.5 text-xs text-white hover:opacity-90 disabled:opacity-50"
             >
-              {createWorkflow.isPending
-                ? t("common.loading")
-                : t("automation.use_template")}
+              {createWorkflow.isPending ? t("common.loading") : t("automation.use_template")}
             </button>
           </div>
         ))}

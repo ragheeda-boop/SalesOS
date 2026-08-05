@@ -68,9 +68,7 @@ describeWidgetContract({
       permissions: ["company:golden-record:read"],
       featureFlag: { enabled: true },
     },
-    render: ({ data }) => (
-      <GoldenRecordView entries={data.entries} dna={data.dna} />
-    ),
+    render: ({ data }) => <GoldenRecordView entries={data.entries} dna={data.dna} />,
   },
 });
 
@@ -98,9 +96,7 @@ describe("GoldenRecordView", () => {
 
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "السجل الذهبي" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "السجل الذهبي" })).toBeInTheDocument();
   });
 });
 

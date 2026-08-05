@@ -17,12 +17,8 @@ function mapToSecurityData(result: DecisionResult): SecurityData {
       result.scores.find((s) => s.type === "users")?.value != null
         ? Math.round(result.scores.find((s) => s.type === "users")!.value * 100)
         : 24,
-    roles: Math.max(
-      1,
-      result.scores.filter((s) => s.type === "role").length || 6,
-    ),
-    auditEvents:
-      result.evidence.filter((e) => e.type === "audit").length * 1000 || 15200,
+    roles: Math.max(1, result.scores.filter((s) => s.type === "role").length || 6),
+    auditEvents: result.evidence.filter((e) => e.type === "audit").length * 1000 || 15200,
     pendingActions: result.recommendation.risks?.length ?? 2,
     recentAudit: result.evidence.slice(0, 5).map((e, i) => ({
       action: e.description ?? "حدث",

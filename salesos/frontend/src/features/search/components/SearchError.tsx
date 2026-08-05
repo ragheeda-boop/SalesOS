@@ -9,26 +9,15 @@ interface SearchErrorProps {
   className?: string;
 }
 
-export function SearchError({
-  message = "فشل البحث",
-  onRetry,
-  className,
-}: SearchErrorProps) {
+export function SearchError({ message = "فشل البحث", onRetry, className }: SearchErrorProps) {
   return (
     <div
       role="alert"
-      className={cn(
-        "flex flex-col items-center justify-center py-12 text-center",
-        className,
-      )}
+      className={cn("flex flex-col items-center justify-center py-12 text-center", className)}
     >
       <AlertCircle className="mb-3 h-10 w-10 text-[var(--status-danger-text)]" />
-      <p className="text-sm font-medium text-[var(--status-danger-text)]">
-        {message}
-      </p>
-      <p className="mt-1 text-xs text-[var(--text-muted)]">
-        حدث خطأ أثناء البحث. حاول مرة أخرى.
-      </p>
+      <p className="text-sm font-medium text-[var(--status-danger-text)]">{message}</p>
+      <p className="mt-1 text-xs text-[var(--text-muted)]">حدث خطأ أثناء البحث. حاول مرة أخرى.</p>
       {onRetry && (
         <button
           onClick={onRetry}

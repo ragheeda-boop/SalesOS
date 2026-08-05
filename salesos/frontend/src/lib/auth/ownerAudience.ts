@@ -11,9 +11,7 @@ export const OWNER_CONSOLE_HOST = "owner.salesos.io";
 export type JwtAudienceKind = "owner" | "tenant" | "unknown" | "missing";
 export type OwnerHostKind = "owner-target" | "local" | "shared-app";
 
-export function decodeJwtPayload(
-  token: string | null | undefined,
-): Record<string, unknown> | null {
+export function decodeJwtPayload(token: string | null | undefined): Record<string, unknown> | null {
   if (!token || typeof token !== "string") return null;
   const parts = token.split(".");
   if (parts.length < 2) return null;
@@ -28,9 +26,7 @@ export function decodeJwtPayload(
   }
 }
 
-export function getJwtAudience(
-  token: string | null | undefined,
-): string | null {
+export function getJwtAudience(token: string | null | undefined): string | null {
   const payload = decodeJwtPayload(token);
   const aud = payload?.aud;
   if (typeof aud === "string" && aud.length > 0) return aud;
@@ -38,9 +34,7 @@ export function getJwtAudience(
   return null;
 }
 
-export function classifyJwtAudience(
-  token: string | null | undefined,
-): JwtAudienceKind {
+export function classifyJwtAudience(token: string | null | undefined): JwtAudienceKind {
   if (!token) return "missing";
   const aud = getJwtAudience(token);
   if (!aud) return "unknown";
@@ -49,16 +43,11 @@ export function classifyJwtAudience(
   return "unknown";
 }
 
-export function isOwnerConsoleAudience(
-  token: string | null | undefined,
-): boolean {
+export function isOwnerConsoleAudience(token: string | null | undefined): boolean {
   return classifyJwtAudience(token) === "owner";
 }
 
-export function formatOwnerAudienceHonesty(
-  kind: JwtAudienceKind,
-  aud?: string | null,
-): string {
+export function formatOwnerAudienceHonesty(kind: JwtAudienceKind, aud?: string | null): string {
   if (kind === "owner") {
     return (
       `Owner Console session audience=${OWNER_JWT_AUDIENCE}. ` +
@@ -84,9 +73,7 @@ export function formatOwnerAudienceHonesty(
   );
 }
 
-export function classifyOwnerHost(
-  hostname: string | null | undefined,
-): OwnerHostKind {
+export function classifyOwnerHost(hostname: string | null | undefined): OwnerHostKind {
   if (!hostname) return "shared-app";
   const host = hostname.toLowerCase();
   if (host === OWNER_CONSOLE_HOST || host.endsWith(`.${OWNER_CONSOLE_HOST}`)) {
@@ -103,10 +90,7 @@ export function classifyOwnerHost(
   return "shared-app";
 }
 
-export function formatOwnerHostHonesty(
-  kind: OwnerHostKind,
-  hostname?: string | null,
-): string {
+export function formatOwnerHostHonesty(kind: OwnerHostKind, hostname?: string | null): string {
   if (kind === "owner-target") {
     return (
       `Host ${hostname || OWNER_CONSOLE_HOST} matches Owner Console target. ` +
@@ -148,9 +132,7 @@ export function shouldSurfaceOwnerAudienceDenial(options: {
   return classifyJwtAudience(options.token) === "tenant";
 }
 
-export function formatOwnerAuthDeniedMessage(
-  kind: JwtAudienceKind = "tenant",
-): string {
+export function formatOwnerAuthDeniedMessage(kind: JwtAudienceKind = "tenant"): string {
   if (kind === "tenant") {
     return (
       `Owner admin API rejected tenant JWT (${TENANT_JWT_AUDIENCE}). ` +

@@ -59,9 +59,7 @@ describe("DocumentIntelligenceView", () => {
 
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "المستندات" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "المستندات" })).toBeInTheDocument();
   });
 });
 

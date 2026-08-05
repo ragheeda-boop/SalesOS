@@ -22,11 +22,7 @@ const LEVEL_LABELS: Record<ConfidenceLevel, string> = {
   low: "ai_insights.confidence_low",
 };
 
-export function ConfidenceBadge({
-  level,
-  score,
-  className,
-}: ConfidenceBadgeProps) {
+export function ConfidenceBadge({ level, score, className }: ConfidenceBadgeProps) {
   const { t } = useTranslation();
 
   return (
@@ -34,20 +30,16 @@ export function ConfidenceBadge({
       className={cn(
         "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
         LEVEL_STYLES[level],
-        className,
+        className
       )}
-      title={
-        score !== undefined
-          ? `${Math.round(score * 100)}%`
-          : undefined
-      }
+      title={score !== undefined ? `${Math.round(score * 100)}%` : undefined}
     >
       <span
         className={cn(
           "h-1.5 w-1.5 rounded-full",
           level === "high" && "bg-success-500",
           level === "medium" && "bg-warning-500",
-          level === "low" && "bg-danger-500",
+          level === "low" && "bg-danger-500"
         )}
       />
       {t(LEVEL_LABELS[level])}

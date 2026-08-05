@@ -81,9 +81,7 @@ export async function getAiMemoryMeta(tenantId: string): Promise<AiMemoryMeta> {
   return resp.data;
 }
 
-export async function getAiMemorySettings(
-  tenantId: string,
-): Promise<MemorySettings> {
+export async function getAiMemorySettings(tenantId: string): Promise<MemorySettings> {
   const resp = await api.get<MemorySettings>(`${BASE}/settings`, {
     headers: tenantHeaders(tenantId),
   });
@@ -92,7 +90,7 @@ export async function getAiMemorySettings(
 
 export async function putAiMemorySettings(
   tenantId: string,
-  body: MemorySettingsBody,
+  body: MemorySettingsBody
 ): Promise<MemorySettings> {
   const resp = await api.put<MemorySettings>(`${BASE}/settings`, body, {
     headers: tenantHeaders(tenantId),
@@ -100,9 +98,7 @@ export async function putAiMemorySettings(
   return resp.data;
 }
 
-export async function listAiMemoryConversations(
-  tenantId: string,
-): Promise<ConversationMemory[]> {
+export async function listAiMemoryConversations(tenantId: string): Promise<ConversationMemory[]> {
   const resp = await api.get<ConversationMemory[]>(`${BASE}/conversations`, {
     headers: tenantHeaders(tenantId),
   });
@@ -111,47 +107,44 @@ export async function listAiMemoryConversations(
 
 export async function getAiMemoryConversation(
   tenantId: string,
-  conversationId: string,
+  conversationId: string
 ): Promise<ConversationMemory> {
-  const resp = await api.get<ConversationMemory>(
-    `${BASE}/conversations/${conversationId}`,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.get<ConversationMemory>(`${BASE}/conversations/${conversationId}`, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }
 
 export async function appendAiMemoryTurn(
   tenantId: string,
   conversationId: string,
-  body: MemoryTurnBody,
+  body: MemoryTurnBody
 ): Promise<ConversationMemory> {
   const resp = await api.post<ConversationMemory>(
     `${BASE}/conversations/${conversationId}/turns`,
     body,
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
 
 export async function deleteAiMemoryConversation(
   tenantId: string,
-  conversationId: string,
+  conversationId: string
 ): Promise<{ deleted: boolean; conversation_id: string }> {
   const resp = await api.delete<{ deleted: boolean; conversation_id: string }>(
     `${BASE}/conversations/${conversationId}`,
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
 
 export async function probeAiMemoryAdversarial(
   tenantId: string,
-  body: AdversarialProbeBody,
+  body: AdversarialProbeBody
 ): Promise<Record<string, unknown>> {
-  const resp = await api.post<Record<string, unknown>>(
-    `${BASE}/adversarial/probe`,
-    body,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.post<Record<string, unknown>>(`${BASE}/adversarial/probe`, body, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }

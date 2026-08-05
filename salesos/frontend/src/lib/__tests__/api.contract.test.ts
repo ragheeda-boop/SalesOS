@@ -153,13 +153,13 @@ describe("searchCompanies — contract", () => {
       "/api/v1/companies",
       expect.objectContaining({
         headers: { "X-Tenant-Id": TENANT },
-      }),
+      })
     );
   });
 
   it("strips cursor from params for offset pagination", async () => {
     mockAxios.get.mockResolvedValueOnce(
-      mockResponse({ total: 0, page: 1, page_size: 10, items: [] }),
+      mockResponse({ total: 0, page: 1, page_size: 10, items: [] })
     );
 
     await searchCompanies({ q: "test", cursor: "abc" }, TENANT);
@@ -234,10 +234,7 @@ describe("searchCompaniesCursor — contract", () => {
     expect(Array.isArray(result.data)).toBe(true);
     expect(typeof result.has_next).toBe("boolean");
     expect(result.next_cursor).toBeDefined();
-    expect(mockAxios.get).toHaveBeenCalledWith(
-      "/api/v1/companies/cursors",
-      expect.anything(),
-    );
+    expect(mockAxios.get).toHaveBeenCalledWith("/api/v1/companies/cursors", expect.anything());
   });
 });
 
@@ -315,10 +312,7 @@ describe("createCompany — contract", () => {
     };
     mockAxios.post.mockResolvedValueOnce(mockResponse(payload));
 
-    const result = await createCompany(
-      { name_ar: "شركة جديدة", cr_number: "999" },
-      TENANT,
-    );
+    const result = await createCompany({ name_ar: "شركة جديدة", cr_number: "999" }, TENANT);
 
     expect(result.id).toBe("c-new");
     expect(result.name_ar).toBe("شركة جديدة");
@@ -327,7 +321,7 @@ describe("createCompany — contract", () => {
       expect.anything(),
       expect.objectContaining({
         headers: { "X-Tenant-Id": TENANT },
-      }),
+      })
     );
   });
 });
@@ -350,17 +344,13 @@ describe("updateCompany — contract", () => {
     };
     mockAxios.patch.mockResolvedValueOnce(mockResponse(payload));
 
-    const result = await updateCompany(
-      "c-1",
-      { name_ar: "أرامكو المحدّثة" },
-      TENANT,
-    );
+    const result = await updateCompany("c-1", { name_ar: "أرامكو المحدّثة" }, TENANT);
 
     expect(result.name_ar).toBe("أرامكو المحدّثة");
     expect(mockAxios.patch).toHaveBeenCalledWith(
       "/api/v1/companies/c-1",
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
   });
 });
@@ -375,7 +365,7 @@ describe("deleteCompany — contract", () => {
       "/api/v1/companies/c-1",
       expect.objectContaining({
         headers: { "X-Tenant-Id": TENANT },
-      }),
+      })
     );
   });
 });
@@ -453,10 +443,7 @@ describe("createContact — contract", () => {
     };
     mockAxios.post.mockResolvedValueOnce(mockResponse(payload));
 
-    const result = await createContact(
-      { name: "نورة", email: "n@test.com" },
-      TENANT,
-    );
+    const result = await createContact({ name: "نورة", email: "n@test.com" }, TENANT);
 
     expect(result.id).toBe("ct-new");
     expect(mockAxios.post).toHaveBeenCalledWith(
@@ -464,7 +451,7 @@ describe("createContact — contract", () => {
       expect.anything(),
       expect.objectContaining({
         headers: { "X-Tenant-Id": TENANT },
-      }),
+      })
     );
   });
 });
@@ -474,17 +461,13 @@ describe("updateContact — contract", () => {
     const payload = { id: "ct-1", name: "أحمد المحدّث", position: " CFO" };
     mockAxios.patch.mockResolvedValueOnce(mockResponse(payload));
 
-    const result = await updateContact(
-      "ct-1",
-      { name: "أحمد المحدّث" },
-      TENANT,
-    );
+    const result = await updateContact("ct-1", { name: "أحمد المحدّث" }, TENANT);
 
     expect(result.name).toBe("أحمد المحدّث");
     expect(mockAxios.patch).toHaveBeenCalledWith(
       "/api/v1/contacts/ct-1",
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
   });
 });
@@ -499,7 +482,7 @@ describe("deleteContact — contract", () => {
       "/api/v1/contacts/ct-1",
       expect.objectContaining({
         headers: { "X-Tenant-Id": TENANT },
-      }),
+      })
     );
   });
 });
@@ -719,9 +702,7 @@ describe("bulkDeleteEmployees — contract", () => {
 
 describe("exportEmployees — contract", () => {
   it("returns Blob", async () => {
-    mockAxios.get.mockResolvedValueOnce(
-      mockResponse(new Blob(["csv-data"], { type: "text/csv" })),
-    );
+    mockAxios.get.mockResolvedValueOnce(mockResponse(new Blob(["csv-data"], { type: "text/csv" })));
 
     const result = await exportEmployees({}, TENANT);
 
@@ -755,10 +736,7 @@ describe("unifiedSearch — contract", () => {
     };
     mockAxios.get.mockResolvedValueOnce(mockResponse(payload));
 
-    const result = await unifiedSearch(
-      { q: "أرامكو", strategy: "hybrid" },
-      TENANT,
-    );
+    const result = await unifiedSearch({ q: "أرامكو", strategy: "hybrid" }, TENANT);
 
     expect(result.query).toBe("أرامكو");
     expect(result.strategy).toBe("hybrid");
@@ -774,7 +752,7 @@ describe("unifiedSearch — contract", () => {
         total: 0,
         took_ms: 5,
         items: [],
-      }),
+      })
     );
 
     await unifiedSearch({ q: "test", strategy: "fulltext" }, TENANT);
@@ -889,17 +867,13 @@ describe("createOpportunity — contract", () => {
         stage: "qualification",
         value: 100000,
         company_id: "c-1",
-      }),
+      })
     );
 
     const result = await createOpportunity(TENANT, "c-1", "صفقة جديدة", 100000);
 
     expect(result.id).toBe("opp-new");
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      "/api/v1/opportunities",
-      null,
-      expect.anything(),
-    );
+    expect(mockAxios.post).toHaveBeenCalledWith("/api/v1/opportunities", null, expect.anything());
   });
 });
 
@@ -908,7 +882,7 @@ describe("listPipelines — contract", () => {
     mockAxios.get.mockResolvedValueOnce(
       mockResponse({
         items: [{ id: "p-1", name: "Pipeline رئيسي", stages: 5 }],
-      }),
+      })
     );
 
     const result = await listPipelines(TENANT);
@@ -957,7 +931,7 @@ describe("login — contract", () => {
         access_token: "at_123",
         refresh_token: "rt_123",
         token_type: "bearer",
-      }),
+      })
     );
 
     const result = await login("user@test.com", "pass");
@@ -975,7 +949,7 @@ describe("register — contract", () => {
         access_token: "at_456",
         refresh_token: "rt_456",
         token_type: "bearer",
-      }),
+      })
     );
 
     const result = await register("new@test.com", "pass", "خالد");
@@ -1011,9 +985,7 @@ describe("getCurrentUser — contract", () => {
 
 describe("changePassword — contract", () => {
   it("returns { message: string }", async () => {
-    mockAxios.post.mockResolvedValueOnce(
-      mockResponse({ message: "تم تغيير كلمة المرور" }),
-    );
+    mockAxios.post.mockResolvedValueOnce(mockResponse({ message: "تم تغيير كلمة المرور" }));
 
     const result = await changePassword("old", "new");
 
@@ -1129,7 +1101,7 @@ describe("listDlq — contract", () => {
 describe("retryDlq — contract", () => {
   it("returns DlqRetryResponse", async () => {
     mockAxios.post.mockResolvedValueOnce(
-      mockResponse({ processed: 10, retried: 5, resolved: 3, still_failed: 2 }),
+      mockResponse({ processed: 10, retried: 5, resolved: 3, still_failed: 2 })
     );
 
     const result = await retryDlq(TENANT, 50);
@@ -1242,7 +1214,7 @@ describe("completeTask — contract", () => {
         priority: "high",
         source: "copilot",
         completed: true,
-      }),
+      })
     );
 
     const result = await completeTask("t-1");
@@ -1256,13 +1228,10 @@ describe("completeTask — contract", () => {
 describe("submitCopilotFeedback — contract", () => {
   it("returns CopilotFeedbackResponse", async () => {
     mockAxios.post.mockResolvedValueOnce(
-      mockResponse({ success: true, helpful_rate: 0.85, total_ratings: 20 }),
+      mockResponse({ success: true, helpful_rate: 0.85, total_ratings: 20 })
     );
 
-    const result = await submitCopilotFeedback(
-      { message_id: "msg-1", rating: "positive" },
-      TENANT,
-    );
+    const result = await submitCopilotFeedback({ message_id: "msg-1", rating: "positive" }, TENANT);
 
     expect(result.success).toBe(true);
     expect(typeof result.helpful_rate).toBe("number");
@@ -1384,15 +1353,14 @@ describe("reprovisionAdminTenant — contract", () => {
         permissions_provisioned: 12,
         studio_config: {},
         admin_user_id: null,
-      }),
+      })
     );
 
     const result = await reprovisionAdminTenant("t-1");
 
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      "/api/v1/admin/tenants/t-1/reprovision",
-      { force_active: false },
-    );
+    expect(mockAxios.post).toHaveBeenCalledWith("/api/v1/admin/tenants/t-1/reprovision", {
+      force_active: false,
+    });
     expect(result.idempotent).toBe(true);
     expect(result.provisioning_status).toBe("active");
   });
@@ -1545,18 +1513,14 @@ describe("error handling — error propagation", () => {
     };
     mockAxios.get.mockRejectedValueOnce(apiError);
 
-    await expect(getCompany("c-1", TENANT)).rejects.toThrow(
-      "Request failed with status code 500",
-    );
+    await expect(getCompany("c-1", TENANT)).rejects.toThrow("Request failed with status code 500");
   });
 
   it("propagates network errors", async () => {
     const networkError = new Error("Network Error");
     mockAxios.get.mockRejectedValueOnce(networkError);
 
-    await expect(searchCompanies({ q: "test" }, TENANT)).rejects.toThrow(
-      "Network Error",
-    );
+    await expect(searchCompanies({ q: "test" }, TENANT)).rejects.toThrow("Network Error");
   });
 
   it("propagates 4xx errors with error data", async () => {
@@ -1567,9 +1531,9 @@ describe("error handling — error propagation", () => {
     };
     mockAxios.post.mockRejectedValueOnce(apiError);
 
-    await expect(
-      createCompany({ name_ar: "", cr_number: "" }, TENANT),
-    ).rejects.toThrow("Request failed with status code 400");
+    await expect(createCompany({ name_ar: "", cr_number: "" }, TENANT)).rejects.toThrow(
+      "Request failed with status code 400"
+    );
   });
 
   it("propagates 422 validation errors", async () => {
@@ -1589,7 +1553,7 @@ describe("error handling — error propagation", () => {
     mockAxios.post.mockRejectedValueOnce(apiError);
 
     await expect(createContact({ name: "" }, TENANT)).rejects.toThrow(
-      "Request failed with status code 422",
+      "Request failed with status code 422"
     );
   });
 });
@@ -1671,7 +1635,7 @@ describe("getMy360 — contract", () => {
       "/api/v1/employees/me/360",
       expect.objectContaining({
         headers: { "X-Tenant-Id": TENANT },
-      }),
+      })
     );
   });
 });
@@ -1753,11 +1717,7 @@ describe("addCompanyContact — contract", () => {
     };
     mockAxios.post.mockResolvedValueOnce(mockResponse(payload));
 
-    const result = await addCompanyContact(
-      "c-1",
-      { name: "مريم", position: "محاسبة" },
-      TENANT,
-    );
+    const result = await addCompanyContact("c-1", { name: "مريم", position: "محاسبة" }, TENANT);
 
     expect(result).toHaveProperty("id");
     expect(result.name).toBe("مريم");
@@ -1766,7 +1726,7 @@ describe("addCompanyContact — contract", () => {
       expect.anything(),
       expect.objectContaining({
         headers: { "X-Tenant-Id": TENANT },
-      }),
+      })
     );
   });
 });
@@ -1779,7 +1739,7 @@ describe("advanceOpportunity — contract", () => {
         stage: "negotiation",
         name: "صفقة",
         company_id: "c-1",
-      }),
+      })
     );
 
     const result = await advanceOpportunity("opp-1", "negotiation");
@@ -1790,7 +1750,7 @@ describe("advanceOpportunity — contract", () => {
       null,
       expect.objectContaining({
         params: { to_stage: "negotiation" },
-      }),
+      })
     );
   });
 });
@@ -1798,7 +1758,7 @@ describe("advanceOpportunity — contract", () => {
 describe("closeWon — contract", () => {
   it("posts to won endpoint", async () => {
     mockAxios.post.mockResolvedValueOnce(
-      mockResponse({ id: "opp-1", stage: "closed_won", won_amount: 500000 }),
+      mockResponse({ id: "opp-1", stage: "closed_won", won_amount: 500000 })
     );
 
     const result = await closeWon("opp-1", 500000);
@@ -1809,14 +1769,12 @@ describe("closeWon — contract", () => {
       null,
       expect.objectContaining({
         params: { amount: 500000 },
-      }),
+      })
     );
   });
 
   it("works without amount", async () => {
-    mockAxios.post.mockResolvedValueOnce(
-      mockResponse({ id: "opp-1", stage: "closed_won" }),
-    );
+    mockAxios.post.mockResolvedValueOnce(mockResponse({ id: "opp-1", stage: "closed_won" }));
 
     const result = await closeWon("opp-1");
 
@@ -1831,7 +1789,7 @@ describe("closeLost — contract", () => {
         id: "opp-1",
         stage: "closed_lost",
         loss_reason: "budget",
-      }),
+      })
     );
 
     const result = await closeLost("opp-1", "budget");
@@ -1842,7 +1800,7 @@ describe("closeLost — contract", () => {
       null,
       expect.objectContaining({
         params: { reason: "budget" },
-      }),
+      })
     );
   });
 });
@@ -1880,17 +1838,14 @@ describe("queryActivities — contract", () => {
     const payload = { items: [], total: 0, limit: 10, offset: 0 };
     mockAxios.get.mockResolvedValueOnce(mockResponse(payload));
 
-    const result = await queryActivities(
-      { entity_type: "company", limit: 10 },
-      TENANT,
-    );
+    const result = await queryActivities({ entity_type: "company", limit: 10 }, TENANT);
 
     expect(result.total).toBe(0);
     expect(mockAxios.get).toHaveBeenCalledWith(
       "/api/v1/activities",
       expect.objectContaining({
         params: { entity_type: "company", limit: 10 },
-      }),
+      })
     );
   });
 });
@@ -1914,7 +1869,7 @@ describe("createTask — contract", () => {
     expect(mockAxios.post).toHaveBeenCalledWith(
       "/api/v1/tasks",
       expect.objectContaining({ title: "مهمة جديدة" }),
-      expect.anything(),
+      expect.anything()
     );
   });
 });
@@ -1922,7 +1877,7 @@ describe("createTask — contract", () => {
 describe("getDlqStats — contract", () => {
   it("returns failed_by_stage map", async () => {
     mockAxios.get.mockResolvedValueOnce(
-      mockResponse({ failed_by_stage: { enrichment: 5, validation: 2 } }),
+      mockResponse({ failed_by_stage: { enrichment: 5, validation: 2 } })
     );
 
     const result = await getDlqStats(TENANT);
@@ -2058,7 +2013,7 @@ describe("deleteAdminTenant — contract", () => {
         provisioning_status: "active",
         reason: "",
         prior_provisioning_status: "active",
-      }),
+      })
     );
 
     const result = await deleteAdminTenant("t-1");
@@ -2076,7 +2031,7 @@ describe("hardDeleteAdminTenant — contract", () => {
       mockResponse({
         message: "Tenant hard-deleted",
         tenant_id: "t-1",
-      }),
+      })
     );
 
     const result = await hardDeleteAdminTenant("t-1", {
@@ -2085,10 +2040,9 @@ describe("hardDeleteAdminTenant — contract", () => {
     });
 
     expect(result.message).toBe("Tenant hard-deleted");
-    expect(mockAxios.delete).toHaveBeenCalledWith(
-      "/api/v1/admin/tenants/t-1/hard-delete",
-      { data: { confirm: true, force_immediate: true } },
-    );
+    expect(mockAxios.delete).toHaveBeenCalledWith("/api/v1/admin/tenants/t-1/hard-delete", {
+      data: { confirm: true, force_immediate: true },
+    });
   });
 
   it("defaults force_immediate to false", async () => {
@@ -2096,15 +2050,14 @@ describe("hardDeleteAdminTenant — contract", () => {
       mockResponse({
         message: "Tenant hard-deleted",
         tenant_id: "t-1",
-      }),
+      })
     );
 
     await hardDeleteAdminTenant("t-1", { confirm: true });
 
-    expect(mockAxios.delete).toHaveBeenCalledWith(
-      "/api/v1/admin/tenants/t-1/hard-delete",
-      { data: { confirm: true, force_immediate: false } },
-    );
+    expect(mockAxios.delete).toHaveBeenCalledWith("/api/v1/admin/tenants/t-1/hard-delete", {
+      data: { confirm: true, force_immediate: false },
+    });
   });
 });
 
@@ -2118,7 +2071,7 @@ describe("suspendAdminTenant — contract", () => {
         provisioning_status: "suspended",
         prior_provisioning_status: "active",
         reason: "Owner Console",
-      }),
+      })
     );
 
     const result = await suspendAdminTenant("t-1", {
@@ -2128,10 +2081,9 @@ describe("suspendAdminTenant — contract", () => {
     expect(result.message).toBe("Tenant suspended");
     expect(result.is_active).toBe(false);
     expect(result.provisioning_status).toBe("suspended");
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      "/api/v1/admin/tenants/t-1/suspend",
-      { reason: "Owner Console" },
-    );
+    expect(mockAxios.post).toHaveBeenCalledWith("/api/v1/admin/tenants/t-1/suspend", {
+      reason: "Owner Console",
+    });
   });
 });
 
@@ -2145,7 +2097,7 @@ describe("activateAdminTenant — contract", () => {
         provisioning_status: "active",
         is_active: true,
         reason: "Owner Console",
-      }),
+      })
     );
 
     const result = await activateAdminTenant("t-1", {
@@ -2155,10 +2107,9 @@ describe("activateAdminTenant — contract", () => {
     expect(result.message).toBe("Tenant activated");
     expect(result.is_active).toBe(true);
     expect(result.provisioning_status).toBe("active");
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      "/api/v1/admin/tenants/t-1/activate",
-      { reason: "Owner Console" },
-    );
+    expect(mockAxios.post).toHaveBeenCalledWith("/api/v1/admin/tenants/t-1/activate", {
+      reason: "Owner Console",
+    });
   });
 });
 
@@ -2387,10 +2338,9 @@ describe("toggleAdminFlagForTenant — contract", () => {
 
     await toggleAdminFlagForTenant("ff-1", "t-1", true);
 
-    expect(mockAxios.put).toHaveBeenCalledWith(
-      "/api/v1/admin/feature-flags/ff-1/tenants/t-1",
-      { enabled: true },
-    );
+    expect(mockAxios.put).toHaveBeenCalledWith("/api/v1/admin/feature-flags/ff-1/tenants/t-1", {
+      enabled: true,
+    });
   });
 });
 
@@ -2468,9 +2418,7 @@ describe("retryAdminJob — contract", () => {
 
     await retryAdminJob("job-1");
 
-    expect(mockAxios.post).toHaveBeenCalledWith(
-      "/api/v1/admin/jobs/job-1/retry",
-    );
+    expect(mockAxios.post).toHaveBeenCalledWith("/api/v1/admin/jobs/job-1/retry");
   });
 });
 
@@ -2679,9 +2627,7 @@ describe("saveAdminConfig — contract", () => {
 
 describe("validateAdminConfig — contract", () => {
   it("returns validation result", async () => {
-    mockAxios.post.mockResolvedValueOnce(
-      mockResponse({ valid: true, errors: [] }),
-    );
+    mockAxios.post.mockResolvedValueOnce(mockResponse({ valid: true, errors: [] }));
 
     const result = await validateAdminConfig("# Config");
 

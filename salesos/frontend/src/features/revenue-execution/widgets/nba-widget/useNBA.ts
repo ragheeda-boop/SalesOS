@@ -1,12 +1,6 @@
 import { useCallback } from "react";
-import {
-  useDecisionEvaluate,
-  useDecisionFeedback,
-} from "@/lib/decisionQueries";
-import type {
-  DecisionContext,
-  DecisionResult,
-} from "@salesos/decision-platform";
+import { useDecisionEvaluate, useDecisionFeedback } from "@/lib/decisionQueries";
+import type { DecisionContext, DecisionResult } from "@salesos/decision-platform";
 
 export type NBARecommendation = DecisionResult;
 
@@ -30,22 +24,21 @@ export function useNBA(opportunityId: string) {
     }
   }, [opportunityId, evaluateMutation]);
 
-  const refreshNBA =
-    useCallback(async (): Promise<NBARecommendation | null> => {
-      try {
-        const result = await evaluateMutation.mutateAsync({
-          context: {
-            tenantId: "",
-            actorId: "",
-            opportunityId,
-            entityType: "opportunity",
-          } as DecisionContext,
-        });
-        return result;
-      } catch {
-        return null;
-      }
-    }, [opportunityId, evaluateMutation]);
+  const refreshNBA = useCallback(async (): Promise<NBARecommendation | null> => {
+    try {
+      const result = await evaluateMutation.mutateAsync({
+        context: {
+          tenantId: "",
+          actorId: "",
+          opportunityId,
+          entityType: "opportunity",
+        } as DecisionContext,
+      });
+      return result;
+    } catch {
+      return null;
+    }
+  }, [opportunityId, evaluateMutation]);
 
   const acceptNBA = useCallback(
     async (nbaId: string) => {
@@ -54,7 +47,7 @@ export function useNBA(opportunityId: string) {
         outcome: "accepted",
       });
     },
-    [feedbackMutation],
+    [feedbackMutation]
   );
 
   const dismissNBA = useCallback(
@@ -65,7 +58,7 @@ export function useNBA(opportunityId: string) {
         reason,
       });
     },
-    [feedbackMutation],
+    [feedbackMutation]
   );
 
   return { getNBA, refreshNBA, acceptNBA, dismissNBA };

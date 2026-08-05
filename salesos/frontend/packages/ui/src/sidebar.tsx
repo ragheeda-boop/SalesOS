@@ -1,107 +1,121 @@
-"use client"
+"use client";
 
-import { useState, useCallback, useRef, useEffect, type ReactNode, type KeyboardEvent } from 'react'
-import { cn } from './utils'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  type ReactNode,
+  type KeyboardEvent,
+} from "react";
+import { cn } from "./utils";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface SidebarBadge {
-  count: number
-  variant?: 'default' | 'danger' | 'warning'
+  count: number;
+  variant?: "default" | "danger" | "warning";
 }
 
 interface SidebarItem {
-  icon?: ReactNode
-  label: string
-  href?: string
-  active?: boolean
-  badge?: SidebarBadge | number
-  children?: SidebarItem[]
+  icon?: ReactNode;
+  label: string;
+  href?: string;
+  active?: boolean;
+  badge?: SidebarBadge | number;
+  children?: SidebarItem[];
 }
 
 interface SidebarSection {
-  title?: string
-  items: SidebarItem[]
+  title?: string;
+  items: SidebarItem[];
 }
 
 interface SidebarProps {
-  sections?: SidebarSection[]
-  items?: SidebarItem[]
-  collapsed?: boolean
-  onToggle?: () => void
-  activePath?: string
-  className?: string
+  sections?: SidebarSection[];
+  items?: SidebarItem[];
+  collapsed?: boolean;
+  onToggle?: () => void;
+  activePath?: string;
+  className?: string;
 }
 
 function resolveBadge(badge?: SidebarBadge | number): SidebarBadge | undefined {
-  if (badge == null) return undefined
-  if (typeof badge === 'number') return { count: badge, variant: 'default' }
-  return badge
+  if (badge == null) return undefined;
+  if (typeof badge === "number") return { count: badge, variant: "default" };
+  return badge;
 }
 
 function isActive(item: SidebarItem, activePath?: string): boolean {
-  if (item.active) return true
-  if (activePath && item.href && activePath.startsWith(item.href)) return true
-  if (item.children) return item.children.some((c) => isActive(c, activePath))
-  return false
+  if (item.active) return true;
+  if (activePath && item.href && activePath.startsWith(item.href)) return true;
+  if (item.children) return item.children.some((c) => isActive(c, activePath));
+  return false;
 }
 
-export function Sidebar({ sections, items, collapsed = false, onToggle, activePath, className }: SidebarProps) {
-  const [focusedIndex, setFocusedIndex] = useState(-1)
-  const navRef = useRef<HTMLElement>(null)
+export function Sidebar({
+  sections,
+  items,
+  collapsed = false,
+  onToggle,
+  activePath,
+  className,
+}: SidebarProps) {
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const navRef = useRef<HTMLElement>(null);
 
-  const resolvedSections: SidebarSection[] = sections ?? (items ? [{ items }] : [])
-  const flatItems = resolvedSections.flatMap((s) => s.items)
+  const resolvedSections: SidebarSection[] = sections ?? (items ? [{ items }] : []);
+  const flatItems = resolvedSections.flatMap((s) => s.items);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (!flatItems.length) return
+      if (!flatItems.length) return;
       switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault()
-          setFocusedIndex((prev) => (prev + 1) % flatItems.length)
-          break
-        case 'ArrowUp':
-          e.preventDefault()
-          setFocusedIndex((prev) => (prev - 1 + flatItems.length) % flatItems.length)
-          break
-        case 'Enter':
-        case ' ':
-          e.preventDefault()
+        case "ArrowDown":
+          e.preventDefault();
+          setFocusedIndex((prev) => (prev + 1) % flatItems.length);
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setFocusedIndex((prev) => (prev - 1 + flatItems.length) % flatItems.length);
+          break;
+        case "Enter":
+        case " ":
+          e.preventDefault();
           if (focusedIndex >= 0 && focusedIndex < flatItems.length) {
-            const item = flatItems[focusedIndex]
+            const item = flatItems[focusedIndex];
             if (item.href) {
-              if (item.href.startsWith('http')) {
-                window.open(item.href, '_blank')
+              if (item.href.startsWith("http")) {
+                window.open(item.href, "_blank");
               } else {
-                window.location.href = item.href
+                window.location.href = item.href;
               }
             }
           }
-          break
+          break;
       }
     },
     [flatItems, focusedIndex]
-  )
+  );
 
   useEffect(() => {
     if (focusedIndex >= 0 && navRef.current) {
-      const items = navRef.current.querySelectorAll<HTMLButtonElement>('[data-sidebar-item]')
-      items[focusedIndex]?.focus()
+      const items = navRef.current.querySelectorAll<HTMLButtonElement>("[data-sidebar-item]");
+      items[focusedIndex]?.focus();
     }
-  }, [focusedIndex])
+  }, [focusedIndex]);
 
   return (
     <aside
       className={cn(
-        'flex flex-col border-r border-[var(--border-default)] bg-[var(--bg-primary)] transition-all duration-300 motion-reduce:transition-none rtl:border-l rtl:border-r-0',
-        collapsed ? 'w-sidebar-collapsed' : 'w-sidebar',
+        "flex flex-col border-r border-[var(--border-default)] bg-[var(--bg-primary)] transition-all duration-300 motion-reduce:transition-none rtl:border-l rtl:border-r-0",
+        collapsed ? "w-sidebar-collapsed" : "w-sidebar",
         className
       )}
       dir="auto"
     >
       <div className="flex h-14 items-center justify-end px-4 rtl:justify-start">
         <button
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           onClick={onToggle}
           className="rounded-md p-1 text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
         >
@@ -130,7 +144,7 @@ export function Sidebar({ sections, items, collapsed = false, onToggle, activePa
         ))}
       </nav>
     </aside>
-  )
+  );
 }
 
 function SidebarSectionComponent({
@@ -139,17 +153,17 @@ function SidebarSectionComponent({
   activePath,
   level,
 }: {
-  section: SidebarSection
-  collapsed: boolean
-  activePath?: string
-  level: number
+  section: SidebarSection;
+  collapsed: boolean;
+  activePath?: string;
+  level: number;
 }) {
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(true);
 
-  if (collapsed && level > 0) return null
+  if (collapsed && level > 0) return null;
 
   return (
-    <div className={cn(level > 0 && 'ml-3 rtl:ml-0 rtl:mr-3')}>
+    <div className={cn(level > 0 && "ml-3 rtl:ml-0 rtl:mr-3")}>
       {section.title && !collapsed && (
         <button
           onClick={() => setExpanded((p) => !p)}
@@ -159,14 +173,14 @@ function SidebarSectionComponent({
           <span className="flex-1 text-left">{section.title}</span>
           <ChevronRight
             className={cn(
-              'h-3 w-3 transition-transform motion-reduce:transition-none',
-              expanded && 'rotate-90'
+              "h-3 w-3 transition-transform motion-reduce:transition-none",
+              expanded && "rotate-90"
             )}
           />
         </button>
       )}
       {(expanded || collapsed) && (
-        <div className={cn('space-y-1', section.title && !collapsed && 'mt-1')}>
+        <div className={cn("space-y-1", section.title && !collapsed && "mt-1")}>
           {section.items.map((item, ii) => (
             <SidebarItemComponent
               key={ii}
@@ -179,7 +193,7 @@ function SidebarSectionComponent({
         </div>
       )}
     </div>
-  )
+  );
 }
 
 function SidebarItemComponent({
@@ -188,29 +202,29 @@ function SidebarItemComponent({
   activePath,
   level,
 }: {
-  item: SidebarItem
-  collapsed: boolean
-  activePath?: string
-  level: number
+  item: SidebarItem;
+  collapsed: boolean;
+  activePath?: string;
+  level: number;
 }) {
-  const [expanded, setExpanded] = useState(false)
-  const hasChildren = item.children && item.children.length > 0
-  const itemActive = isActive(item, activePath)
-  const badge = resolveBadge(item.badge)
+  const [expanded, setExpanded] = useState(false);
+  const hasChildren = item.children && item.children.length > 0;
+  const itemActive = isActive(item, activePath);
+  const badge = resolveBadge(item.badge);
 
-  if (level >= 3) return null
+  if (level >= 3) return null;
 
   const handleClick = () => {
     if (hasChildren) {
-      setExpanded((p) => !p)
+      setExpanded((p) => !p);
     } else if (item.href) {
-      if (item.href.startsWith('http')) {
-        window.open(item.href, '_blank')
+      if (item.href.startsWith("http")) {
+        window.open(item.href, "_blank");
       } else {
-        window.location.href = item.href
+        window.location.href = item.href;
       }
     }
-  }
+  };
 
   return (
     <div>
@@ -218,14 +232,14 @@ function SidebarItemComponent({
         data-sidebar-item
         onClick={handleClick}
         className={cn(
-          'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors motion-reduce:transition-none',
+          "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors motion-reduce:transition-none",
           itemActive
-            ? 'bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)]'
-            : 'text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]',
-          collapsed && 'justify-center px-2'
+            ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)]"
+            : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]",
+          collapsed && "justify-center px-2"
         )}
         tabIndex={0}
-        aria-current={itemActive ? 'page' : undefined}
+        aria-current={itemActive ? "page" : undefined}
         aria-expanded={hasChildren ? expanded : undefined}
         title={collapsed ? item.label : undefined}
         aria-label={collapsed ? item.label : undefined}
@@ -237,10 +251,11 @@ function SidebarItemComponent({
             {badge && (
               <span
                 className={cn(
-                  'inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium',
-                  badge.variant === 'danger' && 'bg-danger-500 text-white',
-                  badge.variant === 'warning' && 'bg-warning-500 text-white',
-                  (!badge.variant || badge.variant === 'default') && 'bg-[var(--muhide-orange)] text-white'
+                  "inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs font-medium",
+                  badge.variant === "danger" && "bg-danger-500 text-white",
+                  badge.variant === "warning" && "bg-warning-500 text-white",
+                  (!badge.variant || badge.variant === "default") &&
+                    "bg-[var(--muhide-orange)] text-white"
                 )}
               >
                 {badge.count}
@@ -249,8 +264,8 @@ function SidebarItemComponent({
             {hasChildren && (
               <ChevronRight
                 className={cn(
-                  'h-4 w-4 transition-transform motion-reduce:transition-none rtl:rotate-180',
-                  expanded && 'rotate-90 rtl:-rotate-90'
+                  "h-4 w-4 transition-transform motion-reduce:transition-none rtl:rotate-180",
+                  expanded && "rotate-90 rtl:-rotate-90"
                 )}
               />
             )}
@@ -281,5 +296,5 @@ function SidebarItemComponent({
         </div>
       )}
     </div>
-  )
+  );
 }

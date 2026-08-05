@@ -51,8 +51,6 @@ describe("TenantBrandMark — FE-S10-07b", () => {
       isError: false,
     });
     render(createElement(TenantBrandMark));
-    expect(screen.getByTestId("tenant-brand-name").textContent).toBe(
-      "Acme Tenant",
-    );
+    expect(screen.getByTestId("tenant-brand-name").textContent).toBe("Acme Tenant");
   });
 });

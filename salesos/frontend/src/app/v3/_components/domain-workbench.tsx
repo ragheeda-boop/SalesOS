@@ -29,17 +29,11 @@ export function DomainWorkbench({
   onSectionChange?: (id: string) => void;
 }) {
   const initial =
-    defaultId && sections.some((s) => s.id === defaultId)
-      ? defaultId
-      : sections[0]?.id;
+    defaultId && sections.some((s) => s.id === defaultId) ? defaultId : sections[0]?.id;
   const [activeId, setActiveId] = useState(initial ?? "");
 
   useEffect(() => {
-    if (
-      defaultId &&
-      sections.some((s) => s.id === defaultId) &&
-      defaultId !== activeId
-    ) {
+    if (defaultId && sections.some((s) => s.id === defaultId) && defaultId !== activeId) {
       setActiveId(defaultId);
     }
     // Sync external default (URL) into local selection.
@@ -74,7 +68,7 @@ export function DomainWorkbench({
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]",
                 selected
                   ? "bg-[var(--muhide-orange)]/10 font-medium text-[var(--muhide-orange)]"
-                  : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]",
+                  : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
               )}
             >
               {section.label}
@@ -101,16 +95,12 @@ export function DomainWorkbench({
               </span>
             ) : null}
           </div>
-          <p className="text-sm text-[var(--text-secondary)]">
-            {active.description}
-          </p>
+          <p className="text-sm text-[var(--text-secondary)]">{active.description}</p>
         </div>
 
         <div className="pt-4">
           {active.body ?? (
-            <p className="text-sm leading-relaxed text-[var(--text-muted)]">
-              {emptyHint}
-            </p>
+            <p className="text-sm leading-relaxed text-[var(--text-muted)]">{emptyHint}</p>
           )}
         </div>
       </section>

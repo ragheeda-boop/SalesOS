@@ -21,158 +21,156 @@ describe("registerBuiltinCommands", () => {
     registerBuiltinCommands(mockRouter);
 
     const dashboardCall = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.dashboard",
+      (c: any) => c[0].id === "go.dashboard"
     );
     dashboardCall[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/dashboard");
 
     const integrationsCall = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.integrations",
+      (c: any) => c[0].id === "go.integrations"
     );
     expect(integrationsCall).toBeTruthy();
     integrationsCall[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/integrations");
     const monitorCall = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.integrations.monitor",
+      (c: any) => c[0].id === "go.integrations.monitor"
     );
     expect(monitorCall).toBeTruthy();
     monitorCall[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/integrations?step=monitor");
     const conflictCall = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.integrations.conflict",
+      (c: any) => c[0].id === "go.integrations.conflict"
     );
     expect(conflictCall).toBeTruthy();
     conflictCall[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/integrations?step=conflict");
 
     const studioWorkflows = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.workflows",
+      (c: any) => c[0].id === "go.studio.workflows"
     );
     expect(studioWorkflows).toBeTruthy();
     studioWorkflows[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/studio/workflows");
 
     const studioNotifications = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.notifications",
+      (c: any) => c[0].id === "go.studio.notifications"
     );
     expect(studioNotifications).toBeTruthy();
     studioNotifications[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/studio/notifications");
 
     const studioBranding = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.branding",
+      (c: any) => c[0].id === "go.studio.branding"
     );
     expect(studioBranding).toBeTruthy();
     studioBranding[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/studio/branding");
 
     const studioTerritories = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.territories",
+      (c: any) => c[0].id === "go.studio.territories"
     );
     expect(studioTerritories).toBeTruthy();
     studioTerritories[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/studio/territories");
 
     const studioAiTiers = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.ai-model-tiers",
+      (c: any) => c[0].id === "go.studio.ai-model-tiers"
     );
     expect(studioAiTiers).toBeTruthy();
     studioAiTiers[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/studio/ai-model-tiers");
 
     const studioPromptLibrary = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.prompt-library",
+      (c: any) => c[0].id === "go.studio.prompt-library"
     );
     expect(studioPromptLibrary).toBeTruthy();
     studioPromptLibrary[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/studio/prompt-library");
 
     const studioAiPolicies = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.ai-policies",
+      (c: any) => c[0].id === "go.studio.ai-policies"
     );
     expect(studioAiPolicies).toBeTruthy();
     studioAiPolicies[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/studio/ai-policies");
 
     const studioAiMemory = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.studio.ai-memory",
+      (c: any) => c[0].id === "go.studio.ai-memory"
     );
     expect(studioAiMemory).toBeTruthy();
     studioAiMemory[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/studio/ai-memory");
 
     const marketplaceListings = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.marketplace.listings",
+      (c: any) => c[0].id === "go.marketplace.listings"
     );
     expect(marketplaceListings).toBeTruthy();
     marketplaceListings[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/marketplace/listings");
 
-    const gtmHub = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm",
-    );
+    const gtmHub = (registerCommand as jest.Mock).mock.calls.find((c: any) => c[0].id === "go.gtm");
     expect(gtmHub).toBeTruthy();
     gtmHub[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/gtm");
 
     const gtmIcp = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.icp",
+      (c: any) => c[0].id === "go.gtm.icp"
     );
     expect(gtmIcp).toBeTruthy();
     gtmIcp[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/gtm/icp");
 
     const gtmMarketSizing = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.market-sizing",
+      (c: any) => c[0].id === "go.gtm.market-sizing"
     );
     expect(gtmMarketSizing).toBeTruthy();
     gtmMarketSizing[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/gtm/market-sizing");
 
     const gtmLeadDiscovery = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.lead-discovery",
+      (c: any) => c[0].id === "go.gtm.lead-discovery"
     );
     expect(gtmLeadDiscovery).toBeTruthy();
     gtmLeadDiscovery[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/gtm/lead-discovery");
 
     const gtmEnrichment = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.enrichment",
+      (c: any) => c[0].id === "go.gtm.enrichment"
     );
     expect(gtmEnrichment).toBeTruthy();
     gtmEnrichment[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/gtm/enrichment");
 
     const gtmWebsiteIntel = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.website-intelligence",
+      (c: any) => c[0].id === "go.gtm.website-intelligence"
     );
     expect(gtmWebsiteIntel).toBeTruthy();
     gtmWebsiteIntel[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/gtm/website-intelligence");
 
     const gtmOutreach = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.outreach",
+      (c: any) => c[0].id === "go.gtm.outreach"
     );
     expect(gtmOutreach).toBeTruthy();
     gtmOutreach[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/gtm/outreach");
 
     const gtmVerification = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.verification",
+      (c: any) => c[0].id === "go.gtm.verification"
     );
     expect(gtmVerification).toBeTruthy();
     gtmVerification[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/gtm/verification");
 
     const gtmLookalikes = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.lookalikes",
+      (c: any) => c[0].id === "go.gtm.lookalikes"
     );
     expect(gtmLookalikes).toBeTruthy();
     gtmLookalikes[0].handler();
     expect(mockRouter.push).toHaveBeenCalledWith("/gtm/lookalikes");
 
     const gtmSequences = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "go.gtm.sequences",
+      (c: any) => c[0].id === "go.gtm.sequences"
     );
     expect(gtmSequences).toBeTruthy();
     gtmSequences[0].handler();
@@ -185,11 +183,11 @@ describe("registerBuiltinCommands", () => {
     registerBuiltinCommands(mockRouter);
 
     const copilotCall = (registerCommand as jest.Mock).mock.calls.find(
-      (c: any) => c[0].id === "action.copilot",
+      (c: any) => c[0].id === "action.copilot"
     );
     copilotCall[0].handler();
     expect(dispatchSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "salesos:toggle-copilot" }),
+      expect.objectContaining({ type: "salesos:toggle-copilot" })
     );
   });
 });

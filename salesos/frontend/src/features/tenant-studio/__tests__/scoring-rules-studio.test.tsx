@@ -48,15 +48,9 @@ jest.mock("@salesos/ui", () => ({
 describe("ScoringRulesStudio — FE-S10-04", () => {
   it("lists tip rules and shows fail-safe honesty", () => {
     render(<ScoringRulesStudio />);
-    expect(screen.getByTestId("scoring-rules-honesty")).toHaveTextContent(
-      /fail-safe/i,
-    );
-    expect(screen.getByTestId("scoring-rules-honesty")).toHaveTextContent(
-      /in-memory/i,
-    );
-    expect(screen.getByTestId("scoring-rules-row")).toHaveTextContent(
-      "Heavy intent",
-    );
+    expect(screen.getByTestId("scoring-rules-honesty")).toHaveTextContent(/fail-safe/i);
+    expect(screen.getByTestId("scoring-rules-honesty")).toHaveTextContent(/in-memory/i);
+    expect(screen.getByTestId("scoring-rules-row")).toHaveTextContent("Heavy intent");
   });
 
   it("submits tip POST upsert payload", async () => {
@@ -74,7 +68,7 @@ describe("ScoringRulesStudio — FE-S10-04", () => {
             buying_intent: expect.any(Number),
           }),
         }),
-        expect.any(Object),
+        expect.any(Object)
       );
     });
   });
@@ -90,7 +84,7 @@ describe("ScoringRulesStudio — FE-S10-04", () => {
             buying_intent: 80,
           }),
         }),
-        expect.any(Object),
+        expect.any(Object)
       );
     });
   });

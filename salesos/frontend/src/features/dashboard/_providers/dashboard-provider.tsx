@@ -1,17 +1,8 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useMemo,
-  useEffect,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useMemo, useEffect, type ReactNode } from "react";
 import { useDashboard } from "@/application/dashboard/useDashboard";
-import {
-  deriveWidgets,
-  type WidgetMap,
-} from "@/application/dashboard/widget.store";
+import { deriveWidgets, type WidgetMap } from "@/application/dashboard/widget.store";
 import { dashboardTelemetry } from "../_telemetry/dashboard-telemetry";
 import { setDashboardDependencies } from "@salesos/widget-sdk";
 import { getWidgetConfig } from "@/features/dashboard/_registry/widget-config";
@@ -42,13 +33,10 @@ export function useDashboardContext(): DashboardContextValue {
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const { data, isLoading, isError, error, refetch } = useDashboard();
-  const telemetry = useMemo(
-    () => dashboardTelemetry.start("dashboard.load"),
-    [],
-  );
+  const telemetry = useMemo(() => dashboardTelemetry.start("dashboard.load"), []);
   const widgets = useMemo(
     () => deriveWidgets(data, isLoading, isError),
-    [data, isLoading, isError],
+    [data, isLoading, isError]
   );
 
   useMemo(() => {
@@ -57,20 +45,14 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<DashboardContextValue>(
     () => ({ widgets, isLoading, isError, error, refetch }),
-    [widgets, isLoading, isError, error, refetch],
+    [widgets, isLoading, isError, error, refetch]
   );
 
   useEffect(() => {
     setDashboardDependencies(useDashboardContext, (id: string) =>
-      getWidgetConfig(
-        id as import("@/features/dashboard/_registry/widget-config").WidgetId,
-      ),
+      getWidgetConfig(id as import("@/features/dashboard/_registry/widget-config").WidgetId)
     );
   }, []);
 
-  return (
-    <DashboardContext.Provider value={value}>
-      {children}
-    </DashboardContext.Provider>
-  );
+  return <DashboardContext.Provider value={value}>{children}</DashboardContext.Provider>;
 }

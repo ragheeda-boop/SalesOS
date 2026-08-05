@@ -1,30 +1,14 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  type DragEvent,
-} from "react";
+import { useState, useEffect, useCallback, useMemo, type DragEvent } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { cn, Badge, Avatar, Button } from "@salesos/ui";
 import { MetricCard } from "@salesos/charts";
-import {
-  DollarSign,
-  TrendingUp,
-  Clock,
-  Target,
-  GripVertical,
-} from "lucide-react";
+import { DollarSign, TrendingUp, Clock, Target, GripVertical } from "lucide-react";
 import type { Opportunity } from "@/lib/api";
 import { safeArray } from "@/lib/utils";
-import {
-  useAdvanceOpportunity,
-  useCloseWon,
-  useCloseLost,
-} from "@/lib/hooks/opportunityQueries";
+import { useAdvanceOpportunity, useCloseWon, useCloseLost } from "@/lib/hooks/opportunityQueries";
 
 interface HealthMapItem {
   opportunity_id: string;
@@ -64,10 +48,7 @@ const STAGE_ORDER = [
 ] as const;
 type StageKey = (typeof STAGE_ORDER)[number];
 
-const STAGE_CONFIG: Record<
-  StageKey,
-  { label: string; color: string; dot: string; bg: string }
-> = {
+const STAGE_CONFIG: Record<StageKey, { label: string; color: string; dot: string; bg: string }> = {
   lead: {
     label: "Lead",
     color: "bg-blue-500",
@@ -119,9 +100,7 @@ function daysSince(dateStr?: string): number {
   return Math.floor((now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-function scoreBadgeVariant(
-  score: number,
-): "success" | "warning" | "danger" | "outline" {
+function scoreBadgeVariant(score: number): "success" | "warning" | "danger" | "outline" {
   if (score >= 80) return "success";
   if (score >= 60) return "warning";
   if (score >= 40) return "outline";
@@ -163,7 +142,7 @@ export function DealCard({
       onDragEnd={handleDragEnd}
       className={cn(
         "group cursor-grab rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-3 shadow-sm transition-all hover:shadow-md active:cursor-grabbing",
-        dragging && "opacity-50 ring-2 ring-[var(--muhide-orange)]/50",
+        dragging && "opacity-50 ring-2 ring-[var(--muhide-orange)]/50"
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -171,16 +150,11 @@ export function DealCard({
           <GripVertical className="h-3 w-3" />
         </div>
         {score != null ? (
-          <Badge
-            variant={scoreBadgeVariant(score)}
-            className="shrink-0 text-[10px] px-1.5 py-0"
-          >
+          <Badge variant={scoreBadgeVariant(score)} className="shrink-0 text-[10px] px-1.5 py-0">
             {score}
           </Badge>
         ) : (
-          <span className="shrink-0 text-[10px] text-[var(--text-muted)]">
-            —
-          </span>
+          <span className="shrink-0 text-[10px] text-[var(--text-muted)]">—</span>
         )}
       </div>
 
@@ -224,8 +198,7 @@ export function DealCard({
         <span
           className={cn(
             "h-1.5 w-full rounded-full",
-            STAGE_CONFIG[opportunity.stage as StageKey]?.color ??
-              "bg-neutral-300",
+            STAGE_CONFIG[opportunity.stage as StageKey]?.color ?? "bg-neutral-300"
           )}
         />
       </div>
@@ -272,22 +245,17 @@ function PipelineColumn({
       className={cn(
         "flex w-[280px] shrink-0 flex-col rounded-xl border bg-[var(--bg-secondary)]/80 transition-colors",
         config.bg,
-        dragOver &&
-          "ring-2 ring-[var(--muhide-orange)]/30 bg-[var(--muhide-orange)]/5",
+        dragOver && "ring-2 ring-[var(--muhide-orange)]/30 bg-[var(--muhide-orange)]/5"
       )}
     >
       <div className="flex items-center gap-2 border-b border-[var(--border-default)] px-3 py-2.5">
         <span className={cn("h-2.5 w-2.5 rounded-full", config.dot)} />
-        <span className="text-sm font-semibold text-[var(--text-primary)]">
-          {config.label}
-        </span>
+        <span className="text-sm font-semibold text-[var(--text-primary)]">{config.label}</span>
         <div className="mr-auto flex items-center gap-1.5">
           <Badge variant="outline" className="text-[10px]">
             {opportunities.length}
           </Badge>
-          <span className="text-[10px] text-[var(--text-muted)]">
-            {formatCurrency(totalValue)}
-          </span>
+          <span className="text-[10px] text-[var(--text-muted)]">{formatCurrency(totalValue)}</span>
         </div>
       </div>
 
@@ -296,9 +264,7 @@ function PipelineColumn({
           <DealCard
             key={opp.id}
             opportunity={opp}
-            healthScore={
-              healthMap.find((h) => h.opportunity_id === opp.id)?.health_score
-            }
+            healthScore={healthMap.find((h) => h.opportunity_id === opp.id)?.health_score}
           />
         ))}
         {opportunities.length === 0 && (
@@ -327,21 +293,16 @@ export function PipelineWorkspace() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [oppsRes, healthRes, forecastRes, analyticsRes] =
-          await Promise.allSettled([
-            api.get("/api/v1/opportunities", { params: { limit: 500 } }),
-            api.get("/api/v1/pipeline/health"),
-            api.get("/api/v1/pipeline/forecast"),
-            api.get("/api/v1/pipeline/analytics"),
-          ]);
-        if (oppsRes.status === "fulfilled")
-          setOpportunities(safeArray(oppsRes.value.data));
-        if (healthRes.status === "fulfilled")
-          setHealthMap(safeArray(healthRes.value.data));
-        if (forecastRes.status === "fulfilled")
-          setForecast(forecastRes.value.data);
-        if (analyticsRes.status === "fulfilled")
-          setAnalytics(analyticsRes.value.data);
+        const [oppsRes, healthRes, forecastRes, analyticsRes] = await Promise.allSettled([
+          api.get("/api/v1/opportunities", { params: { limit: 500 } }),
+          api.get("/api/v1/pipeline/health"),
+          api.get("/api/v1/pipeline/forecast"),
+          api.get("/api/v1/pipeline/analytics"),
+        ]);
+        if (oppsRes.status === "fulfilled") setOpportunities(safeArray(oppsRes.value.data));
+        if (healthRes.status === "fulfilled") setHealthMap(safeArray(healthRes.value.data));
+        if (forecastRes.status === "fulfilled") setForecast(forecastRes.value.data);
+        if (analyticsRes.status === "fulfilled") setAnalytics(analyticsRes.value.data);
       } finally {
         setLoading(false);
       }
@@ -380,9 +341,7 @@ export function PipelineWorkspace() {
 
       // Optimistic update
       const previousOpportunities = [...opportunities];
-      setOpportunities((prev) =>
-        prev.map((o) => (o.id === oppId ? { ...o, stage: toStage } : o)),
-      );
+      setOpportunities((prev) => prev.map((o) => (o.id === oppId ? { ...o, stage: toStage } : o)));
 
       // API call
       advanceOpp.mutate(
@@ -392,10 +351,10 @@ export function PipelineWorkspace() {
             // Rollback on failure
             setOpportunities(previousOpportunities);
           },
-        },
+        }
       );
     },
-    [opportunities, advanceOpp, closeWon, closeLost],
+    [opportunities, advanceOpp, closeWon, closeLost]
   );
 
   if (loading) {
@@ -409,10 +368,7 @@ export function PipelineWorkspace() {
         </div>
         <div className="flex gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div
-              key={i}
-              className="h-96 w-[280px] shrink-0 rounded-xl bg-[var(--bg-tertiary)]"
-            />
+            <div key={i} className="h-96 w-[280px] shrink-0 rounded-xl bg-[var(--bg-tertiary)]" />
           ))}
         </div>
       </div>
@@ -420,7 +376,7 @@ export function PipelineWorkspace() {
   }
 
   const openOpps = opportunities.filter(
-    (o) => !["closed_won", "closed_lost"].includes(o.stage || ""),
+    (o) => !["closed_won", "closed_lost"].includes(o.stage || "")
   );
   const totalValue = openOpps.reduce((sum, o) => sum + (o.value ?? 0), 0);
   const wonOpps = opportunities.filter((o) => o.stage === "closed_won");
@@ -439,9 +395,7 @@ export function PipelineWorkspace() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">
-            Pipeline
-          </h1>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]">Pipeline</h1>
           <p className="text-sm text-[var(--text-muted)]">
             {openOpps.length} open deals &middot;{""}
             <span className="font-semibold text-[var(--text-primary)]">
@@ -463,7 +417,7 @@ export function PipelineWorkspace() {
                 "px-3 py-1.5 text-sm transition-colors",
                 view === "kanban"
                   ? "bg-[var(--muhide-orange)] text-white"
-                  : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+                  : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
               )}
             >
               Board
@@ -474,7 +428,7 @@ export function PipelineWorkspace() {
                 "px-3 py-1.5 text-sm transition-colors",
                 view === "list"
                   ? "bg-[var(--muhide-orange)] text-white"
-                  : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+                  : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
               )}
             >
               Table
@@ -490,21 +444,12 @@ export function PipelineWorkspace() {
           value={formatCurrency(totalValue)}
           icon={<DollarSign className="h-4 w-4" />}
         />
-        <MetricCard
-          label="Win Rate"
-          value={`${winRate}%`}
-          icon={<Target className="h-4 w-4" />}
-        />
+        <MetricCard label="Win Rate" value={`${winRate}%`} icon={<Target className="h-4 w-4" />} />
         <MetricCard
           label="Avg Deal Size"
-          value={formatCurrency(
-            openOpps.length > 0 ? totalValue / openOpps.length : 0,
-          )}
+          value={formatCurrency(openOpps.length > 0 ? totalValue / openOpps.length : 0)}
         />
-        <MetricCard
-          label="Weighted"
-          value={formatCurrency(forecast?.commit ?? totalValue * 0.5)}
-        />
+        <MetricCard label="Weighted" value={formatCurrency(forecast?.commit ?? totalValue * 0.5)} />
       </div>
 
       {/* Health Map */}
@@ -512,21 +457,15 @@ export function PipelineWorkspace() {
         <div className="flex items-center gap-4 px-1">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            <span className="text-xs text-[var(--text-secondary)]">
-              {healthyCount} Healthy
-            </span>
+            <span className="text-xs text-[var(--text-secondary)]">{healthyCount} Healthy</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-            <span className="text-xs text-[var(--text-secondary)]">
-              {atRiskCount} At Risk
-            </span>
+            <span className="text-xs text-[var(--text-secondary)]">{atRiskCount} At Risk</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-            <span className="text-xs text-[var(--text-secondary)]">
-              {criticalCount} Critical
-            </span>
+            <span className="text-xs text-[var(--text-secondary)]">{criticalCount} Critical</span>
           </div>
         </div>
       )}
@@ -572,11 +511,8 @@ export function PipelineWorkspace() {
             </thead>
             <tbody>
               {opportunities.map((opp) => {
-                const score = healthMap.find(
-                  (h) => h.opportunity_id === opp.id,
-                )?.health_score;
-                const stageConfig =
-                  STAGE_CONFIG[(opp.stage || "lead") as StageKey];
+                const score = healthMap.find((h) => h.opportunity_id === opp.id)?.health_score;
+                const stageConfig = STAGE_CONFIG[(opp.stage || "lead") as StageKey];
                 return (
                   <tr
                     key={opp.id}
@@ -603,7 +539,7 @@ export function PipelineWorkspace() {
                         <span
                           className={cn(
                             "h-2 w-2 rounded-full",
-                            stageConfig?.dot ?? "bg-neutral-300",
+                            stageConfig?.dot ?? "bg-neutral-300"
                           )}
                         />
                         <span className="text-[var(--text-secondary)]">
@@ -616,24 +552,17 @@ export function PipelineWorkspace() {
                     </td>
                     <td className="px-4 py-3">
                       {score != null ? (
-                        <Badge
-                          variant={scoreBadgeVariant(score)}
-                          className="text-[10px]"
-                        >
+                        <Badge variant={scoreBadgeVariant(score)} className="text-[10px]">
                           {score}
                         </Badge>
                       ) : (
-                        <span className="text-[10px] text-[var(--text-muted)]">
-                          —
-                        </span>
+                        <span className="text-[10px] text-[var(--text-muted)]">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       <Avatar
                         alt={opp.owner_id ?? "Owner"}
-                        fallback={(opp.owner_id ?? "U")
-                          .slice(0, 2)
-                          .toUpperCase()}
+                        fallback={(opp.owner_id ?? "U").slice(0, 2).toUpperCase()}
                         size="sm"
                         className="h-7 w-7"
                       />
@@ -643,10 +572,7 @@ export function PipelineWorkspace() {
               })}
               {opportunities.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-12 text-center text-[var(--text-muted)]"
-                  >
+                  <td colSpan={6} className="px-4 py-12 text-center text-[var(--text-muted)]">
                     No deals in pipeline
                   </td>
                 </tr>

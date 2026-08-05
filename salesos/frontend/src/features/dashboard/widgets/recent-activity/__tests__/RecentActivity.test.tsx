@@ -62,9 +62,7 @@ describeWidgetContract({
       permissions: ["activity:read"],
       featureFlag: { enabled: true },
     },
-    render: ({ data }) => (
-      <RecentActivityView items={data.items ?? []} total={data.total ?? 0} />
-    ),
+    render: ({ data }) => <RecentActivityView items={data.items ?? []} total={data.total ?? 0} />,
   },
 });
 
@@ -74,14 +72,10 @@ describe("RecentActivityView", () => {
   // 1. Rendering
   it("renders all activity items", () => {
     renderView();
-    expect(
-      screen.getByText("إشارة مناقصة جديدة من أرامكو"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("إشارة مناقصة جديدة من أرامكو")).toBeInTheDocument();
     expect(screen.getByText("قرار تمديد العقد مع سابك")).toBeInTheDocument();
     expect(screen.getByText("تحديث بيانات الاتصال للشركة")).toBeInTheDocument();
-    expect(
-      screen.getByText("ملاحظة: اجتماع مع فريق المبيعات"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("ملاحظة: اجتماع مع فريق المبيعات")).toBeInTheDocument();
   });
 
   it("renders company names", () => {
@@ -96,7 +90,7 @@ describe("RecentActivityView", () => {
     renderView();
     const icons = document.querySelectorAll('[aria-hidden="true"]');
     const activityIcons = Array.from(icons).filter((el) =>
-      ["📡", "⚡", "🔄", "📝"].includes(el.textContent ?? ""),
+      ["📡", "⚡", "🔄", "📝"].includes(el.textContent ?? "")
     );
     expect(activityIcons.length).toBe(4);
   });
@@ -112,7 +106,7 @@ describe("RecentActivityView", () => {
   it("renders timestamps", () => {
     renderView();
     const timestamps = document.querySelectorAll(
-      '[class*="flex items-center gap-2 text-xs"] span:last-child',
+      '[class*="flex items-center gap-2 text-xs"] span:last-child'
     );
     expect(timestamps.length).toBeGreaterThanOrEqual(1);
     expect(timestamps[0].textContent).toContain("·");
@@ -183,9 +177,7 @@ describe("RecentActivityView", () => {
   // 5. Accessibility
   it('has role="region" with aria-label', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "النشاطات الحديثة" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "النشاطات الحديثة" })).toBeInTheDocument();
   });
 
   it('has role="list" and role="listitem"', () => {
@@ -197,13 +189,9 @@ describe("RecentActivityView", () => {
   it("each item has descriptive aria-label", () => {
     renderView({ onItemClick: jest.fn() });
     expect(
-      screen.getByLabelText(
-        /إشارة مناقصة جديدة من أرامكو - أرامكو السعودية - إشارة/,
-      ),
+      screen.getByLabelText(/إشارة مناقصة جديدة من أرامكو - أرامكو السعودية - إشارة/)
     ).toBeInTheDocument();
-    expect(
-      screen.getByLabelText(/قرار تمديد العقد مع سابك - سابك - قرار/),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/قرار تمديد العقد مع سابك - سابك - قرار/)).toBeInTheDocument();
   });
 
   it('non-clickable items do not have role="button"', () => {
@@ -232,8 +220,7 @@ describe("RecentActivityWidget (SDK integration)", () => {
   it("is a valid React component", () => {
     expect(RecentActivityWidget).toBeDefined();
     expect(
-      typeof RecentActivityWidget === "function" ||
-        typeof RecentActivityWidget === "object",
+      typeof RecentActivityWidget === "function" || typeof RecentActivityWidget === "object"
     ).toBe(true);
   });
 });

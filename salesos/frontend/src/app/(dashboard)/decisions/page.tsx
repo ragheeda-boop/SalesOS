@@ -78,10 +78,7 @@ const STATUS_OPTIONS = [
   { label: "Dismissed", value: "dismissed" },
 ];
 
-const DOMAIN_VARIANT: Record<
-  string,
-  "success" | "warning" | "danger" | "default" | "primary"
-> = {
+const DOMAIN_VARIANT: Record<string, "success" | "warning" | "danger" | "default" | "primary"> = {
   company: "primary",
   opportunity: "success",
   scoring: "warning",
@@ -91,10 +88,7 @@ const DOMAIN_VARIANT: Record<
   crm: "success",
 };
 
-const STATUS_VARIANT: Record<
-  string,
-  "success" | "warning" | "danger" | "default" | "primary"
-> = {
+const STATUS_VARIANT: Record<string, "success" | "warning" | "danger" | "default" | "primary"> = {
   pending: "warning",
   accepted: "success",
   executed: "primary",
@@ -136,11 +130,7 @@ function ConfidenceGauge({ value }: { value: number }) {
         <div
           className={cn(
             "h-full rounded-full",
-            pct >= 80
-              ? "bg-green-500"
-              : pct >= 50
-                ? "bg-yellow-500"
-                : "bg-red-500",
+            pct >= 80 ? "bg-green-500" : pct >= 50 ? "bg-yellow-500" : "bg-red-500"
           )}
           style={{ width: `${pct}%` }}
         />
@@ -163,13 +153,7 @@ function formatDate(dateStr: string): string {
   }
 }
 
-function AuditTrailPanel({
-  decisionId,
-  onClose,
-}: {
-  decisionId: string;
-  onClose: () => void;
-}) {
+function AuditTrailPanel({ decisionId, onClose }: { decisionId: string; onClose: () => void }) {
   const { t } = useTranslation();
   const { data: audit, isLoading } = useDecisionExplain(decisionId);
 
@@ -205,9 +189,7 @@ function AuditTrailPanel({
               <p className="text-xs font-medium text-[var(--text-muted)] mb-1">
                 {t("decisions.summary")}
               </p>
-              <p className="text-sm text-[var(--text-secondary)]">
-                {audit.summary}
-              </p>
+              <p className="text-sm text-[var(--text-secondary)]">{audit.summary}</p>
             </div>
           )}
 
@@ -230,7 +212,7 @@ function AuditTrailPanel({
                             ? "bg-red-500"
                             : f.impact === "medium"
                               ? "bg-yellow-500"
-                              : "bg-green-500",
+                              : "bg-green-500"
                         )}
                         style={{
                           width: `${Math.round((f.value ?? 0) * 100)}%`,
@@ -251,9 +233,7 @@ function AuditTrailPanel({
               <p className="text-xs font-medium text-[var(--text-muted)] mb-1">
                 {t("decisions.why")}
               </p>
-              <p className="text-sm text-[var(--text-secondary)]">
-                {audit.why}
-              </p>
+              <p className="text-sm text-[var(--text-secondary)]">{audit.why}</p>
             </div>
           )}
 
@@ -262,16 +242,12 @@ function AuditTrailPanel({
               <p className="text-xs font-medium text-[var(--text-muted)] mb-1">
                 {t("decisions.expected_impact")}
               </p>
-              <p className="text-sm text-[var(--text-secondary)]">
-                {audit.expectedImpact}
-              </p>
+              <p className="text-sm text-[var(--text-secondary)]">{audit.expectedImpact}</p>
             </div>
           )}
         </div>
       ) : (
-        <p className="text-sm text-[var(--text-muted)]">
-          {t("decisions.no_audit_data")}
-        </p>
+        <p className="text-sm text-[var(--text-muted)]">{t("decisions.no_audit_data")}</p>
       )}
     </div>
   );
@@ -290,9 +266,7 @@ function FeedbackModal({
 }) {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const [outcome, setOutcome] = useState<"accepted" | "rejected" | "ignored">(
-    "accepted",
-  );
+  const [outcome, setOutcome] = useState<"accepted" | "rejected" | "ignored">("accepted");
   const [reason, setReason] = useState("");
   const [revenueImpact, setRevenueImpact] = useState("");
 
@@ -314,17 +288,7 @@ function FeedbackModal({
     } catch {
       toast({ variant: "error", title: t("decisions.feedback_failed") });
     }
-  }, [
-    decisionId,
-    outcome,
-    reason,
-    revenueImpact,
-    submitFeedback,
-    toast,
-    t,
-    onSubmitted,
-    onClose,
-  ]);
+  }, [decisionId, outcome, reason, revenueImpact, submitFeedback, toast, t, onSubmitted, onClose]);
 
   return (
     <Modal open={open} onOpenChange={onClose}>
@@ -367,7 +331,7 @@ function FeedbackModal({
                       "flex items-center gap-2 rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all",
                       outcome === opt.value
                         ? opt.color
-                        : "border-[var(--border-default)] text-[var(--text-muted)]",
+                        : "border-[var(--border-default)] text-[var(--text-muted)]"
                     )}
                   >
                     <opt.icon className="h-4 w-4" />
@@ -412,14 +376,10 @@ function FeedbackModal({
             onClick={handleSubmit}
             disabled={submitFeedback.isPending}
             leftIcon={
-              submitFeedback.isPending ? (
-                <RefreshCw className="h-4 w-4 animate-spin" />
-              ) : undefined
+              submitFeedback.isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : undefined
             }
           >
-            {submitFeedback.isPending
-              ? t("common.saving")
-              : t("decisions.submit_feedback")}
+            {submitFeedback.isPending ? t("common.saving") : t("decisions.submit_feedback")}
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -472,25 +432,18 @@ export default function DecisionCenterPage() {
         (d) =>
           d.action?.toLowerCase().includes(q) ||
           d.entity_id?.toLowerCase().includes(q) ||
-          d.reasoning?.toLowerCase().includes(q),
+          d.reasoning?.toLowerCase().includes(q)
       );
     }
     if (domainFilter)
-      items = items.filter(
-        (d) => d.domain === domainFilter || d.entity_type === domainFilter,
-      );
+      items = items.filter((d) => d.domain === domainFilter || d.entity_type === domainFilter);
     if (typeFilter) items = items.filter((d) => d.type === typeFilter);
     if (statusFilter) items = items.filter((d) => d.status === statusFilter);
     if (confidenceMin)
-      items = items.filter(
-        (d) => (d.confidence ?? d.score ?? 0) >= Number(confidenceMin) / 100,
-      );
+      items = items.filter((d) => (d.confidence ?? d.score ?? 0) >= Number(confidenceMin) / 100);
     if (confidenceMax)
-      items = items.filter(
-        (d) => (d.confidence ?? d.score ?? 0) <= Number(confidenceMax) / 100,
-      );
-    if (dateFrom)
-      items = items.filter((d) => new Date(d.created_at) >= dateFrom);
+      items = items.filter((d) => (d.confidence ?? d.score ?? 0) <= Number(confidenceMax) / 100);
+    if (dateFrom) items = items.filter((d) => new Date(d.created_at) >= dateFrom);
     if (dateTo) items = items.filter((d) => new Date(d.created_at) <= dateTo);
 
     return items;
@@ -508,7 +461,7 @@ export default function DecisionCenterPage() {
 
   const totalPages = useMemo(
     () => Math.max(1, Math.ceil(decisions.length / pageSize)),
-    [decisions.length, pageSize],
+    [decisions.length, pageSize]
   );
   const pagedDecisions = useMemo(() => {
     const start = (page - 1) * pageSize;
@@ -526,15 +479,7 @@ export default function DecisionCenterPage() {
         dateFrom,
         dateTo,
       ].filter(Boolean).length,
-    [
-      domainFilter,
-      typeFilter,
-      statusFilter,
-      confidenceMin,
-      confidenceMax,
-      dateFrom,
-      dateTo,
-    ],
+    [domainFilter, typeFilter, statusFilter, confidenceMin, confidenceMax, dateFrom, dateTo]
   );
 
   const clearFilters = useCallback(() => {
@@ -555,7 +500,7 @@ export default function DecisionCenterPage() {
         await api.post(
           `/api/v1/decisions/${id}/accept`,
           {},
-          { headers: { "X-Tenant-Id": tenantId } },
+          { headers: { "X-Tenant-Id": tenantId } }
         );
         toast({ variant: "success", title: t("decisions.accepted") });
         refetch();
@@ -563,7 +508,7 @@ export default function DecisionCenterPage() {
         toast({ variant: "error", title: t("decisions.action_failed") });
       }
     },
-    [refetch, toast, t, tenantId],
+    [refetch, toast, t, tenantId]
   );
 
   const handleDismiss = useCallback(
@@ -572,7 +517,7 @@ export default function DecisionCenterPage() {
         await api.post(
           `/api/v1/decisions/${id}/feedback`,
           { accepted: false },
-          { headers: { "X-Tenant-Id": tenantId } },
+          { headers: { "X-Tenant-Id": tenantId } }
         );
         toast({ variant: "success", title: t("decisions.dismissed") });
         refetch();
@@ -580,7 +525,7 @@ export default function DecisionCenterPage() {
         toast({ variant: "error", title: t("decisions.action_failed") });
       }
     },
-    [refetch, toast, t, tenantId],
+    [refetch, toast, t, tenantId]
   );
 
   const openFeedback = useCallback((id: string) => {
@@ -594,13 +539,8 @@ export default function DecisionCenterPage() {
         accessorKey: "domain",
         header: t("decisions.domain"),
         cell: ({ row }) => {
-          const domain =
-            row.original.domain || row.original.entity_type || "unknown";
-          return (
-            <Badge variant={DOMAIN_VARIANT[domain] || "default"}>
-              {domain}
-            </Badge>
-          );
+          const domain = row.original.domain || row.original.entity_type || "unknown";
+          return <Badge variant={DOMAIN_VARIANT[domain] || "default"}>{domain}</Badge>;
         },
         size: 110,
       },
@@ -624,9 +564,7 @@ export default function DecisionCenterPage() {
         accessorKey: "confidence",
         header: t("decisions.confidence"),
         cell: ({ row }) => (
-          <ConfidenceGauge
-            value={row.original.confidence ?? row.original.score ?? 0}
-          />
+          <ConfidenceGauge value={row.original.confidence ?? row.original.score ?? 0} />
         ),
         size: 120,
       },
@@ -636,11 +574,7 @@ export default function DecisionCenterPage() {
         cell: ({ row }) => {
           const p = row.original.priority;
           return (
-            <Badge
-              variant={
-                p === "high" ? "danger" : p === "medium" ? "warning" : "default"
-              }
-            >
+            <Badge variant={p === "high" ? "danger" : p === "medium" ? "warning" : "default"}>
               {p}
             </Badge>
           );
@@ -733,16 +667,14 @@ export default function DecisionCenterPage() {
         size: 140,
       },
     ],
-    [t, expandedRow, handleAccept, handleDismiss, openFeedback],
+    [t, expandedRow, handleAccept, handleDismiss, openFeedback]
   );
 
   if (isError) {
     return (
       <div className="p-6">
         <EmptyState
-          icon={
-            <AlertTriangle className="h-10 w-10 text-[var(--status-danger-text)]" />
-          }
+          icon={<AlertTriangle className="h-10 w-10 text-[var(--status-danger-text)]" />}
           title={t("decisions.load_error")}
           description={(error as Error)?.message || t("decisions.check_server")}
           action={{ label: t("common.retry"), onClick: () => refetch() }}
@@ -755,26 +687,16 @@ export default function DecisionCenterPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            {t("decisions.title")}
-          </h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            {t("decisions.subtitle")}
-          </p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t("decisions.title")}</h1>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">{t("decisions.subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/decisions/templates">
-            <Button
-              variant="outline"
-              leftIcon={<Settings className="h-4 w-4" />}
-            >
+            <Button variant="outline" leftIcon={<Settings className="h-4 w-4" />}>
               {t("decisions.templates")}
             </Button>
           </Link>
-          <Button
-            leftIcon={<Brain className="h-4 w-4" />}
-            onClick={() => refetch()}
-          >
+          <Button leftIcon={<Brain className="h-4 w-4" />} onClick={() => refetch()}>
             {t("decisions.evaluate_all")}
           </Button>
         </div>
@@ -788,12 +710,8 @@ export default function DecisionCenterPage() {
                 <BarChart3 className="h-5 w-5 text-[var(--status-info-text)]" />
               </div>
               <div>
-                <p className="text-xs text-[var(--text-muted)]">
-                  {t("decisions.total_decisions")}
-                </p>
-                <p className="text-lg font-bold text-[var(--text-primary)]">
-                  {data?.total || 0}
-                </p>
+                <p className="text-xs text-[var(--text-muted)]">{t("decisions.total_decisions")}</p>
+                <p className="text-lg font-bold text-[var(--text-primary)]">{data?.total || 0}</p>
               </div>
             </div>
           </Card>
@@ -803,9 +721,7 @@ export default function DecisionCenterPage() {
                 <ThumbsUp className="h-5 w-5 text-[var(--status-success-text)]" />
               </div>
               <div>
-                <p className="text-xs text-[var(--text-muted)]">
-                  {t("decisions.acceptance_rate")}
-                </p>
+                <p className="text-xs text-[var(--text-muted)]">{t("decisions.acceptance_rate")}</p>
                 <p className="text-lg font-bold text-[var(--text-primary)]">
                   {Math.round((feedbackStats.data.acceptanceRate || 0) * 100)}%
                 </p>
@@ -818,9 +734,7 @@ export default function DecisionCenterPage() {
                 <ThumbsDown className="h-5 w-5 text-[var(--chart-purple)] dark:text-[var(--chart-purple)]" />
               </div>
               <div>
-                <p className="text-xs text-[var(--text-muted)]">
-                  {t("decisions.rejection_rate")}
-                </p>
+                <p className="text-xs text-[var(--text-muted)]">{t("decisions.rejection_rate")}</p>
                 <p className="text-lg font-bold text-[var(--text-primary)]">
                   {Math.round((feedbackStats.data.rejectionRate || 0) * 100)}%
                 </p>
@@ -833,9 +747,7 @@ export default function DecisionCenterPage() {
                 <Zap className="h-5 w-5 text-[var(--muhide-orange)]" />
               </div>
               <div>
-                <p className="text-xs text-[var(--text-muted)]">
-                  {t("decisions.total_feedback")}
-                </p>
+                <p className="text-xs text-[var(--text-muted)]">{t("decisions.total_feedback")}</p>
                 <p className="text-lg font-bold text-[var(--text-primary)]">
                   {feedbackStats.data.totalFeedback}
                 </p>
@@ -1065,7 +977,7 @@ export default function DecisionCenterPage() {
                 decisionId={d.id}
                 onClose={() => setExpandedRow(null)}
               />
-            ),
+            )
         )}
       </div>
 

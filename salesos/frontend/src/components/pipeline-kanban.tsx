@@ -3,14 +3,7 @@
 import { useState, useCallback, type DragEvent } from "react";
 import { Building2, Plus, X } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
-import {
-  cn,
-  Badge,
-  Button,
-  Input,
-  ModalContent,
-  ModalTrigger,
-} from "@salesos/ui";
+import { cn, Badge, Button, Input, ModalContent, ModalTrigger } from "@salesos/ui";
 import type { Opportunity } from "@/lib/api";
 import {
   useOpportunities,
@@ -69,7 +62,7 @@ export function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
       onDragEnd={handleDragEnd}
       className={cn(
         "cursor-grab rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] p-3 shadow-muhide-1 transition-all hover:shadow-muhide-3 active:cursor-grabbing",
-        dragging && "opacity-50 ring-2 ring-[var(--muhide-orange)]/50",
+        dragging && "opacity-50 ring-2 ring-[var(--muhide-orange)]/50"
       )}
     >
       <div className="mb-1 flex items-start justify-between gap-2">
@@ -92,9 +85,7 @@ export function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
         </Badge>
       )}
       {opportunity.status === "lost" && opportunity.loss_reason && (
-        <p className="mt-1 text-xs text-danger-500">
-          {opportunity.loss_reason}
-        </p>
+        <p className="mt-1 text-xs text-danger-500">{opportunity.loss_reason}</p>
       )}
     </div>
   );
@@ -133,8 +124,7 @@ export function PipelineColumn({
       onDrop={handleDrop}
       className={cn(
         "flex w-[260px] shrink-0 flex-col rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)]/80",
-        dragOver &&
-          "border-[var(--muhide-orange)]/50 bg-[var(--muhide-orange)]/10",
+        dragOver && "border-[var(--muhide-orange)]/50 bg-[var(--muhide-orange)]/10"
       )}
     >
       <div className="flex items-center gap-2 border-b border-[var(--border-default)] px-3 py-2.5">
@@ -232,9 +222,7 @@ function CreateOpportunityModal() {
                     {searchResults.items.slice(0, 6).map((c) => (
                       <button
                         key={c.id}
-                        onClick={() =>
-                          setSelectedCompany({ id: c.id, name: c.name_ar })
-                        }
+                        onClick={() => setSelectedCompany({ id: c.id, name: c.name_ar })}
                         className="w-full px-3 py-1.5 text-right text-sm hover:bg-[var(--bg-tertiary)]"
                       >
                         {c.name_ar}
@@ -273,14 +261,10 @@ function CreateOpportunityModal() {
           </div>
           <Button
             onClick={handleSubmit}
-            disabled={
-              !selectedCompany || !name.trim() || createOpportunity.isPending
-            }
+            disabled={!selectedCompany || !name.trim() || createOpportunity.isPending}
             className="mt-2"
           >
-            {createOpportunity.isPending
-              ? t("common.creating")
-              : t("common.create")}
+            {createOpportunity.isPending ? t("common.creating") : t("common.create")}
           </Button>
         </div>
       </ModalContent>
@@ -322,7 +306,7 @@ export function PipelineKanban() {
       }
       advanceOpp.mutate({ opportunityId: oppId, toStage });
     },
-    [data, advanceOpp],
+    [data, advanceOpp]
   );
 
   const handleCloseWon = async () => {
@@ -388,9 +372,7 @@ export function PipelineKanban() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">
-            {t("pipeline.title")}
-          </h1>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]">{t("pipeline.title")}</h1>
           <p className="text-sm text-[var(--text-muted)]">
             {t("pipeline.open_count", { count: openOpportunities.length })}
             {""}
@@ -419,9 +401,7 @@ export function PipelineKanban() {
           onDrop={(e) => {
             e.preventDefault();
             const oppId = e.dataTransfer.getData("text/plain");
-            const opp = safeArray<Opportunity>(data?.items).find(
-              (o) => o.id === oppId,
-            );
+            const opp = safeArray<Opportunity>(data?.items).find((o) => o.id === oppId);
             if (opp) {
               setSelectedOpp(opp);
               setWonAmount(String(opp.value || ""));
@@ -457,9 +437,7 @@ export function PipelineKanban() {
           onDrop={(e) => {
             e.preventDefault();
             const oppId = e.dataTransfer.getData("text/plain");
-            const opp = safeArray<Opportunity>(data?.items).find(
-              (o) => o.id === oppId,
-            );
+            const opp = safeArray<Opportunity>(data?.items).find((o) => o.id === oppId);
             if (opp) {
               setSelectedOpp(opp);
               setLossReason("");
@@ -509,9 +487,7 @@ export function PipelineKanban() {
               </Dialog.Title>
             </div>
             <div className="flex flex-col gap-3 p-4">
-              <p className="text-sm text-[var(--text-secondary)]">
-                {selectedOpp?.name}
-              </p>
+              <p className="text-sm text-[var(--text-secondary)]">{selectedOpp?.name}</p>
               <div>
                 <label className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
                   {t("opportunities.deal_value_sar")}
@@ -564,9 +540,7 @@ export function PipelineKanban() {
               </Dialog.Title>
             </div>
             <div className="flex flex-col gap-3 p-4">
-              <p className="text-sm text-[var(--text-secondary)]">
-                {selectedOpp?.name}
-              </p>
+              <p className="text-sm text-[var(--text-secondary)]">{selectedOpp?.name}</p>
               <div>
                 <label className="mb-1 block text-xs font-medium text-[var(--text-secondary)]">
                   {t("opportunities.loss_reason")}
@@ -583,9 +557,7 @@ export function PipelineKanban() {
                   disabled={closeLost.isPending}
                   className="flex-1 bg-danger-600 hover:bg-danger-700"
                 >
-                  {closeLost.isPending
-                    ? "..."
-                    : t("opportunities.confirm_loss")}
+                  {closeLost.isPending ? "..." : t("opportunities.confirm_loss")}
                 </Button>
                 <Button
                   variant="ghost"

@@ -37,10 +37,7 @@ describe("outreach API — FE-S11-08", () => {
       },
     });
     const meta = await getOutreachMeta("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/outreach/meta",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/outreach/meta", expect.any(Object));
     expect(meta.feature_ai_copilot).toBe(false);
     expect(meta.delivery_status).toBe("draft_only");
 
@@ -62,17 +59,11 @@ describe("outreach API — FE-S11-08", () => {
 
     mocked.get.mockResolvedValueOnce({ data: [draft] });
     await listOutreachDrafts("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/outreach",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/outreach", expect.any(Object));
 
     mocked.get.mockResolvedValueOnce({ data: draft });
     await getOutreachDraft("tenant-1", "or-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/outreach/or-1",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/outreach/or-1", expect.any(Object));
 
     mocked.post.mockResolvedValueOnce({ data: draft });
     const row = await createOutreachDraft("tenant-1", {
@@ -83,7 +74,7 @@ describe("outreach API — FE-S11-08", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/gtm/outreach",
       { company_name: "Acme", channel: "email", intent: "intro" },
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(row.delivery_status).toBe("draft_only");
   });

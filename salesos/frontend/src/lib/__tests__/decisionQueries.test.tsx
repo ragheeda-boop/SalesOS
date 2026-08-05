@@ -19,9 +19,7 @@ import {
 } from "@/lib/decisionQueries";
 
 const mockedApi = api as jest.Mocked<typeof api>;
-const mockedGetTenantId = getTenantId as jest.MockedFunction<
-  typeof getTenantId
->;
+const mockedGetTenantId = getTenantId as jest.MockedFunction<typeof getTenantId>;
 
 const sampleDecisionResult = {
   id: "dec-1",
@@ -29,9 +27,7 @@ const sampleDecisionResult = {
   confidence: 0.85,
   action: "contact_decision_maker",
   reasoning: "ارتفاع نية الشراء",
-  scores: [
-    { name: "buying_intent", value: 0.85, label: "نية الشراء", weight: 1 },
-  ],
+  scores: [{ name: "buying_intent", value: 0.85, label: "نية الشراء", weight: 1 }],
   explainability: {
     factors: [
       {
@@ -107,9 +103,7 @@ function createWrapper() {
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 }
 
@@ -135,7 +129,7 @@ describe("useDecisionEvaluate", () => {
     expect(mockedApi.post).toHaveBeenCalledWith(
       "/api/v1/decision/evaluate",
       { context: { tenantId: "tenant-1", entityType: "opportunity" } },
-      { headers: { "X-Tenant-Id": "tenant-1" } },
+      { headers: { "X-Tenant-Id": "tenant-1" } }
     );
   });
 
@@ -152,10 +146,7 @@ describe("useDecisionEvaluate", () => {
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
     });
-    expect(mockedApi.post.mock.calls[0][2]?.headers).toHaveProperty(
-      "X-Tenant-Id",
-      "tenant-1",
-    );
+    expect(mockedApi.post.mock.calls[0][2]?.headers).toHaveProperty("X-Tenant-Id", "tenant-1");
   });
 
   it("propagates errors from API", async () => {
@@ -192,10 +183,9 @@ describe("useDecisionExplain", () => {
       expect(result.current.isSuccess).toBe(true);
     });
     expect(result.current.data).toEqual(sampleDecisionResult.explainability);
-    expect(mockedApi.get).toHaveBeenCalledWith(
-      "/api/v1/decision/dec-1/explain",
-      { headers: { "X-Tenant-Id": "tenant-1" } },
-    );
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/v1/decision/dec-1/explain", {
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
   });
 
   it("does not fetch when decisionId is empty", () => {
@@ -244,29 +234,24 @@ describe("useDecisionRecommendations", () => {
 
   it("fetches recommendations for entity", async () => {
     mockedApi.get.mockResolvedValue({ data: sampleRecommendations });
-    const { result } = renderHook(
-      () => useDecisionRecommendations("entity-1", "opportunity"),
-      { wrapper: createWrapper() },
-    );
+    const { result } = renderHook(() => useDecisionRecommendations("entity-1", "opportunity"), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
     });
     expect(result.current.data).toEqual(sampleRecommendations);
-    expect(mockedApi.get).toHaveBeenCalledWith(
-      "/api/v1/decision/recommendations",
-      {
-        params: { entity_id: "entity-1", entity_type: "opportunity" },
-        headers: { "X-Tenant-Id": "tenant-1" },
-      },
-    );
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/v1/decision/recommendations", {
+      params: { entity_id: "entity-1", entity_type: "opportunity" },
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
   });
 
   it("has a refetchInterval of 60s", () => {
-    const { result } = renderHook(
-      () => useDecisionRecommendations("entity-1", "opportunity"),
-      { wrapper: createWrapper() },
-    );
+    const { result } = renderHook(() => useDecisionRecommendations("entity-1", "opportunity"), {
+      wrapper: createWrapper(),
+    });
     expect(result.current.data).toBeUndefined();
   });
 });
@@ -279,10 +264,9 @@ describe("useDecisionScores", () => {
 
   it("fetches scores when both entityId and entityType are provided", async () => {
     mockedApi.get.mockResolvedValue({ data: sampleScores });
-    const { result } = renderHook(
-      () => useDecisionScores("entity-1", "opportunity"),
-      { wrapper: createWrapper() },
-    );
+    const { result } = renderHook(() => useDecisionScores("entity-1", "opportunity"), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
@@ -313,10 +297,9 @@ describe("useDecisionEvidence", () => {
 
   it("fetches evidence when both IDs are provided", async () => {
     mockedApi.get.mockResolvedValue({ data: sampleEvidence });
-    const { result } = renderHook(
-      () => useDecisionEvidence("entity-1", "opportunity"),
-      { wrapper: createWrapper() },
-    );
+    const { result } = renderHook(() => useDecisionEvidence("entity-1", "opportunity"), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
@@ -325,10 +308,9 @@ describe("useDecisionEvidence", () => {
   });
 
   it("does not fetch when missing ID", () => {
-    const { result } = renderHook(
-      () => useDecisionEvidence("", "opportunity"),
-      { wrapper: createWrapper() },
-    );
+    const { result } = renderHook(() => useDecisionEvidence("", "opportunity"), {
+      wrapper: createWrapper(),
+    });
     expect(result.current.fetchStatus).toBe("idle");
   });
 });
@@ -358,7 +340,7 @@ describe("useDecisionFeedback", () => {
     expect(mockedApi.post).toHaveBeenCalledWith(
       "/api/v1/decision/feedback",
       { decision_id: "dec-1", outcome: "accepted", revenueImpact: 50000 },
-      { headers: { "X-Tenant-Id": "tenant-1" } },
+      { headers: { "X-Tenant-Id": "tenant-1" } }
     );
   });
 
@@ -386,7 +368,7 @@ describe("useDecisionFeedback", () => {
         reason: "توصية غير مناسبة",
         timeToExecution: 3600,
       },
-      { headers: { "X-Tenant-Id": "tenant-1" } },
+      { headers: { "X-Tenant-Id": "tenant-1" } }
     );
   });
 });
@@ -407,10 +389,9 @@ describe("useDecisionFeedbackStats", () => {
       expect(result.current.isSuccess).toBe(true);
     });
     expect(result.current.data).toEqual(sampleFeedbackStats);
-    expect(mockedApi.get).toHaveBeenCalledWith(
-      "/api/v1/decision/feedback/stats",
-      { headers: { "X-Tenant-Id": "tenant-1" } },
-    );
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/v1/decision/feedback/stats", {
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
   });
 
   it("returns byAction breakdown", async () => {

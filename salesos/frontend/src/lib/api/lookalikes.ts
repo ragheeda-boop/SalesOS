@@ -57,38 +57,28 @@ export interface LookalikeMeta {
   honesty: string;
 }
 
-export async function getLookalikeMeta(
-  tenantId: string,
-): Promise<LookalikeMeta> {
+export async function getLookalikeMeta(tenantId: string): Promise<LookalikeMeta> {
   const resp = await api.get<LookalikeMeta>(`${BASE}/meta`, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function listLookalikeRuns(
-  tenantId: string,
-): Promise<LookalikeRun[]> {
+export async function listLookalikeRuns(tenantId: string): Promise<LookalikeRun[]> {
   const resp = await api.get<LookalikeRun[]>(BASE, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function getLookalikeRun(
-  tenantId: string,
-  modelId: string,
-): Promise<LookalikeRun> {
+export async function getLookalikeRun(tenantId: string, modelId: string): Promise<LookalikeRun> {
   const resp = await api.get<LookalikeRun>(`${BASE}/${modelId}`, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function runLookalikes(
-  tenantId: string,
-  body: LookalikeBody,
-): Promise<LookalikeRun> {
+export async function runLookalikes(tenantId: string, body: LookalikeBody): Promise<LookalikeRun> {
   const resp = await api.post<LookalikeRun>(BASE, body, {
     headers: tenantHeaders(tenantId),
   });

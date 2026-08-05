@@ -34,28 +34,23 @@ const actionConfig: Record<string, { icon: typeof Mail; color: string }> = {
   },
   call: {
     icon: Phone,
-    color:
-      "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
+    color: "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
   },
   task_created: {
     icon: CheckSquare,
-    color:
-      "text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-900/50",
+    color: "text-orange-600 bg-orange-100 dark:text-orange-400 dark:bg-orange-900/50",
   },
   task_completed: {
     icon: CheckSquare,
-    color:
-      "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
+    color: "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
   },
   contract_signed: {
     icon: FileText,
-    color:
-      "text-danger-600 bg-danger-100 dark:text-danger-400 dark:bg-danger-900/50",
+    color: "text-danger-600 bg-danger-100 dark:text-danger-400 dark:bg-danger-900/50",
   },
   contract_created: {
     icon: FileText,
-    color:
-      "text-danger-600 bg-danger-100 dark:text-danger-400 dark:bg-danger-900/50",
+    color: "text-danger-600 bg-danger-100 dark:text-danger-400 dark:bg-danger-900/50",
   },
   note_added: {
     icon: MessageSquare,
@@ -71,18 +66,15 @@ const actionConfig: Record<string, { icon: typeof Mail; color: string }> = {
   },
   opportunity_created: {
     icon: Plus,
-    color:
-      "text-warning-600 bg-warning-100 dark:text-warning-400 dark:bg-warning-900/50",
+    color: "text-warning-600 bg-warning-100 dark:text-warning-400 dark:bg-warning-900/50",
   },
   opportunity_won: {
     icon: CheckSquare,
-    color:
-      "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
+    color: "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
   },
   opportunity_lost: {
     icon: Clock,
-    color:
-      "text-danger-600 bg-danger-100 dark:text-danger-400 dark:bg-danger-900/50",
+    color: "text-danger-600 bg-danger-100 dark:text-danger-400 dark:bg-danger-900/50",
   },
 };
 
@@ -145,14 +137,8 @@ export function TimelineWidget({
     <Card className={cn("overflow-hidden", className)}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-[var(--text-primary)]">
-            {title || "النشاطات"}
-          </h3>
-          {data && (
-            <span className="text-xs text-[var(--text-muted)]">
-              {data.total} نشاط
-            </span>
-          )}
+          <h3 className="text-lg font-bold text-[var(--text-primary)]">{title || "النشاطات"}</h3>
+          {data && <span className="text-xs text-[var(--text-muted)]">{data.total} نشاط</span>}
         </div>
       </CardHeader>
       <CardContent>
@@ -181,17 +167,14 @@ export function TimelineWidget({
               };
               const Icon = config.icon;
               return (
-                <div
-                  key={activity.id}
-                  className="relative flex gap-3 pb-4 last:pb-0"
-                >
+                <div key={activity.id} className="relative flex gap-3 pb-4 last:pb-0">
                   {idx < activities.length - 1 && (
                     <div className="absolute right-[15px] top-10 bottom-0 w-px bg-[var(--bg-tertiary)]" />
                   )}
                   <div
                     className={cn(
                       "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                      config.color,
+                      config.color
                     )}
                   >
                     <Icon className="h-4 w-4" />

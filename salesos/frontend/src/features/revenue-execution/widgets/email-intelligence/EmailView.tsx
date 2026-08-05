@@ -22,11 +22,7 @@ export function EmailView({ emails }: EmailViewProps) {
   }
 
   return (
-    <div
-      role="region"
-      aria-label="ذكاء البريد"
-      className="space-y-1.5/20 dark:rounded-lg dark:p-1"
-    >
+    <div role="region" aria-label="ذكاء البريد" className="space-y-1.5/20 dark:rounded-lg dark:p-1">
       {emails.map((email) => (
         <div
           key={email.threadId}
@@ -39,18 +35,12 @@ export function EmailView({ emails }: EmailViewProps) {
                 <span className="truncate text-xs font-medium text-[var(--text-primary)]">
                   {email.subject}
                 </span>
-                <span
-                  className={cn(
-                    "mr-auto text-[9px] font-medium",
-                    PRIORITY_S[email.priority],
-                  )}
-                >
+                <span className={cn("mr-auto text-[9px] font-medium", PRIORITY_S[email.priority])}>
                   {PRIORITY_L[email.priority]}
                 </span>
               </div>
               <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">
-                {email.sender} ·{" "}
-                {new Date(email.date).toLocaleDateString("ar-SA")}
+                {email.sender} · {new Date(email.date).toLocaleDateString("ar-SA")}
               </p>
               <div className="mt-1 flex items-start gap-1">
                 <Sparkles className="mt-0.5 h-3 w-3 shrink-0 text-[var(--chart-purple)]" />
@@ -61,9 +51,7 @@ export function EmailView({ emails }: EmailViewProps) {
               {email.suggestedReply && (
                 <div className="mt-1 flex items-start gap-1 rounded-lg bg-[var(--bg-tertiary)] p-1.5">
                   <ArrowRight className="mt-0.5 h-3 w-3 shrink-0 text-[var(--text-muted)]" />
-                  <p className="text-[9px] text-[var(--text-muted)]">
-                    {email.suggestedReply}
-                  </p>
+                  <p className="text-[9px] text-[var(--text-muted)]">{email.suggestedReply}</p>
                 </div>
               )}
               {email.actionItems.length > 0 && (
@@ -71,9 +59,7 @@ export function EmailView({ emails }: EmailViewProps) {
                   {email.actionItems.map((item, i) => (
                     <div key={i} className="flex items-start gap-1">
                       <CheckCircle className="mt-0.5 h-2.5 w-2.5 shrink-0 text-[var(--status-success-text)]" />
-                      <span className="text-[9px] text-[var(--text-muted)]">
-                        {item}
-                      </span>
+                      <span className="text-[9px] text-[var(--text-muted)]">{item}</span>
                     </div>
                   ))}
                 </div>

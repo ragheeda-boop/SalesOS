@@ -11,7 +11,7 @@ describe("SearchSection", () => {
     render(
       <SearchSection title="النتائج" count={5}>
         content
-      </SearchSection>,
+      </SearchSection>
     );
     expect(screen.getByText("5")).toBeInTheDocument();
   });
@@ -20,7 +20,7 @@ describe("SearchSection", () => {
     render(
       <SearchSection title="test">
         <span>child</span>
-      </SearchSection>,
+      </SearchSection>
     );
     expect(screen.getByText("child")).toBeInTheDocument();
   });

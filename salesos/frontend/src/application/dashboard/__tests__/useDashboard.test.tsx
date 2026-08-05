@@ -11,24 +11,16 @@ import { getTenantId } from "@/lib/hooks/useTenant";
 import { mapDashboard } from "../dashboard.mapper";
 import { useDashboard } from "../useDashboard";
 
-const mockedGetDashboard = getDashboard as jest.MockedFunction<
-  typeof getDashboard
->;
-const mockedGetTenantId = getTenantId as jest.MockedFunction<
-  typeof getTenantId
->;
-const mockedMapDashboard = mapDashboard as jest.MockedFunction<
-  typeof mapDashboard
->;
+const mockedGetDashboard = getDashboard as jest.MockedFunction<typeof getDashboard>;
+const mockedGetTenantId = getTenantId as jest.MockedFunction<typeof getTenantId>;
+const mockedMapDashboard = mapDashboard as jest.MockedFunction<typeof mapDashboard>;
 
 function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 }
 

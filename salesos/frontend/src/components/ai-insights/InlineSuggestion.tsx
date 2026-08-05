@@ -13,11 +13,7 @@ interface InlineSuggestionProps {
   onApply?: (id: string) => void;
 }
 
-export function InlineSuggestion({
-  suggestion,
-  onDismiss,
-  onApply,
-}: InlineSuggestionProps) {
+export function InlineSuggestion({ suggestion, onDismiss, onApply }: InlineSuggestionProps) {
   const { t } = useTranslation();
   const [applied, setApplied] = useState(false);
 
@@ -32,7 +28,7 @@ export function InlineSuggestion({
         "rounded-lg border px-3 py-2 transition-all",
         applied
           ? "border-success-200 bg-success-50 dark:border-success-800 dark:bg-success-900/20"
-          : "border-[var(--muhide-orange)]/30 bg-[var(--muhide-orange)]/5",
+          : "border-[var(--muhide-orange)]/30 bg-[var(--muhide-orange)]/5"
       )}
     >
       <div className="flex items-center justify-between gap-2">

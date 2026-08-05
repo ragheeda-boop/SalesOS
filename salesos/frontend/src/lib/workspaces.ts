@@ -207,7 +207,5 @@ export function getWorkspaceByPath(pathname: string): Workspace {
 }
 
 export function getAllNavItems(): NavItem[] {
-  return workspaces.flatMap((ws) =>
-    ws.groups.flatMap((g) => g.items),
-  );
+  return workspaces.flatMap((ws) => ws.groups.flatMap((g) => g.items));
 }

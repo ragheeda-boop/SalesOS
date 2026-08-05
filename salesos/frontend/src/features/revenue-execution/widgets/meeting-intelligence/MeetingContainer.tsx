@@ -22,9 +22,7 @@ function mapToMeetingBrief(result: DecisionResult): MeetingBrief {
       .map((e) => e.description as string)
       .filter(Boolean),
     risks: result.recommendation?.risks?.map((r) => r.description) ?? [],
-    opportunities:
-      result.recommendation?.alternatives?.map((a) => a.actionLabel ?? "") ??
-      [],
+    opportunities: result.recommendation?.alternatives?.map((a) => a.actionLabel ?? "") ?? [],
     talkingPoints: [
       result.recommendation?.reason ?? "",
       ...result.evidence.slice(0, 2).map((e) => e.description as string),

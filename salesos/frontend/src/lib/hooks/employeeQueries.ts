@@ -70,15 +70,9 @@ export function useEmployeeScore(employeeId: string) {
   });
 }
 
-export function useEmployeeTimeline(
-  employeeId: string,
-  params: EmployeeTimelineParams,
-) {
+export function useEmployeeTimeline(employeeId: string, params: EmployeeTimelineParams) {
   return useQuery({
-    queryKey: employeeKeys.timeline(
-      employeeId,
-      params as Record<string, unknown>,
-    ),
+    queryKey: employeeKeys.timeline(employeeId, params as Record<string, unknown>),
     queryFn: () => getEmployeeTimeline(employeeId, params, getTenantId()),
     enabled: !!employeeId,
     staleTime: 15_000,
@@ -156,8 +150,7 @@ export function useEmailKPIs(employeeId: string, days: number = 30) {
 export function useEmailTopContacts(employeeId: string, limit: number = 10) {
   return useQuery({
     queryKey: employeeKeys.emailTopContacts(employeeId),
-    queryFn: () =>
-      getEmployeeEmailTopContacts(employeeId, getTenantId(), limit),
+    queryFn: () => getEmployeeEmailTopContacts(employeeId, getTenantId(), limit),
     enabled: !!employeeId,
     staleTime: 300_000,
   });
@@ -175,27 +168,16 @@ export function useEmailDailyVolume(employeeId: string, days: number = 30) {
 export function useProductivity(employeeId: string, periodDays: number = 30) {
   return useQuery({
     queryKey: employeeKeys.productivity(employeeId, periodDays),
-    queryFn: () =>
-      getEmployeeProductivity(employeeId, getTenantId(), periodDays),
+    queryFn: () => getEmployeeProductivity(employeeId, getTenantId(), periodDays),
     enabled: !!employeeId,
     staleTime: 60_000,
   });
 }
 
-export function useRelationshipScore(
-  employeeId: string,
-  targetType: string,
-  targetId: string,
-) {
+export function useRelationshipScore(employeeId: string, targetType: string, targetId: string) {
   return useQuery({
     queryKey: employeeKeys.relationship(employeeId, targetType, targetId),
-    queryFn: () =>
-      getEmployeeRelationshipScore(
-        employeeId,
-        targetType,
-        targetId,
-        getTenantId(),
-      ),
+    queryFn: () => getEmployeeRelationshipScore(employeeId, targetType, targetId, getTenantId()),
     enabled: !!employeeId && !!targetId,
     staleTime: 120_000,
   });

@@ -2,11 +2,7 @@
 
 import { useCallback } from "react";
 import { cn, EmptyState } from "@salesos/ui";
-import type {
-  CompanyHealthViewProps,
-  HealthMetric,
-  HealthAlert,
-} from "./types";
+import type { CompanyHealthViewProps, HealthMetric, HealthAlert } from "./types";
 
 const TREND_CONFIG = {
   up: {
@@ -59,12 +55,7 @@ function ScoreRing({ score, label }: { score: number; label: string }) {
       role="img"
       aria-label={`Overall score: ${score} out of 100`}
     >
-      <svg
-        width="100"
-        height="100"
-        viewBox="0 0 100 100"
-        className="transform -rotate-90"
-      >
+      <svg width="100" height="100" viewBox="0 0 100 100" className="transform -rotate-90">
         <circle
           cx="50"
           cy="50"
@@ -85,32 +76,21 @@ function ScoreRing({ score, label }: { score: number; label: string }) {
           strokeLinecap="round"
           className={cn(
             getScoreColor(score),
-            "transition-all duration-500 motion-reduce:transition-none",
+            "transition-all duration-500 motion-reduce:transition-none"
           )}
         />
       </svg>
       <div className="absolute flex flex-col items-center justify-center">
-        <span className={cn("text-2xl font-bold", getScoreColor(score))}>
-          {score}
-        </span>
+        <span className={cn("text-2xl font-bold", getScoreColor(score))}>{score}</span>
         <span className="text-[10px] text-[var(--text-muted)]">{label}</span>
       </div>
     </div>
   );
 }
 
-function MetricRow({
-  metric,
-  onClick,
-}: {
-  metric: HealthMetric;
-  onClick?: (id: string) => void;
-}) {
+function MetricRow({ metric, onClick }: { metric: HealthMetric; onClick?: (id: string) => void }) {
   const trend = TREND_CONFIG[metric.trend];
-  const handleClick = useCallback(
-    () => onClick?.(metric.id),
-    [metric.id, onClick],
-  );
+  const handleClick = useCallback(() => onClick?.(metric.id), [metric.id, onClick]);
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (onClick && (e.key === "Enter" || e.key === " ")) {
@@ -118,7 +98,7 @@ function MetricRow({
         onClick(metric.id);
       }
     },
-    [metric.id, onClick],
+    [metric.id, onClick]
   );
 
   return (
@@ -128,28 +108,21 @@ function MetricRow({
       className={cn(
         "flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors motion-reduce:transition-none",
         onClick &&
-          "cursor-pointer hover:bg-[var(--bg-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--muhide-orange)] focus-visible:ring-offset-1",
+          "cursor-pointer hover:bg-[var(--bg-tertiary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--muhide-orange)] focus-visible:ring-offset-1"
       )}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       aria-label={`${metric.label}: ${metric.value}${metric.unit} - ${trend.label} ${metric.trendValue}%`}
     >
       <div className="min-w-0 flex-1">
-        <span className="font-medium text-[var(--text-primary)]">
-          {metric.label}
-        </span>
+        <span className="font-medium text-[var(--text-primary)]">{metric.label}</span>
       </div>
       <div className="flex items-center gap-2">
         <span className="text-xs text-[var(--text-secondary)]">
           {metric.value}
           {metric.unit}
         </span>
-        <span
-          className={cn(
-            "flex items-center gap-0.5 text-[10px] font-medium",
-            trend.color,
-          )}
-        >
+        <span className={cn("flex items-center gap-0.5 text-[10px] font-medium", trend.color)}>
           <span aria-hidden="true">{trend.icon}</span>
           {metric.trendValue}%
         </span>
@@ -158,18 +131,9 @@ function MetricRow({
   );
 }
 
-function AlertRow({
-  alert,
-  onClick,
-}: {
-  alert: HealthAlert;
-  onClick?: (id: string) => void;
-}) {
+function AlertRow({ alert, onClick }: { alert: HealthAlert; onClick?: (id: string) => void }) {
   const conf = ALERT_CONFIG[alert.type];
-  const handleClick = useCallback(
-    () => onClick?.(alert.id),
-    [alert.id, onClick],
-  );
+  const handleClick = useCallback(() => onClick?.(alert.id), [alert.id, onClick]);
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (onClick && (e.key === "Enter" || e.key === " ")) {
@@ -177,7 +141,7 @@ function AlertRow({
         onClick(alert.id);
       }
     },
-    [alert.id, onClick],
+    [alert.id, onClick]
   );
 
   return (
@@ -189,7 +153,7 @@ function AlertRow({
         conf.bg,
         conf.border,
         onClick &&
-          "cursor-pointer hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--muhide-orange)]",
+          "cursor-pointer hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--muhide-orange)]"
       )}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
@@ -200,9 +164,7 @@ function AlertRow({
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-[var(--text-primary)]">{alert.message}</p>
-        <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">
-          {alert.companyName}
-        </p>
+        <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">{alert.companyName}</p>
       </div>
     </div>
   );
@@ -210,20 +172,13 @@ function AlertRow({
 
 function SkeletonHealth() {
   return (
-    <div
-      className="space-y-4"
-      role="status"
-      aria-label="جاري تحميل بيانات الصحة"
-    >
+    <div className="space-y-4" role="status" aria-label="جاري تحميل بيانات الصحة">
       <div className="flex justify-center">
         <div className="h-[100px] w-[100px] animate-pulse rounded-full bg-[var(--bg-tertiary)]" />
       </div>
       <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="flex items-center justify-between rounded-lg px-3 py-2"
-          >
+          <div key={i} className="flex items-center justify-between rounded-lg px-3 py-2">
             <div className="h-3.5 w-24 animate-pulse rounded bg-[var(--bg-tertiary)]" />
             <div className="h-3.5 w-16 animate-pulse rounded bg-[var(--bg-tertiary)]" />
           </div>
@@ -259,22 +214,14 @@ export function CompanyHealthView({
   }
 
   return (
-    <div
-      role="region"
-      aria-label={`صحة الشركة: ${companyName}`}
-      className="space-y-4"
-    >
+    <div role="region" aria-label={`صحة الشركة: ${companyName}`} className="space-y-4">
       <div className="flex items-center gap-4">
         <div className="relative">
           <ScoreRing score={overallScore} label="الصحة العامة" />
         </div>
         <div className="flex-1">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-            {companyName}
-          </h3>
-          <p className="text-xs text-[var(--text-muted)]">
-            مؤشرات الأداء الرئيسية
-          </p>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">{companyName}</h3>
+          <p className="text-xs text-[var(--text-muted)]">مؤشرات الأداء الرئيسية</p>
         </div>
       </div>
 
@@ -284,9 +231,7 @@ export function CompanyHealthView({
           aria-atomic="true"
           className="rounded-lg bg-[var(--bg-secondary)] px-3 py-2 text-xs text-[var(--text-muted)]"
         >
-          <span className="font-medium text-[var(--text-primary)]">
-            تحليل AI:{" "}
-          </span>
+          <span className="font-medium text-[var(--text-primary)]">تحليل AI: </span>
           {decision.summary}
         </div>
       )}
@@ -300,20 +245,14 @@ export function CompanyHealthView({
         </div>
         <div className="space-y-0.5">
           {metrics.map((metric) => (
-            <MetricRow
-              key={metric.id}
-              metric={metric}
-              onClick={onMetricClick}
-            />
+            <MetricRow key={metric.id} metric={metric} onClick={onMetricClick} />
           ))}
         </div>
       </div>
 
       {alerts.length > 0 && (
         <div>
-          <div className="mb-1 px-1 text-xs font-semibold text-[var(--text-muted)]">
-            تنبيهات
-          </div>
+          <div className="mb-1 px-1 text-xs font-semibold text-[var(--text-muted)]">تنبيهات</div>
           <div className="space-y-1.5">
             {alerts.map((alert) => (
               <AlertRow key={alert.id} alert={alert} onClick={onAlertClick} />
@@ -324,18 +263,14 @@ export function CompanyHealthView({
 
       {nbaItems && nbaItems.length > 0 && (
         <div className="border-t border-[var(--border-secondary)] pt-2">
-          <div className="mb-1 text-[10px] font-semibold text-[var(--text-muted)]">
-            توصيات AI
-          </div>
+          <div className="mb-1 text-[10px] font-semibold text-[var(--text-muted)]">توصيات AI</div>
           {nbaItems.slice(0, 2).map((nba) => (
             <div
               key={nba.id}
               className="rounded-md px-2 py-1 text-xs text-[var(--text-muted)]"
               aria-label={`AI توصية: ${nba.action} لـ ${nba.company_name}`}
             >
-              <span className="font-medium text-[var(--text-primary)]">
-                {nba.company_name}
-              </span>
+              <span className="font-medium text-[var(--text-primary)]">{nba.company_name}</span>
               {" — "}
               {nba.action}
             </div>

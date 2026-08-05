@@ -66,28 +66,21 @@ export interface TerritoryAssignResult {
   explanation: string[];
 }
 
-export async function getTerritoriesMeta(
-  tenantId: string,
-): Promise<TerritoriesMeta> {
+export async function getTerritoriesMeta(tenantId: string): Promise<TerritoriesMeta> {
   const resp = await api.get<TerritoriesMeta>(`${BASE}/meta`, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function listTerritoryRules(
-  tenantId: string,
-): Promise<TerritoryRule[]> {
+export async function listTerritoryRules(tenantId: string): Promise<TerritoryRule[]> {
   const resp = await api.get<TerritoryRule[]>(BASE, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function getTerritoryRule(
-  tenantId: string,
-  ruleId: string,
-): Promise<TerritoryRule> {
+export async function getTerritoryRule(tenantId: string, ruleId: string): Promise<TerritoryRule> {
   const resp = await api.get<TerritoryRule>(`${BASE}/${ruleId}`, {
     headers: tenantHeaders(tenantId),
   });
@@ -96,7 +89,7 @@ export async function getTerritoryRule(
 
 export async function upsertTerritoryRule(
   tenantId: string,
-  body: TerritoryRuleUpsert,
+  body: TerritoryRuleUpsert
 ): Promise<TerritoryRule> {
   const resp = await api.post<TerritoryRule>(BASE, body, {
     headers: tenantHeaders(tenantId),
@@ -106,18 +99,17 @@ export async function upsertTerritoryRule(
 
 export async function deleteTerritoryRule(
   tenantId: string,
-  ruleId: string,
+  ruleId: string
 ): Promise<{ deleted: boolean; id: string }> {
-  const resp = await api.delete<{ deleted: boolean; id: string }>(
-    `${BASE}/${ruleId}`,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.delete<{ deleted: boolean; id: string }>(`${BASE}/${ruleId}`, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }
 
 export async function assignTerritory(
   tenantId: string,
-  body: TerritoryAssignBody,
+  body: TerritoryAssignBody
 ): Promise<TerritoryAssignResult> {
   const resp = await api.post<TerritoryAssignResult>(`${BASE}/assign`, body, {
     headers: tenantHeaders(tenantId),

@@ -32,12 +32,7 @@ import {
   LoadingState,
   PermissionState,
 } from "./_components/states";
-import {
-  formatCount,
-  formatCurrencySAR,
-  formatPercent,
-  stageLabel,
-} from "./_components/format";
+import { formatCount, formatCurrencySAR, formatPercent, stageLabel } from "./_components/format";
 import { useAccessToken } from "./_hooks/useAccessToken";
 
 const QUICK_ACTIONS = [
@@ -110,7 +105,7 @@ export default function V3HomePage() {
     queryFn: () =>
       searchCompanies(
         { page: 1, page_size: 5, sort_by: "name_ar", sort_order: "asc" },
-        getTenantId(),
+        getTenantId()
       ),
     enabled,
     staleTime: 15_000,
@@ -143,10 +138,7 @@ export default function V3HomePage() {
             className="inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
             aria-haspopup="dialog"
           >
-            <Sparkles
-              className="h-3.5 w-3.5 text-[var(--muhide-orange)]"
-              aria-hidden
-            />
+            <Sparkles className="h-3.5 w-3.5 text-[var(--muhide-orange)]" aria-hidden />
             Ask AI
           </button>
         }
@@ -154,9 +146,7 @@ export default function V3HomePage() {
 
       <section aria-label="Key metrics">
         <div className="mb-3 flex items-baseline justify-between gap-2">
-          <h2 className="text-sm font-medium text-[var(--text-primary)]">
-            Key metrics
-          </h2>
+          <h2 className="text-sm font-medium text-[var(--text-primary)]">Key metrics</h2>
           <p className="text-[12px] text-[var(--text-muted)]">
             {execQuery.isFetching && !execQuery.isLoading
               ? "Updating…"
@@ -184,11 +174,7 @@ export default function V3HomePage() {
           <EmptyState
             title="No metrics yet"
             description="Executive dashboard returned empty for this tenant."
-            action={
-              <GhostButtonLink href="/v3/analytics">
-                Open analytics
-              </GhostButtonLink>
-            }
+            action={<GhostButtonLink href="/v3/analytics">Open analytics</GhostButtonLink>}
           />
         ) : (
           <MetricCards
@@ -219,9 +205,7 @@ export default function V3HomePage() {
       </section>
 
       <section aria-label="Quick actions">
-        <h2 className="mb-3 text-sm font-medium text-[var(--text-primary)]">
-          Quick actions
-        </h2>
+        <h2 className="mb-3 text-sm font-medium text-[var(--text-primary)]">Quick actions</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {QUICK_ACTIONS.map((action) => {
             const Icon = action.icon;
@@ -255,9 +239,7 @@ export default function V3HomePage() {
       <div className="grid gap-8 lg:grid-cols-2">
         <section aria-label="Recent companies" className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-medium text-[var(--text-primary)]">
-              Companies
-            </h2>
+            <h2 className="text-sm font-medium text-[var(--text-primary)]">Companies</h2>
             <GhostButtonLink href="/v3/companies">View all</GhostButtonLink>
           </div>
 
@@ -271,21 +253,13 @@ export default function V3HomePage() {
             <EmptyState
               title="Could not load companies"
               description="Sign-in session may be expired, or the API is unavailable."
-              action={
-                <GhostButtonLink href="/v3/companies">
-                  Open Companies
-                </GhostButtonLink>
-              }
+              action={<GhostButtonLink href="/v3/companies">Open Companies</GhostButtonLink>}
             />
           ) : recent.length === 0 ? (
             <EmptyState
               title="No companies yet"
               description="Import or create companies to populate this list."
-              action={
-                <GhostButtonLink href="/v3/companies">
-                  Go to Companies
-                </GhostButtonLink>
-              }
+              action={<GhostButtonLink href="/v3/companies">Go to Companies</GhostButtonLink>}
             />
           ) : (
             <ul className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)]">
@@ -303,9 +277,7 @@ export default function V3HomePage() {
                         {companyDisplayName(company)}
                       </span>
                       <span className="mt-0.5 block truncate text-[12px] text-[var(--text-muted)]">
-                        {[company.city, company.region]
-                          .filter(Boolean)
-                          .join(" · ") ||
+                        {[company.city, company.region].filter(Boolean).join(" · ") ||
                           company.cr_number ||
                           "—"}
                       </span>
@@ -319,8 +291,7 @@ export default function V3HomePage() {
               ))}
               {companyTotal != null ? (
                 <li className="bg-[var(--bg-secondary)] px-4 py-2 text-[12px] text-[var(--text-muted)]">
-                  {companyTotal} compan{companyTotal === 1 ? "y" : "ies"} in
-                  tenant
+                  {companyTotal} compan{companyTotal === 1 ? "y" : "ies"} in tenant
                 </li>
               ) : null}
             </ul>
@@ -329,9 +300,7 @@ export default function V3HomePage() {
 
         <section aria-label="Top deals" className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-medium text-[var(--text-primary)]">
-              Top deals
-            </h2>
+            <h2 className="text-sm font-medium text-[var(--text-primary)]">Top deals</h2>
             <GhostButtonLink href="/v3/crm">View pipeline</GhostButtonLink>
           </div>
 
@@ -341,19 +310,13 @@ export default function V3HomePage() {
             <EmptyState
               title="Could not load deals"
               description="Opportunity list unavailable."
-              action={
-                <GhostButtonLink href="/v3/crm">Open CRM</GhostButtonLink>
-              }
+              action={<GhostButtonLink href="/v3/crm">Open CRM</GhostButtonLink>}
             />
           ) : topDeals.length === 0 ? (
             <EmptyState
               title="No deals yet"
               description="Create opportunities from a company record."
-              action={
-                <GhostButtonLink href="/v3/companies">
-                  Find a company
-                </GhostButtonLink>
-              }
+              action={<GhostButtonLink href="/v3/companies">Find a company</GhostButtonLink>}
             />
           ) : (
             <ul className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)]">

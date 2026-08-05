@@ -17,18 +17,11 @@ jest.mock("@radix-ui/react-dialog", () => {
   return {
     ...real,
     Portal: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-    Overlay: (props: Record<string, unknown>) => (
-      <div data-testid="dialog-overlay" {...props} />
-    ),
-    Content: ({
-      children,
-      ..._props
-    }: React.PropsWithChildren<Record<string, unknown>>) => (
+    Overlay: (props: Record<string, unknown>) => <div data-testid="dialog-overlay" {...props} />,
+    Content: ({ children, ..._props }: React.PropsWithChildren<Record<string, unknown>>) => (
       <div data-testid="dialog-content">{children}</div>
     ),
-    Title: ({ children }: { children: React.ReactNode }) => (
-      <div>{children}</div>
-    ),
+    Title: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   };
 });
 
@@ -40,11 +33,7 @@ import {
   useCloseLost,
 } from "@/lib/hooks/opportunityQueries";
 import { useCompanySearch } from "@/lib/hooks/companyQueries";
-import {
-  PipelineKanban,
-  OpportunityCard,
-  PipelineColumn,
-} from "../pipeline-kanban";
+import { PipelineKanban, OpportunityCard, PipelineColumn } from "../pipeline-kanban";
 
 const mockUseOpportunities = useOpportunities as jest.Mock;
 const mockUseCreateOpportunity = useCreateOpportunity as jest.Mock;
@@ -154,9 +143,7 @@ describe("PipelineKanban", () => {
     render(<PipelineKanban />);
     expect(screen.getAllByText("1").length).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getAllByText(
-        (_, el) => el?.textContent?.includes("فرصة مفتوحة بقيمة") ?? false,
-      ).length,
+      screen.getAllByText((_, el) => el?.textContent?.includes("فرصة مفتوحة بقيمة") ?? false).length
     ).toBeGreaterThanOrEqual(1);
   });
 
@@ -170,9 +157,7 @@ describe("PipelineKanban", () => {
     render(<PipelineKanban />);
     expect(screen.getAllByText("0").length).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getAllByText(
-        (_, el) => el?.textContent?.includes("فرصة مفتوحة بقيمة") ?? false,
-      ).length,
+      screen.getAllByText((_, el) => el?.textContent?.includes("فرصة مفتوحة بقيمة") ?? false).length
     ).toBeGreaterThanOrEqual(1);
   });
 
@@ -199,12 +184,8 @@ describe("PipelineKanban", () => {
     render(<PipelineKanban />);
     const allEmpty = screen.getAllByText("اسحب الفرصة هنا");
     expect(allEmpty.length).toBeGreaterThanOrEqual(4);
-    expect(
-      screen.getByText("اسحب الفرصة هنا للإغلاق بالفوز"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("اسحب الفرصة هنا للإغلاق بالخسارة"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("اسحب الفرصة هنا للإغلاق بالفوز")).toBeInTheDocument();
+    expect(screen.getByText("اسحب الفرصة هنا للإغلاق بالخسارة")).toBeInTheDocument();
   });
 });
 
@@ -225,34 +206,24 @@ describe("OpportunityCard", () => {
   });
 
   it("shows company name when provided", () => {
-    render(
-      <OpportunityCard opportunity={makeOpp({ company_name: "أرامكو" })} />,
-    );
+    render(<OpportunityCard opportunity={makeOpp({ company_name: "أرامكو" })} />);
     expect(screen.getByText("أرامكو")).toBeInTheDocument();
   });
 
   it("hides company name when not provided", () => {
-    const { container } = render(
-      <OpportunityCard opportunity={makeOpp({ company_name: "" })} />,
-    );
+    const { container } = render(<OpportunityCard opportunity={makeOpp({ company_name: "" })} />);
     expect(container.querySelector(".text-neutral-500")).toBeNull();
   });
 
   it("shows won badge with amount", () => {
-    render(
-      <OpportunityCard
-        opportunity={makeOpp({ status: "won", won_amount: 500000 })}
-      />,
-    );
+    render(<OpportunityCard opportunity={makeOpp({ status: "won", won_amount: 500000 })} />);
     const matches = screen.getAllByText(/500K/);
     expect(matches.length).toBe(2);
   });
 
   it("shows loss reason when status is lost", () => {
     render(
-      <OpportunityCard
-        opportunity={makeOpp({ status: "lost", loss_reason: "السعر مرتفع" })}
-      />,
+      <OpportunityCard opportunity={makeOpp({ status: "lost", loss_reason: "السعر مرتفع" })} />
     );
     expect(screen.getByText("السعر مرتفع")).toBeInTheDocument();
   });
@@ -279,7 +250,7 @@ describe("PipelineColumn", () => {
     const onDrop = jest.fn();
     const stage = { key: "proposal", label: "عرض", color: "bg-warning-500" };
     const { container } = render(
-      <PipelineColumn stage={stage} opportunities={[]} onDrop={onDrop} />,
+      <PipelineColumn stage={stage} opportunities={[]} onDrop={onDrop} />
     );
 
     const column = container.firstChild as HTMLElement;
@@ -295,7 +266,7 @@ describe("PipelineColumn", () => {
     const onDrop = jest.fn();
     const stage = { key: "proposal", label: "عرض", color: "bg-warning-500" };
     const { container } = render(
-      <PipelineColumn stage={stage} opportunities={[]} onDrop={onDrop} />,
+      <PipelineColumn stage={stage} opportunities={[]} onDrop={onDrop} />
     );
 
     const column = container.firstChild as HTMLElement;
@@ -310,9 +281,7 @@ describe("PipelineColumn", () => {
   it("shows opportunity count in badge", () => {
     const stage = { key: "proposal", label: "عرض", color: "bg-warning-500" };
     const opps = [makeOpp({ id: "o1" }), makeOpp({ id: "o2" })];
-    render(
-      <PipelineColumn stage={stage} opportunities={opps} onDrop={jest.fn()} />,
-    );
+    render(<PipelineColumn stage={stage} opportunities={opps} onDrop={jest.fn()} />);
     expect(screen.getByText("2")).toBeInTheDocument();
   });
 });

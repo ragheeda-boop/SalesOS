@@ -1,32 +1,37 @@
-import { createWidget } from '@salesos/widget-sdk'
-import type { WidgetConfig, WidgetMetadata, WidgetLifecycle, WidgetData } from '@salesos/widget-sdk'
-import type { WorkspaceContextValue } from './workspace-types'
+import { createWidget } from "@salesos/widget-sdk";
+import type {
+  WidgetConfig,
+  WidgetMetadata,
+  WidgetLifecycle,
+  WidgetData,
+} from "@salesos/widget-sdk";
+import type { WorkspaceContextValue } from "./workspace-types";
 
 export interface WorkspaceWidgetConfig {
-  id: string
-  gridColumn?: string
-  minHeight?: string
-  refreshIntervalMs?: number
-  staleThresholdMs?: number
+  id: string;
+  gridColumn?: string;
+  minHeight?: string;
+  refreshIntervalMs?: number;
+  staleThresholdMs?: number;
 }
 
 interface CreateWorkspaceWidgetOverrides<T> {
-  metadata?: Omit<Partial<WidgetMetadata>, 'id'>
-  lifecycle?: WidgetLifecycle
-  fallback?: React.ReactNode
-  render: WidgetConfig<T>['render']
+  metadata?: Omit<Partial<WidgetMetadata>, "id">;
+  lifecycle?: WidgetLifecycle;
+  fallback?: React.ReactNode;
+  render: WidgetConfig<T>["render"];
 }
 
 export function createWorkspaceWidget<T, W extends Record<string, unknown>>(
   config: WorkspaceWidgetConfig,
   useWorkspaceContext: () => WorkspaceContextValue<W>,
   widgetSelector: (widgets: W) => WidgetData<T>,
-  overrides: CreateWorkspaceWidgetOverrides<T>,
+  overrides: CreateWorkspaceWidgetOverrides<T>
 ) {
   return createWidget<T>({
     metadata: {
       id: config.id,
-      title: overrides.metadata?.title ?? '',
+      title: overrides.metadata?.title ?? "",
       refreshInterval: config.refreshIntervalMs,
       staleThreshold: config.staleThresholdMs,
       gridColumn: config.gridColumn,
@@ -36,9 +41,9 @@ export function createWorkspaceWidget<T, W extends Record<string, unknown>>(
     lifecycle: overrides.lifecycle,
     fallback: overrides.fallback,
     useData: () => {
-      const ctx = useWorkspaceContext()
-      return widgetSelector(ctx.widgets)
+      const ctx = useWorkspaceContext();
+      return widgetSelector(ctx.widgets);
     },
     render: overrides.render,
-  })
+  });
 }

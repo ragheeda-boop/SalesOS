@@ -4,12 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  completeTask,
-  getCompany,
-  listTasks,
-  type TaskResponse,
-} from "@/lib/api";
+import { completeTask, getCompany, listTasks, type TaskResponse } from "@/lib/api";
 import { companyKeys, taskKeys } from "@/lib/queryKeys";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { openV3AiPopup } from "@/components/v3/V3AiPopup";
@@ -24,18 +19,10 @@ import {
 import { formatWhen } from "../../_components/format";
 import { useAccessToken } from "../../_hooks/useAccessToken";
 
-function Field({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number | null | undefined;
-}) {
+function Field({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
     <div className="space-y-0.5">
-      <dt className="text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">
-        {label}
-      </dt>
+      <dt className="text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">{label}</dt>
       <dd className="text-sm text-[var(--text-primary)]" dir="auto">
         {value ?? "—"}
       </dd>
@@ -68,7 +55,7 @@ export default function V3TaskDetailPage() {
 
   const task: TaskResponse | undefined = useMemo(
     () => (tasks ?? []).find((t) => t.id === id),
-    [tasks, id],
+    [tasks, id]
   );
 
   const companyId = task?.company_id ?? undefined;
@@ -92,9 +79,7 @@ export default function V3TaskDetailPage() {
   });
 
   const companyName =
-    company?.name_en?.trim() ||
-    company?.name_ar ||
-    (companyId ? "Company 360" : null);
+    company?.name_en?.trim() || company?.name_ar || (companyId ? "Company 360" : null);
   const title = task?.title?.trim() || "Task";
 
   return (
@@ -138,16 +123,12 @@ export default function V3TaskDetailPage() {
         <>
           <PageHeader
             title="Task"
-            actions={
-              <GhostButtonLink href="/v3/tasks">Back to tasks</GhostButtonLink>
-            }
+            actions={<GhostButtonLink href="/v3/tasks">Back to tasks</GhostButtonLink>}
           />
           <EmptyState
             title="Task not found"
             description="No matching row in GET /api/v1/tasks for this id. There is no GET /tasks/{id} — detail is list-resolved only."
-            action={
-              <GhostButtonLink href="/v3/tasks">Browse tasks</GhostButtonLink>
-            }
+            action={<GhostButtonLink href="/v3/tasks">Browse tasks</GhostButtonLink>}
           />
         </>
       ) : (
@@ -176,9 +157,7 @@ export default function V3TaskDetailPage() {
                     onClick={() => completeMutation.mutate()}
                     className="rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-secondary)] px-3 py-1.5 text-[12px] font-medium text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] disabled:opacity-50"
                   >
-                    {completeMutation.isPending
-                      ? "Completing…"
-                      : "Mark complete"}
+                    {completeMutation.isPending ? "Completing…" : "Mark complete"}
                   </button>
                 ) : null}
                 <GhostButtonLink href="/v3/tasks">Back to list</GhostButtonLink>
@@ -192,8 +171,7 @@ export default function V3TaskDetailPage() {
           />
 
           <p className="mb-4 text-[12px] text-[var(--text-muted)]">
-            Detail is resolved from the tasks list API — no dedicated GET
-            /api/v1/tasks/{"{id}"}.
+            Detail is resolved from the tasks list API — no dedicated GET /api/v1/tasks/{"{id}"}.
           </p>
 
           <dl className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -206,18 +184,12 @@ export default function V3TaskDetailPage() {
           </dl>
 
           <section className="space-y-3" aria-label="Related company">
-            <h2 className="text-sm font-medium text-[var(--text-primary)]">
-              Related company
-            </h2>
+            <h2 className="text-sm font-medium text-[var(--text-primary)]">Related company</h2>
             {!companyId ? (
               <EmptyState
                 title="No company linked"
                 description="This task has no company_id on the API payload."
-                action={
-                  <GhostButtonLink href="/v3/companies">
-                    Browse companies
-                  </GhostButtonLink>
-                }
+                action={<GhostButtonLink href="/v3/companies">Browse companies</GhostButtonLink>}
               />
             ) : companyLoading ? (
               <LoadingState label="Loading company…" />
@@ -225,26 +197,21 @@ export default function V3TaskDetailPage() {
               <div className="rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-4 py-5">
                 {companyError ? (
                   <p className="mb-3 text-sm text-[var(--text-secondary)]">
-                    Company detail could not be loaded. You can still open
-                    Company 360 with the linked id.
+                    Company detail could not be loaded. You can still open Company 360 with the
+                    linked id.
                   </p>
                 ) : null}
                 <p className="text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">
                   Account
                 </p>
-                <p
-                  className="mt-1 text-base font-medium text-[var(--text-primary)]"
-                  dir="auto"
-                >
+                <p className="mt-1 text-base font-medium text-[var(--text-primary)]" dir="auto">
                   {companyName}
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <GhostButtonLink href={`/v3/companies/${companyId}`} primary>
                     Open Company 360
                   </GhostButtonLink>
-                  <GhostButtonLink href={`/companies/${companyId}`}>
-                    Legacy company
-                  </GhostButtonLink>
+                  <GhostButtonLink href={`/companies/${companyId}`}>Legacy company</GhostButtonLink>
                 </div>
               </div>
             )}

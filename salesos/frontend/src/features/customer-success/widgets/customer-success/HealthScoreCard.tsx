@@ -10,11 +10,7 @@ interface HealthScoreCardProps {
   thresholds: { green: number; yellow: number };
 }
 
-export function HealthScoreCard({
-  score,
-  label,
-  thresholds,
-}: HealthScoreCardProps) {
+export function HealthScoreCard({ score, label, thresholds }: HealthScoreCardProps) {
   const { t } = useTranslation();
 
   const color =
@@ -37,9 +33,7 @@ export function HealthScoreCard({
         <p className="text-xs text-[var(--text-muted)]">{label}</p>
         <HeartPulse className={cn("h-5 w-5", color)} />
       </div>
-      <p className={cn("text-2xl font-display font-bold", color)}>
-        {score.toFixed(0)}%
-      </p>
+      <p className={cn("text-2xl font-display font-bold", color)}>{score.toFixed(0)}%</p>
       <div className="flex items-center gap-1 mt-1">
         {score >= thresholds.green ? (
           <TrendingUp className="h-3 w-3 text-[var(--status-success-text)]" />

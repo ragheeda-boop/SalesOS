@@ -1,13 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, Badge } from "@salesos/ui";
-import {
-  Lightbulb,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  CheckCircle,
-} from "lucide-react";
+import { Lightbulb, TrendingUp, TrendingDown, AlertTriangle, CheckCircle } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
 interface CoachingInsight {
@@ -31,7 +25,7 @@ interface CoachingInsightsProps {
 function generateInsights(
   score: number,
   factors: Array<{ name: string; label: string; contribution: number }>,
-  trend?: "up" | "down" | "stable",
+  trend?: "up" | "down" | "stable"
 ): CoachingInsight[] {
   const insights: CoachingInsight[] = [];
 
@@ -39,7 +33,8 @@ function generateInsights(
     insights.push({
       type: "strength",
       title: "Strong Performance",
-      description: "Employee is performing above average. Consider recognition or leadership opportunities.",
+      description:
+        "Employee is performing above average. Consider recognition or leadership opportunities.",
       impact: "high",
     });
   } else if (score < 40) {
@@ -123,11 +118,7 @@ function InsightBadge({ type }: { type: CoachingInsight["type"] }) {
   );
 }
 
-export function CoachingInsights({
-  score,
-  factors,
-  trend,
-}: CoachingInsightsProps) {
+export function CoachingInsights({ score, factors, trend }: CoachingInsightsProps) {
   const { t } = useTranslation();
   const insights = generateInsights(score, factors, trend);
 
@@ -140,9 +131,7 @@ export function CoachingInsights({
       <CardHeader>
         <div className="flex items-center gap-2">
           <Lightbulb className="h-4 w-4 text-[var(--muhide-orange)]" />
-          <h3 className="text-sm font-semibold">
-            {t("emp360.coaching_insights")}
-          </h3>
+          <h3 className="text-sm font-semibold">{t("emp360.coaching_insights")}</h3>
           <Badge variant="default" className="text-[10px]">
             {insights.length}
           </Badge>
@@ -168,9 +157,7 @@ export function CoachingInsights({
                     </Badge>
                   )}
                 </div>
-                <p className="mt-1 text-xs text-[var(--text-secondary)]">
-                  {insight.description}
-                </p>
+                <p className="mt-1 text-xs text-[var(--text-secondary)]">{insight.description}</p>
               </div>
             </div>
           ))}

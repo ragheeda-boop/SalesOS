@@ -134,20 +134,10 @@ const DIMENSIONS: DimensionOption[] = [
   { id: "domain", label: "Domain" },
 ];
 
-const DOMAINS = [
-  "All",
-  "Revenue",
-  "Pipeline",
-  "Sales",
-  "Employees",
-  "Automation",
-];
+const DOMAINS = ["All", "Revenue", "Pipeline", "Sales", "Employees", "Automation"];
 const STATUSES = ["All", "Active", "Closed", "Pending"];
 
-function formatValue(
-  value: number,
-  format: "currency" | "number" | "percentage",
-): string {
+function formatValue(value: number, format: "currency" | "number" | "percentage"): string {
   if (format === "currency") {
     if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M SAR`;
     if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K SAR`;
@@ -224,9 +214,7 @@ export default function ReportBuilderPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)]">
-              Report Builder
-            </h1>
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">Report Builder</h1>
             <p className="text-sm text-[var(--text-muted)]">
               Configure metrics, dimensions, and filters
             </p>
@@ -242,16 +230,12 @@ export default function ReportBuilderPage() {
             </ModalTrigger>
             <ModalContent>
               <ModalHeader>
-                <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                  Save Report
-                </h2>
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">Save Report</h2>
               </ModalHeader>
               <ModalBody>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-xs text-[var(--text-muted)]">
-                      Report Name
-                    </label>
+                    <label className="text-xs text-[var(--text-muted)]">Report Name</label>
                     <Input
                       value={reportName}
                       onChange={(e) => setReportName(e.target.value)}
@@ -260,8 +244,8 @@ export default function ReportBuilderPage() {
                     />
                   </div>
                   <div className="text-xs text-[var(--text-muted)]">
-                    {config.metrics.length} metrics, {config.dimensions.length}{" "}
-                    dimensions, {config.viz_type} view
+                    {config.metrics.length} metrics, {config.dimensions.length} dimensions,{" "}
+                    {config.viz_type} view
                   </div>
                 </div>
               </ModalBody>
@@ -290,9 +274,7 @@ export default function ReportBuilderPage() {
         <div className="lg:col-span-1 space-y-4">
           {/* Metric Picker */}
           <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-              Metrics
-            </h3>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Metrics</h3>
             <div className="space-y-2">
               {METRICS.map((metric) => (
                 <label
@@ -301,7 +283,7 @@ export default function ReportBuilderPage() {
                     "flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer transition",
                     config.metrics.includes(metric.id)
                       ? "bg-[var(--muhide-orange)]/10 border border-[var(--muhide-orange)]/30"
-                      : "hover:bg-[var(--bg-secondary)] border border-transparent",
+                      : "hover:bg-[var(--bg-secondary)] border border-transparent"
                   )}
                 >
                   <input
@@ -311,12 +293,8 @@ export default function ReportBuilderPage() {
                     className="rounded border-[var(--border-default)]"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-[var(--text-primary)]">
-                      {metric.label}
-                    </p>
-                    <p className="text-[10px] text-[var(--text-muted)]">
-                      {metric.domain}
-                    </p>
+                    <p className="text-xs font-medium text-[var(--text-primary)]">{metric.label}</p>
+                    <p className="text-[10px] text-[var(--text-muted)]">{metric.domain}</p>
                   </div>
                 </label>
               ))}
@@ -325,9 +303,7 @@ export default function ReportBuilderPage() {
 
           {/* Dimension Picker */}
           <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-              Group By
-            </h3>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Group By</h3>
             <div className="space-y-2">
               {DIMENSIONS.map((dim) => (
                 <label
@@ -336,7 +312,7 @@ export default function ReportBuilderPage() {
                     "flex items-center gap-2 rounded-lg px-3 py-2 cursor-pointer transition",
                     config.dimensions.includes(dim.id)
                       ? "bg-[var(--muhide-orange)]/10 border border-[var(--muhide-orange)]/30"
-                      : "hover:bg-[var(--bg-secondary)] border border-transparent",
+                      : "hover:bg-[var(--bg-secondary)] border border-transparent"
                   )}
                 >
                   <input
@@ -355,14 +331,10 @@ export default function ReportBuilderPage() {
 
           {/* Filter Builder */}
           <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-              Filters
-            </h3>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Filters</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-[var(--text-muted)]">
-                  Date Range
-                </label>
+                <label className="text-xs text-[var(--text-muted)]">Date Range</label>
                 <div className="flex gap-2 mt-1">
                   <Input
                     type="date"
@@ -389,9 +361,7 @@ export default function ReportBuilderPage() {
                 </div>
               </div>
               <div>
-                <label className="text-xs text-[var(--text-muted)]">
-                  Domain
-                </label>
+                <label className="text-xs text-[var(--text-muted)]">Domain</label>
                 <select
                   value={config.filters.domain}
                   onChange={(e) =>
@@ -410,9 +380,7 @@ export default function ReportBuilderPage() {
                 </select>
               </div>
               <div>
-                <label className="text-xs text-[var(--text-muted)]">
-                  Status
-                </label>
+                <label className="text-xs text-[var(--text-muted)]">Status</label>
                 <select
                   value={config.filters.status}
                   onChange={(e) =>
@@ -435,9 +403,7 @@ export default function ReportBuilderPage() {
 
           {/* Visualization Type */}
           <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
-              Visualization
-            </h3>
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Visualization</h3>
             <div className="flex gap-2">
               {[
                 {
@@ -458,14 +424,12 @@ export default function ReportBuilderPage() {
               ].map((v) => (
                 <button
                   key={v.id}
-                  onClick={() =>
-                    setConfig((prev) => ({ ...prev, viz_type: v.id }))
-                  }
+                  onClick={() => setConfig((prev) => ({ ...prev, viz_type: v.id }))}
                   className={cn(
                     "flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition",
                     config.viz_type === v.id
                       ? "bg-[var(--muhide-orange)] text-white"
-                      : "border border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+                      : "border border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
                   )}
                 >
                   {v.icon}
@@ -491,19 +455,15 @@ export default function ReportBuilderPage() {
                     key={m.label}
                     className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-secondary)] p-3"
                   >
-                    <p className="text-[10px] text-[var(--text-muted)]">
-                      {m.label}
-                    </p>
-                    <p className="text-lg font-bold text-[var(--text-primary)]">
-                      {m.value}
-                    </p>
+                    <p className="text-[10px] text-[var(--text-muted)]">{m.label}</p>
+                    <p className="text-lg font-bold text-[var(--text-primary)]">{m.value}</p>
                     {m.trend !== undefined && (
                       <p
                         className={cn(
                           "text-[10px]",
                           m.trend >= 0
                             ? "text-[var(--status-success-text)]"
-                            : "text-[var(--status-danger-text)]",
+                            : "text-[var(--status-danger-text)]"
                         )}
                       >
                         {m.trend >= 0 ? "+" : ""}
@@ -545,13 +505,8 @@ export default function ReportBuilderPage() {
                         className="border-b border-[var(--border-default)] last:border-0 hover:bg-[var(--bg-secondary)]"
                       >
                         {Object.values(row).map((val, j) => (
-                          <td
-                            key={j}
-                            className="px-3 py-2 text-[var(--text-secondary)]"
-                          >
-                            {typeof val === "number"
-                              ? val.toLocaleString()
-                              : val}
+                          <td key={j} className="px-3 py-2 text-[var(--text-secondary)]">
+                            {typeof val === "number" ? val.toLocaleString() : val}
                           </td>
                         ))}
                       </tr>

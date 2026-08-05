@@ -107,9 +107,7 @@ describe("PipelineView", () => {
   });
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "ذكاء الأنابيب" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "ذكاء الأنابيب" })).toBeInTheDocument();
   });
 });
 

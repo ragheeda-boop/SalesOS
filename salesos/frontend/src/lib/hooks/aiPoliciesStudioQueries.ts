@@ -49,8 +49,7 @@ function invalidateAll(qc: ReturnType<typeof useQueryClient>) {
 export function useUpsertAiPolicy() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: AiPolicyUpsertBody) =>
-      upsertAiPolicy(getTenantId(), body),
+    mutationFn: (body: AiPolicyUpsertBody) => upsertAiPolicy(getTenantId(), body),
     onSuccess: () => invalidateAll(qc),
   });
 }
@@ -65,7 +64,6 @@ export function useDeleteAiPolicy() {
 
 export function useEvaluateAiPolicy() {
   return useMutation({
-    mutationFn: (body: AiPolicyEvaluateBody) =>
-      evaluateAiPolicy(getTenantId(), body),
+    mutationFn: (body: AiPolicyEvaluateBody) => evaluateAiPolicy(getTenantId(), body),
   });
 }

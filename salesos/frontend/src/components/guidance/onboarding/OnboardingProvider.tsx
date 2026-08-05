@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 
 export interface OnboardingItem {
   id: string;
@@ -79,7 +73,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
 export function useOnboarding(): OnboardingContextValue {
   const ctx = useContext(OnboardingContext);
-  if (!ctx)
-    throw new Error("useOnboarding must be used within an OnboardingProvider");
+  if (!ctx) throw new Error("useOnboarding must be used within an OnboardingProvider");
   return ctx;
 }

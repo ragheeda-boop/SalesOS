@@ -36,19 +36,13 @@ import {
   DEFAULT_PARTNER_MAPPINGS,
   isPartnerModel,
 } from "@/features/integrations/odooPartnerHonesty";
-import {
-  DEFAULT_NOTE_MAPPINGS,
-  isNoteModel,
-} from "@/features/integrations/odooNoteHonesty";
+import { DEFAULT_NOTE_MAPPINGS, isNoteModel } from "@/features/integrations/odooNoteHonesty";
 import {
   CANONICAL_TICKET_STAGES,
   DEFAULT_TICKET_MAPPINGS,
   isTicketModel,
 } from "@/features/integrations/odooTicketHonesty";
-import {
-  DEFAULT_TASK_MAPPINGS,
-  isTaskModel,
-} from "@/features/integrations/odooTaskHonesty";
+import { DEFAULT_TASK_MAPPINGS, isTaskModel } from "@/features/integrations/odooTaskHonesty";
 import {
   CUSTOMER_MOVE_TYPES,
   DEFAULT_INVOICE_MAPPINGS,
@@ -68,8 +62,7 @@ import {
 export type { StudioStepId };
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -125,25 +118,21 @@ export function IntegrationsStudio() {
   const [configJson, setConfigJson] = useState("{}");
   const [model, setModel] = useState("res.partner");
   const [mappingJson, setMappingJson] = useState(() =>
-    JSON.stringify(DEFAULT_PARTNER_MAPPINGS, null, 2),
+    JSON.stringify(DEFAULT_PARTNER_MAPPINGS, null, 2)
   );
-  const [baselineCsv, setBaselineCsv] = useState(
-    "name, email, phone, cr_number",
-  );
+  const [baselineCsv, setBaselineCsv] = useState("name, email, phone, cr_number");
   const [mappingVersion, setMappingVersion] = useState(1);
   const [scheduleName, setScheduleName] = useState("");
   const [disconnectConfirmed, setDisconnectConfirmed] = useState(false);
   const [schedule, setSchedule] = useState("15m");
-  const [scheduleJobType, setScheduleJobType] = useState<
-    "interval" | "cron" | "one_time"
-  >("interval");
+  const [scheduleJobType, setScheduleJobType] = useState<"interval" | "cron" | "one_time">(
+    "interval"
+  );
   const [connectionActiveFilter, setConnectionActiveFilter] = useState<
     "all" | "active" | "inactive"
   >("all");
   const [lastTest, setLastTest] = useState<string>("");
-  const [lastSchedule, setLastSchedule] = useState<HubScheduleResult | null>(
-    null,
-  );
+  const [lastSchedule, setLastSchedule] = useState<HubScheduleResult | null>(null);
   const [monitorStatusFilter, setMonitorStatusFilter] = useState("all");
   const [monitorModelFilter, setMonitorModelFilter] = useState("all");
   const [rulesJson, setRulesJson] = useState("[]");
@@ -154,13 +143,8 @@ export function IntegrationsStudio() {
   const connectionDetailQuery = useHubConnection(selectedId);
   const syncRunsQuery = useHubSyncRuns(selectedId);
   const unlinkedBadgesQuery = useHubUnlinkedBadges(selectedId);
-  const conflictQuery = useHubConflictPolicy(
-    step === "conflict" ? selectedId : null,
-  );
-  const activeMappingQuery = useActiveHubMapping(
-    step === "map" ? selectedId : null,
-    model,
-  );
+  const conflictQuery = useHubConflictPolicy(step === "conflict" ? selectedId : null);
+  const activeMappingQuery = useActiveHubMapping(step === "map" ? selectedId : null, model);
   const createMutation = useCreateHubConnection();
   const testMutation = useTestHubConnection();
   const mapMutation = useCreateHubMapping();
@@ -175,10 +159,7 @@ export function IntegrationsStudio() {
     return connections.filter((c) => Boolean(c.is_active) === wantActive);
   }, [connections, connectionActiveFilter]);
   const selected: HubConnection | undefined = useMemo(() => {
-    if (
-      connectionDetailQuery.data &&
-      connectionDetailQuery.data.id === selectedId
-    ) {
+    if (connectionDetailQuery.data && connectionDetailQuery.data.id === selectedId) {
       return connectionDetailQuery.data;
     }
     return connections.find((c) => c.id === selectedId);
@@ -187,9 +168,7 @@ export function IntegrationsStudio() {
     const rows = syncRunsQuery.data || [];
     return rows.filter((r) => {
       if (monitorStatusFilter !== "all") {
-        if (
-          (r.status || "").toLowerCase() !== monitorStatusFilter.toLowerCase()
-        ) {
+        if ((r.status || "").toLowerCase() !== monitorStatusFilter.toLowerCase()) {
           return false;
         }
       }
@@ -255,9 +234,7 @@ export function IntegrationsStudio() {
       runStatus: monitorStatusFilter,
       runModel: monitorModelFilter,
     });
-    const current = searchParams.toString()
-      ? `?${searchParams.toString()}`
-      : "";
+    const current = searchParams.toString() ? `?${searchParams.toString()}` : "";
     if (next === current) return;
     router.replace(`${pathname}${next}`, { scroll: false });
   }, [
@@ -295,9 +272,7 @@ export function IntegrationsStudio() {
     }
     if (isInvoiceModel(nextModel)) {
       setMappingJson(JSON.stringify(DEFAULT_INVOICE_MAPPINGS, null, 2));
-      setBaselineCsv(
-        "name, amount_total, amount_residual, payment_state, partner_external_id",
-      );
+      setBaselineCsv("name, amount_total, amount_residual, payment_state, partner_external_id");
       return;
     }
     if (isPartnerModel(nextModel)) {
@@ -314,8 +289,8 @@ export function IntegrationsStudio() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="integrations-studio-live-honesty"
       >
-        Do not paste real secrets into credential references. Odoo sync may be
-        gated by a feature flag. Live HubSpot network is not claimed.
+        Do not paste real secrets into credential references. Odoo sync may be gated by a feature
+        flag. Live HubSpot network is not claimed.
       </p>
 
       <ol
@@ -352,9 +327,7 @@ export function IntegrationsStudio() {
       >
         {needsConnection ? (
           <div className="space-y-2">
-            <label className="block text-xs text-[var(--text-muted)]">
-              Connection
-            </label>
+            <label className="block text-xs text-[var(--text-muted)]">Connection</label>
             {connectionsQuery.isLoading ? (
               <Spinner className="h-5 w-5" />
             ) : (
@@ -364,9 +337,7 @@ export function IntegrationsStudio() {
                   className="w-full max-w-xs rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
                   value={connectionActiveFilter}
                   onChange={(e) =>
-                    setConnectionActiveFilter(
-                      e.target.value as "all" | "active" | "inactive",
-                    )
+                    setConnectionActiveFilter(e.target.value as "all" | "active" | "inactive")
                   }
                 >
                   <option value="all">All connections</option>
@@ -382,8 +353,7 @@ export function IntegrationsStudio() {
                   <option value="">Select a connection…</option>
                   {filteredConnections.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.name} ({c.connector_key})
-                      {c.is_active ? "" : " · inactive"}
+                      {c.name} ({c.connector_key}){c.is_active ? "" : " · inactive"}
                     </option>
                   ))}
                 </select>
@@ -436,23 +406,16 @@ export function IntegrationsStudio() {
                       void connectionsQuery.refetch();
                     }}
                   >
-                    {connectionDetailQuery.isFetching
-                      ? "Refreshing…"
-                      : "Refresh connection"}
+                    {connectionDetailQuery.isFetching ? "Refreshing…" : "Refresh connection"}
                   </Button>
                 </div>
                 <div>
                   <dt className="text-[var(--text-muted)]">Credential ref</dt>
-                  <dd className="font-mono break-all">
-                    {selected.credential_ref}
-                  </dd>
+                  <dd className="font-mono break-all">{selected.credential_ref}</dd>
                 </div>
                 <div>
                   <dt className="text-[var(--text-muted)]">Cursor state</dt>
-                  <dd
-                    className="break-all"
-                    data-testid="integrations-studio-connection-cursor"
-                  >
+                  <dd className="break-all" data-testid="integrations-studio-connection-cursor">
                     {(() => {
                       const state = selected.cursor_state || {};
                       const keys = Object.keys(state);
@@ -468,13 +431,9 @@ export function IntegrationsStudio() {
                       className="font-mono break-all"
                       data-testid="integrations-studio-connection-timestamps"
                     >
-                      {selected.created_at
-                        ? `created ${selected.created_at}`
-                        : ""}
+                      {selected.created_at ? `created ${selected.created_at}` : ""}
                       {selected.created_at && selected.updated_at ? " · " : ""}
-                      {selected.updated_at
-                        ? `updated ${selected.updated_at}`
-                        : ""}
+                      {selected.updated_at ? `updated ${selected.updated_at}` : ""}
                     </dd>
                   </div>
                 ) : null}
@@ -484,8 +443,7 @@ export function IntegrationsStudio() {
                       className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                       data-testid="integrations-studio-odoo-flag-honesty"
                     >
-                      Odoo actions may require the{" "}
-                      <code>{FLAG_ODOO_INTEGRATION}</code> flag (
+                      Odoo actions may require the <code>{FLAG_ODOO_INTEGRATION}</code> flag (
                       {ODOO_FLAG_GATED_ACTIONS.join(", ")}).
                     </p>
                     <p
@@ -497,19 +455,12 @@ export function IntegrationsStudio() {
                   </div>
                 ) : null}
                 <div className="sm:col-span-2">
-                  <dt className="text-[var(--text-muted)]">
-                    Connection config keys
-                  </dt>
-                  <dd
-                    className="break-all"
-                    data-testid="integrations-studio-connection-config"
-                  >
+                  <dt className="text-[var(--text-muted)]">Connection config keys</dt>
+                  <dd className="break-all" data-testid="integrations-studio-connection-config">
                     {(() => {
                       const cfg = selected.connection_config || {};
                       const keys = Object.keys(cfg);
-                      return keys.length
-                        ? keys.join(", ")
-                        : "No non-secret config keys";
+                      return keys.length ? keys.join(", ") : "No non-secret config keys";
                     })()}
                   </dd>
                 </div>
@@ -533,9 +484,9 @@ export function IntegrationsStudio() {
               onChange={(e) => setConnectorKey(e.target.value)}
             />
             <p className="text-xs text-[var(--text-muted)]">
-              Connector keys: <code>fake</code>, <code>odoo</code>, or{" "}
-              <code>hubspot</code> (CI adapter). Live HubSpot / XML-RPC needs a
-              vault credential reference only — no passwords in this form.
+              Connector keys: <code>fake</code>, <code>odoo</code>, or <code>hubspot</code> (CI
+              adapter). Live HubSpot / XML-RPC needs a vault credential reference only — no
+              passwords in this form.
             </p>
             <Input
               label="Credential ref"
@@ -556,18 +507,14 @@ export function IntegrationsStudio() {
               onChange={(e) => setConfigJson(e.target.value)}
             />
             <p className="text-xs text-[var(--text-muted)]">
-              Tip accepts non-secret `connection_config` only — never paste
-              passwords here.
+              Tip accepts non-secret `connection_config` only — never paste passwords here.
             </p>
             <Button
               data-testid="integrations-studio-connect-submit"
               disabled={createMutation.isPending}
               onClick={async () => {
                 try {
-                  const parsedConfig = JSON.parse(configJson || "{}") as Record<
-                    string,
-                    unknown
-                  >;
+                  const parsedConfig = JSON.parse(configJson || "{}") as Record<string, unknown>;
                   if (
                     parsedConfig === null ||
                     typeof parsedConfig !== "object" ||
@@ -605,8 +552,7 @@ export function IntegrationsStudio() {
         {step === "test" ? (
           <div className="space-y-3" data-testid="integrations-studio-test">
             <p className="text-sm text-[var(--text-secondary)]">
-              Dispatches by selected{" "}
-              <code>{selected?.connector_key || "connector_key"}</code>:{" "}
+              Dispatches by selected <code>{selected?.connector_key || "connector_key"}</code>:{" "}
               <code>odoo</code> → OdooAdapter, else FakeSourceConnector.
             </p>
             <Button
@@ -649,10 +595,7 @@ export function IntegrationsStudio() {
 
         {step === "map" ? (
           <div className="space-y-3" data-testid="integrations-studio-map">
-            <div
-              className="flex flex-wrap gap-2"
-              data-testid="integrations-studio-model-presets"
-            >
+            <div className="flex flex-wrap gap-2" data-testid="integrations-studio-model-presets">
               {HUB_MODEL_PRESETS.map((preset) => (
                 <Button
                   key={preset.id}
@@ -668,8 +611,8 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-partner-join-honesty"
               >
-                Partner sync maps commercial registration numbers to company
-                records. Unlinked residuals appear on Monitor.
+                Partner sync maps commercial registration numbers to company records. Unlinked
+                residuals appear on Monitor.
               </p>
             ) : null}
             {isOpportunityModel(model) ? (
@@ -678,8 +621,7 @@ export function IntegrationsStudio() {
                 data-testid="integrations-studio-opportunity-stage-honesty"
               >
                 Opportunity stages are translated to canonical stages (
-                {CANONICAL_OPPORTUNITY_STAGES.join(", ")}). Unmapped stages
-                fail loudly.
+                {CANONICAL_OPPORTUNITY_STAGES.join(", ")}). Unmapped stages fail loudly.
               </p>
             ) : null}
             {isNoteModel(model) ? (
@@ -687,8 +629,7 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-note-pii-honesty"
               >
-                Note bodies are PII-scrubbed before any RAG-adjacent use. Raw
-                body stays audit-only.
+                Note bodies are PII-scrubbed before any RAG-adjacent use. Raw body stays audit-only.
               </p>
             ) : null}
             {isTicketModel(model) ? (
@@ -696,8 +637,7 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-ticket-stage-honesty"
               >
-                Ticket stages map to{" "}
-                {CANONICAL_TICKET_STAGES.join(", ")}. Unmapped stages fail
+                Ticket stages map to {CANONICAL_TICKET_STAGES.join(", ")}. Unmapped stages fail
                 loudly; descriptions are PII-scrubbed.
               </p>
             ) : null}
@@ -706,8 +646,8 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-task-case-honesty"
               >
-                Tasks may include optional case extensions (financing /
-                insurance). Stages are soft-mapped.
+                Tasks may include optional case extensions (financing / insurance). Stages are
+                soft-mapped.
               </p>
             ) : null}
             {isInvoiceModel(model) ? (
@@ -715,8 +655,8 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-invoice-payment-honesty"
               >
-                Customer invoices (AR) are separate from platform Stripe
-                billing. Move types: {CUSTOMER_MOVE_TYPES.join(", ")}.
+                Customer invoices (AR) are separate from platform Stripe billing. Move types:{" "}
+                {CUSTOMER_MOVE_TYPES.join(", ")}.
               </p>
             ) : null}
             <Input
@@ -733,9 +673,7 @@ export function IntegrationsStudio() {
                   void activeMappingQuery.refetch();
                 }}
               >
-                {activeMappingQuery.isFetching
-                  ? "Loading…"
-                  : "Load active mapping"}
+                {activeMappingQuery.isFetching ? "Loading…" : "Load active mapping"}
               </Button>
               <span
                 className="text-xs text-[var(--text-muted)]"
@@ -746,11 +684,7 @@ export function IntegrationsStudio() {
                   : activeMappingQuery.data
                     ? `Active v${activeMappingQuery.data.version} · ${
                         activeMappingQuery.data.model
-                      }${
-                        activeMappingQuery.data.is_active
-                          ? " · is_active"
-                          : " · inactive"
-                      }${
+                      }${activeMappingQuery.data.is_active ? " · is_active" : " · inactive"}${
                         activeMappingQuery.data.id
                           ? ` · ${activeMappingQuery.data.id.slice(0, 8)}`
                           : ""
@@ -777,12 +711,10 @@ export function IntegrationsStudio() {
               }}
             />
             <p className="text-xs text-[var(--text-muted)]">
-              Tip `baseline_fields` on FieldMappingConfig — used for drift
-              detection. Not Production GO.
+              Tip `baseline_fields` on FieldMappingConfig — used for drift detection. Not Production
+              GO.
             </p>
-            <label className="block text-xs text-[var(--text-muted)]">
-              Mappings JSON
-            </label>
+            <label className="block text-xs text-[var(--text-muted)]">Mappings JSON</label>
             <textarea
               data-testid="integrations-studio-map-json"
               className="min-h-[100px] w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 font-mono text-xs"
@@ -795,10 +727,7 @@ export function IntegrationsStudio() {
               onClick={async () => {
                 if (!selectedId) return;
                 try {
-                  const mappings = JSON.parse(mappingJson) as Record<
-                    string,
-                    unknown
-                  >[];
+                  const mappings = JSON.parse(mappingJson) as Record<string, unknown>[];
                   if (!Array.isArray(mappings)) {
                     throw new Error("mappings must be a JSON array");
                   }
@@ -833,9 +762,8 @@ export function IntegrationsStudio() {
         {step === "conflict" ? (
           <div className="space-y-3" data-testid="integrations-studio-conflict">
             <p className="text-sm text-[var(--text-secondary)]">
-              ConflictResolutionPolicy (OBJ-333) via GET/PUT{" "}
-              <code>/conflict-policy</code>. SalesOS-authored fields stay
-              exclude_from_pull (feedback-loop exclusion).
+              ConflictResolutionPolicy (OBJ-333) via GET/PUT <code>/conflict-policy</code>.
+              SalesOS-authored fields stay exclude_from_pull (feedback-loop exclusion).
             </p>
             {!selectedId ? (
               <p className="text-sm text-[var(--text-muted)]">
@@ -845,9 +773,7 @@ export function IntegrationsStudio() {
               <Spinner className="h-5 w-5" />
             ) : (
               <>
-                <label className="block text-xs text-[var(--text-muted)]">
-                  Rules JSON
-                </label>
+                <label className="block text-xs text-[var(--text-muted)]">Rules JSON</label>
                 <textarea
                   data-testid="integrations-studio-conflict-rules"
                   className="min-h-[120px] w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 font-mono text-xs"
@@ -869,16 +795,13 @@ export function IntegrationsStudio() {
                 <Button
                   data-testid="integrations-studio-conflict-tip-defaults"
                   onClick={() => {
-                    setRulesJson(
-                      JSON.stringify(tipDefaultConflictRules(), null, 2),
-                    );
+                    setRulesJson(JSON.stringify(tipDefaultConflictRules(), null, 2));
                     setAuthoredCsv(TIP_SALESOS_AUTHORED_FIELDS.join(", "));
                     setOperationalCsv(TIP_OPERATIONAL_FIELDS.join(", "));
                     toast({
                       variant: "success",
                       title: "Tip conflict defaults loaded",
-                      description:
-                        "Default conflict policy applied",
+                      description: "Default conflict policy applied",
                     });
                   }}
                 >
@@ -920,9 +843,7 @@ export function IntegrationsStudio() {
                     }
                   }}
                 >
-                  {conflictMutation.isPending
-                    ? "Saving…"
-                    : "Save conflict policy"}
+                  {conflictMutation.isPending ? "Saving…" : "Save conflict policy"}
                 </Button>
               </>
             )}
@@ -950,8 +871,8 @@ export function IntegrationsStudio() {
                 className="text-xs text-[var(--text-muted)]"
                 data-testid="integrations-studio-schedule-partner-hint"
               >
-                Schedule model <code>res.partner</code> pulls company/contact
-                partners (CR join in batch).
+                Schedule model <code>res.partner</code> pulls company/contact partners (CR join in
+                batch).
               </p>
             ) : null}
             {isOpportunityModel(model) ? (
@@ -967,8 +888,7 @@ export function IntegrationsStudio() {
                 className="text-xs text-[var(--text-muted)]"
                 data-testid="integrations-studio-schedule-note-hint"
               >
-                Schedule model <code>mail.message</code> pulls chatter notes
-                (PII scrubbed).
+                Schedule model <code>mail.message</code> pulls chatter notes (PII scrubbed).
               </p>
             ) : null}
             {isTicketModel(model) ? (
@@ -976,8 +896,8 @@ export function IntegrationsStudio() {
                 className="text-xs text-[var(--text-muted)]"
                 data-testid="integrations-studio-schedule-ticket-hint"
               >
-                Schedule model <code>helpdesk.ticket</code> pulls support
-                tickets (strict stages + PII scrub).
+                Schedule model <code>helpdesk.ticket</code> pulls support tickets (strict stages +
+                PII scrub).
               </p>
             ) : null}
             {isTaskModel(model) ? (
@@ -985,8 +905,7 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-schedule-task-honesty"
               >
-                Schedule model <code>project.task</code> pulls tasks with
-                optional case extensions.
+                Schedule model <code>project.task</code> pulls tasks with optional case extensions.
               </p>
             ) : null}
             {isInvoiceModel(model) ? (
@@ -994,8 +913,8 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-schedule-invoice-honesty"
               >
-                Schedule model <code>account.move</code> pulls customer AR
-                invoices (not platform Stripe billing).
+                Schedule model <code>account.move</code> pulls customer AR invoices (not platform
+                Stripe billing).
               </p>
             ) : null}
             <Input
@@ -1024,9 +943,7 @@ export function IntegrationsStudio() {
               className="w-full max-w-xs rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
               value={scheduleJobType}
               onChange={(e) =>
-                setScheduleJobType(
-                  e.target.value as "interval" | "cron" | "one_time",
-                )
+                setScheduleJobType(e.target.value as "interval" | "cron" | "one_time")
               }
             >
               <option value="interval">interval</option>
@@ -1034,8 +951,7 @@ export function IntegrationsStudio() {
               <option value="one_time">one_time</option>
             </select>
             <p className="text-xs text-[var(--text-muted)]">
-              CAP-028 schedule string for interval (e.g. 15m) or cron
-              expression.
+              CAP-028 schedule string for interval (e.g. 15m) or cron expression.
             </p>
             <Button
               data-testid="integrations-studio-schedule-submit"
@@ -1074,9 +990,8 @@ export function IntegrationsStudio() {
                 className="text-xs text-[var(--text-muted)]"
                 data-testid="integrations-studio-schedule-result"
               >
-                Last job {lastSchedule.job_id} · {lastSchedule.job_type} ·{" "}
-                {lastSchedule.schedule} · next_run_at{" "}
-                {lastSchedule.next_run_at || "n/a"}
+                Last job {lastSchedule.job_id} · {lastSchedule.job_type} · {lastSchedule.schedule} ·
+                next_run_at {lastSchedule.next_run_at || "n/a"}
               </p>
             ) : null}
           </div>
@@ -1088,13 +1003,10 @@ export function IntegrationsStudio() {
               className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
               data-testid="integrations-studio-unlinked-honesty"
             >
-              Unlinked badges list partner-join residuals from sync runs — not
-              a dedicated badge table.
+              Unlinked badges list partner-join residuals from sync runs — not a dedicated badge
+              table.
             </p>
-            <div
-              className="space-y-2"
-              data-testid="integrations-studio-unlinked-badges"
-            >
+            <div className="space-y-2" data-testid="integrations-studio-unlinked-badges">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-sm font-medium">Unlinked badges</h3>
                 <Button
@@ -1104,9 +1016,7 @@ export function IntegrationsStudio() {
                     void unlinkedBadgesQuery.refetch();
                   }}
                 >
-                  {unlinkedBadgesQuery.isFetching
-                    ? "Refreshing…"
-                    : "Refresh badges"}
+                  {unlinkedBadgesQuery.isFetching ? "Refreshing…" : "Refresh badges"}
                 </Button>
                 <span
                   className="text-xs text-[var(--text-muted)]"
@@ -1140,18 +1050,12 @@ export function IntegrationsStudio() {
                       <span>{b.status}</span>
                       {b.cr_number ? (
                         <>
-                          <span className="mx-2 text-[var(--text-muted)]">
-                            ·
-                          </span>
-                          <span className="font-mono text-xs">
-                            cr {b.cr_number}
-                          </span>
+                          <span className="mx-2 text-[var(--text-muted)]">·</span>
+                          <span className="font-mono text-xs">cr {b.cr_number}</span>
                         </>
                       ) : null}
                       {b.message ? (
-                        <p className="mt-1 text-xs text-[var(--text-muted)]">
-                          {b.message}
-                        </p>
+                        <p className="mt-1 text-xs text-[var(--text-muted)]">{b.message}</p>
                       ) : null}
                       {b.sync_run_id ? (
                         <p className="mt-0.5 font-mono text-[10px] text-[var(--text-disabled)]">
@@ -1206,13 +1110,13 @@ export function IntegrationsStudio() {
                       {m}
                     </option>
                   ))}
-                  {HUB_MODEL_PRESETS.filter(
-                    (p) => !monitorModelOptions.includes(p.model),
-                  ).map((p) => (
-                    <option key={p.id} value={p.model}>
-                      {p.model}
-                    </option>
-                  ))}
+                  {HUB_MODEL_PRESETS.filter((p) => !monitorModelOptions.includes(p.model)).map(
+                    (p) => (
+                      <option key={p.id} value={p.model}>
+                        {p.model}
+                      </option>
+                    )
+                  )}
                 </select>
               </div>
             </div>
@@ -1228,9 +1132,7 @@ export function IntegrationsStudio() {
                 data-testid="integrations-studio-sync-runs"
               >
                 {filteredSyncRuns.length === 0 ? (
-                  <li className="px-3 py-2 text-sm text-[var(--text-muted)]">
-                    No sync runs yet.
-                  </li>
+                  <li className="px-3 py-2 text-sm text-[var(--text-muted)]">No sync runs yet.</li>
                 ) : (
                   filteredSyncRuns.map((run) => (
                     <li
@@ -1238,17 +1140,13 @@ export function IntegrationsStudio() {
                       className="px-3 py-2 text-sm"
                       data-testid="integrations-studio-sync-run-row"
                     >
-                      <span className="font-medium">{run.status}</span> ·{" "}
-                      {run.model} · pulled {run.records_pulled} / wrote{" "}
-                      {run.records_written} / failed {run.records_failed}
+                      <span className="font-medium">{run.status}</span> · {run.model} · pulled{" "}
+                      {run.records_pulled} / wrote {run.records_written} / failed{" "}
+                      {run.records_failed}
                       <span className="mt-0.5 block text-xs text-[var(--text-muted)]">
                         started {run.started_at}
-                        {run.finished_at
-                          ? ` · finished ${run.finished_at}`
-                          : ""}
-                        {run.scheduled_job_id
-                          ? ` · job ${run.scheduled_job_id}`
-                          : ""}
+                        {run.finished_at ? ` · finished ${run.finished_at}` : ""}
+                        {run.scheduled_job_id ? ` · job ${run.scheduled_job_id}` : ""}
                         {run.failure_class ? ` · ${run.failure_class}` : ""}
                       </span>
                       {syncRunHasCursors(run) ? (
@@ -1256,15 +1154,12 @@ export function IntegrationsStudio() {
                           className="mt-1 text-[10px] text-[var(--text-muted)] break-all"
                           data-testid="integrations-studio-sync-run-cursors"
                         >
-                          Cursors:{" "}
-                          {Object.keys(run.cursor_before || {}).length} before /{" "}
+                          Cursors: {Object.keys(run.cursor_before || {}).length} before /{" "}
                           {Object.keys(run.cursor_after || {}).length} after
                         </p>
                       ) : null}
                       <div className="mt-1 flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-xs break-all">
-                          {run.id}
-                        </span>
+                        <span className="font-mono text-xs break-all">{run.id}</span>
                         <Button
                           data-testid="integrations-studio-copy-sync-run-id"
                           onClick={async () => {
@@ -1296,10 +1191,7 @@ export function IntegrationsStudio() {
         ) : null}
 
         {step === "disconnect" ? (
-          <div
-            className="space-y-3"
-            data-testid="integrations-studio-disconnect"
-          >
+          <div className="space-y-3" data-testid="integrations-studio-disconnect">
             <p className="text-sm text-[var(--text-secondary)]">
               Deactivates the selected connection ({selected?.name || "none"}).
             </p>
@@ -1315,16 +1207,11 @@ export function IntegrationsStudio() {
             <Button
               variant="danger"
               data-testid="integrations-studio-disconnect-submit"
-              disabled={
-                !selectedId ||
-                !disconnectConfirmed ||
-                disconnectMutation.isPending
-              }
+              disabled={!selectedId || !disconnectConfirmed || disconnectMutation.isPending}
               onClick={async () => {
                 if (!selectedId) return;
                 try {
-                  const result =
-                    await disconnectMutation.mutateAsync(selectedId);
+                  const result = await disconnectMutation.mutateAsync(selectedId);
                   toast({
                     variant: "success",
                     title: "Disconnected",

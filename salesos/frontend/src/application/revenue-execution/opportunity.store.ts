@@ -10,9 +10,7 @@ export async function loadOpportunities(): Promise<RevenueOpportunity[]> {
   }
 }
 
-export async function saveOpportunities(
-  _opps: RevenueOpportunity[],
-): Promise<void> {
+export async function saveOpportunities(_opps: RevenueOpportunity[]): Promise<void> {
   // Batch update not supported by backend — individual updates via updateOpportunityStage
 }
 
@@ -40,7 +38,7 @@ export async function createOpportunity(input: {
 
 export async function updateOpportunityStage(
   id: string,
-  stage: OpportunityStage,
+  stage: OpportunityStage
 ): Promise<RevenueOpportunity[]> {
   const response = await api.put(`/api/v1/opportunities/${id}/stage`, {
     stage,
@@ -51,7 +49,7 @@ export async function updateOpportunityStage(
 export async function addOpportunityNote(
   _id: string,
   _text: string,
-  _author: string,
+  _author: string
 ): Promise<RevenueOpportunity[]> {
   // Notes endpoint not implemented in backend — no-op
   return [];
@@ -59,15 +57,13 @@ export async function addOpportunityNote(
 
 export function getOpportunitiesByStage(
   opps: RevenueOpportunity[],
-  stage?: OpportunityStage,
+  stage?: OpportunityStage
 ): RevenueOpportunity[] {
   if (!stage) return opps;
   return opps.filter((o) => o.stage === stage);
 }
 
-export async function getOpportunity(
-  id: string,
-): Promise<RevenueOpportunity | undefined> {
+export async function getOpportunity(id: string): Promise<RevenueOpportunity | undefined> {
   const opps = await loadOpportunities();
   return opps.find((o) => o.id === id);
 }

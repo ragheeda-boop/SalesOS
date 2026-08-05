@@ -62,29 +62,23 @@ export async function getOutreachMeta(tenantId: string): Promise<OutreachMeta> {
   return resp.data;
 }
 
-export async function listOutreachDrafts(
-  tenantId: string,
-): Promise<OutreachDraft[]> {
+export async function listOutreachDrafts(tenantId: string): Promise<OutreachDraft[]> {
   const resp = await api.get<OutreachDraft[]>(BASE, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function getOutreachDraft(
-  tenantId: string,
-  runId: string,
-): Promise<OutreachDraft> {
-  const resp = await api.get<OutreachDraft>(
-    `${BASE}/${encodeURIComponent(runId)}`,
-    { headers: tenantHeaders(tenantId) },
-  );
+export async function getOutreachDraft(tenantId: string, runId: string): Promise<OutreachDraft> {
+  const resp = await api.get<OutreachDraft>(`${BASE}/${encodeURIComponent(runId)}`, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }
 
 export async function createOutreachDraft(
   tenantId: string,
-  body: OutreachBody,
+  body: OutreachBody
 ): Promise<OutreachDraft> {
   const resp = await api.post<OutreachDraft>(BASE, body, {
     headers: tenantHeaders(tenantId),

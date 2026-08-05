@@ -45,9 +45,9 @@ describe("searchApi", () => {
   it("propagates API errors", async () => {
     mockedApi.get.mockRejectedValue(new Error("Network Error"));
 
-    await expect(
-      searchApi({ text: "test", filters: [], page: 1, pageSize: 10 }),
-    ).rejects.toThrow("Network Error");
+    await expect(searchApi({ text: "test", filters: [], page: 1, pageSize: 10 })).rejects.toThrow(
+      "Network Error"
+    );
   });
 });
 
@@ -57,9 +57,7 @@ describe("suggestApi", () => {
   });
 
   it("returns suggestions", async () => {
-    const suggestions = [
-      { id: "1", type: "company", score: 0.9, data: { name: "Acme" } },
-    ];
+    const suggestions = [{ id: "1", type: "company", score: 0.9, data: { name: "Acme" } }];
     mockedApi.get.mockResolvedValue({
       data: { suggestions },
     } as any);

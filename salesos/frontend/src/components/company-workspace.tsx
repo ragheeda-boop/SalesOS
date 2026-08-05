@@ -39,13 +39,7 @@ interface CompanyWorkspaceProps {
 }
 
 type TabId =
-  | "overview"
-  | "intelligence"
-  | "contacts"
-  | "government"
-  | "documents"
-  | "timeline"
-  | "ai";
+  "overview" | "intelligence" | "contacts" | "government" | "documents" | "timeline" | "ai";
 
 const TABS: { id: TabId; labelKey: string; icon: typeof Activity }[] = [
   { id: "overview", labelKey: "tabs.overview", icon: BarChart3 },
@@ -90,9 +84,7 @@ function HealthScoreRing({ score, label }: { score: number; label: string }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-lg font-bold text-[var(--text-primary)]">
-          {score}
-        </span>
+        <span className="text-lg font-bold text-[var(--text-primary)]">{score}</span>
         <span className="text-[8px] text-[var(--text-muted)]">{label}</span>
       </div>
     </div>
@@ -127,8 +119,7 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
   const { data: company360 } = useCompany360(companyId);
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
-  const healthScore =
-    company360?.health_score || company?.confidence_score || 0;
+  const healthScore = company360?.health_score || company?.confidence_score || 0;
 
   if (isLoading) {
     return (
@@ -136,10 +127,7 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
         <div className="h-32 animate-pulse rounded-xl bg-[var(--bg-tertiary)]" />
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-20 animate-pulse rounded-xl bg-[var(--bg-tertiary)]"
-            />
+            <div key={i} className="h-20 animate-pulse rounded-xl bg-[var(--bg-tertiary)]" />
           ))}
         </div>
         <div className="h-96 animate-pulse rounded-xl bg-[var(--bg-tertiary)]" />
@@ -154,9 +142,7 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
         <p className="text-lg font-semibold text-[var(--text-primary)]">
           {t("company.load_error")}
         </p>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">
-          {t("company.load_error_hint")}
-        </p>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">{t("company.load_error_hint")}</p>
       </div>
     );
   }
@@ -190,21 +176,17 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
                 </span>
               )}
               {company.region && (
-                <span className="text-xs text-[var(--text-disabled)]">
-                  {company.region}
-                </span>
+                <span className="text-xs text-[var(--text-disabled)]">{company.region}</span>
               )}
               <span
                 className={cn(
                   "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
                   company.status === "active"
                     ? "bg-success-50 text-success-700 dark:bg-success-900/30 dark:text-success-400"
-                    : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]",
+                    : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]"
                 )}
               >
-                {company.status === "active" && (
-                  <CheckCircle className="h-3 w-3" />
-                )}
+                {company.status === "active" && <CheckCircle className="h-3 w-3" />}
                 {company.status}
               </span>
             </div>
@@ -215,35 +197,25 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
         {/* AI Action Bar */}
         <div className="flex items-center gap-1 border-t border-[var(--border-subtle)] px-6 py-2">
           <Sparkles className="h-3.5 w-3.5 text-[var(--chart-purple)]" />
-          <span className="ms-1 text-[10px] font-medium text-[var(--text-disabled)]">
-            AI:
-          </span>
-          {(
-            [
-              "explain",
-              "analyze",
-              "predict",
-              "summarize",
-              "recommend",
-            ] as AIAction[]
-          ).map((actionId) => {
-            const action = AI_ACTIONS[actionId];
-            return (
-              <button
-                key={actionId}
-                className="flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] text-[var(--chart-purple)] hover:bg-[var(--chart-purple-bg)] dark:text-[var(--chart-purple)] dark:hover:bg-[var(--bg-primary)]/50 transition-colors"
-              >
-                {action.labelAr}
-              </button>
-            );
-          })}
+          <span className="ms-1 text-[10px] font-medium text-[var(--text-disabled)]">AI:</span>
+          {(["explain", "analyze", "predict", "summarize", "recommend"] as AIAction[]).map(
+            (actionId) => {
+              const action = AI_ACTIONS[actionId];
+              return (
+                <button
+                  key={actionId}
+                  className="flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] text-[var(--chart-purple)] hover:bg-[var(--chart-purple-bg)] dark:text-[var(--chart-purple)] dark:hover:bg-[var(--bg-primary)]/50 transition-colors"
+                >
+                  {action.labelAr}
+                </button>
+              );
+            }
+          )}
         </div>
       </div>
 
       {/* Quick Metrics */}
-      {(overview ||
-        assignedEmployees.length > 0 ||
-        opportunities.length > 0) && (
+      {(overview || assignedEmployees.length > 0 || opportunities.length > 0) && (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {overview?.total_revenue !== undefined && (
             <MetricCard
@@ -361,33 +333,29 @@ export function CompanyWorkspace({ companyId }: CompanyWorkspaceProps) {
             {t("company.assigned_team")}
           </h3>
           <div className="flex flex-wrap gap-2">
-            {assignedEmployees.map(
-              (emp: Record<string, unknown>, i: number) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-2 rounded-lg border border-[var(--border-default)] px-3 py-2 text-sm"
-                >
-                  <Avatar
-                    size="sm"
-                    fallback={String(emp.full_name || emp.name || "")
-                      .split("")
-                      .map((n: string) => n[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()}
-                    className="h-7 w-7 text-xs"
-                  />
-                  <span className="text-[var(--text-primary)]">
-                    {String(emp.full_name || emp.name)}
-                  </span>
-                  {emp.role ? (
-                    <span className="text-xs text-[var(--text-muted)]">
-                      {String(emp.role)}
-                    </span>
-                  ) : null}
-                </div>
-              ),
-            )}
+            {assignedEmployees.map((emp: Record<string, unknown>, i: number) => (
+              <div
+                key={i}
+                className="flex items-center gap-2 rounded-lg border border-[var(--border-default)] px-3 py-2 text-sm"
+              >
+                <Avatar
+                  size="sm"
+                  fallback={String(emp.full_name || emp.name || "")
+                    .split("")
+                    .map((n: string) => n[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
+                  className="h-7 w-7 text-xs"
+                />
+                <span className="text-[var(--text-primary)]">
+                  {String(emp.full_name || emp.name)}
+                </span>
+                {emp.role ? (
+                  <span className="text-xs text-[var(--text-muted)]">{String(emp.role)}</span>
+                ) : null}
+              </div>
+            ))}
           </div>
         </div>
       )}

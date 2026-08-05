@@ -2,10 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button, Input, Spinner, useToast } from "@salesos/ui";
-import {
-  useBranding,
-  useUpsertBranding,
-} from "@/lib/hooks/brandingStudioQueries";
+import { useBranding, useUpsertBranding } from "@/lib/hooks/brandingStudioQueries";
 import { BRANDING_LOCALES } from "@/lib/api/types/tenantStudio";
 import {
   BRANDING_STUDIO_HONESTY,
@@ -13,8 +10,7 @@ import {
 } from "@/features/tenant-studio/brandingStudioHonesty";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -63,8 +59,8 @@ export function BrandingStudio() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="branding-studio-honesty"
       >
-        {BRANDING_STUDIO_HONESTY} Non-goals:{" "}
-        {BRANDING_STUDIO_NON_GOALS.join("; ")}. Not Production GO / RAG GO.
+        {BRANDING_STUDIO_HONESTY} Non-goals: {BRANDING_STUDIO_NON_GOALS.join("; ")}. Not Production
+        GO / RAG GO.
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -78,20 +74,14 @@ export function BrandingStudio() {
         >
           {brandingQuery.isFetching ? "Refreshing…" : "Refresh branding"}
         </Button>
-        <span
-          className="text-sm text-[var(--text-muted)]"
-          data-testid="branding-studio-status"
-        >
+        <span className="text-sm text-[var(--text-muted)]" data-testid="branding-studio-status">
           {brandingQuery.isLoading ? (
             <Spinner className="h-5 w-5" />
           ) : brandingQuery.isError ? (
-            <span className="text-[var(--text-danger)]">
-              {getApiError(brandingQuery.error)}
-            </span>
+            <span className="text-[var(--text-danger)]">{getApiError(brandingQuery.error)}</span>
           ) : brandingQuery.data ? (
             <>
-              tenant {brandingQuery.data.tenant_id} · v
-              {brandingQuery.data.schema_version}
+              tenant {brandingQuery.data.tenant_id} · v{brandingQuery.data.schema_version}
             </>
           ) : null}
         </span>
@@ -115,12 +105,9 @@ export function BrandingStudio() {
             </p>
             <p className="font-mono text-xs text-[var(--text-muted)]">
               primary {brandingQuery.data.primary_color} · secondary{" "}
-              {brandingQuery.data.secondary_color} · default{" "}
-              {brandingQuery.data.default_locale} · supported{" "}
-              {brandingQuery.data.supported_locales.join(",")}
-              {brandingQuery.data.logo_url
-                ? ` · logo ${brandingQuery.data.logo_url}`
-                : ""}
+              {brandingQuery.data.secondary_color} · default {brandingQuery.data.default_locale} ·
+              supported {brandingQuery.data.supported_locales.join(",")}
+              {brandingQuery.data.logo_url ? ` · logo ${brandingQuery.data.logo_url}` : ""}
             </p>
           </div>
           <span
@@ -177,7 +164,7 @@ export function BrandingStudio() {
                   description: getApiError(err),
                 });
               },
-            },
+            }
           );
         }}
       >
@@ -213,9 +200,7 @@ export function BrandingStudio() {
             aria-label="primary color picker"
             data-testid="branding-primary-picker"
             className="mt-6 h-9 w-12 cursor-pointer rounded border border-[var(--border-default)] bg-transparent"
-            value={
-              /^#[0-9a-fA-F]{6}$/.test(primaryColor) ? primaryColor : "#0F172A"
-            }
+            value={/^#[0-9a-fA-F]{6}$/.test(primaryColor) ? primaryColor : "#0F172A"}
             onChange={(e) => setPrimaryColor(e.target.value.toUpperCase())}
           />
           <Input
@@ -231,18 +216,12 @@ export function BrandingStudio() {
             aria-label="secondary color picker"
             data-testid="branding-secondary-picker"
             className="mt-6 h-9 w-12 cursor-pointer rounded border border-[var(--border-default)] bg-transparent"
-            value={
-              /^#[0-9a-fA-F]{6}$/.test(secondaryColor)
-                ? secondaryColor
-                : "#334155"
-            }
+            value={/^#[0-9a-fA-F]{6}$/.test(secondaryColor) ? secondaryColor : "#334155"}
             onChange={(e) => setSecondaryColor(e.target.value.toUpperCase())}
           />
         </div>
         <div>
-          <label className="block text-xs text-[var(--text-muted)]">
-            default_locale
-          </label>
+          <label className="block text-xs text-[var(--text-muted)]">default_locale</label>
           <select
             data-testid="branding-default-locale"
             className="w-full max-w-xs rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"

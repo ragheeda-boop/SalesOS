@@ -24,9 +24,7 @@ interface UseActivityIntelligenceOptions {
   enabled?: boolean;
 }
 
-export function useActivityIntelligence(
-  options: UseActivityIntelligenceOptions,
-) {
+export function useActivityIntelligence(options: UseActivityIntelligenceOptions) {
   const { tenantId, refreshInterval = 60_000, enabled = true } = options;
 
   const dashboard = useQuery<ActivityDashboardDTO>({
@@ -69,8 +67,7 @@ export function useActivityIntelligence(
     enabled: enabled && Boolean(tenantId),
   });
 
-  const isLoading =
-    dashboard.isLoading || email.isLoading || calendar.isLoading;
+  const isLoading = dashboard.isLoading || email.isLoading || calendar.isLoading;
 
   return {
     dashboard: {
@@ -117,7 +114,7 @@ export function useActivityIntelligence(
 export function useCompanyEngagement(
   companyId: string,
   tenantId: string,
-  refreshInterval = 120_000,
+  refreshInterval = 120_000
 ) {
   return useQuery<CompanyEngagementDTO>({
     queryKey: ["activity", "company", tenantId, companyId],

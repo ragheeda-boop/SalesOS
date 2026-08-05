@@ -12,16 +12,7 @@ import {
   ModalFooter,
   Input,
 } from "@salesos/ui";
-import {
-  Share2,
-  FileText,
-  FileSpreadsheet,
-  Calendar,
-  Mail,
-  X,
-  Check,
-  Clock,
-} from "lucide-react";
+import { Share2, FileText, FileSpreadsheet, Calendar, Mail, X, Check, Clock } from "lucide-react";
 
 interface ShareRecipient {
   email: string;
@@ -34,23 +25,15 @@ const CADENCE_OPTIONS = [
   { value: "monthly" as const, label: "Monthly" },
 ];
 
-export function ExportShareBar({
-  reportName: _reportName,
-}: {
-  reportName?: string;
-}) {
+export function ExportShareBar({ reportName: _reportName }: { reportName?: string }) {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [exporting, setExporting] = useState<"pdf" | "csv" | null>(null);
   const [exported, setExported] = useState<"pdf" | "csv" | null>(null);
   const [shareEmail, setShareEmail] = useState("");
-  const [sharePermission, setSharePermission] = useState<
-    "view" | "edit" | "admin"
-  >("view");
+  const [sharePermission, setSharePermission] = useState<"view" | "edit" | "admin">("view");
   const [recipients, setRecipients] = useState<ShareRecipient[]>([]);
-  const [scheduleCadence, setScheduleCadence] = useState<
-    "daily" | "weekly" | "monthly"
-  >("weekly");
+  const [scheduleCadence, setScheduleCadence] = useState<"daily" | "weekly" | "monthly">("weekly");
   const [scheduleRecipients, setScheduleRecipients] = useState<string[]>([]);
   const [scheduleEmail, setScheduleEmail] = useState("");
   const [scheduled, setScheduled] = useState(false);
@@ -66,10 +49,7 @@ export function ExportShareBar({
 
   const handleAddRecipient = () => {
     if (shareEmail.trim() && !recipients.find((r) => r.email === shareEmail)) {
-      setRecipients([
-        ...recipients,
-        { email: shareEmail.trim(), permission: sharePermission },
-      ]);
+      setRecipients([...recipients, { email: shareEmail.trim(), permission: sharePermission }]);
       setShareEmail("");
     }
   };
@@ -108,7 +88,7 @@ export function ExportShareBar({
             "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition",
             exported === "pdf"
               ? "border-green-500 bg-[var(--status-success-bg)] text-[var(--status-success-text)]"
-              : "border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+              : "border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
           )}
         >
           {exporting === "pdf" ? (
@@ -129,7 +109,7 @@ export function ExportShareBar({
             "flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition",
             exported === "csv"
               ? "border-green-500 bg-[var(--status-success-bg)] text-[var(--status-success-text)]"
-              : "border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+              : "border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
           )}
         >
           {exporting === "csv" ? (
@@ -151,32 +131,24 @@ export function ExportShareBar({
           </ModalTrigger>
           <ModalContent>
             <ModalHeader>
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                Share Dashboard
-              </h2>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">Share Dashboard</h2>
             </ModalHeader>
             <ModalBody>
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs text-[var(--text-muted)]">
-                    Add People
-                  </label>
+                  <label className="text-xs text-[var(--text-muted)]">Add People</label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       value={shareEmail}
                       onChange={(e) => setShareEmail(e.target.value)}
                       placeholder="email@company.com"
                       className="flex-1"
-                      onKeyDown={(e) =>
-                        e.key === "Enter" && handleAddRecipient()
-                      }
+                      onKeyDown={(e) => e.key === "Enter" && handleAddRecipient()}
                     />
                     <select
                       value={sharePermission}
                       onChange={(e) =>
-                        setSharePermission(
-                          e.target.value as "view" | "edit" | "admin",
-                        )
+                        setSharePermission(e.target.value as "view" | "edit" | "admin")
                       }
                       className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-2 py-1 text-xs"
                     >
@@ -205,9 +177,7 @@ export function ExportShareBar({
                       >
                         <div className="flex items-center gap-2">
                           <Mail className="h-3.5 w-3.5 text-[var(--text-muted)]" />
-                          <span className="text-xs text-[var(--text-primary)]">
-                            {r.email}
-                          </span>
+                          <span className="text-xs text-[var(--text-primary)]">{r.email}</span>
                           <Badge
                             variant={
                               r.permission === "admin"
@@ -259,16 +229,12 @@ export function ExportShareBar({
           </ModalTrigger>
           <ModalContent>
             <ModalHeader>
-              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-                Schedule Report
-              </h2>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">Schedule Report</h2>
             </ModalHeader>
             <ModalBody>
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs text-[var(--text-muted)]">
-                    Cadence
-                  </label>
+                  <label className="text-xs text-[var(--text-muted)]">Cadence</label>
                   <div className="flex gap-2 mt-1">
                     {CADENCE_OPTIONS.map((c) => (
                       <button
@@ -278,7 +244,7 @@ export function ExportShareBar({
                           "rounded-lg px-3 py-1.5 text-xs font-medium transition",
                           scheduleCadence === c.value
                             ? "bg-[var(--muhide-orange)] text-white"
-                            : "border border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+                            : "border border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
                         )}
                       >
                         {c.label}
@@ -288,18 +254,14 @@ export function ExportShareBar({
                 </div>
 
                 <div>
-                  <label className="text-xs text-[var(--text-muted)]">
-                    Recipients
-                  </label>
+                  <label className="text-xs text-[var(--text-muted)]">Recipients</label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       value={scheduleEmail}
                       onChange={(e) => setScheduleEmail(e.target.value)}
                       placeholder="email@company.com"
                       className="flex-1"
-                      onKeyDown={(e) =>
-                        e.key === "Enter" && handleAddScheduleRecipient()
-                      }
+                      onKeyDown={(e) => e.key === "Enter" && handleAddScheduleRecipient()}
                     />
                     <button
                       onClick={handleAddScheduleRecipient}
@@ -317,14 +279,10 @@ export function ExportShareBar({
                         key={email}
                         className="flex items-center justify-between rounded-lg bg-[var(--bg-secondary)] px-3 py-2"
                       >
-                        <span className="text-xs text-[var(--text-primary)]">
-                          {email}
-                        </span>
+                        <span className="text-xs text-[var(--text-primary)]">{email}</span>
                         <button
                           onClick={() =>
-                            setScheduleRecipients(
-                              scheduleRecipients.filter((e) => e !== email),
-                            )
+                            setScheduleRecipients(scheduleRecipients.filter((e) => e !== email))
                           }
                           className="text-[var(--text-muted)] hover:text-[var(--status-danger-text)] transition"
                         >

@@ -67,9 +67,7 @@ describe("PlaybookView", () => {
   });
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "محرك اللعب" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "محرك اللعب" })).toBeInTheDocument();
   });
 });
 

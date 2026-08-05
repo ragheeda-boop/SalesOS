@@ -6,11 +6,7 @@ import Link from "next/link";
 import { CompanyWorkspace } from "@/components/company-workspace";
 import { DecisionProvider } from "@/features/revenue-execution/_providers/DecisionProvider";
 import { useCompany } from "@/lib/hooks/companyQueries";
-import {
-  useUpdateCompany,
-  useDeleteCompany,
-  useAddContact,
-} from "@/lib/hooks/mutationHooks";
+import { useUpdateCompany, useDeleteCompany, useAddContact } from "@/lib/hooks/mutationHooks";
 import {
   Button,
   Modal,
@@ -21,14 +17,7 @@ import {
   ModalFooter,
   Input,
 } from "@salesos/ui";
-import {
-  Pencil,
-  Trash2,
-  UserPlus,
-  ArrowRight,
-  Loader2,
-  BarChart3,
-} from "lucide-react";
+import { Pencil, Trash2, UserPlus, ArrowRight, Loader2, BarChart3 } from "lucide-react";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ErrorFallback } from "@/components/foundation/error-boundary";
 import { useTranslation } from "@/lib/i18n";
@@ -104,21 +93,13 @@ export default function CompanyPage() {
         </Link>
         <div className="flex items-center gap-2">
           <Link href={`/companies/${id}/360`}>
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={<BarChart3 className="h-4 w-4" />}
-            >
+            <Button variant="primary" size="sm" leftIcon={<BarChart3 className="h-4 w-4" />}>
               360 View
             </Button>
           </Link>
           <Modal open={contactOpen} onOpenChange={setContactOpen}>
             <ModalTrigger>
-              <Button
-                variant="outline"
-                size="sm"
-                leftIcon={<UserPlus className="h-4 w-4" />}
-              >
+              <Button variant="outline" size="sm" leftIcon={<UserPlus className="h-4 w-4" />}>
                 {t("companies.add_contact")}
               </Button>
             </ModalTrigger>
@@ -132,9 +113,7 @@ export default function CompanyPage() {
                     </label>
                     <Input
                       value={contactForm.name}
-                      onChange={(e) =>
-                        setContactForm({ ...contactForm, name: e.target.value })
-                      }
+                      onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
                       placeholder="Ahmed Mohammed"
                     />
                   </div>
@@ -195,9 +174,7 @@ export default function CompanyPage() {
                   onClick={handleAddContact}
                   disabled={!contactForm.name || addContact.isPending}
                   leftIcon={
-                    addContact.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : undefined
+                    addContact.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined
                   }
                 >
                   {addContact.isPending ? t("common.saving") : t("common.save")}
@@ -254,9 +231,7 @@ export default function CompanyPage() {
                 </label>
                 <Input
                   value={editForm.name_ar}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, name_ar: e.target.value })
-                  }
+                  onChange={(e) => setEditForm({ ...editForm, name_ar: e.target.value })}
                 />
               </div>
               <div>
@@ -265,9 +240,7 @@ export default function CompanyPage() {
                 </label>
                 <Input
                   value={editForm.name_en}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, name_en: e.target.value })
-                  }
+                  onChange={(e) => setEditForm({ ...editForm, name_en: e.target.value })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -277,9 +250,7 @@ export default function CompanyPage() {
                   </label>
                   <Input
                     value={editForm.city}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, city: e.target.value })
-                    }
+                    onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
                   />
                 </div>
                 <div>
@@ -288,9 +259,7 @@ export default function CompanyPage() {
                   </label>
                   <Input
                     value={editForm.region}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, region: e.target.value })
-                    }
+                    onChange={(e) => setEditForm({ ...editForm, region: e.target.value })}
                   />
                 </div>
               </div>
@@ -304,14 +273,10 @@ export default function CompanyPage() {
               onClick={handleEditSave}
               disabled={updateCompany.isPending}
               leftIcon={
-                updateCompany.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : undefined
+                updateCompany.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined
               }
             >
-              {updateCompany.isPending
-                ? t("common.saving")
-                : t("settings.save_changes")}
+              {updateCompany.isPending ? t("common.saving") : t("settings.save_changes")}
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -338,14 +303,10 @@ export default function CompanyPage() {
               onClick={handleDelete}
               disabled={deleteCompany.isPending}
               leftIcon={
-                deleteCompany.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : undefined
+                deleteCompany.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined
               }
             >
-              {deleteCompany.isPending
-                ? t("common.deleting")
-                : t("companies.confirm_delete_title")}
+              {deleteCompany.isPending ? t("common.deleting") : t("companies.confirm_delete_title")}
             </Button>
           </ModalFooter>
         </ModalContent>

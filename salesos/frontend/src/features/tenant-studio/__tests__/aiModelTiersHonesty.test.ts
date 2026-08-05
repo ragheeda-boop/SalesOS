@@ -1,7 +1,4 @@
-import {
-  AI_MODEL_TIERS_HONESTY,
-  AI_MODEL_TIERS_NON_GOALS,
-} from "../aiModelTiersHonesty";
+import { AI_MODEL_TIERS_HONESTY, AI_MODEL_TIERS_NON_GOALS } from "../aiModelTiersHonesty";
 
 describe("aiModelTiersHonesty — FE-S12-04", () => {
   it("states tip GET + copilot false + no invent PUT", () => {

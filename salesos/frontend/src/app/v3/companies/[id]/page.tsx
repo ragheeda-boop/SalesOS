@@ -14,12 +14,7 @@ import {
   type Opportunity,
   type TaskResponse,
 } from "@/lib/api";
-import {
-  activityKeys,
-  companyKeys,
-  opportunityKeys,
-  taskKeys,
-} from "@/lib/queryKeys";
+import { activityKeys, companyKeys, opportunityKeys, taskKeys } from "@/lib/queryKeys";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { PageHeader } from "../../_components/page-header";
 import { ActivityFeed } from "../../_components/activity-feed";
@@ -34,13 +29,7 @@ import { useAccessToken } from "../../_hooks/useAccessToken";
 import { openV3AiPopup } from "@/components/v3/V3AiPopup";
 import { IntelligenceTab } from "./intelligence-tab";
 
-type TabId =
-  | "overview"
-  | "contacts"
-  | "timeline"
-  | "opportunities"
-  | "tasks"
-  | "intelligence";
+type TabId = "overview" | "contacts" | "timeline" | "opportunities" | "tasks" | "intelligence";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "overview", label: "Overview" },
@@ -55,18 +44,10 @@ function displayName(company: CompanyDetail): string {
   return company.name_en?.trim() || company.name_ar || "Company";
 }
 
-function Field({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number | null | undefined;
-}) {
+function Field({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
     <div className="space-y-0.5">
-      <dt className="text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">
-        {label}
-      </dt>
+      <dt className="text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">{label}</dt>
       <dd className="text-sm text-[var(--text-primary)]">{value ?? "—"}</dd>
     </div>
   );
@@ -146,9 +127,7 @@ function OverviewTab({ company }: { company: CompanyDetail }) {
       </dl>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-medium text-[var(--text-primary)]">
-          Branches
-        </h2>
+        <h2 className="text-sm font-medium text-[var(--text-primary)]">Branches</h2>
         {company.branches?.length ? (
           <ul className="divide-y divide-[var(--border-default)] rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)]">
             {company.branches.map((b) => (
@@ -156,24 +135,18 @@ function OverviewTab({ company }: { company: CompanyDetail }) {
                 <span className="font-medium">{b.name}</span>
                 <span className="text-[var(--text-muted)]">
                   {" "}
-                  —{" "}
-                  {[b.city, b.region].filter(Boolean).join(", ") ||
-                    "No location"}
+                  — {[b.city, b.region].filter(Boolean).join(", ") || "No location"}
                 </span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-[var(--text-secondary)]">
-            No branches on this record.
-          </p>
+          <p className="text-sm text-[var(--text-secondary)]">No branches on this record.</p>
         )}
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-sm font-medium text-[var(--text-primary)]">
-          Licenses
-        </h2>
+        <h2 className="text-sm font-medium text-[var(--text-primary)]">Licenses</h2>
         {company.licenses?.length ? (
           <ul className="divide-y divide-[var(--border-default)] rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)]">
             {company.licenses.map((lic) => (
@@ -191,9 +164,7 @@ function OverviewTab({ company }: { company: CompanyDetail }) {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-[var(--text-secondary)]">
-            No licenses on this record.
-          </p>
+          <p className="text-sm text-[var(--text-secondary)]">No licenses on this record.</p>
         )}
       </section>
     </div>
@@ -225,10 +196,7 @@ function ContactsTab({ contacts }: { contacts: Contact[] }) {
         </thead>
         <tbody>
           {contacts.map((c) => (
-            <tr
-              key={c.id}
-              className="border-b border-[var(--border-default)] last:border-b-0"
-            >
+            <tr key={c.id} className="border-b border-[var(--border-default)] last:border-b-0">
               <td className="px-3 py-2.5 font-medium">
                 <Link
                   href={`/v3/contacts/${c.id}`}
@@ -237,15 +205,9 @@ function ContactsTab({ contacts }: { contacts: Contact[] }) {
                   {c.name}
                 </Link>
               </td>
-              <td className="px-3 py-2.5 text-[var(--text-secondary)]">
-                {c.position || "—"}
-              </td>
-              <td className="px-3 py-2.5 text-[var(--text-secondary)]">
-                {c.email || "—"}
-              </td>
-              <td className="px-3 py-2.5 text-[var(--text-secondary)]">
-                {c.phone || "—"}
-              </td>
+              <td className="px-3 py-2.5 text-[var(--text-secondary)]">{c.position || "—"}</td>
+              <td className="px-3 py-2.5 text-[var(--text-secondary)]">{c.email || "—"}</td>
+              <td className="px-3 py-2.5 text-[var(--text-secondary)]">{c.phone || "—"}</td>
             </tr>
           ))}
         </tbody>
@@ -297,8 +259,7 @@ function OpportunitiesTab({
   return (
     <div className="space-y-3">
       <p className="text-[12px] text-[var(--text-muted)]">
-        {items.length} deal{items.length === 1 ? "" : "s"} · open Deal 360 for
-        detail
+        {items.length} deal{items.length === 1 ? "" : "s"} · open Deal 360 for detail
       </p>
       <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)]">
         <div className="overflow-x-auto">
@@ -410,8 +371,7 @@ function TasksTab({
   return (
     <div className="space-y-3">
       <p className="text-[12px] text-[var(--text-muted)]">
-        {items.length} task{items.length === 1 ? "" : "s"} with company_id
-        matching this account
+        {items.length} task{items.length === 1 ? "" : "s"} with company_id matching this account
       </p>
       <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)]">
         <div className="overflow-x-auto">
@@ -542,10 +502,7 @@ export default function V3Company360Page() {
     return items.filter((task) => task.company_id === id);
   }, [taskList, id]);
 
-  const openDealCount = useMemo(
-    () => companyOpps.filter(isOpenDeal).length,
-    [companyOpps],
-  );
+  const openDealCount = useMemo(() => companyOpps.filter(isOpenDeal).length, [companyOpps]);
 
   const title = company ? displayName(company) : "Company 360";
   const nextPath = `/v3/companies/${id}`;
@@ -563,9 +520,7 @@ export default function V3Company360Page() {
             items={activity?.items ?? []}
             isLoading={activityLoading}
             isError={activityError}
-            errorMessage={
-              activityErr instanceof Error ? activityErr.message : undefined
-            }
+            errorMessage={activityErr instanceof Error ? activityErr.message : undefined}
             onRetry={() => void refetchActivity()}
             emptyTitle="No company activity yet"
             emptyDescription="GET /api/v1/activities/company/{id} returned no rows. Empty is honest — nothing is invented."
@@ -626,10 +581,7 @@ export default function V3Company360Page() {
         <LoadingState label="Checking session…" />
       ) : !hasToken ? (
         <>
-          <PageHeader
-            title="Company 360"
-            description="Sign in to load this account."
-          />
+          <PageHeader title="Company 360" description="Sign in to load this account." />
           <PermissionState nextPath={nextPath} />
         </>
       ) : isLoading ? (
@@ -653,9 +605,7 @@ export default function V3Company360Page() {
           <ErrorState
             title="Could not load company"
             description={
-              error instanceof Error
-                ? error.message
-                : "Company not found or request failed"
+              error instanceof Error ? error.message : "Company not found or request failed"
             }
             onRetry={() => void refetch()}
           />
@@ -664,11 +614,7 @@ export default function V3Company360Page() {
         <>
           <PageHeader
             title={title}
-            description={
-              company.name_en && company.name_ar
-                ? company.name_ar
-                : company.cr_number
-            }
+            description={company.name_en && company.name_ar ? company.name_ar : company.cr_number}
             badge={
               <span className="flex flex-wrap items-center gap-1.5">
                 {!oppsLoading && !oppsError ? (
@@ -682,19 +628,13 @@ export default function V3Company360Page() {
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() =>
-                    openV3AiPopup({ contextLabel: displayName(company) })
-                  }
+                  onClick={() => openV3AiPopup({ contextLabel: displayName(company) })}
                   className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-[12px] font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
                 >
                   Ask AI
                 </button>
-                <GhostButtonLink href="/v3/companies">
-                  Back to list
-                </GhostButtonLink>
-                <GhostButtonLink href={`/companies/${company.id}`}>
-                  Legacy company
-                </GhostButtonLink>
+                <GhostButtonLink href="/v3/companies">Back to list</GhostButtonLink>
+                <GhostButtonLink href={`/companies/${company.id}`}>Legacy company</GhostButtonLink>
                 <GhostButtonLink href={`/companies/${company.id}/360`} primary>
                   Legacy 360
                 </GhostButtonLink>

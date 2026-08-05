@@ -14,9 +14,7 @@ export function EmptyNBA({ onCreateOpportunity }: EmptyNBAProps) {
       title="التوصيات بحاجة لبيانات"
       description="نظام التوصيات الذكية يحتاج إلى بيانات صفقات في خط الأنابيب. أضف فرصاً جديدة لبدء تلقي التوصيات."
       action={
-        onCreateOpportunity
-          ? { label: "إضافة فرصة", onClick: onCreateOpportunity }
-          : undefined
+        onCreateOpportunity ? { label: "إضافة فرصة", onClick: onCreateOpportunity } : undefined
       }
       tourId="nba"
     />

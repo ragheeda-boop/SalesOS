@@ -23,8 +23,7 @@ export function useScoringRules() {
 export function useUpsertScoringRule() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: ScoringRuleUpsert) =>
-      upsertScoringRule(getTenantId(), body),
+    mutationFn: (body: ScoringRuleUpsert) => upsertScoringRule(getTenantId(), body),
     onSuccess: () => {
       qc.invalidateQueries({
         queryKey: tenantStudioKeys.scoringRules(getTenantId()),
@@ -35,7 +34,6 @@ export function useUpsertScoringRule() {
 
 export function useEvaluateScoringRule() {
   return useMutation({
-    mutationFn: (body: ScoringEvaluateRequest) =>
-      evaluateScoringRule(getTenantId(), body),
+    mutationFn: (body: ScoringEvaluateRequest) => evaluateScoringRule(getTenantId(), body),
   });
 }

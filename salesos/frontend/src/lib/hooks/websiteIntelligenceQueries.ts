@@ -42,8 +42,7 @@ export function useWebsiteIntelligenceDetail(runId: string | null) {
 export function useRunWebsiteIntelligence() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: WebsiteIntelligenceBody) =>
-      runWebsiteIntelligence(getTenantId(), body),
+    mutationFn: (body: WebsiteIntelligenceBody) => runWebsiteIntelligence(getTenantId(), body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: gtmKeys.all });
     },

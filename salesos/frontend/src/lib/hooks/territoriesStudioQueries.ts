@@ -34,8 +34,7 @@ export function useTerritoryRules() {
 export function useUpsertTerritoryRule() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: TerritoryRuleUpsert) =>
-      upsertTerritoryRule(getTenantId(), body),
+    mutationFn: (body: TerritoryRuleUpsert) => upsertTerritoryRule(getTenantId(), body),
     onSuccess: () => {
       qc.invalidateQueries({
         queryKey: tenantStudioKeys.territories(getTenantId()),
@@ -58,7 +57,6 @@ export function useDeleteTerritoryRule() {
 
 export function useAssignTerritory() {
   return useMutation({
-    mutationFn: (body: TerritoryAssignBody) =>
-      assignTerritory(getTenantId(), body),
+    mutationFn: (body: TerritoryAssignBody) => assignTerritory(getTenantId(), body),
   });
 }

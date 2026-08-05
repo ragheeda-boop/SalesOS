@@ -103,7 +103,7 @@ export function useAdminMetrics() {
 }
 
 export function useGoldenRecords(
-  params: { page?: number; page_size?: number; status?: string } = {},
+  params: { page?: number; page_size?: number; status?: string } = {}
 ) {
   const { tenantId } = useTenant();
   return useQuery({
@@ -113,9 +113,7 @@ export function useGoldenRecords(
   });
 }
 
-export function useConflicts(
-  params: { page?: number; page_size?: number; status?: string } = {},
-) {
+export function useConflicts(params: { page?: number; page_size?: number; status?: string } = {}) {
   const { tenantId } = useTenant();
   return useQuery({
     queryKey: adminKeys.conflicts(params),
@@ -132,7 +130,7 @@ export function useDlq(
     page_size?: number;
     status?: string;
     stage?: string;
-  } = {},
+  } = {}
 ) {
   const { tenantId } = useTenant();
   return useQuery({
@@ -184,9 +182,7 @@ export function usePurgeDlq() {
  * Legacy array shape for TenantList / AdminWorkspace (no page → BE returns all).
  * Owner Console uses useAdminTenantsPaged for total + server page.
  */
-export function useAdminTenants(
-  filters?: Record<string, string | number | undefined>,
-) {
+export function useAdminTenants(filters?: Record<string, string | number | undefined>) {
   return useQuery({
     queryKey: adminKeys.tenants(filters as Record<string, unknown>),
     queryFn: async () => {
@@ -197,9 +193,7 @@ export function useAdminTenants(
 }
 
 /** FE-S04-33 — items + X-Total-Count with page/page_size (tip e9ef08d). */
-export function useAdminTenantsPaged(
-  filters?: Record<string, string | number | undefined>,
-) {
+export function useAdminTenantsPaged(filters?: Record<string, string | number | undefined>) {
   return useQuery({
     queryKey: adminKeys.tenants({
       ...(filters as Record<string, unknown>),
@@ -277,15 +271,13 @@ export function useAdminUsageMeters(tenantId: string, metricKey?: string) {
 
 export function useCreateAdminStripeCheckoutSession() {
   return useMutation({
-    mutationFn: (data: AdminStripeCheckoutSessionRequest) =>
-      createAdminStripeCheckoutSession(data),
+    mutationFn: (data: AdminStripeCheckoutSessionRequest) => createAdminStripeCheckoutSession(data),
   });
 }
 
 export function useCreateAdminStripePortalSession() {
   return useMutation({
-    mutationFn: (data: AdminStripePortalSessionRequest) =>
-      createAdminStripePortalSession(data),
+    mutationFn: (data: AdminStripePortalSessionRequest) => createAdminStripePortalSession(data),
   });
 }
 
@@ -319,8 +311,7 @@ export function useAdminDunningCases(filters?: {
 export function useEvaluateAdminDunning() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: AdminDunningEvaluateRequest = {}) =>
-      evaluateAdminDunning(data),
+    mutationFn: (data: AdminDunningEvaluateRequest = {}) => evaluateAdminDunning(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "billing", "dunning"] });
       qc.invalidateQueries({ queryKey: ["admin", "tenants"] });
@@ -426,9 +417,7 @@ export function useAdminFlagTenants(id: string) {
   });
 }
 
-export function useAdminJobs(
-  filters?: Record<string, string | number | undefined>,
-) {
+export function useAdminJobs(filters?: Record<string, string | number | undefined>) {
   return useQuery({
     queryKey: adminKeys.jobs(filters as Record<string, unknown>),
     queryFn: () => listAdminJobs(filters),
@@ -444,9 +433,7 @@ export function useAdminJobDetail(id: string) {
   });
 }
 
-export function useAdminAICosts(
-  filters?: Record<string, string | number | undefined>,
-) {
+export function useAdminAICosts(filters?: Record<string, string | number | undefined>) {
   return useQuery({
     queryKey: adminKeys.aiCosts(filters as Record<string, unknown>),
     queryFn: () => listAdminAICosts(filters),
@@ -523,10 +510,7 @@ export function useSuspendAdminTenant() {
 export function useActivateAdminTenant() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-      ...data
-    }: AdminTenantActivateRequest & { id: string }) =>
+    mutationFn: ({ id, ...data }: AdminTenantActivateRequest & { id: string }) =>
       activateAdminTenant(id, data),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: adminKeys.tenants() });
@@ -541,10 +525,7 @@ export function useActivateAdminTenant() {
 export function useReprovisionAdminTenant() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-      ...data
-    }: AdminTenantReprovisionRequest & { id: string }) =>
+    mutationFn: ({ id, ...data }: AdminTenantReprovisionRequest & { id: string }) =>
       reprovisionAdminTenant(id, data),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: adminKeys.tenants() });
@@ -569,10 +550,7 @@ export function useDeleteAdminTenant() {
 export function useHardDeleteAdminTenant() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-      ...data
-    }: AdminTenantHardDeleteRequest & { id: string }) =>
+    mutationFn: ({ id, ...data }: AdminTenantHardDeleteRequest & { id: string }) =>
       hardDeleteAdminTenant(id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: adminKeys.tenants() });
@@ -603,8 +581,7 @@ export function useUpdateAdminPlan(id: string) {
 export function useCreateAdminLicense() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { tenant_id: string; plan_id: string }) =>
-      createAdminLicense(data),
+    mutationFn: (data: { tenant_id: string; plan_id: string }) => createAdminLicense(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: adminKeys.licenses() });
     },
@@ -635,12 +612,8 @@ export function useDeactivateAdminUser() {
 export function useCreateAdminFeatureFlag() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: {
-      key: string;
-      name: string;
-      description?: string;
-      enabled?: boolean;
-    }) => createAdminFeatureFlag(data),
+    mutationFn: (data: { key: string; name: string; description?: string; enabled?: boolean }) =>
+      createAdminFeatureFlag(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: adminKeys.featureFlags() });
     },
@@ -662,13 +635,8 @@ export function useUpdateAdminFeatureFlag() {
 export function useToggleAdminFlagForTenant(flagId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      tenantId,
-      enabled,
-    }: {
-      tenantId: string;
-      enabled: boolean;
-    }) => toggleAdminFlagForTenant(flagId, tenantId, enabled),
+    mutationFn: ({ tenantId, enabled }: { tenantId: string; enabled: boolean }) =>
+      toggleAdminFlagForTenant(flagId, tenantId, enabled),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: adminKeys.featureFlagTenants(flagId) });
     },
@@ -686,9 +654,7 @@ export function useRetryAdminJob() {
   });
 }
 
-export function useAdminAuditLogs(
-  params?: Record<string, string | number | undefined>,
-) {
+export function useAdminAuditLogs(params?: Record<string, string | number | undefined>) {
   const { tenantId } = useTenant();
   return useQuery({
     queryKey: adminKeys.auditLogs(params),
@@ -722,11 +688,8 @@ export function useAdminPermissions() {
 export function useCreateAdminRole() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: {
-      name: string;
-      description?: string;
-      permissions: string[];
-    }) => createAdminRole(data),
+    mutationFn: (data: { name: string; description?: string; permissions: string[] }) =>
+      createAdminRole(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: adminKeys.roles() });
     },

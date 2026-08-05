@@ -28,10 +28,7 @@ export function CalendarIntelligenceView({
 
   if (error) {
     return (
-      <div
-        className="flex items-center justify-center h-full text-destructive"
-        role="alert"
-      >
+      <div className="flex items-center justify-center h-full text-destructive" role="alert">
         <div className="flex flex-col items-center gap-3">
           <span>تعذر تحميل تحليلات التقويم</span>
           <button onClick={onRefresh} className="text-sm underline">
@@ -44,25 +41,15 @@ export function CalendarIntelligenceView({
 
   if (!metrics) {
     return (
-      <div className="flex items-center justify-center h-full text-muted">
-        لا توجد بيانات تقويم
-      </div>
+      <div className="flex items-center justify-center h-full text-muted">لا توجد بيانات تقويم</div>
     );
   }
 
   return (
     <div className="p-4 h-full flex flex-col gap-4" dir="rtl">
       <div className="grid grid-cols-2 gap-3">
-        <StatCard
-          label="اجتماعات"
-          value={metrics.meeting_count}
-          color="text-blue-400"
-        />
-        <StatCard
-          label="إجمالي الساعات"
-          value={`${metrics.total_hours}h`}
-          color="text-green-400"
-        />
+        <StatCard label="اجتماعات" value={metrics.meeting_count} color="text-blue-400" />
+        <StatCard label="إجمالي الساعات" value={`${metrics.total_hours}h`} color="text-green-400" />
         <StatCard
           label="متوسط المدة"
           value={`${metrics.avg_duration_minutes}د`}
@@ -77,9 +64,7 @@ export function CalendarIntelligenceView({
 
       {metrics.upcoming && metrics.upcoming.length > 0 && (
         <div className="flex-1 min-h-0">
-          <h4 className="text-xs font-semibold text-muted mb-2">
-            المواعيد القادمة
-          </h4>
+          <h4 className="text-xs font-semibold text-muted mb-2">المواعيد القادمة</h4>
           <div className="space-y-2">
             {metrics.upcoming.slice(0, 5).map((ev, i) => (
               <div

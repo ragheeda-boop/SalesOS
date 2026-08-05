@@ -39,7 +39,7 @@ export function FeedbackWidget({ className }: FeedbackWidgetProps) {
         onClick={() => setOpen(true)}
         className={cn(
           "fixed bottom-4 left-4 z-40 flex items-center gap-2 rounded-full bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-lg transition hover:bg-primary-700",
-          className,
+          className
         )}
       >
         <MessageSquare className="h-4 w-4" />
@@ -62,9 +62,7 @@ export function FeedbackWidget({ className }: FeedbackWidgetProps) {
           <p className="mb-3 text-sm font-medium text-[var(--text-primary)]">
             {t("feedback.question")}
           </p>
-          <p className="mb-2 text-xs text-[var(--text-muted)]">
-            {t("feedback.nps_prompt")}
-          </p>
+          <p className="mb-2 text-xs text-[var(--text-muted)]">{t("feedback.nps_prompt")}</p>
           <div className="mb-3 flex justify-between gap-0.5">
             {NPS_OPTIONS.map((n) => (
               <button
@@ -78,7 +76,7 @@ export function FeedbackWidget({ className }: FeedbackWidgetProps) {
                       : n >= 7
                         ? "bg-amber-500 text-white"
                         : "bg-red-500 text-white"
-                    : "bg-[var(--bg-tertiary)] text-[var(--text-muted)] hover:bg-primary-50",
+                    : "bg-[var(--bg-tertiary)] text-[var(--text-muted)] hover:bg-primary-50"
                 )}
               >
                 {n}

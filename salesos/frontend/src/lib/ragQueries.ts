@@ -47,7 +47,7 @@ export function useAskQuestion() {
         { question },
         {
           headers: { "X-Tenant-Id": getTenantId() },
-        },
+        }
       );
       return res.data as RagAnswer;
     },

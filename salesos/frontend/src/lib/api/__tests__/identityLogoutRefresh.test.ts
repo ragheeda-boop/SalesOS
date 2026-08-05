@@ -47,21 +47,17 @@ describe("identity logout/refresh — FE-SEC-03/04", () => {
 
   it("refreshSession falls back to LS body refresh_token", async () => {
     localStorage.setItem("refresh_token", "rt-ls");
-    mockedApi.post
-      .mockRejectedValueOnce(new Error("no cookie"))
-      .mockResolvedValueOnce({
-        data: {
-          access_token: "a3",
-          refresh_token: "r3",
-          tenant_id: "t1",
-        },
-      });
+    mockedApi.post.mockRejectedValueOnce(new Error("no cookie")).mockResolvedValueOnce({
+      data: {
+        access_token: "a3",
+        refresh_token: "r3",
+        tenant_id: "t1",
+      },
+    });
     await refreshSession();
-    expect(mockedApi.post).toHaveBeenNthCalledWith(
-      2,
-      "/api/v1/identity/refresh",
-      { refresh_token: "rt-ls" },
-    );
+    expect(mockedApi.post).toHaveBeenNthCalledWith(2, "/api/v1/identity/refresh", {
+      refresh_token: "rt-ls",
+    });
   });
 
   it("logoutSession posts revoke then clears local tokens", async () => {

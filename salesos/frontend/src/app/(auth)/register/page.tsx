@@ -56,11 +56,11 @@ export default function RegisterPage() {
                 detail
                   .map((d) => d.msg)
                   .filter(Boolean)
-                  .join(";") || t("register.failed"),
+                  .join(";") || t("register.failed")
               );
             } else if (!axiosErr.response) {
               setError(
-                `Cannot reach API (${axiosErr.message || "network error"}). Check NEXT_PUBLIC_API_URL.`,
+                `Cannot reach API (${axiosErr.message || "network error"}). Check NEXT_PUBLIC_API_URL.`
               );
             } else {
               setError(t("register.failed"));
@@ -69,21 +69,17 @@ export default function RegisterPage() {
             setError(t("error.unexpected"));
           }
         },
-      },
+      }
     );
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
       <div className="w-full max-w-md p-8 bg-[var(--card)] rounded-xl shadow-muhide-1 border border-[var(--border)]">
-        <h1 className="text-2xl font-bold mb-6 text-center">
-          {t("register.title")}
-        </h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">{t("register.title")}</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">
-              {t("labels.full_name")}
-            </label>
+            <label className="block text-sm font-medium mb-1">{t("labels.full_name")}</label>
             <input
               type="text"
               value={name}
@@ -93,9 +89,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
-              {t("labels.email")}
-            </label>
+            <label className="block text-sm font-medium mb-1">{t("labels.email")}</label>
             <input
               type="email"
               value={email}
@@ -105,9 +99,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
-              {t("labels.password")}
-            </label>
+            <label className="block text-sm font-medium mb-1">{t("labels.password")}</label>
             <input
               type="password"
               value={password}
@@ -117,9 +109,7 @@ export default function RegisterPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
-              {t("labels.confirm_password")}
-            </label>
+            <label className="block text-sm font-medium mb-1">{t("labels.confirm_password")}</label>
             <input
               type="password"
               value={confirmPassword}
@@ -134,18 +124,13 @@ export default function RegisterPage() {
             disabled={registerMutation.isPending}
             className="w-full py-3 bg-[var(--muhide-orange)] text-white rounded-lg hover:brightness-90 transition disabled:opacity-50 font-medium"
           >
-            {registerMutation.isPending
-              ? t("register.creating")
-              : t("auth.register")}
+            {registerMutation.isPending ? t("register.creating") : t("auth.register")}
           </button>
         </form>
         <p className="mt-4 text-sm text-center text-[var(--muted-foreground)]">
           {t("register.has_account")}
           {""}
-          <Link
-            href="/login"
-            className="text-[var(--muhide-orange)] hover:underline"
-          >
+          <Link href="/login" className="text-[var(--muhide-orange)] hover:underline">
             {t("auth.login")}
           </Link>
         </p>

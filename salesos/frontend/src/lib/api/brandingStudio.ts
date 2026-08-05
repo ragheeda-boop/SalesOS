@@ -20,7 +20,7 @@ export async function getBranding(tenantId: string): Promise<BrandingConfig> {
 
 export async function upsertBranding(
   tenantId: string,
-  body: BrandingUpsert,
+  body: BrandingUpsert
 ): Promise<BrandingConfig> {
   const resp = await api.put<BrandingConfig>(BASE, body, {
     headers: tenantHeaders(tenantId),

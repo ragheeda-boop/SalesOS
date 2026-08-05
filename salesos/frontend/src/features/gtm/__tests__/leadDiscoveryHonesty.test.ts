@@ -1,7 +1,4 @@
-import {
-  LEAD_DISCOVERY_HONESTY,
-  LEAD_DISCOVERY_NON_GOALS,
-} from "../leadDiscoveryHonesty";
+import { LEAD_DISCOVERY_HONESTY, LEAD_DISCOVERY_NON_GOALS } from "../leadDiscoveryHonesty";
 
 describe("leadDiscoveryHonesty — FE-S11-03", () => {
   it("states tip HTTP + gov-first + no live 141221 claim", () => {

@@ -40,7 +40,7 @@ describe("tenantStudio API — FE-S10-01/02", () => {
       "/api/v1/studio/custom-fields/company",
       expect.objectContaining({
         headers: { "X-Tenant-Id": "tenant-1" },
-      }),
+      })
     );
     expect(schema.object_key).toBe("company");
   });
@@ -72,7 +72,7 @@ describe("tenantStudio API — FE-S10-01/02", () => {
       }),
       expect.objectContaining({
         headers: { "X-Tenant-Id": "tenant-1" },
-      }),
+      })
     );
     expect(row.field_key).toBe("nickname");
   });
@@ -96,7 +96,7 @@ describe("tenantStudio API — FE-S10-01/02", () => {
       "/api/v1/studio/custom-fields/company/form-schema",
       expect.objectContaining({
         headers: { "X-Tenant-Id": "tenant-1" },
-      }),
+      })
     );
     expect(form.renderer).toBe("custom_fields_auto");
   });
@@ -119,7 +119,7 @@ describe("tenantStudio API — FE-S10-01/02", () => {
       expect.objectContaining({ values: { segment_tier: "A" } }),
       expect.objectContaining({
         headers: { "X-Tenant-Id": "tenant-1" },
-      }),
+      })
     );
     expect(row.metadata.custom_fields).toEqual({ segment_tier: "A" });
   });

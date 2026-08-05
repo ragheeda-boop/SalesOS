@@ -1,8 +1,4 @@
-import type {
-  WidgetStatus,
-  WidgetAction,
-  DashboardWidget,
-} from "../widget.contract";
+import type { WidgetStatus, WidgetAction, DashboardWidget } from "../widget.contract";
 
 describe("Widget types", () => {
   it("WidgetStatus accepts valid values", () => {

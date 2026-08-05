@@ -1,32 +1,35 @@
-'use client'
+"use client";
 
-import { Component, type ReactNode, type ErrorInfo } from 'react'
-import { widgetTelemetry } from '@salesos/widget-sdk'
+import { Component, type ReactNode, type ErrorInfo } from "react";
+import { widgetTelemetry } from "@salesos/widget-sdk";
 
 interface Props {
-  widgetId: string
-  workspaceId?: string
-  fallback?: ReactNode
-  children: ReactNode
+  widgetId: string;
+  workspaceId?: string;
+  fallback?: ReactNode;
+  children: ReactNode;
 }
 
 interface State {
-  hasError: boolean
-  error: Error | null
+  hasError: boolean;
+  error: Error | null;
 }
 
 export class WorkspaceErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
-    super(props)
-    this.state = { hasError: false, error: null }
+    super(props);
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error }
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, _info: ErrorInfo) {
-    widgetTelemetry.record('widget.failed', this.props.widgetId, { error: error.message, status: 'error' })
+    widgetTelemetry.record("widget.failed", this.props.widgetId, {
+      error: error.message,
+      status: "error",
+    });
   }
 
   render() {
@@ -36,21 +39,21 @@ export class WorkspaceErrorBoundary extends Component<Props, State> {
           <div
             role="alert"
             style={{
-              padding: '1rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #fca5a5',
-              background: '#fef2f2',
-              color: '#991b1b',
-              fontSize: '0.875rem',
+              padding: "1rem",
+              borderRadius: "0.5rem",
+              border: "1px solid #fca5a5",
+              background: "#fef2f2",
+              color: "#991b1b",
+              fontSize: "0.875rem",
             }}
           >
             <p style={{ fontWeight: 600, margin: 0 }}>Widget Error</p>
-            <p style={{ margin: '0.25rem 0 0' }}>{this.state.error?.message}</p>
+            <p style={{ margin: "0.25rem 0 0" }}>{this.state.error?.message}</p>
           </div>
         )
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }

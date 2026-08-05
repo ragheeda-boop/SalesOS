@@ -129,9 +129,7 @@ describe("PipelineView", () => {
 
   it('has role="region" with aria-label', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "أنابيب المبيعات" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "أنابيب المبيعات" })).toBeInTheDocument();
   });
 
   it("renders progress bars for stages", () => {
@@ -171,9 +169,6 @@ describe("PipelineView", () => {
 describe("PipelineWidget (SDK integration)", () => {
   it("is a valid React component", () => {
     expect(PipelineWidget).toBeDefined();
-    expect(
-      typeof PipelineWidget === "function" ||
-        typeof PipelineWidget === "object",
-    ).toBe(true);
+    expect(typeof PipelineWidget === "function" || typeof PipelineWidget === "object").toBe(true);
   });
 });

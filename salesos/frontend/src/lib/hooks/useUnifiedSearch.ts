@@ -118,9 +118,7 @@ export function useUnifiedSearch({
           signal: controller.signal,
         });
         const data = res.data;
-        const items: UnifiedSearchResult[] = (data.items || []).map(
-          mapSearchResult,
-        );
+        const items: UnifiedSearchResult[] = (data.items || []).map(mapSearchResult);
         setResults(items);
         setTotalCount(data.total || items.length);
         setTookMs(data.took_ms || 0);
@@ -139,7 +137,7 @@ export function useUnifiedSearch({
         setLoading(false);
       }
     },
-    [limit, enabled],
+    [limit, enabled]
   );
 
   useEffect(() => {
@@ -153,7 +151,7 @@ export function useUnifiedSearch({
       acc[r.type].push(r);
       return acc;
     },
-    {} as Record<string, UnifiedSearchResult[]>,
+    {} as Record<string, UnifiedSearchResult[]>
   );
 
   return {

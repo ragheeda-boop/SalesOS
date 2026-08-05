@@ -19,7 +19,7 @@ export const LazyCommandBar = dynamic(
   {
     ssr: false,
     loading: () => <PanelSkeleton label="Command bar loading..." />,
-  },
+  }
 ) as ComponentType<{ open: boolean; onClose: () => void }>;
 
 export const LazySearchPanel = dynamic(
@@ -27,7 +27,7 @@ export const LazySearchPanel = dynamic(
   {
     ssr: false,
     loading: () => <PanelSkeleton label="Search loading..." />,
-  },
+  }
 ) as ComponentType<{ open: boolean; onClose: () => void }>;
 
 export const LazyCopilotPanel = dynamic(
@@ -35,49 +35,37 @@ export const LazyCopilotPanel = dynamic(
   {
     ssr: false,
     loading: () => <PanelSkeleton label="Copilot loading..." />,
-  },
+  }
 ) as ComponentType<{ open: boolean; onClose: () => void; entityType: string }>;
 
 export const LazyExecutiveDashboard = dynamic(
-  () =>
-    import("@/components/executive-dashboard").then(
-      (m) => m.ExecutiveDashboard,
-    ),
+  () => import("@/components/executive-dashboard").then((m) => m.ExecutiveDashboard),
   {
     ssr: false,
-    loading: () => (
-      <div className="h-64 animate-pulse rounded-lg bg-[var(--bg-tertiary)]" />
-    ),
-  },
+    loading: () => <div className="h-64 animate-pulse rounded-lg bg-[var(--bg-tertiary)]" />,
+  }
 );
 
 export const LazyTimelineWidget = dynamic(
   () => import("@/components/timeline-widget").then((m) => m.TimelineWidget),
   {
     ssr: false,
-    loading: () => (
-      <div className="h-48 animate-pulse rounded-lg bg-[var(--bg-tertiary)]" />
-    ),
-  },
+    loading: () => <div className="h-48 animate-pulse rounded-lg bg-[var(--bg-tertiary)]" />,
+  }
 );
 
 export const LazyPipelineKanban = dynamic(
   () => import("@/components/pipeline-kanban").then((m) => m.PipelineKanban),
   {
     ssr: false,
-    loading: () => (
-      <div className="h-96 animate-pulse rounded-lg bg-[var(--bg-tertiary)]" />
-    ),
-  },
+    loading: () => <div className="h-96 animate-pulse rounded-lg bg-[var(--bg-tertiary)]" />,
+  }
 );
 
 export const LazyCompanyWorkspace = dynamic(
-  () =>
-    import("@/components/company-workspace").then((m) => m.CompanyWorkspace),
+  () => import("@/components/company-workspace").then((m) => m.CompanyWorkspace),
   {
     ssr: false,
-    loading: () => (
-      <div className="h-96 animate-pulse rounded-lg bg-[var(--bg-tertiary)]" />
-    ),
-  },
+    loading: () => <div className="h-96 animate-pulse rounded-lg bg-[var(--bg-tertiary)]" />,
+  }
 );

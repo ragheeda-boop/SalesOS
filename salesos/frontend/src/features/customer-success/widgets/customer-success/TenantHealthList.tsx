@@ -10,10 +10,7 @@ interface TenantHealthItem {
   score: number;
   status: string;
   color: string;
-  components: Record<
-    string,
-    { weight: number; value: number; contribution: number }
-  >;
+  components: Record<string, { weight: number; value: number; contribution: number }>;
   user_count: number;
   last_active: string | null;
   renewal_risk: boolean;
@@ -27,26 +24,24 @@ interface TenantHealthListProps {
 export function TenantHealthList({ tenants }: TenantHealthListProps) {
   const { t } = useTranslation();
 
-  const STATUS_MAP: Record<
-    string,
-    { labelKey: string; icon: typeof CheckCircle; color: string }
-  > = {
-    healthy: {
-      labelKey: "cs.healthy",
-      icon: CheckCircle,
-      color: "text-[var(--status-success-text)] bg-[var(--status-success-bg)]",
-    },
-    warning: {
-      labelKey: "cs.warning",
-      icon: Clock,
-      color: "text-yellow-600 bg-yellow-50",
-    },
-    critical: {
-      labelKey: "cs.critical",
-      icon: AlertTriangle,
-      color: "text-[var(--status-danger-text)] bg-[var(--status-danger-bg)]",
-    },
-  };
+  const STATUS_MAP: Record<string, { labelKey: string; icon: typeof CheckCircle; color: string }> =
+    {
+      healthy: {
+        labelKey: "cs.healthy",
+        icon: CheckCircle,
+        color: "text-[var(--status-success-text)] bg-[var(--status-success-bg)]",
+      },
+      warning: {
+        labelKey: "cs.warning",
+        icon: Clock,
+        color: "text-yellow-600 bg-yellow-50",
+      },
+      critical: {
+        labelKey: "cs.critical",
+        icon: AlertTriangle,
+        color: "text-[var(--status-danger-text)] bg-[var(--status-danger-bg)]",
+      },
+    };
 
   if (!tenants || tenants.length === 0) {
     return (
@@ -71,7 +66,7 @@ export function TenantHealthList({ tenants }: TenantHealthListProps) {
                 ? "border-[var(--status-success-border)] bg-[var(--status-success-bg)]/50"
                 : tenant.color === "yellow"
                   ? "border-yellow-200 bg-yellow-50/50"
-                  : "border-[var(--status-danger-border)] bg-[var(--status-danger-bg)]/50",
+                  : "border-[var(--status-danger-border)] bg-[var(--status-danger-bg)]/50"
             )}
           >
             <div className="flex items-center justify-between">
@@ -90,7 +85,7 @@ export function TenantHealthList({ tenants }: TenantHealthListProps) {
                     ? "text-[var(--status-success-text)]"
                     : tenant.color === "yellow"
                       ? "text-yellow-600"
-                      : "text-[var(--status-danger-text)]",
+                      : "text-[var(--status-danger-text)]"
                 )}
               >
                 {tenant.score.toFixed(0)}%

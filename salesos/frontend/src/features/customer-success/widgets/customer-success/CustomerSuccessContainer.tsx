@@ -30,10 +30,7 @@ interface CustomerSuccessData {
     score: number;
     status: string;
     color: string;
-    components: Record<
-      string,
-      { weight: number; value: number; contribution: number }
-    >;
+    components: Record<string, { weight: number; value: number; contribution: number }>;
     user_count: number;
     last_active: string | null;
     renewal_risk: boolean;
@@ -46,9 +43,7 @@ export function CustomerSuccessContainer() {
   const { data, isLoading, error } = useQuery<CustomerSuccessData>({
     queryKey: ["customer-success", "overview"],
     queryFn: () =>
-      api
-        .get("/customer-success/overview")
-        .then((r: { data: CustomerSuccessData }) => r.data),
+      api.get("/customer-success/overview").then((r: { data: CustomerSuccessData }) => r.data),
   });
 
   if (isLoading) {
@@ -74,9 +69,7 @@ export function CustomerSuccessContainer() {
 
   if (!data) {
     return (
-      <div className="text-xs text-[var(--text-muted)] p-3 text-center">
-        {t("cs.no_data")}
-      </div>
+      <div className="text-xs text-[var(--text-muted)] p-3 text-center">{t("cs.no_data")}</div>
     );
   }
 

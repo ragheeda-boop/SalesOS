@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 import { Input, Button, Badge, Card, Spinner } from "@salesos/ui";
-import {
-  Search,
-  Download,
-  ChevronLeft,
-  ChevronRight,
-  FileText,
-  Filter,
-} from "lucide-react";
+import { Search, Download, ChevronLeft, ChevronRight, FileText, Filter } from "lucide-react";
 import type { AuditLogViewProps } from "./types";
 import { ACTION_TYPE_LABELS, RESOURCE_LABELS } from "./types";
 
@@ -57,12 +50,7 @@ export function AuditLogView({
           <Button variant="ghost" size="sm" onClick={onRefresh}>
             تحديث
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onExport}
-            className="gap-1"
-          >
+          <Button variant="outline" size="sm" onClick={onExport} className="gap-1">
             <Download className="h-4 w-4" />
             تصدير CSV
           </Button>
@@ -77,39 +65,28 @@ export function AuditLogView({
               <input
                 type="date"
                 value={filters.dateFrom || ""}
-                onChange={(e) =>
-                  onFilterChange({ dateFrom: e.target.value || undefined })
-                }
+                onChange={(e) => onFilterChange({ dateFrom: e.target.value || undefined })}
                 className="w-full border rounded px-3 py-2 text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1">
-                إلى تاريخ
-              </label>
+              <label className="block text-xs font-medium mb-1">إلى تاريخ</label>
               <input
                 type="date"
                 value={filters.dateTo || ""}
-                onChange={(e) =>
-                  onFilterChange({ dateTo: e.target.value || undefined })
-                }
+                onChange={(e) => onFilterChange({ dateTo: e.target.value || undefined })}
                 className="w-full border rounded px-3 py-2 text-sm"
               />
             </div>
             <div>
-              <label
-                htmlFor="filter-action-type"
-                className="block text-xs font-medium mb-1"
-              >
+              <label htmlFor="filter-action-type" className="block text-xs font-medium mb-1">
                 نوع الإجراء
               </label>
               <select
                 id="filter-action-type"
                 aria-label="نوع الإجراء"
                 value={filters.actionType || ""}
-                onChange={(e) =>
-                  onFilterChange({ actionType: e.target.value || undefined })
-                }
+                onChange={(e) => onFilterChange({ actionType: e.target.value || undefined })}
                 className="w-full border rounded px-3 py-2 text-sm"
               >
                 <option value="">الكل</option>
@@ -121,19 +98,14 @@ export function AuditLogView({
               </select>
             </div>
             <div>
-              <label
-                htmlFor="filter-resource"
-                className="block text-xs font-medium mb-1"
-              >
+              <label htmlFor="filter-resource" className="block text-xs font-medium mb-1">
                 المورد
               </label>
               <select
                 id="filter-resource"
                 aria-label="المورد"
                 value={filters.resource || ""}
-                onChange={(e) =>
-                  onFilterChange({ resource: e.target.value || undefined })
-                }
+                onChange={(e) => onFilterChange({ resource: e.target.value || undefined })}
                 className="w-full border rounded px-3 py-2 text-sm"
               >
                 <option value="">الكل</option>
@@ -150,9 +122,7 @@ export function AuditLogView({
             <Input
               placeholder="بحث في السجل..."
               value={filters.search || ""}
-              onChange={(e) =>
-                onFilterChange({ search: e.target.value || undefined, page: 1 })
-              }
+              onChange={(e) => onFilterChange({ search: e.target.value || undefined, page: 1 })}
               className="pr-9"
             />
           </div>
@@ -196,45 +166,29 @@ export function AuditLogView({
                       {formatDateTime(entry.created_at)}
                     </td>
                     <td className="p-2" data-label="المستخدم">
-                      <div className="text-sm font-medium">
-                        {entry.actor_name}
-                      </div>
-                      <div className="text-xs text-[var(--text-muted)]">
-                        {entry.actor_email}
-                      </div>
+                      <div className="text-sm font-medium">{entry.actor_name}</div>
+                      <div className="text-xs text-[var(--text-muted)]">{entry.actor_email}</div>
                     </td>
                     <td className="p-2" data-label="الإجراء">
-                      <Badge
-                        variant="default"
-                        className="font-mono text-[10px]"
-                      >
-                        {ACTION_TYPE_LABELS[entry.action_type] ||
-                          entry.action_type}
+                      <Badge variant="default" className="font-mono text-[10px]">
+                        {ACTION_TYPE_LABELS[entry.action_type] || entry.action_type}
                       </Badge>
                     </td>
                     <td className="p-2" data-label="المورد">
                       <div className="text-xs">
                         <span className="font-medium">
-                          {RESOURCE_LABELS[entry.resource_type] ||
-                            entry.resource_type}
+                          {RESOURCE_LABELS[entry.resource_type] || entry.resource_type}
                         </span>
-                        <span className="text-[var(--text-muted)] mr-1">
-                          {entry.resource}
-                        </span>
+                        <span className="text-[var(--text-muted)] mr-1">{entry.resource}</span>
                       </div>
                     </td>
                     <td
                       className="p-2 text-xs text-[var(--text-secondary)] max-w-[200px] truncate"
                       data-label="التفاصيل"
                     >
-                      {entry.details
-                        ? JSON.stringify(entry.details).slice(0, 80)
-                        : "-"}
+                      {entry.details ? JSON.stringify(entry.details).slice(0, 80) : "-"}
                     </td>
-                    <td
-                      className="p-2 text-xs text-[var(--text-muted)] font-mono"
-                      data-label="IP"
-                    >
+                    <td className="p-2 text-xs text-[var(--text-muted)] font-mono" data-label="IP">
                       {entry.ip_address || "-"}
                     </td>
                   </tr>

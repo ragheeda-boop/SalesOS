@@ -59,10 +59,7 @@ export function StatBox({
   );
 }
 
-export const actionConfig: Record<
-  string,
-  { icon: typeof Mail; color: string }
-> = {
+export const actionConfig: Record<string, { icon: typeof Mail; color: string }> = {
   email_sent: {
     icon: Mail,
     color: "text-info-600 bg-info-100 dark:text-info-400 dark:bg-info-900/50",
@@ -77,23 +74,19 @@ export const actionConfig: Record<
   },
   meeting_completed: {
     icon: Calendar,
-    color:
-      "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
+    color: "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
   },
   call: {
     icon: Phone,
-    color:
-      "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
+    color: "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
   },
   task_created: {
     icon: CheckCircle,
-    color:
-      "text-warning-600 bg-warning-100 dark:text-warning-400 dark:bg-warning-900/50",
+    color: "text-warning-600 bg-warning-100 dark:text-warning-400 dark:bg-warning-900/50",
   },
   task_completed: {
     icon: CheckCircle,
-    color:
-      "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
+    color: "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
   },
   note_added: {
     icon: Mail,
@@ -115,14 +108,7 @@ export function getActionConfig(action: string) {
   );
 }
 
-export const SOURCE_OPTIONS = [
-  "crm",
-  "timeline",
-  "workflow",
-  "email",
-  "calendar",
-  "manual",
-];
+export const SOURCE_OPTIONS = ["crm", "timeline", "workflow", "email", "calendar", "manual"];
 export const TYPE_OPTIONS = [
   "email_sent",
   "email_received",

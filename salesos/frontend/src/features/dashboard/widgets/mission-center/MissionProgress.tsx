@@ -2,12 +2,7 @@
 
 import type { MissionProgressProps } from "./types";
 
-export function MissionProgress({
-  value,
-  max,
-  label,
-  barClassName,
-}: MissionProgressProps) {
+export function MissionProgress({ value, max, label, barClassName }: MissionProgressProps) {
   const pct = max > 0 ? Math.min(Math.round((value / max) * 100), 100) : 0;
 
   return (
@@ -34,7 +29,7 @@ export function MissionProgress({
           className={cn(
             "h-full rounded-full transition-all duration-500 ease-out",
             "motion-reduce:transition-none motion-reduce:duration-0",
-            barClassName ?? "bg-[var(--muhide-orange)]",
+            barClassName ?? "bg-[var(--muhide-orange)]"
           )}
           style={{ width: `${pct}%` }}
         />

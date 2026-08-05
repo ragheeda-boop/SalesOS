@@ -11,22 +11,16 @@ export default function VerificationPage() {
   return (
     <div className="space-y-6 p-6" data-testid="verification-page">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          Contact Verification
-        </h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Contact Verification</h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Email/phone channel verdicts via tip POST/GET
-          /api/v1/gtm/verification. Single VerificationConnector swap-in.
+          Email/phone channel verdicts via tip POST/GET /api/v1/gtm/verification. Single
+          VerificationConnector swap-in.
         </p>
       </div>
       <VerificationPanel />
       <p className="text-xs text-[var(--text-muted)]">
         Hub:{" "}
-        <Link
-          href="/gtm"
-          className="underline"
-          data-testid="verification-hub-link"
-        >
+        <Link href="/gtm" className="underline" data-testid="verification-hub-link">
           /gtm
         </Link>
         .

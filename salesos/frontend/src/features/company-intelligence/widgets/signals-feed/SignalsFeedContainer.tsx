@@ -20,22 +20,15 @@ export const SignalsFeedWidget = createWidget({
   },
   useData: () => {
     const { id: companyId } = useParams<{ id: string }>();
-    const { data, isLoading, isError, error, refetch } =
-      useCompanyIntelligence(companyId);
+    const { data, isLoading, isError, error, refetch } = useCompanyIntelligence(companyId);
     useDecisionSafe();
     return {
       data: data?.signals ?? null,
-      status: isLoading
-        ? ("loading" as const)
-        : isError
-          ? ("error" as const)
-          : ("ready" as const),
+      status: isLoading ? ("loading" as const) : isError ? ("error" as const) : ("ready" as const),
       lastUpdated: null,
       error: error as Error | null,
       refetch,
     };
   },
-  render: ({ data }) => (
-    <SignalsFeedView signals={(data ?? []) as SignalItem[]} />
-  ),
+  render: ({ data }) => <SignalsFeedView signals={(data ?? []) as SignalItem[]} />,
 });

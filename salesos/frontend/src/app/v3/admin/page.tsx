@@ -15,10 +15,7 @@ import {
 import { adminKeys } from "@/lib/queryKeys";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { PageHeader } from "../_components/page-header";
-import {
-  DomainWorkbench,
-  type DomainSection,
-} from "../_components/domain-workbench";
+import { DomainWorkbench, type DomainSection } from "../_components/domain-workbench";
 import {
   EmptyState,
   ErrorState,
@@ -48,20 +45,12 @@ function PreviewPanel({
         </span>
       </div>
       <p>{children}</p>
-      {legacyHref ? (
-        <GhostButtonLink href={legacyHref}>{legacyLabel}</GhostButtonLink>
-      ) : null}
+      {legacyHref ? <GhostButtonLink href={legacyHref}>{legacyLabel}</GhostButtonLink> : null}
     </div>
   );
 }
 
-function UsersPanel({
-  ready,
-  hasToken,
-}: {
-  ready: boolean;
-  hasToken: boolean;
-}) {
+function UsersPanel({ ready, hasToken }: { ready: boolean; hasToken: boolean }) {
   const query = useQuery({
     queryKey: adminKeys.users({ page_size: "50" }),
     queryFn: () => listAdminUsers({ page_size: "50" }),
@@ -92,9 +81,7 @@ function UsersPanel({
       <EmptyState
         title="No users returned"
         description="This tenant has no admin-visible users, or the list is empty."
-        action={
-          <GhostButtonLink href="/admin">Open legacy admin</GhostButtonLink>
-        }
+        action={<GhostButtonLink href="/admin">Open legacy admin</GhostButtonLink>}
       />
     );
   }
@@ -102,8 +89,7 @@ function UsersPanel({
   return (
     <div className="space-y-3">
       <p className="text-[12px] text-[var(--text-muted)]" aria-live="polite">
-        {formatCount(users.length)} user{users.length === 1 ? "" : "s"} ·
-        read-only dual-run list
+        {formatCount(users.length)} user{users.length === 1 ? "" : "s"} · read-only dual-run list
       </p>
       <div className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-default)]">
         <div className="overflow-x-auto">
@@ -141,9 +127,7 @@ function UsersPanel({
                       </p>
                     ) : null}
                   </td>
-                  <td className="px-3 py-2 text-[var(--text-secondary)]">
-                    {user.email}
-                  </td>
+                  <td className="px-3 py-2 text-[var(--text-secondary)]">{user.email}</td>
                   <td className="px-3 py-2 capitalize text-[var(--text-secondary)]">
                     {user.role?.replace(/_/g, " ") || "—"}
                   </td>
@@ -161,13 +145,7 @@ function UsersPanel({
   );
 }
 
-function RolesPanel({
-  ready,
-  hasToken,
-}: {
-  ready: boolean;
-  hasToken: boolean;
-}) {
+function RolesPanel({ ready, hasToken }: { ready: boolean; hasToken: boolean }) {
   const query = useQuery({
     queryKey: adminKeys.roles(),
     queryFn: () => listAdminRoles(),
@@ -180,9 +158,7 @@ function RolesPanel({
     return (
       <ErrorState
         title="Could not load roles"
-        description={
-          query.error instanceof Error ? query.error.message : "Request failed"
-        }
+        description={query.error instanceof Error ? query.error.message : "Request failed"}
         onRetry={() => void query.refetch()}
       />
     );
@@ -194,9 +170,7 @@ function RolesPanel({
       <EmptyState
         title="No roles"
         description="RBAC roles API returned an empty list."
-        action={
-          <GhostButtonLink href="/admin">Open legacy admin</GhostButtonLink>
-        }
+        action={<GhostButtonLink href="/admin">Open legacy admin</GhostButtonLink>}
       />
     );
   }
@@ -204,8 +178,7 @@ function RolesPanel({
   return (
     <div className="space-y-3">
       <p className="text-[12px] text-[var(--text-muted)]">
-        {formatCount(roles.length)} role{roles.length === 1 ? "" : "s"} ·
-        permission counts only
+        {formatCount(roles.length)} role{roles.length === 1 ? "" : "s"} · permission counts only
       </p>
       <ul className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-default)]">
         {roles.map((role) => (
@@ -214,38 +187,27 @@ function RolesPanel({
             className="border-b border-[var(--border-default)] px-3 py-2.5 text-sm last:border-b-0"
           >
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <span className="font-medium text-[var(--text-primary)]">
-                {role.name}
-              </span>
+              <span className="font-medium text-[var(--text-primary)]">{role.name}</span>
               <span className="text-[12px] text-[var(--text-muted)]">
-                {formatCount(role.user_count)} users ·{" "}
-                {formatCount(role.permissions?.length ?? 0)} permissions
+                {formatCount(role.user_count)} users · {formatCount(role.permissions?.length ?? 0)}{" "}
+                permissions
                 {role.is_system ? " · system" : ""}
               </span>
             </div>
             {role.description ? (
-              <p className="mt-1 text-[12px] text-[var(--text-muted)]">
-                {role.description}
-              </p>
+              <p className="mt-1 text-[12px] text-[var(--text-muted)]">{role.description}</p>
             ) : null}
           </li>
         ))}
       </ul>
       <p className="text-[12px] text-[var(--text-muted)]">
-        Full permission matrix editing stays in legacy admin — this panel is
-        read-only.
+        Full permission matrix editing stays in legacy admin — this panel is read-only.
       </p>
     </div>
   );
 }
 
-function FlagsPanel({
-  ready,
-  hasToken,
-}: {
-  ready: boolean;
-  hasToken: boolean;
-}) {
+function FlagsPanel({ ready, hasToken }: { ready: boolean; hasToken: boolean }) {
   const query = useQuery({
     queryKey: adminKeys.featureFlags(),
     queryFn: () => listAdminFeatureFlags(),
@@ -258,9 +220,7 @@ function FlagsPanel({
     return (
       <ErrorState
         title="Could not load flags"
-        description={
-          query.error instanceof Error ? query.error.message : "Request failed"
-        }
+        description={query.error instanceof Error ? query.error.message : "Request failed"}
         onRetry={() => void query.refetch()}
       />
     );
@@ -272,11 +232,7 @@ function FlagsPanel({
       <EmptyState
         title="No feature flags"
         description="No flags configured for this environment."
-        action={
-          <GhostButtonLink href="/admin/flags">
-            Open legacy flags
-          </GhostButtonLink>
-        }
+        action={<GhostButtonLink href="/admin/flags">Open legacy flags</GhostButtonLink>}
       />
     );
   }
@@ -286,16 +242,14 @@ function FlagsPanel({
   return (
     <div className="space-y-3">
       <p className="text-sm text-[var(--text-secondary)]">
-        Read-only list. Toggles are not exposed here — changing GA AI flags
-        requires honesty review (
-        <code className="mx-1 font-mono text-[12px]">AI_HONESTY.md</code>). Ask
-        AI remains popup-only.
+        Read-only list. Toggles are not exposed here — changing GA AI flags requires honesty review
+        (<code className="mx-1 font-mono text-[12px]">AI_HONESTY.md</code>). Ask AI remains
+        popup-only.
       </p>
       {aiFlags.length > 0 ? (
         <p className="text-[12px] text-[var(--text-muted)]">
-          {formatCount(aiFlags.length)} flag{aiFlags.length === 1 ? "" : "s"}{" "}
-          mention AI/copilot — default product policy keeps copilot off unless
-          evidence-validated.
+          {formatCount(aiFlags.length)} flag{aiFlags.length === 1 ? "" : "s"} mention AI/copilot —
+          default product policy keeps copilot off unless evidence-validated.
         </p>
       ) : null}
       <ul className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-default)]">
@@ -305,9 +259,7 @@ function FlagsPanel({
             className="flex flex-wrap items-start justify-between gap-2 border-b border-[var(--border-default)] px-3 py-2.5 text-sm last:border-b-0"
           >
             <span className="min-w-0">
-              <span className="font-medium text-[var(--text-primary)]">
-                {flag.name}
-              </span>
+              <span className="font-medium text-[var(--text-primary)]">{flag.name}</span>
               <span className="mt-0.5 block font-mono text-[12px] text-[var(--text-muted)]">
                 {flag.key}
               </span>
@@ -330,20 +282,12 @@ function FlagsPanel({
           </li>
         ))}
       </ul>
-      <GhostButtonLink href="/admin/flags">
-        Manage flags in legacy
-      </GhostButtonLink>
+      <GhostButtonLink href="/admin/flags">Manage flags in legacy</GhostButtonLink>
     </div>
   );
 }
 
-function AuditPanel({
-  ready,
-  hasToken,
-}: {
-  ready: boolean;
-  hasToken: boolean;
-}) {
+function AuditPanel({ ready, hasToken }: { ready: boolean; hasToken: boolean }) {
   const query = useQuery({
     queryKey: adminKeys.auditLogs({ page_size: 25 }),
     queryFn: () =>
@@ -360,9 +304,7 @@ function AuditPanel({
     return (
       <ErrorState
         title="Could not load audit logs"
-        description={
-          query.error instanceof Error ? query.error.message : "Request failed"
-        }
+        description={query.error instanceof Error ? query.error.message : "Request failed"}
         onRetry={() => void query.refetch()}
       />
     );
@@ -375,11 +317,7 @@ function AuditPanel({
       <EmptyState
         title="No audit entries"
         description="No recent audit log rows for this tenant."
-        action={
-          <GhostButtonLink href="/admin/audit">
-            Open legacy audit
-          </GhostButtonLink>
-        }
+        action={<GhostButtonLink href="/admin/audit">Open legacy audit</GhostButtonLink>}
       />
     );
   }
@@ -397,19 +335,14 @@ function AuditPanel({
           >
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <span className="font-medium capitalize text-[var(--text-primary)]">
-                {entry.action?.replace(/_/g, " ") ||
-                  entry.action_type ||
-                  "Action"}
+                {entry.action?.replace(/_/g, " ") || entry.action_type || "Action"}
               </span>
               <span className="text-[12px] text-[var(--text-muted)]">
                 {formatWhen(entry.created_at)}
               </span>
             </div>
             <p className="mt-0.5 text-[12px] text-[var(--text-muted)]">
-              {entry.actor_name ||
-                entry.actor_email ||
-                entry.actor_id ||
-                "Unknown actor"}
+              {entry.actor_name || entry.actor_email || entry.actor_id || "Unknown actor"}
               {entry.resource_type || entry.resource
                 ? ` · ${entry.resource_type || entry.resource}${
                     entry.resource_id ? ` ${entry.resource_id}` : ""
@@ -419,9 +352,7 @@ function AuditPanel({
           </li>
         ))}
       </ul>
-      <GhostButtonLink href="/admin/audit">
-        Full audit in legacy
-      </GhostButtonLink>
+      <GhostButtonLink href="/admin/audit">Full audit in legacy</GhostButtonLink>
     </div>
   );
 }
@@ -435,16 +366,14 @@ export default function V3AdminPage() {
         id: "users",
         label: "Users",
         audience: "Admins",
-        description:
-          "Workspace members from the admin users API — read-only dual-run.",
+        description: "Workspace members from the admin users API — read-only dual-run.",
         body: <UsersPanel ready={ready} hasToken={hasToken} />,
       },
       {
         id: "roles",
         label: "Roles",
         audience: "Admins",
-        description:
-          "Named roles and permission counts. Matrix editing stays in legacy.",
+        description: "Named roles and permission counts. Matrix editing stays in legacy.",
         body:
           ready && hasToken ? (
             <RolesPanel ready={ready} hasToken={hasToken} />
@@ -458,13 +387,11 @@ export default function V3AdminPage() {
         id: "rbac",
         label: "RBAC matrix",
         audience: "Security",
-        description:
-          "Permission matrix by role × resource — governance surface.",
+        description: "Permission matrix by role × resource — governance surface.",
         body: (
           <PreviewPanel legacyHref="/admin">
-            Interactive RBAC matrix is not dual-run yet. Use Roles for a
-            read-only permission count summary, or legacy admin for edits that
-            must stay audited.
+            Interactive RBAC matrix is not dual-run yet. Use Roles for a read-only permission count
+            summary, or legacy admin for edits that must stay audited.
           </PreviewPanel>
         ),
       },
@@ -475,8 +402,8 @@ export default function V3AdminPage() {
         description: "Tenant orgs, workspaces, and environment labels.",
         body: (
           <PreviewPanel legacyHref="/admin">
-            Multi-tenant org browser stays on legacy admin tenants until a
-            dedicated v3 org 360 ships.
+            Multi-tenant org browser stays on legacy admin tenants until a dedicated v3 org 360
+            ships.
           </PreviewPanel>
         ),
       },
@@ -487,8 +414,8 @@ export default function V3AdminPage() {
         description: "Connected apps, sync health, and credentials rotation.",
         body: (
           <PreviewPanel legacyHref="/admin">
-            Integration health is not wired on this surface. Prefer legacy admin
-            for credential rotation.
+            Integration health is not wired on this surface. Prefer legacy admin for credential
+            rotation.
           </PreviewPanel>
         ),
       },
@@ -496,13 +423,11 @@ export default function V3AdminPage() {
         id: "billing",
         label: "Billing",
         audience: "Billing admins",
-        description:
-          "Plan, seats, and invoices (when commercial module is live).",
+        description: "Plan, seats, and invoices (when commercial module is live).",
         body: (
           <PreviewPanel legacyHref="/admin">
-            Billing invoices/transactions exist as admin APIs but are not
-            dual-run here yet — avoid accidental commercial actions in the spike
-            shell.
+            Billing invoices/transactions exist as admin APIs but are not dual-run here yet — avoid
+            accidental commercial actions in the spike shell.
           </PreviewPanel>
         ),
       },
@@ -524,8 +449,7 @@ export default function V3AdminPage() {
         id: "flags",
         label: "Feature flags",
         audience: "Admins",
-        description:
-          "Module and Preview flags. AI copilot stays off by default.",
+        description: "Module and Preview flags. AI copilot stays off by default.",
         body:
           ready && hasToken ? (
             <FlagsPanel ready={ready} hasToken={hasToken} />
@@ -542,8 +466,7 @@ export default function V3AdminPage() {
         description: "SSO, session policy, and API key governance.",
         body: (
           <PreviewPanel legacyHref="/settings">
-            SSO / session policy UI is not dual-run. Do not weaken auth from
-            this shell.
+            SSO / session policy UI is not dual-run. Do not weaken auth from this shell.
           </PreviewPanel>
         ),
       },
@@ -553,17 +476,13 @@ export default function V3AdminPage() {
         audience: "Admins",
         description: "Machine credentials and webhook endpoints.",
         body: (
-          <PreviewPanel
-            legacyHref="/v3/settings"
-            legacyLabel="Open v3 Settings · API"
-          >
-            API key listing lives under Settings → API in this dual-run shell
-            (same settings API).
+          <PreviewPanel legacyHref="/v3/settings" legacyLabel="Open v3 Settings · API">
+            API key listing lives under Settings → API in this dual-run shell (same settings API).
           </PreviewPanel>
         ),
       },
     ],
-    [ready, hasToken],
+    [ready, hasToken]
   );
 
   return (

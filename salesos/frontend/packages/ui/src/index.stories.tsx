@@ -1,36 +1,36 @@
-import type { Meta, StoryObj } from '@storybook/react'
-import { Button } from './button'
-import { Input } from './input'
-import { Select } from './select'
-import { Checkbox } from './checkbox'
-import { RadioGroup } from './radio-group'
-import { Switch } from './switch'
-import { Textarea } from './textarea'
-import { DatePicker } from './date-picker'
-import { Pagination } from './pagination'
-import { Skeleton } from './skeleton'
-import { EmptyState } from './empty-state'
-import { Toast, ToastProvider, ToastViewport } from './toast'
-import { Sidebar } from './sidebar'
-import { Breadcrumbs } from './breadcrumbs'
-import { DataTable } from './data-table'
-import { Combobox } from './combobox'
-import { Badge } from './badge'
-import { Avatar } from './avatar'
-import { Tooltip } from './tooltip'
-import { Spinner } from './spinner'
-import { Modal, ModalTrigger, ModalContent, ModalHeader, ModalBody, ModalFooter } from './modal'
-import { Tabs, TabsList, Tab, TabsPanel } from './tabs'
-import { Card, CardHeader, CardContent, CardFooter } from './card'
-import { Kbd } from './kbd'
-import { Form, FormSection, FormRow, FormField, FormActions } from './form'
-import { useState } from 'react'
+import type { Meta, StoryObj } from "@storybook/react";
+import { Button } from "./button";
+import { Input } from "./input";
+import { Select } from "./select";
+import { Checkbox } from "./checkbox";
+import { RadioGroup } from "./radio-group";
+import { Switch } from "./switch";
+import { Textarea } from "./textarea";
+import { DatePicker } from "./date-picker";
+import { Pagination } from "./pagination";
+import { Skeleton } from "./skeleton";
+import { EmptyState } from "./empty-state";
+import { Toast, ToastProvider, ToastViewport } from "./toast";
+import { Sidebar } from "./sidebar";
+import { Breadcrumbs } from "./breadcrumbs";
+import { DataTable } from "./data-table";
+import { Combobox } from "./combobox";
+import { Badge } from "./badge";
+import { Avatar } from "./avatar";
+import { Tooltip } from "./tooltip";
+import { Spinner } from "./spinner";
+import { Modal, ModalTrigger, ModalContent, ModalHeader, ModalBody, ModalFooter } from "./modal";
+import { Tabs, TabsList, Tab, TabsPanel } from "./tabs";
+import { Card, CardHeader, CardContent, CardFooter } from "./card";
+import { Kbd } from "./kbd";
+import { Form, FormSection, FormRow, FormField, FormActions } from "./form";
+import { useState } from "react";
 
 // ============================================================
 // Form Components
 // ============================================================
 
-export default { title: 'Form' } satisfies Meta
+export default { title: "Form" } satisfies Meta;
 
 export const ButtonStory: StoryObj = {
   render: () => (
@@ -53,7 +53,7 @@ export const ButtonStory: StoryObj = {
       </div>
     </div>
   ),
-}
+};
 
 export const InputStory: StoryObj = {
   render: () => (
@@ -63,30 +63,30 @@ export const InputStory: StoryObj = {
       <Input label="Disabled" disabled placeholder="Disabled" />
     </div>
   ),
-}
+};
 
 export const SelectStory: StoryObj = {
   render: () => (
     <div className="flex flex-col gap-4 max-w-sm">
       <Select
         options={[
-          { label: 'Option 1', value: '1' },
-          { label: 'Option 2', value: '2' },
-          { label: 'Option 3', value: '3' },
+          { label: "Option 1", value: "1" },
+          { label: "Option 2", value: "2" },
+          { label: "Option 3", value: "3" },
         ]}
         placeholder="Select..."
       />
       <Select
         options={[
-          { label: 'Option 1', value: '1' },
-          { label: 'Option 2', value: '2' },
+          { label: "Option 1", value: "1" },
+          { label: "Option 2", value: "2" },
         ]}
         placeholder="With error"
         error="Required"
       />
     </div>
   ),
-}
+};
 
 export const CheckboxStory: StoryObj = {
   render: () => (
@@ -99,7 +99,7 @@ export const CheckboxStory: StoryObj = {
       <Checkbox label="Required" required />
     </div>
   ),
-}
+};
 
 export const RadioGroupStory: StoryObj = {
   render: () => (
@@ -107,30 +107,30 @@ export const RadioGroupStory: StoryObj = {
       <RadioGroup
         label="Select option"
         options={[
-          { label: 'Option A', value: 'a' },
-          { label: 'Option B', value: 'b' },
-          { label: 'Option C', value: 'c' },
+          { label: "Option A", value: "a" },
+          { label: "Option B", value: "b" },
+          { label: "Option C", value: "c" },
         ]}
       />
       <RadioGroup
         label="With error"
         error="Please select an option"
         options={[
-          { label: 'Option X', value: 'x' },
-          { label: 'Option Y', value: 'y' },
+          { label: "Option X", value: "x" },
+          { label: "Option Y", value: "y" },
         ]}
       />
       <RadioGroup
         label="Horizontal"
         orientation="horizontal"
         options={[
-          { label: 'Yes', value: 'yes' },
-          { label: 'No', value: 'no' },
+          { label: "Yes", value: "yes" },
+          { label: "No", value: "no" },
         ]}
       />
     </div>
   ),
-}
+};
 
 export const SwitchStory: StoryObj = {
   render: () => (
@@ -145,7 +145,7 @@ export const SwitchStory: StoryObj = {
       </div>
     </div>
   ),
-}
+};
 
 export const TextareaStory: StoryObj = {
   render: () => (
@@ -156,7 +156,7 @@ export const TextareaStory: StoryObj = {
       <Textarea label="Disabled" disabled />
     </div>
   ),
-}
+};
 
 export const DatePickerStory: StoryObj = {
   render: () => (
@@ -166,7 +166,7 @@ export const DatePickerStory: StoryObj = {
       <DatePicker label="With error" error="Date required" />
     </div>
   ),
-}
+};
 
 export const ComboboxStory: StoryObj = {
   render: () => (
@@ -174,29 +174,29 @@ export const ComboboxStory: StoryObj = {
       <Combobox
         label="Search country"
         options={[
-          { label: 'Saudi Arabia', value: 'sa' },
-          { label: 'United Arab Emirates', value: 'ae' },
-          { label: 'Kuwait', value: 'kw' },
-          { label: 'Qatar', value: 'qa' },
-          { label: 'Oman', value: 'om' },
-          { label: 'Bahrain', value: 'bh' },
+          { label: "Saudi Arabia", value: "sa" },
+          { label: "United Arab Emirates", value: "ae" },
+          { label: "Kuwait", value: "kw" },
+          { label: "Qatar", value: "qa" },
+          { label: "Oman", value: "om" },
+          { label: "Bahrain", value: "bh" },
         ]}
       />
       <Combobox
         label="With error"
         error="Required"
         options={[
-          { label: 'Option 1', value: '1' },
-          { label: 'Option 2', value: '2' },
+          { label: "Option 1", value: "1" },
+          { label: "Option 2", value: "2" },
         ]}
       />
     </div>
   ),
-}
+};
 
 export const PaginationStory: StoryObj = {
   render: () => {
-    const [page, setPage] = useState(1)
+    const [page, setPage] = useState(1);
     return (
       <Pagination
         currentPage={page}
@@ -206,16 +206,16 @@ export const PaginationStory: StoryObj = {
         onPageChange={setPage}
         onPageSizeChange={() => {}}
       />
-    )
+    );
   },
-}
+};
 
 // ============================================================
 // Navigation
 // ============================================================
 
-const NavMeta = { title: 'Navigation' } satisfies Meta
-export { NavMeta }
+const NavMeta = { title: "Navigation" } satisfies Meta;
+export { NavMeta };
 
 export const SidebarStory: StoryObj = {
   render: () => (
@@ -225,57 +225,57 @@ export const SidebarStory: StoryObj = {
         onToggle={() => {}}
         sections={[
           {
-            title: 'Main',
+            title: "Main",
             items: [
-              { label: 'Dashboard', href: '/', active: true },
-              { label: 'Companies', href: '/companies' },
-              { label: 'Contacts', href: '/contacts' },
-              { label: 'Deals', href: '/deals' },
+              { label: "Dashboard", href: "/", active: true },
+              { label: "Companies", href: "/companies" },
+              { label: "Contacts", href: "/contacts" },
+              { label: "Deals", href: "/deals" },
             ],
           },
           {
-            title: 'Analytics',
+            title: "Analytics",
             items: [
-              { label: 'Reports', href: '/reports' },
-              { label: 'Forecasts', href: '/forecasts' },
-              { label: 'Goals', href: '/goals', badge: { count: 3, variant: 'warning' as const } },
+              { label: "Reports", href: "/reports" },
+              { label: "Forecasts", href: "/forecasts" },
+              { label: "Goals", href: "/goals", badge: { count: 3, variant: "warning" as const } },
             ],
           },
         ]}
       />
     </div>
   ),
-}
+};
 
 export const BreadcrumbsStory: StoryObj = {
   render: () => (
     <div className="flex flex-col gap-4">
       <Breadcrumbs
         items={[
-          { label: 'Home', href: '/' },
-          { label: 'Companies', href: '/companies' },
-          { label: 'Acme Corp' },
+          { label: "Home", href: "/" },
+          { label: "Companies", href: "/companies" },
+          { label: "Acme Corp" },
         ]}
       />
       <Breadcrumbs
         items={[
-          { label: 'Home', href: '/' },
-          { label: 'Settings', href: '/settings' },
-          { label: 'Billing', href: '/settings/billing' },
-          { label: 'Invoices' },
+          { label: "Home", href: "/" },
+          { label: "Settings", href: "/settings" },
+          { label: "Billing", href: "/settings/billing" },
+          { label: "Invoices" },
         ]}
         maxItems={3}
       />
     </div>
   ),
-}
+};
 
 // ============================================================
 // Data Display
 // ============================================================
 
-const DataMeta = { title: 'Data Display' } satisfies Meta
-export { DataMeta }
+const DataMeta = { title: "Data Display" } satisfies Meta;
+export { DataMeta };
 
 export const BadgeStory: StoryObj = {
   render: () => (
@@ -288,7 +288,7 @@ export const BadgeStory: StoryObj = {
       <Badge variant="outline">Draft</Badge>
     </div>
   ),
-}
+};
 
 export const AvatarStory: StoryObj = {
   render: () => (
@@ -300,42 +300,42 @@ export const AvatarStory: StoryObj = {
       <Avatar alt="" size="md" />
     </div>
   ),
-}
+};
 
 export const DataTableStory: StoryObj = {
   render: () => (
     <DataTable
       columns={[
-        { header: 'Name', accessorKey: 'name' },
-        { header: 'Email', accessorKey: 'email' },
-        { header: 'Status', accessorKey: 'status' },
-        { header: 'Role', accessorKey: 'role' },
+        { header: "Name", accessorKey: "name" },
+        { header: "Email", accessorKey: "email" },
+        { header: "Status", accessorKey: "status" },
+        { header: "Role", accessorKey: "role" },
       ]}
       data={[
-        { name: 'John Doe', email: 'john@acme.com', status: 'Active', role: 'Admin' },
-        { name: 'Jane Smith', email: 'jane@acme.com', status: 'Active', role: 'Editor' },
-        { name: 'Bob Wilson', email: 'bob@acme.com', status: 'Inactive', role: 'Viewer' },
+        { name: "John Doe", email: "john@acme.com", status: "Active", role: "Admin" },
+        { name: "Jane Smith", email: "jane@acme.com", status: "Active", role: "Editor" },
+        { name: "Bob Wilson", email: "bob@acme.com", status: "Inactive", role: "Viewer" },
       ]}
       sortable
     />
   ),
-}
+};
 
 export const DataTableWithSelectionStory: StoryObj = {
   render: () => (
     <DataTable
       columns={[
-        { header: 'Name', accessorKey: 'name' },
-        { header: 'Email', accessorKey: 'email' },
+        { header: "Name", accessorKey: "name" },
+        { header: "Email", accessorKey: "email" },
       ]}
       data={[
-        { name: 'John Doe', email: 'john@acme.com' },
-        { name: 'Jane Smith', email: 'jane@acme.com' },
+        { name: "John Doe", email: "john@acme.com" },
+        { name: "Jane Smith", email: "jane@acme.com" },
       ]}
       selectable
     />
   ),
-}
+};
 
 export const SkeletonStory: StoryObj = {
   render: () => (
@@ -348,18 +348,18 @@ export const SkeletonStory: StoryObj = {
       <Skeleton variant="rect" width={300} height={200} />
     </div>
   ),
-}
+};
 
 export const EmptyStateStory: StoryObj = {
   render: () => (
     <EmptyState
       title="No companies found"
       description="Try adjusting your search or filters to find what you're looking for."
-      action={{ label: 'Add company', onClick: () => {} }}
+      action={{ label: "Add company", onClick: () => {} }}
       learnMoreLink="/docs/companies"
     />
   ),
-}
+};
 
 export const CardStory: StoryObj = {
   render: () => (
@@ -374,7 +374,7 @@ export const CardStory: StoryObj = {
       </Card>
     </div>
   ),
-}
+};
 
 export const TabsStory: StoryObj = {
   render: () => (
@@ -397,14 +397,14 @@ export const TabsStory: StoryObj = {
       </Tabs>
     </div>
   ),
-}
+};
 
 // ============================================================
 // Feedback
 // ============================================================
 
-const FeedbackMeta = { title: 'Feedback' } satisfies Meta
-export { FeedbackMeta }
+const FeedbackMeta = { title: "Feedback" } satisfies Meta;
+export { FeedbackMeta };
 
 export const ToastStory: StoryObj = {
   render: () => (
@@ -415,7 +415,7 @@ export const ToastStory: StoryObj = {
       <Toast title="Error" description="Something went wrong. Please try again." variant="error" />
     </div>
   ),
-}
+};
 
 export const SpinnerStory: StoryObj = {
   render: () => (
@@ -426,7 +426,7 @@ export const SpinnerStory: StoryObj = {
       <Spinner className="h-4 w-4 text-[var(--muhide-orange)]" />
     </div>
   ),
-}
+};
 
 export const ModalStory: StoryObj = {
   render: () => (
@@ -450,7 +450,7 @@ export const ModalStory: StoryObj = {
       </Modal>
     </div>
   ),
-}
+};
 
 export const TooltipStory: StoryObj = {
   render: () => (
@@ -462,7 +462,7 @@ export const TooltipStory: StoryObj = {
       </Tooltip>
     </div>
   ),
-}
+};
 
 export const KbdStory: StoryObj = {
   render: () => (
@@ -475,14 +475,14 @@ export const KbdStory: StoryObj = {
       <Kbd>K</Kbd>
     </div>
   ),
-}
+};
 
 // ============================================================
 // Form Layout
 // ============================================================
 
-const FormLayoutMeta = { title: 'Form Layout' } satisfies Meta
-export { FormLayoutMeta }
+const FormLayoutMeta = { title: "Form Layout" } satisfies Meta;
+export { FormLayoutMeta };
 
 export const FormStory: StoryObj = {
   render: () => (
@@ -516,9 +516,11 @@ export const FormStory: StoryObj = {
         </FormRow>
       </FormSection>
       <FormActions>
-        <Button variant="outline" type="button">Cancel</Button>
+        <Button variant="outline" type="button">
+          Cancel
+        </Button>
         <Button type="submit">Save Changes</Button>
       </FormActions>
     </Form>
   ),
-}
+};

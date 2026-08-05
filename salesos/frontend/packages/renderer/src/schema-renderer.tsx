@@ -1,11 +1,11 @@
-import { ViewerRenderer } from './viewer-renderer'
-import type { UISchema } from './types'
+import { ViewerRenderer } from "./viewer-renderer";
+import type { UISchema } from "./types";
 
 export interface SchemaRendererProps {
-  schema: UISchema
-  loading?: boolean
-  error?: string
-  className?: string
+  schema: UISchema;
+  loading?: boolean;
+  error?: string;
+  className?: string;
 }
 
 export function SchemaRenderer({ schema, loading, error, className }: SchemaRendererProps) {
@@ -14,7 +14,7 @@ export function SchemaRenderer({ schema, loading, error, className }: SchemaRend
       <div className="flex h-64 items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -24,7 +24,7 @@ export function SchemaRenderer({ schema, loading, error, className }: SchemaRend
           {error}
         </div>
       </div>
-    )
+    );
   }
 
   if (!schema) {
@@ -32,7 +32,7 @@ export function SchemaRenderer({ schema, loading, error, className }: SchemaRend
       <div className="flex h-64 items-center justify-center text-gray-500 dark:text-gray-400">
         No schema provided
       </div>
-    )
+    );
   }
 
   return (
@@ -45,5 +45,5 @@ export function SchemaRenderer({ schema, loading, error, className }: SchemaRend
         context={schema.context}
       />
     </div>
-  )
+  );
 }

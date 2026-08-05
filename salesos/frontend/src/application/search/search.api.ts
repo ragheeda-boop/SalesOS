@@ -1,10 +1,7 @@
 import api from "@/lib/api";
 import type { SearchQuery, SearchResponse } from "@salesos/search";
 
-function extractFilterValue(
-  filters: SearchQuery["filters"],
-  field: string,
-): string | undefined {
+function extractFilterValue(filters: SearchQuery["filters"], field: string): string | undefined {
   const f = filters?.find((f) => f.field === field && f.operator === "eq");
   return f ? String(f.value) : undefined;
 }
@@ -28,9 +25,7 @@ export async function searchApi(query: SearchQuery): Promise<SearchResponse> {
   return res.data;
 }
 
-export async function suggestApi(
-  prefix: string,
-): Promise<SearchResponse["results"]> {
+export async function suggestApi(prefix: string): Promise<SearchResponse["results"]> {
   const res = await api.get("/api/v1/search/suggest", {
     params: { q: prefix, limit: 5 },
   });

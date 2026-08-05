@@ -32,7 +32,8 @@ const nextConfig = {
         headers: [
           {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'",
+            value:
+              "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'",
           },
           {
             key: "Cross-Origin-Opener-Policy",
@@ -60,32 +61,32 @@ const nextConfig = {
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.optimization.splitChunks = {
-        chunks: 'all',
+        chunks: "all",
         maxInitialRequests: 25,
         minSize: 20000,
         cacheGroups: {
           framework: {
             test: /[\\/]node_modules[\\/](react|react-dom|next)[\\/]/,
-            name: 'framework',
-            chunks: 'all',
+            name: "framework",
+            chunks: "all",
             priority: 40,
           },
           radix: {
             test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
-            name: 'vendor-radix',
-            chunks: 'all',
+            name: "vendor-radix",
+            chunks: "all",
             priority: 30,
           },
           charts: {
             test: /[\\/]node_modules[\\/](recharts|d3|victory)[\\/]/,
-            name: 'vendor-charts',
-            chunks: 'all',
+            name: "vendor-charts",
+            chunks: "all",
             priority: 20,
           },
           commons: {
             test: /[\\/]node_modules[\\/](axios|zod|clsx|class-variance-authority|tailwind-merge)[\\/]/,
-            name: 'vendor-commons',
-            chunks: 'all',
+            name: "vendor-commons",
+            chunks: "all",
             priority: 10,
           },
         },

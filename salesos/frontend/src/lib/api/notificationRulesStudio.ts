@@ -18,18 +18,14 @@ function tenantHeaders(tenantId: string) {
   return { "X-Tenant-Id": tenantId };
 }
 
-export async function listNotificationEvents(
-  tenantId: string,
-): Promise<NotificationEventsCatalog> {
+export async function listNotificationEvents(tenantId: string): Promise<NotificationEventsCatalog> {
   const resp = await api.get<NotificationEventsCatalog>(`${BASE}/events`, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function listNotificationRules(
-  tenantId: string,
-): Promise<NotificationRule[]> {
+export async function listNotificationRules(tenantId: string): Promise<NotificationRule[]> {
   const resp = await api.get<NotificationRule[]>(BASE, {
     headers: tenantHeaders(tenantId),
   });
@@ -38,7 +34,7 @@ export async function listNotificationRules(
 
 export async function upsertNotificationRule(
   tenantId: string,
-  body: NotificationRuleUpsert,
+  body: NotificationRuleUpsert
 ): Promise<NotificationRule> {
   const resp = await api.post<NotificationRule>(BASE, body, {
     headers: tenantHeaders(tenantId),
@@ -48,7 +44,7 @@ export async function upsertNotificationRule(
 
 export async function routeNotificationEvent(
   tenantId: string,
-  body: NotificationRouteRequest,
+  body: NotificationRouteRequest
 ): Promise<NotificationRouteResult> {
   const resp = await api.post<NotificationRouteResult>(`${BASE}/route`, body, {
     headers: tenantHeaders(tenantId),
@@ -58,12 +54,12 @@ export async function routeNotificationEvent(
 
 export async function compileNotificationRule(
   tenantId: string,
-  ruleId: string,
+  ruleId: string
 ): Promise<NotificationRuleCompileResult> {
   const resp = await api.post<NotificationRuleCompileResult>(
     `${BASE}/${ruleId}/compile`,
     {},
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }

@@ -14,9 +14,7 @@ describe("odooTicketHonesty — FE-S09-04", () => {
     expect(isTicketModel("helpdesk.ticket")).toBe(true);
     expect(isTicketModel("mail.message")).toBe(false);
     expect(
-      DEFAULT_TICKET_MAPPINGS.some(
-        (m) => m.external === "stage_id" && m.internal === "stage",
-      ),
+      DEFAULT_TICKET_MAPPINGS.some((m) => m.external === "stage_id" && m.internal === "stage")
     ).toBe(true);
   });
 });

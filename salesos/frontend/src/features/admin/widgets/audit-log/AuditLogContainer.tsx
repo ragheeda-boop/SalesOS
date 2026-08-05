@@ -28,12 +28,9 @@ export function AuditLogWidget() {
     search: filters.search,
   });
 
-  const handleFilterChange = useCallback(
-    (partial: Partial<AuditLogFilters>) => {
-      setFilters((prev) => ({ ...prev, ...partial }));
-    },
-    [],
-  );
+  const handleFilterChange = useCallback((partial: Partial<AuditLogFilters>) => {
+    setFilters((prev) => ({ ...prev, ...partial }));
+  }, []);
 
   const handleExport = useCallback(() => {
     const params = new URLSearchParams();
@@ -42,10 +39,7 @@ export function AuditLogWidget() {
     if (filters.actionType) params.set("action_type", filters.actionType);
     if (filters.resource) params.set("resource", filters.resource);
     if (filters.search) params.set("search", filters.search);
-    window.open(
-      `/api/v1/admin/audit/logs/export?${params.toString()}`,
-      "_blank",
-    );
+    window.open(`/api/v1/admin/audit/logs/export?${params.toString()}`, "_blank");
   }, [filters]);
 
   return (

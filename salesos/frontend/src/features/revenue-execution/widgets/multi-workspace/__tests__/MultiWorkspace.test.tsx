@@ -50,9 +50,7 @@ describe("MultiWorkspaceView", () => {
   });
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "مساحات العمل" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "مساحات العمل" })).toBeInTheDocument();
   });
 });
 describe("MultiWorkspaceWidget", () => {

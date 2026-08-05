@@ -34,12 +34,7 @@ export function EmailIntelligenceView({
     return (
       <div className="flex items-center justify-center h-full" role="alert">
         <div className="flex flex-col items-center gap-3 text-destructive">
-          <svg
-            className="w-8 h-8"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -69,16 +64,8 @@ export function EmailIntelligenceView({
   return (
     <div className="p-4 h-full flex flex-col gap-4" dir="rtl">
       <div className="grid grid-cols-2 gap-3">
-        <StatCard
-          label="مرسل"
-          value={metrics.total_sent}
-          color="text-blue-400"
-        />
-        <StatCard
-          label="مستلم"
-          value={metrics.total_received}
-          color="text-green-400"
-        />
+        <StatCard label="مرسل" value={metrics.total_sent} color="text-blue-400" />
+        <StatCard label="مستلم" value={metrics.total_received} color="text-green-400" />
         <StatCard
           label="معدل الرد"
           value={`${replyRatePct}%`}
@@ -86,26 +73,17 @@ export function EmailIntelligenceView({
         />
         <StatCard
           label="متوسط الرد"
-          value={
-            metrics.avg_response_hours != null
-              ? `${metrics.avg_response_hours}h`
-              : "-"
-          }
+          value={metrics.avg_response_hours != null ? `${metrics.avg_response_hours}h` : "-"}
           color="text-[var(--chart-purple)]"
         />
       </div>
 
       {metrics.top_companies && metrics.top_companies.length > 0 && (
         <div className="flex-1 min-h-0">
-          <h4 className="text-xs font-semibold text-muted mb-2">
-            أكثر الشركات تواصلاً
-          </h4>
+          <h4 className="text-xs font-semibold text-muted mb-2">أكثر الشركات تواصلاً</h4>
           <div className="space-y-1">
             {metrics.top_companies.slice(0, 5).map((c, i) => (
-              <div
-                key={c.company_id || i}
-                className="flex justify-between text-sm"
-              >
+              <div key={c.company_id || i} className="flex justify-between text-sm">
                 <span className="truncate">{c.company_id}</span>
                 <span className="text-muted tabular-nums">{c.count}</span>
               </div>

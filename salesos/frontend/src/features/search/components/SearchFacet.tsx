@@ -27,11 +27,7 @@ export function SearchFacetGroup({
         className="flex w-full items-center justify-between px-3 py-2 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)]"
       >
         {facet.label}
-        {open ? (
-          <ChevronUp className="h-3 w-3" />
-        ) : (
-          <ChevronDown className="h-3 w-3" />
-        )}
+        {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
       </button>
       {open && (
         <div className="space-y-0.5 px-3">
@@ -45,7 +41,7 @@ export function SearchFacetGroup({
                   "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition",
                   selected
                     ? "bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300"
-                    : "text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)]",
+                    : "text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)]"
                 )}
               >
                 <span>{v.value}</span>

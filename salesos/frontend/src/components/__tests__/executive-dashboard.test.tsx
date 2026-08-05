@@ -56,9 +56,7 @@ describe("ExecutiveDashboard", () => {
       isLoading: true,
     });
     const { container } = render(<ExecutiveDashboard />);
-    expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(
-      0,
-    );
+    expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(0);
   });
 
   it("shows error when data is null", () => {

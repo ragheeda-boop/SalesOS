@@ -6,8 +6,7 @@ import type { AIBriefViewProps } from "../types";
 import type { AIBriefData } from "@/application/dashboard/dashboard.dto";
 
 const sampleData: AIBriefData = {
-  summary:
-    "تم تحديد 3 فرص استراتيجية جديدة هذا الأسبوع في قطاع التقنية المالية",
+  summary: "تم تحديد 3 فرص استراتيجية جديدة هذا الأسبوع في قطاع التقنية المالية",
   highlights: [
     "شركة ACME Corp تعلن عن شراكة استراتيجية مع بنك الرياض",
     "ارتفاع مؤشر الثقة بنسبة 15% في قطاع الطاقة",
@@ -77,9 +76,7 @@ describe("AIBriefView", () => {
 
   it('has role="region" with aria-label', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "الملخص اليومي" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "الملخص اليومي" })).toBeInTheDocument();
   });
 
   it('highlights have role="list" and role="listitem"', () => {
@@ -107,8 +104,6 @@ describe("AIBriefView", () => {
 describe("AIBriefWidget (SDK integration)", () => {
   it("is a valid React component", () => {
     expect(AIBriefWidget).toBeDefined();
-    expect(
-      typeof AIBriefWidget === "function" || typeof AIBriefWidget === "object",
-    ).toBe(true);
+    expect(typeof AIBriefWidget === "function" || typeof AIBriefWidget === "object").toBe(true);
   });
 });

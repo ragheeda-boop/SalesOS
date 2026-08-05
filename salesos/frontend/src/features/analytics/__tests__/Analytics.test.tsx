@@ -49,9 +49,7 @@ describe("AnalyticsView", () => {
   });
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "تحليلات متقدمة" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "تحليلات متقدمة" })).toBeInTheDocument();
   });
 });
 

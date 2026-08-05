@@ -1,9 +1,7 @@
 import { render, screen } from "@testing-library/react";
 
 jest.mock("../revenue/RevenueWorkspace", () => ({
-  RevenueWorkspace: () => (
-    <div data-testid="revenue-workspace">Revenue Workspace</div>
-  ),
+  RevenueWorkspace: () => <div data-testid="revenue-workspace">Revenue Workspace</div>,
 }));
 
 import { RevenueWorkspace } from "../revenue/RevenueWorkspace";

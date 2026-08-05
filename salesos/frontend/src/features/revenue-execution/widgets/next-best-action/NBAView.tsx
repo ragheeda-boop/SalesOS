@@ -16,8 +16,7 @@ import type { NBAViewProps } from "./types";
 const PRIORITY_CFG = {
   critical: {
     label: "حرج — تحرك فوري",
-    color:
-      "bg-[var(--status-danger-bg)] text-red-700 ring-1 ring-red-200 dark:ring-red-800",
+    color: "bg-[var(--status-danger-bg)] text-red-700 ring-1 ring-red-200 dark:ring-red-800",
     icon: <Zap className="h-4 w-4" />,
   },
   high: {
@@ -28,8 +27,7 @@ const PRIORITY_CFG = {
   },
   medium: {
     label: "متوسط — هذا الشهر",
-    color:
-      "bg-[var(--status-warning-bg)] text-amber-700 ring-1 ring-amber-200 dark:ring-amber-800",
+    color: "bg-[var(--status-warning-bg)] text-amber-700 ring-1 ring-amber-200 dark:ring-amber-800",
     icon: <Target className="h-4 w-4" />,
   },
   low: {
@@ -45,9 +43,7 @@ export function NBAView({ action, onExecute }: NBAViewProps) {
     return (
       <div className="flex flex-col items-center justify-center py-10 text-center">
         <Sparkles className="mb-3 h-10 w-10 text-[var(--text-muted)] opacity-30" />
-        <p className="text-sm font-medium text-[var(--text-muted)]">
-          جاري تحليل أفضل إجراء تالي
-        </p>
+        <p className="text-sm font-medium text-[var(--text-muted)]">جاري تحليل أفضل إجراء تالي</p>
         <p className="mt-1 text-xs text-[var(--text-muted)]">
           سيتم اقتراح الإجراء المناسب بناءً على ذكاء الشركة
         </p>
@@ -64,12 +60,7 @@ export function NBAView({ action, onExecute }: NBAViewProps) {
       className="space-y-3/20 dark:rounded-lg dark:p-1"
     >
       {/* Priority Badge */}
-      <div
-        className={cn(
-          "flex items-center gap-2 rounded-lg px-3 py-2",
-          priority.color,
-        )}
-      >
+      <div className={cn("flex items-center gap-2 rounded-lg px-3 py-2", priority.color)}>
         {priority.icon}
         <span className="text-xs font-semibold">{priority.label}</span>
         <span className="mr-auto text-[10px] opacity-70">
@@ -106,9 +97,7 @@ export function NBAView({ action, onExecute }: NBAViewProps) {
             <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
               <Clock className="h-3 w-3" /> المدة
             </div>
-            <p className="text-sm font-bold text-[var(--text-primary)]">
-              {action.estimatedTime}
-            </p>
+            <p className="text-sm font-bold text-[var(--text-primary)]">{action.estimatedTime}</p>
           </div>
           <div className="rounded-lg bg-[var(--bg-primary)]/60 p-2/60">
             <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
@@ -138,12 +127,8 @@ export function NBAView({ action, onExecute }: NBAViewProps) {
 
       {/* Context */}
       <div className="rounded-lg bg-[var(--bg-tertiary)] p-2">
-        <p className="text-[10px] font-medium text-[var(--text-muted)]">
-          السياق
-        </p>
-        <p className="mt-0.5 text-xs text-[var(--text-primary)]">
-          {action.contextSummary}
-        </p>
+        <p className="text-[10px] font-medium text-[var(--text-muted)]">السياق</p>
+        <p className="mt-0.5 text-xs text-[var(--text-primary)]">{action.contextSummary}</p>
         {action.triggerEvent && (
           <p className="mt-0.5 flex items-center gap-1 text-[10px] text-[var(--chart-purple)]">
             <Zap className="h-3 w-3" /> آخر حدث: {action.triggerEvent}
@@ -154,14 +139,9 @@ export function NBAView({ action, onExecute }: NBAViewProps) {
       {/* Risks */}
       {action.risks.length > 0 && (
         <div>
-          <p className="mb-1 text-[10px] font-medium text-[var(--status-danger-text)]">
-            المخاطر
-          </p>
+          <p className="mb-1 text-[10px] font-medium text-[var(--status-danger-text)]">المخاطر</p>
           {action.risks.map((r, i) => (
-            <div
-              key={i}
-              className="flex items-start gap-1.5 text-[10px] text-[var(--text-muted)]"
-            >
+            <div key={i} className="flex items-start gap-1.5 text-[10px] text-[var(--text-muted)]">
               <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-[var(--status-danger-text)]" />
               <span>{r}</span>
             </div>
@@ -172,14 +152,10 @@ export function NBAView({ action, onExecute }: NBAViewProps) {
       {/* Alternatives */}
       {action.alternatives.length > 0 && (
         <div className="border-t border-[var(--border-color)] pt-2">
-          <p className="mb-1 text-[10px] font-medium text-[var(--text-muted)]">
-            بدائل
-          </p>
+          <p className="mb-1 text-[10px] font-medium text-[var(--text-muted)]">بدائل</p>
           {action.alternatives.map((alt, i) => (
             <div key={i} className="flex items-center justify-between py-0.5">
-              <span className="text-xs text-[var(--text-muted)]">
-                {alt.actionLabel}
-              </span>
+              <span className="text-xs text-[var(--text-muted)]">{alt.actionLabel}</span>
               <span className="text-[10px] text-[var(--text-muted)]">
                 %{Math.round(alt.confidence * 100)}
               </span>
@@ -191,27 +167,12 @@ export function NBAView({ action, onExecute }: NBAViewProps) {
       {/* Score Breakdown */}
       <div className="border-t border-[var(--border-color)] pt-1.5 text-[9px] text-[var(--text-muted)]">
         <div className="grid grid-cols-3 gap-x-2 gap-y-0.5">
-          <span>
-            النية: %{Math.round(action.scoreBreakdown.buyingIntent * 100)}
-          </span>
-          <span>
-            العلاقات: %
-            {Math.round(action.scoreBreakdown.relationshipStrength * 100)}
-          </span>
-          <span>
-            الإشارات: %{Math.round(action.scoreBreakdown.signalRecency * 100)}
-          </span>
-          <span>
-            AI: %{Math.round(action.scoreBreakdown.aiConfidence * 100)}
-          </span>
-          <span>
-            القرار: %
-            {Math.round(action.scoreBreakdown.decisionMakerAccess * 100)}
-          </span>
-          <span>
-            الإيرادات: %
-            {Math.round(action.scoreBreakdown.revenuePotential * 100)}
-          </span>
+          <span>النية: %{Math.round(action.scoreBreakdown.buyingIntent * 100)}</span>
+          <span>العلاقات: %{Math.round(action.scoreBreakdown.relationshipStrength * 100)}</span>
+          <span>الإشارات: %{Math.round(action.scoreBreakdown.signalRecency * 100)}</span>
+          <span>AI: %{Math.round(action.scoreBreakdown.aiConfidence * 100)}</span>
+          <span>القرار: %{Math.round(action.scoreBreakdown.decisionMakerAccess * 100)}</span>
+          <span>الإيرادات: %{Math.round(action.scoreBreakdown.revenuePotential * 100)}</span>
         </div>
       </div>
     </div>

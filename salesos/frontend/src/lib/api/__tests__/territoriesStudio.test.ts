@@ -37,18 +37,12 @@ describe("territoriesStudio API — FE-S10-05", () => {
       },
     });
     const meta = await getTerritoriesMeta("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/studio/territories/meta",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/studio/territories/meta", expect.any(Object));
     expect(meta.persistence).toBe("memory");
 
     mocked.get.mockResolvedValueOnce({ data: [] });
     await listTerritoryRules("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/studio/territories",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/studio/territories", expect.any(Object));
   });
 
   it("POSTs upsert + assign", async () => {
@@ -74,7 +68,7 @@ describe("territoriesStudio API — FE-S10-05", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/studio/territories",
       expect.objectContaining({ territory_key: "riyadh-north" }),
-      expect.any(Object),
+      expect.any(Object)
     );
 
     mocked.post.mockResolvedValueOnce({
@@ -94,7 +88,7 @@ describe("territoriesStudio API — FE-S10-05", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/studio/territories/assign",
       expect.objectContaining({ attributes: { region: "Riyadh" } }),
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(hit.matched).toBe(true);
   });

@@ -119,8 +119,6 @@ describe("AuditLogView", () => {
 
   it("has region role with aria-label", () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "سجل التدقيق" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "سجل التدقيق" })).toBeInTheDocument();
   });
 });

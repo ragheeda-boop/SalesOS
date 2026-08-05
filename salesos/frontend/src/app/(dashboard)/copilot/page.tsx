@@ -3,14 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslation } from "@/lib/i18n";
-import {
-  Bot,
-  History,
-  Trash2,
-  MessageSquare,
-  GitBranch,
-  BarChart3,
-} from "lucide-react";
+import { Bot, History, Trash2, MessageSquare, GitBranch, BarChart3 } from "lucide-react";
 import { CopilotPanel } from "@/components/copilot-panel";
 import { ExperimentalAiBadge } from "@/components/ai/ExperimentalAiBadge";
 import { useAiCopilotEnabled } from "@/lib/hooks/useAiCopilotEnabled";
@@ -22,18 +15,11 @@ export default function CopilotPage() {
 
   if (ready && !aiCopilotEnabled) {
     return (
-      <div
-        className="flex flex-col items-center justify-center gap-3 py-24 text-center"
-        dir={dir}
-      >
+      <div className="flex flex-col items-center justify-center gap-3 py-24 text-center" dir={dir}>
         <Bot className="h-10 w-10 text-[var(--text-disabled)]" />
-        <h1 className="text-xl font-bold text-[var(--text-primary)]">
-          {t("copilot.title")}
-        </h1>
+        <h1 className="text-xl font-bold text-[var(--text-primary)]">{t("copilot.title")}</h1>
         <ExperimentalAiBadge />
-        <p className="max-w-md text-sm text-[var(--text-muted)]">
-          {t("copilot.disabled_ga")}
-        </p>
+        <p className="max-w-md text-sm text-[var(--text-muted)]">{t("copilot.disabled_ga")}</p>
       </div>
     );
   }
@@ -53,9 +39,7 @@ export default function CopilotPage() {
                 </h1>
                 <ExperimentalAiBadge />
               </div>
-              <p className="text-sm text-[var(--text-muted)]">
-                {t("copilot.subtitle")}
-              </p>
+              <p className="text-sm text-[var(--text-muted)]">{t("copilot.subtitle")}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -98,15 +82,11 @@ export default function CopilotPage() {
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-2 rounded-lg p-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] dark:hover:bg-[var(--bg-secondary)] cursor-pointer">
               <MessageSquare className="h-4 w-4 shrink-0" />
-              <span className="truncate">
-                {t("copilot.sample_q3_analysis")}
-              </span>
+              <span className="truncate">{t("copilot.sample_q3_analysis")}</span>
             </div>
             <div className="flex items-center gap-2 rounded-lg p-2 text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] dark:hover:bg-[var(--bg-secondary)] cursor-pointer">
               <MessageSquare className="h-4 w-4 shrink-0" />
-              <span className="truncate">
-                {t("copilot.sample_deal_compare")}
-              </span>
+              <span className="truncate">{t("copilot.sample_deal_compare")}</span>
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-[var(--border-subtle)]">
@@ -114,9 +94,7 @@ export default function CopilotPage() {
               <GitBranch className="h-3 w-3" />
               {t("copilot.branches_sidebar")}
             </h4>
-            <p className="text-[11px] text-[var(--text-disabled)]">
-              {t("copilot.no_branches")}
-            </p>
+            <p className="text-[11px] text-[var(--text-disabled)]">{t("copilot.no_branches")}</p>
           </div>
           <p className="mt-2 text-center text-xs text-[var(--text-disabled)]">
             {t("copilot.history_note")}

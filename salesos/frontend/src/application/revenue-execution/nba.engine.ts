@@ -19,7 +19,7 @@ const PLAYBOOKS: Record<string, string> = {
 function computePriority(
   intent: number,
   relationship: number,
-  financial: number,
+  financial: number
 ): NextBestAction["priority"] {
   const s = intent * 0.4 + relationship * 0.3 + financial * 0.3;
   if (s >= 70) return "critical";
@@ -28,15 +28,8 @@ function computePriority(
   return "low";
 }
 
-function computeScore(
-  intent: number,
-  relationship: number,
-  confidence: number,
-): number {
-  return (
-    Math.round((intent * 0.4 + relationship * 0.35 + confidence * 0.25) * 100) /
-    100
-  );
+function computeScore(intent: number, relationship: number, confidence: number): number {
+  return Math.round((intent * 0.4 + relationship * 0.35 + confidence * 0.25) * 100) / 100;
 }
 
 export function deriveNextBestAction(
@@ -44,7 +37,7 @@ export function deriveNextBestAction(
   recommendation: AIRecommendation | null,
   _timeline: TimelineEvent[],
   _signals: SignalItem[],
-  _makers: DecisionMaker[],
+  _makers: DecisionMaker[]
 ): NextBestAction | null {
   if (!dna) return null;
 
@@ -67,8 +60,7 @@ export function deriveNextBestAction(
     score,
     expectedRevenue: recommendation?.expectedRevenue ?? 50000,
     expectedImpact:
-      (recommendation?.expectedImpact as NextBestAction["expectedImpact"]) ??
-      "medium",
+      (recommendation?.expectedImpact as NextBestAction["expectedImpact"]) ?? "medium",
     estimatedTime: recommendation?.estimatedTime ?? "",
     contextSummary: "",
     risks: recommendation?.risks ?? [],

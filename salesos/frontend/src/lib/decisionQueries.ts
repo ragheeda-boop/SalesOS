@@ -39,10 +39,7 @@ export interface DecisionFeedbackStatsResponse {
   acceptanceRate: number;
   rejectionRate: number;
   avgRevenueImpact: number;
-  byAction: Record<
-    string,
-    { accepted: number; rejected: number; ignored: number }
-  >;
+  byAction: Record<string, { accepted: number; rejected: number; ignored: number }>;
 }
 
 // ─── Hooks ────────────────────────────────────────────────────
@@ -54,7 +51,7 @@ export function useDecisionEvaluate() {
         { context },
         {
           headers: { "X-Tenant-Id": getTenantId() },
-        },
+        }
       );
       return response.data;
     },
@@ -91,10 +88,7 @@ export function useDecisionHistory(limit?: number) {
   });
 }
 
-export function useDecisionRecommendations(
-  entityId?: string,
-  entityType?: string,
-) {
+export function useDecisionRecommendations(entityId?: string, entityType?: string) {
   return useQuery({
     queryKey: [...decisionKeys.recommendations(entityId), { entityType }],
     queryFn: async () => {
@@ -151,7 +145,7 @@ export function useDecisionFeedback() {
         },
         {
           headers: { "X-Tenant-Id": getTenantId() },
-        },
+        }
       );
       return response.data;
     },

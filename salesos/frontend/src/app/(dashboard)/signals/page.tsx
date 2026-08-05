@@ -110,9 +110,7 @@ export default function SignalsPage() {
   const handleAcknowledge = async (eventId: string) => {
     try {
       await api.post(`${signalApiBase}/${eventId}/acknowledge`);
-      setFeed((prev) =>
-        prev.map((e) => (e.id === eventId ? { ...e, acknowledged: true } : e)),
-      );
+      setFeed((prev) => prev.map((e) => (e.id === eventId ? { ...e, acknowledged: true } : e)));
     } catch {
       setError(t("error.server_error"));
     }
@@ -132,11 +130,7 @@ export default function SignalsPage() {
   const domains = [...new Set(signals.map((s) => s.domain))];
 
   if (loading)
-    return (
-      <div className="p-8 text-center text-[var(--text-muted)]">
-        {t("common.loading")}
-      </div>
-    );
+    return <div className="p-8 text-center text-[var(--text-muted)]">{t("common.loading")}</div>;
 
   return (
     <div className="p-6 space-y-6">
@@ -188,9 +182,7 @@ export default function SignalsPage() {
               </div>
             )}
             {signals.length === 0 && (
-              <p className="text-[var(--text-muted)] p-8 text-center">
-                {t("common.no_results")}
-              </p>
+              <p className="text-[var(--text-muted)] p-8 text-center">{t("common.no_results")}</p>
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {signals.map((signal) => (
@@ -201,14 +193,12 @@ export default function SignalsPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="font-semibold text-sm">{signal.name}</h3>
-                      <p className="text-xs text-[var(--text-muted)] mt-0.5">
-                        {signal.ar_name}
-                      </p>
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5">{signal.ar_name}</p>
                     </div>
                     <span
                       className={cn(
                         "px-2 py-0.5 rounded text-xs font-medium",
-                        severityColor(signal.severity),
+                        severityColor(signal.severity)
                       )}
                     >
                       {signal.severity}
@@ -220,18 +210,14 @@ export default function SignalsPage() {
                   <div className="flex items-center gap-3 text-xs text-[var(--text-disabled)]">
                     <span>{signal.domain}</span>
                     <span>{signal.source}</span>
-                    <span className="font-medium">
-                      {signal.weight.toFixed(2)}
-                    </span>
+                    <span className="font-medium">{signal.weight.toFixed(2)}</span>
                   </div>
                   <button
                     onClick={() => handleSubscribe(signal.id)}
                     disabled={subscribing === signal.id}
                     className="w-full rounded-lg bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)] px-3 py-2 text-sm font-medium hover:bg-[var(--muhide-orange)]/20 transition disabled:opacity-50"
                   >
-                    {subscribing === signal.id
-                      ? t("common.loading")
-                      : t("signals.subscribe")}
+                    {subscribing === signal.id ? t("common.loading") : t("signals.subscribe")}
                   </button>
                 </div>
               ))}
@@ -242,17 +228,14 @@ export default function SignalsPage() {
         <TabsPanel value="feed">
           <div className="space-y-3">
             {feed.length === 0 && (
-              <p className="text-[var(--text-muted)] p-8 text-center">
-                {t("common.no_results")}
-              </p>
+              <p className="text-[var(--text-muted)] p-8 text-center">{t("common.no_results")}</p>
             )}
             {feed.map((event) => (
               <div
                 key={event.id}
                 className={cn(
                   "rounded-lg border p-4 bg-[var(--bg-primary)]",
-                  !event.acknowledged &&
-                    "border-l-4 border-l-[var(--muhide-orange)]",
+                  !event.acknowledged && "border-l-4 border-l-[var(--muhide-orange)]"
                 )}
               >
                 <div className="flex items-center justify-between">
@@ -260,12 +243,8 @@ export default function SignalsPage() {
                     <span className="text-xs font-mono text-[var(--text-disabled)]">
                       {event.signal_id}
                     </span>
-                    <span className="text-xs text-[var(--text-disabled)] mx-2">
-                      |
-                    </span>
-                    <span className="text-xs text-[var(--text-disabled)]">
-                      {event.company_id}
-                    </span>
+                    <span className="text-xs text-[var(--text-disabled)] mx-2">|</span>
+                    <span className="text-xs text-[var(--text-disabled)]">{event.company_id}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-[var(--text-disabled)]">
@@ -281,8 +260,7 @@ export default function SignalsPage() {
                     )}
                     {event.acknowledged && (
                       <span className="text-xs text-[var(--text-disabled)] flex items-center gap-1">
-                        <CheckCheck className="h-3 w-3" />{" "}
-                        {t("signals.acknowledged")}
+                        <CheckCheck className="h-3 w-3" /> {t("signals.acknowledged")}
                       </span>
                     )}
                   </div>

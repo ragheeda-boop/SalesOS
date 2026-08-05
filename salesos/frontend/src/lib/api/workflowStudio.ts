@@ -16,9 +16,7 @@ function tenantHeaders(tenantId: string) {
   return { "X-Tenant-Id": tenantId };
 }
 
-export async function listWorkflowCanvases(
-  tenantId: string,
-): Promise<WorkflowCanvas[]> {
+export async function listWorkflowCanvases(tenantId: string): Promise<WorkflowCanvas[]> {
   const resp = await api.get<WorkflowCanvas[]>(BASE, {
     headers: tenantHeaders(tenantId),
   });
@@ -27,7 +25,7 @@ export async function listWorkflowCanvases(
 
 export async function upsertWorkflowCanvas(
   tenantId: string,
-  body: WorkflowCanvasUpsert,
+  body: WorkflowCanvasUpsert
 ): Promise<WorkflowCanvas> {
   const resp = await api.post<WorkflowCanvas>(BASE, body, {
     headers: tenantHeaders(tenantId),
@@ -37,7 +35,7 @@ export async function upsertWorkflowCanvas(
 
 export async function getWorkflowCanvas(
   tenantId: string,
-  canvasId: string,
+  canvasId: string
 ): Promise<WorkflowCanvas> {
   const resp = await api.get<WorkflowCanvas>(`${BASE}/${canvasId}`, {
     headers: tenantHeaders(tenantId),
@@ -47,24 +45,22 @@ export async function getWorkflowCanvas(
 
 export async function compileWorkflowCanvas(
   tenantId: string,
-  canvasId: string,
+  canvasId: string
 ): Promise<WorkflowCanvasCompileResult> {
   const resp = await api.post<WorkflowCanvasCompileResult>(
     `${BASE}/${canvasId}/compile`,
     {},
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
 
 export async function compileWorkflowCanvasEphemeral(
   tenantId: string,
-  body: WorkflowCanvasUpsert,
+  body: WorkflowCanvasUpsert
 ): Promise<WorkflowCanvasCompileResult> {
-  const resp = await api.post<WorkflowCanvasCompileResult>(
-    `${BASE}/compile`,
-    body,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.post<WorkflowCanvasCompileResult>(`${BASE}/compile`, body, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }

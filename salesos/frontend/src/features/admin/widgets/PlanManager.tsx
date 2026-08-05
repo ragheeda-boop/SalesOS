@@ -97,9 +97,7 @@ export function PlanManager() {
 
   const openEditEntitlements = (plan: AdminPlan) => {
     setEditingPlanId(plan.id);
-    setEditEntitlementsJson(
-      plan.entitlements ? JSON.stringify(plan.entitlements, null, 2) : "",
-    );
+    setEditEntitlementsJson(plan.entitlements ? JSON.stringify(plan.entitlements, null, 2) : "");
   };
 
   const handleSaveEntitlements = async () => {
@@ -117,8 +115,7 @@ export function PlanManager() {
       toast({
         variant: "error",
         title: "Entitlements required",
-        description:
-          "Paste a JSON object or cancel. Empty clears not supported.",
+        description: "Paste a JSON object or cancel. Empty clears not supported.",
       });
       return;
     }
@@ -130,7 +127,7 @@ export function PlanManager() {
         variant: "success",
         title: "Entitlements saved",
         description: formatPlanEntitlementsSummary(
-          parsed.value as Parameters<typeof formatPlanEntitlementsSummary>[0],
+          parsed.value as Parameters<typeof formatPlanEntitlementsSummary>[0]
         ),
       });
     } catch (err: unknown) {
@@ -172,17 +169,13 @@ export function PlanManager() {
 
       {showCreatePlan && (
         <Card className="p-4 space-y-3" data-testid="admin-plans-create">
-          <h3 className="font-semibold">
-            {t("admin.plan_manager.new_plan_title")}
-          </h3>
+          <h3 className="font-semibold">{t("admin.plan_manager.new_plan_title")}</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <input
               className="border rounded px-3 py-2 text-sm"
               placeholder={t("admin.plan_manager.name_placeholder")}
               value={planForm.name}
-              onChange={(e) =>
-                setPlanForm({ ...planForm, name: e.target.value })
-              }
+              onChange={(e) => setPlanForm({ ...planForm, name: e.target.value })}
             />
             <select
               className="border rounded px-3 py-2 text-sm"
@@ -190,8 +183,7 @@ export function PlanManager() {
               onChange={(e) =>
                 setPlanForm({
                   ...planForm,
-                  tier: e.target.value as
-                    "free" | "starter" | "growth" | "enterprise",
+                  tier: e.target.value as "free" | "starter" | "growth" | "enterprise",
                 })
               }
             >
@@ -217,9 +209,7 @@ export function PlanManager() {
               type="number"
               placeholder={t("admin.plan_manager.max_users_placeholder")}
               value={planForm.max_users}
-              onChange={(e) =>
-                setPlanForm({ ...planForm, max_users: Number(e.target.value) })
-              }
+              onChange={(e) => setPlanForm({ ...planForm, max_users: Number(e.target.value) })}
             />
             <input
               className="border rounded px-3 py-2 text-sm"
@@ -249,9 +239,7 @@ export function PlanManager() {
               className="border rounded px-3 py-2 text-sm col-span-full"
               placeholder={t("admin.plan_manager.features_placeholder")}
               value={planForm.features}
-              onChange={(e) =>
-                setPlanForm({ ...planForm, features: e.target.value })
-              }
+              onChange={(e) => setPlanForm({ ...planForm, features: e.target.value })}
             />
           </div>
           <div>
@@ -284,25 +272,19 @@ export function PlanManager() {
 
       {showCreateLicense && (
         <Card className="p-4 space-y-3">
-          <h3 className="font-semibold">
-            {t("admin.plan_manager.new_license_title")}
-          </h3>
+          <h3 className="font-semibold">{t("admin.plan_manager.new_license_title")}</h3>
           <div className="grid grid-cols-2 gap-3">
             <input
               className="border rounded px-3 py-2 text-sm"
               placeholder={t("admin.plan_manager.tenant_id_placeholder")}
               value={licenseForm.tenant_id}
-              onChange={(e) =>
-                setLicenseForm({ ...licenseForm, tenant_id: e.target.value })
-              }
+              onChange={(e) => setLicenseForm({ ...licenseForm, tenant_id: e.target.value })}
             />
             <input
               className="border rounded px-3 py-2 text-sm"
               placeholder={t("admin.plan_manager.plan_id_placeholder")}
               value={licenseForm.plan_id}
-              onChange={(e) =>
-                setLicenseForm({ ...licenseForm, plan_id: e.target.value })
-              }
+              onChange={(e) => setLicenseForm({ ...licenseForm, plan_id: e.target.value })}
             />
           </div>
           <div className="flex gap-2">
@@ -326,16 +308,10 @@ export function PlanManager() {
       )}
 
       {editingPlanId && (
-        <Card
-          className="p-4 space-y-3"
-          data-testid="admin-plans-entitlements-edit"
-        >
-          <h3 className="font-semibold">
-            Edit entitlements — plan {editingPlanId}
-          </h3>
+        <Card className="p-4 space-y-3" data-testid="admin-plans-entitlements-edit">
+          <h3 className="font-semibold">Edit entitlements — plan {editingPlanId}</h3>
           <p className="text-xs text-[var(--text-muted)]">
-            STORY-06-01 JSONB document. Domains keys must be DOM-* . Not
-            Production GO.
+            STORY-06-01 JSONB document. Domains keys must be DOM-* . Not Production GO.
           </p>
           <textarea
             className="w-full rounded border border-[var(--border-default)] bg-[var(--bg-primary)] p-2 font-mono text-xs text-[var(--text-primary)]"
@@ -374,11 +350,7 @@ export function PlanManager() {
           </h3>
           <div className="space-y-3">
             {plans?.map((plan: AdminPlan) => (
-              <div
-                key={plan.id}
-                className="border rounded-lg p-3"
-                data-testid="admin-plans-row"
-              >
+              <div key={plan.id} className="border rounded-lg p-3" data-testid="admin-plans-row">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-semibold">{plan.name}</span>
                   <Badge
@@ -402,10 +374,7 @@ export function PlanManager() {
                     {plan.max_users} مستخدم | {plan.max_storage_mb} MB |{" "}
                     {plan.max_api_calls.toLocaleString()} استدعاء
                   </p>
-                  <p
-                    className="font-mono text-xs"
-                    data-testid="admin-plans-entitlements-summary"
-                  >
+                  <p className="font-mono text-xs" data-testid="admin-plans-entitlements-summary">
                     {formatPlanEntitlementsSummary(plan.entitlements)}
                   </p>
                   {plan.features?.length > 0 && (

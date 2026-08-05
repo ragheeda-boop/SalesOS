@@ -9,18 +9,9 @@ interface SearchEmptyProps {
   className?: string;
 }
 
-export function SearchEmpty({
-  query,
-  suggestion,
-  className,
-}: SearchEmptyProps) {
+export function SearchEmpty({ query, suggestion, className }: SearchEmptyProps) {
   return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center py-12 text-center",
-        className,
-      )}
-    >
+    <div className={cn("flex flex-col items-center justify-center py-12 text-center", className)}>
       <Search className="mb-3 h-10 w-10 text-[var(--text-muted)] opacity-30" />
       <p className="text-sm font-medium text-[var(--text-primary)]">
         {query ? `لا توجد نتائج لـ"${query}"` : "لا توجد نتائج"}

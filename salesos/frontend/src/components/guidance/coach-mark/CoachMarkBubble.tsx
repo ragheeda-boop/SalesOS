@@ -14,17 +14,14 @@ interface BubblePosition {
 function computeBubblePosition(
   target: string,
   bubbleWidth: number,
-  _bubbleHeight: number,
+  _bubbleHeight: number
 ): BubblePosition | null {
   const el = document.querySelector(target);
   if (!el) return null;
   const rect = el.getBoundingClientRect();
   return {
     top: rect.bottom + 8 + window.scrollY,
-    left: Math.max(
-      8,
-      rect.left + rect.width / 2 - bubbleWidth / 2 + window.scrollX,
-    ),
+    left: Math.max(8, rect.left + rect.width / 2 - bubbleWidth / 2 + window.scrollX),
   };
 }
 

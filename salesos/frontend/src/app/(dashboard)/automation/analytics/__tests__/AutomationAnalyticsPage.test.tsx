@@ -49,14 +49,9 @@ jest.mock("@/lib/i18n", () => ({
 }));
 
 jest.mock("@salesos/ui", () => ({
-  cn: (...args: (string | undefined | false)[]) =>
-    args.filter(Boolean).join(" "),
-  Badge: ({ children, variant }: any) => (
-    <span data-variant={variant}>{children}</span>
-  ),
-  Button: ({ children, ...props }: any) => (
-    <button {...props}>{children}</button>
-  ),
+  cn: (...args: (string | undefined | false)[]) => args.filter(Boolean).join(" "),
+  Badge: ({ children, variant }: any) => <span data-variant={variant}>{children}</span>,
+  Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
 }));
 
 jest.mock("@salesos/charts", () => ({
@@ -80,13 +75,7 @@ jest.mock("lucide-react", () => ({
 }));
 
 jest.mock("next/link", () => {
-  function MockLink({
-    children,
-    href,
-  }: {
-    children: React.ReactNode;
-    href: string;
-  }) {
+  function MockLink({ children, href }: { children: React.ReactNode; href: string }) {
     return <a href={href}>{children}</a>;
   }
   MockLink.displayName = "MockLink";
@@ -140,9 +129,7 @@ describe("AutomationAnalyticsPage", () => {
       render(<AutomationAnalyticsPage />);
       await waitFor(() => {
         const links = screen.getAllByRole("link");
-        const backLink = links.find(
-          (l) => l.getAttribute("href") === "/automation",
-        );
+        const backLink = links.find((l) => l.getAttribute("href") === "/automation");
         expect(backLink).toBeTruthy();
       });
     });
@@ -193,9 +180,7 @@ describe("AutomationAnalyticsPage", () => {
       mockGet.mockResolvedValue({ data: sampleAnalytics });
       render(<AutomationAnalyticsPage />);
       await waitFor(() => {
-        expect(screen.getByTestId("line-chart")).toHaveTextContent(
-          "معدل الفشل على مدار الوقت",
-        );
+        expect(screen.getByTestId("line-chart")).toHaveTextContent("معدل الفشل على مدار الوقت");
       });
     });
 
@@ -235,9 +220,7 @@ describe("AutomationAnalyticsPage", () => {
       });
       render(<AutomationAnalyticsPage />);
       await waitFor(() => {
-        expect(
-          screen.getByText("أكثر سير العمل استخداماً"),
-        ).toBeInTheDocument();
+        expect(screen.getByText("أكثر سير العمل استخداماً")).toBeInTheDocument();
         expect(screen.getByText("متابعة العميل")).toBeInTheDocument();
       });
     });

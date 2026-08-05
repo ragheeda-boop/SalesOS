@@ -11,13 +11,7 @@ describe("SearchFacetGroup", () => {
   };
 
   it("renders facet label and values", () => {
-    render(
-      <SearchFacetGroup
-        facet={facet as any}
-        selectedValues={[]}
-        onToggle={jest.fn()}
-      />,
-    );
+    render(<SearchFacetGroup facet={facet as any} selectedValues={[]} onToggle={jest.fn()} />);
     expect(screen.getByText("Status")).toBeInTheDocument();
     expect(screen.getByText("active")).toBeInTheDocument();
     expect(screen.getByText("10")).toBeInTheDocument();
@@ -25,13 +19,7 @@ describe("SearchFacetGroup", () => {
 
   it("calls onToggle when value is clicked", () => {
     const onToggle = jest.fn();
-    render(
-      <SearchFacetGroup
-        facet={facet as any}
-        selectedValues={[]}
-        onToggle={onToggle}
-      />,
-    );
+    render(<SearchFacetGroup facet={facet as any} selectedValues={[]} onToggle={onToggle} />);
     fireEvent.click(screen.getByText("active"));
     expect(onToggle).toHaveBeenCalledWith("active");
   });

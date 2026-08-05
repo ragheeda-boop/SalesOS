@@ -1,6 +1,6 @@
 # 07 — Scoring Model | نموذج التقييم
 
-**Pack:** Enterprise Audit Board v2.1  
+**Pack:** Enterprise Audit Board v2.2  
 **Role:** Per-axis scores, dimension rollups, economics bands, drift formula, GO synthesis  
 **Status:** Method only — **no scores filled** in framework docs
 
@@ -137,4 +137,20 @@ Allowed classifications: `production no-go` | `pilot-ready with conditions` | `P
 
 ---
 
-*Scoring Model — Enterprise Audit Board v2.1 — no fabricated scores*
+## 8. Audit Maturity (meta-score — v2.2)
+
+**Audit Maturity Level (L1–L5)** from [10-AUDIT-MATURITY-MODEL.md](./10-AUDIT-MATURITY-MODEL.md) measures the **governance/audit process**, not the product under audit.
+
+| Rule | Binding |
+|------|---------|
+| Roll into Production Readiness (Axis 39)? | **No** |
+| Appear on run report? | **Yes** (required section) |
+| Can raise product GO alone? | **No** |
+| Typical starting band (SalesOS/AQLIYA) | **L1–L2** until fitness automation exists |
+| Claim L4/L5? | Only with continuous evidence per exit criteria |
+
+Security (30) and AI Governance (43) remain separate product dimensions regardless of maturity level.
+
+---
+
+*Scoring Model — Enterprise Audit Board v2.2 — no fabricated scores*

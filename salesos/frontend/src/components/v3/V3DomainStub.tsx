@@ -16,12 +16,9 @@ export function V3DomainStub({ title, description }: V3DomainStubProps) {
       >
         {title}
       </h1>
-      <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
-        {description}
-      </p>
+      <p className="text-sm leading-relaxed text-[var(--text-secondary)]">{description}</p>
       <p className="pt-2 text-[12px] text-[var(--text-muted)]">
-        Placeholder under <code className="font-mono">/v3</code> — not
-        Production GO.
+        Placeholder under <code className="font-mono">/v3</code> — not Production GO.
       </p>
     </div>
   );

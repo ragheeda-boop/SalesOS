@@ -19,12 +19,7 @@ interface Hint {
 
 interface CoachMarkContextValue {
   hints: Hint[];
-  showHint: (
-    hintId: string,
-    target: string,
-    message: string,
-    tourId?: string,
-  ) => void;
+  showHint: (hintId: string, target: string, message: string, tourId?: string) => void;
   dismissHint: (hintId: string) => void;
 }
 
@@ -32,9 +27,7 @@ const CoachMarkContext = createContext<CoachMarkContextValue | null>(null);
 
 export function CoachMarkProvider({ children }: { children: ReactNode }) {
   const [hints, setHints] = useState<Hint[]>([]);
-  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(
-    new Map(),
-  );
+  const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const dismissHint = useCallback((hintId: string) => {
     setHints((prev) => prev.filter((h) => h.hintId !== hintId));
@@ -49,9 +42,7 @@ export function CoachMarkProvider({ children }: { children: ReactNode }) {
     (hintId: string, target: string, message: string, tourId?: string) => {
       if (message.length > 100) {
         if (process.env.NODE_ENV === "development") {
-          console.warn(
-            `[CoachMark] Message truncated to 100 chars for hint"${hintId}"`,
-          );
+          console.warn(`[CoachMark] Message truncated to 100 chars for hint"${hintId}"`);
         }
         message = message.slice(0, 100);
       }
@@ -70,7 +61,7 @@ export function CoachMarkProvider({ children }: { children: ReactNode }) {
       }, 5000);
       timersRef.current.set(hintId, timer);
     },
-    [dismissHint],
+    [dismissHint]
   );
 
   useEffect(() => {
@@ -90,7 +81,6 @@ export function CoachMarkProvider({ children }: { children: ReactNode }) {
 
 export function useCoachMark(): CoachMarkContextValue {
   const ctx = useContext(CoachMarkContext);
-  if (!ctx)
-    throw new Error("useCoachMark must be used within a CoachMarkProvider");
+  if (!ctx) throw new Error("useCoachMark must be used within a CoachMarkProvider");
   return ctx;
 }

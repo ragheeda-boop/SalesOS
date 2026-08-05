@@ -11,10 +11,7 @@ import {
   useRunEnrichment,
 } from "@/lib/hooks/enrichmentQueries";
 import type { EnrichmentRun } from "@/lib/api";
-import {
-  ENRICHMENT_HONESTY,
-  ENRICHMENT_NON_GOALS,
-} from "@/features/gtm/enrichmentHonesty";
+import { ENRICHMENT_HONESTY, ENRICHMENT_NON_GOALS } from "@/features/gtm/enrichmentHonesty";
 import {
   buildIcpProfileHref,
   buildLeadDiscoveryHref,
@@ -23,8 +20,7 @@ import {
 } from "@/features/gtm/gtmHandoff";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -82,8 +78,8 @@ export function EnrichmentPanel() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="enrichment-honesty"
       >
-        {ENRICHMENT_HONESTY} Non-goals: {ENRICHMENT_NON_GOALS.join("; ")}. Not
-        Production GO / RAG GO.
+        {ENRICHMENT_HONESTY} Non-goals: {ENRICHMENT_NON_GOALS.join("; ")}. Not Production GO / RAG
+        GO.
       </p>
 
       {metaQuery.data ? (
@@ -92,19 +88,14 @@ export function EnrichmentPanel() {
           data-testid="enrichment-meta"
         >
           <p>
-            providers{" "}
-            {(metaQuery.data.providers_configured ?? []).join(", ") || "—"} ·
-            fields {(metaQuery.data.enrichable_fields ?? []).join(", ")}
+            providers {(metaQuery.data.providers_configured ?? []).join(", ") || "—"} · fields{" "}
+            {(metaQuery.data.enrichable_fields ?? []).join(", ")}
           </p>
-          <p data-testid="enrichment-meta-honesty">
-            tip /meta: {metaQuery.data.honesty}
-          </p>
+          <p data-testid="enrichment-meta-honesty">tip /meta: {metaQuery.data.honesty}</p>
           <p>{metaQuery.data.policy}</p>
         </div>
       ) : metaQuery.isError ? (
-        <p className="text-sm text-[var(--text-danger)]">
-          {getApiError(metaQuery.error)}
-        </p>
+        <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
       ) : (
         <Spinner />
       )}
@@ -122,10 +113,7 @@ export function EnrichmentPanel() {
         >
           Refresh
         </Button>
-        <span
-          className="text-xs text-[var(--text-muted)]"
-          data-testid="enrichment-count"
-        >
+        <span className="text-xs text-[var(--text-muted)]" data-testid="enrichment-count">
           {listQuery.data?.length ?? 0} run(s)
         </span>
       </div>
@@ -144,18 +132,14 @@ export function EnrichmentPanel() {
               <button
                 type="button"
                 className={`w-full rounded px-2 py-1 text-left text-sm hover:bg-[var(--bg-muted)] ${
-                  selectedId === row.id
-                    ? "bg-[var(--bg-muted)] font-medium"
-                    : ""
+                  selectedId === row.id ? "bg-[var(--bg-muted)] font-medium" : ""
                 }`}
                 data-testid="enrichment-row"
                 onClick={() => loadRun(row)}
               >
                 {row.request.company_name} ·{" "}
-                {row.complete
-                  ? "complete"
-                  : `missing ${row.missing_fields.length}`}{" "}
-                · {row.providers_attempted.join("→") || "—"}
+                {row.complete ? "complete" : `missing ${row.missing_fields.length}`} ·{" "}
+                {row.providers_attempted.join("→") || "—"}
               </button>
             </li>
           ))
@@ -207,7 +191,7 @@ export function EnrichmentPanel() {
                   variant: "error",
                 });
               },
-            },
+            }
           );
         }}
       >
@@ -251,11 +235,7 @@ export function EnrichmentPanel() {
           placeholder="fake_b, fake_a"
           data-testid="enrichment-provider-order"
         />
-        <Button
-          type="submit"
-          disabled={runMutation.isPending}
-          data-testid="enrichment-run"
-        >
+        <Button type="submit" disabled={runMutation.isPending} data-testid="enrichment-run">
           {runMutation.isPending ? "Running…" : "Enrich"}
         </Button>
       </form>
@@ -268,9 +248,7 @@ export function EnrichmentPanel() {
           {detailQuery.isLoading ? (
             <Spinner />
           ) : detailQuery.isError ? (
-            <p className="text-sm text-[var(--text-danger)]">
-              {getApiError(detailQuery.error)}
-            </p>
+            <p className="text-sm text-[var(--text-danger)]">{getApiError(detailQuery.error)}</p>
           ) : active ? (
             <>
               <p className="font-mono text-xs text-[var(--text-muted)]">
@@ -294,10 +272,7 @@ export function EnrichmentPanel() {
                 </ul>
               </div>
               {active.missing_fields.length > 0 ? (
-                <p
-                  className="text-xs text-[var(--text-muted)]"
-                  data-testid="enrichment-missing"
-                >
+                <p className="text-xs text-[var(--text-muted)]" data-testid="enrichment-missing">
                   Missing: {active.missing_fields.join(", ")}
                 </p>
               ) : null}
@@ -317,14 +292,8 @@ export function EnrichmentPanel() {
               <Link
                 href={buildLeadDiscoveryHref({
                   name: `${active.request.company_name} discovery`,
-                  industries:
-                    active.filled.industry == null
-                      ? ""
-                      : String(active.filled.industry),
-                  cities:
-                    active.filled.city == null
-                      ? ""
-                      : String(active.filled.city),
+                  industries: active.filled.industry == null ? "" : String(active.filled.industry),
+                  cities: active.filled.city == null ? "" : String(active.filled.city),
                   employees_min: "",
                   employees_max: "",
                 })}

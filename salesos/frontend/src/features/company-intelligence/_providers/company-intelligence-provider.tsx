@@ -13,14 +13,9 @@ export const {
   useWorkspaceContext: useCompanyIntelligenceContext,
 } = createWorkspaceProvider<CompanyWidgetMap, { companyId: string }>(
   ({ companyId }) => {
-    const { data, isLoading, isError, error, refetch } =
-      useCompanyIntelligence(companyId);
+    const { data, isLoading, isError, error, refetch } = useCompanyIntelligence(companyId);
     return { data, isLoading, isError, error, refetch };
   },
   (data, isLoading, isError) =>
-    deriveCompanyIntelligenceWidgets(
-      data as CompanyIntelligenceDTO | undefined,
-      isLoading,
-      isError,
-    ),
+    deriveCompanyIntelligenceWidgets(data as CompanyIntelligenceDTO | undefined, isLoading, isError)
 );

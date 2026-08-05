@@ -14,19 +14,11 @@ describe("hubConflictDefaults — FE-S08-13", () => {
     const rules = tipDefaultConflictRules();
     expect(
       rules.some(
-        (r) =>
-          r.internal === "risk_score" &&
-          r.winner === "salesos" &&
-          r.exclude_from_pull,
-      ),
+        (r) => r.internal === "risk_score" && r.winner === "salesos" && r.exclude_from_pull
+      )
     ).toBe(true);
     expect(
-      rules.some(
-        (r) =>
-          r.internal === "name" &&
-          r.winner === "source" &&
-          !r.exclude_from_pull,
-      ),
+      rules.some((r) => r.internal === "name" && r.winner === "source" && !r.exclude_from_pull)
     ).toBe(true);
   });
 });

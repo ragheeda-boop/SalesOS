@@ -1,8 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import {
-  OnboardingProvider,
-  useOnboarding,
-} from "../onboarding/OnboardingProvider";
+import { OnboardingProvider, useOnboarding } from "../onboarding/OnboardingProvider";
 import { OnboardingChecklist } from "../onboarding/OnboardingChecklist";
 import { TourProvider } from "../tour/TourProvider";
 
@@ -12,17 +9,10 @@ jest.mock("@salesos/ui", () => {
   return {
     cn: (...classes: any[]) => classes.filter(Boolean).join(" "),
     Card: (props: any) =>
-      h(
-        "div",
-        { ...props, "data-testid": "card", className: props.className },
-        props.children,
-      ),
-    CardHeader: (props: any) =>
-      h("div", { "data-testid": "card-header" }, props.children),
-    CardContent: (props: any) =>
-      h("div", { "data-testid": "card-content" }, props.children),
-    CardFooter: (props: any) =>
-      h("div", { "data-testid": "card-footer" }, props.children),
+      h("div", { ...props, "data-testid": "card", className: props.className }, props.children),
+    CardHeader: (props: any) => h("div", { "data-testid": "card-header" }, props.children),
+    CardContent: (props: any) => h("div", { "data-testid": "card-content" }, props.children),
+    CardFooter: (props: any) => h("div", { "data-testid": "card-footer" }, props.children),
   };
 });
 
@@ -42,7 +32,7 @@ describe("OnboardingProvider", () => {
     render(
       <OnboardingProvider>
         <Test />
-      </OnboardingProvider>,
+      </OnboardingProvider>
     );
     expect(screen.getByTestId("item-count").textContent).toBe("6");
     expect(screen.getByTestId("completed-count").textContent).toBe("0");
@@ -55,10 +45,7 @@ describe("OnboardingProvider", () => {
       return (
         <div>
           <div data-testid="completed-count">{completed.length}</div>
-          <button
-            data-testid="complete-btn"
-            onClick={() => completeItem("profile")}
-          >
+          <button data-testid="complete-btn" onClick={() => completeItem("profile")}>
             Complete
           </button>
         </div>
@@ -68,7 +55,7 @@ describe("OnboardingProvider", () => {
     render(
       <OnboardingProvider>
         <Test />
-      </OnboardingProvider>,
+      </OnboardingProvider>
     );
     expect(screen.getByTestId("completed-count").textContent).toBe("0");
     fireEvent.click(screen.getByTestId("complete-btn"));
@@ -97,7 +84,7 @@ describe("OnboardingProvider", () => {
     render(
       <OnboardingProvider>
         <Test />
-      </OnboardingProvider>,
+      </OnboardingProvider>
     );
     fireEvent.click(screen.getByTestId("complete-btn"));
     expect(screen.getByTestId("completed-count").textContent).toBe("1");
@@ -118,7 +105,7 @@ describe("OnboardingProvider", () => {
     render(
       <OnboardingProvider>
         <Test />
-      </OnboardingProvider>,
+      </OnboardingProvider>
     );
     fireEvent.click(screen.getByText("Complete"));
     expect(screen.getByTestId("completed").textContent).toBe("pipeline");
@@ -132,7 +119,7 @@ describe("OnboardingChecklist", () => {
         <OnboardingProvider>
           <OnboardingChecklist />
         </OnboardingProvider>
-      </TourProvider>,
+      </TourProvider>
     );
     expect(screen.getByText("أكمل ملفك الشخصي")).toBeInTheDocument();
     expect(screen.getByText("استورد خط الأنابيب")).toBeInTheDocument();
@@ -166,30 +153,20 @@ describe("OnboardingChecklist", () => {
         <OnboardingProvider>
           <SeedProgress />
         </OnboardingProvider>
-      </TourProvider>,
+      </TourProvider>
     );
     fireEvent.click(screen.getByText("seed"));
     expect(screen.getByText("2 / 6")).toBeInTheDocument();
   });
 
   it("renders nothing when all items are complete", () => {
-    const ALL = [
-      "profile",
-      "pipeline",
-      "workflow",
-      "team",
-      "integrations",
-      "nba",
-    ];
+    const ALL = ["profile", "pipeline", "workflow", "team", "integrations", "nba"];
 
     function SeedComplete() {
       const { completeItem } = useOnboarding();
       return (
         <>
-          <button
-            type="button"
-            onClick={() => ALL.forEach((id) => completeItem(id))}
-          >
+          <button type="button" onClick={() => ALL.forEach((id) => completeItem(id))}>
             seed-all
           </button>
           <OnboardingChecklist />
@@ -202,7 +179,7 @@ describe("OnboardingChecklist", () => {
         <OnboardingProvider>
           <SeedComplete />
         </OnboardingProvider>
-      </TourProvider>,
+      </TourProvider>
     );
     fireEvent.click(screen.getByText("seed-all"));
     expect(screen.queryByText("البدء مع SalesOS")).not.toBeInTheDocument();

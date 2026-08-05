@@ -59,12 +59,7 @@ export class Monitor {
     }
   }
 
-  trackApiCall(
-    method: string,
-    path: string,
-    durationMs: number,
-    status: number,
-  ): void {
+  trackApiCall(method: string, path: string, durationMs: number, status: number): void {
     if (!this.enabled) return;
     this.push({
       type: "api_call",
@@ -94,11 +89,7 @@ export class Monitor {
     });
   }
 
-  trackMetric(
-    name: string,
-    value: number,
-    tags?: Record<string, string>,
-  ): void {
+  trackMetric(name: string, value: number, tags?: Record<string, string>): void {
     if (!this.enabled) return;
     this.push({
       type: "metric",
@@ -112,8 +103,7 @@ export class Monitor {
     if (!this.enabled || typeof window === "undefined") return;
     const perf = window.performance;
     if (!perf) return;
-    const nav = perf.getEntriesByType("navigation")[0] as
-      PerformanceNavigationTiming | undefined;
+    const nav = perf.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
     const perfWithMemory = performance as Performance & {
       memory?: { usedJSHeapSize: number };
     };
@@ -126,9 +116,7 @@ export class Monitor {
         dom_interactive: Math.round(nav.domInteractive - nav.startTime),
         dom_complete: Math.round(nav.domComplete - nav.startTime),
         fcp: Math.round(nav.domContentLoadedEventEnd - nav.startTime),
-        memory_used_mb: mem
-          ? Math.round(mem.usedJSHeapSize / 1024 / 1024)
-          : undefined,
+        memory_used_mb: mem ? Math.round(mem.usedJSHeapSize / 1024 / 1024) : undefined,
       });
     }
   }

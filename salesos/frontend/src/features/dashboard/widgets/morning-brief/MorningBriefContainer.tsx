@@ -8,16 +8,11 @@ import type { MorningBriefData, MorningBriefItem } from "./types";
 import { Sun } from "lucide-react";
 
 function buildMorningBriefFromWidgets(
-  widgets: ReturnType<typeof useDashboardContext>["widgets"],
+  widgets: ReturnType<typeof useDashboardContext>["widgets"]
 ): MorningBriefData {
   const now = new Date();
   const hour = now.getHours();
-  const greeting =
-    hour < 12
-      ? "صباح الخير"
-      : hour < 18
-        ? "مساء الخير"
-        : "مساء الخير";
+  const greeting = hour < 12 ? "صباح الخير" : hour < 18 ? "مساء الخير" : "مساء الخير";
 
   const dateStr = now.toLocaleDateString("ar-SA", {
     weekday: "long",
@@ -101,10 +96,7 @@ function buildMorningBriefFromWidgets(
 export function MorningBriefWidget() {
   const { widgets } = useDashboardContext();
 
-  const briefData = useMemo(
-    () => buildMorningBriefFromWidgets(widgets),
-    [widgets],
-  );
+  const briefData = useMemo(() => buildMorningBriefFromWidgets(widgets), [widgets]);
 
   return (
     <Card className="overflow-hidden border-[var(--muhide-orange)]/20 bg-gradient-to-br from-[var(--bg-primary)] to-orange-50/30 dark:to-orange-950/10">
@@ -113,9 +105,7 @@ export function MorningBriefWidget() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--muhide-orange)]/10">
             <Sun className="h-4 w-4 text-[var(--muhide-orange)]" />
           </div>
-          <span className="text-xs font-semibold text-[var(--muhide-orange)]">
-            ملخص الصباح
-          </span>
+          <span className="text-xs font-semibold text-[var(--muhide-orange)]">ملخص الصباح</span>
         </div>
         <MorningBriefView data={briefData} />
       </CardContent>

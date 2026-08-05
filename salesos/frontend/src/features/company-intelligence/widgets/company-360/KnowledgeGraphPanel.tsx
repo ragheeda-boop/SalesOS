@@ -3,14 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useCompany360 } from "@/lib/hooks/company360Queries";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  cn,
-  Skeleton,
-  EmptyState,
-} from "@salesos/ui";
+import { Card, CardContent, CardHeader, cn, Skeleton, EmptyState } from "@salesos/ui";
 import { Share2, ExternalLink, Building2 } from "lucide-react";
 
 interface KnowledgeGraphPanelProps {
@@ -72,11 +65,7 @@ export function KnowledgeGraphPanel({
   companyId,
   company360: externalCompany360,
 }: KnowledgeGraphPanelProps) {
-  const {
-    data: fetchedCompany360,
-    isLoading,
-    isError,
-  } = useCompany360(companyId);
+  const { data: fetchedCompany360, isLoading, isError } = useCompany360(companyId);
   const company360 = externalCompany360 ?? fetchedCompany360;
 
   const relatedEntities = useMemo(() => {
@@ -95,9 +84,7 @@ export function KnowledgeGraphPanel({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Share2 className="h-5 w-5 text-[var(--text-muted)]" />
-            <span className="text-sm font-semibold text-[var(--text-primary)]">
-              شبكة العلاقات
-            </span>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">شبكة العلاقات</span>
           </div>
         </CardHeader>
         <CardContent>
@@ -117,9 +104,7 @@ export function KnowledgeGraphPanel({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Share2 className="h-5 w-5 text-[var(--text-muted)]" />
-            <span className="text-sm font-semibold text-[var(--text-primary)]">
-              شبكة العلاقات
-            </span>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">شبكة العلاقات</span>
           </div>
         </CardHeader>
         <CardContent>
@@ -139,9 +124,7 @@ export function KnowledgeGraphPanel({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Share2 className="h-5 w-5 text-[var(--text-muted)]" />
-            <span className="text-sm font-semibold text-[var(--text-primary)]">
-              شبكة العلاقات
-            </span>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">شبكة العلاقات</span>
           </div>
         </CardHeader>
         <CardContent>
@@ -155,9 +138,7 @@ export function KnowledgeGraphPanel({
     );
   }
 
-  const grouped = relatedEntities.reduce<
-    Record<string, typeof relatedEntities>
-  >((acc, e) => {
+  const grouped = relatedEntities.reduce<Record<string, typeof relatedEntities>>((acc, e) => {
     const key = e.type || "partner";
     if (!acc[key]) acc[key] = [];
     acc[key].push(e);
@@ -170,13 +151,9 @@ export function KnowledgeGraphPanel({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Share2 className="h-5 w-5 text-[var(--text-muted)]" />
-            <span className="text-sm font-semibold text-[var(--text-primary)]">
-              شبكة العلاقات
-            </span>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">شبكة العلاقات</span>
           </div>
-          <span className="text-xs text-[var(--text-muted)]">
-            {relatedEntities.length} كيان
-          </span>
+          <span className="text-xs text-[var(--text-muted)]">{relatedEntities.length} كيان</span>
         </div>
       </CardHeader>
       <CardContent>
@@ -194,7 +171,7 @@ export function KnowledgeGraphPanel({
                     className={cn(
                       "group flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-[var(--bg-secondary)] dark:hover:bg-[var(--bg-secondary)]/50",
                       RELATION_COLORS[entity.type as RelationshipType] ||
-                        "border-[var(--border-default)]",
+                        "border-[var(--border-default)]"
                     )}
                   >
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--bg-primary)]">

@@ -86,6 +86,6 @@ export function calculateWinProbability(opportunity: {
       0.25 * opportunity.buyingIntent +
       0.2 * opportunity.relationshipStrength +
       0.15 * opportunity.signalActivity +
-      0.1 * opportunity.nbaConfidence,
+      0.1 * opportunity.nbaConfidence
   );
 }

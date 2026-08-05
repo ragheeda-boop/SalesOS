@@ -20,10 +20,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
-const ACTION_CONFIG: Record<
-  string,
-  { icon: typeof Mail; color: string; labelKey: string }
-> = {
+const ACTION_CONFIG: Record<string, { icon: typeof Mail; color: string; labelKey: string }> = {
   email_sent: {
     icon: Mail,
     color: "text-info-600 bg-info-100 dark:text-info-400 dark:bg-info-900/50",
@@ -42,38 +39,32 @@ const ACTION_CONFIG: Record<
   },
   meeting_completed: {
     icon: Calendar,
-    color:
-      "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
+    color: "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
     labelKey: "activity.meeting_completed",
   },
   call: {
     icon: Phone,
-    color:
-      "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
+    color: "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
     labelKey: "activity.call",
   },
   task_created: {
     icon: CheckSquare,
-    color:
-      "text-warning-600 bg-warning-100 dark:text-warning-400 dark:bg-warning-900/50",
+    color: "text-warning-600 bg-warning-100 dark:text-warning-400 dark:bg-warning-900/50",
     labelKey: "activity.task_created",
   },
   task_completed: {
     icon: CheckSquare,
-    color:
-      "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
+    color: "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
     labelKey: "activity.task_completed",
   },
   contract_signed: {
     icon: FileText,
-    color:
-      "text-danger-600 bg-danger-100 dark:text-danger-400 dark:bg-danger-900/50",
+    color: "text-danger-600 bg-danger-100 dark:text-danger-400 dark:bg-danger-900/50",
     labelKey: "activity.contract_signed",
   },
   contract_created: {
     icon: FileText,
-    color:
-      "text-danger-600 bg-danger-100 dark:text-danger-400 dark:bg-danger-900/50",
+    color: "text-danger-600 bg-danger-100 dark:text-danger-400 dark:bg-danger-900/50",
     labelKey: "activity.contract_created",
   },
   note_added: {
@@ -93,27 +84,24 @@ const ACTION_CONFIG: Record<
   },
   opportunity_created: {
     icon: Plus,
-    color:
-      "text-warning-600 bg-warning-100 dark:text-warning-400 dark:bg-warning-900/50",
+    color: "text-warning-600 bg-warning-100 dark:text-warning-400 dark:bg-warning-900/50",
     labelKey: "activity.opportunity_created",
   },
   opportunity_won: {
     icon: CheckSquare,
-    color:
-      "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
+    color: "text-success-600 bg-success-100 dark:text-success-400 dark:bg-success-900/50",
     labelKey: "activity.opportunity_won",
   },
   opportunity_lost: {
     icon: Clock,
-    color:
-      "text-danger-600 bg-danger-100 dark:text-danger-400 dark:bg-danger-900/50",
+    color: "text-danger-600 bg-danger-100 dark:text-danger-400 dark:bg-danger-900/50",
     labelKey: "activity.opportunity_lost",
   },
 };
 
 function formatRelativeTime(
   timestamp: string,
-  t: (key: string, params?: Record<string, string | number>) => string,
+  t: (key: string, params?: Record<string, string | number>) => string
 ): string {
   const diff = Date.now() - new Date(timestamp).getTime();
   const mins = Math.floor(diff / 60000);
@@ -166,8 +154,7 @@ export default function ActivitiesPage() {
     return f;
   }, [actionFilter]);
 
-  const { data, isLoading, isError, error, refetch } =
-    useGlobalActivities(filters);
+  const { data, isLoading, isError, error, refetch } = useGlobalActivities(filters);
   const activities = data?.items || [];
   const total = data?.total || 0;
 
@@ -178,25 +165,18 @@ export default function ActivitiesPage() {
       (a) =>
         a.actor.toLowerCase().includes(q) ||
         a.action.toLowerCase().includes(q) ||
-        a.entity_type.toLowerCase().includes(q),
+        a.entity_type.toLowerCase().includes(q)
     );
   }, [activities, searchQuery]);
 
-  const grouped = useMemo(
-    () => groupByDate(filteredActivities),
-    [filteredActivities],
-  );
+  const grouped = useMemo(() => groupByDate(filteredActivities), [filteredActivities]);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            {t("nav.activities")}
-          </h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            {t("activities.subtitle")}
-          </p>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t("nav.activities")}</h1>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">{t("activities.subtitle")}</p>
         </div>
         {total > 0 && (
           <Badge variant="primary">
@@ -247,12 +227,7 @@ export default function ActivitiesPage() {
               <p className="mt-1 text-sm text-[var(--text-muted)]">
                 {(error as Error)?.message || t("activities.check_server")}
               </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-4"
-                onClick={() => refetch()}
-              >
+              <Button variant="outline" size="sm" className="mt-4" onClick={() => refetch()}>
                 {t("common.retry")}
               </Button>
             </div>
@@ -260,9 +235,7 @@ export default function ActivitiesPage() {
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <Activity className="mb-3 h-10 w-10 text-[var(--text-disabled)]" />
               <p className="text-lg font-semibold text-[var(--text-primary)]">
-                {searchQuery || actionFilter
-                  ? t("common.no_results")
-                  : t("activities.empty")}
+                {searchQuery || actionFilter ? t("common.no_results") : t("activities.empty")}
               </p>
               <p className="mt-1 text-sm text-[var(--text-muted)]">
                 {searchQuery || actionFilter
@@ -281,8 +254,7 @@ export default function ActivitiesPage() {
                     {items.map((activity) => {
                       const config = ACTION_CONFIG[activity.action] || {
                         icon: Clock,
-                        color:
-                          "text-[var(--text-secondary)] bg-[var(--bg-tertiary)]",
+                        color: "text-[var(--text-secondary)] bg-[var(--bg-tertiary)]",
                         labelKey: "",
                       };
                       const Icon = config.icon;
@@ -299,9 +271,7 @@ export default function ActivitiesPage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-medium text-[var(--text-primary)]">
-                                {config.labelKey
-                                  ? t(config.labelKey)
-                                  : activity.action}
+                                {config.labelKey ? t(config.labelKey) : activity.action}
                               </span>
                               <Badge variant="default" className="text-[9px]">
                                 {activity.entity_type}

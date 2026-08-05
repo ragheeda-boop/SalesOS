@@ -53,19 +53,13 @@ export function useCreateOpportunity() {
 export function useUpdateOpportunityStage() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      id,
-      stage,
-    }: {
-      id: string;
-      stage: OpportunityStage;
-    }) => {
+    mutationFn: async ({ id, stage }: { id: string; stage: OpportunityStage }) => {
       const res = await api.put(
         `/api/v1/opportunities/${id}/stage`,
         { stage },
         {
           headers: { "X-Tenant-Id": getTenantId() },
-        },
+        }
       );
       return res.data;
     },

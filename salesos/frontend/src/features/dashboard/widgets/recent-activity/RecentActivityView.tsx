@@ -25,10 +25,7 @@ function ActivityRow({
   item: RecentActivityViewProps["items"][number];
   onItemClick?: (id: string) => void;
 }) {
-  const handleClick = useCallback(
-    () => onItemClick?.(item.id),
-    [item.id, onItemClick],
-  );
+  const handleClick = useCallback(() => onItemClick?.(item.id), [item.id, onItemClick]);
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (onItemClick && (e.key === "Enter" || e.key === " ")) {
@@ -36,7 +33,7 @@ function ActivityRow({
         onItemClick(item.id);
       }
     },
-    [item.id, onItemClick],
+    [item.id, onItemClick]
   );
 
   return (
@@ -46,7 +43,7 @@ function ActivityRow({
       className={cn(
         "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors motion-reduce:transition-none",
         onItemClick && "cursor-pointer hover:bg-[var(--bg-tertiary)]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
       )}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
@@ -57,31 +54,21 @@ function ActivityRow({
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="truncate font-medium text-[var(--text-primary)]">
-            {item.title}
-          </span>
+          <span className="truncate font-medium text-[var(--text-primary)]">{item.title}</span>
           <span className="shrink-0 rounded-full bg-[var(--bg-tertiary)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">
             {TYPE_LABEL[item.type] ?? item.type}
           </span>
         </div>
         <div className="mt-0.5 flex items-center gap-2 text-xs text-[var(--text-muted)]">
           {item.companyName && <span>{item.companyName}</span>}
-          {item.timestamp && (
-            <span>
-              · {new Date(item.timestamp).toLocaleDateString("ar-SA")}
-            </span>
-          )}
+          {item.timestamp && <span>· {new Date(item.timestamp).toLocaleDateString("ar-SA")}</span>}
         </div>
       </div>
     </div>
   );
 }
 
-export function RecentActivityView({
-  items,
-  total,
-  onItemClick,
-}: RecentActivityViewProps) {
+export function RecentActivityView({ items, total, onItemClick }: RecentActivityViewProps) {
   if (items.length === 0) {
     return (
       <EmptyState

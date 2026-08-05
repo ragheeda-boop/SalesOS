@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@salesos/ui";
-import {
-  CheckCircle2,
-  Circle,
-  AlertTriangle,
-  Clock,
-  Target,
-  Sparkles,
-} from "lucide-react";
+import { CheckCircle2, Circle, AlertTriangle, Clock, Target, Sparkles } from "lucide-react";
 import type { TaskViewProps } from "./types";
 
 const PRIORITY_CFG = {
@@ -27,15 +20,9 @@ const SOURCE_ICON = {
 };
 
 export function TaskView({ tasks, onComplete }: TaskViewProps) {
-  const [filter, setFilter] = useState<"all" | "active" | "completed">(
-    "active",
-  );
+  const [filter, setFilter] = useState<"all" | "active" | "completed">("active");
   const filtered = tasks.filter((t) =>
-    filter === "all"
-      ? true
-      : filter === "completed"
-        ? t.completed
-        : !t.completed,
+    filter === "all" ? true : filter === "completed" ? t.completed : !t.completed
   );
   const activeCount = tasks.filter((t) => !t.completed).length;
 
@@ -49,11 +36,7 @@ export function TaskView({ tasks, onComplete }: TaskViewProps) {
   }
 
   return (
-    <div
-      role="region"
-      aria-label="المهام"
-      className="space-y-2/20 dark:rounded-lg dark:p-1"
-    >
+    <div role="region" aria-label="المهام" className="space-y-2/20 dark:rounded-lg dark:p-1">
       <div className="flex items-center justify-between">
         <div className="flex gap-1">
           {(["active", "all", "completed"] as const).map((f) => (
@@ -64,16 +47,14 @@ export function TaskView({ tasks, onComplete }: TaskViewProps) {
                 "rounded-lg px-2 py-0.5 text-[9px] font-medium transition",
                 filter === f
                   ? "bg-primary-500 text-white"
-                  : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]",
+                  : "bg-[var(--bg-tertiary)] text-[var(--text-muted)]"
               )}
             >
               {f === "active" ? "نشطة" : f === "all" ? "الكل" : "مكتملة"}
             </button>
           ))}
         </div>
-        <span className="text-[9px] text-[var(--text-muted)]">
-          {activeCount} نشطة
-        </span>
+        <span className="text-[9px] text-[var(--text-muted)]">{activeCount} نشطة</span>
       </div>
       <div className="space-y-0.5">
         {filtered.map((task) => {
@@ -83,13 +64,10 @@ export function TaskView({ tasks, onComplete }: TaskViewProps) {
               key={task.id}
               className={cn(
                 "flex items-start gap-2.5 rounded-lg px-3 py-2 transition",
-                task.completed ? "opacity-50" : "hover:bg-[var(--bg-tertiary)]",
+                task.completed ? "opacity-50" : "hover:bg-[var(--bg-tertiary)]"
               )}
             >
-              <button
-                onClick={() => onComplete?.(task.id)}
-                className="mt-0.5 shrink-0"
-              >
+              <button onClick={() => onComplete?.(task.id)} className="mt-0.5 shrink-0">
                 {task.completed ? (
                   <CheckCircle2 className="h-4 w-4 text-[var(--status-success-text)]" />
                 ) : (
@@ -103,17 +81,12 @@ export function TaskView({ tasks, onComplete }: TaskViewProps) {
                       "truncate text-xs font-medium",
                       task.completed
                         ? "line-through text-[var(--text-muted)]"
-                        : "text-[var(--text-primary)]",
+                        : "text-[var(--text-primary)]"
                     )}
                   >
                     {task.title}
                   </span>
-                  <span
-                    className={cn(
-                      "mr-auto text-[9px] font-medium",
-                      priority.color,
-                    )}
-                  >
+                  <span className={cn("mr-auto text-[9px] font-medium", priority.color)}>
                     {priority.label}
                   </span>
                 </div>
@@ -122,9 +95,7 @@ export function TaskView({ tasks, onComplete }: TaskViewProps) {
                   {SOURCE_ICON[task.source]}
                   <span>{task.source === "nba" ? "AI" : task.source}</span>
                   {task.dueDate && (
-                    <span>
-                      · {new Date(task.dueDate).toLocaleDateString("ar-SA")}
-                    </span>
+                    <span>· {new Date(task.dueDate).toLocaleDateString("ar-SA")}</span>
                   )}
                 </div>
               </div>

@@ -98,9 +98,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
   const [selectedPlanId, setSelectedPlanId] = useState("");
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const [manualPriceId, setManualPriceId] = useState("");
-  const [billingUnavailableDetail, setBillingUnavailableDetail] = useState<
-    string | null
-  >(null);
+  const [billingUnavailableDetail, setBillingUnavailableDetail] = useState<string | null>(null);
   const [planChangeTargetId, setPlanChangeTargetId] = useState("");
   const [downgradeImmediate, setDowngradeImmediate] = useState(false);
   const [planQuote, setPlanQuote] = useState<AdminPlanChangeQuote | null>(null);
@@ -111,12 +109,12 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
         label: `${p.name} (${p.tier})`,
         value: p.id,
       })),
-    [catalog],
+    [catalog]
   );
 
   const selectedPlan = useMemo(
     () => (catalog || []).find((p) => p.id === selectedPlanId) || null,
-    [catalog, selectedPlanId],
+    [catalog, selectedPlanId]
   );
 
   const resolvedCatalogPrice = selectedPlan
@@ -148,14 +146,12 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
 
   const disabledDomains = useMemo(
     () => listDisabledEntitlementDomains(resolvedPlan?.entitlements),
-    [resolvedPlan],
+    [resolvedPlan]
   );
 
   const markUnavailable = useCallback(
     (err: unknown) => {
-      const detail = stripeBillingUnavailableDescription(
-        getApiErrorDetail(err),
-      );
+      const detail = stripeBillingUnavailableDescription(getApiErrorDetail(err));
       setBillingUnavailableDetail(detail);
       toast({
         variant: "error",
@@ -163,7 +159,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
         description: detail,
       });
     },
-    [toast],
+    [toast]
   );
 
   const handleCheckout = useCallback(async () => {
@@ -194,9 +190,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
         billing_cycle: billingCycle,
         success_url: `${returnBase}success`,
         cancel_url: `${returnBase}cancel`,
-        ...(priceOverride
-          ? { price_id: priceOverride }
-          : { plan_id: selectedPlanId }),
+        ...(priceOverride ? { price_id: priceOverride } : { plan_id: selectedPlanId }),
       });
       setBillingUnavailableDetail(null);
       if (result.url) {
@@ -216,8 +210,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
       toast({
         variant: "error",
         title: "Checkout Session failed",
-        description:
-          getApiErrorDetail(err) || "Stripe Checkout Session create failed",
+        description: getApiErrorDetail(err) || "Stripe Checkout Session create failed",
       });
     }
   }, [
@@ -258,19 +251,13 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
         typeof err === "object" &&
         err !== null &&
         "response" in err &&
-        typeof (err as { response?: { status?: unknown } }).response?.status ===
-          "number"
+        typeof (err as { response?: { status?: unknown } }).response?.status === "number"
           ? (err as { response: { status: number } }).response.status
           : null;
       toast({
         variant: "error",
-        title:
-          status === 409
-            ? "Portal needs Checkout first"
-            : "Portal Session failed",
-        description:
-          getApiErrorDetail(err) ||
-          "Complete Checkout so stripe_customer_id exists",
+        title: status === 409 ? "Portal needs Checkout first" : "Portal Session failed",
+        description: getApiErrorDetail(err) || "Complete Checkout so stripe_customer_id exists",
       });
     }
   }, [portalMutation, tenantId, toast, markUnavailable]);
@@ -362,13 +349,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
         description: getApiErrorDetail(err) || "plan-change quote failed",
       });
     }
-  }, [
-    planChangeTargetId,
-    quotePlanMutation,
-    tenantId,
-    downgradeImmediate,
-    toast,
-  ]);
+  }, [planChangeTargetId, quotePlanMutation, tenantId, downgradeImmediate, toast]);
 
   const handleApplyPlan = useCallback(async () => {
     if (!planChangeTargetId) {
@@ -398,13 +379,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
         description: getApiErrorDetail(err) || "plan-change apply failed",
       });
     }
-  }, [
-    planChangeTargetId,
-    applyPlanMutation,
-    tenantId,
-    downgradeImmediate,
-    toast,
-  ]);
+  }, [planChangeTargetId, applyPlanMutation, tenantId, downgradeImmediate, toast]);
 
   const handleApplyPendingPlans = useCallback(async () => {
     try {
@@ -426,9 +401,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
   }, [applyPendingPlanMutation, toast]);
 
   const openDunning = (dunningCases || []).filter((c) => c.status === "open");
-  const pendingHonesty = subscription
-    ? formatPendingPlanHonesty(subscription)
-    : null;
+  const pendingHonesty = subscription ? formatPendingPlanHonesty(subscription) : null;
 
   return (
     <div
@@ -436,13 +409,10 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
       data-testid="admin-tenants-billing"
     >
       <div>
-        <p className="font-medium text-[var(--text-primary)]">
-          Billing / usage
-        </p>
+        <p className="font-medium text-[var(--text-primary)]">Billing / usage</p>
         <p className="text-xs text-[var(--text-muted)]">
-          STORY-05-01..05 — catalog, Checkout, Portal, invoices, UsageMeter,
-          dunning, plan-change. Fail-closed Stripe. Pending-plan honesty. Not
-          Production GO.
+          STORY-05-01..05 — catalog, Checkout, Portal, invoices, UsageMeter, dunning, plan-change.
+          Fail-closed Stripe. Pending-plan honesty. Not Production GO.
         </p>
       </div>
 
@@ -476,9 +446,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
 
       <div data-testid="admin-tenants-subscription">
         {subscriptionLoading ? (
-          <p className="text-sm text-[var(--text-muted)]">
-            Loading subscription…
-          </p>
+          <p className="text-sm text-[var(--text-muted)]">Loading subscription…</p>
         ) : subscription ? (
           <p
             className="text-sm text-[var(--text-secondary)]"
@@ -492,9 +460,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
             data-testid="admin-tenants-subscription-error"
           >
             Subscription read failed
-            {getApiErrorDetail(subscriptionErr)
-              ? `: ${getApiErrorDetail(subscriptionErr)}`
-              : "."}
+            {getApiErrorDetail(subscriptionErr) ? `: ${getApiErrorDetail(subscriptionErr)}` : "."}
           </p>
         ) : (
           <p
@@ -525,8 +491,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
                 className="mt-1 font-mono"
                 data-testid="admin-tenants-resolved-entitlements-disabled"
               >
-                Domains disabled (403 on gated paths):{" "}
-                {disabledDomains.join(", ")}
+                Domains disabled (403 on gated paths): {disabledDomains.join(", ")}
               </p>
             ) : null}
           </div>
@@ -541,37 +506,26 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
           <p className="font-medium">Billing unavailable</p>
           <p className="mt-1">{billingUnavailableDetail}</p>
           <p className="mt-1 text-xs">
-            Set real <code>STRIPE_SECRET_KEY</code> in ops env. Do not invent
-            keys in the UI.
+            Set real <code>STRIPE_SECRET_KEY</code> in ops env. Do not invent keys in the UI.
           </p>
         </div>
       ) : null}
 
       <div className="space-y-2" data-testid="admin-tenants-billing-catalog">
-        <p className="text-sm font-medium text-[var(--text-secondary)]">
-          Catalog plan
-        </p>
+        <p className="text-sm font-medium text-[var(--text-secondary)]">Catalog plan</p>
         {catalogLoading ? (
           <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
             <Spinner className="h-4 w-4" /> Loading catalog…
           </div>
         ) : catalogError ? (
-          <p
-            className="text-sm text-[var(--text-muted)]"
-            data-testid="admin-tenants-catalog-error"
-          >
+          <p className="text-sm text-[var(--text-muted)]" data-testid="admin-tenants-catalog-error">
             Catalog unavailable
-            {getApiErrorDetail(catalogErr)
-              ? `: ${getApiErrorDetail(catalogErr)}`
-              : "."}
+            {getApiErrorDetail(catalogErr) ? `: ${getApiErrorDetail(catalogErr)}` : "."}
           </p>
         ) : !catalog || catalog.length === 0 ? (
-          <p
-            className="text-sm text-[var(--text-muted)]"
-            data-testid="admin-tenants-catalog-empty"
-          >
-            No active plans in billing catalog. Bind real Stripe Price ids on
-            plans via Owner plan admin (ops).
+          <p className="text-sm text-[var(--text-muted)]" data-testid="admin-tenants-catalog-empty">
+            No active plans in billing catalog. Bind real Stripe Price ids on plans via Owner plan
+            admin (ops).
           </p>
         ) : (
           <>
@@ -586,9 +540,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
             <div data-testid="admin-tenants-billing-cycle">
               <Select
                 value={billingCycle}
-                onChange={(v) =>
-                  setBillingCycle(v === "yearly" ? "yearly" : "monthly")
-                }
+                onChange={(v) => setBillingCycle(v === "yearly" ? "yearly" : "monthly")}
                 options={[
                   { label: "Monthly", value: "monthly" },
                   { label: "Yearly", value: "yearly" },
@@ -628,9 +580,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
             disabled={checkoutMutation.isPending}
             data-testid="admin-tenants-checkout-create"
           >
-            {checkoutMutation.isPending
-              ? "Creating Checkout…"
-              : "Create Checkout Session"}
+            {checkoutMutation.isPending ? "Creating Checkout…" : "Create Checkout Session"}
           </Button>
           <Button
             variant="outline"
@@ -639,17 +589,13 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
             disabled={portalMutation.isPending}
             data-testid="admin-tenants-portal-open"
           >
-            {portalMutation.isPending
-              ? "Opening Portal…"
-              : "Open Customer Portal"}
+            {portalMutation.isPending ? "Opening Portal…" : "Open Customer Portal"}
           </Button>
         </div>
       </div>
 
       <div data-testid="admin-tenants-platform-invoices">
-        <p className="mb-1 text-sm font-medium text-[var(--text-secondary)]">
-          Platform invoices
-        </p>
+        <p className="mb-1 text-sm font-medium text-[var(--text-secondary)]">Platform invoices</p>
         {invoicesLoading ? (
           <p className="text-sm text-[var(--text-muted)]">Loading invoices…</p>
         ) : invoicesError ? (
@@ -658,17 +604,14 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
             data-testid="admin-tenants-invoices-error"
           >
             Invoices unavailable
-            {getApiErrorDetail(invoicesErr)
-              ? `: ${getApiErrorDetail(invoicesErr)}`
-              : "."}
+            {getApiErrorDetail(invoicesErr) ? `: ${getApiErrorDetail(invoicesErr)}` : "."}
           </p>
         ) : !invoices || invoices.length === 0 ? (
           <p
             className="text-sm text-[var(--text-muted)]"
             data-testid="admin-tenants-invoices-empty"
           >
-            No platform invoices for this tenant yet (webhook sync after Stripe
-            invoices).
+            No platform invoices for this tenant yet (webhook sync after Stripe invoices).
           </p>
         ) : (
           <ul
@@ -681,8 +624,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
                 className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-default)] py-1"
               >
                 <span>
-                  {inv.status} · {inv.amount} {inv.currency} ·{" "}
-                  {inv.stripe_invoice_id}
+                  {inv.status} · {inv.amount} {inv.currency} · {inv.stripe_invoice_id}
                 </span>
                 {inv.hosted_invoice_url ? (
                   <a
@@ -729,22 +671,14 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
         {usageLoading ? (
           <p className="text-sm text-[var(--text-muted)]">Loading usage…</p>
         ) : usageError ? (
-          <p
-            className="text-sm text-[var(--text-muted)]"
-            data-testid="admin-tenants-usage-error"
-          >
+          <p className="text-sm text-[var(--text-muted)]" data-testid="admin-tenants-usage-error">
             Usage meters unavailable
-            {getApiErrorDetail(usageErr)
-              ? `: ${getApiErrorDetail(usageErr)}`
-              : "."}
+            {getApiErrorDetail(usageErr) ? `: ${getApiErrorDetail(usageErr)}` : "."}
           </p>
         ) : !usageMeters || usageMeters.length === 0 ? (
-          <p
-            className="text-sm text-[var(--text-muted)]"
-            data-testid="admin-tenants-usage-empty"
-          >
-            No rolled-up usage meters yet. Record events via API then Run rollup
-            (STORY-05-03). Not Production GO.
+          <p className="text-sm text-[var(--text-muted)]" data-testid="admin-tenants-usage-empty">
+            No rolled-up usage meters yet. Record events via API then Run rollup (STORY-05-03). Not
+            Production GO.
           </p>
         ) : (
           <ul
@@ -752,10 +686,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
             data-testid="admin-tenants-usage-list"
           >
             {usageMeters.map((m) => (
-              <li
-                key={m.id}
-                className="border-b border-[var(--border-default)] py-1 font-mono"
-              >
+              <li key={m.id} className="border-b border-[var(--border-default)] py-1 font-mono">
                 {formatUsageMeterRow(m)}
               </li>
             ))}
@@ -778,14 +709,12 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
             disabled={applyPendingPlanMutation.isPending}
             data-testid="admin-tenants-plan-apply-pending"
           >
-            {applyPendingPlanMutation.isPending
-              ? "Applying pending…"
-              : "Apply due pending"}
+            {applyPendingPlanMutation.isPending ? "Applying pending…" : "Apply due pending"}
           </Button>
         </div>
         <p className="text-xs text-[var(--text-muted)]">
-          Upgrade = immediate prorated charge. Downgrade = period-end unless
-          downgrade_immediate (credit now).
+          Upgrade = immediate prorated charge. Downgrade = period-end unless downgrade_immediate
+          (credit now).
         </p>
         <div data-testid="admin-tenants-plan-change-target">
           <Select
@@ -846,9 +775,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
         data-testid="admin-tenants-dunning"
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-medium text-[var(--text-secondary)]">
-            Dunning (STORY-05-04)
-          </p>
+          <p className="text-sm font-medium text-[var(--text-secondary)]">Dunning (STORY-05-04)</p>
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
@@ -857,17 +784,13 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
               disabled={evaluateDunningMutation.isPending}
               data-testid="admin-tenants-dunning-evaluate"
             >
-              {evaluateDunningMutation.isPending
-                ? "Evaluating…"
-                : "Evaluate grace"}
+              {evaluateDunningMutation.isPending ? "Evaluating…" : "Evaluate grace"}
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={handleClearDunning}
-              disabled={
-                clearDunningMutation.isPending || openDunning.length === 0
-              }
+              disabled={clearDunningMutation.isPending || openDunning.length === 0}
               data-testid="admin-tenants-dunning-clear"
             >
               {clearDunningMutation.isPending ? "Clearing…" : "Clear open"}
@@ -877,20 +800,12 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
         {dunningLoading ? (
           <p className="text-sm text-[var(--text-muted)]">Loading dunning…</p>
         ) : dunningError ? (
-          <p
-            className="text-sm text-[var(--text-muted)]"
-            data-testid="admin-tenants-dunning-error"
-          >
+          <p className="text-sm text-[var(--text-muted)]" data-testid="admin-tenants-dunning-error">
             Dunning unavailable
-            {getApiErrorDetail(dunningErr)
-              ? `: ${getApiErrorDetail(dunningErr)}`
-              : "."}
+            {getApiErrorDetail(dunningErr) ? `: ${getApiErrorDetail(dunningErr)}` : "."}
           </p>
         ) : !dunningCases || dunningCases.length === 0 ? (
-          <p
-            className="text-sm text-[var(--text-muted)]"
-            data-testid="admin-tenants-dunning-empty"
-          >
+          <p className="text-sm text-[var(--text-muted)]" data-testid="admin-tenants-dunning-empty">
             No dunning cases for this tenant.
           </p>
         ) : (
@@ -899,10 +814,7 @@ export function TenantBillingPanel({ tenantId }: { tenantId: string }) {
             data-testid="admin-tenants-dunning-list"
           >
             {dunningCases.map((c) => (
-              <li
-                key={c.id}
-                className="border-b border-[var(--border-default)] py-1 font-mono"
-              >
+              <li key={c.id} className="border-b border-[var(--border-default)] py-1 font-mono">
                 {formatDunningCaseRow(c)}
               </li>
             ))}

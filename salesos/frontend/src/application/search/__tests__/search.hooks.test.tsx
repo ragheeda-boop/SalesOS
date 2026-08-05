@@ -26,9 +26,7 @@ function createWrapper() {
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 }
 
@@ -50,7 +48,7 @@ describe("useSearch", () => {
 
     const { result } = renderHook(
       () => useSearch({ text: "test", filters: {}, page: 1, pageSize: 10 }),
-      { wrapper: createWrapper() },
+      { wrapper: createWrapper() }
     );
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -60,7 +58,7 @@ describe("useSearch", () => {
   it("does not fetch when query text is too short", () => {
     const { result } = renderHook(
       () => useSearch({ text: "a", filters: {}, page: 1, pageSize: 10 }),
-      { wrapper: createWrapper() },
+      { wrapper: createWrapper() }
     );
     expect(result.current.fetchStatus).toBe("idle");
   });

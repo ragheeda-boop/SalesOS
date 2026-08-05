@@ -76,8 +76,7 @@ export function RulesWorkspace() {
   const deleteRule = useDeleteRule();
   const toggleRule = useToggleRule();
 
-  const isMutating =
-    createRule.isPending || updateRule.isPending || deleteRule.isPending;
+  const isMutating = createRule.isPending || updateRule.isPending || deleteRule.isPending;
 
   function handleCreate(input: RuleFormData) {
     createRule.mutate(input, {
@@ -94,7 +93,7 @@ export function RulesWorkspace() {
           setMode("list");
           setEditingRule(null);
         },
-      },
+      }
     );
   }
 
@@ -110,9 +109,7 @@ export function RulesWorkspace() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-display text-[var(--text-primary)]">
-          {t("rules.title")}
-        </h1>
+        <h1 className="text-xl font-display text-[var(--text-primary)]">{t("rules.title")}</h1>
         {mode === "list" && (
           <div className="flex gap-2">
             {TABS.map((tab) => (
@@ -168,17 +165,13 @@ export function RulesWorkspace() {
 
       {mode === "list" && isLoading && (
         <div className="rounded-xl border border-dashed border-[var(--border-default)] p-12 text-center">
-          <p className="text-sm text-[var(--text-muted)]">
-            {t("common.loading")}
-          </p>
+          <p className="text-sm text-[var(--text-muted)]">{t("common.loading")}</p>
         </div>
       )}
 
       {mode === "list" && !isLoading && rules.length === 0 && (
         <div className="rounded-xl border border-dashed border-[var(--border-default)] p-12 text-center">
-          <p className="text-sm text-[var(--text-muted)]">
-            {t("rules.no_rules")}
-          </p>
+          <p className="text-sm text-[var(--text-muted)]">{t("rules.no_rules")}</p>
         </div>
       )}
 
@@ -230,9 +223,7 @@ function RuleCard({
             className={`w-9 h-5 rounded-full relative transition-colors ${
               rule.enabled ? "bg-[var(--muhide-orange)]" : "bg-neutral-300"
             }`}
-            aria-label={
-              rule.enabled ? t("workflows.deactivate") : t("workflows.activate")
-            }
+            aria-label={rule.enabled ? t("workflows.deactivate") : t("workflows.activate")}
           >
             <span
               className={`absolute top-0.5 w-4 h-4 rounded-full bg-[var(--bg-primary)] shadow transition-transform ${
@@ -240,9 +231,7 @@ function RuleCard({
               }`}
             />
           </button>
-          <h3 className="font-medium text-[var(--text-primary)]">
-            {rule.name}
-          </h3>
+          <h3 className="font-medium text-[var(--text-primary)]">{rule.name}</h3>
         </div>
         <div className="flex items-center gap-2 text-xs">
           <span className="rounded-full bg-[var(--bg-secondary)] px-2 py-0.5 text-[var(--text-muted)]">
@@ -256,9 +245,7 @@ function RuleCard({
           </span>
         </div>
       </div>
-      {rule.description && (
-        <p className="text-sm text-[var(--text-muted)]">{rule.description}</p>
-      )}
+      {rule.description && <p className="text-sm text-[var(--text-muted)]">{rule.description}</p>}
       {rule.conditions.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {rule.conditions.map((c, i) => (
@@ -276,8 +263,7 @@ function RuleCard({
           {t("labels.priority")}: {rule.priority}
         </span>
         <span>
-          {t("labels.updated")}:{" "}
-          {new Date(rule.updated_at).toLocaleDateString("ar-SA")}
+          {t("labels.updated")}: {new Date(rule.updated_at).toLocaleDateString("ar-SA")}
         </span>
       </div>
       <div className="flex justify-end gap-1 pt-1">
@@ -364,10 +350,7 @@ function RulesForm({
   function addAction() {
     setForm((prev) => ({
       ...prev,
-      actions: [
-        ...prev.actions,
-        { type: actionType, params: { target: actionTarget.trim() } },
-      ],
+      actions: [...prev.actions, { type: actionType, params: { target: actionTarget.trim() } }],
     }));
     setActionTarget("");
   }
@@ -387,9 +370,7 @@ function RulesForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
-          <label className="text-sm text-[var(--text-muted)]">
-            {t("labels.name")}
-          </label>
+          <label className="text-sm text-[var(--text-muted)]">{t("labels.name")}</label>
           <input
             value={form.name}
             onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
@@ -398,9 +379,7 @@ function RulesForm({
           />
         </div>
         <div className="space-y-1.5">
-          <label className="text-sm text-[var(--text-muted)]">
-            {t("labels.domain")}
-          </label>
+          <label className="text-sm text-[var(--text-muted)]">{t("labels.domain")}</label>
           <select
             value={form.domain}
             onChange={(e) => setForm((p) => ({ ...p, domain: e.target.value }))}
@@ -413,29 +392,21 @@ function RulesForm({
           </select>
         </div>
         <div className="space-y-1.5">
-          <label className="text-sm text-[var(--text-muted)]">
-            {t("labels.priority")}
-          </label>
+          <label className="text-sm text-[var(--text-muted)]">{t("labels.priority")}</label>
           <input
             type="number"
             value={form.priority}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, priority: Number(e.target.value) }))
-            }
+            onChange={(e) => setForm((p) => ({ ...p, priority: Number(e.target.value) }))}
             className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-1.5 text-sm"
             min={0}
             max={100}
           />
         </div>
         <div className="col-span-2 space-y-1.5">
-          <label className="text-sm text-[var(--text-muted)]">
-            {t("labels.description")}
-          </label>
+          <label className="text-sm text-[var(--text-muted)]">{t("labels.description")}</label>
           <textarea
             value={form.description}
-            onChange={(e) =>
-              setForm((p) => ({ ...p, description: e.target.value }))
-            }
+            onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
             className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-1.5 text-sm"
             rows={2}
           />
@@ -459,9 +430,7 @@ function RulesForm({
             className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-1.5 text-sm"
           >
             <option value="equals">{isAr ? "يساوي" : "Equals"}</option>
-            <option value="not_equals">
-              {isAr ? "لا يساوي" : "Not Equals"}
-            </option>
+            <option value="not_equals">{isAr ? "لا يساوي" : "Not Equals"}</option>
             <option value="gt">{isAr ? "أكبر من" : "Greater Than"}</option>
             <option value="lt">{isAr ? "أقل من" : "Less Than"}</option>
             <option value="contains">{isAr ? "يحتوي" : "Contains"}</option>
@@ -501,9 +470,7 @@ function RulesForm({
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-sm font-medium text-[var(--text-primary)]">
-          {t("workflows.actions")}
-        </h3>
+        <h3 className="text-sm font-medium text-[var(--text-primary)]">{t("workflows.actions")}</h3>
         <div className="flex gap-2">
           <select
             value={actionType}

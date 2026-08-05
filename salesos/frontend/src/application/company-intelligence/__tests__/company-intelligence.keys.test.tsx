@@ -6,9 +6,6 @@ describe("companyIntelligenceKeys", () => {
   });
 
   it("detail includes company id", () => {
-    expect(companyIntelligenceKeys.detail("c-1")).toEqual([
-      "company-intelligence",
-      "c-1",
-    ]);
+    expect(companyIntelligenceKeys.detail("c-1")).toEqual(["company-intelligence", "c-1"]);
   });
 });

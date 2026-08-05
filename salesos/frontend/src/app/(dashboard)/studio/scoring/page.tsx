@@ -11,13 +11,10 @@ export default function ScoringRulesPage() {
   return (
     <div className="space-y-6 p-6" data-testid="scoring-rules-page">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          Scoring Rules Studio
-        </h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Scoring Rules Studio</h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Override platform dimension weights and attribute boosts against tip
-          Tenant Studio HTTP. Fail-safe falls back to platform default on rule
-          error.
+          Override platform dimension weights and attribute boosts against tip Tenant Studio HTTP.
+          Fail-safe falls back to platform default on rule error.
         </p>
       </div>
       <ScoringRulesStudio />

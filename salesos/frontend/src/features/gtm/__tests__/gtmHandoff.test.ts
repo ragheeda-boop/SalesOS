@@ -19,17 +19,15 @@ describe("gtmHandoff — FE-S11-03b / FE-S11-06b", () => {
         cities: "riyadh",
         employees_min: "10",
         employees_max: "500",
-      }),
+      })
     ).toBe(
-      "/gtm/lead-discovery?name=Pilot+discovery&industries=technology&cities=riyadh&employees_min=10&employees_max=500",
+      "/gtm/lead-discovery?name=Pilot+discovery&industries=technology&cities=riyadh&employees_min=10&employees_max=500"
     );
   });
 
   it("parses tip criteria from search params", () => {
     const parsed = parseGtmCriteriaFromSearch(
-      new URLSearchParams(
-        "industries=tech&cities=jeddah&employees_min=5&employees_max=50&name=X",
-      ),
+      new URLSearchParams("industries=tech&cities=jeddah&employees_min=5&employees_max=50&name=X")
     );
     expect(parsed.industries).toBe("tech");
     expect(parsed.cities).toBe("jeddah");
@@ -38,12 +36,8 @@ describe("gtmHandoff — FE-S11-03b / FE-S11-06b", () => {
   });
 
   it("builds snapshot/run deep-links", () => {
-    expect(buildMarketSizingHref("snap1")).toBe(
-      "/gtm/market-sizing?snapshot=snap1",
-    );
-    expect(buildLeadDiscoveryRunHref("run1")).toBe(
-      "/gtm/lead-discovery?run=run1",
-    );
+    expect(buildMarketSizingHref("snap1")).toBe("/gtm/market-sizing?snapshot=snap1");
+    expect(buildLeadDiscoveryRunHref("run1")).toBe("/gtm/lead-discovery?run=run1");
   });
 
   it("builds enrichment + verification + icp deep-links", () => {
@@ -51,16 +45,14 @@ describe("gtmHandoff — FE-S11-03b / FE-S11-06b", () => {
       buildEnrichmentHref({
         company_name: "Acme Pilot Co",
         domain: "acme.example",
-      }),
+      })
     ).toBe("/gtm/enrichment?company_name=Acme+Pilot+Co&domain=acme.example");
-    expect(buildEnrichmentHref({ run: "enr1" })).toBe(
-      "/gtm/enrichment?run=enr1",
-    );
+    expect(buildEnrichmentHref({ run: "enr1" })).toBe("/gtm/enrichment?run=enr1");
     expect(
       buildVerificationHref({
         email: "a@b.com",
         phone: "+9665",
-      }),
+      })
     ).toBe("/gtm/verification?email=a%40b.com&phone=%2B9665");
     expect(buildIcpProfileHref("icp1")).toBe("/gtm/icp?profile=icp1");
     expect(
@@ -68,7 +60,7 @@ describe("gtmHandoff — FE-S11-03b / FE-S11-06b", () => {
         company_name: "Acme",
         industry: "technology",
         city: "riyadh",
-      }),
+      })
     ).toBe("/gtm/lookalikes?company_name=Acme&industry=technology&city=riyadh");
   });
 
@@ -78,7 +70,7 @@ describe("gtmHandoff — FE-S11-03b / FE-S11-06b", () => {
         email: "x@y.com",
         phone: "+1",
         industry: "tech",
-      }),
+      })
     ).toEqual({ email: "x@y.com", phone: "+1" });
     expect(contactFieldsFromFilled({})).toEqual({});
   });

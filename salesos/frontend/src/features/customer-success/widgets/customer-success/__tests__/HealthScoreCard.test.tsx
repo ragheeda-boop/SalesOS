@@ -7,9 +7,7 @@ const defaultProps = {
   thresholds: { green: 80, yellow: 50 },
 };
 
-function renderView(
-  overrides?: Partial<Parameters<typeof HealthScoreCard>[0]>,
-) {
+function renderView(overrides?: Partial<Parameters<typeof HealthScoreCard>[0]>) {
   return render(<HealthScoreCard {...defaultProps} {...overrides} />);
 }
 

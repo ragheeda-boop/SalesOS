@@ -1,15 +1,7 @@
 "use client";
 
 import { cn } from "@salesos/ui";
-import {
-  Users,
-  Activity,
-  DollarSign,
-  Target,
-  Search,
-  BarChart3,
-  Sparkles,
-} from "lucide-react";
+import { Users, Activity, DollarSign, Target, Search, BarChart3, Sparkles } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import type { AnalyticsData } from "./types";
 
@@ -36,16 +28,14 @@ function MetricCard({
         <div
           className={cn(
             "flex h-8 w-8 items-center justify-center rounded-lg",
-            color ?? "bg-[var(--bg-tertiary)]",
+            color ?? "bg-[var(--bg-tertiary)]"
           )}
         >
           {icon}
         </div>
         <div>
           <p className="text-xs text-[var(--text-muted)]">{label}</p>
-          <p className="text-xl font-bold text-[var(--text-primary)]">
-            {value}
-          </p>
+          <p className="text-xl font-bold text-[var(--text-primary)]">{value}</p>
           {sub && <p className="text-[10px] text-[var(--text-muted)]">{sub}</p>}
         </div>
       </div>
@@ -62,22 +52,13 @@ export function AnalyticsView({ data }: AnalyticsViewProps) {
     data.search.totalQueries === 0 &&
     data.nba.shown === 0;
   return (
-    <div
-      role="region"
-      aria-label={t("analytics.title")}
-      className="space-y-4 p-6"
-    >
+    <div role="region" aria-label={t("analytics.title")} className="space-y-4 p-6">
       <div>
-        <h1 className="text-xl font-bold text-[var(--text-primary)]">
-          {t("analytics.title")}
-        </h1>
-        <p className="text-sm text-[var(--text-muted)]">
-          {t("analytics.subtitle")}
-        </p>
+        <h1 className="text-xl font-bold text-[var(--text-primary)]">{t("analytics.title")}</h1>
+        <p className="text-sm text-[var(--text-muted)]">{t("analytics.subtitle")}</p>
         {isEmpty && (
           <p className="mt-2 text-xs text-[var(--text-muted)]">
-            No live commercial analytics yet — zeros are honest; nothing is
-            invented.
+            No live commercial analytics yet — zeros are honest; nothing is invented.
           </p>
         )}
       </div>
@@ -91,9 +72,7 @@ export function AnalyticsView({ data }: AnalyticsViewProps) {
           color="bg-blue-50 dark:bg-blue-900/20"
         />
         <MetricCard
-          icon={
-            <Activity className="h-4 w-4 text-[var(--status-success-text)]" />
-          }
+          icon={<Activity className="h-4 w-4 text-[var(--status-success-text)]" />}
           label={t("analytics.daily_sessions")}
           value={data.usage.dailyActiveUsers.toString()}
           sub={t("analytics.avg_duration", {
@@ -102,9 +81,7 @@ export function AnalyticsView({ data }: AnalyticsViewProps) {
           color="bg-[var(--status-success-bg)]"
         />
         <MetricCard
-          icon={
-            <DollarSign className="h-4 w-4 text-[var(--status-warning-text)]" />
-          }
+          icon={<DollarSign className="h-4 w-4 text-[var(--status-warning-text)]" />}
           label={t("analytics.pipeline_value")}
           value={`$${data.pipeline.totalValue >= 1e6 ? (data.pipeline.totalValue / 1e6).toFixed(1) + "M" : (data.pipeline.totalValue / 1e3).toFixed(0) + "K"}`}
           sub={t("analytics.deal_count", { count: data.pipeline.dealCount })}
@@ -131,9 +108,7 @@ export function AnalyticsView({ data }: AnalyticsViewProps) {
           <div className="space-y-1.5">
             {data.widgets.widgets.slice(0, 6).map((w) => (
               <div key={w.id} className="flex items-center gap-2">
-                <span className="w-24 truncate text-xs text-[var(--text-muted)]">
-                  {w.name}
-                </span>
+                <span className="w-24 truncate text-xs text-[var(--text-muted)]">{w.name}</span>
                 <div className="flex-1 h-4 rounded-lg bg-[var(--bg-tertiary)] overflow-hidden">
                   <div
                     className="h-full rounded-lg bg-primary-500"
@@ -160,25 +135,19 @@ export function AnalyticsView({ data }: AnalyticsViewProps) {
           </div>
           <div className="space-y-3">
             <div>
-              <p className="text-xs text-[var(--text-muted)]">
-                {t("analytics.total_queries")}
-              </p>
+              <p className="text-xs text-[var(--text-muted)]">{t("analytics.total_queries")}</p>
               <p className="text-lg font-bold text-[var(--text-primary)]">
                 {data.search.totalQueries.toLocaleString()}
               </p>
             </div>
             <div>
-              <p className="text-xs text-[var(--text-muted)]">
-                {t("analytics.avg_results")}
-              </p>
+              <p className="text-xs text-[var(--text-muted)]">{t("analytics.avg_results")}</p>
               <p className="text-lg font-bold text-[var(--text-primary)]">
                 {data.search.avgResults}
               </p>
             </div>
             <div>
-              <p className="mb-1 text-xs text-[var(--text-muted)]">
-                {t("analytics.top_queries")}
-              </p>
+              <p className="mb-1 text-xs text-[var(--text-muted)]">{t("analytics.top_queries")}</p>
               {data.search.topQueries.slice(0, 3).map((q, i) => (
                 <p key={i} className="text-[10px] text-[var(--text-muted)]">
                   {i + 1}. {q}
@@ -192,18 +161,14 @@ export function AnalyticsView({ data }: AnalyticsViewProps) {
         <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-primary)] p-4">
           <div className="mb-3 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-[var(--text-muted)]" />
-            <span className="text-sm font-semibold text-[var(--text-primary)]">
-              NBA Analytics
-            </span>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">NBA Analytics</span>
           </div>
           <div className="space-y-3">
             <div>
               <p className="text-xs text-[var(--text-muted)]">
                 {t("analytics.shown_recommendations")}
               </p>
-              <p className="text-lg font-bold text-[var(--text-primary)]">
-                {data.nba.shown}
-              </p>
+              <p className="text-lg font-bold text-[var(--text-primary)]">{data.nba.shown}</p>
             </div>
             <div>
               <p className="text-xs text-[var(--text-muted)]">
@@ -214,9 +179,7 @@ export function AnalyticsView({ data }: AnalyticsViewProps) {
               </p>
             </div>
             <div>
-              <p className="text-xs text-[var(--text-muted)]">
-                {t("analytics.acceptance_rate")}
-              </p>
+              <p className="text-xs text-[var(--text-muted)]">{t("analytics.acceptance_rate")}</p>
               <div className="mt-1 h-3 w-full rounded-full bg-[var(--bg-tertiary)]">
                 <div
                   className={cn(
@@ -225,7 +188,7 @@ export function AnalyticsView({ data }: AnalyticsViewProps) {
                       ? "bg-green-500"
                       : data.nba.acceptanceRate >= 20
                         ? "bg-amber-500"
-                        : "bg-red-500",
+                        : "bg-red-500"
                   )}
                   style={{ width: `${data.nba.acceptanceRate}%` }}
                 />

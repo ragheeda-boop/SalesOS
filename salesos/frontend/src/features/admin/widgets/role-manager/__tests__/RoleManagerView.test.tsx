@@ -73,9 +73,7 @@ describe("RoleManagerView", () => {
   it("renders title and region role", () => {
     renderView();
     expect(screen.getByText("إدارة الأدوار والصلاحيات")).toBeInTheDocument();
-    expect(
-      screen.getByRole("region", { name: "إدارة الأدوار" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "إدارة الأدوار" })).toBeInTheDocument();
   });
 
   it("renders role list with names and descriptions", () => {
@@ -103,9 +101,7 @@ describe("RoleManagerView", () => {
 
   it("does not show edit/delete buttons for system roles", () => {
     renderView({ roles: [systemRole] });
-    expect(
-      screen.queryByLabelText("تعديل مدير النظام"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("تعديل مدير النظام")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("حذف مدير النظام")).not.toBeInTheDocument();
   });
 
@@ -125,9 +121,7 @@ describe("RoleManagerView", () => {
   it("shows empty state when no roles", () => {
     renderView({ roles: [] });
     expect(screen.getByText("لا توجد أدوار مخصصة")).toBeInTheDocument();
-    expect(
-      screen.getByText("الأدوار النظامية غير ظاهرة هنا"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("الأدوار النظامية غير ظاهرة هنا")).toBeInTheDocument();
   });
 
   it("shows loading state", () => {
@@ -138,9 +132,7 @@ describe("RoleManagerView", () => {
   it("shows create form when new role button clicked", () => {
     renderView();
     fireEvent.click(screen.getByRole("button", { name: /دور جديد/ }));
-    expect(
-      screen.getByRole("heading", { name: "دور جديد" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "دور جديد" })).toBeInTheDocument();
     expect(screen.getByPlaceholderText("اسم الدور")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("وصف (اختياري)")).toBeInTheDocument();
   });
@@ -169,10 +161,7 @@ describe("RoleManagerView", () => {
       target: { value: "منصب جديد" },
     });
 
-    const checkbox = screen
-      .getByText("عرض الشركات")
-      .closest("label")!
-      .querySelector("input")!;
+    const checkbox = screen.getByText("عرض الشركات").closest("label")!.querySelector("input")!;
     fireEvent.click(checkbox);
 
     fireEvent.click(screen.getByRole("button", { name: /إنشاء/ }));
@@ -194,9 +183,7 @@ describe("RoleManagerView", () => {
   it("cancel button closes create form", () => {
     renderView();
     fireEvent.click(screen.getByRole("button", { name: /دور جديد/ }));
-    expect(
-      screen.getByRole("heading", { name: "دور جديد" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "دور جديد" })).toBeInTheDocument();
     fireEvent.click(screen.getByText("إلغاء"));
     expect(screen.queryByPlaceholderText("اسم الدور")).not.toBeInTheDocument();
   });
@@ -205,12 +192,8 @@ describe("RoleManagerView", () => {
     renderView();
     fireEvent.click(screen.getByLabelText("تعديل مدير المبيعات"));
     expect(screen.getByText("تعديل الدور")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("اسم الدور")).toHaveValue(
-      "مدير المبيعات",
-    );
-    expect(screen.getByPlaceholderText("وصف (اختياري)")).toHaveValue(
-      "صلاحيات مدير فريق المبيعات",
-    );
+    expect(screen.getByPlaceholderText("اسم الدور")).toHaveValue("مدير المبيعات");
+    expect(screen.getByPlaceholderText("وصف (اختياري)")).toHaveValue("صلاحيات مدير فريق المبيعات");
   });
 
   it("calls onUpdateRole when saving edited role", () => {
@@ -223,7 +206,7 @@ describe("RoleManagerView", () => {
     fireEvent.click(screen.getByText("حفظ"));
     expect(onUpdateRole).toHaveBeenCalledWith(
       "role-1",
-      expect.objectContaining({ name: "مدير مبيعات جديد" }),
+      expect.objectContaining({ name: "مدير مبيعات جديد" })
     );
   });
 

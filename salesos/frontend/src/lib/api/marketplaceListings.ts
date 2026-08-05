@@ -93,7 +93,7 @@ export interface MarketplaceCertifyBody {
 }
 
 export async function getMarketplaceListingsMeta(
-  tenantId: string,
+  tenantId: string
 ): Promise<MarketplaceListingsMeta> {
   const resp = await api.get<MarketplaceListingsMeta>(`${BASE}/meta`, {
     headers: tenantHeaders(tenantId),
@@ -103,7 +103,7 @@ export async function getMarketplaceListingsMeta(
 
 export async function listMarketplaceListings(
   tenantId: string,
-  params?: { listing_type?: string; status?: string },
+  params?: { listing_type?: string; status?: string }
 ): Promise<MarketplaceListing[]> {
   const resp = await api.get<MarketplaceListing[]>(BASE, {
     headers: tenantHeaders(tenantId),
@@ -117,39 +117,36 @@ export async function listMarketplaceListings(
 
 export async function getMarketplaceListing(
   tenantId: string,
-  listingIdOrSlug: string,
+  listingIdOrSlug: string
 ): Promise<MarketplaceListing> {
-  const resp = await api.get<MarketplaceListing>(
-    `${BASE}/${encodeURIComponent(listingIdOrSlug)}`,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.get<MarketplaceListing>(`${BASE}/${encodeURIComponent(listingIdOrSlug)}`, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }
 
 export async function seedFirstPartyMarketplaceListings(
-  tenantId: string,
+  tenantId: string
 ): Promise<MarketplaceListing[]> {
   const resp = await api.post<MarketplaceListing[]>(
     `${BASE}/seed-first-party`,
     {},
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
 
-export async function seedMarketplacePublishPack(
-  tenantId: string,
-): Promise<MarketplaceListing[]> {
+export async function seedMarketplacePublishPack(tenantId: string): Promise<MarketplaceListing[]> {
   const resp = await api.post<MarketplaceListing[]>(
     `${BASE}/seed-publish-pack`,
     {},
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
 
 export async function listMarketplaceCatalogInstalls(
-  tenantId: string,
+  tenantId: string
 ): Promise<MarketplaceCatalogInstall[]> {
   const resp = await api.get<MarketplaceCatalogInstall[]>(`${BASE}/installs`, {
     headers: tenantHeaders(tenantId),
@@ -159,31 +156,29 @@ export async function listMarketplaceCatalogInstalls(
 
 export async function publishMarketplaceListing(
   tenantId: string,
-  listingIdOrSlug: string,
+  listingIdOrSlug: string
 ): Promise<MarketplaceListing> {
   const resp = await api.post<MarketplaceListing>(
     `${BASE}/${encodeURIComponent(listingIdOrSlug)}/publish`,
     {},
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
 
 export async function installMarketplaceListing(
   tenantId: string,
-  listingIdOrSlug: string,
+  listingIdOrSlug: string
 ): Promise<MarketplaceCatalogInstall> {
   const resp = await api.post<MarketplaceCatalogInstall>(
     `${BASE}/${encodeURIComponent(listingIdOrSlug)}/install`,
     {},
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
 
-export async function getMarketplaceCertifyMeta(
-  tenantId: string,
-): Promise<MarketplaceCertifyMeta> {
+export async function getMarketplaceCertifyMeta(tenantId: string): Promise<MarketplaceCertifyMeta> {
   const resp = await api.get<MarketplaceCertifyMeta>(`${BASE}/certify/meta`, {
     headers: tenantHeaders(tenantId),
   });
@@ -192,12 +187,12 @@ export async function getMarketplaceCertifyMeta(
 
 export async function submitMarketplaceListing(
   tenantId: string,
-  listingIdOrSlug: string,
+  listingIdOrSlug: string
 ): Promise<MarketplaceListing> {
   const resp = await api.post<MarketplaceListing>(
     `${BASE}/${encodeURIComponent(listingIdOrSlug)}/submit`,
     {},
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
@@ -205,7 +200,7 @@ export async function submitMarketplaceListing(
 export async function certifyMarketplaceListing(
   tenantId: string,
   listingIdOrSlug: string,
-  body?: MarketplaceCertifyBody,
+  body?: MarketplaceCertifyBody
 ): Promise<MarketplaceCertifyReport> {
   const resp = await api.post<MarketplaceCertifyReport>(
     `${BASE}/${encodeURIComponent(listingIdOrSlug)}/certify`,
@@ -213,7 +208,7 @@ export async function certifyMarketplaceListing(
       real_tenant_ids: body?.real_tenant_ids ?? [],
       auto_submit: body?.auto_submit ?? true,
     },
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }

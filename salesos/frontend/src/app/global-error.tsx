@@ -35,8 +35,7 @@ export default function GlobalError({
         <div style={{ textAlign: "center", maxWidth: 420 }}>
           <h1 style={{ fontSize: 20, marginBottom: 8 }}>Something went wrong</h1>
           <p style={{ fontSize: 14, opacity: 0.7, marginBottom: 16 }}>
-            The application hit an unexpected error. You can try recovering
-            without a full reload.
+            The application hit an unexpected error. You can try recovering without a full reload.
           </p>
           <button
             type="button"

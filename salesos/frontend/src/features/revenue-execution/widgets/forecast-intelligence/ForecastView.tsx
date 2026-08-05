@@ -15,11 +15,7 @@ export function ForecastView({ data }: { data: ForecastData }) {
       : 0;
 
   return (
-    <div
-      role="region"
-      aria-label="التوقعات"
-      className="space-y-3/20 dark:rounded-lg dark:p-1"
-    >
+    <div role="region" aria-label="التوقعات" className="space-y-3/20 dark:rounded-lg dark:p-1">
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-lg bg-[var(--bg-tertiary)] p-2">
           <p className="text-[9px] text-[var(--text-muted)]">الهدف</p>
@@ -74,7 +70,7 @@ export function ForecastView({ data }: { data: ForecastData }) {
                 ? "bg-green-500"
                 : projectedPct >= 80
                   ? "bg-amber-500"
-                  : "bg-red-500",
+                  : "bg-red-500"
             )}
             style={{ width: `${Math.min(projectedPct, 100)}%` }}
           />
@@ -90,9 +86,7 @@ export function ForecastView({ data }: { data: ForecastData }) {
               key={i}
               className="flex items-center justify-between rounded-lg bg-[var(--status-danger-bg)]/50 px-2 py-1"
             >
-              <span className="text-[10px] text-[var(--text-primary)]">
-                {r.label}
-              </span>
+              <span className="text-[10px] text-[var(--text-primary)]">{r.label}</span>
               <span className="text-[9px] text-[var(--status-danger-text)]">
                 %{Math.round(r.probability * 100)}
               </span>

@@ -1,47 +1,60 @@
-"use client"
+"use client";
 
-import { forwardRef, useCallback, useId } from 'react'
-import { cn } from './utils'
+import { forwardRef, useCallback, useId } from "react";
+import { cn } from "./utils";
 
 interface CheckboxProps {
-  checked?: boolean
-  defaultChecked?: boolean
-  onChange?: (checked: boolean) => void
-  label?: string
-  error?: boolean
-  errorMessage?: string
-  disabled?: boolean
-  indeterminate?: boolean
-  required?: boolean
-  className?: string
-  id?: string
+  checked?: boolean;
+  defaultChecked?: boolean;
+  onChange?: (checked: boolean) => void;
+  label?: string;
+  error?: boolean;
+  errorMessage?: string;
+  disabled?: boolean;
+  indeterminate?: boolean;
+  required?: boolean;
+  className?: string;
+  id?: string;
 }
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ checked, defaultChecked, onChange, label, error, errorMessage, disabled, indeterminate, required, className, id: externalId }, ref) => {
-    const generatedId = useId()
-    const id = externalId || generatedId
-    const errorId = `${id}-error`
-    const isControlled = checked !== undefined
+  (
+    {
+      checked,
+      defaultChecked,
+      onChange,
+      label,
+      error,
+      errorMessage,
+      disabled,
+      indeterminate,
+      required,
+      className,
+      id: externalId,
+    },
+    ref
+  ) => {
+    const generatedId = useId();
+    const id = externalId || generatedId;
+    const errorId = `${id}-error`;
+    const isControlled = checked !== undefined;
 
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
-        onChange?.(e.target.checked)
+        onChange?.(e.target.checked);
       },
       [onChange]
-    )
+    );
 
-    const stateProps = isControlled
-      ? { checked }
-      : { defaultChecked }
+    const stateProps = isControlled ? { checked } : { defaultChecked };
 
     return (
-      <div className={cn('flex flex-col', className)}>
+      <div className={cn("flex flex-col", className)}>
         <label
           htmlFor={id}
           className={cn(
-            'inline-flex items-center gap-2 cursor-pointer select-none',
-            disabled && 'cursor-not-allowed opacity-50'
+            "inline-flex items-center gap-2 cursor-pointer select-none",
+            disabled && "cursor-not-allowed opacity-50"
           )}
         >
           <span className="relative flex items-center justify-center">
@@ -52,19 +65,19 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
               disabled={disabled}
               required={required}
               role="checkbox"
-              aria-checked={indeterminate ? 'mixed' : checked ?? false}
+              aria-checked={indeterminate ? "mixed" : (checked ?? false)}
               aria-labelledby={label ? `${id}-label` : undefined}
               aria-describedby={error && errorMessage ? errorId : undefined}
               aria-invalid={error || undefined}
               className={cn(
-                'peer h-4 w-4 shrink-0 appearance-none rounded border transition-colors',
-                'focus:outline-none focus:ring-2 focus:ring-[var(--muhide-orange)] focus:ring-offset-2',
+                "peer h-4 w-4 shrink-0 appearance-none rounded border transition-colors",
+                "focus:outline-none focus:ring-2 focus:ring-[var(--muhide-orange)] focus:ring-offset-2",
                 error
-                  ? 'border-danger-500 focus:border-danger-500 focus:ring-danger-500'
-                  : 'border-[var(--border-default)]',
-                'checked:border-[var(--muhide-orange)] checked:bg-[var(--muhide-orange)]',
-                'indeterminate:border-[var(--muhide-orange)] indeterminate:bg-[var(--muhide-orange)]',
-                disabled && 'cursor-not-allowed'
+                  ? "border-danger-500 focus:border-danger-500 focus:ring-danger-500"
+                  : "border-[var(--border-default)]",
+                "checked:border-[var(--muhide-orange)] checked:bg-[var(--muhide-orange)]",
+                "indeterminate:border-[var(--muhide-orange)] indeterminate:bg-[var(--muhide-orange)]",
+                disabled && "cursor-not-allowed"
               )}
               {...stateProps}
               onChange={handleChange}
@@ -92,19 +105,18 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
                 fill="none"
                 aria-hidden="true"
               >
-                <path
-                  d="M3 6H9"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
+                <path d="M3 6H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             )}
           </span>
           {label && (
             <span id={`${id}-label`} className="text-sm text-[var(--text-primary)]">
               {label}
-              {required && <span className="ms-1 text-danger-500" aria-hidden="true">*</span>}
+              {required && (
+                <span className="ms-1 text-danger-500" aria-hidden="true">
+                  *
+                </span>
+              )}
             </span>
           )}
         </label>
@@ -114,7 +126,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           </p>
         )}
       </div>
-    )
+    );
   }
-)
-Checkbox.displayName = 'Checkbox'
+);
+Checkbox.displayName = "Checkbox";

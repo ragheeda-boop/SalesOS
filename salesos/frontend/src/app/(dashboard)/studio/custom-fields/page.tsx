@@ -11,12 +11,10 @@ export default function CustomFieldsPage() {
   return (
     <div className="space-y-6 p-6" data-testid="custom-fields-page">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          Custom Fields Studio
-        </h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Custom Fields Studio</h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Define versioned scalar custom fields for company / contact /
-          opportunity against tip Tenant Studio HTTP.
+          Define versioned scalar custom fields for company / contact / opportunity against tip
+          Tenant Studio HTTP.
         </p>
       </div>
       <CustomFieldsStudio />

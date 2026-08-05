@@ -15,10 +15,7 @@ export function register(tool: ToolDefinition): void {
   tools.set(tool.name, tool);
 }
 
-export async function execute(
-  toolName: string,
-  params: Record<string, unknown>,
-): Promise<unknown> {
+export async function execute(toolName: string, params: Record<string, unknown>): Promise<unknown> {
   const handler = handlers.get(toolName);
   if (!handler) {
     const tool = tools.get(toolName);

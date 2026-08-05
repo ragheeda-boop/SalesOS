@@ -17,7 +17,7 @@ import type {
 import type { DashboardWidget, WidgetStatus } from "./widget.contract";
 
 function parseWidget<T>(
-  raw: Record<string, unknown> | null | undefined,
+  raw: Record<string, unknown> | null | undefined
 ): DashboardWidget<T> | null {
   if (!raw) return null;
   return {
@@ -26,9 +26,7 @@ function parseWidget<T>(
     status: (raw.status as WidgetStatus) ?? "ready",
     lastUpdated: raw.lastUpdated ? String(raw.lastUpdated) : null,
     data: (raw.data as T) ?? null,
-    actions: Array.isArray(raw.actions)
-      ? (raw.actions as DashboardWidget<T>["actions"])
-      : [],
+    actions: Array.isArray(raw.actions) ? (raw.actions as DashboardWidget<T>["actions"]) : [],
   };
 }
 
@@ -39,43 +37,41 @@ export function mapDashboard(raw: unknown): DashboardDTO {
     period: (data.period as DashboardDTO["period"]) ?? "today",
     totalTracked: Number(data.totalTracked) || 0,
     missionCenter: parseWidget<MissionCenterData>(
-      data.missionCenter as Record<string, unknown> | null | undefined,
+      data.missionCenter as Record<string, unknown> | null | undefined
     ),
     decisionQueue: parseWidget<DecisionQueueData>(
-      data.decisionQueue as Record<string, unknown> | null | undefined,
+      data.decisionQueue as Record<string, unknown> | null | undefined
     ),
     intelligenceFeed: parseWidget<IntelligenceFeedData>(
-      data.intelligenceFeed as Record<string, unknown> | null | undefined,
+      data.intelligenceFeed as Record<string, unknown> | null | undefined
     ),
-    aiBrief: parseWidget<AIBriefData>(
-      data.aiBrief as Record<string, unknown> | null | undefined,
-    ),
+    aiBrief: parseWidget<AIBriefData>(data.aiBrief as Record<string, unknown> | null | undefined),
     marketPulse: parseWidget<MarketPulseData>(
-      data.marketPulse as Record<string, unknown> | null | undefined,
+      data.marketPulse as Record<string, unknown> | null | undefined
     ),
     recentActivity: parseWidget<RecentActivityData>(
-      data.recentActivity as Record<string, unknown> | null | undefined,
+      data.recentActivity as Record<string, unknown> | null | undefined
     ),
     pipeline: parseWidget<PipelineDTOData>(
-      data.pipeline as Record<string, unknown> | null | undefined,
+      data.pipeline as Record<string, unknown> | null | undefined
     ),
     companyHealth: parseWidget<CompanyHealthDTOData>(
-      data.companyHealth as Record<string, unknown> | null | undefined,
+      data.companyHealth as Record<string, unknown> | null | undefined
     ),
     companyEngagement: parseWidget<CompanyEngagementDTO>(
-      data.companyEngagement as Record<string, unknown> | null | undefined,
+      data.companyEngagement as Record<string, unknown> | null | undefined
     ),
     emailIntelligence: parseWidget<EmailMetricsDTO>(
-      data.emailIntelligence as Record<string, unknown> | null | undefined,
+      data.emailIntelligence as Record<string, unknown> | null | undefined
     ),
     calendarIntelligence: parseWidget<CalendarMetricsDTO>(
-      data.calendarIntelligence as Record<string, unknown> | null | undefined,
+      data.calendarIntelligence as Record<string, unknown> | null | undefined
     ),
     followupCenter: parseWidget<FollowupDashboardDTO>(
-      data.followupCenter as Record<string, unknown> | null | undefined,
+      data.followupCenter as Record<string, unknown> | null | undefined
     ),
     companyScoring: parseWidget<CompanyScoringData>(
-      data.companyScoring as Record<string, unknown> | null | undefined,
+      data.companyScoring as Record<string, unknown> | null | undefined
     ),
   };
 }

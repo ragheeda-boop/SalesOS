@@ -1,15 +1,15 @@
-export type IconSize = 'sm' | 'md' | 'lg' | 'xl'
+export type IconSize = "sm" | "md" | "lg" | "xl";
 
 export const iconSizeMap: Record<IconSize, number> = {
   sm: 14,
   md: 18,
   lg: 22,
   xl: 28,
-}
+};
 
 export interface IconProps {
-  size?: IconSize
-  className?: string
+  size?: IconSize;
+  className?: string;
 }
 
 export {
@@ -99,4 +99,4 @@ export {
   Square,
   Circle,
   type LucideIcon,
-} from 'lucide-react'
+} from "lucide-react";

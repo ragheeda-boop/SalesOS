@@ -70,9 +70,7 @@ describe("SignalsFeedView", () => {
 
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "الإشارات" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "الإشارات" })).toBeInTheDocument();
   });
 });
 

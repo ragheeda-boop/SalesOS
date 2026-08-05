@@ -110,10 +110,7 @@ export async function listIcpProfiles(tenantId: string): Promise<ICPProfile[]> {
   return resp.data;
 }
 
-export async function getIcpProfile(
-  tenantId: string,
-  profileId: string,
-): Promise<ICPProfile> {
+export async function getIcpProfile(tenantId: string, profileId: string): Promise<ICPProfile> {
   const resp = await api.get<ICPProfile>(`${BASE}/${profileId}`, {
     headers: tenantHeaders(tenantId),
   });
@@ -122,7 +119,7 @@ export async function getIcpProfile(
 
 export async function createIcpProfile(
   tenantId: string,
-  body: ICPProfileCreateBody,
+  body: ICPProfileCreateBody
 ): Promise<ICPProfile> {
   const resp = await api.post<ICPProfile>(BASE, body, {
     headers: tenantHeaders(tenantId),
@@ -133,7 +130,7 @@ export async function createIcpProfile(
 export async function updateIcpProfile(
   tenantId: string,
   profileId: string,
-  body: ICPProfileUpdateBody,
+  body: ICPProfileUpdateBody
 ): Promise<ICPProfile> {
   const resp = await api.put<ICPProfile>(`${BASE}/${profileId}`, body, {
     headers: tenantHeaders(tenantId),
@@ -144,12 +141,10 @@ export async function updateIcpProfile(
 export async function scoreIcpProfile(
   tenantId: string,
   profileId: string,
-  body: ICPScoreBody,
+  body: ICPScoreBody
 ): Promise<ICPScoreResult> {
-  const resp = await api.post<ICPScoreResult>(
-    `${BASE}/${profileId}/score`,
-    body,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.post<ICPScoreResult>(`${BASE}/${profileId}/score`, body, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }

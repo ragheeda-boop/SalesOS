@@ -95,7 +95,7 @@ describe("marketplaceListings API — FE-S13-04", () => {
     await listMarketplaceCatalogInstalls("tenant-1");
     expect(mocked.get).toHaveBeenCalledWith(
       "/api/v1/marketplace/listings/installs",
-      expect.any(Object),
+      expect.any(Object)
     );
 
     mocked.post.mockResolvedValueOnce({ data: rows });
@@ -103,7 +103,7 @@ describe("marketplaceListings API — FE-S13-04", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/marketplace/listings/seed-publish-pack",
       {},
-      expect.any(Object),
+      expect.any(Object)
     );
 
     mocked.post.mockResolvedValueOnce({ data: rows });
@@ -116,7 +116,7 @@ describe("marketplaceListings API — FE-S13-04", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/marketplace/listings/ml-1/publish",
       {},
-      expect.any(Object),
+      expect.any(Object)
     );
 
     mocked.post.mockResolvedValueOnce({
@@ -135,7 +135,7 @@ describe("marketplaceListings API — FE-S13-04", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/marketplace/listings/ml-1/install",
       {},
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(install.listing_slug).toBe("connector-odoo");
 

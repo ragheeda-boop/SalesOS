@@ -34,10 +34,7 @@ export function CompanyScoringView({
 
   if (error) {
     return (
-      <div
-        className="flex items-center justify-center h-full text-destructive"
-        role="alert"
-      >
+      <div className="flex items-center justify-center h-full text-destructive" role="alert">
         <div className="flex flex-col items-center gap-3">
           <span>تعذر تحميل التقييمات</span>
           <button onClick={onRefresh} className="text-sm underline">
@@ -57,11 +54,7 @@ export function CompanyScoringView({
   }
 
   const gaugeColor =
-    dealScore >= 70
-      ? "stroke-green-500"
-      : dealScore >= 40
-        ? "stroke-amber-500"
-        : "stroke-red-500";
+    dealScore >= 70 ? "stroke-green-500" : dealScore >= 40 ? "stroke-amber-500" : "stroke-red-500";
   const circumference = 2 * Math.PI * 42;
   const offset = circumference - (dealScore / 100) * circumference;
 
@@ -97,9 +90,7 @@ export function CompanyScoringView({
           </div>
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-medium text-[var(--text-primary)]">
-            درجة الصفقة
-          </p>
+          <p className="text-sm font-medium text-[var(--text-primary)]">درجة الصفقة</p>
           <p className="text-xs text-[var(--text-muted)]">
             {dealScore >= 70
               ? "جاهزة للإغلاق"
@@ -112,18 +103,12 @@ export function CompanyScoringView({
 
       {scores.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-xs font-semibold text-[var(--text-muted)]">
-            عوامل التقييم
-          </h4>
+          <h4 className="text-xs font-semibold text-[var(--text-muted)]">عوامل التقييم</h4>
           {scores.slice(0, 5).map((s) => (
             <div key={s.name || s.label}>
               <div className="flex justify-between text-xs">
-                <span className="text-[var(--text-secondary)]">
-                  {s.label || s.name}
-                </span>
-                <span className="text-[var(--text-primary)]">
-                  {Math.round(s.value * 100)}%
-                </span>
+                <span className="text-[var(--text-secondary)]">{s.label || s.name}</span>
+                <span className="text-[var(--text-primary)]">{Math.round(s.value * 100)}%</span>
               </div>
               <div className="mt-1 h-1.5 w-full rounded-full bg-[var(--bg-tertiary)]">
                 <div
@@ -138,9 +123,7 @@ export function CompanyScoringView({
 
       {recommendations.length > 0 && (
         <div className="space-y-1.5">
-          <h4 className="text-xs font-semibold text-[var(--text-muted)]">
-            التوصيات
-          </h4>
+          <h4 className="text-xs font-semibold text-[var(--text-muted)]">التوصيات</h4>
           {recommendations.slice(0, 3).map((rec, i) => (
             <div
               key={rec.id || String(i)}
@@ -149,9 +132,7 @@ export function CompanyScoringView({
               <p className="font-medium text-[var(--text-primary)]">
                 {rec.actionLabel ?? rec.action}
               </p>
-              {rec.reason && (
-                <p className="mt-0.5 text-[var(--text-muted)]">{rec.reason}</p>
-              )}
+              {rec.reason && <p className="mt-0.5 text-[var(--text-muted)]">{rec.reason}</p>}
             </div>
           ))}
         </div>

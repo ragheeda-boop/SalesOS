@@ -4,8 +4,9 @@ import { createDashboardWidget } from "@salesos/widget-sdk";
 import { CalendarIntelligenceView } from "./CalendarIntelligenceView";
 import type { CalendarMetricsDTO } from "@/lib/api/types";
 
-export const CalendarIntelligenceWidget =
-  createDashboardWidget<CalendarMetricsDTO>("calendarIntelligence", {
+export const CalendarIntelligenceWidget = createDashboardWidget<CalendarMetricsDTO>(
+  "calendarIntelligence",
+  {
     metadata: {
       title: "ذكاء التقويم",
       description: "تحليلات الاجتماعات والمواعيد",
@@ -18,12 +19,9 @@ export const CalendarIntelligenceWidget =
       <CalendarIntelligenceView
         metrics={data ?? null}
         isLoading={status === "loading"}
-        error={
-          status === "error"
-            ? new Error("Failed to load calendar intelligence")
-            : null
-        }
+        error={status === "error" ? new Error("Failed to load calendar intelligence") : null}
         onRefresh={refresh}
       />
     ),
-  });
+  }
+);

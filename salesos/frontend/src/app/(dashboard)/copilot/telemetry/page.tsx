@@ -6,14 +6,7 @@ import api from "@/lib/api";
 import { cn } from "@salesos/ui";
 import { BarChart, LineChart, MetricCard } from "@salesos/charts";
 import { useTranslation } from "@/lib/i18n";
-import {
-  ArrowLeft,
-  Bot,
-  Clock,
-  TrendingUp,
-  CheckCircle,
-  BarChart3,
-} from "lucide-react";
+import { ArrowLeft, Bot, Clock, TrendingUp, CheckCircle, BarChart3 } from "lucide-react";
 import { getTenantId } from "@/lib/hooks/useTenant";
 
 interface ToolTelemetry {
@@ -169,9 +162,7 @@ export default function CopilotTelemetryPage() {
             <h1 className="text-xl font-bold text-[var(--text-primary)]">
               {t("copilot.telemetry_title")}
             </h1>
-            <p className="text-sm text-[var(--text-muted)]">
-              {t("copilot.telemetry_subtitle")}
-            </p>
+            <p className="text-sm text-[var(--text-muted)]">{t("copilot.telemetry_subtitle")}</p>
           </div>
         </div>
         <div className="flex gap-1 rounded-lg bg-[var(--bg-secondary)] p-1">
@@ -183,7 +174,7 @@ export default function CopilotTelemetryPage() {
                 "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
                 rangeDays === r.days
                   ? "bg-[var(--bg-primary)] text-[var(--muhide-orange)] shadow-sm dark:text-orange-300"
-                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
+                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               )}
             >
               {r.label}
@@ -347,7 +338,7 @@ export default function CopilotTelemetryPage() {
                             ? "bg-[var(--status-success-bg)] text-[var(--status-success-text)]"
                             : tool.success_rate >= 80
                               ? "bg-[var(--status-warning-bg)] text-amber-700"
-                              : "bg-[var(--status-danger-bg)] text-red-700",
+                              : "bg-[var(--status-danger-bg)] text-red-700"
                         )}
                       >
                         {tool.success_rate.toFixed(1)}%
@@ -404,9 +395,7 @@ function LatencyPercentileTable({ data }: { data: LatencyBucket[] }) {
                 key={item.label}
                 className="border-b border-[var(--border-default)] last:border-0 hover:bg-[var(--bg-secondary)]"
               >
-                <td className="px-3 py-2 text-[var(--text-primary)]">
-                  {item.label}
-                </td>
+                <td className="px-3 py-2 text-[var(--text-primary)]">{item.label}</td>
                 <td className="px-3 py-2 text-[var(--text-secondary)] text-end font-mono">
                   {item.p50.toFixed(1)}ms
                 </td>

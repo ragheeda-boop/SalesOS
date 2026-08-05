@@ -2,10 +2,7 @@ export { DashboardLayout } from "./_layout/dashboard-layout";
 export { DashboardGrid } from "./_layout/dashboard-grid";
 export { DashboardErrorBoundary } from "./_layout/dashboard-error-boundary";
 export { DashboardLoading } from "./_layout/dashboard-loading";
-export {
-  DashboardProvider,
-  useDashboardContext,
-} from "./_providers/dashboard-provider";
+export { DashboardProvider, useDashboardContext } from "./_providers/dashboard-provider";
 export { createRegistry } from "./_registry/widget-registry";
 export { WIDGET_CONFIG, getWidgetConfig } from "./_registry/widget-config";
 export type { WidgetId, WidgetConfig } from "./_registry/widget-config";

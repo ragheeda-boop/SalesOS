@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react'
-import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from '../src/dropdown'
+import { render, screen } from "@testing-library/react";
+import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from "../src/dropdown";
 
-describe('Dropdown', () => {
-  it('renders trigger', () => {
+describe("Dropdown", () => {
+  it("renders trigger", () => {
     render(
       <Dropdown>
         <DropdownTrigger>Menu</DropdownTrigger>
@@ -10,7 +10,7 @@ describe('Dropdown', () => {
           <DropdownItem>Item 1</DropdownItem>
         </DropdownContent>
       </Dropdown>
-    )
-    expect(screen.getByText('Menu')).toBeInTheDocument()
-  })
-})
+    );
+    expect(screen.getByText("Menu")).toBeInTheDocument();
+  });
+});

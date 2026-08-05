@@ -74,23 +74,17 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       if (params) {
         value = Object.entries(params).reduce(
           (str, [k, v]) => str.replace(`{${k}}`, String(v)),
-          value,
+          value
         );
       }
       return value;
     },
-    [locale],
+    [locale]
   );
 
-  const dir = useMemo<"ltr" | "rtl">(
-    () => (locale === "ar" ? "rtl" : "ltr"),
-    [locale],
-  );
+  const dir = useMemo<"ltr" | "rtl">(() => (locale === "ar" ? "rtl" : "ltr"), [locale]);
 
-  const value = useMemo(
-    () => ({ t, locale, setLocale, dir }),
-    [t, locale, setLocale, dir],
-  );
+  const value = useMemo(() => ({ t, locale, setLocale, dir }), [t, locale, setLocale, dir]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

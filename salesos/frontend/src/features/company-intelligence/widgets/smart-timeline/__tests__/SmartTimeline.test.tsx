@@ -63,16 +63,12 @@ describe("SmartTimelineView", () => {
 
   it("shows empty state", () => {
     renderView([]);
-    expect(
-      screen.getByText("لا توجد أحداث في الجدول الزمني"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("لا توجد أحداث في الجدول الزمني")).toBeInTheDocument();
   });
 
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "الجدول الزمني الذكي" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "الجدول الزمني الذكي" })).toBeInTheDocument();
   });
 });
 

@@ -1,7 +1,4 @@
-import {
-  WORKFLOW_STUDIO_HONESTY,
-  WORKFLOW_STUDIO_NON_GOALS,
-} from "../workflowStudioHonesty";
+import { WORKFLOW_STUDIO_HONESTY, WORKFLOW_STUDIO_NON_GOALS } from "../workflowStudioHonesty";
 
 describe("workflowStudioHonesty — FE-S10-03", () => {
   it("states tip HTTP + WorkflowEngine + for_each deferred", () => {

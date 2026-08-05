@@ -31,11 +31,7 @@ jest.mock("@salesos/search", () => ({
 jest.mock("../../components", () => ({
   SearchSection: ({ children }: any) => <div>{children}</div>,
   SearchResultCard: ({ result, highlighted, onClick }: any) => (
-    <div
-      role="option"
-      aria-selected={highlighted}
-      onClick={() => onClick?.(result)}
-    >
+    <div role="option" aria-selected={highlighted} onClick={() => onClick?.(result)}>
       {result.title}
     </div>
   ),
@@ -53,7 +49,7 @@ describe("CommandBarResults", () => {
         onResultClick={jest.fn()}
         onSuggestionClick={jest.fn()}
         onHistoryClick={jest.fn()}
-      />,
+      />
     );
     expect(screen.getByText("شركة")).toBeInTheDocument();
   });

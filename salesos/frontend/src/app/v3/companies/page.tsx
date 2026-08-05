@@ -42,7 +42,7 @@ export default function V3CompaniesPage() {
       sort_by: "name_ar",
       sort_order: sortOrder,
     }),
-    [debouncedQ, sortOrder],
+    [debouncedQ, sortOrder]
   );
 
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
@@ -79,14 +79,9 @@ export default function V3CompaniesPage() {
                 className="w-full max-w-md rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm outline-none focus:border-[var(--muhide-orange)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
               />
             </label>
-            <p
-              className="text-[12px] text-[var(--text-muted)]"
-              aria-live="polite"
-            >
+            <p className="text-[12px] text-[var(--text-muted)]" aria-live="polite">
               {isFetching && !isLoading ? "Updating… · " : null}
-              {!isLoading && !isError
-                ? `${total} result${total === 1 ? "" : "s"}`
-                : null}
+              {!isLoading && !isError ? `${total} result${total === 1 ? "" : "s"}` : null}
             </p>
           </div>
 
@@ -95,9 +90,7 @@ export default function V3CompaniesPage() {
           ) : isError ? (
             <ErrorState
               title="Could not load companies"
-              description={
-                error instanceof Error ? error.message : "Request failed"
-              }
+              description={error instanceof Error ? error.message : "Request failed"}
               onRetry={() => void refetch()}
             />
           ) : items.length === 0 ? (
@@ -118,9 +111,7 @@ export default function V3CompaniesPage() {
                     Clear search
                   </button>
                 ) : (
-                  <GhostButtonLink href="/companies">
-                    Open legacy companies
-                  </GhostButtonLink>
+                  <GhostButtonLink href="/companies">Open legacy companies</GhostButtonLink>
                 )
               }
             />
@@ -133,18 +124,12 @@ export default function V3CompaniesPage() {
                       <th scope="col" className="px-3 py-2.5 font-medium">
                         <button
                           type="button"
-                          onClick={() =>
-                            setSortOrder((prev) =>
-                              prev === "asc" ? "desc" : "asc",
-                            )
-                          }
+                          onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
                           className="inline-flex items-center gap-1 hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
                           aria-label={`Sort by name, currently ${sortOrder === "asc" ? "ascending" : "descending"}`}
                         >
                           Name
-                          <span aria-hidden="true">
-                            {sortOrder === "asc" ? "↑" : "↓"}
-                          </span>
+                          <span aria-hidden="true">{sortOrder === "asc" ? "↑" : "↓"}</span>
                         </button>
                       </th>
                       <th scope="col" className="px-3 py-2.5 font-medium">
@@ -175,10 +160,7 @@ export default function V3CompaniesPage() {
                             {companyDisplayName(company)}
                           </Link>
                           {company.name_en && company.name_ar ? (
-                            <p
-                              className="mt-0.5 text-[12px] text-[var(--text-muted)]"
-                              dir="auto"
-                            >
+                            <p className="mt-0.5 text-[12px] text-[var(--text-muted)]" dir="auto">
                               {company.name_ar}
                             </p>
                           ) : null}

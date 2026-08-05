@@ -10,18 +10,14 @@ import { getTenantId } from "../useTenant";
 import { useCompany, useCompanySearch } from "../companyQueries";
 
 const mockedApi = api as jest.Mocked<typeof api>;
-const mockedGetTenantId = getTenantId as jest.MockedFunction<
-  typeof getTenantId
->;
+const mockedGetTenantId = getTenantId as jest.MockedFunction<typeof getTenantId>;
 
 function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 }
 
@@ -100,9 +96,6 @@ describe("useCompanySearch", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(response);
-    expect(mockedApi.searchCompanies).toHaveBeenCalledWith(
-      { q: "شركة" },
-      "tenant-1",
-    );
+    expect(mockedApi.searchCompanies).toHaveBeenCalledWith({ q: "شركة" }, "tenant-1");
   });
 });

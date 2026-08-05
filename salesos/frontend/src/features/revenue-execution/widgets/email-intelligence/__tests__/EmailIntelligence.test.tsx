@@ -58,9 +58,7 @@ describe("EmailView", () => {
   });
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "ذكاء البريد" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "ذكاء البريد" })).toBeInTheDocument();
   });
 });
 describe("EmailIntelligenceWidget", () => {

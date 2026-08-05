@@ -42,8 +42,7 @@ export function useOutreachDetail(runId: string | null) {
 export function useCreateOutreachDraft() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: OutreachBody) =>
-      createOutreachDraft(getTenantId(), body),
+    mutationFn: (body: OutreachBody) => createOutreachDraft(getTenantId(), body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: gtmKeys.all });
     },

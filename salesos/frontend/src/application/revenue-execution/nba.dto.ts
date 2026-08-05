@@ -1,12 +1,5 @@
 export type NBActionType =
-  | "call"
-  | "meeting"
-  | "demo"
-  | "proposal"
-  | "follow_up"
-  | "event"
-  | "review"
-  | "custom";
+  "call" | "meeting" | "demo" | "proposal" | "follow_up" | "event" | "review" | "custom";
 export type NBAPriority = "critical" | "high" | "medium" | "low";
 
 export interface NextBestAction {

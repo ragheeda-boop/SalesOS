@@ -3,10 +3,7 @@ import { MarketPulseView } from "../MarketPulseView";
 import { MarketPulseWidget } from "../MarketPulseContainer";
 import { describeWidgetContract } from "@salesos/widget-sdk/testing";
 import type { MarketPulseViewProps } from "../types";
-import type {
-  MarketTrend,
-  CompanyMover,
-} from "@/application/dashboard/dashboard.dto";
+import type { MarketTrend, CompanyMover } from "@/application/dashboard/dashboard.dto";
 
 const sampleTrends: MarketTrend[] = [
   {
@@ -68,10 +65,7 @@ describeWidgetContract({
       featureFlag: { enabled: true, tier: "enterprise" },
     },
     render: ({ data }) => (
-      <MarketPulseView
-        trends={data.trends ?? []}
-        topMovers={data.topMovers ?? []}
-      />
+      <MarketPulseView trends={data.trends ?? []} topMovers={data.topMovers ?? []} />
     ),
   },
 });
@@ -116,9 +110,7 @@ describe("MarketPulseView", () => {
     renderView();
     expect(screen.getByLabelText(/قطاع التقنية - صاعد/)).toBeInTheDocument();
     expect(screen.getByLabelText(/قطاع الطاقة - هابط/)).toBeInTheDocument();
-    expect(
-      screen.getByLabelText(/قطاع الرعاية الصحية - مستقر/),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/قطاع الرعاية الصحية - مستقر/)).toBeInTheDocument();
   });
 
   it("renders change percentages with direction arrows", () => {
@@ -156,9 +148,7 @@ describe("MarketPulseView", () => {
   // 5. Empty State
   it("shows empty state when no data", () => {
     renderView({ trends: [], topMovers: [] });
-    expect(
-      screen.getByText("بيانات السوق غير متاحة حالياً"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("بيانات السوق غير متاحة حالياً")).toBeInTheDocument();
     expect(screen.getByText(/يمكنك المحاولة لاحقاً/)).toBeInTheDocument();
   });
 
@@ -177,9 +167,7 @@ describe("MarketPulseView", () => {
   // 6. Accessibility
   it('has role="region" with aria-label', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "نبض السوق" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "نبض السوق" })).toBeInTheDocument();
   });
 
   it('has role="list" for trends and movers sections', () => {
@@ -192,12 +180,8 @@ describe("MarketPulseView", () => {
 
   it("each trend has descriptive aria-label", () => {
     renderView();
-    expect(
-      screen.getByLabelText(/قطاع التقنية - صاعد - 12\.5%/),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByLabelText(/قطاع الطاقة - هابط - 3\.2%/),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/قطاع التقنية - صاعد - 12\.5%/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/قطاع الطاقة - هابط - 3\.2%/)).toBeInTheDocument();
   });
 
   it("each mover has descriptive aria-label", () => {
@@ -270,9 +254,8 @@ describe("MarketPulseView", () => {
 describe("MarketPulseWidget (SDK integration)", () => {
   it("is a valid React component", () => {
     expect(MarketPulseWidget).toBeDefined();
-    expect(
-      typeof MarketPulseWidget === "function" ||
-        typeof MarketPulseWidget === "object",
-    ).toBe(true);
+    expect(typeof MarketPulseWidget === "function" || typeof MarketPulseWidget === "object").toBe(
+      true
+    );
   });
 });

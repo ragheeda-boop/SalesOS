@@ -8,23 +8,17 @@ import { useTour } from "../tour";
 import { TOUR_REGISTRY, TOUR_LABELS } from "../tour";
 
 export function OnboardingChecklist() {
-  const { items, completed, completeItem, progress, isComplete } =
-    useOnboarding();
+  const { items, completed, completeItem, progress, isComplete } = useOnboarding();
   const { startTour } = useTour();
 
   if (isComplete) return null;
 
   return (
-    <Card
-      className="w-full border-l-[3px]"
-      style={{ borderLeftColor: "var(--muhide-orange)" }}
-    >
+    <Card className="w-full border-l-[3px]" style={{ borderLeftColor: "var(--muhide-orange)" }}>
       <CardHeader>
         <div className="flex items-center gap-2">
           <Rocket className="h-5 w-5 text-[var(--muhide-orange)]" />
-          <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-            البدء مع SalesOS
-          </h3>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">البدء مع SalesOS</h3>
         </div>
       </CardHeader>
       <CardContent>
@@ -57,7 +51,7 @@ export function OnboardingChecklist() {
                     "flex items-center gap-2 rounded-lg px-2 py-2 text-sm transition-colors",
                     done
                       ? "text-[var(--text-muted)] line-through"
-                      : "text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]",
+                      : "text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]"
                   )}
                 >
                   <span
@@ -65,7 +59,7 @@ export function OnboardingChecklist() {
                       "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
                       done
                         ? "border-success-500 bg-success-500/10"
-                        : "border-[var(--border-default)]",
+                        : "border-[var(--border-default)]"
                     )}
                   >
                     {done ? (

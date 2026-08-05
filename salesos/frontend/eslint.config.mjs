@@ -20,16 +20,26 @@ const eslintConfig = [
     rules: {
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-empty-interface": "error",
-      "@typescript-eslint/ban-ts-comment": ["warn", { "ts-expect-error": "allow-with-description" }],
+      "@typescript-eslint/ban-ts-comment": [
+        "warn",
+        { "ts-expect-error": "allow-with-description" },
+      ],
       "react-hooks/exhaustive-deps": "error",
       "@typescript-eslint/no-unused-vars": [
         "error",
-        { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_" },
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
       ],
     },
   },
   {
-    files: ["src/app/**/*.tsx", "src/app/**/*.ts", "src/features/**/*.tsx", "src/features/**/*.ts", "src/components/**/*.tsx", "src/components/**/*.ts"],
+    files: [
+      "src/app/**/*.tsx",
+      "src/app/**/*.ts",
+      "src/features/**/*.tsx",
+      "src/features/**/*.ts",
+      "src/components/**/*.tsx",
+      "src/components/**/*.ts",
+    ],
     plugins: {
       "custom-rules": {
         rules: {
@@ -37,14 +47,17 @@ const eslintConfig = [
             meta: {
               type: "suggestion",
               docs: {
-                description: "Forbid Tailwind color utility classes in page components; use CSS variables instead",
+                description:
+                  "Forbid Tailwind color utility classes in page components; use CSS variables instead",
               },
               messages: {
-                found: "Use CSS variables (var(--text-*), var(--bg-*), var(--border-*)) instead of Tailwind color classes like '{{ class }}'",
+                found:
+                  "Use CSS variables (var(--text-*), var(--bg-*), var(--border-*)) instead of Tailwind color classes like '{{ class }}'",
               },
             },
             create(context) {
-              const colorNamePattern = /(?:text|bg|border)-(?:neutral|slate|gray|zinc|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(?:50|100|200|300|400|500|600|700|800|900|950)\b/g;
+              const colorNamePattern =
+                /(?:text|bg|border)-(?:neutral|slate|gray|zinc|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(?:50|100|200|300|400|500|600|700|800|900|950)\b/g;
 
               return {
                 JSXAttribute(node) {
@@ -74,10 +87,12 @@ const eslintConfig = [
             meta: {
               type: "problem",
               docs: {
-                description: "Forbid hardcoded hex/rgb/rgba colors in style attributes; use CSS variables instead",
+                description:
+                  "Forbid hardcoded hex/rgb/rgba colors in style attributes; use CSS variables instead",
               },
               messages: {
-                found: "Use CSS variables (var(--*), var(--text-*), var(--bg-*)) instead of hardcoded color '{{ color }}'",
+                found:
+                  "Use CSS variables (var(--*), var(--text-*), var(--bg-*)) instead of hardcoded color '{{ color }}'",
               },
             },
             create(context) {

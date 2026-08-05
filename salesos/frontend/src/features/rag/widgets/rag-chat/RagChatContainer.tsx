@@ -15,9 +15,7 @@ interface Message {
 export function RagChatContainer() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
-  const [expandedCitations, setExpandedCitations] = useState<string | null>(
-    null,
-  );
+  const [expandedCitations, setExpandedCitations] = useState<string | null>(null);
   const askQuestion = useAskQuestion();
 
   const handleSend = async () => {

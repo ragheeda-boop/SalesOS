@@ -62,9 +62,7 @@ describe("KnowledgeGraphPage", () => {
 
   it("renders search input", () => {
     render(<KnowledgeGraphPage />);
-    expect(
-      screen.getByPlaceholderText("Search entities..."),
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Search entities...")).toBeInTheDocument();
   });
 
   it("renders search button", () => {
@@ -82,9 +80,7 @@ describe("KnowledgeGraphPage", () => {
 
   it("shows empty state message before search", () => {
     render(<KnowledgeGraphPage />);
-    expect(
-      screen.getByText("Search for entities or load demo data"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Search for entities or load demo data")).toBeInTheDocument();
   });
 
   it("shows demo button", () => {
@@ -112,7 +108,7 @@ describe("KnowledgeGraphPage", () => {
     await waitFor(() => {
       expect(mockApiGet).toHaveBeenCalledWith(
         "/api/v1/graph/search",
-        expect.objectContaining({ params: { q: "aramco", limit: 50 } }),
+        expect.objectContaining({ params: { q: "aramco", limit: 50 } })
       );
     });
   });

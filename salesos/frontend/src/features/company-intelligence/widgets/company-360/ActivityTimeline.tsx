@@ -2,14 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useEntityActivity } from "@/lib/hooks/activityQueries";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  cn,
-  Skeleton,
-  EmptyState,
-} from "@salesos/ui";
+import { Card, CardContent, CardHeader, cn, Skeleton, EmptyState } from "@salesos/ui";
 import {
   Mail,
   Phone,
@@ -194,15 +187,8 @@ function formatDateGroup(dateStr: string): string {
   }).format(date);
 }
 
-export function ActivityTimeline({
-  companyId,
-  limit = 50,
-}: ActivityTimelineProps) {
-  const { data, isLoading, isError } = useEntityActivity(
-    "company",
-    companyId,
-    limit,
-  );
+export function ActivityTimeline({ companyId, limit = 50 }: ActivityTimelineProps) {
+  const { data, isLoading, isError } = useEntityActivity("company", companyId, limit);
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [visibleCount, setVisibleCount] = useState(20);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -246,7 +232,7 @@ export function ActivityTimeline({
           setVisibleCount((prev) => Math.min(prev + 20, filtered.length));
         }
       },
-      { threshold: 0.1 },
+      { threshold: 0.1 }
     );
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
@@ -261,9 +247,7 @@ export function ActivityTimeline({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Clock className="h-5 w-5 text-[var(--text-muted)]" />
-              <span className="text-sm font-semibold text-[var(--text-primary)]">
-                النشاطات
-              </span>
+              <span className="text-sm font-semibold text-[var(--text-primary)]">النشاطات</span>
             </div>
           </div>
         </CardHeader>
@@ -290,9 +274,7 @@ export function ActivityTimeline({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-[var(--text-muted)]" />
-            <span className="text-sm font-semibold text-[var(--text-primary)]">
-              النشاطات
-            </span>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">النشاطات</span>
           </div>
         </CardHeader>
         <CardContent>
@@ -312,9 +294,7 @@ export function ActivityTimeline({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-[var(--text-muted)]" />
-            <span className="text-sm font-semibold text-[var(--text-primary)]">
-              النشاطات
-            </span>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">النشاطات</span>
           </div>
         </CardHeader>
         <CardContent>
@@ -334,13 +314,9 @@ export function ActivityTimeline({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-[var(--text-muted)]" />
-            <span className="text-sm font-semibold text-[var(--text-primary)]">
-              النشاطات
-            </span>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">النشاطات</span>
           </div>
-          <span className="text-xs text-[var(--text-muted)]">
-            {filtered.length} نشاط
-          </span>
+          <span className="text-xs text-[var(--text-muted)]">{filtered.length} نشاط</span>
         </div>
       </CardHeader>
       <CardContent>
@@ -351,9 +327,7 @@ export function ActivityTimeline({
               onClick={() => toggleFilter(chip.key)}
               className={cn(
                 "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
-                activeFilters.has(chip.key)
-                  ? "bg-[var(--bg-primary)] text-white"
-                  : chip.color,
+                activeFilters.has(chip.key) ? "bg-[var(--bg-primary)] text-white" : chip.color
               )}
             >
               {chip.label}
@@ -391,24 +365,20 @@ export function ActivityTimeline({
                   {items.map((activity, idx) => {
                     const config = ACTION_CONFIG[activity.action] || {
                       icon: Clock,
-                      color:
-                        "text-[var(--text-secondary)] bg-[var(--bg-tertiary)]",
+                      color: "text-[var(--text-secondary)] bg-[var(--bg-tertiary)]",
                       label: activity.action,
                       category: "other",
                     };
                     const Icon = config.icon;
                     return (
-                      <div
-                        key={activity.id}
-                        className="relative flex gap-3 pb-4 last:pb-0"
-                      >
+                      <div key={activity.id} className="relative flex gap-3 pb-4 last:pb-0">
                         {idx < items.length - 1 && (
                           <div className="absolute right-[15px] top-10 bottom-0 w-px bg-[var(--bg-tertiary)]" />
                         )}
                         <div
                           className={cn(
                             "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                            config.color,
+                            config.color
                           )}
                         >
                           <Icon className="h-4 w-4" />

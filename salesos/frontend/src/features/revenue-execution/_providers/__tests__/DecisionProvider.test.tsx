@@ -25,10 +25,7 @@ jest.mock("@salesos/decision-platform", () => ({
 }));
 
 import { DecisionProvider, useDecision } from "../DecisionProvider";
-import type {
-  DecisionContext,
-  DecisionResult,
-} from "@salesos/decision-platform";
+import type { DecisionContext, DecisionResult } from "@salesos/decision-platform";
 
 const sampleResult: DecisionResult = {
   id: "dec-1",
@@ -36,9 +33,7 @@ const sampleResult: DecisionResult = {
   confidence: 0.85,
   action: "contact_decision_maker",
   reasoning: "ارتفاع نية الشراء",
-  scores: [
-    { name: "buying_intent", value: 0.85, label: "نية الشراء", weight: 1 },
-  ],
+  scores: [{ name: "buying_intent", value: 0.85, label: "نية الشراء", weight: 1 }],
   explainability: {
     factors: [
       {
@@ -92,7 +87,7 @@ describe("DecisionProvider", () => {
         opportunity_id: "opp-1",
         entity_type: "opportunity",
       }),
-      expect.any(Object),
+      expect.any(Object)
     );
   });
 
@@ -108,7 +103,7 @@ describe("DecisionProvider", () => {
     expect(mockPost).toHaveBeenCalledWith(
       "/api/v1/decision/batch",
       expect.any(Array),
-      expect.any(Object),
+      expect.any(Object)
     );
   });
 
@@ -118,11 +113,7 @@ describe("DecisionProvider", () => {
     const { result } = renderHook(() => useDecision(), {
       wrapper: DecisionProvider,
     });
-    const output = await result.current.getRecommendation(
-      "opp-1",
-      "tenant-1",
-      "actor-1",
-    );
+    const output = await result.current.getRecommendation("opp-1", "tenant-1", "actor-1");
 
     expect(output).toEqual(sampleResult);
     expect(mockPost).toHaveBeenCalledWith(
@@ -132,7 +123,7 @@ describe("DecisionProvider", () => {
         actor_id: "actor-1",
         opportunity_id: "opp-1",
       }),
-      expect.any(Object),
+      expect.any(Object)
     );
   });
 
@@ -142,12 +133,7 @@ describe("DecisionProvider", () => {
     const { result } = renderHook(() => useDecision(), {
       wrapper: DecisionProvider,
     });
-    const output = await result.current.getScores(
-      "entity-1",
-      "opportunity",
-      "tenant-1",
-      "actor-1",
-    );
+    const output = await result.current.getScores("entity-1", "opportunity", "tenant-1", "actor-1");
 
     expect(output).toEqual(sampleResult.scores);
   });
@@ -172,7 +158,7 @@ describe("DecisionProvider", () => {
     expect(output).toEqual(historyItems);
     expect(mockGet).toHaveBeenCalledWith(
       "/api/v1/decision/history",
-      expect.objectContaining({ params: { limit: 10 } }),
+      expect.objectContaining({ params: { limit: 10 } })
     );
   });
 
@@ -187,10 +173,7 @@ describe("DecisionProvider", () => {
     const output = await result.current.getExplainability("dec-1");
 
     expect(output).toEqual(sampleResult.explainability);
-    expect(mockGet).toHaveBeenCalledWith(
-      "/api/v1/decision/dec-1/explain",
-      expect.any(Object),
-    );
+    expect(mockGet).toHaveBeenCalledWith("/api/v1/decision/dec-1/explain", expect.any(Object));
   });
 
   it("provides submitFeedback via API", async () => {
@@ -212,7 +195,7 @@ describe("DecisionProvider", () => {
     expect(mockPost).toHaveBeenCalledWith(
       "/api/v1/decision/feedback",
       expect.objectContaining({ decision_id: "dec-1", outcome: "accepted" }),
-      expect.any(Object),
+      expect.any(Object)
     );
   });
 
@@ -251,14 +234,14 @@ describe("DecisionProvider", () => {
     const output = result.current.score(
       "buying_intent" as any,
       { signal: 0.8, engagement: 0.7 },
-      { source: "test" },
+      { source: "test" }
     );
 
     expect(output).toEqual(scoreResult);
     expect(_mockScore).toHaveBeenCalledWith(
       "buying_intent",
       { signal: 0.8, engagement: 0.7 },
-      { source: "test" },
+      { source: "test" }
     );
   });
 
@@ -281,7 +264,7 @@ describe("DecisionProvider", () => {
 describe("useDecision outside provider", () => {
   it("throws error when used without DecisionProvider", () => {
     expect(() => renderHook(() => useDecision())).toThrow(
-      "useDecision must be used within a DecisionProvider",
+      "useDecision must be used within a DecisionProvider"
     );
   });
 });

@@ -40,11 +40,7 @@ export function AdoptionChart({ data }: AdoptionChartProps) {
   }
 
   return (
-    <div
-      className="space-y-3"
-      role="img"
-      aria-label={t("cs.adoption_chart_label")}
-    >
+    <div className="space-y-3" role="img" aria-label={t("cs.adoption_chart_label")}>
       {data.map((item, i) => (
         <div key={item.feature}>
           <div className="flex items-center justify-between text-sm mb-1">
@@ -64,7 +60,7 @@ export function AdoptionChart({ data }: AdoptionChartProps) {
             <div
               className={cn(
                 "h-full rounded-full transition-all duration-500",
-                FEATURE_COLORS[i % FEATURE_COLORS.length],
+                FEATURE_COLORS[i % FEATURE_COLORS.length]
               )}
               style={{ width: `${item.adoption_pct}%` }}
             />

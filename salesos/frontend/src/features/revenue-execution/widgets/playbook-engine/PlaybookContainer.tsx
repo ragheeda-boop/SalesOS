@@ -55,8 +55,7 @@ const PLAYBOOKS: Record<string, Playbook> = {
   healthcare: {
     id: "pb-health",
     name: "دليل الرعاية الصحية",
-    description:
-      "استراتيجية اختراق قطاع الرعاية الصحية مع التركيز على الامتثال",
+    description: "استراتيجية اختراق قطاع الرعاية الصحية مع التركيز على الامتثال",
     industry: "healthcare",
     estimatedDuration: "10-14 أسبوع",
     successRate: 68,
@@ -116,10 +115,7 @@ export const PlaybookWidget = createWidget({
   },
   useData: () => {
     const { id: companyId } = useParams<{ id: string }>();
-    const { data: recommendations } = useDecisionRecommendations(
-      companyId,
-      "company",
-    );
+    const { data: recommendations } = useDecisionRecommendations(companyId, "company");
     const basePlaybook = getPlaybook("energy");
     const platformSuccessRate = recommendations?.[0]?.confidence
       ? Math.round(recommendations[0].confidence * 100)
@@ -142,7 +138,5 @@ export const PlaybookWidget = createWidget({
       refetch: () => {},
     };
   },
-  render: ({ data }) => (
-    <PlaybookView playbook={data.playbook} industry={data.industry} />
-  ),
+  render: ({ data }) => <PlaybookView playbook={data.playbook} industry={data.industry} />,
 });

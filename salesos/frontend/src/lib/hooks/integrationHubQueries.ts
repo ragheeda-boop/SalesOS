@@ -74,18 +74,11 @@ export function useHubConflictPolicy(connectionId: string | null) {
   });
 }
 
-export function useActiveHubMapping(
-  connectionId: string | null,
-  model: string,
-) {
+export function useActiveHubMapping(connectionId: string | null, model: string) {
   const tenantId = getTenantId();
   const trimmed = model.trim();
   return useQuery({
-    queryKey: integrationHubKeys.activeMapping(
-      tenantId,
-      connectionId || "",
-      trimmed,
-    ),
+    queryKey: integrationHubKeys.activeMapping(tenantId, connectionId || "", trimmed),
     queryFn: () => getActiveHubMapping(tenantId, connectionId!, trimmed),
     enabled: Boolean(connectionId && trimmed),
     staleTime: 15_000,
@@ -95,8 +88,7 @@ export function useActiveHubMapping(
 export function useCreateHubConnection() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: HubConnectionCreate) =>
-      createHubConnection(getTenantId(), body),
+    mutationFn: (body: HubConnectionCreate) => createHubConnection(getTenantId(), body),
     onSuccess: () => {
       qc.invalidateQueries({
         queryKey: integrationHubKeys.connections(getTenantId()),
@@ -107,27 +99,21 @@ export function useCreateHubConnection() {
 
 export function useTestHubConnection() {
   return useMutation({
-    mutationFn: (connectionId: string) =>
-      testHubConnection(getTenantId(), connectionId),
+    mutationFn: (connectionId: string) => testHubConnection(getTenantId(), connectionId),
   });
 }
 
 export function useCreateHubMapping() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      connectionId,
-      body,
-    }: {
-      connectionId: string;
-      body: HubMappingCreate;
-    }) => createHubMapping(getTenantId(), connectionId, body),
+    mutationFn: ({ connectionId, body }: { connectionId: string; body: HubMappingCreate }) =>
+      createHubMapping(getTenantId(), connectionId, body),
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({
         queryKey: integrationHubKeys.activeMapping(
           getTenantId(),
           vars.connectionId,
-          vars.body.model,
+          vars.body.model
         ),
       });
     },
@@ -137,19 +123,11 @@ export function useCreateHubMapping() {
 export function usePutHubConflictPolicy() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      connectionId,
-      body,
-    }: {
-      connectionId: string;
-      body: HubConflictPolicyUpsert;
-    }) => putHubConflictPolicy(getTenantId(), connectionId, body),
+    mutationFn: ({ connectionId, body }: { connectionId: string; body: HubConflictPolicyUpsert }) =>
+      putHubConflictPolicy(getTenantId(), connectionId, body),
     onSuccess: (_data, vars) => {
       qc.invalidateQueries({
-        queryKey: integrationHubKeys.conflictPolicy(
-          getTenantId(),
-          vars.connectionId,
-        ),
+        queryKey: integrationHubKeys.conflictPolicy(getTenantId(), vars.connectionId),
       });
     },
   });
@@ -157,21 +135,15 @@ export function usePutHubConflictPolicy() {
 
 export function useScheduleHubSync() {
   return useMutation({
-    mutationFn: ({
-      connectionId,
-      body,
-    }: {
-      connectionId: string;
-      body: HubScheduleCreate;
-    }) => scheduleHubSync(getTenantId(), connectionId, body),
+    mutationFn: ({ connectionId, body }: { connectionId: string; body: HubScheduleCreate }) =>
+      scheduleHubSync(getTenantId(), connectionId, body),
   });
 }
 
 export function useDisconnectHubConnection() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (connectionId: string) =>
-      disconnectHubConnection(getTenantId(), connectionId),
+    mutationFn: (connectionId: string) => disconnectHubConnection(getTenantId(), connectionId),
     onSuccess: () => {
       qc.invalidateQueries({
         queryKey: integrationHubKeys.connections(getTenantId()),
@@ -191,7 +163,6 @@ export function useCertifyMeta() {
 
 export function useCertifyConnector() {
   return useMutation({
-    mutationFn: (connectorKey: string) =>
-      certifyConnector(getTenantId(), connectorKey),
+    mutationFn: (connectorKey: string) => certifyConnector(getTenantId(), connectorKey),
   });
 }

@@ -8,9 +8,7 @@ jest.mock("@/lib/ragQueries", () => ({
 
 import { useAskQuestion } from "@/lib/ragQueries";
 
-const mockUseAskQuestion = useAskQuestion as jest.MockedFunction<
-  typeof useAskQuestion
->;
+const mockUseAskQuestion = useAskQuestion as jest.MockedFunction<typeof useAskQuestion>;
 
 function setupMocks(overrides = {}) {
   const mockMutate = jest.fn();
@@ -82,9 +80,7 @@ describe("RagChatWidget", () => {
       fireEvent.click(screen.getByText("إرسال"));
 
       await waitFor(() => {
-        expect(
-          screen.getByText("هذه هي الإجابة من المساعد الذكي"),
-        ).toBeInTheDocument();
+        expect(screen.getByText("هذه هي الإجابة من المساعد الذكي")).toBeInTheDocument();
       });
     });
 
@@ -152,9 +148,7 @@ describe("RagChatWidget", () => {
       fireEvent.click(screen.getByText("إرسال"));
 
       await waitFor(() => {
-        expect(
-          screen.getByText("عذراً، حدث خطأ في الحصول على الإجابة"),
-        ).toBeInTheDocument();
+        expect(screen.getByText("عذراً، حدث خطأ في الحصول على الإجابة")).toBeInTheDocument();
       });
     });
 

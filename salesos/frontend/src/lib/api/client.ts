@@ -96,7 +96,7 @@ api.interceptors.request.use(async (config) => {
       } else if (token) {
         try {
           const payload = JSON.parse(
-            atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")),
+            atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))
           );
           if (payload?.tenant_id) {
             config.headers["X-Tenant-Id"] = String(payload.tenant_id);
@@ -118,8 +118,7 @@ api.interceptors.response.use(
     if (typeof window === "undefined") return Promise.reject(error);
 
     const status = error.response?.status;
-    const original = error.config as
-      (typeof error.config & { _csrfRetry?: boolean }) | undefined;
+    const original = error.config as (typeof error.config & { _csrfRetry?: boolean }) | undefined;
 
     if (
       status === 403 &&
@@ -142,12 +141,8 @@ api.interceptors.response.use(
     }
 
     if (status === 401) {
-      const requestUrl =
-        typeof error.config?.url === "string" ? error.config.url : "";
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem(ACCESS_TOKEN_KEY)
-          : null;
+      const requestUrl = typeof error.config?.url === "string" ? error.config.url : "";
+      const token = typeof window !== "undefined" ? localStorage.getItem(ACCESS_TOKEN_KEY) : null;
       if (
         shouldSurfaceOwnerAudienceDenial({
           status,
@@ -160,7 +155,7 @@ api.interceptors.response.use(
         window.dispatchEvent(
           new CustomEvent(OWNER_AUTH_DENIED_EVENT, {
             detail: { message, status, url: requestUrl },
-          }),
+          })
         );
         return Promise.reject(error);
       }
@@ -168,8 +163,7 @@ api.interceptors.response.use(
       const original401 = error.config as
         (typeof error.config & { _refreshRetry?: boolean }) | undefined;
       const isRefreshCall =
-        typeof requestUrl === "string" &&
-        requestUrl.includes("/api/v1/identity/refresh");
+        typeof requestUrl === "string" && requestUrl.includes("/api/v1/identity/refresh");
       if (
         original401 &&
         !original401._refreshRetry &&
@@ -201,8 +195,7 @@ api.interceptors.response.use(
       const detail = error.response?.data?.detail;
       if (Array.isArray(detail)) {
         const hasAuthError = detail.some(
-          (d: { loc?: string[] }) =>
-            d.loc?.includes("header") && d.loc?.includes("authorization"),
+          (d: { loc?: string[] }) => d.loc?.includes("header") && d.loc?.includes("authorization")
         );
         if (hasAuthError) {
           clearAuthTokens();
@@ -220,7 +213,7 @@ api.interceptors.response.use(
         window.dispatchEvent(
           new CustomEvent(QUOTA_EXCEEDED_EVENT, {
             detail: { ...data, message, status },
-          }),
+          })
         );
       } else if (status === 403 && isEntitlementDeniedPayload(data)) {
         const message = formatEntitlementDeniedMessage(data);
@@ -228,7 +221,7 @@ api.interceptors.response.use(
         window.dispatchEvent(
           new CustomEvent(ENTITLEMENT_DENIED_EVENT, {
             detail: { ...data, message },
-          }),
+          })
         );
       } else if (status === 403) {
         console.warn("[API] 403 Forbidden:", data);
@@ -238,7 +231,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 
 export default api;

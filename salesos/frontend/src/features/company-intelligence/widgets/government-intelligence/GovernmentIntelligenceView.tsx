@@ -17,9 +17,7 @@ const STATUS_L = {
   violation: "مخالفة",
 };
 
-export function GovernmentIntelligenceView({
-  records,
-}: GovernmentIntelligenceViewProps) {
+export function GovernmentIntelligenceView({ records }: GovernmentIntelligenceViewProps) {
   if (records.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -51,13 +49,11 @@ export function GovernmentIntelligenceView({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-medium text-[var(--text-primary)]">
-                {r.title}
-              </span>
+              <span className="text-xs font-medium text-[var(--text-primary)]">{r.title}</span>
               <span
                 className={cn(
                   "mr-auto rounded px-1 py-0.5 text-[9px] font-medium",
-                  STATUS_V[r.status] ?? STATUS_V.active,
+                  STATUS_V[r.status] ?? STATUS_V.active
                 )}
               >
                 {STATUS_L[r.status] ?? r.status}
@@ -66,9 +62,7 @@ export function GovernmentIntelligenceView({
             <div className="mt-0.5 flex items-center gap-2 text-[9px] text-[var(--text-muted)]">
               <span>{r.source}</span>
               {r.expiryDate && (
-                <span>
-                  ينتهي: {new Date(r.expiryDate).toLocaleDateString("ar-SA")}
-                </span>
+                <span>ينتهي: {new Date(r.expiryDate).toLocaleDateString("ar-SA")}</span>
               )}
               <span>%{Math.round(r.confidence * 100)}</span>
             </div>

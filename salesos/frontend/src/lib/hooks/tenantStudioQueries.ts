@@ -25,8 +25,7 @@ export function useCustomFieldSchema(objectKey: StudioObjectKey) {
 export function useCreateCustomField() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: CustomFieldCreate) =>
-      createCustomField(getTenantId(), body),
+    mutationFn: (body: CustomFieldCreate) => createCustomField(getTenantId(), body),
     onSuccess: (row) => {
       const key = row.object_key as StudioObjectKey;
       qc.invalidateQueries({

@@ -26,27 +26,22 @@ interface DecisionContextValue {
   getRecommendation: (
     opportunityId: string,
     tenantId: string,
-    actorId: string,
+    actorId: string
   ) => Promise<DecisionResult>;
   getScores: (
     entityId: string,
     entityType: DecisionContext["entityType"],
     tenantId: string,
-    actorId: string,
+    actorId: string
   ) => Promise<Score[]>;
-  getHistory: (
-    tenantId: string,
-    limit?: number,
-  ) => Promise<DecisionHistoryItem[]>;
+  getHistory: (tenantId: string, limit?: number) => Promise<DecisionHistoryItem[]>;
   getExplainability: (decisionId: string) => Promise<Explainability | null>;
-  submitFeedback: (
-    feedback: Feedback,
-  ) => Promise<{ id: string; accepted: boolean }>;
+  submitFeedback: (feedback: Feedback) => Promise<{ id: string; accepted: boolean }>;
   getFeedbackStats: (tenantId: string) => Promise<FeedbackStats>;
   score: (
     type: ScoreType,
     factors: Record<string, number>,
-    metadata?: Record<string, unknown>,
+    metadata?: Record<string, unknown>
   ) => Score;
 }
 
@@ -111,7 +106,7 @@ export function DecisionProvider({ children }: { children: React.ReactNode }) {
         entityType: "opportunity",
       });
     },
-    [evaluate],
+    [evaluate]
   );
 
   const getScores = useCallback(
@@ -119,7 +114,7 @@ export function DecisionProvider({ children }: { children: React.ReactNode }) {
       entityId: string,
       entityType: DecisionContext["entityType"],
       tenantId: string,
-      actorId: string,
+      actorId: string
     ) => {
       const result = await evaluate({
         tenantId,
@@ -129,7 +124,7 @@ export function DecisionProvider({ children }: { children: React.ReactNode }) {
       });
       return result.scores;
     },
-    [evaluate],
+    [evaluate]
   );
 
   const getHistory = useCallback(async (tenantId: string, limit?: number) => {
@@ -162,7 +157,7 @@ export function DecisionProvider({ children }: { children: React.ReactNode }) {
       },
       {
         headers: tenantHeaders(feedback.tenantId),
-      },
+      }
     );
     const data = response.data;
     return {
@@ -182,21 +177,16 @@ export function DecisionProvider({ children }: { children: React.ReactNode }) {
       rejected: data?.rejected ?? 0,
       ignored: data?.ignored ?? 0,
       acceptanceRate: data?.acceptanceRate ?? 0,
-      totalRevenueImpact:
-        data?.totalRevenueImpact ?? data?.avgRevenueImpact ?? 0,
+      totalRevenueImpact: data?.totalRevenueImpact ?? data?.avgRevenueImpact ?? 0,
       averageTimeToExecution: data?.averageTimeToExecution ?? null,
     } as FeedbackStats;
   }, []);
 
   const score = useCallback(
-    (
-      type: ScoreType,
-      factors: Record<string, number>,
-      metadata?: Record<string, unknown>,
-    ) => {
+    (type: ScoreType, factors: Record<string, number>, metadata?: Record<string, unknown>) => {
       return scoringEngine.score(type, factors, metadata);
     },
-    [],
+    []
   );
 
   const value = useMemo<DecisionContextValue>(
@@ -221,7 +211,7 @@ export function DecisionProvider({ children }: { children: React.ReactNode }) {
       submitFeedback,
       getFeedbackStats,
       score,
-    ],
+    ]
   );
 
   return <DecisionCtx.Provider value={value}>{children}</DecisionCtx.Provider>;
@@ -245,9 +235,7 @@ export function useDecisionSafe(): DecisionContextValue | null {
 
 import type { DecisionContextData } from "@salesos/widget-sdk";
 
-export function useCompanyDecision(
-  _tenantId: string,
-): DecisionContextData | null {
+export function useCompanyDecision(_tenantId: string): DecisionContextData | null {
   const ctx = useContext(DecisionCtx);
   if (!ctx) {
     return null;

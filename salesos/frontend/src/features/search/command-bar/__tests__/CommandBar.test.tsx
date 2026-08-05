@@ -17,9 +17,7 @@ import { CommandBar } from "../CommandBar";
 describe("CommandBar", () => {
   it("renders SearchProvider wrapper", () => {
     const { container } = render(<CommandBar />);
-    expect(
-      container.querySelector('[data-testid="search-provider"]'),
-    ).toBeInTheDocument();
+    expect(container.querySelector('[data-testid="search-provider"]')).toBeInTheDocument();
   });
 
   it("inner component returns null when not open", () => {

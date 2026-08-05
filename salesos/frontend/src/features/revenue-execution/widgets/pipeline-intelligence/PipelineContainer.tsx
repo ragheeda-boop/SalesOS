@@ -3,14 +3,8 @@
 import { createWidget } from "@salesos/widget-sdk";
 import { useOpportunities } from "@/lib/hooks/opportunityQueries";
 import { useDecisionScores } from "@/lib/decisionQueries";
-import {
-  STAGE_LABEL,
-  STAGE_WEIGHT,
-} from "@/application/revenue-execution/opportunity.dto";
-import type {
-  PipelineInsight,
-  PipelineStage,
-} from "@/application/revenue-execution/pipeline.dto";
+import { STAGE_LABEL, STAGE_WEIGHT } from "@/application/revenue-execution/opportunity.dto";
+import type { PipelineInsight, PipelineStage } from "@/application/revenue-execution/pipeline.dto";
 import { PipelineView } from "./PipelineView";
 
 const STAGE_COLORS: Record<string, string> = {
@@ -71,9 +65,7 @@ export const PipelineIntelligenceWidget = createWidget({
       id: s,
       label: STAGE_LABEL[s],
       deals: active.filter((o) => o.stage === s).length,
-      value: active
-        .filter((o) => o.stage === s)
-        .reduce((sum, o) => sum + (o.value ?? 0), 0),
+      value: active.filter((o) => o.stage === s).reduce((sum, o) => sum + (o.value ?? 0), 0),
       color: STAGE_COLORS[s] ?? "bg-neutral-300",
     }));
 
@@ -84,16 +76,11 @@ export const PipelineIntelligenceWidget = createWidget({
       totalDeals,
       totalValue,
       weightedValue: stages.reduce(
-        (s, st) =>
-          s +
-          st.value * (STAGE_WEIGHT[st.id as keyof typeof STAGE_WEIGHT] ?? 0),
-        0,
+        (s, st) => s + st.value * (STAGE_WEIGHT[st.id as keyof typeof STAGE_WEIGHT] ?? 0),
+        0
       ),
       avgDealSize: totalDeals > 0 ? totalValue / totalDeals : 0,
-      winRate:
-        opps.length > 0
-          ? opps.filter((o) => o.stage === "won").length / opps.length
-          : 0,
+      winRate: opps.length > 0 ? opps.filter((o) => o.stage === "won").length / opps.length : 0,
       stages,
       stalledDeals: [],
       bottlenecks: [],

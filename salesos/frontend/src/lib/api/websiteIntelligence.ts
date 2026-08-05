@@ -57,7 +57,7 @@ export interface WebsiteIntelligenceMeta {
 }
 
 export async function getWebsiteIntelligenceMeta(
-  tenantId: string,
+  tenantId: string
 ): Promise<WebsiteIntelligenceMeta> {
   const resp = await api.get<WebsiteIntelligenceMeta>(`${BASE}/meta`, {
     headers: tenantHeaders(tenantId),
@@ -66,7 +66,7 @@ export async function getWebsiteIntelligenceMeta(
 }
 
 export async function listWebsiteIntelligence(
-  tenantId: string,
+  tenantId: string
 ): Promise<WebsiteIntelligenceSnapshot[]> {
   const resp = await api.get<WebsiteIntelligenceSnapshot[]>(BASE, {
     headers: tenantHeaders(tenantId),
@@ -76,18 +76,17 @@ export async function listWebsiteIntelligence(
 
 export async function getWebsiteIntelligence(
   tenantId: string,
-  runId: string,
+  runId: string
 ): Promise<WebsiteIntelligenceSnapshot> {
-  const resp = await api.get<WebsiteIntelligenceSnapshot>(
-    `${BASE}/${encodeURIComponent(runId)}`,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.get<WebsiteIntelligenceSnapshot>(`${BASE}/${encodeURIComponent(runId)}`, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }
 
 export async function runWebsiteIntelligence(
   tenantId: string,
-  body: WebsiteIntelligenceBody,
+  body: WebsiteIntelligenceBody
 ): Promise<WebsiteIntelligenceSnapshot> {
   const resp = await api.post<WebsiteIntelligenceSnapshot>(BASE, body, {
     headers: tenantHeaders(tenantId),

@@ -22,7 +22,7 @@ function tenantHeaders(tenantId: string) {
 
 export async function listPermissionsCatalog(
   tenantId: string,
-  planTier?: string | null,
+  planTier?: string | null
 ): Promise<StudioPermissionCatalogItem[]> {
   const resp = await api.get<StudioPermissionCatalogItem[]>(`${BASE}/catalog`, {
     headers: tenantHeaders(tenantId),
@@ -33,7 +33,7 @@ export async function listPermissionsCatalog(
 
 export async function getPermissionsCeiling(
   tenantId: string,
-  planTier?: string | null,
+  planTier?: string | null
 ): Promise<PermissionsCeilingSummary> {
   const resp = await api.get<PermissionsCeilingSummary>(`${BASE}/ceiling`, {
     headers: tenantHeaders(tenantId),
@@ -44,19 +44,17 @@ export async function getPermissionsCeiling(
 
 export async function setPermissionsCeiling(
   tenantId: string,
-  body: SetPermissionsCeilingBody,
+  body: SetPermissionsCeilingBody
 ): Promise<PermissionsCeilingSummary> {
-  const resp = await api.put<PermissionsCeilingSummary>(
-    `${BASE}/ceiling`,
-    body,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.put<PermissionsCeilingSummary>(`${BASE}/ceiling`, body, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }
 
 export async function checkPermissionsCeiling(
   tenantId: string,
-  body: CeilingCheckRequest,
+  body: CeilingCheckRequest
 ): Promise<CeilingCheckResponse> {
   const resp = await api.post<CeilingCheckResponse>(`${BASE}/check`, body, {
     headers: tenantHeaders(tenantId),
@@ -73,7 +71,7 @@ export async function listCustomRoles(tenantId: string): Promise<CustomRole[]> {
 
 export async function upsertCustomRole(
   tenantId: string,
-  body: CustomRoleUpsert,
+  body: CustomRoleUpsert
 ): Promise<CustomRole> {
   const resp = await api.post<CustomRole>(`${BASE}/roles`, body, {
     headers: tenantHeaders(tenantId),

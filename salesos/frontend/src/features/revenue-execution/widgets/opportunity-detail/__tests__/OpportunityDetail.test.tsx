@@ -86,12 +86,7 @@ describe("OpportunityDetailView", () => {
 
   it("calls onStageChange when stage clicked", () => {
     const onStageChange = jest.fn();
-    render(
-      <OpportunityDetailView
-        opportunity={sample}
-        onStageChange={onStageChange}
-      />,
-    );
+    render(<OpportunityDetailView opportunity={sample} onStageChange={onStageChange} />);
     const stages = screen.getAllByText("6");
     fireEvent.click(stages[0]);
     expect(onStageChange).toHaveBeenCalledWith("o1", "closing");
@@ -104,9 +99,7 @@ describe("OpportunityDetailView", () => {
 
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: /تفاصيل الفرصة/ }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: /تفاصيل الفرصة/ })).toBeInTheDocument();
   });
 });
 

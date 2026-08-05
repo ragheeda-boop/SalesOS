@@ -33,7 +33,7 @@ describe("workflowStudio API — FE-S10-03", () => {
       "/api/v1/studio/workflows",
       expect.objectContaining({
         headers: { "X-Tenant-Id": "tenant-1" },
-      }),
+      })
     );
   });
 
@@ -51,14 +51,12 @@ describe("workflowStudio API — FE-S10-03", () => {
     });
     const row = await upsertWorkflowCanvas("tenant-1", {
       name: "Demo",
-      nodes: [
-        { id: "n1", kind: "action", step_type: "log_message", config: {} },
-      ],
+      nodes: [{ id: "n1", kind: "action", step_type: "log_message", config: {} }],
     });
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/studio/workflows",
       expect.objectContaining({ name: "Demo" }),
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(row.id).toBe("c1");
   });
@@ -71,7 +69,7 @@ describe("workflowStudio API — FE-S10-03", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/studio/workflows/c1/compile",
       {},
-      expect.any(Object),
+      expect.any(Object)
     );
 
     mocked.post.mockResolvedValue({ data: { workflow: { steps: [] } } });
@@ -82,7 +80,7 @@ describe("workflowStudio API — FE-S10-03", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/studio/workflows/compile",
       expect.objectContaining({ name: "tmp" }),
-      expect.any(Object),
+      expect.any(Object)
     );
   });
 });

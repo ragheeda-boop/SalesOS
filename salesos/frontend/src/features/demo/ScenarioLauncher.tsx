@@ -66,25 +66,18 @@ export function ScenarioLauncher() {
 
       <div className="grid gap-3">
         {scenarios.map((scenario) => (
-          <div
-            key={scenario.id}
-            className="border rounded-lg p-4 space-y-2 bg-card"
-          >
+          <div key={scenario.id} className="border rounded-lg p-4 space-y-2 bg-card">
             <div className="flex items-start justify-between">
               <div>
                 <h4 className="font-medium">{scenario.title}</h4>
-                <p className="text-sm text-muted-foreground">
-                  {scenario.description}
-                </p>
+                <p className="text-sm text-muted-foreground">{scenario.description}</p>
               </div>
               <button
                 onClick={() => runScenario(scenario.id)}
                 disabled={running}
                 className="px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50"
               >
-                {running && activeScenario === scenario.id
-                  ? "Running..."
-                  : "Run Scenario"}
+                {running && activeScenario === scenario.id ? "Running..." : "Run Scenario"}
               </button>
             </div>
 
@@ -104,17 +97,12 @@ export function ScenarioLauncher() {
             {activeScenario === scenario.id && results.length > 0 && (
               <div className="mt-3 space-y-2 border-t pt-3">
                 {results.map((result) => (
-                  <div
-                    key={result.step}
-                    className="text-sm bg-muted/50 rounded p-2"
-                  >
+                  <div key={result.step} className="text-sm bg-muted/50 rounded p-2">
                     <span className="font-medium">
                       Step {result.step}: {result.label}
                     </span>
                     <p className="text-muted-foreground mt-1">
-                      {result.data?.narrative ||
-                        result.data?.status ||
-                        "Completed"}
+                      {result.data?.narrative || result.data?.status || "Completed"}
                     </p>
                   </div>
                 ))}
@@ -124,9 +112,7 @@ export function ScenarioLauncher() {
         ))}
       </div>
 
-      {error && (
-        <p className="text-sm text-[var(--status-danger-text)]">{error}</p>
-      )}
+      {error && <p className="text-sm text-[var(--status-danger-text)]">{error}</p>}
     </div>
   );
 }

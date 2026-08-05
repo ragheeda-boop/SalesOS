@@ -1,8 +1,8 @@
 # 09 — Audit Run Template | قالب تشغيل التدقيق
 
-**Pack version:** Enterprise Audit Board **v2.1**  
+**Pack version:** Enterprise Audit Board **v2.2**  
 **Template status:** Blank — **NOT EXECUTED**  
-**Instruction:** Copy this file to `docs/audit/ga-engineering-audit/ENTERPRISE-AUDIT-BOARD-RUN-YYYY-MM-DD.md` when a human-approved run opens. Do not invent scores.
+**Instruction:** Copy this file to `docs/audit/ga-engineering-audit/ENTERPRISE-AUDIT-BOARD-RUN-YYYY-MM-DD.md` when a human-approved run opens. Do not invent scores. Register in [history/RUNS-INDEX.md](./history/RUNS-INDEX.md) on open and close.
 
 ---
 
@@ -11,7 +11,7 @@
 | Field | Value |
 |-------|-------|
 | Run ID | `EAB-YYYY-MM-DD` (pending) |
-| Pack version | v2.1 (`enterprise-audit-board/`) |
+| Pack version | v2.2 (`enterprise-audit-board/`) |
 | Date opened | — |
 | Date closed | — |
 | Product scope | SalesOS (`salesos/`) under AQLIYA |
@@ -20,7 +20,25 @@
 | Low-load exceptions | none / list |
 | Workstreams in scope | — |
 | Principal Board sibling | [PRINCIPAL-AUDIT-BOARD-2026-08-06.md](../PRINCIPAL-AUDIT-BOARD-2026-08-06.md) |
+| Prior pack run ID | none / `EAB-…` |
+| History index | [history/RUNS-INDEX.md](./history/RUNS-INDEX.md) — row Status: — |
 | Execution state | **NOT EXECUTED** |
+
+---
+
+## History registration
+
+| Field | Value |
+|-------|-------|
+| Run ID | `EAB-YYYY-MM-DD` |
+| Path (run body) | `ENTERPRISE-AUDIT-BOARD-RUN-YYYY-MM-DD.md` |
+| Overall classification | **PENDING** / production no-go default |
+| Prod Readiness (Axis 39) | — / not validated |
+| Drift (`raw` / `drift_score`) | — / not validated |
+| AI Gov Index (G-07) | — / not validated |
+| Audit Maturity Level | — / not validated |
+| Index updated on open? | no |
+| Index updated on close? | no |
 
 ---
 
@@ -100,10 +118,10 @@
 | 37 | 30/60/90 Recovery | — | not validated | — |
 | 38 | 12-Month Roadmap | — | not validated | — |
 | 39 | Production Readiness Synthesis | — | not validated | — |
-| 40 | Decision Traceability Matrix **(v2.1)** | — | not validated | — |
-| 41 | Architectural Drift Detection **(v2.1)** | — | not validated | — |
-| 42 | Engineering Economics **(v2.1)** | — | not validated | — |
-| 43 | AI Governance Score **(v2.1)** | — | not validated | — |
+| 40 | Decision Traceability Matrix **(mandatory)** | — | not validated | — |
+| 41 | Architectural Drift Detection **(mandatory)** | — | not validated | — |
+| 42 | Engineering Economics **(mandatory)** | — | not validated | — |
+| 43 | AI Governance Score **(mandatory)** | — | not validated | — |
 
 ### Dimension rollups (empty)
 
@@ -182,6 +200,62 @@
 
 ---
 
+## Audit Maturity assessment
+
+**NOT EXECUTED** — see [10-AUDIT-MATURITY-MODEL.md](./10-AUDIT-MATURITY-MODEL.md)
+
+| Field | Value |
+|-------|-------|
+| Assessed level | — / not validated |
+| Level name | — |
+| Evidence paths | — |
+| Weakest unmet criterion | — |
+| Exit gaps toward next level | — |
+| Honesty note | Expect L1–L2 until fitness automation; do not claim L4/L5 without evidence |
+
+```text
+Audit Maturity Level: not validated — <name> | Evidence: — | Exit toward L?: —
+```
+
+---
+
+## Governance KPI snapshot
+
+**NOT EXECUTED** — see [11-GOVERNANCE-KPI-DASHBOARD.md](./11-GOVERNANCE-KPI-DASHBOARD.md)  
+**Product:** SalesOS | **As of:** — | **Prior run:** none | **Validation:** not validated
+
+| ID | KPI | Current | Prior | Δ | Notes |
+|----|-----|---------|-------|---|-------|
+| G-01 | Open P0 count | — | — | — | not validated |
+| G-02 | Mean time to close P1 | — | — | — | not validated |
+| G-03 | Architectural Drift rate / month | — | — | — | not validated |
+| G-04 | ADR implementation ratio | — | — | — | not validated |
+| G-05 | Decision Traceability completion % | — | — | — | not validated |
+| G-06 | Fitness Functions activated % | — | — | — | not validated |
+| G-07 | AI Governance Index | — | — | — | Separate from Security |
+| G-08 | Engineering Economics Trend | — | — | — | needs prior run |
+| G-09 | Security residual P0s | — | — | — | Separate from AI Gov |
+| G-10 | Duplicate capability count | — | — | — | not validated |
+| G-11 | Dead / orphan capability count | — | — | — | not validated |
+| G-12 | Audit Maturity Level | — | — | — | meta; not Axis 39 |
+| G-13 | Unsigned go-live gates | — | — | — | not validated |
+
+---
+
+## Comparison to prior run
+
+**No prior pack-based run — baseline** (until a prior `EAB-*` exists)
+
+| Metric | Prior (EAB-…) | Current | Δ | Reading |
+|--------|---------------|---------|---|---------|
+| Open P0 (G-01) | — | — | — | not validated |
+| Drift score | — | — | — | not validated |
+| AI Gov Index | — | — | — | not validated |
+| Economics trend (G-08) | — | — | — | not validated |
+| Maturity Level | — | — | — | not validated |
+
+---
+
 ## Findings register
 
 **EMPTY — NOT EXECUTED**
@@ -225,4 +299,4 @@
 
 ---
 
-*Audit Run Template — Enterprise Audit Board v2.1 — NOT EXECUTED — board run awaits approval*
+*Audit Run Template — Enterprise Audit Board v2.2 — NOT EXECUTED — board run awaits approval*

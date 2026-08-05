@@ -109,9 +109,7 @@ jest.mock("@/lib/api", () => ({
   rollupAdminUsage: jest.fn().mockResolvedValue({ events_processed: 0 }),
   listAdminDunningCases: jest.fn().mockResolvedValue([]),
   evaluateAdminDunning: jest.fn().mockResolvedValue({ evaluated: 0 }),
-  clearAdminDunning: jest
-    .fn()
-    .mockResolvedValue({ tenant_id: "1", cleared: 0 }),
+  clearAdminDunning: jest.fn().mockResolvedValue({ tenant_id: "1", cleared: 0 }),
   quoteAdminPlanChange: jest.fn(),
   applyAdminPlanChange: jest.fn(),
   applyPendingAdminPlanChanges: jest.fn().mockResolvedValue({ applied: 0 }),
@@ -145,11 +143,7 @@ function createWrapper() {
     defaultOptions: { queries: { retry: false } },
   });
   function Wrapper({ children }: { children: React.ReactNode }) {
-    return React.createElement(
-      QueryClientProvider,
-      { client: queryClient },
-      children,
-    );
+    return React.createElement(QueryClientProvider, { client: queryClient }, children);
   }
   Wrapper.displayName = "AdminQueryTestWrapper";
   return Wrapper;

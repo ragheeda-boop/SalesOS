@@ -15,14 +15,7 @@ import {
   ModalFooter,
   useToast,
 } from "@salesos/ui";
-import {
-  Plus,
-  Flag,
-  ToggleLeft,
-  ToggleRight,
-  Loader2,
-  Edit3,
-} from "lucide-react";
+import { Plus, Flag, ToggleLeft, ToggleRight, Loader2, Edit3 } from "lucide-react";
 import {
   useAdminFeatureFlags,
   useCreateAdminFeatureFlag,
@@ -101,26 +94,19 @@ export default function AdminFlagsPage() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="admin-flags-odoo-honesty"
       >
-        STORY-09-07: Tip Grade-A key <code>{FLAG_ODOO_INTEGRATION}</code> gates
-        Odoo Hub connect/test/schedule (HTTP 403 when off). Global default off;
-        enable design partner <code>{MUHIDE_TENANT_SLUG}</code> via tenant
-        override (ops UUID — not invented here). Unlinked badges on tip Monitor
-        (FE-S09-08). Not Production GO / RAG GO.
+        STORY-09-07: Tip Grade-A key <code>{FLAG_ODOO_INTEGRATION}</code> gates Odoo Hub
+        connect/test/schedule (HTTP 403 when off). Global default off; enable design partner{" "}
+        <code>{MUHIDE_TENANT_SLUG}</code> via tenant override (ops UUID — not invented here).
+        Unlinked badges on tip Monitor (FE-S09-08). Not Production GO / RAG GO.
       </p>
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-            Feature Flags
-          </h1>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Feature Flags</h1>
           <p className="mt-1 text-sm text-[var(--text-muted)]">
-            Manage feature toggles, rollout percentages, and per-tenant
-            overrides.
+            Manage feature toggles, rollout percentages, and per-tenant overrides.
           </p>
         </div>
-        <Button
-          onClick={() => setShowCreate(true)}
-          leftIcon={<Plus className="h-4 w-4" />}
-        >
+        <Button onClick={() => setShowCreate(true)} leftIcon={<Plus className="h-4 w-4" />}>
           New Flag
         </Button>
       </div>
@@ -131,16 +117,12 @@ export default function AdminFlagsPage() {
           {isLoading ? (
             <Card className="p-12 text-center">
               <Spinner className="mx-auto h-6 w-6" />
-              <p className="mt-2 text-sm text-[var(--text-muted)]">
-                Loading flags...
-              </p>
+              <p className="mt-2 text-sm text-[var(--text-muted)]">Loading flags...</p>
             </Card>
           ) : !flags?.length ? (
             <Card className="p-12 text-center">
               <Flag className="mx-auto mb-3 h-10 w-10 text-[var(--text-disabled)]" />
-              <p className="text-[var(--text-muted)]">
-                No feature flags configured
-              </p>
+              <p className="text-[var(--text-muted)]">No feature flags configured</p>
               <p className="mt-1 text-sm text-[var(--text-disabled)]">
                 Create your first flag to start managing feature rollouts.
               </p>
@@ -150,9 +132,7 @@ export default function AdminFlagsPage() {
               {flags.map((flag: AdminFeatureFlag) => (
                 <button
                   key={flag.id}
-                  onClick={() =>
-                    setSelectedFlag(selectedFlag === flag.id ? null : flag.id)
-                  }
+                  onClick={() => setSelectedFlag(selectedFlag === flag.id ? null : flag.id)}
                   className={`w-full flex items-center justify-between p-4 text-left transition ${
                     selectedFlag === flag.id
                       ? "bg-[var(--muhide-orange)]/5"
@@ -166,12 +146,8 @@ export default function AdminFlagsPage() {
                       <Flag className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="font-medium text-[var(--text-primary)]">
-                        {flag.name}
-                      </p>
-                      <p className="text-xs text-[var(--text-muted)] font-mono">
-                        {flag.key}
-                      </p>
+                      <p className="font-medium text-[var(--text-primary)]">{flag.name}</p>
+                      <p className="text-xs text-[var(--text-muted)] font-mono">{flag.key}</p>
                       {flag.description && (
                         <p className="text-xs text-[var(--text-disabled)] mt-0.5 max-w-md truncate">
                           {flag.description}
@@ -185,10 +161,7 @@ export default function AdminFlagsPage() {
                     </Badge>
                     {flag.is_global && <Badge variant="default">Global</Badge>}
                     {flag.key === FLAG_ODOO_INTEGRATION ? (
-                      <Badge
-                        variant="default"
-                        data-testid="admin-flags-odoo-gate-badge"
-                      >
+                      <Badge variant="default" data-testid="admin-flags-odoo-gate-badge">
                         Odoo Hub gate
                       </Badge>
                     ) : null}
@@ -243,9 +216,7 @@ export default function AdminFlagsPage() {
                 </label>
                 <Input
                   value={createForm.key}
-                  onChange={(e) =>
-                    setCreateForm({ ...createForm, key: e.target.value })
-                  }
+                  onChange={(e) => setCreateForm({ ...createForm, key: e.target.value })}
                   placeholder="new_dashboard"
                   className="font-mono"
                 />
@@ -259,9 +230,7 @@ export default function AdminFlagsPage() {
                 </label>
                 <Input
                   value={createForm.name}
-                  onChange={(e) =>
-                    setCreateForm({ ...createForm, name: e.target.value })
-                  }
+                  onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
                   placeholder="New Dashboard"
                 />
               </div>
@@ -290,9 +259,7 @@ export default function AdminFlagsPage() {
                     })
                   }
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-                    createForm.enabled
-                      ? "bg-[var(--muhide-orange)]"
-                      : "bg-[var(--bg-tertiary)]"
+                    createForm.enabled ? "bg-[var(--muhide-orange)]" : "bg-[var(--bg-tertiary)]"
                   }`}
                   role="switch"
                   aria-checked={createForm.enabled}
@@ -303,9 +270,7 @@ export default function AdminFlagsPage() {
                     }`}
                   />
                 </button>
-                <span className="text-sm text-[var(--text-secondary)]">
-                  Enabled by default
-                </span>
+                <span className="text-sm text-[var(--text-secondary)]">Enabled by default</span>
               </div>
             </div>
           </ModalBody>
@@ -315,13 +280,9 @@ export default function AdminFlagsPage() {
             </Button>
             <Button
               onClick={handleCreate}
-              disabled={
-                !createForm.key || !createForm.name || createMutation.isPending
-              }
+              disabled={!createForm.key || !createForm.name || createMutation.isPending}
               leftIcon={
-                createMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : undefined
+                createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined
               }
             >
               {createMutation.isPending ? "Creating..." : "Create Flag"}
@@ -331,10 +292,7 @@ export default function AdminFlagsPage() {
       </Modal>
 
       {/* Edit Modal */}
-      <Modal
-        open={!!showEdit}
-        onOpenChange={(open) => !open && setShowEdit(null)}
-      >
+      <Modal open={!!showEdit} onOpenChange={(open) => !open && setShowEdit(null)}>
         <ModalContent>
           <ModalHeader>Edit Feature Flag</ModalHeader>
           <ModalBody>
@@ -345,9 +303,7 @@ export default function AdminFlagsPage() {
                 </label>
                 <Input
                   value={editForm.name}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, name: e.target.value })
-                  }
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                 />
               </div>
               <div>
@@ -356,9 +312,7 @@ export default function AdminFlagsPage() {
                 </label>
                 <Input
                   value={editForm.description}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, description: e.target.value })
-                  }
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                 />
               </div>
               <div>
@@ -387,13 +341,9 @@ export default function AdminFlagsPage() {
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  onClick={() =>
-                    setEditForm({ ...editForm, enabled: !editForm.enabled })
-                  }
+                  onClick={() => setEditForm({ ...editForm, enabled: !editForm.enabled })}
                   className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-                    editForm.enabled
-                      ? "bg-[var(--muhide-orange)]"
-                      : "bg-[var(--bg-tertiary)]"
+                    editForm.enabled ? "bg-[var(--muhide-orange)]" : "bg-[var(--bg-tertiary)]"
                   }`}
                   role="switch"
                   aria-checked={editForm.enabled}
@@ -414,10 +364,7 @@ export default function AdminFlagsPage() {
             <Button variant="outline" onClick={() => setShowEdit(null)}>
               Cancel
             </Button>
-            <Button
-              onClick={handleEdit}
-              leftIcon={<ToggleRight className="h-4 w-4" />}
-            >
+            <Button onClick={handleEdit} leftIcon={<ToggleRight className="h-4 w-4" />}>
               Save Changes
             </Button>
           </ModalFooter>
@@ -447,14 +394,12 @@ function FlagTenantOverride({ flagId }: { flagId: string }) {
         toast({ variant: "error", title: "Failed to toggle" });
       }
     },
-    [toggleMutation, toast],
+    [toggleMutation, toast]
   );
 
   return (
     <Card className="p-4 space-y-4">
-      <h3 className="font-semibold text-[var(--text-primary)]">
-        Per-Tenant Overrides
-      </h3>
+      <h3 className="font-semibold text-[var(--text-primary)]">Per-Tenant Overrides</h3>
       {isLoading ? (
         <div className="py-8 text-center">
           <Spinner className="mx-auto h-5 w-5" />
@@ -471,19 +416,13 @@ function FlagTenantOverride({ flagId }: { flagId: string }) {
               className="flex items-center justify-between rounded-lg border border-[var(--border-default)] p-3"
             >
               <div>
-                <p className="text-sm font-medium text-[var(--text-primary)]">
-                  {o.tenant_name}
-                </p>
-                <p className="text-xs text-[var(--text-muted)] font-mono">
-                  {o.tenant_id}
-                </p>
+                <p className="text-sm font-medium text-[var(--text-primary)]">{o.tenant_name}</p>
+                <p className="text-xs text-[var(--text-muted)] font-mono">{o.tenant_id}</p>
               </div>
               <button
                 onClick={() => handleToggle(o.tenant_id, o.enabled)}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
-                  o.enabled
-                    ? "bg-[var(--muhide-orange)]"
-                    : "bg-[var(--bg-tertiary)]"
+                  o.enabled ? "bg-[var(--muhide-orange)]" : "bg-[var(--bg-tertiary)]"
                 }`}
                 role="switch"
                 aria-checked={o.enabled}

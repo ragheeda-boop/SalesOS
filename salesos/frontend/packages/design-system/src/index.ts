@@ -5,4 +5,4 @@
  * Tokens are the single source of truth — always import from @salesos/tokens.
  */
 
-export * from '@salesos/tokens'
+export * from "@salesos/tokens";

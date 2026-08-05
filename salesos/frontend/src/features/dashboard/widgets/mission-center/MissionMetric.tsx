@@ -11,8 +11,7 @@ export function MissionMetric({
   trend,
   ariaLabel,
 }: MissionMetricProps) {
-  const trendIcon =
-    trend?.direction === "up" ? "↑" : trend?.direction === "down" ? "↓" : "→";
+  const trendIcon = trend?.direction === "up" ? "↑" : trend?.direction === "down" ? "↓" : "→";
   const trendColor =
     trend?.direction === "up"
       ? "text-success-600"
@@ -34,20 +33,15 @@ export function MissionMetric({
       <div
         className={cn(
           "text-2xl font-bold leading-tight",
-          valueClassName ?? "text-[var(--muhide-orange)]",
+          valueClassName ?? "text-[var(--muhide-orange)]"
         )}
       >
         {typeof value === "number" ? value.toLocaleString() : value}
       </div>
-      <div className="mt-0.5 text-xs font-medium text-[var(--text-muted)]">
-        {label}
-      </div>
+      <div className="mt-0.5 text-xs font-medium text-[var(--text-muted)]">{label}</div>
       {trend && (
         <div
-          className={cn(
-            "mt-1 inline-flex items-center gap-0.5 text-[10px]",
-            trendColor,
-          )}
+          className={cn("mt-1 inline-flex items-center gap-0.5 text-[10px]", trendColor)}
           aria-label={`${trend.direction} ${trend.value}%`}
         >
           <span aria-hidden="true">{trendIcon}</span>

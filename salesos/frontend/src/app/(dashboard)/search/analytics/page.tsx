@@ -6,13 +6,7 @@ import api from "@/lib/api";
 import { cn } from "@salesos/ui";
 import { BarChart, LineChart, MetricCard } from "@salesos/charts";
 import { useTranslation } from "@/lib/i18n";
-import {
-  ArrowLeft,
-  Search,
-  Clock,
-  TrendingUp,
-  AlertTriangle,
-} from "lucide-react";
+import { ArrowLeft, Search, Clock, TrendingUp, AlertTriangle } from "lucide-react";
 
 interface TopQuery {
   query: string;
@@ -62,25 +56,19 @@ function ZeroResultGauge({ rate }: { rate: number }) {
         ? "bg-[var(--status-warning-bg)] dark:bg-amber-950/30"
         : "bg-[var(--status-danger-bg)] dark:bg-red-950/30";
   return (
-    <div
-      className={cn("rounded-xl border border-[var(--border-default)] p-4", bg)}
-    >
+    <div className={cn("rounded-xl border border-[var(--border-default)] p-4", bg)}>
       <div className="flex items-center gap-2 mb-2">
         <AlertTriangle className="h-4 w-4 text-[var(--text-muted)]" />
-        <span className="text-sm font-medium text-[var(--text-muted)]">
-          Zero-Result Rate
-        </span>
+        <span className="text-sm font-medium text-[var(--text-muted)]">Zero-Result Rate</span>
       </div>
       <div className="flex items-baseline gap-2">
-        <span className={cn("text-3xl font-bold", color)}>
-          {rate.toFixed(1)}%
-        </span>
+        <span className={cn("text-3xl font-bold", color)}>{rate.toFixed(1)}%</span>
       </div>
       <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500",
-            color.replace("text-", "bg-"),
+            color.replace("text-", "bg-")
           )}
           style={{ width: `${Math.min(rate, 100)}%` }}
         />
@@ -122,9 +110,7 @@ function LatencyChart({ data }: { data: LatencyBucket[] }) {
 function LatencyTable({ data }: { data: LatencyBucket[] }) {
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-        Latency Percentiles
-      </h3>
+      <h3 className="text-sm font-semibold text-[var(--text-primary)]">Latency Percentiles</h3>
       <div className="rounded-lg border border-[var(--border-default)] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -149,18 +135,10 @@ function LatencyTable({ data }: { data: LatencyBucket[] }) {
                 key={item.label}
                 className="border-b border-[var(--border-default)] last:border-0 hover:bg-[var(--bg-secondary)]"
               >
-                <td className="px-3 py-2 text-[var(--text-primary)]">
-                  {item.label}
-                </td>
-                <td className="px-3 py-2 text-[var(--text-secondary)]">
-                  {item.p50.toFixed(1)}ms
-                </td>
-                <td className="px-3 py-2 text-[var(--text-secondary)]">
-                  {item.p95.toFixed(1)}ms
-                </td>
-                <td className="px-3 py-2 text-[var(--text-secondary)]">
-                  {item.p99.toFixed(1)}ms
-                </td>
+                <td className="px-3 py-2 text-[var(--text-primary)]">{item.label}</td>
+                <td className="px-3 py-2 text-[var(--text-secondary)]">{item.p50.toFixed(1)}ms</td>
+                <td className="px-3 py-2 text-[var(--text-secondary)]">{item.p95.toFixed(1)}ms</td>
+                <td className="px-3 py-2 text-[var(--text-secondary)]">{item.p99.toFixed(1)}ms</td>
               </tr>
             ))}
           </tbody>
@@ -172,9 +150,7 @@ function LatencyTable({ data }: { data: LatencyBucket[] }) {
 
 export default function SearchAnalyticsPage() {
   const { t } = useTranslation();
-  const [analytics, setAnalytics] = useState<SearchAnalyticsResponse | null>(
-    null,
-  );
+  const [analytics, setAnalytics] = useState<SearchAnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rangeDays, setRangeDays] = useState<30 | 7 | 90>(30);
@@ -282,7 +258,7 @@ export default function SearchAnalyticsPage() {
                 "rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
                 rangeDays === r.days
                   ? "bg-[var(--bg-primary)] text-[var(--muhide-orange)] shadow-sm dark:text-orange-300"
-                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
+                  : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               )}
             >
               {r.label}
@@ -398,15 +374,9 @@ export default function SearchAnalyticsPage() {
                     key={q.query}
                     className="border-b border-[var(--border-default)] last:border-0 hover:bg-[var(--bg-secondary)]"
                   >
-                    <td className="px-3 py-2 text-[var(--text-muted)]">
-                      {i + 1}
-                    </td>
-                    <td className="px-3 py-2 text-[var(--text-primary)] font-medium">
-                      {q.query}
-                    </td>
-                    <td className="px-3 py-2 text-[var(--text-secondary)]">
-                      {q.count}
-                    </td>
+                    <td className="px-3 py-2 text-[var(--text-muted)]">{i + 1}</td>
+                    <td className="px-3 py-2 text-[var(--text-primary)] font-medium">{q.query}</td>
+                    <td className="px-3 py-2 text-[var(--text-secondary)]">{q.count}</td>
                     <td className="px-3 py-2 text-[var(--text-secondary)]">
                       {q.avg_results.toFixed(0)}
                     </td>

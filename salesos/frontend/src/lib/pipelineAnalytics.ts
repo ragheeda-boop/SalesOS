@@ -23,9 +23,7 @@ function asNumber(v: unknown, fallback = 0): number {
 }
 
 function asRecord(v: unknown): Record<string, unknown> {
-  return v && typeof v === "object" && !Array.isArray(v)
-    ? (v as Record<string, unknown>)
-    : {};
+  return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
 }
 
 function asArray(v: unknown): unknown[] {
@@ -38,12 +36,10 @@ export function normalizePipelineAnalytics(raw: unknown): PipelineAnalyticsView 
   const winLoss = asRecord(data.win_loss);
   const avgDaysPerStage = asRecord(velocityObj.avg_days_per_stage);
 
-  const velocityFromObject = Object.entries(avgDaysPerStage).map(
-    ([stage, avg]) => ({
-      stage,
-      avg_days: asNumber(avg),
-    }),
-  );
+  const velocityFromObject = Object.entries(avgDaysPerStage).map(([stage, avg]) => ({
+    stage,
+    avg_days: asNumber(avg),
+  }));
 
   // Legacy FE array shape (if a proxy ever returns it)
   const velocityLegacy = asArray(data.velocity)
@@ -57,12 +53,9 @@ export function normalizePipelineAnalytics(raw: unknown): PipelineAnalyticsView 
     })
     .filter((r): r is { stage: string; avg_days: number } => r != null);
 
-  const velocity =
-    velocityFromObject.length > 0 ? velocityFromObject : velocityLegacy;
+  const velocity = velocityFromObject.length > 0 ? velocityFromObject : velocityLegacy;
 
-  const stageDurations = asArray(
-    data.stage_durations ?? data.stage_duration,
-  ).map((item) => {
+  const stageDurations = asArray(data.stage_durations ?? data.stage_duration).map((item) => {
     const row = asRecord(item);
     return {
       stage: String(row.stage ?? ""),
@@ -71,9 +64,7 @@ export function normalizePipelineAnalytics(raw: unknown): PipelineAnalyticsView 
     };
   });
 
-  const conversionFunnel = asArray(
-    data.conversion_funnel ?? data.conversion_rates,
-  ).map((item) => {
+  const conversionFunnel = asArray(data.conversion_funnel ?? data.conversion_rates).map((item) => {
     const row = asRecord(item);
     const stage = String(row.stage ?? row.to ?? row.from ?? "");
     return {
@@ -93,24 +84,20 @@ export function normalizePipelineAnalytics(raw: unknown): PipelineAnalyticsView 
     };
   });
 
-  const totalPipeline = asNumber(
-    data.total_pipeline_value ?? data.total_pipeline,
-  );
+  const totalPipeline = asNumber(data.total_pipeline_value ?? data.total_pipeline);
   const winRatePct = asNumber(winLoss.win_rate ?? data.win_rate);
   // BE stores win_rate as 0–1; FE historically showed percent
   const winRate = winRatePct <= 1 ? Math.round(winRatePct * 1000) / 10 : winRatePct;
   const overallConversion = asNumber(
-    data.overall_conversion_rate ?? data.conversion_rate_lead_to_close,
+    data.overall_conversion_rate ?? data.conversion_rate_lead_to_close
   );
   const conversionPct =
-    overallConversion <= 1
-      ? Math.round(overallConversion * 1000) / 10
-      : overallConversion;
+    overallConversion <= 1 ? Math.round(overallConversion * 1000) / 10 : overallConversion;
 
   const activeDeals = asNumber(data.active_deals);
   const avgDealSize = asNumber(
     data.avg_deal_size,
-    activeDeals > 0 ? totalPipeline / activeDeals : 0,
+    activeDeals > 0 ? totalPipeline / activeDeals : 0
   );
 
   return {
@@ -120,9 +107,7 @@ export function normalizePipelineAnalytics(raw: unknown): PipelineAnalyticsView 
     value_over_time: valueOverTime,
     win_rate: winRate,
     avg_deal_size: Math.round(avgDealSize * 100) / 100,
-    avg_cycle_days: asNumber(
-      velocityObj.avg_cycle_days ?? data.avg_cycle_days,
-    ),
+    avg_cycle_days: asNumber(velocityObj.avg_cycle_days ?? data.avg_cycle_days),
     total_pipeline: totalPipeline,
     conversion_rate_lead_to_close: conversionPct,
     total_won: asNumber(winLoss.total_won),

@@ -25,7 +25,7 @@ export function CommandBar({ open, onClose }: CommandBarProps) {
       !query ||
       cmd.label.includes(query) ||
       cmd.description?.includes(query) ||
-      cmd.category?.includes(query),
+      cmd.category?.includes(query)
   );
 
   useEffect(() => {
@@ -50,17 +50,13 @@ export function CommandBar({ open, onClose }: CommandBarProps) {
         onClose();
       }
     },
-    [filteredCommands, selectedIndex, execute, onClose],
+    [filteredCommands, selectedIndex, execute, onClose]
   );
 
   if (!open) return null;
 
   const categories = Array.from(
-    new Set(
-      filteredCommands.map(
-        (c: Command) => c.category || t("command.default_category"),
-      ),
-    ),
+    new Set(filteredCommands.map((c: Command) => c.category || t("command.default_category")))
   );
 
   return (
@@ -78,10 +74,7 @@ export function CommandBar({ open, onClose }: CommandBarProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 border-b border-[var(--border-default)] px-4">
-          <Search
-            className="h-5 w-5 text-[var(--text-disabled)]"
-            aria-hidden="true"
-          />
+          <Search className="h-5 w-5 text-[var(--text-disabled)]" aria-hidden="true" />
           <input
             value={query}
             onChange={(e) => {
@@ -120,8 +113,7 @@ export function CommandBar({ open, onClose }: CommandBarProps) {
           )}
           {categories.map((category: string) => {
             const catCommands = filteredCommands.filter(
-              (c: Command) =>
-                (c.category || t("command.default_category")) === category,
+              (c: Command) => (c.category || t("command.default_category")) === category
             );
             return (
               <div key={category} role="group" aria-label={category}>
@@ -140,7 +132,7 @@ export function CommandBar({ open, onClose }: CommandBarProps) {
                         "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-right text-sm transition",
                         globalIndex === selectedIndex
                           ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)] dark:bg-[var(--muhide-orange)]/20 dark:text-orange-300"
-                          : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] dark:hover:bg-[var(--bg-secondary)]",
+                          : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] dark:hover:bg-[var(--bg-secondary)]"
                       )}
                       onClick={() => {
                         execute(cmd.id);
@@ -151,9 +143,7 @@ export function CommandBar({ open, onClose }: CommandBarProps) {
                       <div className="flex-1 text-right">
                         <p>{cmd.label}</p>
                         {cmd.description && (
-                          <p className="text-xs text-[var(--text-muted)]">
-                            {cmd.description}
-                          </p>
+                          <p className="text-xs text-[var(--text-muted)]">{cmd.description}</p>
                         )}
                       </div>
                       {cmd.shortcut && (

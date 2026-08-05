@@ -66,9 +66,7 @@ export interface AiPolicyEvaluateResult {
   feature_ai_copilot: boolean;
 }
 
-export async function getAiPoliciesMeta(
-  tenantId: string,
-): Promise<AiPoliciesMeta> {
+export async function getAiPoliciesMeta(tenantId: string): Promise<AiPoliciesMeta> {
   const resp = await api.get<AiPoliciesMeta>(`${BASE}/meta`, {
     headers: tenantHeaders(tenantId),
   });
@@ -82,10 +80,7 @@ export async function listAiPolicies(tenantId: string): Promise<AiPolicySet[]> {
   return resp.data;
 }
 
-export async function getAiPolicy(
-  tenantId: string,
-  policyId: string,
-): Promise<AiPolicySet> {
+export async function getAiPolicy(tenantId: string, policyId: string): Promise<AiPolicySet> {
   const resp = await api.get<AiPolicySet>(`${BASE}/${policyId}`, {
     headers: tenantHeaders(tenantId),
   });
@@ -94,7 +89,7 @@ export async function getAiPolicy(
 
 export async function upsertAiPolicy(
   tenantId: string,
-  body: AiPolicyUpsertBody,
+  body: AiPolicyUpsertBody
 ): Promise<AiPolicySet> {
   const resp = await api.post<AiPolicySet>(BASE, body, {
     headers: tenantHeaders(tenantId),
@@ -104,25 +99,20 @@ export async function upsertAiPolicy(
 
 export async function deleteAiPolicy(
   tenantId: string,
-  policyId: string,
+  policyId: string
 ): Promise<{ deleted: boolean; id: string }> {
-  const resp = await api.delete<{ deleted: boolean; id: string }>(
-    `${BASE}/${policyId}`,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.delete<{ deleted: boolean; id: string }>(`${BASE}/${policyId}`, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }
 
 export async function evaluateAiPolicy(
   tenantId: string,
-  body: AiPolicyEvaluateBody,
+  body: AiPolicyEvaluateBody
 ): Promise<AiPolicyEvaluateResult> {
-  const resp = await api.post<AiPolicyEvaluateResult>(
-    `${BASE}/evaluate`,
-    body,
-    {
-      headers: tenantHeaders(tenantId),
-    },
-  );
+  const resp = await api.post<AiPolicyEvaluateResult>(`${BASE}/evaluate`, body, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }

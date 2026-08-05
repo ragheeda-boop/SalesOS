@@ -33,17 +33,13 @@ describe("SearchHistory", () => {
 
   it("calls onClear when clear clicked", () => {
     const onClear = jest.fn();
-    render(
-      <SearchHistory entries={entries} onClick={() => {}} onClear={onClear} />,
-    );
+    render(<SearchHistory entries={entries} onClick={() => {}} onClear={onClear} />);
     fireEvent.click(screen.getByLabelText("مسح سجل البحث"));
     expect(onClear).toHaveBeenCalled();
   });
 
   it("returns null for empty entries", () => {
-    const { container } = render(
-      <SearchHistory entries={[]} onClick={() => {}} />,
-    );
+    const { container } = render(<SearchHistory entries={[]} onClick={() => {}} />);
     expect(container.innerHTML).toBe("");
   });
 });

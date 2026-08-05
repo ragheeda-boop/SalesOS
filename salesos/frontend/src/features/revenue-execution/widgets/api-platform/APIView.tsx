@@ -13,19 +13,13 @@ const METH_C: Record<string, string> = {
 
 export function APIView({ data }: { data: APIData }) {
   return (
-    <div
-      role="region"
-      aria-label="منصة API"
-      className="space-y-2/20 dark:rounded-lg dark:p-1"
-    >
+    <div role="region" aria-label="منصة API" className="space-y-2/20 dark:rounded-lg dark:p-1">
       <div className="grid grid-cols-4 gap-2">
         <div className="rounded-lg bg-[var(--bg-tertiary)] p-2">
           <p className="text-[9px] text-[var(--text-muted)]">
             <Code className="h-3 w-3 inline" /> الـ endpoints
           </p>
-          <p className="text-sm font-bold text-[var(--text-primary)]">
-            {data.totalEndpoints}
-          </p>
+          <p className="text-sm font-bold text-[var(--text-primary)]">{data.totalEndpoints}</p>
         </div>
         <div className="rounded-lg bg-[var(--bg-tertiary)] p-2">
           <p className="text-[9px] text-[var(--text-muted)]">
@@ -39,24 +33,18 @@ export function APIView({ data }: { data: APIData }) {
           <p className="text-[9px] text-[var(--text-muted)]">
             <Clock className="h-3 w-3 inline" /> الزمن
           </p>
-          <p className="text-sm font-bold text-[var(--text-primary)]">
-            {data.avgLatency}ms
-          </p>
+          <p className="text-sm font-bold text-[var(--text-primary)]">{data.avgLatency}ms</p>
         </div>
         <div
           className={cn(
             "rounded-lg p-2",
-            data.errorRate > 5
-              ? "bg-[var(--status-danger-bg)]"
-              : "bg-[var(--bg-tertiary)]",
+            data.errorRate > 5 ? "bg-[var(--status-danger-bg)]" : "bg-[var(--bg-tertiary)]"
           )}
         >
           <p className="text-[9px] text-[var(--text-muted)]">
             <AlertTriangle className="h-3 w-3 inline" /> الأخطاء
           </p>
-          <p className="text-sm font-bold text-[var(--status-danger-text)]">
-            %{data.errorRate}
-          </p>
+          <p className="text-sm font-bold text-[var(--status-danger-text)]">%{data.errorRate}</p>
         </div>
       </div>
       {data.endpoints.map((ep, i) => (
@@ -67,26 +55,18 @@ export function APIView({ data }: { data: APIData }) {
           <span
             className={cn(
               "w-12 text-[9px] font-mono font-bold",
-              METH_C[ep.method] ?? "text-[var(--text-muted)]",
+              METH_C[ep.method] ?? "text-[var(--text-muted)]"
             )}
           >
             {ep.method}
           </span>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-mono text-[var(--text-primary)] truncate">
-              {ep.path}
-            </p>
-            <p className="text-[8px] text-[var(--text-muted)]">
-              {ep.description}
-            </p>
+            <p className="text-[10px] font-mono text-[var(--text-primary)] truncate">{ep.path}</p>
+            <p className="text-[8px] text-[var(--text-muted)]">{ep.description}</p>
           </div>
           <div className="text-right">
-            <p className="text-[9px] text-[var(--text-muted)]">
-              {ep.calls.toLocaleString()}
-            </p>
-            <p className="text-[8px] text-[var(--text-muted)]">
-              {ep.avgLatency}ms
-            </p>
+            <p className="text-[9px] text-[var(--text-muted)]">{ep.calls.toLocaleString()}</p>
+            <p className="text-[8px] text-[var(--text-muted)]">{ep.avgLatency}ms</p>
           </div>
         </div>
       ))}

@@ -28,9 +28,7 @@ export function isMutatingMethod(method?: string): boolean {
 export function isCsrfExemptUrl(url?: string): boolean {
   if (!url) return false;
   const path = url.split("?")[0] || "";
-  return CSRF_EXEMPT_PATH_SUFFIXES.some(
-    (suffix) => path === suffix || path.endsWith(suffix),
-  );
+  return CSRF_EXEMPT_PATH_SUFFIXES.some((suffix) => path === suffix || path.endsWith(suffix));
 }
 
 export function readCookie(name: string): string | null {

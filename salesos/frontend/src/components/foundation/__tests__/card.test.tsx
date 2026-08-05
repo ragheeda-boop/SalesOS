@@ -9,27 +9,17 @@ describe("Card", () => {
 
   it("applies default variant classes", () => {
     const { container } = render(<Card>Content</Card>);
-    expect(container.firstChild).toHaveClass(
-      "bg-[var(--bg-primary)]",
-      "border",
-      "shadow-muhide-1",
-    );
+    expect(container.firstChild).toHaveClass("bg-[var(--bg-primary)]", "border", "shadow-muhide-1");
   });
 
   it("applies dark variant", () => {
     const { container } = render(<Card variant="dark">Content</Card>);
-    expect(container.firstChild).toHaveClass(
-      "bg-[var(--muhide-ink)]",
-      "text-white",
-    );
+    expect(container.firstChild).toHaveClass("bg-[var(--muhide-ink)]", "text-white");
   });
 
   it("applies bordered variant", () => {
     const { container } = render(<Card variant="bordered">Content</Card>);
-    expect(container.firstChild).toHaveClass(
-      "bg-[var(--bg-primary)]",
-      "border",
-    );
+    expect(container.firstChild).toHaveClass("bg-[var(--bg-primary)]", "border");
     expect(container.firstChild).not.toHaveClass("shadow-muhide-1");
   });
 
@@ -44,10 +34,7 @@ describe("Card", () => {
 
   it("applies accent classes", () => {
     const { container } = render(<Card accent="orange">Content</Card>);
-    expect(container.firstChild).toHaveClass(
-      "border-s-[3px]",
-      "border-s-[var(--muhide-orange)]",
-    );
+    expect(container.firstChild).toHaveClass("border-s-[3px]", "border-s-[var(--muhide-orange)]");
   });
 
   it("combines custom className", () => {

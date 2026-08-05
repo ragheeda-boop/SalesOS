@@ -3,19 +3,12 @@
 import { useMemo, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import {
-  getApiKeys,
-  getNotificationPreferences,
-  type ApiKeyRecord,
-} from "@/lib/api";
+import { getApiKeys, getNotificationPreferences, type ApiKeyRecord } from "@/lib/api";
 import { settingsKeys } from "@/lib/queryKeys";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { openV3AiPopup } from "@/components/v3/V3AiPopup";
 import { PageHeader } from "../_components/page-header";
-import {
-  DomainWorkbench,
-  type DomainSection,
-} from "../_components/domain-workbench";
+import { DomainWorkbench, type DomainSection } from "../_components/domain-workbench";
 import {
   EmptyState,
   ErrorState,
@@ -44,20 +37,12 @@ function PreviewPanel({
         <span className="text-[12px] text-[var(--text-muted)]">Not wired</span>
       </div>
       <p>{children}</p>
-      {legacyHref ? (
-        <GhostButtonLink href={legacyHref}>{legacyLabel}</GhostButtonLink>
-      ) : null}
+      {legacyHref ? <GhostButtonLink href={legacyHref}>{legacyLabel}</GhostButtonLink> : null}
     </div>
   );
 }
 
-function NotificationsPanel({
-  ready,
-  hasToken,
-}: {
-  ready: boolean;
-  hasToken: boolean;
-}) {
+function NotificationsPanel({ ready, hasToken }: { ready: boolean; hasToken: boolean }) {
   const query = useQuery({
     queryKey: settingsKeys.notifications(),
     queryFn: () => getNotificationPreferences(getTenantId()),
@@ -65,15 +50,12 @@ function NotificationsPanel({
     staleTime: 30_000,
   });
 
-  if (query.isLoading)
-    return <LoadingState label="Loading notification preferences…" />;
+  if (query.isLoading) return <LoadingState label="Loading notification preferences…" />;
   if (query.isError) {
     return (
       <ErrorState
         title="Could not load notifications"
-        description={
-          query.error instanceof Error ? query.error.message : "Request failed"
-        }
+        description={query.error instanceof Error ? query.error.message : "Request failed"}
         onRetry={() => void query.refetch()}
       />
     );
@@ -85,11 +67,7 @@ function NotificationsPanel({
       <EmptyState
         title="No preferences"
         description="Settings API returned empty notification preferences."
-        action={
-          <GhostButtonLink href="/settings">
-            Open legacy settings
-          </GhostButtonLink>
-        }
+        action={<GhostButtonLink href="/settings">Open legacy settings</GhostButtonLink>}
       />
     );
   }
@@ -106,11 +84,8 @@ function NotificationsPanel({
     <div className="space-y-3">
       <p className="text-sm text-[var(--text-secondary)]">
         Read-only dual-run view of{" "}
-        <code className="font-mono text-[12px]">
-          GET /api/v1/settings/notifications
-        </code>
-        . Edit in legacy settings to avoid accidental preference writes from the
-        spike shell.
+        <code className="font-mono text-[12px]">GET /api/v1/settings/notifications</code>. Edit in
+        legacy settings to avoid accidental preference writes from the spike shell.
       </p>
       <ul className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-default)]">
         {rows.map((row) => (
@@ -119,32 +94,18 @@ function NotificationsPanel({
             className="flex items-center justify-between gap-3 border-b border-[var(--border-default)] px-3 py-2.5 text-sm last:border-b-0"
           >
             <span className="text-[var(--text-primary)]">{row.label}</span>
-            <span
-              className={
-                row.on
-                  ? "text-[var(--text-secondary)]"
-                  : "text-[var(--text-muted)]"
-              }
-            >
+            <span className={row.on ? "text-[var(--text-secondary)]" : "text-[var(--text-muted)]"}>
               {row.on ? "On" : "Off"}
             </span>
           </li>
         ))}
       </ul>
-      <GhostButtonLink href="/settings">
-        Edit in legacy settings
-      </GhostButtonLink>
+      <GhostButtonLink href="/settings">Edit in legacy settings</GhostButtonLink>
     </div>
   );
 }
 
-function ApiKeysPanel({
-  ready,
-  hasToken,
-}: {
-  ready: boolean;
-  hasToken: boolean;
-}) {
+function ApiKeysPanel({ ready, hasToken }: { ready: boolean; hasToken: boolean }) {
   const query = useQuery({
     queryKey: settingsKeys.apiKeys(),
     queryFn: () => getApiKeys(getTenantId()),
@@ -157,9 +118,7 @@ function ApiKeysPanel({
     return (
       <ErrorState
         title="Could not load API keys"
-        description={
-          query.error instanceof Error ? query.error.message : "Request failed"
-        }
+        description={query.error instanceof Error ? query.error.message : "Request failed"}
         onRetry={() => void query.refetch()}
       />
     );
@@ -171,11 +130,7 @@ function ApiKeysPanel({
       <EmptyState
         title="No API keys"
         description="Create and rotate keys in legacy settings — dual-run is list-only."
-        action={
-          <GhostButtonLink href="/settings">
-            Open legacy settings
-          </GhostButtonLink>
-        }
+        action={<GhostButtonLink href="/settings">Open legacy settings</GhostButtonLink>}
       />
     );
   }
@@ -183,8 +138,7 @@ function ApiKeysPanel({
   return (
     <div className="space-y-3">
       <p className="text-sm text-[var(--text-secondary)]">
-        Previews only — full secrets are never shown. Create/delete stays in
-        legacy.
+        Previews only — full secrets are never shown. Create/delete stays in legacy.
       </p>
       <ul className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-default)]">
         {keys.map((key) => (
@@ -193,9 +147,7 @@ function ApiKeysPanel({
             className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--border-default)] px-3 py-2.5 text-sm last:border-b-0"
           >
             <span>
-              <span className="font-medium text-[var(--text-primary)]">
-                {key.name}
-              </span>
+              <span className="font-medium text-[var(--text-primary)]">{key.name}</span>
               <span className="mt-0.5 block font-mono text-[12px] text-[var(--text-muted)]">
                 {key.key_preview}
               </span>
@@ -227,8 +179,8 @@ export default function V3SettingsPage() {
         description: "Name, branding, defaults, and enabled modules.",
         body: (
           <PreviewPanel legacyHref="/settings">
-            Workspace branding/module toggles are not dual-run yet. Prefer
-            legacy settings for tenant-wide changes.
+            Workspace branding/module toggles are not dual-run yet. Prefer legacy settings for
+            tenant-wide changes.
           </PreviewPanel>
         ),
       },
@@ -250,8 +202,7 @@ export default function V3SettingsPage() {
         description: "MFA, active sessions, and SSO enrollment.",
         body: (
           <PreviewPanel legacyHref="/settings">
-            MFA / session policy is not dual-run. Do not weaken auth from this
-            shell.
+            MFA / session policy is not dual-run. Do not weaken auth from this shell.
           </PreviewPanel>
         ),
       },
@@ -262,8 +213,7 @@ export default function V3SettingsPage() {
         description: "Plan, invoices, and payment methods.",
         body: (
           <PreviewPanel legacyHref="/settings">
-            Billing actions stay out of dual-run to avoid accidental commercial
-            changes.
+            Billing actions stay out of dual-run to avoid accidental commercial changes.
           </PreviewPanel>
         ),
       },
@@ -271,8 +221,7 @@ export default function V3SettingsPage() {
         id: "notifications",
         label: "Notifications",
         audience: "All",
-        description:
-          "Channels, digests, and quiet hours — preferences from settings API.",
+        description: "Channels, digests, and quiet hours — preferences from settings API.",
         body:
           ready && hasToken ? (
             <NotificationsPanel ready={ready} hasToken={hasToken} />
@@ -314,14 +263,12 @@ export default function V3SettingsPage() {
         id: "ai",
         label: "AI",
         audience: "Admins + users",
-        description:
-          "Model prefs, Preview flags, retention. AI opens via popup only.",
+        description: "Model prefs, Preview flags, retention. AI opens via popup only.",
         body: (
           <div className="space-y-3 text-sm text-[var(--text-secondary)]">
             <p>
-              Copilot is Preview-gated. There is no settings page AI rail — use
-              Ask AI from the topbar or the button below. Humans decide;
-              evidence governs.
+              Copilot is Preview-gated. There is no settings page AI rail — use Ask AI from the
+              topbar or the button below. Humans decide; evidence governs.
             </p>
             <div className="flex flex-wrap gap-2">
               <button
@@ -331,9 +278,7 @@ export default function V3SettingsPage() {
               >
                 Open Ask AI popup
               </button>
-              <GhostButtonLink href="/settings">
-                Legacy settings
-              </GhostButtonLink>
+              <GhostButtonLink href="/settings">Legacy settings</GhostButtonLink>
             </div>
           </div>
         ),
@@ -342,12 +287,10 @@ export default function V3SettingsPage() {
         id: "appearance",
         label: "Appearance",
         audience: "All",
-        description:
-          "Theme and density. Theme toggle also lives in the topbar.",
+        description: "Theme and density. Theme toggle also lives in the topbar.",
         body: (
           <PreviewPanel>
-            Theme toggle lives in the v3 topbar. Density preferences are not
-            dual-run yet.
+            Theme toggle lives in the v3 topbar. Density preferences are not dual-run yet.
           </PreviewPanel>
         ),
       },
@@ -369,13 +312,13 @@ export default function V3SettingsPage() {
         description: "Reduced motion, contrast, and focus preferences.",
         body: (
           <PreviewPanel legacyHref="/settings">
-            Accessibility preference store is not dual-run yet. Focus rings and
-            skip link already ship in the v3 shell chrome.
+            Accessibility preference store is not dual-run yet. Focus rings and skip link already
+            ship in the v3 shell chrome.
           </PreviewPanel>
         ),
       },
     ],
-    [ready, hasToken],
+    [ready, hasToken]
   );
 
   return (
@@ -383,9 +326,7 @@ export default function V3SettingsPage() {
       <PageHeader
         title="Settings"
         description="Settings domain with left subnav — notifications and API keys list from real settings APIs."
-        actions={
-          <GhostButtonLink href="/settings">Legacy settings</GhostButtonLink>
-        }
+        actions={<GhostButtonLink href="/settings">Legacy settings</GhostButtonLink>}
       />
       {!ready ? (
         <LoadingState label="Checking session…" />

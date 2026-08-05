@@ -9,11 +9,7 @@ import { useActivityIntelligence } from "@/lib/hooks/useActivityIntelligence";
 import { openV3AiPopup } from "@/components/v3/V3AiPopup";
 import { PageHeader } from "../_components/page-header";
 import { ActivityFeed } from "../_components/activity-feed";
-import {
-  GhostButtonLink,
-  LoadingState,
-  PermissionState,
-} from "../_components/states";
+import { GhostButtonLink, LoadingState, PermissionState } from "../_components/states";
 import { useAccessToken } from "../_hooks/useAccessToken";
 
 const ACTION_FILTERS = [
@@ -60,8 +56,7 @@ export default function V3ActivitiesPage() {
     const needle = q.trim().toLowerCase();
     if (!needle) return items;
     return items.filter((row) => {
-      const hay =
-        `${row.actor} ${row.action} ${row.entity_type} ${row.entity_id}`.toLowerCase();
+      const hay = `${row.actor} ${row.action} ${row.entity_type} ${row.entity_id}`.toLowerCase();
       return hay.includes(needle);
     });
   }, [items, q]);
@@ -80,9 +75,7 @@ export default function V3ActivitiesPage() {
             >
               Ask AI
             </button>
-            <GhostButtonLink href="/activities">
-              Legacy activities
-            </GhostButtonLink>
+            <GhostButtonLink href="/activities">Legacy activities</GhostButtonLink>
           </div>
         }
       />
@@ -101,13 +94,10 @@ export default function V3ActivitiesPage() {
               <MetricCard label="Overdue" value={dash.overdue_count} />
             </div>
           ) : intelligence.dashboard.isLoading ? (
-            <p className="text-xs text-[var(--text-muted)]">
-              Loading activity intelligence…
-            </p>
+            <p className="text-xs text-[var(--text-muted)]">Loading activity intelligence…</p>
           ) : intelligence.dashboard.error ? (
             <p className="text-xs text-red-600">
-              Activity intelligence unavailable. Timeline below still uses the
-              activity feed.
+              Activity intelligence unavailable. Timeline below still uses the activity feed.
             </p>
           ) : null}
 
@@ -147,10 +137,7 @@ export default function V3ActivitiesPage() {
                 })}
               </div>
             </div>
-            <p
-              className="text-[12px] text-[var(--text-muted)]"
-              aria-live="polite"
-            >
+            <p className="text-[12px] text-[var(--text-muted)]" aria-live="polite">
               {isFetching && !isLoading ? "Updating… · " : null}
               {!isLoading && !isError
                 ? `${filtered.length} shown${total ? ` · ${total} total` : ""}`
@@ -165,9 +152,7 @@ export default function V3ActivitiesPage() {
             errorMessage={error instanceof Error ? error.message : undefined}
             onRetry={() => void refetch()}
             showEntity
-            emptyTitle={
-              items.length === 0 ? "No activity yet" : "No matching activity"
-            }
+            emptyTitle={items.length === 0 ? "No activity yet" : "No matching activity"}
             emptyDescription={
               items.length === 0
                 ? "The activities API returned no rows for this tenant. Sync Gmail/Calendar from Settings → Integrations to populate intelligence metrics."
@@ -201,9 +186,7 @@ function MetricCard({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-2">
       <p className="text-[11px] text-[var(--text-muted)]">{label}</p>
-      <p className="text-lg font-semibold text-[var(--text-primary)] tabular-nums">
-        {value}
-      </p>
+      <p className="text-lg font-semibold text-[var(--text-primary)] tabular-nums">{value}</p>
     </div>
   );
 }

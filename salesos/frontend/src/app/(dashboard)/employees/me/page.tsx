@@ -14,9 +14,7 @@ export default function MyEmployeePage() {
     return (
       <div className="flex items-center justify-center py-20">
         <Spinner className="h-6 w-6" />
-        <span className="mr-2 text-[var(--text-muted)]">
-          {t("common.loading")}
-        </span>
+        <span className="mr-2 text-[var(--text-muted)]">{t("common.loading")}</span>
       </div>
     );
   }

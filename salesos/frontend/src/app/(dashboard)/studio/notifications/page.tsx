@@ -11,12 +11,9 @@ export default function NotificationRulesPage() {
   return (
     <div className="space-y-6 p-6" data-testid="notification-rules-page">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          Notification Rules Studio
-        </h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Notification Rules Studio</h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Route tenant events to in_app / email via tip RulesEngine
-          send_notification compile path.
+          Route tenant events to in_app / email via tip RulesEngine send_notification compile path.
         </p>
       </div>
       <NotificationRulesStudio />

@@ -16,12 +16,7 @@ interface TrendChartProps {
   isLoading?: boolean;
 }
 
-export function TrendChart({
-  data,
-  direction,
-  height = 200,
-  isLoading,
-}: TrendChartProps) {
+export function TrendChart({ data, direction, height = 200, isLoading }: TrendChartProps) {
   const { t } = useTranslation();
 
   if (isLoading) {
@@ -31,10 +26,7 @@ export function TrendChart({
   if (data.length === 0) {
     return (
       <div className="py-8">
-        <EmptyState
-          icon={<TrendingUp className="h-8 w-8" />}
-          title={t("emp360.no_trend_data")}
-        />
+        <EmptyState icon={<TrendingUp className="h-8 w-8" />} title={t("emp360.no_trend_data")} />
       </div>
     );
   }
@@ -48,9 +40,7 @@ export function TrendChart({
     y: 100 - ((p.score - minScore) / range) * 80 - 10,
   }));
 
-  const pathD = points
-    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
-    .join(" ");
+  const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
 
   const areaD = `${pathD} L 100 90 L 0 90 Z`;
 
@@ -74,38 +64,18 @@ export function TrendChart({
           {direction && (
             <div className="flex items-center gap-1 text-sm">
               {trendIcon}
-              <span className="text-xs text-[var(--text-disabled)] capitalize">
-                {direction}
-              </span>
+              <span className="text-xs text-[var(--text-disabled)] capitalize">{direction}</span>
             </div>
           )}
         </div>
       </CardHeader>
       <CardContent>
         <div className="relative" style={{ height }}>
-          <svg
-            className="h-full w-full"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-          >
+          <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
             <defs>
-              <linearGradient
-                id="trend-gradient"
-                x1="0%"
-                y1="0%"
-                x2="0%"
-                y2="100%"
-              >
-                <stop
-                  offset="0%"
-                  stopColor="var(--muhide-orange)"
-                  stopOpacity="0.3"
-                />
-                <stop
-                  offset="100%"
-                  stopColor="var(--muhide-orange)"
-                  stopOpacity="0.02"
-                />
+              <linearGradient id="trend-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="var(--muhide-orange)" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="var(--muhide-orange)" stopOpacity="0.02" />
               </linearGradient>
             </defs>
             <path d={areaD} fill="url(#trend-gradient)" />
@@ -118,13 +88,7 @@ export function TrendChart({
               strokeLinejoin="round"
             />
             {points.map((p, i) => (
-              <circle
-                key={i}
-                cx={p.x}
-                cy={p.y}
-                r="0.8"
-                fill="var(--muhide-orange)"
-              />
+              <circle key={i} cx={p.x} cy={p.y} r="0.8" fill="var(--muhide-orange)" />
             ))}
           </svg>
           <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[10px] text-[var(--text-disabled)]">

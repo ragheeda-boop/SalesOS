@@ -29,8 +29,10 @@ export default function V3ShellSpecPage() {
         </li>
         <li className="flex gap-2">
           <span className="text-[var(--text-muted)]">·</span>
-          Skip link + landmarks; routes under{" "}
-          <code className="font-mono text-[12px]">/v3/*</code> only
+          Skip link + landmarks; routes under <code className="font-mono text-[12px]">
+            /v3/*
+          </code>{" "}
+          only
         </li>
         <li className="flex gap-2">
           <span className="text-[var(--text-muted)]">·</span>

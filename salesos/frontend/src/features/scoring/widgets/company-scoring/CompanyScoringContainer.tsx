@@ -11,31 +11,24 @@ interface CompanyScoringData {
   riskFlags: Score[];
 }
 
-export const CompanyScoringWidget = createDashboardWidget<CompanyScoringData>(
-  "companyScoring",
-  {
-    metadata: {
-      title: "تقييم الشركات",
-      description: "درجات التقييم وعواملها والتوصيات",
-      permissions: ["decision:read"],
-      featureFlag: { enabled: true },
-      gridColumn: "span 4",
-      minHeight: "320px",
-    },
-    render: ({ data, status, refresh }) => (
-      <CompanyScoringView
-        dealScore={data?.dealScore ?? 0}
-        scores={data?.scores ?? []}
-        recommendations={data?.recommendations ?? []}
-        riskFlags={data?.riskFlags ?? []}
-        isLoading={status === "loading"}
-        error={
-          status === "error"
-            ? new Error("Failed to load company scoring")
-            : null
-        }
-        onRefresh={refresh}
-      />
-    ),
+export const CompanyScoringWidget = createDashboardWidget<CompanyScoringData>("companyScoring", {
+  metadata: {
+    title: "تقييم الشركات",
+    description: "درجات التقييم وعواملها والتوصيات",
+    permissions: ["decision:read"],
+    featureFlag: { enabled: true },
+    gridColumn: "span 4",
+    minHeight: "320px",
   },
-);
+  render: ({ data, status, refresh }) => (
+    <CompanyScoringView
+      dealScore={data?.dealScore ?? 0}
+      scores={data?.scores ?? []}
+      recommendations={data?.recommendations ?? []}
+      riskFlags={data?.riskFlags ?? []}
+      isLoading={status === "loading"}
+      error={status === "error" ? new Error("Failed to load company scoring") : null}
+      onRefresh={refresh}
+    />
+  ),
+});

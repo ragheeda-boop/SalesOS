@@ -76,11 +76,7 @@ export function MonitoringWidget() {
         <h2 className="text-sm font-semibold text-[var(--text-primary)]">
           {t("monitoring.service_health")}
         </h2>
-        {error && (
-          <span className="text-xs text-warning-600">
-            {t("monitoring.stale_data")}
-          </span>
-        )}
+        {error && <span className="text-xs text-warning-600">{t("monitoring.stale_data")}</span>}
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {(displayData || []).map((item) => {
@@ -94,26 +90,18 @@ export function MonitoringWidget() {
                 <span className="text-xs text-[var(--text-muted)]">
                   {SERVICE_LABELS[item.service] || item.service}
                 </span>
-                <span
-                  className={`inline-block w-2 h-2 rounded-full ${cfg.color}`}
-                />
+                <span className={`inline-block w-2 h-2 rounded-full ${cfg.color}`} />
               </div>
-              <p className="text-sm font-medium text-[var(--text-primary)]">
-                {t(cfg.labelKey)}
-              </p>
+              <p className="text-sm font-medium text-[var(--text-primary)]">{t(cfg.labelKey)}</p>
               {item.latency_ms > 0 && (
-                <p className="text-[10px] text-[var(--text-muted)]">
-                  {item.latency_ms}ms
-                </p>
+                <p className="text-[10px] text-[var(--text-muted)]">{item.latency_ms}ms</p>
               )}
             </div>
           );
         })}
         {(!displayData || displayData.length === 0) && (
           <div className="col-span-full rounded-xl border border-dashed border-[var(--border-default)] p-6 text-center">
-            <p className="text-sm text-[var(--text-muted)]">
-              {t("monitoring.no_data")}
-            </p>
+            <p className="text-sm text-[var(--text-muted)]">{t("monitoring.no_data")}</p>
           </div>
         )}
       </div>

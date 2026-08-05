@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@salesos/ui";
-import {
-  Building2,
-  User,
-  Users,
-  ArrowRight,
-  ArrowLeft,
-  ArrowUpDown,
-} from "lucide-react";
+import { Building2, User, Users, ArrowRight, ArrowLeft, ArrowUpDown } from "lucide-react";
 import type { RelationshipGraphViewProps } from "./types";
 
 const NODE_ICON = {
@@ -23,18 +16,13 @@ const DIR_ICON = {
   bidirectional: <ArrowUpDown className="h-3 w-3" />,
 };
 
-export function RelationshipGraphView({
-  nodes,
-  edges,
-}: RelationshipGraphViewProps) {
+export function RelationshipGraphView({ nodes, edges }: RelationshipGraphViewProps) {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
 
   const connectedEdges = edges.filter(
-    (e) => e.source === selectedNode || e.target === selectedNode,
+    (e) => e.source === selectedNode || e.target === selectedNode
   );
-  const connectedNodeIds = new Set(
-    connectedEdges.flatMap((e) => [e.source, e.target]),
-  );
+  const connectedNodeIds = new Set(connectedEdges.flatMap((e) => [e.source, e.target]));
   const visibleNodes = selectedNode
     ? nodes.filter((n) => connectedNodeIds.has(n.id))
     : nodes.slice(0, 6);
@@ -49,11 +37,7 @@ export function RelationshipGraphView({
   }
 
   return (
-    <div
-      role="region"
-      aria-label="العلاقات"
-      className="space-y-1/20 dark:rounded-lg dark:p-1"
-    >
+    <div role="region" aria-label="العلاقات" className="space-y-1/20 dark:rounded-lg dark:p-1">
       <div className="flex flex-wrap gap-1">
         {visibleNodes.map((node) => {
           const isSelected = node.id === selectedNode;
@@ -65,7 +49,7 @@ export function RelationshipGraphView({
                 "flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs transition motion-reduce:transition-none",
                 isSelected
                   ? "bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300 ring-1 ring-primary-300"
-                  : "bg-[var(--bg-tertiary)] text-[var(--text-primary)] hover:bg-primary-50/50 dark:hover:bg-neutral-700",
+                  : "bg-[var(--bg-tertiary)] text-[var(--text-primary)] hover:bg-primary-50/50 dark:hover:bg-neutral-700"
               )}
             >
               {NODE_ICON[node.type]}
@@ -77,9 +61,7 @@ export function RelationshipGraphView({
 
       {selectedNode && (
         <div className="rounded-lg bg-[var(--bg-tertiary)] p-2">
-          <p className="text-[10px] font-medium text-[var(--text-muted)] mb-1">
-            العلاقات
-          </p>
+          <p className="text-[10px] font-medium text-[var(--text-muted)] mb-1">العلاقات</p>
           {connectedEdges.map((edge, i) => {
             const isSource = edge.source === selectedNode;
             const otherId = isSource ? edge.target : edge.source;
@@ -92,9 +74,7 @@ export function RelationshipGraphView({
                 {DIR_ICON[edge.direction]}
                 <span>{edge.label}</span>
                 {other && (
-                  <span className="font-medium text-[var(--text-primary)]">
-                    → {other.label}
-                  </span>
+                  <span className="font-medium text-[var(--text-primary)]">→ {other.label}</span>
                 )}
               </div>
             );

@@ -7,18 +7,9 @@ export type StudioObjectKey = "company" | "contact" | "opportunity";
 
 export type StudioFieldType = "string" | "number" | "date" | "enum";
 
-export const STUDIO_OBJECT_KEYS: StudioObjectKey[] = [
-  "company",
-  "contact",
-  "opportunity",
-];
+export const STUDIO_OBJECT_KEYS: StudioObjectKey[] = ["company", "contact", "opportunity"];
 
-export const STUDIO_FIELD_TYPES: StudioFieldType[] = [
-  "string",
-  "number",
-  "date",
-  "enum",
-];
+export const STUDIO_FIELD_TYPES: StudioFieldType[] = ["string", "number", "date", "enum"];
 
 export interface CustomFieldCreate {
   object_key: StudioObjectKey;
@@ -95,14 +86,9 @@ export interface CustomFieldValuesResponse {
 /** Tip STORY-10-04 Scoring Rules Studio (deterministic, in-memory). */
 export type ScoringTargetType = "lead" | "company" | "opportunity";
 
-export type ScoringBoostOp =
-  "eq" | "neq" | "gte" | "lte" | "gt" | "lt" | "contains" | "exists";
+export type ScoringBoostOp = "eq" | "neq" | "gte" | "lte" | "gt" | "lt" | "contains" | "exists";
 
-export const SCORING_TARGET_TYPES: ScoringTargetType[] = [
-  "lead",
-  "company",
-  "opportunity",
-];
+export const SCORING_TARGET_TYPES: ScoringTargetType[] = ["lead", "company", "opportunity"];
 
 export const SCORING_BOOST_OPS: ScoringBoostOp[] = [
   "eq",
@@ -125,9 +111,7 @@ export const PLATFORM_DEFAULT_DIMENSION_WEIGHTS: Record<string, number> = {
   market_signal: 0.1,
 };
 
-export const SCORING_DIMENSIONS = Object.keys(
-  PLATFORM_DEFAULT_DIMENSION_WEIGHTS,
-);
+export const SCORING_DIMENSIONS = Object.keys(PLATFORM_DEFAULT_DIMENSION_WEIGHTS);
 
 export interface ScoringBoost {
   field: string;
@@ -178,11 +162,7 @@ export interface ScoringEvaluateResponse {
 /** Tip STORY-10-06 Permissions Studio (custom roles + entitlement ceiling). */
 export type StudioPlanTier = "starter" | "growth" | "enterprise";
 
-export const STUDIO_PLAN_TIERS: StudioPlanTier[] = [
-  "starter",
-  "growth",
-  "enterprise",
-];
+export const STUDIO_PLAN_TIERS: StudioPlanTier[] = ["starter", "growth", "enterprise"];
 
 export interface StudioPermissionCatalogItem {
   key: string;
@@ -255,8 +235,7 @@ export const WORKFLOW_ACTION_STEP_TYPES = [
   "log_message",
 ] as const;
 
-export type WorkflowActionStepType =
-  (typeof WORKFLOW_ACTION_STEP_TYPES)[number];
+export type WorkflowActionStepType = (typeof WORKFLOW_ACTION_STEP_TYPES)[number];
 
 export interface WorkflowCanvasNode {
   id: string;

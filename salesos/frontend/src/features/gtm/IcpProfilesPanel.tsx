@@ -13,18 +13,11 @@ import {
   useUpdateIcpProfile,
 } from "@/lib/hooks/icpProfilesQueries";
 import type { ICPProfile, ICPScoreResult } from "@/lib/api";
-import {
-  ICP_PROFILES_HONESTY,
-  ICP_PROFILES_NON_GOALS,
-} from "@/features/gtm/icpProfilesHonesty";
-import {
-  buildEnrichmentHref,
-  buildLeadDiscoveryHref,
-} from "@/features/gtm/gtmHandoff";
+import { ICP_PROFILES_HONESTY, ICP_PROFILES_NON_GOALS } from "@/features/gtm/icpProfilesHonesty";
+import { buildEnrichmentHref, buildLeadDiscoveryHref } from "@/features/gtm/gtmHandoff";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -105,16 +98,8 @@ export function IcpProfilesPanel() {
     setDescription(row.description ?? "");
     setIndustries((row.criteria.industries ?? []).join(", "));
     setCities((row.criteria.cities ?? []).join(", "));
-    setEmployeesMin(
-      row.criteria.employees_min == null
-        ? ""
-        : String(row.criteria.employees_min),
-    );
-    setEmployeesMax(
-      row.criteria.employees_max == null
-        ? ""
-        : String(row.criteria.employees_max),
-    );
+    setEmployeesMin(row.criteria.employees_min == null ? "" : String(row.criteria.employees_min));
+    setEmployeesMax(row.criteria.employees_max == null ? "" : String(row.criteria.employees_max));
     setTitles((row.criteria.titles ?? []).join(", "));
     setKeywords((row.criteria.keywords ?? []).join(", "));
     setWIndustry(String(row.weights.industry));
@@ -134,16 +119,8 @@ export function IcpProfilesPanel() {
     setDescription(row.description ?? "");
     setIndustries((row.criteria.industries ?? []).join(", "));
     setCities((row.criteria.cities ?? []).join(", "));
-    setEmployeesMin(
-      row.criteria.employees_min == null
-        ? ""
-        : String(row.criteria.employees_min),
-    );
-    setEmployeesMax(
-      row.criteria.employees_max == null
-        ? ""
-        : String(row.criteria.employees_max),
-    );
+    setEmployeesMin(row.criteria.employees_min == null ? "" : String(row.criteria.employees_min));
+    setEmployeesMax(row.criteria.employees_max == null ? "" : String(row.criteria.employees_max));
     setTitles((row.criteria.titles ?? []).join(", "));
     setKeywords((row.criteria.keywords ?? []).join(", "));
     setWIndustry(String(row.weights.industry));
@@ -152,12 +129,7 @@ export function IcpProfilesPanel() {
     setWTitles(String(row.weights.titles));
     setWKeywords(String(row.weights.keywords));
     setIsActive(row.is_active);
-  }, [
-    detailQuery.data?.id,
-    detailQuery.data?.schema_version,
-    selectedId,
-    hydrated,
-  ]);
+  }, [detailQuery.data?.id, detailQuery.data?.schema_version, selectedId, hydrated]);
 
   function bodyFromForm() {
     return {
@@ -186,8 +158,8 @@ export function IcpProfilesPanel() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="icp-profiles-honesty"
       >
-        {ICP_PROFILES_HONESTY} Non-goals: {ICP_PROFILES_NON_GOALS.join("; ")}.
-        Not Production GO / RAG GO.
+        {ICP_PROFILES_HONESTY} Non-goals: {ICP_PROFILES_NON_GOALS.join("; ")}. Not Production GO /
+        RAG GO.
       </p>
 
       {metaQuery.data ? (
@@ -196,17 +168,12 @@ export function IcpProfilesPanel() {
           data-testid="icp-profiles-meta"
         >
           <p>
-            {metaQuery.data.object} · {metaQuery.data.versioning} ·{" "}
-            {metaQuery.data.scoring}
+            {metaQuery.data.object} · {metaQuery.data.versioning} · {metaQuery.data.scoring}
           </p>
-          <p data-testid="icp-profiles-meta-honesty">
-            tip /meta: {metaQuery.data.honesty}
-          </p>
+          <p data-testid="icp-profiles-meta-honesty">tip /meta: {metaQuery.data.honesty}</p>
         </div>
       ) : metaQuery.isError ? (
-        <p className="text-sm text-[var(--text-danger)]">
-          {getApiError(metaQuery.error)}
-        </p>
+        <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">
@@ -221,16 +188,11 @@ export function IcpProfilesPanel() {
         >
           {listQuery.isFetching ? "Refreshing…" : "Refresh profiles"}
         </Button>
-        <span
-          className="text-sm text-[var(--text-muted)]"
-          data-testid="icp-profiles-count"
-        >
+        <span className="text-sm text-[var(--text-muted)]" data-testid="icp-profiles-count">
           {listQuery.isLoading ? (
             <Spinner className="h-5 w-5" />
           ) : listQuery.isError ? (
-            <span className="text-[var(--text-danger)]">
-              {getApiError(listQuery.error)}
-            </span>
+            <span className="text-[var(--text-danger)]">{getApiError(listQuery.error)}</span>
           ) : (
             <>{listQuery.data?.length ?? 0} profile(s)</>
           )}
@@ -258,11 +220,10 @@ export function IcpProfilesPanel() {
                 data-testid="icp-profiles-row"
                 onClick={() => loadProfile(row)}
               >
-                <span className="font-medium">{row.name}</span> · v
-                {row.schema_version} · {row.is_active ? "active" : "inactive"}
+                <span className="font-medium">{row.name}</span> · v{row.schema_version} ·{" "}
+                {row.is_active ? "active" : "inactive"}
                 <span className="mt-0.5 block font-mono text-xs text-[var(--text-muted)]">
-                  {row.id} · industries{" "}
-                  {(row.criteria.industries ?? []).join(",") || "—"}
+                  {row.id} · industries {(row.criteria.industries ?? []).join(",") || "—"}
                 </span>
               </button>
             </li>
@@ -302,7 +263,7 @@ export function IcpProfilesPanel() {
                     description: getApiError(err),
                   });
                 },
-              },
+              }
             );
           } else {
             createMutation.mutate(body, {
@@ -458,9 +419,7 @@ export function IcpProfilesPanel() {
           ) : null}
           <Link
             href={buildLeadDiscoveryHref({
-              name: name.trim()
-                ? `${name.trim()} discovery`
-                : "Pilot discovery",
+              name: name.trim() ? `${name.trim()} discovery` : "Pilot discovery",
               industries,
               cities,
               employees_min: employeesMin,
@@ -517,7 +476,7 @@ export function IcpProfilesPanel() {
                     description: getApiError(err),
                   });
                 },
-              },
+              }
             );
           }}
         >
@@ -564,11 +523,7 @@ export function IcpProfilesPanel() {
             value={scoreKeywords}
             onChange={(e) => setScoreKeywords(e.target.value)}
           />
-          <Button
-            type="submit"
-            data-testid="icp-score-run"
-            disabled={scoreMutation.isPending}
-          >
+          <Button type="submit" data-testid="icp-score-run" disabled={scoreMutation.isPending}>
             {scoreMutation.isPending ? "Scoring…" : "Score against ICP"}
           </Button>
           {lastScore ? (
@@ -577,9 +532,8 @@ export function IcpProfilesPanel() {
               data-testid="icp-score-result"
             >
               score {lastScore.score}/{lastScore.max_score} · fit_ratio{" "}
-              {lastScore.fit_ratio.toFixed(3)} · matched{" "}
-              {JSON.stringify(lastScore.matched)} · profile v
-              {lastScore.schema_version}
+              {lastScore.fit_ratio.toFixed(3)} · matched {JSON.stringify(lastScore.matched)} ·
+              profile v{lastScore.schema_version}
             </div>
           ) : null}
         </form>

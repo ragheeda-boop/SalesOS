@@ -54,9 +54,7 @@ describe("Monitor", () => {
       m.trackApiCall("POST", "/api/test", 150, 201);
       jest.advanceTimersByTime(60_000);
 
-      const body = JSON.parse(
-        (navigator.sendBeacon as jest.Mock).mock.calls[0][1] as string,
-      );
+      const body = JSON.parse((navigator.sendBeacon as jest.Mock).mock.calls[0][1] as string);
       expect(body.events[0].type).toBe("api_call");
       expect(body.events[0].method).toBe("POST");
       expect(body.events[0].path).toBe("/api/test");
@@ -76,9 +74,7 @@ describe("Monitor", () => {
       m.trackError(error, "test-context");
       jest.advanceTimersByTime(60_000);
 
-      const body = JSON.parse(
-        (navigator.sendBeacon as jest.Mock).mock.calls[0][1] as string,
-      );
+      const body = JSON.parse((navigator.sendBeacon as jest.Mock).mock.calls[0][1] as string);
       expect(body.events[0].type).toBe("error");
       expect(body.events[0].error_message).toBe("Something broke");
       expect(body.events[0].context).toBe("test-context");
@@ -95,9 +91,7 @@ describe("Monitor", () => {
       m.trackRender("TestComponent", 42);
       jest.advanceTimersByTime(60_000);
 
-      const body = JSON.parse(
-        (navigator.sendBeacon as jest.Mock).mock.calls[0][1] as string,
-      );
+      const body = JSON.parse((navigator.sendBeacon as jest.Mock).mock.calls[0][1] as string);
       expect(body.events[0].type).toBe("render");
       expect(body.events[0].component_name).toBe("TestComponent");
       expect(body.events[0].duration_ms).toBe(42);
@@ -114,9 +108,7 @@ describe("Monitor", () => {
       m.trackMetric("lcp", 2500, { type: "web_vital" });
       jest.advanceTimersByTime(60_000);
 
-      const body = JSON.parse(
-        (navigator.sendBeacon as jest.Mock).mock.calls[0][1] as string,
-      );
+      const body = JSON.parse((navigator.sendBeacon as jest.Mock).mock.calls[0][1] as string);
       expect(body.events[0].type).toBe("metric");
       expect(body.events[0].name).toBe("lcp");
       expect(body.events[0].value).toBe(2500);
@@ -136,7 +128,7 @@ describe("Monitor", () => {
 
       expect(navigator.sendBeacon).toHaveBeenCalledWith(
         "/api/v1/monitoring/events",
-        expect.any(String),
+        expect.any(String)
       );
     });
 

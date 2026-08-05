@@ -17,18 +17,14 @@ import {
 } from "../mutationHooks";
 
 const mockedApi = api as jest.Mocked<typeof api>;
-const mockedGetTenantId = getTenantId as jest.MockedFunction<
-  typeof getTenantId
->;
+const mockedGetTenantId = getTenantId as jest.MockedFunction<typeof getTenantId>;
 
 function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 }
 
@@ -101,7 +97,7 @@ describe("useCreateCompany", () => {
     expect(mockedApi.post).toHaveBeenCalledWith(
       "/api/v1/companies",
       { name_ar: "شركة", cr_number: "123456" },
-      { headers: { "X-Tenant-Id": "tenant-1" } },
+      { headers: { "X-Tenant-Id": "tenant-1" } }
     );
   });
 });
@@ -124,7 +120,7 @@ describe("useUpdateCompany", () => {
     expect(mockedApi.patch).toHaveBeenCalledWith(
       "/api/v1/companies/c-1",
       { name_ar: "محدث" },
-      { headers: { "X-Tenant-Id": "tenant-1" } },
+      { headers: { "X-Tenant-Id": "tenant-1" } }
     );
   });
 });
@@ -170,7 +166,7 @@ describe("useAddContact", () => {
     expect(mockedApi.post).toHaveBeenCalledWith(
       "/api/v1/companies/c-1/contacts",
       { name: "Ali", position: "CEO" },
-      { headers: { "X-Tenant-Id": "tenant-1" } },
+      { headers: { "X-Tenant-Id": "tenant-1" } }
     );
   });
 });

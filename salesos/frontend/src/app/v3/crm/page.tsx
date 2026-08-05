@@ -1,19 +1,9 @@
 "use client";
 
-import {
-  useCallback,
-  useMemo,
-  useState,
-  type DragEvent,
-  type ReactNode,
-} from "react";
+import { useCallback, useMemo, useState, type DragEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  advanceOpportunity,
-  listOpportunities,
-  type Opportunity,
-} from "@/lib/api";
+import { advanceOpportunity, listOpportunities, type Opportunity } from "@/lib/api";
 import { opportunityKeys } from "@/lib/queryKeys";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { openV3AiPopup } from "@/components/v3/V3AiPopup";
@@ -46,9 +36,7 @@ const PIPELINE_STAGES: PipelineStageDef[] = [
 type ViewMode = "board" | "table";
 
 const KNOWN_STAGE_KEYS = new Set<string>(PIPELINE_STAGES.map((s) => s.key));
-const TERMINAL_STAGE_KEYS = new Set(
-  PIPELINE_STAGES.filter((s) => s.terminal).map((s) => s.key),
-);
+const TERMINAL_STAGE_KEYS = new Set(PIPELINE_STAGES.filter((s) => s.terminal).map((s) => s.key));
 
 function formatValue(value: number | undefined): string {
   if (value == null || Number.isNaN(value)) return "—";
@@ -97,13 +85,8 @@ export default function V3CrmPage() {
   });
 
   const advanceMutation = useMutation({
-    mutationFn: ({
-      opportunityId,
-      toStage,
-    }: {
-      opportunityId: string;
-      toStage: string;
-    }) => advanceOpportunity(opportunityId, toStage),
+    mutationFn: ({ opportunityId, toStage }: { opportunityId: string; toStage: string }) =>
+      advanceOpportunity(opportunityId, toStage),
     onMutate: ({ opportunityId }) => {
       setPendingId(opportunityId);
       setMoveError(null);
@@ -112,11 +95,7 @@ export default function V3CrmPage() {
       void queryClient.invalidateQueries({ queryKey: opportunityKeys.lists() });
     },
     onError: (err) => {
-      setMoveError(
-        err instanceof Error
-          ? err.message
-          : "Could not move deal to that stage.",
-      );
+      setMoveError(err instanceof Error ? err.message : "Could not move deal to that stage.");
     },
     onSettled: () => {
       setPendingId(null);
@@ -135,7 +114,7 @@ export default function V3CrmPage() {
 
   const unknownStages = useMemo(
     () => stagesInData.filter((s) => !KNOWN_STAGE_KEYS.has(s)),
-    [stagesInData],
+    [stagesInData]
   );
 
   const filtered = useMemo(() => {
@@ -143,8 +122,7 @@ export default function V3CrmPage() {
     return items.filter((opp) => {
       if (stageFilter !== "all" && opp.stage !== stageFilter) return false;
       if (!needle) return true;
-      const hay =
-        `${opp.name} ${opp.company_name ?? ""} ${opp.stage}`.toLowerCase();
+      const hay = `${opp.name} ${opp.company_name ?? ""} ${opp.stage}`.toLowerCase();
       return hay.includes(needle);
     });
   }, [items, stageFilter, q]);
@@ -152,11 +130,9 @@ export default function V3CrmPage() {
   const pipelineSum = useMemo(
     () =>
       filtered
-        .filter(
-          (opp) => opp.stage !== "closed_won" && opp.stage !== "closed_lost",
-        )
+        .filter((opp) => opp.stage !== "closed_won" && opp.stage !== "closed_lost")
         .reduce((sum, opp) => sum + (opp.value || 0), 0),
-    [filtered],
+    [filtered]
   );
 
   const byStage = useMemo(() => {
@@ -178,21 +154,17 @@ export default function V3CrmPage() {
       if (!canAdvanceTo(opp.stage, toStage)) {
         if (opp.stage === toStage) return;
         setMoveError(
-          `Invalid move: ${stageLabel(opp.stage)} → ${stageLabel(toStage)}. Forward stages or recycle to Prospecting only.`,
+          `Invalid move: ${stageLabel(opp.stage)} → ${stageLabel(toStage)}. Forward stages or recycle to Prospecting only.`
         );
         return;
       }
       advanceMutation.mutate({ opportunityId, toStage });
     },
-    [advanceMutation, items],
+    [advanceMutation, items]
   );
 
   return (
-    <div
-      className={
-        view === "board" ? "mx-auto max-w-[1600px]" : "mx-auto max-w-6xl"
-      }
-    >
+    <div className={view === "board" ? "mx-auto max-w-[1600px]" : "mx-auto max-w-6xl"}>
       <PageHeader
         title="CRM"
         description="Pipeline board + deal table — Design Program v3. Stage moves call POST /opportunities/{id}/advance. Legacy /pipeline and /opportunities are unchanged."
@@ -205,9 +177,7 @@ export default function V3CrmPage() {
             >
               Ask AI
             </button>
-            <GhostButtonLink href="/v3/companies">
-              Browse companies
-            </GhostButtonLink>
+            <GhostButtonLink href="/v3/companies">Browse companies</GhostButtonLink>
           </div>
         }
       />
@@ -225,16 +195,10 @@ export default function V3CrmPage() {
                 role="group"
                 aria-label="CRM view"
               >
-                <ViewToggleButton
-                  active={view === "board"}
-                  onClick={() => setView("board")}
-                >
+                <ViewToggleButton active={view === "board"} onClick={() => setView("board")}>
                   Board
                 </ViewToggleButton>
-                <ViewToggleButton
-                  active={view === "table"}
-                  onClick={() => setView("table")}
-                >
+                <ViewToggleButton active={view === "table"} onClick={() => setView("table")}>
                   Table
                 </ViewToggleButton>
               </div>
@@ -250,9 +214,7 @@ export default function V3CrmPage() {
               </label>
               {view === "table" ? (
                 <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                  <span className="shrink-0 text-[12px] text-[var(--text-muted)]">
-                    Stage
-                  </span>
+                  <span className="shrink-0 text-[12px] text-[var(--text-muted)]">Stage</span>
                   <select
                     value={stageFilter}
                     onChange={(e) => setStageFilter(e.target.value)}
@@ -273,10 +235,7 @@ export default function V3CrmPage() {
                 </label>
               ) : null}
             </div>
-            <p
-              className="text-[12px] text-[var(--text-muted)]"
-              aria-live="polite"
-            >
+            <p className="text-[12px] text-[var(--text-muted)]" aria-live="polite">
               {isFetching && !isLoading ? "Updating… · " : null}
               {!isLoading && !isError
                 ? `${filtered.length} deal${filtered.length === 1 ? "" : "s"} · open ${formatValue(pipelineSum)}`
@@ -305,9 +264,7 @@ export default function V3CrmPage() {
           ) : isError ? (
             <ErrorState
               title="Could not load pipeline"
-              description={
-                error instanceof Error ? error.message : "Request failed"
-              }
+              description={error instanceof Error ? error.message : "Request failed"}
               onRetry={() => void refetch()}
             />
           ) : filtered.length === 0 ? (
@@ -331,9 +288,7 @@ export default function V3CrmPage() {
                     Clear filters
                   </button>
                 ) : (
-                  <GhostButtonLink href="/v3/companies">
-                    Find a company
-                  </GhostButtonLink>
+                  <GhostButtonLink href="/v3/companies">Find a company</GhostButtonLink>
                 )
               }
             />
@@ -345,11 +300,7 @@ export default function V3CrmPage() {
               onMove={moveDeal}
             />
           ) : (
-            <DealTable
-              items={filtered}
-              onMove={moveDeal}
-              pendingId={pendingId}
-            />
+            <DealTable items={filtered} onMove={moveDeal} pendingId={pendingId} />
           )}
         </div>
       )}
@@ -404,8 +355,8 @@ function PipelineBoard({
   return (
     <div className="space-y-2">
       <p className="text-[12px] text-[var(--text-muted)]">
-        Drag a deal onto another column to advance (or recycle to Prospecting).
-        Terminal stages cannot be moved.
+        Drag a deal onto another column to advance (or recycle to Prospecting). Terminal stages
+        cannot be moved.
       </p>
       <div className="-mx-1 overflow-x-auto pb-2">
         <div className="flex min-w-min gap-3 px-1">
@@ -474,9 +425,7 @@ function BoardColumn({
     >
       <div className="flex items-center justify-between gap-2 border-b border-[var(--border-default)] px-3 py-2.5">
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-[var(--text-primary)]">
-            {label}
-          </p>
+          <p className="truncate text-sm font-medium text-[var(--text-primary)]">{label}</p>
           <p className="text-[11px] text-[var(--text-muted)]">
             {items.length} · {formatValue(colSum)}
           </p>
@@ -489,9 +438,7 @@ function BoardColumn({
       </div>
       <div className="flex max-h-[min(70vh,640px)] flex-col gap-2 overflow-y-auto p-2">
         {items.length === 0 ? (
-          <p className="px-1 py-6 text-center text-[12px] text-[var(--text-muted)]">
-            Empty
-          </p>
+          <p className="px-1 py-6 text-center text-[12px] text-[var(--text-muted)]">Empty</p>
         ) : (
           items.map((opp) => (
             <DealCard
@@ -625,9 +572,7 @@ function DealTable({
                   </td>
                   <td className="px-3 py-2.5 text-[var(--text-secondary)]">
                     {isTerminal ? (
-                      <span className="capitalize">
-                        {stageLabel(opp.stage)}
-                      </span>
+                      <span className="capitalize">{stageLabel(opp.stage)}</span>
                     ) : (
                       <select
                         value={opp.stage}
@@ -640,17 +585,14 @@ function DealTable({
                         className="max-w-[160px] rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-2 py-1 text-sm capitalize outline-none focus:border-[var(--muhide-orange)] focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] disabled:opacity-60"
                       >
                         {!KNOWN_STAGE_KEYS.has(opp.stage) ? (
-                          <option value={opp.stage}>
-                            {stageLabel(opp.stage)}
-                          </option>
+                          <option value={opp.stage}>{stageLabel(opp.stage)}</option>
                         ) : null}
                         {PIPELINE_STAGES.map((stage) => (
                           <option
                             key={stage.key}
                             value={stage.key}
                             disabled={
-                              stage.key !== opp.stage &&
-                              !canAdvanceTo(opp.stage, stage.key)
+                              stage.key !== opp.stage && !canAdvanceTo(opp.stage, stage.key)
                             }
                           >
                             {stage.label}

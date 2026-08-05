@@ -7,10 +7,7 @@ import { getExecutiveDashboard, listOpportunities } from "@/lib/api";
 import { dashboardKeys, opportunityKeys } from "@/lib/queryKeys";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { PageHeader } from "../_components/page-header";
-import {
-  DomainWorkbench,
-  type DomainSection,
-} from "../_components/domain-workbench";
+import { DomainWorkbench, type DomainSection } from "../_components/domain-workbench";
 import { MetricCards } from "../_components/metric-cards";
 import {
   EmptyState,
@@ -20,12 +17,7 @@ import {
   PermissionState,
   PreviewBadge,
 } from "../_components/states";
-import {
-  formatCount,
-  formatCurrencySAR,
-  formatPercent,
-  stageLabel,
-} from "../_components/format";
+import { formatCount, formatCurrencySAR, formatPercent, stageLabel } from "../_components/format";
 import { useAccessToken } from "../_hooks/useAccessToken";
 
 function PreviewPanel({
@@ -46,9 +38,7 @@ function PreviewPanel({
         </span>
       </div>
       <p>{children}</p>
-      {legacyHref ? (
-        <GhostButtonLink href={legacyHref}>{legacyLabel}</GhostButtonLink>
-      ) : null}
+      {legacyHref ? <GhostButtonLink href={legacyHref}>{legacyLabel}</GhostButtonLink> : null}
     </div>
   );
 }
@@ -73,9 +63,7 @@ export default function V3AnalyticsPage() {
   const data = execQuery.data;
   const deals = useMemo(() => {
     const items = oppQuery.data?.items ?? [];
-    return [...items]
-      .sort((a, b) => (b.value || 0) - (a.value || 0))
-      .slice(0, 8);
+    return [...items].sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, 8);
   }, [oppQuery.data?.items]);
 
   const sections: DomainSection[] = useMemo(() => {
@@ -86,9 +74,7 @@ export default function V3AnalyticsPage() {
         <ErrorState
           title="Could not load analytics"
           description={
-            execQuery.error instanceof Error
-              ? execQuery.error.message
-              : "Request failed"
+            execQuery.error instanceof Error ? execQuery.error.message : "Request failed"
           }
           onRetry={() => void execQuery.refetch()}
         />
@@ -96,11 +82,7 @@ export default function V3AnalyticsPage() {
         <EmptyState
           title="No analytics data"
           description="Executive dashboard returned empty. Legacy analytics may still have charts."
-          action={
-            <GhostButtonLink href="/analytics">
-              Open legacy analytics
-            </GhostButtonLink>
-          }
+          action={<GhostButtonLink href="/analytics">Open legacy analytics</GhostButtonLink>}
         />
       ) : null;
 
@@ -129,9 +111,7 @@ export default function V3AnalyticsPage() {
           ]}
         />
         <p className="text-[12px] text-[var(--text-muted)]">
-          Source:{" "}
-          <code className="font-mono">GET /api/v1/executive/dashboard</code> ·
-          revenue
+          Source: <code className="font-mono">GET /api/v1/executive/dashboard</code> · revenue
         </p>
         <GhostButtonLink href="/v3/crm">Open CRM pipeline</GhostButtonLink>
       </div>
@@ -196,33 +176,23 @@ export default function V3AnalyticsPage() {
             </table>
           </div>
         ) : (
-          <p className="text-sm text-[var(--text-muted)]">
-            No stage breakdown in this response.
-          </p>
+          <p className="text-sm text-[var(--text-muted)]">No stage breakdown in this response.</p>
         )}
 
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-medium text-[var(--text-primary)]">
-              Largest open deals
-            </h3>
+            <h3 className="text-sm font-medium text-[var(--text-primary)]">Largest open deals</h3>
             <GhostButtonLink href="/v3/crm">All deals</GhostButtonLink>
           </div>
           {oppQuery.isLoading ? (
             <LoadingState label="Loading deals…" />
           ) : oppQuery.isError ? (
-            <p className="text-sm text-[var(--text-muted)]">
-              Could not load opportunity list.
-            </p>
+            <p className="text-sm text-[var(--text-muted)]">Could not load opportunity list.</p>
           ) : deals.length === 0 ? (
             <EmptyState
               title="No deals yet"
               description="Create opportunities from a company record."
-              action={
-                <GhostButtonLink href="/v3/companies">
-                  Browse companies
-                </GhostButtonLink>
-              }
+              action={<GhostButtonLink href="/v3/companies">Browse companies</GhostButtonLink>}
             />
           ) : (
             <ul className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-default)]">
@@ -250,9 +220,7 @@ export default function V3AnalyticsPage() {
                         opp.company_name || "—"
                       )}
                       {" · "}
-                      <span className="capitalize">
-                        {stageLabel(opp.stage)}
-                      </span>
+                      <span className="capitalize">{stageLabel(opp.stage)}</span>
                     </span>
                   </span>
                   <span className="shrink-0 tabular-nums text-[var(--text-secondary)]">
@@ -316,8 +284,7 @@ export default function V3AnalyticsPage() {
           ]}
         />
         <p className="text-[12px] text-[var(--text-muted)]">
-          Growth counters from the executive dashboard — not a full activity
-          timeline.
+          Growth counters from the executive dashboard — not a full activity timeline.
         </p>
       </div>
     );
@@ -383,30 +350,26 @@ export default function V3AnalyticsPage() {
         id: "revenue",
         label: "Revenue",
         audience: "Leaders",
-        description:
-          "Booked revenue, growth, and pipeline totals from the executive API.",
+        description: "Booked revenue, growth, and pipeline totals from the executive API.",
         body: revenueBody,
       },
       {
         id: "pipeline",
         label: "Pipeline",
         audience: "Sales",
-        description:
-          "Stage distribution, deal totals, and largest open opportunities.",
+        description: "Stage distribution, deal totals, and largest open opportunities.",
         body: pipelineBody,
       },
       {
         id: "forecast",
         label: "Forecast",
         audience: "Managers",
-        description:
-          "Commit / best-case views — requires forecast models, not invented scores.",
+        description: "Commit / best-case views — requires forecast models, not invented scores.",
         body: (
           <PreviewPanel legacyHref="/analytics">
-            Forecast commit models are not exposed as a dedicated dual-run
-            surface yet. The revenue section shows the executive{" "}
-            <code className="font-mono text-[12px]">forecast</code> field only —
-            treat it as a stored number, not a governance commit.
+            Forecast commit models are not exposed as a dedicated dual-run surface yet. The revenue
+            section shows the executive <code className="font-mono text-[12px]">forecast</code>{" "}
+            field only — treat it as a stored number, not a governance commit.
           </PreviewPanel>
         ),
       },
@@ -414,32 +377,28 @@ export default function V3AnalyticsPage() {
         id: "performance",
         label: "Sales performance",
         audience: "Managers",
-        description:
-          "Team size, win/loss, and average win rate from executive metrics.",
+        description: "Team size, win/loss, and average win rate from executive metrics.",
         body: performanceBody,
       },
       {
         id: "activity",
         label: "Activity",
         audience: "Ops",
-        description:
-          "30-day growth counters (companies, contacts, opportunities, contracts).",
+        description: "30-day growth counters (companies, contacts, opportunities, contracts).",
         body: activityBody,
       },
       {
         id: "customer",
         label: "Customer",
         audience: "CS + Sales",
-        description:
-          "Risk signals: stalled deals, expiries, inactive accounts.",
+        description: "Risk signals: stalled deals, expiries, inactive accounts.",
         body: customerBody,
       },
       {
         id: "retention",
         label: "Retention",
         audience: "CS",
-        description:
-          "Renewal windows and renewal value from the executive dashboard.",
+        description: "Renewal windows and renewal value from the executive dashboard.",
         body: retentionBody,
       },
       {
@@ -449,21 +408,13 @@ export default function V3AnalyticsPage() {
         description: "Analytics Studio on Data Grid + charts (engine TBD).",
         body: (
           <PreviewPanel legacyHref="/analytics">
-            Custom report builder is not wired in this spike. Use structured
-            sections for IA; do not treat empty panels as live AI insights.
+            Custom report builder is not wired in this spike. Use structured sections for IA; do not
+            treat empty panels as live AI insights.
           </PreviewPanel>
         ),
       },
     ];
-  }, [
-    ready,
-    hasToken,
-    execQuery,
-    data,
-    oppQuery.isLoading,
-    oppQuery.isError,
-    deals,
-  ]);
+  }, [ready, hasToken, execQuery, data, oppQuery.isLoading, oppQuery.isError, deals]);
 
   return (
     <div className="mx-auto max-w-6xl space-y-4">
@@ -473,9 +424,7 @@ export default function V3AnalyticsPage() {
         actions={
           <div className="flex flex-wrap gap-2">
             <GhostButtonLink href="/v3/crm">View pipeline</GhostButtonLink>
-            <GhostButtonLink href="/analytics">
-              Legacy analytics
-            </GhostButtonLink>
+            <GhostButtonLink href="/analytics">Legacy analytics</GhostButtonLink>
           </div>
         }
       />

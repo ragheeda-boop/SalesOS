@@ -80,12 +80,9 @@ export default function AdminBillingPage() {
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">
-            Owner billing
-          </h1>
+          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Owner billing</h1>
           <p className="text-sm text-[var(--text-muted)]">
-            STORY-05-02b/04/05 — invoices, dunning, apply-pending plan changes.
-            Not Production GO.
+            STORY-05-02b/04/05 — invoices, dunning, apply-pending plan changes. Not Production GO.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -113,9 +110,7 @@ export default function AdminBillingPage() {
               }
             }}
           >
-            {applyPendingMutation.isPending
-              ? "Applying…"
-              : "Apply due pending plans"}
+            {applyPendingMutation.isPending ? "Applying…" : "Apply due pending plans"}
           </Button>
           <Link
             href="/admin"
@@ -139,14 +134,9 @@ export default function AdminBillingPage() {
         data-testid="admin-billing-dunning"
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-medium text-[var(--text-primary)]">
-            Dunning cases
-          </h2>
+          <h2 className="font-medium text-[var(--text-primary)]">Dunning cases</h2>
           <div className="flex flex-wrap items-center gap-2">
-            <div
-              className="min-w-[10rem]"
-              data-testid="admin-billing-dunning-status"
-            >
+            <div className="min-w-[10rem]" data-testid="admin-billing-dunning-status">
               <Select
                 value={dunningStatus}
                 onChange={setDunningStatus}
@@ -188,20 +178,12 @@ export default function AdminBillingPage() {
             <Spinner className="h-4 w-4" /> Loading dunning…
           </div>
         ) : dunningError ? (
-          <p
-            className="text-sm text-[var(--text-muted)]"
-            data-testid="admin-billing-dunning-error"
-          >
+          <p className="text-sm text-[var(--text-muted)]" data-testid="admin-billing-dunning-error">
             Dunning unavailable
-            {getApiErrorDetail(dunningErr)
-              ? `: ${getApiErrorDetail(dunningErr)}`
-              : "."}
+            {getApiErrorDetail(dunningErr) ? `: ${getApiErrorDetail(dunningErr)}` : "."}
           </p>
         ) : !dunningCases || dunningCases.length === 0 ? (
-          <p
-            className="text-sm text-[var(--text-muted)]"
-            data-testid="admin-billing-dunning-empty"
-          >
+          <p className="text-sm text-[var(--text-muted)]" data-testid="admin-billing-dunning-empty">
             No dunning cases
             {dunningStatus ? ` with status=${dunningStatus}` : ""}.
           </p>
@@ -211,10 +193,7 @@ export default function AdminBillingPage() {
             data-testid="admin-billing-dunning-list"
           >
             {dunningCases.map((c) => (
-              <li
-                key={c.id}
-                className="border-b border-[var(--border-default)] py-1 font-mono"
-              >
+              <li key={c.id} className="border-b border-[var(--border-default)] py-1 font-mono">
                 tenant={c.tenant_id} · {formatDunningCaseRow(c)}
               </li>
             ))}
@@ -226,9 +205,7 @@ export default function AdminBillingPage() {
         className="space-y-3 rounded-lg border border-[var(--border-default)] p-4"
         data-testid="admin-billing-invoices"
       >
-        <h2 className="font-medium text-[var(--text-primary)]">
-          Platform invoices
-        </h2>
+        <h2 className="font-medium text-[var(--text-primary)]">Platform invoices</h2>
         {invoicesLoading ? (
           <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
             <Spinner className="h-4 w-4" /> Loading invoices…
@@ -239,9 +216,7 @@ export default function AdminBillingPage() {
             data-testid="admin-billing-invoices-error"
           >
             Invoices unavailable
-            {getApiErrorDetail(invoicesErr)
-              ? `: ${getApiErrorDetail(invoicesErr)}`
-              : "."}
+            {getApiErrorDetail(invoicesErr) ? `: ${getApiErrorDetail(invoicesErr)}` : "."}
           </p>
         ) : !invoices || invoices.length === 0 ? (
           <p
@@ -256,10 +231,7 @@ export default function AdminBillingPage() {
             data-testid="admin-billing-invoices-list"
           >
             {invoices.map((inv) => (
-              <li
-                key={inv.id}
-                className="border-b border-[var(--border-default)] py-1 font-mono"
-              >
+              <li key={inv.id} className="border-b border-[var(--border-default)] py-1 font-mono">
                 {inv.status} · {inv.amount} {inv.currency} · tenant=
                 {inv.tenant_id} · {inv.stripe_invoice_id}
               </li>

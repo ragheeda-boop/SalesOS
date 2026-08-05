@@ -66,8 +66,7 @@ export interface CopilotFeedbackSummary {
 export const copilotKeys = {
   all: ["copilot"] as const,
   telemetry: (days: number) => [...copilotKeys.all, "telemetry", days] as const,
-  feedback: (messageId: string) =>
-    [...copilotKeys.all, "feedback", messageId] as const,
+  feedback: (messageId: string) => [...copilotKeys.all, "feedback", messageId] as const,
 };
 
 export function useCopilotTelemetry(days = 7) {

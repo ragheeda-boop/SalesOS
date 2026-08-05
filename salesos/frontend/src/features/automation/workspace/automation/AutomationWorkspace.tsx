@@ -23,9 +23,7 @@ export function AutomationWorkspace() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-display text-[var(--text-primary)]">
-          {t("automation.title")}
-        </h1>
+        <h1 className="text-xl font-display text-[var(--text-primary)]">{t("automation.title")}</h1>
         <div className="flex gap-2">
           {(Object.keys(TAB_KEYS) as AutomationTab[]).map((tab) => (
             <button
@@ -54,9 +52,7 @@ function WorkflowExecutionHistory() {
   const { t } = useTranslation();
   const { data: workflows } = useWorkflows();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const { data: executions, isLoading } = useWorkflowExecutions(
-    selectedId || "",
-  );
+  const { data: executions, isLoading } = useWorkflowExecutions(selectedId || "");
 
   return (
     <div className="space-y-4">
@@ -80,21 +76,15 @@ function WorkflowExecutionHistory() {
 
       {!selectedId && (
         <div className="rounded-xl border border-dashed border-[var(--border-default)] p-8 text-center">
-          <p className="text-sm text-[var(--text-muted)]">
-            {t("automation.select_workflow_hint")}
-          </p>
+          <p className="text-sm text-[var(--text-muted)]">{t("automation.select_workflow_hint")}</p>
         </div>
       )}
 
-      {isLoading && (
-        <div className="animate-pulse h-24 bg-[var(--bg-tertiary)] rounded-xl" />
-      )}
+      {isLoading && <div className="animate-pulse h-24 bg-[var(--bg-tertiary)] rounded-xl" />}
 
       {safeArray(executions).length === 0 && (
         <div className="rounded-xl border border-dashed border-[var(--border-default)] p-8 text-center">
-          <p className="text-sm text-[var(--text-muted)]">
-            {t("automation.no_executions")}
-          </p>
+          <p className="text-sm text-[var(--text-muted)]">{t("automation.no_executions")}</p>
         </div>
       )}
 
@@ -123,9 +113,7 @@ function WorkflowExecutionHistory() {
               {new Date(ex.started_at).toLocaleString("ar-SA")}
             </span>
           </div>
-          {ex.error_message && (
-            <p className="text-xs text-danger-600">{ex.error_message}</p>
-          )}
+          {ex.error_message && <p className="text-xs text-danger-600">{ex.error_message}</p>}
         </div>
       ))}
     </div>

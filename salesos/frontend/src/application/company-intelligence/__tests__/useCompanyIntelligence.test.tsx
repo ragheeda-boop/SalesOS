@@ -18,9 +18,7 @@ import { getTenantId } from "@/lib/hooks/useTenant";
 import api from "@/lib/api";
 import { useCompanyIntelligence } from "../useCompanyIntelligence";
 
-const mockedGetTenantId = getTenantId as jest.MockedFunction<
-  typeof getTenantId
->;
+const mockedGetTenantId = getTenantId as jest.MockedFunction<typeof getTenantId>;
 const mockedApi = api as jest.Mocked<typeof api>;
 
 function createWrapper() {
@@ -28,9 +26,7 @@ function createWrapper() {
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 }
 
@@ -64,12 +60,9 @@ describe("useCompanyIntelligence", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(data);
-    expect(mockedApi.get).toHaveBeenCalledWith(
-      "/api/v1/companies/c-1/intelligence",
-      {
-        headers: { "X-Tenant-Id": "tenant-1" },
-      },
-    );
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/v1/companies/c-1/intelligence", {
+      headers: { "X-Tenant-Id": "tenant-1" },
+    });
   });
 
   it("does not fetch when companyId is empty", () => {

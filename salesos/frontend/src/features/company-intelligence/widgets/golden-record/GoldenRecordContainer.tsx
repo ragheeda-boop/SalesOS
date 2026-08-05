@@ -20,16 +20,11 @@ export const GoldenRecordWidget = createWidget({
   },
   useData: () => {
     const { id: companyId } = useParams<{ id: string }>();
-    const { data, isLoading, isError, error, refetch } =
-      useCompanyIntelligence(companyId);
+    const { data, isLoading, isError, error, refetch } = useCompanyIntelligence(companyId);
     useDecisionSafe();
     return {
       data: data ? { entries: data.goldenRecord, dna: data.dna } : null,
-      status: isLoading
-        ? ("loading" as const)
-        : isError
-          ? ("error" as const)
-          : ("ready" as const),
+      status: isLoading ? ("loading" as const) : isError ? ("error" as const) : ("ready" as const),
       lastUpdated: null,
       error: error as Error | null,
       refetch,
@@ -37,9 +32,6 @@ export const GoldenRecordWidget = createWidget({
   },
   render: ({ data }) =>
     data ? (
-      <GoldenRecordView
-        entries={data.entries ?? []}
-        dna={data.dna as CompanyDNA | null}
-      />
+      <GoldenRecordView entries={data.entries ?? []} dna={data.dna as CompanyDNA | null} />
     ) : null,
 });

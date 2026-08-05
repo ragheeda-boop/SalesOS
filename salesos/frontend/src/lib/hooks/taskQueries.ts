@@ -1,11 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  listTasks,
-  completeTask as apiCompleteTask,
-  type TaskResponse,
-} from "@/lib/api";
+import { listTasks, completeTask as apiCompleteTask, type TaskResponse } from "@/lib/api";
 import { taskKeys } from "@/lib/queryKeys";
 import { getTenantId } from "./useTenant";
 

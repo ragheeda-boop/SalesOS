@@ -16,27 +16,19 @@ export const GovernmentIntelligenceWidget = createWidget({
     priority: "medium",
     permissions: ["company:government:read"],
     featureFlag: { enabled: true },
-    minHeight:
-      COMPANY_INTELLIGENCE_WIDGET_CONFIG.governmentIntelligence.minHeight,
+    minHeight: COMPANY_INTELLIGENCE_WIDGET_CONFIG.governmentIntelligence.minHeight,
   },
   useData: () => {
     const { id: companyId } = useParams<{ id: string }>();
-    const { data, isLoading, isError, error, refetch } =
-      useCompanyIntelligence(companyId);
+    const { data, isLoading, isError, error, refetch } = useCompanyIntelligence(companyId);
     useDecisionSafe();
     return {
       data: data?.government ?? null,
-      status: isLoading
-        ? ("loading" as const)
-        : isError
-          ? ("error" as const)
-          : ("ready" as const),
+      status: isLoading ? ("loading" as const) : isError ? ("error" as const) : ("ready" as const),
       lastUpdated: null,
       error: error as Error | null,
       refetch,
     };
   },
-  render: ({ data }) => (
-    <GovernmentIntelligenceView records={(data ?? []) as GovernmentRecord[]} />
-  ),
+  render: ({ data }) => <GovernmentIntelligenceView records={(data ?? []) as GovernmentRecord[]} />,
 });

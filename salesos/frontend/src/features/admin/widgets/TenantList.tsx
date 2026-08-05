@@ -4,10 +4,7 @@ import { useState } from "react";
 import { Input, Button, Badge, Card, Spinner } from "@salesos/ui";
 import { Search, Plus, XCircle, CheckCircle } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
-import {
-  useAdminTenants,
-  useCreateAdminTenant,
-} from "@/lib/hooks/adminQueries";
+import { useAdminTenants, useCreateAdminTenant } from "@/lib/hooks/adminQueries";
 import { AdminTenantListItem } from "@/lib/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateAdminTenant } from "@/lib/api";
@@ -79,9 +76,7 @@ export function TenantList() {
 
       {showCreate && (
         <Card className="p-4 space-y-3">
-          <h3 className="font-semibold">
-            {t("admin.tenant_list.new_tenant_title")}
-          </h3>
+          <h3 className="font-semibold">{t("admin.tenant_list.new_tenant_title")}</h3>
           <div className="grid grid-cols-2 gap-3">
             <Input
               placeholder={t("admin.tenant_list.name_placeholder")}
@@ -119,27 +114,13 @@ export function TenantList() {
           <table className="w-full text-sm responsive-table">
             <thead>
               <tr className="border-b dark:border-[var(--border-default)] text-right">
-                <th className="p-2 font-medium">
-                  {t("admin.tenant_list.name")}
-                </th>
-                <th className="p-2 font-medium">
-                  {t("admin.tenant_list.slug")}
-                </th>
-                <th className="p-2 font-medium">
-                  {t("admin.tenant_list.plan_label")}
-                </th>
-                <th className="p-2 font-medium">
-                  {t("admin.tenant_list.users")}
-                </th>
-                <th className="p-2 font-medium">
-                  {t("admin.tenant_list.status")}
-                </th>
-                <th className="p-2 font-medium">
-                  {t("admin.tenant_list.created_at")}
-                </th>
-                <th className="p-2 font-medium">
-                  {t("admin.tenant_list.actions")}
-                </th>
+                <th className="p-2 font-medium">{t("admin.tenant_list.name")}</th>
+                <th className="p-2 font-medium">{t("admin.tenant_list.slug")}</th>
+                <th className="p-2 font-medium">{t("admin.tenant_list.plan_label")}</th>
+                <th className="p-2 font-medium">{t("admin.tenant_list.users")}</th>
+                <th className="p-2 font-medium">{t("admin.tenant_list.status")}</th>
+                <th className="p-2 font-medium">{t("admin.tenant_list.created_at")}</th>
+                <th className="p-2 font-medium">{t("admin.tenant_list.actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -148,10 +129,7 @@ export function TenantList() {
                   key={tenant.id}
                   className="border-b dark:border-[var(--border-default)] hover:bg-[var(--bg-secondary)] dark:hover:bg-[var(--bg-primary)]"
                 >
-                  <td
-                    className="p-2 font-medium"
-                    data-label={t("admin.tenant_list.name")}
-                  >
+                  <td className="p-2 font-medium" data-label={t("admin.tenant_list.name")}>
                     {tenant.name}
                   </td>
                   <td
@@ -160,10 +138,7 @@ export function TenantList() {
                   >
                     {tenant.slug}
                   </td>
-                  <td
-                    className="p-2"
-                    data-label={t("admin.tenant_list.plan_label")}
-                  >
+                  <td className="p-2" data-label={t("admin.tenant_list.plan_label")}>
                     <Badge
                       variant={
                         tenant.plan === "enterprise"
@@ -179,19 +154,14 @@ export function TenantList() {
                   <td className="p-2" data-label={t("admin.tenant_list.users")}>
                     {tenant.user_count}
                   </td>
-                  <td
-                    className="p-2"
-                    data-label={t("admin.tenant_list.status")}
-                  >
+                  <td className="p-2" data-label={t("admin.tenant_list.status")}>
                     {tenant.is_active ? (
                       <span className="flex items-center gap-1 text-success-600">
-                        <CheckCircle className="h-3.5 w-3.5" />{" "}
-                        {t("admin.tenant_list.active")}
+                        <CheckCircle className="h-3.5 w-3.5" /> {t("admin.tenant_list.active")}
                       </span>
                     ) : (
                       <span className="flex items-center gap-1 text-danger-600">
-                        <XCircle className="h-3.5 w-3.5" />{" "}
-                        {t("admin.tenant_list.inactive")}
+                        <XCircle className="h-3.5 w-3.5" /> {t("admin.tenant_list.inactive")}
                       </span>
                     )}
                   </td>
@@ -201,10 +171,7 @@ export function TenantList() {
                   >
                     {new Date(tenant.created_at).toLocaleDateString("ar-SA")}
                   </td>
-                  <td
-                    className="p-2"
-                    data-label={t("admin.tenant_list.actions")}
-                  >
+                  <td className="p-2" data-label={t("admin.tenant_list.actions")}>
                     <div className="flex gap-1">
                       <Button
                         size="sm"
@@ -235,13 +202,7 @@ export function TenantList() {
 
 function Building2Icon(props: { className?: string }) {
   return (
-    <svg
-      {...props}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-    >
+    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18M6 22H4m2 0h12m0 0h2M6 7h2m-2 4h2m-2 4h2m6-8h2m-2 4h2m-2 4h2" />
     </svg>
   );

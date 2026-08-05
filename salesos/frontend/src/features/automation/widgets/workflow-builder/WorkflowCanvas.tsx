@@ -44,10 +44,7 @@ export function WorkflowCanvas({
   if (steps.length === 0) {
     return (
       <div className="flex items-center justify-center h-40 border border-dashed border-[var(--border-default)] rounded-xl">
-        <button
-          onClick={onAddStep}
-          className="text-sm text-[var(--muhide-orange)] hover:underline"
-        >
+        <button onClick={onAddStep} className="text-sm text-[var(--muhide-orange)] hover:underline">
           + إضافة الخطوة الأولى
         </button>
       </div>
@@ -69,14 +66,7 @@ export function WorkflowCanvas({
             {i < steps.length - 1 && (
               <div className="flex flex-col items-center mx-1 shrink-0">
                 <svg width="32" height="40" viewBox="0 0 32 40">
-                  <line
-                    x1="16"
-                    y1="0"
-                    x2="16"
-                    y2="28"
-                    stroke="#D1D5DB"
-                    strokeWidth="2"
-                  />
+                  <line x1="16" y1="0" x2="16" y2="28" stroke="#D1D5DB" strokeWidth="2" />
                   <polygon points="8,30 16,40 24,30" fill="#D1D5DB" />
                 </svg>
               </div>
@@ -116,9 +106,7 @@ function WorkflowNode({
       style={{ borderColor: color }}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] font-semibold text-[var(--text-muted)]">
-          {index + 1}
-        </span>
+        <span className="text-[10px] font-semibold text-[var(--text-muted)]">{index + 1}</span>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -150,10 +138,7 @@ function WorkflowNode({
           {Object.entries(step.config)
             .slice(0, 2)
             .map(([k, v]) => (
-              <div
-                key={k}
-                className="text-[10px] text-[var(--text-secondary)] truncate"
-              >
+              <div key={k} className="text-[10px] text-[var(--text-secondary)] truncate">
                 {k}: {String(v).slice(0, 20)}
               </div>
             ))}

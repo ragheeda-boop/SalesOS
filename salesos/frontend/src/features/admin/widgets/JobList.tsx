@@ -2,18 +2,8 @@
 
 import { useState } from "react";
 import { Button, Badge, Card, Spinner } from "@salesos/ui";
-import {
-  RefreshCw,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Play,
-} from "lucide-react";
-import {
-  useAdminJobs,
-  useAdminJobDetail,
-  useRetryAdminJob,
-} from "@/lib/hooks/adminQueries";
+import { RefreshCw, AlertTriangle, CheckCircle, Clock, Play } from "lucide-react";
+import { useAdminJobs, useAdminJobDetail, useRetryAdminJob } from "@/lib/hooks/adminQueries";
 import { AdminJob } from "@/lib/api";
 
 export function JobList() {
@@ -79,9 +69,7 @@ export function JobList() {
             {jobs.map((job: AdminJob) => (
               <button
                 key={job.id}
-                onClick={() =>
-                  setSelectedJob(selectedJob === job.id ? null : job.id)
-                }
+                onClick={() => setSelectedJob(selectedJob === job.id ? null : job.id)}
                 className={`w-full text-right flex items-center justify-between p-3 rounded-lg border transition ${
                   selectedJob === job.id
                     ? "border-[var(--muhide-orange)] bg-[var(--muhide-orange)]/5"
@@ -110,9 +98,7 @@ export function JobList() {
                     {job.status}
                   </Badge>
                   {job.status === "running" && (
-                    <span className="text-xs text-[var(--text-disabled)]">
-                      {job.progress}%
-                    </span>
+                    <span className="text-xs text-[var(--text-disabled)]">{job.progress}%</span>
                   )}
                 </div>
               </button>
@@ -142,9 +128,7 @@ function StatusIcon({ status }: { status: string }) {
     case "failed":
       return <AlertTriangle className="h-5 w-5 text-danger-500" />;
     case "running":
-      return (
-        <RefreshCw className="h-5 w-5 text-[var(--status-warning-text)] animate-spin" />
-      );
+      return <RefreshCw className="h-5 w-5 text-[var(--status-warning-text)] animate-spin" />;
     default:
       return <Clock className="h-5 w-5 text-[var(--text-disabled)]" />;
   }
@@ -171,21 +155,18 @@ function JobDetailPanel({ jobId }: { jobId: string }) {
 
       <div className="grid grid-cols-2 gap-2 text-sm">
         <div>
-          <span className="text-[var(--text-muted)]">الحالة:</span>{" "}
-          <Badge>{job.status}</Badge>
+          <span className="text-[var(--text-muted)]">الحالة:</span> <Badge>{job.status}</Badge>
         </div>
         <div>
-          <span className="text-[var(--text-muted)]">التقدم:</span>{" "}
-          {job.progress}%
+          <span className="text-[var(--text-muted)]">التقدم:</span> {job.progress}%
         </div>
         <div>
-          <span className="text-[var(--text-muted)]">المحاولات:</span>{" "}
-          {job.retry_count}/{job.max_retries}
+          <span className="text-[var(--text-muted)]">المحاولات:</span> {job.retry_count}/
+          {job.max_retries}
         </div>
         {job.tenant_id && (
           <div>
-            <span className="text-[var(--text-muted)]">العميل:</span>{" "}
-            {job.tenant_id}
+            <span className="text-[var(--text-muted)]">العميل:</span> {job.tenant_id}
           </div>
         )}
       </div>
@@ -212,10 +193,7 @@ function JobDetailPanel({ jobId }: { jobId: string }) {
           <h4 className="text-sm font-medium mb-2">سجل التنفيذ</h4>
           <div className="max-h-48 overflow-y-auto space-y-1">
             {job.logs.map(
-              (
-                log: { level: string; message: string; timestamp: string },
-                i: number,
-              ) => (
+              (log: { level: string; message: string; timestamp: string }, i: number) => (
                 <div
                   key={i}
                   className={`text-xs p-1.5 rounded ${log.level === "ERROR" ? "bg-danger-50 dark:bg-danger-900/20 text-danger-600" : "bg-[var(--bg-secondary)]"}`}
@@ -226,7 +204,7 @@ function JobDetailPanel({ jobId }: { jobId: string }) {
                   <span className="mx-1">[{log.level}]</span>
                   <span>{log.message}</span>
                 </div>
-              ),
+              )
             )}
           </div>
         </div>

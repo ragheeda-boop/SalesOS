@@ -73,9 +73,7 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
     if (!ready || !hasToken) return;
     setLoading(true);
     try {
-      const res = await client.get<GoogleStatus>(
-        "/api/v1/integrations/google/status",
-      );
+      const res = await client.get<GoogleStatus>("/api/v1/integrations/google/status");
       setStatus(res.data);
     } catch (err) {
       console.warn("[GooglePanel] status fetch failed", err);
@@ -101,13 +99,13 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
     setSyncMessage("Starting first Gmail + Calendar sync…");
     try {
       const [gmailRes, calRes] = await Promise.allSettled([
-        client.post<{ message: string; errors?: string[] }>(
-          "/api/v1/integrations/google/sync",
-          { days_lookback: 30, max_results: 100 },
-        ),
+        client.post<{ message: string; errors?: string[] }>("/api/v1/integrations/google/sync", {
+          days_lookback: 30,
+          max_results: 100,
+        }),
         client.post<{ message: string; errors?: string[] }>(
           "/api/v1/integrations/google/calendar-sync",
-          { days_lookback: 90, days_forward: 90 },
+          { days_lookback: 90, days_forward: 90 }
         ),
       ]);
       const parts: string[] = [];
@@ -140,7 +138,7 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
       setSyncMessage(
         email
           ? `Google connected as ${email}${sync === "started" ? " — first sync started" : ""}`
-          : "Google account connected successfully",
+          : "Google account connected successfully"
       );
       setError(null);
       void fetchStatus().then(() => {
@@ -152,14 +150,8 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
       });
       if (typeof window !== "undefined") {
         const url = new URL(window.location.href);
-        ["google", "email", "reason", "sync", "tab"].forEach((k) =>
-          url.searchParams.delete(k),
-        );
-        window.history.replaceState(
-          {},
-          "",
-          url.pathname + (url.search ? url.search : ""),
-        );
+        ["google", "email", "reason", "sync", "tab"].forEach((k) => url.searchParams.delete(k));
+        window.history.replaceState({}, "", url.pathname + (url.search ? url.search : ""));
       }
     } else if (google === "error") {
       setError(`Google connection failed (${reason || "unknown"})`);
@@ -203,18 +195,16 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
     try {
       const res = await client.post<{ message: string; errors?: string[] }>(
         "/api/v1/integrations/google/sync",
-        { days_lookback: 30, max_results: 100 },
+        { days_lookback: 30, max_results: 100 }
       );
-      const errs = res.data.errors?.length
-        ? ` (${res.data.errors.length} item errors)`
-        : "";
+      const errs = res.data.errors?.length ? ` (${res.data.errors.length} item errors)` : "";
       setSyncMessage((res.data.message || "Gmail sync completed") + errs);
       invalidatePostSync(queryClient);
       await fetchStatus();
     } catch (err: unknown) {
       const detail =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail || "Gmail sync failed — check connection and try again";
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        "Gmail sync failed — check connection and try again";
       setError(String(detail));
     } finally {
       setSyncingGmail(false);
@@ -229,18 +219,16 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
     try {
       const res = await client.post<{ message: string; errors?: string[] }>(
         "/api/v1/integrations/google/calendar-sync",
-        { days_lookback: 90, days_forward: 90 },
+        { days_lookback: 90, days_forward: 90 }
       );
-      const errs = res.data.errors?.length
-        ? ` (${res.data.errors.length} item errors)`
-        : "";
+      const errs = res.data.errors?.length ? ` (${res.data.errors.length} item errors)` : "";
       setSyncMessage((res.data.message || "Calendar sync completed") + errs);
       invalidatePostSync(queryClient);
       await fetchStatus();
     } catch (err: unknown) {
       const detail =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail || "Calendar sync failed — check connection and try again";
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ||
+        "Calendar sync failed — check connection and try again";
       setError(String(detail));
     } finally {
       setSyncingCalendar(false);
@@ -292,12 +280,8 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
               </svg>
             </div>
             <div>
-              <h3 className="text-sm font-medium text-[var(--text-primary)]">
-                Google Workspace
-              </h3>
-              <p className="text-xs text-[var(--text-secondary)]">
-                Gmail and Calendar sync
-              </p>
+              <h3 className="text-sm font-medium text-[var(--text-primary)]">Google Workspace</h3>
+              <p className="text-xs text-[var(--text-secondary)]">Gmail and Calendar sync</p>
             </div>
           </div>
 
@@ -338,24 +322,17 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
             <div className="flex items-center gap-2">
               {status.account.avatar_url && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={status.account.avatar_url}
-                  alt=""
-                  className="h-5 w-5 rounded-full"
-                />
+                <img src={status.account.avatar_url} alt="" className="h-5 w-5 rounded-full" />
               )}
               <span>{status.account.email}</span>
             </div>
             {status.account.last_sync_at && (
               <p className="mt-1">
-                Last sync:{" "}
-                {new Date(status.account.last_sync_at).toLocaleString()}
+                Last sync: {new Date(status.account.last_sync_at).toLocaleString()}
               </p>
             )}
             {status.scopes_granted.length > 0 && (
-              <p className="mt-1">
-                Scopes: {status.scopes_granted.length} permissions granted
-              </p>
+              <p className="mt-1">Scopes: {status.scopes_granted.length} permissions granted</p>
             )}
             <div className="mt-3 flex flex-wrap gap-2">
               <button
@@ -376,9 +353,7 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
               </button>
             </div>
             {syncMessage && (
-              <p className="mt-2 text-green-700 dark:text-green-300">
-                {syncMessage}
-              </p>
+              <p className="mt-2 text-green-700 dark:text-green-300">{syncMessage}</p>
             )}
           </div>
         )}
@@ -386,13 +361,12 @@ export function GoogleIntegrationPanel({ ready, hasToken }: Props) {
         {!connected && (
           <div className="mt-3 space-y-1 border-t border-[var(--border-subtle)] pt-3 text-xs text-[var(--text-secondary)]">
             <p>
-              Not connected — Employee360 email/calendar and Communication Hub
-              stay empty until you connect. Nothing is invented while
-              disconnected.
+              Not connected — Employee360 email/calendar and Communication Hub stay empty until you
+              connect. Nothing is invented while disconnected.
             </p>
             <p>
-              Connect Google to enable Gmail and Calendar sync. First sync
-              starts automatically after consent; tokens are encrypted at rest.
+              Connect Google to enable Gmail and Calendar sync. First sync starts automatically
+              after consent; tokens are encrypted at rest.
             </p>
           </div>
         )}

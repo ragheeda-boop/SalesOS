@@ -24,10 +24,8 @@ jest.mock("@/lib/api", () => {
     __esModule: true,
     default: {
       get: jest.fn((url: string) => {
-        if (url.includes("opportunities"))
-          return Promise.resolve({ data: { items: store.opps } });
-        if (url.includes("tasks"))
-          return Promise.resolve({ data: { items: store.tasks } });
+        if (url.includes("opportunities")) return Promise.resolve({ data: { items: store.opps } });
+        if (url.includes("tasks")) return Promise.resolve({ data: { items: store.tasks } });
         return Promise.resolve({ data: { items: [] } });
       }),
       post: jest.fn((url: string, data: any) => {
@@ -84,11 +82,7 @@ import {
   calculateWinProbability,
   STAGE_LABEL,
 } from "@/application/revenue-execution/opportunity.dto";
-import {
-  addTask,
-  completeTask,
-  loadTasks,
-} from "@/application/revenue-execution/task.store";
+import { addTask, completeTask, loadTasks } from "@/application/revenue-execution/task.store";
 import type {
   CompanyDNA,
   AIRecommendation,
@@ -134,9 +128,7 @@ const recommendation: AIRecommendation = {
   expectedRevenue: 500000,
   expectedImpact: "high",
   estimatedTime: "أسبوعين",
-  alternatives: [
-    { action: "send_proposal", actionLabel: "إرسال عرض", confidence: 0.7 },
-  ],
+  alternatives: [{ action: "send_proposal", actionLabel: "إرسال عرض", confidence: 0.7 }],
   risks: ["مورد بديل قيد التقييم"],
 };
 
@@ -210,13 +202,7 @@ describe("Flow 2: Company Intelligence → NBA Engine", () => {
   let action: NextBestAction | null;
 
   it("derives NBA from Company DNA + AI Recommendation", () => {
-    action = deriveNextBestAction(
-      dna,
-      recommendation,
-      timeline,
-      signals,
-      makers,
-    );
+    action = deriveNextBestAction(dna, recommendation, timeline, signals, makers);
     expect(action).not.toBeNull();
     expect(action!.actionLabel).toBeDefined();
     expect(action!.score).toBeGreaterThan(0);
@@ -345,21 +331,13 @@ describe("Flow 4: Opportunity → Task", () => {
 describe("Flow 5: Full Product Flow", () => {
   it("completes the full cycle: Search → NBA → Opportunity → Pipeline → Task", async () => {
     // 1. Search (via query builder)
-    const query = SearchQueryBuilder.create(
-      "energy companies with high buying intent",
-    )
+    const query = SearchQueryBuilder.create("energy companies with high buying intent")
       .withTypes(["company"])
       .build();
     expect(query.text).toContain("energy");
 
     // 2. NBA Engine
-    const action = deriveNextBestAction(
-      dna,
-      recommendation,
-      timeline,
-      signals,
-      makers,
-    );
+    const action = deriveNextBestAction(dna, recommendation, timeline, signals, makers);
     expect(action).not.toBeNull();
     expect(action!.createsOpportunity).toBe(true);
 
@@ -401,8 +379,6 @@ describe("Flow 5: Full Product Flow", () => {
       companyId: opp.companyId,
       companyName: opp.companyName,
     });
-    expect(tasks.some((t) => t.title === `متابعة ${opp.companyName}`)).toBe(
-      true,
-    );
+    expect(tasks.some((t) => t.title === `متابعة ${opp.companyName}`)).toBe(true);
   });
 });

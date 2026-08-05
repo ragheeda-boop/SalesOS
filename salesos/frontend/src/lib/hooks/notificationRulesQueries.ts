@@ -34,8 +34,7 @@ export function useNotificationRules() {
 export function useUpsertNotificationRule() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: NotificationRuleUpsert) =>
-      upsertNotificationRule(getTenantId(), body),
+    mutationFn: (body: NotificationRuleUpsert) => upsertNotificationRule(getTenantId(), body),
     onSuccess: () => {
       qc.invalidateQueries({
         queryKey: tenantStudioKeys.notificationRules(getTenantId()),
@@ -46,14 +45,12 @@ export function useUpsertNotificationRule() {
 
 export function useRouteNotificationEvent() {
   return useMutation({
-    mutationFn: (body: NotificationRouteRequest) =>
-      routeNotificationEvent(getTenantId(), body),
+    mutationFn: (body: NotificationRouteRequest) => routeNotificationEvent(getTenantId(), body),
   });
 }
 
 export function useCompileNotificationRule() {
   return useMutation({
-    mutationFn: (ruleId: string) =>
-      compileNotificationRule(getTenantId(), ruleId),
+    mutationFn: (ruleId: string) => compileNotificationRule(getTenantId(), ruleId),
   });
 }

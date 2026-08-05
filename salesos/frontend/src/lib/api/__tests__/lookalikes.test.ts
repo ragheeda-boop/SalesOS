@@ -1,8 +1,4 @@
-import {
-  getLookalikeMeta,
-  listLookalikeRuns,
-  runLookalikes,
-} from "../lookalikes";
+import { getLookalikeMeta, listLookalikeRuns, runLookalikes } from "../lookalikes";
 
 jest.mock("../client", () => ({
   __esModule: true,
@@ -35,18 +31,12 @@ describe("lookalikes API — FE-S11-04", () => {
       },
     });
     const meta = await getLookalikeMeta("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/lookalikes/meta",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/lookalikes/meta", expect.any(Object));
     expect(meta.object).toBe("LookalikeModel");
 
     mocked.get.mockResolvedValueOnce({ data: [] });
     await listLookalikeRuns("tenant-1");
-    expect(mocked.get).toHaveBeenCalledWith(
-      "/api/v1/gtm/lookalikes",
-      expect.any(Object),
-    );
+    expect(mocked.get).toHaveBeenCalledWith("/api/v1/gtm/lookalikes", expect.any(Object));
   });
 
   it("POSTs run lookalikes", async () => {
@@ -87,7 +77,7 @@ describe("lookalikes API — FE-S11-04", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/gtm/lookalikes",
       expect.objectContaining({ company_name: "Acme" }),
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(row.hit_count).toBe(1);
     expect(row.hits[0].similarity).toBeCloseTo(0.9);

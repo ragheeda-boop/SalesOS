@@ -6,22 +6,14 @@ import type { ChurnData } from "./types";
 
 export function ChurnView({ data }: { data: ChurnData }) {
   return (
-    <div
-      role="region"
-      aria-label="مخاطر التوقف"
-      className="space-y-2/20 dark:rounded-lg dark:p-1"
-    >
+    <div role="region" aria-label="مخاطر التوقف" className="space-y-2/20 dark:rounded-lg dark:p-1">
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-lg bg-[var(--status-danger-bg)] p-2">
           <p className="text-[9px] text-[var(--status-danger-text)]">في خطر</p>
-          <p className="text-sm font-bold text-[var(--status-danger-text)]">
-            {data.totalAtRisk}
-          </p>
+          <p className="text-sm font-bold text-[var(--status-danger-text)]">{data.totalAtRisk}</p>
         </div>
         <div className="rounded-lg bg-[var(--status-danger-bg)] p-2">
-          <p className="text-[9px] text-[var(--status-danger-text)]">
-            الإيرادات
-          </p>
+          <p className="text-[9px] text-[var(--status-danger-text)]">الإيرادات</p>
           <p className="text-sm font-bold text-[var(--status-danger-text)]">
             $
             {data.totalRevenue >= 1e6
@@ -30,9 +22,7 @@ export function ChurnView({ data }: { data: ChurnData }) {
           </p>
         </div>
         <div className="rounded-lg bg-[var(--status-danger-bg)] p-2">
-          <p className="text-[9px] text-[var(--status-danger-text)]">
-            معدل الخطر
-          </p>
+          <p className="text-[9px] text-[var(--status-danger-text)]">معدل الخطر</p>
           <p className="text-sm font-bold text-[var(--status-danger-text)]">
             %{Math.round(data.avgRiskScore * 100)}
           </p>
@@ -59,7 +49,7 @@ export function ChurnView({ data }: { data: ChurnData }) {
                     "mr-auto rounded px-1 py-0.5 text-[8px] font-medium",
                     a.riskScore >= 0.7
                       ? "bg-[var(--status-danger-bg)] text-[var(--status-danger-text)]"
-                      : "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]",
+                      : "bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]"
                   )}
                 >
                   %{Math.round(a.riskScore * 100)}
@@ -67,8 +57,7 @@ export function ChurnView({ data }: { data: ChurnData }) {
               </div>
               <p className="text-[9px] text-[var(--text-muted)]">{a.reason}</p>
               <div className="flex items-center gap-2 text-[8px] text-[var(--text-muted)]">
-                <Clock className="h-2.5 w-2.5" /> {a.daysSinceActivity} يوم بدون
-                نشاط
+                <Clock className="h-2.5 w-2.5" /> {a.daysSinceActivity} يوم بدون نشاط
                 <span>·</span>
                 <span>
                   $

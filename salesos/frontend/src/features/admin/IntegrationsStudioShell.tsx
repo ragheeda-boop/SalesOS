@@ -24,9 +24,7 @@ export function IntegrationsStudioShell() {
       aria-label="Integrations Studio"
     >
       <div>
-        <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-          Integrations Studio
-        </h2>
+        <h2 className="text-sm font-semibold text-[var(--text-primary)]">Integrations Studio</h2>
         <p className="mt-1 text-xs text-[var(--text-muted)]">
           STORY-08-07 / FE-S08-08 tenant Studio is live at{" "}
           <Link
@@ -44,10 +42,9 @@ export function IntegrationsStudioShell() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="integrations-studio-api-honesty"
       >
-        Hub HTTP is live on tip (STORY-08-06) including conflict-policy.
-        OdooAdapter certify path landed (STORY-09-01). Owner Console inventory
-        stays read-path; mutate Studio flow uses tenant JWT + DOM-021 at
-        `/integrations`. Not Production GO.
+        Hub HTTP is live on tip (STORY-08-06) including conflict-policy. OdooAdapter certify path
+        landed (STORY-09-01). Owner Console inventory stays read-path; mutate Studio flow uses
+        tenant JWT + DOM-021 at `/integrations`. Not Production GO.
       </p>
 
       <ol
@@ -65,9 +62,7 @@ export function IntegrationsStudioShell() {
                 {index + 1}
               </span>
               <span>
-                <span className="font-medium text-[var(--text-primary)]">
-                  {step.label}
-                </span>
+                <span className="font-medium text-[var(--text-primary)]">{step.label}</span>
                 <span className="mt-0.5 block text-xs">Open Studio</span>
               </span>
             </Link>

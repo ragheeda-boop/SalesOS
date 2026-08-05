@@ -1,11 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  WorkspaceGrid,
-  WorkspaceErrorBoundary,
-  WorkspaceLoading,
-} from "@salesos/workspace";
+import { WorkspaceGrid, WorkspaceErrorBoundary, WorkspaceLoading } from "@salesos/workspace";
 import {
   COMPANY_INTELLIGENCE_WIDGET_CONFIG,
   type CompanyWidgetId,
@@ -48,9 +44,7 @@ export function CompanyIntelligenceWidgetShell({
   const config = COMPANY_INTELLIGENCE_WIDGET_CONFIG[widgetId];
   return (
     <div key={widgetId} style={{ gridColumn: config.gridColumn }}>
-      <WorkspaceErrorBoundary widgetId={widgetId}>
-        {children}
-      </WorkspaceErrorBoundary>
+      <WorkspaceErrorBoundary widgetId={widgetId}>{children}</WorkspaceErrorBoundary>
     </div>
   );
 }

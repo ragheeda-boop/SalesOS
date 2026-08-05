@@ -43,9 +43,7 @@ describeWidgetContract({
       permissions: ["company:graph:read"],
       featureFlag: { enabled: true },
     },
-    render: ({ data }) => (
-      <RelationshipGraphView nodes={data.nodes} edges={data.edges} />
-    ),
+    render: ({ data }) => <RelationshipGraphView nodes={data.nodes} edges={data.edges} />,
   },
 });
 
@@ -69,9 +67,7 @@ describe("RelationshipGraphView", () => {
 
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "العلاقات" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "العلاقات" })).toBeInTheDocument();
   });
 });
 

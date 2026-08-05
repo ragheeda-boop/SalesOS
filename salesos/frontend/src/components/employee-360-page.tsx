@@ -2,42 +2,34 @@
 
 import { useState, useMemo, lazy, Suspense } from "react";
 import { useEmployee360 } from "@/lib/hooks/employeeQueries";
-import {
-  Tabs,
-  TabsList,
-  Tab,
-  TabsPanel,
-  Skeleton,
-  EmptyState,
-  cn,
-} from "@salesos/ui";
+import { Tabs, TabsList, Tab, TabsPanel, Skeleton, EmptyState, cn } from "@salesos/ui";
 import { User, Activity, Brain, Clock, TrendingUp } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
 const EmployeeOverview = lazy(() =>
   import("@/components/employee-360/employee-360-overview").then((m) => ({
     default: m.EmployeeOverview,
-  })),
+  }))
 );
 const EmployeeSignals = lazy(() =>
   import("@/components/employee-360/employee-360-signals").then((m) => ({
     default: m.EmployeeSignals,
-  })),
+  }))
 );
 const EmployeeScoring = lazy(() =>
   import("@/components/employee-360/employee-360-scoring").then((m) => ({
     default: m.EmployeeScoring,
-  })),
+  }))
 );
 const EmployeeTimeline = lazy(() =>
   import("@/components/employee-360/employee-360-timeline").then((m) => ({
     default: m.EmployeeTimeline,
-  })),
+  }))
 );
 const EmployeePerformance = lazy(() =>
   import("@/components/employee-360/employee-360-performance").then((m) => ({
     default: m.EmployeePerformance,
-  })),
+  }))
 );
 
 function TabFallback() {
@@ -62,9 +54,7 @@ export function Employee360Page({ employeeId }: Employee360PageProps) {
   const { t } = useTranslation();
   const { data, isLoading, isError, error } = useEmployee360(employeeId);
   const [activeTab, setActiveTab] = useState<TabId>("overview");
-  const [visitedTabs, setVisitedTabs] = useState<Set<TabId>>(
-    new Set(["overview"]),
-  );
+  const [visitedTabs, setVisitedTabs] = useState<Set<TabId>>(new Set(["overview"]));
 
   const handleTabChange = (v: string) => {
     const tabId = v as TabId;
@@ -113,7 +103,7 @@ export function Employee360Page({ employeeId }: Employee360PageProps) {
                 value={tab.id}
                 className={cn(
                   "flex items-center gap-1.5 whitespace-nowrap rounded-lg border-b-0 px-3 py-2",
-                  "data-[state=active]:bg-[var(--muhide-orange)]/10 data-[state=active]:text-[var(--muhide-orange)] data-[state=active]:border-b-0",
+                  "data-[state=active]:bg-[var(--muhide-orange)]/10 data-[state=active]:text-[var(--muhide-orange)] data-[state=active]:border-b-0"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -133,33 +123,25 @@ export function Employee360Page({ employeeId }: Employee360PageProps) {
 
         <TabsPanel value="signals">
           <Suspense fallback={<TabFallback />}>
-            {visitedTabs.has("signals") && (
-              <EmployeeSignals employeeId={employeeId} />
-            )}
+            {visitedTabs.has("signals") && <EmployeeSignals employeeId={employeeId} />}
           </Suspense>
         </TabsPanel>
 
         <TabsPanel value="scoring">
           <Suspense fallback={<TabFallback />}>
-            {visitedTabs.has("scoring") && (
-              <EmployeeScoring employeeId={employeeId} />
-            )}
+            {visitedTabs.has("scoring") && <EmployeeScoring employeeId={employeeId} />}
           </Suspense>
         </TabsPanel>
 
         <TabsPanel value="timeline">
           <Suspense fallback={<TabFallback />}>
-            {visitedTabs.has("timeline") && (
-              <EmployeeTimeline employeeId={employeeId} />
-            )}
+            {visitedTabs.has("timeline") && <EmployeeTimeline employeeId={employeeId} />}
           </Suspense>
         </TabsPanel>
 
         <TabsPanel value="performance">
           <Suspense fallback={<TabFallback />}>
-            {visitedTabs.has("performance") && (
-              <EmployeePerformance employeeId={employeeId} />
-            )}
+            {visitedTabs.has("performance") && <EmployeePerformance employeeId={employeeId} />}
           </Suspense>
         </TabsPanel>
       </Tabs>
@@ -167,10 +149,7 @@ export function Employee360Page({ employeeId }: Employee360PageProps) {
   );
 }
 
-export {
-  ScoreBadge,
-  formatRelativeTime,
-} from "@/components/employee-360/employee-360-shared";
+export { ScoreBadge, formatRelativeTime } from "@/components/employee-360/employee-360-shared";
 export { ScoreBreakdown } from "@/components/employee-360/employee-360-score-breakdown";
 export { CoachingInsights } from "@/components/employee-360/employee-360-coaching";
 export { TrendChart } from "@/components/employee-360/employee-360-trend-chart";

@@ -1,13 +1,13 @@
-import { type ColumnDef, useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table'
-import { cn } from './utils'
-import { Loader2 } from 'lucide-react'
+import { type ColumnDef, useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
+import { cn } from "./utils";
+import { Loader2 } from "lucide-react";
 
 interface TableProps<TData> {
-  columns: ColumnDef<TData>[]
-  data: TData[]
-  loading?: boolean
-  onRowClick?: (row: TData) => void
-  className?: string
+  columns: ColumnDef<TData>[];
+  data: TData[];
+  loading?: boolean;
+  onRowClick?: (row: TData) => void;
+  className?: string;
 }
 
 export function Table<TData>({ columns, data, loading, onRowClick, className }: TableProps<TData>) {
@@ -15,11 +15,11 @@ export function Table<TData>({ columns, data, loading, onRowClick, className }: 
     columns,
     data,
     getCoreRowModel: getCoreRowModel(),
-  })
+  });
 
   return (
     <div className="w-full overflow-x-auto">
-      <table className={cn('w-full border-collapse text-sm', className)}>
+      <table className={cn("w-full border-collapse text-sm", className)}>
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
@@ -49,7 +49,10 @@ export function Table<TData>({ columns, data, loading, onRowClick, className }: 
             ))
           ) : table.getRowModel().rows.length === 0 ? (
             <tr>
-              <td colSpan={columns.length} className="px-4 py-8 text-center text-[var(--text-muted)]">
+              <td
+                colSpan={columns.length}
+                className="px-4 py-8 text-center text-[var(--text-muted)]"
+              >
                 <div className="flex flex-col items-center gap-2" role="status">
                   <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
                   <span>No results</span>
@@ -62,8 +65,8 @@ export function Table<TData>({ columns, data, loading, onRowClick, className }: 
                 key={row.id}
                 onClick={() => onRowClick?.(row.original)}
                 className={cn(
-                  'border-b border-[var(--border-default)] transition-colors',
-                  onRowClick && 'cursor-pointer hover:bg-[var(--bg-secondary)]'
+                  "border-b border-[var(--border-default)] transition-colors",
+                  onRowClick && "cursor-pointer hover:bg-[var(--bg-secondary)]"
                 )}
               >
                 {row.getVisibleCells().map((cell) => (
@@ -77,5 +80,5 @@ export function Table<TData>({ columns, data, loading, onRowClick, className }: 
         </tbody>
       </table>
     </div>
-  )
+  );
 }

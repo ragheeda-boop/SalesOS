@@ -26,13 +26,9 @@ export function SearchHeader({
   className,
 }: SearchHeaderProps) {
   return (
-    <div
-      className={cn("flex items-center justify-between px-4 py-3", className)}
-    >
+    <div className={cn("flex items-center justify-between px-4 py-3", className)}>
       <div>
-        <h1 className="text-lg font-semibold text-[var(--text-primary)]">
-          البحث
-        </h1>
+        <h1 className="text-lg font-semibold text-[var(--text-primary)]">البحث</h1>
         <p className="text-xs text-[var(--text-muted)]">
           {total} نتيجة لـ {"\u201C"}
           {query}
@@ -50,7 +46,7 @@ export function SearchHeader({
                 "rounded-lg px-2 py-1 text-xs transition",
                 sort === opt.value
                   ? "bg-primary-50 text-primary-700 dark:bg-primary-900/20 dark:text-primary-300"
-                  : "text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)]",
+                  : "text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)]"
               )}
             >
               {opt.label}

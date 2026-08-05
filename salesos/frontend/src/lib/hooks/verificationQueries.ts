@@ -42,8 +42,7 @@ export function useVerificationDetail(runId: string | null) {
 export function useRunVerification() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: VerificationBody) =>
-      runVerification(getTenantId(), body),
+    mutationFn: (body: VerificationBody) => runVerification(getTenantId(), body),
     onSuccess: (row) => {
       qc.invalidateQueries({
         queryKey: gtmKeys.verificationList(getTenantId()),

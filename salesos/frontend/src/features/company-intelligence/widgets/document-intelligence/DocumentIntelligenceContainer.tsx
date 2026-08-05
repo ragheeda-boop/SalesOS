@@ -16,27 +16,19 @@ export const DocumentIntelligenceWidget = createWidget({
     priority: "medium",
     permissions: ["company:documents:read"],
     featureFlag: { enabled: true },
-    minHeight:
-      COMPANY_INTELLIGENCE_WIDGET_CONFIG.documentIntelligence.minHeight,
+    minHeight: COMPANY_INTELLIGENCE_WIDGET_CONFIG.documentIntelligence.minHeight,
   },
   useData: () => {
     const { id: companyId } = useParams<{ id: string }>();
-    const { data, isLoading, isError, error, refetch } =
-      useCompanyIntelligence(companyId);
+    const { data, isLoading, isError, error, refetch } = useCompanyIntelligence(companyId);
     useDecisionSafe();
     return {
       data: data?.documents ?? null,
-      status: isLoading
-        ? ("loading" as const)
-        : isError
-          ? ("error" as const)
-          : ("ready" as const),
+      status: isLoading ? ("loading" as const) : isError ? ("error" as const) : ("ready" as const),
       lastUpdated: null,
       error: error as Error | null,
       refetch,
     };
   },
-  render: ({ data }) => (
-    <DocumentIntelligenceView documents={(data ?? []) as DocumentItem[]} />
-  ),
+  render: ({ data }) => <DocumentIntelligenceView documents={(data ?? []) as DocumentItem[]} />,
 });

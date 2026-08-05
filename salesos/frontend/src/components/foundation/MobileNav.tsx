@@ -168,8 +168,7 @@ export function MobileNav() {
     close();
   }, [pathname, close]);
 
-  const slideAnim =
-    dir === "rtl" ? "animate-slide-in-right" : "animate-slide-in-left";
+  const slideAnim = dir === "rtl" ? "animate-slide-in-right" : "animate-slide-in-left";
   const fabPosition = dir === "rtl" ? "start-4" : "end-4";
 
   return (
@@ -178,7 +177,7 @@ export function MobileNav() {
         onClick={() => setOpen(true)}
         className={cn(
           "fixed bottom-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--muhide-orange)] text-white shadow-muhide-4 md:hidden",
-          fabPosition,
+          fabPosition
         )}
         aria-label={t("a11y.open_menu")}
         aria-expanded={open}
@@ -197,7 +196,7 @@ export function MobileNav() {
             className={cn(
               "absolute top-0 bottom-0 w-72 max-w-[80vw] bg-[var(--bg-primary)] shadow-muhide-6 overflow-y-auto",
               "start-0",
-              slideAnim,
+              slideAnim
             )}
             role="dialog"
             aria-modal="true"
@@ -226,7 +225,7 @@ export function MobileNav() {
                       "flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition min-h-[44px]",
                       active
                         ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)] font-medium"
-                        : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]",
+                        : "text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]"
                     )}
                   >
                     <Icon className="h-5 w-5 shrink-0" />

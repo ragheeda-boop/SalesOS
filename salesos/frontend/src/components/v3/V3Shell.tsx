@@ -18,14 +18,14 @@ export function V3Shell({ collapsed, onToggleCollapsed }: V3ShellProps) {
     <aside
       className={cn(
         "flex shrink-0 flex-col border-r border-[var(--border-default)] bg-[var(--bg-secondary)] transition-[width] duration-200 ease-out",
-        collapsed ? "w-14" : "w-56",
+        collapsed ? "w-14" : "w-56"
       )}
       aria-label="Workspace navigation"
     >
       <div
         className={cn(
           "flex h-12 items-center border-b border-[var(--border-default)] px-2",
-          collapsed ? "justify-center" : "justify-between gap-2 px-3",
+          collapsed ? "justify-center" : "justify-between gap-2 px-3"
         )}
       >
         {!collapsed && (
@@ -36,9 +36,7 @@ export function V3Shell({ collapsed, onToggleCollapsed }: V3ShellProps) {
             >
               SalesOS
             </div>
-            <div className="truncate text-xs text-[var(--text-secondary)]">
-              v3 Preview
-            </div>
+            <div className="truncate text-xs text-[var(--text-secondary)]">v3 Preview</div>
           </div>
         )}
         <button
@@ -72,7 +70,7 @@ export function V3Shell({ collapsed, onToggleCollapsed }: V3ShellProps) {
                 collapsed && "justify-center px-0",
                 active
                   ? "bg-[var(--muhide-orange)]/10 font-medium text-[var(--muhide-orange)]"
-                  : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]",
+                  : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]"
               )}
             >
               <Icon
@@ -80,7 +78,7 @@ export function V3Shell({ collapsed, onToggleCollapsed }: V3ShellProps) {
                   "h-4 w-4 shrink-0",
                   active
                     ? "text-[var(--muhide-orange)]"
-                    : "text-[var(--text-muted)] group-hover:text-[var(--text-primary)]",
+                    : "text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
                 )}
                 aria-hidden
               />

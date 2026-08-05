@@ -10,18 +10,14 @@ import { getTenantId } from "../useTenant";
 import { useEntityActivity } from "../activityQueries";
 
 const mockedApi = api as jest.Mocked<typeof api>;
-const mockedGetTenantId = getTenantId as jest.MockedFunction<
-  typeof getTenantId
->;
+const mockedGetTenantId = getTenantId as jest.MockedFunction<typeof getTenantId>;
 
 function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
   return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    );
+    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
   };
 }
 
@@ -55,12 +51,7 @@ describe("useEntityActivity", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(activity);
-    expect(mockedApi.getEntityActivities).toHaveBeenCalledWith(
-      "company",
-      "c-1",
-      "tenant-1",
-      50,
-    );
+    expect(mockedApi.getEntityActivities).toHaveBeenCalledWith("company", "c-1", "tenant-1", 50);
   });
 
   it("does not fetch when entityType is empty", () => {

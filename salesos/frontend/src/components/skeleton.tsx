@@ -14,22 +14,16 @@ function SkeletonPulse({ className }: { className?: string }) {
       className={cn(
         "animate-pulse rounded-md bg-[var(--bg-tertiary)]",
         "motion-reduce:animate-none",
-        className,
+        className
       )}
       aria-hidden="true"
     />
   );
 }
 
-export function Skeleton({
-  className,
-  variant = "text",
-  lines = 1,
-}: SkeletonProps) {
+export function Skeleton({ className, variant = "text", lines = 1 }: SkeletonProps) {
   if (variant === "avatar") {
-    return (
-      <SkeletonPulse className={cn("h-10 w-10 rounded-full", className)} />
-    );
+    return <SkeletonPulse className={cn("h-10 w-10 rounded-full", className)} />;
   }
 
   if (variant === "title") {
@@ -39,10 +33,7 @@ export function Skeleton({
   if (variant === "card") {
     return (
       <div
-        className={cn(
-          "space-y-3 rounded-xl border border-[var(--border-default)] p-4",
-          className,
-        )}
+        className={cn("space-y-3 rounded-xl border border-[var(--border-default)] p-4", className)}
         aria-hidden="true"
       >
         <SkeletonPulse className="h-4 w-3/4" />
@@ -75,10 +66,7 @@ export function Skeleton({
   return (
     <div className={cn("space-y-2", className)} aria-hidden="true">
       {Array.from({ length: lines }).map((_, i) => (
-        <SkeletonPulse
-          key={i}
-          className={cn("h-3.5", i === lines - 1 ? "w-2/3" : "w-full")}
-        />
+        <SkeletonPulse key={i} className={cn("h-3.5", i === lines - 1 ? "w-2/3" : "w-full")} />
       ))}
     </div>
   );

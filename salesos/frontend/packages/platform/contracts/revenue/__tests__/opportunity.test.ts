@@ -6,20 +6,20 @@ import type {
   PipelineSummary,
   HealthMapItem,
   HealthMap,
-} from "../opportunity"
+} from "../opportunity";
 
 describe("Contract: Revenue Opportunity", () => {
   describe("1. Type exports exist", () => {
     it("exports OpportunityStage values", () => {
-      const s: OpportunityStage = "qualification"
-      expect(s).toBe("qualification")
-    })
+      const s: OpportunityStage = "qualification";
+      expect(s).toBe("qualification");
+    });
 
     it("exports OpportunityHealth values", () => {
-      const h: OpportunityHealth = "at_risk"
-      expect(h).toBe("at_risk")
-    })
-  })
+      const h: OpportunityHealth = "at_risk";
+      expect(h).toBe("at_risk");
+    });
+  });
 
   describe("2. Opportunity interface", () => {
     it("is constructible with required fields", () => {
@@ -35,11 +35,11 @@ describe("Contract: Revenue Opportunity", () => {
         ownerId: "user-1",
         createdAt: "2026-01-01T00:00:00Z",
         updatedAt: "2026-01-15T00:00:00Z",
-      }
-      expect(o.id).toBe("opp-1")
-      expect(o.stage).toBe("discovery")
-      expect(o.value).toBe(100000)
-    })
+      };
+      expect(o.id).toBe("opp-1");
+      expect(o.stage).toBe("discovery");
+      expect(o.value).toBe(100000);
+    });
 
     it("supports optional expectedCloseDate", () => {
       const o: Opportunity = {
@@ -55,9 +55,9 @@ describe("Contract: Revenue Opportunity", () => {
         expectedCloseDate: "2026-06-01T00:00:00Z",
         createdAt: "2026-01-01T00:00:00Z",
         updatedAt: "2026-01-15T00:00:00Z",
-      }
-      expect(o.expectedCloseDate).toBe("2026-06-01T00:00:00Z")
-    })
+      };
+      expect(o.expectedCloseDate).toBe("2026-06-01T00:00:00Z");
+    });
 
     it("supports optional playbookId", () => {
       const o: Opportunity = {
@@ -73,9 +73,9 @@ describe("Contract: Revenue Opportunity", () => {
         playbookId: "pb-1",
         createdAt: "2026-01-01T00:00:00Z",
         updatedAt: "2026-01-15T00:00:00Z",
-      }
-      expect(o.playbookId).toBe("pb-1")
-    })
+      };
+      expect(o.playbookId).toBe("pb-1");
+    });
 
     it("supports optional nba recommendation", () => {
       const o: Opportunity = {
@@ -106,11 +106,11 @@ describe("Contract: Revenue Opportunity", () => {
         },
         createdAt: "2026-01-01T00:00:00Z",
         updatedAt: "2026-01-15T00:00:00Z",
-      }
-      expect(o.nba).toBeDefined()
-      expect(o.nba!.action).toBe("Schedule call")
-    })
-  })
+      };
+      expect(o.nba).toBeDefined();
+      expect(o.nba!.action).toBe("Schedule call");
+    });
+  });
 
   describe("3. StageMetrics interface", () => {
     it("is constructible", () => {
@@ -118,11 +118,11 @@ describe("Contract: Revenue Opportunity", () => {
         count: 10,
         value: 500000,
         conversionRate: 0.4,
-      }
-      expect(m.count).toBe(10)
-      expect(m.conversionRate).toBe(0.4)
-    })
-  })
+      };
+      expect(m.count).toBe(10);
+      expect(m.conversionRate).toBe(0.4);
+    });
+  });
 
   describe("4. PipelineSummary interface", () => {
     it("is constructible", () => {
@@ -137,11 +137,11 @@ describe("Contract: Revenue Opportunity", () => {
         winRate: 0.35,
         avgDealSize: 50000,
         velocityDays: 45,
-      }
-      expect(s.totalCount).toBe(20)
-      expect(s.byStage.discovery.count).toBe(8)
-    })
-  })
+      };
+      expect(s.totalCount).toBe(20);
+      expect(s.byStage.discovery.count).toBe(8);
+    });
+  });
 
   describe("5. HealthMapItem interface", () => {
     it("is constructible", () => {
@@ -152,10 +152,10 @@ describe("Contract: Revenue Opportunity", () => {
         owner: "user-1",
         value: 80000,
         stage: "proposal",
-      }
-      expect(h.health).toBe("healthy")
-    })
-  })
+      };
+      expect(h.health).toBe("healthy");
+    });
+  });
 
   describe("6. HealthMap interface", () => {
     it("is constructible", () => {
@@ -173,10 +173,10 @@ describe("Contract: Revenue Opportunity", () => {
             stage: "discovery",
           },
         ],
-      }
-      expect(hm.healthy).toBe(12)
-      expect(hm.opportunities.length).toBe(1)
-    })
+      };
+      expect(hm.healthy).toBe(12);
+      expect(hm.opportunities.length).toBe(1);
+    });
 
     it("supports empty opportunities", () => {
       const hm: HealthMap = {
@@ -184,10 +184,10 @@ describe("Contract: Revenue Opportunity", () => {
         atRisk: 0,
         critical: 0,
         opportunities: [],
-      }
-      expect(hm.opportunities.length).toBe(0)
-    })
-  })
+      };
+      expect(hm.opportunities.length).toBe(0);
+    });
+  });
 
   describe("7. OpportunityStage exhaustive values", () => {
     it("includes all stages", () => {
@@ -198,15 +198,15 @@ describe("Contract: Revenue Opportunity", () => {
         "negotiation",
         "closed_won",
         "closed_lost",
-      ]
-      expect(stages.length).toBe(6)
-    })
-  })
+      ];
+      expect(stages.length).toBe(6);
+    });
+  });
 
   describe("8. OpportunityHealth exhaustive values", () => {
     it("includes all health levels", () => {
-      const levels: OpportunityHealth[] = ["healthy", "at_risk", "critical"]
-      expect(levels.length).toBe(3)
-    })
-  })
-})
+      const levels: OpportunityHealth[] = ["healthy", "at_risk", "critical"];
+      expect(levels.length).toBe(3);
+    });
+  });
+});

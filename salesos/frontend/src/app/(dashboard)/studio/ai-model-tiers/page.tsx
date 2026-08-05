@@ -11,12 +11,10 @@ export default function AiModelTiersPage() {
   return (
     <div className="space-y-6 p-6" data-testid="ai-model-tiers-page">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          AI Model Tiers
-        </h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">AI Model Tiers</h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Read-only tip /api/v1/studio/ai-model-tiers catalog, plan defaults,
-          and tenant resolve. Does not enable feature_ai_copilot or live LLM.
+          Read-only tip /api/v1/studio/ai-model-tiers catalog, plan defaults, and tenant resolve.
+          Does not enable feature_ai_copilot or live LLM.
         </p>
       </div>
       <AiModelTiersStudio />

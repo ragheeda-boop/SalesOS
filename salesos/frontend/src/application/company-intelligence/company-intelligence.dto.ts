@@ -141,14 +141,7 @@ export interface SignalItem {
 
 export interface GovernmentRecord {
   id: string;
-  type:
-    | "cr"
-    | "municipality"
-    | "zakat"
-    | "misa"
-    | "tender"
-    | "license"
-    | "violation";
+  type: "cr" | "municipality" | "zakat" | "misa" | "tender" | "license" | "violation";
   title: string;
   status: "active" | "expired" | "pending" | "violation";
   issueDate?: string;
@@ -168,8 +161,7 @@ export interface DocumentItem {
 }
 
 export interface BuyingJourney {
-  currentStage:
-    "awareness" | "interest" | "evaluation" | "decision" | "expansion";
+  currentStage: "awareness" | "interest" | "evaluation" | "decision" | "expansion";
   progress: number;
   timeInStage: string;
   recommendedAction: string;

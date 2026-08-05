@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  useAdminDetailedHealth,
-  useAdminHealthHistory,
-} from "@/lib/hooks/adminQueries";
+import { useAdminDetailedHealth, useAdminHealthHistory } from "@/lib/hooks/adminQueries";
 import { HealthDashboardView } from "./HealthDashboardView";
 
 export function HealthDashboard() {

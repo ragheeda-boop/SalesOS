@@ -42,14 +42,8 @@ interface SearchResultCardProps {
   highlighted?: boolean;
 }
 
-export function SearchResultCard({
-  result,
-  onClick,
-  highlighted,
-}: SearchResultCardProps) {
-  const icon = ENTITY_ICON[result.entityType] ?? (
-    <FileText className="h-4 w-4" />
-  );
+export function SearchResultCard({ result, onClick, highlighted }: SearchResultCardProps) {
+  const icon = ENTITY_ICON[result.entityType] ?? <FileText className="h-4 w-4" />;
 
   return (
     <div
@@ -58,9 +52,7 @@ export function SearchResultCard({
       tabIndex={0}
       className={cn(
         "flex items-start gap-3 rounded-lg px-4 py-3 text-sm transition-colors motion-reduce:transition-none cursor-pointer",
-        highlighted
-          ? "bg-primary-50 dark:bg-primary-900/20"
-          : "hover:bg-[var(--bg-tertiary)]",
+        highlighted ? "bg-primary-50 dark:bg-primary-900/20" : "hover:bg-[var(--bg-tertiary)]"
       )}
       onClick={() => onClick?.(result)}
       onKeyDown={(e) => {
@@ -84,7 +76,7 @@ export function SearchResultCard({
                 key={i}
                 className={cn(
                   "rounded-full px-1.5 py-0.5 text-[10px] font-medium",
-                  BADGE_VARIANT[badge.variant] ?? BADGE_VARIANT.neutral,
+                  BADGE_VARIANT[badge.variant] ?? BADGE_VARIANT.neutral
                 )}
               >
                 {badge.label}
@@ -92,9 +84,7 @@ export function SearchResultCard({
             ))}
           </div>
         </div>
-        <p className="mt-0.5 text-xs text-[var(--text-muted)]">
-          {result.subtitle}
-        </p>
+        <p className="mt-0.5 text-xs text-[var(--text-muted)]">{result.subtitle}</p>
         {result.description && (
           <p className="mt-0.5 line-clamp-2 text-xs text-[var(--text-muted)]">
             {result.description}
@@ -108,7 +98,7 @@ export function SearchResultCard({
                 ? "text-[var(--status-success-text)]"
                 : result.score > 0.5
                   ? "text-[var(--status-warning-text)]"
-                  : "text-[var(--status-danger-text)]",
+                  : "text-[var(--status-danger-text)]"
             )}
           >
             %{Math.round(result.score * 100)}

@@ -31,9 +31,7 @@ function SearchPageInner() {
     setQuery,
     refetch,
   } = useSearchContext();
-  const [selectedFilters, setSelectedFilters] = useState<
-    Record<string, string[]>
-  >({});
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string[]>>({});
   const [sort, setSort] = useState<SortOption>("relevance");
   const [page, setPage] = useState(1);
 
@@ -42,7 +40,7 @@ function SearchPageInner() {
       setQuery({ text, page: 1, sort });
       search(text);
     },
-    [setQuery, search, sort],
+    [setQuery, search, sort]
   );
 
   const handleSortChange = useCallback(
@@ -50,7 +48,7 @@ function SearchPageInner() {
       setSort(newSort);
       setQuery({ sort: newSort });
     },
-    [setQuery],
+    [setQuery]
   );
 
   const handleFilterToggle = useCallback((field: string, value: string) => {
@@ -63,8 +61,8 @@ function SearchPageInner() {
     });
   }, []);
 
-  const activePills = Object.entries(selectedFilters).flatMap(
-    ([field, values]) => values.map((v) => ({ field, value: v })),
+  const activePills = Object.entries(selectedFilters).flatMap(([field, values]) =>
+    values.map((v) => ({ field, value: v }))
   );
   const hasQuery = query.text.trim().length >= 2;
 
@@ -123,9 +121,7 @@ function SearchPageInner() {
 
         {/* Content */}
         {hasQuery && isLoading && <SearchLoading count={5} />}
-        {hasQuery && isError && (
-          <SearchError message={error?.message} onRetry={refetch} />
-        )}
+        {hasQuery && isError && <SearchError message={error?.message} onRetry={refetch} />}
         {hasQuery && !isLoading && !isError && results.length === 0 && (
           <SearchEmpty query={query.text} />
         )}
@@ -141,23 +137,20 @@ function SearchPageInner() {
             {/* Pagination */}
             {total > 10 && (
               <div className="flex items-center justify-center gap-2 py-6">
-                {Array.from(
-                  { length: Math.min(5, Math.ceil(total / 10)) },
-                  (_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setPage(i + 1)}
-                      className={cn(
-                        "flex h-8 w-8 items-center justify-center rounded-lg text-xs transition",
-                        page === i + 1
-                          ? "bg-primary-500 text-white"
-                          : "text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)]",
-                      )}
-                    >
-                      {i + 1}
-                    </button>
-                  ),
-                )}
+                {Array.from({ length: Math.min(5, Math.ceil(total / 10)) }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setPage(i + 1)}
+                    className={cn(
+                      "flex h-8 w-8 items-center justify-center rounded-lg text-xs transition",
+                      page === i + 1
+                        ? "bg-primary-500 text-white"
+                        : "text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)]"
+                    )}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
               </div>
             )}
           </>
@@ -166,9 +159,7 @@ function SearchPageInner() {
         {/* Idle state */}
         {!hasQuery && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <p className="text-lg font-medium text-[var(--text-muted)]">
-              ابحث في المنصة
-            </p>
+            <p className="text-lg font-medium text-[var(--text-muted)]">ابحث في المنصة</p>
             <p className="mt-1 text-sm text-[var(--text-muted)]">
               اكتب للبحث في الشركات، الأشخاص، الإشارات، والمزيد
             </p>

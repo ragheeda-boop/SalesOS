@@ -19,15 +19,11 @@ jest.mock("@/lib/hooks/useTenant", () => ({
 }));
 
 jest.mock("@salesos/ui", () => ({
-  Tabs: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="tabs">{children}</div>
-  ),
+  Tabs: ({ children }: { children: React.ReactNode }) => <div data-testid="tabs">{children}</div>,
   TabsList: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="tabs-list">{children}</div>
   ),
-  Tab: ({ children }: { children: React.ReactNode }) => (
-    <button>{children}</button>
-  ),
+  Tab: ({ children }: { children: React.ReactNode }) => <button>{children}</button>,
   TabsPanel: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="tabs-panel">{children}</div>
   ),
@@ -41,36 +37,20 @@ jest.mock("@salesos/ui", () => ({
       />
     </div>
   ),
-  Button: ({
-    children,
-    ...props
-  }: {
-    children: React.ReactNode;
-    [key: string]: unknown;
-  }) => (
-    <button {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}>
-      {children}
-    </button>
+  Button: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => (
+    <button {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}>{children}</button>
   ),
   Badge: ({ children }: { children: React.ReactNode }) => (
     <span data-testid="badge">{children}</span>
   ),
-  Card: ({
-    children,
-    className,
-  }: {
-    children: React.ReactNode;
-    className?: string;
-  }) => (
+  Card: ({ children, className }: { children: React.ReactNode; className?: string }) => (
     <div data-testid="card" className={className}>
       {children}
     </div>
   ),
   cn: (...args: string[]) => args.filter(Boolean).join(" "),
   useToast: jest.fn().mockReturnValue({ toast: jest.fn() }),
-  Spinner: (props: React.SVGProps<SVGSVGElement>) => (
-    <svg data-testid="loader" {...props} />
-  ),
+  Spinner: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="loader" {...props} />,
 }));
 
 jest.mock("@/lib/i18n", () => ({
@@ -91,9 +71,7 @@ jest.mock("lucide-react", () => ({
   Key: () => null,
   ChevronLeft: () => null,
   Save: () => null,
-  Loader2: (props: React.SVGProps<SVGSVGElement>) => (
-    <svg data-testid="loader" {...props} />
-  ),
+  Loader2: (props: React.SVGProps<SVGSVGElement>) => <svg data-testid="loader" {...props} />,
   Copy: () => null,
   Trash2: () => null,
 }));
@@ -138,10 +116,7 @@ function mockQueries(profile = mockProfile) {
 
 function mockMutations() {
   mockUseMutation.mockImplementation(
-    (opts: {
-      onSuccess?: (data: unknown) => void;
-      mutationFn?: (arg: unknown) => unknown;
-    }) => ({
+    (opts: { onSuccess?: (data: unknown) => void; mutationFn?: (arg: unknown) => unknown }) => ({
       mutate: (arg: unknown) => {
         if (typeof arg === "string") {
           opts.onSuccess?.({ key: `sk-test-${arg.replace(/\s+/g, "-")}` });
@@ -150,7 +125,7 @@ function mockMutations() {
         opts.onSuccess?.(undefined);
       },
       isPending: false,
-    }),
+    })
   );
 }
 
@@ -178,15 +153,9 @@ describe("SettingsPage", () => {
 
   it("renders tabs", () => {
     render(<SettingsPage />);
-    expect(
-      screen.getAllByText("settings.profile").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText("settings.security").length,
-    ).toBeGreaterThanOrEqual(1);
-    expect(
-      screen.getAllByText("settings.notifications").length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("settings.profile").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("settings.security").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("settings.notifications").length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders profile form with user data", () => {
@@ -197,22 +166,14 @@ describe("SettingsPage", () => {
 
   it("renders API keys tab content", () => {
     render(<SettingsPage />);
-    expect(
-      screen.getAllByText("settings.api_keys").length,
-    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("settings.api_keys").length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders notification toggles", () => {
     render(<SettingsPage />);
-    expect(
-      screen.getByText("settings.notif.email_notifications"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("settings.notif.app_notifications"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("settings.notif.opportunity_alerts"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("settings.notif.email_notifications")).toBeInTheDocument();
+    expect(screen.getByText("settings.notif.app_notifications")).toBeInTheDocument();
+    expect(screen.getByText("settings.notif.opportunity_alerts")).toBeInTheDocument();
   });
 
   it("renders save button for profile", () => {
@@ -222,15 +183,9 @@ describe("SettingsPage", () => {
 
   it("renders password change section", () => {
     render(<SettingsPage />);
-    expect(
-      screen.getByTestId("input-settings.current_password"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("input-settings.new_password"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("input-settings.confirm_password"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("input-settings.current_password")).toBeInTheDocument();
+    expect(screen.getByTestId("input-settings.new_password")).toBeInTheDocument();
+    expect(screen.getByTestId("input-settings.confirm_password")).toBeInTheDocument();
   });
 
   it("renders password update button", () => {
@@ -274,7 +229,7 @@ describe("SettingsPage", () => {
   it("calls getCurrentUser on mount", () => {
     render(<SettingsPage />);
     expect(mockUseQuery).toHaveBeenCalledWith(
-      expect.objectContaining({ queryKey: ["profile", "me"] }),
+      expect.objectContaining({ queryKey: ["profile", "me"] })
     );
   });
 

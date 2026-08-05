@@ -35,10 +35,7 @@ function loadHistory(): SearchHistoryEntry[] {
 
 function saveHistory(entries: SearchHistoryEntry[]) {
   try {
-    localStorage.setItem(
-      HISTORY_KEY,
-      JSON.stringify(entries.slice(0, MAX_HISTORY)),
-    );
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(entries.slice(0, MAX_HISTORY)));
   } catch {}
 }
 
@@ -64,11 +61,7 @@ interface SearchHistoryProps {
   currentStrategy?: string;
 }
 
-export function SearchHistory({
-  onReRun,
-  currentQuery,
-  currentStrategy,
-}: SearchHistoryProps) {
+export function SearchHistory({ onReRun, currentQuery, currentStrategy }: SearchHistoryProps) {
   const [history, setHistory] = useState<SearchHistoryEntry[]>([]);
   const [saved, setSaved] = useState<SavedSearch[]>([]);
   const [activeTab, setActiveTab] = useState<"recent" | "saved">("recent");
@@ -86,14 +79,12 @@ export function SearchHistory({
       setHistory(updated);
       saveHistory(updated);
     },
-    [history],
+    [history]
   );
 
   const toggleSave = useCallback(
     (query: string, strategy: string) => {
-      const existing = saved.find(
-        (s) => s.query === query && s.strategy === strategy,
-      );
+      const existing = saved.find((s) => s.query === query && s.strategy === strategy);
       if (existing) {
         const updated = saved.filter((s) => s.id !== existing.id);
         setSaved(updated);
@@ -113,7 +104,7 @@ export function SearchHistory({
         setSaveMode(false);
       }
     },
-    [saved, saveName],
+    [saved, saveName]
   );
 
   const removeSaved = useCallback(
@@ -122,7 +113,7 @@ export function SearchHistory({
       setSaved(updated);
       saveSaved(updated);
     },
-    [saved],
+    [saved]
   );
 
   const isSaved = (query: string, strategy: string) =>
@@ -139,9 +130,7 @@ export function SearchHistory({
   return (
     <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-[var(--text-primary)]">
-          Search History
-        </h3>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)]">Search History</h3>
         <div className="flex gap-1 rounded-lg bg-[var(--bg-secondary)] p-0.5">
           <button
             onClick={() => setActiveTab("recent")}
@@ -149,7 +138,7 @@ export function SearchHistory({
               "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
               activeTab === "recent"
                 ? "bg-[var(--bg-primary)] text-[var(--muhide-orange)] shadow-sm"
-                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             )}
           >
             <Clock className="inline h-3 w-3 mr-1" />
@@ -161,7 +150,7 @@ export function SearchHistory({
               "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
               activeTab === "saved"
                 ? "bg-[var(--bg-primary)] text-[var(--muhide-orange)] shadow-sm"
-                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
+                : "text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             )}
           >
             <Bookmark className="inline h-3 w-3 mr-1" />
@@ -173,9 +162,7 @@ export function SearchHistory({
       {activeTab === "recent" && (
         <div className="space-y-1">
           {history.length === 0 ? (
-            <p className="py-4 text-center text-xs text-[var(--text-muted)]">
-              No recent searches
-            </p>
+            <p className="py-4 text-center text-xs text-[var(--text-muted)]">No recent searches</p>
           ) : (
             history.map((entry, i) => (
               <div
@@ -187,9 +174,7 @@ export function SearchHistory({
                   className="flex flex-1 items-center gap-2 text-right"
                 >
                   <Play className="h-3 w-3 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <span className="text-sm text-[var(--text-primary)] truncate">
-                    {entry.query}
-                  </span>
+                  <span className="text-sm text-[var(--text-primary)] truncate">{entry.query}</span>
                   <span className="text-[10px] text-[var(--text-muted)] whitespace-nowrap">
                     {entry.strategy}
                   </span>
@@ -206,9 +191,7 @@ export function SearchHistory({
                   <button
                     onClick={() => toggleSave(entry.query, entry.strategy)}
                     className="rounded p-0.5 text-[var(--text-muted)] hover:text-[var(--muhide-orange)] opacity-0 group-hover:opacity-100 transition-opacity"
-                    title={
-                      isSaved(entry.query, entry.strategy) ? "Unsave" : "Save"
-                    }
+                    title={isSaved(entry.query, entry.strategy) ? "Unsave" : "Save"}
                   >
                     {isSaved(entry.query, entry.strategy) ? (
                       <BookmarkCheck className="h-3 w-3" />
@@ -248,8 +231,7 @@ export function SearchHistory({
               />
               <button
                 onClick={() => {
-                  if (currentQuery)
-                    toggleSave(currentQuery, currentStrategy || "hybrid");
+                  if (currentQuery) toggleSave(currentQuery, currentStrategy || "hybrid");
                 }}
                 className="rounded-md bg-[var(--muhide-orange)] px-2 py-1 text-xs text-white hover:brightness-90"
               >
@@ -275,9 +257,7 @@ export function SearchHistory({
           )}
 
           {saved.length === 0 ? (
-            <p className="py-4 text-center text-xs text-[var(--text-muted)]">
-              No saved searches
-            </p>
+            <p className="py-4 text-center text-xs text-[var(--text-muted)]">No saved searches</p>
           ) : (
             saved.map((entry) => (
               <div
@@ -290,9 +270,7 @@ export function SearchHistory({
                 >
                   <Play className="h-3 w-3 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
                   <div className="flex flex-col">
-                    <span className="text-sm text-[var(--text-primary)]">
-                      {entry.name}
-                    </span>
+                    <span className="text-sm text-[var(--text-primary)]">{entry.name}</span>
                     <span className="text-[10px] text-[var(--text-muted)]">
                       {entry.query} · {entry.strategy}
                     </span>

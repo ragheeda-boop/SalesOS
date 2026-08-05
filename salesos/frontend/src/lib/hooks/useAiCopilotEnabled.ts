@@ -4,18 +4,24 @@ import { useEffect, useState } from "react";
 import api from "@/lib/api";
 
 /**
- * GA honesty: default False until Settings.feature_ai_copilot is evidence-validated.
- * Lab override: NEXT_PUBLIC_FEATURE_AI_COPILOT=true (still not a GA claim).
+ * GA honesty: Copilot requires BOTH env opt-in AND backend evidence validation.
+ *
+ * Activation gates (both must pass):
+ * 1. NEXT_PUBLIC_FEATURE_AI_COPILOT=true in runtime env (.env / .env.local)
+ * 2. Backend /api/v1/copilot/status returns feature_ai_copilot: true
+ *
+ * If either gate fails, the copilot stays disabled.
  * See docs/audit/ga-engineering-audit/AI_HONESTY.md
+ * See docs/ops/AI_COPILOT_ACTIVATION.md for full activation guide.
  */
 export function useAiCopilotEnabled(): { enabled: boolean; ready: boolean } {
-  const envOverride = process.env.NEXT_PUBLIC_FEATURE_AI_COPILOT === "true";
-  const [enabled, setEnabled] = useState(envOverride);
-  const [ready, setReady] = useState(envOverride);
+  const envEnabled = process.env.NEXT_PUBLIC_FEATURE_AI_COPILOT === "true";
+  const [enabled, setEnabled] = useState(false);
+  const [ready, setReady] = useState(!envEnabled);
 
   useEffect(() => {
-    if (envOverride) {
-      setEnabled(true);
+    if (!envEnabled) {
+      setEnabled(false);
       setReady(true);
       return;
     }
@@ -35,7 +41,7 @@ export function useAiCopilotEnabled(): { enabled: boolean; ready: boolean } {
     return () => {
       cancelled = true;
     };
-  }, [envOverride]);
+  }, [envEnabled]);
 
   return { enabled, ready };
 }

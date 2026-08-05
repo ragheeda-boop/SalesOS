@@ -57,9 +57,7 @@ describe("auth session", () => {
   });
 
   it("reads access token from cookie header", () => {
-    const token = readAccessTokenFromCookieHeader(
-      "access_token=abc123; salesos-locale=ar",
-    );
+    const token = readAccessTokenFromCookieHeader("access_token=abc123; salesos-locale=ar");
     expect(token).toBe("abc123");
   });
 });

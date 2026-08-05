@@ -44,10 +44,7 @@ const DOMAIN_OPTIONS = [
   { label: "CRM", value: "crm" },
 ];
 
-const DOMAIN_VARIANT: Record<
-  string,
-  "success" | "warning" | "danger" | "default" | "primary"
-> = {
+const DOMAIN_VARIANT: Record<string, "success" | "warning" | "danger" | "default" | "primary"> = {
   company: "primary",
   opportunity: "success",
   scoring: "warning",
@@ -93,12 +90,8 @@ export default function DecisionTemplatesPage() {
   const queryClient = useQueryClient();
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [editTemplate, setEditTemplate] = useState<DecisionTemplate | null>(
-    null,
-  );
-  const [deleteConfirm, setDeleteConfirm] = useState<DecisionTemplate | null>(
-    null,
-  );
+  const [editTemplate, setEditTemplate] = useState<DecisionTemplate | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<DecisionTemplate | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -139,13 +132,9 @@ export default function DecisionTemplatesPage() {
 
   const updateTemplate = useMutation({
     mutationFn: async ({ id, ...values }: { id: string } & typeof formData) => {
-      const response = await api.put(
-        `/api/v1/decision/templates/${id}`,
-        values,
-        {
-          headers: { "X-Tenant-Id": getTenantId() },
-        },
-      );
+      const response = await api.put(`/api/v1/decision/templates/${id}`, values, {
+        headers: { "X-Tenant-Id": getTenantId() },
+      });
       return response.data;
     },
     onSuccess: () => {
@@ -223,9 +212,7 @@ export default function DecisionTemplatesPage() {
               <FileText className="h-4 w-4 text-[var(--text-secondary)]" />
             </div>
             <div>
-              <p className="text-sm font-medium text-[var(--text-primary)]">
-                {row.original.name}
-              </p>
+              <p className="text-sm font-medium text-[var(--text-primary)]">{row.original.name}</p>
               {row.original.description && (
                 <p className="text-xs text-[var(--text-muted)] truncate max-w-[300px]">
                   {row.original.description}
@@ -249,9 +236,7 @@ export default function DecisionTemplatesPage() {
         accessorKey: "type",
         header: t("decisions.type"),
         cell: ({ row }) => (
-          <span className="text-sm text-[var(--text-secondary)]">
-            {row.original.type}
-          </span>
+          <span className="text-sm text-[var(--text-secondary)]">{row.original.type}</span>
         ),
         size: 100,
       },
@@ -312,16 +297,14 @@ export default function DecisionTemplatesPage() {
         size: 160,
       },
     ],
-    [t, openEdit],
+    [t, openEdit]
   );
 
   if (isError) {
     return (
       <div className="p-6">
         <EmptyState
-          icon={
-            <AlertTriangle className="h-10 w-10 text-[var(--status-danger-text)]" />
-          }
+          icon={<AlertTriangle className="h-10 w-10 text-[var(--status-danger-text)]" />}
           title={t("decisions.load_error")}
           description={(error as Error)?.message || t("decisions.check_server")}
           action={{ label: t("common.retry"), onClick: () => refetch() }}
@@ -351,9 +334,7 @@ export default function DecisionTemplatesPage() {
         <h1 className="text-2xl font-bold text-[var(--text-primary)]">
           {t("decisions.templates_title")}
         </h1>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">
-          {t("decisions.templates_subtitle")}
-        </p>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">{t("decisions.templates_subtitle")}</p>
       </div>
 
       <div className="overflow-hidden rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)]">
@@ -373,9 +354,7 @@ export default function DecisionTemplatesPage() {
       <Modal open={modalOpen} onOpenChange={setModalOpen}>
         <ModalContent>
           <ModalHeader>
-            {editTemplate
-              ? t("decisions.edit_template")
-              : t("decisions.new_template")}
+            {editTemplate ? t("decisions.edit_template") : t("decisions.new_template")}
           </ModalHeader>
           <ModalBody>
             <div className="space-y-4">
@@ -385,9 +364,7 @@ export default function DecisionTemplatesPage() {
                 </label>
                 <Input
                   value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder={t("decisions.template_name_placeholder")}
                 />
               </div>
@@ -397,9 +374,7 @@ export default function DecisionTemplatesPage() {
                 </label>
                 <Textarea
                   value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder={t("decisions.template_description_placeholder")}
                   rows={3}
                   resize="vertical"
@@ -422,9 +397,7 @@ export default function DecisionTemplatesPage() {
                   </label>
                   <Input
                     value={formData.type}
-                    onChange={(e) =>
-                      setFormData({ ...formData, type: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                     placeholder="e.g. nba, risk_alert"
                   />
                 </div>
@@ -445,9 +418,7 @@ export default function DecisionTemplatesPage() {
             <Button
               onClick={handleSubmit}
               disabled={
-                !formData.name.trim() ||
-                createTemplate.isPending ||
-                updateTemplate.isPending
+                !formData.name.trim() || createTemplate.isPending || updateTemplate.isPending
               }
               leftIcon={
                 createTemplate.isPending || updateTemplate.isPending ? (
@@ -475,9 +446,7 @@ export default function DecisionTemplatesPage() {
                   name: deleteConfirm?.name || "",
                 })}
               </p>
-              <p className="text-sm text-danger-600">
-                {t("decisions.delete_irreversible")}
-              </p>
+              <p className="text-sm text-danger-600">{t("decisions.delete_irreversible")}</p>
             </div>
           </ModalBody>
           <ModalFooter>
@@ -485,9 +454,7 @@ export default function DecisionTemplatesPage() {
               {t("common.cancel")}
             </Button>
             <Button
-              onClick={() =>
-                deleteConfirm && deleteTemplate.mutateAsync(deleteConfirm.id)
-              }
+              onClick={() => deleteConfirm && deleteTemplate.mutateAsync(deleteConfirm.id)}
               disabled={deleteTemplate.isPending}
               className="bg-danger-600 text-white hover:bg-danger-700 focus:ring-danger-500"
               leftIcon={
@@ -498,9 +465,7 @@ export default function DecisionTemplatesPage() {
                 )
               }
             >
-              {deleteTemplate.isPending
-                ? t("common.deleting")
-                : t("common.delete")}
+              {deleteTemplate.isPending ? t("common.deleting") : t("common.delete")}
             </Button>
           </ModalFooter>
         </ModalContent>

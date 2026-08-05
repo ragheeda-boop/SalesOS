@@ -42,17 +42,15 @@ describe("integrationHub API — STORY-08-07 / FE-S08-08/09", () => {
       "/api/v1/integrations/connections",
       expect.objectContaining({
         headers: { "X-Tenant-Id": "tenant-1" },
-      }),
+      })
     );
     expect(rows).toEqual([{ id: "c1" }]);
   });
 
   it("creates and tests connections on real endpoints", async () => {
-    mocked.post
-      .mockResolvedValueOnce({ data: { id: "c2", name: "n" } })
-      .mockResolvedValueOnce({
-        data: { ok: true, message: "ok", latency_ms: 1 },
-      });
+    mocked.post.mockResolvedValueOnce({ data: { id: "c2", name: "n" } }).mockResolvedValueOnce({
+      data: { ok: true, message: "ok", latency_ms: 1 },
+    });
     await createHubConnection("tenant-1", {
       connector_key: "fake",
       name: "n",
@@ -61,13 +59,13 @@ describe("integrationHub API — STORY-08-07 / FE-S08-08/09", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/integrations/connections",
       expect.objectContaining({ connector_key: "fake" }),
-      expect.any(Object),
+      expect.any(Object)
     );
     const test = await testHubConnection("tenant-1", "c2");
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/integrations/connections/c2/test",
       {},
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(test.ok).toBe(true);
   });
@@ -94,7 +92,7 @@ describe("integrationHub API — STORY-08-07 / FE-S08-08/09", () => {
     const got = await getHubConflictPolicy("tenant-1", "c2");
     expect(mocked.get).toHaveBeenCalledWith(
       "/api/v1/integrations/connections/c2/conflict-policy",
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(got.salesos_authored_fields).toContain("risk_score");
     const put = await putHubConflictPolicy("tenant-1", "c2", {
@@ -105,7 +103,7 @@ describe("integrationHub API — STORY-08-07 / FE-S08-08/09", () => {
     expect(mocked.put).toHaveBeenCalledWith(
       "/api/v1/integrations/connections/c2/conflict-policy",
       expect.objectContaining({ rules: expect.any(Array) }),
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(put.rules[0].internal).toBe("name");
   });
@@ -127,7 +125,7 @@ describe("integrationHub API — STORY-08-07 / FE-S08-08/09", () => {
       "/api/v1/integrations/connections/c2/mappings/active",
       expect.objectContaining({
         params: { model: "company" },
-      }),
+      })
     );
     expect(row?.model).toBe("company");
   });
@@ -148,7 +146,7 @@ describe("integrationHub API — STORY-08-07 / FE-S08-08/09", () => {
     const row = await getHubConnection("tenant-1", "c2");
     expect(mocked.get).toHaveBeenCalledWith(
       "/api/v1/integrations/connections/c2",
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(row.id).toBe("c2");
   });
@@ -174,7 +172,7 @@ describe("integrationHub API — STORY-08-07 / FE-S08-08/09", () => {
       expect.objectContaining({
         headers: { "X-Tenant-Id": "tenant-1" },
         params: { limit: 100, sync_run_limit: 50 },
-      }),
+      })
     );
     expect(row.count).toBe(1);
     expect(row.items[0].status).toBe("unlinked");
@@ -193,7 +191,7 @@ describe("integrationHub API — STORY-08-07 / FE-S08-08/09", () => {
     const meta = await getCertifyMeta("tenant-1");
     expect(mocked.get).toHaveBeenCalledWith(
       "/api/v1/integrations/certify/meta",
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(meta.second_connector_key).toBe("hubspot");
 
@@ -210,7 +208,7 @@ describe("integrationHub API — STORY-08-07 / FE-S08-08/09", () => {
     expect(mocked.post).toHaveBeenCalledWith(
       "/api/v1/integrations/certify/hubspot",
       {},
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(result.ok).toBe(true);
     expect(result.is_second_connector).toBe(true);

@@ -11,14 +11,10 @@ import {
   useOutreachMeta,
 } from "@/lib/hooks/outreachQueries";
 import type { OutreachDraft } from "@/lib/api";
-import {
-  OUTREACH_HONESTY,
-  OUTREACH_NON_GOALS,
-} from "@/features/gtm/outreachHonesty";
+import { OUTREACH_HONESTY, OUTREACH_NON_GOALS } from "@/features/gtm/outreachHonesty";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -84,16 +80,13 @@ export function OutreachPanel() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="outreach-honesty"
       >
-        {OUTREACH_HONESTY} Non-goals: {OUTREACH_NON_GOALS.join("; ")}. Not
-        Production GO / RAG GO.
+        {OUTREACH_HONESTY} Non-goals: {OUTREACH_NON_GOALS.join("; ")}. Not Production GO / RAG GO.
       </p>
 
       {metaQuery.isLoading ? (
         <Spinner />
       ) : metaQuery.isError ? (
-        <p className="text-sm text-[var(--text-danger)]">
-          {getApiError(metaQuery.error)}
-        </p>
+        <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
       ) : metaQuery.data ? (
         <div
           className="space-y-1 font-mono text-xs text-[var(--text-muted)]"
@@ -106,13 +99,11 @@ export function OutreachPanel() {
             {(metaQuery.data.generators_configured ?? []).join(", ") || "—"}
           </p>
           <p data-testid="outreach-meta-flag">
-            feature_ai_copilot={String(metaQuery.data.feature_ai_copilot)} ·
-            channels={(metaQuery.data.channels ?? []).join(", ")} · intents=
+            feature_ai_copilot={String(metaQuery.data.feature_ai_copilot)} · channels=
+            {(metaQuery.data.channels ?? []).join(", ")} · intents=
             {(metaQuery.data.intents ?? []).join(", ")}
           </p>
-          <p data-testid="outreach-meta-honesty">
-            tip /meta: {metaQuery.data.honesty}
-          </p>
+          <p data-testid="outreach-meta-honesty">tip /meta: {metaQuery.data.honesty}</p>
         </div>
       ) : null}
 
@@ -235,7 +226,7 @@ export function OutreachPanel() {
                       variant: "error",
                     });
                   },
-                },
+                }
               );
             }}
           >
@@ -266,14 +257,9 @@ export function OutreachPanel() {
         {listQuery.isLoading ? (
           <Spinner />
         ) : listQuery.isError ? (
-          <p className="text-sm text-[var(--text-danger)]">
-            {getApiError(listQuery.error)}
-          </p>
+          <p className="text-sm text-[var(--text-danger)]">{getApiError(listQuery.error)}</p>
         ) : listQuery.data?.length === 0 ? (
-          <p
-            className="text-sm text-[var(--text-muted)]"
-            data-testid="outreach-empty"
-          >
+          <p className="text-sm text-[var(--text-muted)]" data-testid="outreach-empty">
             No drafts in memory store yet. Create draft.
           </p>
         ) : (
@@ -287,12 +273,10 @@ export function OutreachPanel() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <span className="font-medium">
-                      {row.subject ||
-                        String(row.request?.company_name ?? row.id)}
+                      {row.subject || String(row.request?.company_name ?? row.id)}
                     </span>{" "}
                     <span className="font-mono text-xs text-[var(--text-muted)]">
-                      {row.channel} · {row.delivery_status} ·{" "}
-                      {row.generator_key}
+                      {row.channel} · {row.delivery_status} · {row.generator_key}
                     </span>
                   </div>
                   <Button
@@ -317,9 +301,7 @@ export function OutreachPanel() {
           data-testid="outreach-detail"
         >
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold">
-              Detail (tip GET /{"{id}"})
-            </h2>
+            <h2 className="text-sm font-semibold">Detail (tip GET /{"{id}"})</h2>
             <Button
               type="button"
               size="sm"
@@ -333,14 +315,12 @@ export function OutreachPanel() {
           {detailQuery.isLoading ? (
             <Spinner />
           ) : detailQuery.isError ? (
-            <p className="text-sm text-[var(--text-danger)]">
-              {getApiError(detailQuery.error)}
-            </p>
+            <p className="text-sm text-[var(--text-danger)]">{getApiError(detailQuery.error)}</p>
           ) : active ? (
             <>
               <p className="font-mono text-xs text-[var(--text-muted)]">
-                {active.prompt_id}@{active.prompt_version} · {active.spend_path}{" "}
-                · {active.delivery_status}
+                {active.prompt_id}@{active.prompt_version} · {active.spend_path} ·{" "}
+                {active.delivery_status}
               </p>
               {active.subject ? (
                 <p className="text-sm" data-testid="outreach-subject">

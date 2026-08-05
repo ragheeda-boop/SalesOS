@@ -26,7 +26,7 @@ interface WorkspaceWidgetAdapterOptions<T> {
 }
 
 export function createWorkspaceDashboardAdapter<T>(
-  options: WorkspaceWidgetAdapterOptions<T>,
+  options: WorkspaceWidgetAdapterOptions<T>
 ): ComponentType {
   return createWidget<T>({
     metadata: {
@@ -52,7 +52,7 @@ export function wrapWorkspaceWidget<T>(
   }) => ComponentType,
   dashboardMetadata: WorkspaceWidgetAdapterOptions<T>["metadata"],
   useData: WorkspaceWidgetAdapterOptions<T>["useData"],
-  render: WorkspaceWidgetAdapterOptions<T>["render"],
+  render: WorkspaceWidgetAdapterOptions<T>["render"]
 ): ComponentType {
   return createWorkspaceDashboardAdapter({
     metadata: dashboardMetadata,

@@ -4,12 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import {
-  getCompany,
-  getContact,
-  getEntityActivities,
-  type Contact,
-} from "@/lib/api";
+import { getCompany, getContact, getEntityActivities, type Contact } from "@/lib/api";
 import { activityKeys, companyKeys, contactKeys } from "@/lib/queryKeys";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { PageHeader } from "../../_components/page-header";
@@ -36,18 +31,10 @@ function displayName(contact: Contact): string {
   return contact.name?.trim() || contact.name_ar?.trim() || "Contact";
 }
 
-function Field({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number | null | undefined;
-}) {
+function Field({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
     <div className="space-y-0.5">
-      <dt className="text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">
-        {label}
-      </dt>
+      <dt className="text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">{label}</dt>
       <dd className="text-sm text-[var(--text-primary)]" dir="auto">
         {value ?? "—"}
       </dd>
@@ -90,13 +77,7 @@ function OverviewTab({ contact }: { contact: Contact }) {
         <Field label="Source" value={contact.source} />
         <Field
           label="Primary"
-          value={
-            contact.is_primary == null
-              ? null
-              : contact.is_primary
-                ? "Yes"
-                : "No"
-          }
+          value={contact.is_primary == null ? null : contact.is_primary ? "Yes" : "No"}
         />
         <Field
           label="Confidence"
@@ -106,10 +87,7 @@ function OverviewTab({ contact }: { contact: Contact }) {
               : null
           }
         />
-        <Field
-          label="Tags"
-          value={contact.tags?.length ? contact.tags.join(", ") : null}
-        />
+        <Field label="Tags" value={contact.tags?.length ? contact.tags.join(", ") : null} />
       </dl>
 
       {contact.company_id ? (
@@ -159,18 +137,12 @@ function CompanyTab({
     <div className="space-y-4">
       {error ? (
         <p className="text-sm text-[var(--text-secondary)]">
-          Company detail could not be loaded. You can still open Company 360
-          with the linked id.
+          Company detail could not be loaded. You can still open Company 360 with the linked id.
         </p>
       ) : null}
       <div className="rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-primary)] px-4 py-5">
-        <p className="text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">
-          Account
-        </p>
-        <p
-          className="mt-1 text-base font-medium text-[var(--text-primary)]"
-          dir="auto"
-        >
+        <p className="text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">Account</p>
+        <p className="mt-1 text-base font-medium text-[var(--text-primary)]" dir="auto">
           {label}
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
@@ -234,10 +206,7 @@ export default function V3Contact360Page() {
   const nextPath = `/v3/contacts/${id}`;
 
   const companyDisplay =
-    company?.name_en?.trim() ||
-    company?.name_ar ||
-    contact?.company_name ||
-    null;
+    company?.name_en?.trim() || company?.name_ar || contact?.company_name || null;
 
   const tabBody = useMemo(() => {
     if (!contact) return null;
@@ -259,9 +228,7 @@ export default function V3Contact360Page() {
             items={activity?.items ?? []}
             isLoading={activityLoading}
             isError={activityError}
-            errorMessage={
-              activityErr instanceof Error ? activityErr.message : undefined
-            }
+            errorMessage={activityErr instanceof Error ? activityErr.message : undefined}
             onRetry={() => void refetchActivity()}
             emptyTitle="No contact activity yet"
             emptyDescription="GET /api/v1/activities/contact/{id} returned no rows. Empty is honest — nothing is invented."
@@ -291,10 +258,7 @@ export default function V3Contact360Page() {
         <LoadingState label="Checking session…" />
       ) : !hasToken ? (
         <>
-          <PageHeader
-            title="Contact 360"
-            description="Sign in to load this contact."
-          />
+          <PageHeader title="Contact 360" description="Sign in to load this contact." />
           <PermissionState nextPath={nextPath} />
         </>
       ) : isLoading ? (
@@ -318,9 +282,7 @@ export default function V3Contact360Page() {
           <ErrorState
             title="Could not load contact"
             description={
-              error instanceof Error
-                ? error.message
-                : "Contact not found or request failed"
+              error instanceof Error ? error.message : "Contact not found or request failed"
             }
             onRetry={() => void refetch()}
           />
@@ -330,9 +292,7 @@ export default function V3Contact360Page() {
           <PageHeader
             title={title}
             description={
-              [contact.position, contact.company_name]
-                .filter(Boolean)
-                .join(" · ") ||
+              [contact.position, contact.company_name].filter(Boolean).join(" · ") ||
               contact.email ||
               undefined
             }
@@ -347,16 +307,12 @@ export default function V3Contact360Page() {
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() =>
-                    openV3AiPopup({ contextLabel: displayName(contact) })
-                  }
+                  onClick={() => openV3AiPopup({ contextLabel: displayName(contact) })}
                   className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-[12px] font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
                 >
                   Ask AI
                 </button>
-                <GhostButtonLink href="/v3/contacts">
-                  Back to list
-                </GhostButtonLink>
+                <GhostButtonLink href="/v3/contacts">Back to list</GhostButtonLink>
                 {contact.company_id ? (
                   <GhostButtonLink href={`/v3/companies/${contact.company_id}`}>
                     Company 360

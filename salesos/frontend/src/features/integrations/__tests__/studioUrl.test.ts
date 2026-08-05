@@ -13,11 +13,9 @@ describe("studioUrl — FE-S08-11/12", () => {
 
   it("builds step and connection query", () => {
     expect(buildStudioSearchParams({ step: "map", connectionId: "c1" })).toBe(
-      "?step=map&connection=c1",
+      "?step=map&connection=c1"
     );
-    expect(
-      buildStudioSearchParams({ step: "connect", connectionId: null }),
-    ).toBe("");
+    expect(buildStudioSearchParams({ step: "connect", connectionId: null })).toBe("");
   });
 
   it("adds monitor runStatus/runModel filters when not all", () => {
@@ -29,7 +27,7 @@ describe("studioUrl — FE-S08-11/12", () => {
         connectionId: "c1",
         runStatus: "failed",
         runModel: "crm.lead",
-      }),
+      })
     ).toBe("?step=monitor&connection=c1&runStatus=failed&runModel=crm.lead");
     expect(
       buildStudioSearchParams({
@@ -37,7 +35,7 @@ describe("studioUrl — FE-S08-11/12", () => {
         connectionId: null,
         runStatus: "all",
         runModel: "all",
-      }),
+      })
     ).toBe("?step=monitor");
   });
 });

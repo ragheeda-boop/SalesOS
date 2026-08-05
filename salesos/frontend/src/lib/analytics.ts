@@ -74,7 +74,7 @@ export function useWidgetTracking(widgetId: string) {
         metadata: { action, ...metadata },
       });
     },
-    [widgetId],
+    [widgetId]
   );
 
   return { interact };

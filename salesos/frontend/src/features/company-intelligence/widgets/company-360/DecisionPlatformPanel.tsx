@@ -2,18 +2,8 @@
 
 import { useState } from "react";
 import { useCompany360 } from "@/lib/hooks/company360Queries";
-import {
-  useDecisionRecommendations,
-  useDecisionScores,
-} from "@/lib/decisionQueries";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  cn,
-  Skeleton,
-  EmptyState,
-} from "@salesos/ui";
+import { useDecisionRecommendations, useDecisionScores } from "@/lib/decisionQueries";
+import { Card, CardContent, CardHeader, cn, Skeleton, EmptyState } from "@salesos/ui";
 import {
   Sparkles,
   TrendingUp,
@@ -39,12 +29,9 @@ function ConfidenceBadge({ value }: { value: number }) {
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium",
-        color === "success" &&
-          "bg-[var(--color-success-bg)] text-[var(--color-success)]",
-        color === "warning" &&
-          "bg-[var(--color-warning-bg)] text-[var(--color-warning)]",
-        color === "danger" &&
-          "bg-[var(--color-danger-bg)] text-[var(--color-danger)]",
+        color === "success" && "bg-[var(--color-success-bg)] text-[var(--color-success)]",
+        color === "warning" && "bg-[var(--color-warning-bg)] text-[var(--color-warning)]",
+        color === "danger" && "bg-[var(--color-danger-bg)] text-[var(--color-danger)]"
       )}
     >
       <CheckCircle className="h-2.5 w-2.5" />
@@ -53,15 +40,7 @@ function ConfidenceBadge({ value }: { value: number }) {
   );
 }
 
-function ScoreGauge({
-  label,
-  value,
-  max,
-}: {
-  label: string;
-  value: number;
-  max: number;
-}) {
+function ScoreGauge({ label, value, max }: { label: string; value: number; max: number }) {
   const pct = Math.min((value / max) * 100, 100);
   const color =
     pct >= 70
@@ -93,9 +72,7 @@ function ScoreGauge({
           transform="rotate(-90 24 24)"
         />
       </svg>
-      <span className="text-lg font-bold text-[var(--text-primary)]">
-        {value}
-      </span>
+      <span className="text-lg font-bold text-[var(--text-primary)]">{value}</span>
       <span className="text-[9px] text-[var(--text-muted)]">{label}</span>
     </div>
   );
@@ -105,18 +82,14 @@ export function DecisionPlatformPanel({
   companyId,
   company360: externalCompany360,
 }: DecisionPlatformPanelProps) {
-  const { data: fetchedCompany360, isLoading: loading360 } =
-    useCompany360(companyId);
+  const { data: fetchedCompany360, isLoading: loading360 } = useCompany360(companyId);
   const company360 = externalCompany360 ?? fetchedCompany360;
   const {
     data: recommendations,
     isLoading: loadingRecs,
     isError: recsError,
   } = useDecisionRecommendations(companyId, "company");
-  const { data: scores, isLoading: loadingScores } = useDecisionScores(
-    companyId,
-    "company",
-  );
+  const { data: scores, isLoading: loadingScores } = useDecisionScores(companyId, "company");
 
   const [expandedRec, setExpandedRec] = useState<string | null>(null);
 
@@ -129,8 +102,7 @@ export function DecisionPlatformPanel({
   const nextBestActions = recommendations?.slice(0, 5) || [];
   const riskFlags =
     scores?.filter(
-      (s: { name?: string; value: number }) =>
-        s.name?.includes("risk") && s.value > 0.3,
+      (s: { name?: string; value: number }) => s.name?.includes("risk") && s.value > 0.3
     ) || [];
 
   if (isLoading) {
@@ -139,9 +111,7 @@ export function DecisionPlatformPanel({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-[var(--chart-purple)]" />
-            <span className="text-sm font-semibold text-[var(--text-primary)]">
-              منصة القرارات
-            </span>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">منصة القرارات</span>
           </div>
         </CardHeader>
         <CardContent>
@@ -161,9 +131,7 @@ export function DecisionPlatformPanel({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-[var(--chart-purple)]" />
-            <span className="text-sm font-semibold text-[var(--text-primary)]">
-              منصة القرارات
-            </span>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">منصة القرارات</span>
           </div>
         </CardHeader>
         <CardContent>
@@ -183,9 +151,7 @@ export function DecisionPlatformPanel({
         <CardHeader>
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-[var(--chart-purple)]" />
-            <span className="text-sm font-semibold text-[var(--text-primary)]">
-              منصة القرارات
-            </span>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">منصة القرارات</span>
           </div>
         </CardHeader>
         <CardContent>
@@ -204,9 +170,7 @@ export function DecisionPlatformPanel({
       <CardHeader>
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-[var(--chart-purple)]" />
-          <span className="text-sm font-semibold text-[var(--text-primary)]">
-            منصة القرارات
-          </span>
+          <span className="text-sm font-semibold text-[var(--text-primary)]">منصة القرارات</span>
         </div>
       </CardHeader>
       <CardContent>
@@ -225,21 +189,14 @@ export function DecisionPlatformPanel({
                         : "تحتاج متابعة"}
                   </span>
                 </div>
-                {scores
-                  ?.slice(0, 3)
-                  .map(
-                    (s: { name?: string; value: number; label?: string }) => (
-                      <div
-                        key={s.name || s.label}
-                        className="flex items-center gap-2"
-                      >
-                        <BarChart3 className="h-3 w-3 text-[var(--text-disabled)]" />
-                        <span className="text-[10px] text-[var(--text-muted)]">
-                          {s.label || s.name}: {Math.round(s.value * 100)}%
-                        </span>
-                      </div>
-                    ),
-                  )}
+                {scores?.slice(0, 3).map((s: { name?: string; value: number; label?: string }) => (
+                  <div key={s.name || s.label} className="flex items-center gap-2">
+                    <BarChart3 className="h-3 w-3 text-[var(--text-disabled)]" />
+                    <span className="text-[10px] text-[var(--text-muted)]">
+                      {s.label || s.name}: {Math.round(s.value * 100)}%
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -263,15 +220,12 @@ export function DecisionPlatformPanel({
                       impact?: string;
                       priority?: string;
                     },
-                    i: number,
+                    i: number
                   ) => {
                     const id = rec.id || String(i);
                     const isExpanded = expandedRec === id;
                     return (
-                      <div
-                        key={id}
-                        className="rounded-lg border border-[var(--border-default)]"
-                      >
+                      <div key={id} className="rounded-lg border border-[var(--border-default)]">
                         <button
                           onClick={() => setExpandedRec(isExpanded ? null : id)}
                           className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-[var(--bg-secondary)] dark:hover:bg-[var(--bg-secondary)]/50"
@@ -335,7 +289,7 @@ export function DecisionPlatformPanel({
                         )}
                       </div>
                     );
-                  },
+                  }
                 )}
               </div>
             </div>
@@ -356,7 +310,7 @@ export function DecisionPlatformPanel({
                       label?: string;
                       description?: string;
                     },
-                    i: number,
+                    i: number
                   ) => (
                     <div
                       key={i}
@@ -367,7 +321,7 @@ export function DecisionPlatformPanel({
                         {flag.label || flag.name}
                       </span>
                     </div>
-                  ),
+                  )
                 )}
               </div>
             </div>

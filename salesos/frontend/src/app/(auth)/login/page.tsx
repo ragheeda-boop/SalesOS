@@ -45,11 +45,11 @@ export default function LoginPage() {
                 detail
                   .map((d) => d.msg)
                   .filter(Boolean)
-                  .join(";") || t("auth.login_failed"),
+                  .join(";") || t("auth.login_failed")
               );
             } else if (!axiosErr.response) {
               setError(
-                `Cannot reach API (${axiosErr.message || "network error"}). Check NEXT_PUBLIC_API_URL.`,
+                `Cannot reach API (${axiosErr.message || "network error"}). Check NEXT_PUBLIC_API_URL.`
               );
             } else {
               setError(t("auth.login_failed"));
@@ -58,7 +58,7 @@ export default function LoginPage() {
             setError(t("error.unexpected"));
           }
         },
-      },
+      }
     );
   };
 
@@ -92,11 +92,7 @@ export default function LoginPage() {
               required
             />
             {error && (
-              <p
-                className="text-sm"
-                role="alert"
-                style={{ color: "var(--danger-600, #EF4444)" }}
-              >
+              <p className="text-sm" role="alert" style={{ color: "var(--danger-600, #EF4444)" }}>
                 {error}
               </p>
             )}
@@ -110,10 +106,7 @@ export default function LoginPage() {
               {loginMutation.isPending ? t("auth.logging_in") : t("auth.login")}
             </Button>
           </form>
-          <p
-            className="mt-4 text-sm text-center"
-            style={{ color: "var(--text-muted)" }}
-          >
+          <p className="mt-4 text-sm text-center" style={{ color: "var(--text-muted)" }}>
             {t("auth.no_account")}
             {""}
             <Link

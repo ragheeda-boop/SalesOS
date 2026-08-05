@@ -48,18 +48,10 @@ function formatValue(value: number | undefined, currency = "SAR"): string {
   }).format(value);
 }
 
-function Field({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number | null | undefined;
-}) {
+function Field({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
     <div className="space-y-0.5">
-      <dt className="text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">
-        {label}
-      </dt>
+      <dt className="text-[11px] uppercase tracking-[0.06em] text-[var(--text-muted)]">{label}</dt>
       <dd className="text-sm text-[var(--text-primary)]">{value ?? "—"}</dd>
     </div>
   );
@@ -107,11 +99,7 @@ function OverviewTab({ deal }: { deal: Opportunity }) {
         <Field label="Value" value={formatValue(deal.value, currency)} />
         <Field
           label="Probability"
-          value={
-            deal.probability != null
-              ? `${Math.round(deal.probability * 100)}%`
-              : null
-          }
+          value={deal.probability != null ? `${Math.round(deal.probability * 100)}%` : null}
         />
         <Field label="Health" value={deal.health} />
         <Field label="Expected close" value={deal.expected_close_date} />
@@ -119,11 +107,7 @@ function OverviewTab({ deal }: { deal: Opportunity }) {
         <Field label="Company" value={deal.company_name} />
         <Field
           label="Won amount"
-          value={
-            deal.won_amount != null
-              ? formatValue(deal.won_amount, currency)
-              : null
-          }
+          value={deal.won_amount != null ? formatValue(deal.won_amount, currency) : null}
         />
         <Field label="Loss reason" value={deal.loss_reason} />
         <Field label="Created" value={deal.created_at} />
@@ -132,17 +116,13 @@ function OverviewTab({ deal }: { deal: Opportunity }) {
 
       {deal.description ? (
         <section className="space-y-2">
-          <h2 className="text-sm font-medium text-[var(--text-primary)]">
-            Description
-          </h2>
+          <h2 className="text-sm font-medium text-[var(--text-primary)]">Description</h2>
           <p className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap">
             {deal.description}
           </p>
         </section>
       ) : (
-        <p className="text-sm text-[var(--text-secondary)]">
-          No description on this deal record.
-        </p>
+        <p className="text-sm text-[var(--text-secondary)]">No description on this deal record.</p>
       )}
 
       {deal.company_id ? (
@@ -207,10 +187,7 @@ function ContactsTab({
         </thead>
         <tbody>
           {contacts.map((c) => (
-            <tr
-              key={c.id}
-              className="border-b border-[var(--border-default)] last:border-b-0"
-            >
+            <tr key={c.id} className="border-b border-[var(--border-default)] last:border-b-0">
               <td className="px-3 py-2.5 font-medium">
                 <Link
                   href={`/v3/contacts/${c.id}`}
@@ -219,15 +196,9 @@ function ContactsTab({
                   {c.name}
                 </Link>
               </td>
-              <td className="px-3 py-2.5 text-[var(--text-secondary)]">
-                {c.position || "—"}
-              </td>
-              <td className="px-3 py-2.5 text-[var(--text-secondary)]">
-                {c.email || "—"}
-              </td>
-              <td className="px-3 py-2.5 text-[var(--text-secondary)]">
-                {c.phone || "—"}
-              </td>
+              <td className="px-3 py-2.5 text-[var(--text-secondary)]">{c.position || "—"}</td>
+              <td className="px-3 py-2.5 text-[var(--text-secondary)]">{c.email || "—"}</td>
+              <td className="px-3 py-2.5 text-[var(--text-secondary)]">{c.phone || "—"}</td>
             </tr>
           ))}
         </tbody>
@@ -290,9 +261,7 @@ export default function V3Deal360Page() {
             items={activity?.items ?? []}
             isLoading={activityLoading}
             isError={activityError}
-            errorMessage={
-              activityErr instanceof Error ? activityErr.message : undefined
-            }
+            errorMessage={activityErr instanceof Error ? activityErr.message : undefined}
             onRetry={() => void refetchActivity()}
             emptyTitle="No deal activity yet"
             emptyDescription="GET /api/v1/activities/opportunity/{id} returned no rows. Empty is honest — nothing is invented."
@@ -329,10 +298,7 @@ export default function V3Deal360Page() {
         <LoadingState label="Checking session…" />
       ) : !hasToken ? (
         <>
-          <PageHeader
-            title="Deal 360"
-            description="Sign in to load this opportunity."
-          />
+          <PageHeader title="Deal 360" description="Sign in to load this opportunity." />
           <PermissionState nextPath={nextPath} />
         </>
       ) : isLoading ? (
@@ -345,10 +311,7 @@ export default function V3Deal360Page() {
           <PageHeader
             title="Deal 360"
             actions={
-              <Link
-                href="/v3/crm"
-                className="text-sm text-[var(--text-secondary)] hover:underline"
-              >
+              <Link href="/v3/crm" className="text-sm text-[var(--text-secondary)] hover:underline">
                 Back to CRM
               </Link>
             }
@@ -356,9 +319,7 @@ export default function V3Deal360Page() {
           <ErrorState
             title="Could not load deal"
             description={
-              error instanceof Error
-                ? error.message
-                : "Deal not found or request failed"
+              error instanceof Error ? error.message : "Deal not found or request failed"
             }
             onRetry={() => void refetch()}
           />
@@ -368,9 +329,8 @@ export default function V3Deal360Page() {
           <PageHeader
             title={title}
             description={
-              [stageLabel(deal.stage), deal.company_name]
-                .filter(Boolean)
-                .join(" · ") || formatValue(deal.value, deal.currency || "SAR")
+              [stageLabel(deal.stage), deal.company_name].filter(Boolean).join(" · ") ||
+              formatValue(deal.value, deal.currency || "SAR")
             }
             badge={
               <span className="rounded-full border border-[var(--border-default)] px-2 py-0.5 text-[11px] capitalize text-[var(--text-muted)]">
@@ -381,9 +341,7 @@ export default function V3Deal360Page() {
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() =>
-                    openV3AiPopup({ contextLabel: deal.name || "Deal" })
-                  }
+                  onClick={() => openV3AiPopup({ contextLabel: deal.name || "Deal" })}
                   className="rounded-[var(--radius-md)] border border-[var(--border-default)] px-3 py-1.5 text-[12px] font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]"
                 >
                   Ask AI

@@ -12,12 +12,7 @@ const mockAcceptNBA = jest.fn();
 const mockDismissNBA = jest.fn();
 
 jest.mock("../RecommendationCard", () => ({
-  RecommendationCard: ({
-    recommendation,
-    onAccept,
-    onDismiss,
-    onRefresh,
-  }: any) => (
+  RecommendationCard: ({ recommendation, onAccept, onDismiss, onRefresh }: any) => (
     <div data-testid="recommendation-card">
       <span>{recommendation.action}</span>
       <span>{recommendation.reason}</span>
@@ -36,9 +31,7 @@ const sample: NBARecommendation = {
   confidence: 0.85,
   confidenceLabel: "high",
   source: "ai",
-  alternatives: [
-    { action: "send_proposal", reason: "إرسال عرض", confidence: 0.7 },
-  ],
+  alternatives: [{ action: "send_proposal", reason: "إرسال عرض", confidence: 0.7 }],
   evidence: [
     {
       type: "signal",
@@ -79,9 +72,7 @@ describe("NBAWidget", () => {
       mockGetNBA.mockReturnValue(new Promise(() => {}));
       renderWidget();
       expect(screen.getByRole("status")).toBeInTheDocument();
-      expect(
-        screen.getByLabelText("Loading recommendation"),
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText("Loading recommendation")).toBeInTheDocument();
     });
 
     it("shows animated pulse elements while loading", () => {
@@ -137,9 +128,7 @@ describe("NBAWidget", () => {
     });
 
     it("retries loading when retry button clicked", async () => {
-      mockGetNBA
-        .mockRejectedValueOnce(new Error("fail"))
-        .mockResolvedValueOnce(sample);
+      mockGetNBA.mockRejectedValueOnce(new Error("fail")).mockResolvedValueOnce(sample);
       renderWidget();
 
       await waitFor(() => {
@@ -160,9 +149,7 @@ describe("NBAWidget", () => {
       mockGetNBA.mockResolvedValue(null);
       renderWidget();
       await waitFor(() => {
-        expect(
-          screen.getByText("لا توجد توصيات متاحة حاليًا"),
-        ).toBeInTheDocument();
+        expect(screen.getByText("لا توجد توصيات متاحة حاليًا")).toBeInTheDocument();
       });
     });
 
@@ -196,9 +183,7 @@ describe("NBAWidget", () => {
       renderWidget();
 
       await waitFor(() => {
-        expect(
-          screen.getByText("لا توجد توصيات متاحة حاليًا"),
-        ).toBeInTheDocument();
+        expect(screen.getByText("لا توجد توصيات متاحة حاليًا")).toBeInTheDocument();
       });
 
       expect(mockAcceptNBA).not.toHaveBeenCalled();
@@ -233,9 +218,7 @@ describe("NBAWidget", () => {
       fireEvent.click(screen.getByText("تجاهل"));
 
       await waitFor(() => {
-        expect(
-          screen.getByText("لا توجد توصيات متاحة حاليًا"),
-        ).toBeInTheDocument();
+        expect(screen.getByText("لا توجد توصيات متاحة حاليًا")).toBeInTheDocument();
       });
     });
   });
@@ -286,9 +269,7 @@ describe("NBAWidget", () => {
       fireEvent.click(screen.getByText("تحديث"));
 
       await waitFor(() => {
-        expect(
-          screen.getByText("لا توجد توصيات متاحة حاليًا"),
-        ).toBeInTheDocument();
+        expect(screen.getByText("لا توجد توصيات متاحة حاليًا")).toBeInTheDocument();
       });
     });
   });

@@ -71,13 +71,7 @@ export default function MonitoringPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{t("monitoring.title")}</h1>
         <div className="flex items-center gap-2">
-          <Badge
-            variant={
-              metrics?.system_health?.database === "connected"
-                ? "success"
-                : "danger"
-            }
-          >
+          <Badge variant={metrics?.system_health?.database === "connected" ? "success" : "danger"}>
             {metrics?.system_health?.database === "connected"
               ? t("status.connected")
               : t("status.disconnected")}
@@ -86,9 +80,7 @@ export default function MonitoringPage() {
             onClick={handleRefresh}
             className="rounded-lg p-1.5 hover:bg-[var(--bg-tertiary)] dark:hover:bg-[var(--bg-secondary)]"
           >
-            <RefreshCw
-              className={cn("h-5 w-5", refreshing && "animate-spin")}
-            />
+            <RefreshCw className={cn("h-5 w-5", refreshing && "animate-spin")} />
           </button>
         </div>
       </div>
@@ -115,9 +107,7 @@ export default function MonitoringPage() {
         <StatCard
           icon={MemoryStick}
           label={t("monitoring.memory")}
-          value={
-            metrics?.memory?.current_mb ? `${metrics.memory.current_mb}MB` : "-"
-          }
+          value={metrics?.memory?.current_mb ? `${metrics.memory.current_mb}MB` : "-"}
           color="purple"
         />
       </div>
@@ -199,9 +189,7 @@ export default function MonitoringPage() {
               >
                 <XCircle className="h-4 w-4 text-danger-500 mt-0.5 shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-danger-700 dark:text-danger-300 truncate">
-                    {err.message}
-                  </p>
+                  <p className="text-danger-700 dark:text-danger-300 truncate">{err.message}</p>
                   <p className="text-xs text-[var(--text-muted)]">
                     {new Date(err.time).toLocaleString("ar-SA")}
                   </p>
@@ -218,28 +206,26 @@ export default function MonitoringPage() {
           {t("monitoring.health")}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {Object.entries(metrics?.system_health || {}).map(
-            ([service, status]) => (
-              <div key={service} className="flex items-center gap-2 text-sm">
-                {status === "connected" || status === "active" ? (
-                  <CheckCircle className="h-4 w-4 text-success-500" />
-                ) : (
-                  <XCircle className="h-4 w-4 text-danger-500" />
+          {Object.entries(metrics?.system_health || {}).map(([service, status]) => (
+            <div key={service} className="flex items-center gap-2 text-sm">
+              {status === "connected" || status === "active" ? (
+                <CheckCircle className="h-4 w-4 text-success-500" />
+              ) : (
+                <XCircle className="h-4 w-4 text-danger-500" />
+              )}
+              <span className="text-[var(--text-secondary)]">{service}</span>
+              <span
+                className={cn(
+                  "font-mono text-xs",
+                  status === "connected" || status === "active"
+                    ? "text-success-600"
+                    : "text-danger-600"
                 )}
-                <span className="text-[var(--text-secondary)]">{service}</span>
-                <span
-                  className={cn(
-                    "font-mono text-xs",
-                    status === "connected" || status === "active"
-                      ? "text-success-600"
-                      : "text-danger-600",
-                  )}
-                >
-                  {status}
-                </span>
-              </div>
-            ),
-          )}
+              >
+                {status}
+              </span>
+            </div>
+          ))}
         </div>
       </Card>
     </div>
@@ -259,8 +245,7 @@ function StatCard({
 }) {
   const colorMap: Record<string, string> = {
     blue: "bg-info-50 text-info-600 dark:bg-info-900/30 dark:text-info-400",
-    green:
-      "bg-success-50 text-success-600 dark:bg-success-900/30 dark:text-success-400",
+    green: "bg-success-50 text-success-600 dark:bg-success-900/30 dark:text-success-400",
     red: "bg-danger-50 text-danger-600 dark:bg-danger-900/30 dark:text-danger-400",
     purple:
       "bg-[var(--chart-purple-bg)] text-[var(--chart-purple)] dark:bg-[var(--bg-primary)]/30 dark:text-[var(--chart-purple)]",

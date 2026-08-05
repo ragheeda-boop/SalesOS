@@ -2,16 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  User,
-  Shield,
-  Bell,
-  Database,
-  Key,
-  Save,
-  Copy,
-  Trash2,
-} from "lucide-react";
+import { User, Shield, Bell, Database, Key, Save, Copy, Trash2 } from "lucide-react";
 import {
   Tabs,
   TabsList,
@@ -132,8 +123,7 @@ export default function SettingsPage() {
       setPasswordError("");
     },
     onError: (err: { response?: { data?: { detail?: string } } }) => {
-      const msg =
-        err.response?.data?.detail || t("settings.password_update_failed");
+      const msg = err.response?.data?.detail || t("settings.password_update_failed");
       setPasswordError(msg);
       toast({
         variant: "error",
@@ -160,10 +150,7 @@ export default function SettingsPage() {
 
   const notifMutation = useMutation({
     mutationFn: (prefs: Record<string, boolean>) =>
-      updateNotificationPreferences(
-        prefs as unknown as NotificationPreferences,
-        tenantId,
-      ),
+      updateNotificationPreferences(prefs as unknown as NotificationPreferences, tenantId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: settingsKeys.notifications() });
       toast({ variant: "success", title: t("settings.settings_updated") });
@@ -231,12 +218,8 @@ export default function SettingsPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          {t("settings.title")}
-        </h1>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">
-          {t("settings.subtitle")}
-        </p>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">{t("settings.title")}</h1>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">{t("settings.subtitle")}</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -280,9 +263,7 @@ export default function SettingsPage() {
                       </p>
                     </div>
                     <Badge className="mr-auto">
-                      {profile.is_active
-                        ? t("settings.active")
-                        : t("settings.inactive")}
+                      {profile.is_active ? t("settings.active") : t("settings.inactive")}
                     </Badge>
                   </div>
                 )}
@@ -323,9 +304,7 @@ export default function SettingsPage() {
                     <span>
                       {t("settings.member_since")}:{" "}
                       {profile?.created_at
-                        ? new Date(profile.created_at).toLocaleDateString(
-                            "ar-SA",
-                          )
+                        ? new Date(profile.created_at).toLocaleDateString("ar-SA")
                         : "\u2014"}
                     </span>
                   </div>
@@ -373,8 +352,7 @@ export default function SettingsPage() {
                       }))
                     }
                     error={
-                      passwordForm.new_password &&
-                      passwordForm.new_password.length < 12
+                      passwordForm.new_password && passwordForm.new_password.length < 12
                         ? t("settings.password_min_length")
                         : undefined
                     }
@@ -391,22 +369,16 @@ export default function SettingsPage() {
                     }
                     error={
                       passwordForm.confirm_password &&
-                      passwordForm.new_password !==
-                        passwordForm.confirm_password
+                      passwordForm.new_password !== passwordForm.confirm_password
                         ? t("settings.password_mismatch")
                         : undefined
                     }
                   />
-                  {passwordError && (
-                    <p className="text-sm text-danger-600">{passwordError}</p>
-                  )}
+                  {passwordError && <p className="text-sm text-danger-600">{passwordError}</p>}
                   <Button
                     onClick={() => {
                       setPasswordError("");
-                      if (
-                        passwordForm.new_password !==
-                        passwordForm.confirm_password
-                      ) {
+                      if (passwordForm.new_password !== passwordForm.confirm_password) {
                         setPasswordError(t("settings.password_mismatch"));
                         return;
                       }
@@ -484,7 +456,7 @@ export default function SettingsPage() {
                             "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
                             notifPrefs[item.key]
                               ? "bg-[var(--muhide-orange)]"
-                              : "bg-[var(--bg-tertiary)]",
+                              : "bg-[var(--bg-tertiary)]"
                           )}
                           role="switch"
                           aria-checked={notifPrefs[item.key] ?? true}
@@ -492,9 +464,7 @@ export default function SettingsPage() {
                           <span
                             className={cn(
                               "pointer-events-none inline-block h-5 w-5 rounded-full bg-[var(--bg-primary)] shadow transition-transform",
-                              (notifPrefs[item.key] ?? true)
-                                ? "translate-x-5"
-                                : "translate-x-0",
+                              (notifPrefs[item.key] ?? true) ? "translate-x-5" : "translate-x-0"
                             )}
                           />
                         </button>
@@ -524,11 +494,7 @@ export default function SettingsPage() {
                       <code className="flex-1 rounded bg-[var(--bg-primary)] px-2 py-1 text-xs text-[var(--text-secondary)]">
                         {showNewKey}
                       </code>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => copyKey(showNewKey)}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => copyKey(showNewKey)}>
                         <Copy className="h-3 w-3" />
                       </Button>
                     </div>
@@ -553,12 +519,8 @@ export default function SettingsPage() {
                         className="flex items-center justify-between rounded-lg border border-[var(--border-subtle)] p-3"
                       >
                         <div>
-                          <p className="text-sm font-medium text-[var(--text-primary)]">
-                            {k.name}
-                          </p>
-                          <code className="text-xs text-[var(--text-muted)]">
-                            {k.key_preview}
-                          </code>
+                          <p className="text-sm font-medium text-[var(--text-primary)]">{k.name}</p>
+                          <code className="text-xs text-[var(--text-muted)]">{k.key_preview}</code>
                         </div>
                         <div className="flex items-center gap-2">
                           <button
@@ -577,12 +539,11 @@ export default function SettingsPage() {
                       </div>
                     ))
                   )}
-                  {(!apiKeysData || apiKeysData.length === 0) &&
-                    !apiKeysLoading && (
-                      <p className="py-4 text-center text-sm text-[var(--text-muted)]">
-                        {t("settings.no_api_keys")}
-                      </p>
-                    )}
+                  {(!apiKeysData || apiKeysData.length === 0) && !apiKeysLoading && (
+                    <p className="py-4 text-center text-sm text-[var(--text-muted)]">
+                      {t("settings.no_api_keys")}
+                    </p>
+                  )}
                 </div>
 
                 <div className="mt-4 flex gap-2">
@@ -639,12 +600,8 @@ export default function SettingsPage() {
                           key={src.name}
                           className="flex items-center justify-between rounded-lg border border-[var(--border-subtle)] p-2"
                         >
-                          <span className="text-sm text-[var(--text-secondary)]">
-                            {src.name}
-                          </span>
-                          <Badge variant="success">
-                            {t("settings.enabled")}
-                          </Badge>
+                          <span className="text-sm text-[var(--text-secondary)]">{src.name}</span>
+                          <Badge variant="success">{t("settings.enabled")}</Badge>
                         </div>
                       ))}
                     </div>

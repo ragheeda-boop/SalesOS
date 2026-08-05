@@ -2,12 +2,7 @@
 
 import { useTranslation } from "@/lib/i18n";
 import { useCallback } from "react";
-import {
-  BarChart,
-  PieChart,
-  MetricCard,
-  type ChartDataPoint,
-} from "@salesos/charts";
+import { BarChart, PieChart, MetricCard, type ChartDataPoint } from "@salesos/charts";
 import { Card, CardContent, CardHeader, Badge } from "@salesos/ui";
 import {
   Download,
@@ -38,21 +33,14 @@ export function AnalyticsWorkspace() {
 
   if (isLoading) {
     return (
-      <div
-        role="region"
-        aria-label={t("analytics.title")}
-        className="space-y-6 p-6"
-      >
+      <div role="region" aria-label={t("analytics.title")} className="space-y-6 p-6">
         <div className="space-y-2">
           <div className="h-7 w-48 rounded-lg bg-[var(--bg-secondary)] animate-pulse" />
           <div className="h-4 w-72 rounded bg-[var(--bg-secondary)] animate-pulse" />
         </div>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
-            <div
-              key={i}
-              className="h-24 rounded-xl bg-[var(--bg-secondary)] animate-pulse"
-            />
+            <div key={i} className="h-24 rounded-xl bg-[var(--bg-secondary)] animate-pulse" />
           ))}
         </div>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -73,10 +61,7 @@ export function AnalyticsWorkspace() {
             background: "var(--bg-primary)",
           }}
         >
-          <p
-            className="text-sm"
-            style={{ color: "var(--danger-600, #EF4444)" }}
-          >
+          <p className="text-sm" style={{ color: "var(--danger-600, #EF4444)" }}>
             {t("analytics.error")}
           </p>
         </div>
@@ -110,9 +95,7 @@ export function AnalyticsWorkspace() {
   }));
 
   const conversionRate =
-    pipeline.total_deals > 0
-      ? Math.round((pipeline.won_deals / pipeline.total_deals) * 100)
-      : 0;
+    pipeline.total_deals > 0 ? Math.round((pipeline.won_deals / pipeline.total_deals) * 100) : 0;
 
   const wonLostData: ChartDataPoint[] = [
     {
@@ -169,19 +152,11 @@ export function AnalyticsWorkspace() {
   ];
 
   return (
-    <div
-      role="region"
-      aria-label={t("analytics.title")}
-      className="space-y-6 p-6"
-    >
+    <div role="region" aria-label={t("analytics.title")} className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">
-            {t("analytics.title")}
-          </h1>
-          <p className="text-sm text-[var(--text-muted)]">
-            {t("analytics.subtitle")}
-          </p>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]">{t("analytics.title")}</h1>
+          <p className="text-sm text-[var(--text-muted)]">{t("analytics.subtitle")}</p>
         </div>
         <button
           onClick={handlePrint}
@@ -327,9 +302,7 @@ export function AnalyticsWorkspace() {
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-[var(--text-muted)]">
-                  {t("analytics.win_rate")}
-                </span>
+                <span className="text-xs text-[var(--text-muted)]">{t("analytics.win_rate")}</span>
                 <span className="text-sm font-semibold text-[var(--text-primary)]">
                   {team.avg_win_rate}%
                 </span>
@@ -382,25 +355,19 @@ export function AnalyticsWorkspace() {
           <CardContent>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-[var(--text-muted)]">
-                  {t("analytics.actual")}
-                </span>
+                <span className="text-xs text-[var(--text-muted)]">{t("analytics.actual")}</span>
                 <span className="text-sm font-semibold text-[var(--text-primary)]">
                   {formatCurrency(revenue.total_booked)}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-[var(--text-muted)]">
-                  {t("analytics.forecast")}
-                </span>
+                <span className="text-xs text-[var(--text-muted)]">{t("analytics.forecast")}</span>
                 <span className="text-sm font-semibold text-[var(--text-primary)]">
                   {formatCurrency(revenue.forecast)}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-[var(--text-muted)]">
-                  {t("analytics.weighted")}
-                </span>
+                <span className="text-xs text-[var(--text-muted)]">{t("analytics.weighted")}</span>
                 <span className="text-sm font-semibold text-[var(--text-primary)]">
                   {formatCurrency(revenue.weighted_pipeline)}
                 </span>

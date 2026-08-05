@@ -12,7 +12,7 @@ describe("odooIncrementalHonesty — FE-S09-07", () => {
     expect(FLAG_ODOO_INTEGRATION).toBe("feature_odoo_integration");
     expect(MUHIDE_TENANT_SLUG).toBe("muhide");
     expect(ODOO_FLAG_GATED_ACTIONS).toEqual(
-      expect.arrayContaining(["connect", "test_connection", "schedule"]),
+      expect.arrayContaining(["connect", "test_connection", "schedule"])
     );
   });
 

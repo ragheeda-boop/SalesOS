@@ -64,9 +64,7 @@ import type {
   TaskResponse,
 } from "./types";
 
-export async function getAdminHealth(
-  tenantId: string,
-): Promise<FullHealthResponse> {
+export async function getAdminHealth(tenantId: string): Promise<FullHealthResponse> {
   const response = await api.get("/health/full", {
     headers: { "X-Tenant-Id": tenantId },
   });
@@ -82,7 +80,7 @@ export async function getAdminMetrics(tenantId: string): Promise<string> {
 
 export async function listGoldenRecords(
   tenantId: string,
-  params: { page?: number; page_size?: number; status?: string } = {},
+  params: { page?: number; page_size?: number; status?: string } = {}
 ): Promise<PaginatedResponse<GoldenRecordAdmin>> {
   const response = await api.get("/api/v1/entity-resolution/golden-records", {
     params,
@@ -93,7 +91,7 @@ export async function listGoldenRecords(
 
 export async function listConflicts(
   tenantId: string,
-  params: { page?: number; page_size?: number; status?: string } = {},
+  params: { page?: number; page_size?: number; status?: string } = {}
 ): Promise<PaginatedResponse<EntityResolutionConflict>> {
   const response = await api.get("/api/v1/entity-resolution/conflicts", {
     params,
@@ -109,7 +107,7 @@ export async function listDlq(
     page_size?: number;
     status?: string;
     stage?: string;
-  } = {},
+  } = {}
 ): Promise<PaginatedResponse<DlqEntry>> {
   const response = await api.get("/api/v1/admin/dlq", {
     params,
@@ -118,10 +116,7 @@ export async function listDlq(
   return response.data;
 }
 
-export async function retryDlq(
-  tenantId: string,
-  limit = 50,
-): Promise<DlqRetryResponse> {
+export async function retryDlq(tenantId: string, limit = 50): Promise<DlqRetryResponse> {
   const response = await api.post("/api/v1/admin/dlq/retry", null, {
     params: { limit },
     headers: { "X-Tenant-Id": tenantId },
@@ -129,10 +124,7 @@ export async function retryDlq(
   return response.data;
 }
 
-export async function purgeDlq(
-  tenantId: string,
-  status?: string,
-): Promise<{ purged: number }> {
+export async function purgeDlq(tenantId: string, status?: string): Promise<{ purged: number }> {
   const response = await api.delete("/api/v1/admin/dlq", {
     params: status ? { status } : undefined,
     headers: { "X-Tenant-Id": tenantId },
@@ -141,7 +133,7 @@ export async function purgeDlq(
 }
 
 export async function getDlqStats(
-  tenantId: string,
+  tenantId: string
 ): Promise<{ failed_by_stage: Record<string, number> }> {
   const response = await api.get("/api/v1/admin/dlq/stats", {
     headers: { "X-Tenant-Id": tenantId },
@@ -149,10 +141,7 @@ export async function getDlqStats(
   return response.data;
 }
 
-export async function listTasks(
-  tenantId: string,
-  priority?: string,
-): Promise<TaskResponse[]> {
+export async function listTasks(tenantId: string, priority?: string): Promise<TaskResponse[]> {
   const response = await api.get("/api/v1/tasks", {
     params: priority ? { priority } : undefined,
     headers: { "X-Tenant-Id": tenantId },
@@ -170,12 +159,12 @@ export async function createTask(
   title: string,
   priority?: string,
   companyId?: string,
-  source?: string,
+  source?: string
 ): Promise<TaskResponse> {
   const response = await api.post(
     "/api/v1/tasks",
     { title, priority, company_id: companyId, source },
-    { headers: { "X-Tenant-Id": tenantId } },
+    { headers: { "X-Tenant-Id": tenantId } }
   );
   return response.data;
 }
@@ -190,7 +179,7 @@ function headerTotalCount(headers: unknown): number {
 
 /** FE-S04-33 — items + X-Total-Count; page/page_size when provided (tip e9ef08d). */
 export async function listAdminTenants(
-  params?: Record<string, string | number | undefined>,
+  params?: Record<string, string | number | undefined>
 ): Promise<AdminTenantListResult> {
   const resp = await api.get<AdminTenantListItem[]>("/api/v1/admin/tenants", {
     params,
@@ -198,11 +187,7 @@ export async function listAdminTenants(
   const items = Array.isArray(resp.data) ? resp.data : [];
   const total = headerTotalCount(resp.headers);
   const page =
-    typeof params?.page === "number"
-      ? params.page
-      : params?.page
-        ? Number(params.page)
-        : undefined;
+    typeof params?.page === "number" ? params.page : params?.page ? Number(params.page) : undefined;
   const page_size =
     typeof params?.page_size === "number"
       ? params.page_size
@@ -217,9 +202,7 @@ export async function listAdminTenants(
   };
 }
 
-export async function createAdminTenant(
-  data: AdminTenantCreate,
-): Promise<AdminTenantDetail> {
+export async function createAdminTenant(data: AdminTenantCreate): Promise<AdminTenantDetail> {
   const resp = await api.post("/api/v1/admin/tenants", data);
   return resp.data;
 }
@@ -231,16 +214,14 @@ export async function getAdminTenant(id: string): Promise<AdminTenantDetail> {
 
 export async function updateAdminTenant(
   id: string,
-  data: AdminTenantUpdate,
+  data: AdminTenantUpdate
 ): Promise<AdminTenantDetail> {
   const resp = await api.put(`/api/v1/admin/tenants/${id}`, data);
   return resp.data;
 }
 
 /** FE-S04-09 — soft-delete (is_active=false); not permanent. */
-export async function deleteAdminTenant(
-  id: string,
-): Promise<AdminTenantSoftDeleteResponse> {
+export async function deleteAdminTenant(id: string): Promise<AdminTenantSoftDeleteResponse> {
   const resp = await api.delete(`/api/v1/admin/tenants/${id}`);
   return resp.data;
 }
@@ -251,7 +232,7 @@ export const softDeleteAdminTenant = deleteAdminTenant;
 /** FE-S04-11/35 — hard-delete confirm + optional force_immediate (tip fd5af4d). */
 export async function hardDeleteAdminTenant(
   id: string,
-  data: AdminTenantHardDeleteRequest,
+  data: AdminTenantHardDeleteRequest
 ): Promise<AdminTenantHardDeleteResponse> {
   const resp = await api.delete(`/api/v1/admin/tenants/${id}/hard-delete`, {
     data: {
@@ -265,7 +246,7 @@ export async function hardDeleteAdminTenant(
 /** FE-S04-06 — suspend sets is_active=false + provisioning_status=suspended. */
 export async function suspendAdminTenant(
   id: string,
-  data: AdminTenantSuspendRequest = {},
+  data: AdminTenantSuspendRequest = {}
 ): Promise<AdminTenantSuspendResponse> {
   const resp = await api.post(`/api/v1/admin/tenants/${id}/suspend`, {
     reason: data.reason ?? "",
@@ -276,7 +257,7 @@ export async function suspendAdminTenant(
 /** FE-S04-27 — activate via POST /activate (tip d9d1472); not PUT is_active. */
 export async function activateAdminTenant(
   id: string,
-  data: AdminTenantActivateRequest = {},
+  data: AdminTenantActivateRequest = {}
 ): Promise<AdminTenantActivateResponse> {
   const resp = await api.post(`/api/v1/admin/tenants/${id}/activate`, {
     reason: data.reason ?? "",
@@ -287,7 +268,7 @@ export async function activateAdminTenant(
 /** FE-S04-34 — retry provision_workflow for failed/pending (tip e9ef08d). */
 export async function reprovisionAdminTenant(
   id: string,
-  data: AdminTenantReprovisionRequest = {},
+  data: AdminTenantReprovisionRequest = {}
 ): Promise<AdminTenantReprovisionResponse> {
   const body: AdminTenantReprovisionRequest = {
     force_active: data.force_active ?? false,
@@ -299,9 +280,7 @@ export async function reprovisionAdminTenant(
   return resp.data;
 }
 
-export async function getAdminTenantUsage(
-  id: string,
-): Promise<AdminTenantUsage> {
+export async function getAdminTenantUsage(id: string): Promise<AdminTenantUsage> {
   const resp = await api.get(`/api/v1/admin/tenants/${id}/usage`);
   return resp.data;
 }
@@ -311,16 +290,14 @@ export async function listAdminPlans(): Promise<AdminPlan[]> {
   return resp.data;
 }
 
-export async function createAdminPlan(
-  data: Record<string, unknown>,
-): Promise<AdminPlan> {
+export async function createAdminPlan(data: Record<string, unknown>): Promise<AdminPlan> {
   const resp = await api.post("/api/v1/admin/plans", data);
   return resp.data;
 }
 
 export async function updateAdminPlan(
   id: string,
-  data: Record<string, unknown>,
+  data: Record<string, unknown>
 ): Promise<AdminPlan> {
   const resp = await api.put(`/api/v1/admin/plans/${id}`, data);
   return resp.data;
@@ -340,7 +317,7 @@ export async function createAdminLicense(data: {
 }
 
 export async function listAdminUsers(
-  params?: Record<string, string | undefined>,
+  params?: Record<string, string | undefined>
 ): Promise<AdminUser[]> {
   const resp = await api.get("/api/v1/admin/users", { params });
   return resp.data;
@@ -353,7 +330,7 @@ export async function getAdminUser(id: string): Promise<AdminUserDetail> {
 
 export async function updateAdminUser(
   id: string,
-  data: Record<string, unknown>,
+  data: Record<string, unknown>
 ): Promise<AdminUserDetail> {
   const resp = await api.put(`/api/v1/admin/users/${id}`, data);
   return resp.data;
@@ -368,8 +345,7 @@ function axiosStatus(err: unknown): number | null {
     typeof err === "object" &&
     err !== null &&
     "response" in err &&
-    typeof (err as { response?: { status?: unknown } }).response?.status ===
-      "number"
+    typeof (err as { response?: { status?: unknown } }).response?.status === "number"
   ) {
     return (err as { response: { status: number } }).response.status;
   }
@@ -377,12 +353,10 @@ function axiosStatus(err: unknown): number | null {
 }
 
 export async function getAdminTenantSubscription(
-  tenantId: string,
+  tenantId: string
 ): Promise<AdminSubscription | null> {
   try {
-    const resp = await api.get(
-      `/api/v1/admin/billing/subscriptions/${tenantId}`,
-    );
+    const resp = await api.get(`/api/v1/admin/billing/subscriptions/${tenantId}`);
     return resp.data;
   } catch (err: unknown) {
     if (axiosStatus(err) === 404) return null;
@@ -391,7 +365,7 @@ export async function getAdminTenantSubscription(
 }
 
 export async function listAdminBillingCatalog(
-  activeOnly = true,
+  activeOnly = true
 ): Promise<AdminBillingCatalogItem[]> {
   const resp = await api.get("/api/v1/admin/billing/catalog", {
     params: { active_only: activeOnly },
@@ -400,22 +374,16 @@ export async function listAdminBillingCatalog(
 }
 
 export async function createAdminStripeCheckoutSession(
-  data: AdminStripeCheckoutSessionRequest,
+  data: AdminStripeCheckoutSessionRequest
 ): Promise<AdminStripeCheckoutSessionResponse> {
-  const resp = await api.post(
-    "/api/v1/admin/billing/stripe/checkout-session",
-    data,
-  );
+  const resp = await api.post("/api/v1/admin/billing/stripe/checkout-session", data);
   return resp.data;
 }
 
 export async function createAdminStripePortalSession(
-  data: AdminStripePortalSessionRequest,
+  data: AdminStripePortalSessionRequest
 ): Promise<AdminStripePortalSessionResponse> {
-  const resp = await api.post(
-    "/api/v1/admin/billing/stripe/portal-session",
-    data,
-  );
+  const resp = await api.post("/api/v1/admin/billing/stripe/portal-session", data);
   return resp.data;
 }
 
@@ -426,7 +394,7 @@ export async function getAdminStripeStatus(): Promise<AdminStripeStatus> {
 }
 
 export async function listAdminPlatformInvoices(
-  tenantId?: string,
+  tenantId?: string
 ): Promise<AdminPlatformInvoice[]> {
   const resp = await api.get("/api/v1/admin/billing/platform-invoices", {
     params: tenantId ? { tenant_id: tenantId } : undefined,
@@ -448,7 +416,7 @@ export async function listAdminUsageMeters(params?: {
 
 /** STORY-05-03 — Owner rollup pending events into hourly meters. */
 export async function rollupAdminUsage(
-  data: AdminUsageRollupRequest = {},
+  data: AdminUsageRollupRequest = {}
 ): Promise<AdminUsageRollupResponse> {
   const resp = await api.post("/api/v1/admin/billing/usage/rollup", data);
   return resp.data;
@@ -464,57 +432,48 @@ export async function listAdminDunningCases(params?: {
 }
 
 export async function evaluateAdminDunning(
-  data: AdminDunningEvaluateRequest = {},
+  data: AdminDunningEvaluateRequest = {}
 ): Promise<AdminDunningEvaluateResponse> {
   const resp = await api.post("/api/v1/admin/billing/dunning/evaluate", data);
   return resp.data;
 }
 
 export async function clearAdminDunning(
-  tenantId: string,
+  tenantId: string
 ): Promise<{ tenant_id: string; cleared: number }> {
-  const resp = await api.post(
-    `/api/v1/admin/billing/dunning/${tenantId}/clear`,
-  );
+  const resp = await api.post(`/api/v1/admin/billing/dunning/${tenantId}/clear`);
   return resp.data;
 }
 
 export async function quoteAdminPlanChange(
-  data: AdminPlanChangeRequest,
+  data: AdminPlanChangeRequest
 ): Promise<AdminPlanChangeQuote> {
   const resp = await api.post("/api/v1/admin/billing/plan-change/quote", data);
   return resp.data;
 }
 
 export async function applyAdminPlanChange(
-  data: AdminPlanChangeRequest,
+  data: AdminPlanChangeRequest
 ): Promise<AdminPlanChangeQuote> {
   const resp = await api.post("/api/v1/admin/billing/plan-change/apply", data);
   return resp.data;
 }
 
 export async function applyPendingAdminPlanChanges(
-  data: AdminPlanChangeApplyPendingRequest = {},
+  data: AdminPlanChangeApplyPendingRequest = {}
 ): Promise<AdminPlanChangeApplyPendingResponse> {
-  const resp = await api.post(
-    "/api/v1/admin/billing/plan-change/apply-pending",
-    data,
-  );
+  const resp = await api.post("/api/v1/admin/billing/plan-change/apply-pending", data);
   return resp.data;
 }
 
-export async function listAdminInvoices(
-  tenantId?: string,
-): Promise<AdminInvoice[]> {
+export async function listAdminInvoices(tenantId?: string): Promise<AdminInvoice[]> {
   const resp = await api.get("/api/v1/admin/billing/invoices", {
     params: tenantId ? { tenant_id: tenantId } : undefined,
   });
   return resp.data;
 }
 
-export async function listAdminTransactions(
-  tenantId?: string,
-): Promise<AdminTransaction[]> {
+export async function listAdminTransactions(tenantId?: string): Promise<AdminTransaction[]> {
   const resp = await api.get("/api/v1/admin/billing/transactions", {
     params: tenantId ? { tenant_id: tenantId } : undefined,
   });
@@ -538,15 +497,13 @@ export async function createAdminFeatureFlag(data: {
 
 export async function updateAdminFeatureFlag(
   id: string,
-  data: Record<string, unknown>,
+  data: Record<string, unknown>
 ): Promise<AdminFeatureFlag> {
   const resp = await api.put(`/api/v1/admin/feature-flags/${id}`, data);
   return resp.data;
 }
 
-export async function getAdminFlagTenants(
-  id: string,
-): Promise<AdminFlagTenant[]> {
+export async function getAdminFlagTenants(id: string): Promise<AdminFlagTenant[]> {
   const resp = await api.get(`/api/v1/admin/feature-flags/${id}/tenants`);
   return resp.data;
 }
@@ -554,7 +511,7 @@ export async function getAdminFlagTenants(
 export async function toggleAdminFlagForTenant(
   flagId: string,
   tenantId: string,
-  enabled: boolean,
+  enabled: boolean
 ): Promise<void> {
   await api.put(`/api/v1/admin/feature-flags/${flagId}/tenants/${tenantId}`, {
     enabled,
@@ -562,7 +519,7 @@ export async function toggleAdminFlagForTenant(
 }
 
 export async function listAdminJobs(
-  params?: Record<string, string | number | undefined>,
+  params?: Record<string, string | number | undefined>
 ): Promise<AdminJob[]> {
   const resp = await api.get("/api/v1/admin/jobs", { params });
   return resp.data;
@@ -578,15 +535,13 @@ export async function retryAdminJob(id: string): Promise<void> {
 }
 
 export async function listAdminAICosts(
-  params?: Record<string, string | number | undefined>,
+  params?: Record<string, string | number | undefined>
 ): Promise<AdminAICost[]> {
   const resp = await api.get("/api/v1/admin/ai/costs", { params });
   return resp.data;
 }
 
-export async function getAdminAICostSummary(
-  days?: number,
-): Promise<AdminAICostSummary> {
+export async function getAdminAICostSummary(days?: number): Promise<AdminAICostSummary> {
   const resp = await api.get("/api/v1/admin/ai/summary", {
     params: days ? { days } : undefined,
   });
@@ -605,9 +560,7 @@ export async function getAdminDetailedHealth(): Promise<AdminDetailedHealth> {
   return resp.data;
 }
 
-export async function getAdminHealthHistory(
-  hours?: number,
-): Promise<AdminHealthHistoryEntry[]> {
+export async function getAdminHealthHistory(hours?: number): Promise<AdminHealthHistoryEntry[]> {
   const resp = await api.get("/api/v1/admin/health/history", {
     params: hours ? { hours } : undefined,
   });
@@ -615,7 +568,7 @@ export async function getAdminHealthHistory(
 }
 
 export async function listAdminAuditLogs(
-  params?: Record<string, string | number | undefined>,
+  params?: Record<string, string | number | undefined>
 ): Promise<PaginatedResponse<AuditLogEntry>> {
   const resp = await api.get("/api/v1/audit/logs", { params });
   return resp.data;
@@ -642,7 +595,7 @@ export async function createAdminRole(data: {
 
 export async function updateAdminRole(
   id: string,
-  data: Record<string, unknown>,
+  data: Record<string, unknown>
 ): Promise<AdminRole> {
   const resp = await api.put(`/api/v1/admin/roles/${id}`, data);
   return resp.data;
@@ -657,15 +610,13 @@ export async function getAdminConfig(): Promise<AdminConfigResponse> {
   return resp.data;
 }
 
-export async function saveAdminConfig(
-  content: string,
-): Promise<AdminConfigResponse> {
+export async function saveAdminConfig(content: string): Promise<AdminConfigResponse> {
   const resp = await api.put("/api/v1/admin/config", { content });
   return resp.data;
 }
 
 export async function validateAdminConfig(
-  content: string,
+  content: string
 ): Promise<{ valid: boolean; errors: string[] }> {
   const resp = await api.post("/api/v1/admin/config/validate", { content });
   return resp.data;
@@ -673,7 +624,7 @@ export async function validateAdminConfig(
 
 export async function submitCopilotFeedback(
   data: CopilotFeedbackRequest,
-  tenantId: string,
+  tenantId: string
 ): Promise<CopilotFeedbackResponse> {
   const response = await api.post("/api/v1/copilot/feedback", data, {
     headers: { "X-Tenant-Id": tenantId },
@@ -683,7 +634,7 @@ export async function submitCopilotFeedback(
 
 export async function getCopilotTelemetry(
   tenantId: string,
-  days = 7,
+  days = 7
 ): Promise<CopilotTelemetryData> {
   const response = await api.get("/api/v1/copilot/telemetry", {
     params: { days },

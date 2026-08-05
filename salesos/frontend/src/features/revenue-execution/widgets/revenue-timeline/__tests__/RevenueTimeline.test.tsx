@@ -60,9 +60,7 @@ describe("RevenueTimelineView", () => {
   });
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "الجدول الزمني للإيرادات" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "الجدول الزمني للإيرادات" })).toBeInTheDocument();
   });
   it("shows empty state", () => {
     renderView([]);

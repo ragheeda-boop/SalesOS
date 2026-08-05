@@ -42,9 +42,7 @@ export const ForecastIntelligenceWidget = createWidget({
     const opps = oppsResp.items;
     const active = opps.filter((o) => !["won", "lost"].includes(o.stage));
     const totalPipeline = active.reduce((s, o) => s + (o.value ?? 0), 0);
-    const wonValue = opps
-      .filter((o) => o.stage === "won")
-      .reduce((s, o) => s + (o.value ?? 0), 0);
+    const wonValue = opps.filter((o) => o.stage === "won").reduce((s, o) => s + (o.value ?? 0), 0);
 
     const data: ForecastData = {
       currentQuarter: {

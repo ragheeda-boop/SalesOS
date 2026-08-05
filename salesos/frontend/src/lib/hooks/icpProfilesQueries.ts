@@ -46,8 +46,7 @@ export function useIcpProfile(profileId: string | null) {
 export function useCreateIcpProfile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: ICPProfileCreateBody) =>
-      createIcpProfile(getTenantId(), body),
+    mutationFn: (body: ICPProfileCreateBody) => createIcpProfile(getTenantId(), body),
     onSuccess: (row) => {
       qc.invalidateQueries({ queryKey: gtmKeys.icpList(getTenantId()) });
       qc.setQueryData(gtmKeys.icpDetail(getTenantId(), row.id), row);
@@ -58,13 +57,8 @@ export function useCreateIcpProfile() {
 export function useUpdateIcpProfile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      profileId,
-      body,
-    }: {
-      profileId: string;
-      body: ICPProfileUpdateBody;
-    }) => updateIcpProfile(getTenantId(), profileId, body),
+    mutationFn: ({ profileId, body }: { profileId: string; body: ICPProfileUpdateBody }) =>
+      updateIcpProfile(getTenantId(), profileId, body),
     onSuccess: (row) => {
       qc.invalidateQueries({ queryKey: gtmKeys.icpList(getTenantId()) });
       qc.setQueryData(gtmKeys.icpDetail(getTenantId(), row.id), row);
@@ -74,12 +68,7 @@ export function useUpdateIcpProfile() {
 
 export function useScoreIcpProfile() {
   return useMutation({
-    mutationFn: ({
-      profileId,
-      body,
-    }: {
-      profileId: string;
-      body: ICPScoreBody;
-    }) => scoreIcpProfile(getTenantId(), profileId, body),
+    mutationFn: ({ profileId, body }: { profileId: string; body: ICPScoreBody }) =>
+      scoreIcpProfile(getTenantId(), profileId, body),
   });
 }

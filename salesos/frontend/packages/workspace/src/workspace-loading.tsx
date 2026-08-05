@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { WorkspaceGrid } from './workspace-grid'
-import type { WorkspaceWidgetEntry } from './workspace-types'
+import { WorkspaceGrid } from "./workspace-grid";
+import type { WorkspaceWidgetEntry } from "./workspace-types";
 
 function Skeleton({ minHeight }: { minHeight: string }) {
   return (
@@ -10,17 +10,17 @@ function Skeleton({ minHeight }: { minHeight: string }) {
       aria-label="Loading"
       style={{
         minHeight,
-        borderRadius: '0.5rem',
-        background: 'linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)',
-        backgroundSize: '200% 100%',
-        animation: 'shimmer 1.5s infinite',
+        borderRadius: "0.5rem",
+        background: "linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)",
+        backgroundSize: "200% 100%",
+        animation: "shimmer 1.5s infinite",
       }}
     />
-  )
+  );
 }
 
 export interface WorkspaceLoadingProps {
-  entries: WorkspaceWidgetEntry[]
+  entries: WorkspaceWidgetEntry[];
 }
 
 export function WorkspaceLoading({ entries }: WorkspaceLoadingProps) {
@@ -32,5 +32,5 @@ export function WorkspaceLoading({ entries }: WorkspaceLoadingProps) {
         </div>
       ))}
     </WorkspaceGrid>
-  )
+  );
 }

@@ -112,7 +112,7 @@ function w<T>(
   data: T | null | undefined,
   isLoading: boolean,
   isError: boolean,
-  lastUpdated: string | null,
+  lastUpdated: string | null
 ): {
   data: T | null;
   status: WidgetStatus;
@@ -132,7 +132,7 @@ function w<T>(
 export function deriveCompanyIntelligenceWidgets(
   dto: CompanyIntelligenceDTO | undefined,
   isLoading: boolean,
-  isError: boolean,
+  isError: boolean
 ): CompanyWidgetMap {
   const lu = dto?.generatedAt ?? null;
   return {
@@ -145,7 +145,7 @@ export function deriveCompanyIntelligenceWidgets(
         : null,
       isLoading,
       isError,
-      lu,
+      lu
     ),
     smartTimeline: w(dto?.timeline, isLoading, isError, lu),
     signalsFeed: w(dto?.signals, isLoading, isError, lu),

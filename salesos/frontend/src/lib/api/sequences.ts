@@ -102,18 +102,14 @@ export interface SequencingMeta {
   honesty: string;
 }
 
-export async function getSequencingMeta(
-  tenantId: string,
-): Promise<SequencingMeta> {
+export async function getSequencingMeta(tenantId: string): Promise<SequencingMeta> {
   const resp = await api.get<SequencingMeta>(`${BASE}/meta`, {
     headers: tenantHeaders(tenantId),
   });
   return resp.data;
 }
 
-export async function listSequences(
-  tenantId: string,
-): Promise<SequenceDefinition[]> {
+export async function listSequences(tenantId: string): Promise<SequenceDefinition[]> {
   const resp = await api.get<SequenceDefinition[]>(BASE, {
     headers: tenantHeaders(tenantId),
   });
@@ -122,7 +118,7 @@ export async function listSequences(
 
 export async function getSequence(
   tenantId: string,
-  sequenceId: string,
+  sequenceId: string
 ): Promise<SequenceDefinition> {
   const resp = await api.get<SequenceDefinition>(`${BASE}/${sequenceId}`, {
     headers: tenantHeaders(tenantId),
@@ -132,7 +128,7 @@ export async function getSequence(
 
 export async function createSequence(
   tenantId: string,
-  body: SequenceCreateBody,
+  body: SequenceCreateBody
 ): Promise<SequenceDefinition> {
   const resp = await api.post<SequenceDefinition>(BASE, body, {
     headers: tenantHeaders(tenantId),
@@ -140,9 +136,7 @@ export async function createSequence(
   return resp.data;
 }
 
-export async function listEnrollments(
-  tenantId: string,
-): Promise<SequenceEnrollment[]> {
+export async function listEnrollments(tenantId: string): Promise<SequenceEnrollment[]> {
   const resp = await api.get<SequenceEnrollment[]>(`${BASE}/enrollments`, {
     headers: tenantHeaders(tenantId),
   });
@@ -151,72 +145,69 @@ export async function listEnrollments(
 
 export async function getEnrollment(
   tenantId: string,
-  enrollmentId: string,
+  enrollmentId: string
 ): Promise<SequenceEnrollment> {
-  const resp = await api.get<SequenceEnrollment>(
-    `${BASE}/enrollments/${enrollmentId}`,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.get<SequenceEnrollment>(`${BASE}/enrollments/${enrollmentId}`, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }
 
 export async function enrollContact(
   tenantId: string,
   sequenceId: string,
-  body: EnrollBody,
+  body: EnrollBody
 ): Promise<SequenceEnrollment> {
-  const resp = await api.post<SequenceEnrollment>(
-    `${BASE}/${sequenceId}/enrollments`,
-    body,
-    { headers: tenantHeaders(tenantId) },
-  );
+  const resp = await api.post<SequenceEnrollment>(`${BASE}/${sequenceId}/enrollments`, body, {
+    headers: tenantHeaders(tenantId),
+  });
   return resp.data;
 }
 
 export async function advanceEnrollment(
   tenantId: string,
-  enrollmentId: string,
+  enrollmentId: string
 ): Promise<SequenceEnrollment> {
   const resp = await api.post<SequenceEnrollment>(
     `${BASE}/enrollments/${enrollmentId}/advance`,
     {},
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
 
 export async function pauseEnrollment(
   tenantId: string,
-  enrollmentId: string,
+  enrollmentId: string
 ): Promise<SequenceEnrollment> {
   const resp = await api.post<SequenceEnrollment>(
     `${BASE}/enrollments/${enrollmentId}/pause`,
     {},
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
 
 export async function resumeEnrollment(
   tenantId: string,
-  enrollmentId: string,
+  enrollmentId: string
 ): Promise<SequenceEnrollment> {
   const resp = await api.post<SequenceEnrollment>(
     `${BASE}/enrollments/${enrollmentId}/resume`,
     {},
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }
 
 export async function cancelEnrollment(
   tenantId: string,
-  enrollmentId: string,
+  enrollmentId: string
 ): Promise<SequenceEnrollment> {
   const resp = await api.post<SequenceEnrollment>(
     `${BASE}/enrollments/${enrollmentId}/cancel`,
     {},
-    { headers: tenantHeaders(tenantId) },
+    { headers: tenantHeaders(tenantId) }
   );
   return resp.data;
 }

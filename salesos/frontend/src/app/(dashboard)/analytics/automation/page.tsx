@@ -87,9 +87,7 @@ export default function AutomationAnalyticsOverviewPage() {
       setAnalytics(res.data);
     } catch {
       if (workflows) {
-        const active = workflows.filter(
-          (w: Workflow) => w.status === "active",
-        ).length;
+        const active = workflows.filter((w: Workflow) => w.status === "active").length;
         setAnalytics({
           total_workflows: workflows.length,
           active_workflows: active,
@@ -175,9 +173,7 @@ export default function AutomationAnalyticsOverviewPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)]">
-              Automation Analytics
-            </h1>
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">Automation Analytics</h1>
             <p className="text-sm text-[var(--text-muted)]">
               Workflow execution, completion rates, and performance
             </p>
@@ -193,7 +189,7 @@ export default function AutomationAnalyticsOverviewPage() {
                   "px-3 py-1.5 text-xs font-medium transition",
                   dateRange === r.days
                     ? "bg-[var(--muhide-orange)] text-white"
-                    : "bg-[var(--bg-primary)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+                    : "bg-[var(--bg-primary)] text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
                 )}
               >
                 {r.label}
@@ -237,9 +233,7 @@ export default function AutomationAnalyticsOverviewPage() {
       {/* Secondary Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-          <p className="text-xs text-[var(--text-muted)]">
-            Successful Executions
-          </p>
+          <p className="text-xs text-[var(--text-muted)]">Successful Executions</p>
           <p className="text-2xl font-bold text-[var(--status-success-text)]">
             {analytics.successful_executions}
           </p>
@@ -252,9 +246,7 @@ export default function AutomationAnalyticsOverviewPage() {
         </div>
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
           <p className="text-xs text-[var(--text-muted)]">Failure Rate</p>
-          <p className="text-2xl font-bold text-[var(--text-primary)]">
-            {analytics.failure_rate}%
-          </p>
+          <p className="text-2xl font-bold text-[var(--text-primary)]">{analytics.failure_rate}%</p>
         </div>
       </div>
 
@@ -285,9 +277,7 @@ export default function AutomationAnalyticsOverviewPage() {
         </div>
 
         <div className="lg:col-span-2 rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
-            Top Workflows
-          </h3>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Top Workflows</h3>
           <BarChart data={topWorkflowData} height={200} />
         </div>
       </div>
@@ -321,12 +311,8 @@ export default function AutomationAnalyticsOverviewPage() {
                   key={wf.id}
                   className="border-b border-[var(--border-default)] last:border-0 hover:bg-[var(--bg-secondary)]"
                 >
-                  <td className="px-3 py-2 font-medium text-[var(--text-primary)]">
-                    {wf.name}
-                  </td>
-                  <td className="px-3 py-2 text-[var(--text-secondary)]">
-                    {wf.runs}
-                  </td>
+                  <td className="px-3 py-2 font-medium text-[var(--text-primary)]">{wf.name}</td>
+                  <td className="px-3 py-2 text-[var(--text-secondary)]">{wf.runs}</td>
                   <td className="px-3 py-2">
                     <Badge
                       variant={

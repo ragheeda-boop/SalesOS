@@ -66,11 +66,7 @@ function AttainmentBar({ percent }: { percent: number }) {
         <div
           className={cn(
             "h-full rounded-full transition-all",
-            percent >= 90
-              ? "bg-green-500"
-              : percent >= 70
-                ? "bg-amber-500"
-                : "bg-red-500",
+            percent >= 90 ? "bg-green-500" : percent >= 70 ? "bg-amber-500" : "bg-red-500"
           )}
           style={{ width: `${Math.min(percent, 100)}%` }}
         />
@@ -82,7 +78,7 @@ function AttainmentBar({ percent }: { percent: number }) {
             ? "text-[var(--status-success-text)]"
             : percent >= 70
               ? "text-[var(--status-warning-text)]"
-              : "text-[var(--status-danger-text)]",
+              : "text-[var(--status-danger-text)]"
         )}
       >
         {Math.round(percent)}%
@@ -102,12 +98,7 @@ function StatusBadge({ status }: { status: QuotaItem["status"] }) {
   };
   const { label, color } = config[status];
   return (
-    <span
-      className={cn(
-        "inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium",
-        color,
-      )}
-    >
+    <span className={cn("inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium", color)}>
       {label}
     </span>
   );
@@ -135,13 +126,8 @@ function QuotaModal({
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div className="relative bg-[var(--bg-primary)] rounded-xl border border-[var(--border-default)] shadow-xl w-full max-w-md p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)]">
-            Set Quota
-          </h2>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1 hover:bg-[var(--bg-secondary)]"
-          >
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Set Quota</h2>
+          <button onClick={onClose} className="rounded-lg p-1 hover:bg-[var(--bg-secondary)]">
             <X className="h-5 w-5 text-[var(--text-muted)]" />
           </button>
         </div>
@@ -165,9 +151,7 @@ function QuotaModal({
             <input
               type="number"
               value={form.target_amount}
-              onChange={(e) =>
-                setForm({ ...form, target_amount: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, target_amount: e.target.value })}
               className="w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--muhide-orange)]"
               placeholder="e.g. 500000"
             />
@@ -280,8 +264,7 @@ export default function QuotaManagementPage() {
       const team: TeamAggregate = {
         total_target: totalTarget,
         total_attained: totalAttained,
-        overall_attainment:
-          totalTarget > 0 ? Math.round((totalAttained / totalTarget) * 100) : 0,
+        overall_attainment: totalTarget > 0 ? Math.round((totalAttained / totalTarget) * 100) : 0,
         rep_count: quotas.length,
         reps_on_track: quotas.filter((q) => q.status === "on_track").length,
         reps_at_risk: quotas.filter((q) => q.status === "at_risk").length,
@@ -308,9 +291,7 @@ export default function QuotaManagementPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <AlertTriangle className="h-12 w-12 text-[var(--status-danger-text)] mb-4" />
-        <h3 className="text-lg font-semibold text-[var(--text-primary)]">
-          Error Loading Quotas
-        </h3>
+        <h3 className="text-lg font-semibold text-[var(--text-primary)]">Error Loading Quotas</h3>
         <p className="text-sm text-[var(--status-danger-text)] mt-1">{error}</p>
         <button
           onClick={fetchQuotas}
@@ -333,9 +314,7 @@ export default function QuotaManagementPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold text-[var(--text-primary)]">
-              Quota Management
-            </h1>
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">Quota Management</h1>
             <p className="text-sm text-[var(--text-muted)]">
               Set targets, track attainment, and forecast performance
             </p>
@@ -372,9 +351,7 @@ export default function QuotaManagementPage() {
               </p>
             </div>
             <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-              <p className="text-xs text-[var(--text-muted)]">
-                Overall Attainment
-              </p>
+              <p className="text-xs text-[var(--text-muted)]">Overall Attainment</p>
               <p className="text-2xl font-bold text-[var(--text-primary)] mt-1">
                 {data.team.overall_attainment}%
               </p>
@@ -383,16 +360,13 @@ export default function QuotaManagementPage() {
               <p className="text-xs text-[var(--text-muted)]">Reps Status</p>
               <div className="flex items-center gap-3 mt-1">
                 <span className="flex items-center gap-1 text-xs text-[var(--status-success-text)]">
-                  <TrendingUp className="h-3 w-3" /> {data.team.reps_on_track}{" "}
-                  on track
+                  <TrendingUp className="h-3 w-3" /> {data.team.reps_on_track} on track
                 </span>
                 <span className="flex items-center gap-1 text-xs text-[var(--status-warning-text)]">
-                  <Target className="h-3 w-3" /> {data.team.reps_at_risk} at
-                  risk
+                  <Target className="h-3 w-3" /> {data.team.reps_at_risk} at risk
                 </span>
                 <span className="flex items-center gap-1 text-xs text-[var(--status-danger-text)]">
-                  <TrendingDown className="h-3 w-3" /> {data.team.reps_missed}{" "}
-                  behind
+                  <TrendingDown className="h-3 w-3" /> {data.team.reps_missed} behind
                 </span>
               </div>
             </div>
@@ -410,7 +384,7 @@ export default function QuotaManagementPage() {
                 "rounded-lg px-3 py-1.5 text-sm transition",
                 activePeriod === period
                   ? "bg-[var(--muhide-orange)] text-white"
-                  : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]",
+                  : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
               )}
             >
               {period}
@@ -447,8 +421,7 @@ export default function QuotaManagementPage() {
               {/* Team Aggregate Row */}
               <tr className="border-b border-[var(--border-default)] bg-[var(--bg-secondary)]/50 font-medium">
                 <td className="px-4 py-3 flex items-center gap-2 text-[var(--text-primary)]">
-                  <Users className="h-4 w-4 text-[var(--text-muted)]" /> Team
-                  Total
+                  <Users className="h-4 w-4 text-[var(--text-muted)]" /> Team Total
                 </td>
                 <td className="px-4 py-3 text-[var(--text-primary)]">
                   {data ? formatCurrency(data.team.total_target) : "—"}
@@ -457,18 +430,11 @@ export default function QuotaManagementPage() {
                   {data ? formatCurrency(data.team.total_attained) : "—"}
                 </td>
                 <td className="px-4 py-3">
-                  {data && (
-                    <AttainmentBar percent={data.team.overall_attainment} />
-                  )}
+                  {data && <AttainmentBar percent={data.team.overall_attainment} />}
                 </td>
                 <td className="px-4 py-3 text-[var(--text-primary)]">
                   {data
-                    ? formatCurrency(
-                        filteredQuotas.reduce(
-                          (s, q) => s + q.forecast_amount,
-                          0,
-                        ),
-                      )
+                    ? formatCurrency(filteredQuotas.reduce((s, q) => s + q.forecast_amount, 0))
                     : "—"}
                 </td>
                 <td className="px-4 py-3">

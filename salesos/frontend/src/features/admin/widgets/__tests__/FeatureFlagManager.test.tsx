@@ -44,13 +44,9 @@ import {
 const mockUseAdminFeatureFlags = useAdminFeatureFlags as jest.Mock;
 const mockUseCreateAdminFeatureFlag = useCreateAdminFeatureFlag as jest.Mock;
 const mockUseAdminFlagTenants = useAdminFlagTenants as jest.Mock;
-const mockUseToggleAdminFlagForTenant =
-  useToggleAdminFlagForTenant as jest.Mock;
+const mockUseToggleAdminFlagForTenant = useToggleAdminFlagForTenant as jest.Mock;
 
-function setupFlags(
-  flags: AdminFeatureFlag[] = sampleFlags,
-  isLoading = false,
-) {
+function setupFlags(flags: AdminFeatureFlag[] = sampleFlags, isLoading = false) {
   mockUseAdminFeatureFlags.mockReturnValue({ data: flags, isLoading });
   mockUseCreateAdminFeatureFlag.mockReturnValue({
     mutateAsync: mockMutateAsync,
@@ -143,9 +139,7 @@ describe("FeatureFlagManager", () => {
     fireEvent.click(screen.getByText("ميزة جديدة"));
     expect(screen.getByPlaceholderText("المفتاح (key)")).toBeInTheDocument();
     fireEvent.click(screen.getByText("إلغاء"));
-    expect(
-      screen.queryByPlaceholderText("المفتاح (key)"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText("المفتاح (key)")).not.toBeInTheDocument();
   });
 
   it("selecting a flag shows tenant manager panel", () => {
@@ -171,9 +165,7 @@ describe("FeatureFlagManager", () => {
 
   it("shows placeholder when no flag selected", () => {
     render(<FeatureFlagManager />);
-    expect(
-      screen.getByText("اختر ميزة لإدارة تفعيلها لكل عميل"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("اختر ميزة لإدارة تفعيلها لكل عميل")).toBeInTheDocument();
   });
 
   it("displays flag count in header", () => {

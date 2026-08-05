@@ -68,9 +68,7 @@ describe("MeetingView", () => {
   });
   it('has role="region"', () => {
     renderView();
-    expect(
-      screen.getByRole("region", { name: "ذكاء الاجتماعات" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "ذكاء الاجتماعات" })).toBeInTheDocument();
   });
 });
 describe("MeetingIntelligenceWidget", () => {

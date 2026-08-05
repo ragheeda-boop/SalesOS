@@ -84,10 +84,7 @@ export function ExecutiveCockpit() {
           <CardContent>
             <div className="space-y-2">
               {data.departments.map((d, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between text-sm"
-                >
+                <div key={i} className="flex items-center justify-between text-sm">
                   <span className="text-[var(--text-secondary)]">{d.name}</span>
                   <span className="font-medium">{d.headcount}</span>
                   <div className="flex-1 mx-3 h-2 rounded-full bg-[var(--bg-tertiary)] max-w-[200px]">
@@ -127,20 +124,10 @@ export function ExecutiveCockpit() {
                   >
                     {i + 1}
                   </span>
-                  <span className="flex-1 text-[var(--text-primary)]">
-                    {p.name}
-                  </span>
-                  <span className="text-xs text-[var(--text-muted)]">
-                    {p.department || p.role}
-                  </span>
+                  <span className="flex-1 text-[var(--text-primary)]">{p.name}</span>
+                  <span className="text-xs text-[var(--text-muted)]">{p.department || p.role}</span>
                   <Badge
-                    variant={
-                      p.score >= 70
-                        ? "success"
-                        : p.score >= 40
-                          ? "warning"
-                          : "danger"
-                    }
+                    variant={p.score >= 70 ? "success" : p.score >= 40 ? "warning" : "danger"}
                     className="text-[10px]"
                   >
                     {p.score}
@@ -148,9 +135,7 @@ export function ExecutiveCockpit() {
                 </div>
               ))}
               {data.top_performers.length === 0 && (
-                <p className="text-xs text-[var(--text-disabled)]">
-                  No scores recorded yet
-                </p>
+                <p className="text-xs text-[var(--text-disabled)]">No scores recorded yet</p>
               )}
             </div>
           </CardContent>
@@ -165,10 +150,7 @@ export function ExecutiveCockpit() {
           <CardContent>
             <div className="space-y-2">
               {data.roles.map((r, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between text-sm"
-                >
+                <div key={i} className="flex items-center justify-between text-sm">
                   <span className="text-[var(--text-secondary)] capitalize">
                     {r.role.replace(/_/g, " ")}
                   </span>
@@ -188,9 +170,7 @@ export function ExecutiveCockpit() {
               <span>Active Rate</span>
               <span className="font-medium">
                 {data.total_employees > 0
-                  ? Math.round(
-                      (data.active_employees / data.total_employees) * 100,
-                    )
+                  ? Math.round((data.active_employees / data.total_employees) * 100)
                   : 0}
                 %
               </span>
@@ -199,9 +179,7 @@ export function ExecutiveCockpit() {
               <span>New Hire Rate</span>
               <span className="font-medium">
                 {data.total_employees > 0
-                  ? Math.round(
-                      (data.new_this_month / data.total_employees) * 100,
-                    )
+                  ? Math.round((data.new_this_month / data.total_employees) * 100)
                   : 0}
                 %
               </span>
@@ -212,9 +190,7 @@ export function ExecutiveCockpit() {
                 className={`font-medium ${data.at_risk_count > 0 ? "text-danger-600" : "text-success-600"}`}
               >
                 {data.total_employees > 0
-                  ? Math.round(
-                      (data.at_risk_count / data.total_employees) * 100,
-                    )
+                  ? Math.round((data.at_risk_count / data.total_employees) * 100)
                   : 0}
                 %
               </span>
@@ -243,9 +219,7 @@ function MetricCard({
   return (
     <div className={`rounded-xl border p-4 ${color}`}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-[var(--text-muted)]">
-          {label}
-        </span>
+        <span className="text-xs font-medium text-[var(--text-muted)]">{label}</span>
         <Icon className="h-4 w-4 opacity-50" />
       </div>
       <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>

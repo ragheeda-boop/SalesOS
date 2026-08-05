@@ -28,8 +28,7 @@ function mapToMCPData(result: DecisionResult): MCPData {
   return {
     connections,
     totalConnections: connections.length,
-    activeConnections: connections.filter((c) => c.status === "connected")
-      .length,
+    activeConnections: connections.filter((c) => c.status === "connected").length,
     syncedEntities: connections.reduce((s, c) => s + c.entities, 0),
   };
 }

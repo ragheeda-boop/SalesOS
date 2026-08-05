@@ -161,10 +161,7 @@ export default function V3TasksPage() {
                 })}
               </div>
             </div>
-            <p
-              className="text-[12px] text-[var(--text-muted)]"
-              aria-live="polite"
-            >
+            <p className="text-[12px] text-[var(--text-muted)]" aria-live="polite">
               {isFetching && !isLoading ? "Updating… · " : null}
               {!isLoading && !isError
                 ? `${filtered.length} shown · ${openCount} open of ${items.length}`
@@ -177,9 +174,7 @@ export default function V3TasksPage() {
           ) : isError ? (
             <ErrorState
               title="Could not load tasks"
-              description={
-                error instanceof Error ? error.message : "Request failed"
-              }
+              description={error instanceof Error ? error.message : "Request failed"}
               onRetry={() => void refetch()}
             />
           ) : filtered.length === 0 ? (
@@ -204,9 +199,7 @@ export default function V3TasksPage() {
                     Clear filters
                   </button>
                 ) : (
-                  <GhostButtonLink href="/v3/companies">
-                    Browse companies
-                  </GhostButtonLink>
+                  <GhostButtonLink href="/v3/companies">Browse companies</GhostButtonLink>
                 )
               }
             />

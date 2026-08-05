@@ -1,14 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  Building2,
-  DollarSign,
-  Activity,
-  AlertCircle,
-  TrendingUp,
-  Search,
-} from "lucide-react";
+import { Building2, DollarSign, Activity, AlertCircle, TrendingUp, Search } from "lucide-react";
 import { useDashboardContext } from "../_providers/dashboard-provider";
 import { useTranslation } from "@/lib/i18n";
 import type { MissionCenterData } from "@/application/dashboard/dashboard.dto";
@@ -21,13 +14,7 @@ interface MetricCardProps {
   ariaLabel: string;
 }
 
-function MetricCard({
-  label,
-  value,
-  icon,
-  colorClass,
-  ariaLabel,
-}: MetricCardProps) {
+function MetricCard({ label, value, icon, colorClass, ariaLabel }: MetricCardProps) {
   return (
     <div
       role="region"
@@ -37,9 +24,7 @@ function MetricCard({
       <div className="flex items-center gap-3">
         <div className={`rounded-lg p-2 ${colorClass}`}>{icon}</div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-[var(--text-muted)] truncate">
-            {label}
-          </p>
+          <p className="text-xs font-medium text-[var(--text-muted)] truncate">{label}</p>
           <p className="text-xl font-bold text-[var(--text-primary)] tabular-nums">
             {typeof value === "number" ? value.toLocaleString() : value}
           </p>
@@ -103,9 +88,7 @@ export function DashboardMetricsHeader() {
         missionData.pipelineValue > 0
           ? `${(missionData.pipelineValue / 1_000_000).toFixed(1)}M`
           : "0",
-      icon: (
-        <TrendingUp className="h-4 w-4 text-success-600 dark:text-success-400" />
-      ),
+      icon: <TrendingUp className="h-4 w-4 text-success-600 dark:text-success-400" />,
       colorClass: "bg-success-50 dark:bg-success-950/30",
       ariaLabel: t("mission.aria.pipeline_value", {
         value: missionData.pipelineValue.toLocaleString(),
@@ -123,9 +106,7 @@ export function DashboardMetricsHeader() {
     {
       label: t("dashboard.metrics.decisions_pending"),
       value: missionData.decisionsPending,
-      icon: (
-        <AlertCircle className="h-4 w-4 text-danger-600 dark:text-danger-400" />
-      ),
+      icon: <AlertCircle className="h-4 w-4 text-danger-600 dark:text-danger-400" />,
       colorClass: "bg-danger-50 dark:bg-danger-950/30",
       ariaLabel: t("mission.aria.decisions_pending", {
         count: missionData.decisionsPending,

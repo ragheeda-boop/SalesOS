@@ -34,7 +34,7 @@ export const TaskIntelligenceWidget = createWidget({
       (id: string) => {
         completeTaskMutate({ taskId: id });
       },
-      [completeTaskMutate],
+      [completeTaskMutate]
     );
 
     return {

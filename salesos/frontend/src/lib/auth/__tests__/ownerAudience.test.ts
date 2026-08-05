@@ -14,9 +14,7 @@ import {
 } from "../ownerAudience";
 
 function fakeJwt(payload: Record<string, unknown>): string {
-  const body = Buffer.from(JSON.stringify(payload), "utf8").toString(
-    "base64url",
-  );
+  const body = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
   return `hdr.${body}.sig`;
 }
 
@@ -47,12 +45,8 @@ describe("ownerAudience — STORY-07-03", () => {
     expect(classifyOwnerHost(OWNER_CONSOLE_HOST)).toBe("owner-target");
     expect(classifyOwnerHost("localhost")).toBe("local");
     expect(classifyOwnerHost("app.example.com")).toBe("shared-app");
-    expect(formatOwnerHostHonesty("local", "localhost")).toContain(
-      OWNER_CONSOLE_HOST,
-    );
-    expect(formatOwnerHostHonesty("shared-app", "app.example.com")).toContain(
-      "Not Production GO",
-    );
+    expect(formatOwnerHostHonesty("local", "localhost")).toContain(OWNER_CONSOLE_HOST);
+    expect(formatOwnerHostHonesty("shared-app", "app.example.com")).toContain("Not Production GO");
   });
 
   it("keeps tenant and owner audiences distinct (cross-audience FE regression)", () => {
@@ -83,25 +77,23 @@ describe("ownerAudience — STORY-07-03", () => {
         status: 401,
         url: "/api/v1/admin/billing/dunning",
         token: tenant,
-      }),
+      })
     ).toBe(true);
     expect(
       shouldSurfaceOwnerAudienceDenial({
         status: 401,
         url: "/api/v1/admin/tenants",
         token: owner,
-      }),
+      })
     ).toBe(false);
     expect(
       shouldSurfaceOwnerAudienceDenial({
         status: 401,
         url: "/api/v1/identity/me",
         token: tenant,
-      }),
+      })
     ).toBe(false);
     expect(formatOwnerAuthDeniedMessage("tenant")).toContain("DEC-093");
-    expect(formatOwnerAuthDeniedMessage("tenant")).toContain(
-      "Tenant session kept",
-    );
+    expect(formatOwnerAuthDeniedMessage("tenant")).toContain("Tenant session kept");
   });
 });

@@ -23,11 +23,7 @@ export function SignalsFeedView({ signals }: SignalsFeedViewProps) {
   }
 
   return (
-    <div
-      role="region"
-      aria-label="الإشارات"
-      className="space-y-1/20 dark:rounded-lg dark:p-1"
-    >
+    <div role="region" aria-label="الإشارات" className="space-y-1/20 dark:rounded-lg dark:p-1">
       {signals.map((s) => (
         <div
           key={s.id}
@@ -42,7 +38,7 @@ export function SignalsFeedView({ signals }: SignalsFeedViewProps) {
               <span
                 className={cn(
                   "mr-auto rounded px-1 py-0.5 text-[9px] font-medium",
-                  SEV_C[s.severity],
+                  SEV_C[s.severity]
                 )}
               >
                 {SEV_L[s.severity]}
@@ -55,8 +51,7 @@ export function SignalsFeedView({ signals }: SignalsFeedViewProps) {
               <span>{s.source}</span>
               {s.aiConfidence > 0 && (
                 <span className="flex items-center gap-0.5 text-[var(--chart-purple)]">
-                  <Sparkles className="h-2.5 w-2.5" />%
-                  {Math.round(s.aiConfidence * 100)}
+                  <Sparkles className="h-2.5 w-2.5" />%{Math.round(s.aiConfidence * 100)}
                 </span>
               )}
             </div>

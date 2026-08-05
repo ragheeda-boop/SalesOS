@@ -23,11 +23,7 @@ export const RevenueTimelineWidget = createWidget({
       isLoading: oppsLoading,
       error: oppsError,
     } = useOpportunities();
-    const {
-      data: tasksData,
-      isLoading: tasksLoading,
-      error: tasksError,
-    } = useTasks();
+    const { data: tasksData, isLoading: tasksLoading, error: tasksError } = useTasks();
 
     const events: RevenueTimelineEvent[] = useMemo(() => {
       const result: RevenueTimelineEvent[] = [];

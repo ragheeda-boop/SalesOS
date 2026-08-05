@@ -77,15 +77,7 @@ export function AIAuditLogWidget() {
     total: number;
     results: AIAuditEntry[];
   }>({
-    queryKey: [
-      "admin",
-      "ai-audit",
-      "logs",
-      tenantId,
-      page,
-      filterAction,
-      filterModel,
-    ],
+    queryKey: ["admin", "ai-audit", "logs", tenantId, page, filterAction, filterModel],
     queryFn: async () => {
       const params: Record<string, string | number> = { page, size: 20 };
       if (filterAction) params.action = filterAction;
@@ -113,24 +105,16 @@ export function AIAuditLogWidget() {
       {summary && (
         <div className="grid grid-cols-3 gap-4">
           <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-            <p className="text-sm text-[var(--text-muted)]">
-              إجمالي الاستدعاءات
-            </p>
-            <p className="text-2xl font-bold mt-1">
-              {summary.total_calls.toLocaleString()}
-            </p>
+            <p className="text-sm text-[var(--text-muted)]">إجمالي الاستدعاءات</p>
+            <p className="text-2xl font-bold mt-1">{summary.total_calls.toLocaleString()}</p>
           </div>
           <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
             <p className="text-sm text-[var(--text-muted)]">إجمالي التكلفة</p>
-            <p className="text-2xl font-bold mt-1">
-              ${summary.total_cost.toFixed(4)}
-            </p>
+            <p className="text-2xl font-bold mt-1">${summary.total_cost.toFixed(4)}</p>
           </div>
           <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
             <p className="text-sm text-[var(--text-muted)]">إجمالي الرموز</p>
-            <p className="text-2xl font-bold mt-1">
-              {summary.total_tokens.toLocaleString()}
-            </p>
+            <p className="text-2xl font-bold mt-1">{summary.total_tokens.toLocaleString()}</p>
           </div>
         </div>
       )}
@@ -142,12 +126,8 @@ export function AIAuditLogWidget() {
             <div className="space-y-2">
               {summary.by_model.slice(0, 8).map((m) => (
                 <div key={m.model} className="flex justify-between text-sm">
-                  <span className="text-[var(--text-secondary)]">
-                    {m.model}
-                  </span>
-                  <span className="font-medium">
-                    {m.count.toLocaleString()}
-                  </span>
+                  <span className="text-[var(--text-secondary)]">{m.model}</span>
+                  <span className="font-medium">{m.count.toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -159,12 +139,8 @@ export function AIAuditLogWidget() {
             <div className="space-y-2">
               {summary.by_action.slice(0, 8).map((a) => (
                 <div key={a.action} className="flex justify-between text-sm">
-                  <span className="text-[var(--text-secondary)]">
-                    {actionLabel(a.action)}
-                  </span>
-                  <span className="font-medium">
-                    {a.count.toLocaleString()}
-                  </span>
+                  <span className="text-[var(--text-secondary)]">{actionLabel(a.action)}</span>
+                  <span className="font-medium">{a.count.toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -216,19 +192,13 @@ export function AIAuditLogWidget() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="p-6 text-center text-[var(--text-muted)]"
-                  >
+                  <td colSpan={6} className="p-6 text-center text-[var(--text-muted)]">
                     جاري التحميل...
                   </td>
                 </tr>
               ) : !logs?.results.length ? (
                 <tr>
-                  <td
-                    colSpan={6}
-                    className="p-6 text-center text-[var(--text-muted)]"
-                  >
+                  <td colSpan={6} className="p-6 text-center text-[var(--text-muted)]">
                     لا توجد سجلات
                   </td>
                 </tr>
@@ -239,18 +209,14 @@ export function AIAuditLogWidget() {
                     className="border-b border-[var(--border-default)] hover:bg-[var(--bg-tertiary)]"
                   >
                     <td className="p-3">{actionLabel(entry.action)}</td>
-                    <td className="p-3 text-[var(--text-muted)]">
-                      {entry.model || "-"}
-                    </td>
+                    <td className="p-3 text-[var(--text-muted)]">{entry.model || "-"}</td>
                     <td className="p-3">{formatTokens(entry.total_tokens)}</td>
                     <td className="p-3">{formatCost(entry.cost)}</td>
                     <td className="p-3 text-[var(--text-muted)]">
                       {entry.user_id ? entry.user_id.slice(0, 8) + "..." : "-"}
                     </td>
                     <td className="p-3 text-[var(--text-muted)]">
-                      {entry.created_at
-                        ? new Date(entry.created_at).toLocaleString("ar-SA")
-                        : "-"}
+                      {entry.created_at ? new Date(entry.created_at).toLocaleString("ar-SA") : "-"}
                     </td>
                   </tr>
                 ))

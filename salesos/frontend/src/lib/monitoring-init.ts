@@ -33,28 +33,27 @@ export function initMonitoring(): void {
           response.config.method?.toUpperCase() || "GET",
           response.config.url || "",
           duration,
-          response.status,
+          response.status
         );
       }
       return response;
     },
     (error) => {
-      const ctx = (error.config as MonitorStartConfig | undefined)
-        ?._monitorStart;
+      const ctx = (error.config as MonitorStartConfig | undefined)?._monitorStart;
       if (ctx && error.config) {
         const duration = performance.now() - ctx.start;
         monitor.trackApiCall(
           error.config.method?.toUpperCase() || "GET",
           error.config.url || "",
           duration,
-          error.response?.status || 0,
+          error.response?.status || 0
         );
       }
       if (error instanceof Error) {
         monitor.trackError(error, "api");
       }
       return Promise.reject(error);
-    },
+    }
   );
 
   window.onerror = (_message, _source, _lineno, _colno, error) => {
@@ -62,10 +61,7 @@ export function initMonitoring(): void {
   };
 
   window.addEventListener("unhandledrejection", (event) => {
-    const error =
-      event.reason instanceof Error
-        ? event.reason
-        : new Error(String(event.reason));
+    const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
     monitor.trackError(error, "unhandledrejection");
   });
 
@@ -77,11 +73,9 @@ export function initMonitoring(): void {
         }
         if (entry.entryType === "first-input") {
           const fiEntry = entry as PerformanceEventTiming;
-          monitor.trackMetric(
-            "fid",
-            fiEntry.processingStart - fiEntry.startTime,
-            { type: "web_vital" },
-          );
+          monitor.trackMetric("fid", fiEntry.processingStart - fiEntry.startTime, {
+            type: "web_vital",
+          });
         }
       }
     });

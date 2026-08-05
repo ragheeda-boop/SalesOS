@@ -2,15 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { Button, Input, Spinner, useToast } from "@salesos/ui";
-import {
-  useCreateCustomField,
-  useCustomFieldSchema,
-} from "@/lib/hooks/tenantStudioQueries";
+import { useCreateCustomField, useCustomFieldSchema } from "@/lib/hooks/tenantStudioQueries";
 import type { StudioFieldType, StudioObjectKey } from "@/lib/api";
-import {
-  STUDIO_FIELD_TYPES,
-  STUDIO_OBJECT_KEYS,
-} from "@/lib/api/types/tenantStudio";
+import { STUDIO_FIELD_TYPES, STUDIO_OBJECT_KEYS } from "@/lib/api/types/tenantStudio";
 import {
   CUSTOM_FIELDS_HONESTY,
   CUSTOM_FIELDS_NON_GOALS,
@@ -18,8 +12,7 @@ import {
 import { CustomFieldsAutoRender } from "@/features/tenant-studio/CustomFieldsAutoRender";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -46,7 +39,7 @@ export function CustomFieldsStudio() {
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
-    [enumCsv],
+    [enumCsv]
   );
 
   return (
@@ -57,15 +50,13 @@ export function CustomFieldsStudio() {
       >
         <span className="font-semibold uppercase tracking-wide">Preview</span>
         {" — "}
-        {CUSTOM_FIELDS_HONESTY} Non-goals: {CUSTOM_FIELDS_NON_GOALS.join("; ")}.
-        Not Production GO / RAG GO.
+        {CUSTOM_FIELDS_HONESTY} Non-goals: {CUSTOM_FIELDS_NON_GOALS.join("; ")}. Not Production GO /
+        RAG GO.
       </p>
 
       <div className="flex flex-wrap gap-3">
         <div>
-          <label className="block text-xs text-[var(--text-muted)]">
-            Object
-          </label>
+          <label className="block text-xs text-[var(--text-muted)]">Object</label>
           <select
             data-testid="custom-fields-object-select"
             className="w-full max-w-xs rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
@@ -97,15 +88,11 @@ export function CustomFieldsStudio() {
         {schemaQuery.isLoading ? (
           <Spinner className="h-5 w-5" />
         ) : schemaQuery.isError ? (
-          <span className="text-[var(--text-danger)]">
-            {getApiError(schemaQuery.error)}
-          </span>
+          <span className="text-[var(--text-danger)]">{getApiError(schemaQuery.error)}</span>
         ) : (
           <>
             schema_version{" "}
-            <span className="font-mono">
-              {schemaQuery.data?.schema_version ?? 0}
-            </span>
+            <span className="font-mono">{schemaQuery.data?.schema_version ?? 0}</span>
             {" · "}
             {schemaQuery.data?.fields.length ?? 0} field(s)
           </>
@@ -122,17 +109,10 @@ export function CustomFieldsStudio() {
           </li>
         ) : (
           (schemaQuery.data?.fields ?? []).map((field) => (
-            <li
-              key={field.id}
-              className="px-3 py-2 text-sm"
-              data-testid="custom-fields-row"
-            >
+            <li key={field.id} className="px-3 py-2 text-sm" data-testid="custom-fields-row">
               <span className="font-medium">{field.label}</span>{" "}
-              <span className="font-mono text-xs">({field.field_key})</span> ·{" "}
-              {field.field_type}
-              {field.enum_values?.length
-                ? ` · enum [${field.enum_values.join(", ")}]`
-                : ""}
+              <span className="font-mono text-xs">({field.field_key})</span> · {field.field_type}
+              {field.enum_values?.length ? ` · enum [${field.enum_values.join(", ")}]` : ""}
               <span className="mt-0.5 block text-xs text-[var(--text-muted)]">
                 v{field.schema_version} · {field.id}
               </span>
@@ -172,7 +152,7 @@ export function CustomFieldsStudio() {
                   description: getApiError(err),
                 });
               },
-            },
+            }
           );
         }}
       >
@@ -193,9 +173,7 @@ export function CustomFieldsStudio() {
           onChange={(e) => setLabel(e.target.value)}
         />
         <div>
-          <label className="block text-xs text-[var(--text-muted)]">
-            field_type
-          </label>
+          <label className="block text-xs text-[var(--text-muted)]">field_type</label>
           <select
             data-testid="custom-fields-field-type"
             className="w-full max-w-xs rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"

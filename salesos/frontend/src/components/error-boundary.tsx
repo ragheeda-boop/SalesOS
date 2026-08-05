@@ -16,10 +16,7 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-export class ErrorBoundary extends Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -32,9 +29,7 @@ export class ErrorBoundary extends Component<
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.props.onError?.(error, errorInfo);
     if (typeof window !== "undefined") {
-      window.dispatchEvent(
-        new CustomEvent("sentry:capture", { detail: { error, errorInfo } }),
-      );
+      window.dispatchEvent(new CustomEvent("sentry:capture", { detail: { error, errorInfo } }));
     }
   }
 
@@ -53,10 +48,7 @@ export class ErrorBoundary extends Component<
           role="alert"
           className="flex flex-col items-center justify-center rounded-xl border border-[var(--border-default)] bg-[var(--bg-secondary)] p-8 text-center"
         >
-          <AlertTriangle
-            className="mb-3 h-8 w-8 text-[var(--muhide-orange)]"
-            aria-hidden="true"
-          />
+          <AlertTriangle className="mb-3 h-8 w-8 text-[var(--muhide-orange)]" aria-hidden="true" />
           <h3 className="mb-1 text-sm font-semibold text-[var(--text-primary)]">
             {t("error.unexpected")}
           </h3>
@@ -98,7 +90,7 @@ function ErrorBoundaryWrapper({
 export function withErrorBoundary<P extends object>(
   WrappedComponent: React.ComponentType<P>,
   fallback?: ReactNode,
-  onError?: (error: Error, errorInfo: ErrorInfo) => void,
+  onError?: (error: Error, errorInfo: ErrorInfo) => void
 ) {
   function WithErrorBoundary(props: P) {
     return (

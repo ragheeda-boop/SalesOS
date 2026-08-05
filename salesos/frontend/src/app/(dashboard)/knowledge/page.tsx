@@ -90,13 +90,7 @@ function getInitials(label: string) {
   return label.slice(0, 2).toUpperCase();
 }
 
-function forceLayout(
-  nodes: KNode[],
-  edges: KEdge[],
-  w: number,
-  h: number,
-  iters = 100,
-): KNode[] {
+function forceLayout(nodes: KNode[], edges: KEdge[], w: number, h: number, iters = 100): KNode[] {
   const n = nodes.map((nd) => ({ ...nd }));
   const map = new Map(n.map((nd) => [nd.id, nd]));
   const cx = w / 2;
@@ -165,15 +159,10 @@ function forceLayout(
 function transformGraph(data: unknown): { nodes: KNode[]; edges: KEdge[] } {
   const d = data as Record<string, unknown>;
   const rawNodes = (d.nodes || d.results || []) as Record<string, unknown>[];
-  const rawEdges = (d.edges || d.relationships || []) as Record<
-    string,
-    unknown
-  >[];
+  const rawEdges = (d.edges || d.relationships || []) as Record<string, unknown>[];
   const nodes: KNode[] = rawNodes.map((rn) => ({
     id: String(rn.id || rn.entity_id || ""),
-    label: String(
-      rn.name || rn.label || rn.name_ar || rn.name_en || rn.id || "",
-    ),
+    label: String(rn.name || rn.label || rn.name_ar || rn.name_en || rn.id || ""),
     type: String(rn.type || rn.entity_type || "company"),
     x: 0,
     y: 0,
@@ -377,13 +366,10 @@ export default function KnowledgeGraphPage() {
 
   const layoutNodes = useMemo(
     () => forceLayout(nodes, edges, svgSize.w, svgSize.h),
-    [nodes, edges, svgSize.w, svgSize.h],
+    [nodes, edges, svgSize.w, svgSize.h]
   );
 
-  const nodeMap = useMemo(
-    () => new Map(layoutNodes.map((n) => [n.id, n])),
-    [layoutNodes],
-  );
+  const nodeMap = useMemo(() => new Map(layoutNodes.map((n) => [n.id, n])), [layoutNodes]);
 
   const typeCounts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -394,11 +380,7 @@ export default function KnowledgeGraphPage() {
   const filteredNodeIds = useMemo(() => {
     let ids = new Set(layoutNodes.map((n) => n.id));
     if (entityFilter.length > 0) {
-      ids = new Set(
-        layoutNodes
-          .filter((n) => entityFilter.includes(n.type))
-          .map((n) => n.id),
-      );
+      ids = new Set(layoutNodes.filter((n) => entityFilter.includes(n.type)).map((n) => n.id));
     }
     if (searchFilter) {
       const lower = searchFilter.toLowerCase();
@@ -407,10 +389,9 @@ export default function KnowledgeGraphPage() {
           .filter(
             (n) =>
               ids.has(n.id) &&
-              (n.label.toLowerCase().includes(lower) ||
-                n.type.toLowerCase().includes(lower)),
+              (n.label.toLowerCase().includes(lower) || n.type.toLowerCase().includes(lower))
           )
-          .map((n) => n.id),
+          .map((n) => n.id)
       );
     }
     return ids;
@@ -480,12 +461,8 @@ export default function KnowledgeGraphPage() {
         if (g.nodes.length > 0) {
           const existIds = new Set(nodes.map((n) => n.id));
           const newNodes = g.nodes.filter((n) => !existIds.has(n.id));
-          const existKeys = new Set(
-            edges.map((e) => `${e.source}->${e.target}`),
-          );
-          const newEdges = g.edges.filter(
-            (e) => !existKeys.has(`${e.source}->${e.target}`),
-          );
+          const existKeys = new Set(edges.map((e) => `${e.source}->${e.target}`));
+          const newEdges = g.edges.filter((e) => !existKeys.has(`${e.source}->${e.target}`));
           setNodes((prev) => [...prev, ...newNodes]);
           setEdges((prev) => [...prev, ...newEdges]);
           setHighlighted(new Set(g.nodes.map((n) => n.id)));
@@ -496,14 +473,12 @@ export default function KnowledgeGraphPage() {
       }
       setLoading(false);
     },
-    [nodes, edges, tenantId],
+    [nodes, edges, tenantId]
   );
 
   const handleNodeClick = useCallback(
     (node: KNode) => {
-      const rels = edges.filter(
-        (e) => e.source === node.id || e.target === node.id,
-      );
+      const rels = edges.filter((e) => e.source === node.id || e.target === node.id);
       const relationships = rels.map((e) => {
         const isSource = e.source === node.id;
         const otherId = isSource ? e.target : e.source;
@@ -522,19 +497,15 @@ export default function KnowledgeGraphPage() {
         relationships,
       });
       setHighlighted(
-        new Set([
-          node.id,
-          ...rels.map((e) => e.source),
-          ...rels.map((e) => e.target),
-        ]),
+        new Set([node.id, ...rels.map((e) => e.source), ...rels.map((e) => e.target)])
       );
     },
-    [edges, nodes],
+    [edges, nodes]
   );
 
   const handleToggleEntityFilter = useCallback((type: string) => {
     setEntityFilter((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     );
   }, []);
 
@@ -552,7 +523,7 @@ export default function KnowledgeGraphPage() {
       setIsPanning(true);
       setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
     },
-    [pan],
+    [pan]
   );
 
   const handleNodeMouseDown = useCallback(
@@ -571,7 +542,7 @@ export default function KnowledgeGraphPage() {
       setDragOffset({ x: t.x - node.x, y: t.y - node.y });
       setDraggingNode(nodeId);
     },
-    [nodeMap],
+    [nodeMap]
   );
 
   const handleMouseMove = useCallback(
@@ -587,24 +558,19 @@ export default function KnowledgeGraphPage() {
         const nx = (t.x - dragOffset.x - pan.x) / zoom;
         const ny = (t.y - dragOffset.y - pan.y) / zoom;
         setNodes((prev) =>
-          prev.map((n) =>
-            n.id === draggingNode ? { ...n, x: nx, y: ny, fx: nx, fy: ny } : n,
-          ),
+          prev.map((n) => (n.id === draggingNode ? { ...n, x: nx, y: ny, fx: nx, fy: ny } : n))
         );
         return;
       }
-      if (isPanning)
-        setPan({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
+      if (isPanning) setPan({ x: e.clientX - panStart.x, y: e.clientY - panStart.y });
     },
-    [isPanning, panStart, draggingNode, dragOffset, pan, zoom],
+    [isPanning, panStart, draggingNode, dragOffset, pan, zoom]
   );
 
   const handleMouseUp = useCallback(() => {
     if (draggingNode) {
       setNodes((prev) =>
-        prev.map((n) =>
-          n.id === draggingNode ? { ...n, fx: null, fy: null } : n,
-        ),
+        prev.map((n) => (n.id === draggingNode ? { ...n, fx: null, fy: null } : n))
       );
       setDraggingNode(null);
     }
@@ -628,9 +594,7 @@ export default function KnowledgeGraphPage() {
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-default)] bg-[var(--bg-primary)]">
           <div className="flex items-center gap-3">
             <Network className="h-5 w-5 text-[var(--muhide-orange)]" />
-            <h1 className="text-xl font-bold text-[var(--text-primary)]">
-              Knowledge Graph
-            </h1>
+            <h1 className="text-xl font-bold text-[var(--text-primary)]">Knowledge Graph</h1>
           </div>
           <div className="flex items-center gap-2">
             {ENTITY_TYPES.map((type) => {
@@ -658,9 +622,7 @@ export default function KnowledgeGraphPage() {
                 >
                   <Icon className="h-3 w-3" />
                   {type}
-                  {count > 0 && (
-                    <span className="text-[10px] opacity-60">({count})</span>
-                  )}
+                  {count > 0 && <span className="text-[10px] opacity-60">({count})</span>}
                 </button>
               );
             })}
@@ -683,13 +645,7 @@ export default function KnowledgeGraphPage() {
             <Button
               onClick={handleSearch}
               disabled={loading || !query.trim()}
-              leftIcon={
-                loading ? (
-                  <Spinner className="h-4 w-4" />
-                ) : (
-                  <Search className="h-4 w-4" />
-                )
-              }
+              leftIcon={loading ? <Spinner className="h-4 w-4" /> : <Search className="h-4 w-4" />}
             >
               Search
             </Button>
@@ -700,16 +656,10 @@ export default function KnowledgeGraphPage() {
         {nodes.length > 0 && (
           <div className="px-6 py-2 border-b border-[var(--border-default)] bg-[var(--bg-secondary)] flex items-center gap-4 text-xs text-[var(--text-secondary)]">
             <span>
-              Nodes:{" "}
-              <strong className="text-[var(--text-primary)]">
-                {nodes.length}
-              </strong>
+              Nodes: <strong className="text-[var(--text-primary)]">{nodes.length}</strong>
             </span>
             <span>
-              Edges:{" "}
-              <strong className="text-[var(--text-primary)]">
-                {edges.length}
-              </strong>
+              Edges: <strong className="text-[var(--text-primary)]">{edges.length}</strong>
             </span>
             {searchFilter && (
               <button
@@ -760,11 +710,7 @@ export default function KnowledgeGraphPage() {
             ref={svgRef}
             width="100%"
             height="100%"
-            className={
-              draggingNode
-                ? "cursor-grabbing"
-                : "cursor-grab active:cursor-grabbing"
-            }
+            className={draggingNode ? "cursor-grabbing" : "cursor-grab active:cursor-grabbing"}
             onMouseDown={handleBgMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -773,19 +719,8 @@ export default function KnowledgeGraphPage() {
             onClick={handleBgClick}
           >
             <defs>
-              <marker
-                id="arrow"
-                markerWidth="8"
-                markerHeight="6"
-                refX="8"
-                refY="3"
-                orient="auto"
-              >
-                <polygon
-                  points="0 0, 8 3, 0 6"
-                  fill="var(--text-muted)"
-                  opacity="0.5"
-                />
+              <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+                <polygon points="0 0, 8 3, 0 6" fill="var(--text-muted)" opacity="0.5" />
               </marker>
               <marker
                 id="arrow-active"
@@ -795,19 +730,10 @@ export default function KnowledgeGraphPage() {
                 refY="3"
                 orient="auto"
               >
-                <polygon
-                  points="0 0, 8 3, 0 6"
-                  fill="var(--text-muted)"
-                  opacity="0.8"
-                />
+                <polygon points="0 0, 8 3, 0 6" fill="var(--text-muted)" opacity="0.8" />
               </marker>
               <filter id="ns" x="-30%" y="-30%" width="160%" height="160%">
-                <feDropShadow
-                  dx="1"
-                  dy="2"
-                  stdDeviation="3"
-                  floodOpacity="0.15"
-                />
+                <feDropShadow dx="1" dy="2" stdDeviation="3" floodOpacity="0.15" />
               </filter>
             </defs>
 
@@ -817,8 +743,7 @@ export default function KnowledgeGraphPage() {
                   const src = nodeMap.get(edge.source);
                   const tgt = nodeMap.get(edge.target);
                   if (!src || !tgt) return null;
-                  const hl =
-                    displayIds.has(edge.source) && displayIds.has(edge.target);
+                  const hl = displayIds.has(edge.source) && displayIds.has(edge.target);
                   const mx = (src.x + tgt.x) / 2;
                   const my = (src.y + tgt.y) / 2;
                   const lw = edge.label.length * 6 + 12;
@@ -829,9 +754,7 @@ export default function KnowledgeGraphPage() {
                         y1={src.y}
                         x2={tgt.x}
                         y2={tgt.y}
-                        stroke={
-                          hl ? "var(--text-muted)" : "var(--border-default)"
-                        }
+                        stroke={hl ? "var(--text-muted)" : "var(--border-default)"}
                         strokeWidth={hl ? 1.5 : 0.8}
                         strokeDasharray={hl ? "none" : "4 2"}
                         opacity={hl ? 0.8 : 0.3}
@@ -872,8 +795,7 @@ export default function KnowledgeGraphPage() {
               {layoutNodes.map((node) => {
                 const isActive = selected?.id === node.id;
                 const isHovered = hoveredNode === node.id;
-                const isDimmed =
-                  displayIds.size > 0 && !displayIds.has(node.id);
+                const isDimmed = displayIds.size > 0 && !displayIds.has(node.id);
                 const color = getColor(node.type);
                 const isDragging = draggingNode === node.id;
                 return (
@@ -914,21 +836,11 @@ export default function KnowledgeGraphPage() {
                         />
                       </circle>
                     )}
-                    <circle
-                      r={node.radius + 1}
-                      fill={color}
-                      opacity={0.12}
-                      cx={1}
-                      cy={2}
-                    />
+                    <circle r={node.radius + 1} fill={color} opacity={0.12} cx={1} cy={2} />
                     <circle
                       r={node.radius}
                       fill={color}
-                      stroke={
-                        isActive || isHovered
-                          ? "var(--bg-primary)"
-                          : getStroke(node.type)
-                      }
+                      stroke={isActive || isHovered ? "var(--bg-primary)" : getStroke(node.type)}
                       strokeWidth={isActive ? 3 : isHovered ? 2.5 : 1.5}
                       filter={isHovered || isActive ? "url(#ns)" : undefined}
                     />
@@ -953,11 +865,7 @@ export default function KnowledgeGraphPage() {
                         fontSize: "11px",
                         fontFamily: "var(--font-ui)",
                         fontWeight: isActive || isHovered ? 600 : 400,
-                        fill: isDimmed
-                          ? "transparent"
-                          : isActive
-                            ? color
-                            : "var(--text-primary)",
+                        fill: isDimmed ? "transparent" : isActive ? color : "var(--text-primary)",
                       }}
                     >
                       {node.label.length > 18
@@ -972,20 +880,14 @@ export default function KnowledgeGraphPage() {
             {nodes.length === 0 && !loading && (
               <EmptyState
                 icon={<Network className="h-10 w-10" />}
-                title={
-                  hasSearched
-                    ? "No results found"
-                    : "Explore your Knowledge Graph"
-                }
+                title={hasSearched ? "No results found" : "Explore your Knowledge Graph"}
                 description={
                   hasSearched
                     ? "Try a different search query"
                     : "Search for entities to visualize relationships, or load demo data."
                 }
                 action={
-                  !hasSearched
-                    ? { label: "Load Demo Data", onClick: handleLoadDemo }
-                    : undefined
+                  !hasSearched ? { label: "Load Demo Data", onClick: handleLoadDemo } : undefined
                 }
               />
             )}
@@ -1006,9 +908,7 @@ export default function KnowledgeGraphPage() {
       {selected && (
         <div className="w-80 border-l border-[var(--border-default)] bg-[var(--bg-primary)] flex flex-col overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-default)]">
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-              Entity Details
-            </h2>
+            <h2 className="text-sm font-semibold text-[var(--text-primary)]">Entity Details</h2>
             <button
               onClick={() => {
                 setSelected(null);
@@ -1044,9 +944,7 @@ export default function KnowledgeGraphPage() {
               Relationships ({selected.relationships.length})
             </h3>
             {selected.relationships.length === 0 ? (
-              <p className="text-xs text-[var(--text-muted)]">
-                No relationships found
-              </p>
+              <p className="text-xs text-[var(--text-muted)]">No relationships found</p>
             ) : (
               <div className="space-y-2">
                 {selected.relationships.map((rel, i) => {
@@ -1089,11 +987,7 @@ export default function KnowledgeGraphPage() {
               onClick={() => handleExpandNode(selected.id)}
               disabled={loading}
               leftIcon={
-                loading ? (
-                  <Spinner className="h-4 w-4" />
-                ) : (
-                  <Maximize2 className="h-4 w-4" />
-                )
+                loading ? <Spinner className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />
               }
               className="w-full"
             >

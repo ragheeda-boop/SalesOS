@@ -28,10 +28,7 @@ export function FollowupCenterView({
 
   if (error) {
     return (
-      <div
-        className="flex items-center justify-center h-full text-destructive"
-        role="alert"
-      >
+      <div className="flex items-center justify-center h-full text-destructive" role="alert">
         <div className="flex flex-col items-center gap-3">
           <span>تعذر تحميل المتابعات</span>
           <button onClick={onRefresh} className="text-sm underline">
@@ -44,9 +41,7 @@ export function FollowupCenterView({
 
   if (!followups) {
     return (
-      <div className="flex items-center justify-center h-full text-muted">
-        لا توجد متابعات
-      </div>
+      <div className="flex items-center justify-center h-full text-muted">لا توجد متابعات</div>
     );
   }
 
@@ -58,11 +53,7 @@ export function FollowupCenterView({
           value={followups.total}
           color="bg-blue-500/20 text-blue-400"
         />
-        <SummaryBadge
-          label="متأخرة"
-          value={followups.overdue}
-          color="bg-red-500/20 text-red-400"
-        />
+        <SummaryBadge label="متأخرة" value={followups.overdue} color="bg-red-500/20 text-red-400" />
         <SummaryBadge
           label="تحتاج متابعة"
           value={followups.need_followup}
@@ -105,9 +96,7 @@ function FollowupRow({ item }: { item: FollowUpStatusDTO }) {
     need_followup: "يحتاج متابعة",
   };
 
-  const activeLabel = Object.entries(labels).find(
-    ([key]) => (item as any)[key],
-  )?.[1];
+  const activeLabel = Object.entries(labels).find(([key]) => (item as any)[key])?.[1];
 
   return (
     <div
@@ -115,17 +104,11 @@ function FollowupRow({ item }: { item: FollowUpStatusDTO }) {
         priorityColors[item.priority] || priorityColors.low
       }`}
     >
-      <span className="truncate font-medium">
-        {item.company_id.slice(0, 12)}
-      </span>
+      <span className="truncate font-medium">{item.company_id.slice(0, 12)}</span>
       <div className="flex items-center gap-2 shrink-0">
-        {activeLabel && (
-          <span className="text-xs text-muted">{activeLabel}</span>
-        )}
+        {activeLabel && <span className="text-xs text-muted">{activeLabel}</span>}
         {item.last_outbound_days != null && (
-          <span className="text-xs tabular-nums text-muted">
-            {item.last_outbound_days} يوم
-          </span>
+          <span className="text-xs tabular-nums text-muted">{item.last_outbound_days} يوم</span>
         )}
         <span
           className={`text-[10px] px-1.5 py-0.5 rounded uppercase ${
@@ -143,15 +126,7 @@ function FollowupRow({ item }: { item: FollowUpStatusDTO }) {
   );
 }
 
-function SummaryBadge({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: number;
-  color: string;
-}) {
+function SummaryBadge({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div className={`rounded-lg p-2 text-center ${color}`}>
       <div className="text-lg font-bold tabular-nums">{value}</div>

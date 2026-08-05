@@ -12,10 +12,7 @@ interface EmailAnalysis {
   key_entities: { type: string; value: string }[];
 }
 
-const SENTIMENT_CONFIG: Record<
-  string,
-  { label: string; color: string; bg: string }
-> = {
+const SENTIMENT_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   positive: { label: "إيجابي", color: "text-success-600", bg: "bg-success-50" },
   neutral: {
     label: "محايد",
@@ -25,10 +22,7 @@ const SENTIMENT_CONFIG: Record<
   negative: { label: "سلبي", color: "text-danger-600", bg: "bg-danger-50" },
 };
 
-const URGENCY_CONFIG: Record<
-  string,
-  { label: string; color: string; bg: string }
-> = {
+const URGENCY_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   high: { label: "عاجل", color: "text-danger-600", bg: "bg-danger-50" },
   medium: { label: "متوسط", color: "text-warning-600", bg: "bg-warning-50" },
   low: { label: "منخفض", color: "text-success-600", bg: "bg-success-50" },
@@ -84,9 +78,7 @@ export function EmailIntelligenceWidget({ opportunityId, emails = [] }: Props) {
       {/* Email List */}
       <div className="space-y-2">
         {emails.length === 0 ? (
-          <p className="text-sm text-[var(--text-muted)] text-center py-8">
-            لا توجد رسائل بريد
-          </p>
+          <p className="text-sm text-[var(--text-muted)] text-center py-8">لا توجد رسائل بريد</p>
         ) : (
           emails.map((e) => (
             <button
@@ -96,7 +88,7 @@ export function EmailIntelligenceWidget({ opportunityId, emails = [] }: Props) {
                 "w-full text-right rounded-xl border p-3 transition-colors",
                 selectedEmail?.id === e.id
                   ? "border-[var(--muhide-orange)] bg-[var(--muhide-orange)]/5"
-                  : "border-[var(--border-default)] bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)]",
+                  : "border-[var(--border-default)] bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)]"
               )}
             >
               <div className="flex items-center justify-between">
@@ -108,15 +100,14 @@ export function EmailIntelligenceWidget({ opportunityId, emails = [] }: Props) {
                     "text-xs px-1.5 py-0.5 rounded",
                     e.direction === "inbound"
                       ? "bg-info-50 text-info-600"
-                      : "bg-success-50 text-success-600",
+                      : "bg-success-50 text-success-600"
                   )}
                 >
                   {e.direction === "inbound" ? "وارد" : "صادر"}
                 </span>
               </div>
               <p className="text-xs text-[var(--text-muted)] mt-1">
-                {e.from_address} •{" "}
-                {new Date(e.sent_at).toLocaleDateString("ar-SA")}
+                {e.from_address} • {new Date(e.sent_at).toLocaleDateString("ar-SA")}
               </p>
             </button>
           ))
@@ -126,9 +117,7 @@ export function EmailIntelligenceWidget({ opportunityId, emails = [] }: Props) {
       {/* Analysis Panel */}
       {analysis && (
         <div className="space-y-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-          <h4 className="text-sm font-semibold text-[var(--text-primary)]">
-            تحليل البريد
-          </h4>
+          <h4 className="text-sm font-semibold text-[var(--text-primary)]">تحليل البريد</h4>
 
           {/* Sentiment & Urgency */}
           <div className="flex gap-2">
@@ -136,17 +125,16 @@ export function EmailIntelligenceWidget({ opportunityId, emails = [] }: Props) {
               className={cn(
                 "text-xs px-2 py-1 rounded-lg",
                 SENTIMENT_CONFIG[analysis.sentiment]?.bg,
-                SENTIMENT_CONFIG[analysis.sentiment]?.color,
+                SENTIMENT_CONFIG[analysis.sentiment]?.color
               )}
             >
-              {SENTIMENT_CONFIG[analysis.sentiment]?.label ||
-                analysis.sentiment}
+              {SENTIMENT_CONFIG[analysis.sentiment]?.label || analysis.sentiment}
             </span>
             <span
               className={cn(
                 "text-xs px-2 py-1 rounded-lg",
                 URGENCY_CONFIG[analysis.urgency]?.bg,
-                URGENCY_CONFIG[analysis.urgency]?.color,
+                URGENCY_CONFIG[analysis.urgency]?.color
               )}
             >
               {URGENCY_CONFIG[analysis.urgency]?.label || analysis.urgency}
@@ -156,9 +144,7 @@ export function EmailIntelligenceWidget({ opportunityId, emails = [] }: Props) {
           {/* Topics */}
           {analysis.topics.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-[var(--text-secondary)] mb-1">
-                المواضيع
-              </p>
+              <p className="text-xs font-medium text-[var(--text-secondary)] mb-1">المواضيع</p>
               <div className="flex flex-wrap gap-1">
                 {analysis.topics.map((t, i) => (
                   <span

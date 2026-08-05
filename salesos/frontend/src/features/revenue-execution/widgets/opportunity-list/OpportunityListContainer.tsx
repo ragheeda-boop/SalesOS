@@ -19,11 +19,7 @@ export const OpportunityListWidget = createWidget({
     const { data, isLoading, error, refetch } = useOpportunities();
     return {
       data: (data?.items ?? []) as unknown as RevenueOpportunity[],
-      status: isLoading
-        ? ("loading" as const)
-        : error
-          ? ("error" as const)
-          : ("ready" as const),
+      status: isLoading ? ("loading" as const) : error ? ("error" as const) : ("ready" as const),
       lastUpdated: data ? new Date().toISOString() : null,
       error: error ?? null,
       refetch,

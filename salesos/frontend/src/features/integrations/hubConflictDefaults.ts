@@ -2,11 +2,7 @@
  * Not Production GO. Unlinked badges on tip Monitor (FE-S09-08).
  */
 
-export const TIP_SALESOS_AUTHORED_FIELDS = [
-  "risk_score",
-  "ai_sentiment",
-  "ai_score",
-] as const;
+export const TIP_SALESOS_AUTHORED_FIELDS = ["risk_score", "ai_sentiment", "ai_score"] as const;
 
 export const TIP_OPERATIONAL_FIELDS = [
   "name",

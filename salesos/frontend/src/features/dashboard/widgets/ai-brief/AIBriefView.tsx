@@ -36,20 +36,12 @@ export function AIBriefView({
   }
 
   return (
-    <div
-      role="region"
-      aria-label="الملخص اليومي"
-      className="space-y-3/20 dark:rounded-lg dark:p-1"
-    >
-      <p className="text-sm leading-relaxed text-[var(--text-primary)]">
-        {summary}
-      </p>
+    <div role="region" aria-label="الملخص اليومي" className="space-y-3/20 dark:rounded-lg dark:p-1">
+      <p className="text-sm leading-relaxed text-[var(--text-primary)]">{summary}</p>
 
       {highlights.length > 0 && (
         <div>
-          <span className="text-xs font-medium text-[var(--text-muted)]">
-            أبرز النقاط
-          </span>
+          <span className="text-xs font-medium text-[var(--text-muted)]">أبرز النقاط</span>
           <ul role="list" className="mt-1.5 space-y-1.5">
             {highlights.map((h, i) => (
               <li
@@ -57,7 +49,7 @@ export function AIBriefView({
                 role="listitem"
                 className={cn(
                   "rounded-lg px-3 py-2 text-sm transition-colors motion-reduce:transition-none",
-                  "text-[var(--text-primary)] bg-[var(--bg-tertiary)]",
+                  "text-[var(--text-primary)] bg-[var(--bg-tertiary)]"
                 )}
               >
                 {h}

@@ -1,9 +1,7 @@
 import { render, screen } from "@testing-library/react";
 
 jest.mock("../command-bar", () => ({
-  GlobalCommandBar: () => (
-    <div data-testid="global-command-bar">Global Command Bar</div>
-  ),
+  GlobalCommandBar: () => <div data-testid="global-command-bar">Global Command Bar</div>,
 }));
 
 import { GlobalCommandBar } from "../command-bar";

@@ -2,25 +2,14 @@
 
 import { useMemo } from "react";
 import { cn } from "@salesos/ui";
-import {
-  Activity,
-  Calendar,
-  Mail,
-  CheckCircle2,
-  DollarSign,
-  FileText,
-} from "lucide-react";
+import { Activity, Calendar, Mail, CheckCircle2, DollarSign, FileText } from "lucide-react";
 import type { RevenueTimelineViewProps } from "./types";
 
-const TYPE_CFG: Record<
-  string,
-  { icon: React.ReactNode; label: string; color: string }
-> = {
+const TYPE_CFG: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
   signal: {
     icon: <Activity className="h-3 w-3" />,
     label: "إشارة",
-    color:
-      "text-[var(--chart-purple)] bg-[var(--chart-purple-bg)] dark:bg-[var(--bg-primary)]/20",
+    color: "text-[var(--chart-purple)] bg-[var(--chart-purple-bg)] dark:bg-[var(--bg-primary)]/20",
   },
   meeting: {
     icon: <Calendar className="h-3 w-3" />,
@@ -51,11 +40,8 @@ const TYPE_CFG: Record<
 
 export function RevenueTimelineView({ events }: RevenueTimelineViewProps) {
   const sorted = useMemo(
-    () =>
-      [...events].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-      ),
-    [events],
+    () => [...events].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [events]
   );
 
   if (sorted.length === 0) {
@@ -83,30 +69,21 @@ export function RevenueTimelineView({ events }: RevenueTimelineViewProps) {
             <div
               className={cn(
                 "flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
-                cfg.color,
+                cfg.color
               )}
             >
               {cfg.icon}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <span
-                  className={cn(
-                    "rounded px-1 py-0.5 text-[9px] font-medium",
-                    cfg.color,
-                  )}
-                >
+                <span className={cn("rounded px-1 py-0.5 text-[9px] font-medium", cfg.color)}>
                   {cfg.label}
                 </span>
                 {evt.entityName && (
-                  <span className="text-[9px] text-[var(--text-muted)]">
-                    {evt.entityName}
-                  </span>
+                  <span className="text-[9px] text-[var(--text-muted)]">{evt.entityName}</span>
                 )}
               </div>
-              <p className="text-[10px] text-[var(--text-primary)]">
-                {evt.summary}
-              </p>
+              <p className="text-[10px] text-[var(--text-primary)]">{evt.summary}</p>
               <div className="flex items-center gap-2 text-[8px] text-[var(--text-muted)]">
                 <span>{new Date(evt.date).toLocaleDateString("ar-SA")}</span>
                 {evt.value && (

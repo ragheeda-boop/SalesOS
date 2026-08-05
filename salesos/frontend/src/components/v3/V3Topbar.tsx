@@ -12,9 +12,7 @@ type V3TopbarProps = {
 
 function isMacPlatform(): boolean {
   if (typeof navigator === "undefined") return false;
-  return /Mac|iPhone|iPad|iPod/i.test(
-    navigator.platform || navigator.userAgent,
-  );
+  return /Mac|iPhone|iPad|iPod/i.test(navigator.platform || navigator.userAgent);
 }
 
 function readIsDark(): boolean {
@@ -22,11 +20,7 @@ function readIsDark(): boolean {
   return document.documentElement.classList.contains("dark");
 }
 
-export function V3Topbar({
-  onOpenCommand,
-  onOpenAi,
-  className,
-}: V3TopbarProps) {
+export function V3Topbar({ onOpenCommand, onOpenAi, className }: V3TopbarProps) {
   const [isDark, setIsDark] = useState(false);
   const [modKey, setModKey] = useState("Ctrl");
 
@@ -52,7 +46,7 @@ export function V3Topbar({
     <header
       className={cn(
         "flex h-12 shrink-0 items-center justify-between gap-3 border-b border-[var(--border-default)] bg-[var(--bg-primary)] px-4",
-        className,
+        className
       )}
     >
       <div className="flex min-w-0 items-center gap-3">
@@ -98,10 +92,7 @@ export function V3Topbar({
           aria-label="Open Ask AI popup"
           title="Ask AI opens as a popup (Ctrl+Shift+A) — not part of page layout"
         >
-          <Sparkles
-            className="h-3.5 w-3.5 text-[var(--muhide-orange)]"
-            aria-hidden
-          />
+          <Sparkles className="h-3.5 w-3.5 text-[var(--muhide-orange)]" aria-hidden />
           <span className="hidden sm:inline">Ask AI</span>
         </button>
 

@@ -127,8 +127,7 @@ export default function ContactsPage() {
         description: t("contacts.added_desc"),
       });
     } catch (err: unknown) {
-      const detail = (err as AxiosError<{ detail?: string }>)?.response?.data
-        ?.detail;
+      const detail = (err as AxiosError<{ detail?: string }>)?.response?.data?.detail;
       toast({
         variant: "error",
         title: t("contacts.add_failed"),
@@ -157,8 +156,7 @@ export default function ContactsPage() {
         description: t("contacts.updated_desc"),
       });
     } catch (err: unknown) {
-      const detail = (err as AxiosError<{ detail?: string }>)?.response?.data
-        ?.detail;
+      const detail = (err as AxiosError<{ detail?: string }>)?.response?.data?.detail;
       toast({
         variant: "error",
         title: t("contacts.update_failed"),
@@ -179,8 +177,7 @@ export default function ContactsPage() {
         description: t("contacts.deleted_desc"),
       });
     } catch (err: unknown) {
-      const detail = (err as AxiosError<{ detail?: string }>)?.response?.data
-        ?.detail;
+      const detail = (err as AxiosError<{ detail?: string }>)?.response?.data?.detail;
       toast({
         variant: "error",
         title: t("contacts.delete_failed"),
@@ -224,9 +221,7 @@ export default function ContactsPage() {
       </div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[var(--text-primary)]">
-            {t("contacts.title")}
-          </h1>
+          <h1 className="text-xl font-bold text-[var(--text-primary)]">{t("contacts.title")}</h1>
           <p className="text-sm text-[var(--text-muted)]">
             {data ? t("contacts.total", { count: data.total }) : ""}
           </p>
@@ -254,9 +249,7 @@ export default function ContactsPage() {
                   </label>
                   <Input
                     value={formData.name}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, name: e.target.value }))
-                    }
+                    onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
                     placeholder={t("contacts.name_placeholder")}
                   />
                 </div>
@@ -267,9 +260,7 @@ export default function ContactsPage() {
                     </label>
                     <Input
                       value={formData.email}
-                      onChange={(e) =>
-                        setFormData((p) => ({ ...p, email: e.target.value }))
-                      }
+                      onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
                       placeholder="email@example.com"
                     />
                   </div>
@@ -279,9 +270,7 @@ export default function ContactsPage() {
                     </label>
                     <Input
                       value={formData.phone}
-                      onChange={(e) =>
-                        setFormData((p) => ({ ...p, phone: e.target.value }))
-                      }
+                      onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
                       placeholder="05xxxxxxxx"
                     />
                   </div>
@@ -293,9 +282,7 @@ export default function ContactsPage() {
                     </label>
                     <Input
                       value={formData.position}
-                      onChange={(e) =>
-                        setFormData((p) => ({ ...p, position: e.target.value }))
-                      }
+                      onChange={(e) => setFormData((p) => ({ ...p, position: e.target.value }))}
                       placeholder={t("contacts.position_placeholder")}
                     />
                   </div>
@@ -340,32 +327,29 @@ export default function ContactsPage() {
                         onChange={(e) => setCompanySearch(e.target.value)}
                         className="mb-1"
                       />
-                      {companyResults?.items &&
-                        companyResults.items.length > 0 && (
-                          <div className="max-h-40 overflow-y-auto rounded-md border border-[var(--border-default)] bg-[var(--bg-primary)]">
-                            {companyResults.items
-                              .slice(0, 6)
-                              .map((c: Company) => (
-                                <button
-                                  key={c.id}
-                                  onClick={() =>
-                                    setSelectedCompany({
-                                      id: c.id,
-                                      name: c.name_ar,
-                                    })
-                                  }
-                                  className="w-full px-3 py-1.5 text-right text-sm hover:bg-[var(--bg-tertiary)]"
-                                >
-                                  {c.name_ar}
-                                  {c.cr_number && (
-                                    <span className="mr-2 text-xs text-[var(--text-disabled)]">
-                                      {c.cr_number}
-                                    </span>
-                                  )}
-                                </button>
-                              ))}
-                          </div>
-                        )}
+                      {companyResults?.items && companyResults.items.length > 0 && (
+                        <div className="max-h-40 overflow-y-auto rounded-md border border-[var(--border-default)] bg-[var(--bg-primary)]">
+                          {companyResults.items.slice(0, 6).map((c: Company) => (
+                            <button
+                              key={c.id}
+                              onClick={() =>
+                                setSelectedCompany({
+                                  id: c.id,
+                                  name: c.name_ar,
+                                })
+                              }
+                              className="w-full px-3 py-1.5 text-right text-sm hover:bg-[var(--bg-tertiary)]"
+                            >
+                              {c.name_ar}
+                              {c.cr_number && (
+                                <span className="mr-2 text-xs text-[var(--text-disabled)]">
+                                  {c.cr_number}
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -375,9 +359,7 @@ export default function ContactsPage() {
                   </label>
                   <Input
                     value={formData.source}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, source: e.target.value }))
-                    }
+                    onChange={(e) => setFormData((p) => ({ ...p, source: e.target.value }))}
                     placeholder={t("contacts.source_placeholder")}
                   />
                 </div>
@@ -391,9 +373,7 @@ export default function ContactsPage() {
                 onClick={handleCreate}
                 disabled={!formData.name.trim() || createContact.isPending}
               >
-                {createContact.isPending ? (
-                  <Spinner className="h-4 w-4" />
-                ) : null}
+                {createContact.isPending ? <Spinner className="h-4 w-4" /> : null}
                 {t("contacts.save")}
               </Button>
             </ModalFooter>
@@ -461,27 +441,16 @@ export default function ContactsPage() {
                     {contact.name}
                   </td>
                   <td className="px-4 py-3" data-label={t("contacts.email")}>
-                    {contact.email || (
-                      <span className="text-[var(--text-disabled)]">—</span>
-                    )}
+                    {contact.email || <span className="text-[var(--text-disabled)]">—</span>}
                   </td>
                   <td className="px-4 py-3" data-label={t("contacts.phone")}>
-                    {contact.phone || (
-                      <span className="text-[var(--text-disabled)]">—</span>
-                    )}
+                    {contact.phone || <span className="text-[var(--text-disabled)]">—</span>}
                   </td>
                   <td className="px-4 py-3" data-label={t("contacts.position")}>
-                    {contact.position || (
-                      <span className="text-[var(--text-disabled)]">—</span>
-                    )}
+                    {contact.position || <span className="text-[var(--text-disabled)]">—</span>}
                   </td>
-                  <td
-                    className="px-4 py-3"
-                    data-label={t("contacts.department")}
-                  >
-                    {contact.department || (
-                      <span className="text-[var(--text-disabled)]">—</span>
-                    )}
+                  <td className="px-4 py-3" data-label={t("contacts.department")}>
+                    {contact.department || <span className="text-[var(--text-disabled)]">—</span>}
                   </td>
                   <td className="px-4 py-3" data-label={t("contacts.company")}>
                     {contact.company_id ? (
@@ -497,9 +466,7 @@ export default function ContactsPage() {
                     )}
                   </td>
                   <td className="px-4 py-3" data-label={t("contacts.source")}>
-                    {contact.source || (
-                      <span className="text-[var(--text-disabled)]">—</span>
-                    )}
+                    {contact.source || <span className="text-[var(--text-disabled)]">—</span>}
                   </td>
                   <td className="px-4 py-3" data-label="">
                     <div className="flex items-center gap-1">
@@ -511,10 +478,7 @@ export default function ContactsPage() {
                           <Pencil className="h-4 w-4" />
                         </button>
                       </Tooltip>
-                      <Tooltip
-                        content={t("contacts.delete_tooltip")}
-                        side="top"
-                      >
+                      <Tooltip content={t("contacts.delete_tooltip")} side="top">
                         <button
                           onClick={() => {
                             setSelectedContact(contact);
@@ -590,9 +554,7 @@ export default function ContactsPage() {
                 </label>
                 <Input
                   value={formData.name}
-                  onChange={(e) =>
-                    setFormData((p) => ({ ...p, name: e.target.value }))
-                  }
+                  onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))}
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -602,9 +564,7 @@ export default function ContactsPage() {
                   </label>
                   <Input
                     value={formData.email}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, email: e.target.value }))
-                    }
+                    onChange={(e) => setFormData((p) => ({ ...p, email: e.target.value }))}
                   />
                 </div>
                 <div>
@@ -613,9 +573,7 @@ export default function ContactsPage() {
                   </label>
                   <Input
                     value={formData.phone}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, phone: e.target.value }))
-                    }
+                    onChange={(e) => setFormData((p) => ({ ...p, phone: e.target.value }))}
                   />
                 </div>
               </div>
@@ -626,9 +584,7 @@ export default function ContactsPage() {
                   </label>
                   <Input
                     value={formData.position}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, position: e.target.value }))
-                    }
+                    onChange={(e) => setFormData((p) => ({ ...p, position: e.target.value }))}
                   />
                 </div>
                 <div>
@@ -637,9 +593,7 @@ export default function ContactsPage() {
                   </label>
                   <Input
                     value={formData.department}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, department: e.target.value }))
-                    }
+                    onChange={(e) => setFormData((p) => ({ ...p, department: e.target.value }))}
                   />
                 </div>
               </div>
@@ -672,8 +626,7 @@ export default function ContactsPage() {
           <ModalHeader>{t("contacts.delete_confirm")}</ModalHeader>
           <ModalBody>
             <p className="text-sm text-[var(--text-secondary)]">
-              {t("contacts.delete_question")}{" "}
-              <strong>{selectedContact?.name}</strong>?
+              {t("contacts.delete_question")} <strong>{selectedContact?.name}</strong>?
             </p>
           </ModalBody>
           <ModalFooter>

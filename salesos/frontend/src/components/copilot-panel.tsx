@@ -20,10 +20,7 @@ import {
 import api from "@/lib/api";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { useTranslation } from "@/lib/i18n";
-import {
-  AiInsightsProvider,
-  useAiInsights,
-} from "./ai-insights/ContextualInsightsProvider";
+import { AiInsightsProvider, useAiInsights } from "./ai-insights/ContextualInsightsProvider";
 import { ContextualInsight } from "./ai-insights/ContextualInsight";
 import { InlineSuggestion } from "./ai-insights/InlineSuggestion";
 import { InsightToggle } from "./ai-insights/InsightToggle";
@@ -104,7 +101,15 @@ function CopilotPanelInner({
   embedded = false,
 }: CopilotPanelProps) {
   const { t } = useTranslation();
-  const { insights, suggestions, showLowConfidence, setShowLowConfidence, dismissInsight, dismissSuggestion, isLoading: insightsLoading } = useAiInsights();
+  const {
+    insights,
+    suggestions,
+    showLowConfidence,
+    setShowLowConfidence,
+    dismissInsight,
+    dismissSuggestion,
+    isLoading: insightsLoading,
+  } = useAiInsights();
   const [activeView, setActiveView] = useState<"insights" | "chat">("insights");
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -116,9 +121,7 @@ function CopilotPanelInner({
   const [activeBranchId, setActiveBranchId] = useState("main");
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<"collapsed" | "expanded" | "fullscreen">(
-    "expanded",
-  );
+  const [mode, setMode] = useState<"collapsed" | "expanded" | "fullscreen">("expanded");
   const [feedbackTarget, setFeedbackTarget] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -134,8 +137,7 @@ function CopilotPanelInner({
         if (branchMessages.length === 0) return true;
         const lastBranchMsg = branchMessages[branchMessages.length - 1];
         return (
-          arr.findIndex((a) => a.id === m.id) <=
-          arr.findIndex((a) => a.id === lastBranchMsg.id)
+          arr.findIndex((a) => a.id === m.id) <= arr.findIndex((a) => a.id === lastBranchMsg.id)
         );
       });
   }, [messages, activeBranchId]);
@@ -187,7 +189,7 @@ function CopilotPanelInner({
         },
         {
           headers: { "X-Tenant-Id": getTenantId() },
-        },
+        }
       );
 
       const data = res.data;
@@ -221,8 +223,7 @@ function CopilotPanelInner({
   };
 
   const handleBranch = (fromMessageId: string) => {
-    const branchNum =
-      branches.filter((b) => b.parentMessageId === fromMessageId).length + 1;
+    const branchNum = branches.filter((b) => b.parentMessageId === fromMessageId).length + 1;
     const newBranchId = `branch_${fromMessageId}_${branchNum}`;
     setBranches((prev) => [
       ...prev,
@@ -235,16 +236,11 @@ function CopilotPanelInner({
     setActiveBranchId(newBranchId);
   };
 
-  const handleFeedback = async (
-    messageId: string,
-    rating: "positive" | "negative",
-  ) => {
+  const handleFeedback = async (messageId: string, rating: "positive" | "negative") => {
     setMessages((prev) =>
       prev.map((m) =>
-        m.id === messageId
-          ? { ...m, feedback: { rating, comment: "", submitted: false } }
-          : m,
-      ),
+        m.id === messageId ? { ...m, feedback: { rating, comment: "", submitted: false } } : m
+      )
     );
     setFeedbackTarget(messageId);
   };
@@ -260,7 +256,7 @@ function CopilotPanelInner({
         },
         {
           headers: { "X-Tenant-Id": getTenantId() },
-        },
+        }
       );
     } catch {
       /* best-effort */
@@ -268,10 +264,8 @@ function CopilotPanelInner({
 
     setMessages((prev) =>
       prev.map((m) =>
-        m.id === messageId
-          ? { ...m, feedback: { ...m.feedback!, submitted: true } }
-          : m,
-      ),
+        m.id === messageId ? { ...m, feedback: { ...m.feedback!, submitted: true } } : m
+      )
     );
     setFeedbackTarget(null);
   };
@@ -297,7 +291,7 @@ function CopilotPanelInner({
           !isFullscreen &&
           "bottom-8 w-[420px] max-w-[calc(100vw-2rem)] rounded-2xl border border-[var(--border-default)]",
         !embedded && !isFullscreen && "end-4",
-        !embedded && mode === "collapsed" && "h-auto",
+        !embedded && mode === "collapsed" && "h-auto"
       )}
       style={
         !embedded && !isFullscreen
@@ -332,13 +326,9 @@ function CopilotPanelInner({
             {t("copilot.clear")}
           </button>
           <button
-            onClick={() =>
-              setMode(mode === "collapsed" ? "expanded" : "collapsed")
-            }
+            onClick={() => setMode(mode === "collapsed" ? "expanded" : "collapsed")}
             className="rounded-lg p-1.5 hover:bg-[var(--bg-tertiary)] dark:hover:bg-[var(--bg-secondary)]"
-            aria-label={
-              mode === "collapsed" ? t("a11y.expand") : t("a11y.collapse")
-            }
+            aria-label={mode === "collapsed" ? t("a11y.expand") : t("a11y.collapse")}
           >
             {mode === "collapsed" ? (
               <PanelLeftOpen className="h-4 w-4" />
@@ -347,13 +337,9 @@ function CopilotPanelInner({
             )}
           </button>
           <button
-            onClick={() =>
-              setMode(mode === "fullscreen" ? "expanded" : "fullscreen")
-            }
+            onClick={() => setMode(mode === "fullscreen" ? "expanded" : "fullscreen")}
             className="rounded-lg p-1.5 hover:bg-[var(--bg-tertiary)] dark:hover:bg-[var(--bg-secondary)]"
-            aria-label={
-              mode === "fullscreen" ? t("a11y.minimize") : t("a11y.fullscreen")
-            }
+            aria-label={mode === "fullscreen" ? t("a11y.minimize") : t("a11y.fullscreen")}
           >
             {mode === "fullscreen" ? (
               <Minimize className="h-4 w-4" />
@@ -381,7 +367,7 @@ function CopilotPanelInner({
                 "flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
                 activeView === "insights"
                   ? "border-[var(--muhide-orange)] text-[var(--muhide-orange)]"
-                  : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]",
+                  : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
               )}
             >
               <Sparkles className="h-3.5 w-3.5" />
@@ -398,7 +384,7 @@ function CopilotPanelInner({
                 "flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
                 activeView === "chat"
                   ? "border-[var(--muhide-orange)] text-[var(--muhide-orange)]"
-                  : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]",
+                  : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
               )}
             >
               <Bot className="h-3.5 w-3.5" />
@@ -422,9 +408,7 @@ function CopilotPanelInner({
               ) : insights.length === 0 ? (
                 <div className="py-8 text-center">
                   <Sparkles className="mx-auto mb-2 h-8 w-8 text-[var(--text-disabled)]" />
-                  <p className="text-sm text-[var(--text-muted)]">
-                    {t("ai_insights.no_insights")}
-                  </p>
+                  <p className="text-sm text-[var(--text-muted)]">{t("ai_insights.no_insights")}</p>
                 </div>
               ) : (
                 insights.map((insight) => (
@@ -454,138 +438,136 @@ function CopilotPanelInner({
           ) : (
             <>
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {visibleMessages.map((msg) => (
-              <div key={msg.id} className="relative group">
-                {msg.branchId !== "main" && (
-                  <div className="absolute -start-3 top-0 bottom-0 w-0.5 bg-[var(--chart-purple-bg)] dark:bg-[var(--bg-secondary)] rounded-full" />
-                )}
-                {msg.branchId !== "main" && msg.role === "user" && (
-                  <div className="absolute -start-4 top-3 h-2 w-2 rounded-full bg-[var(--chart-purple)] border-2 border-white" />
-                )}
-                <div
-                  className={cn(
-                    "flex gap-3",
-                    msg.role === "user" ? "justify-end" : "justify-start",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                      msg.role === "user"
-                        ? "order-last bg-info-100 text-info-700 dark:bg-info-900 dark:text-info-300"
-                        : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]",
+                {visibleMessages.map((msg) => (
+                  <div key={msg.id} className="relative group">
+                    {msg.branchId !== "main" && (
+                      <div className="absolute -start-3 top-0 bottom-0 w-0.5 bg-[var(--chart-purple-bg)] dark:bg-[var(--bg-secondary)] rounded-full" />
                     )}
-                  >
-                    {msg.role === "user" ? (
-                      <User className="h-4 w-4" />
-                    ) : (
-                      <Sparkles className="h-4 w-4" />
+                    {msg.branchId !== "main" && msg.role === "user" && (
+                      <div className="absolute -start-4 top-3 h-2 w-2 rounded-full bg-[var(--chart-purple)] border-2 border-white" />
                     )}
-                  </div>
-                  <div className="max-w-[80%] space-y-1">
                     <div
                       className={cn(
-                        "rounded-xl px-4 py-2.5 text-sm leading-relaxed",
-                        msg.role === "user"
-                          ? "bg-[var(--muhide-orange)] text-white"
-                          : "bg-[var(--bg-tertiary)] text-[var(--text-primary)]",
+                        "flex gap-3",
+                        msg.role === "user" ? "justify-end" : "justify-start"
                       )}
                     >
-                      {msg.content}
-                    </div>
-
-                    {msg.role === "assistant" && !loading && (
-                      <div className="flex items-center gap-1.5 px-1">
-                        <FeedbackButtons
-                          msg={msg}
-                          onFeedback={handleFeedback}
-                          onSubmit={submitFeedback}
-                          feedbackTarget={feedbackTarget}
-                          setFeedbackTarget={setFeedbackTarget}
-                          t={t}
-                        />
-                        <button
-                          onClick={() => handleBranch(msg.id)}
-                          className="rounded-md p-1 text-[var(--text-disabled)] hover:text-[var(--chart-purple)] hover:bg-[var(--chart-purple-bg)] dark:hover:bg-[var(--bg-primary)]/30 transition-colors opacity-0 group-hover:opacity-100"
-                          title={t("copilot.branch_from")}
-                          aria-label={t("copilot.branch_from")}
-                        >
-                          <GitBranch className="h-3.5 w-3.5" />
-                        </button>
+                      <div
+                        className={cn(
+                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                          msg.role === "user"
+                            ? "order-last bg-info-100 text-info-700 dark:bg-info-900 dark:text-info-300"
+                            : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]"
+                        )}
+                      >
+                        {msg.role === "user" ? (
+                          <User className="h-4 w-4" />
+                        ) : (
+                          <Sparkles className="h-4 w-4" />
+                        )}
                       </div>
-                    )}
+                      <div className="max-w-[80%] space-y-1">
+                        <div
+                          className={cn(
+                            "rounded-xl px-4 py-2.5 text-sm leading-relaxed",
+                            msg.role === "user"
+                              ? "bg-[var(--muhide-orange)] text-white"
+                              : "bg-[var(--bg-tertiary)] text-[var(--text-primary)]"
+                          )}
+                        >
+                          {msg.content}
+                        </div>
+
+                        {msg.role === "assistant" && !loading && (
+                          <div className="flex items-center gap-1.5 px-1">
+                            <FeedbackButtons
+                              msg={msg}
+                              onFeedback={handleFeedback}
+                              onSubmit={submitFeedback}
+                              feedbackTarget={feedbackTarget}
+                              setFeedbackTarget={setFeedbackTarget}
+                              t={t}
+                            />
+                            <button
+                              onClick={() => handleBranch(msg.id)}
+                              className="rounded-md p-1 text-[var(--text-disabled)] hover:text-[var(--chart-purple)] hover:bg-[var(--chart-purple-bg)] dark:hover:bg-[var(--bg-primary)]/30 transition-colors opacity-0 group-hover:opacity-100"
+                              title={t("copilot.branch_from")}
+                              aria-label={t("copilot.branch_from")}
+                            >
+                              <GitBranch className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {loading && (
+                  <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] ps-12">
+                    <Spinner className="h-4 w-4" />
+                    {t("copilot.typing")}
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {branches.length > 0 && (
+                <div className="border-t px-3 py-2 shrink-0">
+                  <div className="flex items-center gap-1.5 overflow-x-auto">
+                    <span className="text-[10px] text-[var(--text-disabled)] shrink-0">
+                      {t("copilot.branches_sidebar")}:
+                    </span>
+                    <button
+                      onClick={() => setActiveBranchId("main")}
+                      className={cn(
+                        "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors",
+                        activeBranchId === "main"
+                          ? "bg-[var(--muhide-orange)] text-white"
+                          : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]"
+                      )}
+                    >
+                      {t("copilot.branch_original")}
+                    </button>
+                    {branches.map((b, _i) => (
+                      <button
+                        key={b.id}
+                        onClick={() => setActiveBranchId(b.id)}
+                        className={cn(
+                          "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors",
+                          activeBranchId === b.id
+                            ? "bg-purple-600 text-white"
+                            : "bg-[var(--chart-purple-bg)] text-[var(--chart-purple)] hover:bg-[var(--chart-purple-bg)] dark:bg-[var(--bg-primary)]/30 dark:text-[var(--chart-purple)]"
+                        )}
+                      >
+                        <GitBranch className="inline h-2.5 w-2.5 me-0.5" />
+                        {b.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </div>
-            ))}
-            {loading && (
-              <div className="flex items-center gap-2 text-sm text-[var(--text-muted)] ps-12">
-                <Spinner className="h-4 w-4" />
-                {t("copilot.typing")}
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+              )}
 
-          {branches.length > 0 && (
-            <div className="border-t px-3 py-2 shrink-0">
-              <div className="flex items-center gap-1.5 overflow-x-auto">
-                <span className="text-[10px] text-[var(--text-disabled)] shrink-0">
-                  {t("copilot.branches_sidebar")}:
-                </span>
-                <button
-                  onClick={() => setActiveBranchId("main")}
-                  className={cn(
-                    "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors",
-                    activeBranchId === "main"
-                      ? "bg-[var(--muhide-orange)] text-white"
-                      : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]",
-                  )}
-                >
-                  {t("copilot.branch_original")}
-                </button>
-                {branches.map((b, _i) => (
+              <div className="border-t p-3 shrink-0">
+                <div className="flex gap-2">
+                  <input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
+                    placeholder={t("copilot.placeholder")}
+                    className="flex-1 rounded-lg border border-[var(--border-hover)] bg-[var(--bg-secondary)] px-3 py-2.5 text-sm outline-none focus:border-[var(--muhide-orange)] focus:ring-1 focus:ring-[var(--muhide-orange)]"
+                  />
                   <button
-                    key={b.id}
-                    onClick={() => setActiveBranchId(b.id)}
-                    className={cn(
-                      "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors",
-                      activeBranchId === b.id
-                        ? "bg-purple-600 text-white"
-                        : "bg-[var(--chart-purple-bg)] text-[var(--chart-purple)] hover:bg-[var(--chart-purple-bg)] dark:bg-[var(--bg-primary)]/30 dark:text-[var(--chart-purple)]",
-                    )}
+                    onClick={handleSend}
+                    disabled={!input.trim() || loading}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--muhide-orange)] text-white hover:brightness-90 disabled:opacity-50"
                   >
-                    <GitBranch className="inline h-2.5 w-2.5 me-0.5" />
-                    {b.label}
+                    <Send className="h-4 w-4" />
                   </button>
-                ))}
+                </div>
+                <p className="mt-2 text-center text-[10px] text-[var(--text-disabled)]">
+                  {t("copilot.hint")}
+                </p>
               </div>
-            </div>
-          )}
-
-          <div className="border-t p-3 shrink-0">
-            <div className="flex gap-2">
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && !e.shiftKey && handleSend()
-                }
-                placeholder={t("copilot.placeholder")}
-                className="flex-1 rounded-lg border border-[var(--border-hover)] bg-[var(--bg-secondary)] px-3 py-2.5 text-sm outline-none focus:border-[var(--muhide-orange)] focus:ring-1 focus:ring-[var(--muhide-orange)]"
-              />
-              <button
-                onClick={handleSend}
-                disabled={!input.trim() || loading}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--muhide-orange)] text-white hover:brightness-90 disabled:opacity-50"
-              >
-                <Send className="h-4 w-4" />
-              </button>
-            </div>
-            <p className="mt-2 text-center text-[10px] text-[var(--text-disabled)]">
-              {t("copilot.hint")}
-            </p>
-          </div>
             </>
           )}
         </>
@@ -659,7 +641,7 @@ function FeedbackButtons({
           "rounded-md p-1 transition-colors",
           msg.feedback?.rating === "positive"
             ? "bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400"
-            : "text-[var(--text-disabled)] hover:text-success-600 hover:bg-success-50 dark:hover:bg-success-900/20",
+            : "text-[var(--text-disabled)] hover:text-success-600 hover:bg-success-50 dark:hover:bg-success-900/20"
         )}
         title={t("copilot.feedback_helpful")}
         aria-label={t("copilot.feedback_positive")}
@@ -672,7 +654,7 @@ function FeedbackButtons({
           "rounded-md p-1 transition-colors",
           msg.feedback?.rating === "negative"
             ? "bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400"
-            : "text-[var(--text-disabled)] hover:text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-900/20",
+            : "text-[var(--text-disabled)] hover:text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-900/20"
         )}
         aria-label={t("copilot.feedback_negative")}
       >

@@ -18,8 +18,7 @@ import {
 } from "@/features/tenant-studio/permissionsStudioHonesty";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -54,15 +53,13 @@ export function PermissionsStudio() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="permissions-studio-honesty"
       >
-        {PERMISSIONS_STUDIO_HONESTY} Non-goals:{" "}
-        {PERMISSIONS_STUDIO_NON_GOALS.join("; ")}. Not Production GO / RAG GO.
+        {PERMISSIONS_STUDIO_HONESTY} Non-goals: {PERMISSIONS_STUDIO_NON_GOALS.join("; ")}. Not
+        Production GO / RAG GO.
       </p>
 
       <div className="flex flex-wrap items-end gap-3">
         <div>
-          <label className="block text-xs text-[var(--text-muted)]">
-            plan_tier (ceiling)
-          </label>
+          <label className="block text-xs text-[var(--text-muted)]">plan_tier (ceiling)</label>
           <select
             data-testid="permissions-plan-tier"
             className="rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm"
@@ -97,7 +94,7 @@ export function PermissionsStudio() {
                     description: getApiError(err),
                   });
                 },
-              },
+              }
             );
           }}
         >
@@ -105,11 +102,7 @@ export function PermissionsStudio() {
         </Button>
         <Button
           data-testid="permissions-refresh"
-          disabled={
-            catalogQuery.isFetching ||
-            ceilingQuery.isFetching ||
-            rolesQuery.isFetching
-          }
+          disabled={catalogQuery.isFetching || ceilingQuery.isFetching || rolesQuery.isFetching}
           onClick={() => {
             void catalogQuery.refetch();
             void ceilingQuery.refetch();
@@ -127,9 +120,7 @@ export function PermissionsStudio() {
         {ceilingQuery.isLoading ? (
           <Spinner className="h-5 w-5" />
         ) : ceilingQuery.isError ? (
-          <span className="text-[var(--text-danger)]">
-            {getApiError(ceilingQuery.error)}
-          </span>
+          <span className="text-[var(--text-danger)]">{getApiError(ceilingQuery.error)}</span>
         ) : (
           <>
             grantable{" "}
@@ -155,9 +146,7 @@ export function PermissionsStudio() {
         {catalogQuery.isLoading ? (
           <Spinner className="h-5 w-5" />
         ) : catalogQuery.isError ? (
-          <p className="text-sm text-[var(--text-danger)]">
-            {getApiError(catalogQuery.error)}
-          </p>
+          <p className="text-sm text-[var(--text-danger)]">{getApiError(catalogQuery.error)}</p>
         ) : (
           <ul className="max-h-64 space-y-1 overflow-auto text-sm">
             {(catalogQuery.data ?? []).map((item) => (
@@ -180,8 +169,7 @@ export function PermissionsStudio() {
                 />
                 <span>
                   <span className="font-medium">{item.name}</span>{" "}
-                  <span className="font-mono text-xs">({item.key})</span> ·{" "}
-                  {item.domain}
+                  <span className="font-mono text-xs">({item.key})</span> · {item.domain}
                   {item.within_ceiling ? (
                     <span className="ml-1 text-xs text-emerald-700 dark:text-emerald-300">
                       within ceiling
@@ -209,11 +197,7 @@ export function PermissionsStudio() {
           </li>
         ) : (
           (rolesQuery.data ?? []).map((role) => (
-            <li
-              key={role.id}
-              className="px-3 py-2 text-sm"
-              data-testid="permissions-role-row"
-            >
+            <li key={role.id} className="px-3 py-2 text-sm" data-testid="permissions-role-row">
               <span className="font-medium">{role.name}</span>
               <span className="mt-0.5 block font-mono text-xs text-[var(--text-muted)]">
                 {role.id} · {role.permissions.join(", ")}
@@ -250,7 +234,7 @@ export function PermissionsStudio() {
                   description: getApiError(err),
                 });
               },
-            },
+            }
           );
         }}
       >
@@ -269,10 +253,7 @@ export function PermissionsStudio() {
           value={roleDescription}
           onChange={(e) => setRoleDescription(e.target.value)}
         />
-        <p
-          className="text-xs text-[var(--text-muted)]"
-          data-testid="permissions-selected-count"
-        >
+        <p className="text-xs text-[var(--text-muted)]" data-testid="permissions-selected-count">
           {selectedKeys.length} permission(s) selected
         </p>
         <Button
@@ -314,7 +295,7 @@ export function PermissionsStudio() {
                     description: getApiError(err),
                   });
                 },
-              },
+              }
             );
           }}
         >

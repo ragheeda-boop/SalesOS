@@ -6,9 +6,7 @@ export type StudioStepId = (typeof STUDIO_STEPS)[number]["id"];
 
 const STEP_IDS = new Set<string>(STUDIO_STEPS.map((s) => s.id));
 
-export function parseStudioStep(
-  raw: string | null | undefined,
-): StudioStepId | null {
+export function parseStudioStep(raw: string | null | undefined): StudioStepId | null {
   if (!raw) return null;
   const value = raw.trim().toLowerCase();
   return STEP_IDS.has(value) ? (value as StudioStepId) : null;

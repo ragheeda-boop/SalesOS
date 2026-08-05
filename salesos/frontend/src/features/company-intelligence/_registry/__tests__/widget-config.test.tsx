@@ -53,10 +53,7 @@ jest.mock("../widget-config", () => ({
   ],
 }));
 
-import {
-  COMPANY_INTELLIGENCE_WIDGETS,
-  getCompanyWidgets,
-} from "../widget-config";
+import { COMPANY_INTELLIGENCE_WIDGETS, getCompanyWidgets } from "../widget-config";
 
 describe("company-intelligence widget-config", () => {
   it("exports all widgets", () => {

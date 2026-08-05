@@ -11,13 +11,9 @@ jest.mock("next/navigation", () => ({
 }));
 
 jest.mock("next/link", () => {
-  const MockLink = ({
-    children,
-    href,
-  }: {
-    children: React.ReactNode;
-    href: string;
-  }) => <a href={href}>{children}</a>;
+  const MockLink = ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  );
   MockLink.displayName = "MockLink";
   return MockLink;
 });
@@ -75,9 +71,7 @@ describe("DealCard", () => {
   });
 
   it("shows deal age from expected_close_date", () => {
-    render(
-      <DealCard opportunity={makeOpp({ expected_close_date: "2026-06-01" })} />,
-    );
+    render(<DealCard opportunity={makeOpp({ expected_close_date: "2026-06-01" })} />);
     expect(screen.getByText(/\d+d/)).toBeInTheDocument();
   });
 

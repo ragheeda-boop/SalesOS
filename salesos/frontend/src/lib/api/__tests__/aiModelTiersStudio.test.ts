@@ -37,7 +37,7 @@ describe("aiModelTiersStudio API — FE-S12-04", () => {
     const catalog = await getAiModelTierCatalog("tenant-1");
     expect(mocked.get).toHaveBeenCalledWith(
       "/api/v1/studio/ai-model-tiers/catalog",
-      expect.any(Object),
+      expect.any(Object)
     );
     expect(catalog.feature_ai_copilot).toBe(false);
 
@@ -58,7 +58,7 @@ describe("aiModelTiersStudio API — FE-S12-04", () => {
     await getAiModelTierDefaults("tenant-1", "starter");
     expect(mocked.get).toHaveBeenCalledWith(
       "/api/v1/studio/ai-model-tiers/defaults",
-      expect.objectContaining({ params: { plan_tier: "starter" } }),
+      expect.objectContaining({ params: { plan_tier: "starter" } })
     );
 
     mocked.get.mockResolvedValueOnce({
@@ -80,7 +80,7 @@ describe("aiModelTiersStudio API — FE-S12-04", () => {
       "/api/v1/studio/ai-model-tiers",
       expect.objectContaining({
         params: { requested_tier: "standard" },
-      }),
+      })
     );
     expect(resolved.selected_tier).toBe("standard");
     expect(resolved.feature_ai_copilot).toBe(false);

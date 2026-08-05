@@ -11,14 +11,11 @@ export default function GtmHubPage() {
   return (
     <div className="space-y-6 p-6" data-testid="gtm-hub-page">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          GTM Intelligence
-        </h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">GTM Intelligence</h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Tip GTM pages: ICP, market sizing, lead discovery, lookalikes,
-          enrichment, website intelligence, AI outreach, verification,
-          sequences. Territories Studio is tip /studio/territories. Live 141221
-          / live ERP not claimed. Not Production GO / RAG GO.
+          Tip GTM pages: ICP, market sizing, lead discovery, lookalikes, enrichment, website
+          intelligence, AI outreach, verification, sequences. Territories Studio is tip
+          /studio/territories. Live 141221 / live ERP not claimed. Not Production GO / RAG GO.
         </p>
       </div>
       <GtmHub />

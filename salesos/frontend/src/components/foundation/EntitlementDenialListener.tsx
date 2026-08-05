@@ -6,10 +6,7 @@ import {
   ENTITLEMENT_DENIED_EVENT,
   type EntitlementDeniedPayload,
 } from "@/lib/api/entitlementErrors";
-import {
-  QUOTA_EXCEEDED_EVENT,
-  type QuotaExceededPayload,
-} from "@/lib/api/quotaErrors";
+import { QUOTA_EXCEEDED_EVENT, type QuotaExceededPayload } from "@/lib/api/quotaErrors";
 import { OWNER_AUTH_DENIED_EVENT } from "@/lib/auth/ownerAudience";
 
 /**
@@ -21,9 +18,7 @@ export function EntitlementDenialListener() {
 
   useEffect(() => {
     const onDenied = (event: Event) => {
-      const detail = (
-        event as CustomEvent<EntitlementDeniedPayload & { message?: string }>
-      ).detail;
+      const detail = (event as CustomEvent<EntitlementDeniedPayload & { message?: string }>).detail;
       if (!detail) return;
       toast({
         variant: "warning",
@@ -36,18 +31,13 @@ export function EntitlementDenialListener() {
     };
     const onQuota = (event: Event) => {
       const detail = (
-        event as CustomEvent<
-          QuotaExceededPayload & { message?: string; status?: number }
-        >
+        event as CustomEvent<QuotaExceededPayload & { message?: string; status?: number }>
       ).detail;
       if (!detail) return;
       const metric = detail.metric || "quota";
       toast({
         variant: "warning",
-        title:
-          metric === "ai_tokens"
-            ? "AI token quota exceeded"
-            : "Plan quota exceeded",
+        title: metric === "ai_tokens" ? "AI token quota exceeded" : "Plan quota exceeded",
         description:
           detail.message ||
           `Quota exceeded for ${metric}. Upgrade plan or reduce usage. Not Production GO.`,

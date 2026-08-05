@@ -7,8 +7,7 @@ import type { RevenueOpportunity } from "@/application/revenue-execution/opportu
 import type { DecisionResult } from "@salesos/decision-platform";
 
 function mapToOpportunity(result: DecisionResult): RevenueOpportunity {
-  const confidenceScore =
-    result.scores.find((s) => s.type === "confidence")?.value ?? 0;
+  const confidenceScore = result.scores.find((s) => s.type === "confidence")?.value ?? 0;
   const revenueScore = result.scores.find((s) => s.type === "revenue");
   const amountMeta = revenueScore?.metadata?.amount;
 
@@ -25,10 +24,8 @@ function mapToOpportunity(result: DecisionResult): RevenueOpportunity {
     stage: "developing",
     createdAt: new Date().toISOString().split("T")[0],
     buyingIntent: result.scores.find((s) => s.type === "intent")?.value ?? 0,
-    relationshipStrength:
-      result.scores.find((s) => s.type === "relationship")?.value ?? 0,
-    riskLevel:
-      confidenceScore < 0.4 ? "high" : confidenceScore < 0.7 ? "medium" : "low",
+    relationshipStrength: result.scores.find((s) => s.type === "relationship")?.value ?? 0,
+    riskLevel: confidenceScore < 0.4 ? "high" : confidenceScore < 0.7 ? "medium" : "low",
     tags: [],
     notes: [],
     lastActivityAt: new Date().toISOString(),

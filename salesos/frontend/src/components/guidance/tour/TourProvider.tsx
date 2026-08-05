@@ -139,9 +139,7 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, [state.isActive, state.currentStep, state.steps]);
 
   const tourProgress =
-    state.steps.length > 0
-      ? Math.round(((state.currentStep + 1) / state.steps.length) * 100)
-      : 0;
+    state.steps.length > 0 ? Math.round(((state.currentStep + 1) / state.steps.length) * 100) : 0;
 
   return (
     <TourContext.Provider

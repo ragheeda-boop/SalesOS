@@ -9,9 +9,7 @@ describe("normalizePipelineAnalytics", () => {
         fastest_close_days: 2,
         slowest_close_days: 40,
       },
-      stage_durations: [
-        { stage: "lead", median_days: 3, max_days: 10, avg_days: 4 },
-      ],
+      stage_durations: [{ stage: "lead", median_days: 3, max_days: 10, avg_days: 4 }],
       conversion_rates: [{ from: "lead", to: "opportunity", rate: 0.2, count: 2, total: 10 }],
       value_over_time: [{ month: "2026-01", total_value: 1000 }],
       win_loss: { win_rate: 0.5, total_won: 2, total_lost: 2 },

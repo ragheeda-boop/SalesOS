@@ -142,12 +142,10 @@ export default function AdminIntegrationsInventoryPage() {
   return (
     <div className="space-y-6 p-6" data-testid="admin-integrations-page">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-          Integration Hub
-        </h1>
+        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Integration Hub</h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
-          Owner Console inventory for EPIC-08. DOM-021 plan gate applies when
-          HTTP surfaces land. No invented connector APIs.
+          Owner Console inventory for EPIC-08. DOM-021 plan gate applies when HTTP surfaces land. No
+          invented connector APIs.
         </p>
       </div>
 
@@ -155,18 +153,15 @@ export default function AdminIntegrationsInventoryPage() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="owner-ops-integrations-honesty"
       >
-        FE inventory: BE 08-01..06 + STORY-09-01/09-02 OdooAdapter landed.
-        Tenant Studio (through FE-S09-09 SyncRun cursors + FE-S09-08 unlinked
-        badges) is at `/integrations`. Owner mint remains DEC-093 follow-up. Not
-        Production GO / RAG GO.
+        FE inventory: BE 08-01..06 + STORY-09-01/09-02 OdooAdapter landed. Tenant Studio (through
+        FE-S09-09 SyncRun cursors + FE-S09-08 unlinked badges) is at `/integrations`. Owner mint
+        remains DEC-093 follow-up. Not Production GO / RAG GO.
       </p>
 
       <IntegrationsStudioShell />
 
       <section data-testid="admin-integrations-be-landed">
-        <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-          Backend landed
-        </h2>
+        <h2 className="text-sm font-semibold text-[var(--text-primary)]">Backend landed</h2>
         <ul className="mt-2 space-y-2">
           {BE_LANDED.map((item) => (
             <li
@@ -175,18 +170,14 @@ export default function AdminIntegrationsInventoryPage() {
               data-testid={`admin-integrations-item-${item.id}`}
             >
               <span className="font-medium">{item.id}</span> — {item.title}
-              <span className="ml-2 text-xs text-[var(--text-muted)]">
-                ({item.status})
-              </span>
+              <span className="ml-2 text-xs text-[var(--text-muted)]">({item.status})</span>
             </li>
           ))}
         </ul>
       </section>
 
       <section data-testid="admin-integrations-fe-gated">
-        <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-          Gated / next
-        </h2>
+        <h2 className="text-sm font-semibold text-[var(--text-primary)]">Gated / next</h2>
         <ul className="mt-2 space-y-2">
           {FE_GATED.map((item) => (
             <li
@@ -195,9 +186,7 @@ export default function AdminIntegrationsInventoryPage() {
               data-testid={`admin-integrations-item-${item.id}`}
             >
               <span className="font-medium">{item.id}</span> — {item.title}
-              <span className="ml-2 text-xs text-[var(--text-muted)]">
-                ({item.status})
-              </span>
+              <span className="ml-2 text-xs text-[var(--text-muted)]">({item.status})</span>
             </li>
           ))}
         </ul>
@@ -205,11 +194,7 @@ export default function AdminIntegrationsInventoryPage() {
 
       <p className="text-xs text-[var(--text-muted)]">
         Return to{" "}
-        <Link
-          href="/admin"
-          data-testid="admin-integrations-overview-link"
-          className="underline"
-        >
+        <Link href="/admin" data-testid="admin-integrations-overview-link" className="underline">
           Owner Console overview
         </Link>
         .

@@ -13,14 +13,10 @@ import {
   usePutAiMemorySettings,
 } from "@/lib/hooks/aiMemoryStudioQueries";
 import type { ConversationMemory } from "@/lib/api";
-import {
-  AI_MEMORY_HONESTY,
-  AI_MEMORY_NON_GOALS,
-} from "@/features/tenant-studio/aiMemoryHonesty";
+import { AI_MEMORY_HONESTY, AI_MEMORY_NON_GOALS } from "@/features/tenant-studio/aiMemoryHonesty";
 
 function getApiError(err: unknown): string {
-  const detail = (err as { response?: { data?: { detail?: unknown } } })
-    ?.response?.data?.detail;
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
   if (typeof detail === "string") return detail;
   if (err instanceof Error) return err.message;
   return "Request failed";
@@ -51,10 +47,7 @@ export function AiMemoryStudio() {
 
   const [role, setRole] = useState("user");
   const [content, setContent] = useState("Hello from Studio probe.");
-  const [probeResult, setProbeResult] = useState<Record<
-    string,
-    unknown
-  > | null>(null);
+  const [probeResult, setProbeResult] = useState<Record<string, unknown> | null>(null);
   const [ownerTenant, setOwnerTenant] = useState("tenant-a");
   const [attackerTenant, setAttackerTenant] = useState("tenant-b");
   const [probeConvId, setProbeConvId] = useState("demo-conv-1");
@@ -67,10 +60,7 @@ export function AiMemoryStudio() {
   }, [settingsQuery.data]);
 
   const busy =
-    putSettings.isPending ||
-    appendTurn.isPending ||
-    deleteConv.isPending ||
-    probe.isPending;
+    putSettings.isPending || appendTurn.isPending || deleteConv.isPending || probe.isPending;
 
   return (
     <div className="space-y-4" data-testid="ai-memory-studio">
@@ -78,32 +68,27 @@ export function AiMemoryStudio() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="ai-memory-honesty"
       >
-        {AI_MEMORY_HONESTY} Non-goals: {AI_MEMORY_NON_GOALS.join("; ")}. Not
-        Production GO / RAG GO.
+        {AI_MEMORY_HONESTY} Non-goals: {AI_MEMORY_NON_GOALS.join("; ")}. Not Production GO / RAG GO.
       </p>
 
       {metaQuery.isLoading ? (
         <Spinner />
       ) : metaQuery.isError ? (
-        <p className="text-sm text-[var(--text-danger)]">
-          {getApiError(metaQuery.error)}
-        </p>
+        <p className="text-sm text-[var(--text-danger)]">{getApiError(metaQuery.error)}</p>
       ) : metaQuery.data ? (
         <div
           className="space-y-1 font-mono text-xs text-[var(--text-muted)]"
           data-testid="ai-memory-meta"
         >
           <p>
-            {metaQuery.data.capability} · scope={metaQuery.data.scope} ·
-            cross_session={String(metaQuery.data.cross_session)} ·
-            opt_in_default={String(metaQuery.data.opt_in_default)}
+            {metaQuery.data.capability} · scope={metaQuery.data.scope} · cross_session=
+            {String(metaQuery.data.cross_session)} · opt_in_default=
+            {String(metaQuery.data.opt_in_default)}
           </p>
           <p data-testid="ai-memory-meta-flag">
             feature_ai_copilot={String(metaQuery.data.feature_ai_copilot)}
           </p>
-          <p data-testid="ai-memory-meta-honesty">
-            tip /meta: {metaQuery.data.honesty}
-          </p>
+          <p data-testid="ai-memory-meta-honesty">tip /meta: {metaQuery.data.honesty}</p>
         </div>
       ) : null}
 
@@ -161,7 +146,7 @@ export function AiMemoryStudio() {
                           title: getApiError(err),
                           variant: "error",
                         }),
-                    },
+                    }
                   );
                 }}
               >
@@ -234,7 +219,7 @@ export function AiMemoryStudio() {
                     title: getApiError(err),
                     variant: "error",
                   }),
-              },
+              }
             );
           }}
         >
@@ -247,9 +232,7 @@ export function AiMemoryStudio() {
         data-testid="ai-memory-list"
       >
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-            Conversations
-          </h2>
+          <h2 className="text-sm font-semibold text-[var(--text-primary)]">Conversations</h2>
           <Button
             variant="outline"
             size="sm"
@@ -263,14 +246,9 @@ export function AiMemoryStudio() {
         {listQuery.isLoading ? (
           <Spinner />
         ) : listQuery.isError ? (
-          <p className="text-sm text-[var(--text-danger)]">
-            {getApiError(listQuery.error)}
-          </p>
+          <p className="text-sm text-[var(--text-danger)]">{getApiError(listQuery.error)}</p>
         ) : (listQuery.data ?? []).length === 0 ? (
-          <p
-            className="text-sm text-[var(--text-muted)]"
-            data-testid="ai-memory-empty"
-          >
+          <p className="text-sm text-[var(--text-muted)]" data-testid="ai-memory-empty">
             No conversation memories yet (enable opt-in, then append a turn).
           </p>
         ) : (
@@ -282,9 +260,7 @@ export function AiMemoryStudio() {
                 data-testid="ai-memory-row"
               >
                 <div>
-                  <p className="font-medium text-[var(--text-primary)]">
-                    {row.conversation_id}
-                  </p>
+                  <p className="font-medium text-[var(--text-primary)]">{row.conversation_id}</p>
                   <p className="font-mono text-xs text-[var(--text-muted)]">
                     turns={row.turn_count} · cache={row.provider_cache_key}
                   </p>
@@ -352,9 +328,7 @@ export function AiMemoryStudio() {
           {detailQuery.isLoading ? (
             <Spinner />
           ) : detailQuery.isError ? (
-            <p className="text-sm text-[var(--text-danger)]">
-              {getApiError(detailQuery.error)}
-            </p>
+            <p className="text-sm text-[var(--text-danger)]">{getApiError(detailQuery.error)}</p>
           ) : detailQuery.data ? (
             <pre
               className="overflow-auto rounded bg-[var(--surface-muted)] p-3 font-mono text-xs"
@@ -413,7 +387,7 @@ export function AiMemoryStudio() {
                     title: getApiError(err),
                     variant: "error",
                   }),
-              },
+              }
             );
           }}
         >

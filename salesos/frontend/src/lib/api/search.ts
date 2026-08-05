@@ -3,7 +3,7 @@ import type { SearchParams, SearchResponse } from "./types";
 
 export async function unifiedSearch(
   params: SearchParams,
-  tenantId: string,
+  tenantId: string
 ): Promise<SearchResponse> {
   const response = await api.get("/api/v1/search", {
     params,

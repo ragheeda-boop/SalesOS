@@ -36,7 +36,7 @@ describe("csrf helpers — FE 14-04/14-05 support", () => {
     expect(
       isCsrfFailurePayload({
         detail: "CSRF token missing. Include X-CSRF-Token header.",
-      }),
+      })
     ).toBe(true);
     expect(isCsrfFailurePayload({ detail: "forbidden" })).toBe(false);
   });
