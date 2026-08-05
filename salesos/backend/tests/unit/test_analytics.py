@@ -109,19 +109,20 @@ class TestPipelineCubeQuery:
     async def test_returns_rows(self):
         cube = PipelineCube()
         rows = await cube.query(db=None, tenant_id="t-1")
-        assert len(rows) >= 1
+        # Honest empty until cubes query real tenant data
+        assert rows == []
 
     @pytest.mark.asyncio
     async def test_filters_by_stage(self):
         cube = PipelineCube()
         rows = await cube.query(db=None, tenant_id="t-1", filters={"stage": ["closed_won"]})
-        assert all(r["stage"] == "closed_won" for r in rows)
+        assert rows == []
 
     @pytest.mark.asyncio
     async def test_filters_by_owner(self):
         cube = PipelineCube()
         rows = await cube.query(db=None, tenant_id="t-1", filters={"owner": ["owner-2"]})
-        assert all(r["owner"] == "owner-2" for r in rows)
+        assert rows == []
 
     @pytest.mark.asyncio
     async def test_filters_empty_list_returns_none(self):
@@ -135,19 +136,19 @@ class TestForecastCubeQuery:
     async def test_returns_rows(self):
         cube = ForecastCube()
         rows = await cube.query(db=None, tenant_id="t-1")
-        assert len(rows) >= 1
+        assert rows == []
 
     @pytest.mark.asyncio
     async def test_filters_by_quarter(self):
         cube = ForecastCube()
         rows = await cube.query(db=None, tenant_id="t-1", filters={"quarter": ["2026-Q4"]})
-        assert all(r["quarter"] == "2026-Q4" for r in rows)
+        assert rows == []
 
     @pytest.mark.asyncio
     async def test_filters_by_product_line(self):
         cube = ForecastCube()
         rows = await cube.query(db=None, tenant_id="t-1", filters={"product_line": ["SalesOS Pro"]})
-        assert all(r["product_line"] == "SalesOS Pro" for r in rows)
+        assert rows == []
 
 
 class TestTeamCubeQuery:
@@ -155,13 +156,13 @@ class TestTeamCubeQuery:
     async def test_returns_rows(self):
         cube = TeamCube()
         rows = await cube.query(db=None, tenant_id="t-1")
-        assert len(rows) >= 1
+        assert rows == []
 
     @pytest.mark.asyncio
     async def test_filters_by_team(self):
         cube = TeamCube()
         rows = await cube.query(db=None, tenant_id="t-1", filters={"team": ["SMB Sales"]})
-        assert all(r["team"] == "SMB Sales" for r in rows)
+        assert rows == []
 
     @pytest.mark.asyncio
     async def test_filters_by_month(self):
@@ -169,7 +170,7 @@ class TestTeamCubeQuery:
         now = datetime.now(UTC)
         this_month = now.strftime("%Y-%m")
         rows = await cube.query(db=None, tenant_id="t-1", filters={"month": [this_month]})
-        assert all(r["month"] == this_month for r in rows)
+        assert rows == []
 
 
 class TestActivityCubeQuery:
@@ -177,25 +178,25 @@ class TestActivityCubeQuery:
     async def test_returns_rows(self):
         cube = ActivityCube()
         rows = await cube.query(db=None, tenant_id="t-1")
-        assert len(rows) >= 1
+        assert rows == []
 
     @pytest.mark.asyncio
     async def test_filters_by_type(self):
         cube = ActivityCube()
         rows = await cube.query(db=None, tenant_id="t-1", filters={"type": ["email"]})
-        assert all(r["type"] == "email" for r in rows)
+        assert rows == []
 
     @pytest.mark.asyncio
     async def test_filters_by_owner(self):
         cube = ActivityCube()
         rows = await cube.query(db=None, tenant_id="t-1", filters={"owner": ["owner-2"]})
-        assert all(r["owner"] == "owner-2" for r in rows)
+        assert rows == []
 
     @pytest.mark.asyncio
     async def test_with_granularity_override(self):
         cube = ActivityCube()
         rows = await cube.query(db=None, tenant_id="t-1", granularity=Granularity.WEEK)
-        assert len(rows) >= 1
+        assert rows == []
 
 
 # ── Tests: Granularity ───────────────────────────────────────────────────────
@@ -206,21 +207,19 @@ class TestGranularity:
     async def test_day_granularity(self):
         cube = PipelineCube()
         rows = await cube.query(db=None, tenant_id="t-1", granularity=Granularity.DAY)
-        for r in rows:
-            assert "T" in r["date"]
+        assert rows == []
 
     @pytest.mark.asyncio
     async def test_week_granularity(self):
         cube = PipelineCube()
         rows = await cube.query(db=None, tenant_id="t-1", granularity=Granularity.WEEK)
-        for r in rows:
-            assert "T" in r["date"]
+        assert rows == []
 
     @pytest.mark.asyncio
     async def test_month_granularity(self):
         cube = ForecastCube()
         rows = await cube.query(db=None, tenant_id="t-1", granularity=Granularity.MONTH)
-        assert len(rows) >= 1
+        assert rows == []
 
 
 # ── Tests: Report CRUD ───────────────────────────────────────────────────────

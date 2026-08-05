@@ -244,6 +244,7 @@ class TimelineSection(BaseModel):
     count: int = 0
     page: int = 1
     total: int = 0
+    error: str | None = None
 
 
 class EnrichmentFirmographics(BaseModel):

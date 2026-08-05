@@ -104,7 +104,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           {label && (
             <span id={`${id}-label`} className="text-sm text-[var(--text-primary)]">
               {label}
-              {required && <span className="ml-1 text-danger-500" aria-hidden="true">*</span>}
+              {required && <span className="ms-1 text-danger-500" aria-hidden="true">*</span>}
             </span>
           )}
         </label>

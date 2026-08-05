@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useId } from 'react'
 import { cn } from './utils'
 
 interface PaginationProps {
@@ -26,6 +26,7 @@ export function Pagination({
 }: PaginationProps) {
   const startItem = (currentPage - 1) * pageSize + 1
   const endItem = Math.min(currentPage * pageSize, totalItems)
+  const pageSizeId = useId()
 
   const visiblePages = useMemo(() => {
     const pages: (number | 'ellipsis')[] = []
@@ -177,8 +178,9 @@ export function Pagination({
 
       {onPageSizeChange && (
         <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
-          <span>Rows per page:</span>
+          <label htmlFor={pageSizeId}>Rows per page:</label>
           <select
+            id={pageSizeId}
             value={pageSize}
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
             className="rounded border border-[var(--border-default)] bg-[var(--bg-primary)] px-2 py-1 text-sm text-[var(--text-primary)]"

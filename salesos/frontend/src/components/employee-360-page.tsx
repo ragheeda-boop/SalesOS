@@ -171,3 +171,7 @@ export {
   ScoreBadge,
   formatRelativeTime,
 } from "@/components/employee-360/employee-360-shared";
+export { ScoreBreakdown } from "@/components/employee-360/employee-360-score-breakdown";
+export { CoachingInsights } from "@/components/employee-360/employee-360-coaching";
+export { TrendChart } from "@/components/employee-360/employee-360-trend-chart";
+export { ActivityHistory } from "@/components/employee-360/employee-360-activity-history";

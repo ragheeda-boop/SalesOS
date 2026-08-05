@@ -27,14 +27,16 @@ import {
   shouldSurfaceOwnerAudienceDenial,
 } from "@/lib/auth/ownerAudience";
 
-// Browser: same-origin so Next.js rewrites proxy to Railway (avoids CORS Network Error).
-// Server: absolute backend URL for SSR / Route Handlers.
+// Browser: same-origin so Next.js rewrites proxy to backend (avoids CORS Network Error).
+// Server: prefer Docker-internal rewrite URL over browser-facing NEXT_PUBLIC_*.
 const api = axios.create({
   baseURL:
     typeof window !== "undefined"
       ? ""
-      : process.env.NEXT_PUBLIC_API_URL ||
+      : process.env.API_REWRITE_URL ||
+        process.env.INTERNAL_API_URL ||
         process.env.API_URL ||
+        process.env.NEXT_PUBLIC_API_URL ||
         "http://localhost:8000",
   headers: {
     "Content-Type": "application/json",

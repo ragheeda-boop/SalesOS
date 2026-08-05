@@ -49,3 +49,24 @@ class ValidationError(HTTPException):
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=errors,
         )
+
+
+def is_tenant_isolation_failure(exc: BaseException) -> bool:
+    """Detect RLS / aborted-transaction failures that must not be soft-swallowed.
+
+    Empty success responses for these errors can hide tenancy misconfiguration
+    and must not be mistaken for "no timeline events".
+    """
+    msg = str(exc).lower()
+    name = type(exc).__name__.lower()
+    markers = (
+        "row-level security",
+        "row level security",
+        "infailedsqltransactionerror",
+        "infailedsqltransaction",
+        "current transaction is aborted",
+        "insufficientprivilege",
+        "permission denied for table",
+    )
+    return any(m in msg or m in name for m in markers)
+

@@ -34,12 +34,10 @@ import {
 } from "@/features/integrations/odooOpportunityHonesty";
 import {
   DEFAULT_PARTNER_MAPPINGS,
-  PARTNER_JOIN_OUTCOMES,
   isPartnerModel,
 } from "@/features/integrations/odooPartnerHonesty";
 import {
   DEFAULT_NOTE_MAPPINGS,
-  NOTE_PII_SCRUB_CATEGORIES,
   isNoteModel,
 } from "@/features/integrations/odooNoteHonesty";
 import {
@@ -49,22 +47,15 @@ import {
 } from "@/features/integrations/odooTicketHonesty";
 import {
   DEFAULT_TASK_MAPPINGS,
-  TASK_CASE_TYPES,
-  TASK_FINANCING_FIELDS,
-  TASK_INSURANCE_FIELDS,
   isTaskModel,
 } from "@/features/integrations/odooTaskHonesty";
 import {
-  CANONICAL_PAYMENT_STATES,
   CUSTOMER_MOVE_TYPES,
   DEFAULT_INVOICE_MAPPINGS,
   isInvoiceModel,
 } from "@/features/integrations/odooInvoiceHonesty";
 import {
-  CURSOR_STATE_HONESTY,
-  SYNCRUN_CURSOR_HONESTY,
   FLAG_ODOO_INTEGRATION,
-  MUHIDE_TENANT_SLUG,
   ODOO_FLAG_GATED_ACTIONS,
   isOdooConnectorKey,
 } from "@/features/integrations/odooIncrementalHonesty";
@@ -323,14 +314,8 @@ export function IntegrationsStudio() {
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="integrations-studio-live-honesty"
       >
-        Studio wired to `/api/v1/integrations/*` (STORY-08-06) including
-        conflict-policy (FE-S08-08) and active mapping GET (FE-S08-09) +
-        connection detail / baseline_fields (FE-S08-10). `test_connection`
-        dispatches Fake vs OdooAdapter by `connector_key` (STORY-09-01).
-        Unlinked cr_number badge list API not live. Tip Odoo models through
-        STORY-09-07 (`feature_odoo_integration` Grade-A gate + write_date
-        cursor_state). Do not paste real secrets into credential_ref. Not
-        Production GO / RAG GO.
+        Do not paste real secrets into credential references. Odoo sync may be
+        gated by a feature flag. Live HubSpot network is not claimed.
       </p>
 
       <ol
@@ -465,10 +450,15 @@ export function IntegrationsStudio() {
                 <div>
                   <dt className="text-[var(--text-muted)]">Cursor state</dt>
                   <dd
-                    className="font-mono break-all"
+                    className="break-all"
                     data-testid="integrations-studio-connection-cursor"
                   >
-                    {JSON.stringify(selected.cursor_state || {})}
+                    {(() => {
+                      const state = selected.cursor_state || {};
+                      const keys = Object.keys(state);
+                      if (keys.length === 0) return "No watermarks";
+                      return `${keys.length} watermark(s): ${keys.slice(0, 6).join(", ")}${keys.length > 6 ? "…" : ""}`;
+                    })()}
                   </dd>
                 </div>
                 {selected.created_at || selected.updated_at ? (
@@ -494,32 +484,33 @@ export function IntegrationsStudio() {
                       className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                       data-testid="integrations-studio-odoo-flag-honesty"
                     >
-                      STORY-09-07: Tip Grade-A flag{" "}
-                      <code>{FLAG_ODOO_INTEGRATION}</code> gates Odoo{" "}
-                      {ODOO_FLAG_GATED_ACTIONS.join(", ")} (HTTP 403 when off).
-                      Global default off; design partner{" "}
-                      <code>{MUHIDE_TENANT_SLUG}</code> via tenant override (ops
-                      UUID — not invented here). Unlinked badges on tip Monitor
-                      (FE-S09-08). Not Production GO / RAG GO.
+                      Odoo actions may require the{" "}
+                      <code>{FLAG_ODOO_INTEGRATION}</code> flag (
+                      {ODOO_FLAG_GATED_ACTIONS.join(", ")}).
                     </p>
                     <p
                       className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                       data-testid="integrations-studio-cursor-write-date-honesty"
                     >
-                      {CURSOR_STATE_HONESTY}. {SYNCRUN_CURSOR_HONESTY}{" "}
-                      (STORY-09-09). Not Production GO.
+                      Sync cursors use write_date watermarks when available.
                     </p>
                   </div>
                 ) : null}
                 <div className="sm:col-span-2">
                   <dt className="text-[var(--text-muted)]">
-                    Connection config (non-secret tip field)
+                    Connection config keys
                   </dt>
                   <dd
-                    className="font-mono break-all"
+                    className="break-all"
                     data-testid="integrations-studio-connection-config"
                   >
-                    {JSON.stringify(selected.connection_config || {})}
+                    {(() => {
+                      const cfg = selected.connection_config || {};
+                      const keys = Object.keys(cfg);
+                      return keys.length
+                        ? keys.join(", ")
+                        : "No non-secret config keys";
+                    })()}
                   </dd>
                 </div>
               </dl>
@@ -542,10 +533,9 @@ export function IntegrationsStudio() {
               onChange={(e) => setConnectorKey(e.target.value)}
             />
             <p className="text-xs text-[var(--text-muted)]">
-              Tip keys: <code>fake</code>, <code>odoo</code> (STORY-09-01), or{" "}
-              <code>hubspot</code> (STORY-11-10 CI adapter). Live HubSpot /
-              XML-RPC needs vault credential_ref only — no passwords in this
-              form. Live HubSpot network not claimed.
+              Connector keys: <code>fake</code>, <code>odoo</code>, or{" "}
+              <code>hubspot</code> (CI adapter). Live HubSpot / XML-RPC needs a
+              vault credential reference only — no passwords in this form.
             </p>
             <Input
               label="Credential ref"
@@ -678,11 +668,8 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-partner-join-honesty"
               >
-                STORY-09-01: Tip model <code>res.partner</code> maps{" "}
-                <code>x_studio_cr_number</code> → <code>cr_number</code> and
-                joins Company / Golden Record. Batch outcomes:{" "}
-                {PARTNER_JOIN_OUTCOMES.join(", ")}. Unlinked badge list is on
-                tip Monitor (STORY-09-08). Not Production GO.
+                Partner sync maps commercial registration numbers to company
+                records. Unlinked residuals appear on Monitor.
               </p>
             ) : null}
             {isOpportunityModel(model) ? (
@@ -690,11 +677,9 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-opportunity-stage-honesty"
               >
-                STORY-09-02: Odoo `crm.lead` stages are translated to canonical{" "}
-                {CANONICAL_OPPORTUNITY_STAGES.join(", ")}. Unmapped stages fail
-                loudly (no raw passthrough). Tenant stage maps live in mapping /
-                connection_config — not invented here. Unlinked badges on tip
-                Monitor (FE-S09-08). Not Production GO.
+                Opportunity stages are translated to canonical stages (
+                {CANONICAL_OPPORTUNITY_STAGES.join(", ")}). Unmapped stages
+                fail loudly.
               </p>
             ) : null}
             {isNoteModel(model) ? (
@@ -702,13 +687,8 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-note-pii-honesty"
               >
-                STORY-09-03: Tip model <code>mail.message</code> maps to
-                InteractionNote / TimelineEvent. Body is scrubbed via AI-GR-001
-                before RAG ({NOTE_PII_SCRUB_CATEGORIES.join(", ")}). Raw body
-                stays audit-only (<code>body_raw</code>); RAG uses
-                <code>rag_text</code> only. Fixture corpus ≠ live prod audit.
-                Unlinked badges on tip Monitor (FE-S09-08). Not RAG / Production
-                GO.
+                Note bodies are PII-scrubbed before any RAG-adjacent use. Raw
+                body stays audit-only.
               </p>
             ) : null}
             {isTicketModel(model) ? (
@@ -716,11 +696,9 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-ticket-stage-honesty"
               >
-                STORY-09-04: Tip model <code>helpdesk.ticket</code> stages are
-                translated to canonical {CANONICAL_TICKET_STAGES.join(", ")}.
-                Unmapped stages fail loudly (no raw passthrough). Description
-                scrubbed via AI-GR-001 before RAG-adjacent fields. Unlinked
-                badges on tip Monitor (FE-S09-08). Not Production GO / RAG GO.
+                Ticket stages map to{" "}
+                {CANONICAL_TICKET_STAGES.join(", ")}. Unmapped stages fail
+                loudly; descriptions are PII-scrubbed.
               </p>
             ) : null}
             {isTaskModel(model) ? (
@@ -728,14 +706,8 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-task-case-honesty"
               >
-                STORY-09-05: Tip model <code>project.task</code> syncs Task with
-                optional TaskCaseExtension Value Object (case_type{" "}
-                {TASK_CASE_TYPES.join(", ")} — no independent id). Classify via
-                financing fields ({TASK_FINANCING_FIELDS.join(", ")}) or
-                insurance ({TASK_INSURANCE_FIELDS.join(", ")}); plain chores get
-                no extension. Stages are soft-mapped (not strict ticket ACL).
-                Unlinked badges on tip Monitor (FE-S09-08). Not Production GO /
-                RAG GO.
+                Tasks may include optional case extensions (financing /
+                insurance). Stages are soft-mapped.
               </p>
             ) : null}
             {isInvoiceModel(model) ? (
@@ -743,12 +715,8 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-invoice-payment-honesty"
               >
-                STORY-09-06: Tip model <code>account.move</code> syncs
-                CustomerInvoice (≠ PlatformBillingInvoice / no
-                stripe_invoice_id). AR move types only:{" "}
-                {CUSTOMER_MOVE_TYPES.join(", ")}. Payment states translated to
-                canonical {CANONICAL_PAYMENT_STATES.join(", ")}. Unlinked badges
-                on tip Monitor (FE-S09-08). Not Production GO / RAG GO.
+                Customer invoices (AR) are separate from platform Stripe
+                billing. Move types: {CUSTOMER_MOVE_TYPES.join(", ")}.
               </p>
             ) : null}
             <Input
@@ -910,7 +878,7 @@ export function IntegrationsStudio() {
                       variant: "success",
                       title: "Tip conflict defaults loaded",
                       description:
-                        "STORY-08-06 ConflictResolutionPolicy.default()",
+                        "Default conflict policy applied",
                     });
                   }}
                 >
@@ -982,9 +950,8 @@ export function IntegrationsStudio() {
                 className="text-xs text-[var(--text-muted)]"
                 data-testid="integrations-studio-schedule-partner-hint"
               >
-                Tip schedule model <code>res.partner</code> pulls
-                company/contact partners via OdooAdapter after STORY-09-01
-                (cr_number join in batch; no badge list HTTP).
+                Schedule model <code>res.partner</code> pulls company/contact
+                partners (CR join in batch).
               </p>
             ) : null}
             {isOpportunityModel(model) ? (
@@ -992,8 +959,7 @@ export function IntegrationsStudio() {
                 className="text-xs text-[var(--text-muted)]"
                 data-testid="integrations-studio-schedule-opportunity-hint"
               >
-                Tip schedule model <code>crm.lead</code> pulls opportunities
-                (type=opportunity) via OdooAdapter after STORY-09-02.
+                Schedule model <code>crm.lead</code> pulls opportunities.
               </p>
             ) : null}
             {isNoteModel(model) ? (
@@ -1001,9 +967,8 @@ export function IntegrationsStudio() {
                 className="text-xs text-[var(--text-muted)]"
                 data-testid="integrations-studio-schedule-note-hint"
               >
-                Tip schedule model <code>mail.message</code> pulls chatter notes
-                via OdooAdapter after STORY-09-03 (PII scrub before RAG; no note
-                list HTTP).
+                Schedule model <code>mail.message</code> pulls chatter notes
+                (PII scrubbed).
               </p>
             ) : null}
             {isTicketModel(model) ? (
@@ -1011,9 +976,8 @@ export function IntegrationsStudio() {
                 className="text-xs text-[var(--text-muted)]"
                 data-testid="integrations-studio-schedule-ticket-hint"
               >
-                Tip schedule model <code>helpdesk.ticket</code> pulls
-                SupportTicket rows via OdooAdapter after STORY-09-04 (strict
-                stages + description PII scrub; no ticket list HTTP).
+                Schedule model <code>helpdesk.ticket</code> pulls support
+                tickets (strict stages + PII scrub).
               </p>
             ) : null}
             {isTaskModel(model) ? (
@@ -1021,10 +985,8 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-schedule-task-honesty"
               >
-                Tip schedule model <code>project.task</code> pulls Task +
-                optional TaskCaseExtension VO after STORY-09-05. No standalone
-                financing_cases aggregate. Unlinked badges on tip Monitor
-                (FE-S09-08). Not Production GO / RAG GO.
+                Schedule model <code>project.task</code> pulls tasks with
+                optional case extensions.
               </p>
             ) : null}
             {isInvoiceModel(model) ? (
@@ -1032,10 +994,8 @@ export function IntegrationsStudio() {
                 className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
                 data-testid="integrations-studio-schedule-invoice-honesty"
               >
-                Tip schedule model <code>account.move</code> pulls
-                CustomerInvoice AR rows after STORY-09-06 (not platform Stripe
-                invoices). No invoice list HTTP. Unlinked badges on tip Monitor
-                (FE-S09-08). Not Production GO / RAG GO.
+                Schedule model <code>account.move</code> pulls customer AR
+                invoices (not platform Stripe billing).
               </p>
             ) : null}
             <Input
@@ -1128,12 +1088,8 @@ export function IntegrationsStudio() {
               className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
               data-testid="integrations-studio-unlinked-honesty"
             >
-              STORY-09-08: Tip <code>GET .../unlinked-badges</code> lists
-              SyncRun <code>error_log</code> entries with{" "}
-              <code>kind=unlinked_badge</code> (join outcomes{" "}
-              {PARTNER_JOIN_OUTCOMES.join(", ")}). Sourced from partner sync
-              residuals — not a dedicated badge table. Not Production GO / RAG
-              GO.
+              Unlinked badges list partner-join residuals from sync runs — not
+              a dedicated badge table.
             </p>
             <div
               className="space-y-2"
@@ -1297,13 +1253,12 @@ export function IntegrationsStudio() {
                       </span>
                       {syncRunHasCursors(run) ? (
                         <p
-                          className="mt-1 font-mono text-[10px] text-[var(--text-muted)] break-all"
+                          className="mt-1 text-[10px] text-[var(--text-muted)] break-all"
                           data-testid="integrations-studio-sync-run-cursors"
                         >
-                          cursor_before{" "}
-                          {JSON.stringify(run.cursor_before || {})}
-                          {" · "}cursor_after{" "}
-                          {JSON.stringify(run.cursor_after || {})}
+                          Cursors:{" "}
+                          {Object.keys(run.cursor_before || {}).length} before /{" "}
+                          {Object.keys(run.cursor_after || {}).length} after
                         </p>
                       ) : null}
                       <div className="mt-1 flex flex-wrap items-center gap-2">

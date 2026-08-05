@@ -1,13 +1,19 @@
 """Shared test fixtures for all tests (root conftest, visible to all sub-packages)."""
 
 import os
+from pathlib import Path
 from typing import AsyncGenerator
 
 import pytest
 import pytest_asyncio
+from dotenv import load_dotenv
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
+
+_env_path = Path(__file__).resolve().parent / ".env"
+if _env_path.exists():
+    load_dotenv(_env_path)
 
 os.environ["SALESOS_TESTING"] = "true"
 
@@ -20,14 +26,25 @@ for role_name, perms in PermissionRegistry.default_roles().items():
 
 
 def _db_url():
+    from urllib.parse import urlparse, urlunparse
     from app.config import settings
+
+    if os.environ.get("TEST_DATABASE_URL"):
+        return os.environ["TEST_DATABASE_URL"]
+
     _host = os.environ.get("TEST_POSTGRES_HOST") or os.environ.get("POSTGRES_HOST") or settings.postgres_host
-    _password = os.environ.get("POSTGRES_PASSWORD") or settings.postgres_password or "test"
     _port = os.environ.get("TEST_POSTGRES_PORT") or os.environ.get("POSTGRES_PORT") or str(settings.postgres_port)
-    return os.environ.get(
-        "TEST_DATABASE_URL",
-        f"postgresql+asyncpg://{settings.postgres_user}:{_password}@{_host}:{_port}/salesos_test",
-    )
+    _password = os.environ.get("POSTGRES_PASSWORD") or settings.postgres_password
+    _user = settings.postgres_user
+
+    if not _password and settings.database_url:
+        parsed = urlparse(settings.database_url)
+        _user = parsed.username or _user
+        _password = parsed.password or ""
+    if not _password:
+        _password = "test"
+
+    return f"postgresql+asyncpg://{_user}:{_password}@{_host}:{_port}/salesos_test"
 
 
 @pytest_asyncio.fixture(scope="session")

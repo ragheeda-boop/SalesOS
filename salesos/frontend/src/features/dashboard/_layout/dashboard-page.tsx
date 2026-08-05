@@ -9,23 +9,28 @@ import { DashboardLoading } from "./dashboard-loading";
 import { DashboardMetricsHeader } from "./dashboard-metrics-header";
 import { widgetRegistry } from "../widget-registry";
 import { useTranslation } from "@/lib/i18n";
+import { MorningBriefWidget } from "../widgets/morning-brief/MorningBriefContainer";
+import { ExecutiveSummaryCards } from "../widgets/executive-summary/ExecutiveSummaryCards";
+import { QuickActionsBar } from "../widgets/quick-actions/QuickActionsBar";
 
 function DashboardBody() {
   const { isLoading, isError, error, refetch } = useDashboardContext();
   const { t } = useTranslation();
 
-  // Visible page-level h1 always present (loading / error / success) for a11y + smoke probes.
   return (
     <>
-      <div className="mb-4">
-        <h1 className="text-lg font-bold text-[var(--text-primary)]">
-          {t("dashboard.title")}
-        </h1>
-        {!isLoading && !isError ? (
-          <p className="text-xs text-[var(--text-muted)]">
-            {t("dashboard.overview_subtitle")}
-          </p>
-        ) : null}
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-[var(--text-primary)]">
+            {t("dashboard.title")}
+          </h1>
+          {!isLoading && !isError ? (
+            <p className="text-xs text-[var(--text-muted)]">
+              {t("dashboard.overview_subtitle")}
+            </p>
+          ) : null}
+        </div>
+        {!isLoading && !isError && <QuickActionsBar />}
       </div>
       {isLoading ? (
         <DashboardLoading />
@@ -49,7 +54,13 @@ function DashboardBody() {
         </div>
       ) : (
         <>
-          <DashboardMetricsHeader />
+          <MorningBriefWidget />
+          <div className="mt-4">
+            <ExecutiveSummaryCards />
+          </div>
+          <div className="mt-4">
+            <DashboardMetricsHeader />
+          </div>
           <DashboardGrid>
             {widgetRegistry.map((entry) => (
               <entry.Container key={entry.id} />

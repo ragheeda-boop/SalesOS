@@ -21,6 +21,7 @@ import {
 } from "@/lib/hooks/opportunityQueries";
 import { useCompanySearch } from "@/lib/hooks/companyQueries";
 import { useTranslation } from "@/lib/i18n";
+import { safeArray } from "@/lib/utils";
 
 const STAGES = [
   {
@@ -300,8 +301,9 @@ export function PipelineKanban() {
 
   const handleDrop = useCallback(
     (oppId: string, toStage: string) => {
+      const items = safeArray<Opportunity>(data?.items);
       if (toStage === "closed_won") {
-        const opp = data?.items.find((o) => o.id === oppId);
+        const opp = items.find((o) => o.id === oppId);
         if (opp) {
           setSelectedOpp(opp);
           setWonAmount(String(opp.value || ""));
@@ -310,7 +312,7 @@ export function PipelineKanban() {
         return;
       }
       if (toStage === "closed_lost") {
-        const opp = data?.items.find((o) => o.id === oppId);
+        const opp = items.find((o) => o.id === oppId);
         if (opp) {
           setSelectedOpp(opp);
           setLossReason("");
@@ -366,7 +368,7 @@ export function PipelineKanban() {
   const wonOpportunities: Opportunity[] = [];
   const lostOpportunities: Opportunity[] = [];
 
-  for (const opp of data?.items ?? []) {
+  for (const opp of safeArray<Opportunity>(data?.items)) {
     if (opp.status === "won") {
       wonOpportunities.push(opp);
     } else if (opp.status === "lost") {
@@ -417,7 +419,9 @@ export function PipelineKanban() {
           onDrop={(e) => {
             e.preventDefault();
             const oppId = e.dataTransfer.getData("text/plain");
-            const opp = data?.items.find((o) => o.id === oppId);
+            const opp = safeArray<Opportunity>(data?.items).find(
+              (o) => o.id === oppId,
+            );
             if (opp) {
               setSelectedOpp(opp);
               setWonAmount(String(opp.value || ""));
@@ -453,7 +457,9 @@ export function PipelineKanban() {
           onDrop={(e) => {
             e.preventDefault();
             const oppId = e.dataTransfer.getData("text/plain");
-            const opp = data?.items.find((o) => o.id === oppId);
+            const opp = safeArray<Opportunity>(data?.items).find(
+              (o) => o.id === oppId,
+            );
             if (opp) {
               setSelectedOpp(opp);
               setLossReason("");

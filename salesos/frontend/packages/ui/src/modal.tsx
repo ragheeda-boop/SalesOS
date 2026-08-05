@@ -42,7 +42,7 @@ export const ModalContent = forwardRef<HTMLDivElement, ComponentPropsWithoutRef<
           {...props}
         >
           {children}
-          <Dialog.Close className="absolute right-4 top-4 rounded-sm p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+          <Dialog.Close aria-label="Close" className="absolute end-4 top-4 rounded-sm p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)]">
             <X className="h-4 w-4" />
           </Dialog.Close>
         </Dialog.Content>

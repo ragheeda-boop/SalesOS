@@ -115,30 +115,8 @@ export default function EmployeesAnalyticsPage() {
         { range: "0-49", count: scores.filter((s: number) => s < 50).length },
       ];
 
-      const months = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
-      const currentMonth = new Date().getMonth();
-      const trendMonths = Array.from({ length: 6 }, (_, i) => {
-        const idx = (currentMonth - 5 + i + 12) % 12;
-        return months[idx];
-      });
-      const baseScore = avgScore * 0.9;
-      const scoreTrendOverTime = trendMonths.map((m, i) => ({
-        date: m,
-        value: Math.round(baseScore + (avgScore - baseScore) * ((i + 1) / 6)),
-      }));
+      // Honest empty trend — do not fabricate historical score series.
+      const scoreTrendOverTime: { date: string; value: number }[] = [];
 
       const topPerformers = employees
         .filter((e: { score?: number | null }) => e.score != null)
@@ -165,8 +143,7 @@ export default function EmployeesAnalyticsPage() {
         total_employees: totalEmployees,
         active_employees: activeEmployees,
         avg_score: avgScore,
-        score_trend:
-          avgScore > 0 ? Math.round((avgScore - avgScore * 0.9) * 10) / 10 : 0,
+        score_trend: 0,
         avg_signals:
           employees.reduce(
             (sum: number, e: { signal_count?: number }) =>
@@ -288,19 +265,11 @@ export default function EmployeesAnalyticsPage() {
         <MetricCard
           label="Avg Score"
           value={String(data.avg_score)}
-          trend={{
-            direction: data.score_trend >= 0 ? "up" : "down",
-            percentage: Math.abs(data.score_trend),
-          }}
           icon={<Brain className="h-4 w-4" />}
         />
         <MetricCard
           label="Avg Signals"
           value={String(data.avg_signals)}
-          trend={{
-            direction: data.signals_trend >= 0 ? "up" : "down",
-            percentage: Math.abs(data.signals_trend),
-          }}
           icon={<Target className="h-4 w-4" />}
         />
       </div>
@@ -328,16 +297,22 @@ export default function EmployeesAnalyticsPage() {
           <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
             Score Trend
           </h3>
-          <LineChart
-            series={[
-              {
-                name: "Avg Score",
-                color: "#8B5CF6",
-                data: data.score_trend_over_time.map((d) => d.value),
-              },
-            ]}
-            height={250}
-          />
+          {data.score_trend_over_time.length === 0 ? (
+            <p className="text-sm text-[var(--text-muted)] py-10 text-center">
+              No historical score series available. Trends are not invented.
+            </p>
+          ) : (
+            <LineChart
+              series={[
+                {
+                  name: "Avg Score",
+                  color: "#8B5CF6",
+                  data: data.score_trend_over_time.map((d) => d.value),
+                },
+              ]}
+              height={250}
+            />
+          )}
         </div>
 
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">

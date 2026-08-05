@@ -7,7 +7,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.common.exceptions import DuplicateError, NotFoundError
+from app.common.exceptions import DuplicateError, NotFoundError, is_tenant_isolation_failure
 from sdk.audit import AuditTrail
 from sdk.events import EventBus
 from sdk.events.domain_events import (
@@ -488,6 +488,7 @@ class CompanyService:
                 )
 
         timeline_total = 0
+        timeline_error: str | None = None
         try:
             if activity_runtime:
                 items, total = await activity_runtime.get_by_entity(
@@ -510,6 +511,15 @@ class CompanyService:
                     elif action.startswith("contract"):
                         contracts.append(a)
         except Exception as e:
+            if is_tenant_isolation_failure(e):
+                if self.logger:
+                    self.logger.error(
+                        "company_360.timeline_rls_failed",
+                        company_id=company_id,
+                        error=str(e),
+                    )
+                raise
+            timeline_error = "unavailable"
             if self.logger:
                 self.logger.warn("company_360.timeline_failed", company_id=company_id, error=str(e))
 
@@ -541,7 +551,13 @@ class CompanyService:
         upcoming_meetings = sum(
             1 for m in meetings if m.get("metadata", {}).get("status") == "scheduled"
         )
-        last_activity = timeline[0].get("timestamp") if timeline else None
+        last_activity_raw = timeline[0].get("timestamp") if timeline else None
+        if last_activity_raw is None:
+            last_activity = None
+        elif hasattr(last_activity_raw, "isoformat"):
+            last_activity = last_activity_raw.isoformat()
+        else:
+            last_activity = str(last_activity_raw)
 
         signals = self._detect_signals(
             company, contacts, opportunities, contracts, branches, tenant_id
@@ -689,6 +705,7 @@ class CompanyService:
             "count": timeline_total,
             "page": page,
             "total": timeline_total,
+            "error": timeline_error,
         }
 
         # ── Enrichment section ──

@@ -453,10 +453,31 @@ async def test_company_360_activity_runtime_exception(
         activity_runtime=BrokenActivityRuntime(),
     )
     assert result["timeline_legacy"] == []
+    assert result["timeline"].get("error") == "unavailable"
     mock_logger.warn.assert_called()
 
 
-# ── _get_branches_and_licenses error path ──────────────────────────────────
+@pytest.mark.asyncio
+async def test_company_360_activity_runtime_rls_reraises(
+    db_session: AsyncSession, test_tenant: str, mock_logger
+):
+    class RlsBrokenActivityRuntime:
+        async def get_by_entity(self, **kwargs):
+            raise RuntimeError("new row violates row-level security policy")
+
+    service = CompanyService(db_session, logger=mock_logger)
+    company = await service.create_company(
+        tenant_id=test_tenant,
+        name_ar="شركة RLS",
+        cr_number="360-RLS-ERR",
+    )
+    with pytest.raises(RuntimeError, match="row-level security"):
+        await service.get_company_360(
+            str(company.id),
+            test_tenant,
+            db=db_session,
+            activity_runtime=RlsBrokenActivityRuntime(),
+        )
 
 
 @pytest.mark.asyncio

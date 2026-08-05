@@ -103,10 +103,12 @@ async def health_detailed(request: Request):
     kg = getattr(request.app.state, "kg_engine", None)
     if kg is None:
         checks["graph"] = {"status": "not_configured"}
-    elif getattr(kg.metrics, "neo4j_available", False):
-        checks["graph"] = {"status": "connected"}
     else:
-        checks["graph"] = {"status": "unavailable"}
+        try:
+            graph_ok = await kg.health_check()
+            checks["graph"] = {"status": "connected" if graph_ok else "unavailable"}
+        except Exception:
+            checks["graph"] = {"status": "unavailable"}
 
     from sdk.events.kafka_bus import KafkaEventBus
 
@@ -214,15 +216,13 @@ async def health_dependencies(request: Request):
                 "type": "graph_database",
                 "critical": False,
             }
-        elif getattr(kg.metrics, "neo4j_available", False):
+        else:
             is_healthy = await kg.health_check()
             deps["neo4j"] = {
-                "status": "connected" if is_healthy else "unhealthy",
+                "status": "connected" if is_healthy else "unavailable",
                 "type": "graph_database",
                 "critical": False,
             }
-        else:
-            deps["neo4j"] = {"status": "unavailable", "type": "graph_database", "critical": False}
     except Exception as e:
         deps["neo4j"] = {
             "status": "error",
@@ -304,10 +304,11 @@ async def health_ready(request: Request):
     kg = getattr(request.app.state, "kg_engine", None)
     if kg is None:
         checks["graph"] = "not_configured"
-    elif getattr(kg.metrics, "neo4j_available", False):
-        checks["graph"] = "connected"
     else:
-        checks["graph"] = "unavailable"
+        try:
+            checks["graph"] = "connected" if await kg.health_check() else "unavailable"
+        except Exception:
+            checks["graph"] = "unavailable"
 
     rate_limiter = any(
         "RateLimitMiddleware" in str(m.cls)
@@ -391,10 +392,11 @@ async def health(request: Request, db: AsyncSession = Depends(get_db)):
     kg = getattr(request.app.state, "kg_engine", None)
     if kg is None:
         graph_status = "not_configured"
-    elif getattr(kg.metrics, "neo4j_available", False):
-        graph_status = "connected"
     else:
-        graph_status = "unavailable"
+        try:
+            graph_status = "connected" if await kg.health_check() else "unavailable"
+        except Exception:
+            graph_status = "unavailable"
 
     return HealthResponse(
         status=status,

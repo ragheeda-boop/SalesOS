@@ -1,4 +1,4 @@
-import { forwardRef } from 'react'
+import { forwardRef, useId } from 'react'
 import * as SelectPrimitive from '@radix-ui/react-select'
 import { ChevronDown } from 'lucide-react'
 import { cn } from './utils'
@@ -19,11 +19,15 @@ interface SelectProps {
 
 export const Select = forwardRef<HTMLButtonElement, SelectProps>(
   ({ options, placeholder, error, className, value, onChange }, ref) => {
+    const errorId = useId()
+
     return (
       <div className="w-full">
         <SelectPrimitive.Root value={value} onValueChange={onChange}>
           <SelectPrimitive.Trigger
             ref={ref}
+            aria-describedby={error ? errorId : undefined}
+            aria-invalid={error ? true : undefined}
             className={cn(
               'flex h-10 w-full items-center justify-between rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--muhide-orange)] focus:border-[var(--muhide-orange)] disabled:cursor-not-allowed disabled:opacity-50',
               error && 'border-danger-500 focus:ring-danger-500 focus:border-danger-500',
@@ -57,7 +61,7 @@ export const Select = forwardRef<HTMLButtonElement, SelectProps>(
             </SelectPrimitive.Content>
           </SelectPrimitive.Portal>
         </SelectPrimitive.Root>
-        {error && <p className="mt-1 text-sm text-danger-600">{error}</p>}
+        {error && <p id={errorId} role="alert" className="mt-1 text-sm text-danger-600">{error}</p>}
       </div>
     )
   }

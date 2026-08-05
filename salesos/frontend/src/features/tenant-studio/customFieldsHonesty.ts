@@ -1,13 +1,10 @@
-/** Tip STORY-10-01/10-02 Tenant Studio honesty (mirror BE crumbs).
- * In-memory store — no Postgres / FORCE RLS claim.
- * Not Production GO / RAG GO.
- */
+/** Custom Fields Studio honesty — process-local store; not production-persistent. */
 
 export const CUSTOM_FIELDS_HONESTY =
-  "Tip POST/GET /api/v1/studio/custom-fields defines versioned scalar fields (string|number|date|enum) with reserved-column collision checks. Store is process-local in-memory — not Postgres. Values and page auto-render are STORY-10-02.";
+  "Preview — Custom field definitions are stored in process memory for this studio — not Postgres. Definitions reset on process restart. Values/auto-render project into metadata.custom_fields only when wired; no durable ORM write yet.";
 
 export const CUSTOM_FIELDS_AUTO_RENDER_HONESTY =
-  "Tip GET .../form-schema returns Form Engine descriptors (renderer=custom_fields_auto). POST .../values projects metadata.custom_fields for known keys only — no ORM write / no Postgres persistence on tip.";
+  "Form-schema returns Form Engine descriptors (renderer=custom_fields_auto). Value posts project metadata.custom_fields for known keys only — no ORM write / no Postgres persistence yet.";
 
 export const CUSTOM_FIELDS_NON_GOALS = [
   "Postgres persistence / Alembic custom_* tables",

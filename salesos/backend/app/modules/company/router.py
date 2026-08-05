@@ -74,6 +74,7 @@ def get_search_planner(
 )
 async def create_company(
     body: CompanyCreate,
+    request: Request,
     tenant_id: str = Depends(get_current_tenant_id),
     service: CompanyService = Depends(get_service),
 ):
@@ -94,6 +95,16 @@ async def create_company(
         legal_form=body.legal_form,
     )
     record_metric("company_created_total", 1, {"tenant_id": tenant_id})
+    # Invalidate search caches so new company is findable immediately.
+    sr = getattr(request.app.state, "search_runtime", None)
+    if sr is not None and hasattr(sr, "clear_cache"):
+        await sr.clear_cache()
+    cache = getattr(request.app.state, "cache", None)
+    if cache is not None and hasattr(cache, "delete_pattern"):
+        try:
+            await cache.delete_pattern("search:*")
+        except Exception:
+            pass
     return company
 
 

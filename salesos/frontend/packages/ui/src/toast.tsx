@@ -84,6 +84,9 @@ export const Toast = forwardRef<HTMLLIElement, ToastProps>(
 )
 Toast.displayName = 'Toast'
 
+const toastViewportClassName =
+  'fixed bottom-0 right-0 z-toast flex max-h-screen w-full flex-col-reverse gap-2 p-4 sm:max-w-[420px] rtl:left-0 rtl:right-auto'
+
 interface ToastProviderProps {
   children: ReactNode
 }
@@ -92,7 +95,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
   return (
     <ToastPrimitive.Provider>
       {children}
-      <ToastPrimitive.Viewport className="fixed bottom-0 right-0 z-toast flex max-h-screen w-full flex-col-reverse gap-2 p-4 sm:max-w-[420px] rtl:left-0 rtl:right-auto" />
+      <ToastPrimitive.Viewport className={toastViewportClassName} />
     </ToastPrimitive.Provider>
   )
 }
@@ -146,8 +149,11 @@ export function ToastViewport({ children }: { children: ReactNode }) {
 
   return (
     <ToastContext.Provider value={ctx}>
-      {children}
-      <Toaster toasts={toasts} onDismiss={dismiss} />
+      <ToastPrimitive.Provider>
+        {children}
+        <Toaster toasts={toasts} onDismiss={dismiss} />
+        <ToastPrimitive.Viewport className={toastViewportClassName} />
+      </ToastPrimitive.Provider>
     </ToastContext.Provider>
   )
 }
@@ -155,7 +161,7 @@ export function ToastViewport({ children }: { children: ReactNode }) {
 function Toaster({ toasts, onDismiss }: { toasts: ToastMessage[]; onDismiss: (id: string) => void }) {
   if (!toasts.length) return null
   return (
-    <div className="fixed bottom-0 right-0 z-toast flex max-h-screen w-full flex-col-reverse gap-2 p-4 sm:max-w-[420px] rtl:left-0 rtl:right-auto">
+    <>
       {toasts.map((t) => {
         const variant = normalizeVariant(t.variant)
         const Icon = iconMap[variant]
@@ -179,7 +185,7 @@ function Toaster({ toasts, onDismiss }: { toasts: ToastMessage[]; onDismiss: (id
           </ToastPrimitive.Root>
         )
       })}
-    </div>
+    </>
   )
 }
 

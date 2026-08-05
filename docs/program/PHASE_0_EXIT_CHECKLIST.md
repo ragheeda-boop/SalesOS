@@ -3,7 +3,7 @@
 > **Status:** ALL items must be satisfied simultaneously before Phase 0 exit is declared.
 > **Rule:** No partial credit. Phase 1 does not start until every item below is verified with command evidence.
 > **Authority:** `MASTER_EXECUTION_PLAN.md` §9, `PRODUCT_ROADMAP.md` Phase 0 Go/No-Go Criteria, `IMPLEMENTATION_SEQUENCE.md` position 1-3, DEC-008.
-> **Last updated:** 2026-08-02 (**PHASE 1 PARALLEL EXECUTION ACTIVE**; Phase 0 checklist **54/54**; **3.7 CLOSED** DEC-155 @ Stage 7 [30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801); tip pin `53a4aa7` (Watchdog-confirmed; withdraw `a08d7c0` reversed); **TRIGGER_POST_PHASE0_PLAN** fired; Production GA remains NO-GO)
+> **Last updated:** 2026-08-03 (**PHASE 1 PARALLEL EXECUTION ACTIVE**; Phase 0 checklist **54/54**; Alembic cite refresh tip `bee3276`: head **`e5f9a32b0c08` / 82** — pin `a4f7c29e1b80`/69 **STALE**; Production GA remains NO-GO)
 >
 > ## Operating State
 >
@@ -51,6 +51,16 @@
 **Phase 0 = COMPLETE (checklist 54/54)** — **3.7 CLOSED** DEC-155; **2.3** Complete DEC-154; **4.1/4.8 CLOSED** DEC-153; **3.9 CLOSED CONDITIONAL** DEC-152. **Production GA = NO-GO** (ga-engineering-audit). **No Production GO claim.**
 
 **Phase 0 exit cleared.** Prior blocker Stage 7 E2E **3.7** is **CLOSED** (DEC-155) @ [30726085801](https://github.com/ragheeda-boop/SalesOS/actions/runs/30726085801). Operating State = **PHASE 1 PARALLEL EXECUTION ACTIVE**. **Production GA remains NO-GO**. Do **not** claim Production GO / GA GO.
+
+### Alembic citation (current tip — 2026-08-03 reconcile)
+
+| Citation | Value | Status |
+|----------|-------|--------|
+| **Current head** (versions-dir parse @ tip `bee3276`) | **`e5f9a32b0c08`** (`e5f9a32b0c08_story_08_06_conflict_resolution_policies`) | **CURRENT** — single head; **82** migration files |
+| Phase 0 / DEC-142 fingerprint pin | **`a4f7c29e1b80`** / **69** migrations | **STALE as current** — mid-chain (depth 69); historical closure evidence only (criteria 4.1/4.2/7.6) |
+| Catalog | [`.engineering/13_DATABASE_CATALOG.md`](../../.engineering/13_DATABASE_CATALOG.md) | Refreshed to `e5f9a32b0c08` / 82 |
+
+Do **not** invent migration counts. Audit claim of head `e5f9a32b0c08` / 82 **agrees** with repo parse. **Production GA remains NO-GO.**
 
 ---
 
@@ -113,8 +123,8 @@
 
 | # | Criterion | Evidence Required | Status |
 |---|-----------|-------------------|--------|
-| 4.1 | All B1–B7 findings resolved | ARB re-audit returns PASS | ✅ VERIFIED/CLOSED — Independent **PASS** @ tip `d973cba` (first land `74f698b`) / [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md) (DEC-153); B1–B7 remediated (pin head `a4f7c29e1b80`, FastAPI `>=0.136.0,<0.142.0`, no CRM, lock free, EvidenceLevel Measured); tip fingerprint re-pin residual non-CRITICAL under Active revalidation; pack [`ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md`](ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md); historical FAIL `32` intact; do **not** claim Production GO / Phase 0 COMPLETE |
-| 4.2 | Fingerprint matches pinned commit | Alembic head, framework versions, structural counts verified | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `637d051` (DEC-142a); re-measure pin `9fa8e9f`; Alembic head `a4f7c29e1b80`; FastAPI `>=0.136.0,<0.142.0`; migrations **69**; DEC-085 untouched; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
+| 4.1 | All B1–B7 findings resolved | ARB re-audit returns PASS | ✅ VERIFIED/CLOSED — Independent **PASS** @ tip `d973cba` (first land `74f698b`) / [`.engineering/34_EOS_REAUDIT_2026-08-02.md`](../../.engineering/34_EOS_REAUDIT_2026-08-02.md) (DEC-153); B1–B7 remediated (pin head `a4f7c29e1b80` **at close** — now **STALE as current**; tip head **`e5f9a32b0c08` / 82**), FastAPI `>=0.136.0,<0.142.0`, no CRM, lock free, EvidenceLevel Measured); tip fingerprint re-pin residual non-CRITICAL under Active revalidation; pack [`ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md`](ARB_PHASE0_4_1_4_8_EVIDENCE_PACK.md); historical FAIL `32` intact; do **not** claim Production GO / Phase 0 COMPLETE |
+| 4.2 | Fingerprint matches pinned commit | Alembic head, framework versions, structural counts verified | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `637d051` (DEC-142a); re-measure pin `9fa8e9f`; Alembic head `a4f7c29e1b80` / migrations **69** (**historical Phase 0 pin — STALE as current**; tip **`e5f9a32b0c08` / 82**); FastAPI `>=0.136.0,<0.142.0`; DEC-085 untouched; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 | 4.3 | No invented surfaces | All cataloged API/Module paths exist in repo | ✅ VERIFIED (ARB 2026-08-01; B4 confirmed; filesystem audit PASS) |
 | 4.4 | EvidenceLevel justified | Counts use measured methods, not narrative | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light) @ `637d051` (DEC-142a); EvidenceLevel **Measured** (methods in `23` + `.engineering/measure_fingerprint.py`); not ARB “Repository Verified”; DEC-085 untouched; Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
 | 4.5 | `.engineering/` committed to git | Not untracked | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS (light: 33 tracked, 0 untracked; DEC-085 untouched) @ `5b2e4c2` (DEC-140a); pin residual cleared by DEC-142a (**4.2/4.7 CLOSED**); Orchestrator 2026-08-01; do **not** claim Production GO / CI GREEN |
@@ -165,7 +175,7 @@
 | 7.3 | Index names aligned | `ix_rev_*` → `ix_*` rename (DEC-122) | ✅ Slice 3 |
 | 7.4 | Companies dead-column DROP resolved | `search_vector` FTS preserved; DEC decision recorded | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `4aacd6d` (DEC-129a); KEEP (no DROP; ORM restore); head `d1a8c35e7f09`; Docker **4 passed**; DEC-085 untouched; Orchestrator 2026-08-01 |
 | 7.5 | Deferred-8 tables have RLS enabled | RLS policies on tables currently without them | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `578e4f2` (DEC-123a); live POLICY_COUNT **67** (prod tip-align `d1a8c35e7f09` / crumb `c842245` cleared prior “prod may still be on 59” residual); Orchestrator 2026-08-01 |
-| 7.6 | `alembic check` exits clean | Zero drift between ORM and DB | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `250bcb5` (DEC-130h); phased Slices 5a–5g (DEC-130…DEC-130g); live Docker `alembic check` **exit 0** @ head `a4f7c29e1b80`; True DROP DEC **0**; DEC-085 untouched; residual `ix_graph_nodes_search` KEEP via `include_object` (non-blocking); Orchestrator 2026-08-01 |
+| 7.6 | `alembic check` exits clean | Zero drift between ORM and DB | ✅ VERIFIED/CLOSED — Arch PASS + Validation PASS @ `250bcb5` (DEC-130h); phased Slices 5a–5g (DEC-130…DEC-130g); live Docker `alembic check` **exit 0** @ head `a4f7c29e1b80` (**at close** — **STALE as current**; tip head **`e5f9a32b0c08` / 82**); True DROP DEC **0**; DEC-085 untouched; residual `ix_graph_nodes_search` KEEP via `include_object` (non-blocking); Orchestrator 2026-08-01 |
 
 **Owner:** Backend Lead  
 **Reference:** `13_DATABASE_CATALOG.md`, R-20, DB-05

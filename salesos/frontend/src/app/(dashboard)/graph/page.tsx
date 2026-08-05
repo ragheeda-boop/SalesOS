@@ -558,18 +558,16 @@ export default function KnowledgeGraphPage() {
         setGraphNodes(nodes);
         setGraphEdges(edges);
       } else {
-        const demo = getDemoData();
-        setGraphNodes(demo.nodes);
-        setGraphEdges(demo.edges);
+        setGraphNodes([]);
+        setGraphEdges([]);
       }
       setSearchFilter(query);
       setSelectedNode(null);
       setZoom(1);
       setPan({ x: 0, y: 0 });
     } catch {
-      const demo = getDemoData();
-      setGraphNodes(demo.nodes);
-      setGraphEdges(demo.edges);
+      setGraphNodes([]);
+      setGraphEdges([]);
       setSearchFilter(query);
       setSelectedNode(null);
       setZoom(1);

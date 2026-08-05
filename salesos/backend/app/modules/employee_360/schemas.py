@@ -135,6 +135,7 @@ class EmployeeTimeline(BaseModel):
     events: list[TimelineEvent] = []
     total: int = 0
     next_cursor: str | None = None
+    error: str | None = None
 
 
 class AICoachAction(BaseModel):

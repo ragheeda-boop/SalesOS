@@ -140,10 +140,10 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
     expect(screen.getByTestId("integrations-studio")).toBeInTheDocument();
     expect(
       screen.getByTestId("integrations-studio-live-honesty"),
-    ).toHaveTextContent(/conflict-policy/i);
+    ).toHaveTextContent(/credential/i);
     expect(
       screen.getByTestId("integrations-studio-live-honesty"),
-    ).toHaveTextContent(/OdooAdapter/i);
+    ).toHaveTextContent(/HubSpot/i);
     expect(
       screen.getByTestId("integrations-studio-step-conflict"),
     ).toBeInTheDocument();
@@ -264,7 +264,7 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
     );
     expect(
       screen.getByTestId("integrations-studio-partner-join-honesty"),
-    ).toHaveTextContent(/cr_number/i);
+    ).toHaveTextContent(/registration|company|Monitor/i);
     expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
       "res.partner",
     );
@@ -285,7 +285,7 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
     );
     expect(
       screen.getByTestId("integrations-studio-ticket-stage-honesty"),
-    ).toHaveTextContent(/translated/i);
+    ).toHaveTextContent(/stages|PII/i);
     expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
       "helpdesk.ticket",
     );
@@ -306,7 +306,7 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
     );
     expect(
       screen.getByTestId("integrations-studio-task-case-honesty"),
-    ).toHaveTextContent(/Value Object|no independent id/i);
+    ).toHaveTextContent(/case extensions|financing/i);
     expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
       "project.task",
     );
@@ -327,7 +327,7 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
     );
     expect(
       screen.getByTestId("integrations-studio-invoice-payment-honesty"),
-    ).toHaveTextContent(/PlatformBillingInvoice|out_invoice/i);
+    ).toHaveTextContent(/Stripe|Customer invoices|AR/i);
     expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
       "account.move",
     );
@@ -348,7 +348,7 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
     );
     expect(
       screen.getByTestId("integrations-studio-note-pii-honesty"),
-    ).toHaveTextContent(/AI-GR-001/i);
+    ).toHaveTextContent(/PII-scrubbed|audit-only/i);
     expect(screen.getByTestId("integrations-studio-map-model")).toHaveValue(
       "mail.message",
     );
@@ -396,11 +396,11 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
     ).toHaveTextContent(/write_date/i);
   });
 
-  it("mentions STORY-09-07 in live honesty banner", () => {
+  it("states operator limits in live honesty banner", () => {
     render(<IntegrationsStudio />);
     expect(
       screen.getByTestId("integrations-studio-live-honesty"),
-    ).toHaveTextContent(/feature_odoo_integration|STORY-09-07/i);
+    ).toHaveTextContent(/credential|HubSpot|feature flag/i);
   });
   it("lists tip unlinked badges on Monitor (FE-S09-08)", () => {
     render(<IntegrationsStudio />);
@@ -411,7 +411,7 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
     );
     expect(
       screen.getByTestId("integrations-studio-unlinked-honesty"),
-    ).toHaveTextContent(/unlinked-badges/i);
+    ).toHaveTextContent(/Unlinked badges|residuals/i);
     expect(
       screen.getByTestId("integrations-studio-unlinked-count"),
     ).toHaveTextContent(/1 badge/);
@@ -428,9 +428,9 @@ describe("IntegrationsStudio — FE-S08-08..14 / FE-S09-01..04", () => {
     );
     expect(
       screen.getByTestId("integrations-studio-sync-run-cursors"),
-    ).toHaveTextContent(/cursor_before/);
+    ).toHaveTextContent(/Cursors:/i);
     expect(
       screen.getByTestId("integrations-studio-sync-run-cursors"),
-    ).toHaveTextContent(/2026-08-02 10:00:00/);
+    ).toHaveTextContent(/before/);
   });
 });

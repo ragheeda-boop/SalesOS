@@ -64,10 +64,15 @@ async def invite_user(
             status_code=400, detail=safe_error_detail(e, "Invalid invitation")
         ) from e  # noqa: E501
     return {
-        "message": f"Invitation sent to {body.email}",
+        "message": (
+            f"Invite recorded for {body.email}. "
+            "Email delivery is not configured — share the accept-invite link out of band."
+        ),
         "email": result["email"],
         "role": result["role"],
         "expires_at": result["expires_at"].isoformat(),
+        "email_delivery": "not_configured",
+        "invite_token": result["invite_token"],
     }
 
 

@@ -6,5 +6,5 @@ interface SpinnerProps {
 }
 
 export function Spinner({ className }: SpinnerProps) {
-  return <Loader2 className={cn('animate-spin text-[var(--text-muted)]', className)} />
+  return <Loader2 role="status" aria-label="Loading" className={cn('animate-spin text-[var(--text-muted)]', className)} />
 }

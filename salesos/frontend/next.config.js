@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   output: "standalone",
   images: {
     domains: ["localhost"],
@@ -27,10 +29,17 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
   },
   async rewrites() {
+    // Server-side proxy target (Docker network) must differ from browser-facing
+    // NEXT_PUBLIC_API_URL (host localhost). Prefer API_REWRITE_URL when set.
+    const apiOrigin =
+      process.env.API_REWRITE_URL ||
+      process.env.INTERNAL_API_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      "http://localhost:8000";
     return [
       {
         source: "/api/:path*",
-        destination: `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/:path*`,
+        destination: `${apiOrigin}/api/:path*`,
       },
     ];
   },

@@ -515,10 +515,22 @@ class TestRateLimitMiddleware:
     @pytest.mark.asyncio
     async def test_cleanup_removes_stale_entries(self):
         app = RateLimitMiddleware(_dummy_app, window=60)
-        app._local["ratelimit:1.2.3.4"] = [time.time() - 7200]
+        app._local["ratelimit:anon:1.2.3.4:default"] = [time.time() - 7200]
         app._last_cleanup = 0
         app._cleanup_local(time.time())
-        assert "ratelimit:1.2.3.4" not in app._local
+        assert "ratelimit:anon:1.2.3.4:default" not in app._local
+
+    def test_rate_limit_key_anon_and_identity(self):
+        assert (
+            RateLimitMiddleware._rate_limit_key("1.2.3.4", "/api/v1/identity/login", None, None)
+            == "ratelimit:anon:1.2.3.4:identity"
+        )
+        assert (
+            RateLimitMiddleware._rate_limit_key(
+                "1.2.3.4", "/api/v1/companies", "tenant-a", "user-b"
+            )
+            == "ratelimit:t:tenant-a:u:user-b:ip:1.2.3.4:api"
+        )
 
 
 # ── TenantContextMiddleware ──────────────────────────────────────────────

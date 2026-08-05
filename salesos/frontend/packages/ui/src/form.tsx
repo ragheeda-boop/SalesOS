@@ -147,7 +147,7 @@ export function FormField({
           className="text-sm font-medium text-[var(--text-secondary)]"
         >
           {label}
-          {required && <span className="ml-1 text-danger-500" aria-hidden="true">*</span>}
+          {required && <span className="ms-1 text-danger-500" aria-hidden="true">*</span>}
         </label>
       )}
       <div

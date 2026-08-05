@@ -7,6 +7,10 @@ import { cn } from "@salesos/ui";
 import { BarChart, LineChart, PieChart, MetricCard } from "@salesos/charts";
 import { ExportShareBar } from "@/components/analytics";
 import {
+  normalizePipelineAnalytics,
+  type PipelineAnalyticsView,
+} from "@/lib/pipelineAnalytics";
+import {
   ArrowLeft,
   Clock,
   DollarSign,
@@ -14,18 +18,6 @@ import {
   BarChart3,
   RefreshCw,
 } from "lucide-react";
-
-interface PipelineAnalyticsData {
-  conversion_funnel: { stage: string; count: number; value: number }[];
-  velocity: { stage: string; avg_days: number }[];
-  stage_duration: { stage: string; p50: number; p95: number }[];
-  value_over_time: { date: string; value: number }[];
-  win_rate: number;
-  avg_deal_size: number;
-  avg_cycle_days: number;
-  total_pipeline: number;
-  conversion_rate_lead_to_close: number;
-}
 
 const STAGE_COLORS: Record<string, string> = {
   lead: "#3B82F6",
@@ -52,9 +44,10 @@ const DATE_RANGES = [
 ] as const;
 
 function formatCurrency(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M SAR`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K SAR`;
-  return `${value.toLocaleString()} SAR`;
+  const n = Number.isFinite(value) ? value : 0;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M SAR`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K SAR`;
+  return `${n.toLocaleString()} SAR`;
 }
 
 function LoadingSkeleton() {
@@ -75,7 +68,7 @@ function LoadingSkeleton() {
 }
 
 export default function PipelineAnalyticsOverviewPage() {
-  const [analytics, setAnalytics] = useState<PipelineAnalyticsData | null>(
+  const [analytics, setAnalytics] = useState<PipelineAnalyticsView | null>(
     null,
   );
   const [loading, setLoading] = useState(true);
@@ -87,7 +80,7 @@ export default function PipelineAnalyticsOverviewPage() {
     setError(null);
     try {
       const res = await api.get("/api/v1/pipeline/analytics");
-      setAnalytics(res.data);
+      setAnalytics(normalizePipelineAnalytics(res.data));
     } catch {
       setError("Failed to load pipeline analytics");
     } finally {
@@ -117,34 +110,43 @@ export default function PipelineAnalyticsOverviewPage() {
 
   if (!analytics) return null;
 
-  const funnel = analytics.conversion_funnel ?? [];
-  const velocity = analytics.velocity ?? [];
-  const stageDuration = analytics.stage_duration ?? [];
-  const valueOverTime = analytics.value_over_time ?? [];
+  const funnel = analytics.conversion_funnel;
+  const velocity = analytics.velocity;
+  const stageDuration = analytics.stage_duration;
+  const valueOverTime = analytics.value_over_time;
 
   const velocityData = velocity.map((v) => ({
     label: STAGE_LABELS[v.stage] || v.stage,
     value: v.avg_days,
   }));
 
-  const wonLostData = [
-    {
-      label: "Won",
-      value: Math.round(analytics.total_pipeline * (analytics.win_rate / 100)),
-      color: "#10B981",
-    },
-    {
-      label: "Lost",
-      value: Math.round(
-        analytics.total_pipeline * (1 - analytics.win_rate / 100),
-      ),
-      color: "#EF4444",
-    },
-  ];
+  const wonCount = analytics.total_won;
+  const lostCount = analytics.total_lost;
+  const wonLostData =
+    wonCount + lostCount > 0
+      ? [
+          { label: "Won", value: wonCount, color: "#10B981" },
+          { label: "Lost", value: lostCount, color: "#EF4444" },
+        ]
+      : [
+          {
+            label: "Won",
+            value: Math.round(
+              analytics.total_pipeline * (analytics.win_rate / 100),
+            ),
+            color: "#10B981",
+          },
+          {
+            label: "Lost",
+            value: Math.round(
+              analytics.total_pipeline * (1 - analytics.win_rate / 100),
+            ),
+            color: "#EF4444",
+          },
+        ];
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
@@ -189,7 +191,6 @@ export default function PipelineAnalyticsOverviewPage() {
         </div>
       </div>
 
-      {/* Key Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           label="Total Pipeline"
@@ -213,47 +214,51 @@ export default function PipelineAnalyticsOverviewPage() {
         />
       </div>
 
-      {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Conversion Funnel */}
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
           <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
             Conversion Funnel
           </h3>
-          <div className="space-y-1.5">
-            {funnel.map((item) => {
-              const maxCount = Math.max(...funnel.map((f) => f.count), 1);
-              const pct = (item.count / maxCount) * 100;
-              const color = STAGE_COLORS[item.stage] || "#6B7280";
-              return (
-                <div key={item.stage} className="flex items-center gap-3">
-                  <span className="min-w-[100px] text-xs text-[var(--text-muted)]">
-                    {STAGE_LABELS[item.stage] || item.stage}
-                  </span>
-                  <div className="flex-1 h-7 rounded-lg bg-[var(--bg-tertiary)] overflow-hidden relative">
-                    <div
-                      className="h-full rounded-lg transition-all duration-500 flex items-center px-2"
-                      style={{
-                        width: `${Math.max(pct, 5)}%`,
-                        backgroundColor: color,
-                      }}
-                    >
-                      <span className="text-[10px] font-medium text-white whitespace-nowrap">
-                        {item.count}
-                      </span>
+          {funnel.length === 0 ? (
+            <p className="text-xs text-[var(--text-muted)] py-8 text-center">
+              No conversion data for this tenant yet
+            </p>
+          ) : (
+            <div className="space-y-1.5">
+              {funnel.map((item) => {
+                const maxCount = Math.max(...funnel.map((f) => f.count), 1);
+                const pct = (item.count / maxCount) * 100;
+                const color = STAGE_COLORS[item.stage] || "#6B7280";
+                return (
+                  <div key={item.stage} className="flex items-center gap-3">
+                    <span className="min-w-[100px] text-xs text-[var(--text-muted)]">
+                      {STAGE_LABELS[item.stage] || item.stage}
+                    </span>
+                    <div className="flex-1 h-7 rounded-lg bg-[var(--bg-tertiary)] overflow-hidden relative">
+                      <div
+                        className="h-full rounded-lg transition-all duration-500 flex items-center px-2"
+                        style={{
+                          width: `${Math.max(pct, 5)}%`,
+                          backgroundColor: color,
+                        }}
+                      >
+                        <span className="text-[10px] font-medium text-white whitespace-nowrap">
+                          {item.count}
+                        </span>
+                      </div>
                     </div>
+                    <span className="min-w-[70px] text-right text-[10px] text-[var(--text-muted)]">
+                      {formatCurrency(item.value)}
+                    </span>
                   </div>
-                  <span className="min-w-[70px] text-right text-[10px] text-[var(--text-muted)]">
-                    {formatCurrency(item.value)}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
           {analytics.conversion_rate_lead_to_close > 0 && (
             <div className="mt-3 text-center">
               <span className="text-xs text-[var(--text-muted)]">
-                Lead → Close Conversion:{""}
+                Lead → Close Conversion:{" "}
                 <span className="font-semibold text-[var(--muhide-orange)]">
                   {analytics.conversion_rate_lead_to_close}%
                 </span>
@@ -262,31 +267,41 @@ export default function PipelineAnalyticsOverviewPage() {
           )}
         </div>
 
-        {/* Velocity Chart */}
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
           <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
             Velocity (Avg Days per Stage)
           </h3>
-          <BarChart data={velocityData} height={250} />
+          {velocityData.length === 0 ? (
+            <p className="text-xs text-[var(--text-muted)] py-8 text-center">
+              No velocity data for this tenant yet
+            </p>
+          ) : (
+            <BarChart data={velocityData} height={250} />
+          )}
         </div>
       </div>
 
-      {/* Pipeline Value Over Time + Win/Loss */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
           <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
             Pipeline Value Over Time
           </h3>
-          <LineChart
-            series={[
-              {
-                name: "Pipeline Value",
-                color: "#F57C1E",
-                data: valueOverTime.map((v) => v.value),
-              },
-            ]}
-            height={250}
-          />
+          {valueOverTime.length === 0 ? (
+            <p className="text-xs text-[var(--text-muted)] py-8 text-center">
+              No pipeline value history yet
+            </p>
+          ) : (
+            <LineChart
+              series={[
+                {
+                  name: "Pipeline Value",
+                  color: "#F57C1E",
+                  data: valueOverTime.map((v) => v.value),
+                },
+              ]}
+              height={250}
+            />
+          )}
         </div>
 
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
@@ -297,7 +312,6 @@ export default function PipelineAnalyticsOverviewPage() {
         </div>
       </div>
 
-      {/* Stage Duration Table */}
       <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
         <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">
           Stage Duration Breakdown

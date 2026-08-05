@@ -99,10 +99,11 @@ _GRAPHQL_PREFIX = "/graphql"
 
 
 class RateLimitMiddleware:
-    """Per-IP sliding-window rate limiter with tiered limits.
+    """Sliding-window rate limiter with identity-aware keys and tiered limits.
 
     Redis-backed when available, in-memory fallback for dev/staging.
-    Enforces global per-IP limits with different tiers for path categories.
+    Anonymous traffic is keyed by IP + path bucket; authenticated JWT/API-key
+    traffic compounds tenant/user (+ IP) so shared egress IPs do not collide.
     """
 
     _CLEANUP_INTERVAL = 300  # seconds between stale-entry sweeps
@@ -145,6 +146,52 @@ class RateLimitMiddleware:
         except Exception:
             return False
 
+    @staticmethod
+    def _identity_parts(request: Request, auth_header: str) -> tuple[str | None, str | None]:
+        """Best-effort tenant/user for rate-limit keying (never required for anon)."""
+        if getattr(request.state, "api_key_authenticated", False):
+            tenant = getattr(request.state, "api_key_tenant_id", None)
+            user = getattr(request.state, "api_key_user_id", None)
+            return (str(tenant) if tenant else None, str(user) if user else None)
+        if not auth_header.startswith("Bearer "):
+            return (None, None)
+        token = auth_header[7:].strip()
+        if not token:
+            return (None, None)
+        try:
+            from app.modules.identity.service import decode_access_token
+
+            payload = decode_access_token(token)
+            tenant = payload.get("tenant_id")
+            user = payload.get("sub")
+            return (str(tenant) if tenant else None, str(user) if user else None)
+        except Exception:
+            return (None, None)
+
+    @staticmethod
+    def _rate_limit_key(client_ip: str, path: str, tenant: str | None, user: str | None) -> str:
+        """Compound key when identity is known; keep anon IP-scoped.
+
+        Also buckets by coarse path tier so identity smoke traffic does not
+        share the same counter as authenticated API probing from one IP.
+        """
+        if path.startswith("/api/v1/identity"):
+            bucket = "identity"
+        elif path in ("/health", "/health/live", "/health/ready", "/csrf-token") or path.startswith(
+            ("/docs", "/redoc")
+        ):
+            bucket = "health"
+        elif path.startswith(_GRAPHQL_PREFIX) or path.startswith("/api/v1/"):
+            bucket = "api"
+        else:
+            bucket = "default"
+
+        if tenant and user:
+            return f"ratelimit:t:{tenant}:u:{user}:ip:{client_ip}:{bucket}"
+        if tenant:
+            return f"ratelimit:t:{tenant}:ip:{client_ip}:{bucket}"
+        return f"ratelimit:anon:{client_ip}:{bucket}"
+
     def _select_tier(self, path: str, authenticated: bool) -> int:
         """Return the per-minute rate limit for the given request path."""
         health_paths = ("/health", "/health/live", "/health/ready", "/csrf-token")
@@ -179,8 +226,8 @@ class RateLimitMiddleware:
         tier_rate = self._select_tier(path, self._is_authenticated(request, auth_header))
         now = time.time()
 
-        # Key by IP only — prevents bypass via path variation
-        key = f"ratelimit:{client_ip}"
+        tenant, user = self._identity_parts(request, auth_header)
+        key = self._rate_limit_key(client_ip, path, tenant, user)
 
         # --- Redis path ---
         if self._redis:

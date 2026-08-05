@@ -17,8 +17,7 @@ export default function IntegrationsPage() {
         </h1>
         <p className="mt-1 text-sm text-[var(--text-muted)]">
           Connect, test, map, schedule, monitor, and disconnect Integration Hub
-          connections for this tenant. Tip certify suite includes HubSpot
-          (STORY-11-10) — live HubSpot network not claimed.
+          connections for this tenant. Live HubSpot network is not claimed.
         </p>
       </div>
       <SecondConnectorCertPanel />

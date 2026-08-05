@@ -68,6 +68,11 @@ async def get_unified_analytics(
     except Exception as exc:
         logger.exception("Unified analytics failed")
         raise HTTPException(status_code=500, detail=safe_error_detail(exc)) from exc
+    empty = (
+        metrics.total_deals == 0
+        and metrics.pipeline_value == 0
+        and metrics.total_revenue == 0
+    )
     return {
         "total_deals": metrics.total_deals,
         "total_revenue": metrics.total_revenue,
@@ -79,6 +84,13 @@ async def get_unified_analytics(
         "win_rate": metrics.win_rate,
         "active_automations": metrics.active_automations,
         "generated_at": metrics.generated_at.isoformat(),
+        "data_quality": "no_tenant_data" if empty else "aggregated",
+        "source": "empty" if empty else "cubes",
+        "message": (
+            "No tenant analytics data yet — cubes return empty until wired to live SQL."
+            if empty
+            else "Aggregated from analytics cubes."
+        ),
     }
 
 

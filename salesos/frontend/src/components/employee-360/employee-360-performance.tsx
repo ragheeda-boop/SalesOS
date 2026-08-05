@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { ErrorFallback } from "@/components/foundation/error-boundary";
+import { TrendChart } from "./employee-360-trend-chart";
 
 export function EmployeePerformance({ employeeId }: { employeeId: string }) {
   const { t } = useTranslation();
@@ -70,118 +71,13 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
     );
   }
 
-  const maxScore = Math.max(
-    ...performance.score_trend.map((p: { score: number }) => p.score),
-    100,
-  );
-  const trendDirIcon =
-    performance.score_trend_direction === "up" ? (
-      <TrendingUp className="h-4 w-4 text-success-500" />
-    ) : performance.score_trend_direction === "down" ? (
-      <TrendingDown className="h-4 w-4 text-danger-500" />
-    ) : (
-      <Minus className="h-4 w-4 text-[var(--text-disabled)]" />
-    );
-
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-success-600" />
-                <h3 className="text-sm font-semibold">
-                  {t("emp360.score_trend")}
-                </h3>
-              </div>
-              <div className="flex items-center gap-1 text-sm">
-                {trendDirIcon}
-                <span className="text-xs text-[var(--text-disabled)] capitalize">
-                  {performance.score_trend_direction}
-                </span>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {performance.score_trend.length === 0 ? (
-              <p className="text-xs text-[var(--text-disabled)] text-center py-8">
-                {t("emp360.no_trend_data")}
-              </p>
-            ) : (
-              <div className="relative h-48 w-full">
-                <svg
-                  className="h-full w-full"
-                  viewBox="0 0 400 150"
-                  preserveAspectRatio="none"
-                >
-                  <defs>
-                    <linearGradient
-                      id="trend-gradient"
-                      x1="0%"
-                      y1="0%"
-                      x2="0%"
-                      y2="100%"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="var(--muhide-orange)"
-                        stopOpacity="0.3"
-                      />
-                      <stop
-                        offset="100%"
-                        stopColor="var(--muhide-orange)"
-                        stopOpacity="0.02"
-                      />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d={`M0,${150 - ((performance.score_trend[0]?.score || 0) / maxScore) * 140} ${performance.score_trend.map((p: { score: number }, i: number) => `L${(i / Math.max(1, performance.score_trend.length - 1)) * 400},${150 - (p.score / maxScore) * 140}`).join(" ")} L400,150 L0,150 Z`}
-                    fill="url(#trend-gradient)"
-                  />
-                  <polyline
-                    points={performance.score_trend
-                      .map(
-                        (p: { score: number }, i: number) =>
-                          `${(i / Math.max(1, performance.score_trend.length - 1)) * 400},${150 - (p.score / maxScore) * 140}`,
-                      )
-                      .join(" ")}
-                    fill="none"
-                    stroke="var(--muhide-orange)"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  {performance.score_trend.map(
-                    (p: { score: number }, i: number) => (
-                      <circle
-                        key={i}
-                        cx={
-                          (i /
-                            Math.max(1, performance.score_trend.length - 1)) *
-                          400
-                        }
-                        cy={150 - (p.score / maxScore) * 140}
-                        r="3"
-                        fill="var(--muhide-orange)"
-                      />
-                    ),
-                  )}
-                </svg>
-                <div className="absolute bottom-0 left-0 right-0 flex justify-between text-[10px] text-[var(--text-disabled)]">
-                  <span>{performance.score_trend[0]?.date}</span>
-                  <span>
-                    {
-                      performance.score_trend[
-                        performance.score_trend.length - 1
-                      ]?.date
-                    }
-                  </span>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <TrendChart
+          data={performance.score_trend}
+          direction={performance.score_trend_direction}
+        />
 
         <Card>
           <CardHeader>
@@ -224,7 +120,7 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
                               }}
                             />
                           </div>
-                          <span className="w-8 text-right text-[10px] font-medium text-[var(--text-primary)]">
+                          <span className="w-8 text-end text-[10px] font-medium text-[var(--text-primary)]">
                             {Math.round(p.employee_value)}%
                           </span>
                         </div>
@@ -240,7 +136,7 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
                               }}
                             />
                           </div>
-                          <span className="w-8 text-right text-[10px] font-medium text-[var(--text-primary)]">
+                          <span className="w-8 text-end text-[10px] font-medium text-[var(--text-primary)]">
                             {Math.round(p.department_avg)}%
                           </span>
                         </div>
@@ -250,7 +146,7 @@ export function EmployeePerformance({ employeeId }: { employeeId: string }) {
                 },
               )}
               {performance.peer_comparison.length === 0 && (
-                <p className="text-xs text-[var(--text-disabled)] text-center py-4">
+                <p className="py-4 text-center text-xs text-[var(--text-disabled)]">
                   {t("emp360.no_comparison")}
                 </p>
               )}

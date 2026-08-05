@@ -1,14 +1,12 @@
-import { render, screen, fireEvent } from '@testing-library/react'
-import { Toast, ToastProvider, ToastViewport, useToast } from '../src/toast'
+import { render, screen } from '@testing-library/react'
+import { Toast, ToastViewport } from '../src/toast'
 
 describe('Toast', () => {
-  it('renders with title and description', () => {
+  it('renders with title and description under ToastViewport alone', () => {
     render(
-      <ToastProvider>
-        <ToastViewport>
-          <Toast title="Success" description="Operation completed" />
-        </ToastViewport>
-      </ToastProvider>
+      <ToastViewport>
+        <Toast title="Success" description="Operation completed" />
+      </ToastViewport>
     )
     expect(screen.getByText('Success')).toBeInTheDocument()
     expect(screen.getByText('Operation completed')).toBeInTheDocument()

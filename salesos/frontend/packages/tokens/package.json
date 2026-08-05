@@ -1,5 +1,14 @@
 {
   "name": "@salesos/tokens",
-  "version": "0.1.0-alpha",
-  "private": true
+  "version": "1.0.0",
+  "private": true,
+  "description": "SalesOS design tokens — single source of truth for colors, spacing, typography, shadows, and motion",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./css": "./src/tokens.css",
+    "./tailwind": "./src/tailwind-preset.ts"
+  }
 }

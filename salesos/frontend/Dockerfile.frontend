@@ -42,9 +42,18 @@ COPY --from=deps /app/packages ./packages
 # Copy source code
 COPY . .
 
+# Browser-facing vs container-internal API origins (see next.config.js rewrites).
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ARG API_REWRITE_URL=http://backend:8000
+ARG BUILD_ID=local
+
 # Build Next.js with standalone output
 ENV NEXT_TELEMETRY_DISABLED=1 \
-    NODE_ENV=production
+    NODE_ENV=production \
+    NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    API_REWRITE_URL=$API_REWRITE_URL \
+    INTERNAL_API_URL=$API_REWRITE_URL \
+    BUILD_ID=$BUILD_ID
 
 RUN npm run build 2>/dev/null || npx next build
 
@@ -62,11 +71,15 @@ RUN apk add --no-cache dumb-init
 
 WORKDIR /app
 
+ARG API_REWRITE_URL=http://backend:8000
+
 # Set production environment
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
-    HOSTNAME="0.0.0.0"
+    HOSTNAME="0.0.0.0" \
+    API_REWRITE_URL=$API_REWRITE_URL \
+    INTERNAL_API_URL=$API_REWRITE_URL
 
 # Copy standalone output (contains all needed node_modules)
 COPY --from=builder --chown=app:app /app/.next/standalone ./

@@ -9,6 +9,7 @@ import {
   V3_AI_OPEN_EVENT,
   type V3AiOpenDetail,
 } from "@/components/v3/V3AiPopup";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 const SIDEBAR_KEY = "salesos_v3_sidebar_collapsed";
 
@@ -99,7 +100,7 @@ export default function V3Layout({ children }: { children: ReactNode }) {
             className="flex-1 overflow-auto p-5 md:p-6"
             tabIndex={-1}
           >
-            {children}
+            <ErrorBoundary>{children}</ErrorBoundary>
           </main>
         </div>
       </div>

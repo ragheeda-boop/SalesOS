@@ -50,8 +50,8 @@ export function Table<TData>({ columns, data, loading, onRowClick, className }: 
           ) : table.getRowModel().rows.length === 0 ? (
             <tr>
               <td colSpan={columns.length} className="px-4 py-8 text-center text-[var(--text-muted)]">
-                <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                <div className="flex flex-col items-center gap-2" role="status">
+                  <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
                   <span>No results</span>
                 </div>
               </td>

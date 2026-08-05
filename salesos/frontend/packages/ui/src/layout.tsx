@@ -48,6 +48,8 @@ export const LayoutContent = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivEl
     return (
       <main
         ref={ref}
+        id="main-content"
+        tabIndex={-1}
         className={cn('flex-1 overflow-auto p-6', className)}
         {...props}
       >

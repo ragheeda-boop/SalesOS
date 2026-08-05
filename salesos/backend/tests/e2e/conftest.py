@@ -44,6 +44,7 @@ async def test_tenant(db_session: AsyncSession) -> str:
     )
     db_session.add(tenant)
     await db_session.flush()
+    await db_session.commit()
     return str(tenant.id)
 
 

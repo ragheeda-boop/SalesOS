@@ -5,6 +5,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.common.exceptions import is_tenant_isolation_failure
 from app.modules.company.models import Company
 from app.modules.contact.models import Contact
 from app.modules.identity.models import User
@@ -379,9 +380,23 @@ class Employee360Service:
                 for s in items
             ]
             return EmployeeTimeline(events=events, total=total)
-        except Exception:
+        except Exception as e:
             await self._recover_session()
-            return EmployeeTimeline()
+            if is_tenant_isolation_failure(e):
+                if self.logger:
+                    self.logger.error(
+                        "employee_360.timeline_rls_failed",
+                        user_id=user_id,
+                        error=str(e),
+                    )
+                raise
+            if self.logger:
+                self.logger.warn(
+                    "employee_360.timeline_failed",
+                    user_id=user_id,
+                    error=str(e),
+                )
+            return EmployeeTimeline(error="unavailable")
 
     async def _get_performance(
         self,

@@ -4,24 +4,17 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import api from "@/lib/api";
 import { BarChart, LineChart, MetricCard } from "@salesos/charts";
+import {
+  normalizePipelineAnalytics,
+  type PipelineAnalyticsView,
+} from "@/lib/pipelineAnalytics";
 import { ArrowLeft, Clock, DollarSign, Target, BarChart3 } from "lucide-react";
 
-interface PipelineAnalyticsData {
-  conversion_funnel: { stage: string; count: number; value: number }[];
-  velocity: { stage: string; avg_days: number }[];
-  stage_duration: { stage: string; p50: number; p95: number }[];
-  value_over_time: { label: string; value: number }[];
-  win_rate: number;
-  avg_deal_size: number;
-  avg_cycle_days: number;
-  total_pipeline: number;
-  conversion_rate_lead_to_close: number;
-}
-
 function formatCurrency(value: number): string {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M SAR`;
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K SAR`;
-  return `${value.toLocaleString()} SAR`;
+  const n = Number.isFinite(value) ? value : 0;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M SAR`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K SAR`;
+  return `${n.toLocaleString()} SAR`;
 }
 
 const STAGE_COLORS: Record<string, string> = {
@@ -47,6 +40,13 @@ function FunnelChart({
 }: {
   data: { stage: string; count: number; value: number }[];
 }) {
+  if (data.length === 0) {
+    return (
+      <p className="text-xs text-[var(--text-muted)] py-8 text-center">
+        No conversion data for this tenant yet
+      </p>
+    );
+  }
   const maxCount = Math.max(...data.map((d) => d.count), 1);
   return (
     <div className="space-y-2">
@@ -91,6 +91,13 @@ function VelocityChart({
 }: {
   data: { stage: string; avg_days: number }[];
 }) {
+  if (data.length === 0) {
+    return (
+      <p className="text-xs text-[var(--text-muted)] py-8 text-center">
+        No velocity data for this tenant yet
+      </p>
+    );
+  }
   const chartData = data.map((d) => ({
     label: STAGE_LABELS[d.stage] || d.stage,
     value: d.avg_days,
@@ -174,6 +181,16 @@ function StageDurationTable({
                 </td>
               </tr>
             ))}
+            {data.length === 0 && (
+              <tr>
+                <td
+                  colSpan={4}
+                  className="px-3 py-6 text-center text-xs text-[var(--text-muted)]"
+                >
+                  No stage duration data available
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -182,7 +199,7 @@ function StageDurationTable({
 }
 
 export default function PipelineAnalyticsPage() {
-  const [analytics, setAnalytics] = useState<PipelineAnalyticsData | null>(
+  const [analytics, setAnalytics] = useState<PipelineAnalyticsView | null>(
     null,
   );
   const [loading, setLoading] = useState(true);
@@ -192,7 +209,7 @@ export default function PipelineAnalyticsPage() {
     const load = async () => {
       try {
         const res = await api.get("/api/v1/pipeline/analytics");
-        setAnalytics(res.data);
+        setAnalytics(normalizePipelineAnalytics(res.data));
       } catch {
         setError("Failed to load pipeline analytics");
       } finally {
@@ -237,7 +254,6 @@ export default function PipelineAnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center gap-3">
         <Link
           href="/pipeline"
@@ -255,7 +271,6 @@ export default function PipelineAnalyticsPage() {
         </div>
       </div>
 
-      {/* Key Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard
           label="Win Rate"
@@ -279,44 +294,45 @@ export default function PipelineAnalyticsPage() {
         />
       </div>
 
-      {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Conversion Funnel */}
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
           <FunnelChart data={funnel} />
-          {analytics?.conversion_rate_lead_to_close != null && (
+          {(analytics?.conversion_rate_lead_to_close ?? 0) > 0 && (
             <div className="mt-3 text-center">
               <span className="text-xs text-[var(--text-muted)]">
-                Lead → Close Conversion:{""}
+                Lead → Close Conversion:{" "}
                 <span className="font-semibold text-[var(--muhide-orange)]">
-                  {analytics.conversion_rate_lead_to_close}%
+                  {analytics?.conversion_rate_lead_to_close}%
                 </span>
               </span>
             </div>
           )}
         </div>
 
-        {/* Velocity Chart */}
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
           <VelocityChart data={velocity} />
         </div>
 
-        {/* Pipeline Value Over Time */}
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
-          <LineChart
-            series={[
-              {
-                name: "Pipeline Value",
-                color: "#F57C1E",
-                data: valueOverTime.map((v) => v.value),
-              },
-            ]}
-            title="Pipeline Value Over Time"
-            height={220}
-          />
+          {valueOverTime.length === 0 ? (
+            <p className="text-xs text-[var(--text-muted)] py-8 text-center">
+              No pipeline value history yet
+            </p>
+          ) : (
+            <LineChart
+              series={[
+                {
+                  name: "Pipeline Value",
+                  color: "#F57C1E",
+                  data: valueOverTime.map((v) => v.value),
+                },
+              ]}
+              title="Pipeline Value Over Time"
+              height={220}
+            />
+          )}
         </div>
 
-        {/* Stage Duration Table */}
         <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] p-4">
           <StageDurationTable data={stageDuration} />
         </div>

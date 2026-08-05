@@ -1,4 +1,9 @@
 node_modules
+node_modules*
+**/node_modules
+**/node_modules.*
+*.bak-*
+**/*.bak-*
 .next
 .git
 .gitignore
@@ -6,3 +11,9 @@ node_modules
 .env
 .env.local
 .env.production
+.env.*.local
+coverage
+.turbo
+.cache
+*.log
+npm-debug.log*

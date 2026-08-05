@@ -21,16 +21,25 @@ import {
 } from "@salesos/ui";
 import {
   BarChart3,
-  Share2,
-  DollarSign,
+  Users,
+  Handshake,
   Activity,
-  Sparkles,
+  MoreHorizontal,
   Building2,
   MapPin,
   FileText,
   TrendingUp,
-  Users,
   CheckCircle,
+  Plus,
+  Mail,
+  Phone,
+  Calendar,
+  MessageSquare,
+  DollarSign,
+  Target,
+  Settings,
+  Bell,
+  Share2,
 } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { KnowledgeGraphPanel } from "@/features/company-intelligence/widgets/company-360/KnowledgeGraphPanel";
@@ -38,14 +47,32 @@ import { ActivityTimeline } from "@/features/company-intelligence/widgets/compan
 import { DecisionPlatformPanel } from "@/features/company-intelligence/widgets/company-360/DecisionPlatformPanel";
 import type { ColumnDef } from "@tanstack/react-table";
 
-type TabId = "overview" | "hierarchy" | "financial" | "activity" | "insights";
+type TabId = "overview" | "people" | "dealroom" | "activity" | "more";
 
 const TABS: { id: TabId; labelKey: string; icon: typeof BarChart3 }[] = [
   { id: "overview", labelKey: "tabs.overview", icon: BarChart3 },
-  { id: "hierarchy", labelKey: "360.hierarchy", icon: Share2 },
-  { id: "financial", labelKey: "360.financial", icon: DollarSign },
+  { id: "people", labelKey: "tabs.people", icon: Users },
+  { id: "dealroom", labelKey: "tabs.dealroom", icon: Handshake },
   { id: "activity", labelKey: "tabs.activity", icon: Activity },
-  { id: "insights", labelKey: "360.insights", icon: Sparkles },
+  { id: "more", labelKey: "tabs.more", icon: MoreHorizontal },
+];
+
+interface QuickAction {
+  id: string;
+  label: string;
+  icon: typeof Mail;
+  color: string;
+  href?: string;
+  onClick?: string;
+}
+
+const QUICK_ACTIONS: QuickAction[] = [
+  { id: "add-contact", label: "جهة اتصال", icon: Users, color: "text-[var(--color-info)] bg-[var(--color-info-bg)]", href: "?action=add-contact" },
+  { id: "new-deal", label: "صفقة", icon: Handshake, color: "text-[var(--color-success)] bg-[var(--color-success-bg)]", href: "?action=new-deal" },
+  { id: "add-note", label: "ملاحظة", icon: MessageSquare, color: "text-[var(--color-neutral)] bg-[var(--color-neutral-bg)]", href: "?action=add-note" },
+  { id: "schedule-meeting", label: "اجتماع", icon: Calendar, color: "text-[var(--color-warning)] bg-[var(--color-warning-bg)]", href: "?action=schedule-meeting" },
+  { id: "send-email", label: "بريد", icon: Mail, color: "text-[var(--color-info)] bg-[var(--color-info-bg)]", href: "?action=send-email" },
+  { id: "log-call", label: "مكالمة", icon: Phone, color: "text-[var(--color-success)] bg-[var(--color-success-bg)]", href: "?action=log-call" },
 ];
 
 function HealthScoreRing({ score }: { score: number }) {
@@ -350,6 +377,28 @@ export default function Company360Page() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] px-3 py-2">
+        <span className="text-xs font-medium text-[var(--text-muted)]">إجراءات سريعة</span>
+        <div className="flex flex-wrap gap-1.5">
+          {QUICK_ACTIONS.map((action) => {
+            const Icon = action.icon;
+            return (
+              <Link
+                key={action.id}
+                href={`/companies/${id}${action.href || ""}`}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-colors hover:opacity-80",
+                  action.color,
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {action.label}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabId)}>
         <TabsList className="flex items-center gap-1 overflow-x-auto rounded-xl border border-[var(--border-default)] bg-[var(--bg-primary)] px-2 py-1">
           {TABS.map((tab) => {
@@ -405,13 +454,75 @@ export default function Company360Page() {
             </div>
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <DecisionPlatformPanel companyId={id} />
-              <KnowledgeGraphPanel companyId={id} />
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5 text-[var(--text-muted)]" />
+                    <span className="text-sm font-semibold text-[var(--text-primary)]">
+                      البيانات المالية والإثراء
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {enrichmentData.map((d) => (
+                      <div
+                        key={d.label}
+                        className="rounded-lg bg-[var(--bg-secondary)] p-3"
+                      >
+                        <p className="text-[10px] text-[var(--text-muted)]">
+                          {d.label}
+                        </p>
+                        <p className="mt-0.5 text-sm font-semibold text-[var(--text-primary)]">
+                          {String(d.value)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  <DataTable
+                    columns={financialColumns}
+                    data={financialData}
+                    emptyState={{
+                      icon: <DollarSign className="h-10 w-10" />,
+                      title: "لا توجد بيانات مالية",
+                      description:
+                        "لم يتم العثور على عقود أو فواتير أو فرص لهذه الشركة",
+                    }}
+                  />
+                </CardContent>
+              </Card>
             </div>
           </div>
         </TabsPanel>
 
-        <TabsPanel value="hierarchy">
+        <TabsPanel value="people">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-[var(--text-muted)]" />
+                    <span className="text-sm font-semibold text-[var(--text-primary)]">
+                      جهات الاتصال
+                    </span>
+                  </div>
+                  <Link
+                    href={`/companies/${id}?action=add-contact`}
+                    className="inline-flex items-center gap-1 rounded-lg bg-[var(--muhide-orange)]/10 px-2 py-1 text-[11px] font-medium text-[var(--muhide-orange)] hover:bg-[var(--muhide-orange)]/20 transition-colors"
+                  >
+                    <Plus className="h-3 w-3" />
+                    إضافة
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <EmptyState
+                  icon={<Users className="h-10 w-10" />}
+                  title="لا توجد جهات اتصال"
+                  description="لم يتم العثور على جهات اتصال لهذه الشركة"
+                />
+              </CardContent>
+            </Card>
             {hierarchySections.length > 0 ? (
               hierarchySections.map((section) => (
                 <Card key={section.title}>
@@ -480,56 +591,130 @@ export default function Company360Page() {
           </div>
         </TabsPanel>
 
-        <TabsPanel value="financial">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-[var(--text-muted)]" />
-                <span className="text-sm font-semibold text-[var(--text-primary)]">
-                  البيانات المالية والإثراء
-                </span>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {enrichmentData.map((d) => (
-                  <div
-                    key={d.label}
-                    className="rounded-lg bg-[var(--bg-secondary)] p-3/50"
-                  >
-                    <p className="text-[10px] text-[var(--text-muted)]">
-                      {d.label}
-                    </p>
-                    <p className="mt-0.5 text-sm font-semibold text-[var(--text-primary)]">
-                      {String(d.value)}
-                    </p>
+        <TabsPanel value="dealroom">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Handshake className="h-5 w-5 text-[var(--text-muted)]" />
+                      <span className="text-sm font-semibold text-[var(--text-primary)]">
+                        الصفقات النشطة
+                      </span>
+                    </div>
+                    <Link
+                      href={`/companies/${id}?action=new-deal`}
+                      className="inline-flex items-center gap-1 rounded-lg bg-[var(--muhide-orange)]/10 px-2 py-1 text-[11px] font-medium text-[var(--muhide-orange)] hover:bg-[var(--muhide-orange)]/20 transition-colors"
+                    >
+                      <Plus className="h-3 w-3" />
+                      صفقة جديدة
+                    </Link>
                   </div>
-                ))}
-              </div>
-              <h4 className="mb-2 text-xs font-semibold text-[var(--text-secondary)]">
-                العقود والفواتير والفرص
-              </h4>
-              <DataTable
-                columns={financialColumns}
-                data={financialData}
-                emptyState={{
-                  icon: <DollarSign className="h-10 w-10" />,
-                  title: "لا توجد بيانات مالية",
-                  description:
-                    "لم يتم العثور على عقود أو فواتير أو فرص لهذه الشركة",
-                }}
-              />
-            </CardContent>
-          </Card>
+                </CardHeader>
+                <CardContent>
+                  <EmptyState
+                    icon={<Handshake className="h-10 w-10" />}
+                    title="لا توجد صفقات نشطة"
+                    description="لم يتم العثور على صفقات نشطة لهذه الشركة"
+                  />
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-[var(--text-muted)]" />
+                    <span className="text-sm font-semibold text-[var(--text-primary)]">
+                      الوثائق
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <EmptyState
+                    icon={<FileText className="h-10 w-10" />}
+                    title="لا توجد وثائق"
+                    description="لم يتم العثور على وثائق لهذه الشركة"
+                  />
+                </CardContent>
+              </Card>
+            </div>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-[var(--text-muted)]" />
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">
+                    الخطوات التالية
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <EmptyState
+                  icon={<Target className="h-10 w-10" />}
+                  title="لا توجد خطوات تالية"
+                  description="لم يتم تحديد خطوات تالية لهذه الشركة"
+                />
+              </CardContent>
+            </Card>
+          </div>
         </TabsPanel>
 
         <TabsPanel value="activity">
           <ActivityTimeline companyId={id} />
         </TabsPanel>
 
-        <TabsPanel value="insights">
+        <TabsPanel value="more">
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <DecisionPlatformPanel companyId={id} />
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-[var(--text-muted)]" />
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">
+                    الوثائق
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <EmptyState
+                  icon={<FileText className="h-10 w-10" />}
+                  title="لا توجد وثائق"
+                  description="لم يتم العثور على وثائق لهذه الشركة"
+                />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Bell className="h-5 w-5 text-[var(--text-muted)]" />
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">
+                    الإشارات
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <EmptyState
+                  icon={<Bell className="h-10 w-10" />}
+                  title="لا توجد إشارات"
+                  description="لم يتم العثور على إشارات لهذه الشركة"
+                />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-[var(--text-muted)]" />
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">
+                    الإعدادات
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <EmptyState
+                  icon={<Settings className="h-10 w-10" />}
+                  title="إعدادات الشركة"
+                  description="إدارة إعدادات الشركة والصلاحيات"
+                />
+              </CardContent>
+            </Card>
             <KnowledgeGraphPanel companyId={id} />
           </div>
         </TabsPanel>

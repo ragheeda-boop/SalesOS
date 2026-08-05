@@ -5,54 +5,17 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@salesos/ui";
 import { AppShell, useAppShell } from "@/components/foundation/app-shell";
+import { ErrorBoundary } from "@/components/error-boundary";
 import {
-  Building2,
-  Users,
-  UserCheck,
-  DollarSign,
   Search,
   Settings,
-  LayoutDashboard,
   Bell,
   Menu,
   User,
   Shield,
-  Workflow,
-  Activity,
-  HeartHandshake,
-  X,
-  TrendingUp,
-  BarChart3,
-  Brain,
-  CalendarClock,
-  GitGraph,
-  Video,
-  LineChart,
-  Radio,
-  ListChecks,
   Bot,
   LogOut,
-  Plug,
-  FormInput,
-  Gauge,
-  KeyRound,
-  Palette,
-  MapPin,
-  Cpu,
-  BookText,
-  Scale,
-  BrainCircuit,
-  Store,
-  Target,
-  Radar,
-  Crosshair,
-  UserRoundSearch,
-  Layers,
-  Globe2,
-  PenLine,
-  BadgeCheck,
-  Copy,
-  Mail,
+  X,
 } from "lucide-react";
 import {
   LazyCommandBar,
@@ -68,83 +31,9 @@ import { TenantBrandMark } from "@/features/tenant-studio/TenantBrandMark";
 import { useAiCopilotEnabled } from "@/lib/hooks/useAiCopilotEnabled";
 import { logoutSession } from "@/lib/api/identity";
 import { clearAuthTokens } from "@/lib/auth/session";
-
-const NAV_KEYS = [
-  { href: "/dashboard", key: "nav.dashboard", icon: LayoutDashboard },
-  { href: "/companies", key: "nav.companies", icon: Building2 },
-  { href: "/employees", key: "nav.employees", icon: UserCheck },
-  { href: "/employees/me", key: "nav.profile", icon: User },
-  { href: "/contacts", key: "nav.contacts", icon: Users },
-  { href: "/opportunities", key: "nav.opportunities", icon: DollarSign },
-  { href: "/activities", key: "nav.activities", icon: ListChecks },
-  { href: "/revenue", key: "nav.revenue", icon: TrendingUp },
-  { href: "/pipeline", key: "nav.pipeline", icon: BarChart3 },
-  { href: "/forecast", key: "nav.forecast", icon: CalendarClock },
-  { href: "/search", key: "nav.search", icon: Search },
-  { href: "/decisions", key: "nav.decisions", icon: Brain },
-  { href: "/meetings", key: "nav.meetings", icon: Video },
-  { href: "/graph", key: "nav.graph", icon: GitGraph },
-  // AI (/rag, /ai, /copilot) — not in sidebar; open via Ask AI popup / dedicated entry only
-  { href: "/automation", key: "nav.workflows", icon: Workflow },
-  { href: "/analytics", key: "nav.analytics", icon: LineChart },
-  { href: "/signals", key: "nav.signals", icon: Radio },
-  { href: "/rules", key: "nav.rules", icon: Shield },
-  { href: "/monitoring", key: "nav.monitoring", icon: Activity },
-  {
-    href: "/customer-success",
-    key: "nav.customer_success",
-    icon: HeartHandshake,
-  },
-  { href: "/integrations", key: "nav.integrations", icon: Plug },
-  { href: "/studio/custom-fields", key: "nav.custom_fields", icon: FormInput },
-  { href: "/studio/scoring", key: "nav.scoring_rules", icon: Gauge },
-  {
-    href: "/studio/permissions",
-    key: "nav.permissions_studio",
-    icon: KeyRound,
-  },
-  { href: "/studio/workflows", key: "nav.workflow_studio", icon: Workflow },
-  { href: "/studio/notifications", key: "nav.notification_rules", icon: Bell },
-  { href: "/studio/branding", key: "nav.branding_studio", icon: Palette },
-  { href: "/studio/territories", key: "nav.territories_studio", icon: MapPin },
-  { href: "/studio/ai-model-tiers", key: "nav.ai_model_tiers", icon: Cpu },
-  {
-    href: "/studio/prompt-library",
-    key: "nav.prompt_library",
-    icon: BookText,
-  },
-  {
-    href: "/studio/ai-policies",
-    key: "nav.ai_policies",
-    icon: Scale,
-  },
-  {
-    href: "/studio/ai-memory",
-    key: "nav.ai_memory",
-    icon: BrainCircuit,
-  },
-  {
-    href: "/marketplace/listings",
-    key: "nav.marketplace_listings",
-    icon: Store,
-  },
-  { href: "/gtm", key: "nav.gtm_hub", icon: Crosshair },
-  { href: "/gtm/icp", key: "nav.icp_profiles", icon: UserRoundSearch },
-  { href: "/gtm/market-sizing", key: "nav.market_sizing", icon: Target },
-  { href: "/gtm/lead-discovery", key: "nav.lead_discovery", icon: Radar },
-  { href: "/gtm/enrichment", key: "nav.enrichment", icon: Layers },
-  {
-    href: "/gtm/website-intelligence",
-    key: "nav.website_intelligence",
-    icon: Globe2,
-  },
-  { href: "/gtm/outreach", key: "nav.outreach", icon: PenLine },
-  { href: "/gtm/verification", key: "nav.verification", icon: BadgeCheck },
-  { href: "/gtm/lookalikes", key: "nav.lookalikes", icon: Copy },
-  { href: "/gtm/sequences", key: "nav.sequences", icon: Mail },
-  { href: "/settings", key: "nav.settings", icon: Settings },
-  { href: "/admin", key: "nav.admin", icon: Shield },
-];
+import { WorkspaceSwitcher } from "@/components/navigation/workspace-switcher";
+import { GroupedSidebar } from "@/components/navigation/grouped-sidebar";
+import { getWorkspaceByPath, type Workspace } from "@/lib/workspaces";
 
 function DashboardContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -158,6 +47,9 @@ function DashboardContent({ children }: { children: ReactNode }) {
   const { t, dir } = useTranslation();
   const { enabled: aiCopilotEnabled } = useAiCopilotEnabled();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [activeWorkspace, setActiveWorkspace] = useState<Workspace>(() =>
+    getWorkspaceByPath(pathname),
+  );
 
   const handleLogout = useCallback(() => {
     void (async () => {
@@ -170,8 +62,10 @@ function DashboardContent({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  // AI routes intentionally absent from NAV_KEYS — gated via Ask AI / feature flag only
-  const navItems = NAV_KEYS;
+  useEffect(() => {
+    const detected = getWorkspaceByPath(pathname);
+    setActiveWorkspace(detected);
+  }, [pathname]);
 
   const slideAnim =
     dir === "rtl" ? "animate-slide-in-right" : "animate-slide-in-left";
@@ -334,29 +228,13 @@ function DashboardContent({ children }: { children: ReactNode }) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <nav className="p-3 space-y-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const active = pathname.startsWith(item.href);
-                const label = t(item.key);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition min-h-[44px]",
-                      active
-                        ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)] dark:bg-[var(--muhide-orange)]/20 dark:text-orange-300 font-medium"
-                        : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] dark:hover:bg-[var(--bg-secondary)]",
-                    )}
-                    {...(active ? { "aria-current": "page" as const } : {})}
-                  >
-                    <Icon className="h-5 w-5 shrink-0" />
-                    <span>{label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
+            <div className="p-2 border-b border-[var(--border-default)]">
+              <WorkspaceSwitcher
+                current={activeWorkspace}
+                onSelect={setActiveWorkspace}
+              />
+            </div>
+            <GroupedSidebar workspace={activeWorkspace} />
           </aside>
         </div>
       )}
@@ -380,38 +258,21 @@ function DashboardContent({ children }: { children: ReactNode }) {
               <TenantBrandMark />
             )}
           </div>
-          <nav className="flex-1 space-y-1 p-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = pathname.startsWith(item.href);
-              const label = t(item.key);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition",
-                    active
-                      ? "bg-[var(--muhide-orange)]/10 text-[var(--muhide-orange)] dark:bg-[var(--muhide-orange)]/20 dark:text-orange-300"
-                      : "text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] dark:hover:bg-[var(--bg-secondary)]",
-                    sidebarCollapsed && "justify-center px-2",
-                  )}
-                  title={sidebarCollapsed ? label : undefined}
-                  {...(active ? { "aria-current": "page" as const } : {})}
-                >
-                  <Icon className="h-5 w-5 shrink-0" />
-                  {!sidebarCollapsed && <span>{label}</span>}
-                </Link>
-              );
-            })}
-          </nav>
+          <div className={cn("border-b border-[var(--border-default)]", sidebarCollapsed ? "p-2 flex justify-center" : "p-2")}>
+            <WorkspaceSwitcher
+              current={activeWorkspace}
+              onSelect={setActiveWorkspace}
+              collapsed={sidebarCollapsed}
+            />
+          </div>
+          <GroupedSidebar workspace={activeWorkspace} collapsed={sidebarCollapsed} />
         </aside>
         <main
           id="main-content"
           tabIndex={-1}
           className="min-w-0 flex-1 overflow-auto p-3 sm:p-4 lg:p-6"
         >
-          {children}
+          <ErrorBoundary>{children}</ErrorBoundary>
         </main>
       </div>
       <MobileNav />

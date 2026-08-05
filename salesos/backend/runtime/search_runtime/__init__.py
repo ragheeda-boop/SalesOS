@@ -31,8 +31,10 @@ from sqlalchemy import (
     cast,
     func,
     literal,
+    or_,
     select,
 )
+from sqlalchemy import text as sa_text
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -171,6 +173,14 @@ class SearchCache:
 async def _apply_statement_timeout(session: AsyncSession) -> None:
     await session.execute(
         select(func.set_config("statement_timeout", "5000", True))
+    )
+
+
+async def _set_tenant_guc(session: AsyncSession, tenant_id: str) -> None:
+    """DEC-085: set app.tenant_id so companies RLS does not fail-closed."""
+    await session.execute(
+        sa_text("SELECT set_config('app.tenant_id', :tenant_id, true)"),
+        {"tenant_id": str(tenant_id)},
     )
 
 
@@ -313,6 +323,7 @@ class SearchRuntime:
             .limit(limit)
         )
         async with self._session_factory() as session:
+            await _set_tenant_guc(session, tenant_id)
             rows = await session.execute(stmt)
             return [str(r[0]) for r in rows if r[0]]
 
@@ -326,6 +337,7 @@ class SearchRuntime:
             return SearchResult(items=[], total=0, query="similar_to", strategy=SearchStrategy.SEMANTIC, took_ms=0)
 
         async with self._session_factory() as session:
+            await _set_tenant_guc(session, tenant_id)
             row = await session.execute(
                 select(companies).where(
                     companies.c.id == company_id,
@@ -404,12 +416,21 @@ class SearchRuntime:
             return SearchResult(items=items, total=total, query=query,
                                strategy=SearchStrategy.FULLTEXT, took_ms=0)
 
-        # Fallback: SQLAlchemy Core (legacy path)
-        tsq = func.plainto_tsquery("arabic", query)
+        # Fallback: SQLAlchemy Core (legacy path).
+        # search_vector is generated with to_tsvector('simple', …) — must match.
+        tsq = func.plainto_tsquery("simple", query)
         rank_expr = func.ts_rank(companies.c.search_vector, tsq)
+        pattern = f"%{query.strip()}%"
+        ilike_match = or_(
+            companies.c.name_ar.ilike(pattern),
+            companies.c.name_en.ilike(pattern),
+            companies.c.cr_number.ilike(pattern),
+            companies.c.city.ilike(pattern),
+            companies.c.email.ilike(pattern),
+        )
         conditions = [
             companies.c.tenant_id == tenant_id,
-            companies.c.search_vector.op("@@")(tsq),
+            or_(companies.c.search_vector.op("@@")(tsq), ilike_match),
         ]
 
         if filters:
@@ -449,6 +470,7 @@ class SearchRuntime:
         )
 
         async with self._session_factory() as session:
+            await _set_tenant_guc(session, tenant_id)
             await _apply_statement_timeout(session)
 
             count_row = await session.execute(count_stmt)
@@ -498,6 +520,7 @@ class SearchRuntime:
             .offset(offset)
         )
         async with self._session_factory() as session:
+            await _set_tenant_guc(session, tenant_id)
             rows = await session.execute(stmt, {"emb": embedding})
             items = [
                 SearchResultItem(
@@ -597,12 +620,20 @@ class SearchRuntime:
         async def _facet_for_field(field_name: str) -> tuple[str, dict[str, int]]:
             col_name = self._safe_col(field_name, self.ALLOWED_FACET_FIELDS)
             col = companies.c[col_name]
-            tsq = func.plainto_tsquery("arabic", query)
+            tsq = func.plainto_tsquery("simple", query)
+            pattern = f"%{query.strip()}%"
+            ilike_match = or_(
+                companies.c.name_ar.ilike(pattern),
+                companies.c.name_en.ilike(pattern),
+                companies.c.cr_number.ilike(pattern),
+                companies.c.city.ilike(pattern),
+                companies.c.email.ilike(pattern),
+            )
             stmt = (
                 select(col, func.count().label("cnt"))
                 .where(
                     companies.c.tenant_id == tenant_id,
-                    companies.c.search_vector.op("@@")(tsq),
+                    or_(companies.c.search_vector.op("@@")(tsq), ilike_match),
                     col.is_not(None),
                 )
                 .group_by(col)
@@ -610,6 +641,7 @@ class SearchRuntime:
                 .limit(20)
             )
             async with self._session_factory() as session:
+                await _set_tenant_guc(session, tenant_id)
                 rows = await session.execute(stmt)
                 data = {str(r[0]): r[1] for r in rows}
                 return field_name, data
@@ -626,6 +658,10 @@ class SearchRuntime:
             if data:
                 facets[field_name] = data
         return facets
+
+    async def clear_cache(self) -> None:
+        """Drop in-process search result cache (call after company create/update)."""
+        self._cache.clear()
 
     async def close(self) -> None:
         """Release held resources."""

@@ -7,6 +7,7 @@ import { NBAWidget } from "../../widgets/nba-widget/NBAWidget";
 import { PipelineWorkspace } from "../pipeline/PipelineWorkspace";
 import { MeetingIntelligenceWidget } from "../../widgets/meeting-intelligence/MeetingIntelligenceWidget";
 import { EmailIntelligenceWidget } from "../../widgets/email-intelligence/EmailIntelligenceWidget";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 interface DashboardData {
   pipeline_summary: {
@@ -220,7 +221,11 @@ export function RevenueWorkspace() {
       )}
 
       {/* Pipeline View */}
-      {activeView === "pipeline" && <PipelineWorkspace />}
+      {activeView === "pipeline" && (
+        <ErrorBoundary>
+          <PipelineWorkspace />
+        </ErrorBoundary>
+      )}
 
       {/* Opportunity Detail View */}
       {activeView === "opportunity" && selectedOppId && (

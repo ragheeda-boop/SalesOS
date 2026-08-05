@@ -70,11 +70,57 @@ const eslintConfig = [
               };
             },
           },
+          "no-hardcoded-colors": {
+            meta: {
+              type: "problem",
+              docs: {
+                description: "Forbid hardcoded hex/rgb/rgba colors in style attributes; use CSS variables instead",
+              },
+              messages: {
+                found: "Use CSS variables (var(--*), var(--text-*), var(--bg-*)) instead of hardcoded color '{{ color }}'",
+              },
+            },
+            create(context) {
+              const hexPattern = /#(?:[0-9a-fA-F]{3}){1,2}\b/g;
+              const rgbPattern = /rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+/g;
+
+              return {
+                JSXAttribute(node) {
+                  if (node.name.name !== "style") return;
+                  if (node.value?.type !== "JSXExpressionContainer") return;
+
+                  const raw = context.sourceCode.getText(node.value.expression);
+                  let match;
+
+                  while ((match = hexPattern.exec(raw)) !== null) {
+                    context.report({
+                      node,
+                      messageId: "found",
+                      data: { color: match[0] },
+                    });
+                  }
+
+                  hexPattern.lastIndex = 0;
+
+                  while ((match = rgbPattern.exec(raw)) !== null) {
+                    context.report({
+                      node,
+                      messageId: "found",
+                      data: { color: match[0] + "..." },
+                    });
+                  }
+
+                  rgbPattern.lastIndex = 0;
+                },
+              };
+            },
+          },
         },
       },
     },
     rules: {
       "custom-rules/no-tailwind-color-classes": "warn",
+      "custom-rules/no-hardcoded-colors": "warn",
     },
   },
 ];

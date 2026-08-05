@@ -41,6 +41,7 @@ from sqlalchemy import (
     select,
     union_all,
 )
+from sqlalchemy import text as sa_text
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -52,7 +53,8 @@ logger = logging.getLogger(__name__)
 
 SEARCH_TIMEOUT_SECONDS = 10.0
 MAX_PAGE_SIZE = 50
-FTS_LANGUAGE = "arabic"
+# Must match companies.search_vector generation (to_tsvector('simple', ...)).
+FTS_LANGUAGE = "simple"
 
 ALLOWED_FTS_LANGUAGES = frozenset({"arabic", "english", "simple"})
 
@@ -141,6 +143,14 @@ async def _apply_statement_timeout(session: AsyncSession, timeout_seconds: float
                 True,
             )
         )
+    )
+
+
+async def _set_tenant_guc(session: AsyncSession, tenant_id: str) -> None:
+    """DEC-085: set app.tenant_id so companies RLS does not fail-closed."""
+    await session.execute(
+        sa_text("SELECT set_config('app.tenant_id', :tenant_id, true)"),
+        {"tenant_id": str(tenant_id)},
     )
 
 
@@ -321,9 +331,17 @@ class PostgresSearchRepository(SearchRepository[Any]):
 
         rank_expr, tsq = _fts_rank(query, self._fts_language)
         fts_match = companies.c.search_vector.op("@@")(tsq)
+        pattern = f"%{query.strip()}%"
+        ilike_match = or_(
+            companies.c.name_ar.ilike(pattern),
+            companies.c.name_en.ilike(pattern),
+            companies.c.cr_number.ilike(pattern),
+            companies.c.city.ilike(pattern),
+            companies.c.email.ilike(pattern),
+        )
         conditions = [
             companies.c.tenant_id == tenant_id,
-            fts_match,
+            or_(fts_match, ilike_match),
         ]
         use_cursor = cursor_rank is not None and cursor_id is not None
         if use_cursor:
@@ -343,6 +361,7 @@ class PostgresSearchRepository(SearchRepository[Any]):
             stmt = stmt.limit(safe_limit).offset(offset)
 
         async with self._session_factory() as session:
+            await _set_tenant_guc(session, tenant_id)
             await _apply_statement_timeout(session, self._timeout)
             result = await session.execute(stmt)
             rows_raw = [dict(r._mapping) for r in result.fetchall()]
@@ -366,9 +385,17 @@ class PostgresSearchRepository(SearchRepository[Any]):
 
         rank_expr, tsq = _fts_rank(query, self._fts_language)
         fts_match = companies.c.search_vector.op("@@")(tsq)
+        pattern = f"%{query.strip()}%"
+        ilike_match = or_(
+            companies.c.name_ar.ilike(pattern),
+            companies.c.name_en.ilike(pattern),
+            companies.c.cr_number.ilike(pattern),
+            companies.c.city.ilike(pattern),
+            companies.c.email.ilike(pattern),
+        )
         conditions = [
             companies.c.tenant_id == tenant_id,
-            fts_match,
+            or_(fts_match, ilike_match),
         ]
 
         if filters:
@@ -394,6 +421,7 @@ class PostgresSearchRepository(SearchRepository[Any]):
             stmt = stmt.limit(safe_limit).offset(offset)
 
         async with self._session_factory() as session:
+            await _set_tenant_guc(session, tenant_id)
             await _apply_statement_timeout(session, self._timeout)
             result = await session.execute(stmt)
             rows_raw = [dict(r._mapping) for r in result.fetchall()]
@@ -411,9 +439,17 @@ class PostgresSearchRepository(SearchRepository[Any]):
 
         _, tsq = _fts_rank(query, self._fts_language)
         fts_match = companies.c.search_vector.op("@@")(tsq)
+        pattern = f"%{query.strip()}%"
+        ilike_match = or_(
+            companies.c.name_ar.ilike(pattern),
+            companies.c.name_en.ilike(pattern),
+            companies.c.cr_number.ilike(pattern),
+            companies.c.city.ilike(pattern),
+            companies.c.email.ilike(pattern),
+        )
         conditions = [
             companies.c.tenant_id == tenant_id,
-            fts_match,
+            or_(fts_match, ilike_match),
         ]
 
         if filters:
@@ -424,6 +460,7 @@ class PostgresSearchRepository(SearchRepository[Any]):
         stmt = select(func.count()).select_from(companies).where(and_(*conditions))
 
         async with self._session_factory() as session:
+            await _set_tenant_guc(session, tenant_id)
             result = await session.execute(stmt)
             return result.scalar() or 0
 
@@ -439,6 +476,15 @@ class PostgresSearchRepository(SearchRepository[Any]):
 
         _, tsq = _fts_rank(query, self._fts_language)
         fts_match = companies.c.search_vector.op("@@")(tsq)
+        pattern = f"%{query.strip()}%"
+        ilike_match = or_(
+            companies.c.name_ar.ilike(pattern),
+            companies.c.name_en.ilike(pattern),
+            companies.c.cr_number.ilike(pattern),
+            companies.c.city.ilike(pattern),
+            companies.c.email.ilike(pattern),
+        )
+        text_match = or_(fts_match, ilike_match)
         union_parts = []
         for field in target_fields:
             col = _facet_column(field)
@@ -450,7 +496,7 @@ class PostgresSearchRepository(SearchRepository[Any]):
                 )
                 .where(
                     companies.c.tenant_id == tenant_id,
-                    fts_match,
+                    text_match,
                     col.is_not(None),
                 )
                 .group_by(col)
@@ -462,6 +508,7 @@ class PostgresSearchRepository(SearchRepository[Any]):
         results: dict[str, dict[str, int]] = {}
 
         async with self._session_factory() as session:
+            await _set_tenant_guc(session, tenant_id)
             rows = await session.execute(stmt)
             for row in rows:
                 field_name = row[0]
@@ -497,5 +544,6 @@ class PostgresSearchRepository(SearchRepository[Any]):
         )
 
         async with self._session_factory() as session:
+            await _set_tenant_guc(session, tenant_id)
             result = await session.execute(stmt)
             return [str(r[0]) for r in result if r[0] is not None]

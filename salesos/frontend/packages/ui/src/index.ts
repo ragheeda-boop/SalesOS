@@ -1,5 +1,6 @@
 export { Button, buttonVariants } from './button'
-export { Card, CardHeader, CardContent, CardFooter } from './card'
+export { Card, CardHeader, CardContent, CardFooter, cardVariants } from './card'
+export type { CardProps } from './card'
 export { Modal, ModalTrigger, ModalContent, ModalHeader, ModalBody, ModalFooter } from './modal'
 export { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from './dropdown'
 export { Input } from './input'

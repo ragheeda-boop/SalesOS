@@ -7,10 +7,6 @@ import {
   useCertifyMeta,
 } from "@/lib/hooks/integrationHubQueries";
 import type { CertifyResult } from "@/lib/api";
-import {
-  SECOND_CONNECTOR_HONESTY,
-  SECOND_CONNECTOR_NON_GOALS,
-} from "@/features/integrations/secondConnectorHonesty";
 
 function getApiError(err: unknown): string {
   const detail = (err as { response?: { data?: { detail?: unknown } } })
@@ -20,7 +16,7 @@ function getApiError(err: unknown): string {
   return "Request failed";
 }
 
-/** FE-S11-10 — tip STORY-11-10 certify surface. Not Production GO. */
+/** Connector certification panel — CI adapters only; live HubSpot not claimed. */
 export function SecondConnectorCertPanel() {
   const { toast } = useToast();
   const metaQuery = useCertifyMeta();
@@ -60,14 +56,13 @@ export function SecondConnectorCertPanel() {
       data-testid="second-connector-cert"
     >
       <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-        Second connector certification (STORY-11-10)
+        Connector certification
       </h2>
       <p
         className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100"
         data-testid="second-connector-honesty"
       >
-        {SECOND_CONNECTOR_HONESTY} Non-goals:{" "}
-        {SECOND_CONNECTOR_NON_GOALS.join("; ")}.
+        In-memory / CI adapters only. Live HubSpot network is not claimed.
       </p>
 
       {metaQuery.isLoading ? (
@@ -78,23 +73,20 @@ export function SecondConnectorCertPanel() {
         </p>
       ) : metaQuery.data ? (
         <div
-          className="space-y-1 font-mono text-xs text-[var(--text-muted)]"
+          className="space-y-1 text-xs text-[var(--text-muted)]"
           data-testid="second-connector-meta"
         >
           <p>
-            suite={metaQuery.data.suite} · second=
+            Suite: {metaQuery.data.suite} · second connector:{" "}
             {metaQuery.data.second_connector_key} (
             {metaQuery.data.second_connector_target})
           </p>
-          <p>certifiable: {metaQuery.data.certifiable.join(", ")}</p>
-          <p data-testid="second-connector-meta-honesty">
-            tip /meta: {metaQuery.data.honesty}
-          </p>
+          <p>Certifiable: {metaQuery.data.certifiable.join(", ")}</p>
         </div>
       ) : null}
 
       <label className="block text-xs text-[var(--text-muted)]">
-        connector_key
+        Connector
         <select
           className="mt-1 w-full max-w-xs rounded border border-[var(--border-default)] bg-transparent px-2 py-1.5 text-sm"
           value={key}
@@ -135,12 +127,31 @@ export function SecondConnectorCertPanel() {
       </div>
 
       {lastResult ? (
-        <pre
-          className="overflow-x-auto rounded bg-[var(--bg-muted)] p-2 font-mono text-xs"
+        <div
+          className="space-y-1 rounded bg-[var(--bg-muted)] p-2 text-xs"
           data-testid="second-connector-result"
         >
-          {JSON.stringify(lastResult, null, 2)}
-        </pre>
+          <p>
+            <span className="text-[var(--text-muted)]">Connector: </span>
+            {lastResult.connector_key}
+          </p>
+          <p>
+            <span className="text-[var(--text-muted)]">Status: </span>
+            {lastResult.ok ? "ok" : "failed"}
+          </p>
+          {"message" in lastResult && lastResult.message ? (
+            <p>
+              <span className="text-[var(--text-muted)]">Message: </span>
+              {String(lastResult.message)}
+            </p>
+          ) : null}
+          {"latency_ms" in lastResult && lastResult.latency_ms != null ? (
+            <p>
+              <span className="text-[var(--text-muted)]">Latency: </span>
+              {String(lastResult.latency_ms)} ms
+            </p>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

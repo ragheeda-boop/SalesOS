@@ -491,7 +491,24 @@ async def invite_user(
         full_name=body.email.split("@")[0],
         tenant_id=tenant_id,
     )
-    return {"message": f"User {body.email} invited successfully", "user_id": str(user.id)}
+    role = getattr(body, "role", None) or "user"
+    if role and role != getattr(user, "role", "user"):
+        try:
+            user = await service.update_user_role(str(user.id), role)
+        except Exception:
+            # Role update is best-effort; account still created.
+            pass
+    return {
+        "message": (
+            f"User account created for {body.email}. "
+            "Email delivery is not configured — share temporary credentials out of band."
+        ),
+        "user_id": str(user.id),
+        "email": body.email,
+        "role": getattr(user, "role", role),
+        "email_delivery": "not_configured",
+        "temporary_password": temp_password,
+    }
 
 
 @router.post("/change-password")

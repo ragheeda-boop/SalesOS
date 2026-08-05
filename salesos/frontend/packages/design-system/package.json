@@ -1,8 +1,11 @@
 {
   "name": "@salesos/design-system",
-  "version": "0.1.0-alpha",
+  "version": "1.0.0",
   "private": true,
-  "description": "SalesOS Design System v3 — alpha scaffold (Design Program). Not production GA.",
+  "description": "SalesOS Design System — tokens, components, and patterns",
   "main": "src/index.ts",
-  "sideEffects": false
+  "sideEffects": false,
+  "dependencies": {
+    "@salesos/tokens": "*"
+  }
 }

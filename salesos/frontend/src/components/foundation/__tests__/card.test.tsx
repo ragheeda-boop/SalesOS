@@ -45,8 +45,8 @@ describe("Card", () => {
   it("applies accent classes", () => {
     const { container } = render(<Card accent="orange">Content</Card>);
     expect(container.firstChild).toHaveClass(
-      "border-l-[3px]",
-      "border-l-[var(--muhide-orange)]",
+      "border-s-[3px]",
+      "border-s-[var(--muhide-orange)]",
     );
   });
 

@@ -20,6 +20,13 @@ import {
 import api from "@/lib/api";
 import { getTenantId } from "@/lib/hooks/useTenant";
 import { useTranslation } from "@/lib/i18n";
+import {
+  AiInsightsProvider,
+  useAiInsights,
+} from "./ai-insights/ContextualInsightsProvider";
+import { ContextualInsight } from "./ai-insights/ContextualInsight";
+import { InlineSuggestion } from "./ai-insights/InlineSuggestion";
+import { InsightToggle } from "./ai-insights/InsightToggle";
 
 interface FeedbackState {
   rating: "positive" | "negative" | null;
@@ -70,7 +77,35 @@ export function CopilotPanel({
   context,
   embedded = false,
 }: CopilotPanelProps) {
+  return (
+    <AiInsightsProvider
+      page={typeof window !== "undefined" ? window.location.pathname : "/"}
+      entityType={_entityType}
+      entityId={entityId}
+    >
+      <CopilotPanelInner
+        open={open}
+        onClose={onClose}
+        entityType={_entityType}
+        entityId={entityId}
+        context={context}
+        embedded={embedded}
+      />
+    </AiInsightsProvider>
+  );
+}
+
+function CopilotPanelInner({
+  open,
+  onClose,
+  entityType: _entityType,
+  entityId,
+  context,
+  embedded = false,
+}: CopilotPanelProps) {
   const { t } = useTranslation();
+  const { insights, suggestions, showLowConfidence, setShowLowConfidence, dismissInsight, dismissSuggestion, isLoading: insightsLoading } = useAiInsights();
+  const [activeView, setActiveView] = useState<"insights" | "chat">("insights");
   const [messages, setMessages] = useState<Message[]>([
     {
       ...INITIAL_MESSAGE,
@@ -339,8 +374,87 @@ export function CopilotPanel({
 
       {mode !== "collapsed" && (
         <>
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {visibleMessages.map((msg) => (
+          <div className="flex border-b px-4 shrink-0">
+            <button
+              onClick={() => setActiveView("insights")}
+              className={cn(
+                "flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
+                activeView === "insights"
+                  ? "border-[var(--muhide-orange)] text-[var(--muhide-orange)]"
+                  : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]",
+              )}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              {t("ai_insights.contextual_title")}
+              {insights.length > 0 && (
+                <span className="rounded-full bg-[var(--muhide-orange)]/10 px-1.5 py-0.5 text-[10px] text-[var(--muhide-orange)]">
+                  {insights.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveView("chat")}
+              className={cn(
+                "flex items-center gap-1.5 border-b-2 px-3 py-2 text-xs font-medium transition-colors",
+                activeView === "chat"
+                  ? "border-[var(--muhide-orange)] text-[var(--muhide-orange)]"
+                  : "border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)]",
+              )}
+            >
+              <Bot className="h-3.5 w-3.5" />
+              {t("copilot.title")}
+            </button>
+          </div>
+
+          {activeView === "insights" ? (
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <InsightToggle
+                  showLowConfidence={showLowConfidence}
+                  onChange={setShowLowConfidence}
+                />
+              </div>
+
+              {insightsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Spinner className="h-5 w-5 text-[var(--muhide-orange)]" />
+                </div>
+              ) : insights.length === 0 ? (
+                <div className="py-8 text-center">
+                  <Sparkles className="mx-auto mb-2 h-8 w-8 text-[var(--text-disabled)]" />
+                  <p className="text-sm text-[var(--text-muted)]">
+                    {t("ai_insights.no_insights")}
+                  </p>
+                </div>
+              ) : (
+                insights.map((insight) => (
+                  <ContextualInsight
+                    key={insight.id}
+                    insight={insight}
+                    onDismiss={dismissInsight}
+                  />
+                ))
+              )}
+
+              {suggestions.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-[var(--border-default)]">
+                  <h4 className="text-[10px] font-medium uppercase tracking-wide text-[var(--text-disabled)]">
+                    {t("ai_insights.contextual_title")}
+                  </h4>
+                  {suggestions.map((suggestion) => (
+                    <InlineSuggestion
+                      key={suggestion.id}
+                      suggestion={suggestion}
+                      onDismiss={dismissSuggestion}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {visibleMessages.map((msg) => (
               <div key={msg.id} className="relative group">
                 {msg.branchId !== "main" && (
                   <div className="absolute -start-3 top-0 bottom-0 w-0.5 bg-[var(--chart-purple-bg)] dark:bg-[var(--bg-secondary)] rounded-full" />
@@ -472,6 +586,8 @@ export function CopilotPanel({
               {t("copilot.hint")}
             </p>
           </div>
+            </>
+          )}
         </>
       )}
     </div>

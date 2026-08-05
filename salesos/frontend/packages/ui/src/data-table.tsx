@@ -159,7 +159,7 @@ export function DataTable<TData>({
                       className="fixed inset-0 z-10"
                       onClick={() => setOpenActionRow(null)}
                     />
-                    <div className="absolute right-0 z-20 min-w-[160px] rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] p-1 shadow-muhide-4">
+                    <div className="absolute end-0 z-20 min-w-[160px] rounded-lg border border-[var(--border-default)] bg-[var(--bg-primary)] p-1 shadow-muhide-4">
                       {actions.map((action, ai) => (
                         <button
                           key={ai}
@@ -169,7 +169,7 @@ export function DataTable<TData>({
                             setOpenActionRow(null)
                           }}
                           className={cn(
-                            'flex w-full items-center rounded-md px-3 py-2 text-left text-sm hover:bg-[var(--bg-secondary)]',
+                            'flex w-full items-center rounded-md px-3 py-2 text-start text-sm hover:bg-[var(--bg-secondary)]',
                             action.destructive && 'text-danger-600'
                           )}
                         >
@@ -256,7 +256,7 @@ export function DataTable<TData>({
   return (
     <div className="w-full overflow-x-auto">
       {selectable && selectedRows.length > 0 && (
-        <div className="flex items-center gap-2 border-b border-[var(--border-default)] bg-[var(--bg-secondary)] px-4 py-2 text-sm text-[var(--text-muted)]">
+        <div role="status" aria-live="polite" className="flex items-center gap-2 border-b border-[var(--border-default)] bg-[var(--bg-secondary)] px-4 py-2 text-sm text-[var(--text-muted)]">
           <span className="font-medium text-[var(--text-primary)]">{selectedRows.length} selected</span>
         </div>
       )}

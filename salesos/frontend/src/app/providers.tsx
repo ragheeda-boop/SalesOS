@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, useEffect, useMemo, type ReactNode } from "react";
 import { createFrontendRuntime, type FrontendRuntime } from "@salesos/runtime";
 import { RuntimeContext } from "@salesos/hooks";
-import { ToastViewport } from "@salesos/ui";
+import { ToastProvider, ToastViewport } from "@salesos/ui";
 import { I18nProvider } from "@/lib/i18n";
 import { AuthSessionSync } from "@/components/foundation/AuthSessionSync";
 import { EntitlementDenialListener } from "@/components/foundation/EntitlementDenialListener";
@@ -44,16 +44,18 @@ export function Providers({ children }: { children: ReactNode }) {
   if (!ready) return null;
 
   return (
-    <ToastViewport>
-      <I18nProvider>
-        <RuntimeContext.Provider value={runtime}>
-          <QueryClientProvider client={queryClient}>
-            <AuthSessionSync />
-            <EntitlementDenialListener />
-            {children}
-          </QueryClientProvider>
-        </RuntimeContext.Provider>
-      </I18nProvider>
-    </ToastViewport>
+    <ToastProvider>
+      <ToastViewport>
+        <I18nProvider>
+          <RuntimeContext.Provider value={runtime}>
+            <QueryClientProvider client={queryClient}>
+              <AuthSessionSync />
+              <EntitlementDenialListener />
+              {children}
+            </QueryClientProvider>
+          </RuntimeContext.Provider>
+        </I18nProvider>
+      </ToastViewport>
+    </ToastProvider>
   );
 }

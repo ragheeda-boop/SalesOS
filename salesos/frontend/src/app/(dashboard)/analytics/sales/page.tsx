@@ -15,6 +15,7 @@ import {
   BarChart3,
   RefreshCw,
 } from "lucide-react";
+import { normalizePipelineAnalytics } from "@/lib/pipelineAnalytics";
 
 interface SalesMetrics {
   total_revenue: number;
@@ -98,7 +99,7 @@ export default function SalesAnalyticsPage() {
       ]);
 
       const dash = dashboardRes.data;
-      const pipeline = pipelineRes.data;
+      const pipeline = normalizePipelineAnalytics(pipelineRes.data);
 
       const metrics: SalesMetrics = {
         total_revenue: dash?.total_value ?? 0,
@@ -107,19 +108,19 @@ export default function SalesAnalyticsPage() {
         deals_trend: 0,
         avg_deal_size: dash?.avg_deal_size ?? 0,
         avg_deal_trend: 0,
-        win_rate: pipeline?.win_rate ?? 0,
+        win_rate: pipeline.win_rate,
         win_rate_trend: 0,
       };
 
       const revenueTrend: RevenueTrend[] = [];
 
-      const pipelineByStage: DealStage[] = (
-        pipeline?.conversion_funnel ?? []
-      ).map((s: { stage: string; count: number; value: number }) => ({
-        stage: s.stage,
-        count: s.count,
-        value: s.value,
-      }));
+      const pipelineByStage: DealStage[] = pipeline.conversion_funnel.map(
+        (s) => ({
+          stage: s.stage,
+          count: s.count,
+          value: s.value,
+        }),
+      );
 
       const topReps: SalesRep[] = (dash?.active_opportunities ?? [])
         .slice(0, 5)

@@ -30,7 +30,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && (
           <label htmlFor={id} className="mb-1 block text-sm font-medium text-[var(--text-secondary)]">
             {label}
-            {required && <span className="ml-1 text-danger-500" aria-hidden="true">*</span>}
+            {required && <span className="ms-1 text-danger-500" aria-hidden="true">*</span>}
           </label>
         )}
         <textarea
@@ -52,7 +52,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           {...props}
         />
         {maxLength !== undefined && typeof value === 'string' && (
-          <div className="mt-1 text-right text-xs text-[var(--text-muted)]">
+          <div className="mt-1 text-end text-xs text-[var(--text-muted)]">
             {value.length}/{maxLength}
           </div>
         )}

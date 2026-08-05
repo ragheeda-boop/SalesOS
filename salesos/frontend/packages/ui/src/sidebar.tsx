@@ -226,6 +226,9 @@ function SidebarItemComponent({
         )}
         tabIndex={0}
         aria-current={itemActive ? 'page' : undefined}
+        aria-expanded={hasChildren ? expanded : undefined}
+        title={collapsed ? item.label : undefined}
+        aria-label={collapsed ? item.label : undefined}
       >
         {item.icon && <span className="shrink-0">{item.icon}</span>}
         {!collapsed && (
