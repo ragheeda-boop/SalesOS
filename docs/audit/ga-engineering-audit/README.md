@@ -15,6 +15,12 @@ Live scoreboard: **[GA_STATUS.md](./GA_STATUS.md)** (still **NO-GO** after Waves
 |------|----------|
 | **[SalesOS Design Program v3](../../design/salesos-v3/PROGRAM.md)** | Enterprise redesign program (Research → Release) — **not** Production GO by itself |
 
+## Principal Audit Board (2026-08-06 re-audit)
+
+| File | Contents |
+|------|----------|
+| **[PRINCIPAL-AUDIT-BOARD-2026-08-06.md](./PRINCIPAL-AUDIT-BOARD-2026-08-06.md)** | Principal Audit Board re-audit (2026-08-06) — 6 explore agents + synthesis; scorecard; **Production GA NO-GO** |
+
 ## Primary deliverable for execution
 
 | File | Contents |

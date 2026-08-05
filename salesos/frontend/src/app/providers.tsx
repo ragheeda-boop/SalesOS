@@ -23,23 +23,31 @@ export function Providers({ children }: { children: ReactNode }) {
       }),
   );
 
+  const locale = (() => {
+    if (typeof window === "undefined") return "ar";
+    const stored = localStorage.getItem("salesos-locale");
+    if (stored === "en" || stored === "ar") return stored;
+    if (navigator.language?.startsWith("ar")) return "ar";
+    return "en";
+  })();
+
   const runtime = useMemo<FrontendRuntime>(
     () =>
       createFrontendRuntime({
         wsUrl: process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/ws",
-        locale: "ar",
+        locale,
         stateOptions: { name: "salesos", debug: false },
       }),
-    [],
+    [locale],
   );
 
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    runtime.localization.setLocale("ar");
+    runtime.localization.setLocale(locale);
     setReady(true);
     return () => runtime.destroy();
-  }, [runtime]);
+  }, [runtime, locale]);
 
   if (!ready) return null;
 

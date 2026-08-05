@@ -519,7 +519,7 @@ export default function Company360Page() {
                 <EmptyState
                   icon={<Users className="h-10 w-10" />}
                   title="لا توجد جهات اتصال"
-                  description="لم يتم العثور على جهات اتصال لهذه الشركة"
+                  description="ستظهر جهات الاتصال المرتبطة بالشركة هنا"
                 />
               </CardContent>
             </Card>
@@ -616,7 +616,7 @@ export default function Company360Page() {
                   <EmptyState
                     icon={<Handshake className="h-10 w-10" />}
                     title="لا توجد صفقات نشطة"
-                    description="لم يتم العثور على صفقات نشطة لهذه الشركة"
+                    description="ستظهر الصفقات النشطة والمغلقة هنا"
                   />
                 </CardContent>
               </Card>
@@ -633,7 +633,7 @@ export default function Company360Page() {
                   <EmptyState
                     icon={<FileText className="h-10 w-10" />}
                     title="لا توجد وثائق"
-                    description="لم يتم العثور على وثائق لهذه الشركة"
+                    description="ستظهر المستندات والعقود المرتبطة بالشركة هنا"
                   />
                 </CardContent>
               </Card>
@@ -677,7 +677,7 @@ export default function Company360Page() {
                 <EmptyState
                   icon={<FileText className="h-10 w-10" />}
                   title="لا توجد وثائق"
-                  description="لم يتم العثور على وثائق لهذه الشركة"
+                  description="ستظهر المستندات والعقود المرتبطة بالشركة هنا"
                 />
               </CardContent>
             </Card>
