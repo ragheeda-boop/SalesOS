@@ -1,8 +1,38 @@
 # AGENTS.md — AQLIYA / Muhide Workspace
 
 > **Audience:** Humans and coding agents working in this repository.  
-> **Last updated:** 2026-07-22 (Wave 7 governance)  
+> **Last updated:** 2026-08-06 (Session update)  
 > **Authority chain:** Executable evidence → [ga-engineering-audit](docs/audit/ga-engineering-audit/) → this file → `docs/PROJECT_BIBLE.md` (SalesOS engineering bible; product scope notes below).
+
+---
+
+## 9. Session Summary (2026-08-06)
+
+| Milestone | Status | Tag | Key Evidence |
+|-----------|:------:|-----|-------------|
+| ADR-101 Green Bootstrap | COMPLETE | v5.1.0-bootstrap-green | 14/14 services healthy, TS 0 errors |
+| Sprint 0.5 Baseline Freeze | COMPLETE | - | 6 baseline docs, 10/10 smoke |
+| ADR-102 Engineering Hardening | COMPLETE | v5.1.0-rc1-hardened | 21 fixes, 25 files changed |
+| UX Architecture + Phase 1 | COMPLETE | v5.1.0-rc2-ux-ready | Blueprint, token fix, locale fix |
+
+### Key changes
+- ESLint: ignoreDuringBuilds removed, 6 rules warn→error
+- Prettier: config created, format scripts added
+- Poetry: Docker aligned to 2.4.1 (matches lock)
+- JWT: RS256-only enforced, templates aligned
+- CSP: Added to Next.js frontend
+- Kafka: All compose files standardized to 7.7.2
+- Docker: 5 images pinned from :latest
+- Tailwind: Wired to @salesos/tokens preset
+- Locale: Now respects browser/localStorage
+
+### Documentation created
+- docs/adr/0101-platform-bootstrap-stabilization.md
+- docs/adr/0102-engineering-hardening.md
+- docs/releases/v5.1.0-bootstrap-green/ (6 files)
+- docs/releases/rc-1/ (2 files)
+- docs/ux/UX_ARCHITECTURE.md
+- docs/reports/ (session report + gaps)
 
 ---
 
@@ -100,7 +130,7 @@ Current audit classification (2026-07-22): **production no-go** (Production Read
 
 ## 7. Conflict resolution for agents
 
-1. If docs disagree → prefer **executable evidence** + ga-engineering-audit.  
+1. If docs disagree → prefer **executable evidence** + ga-engineering-audit + `docs/reports/REMAINING_GAPS.md` for known gaps.  
 2. If `PROJECT_BIBLE.md` maturity scores conflict with audit → **audit wins** for GO/NO-GO.  
 3. Parallel code agents may own `TenantList` / security endpoints — **do not conflict**; leave those files alone unless assigned.  
 4. Only commit when the user explicitly asks.  
@@ -120,6 +150,7 @@ docker compose exec backend alembic upgrade head   # non-prod only, after approv
 npm run lint
 npx tsc --noEmit
 npm run build
+npm run format:fix
 
 # Scrapers (moved Phase 03)
 packages/scrapers/{balady,najiz,rega,taqeem}/

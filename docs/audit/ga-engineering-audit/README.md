@@ -21,6 +21,13 @@ Live scoreboard: **[GA_STATUS.md](./GA_STATUS.md)** (still **NO-GO** after Waves
 |------|----------|
 | **[PRINCIPAL-AUDIT-BOARD-2026-08-06.md](./PRINCIPAL-AUDIT-BOARD-2026-08-06.md)** | Principal Audit Board re-audit (2026-08-06) — 6 explore agents + synthesis; scorecard; **Production GA NO-GO** |
 
+## Enterprise Audit Board (v2.1 pack — framework ready / axes not executed)
+
+| File | Contents |
+|------|----------|
+| **[enterprise-audit-board/](./enterprise-audit-board/README.md)** | **Primary reference** — institutional pack: Charter, Methodology (43 axes incl. Decision Traceability, Drift, Engineering Economics, AI Governance), Execution, Evidence, Fitness, Findings, Scoring, Reporting, Run Template. **Framework ready; axes not executed;** board run awaits approval |
+| [ENTERPRISE-AUDIT-BOARD-V2.md](./ENTERPRISE-AUDIT-BOARD-V2.md) | Thin pointer (URL continuity) → pack above; preserves v2 history |
+
 ## Primary deliverable for execution
 
 | File | Contents |
