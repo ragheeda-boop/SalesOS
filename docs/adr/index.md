@@ -24,6 +24,8 @@
 | ADR-034 | Repository Pattern Compliance | 2026-07-17 | 📝 Proposed | Architecture | `docs/adr/0034-repository-pattern-compliance.md` |
 | ADR-035 | Sprint 0 Architecture Reconciliation | 2026-07-17 | 📝 Proposed | Architecture | `docs/adr/0035-sprint-0-architecture-reconciliation.md` |
 | ADR-036 | Engineering Organization — Layer Separation | 2026-08-01 | ✅ Accepted | Governance | `docs/adr/0036-engineering-organization-layer-separation.md` |
+| ADR-100 | Repository Canonicalization | 2026-08-05 | ✅ Accepted — governs repository topology; partially supersedes `docs/architecture/REPOSITORY_RESTRUCTURE_PLAN.md` v2.0; program complete | Architecture | `docs/adr/0100-repository-canonicalization.md` |
+| ADR-101 | Platform Bootstrap & Stabilization | 2026-08-05 | ✅ Accepted — governs install/build/Docker/healthcheck/test cycle; new program, does not reopen ADR-100 | Platform Engineering | `docs/adr/0101-platform-bootstrap-stabilization.md` |
 
 ---
 

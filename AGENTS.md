@@ -120,6 +120,15 @@ docker compose exec backend alembic upgrade head   # non-prod only, after approv
 npm run lint
 npx tsc --noEmit
 npm run build
+
+# Scrapers (moved Phase 03)
+packages/scrapers/{balady,najiz,rega,taqeem}/
+
+# Data pipelines (moved Phase 04 — gitignored)
+packages/data/scripts/clean_all.py
+
+# Restructure decision logs
+migration-log/phase-*.md
 ```
 
 Windows host Poetry is **not** the production path.

@@ -220,9 +220,8 @@ Revalidation: Active (DEC-142)
 
 | Path | Purpose | Owner | AI-mod | Prio |
 |---|---|---|---|---|
-| `data/scripts/phase4_identity_v4.py` | identity import | Data team | Yes | P2 |
-| `data/scripts/phase3_normalize.py` | normalize | Data team | Yes | P2 |
-| `balady_scraper/`, `taqeem_scraper/`, `najiz_scraper/`, `rega_scraper/` | scrapers | Data team | Yes | P2 |
+| `packages/data/scripts/clean_all.py` | data cleaning | Data team | Yes | P2 |
+| `packages/scrapers/` (`balady/`, `taqeem/`, `najiz/`, `rega/`) | scrapers (moved Phase 03) | Data team | Yes | P2 |
 | `sales-os/` | LEGACY | â€” | No (prefer salesos/) | P2 |
 
 ## 14. How to use this catalog

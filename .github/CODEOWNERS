@@ -53,4 +53,9 @@ docs/                                          @ragheeda-boop
 AGENTS.md                                      @ragheeda-boop
 .engineering/                                  @ragheeda-boop
 engineering-os/                                @ragheeda-boop
+packages/                                      @ragheeda-boop
+migration-log/                                 @ragheeda-boop
+infrastructure/                                @ragheeda-boop
+archive/                                       @ragheeda-boop
+assets/                                        @ragheeda-boop
 .ai/                                           @ragheeda-boop

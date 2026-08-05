@@ -233,7 +233,7 @@ python website_li_pipeline.py
 export NOTION_TOKEN=ntn_your_token_here
 
 # شغّل السكرابر
-cd balady_scraper
+cd packages/scrapers/balady
 python main.py
 ```
 
@@ -348,10 +348,10 @@ Muhide/
 │   ├── pipeline/                    # Shared pipeline utilities
 │   └── infra/                       # K8s, Terraform
 │
-├── balady_scraper/                  # حكومي — المكاتب الهندسية
-├── najiz_scraper/                   # حكومي — المحامين
-├── rega_scraper/                    # حكومي — العقارات
-├── taqeem_scraper/                  # حكومي — التقييم
+├── packages/scrapers/balady/        # حكومي — المكاتب الهندسية (مُنقَل Phase 03)
+├── packages/scrapers/najiz/         # حكومي — المحامين
+├── packages/scrapers/rega/          # حكومي — العقارات
+├── packages/scrapers/taqeem/        # حكومي — التقييم
 ├── crm_enrichment.py                # تنقية CRM
 ├── crm_pipeline.py                  # استرجاع البيانات
 ├── sales_intel_pipeline.py          # تحليل ذكي

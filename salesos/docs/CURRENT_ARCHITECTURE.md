@@ -58,14 +58,14 @@ Muhide/                                    # Project root
 │   ├── adr/                              # 2 product ADRs (0030, 0031)
 │   └── vnext/                            # vNext work orders, roadmap, sprint plan
 │
-├── balady_scraper/                        # Government data scraper (Balady)
-├── najiz_scraper/                         # Government data scraper (Najiz)
-├── taqeem_scraper/                        # Government data scraper (Taqeem)
-├── rega_scraper/                          # Government data scraper (Rega)
+├── packages/scrapers/balady/                 # Government data scraper (Balady) — moved Phase 03
+├── packages/scrapers/najiz/                  # Government data scraper (Najiz)
+├── packages/scrapers/taqeem/                 # Government data scraper (Taqeem)
+├── packages/scrapers/rega/                   # Government data scraper (Rega)
 ├── scraper.py                             # NCNP scraper
 ├── output/                                # Scraped data exports
 ├── open-design/                           # Third-party design tool
-└── WidgetTemplate/                        # Widget scaffolding template
+└── WidgetTemplate/                        # RELOCATED 2026-08-05 → packages/widget-template/ (ADR-100 Phase 4); rest of this tree diagram predates migration-log/phase-03.md and is separately stale
 ```
 
 ---

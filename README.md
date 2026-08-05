@@ -19,25 +19,37 @@ docker compose up --build
 # Open http://localhost:3000
 ```
 
+> **Note on `docker-compose.yml`:** there are two, and they are deliberately different, not duplicates. `salesos/docker-compose.yml` (used above) is the staging/prod-shaped dev stack. Root `docker-compose.yml` is a separate, lighter local/dev profile — see its own header comment for scope. Running `docker compose up` from repo root vs. from `salesos/` boots two different stacks; the Quick Start above is the supported path.
+
 ---
 
 ## Platform Architecture
 
+*(Updated 2026-08-05 — see [`ADR-100: Repository Canonicalization`](docs/adr/0100-repository-canonicalization.md) for full directory ownership.)*
+
 ```
 Muhide/
-├── salesos/                   ★ Main platform monorepo
+├── salesos/                   ★ Main platform monorepo (canonical application)
 │   ├── backend/               FastAPI — Identity, Company, Search, AI, CRM
 │   ├── frontend/              Next.js 15 — Dashboard, Widgets, Copilot
 │   ├── infra/                 K8s, Terraform, Monitoring, Docker
 │   ├── docs/                  User guide, admin guide, deployment, runbooks
-│   └── docker-compose.yml     Dev stack (PostgreSQL, Redis, Neo4j, Kafka)
+│   └── docker-compose.yml     Staging/prod-shaped dev stack (PostgreSQL, Redis, Neo4j, Kafka)
 │
-├── docs/                      Product docs — ADRs, audits, reports, vNext
-├── engineering-os/            Engineering OS — governance, agent registry
-├── balady_scraper/            Government scraper — engineering offices
-├── najiz_scraper/             Government scraper — lawyers
-├── rega_scraper/              Government scraper — real estate
-└── taqeem_scraper/            Government scraper — valuation
+├── docs/                      Product docs — ADRs, audits (incl. legacy-reports/), program, vNext
+│   └── reference/             Schemas and architecture diagrams
+├── engineering-os/            Engineering OS submodule — governance, agent registry
+├── packages/                  Shared first-party tooling
+│   ├── scrapers/              Government scrapers — balady, najiz, rega, taqeem
+│   ├── data/                  Import pipelines + cleaned datasets (gitignored) — scripts/clean_all.py
+│   └── widget-template/       Widget SDK template
+├── infrastructure/            Cloud, observability, and ops scripts (see its README)
+├── migration-log/             Per-phase restructure logs (phase-01..12)
+├── assets/                    Brand, presentation, and report assets (presentations/, branding/, reports/)
+├── archive/                   Retired trees (gitignored) — sales-os/, engineering-recovery/
+├── docker-compose.yml         Lighter local/dev-only profile (see note above)
+├── Dockerfile.railway         Railway deployment config (discovered at root)
+└── railway.json               Railway project config (discovered at root)
 ```
 
 ---
@@ -104,6 +116,9 @@ This release candidate includes:
 | K8s Deployment Runbook | `salesos/infra/k8s/DEPLOYMENT_RUNBOOK.md` |
 | API Documentation | `docs/api/OPENAPI.md` |
 | ADR Index | `docs/adr/index.md` |
+| Repository Topology & Canonical Structure | `docs/adr/0100-repository-canonicalization.md` |
+| Product Bible | `PRODUCT_BIBLE.md` |
+| System Runbook | `RUNBOOK.md` |
 | Agent Essentials | `AGENTS.md` |
 | Disaster Recovery | `docs/ops/DR_RUNBOOK.md` |
 

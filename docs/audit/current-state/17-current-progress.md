@@ -21,7 +21,7 @@
 | Performance | 🟢 | GET /dashboard p95 88ms (budget 500ms) |
 | Missing | 🟡 | No degradation testing for extreme widget volumes; no widget marketplace yet |
 
-**Key files:** `frontend/src/features/dashboard/`, `frontend/packages/widget-sdk/`, `WidgetTemplate/`
+**Key files:** `frontend/src/features/dashboard/`, `frontend/packages/widget-sdk/`, `packages/widget-template/` *(relocated 2026-08-05 from `WidgetTemplate/`, ADR-100 Phase 4)*
 **Confidence:** High
 
 ---

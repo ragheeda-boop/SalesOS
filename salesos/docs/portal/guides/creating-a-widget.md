@@ -19,7 +19,7 @@ This tutorial walks through building a "Company Health Score" widget from scratc
 Always start from the template (per Engineering Constitution Article 9.5):
 
 ```bash
-cp -r WidgetTemplate/ src/widgets/company-health/
+cp -r packages/widget-template/ src/widgets/company-health/
 cd src/widgets/company-health
 ```
 
@@ -213,6 +213,6 @@ Widget Creation
 | Resource | Link |
 |----------|------|
 | Workspace SDK Reference | [SDK](../sdk/workspace-sdk.md) |
-| Widget Template | `WidgetTemplate/` in repository |
+| Widget Template | `packages/widget-template/` in repository |
 | Contract Tests | `describeWidgetContract()` docs |
 | Engineering Constitution (Article 9) | [Widget SDK Rules](../../../engineering-os/ENGINEERING_CONSTITUTION.md#-9) |

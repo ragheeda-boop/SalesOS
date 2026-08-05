@@ -100,19 +100,24 @@ Revalidation: Active (DEC-142)
 | `docs/CAPABILITY_CATALOG.md` | capability cards (ðŸ”’) | Human | HIGH | READ-ONLY |
 | `docs/vnext/` | roadmaps, WO-*, TECHNICAL_DEBT, DECISIONS (D-001..016) | Human | HIGH | READ-ONLY |
 | `docs/program/` | DEC-* swarm decisions | Human | MEDIUM | READ-ONLY |
-| `docs/ops/` | runbooks | Human | MEDIUM | READ-ONLY |
+| `docs/ops/` | runbooks + legacy markers (RUNTIME_STACK, DR_RUNBOOK, SLO_ALERTS, RAILWAY_CONFIG_LEGACY_NOTICE) | Human | MEDIUM | READ-ONLY |
 | `AGENTS.md` | agent instructions (ðŸ”’) | Human | CRITICAL | READ-ONLY |
 | `engineering-os/` | **Governance SUBMODULE (ðŸ”’)** â€” dirty | Human | CRITICAL | READ-ONLY (submodule) |
-| `data/scripts/` | identity import pipeline | Data team | LOW | Yes |
+| `packages/data/scripts/` | identity import pipeline | Data team | LOW | Yes |
 
-## 6. Legacy / adjacent (repo root)
+## 6. Shared packages & legacy / adjacent (repo root)
 
 | Path | Purpose | Owner | Criticality | Safe to modify |
 |---|---|---|---|---|
-| `sales-os/` | LEGACY tree | â€” | LOW | Prefer salesos/ |
-| `balady_scraper/`, `taqeem_scraper/`, `najiz_scraper/`, `rega_scraper/` | scrapers (data side) | Data team | LOW | Yes |
+| `packages/scrapers/` | `balady/`, `najiz/`, `rega/`, `taqeem/` scrapers (data side) | Data team | LOW | Yes |
+| `packages/widget-template/` | shared widget template | Shared | MEDIUM | Yes |
+| `packages/data/` | import pipelines + cleaned datasets (gitignored) | Data team | LOW | Yes |
+| `archive/sales-os/` | LEGACY product tree (retired) | â€” | LOW | Prefer salesos/ |
+| `archive/engineering-recovery/` | engineering recovery docs (archived) | â€” | LOW | Yes |
+| `assets/` | branding / presentations / reports | Owner | LOW | Yes |
+| `infrastructure/` | cloud / observability / scripts scaffolding | Owner | LOW | Yes (intent pending) |
+| `migration-log/` | per-phase restructure decision logs | Owner | MEDIUM | Yes |
 | `scripts/backup.sh` | root backup | Ops | LOW | Yes |
-| root `*.py` | data pipelines | Data team | LOW | Yes |
 
 ## 7. Where agents are FORBIDDEN to write (always)
 

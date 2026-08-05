@@ -600,7 +600,7 @@ src/features/dashboard/widgets/your-widget/
     └── YourWidget.test.tsx
 ```
 
-انظر [WidgetTemplate](../../../../WidgetTemplate/) للنسخة الجاهزة.
+انظر [WidgetTemplate](../../../../packages/widget-template/) للنسخة الجاهزة.
 
 ---
 

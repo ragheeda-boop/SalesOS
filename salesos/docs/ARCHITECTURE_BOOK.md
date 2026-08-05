@@ -276,16 +276,16 @@ describeWidgetContract(MyWidget, {
 | Lifecycle/Telemetry/Permissions/Flags | 2026-07-10 | 🧊 Frozen |
 | Testing Utilities | 2026-07-10 | 🧊 Frozen |
 | `REFERENCE_WIDGET_GUIDE.md` | 2026-07-10 | ✅ Published |
-| `WidgetTemplate/` | 2026-07-10 | ✅ Published |
+| `packages/widget-template/` (moved from `WidgetTemplate/`, Phase 07) | 2026-07-10 | ✅ Published |
 
 **File reference:** `frontend/docs/REFERENCE_WIDGET_GUIDE.md` | `frontend/docs/company-intelligence/REFERENCE_WIDGET_GUIDE.md`
 
 ### Widget Template Structure
 
-Every new widget starts from `WidgetTemplate/` — never from scratch or by copying another widget:
+Every new widget starts from `packages/widget-template/` — never from scratch or by copying another widget:
 
 ```
-WidgetTemplate/
+packages/widget-template/
 ├── WidgetTemplateContainer.tsx   # SDK calls, data fetching, Decision Platform
 ├── WidgetTemplateView.tsx        # Pure presentational, receives props only
 ├── WidgetTemplate.test.tsx       # Contract tests via describeWidgetContract()
@@ -1541,7 +1541,7 @@ curl https://your-domain/health
 ### Creating a New Widget
 
 ```typescript
-// 1. Start from WidgetTemplate/
+// 1. Start from packages/widget-template/
 // 2. Decide: createWidget() or createDashboardWidget()
 // 3. Implement Container/View pattern
 // 4. Add contract tests

@@ -92,8 +92,8 @@ salesos/backend/.config/
 .gitleaks.toml
 # .trivyignore tracked after DEC-098 (named CVE-2024-23342 only)
 
-# Engineering recovery docs (committed separately if needed)
-engineering-recovery/
+# Engineering recovery docs (archived under archive/)
+archive/
 
 # Audit evidence (large, ~200+ JSON files)
 docs/audit/ga-engineering-audit/evidence/
@@ -115,8 +115,9 @@ batch_list.txt
 batches.txt
 output_check.txt
 
-# data directory
+# data directory (root + moved under packages/)
 data/
+packages/data/
 
 # Credential / sensitive files (not tracked, guard against accidental commit)
 cookies.txt
@@ -148,3 +149,5 @@ salesos/backend/.tmp_r14*
 /[0-9]*_run.err
 /[0-9]*_run_snippet.txt
 /workflow-failure-snippet.txt
+.vercel
+.env*

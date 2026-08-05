@@ -66,7 +66,7 @@ See [Widget SDK Guide](docs/REFERENCE_WIDGET_GUIDE.md) for full documentation.
 
 ## Widget Development Workflow
 
-1. **Copy template** — Start from `../../WidgetTemplate/`
+1. **Copy template** — Start from `../../packages/widget-template/`
 2. **Define container** — Container uses SDK hooks, manages state, permissions, flags
 3. **Define view** — Pure presentational component with typed props
 4. **Write contract tests** — Use `describeWidgetContract()` from SDK testing utilities
@@ -243,7 +243,7 @@ Tree-shaking configured via `experimental.optimizePackageImports`:
 
 - [Widget SDK Guide](docs/REFERENCE_WIDGET_GUIDE.md)
 - [Widget Contract Spec](../application/dashboard/WIDGET_CONTRACT.md)
-- [Widget Template](../../WidgetTemplate/)
+- [Widget Template](../../packages/widget-template/)
 - [ADR-002: Dashboard as Projection](../../engineering-os/adr/ADR-002-executive-intelligence-workspace.md)
 - [ADR-003: Widget SDK v1.0 Freeze](../../engineering-os/adr/ADR-003-widget-sdk-v1-freeze.md)
 - [Engineering Constitution](../../engineering-os/ENGINEERING_CONSTITUTION.md)

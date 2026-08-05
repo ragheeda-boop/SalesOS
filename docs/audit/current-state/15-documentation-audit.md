@@ -407,28 +407,28 @@ Root-level audit files, generated outputs, recovery docs, and other misc.
 
 | # | File | Purpose | Quality | Status |
 |---|------|---------|---------|--------|
-| O1 | `SALESOS_ARCHITECTURE_AUDIT.md` | Root-level architecture audit | Comprehensive | 🔴 **OUTDATED** — pre-dates current audit series |
-| O2 | `SALESOS_COMPLETE_AUDIT_AND_ROADMAP.md` | Root-level complete audit and roadmap | Comprehensive | 🔴 **OUTDATED** — superseded by docs/ series |
-| O3 | `SALESOS_OPERATING_PLAN.md` | Operating plan document | Comprehensive | 🔴 **OUTDATED** — historical |
-| O4 | `SALESOS_PRODUCTION_READINESS_AUDIT.md` | Production readiness audit | Comprehensive | 🔴 **OUTDATED** — superseded |
-| O5 | `SALESOS_REMEDIATION_BACKLOG.md` | Remediation backlog | Comprehensive | 🔴 **OUTDATED** — superseded |
-| O6 | `SALESOS_REVISED_ROADMAP.md` | Revised roadmap | Comprehensive | 🔴 **OUTDATED** — superseded |
-| O7 | `SALESOS_V1_ENTERPRISE_RELEASE_READINESS.md` | V1 release readiness | Comprehensive | 🔴 **OUTDATED** — superseded |
-| O8 | `engineering-recovery/` (14 files) | Engineering recovery audit — inventory, verification, root cause, fixes, runtime validation, deep validation, release notes, final audit, remaining risks | Comprehensive | 🟢 Historical |
-| O9 | `output/SALESOS_ENGINEERING_OPERATIONS_MANUAL.md` | Generated engineering operations manual | Comprehensive | 🟡 Generated output |
-| O10 | `output/SALESOS_ENTERPRISE_COMPANY_INTELLIGENCE_ARCHITECTURE.md` | Generated enterprise architecture doc | Comprehensive | 🟡 Generated output |
-| O11 | `output/SALESOS_IMPLEMENTATION_BLUEPRINT.md` | Generated implementation blueprint | Comprehensive | 🟡 Generated output |
-| O12 | `output/SALESOS_PRODUCT_DELIVERY_PLAYBOOK.md` | Generated product delivery playbook | Comprehensive | 🟡 Generated output |
+| O1 | `docs/audit/legacy-reports/SALESOS_ARCHITECTURE_AUDIT.md` *(moved from root 2026-08-05, ADR-100 Phase 2)* | Root-level architecture audit | Comprehensive | 🔴 **OUTDATED** — pre-dates current audit series |
+| O2 | `docs/audit/legacy-reports/SALESOS_COMPLETE_AUDIT_AND_ROADMAP.md` *(moved from root 2026-08-05, ADR-100 Phase 2)* | Root-level complete audit and roadmap | Comprehensive | 🔴 **OUTDATED** — superseded by docs/ series |
+| O3 | `docs/audit/legacy-reports/SALESOS_OPERATING_PLAN.md` *(moved from root 2026-08-05, ADR-100 Phase 2)* | Operating plan document | Comprehensive | 🔴 **OUTDATED** — historical |
+| O4 | `docs/audit/legacy-reports/SALESOS_PRODUCTION_READINESS_AUDIT.md` *(moved from root 2026-08-05, ADR-100 Phase 2)* | Production readiness audit | Comprehensive | 🔴 **OUTDATED** — superseded |
+| O5 | `docs/audit/legacy-reports/SALESOS_REMEDIATION_BACKLOG.md` *(moved from root 2026-08-05, ADR-100 Phase 2)* | Remediation backlog | Comprehensive | 🔴 **OUTDATED** — superseded |
+| O6 | `docs/audit/legacy-reports/SALESOS_REVISED_ROADMAP.md` *(moved from root 2026-08-05, ADR-100 Phase 2)* | Revised roadmap | Comprehensive | 🔴 **OUTDATED** — superseded |
+| O7 | `docs/audit/legacy-reports/SALESOS_V1_ENTERPRISE_RELEASE_READINESS.md` *(moved from root 2026-08-05, ADR-100 Phase 2)* | V1 release readiness | Comprehensive | 🔴 **OUTDATED** — superseded |
+| O8 | `engineering-recovery/` (14 files, still at repo root — not relocated this phase) | Engineering recovery audit — inventory, verification, root cause, fixes, runtime validation, deep validation, release notes, final audit, remaining risks | Comprehensive | 🟢 Historical |
+| O9 | `output/SALESOS_ENGINEERING_OPERATIONS_MANUAL.md` | Generated engineering operations manual | Comprehensive | 🔴 **BROKEN** — `output/` directory does not exist in the repository (verified 2026-08-05) |
+| O10 | `output/SALESOS_ENTERPRISE_COMPANY_INTELLIGENCE_ARCHITECTURE.md` | Generated enterprise architecture doc | Comprehensive | 🔴 **BROKEN** — `output/` directory does not exist in the repository (verified 2026-08-05) |
+| O11 | `output/SALESOS_IMPLEMENTATION_BLUEPRINT.md` | Generated implementation blueprint | Comprehensive | 🔴 **BROKEN** — `output/` directory does not exist in the repository (verified 2026-08-05) |
+| O12 | `output/SALESOS_PRODUCT_DELIVERY_PLAYBOOK.md` | Generated product delivery playbook | Comprehensive | 🔴 **BROKEN** — `output/` directory does not exist in the repository (verified 2026-08-05) |
 | O13 | `WidgetTemplate/README.md` | Widget template README | Stub | 🟢 Current |
 | O14 | `salesos/packages/plugin-sdk/README.md` | 185 | Plugin SDK README — installation, quick start, hooks, components | Comprehensive | 🟢 Current |
-| O15 | `ultimate_deck_specification.md` | Ultimate deck specification | Standard | 🟡 External reference |
-| O16 | `muhide_3version_comparative_report.md` | 3-version comparative analysis | Standard | 🟡 External reference |
-| O17 | `muhide_comparative_analysis_report.md` | Comparative analysis report | Standard | 🟡 External reference |
-| O18 | `muhide_pitch_deck_analysis_report.md` | Pitch deck analysis | Standard | 🟡 External reference |
-| O19 | `notion_analysis.md` | Notion analysis report | Standard | 🟡 External reference |
-| O20 | `sales-os/README.md` | Legacy sales-os directory README | Stub | 🔴 **ORPHANED** — sales-os/ directory may be old |
+| O15 | `assets/reports/ultimate_deck_specification.md` *(moved from root 2026-08-05, ADR-100 Phase 2)* | Ultimate deck specification | Standard | 🟡 External reference |
+| O16 | `assets/reports/muhide_3version_comparative_report.md` *(moved from root 2026-08-05, ADR-100 Phase 2)* | 3-version comparative analysis | Standard | 🟡 External reference |
+| O17 | `assets/reports/muhide_comparative_analysis_report.md` *(moved from root 2026-08-05, ADR-100 Phase 2)* | Comparative analysis report | Standard | 🟡 External reference |
+| O18 | `assets/reports/muhide_pitch_deck_analysis_report.md` *(moved from root 2026-08-05, ADR-100 Phase 2)* | Pitch deck analysis | Standard | 🟡 External reference |
+| O19 | `notion_analysis.md` | Notion analysis report | Standard | 🔴 **BROKEN** — file does not exist anywhere in the repository (verified 2026-08-05) |
+| O20 | `archive/sales-os/README.md` *(root `sales-os/` retired to archive 2026-08-05, ADR-100 Phase 1 — see `migration-log/phase-04.md`)* | Legacy sales-os directory README | Stub | 🟢 Archived (no longer orphaned at root) |
 
-**Assessment:** 7 root-level SALESOS_* files are outdated (superseded by the `docs/` audit series). Consider archiving or adding deprecation notices. The `output/` files are AI-generated but useful references. engineering-recovery series (14 files) is a thorough post-mortem from an earlier recovery effort.
+**Assessment (updated 2026-08-05):** The 7 root-level SALESOS_* files and the 4 external-reference report files were relocated under [`ADR-100: Repository Canonicalization`](../../adr/0100-repository-canonicalization.md), Phase 2 (Repository Documentation) — see `migration-log/phase-05.md`. Original assessment retained below for history: these files were outdated (superseded by the `docs/` audit series); they are now filed as historical reference material rather than left loose at root. The `output/` files and `notion_analysis.md` were found to be broken references during this pass — the paths do not exist anywhere in the repository — and are marked accordingly rather than removed from this table, preserving the audit record. engineering-recovery series (14 files) is a thorough post-mortem from an earlier recovery effort; not relocated this phase (out of scope — code/root hygiene, not covered by the documentation-only Phase 2 mandate).
 
 ---
 

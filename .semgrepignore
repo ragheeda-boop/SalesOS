@@ -44,16 +44,16 @@ testsuite/
 
 # --- CI-19 Wave 4 path excludes (DEC-076) ---
 
-# Abandoned Taqeem scraper HTML/JSON (missing-integrity, BiDi) — not SalesOS GA runtime
-taqeem_scraper/
+# Scraper HTML/JSON (missing-integrity, BiDi in Arabic facility names — content noise, not Trojan Source in product)
+# Moved 2026-08-05 from root {balady,najiz,rega,taqeem}_scraper/ → packages/scrapers/ (restructure Phase 03)
+packages/scrapers/
 
-# Root scrape / dataset JSON (BiDi in Arabic facility names — content noise, not Trojan Source in product)
+# Root scrape / dataset JSON (historical; most moved/deleted in restructure)
 taqeem_facilities.json
 companies.json
 recovered_contacts.json
 
-# Abandoned legacy product tree (not salesos/ GA path)
-sales-os/
+# sales-os/ retired to archive/sales-os/ 2026-08-05 (ADR-100 Phase: Safe Cleanup)
 
 # Root legacy pipeline outside salesos/ GA path
 crm_pipeline.py

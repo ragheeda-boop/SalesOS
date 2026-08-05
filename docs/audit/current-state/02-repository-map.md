@@ -15,7 +15,7 @@ Muhide/                                    ← Monorepo root
 ├── sales-os/                              Legacy/standalone Python scripts (CRM pipeline, Notion sync)
 ├── docs/                                  Audit reports, architecture docs, domain maps
 │   └── audit/                             16-part audit series + current-state/ + execution/
-├── WidgetTemplate/                        Reference widget template (Container/View pattern)
+├── WidgetTemplate/                        RELOCATED 2026-08-05 → packages/widget-template/ (ADR-100 Phase 4) — was: Reference widget template (Container/View pattern)
 ├── open-design/                           Placeholder (empty — only node_modules)
 ├── balady_scraper/                        Legacy scraper: Balady municipality data
 ├── najiz_scraper/                         Legacy scraper: Najiz judicial data
@@ -603,7 +603,7 @@ Muhide/                                    ← Monorepo root
 
 | Directory/File | Purpose | Status |
 |---|---|---|
-| `WidgetTemplate/` | Reference widget template (Container/View) | Active |
+| `WidgetTemplate/` *(relocated 2026-08-05 → `packages/widget-template/`, ADR-100 Phase 4)* | Reference widget template (Container/View) | Active |
 | `open-design/` | Empty placeholder (only node_modules) | **Dead** |
 | `balady_scraper/` | Balady municipality scraper | Legacy |
 | `najiz_scraper/` | Najiz judicial scraper | Legacy |
