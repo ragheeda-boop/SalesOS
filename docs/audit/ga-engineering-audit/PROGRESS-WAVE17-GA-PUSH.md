@@ -1,7 +1,7 @@
 # Progress — Wave 17 GA push execution (2026-07-29)
 
 **Clock:** 2026-07-29 (agent session after explicit user approval for full GA remediation)  
-**Product:** SalesOS (`salesos/`) on AQLIYA platform intent  
+**Product:** SalesOS (`salesos/`) platform intent  
 **Authority:** [00-EXECUTIVE-SUMMARY.md](./00-EXECUTIVE-SUMMARY.md), [PRODUCTION_PLAN.md](./PRODUCTION_PLAN.md), [PROGRESS-REAUDIT-2026-07-29.md](./PROGRESS-REAUDIT-2026-07-29.md)  
 **Decision after this session:** still **NO-GO** for Production GA declaration  
 **Classification:** **production no-go** (gates improved; human signatures + soak claim + code deploy of security diffs still open)  

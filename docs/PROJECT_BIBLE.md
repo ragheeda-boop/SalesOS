@@ -2,6 +2,8 @@
 
 > **The Highest Authority for SalesOS Engineering**
 >
+> **GO / NO-GO exception:** Production readiness and GA decisions defer to [`docs/audit/ga-engineering-audit/`](audit/ga-engineering-audit/) (2026-07-22 **NO-GO**). Where this bible’s maturity language conflicts with the audit, **the audit wins** (EAB-001-P1-DOC-01 / AGENTS.md).
+>
 > Version: v5.1.0-rc1
 > Last Updated: 2026-07-29
 > Status: Ratified
@@ -43,11 +45,11 @@ SalesOS is designed for the Saudi Arabian market first, with global expansion ca
 
 ### Mission
 
-> **Unify fragmented business data into AI-native revenue intelligence that every team member can act on — without engineering support.**
+> **Unify fragmented business data into AI-assisted revenue intelligence that every team member can act on — without engineering support.**
 
 ### Vision
 
-SalesOS becomes the **operating system for revenue teams** in the Middle East and emerging markets. Not a CRM — an AI-native platform where:
+SalesOS becomes the **operating system for revenue teams** in the Middle East and emerging markets. Not a CRM — an AI-assisted platform where:
 
 - Every company interaction generates intelligence automatically
 - Every decision is informed by data, not intuition
@@ -71,7 +73,7 @@ SalesOS becomes the **operating system for revenue teams** in the Middle East an
 | Overall Maturity | 7.5/10 | ≥ 9.0/10 | Engineering Dashboard |
 | Overall Completion | ~79-85% | ≥ 95% | Feature Matrix |
 | Architecture Score | 8/10 | ≥ 9.5/10 | Architecture Compliance Scan |
-| Security Posture | 10/10 | 10/10 | External Pentest |
+| Security Posture | 48/100 | ≥ 90/100 | STAR Audit + GA Audit |
 | Performance Score | 6.5/10 | ≥ 9.0/10 | k6 Baseline + Endpoint Budgets |
 | Unit Test Coverage | 93% | ≥ 90% | pytest-cov |
 | Backend AI Tests | 0% | ≥ 85% | pytest-cov (ai domain) |

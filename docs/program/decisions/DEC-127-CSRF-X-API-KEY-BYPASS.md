@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion 1.3 = **READY FOR REVIEW** (Architecture PENDING · Validation PENDING). Only Execution Orchestrator may mark VERIFIED/CLOSED.  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / Security P0 (SalesOS / AQLIYA)  
+> **Board:** Backend Lead / Security P0 (SalesOS)  
 > **Story / risk:** GA-P1-SEC-01 / PROD-W5-001 / STORY-01-03 / Phase 0 Exit Criterion **1.3**  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §1.3 · PRODUCTION_PLAN PROD-W5-001 · DEC-085 `set_config` · ARB review protocol (Cursor ≠ CLOSED)  
 > **Out of scope this land:** Security 1.5 (pip-audit residual) · Railway R-14 · frontend · `.ai/` org design · Criterion CLOSED/VERIFIED claims · Production GO

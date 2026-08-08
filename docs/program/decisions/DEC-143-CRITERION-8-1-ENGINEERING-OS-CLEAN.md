@@ -2,7 +2,7 @@
 
 > **Status:** **VERIFIED/CLOSED** via DEC-143a (Arch PASS + Validation PASS light @ `89502ef`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / Engineering Stability (SalesOS / AQLIYA) — api-worker land + Orchestrator CLOSE  
+> **Board:** Backend Lead / Engineering Stability (SalesOS) — api-worker land + Orchestrator CLOSE  
 > **Story / risk:** Phase 0 Exit Criterion **8.1** · `engineering-os/` submodule clean  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §8.1 · `.engineering/27_ADR_INDEX.md` conflict #11 · DEC-142 residual  
 > **Out of scope this land:** Eng Stability **8.2** / **8.3** · EOS **4.1/4.8** ARB · inventing capability SoT · submodule remote push · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit

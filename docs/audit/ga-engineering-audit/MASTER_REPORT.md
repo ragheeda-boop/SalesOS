@@ -1,4 +1,4 @@
-# MASTER REPORT — AQLIYA / Muhide GA Engineering Audit
+# MASTER REPORT — Muhide GA Engineering Audit
 
 **Date:** 2026-07-22  
 **Workspace:** `C:\Users\raghe\OneDrive - RATL Technology Ltd\Muhide`  
@@ -47,7 +47,7 @@ Backend domains/modules include: identity, company, contact, search, decision/de
 
 ### 2.4 Product boundary finding
 
-User operating model describes **AQLIYA** as platform with AuditOS / DecisionOS / SalesOS / LocalContentOS. Repository content and `docs/PROJECT_BIBLE.md` are **SalesOS-only**. Treat GA as **SalesOS GA candidate**, not AQLIYA platform GA — unless product shells are explicitly deferred.
+User operating model describes a multi-product platform with AuditOS / DecisionOS / SalesOS / LocalContentOS. Repository content and `docs/PROJECT_BIBLE.md` are **SalesOS-only**. Treat GA as **SalesOS GA candidate**, not platform GA — unless product shells are explicitly deferred.
 
 ### 2.5 Dependency graph (summary)
 
@@ -236,7 +236,7 @@ Recommendations: fix collection/errors; contract tests for auth status codes; sm
 
 | Vision element | Reality |
 |----------------|---------|
-| AQLIYA platform | Not present as code |
+| platform | Not present as code |
 | SalesOS revenue intelligence | Substantial UI/API surface |
 | AI runtime | Partial; stubs; flags off |
 | Multi-tenant SaaS | Models/routes exist; admin tests broken |
@@ -282,7 +282,7 @@ Top actionable security items now:
 
 ## 14. Missing Features Report
 
-- AQLIYA / AuditOS / DecisionOS / LocalContentOS products  
+- AuditOS / DecisionOS / LocalContentOS products  
 - Production-grade agent/workflow/scheduler runtimes  
 - Copilot/analytics/marketplace/employees/knowledge pages on **running** FE image  
 - Schema objects from migrations 0034–0038 on runtime DB  
@@ -316,7 +316,7 @@ Top actionable security items now:
 3. Apply Alembic 0034–0038 on non-prod → verify tables  
 4. Quarantine or install `mcp` for tests  
 5. Stamp GO docs as **superseded by 2026-07-22 audit**  
-6. Add AGENTS.md stating SalesOS-first / AQLIYA platform intent  
+6. Add AGENTS.md stating SalesOS-first / platform intent  
 
 ---
 
@@ -325,7 +325,7 @@ Top actionable security items now:
 - Implement or delete stub runtimes  
 - Keyset pagination everywhere; N+1 eradication under load  
 - True multi-provider AI with cost/telemetry gates  
-- Platform product extraction (shared Core) when AQLIYA is real  
+- Platform product extraction (shared Core) when real  
 - Continuous migration checksum in `/health`  
 - Browser-based release certification checklist  
 
@@ -335,7 +335,7 @@ Top actionable security items now:
 
 1. **Near-term:** Stabilize SalesOS as single deployable product with honest feature flags.  
 2. **Mid-term:** Extract `packages/core` (identity, audit, tenancy, evidence) shared by future OS products.  
-3. **Long-term:** AQLIYA platform shell with product modules — only after Core contracts freeze.  
+3. **Long-term:** platform shell with product modules — only after Core contracts freeze.  
 4. Keep Decision Platform as the only scoring/reasoning entry (human-confirm gates).  
 5. Prefer PostgreSQL as SoT; Neo4j/Kafka as progressive enhancement with explicit degraded modes.
 
@@ -368,7 +368,7 @@ Top actionable security items now:
 4. Runtime health shows required subsystems for the GA feature set (or explicit degraded matrix signed by CTO)  
 5. FE/BE images built from the certified commit; smoke routes match inventory  
 6. Supersede conflicting GO docs; publish new PRC with evidence links  
-7. Scope statement: **SalesOS GA** ≠ **AQLIYA platform GA** unless other products exist  
+7. Scope statement: **SalesOS GA** ≠ **platform GA** unless other products exist  
 
 **External pilot:** also **NO-GO** until P0s cleared.  
 **Internal engineering demo:** acceptable only with known limitations listed above — classification remains **not production**.

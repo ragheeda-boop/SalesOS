@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — planning complete; **Slice 1 PASS** (sharp; §9 / field verify §10); **Slice 2 PASS** (ESLint 10; §11 / DEC-072); **Slice 3 STOP** (Jest; §12 / DEC-100); **story CLOSED** (DEC-108 executive AC)  
 > **Date:** 2026-08-01  
-> **Board:** Frontend / Deps (SalesOS / AQLIYA)  
+> **Board:** Frontend / Deps (SalesOS)  
 > **Story / risk:** CI-14 / R-18 (30 residual high npm advisories after CI-11 — **cleared** post Slice 1+2; host audit **0**)  
 > **Authority:** DEC-018 (story register) · DEC-019 (CI-11 closed, residual → CI-14) · DEC-035 (CI-13 Jest baseline contract) · lock evidence on `master` · Slice 1 **DEC-063** · Slice 2 **DEC-072** · Slice 3 STOP **DEC-100**  
 > **Out of scope:** CI-22 · backend Poetry bumps · Railway · `npm audit --force` · silent Next/React/ESLint/Jest majors

@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-22  
 **IDs:** PROD-W12-001 / PROD-W12-002 (local stand-in only)  
-**Product:** SalesOS (AQLIYA)  
+**Product:** SalesOS  
 **Verdict:** **DONE** for **local virtual staging tabletop**  
 **Cloud / VPS staging:** still **BLOCKED** (no real staging host)  
 **Production:** still **NO-GO**  

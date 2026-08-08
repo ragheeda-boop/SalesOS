@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted**  
 > **Date:** 2026-08-02  
-> **Board:** Execution Orchestrator / Chief Architect (SalesOS / AQLIYA) — program/governance scribe land  
+> **Board:** Execution Orchestrator / Chief Architect (SalesOS) — program/governance scribe land  
 > **Story / risk:** Phase 0 program governance · residual hard OPEN **3.7**, **3.9**, **4.1**, **4.8**  
 > **Authority:** User directive **Phase 0 Governance Freeze** · tip after DEC-150 Option B @ `a734853` · aligns Architecture = FROZEN (EEC-001 / checklist Operating State) · AI org baseline / runtime deferred (ARB-003 / DEC-145 / DEC-146) · DEC-149 / DEC-149a · DEC-150 B  
 > **Out of scope this land:** closing any Phase 0 criterion · inventing EOS **4.1/4.8** ARB PASS · Production GO · full CI GREEN · Phase 0 COMPLETE · app/backend/frontend code · workflow topology changes · superseding DEC-149 / DEC-150  

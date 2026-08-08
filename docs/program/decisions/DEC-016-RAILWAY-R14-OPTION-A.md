@@ -3,7 +3,7 @@
 > **Status:** **Accepted** (authorization + partial infra) — **security-closure consequence CONTRADICTED / revoked by [`DEC-120`](DEC-120-DEC016-RAILWAY-R14-CONTRADICTED.md)**  
 > **Date:** 2026-08-01  
 > **Supersedes:** [`DEC-DRAFT-RAILWAY-R14-PHASE0`](DEC-DRAFT-RAILWAY-R14-PHASE0.md)  
-> **Board:** Architecture Review Board + Risk Manager + DevOps-SRE (SalesOS / AQLIYA)  
+> **Board:** Architecture Review Board + Risk Manager + DevOps-SRE (SalesOS)  
 > **Human authorization:** Arabic standing approval — Option A full remediation (Ops via Railway CLI; MCP Unauthorized)  
 > **Records note (2026-08-01):** Principal audit Tier-1 evidence shows env provision ≠ runtime RLS (sessions as `postgres`; 0 policies; bypass-probe FAIL). See DEC-120 + [`docs/audit/PRINCIPAL_AUDIT_2026-08-01_DEC016_RAILWAY_CI.md`](../../audit/PRINCIPAL_AUDIT_2026-08-01_DEC016_RAILWAY_CI.md).
 

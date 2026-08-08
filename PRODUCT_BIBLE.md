@@ -1,5 +1,7 @@
 # SalesOS Product Bible v1
 
+> **GO / NO-GO:** Defers to [`docs/audit/ga-engineering-audit/`](docs/audit/ga-engineering-audit/) (authoritative **production no-go** as of 2026-07-22). This Product Bible is product narrative — **not** a GA evidence gate. Dual-bible hazard: EAB-001-P1-DOC-01.
+>
 > **الرؤية:** أول منصة ذكاء أعمال سعودية تفهم شركاتك قبل أن تسأل.
 >
 > **تاريخ الإصدار:** 2026-07-08

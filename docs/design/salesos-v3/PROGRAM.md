@@ -1,7 +1,7 @@
 # SalesOS Design Program v3
 
 > **Status:** Active program charter  
-> **Product:** SalesOS (AQLIYA)  
+> **Product:** SalesOS  
 > **Validation:** documentation / light validated — **not** Production GO  
 > **AI honesty:** Preview / flag-gated until evidence — see [AI_HONESTY.md](../../audit/ga-engineering-audit/AI_HONESTY.md)
 

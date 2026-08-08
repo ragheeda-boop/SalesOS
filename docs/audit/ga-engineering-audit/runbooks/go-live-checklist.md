@@ -67,7 +67,7 @@
 ## Scope reminder
 
 - **In scope:** SalesOS Production GA candidate  
-- **Out of scope:** AQLIYA multi-product GA; marketing AI as production-ready while flags/stubs say otherwise ([AI_HONESTY.md](../AI_HONESTY.md))
+- **Out of scope:** multi-product GA; marketing AI as production-ready while flags/stubs say otherwise ([AI_HONESTY.md](../AI_HONESTY.md))
 
 ---
 

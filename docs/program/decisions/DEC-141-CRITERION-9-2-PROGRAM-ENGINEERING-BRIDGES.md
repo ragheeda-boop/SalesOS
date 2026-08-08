@@ -2,7 +2,7 @@
 
 > **Status:** **VERIFIED/CLOSED** via DEC-141a (Arch PASS + Validation PASS light @ `7b618da`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / ADR-036 Applied (SalesOS / AQLIYA) — Orchestrator CLOSE  
+> **Board:** Backend Lead / ADR-036 Applied (SalesOS) — Orchestrator CLOSE  
 > **Story / risk:** Phase 0 Exit Criterion **9.2** · `docs/program/` ↔ `.engineering/` bidirectional references  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §9.2 · ADR-036 Phase 2 · DEC-140 residual · DEC-141a  
 > **Out of scope this land:** fingerprint re-measure (4.2/4.7) · EvidenceLevel upgrade (4.4) · ARB re-audit (4.1/4.8) · Eng Stability 8.1–8.3 · inventing SoT · merging layers · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit

@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-22  
 **IDs:** PROD-W11-001 (parity), PROD-W11-002 (soak)  
-**Product:** SalesOS on AQLIYA  
+**Product:** SalesOS  
 **Owner scope:** Local/staging **path automation + evidence start** — no cloud staging deploy, no Production GO  
 **Validation class:** **light validated** (local Docker gate + 4h evidence loop + 48h **in progress**) — **production no-go** unchanged  
 **Soak status:** **NOT complete** — 4.0h extended local loop **DONE**; **48h local loop STARTED** (`2026-07-22T14:31:46Z`, PID `21856`); **48–72h claim remains OPEN**  

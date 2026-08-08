@@ -1,8 +1,22 @@
-# QUARANTINE / Dead Code Register — SalesOS / AQLIYA
+# QUARANTINE / Dead Code Register — SalesOS
 
 **Purpose:** Track removed, superseeded, or quarantined code to prevent re-introduction.
 **Authority:** ga-engineering-audit.
-**Last updated:** 2026-07-30 (Wave 22 remediation).
+**Last updated:** 2026-08-08 (Completion Program Stream B M1).
+
+---
+
+## Quarantined / remounted (EAB-2026-08-06-003 structural + Stream B M1)
+
+| Item | Action | Reason | Do not |
+|------|--------|--------|--------|
+| Decision Runtime former `/api/v1` mount | Remounted to `/api/v1/decision-runtime` | DUP-01 HTTP collision with Center/Platform | Remount Runtime under `/api/v1` |
+| Decision Platform engine | Quarantine docstring + OpenAPI alternate descriptions | DUP-01 multi-engine residual | Present as Decision Center SoT |
+| Lab decision package name | Renamed `@salesos/decision-platform-lab` | DUP-01 / AIGOV-01 name twin with FE STUB | Reintroduce same npm name as FE STUB |
+| Workflow webhook CRUD | Remounted `/api/v1/workflow/webhooks*` | DUP-02 prefix collision with Integration Hub | Mount workflow CRUD at `/api/v1/webhooks` again |
+| Experimental search API | OpenAPI `deprecated=True` | DUP-02 dual capability quarantine | Delete without DEC (FE analytics depends) |
+| Studio + domain prompt registries | Dual-registry quarantine tags/honesty | DUP-02 prompt residual | Invent single Prompt SoT without DEC |
+| MetaData islands | Freeze ceiling **18** | DRIFT-01 | Add islands / raise ceiling without DEC |
 
 ---
 

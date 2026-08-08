@@ -74,7 +74,7 @@ Verified against executable code as of `6f75e8d`, not aspiration:
 | A4 | Odoo remains the reference/first connector; a second connector (SAP or HubSpot) is scoped no later than Sprint 16 to validate the framework generality claim before GA | Skipping this means the Integration Hub's "generic" claim ships unverified — a direct repeat of the original Odoo Blueprint's single-vendor risk |
 | A5 | Regulatory scope at GA is Saudi/GCC (PDPL-aligned), not full SOC2 Type II or GDPR — those are explicitly post-GA hardening, tracked as backlog, not blockers | If an early Enterprise prospect requires SOC2 Type II pre-contract, Phase 6 scope grows and GA date slips |
 | A6 | Pooled multi-tenant Postgres (RLS-isolated) is sufficient through GA scale (target: dozens of tenants, not thousands) | If an early Enterprise deal requires dedicated-tenant isolation before Sprint 20, the siloed-tier work (`SAAS_PLATFORM_ARCHITECTURE.md` §13) pulls forward |
-| A7 | No AQLIYA sibling product (AuditOS, DecisionOS, LocalContentOS) needs Owner Platform support before this plan's GA | Owner Platform is scoped for one product family only through GA; multi-product support is explicitly Phase 7+ (post-GA) |
+| A7 | No sibling product (AuditOS, DecisionOS, LocalContentOS) needs Owner Platform support before this plan's GA | Owner Platform is scoped for one product family only through GA; multi-product support is explicitly Phase 7+ (post-GA) |
 
 ---
 

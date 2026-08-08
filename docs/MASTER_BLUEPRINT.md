@@ -12,7 +12,7 @@
 Improve measurable commercial outcomes for enterprise organizations through explainable decision intelligence.
 
 ### Vision
-The definitive **Business Intelligence Operating System** for the Middle East — starting with Saudi Arabia, expanding to GCC and MENA — powering every commercial decision with complete company intelligence, AI-native decision support, and automated revenue workflows.
+The definitive **Business Intelligence Operating System** for the Middle East — starting with Saudi Arabia, expanding to GCC and MENA — powering every commercial decision with complete company intelligence, AI-assisted decision support, and automated revenue workflows.
 
 ### Core Thesis
 Enterprise organizations lack a platform that:

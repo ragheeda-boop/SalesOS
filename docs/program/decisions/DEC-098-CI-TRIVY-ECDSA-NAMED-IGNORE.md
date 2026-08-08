@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted**  
 > **Date:** 2026-08-01  
-> **Board:** Security / CI (SalesOS / AQLIYA)  
+> **Board:** Security / CI (SalesOS)  
 > **Story / risk:** R-21 residual `ecdsa` after CI-16 / CI-22 Phase 1; Secrets Scan still red after DEC-090 pip-audit align  
 > **Authority:** DEC-057 Option A + DEC-090 (same residual) + CI run `30684813480` @ `c8c1bce` Secrets Scan FAILURE (sole HIGH)  
 > **Out of scope:** PyJWT migration (DEC-057 Option B); ignoring other CVEs; disabling Trivy `exit-code: 1`; weakening severity floor; DEC-085 / `get_db`

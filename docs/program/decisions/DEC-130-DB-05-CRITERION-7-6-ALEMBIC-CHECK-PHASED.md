@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Slice **5a** COMPLETE · Slice **5b** COMPLETE ([DEC-130b](DEC-130b-DB-05-SLICE-5B-METADATA-CLASSIFY.md)) · Slice **5c** COMPLETE ([DEC-130c](DEC-130c-DB-05-SLICE-5C-ADMIN-GLOBAL-CREATE.md)) · Slice **5d** COMPLETE ([DEC-130d](DEC-130d-DB-05-SLICE-5D-INDEX-TYPE-NULLABLE.md)) · Slice **5e** COMPLETE ([DEC-130e](DEC-130e-DB-05-SLICE-5E-COMPANIES-RESIDUAL-KEEP.md)) · Slice **5f** COMPLETE ([DEC-130f](DEC-130f-DB-05-SLICE-5F-ORPHAN-KEEP-REGISTER.md)) · Slice **5g** COMPLETE ([DEC-130g](DEC-130g-DB-05-SLICE-5G-INDEX-FK-COMMENT.md) — live `alembic check` **exit 0**) · Criterion **7.6 VERIFIED/CLOSED** via [DEC-130h](../DECISION_LOG.md) (Arch+Val PASS @ `250bcb5`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Platform / Database (SalesOS / AQLIYA)  
+> **Board:** Backend Platform / Database (SalesOS)  
 > **Story / risk:** DB-05 / R-20 / Phase 0 Exit Criterion **7.6**  
 > **Authority:** DEC-111 Slice 0 · DEC-113–123 · DEC-129 KEEP · DEC-085 `set_config` · DEC-107 swarm READY  
 > **Out of scope this land:** production / Railway migrate · Prisma · DEC-085 edits · Production GO / CI GREEN

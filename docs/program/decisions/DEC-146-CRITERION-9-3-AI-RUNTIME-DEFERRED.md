@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Criterion 9.3 = **VERIFIED/CLOSED** via DEC-146a (Arch PASS + Validation PASS light · Orchestrator 2026-08-01) · ADR-036 Applied **COMPLETE 4/4**  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / ADR-036 Applied (SalesOS / AQLIYA) — api-worker land  
+> **Board:** Backend Lead / ADR-036 Applied (SalesOS) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **9.3** · `.ai/` explicitly deferred with trigger condition  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §9.3 · ADR-036 · ARB-2026-08-01-003 · DEC-145 (org baseline ≠ full runtime) · DEC-141 bridges  
 > **Out of scope this land:** inventing Agent OS scheduler/queue · EOS **4.1/4.8** ARB · CI-08/CI-09 ops · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit

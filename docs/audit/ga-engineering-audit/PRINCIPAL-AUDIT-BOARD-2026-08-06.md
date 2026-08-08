@@ -1,8 +1,8 @@
 # Principal Audit Board — SalesOS Re-audit (2026-08-06)
 
 **Date:** 2026-08-06  
-**Product audited:** SalesOS (`salesos/`) inside Muhide / AQLIYA workspace  
-**Platform intent:** AQLIYA (Private Governed Institutional Intelligence) — SalesOS is the shipped product under audit  
+**Product audited:** SalesOS (`salesos/`) inside Muhide workspace  
+**Platform intent:** Private Governed Institutional Intelligence — SalesOS is the shipped product under audit  
 **Method:** 6 parallel explore agents + Principal synthesis  
 **Evidence class:** Mostly **static** / **light validated** — not soak, not full browser journey suite, not full pytest/npm suites this board  
 **Authority chain:** Executable evidence → this board → [00-EXECUTIVE-SUMMARY.md](./00-EXECUTIVE-SUMMARY.md) (2026-07-22 baseline) → [PRODUCTION_PLAN.md](./PRODUCTION_PLAN.md)  

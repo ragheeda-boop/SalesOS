@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** - Slice 1 **CLOSED** (CREATE TABLE); DB-05 program remains **OPEN**
 > **Date:** 2026-08-01
-> **Board:** Backend Platform / Database (SalesOS / AQLIYA)
+> **Board:** Backend Platform / Database (SalesOS)
 > **Story / risk:** DB-05 / R-20 / R-09
 > **Authority:** DEC-111 Slice 0 inventory · DEC-110 deferred-8 pin · DEC-044 Option B · DEC-085 `set_config` · DEC-107 swarm READY
 > **Out of scope this land:** ENABLE RLS on deferred-8 · production migrate · Prisma · Category B B1-B7 · DEC-085 `get_db` edits · emails/meetings type Slice 2

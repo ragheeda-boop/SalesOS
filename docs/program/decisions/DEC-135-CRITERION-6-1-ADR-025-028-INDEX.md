@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **6.1 VERIFIED/CLOSED** (DEC-135a; Arch+Val PASS @ `4997ae4`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / ADR Drift (SalesOS / AQLIYA) — api-worker land  
+> **Board:** Backend Lead / ADR Drift (SalesOS) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **6.1** · `.engineering/27_ADR_INDEX.md` §4 conflict #1  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §6.1 · DEC-134a “Architecture next” (ADR Drift **6.x**) · ARB review protocol  
 > **Out of scope this land:** ADR-029 phantom · ADR-033/034 status · ADR-032 naming · ADR-036 multi-index · inventing new ADR bodies · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN

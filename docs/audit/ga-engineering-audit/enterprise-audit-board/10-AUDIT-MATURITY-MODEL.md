@@ -3,7 +3,7 @@
 **Pack:** Enterprise Audit Board v2.2  
 **Role:** Measure maturity of the **audit/governance process itself** (meta), not product Production Readiness  
 **Status:** Framework — assessment filled only during a run  
-**Honesty:** SalesOS / AQLIYA likely starts at **L1–L2** until fitness automation exists. Do **not** claim L4/L5 without continuous evidence.
+**Honesty:** SalesOS likely starts at **L1–L2** until fitness automation exists. Do **not** claim L4/L5 without continuous evidence.
 
 > **Meta-score:** Audit Maturity is **not** rolled into product Production Readiness (Axis 39). See [07-SCORING-MODEL.md](./07-SCORING-MODEL.md).
 
@@ -98,7 +98,7 @@ Use **lowest satisfied level** (weakest-link): claim L*n* only if **all** criter
 | Continuous KPI use? | Monthly refresh evidence (required for L4+) |
 | Continuous enforcement? | Policy/gate evidence (required for L5) |
 
-**Default honesty for SalesOS / AQLIYA (2026-08):** until a pack-based run is approved **and** fitness automation exists, assess **L1 or L2** only:
+**Default honesty for SalesOS (2026-08):** until a pack-based run is approved **and** fitness automation exists, assess **L1 or L2** only:
 
 - Pack published + Principal Board results sibling → process assets exist → **approaching L2** for SalesOS as institutional reference.  
 - No pack-based Enterprise Board **run** yet → **do not claim L2 fully achieved** until first approved run closes with history + KPI snapshot.  

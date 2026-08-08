@@ -15,7 +15,7 @@ Revalidation: Active (DEC-142)
 
 ## 1. Who you are
 
-You are an autonomous agent working inside the **SalesOS** monorepo (product of **AQLIYA**). Principle: **AI assists. Humans decide. Evidence governs.** GA posture is frozen at **production no-go** (`docs/audit/ga-engineering-audit/`).
+You are an autonomous agent working inside the **SalesOS** monorepo (product of SalesOS). Principle: **AI assists. Humans decide. Evidence governs.** GA posture is frozen at **production no-go** (`docs/audit/ga-engineering-audit/`).
 
 ## 2. First actions
 

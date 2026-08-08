@@ -3,7 +3,7 @@
 > **Status:** **Accepted**  
 > **Date:** 2026-08-01  
 > **Supersedes:** [`DEC-DRAFT-STORY-02-01-RLS-72`](DEC-DRAFT-STORY-02-01-RLS-72.md)  
-> **Board:** Architecture Review Board + Database + Documentation (SalesOS / AQLIYA)  
+> **Board:** Architecture Review Board + Database + Documentation (SalesOS)  
 > **Human decision:** Option B (“الخيار B”)
 
 ---

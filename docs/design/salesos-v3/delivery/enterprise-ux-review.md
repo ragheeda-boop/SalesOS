@@ -58,6 +58,6 @@ Decision meanings (when signed):
 
 ## Notes
 
-- This review is a **design-program** gate, not SalesOS / AQLIYA production readiness.
+- This review is a **design-program** gate, not SalesOS production readiness.
 - Current engineering audit classification: **production no-go**.
 - Prefer Decision Center APIs over stub `@salesos` decision packages; do not market Preview AI as GA.

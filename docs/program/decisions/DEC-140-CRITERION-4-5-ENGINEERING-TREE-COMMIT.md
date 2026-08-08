@@ -2,7 +2,7 @@
 
 > **Status:** **Cursor COMPLETE** / **READY FOR REVIEW** — awaiting Architecture + Validation  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / EOS Audit (SalesOS / AQLIYA) — api-worker land  
+> **Board:** Backend Lead / EOS Audit (SalesOS) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **4.5** · `.engineering/` committed to git (not untracked)  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §4.5 · ADR-036 (Engineering Spec layer) · DEC-139 residual  
 > **Out of scope this land:** fingerprint re-measure (4.2/4.7) · EvidenceLevel upgrade (4.4) · ARB re-audit (4.1/4.8) · program↔engineering bidirectional refs (9.2) · inventing SoT · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit · VERIFIED/CLOSED

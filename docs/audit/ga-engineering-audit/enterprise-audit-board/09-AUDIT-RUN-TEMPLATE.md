@@ -14,7 +14,7 @@
 | Pack version | v2.2 (`enterprise-audit-board/`) |
 | Date opened | — |
 | Date closed | — |
-| Product scope | SalesOS (`salesos/`) under AQLIYA |
+| Product scope | SalesOS (`salesos/`) |
 | Approver (human) | — |
 | Evidence budget | — |
 | Low-load exceptions | none / list |

@@ -1,7 +1,7 @@
 # PROGRESS — Wave 2 Security Residuals Under Load (PROD-W2 load)
 
 **Date:** 2026-07-22  
-**Product:** SalesOS (AQLIYA) — local Docker API `:8000`  
+**Product:** SalesOS — local Docker API `:8000`  
 **Scope:** Defensive verification of webhook SSRF guards + KG tenant / SQL-fallback gates under light concurrent load  
 **Validation class:** **light validated** (local runtime probes + code review)  
 **Overall probe matrix:** **PASS** (26/26 on CSRF-aware runs `2026-07-22T103720Z` and re-probe `2026-07-22T125056Z`)  

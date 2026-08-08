@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **5.1 VERIFIED/CLOSED** via DEC-132a (Arch PASS + Validation PASS light @ `8e105fe`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / Capability Drift (SalesOS / AQLIYA) — Architecture-adjacent SoT packaging  
+> **Board:** Backend Lead / Capability Drift (SalesOS) — Architecture-adjacent SoT packaging  
 > **Story / risk:** Phase 0 Exit Criterion **5.1** · DEBT-ARC-003 / E-21 · EXEC-ARCHITECTURE-PRODUCT-REVIEW #9/#17  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §5.1 · audit “pick one registry as SoT” · ARB review protocol  
 > **Out of scope this land:** Criterion **5.2** CAP-###→kebab join map · **5.3** `validate_capability_registries.py` exit 0 · deleting secondary registries · auth/CSRF weaken · DEC-085 `set_config` · Production GO · CI GREEN

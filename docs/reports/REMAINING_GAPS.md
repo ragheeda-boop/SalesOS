@@ -163,7 +163,7 @@
 | G01 | **GO docs متضاربة** | `docs/vnext/reports/GO_NO_GO_DECISION.md` و `GA_CHECKLIST.md` يدّعيان GO — مناقضان للأدلة التنفيذية | P1 | APPENDIX-C P1-03 |
 | G02 | **GA_STATUS / wave scoreboards غير متوافقة مع P0 المتبقية** | الفجوة بين درجات board السابقة والواقع الحي للـ P0 enforcement gaps | P1 | PRINCIPAL-AUDIT P1-3 |
 | G03 | **CTO/TL signed go-live checklist غير موجودة** | لا توجد قائمة موقعة للإطلاق بعد إغلاق P0 | P1 | PRINCIPAL-AUDIT P1-5 |
-| G04 | **AQLIYA multi-product gap** | لا يوجد كود لـ AuditOS / DecisionOS / LocalContentOS. إطلاق SalesOS GA ≠ منصة AQLIYA متعددة المنتجات | P1 | APPENDIX-C P1-05 |
+| G04 | **Multi-product gap** | لا يوجد كود لـ AuditOS / DecisionOS / LocalContentOS. إطلاق SalesOS GA ≠ منصة متعددة المنتجات | P1 | APPENDIX-C P1-05 |
 | G05 | **Focus Regression Suite غير موجود** | لا توجد مجموعة اختبارات انحدار مركزة لـ middleware + RLS tenant filters | P1 | PRINCIPAL-AUDIT P1-4 |
 | G06 | **Arabic docs partial** | DOC-04 — بعض الوثائق تفتقد الترجمة العربية الكاملة | P3 | APPENDIX-C P3-04 |
 | G07 | **Legacy scrapers / root scripts** | `data/` pipelines و root scrapers تشوش المستودع بدون مسار GA واضح | P3 | APPENDIX-C P4-01 |

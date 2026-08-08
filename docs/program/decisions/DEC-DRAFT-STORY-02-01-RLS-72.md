@@ -2,7 +2,7 @@
 
 > **Status:** **Superseded** by [`DEC-044`](DEC-044-STORY-02-01-RLS-OPTION-B.md) (Accepted 2026-08-01 — Option B).  
 > **Date:** 2026-08-01 (draft); Accepted via DEC-044 same day.  
-> **Board:** Architecture Review Board + Documentation (SalesOS / AQLIYA program)  
+> **Board:** Architecture Review Board + Documentation (SalesOS program)  
 > **Human decision:** Option B (“الخيار B”).  
 > **Authority chain:** Sprint-03 STORY-02-01 AC → R-09 / R-20 / DB-05 → DEC-008 / DEC-013 → this package → human accept → **DEC-044**.  
 > **Out of scope (unchanged):** Claiming Phase 0 GO; Railway R-14 remediation.

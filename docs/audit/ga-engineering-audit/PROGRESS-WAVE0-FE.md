@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-22  
 **Owner:** Frontend agent  
-**Product:** SalesOS (AQLIYA platform)  
+**Product:** SalesOS (platform)  
 **Validation classification:** **build validated** (FE package only)
 
 ## Summary

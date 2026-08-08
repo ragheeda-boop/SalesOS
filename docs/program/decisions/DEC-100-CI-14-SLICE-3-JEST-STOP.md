@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Slice 3 **STOPPED**; story later **CLOSED** via DEC-108 executive AC (not via Jest 30)  
 > **Date:** 2026-08-01  
-> **Board:** Frontend / Deps (SalesOS / AQLIYA)  
+> **Board:** Frontend / Deps (SalesOS)  
 > **Story / risk:** CI-14 / R-18 Cluster A (Jest leg)  
 > **Authority:** DEC-062 plan · DEC-072 Slice 2 PASS (`240f9a8`) · DEC-035 / DEC-077 Stage 3 field **0** · session prefer patch/minor over major when audit allows  
 > **Out of scope this land:** package/lock bumps · Jest 30 execute · `npm audit --force` · Next/React majors · CI-22 · Railway · backend Poetry

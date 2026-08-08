@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted — Option B** (ARB Decision Approved)  
 > **Date:** 2026-08-02 (Proposed land); **Accepted:** 2026-08-02  
-> **Board:** Architecture Review Board + Chief Architect (SalesOS / AQLIYA)  
+> **Board:** Architecture Review Board + Chief Architect (SalesOS)  
 > **Story / risk:** CI-08 / Phase 0 criteria **3.6**, **3.7**, **3.9**, **3.10** / **R-17** (GHCR leg)  
 > **Authority:** **ARB Decision — DEC-150 Option B (Approved).** Stage 6 GHCR publish is **no longer** a required Phase 0 capability after DEC-149. Cross-ref DEC-149 (+ DEC-149a).  
 > **Out of scope this Accepted land (execution):** GHCR ops fix / invent Packages tokens · app/backend/frontend business logic · inventing EOS **4.1/4.8** PASS · Phase 0 GO · Production GO · full CI GREEN claim · DEC-085  

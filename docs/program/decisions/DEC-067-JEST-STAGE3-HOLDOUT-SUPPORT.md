@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — support inventory recorded; holdout **code** ownership remains Frontend Lead / holdout agent  
 > **Date:** 2026-08-01  
-> **Board:** Frontend / Jest-debt (SalesOS / AQLIYA)  
+> **Board:** Frontend / Jest-debt (SalesOS)  
 > **Story / risk:** Sprint 01 Jest-debt / **R-23** (not CI-14)  
 > **Authority:** CI-13 baseline DEC-035 · field verify `30677189129` / `1c33c1b` (11 failing) · contract remediations `4fdc1d8`  
 > **Out of scope this land:** holdout `.test.tsx` edits · `package.json` / Jest major (CI-14 Slice 3) · Stage 3 green claim · CI-22 / Railway

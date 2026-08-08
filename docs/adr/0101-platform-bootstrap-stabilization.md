@@ -1,89 +1,54 @@
 # ADR-101: Platform Bootstrap & Stabilization
 
-**Status**: Accepted
-**Date**: 2026-08-05
-**Author**: Principal Platform Engineer (Cowork session)
-**Related**: ADR-100 (Repository Canonicalization — complete, this ADR does not reopen it), `docs/audit/SANDBOX_VALIDATION_LIMITATIONS.md`
-**Supersedes**: nothing. **Does not continue under ADR-100** — this is a new program with a different scope.
+**Status**: ACCEPTED  
+**Date**: 2026-08-05  
+**Author**: Principal Platform Engineer  
+**Related**: ADR-100 (Repository Canonicalization); ADR-102 (Engineering Hardening)  
+**Evidence pack:** [docs/releases/v5.1.0-bootstrap-green/](../releases/v5.1.0-bootstrap-green/)  
+**Validation:** light validated (Docker Compose green). **Does not** change Production GA **NO-GO**.
 
 ---
 
 ## Context
 
-ADR-100's four phases (Safe Cleanup, Repository Documentation, Legacy Isolation, Pending Migration Completion) are complete. Repository topology is canonical and internally consistent. That program is closed.
+After ADR-100 repository canonicalization, the platform still needed a clean install → build → Docker → healthcheck cycle. Agents and humans lacked a single accepted record that local compose could reach a green bootstrap without inventing production readiness.
 
-An attempt to begin Docker/Bootstrap validation inside the Cowork sandbox surfaced an environment limitation, not a project defect: the sandbox has no Docker daemon, and its npm workspace symlinks are corrupted at the filesystem/mount layer (`readlink` on `node_modules/@salesos/*` returns `Input/output error`, confirmed in `docs/audit/SANDBOX_VALIDATION_LIMITATIONS.md`). Every `TS2307 Cannot find module '@salesos/*'` error produced by `npm run typecheck` in that sandbox is explained by this alone and must not be treated as evidence of a real code defect. Decision, confirmed by the user: **stop attempting to reproduce or fix errors inside the sandbox. Move execution to a local machine or other trusted environment; this session analyzes real output rather than generating unverifiable diagnoses.**
-
-This is a distinct program from ADR-100, per explicit direction:
-
-```
-Repository Engineering   ✅ Complete
-        ↓
-Platform Stabilization   ← this ADR
-        ↓
-Production Readiness
-        ↓
-UX/UI Modernization
-        ↓
-Feature Development
-```
+---
 
 ## Decision
 
-### Scope
+Accept **Green Bootstrap** (`v5.1.0-bootstrap-green` / `5.1.0-rc1`) as the platform stabilization baseline:
 
-**In scope:**
-- Install (npm, Poetry)
-- Build (frontend build, backend package build)
-- Startup (frontend dev/prod server, backend Uvicorn process)
-- Docker (image builds, `docker compose up`, container health)
-- Healthchecks (the `/health` and equivalent endpoints already defined in `docker-compose.yml`)
-- Tests (Jest, pytest — as verification that a fix actually resolved the failure, not as a general QA pass)
+| Gate | Outcome (session evidence) |
+|------|----------------------------|
+| Docker Compose up | **14/14** services healthy (postgres, pgbouncer, neo4j, redis, zookeeper, kafka, schema-registry, backend, frontend, prometheus, grafana, alertmanager, postgres-exporter, redis-exporter) |
+| TypeScript typecheck | **0** errors |
+| Backend health | DB / cache / graph / redis connected |
+| Frontend | HTTP 200 on `:3000` |
+| Alembic | Migrations applied on local compose (head recorded in release pack) |
 
-**Out of scope (governed elsewhere, not reopened here):**
-- Architecture — governed by ADR-100 and the ADR-036 four-layer model
-- Repository structure — governed by ADR-100
-- Refactoring — no code redesign, only minimal fixes to unblock boot
-- Documentation reorganization — governed by ADR-100 Phase 2 (already complete)
+**Authoritative compose for this bootstrap:** `salesos/docker-compose.yml` (see [COMPOSE-SOURCE-OF-TRUTH.md](../ops/COMPOSE-SOURCE-OF-TRUTH.md)).
 
-### Operating model: Bootstrap Engineer
+Known non-blocking issues at accept (later addressed or tracked in ADR-102): ESLint build bypass, Poetry Docker vs lock mismatch, JWT algorithm ambiguity in dev `.env`, Kafka available but `EVENT_BUS_TYPE` default `in_memory`.
 
-This ADR's execution follows a fixed cycle, one failure at a time:
-
-```
-Run → First Failure → Root Cause → Minimal Fix → Run Again → Repeat
-```
-
-Rules:
-1. **One failure per cycle.** Do not attempt to fix a second issue spotted while investigating the first — log it, keep going on the first.
-2. **Minimal fix only.** The smallest change that resolves the specific reproduced failure. Not a refactor, not a "while I'm here" improvement.
-3. **No fix without reproduction.** An error is only actioned if it reproduced on a local machine or another trusted execution environment — never from sandbox output alone (per `docs/audit/SANDBOX_VALIDATION_LIMITATIONS.md`).
-4. **Re-run after every fix.** Confirm the specific failure is gone before moving to the next one.
-
-### Execution waves
-
-| Wave | Scope | Commands |
-|---|---|---|
-| **Wave 1 — Frontend** | Install → typecheck → build | `npm install` → `npm run typecheck` → `npm run build` |
-| **Wave 2 — Backend** | Install → migrate → test | `poetry install` → `alembic upgrade head` → `pytest` |
-| **Wave 3 — Docker** | Build → boot → verify | `docker compose up --build` → healthcheck status → log review |
-| **Wave 4 — Integration** | Cross-service verification | Frontend ↔ Backend, Database, Redis, Search, AI, Workers |
-
-Waves are sequential — do not start Wave *N+1* until Wave *N* is either clean or its open failures are explicitly deferred by the user. Diagnostics (`node -v`, `npm ls @salesos/*`, etc. — per the command list already issued) run before Wave 1's install step, not after.
-
-### Tooling division (context, not an action owned by this ADR)
-
-Per user direction, three parallel tracks now run without conflict, since none of them depend on repository restructuring anymore:
-1. **Platform Stabilization** (this ADR) — bootstrap/build/Docker fixes, driven by real local execution output.
-2. **UX/UI Modernization** — design system work, independent of this ADR's scope.
-3. **Feature Backlog Preparation** — queued for after platform stabilization, not started here.
+---
 
 ## Consequences
 
-- Every fix under this ADR must cite the reproducing command and its exact output — no fix is accepted on the basis of sandbox-only errors.
-- `@salesos/config`'s dependency specifier (`"*"` vs. `"workspace:*"`) remains **unchanged and unresolved** — flagged in `docs/audit/SANDBOX_VALIDATION_LIMITATIONS.md` as a historical question (`git log`/`git blame`), not a confirmed defect, and out of this ADR's "minimal fix" mandate unless it actually reproduces as a real install/build failure.
-- This ADR closes only when Wave 4 completes with a documented Green Bootstrap — a full local `docker compose up --build` with all services passing healthchecks.
+**Positive:** Repeatable local green bootstrap; release pack under `docs/releases/v5.1.0-bootstrap-green/`; AGENTS.md session tag `v5.1.0-bootstrap-green`.
 
-## Next step
+**Risks / honesty:**
 
-Waiting on the user to run Wave 1's diagnostic + install/typecheck/build sequence locally and paste the first real, full error output (if any). Nothing is fixed until then.
+- Bootstrap green ≠ production GO (audit remains **production no-go**).
+- Quality bypasses present at ADR-101 accept were intentionally left for ADR-102.
+- Dual root vs `salesos/` compose remained a footgun until OPS SoT docs (EAB Stream D).
+
+## Next
+
+ADR-102 Engineering Hardening → UX architecture / Phase 1 (see release + ADR-102).
+
+## References
+
+- [BOOTSTRAP_GREEN_REPORT.md](../releases/v5.1.0-bootstrap-green/BOOTSTRAP_GREEN_REPORT.md)
+- [ARCHITECTURE_STATE.md](../releases/v5.1.0-bootstrap-green/ARCHITECTURE_STATE.md)
+- [SERVICE_MATRIX.md](../releases/v5.1.0-bootstrap-green/SERVICE_MATRIX.md)

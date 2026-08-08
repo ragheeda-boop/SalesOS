@@ -1,7 +1,7 @@
 # Progress — Wave 13 Full UI Crawl
 
 **Date:** 2026-07-22  
-**Product:** SalesOS (AQLIYA) — local primary FE `:3000` + API `:8000`  
+**Product:** SalesOS — local primary FE `:3000` + API `:8000`  
 **Scope:** Authenticated full-site UI crawl (primary nav + deep routes + visible in-app clicks)  
 **Validation class:** **light validated** UI crawl  
 **Production GO:** **NO** (explicitly not claimed)  

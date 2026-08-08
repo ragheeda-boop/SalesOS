@@ -17,8 +17,8 @@ Cross-check of `docs/vnext/reports/*` and `docs/audit/current-state/*` against r
 | Webhooks unauthenticated SEC-001 | `TECHNICAL_DEBT.md` | **STALE (fixed)** | `modules/webhooks/router.py` router deps include `verify_token` | |
 | GraphQL unauthenticated SEC-003 | TECHNICAL_DEBT | **STALE (fixed)** | `graphql/schema.py` context requires Bearer | Returns 401 |
 | JWKS empty key SEC-004 | TECHNICAL_DEBT | **STALE (fixed)** | JWKS returns RSA `v2-rs256` | |
-| AGENTS.md required | AQLIYA user rules | **CONFIRMED MISSING** | Root/salesos glob 0 files | Governance gap |
-| AQLIYA multi-product platform | User rules / implied vision | **CONTRADICTED by repo** | Grep 0 hits for AQLIYA/AuditOS/DecisionOS/LocalContentOS | Bible = SalesOS Project Bible |
+| AGENTS.md required | user rules | **CONFIRMED MISSING** | Root/salesos glob 0 files | Governance gap |
+| multi-product platform | User rules / implied vision | **CONTRADICTED by repo** | Grep 0 hits for AuditOS/DecisionOS/LocalContentOS | Bible = SalesOS Project Bible |
 | Overall maturity 7.5/10 | `01-executive-summary.md` | **STALE optimistic** | Build/runtime evidence lower | Recalibrated Production Readiness **42** |
 | 2110+ tests 100% pass | repository map | **UNVERIFIABLE / CONTRADICTED** | Partial unit run not green; e2e not run | Do not cite as true |
 | Stub runtimes | current-state map | **CONFIRMED** | agent/workflow/scheduler/execution/simulation ~1 line each | |

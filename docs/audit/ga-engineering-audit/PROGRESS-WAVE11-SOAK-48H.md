@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-22 (checkpoint **2026-07-24T13:11Z**)  
 **IDs:** PROD-W11-002 (soak)  
-**Product:** SalesOS on AQLIYA  
+**Product:** SalesOS  
 **Status:** **IN PROGRESS** — 48h local loop **RUNNING** / **NOT complete** (~**46.7h** wall-clock elapsed of 48h)  
 **`soak_complete_claim`:** **false**  
 **Production GO:** **Not claimed**  

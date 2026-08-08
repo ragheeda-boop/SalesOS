@@ -95,4 +95,4 @@ Regression / improvement rules: see History Repository § comparison rules.
 
 ---
 
-*Governance KPI Dashboard — Enterprise Audit Board v2.2 — placeholders only until measured*
+*Governance KPI Dashboard — Enterprise Audit Board v2.2 — placeholders in this template; live measured values live in run folders (latest: [history/EAB-2026-08-06-001/KPI-SNAPSHOT.md](./history/EAB-2026-08-06-001/KPI-SNAPSHOT.md))*

@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Slice B7 **CLOSED** (execution); Category B execution track **COMPLETE** (B1–B7)  
 > **Date:** 2026-08-01  
-> **Board:** Architecture / Database (SalesOS / AQLIYA)  
+> **Board:** Architecture / Database (SalesOS)  
 > **Story:** `S04-CATB-07` (DEC-110 §7)  
 > **Authority:** DEC-110 inventory · DEC-118 B6 · DEC-044 Category A 47 intact · DEC-085 `set_config` · DEC-107 swarm READY  
 > **Out of scope this land:** DB-05 deferred-8 ENABLE RLS (incl. admin billing tables) · reopening STORY-02-01 / `ALL_TENANT_TABLES` · CI-08 · Production GO · permissive NULL-tenant bypass

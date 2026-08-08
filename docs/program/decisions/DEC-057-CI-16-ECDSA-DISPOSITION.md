@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted**  
 > **Date:** 2026-08-01  
-> **Board:** Security + Documentation (SalesOS / AQLIYA)  
+> **Board:** Security + Documentation (SalesOS)  
 > **Story / risk:** CI-16 / R-21 residual package `ecdsa` (PYSEC-2026-1325 / CVE-2024-23342 Minerva)  
 > **Authority:** Executable usage evidence (jose/JWT grep) + upstream “no planned fix” + CI-16 slice progress through DEC-056  
 > **Out of scope:** CI-22 FastAPI/Starlette/Pydantic cascade; blind `ecdsa` version bumps; weakening `pip-audit --strict` without this DEC

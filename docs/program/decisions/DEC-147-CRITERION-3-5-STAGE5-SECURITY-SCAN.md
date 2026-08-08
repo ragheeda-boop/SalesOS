@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Criterion 3.5 = **VERIFIED/CLOSED CONDITIONAL** via DEC-147a (Arch PASS_CONDITIONAL + Validation PASS_CONDITIONAL · Orchestrator 2026-08-01)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / CI-adjacent (SalesOS / AQLIYA) — api-worker land  
+> **Board:** Backend Lead / CI-adjacent (SalesOS) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **3.5** · Stage 5 Security Scan green under named accepted residuals  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §3.5 · DEC-057/090/098/105/128 · CI-02/16/17/18/19/21 CLOSED · DEC-085 `set_config`  
 > **Out of scope this land:** Unconditional CLOSED · Production GO · whole-pipeline CI GREEN · **3.8** same-run Stages 1–5 tip green · **3.7** E2E services · CI-08/CI-09 ops · inventing EOS **4.1/4.8** ARB · DEC-085 / auth / CSRF / RBAC weaken

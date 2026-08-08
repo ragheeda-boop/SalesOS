@@ -1,7 +1,7 @@
 # Progress — Wave 13 Demo / Pentest Account Auth
 
 **Date:** 2026-07-22  
-**Product:** SalesOS (AQLIYA) — local Docker FE `:3000` + API `:8000`  
+**Product:** SalesOS — local Docker FE `:3000` + API `:8000`  
 **Scope:** Authenticated flows using **documented demo/pentest accounts** (`salesos/docs/pentest/PENTEST_BRIEF.md`)  
 **Validation class:** **light validated** (local compose seed + login + auth smoke)  
 **Demo-admin goal:** **UNBLOCKED** (local `demo_tenant` seeded; admin login **200**)  

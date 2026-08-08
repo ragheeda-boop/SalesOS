@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Cursor packaging **COMPLETE** · Criterion 8.3 = **VERIFIED/CLOSED CONDITIONAL** (DEC-144a; Architecture CONDITIONAL · Validation PASS_CONDITIONAL). Residual: tip `test-architecture` SUCCESS PENDING until tip containing `868a98c` is pushed.  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / Engineering Stability (SalesOS / AQLIYA) — api-worker land  
+> **Board:** Backend Lead / Engineering Stability (SalesOS) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **8.3** · Architecture rules enforced in CI  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §8.3 · DEC-143 residual · `.engineering/17_TESTING_MAP.md` · DEC-144a Orchestrator  
 > **Out of scope this land:** Eng Stability **8.2** · EOS **4.1/4.8** ARB · inventing `arch-compliance.py` · CI-08/CI-09 ops · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit · unconditional CLOSED

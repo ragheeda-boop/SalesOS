@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — plan COMPLETE; **Phase 1 EXECUTED** under DEC-081 (fastapi 0.141.1 / starlette 1.3.1 / pydantic 2.13.4)  
 > **Date:** 2026-08-01  
-> **Board:** Backend / Deps (SalesOS / AQLIYA)  
+> **Board:** Backend / Deps (SalesOS)  
 > **Story / risk:** CI-22 / R-21 starlette leg  
 > **Authority:** DEC-052 STOP · DEC-054 register · DEC-057 ecdsa residual · board REGISTERED READY/PARALLEL  
 > **Out of scope this land:** Poetry lock bumps · production migrate · Railway · CI-14 · silent FastAPI major mid-flight

@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **5.4 VERIFIED/CLOSED** via DEC-131a (Arch PASS + Validation PASS @ `65e82cc`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / Capability Drift (SalesOS / AQLIYA)  
+> **Board:** Backend Lead / Capability Drift (SalesOS)  
 > **Story / risk:** Phase 0 Exit Criterion **5.4** · DEBT-ARC-003 / E-21 (partial — test gap only)  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §5.4 · `.engineering/29_CAPABILITY_REGISTRY.md` §4 drift #6 · ARB review protocol (Cursor ≠ CLOSED)  
 > **Out of scope this land:** Criterion **5.1** SoT designation · **5.2** CAP-### mapping · **5.3** `validate_capability_registries.py` exit 0 · auth/CSRF weaken · DEC-085 `set_config` · Production GO · CI GREEN

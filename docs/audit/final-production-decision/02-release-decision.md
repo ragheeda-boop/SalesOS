@@ -61,7 +61,7 @@ IN SCOPE:
 
 OUT OF SCOPE:
   - Multi-tenant production GA
-  - AQLIYA multi-product platform
+  - Multi-product platform
   - AI-as-production claims
   - SLA guarantees
   - Full pentest coverage

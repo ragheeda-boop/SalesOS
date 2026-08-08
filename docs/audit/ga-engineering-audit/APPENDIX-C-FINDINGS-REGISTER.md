@@ -97,10 +97,10 @@ Severity rubric: **P0** blocks GA; **P1** high risk / must-fix before external p
 
 ### GA-P1-04 Missing AGENTS.md / .cursor/rules
 - **Evidence:** Glob 0
-- **Recommendation:** Add platform AGENTS.md reflecting AQLIYA boundaries + SalesOS as first product
+- **Recommendation:** Add platform AGENTS.md reflecting platform boundaries + SalesOS as first product
 - **Plan:** 1d
 
-### GA-P1-05 AQLIYA multi-product gap
+### GA-P1-05 multi-product gap
 - **Evidence:** No AuditOS/DecisionOS/LocalContentOS code
 - **Recommendation:** Either scope GA as **SalesOS GA** only, or schedule platform product shells
 - **Plan:** Product decision + 0–many sprints

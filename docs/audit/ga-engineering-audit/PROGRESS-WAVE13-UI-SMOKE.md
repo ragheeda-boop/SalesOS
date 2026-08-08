@@ -1,7 +1,7 @@
 # Progress — Wave 13 Authenticated UI Smoke
 
 **Date:** 2026-07-22  
-**Product:** SalesOS (AQLIYA) — local Docker FE `:3000` + API `:8000`  
+**Product:** SalesOS — local Docker FE `:3000` + API `:8000`  
 **Scope:** Authenticated frontend UI smoke (Playwright chromium)  
 **Validation class:** **light validated**  
 **Production GO:** **NO** (explicitly not claimed)  

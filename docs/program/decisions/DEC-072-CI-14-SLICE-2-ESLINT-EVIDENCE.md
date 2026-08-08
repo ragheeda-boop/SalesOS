@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — evidence package complete; **EXECUTE PASS** (package/lock landed).  
 > **Date:** 2026-08-01  
-> **Board:** Frontend / Deps (SalesOS / AQLIYA)  
+> **Board:** Frontend / Deps (SalesOS)  
 > **Story / risk:** CI-14 / R-18 Cluster A  
 > **Authority:** DEC-062 plan · DEC-063 Slice 1 PASS · DEC-065 STOP · user standing approval 2026-08-01 (run+push)  
 > **Out of scope:** Jest major (Slice 3) · Next↓14 · React major · `npm audit --force` · CI-22 · Railway

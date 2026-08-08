@@ -976,6 +976,8 @@ equest.client.host union-attr on signup/invite), and pp/modules/employee_360 (*
 **Consequence:** Host pytest `tests/unit/test_jwt_audience_split.py` **14/14 PASS** (**light validated**). Owner login mint UX still future. **Production GO not claimed. CI GREEN not met.**
 **Status:** Accepted.
 
+**Follow-up closeout (2026-08-06):** Owner login mint **DONE** — `POST /api/v1/identity/owner/login` + FE `/admin/login`; see DEC-093 package follow-up section. Validation **light validated**. Production GO not claimed.
+
 ---
 
 ### DEC-094 ? Contract tests expansion slice 1 (post STORY-03-04)

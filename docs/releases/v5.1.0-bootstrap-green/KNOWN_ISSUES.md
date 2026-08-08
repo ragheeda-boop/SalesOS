@@ -86,7 +86,7 @@ Per `docs/audit/ga-engineering-audit/00-EXECUTIVE-SUMMARY.md` (2026-07-22), Sale
 7. **P0 — Forecast hardcodes `demo-1`** — `app/routers/commercial.py:302-310` ignores real tenant input.
 8. **P1 — CSRF bypass on any non-empty `X-API-Key`** — skips CSRF without validating key (`common/middleware.py:388-391`).
 9. **P1 — FE Decision Engine stubs** — six `throw new Error('Not implemented')` in `frontend/packages/platform/decision/index.ts`.
-10. **P1 — Runtime/docs/product gaps** — AQLIYA products absent; cache/graph/kafka not_configured; GO docs conflict.
+10. **P1 — Runtime/docs/product gaps** — products absent; cache/graph/kafka not_configured; GO docs conflict.
 
 ---
 

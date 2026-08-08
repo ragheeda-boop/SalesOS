@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Cursor packaging **COMPLETE** · Criterion 1.5 = **VERIFIED/CLOSED CONDITIONAL** (DEC-128a; Architecture PASS · Validation PASS_CONDITIONAL). Residual: post-align Security Scan pip-audit field-verify PENDING.  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / Security P0 (SalesOS / AQLIYA)  
+> **Board:** Backend Lead / Security P0 (SalesOS)  
 > **Story / risk:** Phase 0 Exit Criterion **1.5** · R-21 (ecdsa mitigating) · R-24 Closed mitigating (CI-19 Semgrep alembic)  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §1.5 · CI-02/16/17/18/19/21/22 CLOSED · DEC-057/090/098/105/109 · DEC-085 `set_config` · DEC-128a Orchestrator  
 > **Out of scope this land:** Unconditional CLOSED · Production GO · whole-pipeline CI GREEN · CI-08 GHCR · PyJWT (DEC-057 Option B) · alembic Semgrep churn · DEC-085 / auth / CSRF / RBAC weaken

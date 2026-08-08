@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Cursor COMPLETE · Arch PASS · Validation PASS · Criterion **1.2 VERIFIED/CLOSED** via **DEC-125a** (Orchestrator 2026-08-01). Residual: staging SSRF pentest OPEN (non-blocking).  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / Security P0 (SalesOS / AQLIYA)  
+> **Board:** Backend Lead / Security P0 (SalesOS)  
 > **Story / risk:** GA-P0-SEC-02 / PROD-W2-002 / STORY-01-02 / Phase 0 Exit Criterion **1.2**  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §1.2 · PRODUCTION_PLAN PROD-W2-002 · DEC-085 `set_config` · ARB review protocol  
 > **Out of scope this land:** CSRF X-API-Key (1.3) · Railway R-14 (2.3) · staging SSRF pentest · frontend · `.ai/` org design · Production GO

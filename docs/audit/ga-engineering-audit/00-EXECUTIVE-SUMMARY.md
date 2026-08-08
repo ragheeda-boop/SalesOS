@@ -2,8 +2,8 @@
 
 **Date:** 2026-07-22  
 **Product audited:** SalesOS (`salesos/`) inside Muhide monorepo  
-**Platform claim (user governance):** AQLIYA multi-product platform  
-**Repo reality:** SalesOS-centric codebase; **zero** matches for `AQLIYA`, `AuditOS`, `DecisionOS`, or `LocalContentOS` in `docs/` or `salesos/` source  
+**Platform claim (user governance):** multi-product platform  
+**Repo reality:** SalesOS-centric codebase; **zero** matches for `AuditOS`, `DecisionOS`, or `LocalContentOS` in `docs/` or `salesos/` source  
 
 ---
 
@@ -29,7 +29,7 @@
 | Maintainability | **60** | DDD layout strong; stubs; contradictory docs; missing AGENTS.md |
 | Testing | **52** | Large suite exists; executed unit subset not green; e2e not run |
 | DevOps | **62** | Dual compose stacks (root vs salesos); Celery worker only on root compose; migration drift |
-| Product Readiness | **45** | Forecast hardcodes `demo-1`; FE Decision Engine stubs; SalesOS-only vs AQLIYA |
+| Product Readiness | **45** | Forecast hardcodes `demo-1`; FE Decision Engine stubs; SalesOS-only platform |
 | **Production Readiness** | **38** | Build + schema + tests + security tenant isolation failures |
 
 ---
@@ -45,7 +45,7 @@
 7. **P0 — Forecast always uses `demo-1` input** — `DEMO_MODE` checked but production path still hardcodes demo opportunity. Evidence: `app/routers/commercial.py:302-310`.
 8. **P1 — CSRF bypass on any non-empty `X-API-Key`** — skips CSRF without validating key. Evidence: `common/middleware.py:388-391`.
 9. **P1 — FE Decision Engine stubs** — six `throw new Error('Not implemented')`. Evidence: `frontend/packages/platform/decision/index.ts`.
-10. **P1 — Runtime/docs/product gaps** — stale FE image 404s; cache/graph/kafka not_configured; AQLIYA products absent; GO docs conflict.
+10. **P1 — Runtime/docs/product gaps** — stale FE image 404s; cache/graph/kafka not_configured; products absent; GO docs conflict.
 
 ---
 
@@ -65,7 +65,7 @@
 | JWKS empty key (TD SEC-004) | **STALE (fixed)** — JWKS returns RSA `v2-rs256` |
 | GA GO, 0 P0/P1, 15/15 gates | **CONTRADICTED** by build/migration/test evidence |
 | Security 10/10 | **CONTRADICTED** — static deep-dive score **48/100**; IDOR/SSRF/CSRF-bypass |
-| AQLIYA multi-product platform ready | **CONTRADICTED** — no product code/docs for AuditOS/DecisionOS/LocalContentOS |
+| multi-product platform ready | **CONTRADICTED** — no product code/docs for AuditOS/DecisionOS/LocalContentOS |
 
 ---
 

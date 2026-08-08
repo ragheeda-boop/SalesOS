@@ -1,8 +1,9 @@
 # Staging Soak Runbook (Wave 11 — PREPARE + LOCAL GATE)
 
 **ID:** PROD-W11-001 / PROD-W11-002  
-**Status:** Local readiness gate + short loop **DONE**; **4h local loop IN PROGRESS**; **48–72h soak NOT started / NOT complete**  
-**48h plan:** [../PROGRESS-WAVE11-SOAK-48H.md](../PROGRESS-WAVE11-SOAK-48H.md) (sequential after 4h)  
+**Status:** Local readiness tooling **DONE**; **cloud 72h soak IN PROGRESS** (started 2026-08-07; claim **false** — see [../completion/SOAK-PROGRESS-SNAPSHOT-2026-08-08.md](../completion/SOAK-PROGRESS-SNAPSHOT-2026-08-08.md)); **48–72h NOT complete**  
+**48h plan:** [../PROGRESS-WAVE11-SOAK-48H.md](../PROGRESS-WAVE11-SOAK-48H.md)  
+**Restart/status:** [ops01-soak-restart.ps1](./ops01-soak-restart.ps1)  
 **Classification:** Operational prep; does **not** grant Production GO
 
 ---

@@ -1,4 +1,4 @@
-# AQLIYA / Muhide — GA Engineering Audit (2026-07-22)
+# Muhide — GA Engineering Audit (2026-07-22)
 
 **Auditor:** Principal Software Architect / Staff Engineer (Cursor Auto)  
 **Scope:** Full Muhide workspace with primary product `salesos/`  
@@ -21,11 +21,13 @@ Live scoreboard: **[GA_STATUS.md](./GA_STATUS.md)** (still **NO-GO** after Waves
 |------|----------|
 | **[PRINCIPAL-AUDIT-BOARD-2026-08-06.md](./PRINCIPAL-AUDIT-BOARD-2026-08-06.md)** | Principal Audit Board re-audit (2026-08-06) — 6 explore agents + synthesis; scorecard; **Production GA NO-GO** |
 
-## Enterprise Audit Board (v2.2 pack — framework ready / axes not executed)
+## Enterprise Audit Board (v2.2 pack — first run executed)
 
 | File | Contents |
 |------|----------|
-| **[enterprise-audit-board/](./enterprise-audit-board/README.md)** | **Primary reference** — v2.2 pack: Charter–Run Template + Audit Maturity, Governance KPIs, History; 43 axes (40–43 mandatory). **Framework ready; axes not executed;** board run awaits approval |
+| **[enterprise-audit-board/](./enterprise-audit-board/README.md)** | **Primary reference** — v2.2 pack: Charter–Run Template + Audit Maturity, Governance KPIs, History; 43 axes (40–43 mandatory) |
+| **[EAB-2026-08-06-002 RUN-REPORT](./enterprise-audit-board/history/EAB-2026-08-06-002/RUN-REPORT.md)** | **Latest Verification Run** (2026-08-06) — **production no-go**; Overall ~51; Prod Readiness ~49; Security ~78; AI Gov ~43; Maturity L2 |
+| **[EAB-2026-08-06-001 RUN-REPORT](./enterprise-audit-board/history/EAB-2026-08-06-001/RUN-REPORT.md)** | **Baseline pack run** (2026-08-06) — **production no-go**; Overall ~46; Prod Readiness ~41; AI Gov ~39; Maturity L2 |
 | [ENTERPRISE-AUDIT-BOARD-V2.md](./ENTERPRISE-AUDIT-BOARD-V2.md) | Thin pointer (URL continuity) → pack above; preserves v2 history |
 
 ## Primary deliverable for execution
@@ -34,6 +36,8 @@ Live scoreboard: **[GA_STATUS.md](./GA_STATUS.md)** (still **NO-GO** after Waves
 |------|----------|
 | **[PRODUCTION_PLAN.md](./PRODUCTION_PLAN.md)** | **خطة البرودكشن الكاملة** — برنامج CTO/Ops (Waves 0–14)، DoD، نشر، DR، Go-Live، Hypercare |
 | **[GA_STATUS.md](./GA_STATUS.md)** | Short scoreboard — DONE vs OPEN; remaining blockers |
+| **[RELEASE-BACKLOG-2026-08-06.md](./RELEASE-BACKLOG-2026-08-06.md)** | Ops/release backlog (items 4–10 BLOCKED-HUMAN/cloud + eng 1–3) — **no fake closes**; Production **NO-GO** |
+| **[PROD-MIGRATION-RISK.md](./PROD-MIGRATION-RISK.md)** | Static risk assessment `d1a8c35e7f09`→`e5f9a32b0c08` — **REQUIRES MAINTENANCE WINDOW**; migrations **not** executed |
 
 ## Execution progress (parallel waves)
 
@@ -52,6 +56,7 @@ Live scoreboard: **[GA_STATUS.md](./GA_STATUS.md)** (still **NO-GO** after Waves
 | [PROGRESS-WAVE12-TABLETOP.md](./PROGRESS-WAVE12-TABLETOP.md) | 12 | Local compose deploy/rollback tabletop **DONE**; staging **OPEN** |
 | [PROGRESS-WAVE12-IMAGE.md](./PROGRESS-WAVE12-IMAGE.md) | 12 | Backend image bake (`jsonschema` 4.26.0) |
 | [PROGRESS-WAVE12-PROD-MIGRATE-PREP.md](./PROGRESS-WAVE12-PROD-MIGRATE-PREP.md) | 12 / W1 | Prod Alembic migrate **PREP DONE**; execution **BLOCKED** (head `0040`) |
+| [PROD-MIGRATION-RISK.md](./PROD-MIGRATION-RISK.md) | Migrate risk | Tip-range static review `d1a8`→`e5f9` — maintenance window; **no** upgrade run |
 | [PROGRESS-WAVE13-AUTH-SMOKE.md](./PROGRESS-WAVE13-AUTH-SMOKE.md) | 13 | Local authenticated API smoke precursor **PASS** |
 | [PROGRESS-WAVE13-UI-SMOKE.md](./PROGRESS-WAVE13-UI-SMOKE.md) | 13 | Playwright UI smoke **PASS**; Docker `/dashboard` **200** |
 | [PROGRESS-WAVE14-GO-LIVE.md](./PROGRESS-WAVE14-GO-LIVE.md) | 14 | Human-review pack: ready vs blocked; signatures **UNSIGNED** |
@@ -63,8 +68,8 @@ Live scoreboard: **[GA_STATUS.md](./GA_STATUS.md)** (still **NO-GO** after Waves
 | [AI_HONESTY.md](./AI_HONESTY.md) | Stubbed AI surfaces, flag defaults, marketing rules, UI/API gates |
 | [PROGRESS-WAVE6-7-DOCS.md](./PROGRESS-WAVE6-7-DOCS.md) | Progress for Waves 6–7 + runbook prep 10–14 |
 | [PROGRESS-WAVE6-7-AI-GATE.md](./PROGRESS-WAVE6-7-AI-GATE.md) | Copilot/Decision honesty gate (API 403, FE hide, badges) |
-| Root [`AGENTS.md`](../../../AGENTS.md) | AQLIYA multi-product boundaries + low-load protocol |
-| `.cursor/rules/aqliya-essentials.mdc` | Lightweight always-on agent rules |
+| Root [`AGENTS.md`](../../../AGENTS.md) | multi-product boundaries + low-load protocol |
+| `.cursor/rules/essentials.mdc` | Lightweight always-on agent rules |
 
 **Superseded GO artifacts** (do not use for decisions): `docs/vnext/reports/GO_NO_GO_DECISION.md`, `GA_CHECKLIST.md`, related PRC/AI gate claims — see progress note.
 

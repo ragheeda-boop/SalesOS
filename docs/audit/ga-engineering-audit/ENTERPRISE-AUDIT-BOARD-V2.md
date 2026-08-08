@@ -2,7 +2,7 @@
 
 **Document type:** Thin redirect / URL continuity  
 **Preserved path:** `docs/audit/ga-engineering-audit/ENTERPRISE-AUDIT-BOARD-V2.md`  
-**Current authority:** **v2.2 institutional reference pack** (SalesOS-ready + AQLIYA continuous governance standard capability)
+**Current authority:** **v2.2 institutional reference pack** (SalesOS-ready + continuous governance standard capability)
 
 ---
 

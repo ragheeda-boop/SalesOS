@@ -2,7 +2,7 @@
 
 > **Status:** **VERIFIED/CLOSED** via DEC-142a (Arch PASS + Validation PASS light @ `637d051`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / EOS Audit (SalesOS / AQLIYA) — api-worker land + Orchestrator CLOSE  
+> **Board:** Backend Lead / EOS Audit (SalesOS) — api-worker land + Orchestrator CLOSE  
 > **Story / risk:** Phase 0 Exit Criteria **4.2** · **4.4** · **4.7**  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §4.2 / §4.4 / §4.7 · DEC-140 / DEC-141 residuals · ADR-036 Engineering Spec layer  
 > **Out of scope this land:** ARB re-audit (4.1/4.8) · Eng Stability 8.1–8.3 · inventing SoT · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit

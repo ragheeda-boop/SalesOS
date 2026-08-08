@@ -1,4 +1,4 @@
-# AI Honesty Statement — SalesOS / AQLIYA (Wave 6–7 gate)
+# AI Honesty Statement — SalesOS (Wave 6–7 gate)
 
 **Date:** 2026-07-22 (Phase 1 live reconciliation note: 2026-08-04)  
 **Status:** Documentation + **runtime/UI gates** — **not** an AI GA claim  
@@ -16,13 +16,13 @@
 
 | Claim | Reality (2026-07-22 audit + gate) |
 |-------|-----------------------------------|
-| AQLIYA multi-product GA | **No** — repo is SalesOS-first; AuditOS / DecisionOS / LocalContentOS are not shipped products in this codebase |
+| multi-product GA | **No** — repo is SalesOS-first; AuditOS / DecisionOS / LocalContentOS are not shipped products in this codebase |
 | SalesOS “AI-native OS” GA | **No** — see stubs + `feature_ai_copilot=False` + UI/API gates |
 | Copilot production-ready | **No** — default flag off; product API **403** when False; GA nav/header panel **hidden** |
 | Decision Engine FE package live | **No** — `@salesos/decision-platform` package still throws STUB on direct calls; **DecisionProvider** now prefers Decision Platform **HTTP API** |
 | Gate G-4 “98% AI PASS” | **Superseded / overclaimed** relative to runtime stubs and flag defaults |
 
-**Launch scope for any future PRC:** **SalesOS GA only** ≠ AQLIYA platform GA.
+**Launch scope for any future PRC:** **SalesOS GA only** ≠ platform GA.
 
 ---
 
@@ -37,7 +37,7 @@
 
 **Honesty rule:** Env override to enable copilot in a non-prod lab is fine; production templates and marketing must not present it as GA.
 
-**Enforcement (Wave 6–7 gate):** When `feature_ai_copilot=False`, `POST /api/v1/copilot/query`, `search-companies`, and `feedback` return **403**. Status endpoint remains readable for FE gating. UI hides `/copilot` nav, header Bot button, and slide-out panel.
+**Enforcement (Wave 6-7 + Stream B M1/W2):** When `feature_ai_copilot=False`, `POST /api/v1/copilot/query`, `search-companies`, `feedback`, `arabic/detect`, `arabic/prompts`, and `POST telemetry/log` return **403** (same gate as `/ai/generate|evaluate`). Read-only `GET /copilot/status` + telemetry GETs remain ungated by design. UI hides `/copilot` nav, header Bot button, and slide-out panel.
 
 ---
 
@@ -71,7 +71,7 @@ Forbidden until a new PRC with evidence:
 - “AI-native GA”
 - “98% AI coverage production-ready”
 - “Autonomous agents in production”
-- Equating SalesOS GA with full AQLIYA multi-product intelligence platform
+- Equating SalesOS GA with full multi-product intelligence platform
 
 ---
 
@@ -118,5 +118,28 @@ Audit scoreboard: **Production GA = NO-GO**. AI-Lead **agrees**. The following l
 | External blockers (unsigned GO/RPO, OAuth, firm pentest) | **residual-external** / open | **Not** closed by AI crumbs or soak r3 |
 
 Board language for soak: use **“optional field soak r3 PASS (not Companion / not Production GO)”** — never “soak PASS → GA ready.”
+
+---
+
+## 8. EAB cross-links (2026-08-06 structural + Stream B M1)
+
+Standing governance for AI honesty under Enterprise Audit Board packaging:
+
+| Artifact | Role |
+|----------|------|
+| [DECISION-API-SOT.md](./enterprise-audit-board/history/EAB-2026-08-06-001/DECISION-API-SOT.md) | Canonical Decision Center HTTP vs Platform vs Runtime |
+| [CAPABILITY-DUP-REGISTER.md](./enterprise-audit-board/history/EAB-2026-08-06-002/CAPABILITY-DUP-REGISTER.md) | Search/webhook/prompt dual-capability honesty |
+| [REMEDIATION-STRUCTURAL.md](./enterprise-audit-board/history/EAB-2026-08-06-003/REMEDIATION-STRUCTURAL.md) | AIGOV/DUP/DRIFT/FIT structural pack |
+| [completion/STREAM-B-M1.md](./completion/STREAM-B-M1.md) | Completion Program Stream B M1 dispositions |
+| FE STUB package | `salesos/frontend/packages/platform/decision/` — `@salesos/decision-platform` **STUB** |
+| Full twin (lab) | `salesos/packages/platform/decision/` — **`@salesos/decision-platform-lab`** (renamed; not FE resolve target) |
+
+**Gates strengthened (EAB-003 structural):** `POST /api/v1/ai/generate` and `/ai/evaluate` require `feature_ai_copilot`; `/decisions` honesty banner; CopilotPanel defense-in-depth flag gate.
+
+**Gates strengthened (Stream B M1 — 2026-08-08):** `/copilot/arabic/detect`, `/copilot/arabic/prompts`, and `POST /copilot/telemetry/log` now require `feature_ai_copilot`; `/ai/generate` + `/ai/evaluate` OpenAPI-`deprecated`; `/decisions` banner names multi-engine hybrid residual.
+
+**Residual (honest Partial):** multi-engine BE explainability; FE hybrid Platform history + Runtime accept; read-only telemetry/status remain ungated by design. Do **not** claim AIGOV Fixed while residual stands. Do **not** flip `feature_ai_copilot` to True.
+
+Fitness light gate: FF-07/AIGOV (+ light FF-14 + FF-DUP-01) in [FITNESS-CI-SUBSET-PLAN.md](./FITNESS-CI-SUBSET-PLAN.md) / `salesos/scripts/fitness-ci-subset.sh`.
 
 *This file does not grant Production GO.*

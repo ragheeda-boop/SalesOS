@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Criterion **5.2 VERIFIED/CLOSED** (DEC-133a; Arch+Val PASS @ `81b593f`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / Capability Drift (SalesOS / AQLIYA) — api-worker land  
+> **Board:** Backend Lead / Capability Drift (SalesOS) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **5.2** · DEBT-ARC-003 / E-21 · unblocked by DEC-132a (5.1 SoT)  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §5.2 · DEC-132 role matrix (catalog join via 5.2) · ARB review protocol  
 > **Out of scope this land:** Criterion **5.3** `validate_capability_registries.py` exit 0 · registering new decorator capabilities · deleting secondary registries · auth/CSRF weaken · DEC-085 `set_config` · Production GO · CI GREEN

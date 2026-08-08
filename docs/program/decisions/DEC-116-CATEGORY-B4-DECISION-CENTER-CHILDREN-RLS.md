@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Slice B4 **CLOSED** (execution)  
 > **Date:** 2026-08-01  
-> **Board:** Architecture / Database (SalesOS / AQLIYA)  
+> **Board:** Architecture / Database (SalesOS)  
 > **Story:** `S04-CATB-04` (DEC-110 §7)  
 > **Authority:** DEC-110 inventory · DEC-115 B3 · DEC-044 Category A 47 intact · DEC-085 `set_config` · DEC-107 swarm READY  
 > **Out of scope this land:** B5–B7 · DB-05 deferred-8 ENABLE RLS · reopening STORY-02-01 / `ALL_TENANT_TABLES` · CI-08 · Production GO

@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Slice 2 **STOPPED**; CI-14 remains **OPEN**  
 > **Date:** 2026-08-01  
-> **Board:** Frontend / Deps (SalesOS / AQLIYA)  
+> **Board:** Frontend / Deps (SalesOS)  
 > **Story / risk:** CI-14 / R-18 Cluster A (ESLint/Jest toolchain DoS — `brace-expansion` / `minimatch`)  
 > **Authority:** DEC-062 plan · DEC-063 Slice 1 PASS (`435ba5d`) · CI-11 stop-rules (no `--force`; no silent majors)  
 > **Out of scope this land:** package bumps · `npm install` · `npm audit --force` · Next/React/Jest majors · CI-22 · Railway · backend Poetry

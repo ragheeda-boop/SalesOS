@@ -1,7 +1,7 @@
 # PROGRESS — Wave 2 Security Residuals (code-fixable closeout)
 
 **Date:** 2026-07-22  
-**Product:** SalesOS (AQLIYA) — local Docker API `:8000`  
+**Product:** SalesOS — local Docker API `:8000`  
 **Related:** [PROGRESS-WAVE2-LOAD.md](./PROGRESS-WAVE2-LOAD.md), [PROGRESS-WAVE2-SEC.md](./PROGRESS-WAVE2-SEC.md)  
 **Validation class:** **light validated** (focused smoke + local defensive re-probe)  
 **Production secure claim:** **false**

@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Criterion **6.4 VERIFIED/CLOSED** via DEC-138a (Arch+Val PASS @ `8a3c92e`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / ADR Drift (SalesOS / AQLIYA) — api-worker land + Orchestrator CLOSE  
+> **Board:** Backend Lead / ADR Drift (SalesOS) — api-worker land + Orchestrator CLOSE  
 > **Story / risk:** Phase 0 Exit Criterion **6.4** · ADR Drift naming drift (registry ADR-032 vs filename ADR-0032)  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §6.4 · DEC-138a · ARB review protocol  
 > **Out of scope this land:** ADR-036 multi-index (6.5) · inventing Accepted on ADR-032 · submodule file rename · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN

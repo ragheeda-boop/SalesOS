@@ -3,7 +3,7 @@
 **Date:** 2026-07-22  
 **Re-probe UTC:** `2026-07-22T16:32:00Z`  
 **IDs:** PROD-W12-001 / PROD-W12-002 (staging tabletop acceptance)  
-**Product:** SalesOS (AQLIYA)  
+**Product:** SalesOS  
 **Verdict:** **BLOCKED** — staging (cloud/VPS) **not accessible** (no real VPS / credentials / Environment / remote publish)  
 **Prep:** **DONE** — workflow + compose aligned to SSH+GHCR; fill-in runbook + unblock checklist authored  
 **Local virtual stand-in:** **DONE** — [PROGRESS-WAVE12-STAGING-VIRTUAL.md](./PROGRESS-WAVE12-STAGING-VIRTUAL.md) (does **not** close this cloud blocker)  

@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-22  
 **Owner scope:** config/code only — no production deploy, no real `.env` secrets committed  
-**Product:** SalesOS on AQLIYA platform  
+**Product:** SalesOS platform  
 **Validation class:** **light validated** (compose `config` parse) — **not** runtime-proven health matrix
 
 ---

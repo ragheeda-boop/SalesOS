@@ -115,7 +115,7 @@ Mandatory in every run: Security (30), Testing honesty (32), Release governance 
 - **Purpose:** Cross-check Product Bible maturity claims against audit evidence.
 - **Evidence questions:**
   1. Bible maturity higher than ga-engineering-audit?
-  2. AQLIYA vs SalesOS-only boundaries consistent?
+  2. Platform vs SalesOS-only boundaries consistent?
   3. Roadmap items without code or ADRs?
   4. Audit-wins-on-GO rule respected in comms?
 - **Expected artifact:** Bible claim verification (`PB-*`)
@@ -403,7 +403,7 @@ Mandatory in every run: Security (30), Testing honesty (32), Release governance 
 - **Evidence questions:**
   1. Quarters for fitness CI, single compose, canonical lineage?
   2. When (if ever) AI copilot may default True — evidence bar?
-  3. Multi-product AQLIYA Core — defer or plan?
+  3. Multi-product Core — defer or plan?
   4. Evidence-based success metrics per quarter?
 - **Expected artifact:** 12-month roadmap (`RM12-*`)
 

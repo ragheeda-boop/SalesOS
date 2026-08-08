@@ -13,7 +13,7 @@ Revalidation: Active (DEC-142)
 
 ## What this is
 
-**AQLIYA** is the intended **Private Governed Institutional Intelligence Platform**. **SalesOS** is its first operational product: an enterprise company-intelligence / revenue-intelligence platform for the Gulf market (Arabic/RTL first). Core principle: **AI assists. Humans decide. Evidence governs.**
+**SalesOS** is an enterprise company-intelligence / revenue-intelligence platform for the Gulf market (Arabic/RTL first). Core principle: **AI assists. Humans decide. Evidence governs.**
 
 | Product | Role | Code reality (at commit 3749c30) |
 |---|---|---|
@@ -22,7 +22,7 @@ Revalidation: Active (DEC-142)
 | DecisionOS | Vision (shared Core) | Not a shipped tree |
 | LocalContentOS | Vision (shared Core) | Not a shipped tree |
 
-SalesOS GA work is **not** "AQLIYA multi-product GA". Do not describe the platform as AuditOS-only, SaaS-only, or a chatbot.
+SalesOS GA work is **not** "multi-product GA". Do not describe the platform as AuditOS-only, SaaS-only, or a chatbot.
 
 ## Repo at a glance (evidence: 23_PROJECT_FINGERPRINT.json)
 

@@ -1,4 +1,4 @@
-# Secrets hygiene — SalesOS / AQLIYA (PROD-W9-001 / W9-002)
+# Secrets hygiene — SalesOS (PROD-W9-001 / W9-002)
 
 **Rule:** never commit real secrets. Use `.env` (gitignored) from `.env.example` / `salesos/.env.example`.
 

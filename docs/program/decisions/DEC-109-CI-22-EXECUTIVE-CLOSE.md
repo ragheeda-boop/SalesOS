@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — CI-22 **CLOSED**  
 > **Date:** 2026-08-01  
-> **Board:** Backend / Deps (SalesOS / AQLIYA)  
+> **Board:** Backend / Deps (SalesOS)  
 > **Story / risk:** CI-22 / R-21 starlette leg  
 > **Authority:** DEC-054 (register) · DEC-073 (plan C0) · DEC-081 (Phase 1 land) · DEC-052 STOP · DEC-057 ecdsa out of scope  
 > **Out of scope this land:** package/lock bumps · ecdsa / PyJWT (DEC-057) · CI-16 reopen · CI-08 GHCR · CI-14 · Railway · DEC-085 `set_config` · auth/CSRF/RBAC weaken

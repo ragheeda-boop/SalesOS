@@ -1,4 +1,4 @@
-# Runtime stack enablement — SalesOS / AQLIYA (PROD-W4 / W8)
+# Runtime stack enablement — SalesOS (PROD-W4 / W8)
 
 **Status:** config & documentation (2026-07-22)  
 **Canonical stacks:**

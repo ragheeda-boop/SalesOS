@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-22  
 **IDs:** PROD-W1-001 / PROD-W1-002 (execution deferred); Wave 12 cutover dependency  
-**Product:** SalesOS (AQLIYA)  
+**Product:** SalesOS  
 **Target revision:** **`0040`** (`0040_ensure_graph_tables.py` — idempotent `graph_edges` / `graph_nodes` ensure; revises `0039`)  
 **Prior pin:** Prep originally targeted **`0039`** (`0039_webhook_tables.py`). Local head advanced to **0040** after graph_edges drift repair — **0040 must be included in any future staging/prod upgrade path** after approval.  
 **Classification:** **PREP DONE / EXECUTION BLOCKED pending approval**  

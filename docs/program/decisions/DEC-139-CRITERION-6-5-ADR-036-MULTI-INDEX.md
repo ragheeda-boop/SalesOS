@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Criterion **6.5 VERIFIED/CLOSED** via DEC-139a (Arch+Val PASS @ `aaeaff3`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / ADR Drift (SalesOS / AQLIYA) — api-worker land + Orchestrator CLOSE  
+> **Board:** Backend Lead / ADR Drift (SalesOS) — api-worker land + Orchestrator CLOSE  
 > **Story / risk:** Phase 0 Exit Criterion **6.5** · ADR-036 present in all ADR indexes  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §6.5 · DEC-139a · ADR-036 body · criterion 9.1 (Accepted already checked)  
 > **Out of scope this land:** inventing Accepted without file/ARB evidence · advancing ADR-032/033/034 to Accepted · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit · criterion 9.2 cross-refs

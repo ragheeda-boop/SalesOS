@@ -8,7 +8,7 @@
 
 ## 1. Validation labels
 
-Reuse AQLIYA labels from [`AGENTS.md`](../../../../AGENTS.md):
+Reuse labels from [`AGENTS.md`](../../../../AGENTS.md):
 
 | Label | Meaning |
 |-------|---------|
@@ -60,7 +60,7 @@ Without recorded evidence in the run pack, forbid:
 - Browser pass / full UI crawl pass  
 - Green full npm / pytest suites  
 - “AI-native GA”, “98% AI PASS”, autonomous agents in production  
-- Equating SalesOS GA with AQLIYA multi-product GA  
+- Equating SalesOS GA with multi-product GA  
 - Presenting FE Decision **STUB** or gated copilot as live production AI  
 - Claiming axes 40–43 “passed” without matrices/metrics/scorecards  
 

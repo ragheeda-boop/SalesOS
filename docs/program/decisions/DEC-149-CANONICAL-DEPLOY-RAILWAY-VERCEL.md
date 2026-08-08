@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Criterion **3.11 / CI-09 = CLOSED CONDITIONAL** (DEC-149a; Arch prior PASS + Validation PASS @ `c3507ed` / run `30723120473`)  
 > **Date:** 2026-08-02  
-> **Board:** Chief Architect / ARB + Execution Orchestrator (SalesOS / AQLIYA) — program/governance scribe land  
+> **Board:** Chief Architect / ARB + Execution Orchestrator (SalesOS) — program/governance scribe land  
 > **Story / risk:** CI-09 / Phase 0 criterion **3.11** / **R-17** (SSH/VPS leg)  
 > **Authority:** Architecture Validation session (hybrid) · user governance ruling · EXEC-ARCHITECTURE-PRODUCT-REVIEW · GA_STATUS · DEC-016 / DEC-120 · deploy configs  
 > **Amends (consequence):** CI-09 reframed from ops VPS-secret provision → Railway+Vercel canonical; closed CONDITIONAL via DEC-149a  

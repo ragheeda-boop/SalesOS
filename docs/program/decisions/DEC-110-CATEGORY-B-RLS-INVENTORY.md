@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — planning package **CLOSED**; execution slices **READY** (not shipped)  
 > **Date:** 2026-08-01  
-> **Board:** Architecture / Database (SalesOS / AQLIYA)  
+> **Board:** Architecture / Database (SalesOS)  
 > **Authority:** DEC-044 Option B · DEC-DRAFT-STORY-02-01-RLS-72 (superseded) · `scripts/generate_rls_policies.py` · R-25 / R-09 / R-20 / DB-05 · DEC-085 (`set_config`) · DEC-107 swarm READY  
 > **Out of scope this land:** Alembic RLS DDL churn · ENABLE RLS on DB-05 tables · reopening STORY-02-01 / `POLICY_COUNT` 47 · CI-14 / CI-22 / CI-08 · Railway · Production GO
 

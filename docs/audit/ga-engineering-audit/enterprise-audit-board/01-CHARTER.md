@@ -8,7 +8,7 @@
 
 ## 1. Purpose
 
-Provide a durable institutional charter for **full-root** enterprise audits of AQLIYA products (primary: SalesOS) so that:
+Provide a durable institutional charter for **full-root** enterprise audits of products (primary: SalesOS) so that:
 
 1. Vision, product bible, capabilities, ADRs, implementation, APIs, UI, tests, runtime, and monitoring stay **traceable**.  
 2. Architectural drift is **measured**, not only anecdotally found.  
@@ -26,16 +26,16 @@ Provide a durable institutional charter for **full-root** enterprise audits of A
 | In scope | Out of scope (unless explicitly added to a run) |
 |----------|--------------------------------------------------|
 | SalesOS under `salesos/` (default product instance) | Inventing AuditOS / DecisionOS / LocalContentOS GA |
-| Other AQLIYA products via **product-specific run instances** of this same pack | Treating one product’s GO as multi-product platform GA |
+| Other products via **product-specific run instances** of this same pack | Treating one product’s GO as multi-product platform GA |
 | Docs, ADRs, DEC series, SES, Product Bible as they relate to the run’s product | Marketing decks as evidence of readiness |
 | Code, schema (Alembic for SalesOS), compose, runtime paths | Production cutover / secret rotation as “audit evidence” without approval |
 | Fitness proposals + drift metrics | Fabricated axis scores or Production GO |
 | AI surfaces under [AI_HONESTY.md](../AI_HONESTY.md) | Claiming FE Decision package or copilot as live GA AI |
 | Maturity / KPI / history registration (v2.2) | Claiming Continuous Governance L4/L5 without automation evidence |
 
-**Platform intent:** AQLIYA — Private Governed Institutional Intelligence.  
-**Shipped code focus:** SalesOS. Do not equate SalesOS GA work with multi-product AQLIYA GA.  
-**Pack reuse:** Charter and method are **usable across AQLIYA products**; each run tags product scope and stores a separate history row.
+**Platform intent:** Private Governed Institutional Intelligence.  
+**Shipped code focus:** SalesOS. Do not equate SalesOS GA work with multi-product platform GA.  
+**Pack reuse:** Charter and method are **usable across products**; each run tags product scope and stores a separate history row.
 
 ---
 
@@ -76,11 +76,11 @@ Superseded GO artifacts (`docs/vnext/reports/GO_NO_GO_DECISION.md`, `GA_CHECKLIS
 
 ---
 
-## 6. Relation to AQLIYA / SalesOS
+## 6. Relation to SalesOS
 
 | Concept | Honest stance |
 |---------|----------------|
-| AQLIYA | Platform intent — Private Governed Institutional Intelligence |
+| Platform | Platform intent — Private Governed Institutional Intelligence |
 | SalesOS | First operational product; primary codebase; **v2.1 = institutional reference** |
 | Other OS products | Vision / separate products — not shipped GA trees here; **v2.2 pack may instance them when code exists** |
 | Continuous governance | **Standard capability** in v2.2 — not an achieved L4/L5 operating state |

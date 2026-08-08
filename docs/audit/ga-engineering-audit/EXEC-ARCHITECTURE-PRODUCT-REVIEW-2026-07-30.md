@@ -15,7 +15,7 @@ SalesOS is a well-conceived, substantially-built product with a genuinely differ
 
 The engineering team's own audit discipline is unusually good — this is one of the few codebases with a dated, self-critical, evidence-graded internal audit trail spanning 21+ waves that explicitly refuses to claim GO without proof. That culture is a real asset. It also means most of what this review found was already known to the team. The exception is one **new, high-severity finding**: the CI/CD workflow files live at `salesos/.github/workflows/`, but the actual git repository root (and the pushed-to remote, `github.com/ragheeda-boop/SalesOS.git`) is one level up, at the `Muhide` monorepo root. GitHub Actions only auto-discovers workflows under the repository's **top-level** `.github/workflows/`. As placed, the entire 7-stage CI pipeline (lint/typecheck/unit/integration/security/docker/e2e) that every prior audit describes as "declared" is very likely **never automatically triggered by GitHub at all** — which would explain, retroactively, why "CI says X" has never been trustworthy across any audit wave: there may be no CI to say it.
 
-**Bottom line:** SalesOS is a promising SalesOS-scoped product (the "AQLIYA multi-product platform" framing is not represented in code — confirmed again this pass) that is not yet safe to declare Production GA, consistent with the standing internal verdict. It is closer than the 2026-07-22 baseline in several dimensions (admin router split, real scoring-engine logic replacing frontend stubs, honest OAuth/feature-flag gating, RBAC expansion) and has opened new gaps in others (CI likely not running, a shipped-but-disconnected dashboard widget, growing UI duplication from the v3 rewrite). Recommend: fix the CI-discovery issue this week (it invalidates every other green-CI claim until confirmed), then resume the existing remediation backlog.
+**Bottom line:** SalesOS is a promising SalesOS-scoped product (the "multi-product platform" framing is not represented in code — confirmed again this pass) that is not yet safe to declare Production GA, consistent with the standing internal verdict. It is closer than the 2026-07-22 baseline in several dimensions (admin router split, real scoring-engine logic replacing frontend stubs, honest OAuth/feature-flag gating, RBAC expansion) and has opened new gaps in others (CI likely not running, a shipped-but-disconnected dashboard widget, growing UI duplication from the v3 rewrite). Recommend: fix the CI-discovery issue this week (it invalidates every other green-CI claim until confirmed), then resume the existing remediation backlog.
 
 ---
 
@@ -50,7 +50,7 @@ PostgreSQL (primary, required) — Redis (cache, degrades gracefully) — Neo4j 
 `app/boot/startup.py` (698 lines) is a genuinely well-designed phased, fault-isolated async bootstrapper — each subsystem initializes in its own try/except and the app degrades rather than crashes when Neo4j/Kafka/pgvector are unavailable. This "soft-fail on optional infra" pattern is consistent and intentional throughout the codebase, which is good engineering discipline — but it also means production health checks reporting `graph=unavailable`/`kafka=in_memory` (seen in every prior audit's live probes) are silent-by-design rather than alerting failures, which is a product-risk trade-off worth an explicit decision record, not just an emergent behavior.
 
 ### 2.5 Product boundary
-Reconfirmed: the operating vision describes an "AQLIYA" platform with AuditOS/DecisionOS/SalesOS/LocalContentOS products. No code, routes, or domains for anything other than SalesOS exist anywhere in the repository. Treat all readiness claims as **SalesOS GA**, not platform GA.
+Reconfirmed: the operating vision describes a platform with AuditOS/DecisionOS/SalesOS/LocalContentOS products. No code, routes, or domains for anything other than SalesOS exist anywhere in the repository. Treat all readiness claims as **SalesOS GA**, not platform GA.
 
 ---
 
@@ -161,7 +161,7 @@ Both `docker-compose.yml` (root) and `salesos/docker-compose.yml` now ship full 
 
 **Poor information architecture:** The domain-naming collision on the backend (`app/domains/` vs root `domains/`) has a UX-adjacent cost too: it makes it harder for the product/eng team to reason consistently about where a given capability "lives," which shows up downstream as inconsistent screen behavior across features built at different times by different people.
 
-**Confusing terminology:** "AQLIYA" as platform branding appears in governance/vision documents but nowhere in the product itself — internally this is fine, but if any customer-facing or investor-facing material uses "AQLIYA," it will not match what a technical due-diligence reviewer finds in the repository.
+**Confusing terminology:** platform branding appears in governance/vision documents but nowhere in the product itself
 
 **Missing onboarding:** `docs/PILOT_USER_ONBOARDING_GUIDE.md` exists at the docs level; whether an in-product onboarding flow exists was not directly verified this pass and should be checked against the "Zero Learning Curve" principle before any pilot expansion.
 
@@ -256,7 +256,7 @@ Both `docker-compose.yml` (root) and `salesos/docker-compose.yml` now ship full 
 
 ### 12 Months
 - Begin the "Autonomous Sales Agent" horizon only after `agent_runtime`/`execution_runtime`/`simulation_runtime` have real design docs and the decision engine has a production track record — do not resume marketing this before the groundwork exists.
-- Revisit the "AQLIYA platform" question explicitly: either commit engineering investment to a second product shell, or formally retire the platform framing in favor of "SalesOS, built on a platform-ready core" — three-plus audit waves have found zero code for anything beyond SalesOS, and the ambiguity itself is a debt.
+- Revisit the platform question explicitly: either commit engineering investment to a second product shell, or formally retire the platform framing in favor of "SalesOS, built on a platform-ready core" — three-plus audit waves have found zero code for anything beyond SalesOS, and the ambiguity itself is a debt.
 - Consider RLS-first multi-tenancy and a real IaC story as prerequisites for any enterprise or regulated-industry sales motion.
 
 ---
@@ -348,7 +348,7 @@ Scores are this review's independent judgment as of 2026-07-30, evidence-weighte
 2. Ship Notifications, Tasks, and Email Integration — currently deferred but essential to the "revenue execution" claim the product already makes to personas like the Sales Manager.
 3. Turn the AI copilot flag on for a bounded internal or design-partner cohort now that the honesty infrastructure (flags, audit logging once wired, STUB labeling) exists to support doing so responsibly.
 4. Add at least one external sales-data integration (enrichment/CRM) to round out the data layer beyond government sources.
-5. Resolve the "AQLIYA platform" ambiguity in customer- and investor-facing material — don't let a vision document imply more than three audit waves have found in code.
+5. Resolve the platform ambiguity in customer- and investor-facing material — don't let a vision document imply more than three audit waves have found in code.
 6. Fix the company-scoring widget's data wiring before any demo or pilot expansion touches the dashboard.
 
 ## 18. Technical Roadmap
@@ -365,7 +365,7 @@ See Phase 9 above. Product-specific sequencing: ship the deferred CRM-adjacent b
 **Week 2–4:** Wire AI audit logging into real call sites. Publish OpenAPI spec. Write the `/v3` cutover plan with a date. Begin RLS design for the two highest-risk tables.
 **Month 2–3:** Execute DR/PITR drill and close the sign-off item — this single action clears the oldest standing blocker in the project's history. Stand up a visible staging environment. Run the staging SSRF pentest.
 **Month 3–6:** Complete `/v3` cutover and delete the legacy tree. Consolidate decision engine onto the durable path. Ship Notifications/Tasks/Email. Turn on AI copilot for a design-partner cohort.
-**Month 6–12:** Decide and act on the AQLIYA platform question. Begin agent/execution runtime design only after the above is stable and shipped.
+**Month 6–12:** Decide and act on the platform question. Begin agent/execution runtime design only after the above is stable and shipped.
 
 ## 21. Top 20 Highest-Impact Improvements
 
@@ -396,7 +396,7 @@ I would spend the first week doing almost nothing but verification: confirm whet
 
 **What I'd build first:** the two disconnected features that already exist — wire the AI audit logger to its call sites, and wire the scoring widget to its data source. Both are hours-to-a-day of work and both convert something that currently *looks* finished into something that *is* finished. That distinction — looks-done versus is-done — is the single pattern I'd hunt for across the rest of the codebase next, because it's the most expensive kind of debt to discover late (in front of a customer or auditor) rather than early (in a code review).
 
-**What I'd remove:** the AWS Terraform, immediately — it's actively misleading anyone who reads the infra folder into thinking there's a cloud-agnostic deployment story when there isn't one. I'd also remove one of the two frontend route trees, not by deleting code today but by publicly committing to a cutover date within 90 days, because every week of parallel maintenance is a week of doubled cost on every dashboard/admin feature. And I'd remove "AQLIYA platform" language from anything customer- or investor-facing until there's a second product's worth of code to back it — the ambiguity has cost three-plus audit cycles of clarifying footnotes for zero product benefit.
+**What I'd remove:** the AWS Terraform, immediately — it's actively misleading anyone who reads the infra folder into thinking there's a cloud-agnostic deployment story when there isn't one. I'd also remove one of the two frontend route trees, not by deleting code today but by publicly committing to a cutover date within 90 days, because every week of parallel maintenance is a week of doubled cost on every dashboard/admin feature. And I'd remove "platform" language from anything customer- or investor-facing until there's a second product's worth of code to back it — the ambiguity has cost three-plus audit cycles of clarifying footnotes for zero product benefit.
 
 **What I'd redesign:** multi-tenancy, from an application-code convention into a database-enforced guarantee (RLS). This repo has already had one cross-tenant data-exposure incident from a missed filter; the fix at the time was correct but local. I'd rather never have to find the second instance.
 

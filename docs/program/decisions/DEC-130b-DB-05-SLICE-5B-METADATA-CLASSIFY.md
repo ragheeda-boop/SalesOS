@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **7.6 remains OPEN** (clean check **not** met) · Package = **READY FOR REVIEW** (Architecture / Validation: metadata honesty + evidence only; do **not** CLOSE 7.6)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Platform / Database (SalesOS / AQLIYA)  
+> **Board:** Backend Platform / Database (SalesOS)  
 > **Story / risk:** DB-05 / R-20 / Phase 0 Exit Criterion **7.6**  
 > **Authority:** DEC-130 Slice 5a plan · DEC-129 KEEP · DEC-085 `set_config` · DEC-107 swarm READY  
 > **Out of scope this land:** DROP any table/column · admin CREATE (5c) · index/type/null batches (5d) · companies residual columns (5e) · production / Railway migrate · Prisma · DEC-085 edits · Production GO / CI GREEN · Criterion VERIFIED/CLOSED

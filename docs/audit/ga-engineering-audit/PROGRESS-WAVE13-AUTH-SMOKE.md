@@ -1,7 +1,7 @@
 # Progress — Wave 13 Auth Smoke Precursor
 
 **Date:** 2026-07-22  
-**Product:** SalesOS (AQLIYA) — local Docker  
+**Product:** SalesOS — local Docker  
 **Scope:** Authenticated API smoke (GO-live precursor; not production T-0)  
 **Validation class:** **light validated** (local compose runtime evidence)  
 **Overall:** **PASS** (13/13)

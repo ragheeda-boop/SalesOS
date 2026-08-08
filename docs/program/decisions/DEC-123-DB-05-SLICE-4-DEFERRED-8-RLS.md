@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion 7.5 = **READY FOR REVIEW** (Architecture PENDING · Validation PENDING). Only Execution Orchestrator may mark VERIFIED/CLOSED.  
 > **Date:** 2026-08-01  
-> **Board:** Backend Platform / Database (SalesOS / AQLIYA)  
+> **Board:** Backend Platform / Database (SalesOS)  
 > **Story / risk:** DB-05 / R-20 / Phase 0 Exit Criterion **7.5**  
 > **Authority:** DEC-110 deferred-8 pin · DEC-113 CREATE · DEC-044 policy template · DEC-085 `set_config` · DEC-107 swarm READY · ARB review protocol (Cursor ≠ CLOSED)  
 > **Out of scope this land:** DROP companies dead columns (7.4 STOP) · full `alembic check` (7.6) · production / Railway migrate · Prisma · DEC-085 edits · folding into ALL_TENANT_TABLES (47 intact) · Criterion CLOSED/VERIFIED claims

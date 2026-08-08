@@ -267,19 +267,19 @@
 
 **Trigger:** Platform Ops/Support/CS need tenant status, plan, usage, or billing without opening a DB session.
 
-**Preconditions:** Access to the SalesOS Next app `/admin/*` routes. A JWT with audience `salesos-owner-platform` is required for `/api/v1/admin/*` (DEC-093 / `owner_auth`). Tenant audience `salesos-api` tokens are rejected by admin APIs. **Owner login mint remains a BE follow-up — do not invent tokens or Stripe keys.**
+**Preconditions:** Access to the SalesOS Next app `/admin/*` routes. A JWT with audience `salesos-owner-platform` is required for `/api/v1/admin/*` (DEC-093 / `owner_auth`). Tenant audience `salesos-api` tokens are rejected by admin APIs. **Owner mint:** `POST /api/v1/identity/owner/login` via UI `/admin/login` (admin role) — DEC-093 follow-up **DONE**. Do not invent tokens or Stripe keys.
 
 **Steps:**
-1. Open Owner Console overview at `/admin` (shell shows audience + host honesty; target host `owner.salesos.io` is named, not claimed as a live separate deploy).
+1. Sign in at `/admin/login` (admin-role credentials) to mint owner audience, then open Owner Console overview at `/admin` (shell shows audience + host honesty; target host `owner.salesos.io` is named, not claimed as a live separate deploy).
 2. Use shell nav or overview deep-links:
    - `/admin/tenants` — list + detail (status, plan, usage snapshot, billing panel).
    - `/admin/billing` — platform invoices, dunning, apply-pending plan changes, Stripe readiness booleans only.
-3. If the audience banner warns about `salesos-api`, stop mutating admin APIs — mint path is not shipped; escalate to Backend for DEC-093 owner login when needed. FE-S07-06: a tenant-audience 401 on `/api/v1/admin/*` toasts honesty and **keeps** the tenant session (no forced `/login` bounce).
+3. If the audience banner warns about `salesos-api`, stop mutating admin APIs — go to `/admin/login` for owner mint. FE-S07-06: a tenant-audience 401 on `/api/v1/admin/*` toasts honesty and **keeps** the tenant session (no forced `/login` bounce).
 4. Shell also links Flags (`/admin/flags`), Config (`/admin/config`), and Audit (`/admin/audit`).
-5. Each ops page shows an honesty strip (`owner-ops-*-honesty`) — owner audience required; no invented mint; Not Production GO.
+5. Each ops page shows an honesty strip (`owner-ops-*-honesty`) — owner audience required; Not Production GO.
 6. Prefer read-path Ops work in Phase 1. Existing lifecycle CTAs (suspend/activate/reprovision/delete) remain on tenants page; refund / ad-hoc suspend-override beyond those APIs are deferred.
 
-**Verification:** Shell testids `owner-console-shell`, `owner-console-audience-banner`, `owner-console-host-banner` visible; tenants/billing/flags/config/audit pages load with honesty strips; admin API calls succeed only with owner audience.
+**Verification:** Shell testids `owner-console-shell`, `owner-console-audience-banner`, `owner-console-host-banner` visible; tenants/billing/flags/config/audit pages load with honesty strips; admin API calls succeed only with owner audience; owner login page testid `owner-login-page`.
 
 **Rollback:** N/A (read UI). If a mistaken write occurred via lifecycle APIs, use the existing activate/reprovision/retention procedures in §§12–13.
 

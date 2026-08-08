@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** (execution land)  
 > **Date:** 2026-08-01  
-> **Board:** Backend + Security (SalesOS / AQLIYA)  
+> **Board:** Backend + Security (SalesOS)  
 > **Story / risk:** CI-22 / R-21 starlette leg  
 > **Authority:** DEC-054 register · DEC-073 plan (C0) · user full approval (run+push)  
 > **Out of scope:** ecdsa / PyJWT migration · CI-16 reopen · auth/CSRF/RBAC weakening · Railway · CI-14

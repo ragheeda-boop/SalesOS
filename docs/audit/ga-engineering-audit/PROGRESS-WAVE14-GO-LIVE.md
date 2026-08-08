@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-22  
 **IDs:** PROD-W13-001 (checklist) / PROD-W14-001 (hypercare prep)  
-**Product:** SalesOS (AQLIYA)  
+**Product:** SalesOS  
 **Classification:** **production no-go** — forms prepared for human CTO/TL review only  
 **Production GO:** **NOT claimed**  
 **Signatures:** **UNSIGNED** — [runbooks/go-live-checklist.md](./runbooks/go-live-checklist.md)

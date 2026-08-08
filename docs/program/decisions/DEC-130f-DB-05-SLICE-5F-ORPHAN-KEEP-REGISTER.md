@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **7.6 remains OPEN** (clean check **not** met) · Package = **READY FOR REVIEW** (Architecture / Validation: orphan KEEP honesty + evidence only; do **not** CLOSE 7.6)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Platform / Database (SalesOS / AQLIYA)  
+> **Board:** Backend Platform / Database (SalesOS)  
 > **Story / risk:** DB-05 / R-20 / Phase 0 Exit Criterion **7.6**  
 > **Authority:** DEC-130 Slice 5a plan · DEC-130b orphan KEEP residual · DEC-130e Slice 5e · DEC-129 KEEP pattern · DEC-085 `set_config` · DEC-107 swarm READY  
 > **Out of scope this land:** DROP any orphan table/column · dedicated DROP DEC · production / Railway migrate · Prisma · DEC-085 edits · Production GO / CI GREEN · Criterion VERIFIED/CLOSED

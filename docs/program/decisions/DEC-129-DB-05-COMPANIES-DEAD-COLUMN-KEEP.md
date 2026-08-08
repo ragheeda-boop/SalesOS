@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion 7.4 = **VERIFIED/CLOSED** (DEC-129a; Architecture PASS · Validation PASS @ `4aacd6d`).  
 > **Date:** 2026-08-01  
-> **Board:** Backend Platform / Database (SalesOS / AQLIYA)  
+> **Board:** Backend Platform / Database (SalesOS)  
 > **Story / risk:** DB-05 / R-20 / Phase 0 Exit Criterion **7.4**  
 > **Authority:** DEC-122 STOP · DEC-111 P1 companies cluster · DEC-085 `set_config` · DEC-107 swarm READY · DEC-129a Orchestrator  
 > **Out of scope this land:** DROP any companies column · full `alembic check` (7.6) · production / Railway migrate · Prisma · DEC-085 edits · Production GO / CI GREEN

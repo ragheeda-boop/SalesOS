@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Slice 0 inventory **CLOSED**; DB-05 program remains **OPEN** (multi-sprint)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Platform / Database (SalesOS / AQLIYA)  
+> **Board:** Backend Platform / Database (SalesOS)  
 > **Story / risk:** DB-05 / R-20 / R-09  
 > **Authority:** DEC-020 · DEC-021 · DEC-022 (CI-15 local-only; systemic → DB-05) · DEC-044 Option B (8 R-09 tables wait) · DEC-110 Category A deferred pin · DEC-107 swarm READY  
 > **Out of scope this land:** production migrate · Prisma · Alembic DDL churn · ENABLE RLS on deferred tables · Category B join SQL · CI-22 / CI-08 / CI-19 reopen · DEC-085 `get_db` / `set_config`

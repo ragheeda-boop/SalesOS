@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Wave 3 residual **COMPLETE**; CI-19 remains **OPEN**  
 > **Date:** 2026-08-01  
-> **Board:** Security / Infra (SalesOS / AQLIYA)  
+> **Board:** Security / Infra (SalesOS)  
 > **Story / risk:** CI-19 / R-24  
 > **Authority:** DEC-043 Wave 1 · DEC-069 Wave 3 SHA-pin · triage `CI_19_SEMGREP_TRIAGE.md`  
 > **Out of scope:** Wave 2 SQL honesty · Semgrep gate weaken · Railway · CI-22

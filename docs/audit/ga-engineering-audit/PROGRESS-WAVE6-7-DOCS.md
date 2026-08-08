@@ -24,8 +24,8 @@
 
 | Item | Status | Notes |
 |------|--------|-------|
-| Root `AGENTS.md` | **Done** | AQLIYA multi-product + low-load + evidence gates |
-| `.cursor/rules` essentials | **Done** | `.cursor/rules/aqliya-essentials.mdc` (`alwaysApply: true`) |
+| Root `AGENTS.md` | **Done** | multi-product + low-load + evidence gates |
+| `.cursor/rules` essentials | **Done** | `.cursor/rules/essentials.mdc` (`alwaysApply: true`) |
 | Supersede contradictory GO docs | **Done** | See list below |
 
 ### Superseded documents (banner added)
@@ -59,7 +59,7 @@ Existing related ops docs (unchanged owners): `docs/ops/DR_RUNBOOK.md`, `salesos
 
 ### Created
 - `AGENTS.md`
-- `.cursor/rules/aqliya-essentials.mdc`
+- `.cursor/rules/essentials.mdc`
 - `docs/audit/ga-engineering-audit/AI_HONESTY.md`
 - `docs/audit/ga-engineering-audit/PROGRESS-WAVE6-7-DOCS.md` (this file)
 - `docs/audit/ga-engineering-audit/runbooks/*.md` (5 files)

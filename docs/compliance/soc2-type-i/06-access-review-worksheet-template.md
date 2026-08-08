@@ -18,7 +18,7 @@
 | Review period | YYYY-Qn (e.g. 2026-Q3) |
 | Window start (UTC) | YYYY-MM-DD |
 | Window end (UTC) | YYYY-MM-DD |
-| System / scope | SalesOS / AQLIYA identity (platform admins + in-scope tenants) |
+| System / scope | SalesOS identity (platform admins + in-scope tenants) |
 | Population source | ☐ Admin API · ☐ DB export · ☐ IdP · ☐ Other: ________ |
 | Export artifact ID / path | _(offline)_ |
 | Reviewer (name / role) | |

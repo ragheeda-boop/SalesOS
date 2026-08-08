@@ -1,9 +1,9 @@
-# خطة البرودكشن الكاملة — SalesOS / AQLIYA (Production Program)
+# خطة البرودكشن الكاملة — SalesOS (Production Program)
 
 **التاريخ:** 2026-07-22  
 **المصدر:** تدقيق GA الهندسي (`docs/audit/ga-engineering-audit/`)  
 **التصنيف الحالي:** **production no-go** (Production Readiness **38/100**, Security **48/100**)  
-**المنتج المستهدف للإطلاق:** **SalesOS GA** داخل منصة AQLIYA (نية منصّة؛ الواقع الكودي SalesOS فقط)  
+**المنتج المستهدف للإطلاق:** **SalesOS GA** داخل منصة (نية منصّة؛ الواقع الكودي SalesOS فقط)  
 **نوع الوثيقة:** برنامج تنفيذ CTO/Ops — تخطيط فقط (لا تنفيذ في هذه الجولة)
 
 > **مبدأ الحوكمة:** AI assists. Humans decide. Evidence governs.  
@@ -32,7 +32,7 @@
 ## 1. الرؤية والهدف
 
 ### الرؤية
-إطلاق **Production GA لـ SalesOS** كأول منتج تشغيلي على منصة AQLIYA، بجودة بوابات CI خضراء، عزل مستأجرين مثبت، مخطط قاعدة بيانات عند Alembic head، صور تشغيل متزامنة مع المصدر، ومراقبة/نسخ احتياطي قابلة للتمرين — مع **صدق تسويقي** حول قدرات AI (لا تسويق stubs كمنتج جاهز).
+إطلاق **Production GA لـ SalesOS** كأول منتج تشغيلي على منصة، بجودة بوابات CI خضراء، عزل مستأجرين مثبت، مخطط قاعدة بيانات عند Alembic head، صور تشغيل متزامنة مع المصدر، ومراقبة/نسخ احتياطي قابلة للتمرين — مع **صدق تسويقي** حول قدرات AI (لا تسويق stubs كمنتج جاهز).
 
 ### الهدف القابل للقياس
 الانتقال من **NO-GO (38/100)** إلى **قرار GO موثّق بأدلة** لإطلاق SalesOS Production، وفق Definition of Done في §3، بعد إغلاق كل بنود **P0** وبنود **P1 الأمنية/التشغيلية** المحددة في هذه الخطة.
@@ -44,7 +44,7 @@
 3. لا IDOR/SSRF/CSRF-bypass معروفة من سجل التدقيق دون إصلاح + اختبارات.
 4. صور FE/BE مبنية من commit معتمد؛ مسارات GA الحرجة **200** على staging ثم production smoke.
 5. وثائق GO السابقة **مُلغاة/مُستبدَلة**؛ PRC جديد مربوط بأدلة.
-6. نطاق الإطلاق معلن صراحة: **SalesOS GA ≠ AQLIYA multi-product GA**.
+6. نطاق الإطلاق معلن صراحة: **SalesOS GA ≠ multi-product GA**.
 7. DR: تمرين restore واحد على الأقل **مُنفَّذ وموثّق** قبل GO (أو استثناء CTO موقّع).
 
 ### غير الأهداف (Non-goals) لهذه الخطة
@@ -65,7 +65,7 @@
 | Security | **48** | NO-GO للأمان الإنتاجي |
 | Testing | **52** | suite موجود؛ التنفيذ الجزئي غير أخضر |
 | DevOps | **62** | compose مزدوج؛ drift ترحيل؛ صورة FE متأخرة |
-| Product Readiness | **45** | SalesOS واسع؛ AQLIYA غير موجود كوداً |
+| Product Readiness | **45** | SalesOS واسع؛ منصة غير موجودة كوداً |
 
 **حُكم التدقيق (2026-07-22):** Production GA **NO-GO** · External pilot **NO-GO** · Demo داخلي فقط بشروط بعد إغلاق P0.
 
@@ -121,7 +121,7 @@
 - [ ] تمرين restore واحد موثّق؛ RPO/RTO معلنة ومقبولة من CTO
 
 ### و) الحوكمة والمنتج
-- [ ] `AGENTS.md` موجود ويعرّف حدود AQLIYA / SalesOS
+- [ ] `AGENTS.md` موجود ويعرّف حدود المنصة / SalesOS
 - [ ] وثائق GO القديمة موسومة **superseded**
 - [ ] Feature flags صادقة؛ لا تسويق copilot إن `feature_ai_copilot=False`
 - [ ] نطاق الإطلاق: **SalesOS GA فقط**
@@ -484,13 +484,13 @@
 | **المالك** | Product / AI / Docs |
 | **ربط** | GA-P1-06 |
 
-#### PROD-W6-003 — قرار نطاق AQLIYA
+#### PROD-W6-003 — قرار نطاق المنصة
 | الحقل | المحتوى |
 |-------|---------|
 | **ID** | PROD-W6-003 |
 | **Severity** | P1 |
-| **المشكلة** | لا كود/وثائق لمنتجات AQLIYA الأخرى |
-| **خطوات** | قرار CTO موقّع: **SalesOS GA فقط**؛ AQLIYA platform لاحقاً |
+| **المشكلة** | لا كود/وثائق لمنتجات المنصة الأخرى |
+| **خطوات** | قرار CTO موقّع: **SalesOS GA فقط**؛ platform لاحقاً |
 | **قبول** | جملة نطاق في PRC وAGENTS.md |
 | **الجهد** | S (قرار) |
 | **المالك** | Product / CTO |
@@ -970,7 +970,7 @@ W0 → W2 → W3 → W4 → W8 → W10 → W11 → W13 ≈ **6–9 أسابيع*
 6. إصلاح CSRF API-key وBearer rate-limit (نصف يوم لكل).
 
 ### طويل الأمد (بعد أو خارج مسار GA الضيق)
-- استخراج Core مشترك لـ AQLIYA multi-product.
+- استخراج Core مشترك لـ multi-product.
 - تنفيذ runtimes stubs (agent/workflow/…).
 - تفكيك `admin/router.py` الضخم.
 - WAL متعدد المناطق وblue/green كامل.

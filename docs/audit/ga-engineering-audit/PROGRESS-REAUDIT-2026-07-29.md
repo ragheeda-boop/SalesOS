@@ -2,7 +2,7 @@
 
 **Clock:** 2026-07-29 (user / agent session)  
 **Auditor stance:** Prior `GA_STATUS` / Wave 15–16 progress treated as **hypotheses only**; re-verified against source + live endpoints.  
-**Product:** SalesOS (`salesos/`) on AQLIYA platform intent  
+**Product:** SalesOS (`salesos/`) platform intent  
 **Authority framework:** [00-EXECUTIVE-SUMMARY.md](./00-EXECUTIVE-SUMMARY.md), [PRODUCTION_PLAN.md](./PRODUCTION_PLAN.md), [AI_HONESTY.md](./AI_HONESTY.md)  
 **Decision:** **NO-GO** for Production GA  
 **Classification:** **production no-go**  

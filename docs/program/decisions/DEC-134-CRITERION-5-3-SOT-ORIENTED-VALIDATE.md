@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **5.3 VERIFIED/CLOSED** (DEC-134a; Arch+Val PASS @ `6a98999`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / Capability Drift (SalesOS / AQLIYA) — api-worker land  
+> **Board:** Backend Lead / Capability Drift (SalesOS) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **5.3** · DEBT-ARC-003 / E-21 · unblocked by DEC-132a (5.1) + DEC-133a (5.2)  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §5.3 · DEC-132/133 “Architecture next” (secondaries ⊆ SoT via join map) · ARB review protocol  
 > **Out of scope this land:** Deleting secondary SDK/YAML/catalog entries · registering new decorator capabilities · auth/CSRF weaken · DEC-085 `set_config` · Production GO · CI GREEN · claiming VERIFIED/CLOSED (Orchestrator)

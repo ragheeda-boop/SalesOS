@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-22  
 **IDs:** PROD-W12-001 / PROD-W12-002 (tabletop acceptance prep)  
-**Product:** SalesOS (AQLIYA) — local Docker Compose **NON-PROD only**  
+**Product:** SalesOS — local Docker Compose **NON-PROD only**  
 **Runbook walked:** [runbooks/deploy-rollback.md](./runbooks/deploy-rollback.md)  
 **Validation class:** **light validated** (local dry-run + recreate)  
 **Production:** still **NO-GO** — no kubectl, no cloud staging, no Production GO claim

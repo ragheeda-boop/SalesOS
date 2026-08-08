@@ -127,7 +127,7 @@ If the board chooses CONDITIONAL GO, the following must be agreed:
 ## What "Pilot" Means (Scope Boundary)
 
 - **In scope:** SalesOS single-tenant deployment on production infrastructure. Limited user base. Non-critical business data.
-- **Out of scope:** Multi-tenant GA. AI-as-production. AQLIYA platform claims. SLA guarantees. Full pentest coverage.
+- **Out of scope:** Multi-tenant GA. AI-as-production. Platform claims. SLA guarantees. Full pentest coverage.
 - **Pilot ≠ Production GA.** Upgrade to GA requires: staging tabletop complete, full pentest, S3 backup verified, all conditions met.
 
 ---

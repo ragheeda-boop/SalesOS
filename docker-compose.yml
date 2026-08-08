@@ -1,8 +1,18 @@
-# Canonical local/dev stack for SalesOS (AQLIYA) with observability.
-# Secrets: prefer env vars / .env (see .env.example). Defaults are DEV-ONLY.
-# Staging/prod: use salesos/docker-compose.yml or salesos/docker-compose.prod.yml.
+# ═══════════════════════════════════════════════════════════════════════════
+# LEGACY / QUARANTINED — NOT the SalesOS local/dev source of truth
+# ═══════════════════════════════════════════════════════════════════════════
+# Authoritative local/dev compose:  salesos/docker-compose.yml
+# Prod overlay:                     salesos/docker-compose.prod.yml
+# Staging:                          salesos/infra/staging/docker-compose.staging.yml
+# Policy doc:                       docs/ops/COMPOSE-SOURCE-OF-TRUTH.md
+# Finding:                          EAB-001-P1-OPS-02
 #
-# Profiles:
+# Do not use this root file for SalesOS bring-up unless you intentionally
+# accept divergence (ports, Celery, profiles). Prefer: cd salesos && docker compose up
+#
+# Secrets: prefer env vars / .env (see .env.example). Defaults are DEV-ONLY.
+#
+# Profiles (this legacy file only):
 #   kafka          — optional Kafka + Zookeeper (EVENT_BUS_TYPE=kafka)
 #   (default)      — core data + API + monitoring (Prometheus/Grafana/Loki/OTel)
 

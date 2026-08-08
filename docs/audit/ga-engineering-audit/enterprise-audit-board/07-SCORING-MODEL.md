@@ -146,7 +146,7 @@ Allowed classifications: `production no-go` | `pilot-ready with conditions` | `P
 | Roll into Production Readiness (Axis 39)? | **No** |
 | Appear on run report? | **Yes** (required section) |
 | Can raise product GO alone? | **No** |
-| Typical starting band (SalesOS/AQLIYA) | **L1–L2** until fitness automation exists |
+| Typical starting band (SalesOS) | **L1–L2** until fitness automation exists |
 | Claim L4/L5? | Only with continuous evidence per exit criteria |
 
 Security (30) and AI Governance (43) remain separate product dimensions regardless of maturity level.

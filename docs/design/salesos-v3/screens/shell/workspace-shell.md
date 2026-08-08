@@ -37,4 +37,4 @@ Shell hydrate <2s p95 target (instrument later).
 Landmarks, skip link, focus trap in CmdK and AI dialog, Escape closes dialogs, RTL.
 
 ## 18. Future
-Multi-product AQLIYA switcher (AuditOS etc.). Optional context label passed into AI popup — still not a layout region.
+Multi-product switcher (AuditOS etc.). Optional context label passed into AI popup — still not a layout region.

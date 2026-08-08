@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted**  
 > **Date:** 2026-08-01  
-> **Board:** Backend Deps (SalesOS / AQLIYA)  
+> **Board:** Backend Deps (SalesOS)  
 > **Story / risk:** R-21 residual `ecdsa` after CI-16 / CI-22 Phase 1  
 > **Authority:** DEC-057 Option A (accepted residual) + CI run `30681284601` @ `f2c7587` (sole ecdsa) + tip `e993e83` host pip-audit (NO starlette; ecdsa 0.19.2 only)
 > **Out of scope:** PyJWT migration (DEC-057 Option B); Security Scan workflow redesign; weakening `--strict`; ignoring other CVEs

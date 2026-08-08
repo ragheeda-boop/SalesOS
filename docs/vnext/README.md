@@ -30,6 +30,7 @@ This directory contains the complete implementation blueprint for SalesOS vNext.
 | 11 | **[BACKLOG.md](./BACKLOG.md)** | 104 engineering backlog items across 11 categories | Engineering |
 | 12 | **[RISKS.md](./RISKS.md)** | 41 risks catalogued with mitigation plans | All |
 | 13 | **[DECISIONS.md](./DECISIONS.md)** | 15 architecture decisions to be made with options and recommendations | Architects |
+| 14 | **[verification-platform/](./verification-platform/README.md)** | Post-GA continuous verification backlog (CVP) — maturity model + success metrics | Engineering (post-GA) |
 
 ---
 
@@ -89,6 +90,7 @@ docs/vnext/
 
 ## Related Documents
 
+- [Verification Platform backlog](./verification-platform/README.md) — post-GA capability (maturity L0–L5, KPIs)
 - [Engineering Discovery Audit](../audit/current-state/README.md) — The source data for this plan
 - [Engineering Constitution](../../engineering-os/ENGINEERING_CONSTITUTION.md) — Non-negotiable rules
 - [Engineering Dashboard](../../engineering-os/ENGINEERING_DASHBOARD.md) — Current metrics

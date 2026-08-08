@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-22  
 **Scope:** Local SalesOS backend Docker image rebuild only — **no prod deploy**, **no DB wipe**  
-**Product:** SalesOS on AQLIYA  
+**Product:** SalesOS  
 **Validation class:** **light validated** (image rebuild + container recreate + import/schema/health probes)  
 **Production GO:** **Not claimed** (audit remains **production no-go**)
 

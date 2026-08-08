@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Slice 2 **CLOSED** (type authority); DB-05 program remains **OPEN**  
 > **Date:** 2026-08-01  
-> **Board:** Backend Platform / Database (SalesOS / AQLIYA)  
+> **Board:** Backend Platform / Database (SalesOS)  
 > **Story / risk:** DB-05 / R-20  
 > **Authority:** DEC-111 Slice 0 inventory P1 · DEC-113 Slice 1 CREATE · DEC-085 `set_config` · DEC-107 swarm READY  
 > **Out of scope this land:** ENABLE RLS on deferred-8 · production migrate · Prisma · Railway / APP_POSTGRES (DEC-120) · companies/index/nullable Slice 3 · ALTER UUID→VARCHAR

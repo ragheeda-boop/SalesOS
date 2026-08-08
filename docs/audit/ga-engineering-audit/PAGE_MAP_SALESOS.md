@@ -1,7 +1,7 @@
 # SalesOS — Full Site Page Map
 
 > **Date:** 2026-07-22  
-> **Product:** SalesOS (AQLIYA first operational product)  
+> **Product:** SalesOS (first operational product)  
 > **Code root:** `salesos/frontend` (Next.js App Router)  
 > **Validation:** **light validated** (static route/nav/doc cross-check + Wave 13 crawl cross-ref)  
 > **Production GO:** **NO** — not claimed  
@@ -52,7 +52,7 @@ Using honest labels below: most routes are **implemented with design-system usag
 | Product | In this FE? | Notes |
 |---------|-------------|-------|
 | **SalesOS** | Yes — sole shipped UI under `salesos/frontend` | Primary scope of this map |
-| **AuditOS** | No separate app | Vision only in AQLIYA platform docs |
+| **AuditOS** | No separate app | Vision only in platform docs |
 | **DecisionOS** | No separate app | SalesOS has `/decisions*` (Decision Center HTTP APIs). FE `@salesos` decision **package is STUB** — not the page |
 | **LocalContentOS** | No separate app | Not present as routes |
 

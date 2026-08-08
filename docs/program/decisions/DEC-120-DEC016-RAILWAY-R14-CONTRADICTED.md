@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Phase 0 (DEC-008 / R-14) exit reset to **NO-GO** until live AC re-proven  
 > **Date:** 2026-08-01  
-> **Board:** Architecture Review Board + Risk Manager + Program Director (SalesOS / AQLIYA)  
+> **Board:** Architecture Review Board + Risk Manager + Program Director (SalesOS)  
 > **Authority:** Tier-1 Principal Audit [`docs/audit/PRINCIPAL_AUDIT_2026-08-01_DEC016_RAILWAY_CI.md`](../../audit/PRINCIPAL_AUDIT_2026-08-01_DEC016_RAILWAY_CI.md) (agent `ddf9d84e`)  
 > **Amends / supersedes (consequence only):** DEC-016 security-closure consequence; DEC-086 Phase 0 GO on R-14  
 > **Numbering note:** DEC-119 reserved for Category B Slice B7 (parallel agent). This reopen is **DEC-120**.  

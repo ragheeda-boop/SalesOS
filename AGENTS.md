@@ -1,8 +1,36 @@
-# AGENTS.md — AQLIYA / Muhide Workspace
+# AGENTS.md — Muhide Workspace
 
 > **Audience:** Humans and coding agents working in this repository.  
-> **Last updated:** 2026-08-06 (Session update)  
-> **Authority chain:** Executable evidence → [ga-engineering-audit](docs/audit/ga-engineering-audit/) → this file → `docs/PROJECT_BIBLE.md` (SalesOS engineering bible; product scope notes below).
+> **Last updated:** 2026-08-07 (STAR Audit Complete)  
+> **Authority chain:** Executable evidence → [STAR Audit](docs/audit/star-audit/) → [ga-engineering-audit](docs/audit/ga-engineering-audit/) → this file → `docs/PROJECT_BIBLE.md` (SalesOS engineering bible; product scope notes below).
+
+---
+
+## 10. STAR Audit Summary (2026-08-07)
+
+| Milestone | Status | Classification | Key Evidence |
+|-----------|:------:|---------------|-------------|
+| STAR Audit (20 items) | COMPLETE | **conditional GO** | P0 = 0 findings, 80% resolved |
+| Security P0 (6 items) | COMPLETE | All MITIGATED/VERIFIED | 13 integration tests, 5-layer SSRF, 5 regression tests |
+| Architecture ADRs (6) | COMPLETE | ADR-103 to ADR-108 | Digital Twin, Agent Runtime, Revenue Brain deferred; Neo4j offline; Data Residency |
+| Documentation Corrections | COMPLETE | D-02, D-03 resolved | AI-native → AI-assisted; Security 10/10 → 48/100 |
+| AI Test Coverage | COMPLETE | 40 tests baseline | 4 test files in `tests/evaluation/` |
+
+### Remaining Work (outside code scope)
+| Item | Owner | Blocker |
+|------|-------|---------|
+| A-09 (Staging parity) | DevOps | No staging branch/CI |
+| C-18 (Stripe) | Platform | External Stripe account |
+| A-10 (Solo architect) | Management | Hiring |
+| R-01–R-07 (Monitoring) | DevOps | Infrastructure setup |
+
+### Documentation created (STAR Audit)
+- `docs/audit/star-audit/01_THEORY_MODEL.md` through `20_FINAL_STATUS.md` (20 files)
+- `docs/audit/star-audit/GOVERNANCE_CLOSURE.md`
+- `docs/audit/star-audit/A09_STAGING_PARITY.md`
+- `docs/adr/0103-digital-twin-deferred.md` through `0108-neo4j-keep-offline.md` (6 ADRs)
+- `salesos/backend/tests/evaluation/test_ai_guardrails.py` (13 tests)
+- `salesos/backend/tests/evaluation/test_ai_policies.py` (18 tests)
 
 ---
 
@@ -38,18 +66,16 @@
 
 ## 1. What this workspace is
 
-**AQLIYA** is the intended **Private Governed Institutional Intelligence Platform**.
-
 **Core principle:** AI assists. Humans decide. Evidence governs.
 
 | Product | Role | Code reality (2026-07-22) |
 |---------|------|---------------------------|
-| **SalesOS** | First operational product on AQLIYA | Primary codebase under `salesos/` |
+| **SalesOS** | First operational product | Primary codebase under `salesos/` |
 | **AuditOS** | Separate product on shared Core (vision) | Not a shipped product tree in this repo |
 | **DecisionOS** | Separate product on shared Core (vision) | Not a shipped product tree in this repo |
 | **LocalContentOS** | Separate product on shared Core (vision) | Not a shipped product tree in this repo |
 
-**Do not** treat SalesOS GA work as “AQLIYA multi-product GA.”  
+**Do not** treat SalesOS GA work as "multi-product GA."  
 **Do not** describe the platform as AuditOS-only, SaaS-only, or a chatbot.
 
 Canonical GA engineering source of truth:
@@ -179,3 +205,5 @@ Windows host Poetry is **not** the production path.
 ---
 
 *Agents: keep patches minimal, report files changed + commands run + validation status honestly.*
+
+## Imported Claude Cowork project instructions

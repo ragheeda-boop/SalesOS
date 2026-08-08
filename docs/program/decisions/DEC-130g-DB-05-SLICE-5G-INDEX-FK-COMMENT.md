@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Cursor implementation **COMPLETE** · Criterion **7.6 VERIFIED/CLOSED** via DEC-130h (Arch PASS + Validation PASS @ `250bcb5`)  
 > **Date:** 2026-08-01  
-> **Board:** Backend Platform / Database (SalesOS / AQLIYA)  
+> **Board:** Backend Platform / Database (SalesOS)  
 > **Story / risk:** DB-05 / R-20 / Phase 0 Exit Criterion **7.6**  
 > **Authority:** DEC-130 Slice 5a plan · DEC-130f Slice 5f · DEC-129 KEEP · DEC-085 `set_config` · DEC-107 swarm READY  
 > **Out of scope this land:** DROP live indexes/tables · dedicated DROP DEC · production / Railway migrate · Prisma · DEC-085 edits · Production GO / CI GREEN

@@ -20,7 +20,7 @@
 - JWT audiences: tenant `salesos-api` vs owner `salesos-owner-platform` (DEC-093).
 - FE surfaces audience honesty + gate banner when session is not owner audience; does not weaken BE `owner_auth` (API still rejects tenant JWT).
 - Children stay mounted so Stage 7 Owner Console E2E hooks remain usable; enforcement remains BE.
-- Owner login mint UX remains BE follow-up (DEC-093). No invented tokens / Stripe keys / mint.
+- Owner login mint UX: **DONE** (2026-08-06) — `POST /api/v1/identity/owner/login` + FE `/admin/login`. See [DEC-093](decisions/DEC-093-JWT-AUDIENCE-CONSUMPTION-CLOSED.md) follow-up closeout. No invented tokens / Stripe keys.
 - `owner.salesos.io` host honesty classified (owner-target / local / shared-app) — **not** claimed as live separate deploy.
 - `TenantList.tsx` untouched. **No Production GO.**
 
@@ -28,4 +28,4 @@
 
 ## EPIC-07 Stream B MVP status
 
-**CLOSED for Phase 1 FE MVP** on this tip — shell, audience/host honesty, tenants/billing/flags/config/audit nav + page honesty, ops runbook §15. Residuals (not blockers for this close): DEC-093 owner login mint (BE), deferred refund/suspend-override writes, separate `owner.salesos.io` deploy (not claimed live). **No Production GO.**
+**CLOSED for Phase 1 FE MVP** on this tip — shell, audience/host honesty, tenants/billing/flags/config/audit nav + page honesty, ops runbook §15. Residuals (not blockers for this close): DEC-093 owner login mint (**closed 2026-08-06** — light validated), deferred refund/suspend-override writes, separate `owner.salesos.io` deploy (not claimed live), owner refresh-family rotation. **No Production GO.**

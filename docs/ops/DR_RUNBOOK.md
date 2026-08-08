@@ -1,8 +1,13 @@
 # SalesOS Disaster Recovery Runbook
 
 > **Audience**: On-call SRE / DevOps responding to disaster scenarios.
-> **Last updated**: 2026-07-17
+> **Last updated**: 2026-08-06 (honesty banner + OPS-01 cross-links; procedure body still documents known gaps)
 > **Version**: 1.0
+
+> **GA / cutover gate:** [DR-GA-GAPS-CHECKLIST.md](./DR-GA-GAPS-CHECKLIST.md) — rows 1–5 **OPEN** → **no Production GO**.  
+> **OPS-01 pack (EAB-003):** [../audit/ga-engineering-audit/enterprise-audit-board/history/EAB-2026-08-06-003/OPS-01-ADVANCEMENT.md](../audit/ga-engineering-audit/enterprise-audit-board/history/EAB-2026-08-06-003/OPS-01-ADVANCEMENT.md)  
+> **Local drills:** Wave 10 + 2026-08-06 disposable restore — **≠** offsite / WAL / staging soak.  
+> **Compose SoT:** [COMPOSE-SOURCE-OF-TRUTH.md](./COMPOSE-SOURCE-OF-TRUTH.md) (`salesos/docker-compose.yml`).
 
 ---
 

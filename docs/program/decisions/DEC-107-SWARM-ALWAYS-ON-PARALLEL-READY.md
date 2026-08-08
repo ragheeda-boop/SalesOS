@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — orchestrator policy (docs only)  
 > **Date:** 2026-08-01  
-> **Board:** Program / Engineering Swarm (SalesOS / AQLIYA)  
+> **Board:** Program / Engineering Swarm (SalesOS)  
 > **Story / risk:** Cross-cutting (CI-08 / CI-09 ops BLOCKED; R-17)  
 > **Authority:** Engineering Swarm concurrency diagnosis (canvas + parent transcript evidence, 2026-08-01) · `EXECUTION_DAG.md` READY/PARALLEL · **DEC-104** honesty labels  
 > **Out of scope this land:** changing GHA `concurrency` / `needs` · inventing GHCR credentials · softening Stage 6 push · claiming **CI GREEN (full incl. publish)** · overlapping large edits on CI-14/CI-22 board cells

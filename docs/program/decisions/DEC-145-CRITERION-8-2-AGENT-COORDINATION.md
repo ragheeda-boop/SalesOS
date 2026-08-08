@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — Cursor packaging **COMPLETE** · Criterion 8.2 = **VERIFIED/CLOSED CONDITIONAL** (DEC-145a; Arch PASS_CONDITIONAL + Val PASS_CONDITIONAL). Residual: *at-scale live soak at `max_parallel_workers=8` concurrent writers not field-proven*.  
 > **Date:** 2026-08-01  
-> **Board:** Backend Lead / Engineering Stability (SalesOS / AQLIYA) — api-worker land  
+> **Board:** Backend Lead / Engineering Stability (SalesOS) — api-worker land  
 > **Story / risk:** Phase 0 Exit Criterion **8.2** · Agent coordination protocol exercised  
 > **Authority:** PHASE_0_EXIT_CHECKLIST §8.2 · DEC-107 · DEC-144 residual · `.engineering/26_AGENT_COORDINATION.md` · ARB-2026-08-01-003 (`.ai/` baseline)  
 > **Out of scope this land:** inventing Agent OS scheduler · EOS **4.1/4.8** ARB · CI-08/CI-09 ops · auth/CSRF weaken · DEC-085 · Production GO · CI GREEN · Phase 0 exit · unconditional CLOSED · VERIFIED/CLOSED (Orchestrator only)

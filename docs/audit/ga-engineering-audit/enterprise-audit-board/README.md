@@ -3,19 +3,22 @@
 **Version:** v2.2 (pack)  
 **Document type:** Framework / methodology (not an executed audit run)  
 **Date authored:** 2026-08-06 (v2.1); **v2.2 governance extensions:** 2026-08-06  
-**Product in scope:** SalesOS (`salesos/`) under AQLIYA — pack reusable across AQLIYA products via product-specific run instances  
+**Product in scope:** SalesOS (`salesos/`) — pack reusable across products via product-specific run instances  
 **Principle:** AI assists. Humans decide. Evidence governs.
 
-> **Status:** **Framework ready / axes not executed.**  
-> This pack defines how every future Enterprise Audit Board run must operate. It does **not** invent axis scores, Production GO, or a completed full-root audit.  
-> **Board run still awaits human approval** (scope, workstreams, evidence budget, low-load exceptions).  
-> **Audit Maturity:** expect **L1–L2** until fitness automation exists — do **not** claim L4/L5.
+> **Status:** **Framework ready + pack runs executed.**  
+> Pack defines how every Enterprise Audit Board run must operate.  
+> **Latest run:** [history/EAB-2026-08-06-003/RUN-REPORT.md](./history/EAB-2026-08-06-003/RUN-REPORT.md) — **Verification Run** 2026-08-06 (post-verify) — verdict **production no-go** (Overall ~54, Prod Readiness ~53, Security ~81, AI Gov ~44, Drift raw 122/score 0, Maturity **L2**).  
+> **Prior verification:** [history/EAB-2026-08-06-002/RUN-REPORT.md](./history/EAB-2026-08-06-002/RUN-REPORT.md) — Overall ~51, Prod Readiness ~49.  
+> **Baseline:** [history/EAB-2026-08-06-001/RUN-REPORT.md](./history/EAB-2026-08-06-001/RUN-REPORT.md) — Overall ~46, Prod Readiness ~41.  
+> Subsequent runs still require human approval (scope, workstreams, evidence budget, low-load exceptions).  
+> **Audit Maturity:** **L2** (toward L3; fitness subset wired); do **not** claim L3/L4/L5 until broader fitness CI + continuous KPI evidence.
 
 ---
 
 ## Purpose
 
-Institutional reference for full-root enterprise governance audits — **SalesOS-ready** as a permanent product reference, and (from v2.2) an **AQLIYA multi-product continuous engineering governance** capability:
+Institutional reference for full-root enterprise governance audits — **SalesOS-ready** as a permanent product reference, and (from v2.2) a **multi-product continuous engineering governance** capability:
 
 **Vision → architecture → docs → code → data → runtime → monitoring**, with checkable fitness, measured drift, engineering economics, AI governance (separate from Security), **audit process maturity**, **governance KPIs (trend)**, and **run history**.
 
@@ -24,7 +27,7 @@ Each future audit run **executes this pack** — it does not reinvent methodolog
 | Ready for | Meaning |
 |-----------|---------|
 | **SalesOS institutional reference** | v2.1 axes + method (preserved); mature pack for SalesOS board runs |
-| **AQLIYA continuous governance standard** | v2.2 adds Maturity Model + KPI Dashboard + History Repository — capability to run continuous governance across products; **not** a claim that L4 continuous governance is already achieved |
+| **continuous governance standard** | v2.2 adds Maturity Model + KPI Dashboard + History Repository — capability to run continuous governance across products; **not** a claim that L4 continuous governance is already achieved |
 
 ---
 
@@ -62,7 +65,7 @@ Enterprise Audit Board
 | 10 | [10-AUDIT-MATURITY-MODEL.md](./10-AUDIT-MATURITY-MODEL.md) | **v2.2** — L1–L5 maturity of the audit process (meta) |
 | 11 | [11-GOVERNANCE-KPI-DASHBOARD.md](./11-GOVERNANCE-KPI-DASHBOARD.md) | **v2.2** — fixed KPIs for trend (placeholders until measured) |
 | 12 | [12-AUDIT-HISTORY-REPOSITORY.md](./12-AUDIT-HISTORY-REPOSITORY.md) | **v2.2** — run naming, index, comparison rules |
-| — | [history/](./history/README.md) | **v2.2** — empty run index + sibling pointer |
+| — | [history/](./history/README.md) | **v2.2** — run index + [EAB-002 latest](./history/EAB-2026-08-06-002/RUN-REPORT.md) · [EAB-001 baseline](./history/EAB-2026-08-06-001/RUN-REPORT.md) |
 
 ---
 
@@ -73,9 +76,9 @@ Enterprise Audit Board
 | **v1** | [PRINCIPAL-AUDIT-BOARD-2026-08-06.md](../PRINCIPAL-AUDIT-BOARD-2026-08-06.md) | Engineering Pre-Launch Board — **current-state results** (Production GA **NO-GO**) |
 | **v2** | Historical single-file charter (preserved as pointer: [ENTERPRISE-AUDIT-BOARD-V2.md](../ENTERPRISE-AUDIT-BOARD-V2.md)) | First full-root methodology (~39 axes) — charter only |
 | **v2.1** | Pack `enterprise-audit-board/` (docs 01–09) | SalesOS institutional reference + mandatory axes 40–43 |
-| **v2.2** | **This pack** (+ 10–12, `history/`) | AQLIYA continuous governance **standard capability**: Maturity + KPIs + History (axes 40–43 remain mandatory) |
+| **v2.2** | **This pack** (+ 10–12, `history/`) | continuous governance **standard capability**: Maturity + KPIs + History (axes 40–43 remain mandatory) |
 
-**Results sibling (do not confuse with methodology):** Principal Board 2026-08-06 remains the authoritative **executed** pre-launch engineering verdict until a dated Enterprise Board **run** is approved and completed.
+**Results:** Latest verification [EAB-2026-08-06-002](./history/EAB-2026-08-06-002/RUN-REPORT.md) is the authoritative **Enterprise Board** post-remediation verdict (still **production no-go**; OPS-01 Deferred). Baseline [EAB-2026-08-06-001](./history/EAB-2026-08-06-001/RUN-REPORT.md) remains the first pack run. Principal Board 2026-08-06 remains the **sibling** engineering pre-launch scorecard (not an `EAB-*` history row).
 
 ---
 
@@ -118,4 +121,4 @@ Audit wins over bible maturity claims for GO/NO-GO. Standing classification unti
 
 ---
 
-*Enterprise Audit Board v2.2 — AQLIYA continuous governance standard capability / SalesOS institutional reference. Framework ready. Axes not executed. Board run awaits approval.*
+*Enterprise Audit Board v2.2 — continuous governance standard capability / SalesOS institutional reference. Framework ready. First run EAB-2026-08-06-001 executed (production no-go).*

@@ -3,7 +3,7 @@
 **IDs:** PROD-W13-001 · Sprint-26 GA cutover prep  
 **Status:** **DRAFT LANDED** — not executed · **not Production GO** · human sign-off **residual**  
 **Authority:** [docs/audit/ga-engineering-audit/](../audit/ga-engineering-audit/) → **production no-go**  
-**Product scope:** SalesOS GA candidate only (not AQLIYA multi-product GA)  
+**Product scope:** SalesOS GA candidate only (not multi-product GA)  
 **Draft date:** 2026-08-03
 
 > AI assists. Humans decide. Evidence governs.  

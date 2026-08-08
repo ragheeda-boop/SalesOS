@@ -2,7 +2,7 @@
 
 > **Status:** **SUPERSEDED** by [`DEC-016-RAILWAY-R14-OPTION-A.md`](DEC-016-RAILWAY-R14-OPTION-A.md)  
 > **Date:** 2026-08-01 (draft); Accepted Option A executed 2026-08-01  
-> **Board:** Architecture Review Board + Risk Manager (SalesOS / AQLIYA program)  
+> **Board:** Architecture Review Board + Risk Manager (SalesOS program)  
 > **Stop condition:** Cleared — S04-04 **CLOSED** under DEC-016 (Railway staging + production §14 + bypass-probe + health evidence).  
 > **Authority chain:** `RISK_REGISTER.md` R-14 → DEC-013 / DEC-014 / DEC-015 → DEC-008 → this package → human accept Option A → **DEC-016**.
 

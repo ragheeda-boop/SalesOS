@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — CI-14 **CLOSED** (revised AC)  
 > **Date:** 2026-08-01  
-> **Board:** Frontend / Deps (SalesOS / AQLIYA)  
+> **Board:** Frontend / Deps (SalesOS)  
 > **Story / risk:** CI-14 / R-18  
 > **Authority:** DEC-018 (story register) · DEC-062 (plan) · DEC-063 Slice 1 PASS · DEC-072 Slice 2 PASS · DEC-100 Slice 3 STOP (executive alternate) · DEC-035 / DEC-077 Stage 3 field **0** · DEC-107 (swarm: prefer READY work during GHCR wait)  
 > **Out of scope this land:** package/lock bumps · Jest 30 execute · Next/React majors · `npm audit --force` · CI-08 GHCR · CI-19 reopen · CI-22 · Railway · DEC-085 `set_config`

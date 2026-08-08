@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-22  
 **ID:** PROD-W10-002  
-**Product:** SalesOS (AQLIYA platform intent; code under `salesos/`)  
+**Product:** SalesOS (platform intent; code under `salesos/`)  
 **Environment:** Local Docker Compose **NON-PROD only**  
 **Validation class:** **light validated** (local only) — **does not equal production GO**  
 **Related runbook:** [runbooks/backup-restore-drill.md](./runbooks/backup-restore-drill.md)

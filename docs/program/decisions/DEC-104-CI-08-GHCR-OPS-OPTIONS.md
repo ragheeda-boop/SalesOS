@@ -2,7 +2,7 @@
 
 > **Status:** **Accepted** — recommended program path (**Option A** preferred; interim **Option D** honesty)  
 > **Date:** 2026-08-01  
-> **Board:** DevOps-SRE / Program (SalesOS / AQLIYA)  
+> **Board:** DevOps-SRE / Program (SalesOS)  
 > **Story / risk:** CI-08 (P0 BLOCKED) / CI-09 (P2 BLOCKED) / **R-17**  
 > **Authority:** Sprint 04 triage #15/#16 · board CI-08 · Stage 6 field evidence run `30690622307` @ `927276f` · PRODUCTION_PLAN / staging runbooks (GHCR path)  
 > **Out of scope this land:** inventing GHCR credentials/tokens · editing `.env` · `continue-on-error` on push · force-push · git config · Stage 7 E2E implementation · Railway image promote · alternate registry cutover code

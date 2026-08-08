@@ -29,7 +29,7 @@ Applied 21 hardening fixes across 6 domains:
 ### Dependencies (3 fixes)
 - **Poetry unification (K4):** Docker images aligned to Poetry 2.4.1 (matches lock file). Added `poetry-core >=2.0` pin. Replaced `pip install poetry` with version-pinned install in Dockerfiles.
 - **Docker image pinning:** 5 services pinned from `:latest` to specific versions: `redis:7.4-alpine`, `postgres:16-alpine`, `grafana/grafana:11.6.0`, `prom/prometheus:v3.3.0`, `prom/alertmanager:v0.28.0`.
-- **Kafka version standardization:** All 4 compose files (`docker-compose.yml`, `docker-compose.dev.yml`, `docker-compose.test.yml`, `docker-compose.prod.yml`) standardized to `bitnami/kafka:3.6.2` (Kafka 3.6.2).
+- **Kafka version standardization:** Authoritative SalesOS compose files (`salesos/docker-compose.yml`, `salesos/docker-compose.prod.yml`, staging overlays, and related test compose) standardized to **`confluentinc/cp-kafka:7.7.2`** (with matching `cp-zookeeper` / `cp-schema-registry:7.7.2`). *(Prior draft text incorrectly cited `bitnami/kafka:3.6.2` — corrected 2026-08-06 per EAB-001-P1-ADR-01 / live compose.)*
 
 ### Security (3 fixes)
 - **JWT algorithm unification (K5):** `.env.example` and `docker-compose.yml` updated to `JWT_ALGORITHM=RS256`. Added a startup validator in `backend/app/config.py` that rejects non-RS256 JWT algorithm values at boot.
@@ -81,10 +81,9 @@ Applied 21 hardening fixes across 6 domains:
 |------|--------|
 | `salesos/docker/backend/Dockerfile` | Poetry pinned to 2.4.1, `poetry-core>=2.0` |
 | `salesos/docker/frontend/Dockerfile` | Poetry pinned to 2.4.1 (if used) |
-| `salesos/docker-compose.yml` | Redis `:7.4-alpine`, Postgres `:16-alpine`, Grafana `:11.6.0`, Prometheus `:v3.3.0`, Alertmanager `:v0.28.0` |
-| `salesos/docker-compose.dev.yml` | Kafka standardized to `3.6.2` |
-| `salesos/docker-compose.test.yml` | Kafka standardized to `3.6.2` |
-| `salesos/docker-compose.prod.yml` | Kafka standardized to `3.6.2` |
+| `salesos/docker-compose.yml` | Image pins (Redis/Postgres/Grafana/Prometheus/Alertmanager) + Kafka `confluentinc/cp-kafka:7.7.2` (+ zk/schema-registry 7.7.2) |
+| `salesos/docker-compose.test.yml` | Kafka aligned to Confluent 7.7.2 family where present |
+| `salesos/docker-compose.prod.yml` | Kafka `confluentinc/cp-kafka:7.7.2` |
 
 ### Security
 | File | Change |
